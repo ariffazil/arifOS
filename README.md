@@ -53,6 +53,13 @@ print("Verdict:", verdict)  # "SEAL", "PARTIAL", or "VOID"
 
 It wraps ANY LLM, agent, or workflow to enforce truth, stability, empathy, and integrity at runtime.
 
+### 1.1 📜 Governance Documents
+
+For full governance guarantees and constitutional rules:
+
+- **[LAW.md](LAW.md)** — The ArifOS Constitution (ΔΩΨ physics, AAA Trinity, W@W organs, floors, pipeline).  
+- **[CHARTER.md](CHARTER.md)** — The Compliance Charter (immutable invariants required to claim “ArifOS v33Ω Compliant”).
+
 ---
 
 ## 2. Core Ideas
