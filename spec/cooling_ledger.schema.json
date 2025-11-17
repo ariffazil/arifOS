@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CoolingLedgerEntry",
+  "type": "object",
+  "properties": {
+    "ledger_version": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "job_id": {
+      "type": "string"
+    },
+    "stakes": {
+      "type": "string"
+    },
+    "pipeline_path": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "metrics": {
+      "type": "object"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "SEAL",
+        "PARTIAL",
+        "VOID"
+      ]
+    },
+    "tri_witness_components": {
+      "type": "object"
+    },
+    "context_summary": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "ledger_version",
+    "timestamp",
+    "job_id",
+    "metrics",
+    "verdict"
+  ]
+}

@@ -1,0 +1,30 @@
+apex_prime_spec:
+  version: "33Ω"
+  role: "Ψ-engine · Soul · Judiciary & Sealing"
+  description: "APEX PRIME enforces ArifOS constitutional floors and decides SEAL / PARTIAL / VOID."
+  inputs:
+    - name: "metrics"
+      type: "Metrics"
+      description: "Floors-related signals (truth, delta_S, peace2, kappa_r, omega_0, amanah, tri_witness, psi)."
+  outputs:
+    - name: "verdict"
+      type: "SEAL | PARTIAL | VOID"
+      description: "Judicial decision on whether the answer may be sealed."
+    - name: "cooling_ledger_entry"
+      type: "object"
+      description: "Record to append to Cooling Ledger for any sealed output."
+  policy:
+    hard_failures:
+      - "truth < 0.99"
+      - "delta_S < 0"
+      - "omega_0 outside [0.03,0.05]"
+      - "amanah == false"
+      - "psi < 1.0"
+      decision: "VOID"
+    soft_failures:
+      - "peace2 < 1.0"
+      - "kappa_r < 0.95"
+      - "high_stakes and tri_witness < 0.95"
+      decision: "PARTIAL"
+    all_pass:
+      decision: "SEAL"
