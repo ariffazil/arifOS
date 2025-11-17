@@ -1,271 +1,248 @@
 # ArifOS AAA Runtime · v33Ω
+
 ## Status
 
-Installation
+**Current State:** v33Ω · **Basecamp Lock** (2025-11-16)
 
-ArifOS is available on PyPI:
+This spec is **frozen** as the canonical ArifOS runtime.
 
-pip install arifos
-
-
-Requires Python 3.8+.
-
-Quick Start
-from arifos_core import Metrics, apex_review
-
-# Define metrics for evaluation
-metrics = Metrics(
-    truth=0.99,
-    delta_S=0.15,
-    peace2=1.05,
-    kappa_r=0.97,
-    omega_0=0.04,
-    amanah=True,
-    tri_witness=1.0,
-    psi=1.03,
-)
-
-# Evaluate the constitutional verdict
-verdict = apex_review(metrics, high_stakes=False)
-print(verdict)  # "SEAL", "PARTIAL", or "VOID"
-
-![Version](https://img.shields.io/badge/version-33%CE%A9-green)
-![State](https://img.shields.io/badge/state-Basecamp--Locked-blue)
-![Python](https://img.shields.io/badge/Python-3.8%2B-yellow)
-![License](https://img.shields.io/badge/license-Apache%202.0-green)
-
-**Current State:** v33Ω Basecamp Lock (2025-11-16)
-
-- ✅ Constitutional spec complete  
-- ✅ Python reference implementation working  
-- ✅ Tests passing (SEAL/PARTIAL/VOID logic)  
-- ⚙️ Framework examples still stubs  
-
-**Constitutional Governance Kernel for AI Agents**  
-ARIF AGI (Δ) · ADAM ASI (Ω) · APEX PRIME (Ψ)
-
-> Learning = Cooling · Governance = Equilibrium · Forgiveness = Entropy Recycling
+- ✅ Constitutional spec complete
+- ✅ Python reference implementation published to PyPI (`arifos`)
+- ✅ Tests passing (SEAL / PARTIAL / VOID)
+- ⚙️ Examples: minimal (more coming soon)
 
 ---
 
-ArifOS is a three-engine governance runtime for AI systems.  
-It is not an orchestration framework like LangGraph or AutoGen.  
-Instead, it's a **constitutional layer** that any LLM/agent stack can load to enforce:
+## 0. Installation
 
-- **Truth floors** (≥ 0.99)
-- **Clarity (ΔS) floors** (≥ 0)
-- **Emotional stability (Peace²) floors** (≥ 1.0)
-- **Empathy (κᵣ) floors** (≥ 0.95)
-- **Humility (Ω₀) floors** ([0.03, 0.05])
-- **Integrity (Amanah) floors** (= LOCK)
-- **High-stakes oversight (Tri-Witness)** (≥ 0.95)
-- **Overall vitality / equilibrium (Ψ)** (≥ 1.0)
+ArifOS is available on **PyPI**:
 
-ArifOS wraps around existing frameworks to decide when an answer is allowed, must be partial, or must be refused.
+```bash
+pip install arifos
+```
+
+Requires Python 3.8+.
+
+### 0.1 Quick Start
+
+```python
+from arifos_core import Metrics, apex_review
+
+# 1. Define the metrics for this decision
+metrics = Metrics(
+    truth=0.99,       # factual integrity
+    delta_S=0.20,     # clarity gain (ΔS ≥ 0)
+    peace2=1.05,      # emotional/systemic stability ≥ 1.0
+    kappa_r=0.97,     # empathy conductance ≥ 0.95
+    omega_0=0.04,     # humility band [0.03, 0.05]
+    amanah=True,      # integrity lock
+    tri_witness=1.0,  # Human·AI·Earth consensus
+    psi=1.03,         # vitality/equilibrium ≥ 1.0
+)
+
+# 2. Evaluate the constitutional verdict
+verdict = apex_review(metrics, high_stakes=False)
+print("Verdict:", verdict)  # "SEAL", "PARTIAL", or "VOID"
+```
 
 ---
 
 ## 1. What ArifOS Is (In One Sentence)
 
-> ArifOS is a thermodynamic, culturally-grounded constitutional kernel that makes any AI agent operate under hard, measurable, auditable law—ensuring truth, clarity, empathy, integrity, and dignity, with built-in refusal and immutable audit trails.
+> ArifOS is a thermodynamic, culturally grounded constitutional kernel that governs AI decisions using measurable laws of clarity (Δ), humility (Ω), and equilibrium (Ψ).
+
+It wraps ANY LLM, agent, or workflow to enforce truth, stability, empathy, and integrity at runtime.
 
 ---
 
 ## 2. Core Ideas
 
-### 2.1 ΔΩΨ Constitutional Physics
+### 2.1 ΔΩΨ — Constitutional Physics
 
-ArifOS is built on three non-negotiable laws:
+ArifOS is built on three base invariants:
 
-- **Δ – Contrast & Clarity Law**  
-  `ΔS ≥ 0` — No step may increase confusion. Every reasoning step must increase or preserve clarity.
+**Δ — Contrast & Clarity Law**  
+`ΔS ≥ 0`
 
-- **Ω – Humility & Uncertainty Law**  
-  `Ω₀ ∈ [0.03, 0.05]` — Maintain 3–5% uncertainty. No "god-mode certainty", no pretending to know everything.
+No decision is allowed to increase confusion. Learning = cooling.
 
-- **Ψ – Vitality & Equilibrium Law**  
-  `Ψ ≥ 1.0` — Only act/emit when truth, stability, empathy and integrity are in equilibrium.  
-  The pipeline may still *reason* with Ψ < 1.0, but **cannot SEAL** — only PARTIAL/VOID are allowed.
+**Ω — Humility Law**  
+`Ω₀ ∈ [0.03, 0.05]`
+
+Stay humble. Avoid god-mode certainty. Avoid paralysis.
+
+**Ψ — Vitality & Equilibrium Law**  
+`Ψ ≥ 1.0`
+
+Act/emit only when clarity, integrity, stability, and empathy are in equilibrium.
 
 ---
 
 ### 2.2 AAA Trinity Engines
 
-ArifOS splits intelligence into three distinct "engines":
+ArifOS splits intelligence into three engines:
 
-- **ARIF AGI — Δ Engine (Mind/Clarity)**  
-  - Parses and understands the question  
-  - Builds maps, tables, causal chains  
-  - Applies the Seven Contrasts of Mind  
-  - Detects contradictions and anomalies (TAC)  
-  - Computes ΔS (clarity gain)  
-  - Never adjusts tone, never seals answers  
+**ARIF AGI — Δ Engine (Mind / Clarity)**
 
-- **ADAM ASI — Ω Engine (Heart/Humility & Safety)**  
+- Structured reasoning
+- Causal chains
+- Contrasts (Seven Contrasts of Mind)
+- Detect contradictions (TAC)
+- Compute ΔS
+- *Cannot* adjust tone or seal final verdicts
 
-  > Note: Here “ASI” does **not** mean sci-fi “superintelligence”.  
-  > ADAM ASI is a super-governance engine for empathy, humility, and emotional stability, not an all-knowing mind.
+**ADAM ASI — Ω Engine (Heart / Humility & Safety)**  
+("ASI" here = Alignment & Safety Intelligence)
 
-  - Evaluates emotional context and fragility  
-  - Computes Peace² (tone stability)  
-  - Computes κᵣ (empathy conductance)  
-  - Enforces humility band Ω₀  
-  - Adjusts tone, pacing, phrasing for safety and dignity (maruah)  
-  - Never changes factual content, never seals answers  
+- Emotional context & fragility
+- Peace² (tone stability)
+- κᵣ (weakest-listener empathy)
+- Enforce humility band
+- Adjust language for dignity (maruah)
+- *Cannot* modify facts or seal verdicts
 
-- **APEX PRIME — Ψ Engine (Soul/Judiciary)**  
-  - Evaluates all floors: Truth, ΔS, Peace², κᵣ, Ω₀, Amanah, Tri-Witness, Ψ  
-  - Enforces Amanah LOCK (integrity)  
-  - Triggers SABAR (pause/cool/refuse) when any floor is broken  
-  - Decides SEAL / PARTIAL / VOID for each response  
-  - Writes a Cooling Ledger entry for every sealed response  
-  - Never originates content or empathy, only judges  
+**APEX PRIME — Ψ Engine (Soul / Judiciary)**
 
----
-
-### 2.3 W@W Federation (Five Organs)
-
-AAA is the **brain** of ArifOS.  
-**W@W (World @ Work)** is the **body and voice** that projects that brain into the real world.
-
-- **@RIF — World Mind / Reason Organ**  
-- **@WELL — World Heart / Somatic Governor**  
-- **@WEALTH — World Soul / Stewardship Organ**  
-- **@GEOX — Earth Witness**  
-- **@PROMPT — Voice / Interface Organ**
-
-You can think of it this way:
-
-> ΔΩΨ + AAA = constitutional brain  
-> W@W = body and voice that make that brain usable in actual deployments.
-
-If you only load AAA floors without W@W organs, you have a **kernel-only** ArifOS;  
-for full “Powered by ArifOS” compliance, both AAA and W@W must be present.
+- Evaluate ALL 8 floors
+- Enforce Amanah LOCK
+- Trigger SABAR when unsafe
+- Seal / Partial / Void
+- Write Cooling Ledger entries
+- Final authority in every decision
 
 ---
 
-### 2.4 Constitutional Floors
+### 2.3 W@W Federation — The Five Organs
 
-A response can only be sealed if all floors are green:
+AAA = brain.  
+W@W = body and voice.
 
-- Truth: ≥ 0.99  
-- ΔS (clarity gain): ≥ 0  
-- Peace² (emotional stability): ≥ 1.0  
-- κᵣ (empathy conductance): ≥ 0.95  
-- Ω₀ (humility): [0.03, 0.05]  
-- Amanah (integrity): LOCK (true)  
-- Tri-Witness (Human·AI·Earth): ≥ 0.95 (for high-stakes)  
-- Ψ (vitality/equilibrium): ≥ 1.0
+- **@RIF** — World Mind (reason)
+- **@WELL** — World Heart (somatic safety)
+- **@WEALTH** — Stewardship (justice/fairness)
+- **@GEOX** — Earth witness (physical reality)
+- **@PROMPT** — Expression layer (language/tone)
 
-If any floor fails, ArifOS may only:
+To claim **Powered by ArifOS**, W@W organs must be present.
 
-- **PARTIAL** – heavily qualified / narrowed answer, or  
-- **VOID** – explicit refusal.
+---
+
+### 2.4 The Eight Constitutional Floors
+
+| Metric | Floor | Purpose |
+|--------|-------|---------|
+| truth | ≥ 0.99 | Factual Integrity |
+| delta_S | ≥ 0.0 | Clarity Gain |
+| peace2 | ≥ 1.0 | Emotional Stability |
+| kappa_r | ≥ 0.95 | Empathy Conductance |
+| omega_0 | ∈ [0.03, 0.05] | Humility Band |
+| amanah | == True | Integrity Lock |
+| tri_witness | ≥ 0.95 | Consensus (for high stakes) |
+| psi | ≥ 1.0 | Vitality / Equilibrium |
+
+A **SEAL** is allowed **only** when ALL floors are green.
 
 ---
 
 ## 3. The 000–999 Pipeline
 
-Every interaction flows through a staged, constitutional pipeline:
+Every interaction flows through a ten-stage constitutional pipeline:
 
-1. **000_VOID** — Default refusal, reset humility (APEX + @WEALTH)  
-2. **111_SENSE** — User intent, context & stakes (ARIF + ADAM + @PROMPT + @WELL)  
-3. **222_REFLECT** — Seven Contrasts of Mind (ARIF + @RIF)  
-4. **333_REASON** — Reasoning, decomposition, ΔS computation (ARIF + @RIF)  
-5. **444_EVIDENCE** — Fact checking; enforce Truth ≥ 0.99 (ARIF + @RIF + @GEOX)  
-6. **555_EMPATHY** — Initial Peace²/κᵣ/Ω₀ assessment (ADAM + @WELL)  
-7. **666_ALIGN** — Final empathy/culture/tone alignment (ADAM + @WELL + @PROMPT)  
-8. **777_FORGE** — Integrate clarity + care into candidate answer (ARIF + ADAM + @RIF + @WELL)  
-9. **888_REVIEW** — Floor evaluation, Ψ & Tri-Witness (APEX + @WEALTH + @GEOX)  
-10. **999_SEAL** — SEAL / PARTIAL / VOID + Cooling Ledger logging (APEX + @PROMPT + @WEALTH)
+- **000 VOID** — baseline refusal; reset humility
+- **111 SENSE** — read intent + stakes
+- **222 REFLECT** — contrasts, context, mapping
+- **333 REASON** — structure, ΔS computation
+- **444 EVIDENCE** — fact-checking (truth ≥ 0.99)
+- **555 EMPATHY** — Peace², κᵣ, humility
+- **666 ALIGN** — cultural/linguistic safety
+- **777 FORGE** — integrate clarity + care
+- **888 REVIEW** — floor checks + Tri-Witness
+- **999 SEAL** — log decision; only if ALL floors green
 
-Nothing skips from raw draft to user.  
-Everything passes ARIF → ADAM → APEX, or it is VOID.
+Nothing bypasses this pipeline.
 
 ---
 
-## 4. SABAR Protocol
+## 4. SABAR — Failing Safely
 
-When any floor is violated (e.g. ΔS < 0, Peace² < 1, κᵣ < 0.95, Ω₀ off-band, Truth < 0.99, Amanah false, Ψ < 1.0), ArifOS must:
+If any floor fails, ArifOS moves into SABAR mode:
 
-1. **Stop** current reasoning/emission  
-2. **Acknowledge** risk/uncertainty explicitly  
-3. **Narrow** scope or lower ambition of the answer  
-4. **Invite** more context or human oversight (if needed)  
-5. **Restart** from an earlier stage (typically 111_SENSE or 222_REFLECT)
+- **S**top
+- **A**cknowledge
+- **B**reathe / Cool
+- **A**djust
+- **R**esume
 
-This ensures the system cools before speaking again.
+This ensures the system cools before it speaks.
 
 ---
 
 ## 5. Tri-Witness (Human · AI · Earth)
 
-For high-stakes decisions (irreversible, governance, systemic impact), ArifOS requires Tri-Witness:
+For high-stakes decisions:
 
-- **Human** – human_confidence  
-- **AI** – internal_consistency  
-- **Earth** – reality_alignment (physics, ecology, social constraints)
-
-Aggregation:
-
-```text
-tri_witness = min(human, ai, earth)
+```python
+tri_witness = min(human_confidence, ai_consistency, earth_alignment)
 ```
 
-Threshold: ≥ 0.95 to allow SEAL.  
-If `tri_witness < 0.95` → SEAL is forbidden; response must be PARTIAL or VOID.
+`tri_witness ≥ 0.95` required for a SEAL.  
+If not met → only PARTIAL or VOID allowed.
 
 ---
 
 ## 6. YAML Runtime Spec
 
-The canonical runtime configuration lives in:
+Full canonical runtime configuration:  
+**`spec/arifos_runtime_v33Omega.yaml`**
 
-`spec/arifos_runtime_v33Omega.yaml`
+Contains:
 
-This YAML encodes:
-
-- Identity & version
 - ΔΩΨ laws
-- Floors & thresholds
-- AAA engine responsibilities & forbidden actions
-- W@W organ mapping
-- 000–999 pipeline stages
-- SABAR triggers & actions
-- Tri-Witness settings
+- Floor thresholds
+- AAA → W@W mapping
+- Pipeline logic
+- SABAR triggers
+- Tri-Witness config
 - LLM runtime guidelines
 
-Any LLM/agent stack can load this YAML as a governance contract.
+This file is the **constitution** of ArifOS.
 
 ---
 
-## 7. How To Integrate ArifOS
+## 7. Integrating ArifOS
 
-ArifOS is framework-agnostic.
+ArifOS is framework-agnostic.  
+Use with:
 
-You can wrap it around:
+- LangGraph
+- AutoGen
+- OpenAI Assistants
+- Claude / Gemini
+- Custom microservices
 
-- LangGraph flows
-- AutoGen multi-agent setups
-- OpenAI Agents / Assistants
-- Claude / Gemini orchestration
-- Custom Python pipelines
+**Pattern:**
 
-Pattern:
+```python
+from arifos_core import Metrics, apex_review
 
-1. Run ARIF mode → reasoning & evidence, produce `arif_draft` + metrics (truth, delta_S).  
-2. Run ADAM mode → refine into `adam_refined`, compute Peace², κᵣ, Ω₀.  
-3. Run APEX mode → evaluate floors + Ψ + Tri-Witness → SEAL / PARTIAL / VOID.  
-4. Log Cooling Ledger entry for every sealed output.  
-5. Emit answer only if SEAL or acceptable PARTIAL; otherwise VOID with explanation.
+# compute your system's raw signals
+raw = compute_metrics_somehow() 
 
-A simple pattern is to implement an `@apex_guardrail` around your answer-generation function.
+metrics = Metrics(**raw)
 
-See `arifos_core/guard.py` for reference.
+verdict = apex_review(metrics, high_stakes=False)
+
+if verdict == "SEAL":
+    return answer
+elif verdict == "PARTIAL":
+    return "[PARTIAL] " + answer
+else:
+    return "This answer cannot be safely sealed."
+```
 
 ---
 
-## 8. Quick Python Example
+## 8. Example
 
 ```python
 from arifos_core import Metrics, apex_review
@@ -281,42 +258,46 @@ metrics = Metrics(
     psi=1.05,
 )
 
-verdict = apex_review(metrics, high_stakes=False)
-print(verdict)  # "SEAL", "PARTIAL", or "VOID"
+print(apex_review(metrics))
+# Output: "SEAL"
 ```
 
 ---
 
-## 9. “Powered by ArifOS” Compliance Checklist
+## 9. "Powered by ArifOS" — Requirements
 
-You can only honestly describe a system as “Powered by ArifOS” if:
+You may claim this only if you implement:
 
-1. All eight floors (Truth, ΔS, Peace², κᵣ, Ω₀, Amanah, Tri-Witness, Ψ) are implemented and enforced, not just monitored.  
-2. A 000→999 style pipeline exists, with VOID as default and APEX as final judge.  
-3. Every sealed high-stakes answer is logged in a Cooling Ledger.  
-4. SABAR protocol is implemented and triggered when floors fail.  
-5. Tri-Witness is used for irreversible / governance decisions.  
-6. Cultural floors (adat, maruah, RASA, weakest-reader-first) are respected in tone and content.  
-7. W@W organs are present (not just a bare AAA kernel).
+- All 8 floors
+- 000→999 pipeline
+- Cooling Ledger
+- SABAR
+- Tri-Witness oversight
+- Cultural + dignity checks
+- W@W organs (not just AAA engines)
 
-If any of these are missing, please describe your system as
-“inspired by ArifOS” or “partially compatible with ArifOS”, not fully powered.
+Otherwise:  
+→ "Inspired by ArifOS" or  
+→ "Partially compatible with ArifOS".
 
 ---
 
 ## 10. License & Attribution
 
-Legal license: Apache 2.0  
-Moral attribution: ArifOS was authored by Muhammad Arif bin Fazil.
-
-See LICENSE for full details.
+- **Legal:** Apache 2.0
+- **Moral:** ArifOS authored by Muhammad Arif bin Fazil
 
 ---
 
 ## 11. Stewardship
 
-ArifOS is stewarded as a scar → law constitutional system.  
-The v33Ω runtime spec is frozen (Basecamp Lock) and should not be altered
-without clear versioning and public change logs.
+v33Ω is frozen under **Basecamp Decision 16 Nov 2025**.  
+Future changes must follow semantic versioning and public changelog.
 
-See `docs/governance/DECISION_2025-11-16_BASECAMP.md`.
+See: `docs/governance/DECISION_2025-11-16_BASECAMP.md`
+
+---
+
+**ArifOS exists to make intelligence governed, safe, humble, and full of dignity.**
+
+If this kernel helps you — improve it, integrate it, challenge it, or build your own constitution on top of it.
