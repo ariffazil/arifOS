@@ -1,7 +1,9 @@
 from typing import Literal, List
 from .metrics import Metrics, FloorsVerdict
 
+# Type alias for APEX verdicts
 ApexVerdict = Literal["SEAL", "PARTIAL", "VOID"]
+Verdict = ApexVerdict  # Alias for backwards compatibility
 
 def check_floors(
     metrics: Metrics,
@@ -88,3 +90,45 @@ def apex_review(
     if not floors.soft_ok:
         return "PARTIAL"
     return "SEAL"
+
+
+class APEXPrime:
+    """
+    APEX PRIME constitutional judge.
+    
+    Provides stateful judgment interface for constitutional compliance.
+    """
+    
+    def __init__(
+        self,
+        high_stakes: bool = False,
+        tri_witness_threshold: float = 0.95,
+    ):
+        self.high_stakes = high_stakes
+        self.tri_witness_threshold = tri_witness_threshold
+    
+    def judge(self, metrics: Metrics) -> ApexVerdict:
+        """Judge constitutional compliance and return verdict."""
+        return apex_review(
+            metrics,
+            high_stakes=self.high_stakes,
+            tri_witness_threshold=self.tri_witness_threshold,
+        )
+    
+    def check(self, metrics: Metrics) -> FloorsVerdict:
+        """Check all floors and return detailed verdict."""
+        return check_floors(
+            metrics,
+            tri_witness_required=self.high_stakes,
+            tri_witness_threshold=self.tri_witness_threshold,
+        )
+
+
+# ——————————————————— PUBLIC EXPORTS ——————————————————— #
+__all__ = [
+    "ApexVerdict",
+    "Verdict",
+    "apex_review",
+    "check_floors",
+    "APEXPrime",
+]

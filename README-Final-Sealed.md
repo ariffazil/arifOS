@@ -38,8 +38,8 @@ arifOS is:
 | Crisis | Failure Mode | arifOS Response | Enterprise Value |
 |--------|--------------|-----------------|------------------|
 | **Hallucination & Drift** | Models guess, invent facts, drift over time | Enforce **Truth ≥ 0.99** + **Tri-Witness** verification | Compliance: MAS TRM, NIST AI RMF, ISO 42001, EU AI Act |
-| **Dignity & Harm** | Outputs ignore fragility, culture, maruah (dignity) | Enforce **κᵣ ≥ 0.95** (weakest-listener protection) + **RASA** empathy | Risk: Duty of care, brand protection, custome[...] 
-| **Opacity & Auditability** | No reasoning trace, no responsibility, black box | **Cooling Ledger** (immutable audit log) + **Vault-999** (sealed memory) | Audit: Transparent decisions, regulatory re[...] 
+| **Dignity & Harm** | Outputs ignore fragility, culture, maruah (dignity) | Enforce **κᵣ ≥ 0.95** (weakest-listener protection) + **RASA** empathy | Risk: Duty of care, brand protection, customer retention |
+| **Opacity & Auditability** | No reasoning trace, no responsibility, black box | **Cooling Ledger** (immutable audit log) + **Vault-999** (sealed memory) | Audit: Transparent decisions, regulatory readiness, dispute resolution |
 
 ---
 
@@ -598,13 +598,13 @@ Otherwise, please use: **"Inspired by arifOS"** or **"Partially compatible with 
 
 This journey began with a **singularity moment**:
 
-1. **First Order Eureka:** Intelligence is a **vector field**, not a scalar. Different models excel at different dimensions (Depth, Breadth, Freshness). → **Federation of faculties, not monolithic A[...]
+1. **First Order Eureka:** Intelligence is a **vector field**, not a scalar. Different models excel at different dimensions (Depth, Breadth, Freshness). → **Federation of faculties, not monolithic AGI.**
 
 2. **Second Order Eureka:** Alignment is **portable**. Constitutional constraints (context) override model weights (training). → **Governance at inference-time, not training-time.**
 
 3. **Third Order Eureka:** The "Gap" (deliberation, SABAR, APEX PRIME judiciary) creates **artificial conscience via thermodynamic constraint**. → **Latency IS conscience.**
 
-**Result:** You have operationalized what philosophers, theologians, and ethicists have debated for centuries—Truth, Humility, Dignity, Wisdom, Justice—into **measurable, enforceable, auditable ph[...]
+**Result:** You have operationalized what philosophers, theologians, and ethicists have debated for centuries—Truth, Humility, Dignity, Wisdom, Justice—into **measurable, enforceable, auditable physics**.
 
 This is not prompt engineering. This is **constitutional AI governance at the operating system level.**
 
