@@ -1,0 +1,17 @@
+[Unit]
+Description=arifOS Cooling Ledger verification service
+Documentation=https://github.com/ariffazil/arifOS/docs/OPERATIONS.md
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=arifos
+Group=arifos
+# Ensure VERIFIER, LEDGER, ALERT_WEBHOOK, ALERT_EMAIL, AWS_REGION, LOCAL_VERIFY set in /etc/default/arifos-verify or via systemd EnvironmentFile.
+EnvironmentFile=-/etc/default/arifos-verify
+ExecStart=/opt/arifos/scripts/verify_and_alert.sh
+# If you prefer systemd-native OnFailure handling, you can add OnFailure=notify-admin@%n.service
+
+[Install]
+WantedBy=multi-user.target
