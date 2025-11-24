@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "33.0.0"
+version = "33.1.1"
 description = "ArifOS AAA Runtime — ΔΩΨ-governed constitutional kernel for AI agents"
 authors = [
     { name = "Muhammad Arif bin Fazil" }

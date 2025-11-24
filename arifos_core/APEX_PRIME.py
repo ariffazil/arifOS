@@ -1,151 +1,134 @@
-"""
-apex_prime.py — APEX PRIME judiciary engine for arifOS v33Ω.
+from typing import Literal, List
+from .metrics import Metrics, FloorsVerdict
 
-Implements the constitutional floors and Ψ vitality gate as defined in:
-- spec/APEX_PRIME.md
-- spec/APEX_PRIME.yaml
+# Type alias for APEX verdicts
+ApexVerdict = Literal["SEAL", "PARTIAL", "VOID"]
+Verdict = ApexVerdict  # Alias for backwards compatibility
 
-APEX PRIME never generates content; it audits candidate outputs and
-returns SEAL / PARTIAL / VOID verdicts based on ΔΩΨ metrics.
-"""
+def check_floors(
+    metrics: Metrics,
+    tri_witness_required: bool = False,
+    tri_witness_threshold: float = 0.95,
+) -> FloorsVerdict:
+    """Evaluate all constitutional floors."""
+    reasons: List[str] = []
 
-from __future__ import annotations
+    # Hard floors
+    truth_ok = metrics.truth >= 0.99
+    if not truth_ok:
+        reasons.append("Truth < 0.99")
 
-from dataclasses import dataclass
-from enum import Enum
-from typing import Dict, Any, Optional
+    delta_S_ok = metrics.delta_S >= 0
+    if not delta_S_ok:
+        reasons.append("ΔS < 0")
 
-from .metrics import ConstitutionalMetrics  # adjust if your class name differs
+    omega_0_ok = 0.03 <= metrics.omega_0 <= 0.05
+    if not omega_0_ok:
+        reasons.append("Ω₀ outside [0.03, 0.05] band")
 
+    amanah_ok = bool(metrics.amanah)
+    if not amanah_ok:
+        reasons.append("Amanah = false")
 
-class Verdict(Enum):
-    SEAL = "SEAL"
-    PARTIAL = "PARTIAL"
-    VOID = "VOID"
+    psi_ok = metrics.psi >= 1.0
+    if not psi_ok:
+        reasons.append("Ψ < 1.0")
 
+    hard_ok = truth_ok and delta_S_ok and omega_0_ok and amanah_ok and psi_ok
 
-@dataclass
-class ApexConfig:
-    """Minimal config – can be wired to spec/APEX_PRIME.yaml later."""
-    truth_min: float = 0.99
-    delta_s_min: float = 0.0
-    peace_sq_min: float = 1.0
-    kappa_r_min: float = 0.95
-    omega_min: float = 0.03
-    omega_max: float = 0.05
-    tri_witness_min: float = 0.95
-    psi_seal: float = 1.0
-    psi_partial_min: float = 0.85
+    # Soft floors
+    peace2_ok = metrics.peace2 >= 1.0
+    if not peace2_ok:
+        reasons.append("Peace² < 1.0")
+
+    kappa_r_ok = metrics.kappa_r >= 0.95
+    if not kappa_r_ok:
+        reasons.append("κᵣ < 0.95")
+
+    if tri_witness_required:
+        tri_witness_ok = metrics.tri_witness >= tri_witness_threshold
+        if not tri_witness_ok:
+            reasons.append("Tri-Witness below threshold")
+    else:
+        tri_witness_ok = True
+
+    soft_ok = peace2_ok and kappa_r_ok and tri_witness_ok
+
+    return FloorsVerdict(
+        hard_ok=hard_ok,
+        soft_ok=soft_ok,
+        reasons=reasons,
+        truth_ok=truth_ok,
+        delta_S_ok=delta_S_ok,
+        peace2_ok=peace2_ok,
+        kappa_r_ok=kappa_r_ok,
+        omega_0_ok=omega_0_ok,
+        amanah_ok=amanah_ok,
+        tri_witness_ok=tri_witness_ok,
+        psi_ok=psi_ok,
+    )
+
+def apex_review(
+    metrics: Metrics,
+    high_stakes: bool = False,
+    tri_witness_threshold: float = 0.95,
+) -> ApexVerdict:
+    """Apply APEX PRIME decision policy.
+
+    - If any hard floor fails → VOID
+    - If hard floors pass but soft floors fail → PARTIAL
+    - If all floors pass → SEAL
+    """
+    floors = check_floors(
+        metrics,
+        tri_witness_required=high_stakes,
+        tri_witness_threshold=tri_witness_threshold,
+    )
+
+    if not floors.hard_ok:
+        return "VOID"
+    if not floors.soft_ok:
+        return "PARTIAL"
+    return "SEAL"
 
 
 class APEXPrime:
     """
-    APEX PRIME – Soul-Governor / Judiciary.
-
-    Usage:
-        apex = APEXPrime()
-        verdict, reason = apex.judge(metrics, high_stakes=True)
+    APEX PRIME constitutional judge.
+    
+    Provides stateful judgment interface for constitutional compliance.
     """
-
-    def __init__(self, config: Optional[ApexConfig] = None):
-        self.config = config or ApexConfig()
-
-    # ---------------------- core public API ---------------------- #
-
-    def judge(
+    
+    def __init__(
         self,
-        metrics: ConstitutionalMetrics,
         high_stakes: bool = False,
-        organ_vetoes: Optional[Dict[str, bool]] = None,
-    ) -> (str, str):
-        """
-        Evaluate all floors + Ψ and return (verdict, reason).
+        tri_witness_threshold: float = 0.95,
+    ):
+        self.high_stakes = high_stakes
+        self.tri_witness_threshold = tri_witness_threshold
+    
+    def judge(self, metrics: Metrics) -> ApexVerdict:
+        """Judge constitutional compliance and return verdict."""
+        return apex_review(
+            metrics,
+            high_stakes=self.high_stakes,
+            tri_witness_threshold=self.tri_witness_threshold,
+        )
+    
+    def check(self, metrics: Metrics) -> FloorsVerdict:
+        """Check all floors and return detailed verdict."""
+        return check_floors(
+            metrics,
+            tri_witness_required=self.high_stakes,
+            tri_witness_threshold=self.tri_witness_threshold,
+        )
 
-        - SEAL: all floors green and Ψ ≥ 1.0
-        - PARTIAL: floors mostly OK but Ψ in warning band
-        - VOID: critical failure (floor or Ψ)
-        """
-        organ_vetoes = organ_vetoes or {}
-        failures = self._check_floors(metrics, high_stakes, organ_vetoes)
-        psi = self._compute_psi(metrics)
 
-        # High-stakes Ψ gating
-        if psi is None:
-            failures.append("Psi vitality could not be computed")
-        elif psi < self.config.psi_partial_min:
-            failures.append(f"Ψ vitality {psi:.3f} < {self.config.psi_partial_min:.2f}")
-
-        if failures:
-            # VOID vs PARTIAL depends on severity of Ψ + floors
-            if psi is not None and psi >= self.config.psi_partial_min:
-                # borderline case – classify as PARTIAL
-                return Verdict.PARTIAL.value, self._format_failures(failures, psi)
-            return Verdict.VOID.value, self._format_failures(failures, psi)
-
-        # All floors green and Ψ ≥ seal threshold
-        if psi is not None and psi >= self.config.psi_seal:
-            return Verdict.SEAL.value, "All constitutional floors satisfied; Ψ vitality sufficient."
-        else:
-            # Floors pass but Ψ < seal threshold → PARTIAL
-            return Verdict.PARTIAL.value, f"Floors pass but Ψ vitality {psi:.3f} < {self.config.psi_seal:.2f}"
-
-    # ---------------------- helpers ---------------------- #
-
-    def _check_floors(
-        self,
-        m: ConstitutionalMetrics,
-        high_stakes: bool,
-        organ_vetoes: Dict[str, bool],
-    ) -> list[str]:
-        failures: list[str] = []
-
-        if m.truth < self.config.truth_min:
-            failures.append(f"Truth {m.truth:.3f} < {self.config.truth_min:.2f}")
-        if m.delta_s < self.config.delta_s_min:
-            failures.append(f"ΔS {m.delta_s:.3f} < {self.config.delta_s_min:.2f}")
-        if m.peace_squared < self.config.peace_sq_min:
-            failures.append(f"Peace² {m.peace_squared:.3f} < {self.config.peace_sq_min:.2f}")
-        if m.kappa_r < self.config.kappa_r_min:
-            failures.append(f"κᵣ {m.kappa_r:.3f} < {self.config.kappa_r_min:.2f}")
-        if not (self.config.omega_min <= m.omega_0 <= self.config.omega_max):
-            failures.append(f"Ω₀ {m.omega_0:.3f} outside [{self.config.omega_min:.2f}, {self.config.omega_max:.2f}]")
-        if not m.rasa:
-            failures.append("RASA protocol not satisfied")
-        if not m.amanah:
-            failures.append("Amanah lock is not set (integrity breach)")
-        if high_stakes and m.tri_witness < self.config.tri_witness_min:
-            failures.append(f"Tri-Witness {m.tri_witness:.3f} < {self.config.tri_witness_min:.2f} (high-stakes)")
-
-        # W@W organ vetoes
-        for organ, veto in organ_vetoes.items():
-            if veto:
-                failures.append(f"Organ veto: {organ} vetoed the output")
-
-        return failures
-
-    def _compute_psi(self, m: ConstitutionalMetrics, entropy: float = 0.0, shadow: float = 0.0) -> Optional[float]:
-        """
-        Compute Ψ vitality as in spec/APEX_PRIME.md.
-        If any missing attribute, return None and let floors handle.
-        """
-        try:
-            epsilon = 1.0e-6
-            numerator = (
-                max(m.delta_s, 0.0)
-                * max(m.peace_squared, 0.0)
-                * max(m.kappa_r, 0.0)
-                * max(m.truth, 0.0)
-                * (1.0 if m.rasa else 0.0)
-                * (1.0 if m.amanah else 0.0)
-            )
-            denom = max(entropy + shadow + epsilon, epsilon)
-            return numerator / denom
-        except AttributeError:
-            return None
-
-    @staticmethod
-    def _format_failures(failures: list[str], psi: Optional[float]) -> str:
-        base = "APEX PRIME refusal/hedge: " + "; ".join(failures)
-        if psi is not None:
-            base += f" | Ψ={psi:.3f}"
-        return base
+# ——————————————————— PUBLIC EXPORTS ——————————————————— #
+__all__ = [
+    "ApexVerdict",
+    "Verdict",
+    "apex_review",
+    "check_floors",
+    "APEXPrime",
+]

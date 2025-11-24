@@ -1,3 +1,17 @@
+## [33.1.1] - 2025-11-24 (CRITICAL HOTFIX)
+
+### Fixed
+- **CRITICAL**: Fixed circular import in guard.py preventing all package usage (v33.1.0 was completely broken)
+- Fixed case sensitivity bug in guard.py (apex_prime → APEX_PRIME)
+- Added missing `Verdict` type alias and `APEXPrime` class definition
+- Fixed string comparison bug in verdict checks (ApexVerdict.VOID → "VOID")
+- Reorganized import order in __init__.py to prevent circular dependencies
+
+### Technical Details
+v33.1.0 published to PyPI was non-functional due to circular imports. This hotfix resolves all import issues and restores full functionality. All tests now pass.
+
+---
+
 # Changelog — ArifOS Runtime v33Ω
 
 All notable changes to this project are documented here.
