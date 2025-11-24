@@ -1,0 +1,30 @@
+# arifOS CODEOWNERS
+# Critical constitutional & security-sensitive paths
+
+# Core constitutional runtime (AAA Trinity, APEX, guards)
+arifos_core/APEX_PRIME.py      @ariffazil
+arifos_core/guard.py           @ariffazil
+arifos_core/metrics.py         @ariffazil
+arifos_core/vault999.py        @ariffazil
+arifos_core/cooling_ledger.py  @ariffazil
+
+# Specs & constitution
+spec/                          @ariffazil
+LAW.md                         @ariffazil
+GOVERNANCE.md                  @ariffazil
+SECURITY.md                    @ariffazil
+CONTRIBUTING.md                @ariffazil
+CHANGELOG.md                   @ariffazil
+
+# Tests for floors, APEX, ledger, zkPC
+tests/test_*apex*.py           @ariffazil
+tests/test_*ledger*.py         @ariffazil
+tests/test_*vault*.py          @ariffazil
+tests/test_*zkpc*.py           @ariffazil
+
+# Runtime configs & ledgers
+runtime/constitution*.json     @ariffazil
+runtime/cooling_ledger*.jsonl  @ariffazil
+
+# Default fallback: owner of the project
+*                               @ariffazil

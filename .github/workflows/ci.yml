@@ -1,0 +1,61 @@
+name: arifOS CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f "pyproject.toml" ]; then
+            pip install .[dev] || pip install .
+          elif [ -f "requirements-dev.txt" ]; then
+            pip install -r requirements-dev.txt
+          elif [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Lint (ruff or flake8)
+        run: |
+          if python -m pip show ruff >/dev/null 2>&1; then
+            ruff check .
+          elif python -m pip show flake8 >/dev/null 2>&1; then
+            flake8 .
+          else
+            echo "No linter installed; skipping."
+          fi
+
+      - name: Type check (mypy)
+        run: |
+          if python -m pip show mypy >/dev/null 2>&1; then
+            mypy arifos_core tests || true
+          else
+            echo "mypy not installed; skipping."
+          fi
+
+      - name: Run tests (pytest)
+        run: |
+          if python -m pip show pytest >/dev/null 2>&1; then
+            pytest -q
+          else
+            echo "pytest not installed; skipping."
+          fi
