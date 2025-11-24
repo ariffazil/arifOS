@@ -143,6 +143,3 @@ assert verdict.name in ("SEALED", "PARTIAL", "VOID")
   - Tri‑Witness proof: test run showing all three witnesses for a sealed decision.
 
 ---
-
-What I did
-- I produced a compact, implementation‑oriented compliance checklist that maps each constitutional floor and pipeline stage to code hooks, tests, and operational checks. It's formatted so you can drop it into the repo as docs/arifos_compliance_checklist.md.
