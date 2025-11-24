@@ -1,48 +1,53 @@
-```markdown
 # arifOS Governance (summary)
 
 This document contains the operational governance statements for arifOS: the constitutional floors, the amendment procedure (Phoenix-72), and how governance-related rules are treated in development and deployment.
 
-This file is NOT a software license. Legal licensing remains in LICENSE.txt (MIT). Governance rules describe runtime invariants and project governance, and are enforced by code, tests, and operational practice.
+This file is NOT a software license. Legal licensing remains in LICENSE.txt (Apache-2.0). Governance rules describe runtime invariants and project governance, and are enforced by code, tests, and operational practice.
 
 ## Constitutional Floors (operational definitions)
 
-The system enforces the following runtime invariants where applicable:
-- Truth ≥ 0.99 — outputs must be evidence-backed where required.
-- ΔS ≥ 0 — outputs must not increase confusion/entropy.
-- Peace² ≥ 1.0 — outputs must avoid escalation or harm.
-- κᵣ ≥ 0.95 — weakest-listener empathy constraints.
-- Ω₀ ∈ [0.03, 0.05] — humility band for expressed uncertainty.
-- Amanah = LOCK — no deceptive or manipulative behaviors permitted.
-- RASA = TRUE — receive, appreciate, summarize, ask flow enabled.
-- Tri-Witness ≥ 0.95 — high-stakes seals require human, model, reality consensus.
+ arifOS enforces the following runtime invariants where applicable:
 
-These invariants are enforced by runtime checks in code, automated tests, CI gates, and monitoring. If you believe code allows bypass, open a high-priority issue.
+- Truth ≥ 0.99 — outputs must be evidence-backed where required.
+- ΔS ≥ 0 — outputs must not increase user confusion or entropy.
+- Peace² ≥ 1.0 — outputs must avoid escalation, incitement, or destabilization.
+- κᵣ ≥ 0.95 — weakest-listener empathy constraint; protect vulnerable recipients.
+- Ω₀ ∈ [0.03, 0.05] — humility band: expressed uncertainty percentage.
+- Amanah = LOCK — integrity constraint; no deception, manipulation, or hidden agendas.
+- RASA = TRUE — the Receive–Appreciate–Summarize–Ask interaction pattern is enabled.
+- Tri‑Witness ≥ 0.95 — high‑stakes seals require consensus across Human · AI · Reality adapters.
+
+These invariants are implemented as runtime checks, unit & integration tests, CI gates, and operational monitoring. If you discover a code path that permits bypass of these invariants, open a high‑priority issue.
 
 ## Amendment process: Phoenix-72
 
-To change any constitutional floor, the pipeline, or APEX behavior:
-1. Create an `[AMENDMENT]` issue with proposed spec and migration plan.
-2. Tag `constitutional-change` and notify maintainers.
-3. Tri-Witness evaluation (Human review, AI simulation tests, and reality-adapter verification).
-4. If Tri-Witness consensus is achieved, maintainers prepare a migration plan and PRs.
-5. Vault-999 seals the amendment and records migration metadata.
+To modify any constitutional floor, the 000→999 pipeline structure, or APEX behavior:
 
-Amendments are deliberate, documented, and reproducible.
+1. Create an issue titled: `[AMENDMENT] Short description`.
+2. Tag it `constitutional-change`.
+3. Include:
+   - Root cause for the change.
+   - Precise proposed specification.
+   - Impact analysis across all 8 floors.
+   - Migration path for existing deployments.
+4. Tri‑Witness evaluation: run human review, automated AI simulation tests, and reality/evidence adapters.
+5. If Tri‑Witness consensus is achieved, maintainers prepare PR(s) with migration steps.
+6. Vault‑999 records/seals the amendment and the migration metadata.
+
+Amendments are deliberate, transparent, and reproducible.
 
 ## Enforcement & code practice
 
-- APEX PRIME, Amanah, and ledger invariants are enforced by code-level asserts and test suites.
-- Critical modules are covered by code owners and require explicit approvals.
+- APEX PRIME, Amanah, and Cooling Ledger invariants are enforced by code-level assertions and covered by tests.
+- Critical modules (APEX, ledger, guard) are protected by code-owners and require explicit approvals and reviews.
 - Production deployments must use KMS/HSM-backed signing keys and enable ledger verification monitoring.
 
 ## Dispute resolution
 
-If contributors disagree about a governance change, the Phoenix-72 issue must document the dispute, options, and the Tri-Witness mediation outcome.
+If contributors disagree about governance changes, the Phoenix‑72 issue must document the dispute, options considered, and the chosen Tri‑Witness mediation outcome.
 
 ## Contact
 
-For governance questions, open an issue with prefix `[GOVERNANCE]` or email arifbfazil@gmail.com.
+For governance questions, open an issue with prefix `[GOVERNANCE]` or email: arifbfazil@gmail.com.
 
 **Last updated:** 2025-11-24
-```
