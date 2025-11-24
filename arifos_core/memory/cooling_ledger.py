@@ -17,7 +17,10 @@ import json
 import time
 from dataclasses import dataclass, asdict
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from arifos_core.kms_signer import KmsSigner
 
 
 @dataclass
@@ -113,28 +116,35 @@ def _compute_hash(entry: Dict[str, Any]) -> str:
     """
     Compute SHA3-256 hash of an entry for chain integrity.
 
-    Excludes the 'hash' field itself from the computation.
+    Excludes the 'hash', 'kms_signature', and 'kms_key_id' fields from the computation.
     Uses canonical JSON representation.
     """
-    # Remove hash field if present
-    data = {k: v for k, v in entry.items() if k != "hash"}
+    # Remove hash and KMS-related fields if present
+    excluded_fields = {"hash", "kms_signature", "kms_key_id"}
+    data = {k: v for k, v in entry.items() if k not in excluded_fields}
     canonical = json.dumps(data, sort_keys=True, separators=(",", ":"))
     return hashlib.sha3_256(canonical.encode("utf-8")).hexdigest()
 
 
-def append_entry(path: Union[Path, str], entry: Dict[str, Any]) -> None:
+def append_entry(
+    path: Union[Path, str],
+    entry: Dict[str, Any],
+    kms_signer: Optional["KmsSigner"] = None,
+) -> None:
     """
     Append an entry to the ledger with hash-chain integrity.
 
     Args:
         path: Path to the ledger file (JSONL format)
         entry: Entry dictionary to append
+        kms_signer: Optional KmsSigner instance for cryptographic signing
 
     The function:
     1. Reads the last entry to get its hash
     2. Sets prev_hash in the new entry
     3. Computes hash for the new entry
-    4. Appends the entry with both prev_hash and hash fields
+    4. Optionally signs the hash with KMS if kms_signer is provided
+    5. Appends the entry with prev_hash, hash, and optional KMS signature fields
     """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -158,6 +168,14 @@ def append_entry(path: Union[Path, str], entry: Dict[str, Any]) -> None:
 
     # Compute and set hash
     entry["hash"] = _compute_hash(entry)
+
+    # Optionally sign with KMS
+    if kms_signer is not None:
+        # Convert hex hash to bytes for signing
+        hash_bytes = bytes.fromhex(entry["hash"])
+        signature_b64 = kms_signer.sign_hash(hash_bytes)
+        entry["kms_signature"] = signature_b64
+        entry["kms_key_id"] = kms_signer.config.key_id
 
     # Append to file
     line = json.dumps(entry, sort_keys=True, separators=(",", ":"))
