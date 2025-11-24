@@ -4,17 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-<<<<<<< HEAD
-version = "33.1.1"
-description = "ArifOS AAA Runtime — ΔΩΨ-governed constitutional kernel for AI agents"
-authors = [
-    { name = "Muhammad Arif bin Fazil" }
-]
-license = { text = "Apache-2.0" }
-=======
-version = "33.1.0"
+version = "33.1.2"
 description = "Constitutional Governance Protocol for Artificial Intelligence - ΔΩΨ-governed kernel"
->>>>>>> f48d3a3b5aba3abd8836fa94126ef4003bc19298
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "Apache-2.0"}
@@ -76,7 +67,7 @@ Changelog = "https://github.com/ariffazil/arifOS/blob/main/CHANGELOG.md"
 packages = ["arifos_core", "arifos_core.memory"]
 
 [tool.setuptools.package-data]
-arifos_core = ["py.typed"]
+arifos_core = ["py.typed", "*.py", "**/*.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
