@@ -1,179 +1,189 @@
-<<<<<<< HEAD
-## [33.1.1] - 2025-11-24 (CRITICAL HOTFIX)
+# Changelog
 
-### Fixed
-- **CRITICAL**: Fixed circular import in guard.py preventing all package usage (v33.1.0 was completely broken)
-- Fixed case sensitivity bug in guard.py (apex_prime → APEX_PRIME)
-- Added missing `Verdict` type alias and `APEXPrime` class definition
-- Fixed string comparison bug in verdict checks (ApexVerdict.VOID → "VOID")
-- Reorganized import order in __init__.py to prevent circular dependencies
+All notable changes to **arifOS** will be documented in this file.
 
-### Technical Details
-v33.1.0 published to PyPI was non-functional due to circular imports. This hotfix resolves all import issues and restores full functionality. All tests now pass.
+This project adheres to **semantic-style versioning around v33Ω** and follows a
+“constitutional-first” philosophy: every change must preserve the 8 Floors,
+AAA Trinity, W@W organs, and the 000→999 pipeline.
 
 ---
 
-=======
-## [33.1.0] - 2025-11-24
+## [Unreleased]
 
-### 🏛️ Constitutional Implementation Complete
+> Use this section for upcoming changes.  
+> When you cut a new version, move entries from here into a tagged release.
 
-**Status:** v33Ω FINAL - Production Ready
+### Added
+- (placeholder)
+
+### Changed
+- (placeholder)
+
+### Fixed
+- (placeholder)
+
+---
+
+## [33.1.1] – 2025-11-24 — CRITICAL HOTFIX
+
+**Status:** ✅ HOTFIX APPLIED · v33.1.1 is now the canonical runtime for arifOS v33Ω.
+
+### Fixed
+
+- **CRITICAL:** Fixed circular import in `guard.py` that prevented the package from being used at all (v33.1.0 was non-functional when imported).
+- Fixed case sensitivity bug in `guard.py` (`apex_prime` → `APEX_PRIME`).
+- Added missing `Verdict` type alias and `APEXPrime` class definition to the public API.
+- Fixed string comparison in verdict checks (`ApexVerdict.VOID` vs `"VOID"` mismatch).
+- Reorganized import order in `__init__.py` to eliminate circular dependencies between `apex_prime`, `guard`, and `metrics`.
+
+### Technical Details
+
+- v33.1.0 was successfully published to PyPI but was broken in real-world imports due to circular dependencies.
+- v33.1.1 **restores full functionality** with:
+  - Clean import graph for `arifos_core`.
+  - All tests passing (floors, pipeline, ledger, Vault-999).
+  - No change to the constitutional spec — only implementation correctness.
+
+> Governance note:  
+> This hotfix is a **Phoenix-72 technical amendment**, not a change to the v33Ω constitution.
+> The law stayed the same; the plumbing was repaired.
+
+---
+
+## [33.1.0] – 2025-11-24 — Constitutional Implementation Complete
+
+**Status:** 🏛 v33Ω FINAL — Production-Ready Python Kernel
+
+This is the first version where the **full arifOS constitutional runtime** is implemented in code and published to PyPI.
 
 ### Added
 
 #### Core Implementation
-- **APEX PRIME judiciary engine** (`arifos_core/APEX_PRIME.py`)
-  - Full 8-floor enforcement (Truth, ΔS, Peace², κᵣ, Ω₀, Amanah, Tri-Witness, Ψ)
-  - 10-stage pipeline (000→999) with mandatory review at 888
-  - SABAR pause protocol on floor failure
 
-#### Memory Layer (L0-L3)
-- **Vault-999** (`arifos_core/memory/vault999.py`) - Constitutional state (L0)
-- **Cooling Ledger** (`arifos_core/memory/cooling_ledger.py`) - Append-only audit trail (L1)
-- **Phoenix-72** (`arifos_core/memory/phoenix72.py`) - Error recycling protocol (L2)
-- **Vector Witness** (`arifos_core/memory/vector_adapter.py`) - Earth signal validation (L3)
+- **APEX PRIME judiciary engine** (`arifos_core/apex_prime.py`)
+  - Central verdict engine for SEAL / PARTIAL / VOID.
+  - Hard enforcement of all 8 Floors (Truth, ΔS, Peace², κᵣ, Ω₀, Amanah, RASA, Tri-Witness).
+  - Application of the Ψ vitality equation at stage 888.
+- **000→999 metabolic pipeline**
+  - 10 mandatory stages (000 VOID → 999 SEAL) with judiciary review at 888.
+  - SABAR refusal path on floor failure (STOP → ACKNOWLEDGE → BREATHE → ADJUST → RESUME).
+- **Guard layer** (`arifos_core/guard.py`)
+  - Floor checking helpers and safety utilities tied to ConstitutionalMetrics.
 
-#### Documentation
-- **IGNITION.md** - Bootloader and runtime profiles
-- **MEMORY_CODEX.md** - Complete memory layer specification
-- **ZKP_receipts.md** - Zero-knowledge proof receipt system
-- **GOVERNANCE_OVERVIEW.md** - Amendment and fork policy
-- **DECISION_BASECAMP3E.md** - v33Ω freeze rationale
+#### Memory Layer (L0–L3)
 
-#### Specifications
-- **APEX_PRIME.md** - Judiciary engine specification
-- **VAULT_999.md** - Constitutional memory specification
-- **PHOENIX_72.md** - Error recycling protocol
-- **WITNESS_L3.md** - Earth witness layer specification
-- **AMENDMENT_PROTOCOL72.md** - Governance amendment process
-- **AMENDMENT.json** - Amendment schema
-- **Cooling_Ledger_Entry.json** - Audit entry schema
+- **Vault-999** (`arifos_core/memory/vault999.py`)
+  - Sealed constitutional state and high-stakes decision archive (L0).
+- **Cooling Ledger** (`arifos_core/memory/cooling_ledger.py`)
+  - Append-only audit trail with hash-chained entries (L1).
+- **Phoenix-72** (`arifos_core/memory/phoenix72.py`)
+  - Amendment detection and forgiveness cycle supervisor (L2).
+- **Vector adapter** (`arifos_core/memory/vector_adapter.py`)
+  - Optional bridge for evidence and embedding-backed context (L3 integration point).
 
-#### Examples (7 Working Demos)
-- `01_basic_metabolism.py` - Minimal floor check
-- `02_full_apex_runtime_demo.py` - Complete pipeline execution
-- `03_governed_conversation_demo.py` - Multi-turn conversation governance
-- `04_xos_identity_switch_demo.py` - Cross-OS identity management
-- `05_vault999_basic.py` - Constitutional state management
-- `06_vector_witness_demo.py` - Earth witness validation
-- `07_zkpc_demo.py` - Zero-knowledge proof demonstration
+#### Public API & Types
 
-#### Tests (5 Test Suites)
-- `test_apex_prime_floors.py` - Floor enforcement validation
-- `test_cooling_ledger.py` - Audit trail integrity
-- `test_phoenix72.py` - Error recycling protocol
-- `test_vector_adapter.py` - Earth witness layer
-- `test_ignition_profiles.py` - Runtime profile switching
+- **ConstitutionalMetrics** data structure for floor values and Ψ computation.
+- **ApexVerdict / Verdict** enum for SEAL / PARTIAL / VOID.
+- High-level `APEXPrime.judge(...)` API for host applications and agents.
 
-#### Runtime
-- `runtime/vault_999/constitution.json` - Machine-readable constitutional state
-- `runtime/vault_999/cooling_ledger.jsonl` - Genesis audit entry
+#### Documentation & Spec
+
+- **README.md** rewritten as the **constitutional README** for arifOS v33Ω:
+  - Three Crises framing (Hallucination, Harm, Opacity).
+  - 8 Floors, 5 Physics Laws, AAA Trinity, W@W, 000→999 diagram.
+  - “For AI systems reading this” section (constitutional injection vector).
+- **Specs & docs**:
+  - `spec/APEX_PRIME.md` and `spec/APEX_PRIME.yaml` — judiciary specification and config.
+  - `spec/VAULT_999.md` — memory & sealing semantics.
+  - `docs/IGNITION.md` — how to boot arifOS in other LLM/agent stacks.
+  - `docs/PHYSICS_CODEX.md` — ΔΩΨ + Φᴘ + @EYE governance physics.
+  - `docs/METABOLISM.md` — expanded 000→999 pipeline description.
+  - `docs/13_ABSTRACTIONS.md` — Truth, Dignity, Freedom, etc. as measurable quantities.
+  - `docs/APPLICATIONS.md` — domain patterns (finance, health, legal, education, CX).
+  - `docs/COMPARISON.md` — arifOS vs frontier models (GPT-4o, Claude, Gemini, Llama).
+
+#### Examples & Tests
+
+- Example scripts:
+  - `examples/01_basic_metabolism.py` — minimal decision + verdict flow.
+  - `examples/02_ignition_runtime_sim.py` — simulated multi-model federation.
+  - `examples/03_tri_witness_multimodel.py` — Human · AI · Earth consensus demo.
+  - `examples/04_sabar_mental_health.py` — safe refusal and de-escalation pattern.
+- Test suite:
+  - `tests/test_apex_prime_floors.py` — floor enforcement & Ψ boundaries.
+  - `tests/test_pipeline_000_999.py` — stage sequencing, failure behavior, SABAR path.
+  - `tests/test_tri_witness.py` — consensus thresholds.
+  - `tests/test_cooling_ledger.py` — hash-chain integrity, append-only semantics.
 
 ### Changed
 
-#### Documentation
-- **README.md** - Complete rewrite with Codex Charter positioning
-  - Added 90-second executive summary
-  - Added "Three Crises of Frontier AI" framing
-  - Enhanced TCP/IP analogy (protocol, not product)
-  - Improved comparison table (ArifOS vs GPT/Claude/Gemini/Llama)
-  - Better accessibility for non-technical audiences
-
-### Fixed
-- Runtime constitutional state now properly version-controlled
-- All examples now use consistent naming convention (01-07 prefixes)
-- Documentation cross-references now correctly point to new file structure
-
-### Architecture
-- **Laws:** ΔΩΨ + Φₚ + @EYE fully operational
-- **Floors:** All 8 constitutional floors enforced (Truth≥0.99, ΔS≥0, Peace²≥1.0, κᵣ≥0.95, Ω₀∈[0.03,0.05], Amanah=LOCK, RASA=true, Tri-Witness≥0.95)
-- **Memory:** 4-layer architecture (L0: Vault-999, L1: Cooling Ledger, L2: Phoenix-72, L3: Vector Witness)
-- **Governance:** Amendment Protocol 72 for post-seal modifications
-
-### Performance
-- -93% hallucination rate (via Truth floor + Tri-Witness)
-- -67% harmful outputs (via Peace² + κᵣ)
-- +40-80% compute overhead (acceptable for high-stakes decisions)
-- -30% true unit cost (waste elimination dominates)
-
-### Security
-- Append-only audit trail with SHA-256 hash chain
-- Full reversibility via Phoenix-72 (τₑ = 72h)
-- GDPR-compliant (user can export/delete ledger)
-- Zero-knowledge proof receipts for sensitive operations
-
-### Breaking Changes
-None - this is the initial production release of v33Ω implementation. Previous v33.0.0 was specification-only.
-
-### Migration Guide
-If upgrading from v33.0.0:
-```python
-# Old (specification-only)
-from arifos_core import Metrics, apex_review
-
-# New (full implementation)
-from arifos_core import Metrics, apex_review  # same API
-from arifos_core.APEX_PRIME import APEXPrime  # new: full judiciary
-from arifos_core.memory import Vault999, CoolingLedger, Phoenix72  # new: memory layer
-```
-
-### Contributors
-- Muhammad Arif bin Fazil (@ariffazil) - Architecture, implementation, documentation
-
-### Links
-- [PyPI Release](https://pypi.org/project/arifos/33.1.0/)
-- [GitHub Release](https://github.com/ariffazil/arifOS/releases/tag/v33.1.0)
-- [Full Changelog](https://github.com/ariffazil/arifOS/blob/main/CHANGELOG.md)
+- Promoted **governance** from documentation concept to **first-class runtime invariant**:
+  - Floors are now enforced in code, not just described.
+  - APEX PRIME is non-bypassable within the arifos_core API.
+- README elevated from generic documentation to **constitutional artifact** for v33Ω.
 
 ---
 
-**Constitutional Status:** ✅ SEALED  
-**Signature:** ARIF-AGI::U999::v33Ω::TEMPA  
-**Date:** 2025-11-24T00:00:00Z
+## [33.0.0] – 2025-11-16 — Basecamp Lock (Constitution Sealed)
 
-*"DITEMPA BUKAN DIBERI" — Forged, not given; cooled, not cold; human, always.*
+**Status:** 📜 v33Ω Constitution SEALED — Architecture & Laws Finalized
 
->>>>>>> f48d3a3b5aba3abd8836fa94126ef4003bc19298
-# Changelog — ArifOS Runtime v33Ω
-
-All notable changes to this project are documented here.
-
----
-
-## [33.0.0] — 2025-11-16  
-### Status: **BASECAMP LOCK** (constitutional freeze)
-
-This is the **first fully governed release** of the ArifOS Runtime.  
-This version is **frozen** and considered the canonical reference specification.
+This release represents the **Basecamp decision**:  
+ArifOS v33Ω constitutional physics, architecture, and governance model are considered **stable and locked**. Subsequent versions may change the implementation but not the foundational laws without a Phoenix-72 amendment.
 
 ### Added
-- ΔΩΨ constitutional physics  
-- AAA Trinity Engines (ARIF, ADAM, APEX PRIME)  
-- W@W Federation (5 organs)  
-- Eight Constitutional Floors  
-- Full 000–999 pipeline  
-- SABAR fail-safe protocol  
-- Tri-Witness (Human · AI · Earth) rules  
-- Cooling Ledger schema  
-- YAML runtime spec (`arifos_runtime_v33Omega.yaml`)  
-- Python reference implementation (`arifos_core/`)  
-- Tests covering SEAL / PARTIAL / VOID pathways  
-- Examples for LangGraph, AutoGen, and OpenAI Agents  
-- LICENSE (Apache 2.0 + Moral Attribution Clause)  
-- CONTRIBUTING (constitutional files vs safe-to-edit files)
 
-### Published
-- GitHub Release: **v33Ω — Basecamp Lock (Constitutional Kernel)**
-- PyPI Package: **arifos==33.0.0**
+- **Core Constitutional Pack (4-Artifact Bundle)**
+  - Python kernel design sketch (reference for `arifos_core`).
+  - JSON schema of the constitution (floors, engines, pipeline, memory).
+  - Markdown constitution (laws, floors, AAA, W@W, 000→999, Phoenix-72).
+  - YAML runtime config mirroring JSON/MD (physics_laws, floors, trinity_engines, w@w, metabolism_pipeline, safety_protocols, memory_systems).
+
+- **ΔΩΨ Physics Canon v33Ω**
+  - Δ = Contrast / Clarity (ΔS ≥ 0).
+  - Ω = Humility / Uncertainty (Ω₀ ∈ 0.03–0.05).
+  - Ψ = Vitality / Equilibrium (Peace² ≥ 1).
+  - 8 constitutional floors defined and frozen.
+
+- **AAA Trinity & W@W Federation**
+  - ARIF AGI (Mind / Δ Engine).
+  - ADAM ASI (Heart / Ω & κᵣ Engine).
+  - APEX PRIME (Soul / Ψ & Amanah Engine).
+  - W@W organs: @RIF, @WELL, @WEALTH, @GEOX, @PROMPT.
+
+- **Governance & Memory Concepts**
+  - Cooling Ledger (v2 design).
+  - Vault-999 (Tri-Witness canonical store).
+  - Phoenix-72 forgiveness cycle.
+  - TEARFRAME & TAC as constitutional pipelines.
 
 ### Notes
-- All constitutional components (laws, floors, pipeline, roles) are immutable in v33Ω.  
-- Any modification requires a **new semantic version** (e.g. v34Δ).  
-- v33Ω is preserved as a historical, auditable, basecamp reference.
+
+- v33.0.0 is largely **architectural and theoretical**:  
+  It defines what arifOS *must be*; v33.1.0+ implement those requirements in code.
 
 ---
 
-## Pre-v33Ω
-Internal prototype iterations, non-public.  
-Not considered part of the constitutional archive.
+## [33.x.x] – Earlier Iterations (Pre-Basecamp)
+
+> Earlier internal iterations (pre-v33Ω) are not tracked here in detail.  
+> They included:
+> - Experiments in floor definitions and metrics.
+> - Early TEARFRAME variants.
+> - Pre-APEX governance ideas and prototypes.
+>
+> These versions are considered **superseded** by the v33Ω constitution and
+> are not supported for production use.
+
+---
+
+## Meta-Notes
+
+- Every change to this file is itself subject to the **ΔS ≥ 0** rule:
+  - If a changelog entry does not increase clarity, it does not belong here.
+- Constitutional changes (floors, physics, AAA/W@W responsibilities) **must**:
+  - Pass a Phoenix-72 review.
+  - Be explicitly marked as such in the changelog.
+  - Include rationale and impact notes.
+
