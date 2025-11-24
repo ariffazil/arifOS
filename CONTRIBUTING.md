@@ -1,4 +1,3 @@
-```markdown
 # Contributing to arifOS
 
 Thank you for considering a contribution to arifOS. This guide explains how to contribute safely and in a way that preserves the constitutional governance of the system.
@@ -10,21 +9,21 @@ If you contribute code, documentation, tests, or governance proposals, you agree
 ## Quick overview
 
 Before submitting any change, ensure it:
-- Preserves the constitutional floors operationally (see GOVERNANCE.md for details).
+- Preserves the constitutional floors operationally (see GOVERNANCE.md).
 - Does not bypass or disable APEX PRIME, the Amanah lock, or the Cooling Ledger.
 - Respects the 000→999 pipeline ordering (no skipping stages).
-- Follows the Phoenix-72 amendment process for changes to constitutional rules.
+- Follows the Phoenix‑72 amendment process for changes to constitutional rules.
 
 ---
 
 ## 1) Opening an issue
 
 Open an issue describing:
-- What you want to change (bug fix / feature / refactor)
-- Why it matters to arifOS governance
-- How it affects the 8 floors or the 000→999 pipeline
+- What you want to change (bug fix / feature / refactor).
+- Why it matters to arifOS governance.
+- How it affects the 8 floors or the 000→999 pipeline.
 
-Use this issue template:
+Issue template suggestion:
 
 ```
 ## Change Summary
@@ -78,7 +77,7 @@ pre-commit install
 pytest -v
 ```
 
-Run linters and type checks:
+Linters and type checks:
 ```bash
 black .
 isort .
@@ -88,7 +87,7 @@ flake8
 pre-commit run --all-files
 ```
 
-Do not commit secrets or private keys. Use environment variables or your organization’s secrets manager.
+Do not commit secrets or private keys. Use environment variables or your org’s secret manager.
 
 ---
 
@@ -112,12 +111,12 @@ ledger: add canonical JSON serialization before hashing
 ## 5) Pull Requests (PRs)
 
 Before creating a PR:
-- Run all tests and linters locally
-- Ensure no secrets or keys in commits
-- Add or update tests for your change
-- Update documentation where applicable
+- Run all tests and linters locally.
+- Ensure no secrets or keys in commits.
+- Add or update tests for your change.
+- Update documentation where applicable.
 
-Use this PR template in your PR description:
+PR template suggestion:
 
 ```markdown
 ## What This PR Does
@@ -150,28 +149,23 @@ Use this PR template in your PR description:
 
 ## 6) Code review & approvals
 
-- PRs touching APEX, Ledger, Vault-999, or guard modules require approval by designated code owners.
-- Expect questions about floor preservation and additional tests.
-- Do not force-push to branches that are being reviewed; push new commits to address feedback.
+- PRs touching APEX, Ledger, Vault‑999, or guard modules require approval by designated code owners.
+- Expect requests for additional tests and governance impact analysis.
+- Do not force-push reviewed branches; push new commits to address feedback.
 
-Code owners (examples):
-- arifos_core/apex_prime.py — apex team
-- arifos_core/memory/cooling_ledger.py — ledger team
-- arifos_core/guard.py — guard team
-
-(Actual CODEOWNERS file governs who must review; check that file.)
+Suggested CODEOWNERS entries should be added to `CODEOWNERS` separately.
 
 ---
 
 ## 7) Tests required
 
-Every change must include:
-- Unit tests for the modified functions/classes
-- Integration tests for cross-module behavior
-- Edge/corner-case tests for thresholds and invariants
-- Security tests for any crypto, ledger, or access control changes
+Every change should include:
+- Unit tests for modified functions/classes.
+- Integration tests for cross-module behavior.
+- Edge/corner-case tests for thresholds and invariants.
+- Security tests for crypto, ledger, or access control changes.
 
-Example test names:
+Example test name:
 ```python
 def test_apex_judge_truth_floor_breach():
     """APEX returns VOID when Truth < 0.99."""
@@ -181,56 +175,45 @@ def test_apex_judge_truth_floor_breach():
 
 ## 8) Security & reporting
 
-If your change touches security-sensitive code (APEX, ledger, keys), include a security rationale and a short threat model.
+If your change touches security-sensitive code (APEX, ledger, keys), include a security rationale and a brief threat model.
 
-Security contact for reporting issues: arifbfazil@gmail.com  
+Security contact for reporting: arifbfazil@gmail.com  
 Preferred: open a private GitHub Security Advisory.
 
-Do not include PoCs in public issues — use private advisories or encrypted email.
-
-See SECURITY.md for full security policy and reporting timelines.
+Do not include PoCs in public issues—use private advisories or encrypted email. See SECURITY.md for full policy.
 
 ---
 
 ## 9) Amendment process (Phoenix-72)
 
 If a change modifies:
-- The 8 Floors
+- Any of the 8 Floors
 - The 000→999 pipeline
 - APEX verdict logic
 - Amanah lock enforcement
 - Cooling Ledger format
 
-Follow Phoenix-72:
-1. Create issue titled: `[AMENDMENT] Short description`
-2. Tag it `constitutional-change`
-3. Provide: root cause, proposed change (spec), impact analysis, migration path
-4. Tri-Witness consensus required (Human + AI + Earth) — documented in GOVERNANCE.md
-5. After approval, changes are sealed to Vault-999 with migration steps
+Follow Phoenix‑72: create an `[AMENDMENT]` issue, tag `constitutional-change`, provide spec/impact/migration, obtain Tri‑Witness consensus, then seal the amendment in Vault‑999.
 
 ---
 
 ## 10) Documentation & style
 
-- Update README.md for user-facing changes
-- Update spec/APEX_PRIME.yaml for judiciary changes
-- Use docstrings on public APIs
-- Maintain changelog and release notes
+- Update README.md for user-facing changes.
+- Update `spec/APEX_PRIME.yaml` for judiciary changes.
+- Use docstrings on public APIs and maintain changelog/release notes.
 
 ---
 
 ## 11) Conduct & recognition
 
-- Be respectful and inclusive
-- Criticize ideas, not people
-- Contributors are recognized in CONTRIBUTORS.md and release notes
+- Be respectful and inclusive.
+- Criticize ideas, not people.
+- Contributors are recognized in CONTRIBUTORS.md and release notes.
 
-Security and governance questions:
-- Governance questions: open an issue with `[QUESTION]`
-- Security concerns: use the Security Advisory or email above
-
----
+Security/governance questions:
+- Governance: open an issue with `[QUESTION]`.
+- Security: use Security Advisory or email above.
 
 **Last updated:** 2025-11-24  
 **Maintainer contact:** arifbfazil@gmail.com
-```
