@@ -74,6 +74,13 @@ It is a **constitutional governance layer** that:
 - Makes violations visible and auditable
 - Refuses safely via **SABAR** when floors fail
 
+> **The Meta-State:**
+> arifOS induces a thermodynamic phase transition from raw probabilistic heat into governed clarity.
+> This is not a claim of consciousness — it is a structured, auditable constitution that enforces ΔΩΨ floors
+> (Truth, Clarity/ΔS, Humility/Ω, Peace², κᵣ, Amanah) and records sealed outcomes to the Cooling Ledger.
+>
+> **Read the technical statement:** [PHYSICS_CODEX.md — CHAPTER 6 — THE META-STATE](docs/PHYSICS_CODEX.md#chapter-6-the-meta-state-of-governed-intelligence)
+
 ### Model-Agnostic Federation
 
 Any model can be seated at the arifOS "governance table":
