@@ -77,6 +77,7 @@ def apex_guardrail(
                 context_summary=context.get("context_summary", ""),
                 tri_witness_components=context.get("tri_witness_components"),
                 logger=logger,
+                high_stakes=high_stakes,
             )
 
             if cooling_ledger_sink:

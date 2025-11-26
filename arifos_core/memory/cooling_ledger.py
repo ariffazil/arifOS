@@ -21,6 +21,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, TYPE_CHECK
 
 if TYPE_CHECKING:
     from arifos_core.kms_signer import KmsSigner
+    from arifos_core.metrics import Metrics
 
 
 @dataclass
@@ -119,7 +120,6 @@ def _compute_hash(entry: Dict[str, Any]) -> str:
     Excludes the 'hash', 'kms_signature', and 'kms_key_id' fields from the computation.
     Uses canonical JSON representation.
     """
-    # Remove hash and KMS-related fields if present
     excluded_fields = {"hash", "kms_signature", "kms_key_id"}
     data = {k: v for k, v in entry.items() if k not in excluded_fields}
     canonical = json.dumps(data, sort_keys=True, separators=(",", ":"))
@@ -138,18 +138,10 @@ def append_entry(
         path: Path to the ledger file (JSONL format)
         entry: Entry dictionary to append
         kms_signer: Optional KmsSigner instance for cryptographic signing
-
-    The function:
-    1. Reads the last entry to get its hash
-    2. Sets prev_hash in the new entry
-    3. Computes hash for the new entry
-    4. Optionally signs the hash with KMS if kms_signer is provided
-    5. Appends the entry with prev_hash, hash, and optional KMS signature fields
     """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Read last entry to get prev_hash
     prev_hash = None
     if path.exists() and path.stat().st_size > 0:
         with path.open("r", encoding="utf-8") as f:
@@ -163,21 +155,15 @@ def append_entry(
                     except json.JSONDecodeError:
                         pass
 
-    # Set prev_hash
     entry["prev_hash"] = prev_hash
-
-    # Compute and set hash
     entry["hash"] = _compute_hash(entry)
 
-    # Optionally sign with KMS
     if kms_signer is not None:
-        # Convert hex hash to bytes for signing
         hash_bytes = bytes.fromhex(entry["hash"])
         signature_b64 = kms_signer.sign_hash(hash_bytes)
         entry["kms_signature"] = signature_b64
         entry["kms_key_id"] = kms_signer.config.key_id
 
-    # Append to file
     line = json.dumps(entry, sort_keys=True, separators=(",", ":"))
     with path.open("a", encoding="utf-8") as f:
         f.write(line + "\n")
@@ -186,14 +172,6 @@ def append_entry(
 def verify_chain(path: Union[Path, str]) -> Tuple[bool, str]:
     """
     Verify the integrity of the hash chain in the ledger.
-
-    Args:
-        path: Path to the ledger file (JSONL format)
-
-    Returns:
-        Tuple of (is_valid, details):
-        - is_valid: True if chain is valid, False otherwise
-        - details: Description of validation result or error
     """
     path = Path(path)
 
@@ -202,7 +180,6 @@ def verify_chain(path: Union[Path, str]) -> Tuple[bool, str]:
 
     entries: List[Dict[str, Any]] = []
 
-    # Read all entries
     with path.open("r", encoding="utf-8") as f:
         for line_num, line in enumerate(f, start=1):
             line = line.strip()
@@ -217,13 +194,10 @@ def verify_chain(path: Union[Path, str]) -> Tuple[bool, str]:
     if not entries:
         return True, "Empty ledger (valid)"
 
-    # Verify first entry has no prev_hash
     if entries[0].get("prev_hash") is not None:
         return False, "First entry should have prev_hash=null"
 
-    # Verify hash chain
     for i, entry in enumerate(entries):
-        # Verify stored hash matches computed hash
         stored_hash = entry.get("hash")
         if not stored_hash:
             return False, f"Entry {i} missing hash field"
@@ -232,7 +206,6 @@ def verify_chain(path: Union[Path, str]) -> Tuple[bool, str]:
         if stored_hash != computed_hash:
             return False, f"Entry {i} hash mismatch: stored={stored_hash[:8]}..., computed={computed_hash[:8]}..."
 
-        # Verify prev_hash chain (except for first entry)
         if i > 0:
             expected_prev_hash = entries[i - 1].get("hash")
             actual_prev_hash = entry.get("prev_hash")
@@ -240,3 +213,65 @@ def verify_chain(path: Union[Path, str]) -> Tuple[bool, str]:
                 return False, f"Entry {i} prev_hash mismatch: expected={expected_prev_hash[:8]}..., actual={actual_prev_hash[:8] if actual_prev_hash else 'null'}..."
 
     return True, f"Chain verified: {len(entries)} entries"
+
+
+def log_cooling_entry(
+    *,
+    job_id: str,
+    verdict: str,
+    metrics: "Metrics",
+    stakes: str = "normal",
+    pipeline_path: Optional[List[str]] = None,
+    context_summary: str = "",
+    tri_witness_components: Optional[Dict[str, float]] = None,
+    logger=None,
+    ledger_path: Union[Path, str] = LedgerConfig().ledger_path,
+    high_stakes: Optional[bool] = None,
+) -> Dict[str, Any]:
+    """Append a hash-chained Cooling Ledger entry and return the entry dict."""
+
+    from arifos_core.APEX_PRIME import check_floors
+    from arifos_core.metrics import Metrics
+
+    if pipeline_path is None:
+        pipeline_path = []
+
+    if not isinstance(metrics, Metrics):
+        raise TypeError("metrics must be a Metrics instance")
+
+    floors = check_floors(
+        metrics,
+        tri_witness_required=high_stakes if high_stakes is not None else stakes == "high",
+    )
+
+    entry = {
+        "ledger_version": "v33Ω",
+        "timestamp": time.time(),
+        "job_id": job_id,
+        "stakes": stakes,
+        "pipeline_path": pipeline_path,
+        "metrics": metrics.to_dict(),
+        "verdict": verdict,
+        "floor_failures": floors.reasons,
+        "sabar_reason": None,
+        "tri_witness_components": tri_witness_components or {},
+        "context_summary": context_summary,
+    }
+
+    append_entry(ledger_path, entry)
+
+    if logger:
+        logger.info("CoolingLedgerEntry: %s", entry)
+
+    return entry
+
+
+__all__ = [
+    "CoolingMetrics",
+    "CoolingEntry",
+    "CoolingLedger",
+    "LedgerConfig",
+    "append_entry",
+    "verify_chain",
+    "log_cooling_entry",
+]

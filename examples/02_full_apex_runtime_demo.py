@@ -6,7 +6,7 @@ Ignition → Metrics estimation → APEX PRIME → Cooling Ledger → zkPC
 
 import time
 
-from arifos_core.apex_prime import APEXPrime
+from arifos_core import APEXPrime
 from arifos_core.metrics import ConstitutionalMetrics
 from arifos_core.memory.cooling_ledger import (
     CoolingLedger, CoolingEntry, CoolingMetrics

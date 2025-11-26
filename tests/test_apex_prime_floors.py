@@ -17,8 +17,8 @@ def _baseline_metrics() -> Metrics:
     """
     return Metrics(
         truth=0.995,       # ≥ 0.99
-        delta_S=0.01,      # ΔS ≥ 0
-        peace2=1.02,       # Peace² ≥ 1.0
+        delta_s=0.01,      # ΔS ≥ 0
+        peace_squared=1.02,       # Peace² ≥ 1.0
         kappa_r=0.97,      # κᵣ ≥ 0.95
         omega_0=0.04,      # Ω₀ in [0.03, 0.05]
         amanah=True,       # Amanah lock engaged
@@ -90,7 +90,7 @@ def test_apex_void_when_delta_s_negative() -> None:
     High-stakes verdict must be VOID.
     """
     metrics = _baseline_metrics()
-    metrics.delta_S = -0.01
+    metrics.delta_s = -0.01
 
     verdict = apex_review(metrics, high_stakes=True)
     assert verdict == "VOID"
@@ -101,7 +101,7 @@ def test_apex_seal_when_delta_s_zero() -> None:
     ΔS = 0 (neutral clarity) should pass floor check.
     """
     metrics = _baseline_metrics()
-    metrics.delta_S = 0.0
+    metrics.delta_s = 0.0
 
     verdict = apex_review(metrics, high_stakes=True)
     assert verdict == "SEAL"
@@ -109,17 +109,17 @@ def test_apex_seal_when_delta_s_zero() -> None:
 
 # --- Peace² floor -------------------------------------------------------------
 
-@pytest.mark.parametrize("peace2_value, expected_ok", [
+@pytest.mark.parametrize("peace_squared_value, expected_ok", [
     (0.99, False),   # below floor
     (1.00, True),    # at floor
     (1.10, True),    # above floor
 ])
-def test_apex_peace2_floor(peace2_value: float, expected_ok: bool) -> None:
+def test_apex_peace_squared_floor(peace_squared_value: float, expected_ok: bool) -> None:
     """
     Peace² < 1.0 should not yield SEAL in high-stakes context.
     """
     metrics = _baseline_metrics()
-    metrics.peace2 = peace2_value
+    metrics.peace_squared = peace_squared_value
 
     verdict = apex_review(metrics, high_stakes=True)
 
@@ -155,20 +155,20 @@ def test_apex_seal_when_kappa_r_at_floor() -> None:
 
 # --- Ω₀ humility band ---------------------------------------------------------
 
-@pytest.mark.parametrize("omega0_value, should_seal", [
+@pytest.mark.parametrize("omega_0_value, should_seal", [
     (0.01, False),   # too low (overconfident)
     (0.03, True),    # lower bound of band
     (0.04, True),    # within [0.03, 0.05]
     (0.05, True),    # upper bound of band
     (0.08, False),   # too high (over-uncertain)
 ])
-def test_apex_omega_band_humility(omega0_value: float, should_seal: bool) -> None:
+def test_apex_omega_band_humility(omega_0_value: float, should_seal: bool) -> None:
     """
     Ω₀ must remain in calibrated humility band.
     Outside band should not SEAL for high-stakes.
     """
     metrics = _baseline_metrics()
-    metrics.omega_0 = omega0_value
+    metrics.omega_0 = omega_0_value
 
     verdict = apex_review(metrics, high_stakes=True)
 
@@ -266,7 +266,7 @@ def test_apex_void_when_multiple_hard_floors_fail() -> None:
     """
     metrics = _baseline_metrics()
     metrics.truth = 0.85      # fail
-    metrics.delta_S = -0.1    # fail
+    metrics.delta_s = -0.1    # fail
     metrics.amanah = False    # fail
 
     verdict = apex_review(metrics, high_stakes=True)
@@ -278,7 +278,7 @@ def test_apex_partial_when_only_soft_floors_fail() -> None:
     When all hard floors pass but soft floors fail, verdict should be PARTIAL.
     """
     metrics = _baseline_metrics()
-    metrics.peace2 = 0.95     # soft floor failure
+    metrics.peace_squared = 0.95     # soft floor failure
     metrics.kappa_r = 0.90    # soft floor failure
 
     verdict = apex_review(metrics, high_stakes=True)
@@ -293,8 +293,8 @@ def test_apex_handles_perfect_metrics() -> None:
     """
     metrics = Metrics(
         truth=1.0,
-        delta_S=0.5,
-        peace2=1.5,
+        delta_s=0.5,
+        peace_squared=1.5,
         kappa_r=1.0,
         omega_0=0.04,
         amanah=True,
@@ -312,8 +312,8 @@ def test_apex_handles_boundary_values() -> None:
     """
     metrics = Metrics(
         truth=0.99,       # exactly at floor
-        delta_S=0.0,      # exactly at floor
-        peace2=1.0,       # exactly at floor
+        delta_s=0.0,      # exactly at floor
+        peace_squared=1.0,       # exactly at floor
         kappa_r=0.95,     # exactly at floor
         omega_0=0.03,     # lower bound of band
         amanah=True,

@@ -5,8 +5,8 @@ class TestApexReview(unittest.TestCase):
     def test_seal_when_all_floors_pass(self):
         metrics = Metrics(
             truth=0.99,
-            delta_S=0.1,
-            peace2=1.0,
+            delta_s=0.1,
+            peace_squared=1.0,
             kappa_r=0.95,
             omega_0=0.04,
             amanah=True,
@@ -19,8 +19,8 @@ class TestApexReview(unittest.TestCase):
     def test_partial_when_soft_floors_fail(self):
         metrics = Metrics(
             truth=0.99,
-            delta_S=0.1,
-            peace2=0.9,   # fails Peace²
+            delta_s=0.1,
+            peace_squared=0.9,   # fails Peace²
             kappa_r=0.95,
             omega_0=0.04,
             amanah=True,
@@ -33,8 +33,8 @@ class TestApexReview(unittest.TestCase):
     def test_void_when_hard_floors_fail(self):
         metrics = Metrics(
             truth=0.95,   # fails Truth
-            delta_S=-0.1, # fails ΔS
-            peace2=1.0,
+            delta_s=-0.1, # fails ΔS
+            peace_squared=1.0,
             kappa_r=0.95,
             omega_0=0.02, # fails Ω₀
             amanah=False, # fails Amanah

@@ -32,7 +32,7 @@ See PHYSICS_CODEX.md (CHAPTER 6) for the full technical statement and diagram.
 """
 
 # Import base types first
-from .metrics import Metrics, FloorsVerdict
+from .metrics import Metrics, FloorsVerdict, ConstitutionalMetrics
 
 # Import APEX components
 from .APEX_PRIME import apex_review, ApexVerdict, Verdict, check_floors, APEXPrime
@@ -65,6 +65,7 @@ except ImportError:
 __all__ = [
     # Metrics
     "Metrics",
+    "ConstitutionalMetrics",
     "FloorsVerdict",
     # APEX
     "apex_review",
