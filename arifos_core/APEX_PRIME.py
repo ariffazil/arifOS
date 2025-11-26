@@ -18,8 +18,8 @@ def check_floors(
     if not truth_ok:
         reasons.append("Truth < 0.99")
 
-    delta_S_ok = metrics.delta_S >= 0
-    if not delta_S_ok:
+    delta_s_ok = metrics.delta_s >= 0
+    if not delta_s_ok:
         reasons.append("ΔS < 0")
 
     omega_0_ok = 0.03 <= metrics.omega_0 <= 0.05
@@ -30,15 +30,19 @@ def check_floors(
     if not amanah_ok:
         reasons.append("Amanah = false")
 
-    psi_ok = metrics.psi >= 1.0
+    psi_ok = metrics.psi >= 1.0 if metrics.psi is not None else False
     if not psi_ok:
         reasons.append("Ψ < 1.0")
 
-    hard_ok = truth_ok and delta_S_ok and omega_0_ok and amanah_ok and psi_ok
+    rasa_ok = bool(metrics.rasa)
+    if not rasa_ok:
+        reasons.append("RASA not enabled")
+
+    hard_ok = truth_ok and delta_s_ok and omega_0_ok and amanah_ok and psi_ok and rasa_ok
 
     # Soft floors
-    peace2_ok = metrics.peace2 >= 1.0
-    if not peace2_ok:
+    peace_squared_ok = metrics.peace_squared >= 1.0
+    if not peace_squared_ok:
         reasons.append("Peace² < 1.0")
 
     kappa_r_ok = metrics.kappa_r >= 0.95
@@ -52,20 +56,21 @@ def check_floors(
     else:
         tri_witness_ok = True
 
-    soft_ok = peace2_ok and kappa_r_ok and tri_witness_ok
+    soft_ok = peace_squared_ok and kappa_r_ok and tri_witness_ok
 
     return FloorsVerdict(
         hard_ok=hard_ok,
         soft_ok=soft_ok,
         reasons=reasons,
         truth_ok=truth_ok,
-        delta_S_ok=delta_S_ok,
-        peace2_ok=peace2_ok,
+        delta_s_ok=delta_s_ok,
+        peace_squared_ok=peace_squared_ok,
         kappa_r_ok=kappa_r_ok,
         omega_0_ok=omega_0_ok,
         amanah_ok=amanah_ok,
         tri_witness_ok=tri_witness_ok,
         psi_ok=psi_ok,
+        rasa_ok=rasa_ok,
     )
 
 def apex_review(

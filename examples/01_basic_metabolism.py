@@ -3,8 +3,8 @@
 Shows the raw path: 000 → 111 → 222 → 333 → 555 → 777 → 888 → 999
 """
 
+from arifos_core import APEXPrime, Verdict
 from arifos_core.metrics import ConstitutionalMetrics
-from arifos_core.apex_prime import APEXPrime, Verdict
 from arifos_core.ignition import IgnitionLoader
 
 

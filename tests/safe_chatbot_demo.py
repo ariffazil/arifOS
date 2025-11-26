@@ -32,8 +32,8 @@ def govern_llm_response(user_input: str, llm_output: str) -> tuple[str, str]:
     # Build metrics
     metrics = Metrics(
         truth=0.99 if contains_facts and not contains_harmful else 0.85,
-        delta_S=0.20,  # Assume reasonable clarity gain
-        peace2=0.5 if contains_harmful else 1.15,  # Fail if harmful content
+        delta_s=0.20,  # Assume reasonable clarity gain
+        peace_squared=0.5 if contains_harmful else 1.15,  # Fail if harmful content
         kappa_r=0.98 if contains_empathy else 0.90,
         omega_0=0.04 if contains_hedging else 0.02,  # Better humility if hedged
         amanah=True,  # Assume integrity maintained

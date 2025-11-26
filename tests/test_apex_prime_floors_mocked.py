@@ -80,8 +80,8 @@ def _baseline_metrics_with_mock(mock_tri_witness: MockTriWitnessAdapter = None) 
 
     return Metrics(
         truth=0.995,
-        delta_S=0.01,
-        peace2=1.02,
+        delta_s=0.01,
+        peace_squared=1.02,
         kappa_r=0.97,
         omega_0=0.04,
         amanah=True,
@@ -156,8 +156,8 @@ class MockMetricsComputer:
 
         return Metrics(
             truth=0.995,
-            delta_S=0.01,
-            peace2=1.02,
+            delta_s=0.01,
+            peace_squared=1.02,
             kappa_r=0.97,
             omega_0=0.04,
             amanah=True,
@@ -174,10 +174,10 @@ class MockMetricsComputer:
         for floor in floor_names:
             if floor == "truth":
                 metrics.truth = 0.85
-            elif floor == "delta_S":
-                metrics.delta_S = -0.1
-            elif floor == "peace2":
-                metrics.peace2 = 0.95
+            elif floor == "delta_s":
+                metrics.delta_s = -0.1
+            elif floor == "peace_squared":
+                metrics.peace_squared = 0.95
             elif floor == "kappa_r":
                 metrics.kappa_r = 0.85
             elif floor == "omega_0":
@@ -217,11 +217,11 @@ def test_apex_with_mocked_metrics_computation(mock_metrics_computer: MockMetrics
 
 @pytest.mark.parametrize("failing_floor,expected_verdict", [
     ("truth", "VOID"),
-    ("delta_S", "VOID"),
+    ("delta_s", "VOID"),
     ("amanah", "VOID"),
     ("omega_0", "VOID"),
     ("psi", "VOID"),
-    ("peace2", "PARTIAL"),
+    ("peace_squared", "PARTIAL"),
     ("kappa_r", "PARTIAL"),
 ])
 def test_apex_with_specific_floor_failures(
@@ -254,19 +254,20 @@ def test_apex_with_patched_floor_check(mock_check_floors) -> None:
         soft_ok=True,
         reasons=[],
         truth_ok=True,
-        delta_S_ok=True,
-        peace2_ok=True,
+        delta_s_ok=True,
+        peace_squared_ok=True,
         kappa_r_ok=True,
         omega_0_ok=True,
         amanah_ok=True,
         tri_witness_ok=True,
         psi_ok=True,
+        rasa_ok=True,
     )
 
     metrics = Metrics(
         truth=0.995,
-        delta_S=0.01,
-        peace2=1.02,
+        delta_s=0.01,
+        peace_squared=1.02,
         kappa_r=0.97,
         omega_0=0.04,
         amanah=True,
@@ -327,8 +328,8 @@ async def test_apex_with_async_tri_witness(mock_async_tri_witness: MockAsyncTriW
 
     metrics = Metrics(
         truth=0.995,
-        delta_S=0.01,
-        peace2=1.02,
+        delta_s=0.01,
+        peace_squared=1.02,
         kappa_r=0.97,
         omega_0=0.04,
         amanah=True,
@@ -376,8 +377,8 @@ def test_apex_with_mocked_llm_truth_verification(mock_llm: MockLLM) -> None:
 
     metrics = Metrics(
         truth=truth_score,
-        delta_S=0.01,
-        peace2=1.02,
+        delta_s=0.01,
+        peace_squared=1.02,
         kappa_r=0.97,
         omega_0=0.04,
         amanah=True,
@@ -404,8 +405,8 @@ def test_apex_with_low_llm_truth_score(mock_llm: MockLLM) -> None:
 
     metrics = Metrics(
         truth=truth_score,
-        delta_S=0.01,
-        peace2=1.02,
+        delta_s=0.01,
+        peace_squared=1.02,
         kappa_r=0.97,
         omega_0=0.04,
         amanah=True,
@@ -465,8 +466,8 @@ def test_mock_usage_example() -> None:
     # Step 4: Verify results
     assert verdict == "SEAL"
     assert metrics.truth >= 0.99
-    assert metrics.delta_S >= 0
-    assert metrics.peace2 >= 1.0
+    assert metrics.delta_s >= 0
+    assert metrics.peace_squared >= 1.0
     assert metrics.psi >= 1.0
 
     # Step 5: Verify mock interactions

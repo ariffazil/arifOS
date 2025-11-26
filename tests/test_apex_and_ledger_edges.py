@@ -15,9 +15,9 @@ class TestApexFloors:
         metrics = Metrics(
             truth=0.95,
             delta_s=0.1,
-            peace2=1.0,
+            peace_squared=1.0,
             kappa_r=0.97,
-            omega0=0.04,
+            omega_0=0.04,
             amanah=True,
             rasa=True,
             tri_witness=0.97,
@@ -30,9 +30,9 @@ class TestApexFloors:
         metrics = Metrics(
             truth=0.995,
             delta_s=0.01,
-            peace2=1.02,
+            peace_squared=1.02,
             kappa_r=0.97,
-            omega0=0.04,
+            omega_0=0.04,
             amanah=True,
             rasa=True,
             tri_witness=0.97,

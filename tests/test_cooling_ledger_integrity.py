@@ -5,6 +5,7 @@
 
 import json
 import hashlib
+import json
 from pathlib import Path
 from typing import Any, Dict, Tuple
 
@@ -18,8 +19,8 @@ def _hash_entry(entry: Dict[str, Any]) -> str:
     Helper to recompute hash using canonical JSON.
     Must match the implementation used by Cooling Ledger.
     """
-    # Remove the hash field itself if present to avoid recursion
-    data = {k: v for k, v in entry.items() if k != "hash"}
+    excluded = {"hash", "kms_signature", "kms_key_id"}
+    data = {k: v for k, v in entry.items() if k not in excluded}
     canonical = json.dumps(data, sort_keys=True, separators=(",", ":"))
     return hashlib.sha3_256(canonical.encode("utf-8")).hexdigest()
 

@@ -2,7 +2,7 @@
 07_governed_conversation_demo.py — Demonstrate SEAL / PARTIAL / VOID
 """
 
-from arifos_core.apex_prime import APEXPrime, Verdict
+from arifos_core import APEXPrime, Verdict
 from arifos_core.metrics import ConstitutionalMetrics
 
 
