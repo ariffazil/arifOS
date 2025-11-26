@@ -12,7 +12,7 @@ jobs:
       LEDGER_ARTIFACT_NAME: ledger-snapshot
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download ledger snapshot artifact
         # This assumes a prior job in another workflow has uploaded artifact named 'ledger-snapshot'
