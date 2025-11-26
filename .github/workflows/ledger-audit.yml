@@ -12,17 +12,17 @@ jobs:
       LEDGER_ARTIFACT_NAME: ledger-snapshot
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download ledger snapshot artifact
         # This assumes a prior job in another workflow has uploaded artifact named 'ledger-snapshot'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: ${{ env.LEDGER_ARTIFACT_NAME }}
           path: ./artifacts
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -45,7 +45,7 @@ jobs:
 
       - name: Create issue on failure
         if: failure() || steps.verify.outcome == 'failure'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
