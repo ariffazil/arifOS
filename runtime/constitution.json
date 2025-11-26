@@ -36,6 +36,10 @@
     "tri_witness": {
       "threshold": 0.95,
       "description": "Consensus of Human·AI·Earth for high-stakes decisions"
+    },
+    "psi": {
+      "threshold": 1.0,
+      "description": "Equilibrium vitality - act only when clarity, integrity, stability, empathy aligned"
     }
   },
   "laws": {
