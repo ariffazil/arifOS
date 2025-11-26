@@ -1,8 +1,3 @@
----
-
-# ✅ 2. `arifos_core/memory/phoenix72.py`
-
-```python
 """
 phoenix72.py — L2 Metabolism (Phoenix-72) for arifOS v33Ω.
 

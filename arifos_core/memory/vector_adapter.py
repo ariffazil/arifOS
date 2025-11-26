@@ -1,8 +1,3 @@
----
-
-# ✅ 2. `arifos_core/memory/vector_adapter.py`
-
-```python
 """
 vector_adapter.py — L3 Witness Evidence Layer for arifOS v33Ω.
 

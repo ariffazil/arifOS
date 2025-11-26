@@ -1,8 +1,3 @@
----
-
-## 2. `arifos_core/memory/vault999.py`
-
-```python
 """
 vault999.py — VAULT-999 constitutional memory organ (L0) for arifOS v33Ω.
 
