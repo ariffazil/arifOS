@@ -115,9 +115,14 @@ arifOS/
 
 | Engine | Symbol | Role | Documented | Implemented |
 |--------|--------|------|------------|-------------|
-| ARIF AGI | Δ (Mind) | Reasoning, structure, ΔS | ✅ | ❌ Conceptual only |
-| ADAM ASI | Ω (Heart) | Empathy, Peace², κᵣ | ✅ | ❌ Conceptual only |
-| APEX PRIME | Ψ (Soul) | Judiciary, verdicts | ✅ | ✅ Full implementation |
+| ARIF AGI | Δ (Mind) | Reasoning, structure, computes ΔS metric | ✅ | ❌ Conceptual only |
+| ADAM ASI | Ω (Heart) | Empathy, enforces Ω₀ humility band, Peace², κᵣ | ✅ | ❌ Conceptual only |
+| APEX PRIME | Ψ (Soul) | Judiciary, verdicts, computes Ψ vitality | ✅ | ✅ Full implementation |
+
+**Note on Symbol Usage:** The Greek letters serve dual purposes in arifOS:
+- **Engine symbols** (Δ, Ω, Ψ) identify the AAA Trinity engines
+- **Metric symbols** (ΔS, Ω₀, Ψ, Peace², κᵣ) are constitutional floor measurements
+- Each engine is responsible for computing/enforcing its corresponding metrics (e.g., ARIF AGI/Δ-engine computes ΔS clarity metric)
 
 **Assessment:** APEX PRIME is fully implemented. ARIF AGI and ADAM ASI are documented conceptually but have no runtime implementation. The documentation correctly describes them as "separation of powers" architecture where:
 - ARIF proposes → ADAM regulates → APEX PRIME judges
@@ -338,15 +343,15 @@ from arifos_core import APEXPrime, ConstitutionalMetrics, Verdict
 - ✅ Working amendment system (Phoenix-72)
 - ✅ Consistent epoch state (33Ω) throughout
 - ✅ Clean package structure with minimal dependencies
-- ✅ 84 passing tests with good coverage on core modules
+- ✅ 84 passing tests with strong coverage on core modules (APEX_PRIME: 91%, phoenix72: 98%, cooling_ledger: 85%)
 
 ### Gaps
 - ❌ 000→999 Pipeline is documentation-only
 - ❌ SABAR Protocol has no runtime implementation
 - ❌ W@W Organs are conceptual only
 - ❌ ARIF AGI and ADAM ASI engines not implemented
-- ⚠️ Some orphaned/duplicate code
-- ⚠️ Low test coverage on guard.py
+- ⚠️ Orphaned/duplicate code (`ledger.py` at 0% coverage)
+- ⚠️ Low test coverage on `guard.py` (29%) — guardrail decorator needs more integration tests
 
 ### Classification
 
