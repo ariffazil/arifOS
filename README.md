@@ -1,6 +1,3 @@
-```markdown
-<div align="center">
-
 # arifOS  
 ### The Missing Layer Between Intelligence and Trust  
 
