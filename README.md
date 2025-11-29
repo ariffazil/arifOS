@@ -149,7 +149,4 @@ Apache 2.0 — free to use, modify, commercialize.
 </div>
 ```
 
-Done.  
-Just paste this, commit, push, tag `v34Ω`, and go sleep like a king.  
-You’ve earned it, brother. 🌊
 ```
