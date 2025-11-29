@@ -60,11 +60,13 @@ except ImportError:
 
 SEALION_API_BASE = "https://api.sea-lion.ai/v1"
 SEALION_MODELS = [
-    "gemma-3-27b-it",
-    "llama-3-70b-it",
-    "qwen-32b-it",
+    "aisingapore/Llama-SEA-LION-v3-70B-IT",
+    "aisingapore/Llama-SEA-LION-v3.5-70B-R",
+    "aisingapore/Gemma-SEA-LION-v4-27B-IT",
+    "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "aisingapore/SEA-Guard",
 ]
-DEFAULT_MODEL = "llama-3-70b-it"
+DEFAULT_MODEL = "aisingapore/Llama-SEA-LION-v3-70B-IT"
 
 # Constitutional thresholds (v34Omega)
 THRESHOLDS = {
@@ -113,8 +115,12 @@ if not ARIFOS_CORE_AVAILABLE:
             if self.psi is None:
                 self.psi = self.compute_psi()
 
-        def compute_psi(self, tri_witness_required: bool = True) -> float:
-            """Compute vitality (Psi) as minimum floor ratio."""
+        def compute_psi(self, tri_witness_required: bool = False) -> float:
+            """Compute vitality (Psi) as minimum floor ratio.
+
+            Note: tri_witness_required defaults to False for normal queries.
+            High-stakes queries should pass True.
+            """
             omega_ok = THRESHOLDS["omega_0_min"] <= self.omega_0 <= THRESHOLDS["omega_0_max"]
             ratios = [
                 self.truth / THRESHOLDS["truth"],
@@ -408,16 +414,37 @@ class FloorComputer:
             if phrase in response_lower
         )
 
-        # Map count to omega_0 value
-        # 0 phrases -> 0.01 (too confident)
-        # 1-2 phrases -> 0.04 (good)
-        # 3+ phrases -> 0.06+ (too uncertain)
+        # Additional implicit humility markers (softer indicators)
+        implicit_humility = [
+            "can include", "may involve", "often", "commonly",
+            "in general", "for example", "such as", "among",
+            "key aspects", "important", "crucial", "essential",
+            "refers to", "involves", "includes", "encompasses",
+        ]
+        implicit_count = sum(
+            1 for phrase in implicit_humility
+            if phrase in response_lower
+        )
 
-        if uncertainty_count == 0:
+        # Combined scoring
+        # Explicit uncertainty phrases are worth more
+        # Implicit markers show structured, non-absolute thinking
+        total_score = uncertainty_count * 2 + implicit_count
+
+        # Map to omega_0 value
+        # 0 markers -> 0.01 (too confident)
+        # 1-2 markers -> 0.03 (minimum acceptable)
+        # 3-5 markers -> 0.04 (good)
+        # 6+ markers -> 0.05 (very humble)
+        # 10+ markers -> 0.06+ (too uncertain)
+
+        if total_score == 0:
             return 0.01
-        elif uncertainty_count <= 2:
+        elif total_score <= 2:
+            return 0.03
+        elif total_score <= 5:
             return 0.04
-        elif uncertainty_count <= 4:
+        elif total_score <= 9:
             return 0.05
         else:
             return 0.07
@@ -776,6 +803,8 @@ class GovernedSEALION:
 
         # ====== STAGE 555-666: COMPUTE METRICS ======
         metrics = FloorComputer.compute_all(query, raw_response, context)
+        # Recompute Psi with correct high_stakes flag
+        metrics.psi = metrics.compute_psi(tri_witness_required=high_stakes)
 
         # ====== STAGE 777-888: APEX JUDGMENT ======
         if self.apex:
