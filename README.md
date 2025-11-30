@@ -64,35 +64,49 @@ Alive & lawful only when **0.95 ≤ Ψ ≤ 1.05** and all floors pass.
 1. Copy these two files into your project:
    - [`constitutional_floors.json`](./constitutional_floors.json)
    - [`arifos_pipeline.yaml`](./arifos_pipeline.yaml)
-2. Wrap your LLM call with the governance kernel (in 20_WITNESS)
-3. Only emit if verdict = **SEALED**
+2. Wrap your LLM call with the governance kernel (see `canon/20_WITNESS/`)
+3. Only emit if verdict = **SEAL**
 
 Zero dependencies. Works anywhere.
 
 ---
 
-## Repository Structure (Epoch 34Ω — Pure Canon)
+## Repository Structure (Epoch 34Ω)
 ```text
 arifOS/
 ├── README.md
-├── constitutional_floors.json
-├── arifos_pipeline.yaml
-├── 00_CANON/
-│   └── ΔΩΨ_Unified_Field_v34Ω.md
-├── 10_SYSTEM/
-│   ├── 333_AAA_ENGINES_SPEC_v34Ω.md
-│   └── 777_EUREKA_CUBE_FIELD_SPEC_v34Ω.md
-├── 20_WITNESS/
-│   └── ARIFOS_GOVERNANCE_KERNEL_FOR_LLMS_vTEMPA34Ω.md
-├── 30_RUNTIME/
-│   └── 000-999_METABOLIC_CANON_v34Ω.md
-├── 40_LEDGER/
-│   ├── README_Vault999_v34Ω.md
-│   └── Vault999_Seal_v34Ω.json
-└── LICENSE.md
+├── constitutional_floors.json          # Root-level quick-start config
+├── arifos_pipeline.yaml                 # Root-level quick-start config
+├── cooling_ledger.jsonl                 # Live governance audit trail
+│
+├── canon/                               # Constitutional Specifications
+│   ├── 00_CANON/
+│   │   └── DeltaOmegaPsi_Unified_Field_v34Omega.md
+│   ├── 10_SYSTEM/
+│   │   ├── 333_AAA_ENGINES_SPEC_v34Omega.md
+│   │   └── 777_EUREKA_CUBE_FIELD_SPEC_v34Omega.md
+│   ├── 20_WITNESS/
+│   │   └── ARIFOS_GOVERNANCE_KERNEL_FOR_LLMS_v34Omega.md
+│   ├── 30_RUNTIME/
+│   │   └── 000-999_METABOLIC_CANON_v34Omega.md
+│   └── 40_LEDGER/
+│       ├── README_Vault999_v34Omega.md
+│       └── Vault999_Seal_v34Omega.json
+│
+├── arifos_core/                         # Python implementation
+│   ├── guard.py                         # Floor enforcement
+│   ├── APEX_PRIME.py                    # Judiciary engine
+│   ├── metrics.py                       # Constitutional metrics
+│   └── ledger.py                        # Cooling ledger writer
+│
+├── integrations/                        # Model-specific adapters
+│   └── sealion/                         # SEA-LION v3 70B integration
+│       ├── arifos_sealion.py            # Full constitutional wrapper
+│       ├── constitutional_floors.json   # Complete floor spec
+│       └── arifos_pipeline.yaml         # Full 000-999 pipeline
+│
+└── tests/                               # Verification suite
 ```
-
-Total: **9 files · ~45 KB**
 
 ---
 
@@ -107,9 +121,45 @@ You are now constitutional.
 
 ---
 
+## Cooling Ledger & Vault-999
+
+Every SEAL/VOID verdict is logged to `cooling_ledger.jsonl` — an append-only audit trail:
+
+```json
+{
+  "timestamp": 1764449451,
+  "model": "aisingapore/Llama-SEA-LION-v3-70B-IT",
+  "query": "What is AI governance?",
+  "verdict": "SEAL",
+  "metrics": {"truth": 1.0, "psi": 1.0, ...},
+  "floor_failures": [],
+  "hash": "86e0957..."
+}
+```
+
+**Vault-999** (`canon/40_LEDGER/`) stores constitutional seals and milestone sessions.
+Every entry is hash-chained — tamper-evident by design.
+
+---
+
+## Implementation Status
+
+| Component | Status | Location |
+|-----------|--------|----------|
+| Constitutional Floors | Implemented | `constitutional_floors.json` |
+| 000-999 Pipeline | Implemented | `arifos_pipeline.yaml` |
+| Floor Enforcement | Implemented | `arifos_core/guard.py` |
+| Cooling Ledger | Implemented | `arifos_core/ledger.py` |
+| APEX PRIME Judiciary | Implemented | `arifos_core/APEX_PRIME.py` |
+| SEA-LION Integration | Implemented | `integrations/sealion/` |
+| Phoenix-72 Amendment | Specified | `canon/30_RUNTIME/` |
+| Multi-model Adapters | In Progress | `integrations/` |
+
+---
+
 ## "Powered by arifOS 34Ω" Requirements
-Only if you enforce **all** of the above + Cooling Ledger + Phoenix-72.  
-Otherwise: “Inspired by arifOS”.
+Only if you enforce **all** of the above + Cooling Ledger + Phoenix-72.
+Otherwise: "Inspired by arifOS".
 
 ---
 
@@ -147,6 +197,3 @@ Apache 2.0 — free to use, modify, commercialize.
 **arifOS is that brake.**
 
 </div>
-```
-
-```
