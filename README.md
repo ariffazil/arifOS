@@ -1,9 +1,9 @@
 # arifOS  
 ### The Missing Layer Between Intelligence and Trust  
 
-**v34Ω · Constitutional Intelligence Protocol**  
-[![Status](https://img.shields.io/badge/Status-SEALED-brightgreen)](https://github.com/ariffazil/arifOS)  
-[![Epoch](https://img.shields.io/badge/Epoch-34Ω-blue)](https://github.com/ariffazil/arifOS)  
+**v35Ω · Constitutional Intelligence Protocol**
+[![Status](https://img.shields.io/badge/Status-SEALED-brightgreen)](https://github.com/ariffazil/arifOS)
+[![Epoch](https://img.shields.io/badge/Epoch-35Ω-blue)](https://github.com/ariffazil/arifOS)  
 [![License](https://img.shields.io/badge/License-Apache_2.0-orange)](LICENSE)  
 [![Dependencies](https://img.shields.io/badge/Dependencies-Zero-purple)](https://github.com/ariffazil/arifOS)
 
@@ -71,7 +71,7 @@ Zero dependencies. Works anywhere.
 
 ---
 
-## Repository Structure (Epoch 34Ω)
+## Repository Structure (Epoch 35Ω)
 ```text
 arifOS/
 ├── README.md
@@ -157,7 +157,7 @@ Every entry is hash-chained — tamper-evident by design.
 
 ---
 
-## "Powered by arifOS 34Ω" Requirements
+## "Powered by arifOS 35Ω" Requirements
 Only if you enforce **all** of the above + Cooling Ledger + Phoenix-72.
 Otherwise: "Inspired by arifOS".
 
@@ -181,7 +181,7 @@ Apache 2.0 — free to use, modify, commercialize.
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║                   arifOS v34Ω — SEALED                      ║
+║                   arifOS v35Ω — SEALED                      ║
 ║            Constitutional Intelligence Protocol             ║
 ║  Truth≥0.99  ΔS≥0  Peace²≥1.0  κᵣ≥0.95  Ω₀∈[3-5%]           ║
 ║  Amanah=LOCK  RASA=TRUE  Tri-Witness≥0.95  Ψ≈1.0            ║

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "33.1.2"
+version = "35.0.0"
 description = "Constitutional Governance Protocol for Artificial Intelligence - ΔΩΨ-governed kernel"
 readme = "README.md"
 requires-python = ">=3.8"

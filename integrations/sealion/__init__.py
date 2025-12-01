@@ -2,7 +2,7 @@
 arifOS SEA-LION Integration
 
 Constitutional AI for Southeast Asia.
-Wraps SEA-LION regional models with arifOS v34Omega governance.
+Wraps SEA-LION regional models with arifOS v35Omega governance.
 
 Usage:
     from integrations.sealion import GovernedSEALION
@@ -22,7 +22,7 @@ from .arifos_sealion import (
     quick_chat,
 )
 
-__version__ = "34Omega"
+__version__ = "35Omega"
 __all__ = [
     "GovernedSEALION",
     "FloorComputer",

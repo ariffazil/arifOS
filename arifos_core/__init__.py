@@ -35,7 +35,18 @@ See PHYSICS_CODEX.md (CHAPTER 6) for the full technical statement and diagram.
 from .metrics import Metrics, FloorsVerdict, ConstitutionalMetrics
 
 # Import APEX components
-from .APEX_PRIME import apex_review, ApexVerdict, Verdict, check_floors, APEXPrime
+from .APEX_PRIME import (
+    apex_review,
+    ApexVerdict,
+    Verdict,
+    check_floors,
+    APEXPrime,
+    APEX_VERSION,
+    APEX_EPOCH,
+)
+
+# Import @EYE Sentinel (v35Ω)
+from .eye_sentinel import AlertSeverity, EyeAlert, EyeReport, EyeSentinel
 
 # Import memory components (optional - graceful fallback if not available)
 try:
@@ -63,6 +74,9 @@ except ImportError:
     GuardrailError = None
 
 __all__ = [
+    # Version constants (v35Ω)
+    "APEX_VERSION",
+    "APEX_EPOCH",
     # Metrics
     "Metrics",
     "ConstitutionalMetrics",
@@ -73,6 +87,11 @@ __all__ = [
     "ApexVerdict",
     "Verdict",
     "APEXPrime",
+    # @EYE Sentinel (v35Ω)
+    "AlertSeverity",
+    "EyeAlert",
+    "EyeReport",
+    "EyeSentinel",
     # Memory
     "log_cooling_entry",
     # Guard (may be None if memory unavailable)
