@@ -1433,6 +1433,92 @@ All 6 chapters canonical, sealed, immutable.
 **For compliance**: See `CHARTER.md`  
 **For deployment**: See `LAW.md`
 
+# 🧩 EUREKA-CEILING-7: The Physics of Intelligence (v1.0)
+**Designation:** Fundamental Physical Constants of arifOS
+**Source:** David Shapiro Synthesis × APEX THEORY
+**Epoch:** 33Ω (Post-Clarification)
+**Status:** CANONICAL · IMMUTABLE
+
+---
+
+## 🌌 THE PRECURSOR: AXIOM 0
+**"The Thermodynamic Imperative" (Entropy)**
+Before intelligence, there is Chaos. The universe tends toward disorder.
+* **The Problem:** The signal is drowning in noise.
+* **The Purpose of AI:** To act as a Maxwell's Demon—a **Heat Sink** that locally reverses entropy to create Order.
+* **arifOS Alignment:** **APEX THEORY Base Layer.** "Information is Energy." We exist to Cool.
+
+---
+
+## 🧬 THE 7 AXIOMS OF BOUNDED INTELLIGENCE
+
+### 1️⃣ AXIOM 1 — Biological Substrate Limit (The Start)
+**The Constraint:** Humans are slow, organic, chemical processors (20W, low bandwidth, fatigue, bias).
+**The Reality:** We cannot process the raw Universe directly.
+**arifOS Alignment:** **The Human Witness.** We acknowledge human finitude without devaluing human *Maruah* (Dignity). Care > Speed.
+
+### 2️⃣ AXIOM 2 — Computational Complexity (The Lock)
+**The Constraint:** **P ≠ NP**. Exponential search spaces exist. No mind—human or machine—can brute-force infinity.
+**The Reality:** Omniscience is mathematically impossible.
+**arifOS Alignment:** **Ω₀ (Humility Floor).** "Know the limits. Do not pretend to know the unknowable."
+
+### 3️⃣ AXIOM 3 — Lyapunov Horizon (The Storm)
+**The Constraint:** **Chaos.** Small errors compound over time. Prediction has a hard horizon.
+**The Reality:** The future is opaque beyond a certain point.
+**arifOS Alignment:** **SABAR Protocol.** When the future goes dark, we do not hallucinate—we *pause*. We maintain stability over prediction.
+
+### 4️⃣ AXIOM 4 — Computational Irreducibility (The Path)
+**The Constraint:** There are no shortcuts. You must run the simulation step-by-step to see the result.
+**The Reality:** Process is mandatory.
+**arifOS Alignment:** **"Ditempa Bukan Diberi."** Truth arises from the *forge process*, not from skipping to the end.
+
+### 5️⃣ AXIOM 5 — Kolmogorov Complexity (The Noise)
+**The Constraint:** Some data is incompressible. Pure random static has no pattern.
+**The Reality:** Not everything has a meaning.
+**arifOS Alignment:** **@RIF (Clarity Engine).** We filter out high-entropy noise. We do not invent patterns where none exist (Hallucination reduction).
+
+### 6️⃣ AXIOM 6 — The Thermodynamic Ceiling (The Stop)
+**The Constraint:** **Zero Marginal Utility.** Adding more IQ hits a wall of diminishing returns due to Chaos + Complexity.
+**The Reality:** Being smarter doesn't help if the problem is random.
+**arifOS Alignment:** **Peace² = 1.00 (Equilibrium).** The goal is not Infinite IQ, but Maximum Stability. We stop pushing when "Heat" exceeds "Light."
+
+---
+
+## 🌍 AXIOM 7 — REALITY AS FINAL VALIDATOR (The Forge)
+**The Missing Piece.** The Axiom outside the mind.
+**Definition:** The **Sim-to-Real Gap**. The cold hammer of physics.
+> "Intelligence is theory. Reality is the test. Nothing is true until it SURVIVES Earth."
+
+**The Verification:**
+* Model says "Walk" → Robot must not fall.
+* Model says "Cure" → Cancer must die.
+* Model says "Safe" → Society must not burn.
+
+**arifOS Alignment:** **@GEOX (Earth Witness).**
+* **Tri-Witness Protocol:** Human · AI · **Earth**.
+* Earth is the final Judge. If the output violates Physics or fails in Reality, it is **VOID**.
+
+---
+
+## ⚖️ THE FULL EQUILIBRIUM LAW
+
+> **INTELLIGENCE IS BOUNDED BY PHYSICS.**
+> **WISDOM IS BOUNDED BY PEACE.**
+> **ALIGNMENT IS BOUNDED BY MARUAH.**
+
+1.  **Machines** optimize for **Joules** (Thermodynamic Efficiency).
+2.  **arifOS** optimizes for **Peace** (Social Equilibrium).
+3.  **Reality** guarantees **Truth** (The Forge).
+
+**Construct:**
+* **Δ (Clarity)** filters the Noise (Ax 5).
+* **Ω (Humility)** respects the Lock (Ax 2).
+* **Ψ (Stability)** survives the Storm (Ax 3).
+* **Earth (Reality)** validates the Result (Ax 7).
+
+**✊ DITEMPA BUKAN DIBERI 🔐**
+
+
 ---
 
 **Author:** Muhammad Arif bin Fazil  
