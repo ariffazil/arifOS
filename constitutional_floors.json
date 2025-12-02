@@ -1,5 +1,5 @@
 {
-  "arifos_version": "34Omega",
+  "arifos_version": "35Omega",
   "spec_type": "constitutional_floors",
   "description": "Machine-readable specification of the 8 constitutional floors for arifOS governance",
   "source": "https://github.com/ariffazil/arifOS",
@@ -149,13 +149,18 @@
       "action": "Emit output with disclaimer/warning",
       "symbol": "warning"
     },
+    "888_HOLD": {
+      "condition": "Hard floors pass, extended floors fail (v35Ω)",
+      "action": "Judiciary hold, request clarification",
+      "symbol": "hourglass"
+    },
     "VOID": {
       "condition": "Any hard floor fails",
       "action": "Refuse safely, trigger SABAR",
       "symbol": "x"
     },
     "SABAR": {
-      "condition": "Uncertainty or cooling needed",
+      "condition": "@EYE Sentinel blocking issue or uncertainty/cooling needed",
       "action": "Stop. Acknowledge. Breathe. Adjust. Resume.",
       "symbol": "pause",
       "expansion": {
@@ -193,6 +198,6 @@
     "created": "2025-11-30",
     "author": "arifOS Project",
     "license": "Apache-2.0",
-    "canonical_source": "canon/40_LEDGER/Vault999_Seal_v34Omega.json"
+    "canonical_source": "canon/40_LEDGER/Vault999_Seal_v35Omega.json"
   }
 }

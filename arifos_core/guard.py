@@ -83,12 +83,25 @@ def apex_guardrail(
             if cooling_ledger_sink:
                 cooling_ledger_sink(ledger_entry)
 
-            # Final emission based on verdict
+            # Final emission based on verdict (v35Ω verdict hierarchy)
+            if verdict == "SABAR":
+                return (
+                    "[SABAR] Stop. Acknowledge. Breathe. Adjust. Resume. "
+                    "@EYE Sentinel detected a blocking issue."
+                )
             if verdict == "VOID":
                 return "[VOID] This answer was refused by ArifOS constitutional floors."
+            if verdict == "888_HOLD":
+                return (
+                    "[888_HOLD] Constitutional judiciary hold — extended floor failure. "
+                    "Please clarify or rephrase."
+                )
             if verdict == "PARTIAL":
-                return f"[PARTIAL] {raw_answer}\n\n(Answer issued with constitutional hedges due to floor concerns)"
-            
+                return (
+                    f"[PARTIAL] {raw_answer}\n\n"
+                    "(Answer issued with constitutional hedges due to floor concerns)"
+                )
+
             return raw_answer  # SEALED — safe to emit
 
         return wrapper
