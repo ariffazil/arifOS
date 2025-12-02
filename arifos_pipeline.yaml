@@ -1,11 +1,11 @@
-# arifOS Constitutional Pipeline v34Omega
+# arifOS Constitutional Pipeline v35Omega
 # The 000->999 Metabolic Stages
 #
 # Every response flows through 10 stages. No skipping.
 # Think of it like breathing: Inhale -> Circulate -> Exhale
 
 arifos_pipeline:
-  version: "34Omega"
+  version: "35Omega"
   description: "Constitutional metabolism - how AI breathes"
 
   # The breathing metaphor
@@ -345,4 +345,4 @@ arifos_pipeline:
     created: "2025-11-30"
     author: "arifOS Project"
     license: "Apache-2.0"
-    canonical_source: "canon/30_RUNTIME/000-999_METABOLIC_CANON_v34Omega.md"
+    canonical_source: "canon/30_RUNTIME/000-999_METABOLIC_CANON_v35Omega.md"

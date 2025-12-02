@@ -2,7 +2,7 @@ import datetime
 from dataclasses import asdict
 from typing import Dict, Any, List, Optional
 from .metrics import Metrics
-from .apex import ApexVerdict
+from .APEX_PRIME import ApexVerdict
 
 def log_cooling_entry(
     job_id: str,
