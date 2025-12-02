@@ -12,7 +12,7 @@
 
 | Check | Status | Details |
 |-------|--------|---------|
-| Verdict paths mapped | ✅ | SEAL → PARTIAL → VOID → 888_HOLD → SABAR (hierarchy enforced) |
+| Verdict paths mapped | ✅ | SABAR → VOID → 888_HOLD → PARTIAL → SEAL (most restrictive → most permissive) |
 | All Eight Floors checked | ✅ | Core (Truth, ΔS, Peace², κᵣ, Ω₀, Amanah, RASA, Tri-Witness) + Extended v35Ω |
 | Ψ equation constraints | ✅ | Ψ ≥ 1.0 threshold enforced; computed as min(floor_ratios) |
 | Edge cases (NaN, div-zero) | ✅ | NaN comparisons return False → safe VOID verdict |
@@ -131,7 +131,7 @@ SABAR → VOID → 888_HOLD → PARTIAL → SEAL
 
 ## 7. Error Handling & Safety
 
-### Status: ✅ PASS
+### Status: ⚠️ PARTIAL (intentionally incomplete)
 
 | Check | Status | Details |
 |-------|--------|---------|
