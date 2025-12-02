@@ -8,6 +8,7 @@ arifOS is a **Constitutional Governance Kernel for LLMs** - a physics-based prot
 
 **Current Version:** v35Ω (Epoch 35)
 **Core Philosophy:** "Ditempa. Bukan Diberi." (Forged, Not Given)
+**Release:** v35.0.0 - APEX PRIME Judiciary Lock
 
 ## Build & Test Commands
 
@@ -32,6 +33,28 @@ ruff check .               # Lint
 mypy arifos_core/          # Type check
 ```
 
+## Physics Laws (ΔΩΨ)
+
+The core thermodynamic laws governing all intelligence in arifOS:
+
+| Law | Symbol | Meaning | Engine |
+|-----|--------|---------|--------|
+| Clarity | Δ | ΔS ≥ 0 (entropy must decrease) | ARIF AGI |
+| Humility | Ω | Ω₀ ∈ [0.03, 0.05] (uncertainty band) | ADAM ASI |
+| Vitality | Ψ | Ψ ≥ 1 (equilibrium required) | APEX PRIME |
+| Paradox | Φᴘ | Φᴘ ≥ 1 (paradox must converge) | TPCP |
+
+**Core Equation:**
+```
+Ψ = (ΔS · Peace² · κᵣ · RASA · Amanah) / (Entropy + Shadow + ε)
+```
+
+**Unified Field:**
+```
+APEX_35Ω = (Δ · Ω · Ψ · X) / (Entropy + Shadow + ε)
+```
+Where X = Ethical Exploration (Amanah × RASA × κᵣ)
+
 ## Architecture
 
 ### Core Module (`arifos_core/`)
@@ -43,8 +66,8 @@ mypy arifos_core/          # Type check
 | `metrics.py` | Core + extended floor metric dataclasses |
 | `guard.py` | `@apex_guardrail` decorator for wrapping functions |
 | `kms_signer.py` | AWS KMS cryptographic signing for ledger |
-| `memory/cooling_ledger.py` | L1: Immutable JSONL audit log with hash-chaining |
-| `memory/vault999.py` | L0: Constitutional memory store |
+| `memory/cooling_ledger.py` | L1: Immutable JSONL audit log with hash-chaining (v35Ω) |
+| `memory/vault999.py` | L0: Constitutional memory store (v35Ω) |
 | `memory/phoenix72.py` | L2: Error→Law amendment engine (72h cycle) |
 | `memory/vector_adapter.py` | L3: External witness/vector evidence |
 
@@ -151,6 +174,16 @@ def my_llm_function(user_input: str) -> str:
     return llm.generate(user_input)
 ```
 
+### SEA-LION Integration (Level 2.5)
+```python
+# level2_cage.py - SEA-LION + arifOS wrapper
+# Uses tokenizer.apply_chat_template() for Llama-3 format
+# Includes basic hallucination detection:
+# - Identity hallucination ("Khabaq SEA-LION")
+# - Physical body claims
+# - Repetition loops
+```
+
 ### Version Constants
 ```python
 from arifos_core import APEX_VERSION, APEX_EPOCH
@@ -168,19 +201,32 @@ arifOS/
 │   ├── eye_sentinel.py       # @EYE Sentinel (10 views)
 │   ├── metrics.py            # Core + extended metrics
 │   ├── guard.py              # Guardrail decorator
-│   └── memory/               # Ledger, vault, phoenix
-├── canon/                    # Constitutional specifications (v35Ω)
-│   ├── 00_CANON/             # Unified field theory
+│   ├── ledger.py             # Ledger utilities (v35Ω)
+│   └── memory/               # Ledger, vault, phoenix (v35Ω)
+├── canon/                    # Constitutional specifications
+│   ├── 00_CANON/             # Unified field theory + APEX_PHYSICS_v35Omega.md
 │   ├── 10_SYSTEM/            # AAA engines, Eureka cube
 │   ├── 20_WITNESS/           # Governance kernel spec
 │   ├── 30_RUNTIME/           # Metabolic pipeline
 │   └── 40_LEDGER/            # Vault-999 specs
-├── integrations/sealion/     # SEA-LION v3 integration
+├── docs/                     # Documentation
+│   ├── PHYSICS_CODEX.md      # Full physics explanation (v35Ω)
+│   └── ANALYSIS_REPORT_v35.md
+├── integrations/sealion/     # SEA-LION integration
+├── level2_cage.py            # SEA-LION + arifOS wrapper (Level 2.5)
 ├── tests/                    # pytest suite (141 tests)
 ├── constitutional_floors.json
 ├── arifos_pipeline.yaml
 └── cooling_ledger.jsonl      # Live audit trail
 ```
+
+## Canon Documents
+
+| Document | Location | Purpose |
+|----------|----------|---------|
+| APEX_PHYSICS_v35Omega.md | canon/00_CANON/ | Quick reference physics spec |
+| PHYSICS_CODEX.md | docs/ | Full detailed physics (6 chapters) |
+| DeltaOmegaPsi_Unified_Field_v35Omega.md | canon/00_CANON/ | Unified field theory |
 
 ## Branch & Commit Conventions
 
@@ -212,7 +258,18 @@ Changes to floors, pipeline, or verdict logic must follow **Phoenix-72** protoco
 3. Obtain Tri-Witness consensus
 4. 72-hour cooling period before merge
 
+## Integration Levels
+
+| Level | Metrics | Status |
+|-------|---------|--------|
+| Level 1 | None | Complete |
+| Level 2 | Simulated (hardcoded) | Complete |
+| Level 2.5 | Basic hallucination detection | Complete |
+| Level 3 | Real NLP-based computation | Next |
+
 ---
 
-**Last Updated:** v35Ω upgrade complete
+**Last Updated:** 2025-12-02
+**Version:** v35Ω Judiciary Lock
+**Tag:** v35.0.0
 **Tests:** 141 passing
