@@ -1,5 +1,5 @@
 """
-vault999.py — VAULT-999 constitutional memory organ (L0) for arifOS v33Ω.
+vault999.py — VAULT-999 constitutional memory organ (L0) for arifOS v35Ω.
 
 Responsibilities:
 - Load and expose constitution (laws, floors, physics)
@@ -67,8 +67,8 @@ class Vault999:
         else:
             # Initialize with a minimal constitution structure
             self._constitution = {
-                "version": "33.0.1",
-                "epoch": "33Ω",
+                "version": "35.0.0",
+                "epoch": "35Ω",
                 "physics": {
                     "delta_S_min": 0.0,
                     "peace_squared_min": 1.0,

@@ -1,5 +1,5 @@
 """
-cooling_ledger.py — L1 Cooling Ledger for arifOS v33Ω.
+cooling_ledger.py — L1 Cooling Ledger for arifOS v35Ω.
 
 Responsibilities:
 - Append-only audit log for high-stakes interactions
@@ -245,7 +245,7 @@ def log_cooling_entry(
     )
 
     entry = {
-        "ledger_version": "v33Ω",
+        "ledger_version": "v35Ω",
         "timestamp": time.time(),
         "job_id": job_id,
         "stakes": stakes,

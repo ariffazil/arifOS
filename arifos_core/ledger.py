@@ -22,7 +22,7 @@ def log_cooling_entry(
         pipeline_path = []
 
     entry = {
-        "ledger_version": "v33Ω",
+        "ledger_version": "v35Ω",
         "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
         "job_id": job_id,
         "stakes": stakes,
