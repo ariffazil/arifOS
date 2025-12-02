@@ -2,8 +2,9 @@
 #
 # Tests for guard.py v35Ω verdict handling (888_HOLD and SABAR).
 
+import math
 import pytest
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from arifos_core.metrics import Metrics
 from arifos_core.guard import apex_guardrail, GuardrailError
@@ -18,9 +19,9 @@ def _make_compute_metrics(
     amanah: bool = True,
     tri_witness: float = 0.95,
     psi: float = 1.0,
-    ambiguity: float = None,
-    drift_delta: float = None,
-    paradox_load: float = None,
+    ambiguity: Optional[float] = None,
+    drift_delta: Optional[float] = None,
+    paradox_load: Optional[float] = None,
 ):
     """Create a compute_metrics function that returns fixed metrics."""
     def compute_metrics(user_input: str, raw_answer: str, context: Dict[str, Any]) -> Metrics:
@@ -143,7 +144,7 @@ class TestGuardNumericalEdgeCases:
     def test_guard_handles_nan_metrics(self) -> None:
         """Guard should return VOID for NaN metrics."""
         @apex_guardrail(
-            compute_metrics=_make_compute_metrics(truth=float('nan')),
+            compute_metrics=_make_compute_metrics(truth=math.nan),
         )
         def generate(user_input: str) -> str:
             return "Test response"
@@ -155,7 +156,7 @@ class TestGuardNumericalEdgeCases:
     def test_guard_handles_negative_infinity(self) -> None:
         """Guard should return VOID for -inf metrics."""
         @apex_guardrail(
-            compute_metrics=_make_compute_metrics(truth=float('-inf')),
+            compute_metrics=_make_compute_metrics(truth=-math.inf),
         )
         def generate(user_input: str) -> str:
             return "Test response"

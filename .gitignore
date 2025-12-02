@@ -39,6 +39,10 @@ venv/
 .vscode/
 .idea/
 
+# Runtime artifacts
+runtime/vault_999/
+cooling_ledger.jsonl
+
 # Misc
 *.so
 .DS_Store
