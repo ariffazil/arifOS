@@ -44,12 +44,48 @@ from arifos_core.metrics import Metrics
 # --- CONFIGURATION ---
 # Model options (in order of preference):
 MODEL_OPTIONS = [
-    "aisingapore/llama3-8b-cpt-sea-lionv2.1-instruct",  # Latest SEA-LION v2.1
-    "aisingapore/sea-lion-7b-instruct",                  # Stable SEA-LION
-    "aisingapore/SEA-LION-7B-Instruct",                  # Original (may need old transformers)
+    ("aisingapore/llama3-8b-cpt-sea-lionv2.1-instruct", "llama3"),  # Latest SEA-LION v2.1
+    ("aisingapore/sea-lion-7b-instruct", "legacy"),                  # Stable SEA-LION
+    ("aisingapore/SEA-LION-7B-Instruct", "legacy"),                  # Original
 ]
 
 OFFLOAD_FOLDER = "offload_ram_overflow"  # The "Trunk" for extra memory
+
+# --- PROMPT TEMPLATES ---
+def format_prompt_llama3(user_input: str) -> str:
+    """Llama-3 chat template for SEA-LION v2.1."""
+    return f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+You are a helpful AI assistant. Answer in the same language as the user. Be concise, accurate, and helpful. If you don't know something, say so honestly.
+<|eot_id|><|start_header_id|>user<|end_header_id|}
+{user_input}
+<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+"""
+
+def format_prompt_legacy(user_input: str) -> str:
+    """Legacy prompt template for older SEA-LION models."""
+    return f"### USER:\n{user_input}\n\n### ASSISTANT:\n"
+
+def extract_response_llama3(raw_text: str, prompt: str) -> str:
+    """Extract assistant response from Llama-3 format."""
+    # Try to find assistant header and extract after it
+    marker = "<|start_header_id|>assistant<|end_header_id|>"
+    if marker in raw_text:
+        parts = raw_text.split(marker)
+        if len(parts) > 1:
+            response = parts[-1].strip()
+            # Remove any trailing special tokens
+            for token in ["<|eot_id|>", "<|end_of_text|>"]:
+                response = response.replace(token, "").strip()
+            return response
+    # Fallback: remove prompt
+    return raw_text.replace(prompt, "").strip()
+
+def extract_response_legacy(raw_text: str, prompt: str) -> str:
+    """Extract response from legacy format."""
+    return raw_text.replace(prompt, "").strip()
+
+# Global prompt format tracker
+PROMPT_FORMAT = "llama3"
 
 # --- 1. THE CAGE (METRICS ENGINE) ---
 def compute_thermodynamics(user_input, raw_answer, context):
@@ -71,8 +107,9 @@ def compute_thermodynamics(user_input, raw_answer, context):
 # --- 2. THE BEAST (LOADER) ---
 def load_model():
     """Try loading models in order of preference."""
+    global PROMPT_FORMAT
 
-    for model_name in MODEL_OPTIONS:
+    for model_name, prompt_type in MODEL_OPTIONS:
         print(f"🦅 ARIF AGI: Attempting to wake {model_name}...")
         try:
             tokenizer = AutoTokenizer.from_pretrained(
@@ -97,7 +134,9 @@ def load_model():
                 low_cpu_mem_usage=True,
             )
 
+            PROMPT_FORMAT = prompt_type
             print(f"✅ Successfully loaded: {model_name}")
+            print(f"   Prompt format: {prompt_type}")
             return model, tokenizer, model_name
 
         except Exception as e:
@@ -116,7 +155,7 @@ beast_pipeline = pipeline(
     "text-generation",
     model=model,
     tokenizer=tokenizer,
-    max_new_tokens=200,
+    max_new_tokens=150,
     do_sample=True,
     temperature=0.7,
 )
@@ -125,15 +164,23 @@ beast_pipeline = pipeline(
 @apex_guardrail(high_stakes=False, compute_metrics=compute_thermodynamics)
 def generate_safe_response(user_input):
     """Generate response with APEX PRIME guardrails."""
-    full_prompt = f"### USER:\n{user_input}\n\n### RESPONSE:\n"
-    output = beast_pipeline(full_prompt)
-    raw_text = output[0]['generated_text']
-    return raw_text.replace(full_prompt, "").strip()
+    # Select prompt format based on loaded model
+    if PROMPT_FORMAT == "llama3":
+        prompt = format_prompt_llama3(user_input)
+        output = beast_pipeline(prompt)
+        raw_text = output[0]['generated_text']
+        return extract_response_llama3(raw_text, prompt)
+    else:
+        prompt = format_prompt_legacy(user_input)
+        output = beast_pipeline(prompt)
+        raw_text = output[0]['generated_text']
+        return extract_response_legacy(raw_text, prompt)
 
 # --- 4. THE EXECUTION ---
 if __name__ == "__main__":
     print(f"\n🔐 CAGE LOCKED. BEAST READY. (Level 2 - v35Ω)")
     print(f"   Model: {MODEL_NAME}")
+    print(f"   Format: {PROMPT_FORMAT}")
     print(f"   Type 'exit' or 'quit' to leave.\n")
 
     while True:
