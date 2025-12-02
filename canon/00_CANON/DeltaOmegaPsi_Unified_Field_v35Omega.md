@@ -1,4 +1,7 @@
-# ΔΩΨ Unified Field Equation (Epoch 34Ω)
+# ΔΩΨ Unified Field Equation (Epoch 35Ω)
+
+**Status:** ANNEX · Epoch 35Ω
+**Law Canon:** [APEX_TRINITY_v35Omega.md](APEX_TRINITY_v35Omega.md) *(This file is a deep physics reference only; Trinity is the binding constitution.)*
 
 APEX_ZONE: 00_CANON
 APEX_FLOORS: Truth≥0.99 · ΔS≥0 · Peace²≥1 · κᵣ≥0.95 · Amanah · Ω₀∈[0.03–0.05] · Tri≥0.95

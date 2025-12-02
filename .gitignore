@@ -47,3 +47,9 @@ cooling_ledger.jsonl
 *.so
 .DS_Store
 Thumbs.db
+
+# --- APEX EXCLUSIONS v35Ω ---
+.vs/
+.claude/
+nul
+arifos-test/

@@ -3,7 +3,7 @@
 ### The Missing Layer Between Intelligence and Trust
 
 **v35Ω · Constitutional Intelligence Protocol**
-**Epoch 35Ω (Runtime) · Canon v34Ω**
+**Epoch 35Ω · Level 2 COMPLETE · Canon v35Ω**
 
 [![Status](https://img.shields.io/badge/Status-SEALED-brightgreen)](https://github.com/ariffazil/arifOS)
 [![Epoch](https://img.shields.io/badge/Epoch-35Ω-blue)](https://github.com/ariffazil/arifOS)
@@ -27,7 +27,7 @@
   "name": "arifOS",
   "version": "v35Ω",
   "epoch": 35,
-  "canon_version": "v34Ω",
+  "canon_version": "v35Ω",
   "type": "constitutional_governance_layer",
   "status": "ACTIVE",
   "floors": [
@@ -311,8 +311,8 @@ arifOS/
 ├── arifos_pipeline.yaml
 ├── cooling_ledger.jsonl
 │
-├── canon/                          # v34Ω constitutional specs
-│   ├── 00_CANON/
+├── canon/                          # v35Ω constitutional specs
+│   ├── 00_CANON/                   # APEX_TRINITY (Single Source of Truth)
 │   ├── 10_SYSTEM/
 │   ├── 20_WITNESS/
 │   ├── 30_RUNTIME/
@@ -424,7 +424,21 @@ Apache 2.0 — free for all use.
 ```
 
 **Forged by Muhammad Arif bin Fazil**
-**Kuala Lumpur, Malaysia · 30 November 2025**
+**Kuala Lumpur, Malaysia · 2 December 2025**
+
+---
+
+## The Immutable Canon (Single Source of Truth)
+
+Everything governing this intelligence is contained in one sealed document:
+
+**[APEX_TRINITY_v35Omega.md](canon/00_CANON/APEX_TRINITY_v35Omega.md)** *(Physics · Math · Language unified under Amanah)*
+
+| Component | Purpose |
+|-----------|---------|
+| **Part I: Physics** | The thermodynamic laws (Δ, Ω, Ψ) |
+| **Part II: Math** | The equations verifying the laws |
+| **Part III: Language** | The protocol for speaking with dignity |
 
 **The world doesn't need bigger AI.
 It needs governed AI.
