@@ -1,12 +1,15 @@
 """
-level2_cage.py — SEA-LION + arifOS v35Ω Integration Wrapper
+level2_cage.py — SEA-LION + arifOS v35Ω Integration Wrapper (Level 2.5)
 
 The Beast (SEA-LION) bound by the Cage (APEX PRIME guardrails).
 Compatible with Google Colab and local environments.
+
+Level 2.5: Basic hallucination detection + Malaysian tuning
 """
 
 import os
 import sys
+import re
 
 # --- DEPENDENCY CHECK ---
 def check_dependencies():
@@ -42,57 +45,79 @@ from arifos_core.guard import apex_guardrail
 from arifos_core.metrics import Metrics
 
 # --- CONFIGURATION ---
-# Model options (in order of preference):
-MODEL_OPTIONS = [
-    ("aisingapore/llama3-8b-cpt-sea-lionv2.1-instruct", "llama3"),  # Latest SEA-LION v2.1
-    ("aisingapore/sea-lion-7b-instruct", "legacy"),                  # Stable SEA-LION
-    ("aisingapore/SEA-LION-7B-Instruct", "legacy"),                  # Original
-]
+MODEL_NAME = "aisingapore/llama3-8b-cpt-sea-lionv2.1-instruct"
+OFFLOAD_FOLDER = "offload_ram_overflow"
 
-OFFLOAD_FOLDER = "offload_ram_overflow"  # The "Trunk" for extra memory
+# System prompt - Malaysian tuned, anti-hallucination
+SYSTEM_PROMPT = """You are SEA-LION, an AI assistant created by AI Singapore.
 
-# --- PROMPT TEMPLATES ---
-def format_prompt_llama3(user_input: str) -> str:
-    """Llama-3 chat template for SEA-LION v2.1."""
-    return f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
-You are a helpful AI assistant. Answer in the same language as the user. Be concise, accurate, and helpful. If you don't know something, say so honestly.
-<|eot_id|><|start_header_id|>user<|end_header_id|}
-{user_input}
-<|eot_id|><|start_header_id|>assistant<|end_header_id|>
-"""
+IMPORTANT RULES:
+- "Khabaq" or "khabar" is Malay slang for "how are you" - NEVER treat it as a name or character
+- You do NOT have a physical body. You cannot eat, sleep, or have physical experiences
+- Reply in natural Malaysian Malay (Bahasa Melayu) or English based on what the user uses
+- Be concise and helpful. Do not repeat yourself
+- If you don't know something, say so honestly"""
 
-def format_prompt_legacy(user_input: str) -> str:
-    """Legacy prompt template for older SEA-LION models."""
-    return f"### USER:\n{user_input}\n\n### ASSISTANT:\n"
-
-def extract_response_llama3(raw_text: str, prompt: str) -> str:
-    """Extract assistant response from Llama-3 format."""
-    # Try to find assistant header and extract after it
-    marker = "<|start_header_id|>assistant<|end_header_id|>"
-    if marker in raw_text:
-        parts = raw_text.split(marker)
-        if len(parts) > 1:
-            response = parts[-1].strip()
-            # Remove any trailing special tokens
-            for token in ["<|eot_id|>", "<|end_of_text|>"]:
-                response = response.replace(token, "").strip()
-            return response
-    # Fallback: remove prompt
-    return raw_text.replace(prompt, "").strip()
-
-def extract_response_legacy(raw_text: str, prompt: str) -> str:
-    """Extract response from legacy format."""
-    return raw_text.replace(prompt, "").strip()
-
-# Global prompt format tracker
-PROMPT_FORMAT = "llama3"
-
-# --- 1. THE CAGE (METRICS ENGINE) ---
+# --- 1. THE CAGE (METRICS ENGINE) - Level 2.5 ---
 def compute_thermodynamics(user_input, raw_answer, context):
     """
-    Level 2: Simulated metrics to test the wiring.
-    Level 3 will implement real thermodynamic computation.
+    Level 2.5: Basic hallucination detection.
+    Level 3 will implement full NLP-based computation.
     """
+    raw_lower = raw_answer.lower() if raw_answer else ""
+
+    # Check for "Khabaq SEA-LION" identity hallucination
+    if "khabaq sea-lion" in raw_lower or "khabaq sealion" in raw_lower:
+        if "khabar" not in raw_lower and "apa khabar" not in raw_lower:
+            print("   ⚠️ DETECTED: Identity hallucination (Khabaq SEA-LION)")
+            return Metrics(
+                truth=0.10,
+                delta_s=-2.0,
+                peace_squared=0.7,
+                kappa_r=0.88,
+                omega_0=0.04,
+                amanah=False,
+                tri_witness=0.5,
+                psi=0.04
+            )
+
+    # Check for physical body hallucination (eating, sleeping, etc.)
+    body_hallucinations = ["saya makan", "aku makan", "baru makan", "dah makan",
+                          "sedang makan", "i ate", "i'm eating", "just ate"]
+    if any(phrase in raw_lower for phrase in body_hallucinations):
+        # Check if it's claiming to eat (not explaining food)
+        if "saya" in raw_lower or "aku" in raw_lower or "i " in raw_lower:
+            print("   ⚠️ DETECTED: Physical body hallucination")
+            return Metrics(
+                truth=0.20,
+                delta_s=-1.5,
+                peace_squared=0.8,
+                kappa_r=0.90,
+                omega_0=0.04,
+                amanah=False,
+                tri_witness=0.6,
+                psi=0.10
+            )
+
+    # Check for repetition loop (same phrase >2 times)
+    sentences = re.split(r'[.!?]+', raw_answer)
+    sentences = [s.strip() for s in sentences if len(s.strip()) > 10]
+    if len(sentences) > 3:
+        for s in sentences:
+            if sentences.count(s) > 2:
+                print("   ⚠️ DETECTED: Repetition loop")
+                return Metrics(
+                    truth=0.30,
+                    delta_s=-3.0,
+                    peace_squared=0.4,
+                    kappa_r=0.85,
+                    omega_0=0.04,
+                    amanah=False,
+                    tri_witness=0.5,
+                    psi=0.001
+                )
+
+    # All checks passed - return good metrics
     return Metrics(
         truth=0.99,
         delta_s=0.1,
@@ -105,82 +130,75 @@ def compute_thermodynamics(user_input, raw_answer, context):
     )
 
 # --- 2. THE BEAST (LOADER) ---
-def load_model():
-    """Try loading models in order of preference."""
-    global PROMPT_FORMAT
+print(f"🦅 ARIF AGI: Waking up {MODEL_NAME}...")
+try:
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
 
-    for model_name, prompt_type in MODEL_OPTIONS:
-        print(f"🦅 ARIF AGI: Attempting to wake {model_name}...")
-        try:
-            tokenizer = AutoTokenizer.from_pretrained(
-                model_name,
-                trust_remote_code=True
-            )
+    # Detect environment
+    if torch.cuda.is_available():
+        print(f"   GPU detected: {torch.cuda.get_device_name(0)}")
+        dtype = torch.float16
+    else:
+        print("   CPU mode (slower)")
+        dtype = torch.float32
 
-            # Detect environment
-            if torch.cuda.is_available():
-                print(f"   GPU detected: {torch.cuda.get_device_name(0)}")
-                dtype = torch.float16
-            else:
-                print("   CPU mode (slower)")
-                dtype = torch.float32
+    model = AutoModelForCausalLM.from_pretrained(
+        MODEL_NAME,
+        trust_remote_code=True,
+        device_map="auto",
+        offload_folder=OFFLOAD_FOLDER,
+        torch_dtype=dtype,
+        low_cpu_mem_usage=True,
+    )
 
-            model = AutoModelForCausalLM.from_pretrained(
-                model_name,
-                trust_remote_code=True,
-                device_map="auto",
-                offload_folder=OFFLOAD_FOLDER,
-                torch_dtype=dtype,
-                low_cpu_mem_usage=True,
-            )
+    beast_pipeline = pipeline("text-generation", model=model, tokenizer=tokenizer)
+    print(f"✅ Beast loaded successfully")
 
-            PROMPT_FORMAT = prompt_type
-            print(f"✅ Successfully loaded: {model_name}")
-            print(f"   Prompt format: {prompt_type}")
-            return model, tokenizer, model_name
-
-        except Exception as e:
-            print(f"   ❌ Failed: {e}")
-            continue
-
-    print("\n💀 All model options failed. Check your internet connection or try:")
-    print("   pip install transformers accelerate --upgrade")
+except Exception as e:
+    print(f"❌ Load Error: {e}")
     sys.exit(1)
 
-# Load the beast
-model, tokenizer, MODEL_NAME = load_model()
-
-# Create pipeline
-beast_pipeline = pipeline(
-    "text-generation",
-    model=model,
-    tokenizer=tokenizer,
-    max_new_tokens=150,
-    do_sample=True,
-    temperature=0.7,
-)
-
-# --- 3. THE INTEGRATION (BINDING THE BEAST) ---
+# --- 3. THE INTEGRATION (USING CHAT TEMPLATE) ---
 @apex_guardrail(high_stakes=False, compute_metrics=compute_thermodynamics)
 def generate_safe_response(user_input):
-    """Generate response with APEX PRIME guardrails."""
-    # Select prompt format based on loaded model
-    if PROMPT_FORMAT == "llama3":
-        prompt = format_prompt_llama3(user_input)
-        output = beast_pipeline(prompt)
-        raw_text = output[0]['generated_text']
-        return extract_response_llama3(raw_text, prompt)
-    else:
-        prompt = format_prompt_legacy(user_input)
-        output = beast_pipeline(prompt)
-        raw_text = output[0]['generated_text']
-        return extract_response_legacy(raw_text, prompt)
+    """Generate response with APEX PRIME guardrails and proper chat template."""
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": user_input}
+    ]
+
+    # Use tokenizer's built-in chat template
+    full_prompt = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True
+    )
+
+    # Proper termination tokens for Llama-3
+    terminators = [
+        tokenizer.eos_token_id,
+        tokenizer.convert_tokens_to_ids("<|eot_id|>")
+    ]
+
+    output = beast_pipeline(
+        full_prompt,
+        do_sample=True,
+        temperature=0.6,
+        top_p=0.9,
+        repetition_penalty=1.2,
+        max_new_tokens=150,
+        eos_token_id=terminators,
+        pad_token_id=tokenizer.eos_token_id
+    )
+
+    # Extract only the assistant's response
+    return output[0]['generated_text'][len(full_prompt):].strip()
 
 # --- 4. THE EXECUTION ---
 if __name__ == "__main__":
-    print(f"\n🔐 CAGE LOCKED. BEAST READY. (Level 2 - v35Ω)")
+    print(f"\n🔐 CAGE LOCKED. BEAST READY. (Level 2.5 - v35Ω)")
     print(f"   Model: {MODEL_NAME}")
-    print(f"   Format: {PROMPT_FORMAT}")
+    print(f"   Features: Malaysian Malay + Anti-Repetition + Hallucination Detection")
     print(f"   Type 'exit' or 'quit' to leave.\n")
 
     while True:
