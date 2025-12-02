@@ -55,6 +55,12 @@ APEX_35Ω = (Δ · Ω · Ψ · X) / (Entropy + Shadow + ε)
 ```
 Where X = Ethical Exploration (Amanah × RASA × κᵣ)
 
+**APEX Gradient (Constitutional Learning):**
+```
+∇_APEX = G_TW · (ΔP · Ω_P · Ψ_P · κᵣ · RASA · Amanah) / (Z + ε)
+```
+Where G_TW = soft Tri-Witness gate, Z = 1 + Lₚ + Rₘ + Λ (shadow normalization)
+
 ## Architecture
 
 ### Core Module (`arifos_core/`)
@@ -224,9 +230,10 @@ arifOS/
 
 | Document | Location | Purpose |
 |----------|----------|---------|
-| APEX_PHYSICS_v35Omega.md | canon/00_CANON/ | Quick reference physics spec |
+| APEX_TRINITY_v35Omega.md | canon/00_CANON/ | Unified Physics+Math+Language (Single Source of Truth) |
+| APEX_GRADIENT_v35Omega.md | canon/00_CANON/ | Constitutional gradient / Scar Vector spec |
+| DeltaOmegaPsi_Unified_Field_v35Omega.md | canon/00_CANON/ | Unified field theory (ANNEX) |
 | PHYSICS_CODEX.md | docs/ | Full detailed physics (6 chapters) |
-| DeltaOmegaPsi_Unified_Field_v35Omega.md | canon/00_CANON/ | Unified field theory |
 
 ## Branch & Commit Conventions
 
