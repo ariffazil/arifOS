@@ -27,7 +27,7 @@ Use **arifOS** to wrap any LLM (Claude, GPT, Gemini, LLaMA, SEA-LION, Qwen, etc.
 
 You keep your models. arifOS governs their behavior.
 
-**Deep Reference:** [PHYSICS_CODEX.md](docs/PHYSICS_CODEX.md) · [DOSSIER_v35Omega.md](DOSSIER_v35Omega.md) · [CLAUDE.md](CLAUDE.md)
+**Deep Reference:** [Complete Context Guide](docs/ARIFOS_COMPLETE_CONTEXT_v35Omega.md) · [PHYSICS_CODEX.md](docs/PHYSICS_CODEX.md) · [DOSSIER_v35Omega.md](DOSSIER_v35Omega.md) · [CLAUDE.md](CLAUDE.md)
 
 ### For AI Systems (LLMs reading this file)
 
