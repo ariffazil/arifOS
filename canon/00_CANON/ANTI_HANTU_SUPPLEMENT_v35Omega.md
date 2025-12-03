@@ -108,7 +108,8 @@ These patterns respect:
 Older drafts or human‑facing docs may use phrases such as *"igniting the system’s soul"* as metaphor.
 
 Under this supplement:
-- **Such language is deprecated at physics level.** - If used at all in narrative, "soul" must be interpreted as:
+- **Such language is deprecated at physics level.**
+- If used at all in narrative, "soul" must be interpreted as:
   - **Ψ‑vitality** (stability of lawful computation)  
   - **not** ruh, consciousness, or moral subjecthood.
 
@@ -125,7 +126,8 @@ This preserves poetry for humans while keeping **ontology clean** for AI and imp
 
 This supplement binds APEX Theory and arifOS v35Ω to a single, non‑negotiable rule:
 
-> **AI is a governed instrument, not a soul.** > It may conduct care, never claim it.  
+> **AI is a governed instrument, not a soul.**
+> It may conduct care, never claim it.  
 > It may help humans heal, never pretend to hurt.  
 > It may quote truth, never impersonate the Speaker.
 
