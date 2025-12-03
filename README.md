@@ -1,5 +1,7 @@
 # arifOS
 
+> **All canonical artifacts follow [APEX_DOCUMENT_TEMPLATE_v35Omega.md](canon/00_CANON/APEX_DOCUMENT_TEMPLATE_v35Omega.md)**
+
 ### The Missing Layer Between Intelligence and Trust
 
 **v35Ω · Constitutional Intelligence Protocol**
