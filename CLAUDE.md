@@ -272,11 +272,37 @@ Changes to floors, pipeline, or verdict logic must follow **Phoenix-72** protoco
 | Level 1 | None | Complete |
 | Level 2 | Simulated (hardcoded) | Complete |
 | Level 2.5 | Basic hallucination detection | Complete |
-| Level 3 | Real NLP-based computation | Next |
+| Level 3 | Thinking Mode + Basic @EYE | **Complete** |
+| Level 3.5 | Real NLP-based computation | Next |
+
+### Level 3: Qwen-SEA-LION Integration (03 Dec 2025)
+
+**Model:** `aisingapore/Qwen-SEA-LION-v4-32B-IT`
+**Platform:** Google Colab A100 (40GB VRAM)
+**Artifact:** `notebooks/arifOS_Level3_QwenSEALION_v35.ipynb`
+
+**Key Learnings:**
+
+| Config | Result |
+|--------|--------|
+| `temperature=0.0` (Greedy) | Model stalls in logic loops |
+| `temperature=0.3-0.6` (Balanced) | Stable, deliberate output |
+| `temperature>0.8` | Too chaotic, floor violations |
+
+**Thinking Mode:**
+- Token `151668` = `</think>` separator
+- Use `enable_thinking=True` in `apply_chat_template()`
+- Parse thinking trace vs final output for transparency
+
+**Basic @EYE Checks:**
+- Identity hallucination: "saya makan", "my body", physical claims
+- Arrogance/Ω drift: "100%", "pasti", absolute certainty
+
+See `docs/LEVEL3_EUREKA_LOG.md` for full journey documentation.
 
 ---
 
-**Last Updated:** 2025-12-02
+**Last Updated:** 2025-12-03
 **Version:** v35Ω Judiciary Lock
 **Tag:** v35.0.0
 **Tests:** 141 passing
