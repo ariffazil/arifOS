@@ -302,6 +302,93 @@ See `docs/LEVEL3_EUREKA_LOG.md` for full journey documentation.
 
 ---
 
+## Repository Status Map (03 Dec 2025)
+
+### Module Implementation Status
+
+| Module | Path | Status | Coverage |
+|--------|------|--------|----------|
+| APEX PRIME | `arifos_core/APEX_PRIME.py` | ✓ COMPLETE | 95%+ |
+| Metrics | `arifos_core/metrics.py` | ✓ COMPLETE | 95%+ |
+| @EYE Sentinel | `arifos_core/eye_sentinel.py` | ✓ COMPLETE | 95%+ |
+| Guard Decorator | `arifos_core/guard.py` | ✓ COMPLETE | 90%+ |
+| Ignition | `arifos_core/ignition.py` | ✓ COMPLETE | 80%+ |
+| KMS Signer | `arifos_core/kms_signer.py` | ✓ COMPLETE | 85%+ |
+| Cooling Ledger | `arifos_core/memory/cooling_ledger.py` | ✓ COMPLETE | 90%+ |
+| Vault-999 | `arifos_core/memory/vault999.py` | ✓ COMPLETE | 80%+ |
+| Phoenix-72 | `arifos_core/memory/phoenix72.py` | ✓ COMPLETE | 70%+ |
+| Vector Adapter | `arifos_core/memory/vector_adapter.py` | ✓ COMPLETE | 80%+ |
+| Claude Code Client | `arifos_code/governed_client.py` | ⚠ IN PROGRESS | 50% |
+| AST Verifier | `arifos_code/ast_verifier.py` | ⚠ IN PROGRESS | 40% |
+| Metrics Computer | `arifos_code/metrics_computer.py` | ⚠ IN PROGRESS | 40% |
+
+### Directory Map
+
+```
+arifos_core/           ✓ COMPLETE - Core constitutional runtime
+├── APEX_PRIME.py      ✓ Judiciary (240 lines)
+├── metrics.py         ✓ Floor definitions (174 lines)
+├── eye_sentinel.py    ✓ 10-view auditor (300+ lines)
+├── guard.py           ✓ @apex_guardrail decorator
+├── ignition.py        ✓ Profile loader (3 profiles)
+├── kms_signer.py      ✓ AWS KMS signing
+└── memory/            ✓ L0-L3 memory layers
+    ├── vault999.py    ✓ L0: Constitutional store
+    ├── cooling_ledger.py ✓ L1: Audit log
+    ├── phoenix72.py   ✓ L2: Amendment engine
+    └── vector_adapter.py ✓ L3: Witness adapter
+
+arifos_code/           ⚠ IN PROGRESS - Claude Code integration
+├── governed_client.py ⚠ Main wrapper (framework done)
+├── ast_verifier.py    ⚠ AST Truth verification
+├── metrics_computer.py ⚠ Floor computation
+└── pre_execution.py   ⚠ TEARFRAME validation
+
+canon/                 ✓ COMPLETE - Specifications (12 files)
+├── 00_CANON/          ✓ ΔΩΨ physics (APEX_TRINITY is source of truth)
+├── 01_TEMPLATES/      ✓ Document templates
+├── 10_SYSTEM/         ✓ AAA Engines + EUREKA Cube
+├── 20_WITNESS/        ✓ Governance Kernel spec
+├── 30_RUNTIME/        ✓ 000-999 metabolic pipeline
+└── 40_LEDGER/         ✓ Vault-999 guide
+
+docs/                  ✓ COMPLETE - Documentation (20+ files)
+├── PHYSICS_CODEX.md   ✓ Full physics (1525 lines, 6 chapters)
+├── LEVEL3_EUREKA_LOG.md ✓ Level 3 journey
+├── APEX_MULTIAGENT_GOVERNANCE_v35Omega.md ✓ Communication kit
+└── [17 more docs]
+
+tests/                 ✓ COMPLETE - 18 files, 141+ tests
+notebooks/             ✓ COMPLETE - Level 3 Colab notebook
+integrations/sealion/  ✓ COMPLETE - SEA-LION wrapper
+```
+
+### Key Artifacts
+
+| Artifact | Path | Purpose |
+|----------|------|---------|
+| Level 3 Notebook | `notebooks/arifOS_Level3_QwenSEALION_v35.ipynb` | Qwen-SEA-LION integration |
+| Floor Definitions | `constitutional_floors.json` | Machine-readable floors |
+| Pipeline Spec | `arifos_pipeline.yaml` | 000→999 stages |
+| Audit Trail | `cooling_ledger.jsonl` | Live ledger |
+| Full Dossier | `DOSSIER_v35Omega.md` | Complete repo map (local) |
+
+### What's Next (Roadmap)
+
+| Version | Target | Description |
+|---------|--------|-------------|
+| v35.1 | Level 3.5 | Real NLP metrics (semantic ΔS, confidence Ω) |
+| v35.2 | Level 4 | Senses (web search, PDF reading) |
+| v36.0 | Level 5 | GUI Interface (Gradio/Streamlit) |
+
+### Known Gaps
+
+1. **`arifos_code/`** — Claude Code integration 50% complete
+2. **Pipeline executor** — YAML spec exists, Python executor not implemented
+3. **SABAR handler** — Function stubs exist, full implementation pending
+
+---
+
 **Last Updated:** 2025-12-03
 **Version:** v35Ω Judiciary Lock
 **Tag:** v35.0.0
