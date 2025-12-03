@@ -35,7 +35,7 @@ from ..llm_interface import (
 class SEALIONConfig:
     """Configuration for SEA-LION models."""
     # Model selection
-    model: str = "aisingapore/Qwen2.5-7B-SEA-LIONv3-Instruct"
+    model: str = "aisingapore/Llama-SEA-LION-v3-8B-IT"
 
     # Generation parameters
     temperature: float = 0.4  # Lower for stability
@@ -56,17 +56,22 @@ IMPORTANT RULES:
 - Never claim to be human or have human experiences."""
 
 
-# Available SEA-LION models
+# Available SEA-LION models (verified on Hugging Face)
 SEALION_MODELS = {
-    # Qwen-based (recommended)
-    "qwen-7b": "aisingapore/Qwen2.5-7B-SEA-LIONv3-Instruct",
+    # Llama-based v3 (recommended for 8B)
+    "llama-8b": "aisingapore/Llama-SEA-LION-v3-8B-IT",  # 128k context, instruction-tuned
+
+    # Qwen-based v4 (32B - needs A100)
     "qwen-32b": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "qwen-32b-4bit": "aisingapore/Qwen-SEA-LION-v4-32B-IT-4BIT",  # Quantized for less VRAM
+    "qwen-32b-8bit": "aisingapore/Qwen-SEA-LION-v4-32B-IT-8BIT",
 
-    # Llama-based
-    "llama-8b": "aisingapore/llama3-8b-cpt-sea-lionv2.1-instruct",
+    # Gemma-based v4 (27B)
+    "gemma-27b": "aisingapore/Gemma-SEA-LION-v4-27B-IT",
 
-    # Gemma-based
-    "gemma-7b": "aisingapore/gemma2-9b-cpt-sea-lionv3-instruct",
+    # Vision-Language models
+    "qwen-8b-vl": "aisingapore/Qwen-SEA-LION-v4-8B-VL",  # Image + Text
+    "qwen-4b-vl": "aisingapore/Qwen-SEA-LION-v4-4B-VL",  # Smaller VL model
 }
 
 
@@ -75,7 +80,7 @@ SEALION_MODELS = {
 # =============================================================================
 
 def create_sealion_backend(
-    model: str = "aisingapore/Qwen2.5-7B-SEA-LIONv3-Instruct",
+    model: str = "aisingapore/Llama-SEA-LION-v3-8B-IT",
     config: Optional[SEALIONConfig] = None,
     device_map: str = "auto",
 ) -> Callable[[str], Generator[StreamChunk, None, None]]:
@@ -205,7 +210,7 @@ def create_sealion_backend(
 
 
 def make_backend(
-    model: str = "aisingapore/Qwen2.5-7B-SEA-LIONv3-Instruct",
+    model: str = "aisingapore/Llama-SEA-LION-v3-8B-IT",
     config: Optional[LLMConfig] = None,
     sealion_config: Optional[SEALIONConfig] = None,
 ) -> Callable[[str], Generator[StreamChunk, None, None]]:
@@ -236,7 +241,7 @@ def make_backend(
 
 
 def make_llm_generate(
-    model: str = "aisingapore/Qwen2.5-7B-SEA-LIONv3-Instruct",
+    model: str = "aisingapore/Llama-SEA-LION-v3-8B-IT",
     config: Optional[LLMConfig] = None,
     sealion_config: Optional[SEALIONConfig] = None,
 ) -> Callable[[str], str]:
