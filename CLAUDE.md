@@ -232,8 +232,11 @@ arifOS/
 |----------|----------|---------|
 | APEX_TRINITY_v35Omega.md | canon/00_CANON/ | Unified Physics+Math+Language (Single Source of Truth) |
 | APEX_GRADIENT_v35Omega.md | canon/00_CANON/ | Constitutional gradient / Scar Vector spec |
+| ARIFOS_EUREKA_ARCHIVE_v35Omega.md | canon/00_CANON/ | Philosophical foundations & paradox map |
 | DeltaOmegaPsi_Unified_Field_v35Omega.md | canon/00_CANON/ | Unified field theory (ANNEX) |
 | PHYSICS_CODEX.md | docs/ | Full detailed physics (6 chapters) |
+| ARIFOS_COMPLETE_CONTEXT_v35Omega.md | docs/ | Complete context guide for AI/Human onboarding |
+| DOSSIER_v35Omega.md | root | Full repository map and status |
 
 ## Branch & Commit Conventions
 
