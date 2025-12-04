@@ -22,9 +22,9 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ---
 
-## [35.1.0] – 2025-12-05 — Framework Integrations (AutoGen + LlamaIndex)
+## [35.1.0] – 2025-12-05 — Framework Integrations (Big 3: AutoGen + LlamaIndex + LangChain)
 
-**Status:** Production Showcase — Multi-agent governance + RAG Truth verification (22 new tests)
+**Status:** Production Showcase — "arifOS governs the Big 3" (32 new tests)
 
 ### Added
 
@@ -73,16 +73,42 @@ User Query → Document Retrieval → LLM Response → F1 Truth Verification
 - Hallucination detection (ungrounded facts flagged)
 - Citation verification
 
+#### LangChain Governor (`examples/langchain_arifos_guarded/`)
+| File | LOC | Tests | Status |
+|------|-----|-------|--------|
+| `langchain_governor.py` | 280 | — | **LIVE** |
+| `test_langchain_governance.py` | 150 | **10/10 PASS** | **LIVE** |
+| `demo_langchain_petronas.py` | 150 | SEAL output | **Petronas Ready** |
+
+**LangChain Governor Architecture:**
+```
+User Query → Sequential Chain (analysis → synthesis)
+                     ↓
+            Constitutional Metrics (F1-F9)
+                     ↓
+            EyeSentinel Audit + APEX PRIME Verdict
+                     ↓
+            Cooling Ledger Entry
+```
+
+**Key Features:**
+- SimpleLCChain abstraction (drop-in for real LangChain)
+- Multi-step chain governance
+- Per-step trace logging
+- Anti-Hantu detection in chain outputs
+
 ### Test Coverage
 ```
-22 new integration tests added:
+32 new integration tests added:
 - AutoGen: 12 tests (SABAR, VOID, SEAL, Anti-Hantu, consensus)
 - LlamaIndex: 10 tests (grounding, retrieval, citations, hallucinations)
+- LangChain: 10 tests (metrics, verdicts, chain structure, ledger)
 
-Total: 209 core + 22 integration = 231 tests
+Total: 209 core + 32 integration = 241 tests
 pytest tests/ -v → 209 PASS
 pytest examples/autogen_arifos_governor/ -v → 12/12 PASS
 pytest examples/llamaindex_arifos_truth/ -v → 10/10 PASS
+pytest examples/langchain_arifos_guarded/ -v → 10/10 PASS
 ```
 
 ### Petronas Demos
@@ -94,6 +120,10 @@ python examples/autogen_arifos_governor/demo_geology_query.py
 # LlamaIndex: Document-grounded analysis
 python examples/llamaindex_arifos_truth/demo_petronas_docs.py
 # → F1 Truth verification with Cooling Ledger audit
+
+# LangChain: Sequential chain governance
+python examples/langchain_arifos_guarded/demo_langchain_petronas.py --all
+# → All 4 scenarios SEAL with chain trace
 ```
 
 ---

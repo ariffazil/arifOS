@@ -213,7 +213,7 @@ arifOS is a **Constitutional Governance Kernel for LLMs** - a physics-based prot
 # Install with dev dependencies
 pip install -e .[dev]
 
-# Run all tests (231 tests: 209 core + 22 integration)
+# Run all tests (241 tests: 209 core + 32 integration)
 pytest -v tests/
 
 # Run specific test file
@@ -309,9 +309,10 @@ arifOS/
 │   └── 00_CANON/             # APEX_TRINITY (source of truth)
 ├── docs/                     # Documentation
 ├── tests/                    # pytest suite (209 core tests)
-├── examples/                 # Framework integrations (22 tests)
+├── examples/                 # Framework integrations (32 tests)
 │   ├── autogen_arifos_governor/   # AutoGen W@W Federation (12 tests)
-│   └── llamaindex_arifos_truth/   # LlamaIndex RAG Governor (10 tests)
+│   ├── llamaindex_arifos_truth/   # LlamaIndex RAG Governor (10 tests)
+│   └── langchain_arifos_guarded/  # LangChain Governor (10 tests)
 ├── notebooks/                # Colab demos
 ├── constitutional_floors.json
 ├── arifos_pipeline.yaml
@@ -409,6 +410,25 @@ result = governor.query("What are the oil reserves?")
 - Hallucination flags: Ungrounded facts detected
 - SEAL (grounded) / VOID (hallucination)
 
+### LangChain Governor (`examples/langchain_arifos_guarded/`)
+
+Sequential chain governance with constitutional metrics:
+
+```python
+from langchain_governor import build_demo_chain, LangChainGovernor
+
+chain = build_demo_chain()
+governor = LangChainGovernor(chain=chain)
+result = governor.run("Analyze Malay Basin reserves")
+# → Multi-step trace, F1-F9 metrics, APEX verdict
+```
+
+**Key Features:**
+- SimpleLCChain abstraction (drop-in for real LangChain)
+- Per-step trace logging
+- Anti-Hantu detection in chain outputs
+- Cooling Ledger entries for each query
+
 ---
 
 ## Branch & Commit Conventions
@@ -443,6 +463,6 @@ When in doubt: **SABAR** — Stop, Acknowledge, Breathe, Adjust, Resume.
 
 **Last Updated:** 2025-12-05
 **Version:** v35.1.0 (v35Omega)
-**Tests:** 231 passing (209 core + 22 integration)
+**Tests:** 241 passing (209 core + 32 integration)
 
 ✊ **DITEMPA BUKAN DIBERI** 🔐
