@@ -67,7 +67,7 @@ class Vault999:
         else:
             # Initialize with a minimal constitution structure
             self._constitution = {
-                "version": "35.0.0",
+                "version": "35.1.0",
                 "epoch": "35Ω",
                 "physics": {
                     "delta_S_min": 0.0,

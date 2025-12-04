@@ -4,6 +4,7 @@ from typing import Callable, Any, Dict, Optional, List
 # CORRECTED IMPORTS — Direct imports from source modules, not __init__
 from .metrics import Metrics
 from .APEX_PRIME import apex_review, ApexVerdict
+from .eye_sentinel import EyeSentinel, EyeReport
 from .memory.cooling_ledger import log_cooling_entry
 
 import logging
@@ -22,6 +23,7 @@ def apex_guardrail(
     tri_witness_threshold: float = 0.95,
     compute_metrics: Callable[[str, str, Dict[str, Any]], Metrics],
     cooling_ledger_sink: Optional[Callable[[Dict[str, Any]], None]] = None,
+    eye_sentinel: Optional[EyeSentinel] = None,
 ) -> Callable[[Callable[..., str]], Callable[..., str]]:
     """
     Decorator to enforce APEX PRIME governance around an answer-generation function.
@@ -55,11 +57,29 @@ def apex_guardrail(
             # Compute constitutional metrics
             metrics: Metrics = compute_metrics(user_input, raw_answer, context)
 
+            # Optional @EYE Sentinel audit
+            eye_report: Optional[EyeReport] = None
+            eye_blocking: bool = False
+            if eye_sentinel is not None:
+                try:
+                    eye_report = eye_sentinel.audit(
+                        draft_text=raw_answer,
+                        metrics=metrics,
+                        context=context,
+                    )
+                    eye_blocking = eye_report.has_blocking_issue()
+                except Exception:
+                    # @EYE failures must never break the guarded function
+                    logger.exception(
+                        "@EYE Sentinel audit failed; proceeding without @EYE blocking."
+                    )
+
             # APEX PRIME judgment
             verdict: ApexVerdict = apex_review(
                 metrics,
                 high_stakes=high_stakes,
                 tri_witness_threshold=tri_witness_threshold,
+                eye_blocking=eye_blocking,
             )
 
             # Prepare ledger context
@@ -72,6 +92,9 @@ def apex_guardrail(
                 job_id=job_id,
                 verdict=verdict,
                 metrics=metrics,
+                query=str(user_input),
+                candidate_output=raw_answer,
+                eye_report=eye_report,
                 stakes=stakes,
                 pipeline_path=pipeline_path,
                 context_summary=context.get("context_summary", ""),

@@ -16,6 +16,7 @@ import hashlib
 import json
 import time
 from dataclasses import dataclass, asdict
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, TYPE_CHECKING
 
@@ -104,7 +105,23 @@ class CoolingLedger:
                         obj = json.loads(line)
                     except json.JSONDecodeError:
                         continue
-                    if obj.get("timestamp", 0) >= cutoff:
+
+                    raw_ts = obj.get("timestamp", 0)
+                    # Support both legacy float timestamps and new ISO-8601 strings
+                    ts: Optional[float]
+                    if isinstance(raw_ts, (int, float)):
+                        ts = float(raw_ts)
+                    elif isinstance(raw_ts, str):
+                        try:
+                            ts = datetime.fromisoformat(
+                                raw_ts.replace("Z", "+00:00")
+                            ).timestamp()
+                        except Exception:
+                            ts = None
+                    else:
+                        ts = None
+
+                    if ts is not None and ts >= cutoff:
                         yield obj
 
         return _generator()
@@ -220,6 +237,9 @@ def log_cooling_entry(
     job_id: str,
     verdict: str,
     metrics: "Metrics",
+    query: Optional[str] = None,
+    candidate_output: Optional[str] = None,
+    eye_report: Optional[Any] = None,
     stakes: str = "normal",
     pipeline_path: Optional[List[str]] = None,
     context_summary: str = "",
@@ -244,18 +264,51 @@ def log_cooling_entry(
         tri_witness_required=high_stakes if high_stakes is not None else stakes == "high",
     )
 
+    # Map floor verdicts to canonical failure codes (partial; F9 explicitly included)
+    floor_failures: List[str] = list(floors.reasons)
+    if not floors.anti_hantu_ok:
+        floor_failures.append("F9_AntiHantu")
+
+    # Extract @EYE flags if report is provided
+    eye_flags: Optional[List[Dict[str, Any]]] = None
+    if eye_report is not None:
+        alerts = getattr(eye_report, "alerts", None)
+        if isinstance(alerts, list):
+            eye_flags = []
+            for alert in alerts:
+                view_name = getattr(alert, "view_name", None)
+                severity = getattr(alert, "severity", None)
+                message = getattr(alert, "message", None)
+                eye_flags.append(
+                    {
+                        "view": view_name,
+                        "severity": getattr(severity, "value", str(severity))
+                        if severity is not None
+                        else None,
+                        "message": message,
+                    }
+                )
+
+    # ISO-8601 UTC timestamp (v35Ω schema)
+    timestamp_iso = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace(
+        "+00:00", "Z"
+    )
+
     entry = {
         "ledger_version": "v35Ω",
-        "timestamp": time.time(),
+        "timestamp": timestamp_iso,
         "job_id": job_id,
         "stakes": stakes,
         "pipeline_path": pipeline_path,
         "metrics": metrics.to_dict(),
         "verdict": verdict,
-        "floor_failures": floors.reasons,
+        "floor_failures": floor_failures,
         "sabar_reason": None,
         "tri_witness_components": tri_witness_components or {},
         "context_summary": context_summary,
+        "query": query,
+        "candidate_output": candidate_output,
+        "eye_flags": eye_flags,
     }
 
     append_entry(ledger_path, entry)

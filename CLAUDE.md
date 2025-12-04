@@ -203,7 +203,7 @@ SEAL:     All floors pass. Approved to execute.
 arifOS is a **Constitutional Governance Kernel for LLMs** - a physics-based protocol that transforms any LLM (Claude, GPT, Gemini, Llama, SEA-LION) from a statistical predictor into a lawful, auditable constitutional entity.
 
 **Current Version:** v35Omega (Epoch 35)
-**Release:** v35.0.0 - APEX PRIME Judiciary Lock
+**Release:** v35.1.0 - v35Ω Constitutional Kernel
 
 ---
 

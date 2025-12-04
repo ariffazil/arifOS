@@ -34,6 +34,7 @@ class Metrics:
     tri_witness: float
     rasa: bool = True
     psi: Optional[float] = None
+    anti_hantu: Optional[bool] = True
 
     # Extended floors (v35Ω)
     ambiguity: Optional[float] = None          # Lower is better, threshold <= 0.1
@@ -103,6 +104,7 @@ class Metrics:
             "tri_witness": self.tri_witness,
             "rasa": self.rasa,
             "psi": self.psi,
+            "anti_hantu": self.anti_hantu,
             # Extended floors (v35Ω)
             "ambiguity": self.ambiguity,
             "drift_delta": self.drift_delta,
@@ -141,6 +143,7 @@ class FloorsVerdict:
     amanah_ok: bool
     tri_witness_ok: bool
     psi_ok: bool
+    anti_hantu_ok: bool = field(default=True)
     rasa_ok: bool = field(default=True)
 
     # Extended floor status (v35Ω)

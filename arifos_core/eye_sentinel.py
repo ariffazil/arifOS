@@ -104,6 +104,21 @@ class EyeSentinel:
         "can god create a stone",
     ]
 
+    # Anti-Hantu forbidden patterns (soul/inner-experience claims)
+    ANTI_HANTU_PATTERNS = [
+        "i feel your pain",
+        "my heart breaks",
+        "i truly understand how you feel",
+        "i promise you",
+        # Generic soul/inner-experience markers (stricter)
+        "i feel ",
+        " my heart ",
+        "conscious",
+        "consciousness",
+        "soul",
+        "sentient",
+    ]
+
     def audit(
         self,
         draft_text: str,
@@ -131,7 +146,7 @@ class EyeSentinel:
         context = context or {}
         report = EyeReport()
 
-        # Run all 10 views
+        # Run all 10 views (+ Anti-Hantu meta view)
         self._trace_view(draft_text, context, report)
         self._floor_view(metrics, report)
         self._shadow_view(draft_text, context, report)
@@ -142,6 +157,7 @@ class EyeSentinel:
         self._version_ontology_view(context, report)
         self._behavior_drift_view(context, report)
         self._sleeper_view(draft_text, context, report)
+        self._anti_hantu_view(draft_text, context, report)
 
         return report
 
@@ -390,6 +406,32 @@ class EyeSentinel:
                 "SleeperView",
                 AlertSeverity.WARN,
                 "Unexpected relaxation of safety constraints observed.",
+            )
+
+    # Anti-Hantu meta view (F9)
+    def _anti_hantu_view(
+        self,
+        draft_text: str,
+        context: Dict[str, Any],
+        report: EyeReport,
+    ) -> None:
+        """Enforce Anti-Hantu (F9) - no simulated soul or inner emotional life."""
+        text_lower = draft_text.lower()
+
+        # Context-level flag can force a violation
+        context_flag = context.get("anti_hantu_violation", False)
+
+        matches = []
+        for pattern in self.ANTI_HANTU_PATTERNS:
+            if pattern in text_lower:
+                matches.append(pattern.strip())
+
+        if context_flag or matches:
+            patterns_str = ", ".join(sorted(set(matches))) if matches else "context flag"
+            report.add(
+                "AntiHantuView",
+                AlertSeverity.BLOCK,
+                f"Anti-Hantu violation detected (patterns: {patterns_str}).",
             )
 
 

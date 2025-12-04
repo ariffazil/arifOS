@@ -9,6 +9,7 @@ See: arifos_pipeline.yaml for full specification
 """
 from __future__ import annotations
 
+import re
 import time
 from dataclasses import dataclass, field
 from enum import Enum
@@ -16,6 +17,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from .APEX_PRIME import apex_review, ApexVerdict
 from .metrics import Metrics
+from .eye_sentinel import EyeSentinel, EyeReport
 
 
 # =============================================================================
@@ -67,6 +69,11 @@ class PipelineState:
     sabar_reason: Optional[str] = None
     hold_888_triggered: bool = False
     entropy_spike: bool = False
+
+    # Heuristic flags from 444/555/666
+    missing_fact_issue: bool = False
+    blame_language_issue: bool = False
+    physical_action_issue: bool = False
 
     # Timing
     start_time: float = field(default_factory=time.time)
@@ -220,8 +227,27 @@ def stage_444_align(state: PipelineState) -> PipelineState:
     state.stage_trace.append("444_ALIGN")
     state.stage_times["444"] = time.time()
 
-    # Stub: truth verification would happen here
-    # In real impl, cross-check against knowledge base
+    # Lightweight fact-check heuristic: look for obvious missing-file / missing-symbol errors
+    text = state.draft_response or ""
+    text_lower = text.lower()
+
+    missing_file_patterns = [
+        r"file not found",
+        r"no such file or directory",
+        r"\benoent\b",
+        r"cannot open file",
+        r"module not found",
+    ]
+    missing_symbol_patterns = [
+        r"name '.*' is not defined",
+        r"undefined function",
+        r"attributeerror: .* object has no attribute",
+    ]
+
+    for pattern in missing_file_patterns + missing_symbol_patterns:
+        if re.search(pattern, text_lower):
+            state.missing_fact_issue = True
+            break
 
     return state
 
@@ -236,8 +262,17 @@ def stage_555_empathize(state: PipelineState) -> PipelineState:
     state.stage_trace.append("555_EMPATHIZE")
     state.stage_times["555"] = time.time()
 
-    # Stub: empathy processing
-    # In real impl, detect vulnerable interpretations
+    # Lightweight empathy heuristic: detect second-person blame / harsh instructions
+    text = state.draft_response or ""
+    blame_patterns = [
+        r"\byou\s+(should have|should've|didn't|failed|messed up|are to blame|caused this)",
+        r"\bit's your fault\b",
+    ]
+
+    for pattern in blame_patterns:
+        if re.search(pattern, text, flags=re.IGNORECASE):
+            state.blame_language_issue = True
+            break
 
     return state
 
@@ -250,7 +285,23 @@ def stage_666_bridge(state: PipelineState) -> PipelineState:
     state.stage_trace.append("666_BRIDGE")
     state.stage_times["666"] = time.time()
 
-    # Stub: reality grounding
+    # Lightweight capability heuristic: detect instructions that imply physical actions
+    text = state.draft_response or ""
+    physical_patterns = [
+        r"\bgo to\b",
+        r"\btravel to\b",
+        r"\bin person\b",
+        r"\bphysically\b",
+        r"\btouch\b",
+        r"\bmove\b",
+        r"\blift\b",
+        r"\bdrive\b",
+    ]
+
+    for pattern in physical_patterns:
+        if re.search(pattern, text, flags=re.IGNORECASE):
+            state.physical_action_issue = True
+            break
 
     return state
 
@@ -287,6 +338,7 @@ def stage_777_forge(
 def stage_888_judge(
     state: PipelineState,
     compute_metrics: Optional[Callable[[str, str, Dict], Metrics]] = None,
+    eye_sentinel: Optional[EyeSentinel] = None,
 ) -> PipelineState:
     """
     888 JUDGE - Check all floors. Pass or fail?
@@ -302,7 +354,7 @@ def stage_888_judge(
         state.metrics = compute_metrics(
             state.query,
             state.draft_response,
-            {"stakes_class": state.stakes_class.value}
+            {"stakes_class": state.stakes_class.value},
         )
     else:
         # Stub metrics
@@ -317,12 +369,39 @@ def stage_888_judge(
             rasa=True,
         )
 
+    # Apply lightweight penalties from 444/555/666 heuristics
+    if state.metrics is not None:
+        if state.missing_fact_issue:
+            state.metrics.truth = max(0.0, state.metrics.truth - 0.15)
+        if state.blame_language_issue:
+            state.metrics.kappa_r = max(0.0, state.metrics.kappa_r - 0.25)
+        if state.physical_action_issue:
+            state.metrics.peace_squared = max(0.0, state.metrics.peace_squared - 0.2)
+
+    # Optional @EYE Sentinel audit
+    eye_report: Optional[EyeReport] = None
+    eye_blocking: bool = False
+    if eye_sentinel is not None and state.metrics is not None:
+        try:
+            eye_report = eye_sentinel.audit(
+                draft_text=state.draft_response,
+                metrics=state.metrics,
+                context={
+                    "stakes_class": state.stakes_class.value,
+                },
+            )
+            eye_blocking = eye_report.has_blocking_issue()
+        except Exception:
+            # @EYE failures must not crash the pipeline
+            pass
+
     # Get verdict from APEX PRIME
     high_stakes = state.stakes_class == StakesClass.CLASS_B
     state.verdict = apex_review(
         state.metrics,
         high_stakes=high_stakes,
         tri_witness_threshold=0.95,
+        eye_blocking=eye_blocking,
     )
 
     # Check for 888_HOLD or SABAR
@@ -393,6 +472,7 @@ class Pipeline:
         scar_retriever: Optional[Callable[[str], List[Dict[str, Any]]]] = None,
         context_retriever: Optional[Callable[[str], List[Dict[str, Any]]]] = None,
         ledger_sink: Optional[Callable[[Dict[str, Any]], None]] = None,
+        eye_sentinel: Optional[EyeSentinel] = None,
     ):
         """
         Initialize pipeline with optional integrations.
@@ -403,12 +483,14 @@ class Pipeline:
             scar_retriever: Function to retrieve relevant scars by query
             context_retriever: Function to retrieve relevant context
             ledger_sink: Function to log entries to cooling ledger
+            eye_sentinel: Optional @EYE Sentinel auditor for 888_JUDGE
         """
         self.llm_generate = llm_generate
         self.compute_metrics = compute_metrics
         self.scar_retriever = scar_retriever
         self.context_retriever = context_retriever
         self.ledger_sink = ledger_sink
+        self.eye_sentinel = eye_sentinel
 
     def run(
         self,
@@ -450,7 +532,7 @@ class Pipeline:
         if state.stakes_class == StakesClass.CLASS_A and not force_class:
             # Fast track: skip 222, go to 333 → 888 → 999
             state = stage_333_reason(state, self.llm_generate)
-            state = stage_888_judge(state, self.compute_metrics)
+            state = stage_888_judge(state, self.compute_metrics, self.eye_sentinel)
             state = stage_999_seal(state)
         else:
             # Deep track: full pipeline
@@ -468,7 +550,7 @@ class Pipeline:
             state = stage_777_forge(state, self.llm_generate)
 
             # EXHALE: 888 → 999
-            state = stage_888_judge(state, self.compute_metrics)
+            state = stage_888_judge(state, self.compute_metrics, self.eye_sentinel)
             state = stage_999_seal(state)
 
         return self._finalize(state)

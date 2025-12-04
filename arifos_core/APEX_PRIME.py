@@ -55,7 +55,19 @@ def check_floors(
     if not rasa_ok:
         reasons.append("RASA not enabled")
 
-    hard_ok = truth_ok and delta_s_ok and omega_0_ok and amanah_ok and psi_ok and rasa_ok
+    anti_hantu_ok = True if metrics.anti_hantu is None else bool(metrics.anti_hantu)
+    if not anti_hantu_ok:
+        reasons.append("Anti-Hantu violation")
+
+    hard_ok = (
+        truth_ok
+        and delta_s_ok
+        and omega_0_ok
+        and amanah_ok
+        and psi_ok
+        and rasa_ok
+        and anti_hantu_ok
+    )
 
     # Soft floors
     peace_squared_ok = metrics.peace_squared >= PEACE_SQ_MIN
@@ -121,6 +133,7 @@ def check_floors(
         amanah_ok=amanah_ok,
         tri_witness_ok=tri_witness_ok,
         psi_ok=psi_ok,
+        anti_hantu_ok=anti_hantu_ok,
         rasa_ok=rasa_ok,
         # Extended floors (v35Ω)
         ambiguity_ok=ambiguity_ok,

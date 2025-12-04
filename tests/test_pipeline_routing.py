@@ -19,6 +19,7 @@ from arifos_core.pipeline import (
 )
 from arifos_core.memory.scars import ScarIndex, Scar, generate_scar_id, seed_scars
 from arifos_core.metrics import Metrics
+from arifos_core import EyeSentinel
 
 
 class TestPipelineRouting:
@@ -174,6 +175,30 @@ class TestStageExecution:
         state = stage_888_judge(state, compute_metrics=bad_metrics)
 
         assert state.verdict == "VOID"
+        assert state.sabar_triggered
+
+    def test_stage_888_uses_eye_sentinel_for_sabar(self):
+        """888_JUDGE should return SABAR when @EYE blocks, even if metrics would otherwise VOID."""
+
+        def bad_metrics(q, r, c):
+            # Amanah=False is a hard-floor failure that FloorView treats as BLOCK
+            return Metrics(
+                truth=0.5,
+                delta_s=-0.1,
+                peace_squared=0.5,
+                kappa_r=0.5,
+                omega_0=0.04,
+                amanah=False,
+                tri_witness=0.5,
+                rasa=False,
+            )
+
+        sentinel = EyeSentinel()
+
+        state = PipelineState(query="test", draft_response="response")
+        state = stage_888_judge(state, compute_metrics=bad_metrics, eye_sentinel=sentinel)
+
+        assert state.verdict == "SABAR"
         assert state.sabar_triggered
 
 
