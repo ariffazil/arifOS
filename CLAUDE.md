@@ -16,7 +16,7 @@ arifOS is a **Constitutional Governance Kernel for LLMs** - a physics-based prot
 # Install with dev dependencies
 pip install -e .[dev]
 
-# Run all tests (141 tests)
+# Run all tests (190 tests)
 pytest -v tests/
 
 # Run specific test file
@@ -68,14 +68,22 @@ Where G_TW = soft Tri-Witness gate, Z = 1 + Lₚ + Rₘ + Λ (shadow normalizati
 | File | Purpose |
 |------|---------|
 | `APEX_PRIME.py` | Constitutional judiciary - issues SEAL/PARTIAL/VOID/888_HOLD/SABAR verdicts |
-| `eye_sentinel.py` | @EYE Sentinel - 10 independent audit views (v35Ω) |
+| `eye_sentinel.py` | @EYE Sentinel - 10 independent audit views (v35Omega) |
 | `metrics.py` | Core + extended floor metric dataclasses |
 | `guard.py` | `@apex_guardrail` decorator for wrapping functions |
+| `pipeline.py` | 000-999 metabolic pipeline executor with Class A/B routing |
+| `llm_interface.py` | LLM streaming interface with entropy monitoring + SABAR triggers |
 | `kms_signer.py` | AWS KMS cryptographic signing for ledger |
-| `memory/cooling_ledger.py` | L1: Immutable JSONL audit log with hash-chaining (v35Ω) |
-| `memory/vault999.py` | L0: Constitutional memory store (v35Ω) |
+| `adapters/llm_sealion.py` | SEA-LION adapter (local GPU, Colab) |
+| `adapters/llm_openai.py` | OpenAI GPT adapter (API) |
+| `adapters/llm_claude.py` | Anthropic Claude adapter (API) |
+| `adapters/llm_gemini.py` | Google Gemini adapter (API) |
+| `memory/cooling_ledger.py` | L1: Immutable JSONL audit log with hash-chaining |
+| `memory/vault999.py` | L0: Constitutional memory store |
 | `memory/phoenix72.py` | L2: Error→Law amendment engine (72h cycle) |
 | `memory/vector_adapter.py` | L3: External witness/vector evidence |
+| `memory/scars.py` | Scar memory - negative constraints from past failures |
+| `memory/void_scanner.py` | VOID pattern detection for constitutional violations |
 
 ### The 8 Core Constitutional Floors
 
@@ -305,7 +313,7 @@ See `docs/LEVEL3_EUREKA_LOG.md` for full journey documentation.
 
 ---
 
-## Repository Status Map (03 Dec 2025)
+## Repository Status Map (04 Dec 2025)
 
 ### Module Implementation Status
 
@@ -321,6 +329,11 @@ See `docs/LEVEL3_EUREKA_LOG.md` for full journey documentation.
 | Vault-999 | `arifos_core/memory/vault999.py` | ✓ COMPLETE | 80%+ |
 | Phoenix-72 | `arifos_core/memory/phoenix72.py` | ✓ COMPLETE | 70%+ |
 | Vector Adapter | `arifos_core/memory/vector_adapter.py` | ✓ COMPLETE | 80%+ |
+| **Pipeline** | `arifos_core/pipeline.py` | ✓ **NEW** | 90%+ |
+| **LLM Interface** | `arifos_core/llm_interface.py` | ✓ **NEW** | 85%+ |
+| **Scars Memory** | `arifos_core/memory/scars.py` | ✓ **NEW** | 80%+ |
+| **VOID Scanner** | `arifos_core/memory/void_scanner.py` | ✓ **NEW** | 75%+ |
+| **LLM Adapters** | `arifos_core/adapters/` | ✓ **NEW** | 85%+ |
 | Claude Code Client | `arifos_code/governed_client.py` | ⚠ IN PROGRESS | 50% |
 | AST Verifier | `arifos_code/ast_verifier.py` | ⚠ IN PROGRESS | 40% |
 | Metrics Computer | `arifos_code/metrics_computer.py` | ⚠ IN PROGRESS | 40% |
@@ -335,11 +348,21 @@ arifos_core/           ✓ COMPLETE - Core constitutional runtime
 ├── guard.py           ✓ @apex_guardrail decorator
 ├── ignition.py        ✓ Profile loader (3 profiles)
 ├── kms_signer.py      ✓ AWS KMS signing
+├── pipeline.py        ✓ 000-999 metabolic pipeline executor (NEW)
+├── llm_interface.py   ✓ LLM streaming + entropy monitoring (NEW)
+├── adapters/          ✓ LLM backend adapters (NEW)
+│   ├── __init__.py    ✓ Adapter registry
+│   ├── llm_sealion.py ✓ SEA-LION (local GPU)
+│   ├── llm_openai.py  ✓ OpenAI API
+│   ├── llm_claude.py  ✓ Anthropic Claude API
+│   └── llm_gemini.py  ✓ Google Gemini API
 └── memory/            ✓ L0-L3 memory layers
     ├── vault999.py    ✓ L0: Constitutional store
     ├── cooling_ledger.py ✓ L1: Audit log
     ├── phoenix72.py   ✓ L2: Amendment engine
-    └── vector_adapter.py ✓ L3: Witness adapter
+    ├── vector_adapter.py ✓ L3: Witness adapter
+    ├── scars.py       ✓ Scar memory (negative constraints) (NEW)
+    └── void_scanner.py ✓ VOID pattern detection (NEW)
 
 arifos_code/           ⚠ IN PROGRESS - Claude Code integration
 ├── governed_client.py ⚠ Main wrapper (framework done)
@@ -348,7 +371,7 @@ arifos_code/           ⚠ IN PROGRESS - Claude Code integration
 └── pre_execution.py   ⚠ TEARFRAME validation
 
 canon/                 ✓ COMPLETE - Specifications (12 files)
-├── 00_CANON/          ✓ ΔΩΨ physics (APEX_TRINITY is source of truth)
+├── 00_CANON/          ✓ Physics (APEX_TRINITY is source of truth)
 ├── 01_TEMPLATES/      ✓ Document templates
 ├── 10_SYSTEM/         ✓ AAA Engines + EUREKA Cube
 ├── 20_WITNESS/        ✓ Governance Kernel spec
@@ -361,8 +384,11 @@ docs/                  ✓ COMPLETE - Documentation (20+ files)
 ├── APEX_MULTIAGENT_GOVERNANCE_v35Omega.md ✓ Communication kit
 └── [17 more docs]
 
-tests/                 ✓ COMPLETE - 18 files, 141+ tests
-notebooks/             ✓ COMPLETE - Level 3 Colab notebook
+notebooks/             ✓ COMPLETE - Colab demos (NEW)
+├── arifos_v35_sealion_demo.ipynb    ✓ SEA-LION + full pipeline
+└── arifos_v35_max_context_demo.ipynb ✓ API-based LLM demo
+
+tests/                 ✓ COMPLETE - 20 files, 190+ tests
 integrations/sealion/  ✓ COMPLETE - SEA-LION wrapper
 ```
 
@@ -370,6 +396,8 @@ integrations/sealion/  ✓ COMPLETE - SEA-LION wrapper
 
 | Artifact | Path | Purpose |
 |----------|------|---------|
+| SEA-LION Demo | `notebooks/arifos_v35_sealion_demo.ipynb` | SEA-LION + full pipeline (Colab) |
+| Max-Context Demo | `notebooks/arifos_v35_max_context_demo.ipynb` | API LLM + full pipeline (Colab) |
 | Level 3 Notebook | `notebooks/arifOS_Level3_QwenSEALION_v35.ipynb` | Qwen-SEA-LION integration |
 | Floor Definitions | `constitutional_floors.json` | Machine-readable floors |
 | Pipeline Spec | `arifos_pipeline.yaml` | 000→999 stages |
@@ -387,12 +415,44 @@ integrations/sealion/  ✓ COMPLETE - SEA-LION wrapper
 ### Known Gaps
 
 1. **`arifos_code/`** — Claude Code integration 50% complete
-2. **Pipeline executor** — YAML spec exists, Python executor not implemented
-3. **SABAR handler** — Function stubs exist, full implementation pending
+2. **SABAR handler** — Function stubs exist, full implementation pending
 
 ---
 
-**Last Updated:** 2025-12-03
-**Version:** v35Ω Judiciary Lock
+## LLM Adapters
+
+### SEA-LION (Local GPU)
+```python
+from arifos_core.adapters.llm_sealion import make_llm_generate, SEALION_MODELS
+
+# Available models (verified on Hugging Face Dec 2024):
+# - "llama-8b": aisingapore/Llama-SEA-LION-v3-8B-IT (T4 compatible)
+# - "qwen-32b": aisingapore/Qwen-SEA-LION-v4-32B-IT (A100 required)
+# - "qwen-32b-4bit": aisingapore/Qwen-SEA-LION-v4-32B-IT-4BIT (quantized)
+# - "gemma-27b": aisingapore/Gemma-SEA-LION-v4-27B-IT
+
+generate = make_llm_generate(model="llama-8b")
+response = generate("Apa khabar?")
+```
+
+### API-based LLMs
+```python
+# OpenAI
+from arifos_core.adapters.llm_openai import make_llm_generate
+generate = make_llm_generate(api_key="sk-...")
+
+# Claude
+from arifos_core.adapters.llm_claude import make_llm_generate
+generate = make_llm_generate(api_key="sk-ant-...")
+
+# Gemini
+from arifos_core.adapters.llm_gemini import make_llm_generate
+generate = make_llm_generate(api_key="...")
+```
+
+---
+
+**Last Updated:** 2025-12-04
+**Version:** v35Omega Judiciary Lock
 **Tag:** v35.0.0
-**Tests:** 141 passing
+**Tests:** 190 passing
