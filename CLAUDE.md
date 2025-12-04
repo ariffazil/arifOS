@@ -213,7 +213,7 @@ arifOS is a **Constitutional Governance Kernel for LLMs** - a physics-based prot
 # Install with dev dependencies
 pip install -e .[dev]
 
-# Run all tests (190 tests)
+# Run all tests (231 tests: 209 core + 22 integration)
 pytest -v tests/
 
 # Run specific test file
@@ -308,7 +308,10 @@ arifOS/
 ├── canon/                    # Constitutional specifications
 │   └── 00_CANON/             # APEX_TRINITY (source of truth)
 ├── docs/                     # Documentation
-├── tests/                    # pytest suite (190 tests)
+├── tests/                    # pytest suite (209 core tests)
+├── examples/                 # Framework integrations (22 tests)
+│   ├── autogen_arifos_governor/   # AutoGen W@W Federation (12 tests)
+│   └── llamaindex_arifos_truth/   # LlamaIndex RAG Governor (10 tests)
 ├── notebooks/                # Colab demos
 ├── constitutional_floors.json
 ├── arifos_pipeline.yaml
@@ -367,6 +370,47 @@ def my_llm_function(user_input: str) -> str:
 
 ---
 
+## Framework Integrations
+
+### AutoGen W@W Federation (`examples/autogen_arifos_governor/`)
+
+Multi-agent constitutional governance with 3 specialized agents:
+
+| Agent | Floor Focus | Role |
+|-------|-------------|------|
+| **@WELL** | kappa_r >= 0.95 | Empathy/Care (weakest stakeholder) |
+| **@RIF** | F1 Truth >= 0.99 | Truth/Rigor (Delta_S >= 0) |
+| **@WEALTH** | Peace2 >= 1.0 | Utility/Stability (Amanah LOCK) |
+
+```python
+from autogen_waw_federation import WAWFederation
+
+federation = WAWFederation()
+result = federation.consult("Analyze seismic data for Malay Basin")
+# → Tri-agent consensus with Cooling Ledger audit
+```
+
+### LlamaIndex RAG Truth Governor (`examples/llamaindex_arifos_truth/`)
+
+Document-grounded responses with F1 Truth verification:
+
+```python
+from rag_truth_governor import RAGTruthGovernor
+
+governor = RAGTruthGovernor()
+governor.add_documents(documents)
+result = governor.query("What are the oil reserves?")
+# → Grounding check, hallucination detection, APEX verdict
+```
+
+**F1 Truth Verification:**
+- Fact extraction from LLM responses
+- Grounding score: % claims found in source documents
+- Hallucination flags: Ungrounded facts detected
+- SEAL (grounded) / VOID (hallucination)
+
+---
+
 ## Branch & Commit Conventions
 
 **Branches:**
@@ -398,7 +442,7 @@ When in doubt: **SABAR** — Stop, Acknowledge, Breathe, Adjust, Resume.
 ---
 
 **Last Updated:** 2025-12-05
-**Version:** v35Omega
-**Tests:** 190 passing
+**Version:** v35.1.0 (v35Omega)
+**Tests:** 231 passing (209 core + 22 integration)
 
 ✊ **DITEMPA BUKAN DIBERI** 🔐
