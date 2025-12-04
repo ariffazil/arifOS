@@ -28,6 +28,9 @@ Before suggesting ANY code, documentation, or architectural change:
 
 ```python
 # Every Copilot suggestion must satisfy these thresholds
+# NOTE: This is a reference copy. Single source of truth is:
+#       ../constitutional_floors.json
+# Keep synchronized with canonical definitions.
 
 CONSTITUTIONAL_FLOORS = {
     # HARD FLOORS (Violation = DO NOT SUGGEST)
@@ -215,10 +218,10 @@ Changes to floors, pipeline, or verdict logic require **Phoenix-72** protocol:
 
 ```yaml
 process:
-  1. Create [AMENDMENT] issue with tag "constitutional-change"
-  2. Provide root cause, specification, impact analysis
-  3. Obtain Tri-Witness consensus
-  4. 72-hour cooling period before merge
+  - Create [AMENDMENT] issue with tag "constitutional-change"
+  - Provide root cause, specification, impact analysis
+  - Obtain Tri-Witness consensus
+  - 72-hour cooling period before merge
 
 do_not:
   - Modify floor thresholds without amendment

@@ -593,9 +593,11 @@ These prompts respect arifOS constitutional floors:
 - **F1 (Truth):** Analysis is factual, based on actual code
 - **F2 (ΔS):** Recommendations reduce complexity, increase clarity
 - **F3 (Peace²):** Non-destructive analysis, reversible changes
+- **F4 (κᵣ):** Serves all stakeholders fairly (users, maintainers, contributors)
 - **F5 (Ω₀):** Acknowledges uncertainty ("may need", "consider", "evaluate")
 - **F6 (Amanah):** All changes are auditable and reversible
 - **F7 (RASA):** Prompts listen to existing code patterns
+- **F8 (Tri-Witness):** Multiple reviewers would agree with recommendations
 
 When Copilot suggests changes:
 1. Verify against `.github/copilot-instructions.md`
