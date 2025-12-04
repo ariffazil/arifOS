@@ -20,10 +20,10 @@ keywords = [
     "paradox-physics"
 ]
 authors = [
-    {name = "Muhammad Arif bin Fazil", email = "ariffazil@example.com"}
+    {name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com"}
 ]
 maintainers = [
-    {name = "Muhammad Arif bin Fazil", email = "ariffazil@example.com"}
+    {name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com"}
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -64,7 +64,7 @@ Issues = "https://github.com/ariffazil/arifOS/issues"
 Changelog = "https://github.com/ariffazil/arifOS/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
-packages = ["arifos_core", "arifos_core.memory"]
+packages = ["arifos_core", "arifos_core.memory", "arifos_core.adapters"]
 
 [tool.setuptools.package-data]
 arifos_core = ["py.typed", "*.py", "**/*.py"]

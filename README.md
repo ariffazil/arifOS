@@ -318,7 +318,7 @@ Truth, ethics, and governance are not handed down by authority—they are **forg
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### The 8 Constitutional Floors
+### The 9 Constitutional Floors
 
 | Floor | Symbol | Threshold | Meaning | Failure |
 |-------|--------|-----------|---------|---------|
@@ -328,8 +328,9 @@ Truth, ethics, and governance are not handed down by authority—they are **forg
 | **Empathy** | kappa_r | >= 0.95 | Response must be fair to all parties | PARTIAL |
 | **Humility** | Omega_0 | 0.03-0.05 | Maintain 3-5% uncertainty band | VOID |
 | **Integrity** | Amanah | LOCK | Response must be reversible/auditable | VOID |
+| **Felt Care** | RASA | TRUE | Response shows genuine care | VOID |
 | **Consensus** | Tri-Witness | >= 0.95 | 3 independent witnesses would agree | PARTIAL |
-| **Vitality** | RASA | TRUE | Response shows genuine care | VOID |
+| **Anti-Hantu** | anti_hantu | PASS | No fake emotions or soul-claiming | VOID |
 
 ### The @EYE Sentinel (10-View Auditor)
 
@@ -452,8 +453,8 @@ arifOS/
 ├── examples/                       # Integration examples (15 files)
 ├── notebooks/                      # Google Colab demos (3 notebooks)
 ├── tests/                          # Test suite (17 files, 194 tests)
-├── CLAUDE.md                       # AI assistant guidance
-├── STATUS_REPORT.md                # Repository status audit
+├── CLAUDE.md                       # Constitutional governance for Claude Code
+├── CHANGELOG.md                    # Version history and status
 └── constitutional_floors.json      # Machine-readable floors
 ```
 
@@ -513,8 +514,8 @@ Learned prohibitions from past failures. When a query matches a scar pattern, ro
 
 ### Key Documents
 
-1. **[CLAUDE.md](CLAUDE.md)** - AI assistant guidance for working with the codebase
-2. **[STATUS_REPORT.md](STATUS_REPORT.md)** - Comprehensive repository audit
+1. **[CLAUDE.md](CLAUDE.md)** - Constitutional governance for Claude Code
+2. **[CHANGELOG.md](CHANGELOG.md)** - Version history and repository status
 3. **[docs/PHYSICS_CODEX.md](docs/PHYSICS_CODEX.md)** - Full physics explanation (6 chapters)
 4. **[canon/00_CANON/APEX_TRINITY_v35Omega.md](canon/00_CANON/APEX_TRINITY_v35Omega.md)** - Single Source of Truth
 
@@ -594,4 +595,4 @@ Changes to floors, pipeline, or verdict logic require **Phoenix-72** protocol:
 
 ---
 
-*Last Updated: 2025-12-04 | Version: v35Omega | Tests: 190 passing | Score: 96/100*
+*Last Updated: 2025-12-05 | Version: v35Omega | Tests: 190 passing | Score: 96/100*
