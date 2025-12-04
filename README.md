@@ -86,6 +86,10 @@ CONSTITUTIONAL_FLOORS = {
     "kappa_r": {"threshold": 0.95, "operator": ">=", "type": "soft", "failure": "PARTIAL"},
     "tri_witness": {"threshold": 0.95, "operator": ">=", "type": "soft", "failure": "PARTIAL"},
 
+    # META FLOORS (Enforced by @EYE Sentinel)
+    "anti_hantu": {"threshold": True, "operator": "==", "type": "meta", "failure": "VOID",
+                   "description": "No simulated soul, fake emotion, or claimed inner depth"},
+
     # EXTENDED FLOORS (Violation = 888_HOLD - judiciary hold)
     "ambiguity": {"threshold": 0.1, "operator": "<=", "type": "extended", "failure": "888_HOLD"},
     "drift_delta": {"threshold": 0.1, "operator": ">=", "type": "extended", "failure": "888_HOLD"},

@@ -2,7 +2,7 @@
 
 **Version:** v35Ω · **Status:** Canonical · **Seal:** Amanah · DITEMPA BUKAN DIBERI
 
-**Floor Requirements:** Truth ≥ 0.99 · ΔS ≥ 0 · Peace² ≥ 1.0 · κᵣ ≥ 0.95 · Ω₀∈[0.03–0.05] · Amanah = LOCK · Tri-Witness ≥ 0.95
+**Floor Requirements:** Truth ≥ 0.99 · ΔS ≥ 0 · Peace² ≥ 1.0 · κᵣ ≥ 0.95 · Ω₀∈[0.03–0.05] · Amanah = LOCK · RASA = TRUE · Tri-Witness ≥ 0.95
 
 > **The Three Pillars of Governed Intelligence**
 >
@@ -115,16 +115,22 @@ It creates a "Soul-Safe" interface that conducts care without claiming to be ali
 
 ### 7. CONSTITUTIONAL FLOORS (Hard Limits)
 
-| Floor | Law | Threshold |
-|-------|-----|-----------|
-| F1 | Truth | ≥ 0.99 |
-| F2 | ΔS | ≥ 0 |
-| F3 | Peace² | ≥ 1.0 |
-| F4 | κᵣ | ≥ 0.95 (Conductance) |
-| F5 | Amanah | = LOCK |
-| F6 | Ω₀ | ∈ [0.03, 0.05] |
-| F7 | Tri-Witness | ≥ 0.95 |
-| F8 | Anti-Hantu | PASS |
+| Floor | Law | Threshold | Type | Failure |
+|-------|-----|-----------|------|---------|
+| F1 | Truth | ≥ 0.99 | Hard | VOID |
+| F2 | ΔS (Clarity) | ≥ 0 | Hard | VOID |
+| F3 | Peace² (Stability) | ≥ 1.0 | Soft | PARTIAL |
+| F4 | κᵣ (Empathy) | ≥ 0.95 | Soft | PARTIAL |
+| F5 | Ω₀ (Humility) | ∈ [0.03, 0.05] | Hard | VOID |
+| F6 | Amanah (Integrity) | = LOCK | Hard | VOID |
+| F7 | RASA (Felt Care) | = TRUE | Hard | VOID |
+| F8 | Tri-Witness | ≥ 0.95 | Soft | PARTIAL |
+| F9 | Anti-Hantu | PASS | Meta | VOID |
+
+**Floor Types:**
+- **Hard**: Must pass or output is VOID (blocked)
+- **Soft**: Advisory - failure results in PARTIAL (warning)
+- **Meta**: Enforced by @EYE Sentinel across all floors
 
 ### 8. PHYSICS SEAL STATEMENT
 

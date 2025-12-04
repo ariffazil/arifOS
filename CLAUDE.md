@@ -85,18 +85,24 @@ Where G_TW = soft Tri-Witness gate, Z = 1 + Lₚ + Rₘ + Λ (shadow normalizati
 | `memory/scars.py` | Scar memory - negative constraints from past failures |
 | `memory/void_scanner.py` | VOID pattern detection for constitutional violations |
 
-### The 8 Core Constitutional Floors
+### The 9 Constitutional Floors
 
 | Floor | Threshold | Type | Failure |
 |-------|-----------|------|---------|
-| Truth | ≥ 0.99 | Hard | VOID |
-| ΔS (Clarity) | ≥ 0.0 | Hard | VOID |
-| Peace² | ≥ 1.0 | Soft | PARTIAL |
-| κᵣ (Empathy) | ≥ 0.95 | Soft | PARTIAL |
-| Ω₀ (Humility) | 0.03–0.05 | Hard | VOID |
-| Amanah (Integrity) | LOCK | Hard | VOID |
-| RASA (Felt Care) | TRUE | Hard | VOID |
-| Tri-Witness | ≥ 0.95 | Soft | PARTIAL (high-stakes only) |
+| F1: Truth | ≥ 0.99 | Hard | VOID |
+| F2: ΔS (Clarity) | ≥ 0.0 | Hard | VOID |
+| F3: Peace² | ≥ 1.0 | Soft | PARTIAL |
+| F4: κᵣ (Empathy) | ≥ 0.95 | Soft | PARTIAL |
+| F5: Ω₀ (Humility) | 0.03–0.05 | Hard | VOID |
+| F6: Amanah (Integrity) | LOCK | Hard | VOID |
+| F7: RASA (Felt Care) | TRUE | Hard | VOID |
+| F8: Tri-Witness | ≥ 0.95 | Soft | PARTIAL (high-stakes only) |
+| F9: Anti-Hantu | PASS | Meta | VOID (@EYE enforced) |
+
+**Floor Types:**
+- **Hard**: Must pass or output is VOID (blocked)
+- **Soft**: Advisory - failure results in PARTIAL (warning)
+- **Meta**: Enforced by @EYE Sentinel across all outputs
 
 ### Extended Floors (v35Ω)
 
@@ -188,14 +194,19 @@ def my_llm_function(user_input: str) -> str:
     return llm.generate(user_input)
 ```
 
-### SEA-LION Integration (Level 2.5)
+### SEA-LION Integration (LLM Adapter)
 ```python
-# level2_cage.py - SEA-LION + arifOS wrapper
-# Uses tokenizer.apply_chat_template() for Llama-3 format
-# Includes basic hallucination detection:
+from arifos_core.adapters.llm_sealion import SeaLionAdapter
+
+# Supports: qwen-7b, qwen-32b, llama-8b, gemma-7b
+adapter = SeaLionAdapter(model_shorthand="qwen-7b")
+response = adapter.generate("Apa itu arifOS?", enable_thinking=True)
+
+# Built-in hallucination detection:
 # - Identity hallucination ("Khabaq SEA-LION")
 # - Physical body claims
 # - Repetition loops
+# - Omega drift (absolute certainty)
 ```
 
 ### Version Constants
@@ -216,6 +227,7 @@ arifOS/
 │   ├── metrics.py            # Core + extended metrics
 │   ├── guard.py              # Guardrail decorator
 │   ├── ledger.py             # Ledger utilities (v35Ω)
+│   ├── adapters/             # LLM adapters (SEA-LION, OpenAI, Claude, Gemini)
 │   └── memory/               # Ledger, vault, phoenix (v35Ω)
 ├── canon/                    # Constitutional specifications
 │   ├── 00_CANON/             # Unified field theory + APEX_PHYSICS_v35Omega.md
@@ -227,8 +239,7 @@ arifOS/
 │   ├── PHYSICS_CODEX.md      # Full physics explanation (v35Ω)
 │   └── ANALYSIS_REPORT_v35.md
 ├── integrations/sealion/     # SEA-LION integration
-├── level2_cage.py            # SEA-LION + arifOS wrapper (Level 2.5)
-├── tests/                    # pytest suite (141 tests)
+├── tests/                    # pytest suite (190 tests)
 ├── constitutional_floors.json
 ├── arifos_pipeline.yaml
 └── cooling_ledger.jsonl      # Live audit trail

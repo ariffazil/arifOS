@@ -1,6 +1,6 @@
 # arifOS COMPLETE DOSSIER v35Ω
 
-**Generated:** 03 December 2025
+**Generated:** 04 December 2025
 **Repository:** https://github.com/ariffazil/arifOS
 **Version:** v35Ω (Epoch 35) - APEX PRIME Judiciary Lock
 **Status:** COMPLETE · TESTED · SEALED
@@ -15,7 +15,8 @@
 | Metric | Value |
 |--------|-------|
 | Core Implementation | v35Ω |
-| Test Suite | 18 test files, 141+ passing tests |
+| Test Suite | 20 test files, 190+ passing tests |
+| Constitutional Floors | 9 (8 core + 1 meta) |
 | Documentation | 20+ canonical + implementation docs |
 | Dependencies | numpy, pydantic (minimal footprint) |
 | Python Support | 3.8–3.12 |
