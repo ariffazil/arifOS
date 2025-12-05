@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "35.1.0"
-description = "Constitutional Governance Protocol for Artificial Intelligence - ΔΩΨ-governed kernel"
+version = "35.12.0"
+description = "Constitutional Governance Kernel for AI - 9 Floors, AAA Engines, W@W Federation, @EYE Sentinel"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "Apache-2.0"}
@@ -55,6 +55,12 @@ dev = [
     "ruff>=0.1.0",
     "mypy>=1.0.0",
 ]
+yaml = [
+    "pyyaml>=6.0.0",
+]
+all = [
+    "pyyaml>=6.0.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/ariffazil/arifOS"
@@ -64,10 +70,18 @@ Issues = "https://github.com/ariffazil/arifOS/issues"
 Changelog = "https://github.com/ariffazil/arifOS/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
-packages = ["arifos_core", "arifos_core.memory", "arifos_core.adapters"]
+packages = [
+    "arifos_core",
+    "arifos_core.memory",
+    "arifos_core.adapters",
+    "arifos_core.engines",
+    "arifos_core.waw",
+    "arifos_core.eye",
+]
 
 [tool.setuptools.package-data]
 arifos_core = ["py.typed", "*.py", "**/*.py"]
+"*" = ["spec/*.yaml", "spec/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
