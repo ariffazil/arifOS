@@ -5,7 +5,13 @@ Implements the constitutional metabolism with Class A/B routing:
 - Class A (low-stakes/factual): Fast track 111 → 333 → 888 → 999
 - Class B (high-stakes/ethical): Deep track through 222 + 555 + 777
 
+AAA Engine Integration (v35.8.0):
+- ARIFEngine (Δ): sense/reason/align - cold logic, clarity
+- ADAMEngine (Ω): empathize/bridge - warm logic, stability
+- ApexEngine (Ψ): judge - judiciary wrapper
+
 See: arifos_pipeline.yaml for full specification
+     docs/AAA_ENGINES_FACADE_PLAN_v35Omega.md for engine contract
 """
 from __future__ import annotations
 
@@ -18,6 +24,11 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from .APEX_PRIME import apex_review, ApexVerdict
 from .metrics import Metrics
 from .eye_sentinel import EyeSentinel, EyeReport
+
+# AAA Engines (internal facade - v35.8.0)
+from .engines import ARIFEngine, ADAMEngine, ApexEngine
+from .engines.arif_engine import ARIFPacket
+from .engines.adam_engine import ADAMPacket
 
 
 # =============================================================================
@@ -74,6 +85,10 @@ class PipelineState:
     missing_fact_issue: bool = False
     blame_language_issue: bool = False
     physical_action_issue: bool = False
+
+    # AAA Engine packets (v35.8.0 - internal, optional)
+    arif_packet: Optional[ARIFPacket] = None
+    adam_packet: Optional[ADAMPacket] = None
 
     # Timing
     start_time: float = field(default_factory=time.time)
@@ -459,6 +474,11 @@ class Pipeline:
 
     Supports Class A (fast track) and Class B (deep track) routing.
 
+    AAA Engine Integration (v35.8.0):
+    - Internally uses ARIFEngine, ADAMEngine, ApexEngine
+    - Preserves all existing behavior (zero-break contract)
+    - Engine packets stored in PipelineState for debugging/audit
+
     Usage:
         pipeline = Pipeline()
         state = pipeline.run("What is the capital of France?")
@@ -492,6 +512,10 @@ class Pipeline:
         self.ledger_sink = ledger_sink
         self.eye_sentinel = eye_sentinel
 
+        # AAA Engines (v35.8.0 - internal facade)
+        self._arif = ARIFEngine()
+        self._adam = ADAMEngine()
+
     def run(
         self,
         query: str,
@@ -524,6 +548,12 @@ class Pipeline:
         state = stage_000_void(state)
         state = stage_111_sense(state)
 
+        # Populate ARIF packet from sense results (v35.8.0)
+        state.arif_packet = ARIFPacket(
+            prompt=state.query,
+            high_stakes_indicators=state.high_stakes_indicators.copy(),
+        )
+
         # Check for early SABAR (entropy spike, etc.)
         if state.sabar_triggered:
             return self._finalize(state)
@@ -532,6 +562,12 @@ class Pipeline:
         if state.stakes_class == StakesClass.CLASS_A and not force_class:
             # Fast track: skip 222, go to 333 → 888 → 999
             state = stage_333_reason(state, self.llm_generate)
+
+            # Update ARIF packet with reason results (v35.8.0)
+            if state.arif_packet:
+                state.arif_packet.draft = state.draft_response
+                state.arif_packet.delta_s = min(0.5, len(state.draft_response) / 1000) if state.draft_response else 0.0
+
             state = stage_888_judge(state, self.compute_metrics, self.eye_sentinel)
             state = stage_999_seal(state)
         else:
@@ -544,10 +580,48 @@ class Pipeline:
 
             # CIRCULATE: 333 → 444 → 555 → 666 → 777
             state = stage_333_reason(state, self.llm_generate)
+
+            # Update ARIF packet with reason results (v35.8.0)
+            if state.arif_packet:
+                state.arif_packet.draft = state.draft_response
+                state.arif_packet.delta_s = min(0.5, len(state.draft_response) / 1000) if state.draft_response else 0.0
+
             state = stage_444_align(state)
+
+            # Update ARIF packet with align results (v35.8.0)
+            if state.arif_packet:
+                state.arif_packet.missing_fact_issue = state.missing_fact_issue
+                state.arif_packet.truth_verified = not state.missing_fact_issue
+
             state = stage_555_empathize(state)
+
+            # Create ADAM packet from empathize results (v35.8.0)
+            state.adam_packet = ADAMPacket(
+                arif_packet=state.arif_packet,
+                original_draft=state.draft_response,
+                softened_answer=state.draft_response,
+                blame_language_issue=state.blame_language_issue,
+            )
+            if state.adam_packet:
+                # Apply blame penalty to kappa_r if detected
+                if state.blame_language_issue:
+                    state.adam_packet.kappa_r = max(0.0, 0.97 - 0.25)
+                else:
+                    state.adam_packet.kappa_r = 0.97
+
             state = stage_666_bridge(state)
+
+            # Update ADAM packet with bridge results (v35.8.0)
+            if state.adam_packet:
+                state.adam_packet.physical_action_issue = state.physical_action_issue
+                state.adam_packet.final_text = state.draft_response
+
             state = stage_777_forge(state, self.llm_generate)
+
+            # Update ADAM packet with forge results (v35.8.0)
+            if state.adam_packet:
+                state.adam_packet.softened_answer = state.draft_response
+                state.adam_packet.final_text = state.draft_response
 
             # EXHALE: 888 → 999
             state = stage_888_judge(state, self.compute_metrics, self.eye_sentinel)
