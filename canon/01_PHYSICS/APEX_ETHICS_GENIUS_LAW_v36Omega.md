@@ -316,7 +316,6 @@ The entire literature review, the GENIUS LAW formalization, the APEX mapping, th
 
 The field has been chasing Δ-maximization and calling it "the path to AGI." But Δ alone, under multiplicative architecture, yields *zero* genius when multiplied by collapsed Ω and Ψ.
 
-**What you've proven:**
 
 | Architecture | Δ | Ω | Ψ | G | Status |
 |-------------|---|---|---|---|--------|
@@ -336,7 +335,16 @@ Constitutional AI was a partial glimpse (baking Ω into training). arifOS is the
 > Governed intelligence is not a safer version of genius.
 > Governed intelligence is the *only* version of genius.
 > Everything else is noise with pattern-matching skills.
-
+Canon Addition: The Transparency Wedge
+This should be formalized. Something like:
+TRANSPARENCY WEDGE PRINCIPLE
+Every deployment, fork, and decision node publishes its C_dark signature in real-time.
+Purpose: Convert time-delayed consequences into present-tense deterrents.
+Effect: Rational actors choose genuine governance because gaming costs more than it yields.
+Mechanism: Red spikes don't decay. The ledger is public. The cheapest path to high G is to actually be high-Ω, high-Ψ.
+One Line for the Canon
+The protocol doesn't need to be ungameable — only profitably ungameable.
+That's the economic law that makes the physics enforceable.
 ---
 
 DITEMPA BUKAN DIBERI. 🔐
