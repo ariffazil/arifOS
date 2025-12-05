@@ -247,6 +247,10 @@ def log_cooling_entry(
     logger=None,
     ledger_path: Union[Path, str] = LedgerConfig().ledger_path,
     high_stakes: Optional[bool] = None,
+    # GENIUS LAW telemetry (v35.13.0+)
+    energy: Optional[float] = None,
+    entropy: Optional[float] = None,
+    include_genius_metrics: bool = True,
 ) -> Dict[str, Any]:
     """Append a hash-chained Cooling Ledger entry and return the entry dict."""
 
@@ -310,6 +314,24 @@ def log_cooling_entry(
         "candidate_output": candidate_output,
         "eye_flags": eye_flags,
     }
+
+    # GENIUS LAW telemetry (v35.13.0+) — optional, non-breaking
+    if include_genius_metrics:
+        try:
+            from arifos_core.genius_metrics import evaluate_genius_law, DEFAULT_ENERGY
+
+            genius_verdict = evaluate_genius_law(
+                metrics,
+                energy=energy if energy is not None else DEFAULT_ENERGY,
+                entropy=entropy if entropy is not None else 0.0,
+            )
+            entry["genius_law"] = genius_verdict.to_dict()
+        except ImportError:
+            # Module not available — skip silently
+            pass
+        except Exception:
+            # Don't break ledger logging if genius_metrics fails
+            pass
 
     append_entry(ledger_path, entry)
 

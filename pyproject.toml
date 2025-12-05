@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "35.12.0"
+version = "35.13.0"
 description = "Constitutional Governance Kernel for AI - 9 Floors, AAA Engines, W@W Federation, @EYE Sentinel"
 readme = "README.md"
 requires-python = ">=3.8"

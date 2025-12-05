@@ -73,6 +73,23 @@ except ImportError:
     apex_guardrail = None
     GuardrailError = None
 
+# Import GENIUS LAW telemetry (v35.13.0+)
+try:
+    from .genius_metrics import (
+        evaluate_genius_law,
+        GeniusVerdict,
+        compute_genius_index,
+        compute_dark_cleverness,
+        compute_psi_apex,
+    )
+except ImportError:
+    # GENIUS metrics optional
+    evaluate_genius_law = None
+    GeniusVerdict = None
+    compute_genius_index = None
+    compute_dark_cleverness = None
+    compute_psi_apex = None
+
 __all__ = [
     # Version constants (v35Ω)
     "APEX_VERSION",
@@ -97,4 +114,10 @@ __all__ = [
     # Guard (may be None if memory unavailable)
     "apex_guardrail",
     "GuardrailError",
+    # GENIUS LAW telemetry (v35.13.0+)
+    "evaluate_genius_law",
+    "GeniusVerdict",
+    "compute_genius_index",
+    "compute_dark_cleverness",
+    "compute_psi_apex",
 ]
