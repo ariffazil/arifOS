@@ -345,4 +345,4 @@ arifos_pipeline:
     created: "2025-11-30"
     author: "arifOS Project"
     license: "Apache-2.0"
-    canonical_source: "canon/30_RUNTIME/000-999_METABOLIC_CANON_v35Omega.md"
+    canonical_source: "canon/880_000-999_METABOLIC_CANON_v35Omega.md"

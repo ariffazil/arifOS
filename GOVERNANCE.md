@@ -241,7 +241,7 @@ If contributors disagree about governance changes:
 
 | Document | Location | Purpose |
 |----------|----------|---------|
-| APEX_TRINITY | `canon/00_CANON/APEX_TRINITY_v35Omega.md` | Single Source of Truth for physics/math/language |
+| APEX_TRINITY | `canon/002_APEX_TRINITY_v35Omega.md` | Single Source of Truth for physics/math/language |
 | Floor Definitions | `constitutional_floors.json` | Machine-readable floor thresholds |
 | Runtime Constitution | `runtime/constitution.json` | Active runtime config |
 
