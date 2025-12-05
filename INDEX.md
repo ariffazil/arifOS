@@ -269,7 +269,7 @@ arifOS/
 | `geox.py` | **LIVE** | @GEOX | Physics / Earth / reality (F1, F8) |
 | `prompt.py` | **LIVE** | @PROMPT | Language & optics (F9, F7) |
 
-**Note:** 5 canonical W@W organs implemented ✓ (9 total organ classes include base variations)
+**Note:** 5 canonical W@W organs implemented ✓ (8 total files: 5 organs + 3 infrastructure files: `__init__.py`, `base.py`, `federation.py`)
 
 ---
 
@@ -320,7 +320,7 @@ arifOS/
 
 ## Tests
 
-**Total:** 26 test files | **Status:** 412+ tests passing
+**Total:** 26 test files | **Status:** 412+ tests passing (per README.md)
 
 ### Key Test Suites
 
@@ -422,13 +422,13 @@ arifOS/
    - **Impact:** `anti_hantu_view.py` may be justified (F9 enforcement extension), but should be documented. Other files (`base.py`, `sentinel.py`, `__init__.py`) are infrastructure, not views.
    - **Action:** Clarify in docs which files are canonical views (1-10) vs. extensions vs. infrastructure. Update `@EYE` spec if `anti_hantu_view` is now canonical.
 
-5. **W@W Organ Count Discrepancy**
-   - **Risk:** 9 Organ classes in code vs. 5 canonical organs in spec.
+5. **W@W Organ Documentation Gap**
+   - **Risk:** 8 Python files in `arifos_core/waw/` vs. 5 canonical organs specified.
    - **Files:** 
      - Canonical: 5 organs per `canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md` (@WELL, @RIF, @WEALTH, @GEOX, @PROMPT)
-     - Implemented: 9 Organ classes in `arifos_core/waw/`
-   - **Impact:** Unclear if extra organ classes are base classes, variations, or extensions.
-   - **Action:** Document organ class hierarchy. Clarify which are canonical organs vs. base/helper classes.
+     - Implemented: 8 files in `arifos_core/waw/` (5 organ files + 3 infrastructure: `__init__.py`, `base.py`, `federation.py`)
+   - **Impact:** Infrastructure files (`base.py`, `federation.py`) are correctly separated, but should be documented.
+   - **Action:** Document in `waw/__init__.py` which files are canonical organs (5) vs. infrastructure (3).
 
 ---
 
@@ -559,21 +559,21 @@ arifOS/
 
 **Rationale:** Clarify which views are canonical vs. implementation details. Prevent confusion.
 
-#### 5. Document W@W Organ Class Hierarchy
+#### 5. Document W@W Organ File Structure
 
-**Issue:** 9 Organ classes in code vs. 5 canonical organs in spec.
+**Issue:** 8 Python files in code vs. 5 canonical organs in spec.
 
-**Files:** `arifos_core/waw/` (9 classes), `canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md` (5 organs)
+**Files:** `arifos_core/waw/` (8 files: 5 organs + 3 infrastructure), `canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md` (5 organs)
 
 **Action:**
 1. Add docstring in `waw/__init__.py` explaining:
    - 5 canonical organs: @WELL, @RIF, @WEALTH, @GEOX, @PROMPT
    - `base.py` is base class (not an organ)
    - `federation.py` is coordinator (not an organ)
-   - Other classes: clarify if they are organ variations or deprecated
-2. Update `canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md` if additional organs are now canonical
+   - `__init__.py` is package initialization
+2. Optionally update `canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md` to document implementation structure
 
-**Rationale:** Eliminate confusion about W@W organ count. Document implementation structure.
+**Rationale:** Clarify file structure vs. canonical organ count. Prevent confusion.
 
 ### 🟢 LOW PRIORITY
 
