@@ -69,7 +69,7 @@ arifOS/
 │   └── *.py                  # Standalone demos
 │
 ├── tests/                     # Test suite (pytest)
-│   └── test_*.py             # 190+ test files
+│   └── test_*.py             # 26 test files
 │
 ├── docs/                      # Documentation
 ├── integrations/             # External integrations (sealion, etc.)
@@ -320,7 +320,7 @@ arifOS/
 
 ## Tests
 
-**Total:** 190+ test files | **Status:** 412+ tests passing
+**Total:** 26 test files | **Status:** 412+ tests passing
 
 ### Key Test Suites
 
@@ -373,7 +373,7 @@ arifOS/
 
 | Version | Status | Description | Coverage |
 |---------|--------|-------------|----------|
-| **v35.1.0** | **LIVE** (Production) | Current Python package version. Implements v35Ω canon fully. | 190+ files, 412+ tests |
+| **v35.1.0** | **LIVE** (Production) | Current Python package version. Implements v35Ω canon fully. | ~190 Python files, 26 test files, 412+ test cases |
 
 ### Runtime Epoch (Ledger & State)
 
@@ -414,13 +414,13 @@ arifOS/
 
 ### 🟡 MEDIUM PRIORITY
 
-4. **@EYE Sentinel View Overimplementation**
-   - **Risk:** 14 view files implemented (10 canonical + 4 extra: anti_hantu_view, base, sentinel coordinator, extras).
+4. **@EYE Sentinel View Documentation Gap**
+   - **Risk:** 14 Python files in `arifos_core/eye/` vs. 10 canonical views specified.
    - **Files:** 
      - Canonical: 10 views per `canon/030_EYE_SENTINEL_v35Omega.md`
-     - Implemented: 14 files in `arifos_core/eye/`
-   - **Impact:** Extra views (`anti_hantu_view.py`) may be justified (F9 enforcement), but should be documented as extension, not canonical view.
-   - **Action:** Clarify in docs which views are canonical (1-10) vs. extensions. Update `@EYE` spec if extensions are now canonical.
+     - Implemented: 14 files in `arifos_core/eye/` (10 view files + `anti_hantu_view.py`, `base.py`, `sentinel.py`, `__init__.py`)
+   - **Impact:** `anti_hantu_view.py` may be justified (F9 enforcement extension), but should be documented. Other files (`base.py`, `sentinel.py`, `__init__.py`) are infrastructure, not views.
+   - **Action:** Clarify in docs which files are canonical views (1-10) vs. extensions vs. infrastructure. Update `@EYE` spec if `anti_hantu_view` is now canonical.
 
 5. **W@W Organ Count Discrepancy**
    - **Risk:** 9 Organ classes in code vs. 5 canonical organs in spec.
@@ -547,7 +547,7 @@ arifOS/
 
 **Issue:** 14 view files implemented vs. 10 canonical views. Extensions not documented.
 
-**Files:** `arifos_core/eye/` (14 files: 10 canonical + 4 extra)
+**Files:** `arifos_core/eye/` (14 files total: 10 canonical view files + `anti_hantu_view.py`, `base.py`, `sentinel.py`, `__init__.py`)
 
 **Action:**
 1. Update `canon/030_EYE_SENTINEL_v35Omega.md` to clarify:
