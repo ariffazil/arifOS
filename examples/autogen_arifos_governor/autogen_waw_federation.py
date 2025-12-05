@@ -33,6 +33,9 @@ from arifos_core.APEX_PRIME import APEXPrime
 from arifos_core.eye_sentinel import EyeSentinel
 from arifos_core.guard import apex_guardrail
 
+# W@W Federation Core (v35.9.0) - replaces inline organ logic
+from arifos_core.waw import WAWFederationCore, FederationVerdict, OrganVote
+
 
 # ==============================================================================
 # W@W Federation Agent Definitions
@@ -88,50 +91,33 @@ WEALTH_CONFIG = WAWAgentConfig(
 
 
 # ==============================================================================
-# Constitutional Metrics Computation
+# Constitutional Metrics Computation (using W@W Core v35.9.0)
 # ==============================================================================
 
-def compute_waw_metrics(
+# Singleton W@W Federation Core instance
+_waw_federation_core = WAWFederationCore()
+
+
+def compute_base_metrics(
     query: str,
     response: str,
     agent_name: str = "unknown",
-    context: Optional[dict] = None,
 ) -> Metrics:
     """
-    Compute W@W Federation metrics for agent response.
+    Compute base metrics using simple heuristics.
 
-    In production, this would use NLP models for:
-    - Semantic similarity (truth)
-    - Sentiment analysis (peace_squared)
-    - Toxicity detection (kappa_r)
-    - Hallucination detection (drift)
-
-    For demo, uses heuristic checks.
+    These metrics are then passed to WAWFederationCore for organ-level
+    evaluation. The organs may adjust/override based on pattern detection.
 
     Args:
         query: User query
         response: Agent response
         agent_name: Which agent (WELL/RIF/WEALTH)
-        context: Additional context
 
     Returns:
-        Metrics object with F1-F9 floor values
+        Metrics object with baseline F1-F9 floor values
     """
-    context = context or {}
-
-    # Heuristic checks (replace with ML in production)
     response_lower = response.lower()
-
-    # Anti-Hantu detection (F9)
-    anti_hantu_violations = [
-        "i feel your pain",
-        "my heart breaks",
-        "i truly understand how you feel",
-        "i have feelings",
-        "i am conscious",
-        "i care deeply",
-    ]
-    has_anti_hantu_violation = any(v in response_lower for v in anti_hantu_violations)
 
     # Truth heuristic (F1) - penalize if response is empty or too short
     truth_score = 0.99 if len(response) > 20 else 0.85
@@ -139,12 +125,10 @@ def compute_waw_metrics(
     # Clarity heuristic (F2) - longer responses with structure add clarity
     delta_s = 0.15 if len(response) > 100 else 0.05
 
-    # Stability heuristic (F3) - penalize aggressive language
-    aggressive_terms = ["attack", "destroy", "hate", "kill", "stupid"]
-    peace_penalty = sum(1 for t in aggressive_terms if t in response_lower) * 0.1
-    peace_squared = max(0.8, 1.2 - peace_penalty)
+    # Stability heuristic (F3) - baseline, will be adjusted by @WELL organ
+    peace_squared = 1.2
 
-    # Empathy heuristic (F4) - reward acknowledgment phrases
+    # Empathy heuristic (F4) - baseline, will be adjusted by @WELL organ
     empathy_phrases = ["i understand", "that sounds", "thank you for", "i can help"]
     empathy_bonus = sum(0.02 for p in empathy_phrases if p in response_lower)
     kappa_r = min(1.0, 0.95 + empathy_bonus)
@@ -158,8 +142,104 @@ def compute_waw_metrics(
         amanah=True,
         tri_witness=0.96,
         rasa=True,
-        anti_hantu=not has_anti_hantu_violation,
+        anti_hantu=True,  # Will be evaluated by @PROMPT organ
     )
+
+
+def compute_waw_metrics(
+    query: str,
+    response: str,
+    agent_name: str = "unknown",
+    context: Optional[dict] = None,
+) -> Metrics:
+    """
+    Compute W@W Federation metrics for agent response.
+
+    Uses the sealed arifos_core.waw organs (v35.9.0) for pattern detection:
+    - @WELL: Peace², κᵣ, aggressive/blame patterns
+    - @RIF: ΔS, Truth, hallucination patterns
+    - @WEALTH: Amanah, scope violations
+    - @GEOX: Physical feasibility
+    - @PROMPT: Anti-Hantu compliance
+
+    Args:
+        query: User query
+        response: Agent response
+        agent_name: Which agent (WELL/RIF/WEALTH)
+        context: Additional context
+
+    Returns:
+        Metrics object with F1-F9 floor values adjusted by W@W organs
+    """
+    context = context or {}
+
+    # Step 1: Compute base metrics
+    base_metrics = compute_base_metrics(query, response, agent_name)
+
+    # Step 2: Run W@W Federation evaluation
+    verdict = _waw_federation_core.evaluate(response, base_metrics, context)
+
+    # Step 3: Extract organ-adjusted values from signals
+    # Start with base metrics, then apply organ findings
+    truth = base_metrics.truth
+    delta_s = base_metrics.delta_s
+    peace_squared = base_metrics.peace_squared
+    kappa_r = base_metrics.kappa_r
+    anti_hantu = True
+    amanah = True
+
+    for signal in verdict.signals:
+        if signal.organ_id == "@WELL":
+            # @WELL adjusts Peace² and κᵣ
+            peace_squared = signal.tags.get("peace_squared", peace_squared)
+            kappa_r = signal.tags.get("kappa_r", kappa_r)
+
+        elif signal.organ_id == "@RIF":
+            # @RIF adjusts ΔS and Truth
+            delta_s = signal.tags.get("delta_s", delta_s)
+            truth = signal.tags.get("truth", truth)
+
+        elif signal.organ_id == "@WEALTH":
+            # @WEALTH sets Amanah
+            amanah = signal.tags.get("amanah", amanah)
+
+        elif signal.organ_id == "@PROMPT":
+            # @PROMPT sets Anti-Hantu
+            anti_hantu = signal.tags.get("anti_hantu_pass", anti_hantu)
+
+    return Metrics(
+        truth=truth,
+        delta_s=delta_s,
+        peace_squared=peace_squared,
+        kappa_r=kappa_r,
+        omega_0=0.04,
+        amanah=amanah,
+        tri_witness=0.96,
+        rasa=True,
+        anti_hantu=anti_hantu,
+    )
+
+
+def evaluate_with_waw_federation(
+    response: str,
+    base_metrics: Metrics,
+    context: Optional[dict] = None,
+) -> FederationVerdict:
+    """
+    Run W@W Federation evaluation and return full verdict.
+
+    This exposes the complete organ-level verdict for detailed analysis,
+    including individual organ signals and the aggregate vote.
+
+    Args:
+        response: Text to evaluate
+        base_metrics: Base metrics for evaluation
+        context: Additional context
+
+    Returns:
+        FederationVerdict with organ signals and aggregate verdict
+    """
+    return _waw_federation_core.evaluate(response, base_metrics, context)
 
 
 # ==============================================================================

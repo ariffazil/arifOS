@@ -20,11 +20,14 @@ from autogen_waw_federation import (
     WAWFederation,
     GovernedAgent,
     compute_waw_metrics,
+    compute_base_metrics,
+    evaluate_with_waw_federation,
     WELL_CONFIG,
     RIF_CONFIG,
     WEALTH_CONFIG,
     demo_llm_generate,
 )
+from arifos_core.waw import WAWFederationCore, OrganVote
 from arifos_core.metrics import Metrics
 from arifos_core.APEX_PRIME import APEXPrime
 from arifos_core.eye_sentinel import EyeSentinel
