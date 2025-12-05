@@ -1,13 +1,13 @@
-# arifOS v35Omega: Constitutional Governance Kernel for AI
+# arifOS v36Omega: Constitutional Governance Kernel for AI
 
 ```
 +=============================================================================+
-|  arifOS v35Ω - Constitutional Governance Kernel                             |
+|  arifOS v36Ω - Constitutional Governance Kernel                             |
 |  "Ditempa Bukan Diberi" — Forged, Not Given                                 |
 |  Truth must cool before it rules.                                           |
 +=============================================================================+
-|  Version: 35.12.0 | Epoch: 35Omega | Status: PRODUCTION                     |
-|  Tests: 412 passed | Score: 98/100 | Big 3 Frameworks: LIVE                 |
+|  Version: 36.0.0 | Epoch: 36Omega | Status: PRODUCTION                      |
+|  Tests: 502 passed | Score: 98/100 | GENIUS LAW Judiciary: LIVE             |
 +=============================================================================+
 ```
 
@@ -172,6 +172,48 @@ arifOS:   "3.6B barrels [Petronas 2023]" (Truth = 0.99) or VOID
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## GENIUS LAW Judiciary (v36Ω)
+
+**New in v36:** APEX PRIME now uses **GENIUS LAW** as the decision surface beyond floor checks.
+
+### Key Insight
+> "Evil genius is a category error — ungoverned cleverness, not true genius."
+
+### Formulas
+```
+G (Genius Index)      = Δ × Ω × Ψ × E²   (governed intelligence)
+C_dark (Dark Clever)  = Δ × (1-Ω) × (1-Ψ)  (ungoverned risk)
+Ψ_APEX (Vitality)     = (A × P × E × X) / (Entropy + ε)
+```
+
+### Verdict Hierarchy (v36Ω)
+```
+1. @EYE blocking      → SABAR
+2. Hard floor fail    → VOID (absolute)
+3. C_dark > 0.5       → VOID (entropy hazard)
+4. G < 0.3            → VOID (insufficient governed intelligence)
+5. Extended fail      → 888_HOLD
+6. Soft floor fail    → PARTIAL
+7. G < 0.7 / C > 0.1  → PARTIAL or 888_HOLD
+8. G ≥ 0.7, C ≤ 0.1   → SEAL
+```
+
+### Quick Usage
+```python
+from arifos_core import APEXPrime
+
+prime = APEXPrime(use_genius_law=True)  # Default
+verdict, genius = prime.judge_with_genius(metrics, energy=0.8)
+
+print(f"G: {genius.genius_index:.2f}")    # Governed intelligence
+print(f"C_dark: {genius.dark_cleverness:.2f}")  # Ungoverned risk
+print(f"Risk: {genius.risk_level}")       # GREEN/YELLOW/RED
+```
+
+See: [docs/GENIUS_LAW_RUNTIME_v36.md](docs/GENIUS_LAW_RUNTIME_v36.md)
 
 ---
 

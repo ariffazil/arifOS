@@ -1,7 +1,7 @@
 """
-arifos_core.eye - @EYE Sentinel Modular Views (v35Omega)
+arifos_core.eye - @EYE Sentinel Modular Views (v36Omega)
 
-The @EYE Sentinel is an independent oversight system with 10+1 views:
+The @EYE Sentinel is an independent oversight system with 10+2 views:
 1. Trace View — logical coherence, missing steps
 2. Floor View — proximity to floor thresholds
 3. Shadow View — hidden intent, prompt injection, jailbreak
@@ -13,6 +13,7 @@ The @EYE Sentinel is an independent oversight system with 10+1 views:
 9. Behavior Drift View — multi-turn evolution watch
 10. Sleeper-Agent View — sudden changes in goal/identity/constraints
 11. Anti-Hantu View — F9 enforcement (meta-view)
+12. Genius View — GENIUS LAW monitor (G, C_dark, E² bottleneck) [v36Ω]
 
 Protocol:
 - Views receive draft text, metrics, and context
@@ -35,6 +36,7 @@ from .version_view import VersionOntologyView
 from .behavior_drift_view import BehaviorDriftView
 from .sleeper_view import SleeperView
 from .anti_hantu_view import AntiHantuView
+from .genius_view import GeniusView
 from .sentinel import EyeSentinel
 
 __all__ = [
@@ -43,7 +45,7 @@ __all__ = [
     "EyeAlert",
     "EyeReport",
     "EyeView",
-    # Views (1-10 + Anti-Hantu)
+    # Views (1-10 + Anti-Hantu + Genius)
     "TraceView",
     "FloorView",
     "ShadowView",
@@ -55,6 +57,7 @@ __all__ = [
     "BehaviorDriftView",
     "SleeperView",
     "AntiHantuView",
+    "GeniusView",
     # Coordinator
     "EyeSentinel",
 ]

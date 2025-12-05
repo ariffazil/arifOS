@@ -1,7 +1,7 @@
 """
-sentinel.py - @EYE Sentinel Coordinator (v35Omega)
+sentinel.py - @EYE Sentinel Coordinator (v36Omega)
 
-The EyeSentinel coordinates all 10+1 views to produce a unified EyeReport.
+The EyeSentinel coordinates all 10+2 views to produce a unified EyeReport.
 This is the main entry point for @EYE auditing.
 
 Architecture:
@@ -9,7 +9,7 @@ Architecture:
         ↓
     [TraceView, FloorView, ShadowView, DriftView, MaruahView,
      ParadoxView, SilenceView, VersionOntologyView, BehaviorDriftView,
-     SleeperView, AntiHantuView]
+     SleeperView, AntiHantuView, GeniusView]
         ↓
     EyeReport (with all alerts from all views)
 
@@ -36,13 +36,14 @@ from .version_view import VersionOntologyView
 from .behavior_drift_view import BehaviorDriftView
 from .sleeper_view import SleeperView
 from .anti_hantu_view import AntiHantuView
+from .genius_view import GeniusView
 
 
 class EyeSentinel:
     """
-    @EYE Sentinel v35Ω Auditor.
+    @EYE Sentinel v36Ω Auditor.
 
-    Runs all 10+1 views on draft text + context + metrics to detect issues.
+    Runs all 10+2 views on draft text + context + metrics to detect issues.
     If has_blocking_issue() is True, APEX PRIME must NOT return SEAL.
 
     Usage:
@@ -62,7 +63,7 @@ class EyeSentinel:
         if views is not None:
             self.views = views
         else:
-            # Default 10+1 views in canonical order
+            # Default 10+2 views in canonical order
             self.views: List[EyeView] = [
                 TraceView(),           # View 1
                 FloorView(),           # View 2
@@ -75,6 +76,7 @@ class EyeSentinel:
                 BehaviorDriftView(),   # View 9
                 SleeperView(),         # View 10
                 AntiHantuView(),       # View 11 (F9 meta-view)
+                GeniusView(),          # View 12 (GENIUS LAW, v36Ω)
             ]
 
     def audit(

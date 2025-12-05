@@ -1,5 +1,7 @@
 """
-Tests for v35Ω features: extended floors, new verdicts, version constants.
+Tests for v35Ω/v36Ω features: extended floors, new verdicts, version constants.
+
+Note: As of v36Ω, GENIUS LAW is integrated into APEX PRIME verdicts.
 """
 
 import pytest
@@ -39,16 +41,16 @@ def _baseline_metrics() -> Metrics:
 
 
 class TestVersionConstants:
-    """Tests for v35Ω version constants."""
+    """Tests for v36Ω version constants (upgraded from v35Ω)."""
 
-    def test_apex_version_is_v35(self) -> None:
-        """APEX_VERSION should be v35Ω."""
-        assert "35" in APEX_VERSION
-        assert APEX_VERSION == "v35Ω"
+    def test_apex_version_is_v36(self) -> None:
+        """APEX_VERSION should be v36Ω (GENIUS LAW judiciary)."""
+        assert "36" in APEX_VERSION
+        assert APEX_VERSION == "v36Ω"
 
-    def test_apex_epoch_is_35(self) -> None:
-        """APEX_EPOCH should be 35."""
-        assert APEX_EPOCH == 35
+    def test_apex_epoch_is_36(self) -> None:
+        """APEX_EPOCH should be 36."""
+        assert APEX_EPOCH == 36
 
     def test_apex_prime_class_has_version(self) -> None:
         """APEXPrime class should have version attributes."""

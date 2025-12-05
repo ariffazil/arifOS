@@ -1,9 +1,9 @@
-from typing import Literal, List
+from typing import Literal, List, Optional, Tuple
 from .metrics import Metrics, FloorsVerdict
 
-# Version constants (v35Ω)
-APEX_VERSION = "v35Ω"
-APEX_EPOCH = 35
+# Version constants (v36Ω — GENIUS LAW Judiciary)
+APEX_VERSION = "v36Ω"
+APEX_EPOCH = 36
 
 # Type alias for APEX verdicts (v35Ω adds 888_HOLD and SABAR)
 ApexVerdict = Literal["SEAL", "PARTIAL", "VOID", "888_HOLD", "SABAR"]
@@ -20,6 +20,22 @@ TRI_MIN = 0.95
 DRIFT_MIN = 0.1
 AMBIGUITY_MAX = 0.1
 PARADOX_MAX = 1.0
+
+# =============================================================================
+# GENIUS LAW THRESHOLDS (v36Ω)
+# These thresholds define the GENIUS LAW decision surface.
+# Hard floors still gate everything; GENIUS LAW refines verdicts.
+# =============================================================================
+
+# G thresholds for verdict decisions
+G_SEAL_THRESHOLD: float = 0.7       # G >= this for SEAL consideration
+G_PARTIAL_THRESHOLD: float = 0.5    # G >= this for PARTIAL (below SEAL)
+G_MIN_THRESHOLD: float = 0.3        # G below this = VOID (even if floors pass)
+
+# C_dark thresholds for risk assessment
+C_DARK_SEAL_MAX: float = 0.1        # C_dark <= this for SEAL
+C_DARK_PARTIAL_MAX: float = 0.3     # C_dark <= this for PARTIAL
+C_DARK_VOID_THRESHOLD: float = 0.5  # C_dark > this = VOID (entropy hazard)
 
 
 def check_floors(
@@ -151,15 +167,36 @@ def apex_review(
     high_stakes: bool = False,
     tri_witness_threshold: float = 0.95,
     eye_blocking: bool = False,
+    energy: float = 1.0,
+    entropy: float = 0.0,
+    use_genius_law: bool = True,
 ) -> ApexVerdict:
-    """Apply APEX PRIME v35Ω decision policy.
+    """Apply APEX PRIME v36Ω decision policy with GENIUS LAW.
 
-    Verdict hierarchy:
-    - If @EYE has blocking issue → SABAR (stop, breathe, re-evaluate)
-    - If any hard floor fails → VOID (Truth, ΔS, Ω₀, Amanah, Ψ, RASA)
-    - If hard floors pass but extended floors fail → 888_HOLD (judiciary hold)
-    - If hard floors pass but soft floors fail → PARTIAL
-    - If all floors (core + extended) pass → SEAL
+    Verdict hierarchy (v36Ω):
+    1. If @EYE has blocking issue → SABAR (stop, breathe, re-evaluate)
+    2. If any hard floor fails → VOID (Truth, ΔS, Ω₀, Amanah, Ψ, RASA, Anti-Hantu)
+    3. If C_dark > 0.5 → VOID (ungoverned cleverness = entropy hazard)
+    4. If G < 0.3 → VOID (insufficient governed intelligence)
+    5. If extended floors fail → 888_HOLD (judiciary hold)
+    6. If soft floors fail OR (G < 0.7 or C_dark > 0.1) → PARTIAL
+    7. If all floors pass AND G >= 0.7 AND C_dark <= 0.1 → SEAL
+
+    The key insight: Hard floors remain absolute gates. GENIUS LAW (G, C_dark)
+    refines verdicts beyond the floor checks, encoding "governed intelligence"
+    as the decision surface.
+
+    Args:
+        metrics: Constitutional metrics to evaluate
+        high_stakes: Whether Tri-Witness is required
+        tri_witness_threshold: Threshold for Tri-Witness (default 0.95)
+        eye_blocking: True if @EYE Sentinel has a blocking issue
+        energy: Energy metric for GENIUS LAW [0, 1], default 1.0 (no depletion)
+        entropy: System entropy for GENIUS LAW, default 0.0
+        use_genius_law: Whether to apply GENIUS LAW (default True, set False for v35 compat)
+
+    Returns:
+        ApexVerdict: SEAL, PARTIAL, VOID, 888_HOLD, or SABAR
     """
     floors = check_floors(
         metrics,
@@ -171,11 +208,50 @@ def apex_review(
     if eye_blocking:
         return "SABAR"
 
-    # Any hard floor failure → VOID
+    # Any hard floor failure → VOID (absolute gate)
     if not floors.hard_ok:
         return "VOID"
 
-    # Extended floors failure → 888_HOLD (v35Ω)
+    # GENIUS LAW evaluation (v36Ω)
+    if use_genius_law:
+        try:
+            from .genius_metrics import evaluate_genius_law
+
+            genius = evaluate_genius_law(metrics, energy=energy, entropy=entropy)
+            g = genius.genius_index
+            c_dark = genius.dark_cleverness
+
+            # C_dark > 0.5 → VOID (entropy hazard, ungoverned cleverness)
+            if c_dark > C_DARK_VOID_THRESHOLD:
+                return "VOID"
+
+            # G < 0.3 → VOID (insufficient governed intelligence)
+            if g < G_MIN_THRESHOLD:
+                return "VOID"
+
+            # Extended floors failure → 888_HOLD
+            if not floors.extended_ok:
+                return "888_HOLD"
+
+            # Soft floors failure → PARTIAL
+            if not floors.soft_ok:
+                return "PARTIAL"
+
+            # GENIUS LAW decision surface for SEAL vs PARTIAL
+            if g >= G_SEAL_THRESHOLD and c_dark <= C_DARK_SEAL_MAX:
+                return "SEAL"
+            elif g >= G_PARTIAL_THRESHOLD and c_dark <= C_DARK_PARTIAL_MAX:
+                return "PARTIAL"
+            else:
+                # Middle ground: floors pass but GENIUS metrics suggest caution
+                return "888_HOLD"
+
+        except ImportError:
+            # Fallback to v35 behavior if genius_metrics not available
+            pass
+
+    # v35Ω fallback behavior (use_genius_law=False or import failed)
+    # Extended floors failure → 888_HOLD
     if not floors.extended_ok:
         return "888_HOLD"
 
@@ -189,10 +265,16 @@ def apex_review(
 
 class APEXPrime:
     """
-    APEX PRIME v35Ω constitutional judge.
+    APEX PRIME v36Ω constitutional judge with GENIUS LAW.
 
     Provides stateful judgment interface for constitutional compliance.
+    Integrates GENIUS LAW (G, C_dark) as the decision surface beyond floors.
     Supports @EYE Sentinel integration for blocking issues.
+
+    v36Ω adds:
+    - GENIUS LAW evaluation (G = governed intelligence, C_dark = ungoverned risk)
+    - Energy and entropy parameters for real-world vitality tracking
+    - use_genius_law flag for v35 compatibility
     """
 
     version = APEX_VERSION
@@ -202,20 +284,26 @@ class APEXPrime:
         self,
         high_stakes: bool = False,
         tri_witness_threshold: float = 0.95,
+        use_genius_law: bool = True,
     ):
         self.high_stakes = high_stakes
         self.tri_witness_threshold = tri_witness_threshold
+        self.use_genius_law = use_genius_law
 
     def judge(
         self,
         metrics: Metrics,
         eye_blocking: bool = False,
+        energy: float = 1.0,
+        entropy: float = 0.0,
     ) -> ApexVerdict:
         """Judge constitutional compliance and return verdict.
 
         Args:
             metrics: Constitutional metrics to evaluate
             eye_blocking: True if @EYE Sentinel has a blocking issue
+            energy: Energy metric for GENIUS LAW [0, 1], default 1.0
+            entropy: System entropy for GENIUS LAW, default 0.0
 
         Returns:
             ApexVerdict: SEAL, PARTIAL, VOID, 888_HOLD, or SABAR
@@ -225,7 +313,34 @@ class APEXPrime:
             high_stakes=self.high_stakes,
             tri_witness_threshold=self.tri_witness_threshold,
             eye_blocking=eye_blocking,
+            energy=energy,
+            entropy=entropy,
+            use_genius_law=self.use_genius_law,
         )
+
+    def judge_with_genius(
+        self,
+        metrics: Metrics,
+        eye_blocking: bool = False,
+        energy: float = 1.0,
+        entropy: float = 0.0,
+    ) -> Tuple[ApexVerdict, Optional["GeniusVerdict"]]:
+        """Judge with GENIUS LAW and return both verdict and GENIUS metrics.
+
+        Returns:
+            Tuple of (ApexVerdict, GeniusVerdict or None)
+        """
+        verdict = self.judge(metrics, eye_blocking, energy, entropy)
+
+        genius_verdict = None
+        if self.use_genius_law:
+            try:
+                from .genius_metrics import evaluate_genius_law
+                genius_verdict = evaluate_genius_law(metrics, energy, entropy)
+            except ImportError:
+                pass
+
+        return verdict, genius_verdict
 
     def check(self, metrics: Metrics) -> FloorsVerdict:
         """Check all floors and return detailed verdict."""
@@ -241,6 +356,13 @@ __all__ = [
     # Version constants
     "APEX_VERSION",
     "APEX_EPOCH",
+    # GENIUS LAW thresholds (v36Ω)
+    "G_SEAL_THRESHOLD",
+    "G_PARTIAL_THRESHOLD",
+    "G_MIN_THRESHOLD",
+    "C_DARK_SEAL_MAX",
+    "C_DARK_PARTIAL_MAX",
+    "C_DARK_VOID_THRESHOLD",
     # Verdicts
     "ApexVerdict",
     "Verdict",
