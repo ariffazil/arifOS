@@ -11,6 +11,103 @@
 +=============================================================================+
 ```
 
+## The 10-Second Answer
+
+```mermaid
+flowchart TB
+    subgraph INPUT["🎯 USER INPUT"]
+        Q["Query/Prompt"]
+    end
+
+    subgraph PIPELINE["000-999 METABOLIC PIPELINE"]
+        direction LR
+        P000["000<br/>VOID"]
+        P111["111<br/>SENSE"]
+        P222["222<br/>REFLECT"]
+        P333["333<br/>REASON"]
+        P444["444<br/>EVIDENCE"]
+        P555["555<br/>EMPATHIZE"]
+        P666["666<br/>ALIGN"]
+        P777["777<br/>FORGE"]
+        P888["888<br/>JUDGE"]
+        P999["999<br/>SEAL"]
+
+        P000 --> P111 --> P222 --> P333 --> P444 --> P555 --> P666 --> P777 --> P888 --> P999
+    end
+
+    subgraph AAA["⚡ AAA ENGINES"]
+        direction TB
+        ARIF["🧠 ARIF Δ<br/>Mind/Cold Logic<br/>Clarity Generator"]
+        ADAM["❤️ ADAM Ω<br/>Heart/Warm Logic<br/>Empathy Regulator"]
+        APEX["⚖️ APEX PRIME Ψ<br/>Soul/Judiciary<br/>Final Verdict"]
+
+        ARIF --> APEX
+        ADAM --> APEX
+    end
+
+    subgraph FLOORS["📋 9 CONSTITUTIONAL FLOORS"]
+        direction TB
+        F1["F1: Truth ≥ 0.99"]
+        F2["F2: ΔS ≥ 0 (Clarity)"]
+        F3["F3: Peace² ≥ 1.0"]
+        F4["F4: κᵣ ≥ 0.95 (Empathy)"]
+        F5["F5: Ω₀ ∈ [0.03, 0.05]"]
+        F6["F6: Amanah = LOCK"]
+        F7["F7: RASA = TRUE"]
+        F8["F8: Tri-Witness ≥ 0.95"]
+        F9["F9: Anti-Hantu = PASS"]
+    end
+
+    subgraph WAW["🌐 W@W FEDERATION"]
+        direction TB
+        WELL["@WELL<br/>Somatic Safety"]
+        RIF["@RIF<br/>Logic Gate"]
+        WEALTH["@WEALTH<br/>Integrity Veto"]
+        GEOX["@GEOX<br/>Reality Check"]
+        PROMPT["@PROMPT<br/>Language/Culture"]
+    end
+
+    subgraph EYE["👁️ @EYE SENTINEL"]
+        direction TB
+        V1["Trace View"]
+        V2["Floor View"]
+        V3["Shadow View"]
+        V4["Drift View"]
+        V5["Maruah View"]
+        V6["+ 5 more views"]
+    end
+
+    subgraph VERDICTS["🏛️ VERDICT"]
+        direction TB
+        SEAL["✅ SEAL<br/>All floors pass"]
+        PARTIAL["⚠️ PARTIAL<br/>Soft floor warn"]
+        VOID["❌ VOID<br/>Hard floor fail"]
+        SABAR["🛑 SABAR<br/>Stop & breathe"]
+    end
+
+    subgraph OUTPUT["📤 OUTPUT"]
+        R["Governed Response<br/>+ Audit Trail"]
+    end
+
+    Q --> PIPELINE
+    PIPELINE --> AAA
+    AAA --> FLOORS
+    FLOORS --> WAW
+    WAW --> EYE
+    EYE --> VERDICTS
+    VERDICTS --> R
+
+    style SEAL fill:#90EE90
+    style PARTIAL fill:#FFD700
+    style VOID fill:#FF6B6B
+    style SABAR fill:#FF4500
+    style APEX fill:#E6E6FA
+```
+
+**One sentence:** arifOS wraps any LLM and enforces 9 constitutional floors through thermodynamic physics — violations are mathematically impossible, not just discouraged.
+
+---
+
 ## What is arifOS?
 
 **arifOS** is a **Constitutional Governance Kernel** that wraps any Large Language Model (Claude, GPT, Gemini, Llama, SEA-LION) and transforms it from a statistical predictor into a **lawful, auditable, constitutional entity**.
@@ -706,4 +803,4 @@ Changes to floors, pipeline, or verdict logic require **Phoenix-72** protocol:
 
 ---
 
-*Last Updated: 2025-12-05 | Version: v35.1.0 | Tests: 241 passing | Score: 98/100 | Big 3: LIVE*
+*Last Updated: 2025-12-05 | Version: v35.12.0 | Tests: 412 passing | Score: 98/100 | Big 3: LIVE*
