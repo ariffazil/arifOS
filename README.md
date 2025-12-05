@@ -569,7 +569,7 @@ Learned prohibitions from past failures. When a query matches a scar pattern, ro
 1. **[CLAUDE.md](CLAUDE.md)** - Constitutional governance for Claude Code
 2. **[CHANGELOG.md](CHANGELOG.md)** - Version history and repository status
 3. **[docs/PHYSICS_CODEX.md](docs/PHYSICS_CODEX.md)** - Full physics explanation (6 chapters)
-4. **[canon/00_CANON/APEX_TRINITY_v35Omega.md](canon/00_CANON/APEX_TRINITY_v35Omega.md)** - Single Source of Truth
+4. **[canon/002_APEX_TRINITY_v35Omega.md](canon/002_APEX_TRINITY_v35Omega.md)** - Single Source of Truth
 
 ### Branch Conventions
 
