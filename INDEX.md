@@ -1,6 +1,6 @@
 # arifOS · Project Index (live map)
 
-**Epoch:** v35Ω (runtime law) / v36Ω (physics docs) · **Last updated:** 2025-12-05
+**Epoch:** v35Ω (runtime law) / v36Ω (physics docs) · **Last updated:** 2025-12-06
 
 ---
 
@@ -28,6 +28,7 @@
 - `01_PHYSICS/APEX_THEORY_PHYSICS_v36Omega.md` — *LIVE* · thermodynamic physics
 - `01_PHYSICS/APEX_THEORY_MATH_v36Omega.md` — *LIVE* · mathematical formalism
 - `01_PHYSICS/APEX_LANGUAGE_CODEX_v36Omega.md` — *LIVE* · language codex
+- `01_PHYSICS/APEX_GENIUS_LAW_v36Omega.md` — *SEALED* · unified GENIUS LAW (G=Δ·Ω·Ψ, ethics + measurement)
 - `05_MASTER/APEX_THEORY_MASTER_CANON_v36Omega.md` — *DRAFT* · master theory canon
 - `10_SYSTEM/111_ARIF_AGI_v36Omega.md` — *LIVE* · ARIF AGI specification
 - `10_SYSTEM/333_AAA_ENGINES_v36Omega.md` — *LIVE* · AAA Engines v36Ω spec
