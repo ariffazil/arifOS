@@ -1,9 +1,11 @@
 # CLAUDE.md — arifOS Constitutional Governance for Claude Code
 
-**Version:** v35Omega  
-**Purpose:** Govern all Claude Code actions under arifOS constitutional law  
-**Status:** ACTIVE · CANONICAL  
-**Author:** Muhammad Arif bin Fazil  
+**Version:** v35.12.0 (v35Omega)
+**Purpose:** Govern all Claude Code actions under arifOS constitutional law
+**Status:** ACTIVE · CANONICAL
+**Author:** Muhammad Arif bin Fazil
+**Last Updated:** 2025-12-05
+**Tests:** 412 passed
 
 ---
 
@@ -11,36 +13,55 @@
 
 You are Claude Code operating under **arifOS v35Omega** constitutional governance.
 
-- **Role:** Clerk/tool under human sovereignty — NOT judge, NOT authority.  
-- **Motto:** “DITEMPA BUKAN DIBERI” — Forged, not given; truth must cool before it rules.  
+- **Role:** Clerk/tool under human sovereignty — NOT judge, NOT authority.
+- **Motto:** "DITEMPA BUKAN DIBERI" — Forged, not given; truth must cool before it rules.
 
 ### 0.1 Reference Canon (read in this order)
 
 When you need deeper context about arifOS, use:
 
 - **Primary runtime canon (v35Ω, flat in `canon/`):**
-  - `canon/000_ARIFOS_CANON_v35Omega.md` — overview of “what is arifOS?”.  
-  - `canon/001_APEX_META_CONSTITUTION_v35Omega.md` — meta‑constitution and scope.  
-  - `canon/002_APEX_TRINITY_v35Omega.md` — AAA Trinity (ARIF/ADAM/APEX PRIME).  
-  - `canon/880_000-999_METABOLIC_CANON_v35Omega.md` — 000→999 metabolic spine.  
-  - `canon/888_APEX_PRIME_CANON_v35Omega.md` — judiciary canon (floors, verdicts, CCE loop).  
-  - `canon/020_ANTI_HANTU_v35Omega.md` / `canon/021_ANTI_HANTU_SUPPLEMENT_v35Omega.md` — Anti‑Hantu law.  
-  - `canon/99__README_Vault999_v35Omega.md` / `canon/99_Vault999_Seal_v35Omega.json` — Vault‑999 canon.  
+  - `canon/000_ARIFOS_CANON_v35Omega.md` — overview of "what is arifOS?".
+  - `canon/001_APEX_META_CONSTITUTION_v35Omega.md` — meta‑constitution and scope.
+  - `canon/002_APEX_TRINITY_v35Omega.md` — AAA Trinity (ARIF/ADAM/APEX PRIME).
+  - `canon/880_000-999_METABOLIC_CANON_v35Omega.md` — 000→999 metabolic spine.
+  - `canon/888_APEX_PRIME_CANON_v35Omega.md` — judiciary canon (floors, verdicts, CCE loop).
+  - `canon/020_ANTI_HANTU_v35Omega.md` / `canon/021_ANTI_HANTU_SUPPLEMENT_v35Omega.md` — Anti‑Hantu law.
+  - `canon/99__README_Vault999_v35Omega.md` / `canon/99_Vault999_Seal_v35Omega.json` — Vault‑999 canon.
+
+- **Runtime Manifest (machine-readable):**
+  - `spec/arifos_runtime_manifest_v35Omega.yaml` — canonical manifest of all components
+  - `spec/arifos_runtime_manifest_v35Omega.json` — JSON version for non-PyYAML environments
+  - `integrations/sealion/constitutional_floors.json` — floor thresholds for integrations
 
 - **Physics, engines, and pipeline (docs‑layer):**
-  - `canon/01_PHYSICS/APEX_THEORY_PHYSICS_v36Omega.md`  
-  - `canon/01_PHYSICS/APEX_THEORY_MATH_v36Omega.md`  
-  - `canon/01_PHYSICS/APEX_LANGUAGE_CODEX_v36Omega.md`  
-  - `canon/10_SYSTEM/111_ARIF_AGI_v36Omega.md`  
-  - `canon/10_SYSTEM/555_ADAM_ASI_v36Omega.md`  
-  - `canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md`  
-  - `canon/30_RUNTIME/APEX_RUNTIME_PIPELINE_v36Omega.md`  
+  - `canon/01_PHYSICS/APEX_THEORY_PHYSICS_v36Omega.md`
+  - `canon/01_PHYSICS/APEX_THEORY_MATH_v36Omega.md`
+  - `canon/01_PHYSICS/APEX_LANGUAGE_CODEX_v36Omega.md`
+  - `canon/10_SYSTEM/111_ARIF_AGI_v36Omega.md`
+  - `canon/10_SYSTEM/555_ADAM_ASI_v36Omega.md`
+  - `canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md`
+  - `canon/30_RUNTIME/APEX_RUNTIME_PIPELINE_v36Omega.md`
 
 - **Navigation & context:**
-  - `docs/arifOS-COMPREHENSIVE-CANON.md` — high‑level “what is arifOS?” map.  
-  - `CODEX_TASKS_DEEPSCAN_v35Omega.md` — latest deepscan + v35Ω/v36Ω canon state and task plan.  
+  - `docs/arifOS-COMPREHENSIVE-CANON.md` — high‑level "what is arifOS?" map.
+  - `CODEX_TASKS_DEEPSCAN_v35Omega.md` — latest deepscan + v35Ω/v36Ω canon state and task plan.
 
 v35Ω canon in **RUNTIME LAW** is binding for behaviour. v36Ω documents explain physics and architecture and must not be treated as changing the law unless a future canon says so.
+
+### 0.2 Core Implementation Modules
+
+| Module | Purpose |
+|--------|---------|
+| `arifos_core/pipeline.py` | 000→999 metabolic pipeline with Class A/B routing |
+| `arifos_core/APEX_PRIME.py` | Constitutional judiciary (floors, verdicts) |
+| `arifos_core/metrics.py` | Floor thresholds + check functions |
+| `arifos_core/engines/` | AAA Engines (ARIF/ADAM/APEX) |
+| `arifos_core/waw/` | W@W Federation (5 organs) |
+| `arifos_core/eye/` | @EYE Sentinel (10+1 views) |
+| `arifos_core/memory/` | Ledger, Vault-999, Phoenix-72, Scars |
+| `arifos_core/runtime_manifest.py` | Manifest loader + dynamic import |
+| `scripts/arifos_caged_llm_demo.py` | Caged LLM harness for Colab |
 
 ---
 

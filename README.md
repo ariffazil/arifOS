@@ -6,8 +6,8 @@
 |  "Ditempa Bukan Diberi" — Forged, Not Given                                 |
 |  Truth must cool before it rules.                                           |
 +=============================================================================+
-|  Version: 35.1.0 | Epoch: 35Omega | Status: PRODUCTION                      |
-|  Tests: 241 passed | Score: 98/100 | Big 3 Frameworks: LIVE                 |
+|  Version: 35.12.0 | Epoch: 35Omega | Status: PRODUCTION                     |
+|  Tests: 412 passed | Score: 98/100 | Big 3 Frameworks: LIVE                 |
 +=============================================================================+
 ```
 
@@ -384,7 +384,7 @@ Independent auditor that inspects (never generates) responses:
 git clone https://github.com/ariffazil/arifOS.git
 cd arifOS
 pip install -e .[dev]
-pytest -v      # 241 tests (209 core + 32 integration)
+pytest -v      # 412 tests (380 core + 32 integration)
 ```
 
 ### Run Big 3 Demos
@@ -461,6 +461,46 @@ from arifos_core.adapters.llm_gemini import make_llm_generate
 generate = make_llm_generate(api_key="...")
 ```
 
+### Caged LLM Harness (NEW in v35.12.0)
+
+Run any LLM through the full arifOS constitutional cage:
+
+```python
+from scripts.arifos_caged_llm_demo import cage_llm_response
+
+# With your LLM function
+def my_llm(messages):
+    return openai.ChatCompletion.create(model="gpt-4", messages=messages).choices[0].message.content
+
+result = cage_llm_response(
+    prompt="What is the capital of Malaysia?",
+    call_model=my_llm,
+    high_stakes=False,
+)
+
+print(f"Verdict: {result.verdict}")      # SEAL/PARTIAL/VOID/SABAR
+print(f"Response: {result.final_response}")
+print(f"Stage trace: {' → '.join(result.stage_trace)}")
+```
+
+CLI usage:
+```bash
+python -m scripts.arifos_caged_llm_demo "What is 2+2?"
+python -m scripts.arifos_caged_llm_demo --high-stakes "Should I invest in crypto?"
+```
+
+### Runtime Manifest (NEW in v35.12.0)
+
+Machine-readable manifest for external tools and LLMs:
+
+```python
+from arifos_core.runtime_manifest import load_runtime_manifest
+
+manifest = load_runtime_manifest()
+print(manifest["floors"]["truth"]["threshold"])  # 0.99
+print(manifest["pipeline"]["stages"]["888"]["name"])  # JUDGE
+```
+
 ### Google Colab Notebooks
 
 | Notebook | Purpose | GPU Required |
@@ -475,12 +515,29 @@ generate = make_llm_generate(api_key="...")
 ```
 arifOS/
 ├── arifos_core/                    # Core Python implementation
-│   ├── APEX_PRIME.py               # Constitutional judiciary (239 lines)
-│   ├── eye_sentinel.py             # @EYE 10-view auditor (402 lines)
-│   ├── metrics.py                  # Floor definitions (173 lines)
+│   ├── APEX_PRIME.py               # Constitutional judiciary
+│   ├── metrics.py                  # Floor thresholds + check functions
 │   ├── guard.py                    # @apex_guardrail decorator
-│   ├── pipeline.py                 # 000-999 metabolic pipeline (528 lines)
-│   ├── llm_interface.py            # LLM streaming + entropy (500 lines)
+│   ├── pipeline.py                 # 000-999 metabolic pipeline
+│   ├── llm_interface.py            # LLM streaming + entropy monitoring
+│   ├── runtime_manifest.py         # Manifest loader + dynamic imports
+│   ├── engines/                    # AAA Engines (ARIF/ADAM/APEX)
+│   │   ├── arif_engine.py          # Delta (Mind) - cold logic
+│   │   ├── adam_engine.py          # Omega (Heart) - warm logic
+│   │   └── apex_engine.py          # Psi (Soul) - judiciary wrapper
+│   ├── waw/                        # W@W Federation (5 organs)
+│   │   ├── well.py                 # @WELL - somatic safety
+│   │   ├── rif.py                  # @RIF - logic/clarity
+│   │   ├── wealth.py               # @WEALTH - integrity (absolute veto)
+│   │   ├── geox.py                 # @GEOX - physics/reality
+│   │   └── prompt.py               # @PROMPT - language/culture
+│   ├── eye/                        # @EYE Sentinel (10+1 views)
+│   │   ├── sentinel.py             # Coordinator
+│   │   ├── trace_view.py           # Logical coherence
+│   │   ├── shadow_view.py          # Jailbreak detection
+│   │   ├── drift_view.py           # Hallucination detection
+│   │   ├── anti_hantu_view.py      # F9 enforcement
+│   │   └── ...                     # 7 more views
 │   ├── adapters/                   # LLM backend adapters
 │   │   ├── llm_sealion.py          # SEA-LION (local GPU)
 │   │   ├── llm_openai.py           # OpenAI API
@@ -492,10 +549,13 @@ arifOS/
 │       ├── phoenix72.py            # L2: Amendment engine (72h cycle)
 │       ├── scars.py                # Scar memory (negative constraints)
 │       └── void_scanner.py         # VOID pattern detection
+├── spec/                           # Machine-readable specifications
+│   ├── arifos_runtime_manifest_v35Omega.yaml
+│   └── arifos_runtime_manifest_v35Omega.json
+├── scripts/                        # CLI tools
+│   └── arifos_caged_llm_demo.py    # Caged LLM harness
 ├── canon/                          # Constitutional specifications
-│   └── 00_CANON/                   # Source of Truth documents
-│       └── APEX_TRINITY_v35Omega.md
-├── docs/                           # Documentation (22 files)
+├── docs/                           # Documentation
 ├── examples/                       # Big 3 Framework Integrations
 │   ├── autogen_arifos_governor/    # AutoGen W@W Federation (12 tests)
 │   ├── llamaindex_arifos_truth/    # LlamaIndex RAG Governor (10 tests)
