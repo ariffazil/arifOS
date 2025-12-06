@@ -30,6 +30,9 @@ from arifos_core.genius_metrics import (
     compute_genius_index,
     compute_dark_cleverness,
 )
+from arifos_core.memory.cooling_ledger import (
+    log_cooling_entry_with_v36_telemetry,
+)
 
 
 # =============================================================================
@@ -568,6 +571,39 @@ class TestCoolingLedgerIntegration:
         )
 
         assert entry["genius_law"]["energy"] == 0.5
+
+    def test_log_cooling_entry_with_v36_telemetry_builds_v36_entry(
+        self, healthy_metrics, tmp_path, caplog
+    ):
+        """log_cooling_entry_with_v36_telemetry should emit a v36Omega-shaped entry."""
+
+        sink_entries = []
+
+        def sink(entry: dict) -> None:
+            sink_entries.append(entry)
+
+        ledger_path = tmp_path / "cooling_ledger.jsonl"
+
+        entry_v35 = log_cooling_entry_with_v36_telemetry(
+            job_id="test-v36-telemetry-001",
+            verdict="SEAL",
+            metrics=healthy_metrics,
+            query="Test query",
+            candidate_output="Test response",
+            stakes="normal",
+            ledger_path=ledger_path,
+            v36_telemetry_sink=sink,
+        )
+
+        # v35 entry still written to disk (exact label may be v35Ic/v35Ω)
+        assert str(entry_v35.get("ledger_version", "")).startswith("v35")
+        assert ledger_path.exists()
+
+        # v36 telemetry emitted via sink
+        assert len(sink_entries) == 1
+        v36_entry = sink_entries[0]
+        assert v36_entry["ledger_version"] == "v36Omega"
+        assert v36_entry["metrics"]["truth_polarity"] in ("truth_light", "shadow_truth", "weaponized_truth")
 
 
 if __name__ == "__main__":

@@ -419,6 +419,105 @@ def log_cooling_entry_v36_stub(
     return entry_v36
 
 
+def log_cooling_entry_with_v36_telemetry(
+    *,
+    job_id: str,
+    verdict: str,
+    metrics: "Metrics",
+    query: Optional[str] = None,
+    candidate_output: Optional[str] = None,
+    eye_report: Optional[Any] = None,
+    stakes: str = "normal",
+    pipeline_path: Optional[List[str]] = None,
+    context_summary: str = "",
+    tri_witness_components: Optional[Dict[str, float]] = None,
+    logger=None,
+    ledger_path: Union[Path, str] = LedgerConfig().ledger_path,
+    high_stakes: Optional[bool] = None,
+    # GENIUS LAW telemetry (v35.13.0+)
+    energy: Optional[float] = None,
+    entropy: Optional[float] = None,
+    include_genius_metrics: bool = True,
+    # v36Omega telemetry sink (design-only)
+    v36_telemetry_sink: Optional[Callable[[Dict[str, Any]], None]] = None,
+) -> Dict[str, Any]:
+    """
+    Dual logger: write v35Ic entry to disk and emit v36Omega telemetry.
+
+    This is a safe, design-only bridge that reuses log_cooling_entry for
+    the canonical v35Ic ledger entry, and then uses log_cooling_entry_v36_stub
+    to build an in-memory v36Omega-shaped entry for telemetry/logging.
+
+    Behaviour:
+        - Always writes the v35Ic entry to `ledger_path` (unchanged).
+        - Optionally computes a GeniusVerdict and v36 entry and passes it to
+          `v36_telemetry_sink` or the provided logger.
+
+    It does NOT change the on-disk schema or mutate existing ledger lines.
+    """
+    # First, log the canonical v35Ic entry
+    entry_v35 = log_cooling_entry(
+        job_id=job_id,
+        verdict=verdict,
+        metrics=metrics,
+        query=query,
+        candidate_output=candidate_output,
+        eye_report=eye_report,
+        stakes=stakes,
+        pipeline_path=pipeline_path,
+        context_summary=context_summary,
+        tri_witness_components=tri_witness_components,
+        logger=logger,
+        ledger_path=ledger_path,
+        high_stakes=high_stakes,
+        energy=energy,
+        entropy=entropy,
+        include_genius_metrics=include_genius_metrics,
+    )
+
+    # Build query/response hashes for v36 telemetry
+    query_hash: Optional[str] = None
+    response_hash: Optional[str] = None
+    if query is not None:
+        query_hash = hashlib.sha256(str(query).encode("utf-8")).hexdigest()
+    if candidate_output is not None:
+        response_hash = hashlib.sha256(str(candidate_output).encode("utf-8")).hexdigest()
+
+    # Reconstruct a minimal GeniusVerdict-like object from v35 entry if present
+    genius_verdict_obj: Optional["GeniusVerdict"] = None
+    genius_block = entry_v35.get("genius_law")
+    if isinstance(genius_block, dict):
+        try:
+            # Lazy import; if structure changes, this fails safely
+            from arifos_core.genius_metrics import GeniusVerdict as _GeniusVerdict
+
+            genius_verdict_obj = _GeniusVerdict(**genius_block)
+        except Exception:
+            genius_verdict_obj = None
+
+    # Build v36Omega-shaped telemetry entry
+    try:
+        v36_entry = log_cooling_entry_v36_stub(
+            job_id=job_id,
+            verdict=verdict,
+            metrics=metrics,
+            query_hash=query_hash,
+            response_hash=response_hash,
+            genius_verdict=genius_verdict_obj,
+        )
+
+        if v36_telemetry_sink is not None:
+            v36_telemetry_sink(v36_entry)
+        elif logger is not None:
+            logger.info("CoolingLedgerEntryV36: %s", v36_entry)
+    except Exception:
+        # Telemetry must never break primary ledger logging
+        if logger is not None:
+            logger.exception("Failed to emit v36Omega Cooling Ledger telemetry entry")
+
+    return entry_v35
+
+
 __all__ = [
     "CoolingMetrics",
     "CoolingEntry",
@@ -428,4 +527,5 @@ __all__ = [
     "verify_chain",
     "log_cooling_entry",
     "log_cooling_entry_v36_stub",
+    "log_cooling_entry_with_v36_telemetry",
 ]
