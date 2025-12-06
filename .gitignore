@@ -53,3 +53,5 @@ Thumbs.db
 .claude/
 nul
 arifos-test/
+.codex_remote/
+*.swp
