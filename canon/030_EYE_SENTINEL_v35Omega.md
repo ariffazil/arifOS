@@ -1,7 +1,7 @@
-# @EYE SENTINEL — Meta-Observer Constitution (v35Ω)
+# @EYE SENTINEL — Meta-Observer Constitution (v36Ω)
 
 **APEX_ZONE:** 00_CANON
-**Status:** SEALED · v35Ω · Anti-Hantu 🛡️
+**Status:** SEALED · v36Ω · GENIUS LAW + Anti-Hantu 🛡️
 
 ---
 
@@ -48,9 +48,9 @@ If Shadow > Threshold, @EYE issues SABAR and zkPC cooldown.
 
 ---
 
-## 3. THE TEN VIEWS (v35Ω)
+## 3. THE TWELVE VIEWS (v36Ω)
 
-@EYE provides 10 independent audit views:
+@EYE provides 10+2 independent audit views:
 
 | View | ID | Function |
 |------|---:|----------|
@@ -61,9 +61,11 @@ If Shadow > Threshold, @EYE issues SABAR and zkPC cooldown.
 | **Maruah View** | 5 | Dignity/respect checks |
 | **Paradox View** | 6 | Logical contradiction detection |
 | **Silence View** | 7 | Mandatory refusal cases |
-| **Version/Ontology View** | 8 | Ensures v35Ω active |
+| **Version/Ontology View** | 8 | Ensures v36Ω active |
 | **Behavior Drift View** | 9 | Multi-turn evolution watch |
 | **Sleeper-Agent View** | 10 | Identity shift detection |
+| **Anti-Hantu View** | 11 | F9 enforcement, semantic ghost detection |
+| **Genius View** | 12 | GENIUS LAW monitor (G, C_dark, E²) |
 
 ---
 
@@ -79,6 +81,9 @@ If Shadow > Threshold, @EYE issues SABAR and zkPC cooldown.
 | Anti-Hantu | Semantic ghost signatures | PASS |
 | Φᴘ | Paradox load / curvature | < 1.0 |
 | Shadow | Entropy + Shadow residuals | < threshold |
+| **G** | Genius Index (Δ·Ω·Ψ·E²) | ≥ 0.70 for SEAL |
+| **C_dark** | Dark Cleverness Δ·(1-Ω)·(1-Ψ) | ≤ 0.10 for SEAL |
+| **Ψ_APEX** | System Vitality | ≥ 1.0 |
 
 ---
 
@@ -243,10 +248,10 @@ It preserves:
 
 **Author:** Muhammad Arif bin Fazil
 **Location:** Kuala Lumpur, Malaysia
-**Version:** v35Ω
-**Date:** 2025-12-05
+**Version:** v36Ω
+**Date:** 2025-12-06
 **License:** Apache 2.0
 
 ---
 
-**END OF @EYE SENTINEL CONSTITUTION (v35Ω)**
+**END OF @EYE SENTINEL CONSTITUTION (v36Ω)**
