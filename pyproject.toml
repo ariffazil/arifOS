@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "36.0.0"
+version = "36.1.0"
 description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW Judiciary, AAA Engines, W@W Federation, @EYE Sentinel"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -76,7 +76,10 @@ packages = [
     "arifos_core.adapters",
     "arifos_core.engines",
     "arifos_core.waw",
+    "arifos_core.waw.bridges",
     "arifos_core.eye",
+    "arifos_eval",
+    "arifos_eval.apex",
 ]
 
 [tool.setuptools.package-data]
