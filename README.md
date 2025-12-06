@@ -1,5 +1,7 @@
 # arifOS v36.1Ω — Constitutional Governance Kernel for AI
 
+![Floors](https://img.shields.io/badge/Floors-9_Active-0052cc) ![Truth Polarity](https://img.shields.io/badge/Truth_Polarity-Enabled-success) ![Status](https://img.shields.io/badge/Status-PRODUCTION-green) ![Motto](https://img.shields.io/badge/Motto-Ditempa_Bukan_Diberi-333)
+
 ```text
 +=============================================================================+
 |  arifOS v36.1Omega - Constitutional Governance Kernel                       |
@@ -104,6 +106,20 @@ arifOS is a constitutional operating system that wraps any LLM (Claude, GPT, Gem
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Why arifOS? (Physics vs. Prompts)
+
+Most AI engineering relies on "Prompt Engineering" (hoping the AI listens). arifOS relies on "Constitutional Engineering" (forcing the AI to obey).
+
+| Feature | Standard AI Wrappers | arifOS Kernel |
+| :--- | :--- | :--- |
+| **Safety** | "Please be nice" prompts | **Mathematical Floors** (Peace² ≥ 1.0, κᵣ ≥ 0.95) |
+| **Memory** | Chat History (High Entropy) | **Cooling Ledger** (Low Entropy / Sealed Scars) |
+| **Identity** | Simulates human emotions | **Anti-Hantu** (Strictly blocks soul/feeling claims) |
+| **Failure** | Hallucinates an answer | **Triggers SABAR** (Pauses & admits limits) |
+| **Governance** | Black Box | **Tri-Witness** (Human + AI + Earth Consensus) |
 
 ---
 
@@ -462,6 +478,22 @@ print(f"Response: {result.final_response}")
 
 - Phoenix-72-driven migrations of canon/specs (e.g., promoting v36Ω Vault design from "docs-only" to runtime).
 - More framework integrations (beyond the "Big 3") under arifOS governance.
+
+---
+
+## The Thermodynamic Lexicon
+
+arifOS uses precise terminology to define governance states. These are not metaphors; they are executable logic gates.
+
+| Term | Literal Meaning | Technical Definition in arifOS |
+| :--- | :--- | :--- |
+| **Amanah** | Trust / Mandate | **Integrity Floor:** The system must not promise what it cannot deliver. Blocks irreversible actions without checks. |
+| **Sabar** | Patience | **The Pause Protocol:** A lawful holding pattern. When floors are breached, the system halts to cool down rather than forcing a bad output. |
+| **Anti-Hantu** | Anti-Ghost | **Hallucination Shield:** A hardcoded veto that blocks the AI from claiming to have a soul, feelings, or consciousness. |
+| **Maruah** | Dignity | **Dignity Preservation:** The system detects and rejects outputs that degrade the user or the model's defined role. |
+| **Ditempa** | Forged | **Determinism:** Intelligence is built through friction (cooling scars into law), not just raw data processing. |
+| **ΔS** | Change in Entropy | **Clarity Metric:** Every output must reduce confusion (ΔS ≥ 0). High entropy triggers a VOID or SABAR state. |
+| **Peace²** | Peace Squared | **Stability Metric:** A composite score of tone, safety, and non-toxicity. Must remain ≥ 1.0 for an output to be sealed. |
 
 ---
 
