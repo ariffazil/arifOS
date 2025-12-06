@@ -11,6 +11,14 @@ The zkPC protocol is the **lawful audit trail** of arifOS: a way to prove that c
 
 It ensures: **accountability without exposure**.
 
+### 1.1 Implementation Status (v35Ω)
+
+zkPC in this document is a **constitutional and conceptual specification**, not a full cryptographic zkSNARK/zkSTARK implementation yet.
+
+- The **phases**, **invariants**, and **receipt schema** define *what must be proven*.
+- Today, zkPC receipts function as **structured, auditable governance records**.
+- In future versions (v36+), cryptographic proof systems (zkML, zkSNARK/STARK) may be integrated to provide machine-verifiable proofs of compliance.
+
 zkPC provides a cryptographic-style governance receipt proving that:
 
 - Δ-law (clarity) was obeyed
@@ -259,9 +267,20 @@ zkPC must **VOID** if any of:
 | @EYE COOL phase not passed | — | Critical |
 | Tri-Witness < 0.95 (high-stakes) | F8 | Soft |
 
+**Note:** For high-stakes queries, Tri-Witness < 0.95 does not automatically VOID the output, but MUST trigger either human review or a SABAR hold before any final SEAL.
+
 ---
 
 ## 7. VAULT-999 LINKAGE
+
+### 7.1 Hashing & Commitments
+
+- Each zkPC receipt and Cooling Ledger entry is hashed using **SHA-256**.
+- Entries form a **hash-chained log** (each entry stores `previous_hash`), creating a tamper-evident chain.
+- Optionally, receipts may be organized into a **Merkle tree**, with a single root hash committing to the entire set of receipts.
+- This structure is compatible with future zkPC implementations (e.g. proving inclusion of an entry in the canonical ledger without revealing all contents).
+
+### 7.2 Storage Paths
 
 Every zkPC seal produces entries in:
 
@@ -327,6 +346,48 @@ zkPC is **the audit backbone** of arifOS.
 4. **Tri-Witness required** - For high-stakes
 5. **Vault-999 commit** - Every receipt is logged
 6. **No receipt, no claim** - zkPC is proof of lawful cognition
+
+---
+
+## 12. HUMAN SOVEREIGNTY (888 JUDGE)
+
+- zkPC receipts for high-stakes or EUREKA-class events are **proposed**, not canon by default.
+- Only the **888 Judge (human steward)** may SEAL a zkPC receipt into Vault-999 as constitutional case-law.
+- AI systems may generate zkPC receipts and recommendations, but **may not self-modify canon** without an explicit human SEAL.
+
+This ensures that arifOS remains a **governed tool**, not a self-governing entity.
+
+---
+
+## Appendix A — Example zkPC Receipt (Illustrative)
+
+```json
+{
+  "version": "zkPC_v35Ω",
+  "receipt_id": "ZKPC-20251206-0001",
+  "timestamp": "2025-12-06T16:30:00Z",
+  "metrics": {
+    "truth": 0.99,
+    "delta_s": 0.32,
+    "peace_squared": 1.12,
+    "kappa_r": 0.97,
+    "omega_0": 0.04,
+    "amanah": "LOCK",
+    "rasa": true,
+    "tri_witness": 0.96,
+    "anti_hantu": "PASS",
+    "psi": 1.10,
+    "shadow": 0.03
+  },
+  "verdict": "SEAL",
+  "vault_commit": {
+    "ledger": "L1",
+    "hash": "sha256:a1b2c3d4e5f6...",
+    "previous_hash": "sha256:9f8e7d6c5b4a...",
+    "merkle_root": "sha256:1a2b3c4d5e6f..."
+  }
+}
+```
 
 ---
 
