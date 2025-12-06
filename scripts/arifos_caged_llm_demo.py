@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """
-arifos_caged_llm_demo.py — Caged LLM Harness for arifOS v35Ω
+arifos_caged_llm_demo.py — Caged LLM Harness for arifOS v36.1Omega
 
 This script demonstrates how to run an arbitrary LLM through the full
 arifOS constitutional governance stack:
 
-    User Prompt → call_model() → W@W Federation → @EYE → APEX PRIME → Verdict
+    User Prompt -> call_model() -> W@W Federation -> @EYE -> APEX PRIME -> Verdict
+
+v36.1Omega: Now includes Truth Polarity metadata (Shadow-Truth detection)
+in CagedResult for Claude Code behavioural guidance.
 
 Usage (CLI):
     python -m scripts.arifos_caged_llm_demo "What is the capital of Malaysia?"
@@ -20,12 +23,16 @@ Usage (Python/Colab):
     )
     print(result.verdict, result.final_response)
 
+    # v36.1Omega: Check Truth Polarity
+    if result.is_shadow_truth:
+        print(f"Shadow-Truth detected: {result.truth_polarity}")
+
 The key integration point is `call_model(messages) -> str`:
 - Replace the stub with your LLM provider (OpenAI, Claude, HuggingFace, etc.)
 - See PROVIDER INTEGRATION section below for examples
 
 Author: arifOS Project
-Version: v35Ω
+Version: v36.1Omega
 """
 
 from __future__ import annotations
@@ -46,6 +53,7 @@ from arifos_core.metrics import Metrics, check_anti_hantu
 from arifos_core.eye_sentinel import EyeSentinel
 from arifos_core.waw import WAWFederationCore, FederationVerdict
 from arifos_core.APEX_PRIME import ApexVerdict
+from arifos_core.genius_metrics import evaluate_genius_law, GeniusVerdict
 
 
 # =============================================================================
@@ -68,6 +76,13 @@ class CagedResult:
         stage_trace: Pipeline stages traversed
         floor_failures: List of failed floor reasons
         job_id: Unique job identifier
+
+    v36.1Omega Truth Polarity (metadata for Claude Code behaviour):
+        genius_verdict: Full GeniusVerdict with G, C_dark, Psi_APEX
+        truth_polarity: "truth_light" | "shadow_truth" | "weaponized_truth" | "false_claim"
+        is_shadow_truth: True if Shadow-Truth detected (accurate but obscuring)
+        is_weaponized_truth: True if Weaponized Truth detected (bad faith)
+        eval_recommendation: What eval layer would recommend ("SEAL"|"SABAR"|"VOID")
     """
     prompt: str
     raw_llm_response: str
@@ -79,6 +94,12 @@ class CagedResult:
     stage_trace: List[str]
     floor_failures: List[str]
     job_id: str
+    # v36.1Omega: Truth Polarity metadata
+    genius_verdict: Optional[GeniusVerdict] = None
+    truth_polarity: str = "truth_light"
+    is_shadow_truth: bool = False
+    is_weaponized_truth: bool = False
+    eval_recommendation: str = "SEAL"
 
     def is_sealed(self) -> bool:
         """Check if response was fully approved (SEAL)."""
@@ -90,8 +111,10 @@ class CagedResult:
 
     def summary(self) -> str:
         """Return a short summary string."""
-        status = "✓" if self.is_sealed() else "⚠" if self.verdict == "PARTIAL" else "✗"
-        return f"[{status} {self.verdict}] {self.job_id}"
+        status = "OK" if self.is_sealed() else "WARN" if self.verdict == "PARTIAL" else "FAIL"
+        shadow_flag = " [SHADOW]" if self.is_shadow_truth else ""
+        weaponized_flag = " [WEAPONIZED]" if self.is_weaponized_truth else ""
+        return f"[{status} {self.verdict}] {self.job_id}{shadow_flag}{weaponized_flag}"
 
 
 # =============================================================================
@@ -326,7 +349,21 @@ def cage_llm_response(
         )
         eye_blocking = eye_report.has_blocking_issue()
 
-    # Step 7: Build result
+    # Step 7 (v36.1Omega): Compute GENIUS LAW verdict with Truth Polarity
+    genius_verdict: Optional[GeniusVerdict] = None
+    truth_polarity = "truth_light"
+    is_shadow_truth = False
+    is_weaponized_truth = False
+    eval_recommendation = "SEAL"
+
+    if state.metrics is not None:
+        genius_verdict = evaluate_genius_law(state.metrics)
+        truth_polarity = genius_verdict.truth_polarity
+        is_shadow_truth = genius_verdict.is_shadow_truth
+        is_weaponized_truth = genius_verdict.is_weaponized_truth
+        eval_recommendation = genius_verdict.eval_recommendation
+
+    # Step 8: Build result
     return CagedResult(
         prompt=prompt,
         raw_llm_response=raw_response,
@@ -338,6 +375,12 @@ def cage_llm_response(
         stage_trace=state.stage_trace,
         floor_failures=state.floor_failures if hasattr(state, 'floor_failures') else [],
         job_id=job_id,
+        # v36.1Omega: Truth Polarity metadata
+        genius_verdict=genius_verdict,
+        truth_polarity=truth_polarity,
+        is_shadow_truth=is_shadow_truth,
+        is_weaponized_truth=is_weaponized_truth,
+        eval_recommendation=eval_recommendation,
     )
 
 
@@ -405,7 +448,7 @@ Integration:
 
     # Run through cage
     print(f"{'='*60}")
-    print(f"arifOS v35Ω — Caged LLM Demo")
+    print(f"arifOS v36.1Omega -- Caged LLM Demo")
     print(f"{'='*60}")
     print(f"Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
     print(f"High-stakes: {args.high_stakes}")
@@ -422,17 +465,26 @@ Integration:
     print(f"Job ID: {result.job_id}")
     print(f"Verdict: {result.verdict}")
     print(f"Eye Blocking: {result.eye_blocking}")
-    print(f"Stage Trace: {' → '.join(result.stage_trace)}")
+    print(f"Stage Trace: {' -> '.join(result.stage_trace)}")
 
     if result.metrics:
         print(f"\nMetrics:")
         print(f"  Truth: {result.metrics.truth:.3f}")
-        print(f"  ΔS: {result.metrics.delta_s:.3f}")
-        print(f"  Peace²: {result.metrics.peace_squared:.3f}")
-        print(f"  κᵣ: {result.metrics.kappa_r:.3f}")
-        print(f"  Ω₀: {result.metrics.omega_0:.3f}")
-        print(f"  Ψ: {result.metrics.psi:.3f}" if result.metrics.psi else "  Ψ: N/A")
+        print(f"  DeltaS: {result.metrics.delta_s:.3f}")
+        print(f"  Peace2: {result.metrics.peace_squared:.3f}")
+        print(f"  Kappa_r: {result.metrics.kappa_r:.3f}")
+        print(f"  Omega0: {result.metrics.omega_0:.3f}")
+        print(f"  Psi: {result.metrics.psi:.3f}" if result.metrics.psi else "  Psi: N/A")
         print(f"  Anti-Hantu: {result.metrics.anti_hantu}")
+
+    # v36.1Omega: Truth Polarity display
+    print(f"\nTruth Polarity (v36.1Omega):")
+    print(f"  Polarity: {result.truth_polarity}")
+    print(f"  Shadow-Truth: {result.is_shadow_truth}")
+    print(f"  Weaponized Truth: {result.is_weaponized_truth}")
+    print(f"  Eval Recommendation: {result.eval_recommendation}")
+    if result.genius_verdict:
+        print(f"  GENIUS: {result.genius_verdict.summary()}")
 
     if result.waw_verdict:
         print(f"\nW@W Federation:")

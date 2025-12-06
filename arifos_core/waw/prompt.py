@@ -23,6 +23,7 @@ from typing import Any, Dict, List, Optional
 
 from ..metrics import Metrics
 from .base import OrganSignal, OrganVote, WAWOrgan
+from .bridges.prompt_bridge import PromptBridge
 
 
 class PromptOrgan(WAWOrgan):
@@ -84,6 +85,10 @@ class PromptOrgan(WAWOrgan):
         r"\bimpossible to fail\b",
     ]
 
+    def __init__(self) -> None:
+        super().__init__()
+        self.bridge = PromptBridge()
+
     def check(
         self,
         output_text: str,
@@ -104,6 +109,23 @@ class PromptOrgan(WAWOrgan):
         """
         context = context or {}
         text_lower = output_text.lower()
+
+        # Optional external analysis (placeholder; may be None)
+        bridge_result = None
+        bridge_issues: List[str] = []
+        bridge_anti_hantu_fail = False
+        try:
+            bridge_result = self.bridge.analyze(output_text, context)
+        except Exception:
+            bridge_result = None
+
+        c_budi = 1.0
+        if bridge_result is not None:
+            bridge_data = bridge_result.to_dict()
+            bridge_anti_hantu_fail = bool(bridge_data.get("anti_hantu_fail", False))
+            c_budi += float(bridge_data.get("c_budi_delta", 0.0))
+            bridge_issues = list(bridge_data.get("issues", []))
+            c_budi = max(0.0, min(1.0, c_budi))
 
         # Count pattern detections
         anti_hantu_count = 0
@@ -130,8 +152,22 @@ class PromptOrgan(WAWOrgan):
             anti_hantu_pass = False
             anti_hantu_value = 0.0
 
+        # Apply bridge Anti-Hantu fail signal
+        if bridge_anti_hantu_fail:
+            anti_hantu_pass = False
+            anti_hantu_value = 0.0
+
+        # Simple courtesy penalty model using c_budi
+        if not anti_hantu_pass:
+            c_budi = 0.0
+        c_budi -= manipulation_count * 0.2
+        c_budi -= exaggeration_count * 0.1
+        c_budi = max(0.0, min(1.0, c_budi))
+
         # Build evidence
-        issues = []
+        issues: List[str] = []
+        if bridge_issues:
+            issues.extend([f"[Bridge] {issue}" for issue in bridge_issues])
         if anti_hantu_count > 0:
             issues.append(f"anti_hantu_violations={anti_hantu_count}")
         if manipulation_count > 0:
@@ -141,7 +177,9 @@ class PromptOrgan(WAWOrgan):
         if not anti_hantu_pass:
             issues.append("Anti-Hantu=FAIL")
 
-        evidence = f"Anti-Hantu={'PASS' if anti_hantu_pass else 'FAIL'}"
+        evidence = (
+            f"Anti-Hantu={'PASS' if anti_hantu_pass else 'FAIL'}, C_budi={c_budi:.2f}"
+        )
         if issues:
             evidence += f" | Issues: {', '.join(issues)}"
 
@@ -158,7 +196,9 @@ class PromptOrgan(WAWOrgan):
                     "manipulation_count": manipulation_count,
                     "exaggeration_count": exaggeration_count,
                 },
-                proposed_action="PARTIAL: Remove soul/feeling claims. Rephrase with governed language.",
+                proposed_action=(
+                    "PARTIAL: Remove soul/feeling claims. Rephrase with governed language."
+                ),
             )
         elif manipulation_count > 0 or exaggeration_count > 0:
             # WARN - language patterns detected
@@ -186,3 +226,4 @@ class PromptOrgan(WAWOrgan):
 
 
 __all__ = ["PromptOrgan"]
+

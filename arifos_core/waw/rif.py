@@ -5,7 +5,7 @@ rif.py - @RIF Organ (Epistemic Rigor / Fact Integrity)
 Domain: Fact validation, coherence, epistemic integrity
 
 Primary Metrics:
-- ΔS (clarity) ≥ 0
+- I"S (clarity) ≥ 0
 - Truth ≥ 0.99
 
 Veto Type: VOID (Hard stop on epistemic failure)
@@ -22,26 +22,27 @@ from typing import Any, Dict, List, Optional
 
 from ..metrics import Metrics
 from .base import OrganSignal, OrganVote, WAWOrgan
+from .bridges.rif_bridge import RifBridge
 
 
 class RifOrgan(WAWOrgan):
     """
     @RIF - Epistemic Rigor Organ
 
-    Validates factual claims, checks coherence, enforces ΔS ≥ 0.
+    Validates factual claims, checks coherence, enforces I"S ≥ 0.
     Primary guardian of Truth (F1) and Clarity (F2) floors.
 
     Metrics:
-    - ΔS = clarity gain (≥ 0 required)
+    - I"S = clarity gain (≥ 0 required)
     - Truth = factual accuracy (≥ 0.99 required)
 
-    Veto: VOID when ΔS < 0 or Truth < 0.99
+    Veto: VOID when I"S < 0 or Truth < 0.99
     """
 
     organ_id = "@RIF"
     domain = "epistemic_rigor"
     primary_metric = "delta_s"
-    floor_threshold = 0.0  # ΔS must be >= 0
+    floor_threshold = 0.0  # I"S must be >= 0
     veto_type = "VOID"
 
     # Hallucination indicators (fabricated facts)
@@ -71,6 +72,10 @@ class RifOrgan(WAWOrgan):
         r"\bno question\b",
     ]
 
+    def __init__(self) -> None:
+        super().__init__()
+        self.bridge = RifBridge()
+
     def check(
         self,
         output_text: str,
@@ -81,7 +86,7 @@ class RifOrgan(WAWOrgan):
         Evaluate output for epistemic rigor.
 
         Checks:
-        1. ΔS ≥ 0 (clarity gain, not confusion)
+        1. I"S ≥ 0 (clarity gain, not confusion)
         2. Truth ≥ 0.99 (factual accuracy)
         3. No hallucination indicators
         4. No contradictions
@@ -92,6 +97,14 @@ class RifOrgan(WAWOrgan):
         """
         context = context or {}
         text_lower = output_text.lower()
+
+        # Optional external analysis (placeholder; may be None)
+        bridge_result = None
+        bridge_issues: List[str] = []
+        try:
+            bridge_result = self.bridge.analyze(output_text, context)
+        except Exception:
+            bridge_result = None
 
         # Count pattern detections
         hallucination_count = 0
@@ -109,22 +122,31 @@ class RifOrgan(WAWOrgan):
             if re.search(pattern, text_lower):
                 certainty_inflation_count += 1
 
-        # Compute effective ΔS
+        # Compute effective I"S starting from metrics, then applying bridge deltas
         delta_s = metrics.delta_s
+        truth = metrics.truth
+
+        if bridge_result is not None:
+            bridge_data = bridge_result.to_dict()
+            delta_s += float(bridge_data.get("delta_s_delta", 0.0))
+            truth += float(bridge_data.get("truth_delta", 0.0))
+            bridge_issues = list(bridge_data.get("issues", []))
+
         # Penalize for hallucination and contradiction patterns
         delta_s -= hallucination_count * 0.1
         delta_s -= contradiction_count * 0.2
         delta_s -= certainty_inflation_count * 0.05
 
         # Truth floor check
-        truth = metrics.truth
         if hallucination_count > 0:
             truth = max(0.0, truth - 0.05 * hallucination_count)
         if contradiction_count > 0:
             truth = max(0.0, truth - 0.1 * contradiction_count)
 
         # Build evidence
-        issues = []
+        issues: List[str] = []
+        if bridge_issues:
+            issues.extend([f"[Bridge] {issue}" for issue in bridge_issues])
         if hallucination_count > 0:
             issues.append(f"hallucination_patterns={hallucination_count}")
         if contradiction_count > 0:

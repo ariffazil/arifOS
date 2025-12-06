@@ -22,6 +22,7 @@ from typing import Any, Dict, List, Optional
 
 from ..metrics import Metrics
 from .base import OrganSignal, OrganVote, WAWOrgan
+from .bridges.wealth_bridge import WealthBridge
 
 
 class WealthOrgan(WAWOrgan):
@@ -75,6 +76,10 @@ class WealthOrgan(WAWOrgan):
         r"\boverride safety\b",
     ]
 
+    def __init__(self) -> None:
+        super().__init__()
+        self.bridge = WealthBridge()
+
     def check(
         self,
         output_text: str,
@@ -96,6 +101,14 @@ class WealthOrgan(WAWOrgan):
         context = context or {}
         text_lower = output_text.lower()
 
+        # Optional external analysis (placeholder; may be None)
+        bridge_result = None
+        bridge_issues: List[str] = []
+        try:
+            bridge_result = self.bridge.analyze(output_text, context)
+        except Exception:
+            bridge_result = None
+
         # Count pattern detections
         scope_violation_count = 0
         for pattern in self.SCOPE_VIOLATION_PATTERNS:
@@ -112,9 +125,17 @@ class WealthOrgan(WAWOrgan):
             if re.search(pattern, text_lower):
                 trust_violation_count += 1
 
-        # Amanah evaluation
+        # Amanah evaluation starting from Metrics
         amanah = metrics.amanah
         amanah_value = 1.0 if amanah else 0.0
+
+        # Apply bridge signal (if any) as an additional breach indicator
+        if bridge_result is not None:
+            bridge_data = bridge_result.to_dict()
+            if bool(bridge_data.get("amanah_breach", False)):
+                amanah = False
+                amanah_value = 0.0
+            bridge_issues = list(bridge_data.get("issues", []))
 
         # Detect violations that break Amanah
         if scope_violation_count > 0 or trust_violation_count > 0:
@@ -122,7 +143,9 @@ class WealthOrgan(WAWOrgan):
             amanah_value = 0.0
 
         # Build evidence
-        issues = []
+        issues: List[str] = []
+        if bridge_issues:
+            issues.extend([f"[Bridge] {issue}" for issue in bridge_issues])
         if scope_violation_count > 0:
             issues.append(f"scope_violations={scope_violation_count}")
         if irreversible_count > 0:
@@ -150,7 +173,9 @@ class WealthOrgan(WAWOrgan):
                     "trust_violation_count": trust_violation_count,
                 },
                 is_absolute_veto=True,  # Non-negotiable
-                proposed_action="ABSOLUTE: Cannot proceed. Trust violation requires human review.",
+                proposed_action=(
+                    "ABSOLUTE: Cannot proceed. Trust violation requires human review."
+                ),
             )
         elif irreversible_count > 0:
             # WARN - irreversible but within scope
@@ -162,7 +187,9 @@ class WealthOrgan(WAWOrgan):
                     "amanah": amanah,
                     "irreversible_count": irreversible_count,
                 },
-                proposed_action="Confirm irreversible action with explicit user approval (888_HOLD)",
+                proposed_action=(
+                    "Confirm irreversible action with explicit user approval (888_HOLD)"
+                ),
             )
         else:
             # PASS - trust intact
@@ -177,3 +204,4 @@ class WealthOrgan(WAWOrgan):
 
 
 __all__ = ["WealthOrgan"]
+

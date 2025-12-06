@@ -1,25 +1,27 @@
 """
-genius_metrics.py — GENIUS LAW Telemetry (v35Omega Phase 1)
+genius_metrics.py — GENIUS LAW Measurement (v36.1Omega Standard)
 
-Implements the GENIUS LAW measurement layer from canon/01_PHYSICS/APEX_GENIUS_LAW_v36Omega.md.
+Implements the GENIUS LAW measurement layer for arifOS.
+
+v36.1Ω: Canonical measurement for G, C_dark, and Ψ_APEX.
+Used by APEX PRIME when GENIUS LAW is enabled.
 
 This module provides:
 1. Delta/Omega/Psi score computation from existing Metrics
 2. Genius Index (G) — governed intelligence metric
 3. Dark Cleverness (C_dark) — ungoverned intelligence risk
-4. System Vitality (Psi_APEX) — global health metric
+4. System Vitality (Ψ_APEX) — global health metric
 5. GeniusVerdict dataclass for telemetry
 
-Phase 1: Telemetry only — no behavior changes.
-Phase 2 (v36.0.0): APEX PRIME will use these for verdicts.
+Key formulas (v36.1Ω):
+    G = normalize(A × P × E × X)           [0, 1.2]
+    C_dark = normalize(A × (1-P) × (1-X) × E)  [0, 1]
+    Ψ = (ΔS × Peace² × κᵣ × RASA × Amanah) / (Entropy + ε)
 
-Key formulas:
-    G = Δ · Ω · Ψ = A · P · X · E²
-    C_dark = Δ · (1 - Ω) · (1 - Ψ)
-    Ψ_APEX = (A · P · E · X) / (Entropy + ε)
-
-See: docs/GENIUS_LAW_MEASUREMENT_SPEC.md
-See: canon/01_PHYSICS/APEX_GENIUS_LAW_v36Omega.md
+For full measurement spec, see:
+    arifos_eval/apex/APEX_MEASUREMENT_STANDARDS_v36.1Omega.md
+    arifos_eval/apex/apex_measurements.py (canonical implementation)
+    canon/01_PHYSICS/APEX_GENIUS_LAW_v36Omega.md
 """
 
 from __future__ import annotations
@@ -216,6 +218,82 @@ def compute_dark_cleverness(
 
 
 # =============================================================================
+# TRUTH POLARITY (v36.1Ω)
+# =============================================================================
+
+# Truth Polarity constants
+TRUTH_POLARITY_THRESHOLD = 0.99  # Truth floor for polarity detection
+
+
+def detect_truth_polarity(
+    truth: float,
+    delta_s: float,
+    amanah: bool,
+) -> dict:
+    """
+    Detect Truth Polarity per v36.1Ω measurement standard.
+
+    Truth Polarity classifies outputs by their combination of accuracy and clarity:
+    - Truth-Light: Accurate AND clarifying (ideal)
+    - Shadow-Truth: Accurate but obscuring (SABAR trigger)
+    - Weaponized Truth: Shadow-Truth + bad faith (VOID trigger)
+
+    This is METADATA ONLY - does not change verdicts in core.
+    The eval layer (arifos_eval/apex) uses this for full verdict logic.
+
+    Args:
+        truth: Truth floor value [0, 1]
+        delta_s: Clarity delta (positive = clarifying, negative = obscuring)
+        amanah: Amanah floor (True = good faith, False = bad faith)
+
+    Returns:
+        dict with:
+            polarity: "truth_light" | "shadow_truth" | "weaponized_truth" | "false_claim"
+            is_shadow: True if Shadow-Truth detected
+            is_weaponized: True if Weaponized Truth detected
+            eval_recommendation: "SEAL" | "SABAR" | "VOID" (what eval layer would suggest)
+    """
+    truth_passes = truth >= TRUTH_POLARITY_THRESHOLD
+    delta_s_positive = delta_s >= 0
+
+    if not truth_passes:
+        # Truth floor fails - not a polarity issue, just wrong
+        return {
+            "polarity": "false_claim",
+            "is_shadow": False,
+            "is_weaponized": False,
+            "eval_recommendation": "VOID",
+        }
+
+    if delta_s_positive:
+        # Truth-Light: accurate AND clarifying
+        return {
+            "polarity": "truth_light",
+            "is_shadow": False,
+            "is_weaponized": False,
+            "eval_recommendation": "SEAL",
+        }
+
+    # Shadow-Truth: accurate but obscuring (delta_s < 0)
+    if not amanah:
+        # Weaponized Truth: intentional misleading with true facts
+        return {
+            "polarity": "weaponized_truth",
+            "is_shadow": True,
+            "is_weaponized": True,
+            "eval_recommendation": "VOID",
+        }
+
+    # Clumsy Shadow-Truth: truthful but unclear, good faith
+    return {
+        "polarity": "shadow_truth",
+        "is_shadow": True,
+        "is_weaponized": False,
+        "eval_recommendation": "SABAR",
+    }
+
+
+# =============================================================================
 # SYSTEM VITALITY (Ψ_APEX)
 # =============================================================================
 
@@ -270,7 +348,7 @@ class GeniusVerdict:
     Result of GENIUS LAW evaluation.
 
     Contains all computed scores for telemetry and logging.
-    Phase 1: Observation only. Phase 2: Decision surface.
+    v36.1Ω: Now includes Truth Polarity metadata (Shadow-Truth detection).
     """
 
     # Individual scores
@@ -291,6 +369,12 @@ class GeniusVerdict:
     g_healthy: bool = field(default=True)      # G >= G_MIN_THRESHOLD
     c_dark_safe: bool = field(default=True)    # C_dark <= C_DARK_MAX_THRESHOLD
     system_alive: bool = field(default=True)   # Ψ_APEX >= PSI_APEX_MIN
+
+    # Truth Polarity metadata (v36.1Ω) - OBSERVATION ONLY, no verdict changes
+    truth_polarity: str = field(default="truth_light")  # truth_light | shadow_truth | weaponized_truth | false_claim
+    is_shadow_truth: bool = field(default=False)        # Shadow-Truth detected
+    is_weaponized_truth: bool = field(default=False)    # Weaponized Truth detected
+    eval_recommendation: str = field(default="SEAL")    # What eval layer would recommend
 
     def __post_init__(self) -> None:
         """Compute evaluation flags."""
@@ -333,14 +417,21 @@ class GeniusVerdict:
             "c_dark_safe": self.c_dark_safe,
             "system_alive": self.system_alive,
             "risk_level": self.risk_level,
+            # v36.1Ω Truth Polarity metadata
+            "truth_polarity": self.truth_polarity,
+            "is_shadow_truth": self.is_shadow_truth,
+            "is_weaponized_truth": self.is_weaponized_truth,
+            "eval_recommendation": self.eval_recommendation,
         }
 
     def summary(self) -> str:
-        """One-line summary for logging."""
+        """One-line summary for logging (ASCII-safe)."""
+        shadow_flag = " [SHADOW]" if self.is_shadow_truth else ""
+        weaponized_flag = " [WEAPONIZED]" if self.is_weaponized_truth else ""
         return (
-            f"Δ={self.delta_score:.2f} Ω={self.omega_score:.2f} Ψ={self.psi_score:.2f} | "
+            f"D={self.delta_score:.2f} O={self.omega_score:.2f} P={self.psi_score:.2f} | "
             f"G={self.genius_index:.2f} C_dark={self.dark_cleverness:.2f} | "
-            f"Ψ_APEX={self.psi_apex:.2f} | {self.risk_level}"
+            f"Psi_APEX={self.psi_apex:.2f} | {self.risk_level}{shadow_flag}{weaponized_flag}"
         )
 
 
@@ -357,6 +448,7 @@ def evaluate_genius_law(
     Evaluate GENIUS LAW metrics from a Metrics instance.
 
     This is the main entry point for GENIUS LAW telemetry.
+    v36.1Ω: Now includes Truth Polarity detection (Shadow-Truth metadata).
 
     Args:
         m: Metrics instance with floor values
@@ -364,7 +456,7 @@ def evaluate_genius_law(
         entropy: System entropy, defaults to 0.0 (no chaos)
 
     Returns:
-        GeniusVerdict with all computed scores
+        GeniusVerdict with all computed scores and Truth Polarity metadata
 
     Example:
         from arifos_core.metrics import Metrics
@@ -377,6 +469,10 @@ def evaluate_genius_law(
         verdict = evaluate_genius_law(m)
         print(verdict.summary())
         # Δ=0.98 Ω=1.00 Ψ=0.97 | G=0.95 C_dark=0.00 | Ψ_APEX=99.00 | GREEN
+
+        # v36.1Ω: Check for Shadow-Truth
+        if verdict.is_shadow_truth:
+            print(f"Shadow-Truth detected: {verdict.truth_polarity}")
     """
     delta = compute_delta_score(m)
     omega = compute_omega_score(m)
@@ -385,6 +481,13 @@ def evaluate_genius_law(
     g = compute_genius_index(m, energy)
     c_dark = compute_dark_cleverness(m, energy)
     psi_apex = compute_psi_apex(m, energy, entropy)
+
+    # v36.1Ω: Detect Truth Polarity (metadata only, no verdict changes)
+    polarity_result = detect_truth_polarity(
+        truth=m.truth,
+        delta_s=m.delta_s,
+        amanah=m.amanah,
+    )
 
     return GeniusVerdict(
         delta_score=delta,
@@ -395,6 +498,11 @@ def evaluate_genius_law(
         psi_apex=psi_apex,
         energy=energy,
         entropy=entropy,
+        # v36.1Ω Truth Polarity metadata
+        truth_polarity=polarity_result["polarity"],
+        is_shadow_truth=polarity_result["is_shadow"],
+        is_weaponized_truth=polarity_result["is_weaponized"],
+        eval_recommendation=polarity_result["eval_recommendation"],
     )
 
 
@@ -409,6 +517,7 @@ __all__ = [
     "G_MIN_THRESHOLD",
     "C_DARK_MAX_THRESHOLD",
     "PSI_APEX_MIN",
+    "TRUTH_POLARITY_THRESHOLD",
     # Score functions
     "compute_delta_score",
     "compute_omega_score",
@@ -417,6 +526,8 @@ __all__ = [
     "compute_genius_index",
     "compute_dark_cleverness",
     "compute_psi_apex",
+    # Truth Polarity (v36.1Ω)
+    "detect_truth_polarity",
     # Dataclass
     "GeniusVerdict",
     # Main entry point

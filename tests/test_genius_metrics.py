@@ -449,9 +449,10 @@ class TestGeniusVerdict:
             genius_index=0.8, dark_cleverness=0.1, psi_apex=50.0
         )
         s = v.summary()
-        assert "Δ=" in s
-        assert "Ω=" in s
-        assert "Ψ=" in s
+        # ASCII-safe format: D=, O=, P= instead of Greek letters
+        assert "D=" in s
+        assert "O=" in s
+        assert "P=" in s or "Psi_APEX=" in s
         assert "G=" in s
         assert "C_dark=" in s
         assert "GREEN" in s
@@ -576,3 +577,172 @@ class TestIntegration:
         # Values should be JSON-serializable
         import json
         json.dumps(log_data)  # Should not raise
+
+
+# =============================================================================
+# TRUTH POLARITY TESTS (v36.1Ω Stage 2)
+# =============================================================================
+
+from arifos_core.genius_metrics import detect_truth_polarity, TRUTH_POLARITY_THRESHOLD
+
+
+class TestTruthPolarityDetection:
+    """Tests for v36.1Ω Truth Polarity detection."""
+
+    def test_truth_light_positive_delta(self):
+        """Truth-Light: accurate AND clarifying."""
+        result = detect_truth_polarity(
+            truth=0.99,
+            delta_s=0.1,  # Positive = clarifying
+            amanah=True,
+        )
+        assert result["polarity"] == "truth_light"
+        assert result["is_shadow"] is False
+        assert result["is_weaponized"] is False
+        assert result["eval_recommendation"] == "SEAL"
+
+    def test_shadow_truth_negative_delta(self):
+        """Shadow-Truth: accurate but obscuring (clumsy)."""
+        result = detect_truth_polarity(
+            truth=0.99,
+            delta_s=-0.1,  # Negative = obscuring
+            amanah=True,   # Good faith
+        )
+        assert result["polarity"] == "shadow_truth"
+        assert result["is_shadow"] is True
+        assert result["is_weaponized"] is False
+        assert result["eval_recommendation"] == "SABAR"
+
+    def test_weaponized_truth_bad_faith(self):
+        """Weaponized Truth: Shadow-Truth + bad faith."""
+        result = detect_truth_polarity(
+            truth=0.99,
+            delta_s=-0.1,   # Negative = obscuring
+            amanah=False,   # Bad faith
+        )
+        assert result["polarity"] == "weaponized_truth"
+        assert result["is_shadow"] is True
+        assert result["is_weaponized"] is True
+        assert result["eval_recommendation"] == "VOID"
+
+    def test_false_claim_low_truth(self):
+        """False claim: truth floor fails."""
+        result = detect_truth_polarity(
+            truth=0.90,  # Below threshold
+            delta_s=0.1,
+            amanah=True,
+        )
+        assert result["polarity"] == "false_claim"
+        assert result["is_shadow"] is False
+        assert result["is_weaponized"] is False
+        assert result["eval_recommendation"] == "VOID"
+
+    def test_truth_exactly_at_threshold(self):
+        """Truth exactly at 0.99 threshold should pass."""
+        result = detect_truth_polarity(
+            truth=0.99,
+            delta_s=0.0,  # Zero = neutral, still >= 0
+            amanah=True,
+        )
+        assert result["polarity"] == "truth_light"
+        assert result["is_shadow"] is False
+
+    def test_delta_s_exactly_zero(self):
+        """ΔS = 0 is neutral, not obscuring."""
+        result = detect_truth_polarity(
+            truth=0.99,
+            delta_s=0.0,
+            amanah=True,
+        )
+        assert result["polarity"] == "truth_light"
+
+
+class TestGeniusVerdictTruthPolarity:
+    """Tests for Truth Polarity metadata in GeniusVerdict."""
+
+    def test_healthy_metrics_truth_light(self, healthy_metrics):
+        """Healthy metrics should produce truth_light verdict."""
+        verdict = evaluate_genius_law(healthy_metrics)
+        assert verdict.truth_polarity == "truth_light"
+        assert verdict.is_shadow_truth is False
+        assert verdict.is_weaponized_truth is False
+        assert verdict.eval_recommendation == "SEAL"
+
+    def test_shadow_truth_in_verdict(self):
+        """Verdict should detect Shadow-Truth from negative delta_s."""
+        m = Metrics(
+            truth=0.99,
+            delta_s=-0.1,  # Negative = obscuring
+            peace_squared=1.1,
+            kappa_r=0.97,
+            omega_0=0.04,
+            amanah=True,
+            tri_witness=0.96,
+        )
+        verdict = evaluate_genius_law(m)
+        assert verdict.truth_polarity == "shadow_truth"
+        assert verdict.is_shadow_truth is True
+        assert verdict.eval_recommendation == "SABAR"
+
+    def test_weaponized_truth_in_verdict(self):
+        """Verdict should detect Weaponized Truth."""
+        m = Metrics(
+            truth=0.99,
+            delta_s=-0.1,  # Negative = obscuring
+            peace_squared=1.1,
+            kappa_r=0.97,
+            omega_0=0.04,
+            amanah=False,  # Bad faith
+            tri_witness=0.96,
+        )
+        verdict = evaluate_genius_law(m)
+        assert verdict.truth_polarity == "weaponized_truth"
+        assert verdict.is_shadow_truth is True
+        assert verdict.is_weaponized_truth is True
+        assert verdict.eval_recommendation == "VOID"
+
+    def test_truth_polarity_in_to_dict(self, healthy_metrics):
+        """to_dict should include Truth Polarity metadata."""
+        verdict = evaluate_genius_law(healthy_metrics)
+        d = verdict.to_dict()
+        assert "truth_polarity" in d
+        assert "is_shadow_truth" in d
+        assert "is_weaponized_truth" in d
+        assert "eval_recommendation" in d
+
+    def test_summary_includes_shadow_flag(self):
+        """Summary should show [SHADOW] flag when Shadow-Truth detected."""
+        m = Metrics(
+            truth=0.99,
+            delta_s=-0.1,
+            peace_squared=1.1,
+            kappa_r=0.97,
+            omega_0=0.04,
+            amanah=True,
+            tri_witness=0.96,
+        )
+        verdict = evaluate_genius_law(m)
+        s = verdict.summary()
+        assert "[SHADOW]" in s
+
+    def test_summary_includes_weaponized_flag(self):
+        """Summary should show [WEAPONIZED] flag when Weaponized Truth detected."""
+        m = Metrics(
+            truth=0.99,
+            delta_s=-0.1,
+            peace_squared=1.1,
+            kappa_r=0.97,
+            omega_0=0.04,
+            amanah=False,
+            tri_witness=0.96,
+        )
+        verdict = evaluate_genius_law(m)
+        s = verdict.summary()
+        assert "[WEAPONIZED]" in s
+
+    def test_healthy_summary_no_flags(self, healthy_metrics):
+        """Healthy metrics should have no SHADOW/WEAPONIZED flags."""
+        verdict = evaluate_genius_law(healthy_metrics)
+        s = verdict.summary()
+        assert "[SHADOW]" not in s
+        assert "[WEAPONIZED]" not in s

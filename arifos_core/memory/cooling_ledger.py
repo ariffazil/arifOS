@@ -23,6 +23,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, TYPE_CHECK
 if TYPE_CHECKING:
     from arifos_core.kms_signer import KmsSigner
     from arifos_core.metrics import Metrics
+    from arifos_core.genius_metrics import GeniusVerdict
 
 
 @dataclass
@@ -341,6 +342,83 @@ def log_cooling_entry(
     return entry
 
 
+def log_cooling_entry_v36_stub(
+    *,
+    job_id: str,
+    verdict: str,
+    metrics: "Metrics",
+    query_hash: Optional[str] = None,
+    response_hash: Optional[str] = None,
+    genius_verdict: Optional["GeniusVerdict"] = None,
+) -> Dict[str, Any]:
+    """
+    Build (but do not persist) a v36Ω-style Cooling Ledger entry.
+
+    This is a **docs-layer stub** for future migrations to the
+    `spec/cooling_ledger_v36.schema.json` shape. It does not write to
+    disk or affect the existing v35Ic ledger. Callers can use this to
+    inspect the v36Ω entry shape and compare against the runtime v35Ic
+    entries without any behavioural change.
+
+    Args:
+        job_id: Identifier for this processing job.
+        verdict: APEX PRIME verdict string.
+        metrics: Metrics instance at verdict time.
+        query_hash: Optional SHA-256 hash of the input query.
+        response_hash: Optional SHA-256 hash of the sealed response.
+        genius_verdict: Optional GeniusVerdict with Truth Polarity metadata.
+
+    Returns:
+        A dictionary shaped according to the v36Ω design schema, with
+        some fields left optional/omitted when not available.
+    """
+    from arifos_core.metrics import Metrics as _Metrics
+
+    if not isinstance(metrics, _Metrics):
+        raise TypeError("metrics must be a Metrics instance")
+
+    # ISO-8601 UTC timestamp (v36Ω design)
+    timestamp_iso = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace(
+        "+00:00", "Z"
+    )
+
+    # Truth Polarity from GeniusVerdict if available
+    truth_polarity = "truth_light"
+    if genius_verdict is not None:
+        # Fallback-safe access; this is a stub and may evolve
+        polarity = getattr(genius_verdict, "truth_polarity", None)
+        if isinstance(polarity, str) and polarity:
+            truth_polarity = polarity
+
+    metrics_block: Dict[str, Any] = {
+        "truth": metrics.truth,
+        "delta_s": metrics.delta_s,
+        "truth_polarity": truth_polarity,
+        "peace2": metrics.peace_squared,
+        "kappa_r": metrics.kappa_r,
+        "omega0": metrics.omega_0,
+        "amanah": "LOCK" if metrics.amanah else "BROKEN",
+        "rasa": metrics.rasa,
+        # Optional v36Ω fields (left unset for now):
+        # "peace3": ...,
+        # "psi_vitality": ...,
+        # "echo_debt": ...,
+    }
+
+    entry_v36: Dict[str, Any] = {
+        "ledger_version": "v36Omega",
+        "timestamp": timestamp_iso,
+        "query_hash": query_hash,
+        "response_hash": response_hash,
+        "metrics": metrics_block,
+        "verdict": verdict,
+        # Optional blocks (tri_witness, cce_audits, risk_signals, etc.)
+        # can be added in future migrations.
+    }
+
+    return entry_v36
+
+
 __all__ = [
     "CoolingMetrics",
     "CoolingEntry",
@@ -349,4 +427,5 @@ __all__ = [
     "append_entry",
     "verify_chain",
     "log_cooling_entry",
+    "log_cooling_entry_v36_stub",
 ]

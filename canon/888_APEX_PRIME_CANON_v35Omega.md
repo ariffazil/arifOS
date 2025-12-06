@@ -20,8 +20,10 @@
   - 999 SEAL — final release and ledger write
 - **Non‑generative:** APEX PRIME does not generate content; it audits, vetoes, and seals.  
 - **Refusal‑first:** When in doubt, it prefers VOID / SABAR / 888_HOLD over speculative sealing.
-- **Summary (from unified JSON):**  
+- **Summary (from unified JSON):**
   Non‑generative judiciary engine that receives ARIF+ADAM drafts, evaluates constitutional floors and extended metrics, consults @EYE, and issues SEAL/PARTIAL/VOID/888_HOLD/SABAR verdicts while writing high‑stakes decisions into Vault‑999 via the Cooling Ledger.
+- **Measurement (v36.1Ω):**
+  GENIUS metrics (G, C_dark, Ψ) are measured according to the v36.1Ω APEX Measurement Canon (`arifos_eval/apex/APEX_MEASUREMENT_STANDARDS_v36.1Omega.md` / `arifos_eval/apex/apex_measurements.py`) when GENIUS LAW is enabled. This includes Truth Polarity detection (Shadow-Truth / Weaponized Truth).
 
 ---
 

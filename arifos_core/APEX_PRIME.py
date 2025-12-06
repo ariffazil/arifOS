@@ -1,7 +1,9 @@
 from typing import Literal, List, Optional, Tuple
 from .metrics import Metrics, FloorsVerdict
 
-# Version constants (v36Ω — GENIUS LAW Judiciary)
+# Version constants (v36Ω + v36.1Ω measurement — GENIUS LAW Judiciary)
+# Runtime law: v36Ω floors + verdicts
+# Measurement: v36.1Ω standard (G, C_dark, Ψ, Truth Polarity) via arifos_eval/apex
 APEX_VERSION = "v36Ω"
 APEX_EPOCH = 36
 
@@ -22,9 +24,10 @@ AMBIGUITY_MAX = 0.1
 PARADOX_MAX = 1.0
 
 # =============================================================================
-# GENIUS LAW THRESHOLDS (v36Ω)
+# GENIUS LAW THRESHOLDS (v36Ω runtime, v36.1Ω measurement)
 # These thresholds define the GENIUS LAW decision surface.
 # Hard floors still gate everything; GENIUS LAW refines verdicts.
+# For canonical measurement formulas, see: arifos_eval/apex/apex_measurements.py
 # =============================================================================
 
 # G thresholds for verdict decisions

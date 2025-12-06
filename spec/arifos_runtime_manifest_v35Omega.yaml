@@ -5,6 +5,9 @@
 # This manifest describes the complete arifOS v35Omega constitutional cage.
 # It is DESCRIPTIVE ONLY - no behavioral changes, no new floors, no threshold edits.
 #
+# Measurement: GENIUS LAW metrics follow v36.1Omega APEX Measurement Canon.
+# See: arifos_eval/apex/apex_measurements.py (G, C_dark, Psi, Truth Polarity)
+#
 # External tools, notebooks, and LLMs can parse this to understand:
 # - Floor thresholds and check functions
 # - Pipeline stages and routing
@@ -13,11 +16,12 @@
 #
 # Canonical sources:
 # - canon/888_APEX_PRIME_CANON_v35Omega.md
+# - canon/APEX_MEASUREMENT_CANON_v36.1Omega.md (measurement standard)
 # - integrations/sealion/constitutional_floors.json
 # - arifos_core/metrics.py (threshold constants)
 #
 # Author: arifOS Project
-# Version: v35Omega
+# Version: v35Omega (runtime law) + v36.1Omega (measurement)
 # Manifest Version: 1.0.0
 # =============================================================================
 

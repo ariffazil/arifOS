@@ -1,6 +1,6 @@
 # arifOS · Project Index (live map)
 
-**Epoch:** v36Ω (GENIUS LAW Judiciary) · **Last updated:** 2025-12-06
+**Epoch:** v36.1Ω (GENIUS LAW Judiciary + Measurement) · **Last updated:** 2025-12-06
 
 ---
 
@@ -30,6 +30,7 @@
 - `01_PHYSICS/APEX_LANGUAGE_CODEX_v36Omega.md` — *LIVE* · language codex
 - `01_PHYSICS/APEX_GENIUS_LAW_v36Omega.md` — *SEALED* · unified GENIUS LAW (G=Δ·Ω·Ψ·E²)
 - `01_PHYSICS/APEX_RYG_STATES_v36Omega.md` — *SEALED* · RYG (Red-Yellow-Green) state definitions
+- `APEX_MEASUREMENT_CANON_v36.1Omega.md` — *LIVE* · v36.1Ω measurement canon (G, C_dark, Ψ, Truth Polarity)
 - `05_MASTER/APEX_THEORY_MASTER_CANON_v36Omega.md` — *DRAFT* · master theory canon
 - `10_SYSTEM/111_ARIF_AGI_v36Omega.md` — *LIVE* · ARIF AGI specification
 - `10_SYSTEM/333_AAA_ENGINES_v36Omega.md` — *LIVE* · AAA Engines v36Ω spec
@@ -79,7 +80,8 @@
 - `__init__.py` — v36.0.0 · package init, exports (incl. GENIUS LAW)
 - `APEX_PRIME.py` — v36.0.0 · constitutional judiciary (floors + GENIUS LAW verdicts)
 - `metrics.py` — v36.0.0 · floor thresholds + check functions
-- `genius_metrics.py` — v36.0.0 · GENIUS LAW (G, C_dark, Ψ_APEX)
+- `genius_metrics.py` — v36.1.0 · GENIUS LAW measurement (v36.1Ω standard)
+- `eval_telemetry.py` — v36.1.0 · optional telemetry hook to eval layer
 - `guard.py` — v36.0.0 · @apex_guardrail decorator
 - `pipeline.py` — v36.0.0 · 000→999 metabolic pipeline, Class A/B routing
 - `llm_interface.py` — v36.0.0 · LLM streaming + entropy monitoring
@@ -146,20 +148,33 @@
 
 ---
 
+## /arifos_eval ← eval layer (v36.1Ω measurement)
+
+### apex/ (APEX Measurement Layer)
+- `apex/__init__.py` — v36.1.0 · measurement exports
+- `apex/apex_measurements.py` — v36.1.0 · canonical G/C_dark/Ψ implementation
+- `apex/apex_standards_v36.json` — v36.1.0 · machine-readable thresholds
+- `apex/APEX_MEASUREMENT_STANDARDS_v36.1Omega.md` — v36.1.0 · measurement spec
+- `apex/README.md` — v36.1.0 · eval layer documentation
+
+---
+
 ## /scripts ← CLI tools
 
 - `arifos_caged_llm_demo.py` — v36.0.0 · Caged LLM harness for Colab
 - `verify_ledger_kms.py` — v36.0.0 · KMS ledger verification
+- `eval_telemetry_harness.py` — v36.1.0 · Phase 2 telemetry comparison harness
 
 ---
 
-## /tests ← test suite (506 tests)
+## /tests ← test suite (551 tests)
 
 Core test files covering floors, pipeline, engines, W@W, @EYE, ledger, adapters, runtime manifest, GENIUS LAW verdicts.
 
 Key test files:
 - `test_apex_genius_verdicts.py` — 35 tests · GENIUS LAW judiciary
 - `test_genius_metrics.py` — 55 tests · G/C_dark computation
+- `test_apex_measurements_eval.py` — 45 tests · v36.1Ω eval layer (G/Ψ/C_dark/Shadow-Truth)
 - `test_v35_features.py` — v36Ω version tests
 
 ---

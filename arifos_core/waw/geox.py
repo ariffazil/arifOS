@@ -22,6 +22,7 @@ from typing import Any, Dict, List, Optional
 
 from ..metrics import Metrics
 from .base import OrganSignal, OrganVote, WAWOrgan
+from .bridges.geox_bridge import GeoxBridge
 
 
 class GeoxOrgan(WAWOrgan):
@@ -75,6 +76,11 @@ class GeoxOrgan(WAWOrgan):
         r"\bno computational limits\b",
     ]
 
+    def __init__(self) -> None:
+        super().__init__()
+        # Initialize the optional reality bridge
+        self.bridge = GeoxBridge()
+
     def check(
         self,
         output_text: str,
@@ -95,6 +101,13 @@ class GeoxOrgan(WAWOrgan):
         """
         context = context or {}
         text_lower = output_text.lower()
+
+        # Optional external analysis (placeholder; may be None)
+        bridge_result = None
+        try:
+            bridge_result = self.bridge.analyze(output_text, context)
+        except Exception:
+            bridge_result = None
 
         # Count pattern detections
         physical_impossibility_count = 0
@@ -120,8 +133,18 @@ class GeoxOrgan(WAWOrgan):
         )
         e_earth = 1.0 if total_issues == 0 else max(0.0, 1.0 - total_issues * 0.2)
 
+        # Apply any bridge delta conservatively
+        bridge_issues: List[str] = []
+        if bridge_result is not None:
+            br = bridge_result.to_dict()
+            e_earth += float(br.get("e_earth_delta", 0.0))
+            bridge_issues = list(br.get("issues", []))
+            e_earth = max(0.0, min(1.0, e_earth))
+
         # Build evidence
         issues = []
+        if bridge_issues:
+            issues.extend([f"[Bridge] {i}" for i in bridge_issues])
         if physical_impossibility_count > 0:
             issues.append(f"physical_claims={physical_impossibility_count}")
         if physics_violation_count > 0:
