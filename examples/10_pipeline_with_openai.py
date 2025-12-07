@@ -1,9 +1,23 @@
 """
 10_pipeline_with_openai.py - arifOS Pipeline with OpenAI GPT
 
+=============================================================================
+LEGACY v35-STYLE TRUST MODEL EXAMPLE
+=============================================================================
+
+NOTE: This example uses @apex_guardrail with heuristic-based Amanah scoring.
+It does NOT use the Python-sovereign AMANAH_DETECTOR from v36.1Omega.
+
+For PHOENIX SOVEREIGNTY (Python-sovereign governance), see instead:
+- scripts/arifos_caged_openai_demo.py (uses ApexMeasurement.judge())
+- docs/SOVEREIGN_ARCHITECTURE_v36.1Ic.md
+
+This example is maintained for backwards compatibility with v34-v35 patterns.
+=============================================================================
+
 Demonstrates:
 1. OpenAI adapter integration
-2. @apex_guardrail wrapping
+2. @apex_guardrail wrapping (v35-style, heuristic Amanah)
 3. Full 000-999 pipeline with real LLM
 
 Requirements:

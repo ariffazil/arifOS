@@ -1,6 +1,6 @@
 # arifOS v36.1Ω — Constitutional Governance Kernel for AI
 
-![Floors](https://img.shields.io/badge/Floors-9_Active-0052cc) ![Truth Polarity](https://img.shields.io/badge/Truth_Polarity-Enabled-success) ![Status](https://img.shields.io/badge/Status-PRODUCTION-green) ![Motto](https://img.shields.io/badge/Motto-Ditempa_Bukan_Diberi-333)
+![Floors](https://img.shields.io/badge/Floors-9_Active-0052cc) ![Truth Polarity](https://img.shields.io/badge/Truth_Polarity-Enabled-success) ![Status](https://img.shields.io/badge/Status-PRODUCTION-green) ![Motto](https://img.shields.io/badge/Motto-Ditempa_Bukan_Diberi-333) ![Governance](https://img.shields.io/badge/Governance-Python--Sovereign__Level__2-8A2BE2)
 
 ```text
 +=============================================================================+
@@ -12,7 +12,7 @@
 |  Measurement:   v36.1Omega (GENIUS LAW + Truth Polarity)                   |
 |  Design Canon:  v36Omega (APEX THEORY, Vault-999 v36)                      |
 |  Status:        PRODUCTION                                                 |
-|  Tests:         550+ passing (core + eval + W@W)                           |
+|  Tests:         588 passing (core + eval + W@W + zkPC)                     |
 +=============================================================================+
 ```
 
@@ -27,6 +27,23 @@ arifOS is a constitutional operating system that wraps any LLM (Claude, GPT, Gem
 - A **Cooling Ledger + Vault-999** memory stack that logs decisions and cools scars into amendments.
 
 **Safety is achieved by physics and thermodynamic floors, not just "be nice" prompts.** Bad behaviour becomes structurally hard, not just discouraged.
+
+---
+
+## Python‑Sovereign Governance (Level 2)
+
+arifOS v36.1Ic currently enforces two critical floors directly in Python code, across all integrated models (Claude, GPT, Gemini, Llama, SEA‑LION, etc.):
+
+- `AmanahDetector` (`arifos_core/floor_detectors/amanah_risk_detectors.py`)  
+  - Phase A “Amanah Lock”.  
+  - Detects irreversible or destructive actions (filesystem deletion, SQL `DROP`/`TRUNCATE`, Git history rewrites, credential leaks, etc.).  
+  - Integrated into `arifos_eval/apex/apex_measurements.ApexMeasurement`: if `AmanahDetector.check(output_text)` reports unsafe, `floors["Amanah"] = False` and the verdict is **VOID**, regardless of any LLM‑reported amanah score.
+
+- `AntiHantuDetector` (`arifos_eval/apex/apex_measurements.py`)  
+  - Enforces Anti‑Hantu language law (no claims of feelings, consciousness, soul, or ego).  
+  - Runs as part of the constitutional floor checks; failure of Anti‑Hantu is treated as a hard violation that cannot be “explained away” by model text.
+
+Other floors (Truth, ΔS/I"S, Peace², κᵣ, G, C_dark, Tri‑Witness, Ω₀) are measured via the v36.1Ic measurement layer (Genius metrics and Truth Polarity) and judged by APEX PRIME, but **Amanah and Anti‑Hantu now have Python‑sovereign veto power over all outputs.**
 
 ---
 
@@ -214,6 +231,18 @@ All bridges use `try/except` imports and return `None` when external libs are ab
 | `spec/cooling_ledger_v36.schema.json` | v36Ω design schema |
 | `runtime/vault_999/` | Cooling ledger store (JSONL), Vault data |
 
+### zkPC Backbone (v36Ω)
+
+| Component | Purpose |
+|-----------|---------|
+| `arifos_core/ledger_hashing.py` | SHA-256 hash chain for Cooling Ledger |
+| `arifos_core/merkle.py` | Merkle tree construction + proof generation |
+| `arifos_core/zkpc_runtime.py` | zkPC 5-phase runtime (PAUSE→CONTRAST→INTEGRATE→COOL→SEAL) |
+| `arifos_core/vault_retrieval.py` | RAG stub for canon retrieval from Cooling Ledger |
+| `cooling_ledger/` | L1 Cooling Ledger store + proposed canon + archives |
+| `canon/011_ZKPC_PROTOCOL_v35Omega.md` | zkPC Protocol spec |
+| `canon/012_ZKPC_IMPLEMENTATION_NOTES_v36Omega.md` | Engineering implementation notes |
+
 ### Docs & governance
 
 | Document | Purpose |
@@ -321,6 +350,68 @@ This gives you a "cyborg" W@W: ancient law (canon + heuristics) plus optional mu
   - `metrics.truth_polarity` present.
 
 This gives you a ready mould for v36Ω logging, without changing the current v35Ω ledger behaviour.
+
+---
+
+## zkPC + Phoenix-72 Workflow (v36Ω)
+
+The zkPC backbone provides cryptographic integrity for the governed AI pipeline:
+
+### Pipeline Flow
+
+```
+User Query → RAG Retrieval → LLM → zkPC Runtime → Cooling Ledger → Merkle Root
+                                        ↓
+                              zkPC Receipt (5-phase)
+                                        ↓
+                              888 Judge PROPOSE
+                                        ↓
+                              Human Edit + Review
+                                        ↓
+                              Phoenix-72 SEAL → 999_SEAL Canon
+```
+
+### Key Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/arifos_caged_llm_zkpc_demo.py` | Full pipeline demo: Query → RAG → LLM → zkPC → Ledger |
+| `scripts/propose_canon_from_receipt.py` | 888 Judge tool to propose canon from zkPC receipts |
+| `scripts/seal_proposed_canon.py` | Phoenix-72 SEAL tool for finalizing proposed canon |
+| `scripts/build_ledger_hashes.py` | Rebuild SHA-256 hash chain for Cooling Ledger |
+| `scripts/verify_ledger_chain.py` | CI-friendly chain verification (exit 0/1) |
+| `scripts/compute_merkle_root.py` | Compute Merkle root from ledger hashes |
+| `scripts/show_merkle_proof.py` | Display Merkle proof for a ledger entry |
+
+### Usage Examples
+
+```bash
+# Run the full caged LLM zkPC demo
+python -m scripts.arifos_caged_llm_zkpc_demo --query "Explain Amanah" --high-stakes
+
+# List zkPC receipts in ledger
+python -m scripts.propose_canon_from_receipt --list
+
+# Propose canon from a receipt
+python -m scripts.propose_canon_from_receipt --index 0
+
+# Seal proposed canon (888 Judge action)
+python -m scripts.seal_proposed_canon --file cooling_ledger/proposed/PROPOSED_CANON_XXX.json
+
+# Verify ledger chain integrity
+python -m scripts.verify_ledger_chain
+```
+
+### 888 Judge Rule
+
+The 888 Judge (human) holds final sovereignty over canon:
+
+1. **AI proposes** — zkPC receipts generate PROPOSED_CANON entries.
+2. **Human reviews** — Edit the proposed canon file as needed.
+3. **Human SEALs** — Run `seal_proposed_canon.py` to commit as 999_SEAL.
+4. **AI cannot self-modify** — Canon changes require explicit human SEAL.
+
+This enforces the constitutional principle: "AI may not self-modify canon without explicit human SEAL."
 
 ---
 
@@ -542,4 +633,4 @@ arifOS uses precise terminology to define governance states. These are not metap
 
 ---
 
-*Last Updated: 2025-12-06 | Version: v36.1.0 | Tests: 550+ passing | GENIUS LAW Judiciary: LIVE*
+*Last Updated: 2025-12-07 | Version: v36.1.0 | Tests: 588 passing | GENIUS LAW Judiciary: LIVE | zkPC + Phoenix-72: ACTIVE*

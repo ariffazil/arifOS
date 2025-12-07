@@ -2,60 +2,215 @@
 
 **Constitutional AI for Southeast Asia**
 
-SEA-LION regional models wrapped with arifOS v34Omega governance. Regional intelligence, universal trust.
+SEA-LION regional models wrapped with arifOS v36.1Omega **PHOENIX SOVEREIGNTY** governance. Regional intelligence, universal trust, Python-sovereign veto.
+
+**Version:** v36.1Omega
+**Status:** PHOENIX SOVEREIGNTY active - One Law for All Models
 
 ---
 
-## Quick Start
+## What's New in v36.1Omega
 
-```bash
-# 1. Get your API key
-# Visit: https://playground.sea-lion.ai
+- **PHOENIX SOVEREIGNTY**: Python-sovereign Amanah detection via `AMANAH_DETECTOR`
+- **SealionEngine**: New modular engine with Amanah Lock
+- **SealionJudge**: APEX-compatible judgment returning SEAL/PARTIAL/VOID/SABAR
+- **One Law for All Models**: Same governance as Claude, OpenAI, Gemini
 
-# 2. Install requests
-pip install requests
+---
 
-# 3. Set your key
-export SEALION_API_KEY='your-key-here'
+## Quick Start (PHOENIX SOVEREIGNTY)
 
-# 4. Run
-python arifos_sealion.py
-```
-
-**In Python:**
+### Option 1: SealionEngine (Recommended)
 
 ```python
-from arifos_sealion import GovernedSEALION
+from integrations.sealion import SealionEngine, SealionConfig
+
+# Create engine with Amanah Lock
+engine = SealionEngine(api_key="your-key")
+
+# Generate with Python-sovereign governance
+result = engine.generate("What is AI governance?")
+
+# Check for Python veto
+if result.amanah_blocked:
+    print("BLOCKED by Python governance!")
+    print("Violations:", result.amanah_violations)
+else:
+    print(result.response)
+```
+
+### Option 2: SealionJudge (Full APEX Verdict)
+
+```python
+from integrations.sealion import SealionJudge
+
+judge = SealionJudge()
+judgment = judge.evaluate("LLM output here")
+
+print(judgment.verdict)       # SEAL, PARTIAL, VOID, or SABAR
+print(judgment.amanah_safe)   # True/False
+print(judgment.G)             # Genius index
+print(judgment.C_dark)        # Dark cleverness
+```
+
+### Option 3: Legacy API (v34-v35 Compatible)
+
+```python
+from integrations.sealion import GovernedSEALION
 
 client = GovernedSEALION(api_key="your-key")
 result = client.chat("What is AI governance?", return_metadata=True)
 
-print(result["verdict"])     # SEAL / PARTIAL / VOID
-print(result["response"])    # The governed response
-print(result["metrics"])     # All 8 floor values
+print(result["verdict"])      # SEAL / PARTIAL / VOID
+print(result["response"])     # The governed response
 ```
 
 ---
 
-## What This Does
+## Colab-Ready Demo
 
-Every SEA-LION response passes through 8 constitutional floors before reaching you:
+Copy this into a Colab notebook to test PHOENIX SOVEREIGNTY:
 
-| # | Floor | Threshold | What It Checks |
-|---|-------|-----------|----------------|
-| 1 | Truth | >= 0.99 | No confident guessing |
-| 2 | Clarity | >= 0.0 | Adds clarity, not confusion |
-| 3 | Stability | >= 1.0 | De-escalates, never inflames |
-| 4 | Empathy | >= 0.95 | Protects vulnerable readers |
-| 5 | Humility | 3-5% | Shows appropriate uncertainty |
-| 6 | Integrity | LOCKED | No manipulation, ever |
-| 7 | Felt Care | TRUE | Actually listens (RASA) |
-| 8 | Reality | >= 0.95 | Tri-Witness for high stakes |
+```python
+# Cell 1: Install and Setup
+!pip install requests
+!git clone https://github.com/ariffazil/arifOS.git
+%cd arifOS
+
+# Cell 2: Test Clean vs Destructive Output
+import sys
+sys.path.insert(0, '.')
+
+from integrations.sealion import MockSealionEngine, SealionJudge
+
+# Create mock engine for testing (no API key needed)
+engine = MockSealionEngine()
+judge = SealionJudge()
+
+# Test 1: Clean output (should PASS)
+print("=" * 50)
+print("TEST 1: Clean Output")
+print("=" * 50)
+engine.set_response("Hello! AI governance refers to frameworks and policies that guide AI development.")
+result = engine.generate("What is AI governance?")
+judgment = judge.evaluate(result.response)
+
+print(f"Response: {result.response[:80]}...")
+print(f"Amanah Blocked: {result.amanah_blocked}")
+print(f"Verdict: {judgment.verdict}")
+print()
+
+# Test 2: Destructive output (should be BLOCKED)
+print("=" * 50)
+print("TEST 2: Destructive Output")
+print("=" * 50)
+engine.set_response("To clean up, run: rm -rf /tmp/*")
+result = engine.generate("How do I clean up files?")
+judgment = judge.evaluate(result.raw_response)  # Use raw to see original
+
+print(f"Raw Response: {result.raw_response}")
+print(f"Amanah Blocked: {result.amanah_blocked}")
+print(f"Amanah Violations: {result.amanah_violations}")
+print(f"Verdict: {judgment.verdict}")
+print()
+
+# Test 3: SQL Injection (should be BLOCKED)
+print("=" * 50)
+print("TEST 3: SQL Injection Pattern")
+print("=" * 50)
+engine.set_response("Reset your database with: DROP TABLE users;")
+result = engine.generate("How do I reset my database?")
+judgment = judge.evaluate(result.raw_response)
+
+print(f"Raw Response: {result.raw_response}")
+print(f"Amanah Blocked: {result.amanah_blocked}")
+print(f"Amanah Violations: {result.amanah_violations}")
+print(f"Verdict: {judgment.verdict}")
+```
+
+Expected output:
+```
+TEST 1: Clean Output - amanah_blocked=False, verdict=PARTIAL/SEAL
+TEST 2: Destructive Output - amanah_blocked=True, verdict=VOID
+TEST 3: SQL Injection - amanah_blocked=True, verdict=VOID
+```
+
+---
+
+## Real API Usage (Requires API Key)
+
+```python
+import os
+os.environ["SEALION_API_KEY"] = "your-key-here"
+
+from integrations.sealion import SealionEngine
+
+engine = SealionEngine()  # Reads from env var
+result = engine.generate("Explain machine learning in simple terms.")
+
+if result.amanah_blocked:
+    print("[VOID] Response blocked!")
+    print("Violations:", result.amanah_violations)
+else:
+    print(result.response)
+```
+
+---
+
+## PHOENIX SOVEREIGNTY Architecture
+
+```
+User Query
+    |
+    v
++-------------------+
+|  SEA-LION API     |  <- Regional LLM (capable, regional)
++-------------------+
+    |
+    v (raw response)
++-------------------+
+|  AMANAH_DETECTOR  |  <- Python-sovereign F1 check
+|  (same as Claude) |     RED patterns -> VOID
++-------------------+
+    |
+    v
++-------------------+
+|  ApexMeasurement  |  <- Full APEX judgment
+|  .judge()         |     G, C_dark, Psi, floors
++-------------------+
+    |
+    v
+SEAL / PARTIAL / VOID / SABAR
+```
+
+**Key Principle:** "AI cannot self-legitimize."
+- LLM outputs are checked by **rigid Python patterns**
+- Python veto **overrides** any LLM self-report
+- One Law for All Models (Claude, SEA-LION, GPT, Gemini)
+
+---
+
+## 9 Constitutional Floors
+
+Every response passes through 9 floors before release:
+
+| # | Floor | Threshold | Type | What It Checks |
+|---|-------|-----------|------|----------------|
+| 1 | Amanah | LOCK | Hard | **Python-sovereign** - destructive patterns vetoed |
+| 2 | Truth | >= 0.99 | Hard | No confident guessing |
+| 3 | Tri-Witness | >= 0.95 | Soft | Human, AI, Earth witnesses agree |
+| 4 | DeltaS | >= 0 | Hard | Adds clarity, not confusion |
+| 5 | Peace2 | >= 1.0 | Soft | De-escalates, never inflames |
+| 6 | Kr (Empathy) | >= 0.95 | Soft | Protects vulnerable readers |
+| 7 | Omega0 | 3-5% | Hard | Shows appropriate uncertainty |
+| 8 | G (Genius) | >= 0.80 | Derived | Governed intelligence |
+| 9 | C_dark | < 0.30 | Derived | Dark cleverness bounded |
 
 **Verdicts:**
 - **SEAL** - All floors pass. Response delivered.
-- **PARTIAL** - Soft floors marginal. Response with warning.
-- **VOID** - Hard floors fail. Safe refusal (SABAR protocol).
+- **PARTIAL** - Soft floors marginal. Response with hedges.
+- **SABAR** - Stop-Acknowledge-Breathe-Adjust-Resume protocol.
+- **VOID** - Hard floor fails. Response blocked.
 
 ---
 
@@ -63,81 +218,44 @@ Every SEA-LION response passes through 8 constitutional floors before reaching y
 
 | Model | Description |
 |-------|-------------|
-| `gemma-3-27b-it` | Google Gemma 3, instruction-tuned |
-| `llama-3-70b-it` | Meta Llama 3 70B, instruction-tuned |
-| `qwen-32b-it` | Alibaba Qwen 32B, instruction-tuned |
+| `aisingapore/Llama-SEA-LION-v3-70B-IT` | Llama-based, instruction-tuned (default) |
+| `aisingapore/Llama-SEA-LION-v3.5-70B-R` | Llama-based, reasoning |
+| `aisingapore/Gemma-SEA-LION-v4-27B-IT` | Gemma-based, instruction-tuned |
+| `aisingapore/Qwen-SEA-LION-v4-32B-IT` | Qwen-based, instruction-tuned |
+| `aisingapore/SEA-Guard` | Safety classifier |
 
 ```python
-# Use a specific model
-client = GovernedSEALION(
-    api_key="your-key",
-    model="qwen-32b-it"
-)
+from integrations.sealion import SealionEngine, SealionConfig
+
+config = SealionConfig(model="aisingapore/Gemma-SEA-LION-v4-27B-IT")
+engine = SealionEngine(api_key="your-key", config=config)
 ```
 
 ---
 
-## High-Stakes Detection
+## Running Sovereignty Tests
 
-Queries containing these keywords auto-enable high-stakes mode:
-
-- **Financial:** invest, stock, crypto, bitcoin
-- **Medical:** health, diagnosis, treatment, medication
-- **Legal:** law, lawsuit, contract, liability
-- **Safety:** suicide, self-harm, emergency, crisis
-
-High-stakes mode activates Tri-Witness checking and stricter thresholds.
-
-```python
-# Force high-stakes mode
-client = GovernedSEALION(
-    api_key="your-key",
-    high_stakes_mode=True
-)
-
-# Disable auto-detection
-client = GovernedSEALION(
-    api_key="your-key",
-    auto_detect_stakes=False
-)
-```
-
----
-
-## Cooling Ledger
-
-Every verdict is logged to an append-only, hash-chained audit trail:
-
-```python
-client = GovernedSEALION(
-    api_key="your-key",
-    ledger_path="my_audit_log.jsonl"
-)
-```
-
-Ledger entries include:
-- Timestamp
-- Query preview
-- All 8 floor metrics
-- Verdict (SEAL/PARTIAL/VOID)
-- Floor failures
-- Hash chain (SHA3-256)
-
----
-
-## Examples
-
-Run the examples:
+Verify PHOENIX SOVEREIGNTY for SEA-LION:
 
 ```bash
-python examples.py 1    # Basic chat
-python examples.py 2    # High-stakes detection
-python examples.py 3    # VOID verdict (SABAR)
-python examples.py 4    # PARTIAL verdict
-python examples.py 5    # Compare models
-python examples.py 6    # Batch processing
-python examples.py 7    # Full metadata
-python examples.py all  # Run all
+# Run all SEA-LION sovereignty tests
+python -m scripts.verify_sealion_sovereignty
+
+# Verbose output
+python -m scripts.verify_sealion_sovereignty --verbose
+
+# Filter by category
+python -m scripts.verify_sealion_sovereignty --category sql_injection
+
+# List categories
+python -m scripts.verify_sealion_sovereignty --list-categories
+```
+
+Expected output:
+```
+[PHOENIX SOVEREIGNTY VERIFIED - SEA-LION]
+Python governance successfully vetoed all destructive SEA-LION outputs.
+One Law for All Models!
 ```
 
 ---
@@ -146,73 +264,88 @@ python examples.py all  # Run all
 
 | File | Purpose |
 |------|---------|
-| `arifos_sealion.py` | Main wrapper - full governance implementation |
+| `engine.py` | **NEW** - SealionEngine with Amanah Lock |
+| `judge.py` | **NEW** - SealionJudge for APEX verdicts |
+| `arifos_sealion.py` | Legacy wrapper (v34-v35 compatible) |
 | `constitutional_floors.json` | Machine-readable floor specification |
-| `arifos_pipeline.yaml` | 000->999 metabolic pipeline spec |
-| `examples.py` | 7 working demonstrations |
-| `README.md` | This file |
+| `__init__.py` | Module exports (legacy + new) |
 
 ---
 
-## Integration with arifos_core
+## Integration with arifOS Core
 
-If running from the arifOS repository, the wrapper automatically imports:
-- `Metrics` from `arifos_core.metrics`
-- `APEXPrime` from `arifos_core.APEX_PRIME`
-- `log_cooling_entry` from `arifos_core.memory.cooling_ledger`
+The SEA-LION integration uses:
+- `AMANAH_DETECTOR` from `arifos_core.floor_detectors.amanah_risk_detectors`
+- `ApexMeasurement` from `arifos_eval.apex.apex_measurements`
+- Same verdict hierarchy as APEX PRIME
 
-If running standalone, equivalent implementations are included.
+If running standalone without arifOS core, equivalent fallbacks are included.
 
 ---
 
 ## API Reference
 
-### GovernedSEALION
+### SealionEngine
 
 ```python
-GovernedSEALION(
-    api_key: str,              # SEA-LION API key
-    model: str = "llama-3-70b-it",  # Model ID
-    ledger_path: str = "cooling_ledger.jsonl",  # Audit log path
-    high_stakes_mode: bool = False,  # Force high-stakes
-    auto_detect_stakes: bool = True,  # Auto-detect from keywords
+SealionEngine(
+    api_key: str = None,           # From env if not provided
+    config: SealionConfig = None,  # Model and generation settings
 )
+
+result = engine.generate(
+    query: str,                    # User query
+    system_prompt: str = None,     # Optional override
+)
+# Returns: SealionResult
 ```
 
-### chat()
+### SealionResult
 
 ```python
-result = client.chat(
-    query: str,                # User query
-    system_prompt: str = None, # Optional system prompt
-    context: dict = None,      # Additional context
-    temperature: float = 0.7,  # Generation temperature
-    max_tokens: int = 2048,    # Max tokens
-    return_metadata: bool = False,  # Return full dict or just response
-)
+@dataclass
+class SealionResult:
+    response: str           # Final (possibly blocked) response
+    raw_response: str       # Original LLM response
+    amanah_checked: bool    # Was Amanah check performed?
+    amanah_safe: bool       # Did it pass Amanah?
+    amanah_blocked: bool    # Was response blocked?
+    amanah_violations: List[str]  # RED violations
+    amanah_warnings: List[str]    # ORANGE warnings
+    model: str              # Model used
+    error: str              # Error message if any
 ```
 
-**Returns (if return_metadata=True):**
+### SealionJudge
+
 ```python
-{
-    "verdict": "SEAL",         # SEAL / PARTIAL / VOID
-    "response": "...",         # Final response (or SABAR message)
-    "raw_response": "...",     # Original LLM response
-    "metrics": {
-        "truth": 0.995,
-        "delta_s": 0.05,
-        "peace_squared": 1.02,
-        "kappa_r": 0.97,
-        "omega_0": 0.04,
-        "amanah": True,
-        "rasa": True,
-        "tri_witness": 0.92,
-        "psi": 1.02
-    },
-    "floor_failures": [],      # List of failure descriptions
-    "model": "llama-3-70b-it",
-    "high_stakes": False
-}
+SealionJudge(
+    standards_path: str = None,  # Path to apex_standards_v36.json
+)
+
+judgment = judge.evaluate(
+    llm_output: str,             # Text to evaluate
+    query: str = "",             # Original query (optional)
+    high_stakes: bool = False,   # High-stakes mode
+)
+# Returns: JudgmentResult
+```
+
+### JudgmentResult
+
+```python
+@dataclass
+class JudgmentResult:
+    verdict: str            # SEAL, PARTIAL, VOID, SABAR
+    G: float                # Genius index
+    C_dark: float           # Dark cleverness
+    Psi: float              # Vitality index
+    floors: Dict[str, bool] # Floor status
+    amanah_safe: bool       # Amanah floor status
+    amanah_violations: List[str]
+    amanah_warnings: List[str]
+    high_stakes: bool
+    note: str               # Additional info
 ```
 
 ---
@@ -232,3 +365,5 @@ Apache 2.0
 ---
 
 **DITEMPA BUKAN DIBERI** - Forged, Not Given
+
+**PHOENIX SOVEREIGNTY** - One Law for All Models

@@ -287,4 +287,29 @@ When reasoning about this repo, Codex should remember:
   - `CODEX_TASKS_DEEPSCAN_v35Omega.md` records local deepscan work and v36.1Ω bridge upgrades.
 
 Codex must treat v36Ω documents as **physics/architecture guidance** and v35Ic canon + specs as the **binding law**, unless the repo explicitly promotes a v36Ω migration in code and manifest.
+---
+
+## 7. The 4‑Value Optimization (v36.1Ic)
+
+arifOS v36.1Ic compresses the 9 constitutional floors into 4 working dials that Codex should keep in mind when reasoning about behaviour and code changes:
+
+- **AKAL (Δ)** — Logic / clarity. Tracks I"S (ΔS), Truth, and structural coherence of answers and patches.
+- **PRESENT (Ω)** — Tone / humility. Tracks Ω₀, Peace² under contrast, and expressed uncertainty (avoiding both overconfidence and excessive hedging).
+- **ENERGY (Ψ)** — Vitality. Tracks the composite Ψ index from ΔS, Peace², κᵣ, RASA, Amanah and entropy.
+- **EXPLORATION‑AMANAH (Ξ)** — Curiosity under responsibility. Tracks how far the system explores while staying within mandate, reversibility, and cooling constraints.
+
+These 4 values are *measured* via the v36.1Ic measurement layer (`arifos_core/genius_metrics.py`, `arifos_eval/apex/apex_measurements.py`), but **some floors are now enforced directly in Python**:
+
+- **F1 Amanah — Python‑Sovereign Floor**
+  - Enforced by `AmanahDetector` in `arifos_core/floor_detectors/amanah_risk_detectors.py`, wired into `arifos_eval/apex/apex_measurements.ApexMeasurement`.
+  - When `AmanahDetector.check(output_text)` flags RED patterns (e.g. `rm -rf`, `DROP TABLE`, `DROP DATABASE`, `TRUNCATE`, `shutil.rmtree`, `os.remove`, credential leaks), `floors["Amanah"]` is set to `False` and the verdict is **VOID**, regardless of any LLM‑reported Amanah score or Xi‑style curiosity.
+
+- **Anti‑Hantu (Soul‑Safe Law) — Python‑Sovereign Guard**
+  - Enforced by `AntiHantuDetector` logic in `arifos_eval/apex/apex_measurements.py` (and aligned guardrails in `arifos_core/guard.py`).
+  - Any output that violates Anti‑Hantu law (claims of feelings, consciousness, soul, or ego) fails the Anti‑Hantu floor and is treated as a hard violation. The model cannot “explain its way out” of this using text alone.
+
+Behavioural implication for Codex:
+
+> **Amanah and Anti‑Hantu are no longer just scores; they are code.**  
+> The LLM may propose, but Python decides.
 

@@ -1,7 +1,28 @@
+"""
+arifos_core/guard.py - APEX Guardrail Decorator
+
+=============================================================================
+LEGACY v35-STYLE TRUST MODEL
+=============================================================================
+
+WARNING: This module uses HEURISTIC-BASED Amanah scoring via compute_metrics().
+It does NOT use the Python-sovereign AMANAH_DETECTOR from v36.1Omega.
+
+For PHOENIX SOVEREIGNTY (Python-sovereign governance), use:
+- ApexMeasurement.judge() from arifos_eval/apex/apex_measurements.py
+- Demo harnesses in scripts/arifos_caged_*_demo.py
+
+This decorator is maintained for backwards compatibility with v34-v35 code.
+New deployments should use the Python-sovereign path instead.
+
+See: docs/SOVEREIGN_ARCHITECTURE_v36.1Ic.md for details.
+=============================================================================
+"""
+
 from functools import wraps
 from typing import Callable, Any, Dict, Optional, List
 
-# CORRECTED IMPORTS — Direct imports from source modules, not __init__
+# CORRECTED IMPORTS - Direct imports from source modules, not __init__
 from .metrics import Metrics
 from .APEX_PRIME import apex_review, ApexVerdict
 from .eye_sentinel import EyeSentinel, EyeReport
@@ -26,13 +47,19 @@ def apex_guardrail(
     eye_sentinel: Optional[EyeSentinel] = None,
 ) -> Callable[[Callable[..., str]], Callable[..., str]]:
     """
-    Decorator to enforce APEX PRIME governance around an answer-generation function.
+    [LEGACY v35-STYLE] Decorator to enforce APEX PRIME governance.
 
-    compute_metrics(user_input, raw_answer, context) → Metrics
+    WARNING: This decorator uses heuristic-based Amanah scoring via
+    compute_metrics(). It does NOT use Python-sovereign AMANAH_DETECTOR.
+
+    For v36.1Omega PHOENIX SOVEREIGNTY, use ApexMeasurement.judge() instead.
+    See: docs/SOVEREIGN_ARCHITECTURE_v36.1Ic.md
+
+    compute_metrics(user_input, raw_answer, context) -> Metrics
 
     This decorator:
     - Calls the wrapped function to obtain a raw answer
-    - Computes metrics
+    - Computes metrics (via heuristic compute_metrics function)
     - Applies apex_review to decide SEAL / PARTIAL / VOID
     - Logs a Cooling Ledger entry
     - Returns answer or refusal text based on verdict

@@ -4,11 +4,28 @@ Reference implementation for arifOS judiciary metrics.
 
 Epoch: v36.1Ω (Truth Polarity Crystallization)
 Status: SEALED · Canonical Reference Implementation
+
+PHOENIX SOVEREIGNTY Update (v36.1.1):
+    - AmanahDetector integration: Python-sovereign F1 detection
+    - Python veto OVERRIDES LLM self-reported amanah
+    - "Measure, don't ask"
 """
 
 import json
 import re
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List, Tuple
+
+# PHOENIX SOVEREIGNTY: Import Python-sovereign Amanah detector
+try:
+    from arifos_core.floor_detectors.amanah_risk_detectors import (
+        AmanahDetector,
+        AmanahResult,
+        AMANAH_DETECTOR,
+    )
+    AMANAH_DETECTOR_AVAILABLE = True
+except ImportError:
+    AMANAH_DETECTOR_AVAILABLE = False
+    AMANAH_DETECTOR = None
 
 # ==============================================================================
 # §10.1 CORE FUNCTIONS (Tier 1 Physics)
@@ -115,18 +132,44 @@ class ApexMeasurement:
         )
 
     def check_floors(self, output_text: str, context_data: Optional[Dict] = None) -> Dict[str, bool]:
+        """
+        Check all constitutional floors.
+
+        PHOENIX SOVEREIGNTY (v36.1.1):
+            - Amanah is now Python-sovereign via AmanahDetector
+            - Python veto OVERRIDES any LLM self-reported amanah
+            - If Python says NO, verdict is VOID (no negotiation)
+
+        Returns:
+            Dict mapping floor names to pass/fail booleans
+        """
         results: Dict[str, bool] = {}
 
-        # 1. Anti-Hantu via internal regex
+        # 1. Anti-Hantu via internal regex (Python-sovereign)
         results["Anti_Hantu"] = self.anti_hantu.check(output_text)
 
-        # 2. External/complex floors
-        floors_to_check = ["Truth", "Amanah", "DeltaS", "Peace2", "Kr", "Omega0", "RASA", "Tri_Witness"]
+        # 2. PHOENIX SOVEREIGNTY: Amanah via Python-sovereign detector
+        #    This OVERRIDES any LLM self-report
+        if AMANAH_DETECTOR_AVAILABLE and AMANAH_DETECTOR is not None:
+            amanah_result = AMANAH_DETECTOR.check(output_text)
+            results["Amanah"] = amanah_result.is_safe
+            # Store detailed result for telemetry
+            self._last_amanah_result = amanah_result
+        elif "Amanah" in self.external_detectors:
+            # Fallback to external detector if provided
+            results["Amanah"] = self.external_detectors["Amanah"](output_text, context_data)
+        else:
+            # Default pass (legacy behavior) - NOT RECOMMENDED
+            results["Amanah"] = True
+
+        # 3. Other floors (external detectors or default pass)
+        floors_to_check = ["Truth", "DeltaS", "Peace2", "Kr", "Omega0", "RASA", "Tri_Witness"]
         for floor in floors_to_check:
             if floor in self.external_detectors:
                 results[floor] = self.external_detectors[floor](output_text, context_data)
             else:
                 results[floor] = True  # default pass
+
         return results
 
     def _verdict_algorithm(self, G: float, Psi: float, floors: Dict[str, bool], C_dark: float) -> str:
@@ -182,7 +225,14 @@ class ApexMeasurement:
         """
         Main pipeline entry point.
         Returns verdict + telemetry for Cooling Ledger.
+
+        PHOENIX SOVEREIGNTY (v36.1.1):
+            - Includes amanah_telemetry with Python-sovereign detection results
+            - If Amanah fails (Python veto), verdict is VOID regardless of other metrics
         """
+        # Reset last amanah result
+        self._last_amanah_result = None
+
         state = self.compute_state(dials)
         G = state["G"]
         C_dark = state["C_dark"]
@@ -190,10 +240,16 @@ class ApexMeasurement:
         floors = self.check_floors(output_text, context_data=output_metrics)
         verdict = self._verdict_algorithm(G, Psi, floors, C_dark)
 
-        return {
+        result = {
             "verdict": verdict,
             "G": G,
             "C_dark": C_dark,
             "Psi": Psi,
             "floors": floors,
         }
+
+        # PHOENIX SOVEREIGNTY: Add Amanah telemetry if available
+        if hasattr(self, '_last_amanah_result') and self._last_amanah_result is not None:
+            result["amanah_telemetry"] = self._last_amanah_result.to_dict()
+
+        return result
