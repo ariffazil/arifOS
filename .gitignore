@@ -51,6 +51,9 @@ Thumbs.db
 # --- APEX EXCLUSIONS v35Ω ---
 .vs/
 .claude/
+!.claude/TEARFRAME.md
+!.claude/SECURITY.md
+!.claude/CONSTITUTION.md
 nul
 arifos-test/
 .codex_remote/
