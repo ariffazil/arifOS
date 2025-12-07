@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "36.1.0"
-description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW Judiciary, AAA Engines, W@W Federation, @EYE Sentinel"
+version = "36.1.2"
+description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW Judiciary, zkPC + Phoenix-72, PHOENIX SOVEREIGNTY (One Law for All Models)"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "Apache-2.0"}
@@ -17,7 +17,15 @@ keywords = [
     "audit-trail",
     "empathy-conductance",
     "humility-firewall",
-    "paradox-physics"
+    "paradox-physics",
+    "zkpc",
+    "phoenix-72",
+    "cooling-ledger",
+    "merkle-tree",
+    "phoenix-sovereignty",
+    "python-sovereign",
+    "amanah-detector",
+    "sea-lion",
 ]
 authors = [
     {name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com"}
@@ -78,8 +86,11 @@ packages = [
     "arifos_core.waw",
     "arifos_core.waw.bridges",
     "arifos_core.eye",
+    "arifos_core.floor_detectors",
     "arifos_eval",
     "arifos_eval.apex",
+    "integrations",
+    "integrations.sealion",
 ]
 
 [tool.setuptools.package-data]
