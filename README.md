@@ -12,7 +12,7 @@
 |  Measurement:   v36.1Omega (GENIUS LAW + Truth Polarity)                   |
 |  Design Canon:  v36Omega (APEX THEORY, Vault-999 v36)                      |
 |  Status:        PRODUCTION                                                 |
-|  Tests:         588 passing (core + eval + W@W + zkPC)                     |
+|  Tests:         708 passing (core + eval + W@W + zkPC + sovereignty)       |
 +=============================================================================+
 ```
 
@@ -495,6 +495,26 @@ For full behavioural rules, see:
 
 ---
 
+## Try It Now (Google Colab)
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ariffazil/arifOS/blob/main/notebooks/arifOS_SEALION_7_Modes_v36.ipynb)
+
+**No installation required.** Click the badge above to run arifOS + SEA-LION in 7 modes:
+
+| Mode | Name | What It Does |
+|------|------|--------------|
+| 1 | Setup & Clone | Install dependencies, clone arifOS |
+| 2 | Vanilla SEA-LION | Raw HuggingFace text generation (no governance) |
+| 3 | arifOS Judge | Feed any text through governance |
+| 4 | GENIUS LAW Tests | 4 tests: Truth-Light, Amanah Fail, Shadow-Truth, Anti-Hantu |
+| 5 | Side-by-Side | Compare vanilla vs governed for same prompt |
+| 6 | Engine Modes | Mock engine + optional real API |
+| 7 | Interactive Chat | Switch between vanilla and governed chat |
+
+**Key Insight:** Same model. Same prompts. Different behavior. SEA-LION is capable; arifOS makes it lawful.
+
+---
+
 ## Quick Start
 
 ### Installation
@@ -633,4 +653,4 @@ arifOS uses precise terminology to define governance states. These are not metap
 
 ---
 
-*Last Updated: 2025-12-07 | Version: v36.1.0 | Tests: 588 passing | GENIUS LAW Judiciary: LIVE | zkPC + Phoenix-72: ACTIVE*
+*Last Updated: 2025-12-07 | Version: v36.1.0 | Tests: 708 passing | GENIUS LAW Judiciary: LIVE | zkPC + Phoenix-72: ACTIVE | PHOENIX SOVEREIGNTY: ONE LAW FOR ALL*
