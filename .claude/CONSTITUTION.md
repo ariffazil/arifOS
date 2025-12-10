@@ -3,7 +3,7 @@ tier: 4
 parent: AGENTS.md
 purpose: Full constitutional canon + philosophical grounding
 load_when: governance_audit, floor_violation, ethics_review, onboarding, /999_SEAL
-version: v36.1Omega
+version: v36.2 PHOENIX
 ---
 
 # CONSTITUTION.md - arifOS Full Canon (Tier 4)

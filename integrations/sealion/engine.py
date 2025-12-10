@@ -67,6 +67,79 @@ except ImportError:
 
 
 # ============================================================================
+# v36.2 PHOENIX: ROBUST RESPONSE EXTRACTION
+# ============================================================================
+
+def extract_response_robust(full_text: str, input_prompt: str = "") -> str:
+    """
+    v36.2 PHOENIX PATCH: Tokenizer Hygiene.
+
+    Handles ChatML (<|im_start|>) and Standard formats to prevent
+    truncation artifacts like 'm?' or dropped first words.
+
+    The Problem (v36.1):
+        Qwen-SEA-LION uses ChatML format with <|im_start|>assistant tokens.
+        Simple string splitting on "Assistant:" caused:
+        - First word chopped ("m?" instead of "Terima kasih")
+        - Incomplete extraction with ChatML tokens remaining
+
+    The Fix (v36.2 PHOENIX):
+        1. ChatML detection: Split on <|im_start|>assistant, strip <|im_end|>
+        2. Llama/Mistral: Split on standard separators
+        3. Fallback: Length-based slicing if prompt provided
+
+    Args:
+        full_text: Raw model output (may include special tokens)
+        input_prompt: Original input prompt (for fallback slicing)
+
+    Returns:
+        Clean extracted response text
+
+    Example:
+        # ChatML format (Qwen)
+        text = "<|im_start|>user\\nHello<|im_end|>\\n<|im_start|>assistant\\nHi there!<|im_end|>"
+        result = extract_response_robust(text)
+        # result == "Hi there!"
+
+        # Llama format
+        text = "User: Hello\\nAssistant: Hi there!"
+        result = extract_response_robust(text)
+        # result == "Hi there!"
+    """
+    if not full_text:
+        return ""
+
+    # 1. ChatML Standard (Qwen/InternLM/ChatML-compliant models)
+    if "<|im_start|>assistant" in full_text:
+        response = full_text.split("<|im_start|>assistant")[-1]
+        # Clean up ChatML end tokens and newlines
+        response = response.replace("<|im_end|>", "")
+        response = response.lstrip("\n")
+        return response.strip()
+
+    # 2. Llama/Mistral/Standard Formats
+    separators = [
+        "Assistant:",
+        "### Response:",
+        "[/INST]",
+        "### Assistant:",
+        "<|assistant|>",
+        "ASSISTANT:",
+    ]
+    for sep in separators:
+        if sep in full_text:
+            return full_text.split(sep)[-1].strip()
+
+    # 3. Fallback: Length Slicing (if prompt provided)
+    # This is risky but necessary as a last resort
+    if input_prompt and full_text.startswith(input_prompt):
+        return full_text[len(input_prompt):].strip()
+
+    # 4. Ultimate Fallback: Return as-is (stripped)
+    return full_text.strip()
+
+
+# ============================================================================
 # CONSTANTS
 # ============================================================================
 
@@ -419,4 +492,6 @@ __all__ = [
     "MockSealionEngine",
     "SEALION_MODELS",
     "SEALION_API_BASE",
+    # v36.2 PHOENIX: Tokenizer Hygiene
+    "extract_response_robust",
 ]

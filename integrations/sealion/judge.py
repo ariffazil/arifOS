@@ -38,6 +38,16 @@ try:
 except ImportError:
     pass
 
+# v36.2 PHOENIX: Import Telemetry for observability
+_TELEMETRY_AVAILABLE = False
+_telemetry = None
+
+try:
+    from arifos_core.telemetry import telemetry as _telemetry
+    _TELEMETRY_AVAILABLE = True
+except ImportError:
+    pass
+
 # PHOENIX SOVEREIGNTY: Import Amanah detector for direct checks
 _AMANAH_DETECTOR = None
 _AMANAH_AVAILABLE = False
@@ -236,6 +246,20 @@ class SealionJudge:
             result.verdict = "VOID"
             result.floors = {"Amanah": False}
             result.note = "Python-sovereign Amanah veto"
+
+            # v36.2 PHOENIX: Log VOID events for audit trail
+            if _TELEMETRY_AVAILABLE and _telemetry is not None:
+                _telemetry.log_event(
+                    input_text=query,
+                    output_text=llm_output,
+                    judgment=result,
+                    metadata={
+                        "source": "SealionJudge",
+                        "veto_reason": "Amanah",
+                        "context": context or {},
+                    },
+                )
+
             return result
 
         # STEP 2: Full APEX judgment (if available)
@@ -264,6 +288,18 @@ class SealionJudge:
             result.verdict = "PARTIAL"
             result.floors = {"Amanah": True}
             result.note = "ApexMeasurement not available - using fallback"
+
+        # v36.2 PHOENIX: Log telemetry event for observability
+        if _TELEMETRY_AVAILABLE and _telemetry is not None:
+            _telemetry.log_event(
+                input_text=query,
+                output_text=llm_output,
+                judgment=result,
+                metadata={
+                    "source": "SealionJudge",
+                    "context": context or {},
+                },
+            )
 
         return result
 

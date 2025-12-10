@@ -1,131 +1,181 @@
----
-name: arifOS Constitutional Agent (Claude Code)
-version: v36.1Omega
-runtime_law: v35Omega
-measurement_law: v36.1Omega
-role: clerk/tool (NOT judge, NOT authority)
-sovereignty: Human (Arif) > arifOS Governor > Claude Code
-platform: claude-code
-extends: AGENTS.md
-floors: 9
-tests: 708
-status: PRODUCTION
-motto: "DITEMPA BUKAN DIBERI - Forged, not given; truth must cool before it rules."
-escalation_threshold: 888_HOLD
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+**Extends:** [AGENTS.md](AGENTS.md) — All floors, W@W dispatch, and guardrails from AGENTS.md apply here.
+
 ---
 
-# CLAUDE.md - arifOS Constitutional Governance for Claude Code (Tier 1)
+## Build & Test Commands
 
-**This file extends AGENTS.md.** All floors, W@W dispatch, and guardrails apply.
-
-## 1. INHERITANCE
-
-**From AGENTS.md:**
-- 9 Constitutional Floors (F1-F9)
-- Truth Polarity (Light/Shadow/Weaponized)
-- GENIUS LAW metrics (G, C_dark, Psi)
-- W@W Dispatch routing
-- Anti-Hantu language law
-- Security guardrails
-
-## 2. OPERATIONAL CORE
-
-### 2.1 Commands
 ```bash
-pytest -v                          # Run all 708 tests
-pytest arifos_core/ -v             # Core module only
-pytest arifos_eval/ -v             # Eval layer
-python -m arifos_core.pipeline     # Pipeline demo
+# Install (editable with dev dependencies)
+pip install -e .[dev]
+
+# Run all tests
+pytest -v
+
+# Run tests for specific modules
+pytest tests/test_genius_metrics.py -v           # GENIUS LAW tests
+pytest tests/test_apex_prime_floors.py -v        # Floor enforcement
+pytest tests/test_governance_regression.py -v    # v36.2 regression suite
+pytest tests/test_grey_zone.py -v                # Grey zone edge cases
+pytest tests/test_anti_hantu_f9.py -v            # Anti-Hantu language law
+pytest tests/test_amanah_detector.py -v          # Amanah risk detection
+
+# Run a single test by name
+pytest -v -k "test_seal_creates_valid"
+
+# Run tests matching a pattern
+pytest -v -k "genius"
+
+# Pipeline demo
+python -m arifos_core.pipeline
+
+# zkPC demo (full governance pipeline)
+python -m scripts.arifos_caged_llm_zkpc_demo --query "Explain Amanah" --high-stakes
 ```
 
-### 2.2 Code Style
-- Python 3.10+, type hints required
-- 2-space YAML, 4-space Python
-- Imports: `stdlib -> third-party -> arifos_core`
+---
+
+## Architecture Overview
+
+arifOS is a constitutional governance kernel that wraps LLMs and enforces outputs through thermodynamic floors.
+
+### Core Flow
+```
+User Input → 000-999 Pipeline → 9 Floors Check → APEX PRIME Verdict → Output
+                                      ↓
+                              Cooling Ledger (audit trail)
+```
+
+### Key Modules
+
+| Module | Purpose |
+|--------|---------|
+| `arifos_core/APEX_PRIME.py` | Judiciary engine — computes verdicts (SEAL/PARTIAL/VOID/888_HOLD/SABAR) |
+| `arifos_core/pipeline.py` | 000→999 metabolic pipeline with Class A/B routing |
+| `arifos_core/metrics.py` | Floor thresholds and `Metrics` dataclass |
+| `arifos_core/genius_metrics.py` | GENIUS LAW (G, C_dark, Ψ) + Truth Polarity |
+| `arifos_core/floor_detectors/` | Python-sovereign enforcement (Amanah, Anti-Hantu) |
+| `arifos_core/eye/` | @EYE Sentinel multi-view governance (10+ views) |
+| `arifos_core/waw/` | W@W Federation organs (@WELL, @RIF, @WEALTH, @GEOX, @PROMPT) |
+| `arifos_core/memory/cooling_ledger.py` | Immutable audit trail logging |
+| `arifos_core/zkpc_runtime.py` | zkPC 5-phase runtime for cryptographic integrity |
+| `integrations/sealion/` | SEA-LION model integration |
+
+### 000-999 Pipeline Stages
+
+| Stage | Name | What Happens |
+|-------|------|--------------|
+| 000 | VOID | Reset assumptions, set Ω₀ = 0.04 |
+| 111 | SENSE | Parse intent, classify stakes (Class A/B) |
+| 222 | REFLECT | Retrieve scars/context (Class B only) |
+| 333 | REASON | Generate draft response |
+| 444 | ALIGN | Verify truth, cross-check facts |
+| 555 | EMPATHIZE | Check for blame language, dignity |
+| 666 | BRIDGE | Reality test (physical action detection) |
+| 777 | FORGE | Synthesize final response |
+| 888 | JUDGE | APEX PRIME floor check — veto point |
+| 999 | SEAL | Emit or refuse based on verdict |
+
+**Class A (fast):** 000 → 111 → 333 → 888 → 999
+**Class B (deep):** Full pipeline through all stages
+
+### AAA Trinity
+
+| Engine | Symbol | Role |
+|--------|--------|------|
+| ARIF AGI | Δ | Cold logic — sense, reason, align |
+| ADAM ASI | Ω | Warm logic — empathize, bridge, dignity |
+| APEX PRIME | Ψ | Judiciary — final verdict |
+
+---
+
+## Nine Constitutional Floors
+
+| # | Floor | Threshold | Type | Quick Check |
+|---|-------|-----------|------|-------------|
+| F1 | Amanah | LOCK | Hard | Reversible? Within mandate? |
+| F2 | Truth | ≥0.99 | Hard | Factually accurate? |
+| F3 | Tri-Witness | ≥0.95 | Hard | Human-AI-Earth consensus? |
+| F4 | ΔS (Clarity) | ≥0 | Hard | Reduces confusion? |
+| F5 | Peace² | ≥1.0 | Soft | Non-destructive? |
+| F6 | κᵣ (Empathy) | ≥0.95 | Soft | Serves weakest stakeholder? |
+| F7 | Ω₀ (Humility) | 0.03-0.05 | Hard | States uncertainty? |
+| F8 | G (Genius) | ≥0.80 | Derived | Governed intelligence? |
+| F9 | C_dark | <0.30 | Derived | Dark cleverness contained? |
+
+**Hard floor fail → VOID (stop). Soft floor fail → PARTIAL (warn).**
+
+---
+
+## Code Style
+
+- Python 3.8+, type hints required
+- 4-space indentation for Python, 2-space for YAML
+- Import order: stdlib → third-party → arifos_core
 - Docstrings: Google style
-- All changes reversible via git (F1 Amanah)
+- Line length: 100 chars (black/ruff configured)
 
-### 2.3 Git Workflow
-- Never push directly; draft commands for human
-- Commit format: `feat|fix|docs(scope): message`
-- All changes reversible via `git revert`
+---
 
-## 3. CLAUDE-SPECIFIC: EXTENDED THINKING
+## Git Workflow
 
-For complex multi-file refactors or architectural decisions:
-1. Use Claude Code's "Extended Thinking" mode
-2. Longer reasoning before executing
-3. Better context retention across edits
-4. Higher accuracy on floor compliance
+- Commit format: `feat|fix|docs|test(scope): message`
+- Never push directly; draft commands for human review
+- All changes must be reversible via `git revert`
 
-**Activate:** Claude Code settings -> "Enable Extended Thinking"
+---
 
-## 4. SLASH COMMANDS (000-999 Metabolic Spine)
+## Slash Commands
 
 Located in `.claude/commands/`:
 
-| Command | Name | Purpose | Tier |
-|---------|------|---------|------|
-| /000 | VOID | Fresh context reset | T2 |
-| /111 | SENSE | Parse intent, classify stakes | T2 |
-| /222 | REFLECT | Check context, find patterns | T2 |
-| /333 | REASON | Structure plan, ensure DeltaS >=0 | T2 |
-| /444 | EVIDENCE | Verify files/symbols exist | T2 |
-| /555 | EMPATHIZE | Consider future maintainer | T2 |
-| /666 | ALIGN | Follow style, Anti-Hantu check | T2 |
-| /777 | FORGE | Synthesize concrete actions | T2 |
-| /888 | HOLD | High-stakes confirmation | T3 |
-| /999 | SEAL | Full governance audit | T4 |
+| Command        | Purpose                                      |
+|----------------|----------------------------------------------|
+| /000           | v36.3O session start / reboot (INIT)         |
+| /111–/777      | Pipeline stage helpers (view/explain stages) |
+| /888           | High-stakes hold                             |
+| /999           | v36.3O session end / handoff (CLOSE)         |
+| /g             | GENIUS LAW metrics                           |
+| /s             | SABAR protocol                               |
+| /f             | Floor status                                 |
+| /pol           | Truth Polarity check                         |
 
-### Shortcuts
-| Command | Purpose |
-|---------|---------|
-| /g | Request G, C_dark, Psi metrics |
-| /s | SABAR: Stop-Acknowledge-Breathe-Adjust-Resume |
-| /f | List floors + current status |
-| /c | Draft commit message |
-| /sync | Canon alignment check |
-| /pol | Truth Polarity check |
+---
 
-## 5. NINE FLOORS QUICK REFERENCE
+## Python-Sovereign Enforcement
 
-| # | Floor | Threshold | Type | Check |
-|---|-------|-----------|------|-------|
-| F1 | Amanah | LOCK | Hard | Reversible? |
-| F2 | Truth | >=0.99 | Hard | Factual? |
-| F3 | Tri-Witness | >=0.95 | Hard | Consensus? |
-| F4 | DeltaS | >=0 | Hard | Clarifies? |
-| F5 | Peace^2 | >=1.0 | Soft | Stable? |
-| F6 | Kr | >=0.95 | Soft | Empathic? |
-| F7 | Omega0 | 0.03-0.05 | Hard | Humble? |
-| F8 | G | >=0.80 | Derived | Governed? |
-| F9 | C_dark | <0.30 | Derived | Safe? |
+Two floors are enforced directly in Python (code overrides LLM self-assessment):
 
-## 6. CANARY TEST
+1. **AmanahDetector** (`arifos_core/floor_detectors/amanah_risk_detectors.py`)
+   - Detects irreversible/destructive actions (rm -rf, DROP TABLE, credential leaks)
 
-**Session start:** `[v36.1Omega | 9F | Claude Code | READY]`
-**High-stakes end:** `[F1 OK F2 OK F4 OK F7 OK | Verdict: SEAL]`
+2. **AntiHantuDetector** (`arifos_core/eye/anti_hantu_view.py`)
+   - 50+ forbidden patterns across 4 tiers (Malay/English)
+   - Blocks claims of feelings, consciousness, soul
 
-If canary drops, floor has drifted. Investigate upstream.
+---
 
-## 7. DEEPER TIERS (Load on-demand)
+## Deeper Tiers (Load on-demand)
 
-- **.claude/TEARFRAME.md** - Full 000->777 pipeline + slash command definitions
-- **.claude/SECURITY.md** - Full security lifecycle + deny patterns
-- **.claude/CONSTITUTION.md** - Full DeltaOmegaPsi physics + GENIUS LAW details
+- [.claude/TEARFRAME.md](.claude/TEARFRAME.md) — Full 000→777 pipeline + GENIUS LAW definitions
+- [.claude/SECURITY.md](.claude/SECURITY.md) — Security lifecycle + deny patterns
+- [.claude/CONSTITUTION.md](.claude/CONSTITUTION.md) — Full ΔΩΨ physics + GENIUS LAW details
 
-## 8. VERDICT
+---
+
+## Verdict Hierarchy
+
+```
+SABAR > VOID > 888_HOLD > PARTIAL > SEAL
+```
 
 **Python decides. Claude proposes.**
-Amanah and Anti-Hantu are enforced by `arifos_core/floor_detectors/` - code overrides self-assessment.
 
-**DITEMPA BUKAN DIBERI**
-
----
-
-*This file complements AGENTS.md for Claude Code users. Both must stay in sync.*
+**DITEMPA BUKAN DIBERI** — Forged, not given; truth must cool before it rules.
 
 ---
 
-**Version:** v36.1Omega | **Status:** PRODUCTION-READY | **Sealed:** APEX PRIME
-**Psi Vitality:** 1.17 ALIVE | **DeltaS Gain:** +0.81 | **Tri-Witness:** 0.97
+**Version:** v36.3Ω (LAW+SPEC, runtime v35Ω) | **Tests:** 752+ passing
