@@ -1,6 +1,6 @@
 # arifOS · Project Index (live map)
 
-**Epoch:** v36.1Ω (GENIUS LAW Judiciary + Measurement) · **Last updated:** 2025-12-06
+**Epoch:** v36.2 PHOENIX (GENIUS LAW + Dream Forge) · **Last updated:** 2025-12-08
 
 ---
 
@@ -164,10 +164,37 @@
 - `arifos_caged_llm_demo.py` — v36.0.0 · Caged LLM harness for Colab
 - `verify_ledger_kms.py` — v36.0.0 · KMS ledger verification
 - `eval_telemetry_harness.py` — v36.1.0 · Phase 2 telemetry comparison harness
+- `ignite_anvil.py` — v36.2.0 · Dream Forge CLI runner (Lab Mode)
 
 ---
 
-## /tests ← test suite (551 tests)
+## /arifos_core/dream_forge ← Dream Forge (Lab Mode)
+
+**Status:** LAB-ONLY · **Version:** v36.2 PHOENIX · **Doc:** [docs/DREAM_FORGE_LAB_MODE.md](docs/DREAM_FORGE_LAB_MODE.md)
+
+Offline generative replay system implementing O-TASK Cadence for healing from past failures (scars).
+
+### Modules
+- `__init__.py` — v36.2.0 · package exports (OAlignCrucible, OreType, OForgeAnvil)
+- `crucible.py` — v36.2.0 · O-ALIGN classification (FACT/PARADOX/ANOMALY/NOISE)
+- `anvil.py` — v36.2.0 · O-FORGE/O-STRIKE/O-QUENCH (generative replay + validation)
+
+### O-TASK Cadence
+```
+O-ALIGN (Crucible) → O-FORGE (Anvil) → O-STRIKE (Anvil) → O-QUENCH (Anvil)
+     │                    │                 │                  │
+  Classify            Generate           Validate           Filter
+   scar              variations         vs pipeline        SEAL only
+```
+
+### Safety Notes
+- NOT wired into production pipeline (`pipeline.py`) or APEX PRIME
+- Uses MockLLM + MockPipeline by default
+- Future production integration requires 888_HOLD
+
+---
+
+## /tests ← test suite (788 tests)
 
 Core test files covering floors, pipeline, engines, W@W, @EYE, ledger, adapters, runtime manifest, GENIUS LAW verdicts.
 
@@ -175,6 +202,7 @@ Key test files:
 - `test_apex_genius_verdicts.py` — 35 tests · GENIUS LAW judiciary
 - `test_genius_metrics.py` — 55 tests · G/C_dark computation
 - `test_apex_measurements_eval.py` — 45 tests · v36.1Ω eval layer (G/Ψ/C_dark/Shadow-Truth)
+- `test_dream_forge.py` — 36 tests · Dream Forge (Crucible + Anvil)
 - `test_v35_features.py` — v36Ω version tests
 
 ---
@@ -251,4 +279,4 @@ Key test files:
 
 ---
 
-*Generated: 2025-12-06 · arifOS v36.0.0 · 506 tests passing · GENIUS LAW Judiciary LIVE*
+*Generated: 2025-12-08 · arifOS v36.2.0 · 788 tests passing · GENIUS LAW + Dream Forge (Lab Mode)*

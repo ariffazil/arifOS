@@ -3,7 +3,7 @@ tier: 3
 parent: AGENTS.md
 purpose: Security guardrails + escalation triggers
 load_when: shell_commands, file_system, credentials, production, 888_HOLD
-version: v36.1Omega
+version: v36.2 PHOENIX
 ---
 
 # SECURITY.md - arifOS Guardrails (Tier 3)

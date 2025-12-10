@@ -3,7 +3,7 @@ tier: 2
 parent: AGENTS.md
 purpose: Pre-execution pipeline (000->777) + slash command definitions
 load_when: file_edits, shell_commands, high_stakes, TEARFRAME_request
-version: v36.1Omega
+version: v36.2 PHOENIX
 ---
 
 # TEARFRAME.md - arifOS Pipeline (Tier 2)
