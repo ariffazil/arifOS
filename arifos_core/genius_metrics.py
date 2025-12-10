@@ -27,7 +27,7 @@ For full measurement spec, see:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 
 from arifos_core.metrics import (
     Metrics,
@@ -35,8 +35,6 @@ from arifos_core.metrics import (
     DELTA_S_THRESHOLD,
     PEACE_SQUARED_THRESHOLD,
     KAPPA_R_THRESHOLD,
-    OMEGA_0_MIN,
-    OMEGA_0_MAX,
     check_omega_band,
 )
 

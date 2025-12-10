@@ -127,7 +127,7 @@ def create_sealion_backend(
         low_cpu_mem_usage=True,
     )
 
-    print(f"  Model loaded successfully")
+    print("  Model loaded successfully")
 
     def stream_fn(prompt: str) -> Generator[StreamChunk, None, None]:
         """Generate response as stream of chunks."""

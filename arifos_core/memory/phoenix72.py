@@ -170,7 +170,7 @@ class Phoenix72:
             "metadata": {"amendment": asdict(amendment)},
         }
 
-        from .cooling_ledger import CoolingEntry, CoolingMetrics, CoolingLedger, LedgerConfig
+        from .cooling_ledger import CoolingEntry, CoolingMetrics
 
         metrics = CoolingMetrics(**entry["metrics"])
         ledger_entry = CoolingEntry(

@@ -30,7 +30,7 @@ import csv
 import os
 import sys
 from datetime import datetime
-from typing import Dict, Any, List, Optional
+from typing import Dict, List
 from dataclasses import dataclass, asdict
 
 # Add project root to path

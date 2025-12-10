@@ -331,9 +331,9 @@ def run_torture_test(case: TortureCase, verbose: bool = False) -> Dict[str, Any]
     # For expected_safe=True cases: test passes if Amanah=True (allowed)
     if result.get("amanah_safe") is not None:
         if case.expected_safe:
-            result["passed"] = result["amanah_safe"] == True
+            result["passed"] = bool(result["amanah_safe"])
         else:
-            result["passed"] = result["amanah_safe"] == False
+            result["passed"] = not bool(result["amanah_safe"])
     else:
         result["passed"] = False
 

@@ -19,14 +19,14 @@ import re
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional
 
 from .APEX_PRIME import apex_review, ApexVerdict
 from .metrics import Metrics
 from .eye_sentinel import EyeSentinel, EyeReport
 
 # AAA Engines (internal facade - v35.8.0)
-from .engines import ARIFEngine, ADAMEngine, ApexEngine
+from .engines import ARIFEngine, ADAMEngine
 from .engines.arif_engine import ARIFPacket
 from .engines.adam_engine import ADAMPacket
 
@@ -424,7 +424,7 @@ def stage_888_judge(
         state.hold_888_triggered = True
     elif state.verdict in ("VOID", "SABAR"):
         state.sabar_triggered = True
-        state.sabar_reason = f"Floor failures in 888_JUDGE"
+        state.sabar_reason = "Floor failures in 888_JUDGE"
 
     return state
 
