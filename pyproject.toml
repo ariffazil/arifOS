@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "36.2.0"
-description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW Judiciary, zkPC + Phoenix-72, PHOENIX SOVEREIGNTY (One Law for All Models), v36.2 PHOENIX Observability"
+version = "36.3.0"
+description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW Judiciary, zkPC + Phoenix-72, PHOENIX SOVEREIGNTY, v36.3Ω Law/Spec/Code Tracks"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "Apache-2.0"}
@@ -89,6 +89,9 @@ packages = [
     "arifos_core.waw.bridges",
     "arifos_core.eye",
     "arifos_core.floor_detectors",
+    "arifos_core.dream_forge",
+    "arifos_core.guards",
+    "arifos_core.wrappers",
     "arifos_eval",
     "arifos_eval.apex",
     "integrations",
