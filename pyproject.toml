@@ -96,7 +96,13 @@ packages = [
     "arifos_eval.apex",
     "integrations",
     "integrations.sealion",
+    "scripts",
 ]
+
+[project.scripts]
+arifos-analyze-governance = "scripts.analyze_governance:main"
+arifos-verify-ledger = "scripts.verify_ledger_chain:main"
+arifos-build-ledger-hashes = "scripts.build_ledger_hashes:main"
 
 [tool.setuptools.package-data]
 arifos_core = ["py.typed", "*.py", "**/*.py"]

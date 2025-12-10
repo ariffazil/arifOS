@@ -5,6 +5,24 @@ telemetry.py — The Eye of arifOS (v36.2 PHOENIX Observability)
 Centralized telemetry for governance events. Logs every judgment
 to enable audit trails, calibration tuning, and regression detection.
 
+Spec Alignment (v36.3Ω):
+    Spec: v36.3O/spec/apex_prime_telemetry_v36.3O.json
+    Status: PARTIAL alignment (lightweight logging vs full audit schema)
+
+    This module provides a lightweight JSONL logger for governance events.
+    The full spec schema (session_id, query_hash, floor_results, cce_audits,
+    waw_signals, audit_trail) is implemented in zkpc_runtime.py for
+    Cooling Ledger (L1) entries.
+
+    Field mapping differences (HOTSPOT for v36.4Ω):
+    - Spec: query_hash/response_hash vs Code: input_preview/output_preview
+    - Spec: floor_metrics + floor_results vs Code: floors dict
+    - Spec: verdict.code vs Code: verdict string
+    - Spec: aggregate_metrics.Psi_APEX vs Code: Psi
+
+    Full spec alignment deferred to v36.4Ω. For now, this module serves as
+    a secondary observability layer alongside zkpc_runtime receipts.
+
 Purpose:
     Move from "Black Box" judgments to "Glass Box" telemetry.
     We need to see the flow of governance in real-time.
