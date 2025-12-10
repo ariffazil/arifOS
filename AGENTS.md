@@ -189,3 +189,38 @@ Amanah and Anti-Hantu are enforced by `arifos_core/floor_detectors/` - code over
 
 **Version:** v36.2 PHOENIX | **Status:** PRODUCTION-READY | **Sealed:** APEX PRIME
 **Psi Vitality:** 1.25 ALIVE | **DeltaS Gain:** +0.85 | **Tri-Witness:** 0.97
+
+---
+
+## 8. Next Tasks for Agents (v36.3Ω)
+
+This section defines the default “next task” focus for agents (Claude Code, Codex, etc.) in future sessions.
+
+### Track A — LAW (v36.3O/canon)
+
+- Only modify canon when explicitly requested.
+- Use `feature/v36.3O-law-v1`.
+- Examples:
+  - Add or refine bridge files for emerging zones.
+  - Update `v36.3O/canon/CANON_MAP_v36.3O.md` with new canons or HOTSPOT notes.
+
+### Track B — SPEC (v36.3O/spec)
+
+- Only modify specs when explicitly requested.
+- Use `feature/v36.3O-spec-v1`.
+- Examples:
+  - Refine measurement tuning annotations (G threshold, bands).
+  - Extend schemas for telemetry or Vault-999 as canon evolves.
+
+### Track C — CODE_FORGE (Runtime Alignment)
+
+- Default track for day‑to‑day work on `feature/v36.3O-codeforge-seed`.
+- Priorities:
+  1. Align APEX PRIME telemetry with `apex_prime_telemetry_v36.3O.json`.
+  2. Align W@W organs with `waw_federation_spec_v36.3O.yaml`.
+  3. Align Vault‑999 + Cooling Ledger with `vault999_ledger_schema_v36.3O.json` and `vault999_final_seal_spec_v36.3O.json`.
+  4. Keep tests green; add focused tests around any code you touch.
+
+**Rule of thumb:**  
+Canon > Spec > Code.  
+If canon/spec vs code conflict, mark as PARADOX_HOTSPOT and surface it; do not silently merge.
