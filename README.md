@@ -32,7 +32,7 @@ arifOS is a constitutional operating system that wraps any LLM (Claude, GPT, Gem
 
 ## Python‑Sovereign Governance (Level 2)
 
-arifOS v36.1Ic currently enforces two critical floors directly in Python code, across all integrated models (Claude, GPT, Gemini, Llama, SEA‑LION, etc.):
+arifOS v36.1Ω currently enforces two critical floors directly in Python code, across all integrated models (Claude, GPT, Gemini, Llama, SEA‑LION, etc.):
 
 - `AmanahDetector` (`arifos_core/floor_detectors/amanah_risk_detectors.py`)  
   - Phase A “Amanah Lock”.  
@@ -43,15 +43,15 @@ arifOS v36.1Ic currently enforces two critical floors directly in Python code, a
   - Enforces Anti‑Hantu language law (no claims of feelings, consciousness, soul, or ego).  
   - Runs as part of the constitutional floor checks; failure of Anti‑Hantu is treated as a hard violation that cannot be “explained away” by model text.
 
-Other floors (Truth, ΔS/I"S, Peace², κᵣ, G, C_dark, Tri‑Witness, Ω₀) are measured via the v36.1Ic measurement layer (Genius metrics and Truth Polarity) and judged by APEX PRIME, but **Amanah and Anti‑Hantu now have Python‑sovereign veto power over all outputs.**
+Other floors (Truth, ΔS, Peace², κᵣ, G, C_dark, Tri‑Witness, Ω₀) are measured via the v36.1Ω measurement layer (Genius metrics and Truth Polarity) and judged by APEX PRIME, but **Amanah and Anti‑Hantu now have Python‑sovereign veto power over all outputs.**
 
 ---
 
 ## High-Level Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                          arifOS v36.1Ω Architecture                          │
+│                     arifOS v36.3Ω Architecture (3-Track)                   │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  USER INPUT ──────────────────────────────────────────────────────────────► │
@@ -71,14 +71,14 @@ Other floors (Truth, ΔS/I"S, Peace², κᵣ, G, C_dark, Tri‑Witness, Ω₀) a
 │       │                                                                     │
 │       ▼                                                                     │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │   9 CONSTITUTIONAL FLOORS (repair order: Amanah → ... → C_dark)      │   │
+│  │   9 CONSTITUTIONAL FLOORS (repair order: Amanah → ... → C_dark)     │   │
 │  │   ┌─────────┬─────────┬─────────┬─────────┬─────────┐               │   │
 │  │   │F1 Amanah│F2 Truth │F3 Tri-W │F4 ΔS    │F5 Peace²│               │   │
 │  │   │  LOCK   │ ≥0.99   │ ≥0.95   │ ≥0      │ ≥1.0    │               │   │
 │  │   └─────────┴─────────┴─────────┴─────────┴─────────┘               │   │
 │  │   ┌─────────┬─────────┬─────────┬─────────┐                         │   │
 │  │   │F6 κᵣ    │F7 Ω₀    │F8 G     │F9 C_dark│                         │   │
-│  │   │ ≥0.95   │0.03-0.05│ ≥0.80   │ <0.30   │                         │   │
+│  │   │ ≥0.95   │0.03–0.05│ ≥0.80   │ <0.30   │                         │   │
 │  │   └─────────┴─────────┴─────────┴─────────┘                         │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │       │                                                                     │
@@ -88,7 +88,7 @@ Other floors (Truth, ΔS/I"S, Peace², κᵣ, G, C_dark, Tri‑Witness, Ω₀) a
 │  │   ┌─────────┬─────────┬─────────┬─────────┬─────────┐               │   │
 │  │   │ @WELL   │  @RIF   │ @WEALTH │  @GEOX  │ @PROMPT │               │   │
 │  │   │Somatic  │Epistemic│ Amanah  │ Reality │Language │               │   │
-│  │   │Safety   │ Rigor   │Integrity│ Check   │Anti-Hantu               │   │
+│  │   │Safety   │ Rigor   │Integrity│ Check   │Anti-Hantu│              │   │
 │  │   └─────────┴─────────┴─────────┴─────────┴─────────┘               │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │       │                                                                     │
@@ -144,6 +144,15 @@ Most AI engineering relies on "Prompt Engineering" (hoping the AI listens). arif
 
 arifOS v36.3Ω introduces a clean 3-track separation:
 
+**Version Matrix (Reality Check)**
+
+| Layer        | Source / Status                                |
+|--------------|-----------------------------------------------|
+| Runtime Law  | v35Ω (APEX PRIME, Cooling Ledger, Vault-999)  |
+| Measurement  | v36.1Ω (Genius Law + Truth Polarity runtime)  |
+| Canon & Spec | v36.3Ω (bridges + specs in `v36.3O/`)         |
+| Package      | v36.3.0 (current `pyproject.toml` version)    |
+
 ### Track A: Law Layer (v36.3Ω Canon)
 
 Constitutional documentation - **immutable once sealed**:
@@ -174,7 +183,7 @@ Implementation of specs - **free to iterate**:
 - `arifos_core/telemetry.py` — JSONL governance logging
 - `tests/` — 780+ tests including grey zone and governance regression
 
-### Runtime Law (v35Ω / v35Ic) — Still Binding
+### Runtime Law (v35Ω) — Still Binding
 
 - Judiciary: `arifos_core/APEX_PRIME.py`
 - Floors & metrics: `arifos_core/metrics.py`, `constitutional_floors.json`
@@ -358,7 +367,7 @@ The zkPC backbone provides cryptographic integrity for the governed AI pipeline:
 
 ### Pipeline Flow
 
-```
+```text
 User Query → RAG Retrieval → LLM → zkPC Runtime → Cooling Ledger → Merkle Root
                                         ↓
                               zkPC Receipt (5-phase)
@@ -618,7 +627,7 @@ arifOS uses precise terminology to define governance states. These are not metap
 @software{arifos2025,
   author  = {Fazil, Muhammad Arif},
   title   = {arifOS: Constitutional Governance Kernel for AI Systems},
-  version = {36.1.0},
+  version = {36.3.0},
   year    = {2025},
   url     = {https://github.com/ariffazil/arifOS}
 }
@@ -628,7 +637,7 @@ arifOS uses precise terminology to define governance states. These are not metap
 
 ## Final Statement
 
-```
+```text
 +=============================================================================+
 |                                                                             |
 |   "DITEMPA BUKAN DIBERI — Forged, not given. Truth must cool before        |
@@ -652,4 +661,5 @@ arifOS uses precise terminology to define governance states. These are not metap
 
 ---
 
-*Last Updated: 2025-12-07 | Version: v36.1.0 | Tests: 708 passing | GENIUS LAW Judiciary: LIVE | zkPC + Phoenix-72: ACTIVE | PHOENIX SOVEREIGNTY: ONE LAW FOR ALL*
+*Last Updated: 2025-12-10 | Version: v36.3.0 | Tests: 780+ passing | GENIUS LAW Judiciary: LIVE | zkPC + Phoenix-72: ACTIVE | PHOENIX SOVEREIGNTY: ONE LAW FOR ALL*
+
