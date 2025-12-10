@@ -107,11 +107,11 @@
       "symbol": "Tri-Witness",
       "threshold": 0.95,
       "operator": ">=",
-      "type": "soft",
+      "type": "hard",
       "domain": "consensus",
       "core_law": "Vitality (Psi)",
       "measurement_method": "Human + AI + Earth consensus score",
-      "fail_action": "PARTIAL",
+      "fail_action": "VOID",
       "canon_reference": "Tri-Witness >= 0.95 (Vitality Law)"
     },
     "F9": {
@@ -164,12 +164,12 @@
     "hard": {
       "description": "Must pass or output is VOID (blocked)",
       "fail_verdict": "VOID",
-      "floors": ["F1", "F2", "F5", "F6", "F7", "F9"]
+      "floors": ["F1", "F2", "F5", "F6", "F7", "F8", "F9"]
     },
     "soft": {
       "description": "Advisory; failure results in PARTIAL (warning)",
       "fail_verdict": "PARTIAL",
-      "floors": ["F3", "F4", "F8"]
+      "floors": ["F3", "F4"]
     }
   }
 }

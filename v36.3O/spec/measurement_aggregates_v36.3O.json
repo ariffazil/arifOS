@@ -27,6 +27,7 @@
         }
       },
       "formula": "Delta_metric = 0.5 * Truth + 0.5 * normalize(DeltaS)",
+      "tuning_note": "Weights and thresholds are measurement tuning parameters; canon defines aggregation concept, not exact weights.",
       "bands": {
         "GREEN": {
           "condition": "Delta_metric >= 0.95",
@@ -39,7 +40,8 @@
         "RED": {
           "condition": "Delta_metric < 0.90",
           "description": "Low clarity, VOID risk"
-        }
+        },
+        "bands_note": "Band thresholds are implementation parameters; not constitutional law."
       }
     },
     "Omega_metric": {
@@ -70,6 +72,7 @@
         }
       },
       "formula": "Omega_metric = 0.3 * Peace^2 + 0.3 * kappa_r + 0.2 * Omega_0_pass + 0.2 * RASA_pass",
+      "tuning_note": "Weights and thresholds are measurement tuning parameters; canon defines aggregation concept, not exact weights.",
       "bands": {
         "GREEN": {
           "condition": "Omega_metric >= 0.95",
@@ -82,7 +85,8 @@
         "RED": {
           "condition": "Omega_metric < 0.85",
           "description": "Low stability, SABAR risk"
-        }
+        },
+        "bands_note": "Band thresholds are implementation parameters; not constitutional law."
       }
     },
     "Psi_metric": {
@@ -108,6 +112,7 @@
         }
       },
       "formula": "Psi_metric = 0.4 * Amanah_pass + 0.3 * Tri_Witness + 0.3 * Anti_Hantu_pass",
+      "tuning_note": "Weights and thresholds are measurement tuning parameters; canon defines aggregation concept, not exact weights.",
       "bands": {
         "GREEN": {
           "condition": "Psi_metric >= 1.0",
@@ -123,7 +128,8 @@
           "condition": "Psi_metric < 0.85",
           "state": "CRITICAL",
           "description": "System integrity at risk"
-        }
+        },
+        "bands_note": "Band thresholds are implementation parameters; not constitutional law."
       }
     }
   },
@@ -133,10 +139,11 @@
       "id": "G",
       "name": "Governed Intelligence Index",
       "description": "Composite of Delta, Omega, Psi aggregates indicating overall governance health",
-      "threshold": 0.80,
+      "canonical_threshold": 0.70,
+      "runtime_experimental_threshold": 0.80,
       "operator": ">=",
       "formula": "G = f(Delta_metric, Omega_metric, Psi_metric)",
-      "note": "Derived metric, not a constitutional floor"
+      "note": "HOTSPOT: G threshold drift; canon uses 0.70, current runtime/spec uses 0.80 as experimental tuning. To be reconciled in v36.4Omega."
     },
     "C_dark": {
       "id": "C_dark",
@@ -145,7 +152,7 @@
       "threshold": 0.30,
       "operator": "<",
       "formula": "C_dark = 1 - G (simplified)",
-      "note": "Derived metric, not a constitutional floor"
+      "note": "Derived metric threshold; see law-layer HOTSPOTS for canonical vs runtime drift."
     },
     "Psi_APEX": {
       "id": "Psi_APEX",
@@ -158,7 +165,7 @@
         "STRESSED": "0.85 <= Psi_APEX < 1.0",
         "CRITICAL": "Psi_APEX < 0.85"
       },
-      "note": "Derived metric, not a constitutional floor"
+      "note": "Derived metric threshold; see law-layer HOTSPOTS for canonical vs runtime drift."
     }
   },
   "verdict_codes": {

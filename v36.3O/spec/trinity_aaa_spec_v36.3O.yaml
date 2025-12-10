@@ -20,7 +20,6 @@ engines:
     floor_ownership:
       - F1  # Truth
       - F2  # DeltaS
-      - F5  # Omega_0
     pipeline_stages:
       - "111_SENSE"
       - "333_REASON"
@@ -37,6 +36,7 @@ engines:
     floor_ownership:
       - F3  # Peace_squared
       - F4  # kappa_r
+      - F5  # Omega_0 (humility band)
       - F7  # RASA
     pipeline_stages:
       - "222_REFLECT"
@@ -188,11 +188,13 @@ routing:
 
 floor_ownership_summary:
   ARIF:
-    floors: [F1, F2, F5]
+    floors: [F1, F2]
     law: "Clarity (Delta)"
+    note: "ARIF may observe omega_0 in ARIFPacket but ownership belongs to ADAM"
   ADAM:
-    floors: [F3, F4, F7]
+    floors: [F3, F4, F5, F7]
     law: "Humility (Omega)"
+    note: "F5 Omega_0 ownership moved to ADAM per canon (humility is Omega core law)"
   APEX:
     floors: [F6, F8, F9]
     law: "Vitality (Psi)"
