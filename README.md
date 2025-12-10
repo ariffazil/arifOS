@@ -1,18 +1,18 @@
-# arifOS v36.1Ω — Constitutional Governance Kernel for AI
+# arifOS v36.3Ω — Constitutional Governance Kernel for AI
 
-![Floors](https://img.shields.io/badge/Floors-9_Active-0052cc) ![Truth Polarity](https://img.shields.io/badge/Truth_Polarity-Enabled-success) ![Status](https://img.shields.io/badge/Status-PRODUCTION-green) ![Motto](https://img.shields.io/badge/Motto-Ditempa_Bukan_Diberi-333) ![Governance](https://img.shields.io/badge/Governance-Python--Sovereign__Level__2-8A2BE2)
+![Floors](https://img.shields.io/badge/Floors-9_Active-0052cc) ![Truth Polarity](https://img.shields.io/badge/Truth_Polarity-Enabled-success) ![Status](https://img.shields.io/badge/Status-PRODUCTION-green) ![Motto](https://img.shields.io/badge/Motto-Ditempa_Bukan_Diberi-333) ![Governance](https://img.shields.io/badge/Governance-Python--Sovereign__Level__2-8A2BE2) ![Tracks](https://img.shields.io/badge/Tracks-Law%2FSpec%2FCode-blueviolet)
 
 ```text
 +=============================================================================+
-|  arifOS v36.1Omega - Constitutional Governance Kernel                       |
+|  arifOS v36.3Omega - Constitutional Governance Kernel                       |
 |  "DITEMPA BUKAN DIBERI" — Forged, not given.                                |
 |  Truth must cool before it rules.                                           |
 +=============================================================================+
 |  Runtime Law:   v35Omega (APEX PRIME, Cooling Ledger, Vault-999)           |
-|  Measurement:   v36.1Omega (GENIUS LAW + Truth Polarity)                   |
-|  Design Canon:  v36Omega (APEX THEORY, Vault-999 v36)                      |
+|  Measurement:   v36.3Omega (GENIUS LAW + Truth Polarity + 9 Specs)         |
+|  Design Canon:  v36.3Omega (Law/Spec/Code 3-Track Architecture)            |
 |  Status:        PRODUCTION                                                 |
-|  Tests:         708 passing (core + eval + W@W + zkPC + sovereignty)       |
+|  Tests:         780+ passing (core + eval + dream_forge + guards + grey)   |
 +=============================================================================+
 ```
 
@@ -140,48 +140,47 @@ Most AI engineering relies on "Prompt Engineering" (hoping the AI listens). arif
 
 ---
 
-## Versioning: Law vs Measurement vs Design
+## Versioning: Law vs Spec vs Code (3-Track Architecture)
 
-### Runtime Law (v35Ω / v35Ic) — Binding
+arifOS v36.3Ω introduces a clean 3-track separation:
+
+### Track A: Law Layer (v36.3Ω Canon)
+
+Constitutional documentation - **immutable once sealed**:
+
+- `v36.3O/canon/` — Zone directories with binding PDFs/TXTs
+- `v36.3O/canon/*.md` — Bridge files summarizing each zone
+- `v36.3O/canon/CANON_MAP_v36.3O.md` — Single source of truth mapping
+
+**Zones:** 00_PHYSICS, 10_TRINITY, 20_JUDICIARY, 50_OVERSIGHT, 60_DREAMFORGE, 70_PARADOX, 80_VAULT999, 90_GOV
+
+### Track B: Spec Layer (v36.3Ω Specs)
+
+Machine-readable schemas derived from canon - **mutable for tuning**:
+
+- `v36.3O/spec/measurement_floors_v36.3O.json` — F1-F9 floor definitions
+- `v36.3O/spec/measurement_aggregates_v36.3O.json` — Δ/Ω/Ψ aggregates
+- `v36.3O/spec/trinity_aaa_spec_v36.3O.yaml` — ARIF/ADAM/APEX roles
+- `v36.3O/spec/vault999_final_seal_spec_v36.3O.json` — Final Seal requirements
+- `v36.3O/spec/llm_governance_spec_v36.3O.yaml` — LLM governance constraints
+
+### Track C: Code Layer (Runtime)
+
+Implementation of specs - **free to iterate**:
+
+- `arifos_core/` — Runtime modules
+- `arifos_core/dream_forge/` — O-TASK paradox cooling (Crucible, Anvil)
+- `arifos_core/guards/` — Session dependency guards
+- `arifos_core/telemetry.py` — JSONL governance logging
+- `tests/` — 780+ tests including grey zone and governance regression
+
+### Runtime Law (v35Ω / v35Ic) — Still Binding
 
 - Judiciary: `arifos_core/APEX_PRIME.py`
 - Floors & metrics: `arifos_core/metrics.py`, `constitutional_floors.json`
 - Cooling Ledger spec: `spec/VAULT_999.md`, `spec/cooling_ledger.schema.json`
-- Runtime logging: `arifos_core/memory/cooling_ledger.py` (`log_cooling_entry`)
 
-### Measurement Layer (v36.1Ω) — Live Diagnostics
-
-GENIUS LAW and Truth Polarity implementation:
-
-- `canon/APEX_MEASUREMENT_CANON_v36.1Omega.md`
-- `arifos_eval/apex/APEX_MEASUREMENT_STANDARDS_v36.1Omega.md`
-- `arifos_eval/apex/apex_standards_v36.json`
-- `arifos_eval/apex/apex_measurements.py`
-- `arifos_core/genius_metrics.py` (G, C_dark, Ψ_APEX + Truth Polarity)
-
-Telemetry and torture tests:
-
-- `scripts/eval_telemetry_harness.py`
-- `scripts/torture_test_truth_polarity.py`
-
-### Design Canons (v36Ω) — Docs-Only
-
-APEX THEORY, physics, engines, pipeline:
-
-- `canon/01_PHYSICS/APEX_THEORY_PHYSICS_v36Omega.md`
-- `canon/01_PHYSICS/APEX_THEORY_MATH_v36Omega.md`
-- `canon/01_PHYSICS/APEX_LANGUAGE_CODEX_v36Omega.md`
-- `canon/10_SYSTEM/111_ARIF_AGI_v36Omega.md`
-- `canon/10_SYSTEM/555_ADAM_ASI_v36Omega.md`
-- `canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md`
-- `canon/30_RUNTIME/APEX_RUNTIME_PIPELINE_v36Omega.md`
-
-Vault-999 design canon:
-
-- `canon/VAULT_999_v36Omega.md` (L0–L4, Truth Polarity, EchoDebt, zkPC)
-- `spec/cooling_ledger_v36.schema.json` (design-only schema)
-
-These do not change runtime until explicitly wired.
+v36.3Ω specs are **parallel** to v35Ω runtime until explicit migration.
 
 ---
 
