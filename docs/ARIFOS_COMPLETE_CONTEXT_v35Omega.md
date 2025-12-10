@@ -322,7 +322,7 @@ If you can read code and follow contracts, you can **self-govern**:
 
 ### Quick Start
 
-1. Drop `constitutional_floors.json` + `arifos_pipeline.yaml` into your repo
+1. Drop `spec/constitutional_floors_v35Omega.json` + `spec/arifos_pipeline_v35Omega.yaml` into your repo
 2. Wrap your LLM with `@apex_guardrail`
 3. Implement `compute_metrics()` minimally
 4. Only output when `verdict = "SEAL"`

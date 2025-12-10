@@ -26,7 +26,7 @@ Top-level structure (local & GitHub are closely aligned):
 
 - **Core:** `.github/`, `arifos_core/`, `canon/`, `docs/`, `examples/`, `integrations/`, `notebooks/`, `runtime/`, `scripts/`, `spec/`, `tests/`.  
 - **Support / env / build:** `archive/`, `offload/`, `.claude/`, `.pytest_cache/`, `.venv/`, `venv/`, `arifos.egg-info/`, `dist/`, `arifos_code/`, `arifos-test/`.  
-- **Governance artifacts:** `arifos_pipeline.yaml`, `constitutional_floors.json`, `GOVERNANCE.md`, `CHANGELOG.md`, `CLAUDE.md`, `README.md`, `SECURITY.md`.  
+- **Governance artifacts:** `spec/arifos_pipeline_v35Omega.yaml`, `spec/constitutional_floors_v35Omega.json`, `GOVERNANCE.md`, `CHANGELOG.md`, `CLAUDE.md`, `README.md`, `SECURITY.md`.  
 
 Key runtime modules:
 

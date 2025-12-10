@@ -10,7 +10,7 @@ AAA Engine Integration (v35.8.0):
 - ADAMEngine (Ω): empathize/bridge - warm logic, stability
 - ApexEngine (Ψ): judge - judiciary wrapper
 
-See: arifos_pipeline.yaml for full specification
+See: spec/arifos_pipeline_v35Omega.yaml for full specification
      docs/AAA_ENGINES_FACADE_PLAN_v35Omega.md for engine contract
 """
 from __future__ import annotations

@@ -123,7 +123,7 @@ SABAR → VOID → 888_HOLD → PARTIAL → SEAL
 
 **Fixes Applied:**
 - `constitutional_floors.json`: Updated version to 35Omega, added 888_HOLD verdict
-- `arifos_pipeline.yaml`: Updated version to 35Omega
+- `spec/arifos_pipeline_v35Omega.yaml`: Updated version to 35Omega
 
 **Recommendation:** Consider centralizing thresholds in a single source (e.g., floors.json loaded at runtime) to eliminate drift risk.
 
