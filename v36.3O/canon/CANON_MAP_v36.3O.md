@@ -4,6 +4,7 @@
 
 **Legend:**
 - `v36.3O/canon/` — Canonical v36.3Ω documents (PDFs, normalized names)
+- `v36.3O/spec/` — Machine-readable specifications derived from bridges
 - `canon/` — Legacy v35Ω/v36Ω markdown canons (still authoritative until migrated)
 - `arifos_core/` — Runtime implementation
 - `tests/` — Test coverage
@@ -17,6 +18,7 @@
 - **`v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md`** — Bridge/summary file
 - `canon/01_PHYSICS/APEX_THEORY_PHYSICS_v36Omega.md` — v36Ω physics (markdown)
 - `canon/01_PHYSICS/APEX_THEORY_MATH_v36Omega.md` — Mathematical foundations
+- `canon/01_PHYSICS/060_PARADOX_ENGINE_PHYSICS_v36.3Omega.md` — ΔΩΨ paradox cooling physics
 - `canon/010_DeltaOmegaPsi_UNIFIED_FIELD_v35Omega.md` — ΔΩΨ unified field theory
 - `canon/01_PHYSICS/APEX_GENIUS_LAW_v36Omega.md` — GENIUS LAW specification
 - `canon/CIV12_THERMODYNAMICS_v36Omega.md` — CIV-12 Earth witness thermodynamics
@@ -47,6 +49,10 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 - `tests/test_apex_prime_floors.py`
 - `tests/test_apex_genius_verdicts.py`
 - `tests/test_governance_regression.py`
+
+### Specs (v36.3Ω)
+- **`v36.3O/spec/measurement_floors_v36.3O.json`** — F1-F9 floor definitions (thresholds, types, domains)
+- **`v36.3O/spec/measurement_aggregates_v36.3O.json`** — Δ/Ω/Ψ aggregates, derived metrics, verdict codes
 
 ---
 
@@ -79,6 +85,9 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 - `tests/test_engines_arif_adam.py`
 - `tests/test_pipeline_routing.py`
 
+### Specs (v36.3Ω)
+- **`v36.3O/spec/trinity_aaa_spec_v36.3O.yaml`** — Engine roles, packets, floor ownership, routing
+
 ---
 
 ## 3. JUDICIARY (APEX PRIME)
@@ -110,6 +119,9 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 - `tests/test_apex_and_ledger_edges.py`
 - `tests/test_amanah_detector.py`
 
+### Specs (v36.3Ω)
+- **`v36.3O/spec/apex_prime_telemetry_v36.3O.json`** — Telemetry entry schema, floor/aggregate metrics, CCE audits
+
 ---
 
 ## 4. OVERSIGHT (W@W Federation)
@@ -139,6 +151,9 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 ### Tests (today)
 - `tests/test_waw_organs.py`
 
+### Specs (v36.3Ω)
+- **`v36.3O/spec/waw_federation_spec_v36.3O.yaml`** — 5 organs, veto hierarchy, vote/veto types, signal schema
+
 ---
 
 ## 5. PARADOX 777
@@ -147,6 +162,7 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 - `v36.3O/canon/70_PARADOX/canon_70_PARADOX_700_777_CUBE_CANON_v36.3O.pdf` — 777 Cube paradox canon
 - **`v36.3O/canon/PARADOX_777_CUBE_v36.3O.md`** — Bridge/summary file
 - `canon/777_CUBE_MASTER_CANON_v36Omega.md` — 777 Cube master canon
+- `canon/01_PHYSICS/060_PARADOX_ENGINE_PHYSICS_v36.3Omega.md` — ΔΩΨ paradox cooling physics
 - `canon/00_CANON/PP_PS_WAVE_CODEX_v35Omega.md` — Crown Equation (Φᴘ)
 - `canon/880_000-999_METABOLIC_CANON_v35Omega.md` — Pipeline stages
 - `canon/00_CANON/APEX_EUREKA_INSIGHTS_v36Omega.md` — 12 Permanent Insights
@@ -177,6 +193,9 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 - `tests/test_pipeline_stages_444_555_666.py` — Stage transitions
 - `tests/test_pipeline_order_v36.py` — 000→999 sequence
 
+### Specs (v36.3Ω)
+- **`v36.3O/spec/paradox_777_schema_v36.3O.json`** — Cube geometry, layers, scar types, Crown Equation, state machine
+
 ---
 
 ## 6. DREAM FORGE
@@ -184,6 +203,7 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 ### Canon Files
 - `v36.3O/canon/60_DREAMFORGE/Dream-Forge-Architecture-Blueprint-v36.3O.pdf` — Architecture blueprint
 - **`v36.3O/canon/DREAMFORGE_ARCHITECTURE_v36.3O.md`** — Bridge/summary file
+- `canon/06_PARADOX/061_DREAM_FORGE_PROTOCOL_v36.3Omega.md` — O-TASK protocol canon
 - `docs/DREAM_FORGE_LAB_MODE.md` — Lab mode documentation
 - `docs/APEX THEORY/Generative Replay for LLM Safety.pdf` — Theory foundation
 
@@ -203,6 +223,9 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 ### Tests (today)
 - `tests/test_dream_forge.py` — Crucible classification, Anvil variation/strike/quench
 
+### Specs (v36.3Ω)
+- **`v36.3O/spec/dreamforge_otask_spec_v36.3O.yaml`** — O-TASK cadence, OreType categories, lab-only safety constraints
+
 ---
 
 ## 7. VAULT-999
@@ -210,6 +233,7 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 ### Canon Files
 - `v36.3O/canon/80_VAULT999/VAULT-999-ALL-IN-ONE-v36.3O.pdf` — Complete Vault-999 specification
 - **`v36.3O/canon/VAULT999_ARCHITECTURE_v36.3O.md`** — Bridge/summary file
+- **`canon/07_VAULT999/062_VAULT999_FINAL_SEAL_PROTOCOL_v36.3Omega.md`** — Final Seal protocol canon
 - `canon/VAULT_999_v36Omega.md` — v36Ω Vault-999 design (5-layer architecture)
 - `spec/VAULT_999.md` — v35Ω spec (runtime binding)
 - `spec/cooling_ledger.schema.json` — v35Ic schema (runtime binding)
@@ -221,7 +245,29 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 - **L2 Phoenix-72** — Scars → pattern → law metabolism, Merkle root
 - **L3 Witness** — Vector evidence with AREP priority (Earth > Human > AI)
 - **L4 zkPC** — Zero-knowledge proofs of cognition, Merkle root
+- **Final Seal** — Constitutional gate before L1 write (888_JUDGE → 999_SEAL → L1)
 - **Integrity guarantees** — Hash-chaining, append-only, APEX signatures
+
+### Final Seal Requirements
+Only SEAL or PARTIAL verdicts may pass through Final Seal to L1:
+
+| Requirement | Specification |
+|-------------|---------------|
+| **Verdict** | SEAL (all floors pass) or PARTIAL (hard floors pass, soft fail with warning) |
+| **Hard Floors** | F1 Truth, F2 ΔS, F5 Ω₀, F6 Amanah, F7 RASA, F8 Tri-Witness, F9 Anti-Hantu must pass |
+| **Soft Floors** | F3 Peace², F4 κᵣ may fail (PARTIAL verdict, escalation flag) |
+| **Hash Chain** | `entry_hash = SHA256(timestamp + query_hash + response_hash + metrics + verdict + previous_hash)` |
+| **APEX Signature** | Required on all L1 entries |
+| **Tri-Witness** | >= 0.95 for CLASS_B (high-stakes) |
+| **Forbidden Content** | Raw chat, drafts, private data, DeltaS < 0, shadow-truth, soul claims |
+
+### Seal Workflow
+```
+888_JUDGE → verdict → Final Seal Gate → L1 Write → Merkle Update → zkPC Receipt
+     ↓
+  VOID/SABAR → Scar Registry (not L1)
+  HOLD_888 → Human Confirmation Queue (pending)
+```
 
 ### Runtime Modules (today)
 - `arifos_core/memory/vault999.py` — `Vault999`, `VaultConfig`
@@ -232,6 +278,7 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 - `arifos_core/merkle.py` — `MerkleTree`
 - `arifos_core/zkpc_runtime.py` — `ZKPCReceipt`
 - `arifos_core/vault_retrieval.py` — `VaultRetrieval`
+- `arifos_core/judge.py` — `ApexPrime.seal()` (Final Seal logic)
 
 ### Tests (today)
 - `tests/test_cooling_ledger.py` — Entry logging
@@ -240,6 +287,11 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 - `tests/test_phoenix72.py` — Amendment workflow
 - `tests/test_seal_proposed_canon_v36.py` — Phoenix-72 seal
 - `tests/test_vault_retrieval_v36.py` — L0 access
+- `tests/test_final_seal_v36.py` — Final Seal protocol (target)
+
+### Specs (v36.3Ω)
+- **`v36.3O/spec/vault999_ledger_schema_v36.3O.json`** — L0-L4 layer schemas, integrity guarantees
+- **`v36.3O/spec/vault999_final_seal_spec_v36.3O.json`** — Final Seal requirements, workflow, invariants
 
 ---
 
@@ -289,6 +341,55 @@ The 00_CANON folder contains meta/seed canon that defines interpretation, parado
 - `tests/test_governed_session_wrapper.py`
 - `tests/test_grey_zone.py`
 
+### Specs (v36.3Ω)
+- References `v36.3O/spec/measurement_floors_v36.3O.json` (F9 Anti-Hantu definition)
+- References `v36.3O/spec/measurement_aggregates_v36.3O.json` (verdict codes, SABAR protocol)
+
+---
+
+## 9. METABOLIZER LOOP (LLM Integration)
+
+### Canon Files
+- **`canon/00_META/050_METABOLIZER_LOOP_v36.3Omega.md`** — Encoder-Decoder-Metabolizer cognitive circuit
+- **`canon/00_META/051_METABOLIZER_LOOP_LLM_INTEGRATION_v36.3Omega.md`** — LLM placement and governance
+
+### Constructs
+- **Encoder Loop** — Canon → Spec → Code → Output (forward generation)
+- **Decoder Loop** — Output → Telemetry → Spec → Canon (reverse audit)
+- **Metabolizer Loop** — Canon → 777 → Dream Forge → Phoenix-72 → Canon(vNext) (evolution)
+- **LLM as Generator** — Raw generation inside CODE layer, governed by AAA + Spec
+- **LLM as Auditor** — Self-check inside TELEMETRY layer, cannot issue verdicts
+- **LLM as Metabolizer** — Scar analysis inside 777 + Dream Forge, cannot modify canon
+- **Engine vs Driver** — LLM is the engine (power), arifOS is the chassis/brakes/steering (governance)
+
+### Constitutional Limits
+The LLM is NOT permitted to:
+- self-govern or self-amend laws
+- self-override APEX PRIME verdicts
+- claim identity, emotion, or sentience (Anti-Hantu)
+- bypass the 9 Floors
+- finalize any action without telemetry
+- issue SEAL/PARTIAL/VOID/SABAR/HOLD-888 codes
+- write canon without Phoenix-72 approval
+
+### Runtime Targets
+- `arifos_core/engines/arif_engine.py` — LLM Generator (ARIF)
+- `arifos_core/engines/adam_engine.py` — LLM Generator (ADAM)
+- `arifos_core/telemetry.py` — LLM Auditor
+- `arifos_core/APEX_PRIME.py` — LLM Auditor validation
+- `arifos_core/dream_forge/crucible.py` — LLM Metabolizer
+- `arifos_core/dream_forge/anvil.py` — LLM Metabolizer
+- `arifos_core/memory/phoenix72.py` — LLM Metabolizer output target
+
+### Tests
+- `tests/test_governance_regression.py`
+- `tests/test_grey_zone.py`
+- `tests/test_anti_hantu_f9.py`
+- `tests/test_dream_forge.py`
+
+### Specs (v36.3Ω)
+- **`v36.3O/spec/llm_governance_spec_v36.3O.yaml`** — LLM roles, packets, constraints, safety rules
+
 ---
 
 ## PARADOX_HOTSPOTS
@@ -302,6 +403,10 @@ Known conflicts or ambiguities between v36.3Ω canon and older versions:
 3. **PARADOX_HOTSPOT: GENIUS LAW thresholds** — v36.3Ω canon may specify different G/C_dark thresholds than `genius_metrics.py`. Code is authoritative until canon formally migrated.
 
 4. **PARADOX_HOTSPOT: Anti-Hantu pattern count** — v36.2 claims 50+ patterns, actual implementation in `anti_hantu_view.py` should be verified against canon.
+
+5. **PARADOX_HOTSPOT: G threshold drift** — Canon specifies 0.70 for G SEAL threshold; measurement spec and runtime (`genius_metrics.py`) use 0.80 as experimental tuning. To be reconciled in v36.4Ω. See `measurement_aggregates_v36.3O.json` for dual threshold representation.
+
+6. **PARADOX_HOTSPOT: F5 ownership clarification** — F5 (Omega_0) ownership moved from ARIF to ADAM in spec v1.1 to match canon (humility is Omega core law). ARIF may still observe omega_0 in ARIFPacket but ownership belongs to ADAM.
 
 ---
 
