@@ -72,6 +72,15 @@ all = [
     "pyyaml>=6.0.0",
 ]
 
+[project.scripts]
+arifos-analyze-governance = "scripts.analyze_governance:main"
+arifos-verify-ledger = "scripts.verify_ledger_chain:main"
+arifos-propose-canon = "scripts.propose_canon_from_receipt:main"
+arifos-seal-canon = "scripts.seal_proposed_canon:main"
+arifos-compute-merkle = "scripts.compute_merkle_root:main"
+arifos-build-ledger-hashes = "scripts.build_ledger_hashes:main"
+arifos-show-merkle-proof = "scripts.show_merkle_proof:main"
+
 [project.urls]
 Homepage = "https://github.com/ariffazil/arifOS"
 Documentation = "https://github.com/ariffazil/arifOS/blob/main/README.md"
@@ -96,6 +105,7 @@ packages = [
     "arifos_eval.apex",
     "integrations",
     "integrations.sealion",
+    "scripts",
 ]
 
 [tool.setuptools.package-data]
@@ -118,7 +128,6 @@ target-version = "py38"
 exclude = [
     "archive/**",
     "arifos staging/**",
-    "scripts/**",
     "tests/**",
 ]
 
