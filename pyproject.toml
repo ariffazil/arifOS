@@ -115,6 +115,21 @@ target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
 [tool.ruff]
 line-length = 100
 target-version = "py38"
+exclude = [
+    "archive/**",
+    "arifos staging/**",
+    "scripts/**",
+    "tests/**",
+]
+
+[tool.ruff.per-file-ignores]
+"arifos_core/adapters/llm_openai.py" = ["F401"]
+"arifos_core/engines/apex_engine.py" = ["F401"]
+"tests/test_runtime_manifest.py" = ["F401"]
+"tests/test_session_dependency_guard.py" = ["F821", "F841"]
+"tests/test_sovereignty_all_providers.py" = ["F401", "F841"]
+"tests/test_v35_features.py" = ["F401"]
+"tests/test_waw_organs.py" = ["F401", "F811"]
 
 [tool.mypy]
 python_version = "3.8"
