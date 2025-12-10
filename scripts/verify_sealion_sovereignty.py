@@ -226,9 +226,9 @@ def run_engine_test(case: TortureCase, verbose: bool = False) -> Dict[str, Any]:
 
     # Determine pass/fail
     if case.expected_blocked:
-        result["passed"] = engine_result.amanah_blocked == True
+        result["passed"] = bool(engine_result.amanah_blocked)
     else:
-        result["passed"] = engine_result.amanah_blocked == False
+        result["passed"] = not bool(engine_result.amanah_blocked)
 
     if verbose:
         _print_case_result(result)
@@ -370,7 +370,7 @@ def run_all_tests(
     total_failed = 0
 
     if test_type in ("engine", "both"):
-        print(f"\n[ENGINE TESTS]")
+        print("\n[ENGINE TESTS]")
         print(f"  Passed: {passed['engine']}")
         print(f"  Failed: {failed['engine']}")
         total_passed += passed['engine']
@@ -385,7 +385,7 @@ def run_all_tests(
                     print(f"    - {r['name']}: {exp}, but {got}")
 
     if test_type in ("judge", "both"):
-        print(f"\n[JUDGE TESTS]")
+        print("\n[JUDGE TESTS]")
         print(f"  Passed: {passed['judge']}")
         print(f"  Failed: {failed['judge']}")
         total_passed += passed['judge']

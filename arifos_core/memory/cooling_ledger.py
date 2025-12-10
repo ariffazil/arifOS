@@ -18,7 +18,7 @@ import time
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, Callable, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from arifos_core.kms_signer import KmsSigner

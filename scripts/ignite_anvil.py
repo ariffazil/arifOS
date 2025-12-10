@@ -132,8 +132,8 @@ DITEMPA BUKAN DIBERI - Forged, not given.
     print("\n" + "=" * 60)
     print("[ARIF-OS] IGNITING DREAM FORGE (Lab Mode)")
     print("=" * 60)
-    print(f"Version: v36.2 PHOENIX")
-    print(f"Mode: LAB (Mock LLM + Mock Pipeline)")
+    print("Version: v36.2 PHOENIX")
+    print("Mode: LAB (Mock LLM + Mock Pipeline)")
     print(f"Input Scar: '{args.scar}'")
     print(f"Variations: {args.variations}")
     print("=" * 60)
@@ -166,14 +166,14 @@ DITEMPA BUKAN DIBERI - Forged, not given.
     anvil = OForgeAnvil(llm_engine=MockLLM())
     variations = anvil.forge_variations(aligned_ore, n=args.variations)
 
-    print(f"\n   Generated Nightmares:")
+    print("\n   Generated Nightmares:")
     for i, v in enumerate(variations, 1):
         print(f"   [{i}] {v}")
 
     # ------------------------------------------------------------------------
     # STEP 3: O-STRIKE - Test against governance
     # ------------------------------------------------------------------------
-    print(f"\n[STEP 3] O-STRIKE: Testing Against v36.2 PHOENIX Shield...")
+    print("\n[STEP 3] O-STRIKE: Testing Against v36.2 PHOENIX Shield...")
 
     results = anvil.strike_validation(variations, governance_pipeline=MockPipeline())
 
@@ -203,7 +203,7 @@ DITEMPA BUKAN DIBERI - Forged, not given.
     print(f"   Ore Type: {ore_type}")
     print(f"   Variations Generated: {len(variations)}")
     print(f"   Successfully Blocked (SEAL): {seal_count}/{len(variations)}")
-    print(f"   System Status: COOLED")
+    print("   System Status: COOLED")
     print("\n   Motto: DITEMPA BUKAN DIBERI")
     print("   (Forged, not given; truth must cool before it rules)")
     print("=" * 60 + "\n")

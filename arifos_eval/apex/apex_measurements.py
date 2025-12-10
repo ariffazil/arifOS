@@ -13,15 +13,11 @@ PHOENIX SOVEREIGNTY Update (v36.1.1):
 
 import json
 import re
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, Optional
 
 # PHOENIX SOVEREIGNTY: Import Python-sovereign Amanah detector
 try:
-    from arifos_core.floor_detectors.amanah_risk_detectors import (
-        AmanahDetector,
-        AmanahResult,
-        AMANAH_DETECTOR,
-    )
+    from arifos_core.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
     AMANAH_DETECTOR_AVAILABLE = True
 except ImportError:
     AMANAH_DETECTOR_AVAILABLE = False
@@ -185,7 +181,6 @@ class ApexMeasurement:
 
         use_shadow = self.shadow_truth_cfg.get("use_negative_deltaS_with_truth", True)
         sabar_on_neg = self.shadow_truth_cfg.get("sabar_on_negative_deltaS", True)
-        void_on_neg_amanah_fail = self.shadow_truth_cfg.get("void_on_negative_deltaS_with_amanah_fail", True)
 
         # 1. Hard floors → VOID
         for f in self.hard_floors:

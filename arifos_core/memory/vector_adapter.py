@@ -10,7 +10,7 @@ Specification: spec/WITNESS_L3.md
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 
 
 @dataclass

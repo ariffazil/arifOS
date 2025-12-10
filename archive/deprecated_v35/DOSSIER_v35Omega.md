@@ -89,7 +89,7 @@ arifOS/
 ├── spec/                                # YAML specifications
 ├── pyproject.toml                       # Package metadata (v35.0.0)
 ├── constitutional_floors.json           # Floor definitions (203 lines)
-├── arifos_pipeline.yaml                 # 000→999 pipeline spec
+├── spec/arifos_pipeline_v35Omega.yaml   # 000→999 pipeline spec
 ├── cooling_ledger.jsonl                 # Live audit trail
 └── CLAUDE.md                            # Claude Code instructions
 ```
@@ -340,7 +340,7 @@ APEX_35Ω = (Δ · Ω · Ψ · X) / (Entropy + Shadow + ε)
 ### Configuration
 - `pyproject.toml` — Package metadata (v35.0.0)
 - `constitutional_floors.json` — Floor definitions
-- `arifos_pipeline.yaml` — 000→999 pipeline spec
+- `spec/arifos_pipeline_v35Omega.yaml` — 000→999 pipeline spec
 - `cooling_ledger.jsonl` — Live audit trail
 
 ### Root Documentation

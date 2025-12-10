@@ -462,6 +462,23 @@ arifos-seal-canon --file cooling_ledger/proposed/PROPOSED_CANON_XXX.json
 arifos-verify-ledger
 ```
 
+### CLI Tools (PyPI)
+
+After `pip install arifos`, the following CLI commands are available:
+
+```bash
+# Analyze governance telemetry from the Cooling Ledger
+arifos-analyze-governance --ledger cooling_ledger/L1_cooling_ledger.jsonl --output analysis/
+
+# Verify SHA-256 hash-chain integrity (CI-friendly: exit 0=OK, 1=broken)
+arifos-verify-ledger --ledger cooling_ledger/L1_cooling_ledger.jsonl
+
+# Rebuild hash-chain (creates backup by default)
+arifos-build-ledger-hashes --ledger cooling_ledger/L1_cooling_ledger.jsonl
+```
+
+These are read-only analysis tools (except `arifos-build-ledger-hashes` which can rewrite the ledger). See `scripts/README_TELEMETRY.md` for detailed telemetry documentation.
+
 ### 888 Judge Rule
 
 The 888 Judge (human) holds final sovereignty over canon:

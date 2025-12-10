@@ -470,7 +470,7 @@ SABAR > VOID > 888_HOLD > PARTIAL > SEAL
 
 ### 6.1 000→999 Placement
 
-Defined in `canon/880_000-999_METABOLIC_CANON_v35Omega.md` and `arifos_pipeline.yaml`:
+Defined in `canon/880_000-999_METABOLIC_CANON_v35Omega.md` and `spec/arifos_pipeline_v35Omega.yaml`:
 
 * Stage `888 JUDGE` → APEX PRIME evaluates all floors.
 * Stage `999 SEAL` → Cooling Ledger write + verdict handling.

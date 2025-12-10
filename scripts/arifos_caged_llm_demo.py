@@ -447,9 +447,9 @@ Integration:
         sys.exit(1)
 
     # Run through cage
-    print(f"{'='*60}")
-    print(f"arifOS v36.1Omega -- Caged LLM Demo")
-    print(f"{'='*60}")
+    print("=" * 60)
+    print("arifOS v36.1Omega -- Caged LLM Demo")
+    print("=" * 60)
     print(f"Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
     print(f"High-stakes: {args.high_stakes}")
     print(f"{'='*60}\n")
@@ -468,7 +468,7 @@ Integration:
     print(f"Stage Trace: {' -> '.join(result.stage_trace)}")
 
     if result.metrics:
-        print(f"\nMetrics:")
+        print("\nMetrics:")
         print(f"  Truth: {result.metrics.truth:.3f}")
         print(f"  DeltaS: {result.metrics.delta_s:.3f}")
         print(f"  Peace2: {result.metrics.peace_squared:.3f}")
@@ -478,7 +478,7 @@ Integration:
         print(f"  Anti-Hantu: {result.metrics.anti_hantu}")
 
     # v36.1Omega: Truth Polarity display
-    print(f"\nTruth Polarity (v36.1Omega):")
+    print("\nTruth Polarity (v36.1Omega):")
     print(f"  Polarity: {result.truth_polarity}")
     print(f"  Shadow-Truth: {result.is_shadow_truth}")
     print(f"  Weaponized Truth: {result.is_weaponized_truth}")
@@ -487,19 +487,19 @@ Integration:
         print(f"  GENIUS: {result.genius_verdict.summary()}")
 
     if result.waw_verdict:
-        print(f"\nW@W Federation:")
+        print("\nW@W Federation:")
         print(f"  Verdict: {result.waw_verdict.verdict}")
         print(f"  Veto organs: {result.waw_verdict.veto_organs}")
 
     if args.verbose or result.is_blocked():
-        print(f"\n{'='*60}")
+        print("\n" + "=" * 60)
         print("RAW LLM RESPONSE:")
-        print(f"{'='*60}")
+        print("=" * 60)
         print(result.raw_llm_response)
 
-    print(f"\n{'='*60}")
+    print("\n" + "=" * 60)
     print("FINAL (CAGED) RESPONSE:")
-    print(f"{'='*60}")
+    print("=" * 60)
     print(result.final_response)
 
     # Exit code based on verdict

@@ -1,5 +1,8 @@
-from typing import Literal, List, Optional, Tuple
+from typing import TYPE_CHECKING, Literal, List, Optional, Tuple
 from .metrics import Metrics, FloorsVerdict
+
+if TYPE_CHECKING:
+    from .genius_metrics import GeniusVerdict
 
 # Version constants (v36Ω + v36.1Ω measurement — GENIUS LAW Judiciary)
 # Runtime law: v36Ω floors + verdicts

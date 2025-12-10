@@ -279,7 +279,7 @@ Key test files:
 - `sealion/` — *LIVE* · SEA-LION integration
   - `arifos_sealion.py` — adapter module
   - `constitutional_floors.json` — floor thresholds for SEA-LION
-  - `arifos_pipeline.yaml` — pipeline configuration
+- `spec/arifos_pipeline_v35Omega.yaml` — pipeline configuration
 
 ---
 

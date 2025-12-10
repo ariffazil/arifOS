@@ -10,7 +10,7 @@ AAA Engine Integration (v35.8.0):
 - ADAMEngine (Ω): empathize/bridge - warm logic, stability
 - ApexEngine (Ψ): judge - judiciary wrapper
 
-See: arifos_pipeline.yaml for full specification
+See: spec/arifos_pipeline_v35Omega.yaml for full specification
      docs/AAA_ENGINES_FACADE_PLAN_v35Omega.md for engine contract
 """
 from __future__ import annotations
@@ -19,14 +19,14 @@ import re
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional
 
 from .APEX_PRIME import apex_review, ApexVerdict
 from .metrics import Metrics
 from .eye_sentinel import EyeSentinel, EyeReport
 
 # AAA Engines (internal facade - v35.8.0)
-from .engines import ARIFEngine, ADAMEngine, ApexEngine
+from .engines import ARIFEngine, ADAMEngine
 from .engines.arif_engine import ARIFPacket
 from .engines.adam_engine import ADAMPacket
 
@@ -424,7 +424,7 @@ def stage_888_judge(
         state.hold_888_triggered = True
     elif state.verdict in ("VOID", "SABAR"):
         state.sabar_triggered = True
-        state.sabar_reason = f"Floor failures in 888_JUDGE"
+        state.sabar_reason = "Floor failures in 888_JUDGE"
 
     return state
 
