@@ -1,6 +1,23 @@
 # arifOS · Project Index (live map)
 
-**Epoch:** v36.2 PHOENIX (GENIUS LAW + Dream Forge) · **Last updated:** 2025-12-08
+**Epoch:** v36.3Ω (3-Track: Law/Spec/Code) · **CLI Tools:** Live · **Last updated:** 2025-12-10
+
+---
+
+## Quick Navigation
+
+### 🚀 Getting Started
+- **[README.md](README.md)** — Main entry point + Quick Start
+- **[SCRIPTS_CLI.md](SCRIPTS_CLI.md)** — ⭐ CLI tool reference (NEW: `arifos-analyze-governance`, `arifos-verify-ledger`, +5 more)
+- **[CLAUDE.md](CLAUDE.md)** — Constitutional governance for Claude Code
+- **[AGENTS.md](AGENTS.md)** — Constitutional governance for ChatGPT Codex
+
+### 📖 Documentation
+- **[CHANGELOG.md](CHANGELOG.md)** — Version history (v35Ω → v36.3Ω)
+- **[GOVERNANCE.md](GOVERNANCE.md)** — Repository governance policy
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — Contribution guidelines
+- **[SECURITY.md](SECURITY.md)** — Security policy
+- **[INDEX.md](INDEX.md)** — This file (project map)
 
 ---
 
@@ -47,6 +64,21 @@
 - `00_CANON/ATLAS_33_PERSONA_ARIF_v35Omega.md` — *DRAFT* · Atlas 33 persona
 - `00_CANON/PP_PS_WAVE_CODEX_v35Omega.md` — *DRAFT* · wave codex
 - `01_TEMPLATES/APEX_ARTIFACT_SKELETON.md` — *LIVE* · artifact template
+
+---
+
+## /v36.3O ← 3-Track Architecture (NEW in v36.3Ω)
+
+### Track A: Law Layer (Binding)
+- `canon/` — Constitutional documents (8 zones + CANON_MAP)
+
+### Track B: Spec Layer (Mutable)
+- `spec/` — Machine-readable schemas (floors, aggregates, AAA, W@W, etc.)
+
+### Track C: Code Layer (Active)
+- `arifos_core/` — Runtime implementation
+- `arifos_eval/` — Measurement layer (v36.1Ω)
+- `scripts/` — CLI tools (now a package with entry points)
 
 ---
 
@@ -159,12 +191,31 @@
 
 ---
 
-## /scripts ← CLI tools
+## /scripts ← CLI tools (NEW: Package + Entry Points)
 
+**Installation:** `pip install arifos` enables:
+
+```bash
+arifos-analyze-governance       # Telemetry analysis
+arifos-verify-ledger            # Chain verification
+arifos-propose-canon            # 888 Judge tool
+arifos-seal-canon               # Phoenix-72 SEAL
+arifos-compute-merkle           # Merkle root
+arifos-build-ledger-hashes      # Hash chain rebuild
+arifos-show-merkle-proof        # Merkle proof display
+```
+
+**Full reference:** [SCRIPTS_CLI.md](SCRIPTS_CLI.md)
+
+**Source files:**
 - `arifos_caged_llm_demo.py` — v36.0.0 · Caged LLM harness for Colab
 - `verify_ledger_kms.py` — v36.0.0 · KMS ledger verification
 - `eval_telemetry_harness.py` — v36.1.0 · Phase 2 telemetry comparison harness
 - `ignite_anvil.py` — v36.2.0 · Dream Forge CLI runner (Lab Mode)
+- `analyze_governance.py` — v36.3.0 · Telemetry analyzer (CLI entry)
+- `verify_ledger_chain.py` — v36.3.0 · Ledger verifier (CLI entry)
+- `propose_canon_from_receipt.py` — v36.3.0 · Canon proposer (CLI entry)
+- `seal_proposed_canon.py` — v36.3.0 · Canon sealer (CLI entry)
 
 ---
 
@@ -232,15 +283,13 @@ Key test files:
 
 ---
 
-## Root Files
+## Root Configuration Files
 
-- `README.md` — *LIVE* · main documentation with GENIUS LAW section
-- `CLAUDE.md` — *LIVE* · Claude Code constitutional governance
-- `CHANGELOG.md` — *LIVE* · version history
-- `CONTRIBUTING.md` — *LIVE* · contribution guidelines
-- `SECURITY.md` — *LIVE* · security policy
+- `pyproject.toml` — v36.3.0 · Package config + CLI entry points
 - `constitutional_floors.json` — *SEALED* · machine-readable floor thresholds
-- `pyproject.toml` — v36.0.0 · package configuration
+- `arifos_pipeline.yaml` — v35Ω · pipeline configuration
+- `.gitignore` — Repository ignore rules
+- `deploy.sh` — Deployment script
 
 ---
 
@@ -251,6 +300,7 @@ Key test files:
 | **Canon** | v35Ω (runtime law) + v36Ω (GENIUS LAW) | Production |
 | **Spec** | v35Ω + v36Ω (GENIUS) | Rolling |
 | **Core** | v36.0.0 | **Production** |
+| **CLI** | v36.3.0 | **Live** |
 | **Runtime** | v36Ω | Active |
 
 ---
@@ -276,7 +326,8 @@ Key test files:
 3. **v35Ω vs v36Ω canon overlap** — reconciled via GENIUS LAW integration
 4. **`integrations/sealion/constitutional_floors.json` ↔ root `constitutional_floors.json`** — must stay synchronized
 5. **GENIUS LAW thresholds** — G/C_dark thresholds in `APEX_PRIME.py` must match `genius_metrics.py` constants
+6. **CLI entry points** — `pyproject.toml` `[project.scripts]` must match `scripts/` module functions
 
 ---
 
-*Generated: 2025-12-08 · arifOS v36.2.0 · 788 tests passing · GENIUS LAW + Dream Forge (Lab Mode)*
+*Generated: 2025-12-10 · arifOS v36.3.0 · 788 tests passing · 3-Track Architecture (Law/Spec/Code) · GENIUS LAW + Dream Forge (Lab Mode) · CLI Live*
