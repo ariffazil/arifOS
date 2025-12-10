@@ -4,6 +4,7 @@
 
 **Legend:**
 - `v36.3O/canon/` — Canonical v36.3Ω documents (PDFs, normalized names)
+- `v36.3O/spec/` — Machine-readable specifications derived from bridges
 - `canon/` — Legacy v35Ω/v36Ω markdown canons (still authoritative until migrated)
 - `arifos_core/` — Runtime implementation
 - `tests/` — Test coverage
@@ -48,6 +49,10 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 - `tests/test_apex_genius_verdicts.py`
 - `tests/test_governance_regression.py`
 
+### Specs (v36.3Ω)
+- **`v36.3O/spec/measurement_floors_v36.3O.json`** — F1-F9 floor definitions (thresholds, types, domains)
+- **`v36.3O/spec/measurement_aggregates_v36.3O.json`** — Δ/Ω/Ψ aggregates, derived metrics, verdict codes
+
 ---
 
 ## 2. TRINITY (ARIF · ADAM · APEX)
@@ -78,6 +83,9 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 ### Tests (today)
 - `tests/test_engines_arif_adam.py`
 - `tests/test_pipeline_routing.py`
+
+### Specs (v36.3Ω)
+- **`v36.3O/spec/trinity_aaa_spec_v36.3O.yaml`** — Engine roles, packets, floor ownership, routing
 
 ---
 
@@ -110,6 +118,9 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 - `tests/test_apex_and_ledger_edges.py`
 - `tests/test_amanah_detector.py`
 
+### Specs (v36.3Ω)
+- **`v36.3O/spec/apex_prime_telemetry_v36.3O.json`** — Telemetry entry schema, floor/aggregate metrics, CCE audits
+
 ---
 
 ## 4. OVERSIGHT (W@W Federation)
@@ -138,6 +149,9 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 
 ### Tests (today)
 - `tests/test_waw_organs.py`
+
+### Specs (v36.3Ω)
+- **`v36.3O/spec/waw_federation_spec_v36.3O.yaml`** — 5 organs, veto hierarchy, vote/veto types, signal schema
 
 ---
 
@@ -177,6 +191,9 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 - `tests/test_pipeline_stages_444_555_666.py` — Stage transitions
 - `tests/test_pipeline_order_v36.py` — 000→999 sequence
 
+### Specs (v36.3Ω)
+- **`v36.3O/spec/paradox_777_schema_v36.3O.json`** — Cube geometry, layers, scar types, Crown Equation, state machine
+
 ---
 
 ## 6. DREAM FORGE
@@ -202,6 +219,9 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 
 ### Tests (today)
 - `tests/test_dream_forge.py` — Crucible classification, Anvil variation/strike/quench
+
+### Specs (v36.3Ω)
+- **`v36.3O/spec/dreamforge_otask_spec_v36.3O.yaml`** — O-TASK cadence, OreType categories, lab-only safety constraints
 
 ---
 
@@ -240,6 +260,9 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 - `tests/test_phoenix72.py` — Amendment workflow
 - `tests/test_seal_proposed_canon_v36.py` — Phoenix-72 seal
 - `tests/test_vault_retrieval_v36.py` — L0 access
+
+### Specs (v36.3Ω)
+- **`v36.3O/spec/vault999_ledger_schema_v36.3O.json`** — L0-L4 layer schemas, integrity guarantees
 
 ---
 
@@ -288,6 +311,10 @@ The 00_CANON folder contains meta/seed canon that defines interpretation, parado
 - `tests/test_session_dependency_guard.py`
 - `tests/test_governed_session_wrapper.py`
 - `tests/test_grey_zone.py`
+
+### Specs (v36.3Ω)
+- References `v36.3O/spec/measurement_floors_v36.3O.json` (F9 Anti-Hantu definition)
+- References `v36.3O/spec/measurement_aggregates_v36.3O.json` (verdict codes, SABAR protocol)
 
 ---
 
