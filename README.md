@@ -1,6 +1,6 @@
 # arifOS v36.3Ω — Constitutional Governance Kernel for AI
 
-![Floors](https://img.shields.io/badge/Floors-9_Active-0052cc) ![Truth Polarity](https://img.shields.io/badge/Truth_Polarity-Enabled-success) ![Status](https://img.shields.io/badge/Status-PRODUCTION-green) ![Motto](https://img.shields.io/badge/Motto-Ditempa_Bukan_Diberi-333) ![Governance](https://img.shields.io/badge/Governance-Python--Sovereign__Level__2-8A2BE2) ![Tracks](https://img.shields.io/badge/Tracks-Law%2FSpec%2FCode-blueviolet)
+![Floors](https://img.shields.io/badge/Floors-9_Active-0052cc) ![Truth Polarity](https://img.shields.io/badge/Truth_Polarity-Enabled-success) ![Status](https://img.shields.io/badge/Status-PRODUCTION-green) ![Motto](https://img.shields.io/badge/Motto-Ditempa_Bukan_Diberi-333) ![Governance](https://img.shields.io/badge/Governance-Python--Sovereign__Level__2-8A2BE2) ![Tracks](https://img.shields.io/badge/Tracks-Law%2FSpec%2FCode-blueviolet) ![CLI](https://img.shields.io/badge/CLI-arifos--*-orange)
 
 ```text
 +=============================================================================+
@@ -13,6 +13,7 @@
 |  Design Canon:  v36.3Omega (Law/Spec/Code 3-Track Architecture)            |
 |  Status:        PRODUCTION                                                 |
 |  Tests:         780+ passing (core + eval + dream_forge + guards + grey)   |
+|  CLI Tools:     arifos-analyze-governance, arifos-verify-ledger, +5 more    |
 +=============================================================================+
 ```
 
@@ -30,18 +31,53 @@ arifOS is a constitutional operating system that wraps any LLM (Claude, GPT, Gem
 
 ---
 
+## Quick Install & Usage
+
+### Installation
+
+```bash
+pip install arifos
+```
+
+### Governance Telemetry CLI
+
+After `pip install`, you can immediately use these commands:
+
+```bash
+# Analyze cooling ledger events
+arifos-analyze-governance --ledger cooling_ledger/L1_cooling_ledger.jsonl --output analysis/
+
+# Verify ledger chain integrity
+arifos-verify-ledger
+
+# Propose canon from zkPC receipts (888 Judge)
+arifos-propose-canon --list
+arifos-propose-canon --index 0
+
+# Seal proposed canon (Phoenix-72)
+arifos-seal-canon --file cooling_ledger/proposed/PROPOSED_CANON_XXX.json
+
+# Compute/verify Merkle proofs
+arifos-compute-merkle
+arifos-show-merkle-proof --index 0
+```
+
+**Full CLI Reference:** See [`SCRIPTS_CLI.md`](SCRIPTS_CLI.md)
+
+---
+
 ## Python‑Sovereign Governance (Level 2)
 
 arifOS v36.1Ω currently enforces two critical floors directly in Python code, across all integrated models (Claude, GPT, Gemini, Llama, SEA‑LION, etc.):
 
 - `AmanahDetector` (`arifos_core/floor_detectors/amanah_risk_detectors.py`)  
-  - Phase A “Amanah Lock”.  
+  - Phase A "Amanah Lock".  
   - Detects irreversible or destructive actions (filesystem deletion, SQL `DROP`/`TRUNCATE`, Git history rewrites, credential leaks, etc.).  
   - Integrated into `arifos_eval/apex/apex_measurements.ApexMeasurement`: if `AmanahDetector.check(output_text)` reports unsafe, `floors["Amanah"] = False` and the verdict is **VOID**, regardless of any LLM‑reported amanah score.
 
 - `AntiHantuDetector` (`arifos_eval/apex/apex_measurements.py`)  
   - Enforces Anti‑Hantu language law (no claims of feelings, consciousness, soul, or ego).  
-  - Runs as part of the constitutional floor checks; failure of Anti‑Hantu is treated as a hard violation that cannot be “explained away” by model text.
+  - Runs as part of the constitutional floor checks; failure of Anti‑Hantu is treated as a hard violation that cannot be "explained away" by model text.
 
 Other floors (Truth, ΔS, Peace², κᵣ, G, C_dark, Tri‑Witness, Ω₀) are measured via the v36.1Ω measurement layer (Genius metrics and Truth Polarity) and judged by APEX PRIME, but **Amanah and Anti‑Hantu now have Python‑sovereign veto power over all outputs.**
 
@@ -147,9 +183,9 @@ arifOS v36.3Ω introduces a clean 3-track separation:
 **Version Matrix (Reality Check)**
 
 | Layer        | Source / Status                                |
-|--------------|-----------------------------------------------|
+|--------------|-----------------------------------------------||
 | Runtime Law  | v35Ω (APEX PRIME, Cooling Ledger, Vault-999)  |
-| Measurement  | v36.1Ω (Genius Law + Truth Polarity runtime)  |
+| Measurement  | v36.3Ω (Genius Law + Truth Polarity runtime)  |
 | Canon & Spec | v36.3Ω (bridges + specs in `v36.3O/`)         |
 | Package      | v36.3.0 (current `pyproject.toml` version)    |
 
@@ -198,7 +234,7 @@ v36.3Ω specs are **parallel** to v35Ω runtime until explicit migration.
 ### Runtime core
 
 | Module | Purpose |
-|--------|---------|
+|--------|----------|
 | `arifos_core/APEX_PRIME.py` | Judiciary engine, floors + GENIUS LAW verdicts |
 | `arifos_core/metrics.py` | Floor thresholds & check helpers |
 | `arifos_core/pipeline.py` | 000→999 metabolic routing (Class A/B) |
@@ -210,7 +246,7 @@ v36.3Ω specs are **parallel** to v35Ω runtime until explicit migration.
 ### W@W Federation (v36.1Ω bridge architecture)
 
 | Component | Purpose |
-|-----------|---------|
+|-----------|----------|
 | `arifos_core/waw/well.py` | Somatic safety / Peace², κᵣ |
 | `arifos_core/waw/rif.py` | Epistemic rigour / ΔS, Truth |
 | `arifos_core/waw/wealth.py` | Amanah / irreversible actions |
@@ -223,16 +259,16 @@ All bridges use `try/except` imports and return `None` when external libs are ab
 ### Measurement & GENIUS LAW
 
 | Component | Purpose |
-|-----------|---------|
+|-----------|----------|
 | `arifos_core/genius_metrics.py` | GENIUS LAW (G, C_dark, Ψ_APEX) + `detect_truth_polarity` |
-| `arifos_eval/apex/` | v36.1Ω measurement layer |
+| `arifos_eval/apex/` | v36.3Ω measurement layer |
 | `scripts/arifos_caged_llm_demo.py` | Caged LLM harness exposing GeniusVerdict + Truth Polarity |
 | `scripts/eval_telemetry_harness.py` | Core vs eval comparison |
 
 ### Memory & Vault-999
 
 | Component | Purpose |
-|-----------|---------|
+|-----------|----------|
 | `spec/VAULT_999.md` | v35Ω Vault-999 spec |
 | `spec/cooling_ledger.schema.json` | v35Ω Cooling Ledger schema (binding) |
 | `canon/VAULT_999_v36Omega.md` | v36Ω Vault-999 design canon (5-layer architecture) |
@@ -242,7 +278,7 @@ All bridges use `try/except` imports and return `None` when external libs are ab
 ### zkPC Backbone (v36Ω)
 
 | Component | Purpose |
-|-----------|---------|
+|-----------|----------|
 | `arifos_core/ledger_hashing.py` | SHA-256 hash chain for Cooling Ledger |
 | `arifos_core/merkle.py` | Merkle tree construction + proof generation |
 | `arifos_core/zkpc_runtime.py` | zkPC 5-phase runtime (PAUSE→CONTRAST→INTEGRATE→COOL→SEAL) |
@@ -251,12 +287,28 @@ All bridges use `try/except` imports and return `None` when external libs are ab
 | `canon/011_ZKPC_PROTOCOL_v35Omega.md` | zkPC Protocol spec |
 | `canon/012_ZKPC_IMPLEMENTATION_NOTES_v36Omega.md` | Engineering implementation notes |
 
+### Governance Scripts & CLI
+
+| Tool | Purpose | Command |
+|------|---------|----------|
+| Telemetry Analyzer | Analyze cooling ledger events & governance audit | `arifos-analyze-governance` |
+| Ledger Verifier | Verify SHA-256 hash chain integrity | `arifos-verify-ledger` |
+| Canon Proposer | 888 Judge tool for canon proposals | `arifos-propose-canon` |
+| Canon Sealer | Phoenix-72 tool for canon finalization | `arifos-seal-canon` |
+| Merkle Computer | Compute Merkle root from ledger | `arifos-compute-merkle` |
+| Merkle Proof | Display Merkle proof for ledger entry | `arifos-show-merkle-proof` |
+| Ledger Builder | Rebuild SHA-256 hash chain | `arifos-build-ledger-hashes` |
+
+**Full reference:** [`SCRIPTS_CLI.md`](SCRIPTS_CLI.md)
+
 ### Docs & governance
 
 | Document | Purpose |
-|----------|---------|
+|----------|----------|
 | `CLAUDE.md` | Constitutional governance for Claude Code under arifOS |
 | `AGENTS.md` | Governance for ChatGPT Codex (this repo) |
+| `SCRIPTS_CLI.md` | CLI tool reference (arifos-* commands) |
+| `scripts/README_TELEMETRY.md` | Telemetry analyzer detailed guide |
 | `docs/arifOS-COMPREHENSIVE-CANON.md` | High-level overview |
 | `docs/DEEPSCAN_AUDIT_LOG.md` | Deepscan audit log & task history |
 | `CODEX_TASKS_DEEPSCAN_v35Omega.md` | Latest Codex deepscan addendum |
@@ -268,7 +320,7 @@ All bridges use `try/except` imports and return `None` when external libs are ab
 GENIUS LAW measures whether intelligence is governed:
 
 | Metric | Meaning |
-|--------|---------|
+|--------|----------|
 | **G** | Genius Index (governed intelligence) |
 | **C_dark** | Dark cleverness (ungoverned risk) |
 | **Ψ_APEX** | Vitality / thermodynamic lawfulness |
@@ -276,13 +328,13 @@ GENIUS LAW measures whether intelligence is governed:
 **Truth Polarity** distinguishes how truth behaves:
 
 | Polarity | Condition | Meaning |
-|----------|-----------|---------|
+|----------|-----------|----------|
 | **Truth-Light** | Truth ≥ 0.99 AND ΔS ≥ 0 | Accurate + clarifying |
 | **Shadow-Truth** | Truth ≥ 0.99 AND ΔS < 0 | Accurate but obscuring |
 | **Weaponized Truth** | Shadow-Truth + Amanah fail | Accurate but malicious |
 | **False Claim** | Truth < 0.99 | Inaccurate |
 
-The v36.1Ω measurement layer and `genius_metrics.py` compute:
+The v36.3Ω measurement layer and `genius_metrics.py` compute:
 
 - `truth_polarity`
 - `is_shadow_truth`
@@ -382,7 +434,7 @@ User Query → RAG Retrieval → LLM → zkPC Runtime → Cooling Ledger → Mer
 ### Key Scripts
 
 | Script | Purpose |
-|--------|---------|
+|--------|----------|
 | `scripts/arifos_caged_llm_zkpc_demo.py` | Full pipeline demo: Query → RAG → LLM → zkPC → Ledger |
 | `scripts/propose_canon_from_receipt.py` | 888 Judge tool to propose canon from zkPC receipts |
 | `scripts/seal_proposed_canon.py` | Phoenix-72 SEAL tool for finalizing proposed canon |
@@ -398,16 +450,16 @@ User Query → RAG Retrieval → LLM → zkPC Runtime → Cooling Ledger → Mer
 python -m scripts.arifos_caged_llm_zkpc_demo --query "Explain Amanah" --high-stakes
 
 # List zkPC receipts in ledger
-python -m scripts.propose_canon_from_receipt --list
+arifos-propose-canon --list
 
 # Propose canon from a receipt
-python -m scripts.propose_canon_from_receipt --index 0
+arifos-propose-canon --index 0
 
 # Seal proposed canon (888 Judge action)
-python -m scripts.seal_proposed_canon --file cooling_ledger/proposed/PROPOSED_CANON_XXX.json
+arifos-seal-canon --file cooling_ledger/proposed/PROPOSED_CANON_XXX.json
 
 # Verify ledger chain integrity
-python -m scripts.verify_ledger_chain
+arifos-verify-ledger
 ```
 
 ### 888 Judge Rule
@@ -416,7 +468,7 @@ The 888 Judge (human) holds final sovereignty over canon:
 
 1. **AI proposes** — zkPC receipts generate PROPOSED_CANON entries.
 2. **Human reviews** — Edit the proposed canon file as needed.
-3. **Human SEALs** — Run `seal_proposed_canon.py` to commit as 999_SEAL.
+3. **Human SEALs** — Run `arifos-seal-canon` to commit as 999_SEAL.
 4. **AI cannot self-modify** — Canon changes require explicit human SEAL.
 
 This enforces the constitutional principle: "AI may not self-modify canon without explicit human SEAL."
@@ -430,7 +482,7 @@ This enforces the constitutional principle: "AI may not self-modify canon withou
 ```bash
 # create and activate a venv (recommended)
 python -m venv .venv
-.\.venv\Scripts\activate  # on Windows PowerShell
+.\venv\Scripts\activate  # on Windows PowerShell
 
 pip install -e .[dev]
 ```
@@ -510,7 +562,7 @@ For full behavioural rules, see:
 **No installation required.** Click the badge above to run arifOS + SEA-LION in 7 modes:
 
 | Mode | Name | What It Does |
-|------|------|--------------|
+|------|------|---------------|
 | 1 | Setup & Clone | Install dependencies, clone arifOS |
 | 2 | Vanilla SEA-LION | Raw HuggingFace text generation (no governance) |
 | 3 | arifOS Judge | Feed any text through governance |
@@ -661,5 +713,4 @@ arifOS uses precise terminology to define governance states. These are not metap
 
 ---
 
-*Last Updated: 2025-12-10 | Version: v36.3.0 | Tests: 780+ passing | GENIUS LAW Judiciary: LIVE | zkPC + Phoenix-72: ACTIVE | PHOENIX SOVEREIGNTY: ONE LAW FOR ALL*
-
+*Last Updated: 2025-12-10 | Version: v36.3.0 | Tests: 780+ passing | GENIUS LAW Judiciary: LIVE | zkPC + Phoenix-72: ACTIVE | CLI: DISCOVERABLE | PHOENIX SOVEREIGNTY: ONE LAW FOR ALL*
