@@ -12,7 +12,7 @@
 |  Measurement:   v36.3Omega (GENIUS LAW + Truth Polarity + 9 Specs)         |
 |  Design Canon:  v36.3Omega (Law/Spec/Code 3-Track Architecture)            |
 |  Status:        PRODUCTION                                                 |
-|  Tests:         780+ passing (core + eval + dream_forge + guards + grey)   |
+|  Tests:         844 passing (core + eval + dream_forge + guards + grey)    |
 |  CLI Tools:     arifos-analyze-governance, arifos-verify-ledger, +5 more    |
 +=============================================================================+
 ```
