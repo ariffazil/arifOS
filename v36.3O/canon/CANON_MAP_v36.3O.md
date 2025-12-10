@@ -318,6 +318,51 @@ The 00_CANON folder contains meta/seed canon that defines interpretation, parado
 
 ---
 
+## 9. METABOLIZER LOOP (LLM Integration)
+
+### Canon Files
+- **`canon/00_META/050_METABOLIZER_LOOP_v36.3Omega.md`** — Encoder-Decoder-Metabolizer cognitive circuit
+- **`canon/00_META/051_METABOLIZER_LOOP_LLM_INTEGRATION_v36.3Omega.md`** — LLM placement and governance
+
+### Constructs
+- **Encoder Loop** — Canon → Spec → Code → Output (forward generation)
+- **Decoder Loop** — Output → Telemetry → Spec → Canon (reverse audit)
+- **Metabolizer Loop** — Canon → 777 → Dream Forge → Phoenix-72 → Canon(vNext) (evolution)
+- **LLM as Generator** — Raw generation inside CODE layer, governed by AAA + Spec
+- **LLM as Auditor** — Self-check inside TELEMETRY layer, cannot issue verdicts
+- **LLM as Metabolizer** — Scar analysis inside 777 + Dream Forge, cannot modify canon
+- **Engine vs Driver** — LLM is the engine (power), arifOS is the chassis/brakes/steering (governance)
+
+### Constitutional Limits
+The LLM is NOT permitted to:
+- self-govern or self-amend laws
+- self-override APEX PRIME verdicts
+- claim identity, emotion, or sentience (Anti-Hantu)
+- bypass the 9 Floors
+- finalize any action without telemetry
+- issue SEAL/PARTIAL/VOID/SABAR/HOLD-888 codes
+- write canon without Phoenix-72 approval
+
+### Runtime Targets
+- `arifos_core/engines/arif_engine.py` — LLM Generator (ARIF)
+- `arifos_core/engines/adam_engine.py` — LLM Generator (ADAM)
+- `arifos_core/telemetry.py` — LLM Auditor
+- `arifos_core/APEX_PRIME.py` — LLM Auditor validation
+- `arifos_core/dream_forge/crucible.py` — LLM Metabolizer
+- `arifos_core/dream_forge/anvil.py` — LLM Metabolizer
+- `arifos_core/memory/phoenix72.py` — LLM Metabolizer output target
+
+### Tests
+- `tests/test_governance_regression.py`
+- `tests/test_grey_zone.py`
+- `tests/test_anti_hantu_f9.py`
+- `tests/test_dream_forge.py`
+
+### Specs (v36.3Ω)
+- **`v36.3O/spec/llm_governance_spec_v36.3O.yaml`** — LLM roles, packets, constraints, safety rules
+
+---
+
 ## PARADOX_HOTSPOTS
 
 Known conflicts or ambiguities between v36.3Ω canon and older versions:
