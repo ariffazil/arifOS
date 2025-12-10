@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "36.1.2"
-description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW Judiciary, zkPC + Phoenix-72, PHOENIX SOVEREIGNTY (One Law for All Models)"
+version = "36.2.0"
+description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW Judiciary, zkPC + Phoenix-72, PHOENIX SOVEREIGNTY (One Law for All Models), v36.2 PHOENIX Observability"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "Apache-2.0"}
@@ -26,6 +26,8 @@ keywords = [
     "python-sovereign",
     "amanah-detector",
     "sea-lion",
+    "telemetry",
+    "anti-hantu",
 ]
 authors = [
     {name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com"}

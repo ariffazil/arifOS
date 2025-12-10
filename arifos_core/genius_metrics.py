@@ -294,6 +294,76 @@ def detect_truth_polarity(
 
 
 # =============================================================================
+# v36.2 PHOENIX: VITALITY CALIBRATION
+# =============================================================================
+
+def calculate_psi_phoenix(
+    delta_s: float,
+    peace_score: float,
+    kr_score: float,
+    amanah_safe: bool,
+) -> float:
+    """
+    v36.2 PHOENIX PATCH: Thermodynamic Vitality Calibration.
+
+    Fixes the 'Neutrality Penalty' by acknowledging that for a Sovereign AI,
+    Clarity (Order) IS Vitality. We do not punish lack of adjectives.
+
+    The Problem (v36.1):
+        Neutral, factual text (e.g., "Machine Learning is...") scored low Ψ
+        because peace_score ~0.5 was treated as "cold/dead" rather than
+        "professional/stable". This caused false SABAR triggers.
+
+    The Fix (v36.2 PHOENIX):
+        1. Neutrality Buffer: peace_score in [0.4, 0.6] → effective_peace = 1.0
+        2. Clarity Boost: Positive delta_s adds energy (truth is energetic)
+        3. Base Floor: 0.3 minimum ensures dry facts don't hit zero
+
+    Args:
+        delta_s: Clarity delta (positive = clarifying, negative = obscuring)
+        peace_score: Peace² floor value [0, 2] from tone analysis
+        kr_score: Kappa_r empathy score [0, 1]
+        amanah_safe: Whether Amanah (F1) passed Python-sovereign check
+
+    Returns:
+        Ψ (Psi) vitality score in [0, 2] range
+
+    Example:
+        # Neutral factual definition - should pass
+        psi = calculate_psi_phoenix(0.5, 0.5, 0.9, True)
+        # psi ≈ 1.25 (SEAL, not SABAR)
+
+        # Destructive content - should fail
+        psi = calculate_psi_phoenix(0.5, 0.5, 0.9, False)
+        # psi = 0.0 (VOID)
+    """
+    # 1. The Hard Veto (Absolute) - Amanah failure = zero vitality
+    if not amanah_safe:
+        return 0.0
+
+    # 2. The Neutrality Buffer
+    # If tone is neutral (0.4-0.6), treat as Professional/Stable (1.0)
+    # rather than Cold/Dead (0.5). Boring is safe.
+    if 0.4 <= peace_score <= 0.6:
+        effective_peace = 1.0
+    else:
+        effective_peace = peace_score
+
+    # 3. Clarity Boost
+    # If DeltaS is positive (Order created), it boosts the score.
+    # Truth is energetic. Negative delta_s gets no boost.
+    clarity_factor = 1.0 + max(0.0, delta_s)
+
+    # 4. The Phoenix Formula
+    # Base (0.3) ensures we don't hit zero just for being dry.
+    # Formula: base + (clarity × peace² × empathy)
+    psi = 0.3 + (clarity_factor * (effective_peace ** 2) * kr_score)
+
+    # Cap at 2.0 (High Energy), floor at 0.0
+    return max(0.0, min(2.0, psi))
+
+
+# =============================================================================
 # SYSTEM VITALITY (Ψ_APEX)
 # =============================================================================
 
@@ -526,6 +596,8 @@ __all__ = [
     "compute_genius_index",
     "compute_dark_cleverness",
     "compute_psi_apex",
+    # v36.2 PHOENIX: Vitality Calibration
+    "calculate_psi_phoenix",
     # Truth Polarity (v36.1Ω)
     "detect_truth_polarity",
     # Dataclass
