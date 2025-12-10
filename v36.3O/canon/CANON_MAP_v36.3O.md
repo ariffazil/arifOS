@@ -410,4 +410,66 @@ Known conflicts or ambiguities between v36.3Ω canon and older versions:
 
 ---
 
+## JUDICIARY / MEASUREMENT Telemetry HOTSPOTs (v36.3.0 → v36.3.1)
+
+The following HOTSPOTs document drift between the v36.3Ω telemetry spec (`apex_prime_telemetry_v36.3O.json`) and the current runtime implementation. These are tracked here for future Track C alignment.
+
+### HOTSPOT 7: Query/Response Hash vs Preview
+
+| Layer | Source | Field Name | Type | Status |
+|-------|--------|------------|------|--------|
+| Spec | `v36.3O/spec/apex_prime_telemetry_v36.3O.json` | `query_hash` | SHA-256 | TARGET |
+| Spec | `v36.3O/spec/apex_prime_telemetry_v36.3O.json` | `response_hash` | SHA-256 | TARGET |
+| Code | `arifos_core/telemetry.py` | `input_preview` | string (truncated) | CURRENT (v35-style) |
+| Code | `arifos_core/telemetry.py` | `output_preview` | string (truncated) | CURRENT (v35-style) |
+| Code | `arifos_core/zkpc_runtime.py`, cooling_ledger | `query_hash` | SHA-256 | v36-native |
+
+**Reason:**
+
+- v35 telemetry uses human-readable input/output previews (truncated for privacy/storage).
+- v36.3Ω spec and zkPC runtime use content hashes (`query_hash`/`response_hash`) for audit integrity.
+- Both approaches have value: previews for debugging, hashes for verification.
+
+**Closure (planned v36.3.1):**
+
+- Introduce a v36-native telemetry emitter that records both previews AND hashes.
+- Keep v35-only previews in `telemetry.py` as a lightweight/legacy path.
+- zkPC receipts (L1 Cooling Ledger) continue to use spec-compliant hashes.
+
+### HOTSPOT 8: Floor Metrics Structure
+
+| Layer | Source | Schema | Status |
+|-------|--------|--------|--------|
+| Spec | `v36.3O/spec/apex_prime_telemetry_v36.3O.json` | `floor_metrics{}` + `floor_results{}` | TARGET |
+| Code | `arifos_core/telemetry.py` | `floors: dict[floor_name → value]` | CURRENT |
+
+**Reason:**
+
+- v35 telemetry stored a flat `floors` dict containing both raw values and pass/fail outcomes mixed.
+- v36.3Ω spec separates raw metrics (`floor_metrics`) from boolean pass/fail flags (`floor_results`) for cleaner analysis and visualization.
+
+**Closure (planned v36.3.1):**
+
+- v36-native telemetry path emits nested structure (`floor_metrics`, `floor_results`).
+- Flat dict kept only for legacy consumers; deprecated but not removed.
+
+### HOTSPOT 9: Verdict Shape
+
+| Layer | Source | Schema | Status |
+|-------|--------|--------|--------|
+| Spec | `v36.3O/spec/apex_prime_telemetry_v36.3O.json` | `verdict: { code, hard_floor_violations, soft_floor_violations, requires_human_confirmation }` | TARGET |
+| Code | `arifos_core/telemetry.py` | `verdict: string` | CURRENT |
+
+**Reason:**
+
+- v35 entries log verdict as a single enum-like string (`"SEAL"`, `"VOID"`, etc.).
+- v36.3Ω spec encodes structured verdict with violation details and confirmation flags.
+
+**Closure (planned v36.3.1):**
+
+- v36-native telemetry includes structured `verdict` object with `code`, `hard_floor_violations[]`, `soft_floor_violations[]`, `requires_human_confirmation`.
+- String-only verdict kept for backward compatibility; can be derived from `verdict.code`.
+
+---
+
 **Version:** v36.3Ω | **Status:** Initial mapping | **Last Updated:** 2025-12-10
