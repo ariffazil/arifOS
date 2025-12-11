@@ -24,6 +24,7 @@ from typing import Any, Callable, Dict, List, Optional
 from .APEX_PRIME import apex_review, ApexVerdict
 from .metrics import Metrics
 from .eye_sentinel import EyeSentinel, EyeReport
+from .waw.federation import WAWFederationCore, FederationVerdict
 
 # AAA Engines (internal facade - v35.8.0)
 from .engines import ARIFEngine, ADAMEngine
@@ -75,6 +76,9 @@ class PipelineState:
     verdict: Optional[ApexVerdict] = None
     floor_failures: List[str] = field(default_factory=list)
 
+    # W@W Federation verdict (v36.3Ω)
+    waw_verdict: Optional[FederationVerdict] = None
+
     # Control signals
     sabar_triggered: bool = False
     sabar_reason: Optional[str] = None
@@ -96,7 +100,7 @@ class PipelineState:
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize state for logging."""
-        return {
+        result: Dict[str, Any] = {
             "query": self.query,
             "job_id": self.job_id,
             "stakes_class": self.stakes_class.value,
@@ -107,6 +111,27 @@ class PipelineState:
             "hold_888_triggered": self.hold_888_triggered,
             "elapsed_ms": (time.time() - self.start_time) * 1000,
         }
+        # W@W Federation verdict (v36.3Ω)
+        if self.waw_verdict is not None:
+            result["waw"] = {
+                "@WEALTH": self._get_organ_vote("@WEALTH"),
+                "@RIF": self._get_organ_vote("@RIF"),
+                "@WELL": self._get_organ_vote("@WELL"),
+                "@GEOX": self._get_organ_vote("@GEOX"),
+                "@PROMPT": self._get_organ_vote("@PROMPT"),
+                "verdict": self.waw_verdict.verdict,
+                "has_absolute_veto": self.waw_verdict.has_absolute_veto,
+            }
+        return result
+
+    def _get_organ_vote(self, organ_id: str) -> str:
+        """Helper to get organ vote string from waw_verdict."""
+        if self.waw_verdict is None:
+            return "N/A"
+        for signal in self.waw_verdict.signals:
+            if signal.organ_id == organ_id:
+                return signal.vote.value
+        return "N/A"
 
 
 # =============================================================================
@@ -412,19 +437,62 @@ def stage_888_judge(
 
     # Get verdict from APEX PRIME
     high_stakes = state.stakes_class == StakesClass.CLASS_B
-    state.verdict = apex_review(
+    apex_verdict = apex_review(
         state.metrics,
         high_stakes=high_stakes,
         tri_witness_threshold=0.95,
         eye_blocking=eye_blocking,
     )
 
+    # =========================================================================
+    # W@W FEDERATION CHECK (v36.3Ω)
+    # Run all 5 organs and merge with APEX verdict
+    # =========================================================================
+    waw_federation = WAWFederationCore()
+    state.waw_verdict = waw_federation.evaluate(
+        output_text=state.draft_response,
+        metrics=state.metrics,
+        context={"stakes_class": state.stakes_class.value},
+    )
+
+    # Merge W@W verdict with APEX verdict
+    # Priority: @EYE SABAR > @WEALTH ABSOLUTE > @RIF VOID > @GEOX HOLD-888 > @WELL/@PROMPT SABAR > APEX
+    # Note: @EYE blocking triggers SABAR in APEX; preserve that for user reconsideration
+    final_verdict = apex_verdict
+
+    # @EYE blocking takes precedence - preserve SABAR for user to reconsider
+    if eye_blocking and apex_verdict == "SABAR":
+        # Keep SABAR; W@W violations will be logged but don't override @EYE
+        pass
+    elif state.waw_verdict.has_absolute_veto:
+        # @WEALTH Amanah LOCK - absolute veto overrides everything
+        final_verdict = "VOID"
+        state.sabar_reason = "@WEALTH absolute veto (Amanah breach)"
+    elif "@RIF" in state.waw_verdict.veto_organs:
+        # @RIF epistemic veto - VOID
+        final_verdict = "VOID"
+        state.sabar_reason = "@RIF epistemic veto (Truth/ΔS breach)"
+    elif "@GEOX" in state.waw_verdict.veto_organs:
+        # @GEOX physics veto - HOLD-888 (runtime compat)
+        final_verdict = "888_HOLD"
+        state.sabar_reason = "@GEOX physics veto (reality check)"
+    elif state.waw_verdict.has_veto:
+        # Other vetoes (@WELL, @PROMPT) - SABAR
+        final_verdict = "SABAR"
+        state.sabar_reason = f"W@W veto from: {', '.join(state.waw_verdict.veto_organs)}"
+    elif state.waw_verdict.has_warn and apex_verdict == "SEAL":
+        # W@W WARN downgrades SEAL to PARTIAL
+        final_verdict = "PARTIAL"
+
+    state.verdict = final_verdict
+
     # Check for 888_HOLD or SABAR
     if state.verdict == "888_HOLD":
         state.hold_888_triggered = True
     elif state.verdict in ("VOID", "SABAR"):
         state.sabar_triggered = True
-        state.sabar_reason = "Floor failures in 888_JUDGE"
+        if state.sabar_reason is None:
+            state.sabar_reason = "Floor failures in 888_JUDGE"
 
     return state
 
@@ -632,7 +700,7 @@ class Pipeline:
     def _finalize(self, state: PipelineState) -> PipelineState:
         """Log to ledger and return final state."""
         if self.ledger_sink and state.metrics:
-            entry = {
+            entry: Dict[str, Any] = {
                 "job_id": state.job_id,
                 "query": state.query[:200],
                 "stakes_class": state.stakes_class.value,
@@ -642,6 +710,19 @@ class Pipeline:
                 "sabar_triggered": state.sabar_triggered,
                 "hold_888_triggered": state.hold_888_triggered,
             }
+            # W@W Federation verdict (v36.3Ω)
+            if state.waw_verdict is not None:
+                entry["waw"] = {
+                    "@WEALTH": state._get_organ_vote("@WEALTH"),
+                    "@RIF": state._get_organ_vote("@RIF"),
+                    "@WELL": state._get_organ_vote("@WELL"),
+                    "@GEOX": state._get_organ_vote("@GEOX"),
+                    "@PROMPT": state._get_organ_vote("@PROMPT"),
+                    "verdict": state.waw_verdict.verdict,
+                    "has_absolute_veto": state.waw_verdict.has_absolute_veto,
+                    "veto_organs": state.waw_verdict.veto_organs,
+                    "warn_organs": state.waw_verdict.warn_organs,
+                }
             self.ledger_sink(entry)
 
         return state

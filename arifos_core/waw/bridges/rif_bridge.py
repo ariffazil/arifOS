@@ -37,19 +37,19 @@ from typing import Any, Dict, List, Optional
 # on any specific vendor library.
 
 try:  # pragma: no cover - optional dependency
-    import ragas  # type: ignore
+    import ragas  # type: ignore[import-not-found]
 
     HAS_RAGAS = True
 except Exception:  # pragma: no cover - import failure is allowed
-    ragas = None  # type: ignore
+    ragas = None
     HAS_RAGAS = False
 
 try:  # pragma: no cover - optional dependency
-    import dspy  # type: ignore
+    import dspy  # type: ignore[import-not-found]
 
     HAS_DSPY = True
 except Exception:  # pragma: no cover
-    dspy = None  # type: ignore
+    dspy = None
     HAS_DSPY = False
 
 

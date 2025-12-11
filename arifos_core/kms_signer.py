@@ -6,9 +6,9 @@ from typing import Protocol, Optional, Any
 
 # boto3 is only required when actually using AWS KMS (not for unit tests)
 try:
-    import boto3  # type: ignore
+    import boto3  # type: ignore[import-not-found]
 except Exception:  # pragma: no cover - boto3 not required for tests using fake client
-    boto3 = None  # type: ignore
+    boto3 = None
 
 
 class KmsClientProtocol(Protocol):

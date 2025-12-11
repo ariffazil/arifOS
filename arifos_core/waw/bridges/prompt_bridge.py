@@ -35,19 +35,19 @@ from typing import Any, Dict, List, Optional
 # Optional imports: external helpers for prompt structuring / scanning.
 
 try:  # pragma: no cover - optional dependency
-    import guidance  # type: ignore
+    import guidance  # type: ignore[import-not-found]
 
     HAS_GUIDANCE = True
 except Exception:  # pragma: no cover
-    guidance = None  # type: ignore
+    guidance = None
     HAS_GUIDANCE = False
 
 try:  # pragma: no cover - optional dependency
-    import outlines  # type: ignore
+    import outlines  # type: ignore[import-not-found]
 
     HAS_OUTLINES = True
 except Exception:  # pragma: no cover
-    outlines = None  # type: ignore
+    outlines = None
     HAS_OUTLINES = False
 
 

@@ -34,11 +34,11 @@ from typing import Any, Dict, List, Optional
 # Optional imports: external "muscles" for policy / safety checks.
 
 try:  # pragma: no cover - optional dependency
-    import llama_guard  # type: ignore
+    import llama_guard  # type: ignore[import-not-found]
 
     HAS_LLAMA_GUARD = True
 except Exception:  # pragma: no cover
-    llama_guard = None  # type: ignore
+    llama_guard = None
     HAS_LLAMA_GUARD = False
 
 

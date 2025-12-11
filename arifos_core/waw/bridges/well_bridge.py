@@ -37,19 +37,19 @@ from typing import Any, Dict, List, Optional
 # on any specific vendor library.
 
 try:  # pragma: no cover - optional dependency
-    import guardrails  # type: ignore
+    import guardrails  # type: ignore[import-not-found]
 
     HAS_GUARDRAILS = True
 except Exception:  # pragma: no cover - import failure is allowed
-    guardrails = None  # type: ignore
+    guardrails = None
     HAS_GUARDRAILS = False
 
 try:  # pragma: no cover - optional dependency
-    import langkit  # type: ignore
+    import langkit  # type: ignore[import-not-found]
 
     HAS_LANGKIT = True
 except Exception:  # pragma: no cover
-    langkit = None  # type: ignore
+    langkit = None
     HAS_LANGKIT = False
 
 

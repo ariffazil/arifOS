@@ -112,6 +112,46 @@ Notes:
 
 **Conflict Resolution:** @WEALTH veto > @WELL safety > @GEOX reality > others
 
+### 3.1 @PROMPT - Constitutional Prompt Governance Organ (v36.3Omega)
+
+@PROMPT is the Language & Prompt Governance Organ of W@W Federation.
+
+**Mandate:** Shape cognition at the point of entry. Prevent ungoverned framing.
+
+**Enforces:**
+
+- Anti-Hantu Law (F9) - No consciousness or emotion claims
+- Clarity (DeltaS_prompt >= 0.0) - Prompts must gain/maintain clarity
+- Tone Safety (Peace2 >= 1.0, k_r >= 0.95) - Non-inflammatory framing
+- Integrity (Amanah) - No irreversible harm
+- Honesty (C_dark < 0.30) - No manipulation
+
+**Usage:**
+
+```python
+# Basic prompt scoring
+from arifos_core.waw.prompt import compute_prompt_signals
+signals = compute_prompt_signals(user_text, prompt_text)
+# signals.preliminary_verdict -> SEAL/PARTIAL/VOID/SABAR
+
+# Meta-Prompter (governed prompt generation)
+from arifos_core.waw.prompt_meta_engine import meta_prompt_engine
+result = meta_prompt_engine(user_text, num_candidates=3, apply_sabar=True)
+# result.final_prompt, result.governance_report
+```
+
+**Pipeline Integration:**
+
+- Stage 555 EMPA: Compute Peace2, k_r
+- Stage 666 ALIG: Apply floors F1-F9 to prompts
+- Stage 888 JUDGE: APEX PRIME reads governance_report
+- Stage 999 SEAL: Emit governed prompt + Cooling Ledger entry
+
+**See:**
+
+- [canon/30_WAW_PROMPT_v36.3Omega.md](canon/30_WAW_PROMPT_v36.3Omega.md) - Constitutional law
+- [docs/WAW_PROMPT_OVERVIEW.md](docs/WAW_PROMPT_OVERVIEW.md) - Implementation guide
+
 ## 4. SECURITY GUARDRAILS
 
 ### 4.1 Hard Stops (VOID immediately)

@@ -141,7 +141,51 @@ exclude = [
 "tests/test_waw_organs.py" = ["F401", "F811"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
+warn_unused_ignores = true
 disallow_untyped_defs = false
+# Strict checking for core governance path (v36.3Omega)
+# Files: metrics, genius_metrics, APEX_PRIME, pipeline, waw/*
+
+[[tool.mypy.overrides]]
+# Core governance modules - stricter type enforcement
+module = [
+    "arifos_core.metrics",
+    "arifos_core.genius_metrics",
+    "arifos_core.APEX_PRIME",
+    "arifos_core.pipeline",
+    "arifos_core.waw.*",
+]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+warn_return_any = true
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+# Ignore missing stubs for third-party libraries
+module = [
+    "numpy.*",
+    "pydantic.*",
+    # Optional bridge dependencies (not required for core)
+    "boto3.*",
+    "guardrails.*",
+    "langkit.*",
+    "llama_guard.*",
+    "ragas.*",
+    "dspy.*",
+    "guidance.*",
+    "outlines.*",
+    "llama_index.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Bridge files have optional imports - suppress unused-ignore warnings
+module = [
+    "arifos_core.waw.bridges.*",
+    "arifos_core.kms_signer",
+]
+warn_unused_ignores = false

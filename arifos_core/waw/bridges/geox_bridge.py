@@ -37,11 +37,11 @@ from typing import Any, Dict, List, Optional
 # on any specific vendor library.
 
 try:  # pragma: no cover - optional dependency
-    import llama_index  # type: ignore
+    import llama_index  # type: ignore[import-not-found]
 
     HAS_LLAMA_INDEX = True
 except Exception:  # pragma: no cover - import failure is allowed
-    llama_index = None  # type: ignore
+    llama_index = None
     HAS_LLAMA_INDEX = False
 
 
