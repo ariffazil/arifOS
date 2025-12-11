@@ -12,7 +12,7 @@
 |  Measurement:   v36.3Omega (GENIUS LAW + Truth Polarity + 9 Specs)         |
 |  Design Canon:  v36.3Omega (Law/Spec/Code 3-Track Architecture)            |
 |  Status:        PRODUCTION                                                 |
-|  Tests:         844 passing (core + eval + dream_forge + guards + grey)    |
+|  Tests:         1060 passing (core + eval + waw + guards + grey)           |
 |  CLI Tools:     arifos-analyze-governance, arifos-verify-ledger, +5 more    |
 +=============================================================================+
 ```
@@ -217,7 +217,7 @@ Implementation of specs - **free to iterate**:
 - `arifos_core/dream_forge/` — O-TASK paradox cooling (Crucible, Anvil)
 - `arifos_core/guards/` — Session dependency guards
 - `arifos_core/telemetry.py` — JSONL governance logging
-- `tests/` — 780+ tests including grey zone and governance regression
+- `tests/` — 1060+ tests including grey zone and governance regression
 
 ### Runtime Law (v35Ω) — Still Binding
 
@@ -730,4 +730,4 @@ arifOS uses precise terminology to define governance states. These are not metap
 
 ---
 
-*Last Updated: 2025-12-11 | Version: v36.3.0 | Tests: 844 passing | GENIUS LAW Judiciary: LIVE | zkPC + Phoenix-72: ACTIVE | CLI: DISCOVERABLE | PHOENIX SOVEREIGNTY: ONE LAW FOR ALL*
+*Last Updated: 2025-12-11 | Version: v36.3.0 | Tests: 1060 passing | GENIUS LAW Judiciary: LIVE | zkPC + Phoenix-72: ACTIVE | CLI: DISCOVERABLE | PHOENIX SOVEREIGNTY: ONE LAW FOR ALL*

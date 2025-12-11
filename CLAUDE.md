@@ -178,4 +178,4 @@ SABAR > VOID > 888_HOLD > PARTIAL > SEAL
 
 ---
 
-**Version:** v36.3Ω (LAW+SPEC, runtime v35Ω) | **Tests:** 752+ passing
+**Version:** v36.3Ω (LAW+SPEC, runtime v35Ω) | **Tests:** 1060 passing

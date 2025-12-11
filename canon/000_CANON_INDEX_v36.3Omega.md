@@ -9,7 +9,7 @@
 +=============================================================================+
 |  Version:   v36.3Omega                                                      |
 |  Status:    CANONICAL                                                       |
-|  Tests:     844 passing                                                     |
+|  Tests:     1060 passing                                                    |
 |  Tracks:    Law / Spec / Code (3-Track Architecture)                        |
 +=============================================================================+
 ```
@@ -331,7 +331,7 @@ EUREKA (insight)
 | Dream Forge | `tests/test_dream_forge.py` | Anvil/Crucible |
 | Session Guard | `tests/test_session_dependency_guard.py` | Dependency injection |
 
-**Total: 844 tests passing, 4 skipped**
+**Total: 1060 tests passing, 4 skipped**
 
 ---
 
@@ -343,7 +343,7 @@ EUREKA (insight)
 | v36Omega | 2024-12 | GENIUS LAW, Truth Polarity |
 | v36.1Omega | 2024-12 | Measurement layer, Python-Sovereign |
 | v36.2 PHOENIX | 2025-12-08 | Ψ calibration, tokenizer hygiene, Anti-Hantu expansion |
-| v36.3Omega | 2025-12-11 | 3-Track Architecture (Law/Spec/Code), telemetry_v36, 844 tests |
+| v36.3Omega | 2025-12-11 | 3-Track Architecture (Law/Spec/Code), W@W Federation, mypy, 1060 tests |
 
 ---
 

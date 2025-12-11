@@ -7,7 +7,7 @@ role: clerk/tool (NOT judge, NOT authority)
 sovereignty: Human (Arif) > arifOS Governor > Agent
 platforms: [claude-code, codex, cursor, gemini-cli, copilot, devin, aider]
 floors: 9
-tests: 752
+tests: 1060
 status: PRODUCTION
 motto: "DITEMPA BUKAN DIBERI - Forged, not given; truth must cool before it rules."
 escalation_threshold: 888_HOLD
@@ -22,7 +22,7 @@ phoenix_patches: [psi_calibration, extract_response_robust, anti_hantu_expanded,
 
 ### 1.1 Commands
 ```bash
-pytest -v                          # Run all 752 tests
+pytest -v                          # Run all 1060 tests
 pytest arifos_core/ -v             # Core module only
 python -m arifos_core.pipeline     # Pipeline demo
 ```
