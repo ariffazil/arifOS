@@ -13,6 +13,7 @@
 | APEX_THEORY_PHYSICS_v36Omega.md | `canon/01_PHYSICS/` | Upstream seed |
 | APEX_THEORY_MATH_v36Omega.md | `canon/01_PHYSICS/` | Upstream seed |
 | APEX_GENIUS_LAW_v36Omega.md | `canon/01_PHYSICS/` | Upstream seed |
+| LAW_SCALING_COLLAPSE_v1.0Ω.md | `canon/01_PHYSICS/` | Derived law (scaling stability) |
 | APEX_MEASUREMENT_CANON_v36.1Omega.md | `canon/` | Upstream seed |
 | CIV12_THERMODYNAMICS_v36Omega.md | `canon/` | Upstream seed |
 

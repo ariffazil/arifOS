@@ -96,6 +96,7 @@ It answers:
 | `canon/01_PHYSICS/APEX_GENIUS_LAW_v36Omega.md` | ACTIVE | G, C_dark, Psi definitions |
 | `canon/01_PHYSICS/APEX_RYG_STATES_v36Omega.md` | ACTIVE | Red/Yellow/Green state machine |
 | `canon/01_PHYSICS/060_PARADOX_ENGINE_PHYSICS_v36.3Omega.md` | ACTIVE | Paradox cooling physics |
+| `canon/01_PHYSICS/LAW_SCALING_COLLAPSE_v1.0Ω.md` | ACTIVE | Law of Scaling Collapse (L_SC) |
 | `canon/CIV12_THERMODYNAMICS_v36Omega.md` | FROZEN | CIV-12 thermodynamic laws |
 
 ### 4.3 Domain 02: ANTI-HANTU (F9 Language Law)

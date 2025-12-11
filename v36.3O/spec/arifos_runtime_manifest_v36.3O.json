@@ -3,7 +3,7 @@
   "epoch": 36.3,
   "status": "DESCRIPTIVE",
   "manifest_version": "2.0.0",
-  "description": "Runtime manifest for arifOS v36.3Ω – descriptive mapping from law/spec to runtime modules. Does not change behavior; runtime code remains v35Ω with v36.3Ω measurement/spec layer in parallel.",
+  "description": "Runtime manifest for arifOS v36.3Omega; descriptive mapping from v36.3O canon/spec to runtime modules. Does not change behavior; runtime code remains v35Omega with a v36.3O measurement/spec layer in parallel.",
 
   "floors": {
     "spec_file": "v36.3O/spec/measurement_floors_v36.3O.json",
@@ -334,13 +334,13 @@
     "author": "arifOS Project",
     "license": "Apache-2.0",
     "tests": 1060,
-    "purpose": "Single-line runtime manifest for arifOS v36.3Ω, aligning v36.3O law/spec with the current v35Ω runtime.",
+    "runtime_manifest_line": "arifOS v36.3Omega | status=DESCRIPTIVE | law=v36.3O/canon/* | spec=v36.3O/spec/* | runtime=arifos_core/* (v35Omega runtime with v36.3O measurement layer) | pipeline=arifos_core.pipeline.Pipeline 000-999 | judiciary=APEX_PRIME + WAWFederationCore | metrics=measurement_floors_v36.3O.json + measurement_aggregates_v36.3O.json | ledger=CoolingLedger + Vault-999.",
+    "purpose": "Structured runtime manifest for arifOS v36.3Omega, aligning v36.3O canon/spec with the current v35Omega runtime.",
     "canonical_source": "https://github.com/ariffazil/arifOS",
     "notes": [
-      "This manifest is DESCRIPTIVE ONLY – it documents how v36.3O canon/spec map to existing runtime modules.",
+      "This manifest is DESCRIPTIVE ONLY; it documents how v36.3O canon/spec map to existing runtime modules.",
       "Runtime code paths still use arifos_runtime_manifest_v35Omega.json via arifos_core/runtime_manifest.py.",
       "External tools (promptfoo, notebooks, evaluation harnesses) can use this manifest to introspect modules and specs without hard-coding paths."
     ]
   }
 }
-

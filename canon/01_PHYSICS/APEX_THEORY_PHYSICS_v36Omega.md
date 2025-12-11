@@ -176,3 +176,9 @@ The **Physics** layer defines:
 The **Math** file translates these into precise equations.  
 The **Language Codex** restricts how these concepts may be spoken.
 
+---
+
+## 10. Related Laws
+
+- `canon/01_PHYSICS/APEX_GENIUS_LAW_v36Omega.md` — GENIUS LAW (G, C_dark, Ψ) judiciary metrics
+- `canon/01_PHYSICS/LAW_SCALING_COLLAPSE_v1.0Ω.md` — Law of Scaling Collapse (L_SC) for high-capability, low-governance regimes

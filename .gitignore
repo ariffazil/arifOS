@@ -58,3 +58,9 @@ nul
 arifos-test/
 .codex_remote/
 *.swp
+
+# Gemini CLI
+.gemini/
+
+# Temporary staging folders
+staging.delete*/
