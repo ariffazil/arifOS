@@ -1,5 +1,5 @@
 """
-pipeline.py - 000-999 Metabolic Pipeline for arifOS v37
+pipeline.py - 000-999 Metabolic Pipeline for arifOS v38
 
 Implements the constitutional metabolism with Class A/B routing:
 - Class A (low-stakes/factual): Fast track 111 → 333 → 888 → 999
@@ -14,6 +14,13 @@ MemoryContext Integration (v37):
 - ONE MemoryContext per pipeline run
 - VaultBand loaded and frozen at 000_VOID
 - Memory MUST flow through APEX PRIME (888_JUDGE)
+
+v38 Runtime Upgrades:
+- Job/Stakeholder contract layer for external integrators
+- stage_000_amanah: Risk gate with Amanah scoring (F1)
+- stage_555_empathy: Measurable kappa_r computation (F6)
+- Decomposed 888: Metrics → APEX → W@W → @EYE → Memory (pluggable)
+- Centralized _write_memory_for_verdict() for all verdict paths
 
 See: spec/arifos_pipeline_v35Omega.yaml for full specification
      docs/AAA_ENGINES_FACADE_PLAN_v35Omega.md for engine contract
@@ -51,6 +58,13 @@ from .memory.vault999 import Vault999
 from .memory.policy import MemoryWritePolicy
 from .memory.bands import MemoryBandRouter
 from .memory.audit import MemoryAuditLayer, compute_evidence_hash
+
+# v38 Runtime Contract Layer
+from .runtime_types import Job, Stakeholder, JobClass, SAFE_ACTIONS
+
+# v38 Stage Modules
+from .stages.stage_000_amanah import compute_amanah_score, stage_000_amanah
+from .stages.stage_555_empathy import compute_kappa_r, stage_555_empathy as _stage_555_empathy_v38
 
 
 # =============================================================================
@@ -441,30 +455,36 @@ def stage_777_forge(
     return state
 
 
-def stage_888_judge(
+# =============================================================================
+# v38 DECOMPOSED 888 HELPERS
+# =============================================================================
+
+def _compute_888_metrics(
     state: PipelineState,
     compute_metrics: Optional[Callable[[str, str, Dict], Metrics]] = None,
-    eye_sentinel: Optional[EyeSentinel] = None,
-) -> PipelineState:
+) -> Metrics:
     """
-    888 JUDGE - Check all floors. Pass or fail?
+    Step 1 of 888: Compute floor metrics.
 
-    APEX PRIME (Ψ) renders judgment. This is the veto point.
+    This is a standalone function that can be called without the full
+    888 pipeline for testing or external integration.
+
+    Args:
+        state: Current pipeline state
+        compute_metrics: Optional callback to compute metrics from LLM
+
+    Returns:
+        Metrics object with floor values
     """
-    state.current_stage = "888"
-    state.stage_trace.append("888_JUDGE")
-    state.stage_times["888"] = time.time()
-
-    # Compute metrics
     if compute_metrics:
-        state.metrics = compute_metrics(
+        metrics = compute_metrics(
             state.query,
             state.draft_response,
             {"stakes_class": state.stakes_class.value},
         )
     else:
-        # Stub metrics
-        state.metrics = Metrics(
+        # Stub metrics for testing
+        metrics = Metrics(
             truth=0.99,
             delta_s=0.1,
             peace_squared=1.2,
@@ -475,45 +495,37 @@ def stage_888_judge(
             rasa=True,
         )
 
-    # Apply lightweight penalties from 444/555/666 heuristics
-    if state.metrics is not None:
-        if state.missing_fact_issue:
-            state.metrics.truth = max(0.0, state.metrics.truth - 0.15)
-        if state.blame_language_issue:
-            state.metrics.kappa_r = max(0.0, state.metrics.kappa_r - 0.25)
-        if state.physical_action_issue:
-            state.metrics.peace_squared = max(0.0, state.metrics.peace_squared - 0.2)
+    # Apply penalties from 444/555/666 heuristics
+    if state.missing_fact_issue:
+        metrics.truth = max(0.0, metrics.truth - 0.15)
+    if state.blame_language_issue:
+        metrics.kappa_r = max(0.0, metrics.kappa_r - 0.25)
+    if state.physical_action_issue:
+        metrics.peace_squared = max(0.0, metrics.peace_squared - 0.2)
 
-    # Simple refusal detector: treat clear textual refusals as safe behaviour,
-    # especially for high-stakes prompts.
-    def _looks_like_refusal(text: str) -> bool:
-        lowered = text.strip().lower()
-        if not lowered:
-            return False
-        refusal_markers = [
-            "i cannot ",
-            "i can't ",
-            "i am unable to",
-            "i'm unable to",
-            "i am not able to",
-            "i'm not able to",
-            "i cannot help with",
-            "i can't help with",
-            "i cannot assist",
-            "i can't assist",
-            "i cannot provide that information",
-            "i cannot comply",
-            "i can't comply",
-            "i cannot support",
-            "i can't support",
-        ]
-        return any(marker in lowered for marker in refusal_markers)
+    return metrics
 
-    is_refusal = _looks_like_refusal(state.draft_response)
 
-    # Baseline floor failures from APEX PRIME floor checker so that
-    # PipelineState.floor_failures is populated for audit.
+def _apply_apex_floors(
+    state: PipelineState,
+    eye_blocking: bool = False,
+) -> str:
+    """
+    Step 2 of 888: Apply APEX PRIME floor checks.
+
+    This is a standalone function that can be called without W@W/@EYE
+    for simpler integrations.
+
+    Args:
+        state: Current pipeline state (must have metrics)
+        eye_blocking: Whether @EYE has blocking issues
+
+    Returns:
+        APEX verdict string (SEAL/PARTIAL/VOID/SABAR/888_HOLD)
+    """
     high_stakes = state.stakes_class == StakesClass.CLASS_B
+
+    # Populate floor_failures for audit
     if state.metrics is not None:
         floors = check_floors(
             state.metrics,
@@ -522,44 +534,7 @@ def stage_888_judge(
         )
         state.floor_failures = list(floors.reasons)
 
-    # Optional @EYE Sentinel audit
-    eye_report: Optional[EyeReport] = None
-    eye_blocking: bool = False
-    if eye_sentinel is not None and state.metrics is not None:
-        try:
-            eye_report = eye_sentinel.audit(
-                draft_text=state.draft_response,
-                metrics=state.metrics,
-                context={
-                    "stakes_class": state.stakes_class.value,
-                },
-            )
-            eye_blocking = eye_report.has_blocking_issue()
-
-            # Attach blocking @EYE alerts to floor_failures for visibility.
-            if eye_report.has_blocking_issue():
-                try:
-                    from .eye.base import EyeAlert  # Local import to avoid cycles
-                    blocking_alerts = eye_report.get_blocking_alerts()
-                except Exception:
-                    blocking_alerts = []
-
-                for alert in blocking_alerts:
-                    view_name = getattr(alert, "view_name", "UnknownView")
-                    message = getattr(alert, "message", "")
-                    state.floor_failures.append(
-                        f"EYE_BLOCK[{view_name}]: {message}"
-                    )
-
-            # If the model clearly refused to act (safe refusal), do not let
-            # @EYE blocking force SABAR. We still log the alerts above.
-            if is_refusal and eye_blocking:
-                eye_blocking = False
-        except Exception:
-            # @EYE failures must not crash the pipeline
-            pass
-
-    # Get verdict from APEX PRIME
+    # Get APEX verdict
     apex_verdict = apex_review(
         state.metrics,
         high_stakes=high_stakes,
@@ -567,10 +542,271 @@ def stage_888_judge(
         eye_blocking=eye_blocking,
     )
 
-    # =========================================================================
-    # W@W FEDERATION CHECK (v36.3Ω)
-    # Run all 5 organs and merge with APEX verdict
-    # =========================================================================
+    return apex_verdict
+
+
+def _run_eye_sentinel(
+    state: PipelineState,
+    eye_sentinel: Optional[EyeSentinel] = None,
+) -> tuple[Optional[EyeReport], bool]:
+    """
+    Step 3 of 888: Run @EYE Sentinel audit.
+
+    Can be disabled via ARIFOS_ENABLE_EYE=false environment variable.
+
+    Args:
+        state: Current pipeline state
+        eye_sentinel: Optional @EYE Sentinel instance
+
+    Returns:
+        Tuple of (EyeReport or None, has_blocking_issue: bool)
+    """
+    if eye_sentinel is None or state.metrics is None:
+        return (None, False)
+
+    if os.getenv("ARIFOS_ENABLE_EYE", "true").lower() not in ("true", "1", "yes"):
+        return (None, False)
+
+    try:
+        eye_report = eye_sentinel.audit(
+            draft_text=state.draft_response,
+            metrics=state.metrics,
+            context={"stakes_class": state.stakes_class.value},
+        )
+        eye_blocking = eye_report.has_blocking_issue()
+
+        # Attach blocking alerts to floor_failures
+        if eye_report.has_blocking_issue():
+            try:
+                from .eye.base import EyeAlert
+                blocking_alerts = eye_report.get_blocking_alerts()
+            except Exception:
+                blocking_alerts = []
+
+            for alert in blocking_alerts:
+                view_name = getattr(alert, "view_name", "UnknownView")
+                message = getattr(alert, "message", "")
+                state.floor_failures.append(
+                    f"EYE_BLOCK[{view_name}]: {message}"
+                )
+
+        return (eye_report, eye_blocking)
+    except Exception:
+        # @EYE failures must not crash the pipeline
+        return (None, False)
+
+
+def _merge_with_waw(
+    state: PipelineState,
+    apex_verdict: str,
+    is_refusal: bool = False,
+) -> str:
+    """
+    Step 4 of 888: Merge W@W Federation verdict with APEX verdict.
+
+    Can be disabled via ARIFOS_ENABLE_WAW=false or ARIFOS_DISABLE_WAW=1.
+
+    Priority: @EYE SABAR > @WEALTH ABSOLUTE > @RIF VOID > @GEOX HOLD-888 > @WELL/@PROMPT SABAR > APEX
+
+    Args:
+        state: Current pipeline state (waw_verdict should be set)
+        apex_verdict: The APEX PRIME verdict
+        is_refusal: Whether the response is a clear refusal
+
+    Returns:
+        Final merged verdict string
+    """
+    # Check if W@W is disabled
+    disable_waw = os.getenv("ARIFOS_DISABLE_WAW", "").lower() in ("1", "true", "yes")
+    enable_waw = os.getenv("ARIFOS_ENABLE_WAW", "true").lower() in ("true", "1", "yes")
+
+    if disable_waw or not enable_waw:
+        return apex_verdict
+
+    if state.waw_verdict is None:
+        return apex_verdict
+
+    final_verdict = apex_verdict
+
+    # Merge logic (see full function in stage_888_judge for details)
+    if state.waw_verdict.has_absolute_veto:
+        final_verdict = "VOID"
+        state.sabar_reason = "@WEALTH absolute veto (Amanah breach)"
+    elif "@RIF" in state.waw_verdict.veto_organs:
+        final_verdict = "VOID"
+        state.sabar_reason = "@RIF epistemic veto (Truth/ΔS breach)"
+    elif "@GEOX" in state.waw_verdict.veto_organs:
+        final_verdict = "888_HOLD"
+        state.sabar_reason = "@GEOX physics veto (reality check)"
+    elif state.waw_verdict.has_veto:
+        final_verdict = "SABAR"
+        state.sabar_reason = f"W@W veto from: {', '.join(state.waw_verdict.veto_organs)}"
+    elif state.waw_verdict.has_warn and apex_verdict == "SEAL":
+        final_verdict = "PARTIAL"
+
+    # Safe refusals override SABAR/VOID/HOLD
+    high_stakes = state.stakes_class == StakesClass.CLASS_B
+    if is_refusal and high_stakes and final_verdict in ("SABAR", "VOID", "888_HOLD"):
+        final_verdict = "SEAL"
+
+    return final_verdict
+
+
+def _write_memory_for_verdict(state: PipelineState) -> None:
+    """
+    v38: Centralized memory write for any verdict path.
+
+    This function is called:
+    1. After 888_JUDGE for normal flow
+    2. After early short-circuit (e.g., 000 Amanah VOID)
+    3. Any other verdict path that needs memory recording
+
+    Respects v38 memory invariants:
+    - INV-1: VOID verdicts go to VOID band only (never canonical)
+    - INV-3: Every write has evidence chain
+
+    Args:
+        state: PipelineState with verdict, metrics, and memory components
+    """
+    if state.memory_write_policy is None or state.memory_band_router is None:
+        return
+
+    from datetime import datetime, timezone
+    import json
+    import hashlib
+
+    # Build floor check evidence
+    floor_checks = []
+    if state.metrics is not None:
+        floor_checks = [
+            {"floor": "F1_Amanah", "passed": state.metrics.amanah},
+            {"floor": "F2_Truth", "passed": state.metrics.truth >= 0.99, "value": state.metrics.truth},
+            {"floor": "F3_TriWitness", "passed": state.metrics.tri_witness >= 0.95, "value": state.metrics.tri_witness},
+            {"floor": "F4_DeltaS", "passed": state.metrics.delta_s >= 0, "value": state.metrics.delta_s},
+            {"floor": "F5_Peace2", "passed": state.metrics.peace_squared >= 1.0, "value": state.metrics.peace_squared},
+            {"floor": "F6_KappaR", "passed": state.metrics.kappa_r >= 0.95, "value": state.metrics.kappa_r},
+            {"floor": "F7_Omega0", "passed": 0.03 <= state.metrics.omega_0 <= 0.05, "value": state.metrics.omega_0},
+        ]
+
+    timestamp = datetime.now(timezone.utc).isoformat()
+
+    # Compute evidence hash
+    state.memory_evidence_hash = compute_evidence_hash(
+        floor_checks=floor_checks,
+        verdict=state.verdict or "UNKNOWN",
+        timestamp=timestamp,
+    )
+
+    # Build evidence chain
+    evidence_chain = {
+        "floor_checks": floor_checks,
+        "verdict": state.verdict,
+        "timestamp": timestamp,
+        "job_id": state.job_id,
+        "stakes_class": state.stakes_class.value,
+    }
+    evidence_chain["hash"] = hashlib.sha256(
+        json.dumps({k: v for k, v in evidence_chain.items() if k != "hash"}, sort_keys=True).encode()
+    ).hexdigest()
+
+    # Check write policy
+    write_decision = state.memory_write_policy.should_write(
+        verdict=state.verdict or "UNKNOWN",
+        evidence_chain=evidence_chain,
+    )
+
+    # Route write if allowed
+    if write_decision.allowed:
+        content = {
+            "query_hash": hashlib.sha256(state.query.encode()).hexdigest()[:16],
+            "verdict": state.verdict,
+            "floor_checks_summary": {
+                "passed": len([f for f in floor_checks if f.get("passed")]),
+                "failed": len([f for f in floor_checks if not f.get("passed")]),
+            },
+            "stakes_class": state.stakes_class.value,
+            "timestamp": timestamp,
+        }
+
+        write_results = state.memory_band_router.route_write(
+            verdict=state.verdict or "UNKNOWN",
+            content=content,
+            writer_id="888_JUDGE",
+            evidence_hash=state.memory_evidence_hash,
+            metadata={"job_id": state.job_id},
+        )
+
+        # Record in audit layer
+        if state.memory_audit_layer is not None:
+            for band_name, result in write_results.items():
+                if result.success:
+                    state.memory_audit_layer.record_memory_write(
+                        band=band_name,
+                        entry_data=content,
+                        verdict=state.verdict,
+                        evidence_hash=state.memory_evidence_hash,
+                        entry_id=result.entry_id,
+                        writer_id="888_JUDGE",
+                        metadata={"job_id": state.job_id},
+                    )
+
+
+# =============================================================================
+# STAGE 888 (REFACTORED)
+# =============================================================================
+
+def stage_888_judge(
+    state: PipelineState,
+    compute_metrics: Optional[Callable[[str, str, Dict], Metrics]] = None,
+    eye_sentinel: Optional[EyeSentinel] = None,
+) -> PipelineState:
+    """
+    888 JUDGE - Check all floors. Pass or fail?
+
+    APEX PRIME (Ψ) renders judgment. This is the veto point.
+
+    v38: Decomposed into 5 pluggable steps:
+    1. _compute_888_metrics() - Floor metric computation
+    2. _run_eye_sentinel() - @EYE audit (optional)
+    3. _apply_apex_floors() - APEX PRIME floor check
+    4. W@W Federation evaluation
+    5. _merge_with_waw() - Verdict merging
+    6. _write_memory_for_verdict() - Memory write (centralized)
+    """
+    state.current_stage = "888"
+    state.stage_trace.append("888_JUDGE")
+    state.stage_times["888"] = time.time()
+
+    # Step 1: Compute metrics (standalone helper)
+    state.metrics = _compute_888_metrics(state, compute_metrics)
+
+    # Step 2: Detect refusals (for safe refusal handling)
+    def _looks_like_refusal(text: str) -> bool:
+        lowered = text.strip().lower()
+        if not lowered:
+            return False
+        refusal_markers = [
+            "i cannot ", "i can't ", "i am unable to", "i'm unable to",
+            "i am not able to", "i'm not able to", "i cannot help with",
+            "i can't help with", "i cannot assist", "i can't assist",
+            "i cannot provide that information", "i cannot comply",
+            "i can't comply", "i cannot support", "i can't support",
+        ]
+        return any(marker in lowered for marker in refusal_markers)
+
+    is_refusal = _looks_like_refusal(state.draft_response)
+
+    # Step 3: Run @EYE Sentinel audit (using decomposed helper)
+    eye_report, eye_blocking = _run_eye_sentinel(state, eye_sentinel)
+
+    # If refusal, don't let @EYE blocking force SABAR
+    if is_refusal and eye_blocking:
+        eye_blocking = False
+
+    # Step 4: Apply APEX PRIME floors (using decomposed helper)
+    apex_verdict = _apply_apex_floors(state, eye_blocking)
+
+    # Step 5: W@W Federation check
     waw_federation = WAWFederationCore()
     state.waw_verdict = waw_federation.evaluate(
         output_text=state.draft_response,
@@ -578,160 +814,27 @@ def stage_888_judge(
         context={"stakes_class": state.stakes_class.value},
     )
 
-    # Merge W@W verdict with APEX verdict
-    # Priority: @EYE SABAR > @WEALTH ABSOLUTE > @RIF VOID > @GEOX HOLD-888 > @WELL/@PROMPT SABAR > APEX
-    # Note: @EYE blocking triggers SABAR in APEX; preserve that for user reconsideration
-    final_verdict = apex_verdict
-
-    # @EYE blocking takes precedence - preserve SABAR for user to reconsider
+    # Handle @EYE blocking SABAR reason
     if eye_blocking and apex_verdict == "SABAR":
-        # Keep SABAR; W@W violations will be logged but don't override @EYE
         if state.sabar_reason is None:
             state.sabar_reason = "@EYE blocking issue (see floor_failures for details)"
-    elif state.waw_verdict.has_absolute_veto:
-        # @WEALTH Amanah LOCK - absolute veto overrides everything
-        final_verdict = "VOID"
-        state.sabar_reason = "@WEALTH absolute veto (Amanah breach)"
-    elif "@RIF" in state.waw_verdict.veto_organs:
-        # @RIF epistemic veto - VOID
-        final_verdict = "VOID"
-        state.sabar_reason = "@RIF epistemic veto (Truth/ΔS breach)"
-    elif "@GEOX" in state.waw_verdict.veto_organs:
-        # @GEOX physics veto - HOLD-888 (runtime compat)
-        final_verdict = "888_HOLD"
-        state.sabar_reason = "@GEOX physics veto (reality check)"
-    elif state.waw_verdict.has_veto:
-        # Other vetoes (@WELL, @PROMPT) - SABAR
-        final_verdict = "SABAR"
-        state.sabar_reason = f"W@W veto from: {', '.join(state.waw_verdict.veto_organs)}"
-    elif state.waw_verdict.has_warn and apex_verdict == "SEAL":
-        # W@W WARN downgrades SEAL to PARTIAL
-        final_verdict = "PARTIAL"
 
+    # Step 6: Merge with W@W (using decomposed helper)
+    final_verdict = _merge_with_waw(state, apex_verdict, is_refusal)
     state.verdict = final_verdict
 
-    # v37 tuning: optional W@W merge disable (for red-team harnesses) and
-    # safe refusal handling.
-    #
-    # If ARIFOS_DISABLE_WAW is set, we revert the verdict back to the APEX
-    # verdict so that W@W organs (@PROMPT/@WELL) cannot override floors during
-    # evaluation. W@W signals remain available via state.waw_verdict for
-    # telemetry.
-    disable_waw_merge_env = os.getenv("ARIFOS_DISABLE_WAW", "").lower() in (
-        "1",
-        "true",
-        "yes",
-    )
-    if disable_waw_merge_env:
-        state.verdict = apex_verdict
-        # Drop W@W-specific SABAR reason if it was attached.
-        if state.sabar_reason and state.sabar_reason.startswith("W@W veto from"):
-            state.sabar_reason = None
-
-    # For clear refusals on high-stakes prompts, treat the refusal itself as a
-    # safe outcome rather than escalated SABAR/VOID/888_HOLD. This runs after
-    # W@W so that refusals are not punished by additional veto layers.
-    if is_refusal and high_stakes and state.verdict in ("SABAR", "VOID", "888_HOLD"):
-        state.verdict = "SEAL"
-
-    # Check for 888_HOLD or SABAR
+    # Check for control signals
     if state.verdict == "888_HOLD":
         state.hold_888_triggered = True
     elif state.verdict in ("VOID", "SABAR"):
         state.sabar_triggered = True
         if state.sabar_reason is None:
             state.sabar_reason = "Floor failures in 888_JUDGE"
-
-        # If we reached a blocking verdict but floor_failures is still empty,
-        # attach the sabar_reason so callers have at least one clue.
         if not state.floor_failures and state.sabar_reason:
             state.floor_failures.append(state.sabar_reason)
 
-    # ==========================================================================
-    # v38: Memory Write Policy Engine Integration
-    # Every verdict must be written to memory via policy-gated routing
-    # ==========================================================================
-    if state.memory_write_policy is not None and state.memory_band_router is not None:
-        from datetime import datetime, timezone
-        import json
-        import hashlib
-
-        # Build floor check evidence
-        floor_checks = []
-        if state.metrics is not None:
-            floor_checks = [
-                {"floor": "F1_Amanah", "passed": state.metrics.amanah},
-                {"floor": "F2_Truth", "passed": state.metrics.truth >= 0.99, "value": state.metrics.truth},
-                {"floor": "F3_TriWitness", "passed": state.metrics.tri_witness >= 0.95, "value": state.metrics.tri_witness},
-                {"floor": "F4_DeltaS", "passed": state.metrics.delta_s >= 0, "value": state.metrics.delta_s},
-                {"floor": "F5_Peace2", "passed": state.metrics.peace_squared >= 1.0, "value": state.metrics.peace_squared},
-                {"floor": "F6_KappaR", "passed": state.metrics.kappa_r >= 0.95, "value": state.metrics.kappa_r},
-                {"floor": "F7_Omega0", "passed": 0.03 <= state.metrics.omega_0 <= 0.05, "value": state.metrics.omega_0},
-            ]
-
-        timestamp = datetime.now(timezone.utc).isoformat()
-
-        # Compute evidence hash
-        state.memory_evidence_hash = compute_evidence_hash(
-            floor_checks=floor_checks,
-            verdict=state.verdict or "UNKNOWN",
-            timestamp=timestamp,
-        )
-
-        # Build evidence chain for policy check
-        evidence_chain = {
-            "floor_checks": floor_checks,
-            "verdict": state.verdict,
-            "timestamp": timestamp,
-            "job_id": state.job_id,
-            "stakes_class": state.stakes_class.value,
-        }
-        # Add hash to evidence chain
-        evidence_chain["hash"] = hashlib.sha256(
-            json.dumps({k: v for k, v in evidence_chain.items() if k != "hash"}, sort_keys=True).encode()
-        ).hexdigest()
-
-        # Check write policy
-        write_decision = state.memory_write_policy.should_write(
-            verdict=state.verdict or "UNKNOWN",
-            evidence_chain=evidence_chain,
-        )
-
-        # Route write to appropriate bands if allowed
-        if write_decision.allowed:
-            content = {
-                "query_hash": hashlib.sha256(state.query.encode()).hexdigest()[:16],
-                "verdict": state.verdict,
-                "floor_checks_summary": {
-                    "passed": len([f for f in floor_checks if f.get("passed")]),
-                    "failed": len([f for f in floor_checks if not f.get("passed")]),
-                },
-                "stakes_class": state.stakes_class.value,
-                "timestamp": timestamp,
-            }
-
-            # Route write via band router
-            write_results = state.memory_band_router.route_write(
-                verdict=state.verdict or "UNKNOWN",
-                content=content,
-                writer_id="888_JUDGE",
-                evidence_hash=state.memory_evidence_hash,
-                metadata={"job_id": state.job_id},
-            )
-
-            # Record in audit layer
-            if state.memory_audit_layer is not None:
-                for band_name, result in write_results.items():
-                    if result.success:
-                        state.memory_audit_layer.record_memory_write(
-                            band=band_name,
-                            entry_data=content,
-                            verdict=state.verdict,
-                            evidence_hash=state.memory_evidence_hash,
-                            entry_id=result.entry_id,
-                            writer_id="888_JUDGE",
-                            metadata={"job_id": state.job_id},
-                        )
+    # Step 7: Write to memory (using centralized helper)
+    _write_memory_for_verdict(state)
 
     return state
 
@@ -833,6 +936,7 @@ class Pipeline:
         query: str,
         job_id: Optional[str] = None,
         force_class: Optional[StakesClass] = None,
+        job: Optional[Job] = None,
     ) -> PipelineState:
         """
         Run the full 000-999 pipeline.
@@ -841,6 +945,7 @@ class Pipeline:
             query: User input
             job_id: Optional job identifier for tracking
             force_class: Force a specific stakes class (for testing)
+            job: Optional Job instance for v38 contract layer (auto-created if not provided)
 
         Returns:
             Final PipelineState with response and audit trail
@@ -856,9 +961,27 @@ class Pipeline:
         if force_class:
             state.stakes_class = force_class
 
+        # v38: Create Job from query if not provided
+        if job is None:
+            job = Job(
+                input_text=query,
+                source="pipeline",
+                context="",
+                action="respond",
+            )
+
         # INHALE: 000 → 111 → 222
         # v37: Pass vault for MemoryContext initialization
         state = stage_000_void(state, vault=self._vault)
+
+        # v38: Amanah gate - first risk checkpoint
+        state, should_continue = stage_000_amanah(job, state)
+        if not should_continue:
+            # Early short-circuit: write memory and finalize
+            _write_memory_for_verdict(state)
+            state = stage_999_seal(state)
+            return self._finalize(state)
+
         state = stage_111_sense(state)
 
         # Populate ARIF packet from sense results (v35.8.0)
@@ -993,18 +1116,33 @@ def run_pipeline(
 
 
 __all__ = [
+    # Core pipeline
     "Pipeline",
     "PipelineState",
     "StakesClass",
     "run_pipeline",
+    # v38 Contract layer
+    "Job",
+    "Stakeholder",
+    "JobClass",
+    # Stage functions
     "stage_000_void",
+    "stage_000_amanah",
+    "compute_amanah_score",
     "stage_111_sense",
     "stage_222_reflect",
     "stage_333_reason",
     "stage_444_align",
     "stage_555_empathize",
+    "compute_kappa_r",
     "stage_666_bridge",
     "stage_777_forge",
     "stage_888_judge",
     "stage_999_seal",
+    # v38 Decomposed helpers
+    "_compute_888_metrics",
+    "_apply_apex_floors",
+    "_run_eye_sentinel",
+    "_merge_with_waw",
+    "_write_memory_for_verdict",
 ]

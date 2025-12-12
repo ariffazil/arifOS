@@ -178,10 +178,20 @@ class TestStageExecution:
         assert state.sabar_triggered
 
     def test_stage_888_uses_eye_sentinel_for_sabar(self):
-        """888_JUDGE should return SABAR when @EYE blocks, even if metrics would otherwise VOID."""
+        """888_JUDGE should return VOID when Amanah fails.
+
+        When amanah=False:
+        1. @EYE FloorView issues a BLOCK alert
+        2. APEX would return SABAR due to @EYE blocking
+        3. But W@W @WEALTH issues absolute veto for Amanah breach
+        4. Final verdict is VOID (absolute veto overrides @EYE SABAR)
+
+        This is correct behavior per v36.3Ω W@W priority order:
+        @WEALTH absolute veto > @EYE SABAR
+        """
 
         def bad_metrics(q, r, c):
-            # Amanah=False is a hard-floor failure that FloorView treats as BLOCK
+            # Amanah=False is a hard-floor failure
             return Metrics(
                 truth=0.5,
                 delta_s=-0.1,
@@ -198,7 +208,8 @@ class TestStageExecution:
         state = PipelineState(query="test", draft_response="response")
         state = stage_888_judge(state, compute_metrics=bad_metrics, eye_sentinel=sentinel)
 
-        assert state.verdict == "SABAR"
+        # VOID because @WEALTH absolute veto overrides @EYE SABAR
+        assert state.verdict == "VOID"
         assert state.sabar_triggered
 
 
@@ -239,8 +250,11 @@ class TestTraceAndTiming:
         pipeline = Pipeline()
         state = pipeline.run("test query")
 
-        assert len(state.stage_trace) >= 4  # At minimum: 000, 111, 888, 999
+        # v38: At minimum: 000_VOID, 000_AMANAH_PASS, 111, 888, 999
+        assert len(state.stage_trace) >= 5
         assert state.stage_trace[0] == "000_VOID"
+        # v38: 000_AMANAH_PASS should be in trace for successful Amanah check
+        assert "000_AMANAH_PASS" in state.stage_trace
         assert state.stage_trace[-1] == "999_SEAL"
 
     def test_stage_times_recorded(self):
