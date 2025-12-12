@@ -9,12 +9,17 @@ Integration Modules:
 - memory_judge: 888_JUDGE ↔ Memory (write policy enforcement)
 - memory_scars: 777_FORGE ↔ Scar Detection (pattern recognition)
 - memory_seal: 999_SEAL ↔ Ledger Finalization (audit trail)
+- common_utils: Shared utilities to reduce duplication
 
 Per: docs/arifOS-MEMORY-FORGING-DEEPRESEARCH.md (v38)
 
 Author: arifOS Project
 Version: v38.0
 """
+
+from .common_utils import (
+    compute_integration_evidence_hash,
+)
 
 from .memory_sense import (
     MemorySenseIntegration,
@@ -61,6 +66,8 @@ from .memory_seal import (
 )
 
 __all__ = [
+    # Common utilities
+    "compute_integration_evidence_hash",
     # Memory Sense (111_SENSE)
     "MemorySenseIntegration",
     "RecallContext",
