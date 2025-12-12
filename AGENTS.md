@@ -77,13 +77,34 @@ python -m scripts.test_bogel_llama         # 33-prompt baseline (uncaged LLM)
 | F8 | G (Genius) | >=0.80 | T3 | Derived | Governed intelligence? |
 | F9 | C_dark | <0.30 | T3 | Derived | Dark cleverness contained? |
 
-### 2.1 Law Layer Alignment
+### 2.1 v38Omega Law Stack (Authoritative Reference)
 
-The 9 canonical floors in §2 above are stable across all versions:
+**v38Omega formalizes the constitutional law stack.** When working on floors, GENIUS, pipeline, memory, or W@W, treat v38Ω canon/spec as authoritative. Do not change thresholds without an explicit Phoenix-72 law amendment.
+
+| Layer | Canon | Spec |
+|-------|-------|------|
+| **Floors (F1–F9)** | `canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md` | `spec/constitutional_floors_v38Omega.json` |
+| **GENIUS LAW** | `canon/02_GENIUS_LAW_v38Omega.md` | `spec/genius_law_v38Omega.json` |
+| **Pipeline (000→999)** | `canon/03_PIPELINE_v38Omega.md` | `spec/pipeline_v38Omega.yaml` |
+| **W@W Prompt** | `canon/04_WAW_PROMPT_FLOORS_v38Omega.md` | `spec/waw_prompt_floors_v38Omega.json` |
+| **Cooling/Phoenix** | `canon/05_COOLING_LEDGER_PHOENIX_v38Omega.md` | `spec/cooling_ledger_phoenix_v38Omega.json` |
+
+**Master Index:** `canon/00_ARIFOS_MASTER_v38Omega.md`
+
+**Alignment Tests (Safety Net):**
+
+```bash
+pytest tests/test_*_v38_alignment.py -v
+```
+
+**Rule:** Spec is the single source of truth for thresholds. Canon documents the law. Tests verify alignment.
+
+### 2.2 Law Layer History
 
 - **v35Ω (Runtime)**: Enforces thresholds via Python code (`arifos_core/metrics.py`)
 - **v36.3Ω (Law Layer)**: Frozen floor definitions in `v36.3O/canon/*`
 - **v37 (Measurement)**: Logs all 9 floor scores to Cooling Ledger
+- **v38Ω (Formalization)**: canon→spec→code→tests pattern for all layers
 
 F# numbering follows the semantic order above (F1=Amanah through F9=C_dark).
 

@@ -102,6 +102,33 @@ print(f"C_dark: {genius.dark_cleverness:.2f}")    # Ungoverned risk
 
 ---
 
+## v38Omega Law Stack (Formalization Release)
+
+**v38Omega formalizes the entire constitutional law stack** with a consistent canon→spec→code→tests pattern. No runtime behavior changes—only documentation alignment.
+
+### Law Layers
+
+| Layer | Canon | Spec | Tests |
+|-------|-------|------|-------|
+| **Floors (F1–F9)** | `canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md` | `spec/constitutional_floors_v38Omega.json` | `test_constitutional_floors_v38_alignment.py` |
+| **GENIUS LAW** | `canon/02_GENIUS_LAW_v38Omega.md` | `spec/genius_law_v38Omega.json` | `test_genius_law_v38_alignment.py` |
+| **Pipeline (000→999)** | `canon/03_PIPELINE_v38Omega.md` | `spec/pipeline_v38Omega.yaml` | `test_pipeline_v38_alignment.py` |
+| **W@W Prompt** | `canon/04_WAW_PROMPT_FLOORS_v38Omega.md` | `spec/waw_prompt_floors_v38Omega.json` | `test_waw_prompt_v38_alignment.py` |
+| **Cooling/Phoenix** | `canon/05_COOLING_LEDGER_PHOENIX_v38Omega.md` | `spec/cooling_ledger_phoenix_v38Omega.json` | `test_cooling_phoenix_v38_alignment.py` |
+
+**Master Index:** `canon/00_ARIFOS_MASTER_v38Omega.md`
+
+### Run Alignment Tests
+
+```bash
+# All v38 alignment tests
+pytest tests/test_*_v38_alignment.py -v
+```
+
+**Key Rule:** Spec is the single source of truth for thresholds. Do not change thresholds without a Phoenix-72 amendment.
+
+---
+
 ## The Physics: 9 Constitutional Floors (Thermodynamic Boundaries)
 
 arifOS enforces **9 measurable floors** that define the exact boundary between *governed wisdom* and *chaotic intelligence*. These are not soft guidelines—they are hard physical constraints:

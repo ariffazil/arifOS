@@ -130,6 +130,40 @@ Hard floor fail → VOID (stop). Soft floor fail → PARTIAL/WARN.
 
 ---
 
+## v38Omega Law Stack (Authoritative Reference)
+
+**v38Omega formalizes the constitutional law stack.** When working on floors, GENIUS, pipeline, memory, or W@W, treat v38Ω canon/spec as authoritative. Do not change thresholds without an explicit Phoenix-72 law amendment.
+
+### Canon/Spec Files
+
+| Layer | Canon | Spec |
+|-------|-------|------|
+| **Floors (F1–F9)** | `canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md` | `spec/constitutional_floors_v38Omega.json` |
+| **GENIUS LAW** | `canon/02_GENIUS_LAW_v38Omega.md` | `spec/genius_law_v38Omega.json` |
+| **Pipeline (000→999)** | `canon/03_PIPELINE_v38Omega.md` | `spec/pipeline_v38Omega.yaml` |
+| **W@W Prompt** | `canon/04_WAW_PROMPT_FLOORS_v38Omega.md` | `spec/waw_prompt_floors_v38Omega.json` |
+| **Cooling/Phoenix** | `canon/05_COOLING_LEDGER_PHOENIX_v38Omega.md` | `spec/cooling_ledger_phoenix_v38Omega.json` |
+
+**Master Index:** `canon/00_ARIFOS_MASTER_v38Omega.md`
+
+### Alignment Tests (Safety Net)
+
+```bash
+# Run all v38 alignment tests
+pytest tests/test_constitutional_floors_v38_alignment.py -v
+pytest tests/test_genius_law_v38_alignment.py -v
+pytest tests/test_pipeline_v38_alignment.py -v
+pytest tests/test_waw_prompt_v38_alignment.py -v
+pytest tests/test_cooling_phoenix_v38_alignment.py -v
+
+# Or all at once
+pytest tests/test_*_v38_alignment.py -v
+```
+
+**Rule:** Spec is the single source of truth for thresholds. Canon documents the law. Tests verify alignment.
+
+---
+
 ## v38 Memory Write Policy Engine (EUREKA)
 
 **Core Insight:** Memory is governance, not storage. What gets remembered is controlled by verdicts.

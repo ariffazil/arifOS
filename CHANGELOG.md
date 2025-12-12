@@ -12,13 +12,73 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 > When you cut a new version, move entries from here into a tagged release.
 
 ### Added
+
 - (placeholder)
 
 ### Changed
+
 - (placeholder)
 
 ### Fixed
+
 - (placeholder)
+
+---
+
+## [v38.0.1] – 2025-12-13 — v38Omega Law Stack Formalization
+
+**Status:** LAW SEALED · Tests: 1250+ · Safety: 97.0% · Alignment Tests: 5 suites
+
+### v38Omega Law Stack (Formalization Release)
+
+This release formalizes the entire constitutional law stack with a consistent canon→spec→code→tests pattern. **No runtime behavior changes—only documentation alignment.**
+
+#### New Canon Files (5 layers)
+
+| Layer | Canon File | Description |
+|-------|------------|-------------|
+| **Master Index** | `canon/00_ARIFOS_MASTER_v38Omega.md` | Master index tying all v38 law layers together |
+| **Floors (F1–F9)** | `canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md` | 9 Constitutional Floors formalization |
+| **GENIUS LAW** | `canon/02_GENIUS_LAW_v38Omega.md` | G, C_dark, Ψ metrics formalization |
+| **Pipeline** | `canon/03_PIPELINE_v38Omega.md` | 000→999 metabolic pipeline formalization |
+| **W@W Prompt** | `canon/04_WAW_PROMPT_FLOORS_v38Omega.md` | W@W Federation and @PROMPT organ |
+| **Cooling/Phoenix** | `canon/05_COOLING_LEDGER_PHOENIX_v38Omega.md` | Cooling Ledger and Phoenix-72 |
+
+#### New Spec Files (5 machine-readable schemas)
+
+| Spec File | Purpose |
+|-----------|---------|
+| `spec/constitutional_floors_v38Omega.json` | Floor thresholds, types, verdict hierarchy |
+| `spec/genius_law_v38Omega.json` | G/C_dark thresholds, Truth Polarity |
+| `spec/pipeline_v38Omega.yaml` | Stage definitions, Class A/B paths |
+| `spec/waw_prompt_floors_v38Omega.json` | W@W organs, Anti-Hantu tiers, signals |
+| `spec/cooling_ledger_phoenix_v38Omega.json` | Verdict routing, scar lifecycle |
+
+#### New Alignment Test Suites (5 suites, 200+ assertions)
+
+| Test Suite | Tests | Coverage |
+|------------|-------|----------|
+| `test_constitutional_floors_v38_alignment.py` | ~40 | Floor thresholds, types, spec structure |
+| `test_genius_law_v38_alignment.py` | ~35 | G/C_dark thresholds, Truth Polarity |
+| `test_pipeline_v38_alignment.py` | ~30 | Stage definitions, Class A/B paths |
+| `test_waw_prompt_v38_alignment.py` | 51 | W@W organs, Anti-Hantu, signals |
+| `test_cooling_phoenix_v38_alignment.py` | 41 | Verdict routing, scar lifecycle |
+
+### Documentation Updates
+
+- **README.md**: Added "v38Omega Law Stack" section with law layer table
+- **CLAUDE.md**: Added "v38Omega Law Stack (Authoritative Reference)" section
+- **AGENTS.md**: Added "v38Omega Law Stack" section in §2.1
+
+### Key Principle
+
+**Spec is the single source of truth for thresholds.** Canon documents the law. Tests verify alignment. Do not change thresholds without a Phoenix-72 amendment.
+
+### Run Alignment Tests
+
+```bash
+pytest tests/test_*_v38_alignment.py -v
+```
 
 ---
 
