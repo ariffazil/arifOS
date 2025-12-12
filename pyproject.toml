@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "37.0.0"
+version = "37.1.0"
 description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW Judiciary, zkPC + Phoenix-72, PHOENIX SOVEREIGNTY, v37 Unified LAW+SPEC+CODE Runtime"
 readme = "README.md"
 requires-python = ">=3.8"
