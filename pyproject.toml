@@ -8,7 +8,7 @@ version = "37.0.0"
 description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW Judiciary, zkPC + Phoenix-72, PHOENIX SOVEREIGNTY, v37 Unified LAW+SPEC+CODE Runtime"
 readme = "README.md"
 requires-python = ">=3.8"
-license = {text = "Apache-2.0"}
+license = {text = "AGPL-3.0"}
 keywords = [
     "ai-governance",
     "constitutional-ai",
@@ -39,7 +39,7 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache Software License",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
