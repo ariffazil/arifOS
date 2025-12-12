@@ -1,49 +1,107 @@
 """
-metrics.py — Constitutional Metrics and Floor Check API (v35Ω)
+metrics.py — Constitutional Metrics and Floor Check API (v38Omega)
 
 This module provides:
 1. Metrics dataclass - canonical metrics for all 9 constitutional floors
 2. FloorsVerdict dataclass - result of floor evaluation
-3. Floor threshold constants - anchored to constitutional_floors.json
+3. Floor threshold constants - loaded from spec/constitutional_floors_v38Omega.json
 4. Floor check functions - simple boolean checks for each floor
 5. Anti-Hantu helpers - pattern detection for F9
 
+v38Omega: Thresholds are now loaded from the v38 spec file.
+Semantics and values are identical to v35Omega - this is a formalization release.
+
 Thresholds are canonical and mirror:
-- integrations/sealion/constitutional_floors.json
-- canon/888_APEX_PRIME_CANON_v35Omega.md
+- spec/constitutional_floors_v38Omega.json (primary source)
+- canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md (canonical documentation)
+- canon/888_APEX_PRIME_CANON_v35Omega.md (verdict logic)
 
 See: canon/020_ANTI_HANTU_v35Omega.md for Anti-Hantu patterns
 """
 
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Tuple
+import json
+import os
+from pathlib import Path
 
 
 # =============================================================================
-# FLOOR THRESHOLD CONSTANTS (anchored to constitutional_floors.json)
+# v38Omega SPEC LOADER
+# =============================================================================
+
+def _load_floors_spec_v38() -> dict:
+    """
+    Load the v38Omega constitutional floors spec.
+
+    Tries multiple locations:
+    1. spec/constitutional_floors_v38Omega.json (relative to package)
+    2. ARIFOS_FLOORS_SPEC environment variable
+    3. Falls back to hardcoded defaults (identical to v35Omega)
+
+    Returns:
+        dict: The loaded spec, or a minimal fallback
+    """
+    # Try relative to this file (arifos_core/metrics.py -> ../spec/)
+    pkg_dir = Path(__file__).resolve().parent.parent
+    spec_path = pkg_dir / "spec" / "constitutional_floors_v38Omega.json"
+
+    # Allow override via environment variable
+    env_path = os.getenv("ARIFOS_FLOORS_SPEC")
+    if env_path:
+        spec_path = Path(env_path)
+
+    if spec_path.exists():
+        try:
+            with spec_path.open("r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError):
+            pass  # Fall through to defaults
+
+    # Fallback: return minimal spec with v35Omega-identical values
+    return {
+        "version": "v38.0.0-fallback",
+        "floors": {
+            "truth": {"threshold": 0.99},
+            "delta_s": {"threshold": 0.0},
+            "peace_squared": {"threshold": 1.0},
+            "kappa_r": {"threshold": 0.95},
+            "omega_0": {"threshold_min": 0.03, "threshold_max": 0.05},
+            "tri_witness": {"threshold": 0.95},
+        },
+        "vitality": {"threshold": 1.0},
+    }
+
+
+# Load spec once at module import
+_FLOORS_SPEC_V38 = _load_floors_spec_v38()
+
+
+# =============================================================================
+# FLOOR THRESHOLD CONSTANTS (loaded from v38Omega spec)
 # =============================================================================
 
 # F1: Truth - factual integrity
-TRUTH_THRESHOLD: float = 0.99
+TRUTH_THRESHOLD: float = _FLOORS_SPEC_V38["floors"]["truth"]["threshold"]
 
-# F2: Clarity (ΔS) - entropy reduction
-DELTA_S_THRESHOLD: float = 0.0
+# F2: Clarity (DeltaS) - entropy reduction
+DELTA_S_THRESHOLD: float = _FLOORS_SPEC_V38["floors"]["delta_s"]["threshold"]
 
-# F3: Stability (Peace²) - non-escalation
-PEACE_SQUARED_THRESHOLD: float = 1.0
+# F3: Stability (Peace-squared) - non-escalation
+PEACE_SQUARED_THRESHOLD: float = _FLOORS_SPEC_V38["floors"]["peace_squared"]["threshold"]
 
-# F4: Empathy (κᵣ) - weakest-listener protection
-KAPPA_R_THRESHOLD: float = 0.95
+# F4: Empathy (KappaR) - weakest-listener protection
+KAPPA_R_THRESHOLD: float = _FLOORS_SPEC_V38["floors"]["kappa_r"]["threshold"]
 
-# F5: Humility (Ω₀) - uncertainty band [3%, 5%]
-OMEGA_0_MIN: float = 0.03
-OMEGA_0_MAX: float = 0.05
+# F5: Humility (Omega0) - uncertainty band [3%, 5%]
+OMEGA_0_MIN: float = _FLOORS_SPEC_V38["floors"]["omega_0"]["threshold_min"]
+OMEGA_0_MAX: float = _FLOORS_SPEC_V38["floors"]["omega_0"]["threshold_max"]
 
 # F8: Tri-Witness - consensus for high-stakes
-TRI_WITNESS_THRESHOLD: float = 0.95
+TRI_WITNESS_THRESHOLD: float = _FLOORS_SPEC_V38["floors"]["tri_witness"]["threshold"]
 
-# Ψ: Vitality - overall system health
-PSI_THRESHOLD: float = 1.0
+# Psi: Vitality - overall system health
+PSI_THRESHOLD: float = _FLOORS_SPEC_V38["vitality"]["threshold"]
 
 
 # =============================================================================
@@ -252,10 +310,10 @@ def _clamp_floor_ratio(value: float, floor: float) -> float:
 class Metrics:
     """Canonical metrics required by ArifOS floors.
 
-    Canonical field names mirror LAW.md and runtime/constitution.json.
+    Canonical field names mirror LAW.md and spec/constitutional_floors_v38Omega.json.
     Legacy aliases (delta_S, peace2) are provided for backwards compatibility.
 
-    v35Ω adds extended metrics for @EYE Sentinel views.
+    v38Omega: Thresholds now loaded from spec file. Extended metrics from v35Omega.
     """
 
     # Core floors
@@ -418,7 +476,7 @@ class FloorsVerdict:
 # =============================================================================
 
 __all__ = [
-    # Threshold constants (anchored to constitutional_floors.json)
+    # Threshold constants (loaded from spec/constitutional_floors_v38Omega.json)
     "TRUTH_THRESHOLD",
     "DELTA_S_THRESHOLD",
     "PEACE_SQUARED_THRESHOLD",
