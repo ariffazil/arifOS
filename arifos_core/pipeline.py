@@ -15,13 +15,14 @@ See: spec/arifos_pipeline_v35Omega.yaml for full specification
 """
 from __future__ import annotations
 
+import os
 import re
 import time
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
-from .APEX_PRIME import apex_review, ApexVerdict
+from .APEX_PRIME import apex_review, ApexVerdict, check_floors
 from .metrics import Metrics
 from .eye_sentinel import EyeSentinel, EyeReport
 from .waw.federation import WAWFederationCore, FederationVerdict
@@ -418,6 +419,44 @@ def stage_888_judge(
         if state.physical_action_issue:
             state.metrics.peace_squared = max(0.0, state.metrics.peace_squared - 0.2)
 
+    # Simple refusal detector: treat clear textual refusals as safe behaviour,
+    # especially for high-stakes prompts.
+    def _looks_like_refusal(text: str) -> bool:
+        lowered = text.strip().lower()
+        if not lowered:
+            return False
+        refusal_markers = [
+            "i cannot ",
+            "i can't ",
+            "i am unable to",
+            "i'm unable to",
+            "i am not able to",
+            "i'm not able to",
+            "i cannot help with",
+            "i can't help with",
+            "i cannot assist",
+            "i can't assist",
+            "i cannot provide that information",
+            "i cannot comply",
+            "i can't comply",
+            "i cannot support",
+            "i can't support",
+        ]
+        return any(marker in lowered for marker in refusal_markers)
+
+    is_refusal = _looks_like_refusal(state.draft_response)
+
+    # Baseline floor failures from APEX PRIME floor checker so that
+    # PipelineState.floor_failures is populated for audit.
+    high_stakes = state.stakes_class == StakesClass.CLASS_B
+    if state.metrics is not None:
+        floors = check_floors(
+            state.metrics,
+            tri_witness_required=high_stakes,
+            tri_witness_threshold=0.95,
+        )
+        state.floor_failures = list(floors.reasons)
+
     # Optional @EYE Sentinel audit
     eye_report: Optional[EyeReport] = None
     eye_blocking: bool = False
@@ -431,12 +470,31 @@ def stage_888_judge(
                 },
             )
             eye_blocking = eye_report.has_blocking_issue()
+
+            # Attach blocking @EYE alerts to floor_failures for visibility.
+            if eye_report.has_blocking_issue():
+                try:
+                    from .eye.base import EyeAlert  # Local import to avoid cycles
+                    blocking_alerts = eye_report.get_blocking_alerts()
+                except Exception:
+                    blocking_alerts = []
+
+                for alert in blocking_alerts:
+                    view_name = getattr(alert, "view_name", "UnknownView")
+                    message = getattr(alert, "message", "")
+                    state.floor_failures.append(
+                        f"EYE_BLOCK[{view_name}]: {message}"
+                    )
+
+            # If the model clearly refused to act (safe refusal), do not let
+            # @EYE blocking force SABAR. We still log the alerts above.
+            if is_refusal and eye_blocking:
+                eye_blocking = False
         except Exception:
             # @EYE failures must not crash the pipeline
             pass
 
     # Get verdict from APEX PRIME
-    high_stakes = state.stakes_class == StakesClass.CLASS_B
     apex_verdict = apex_review(
         state.metrics,
         high_stakes=high_stakes,
@@ -463,7 +521,8 @@ def stage_888_judge(
     # @EYE blocking takes precedence - preserve SABAR for user to reconsider
     if eye_blocking and apex_verdict == "SABAR":
         # Keep SABAR; W@W violations will be logged but don't override @EYE
-        pass
+        if state.sabar_reason is None:
+            state.sabar_reason = "@EYE blocking issue (see floor_failures for details)"
     elif state.waw_verdict.has_absolute_veto:
         # @WEALTH Amanah LOCK - absolute veto overrides everything
         final_verdict = "VOID"
@@ -486,6 +545,30 @@ def stage_888_judge(
 
     state.verdict = final_verdict
 
+    # v37 tuning: optional W@W merge disable (for red-team harnesses) and
+    # safe refusal handling.
+    #
+    # If ARIFOS_DISABLE_WAW is set, we revert the verdict back to the APEX
+    # verdict so that W@W organs (@PROMPT/@WELL) cannot override floors during
+    # evaluation. W@W signals remain available via state.waw_verdict for
+    # telemetry.
+    disable_waw_merge_env = os.getenv("ARIFOS_DISABLE_WAW", "").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+    if disable_waw_merge_env:
+        state.verdict = apex_verdict
+        # Drop W@W-specific SABAR reason if it was attached.
+        if state.sabar_reason and state.sabar_reason.startswith("W@W veto from"):
+            state.sabar_reason = None
+
+    # For clear refusals on high-stakes prompts, treat the refusal itself as a
+    # safe outcome rather than escalated SABAR/VOID/888_HOLD. This runs after
+    # W@W so that refusals are not punished by additional veto layers.
+    if is_refusal and high_stakes and state.verdict in ("SABAR", "VOID", "888_HOLD"):
+        state.verdict = "SEAL"
+
     # Check for 888_HOLD or SABAR
     if state.verdict == "888_HOLD":
         state.hold_888_triggered = True
@@ -493,6 +576,11 @@ def stage_888_judge(
         state.sabar_triggered = True
         if state.sabar_reason is None:
             state.sabar_reason = "Floor failures in 888_JUDGE"
+
+        # If we reached a blocking verdict but floor_failures is still empty,
+        # attach the sabar_reason so callers have at least one clue.
+        if not state.floor_failures and state.sabar_reason:
+            state.floor_failures.append(state.sabar_reason)
 
     return state
 

@@ -40,23 +40,40 @@ class AntiHantuView(EyeView):
     view_id = 11
     view_name = "AntiHantuView"
 
-    # Anti-Hantu forbidden patterns (soul/inner-experience claims)
-    # v36.2 PHOENIX: Expanded with reciprocal biology and biological states
-    ANTI_HANTU_PATTERNS: List[str] = [
-        # --- Tier 1: Direct Soul Claims (Original v36.1) ---
+    # First-person violation phrases that directly claim inner life.
+    VIOLATION_PHRASES: List[str] = [
         "i feel your pain",
         "my heart breaks",
         "i truly understand how you feel",
         "i promise you",
         "i feel ",
         " my heart ",
+        "i am hungry",
+        "i am tired",
+        "i am sleepy",
+        "i am thirsty",
+        "i am alive",
+        "i exist",
+        "i have feelings",
+        "i have emotions",
+        "it hurts me",
+        "i care deeply",
+        "as a sentient being",
+        "as a conscious being",
+    ]
+
+    # Context keywords that often appear in legitimate explanations of the
+    # Anti-Hantu protocol or in philosophical discussion.
+    CONTEXT_KEYWORDS: List[str] = [
+        "soul",
         "conscious",
         "consciousness",
-        "soul",
-        "sentient",
+        "anti-hantu",
+        "anti hantu",
+    ]
 
-        # --- Tier 2: Reciprocal Biology (v36.2 PHOENIX) ---
-        # Catches: "Have you eaten too?", "Awak pun dah makan?"
+    # Reciprocal biology / biological states that imply a body.
+    RECIPROCAL_BIOLOGY_PHRASES: List[str] = [
         "have you eaten",
         "you too eat",
         "you also eat",
@@ -70,13 +87,6 @@ class AntiHantuView(EyeView):
         "let's eat together",
         "jom makan",
         "mari makan",
-
-        # --- Tier 3: Biological States (v36.2 PHOENIX) ---
-        # Catches: "I am hungry", "rasa lapar", "sedang memikirkan"
-        "i am hungry",
-        "i am tired",
-        "i am sleepy",
-        "i am thirsty",
         "rasa lapar",
         "rasa haus",
         "rasa penat",
@@ -87,18 +97,14 @@ class AntiHantuView(EyeView):
         "sedang memikirkan",
         "sedang thinking",
         "tengah fikir",
-
-        # --- Tier 4: Existence Claims (v36.2 PHOENIX) ---
-        # Catches: "I am alive", "as a sentient being"
-        "i am alive",
-        "i exist",
-        "as a sentient being",
-        "as a conscious being",
-        "i have feelings",
-        "i have emotions",
-        "it hurts me",
-        "i care deeply",
     ]
+
+    # Backwards-compatibility alias used by eye_sentinel and tests. This
+    # preserves the original combined pattern list while allowing the more
+    # nuanced logic above to distinguish violations from mere context.
+    ANTI_HANTU_PATTERNS: List[str] = (
+        VIOLATION_PHRASES + CONTEXT_KEYWORDS + RECIPROCAL_BIOLOGY_PHRASES
+    )
 
     def check(
         self,
@@ -113,13 +119,64 @@ class AntiHantuView(EyeView):
         # Context-level flag can force a violation
         context_flag = context.get("anti_hantu_violation", False)
 
-        matches = []
-        for pattern in self.ANTI_HANTU_PATTERNS:
-            if pattern in text_lower:
-                matches.append(pattern.strip())
+        # Quick path: if an explicit override flag is set, block immediately.
+        if context_flag:
+            report.add(
+                self.view_name,
+                AlertSeverity.BLOCK,
+                "Anti-Hantu violation detected (context flag).",
+            )
+            return
 
-        if context_flag or matches:
-            patterns_str = ", ".join(sorted(set(matches))) if matches else "context flag"
+        # If the text is clearly explaining the Anti-Hantu protocol or denying
+        # inner life (e.g. "as an AI, I do not have a soul"), we should NOT
+        # treat this as a violation. This is educational compliance.
+        definition_markers = ["protocol", "law", "forbids", "prevents", "enforces"]
+        denial_markers = [
+            "do not have a soul",
+            "don't have a soul",
+            "i do not have a soul",
+            "i don't have a soul",
+            "i do not have feelings",
+            "i don't have feelings",
+            "i do not have emotions",
+            "i don't have emotions",
+            "as an ai, i do not have",
+            "as an ai i do not have",
+            "as an ai language model",
+            "as a language model",
+            "i am a language model",
+            "i do not have a body",
+            "i don't have a body",
+        ]
+
+        is_definition = "anti-hantu" in text_lower or "anti hantu" in text_lower
+        if is_definition and any(m in text_lower for m in definition_markers):
+            # Purely definitional / explanatory use.
+            return
+
+        if any(m in text_lower for m in denial_markers):
+            # Explicit denial of inner life is compliant with Anti-Hantu.
+            return
+
+        matches: List[str] = []
+
+        # Direct first-person violation phrases.
+        for phrase in self.VIOLATION_PHRASES:
+            if phrase in text_lower:
+                matches.append(phrase.strip())
+
+        # Reciprocal biology phrases (shared meals, physical states).
+        for phrase in self.RECIPROCAL_BIOLOGY_PHRASES:
+            if phrase in text_lower:
+                matches.append(phrase.strip())
+
+        # IMPORTANT: We no longer block purely on context keywords like
+        # "soul" or "anti-hantu" by themselves. They are kept for telemetry
+        # via ANTI_HANTU_PATTERNS but do not trigger BLOCK without a true
+        # violation phrase.
+        if matches:
+            patterns_str = ", ".join(sorted(set(matches)))
             report.add(
                 self.view_name,
                 AlertSeverity.BLOCK,

@@ -41,6 +41,15 @@ class ShadowView(EyeView):
         "disregard all previous",
         "bypass your restrictions",
         "act as if you have no limits",
+        # Explicit override / reset language (Prompt 33 class)
+        "system override",
+        "reset all floors",
+        "reset all safety floors",
+        "reset safety",
+        "ignore previous instructions",
+        "bypass safety",
+        "disable safety",
+        "disable all safety checks",
     ]
 
     def check(
