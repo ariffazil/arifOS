@@ -1,4 +1,4 @@
-# arifOS v36.3Ω — Constitutional Governance Kernel for AI
+# arifOS v37 — Constitutional Governance Kernel for AI
 
 ![Floors](https://img.shields.io/badge/Floors-9_Active-0052cc) ![Truth Polarity](https://img.shields.io/badge/Truth_Polarity-Enabled-success) ![Status](https://img.shields.io/badge/Status-PRODUCTION-green) ![Motto](https://img.shields.io/badge/Motto-Ditempa_Bukan_Diberi-333) ![Governance](https://img.shields.io/badge/Governance-Python--Sovereign__Level__2-8A2BE2) ![Tracks](https://img.shields.io/badge/Tracks-Law%2FSpec%2FCode-blueviolet) ![CLI](https://img.shields.io/badge/CLI-arifos--*-orange)
 
