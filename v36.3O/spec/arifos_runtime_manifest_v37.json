@@ -418,7 +418,7 @@
     "updated": "2025-12-12",
     "author": "arifOS Project",
     "license": "Apache-2.0",
-    "tests": 1060,
+    "tests": 1123,
     "runtime_manifest_line": "arifOS v37 | status=ACTIVE | law=v36.3O/canon/* | spec=v36.3O/spec/* | runtime=arifos_core/* (v37 with full memory stack) | pipeline=arifos_core.pipeline.Pipeline 000-999 | memory=MemoryContext (6 bands) | judiciary=APEX_PRIME + WAWFederationCore | phoenix72=Phoenix72Controller | scars=ScarManager | zkpc=EurekaReceipt | ledger=CoolingLedger + Vault-999.",
     "purpose": "Full v37 runtime manifest implementing v36.3Omega LAW+SPEC with integrated memory stack, Phoenix-72 amendment workflow, and Cooling Ledger with hash-chain integrity.",
     "canonical_source": "https://github.com/ariffazil/arifOS",

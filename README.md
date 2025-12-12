@@ -217,7 +217,7 @@ Implementation of specs - **free to iterate**:
 - `arifos_core/dream_forge/` — O-TASK paradox cooling (Crucible, Anvil)
 - `arifos_core/guards/` — Session dependency guards
 - `arifos_core/telemetry.py` — JSONL governance logging
-- `tests/` — 1060+ tests including grey zone and governance regression
+- `tests/` — 1123 tests including grey zone, governance regression, and v37 memory stack
 
 ### Runtime Law (v35Ω) — Still Binding
 
