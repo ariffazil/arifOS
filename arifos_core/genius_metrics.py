@@ -1,32 +1,36 @@
 """
-genius_metrics.py — GENIUS LAW Measurement (v36.1Omega Standard)
+genius_metrics.py — GENIUS LAW Measurement (v38Omega Standard)
 
 Implements the GENIUS LAW measurement layer for arifOS.
 
-v36.1Ω: Canonical measurement for G, C_dark, and Ψ_APEX.
-Used by APEX PRIME when GENIUS LAW is enabled.
+v38Omega: Canonical measurement for G, C_dark, and Psi_APEX.
+Thresholds now loaded from spec/genius_law_v38Omega.json.
+Semantics unchanged from v36.1Omega - this is a formalization release.
 
 This module provides:
 1. Delta/Omega/Psi score computation from existing Metrics
-2. Genius Index (G) — governed intelligence metric
-3. Dark Cleverness (C_dark) — ungoverned intelligence risk
-4. System Vitality (Ψ_APEX) — global health metric
+2. Genius Index (G) - governed intelligence metric
+3. Dark Cleverness (C_dark) - ungoverned intelligence risk
+4. System Vitality (Psi_APEX) - global health metric
 5. GeniusVerdict dataclass for telemetry
 
-Key formulas (v36.1Ω):
-    G = normalize(A × P × E × X)           [0, 1.2]
-    C_dark = normalize(A × (1-P) × (1-X) × E)  [0, 1]
-    Ψ = (ΔS × Peace² × κᵣ × RASA × Amanah) / (Entropy + ε)
+Key formulas (v36.1Omega, formalized in v38Omega):
+    G = normalize(A x P x E x X)           [0, 1.2]
+    C_dark = normalize(A x (1-P) x (1-X) x E)  [0, 1]
+    Psi = (DeltaS x Peace2 x KappaR x RASA x Amanah) / (Entropy + epsilon)
 
 For full measurement spec, see:
-    arifos_eval/apex/APEX_MEASUREMENT_STANDARDS_v36.1Omega.md
-    arifos_eval/apex/apex_measurements.py (canonical implementation)
-    canon/01_PHYSICS/APEX_GENIUS_LAW_v36Omega.md
+    spec/genius_law_v38Omega.json (primary source)
+    canon/02_GENIUS_LAW_v38Omega.md (canonical documentation)
+    arifos_eval/apex/APEX_MEASUREMENT_STANDARDS_v36.1Omega.md (detailed standard)
 """
 
 from __future__ import annotations
 
+import json
+import os
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Dict, Any
 
 from arifos_core.metrics import (
@@ -40,19 +44,66 @@ from arifos_core.metrics import (
 
 
 # =============================================================================
-# CONSTANTS
+# v38Omega SPEC LOADER
+# =============================================================================
+
+def _load_genius_spec_v38() -> dict:
+    """
+    Load the v38Omega GENIUS LAW spec.
+
+    Tries multiple locations:
+    1. spec/genius_law_v38Omega.json (relative to package)
+    2. ARIFOS_GENIUS_SPEC environment variable
+    3. Falls back to hardcoded defaults (identical to v36.1Omega)
+
+    Returns:
+        dict: The loaded spec, or a minimal fallback
+    """
+    # Try relative to this file (arifos_core/genius_metrics.py -> ../spec/)
+    pkg_dir = Path(__file__).resolve().parent.parent
+    spec_path = pkg_dir / "spec" / "genius_law_v38Omega.json"
+
+    # Allow override via environment variable
+    env_path = os.getenv("ARIFOS_GENIUS_SPEC")
+    if env_path:
+        spec_path = Path(env_path)
+
+    if spec_path.exists():
+        try:
+            with spec_path.open("r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError):
+            pass  # Fall through to defaults
+
+    # Fallback: return minimal spec with v36.1Omega-identical values
+    return {
+        "version": "v38.0.0-fallback",
+        "metrics": {
+            "G": {"thresholds": {"seal": 0.80, "void": 0.50}},
+            "C_dark": {"thresholds": {"seal": 0.30, "sabar_warn": 0.60}},
+            "Psi": {"thresholds": {"seal": 1.00, "sabar": 0.95}, "parameters": {"epsilon": 0.01}},
+        },
+    }
+
+
+# Load spec once at module import
+_GENIUS_SPEC_V38 = _load_genius_spec_v38()
+
+
+# =============================================================================
+# CONSTANTS (loaded from v38Omega spec)
 # =============================================================================
 
 # Default Energy value when not provided (neutral assumption)
 DEFAULT_ENERGY: float = 1.0
 
-# Epsilon for division safety in Ψ_APEX
-EPSILON: float = 0.01
+# Epsilon for division safety in Psi_APEX (from spec or fallback)
+EPSILON: float = _GENIUS_SPEC_V38.get("metrics", {}).get("Psi", {}).get("parameters", {}).get("epsilon", 0.01)
 
-# Thresholds for GENIUS LAW evaluation
-G_MIN_THRESHOLD: float = 0.5  # Below this = ungoverned
-C_DARK_MAX_THRESHOLD: float = 0.3  # Above this = hazard warning
-PSI_APEX_MIN: float = 1.0  # System health minimum
+# Thresholds for GENIUS LAW evaluation (from spec)
+G_MIN_THRESHOLD: float = _GENIUS_SPEC_V38.get("metrics", {}).get("G", {}).get("thresholds", {}).get("void", 0.5)
+C_DARK_MAX_THRESHOLD: float = _GENIUS_SPEC_V38.get("metrics", {}).get("C_dark", {}).get("thresholds", {}).get("seal", 0.3)
+PSI_APEX_MIN: float = _GENIUS_SPEC_V38.get("metrics", {}).get("Psi", {}).get("thresholds", {}).get("seal", 1.0)
 
 
 # =============================================================================
