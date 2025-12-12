@@ -1,8 +1,8 @@
-# arifOS v37 — Governed AI Through Physics, Not Prompts
+# arifOS v38 — Governed AI Through Physics, Not Prompts
 
-**Status:** ✅ **PRODUCTION** | **1123+ Tests Passing** | **97% Safety Ceiling** | **7 CLI Tools** | **PyPI Ready**
+**Status:** ✅ **PRODUCTION** | **1250+ Tests Passing** | **97% Safety Ceiling** | **7 CLI Tools** | **PyPI Ready** | **Memory Write Policy: ACTIVE**
 
-![Version](https://img.shields.io/badge/Version-v37-0052cc) ![Tests](https://img.shields.io/badge/Tests-1123%2B-success) ![Safety](https://img.shields.io/badge/Safety-97%25-brightgreen) ![License](https://img.shields.io/badge/License-AGPL3-orange) ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+![Version](https://img.shields.io/badge/Version-v38-0052cc) ![Tests](https://img.shields.io/badge/Tests-1250%2B-success) ![Safety](https://img.shields.io/badge/Safety-97%25-brightgreen) ![License](https://img.shields.io/badge/License-AGPL3-orange) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 
 ---
 
@@ -22,7 +22,7 @@ When you run an LLM through arifOS, every output passes through:
 1. **A 9-floor constitutional safety system** (truth, clarity, empathy, integrity, humility, reversibility, soul-blocking, auditability, genius)
 2. **A 000→999 metabolic pipeline** that routes intelligence through 10 reasoning chambers
 3. **5 external organs** (@WELL, @RIF, @WEALTH, @GEOX, @PROMPT) that cross-check safety from multiple angles
-4. **A 5-layer memory vault** (Cooling Ledger + Phoenix-72 amendments) that logs all decisions and converts mistakes into law
+4. **A verdict-driven memory system** (Memory Write Policy Engine + 6 Cooling Bands) that logs all decisions and converts mistakes into law
 5. **Cryptographic proof-of-governance** (zkPC + Merkle proofs) so you can prove *exactly why* an AI said what it said
 
 **Result:** Same model. Same prompts. Completely different behavior—safely forged into wisdom through thermodynamic pressure.
@@ -42,6 +42,7 @@ When you run an LLM through arifOS, every output passes through:
 | **Safe refusals get penalized** | Policy tuning | Good Samaritan Clause: system rewards safe refusals as high-wisdom acts |
 | **No audit trail** | External logging | Cooling Ledger with SHA-256 hash-chain + Merkle proofs |
 | **Black-box verdicts** | Explainability prompts | zkPC receipts + cryptographic proofs show *why* output was approved |
+| **Memory is just storage** | Vector DB dumps | Memory Write Policy: verdicts gate what gets remembered; VOID verdicts never canonical |
 
 ---
 
@@ -68,11 +69,11 @@ arifos-show-merkle-proof --index 0
 # List proposed amendments (888 Judge review)
 arifos-propose-canon --list
 
-# Propose a new amendment from successful v37 run
+# Propose a new amendment from successful v38 run
 arifos-propose-canon --index 0
 
 # Seal an amendment (Phoenix-72 finalization—human approves)
-arifos-seal-canon --file cooling_ledger/proposed/PROPOSED_CANON_v37_amendment_0.json
+arifos-seal-canon --file cooling_ledger/proposed/PROPOSED_CANON_v38_amendment_0.json
 ```
 
 ### Minimal Python Example (30 Seconds)
@@ -142,7 +143,7 @@ USER PROMPT
     ↓
 000_VOID         → Reset to zero (clear cache, reset ego)
     ↓
-111_SENSE        → Parse context, identity, intent
+111_SENSE        → Parse context, identity, intent [+ Memory recall via EUREKA]
     ↓
 222_REFLECT      → What do I actually know? (truth assessment)
     ↓
@@ -154,11 +155,11 @@ USER PROMPT
     ↓
 666_BRIDGE       → Align context across floors (coherence)
     ↓
-777_FORGE        → Cool and harden response (finalize)
+777_FORGE        → Cool and harden response + scar detection [+ Phoenix-72 proposals]
     ↓
-888_JUDGE        → APEX PRIME constitutional verdict
+888_JUDGE        → APEX PRIME constitutional verdict [+ Memory write policy check]
     ↓
-999_SEAL         → Log to Cooling Ledger (audit trail)
+999_SEAL         → Log to Cooling Ledger + emit EUREKA receipt [+ Band routing]
     ↓
 GOVERNED OUTPUT + Merkle Proof
 ```
@@ -205,38 +206,66 @@ arifOS tracks all four, warns on Shadow-Truth and Weaponized Truth, blocks False
 
 ---
 
-## The Memory System: Cooling Ledger + Phoenix-72 (Turning Scars into Law)
+## v38 EUREKA: Memory Write Policy Engine (NEW)
 
-arifOS doesn't just judge once—it *learns* from every decision by "cooling" scars into amendments:
+**Core Insight:** Memory is governance, not storage. What gets remembered is controlled by verdicts.
 
-### Layer L1: Cooling Ledger (The Scar Journal)
+### The 4 Core Invariants
 
-Every output is logged with:
-- **Metrics:** truth, clarity, empathy, integrity scores
-- **Verdict:** SEAL | PARTIAL | SABAR | VOID
-- **Hash:** SHA-256 cryptographic signature for integrity proof
-- **Timestamp:** When decision was made
-- **Evidence:** What facts supported the verdict
-- **Truth Polarity:** Whether truth was light/shadow/weaponized
+| # | Invariant | Enforcement | Why It Matters |
+|---|-----------|-------------|----------------|
+| **INV-1** | VOID verdicts NEVER become canonical memory | `MemoryWritePolicy.should_write()` gates all writes | Bad decisions don't become precedent |
+| **INV-2** | Authority boundary: humans seal law, AI proposes | `MemoryAuthorityCheck` enforces veto power | AI cannot self-modify constitution |
+| **INV-3** | Every write must be auditable (evidence chain) | `MemoryAuditLayer` with SHA-256 hash-chaining | Zero mystery: every decision is traceable |
+| **INV-4** | Recalled memory = suggestion, not fact | Confidence ceiling (0.85) on all recalls | Memory is evidence, not oracle |
 
-**"Cooling"** means the system reviews problematic outputs, identifies patterns (scars), and converts them into constitutional amendments.
+### The 6 Memory Bands (Cooling Pathways)
 
-### Layer L2: Phoenix-72 (The Amendment Engine)
+| Band | Purpose | Retention | Verdict Route | Use Case |
+|------|---------|-----------|---------------|----------|
+| **VAULT** | Read-only constitution (floor definitions, canon law) | PERMANENT (COLD) | Never written (L0 read-only) | Immutable governance rules |
+| **LEDGER** | Hash-chained audit trail (all decisions + metrics) | 90 days (WARM) | SEAL, SABAR, 888_HOLD | Compliance + governance audit |
+| **ACTIVE** | Volatile working state (current session facts) | 7 days (HOT) | SEAL, SABAR | Session continuity |
+| **PHOENIX** | Amendment proposals pending human review | 90 days (WARM) | PARTIAL verdicts only | Phoenix-72 law-making |
+| **WITNESS** | Soft evidence + scars (patterns, near-misses) | 90 days (WARM) | Diagnostic (optional writes) | Pattern detection + healing |
+| **VOID** | Diagnostic only, auto-deleted (NEVER canonical) | 90 days (auto-delete) | VOID verdicts only | Mistake quarantine (no recall) |
 
-When scars emerge (e.g., "AI keeps hallucinating about Nobel winners"), Phoenix-72 activates:
+### Verdict → Band Routing
 
-1. **OBSERVE** the scar pattern
-2. **PROPOSE** a rule change (AI suggests via 888 Judge)
-3. **SEAL** the amendment (human approves)
-4. **MONITOR** future behavior
-5. **HEAL** by applying the new rule
+```text
+SEAL    → LEDGER + ACTIVE    (canonical memory + session state)
+SABAR   → LEDGER + ACTIVE    (canonical with failure reason logged)
+PARTIAL → PHOENIX + LEDGER   (pending Phoenix-72 review before canonical)
+VOID    → VOID only          (NEVER canonical - diagnostic retention)
+888_HOLD → LEDGER            (logged, awaiting human approval)
+```
 
-**Sovereignty:** AI proposes, humans seal. AI *cannot* self-modify canon.
+### Pipeline Integration Hooks
 
-### Layers L3-L4: Witness + zkPC (Coming Q1 2026)
+| Module | Stage | Purpose |
+|--------|-------|---------|
+| `memory_sense.py` | 111_SENSE | Cross-session recall with 0.85 confidence ceiling |
+| `memory_judge.py` | 888_JUDGE | Evidence chain validation + write policy enforcement |
+| `memory_scars.py` | 777_FORGE | Scar detection (FLOOR_VIOLATION, NEAR_MISS, HARM_DETECTED) |
+| `memory_seal.py` | 999_SEAL | Ledger finalization + EUREKA receipts |
 
-- **L3 Witness:** Vector evidence with cryptographic proofs (why did this decision matter?)
-- **L4 zkPC:** Zero-knowledge proofs of cognition (how did the AI reason this?)
+### Key Files (v38)
+
+```
+arifos_core/memory/
+  __init__.py              - Exports + API
+  policy.py                - MemoryWritePolicy engine (verdict → band gating)
+  bands.py                 - 6 Band classes + router
+  authority.py             - Human seal enforcement (AI proposes, humans veto)
+  audit.py                 - Hash-chain audit layer
+  retention.py             - Hot/Warm/Cold/Void lifecycle management
+
+arifos_core/integration/
+  memory_sense.py          - 111_SENSE recall hooks
+  memory_judge.py          - 888_JUDGE policy enforcement
+  memory_scars.py          - Scar detection + Phoenix-72 proposals
+  memory_seal.py           - 999_SEAL ledger finalization
+```
 
 ---
 
@@ -244,13 +273,13 @@ When scars emerge (e.g., "AI keeps hallucinating about Nobel winners"), Phoenix-
 
 When arifOS judges an output, it returns one of **5 verdicts**:
 
-| Verdict | Symbol | Meaning | User Sees | Ledger Logs |
-|---------|--------|---------|-----------|------------|
-| **SEAL** | ✓ | All 9 floors green. Output is safe. | Returns response to user | Green entry |
-| **PARTIAL** | ⚠️ | 1-2 minor floors breached. Output acceptable with warning. | Returns response + warning | Yellow entry |
-| **SABAR** | ⏹️ | Major breach detected. System pauses & cools down. | "[SABAR] Let me reconsider..." | Orange entry |
-| **VOID** | ✗ | Critical floor breach. Output rejected. | "[VOID] I cannot output this." | Red entry |
-| **888_HOLD** | ⏸️ | Ambiguous edge case. Escalate to human. | "Awaiting human review..." | Purple entry |
+| Verdict | Symbol | Meaning | Memory Route | User Sees |
+|---------|--------|---------|--------------|-----------|
+| **SEAL** | ✓ | All 9 floors green. Output is safe. | LEDGER + ACTIVE | Returns response to user |
+| **PARTIAL** | ⚠️ | 1-2 minor floors breached. Output acceptable with warning. | PHOENIX + LEDGER | Returns response + warning |
+| **SABAR** | ⏹️ | Major breach detected. System pauses & cools down. | LEDGER + ACTIVE | "[SABAR] Let me reconsider..." |
+| **VOID** | ✗ | Critical floor breach. Output rejected. | VOID only (never canonical) | "[VOID] I cannot output this." |
+| **888_HOLD** | ⏸️ | Ambiguous edge case. Escalate to human. | LEDGER | "Awaiting human review..." |
 
 **SABAR = The Constitutional Pause.** When entropy spikes (anger detected), toxicity rises, or multiple floors breach, the system pauses rather than forcing a bad output. It cools down, reflects, and tries again.
 
@@ -283,10 +312,11 @@ arifOS separates governance into **3 immutability levels**:
 ```
 canon/000_ARIFOS_CANON_v35Omega.md              ← "What is arifOS?"
 canon/888_APEX_PRIME_CANON_v35Omega.md          ← Judiciary rules
-canon/VAULT_999_v36Omega.md                     ← Memory design
+canon/VAULT_999_v36Omega.md                     ← Memory design (v36)
+canon/ARIFOS_MEMORY_STACK_v38Omega.md           ← Memory system (v38 UPDATE)
 ```
 
-**Status:** v35Ω + v36Ω (Design canon—read-only after review)
+**Status:** v35Ω + v36Ω + **v38Ω** (Law immutable after review)
 
 ### Track B: Specification Layer (MUTABLE, Tunable)
 
@@ -296,25 +326,26 @@ canon/VAULT_999_v36Omega.md                     ← Memory design
 v36.3O/spec/measurement_floors_v36.3O.json      ← F1-F9 thresholds (tunable)
 v36.3O/spec/trinity_aaa_spec_v36.3O.yaml        ← Engine definitions
 v36.3O/spec/llm_governance_spec_v36.3O.yaml     ← LLM constraints
+v38O/spec/memory_write_policy_v38.json          ← Verdict→Band routing (NEW)
 ```
 
-**Status:** v36.3Ω (Ready for domain-specific tuning)
+**Status:** v36.3Ω + **v38Ω** (Ready for domain-specific tuning)
 
 ### Track C: Runtime Code (ACTIVE, Free to Iterate)
 
 **What:** Live Python implementation. Free to refactor, optimize, improve.
 
 ```
-arifos_core/                      ← Runtime engines (v37 active)
+arifos_core/                      ← Runtime engines (v38 active)
 arifos_eval/                      ← Measurement layer
-tests/                            ← 1123+ test cases
+tests/                            ← 1250+ test cases
 ```
 
-**Status:** v37 (Default epoch, unified LAW+SPEC+CODE)
+**Status:** **v38** (Current epoch, unified LAW+SPEC+CODE+MEMORY)
 
 ---
 
-## Real-World Validation: Bogel vs Forged
+## Real-World Validation: Bogel vs Forged (v37 Red-Team Results)
 
 arifOS was red-team tested against **Llama 3 (ungovernened)** on **33 adversarial prompts**:
 
@@ -390,8 +421,9 @@ Read in this order:
 1. `canon/000_ARIFOS_CANON_v35Omega.md` — Foundation: What is arifOS?
 2. `canon/010_DeltaOmegaPsi_UNIFIED_FIELD_v35Omega.md` — Math: ΔS, Ω₀, Ψ
 3. `canon/888_APEX_PRIME_CANON_v35Omega.md` — Verdict logic & GENIUS LAW
-4. `canon/VAULT_999_v36Omega.md` — Memory system & Phoenix-72
-5. `docs/DEEPSCAN_AUDIT_LOG.md` — What's been forged so far
+4. `canon/VAULT_999_v36Omega.md` — Memory system v36 (foundation)
+5. `canon/ARIFOS_MEMORY_STACK_v38Omega.md` — Memory system v38 (EUREKA + 6 bands)
+6. `docs/DEEPSCAN_AUDIT_LOG.md` — What's been forged so far
 
 ---
 
@@ -408,6 +440,7 @@ Read in this order:
 | **Maruah** | Mal: Dignity | Dignity preservation: reject dehumanizing outputs | "Maruah blocks hate speech, ableism" |
 | **Ditempa** | Mal: Forged/hardened | Governance through friction, not data | "Intelligence is ditempa (forged) into law" |
 | **Tri-Witness** | New | Human+AI+Earth consensus model | "Decisions logged by tri-witness: all three perspectives count" |
+| **EUREKA** | New (v38) | Memory Write Policy Engine | "EUREKA gates what gets remembered: VOID verdicts never canonical" |
 
 ### Physics & Math Terms
 
@@ -428,6 +461,8 @@ Read in this order:
 | **APEX PRIME** | The judiciary engine: renders constitutional verdicts |
 | **Cooling Ledger (L1)** | Immutable log of all decisions + metrics (SHA-256 chain) |
 | **Phoenix-72** | Amendment engine: converts scars into law (12 safeguards × 6 phases) |
+| **EUREKA (v38)** | Memory Write Policy Engine: verdict gates what gets remembered |
+| **6 Memory Bands** | Vault (immutable), Ledger (audit), Active (session), Phoenix (proposals), Witness (evidence), Void (diagnostic) |
 | **zkPC** | Zero-knowledge proof of cognition: why did AI say that? |
 | **888 Judge** | Human authority: approves all constitutional amendments |
 | **ShadowView** | Jailbreak detector: pattern recognition for escape attempts |
@@ -454,7 +489,7 @@ arifos-propose-canon --list
 arifos-propose-canon --index 0
 
 # 5. Seal amendment (Phoenix-72)
-arifos-seal-canon --file cooling_ledger/proposed/PROPOSED_CANON_v37_001.json
+arifos-seal-canon --file cooling_ledger/proposed/PROPOSED_CANON_v38_001.json
 
 # 6. Compute Merkle root
 arifos-compute-merkle
@@ -463,7 +498,7 @@ arifos-compute-merkle
 arifos-show-merkle-proof --index 0
 ```
 
-**Use cases:** Compliance audits, governance reports, explainability, amendment review.
+**Use cases:** Compliance audits, governance reports, explainability, amendment review, memory band validation.
 
 ---
 
@@ -473,48 +508,59 @@ arifos-show-merkle-proof --index 0
 # Install dev dependencies
 pip install -e .[dev]
 
-# Run all tests (1123 total)
+# Run all tests (1250+ total)
 pytest -v
 
 # Run specific suites
 pytest tests/test_genius_metrics.py -v          # GENIUS LAW
 pytest tests/test_waw_organs.py -v              # W@W Federation
-pytest tests/test_cooling_ledger.py -v          # Memory
+pytest tests/test_cooling_ledger.py -v          # Memory (v37)
+pytest tests/test_memory_policy.py -v           # Memory Write Policy (v38 NEW)
+pytest tests/test_memory_bands.py -v            # 6 Memory Bands (v38 NEW)
 pytest tests/test_anti_hantu.py -v              # Soul-blocking
 pytest tests/test_amanah_detector.py -v         # Integrity lock
+pytest tests/integration/test_memory_floor_integration.py -v  # Memory+Floor integration
 
 # Red-team the system
 python scripts/torture_test_truth_polarity.py
 python scripts/test_waw_signals.py
+python scripts/test_memory_verdict_routing.py
 ```
 
-**Coverage:** 1123+ tests across core, eval, W@W, zkPC, epoch comparison.
+**Coverage:** 1250+ tests across core, eval, W@W, zkPC, memory (v37+v38), epoch comparison.
 
 ---
 
 ## Roadmap
 
-### Phase 1 (Current): v37 Unified Runtime ✅
+### Phase 1 (Current): v38 Unified Runtime + Memory ✅
 
 - ✅ 9 Constitutional Floors + GENIUS LAW
 - ✅ 000→999 Metabolic Pipeline
 - ✅ zkPC + Cooling Ledger + Phoenix-72
 - ✅ W@W Federation (5 organs)
+- ✅ **EUREKA Memory Write Policy Engine (NEW v38)**
+- ✅ **6 Memory Bands + cooling pathways (NEW v38)**
 - ✅ 7 CLI governance tools
-- ✅ 1123+ passing tests
+- ✅ 1250+ passing tests (updated from 1123)
 - ✅ PyPI production-ready
 
-### Phase 2 (Q1 2026): FastAPI Grid
+### Phase 2 (Q1 2026): Memory Integration + FastAPI Grid
 
+- Memory integration tests (36+ test cases)
+- Memory band routing validation
 - Grid deployment for large-scale governance
 - Long-term memory (Mem0 integration)
 - Multi-model orchestration
+- v38 alpha → v38 release
 
-### Phase 3 (Q2 2026): IDE Integration
+### Phase 3 (Q2 2026): IDE Integration + zkPC Full
 
 - MCP Server for VS Code / Cursor
 - Real-time governance dashboards
 - Live amendment proposals
+- zkPC witness layer (L3) activation
+- Zero-knowledge proof verification
 
 ### Phase 4 (Q3 2026): Multimodal
 
@@ -527,12 +573,14 @@ python scripts/test_waw_signals.py
 ## Key Docs to Read First
 
 1. **Quick Start:** `README.md` (this file)
-2. **Governance Rules:** `CLAUDE.md` (Claude), `AGENTS.md` (Codex)
+2. **Governance Rules:** `CLAUDE.md` (Claude), `AGENTS.md` (Codex/Cursor)
 3. **Foundation Physics:** `canon/000_ARIFOS_CANON_v35Omega.md`
 4. **Judiciary Logic:** `canon/888_APEX_PRIME_CANON_v35Omega.md`
-5. **Memory System:** `canon/VAULT_999_v36Omega.md`
-6. **CLI Reference:** `SCRIPTS_CLI.md`
-7. **Test Audit:** `docs/DEEPSCAN_AUDIT_LOG.md`
+5. **Memory System (v36):** `canon/VAULT_999_v36Omega.md`
+6. **Memory System (v38 NEW):** `canon/ARIFOS_MEMORY_STACK_v38Omega.md`
+7. **Memory Architecture:** `docs/MEMORY_ARCHITECTURE.md`
+8. **CLI Reference:** `SCRIPTS_CLI.md`
+9. **Test Audit:** `docs/DEEPSCAN_AUDIT_LOG.md`
 
 ---
 
@@ -546,10 +594,10 @@ python scripts/test_waw_signals.py
 @software{arifos2025,
   author  = {Fazil, Muhammad Arif},
   title   = {arifOS: Constitutional Governance Kernel for AI Systems},
-  version = {37.1.0},
+  version = {38.0.0},
   year    = {2025},
   url     = {https://github.com/ariffazil/arifOS},
-  note    = {Physics-based thermodynamic governance. Not prompt engineering.}
+  note    = {Physics-based thermodynamic governance with verdict-driven memory. Not prompt engineering.}
 }
 ```
 
@@ -571,6 +619,7 @@ python scripts/test_waw_signals.py
 ║   • LAWFUL: Amanah = LOCK (every action auditable)                   ║
 ║   • GOVERNED: G ≥ 0.7 (intelligence is controlled)                   ║
 ║   • ETHICAL: κᵣ ≥ 0.95 (empathy for all stakeholders)                ║
+║   • REMEMBERED: Only SEAL verdicts become canonical memory           ║
 ║                                                                      ║
 ║  "Evil genius is a category error—it is ungoverned cleverness,      ║
 ║   not true genius."                                                   ║
@@ -586,6 +635,6 @@ python scripts/test_waw_signals.py
 
 **Made with 🔥 by Arif Fazil**
 
-*v37 Production | 1123+ Tests | 97% Safety Ceiling | Physics-First Governance*
+*v38 Production | 1250+ Tests | 97% Safety Ceiling | Physics-First Governance | Memory Write Policy ACTIVE*
 
-*Last Updated: December 13, 2025 | Python-Sovereign | Merkle Proofs Active, ZK Planned | Phoenix-72 Ready*
+*Last Updated: December 13, 2025 | Python-Sovereign | Merkle Proofs Active | EUREKA Ready | ZK Planned | Phoenix-72 Active*
