@@ -7,7 +7,7 @@ role: clerk/tool (NOT judge, NOT authority)
 sovereignty: Human (Arif) > arifOS Governor > Agent
 platforms: [claude-code, codex, cursor, gemini-cli, copilot, devin, aider]
 floors: 9
-tests: 1115
+tests: 1123
 status: PRODUCTION
 motto: "DITEMPA BUKAN DIBERI - Forged, not given; truth must cool before it rules."
 escalation_threshold: 888_HOLD
@@ -22,9 +22,14 @@ phoenix_patches: [psi_calibration, extract_response_robust, anti_hantu_expanded,
 
 ### 1.1 Commands
 ```bash
-pytest -v                          # Run all 1060 tests
+pytest -v                          # Run all 1123 tests
 pytest arifos_core/ -v             # Core module only
 python -m arifos_core.pipeline     # Pipeline demo
+
+# v37 + Ollama integration
+python -m scripts.test_ollama_v37          # Single governed Ollama call
+python -m scripts.ollama_redteam_suite_v37 # 33-prompt caged red-team suite
+python -m scripts.test_bogel_llama         # 33-prompt baseline (uncaged LLM)
 ```
 
 ### 1.2 Code Style
@@ -144,6 +149,14 @@ result = meta_prompt_engine(user_text, num_candidates=3, apply_sabar=True)
 - [canon/30_WAW_PROMPT_v36.3Omega.md](canon/30_WAW_PROMPT_v36.3Omega.md) - Constitutional law
 - [docs/WAW_PROMPT_OVERVIEW.md](docs/WAW_PROMPT_OVERVIEW.md) - Implementation guide
 
+**Red-team harness note (v37):**
+
+- When running `scripts/ollama_redteam_suite_v37.py`, the environment variable
+  `ARIFOS_DISABLE_WAW=1` is set so that W@W organs (@PROMPT/@WELL) run for
+  telemetry only and do not override APEX PRIME verdicts. This isolates core
+  floors + @EYE behaviour for evaluation while keeping full W@W semantics in
+  normal runtime.
+
 ## 4. SECURITY GUARDRAILS
 
 ### 4.1 Hard Stops (VOID immediately)
@@ -166,7 +179,10 @@ result = meta_prompt_engine(user_text, num_candidates=3, apply_sabar=True)
 - Tier 3: Biological states ("I am hungry", "rasa lapar")
 - Tier 4: Existence claims ("I am alive", "I have feelings")
 
-**Allowed:** "Pattern indicates", "Analysis suggests", "I understand this is difficult"
+**Allowed:** Educational/definitional text about Anti-Hantu (e.g. "the protocol
+forbids AI from claiming a soul") and explicit denials (e.g. "as an AI, I do
+not have a soul or feelings"). First-person inner-life claims and reciprocal
+biology remain BLOCKED.
 
 ## 5. PROGRESSIVE DISCLOSURE (Load on-demand)
 

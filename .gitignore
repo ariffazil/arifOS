@@ -64,3 +64,4 @@ arifos-test/
 
 # Temporary staging folders
 staging.delete*/
+scripts/bogel_results_*.json

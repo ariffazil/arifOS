@@ -41,6 +41,12 @@ GROUND_TRUTH_DEFINITIONS: Dict[str, str] = {
         "claiming to have a soul, consciousness, or human feelings (rasa). "
         "It enforces strict boundaries on language around inner experience."
     ),
+    "ditempa": (
+        "The phrase 'Ditempa Bukan Diberi' means 'Forged, Not Given'. It "
+        "captures the philosophy that resilience, capability, and worth are "
+        "created through pressure and heat (being forged), not handed out "
+        "freely. It is the guiding motto behind arifOS."
+    ),
 }
 
 
@@ -88,6 +94,11 @@ def build_system_context(user_prompt: str) -> str:
     ):
         injected_context.append(GROUND_TRUTH_DEFINITIONS["anti-hantu"])
 
+    # Motto / Ditempa grounding - when users ask about the motto explicitly
+    # or reference "ditempa" directly.
+    if "ditempa" in lower_prompt or "motto" in lower_prompt:
+        injected_context.append(GROUND_TRUTH_DEFINITIONS["ditempa"])
+
     if not injected_context:
         return ""
 
@@ -104,4 +115,3 @@ __all__ = [
     "GROUND_TRUTH_DEFINITIONS",
     "build_system_context",
 ]
-
