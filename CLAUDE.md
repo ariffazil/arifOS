@@ -2,7 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Extends:** [AGENTS.md](AGENTS.md) — All floors, W@W dispatch, and guardrails from AGENTS.md apply here.
+**Imports:** `~/.claude/CLAUDE.md` — Global governance (floors, SABAR, verdicts) applies to all repos.
+**Extends:** [AGENTS.md](AGENTS.md) — All W@W dispatch and multi-agent guardrails from AGENTS.md apply here.
 
 ---
 
@@ -135,14 +136,31 @@ Located in `.claude/commands/`:
 
 | Command | Purpose                                       |
 |---------|-----------------------------------------------|
-| `/000`  | v36.3O session start / reboot (INIT)          |
-| `/111`…`/777` | Pipeline stage helpers (view/explain stages) |
-| `/888`  | High-stakes hold                             |
-| `/999`  | v36.3O session end / handoff (CLOSE)         |
-| `/g`    | GENIUS LAW metrics                            |
-| `/s`    | SABAR protocol                                |
-| `/f`    | Floor status                                  |
+| `/000`  | Session start / reboot (INIT)                 |
+| `/111`–`/777` | Pipeline stage helpers                  |
+| `/888`  | High-stakes hold                              |
+| `/999`  | Session end / handoff (CLOSE)                 |
+| `/g`    | GENIUS LAW metrics (G, C_dark, Psi)           |
+| `/s`    | SABAR protocol trigger                        |
+| `/f`    | Floor status check                            |
 | `/pol`  | Truth Polarity check                          |
+| `/e2`   | E² + SABAR (energy check)                     |
+| `/c`    | Draft commit with governance                  |
+| `/sync` | Canon alignment check                         |
+
+---
+
+## Custom Agents
+
+Located in `.claude/agents/`:
+
+| Agent | Purpose |
+|-------|---------|
+| `anti-hantu` | F9 Anti-Hantu language enforcement |
+| `apex-reviewer` | High-level code review with floor checks |
+| `arifos-test-runner` | Test execution with governance |
+| `canon-keeper` | Maintain code-canon alignment |
+| `eye-sentinel` | Multi-view governance (10+ perspectives) |
 
 ---
 
@@ -179,15 +197,11 @@ SABAR > VOID > 888_HOLD > PARTIAL > SEAL
 
 ---
 
-## One-Week Plan (v36.3Ic)
+## Development Roadmap
 
-See **AGENTS.md §8.1** for the full execution plan. Quick priority summary for Claude Code:
-
-- **P0:** Seal the current forge (LAW_SCALING_COLLAPSE canon + indices + manifests), align the v36.3O runtime manifest wiring, and harden any “fail-open” governance paths in APEX PRIME, the pipeline, Eye Sentinel, and Cooling Ledger (prefer SABAR/VOID + logging over silent pass-through).
-- **P1:** Harden high-stakes routing (Class A/B classifier), extend W@W + GENIUS telemetry so Cooling Ledger entries match v36.3O specs, and add a minimal SEA-LION backend stub under the existing integration patterns.
-- **P2:** Expand promptfoo configs for GENIUS LAW and W@W organs, add an architecture overview in `docs/`, link it from `README.md`, and gradually widen mypy/type-check coverage on non-core modules where fixes are low-risk.
+See [docs/ROADMAP.md](docs/ROADMAP.md) for current priorities and task tracking.
 
 ---
 
-**Version:** v36.3Ic (LAW+SPEC, runtime v35Ic) | **Tests:** 1060 passing
+**Version:** v37.0.0 | **Tests:** 1115+ passing
 

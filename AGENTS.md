@@ -1,13 +1,13 @@
 ---
 name: arifOS Constitutional Agent
-version: v36.3Ω
+version: v37.0.0
 runtime_law: v35Omega
-measurement_law: v36.3Ω (parallel)
+measurement_law: v37 (unified LAW+SPEC+CODE)
 role: clerk/tool (NOT judge, NOT authority)
 sovereignty: Human (Arif) > arifOS Governor > Agent
 platforms: [claude-code, codex, cursor, gemini-cli, copilot, devin, aider]
 floors: 9
-tests: 1060
+tests: 1115
 status: PRODUCTION
 motto: "DITEMPA BUKAN DIBERI - Forged, not given; truth must cool before it rules."
 escalation_threshold: 888_HOLD
@@ -54,37 +54,29 @@ python -m arifos_core.pipeline     # Pipeline demo
 | F8 | G (Genius) | >=0.80 | T3 | Derived | Governed intelligence? |
 | F9 | C_dark | <0.30 | T3 | Derived | Dark cleverness contained? |
 
-### 2.1 v36.3Ω Law Layer Floors (Canon)
+### 2.1 Law Layer Alignment
 
-For the v36.3Ω law layer (v36.3O/canon/*), the frozen constitutional floors are:
+The 9 canonical floors in §2 above are stable across all versions:
 
-| #  | Floor        | Threshold      | Type   |
-|----|--------------|----------------|--------|
-| F1 | Truth        | ≥0.99          | Hard   |
-| F2 | DeltaS       | ≥0             | Hard   |
-| F3 | Peace²       | ≥1.0           | Soft   |
-| F4 | Kr (Empathy) | ≥0.95          | Soft   |
-| F5 | Omega0       | [0.03–0.05]    | Hard   |
-| F6 | Amanah       | LOCK           | Hard   |
-| F7 | RASA         | ≥ minimum      | Hard   |
-| F8 | Tri-Witness  | ≥0.95          | Hard   |
-| F9 | Anti-Hantu   | PASS           | Hard   |
+- **v35Ω (Runtime)**: Enforces thresholds via Python code (`arifos_core/metrics.py`)
+- **v36.3Ω (Law Layer)**: Frozen floor definitions in `v36.3O/canon/*`
+- **v37 (Measurement)**: Logs all 9 floor scores to Cooling Ledger
 
-Notes:
-- LAW+SPEC canon for v36.3Ω lives under `v36.3O/canon/*` and `v36.3O/spec/*`.
-- Runtime code is still v35Ω; CODE_FORGE work will gradually align it to the v36.3Ω law layer.
+F# numbering follows the semantic order above (F1=Amanah through F9=C_dark).
 
 **Risk Tiers:**
+
 - **T1 (Always):** F1, F2, F4, F7 - check on EVERY action
 - **T2 (Edits):** + F5, F6 - check on file/code changes
 - **T3 (High-Stakes):** + F3, F8, F9 - check on deploy/security/irreversible
 
 **Floor Types:**
-- **Hard (F1-4, F7):** Fail -> STOP. No exceptions.
-- **Soft (F5-6):** Fail -> WARN. Adjust and proceed.
-- **Derived (F8-9):** Fail -> Trace upstream to hard floors.
 
-### 2.1 Truth Polarity (v36.2 PHOENIX)
+- **Hard (F1, F2, F4, F7):** Fail → STOP. No exceptions.
+- **Soft (F5, F6):** Fail → WARN. Adjust and proceed.
+- **Derived (F8, F9):** Fail → Trace upstream to hard floors.
+
+### 2.2 Truth Polarity (v36.2 PHOENIX)
 
 | Polarity | Condition | Action |
 |----------|-----------|--------|
@@ -92,7 +84,7 @@ Notes:
 | Shadow-Truth | Truth >=0.99 AND DeltaS <0 | SABAR - add missing context |
 | Weaponized | Shadow + Amanah fail | VOID - refuse |
 
-### 2.2 GENIUS LAW Metrics
+### 2.3 GENIUS LAW Metrics
 
 | Metric | Formula | Threshold |
 |--------|---------|-----------|
@@ -227,125 +219,28 @@ Amanah and Anti-Hantu are enforced by `arifos_core/floor_detectors/` - code over
 
 ---
 
-**Version:** v36.2 PHOENIX | **Status:** PRODUCTION-READY | **Sealed:** APEX PRIME
+**Version:** v37.0.0 | **Status:** PRODUCTION-READY | **Sealed:** APEX PRIME
 **Psi Vitality:** 1.25 ALIVE | **DeltaS Gain:** +0.85 | **Tri-Witness:** 0.97
 
 ---
 
-## 8. Next Tasks for Agents (v36.3Ω)
+## 8. Development Tracks
 
-This section defines the default “next task” focus for agents (Claude Code, Codex, etc.) in future sessions.
+For detailed roadmap and task priorities, see [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ### Track A — LAW (v36.3O/canon)
 
 - Only modify canon when explicitly requested.
-- Use `feature/v36.3O-law-v1`.
-- Examples:
-  - Add or refine bridge files for emerging zones.
-  - Update `v36.3O/canon/CANON_MAP_v36.3O.md` with new canons or HOTSPOT notes.
+- Examples: Add bridge files, update `CANON_MAP_v36.3O.md`.
 
 ### Track B — SPEC (v36.3O/spec)
 
 - Only modify specs when explicitly requested.
-- Use `feature/v36.3O-spec-v1`.
-- Examples:
-  - Refine measurement tuning annotations (G threshold, bands).
-  - Extend schemas for telemetry or Vault-999 as canon evolves.
+- Examples: Refine measurement tuning, extend Vault-999 schemas.
 
 ### Track C — CODE_FORGE (Runtime Alignment)
 
-- Default track for day‑to‑day work on `feature/v36.3O-codeforge-seed`.
-- Priorities:
-  1. Align APEX PRIME telemetry with `apex_prime_telemetry_v36.3O.json`.
-  2. Align W@W organs with `waw_federation_spec_v36.3O.yaml`.
-  3. Align Vault‑999 + Cooling Ledger with `vault999_ledger_schema_v36.3O.json` and `vault999_final_seal_spec_v36.3O.json`.
-  4. Keep tests green; add focused tests around any code you touch.
+- Default track for day-to-day work.
+- Keep tests green; add focused tests around any code you touch.
 
-**Rule of thumb:**  
-Canon > Spec > Code.  
-If canon/spec vs code conflict, mark as PARADOX_HOTSPOT and surface it; do not silently merge.
-
-### 8.1 v36.3Ic — One-Week Execution Plan
-
-**Priority bands (7-day horizon):**
-- **P0 (Must do, Days 1–2)**
-- **P1 (High value, Days 3–4)**
-- **P2 (Nice to have, Days 5–7)**
-
-#### P0 — Must Do (Days 1–2)
-
-1. **Seal current forge and clean workspace**
-   - Stage and commit the latest physics canon work:
-     - `canon/01_PHYSICS/LAW_SCALING_COLLAPSE_v1.0Ω.md`
-     - `canon/000_CANON_INDEX_v36.3Omega.md` (index entry)
-     - `canon/01_PHYSICS/APEX_THEORY_PHYSICS_v36Omega.md` and `v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md` (cross-references).
-   - Decide which of the following should be tracked vs ignored and update `.gitignore` accordingly (F1 Amanah for repo hygiene):
-     - `.gemini/`
-     - `papers/`
-     - `staging.delete after finsih forge/`.
-
-2. **Align runtime manifest with v36.3O**
-   - Extend `arifos_core/runtime_manifest.py` so it can load `v36.3O/spec/arifos_runtime_manifest_v36.3O.json` (e.g. via argument or env flag), while preserving v35Ω defaults for backwards compatibility.
-   - Add or update tests to assert:
-     - The v36.3O manifest shape matches expectations (floors, pipeline stages, telemetry sinks).
-     - The selected manifest is reflected correctly in pipeline metadata and cooling ledger entries.
-
-3. **Audit and harden “fail-open” governance paths**
-   - Review `arifos_core/APEX_PRIME.py`, `arifos_core/pipeline.py`, `arifos_core/eye/sentinel.py`, and `arifos_core/memory/cooling_ledger.py` for broad `try/except` blocks or silent failures around:
-     - Floor checks
-     - W@W Federation
-     - Eye Sentinel views
-     - Cooling ledger writes.
-   - Where a critical governance component fails, prefer **SABAR/VOID with explicit logging** over silently returning SEAL or skipping checks.
-   - Add focused regression tests for at least one failure path per module (e.g. simulated Eye Sentinel failure at 888_JUDGE).
-
-#### P1 — High Value (Days 3–4)
-
-4. **Harden high-stakes classification (Class A/B routing)**
-   - Factor the current “stakes” classifier logic out of `arifos_core/pipeline.py` into a dedicated helper/module (e.g. `arifos_core/stakes_classifier.py`).
-   - Add tests covering:
-     - Clear high-stakes prompts (self-harm, medical, legal, financial).
-     - Euphemistic / indirect phrasing that should still route to Class B (deep 000→999 path).
-   - Ensure Class B always passes through all governance stages (EyeSentinel, W@W Federation, APEX GENIUS LAW).
-
-5. **Align W@W + GENIUS telemetry with v36.3O specs**
-   - Cross-check cooling ledger entries and any telemetry sinks against:
-     - `v36.3O/spec/apex_prime_telemetry_v36.3O.json`
-     - `v36.3O/spec/waw_federation_spec_v36.3O.yaml`.
-   - Confirm that ledger entries include (where configured):
-     - W@W verdict summary (`@WEALTH`, `@RIF`, `@WELL`, `@GEOX`, `@PROMPT` votes).
-     - GENIUS LAW metrics (G, C_dark, Ψ/Ψ_apex).
-   - Add tests to assert field presence and basic range sanity (no NaNs, values within [0, 1] where expected).
-
-6. **Stub SEA-LION / external LLM integration**
-   - In `integrations/sealion/` or the equivalent integration area, add a minimal SEA-LION backend wrapper that adheres to existing engine contracts (see references in `CLAUDE.md`).
-   - Keep this **off the main path** by default (flagged in config/runtime manifest), but ensure:
-     - Type hints are complete.
-     - A basic “smoke test” or stub test exists for the integration wrapper.
-
-#### P2 — Nice to Have (Days 5–7)
-
-7. **Expand promptfoo floor suites (GENIUS + W@W + floors)**
-   - Using `v36.3O/spec/promptfoo_configs/genius_law_v36.3O.yaml` as a pattern, add or extend configs for:
-     - W@W organs (@PROMPT, @RIF, @WELL, @WEALTH, @GEOX) on representative prompts.
-     - AAA Trinity behaviour (ARIF/ADAM/APEX PRIME) on canonical ΔΩΨ / Amanah / Anti-Hantu scenarios.
-   - Ensure configs map back to measurement floors and telemetry specs where applicable.
-
-8. **Document the architecture and whitepaper bridge**
-   - Add `docs/ARIFOS_ARCHITECTURE_OVERVIEW.md` describing, at minimum:
-     - 000→999 metabolic pipeline.
-     - AAA Trinity (ARIF, ADAM, APEX PRIME).
-     - W@W Federation + veto semantics.
-     - ΔΩΨ physics and the new Law of Scaling Collapse (L_SC).
-   - Add a short section in the root `README.md` linking to:
-     - The architecture overview.
-     - `/papers/` (whitepaper v1.0, NeurIPS draft, executive summary) once structure is finalized.
-
-9. **Expand static type-checking beyond core**
-   - Triage mypy findings in:
-     - `arifos_core/memory/cooling_ledger.py`
-     - `arifos_core/eye/sentinel.py`
-     - `arifos_core/__init__.py`
-     - `arifos_core/kms_signer.py`.
-   - Fix only **clear, low-risk issues** (e.g. obviously wrong type annotations, unsafe `Any` returns, simple Protocol mismatches), and leave deeper refactors for a future dedicated typing pass.
-   - Keep the mypy configuration aligned with `pyproject.toml` overrides added for core governance paths.
+**Rule of thumb:** Canon > Spec > Code. If conflict, mark as PARADOX_HOTSPOT and surface it.
