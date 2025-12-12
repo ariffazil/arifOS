@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Version:** v38.0.0 | **Tests:** 1282+ | **Safety Ceiling:** 97% | **CLI Tools:** 7
+**Version:** v38.0.0 | **Tests:** 1250+ | **Safety Ceiling:** 97% | **CLI Tools:** 7
 
 **Imports:** `~/.claude/CLAUDE.md` — Global governance (floors, SABAR, verdicts) applies to all repos.
 **Extends:** [AGENTS.md](AGENTS.md) — All W@W dispatch and multi-agent guardrails from AGENTS.md apply here.
@@ -18,7 +18,7 @@ pip install arifos
 # Install (editable with dev dependencies)
 pip install -e .[dev]
 
-# Run all 1282+ tests
+# Run all 1250+ tests
 pytest -v
 
 # Run tests for specific modules
@@ -284,5 +284,4 @@ See [docs/ROADMAP.md](docs/ROADMAP.md) for current priorities and task tracking.
 
 ---
 
-**Version:** v38.0.0 | **Tests:** 1282+ | **Safety:** 97% | **CLI Tools:** 7 | **PyPI:** `pip install arifos`
-
+**Version:** v38.0.0 | **Tests:** 1250+ | **Safety:** 97% | **CLI Tools:** 7 | **PyPI:** `pip install arifos`

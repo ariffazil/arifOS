@@ -9,7 +9,7 @@ platforms: [claude-code, codex, cursor, gemini-cli, copilot, devin, aider]
 floors: 9
 memory_bands: 6
 memory_invariants: 4
-tests: 1282+
+tests: 1250+
 safety_ceiling: 97%
 cli_tools: 7
 status: PRODUCTION
@@ -30,7 +30,7 @@ phoenix_patches: [psi_calibration, extract_response_robust, anti_hantu_expanded,
 # Installation (PyPI)
 pip install arifos
 
-# Run all 1282+ tests
+# Run all 1250+ tests
 pytest -v
 pytest arifos_core/ -v             # Core module only
 python -m arifos_core.pipeline     # Pipeline demo
