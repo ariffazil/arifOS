@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "37.1.0"
-description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW Judiciary, zkPC + Phoenix-72, PHOENIX SOVEREIGNTY, v37 Unified LAW+SPEC+CODE Runtime"
+version = "38.0.0"
+description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW Judiciary, Memory Write Policy Engine (EUREKA), 6 Memory Bands, zkPC + Phoenix-72, v38 Unified LAW+SPEC+CODE+MEMORY Runtime"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "AGPL-3.0"}
@@ -28,6 +28,10 @@ keywords = [
     "sea-lion",
     "telemetry",
     "anti-hantu",
+    "memory-governance",
+    "eureka",
+    "memory-bands",
+    "verdict-routing",
 ]
 authors = [
     {name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com"}
