@@ -588,4 +588,4 @@ python scripts/test_waw_signals.py
 
 *v37 Production | 1123+ Tests | 97% Safety Ceiling | Physics-First Governance*
 
-*Last Updated: December 13, 2025 | Python-Sovereign | zkPC Active | Phoenix-72 Ready*
+*Last Updated: December 13, 2025 | Python-Sovereign | Merkle Proofs Active, ZK Planned | Phoenix-72 Ready*

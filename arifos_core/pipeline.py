@@ -1,5 +1,5 @@
 """
-pipeline.py - 000-999 Metabolic Pipeline for arifOS v35Ω
+pipeline.py - 000-999 Metabolic Pipeline for arifOS v37
 
 Implements the constitutional metabolism with Class A/B routing:
 - Class A (low-stakes/factual): Fast track 111 → 333 → 888 → 999
@@ -10,8 +10,14 @@ AAA Engine Integration (v35.8.0):
 - ADAMEngine (Ω): empathize/bridge - warm logic, stability
 - ApexEngine (Ψ): judge - judiciary wrapper
 
+MemoryContext Integration (v37):
+- ONE MemoryContext per pipeline run
+- VaultBand loaded and frozen at 000_VOID
+- Memory MUST flow through APEX PRIME (888_JUDGE)
+
 See: spec/arifos_pipeline_v35Omega.yaml for full specification
      docs/AAA_ENGINES_FACADE_PLAN_v35Omega.md for engine contract
+     docs/MEMORY_ARCHITECTURE.md for memory integration
 """
 from __future__ import annotations
 
@@ -31,6 +37,20 @@ from .waw.federation import WAWFederationCore, FederationVerdict
 from .engines import ARIFEngine, ADAMEngine
 from .engines.arif_engine import ARIFPacket
 from .engines.adam_engine import ADAMPacket
+
+# Memory Context (v37)
+from .memory.memory_context import (
+    MemoryContext,
+    create_memory_context,
+    VaultBand,
+    LedgerBand,
+)
+from .memory.vault999 import Vault999
+
+# Memory Write Policy Engine (v38)
+from .memory.policy import MemoryWritePolicy
+from .memory.bands import MemoryBandRouter
+from .memory.audit import MemoryAuditLayer, compute_evidence_hash
 
 
 # =============================================================================
@@ -95,6 +115,15 @@ class PipelineState:
     arif_packet: Optional[ARIFPacket] = None
     adam_packet: Optional[ADAMPacket] = None
 
+    # Memory Context (v37) - ONE per pipeline run
+    memory_context: Optional[MemoryContext] = None
+
+    # v38 Memory System - Write policy, routing, and audit
+    memory_write_policy: Optional[MemoryWritePolicy] = None
+    memory_band_router: Optional[MemoryBandRouter] = None
+    memory_audit_layer: Optional[MemoryAuditLayer] = None
+    memory_evidence_hash: Optional[str] = None
+
     # Timing
     start_time: float = field(default_factory=time.time)
     stage_times: Dict[str, float] = field(default_factory=dict)
@@ -143,11 +172,16 @@ class PipelineState:
 StageFunc = Callable[[PipelineState], PipelineState]
 
 
-def stage_000_void(state: PipelineState) -> PipelineState:
+def stage_000_void(
+    state: PipelineState,
+    vault: Optional[Vault999] = None,
+) -> PipelineState:
     """
     000 VOID - Reset to uncertainty. Ego to zero.
 
     Clear previous context biases, initialize metrics to neutral.
+
+    v37: Initialize MemoryContext with frozen VaultBand.
     """
     state.current_stage = "000"
     state.stage_trace.append("000_VOID")
@@ -158,6 +192,30 @@ def stage_000_void(state: PipelineState) -> PipelineState:
     state.metrics = None
     state.verdict = None
 
+    # v37: Initialize MemoryContext with VaultBand frozen at creation
+    # ONE MemoryContext per pipeline run - created here, frozen immediately
+    if vault is None:
+        vault = Vault999()
+
+    vault_floors = vault.get_floors()
+    vault_physics = vault.get_physics()
+
+    state.memory_context = create_memory_context(
+        manifest_id="v37",
+        request_id=state.job_id,
+        stakes_class="CLASS_A",  # Will be updated in 111_SENSE
+        vault_floors={
+            **vault_floors,
+            "physics": vault_physics,
+        },
+    )
+    # VaultBand is frozen in create_memory_context.__post_init__
+
+    # v38: Initialize Memory Write Policy Engine
+    state.memory_write_policy = MemoryWritePolicy(strict_mode=True)
+    state.memory_band_router = MemoryBandRouter()
+    state.memory_audit_layer = MemoryAuditLayer()
+
     return state
 
 
@@ -166,6 +224,8 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
     111 SENSE - Parse input. What is actually being asked?
 
     Detect high-stakes indicators and classify for routing.
+
+    v37: Updates EnvBand.stakes_class in MemoryContext.
     """
     state.current_stage = "111"
     state.stage_trace.append("111_SENSE")
@@ -188,6 +248,11 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
     # Classify based on indicators
     if state.high_stakes_indicators:
         state.stakes_class = StakesClass.CLASS_B
+
+    # v37: Sync stakes class to MemoryContext EnvBand
+    if state.memory_context is not None:
+        stakes_str = "CLASS_B" if state.stakes_class == StakesClass.CLASS_B else "CLASS_A"
+        state.memory_context.env.stakes_class = stakes_str
 
     return state
 
@@ -582,6 +647,92 @@ def stage_888_judge(
         if not state.floor_failures and state.sabar_reason:
             state.floor_failures.append(state.sabar_reason)
 
+    # ==========================================================================
+    # v38: Memory Write Policy Engine Integration
+    # Every verdict must be written to memory via policy-gated routing
+    # ==========================================================================
+    if state.memory_write_policy is not None and state.memory_band_router is not None:
+        from datetime import datetime, timezone
+        import json
+        import hashlib
+
+        # Build floor check evidence
+        floor_checks = []
+        if state.metrics is not None:
+            floor_checks = [
+                {"floor": "F1_Amanah", "passed": state.metrics.amanah},
+                {"floor": "F2_Truth", "passed": state.metrics.truth >= 0.99, "value": state.metrics.truth},
+                {"floor": "F3_TriWitness", "passed": state.metrics.tri_witness >= 0.95, "value": state.metrics.tri_witness},
+                {"floor": "F4_DeltaS", "passed": state.metrics.delta_s >= 0, "value": state.metrics.delta_s},
+                {"floor": "F5_Peace2", "passed": state.metrics.peace_squared >= 1.0, "value": state.metrics.peace_squared},
+                {"floor": "F6_KappaR", "passed": state.metrics.kappa_r >= 0.95, "value": state.metrics.kappa_r},
+                {"floor": "F7_Omega0", "passed": 0.03 <= state.metrics.omega_0 <= 0.05, "value": state.metrics.omega_0},
+            ]
+
+        timestamp = datetime.now(timezone.utc).isoformat()
+
+        # Compute evidence hash
+        state.memory_evidence_hash = compute_evidence_hash(
+            floor_checks=floor_checks,
+            verdict=state.verdict or "UNKNOWN",
+            timestamp=timestamp,
+        )
+
+        # Build evidence chain for policy check
+        evidence_chain = {
+            "floor_checks": floor_checks,
+            "verdict": state.verdict,
+            "timestamp": timestamp,
+            "job_id": state.job_id,
+            "stakes_class": state.stakes_class.value,
+        }
+        # Add hash to evidence chain
+        evidence_chain["hash"] = hashlib.sha256(
+            json.dumps({k: v for k, v in evidence_chain.items() if k != "hash"}, sort_keys=True).encode()
+        ).hexdigest()
+
+        # Check write policy
+        write_decision = state.memory_write_policy.should_write(
+            verdict=state.verdict or "UNKNOWN",
+            evidence_chain=evidence_chain,
+        )
+
+        # Route write to appropriate bands if allowed
+        if write_decision.allowed:
+            content = {
+                "query_hash": hashlib.sha256(state.query.encode()).hexdigest()[:16],
+                "verdict": state.verdict,
+                "floor_checks_summary": {
+                    "passed": len([f for f in floor_checks if f.get("passed")]),
+                    "failed": len([f for f in floor_checks if not f.get("passed")]),
+                },
+                "stakes_class": state.stakes_class.value,
+                "timestamp": timestamp,
+            }
+
+            # Route write via band router
+            write_results = state.memory_band_router.route_write(
+                verdict=state.verdict or "UNKNOWN",
+                content=content,
+                writer_id="888_JUDGE",
+                evidence_hash=state.memory_evidence_hash,
+                metadata={"job_id": state.job_id},
+            )
+
+            # Record in audit layer
+            if state.memory_audit_layer is not None:
+                for band_name, result in write_results.items():
+                    if result.success:
+                        state.memory_audit_layer.record_memory_write(
+                            band=band_name,
+                            entry_data=content,
+                            verdict=state.verdict,
+                            evidence_hash=state.memory_evidence_hash,
+                            entry_id=result.entry_id,
+                            writer_id="888_JUDGE",
+                            metadata={"job_id": state.job_id},
+                        )
+
     return state
 
 
@@ -649,6 +800,7 @@ class Pipeline:
         context_retriever: Optional[Callable[[str], List[Dict[str, Any]]]] = None,
         ledger_sink: Optional[Callable[[Dict[str, Any]], None]] = None,
         eye_sentinel: Optional[EyeSentinel] = None,
+        vault: Optional[Vault999] = None,
     ):
         """
         Initialize pipeline with optional integrations.
@@ -660,6 +812,7 @@ class Pipeline:
             context_retriever: Function to retrieve relevant context
             ledger_sink: Function to log entries to cooling ledger
             eye_sentinel: Optional @EYE Sentinel auditor for 888_JUDGE
+            vault: Optional Vault999 instance for constitutional memory (v37)
         """
         self.llm_generate = llm_generate
         self.compute_metrics = compute_metrics
@@ -667,6 +820,9 @@ class Pipeline:
         self.context_retriever = context_retriever
         self.ledger_sink = ledger_sink
         self.eye_sentinel = eye_sentinel
+
+        # v37: Vault999 for constitutional memory
+        self._vault = vault
 
         # AAA Engines (v35.8.0 - internal facade)
         self._arif = ARIFEngine()
@@ -701,7 +857,8 @@ class Pipeline:
             state.stakes_class = force_class
 
         # INHALE: 000 → 111 → 222
-        state = stage_000_void(state)
+        # v37: Pass vault for MemoryContext initialization
+        state = stage_000_void(state, vault=self._vault)
         state = stage_111_sense(state)
 
         # Populate ARIF packet from sense results (v35.8.0)

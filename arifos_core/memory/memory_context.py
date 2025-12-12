@@ -410,6 +410,59 @@ class MemoryContext:
             description=description,
         ))
 
+    def promote_scar_to_canonical(
+        self,
+        proposal_index: int,
+        ledger_entry_hash: str,
+        signature: str,
+    ) -> bool:
+        """
+        Promote a scar proposal to canonical status.
+
+        INVARIANT: Scars MUST be signed with ledger reference before promotion.
+        Unsigned scars remain proposals and cannot influence governance.
+
+        Args:
+            proposal_index: Index into void.scar_proposals
+            ledger_entry_hash: Hash of the ledger entry anchoring this scar
+            signature: Cryptographic signature (or approval hash)
+
+        Returns:
+            True if promotion succeeded, False otherwise
+
+        Raises:
+            ValueError: If signature or ledger_entry_hash is empty
+        """
+        if self.void is None:
+            return False
+
+        if not ledger_entry_hash:
+            raise ValueError("VoidBand scar promotion requires ledger_entry_hash")
+        if not signature:
+            raise ValueError("VoidBand scar promotion requires signature")
+
+        if proposal_index < 0 or proposal_index >= len(self.void.scar_proposals):
+            return False
+
+        proposal = self.void.scar_proposals[proposal_index]
+
+        # Create signed canonical scar
+        canonical_scar = {
+            **proposal,
+            "status": "CANONICAL",
+            "ledger_entry_hash": ledger_entry_hash,
+            "signature": signature,
+            "promoted_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+        self.void.canonical_scars.append(canonical_scar)
+
+        # Mark proposal as promoted (don't remove, keep audit trail)
+        proposal["status"] = "PROMOTED"
+        proposal["promoted_to_canonical_at"] = canonical_scar["promoted_at"]
+
+        return True
+
     # =========================================================================
     # SERIALIZATION
     # =========================================================================
