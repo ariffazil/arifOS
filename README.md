@@ -546,7 +546,7 @@ python scripts/test_waw_signals.py
 @software{arifos2025,
   author  = {Fazil, Muhammad Arif},
   title   = {arifOS: Constitutional Governance Kernel for AI Systems},
-  version = {37.0.0},
+  version = {37.1.0},
   year    = {2025},
   url     = {https://github.com/ariffazil/arifOS},
   note    = {Physics-based thermodynamic governance. Not prompt engineering.}
