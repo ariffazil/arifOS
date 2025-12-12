@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Version:** v37.1.0 | **Tests:** 1123+ | **Safety Ceiling:** 97% | **CLI Tools:** 7
+**Version:** v38.0.0 | **Tests:** 1282+ | **Safety Ceiling:** 97% | **CLI Tools:** 7
 
 **Imports:** `~/.claude/CLAUDE.md` — Global governance (floors, SABAR, verdicts) applies to all repos.
 **Extends:** [AGENTS.md](AGENTS.md) — All W@W dispatch and multi-agent guardrails from AGENTS.md apply here.
@@ -18,7 +18,7 @@ pip install arifos
 # Install (editable with dev dependencies)
 pip install -e .[dev]
 
-# Run all 1123+ tests
+# Run all 1282+ tests
 pytest -v
 
 # Run tests for specific modules
@@ -77,6 +77,10 @@ User Input → 000–999 Pipeline → 9 Floors Check → APEX PRIME Verdict → 
 | `arifos_core/eye/`                   | @EYE Sentinel multi-view governance (10+ views)                         |
 | `arifos_core/waw/`                   | W@W Federation organs (@WELL, @RIF, @WEALTH, @GEOX, @PROMPT)            |
 | `arifos_core/memory/cooling_ledger.py` | Immutable audit trail logging                                         |
+| `arifos_core/memory/policy.py`       | v38 Memory Write Policy Engine (verdict-based gating)                   |
+| `arifos_core/memory/bands.py`        | 6 Memory Bands (Vault, Ledger, Active, Phoenix, Witness, Void)          |
+| `arifos_core/memory/authority.py`    | Human seal enforcement (AI proposes, humans seal)                       |
+| `arifos_core/integration/`           | Pipeline ↔ Memory integration (111_SENSE, 777_FORGE, 888_JUDGE, 999_SEAL) |
 | `arifos_core/zkpc_runtime.py`        | zkPC 5-phase runtime for cryptographic integrity                        |
 | `integrations/sealion/`              | SEA-LION model integration                                              |
 
@@ -91,9 +95,9 @@ User Input → 000–999 Pipeline → 9 Floors Check → APEX PRIME Verdict → 
 | 444   | ALIGN     | Verify truth, cross-check facts                     |
 | 555   | EMPATHIZE | Check for blame language, dignity                   |
 | 666   | BRIDGE    | Reality test (physical action detection)            |
-| 777   | FORGE     | Synthesize final response                           |
-| 888   | JUDGE     | APEX PRIME floor check — veto point                 |
-| 999   | SEAL      | Emit or refuse based on verdict                     |
+| 777   | FORGE     | Synthesize final response + scar detection          |
+| 888   | JUDGE     | APEX PRIME floor check — veto point + memory write policy |
+| 999   | SEAL      | Emit or refuse + ledger finalization + EUREKA receipt |
 
 **Class A (fast):** `000 → 111 → 333 → 888 → 999`  
 **Class B (deep):** full pipeline through all stages.
@@ -123,6 +127,54 @@ User Input → 000–999 Pipeline → 9 Floors Check → APEX PRIME Verdict → 
 | F9 | C_dark         | < 0.30          | Derived | Dark cleverness contained?           |
 
 Hard floor fail → VOID (stop). Soft floor fail → PARTIAL/WARN.
+
+---
+
+## v38 Memory Write Policy Engine (EUREKA)
+
+**Core Insight:** Memory is governance, not storage. What gets remembered is controlled by verdicts.
+
+### 4 Core Invariants
+
+| Invariant | Statement | Enforcement |
+|-----------|-----------|-------------|
+| **INV-1** | VOID verdicts NEVER become canonical memory | `MemoryWritePolicy.should_write()` |
+| **INV-2** | Humans seal law, AI proposes amendments | `MemoryAuthorityCheck` |
+| **INV-3** | Every write must be auditable (evidence chain) | `MemoryAuditLayer` |
+| **INV-4** | Recalled memory = suggestion, not fact | Confidence ceiling (0.85) |
+
+### 6 Memory Bands
+
+| Band | Purpose | Retention |
+|------|---------|-----------|
+| **VAULT** | Read-only constitution (L0) | PERMANENT |
+| **LEDGER** | Hash-chained audit trail | 90 days (WARM) |
+| **ACTIVE** | Volatile working state | 7 days (HOT) |
+| **PHOENIX** | Amendment proposals | 90 days (WARM) |
+| **WITNESS** | Soft evidence, scars | 90 days (WARM) |
+| **VOID** | Diagnostic only, NEVER canonical | 90 days (auto-delete) |
+
+### Verdict → Band Routing
+
+```text
+SEAL    → LEDGER + ACTIVE (canonical)
+SABAR   → LEDGER + ACTIVE (with failure reason)
+PARTIAL → PHOENIX + LEDGER (pending review)
+VOID    → VOID only (NEVER canonical)
+888_HOLD → LEDGER (awaiting human)
+```
+
+### Integration Modules
+
+| Module | Stage | Purpose |
+|--------|-------|---------|
+| `memory_sense.py` | 111_SENSE | Cross-session recall (0.85 ceiling) |
+| `memory_judge.py` | 888_JUDGE | Write policy enforcement |
+| `memory_scars.py` | 777_FORGE | Scar/pattern detection |
+| `memory_seal.py` | 999_SEAL | Ledger finalization + EUREKA receipts |
+
+**Canon:** `canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md`
+**Docs:** `docs/MEMORY_ARCHITECTURE.md`, `docs/MEMORY_WRITE_POLICY.md`
 
 ---
 
@@ -232,5 +284,5 @@ See [docs/ROADMAP.md](docs/ROADMAP.md) for current priorities and task tracking.
 
 ---
 
-**Version:** v37.1.0 | **Tests:** 1123+ | **Safety:** 97% | **CLI Tools:** 7 | **PyPI:** `pip install arifos`
+**Version:** v38.0.0 | **Tests:** 1282+ | **Safety:** 97% | **CLI Tools:** 7 | **PyPI:** `pip install arifos`
 

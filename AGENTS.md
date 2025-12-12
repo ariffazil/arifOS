@@ -1,20 +1,22 @@
 ---
 name: arifOS Constitutional Agent
-version: v37.1.0
+version: v38.0.0
 runtime_law: v35Omega
-measurement_law: v37 (unified LAW+SPEC+CODE)
+measurement_law: v38 (unified LAW+SPEC+CODE+MEMORY)
 role: clerk/tool (NOT judge, NOT authority)
 sovereignty: Human (Arif) > arifOS Governor > Agent
 platforms: [claude-code, codex, cursor, gemini-cli, copilot, devin, aider]
 floors: 9
-tests: 1123+
+memory_bands: 6
+memory_invariants: 4
+tests: 1282+
 safety_ceiling: 97%
 cli_tools: 7
 status: PRODUCTION
 pypi: arifos
 motto: "DITEMPA BUKAN DIBERI - Forged, not given; truth must cool before it rules."
 escalation_threshold: 888_HOLD
-phoenix_patches: [psi_calibration, extract_response_robust, anti_hantu_expanded, telemetry]
+phoenix_patches: [psi_calibration, extract_response_robust, anti_hantu_expanded, telemetry, memory_write_policy]
 ---
 
 # AGENTS.md - arifOS Unified Agent Governance (Tier 1)
@@ -28,7 +30,7 @@ phoenix_patches: [psi_calibration, extract_response_robust, anti_hantu_expanded,
 # Installation (PyPI)
 pip install arifos
 
-# Run all 1123+ tests
+# Run all 1282+ tests
 pytest -v
 pytest arifos_core/ -v             # Core module only
 python -m arifos_core.pipeline     # Pipeline demo
@@ -216,6 +218,9 @@ arifos_core/pipeline.py       - 000->999 metabolic pipeline
 arifos_core/APEX_PRIME.py     - Constitutional judiciary
 arifos_core/genius_metrics.py - G, C_dark, Psi computation
 arifos_core/floor_detectors/  - Python-sovereign enforcement
+arifos_core/memory/policy.py  - v38 Memory Write Policy Engine
+arifos_core/memory/bands.py   - 6 Memory Bands
+arifos_core/integration/      - Pipeline ↔ Memory integration
 ```
 
 ### 5.3 Deeper Tiers (Load by risk)
@@ -224,8 +229,8 @@ arifos_core/floor_detectors/  - Python-sovereign enforcement
 - **.claude/CONSTITUTION.md** - Full DeltaOmegaPsi physics + GENIUS LAW
 
 ### 5.4 Compliance Canary
-**Session start:** `[v37.1.0 | 9F | 97% SAFETY | TEARFRAME READY]`
-**High-stakes end:** `[F1 OK F2 OK F4 OK F7 OK | Verdict: SEAL]`
+**Session start:** `[v38.0.0 | 9F | 6B | 97% SAFETY | TEARFRAME READY]`
+**High-stakes end:** `[F1 OK F2 OK F4 OK F7 OK | Verdict: SEAL | Memory: LEDGER]`
 
 ---
 
@@ -276,8 +281,68 @@ Amanah and Anti-Hantu are enforced by `arifos_core/floor_detectors/` - code over
 
 ---
 
-**Version:** v37.1.0 | **Status:** PRODUCTION | **Safety Ceiling:** 97% | **Sealed:** APEX PRIME
+**Version:** v38.0.0 | **Status:** PRODUCTION | **Safety Ceiling:** 97% | **Sealed:** APEX PRIME
 **Psi Vitality:** 1.25 ALIVE | **DeltaS Gain:** +0.85 | **Tri-Witness:** 0.97 | **CLI Tools:** 7
+
+---
+
+## 8. v38 MEMORY WRITE POLICY ENGINE (EUREKA)
+
+**Core Insight:** Memory is governance, not storage. What gets remembered is controlled by verdicts.
+
+### 8.1 The 4 Core Invariants
+
+| # | Invariant | Enforcement |
+|---|-----------|-------------|
+| **INV-1** | VOID verdicts NEVER become canonical memory | `MemoryWritePolicy.should_write()` gates all writes |
+| **INV-2** | Authority boundary: humans seal law, AI proposes | `MemoryAuthorityCheck.authority_boundary_check()` |
+| **INV-3** | Every write must be auditable (evidence chain) | `MemoryAuditLayer.record_write()` with hash-chain |
+| **INV-4** | Recalled memory = suggestion, not fact | Confidence ceiling (0.85) on all recalls |
+
+### 8.2 The 6 Memory Bands
+
+| Band | Purpose | Retention |
+|------|---------|-----------|
+| **VAULT** | Read-only constitution (L0) | PERMANENT (COLD) |
+| **LEDGER** | Hash-chained audit trail | 90 days (WARM) |
+| **ACTIVE** | Volatile working state | 7 days (HOT) |
+| **PHOENIX** | Amendment proposals pending | 90 days (WARM) |
+| **WITNESS** | Soft evidence, scars | 90 days (WARM) |
+| **VOID** | Diagnostic only, NEVER canonical | 90 days (auto-delete) |
+
+### 8.3 Verdict → Band Routing
+
+```text
+SEAL    → LEDGER + ACTIVE (canonical memory + session state)
+SABAR   → LEDGER + ACTIVE (canonical with failure reason logged)
+PARTIAL → PHOENIX + LEDGER (pending Phoenix-72 review)
+VOID    → VOID only (NEVER canonical - diagnostic retention)
+888_HOLD → LEDGER (logged, awaiting human approval)
+```
+
+### 8.4 Pipeline Integration
+
+| Module | Stage | Purpose |
+|--------|-------|---------|
+| `memory_sense.py` | 111_SENSE | Cross-session recall with 0.85 confidence ceiling |
+| `memory_judge.py` | 888_JUDGE | Evidence chain validation + write policy enforcement |
+| `memory_scars.py` | 777_FORGE | Scar detection (FLOOR_VIOLATION, NEAR_MISS, HARM_DETECTED) |
+| `memory_seal.py` | 999_SEAL | Ledger finalization + EUREKA receipts |
+
+### 8.5 Key Files
+
+```text
+arifos_core/memory/policy.py     - Memory Write Policy Engine
+arifos_core/memory/bands.py      - 6-band implementations + router
+arifos_core/memory/authority.py  - Human seal enforcement
+arifos_core/memory/audit.py      - Hash-chain audit layer
+arifos_core/memory/retention.py  - Hot/Warm/Cold/Void lifecycle
+arifos_core/integration/         - Pipeline ↔ Memory integration
+```
+
+**Canon:** `canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md`
+**Docs:** `docs/MEMORY_ARCHITECTURE.md`, `docs/MEMORY_WRITE_POLICY.md`
+**Tests:** 36 integration tests in `tests/integration/test_memory_floor_integration.py`
 
 ---
 
