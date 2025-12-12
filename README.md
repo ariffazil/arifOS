@@ -12,7 +12,7 @@
 |  Measurement:   v36.3Omega (GENIUS LAW + Truth Polarity + 9 Specs)         |
 |  Design Canon:  v36.3Omega (Law/Spec/Code 3-Track Architecture)            |
 |  Status:        PRODUCTION                                                 |
-|  Tests:         1115+ passing (core + eval + waw + guards + grey + v37)    |
+|  Tests:         1123 passing (core + eval + waw + guards + grey + v37)     |
 |  CLI Tools:     arifos-analyze-governance, arifos-verify-ledger, +5 more    |
 +=============================================================================+
 ```
@@ -239,7 +239,7 @@ As of v37, arifOS has a **unified LAW+SPEC+CODE runtime** as the default epoch.
 
 | Epoch | Status | Purpose |
 |-------|--------|---------|
-| **v37** | **DEFAULT** | Unified runtime with full memory stack (1115+ tests) |
+| **v37** | **DEFAULT** | Unified runtime with full memory stack (1123 tests) |
 | v36.3 | Legacy | Selectable via `ARIFOS_RUNTIME_EPOCH=v36.3` |
 | v35 | Legacy | Selectable via `ARIFOS_RUNTIME_EPOCH=v35` |
 
@@ -774,4 +774,4 @@ arifOS uses precise terminology to define governance states. These are not metap
 
 ---
 
-*Last Updated: 2025-12-12 | Version: v37 | Tests: 1115+ passing | Runtime Epoch: v37 (DEFAULT) | GENIUS LAW Judiciary: LIVE | zkPC + Phoenix-72: ACTIVE | CLI: DISCOVERABLE | PHOENIX SOVEREIGNTY: ONE LAW FOR ALL*
+*Last Updated: 2025-12-13 | Version: v37 | Tests: 1123 passing | Runtime Epoch: v37 (DEFAULT) | GENIUS LAW Judiciary: LIVE | zkPC + Phoenix-72: ACTIVE | CLI: DISCOVERABLE | PHOENIX SOVEREIGNTY: ONE LAW FOR ALL*

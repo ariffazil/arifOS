@@ -7,7 +7,7 @@
 ## Current Status
 
 - **v37.0.0** — RELEASED (PyPI)
-- **Tests:** 1115+ passing
+- **Tests:** 1123 passing
 - **Runtime Law:** v35Omega
 - **Measurement Law:** v37 (unified LAW+SPEC+CODE)
 

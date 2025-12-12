@@ -177,7 +177,7 @@ As of v37, the runtime has been unified under a single **LAW+SPEC+CODE** aligned
 
 | Epoch | Status | Description |
 |-------|--------|-------------|
-| **v37** | **MAINLINE** | Unified runtime with full memory stack integration (1115+ tests passing) |
+| **v37** | **MAINLINE** | Unified runtime with full memory stack integration (1123 tests passing) |
 | v36.3O | LEGACY | Measurement/spec layer only - for regression testing and research |
 | v35Omega | LEGACY | Original runtime law - for regression testing and debugging |
 

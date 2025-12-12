@@ -65,3 +65,6 @@ arifos-test/
 # Temporary staging folders
 staging.delete*/
 scripts/bogel_results_*.json
+
+# Ephemeral test output (manual Ollama runs)
+tests/arifOS llama test*.md
