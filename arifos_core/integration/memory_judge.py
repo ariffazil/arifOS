@@ -25,15 +25,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
-import hashlib
+from typing import Any, Dict, List, Optional
 import logging
 
 # v38 Memory imports
 from ..memory.policy import (
     Verdict,
-    MemoryBandTarget,
     MemoryWritePolicy,
     WriteDecision,
     EvidenceChainValidation,
@@ -53,8 +50,6 @@ from ..memory.authority import (
 )
 from ..memory.audit import (
     MemoryAuditLayer,
-    AuditRecord,
-    verify_evidence_hash,
 )
 
 # Import shared utility to eliminate duplication
@@ -252,7 +247,7 @@ class MemoryJudgeIntegration:
 
         # Step 4: Check authority (human seal for vault)
         try:
-            authority_decision = self.enforce_authority(context, target_band)
+            self.enforce_authority(context, target_band)
         except (HumanApprovalRequiredError, SelfModificationError) as e:
             result = JudgeWriteResult(
                 success=False,
@@ -461,7 +456,7 @@ class MemoryJudgeIntegration:
             return writer_decision
 
         # Check authority boundary (constitutional self-modification)
-        boundary_decision = self.authority_check.authority_boundary_check(
+        self.authority_check.authority_boundary_check(
             proposed_write={
                 "writer_id": context.writer_id,
                 "band": target_band,

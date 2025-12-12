@@ -30,13 +30,10 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 import hashlib
 import logging
-import json
 
 # v38 Memory imports
 from ..memory.policy import (
-    Verdict,
     MemoryWritePolicy,
-    WriteDecision,
 )
 from ..memory.bands import (
     BandName,
@@ -46,17 +43,10 @@ from ..memory.bands import (
 )
 from ..memory.audit import (
     MemoryAuditLayer,
-    AuditRecord,
-    MerkleProof,
 )
 from ..memory.retention import (
-    RetentionTier,
     MemoryRetentionManager,
-    RetentionAction,
 )
-
-# Import shared utility to eliminate duplication
-from .common_utils import compute_integration_evidence_hash
 
 
 logger = logging.getLogger(__name__)

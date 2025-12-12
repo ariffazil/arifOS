@@ -27,16 +27,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Set
-import hashlib
+from typing import Any, Dict, List, Optional, Tuple
 import logging
 import re
 
 # v38 Memory imports
 from ..memory.policy import (
-    Verdict,
     MemoryWritePolicy,
-    WriteDecision,
 )
 from ..memory.bands import (
     BandName,
@@ -391,7 +388,7 @@ class MemoryScarsIntegration:
             WriteResult from band router
         """
         # Compute evidence hash
-        evidence_hash = compute_evidence_hash(
+        evidence_hash = compute_integration_evidence_hash(
             verdict=context.verdict,
             content=context.content,
             floor_scores=context.floor_scores,
