@@ -2,7 +2,7 @@
 
 **Epoch:** v36.3Omega (v36.3O)
 **Status:** SEALED
-**Last Updated:** 2025-12-10
+**Last Updated:** 2025-12-12
 
 ## Purpose
 
@@ -27,12 +27,17 @@ Specs implement canon without changing it. They are mutable for tuning, but cano
 | `vault999_ledger_schema_v36.3O.json` | VAULT999_ARCHITECTURE | L0-L4 layer schemas, integrity |
 | `dreamforge_otask_spec_v36.3O.yaml` | DREAMFORGE_ARCHITECTURE | O-TASK cadence, OreType, safety |
 
-## Additional Specs (2)
+## Additional Specs (7)
 
 | Spec File | Implements | Purpose |
 |-----------|------------|---------|
 | `vault999_final_seal_spec_v36.3O.json` | 062_VAULT999_FINAL_SEAL_PROTOCOL | Final Seal requirements, workflow |
 | `llm_governance_spec_v36.3O.yaml` | 050/051_METABOLIZER_LOOP | LLM roles, packets, constraints |
+| `memory_context_spec_v36.3O.json` | ARIFOS_MEMORY_STACK | Six-band MemoryContext schema |
+| `cooling_ledger_entry_spec_v36.3O.json` | COOLING_LEDGER_INTEGRITY | L1 entry schema (JSONL) |
+| `phoenix72_amendment_spec_v36.3O.json` | VAULT_999_AMENDMENTS | Amendment record schema |
+| `scar_record_spec_v36.3O.json` | SCARS_PHOENIX_HEALING | Scar/witness record schema |
+| `eureka_receipt_spec_v36.3O.json` | VAULT999_ARCHITECTURE (L4) | zkPC receipt schema |
 
 ## Spec Details
 

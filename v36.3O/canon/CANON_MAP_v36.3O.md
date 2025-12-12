@@ -392,6 +392,46 @@ The LLM is NOT permitted to:
 
 ---
 
+## 10. MEMORY STACK & SCARS
+
+### Canon Files
+- **`v36.3O/canon/ARIFOS_MEMORY_STACK_v36.3O.md`** — Six-band memory architecture
+- **`v36.3O/canon/VAULT_999_AMENDMENTS_v36.3O.md`** — Phoenix-72 amendment protocol
+- **`v36.3O/canon/COOLING_LEDGER_INTEGRITY_v36.3O.md`** — L1 integrity guarantees
+- **`v36.3O/canon/SCARS_PHOENIX_HEALING_v36.3O.md`** — Scar lifecycle and healing
+
+### Constructs
+- **Six Memory Bands** — ENV, VLT, LDG, ACT, VEC, VOID
+- **Hot/Warm/Cold Tiers** — Temporal memory promotion
+- **Vault Supremacy** — L0 overrides all other bands
+- **Amendment Lifecycle** — PROPOSED → UNDER_REVIEW → SEALED
+- **Safety Caps** — |ΔF| ≤ 0.05 per amendment cycle
+- **Scar Severity** — S1 (Low) to S4 (Critical)
+- **Witness vs Scar Index** — Unsigned observations vs signed canonical scars
+- **Healing Protocol** — Evidence-based scar deprecation
+
+### Runtime Modules (target)
+- `arifos_core/memory/memory_context.py` — MemoryContext (six bands)
+- `arifos_core/memory/vault999.py` — Vault Band (L0)
+- `arifos_core/memory/cooling_ledger.py` — Ledger Band (L1)
+- `arifos_core/memory/scars.py` — Scar registry
+- `arifos_core/memory/phoenix72.py` — Amendment workflow
+
+### Tests (today)
+- `tests/test_cooling_ledger.py` — Entry logging
+- `tests/test_cooling_ledger_integrity.py` — Hash chain
+- `tests/test_phoenix72.py` — Amendment workflow
+- `tests/test_apex_and_ledger_edges.py` — Scar-ledger integration
+
+### Specs (v36.3Ω)
+- **`v36.3O/spec/memory_context_spec_v36.3O.json`** — Six-band MemoryContext schema
+- **`v36.3O/spec/cooling_ledger_entry_spec_v36.3O.json`** — L1 entry schema
+- **`v36.3O/spec/phoenix72_amendment_spec_v36.3O.json`** — Amendment record schema
+- **`v36.3O/spec/scar_record_spec_v36.3O.json`** — Scar/witness record schema
+- **`v36.3O/spec/eureka_receipt_spec_v36.3O.json`** — L4 zkPC receipt schema
+
+---
+
 ## PARADOX_HOTSPOTS
 
 Known conflicts or ambiguities between v36.3Ω canon and older versions:

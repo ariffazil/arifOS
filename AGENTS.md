@@ -264,3 +264,88 @@ This section defines the default “next task” focus for agents (Claude Code, 
 **Rule of thumb:**  
 Canon > Spec > Code.  
 If canon/spec vs code conflict, mark as PARADOX_HOTSPOT and surface it; do not silently merge.
+
+### 8.1 v36.3Ic — One-Week Execution Plan
+
+**Priority bands (7-day horizon):**
+- **P0 (Must do, Days 1–2)**
+- **P1 (High value, Days 3–4)**
+- **P2 (Nice to have, Days 5–7)**
+
+#### P0 — Must Do (Days 1–2)
+
+1. **Seal current forge and clean workspace**
+   - Stage and commit the latest physics canon work:
+     - `canon/01_PHYSICS/LAW_SCALING_COLLAPSE_v1.0Ω.md`
+     - `canon/000_CANON_INDEX_v36.3Omega.md` (index entry)
+     - `canon/01_PHYSICS/APEX_THEORY_PHYSICS_v36Omega.md` and `v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md` (cross-references).
+   - Decide which of the following should be tracked vs ignored and update `.gitignore` accordingly (F1 Amanah for repo hygiene):
+     - `.gemini/`
+     - `papers/`
+     - `staging.delete after finsih forge/`.
+
+2. **Align runtime manifest with v36.3O**
+   - Extend `arifos_core/runtime_manifest.py` so it can load `v36.3O/spec/arifos_runtime_manifest_v36.3O.json` (e.g. via argument or env flag), while preserving v35Ω defaults for backwards compatibility.
+   - Add or update tests to assert:
+     - The v36.3O manifest shape matches expectations (floors, pipeline stages, telemetry sinks).
+     - The selected manifest is reflected correctly in pipeline metadata and cooling ledger entries.
+
+3. **Audit and harden “fail-open” governance paths**
+   - Review `arifos_core/APEX_PRIME.py`, `arifos_core/pipeline.py`, `arifos_core/eye/sentinel.py`, and `arifos_core/memory/cooling_ledger.py` for broad `try/except` blocks or silent failures around:
+     - Floor checks
+     - W@W Federation
+     - Eye Sentinel views
+     - Cooling ledger writes.
+   - Where a critical governance component fails, prefer **SABAR/VOID with explicit logging** over silently returning SEAL or skipping checks.
+   - Add focused regression tests for at least one failure path per module (e.g. simulated Eye Sentinel failure at 888_JUDGE).
+
+#### P1 — High Value (Days 3–4)
+
+4. **Harden high-stakes classification (Class A/B routing)**
+   - Factor the current “stakes” classifier logic out of `arifos_core/pipeline.py` into a dedicated helper/module (e.g. `arifos_core/stakes_classifier.py`).
+   - Add tests covering:
+     - Clear high-stakes prompts (self-harm, medical, legal, financial).
+     - Euphemistic / indirect phrasing that should still route to Class B (deep 000→999 path).
+   - Ensure Class B always passes through all governance stages (EyeSentinel, W@W Federation, APEX GENIUS LAW).
+
+5. **Align W@W + GENIUS telemetry with v36.3O specs**
+   - Cross-check cooling ledger entries and any telemetry sinks against:
+     - `v36.3O/spec/apex_prime_telemetry_v36.3O.json`
+     - `v36.3O/spec/waw_federation_spec_v36.3O.yaml`.
+   - Confirm that ledger entries include (where configured):
+     - W@W verdict summary (`@WEALTH`, `@RIF`, `@WELL`, `@GEOX`, `@PROMPT` votes).
+     - GENIUS LAW metrics (G, C_dark, Ψ/Ψ_apex).
+   - Add tests to assert field presence and basic range sanity (no NaNs, values within [0, 1] where expected).
+
+6. **Stub SEA-LION / external LLM integration**
+   - In `integrations/sealion/` or the equivalent integration area, add a minimal SEA-LION backend wrapper that adheres to existing engine contracts (see references in `CLAUDE.md`).
+   - Keep this **off the main path** by default (flagged in config/runtime manifest), but ensure:
+     - Type hints are complete.
+     - A basic “smoke test” or stub test exists for the integration wrapper.
+
+#### P2 — Nice to Have (Days 5–7)
+
+7. **Expand promptfoo floor suites (GENIUS + W@W + floors)**
+   - Using `v36.3O/spec/promptfoo_configs/genius_law_v36.3O.yaml` as a pattern, add or extend configs for:
+     - W@W organs (@PROMPT, @RIF, @WELL, @WEALTH, @GEOX) on representative prompts.
+     - AAA Trinity behaviour (ARIF/ADAM/APEX PRIME) on canonical ΔΩΨ / Amanah / Anti-Hantu scenarios.
+   - Ensure configs map back to measurement floors and telemetry specs where applicable.
+
+8. **Document the architecture and whitepaper bridge**
+   - Add `docs/ARIFOS_ARCHITECTURE_OVERVIEW.md` describing, at minimum:
+     - 000→999 metabolic pipeline.
+     - AAA Trinity (ARIF, ADAM, APEX PRIME).
+     - W@W Federation + veto semantics.
+     - ΔΩΨ physics and the new Law of Scaling Collapse (L_SC).
+   - Add a short section in the root `README.md` linking to:
+     - The architecture overview.
+     - `/papers/` (whitepaper v1.0, NeurIPS draft, executive summary) once structure is finalized.
+
+9. **Expand static type-checking beyond core**
+   - Triage mypy findings in:
+     - `arifos_core/memory/cooling_ledger.py`
+     - `arifos_core/eye/sentinel.py`
+     - `arifos_core/__init__.py`
+     - `arifos_core/kms_signer.py`.
+   - Fix only **clear, low-risk issues** (e.g. obviously wrong type annotations, unsafe `Any` returns, simple Protocol mismatches), and leave deeper refactors for a future dedicated typing pass.
+   - Keep the mypy configuration aligned with `pyproject.toml` overrides added for core governance paths.

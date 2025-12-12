@@ -518,7 +518,454 @@ def log_cooling_entry_with_v36_telemetry(
     return entry_v35
 
 
+# =============================================================================
+# V37 EXTENSIONS — HEAD STATE, ROTATION, FAIL-OPEN HARDENING
+# =============================================================================
+
+import logging
+import shutil
+
+_ledger_logger = logging.getLogger(__name__)
+
+
+@dataclass
+class LedgerConfigV37:
+    """
+    Enhanced ledger config for v37 per COOLING_LEDGER_INTEGRITY_v36.3O.md.
+
+    Adds:
+    - head_state.json tracking for crash recovery
+    - rotation thresholds for hot segment
+    - fail behavior configuration
+    """
+    ledger_path: Path = Path("runtime/vault_999/cooling_ledger.jsonl")
+    head_state_path: Path = Path("runtime/vault_999/head_state.json")
+    archive_path: Path = Path("runtime/vault_999/archive/")
+    hot_segment_days: int = 7  # TODO(Arif): confirm
+    hot_segment_max_entries: int = 10000  # TODO(Arif): confirm
+    fail_behavior: str = "SABAR_HOLD_WITH_LOG"  # Options: SABAR_HOLD_WITH_LOG, SILENT_FAIL, RAISE
+
+
+@dataclass
+class HeadState:
+    """
+    Head state for crash recovery per COOLING_LEDGER_INTEGRITY canon.
+
+    Tracks the latest entry hash for fast chain verification on startup.
+    """
+    last_entry_hash: Optional[str] = None
+    entry_count: int = 0
+    last_timestamp: Optional[str] = None
+    epoch: str = "v37"
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "last_entry_hash": self.last_entry_hash,
+            "entry_count": self.entry_count,
+            "last_timestamp": self.last_timestamp,
+            "epoch": self.epoch,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "HeadState":
+        return cls(
+            last_entry_hash=data.get("last_entry_hash"),
+            entry_count=data.get("entry_count", 0),
+            last_timestamp=data.get("last_timestamp"),
+            epoch=data.get("epoch", "v37"),
+        )
+
+
+class CoolingLedgerV37:
+    """
+    Enhanced Cooling Ledger for v37 with:
+    - head_state.json tracking for crash recovery
+    - Hot segment rotation
+    - Fail-open hardening (SABAR/HOLD + logging, not silent SEAL)
+
+    Implements:
+    - v36.3O/spec/cooling_ledger_entry_spec_v36.3O.json
+    - v36.3O/canon/COOLING_LEDGER_INTEGRITY_v36.3O.md
+
+    Usage:
+        ledger = CoolingLedgerV37()
+        result = ledger.append_v37(entry)
+        if not result.success:
+            # Handle failure - trigger SABAR/HOLD
+            logger.error(f"Ledger write failed: {result.error}")
+    """
+
+    def __init__(self, config: Optional[LedgerConfigV37] = None):
+        self.config = config or LedgerConfigV37()
+        self.config.ledger_path.parent.mkdir(parents=True, exist_ok=True)
+        self.config.archive_path.mkdir(parents=True, exist_ok=True)
+
+        # Load head state
+        self._head_state = self._load_head_state()
+
+    def _load_head_state(self) -> HeadState:
+        """Load head state from JSON file."""
+        path = self.config.head_state_path
+        if not path.exists():
+            return HeadState()
+
+        try:
+            with path.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+                return HeadState.from_dict(data)
+        except (json.JSONDecodeError, IOError) as e:
+            _ledger_logger.warning(f"Failed to load head_state.json: {e}")
+            return HeadState()
+
+    def _save_head_state(self) -> bool:
+        """Save head state to JSON file."""
+        try:
+            path = self.config.head_state_path
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("w", encoding="utf-8") as f:
+                json.dump(self._head_state.to_dict(), f, indent=2)
+            return True
+        except IOError as e:
+            _ledger_logger.error(f"Failed to save head_state.json: {e}")
+            return False
+
+    def get_head_state(self) -> HeadState:
+        """Return current head state."""
+        return self._head_state
+
+    @dataclass
+    class AppendResult:
+        """Result of an append operation."""
+        success: bool
+        entry_hash: Optional[str] = None
+        error: Optional[str] = None
+        triggered_rotation: bool = False
+
+    def append_v37(
+        self,
+        entry: Dict[str, Any],
+        kms_signer: Optional["KmsSigner"] = None,
+    ) -> "CoolingLedgerV37.AppendResult":
+        """
+        Append an entry with v37 features (head state, fail hardening).
+
+        On IO error:
+        - If fail_behavior == "SABAR_HOLD_WITH_LOG": returns failure result (caller should SABAR/HOLD)
+        - If fail_behavior == "RAISE": raises exception
+        - If fail_behavior == "SILENT_FAIL": logs warning and returns failure
+
+        Never silently returns success if write failed.
+
+        Args:
+            entry: Entry dictionary to append
+            kms_signer: Optional KmsSigner for signatures
+
+        Returns:
+            AppendResult with success status and details
+        """
+        path = self.config.ledger_path
+
+        try:
+            # Get previous hash from head state (fast) or file (fallback)
+            prev_hash = self._head_state.last_entry_hash
+
+            # If no head state, verify from file
+            if prev_hash is None and path.exists() and path.stat().st_size > 0:
+                with path.open("r", encoding="utf-8") as f:
+                    lines = f.readlines()
+                    if lines:
+                        last_line = lines[-1].strip()
+                        if last_line:
+                            try:
+                                last_entry = json.loads(last_line)
+                                prev_hash = last_entry.get("hash")
+                            except json.JSONDecodeError:
+                                pass
+
+            # Set chain fields
+            entry["prev_hash"] = prev_hash
+            entry["entry_hash"] = _compute_hash(entry)
+
+            # Sign if signer provided
+            if kms_signer is not None:
+                hash_bytes = bytes.fromhex(entry["entry_hash"])
+                signature_b64 = kms_signer.sign_hash(hash_bytes)
+                entry["apex_signature"] = signature_b64
+
+            # Write entry
+            line = json.dumps(entry, sort_keys=True, separators=(",", ":"))
+            with path.open("a", encoding="utf-8") as f:
+                f.write(line + "\n")
+
+            # Update head state
+            self._head_state.last_entry_hash = entry["entry_hash"]
+            self._head_state.entry_count += 1
+            self._head_state.last_timestamp = entry.get("timestamp")
+
+            # Persist head state
+            if not self._save_head_state():
+                _ledger_logger.warning("Entry written but head_state.json update failed")
+
+            # Check for rotation
+            triggered_rotation = False
+            if self._should_rotate():
+                self._rotate_hot_segment()
+                triggered_rotation = True
+
+            return self.AppendResult(
+                success=True,
+                entry_hash=entry["entry_hash"],
+                triggered_rotation=triggered_rotation,
+            )
+
+        except IOError as e:
+            error_msg = f"Ledger IO error: {e}"
+            _ledger_logger.error(error_msg)
+
+            if self.config.fail_behavior == "RAISE":
+                raise
+
+            return self.AppendResult(success=False, error=error_msg)
+
+        except Exception as e:
+            error_msg = f"Unexpected ledger error: {e}"
+            _ledger_logger.error(error_msg)
+
+            if self.config.fail_behavior == "RAISE":
+                raise
+
+            return self.AppendResult(success=False, error=error_msg)
+
+    def _should_rotate(self) -> bool:
+        """Check if hot segment should be rotated."""
+        # Check entry count
+        if self._head_state.entry_count >= self.config.hot_segment_max_entries:
+            return True
+
+        # Check age of oldest entry
+        # (simplified - in production would track first_timestamp)
+        return False
+
+    def _rotate_hot_segment(self) -> bool:
+        """
+        Rotate the hot segment to warm archive.
+
+        Creates a timestamped copy in archive/ and clears the hot segment.
+        """
+        try:
+            path = self.config.ledger_path
+            if not path.exists():
+                return True
+
+            # Create archive filename
+            ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            archive_name = f"cooling_ledger_{ts}.jsonl"
+            archive_path = self.config.archive_path / archive_name
+
+            # Copy to archive
+            shutil.copy2(path, archive_path)
+
+            # Clear hot segment
+            path.write_text("")
+
+            # Reset head state
+            self._head_state = HeadState()
+            self._save_head_state()
+
+            _ledger_logger.info(f"Rotated hot segment to {archive_path}")
+            return True
+
+        except IOError as e:
+            _ledger_logger.error(f"Failed to rotate hot segment: {e}")
+            return False
+
+    def verify_chain_quick(self) -> Tuple[bool, str]:
+        """
+        Quick chain verification using head state.
+
+        Only checks that head_state.json matches the actual last entry.
+        For full verification, use verify_chain().
+        """
+        path = self.config.ledger_path
+        if not path.exists():
+            if self._head_state.entry_count == 0:
+                return True, "Empty ledger (valid)"
+            return False, "Head state shows entries but ledger missing"
+
+        # Get actual last hash
+        try:
+            with path.open("r", encoding="utf-8") as f:
+                lines = f.readlines()
+                if not lines:
+                    if self._head_state.entry_count == 0:
+                        return True, "Empty ledger (valid)"
+                    return False, "Head state shows entries but ledger empty"
+
+                last_line = lines[-1].strip()
+                if not last_line:
+                    return False, "Last line is empty"
+
+                last_entry = json.loads(last_line)
+                actual_hash = last_entry.get("entry_hash") or last_entry.get("hash")
+
+        except (json.JSONDecodeError, IOError) as e:
+            return False, f"Failed to read last entry: {e}"
+
+        # Compare with head state
+        if actual_hash != self._head_state.last_entry_hash:
+            return False, (
+                f"Head state mismatch: expected {self._head_state.last_entry_hash[:8] if self._head_state.last_entry_hash else 'None'}..., "
+                f"actual {actual_hash[:8] if actual_hash else 'None'}..."
+            )
+
+        return True, f"Quick verify passed: {self._head_state.entry_count} entries"
+
+    def iter_recent(self, hours: float = 72.0) -> Iterable[Dict[str, Any]]:
+        """
+        Iterate over entries from the last N hours.
+
+        Delegates to base CoolingLedger behavior.
+        """
+        cutoff = time.time() - hours * 3600.0
+        path = self.config.ledger_path
+        if not path.exists():
+            return []
+
+        def _generator():
+            with path.open("r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        obj = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+
+                    raw_ts = obj.get("timestamp", 0)
+                    ts: Optional[float]
+                    if isinstance(raw_ts, (int, float)):
+                        ts = float(raw_ts)
+                    elif isinstance(raw_ts, str):
+                        try:
+                            ts = datetime.fromisoformat(
+                                raw_ts.replace("Z", "+00:00")
+                            ).timestamp()
+                        except Exception:
+                            ts = None
+                    else:
+                        ts = None
+
+                    if ts is not None and ts >= cutoff:
+                        yield obj
+
+        return _generator()
+
+
+def log_cooling_entry_v37(
+    *,
+    job_id: str,
+    verdict: str,
+    metrics: "Metrics",
+    query: Optional[str] = None,
+    candidate_output: Optional[str] = None,
+    stakes_class: str = "CLASS_A",
+    floor_warnings: Optional[List[str]] = None,
+    tri_witness_components: Optional[Dict[str, float]] = None,
+    cce_audits: Optional[Dict[str, str]] = None,
+    truth_polarity: Optional[str] = None,
+    phoenix_cycle_id: Optional[str] = None,
+    eureka_receipt_id: Optional[str] = None,
+    scar_ids: Optional[List[str]] = None,
+    ledger: Optional[CoolingLedgerV37] = None,
+    logger: Optional[Any] = None,
+) -> Tuple[bool, Dict[str, Any], Optional[str]]:
+    """
+    Log a v37 Cooling Ledger entry per cooling_ledger_entry_spec_v36.3O.json.
+
+    Returns:
+        Tuple of (success, entry_dict, error_message)
+        If success is False, caller should trigger SABAR/HOLD.
+    """
+    from arifos_core.metrics import Metrics as _Metrics
+
+    if not isinstance(metrics, _Metrics):
+        return (False, {}, "metrics must be a Metrics instance")
+
+    # Compute query/response hashes
+    query_hash = hashlib.sha256(str(query or "").encode()).hexdigest()
+    response_hash = hashlib.sha256(str(candidate_output or "").encode()).hexdigest()
+
+    # ISO-8601 UTC timestamp
+    timestamp_iso = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace(
+        "+00:00", "Z"
+    )
+
+    # Build metrics block per spec
+    metrics_block: Dict[str, Any] = {
+        "truth": metrics.truth,
+        "delta_s": metrics.delta_s,
+        "peace_squared": metrics.peace_squared,
+        "kappa_r": metrics.kappa_r,
+        "omega_0": metrics.omega_0,
+        "amanah": "LOCK" if metrics.amanah else "BROKEN",
+        "rasa": metrics.rasa,
+        "tri_witness": metrics.tri_witness,
+        "anti_hantu": getattr(metrics, "anti_hantu", True),
+    }
+
+    # Add derived metrics if available
+    try:
+        from arifos_core.genius_metrics import evaluate_genius_law, DEFAULT_ENERGY
+
+        genius = evaluate_genius_law(metrics, energy=DEFAULT_ENERGY, entropy=0.0)
+        metrics_block["psi"] = genius.psi
+        metrics_block["G"] = genius.G
+        metrics_block["C_dark"] = genius.C_dark
+    except Exception:
+        pass
+
+    entry: Dict[str, Any] = {
+        "ledger_version": "v36.3Omega",
+        "timestamp": timestamp_iso,
+        "query_hash": query_hash,
+        "response_hash": response_hash,
+        "metrics": metrics_block,
+        "verdict": verdict,
+        "class": stakes_class,
+        "floor_warnings": floor_warnings,
+        "phoenix_cycle_id": phoenix_cycle_id,
+        "eureka_receipt_id": eureka_receipt_id,
+        "scar_ids": scar_ids,
+    }
+
+    # Optional blocks
+    if tri_witness_components:
+        entry["tri_witness_detail"] = tri_witness_components
+
+    if truth_polarity:
+        entry["truth_polarity"] = truth_polarity
+
+    if cce_audits:
+        entry["cce_audits"] = cce_audits
+
+    # Append via v37 ledger
+    if ledger is None:
+        ledger = CoolingLedgerV37()
+
+    result = ledger.append_v37(entry)
+
+    if logger:
+        if result.success:
+            logger.info(f"CoolingLedgerV37: entry_hash={result.entry_hash[:8]}...")
+        else:
+            logger.error(f"CoolingLedgerV37 FAILED: {result.error}")
+
+    return (result.success, entry, result.error)
+
+
 __all__ = [
+    # v35 classes
     "CoolingMetrics",
     "CoolingEntry",
     "CoolingLedger",
@@ -528,4 +975,9 @@ __all__ = [
     "log_cooling_entry",
     "log_cooling_entry_v36_stub",
     "log_cooling_entry_with_v36_telemetry",
+    # v37 extensions
+    "LedgerConfigV37",
+    "HeadState",
+    "CoolingLedgerV37",
+    "log_cooling_entry_v37",
 ]

@@ -4,15 +4,15 @@
 
 ```text
 +=============================================================================+
-|  arifOS v36.3Omega - Constitutional Governance Kernel                       |
+|  arifOS v37 - Constitutional Governance Kernel                              |
 |  "DITEMPA BUKAN DIBERI" — Forged, not given.                                |
 |  Truth must cool before it rules.                                           |
 +=============================================================================+
-|  Runtime Law:   v35Omega (APEX PRIME, Cooling Ledger, Vault-999)           |
+|  Runtime Epoch: v37 (DEFAULT) - Unified LAW+SPEC+CODE                      |
 |  Measurement:   v36.3Omega (GENIUS LAW + Truth Polarity + 9 Specs)         |
 |  Design Canon:  v36.3Omega (Law/Spec/Code 3-Track Architecture)            |
 |  Status:        PRODUCTION                                                 |
-|  Tests:         1060 passing (core + eval + waw + guards + grey)           |
+|  Tests:         1115+ passing (core + eval + waw + guards + grey + v37)    |
 |  CLI Tools:     arifos-analyze-governance, arifos-verify-ledger, +5 more    |
 +=============================================================================+
 ```
@@ -226,6 +226,50 @@ Implementation of specs - **free to iterate**:
 - Cooling Ledger spec: `spec/VAULT_999.md`, `spec/cooling_ledger.schema.json`
 
 v36.3Ω specs are **parallel** to v35Ω runtime until explicit migration.
+
+---
+
+## Runtime Epoch v37 (Unified)
+
+As of v37, arifOS has a **unified LAW+SPEC+CODE runtime** as the default epoch.
+
+### Default Epoch
+
+**v37 is now the default runtime epoch** when `ARIFOS_RUNTIME_EPOCH` is not set.
+
+| Epoch | Status | Purpose |
+|-------|--------|---------|
+| **v37** | **DEFAULT** | Unified runtime with full memory stack (1115+ tests) |
+| v36.3 | Legacy | Selectable via `ARIFOS_RUNTIME_EPOCH=v36.3` |
+| v35 | Legacy | Selectable via `ARIFOS_RUNTIME_EPOCH=v35` |
+
+### v37 Governance Improvements
+
+v37 adds the following over v35:
+
+- **Cooling Ledger hash-chain**: SHA-256 chain with fail behavior hardened to `SABAR_HOLD_WITH_LOG` (no silent failures)
+- **Phoenix-72 safety caps**: `|ΔF| ≤ 0.05` per cycle, 24h cooldown, 3+ evidence entries required
+- **Scar Manager**: Full scar lifecycle (OBSERVATION → PROPOSAL → SEALING → MONITORING → HEALING)
+- **EUREKA Receipts**: HMAC-SHA256 stub for zkPC (full cosign integration deferred)
+
+### User-Visible Output
+
+User-visible output remains unchanged:
+
+- **Answer** + optional human label: **BIJAKSANA** (SEAL) / **BIJAK** (PARTIAL) / **BIASA** (SABAR/HOLD) / **BANGANG** (VOID)
+- All detailed metrics (floors, G, C_dark, Ψ, ledger hashes, EUREKA) stay internal in VAULT-999
+
+### Epoch Comparison Harness
+
+To compare v35 vs v37 behavior:
+
+```bash
+# Run pytest comparison tests
+pytest tests/test_epoch_comparison.py -v
+
+# Run CLI comparison report
+python -m tests.test_epoch_comparison
+```
 
 ---
 
@@ -730,4 +774,4 @@ arifOS uses precise terminology to define governance states. These are not metap
 
 ---
 
-*Last Updated: 2025-12-11 | Version: v36.3.0 | Tests: 1060 passing | GENIUS LAW Judiciary: LIVE | zkPC + Phoenix-72: ACTIVE | CLI: DISCOVERABLE | PHOENIX SOVEREIGNTY: ONE LAW FOR ALL*
+*Last Updated: 2025-12-12 | Version: v37 | Tests: 1115+ passing | Runtime Epoch: v37 (DEFAULT) | GENIUS LAW Judiciary: LIVE | zkPC + Phoenix-72: ACTIVE | CLI: DISCOVERABLE | PHOENIX SOVEREIGNTY: ONE LAW FOR ALL*

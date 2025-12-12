@@ -8,6 +8,10 @@ These tests verify:
 4. Referenced modules exist and can be imported
 5. Harness entry point is callable
 
+NOTE: As of v37, the default epoch is now v37 (unified LAW+SPEC+CODE).
+      Tests for v35-specific manifest structure explicitly load epoch="v35".
+      The v37 default epoch tests are in TestV37DefaultEpoch.
+
 Tests are READ-ONLY: they detect drift but do not auto-fix.
 """
 
@@ -45,59 +49,67 @@ from arifos_core.metrics import (
 
 
 # =============================================================================
-# MANIFEST LOADING TESTS
+# V35 LEGACY MANIFEST TESTS
+# =============================================================================
+# These tests are specific to v35Omega manifest structure.
+# They explicitly load epoch="v35" to test legacy compatibility.
 # =============================================================================
 
 
-class TestManifestLoading:
-    """Tests for manifest file loading."""
+# =============================================================================
+# MANIFEST LOADING TESTS (v35 Legacy)
+# =============================================================================
 
-    def test_manifest_file_exists(self):
-        """Manifest file should exist at expected path."""
-        assert DEFAULT_MANIFEST_PATH.exists(), f"Manifest not found: {DEFAULT_MANIFEST_PATH}"
 
-    def test_manifest_loads_without_error(self):
-        """Manifest should load and parse as valid YAML."""
-        manifest = load_runtime_manifest()
+class TestManifestLoadingV35:
+    """Tests for v35 legacy manifest file loading."""
+
+    def test_v35_manifest_file_exists(self):
+        """v35 Manifest file should exist at expected path."""
+        assert DEFAULT_MANIFEST_PATH.exists(), f"v35 Manifest not found: {DEFAULT_MANIFEST_PATH}"
+
+    def test_v35_manifest_loads_without_error(self):
+        """v35 Manifest should load and parse as valid YAML."""
+        manifest = load_runtime_manifest(epoch="v35")
         assert manifest is not None
         assert isinstance(manifest, dict)
 
-    def test_manifest_has_version(self):
-        """Manifest should have version field."""
-        manifest = load_runtime_manifest()
+    def test_v35_manifest_has_version(self):
+        """v35 Manifest should have version field with Omega."""
+        manifest = load_runtime_manifest(epoch="v35")
         assert "version" in manifest
         assert "Omega" in manifest["version"]
 
-    def test_manifest_has_epoch(self):
-        """Manifest should have epoch field."""
-        manifest = load_runtime_manifest()
+    def test_v35_manifest_has_epoch(self):
+        """v35 Manifest should have epoch field == 35."""
+        manifest = load_runtime_manifest(epoch="v35")
         assert "epoch" in manifest
         assert manifest["epoch"] == 35
 
-    def test_manifest_has_status(self):
-        """Manifest should have status field."""
-        manifest = load_runtime_manifest()
+    def test_v35_manifest_has_status(self):
+        """v35 Manifest should have status field == SEALED."""
+        manifest = load_runtime_manifest(epoch="v35")
         assert "status" in manifest
         assert manifest["status"] == "SEALED"
 
-    def test_validate_manifest_passes(self):
-        """Validation should pass for the canonical manifest."""
-        manifest = load_runtime_manifest(validate=False)
+    def test_v35_validate_manifest_passes(self):
+        """Validation should pass for the canonical v35 manifest."""
+        manifest = load_runtime_manifest(epoch="v35", validate=False)
         # Should not raise
-        validate_manifest(manifest)
+        validate_manifest(manifest, epoch="v35")
 
 
 # =============================================================================
-# FLOOR THRESHOLD DRIFT TESTS
+# FLOOR THRESHOLD DRIFT TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestFloorThresholdDrift:
-    """Tests that manifest thresholds match metrics.py constants."""
+class TestFloorThresholdDriftV35:
+    """Tests that v35 manifest thresholds match metrics.py constants."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_truth_threshold_matches(self, manifest):
         """Manifest truth threshold should match TRUTH_THRESHOLD constant."""
@@ -177,16 +189,16 @@ class TestFloorThresholdDrift:
 
 
 # =============================================================================
-# PIPELINE STAGE TESTS
+# PIPELINE STAGE TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestPipelineStages:
-    """Tests for pipeline stage definitions."""
+class TestPipelineStagesV35:
+    """Tests for v35 pipeline stage definitions."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_stage_000_exists(self, manifest):
         """Pipeline should include stage 000 (VOID)."""
@@ -236,16 +248,16 @@ class TestPipelineStages:
 
 
 # =============================================================================
-# ENGINE MODULE TESTS
+# ENGINE MODULE TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestEngineModules:
-    """Tests that engine modules can be imported."""
+class TestEngineModulesV35:
+    """Tests that v35 engine modules can be imported."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_arif_engine_module_exists(self, manifest):
         """ARIF engine module should be importable."""
@@ -285,16 +297,16 @@ class TestEngineModules:
 
 
 # =============================================================================
-# W@W ORGAN MODULE TESTS
+# W@W ORGAN MODULE TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestWAWOrganModules:
-    """Tests that W@W organ modules can be imported."""
+class TestWAWOrganModulesV35:
+    """Tests that v35 W@W organ modules can be imported."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_all_five_organs_defined(self, manifest):
         """All 5 W@W organs should be defined."""
@@ -341,16 +353,16 @@ class TestWAWOrganModules:
 
 
 # =============================================================================
-# @EYE SENTINEL VIEW TESTS
+# @EYE SENTINEL VIEW TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestEyeSentinelViews:
-    """Tests that @EYE Sentinel views can be imported."""
+class TestEyeSentinelViewsV35:
+    """Tests that v35 @EYE Sentinel views can be imported."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_eleven_views_defined(self, manifest):
         """All 10+1 @EYE views should be defined."""
@@ -379,16 +391,16 @@ class TestEyeSentinelViews:
 
 
 # =============================================================================
-# METRICS MODULE TESTS
+# METRICS MODULE TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestMetricsModule:
-    """Tests for metrics module references."""
+class TestMetricsModuleV35:
+    """Tests for v35 metrics module references."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_metrics_module_importable(self, manifest):
         """Metrics module should be importable."""
@@ -412,16 +424,16 @@ class TestMetricsModule:
 
 
 # =============================================================================
-# HARNESS ENTRY POINT TESTS
+# HARNESS ENTRY POINT TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestHarnessEntryPoint:
-    """Tests for caged harness entry point."""
+class TestHarnessEntryPointV35:
+    """Tests for v35 caged harness entry point."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_harness_module_importable(self, manifest):
         """Harness module should be importable."""
@@ -451,16 +463,16 @@ class TestHarnessEntryPoint:
 
 
 # =============================================================================
-# HELPER FUNCTION TESTS
+# HELPER FUNCTION TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestHelperFunctions:
-    """Tests for manifest helper functions."""
+class TestHelperFunctionsV35:
+    """Tests for v35 manifest helper functions."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_get_floor_threshold_truth(self, manifest):
         """get_floor_threshold should return correct truth threshold."""
@@ -479,16 +491,16 @@ class TestHelperFunctions:
 
 
 # =============================================================================
-# LEDGER MODULE TESTS
+# LEDGER MODULE TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestLedgerModules:
-    """Tests for ledger/vault/phoenix module references."""
+class TestLedgerModulesV35:
+    """Tests for v35 ledger/vault/phoenix module references."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_cooling_ledger_module_importable(self, manifest):
         """Cooling ledger module should be importable."""
@@ -510,16 +522,16 @@ class TestLedgerModules:
 
 
 # =============================================================================
-# CANON FILE REFERENCE TESTS
+# CANON FILE REFERENCE TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestCanonFileReferences:
-    """Tests that referenced canon files exist."""
+class TestCanonFileReferencesV35:
+    """Tests that v35 referenced canon files exist."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_runtime_law_files_exist(self, manifest):
         """All referenced runtime law canon files should exist."""
@@ -537,3 +549,136 @@ class TestCanonFileReferences:
             if file_path.endswith(".json"):
                 full_path = root / file_path
                 assert full_path.exists(), f"Machine-readable file not found: {file_path}"
+
+
+# =============================================================================
+# V37 DEFAULT EPOCH TESTS
+# =============================================================================
+
+
+class TestV37DefaultEpoch:
+    """Tests that v37 is the default epoch when ARIFOS_RUNTIME_EPOCH is unset."""
+
+    def test_default_epoch_is_v37_when_env_unset(self):
+        """
+        When ARIFOS_RUNTIME_EPOCH is not set, the default epoch should be v37.
+
+        This test verifies the v37 unified runtime is the mainline default.
+        """
+        import os
+        from arifos_core.runtime_manifest import (
+            get_active_epoch,
+            is_v37_epoch,
+            is_legacy_epoch,
+            DEFAULT_EPOCH,
+            EPOCH_ENV_VAR,
+        )
+
+        # Save original env value
+        original_value = os.environ.get(EPOCH_ENV_VAR)
+
+        try:
+            # Clear the environment variable
+            if EPOCH_ENV_VAR in os.environ:
+                del os.environ[EPOCH_ENV_VAR]
+
+            # Verify DEFAULT_EPOCH constant is v37
+            assert DEFAULT_EPOCH == "v37", f"DEFAULT_EPOCH should be 'v37', got '{DEFAULT_EPOCH}'"
+
+            # Verify get_active_epoch returns v37
+            active_epoch = get_active_epoch()
+            assert active_epoch == "v37", f"Active epoch should be 'v37' when env unset, got '{active_epoch}'"
+
+            # Verify is_v37_epoch returns True
+            assert is_v37_epoch() is True, "is_v37_epoch() should be True when env unset"
+
+            # Verify is_legacy_epoch returns False
+            assert is_legacy_epoch() is False, "is_legacy_epoch() should be False for v37"
+
+        finally:
+            # Restore original env value
+            if original_value is not None:
+                os.environ[EPOCH_ENV_VAR] = original_value
+            elif EPOCH_ENV_VAR in os.environ:
+                del os.environ[EPOCH_ENV_VAR]
+
+    def test_v35_selectable_via_env(self):
+        """v35 should be selectable via ARIFOS_RUNTIME_EPOCH for legacy testing."""
+        import os
+        from arifos_core.runtime_manifest import (
+            get_active_epoch,
+            is_v37_epoch,
+            is_legacy_epoch,
+            EPOCH_ENV_VAR,
+        )
+
+        original_value = os.environ.get(EPOCH_ENV_VAR)
+
+        try:
+            os.environ[EPOCH_ENV_VAR] = "v35"
+
+            assert get_active_epoch() == "v35"
+            assert is_v37_epoch() is False
+            assert is_legacy_epoch() is True
+
+        finally:
+            if original_value is not None:
+                os.environ[EPOCH_ENV_VAR] = original_value
+            elif EPOCH_ENV_VAR in os.environ:
+                del os.environ[EPOCH_ENV_VAR]
+
+    def test_v36_3_selectable_via_env(self):
+        """v36.3 should be selectable via ARIFOS_RUNTIME_EPOCH for legacy testing."""
+        import os
+        from arifos_core.runtime_manifest import (
+            get_active_epoch,
+            is_v37_epoch,
+            is_legacy_epoch,
+            EPOCH_ENV_VAR,
+        )
+
+        original_value = os.environ.get(EPOCH_ENV_VAR)
+
+        try:
+            os.environ[EPOCH_ENV_VAR] = "v36.3"
+
+            assert get_active_epoch() == "v36.3"
+            assert is_v37_epoch() is False
+            assert is_legacy_epoch() is True
+
+        finally:
+            if original_value is not None:
+                os.environ[EPOCH_ENV_VAR] = original_value
+            elif EPOCH_ENV_VAR in os.environ:
+                del os.environ[EPOCH_ENV_VAR]
+
+    def test_v37_manifest_loads_by_default(self):
+        """When env unset, load_runtime_manifest should load v37 manifest."""
+        import os
+        from arifos_core.runtime_manifest import load_runtime_manifest, EPOCH_ENV_VAR
+
+        original_value = os.environ.get(EPOCH_ENV_VAR)
+
+        try:
+            if EPOCH_ENV_VAR in os.environ:
+                del os.environ[EPOCH_ENV_VAR]
+
+            manifest = load_runtime_manifest()
+
+            assert manifest["version"] == "v37", f"Expected v37 manifest, got {manifest['version']}"
+            assert manifest["epoch"] == 37, f"Expected epoch 37, got {manifest['epoch']}"
+            assert manifest.get("_runtime_epoch") == "v37"
+
+        finally:
+            if original_value is not None:
+                os.environ[EPOCH_ENV_VAR] = original_value
+            elif EPOCH_ENV_VAR in os.environ:
+                del os.environ[EPOCH_ENV_VAR]
+
+    def test_legacy_epochs_set_contains_v35_and_v36_3(self):
+        """LEGACY_EPOCHS should contain v35 and v36.3."""
+        from arifos_core.runtime_manifest import LEGACY_EPOCHS
+
+        assert "v35" in LEGACY_EPOCHS
+        assert "v36.3" in LEGACY_EPOCHS
+        assert "v37" not in LEGACY_EPOCHS

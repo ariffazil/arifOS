@@ -1,17 +1,35 @@
 """
-runtime_manifest.py — arifOS Runtime Manifest Loader (v35Omega)
+runtime_manifest.py — arifOS Runtime Manifest Loader (v37 default)
 
 Provides utilities to load and validate the canonical runtime manifest
-that describes the complete arifOS v35Omega constitutional cage.
+that describes the complete arifOS constitutional cage.
+
+DEFAULT EPOCH: v37 (unified LAW+SPEC+CODE runtime)
+
+Supports multiple epochs via ARIFOS_RUNTIME_EPOCH environment variable:
+- "v37": Default - unified runtime with full memory stack integration
+- "v35" or "v35Omega": Legacy runtime (for regression/research only)
+- "v36.3" or "v36.3Omega": Legacy spec layer (for regression/research only)
 
 The manifest is DESCRIPTIVE ONLY - this loader does not change behavior.
 
 Usage:
-    from arifos_core.runtime_manifest import load_runtime_manifest
+    from arifos_core.runtime_manifest import load_runtime_manifest, get_active_epoch
 
+    # Load default (v37) manifest
     manifest = load_runtime_manifest()
-    print(manifest["version"])  # "35Omega"
-    print(manifest["floors"]["truth"]["threshold"])  # 0.99
+    print(manifest["version"])  # "v37"
+
+    # Check active epoch
+    epoch = get_active_epoch()  # "v37" by default
+
+    # Load legacy epoch manifest (for regression testing)
+    manifest_v35 = load_runtime_manifest(epoch="v35")
+
+    # Check if running legacy epoch
+    from arifos_core.runtime_manifest import is_legacy_epoch
+    if is_legacy_epoch():
+        print("Running in legacy mode")
 
 External tools and notebooks can use the manifest to:
 - Discover floor thresholds and check functions
@@ -20,15 +38,16 @@ External tools and notebooks can use the manifest to:
 - Find the caged harness entry point
 
 Author: arifOS Project
-Version: v35Omega
+Version: v37
 """
 
 from __future__ import annotations
 
 import importlib
 import json
+import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Literal, Optional, Set, Union
 
 # PyYAML is optional - fall back to JSON if not available
 try:
@@ -43,13 +62,43 @@ except ImportError:
 # CONSTANTS
 # =============================================================================
 
-DEFAULT_MANIFEST_PATH_YAML = Path(__file__).parent.parent / "spec" / "arifos_runtime_manifest_v35Omega.yaml"
-DEFAULT_MANIFEST_PATH_JSON = Path(__file__).parent.parent / "spec" / "arifos_runtime_manifest_v35Omega.json"
+# Epoch type alias
+EpochType = Literal["v35", "v36.3", "v37"]
 
-# Default to JSON if YAML not available
+# Environment variable for epoch selection
+EPOCH_ENV_VAR = "ARIFOS_RUNTIME_EPOCH"
+
+# Default epoch: v37 (unified LAW+SPEC+CODE runtime)
+# v35 and v36.3 are legacy epochs, selectable via ARIFOS_RUNTIME_EPOCH env var
+DEFAULT_EPOCH: EpochType = "v37"
+
+# Legacy epochs (for is_legacy_epoch helper)
+LEGACY_EPOCHS: Set[EpochType] = {"v35", "v36.3"}
+
+# Base paths
+_BASE_DIR = Path(__file__).parent.parent
+
+# Manifest paths by epoch
+MANIFEST_PATHS: Dict[EpochType, Dict[str, Path]] = {
+    "v35": {
+        "yaml": _BASE_DIR / "spec" / "arifos_runtime_manifest_v35Omega.yaml",
+        "json": _BASE_DIR / "spec" / "arifos_runtime_manifest_v35Omega.json",
+    },
+    "v36.3": {
+        "json": _BASE_DIR / "v36.3O" / "spec" / "arifos_runtime_manifest_v36.3O.json",
+    },
+    "v37": {
+        "json": _BASE_DIR / "v36.3O" / "spec" / "arifos_runtime_manifest_v37.json",
+    },
+}
+
+# Legacy aliases for backwards compatibility
+DEFAULT_MANIFEST_PATH_YAML = MANIFEST_PATHS["v35"]["yaml"]
+DEFAULT_MANIFEST_PATH_JSON = MANIFEST_PATHS["v35"]["json"]
 DEFAULT_MANIFEST_PATH = DEFAULT_MANIFEST_PATH_YAML if HAS_YAML else DEFAULT_MANIFEST_PATH_JSON
 
-REQUIRED_TOP_LEVEL_KEYS: Set[str] = {
+# Required keys for v35 manifests (strict validation)
+REQUIRED_TOP_LEVEL_KEYS_V35: Set[str] = {
     "version",
     "epoch",
     "status",
@@ -61,6 +110,19 @@ REQUIRED_TOP_LEVEL_KEYS: Set[str] = {
     "metrics",
     "ledger",
     "harness",
+}
+
+# Required keys for v36.3/v37 manifests (relaxed - different structure)
+REQUIRED_TOP_LEVEL_KEYS_V36: Set[str] = {
+    "version",
+    "epoch",
+    "status",
+    "floors",
+    "pipeline",
+    "engines",
+    "waw",
+    "eye_sentinel",
+    "ledger",
 }
 
 REQUIRED_FLOOR_IDS: Set[str] = {
@@ -75,6 +137,111 @@ REQUIRED_FLOOR_IDS: Set[str] = {
     "anti_hantu",
 }
 
+# Epoch aliases for normalization
+EPOCH_ALIASES: Dict[str, EpochType] = {
+    "v35": "v35",
+    "v35omega": "v35",
+    "v35Omega": "v35",
+    "35Omega": "v35",
+    "v36.3": "v36.3",
+    "v36.3omega": "v36.3",
+    "v36.3Omega": "v36.3",
+    "v36.3O": "v36.3",
+    "v37": "v37",
+}
+
+
+# =============================================================================
+# EPOCH SELECTION
+# =============================================================================
+
+def normalize_epoch(epoch: str) -> EpochType:
+    """
+    Normalize epoch string to canonical form.
+
+    Args:
+        epoch: Epoch string (e.g., "v35", "v35Omega", "v36.3", "v37")
+
+    Returns:
+        Canonical epoch: "v35" | "v36.3" | "v37"
+
+    Raises:
+        ValueError: If epoch is not recognized
+    """
+    normalized = EPOCH_ALIASES.get(epoch)
+    if normalized is None:
+        valid = list(set(EPOCH_ALIASES.values()))
+        raise ValueError(f"Unknown epoch: {epoch}. Valid epochs: {valid}")
+    return normalized
+
+
+def get_active_epoch() -> EpochType:
+    """
+    Get the currently active epoch from environment or default.
+
+    Reads ARIFOS_RUNTIME_EPOCH environment variable.
+    Falls back to "v35" if not set.
+
+    Returns:
+        Active epoch: "v35" | "v36.3" | "v37"
+    """
+    env_epoch = os.environ.get(EPOCH_ENV_VAR, "")
+    if env_epoch:
+        try:
+            return normalize_epoch(env_epoch)
+        except ValueError:
+            # Invalid env value - fall back to default with warning
+            import warnings
+            warnings.warn(
+                f"Invalid {EPOCH_ENV_VAR}={env_epoch}, using default: {DEFAULT_EPOCH}",
+                UserWarning,
+            )
+    return DEFAULT_EPOCH
+
+
+def set_active_epoch(epoch: Union[str, EpochType]) -> EpochType:
+    """
+    Set the active epoch via environment variable.
+
+    Args:
+        epoch: Epoch to activate
+
+    Returns:
+        Normalized epoch that was set
+    """
+    normalized = normalize_epoch(epoch)
+    os.environ[EPOCH_ENV_VAR] = normalized
+    return normalized
+
+
+def get_manifest_path_for_epoch(epoch: EpochType) -> Path:
+    """
+    Get the manifest file path for a specific epoch.
+
+    Args:
+        epoch: Canonical epoch ("v35" | "v36.3" | "v37")
+
+    Returns:
+        Path to manifest file
+
+    Raises:
+        FileNotFoundError: If no manifest exists for epoch
+    """
+    paths = MANIFEST_PATHS.get(epoch, {})
+
+    # Prefer YAML for v35 if available, otherwise JSON
+    if epoch == "v35":
+        if HAS_YAML and paths.get("yaml", Path()).exists():
+            return paths["yaml"]
+        if paths.get("json", Path()).exists():
+            return paths["json"]
+    else:
+        # v36.3 and v37 are JSON only
+        if paths.get("json", Path()).exists():
+            return paths["json"]
+
+    raise FileNotFoundError(f"No manifest found for epoch: {epoch}")
+
 
 # =============================================================================
 # MANIFEST LOADER
@@ -83,14 +250,16 @@ REQUIRED_FLOOR_IDS: Set[str] = {
 def load_runtime_manifest(
     path: Optional[Path] = None,
     validate: bool = True,
+    epoch: Optional[Union[str, EpochType]] = None,
 ) -> Dict[str, Any]:
     """
     Load the arifOS runtime manifest from YAML or JSON.
 
     Args:
-        path: Path to manifest file. Defaults to spec/arifos_runtime_manifest_v35Omega.yaml
-              (or .json if PyYAML not installed)
+        path: Path to manifest file. If None, uses epoch-based path.
         validate: Whether to perform basic validation (default True)
+        epoch: Specific epoch to load ("v35", "v36.3", "v37").
+               If None, uses ARIFOS_RUNTIME_EPOCH env var or default.
 
     Returns:
         Parsed manifest as a dictionary
@@ -100,19 +269,27 @@ def load_runtime_manifest(
         ValueError: If YAML/JSON parsing fails or validation fails
 
     Example:
+        # Load active epoch manifest
         manifest = load_runtime_manifest()
-        print(manifest["floors"]["truth"]["threshold"])  # 0.99
-    """
-    if path is None:
-        # Try YAML first if available, then JSON
-        if HAS_YAML and DEFAULT_MANIFEST_PATH_YAML.exists():
-            path = DEFAULT_MANIFEST_PATH_YAML
-        elif DEFAULT_MANIFEST_PATH_JSON.exists():
-            path = DEFAULT_MANIFEST_PATH_JSON
-        else:
-            path = DEFAULT_MANIFEST_PATH_YAML  # Will raise FileNotFoundError
 
-    path = Path(path)
+        # Load specific epoch
+        manifest_v37 = load_runtime_manifest(epoch="v37")
+
+        # Load from specific path
+        manifest = load_runtime_manifest(path=Path("custom_manifest.json"))
+    """
+    # Determine which epoch to load
+    if epoch is not None:
+        resolved_epoch = normalize_epoch(epoch)
+    else:
+        resolved_epoch = get_active_epoch()
+
+    # Determine path
+    if path is None:
+        path = get_manifest_path_for_epoch(resolved_epoch)
+    else:
+        path = Path(path)
+
     if not path.exists():
         raise FileNotFoundError(f"Manifest file not found: {path}")
 
@@ -128,57 +305,88 @@ def load_runtime_manifest(
             manifest = json.load(f)
 
     if validate:
-        validate_manifest(manifest)
+        validate_manifest(manifest, epoch=resolved_epoch)
+
+    # Add runtime metadata
+    manifest["_runtime_epoch"] = resolved_epoch
+    manifest["_manifest_path"] = str(path)
 
     return manifest
 
 
-def validate_manifest(manifest: Dict[str, Any]) -> None:
+def validate_manifest(
+    manifest: Dict[str, Any],
+    epoch: Optional[EpochType] = None,
+) -> None:
     """
     Perform basic validation on the manifest structure.
 
     Checks:
     - Required top-level keys are present
-    - All 9 floors are defined
-    - Pipeline stages include 000 and 999
     - Version matches expected format
+    - For v35: All 9 floors are defined, pipeline stages include 000 and 999
 
     Args:
         manifest: Parsed manifest dictionary
+        epoch: Expected epoch (for validation rules)
 
     Raises:
         ValueError: If validation fails
     """
+    # Determine validation rules based on epoch
+    if epoch in ("v36.3", "v37"):
+        required_keys = REQUIRED_TOP_LEVEL_KEYS_V36
+        # v36.3/v37 manifests have different floor structure (mapping-based)
+        validate_floors = False
+        validate_engines = False
+    else:
+        required_keys = REQUIRED_TOP_LEVEL_KEYS_V35
+        validate_floors = True
+        validate_engines = True
+
     # Check required top-level keys
-    missing_keys = REQUIRED_TOP_LEVEL_KEYS - set(manifest.keys())
+    missing_keys = required_keys - set(manifest.keys())
     if missing_keys:
         raise ValueError(f"Manifest missing required keys: {missing_keys}")
 
-    # Check version format
+    # Check version format (relaxed for v36.3/v37)
     version = manifest.get("version", "")
-    if not version or "Omega" not in version:
-        raise ValueError(f"Invalid version format: {version}")
+    if not version:
+        raise ValueError("Manifest missing version")
 
-    # Check floors
-    floors = manifest.get("floors", {})
-    missing_floors = REQUIRED_FLOOR_IDS - set(floors.keys())
-    if missing_floors:
-        raise ValueError(f"Manifest missing required floors: {missing_floors}")
+    # v35 strict check
+    if epoch == "v35" and "Omega" not in version:
+        raise ValueError(f"Invalid v35 version format: {version}")
+
+    # Check floors (v35 only)
+    if validate_floors:
+        floors = manifest.get("floors", {})
+        missing_floors = REQUIRED_FLOOR_IDS - set(floors.keys())
+        if missing_floors:
+            raise ValueError(f"Manifest missing required floors: {missing_floors}")
 
     # Check pipeline stages
     pipeline = manifest.get("pipeline", {})
     stages = pipeline.get("stages", {})
-    if "000" not in stages:
+
+    # v36.3/v37 use list format
+    if isinstance(stages, list):
+        stage_ids = {s.get("id") for s in stages}
+    else:
+        stage_ids = set(stages.keys())
+
+    if "000" not in stage_ids:
         raise ValueError("Pipeline missing stage 000 (VOID)")
-    if "999" not in stages:
+    if "999" not in stage_ids:
         raise ValueError("Pipeline missing stage 999 (SEAL)")
 
-    # Check engines
-    engines = manifest.get("engines", {})
-    required_engines = {"arif", "adam", "apex"}
-    missing_engines = required_engines - set(engines.keys())
-    if missing_engines:
-        raise ValueError(f"Manifest missing required engines: {missing_engines}")
+    # Check engines (v35 only)
+    if validate_engines:
+        engines = manifest.get("engines", {})
+        required_engines = {"arif", "adam", "apex"}
+        missing_engines = required_engines - set(engines.keys())
+        if missing_engines:
+            raise ValueError(f"Manifest missing required engines: {missing_engines}")
 
 
 # =============================================================================
@@ -202,7 +410,19 @@ def get_floor_threshold(
     Raises:
         KeyError: If floor not found
     """
-    floor = manifest["floors"].get(floor_id)
+    floors = manifest.get("floors", {})
+
+    # v36.3/v37 use mapping structure
+    if "mapping" in floors:
+        # Look up by floor ID (F1, F2, etc.) or metrics_field
+        for fid, fdata in floors.get("mapping", {}).items():
+            if fdata.get("metrics_field") == floor_id:
+                # Return from spec file - for now, return None (spec-driven)
+                return None
+        raise KeyError(f"Floor not found in mapping: {floor_id}")
+
+    # v35 direct structure
+    floor = floors.get(floor_id)
     if floor is None:
         raise KeyError(f"Floor not found: {floor_id}")
 
@@ -224,6 +444,12 @@ def get_pipeline_stages(manifest: Dict[str, Any]) -> List[str]:
         List of stage codes in order (e.g., ["000", "111", ..., "999"])
     """
     stages = manifest.get("pipeline", {}).get("stages", {})
+
+    # v36.3/v37 use list format
+    if isinstance(stages, list):
+        return [s.get("id") for s in stages if s.get("id")]
+
+    # v35 dict format
     return sorted(stages.keys())
 
 
@@ -271,6 +497,56 @@ def get_harness_entry(manifest: Dict[str, Any]) -> Dict[str, str]:
     }
 
 
+def is_v37_epoch(manifest: Optional[Dict[str, Any]] = None) -> bool:
+    """
+    Check if the current/given manifest is v37 epoch.
+
+    Args:
+        manifest: Optional manifest dict. If None, checks active epoch.
+
+    Returns:
+        True if v37 epoch is active
+    """
+    if manifest is not None:
+        return manifest.get("_runtime_epoch") == "v37"
+    return get_active_epoch() == "v37"
+
+
+def is_v36_or_newer(manifest: Optional[Dict[str, Any]] = None) -> bool:
+    """
+    Check if the current/given manifest is v36.3 or v37.
+
+    Args:
+        manifest: Optional manifest dict. If None, checks active epoch.
+
+    Returns:
+        True if v36.3 or v37 epoch is active
+    """
+    if manifest is not None:
+        return manifest.get("_runtime_epoch") in ("v36.3", "v37")
+    return get_active_epoch() in ("v36.3", "v37")
+
+
+def is_legacy_epoch(epoch: Optional[Union[str, EpochType]] = None) -> bool:
+    """
+    Check if an epoch is a legacy epoch (v35 or v36.3).
+
+    Legacy epochs are maintained for regression testing and research only.
+    The mainline runtime is v37.
+
+    Args:
+        epoch: Epoch to check. If None, checks the currently active epoch.
+
+    Returns:
+        True if the epoch is v35 or v36.3 (legacy)
+    """
+    if epoch is None:
+        epoch = get_active_epoch()
+    else:
+        epoch = normalize_epoch(epoch)
+    return epoch in LEGACY_EPOCHS
+
+
 # =============================================================================
 # DYNAMIC IMPORT HELPERS
 # =============================================================================
@@ -304,7 +580,11 @@ def import_module_from_manifest(
     if subcomponent:
         # Navigate to subcomponent
         if component == "engines":
-            module_path = comp.get(subcomponent, {}).get("module")
+            # v36.3/v37 use nested AAA structure
+            if "AAA" in comp:
+                module_path = comp.get("AAA", {}).get(subcomponent.upper(), {}).get("module")
+            else:
+                module_path = comp.get(subcomponent, {}).get("module")
         elif component == "waw":
             module_path = comp.get("organs", {}).get(subcomponent, {}).get("module")
         elif component == "eye_sentinel":
@@ -325,7 +605,7 @@ def import_module_from_manifest(
         elif component == "waw":
             module_path = comp.get("federation", {}).get("module")
         elif component == "eye_sentinel":
-            module_path = comp.get("coordinator", {}).get("module")
+            module_path = comp.get("coordinator", {}).get("module") or comp.get("module")
         else:
             module_path = comp.get("entry_module") or comp.get("module")
 
@@ -361,7 +641,11 @@ def get_class_from_manifest(
     # Get class name
     if subcomponent:
         if component == "engines":
-            class_name = comp.get(subcomponent, {}).get("class")
+            # v36.3/v37 use nested AAA structure
+            if "AAA" in comp:
+                class_name = comp.get("AAA", {}).get(subcomponent.upper(), {}).get("class")
+            else:
+                class_name = comp.get(subcomponent, {}).get("class")
         elif component == "waw":
             class_name = comp.get("organs", {}).get(subcomponent, {}).get("class")
         elif component == "eye_sentinel":
@@ -374,13 +658,13 @@ def get_class_from_manifest(
             raise KeyError(f"Unknown component: {component}")
     else:
         if component == "metrics":
-            class_name = comp.get("dataclass")
+            class_name = comp.get("dataclass") or comp.get("metrics_dataclass", {}).get("class")
         elif component == "harness":
             class_name = comp.get("result_class")
         elif component == "waw":
             class_name = comp.get("federation", {}).get("class")
         elif component == "eye_sentinel":
-            class_name = comp.get("coordinator", {}).get("class")
+            class_name = comp.get("coordinator", {}).get("class") or comp.get("class")
         elif component == "pipeline":
             class_name = comp.get("entry_class")
         else:
@@ -398,9 +682,22 @@ def get_class_from_manifest(
 # =============================================================================
 
 __all__ = [
+    # Epoch management
+    "EpochType",
+    "EPOCH_ENV_VAR",
+    "DEFAULT_EPOCH",
+    "LEGACY_EPOCHS",
+    "normalize_epoch",
+    "get_active_epoch",
+    "set_active_epoch",
+    "get_manifest_path_for_epoch",
+    "is_v37_epoch",
+    "is_v36_or_newer",
+    "is_legacy_epoch",
     # Main loader
     "load_runtime_manifest",
     "validate_manifest",
+    "MANIFEST_PATHS",
     "DEFAULT_MANIFEST_PATH",
     "DEFAULT_MANIFEST_PATH_YAML",
     "DEFAULT_MANIFEST_PATH_JSON",

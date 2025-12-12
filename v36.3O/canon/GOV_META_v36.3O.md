@@ -169,6 +169,56 @@ This prevents breaking existing governance while allowing evolution.
 
 ---
 
+## Runtime Epochs (v37 Unified)
+
+As of v37, the runtime has been unified under a single **LAW+SPEC+CODE** aligned epoch. This section clarifies the relationship between v35, v36.3, and v37.
+
+### Active Runtime Epoch
+
+| Epoch | Status | Description |
+|-------|--------|-------------|
+| **v37** | **MAINLINE** | Unified runtime with full memory stack integration (1115+ tests passing) |
+| v36.3O | LEGACY | Measurement/spec layer only - for regression testing and research |
+| v35Omega | LEGACY | Original runtime law - for regression testing and debugging |
+
+**Default:** When `ARIFOS_RUNTIME_EPOCH` environment variable is unset, v37 is used.
+
+### v37 Runtime Binding
+
+The following v37 components are now bound to the mainline runtime path:
+
+| Component | Module | Canon Reference |
+|-----------|--------|-----------------|
+| **VAULT-999** | `arifos_core.memory.vault_manager` | `VAULT999_ARCHITECTURE_v36.3O.md` |
+| **Memory Stack** | `arifos_core.memory.memory_context` | `ARIFOS_MEMORY_STACK_v36.3O.md` |
+| **Cooling Ledger** | `arifos_core.memory.cooling_ledger` | `COOLING_LEDGER_INTEGRITY_v36.3O.md` |
+| **Phoenix-72** | `arifos_core.memory.phoenix72_controller` | `VAULT_999_AMENDMENTS_v36.3O.md` |
+| **Scar Manager** | `arifos_core.memory.scar_manager` | `SCARS_PHOENIX_HEALING_v36.3O.md` |
+| **EUREKA Receipts** | `arifos_core.memory.eureka_receipt` | zkPC L4 layer |
+
+### v37 Governance Improvements over v35
+
+1. **Cooling Ledger integrity**: SHA-256 hash-chain with explicit fail behavior (`SABAR_HOLD_WITH_LOG`)
+2. **Phoenix-72 safety caps**: `|ΔF| ≤ 0.05` per cycle, 24h cooldown, 3+ evidence entries required
+3. **Scar lifecycle**: OBSERVATION → PROPOSAL → SEALING → MONITORING → HEALING
+4. **EUREKA receipts**: HMAC-SHA256 stub for zkPC (full cosign integration deferred)
+
+### Test Coverage
+
+| Test File | Coverage |
+|-----------|----------|
+| `tests/test_memory_stack_v37.py` | Memory stack + governance tests |
+| `tests/test_epoch_comparison.py` | v35 vs v37 comparison harness |
+
+Run the comparison harness:
+
+```bash
+pytest tests/test_epoch_comparison.py -v
+python -m tests.test_epoch_comparison
+```
+
+---
+
 ## Verdicts & 4-Label Mapping
 
 ### 5 Judiciary Verdict Codes (Internal)
