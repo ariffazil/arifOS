@@ -22,6 +22,89 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ---
 
+## [v38.0.0] – 2025-12-13 — Memory Write Policy Engine (EUREKA)
+
+**Status:** PRODUCTION · Tests: 1250 passing · Safety: 97.0% red-team pass rate (N=33) · CLI tools: 7
+
+### Memory Write Policy Engine (v38 EUREKA)
+
+- Introduced the **v38 Memory Write Policy Engine** that treats memory as governed state, not raw storage.
+- Enforced **4 core invariants**:
+  - INV-1: VOID verdicts NEVER become canonical memory.
+  - INV-2: Humans seal law; AI may only propose amendments.
+  - INV-3: Every write must carry an auditable evidence chain (hash-chained).
+  - INV-4: Recalled memory is suggestion, not fact (confidence ceiling 0.85 on recalls).
+- Implemented **6 memory bands** with explicit retention:
+  - VAULT (L0, read-only canon, permanent COLD),
+  - LEDGER (hash-chained audit, 90-day WARM),
+  - ACTIVE (working state, 7-day HOT),
+  - PHOENIX (amendment proposals, 90-day WARM),
+  - WITNESS (soft evidence, scars, 90-day WARM),
+  - VOID (diagnostic only, never canonical, 90-day auto-delete).
+
+### Pipeline Integration
+
+- Added **pipeline memory integration** modules:
+  - `arifos_core/integration/memory_sense.py` – 111_SENSE cross-session recall with 0.85 confidence ceiling.
+  - `arifos_core/integration/memory_judge.py` – 888_JUDGE evidence-chain validation and write-policy enforcement.
+  - `arifos_core/integration/memory_scars.py` – 777_FORGE scar / harm-pattern detection.
+  - `arifos_core/integration/memory_seal.py` – 999_SEAL ledger finalization and EUREKA receipts.
+- Updated pipeline state to hold v38 memory components and wire them into 000_VOID, 777_FORGE, 888_JUDGE, 999_SEAL stages.
+
+### Core Engine & Audit Layer
+
+- Finalized v38 core memory stack:
+  - `arifos_core/memory/policy.py` – `MemoryWritePolicy` gate for all writes.
+  - `arifos_core/memory/bands.py` – 6 band implementations + `MemoryBandRouter`.
+  - `arifos_core/memory/authority.py` – `MemoryAuthorityCheck` enforcing human-AI authority boundaries.
+  - `arifos_core/memory/audit.py` – `MemoryAuditLayer` with SHA-256 hash-chain and Merkle-friendly evidence layout.
+  - `arifos_core/memory/retention.py` – HOT/WARM/COLD/VOID retention manager.
+- Ensured VOID / SABAR verdicts remain non-canonical while still logged for diagnostics and scars.
+
+### Tests & Documentation
+
+- Added **36 integration tests** in `tests/integration/test_memory_floor_integration.py` covering:
+  - authority boundary enforcement,
+  - floor-violation routing,
+  - scar detection,
+  - cross-session recall,
+  - seal finalization,
+  - evidence-hash computation and validation.
+- Full suite at **1250 tests passing** (4 skipped), including all existing governance, GENIUS LAW, Anti-Hantu, and W@W tests.
+- Updated / added documentation:
+  - `docs/MEMORY_ARCHITECTURE.md` – v38 memory architecture and band layout.
+  - `docs/MEMORY_WRITE_POLICY.md` – invariant definitions, routing matrix, and evidence-chain format.
+  - `canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md` – constitutional canon for the v38 memory stack.
+  - `SECURITY.md` – updated to v38 with Memory & EUREKA Security section.
+  - `README.md` – complete rewrite for v38 with EUREKA documentation.
+  - `CLAUDE.md` / `AGENTS.md` – updated with v38 Memory Write Policy Engine section.
+
+### Removed
+
+- `GOVERNANCE.md` – redundant; content fully covered in README.md, AGENTS.md, CLAUDE.md, SECURITY.md, and canon files.
+
+### Behavioural Summary
+
+- arifOS now:
+  - fails closed on unsafe memory writes (writes blocked or routed to VOID, never silently accepted),
+  - preserves a verifiable evidence chain for every accepted write,
+  - enforces that long-term memory obeys Amanah, Anti-Hantu, and authority boundaries,
+  - maintains red-team performance at **97.0% SEAL/SABAR pass rate on the fixed N=33 Llama-3 suite** (same headline as v37, but with governed memory in the loop).
+
+---
+
+## [v37.1.0] – 2025-12-12 — PyPI Release + License Upgrade
+
+**Status:** PRODUCTION · Tests: 1123+ passing · Safety: 97.0% · License: AGPL-3.0
+
+### Changed
+
+- Upgraded license from Apache-2.0 to **AGPL-3.0** for stronger copyleft protection.
+- Optimized README.md for PyPI presentation and v37 feature summary.
+- Version bump to v37.1.0 for PyPI release.
+
+---
+
 ## [36.3.0] – 2025-12-10 — 3-Track Architecture + CLI Tools (v36.3Ω)
 
 **Status:** Production Governance Kernel — "Forged, Not Given" (v36.3Ω SEALED)
@@ -343,13 +426,15 @@ The foundational version where the 8 Constitutional Floors, AAA Trinity, and Δ�
 
 ## Roadmap
 
-| Version | Target | Features |
-|---------|--------|----------|
-| v36.1 | Level 3.5 | Real NLP metrics (semantic ΔS, confidence Ω) |
-| v36.2 | Level 4 | Senses (web search, PDF reading), Dream Forge (Lab) |
-| v36.3 | Production | 3-Track Architecture, CLI tools (LIVE) |
-| v37.0 | Level 5 | GUI Interface (Gradio/Streamlit) |
-| v38.0 | Multi-modal | Vision, audio support |
+| Version | Target | Features | Status |
+|---------|--------|----------|--------|
+| v36.3 | Production | 3-Track Architecture, CLI tools | ✅ LIVE |
+| v37.0 | Production | Red-team validation, 97% safety ceiling | ✅ LIVE |
+| v37.1 | PyPI | AGPL-3.0 license, PyPI release | ✅ LIVE |
+| v38.0 | Memory | Memory Write Policy Engine (EUREKA), 6 bands | ✅ LIVE |
+| v39.0 | Q1 2026 | FastAPI Grid, Multi-model orchestration | PLANNED |
+| v40.0 | Q2 2026 | MCP Server, IDE integration, zkPC L3 | PLANNED |
+| v41.0 | Q3 2026 | Multimodal (vision + audio governance) | PLANNED |
 
 ---
 
@@ -358,6 +443,6 @@ The foundational version where the 8 Constitutional Floors, AAA Trinity, and Δ�
 ---
 
 **Author:** Muhammad Arif bin Fazil
-**Location:** Kuala Lumpur, Malaysia
+**Location:** Seri Kembangan, Selangor, Malaysia
 **Repository:** https://github.com/ariffazil/arifOS
-**License:** Apache 2.0
+**License:** AGPL-3.0
