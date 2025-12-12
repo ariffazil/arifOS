@@ -25,15 +25,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
-import hashlib
+from typing import Any, Dict, List, Optional
 import logging
 
 # v38 Memory imports
 from ..memory.policy import (
     Verdict,
-    MemoryBandTarget,
     MemoryWritePolicy,
     WriteDecision,
     EvidenceChainValidation,
@@ -53,58 +50,13 @@ from ..memory.authority import (
 )
 from ..memory.audit import (
     MemoryAuditLayer,
-    AuditRecord,
-    compute_evidence_hash as _compute_evidence_hash_base,
-    verify_evidence_hash,
 )
+
+# Import shared utility to eliminate duplication
+from .common_utils import compute_integration_evidence_hash
 
 
 logger = logging.getLogger(__name__)
-
-
-# =============================================================================
-# HELPER FUNCTIONS
-# =============================================================================
-
-def _compute_evidence_hash(
-    verdict: str,
-    content: Dict[str, Any],
-    floor_scores: Dict[str, float],
-    evidence_sources: Optional[List[str]] = None,
-    timestamp: Optional[str] = None,
-) -> str:
-    """
-    Compute evidence hash for integration layer.
-
-    Adapts the base compute_evidence_hash to work with integration layer data.
-    """
-    import hashlib
-    import json
-    from datetime import datetime, timezone
-
-    ts = timestamp or datetime.now(timezone.utc).isoformat()
-
-    # Convert floor_scores to floor_checks format
-    floor_checks = [
-        {"floor": k, "score": v, "passed": True}
-        for k, v in floor_scores.items()
-    ]
-
-    # Add content hash to make it unique
-    content_hash = hashlib.sha256(
-        json.dumps(content, sort_keys=True, default=str).encode()
-    ).hexdigest()[:16]
-
-    # Use base function
-    base_hash = _compute_evidence_hash_base(
-        floor_checks=floor_checks,
-        verdict=verdict,
-        timestamp=ts,
-    )
-
-    # Combine with content hash for uniqueness
-    combined = f"{base_hash}:{content_hash}"
-    return hashlib.sha256(combined.encode()).hexdigest()
 
 
 # =============================================================================
@@ -295,7 +247,7 @@ class MemoryJudgeIntegration:
 
         # Step 4: Check authority (human seal for vault)
         try:
-            authority_decision = self.enforce_authority(context, target_band)
+            self.enforce_authority(context, target_band)
         except (HumanApprovalRequiredError, SelfModificationError) as e:
             result = JudgeWriteResult(
                 success=False,
@@ -357,7 +309,7 @@ class MemoryJudgeIntegration:
         Returns:
             SHA-256 hash of evidence
         """
-        return _compute_evidence_hash(
+        return compute_integration_evidence_hash(
             verdict=context.verdict,
             content=context.content,
             floor_scores=context.floor_scores,
@@ -504,7 +456,7 @@ class MemoryJudgeIntegration:
             return writer_decision
 
         # Check authority boundary (constitutional self-modification)
-        boundary_decision = self.authority_check.authority_boundary_check(
+        self.authority_check.authority_boundary_check(
             proposed_write={
                 "writer_id": context.writer_id,
                 "band": target_band,
@@ -646,7 +598,7 @@ def judge_compute_evidence_hash(
     Returns:
         SHA-256 hash
     """
-    return _compute_evidence_hash(
+    return compute_integration_evidence_hash(
         verdict=verdict,
         content=content,
         floor_scores=floor_scores or {},

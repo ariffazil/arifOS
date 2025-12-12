@@ -30,13 +30,10 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 import hashlib
 import logging
-import json
 
 # v38 Memory imports
 from ..memory.policy import (
-    Verdict,
     MemoryWritePolicy,
-    WriteDecision,
 )
 from ..memory.bands import (
     BandName,
@@ -46,52 +43,13 @@ from ..memory.bands import (
 )
 from ..memory.audit import (
     MemoryAuditLayer,
-    AuditRecord,
-    MerkleProof,
-    compute_evidence_hash as _compute_evidence_hash_base,
 )
 from ..memory.retention import (
-    RetentionTier,
     MemoryRetentionManager,
-    RetentionAction,
 )
 
 
 logger = logging.getLogger(__name__)
-
-
-# =============================================================================
-# HELPER FUNCTIONS
-# =============================================================================
-
-def _compute_evidence_hash(
-    verdict: str,
-    content: Dict[str, Any],
-    floor_scores: Dict[str, float],
-    evidence_sources: Optional[List[str]] = None,
-) -> str:
-    """Compute evidence hash for seal integration."""
-    ts = datetime.now(timezone.utc).isoformat()
-
-    # Convert floor_scores to floor_checks format
-    floor_checks = [
-        {"floor": k, "score": v, "passed": True}
-        for k, v in floor_scores.items()
-    ]
-
-    # Add content hash for uniqueness
-    content_hash = hashlib.sha256(
-        json.dumps(content, sort_keys=True, default=str).encode()
-    ).hexdigest()[:16]
-
-    base_hash = _compute_evidence_hash_base(
-        floor_checks=floor_checks,
-        verdict=verdict,
-        timestamp=ts,
-    )
-
-    combined = f"{base_hash}:{content_hash}"
-    return hashlib.sha256(combined.encode()).hexdigest()
 
 
 # =============================================================================
