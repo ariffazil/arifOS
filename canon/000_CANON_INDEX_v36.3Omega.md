@@ -7,9 +7,9 @@
 |  000_CANON_INDEX — MASTER INDEX v36.3Omega                                  |
 |  "If it's not in this index, it's not constitutional law."                  |
 +=============================================================================+
-|  Version:   v36.3Omega                                                      |
+|  Version:   v36.3Omega (Law Layer) + v37 (Runtime)                          |
 |  Status:    CANONICAL                                                       |
-|  Tests:     1060 passing                                                    |
+|  Tests:     1123 passing (v37 runtime)                                      |
 |  Tracks:    Law / Spec / Code (3-Track Architecture)                        |
 +=============================================================================+
 ```
@@ -332,7 +332,7 @@ EUREKA (insight)
 | Dream Forge | `tests/test_dream_forge.py` | Anvil/Crucible |
 | Session Guard | `tests/test_session_dependency_guard.py` | Dependency injection |
 
-**Total: 1060 tests passing, 4 skipped**
+**Total: 1123 tests passing, 4 skipped (v37 runtime)**
 
 ---
 
@@ -345,6 +345,7 @@ EUREKA (insight)
 | v36.1Omega | 2024-12 | Measurement layer, Python-Sovereign |
 | v36.2 PHOENIX | 2025-12-08 | Ψ calibration, tokenizer hygiene, Anti-Hantu expansion |
 | v36.3Omega | 2025-12-11 | 3-Track Architecture (Law/Spec/Code), W@W Federation, mypy, 1060 tests |
+| v37 | 2025-12-12 | Unified LAW+SPEC+CODE runtime, Ollama integration, 1123 tests |
 
 ---
 
