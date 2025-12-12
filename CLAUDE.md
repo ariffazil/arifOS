@@ -267,6 +267,34 @@ SABAR > VOID > 888_HOLD > PARTIAL > SEAL
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for current priorities and task tracking.
 
+### Future Path (v38 → v42)
+
+**Hard rule:** each phase is **blocked** until the previous phase is complete, audited, and stable.
+
+| Phase | Version | Focus | Timeframe | Status |
+|-------|---------|-------|-----------|--------|
+| Phase 1 | **v38** | Memory as Law (EUREKA) | Q1 2026 | ✅ SHIPPED |
+| Phase 2 | **v39** | Body API (FastAPI Grid) | Q2 2026 | PLANNED |
+| Phase 3 | **v40** | Hands (MCP + IDE Integration) | Q3 2026 | PLANNED |
+| Phase 4 | **v41** | Input Hygiene + zkPC Design | Q4 2026–Q1 2027 | RESEARCH |
+| Phase 5 | **v42** | Cryptographic Optimization | Q2 2027+ | CONDITIONAL |
+
+**v39 (Body API):** Minimal FastAPI service wrapping governed pipeline. Read-only, append-only, Docker-deployable. No streaming, no auto-approval.
+
+**v40 (Hands):** MCP server for VS Code. Inline audits, verdict explanations, ledger visibility. Use MCP standard, avoid LangChain/AutoGen.
+
+**v41 (Input Hygiene + zkPC):**
+- Safe-FS: Root-jailed, read-only filesystem access with secret blocking
+- zkPC: Design-only (requires formal verification + peer review)
+
+**Hard Gates:**
+- v39 blocked until v38 memory invariants hold
+- v40 blocked until v39 API is audited
+- v41 Safe-FS blocked until v40 MCP is stable
+- zkPC blocked until peer review
+
+**Full roadmap:** [docs/FUTURE_PATH_v38_v42.md](docs/FUTURE_PATH_v38_v42.md)
+
 ---
 
 ## v37 Validation Summary
