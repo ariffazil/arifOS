@@ -59,6 +59,16 @@ from .memory.policy import MemoryWritePolicy
 from .memory.bands import MemoryBandRouter
 from .memory.audit import MemoryAuditLayer, compute_evidence_hash
 
+# v38.2-alpha L7 Memory Layer (Mem0 + Qdrant)
+from .memory.memory import (
+    Memory,
+    RecallResult,
+    StoreAtSealResult,
+    recall_at_stage_111 as _l7_recall,
+    store_at_stage_999 as _l7_store,
+)
+from .memory.mem0_client import is_l7_enabled
+
 # v38 Runtime Contract Layer
 from .runtime_types import Job, Stakeholder, JobClass, SAFE_ACTIONS
 
@@ -137,6 +147,12 @@ class PipelineState:
     memory_band_router: Optional[MemoryBandRouter] = None
     memory_audit_layer: Optional[MemoryAuditLayer] = None
     memory_evidence_hash: Optional[str] = None
+
+    # v38.2-alpha L7 Memory Layer (Mem0 + Qdrant)
+    l7_memory: Optional[Memory] = None
+    l7_recall_result: Optional[RecallResult] = None
+    l7_store_result: Optional[StoreAtSealResult] = None
+    l7_user_id: str = ""  # User ID for memory isolation
 
     # Timing
     start_time: float = field(default_factory=time.time)
@@ -240,6 +256,7 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
     Detect high-stakes indicators and classify for routing.
 
     v37: Updates EnvBand.stakes_class in MemoryContext.
+    v38.2-alpha: L7 Memory recall at 111_SENSE (fail-open).
     """
     state.current_stage = "111"
     state.stage_trace.append("111_SENSE")
@@ -267,6 +284,27 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
     if state.memory_context is not None:
         stakes_str = "CLASS_B" if state.stakes_class == StakesClass.CLASS_B else "CLASS_A"
         state.memory_context.env.stakes_class = stakes_str
+
+    # v38.2-alpha: L7 Memory recall (fail-open)
+    if is_l7_enabled() and state.l7_user_id:
+        try:
+            state.l7_recall_result = _l7_recall(
+                query=state.query,
+                user_id=state.l7_user_id,
+            )
+            # Inject recalled memories into context_blocks
+            if state.l7_recall_result and state.l7_recall_result.has_memories:
+                for mem in state.l7_recall_result.memories:
+                    state.context_blocks.append({
+                        "type": "l7_memory",
+                        "text": mem.content,
+                        "score": mem.score,
+                        "memory_id": mem.memory_id,
+                        "caveat": "Recalled memory (suggestion, not fact)",
+                    })
+        except Exception:
+            # Fail-open: L7 errors don't break pipeline
+            pass
 
     return state
 
@@ -901,6 +939,7 @@ def stage_999_seal(state: PipelineState) -> PipelineState:
     Final gate. All verdicts are immutably recorded.
 
     v38.1: Enhanced diagnostic messages for SABAR/VOID.
+    v38.2-alpha: L7 Memory store with EUREKA Sieve (fail-open).
     """
     state.current_stage = "999"
     state.stage_trace.append("999_SEAL")
@@ -935,6 +974,29 @@ def stage_999_seal(state: PipelineState) -> PipelineState:
             f"[VOID] ACTION BLOCKED.\n"
             f"Constitutional Violation: {reason_str}."
         )
+
+    # v38.2-alpha: L7 Memory store with EUREKA Sieve (fail-open)
+    # Only store if: L7 enabled + user_id present + verdict present
+    if is_l7_enabled() and state.l7_user_id and state.verdict:
+        try:
+            # Build content to store (query + response summary)
+            content = f"Query: {state.query[:200]}... Response verdict: {state.verdict}"
+            if state.raw_response:
+                content += f" | Response: {state.raw_response[:300]}..."
+
+            state.l7_store_result = _l7_store(
+                content=content,
+                user_id=state.l7_user_id,
+                verdict=state.verdict,
+                metadata={
+                    "job_id": state.job_id,
+                    "stakes_class": state.stakes_class.value,
+                    "stage_trace": state.stage_trace,
+                },
+            )
+        except Exception:
+            # Fail-open: L7 errors don't break pipeline
+            pass
 
     return state
 
@@ -1002,6 +1064,7 @@ class Pipeline:
         job_id: Optional[str] = None,
         force_class: Optional[StakesClass] = None,
         job: Optional[Job] = None,
+        user_id: Optional[str] = None,
     ) -> PipelineState:
         """
         Run the full 000-999 pipeline.
@@ -1011,6 +1074,7 @@ class Pipeline:
             job_id: Optional job identifier for tracking
             force_class: Force a specific stakes class (for testing)
             job: Optional Job instance for v38 contract layer (auto-created if not provided)
+            user_id: Optional user ID for L7 Memory isolation (v38.2-alpha)
 
         Returns:
             Final PipelineState with response and audit trail
@@ -1025,6 +1089,10 @@ class Pipeline:
 
         if force_class:
             state.stakes_class = force_class
+
+        # v38.2-alpha: Set user_id for L7 Memory isolation
+        if user_id:
+            state.l7_user_id = user_id
 
         # v38: Create Job from query if not provided
         if job is None:
@@ -1210,4 +1278,9 @@ __all__ = [
     "_run_eye_sentinel",
     "_merge_with_waw",
     "_write_memory_for_verdict",
+    # v38.2-alpha L7 Memory
+    "Memory",
+    "RecallResult",
+    "StoreAtSealResult",
+    "is_l7_enabled",
 ]

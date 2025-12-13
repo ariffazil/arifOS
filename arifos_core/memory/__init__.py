@@ -132,6 +132,42 @@ from .vector_adapter import VectorAdapter, WitnessHit
 from .void_scanner import VoidScanner, ScarCandidate, ScarProposal
 
 # ============================================================================
+# v38.2-alpha L7 MEMORY LAYER (Mem0 + Qdrant)
+# ============================================================================
+
+# Mem0 Client
+from .mem0_client import (
+    Mem0Client,
+    Mem0Config,
+    MemoryHit,
+    EmbedResult,
+    SearchResult as Mem0SearchResult,
+    StoreResult as Mem0StoreResult,
+    TTLPolicy,
+    get_mem0_client,
+    is_l7_enabled,
+    is_l7_available,
+    DEFAULT_SIMILARITY_THRESHOLD,
+    DEFAULT_TOP_K,
+)
+
+# L7 Memory Layer
+from .memory import (
+    Memory,
+    RecallResult,
+    SieveResult,
+    StoreAtSealResult,
+    get_memory,
+    recall_at_stage_111,
+    store_at_stage_999,
+    apply_eureka_sieve,
+    RECALL_CONFIDENCE_CEILING,
+    MAX_RECALL_ENTRIES,
+    STORABLE_VERDICTS,
+    DISCARD_VERDICTS,
+)
+
+# ============================================================================
 # v38 MEMORY WRITE POLICY ENGINE
 # ============================================================================
 
@@ -160,7 +196,7 @@ from .bands import (
     QueryResult,
     VaultBand as VaultBandV38,
     CoolingLedgerBand,
-    ActiveStreamBand,
+    ActiveStreamBand as ActiveStreamBandV38,
     PhoenixCandidatesBand,
     WitnessBand,
     VoidBandStorage,
@@ -303,7 +339,7 @@ __all__ = [
     "QueryResult",
     "VaultBandV38",
     "CoolingLedgerBand",
-    "ActiveStreamBand",
+    "ActiveStreamBandV38",
     "PhoenixCandidatesBand",
     "WitnessBand",
     "VoidBandStorage",
@@ -336,4 +372,31 @@ __all__ = [
     "DEFAULT_RETENTION_DAYS",
     "BAND_TIER_MAP",
     "BAND_TRANSITIONS",
+    # ===== v38.2-alpha L7 MEMORY LAYER =====
+    # Mem0 Client
+    "Mem0Client",
+    "Mem0Config",
+    "MemoryHit",
+    "EmbedResult",
+    "Mem0SearchResult",
+    "Mem0StoreResult",
+    "TTLPolicy",
+    "get_mem0_client",
+    "is_l7_enabled",
+    "is_l7_available",
+    "DEFAULT_SIMILARITY_THRESHOLD",
+    "DEFAULT_TOP_K",
+    # L7 Memory Layer
+    "Memory",
+    "RecallResult",
+    "SieveResult",
+    "StoreAtSealResult",
+    "get_memory",
+    "recall_at_stage_111",
+    "store_at_stage_999",
+    "apply_eureka_sieve",
+    "RECALL_CONFIDENCE_CEILING",
+    "MAX_RECALL_ENTRIES",
+    "STORABLE_VERDICTS",
+    "DISCARD_VERDICTS",
 ]
