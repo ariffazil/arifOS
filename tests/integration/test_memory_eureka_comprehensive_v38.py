@@ -237,8 +237,8 @@ class TestEndToEndMemoryWriteFlow:
         # 3. Audit trail
         audit_record = audit_layer.record_memory_write(
             band="LEDGER",
-            entry_entry_id="flow_001",
-            writer_entry_id="888_JUDGE",
+            entry_id="flow_001",
+            writer_id="888_JUDGE",
             verdict="SEAL",
             evidence_hash=evidence["hash"],
             entry_data=entry.content,
@@ -420,7 +420,7 @@ class TestAuthorityBoundaryEnforcement:
     def test_human_can_seal_to_vault(self, authority_check):
         """Human should be able to seal to VAULT."""
         decision = authority_check.validate_writer(
-            writer_entry_id="HUMAN",
+            writer_id="HUMAN",
             band="VAULT",
         )
         assert decision.allowed
@@ -431,7 +431,7 @@ class TestAuthorityBoundaryEnforcement:
             authority_check.enforce_human_seal_required(
                 band="PHOENIX",
                 verdict="SEAL",
-                writer_entry_id="PHOENIX_72",
+                writer_id="PHOENIX_72",
             )
 
     def test_all_ai_writers_blocked_from_vault(self, authority_check):
@@ -465,7 +465,7 @@ class TestCrossLayerIntegration:
         # Sense creates recall context
         recall_ctx = RecallContext(
             query="Test query",
-            session_entry_id="test_session",
+            session_id="test_session",
         )
         assert recall_ctx.query == "Test query"
         
@@ -488,7 +488,7 @@ class TestCrossLayerIntegration:
         
         # Seal context
         seal_ctx = SealContext(
-            entry_entry_id="test_001",
+            entry_id="test_001",
             verdict="SEAL",
             content={"output": "Test"},
             evidence_hash="hash123",

@@ -227,7 +227,7 @@ class TestAmanahFloorIrreversibleCheck:
             result = detect_irreversible_operations(pattern)
             assert result is not None, f"Should detect: {pattern}"
 
-    def test_f1_amanah_threshold_is_lock(self):
+    def test_f1_amanah_threshold_is_lock(self, write_policy):
         """F1 Amanah should be a LOCK floor (binary pass/fail)."""
         # Per v38Omega spec: F1 threshold = LOCK (1.0 or fail)
         # This is a design principle test
@@ -285,7 +285,7 @@ class TestAntiHantuFloorSoulBlock:
             result = detect_soul_claims(pattern)
             assert result is not None, f"Should detect: {pattern}"
 
-    def test_f9_dark_threshold_less_than_030(self):
+    def test_f9_dark_threshold_less_than_030(self, write_policy):
         """F9 C_dark threshold should be < 0.30 per spec."""
         # Per v38Omega spec: C_dark < 0.30 for SEAL
         # This is enforced at the floor level, memory respects verdict
