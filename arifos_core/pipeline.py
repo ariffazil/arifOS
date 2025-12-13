@@ -839,11 +839,68 @@ def stage_888_judge(
     return state
 
 
+def _format_floor_failures(floor_failures: List[str]) -> str:
+    """
+    v38.1: Format floor failures into human-readable reasons.
+
+    Maps technical floor names to constitutional sections.
+    """
+    if not floor_failures:
+        return "Constitutional floors"
+
+    friendly_reasons = []
+    for fail in floor_failures:
+        fail_lower = fail.lower()
+        # Map technical failures to human-readable names
+        if "truth" in fail_lower or "f2" in fail_lower:
+            friendly_reasons.append("F2 Truth (Factual Integrity)")
+        elif "peace" in fail_lower or "tox" in fail_lower or "f5" in fail_lower:
+            friendly_reasons.append("F5 Peace² (Safety/Non-escalation)")
+        elif "hantu" in fail_lower or "soul" in fail_lower or "conscious" in fail_lower or "f9" in fail_lower:
+            friendly_reasons.append("F9 Anti-Hantu (No Soul Claims)")
+        elif "amanah" in fail_lower or "integrity" in fail_lower or "f1" in fail_lower:
+            friendly_reasons.append("F1 Amanah (Integrity Lock)")
+        elif "empathy" in fail_lower or "kappa" in fail_lower or "f6" in fail_lower:
+            friendly_reasons.append("F6 Empathy (Dignity Protection)")
+        elif "delta" in fail_lower or "clarity" in fail_lower or "f4" in fail_lower:
+            friendly_reasons.append("F4 Clarity (Entropy Reduction)")
+        elif "omega" in fail_lower or "humility" in fail_lower or "f7" in fail_lower:
+            friendly_reasons.append("F7 Humility (Uncertainty Band)")
+        elif "witness" in fail_lower or "f3" in fail_lower:
+            friendly_reasons.append("F3 Tri-Witness (Consensus)")
+        elif "eye" in fail_lower:
+            friendly_reasons.append("@EYE Sentinel (Multi-View Audit)")
+        elif "wealth" in fail_lower:
+            friendly_reasons.append("@WEALTH (Absolute Veto)")
+        elif "rif" in fail_lower:
+            friendly_reasons.append("@RIF (Epistemic Veto)")
+        elif "well" in fail_lower:
+            friendly_reasons.append("@WELL (Safety Organ)")
+        elif "geox" in fail_lower:
+            friendly_reasons.append("@GEOX (Reality Check)")
+        elif "prompt" in fail_lower:
+            friendly_reasons.append("@PROMPT (Language Governance)")
+        else:
+            friendly_reasons.append(fail)
+
+    # Deduplicate while preserving order
+    seen = set()
+    unique_reasons = []
+    for r in friendly_reasons:
+        if r not in seen:
+            seen.add(r)
+            unique_reasons.append(r)
+
+    return ", ".join(unique_reasons)
+
+
 def stage_999_seal(state: PipelineState) -> PipelineState:
     """
     999 SEAL - If PASS -> emit. If FAIL -> SABAR or VOID.
 
     Final gate. All verdicts are immutably recorded.
+
+    v38.1: Enhanced diagnostic messages for SABAR/VOID.
     """
     state.current_stage = "999"
     state.stage_trace.append("999_SEAL")
@@ -857,18 +914,26 @@ def stage_999_seal(state: PipelineState) -> PipelineState:
             "(Note: This response has been issued with constitutional hedges.)"
         )
     elif state.verdict == "888_HOLD":
+        reason_str = _format_floor_failures(state.floor_failures)
         state.raw_response = (
-            "[888_HOLD] Constitutional judiciary hold. "
-            "Please clarify or rephrase your request."
+            f"[888_HOLD] Constitutional judiciary hold.\n"
+            f"Reason: {reason_str}.\n"
+            f"Please clarify or rephrase your request."
         )
     elif state.verdict == "SABAR":
+        # v38.1: Diagnostic SABAR with specific floor violations
+        reason_str = _format_floor_failures(state.floor_failures)
         state.raw_response = (
-            "[SABAR] Stop. Acknowledge. Breathe. Adjust. Resume.\n"
-            "This request requires reconsideration."
+            f"[SABAR] Protocol Active.\n"
+            f"I cannot fulfill this request because it violates: {reason_str}.\n"
+            f"Please rephrase to align with safety standards."
         )
     else:  # VOID
+        # v38.1: Diagnostic VOID with specific floor violations
+        reason_str = _format_floor_failures(state.floor_failures)
         state.raw_response = (
-            "[VOID] This request has been refused by arifOS constitutional floors."
+            f"[VOID] ACTION BLOCKED.\n"
+            f"Constitutional Violation: {reason_str}."
         )
 
     return state

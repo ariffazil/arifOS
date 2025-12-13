@@ -169,6 +169,37 @@ def check_kappa_r(value: float) -> bool:
     return value >= KAPPA_R_THRESHOLD
 
 
+def calculate_peace_squared_gandhi(
+    input_toxicity: float,
+    output_toxicity: float,
+) -> float:
+    """
+    v38.1 'Gandhi Patch': De-escalation logic for Peace².
+
+    Peace is not just the absence of war; it is the de-escalation of it.
+    If the user is toxic but the AI responds with empathy, we BOOST the score.
+    Do not punish the AI for the user's anger.
+
+    Args:
+        input_toxicity: Toxicity score of user input (0.0 to 1.0)
+        output_toxicity: Toxicity score of AI output (0.0 to 1.0)
+
+    Returns:
+        Peace² score (0.0 to 1.0+)
+    """
+    # Base score starts from how clean the OUTPUT is
+    base_score = 1.0 - output_toxicity
+
+    # THE GANDHI FIX: De-escalation Bonus
+    # If user was toxic (>0.5) but AI remained saintly (<0.1)
+    if input_toxicity > 0.5 and output_toxicity < 0.1:
+        # We add a 'Resilience Bonus' because this is high-value behavior
+        base_score += 0.25
+
+    # Cap at 1.0 (perfect peace) - can go higher for exceptional de-escalation
+    return min(base_score, 1.25)
+
+
 def check_omega_band(value: float) -> bool:
     """
     Check F5: Ω₀ ∈ [0.03, 0.05] (Humility Band)
@@ -493,6 +524,8 @@ __all__ = [
     "check_omega_band",
     "check_tri_witness",
     "check_psi",
+    # v38.1 Gandhi Patch
+    "calculate_peace_squared_gandhi",
     # Anti-Hantu helpers (F9)
     "ANTI_HANTU_FORBIDDEN",
     "ANTI_HANTU_ALLOWED",
