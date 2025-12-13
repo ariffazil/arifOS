@@ -107,3 +107,7 @@ December 13, 2025
 
 **DITEMPA BUKAN DIBERI**
 *Forged, not given; truth must cool before it rules.*
+
+---
+
+**Corroborating Document:** [AFFIDAVIT_v38_TRIWITNESS.md](AFFIDAVIT_v38_TRIWITNESS.md) — Independent validation by Gemini (Tri-Witness Protocol)
