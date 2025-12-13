@@ -34,12 +34,13 @@ from typing import Any, Dict, List, Optional, Tuple
 # =============================================================================
 
 class Verdict(str, Enum):
-    """APEX PRIME verdict types."""
+    """APEX PRIME verdict types (v38.2 extended with SUNSET)."""
     SEAL = "SEAL"
     SABAR = "SABAR"
     PARTIAL = "PARTIAL"
     VOID = "VOID"
     HOLD = "888_HOLD"
+    SUNSET = "SUNSET"  # v38.2: Lawful revocation (LEDGER → PHOENIX)
 
 
 class MemoryBandTarget(str, Enum):
@@ -52,13 +53,14 @@ class MemoryBandTarget(str, Enum):
     VOID = "VOID"
 
 
-# Verdict → Band routing rules
+# Verdict → Band routing rules (v38.2 extended with SUNSET)
 VERDICT_BAND_ROUTING: Dict[str, List[str]] = {
     "SEAL": ["LEDGER", "ACTIVE"],      # Canonical + session
     "SABAR": ["LEDGER", "ACTIVE"],     # Canonical + session (with reason)
     "PARTIAL": ["PHOENIX", "LEDGER"],  # Queue for review + log
     "VOID": ["VOID"],                   # Diagnostic ONLY, never canonical
     "888_HOLD": ["LEDGER"],             # Log hold for audit
+    "SUNSET": ["PHOENIX"],              # v38.2: Revocation pulse (LEDGER → PHOENIX)
 }
 
 # Retention tiers (days)

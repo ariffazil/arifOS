@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Version:** v38.0.0 | **Tests:** 1250+ | **Safety Ceiling:** 97% | **CLI Tools:** 7
+**Version:** v38.2.0 | **Tests:** 1624+ | **Safety Ceiling:** 97% | **CLI Tools:** 7 | **Time:** Governor
 
 **Imports:** `~/.claude/CLAUDE.md` — Global governance (floors, SABAR, verdicts) applies to all repos.
 **Extends:** [AGENTS.md](AGENTS.md) — All W@W dispatch and multi-agent guardrails from AGENTS.md apply here.
@@ -18,7 +18,7 @@ pip install arifos
 # Install (editable with dev dependencies)
 pip install -e .[dev]
 
-# Run all 1250+ tests
+# Run all 1624+ tests
 pytest -v
 
 # Run tests for specific modules
@@ -69,7 +69,7 @@ User Input → 000–999 Pipeline → 9 Floors Check → APEX PRIME Verdict → 
 
 | Module                               | Purpose                                                                 |
 |--------------------------------------|-------------------------------------------------------------------------|
-| `arifos_core/APEX_PRIME.py`          | Judiciary engine — computes verdicts (SEAL/PARTIAL/VOID/888_HOLD/SABAR) |
+| `arifos_core/APEX_PRIME.py`          | Judiciary engine — computes verdicts (SEAL/PARTIAL/VOID/888_HOLD/SABAR/SUNSET) |
 | `arifos_core/pipeline.py`            | 000–999 metabolic pipeline with Class A/B routing                       |
 | `arifos_core/metrics.py`             | Floor thresholds and `Metrics` dataclass                                |
 | `arifos_core/genius_metrics.py`      | GENIUS LAW (G, C_dark, Ψ) + Truth Polarity                              |
@@ -81,6 +81,7 @@ User Input → 000–999 Pipeline → 9 Floors Check → APEX PRIME Verdict → 
 | `arifos_core/memory/bands.py`        | 6 Memory Bands (Vault, Ledger, Active, Phoenix, Witness, Void)          |
 | `arifos_core/memory/authority.py`    | Human seal enforcement (AI proposes, humans seal)                       |
 | `arifos_core/integration/`           | Pipeline ↔ Memory integration (111_SENSE, 777_FORGE, 888_JUDGE, 999_SEAL) |
+| `arifos_core/kernel.py`              | v38.2 entropy rot + SUNSET revocation (Time as Governor)                |
 | `arifos_core/zkpc_runtime.py`        | zkPC 5-phase runtime for cryptographic integrity                        |
 | `integrations/sealion/`              | SEA-LION model integration                                              |
 
@@ -188,7 +189,7 @@ pytest tests/test_*_v38_alignment.py -v
 | **WITNESS** | Soft evidence, scars | 90 days (WARM) |
 | **VOID** | Diagnostic only, NEVER canonical | 90 days (auto-delete) |
 
-### Verdict → Band Routing
+### Verdict → Band Routing (v38.2 Extended)
 
 ```text
 SEAL    → LEDGER + ACTIVE (canonical)
@@ -196,6 +197,7 @@ SABAR   → LEDGER + ACTIVE (with failure reason)
 PARTIAL → PHOENIX + LEDGER (pending review)
 VOID    → VOID only (NEVER canonical)
 888_HOLD → LEDGER (awaiting human)
+SUNSET  → PHOENIX (revocation: LEDGER → PHOENIX re-trial)
 ```
 
 ### Integration Modules
@@ -209,6 +211,52 @@ VOID    → VOID only (NEVER canonical)
 
 **Canon:** `canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md`
 **Docs:** `docs/MEMORY_ARCHITECTURE.md`, `docs/MEMORY_WRITE_POLICY.md`
+
+---
+
+## v38.2 Hardening Cycle (Time as Governor)
+
+**Core Insight:** Time is a constitutional force. Unresolved verdicts cannot drift forever.
+
+### The TIME-1 Invariant
+
+> **"Time is a Constitutional Force. Entropy Rot is automatic."**
+
+v38.2 addresses two structural fractures:
+
+- **Fracture A (Truth Expires):** Sealed memory had no revocation path when reality changed.
+- **Fracture B (System Stalls):** SABAR had no timeout—governance by neglect was possible.
+
+### Phoenix-72 Scheduler
+
+| Scheduler | Trigger | Effect |
+|-----------|---------|--------|
+| **SABAR_TIMEOUT** | age > 24h | SABAR → PARTIAL |
+| **PHOENIX_LIMIT** | age > 72h | PARTIAL → VOID |
+
+### SUNSET Verdict
+
+`SUNSET` is the lawful revocation mechanism:
+
+- Moves sealed entries from LEDGER → PHOENIX for re-trial.
+- Preserves evidence chain (original hash, timestamp, content).
+- Does NOT invent new facts—acknowledges truth can expire.
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `spec/arifos_v38_2.yaml` | v38.2 constitutional hardening spec |
+| `arifos_core/kernel.py` | `check_entropy_rot()` + `route_memory()` |
+| `tests/test_phoenix_72_entropy_rot.py` | 21 tests for entropy rot + SUNSET |
+
+### Agent Guidance
+
+When working on verdicts or memory routing:
+
+- SABAR / PARTIAL are now **time-bounded** — they will decay if unresolved.
+- SUNSET may be surfaced by higher-level logic as revocation, not as user-facing "success".
+- Do NOT change scheduler constants without Phoenix-72 amendment.
 
 ---
 

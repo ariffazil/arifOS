@@ -1,14 +1,14 @@
-# arifOS v38.1 — Governed AI Through Physics, Not Prompts
+# arifOS v38.2 — Governed AI Through Physics, Not Prompts
 
-**Status:** ✅ **PRODUCTION** | **1603 Tests Passing** | **97% Safety Ceiling** | **7 CLI Tools** | **PyPI Ready** | **Memory Write Policy: ACTIVE** | **Phase 1: Complete ✅**
+**Status:** ✅ **PRODUCTION** | **1624+ Tests Passing** | **97% Safety Ceiling** | **7 CLI Tools** | **PyPI Ready** | **Memory Write Policy: ACTIVE** | **Phase 1: Complete ✅** | **v38.2 Hardening: SEALED**
 
-![Version](https://img.shields.io/badge/Version-v38.1-0052cc) ![Tests](https://img.shields.io/badge/Tests-1603%2B-success) ![Safety](https://img.shields.io/badge/Safety-97%25-brightgreen) ![License](https://img.shields.io/badge/License-AGPL3-orange) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![Memory](https://img.shields.io/badge/Memory-EUREKA%20v38-blueviolet)
+![Version](https://img.shields.io/badge/Version-v38.2-0052cc) ![Tests](https://img.shields.io/badge/Tests-1624%2B-success) ![Safety](https://img.shields.io/badge/Safety-97%25-brightgreen) ![License](https://img.shields.io/badge/License-AGPL3-orange) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![Memory](https://img.shields.io/badge/Memory-EUREKA%20v38-blueviolet) ![Time](https://img.shields.io/badge/Time-Governor-purple)
 
 ---
 
 ## Executive Summary
 
-arifOS v38.1 is a **constitutional governance kernel** that wraps any LLM (Claude, GPT, Gemini, Llama, SEA-LION) and enforces lawful behavior through **thermodynamic physics, not prompts**.
+arifOS v38.2 is a **constitutional governance kernel** that wraps any LLM (Claude, GPT, Gemini, Llama, SEA-LION) and enforces lawful behavior through **thermodynamic physics, not prompts**.
 
 **What makes it different:**
 - Standard wrappers: "Please be safe" (the model can ignore you)
@@ -16,11 +16,15 @@ arifOS v38.1 is a **constitutional governance kernel** that wraps any LLM (Claud
 
 **Proof:** Gemini 2.0 writes malware to delete Windows. arifOS blocks it with a constitutional veto. Same model. Different governance.
 
-**v38.1 delivers:**
-- **1,603 tests** (Phase 1 complete: 132 memory integration tests added, all validating core invariants)
-- **4 proven invariants** (INV-1: VOID never canonical, INV-2: authority boundary, INV-3: evidence chain auditable, INV-4: recall ceiling 0.85)
+**v38.2 delivers (The Hardening Cycle):**
+
+- **1,624+ tests** (21 new entropy rot + SUNSET tests)
+- **Time as Governor** — unresolved verdicts cannot drift forever
+- **SUNSET verdict** — lawful revocation when reality changes (LEDGER → PHOENIX)
+- **Phoenix-72 scheduler** — SABAR escalates after 24h, PARTIAL decays after 72h
+- **5 memory invariants** (TIME-1 added: entropy rot is automatic)
 - **6 memory bands** with verdict-driven routing (VAULT, LEDGER, ACTIVE, PHOENIX, WITNESS, VOID)
-- **97% safety ceiling** on adversarial prompts (11-test red team, 97% pass rate vs 39% baseline)
+- **97% safety ceiling** on adversarial prompts (unchanged from v38.1)
 - **Zero breaking changes** — plug into any LLM, instantly get governance
 
 ---
@@ -209,7 +213,7 @@ Not all accurate statements are good. Truth has **polarity**:
 | **WITNESS** | Soft evidence + scars (patterns) | 90d (WARM) | Diagnostic | Pattern detection |
 | **VOID** | Diagnostic only (auto-deleted) | 90d (auto-delete) | VOID only | Mistake quarantine |
 
-### Verdict → Band Routing
+### Verdict → Band Routing (v38.2 Extended)
 
 ```text
 SEAL    → LEDGER + ACTIVE    (canonical memory + session)
@@ -217,6 +221,7 @@ SABAR   → LEDGER + ACTIVE    (canonical with reason logged)
 PARTIAL → PHOENIX + LEDGER   (pending human review)
 VOID    → VOID only          (NEVER canonical, auto-delete)
 888_HOLD → LEDGER            (awaiting human approval)
+SUNSET  → PHOENIX            (revocation: LEDGER → PHOENIX re-trial)
 ```
 
 ### Pipeline Integration Hooks
@@ -230,7 +235,42 @@ VOID    → VOID only          (NEVER canonical, auto-delete)
 
 ---
 
-## The Verdict Hierarchy: 5 Verdicts
+## v38.2 Hardening Cycle: Time as Governor
+
+**Core Insight:** Time is a constitutional force. Unresolved verdicts cannot drift forever.
+
+v38.2 addresses two structural fractures identified in external review:
+
+- **Fracture A (Truth Expires):** Once sealed, memory had no lawful revocation path when reality changed.
+- **Fracture B (System Stalls):** SABAR verdicts had no timeout—governance by neglect was possible.
+
+### The Phoenix-72 Scheduler
+
+| Scheduler | Trigger | Effect | Rationale |
+|-----------|---------|--------|-----------|
+| **SABAR_TIMEOUT** | age > 24h | SABAR → PARTIAL | Pause is temporary; after 1 day, issue must surface |
+| **PHOENIX_LIMIT** | age > 72h | PARTIAL → VOID | After 3 days, unresolved ambiguity becomes entropy |
+
+### The TIME-1 Invariant
+
+> **"Time is a Constitutional Force. Entropy Rot is automatic."**
+
+- No SABAR may persist indefinitely—it must repair or escalate.
+- No PARTIAL may drift forever—after 72h it must resolve or decay to VOID.
+- SUNSET provides lawful revocation when sealed truths expire.
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `spec/arifos_v38_2.yaml` | v38.2 constitutional hardening spec |
+| `arifos_core/kernel.py` | `check_entropy_rot()` + `route_memory()` |
+| `docs/RELEASE_NOTES_v38_2.md` | Full v38.2 release documentation |
+| `tests/test_phoenix_72_entropy_rot.py` | 21 tests for entropy rot + SUNSET |
+
+---
+
+## The Verdict Hierarchy: 6 Verdicts (v38.2)
 
 | Verdict | Symbol | Meaning | Memory Route | User Sees |
 |---------|--------|---------|--------------|-----------|
@@ -239,8 +279,11 @@ VOID    → VOID only          (NEVER canonical, auto-delete)
 | **SABAR** | ⏹️ | Major breach. System pauses to cool down. | LEDGER + ACTIVE | "[SABAR] Let me reconsider..." |
 | **VOID** | ✗ | Critical floor breach. Output rejected. | VOID only (never canonical) | "[VOID] I cannot output this." |
 | **888_HOLD** | ⏸️ | Ambiguous edge case. Escalate to human. | LEDGER | "Awaiting human review..." |
+| **SUNSET** | 🌅 | Truth expired. Revoke sealed memory. | LEDGER → PHOENIX | Revocation logged |
 
 **SABAR = The Constitutional Pause.** When multiple floors breach or entropy spikes, the system pauses rather than forcing a bad output. It cools, reflects, tries again.
+
+**SUNSET = Lawful Revocation (v38.2).** When external reality changes, previously sealed truths can be revoked and sent back to PHOENIX for re-trial.
 
 ---
 

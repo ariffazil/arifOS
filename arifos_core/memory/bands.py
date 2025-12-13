@@ -556,8 +556,8 @@ class PhoenixCandidatesBand(MemoryBand):
         evidence_hash: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> WriteResult:
-        # Phoenix accepts from 888_JUDGE, PHOENIX_72, HUMAN
-        allowed = ["888_JUDGE", "PHOENIX_72", "HUMAN"]
+        # Phoenix accepts from 888_JUDGE, PHOENIX_72, HUMAN, SUNSET_EXECUTOR (v38.2)
+        allowed = ["888_JUDGE", "PHOENIX_72", "HUMAN", "SUNSET_EXECUTOR"]
         if writer_id not in allowed:
             return WriteResult(
                 success=False,
@@ -793,8 +793,15 @@ class MemoryBandRouter:
     """
     Routes writes to correct memory band based on verdict and policy.
 
+    v38.2 Enhancements:
+    - Integrates entropy rot via check_entropy_rot() before routing
+    - Handles SUNSET verdict for lawful revocation (LEDGER → PHOENIX)
+    - Per spec/arifos_v38_2.yaml::invariants.TIME-1
+
     Responsibilities:
     - Route writes to correct band based on verdict
+    - Apply entropy rot to stale SABAR/PARTIAL verdicts
+    - Execute SUNSET revocations
     - Enforce band write rules (who can write where)
     - Log all routing decisions for audit
     """
@@ -916,6 +923,148 @@ class MemoryBandRouter:
             "success": success,
             "entry_id": entry_id,
         })
+
+    # =========================================================================
+    # v38.2 ENTROPY ROT + SUNSET METHODS
+    # =========================================================================
+
+    def route_with_entropy_rot(
+        self,
+        verdict: str,
+        content: Dict[str, Any],
+        writer_id: str,
+        timestamp: str,
+        reference_id: Optional[str] = None,
+        evidence_hash: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Route a write with entropy rot applied first.
+
+        v38.2 Enhancement: Before routing, applies check_entropy_rot() to
+        handle stale SABAR/PARTIAL verdicts per TIME-1 invariant.
+
+        Args:
+            verdict: APEX PRIME verdict
+            content: Content to write
+            writer_id: Who is writing
+            timestamp: When verdict was issued (ISO format)
+            reference_id: Optional reference for SUNSET revocation
+            evidence_hash: Evidence chain hash
+            metadata: Additional metadata
+
+        Returns:
+            Dict with routing results and entropy rot info
+        """
+        from ..kernel import VerdictPacket, check_entropy_rot
+
+        # Build packet for entropy rot check
+        packet = VerdictPacket(
+            verdict=verdict,
+            timestamp=timestamp,
+            reference_id=reference_id,
+            evidence_chain={"hash": evidence_hash} if evidence_hash else {},
+            metadata=metadata or {},
+        )
+
+        # Apply entropy rot
+        rot_result = check_entropy_rot(packet)
+        final_verdict = rot_result.final_verdict
+
+        # Route with possibly-updated verdict
+        write_results = self.route_write(
+            verdict=final_verdict,
+            content=content,
+            writer_id=writer_id,
+            target_band=None,
+            evidence_hash=evidence_hash,
+            metadata={
+                **(metadata or {}),
+                "entropy_rot_applied": rot_result.rotted,
+                "original_verdict": rot_result.original_verdict if rot_result.rotted else None,
+                "rot_reason": rot_result.reason if rot_result.rotted else None,
+            },
+        )
+
+        return {
+            "write_results": write_results,
+            "entropy_rot": {
+                "applied": rot_result.rotted,
+                "original_verdict": rot_result.original_verdict,
+                "final_verdict": rot_result.final_verdict,
+                "reason": rot_result.reason,
+                "age_hours": rot_result.age_hours,
+            },
+        }
+
+    def execute_sunset(
+        self,
+        reference_id: str,
+        reason: str = "Reality changed; truth expired",
+    ) -> Tuple[bool, str, Optional[str]]:
+        """
+        Execute a SUNSET revocation: move entry from LEDGER → PHOENIX.
+
+        SUNSET is the lawful mechanism to un-seal previously canonical memory
+        when external reality changes. The evidence chain is preserved.
+
+        Args:
+            reference_id: The entry_id to revoke from LEDGER
+            reason: Reason for revocation
+
+        Returns:
+            Tuple of (success: bool, message: str, phoenix_entry_id: Optional[str])
+        """
+        ledger_band = self.bands.get(BandName.LEDGER)
+        phoenix_band = self.bands.get(BandName.PHOENIX)
+
+        if ledger_band is None or phoenix_band is None:
+            return False, "LEDGER or PHOENIX band not available", None
+
+        # Find entry in ledger
+        query_result = ledger_band.query(
+            filter_fn=lambda e: e.entry_id == reference_id,
+            limit=1,
+        )
+
+        if not query_result.entries:
+            return False, f"Entry {reference_id} not found in LEDGER", None
+
+        original_entry = query_result.entries[0]
+
+        # Write to PHOENIX with SUNSET metadata
+        phoenix_result = phoenix_band.write(
+            content={
+                "revoked_from": "LEDGER",
+                "original_entry_id": reference_id,
+                "original_content": original_entry.content,
+                "original_verdict": original_entry.verdict,
+                "original_timestamp": original_entry.timestamp,
+                "revocation_reason": reason,
+            },
+            writer_id="SUNSET_EXECUTOR",
+            verdict="SUNSET",
+            evidence_hash=original_entry.evidence_hash,
+            metadata={
+                "sunset_type": "revocation",
+                "original_hash": original_entry.hash,
+                "status": "awaiting_review",
+            },
+        )
+
+        if not phoenix_result.success:
+            return False, f"Failed to write to PHOENIX: {phoenix_result.error}", None
+
+        # Log the SUNSET execution
+        self._log_routing(
+            verdict="SUNSET",
+            target_band="PHOENIX",
+            writer_id="SUNSET_EXECUTOR",
+            success=True,
+            entry_id=phoenix_result.entry_id,
+        )
+
+        return True, f"SUNSET executed: {reference_id} moved to PHOENIX", phoenix_result.entry_id
 
 
 # =============================================================================

@@ -25,6 +25,84 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ---
 
+## [v38.2.0] – 2025-12-13 — The Hardening Cycle
+
+**Status:** PRODUCTION · Tests: 1624+ · Safety: 97.0% · Time: GOVERNOR
+
+### The Hardening Cycle
+
+v38.2 responds to external red-team review that surfaced two structural fractures:
+
+- **Fracture A (Truth Expires):** Once a memory was SEALED, there was no constitutional way to revoke it when external reality changed.
+- **Fracture B (System Stalls):** SABAR verdicts had no timeout—governance by neglect was possible.
+
+We did not defend the ego of the system; we let the critique burn through the kernel and turned it into law.
+
+### New Physics: Time as Constitutional Force
+
+- **TIME-1 Invariant:** "Time is a Constitutional Force. Entropy Rot is automatic."
+- **TIME-2 Invariant:** "Hope has a half-life; governance does not."
+
+Time is now a **governor**, not a background parameter. Every unresolved verdict carries an age that matters constitutionally.
+
+### SUNSET Verdict (Revocation)
+
+- New verdict type: `SUNSET` — lawful revocation of previously sealed memory.
+- Routing: `LEDGER → PHOENIX` (evidence chain preserved, memory re-opened for re-trial).
+- SUNSET does not invent new facts; it acknowledges that truth can expire as the world moves.
+
+### Phoenix-72 Scheduler
+
+| Scheduler | Trigger | Effect |
+|-----------|---------|--------|
+| **SABAR_TIMEOUT** | age > 24h | SABAR → PARTIAL |
+| **PHOENIX_LIMIT** | age > 72h | PARTIAL → VOID |
+
+After 24 hours, SABAR pauses must surface as PARTIAL warnings.
+After 72 hours, unresolved PARTIAL decisions decay to VOID (entropy dump).
+
+### Implementation
+
+- **`arifos_core/kernel.py`** (NEW):
+  - `VerdictPacket` dataclass with timestamp for age calculation.
+  - `check_entropy_rot(packet)` — enforces scheduler pulses.
+  - `route_memory(packet)` — applies entropy rot before band routing.
+  - `execute_sunset()` — LEDGER → PHOENIX revocation with evidence chain.
+
+- **`arifos_core/memory/policy.py`**:
+  - Extended `Verdict` enum with `SUNSET`.
+  - Updated `VERDICT_BAND_ROUTING` with SUNSET → PHOENIX.
+
+- **`arifos_core/memory/bands.py`**:
+  - `MemoryBandRouter.route_with_entropy_rot()` — entropy rot integration.
+  - `MemoryBandRouter.execute_sunset()` — LEDGER → PHOENIX revocation.
+  - `SUNSET_EXECUTOR` writer added to PHOENIX band permissions.
+
+### Law Artifacts
+
+- **Canon:** `canon/000_ARIFOS_CANON_v35Omega.md` §§6–8 (The Fourth Dimension, 72 Hours, The Hardening Cycle)
+- **Spec:** `spec/arifos_v38_2.yaml` (scheduler, SUNSET routing, TIME invariants)
+- **Docs:** `docs/RELEASE_NOTES_v38_2.md` (full release documentation)
+
+### Tests
+
+- **21 new tests** in `tests/test_phoenix_72_entropy_rot.py`:
+  - `test_entropy_decay()` — PARTIAL > 72h → VOID
+  - `test_sabar_escalation()` — SABAR > 24h → PARTIAL
+  - `test_sunset_revocation()` — LEDGER → PHOENIX with evidence preserved
+  - TIME-1/TIME-2 invariant enforcement tests
+  - Scheduler constant verification tests
+
+### Behavioral Summary
+
+- No floor thresholds changed (F1–F9 remain as v38.1).
+- No memory invariants weakened (INV-1 to INV-4 remain).
+- Time is now a governor: unresolved decisions cannot drift forever.
+- SUNSET provides lawful revocation when truth expires.
+- **97% safety ceiling maintained** (same as v38.1).
+
+---
+
 ## [v38.0.1] – 2025-12-13 — v38Omega Law Stack Formalization
 
 **Status:** LAW SEALED · Tests: 1250+ · Safety: 97.0% · Alignment Tests: 5 suites
@@ -492,6 +570,7 @@ The foundational version where the 8 Constitutional Floors, AAA Trinity, and Δ�
 | v37.0 | Production | Red-team validation, 97% safety ceiling | ✅ LIVE |
 | v37.1 | PyPI | AGPL-3.0 license, PyPI release | ✅ LIVE |
 | v38.0 | Memory | Memory Write Policy Engine (EUREKA), 6 bands | ✅ LIVE |
+| v38.2 | Hardening | Time as Governor, SUNSET, Phoenix-72 scheduler | ✅ LIVE |
 | v39.0 | Q1 2026 | FastAPI Grid, Multi-model orchestration | PLANNED |
 | v40.0 | Q2 2026 | MCP Server, IDE integration, zkPC L3 | PLANNED |
 | v41.0 | Q3 2026 | Multimodal (vision + audio governance) | PLANNED |

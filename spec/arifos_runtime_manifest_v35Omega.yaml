@@ -183,6 +183,7 @@ verdicts:
   PARTIAL:
     condition: "Hard floors pass, soft floors fail"
     action: "Emit output with disclaimer/warning"
+    entropy_rot: "Decays to VOID after 72h (PHOENIX_LIMIT)"
   "888_HOLD":
     condition: "Hard floors pass, extended floors fail"
     action: "Judiciary hold, request clarification"
@@ -192,12 +193,18 @@ verdicts:
   SABAR:
     condition: "@EYE Sentinel blocking issue or cooling needed"
     action: "Stop. Acknowledge. Breathe. Adjust. Resume."
+    entropy_rot: "Escalates to PARTIAL after 24h (SABAR_TIMEOUT)"
     expansion:
       S: "Stop - halt processing"
       A: "Acknowledge - recognize the issue"
       B: "Breathe - pause for cooling"
       A2: "Adjust - revise approach"
       R: "Resume - retry safely"
+  SUNSET:
+    condition: "Truth expired, reality changed"
+    action: "Revoke sealed memory, move LEDGER → PHOENIX"
+    routing: "PHOENIX only (evidence chain preserved)"
+    v38_2: true
 
 # =============================================================================
 # VITALITY (Psi)
@@ -673,3 +680,50 @@ meta:
     - "This manifest is DESCRIPTIVE ONLY - no behavioral changes"
     - "Values match arifos_core/metrics.py and constitutional_floors.json"
     - "External callers should import modules dynamically using paths in this manifest"
+
+# =============================================================================
+# v38 OVERLAYS - Constitutional Hardening Extensions
+# =============================================================================
+
+v38_overlays:
+  v38_2_hardening:
+    description: "Time-governed entropy rot + SUNSET revocation (v38.2)."
+    status: "SEALED"
+    sealed_date: "2025-12-13"
+    spec_ref: "spec/arifos_v38_2.yaml"
+    kernel_module: "arifos_core.kernel"
+
+    scheduler:
+      SABAR_TIMEOUT:
+        value: "24h"
+        effect: "SABAR → PARTIAL"
+        rationale: "Pause is temporary; after 1 day issue must surface"
+      PHOENIX_LIMIT:
+        value: "72h"
+        effect: "PARTIAL → VOID"
+        rationale: "After 3 days, unresolved ambiguity becomes entropy"
+
+    invariants:
+      TIME_1:
+        statement: "Time is a Constitutional Force. Entropy Rot is automatic."
+        enforcement: "check_entropy_rot() in arifos_core/kernel.py"
+      TIME_2:
+        statement: "Hope has a half-life; governance does not."
+        enforcement: "PHOENIX_LIMIT enforces 72h decay"
+
+    sunset:
+      verdict: "SUNSET"
+      routing: "LEDGER → PHOENIX"
+      purpose: "Lawful revocation when truth expires"
+      evidence_preserved: true
+
+    tests:
+      - "tests/test_phoenix_72_entropy_rot.py"
+
+    canon_refs:
+      - "canon/000_ARIFOS_CANON_v35Omega.md §6 (The Fourth Dimension)"
+      - "canon/000_ARIFOS_CANON_v35Omega.md §7 (72 Hours: Hope vs Entropy)"
+      - "canon/000_ARIFOS_CANON_v35Omega.md §8 (The Hardening Cycle)"
+
+    docs:
+      - "docs/RELEASE_NOTES_v38_2.md"

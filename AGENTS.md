@@ -1,22 +1,24 @@
 ---
 name: arifOS Constitutional Agent
-version: v38.0.0
+version: v38.2.0
 runtime_law: v35Omega
-measurement_law: v38 (unified LAW+SPEC+CODE+MEMORY)
+measurement_law: v38.2 (unified LAW+SPEC+CODE+MEMORY+TIME)
 role: clerk/tool (NOT judge, NOT authority)
 sovereignty: Human (Arif) > arifOS Governor > Agent
 platforms: [claude-code, codex, cursor, gemini-cli, copilot, devin, aider]
 floors: 9
 memory_bands: 6
-memory_invariants: 4
-tests: 1250+
+memory_invariants: 5
+time_governor: true
+verdicts: 6
+tests: 1624+
 safety_ceiling: 97%
 cli_tools: 7
 status: PRODUCTION
 pypi: arifos
 motto: "DITEMPA BUKAN DIBERI - Forged, not given; truth must cool before it rules."
 escalation_threshold: 888_HOLD
-phoenix_patches: [psi_calibration, extract_response_robust, anti_hantu_expanded, telemetry, memory_write_policy]
+phoenix_patches: [psi_calibration, extract_response_robust, anti_hantu_expanded, telemetry, memory_write_policy, entropy_rot]
 ---
 
 # AGENTS.md - arifOS Unified Agent Governance (Tier 1)
@@ -30,7 +32,7 @@ phoenix_patches: [psi_calibration, extract_response_robust, anti_hantu_expanded,
 # Installation (PyPI)
 pip install arifos
 
-# Run all 1250+ tests
+# Run all 1624+ tests
 pytest -v
 pytest arifos_core/ -v             # Core module only
 python -m arifos_core.pipeline     # Pipeline demo
@@ -99,12 +101,32 @@ pytest tests/test_*_v38_alignment.py -v
 
 **Rule:** Spec is the single source of truth for thresholds. Canon documents the law. Tests verify alignment.
 
-### 2.2 Law Layer History
+### 2.2 v38.2 Hardening Cycle (Time as Governor)
+
+v38.2 promotes **Time** to a constitutional force. Unresolved verdicts cannot drift forever.
+
+**TIME-1 Invariant:** "Time is a Constitutional Force. Entropy Rot is automatic."
+
+| Scheduler | Trigger | Effect |
+|-----------|---------|--------|
+| **SABAR_TIMEOUT** | age > 24h | SABAR → PARTIAL |
+| **PHOENIX_LIMIT** | age > 72h | PARTIAL → VOID |
+
+**SUNSET Verdict:** Lawful revocation when truth expires. LEDGER → PHOENIX (evidence preserved).
+
+**Key Files:**
+
+- `spec/arifos_v38_2.yaml` — v38.2 hardening spec
+- `arifos_core/kernel.py` — `check_entropy_rot()` + `route_memory()`
+- `tests/test_phoenix_72_entropy_rot.py` — 21 tests
+
+### 2.3 Law Layer History
 
 - **v35Ω (Runtime)**: Enforces thresholds via Python code (`arifos_core/metrics.py`)
 - **v36.3Ω (Law Layer)**: Frozen floor definitions in `v36.3O/canon/*`
 - **v37 (Measurement)**: Logs all 9 floor scores to Cooling Ledger
 - **v38Ω (Formalization)**: canon→spec→code→tests pattern for all layers
+- **v38.2Ω (Hardening)**: Time as Governor, SUNSET revocation, entropy rot
 
 F# numbering follows the semantic order above (F1=Amanah through F9=C_dark).
 
@@ -120,7 +142,7 @@ F# numbering follows the semantic order above (F1=Amanah through F9=C_dark).
 - **Soft (F5, F6):** Fail → WARN. Adjust and proceed.
 - **Derived (F8, F9):** Fail → Trace upstream to hard floors.
 
-### 2.2 Truth Polarity (v36.2 PHOENIX)
+### 2.4 Truth Polarity (v36.2 PHOENIX)
 
 | Polarity | Condition | Action |
 |----------|-----------|--------|
@@ -128,7 +150,7 @@ F# numbering follows the semantic order above (F1=Amanah through F9=C_dark).
 | Shadow-Truth | Truth >=0.99 AND DeltaS <0 | SABAR - add missing context |
 | Weaponized | Shadow + Amanah fail | VOID - refuse |
 
-### 2.3 GENIUS LAW Metrics
+### 2.5 GENIUS LAW Metrics
 
 | Metric | Formula | Threshold |
 |--------|---------|-----------|

@@ -1,0 +1,121 @@
+# arifOS v38.2 Constitutional Hardening Spec
+# Role: Time as Governor, not variable
+#
+# Version: v38.2.0
+# Status: SEALED (law for v38.2)
+# Canon: canon/00_ARIFOS_MASTER_v38Omega.md, canon/000_ARIFOS_CANON_v35Omega.md
+# Code (reference only): arifos_core/kernel.py, arifos_core/memory/policy.py
+#
+# Purpose:
+#   - Introduce SUNSET verdict for lawful revocation of previously sealed memory
+#   - Define time-governed scheduler for SABAR/PARTIAL decay
+#   - Encode Time as a constitutional force (Entropy Rot is automatic)
+
+version: "v38.2.0"
+arifos_version: "38.2"
+spec_type: "constitutional_hardening"
+description: "v38.2 Hardening Cycle: SUNSET verdict, Phoenix-72 time limits, and Entropy Rot."
+
+# =============================================================================
+# VERDICTS
+# =============================================================================
+
+verdicts:
+  description: "Extended verdict set for v38.2, including SUNSET for lawful revocation."
+  values:
+    - "SEAL"
+    - "PARTIAL"
+    - "888_HOLD"
+    - "SABAR"
+    - "VOID"
+    - "SUNSET"
+  notes:
+    - "SUNSET does not invent a new fact; it acknowledges that facts can change."
+    - "SUNSET is applied only to previously sealed decisions with a valid evidence chain."
+
+verdict_routing:
+  description: "High-level routing semantics; detailed band mappings remain in pipeline_v38Omega.yaml."
+  bands_ref: "spec/pipeline_v38Omega.yaml#verdict_band_map"
+  SUNSET:
+    from_band: "LEDGER"
+    to_band: "PHOENIX"
+    canonical_after: false
+    description: >
+      Revocation pulse: un-seal a previously canonical memory from LEDGER and return it to PHOENIX
+      for re-trial under updated facts, keeping the original evidence chain intact.
+
+# =============================================================================
+# SCHEDULER (TIME AS GOVERNOR)
+# =============================================================================
+
+scheduler:
+  description: "Time-governed entropy management for unresolved verdicts."
+
+  sabar_timeout:
+    value: "24h"
+    name: "SABAR_TIMEOUT"
+    effect: "SABAR -> PARTIAL"
+    rule: "If verdict == SABAR and age > 24h, escalate to PARTIAL."
+    rationale: >
+      SABAR is a pause to repair floors, not a permanent limbo. After one day of inaction,
+      the system must surface the issue as PARTIAL so it can be actively resolved or revoked.
+
+  phoenix_limit:
+    value: "72h"
+    name: "PHOENIX_LIMIT"
+    effect: "PARTIAL -> VOID"
+    rule: "If verdict == PARTIAL and age > 72h, decay to VOID (entropy dump)."
+    rationale: >
+      Phoenix-72 defines the maximum hope window for an unratified decision. After 72 hours,
+      unattended ambiguity becomes entropy. The system must dump it to VOID and stop treating
+      it as a live candidate for canon.
+
+  transitions:
+    - from: "SABAR"
+      to: "PARTIAL"
+      condition: "age > 24h"
+      description: "Scheduler pulse escalates SABAR stalemates to PARTIAL after 24 hours."
+    - from: "PARTIAL"
+      to: "VOID"
+      condition: "age > 72h"
+      description: "Phoenix-72 boundary: unresolved PARTIAL decisions decay to VOID after 72 hours."
+
+# =============================================================================
+# INVARIANTS
+# =============================================================================
+
+invariants:
+  - id: "TIME-1"
+    statement: "Time is a Constitutional Force. Entropy Rot is automatic."
+    implications:
+      - "No SABAR verdict may persist indefinitely; it must either be repaired or escalated."
+      - "No PARTIAL verdict may drift forever; after Phoenix-72 (72h) it must resolve or decay."
+      - "SUNSET provides a lawful path to revoke previously sealed truths when external reality changes."
+    enforcement_ref:
+      - "arifos_core/kernel.py::check_entropy_rot"
+      - "arifos_core/kernel.py::route_memory"
+
+  - id: "TIME-2"
+    statement: "Hope has a half-life; governance does not."
+    implications:
+      - "PHOENIX band is a hopeful staging area, not permanent storage."
+      - "LEDGER remains append-only, but SUNSET marks where earlier seals are no longer canonical."
+      - "VOID remains diagnostic only; entropy is dumped, not forgotten."
+
+# =============================================================================
+# REFERENCES
+# =============================================================================
+
+references:
+  canon:
+    - "canon/00_ARIFOS_MASTER_v38Omega.md"
+    - "canon/05_COOLING_LEDGER_PHOENIX_v38Omega.md"
+    - "canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md"
+    - "canon/000_ARIFOS_CANON_v35Omega.md"
+  spec:
+    - "spec/pipeline_v38Omega.yaml"
+    - "spec/cooling_ledger_phoenix_v38Omega.json"
+  code:
+    - "arifos_core/kernel.py"
+    - "arifos_core/memory/policy.py"
+
