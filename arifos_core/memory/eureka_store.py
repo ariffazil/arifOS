@@ -23,10 +23,10 @@ class AppendOnlyJSONLStore:
     """
     File-based append-only store using JSONL format.
     
-    One file per band: vault-999/ledger/{band}.jsonl
+    One file per band: vault_999/ledger/{band}.jsonl
     """
     
-    def __init__(self, base_dir: str = "vault-999/ledger") -> None:
+    def __init__(self, base_dir: str = "vault_999/ledger") -> None:
         """
         Initialize store with base directory.
         

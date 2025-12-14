@@ -166,11 +166,11 @@ class TestVault999Integrity:
     """Verify Vault-999 certificate structure"""
 
     def test_certificate_exists(self):
-        cert_path = REPO_ROOT / "vault-999" / "ledger" / "seal_certificates.jsonl"
+        cert_path = REPO_ROOT / "vault_999" / "ledger" / "seal_certificates.jsonl"
         assert cert_path.exists(), "Vault-999 certificate file missing"
 
     def test_certificate_structure(self):
-        cert_path = REPO_ROOT / "vault-999" / "ledger" / "seal_certificates.jsonl"
+        cert_path = REPO_ROOT / "vault_999" / "ledger" / "seal_certificates.jsonl"
         with open(cert_path) as f:
             line = f.readline()
             cert = json.loads(line)

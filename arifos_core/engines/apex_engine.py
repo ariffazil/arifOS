@@ -32,8 +32,8 @@ from ..APEX_PRIME import (
     APEX_EPOCH,
 )
 from ..metrics import Metrics, FloorsVerdict
-from .arif_engine import ARIFPacket
-from .adam_engine import ADAMPacket
+from .agi_engine import AGIPacket
+from .asi_engine import ASIPacket
 
 
 @dataclass
@@ -48,8 +48,8 @@ class ApexJudgment:
     metrics: Metrics
 
     # Source packets
-    arif_packet: Optional[ARIFPacket] = None
-    adam_packet: Optional[ADAMPacket] = None
+    arif_packet: Optional[AGIPacket] = None
+    adam_packet: Optional[ASIPacket] = None
 
     # Context
     high_stakes: bool = False
@@ -112,8 +112,8 @@ class ApexEngine:
     def judge(
         self,
         metrics: Metrics,
-        arif_packet: Optional[ARIFPacket] = None,
-        adam_packet: Optional[ADAMPacket] = None,
+        arif_packet: Optional[AGIPacket] = None,
+        adam_packet: Optional[ASIPacket] = None,
         eye_blocking: bool = False,
         context: Optional[Dict[str, Any]] = None,
     ) -> ApexJudgment:

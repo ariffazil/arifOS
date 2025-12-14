@@ -24,14 +24,14 @@ No answer, plan, or state transition is considered **lawful output** unless APEX
 
 ---
 
-## 2. Position in the AAA Trinity
+## 2. Position in the AGI·ASI·APEX Trinity
 
-arifOS implements a separation-of-powers architecture (AAA Trinity):
+arifOS implements a separation-of-powers architecture (AGI·ASI·APEX Trinity):
 
 | Engine | Symbol | Role | Responsibility |
 |--------|--------|------|----------------|
-| **ARIF AGI** | Δ | Mind | Reasoning, structure, contrast, ΔS computation |
-| **ADAM ASI** | Ω | Heart | Empathy, tone, κᵣ, Peace², cultural safety |
+| **AGI (Architect)** | Δ | Mind | Reasoning, structure, contrast, ΔS computation |
+| **ASI (Auditor)** | Ω | Heart | Empathy, tone, κᵣ, Peace², cultural safety |
 | **APEX PRIME** | Ψ | Soul | Judiciary, veto, SEAL/PARTIAL/VOID/888_HOLD/SABAR |
 
 Chain of command:
@@ -160,9 +160,9 @@ TEARFRAME / metabolism stages:
 | 000 | VOID | Reset, humility check |
 | 111 | SENSE | Perception, read input |
 | 222 | REFLECT | Context, memory access |
-| 333 | REASON | ARIF AGI (cold logic) |
+| 333 | REASON | AGI (Architect) (cold logic) |
 | 444 | ALIGN | Truth sync, integrity check |
-| 555 | EMPATHIZE | ADAM ASI (warm logic) |
+| 555 | EMPATHIZE | ASI (Auditor) (warm logic) |
 | 666 | BRIDGE | Cultural reality, Tri-Witness |
 | 777 | FORGE | Insight synthesis |
 | 888 | JUDGE | **APEX PRIME verdict** |

@@ -261,27 +261,27 @@ class TestEngineModulesV35:
 
     def test_arif_engine_module_exists(self, manifest):
         """ARIF engine module should be importable."""
-        module_path = manifest["engines"]["arif"]["module"]
+        module_path = manifest["engines"]["agi"]["module"]
         module = importlib.import_module(module_path)
         assert module is not None
 
     def test_arif_engine_class_exists(self, manifest):
-        """ARIFEngine class should exist in module."""
-        ARIFEngine = get_class_from_manifest(manifest, "engines", "arif")
-        assert ARIFEngine is not None
-        assert ARIFEngine.__name__ == "ARIFEngine"
+        """AGIEngine class should exist in module."""
+        AGIEngine = get_class_from_manifest(manifest, "engines", "agi")
+        assert AGIEngine is not None
+        assert AGIEngine.__name__ == "AGIEngine"
 
     def test_adam_engine_module_exists(self, manifest):
         """ADAM engine module should be importable."""
-        module_path = manifest["engines"]["adam"]["module"]
+        module_path = manifest["engines"]["asi"]["module"]
         module = importlib.import_module(module_path)
         assert module is not None
 
     def test_adam_engine_class_exists(self, manifest):
-        """ADAMEngine class should exist in module."""
-        ADAMEngine = get_class_from_manifest(manifest, "engines", "adam")
-        assert ADAMEngine is not None
-        assert ADAMEngine.__name__ == "ADAMEngine"
+        """ASIEngine class should exist in module."""
+        ASIEngine = get_class_from_manifest(manifest, "engines", "asi")
+        assert ASIEngine is not None
+        assert ASIEngine.__name__ == "ASIEngine"
 
     def test_apex_engine_module_exists(self, manifest):
         """APEX engine module should be importable."""

@@ -1,7 +1,7 @@
 """
-adam_engine.py - ADAM ASI (Omega Engine) Facade
+asi_engine.py - ASI (Auditor) (Omega Engine) Facade
 
-ADAM ASI is the Heart/Warm Logic engine of the AAA Trinity.
+ASI (Auditor) is the Heart/Warm Logic engine of the AGI·ASI·APEX Trinity.
 Role: Empathy, tone, stability - homeostatic regulation
 
 Pipeline stages owned:
@@ -26,18 +26,18 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
-from .arif_engine import ARIFPacket
+from .agi_engine import AGIPacket
 
 
 @dataclass
-class ADAMPacket:
+class ASIPacket:
     """
     Output packet from ADAM engine processing.
 
     Contains tone-adjusted response and stability metrics.
     """
     # Input from ARIF
-    arif_packet: Optional[ARIFPacket] = None
+    agi_packet: Optional[AGIPacket] = None
     original_draft: str = ""
 
     # Processed output
@@ -71,12 +71,12 @@ class ADAMPacket:
         }
 
 
-class ADAMEngine:
+class ASIEngine:
     """
-    ADAM ASI (Omega Engine) - Heart/Warm Logic facade.
+    ASI (Auditor) (Omega Engine) - Heart/Warm Logic facade.
 
     Wraps existing pipeline stages 555/666 to provide
-    a clean interface for ADAM's contribution to the AAA flow.
+    a clean interface for ASI's contribution to the AAA flow.
 
     Zero-break contract:
     - Delegates to existing logic from pipeline.py
@@ -85,9 +85,9 @@ class ADAMEngine:
     - Respects ΔS lock (cannot change facts, only expression)
 
     Usage:
-        adam = ADAMEngine()
-        adam_packet = adam.empathize(arif_packet)
-        final_text = adam.bridge(adam_packet)
+        adam = ASIEngine()
+        asi_packet = asi.empathize(agi_packet)
+        final_text = asi.bridge(adam_packet)
     """
 
     # Blame language patterns (from pipeline.py stage_555_empathize)
@@ -123,14 +123,14 @@ class ADAMEngine:
     ]
 
     def __init__(self) -> None:
-        """Initialize ADAM engine."""
+        """Initialize ASI engine."""
         pass  # Stateless facade
 
     def empathize(
         self,
-        arif_packet: ARIFPacket,
+        agi_packet: AGIPacket,
         user_state: Optional[Dict[str, Any]] = None,
-    ) -> ADAMPacket:
+    ) -> ASIPacket:
         """
         555 EMPATHIZE - Safety and tone shaping.
 
@@ -140,19 +140,19 @@ class ADAMEngine:
         This delegates to the logic in pipeline.py stage_555_empathize.
 
         Args:
-            arif_packet: ARIFPacket from ARIF engine
+            agi_packet: AGIPacket from ARIF engine
             user_state: Optional user context/state
 
         Returns:
-            ADAMPacket with tone-adjusted response and metrics
+            ASIPacket with tone-adjusted response and metrics
         """
-        packet = ADAMPacket(
-            arif_packet=arif_packet,
-            original_draft=arif_packet.draft,
-            softened_answer=arif_packet.draft,  # Start with ARIF's draft
+        packet = ASIPacket(
+            agi_packet=agi_packet,
+            original_draft=agi_packet.draft,
+            softened_answer=agi_packet.draft,  # Start with ARIF's draft
         )
 
-        text = arif_packet.draft or ""
+        text = agi_packet.draft or ""
 
         # Detect blame language (from stage_555_empathize)
         for pattern in self.BLAME_PATTERNS:
@@ -190,7 +190,7 @@ class ADAMEngine:
 
     def bridge(
         self,
-        adam_packet: ADAMPacket,
+        adam_packet: ASIPacket,
         user_state: Optional[Dict[str, Any]] = None,
         llm_generate: Optional[Callable[[str], str]] = None,
     ) -> str:
@@ -203,7 +203,7 @@ class ADAMEngine:
         This delegates to the logic in pipeline.py stage_666_bridge.
 
         Args:
-            adam_packet: ADAMPacket from empathize()
+            adam_packet: ASIPacket from empathize()
             user_state: Optional user context/state
             llm_generate: Optional LLM for refinement (Class B only)
 
@@ -228,30 +228,30 @@ class ADAMEngine:
 
     def run(
         self,
-        arif_packet: ARIFPacket,
+        agi_packet: AGIPacket,
         user_state: Optional[Dict[str, Any]] = None,
         llm_generate: Optional[Callable[[str], str]] = None,
-    ) -> ADAMPacket:
+    ) -> ASIPacket:
         """
         Convenience method to run full ADAM pipeline (empathize + bridge).
 
         Args:
-            arif_packet: ARIFPacket from ARIF engine
+            agi_packet: AGIPacket from ARIF engine
             user_state: Optional user context/state
             llm_generate: Optional LLM for refinement
 
         Returns:
-            Complete ADAMPacket with final_text set
+            Complete ASIPacket with final_text set
         """
-        packet = self.empathize(arif_packet, user_state)
+        packet = self.empathize(agi_packet, user_state)
         self.bridge(packet, user_state, llm_generate)
         return packet
 
     def refine_for_class_b(
         self,
-        adam_packet: ADAMPacket,
+        adam_packet: ASIPacket,
         llm_generate: Callable[[str], str],
-    ) -> ADAMPacket:
+    ) -> ASIPacket:
         """
         777 FORGE contribution - Empathic refinement for Class B queries.
 
@@ -259,18 +259,18 @@ class ADAMEngine:
         This corresponds to the Class B path in pipeline.py stage_777_forge.
 
         Args:
-            adam_packet: ADAMPacket to refine
+            adam_packet: ASIPacket to refine
             llm_generate: LLM generation function
 
         Returns:
-            ADAMPacket with refined softened_answer
+            ASIPacket with refined softened_answer
         """
-        arif_packet = adam_packet.arif_packet
-        if arif_packet is None:
+        agi_packet = adam_packet.agi_packet
+        if agi_packet is None:
             return adam_packet
 
         forge_prompt = (
-            f"Original query: {arif_packet.prompt}\n"
+            f"Original query: {agi_packet.prompt}\n"
             f"Draft response: {adam_packet.softened_answer}\n\n"
             "Refine this response with empathy and care. "
             "Ensure dignity is preserved. Add appropriate caveats."
@@ -282,4 +282,4 @@ class ADAMEngine:
         return adam_packet
 
 
-__all__ = ["ADAMEngine", "ADAMPacket"]
+__all__ = ["ASIEngine", "ASIPacket"]
