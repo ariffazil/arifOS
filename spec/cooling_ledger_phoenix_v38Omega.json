@@ -49,7 +49,8 @@
 
   "verdict_band_routing": {
     "SEAL": ["LEDGER", "ACTIVE"],
-    "SABAR": ["LEDGER", "ACTIVE"],
+    "SABAR": ["PENDING", "LEDGER"],
+    "SABAR_EXTENDED": ["PENDING", "LEDGER"],
     "PARTIAL": ["PHOENIX", "LEDGER"],
     "VOID": ["VOID"],
     "888_HOLD": ["LEDGER"]

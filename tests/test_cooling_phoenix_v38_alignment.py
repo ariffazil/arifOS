@@ -112,10 +112,11 @@ class TestVerdictBandRouting:
         assert spec_routing == ["LEDGER", "ACTIVE"]
 
     def test_sabar_routing_matches(self, cooling_phoenix_spec: dict) -> None:
-        """SABAR routing must match policy.py."""
+        """SABAR routing must match policy.py (v38.3: routes to PENDING + LEDGER)."""
         spec_routing = cooling_phoenix_spec["verdict_band_routing"]["SABAR"]
         assert spec_routing == VERDICT_BAND_ROUTING["SABAR"]
-        assert spec_routing == ["LEDGER", "ACTIVE"]
+        # v38.3 AMENDMENT 2: SABAR routes to PENDING (epistemic queue) + LEDGER
+        assert spec_routing == ["PENDING", "LEDGER"]
 
     def test_partial_routing_matches(self, cooling_phoenix_spec: dict) -> None:
         """PARTIAL routing must match policy.py."""

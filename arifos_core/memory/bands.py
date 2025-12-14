@@ -25,7 +25,7 @@ import time
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
@@ -36,10 +36,11 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 # =============================================================================
 
 class BandName(str, Enum):
-    """Memory band names."""
+    """Memory band names (v38.3 adds PENDING)."""
     VAULT = "VAULT"
     LEDGER = "LEDGER"
     ACTIVE = "ACTIVE"
+    PENDING = "PENDING"  # v38.3 AMENDMENT 2: Epistemic queue for SABAR
     PHOENIX = "PHOENIX"
     WITNESS = "WITNESS"
     VOID = "VOID"
@@ -75,6 +76,14 @@ BAND_PROPERTIES: Dict[str, Dict[str, Any]] = {
         "retention_days": 7,
         "requires_human_seal": False,
         "canonical": False,
+    },
+    "PENDING": {
+        "mutable": True,
+        "retention": RetentionTier.HOT,
+        "retention_days": 7,
+        "requires_human_seal": False,
+        "canonical": False,
+        "description": "v38.3 AMENDMENT 2: Epistemic queue for SABAR verdicts",
     },
     "PHOENIX": {
         "mutable": True,
@@ -123,7 +132,7 @@ class MemoryEntry:
     band: str
     content: Dict[str, Any]
     timestamp: str
-    writer_id: str
+    writer_id: str = "UNKNOWN"
     verdict: Optional[str] = None
     evidence_hash: Optional[str] = None
     prev_hash: Optional[str] = None
@@ -463,8 +472,8 @@ class ActiveStreamBand(MemoryBand):
         evidence_hash: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> WriteResult:
-        # Active accepts from pipeline stages
-        allowed = ["111_SENSE", "222_REFLECT", "333_REASON", "777_FORGE", "HUMAN"]
+        # Active accepts from pipeline stages and selected system writers
+        allowed = ["111_SENSE", "222_REFLECT", "333_REASON", "777_FORGE", "HUMAN", "888_JUDGE"]
         if writer_id not in allowed:
             return WriteResult(
                 success=False,
@@ -534,6 +543,118 @@ class ActiveStreamBand(MemoryBand):
         return count
 
 
+class PendingBand(MemoryBand):
+    """
+    PENDING Band — Epistemic queue for SABAR verdicts awaiting context.
+    
+    v38.3 AMENDMENT 2: SABAR/PARTIAL Semantic Separation
+    
+    Properties:
+    - Mutable (entries can be updated with new context)
+    - HOT retention (7 days)
+    - Auto-retry when new context arrives
+    - Time-decay to PARTIAL after 24h if unresolved
+    - Does NOT trigger Phoenix-72 pressure by default
+    - Human can manually escalate to PHOENIX if needed
+    
+    Purpose:
+    PENDING separates SABAR (epistemic pause - need more time/context) from
+    PARTIAL (constitutional mismatch - need law change). This prevents Phoenix-72
+    spam for routine SABAR pauses that just need more time or data.
+    """
+
+    def __init__(self, storage_path: Optional[Path] = None):
+        super().__init__(BandName.PENDING, storage_path)
+        self.max_age_hours = 24  # SABAR→PARTIAL decay threshold
+
+    def write(
+        self,
+        content: Dict[str, Any],
+        writer_id: str,
+        verdict: Optional[str] = None,
+        evidence_hash: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> WriteResult:
+        # PENDING accepts SABAR and SABAR_EXTENDED verdicts
+        allowed_verdicts = ["SABAR", "SABAR_EXTENDED"]
+        if verdict and verdict not in allowed_verdicts:
+            return WriteResult(
+                success=False,
+                error=f"PENDING band only accepts {allowed_verdicts}, got {verdict}",
+            )
+
+        base_metadata = metadata or {}
+        retry_count = base_metadata.get("retry_count", 0)
+
+        entry = MemoryEntry(
+            entry_id=str(uuid.uuid4())[:12],
+            band=self.name,
+            content=content,
+            timestamp=self._now_iso(),
+            writer_id=writer_id,
+            verdict=verdict,
+            evidence_hash=evidence_hash,
+            metadata={
+                **base_metadata,
+                "retry_count": retry_count,
+                "status": "pending",
+                "decay_at": self._compute_decay_timestamp(),
+            },
+        )
+
+        entry.hash = self._compute_hash(entry)
+        self._entries.append(entry)
+
+        return WriteResult(
+            success=True,
+            entry_id=entry.entry_id,
+            entry_hash=entry.hash,
+        )
+
+    def should_retry(self, entry: MemoryEntry) -> bool:
+        """Check if entry should be retried with new context."""
+        # Logic: Has new context arrived? Has retry limit been reached?
+        retry_count = entry.metadata.get("retry_count", 0)
+        max_retries = 3  # Configurable
+        return retry_count < max_retries
+
+    def should_decay(self, entry: MemoryEntry) -> bool:
+        """Check if entry should decay to PARTIAL (age > 24h)."""
+        try:
+            entry_time = datetime.fromisoformat(entry.timestamp.replace("Z", "+00:00"))
+            now = datetime.now(timezone.utc)
+            age_hours = (now - entry_time).total_seconds() / 3600
+            return age_hours > self.max_age_hours
+        except (ValueError, TypeError):
+            # If timestamp parsing fails, assume no decay
+            return False
+
+    def query(
+        self,
+        filter_fn: Optional[Callable[[MemoryEntry], bool]] = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> QueryResult:
+        entries = self._entries
+        if filter_fn:
+            entries = [e for e in entries if filter_fn(e)]
+
+        total = len(entries)
+        entries = entries[offset:offset + limit]
+
+        return QueryResult(
+            entries=entries,
+            total_count=total,
+            truncated=(offset + limit < total),
+        )
+
+    def _compute_decay_timestamp(self) -> str:
+        """Compute when this entry should decay to PARTIAL (24h from now)."""
+        now = datetime.now(timezone.utc)
+        decay_time = now + timedelta(hours=self.max_age_hours)
+        return decay_time.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
 class PhoenixCandidatesBand(MemoryBand):
     """
     PHOENIX CANDIDATES Band — Pending amendments.
@@ -564,6 +685,9 @@ class PhoenixCandidatesBand(MemoryBand):
                 error=f"Writer {writer_id} not authorized for PHOENIX band",
             )
 
+        base_metadata = metadata or {}
+        status = base_metadata.get("status", "draft")
+
         entry = MemoryEntry(
             entry_id=str(uuid.uuid4())[:12],
             band=self.name,
@@ -573,8 +697,8 @@ class PhoenixCandidatesBand(MemoryBand):
             verdict=verdict,
             evidence_hash=evidence_hash,
             metadata={
-                **(metadata or {}),
-                "status": "draft",
+                **base_metadata,
+                "status": status,
             },
         )
 
@@ -859,9 +983,17 @@ class MemoryBandRouter:
         for band_name in target_bands:
             band = self.bands.get(band_name)
             if band is None:
+                # Log failed routing for unknown band
                 results[band_name] = WriteResult(
                     success=False,
                     error=f"Unknown band: {band_name}",
+                )
+                self._log_routing(
+                    verdict=verdict_upper,
+                    target_band=band_name,
+                    writer_id=writer_id,
+                    success=False,
+                    entry_id=None,
                 )
                 continue
 
@@ -884,6 +1016,35 @@ class MemoryBandRouter:
             )
 
         return results
+
+    def write(self, entry: MemoryEntry, band_name: BandName) -> WriteResult:
+        """
+        Backwards-compatible helper used by older tests.
+
+        Writes a prepared MemoryEntry to the specified band.
+        """
+        band_key = band_name.value if isinstance(band_name, BandName) else str(band_name)
+        band = self.bands.get(band_key)
+        if band is None:
+            return WriteResult(success=False, error=f"Unknown band: {band_key}")
+
+        result = band.write(
+            content=entry.content,
+            writer_id=entry.writer_id,
+            verdict=entry.verdict,
+            evidence_hash=entry.evidence_hash,
+            metadata=entry.metadata,
+        )
+
+        self._log_routing(
+            verdict=entry.verdict or "UNKNOWN",
+            target_band=band_key,
+            writer_id=entry.writer_id,
+            success=result.success,
+            entry_id=result.entry_id,
+        )
+
+        return result
 
     def query_band(
         self,

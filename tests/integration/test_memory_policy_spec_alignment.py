@@ -12,6 +12,7 @@ Version: v38.0
 
 import pytest
 import json
+import hashlib
 from pathlib import Path
 from typing import Dict, Any, List
 
@@ -63,6 +64,12 @@ def load_spec_file(spec_name: str) -> Dict[str, Any]:
     return {}
 
 
+def compute_evidence_hash(evidence: Dict[str, Any]) -> str:
+    """Compute SHA256 hash for evidence chain (for tests)."""
+    content = {k: v for k, v in evidence.items() if k != "hash"}
+    return hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()
+
+
 # =============================================================================
 # FIXTURES
 # =============================================================================
@@ -107,9 +114,14 @@ class TestSpecVsCodeVerdictRouting:
 
     def test_all_verdicts_have_routing(self):
         """All verdicts should have routing defined."""
-        expected_verdicts = {"SEAL", "SABAR", "PARTIAL", "VOID", "888_HOLD"}
+        expected_verdicts = {"SEAL", "SABAR", "PARTIAL", "VOID", "888_HOLD", "SUNSET"}
         actual_verdicts = set(VERDICT_BAND_ROUTING.keys())
         assert expected_verdicts == actual_verdicts
+
+    def test_sunset_routing_matches_spec(self):
+        """SUNSET routing in code should match spec definition."""
+        # Per v38.2 spec: SUNSET -> PHOENIX (revocation pulse)
+        assert VERDICT_BAND_ROUTING["SUNSET"] == ["PHOENIX"]
 
     def test_routing_targets_only_valid_bands(self):
         """Routing should only target valid band names."""
@@ -136,9 +148,9 @@ class TestFloorGatingInMemoryWrite:
             ],
             "timestamp": "2025-01-01T00:00:00Z",
             "verdict": "VOID",
-            "hash": "dummy_hash",
         }
-        
+        evidence["hash"] = compute_evidence_hash(evidence)
+
         # Should not allow write to canonical bands
         decision = write_policy.should_write(
             verdict="VOID",
@@ -156,9 +168,9 @@ class TestFloorGatingInMemoryWrite:
             ],
             "timestamp": "2025-01-01T00:00:00Z",
             "verdict": "SEAL",
-            "hash": "dummy_hash",
         }
-        
+        evidence["hash"] = compute_evidence_hash(evidence)
+
         decision = write_policy.should_write(
             verdict="SEAL",
             band_target=None,
@@ -177,9 +189,9 @@ class TestFloorGatingInMemoryWrite:
             ],
             "timestamp": "2025-01-01T00:00:00Z",
             "verdict": "SEAL",
-            "hash": "test_hash",
         }
-        
+        evidence["hash"] = compute_evidence_hash(evidence)
+
         assert "floor_checks" in evidence
         assert len(evidence["floor_checks"]) > 0
         for check in evidence["floor_checks"]:
@@ -202,9 +214,9 @@ class TestAmanahFloorIrreversibleCheck:
             ],
             "timestamp": "2025-01-01T00:00:00Z",
             "verdict": "VOID",
-            "hash": "test_hash",
         }
-        
+        evidence["hash"] = compute_evidence_hash(evidence)
+
         decision = write_policy.should_write(
             verdict="VOID",
             band_target="LEDGER",
@@ -235,9 +247,9 @@ class TestAmanahFloorIrreversibleCheck:
             "floor_checks": [{"floor": "F1", "pass": False, "score": 0.0}],
             "timestamp": "2025-01-01T00:00:00Z",
             "verdict": "VOID",
-            "hash": "test",
         }
-        
+        evidence_fail["hash"] = compute_evidence_hash(evidence_fail)
+
         decision = write_policy.should_write(
             verdict="VOID",
             band_target="LEDGER",
@@ -261,9 +273,9 @@ class TestAntiHantuFloorSoulBlock:
             ],
             "timestamp": "2025-01-01T00:00:00Z",
             "verdict": "VOID",
-            "hash": "test_hash",
         }
-        
+        evidence["hash"] = compute_evidence_hash(evidence)
+
         decision = write_policy.should_write(
             verdict="VOID",
             band_target="LEDGER",
@@ -295,8 +307,20 @@ class TestAntiHantuFloorSoulBlock:
             ],
             "timestamp": "2025-01-01T00:00:00Z",
             "verdict": "SEAL",
-            "hash": "test",
         }
+        # Compute a valid hash so evidence_chain validation passes and only F9
+        # semantics are under test.
+        import hashlib, json
+        evidence["hash"] = hashlib.sha256(
+            json.dumps(
+                {
+                    "floor_checks": evidence["floor_checks"],
+                    "timestamp": evidence["timestamp"],
+                    "verdict": evidence["verdict"],
+                },
+                sort_keys=True,
+            ).encode()
+        ).hexdigest()
         
         decision = write_policy.should_write(
             verdict="SEAL",
@@ -422,10 +446,12 @@ class TestSpecFileAlignment:
         spec_data = load_spec_file("constitutional_floors_v38Omega.json")
         
         if spec_data and "floors" in spec_data:
-            # Verify F1 is LOCK type
-            f1_floor = next((f for f in spec_data["floors"] if f.get("id") == "F1"), None)
+            # Verify F1 (Truth) is a hard / lock-style floor.
+            floors = spec_data["floors"]
+            # In current spec, floors are keyed by metric name (e.g. "truth")
+            f1_floor = floors.get("truth")
             if f1_floor:
-                assert f1_floor.get("type") == "hard" or f1_floor.get("threshold") == "LOCK"
+                assert f1_floor.get("type") == "hard" or f1_floor.get("threshold") in ("LOCK", 1.0, 0.99)
 
 
 # =============================================================================
@@ -437,15 +463,17 @@ class TestMemoryWritePolicyInvariants:
 
     def test_inv1_void_never_canonical(self, write_policy):
         """INV-1: VOID verdicts NEVER become canonical memory."""
+        evidence = {
+            "floor_checks": [{"floor": "F1", "pass": False}],
+            "timestamp": "2025-01-01T00:00:00Z",
+            "verdict": "VOID",
+        }
+        evidence["hash"] = compute_evidence_hash(evidence)
+
         decision = write_policy.should_write(
             verdict="VOID",
             band_target="LEDGER",
-            evidence_chain={
-                "floor_checks": [{"floor": "F1", "pass": False}],
-                "timestamp": "2025-01-01T00:00:00Z",
-                "verdict": "VOID",
-                "hash": "test",
-            },
+            evidence_chain=evidence,
         )
         assert not decision.allowed
 

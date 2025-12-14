@@ -1,0 +1,24 @@
+#!/bin/sh
+# Pre-push hook: Blocks pushing if A CLIP pipeline is not complete or a hold exists.
+
+# Block if any unresolved HOLD exists
+if [ -d ".arifos_clip/holds" ] && [ "$(ls -A .arifos_clip/holds)" ]; then
+    echo "Push blocked: unresolved A CLIP HOLD present."
+    exit 1
+fi
+
+# Block if required artifacts are missing (session or forge pack)
+if [ ! -f ".arifos_clip/session.json" ] || [ ! -f ".arifos_clip/forge/forge.json" ]; then
+    echo "Push blocked: A CLIP artifacts missing."
+    exit 1
+fi
+
+# Block if session is not sealed
+status=$(grep -o '"status": "[^"]*' .arifos_clip/session.json | cut -d'"' -f4)
+if [ "$status" != "SEALED" ]; then
+    echo "Push blocked: session not sealed by A CLIP."
+    exit 1
+fi
+
+# All checks passed; allow push
+exit 0

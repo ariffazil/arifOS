@@ -54,6 +54,24 @@
         "all_pass": "SEAL"
       }
     },
+    "conflict_resolution": {
+      "principle": "v38.3 AMENDMENT 3: No static hierarchy. Judgment via Ψ vitality and APEX PRIME meta-judgment.",
+      "mechanism": "APEX PRIME meta-judgment",
+      "escalation_trigger": "Two or more organs propose incompatible verdicts",
+      "judgment_criteria": [
+        "Psi (system vitality)",
+        "Floor pass/fail counts",
+        "Severity of violations",
+        "Stakeholder impact (Kr)"
+      ],
+      "outcome": "APEX returns synthesized verdict (SEAL/PARTIAL/888_HOLD/VOID/SABAR)",
+      "important_note": "Organs ADVISE. Floors CONSTRAIN. APEX JUDGES. No organ has supremacy.",
+      "forbidden": [
+        "Static hierarchy (e.g., '@WEALTH veto > @WELL safety')",
+        "Hardcoded precedence tables",
+        "Organ identity-based decision rules"
+      ]
+    },
     "canon_ref": "canon/04_WAW_PROMPT_FLOORS_v38Omega.md#2-waw-federation-architecture"
   },
 

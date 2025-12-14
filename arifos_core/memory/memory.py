@@ -226,6 +226,11 @@ class Memory:
         """Check if L7 Memory is available."""
         return is_l7_enabled() and self.client.is_available
 
+    # Backwards-compatible alias for API/MCP layers
+    def is_enabled(self) -> bool:
+        """Alias for is_available (public API uses 'enabled' terminology)."""
+        return self.is_available
+
     # =========================================================================
     # PIPELINE INTEGRATION
     # =========================================================================

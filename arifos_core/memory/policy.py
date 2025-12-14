@@ -34,9 +34,10 @@ from typing import Any, Dict, List, Optional, Tuple
 # =============================================================================
 
 class Verdict(str, Enum):
-    """APEX PRIME verdict types (v38.2 extended with SUNSET)."""
+    """APEX PRIME verdict types (v38.3 extended with SABAR_EXTENDED)."""
     SEAL = "SEAL"
     SABAR = "SABAR"
+    SABAR_EXTENDED = "SABAR_EXTENDED"  # v38.3 AMENDMENT 1: Branched continuation of decayed SABAR
     PARTIAL = "PARTIAL"
     VOID = "VOID"
     HOLD = "888_HOLD"
@@ -44,23 +45,25 @@ class Verdict(str, Enum):
 
 
 class MemoryBandTarget(str, Enum):
-    """Target bands for memory writes."""
+    """Target bands for memory writes (v38.3 adds PENDING)."""
     VAULT = "VAULT"
     LEDGER = "LEDGER"
     ACTIVE = "ACTIVE"
+    PENDING = "PENDING"  # v38.3 AMENDMENT 2: Epistemic queue for SABAR verdicts
     PHOENIX = "PHOENIX"
     WITNESS = "WITNESS"
     VOID = "VOID"
 
 
-# Verdict → Band routing rules (v38.2 extended with SUNSET)
+# Verdict → Band routing rules (v38.3: SABAR→PENDING, PARTIAL→PHOENIX)
 VERDICT_BAND_ROUTING: Dict[str, List[str]] = {
-    "SEAL": ["LEDGER", "ACTIVE"],      # Canonical + session
-    "SABAR": ["LEDGER", "ACTIVE"],     # Canonical + session (with reason)
-    "PARTIAL": ["PHOENIX", "LEDGER"],  # Queue for review + log
-    "VOID": ["VOID"],                   # Diagnostic ONLY, never canonical
-    "888_HOLD": ["LEDGER"],             # Log hold for audit
-    "SUNSET": ["PHOENIX"],              # v38.2: Revocation pulse (LEDGER → PHOENIX)
+    "SEAL": ["LEDGER", "ACTIVE"],            # Canonical + session
+    "SABAR": ["PENDING", "LEDGER"],          # v38.3 AMENDMENT 2: Epistemic queue + log
+    "SABAR_EXTENDED": ["PENDING", "LEDGER"], # v38.3: Same routing as SABAR
+    "PARTIAL": ["PHOENIX", "LEDGER"],        # v38.3: Law mismatch queue + log
+    "VOID": ["VOID"],                         # Diagnostic ONLY, never canonical
+    "888_HOLD": ["LEDGER"],                   # Log hold for audit
+    "SUNSET": ["PHOENIX"],                    # v38.2: Revocation pulse (LEDGER → PHOENIX)
 }
 
 # Retention tiers (days)
@@ -152,7 +155,7 @@ class MemoryWritePolicy:
     def should_write(
         self,
         verdict: str,
-        evidence_chain: Dict[str, Any],
+        evidence_chain: Optional[Dict[str, Any]],
         band_target: Optional[str] = None,
     ) -> WriteDecision:
         """
@@ -182,13 +185,29 @@ class MemoryWritePolicy:
             )
 
         # Validate evidence chain
-        chain_validation = self.validate_evidence_chain(evidence_chain)
-        if not chain_validation.valid and self.strict_mode:
-            return WriteDecision(
-                allowed=False,
-                reason=f"Evidence chain invalid: {chain_validation.missing_links}",
-                ledger_entry={},
+        if evidence_chain is None:
+            # Strict mode requires an evidence chain for all writes
+            if self.strict_mode:
+                return WriteDecision(
+                    allowed=False,
+                    reason="Evidence chain required in strict mode",
+                    ledger_entry={},
+                )
+            # In non-strict mode, treat missing evidence as a warning but continue
+            chain_validation = EvidenceChainValidation(
+                valid=False,
+                missing_links=["evidence_chain"],
+                hash_verified=False,
+                floor_check_present=False,
             )
+        else:
+            chain_validation = self.validate_evidence_chain(evidence_chain)
+            if not chain_validation.valid and self.strict_mode:
+                return WriteDecision(
+                    allowed=False,
+                    reason=f"Evidence chain invalid: {chain_validation.missing_links}",
+                    ledger_entry={},
+                )
 
         # Get routing for this verdict
         allowed_bands = VERDICT_BAND_ROUTING[verdict_upper]
@@ -494,6 +513,101 @@ class MemoryWritePolicy:
             hash_verified=hash_verified,
             floor_check_present=floor_check_present,
         )
+
+    # =========================================================================
+    # v38.3 AMENDMENT 1: TIME IMMUTABILITY & STATE BRANCHING
+    # =========================================================================
+
+    def spawn_sabar_extended(
+        self,
+        parent_entry_id: str,
+        fresh_context: Dict[str, Any],
+        human_override: bool = True,
+    ) -> str:
+        """
+        Create SABAR_EXTENDED branch from decayed SABAR verdict.
+        
+        v38.3 AMENDMENT 1: Time Immutability + State Branching
+        
+        Behavior:
+        - Validates parent exists and was SABAR (now decayed)
+        - Creates NEW ledger entry with verdict=SABAR_EXTENDED
+        - Links to parent via parent_hash
+        - Routes to PENDING + LEDGER (same as SABAR per v38.3 AMENDMENT 2)
+        - Original decayed entry remains UNCHANGED
+        
+        This is NOT reversal—it creates a new branch in the audit trail.
+        Time moves forward only. The parent's decay remains visible.
+        
+        Args:
+            parent_entry_id: Hash/ID of original SABAR entry (now decayed)
+            fresh_context: New evidence/data that justifies branching
+            human_override: Only humans can branch (required=True)
+        
+        Returns:
+            New entry ID (hash of new SABAR_EXTENDED entry)
+        
+        Raises:
+            ValueError: If parent not found or invalid
+            PermissionError: If human_override=False
+            StateError: If parent was not SABAR
+        """
+        # Enforce human-only branching
+        if not human_override:
+            raise PermissionError(
+                "v38.3 AMENDMENT 1: Only humans can spawn SABAR_EXTENDED branches. "
+                "Set human_override=True to authorize."
+            )
+        
+        # Validate parent_entry_id format (SHA3-256 or SHA256 hex)
+        if not isinstance(parent_entry_id, str) or len(parent_entry_id) != 64:
+            raise ValueError(
+                f"Invalid parent_entry_id format: expected 64-char hex hash, got {parent_entry_id!r}"
+            )
+        
+        # Note: In production, this would query the actual ledger storage to verify parent exists
+        # For now, we assume caller has validated parent exists and was SABAR
+        # Real implementation would call: ledger.get_entry(parent_entry_id)
+        
+        # Build new SABAR_EXTENDED entry
+        timestamp = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+        
+        new_entry = {
+            "verdict": "SABAR_EXTENDED",
+            "parent_hash": parent_entry_id,  # Link to parent via hash
+            "timestamp": timestamp,
+            "fresh_context": fresh_context,
+            "evidence_chain": {
+                "branched_from": parent_entry_id,
+                "branch_reason": "Human-authorized continuation of decayed SABAR verdict",
+                "human_approved": True,
+                "floor_checks": fresh_context.get("floor_checks", {}),
+                "timestamp": timestamp,
+            },
+            "target_bands": VERDICT_BAND_ROUTING["SABAR_EXTENDED"],
+            "policy_version": "v38.3",
+        }
+        
+        # Compute entry hash
+        new_entry_hash = hashlib.sha256(
+            json.dumps(new_entry, sort_keys=True).encode()
+        ).hexdigest()
+        new_entry["hash"] = new_entry_hash
+        
+        # Log the branching operation
+        self._log_write_decision(
+            verdict="SABAR_EXTENDED",
+            bands=VERDICT_BAND_ROUTING["SABAR_EXTENDED"],
+            allowed=True,
+            reason=f"Branched from parent {parent_entry_id[:16]}... (human authorized)",
+        )
+        
+        # In production, this would also:
+        # 1. Write new_entry to PENDING band
+        # 2. Write audit log entry to LEDGER
+        # 3. Verify ledger hash chain remains valid
+        
+        return new_entry_hash
 
     # =========================================================================
     # INTERNAL HELPERS

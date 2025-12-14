@@ -14,6 +14,9 @@ Voting Protocol:
 - Mixed WARN/PASS → PARTIAL
 - All PASS → SEAL candidate
 
+v38.3 AMENDMENT 3: No static hierarchy. Conflicts escalate to APEX PRIME meta-judgment.
+Organs ADVISE. Floors CONSTRAIN. APEX JUDGES.
+
 See: canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md
 """
 
@@ -200,6 +203,72 @@ class WAWFederationCore:
             if organ.organ_id == organ_id:
                 return organ
         return None
+
+    # =========================================================================
+    # v38.3 AMENDMENT 3: W@W CONFLICT RESOLUTION VIA APEX PRIME
+    # =========================================================================
+
+    def resolve_organ_conflict(
+        self,
+        signals: List[OrganSignal],
+    ) -> str:
+        """
+        Escalate conflicting organ recommendations to APEX PRIME.
+        
+        v38.3 AMENDMENT 3: No Organ Supremacy. Conflicts use Psi judgment.
+        
+        Args:
+            signals: List of organ signals/recommendations
+        
+        Returns:
+            Verdict synthesized by APEX PRIME via Psi judgment
+            One of: SEAL, PARTIAL, 888_HOLD, VOID, SABAR
+        
+        Behavior:
+            - Detects incompatible organ recommendations
+            - If no conflict, returns agreement verdict
+            - If conflict detected, escalates to APEX PRIME meta-judgment
+            - APEX uses Psi vitality + floor metrics to synthesize verdict
+            - This is NOT "overriding" floors
+            - If F1 (Amanah) fails, action is still blocked
+            - APEX determines VERDICT TYPE when floors pass but organs conflict
+        
+        Note: This removes the static hierarchy (no "@WEALTH veto > @WELL").
+              All conflicts are resolved via constitutional judgment.
+        """
+        # Detect if organs agree or conflict
+        verdict_proposals = {}
+        for signal in signals:
+            verdict_key = signal.verdict if hasattr(signal, 'verdict') else signal.vote.value
+            if verdict_key not in verdict_proposals:
+                verdict_proposals[verdict_key] = []
+            verdict_proposals[verdict_key].append(signal.organ_id)
+        
+        # If all agree (only 1 unique verdict), no conflict
+        if len(verdict_proposals) == 1:
+            return list(verdict_proposals.keys())[0]
+        
+        # Conflict detected - escalate to APEX PRIME
+        # Import here to avoid circular dependency
+        from ..APEX_PRIME import apex_prime_judge
+        
+        # Gather context for APEX judgment
+        context = {
+            "organs": [
+                {
+                    "organ_id": s.organ_id,
+                    "vote": s.vote.value,
+                    "evidence": s.evidence,
+                    "metric_value": s.metric_value,
+                }
+                for s in signals
+            ],
+            "verdict_proposals": verdict_proposals,
+            "conflict_type": "organ_disagreement",
+        }
+        
+        # APEX PRIME synthesizes verdict
+        return apex_prime_judge(context)
 
 
 __all__ = ["WAWFederationCore", "FederationVerdict"]

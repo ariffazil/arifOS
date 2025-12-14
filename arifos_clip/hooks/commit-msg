@@ -1,0 +1,25 @@
+#!/bin/sh
+# Commit-msg hook: ensure commit message and session state indicate a sealed session.
+
+MSG_FILE="$1"
+
+# Must have a session file
+if [ ! -f ".arifos_clip/session.json" ]; then
+    echo "Commit blocked: A CLIP session file not found."
+    exit 1
+fi
+
+# Session must be sealed
+status=$(grep -o '"status": "[^"]*' .arifos_clip/session.json | cut -d'"' -f4)
+if [ "$status" != "SEALED" ]; then
+    echo "Commit blocked: session not sealed by A CLIP."
+    exit 1
+fi
+
+# Commit message must mention "SEALED"
+if ! grep -q "SEALED" "$MSG_FILE"; then
+    echo "Commit message must include 'SEALED'."
+    exit 1
+fi
+
+exit 0

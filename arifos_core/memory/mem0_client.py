@@ -231,18 +231,26 @@ class Mem0Client:
         use_stub_fallback: bool = True,
     ) -> EmbedResult:
         """
-        Generate embedding for text.
+        Generate embedding for text. **STUB/TEST-ONLY.**
 
-        When Mem0 is available, uses its embedding model.
-        When unavailable and use_stub_fallback=True, returns deterministic
-        stub embedding for testing purposes.
+        WARNING: This method is primarily for testing. Mem0 handles embeddings
+        internally during add() and search() operations. You typically do NOT
+        need to call this directly in production.
+
+        The stub embedding uses a deterministic SHA256-based hash to generate
+        a 384-dimensional normalized vector, suitable for testing user isolation
+        and similarity logic without requiring a real embedding model.
 
         Args:
             text: Text to embed
             use_stub_fallback: If True, use stub embedding when Mem0 unavailable
 
         Returns:
-            EmbedResult with embedding vector
+            EmbedResult with embedding vector (stub or real)
+
+        Note:
+            Mem0's internal embedding is used when calling search() and add().
+            This public embed() is exposed for testing and debugging only.
         """
         if not text:
             return EmbedResult(
@@ -327,26 +335,34 @@ class Mem0Client:
 
         try:
             # Search with user_id filter
-            memories = self._client.search(
+            # Mem0 returns {"results": [...]} format
+            response = self._client.search(
                 query=query,
                 user_id=user_id,
                 limit=k,
+                threshold=thresh,
             )
 
-            # Convert to MemoryHit objects and filter by threshold
+            # Extract results from response dict
+            memories = response.get("results", []) if isinstance(response, dict) else response
+
+            # Convert to MemoryHit objects
             hits = []
             for mem in memories:
                 score = mem.get("score", 0.0)
+                # Threshold is already applied by Mem0, but double-check
                 if score >= thresh:
+                    # Get metadata - it may be nested or at top level
+                    mem_metadata = mem.get("metadata", {})
                     hits.append(MemoryHit(
                         memory_id=mem.get("id", ""),
                         content=mem.get("memory", ""),
-                        metadata=mem.get("metadata", {}),
+                        metadata=mem_metadata,
                         score=score,
-                        user_id=user_id,
+                        user_id=mem.get("user_id", user_id),
                         timestamp=mem.get("created_at", ""),
-                        verdict=mem.get("metadata", {}).get("verdict"),
-                        ttl_days=mem.get("metadata", {}).get("ttl_days"),
+                        verdict=mem_metadata.get("verdict"),
+                        ttl_days=mem_metadata.get("ttl_days"),
                     ))
 
             return SearchResult(
@@ -419,13 +435,24 @@ class Mem0Client:
                 "stored_at": datetime.now(timezone.utc).isoformat(),
             }
 
-            result = self._client.add(
+            # Mem0 accepts messages as string or list of {role, content}
+            # Pass content as string - Mem0 will wrap it internally
+            response = self._client.add(
                 content,
                 user_id=user_id,
                 metadata=mem_metadata,
             )
 
-            memory_id = result.get("id") if isinstance(result, dict) else str(result)
+            # Mem0 returns {"results": [{"id": ..., "memory": ..., "event": "ADD"}]}
+            memory_id = None
+            if isinstance(response, dict):
+                results = response.get("results", [])
+                if results and len(results) > 0:
+                    memory_id = results[0].get("id")
+                elif "id" in response:
+                    memory_id = response.get("id")
+            else:
+                memory_id = str(response)
 
             return StoreResult(
                 success=True,
@@ -490,19 +517,24 @@ class Mem0Client:
             return SearchResult(error=self._initialization_error)
 
         try:
-            memories = self._client.get_all(user_id=user_id, limit=limit)
+            # Mem0 returns {"results": [...]} format
+            response = self._client.get_all(user_id=user_id, limit=limit)
+
+            # Extract results from response dict
+            memories = response.get("results", []) if isinstance(response, dict) else response
 
             hits = []
             for mem in memories:
+                mem_metadata = mem.get("metadata", {})
                 hits.append(MemoryHit(
                     memory_id=mem.get("id", ""),
                     content=mem.get("memory", ""),
-                    metadata=mem.get("metadata", {}),
+                    metadata=mem_metadata,
                     score=1.0,  # Full match for get_all
-                    user_id=user_id,
+                    user_id=mem.get("user_id", user_id),
                     timestamp=mem.get("created_at", ""),
-                    verdict=mem.get("metadata", {}).get("verdict"),
-                    ttl_days=mem.get("metadata", {}).get("ttl_days"),
+                    verdict=mem_metadata.get("verdict"),
+                    ttl_days=mem_metadata.get("ttl_days"),
                 ))
 
             return SearchResult(

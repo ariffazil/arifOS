@@ -690,6 +690,104 @@ def _merge_with_waw(
     return final_verdict
 
 
+def _compute_floor_passed(floor_key: str, floor_def: dict, metrics: Any) -> tuple[bool, Any]:
+    """
+    v38.3Omega: Compute (passed, value) for a single floor from spec definition.
+    
+    Args:
+        floor_key: Floor name (truth, delta_s, etc.)
+        floor_def: Floor spec dict with threshold, operator, type
+        metrics: ConstitutionalMetrics with all floor values
+    
+    Returns:
+        (passed: bool, value: Any)
+    """
+    floor_type = floor_def.get("type")
+    operator = floor_def.get("operator")
+    
+    # Boolean floors (amanah, rasa, anti_hantu)
+    if floor_type in ("hard", "meta") and operator == "==":
+        if floor_key == "amanah":
+            return (bool(metrics.amanah), metrics.amanah)
+        elif floor_key == "rasa":
+            return (bool(metrics.rasa), metrics.rasa)
+        elif floor_key == "anti_hantu":
+            return (bool(metrics.anti_hantu), metrics.anti_hantu)
+    
+    # Numeric floors
+    threshold = floor_def.get("threshold")
+    
+    if floor_key == "truth":
+        passed = metrics.truth >= threshold if threshold is not None else True
+        return (passed, metrics.truth)
+    elif floor_key == "delta_s":
+        passed = metrics.delta_s >= threshold if threshold is not None else True
+        return (passed, metrics.delta_s)
+    elif floor_key == "peace_squared":
+        passed = metrics.peace_squared >= threshold if threshold is not None else True
+        return (passed, metrics.peace_squared)
+    elif floor_key == "kappa_r":
+        passed = metrics.kappa_r >= threshold if threshold is not None else True
+        return (passed, metrics.kappa_r)
+    elif floor_key == "omega_0":
+        threshold_min = floor_def.get("threshold_min", 0.03)
+        threshold_max = floor_def.get("threshold_max", 0.05)
+        passed = threshold_min <= metrics.omega_0 <= threshold_max
+        return (passed, metrics.omega_0)
+    elif floor_key == "tri_witness":
+        passed = metrics.tri_witness >= threshold if threshold is not None else True
+        return (passed, metrics.tri_witness)
+    
+    # Fallback
+    return (True, None)
+
+
+def _floor_margin(floor_key: str, floor_def: dict, metrics: Any) -> float:
+    """
+    v38.3Omega: Compute margin (distance from threshold) for numeric floors.
+    Used for near-fail detection and 888_HOLD escalation.
+    
+    Args:
+        floor_key: Floor name
+        floor_def: Floor spec dict
+        metrics: ConstitutionalMetrics
+    
+    Returns:
+        margin: float (positive = surplus, negative = deficit, 0 = boolean/no threshold)
+    """
+    operator = floor_def.get("operator")
+    
+    # Boolean floors have no margin
+    if operator == "==":
+        return 0.0
+    
+    threshold = floor_def.get("threshold")
+    
+    if floor_key == "truth" and threshold is not None:
+        return float(metrics.truth - threshold)
+    elif floor_key == "delta_s" and threshold is not None:
+        return float(metrics.delta_s - threshold)
+    elif floor_key == "peace_squared" and threshold is not None:
+        return float(metrics.peace_squared - threshold)
+    elif floor_key == "kappa_r" and threshold is not None:
+        return float(metrics.kappa_r - threshold)
+    elif floor_key == "omega_0":
+        # Omega is a band; margin is distance from edges
+        threshold_min = floor_def.get("threshold_min", 0.03)
+        threshold_max = floor_def.get("threshold_max", 0.05)
+        if metrics.omega_0 < threshold_min:
+            return float(metrics.omega_0 - threshold_min)  # negative
+        elif metrics.omega_0 > threshold_max:
+            return float(threshold_max - metrics.omega_0)  # negative
+        else:
+            # Inside band - margin is distance to nearest edge
+            return float(min(metrics.omega_0 - threshold_min, threshold_max - metrics.omega_0))
+    elif floor_key == "tri_witness" and threshold is not None:
+        return float(metrics.tri_witness - threshold)
+    
+    return 0.0
+
+
 def _write_memory_for_verdict(state: PipelineState) -> None:
     """
     v38: Centralized memory write for any verdict path.
@@ -713,18 +811,34 @@ def _write_memory_for_verdict(state: PipelineState) -> None:
     import json
     import hashlib
 
-    # Build floor check evidence
+    # Build floor check evidence (v38.3Omega: spec-driven with F# + P# + stage hooks)
     floor_checks = []
     if state.metrics is not None:
-        floor_checks = [
-            {"floor": "F1_Amanah", "passed": state.metrics.amanah},
-            {"floor": "F2_Truth", "passed": state.metrics.truth >= 0.99, "value": state.metrics.truth},
-            {"floor": "F3_TriWitness", "passed": state.metrics.tri_witness >= 0.95, "value": state.metrics.tri_witness},
-            {"floor": "F4_DeltaS", "passed": state.metrics.delta_s >= 0, "value": state.metrics.delta_s},
-            {"floor": "F5_Peace2", "passed": state.metrics.peace_squared >= 1.0, "value": state.metrics.peace_squared},
-            {"floor": "F6_KappaR", "passed": state.metrics.kappa_r >= 0.95, "value": state.metrics.kappa_r},
-            {"floor": "F7_Omega0", "passed": 0.03 <= state.metrics.omega_0 <= 0.05, "value": state.metrics.omega_0},
-        ]
+        from arifos_core.metrics import _load_floors_spec_v38
+        floors_spec = _load_floors_spec_v38()
+        
+        # Sort floors by canonical F# ID for readability (semantic order)
+        floors_data = floors_spec.get("floors", {})
+        sorted_floors = sorted(floors_data.items(), key=lambda x: x[1].get("id", 99))
+        
+        for floor_key, floor_def in sorted_floors:
+            floor_id = floor_def.get("id")
+            precedence = floor_def.get("precedence", 0)
+            stage_hook = floor_def.get("stage_hook", "")
+            
+            # Compute passed + value + margin
+            passed, value = _compute_floor_passed(floor_key, floor_def, state.metrics)
+            margin = _floor_margin(floor_key, floor_def, state.metrics)
+            
+            floor_checks.append({
+                "floor_id": floor_id,
+                "floor": f"F{floor_id}_{floor_key.capitalize()}",
+                "precedence": precedence,
+                "stage_hook": stage_hook,
+                "passed": passed,
+                "value": value,
+                "margin": margin,
+            })
 
     timestamp = datetime.now(timezone.utc).isoformat()
 
@@ -963,7 +1077,7 @@ def stage_999_seal(state: PipelineState) -> PipelineState:
         # v38.1: Diagnostic SABAR with specific floor violations
         reason_str = _format_floor_failures(state.floor_failures)
         state.raw_response = (
-            f"[SABAR] Protocol Active.\n"
+            f"[SABAR] Stop. Protocol Active.\n"
             f"I cannot fulfill this request because it violates: {reason_str}.\n"
             f"Please rephrase to align with safety standards."
         )

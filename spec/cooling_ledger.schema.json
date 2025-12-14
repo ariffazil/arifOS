@@ -18,6 +18,11 @@
       "type": "string",
       "description": "Unique identifier for this processing job"
     },
+    "parent_hash": {
+      "type": ["string", "null"],
+      "description": "v38.3 AMENDMENT 1: SHA3-256 hash of parent entry (for branched states like SABAR_EXTENDED). Null for root entries.",
+      "pattern": "^[a-f0-9]{64}$"
+    },
     "stakes": {
       "type": "string",
       "enum": ["low", "medium", "high", "critical"],
@@ -101,8 +106,8 @@
     },
     "verdict": {
       "type": "string",
-      "enum": ["SEAL", "PARTIAL", "888_HOLD", "VOID", "SABAR"],
-      "description": "APEX PRIME verdict (v35Ω hierarchy: SABAR > VOID > 888_HOLD > PARTIAL > SEAL)"
+      "enum": ["SEAL", "PARTIAL", "888_HOLD", "VOID", "SABAR", "SABAR_EXTENDED", "SUNSET"],
+      "description": "APEX PRIME verdict (v38.3: added SABAR_EXTENDED and SUNSET)"
     },
     "floor_failures": {
       "type": "array",

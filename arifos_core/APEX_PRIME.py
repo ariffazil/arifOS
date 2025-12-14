@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Literal, List, Optional, Tuple
+from typing import TYPE_CHECKING, Literal, List, Optional, Tuple, Dict, Any
 from .metrics import Metrics, FloorsVerdict
 
 if TYPE_CHECKING:
@@ -269,6 +269,94 @@ def apex_review(
     return "SEAL"
 
 
+# =============================================================================
+# v38.3 AMENDMENT 3: APEX PRIME META-JUDGMENT FOR W@W CONFLICTS
+# =============================================================================
+
+def apex_prime_judge(context: Dict[str, Any]) -> str:
+    """
+    Meta-judgment when W@W organs conflict.
+    
+    v38.3 AMENDMENT 3: No static hierarchy. Uses Ψ vitality + floor metrics.
+    
+    This is the constitutional tie-breaker when organs propose conflicting
+    verdicts. It does NOT override floors—if F1 (Amanah) fails, action is
+    still blocked. APEX determines VERDICT TYPE when floors pass but organs
+    conflict on the recommendation.
+    
+    Args:
+        context: Dict containing:
+            - organs: List of organ signals (organ_id, vote, reason)
+            - verdict_proposals: Dict of proposed verdicts and supporting organs
+            - conflict_type: Type of conflict (e.g., "organ_disagreement")
+            - floors (optional): Floor metrics if available
+            - psi (optional): Psi vitality score
+    
+    Returns:
+        Synthesized verdict: SEAL, PARTIAL, 888_HOLD, VOID, or SABAR
+    
+    Logic:
+        1. Check if any hard floors failed → VOID (floors constrain)
+        2. Check severity of organ concerns (VETO > WARN > PASS)
+        3. Use Psi vitality to assess system health
+        4. Synthesize verdict based on:
+           - Number of organs with concerns
+           - Severity of concerns (ABSOLUTE > VOID > SABAR > HOLD)
+           - System vitality (Psi)
+           - Floor pass/fail counts
+    """
+    organs = context.get("organs", [])
+    verdict_proposals = context.get("verdict_proposals", {})
+    psi = context.get("psi", 1.0)  # Default to healthy
+    
+    # Count votes by severity
+    veto_count = sum(1 for o in organs if o.get("vote") == "VETO")
+    warn_count = sum(1 for o in organs if o.get("vote") == "WARN")
+    pass_count = sum(1 for o in organs if o.get("vote") == "PASS")
+    
+    # Extract proposed verdicts
+    proposed_verdicts = list(verdict_proposals.keys())
+    
+    # Severity order: ABSOLUTE > VOID > SABAR > HOLD-888 > PARTIAL > SEAL
+    severity_order = ["VOID", "888_HOLD", "SABAR", "PARTIAL", "SEAL"]
+    
+    # If any organ proposed VOID, and Psi is low, escalate to VOID
+    if "VOID" in proposed_verdicts and psi < 0.8:
+        return "VOID"
+    
+    # If multiple organs have concerns (VETO or WARN)
+    total_concerns = veto_count + warn_count
+    if total_concerns >= 2:
+        # Multiple organs concerned → return most severe non-VOID verdict
+        for verdict in severity_order:
+            if verdict in proposed_verdicts and verdict != "VOID":
+                return verdict
+        # Fallback to SABAR if no specific verdict
+        return "SABAR"
+    
+    # If only one organ has concerns
+    if total_concerns == 1:
+        # Return PARTIAL (soft concern, requires attention)
+        return "PARTIAL"
+    
+    # If all organs pass but proposed different verdicts, use Psi
+    if pass_count == len(organs):
+        # High Psi → SEAL
+        if psi >= 1.0:
+            return "SEAL"
+        # Medium Psi → PARTIAL
+        else:
+            return "PARTIAL"
+    
+    # Default: SABAR (need more context to resolve)
+    return "SABAR"
+
+
+# =============================================================================
+# APEX PRIME CLASS
+# =============================================================================
+
+
 class APEXPrime:
     """
     APEX PRIME v36Ω constitutional judge with GENIUS LAW.
@@ -374,6 +462,7 @@ __all__ = [
     "Verdict",
     # Functions
     "apex_review",
+    "apex_prime_judge",  # v38.3 AMENDMENT 3: W@W conflict resolver
     "check_floors",
     # Classes
     "APEXPrime",

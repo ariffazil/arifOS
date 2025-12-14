@@ -68,8 +68,8 @@ class TestV38SpecFile:
 
     def test_v38_spec_metadata(self, floors_spec_v38: dict) -> None:
         """Spec must declare v38 metadata."""
-        assert floors_spec_v38.get("version") == "v38.0.0"
-        assert floors_spec_v38.get("arifos_version") == "38Omega"
+        assert floors_spec_v38.get("version") == "v38.3.0"
+        assert floors_spec_v38.get("arifos_version") == "38.3Omega"
         assert floors_spec_v38.get("spec_type") == "constitutional_floors"
 
     def test_v38_spec_has_all_nine_floors(self, floors_spec_v38: dict) -> None:

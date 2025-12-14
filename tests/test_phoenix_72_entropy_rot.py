@@ -257,10 +257,9 @@ class TestSunsetRevocation:
         assert phoenix_entry.content["revocation_reason"] == "Test revocation: reality changed"
         assert phoenix_entry.verdict == "SUNSET"
         assert phoenix_entry.metadata.get("sunset_type") == "revocation"
-        # Note: PhoenixCandidatesBand defaults to "draft" status
-        # The SUNSET executor sets "awaiting_review" in its metadata, but
-        # the band write method overwrites with "draft". This is expected behavior.
-        assert phoenix_entry.metadata.get("status") == "draft"
+        # For SUNSET, proposals should surface in PHOENIX as
+        # "awaiting_review" so humans can explicitly re-evaluate.
+        assert phoenix_entry.metadata.get("status") == "awaiting_review"
 
     def test_sunset_preserves_evidence_chain(self):
         """SUNSET should preserve the original evidence hash."""

@@ -229,6 +229,7 @@ class TestEndToEndMemoryWriteFlow:
             metadata={"verdict": "SEAL"},
             band="LEDGER",
             timestamp=datetime.now(timezone.utc).isoformat(),
+            writer_id="888_JUDGE",
         )
         
         ledger_result = band_router.write(entry, BandName.LEDGER)
@@ -266,6 +267,7 @@ class TestEndToEndMemoryWriteFlow:
             metadata={"verdict": "VOID"},
             band="VOID",
             timestamp=datetime.now(timezone.utc).isoformat(),
+            writer_id="APEX_PRIME",
         )
         
         void_result = band_router.write(entry, BandName.VOID)
@@ -313,6 +315,7 @@ class TestMultiBandWriteConsistency:
             metadata={"verdict": "SEAL"},
             band="LEDGER",
             timestamp=datetime.now(timezone.utc).isoformat(),
+            writer_id="APEX_PRIME",
         )
         
         active_entry = MemoryEntry(
@@ -321,6 +324,7 @@ class TestMultiBandWriteConsistency:
             metadata={"verdict": "SEAL"},
             band="ACTIVE",
             timestamp=datetime.now(timezone.utc).isoformat(),
+            writer_id="111_SENSE",
         )
         
         ledger_result = band_router.write(ledger_entry, BandName.LEDGER)
@@ -337,6 +341,7 @@ class TestMultiBandWriteConsistency:
             metadata={"verdict": "SEAL"},
             band="VOID",  # Wrong band for SEAL
             timestamp=datetime.now(timezone.utc).isoformat(),
+            writer_id="APEX_PRIME",
         )
         
         # This should succeed (band router is permissive)
@@ -388,7 +393,7 @@ class TestEvidenceChainHashVerification:
         # Hash should not match
         assert evidence["hash"] != expected_hash
 
-    def test_evidence_chain_validation_detects_tampering(self):
+    def test_evidence_chain_validation_detects_tampering(self, write_policy):
         """Evidence chain validator should detect tampering."""
         floor_scores = make_floor_scores("passing")
         evidence = make_evidence_chain("SEAL", floor_scores)
@@ -515,6 +520,7 @@ class TestCrossLayerIntegration:
             metadata={"verdict": "PARTIAL"},
             band="PHOENIX",
             timestamp=datetime.now(timezone.utc).isoformat(),
+            writer_id="PHOENIX_72",
         )
         result = band_router.write(proposal_entry, BandName.PHOENIX)
         assert result.success

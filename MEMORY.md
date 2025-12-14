@@ -14,6 +14,39 @@ The L7 Memory Layer provides **cross-session user context persistence** for arif
 
 ---
 
+## Architectural Role: Semantic Witness Layer
+
+**IMPORTANT:** L7 is a **semantic witness layer**, NOT a canonical memory store.
+
+| Aspect | L7 (Mem0 + Qdrant) | v38 6-Band Memory Stack |
+|--------|---------------------|-------------------------|
+| **Role** | Semantic similarity recall | Constitutional audit trail |
+| **Authority** | Suggestion (0.85 ceiling) | Canonical truth |
+| **Bands** | Single vector store | VAULT, LEDGER, ACTIVE, PHOENIX, WITNESS, VOID |
+| **Write Policy** | EUREKA Sieve (local TTL) | MemoryWritePolicy + human seal |
+| **Governance** | Verdict-gated | Floor-gated + evidence chain |
+
+**L7 does NOT replace the v38 memory stack.** It sits alongside as an advisory layer:
+
+- Recalled memories are **suggestions**, capped at 0.85 confidence
+- L7 does NOT write to VAULT (read-only constitution) or LEDGER (hash-chained audit)
+- L7 stores are NOT subject to `MemoryAuthorityCheck` (humans seal law, AI proposes)
+- For canonical memory operations, use `arifos_core.memory.policy` and `arifos_core.memory.bands`
+
+```
+v38 Memory Stack (Canonical)        L7 Layer (Witness/Advisory)
+┌─────────────────────────────┐    ┌─────────────────────────────┐
+│  VAULT (L0) - Constitution  │    │                             │
+│  LEDGER - Hash-chained      │    │   Mem0 + Qdrant             │
+│  ACTIVE - Working state     │    │   (Semantic vector store)   │
+│  PHOENIX - Amendments       │    │                             │
+│  WITNESS - Soft evidence    │    │   Recall: context hints     │
+│  VOID - Diagnostic only     │    │   Store: verdict-gated      │
+└─────────────────────────────┘    └─────────────────────────────┘
+```
+
+---
+
 ## Architecture
 
 ```
@@ -308,9 +341,68 @@ pytest tests/unit/test_l7_memory.py tests/integration/test_pipeline_with_memory.
 
 ---
 
-## Embedding
+## Mem0 Integration
 
-The `embed()` method generates vector embeddings for semantic search:
+The L7 adapter wraps the official `mem0ai` library with arifOS-specific governance:
+
+### Installation
+
+```bash
+pip install mem0ai
+```
+
+### Mem0 API Mapping
+
+| arifOS Method | Mem0 Method | Return Shape |
+|---------------|-------------|--------------|
+| `search(query, user_id)` | `memory.search(query, user_id, limit, threshold)` | `{"results": [...]}` |
+| `add(content, user_id, verdict)` | `memory.add(messages, user_id, metadata)` | `{"results": [{"id", "memory", "event"}]}` |
+| `get_all(user_id)` | `memory.get_all(user_id, limit)` | `{"results": [...]}` |
+| `delete(memory_id)` | `memory.delete(memory_id)` | `{"message": "..."}` |
+
+### Response Parsing
+
+The adapter handles Mem0's `{"results": [...]}` response format:
+
+```python
+# Mem0 returns nested format
+response = self._client.search(query=query, user_id=user_id, limit=k, threshold=thresh)
+
+# Extract results from dict
+memories = response.get("results", []) if isinstance(response, dict) else response
+
+# Convert to MemoryHit objects
+for mem in memories:
+    hit = MemoryHit(
+        memory_id=mem.get("id"),
+        content=mem.get("memory"),
+        score=mem.get("score"),
+        user_id=mem.get("user_id"),
+        metadata=mem.get("metadata", {}),
+        timestamp=mem.get("created_at"),
+    )
+```
+
+### Verdict Metadata
+
+When storing, verdict and TTL are added to Mem0 metadata:
+
+```python
+mem_metadata = {
+    **user_metadata,
+    "verdict": verdict,      # e.g., "SEAL", "PARTIAL"
+    "ttl_days": ttl_days,    # None (forever), 730, 30, or 0 (never)
+    "stored_at": datetime.now(timezone.utc).isoformat(),
+}
+```
+
+---
+
+## Embedding (Stub/Test-Only)
+
+**WARNING:** The `embed()` method is **primarily for testing**. Mem0 handles embeddings
+internally during `add()` and `search()` operations. You typically do NOT need to
+call this directly in production.
 
 ```python
 from arifos_core.memory import Mem0Client
@@ -324,10 +416,11 @@ if result.success:
     print(f"Vector: {result.embedding[:5]}...")
 ```
 
-**Fallback Behavior:**
-- If Mem0 available: Uses Mem0's embedding model
-- If Mem0 unavailable: Uses deterministic stub embedding (hash-based)
-- Stub embedding is normalized (L2 norm = 1.0)
+**Stub Embedding Behavior:**
+- Uses deterministic SHA256-based hash to generate 384-dimensional vector
+- Normalized (L2 norm = 1.0) for compatibility with similarity metrics
+- Same text always produces same embedding (deterministic for testing)
+- Suitable for testing user isolation and similarity logic without real model
 
 ---
 
