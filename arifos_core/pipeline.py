@@ -138,8 +138,9 @@ class PipelineState:
     physical_action_issue: bool = False
 
     # AAA Engine packets (v35.8.0 - internal, optional)
-    arif_packet: Optional[AGIPacket] = None
-    adam_packet: Optional[ASIPacket] = None
+    # v42: Canonical naming - AGI (Mind), ASI (Heart)
+    agi_packet: Optional[AGIPacket] = None
+    asi_packet: Optional[ASIPacket] = None
 
     # Memory Context (v37) - ONE per pipeline run
     memory_context: Optional[MemoryContext] = None
@@ -348,7 +349,7 @@ def stage_333_reason(
     """
     333 REASON - Apply cold logic. Structure the problem.
 
-    ARIF AGI (Δ) takes over - pure logic, pattern detection.
+    AGI (Δ) takes over - pure logic, pattern detection.
     """
     state.current_stage = "333"
     state.stage_trace.append("333_REASON")
@@ -417,7 +418,7 @@ def stage_555_empathize(state: PipelineState) -> PipelineState:
     """
     555 EMPATHIZE - Apply warm logic. Who is vulnerable here?
 
-    ADAM ASI (Ω) takes over - empathy, dignity, de-escalation.
+    ASI (Ω) takes over - empathy, dignity, de-escalation.
     """
     state.current_stage = "555"
     state.stage_trace.append("555_EMPATHIZE")
@@ -1287,8 +1288,8 @@ class Pipeline:
 
         state = stage_111_sense(state)
 
-        # Populate ARIF packet from sense results (v35.8.0)
-        state.arif_packet = AGIPacket(
+        # Populate AGI packet from sense results (v35.8.0)
+        state.agi_packet = AGIPacket(
             prompt=state.query,
             high_stakes_indicators=state.high_stakes_indicators.copy(),
         )
@@ -1302,10 +1303,10 @@ class Pipeline:
             # Fast track: skip 222, go to 333 → 888 → 999
             state = stage_333_reason(state, self.llm_generate)
 
-            # Update ARIF packet with reason results (v35.8.0)
-            if state.arif_packet:
-                state.arif_packet.draft = state.draft_response
-                state.arif_packet.delta_s = min(0.5, len(state.draft_response) / 1000) if state.draft_response else 0.0
+            # Update AGI packet with reason results (v35.8.0)
+            if state.agi_packet:
+                state.agi_packet.draft = state.draft_response
+                state.agi_packet.delta_s = min(0.5, len(state.draft_response) / 1000) if state.draft_response else 0.0
 
             state = stage_888_judge(state, self.compute_metrics, self.eye_sentinel)
             state = stage_999_seal(state)
@@ -1320,47 +1321,47 @@ class Pipeline:
             # CIRCULATE: 333 → 444 → 555 → 666 → 777
             state = stage_333_reason(state, self.llm_generate)
 
-            # Update ARIF packet with reason results (v35.8.0)
-            if state.arif_packet:
-                state.arif_packet.draft = state.draft_response
-                state.arif_packet.delta_s = min(0.5, len(state.draft_response) / 1000) if state.draft_response else 0.0
+            # Update AGI packet with reason results (v35.8.0)
+            if state.agi_packet:
+                state.agi_packet.draft = state.draft_response
+                state.agi_packet.delta_s = min(0.5, len(state.draft_response) / 1000) if state.draft_response else 0.0
 
             state = stage_444_align(state)
 
-            # Update ARIF packet with align results (v35.8.0)
-            if state.arif_packet:
-                state.arif_packet.missing_fact_issue = state.missing_fact_issue
-                state.arif_packet.truth_verified = not state.missing_fact_issue
+            # Update AGI packet with align results (v35.8.0)
+            if state.agi_packet:
+                state.agi_packet.missing_fact_issue = state.missing_fact_issue
+                state.agi_packet.truth_verified = not state.missing_fact_issue
 
             state = stage_555_empathize(state)
 
-            # Create ADAM packet from empathize results (v35.8.0)
-            state.adam_packet = ASIPacket(
-                arif_packet=state.arif_packet,
+            # Create ASI packet from empathize results (v35.8.0)
+            state.asi_packet = ASIPacket(
+                agi_packet=state.agi_packet,
                 original_draft=state.draft_response,
                 softened_answer=state.draft_response,
                 blame_language_issue=state.blame_language_issue,
             )
-            if state.adam_packet:
+            if state.asi_packet:
                 # Apply blame penalty to kappa_r if detected
                 if state.blame_language_issue:
-                    state.adam_packet.kappa_r = max(0.0, 0.97 - 0.25)
+                    state.asi_packet.kappa_r = max(0.0, 0.97 - 0.25)
                 else:
-                    state.adam_packet.kappa_r = 0.97
+                    state.asi_packet.kappa_r = 0.97
 
             state = stage_666_bridge(state)
 
-            # Update ADAM packet with bridge results (v35.8.0)
-            if state.adam_packet:
-                state.adam_packet.physical_action_issue = state.physical_action_issue
-                state.adam_packet.final_text = state.draft_response
+            # Update ASI packet with bridge results (v35.8.0)
+            if state.asi_packet:
+                state.asi_packet.physical_action_issue = state.physical_action_issue
+                state.asi_packet.final_text = state.draft_response
 
             state = stage_777_forge(state, self.llm_generate)
 
-            # Update ADAM packet with forge results (v35.8.0)
-            if state.adam_packet:
-                state.adam_packet.softened_answer = state.draft_response
-                state.adam_packet.final_text = state.draft_response
+            # Update ASI packet with forge results (v35.8.0)
+            if state.asi_packet:
+                state.asi_packet.softened_answer = state.draft_response
+                state.asi_packet.final_text = state.draft_response
 
             # EXHALE: 888 → 999
             state = stage_888_judge(state, self.compute_metrics, self.eye_sentinel)
