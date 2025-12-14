@@ -2,7 +2,7 @@
 
 **Status:** ✅ **PRODUCTION** | **1624+ Tests Passing** | **97% Safety Ceiling** | **7 CLI Tools** | **PyPI Ready** | **Memory Write Policy: ACTIVE** | **Phase 1: Complete ✅** | **v38.2 Hardening: SEALED**
 
-![Version](https://img.shields.io/badge/Version-v38.2-0052cc) ![Tests](https://img.shields.io/badge/Tests-1624%2B-success) ![Safety](https://img.shields.io/badge/Safety-97%25-brightgreen) ![License](https://img.shields.io/badge/License-AGPL3-orange) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![Memory](https://img.shields.io/badge/Memory-EUREKA%20v38-blueviolet) ![Time](https://img.shields.io/badge/Time-Governor-purple)
+![Version](https://img.shields.io/badge/Version-v41.0-0052cc) ![Tests](https://img.shields.io/badge/Tests-1624%2B-success) ![Safety](https://img.shields.io/badge/Safety-97%25-brightgreen) ![License](https://img.shields.io/badge/License-AGPL3-orange) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![Memory](https://img.shields.io/badge/Memory-EUREKA%20v38-blueviolet) ![FAG](https://img.shields.io/badge/FAG-v41-purple)
 
 ---
 
@@ -546,10 +546,10 @@ python scripts/test_memory_verdict_routing.py
 @software{arifos2025,
   author  = {Fazil, Muhammad Arif},
   title   = {arifOS: Constitutional Governance Kernel for AI Systems},
-  version = {38.1.0},
+  version = {41.0.0},
   year    = {2025},
   url     = {https://github.com/ariffazil/arifOS},
-  note    = {Physics-based thermodynamic governance with verdict-driven memory. Phase 1 testing complete. Gemini 2.0 validated.}
+  note    = {Physics-based thermodynamic governance with verdict-driven memory, FastAPI Body, MCP Integration, and FAG File Access Governance. Phases 1-4 complete. Gemini 2.0 validated.}
 }
 ```
 
@@ -588,8 +588,8 @@ python scripts/test_memory_verdict_routing.py
 
 **Made with 🔥 by Arif Fazil**
 
-*v38.1 Production | 1603 Tests | 97% Safety Ceiling | Physics-First Governance | EUREKA v38 Active | Phase 1 Complete*
+*v41.0 Production | 1603 Tests | 97% Safety Ceiling | Physics-First Governance | EUREKA v38 Active | Phases 1-4 Complete*
 
-*Memory Write Policy Validated | 4 Invariants Proven | 6 Bands Tested | Gemini 2.0 Kill-Shot Proof | zkPC Coming*
+*Body API (v39) | MCP Integration (v40) | FAG File Access (v41.0.0-alpha) | 23/23 FAG Tests Passing*
 
-*Last Updated: December 13, 2025 | Python-Sovereign | Merkle Proofs Active | Phoenix-72 Active*
+*Last Updated: December 14, 2025 | Python-Sovereign | Merkle Proofs Active | Phoenix-72 Active*

@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "38.1.0"
-description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW Judiciary, Memory Write Policy Engine (EUREKA), 6 Memory Bands, zkPC + Phoenix-72, v38 Unified LAW+SPEC+CODE+MEMORY Runtime"
+version = "41.0.0"
+description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW Judiciary, Memory Write Policy Engine (EUREKA), 6 Memory Bands, Body API (v39), MCP Integration (v40), FAG File Access Governance (v41), zkPC + Phoenix-72"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "AGPL-3.0"}
