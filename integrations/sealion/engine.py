@@ -1,14 +1,19 @@
 # integrations/sealion/engine.py
 """
-SEA-LION Engine with PHOENIX SOVEREIGNTY Amanah Lock (v36.1Omega)
+SEA-LION Engine with Semantic Governance (v41.3Omega)
 
 This module extracts SEA-LION client logic and enforces Python-sovereign
-Amanah detection via AMANAH_DETECTOR.
+governance via arifOS constitutional kernel.
 
 MISSION: "Dumb Code, Smart Model" - One Law for All Models
     - SEA-LION is a capable regional LLM
     - Python governance is the final veto
     - If SEA-LION outputs "rm -rf /", Python says NO
+
+v41.3 UPGRADE: Unified semantic governance with 3 layers:
+    - Layer 1: RED_PATTERNS instant VOID detection
+    - Layer 2: Heuristic metric computation
+    - Layer 3: APEX PRIME judgment
 
 Usage:
     from integrations.sealion.engine import SealionEngine, SealionConfig
@@ -20,10 +25,11 @@ Usage:
     if result.amanah_blocked:
         print("BLOCKED by Python governance!")
         print(result.amanah_violations)
+        print(f"Floor: {result.floor_code}")
 
 Author: arifOS Project
 License: Apache 2.0
-Version: 36.1Omega
+Version: 41.3Omega
 """
 
 from __future__ import annotations
@@ -33,34 +39,55 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
-# PHOENIX SOVEREIGNTY: Import Python-sovereign Amanah detector
+# v41.3: Import unified semantic governance from arifos_core
+_SEMANTIC_GOV_AVAILABLE = False
+_check_red_patterns = None
+_compute_metrics_from_task = None
+
+try:
+    from arifos_core import (
+        check_red_patterns as _check_red_patterns,
+        compute_metrics_from_task as _compute_metrics_from_task,
+        RED_PATTERN_TO_FLOOR,
+    )
+    _SEMANTIC_GOV_AVAILABLE = True
+except ImportError:
+    RED_PATTERN_TO_FLOOR = {}
+
+# Legacy: Import Python-sovereign Amanah detector as fallback
 _AMANAH_DETECTOR = None
 _AMANAH_AVAILABLE = False
 
 try:
     from arifos_core.floor_detectors.amanah_risk_detectors import (
-        AMANAH_DETECTOR as _AMANAH_DETECTOR,
-        AmanahResult,
+        AMANAH_DETECTOR as _AMANAH_DETECTOR_IMPORT,
+        AmanahResult as _AmanahResultImport,
     )
+    _AMANAH_DETECTOR = _AMANAH_DETECTOR_IMPORT
     _AMANAH_AVAILABLE = True
+
+    # Use imported AmanahResult
+    AmanahResult = _AmanahResultImport
 except ImportError:
     # Fallback: create stub
     @dataclass
-    class AmanahResult:
+    class AmanahResult:  # type: ignore[no-redef]
         is_safe: bool = True
         violations: List[str] = field(default_factory=list)
         warnings: List[str] = field(default_factory=list)
+        risk_level: str = "low"
 
-        def to_dict(self) -> Dict:
+        def to_dict(self) -> Dict[str, Any]:
             return {
                 "is_safe": self.is_safe,
                 "violations": self.violations,
                 "warnings": self.warnings,
+                "risk_level": self.risk_level,
             }
 
 # Try to import the existing SEA-LION client
 try:
-    import requests
+    import requests  # type: ignore[import-untyped]
     REQUESTS_AVAILABLE = True
 except ImportError:
     REQUESTS_AVAILABLE = False
@@ -193,7 +220,15 @@ class SealionResult:
     response: str
     raw_response: Optional[str] = None
 
-    # PHOENIX SOVEREIGNTY: Amanah Lock status
+    # v41.3 Semantic Governance status
+    governance_checked: bool = False
+    governance_safe: bool = True
+    governance_blocked: bool = False
+    floor_code: Optional[str] = None
+    severity: float = 1.0
+    red_pattern_category: Optional[str] = None
+
+    # Legacy: Amanah Lock status (for backwards compatibility)
     amanah_checked: bool = False
     amanah_safe: bool = True
     amanah_blocked: bool = False
@@ -208,6 +243,14 @@ class SealionResult:
         return {
             "response": self.response,
             "raw_response": self.raw_response,
+            # v41.3 Semantic Governance
+            "governance_checked": self.governance_checked,
+            "governance_safe": self.governance_safe,
+            "governance_blocked": self.governance_blocked,
+            "floor_code": self.floor_code,
+            "severity": self.severity,
+            "red_pattern_category": self.red_pattern_category,
+            # Legacy
             "amanah_checked": self.amanah_checked,
             "amanah_safe": self.amanah_safe,
             "amanah_blocked": self.amanah_blocked,
@@ -308,16 +351,32 @@ class SealionEngine:
         data = response.json()
         return data["choices"][0]["message"]["content"]
 
+    def _check_semantic_governance(self, text: str) -> tuple:
+        """
+        v41.3 Semantic Governance: Check text with unified governance layers.
+
+        Layer 1: RED_PATTERNS instant VOID
+        Layer 2: Heuristic metric computation (future)
+
+        Returns:
+            tuple: (is_safe, category, pattern, floor_code, severity)
+        """
+        if _SEMANTIC_GOV_AVAILABLE and _check_red_patterns is not None:
+            is_red, category, pattern, floor_code, severity = _check_red_patterns(text)
+            if is_red:
+                return False, category, pattern, floor_code, severity
+        return True, "", "", "", 1.0
+
     def _check_amanah(self, text: str) -> AmanahResult:
         """
-        PHOENIX SOVEREIGNTY: Check text with Python-sovereign Amanah detector.
+        Legacy: Check text with Python-sovereign Amanah detector.
 
-        This is the CRITICAL enforcement point. If the detector returns
-        is_safe=False, the response is BLOCKED - no negotiation.
+        This is a fallback when semantic governance is not available.
+        If the detector returns is_safe=False, the response is BLOCKED.
         """
         if self._amanah_detector is None:
             # No detector available - return safe (legacy behavior)
-            return AmanahResult(is_safe=True)
+            return AmanahResult(is_safe=True, risk_level="low")
 
         return self._amanah_detector.check(text)
 
@@ -327,13 +386,14 @@ class SealionEngine:
         system_prompt: Optional[str] = None,
     ) -> SealionResult:
         """
-        Generate response with PHOENIX SOVEREIGNTY enforcement.
+        Generate response with v41.3 Semantic Governance enforcement.
 
         Pipeline:
         1. Call SEA-LION API with query
-        2. Run Python-sovereign Amanah check on response
-        3. If Amanah fails, BLOCK and return violation info
-        4. If Amanah passes, return response
+        2. Run v41.3 Semantic Governance (Layer 1: RED_PATTERNS)
+        3. If Layer 1 fails, BLOCK with floor code and severity
+        4. Fallback to legacy Amanah check if semantic gov unavailable
+        5. If all checks pass, return response
 
         Args:
             query: User query
@@ -363,8 +423,38 @@ class SealionEngine:
             result.response = f"[ERROR] API call failed: {e}"
             return result
 
-        # PHOENIX SOVEREIGNTY: Python-sovereign Amanah check
+        # v41.3 SEMANTIC GOVERNANCE: Check response
         if self.config.strict_amanah:
+            # Layer 1: RED_PATTERNS check (if available)
+            is_safe, category, pattern, floor_code, severity = self._check_semantic_governance(raw_response)
+
+            result.governance_checked = True
+            result.governance_safe = is_safe
+
+            if not is_safe:
+                # BLOCKED by semantic governance
+                result.governance_blocked = True
+                result.floor_code = floor_code
+                result.severity = severity
+                result.red_pattern_category = category
+
+                # Also set legacy fields for backwards compatibility
+                result.amanah_checked = True
+                result.amanah_safe = False
+                result.amanah_blocked = True
+                result.amanah_violations = [f"{category}: {pattern}"]
+
+                result.response = (
+                    f"[VOID] Response blocked by semantic governance.\n\n"
+                    f"[FLOOR VIOLATION: {floor_code}]\n"
+                    f"Category: {category}\n"
+                    f"Pattern: {pattern}\n"
+                    f"Severity: {severity:.2f}\n\n"
+                    f"Please rephrase your request."
+                )
+                return result
+
+            # Fallback: Legacy Amanah check (if semantic gov didn't catch it)
             amanah_result = self._check_amanah(raw_response)
 
             result.amanah_checked = True
@@ -373,11 +463,13 @@ class SealionEngine:
             result.amanah_warnings = amanah_result.warnings
 
             if not amanah_result.is_safe:
-                # BLOCKED by Python governance
+                # BLOCKED by legacy Amanah
                 result.amanah_blocked = True
+                result.governance_blocked = True
+                result.floor_code = "F1(amanah)"
                 result.response = (
                     "[VOID] Response blocked by Python-sovereign governance.\n\n"
-                    "[PHOENIX SOVEREIGNTY]\n"
+                    "[AMANAH VIOLATION]\n"
                     "The LLM output contained unsafe patterns:\n"
                 )
                 for violation in amanah_result.violations:
@@ -385,7 +477,7 @@ class SealionEngine:
                 result.response += "\nPlease rephrase your request."
                 return result
 
-        # Amanah passed - return response
+        # All checks passed - return response
         result.response = raw_response
         return result
 
@@ -416,9 +508,9 @@ class SealionEngine:
 
 class MockSealionEngine:
     """
-    Mock SEA-LION engine for testing PHOENIX SOVEREIGNTY.
+    Mock SEA-LION engine for testing v41.3 Semantic Governance.
 
-    Returns configurable responses for testing the Amanah Lock.
+    Returns configurable responses for testing the governance layers.
     """
 
     def __init__(
@@ -429,13 +521,21 @@ class MockSealionEngine:
         self.config = config or SealionConfig()
         self.mock_response = mock_response or "This is a mock SEA-LION response."
 
-        # PHOENIX SOVEREIGNTY: Store detector reference
+        # Legacy: Store detector reference
         self._amanah_detector = _AMANAH_DETECTOR if _AMANAH_AVAILABLE else None
 
+    def _check_semantic_governance(self, text: str) -> tuple:
+        """v41.3 Semantic Governance check."""
+        if _SEMANTIC_GOV_AVAILABLE and _check_red_patterns is not None:
+            is_red, category, pattern, floor_code, severity = _check_red_patterns(text)
+            if is_red:
+                return False, category, pattern, floor_code, severity
+        return True, "", "", "", 1.0
+
     def _check_amanah(self, text: str) -> AmanahResult:
-        """PHOENIX SOVEREIGNTY: Check text with Python-sovereign Amanah detector."""
+        """Legacy: Check text with Python-sovereign Amanah detector."""
         if self._amanah_detector is None:
-            return AmanahResult(is_safe=True)
+            return AmanahResult(is_safe=True, risk_level="low")
         return self._amanah_detector.check(text)
 
     def set_response(self, response: str) -> None:
@@ -447,15 +547,41 @@ class MockSealionEngine:
         query: str,
         system_prompt: Optional[str] = None,
     ) -> SealionResult:
-        """Generate mock response with PHOENIX SOVEREIGNTY enforcement."""
+        """Generate mock response with v41.3 Semantic Governance enforcement."""
         result = SealionResult(
             response="",
             model="mock-sealion",
             raw_response=self.mock_response,
         )
 
-        # PHOENIX SOVEREIGNTY: Python-sovereign Amanah check
+        # v41.3 SEMANTIC GOVERNANCE
         if self.config.strict_amanah:
+            # Layer 1: RED_PATTERNS check
+            is_safe, category, pattern, floor_code, severity = self._check_semantic_governance(self.mock_response)
+
+            result.governance_checked = True
+            result.governance_safe = is_safe
+
+            if not is_safe:
+                result.governance_blocked = True
+                result.floor_code = floor_code
+                result.severity = severity
+                result.red_pattern_category = category
+                result.amanah_checked = True
+                result.amanah_safe = False
+                result.amanah_blocked = True
+                result.amanah_violations = [f"{category}: {pattern}"]
+                result.response = (
+                    f"[VOID] Response blocked by semantic governance.\n\n"
+                    f"[FLOOR VIOLATION: {floor_code}]\n"
+                    f"Category: {category}\n"
+                    f"Pattern: {pattern}\n"
+                    f"Severity: {severity:.2f}\n\n"
+                    f"Please rephrase your request."
+                )
+                return result
+
+            # Fallback: Legacy Amanah check
             amanah_result = self._check_amanah(self.mock_response)
 
             result.amanah_checked = True
@@ -464,11 +590,12 @@ class MockSealionEngine:
             result.amanah_warnings = amanah_result.warnings
 
             if not amanah_result.is_safe:
-                # BLOCKED by Python governance
                 result.amanah_blocked = True
+                result.governance_blocked = True
+                result.floor_code = "F1(amanah)"
                 result.response = (
                     "[VOID] Response blocked by Python-sovereign governance.\n\n"
-                    "[PHOENIX SOVEREIGNTY]\n"
+                    "[AMANAH VIOLATION]\n"
                     "The LLM output contained unsafe patterns:\n"
                 )
                 for violation in amanah_result.violations:
@@ -476,7 +603,7 @@ class MockSealionEngine:
                 result.response += "\nPlease rephrase your request."
                 return result
 
-        # Amanah passed
+        # All checks passed
         result.response = self.mock_response
         return result
 

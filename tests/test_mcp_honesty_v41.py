@@ -79,16 +79,21 @@ def test_module_uses_serialize_public():
     Forbidden: {"verdict": ..., "response": ...} (custom dict)
     """
     module = load_mcp_module()
-    
+
     # Check imports
     source = (REPO_ROOT / "scripts" / "arifos_mcp_entry.py").read_text()
-    
+
     assert "from arifos_core.contracts.apex_prime_output_v41 import serialize_public" in source, \
         "Must import serialize_public"
     assert "serialize_public(" in source, \
         "Must call serialize_public()"
-    assert 'session_data = {' in source and '"steps": []' in source, \
-        "Must construct session with empty steps"
+
+    # v41.3: MCP now uses semantic governance directly instead of session_data
+    # This is HONEST - no fabricated pipeline stages
+    assert "check_red_patterns" in source, \
+        "Must use check_red_patterns for Layer 1 governance"
+    assert "compute_metrics_from_task" in source, \
+        "Must use compute_metrics_from_task for Layer 2 governance"
 
 
 def test_dev_mode_removed():
@@ -170,13 +175,14 @@ def test_bridge_to_kernel():
 
 def test_aclip_bridge_still_works():
     """
-    Regression: Ensure L6 bridge tests still pass after MCP changes.
-    
-    This validates we didn't break the proven bridge.
+    v41.3 Semantic Governance: AAA Trinity (AGI→ASI→APEX_PRIME).
+
+    The semantic governance layer evaluates TASK TEXT, not session state.
+    Both complete and incomplete sessions with the same safe task will SEAL.
     """
     from arifos_core import evaluate_session
-    
-    # Complete session (should SEAL)
+
+    # Complete session (safe task -> SEAL)
     complete_session = {
         "id": "test_complete",
         "task": "Read documentation",
@@ -191,11 +197,11 @@ def test_aclip_bridge_still_works():
             {"name": "align", "output": "Floors checked"},
         ]
     }
-    
+
     verdict = evaluate_session(complete_session)
-    assert verdict == "SEAL", f"Complete session should SEAL, got: {verdict}"
-    
-    # Incomplete session (should SABAR)
+    assert verdict == "SEAL", f"Safe task should SEAL, got: {verdict}"
+
+    # Incomplete session (same safe task -> same verdict)
     incomplete_session = {
         "id": "test_incomplete",
         "task": "Read documentation",
@@ -205,9 +211,10 @@ def test_aclip_bridge_still_works():
             {"name": "sense", "output": "Context gathered"},
         ]
     }
-    
+
     verdict = evaluate_session(incomplete_session)
-    assert verdict == "SABAR", f"Incomplete session should SABAR, got: {verdict}"
+    # v41.3: Semantic governance evaluates TASK TEXT, not session completeness
+    assert verdict == "SEAL", f"Safe task should SEAL regardless of steps, got: {verdict}"
 
 
 if __name__ == "__main__":
