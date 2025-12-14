@@ -29,9 +29,9 @@ The physics layer enforces **9 Constitutional Floors** as hard/soft constraints,
 
 ## Key Equations & Floors
 
-### ΔΩΨ Unified Field
+### Structural Field Identity
 ```
-ΔΩΨ = Δ · Ω · Ψ
+ΔΩΨ = Δ ⊗ Ω ⊗ Ψ
 
 Where:
   Δ = Clarity (Truth, ΔS gain)
@@ -39,7 +39,7 @@ Where:
   Ψ = Vitality (system health)
 ```
 
-### The 9 Constitutional Floors (Frozen v36.3Ω)
+### The 9 Constitutional Floors (v36.3Ω)
 
 These are the **canonical 9 floors** as defined in Genesis and the 9-Essential canon. No new floors may be added without constitutional amendment.
 
@@ -80,7 +80,7 @@ C_dark = normalize(Accuracy × (1-Precision) × (1-Execution) × Empathy)
 C_dark = Δ · (1-Ω) · (1-Ψ)  # Simplified form
 
 # Ψ_APEX (Advanced vitality)
-Ψ_APEX = (G² × Peace² × κᵣ × RASA × Amanah) / (C_dark + Shadow + ε)
+Ψ_APEX = (G² · Peace² · κᵣ · RASA · Amanah) / (C_dark + Shadow + ε)
 ```
 
 These equations are used by `arifos_core/genius_metrics.py` to compute derived signals for APEX PRIME verdicts.
@@ -129,6 +129,13 @@ Where:
 | **Truth-Light** | Truth ≥ 0.99 AND ΔS ≥ 0 | Proceed — clarifying truth |
 | **Shadow-Truth** | Truth ≥ 0.99 AND ΔS < 0 | SABAR — add missing context |
 | **Weaponized** | Shadow + Amanah fail | VOID — refuse entirely |
+
+### Truth Polarity Verdict Mapping
+| State        | Verdict |
+| ------------ | ------- |
+| Truth-Light  | SEAL    |
+| Shadow-Truth | SABAR   |
+| Weaponized   | VOID    |
 
 ---
 

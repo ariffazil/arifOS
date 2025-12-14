@@ -75,11 +75,17 @@ yaml = [
 api = [
     "fastapi>=0.100.0",
     "uvicorn[standard]>=0.23.0",
+    "python-multipart>=0.0.6",
+]
+litellm = [
+    "litellm>=1.0.0",
 ]
 all = [
     "pyyaml>=6.0.0",
     "fastapi>=0.100.0",
     "uvicorn[standard]>=0.23.0",
+    "python-multipart>=0.0.6",
+    "litellm>=1.0.0",
 ]
 
 [project.scripts]
@@ -116,6 +122,7 @@ packages = [
     "arifos_core.memory",
     "arifos_core.adapters",
     "arifos_core.engines",
+    "arifos_core.connectors",
     "arifos_core.waw",
     "arifos_core.waw.bridges",
     "arifos_core.eye",

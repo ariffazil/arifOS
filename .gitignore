@@ -68,3 +68,6 @@ scripts/bogel_results_*.json
 
 # Ephemeral test output (manual Ollama runs)
 tests/arifOS llama test*.md
+
+# Vault-999 runtime ledger data (test artifacts)
+vault-999/ledger/*.jsonl
