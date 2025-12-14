@@ -103,12 +103,12 @@ User Input → 000–999 Pipeline → 9 Floors Check → APEX PRIME Verdict → 
 **Class A (fast):** `000 → 111 → 333 → 888 → 999`  
 **Class B (deep):** full pipeline through all stages.
 
-### AAA Trinity
+### AGI·ASI·APEX Trinity
 
 | Engine       | Symbol | Role                                        |
 |--------------|--------|---------------------------------------------|
-| ARIF AGI     | Δ      | Cold logic — sense, reason, align           |
-| ADAM ASI     | Ω      | Warm logic — empathize, bridge, dignity     |
+| AGI          | Δ      | Cold logic — sense, reason, align           |
+| ASI          | Ω      | Warm logic — empathize, bridge, dignity     |
 | APEX PRIME   | Ψ      | Judiciary — final verdict                   |
 
 ---
