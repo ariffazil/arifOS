@@ -1,7 +1,7 @@
 """
-arif_engine.py - ARIF AGI (Delta Engine) Facade
+agi_engine.py - AGI (Architect) Engine Facade
 
-ARIF AGI is the Mind/Cold Logic engine of the AAA Trinity.
+AGI is the Mind/Cold Logic engine of the AGI·ASI·APEX Trinity.
 Role: Clarity, structure, reasoning - thermodynamic compression (ΔS >= 0)
 
 Pipeline stages owned:
@@ -11,12 +11,12 @@ Pipeline stages owned:
 
 Constraints (from canon):
 - Must enforce d(ΔS)/dt > 0 (clarity increases)
-- Cannot seal, override, or finalize - hands off to ADAM then APEX
+- Cannot seal, override, or finalize - hands off to ASI then APEX
 - Must not claim feelings (Anti-Hantu)
 - Keep ΔC (contrast) in lawful band [0.15, 0.40] where applicable
 
-See: canon/100_AAA_ENGINES_SPEC_v35Omega.md
-     canon/10_SYSTEM/111_ARIF_AGI_v36Omega.md
+See: canon/100_AAA_ENGINES_SPEC_v35Omega.md (uses legacy naming)
+     canon/10_SYSTEM/111_ARIF_AGI_v36Omega.md (uses legacy naming)
 """
 
 from __future__ import annotations
@@ -27,9 +27,9 @@ from typing import Any, Callable, Dict, List, Optional
 
 
 @dataclass
-class ARIFPacket:
+class AGIPacket:
     """
-    Output packet from ARIF engine processing.
+    Output packet from AGI engine processing.
 
     Contains structured reasoning and clarity metrics.
     """
@@ -69,12 +69,12 @@ class ARIFPacket:
         }
 
 
-class ARIFEngine:
+class AGIEngine:
     """
-    ARIF AGI (Delta Engine) - Mind/Cold Logic facade.
+    AGI (Architect) Engine - Mind/Cold Logic facade.
 
     Wraps existing pipeline stages 111/333/444 to provide
-    a clean interface for ARIF's contribution to the AAA flow.
+    a clean interface for AGI's contribution to the Trinity flow.
 
     Zero-break contract:
     - Delegates to existing logic from pipeline.py
@@ -82,10 +82,10 @@ class ARIFEngine:
     - No floor threshold changes
 
     Usage:
-        arif = ARIFEngine()
-        packet = arif.sense(query, context)
-        packet = arif.reason(packet, llm_generate)
-        packet = arif.align(packet)
+        agi = AGIEngine()
+        packet = agi.sense(query, context)
+        packet = agi.reason(packet, llm_generate)
+        packet = agi.align(packet)
     """
 
     # High-stakes keyword patterns (from pipeline.py stage_111_sense)
@@ -113,14 +113,14 @@ class ARIFEngine:
     ]
 
     def __init__(self) -> None:
-        """Initialize ARIF engine."""
+        """Initialize AGI engine."""
         pass  # Stateless facade
 
     def sense(
         self,
         prompt: str,
         context: Optional[Dict[str, Any]] = None,
-    ) -> ARIFPacket:
+    ) -> AGIPacket:
         """
         111 SENSE - Structural intake and stakes classification.
 
@@ -134,9 +134,9 @@ class ARIFEngine:
             context: Optional context dictionary
 
         Returns:
-            ARIFPacket with parsed input and stakes classification
+            AGIPacket with parsed input and stakes classification
         """
-        packet = ARIFPacket(
+        packet = AGIPacket(
             prompt=prompt,
             context=context or {},
         )
@@ -159,11 +159,11 @@ class ARIFEngine:
 
     def reason(
         self,
-        packet: ARIFPacket,
+        packet: AGIPacket,
         llm_generate: Optional[Callable[[str], str]] = None,
         scars: Optional[List[Dict[str, Any]]] = None,
         context_blocks: Optional[List[Dict[str, Any]]] = None,
-    ) -> ARIFPacket:
+    ) -> AGIPacket:
         """
         333 REASON - ΔS-focused reasoning.
 
@@ -173,13 +173,13 @@ class ARIFEngine:
         This delegates to the logic in pipeline.py stage_333_reason.
 
         Args:
-            packet: ARIFPacket from sense()
+            packet: AGIPacket from sense()
             llm_generate: Optional LLM generation function
             scars: Optional active scars/constraints
             context_blocks: Optional relevant context
 
         Returns:
-            ARIFPacket with draft response and reasoning metrics
+            AGIPacket with draft response and reasoning metrics
         """
         # Build reasoning prompt with context (from stage_333_reason)
         prompt_parts = [f"Query: {packet.prompt}"]
@@ -212,7 +212,7 @@ class ARIFEngine:
 
         return packet
 
-    def align(self, packet: ARIFPacket) -> ARIFPacket:
+    def align(self, packet: AGIPacket) -> AGIPacket:
         """
         444 ALIGN - Truth verification and fact-checking.
 
@@ -222,10 +222,10 @@ class ARIFEngine:
         This delegates to the logic in pipeline.py stage_444_align.
 
         Args:
-            packet: ARIFPacket from reason()
+            packet: AGIPacket from reason()
 
         Returns:
-            ARIFPacket with alignment flags set
+            AGIPacket with alignment flags set
         """
         text = packet.draft or ""
         text_lower = text.lower()
@@ -248,7 +248,7 @@ class ARIFEngine:
         llm_generate: Optional[Callable[[str], str]] = None,
         scars: Optional[List[Dict[str, Any]]] = None,
         context_blocks: Optional[List[Dict[str, Any]]] = None,
-    ) -> ARIFPacket:
+    ) -> AGIPacket:
         """
         Convenience method to run full ARIF pipeline (sense + reason + align).
 
@@ -260,7 +260,7 @@ class ARIFEngine:
             context_blocks: Optional relevant context
 
         Returns:
-            Complete ARIFPacket
+            Complete AGIPacket
         """
         packet = self.sense(prompt, context)
         packet = self.reason(packet, llm_generate, scars, context_blocks)
@@ -268,4 +268,4 @@ class ARIFEngine:
         return packet
 
 
-__all__ = ["ARIFEngine", "ARIFPacket"]
+__all__ = ["AGIEngine", "AGIPacket"]

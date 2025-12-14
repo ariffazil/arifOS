@@ -42,8 +42,8 @@ from .waw.federation import WAWFederationCore, FederationVerdict
 
 # AAA Engines (internal facade - v35.8.0)
 from .engines import ARIFEngine, ADAMEngine
-from .engines.arif_engine import ARIFPacket
-from .engines.adam_engine import ADAMPacket
+from .engines.agi_engine import AGIPacket
+from .engines.asi_engine import ASIPacket
 
 # Memory Context (v37)
 from .memory.memory_context import (
@@ -138,8 +138,8 @@ class PipelineState:
     physical_action_issue: bool = False
 
     # AAA Engine packets (v35.8.0 - internal, optional)
-    arif_packet: Optional[ARIFPacket] = None
-    adam_packet: Optional[ADAMPacket] = None
+    arif_packet: Optional[AGIPacket] = None
+    adam_packet: Optional[ASIPacket] = None
 
     # Memory Context (v37) - ONE per pipeline run
     memory_context: Optional[MemoryContext] = None
@@ -1288,7 +1288,7 @@ class Pipeline:
         state = stage_111_sense(state)
 
         # Populate ARIF packet from sense results (v35.8.0)
-        state.arif_packet = ARIFPacket(
+        state.arif_packet = AGIPacket(
             prompt=state.query,
             high_stakes_indicators=state.high_stakes_indicators.copy(),
         )
@@ -1335,7 +1335,7 @@ class Pipeline:
             state = stage_555_empathize(state)
 
             # Create ADAM packet from empathize results (v35.8.0)
-            state.adam_packet = ADAMPacket(
+            state.adam_packet = ASIPacket(
                 arif_packet=state.arif_packet,
                 original_draft=state.draft_response,
                 softened_answer=state.draft_response,

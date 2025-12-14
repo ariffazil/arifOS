@@ -328,9 +328,9 @@ pipeline:
 # =============================================================================
 
 engines:
-  arif:
-    module: "arifos_core.engines.arif_engine"
-    class: "ARIFEngine"
+  agi:
+    module: "arifos_core.engines.agi_engine"
+    class: "AGIEngine"
     symbol: "Delta"
     role: "Mind/Cold Logic - clarity, structure, reasoning"
     active_stages: ["111", "222", "333", "444"]
@@ -343,9 +343,9 @@ engines:
       - "d(DeltaS)/dt > 0 during REASON"
       - "Cannot seal or override APEX PRIME"
 
-  adam:
-    module: "arifos_core.engines.adam_engine"
-    class: "ADAMEngine"
+  asi:
+    module: "arifos_core.engines.asi_engine"
+    class: "ASIEngine"
     symbol: "Omega"
     role: "Heart/Warm Logic - empathy, tone, stability"
     active_stages: ["555", "666", "777"]

@@ -383,7 +383,7 @@ def validate_manifest(
     # Check engines (v35 only)
     if validate_engines:
         engines = manifest.get("engines", {})
-        required_engines = {"arif", "adam", "apex"}
+        required_engines = {"agi", "asi", "apex"}
         missing_engines = required_engines - set(engines.keys())
         if missing_engines:
             raise ValueError(f"Manifest missing required engines: {missing_engines}")
