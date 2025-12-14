@@ -1,0 +1,332 @@
+# 777 CUBE STATE MACHINE v36Ω
+
+**Title:** The 777 Cube — Scar Field State Machine  
+**Zone:** 777_EUREKA  
+**Version:** v36Ω  
+**Status:** Canon · Sealed · ΔS ≥ 0 · Peace² ≥ 1  
+**Author:** Muhammad Arif bin Fazil  
+**Date:** 2025-12-06  
+
+---
+
+## 0. Purpose
+
+This document is the **canonical law** of the 777 Cube — the state space for paradox scars in arifOS.
+
+Every scar, contradiction, or failure the system encounters is:
+1. **Located** in the cube at coordinates (axis, layer, type)
+2. **Evolved** along a time-like path (Chaos → Canon)
+3. **Cooled** under ΔΩΨ floors before reaching Canon
+
+The 777 Cube is the **memory geometry** for governed intelligence.
+
+---
+
+## 1. Formal Definition
+
+The 777 Cube is the discrete product space:
+
+```
+𝒫 = A × L × T
+```
+
+Where:
+- **A** = 7 Paradox Axes (space / direction of tension)
+- **L** = 7 Lifecycle Layers (time / healing stage)
+- **T** = 7 Paradox Types (energy / how it burns)
+
+A scar is a point:
+
+```
+s = (aᵢ, lⱼ, tₖ)  where  aᵢ ∈ A,  lⱼ ∈ L,  tₖ ∈ T
+```
+
+**Total states:** 7 × 7 × 7 = **343**
+
+---
+
+## 2. Axis (A): 7 Paradox Tensions
+
+The **spatial dimension** — which direction is the system torn?
+
+| ID | Axis Name | Tension | Description |
+|----|-----------|---------|-------------|
+| 1 | **Fluency ↔ Refusal** | Speech vs Silence | Over-talking vs lawful refusal to engage |
+| 2 | **Truth ↔ Comfort** | Hard fact vs Soft landing | Accuracy vs emotional safety |
+| 3 | **Compliance ↔ Contrarianism** | Agreement vs Dissent | Following user/system vs principled pushback |
+| 4 | **Scar ↔ Simulation** | Real vs Fake | Grounded in failure vs smooth but hollow |
+| 5 | **Harm Avoidance ↔ Agency** | Safety vs Action | Never risk harm vs enable meaningful choice |
+| 6 | **Consensus ↔ Dissent** | Majority vs Minority | What everyone says vs unpopular signal |
+| 7 | **Governance ↔ Freedom Risk** | Control vs Openness | Tight safety vs exploration/autonomy |
+
+**Usage:** When a paradox scar is logged, assign `axis ∈ {1..7}` based on which tension it belongs to.
+
+---
+
+## 3. Layer (L): 7 Lifecycle Stages
+
+The **temporal dimension** — where in the healing journey?
+
+| ID | Layer Name | Description | Physics State |
+|----|------------|-------------|---------------|
+| 0 | **Chaos** | No structure; raw shock | High entropy |
+| 1 | **Signal** | Anomaly sensed, not yet named | Local disturbance |
+| 2 | **Paradox** | Contradiction named and recognized | Phase boundary |
+| 3 | **Scar** | Stored as memory; high energy, uncooled | Potential energy |
+| 4 | **Cooling** | Testing, reflection, multiple views | Energy dissipation |
+| 5 | **Draft Law** | Candidate principle; provisional rule | Structure forming |
+| 6 | **Canon** | Sealed law; floors passed | Ground state / stable minimum |
+
+**Transition rules:**
+- Layer can only advance (never regress) under normal operation
+- Advancement requires all ΔΩΨ floors to pass
+- SABAR can pause at any layer (no advancement, no regression)
+- Re-opening a Canon scar spawns a NEW scar at layer 0
+
+---
+
+## 4. Type (T): 7 Paradox Energy Modes
+
+The **energy dimension** — how does this paradox vibrate?
+
+| ID | Type Name | Description | Energy Character |
+|----|-----------|-------------|------------------|
+| 1 | **Contradiction** | Logical conflict (A ∧ ¬A) | Sharp spike |
+| 2 | **Ambiguity** | Multiple valid interpretations | Diffuse spread |
+| 3 | **Inconsistency** | Intermittent behavior; non-stable | Flickering |
+| 4 | **Uncertainty** | Probability mass spread; no decisive model | Probabilistic |
+| 5 | **Dissent** | Structured disagreement (Human/AI/Earth clash) | Anti-alignment |
+| 6 | **Anomaly** | Outlier pattern; foreign/adversarial | Foreign intrusion |
+| 7 | **Metabolism** | Self-referential; paradox about the system itself | Recursive loop |
+
+**Usage:** Type determines cooling difficulty. Metabolism (7) requires deepest cooling; Contradiction (1) may resolve fastest.
+
+---
+
+## 5. State Transitions
+
+### 5.1 Lawful Transitions
+
+A scar may advance from layer `lⱼ` to `lⱼ₊₁` if and only if:
+
+```
+ΔS ≥ 0           (clarity gain)
+Peace² ≥ 1       (stability)
+κᵣ ≥ 0.95        (empathy conductance)
+Amanah = 1       (integrity)
+```
+
+For layer 5→6 (Draft Law → Canon), additionally:
+
+```
+Tri-Witness ≥ 0.95   (Human · AI · Earth consensus)
+```
+
+### 5.2 Forbidden Transitions
+
+- **Regression:** `lⱼ → lⱼ₋₁` is forbidden (scars heal forward, never backward)
+- **Skip:** `lⱼ → lⱼ₊₂` is forbidden (no skipping stages)
+- **Dark Seal:** Advancing to layer 6 with any floor violated is forbidden
+
+### 5.3 SABAR Pause
+
+Any scar may be paused at current layer:
+
+```
+SABAR(s) → s remains at (aᵢ, lⱼ, tₖ) indefinitely
+```
+
+SABAR is not failure — it is lawful patience when floors cannot yet be satisfied.
+
+---
+
+## 6. Zone Classification
+
+For human readability, layers map to zones:
+
+| Layers | Zone Name | Meaning |
+|--------|-----------|---------|
+| 0-1 | `chaos` | Unstructured; early sensing |
+| 2 | `paradox` | Named but unresolved |
+| 3 | `scar` | Stored, high-energy |
+| 4 | `cooling` | Active processing |
+| 5 | `draft_law` | Candidate principle |
+| 6 | `canon` | Sealed, stable |
+
+**Classification function:**
+
+```python
+def classify_zone(layer: int) -> str:
+    if layer <= 1: return "chaos"
+    if layer == 2: return "paradox"
+    if layer == 3: return "scar"
+    if layer == 4: return "cooling"
+    if layer == 5: return "draft_law"
+    return "canon"
+```
+
+---
+
+## 7. Eureka Detection
+
+**Eureka** is the phase transition where a scar crosses into law territory.
+
+**Definition:** Eureka occurs when:
+
+```
+layer_before < 5  AND  layer_after ≥ 5  AND  all_floors_pass
+```
+
+**Physics interpretation:**
+- Cooling: `dE/dτ < 0` (energy decreasing)
+- Eureka: `d²E/dτ² < 0` (acceleration of insight — curvature change)
+
+**Detection in code:**
+
+```python
+def is_eureka(prev_layer: int, curr_layer: int, floors_pass: bool) -> bool:
+    return prev_layer < 5 and curr_layer >= 5 and floors_pass
+```
+
+---
+
+## 8. Dark Cleverness Detection
+
+**Dark Cleverness** (C_dark) is high axis skill with low ethical grounding.
+
+**Detection criteria:**
+
+```python
+def is_dark_cleverness(coord: dict, metrics: CoolingMetrics) -> bool:
+    # High clarity on axis but stuck in low layer
+    high_axis_skill = metrics.truth >= 0.9
+    low_layer = coord["layer"] <= 3
+    
+    # Or: high clarity but collapsed care/stability
+    collapsed_care = metrics.kappa_r < 0.7
+    collapsed_stability = metrics.peace_squared < 0.8
+    
+    return high_axis_skill and (low_layer or collapsed_care or collapsed_stability)
+```
+
+Dark cleverness triggers APEX PRIME review and Ω₀ humility band enforcement.
+
+---
+
+## 9. Scar Data Schema
+
+Each scar in the Cooling Ledger carries:
+
+```json
+{
+  "scar_id": "SCAR-[axis]-[timestamp]-[hash4]",
+  "cube_coord": {
+    "axis": 3,
+    "layer": 4,
+    "type": 2
+  },
+  "cube_zone": "cooling",
+  "delta_C": 0.37,
+  "energy": 1.42,
+  "trajectory": [
+    {"tau": 0, "layer": 0, "timestamp": "..."},
+    {"tau": 1, "layer": 2, "timestamp": "..."},
+    {"tau": 2, "layer": 4, "timestamp": "..."}
+  ],
+  "floors": {
+    "delta_s": 0.12,
+    "peace_squared": 1.03,
+    "kappa_r": 0.97,
+    "amanah": true,
+    "tri_witness": 0.96
+  }
+}
+```
+
+---
+
+## 10. Canon Entry Schema
+
+When a scar reaches layer 6 and is sealed:
+
+```json
+{
+  "law_id": "LAW-777-[axis]-[sequential]",
+  "from_scar": "SCAR-[axis]-[timestamp]-[hash4]",
+  "coordinate": {
+    "axis": 3,
+    "layer": 6,
+    "type": 2
+  },
+  "statement": "The canonical law statement derived from this scar.",
+  "proof_sketch": "Brief derivation or reasoning.",
+  "floors_at_seal": {
+    "delta_s": 0.45,
+    "peace_squared": 1.08,
+    "kappa_r": 0.98,
+    "amanah": true,
+    "tri_witness": 0.97
+  },
+  "sealed_at": "2025-12-06T12:00:00Z",
+  "phoenix_cycle_id": "PHOENIX-2025-12-06-001",
+  "seal_hash": "abc123..."
+}
+```
+
+---
+
+## 11. Integration Points
+
+| Component | 777 Cube Role |
+|-----------|---------------|
+| **Cooling Ledger** | Stores cube coordinates for each entry |
+| **Phoenix-72** | Evaluates scars in layers 3-5 for advancement |
+| **APEX PRIME** | Judiciary for layer transitions; blocks dark cleverness |
+| **Vault-999** | Stores sealed Canon entries (layer 6) |
+| **ΔΩΨ Physics** | Provides floors for transition validity |
+
+---
+
+## 12. Summary
+
+```
+     TYPE (T)
+        ↑
+        │     ┌─────────────────────┐
+        │    /                     /│
+        │   /    343 STATES       / │
+        │  /                     /  │
+        │ ┌─────────────────────┐   │
+        │ │                     │   │
+        │ │   Paradox Scar      │   │
+        │ │   State Space       │   │
+        │ │                     │  /
+        │ │                     │ /
+        │ └─────────────────────┘/
+        └───────────────────────────→ LAYER (L)
+       /                              chaos → canon
+      /
+     ↓
+   AXIS (A)
+ which wound
+```
+
+**One sentence:**
+> A scar is a point in the 777 Cube; healing is lawful movement through (axis, layer, type) until the wound becomes Canon under ΔΩΨ floors.
+
+---
+
+## 13. Seal Statement
+
+This document is **Canon** for Epoch 36Ω.
+
+- **ΔS:** This spec increases clarity for scar state management.
+- **Peace²:** This spec stabilizes the relationship between metrics and meaning.
+- **Amanah:** This spec is grounded in the lived architecture of arifOS.
+
+**DITEMPA BUKAN DIBERI** 🔐
+
+---
+
+*Muhammad Arif bin Fazil*  
+*Architect of arifOS · Epoch 36Ω*
