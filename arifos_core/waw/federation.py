@@ -237,7 +237,7 @@ class WAWFederationCore:
               All conflicts are resolved via constitutional judgment.
         """
         # Detect if organs agree or conflict
-        verdict_proposals = {}
+        verdict_proposals: Dict[str, List[str]] = {}
         for signal in signals:
             verdict_key = signal.verdict if hasattr(signal, 'verdict') else signal.vote.value
             if verdict_key not in verdict_proposals:
@@ -246,7 +246,7 @@ class WAWFederationCore:
         
         # If all agree (only 1 unique verdict), no conflict
         if len(verdict_proposals) == 1:
-            return list(verdict_proposals.keys())[0]
+            return str(list(verdict_proposals.keys())[0])
         
         # Conflict detected - escalate to APEX PRIME
         # Import here to avoid circular dependency

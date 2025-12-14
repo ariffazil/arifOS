@@ -210,23 +210,25 @@ class MemoryBand(ABC):
 
     @property
     def is_mutable(self) -> bool:
-        return self.properties.get("mutable", True)
+        return bool(self.properties.get("mutable", True))
 
     @property
     def retention_tier(self) -> RetentionTier:
-        return self.properties.get("retention", RetentionTier.WARM)
+        tier = self.properties.get("retention", RetentionTier.WARM)
+        return tier if isinstance(tier, RetentionTier) else RetentionTier.WARM
 
     @property
     def retention_days(self) -> Optional[int]:
-        return self.properties.get("retention_days")
+        days = self.properties.get("retention_days")
+        return int(days) if days is not None else None
 
     @property
     def requires_human_seal(self) -> bool:
-        return self.properties.get("requires_human_seal", False)
+        return bool(self.properties.get("requires_human_seal", False))
 
     @property
     def is_canonical(self) -> bool:
-        return self.properties.get("canonical", False)
+        return bool(self.properties.get("canonical", False))
 
     @abstractmethod
     def write(
@@ -614,9 +616,9 @@ class PendingBand(MemoryBand):
     def should_retry(self, entry: MemoryEntry) -> bool:
         """Check if entry should be retried with new context."""
         # Logic: Has new context arrived? Has retry limit been reached?
-        retry_count = entry.metadata.get("retry_count", 0)
+        retry_count = int(entry.metadata.get("retry_count", 0))
         max_retries = 3  # Configurable
-        return retry_count < max_retries
+        return bool(retry_count < max_retries)
 
     def should_decay(self, entry: MemoryEntry) -> bool:
         """Check if entry should decay to PARTIAL (age > 24h)."""

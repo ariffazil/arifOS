@@ -235,7 +235,7 @@ class MemoryWritePolicy:
         # Build ledger entry
         ledger_entry = self._build_ledger_entry(
             verdict=verdict_upper,
-            evidence_chain=evidence_chain,
+            evidence_chain=evidence_chain if evidence_chain is not None else {},
             target_bands=allowed_bands,
         )
 

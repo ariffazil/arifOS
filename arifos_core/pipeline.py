@@ -547,7 +547,7 @@ def _compute_888_metrics(
 def _apply_apex_floors(
     state: PipelineState,
     eye_blocking: bool = False,
-) -> str:
+) -> ApexVerdict:
     """
     Step 2 of 888: Apply APEX PRIME floor checks.
 
@@ -573,7 +573,15 @@ def _apply_apex_floors(
         state.floor_failures = list(floors.reasons)
 
     # Get APEX verdict
-    apex_verdict = apex_review(
+    # Ensure metrics exist before passing (should always be set by stage 444)
+    if state.metrics is None:
+        # Fallback: create empty metrics if somehow missing
+        state.metrics = Metrics(
+            truth=0.5, delta_s=0.0, peace_squared=0.5, kappa_r=0.5,
+            omega_0=0.05, psi=0.5, amanah=False, tri_witness=0.5
+        )
+    
+    apex_verdict: ApexVerdict = apex_review(
         state.metrics,
         high_stakes=high_stakes,
         tri_witness_threshold=0.95,
@@ -636,9 +644,9 @@ def _run_eye_sentinel(
 
 def _merge_with_waw(
     state: PipelineState,
-    apex_verdict: str,
+    apex_verdict: ApexVerdict,
     is_refusal: bool = False,
-) -> str:
+) -> ApexVerdict:
     """
     Step 4 of 888: Merge W@W Federation verdict with APEX verdict.
 
@@ -664,7 +672,7 @@ def _merge_with_waw(
     if state.waw_verdict is None:
         return apex_verdict
 
-    final_verdict = apex_verdict
+    final_verdict: ApexVerdict = apex_verdict
 
     # Merge logic (see full function in stage_888_judge for details)
     if state.waw_verdict.has_absolute_veto:
@@ -972,7 +980,7 @@ def stage_888_judge(
             state.sabar_reason = "@EYE blocking issue (see floor_failures for details)"
 
     # Step 6: Merge with W@W (using decomposed helper)
-    final_verdict = _merge_with_waw(state, apex_verdict, is_refusal)
+    final_verdict: ApexVerdict = _merge_with_waw(state, apex_verdict, is_refusal)
     state.verdict = final_verdict
 
     # Check for control signals
