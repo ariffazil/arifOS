@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
-from .routes import health, pipeline, memory, ledger, metrics
+from .routes import health, pipeline, memory, ledger, metrics, federation
 from .middleware import setup_middleware
 from .exceptions import setup_exception_handlers
 
@@ -35,13 +35,14 @@ def create_app() -> FastAPI:
     - Exception handlers set up
     """
     app = FastAPI(
-        title="arifOS v38.2 API",
+        title="arifOS v41.3 API",
         description=(
             "Constitutional Governance API for AI. "
             "Wraps the governed pipeline with 9 constitutional floors, "
+            "L7 Federation Router (multi-endpoint SEA-LION), "
             "L7 memory (Mem0 + Qdrant), and cooling ledger access."
         ),
-        version="0.1.0",
+        version="0.2.0",
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
@@ -59,6 +60,7 @@ def create_app() -> FastAPI:
     app.include_router(memory.router)
     app.include_router(ledger.router)
     app.include_router(metrics.router)
+    app.include_router(federation.router)
 
     # Root endpoint
     @app.get("/", tags=["root"])
@@ -66,10 +68,11 @@ def create_app() -> FastAPI:
         """API root - returns version and basic info."""
         return {
             "name": "arifOS API",
-            "version": "v38.2-alpha",
+            "version": "v41.3Omega",
             "description": "Constitutional Governance API for AI",
             "docs": "/docs",
             "health": "/health",
+            "federation": "/federation/status",
             "motto": "DITEMPA BUKAN DIBERI - Forged, not given",
         }
 
