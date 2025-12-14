@@ -1,8 +1,8 @@
-# arifOS v41.0 — Full-Stack Constitutional AI Governance
+# arifOS v41.0.1 — Full-Stack Constitutional AI Governance
 
-**Status:** ✅ **PRODUCTION** | **1624+ Tests Passing** | **97% Safety Ceiling** | **18 CLI Tools** | **PyPI Ready** | **Phases 1-4: COMPLETE ✅** | **Body + MCP + FAG: SHIPPED**
+**Status:** ✅ **PRODUCTION** | **1624+ Tests Passing** | **97% Safety Ceiling** | **18 CLI Tools** | **PyPI Ready** | **Phases 1-4: COMPLETE ✅** | **Body + MCP + FAG: SHIPPED** | **EUREKA Phase-2: INTEGRATING**
 
-![Version](https://img.shields.io/badge/Version-v41.0-0052cc) ![Tests](https://img.shields.io/badge/Tests-1624%2B-success) ![Safety](https://img.shields.io/badge/Safety-97%25-brightgreen) ![License](https://img.shields.io/badge/License-AGPL3-orange) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![Memory](https://img.shields.io/badge/Memory-EUREKA%20v38-blueviolet) ![FAG](https://img.shields.io/badge/FAG-v41-purple) ![API](https://img.shields.io/badge/API-FastAPI-009688) ![MCP](https://img.shields.io/badge/MCP-v40-ff6b6b)
+![Version](https://img.shields.io/badge/Version-v41.0.1-0052cc) ![Tests](https://img.shields.io/badge/Tests-1624%2B-success) ![Safety](https://img.shields.io/badge/Safety-97%25-brightgreen) ![License](https://img.shields.io/badge/License-AGPL3-orange) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![Memory](https://img.shields.io/badge/Memory-EUREKA%20v38-blueviolet) ![FAG](https://img.shields.io/badge/FAG-v41-purple) ![API](https://img.shields.io/badge/API-FastAPI-009688) ![MCP](https://img.shields.io/badge/MCP-v40-ff6b6b)
 
 ---
 
@@ -207,6 +207,11 @@ Not all accurate statements are good. Truth has **polarity**:
 ## v38 EUREKA: Memory Write Policy Engine (NEW)
 
 **Core Insight:** Memory is *governance*, not storage. What gets remembered is controlled by verdicts.
+
+### Phase-2 (routing integration) — current status
+- ✅ **Policy adapter**: `MemoryWritePolicy.policy_route_write` now bridges to the Phase-1 EUREKA router.
+- 🛠️ **In progress**: Bands adapter + pipeline wiring (888/999) to append via `eureka_router` while dropping TOOL writes.
+- 🧪 **Planned tests**: End-to-end router → policy → bands flows, TOOL drop, VAULT human-seal enforcement.
 
 ### The 4 Core Invariants (Proven with 132 Tests)
 

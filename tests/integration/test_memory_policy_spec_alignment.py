@@ -94,8 +94,8 @@ class TestSpecVsCodeVerdictRouting:
 
     def test_sabar_routing_matches_spec(self):
         """SABAR routing in code should match spec definition."""
-        # Per canon: SABAR → LEDGER, ACTIVE (with reason)
-        assert VERDICT_BAND_ROUTING["SABAR"] == ["LEDGER", "ACTIVE"]
+        # Per canon/spec v38.3: SABAR → PENDING, LEDGER
+        assert VERDICT_BAND_ROUTING["SABAR"] == ["PENDING", "LEDGER"]
 
     def test_partial_routing_matches_spec(self):
         """PARTIAL routing in code should match spec definition."""
@@ -114,7 +114,7 @@ class TestSpecVsCodeVerdictRouting:
 
     def test_all_verdicts_have_routing(self):
         """All verdicts should have routing defined."""
-        expected_verdicts = {"SEAL", "SABAR", "PARTIAL", "VOID", "888_HOLD", "SUNSET"}
+        expected_verdicts = {"SEAL", "SABAR", "SABAR_EXTENDED", "PARTIAL", "VOID", "888_HOLD", "SUNSET"}
         actual_verdicts = set(VERDICT_BAND_ROUTING.keys())
         assert expected_verdicts == actual_verdicts
 
@@ -125,7 +125,7 @@ class TestSpecVsCodeVerdictRouting:
 
     def test_routing_targets_only_valid_bands(self):
         """Routing should only target valid band names."""
-        valid_bands = {"VAULT", "LEDGER", "ACTIVE", "PHOENIX", "WITNESS", "VOID"}
+        valid_bands = {"VAULT", "LEDGER", "ACTIVE", "PHOENIX", "WITNESS", "VOID", "PENDING"}
         for verdict, bands in VERDICT_BAND_ROUTING.items():
             for band in bands:
                 assert band in valid_bands, f"Invalid band {band} for verdict {verdict}"

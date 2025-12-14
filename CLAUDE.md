@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Version:** v38.2.0 | **Tests:** 1624+ | **Safety Ceiling:** 97% | **CLI Tools:** 7 | **Time:** Governor
+**Version:** v41.0.1 | **Tests:** 1624+ | **Safety Ceiling:** 97% | **CLI Tools:** 7 | **Time:** Governor | **EUREKA Phase-2:** policy adapter landed; bands/pipeline wiring in progress; TOOL writes drop → VOID
 
 **Imports:** `~/.claude/CLAUDE.md` — Global governance (floors, SABAR, verdicts) applies to all repos.
 **Extends:** [AGENTS.md](AGENTS.md) — All W@W dispatch and multi-agent guardrails from AGENTS.md apply here.

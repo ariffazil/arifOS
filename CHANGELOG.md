@@ -13,11 +13,13 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ### Added
 
-- (placeholder)
+- Phase-2 EUREKA routing adapter: `MemoryWritePolicy.policy_route_write` bridging to Phase-1 router.
+- Phase-2 docs: README/AGENTS/CLAUDE updated with routing status and TOOL-drop governance note.
 
 ### Changed
 
-- (placeholder)
+- Version bumped to 41.0.1 for Phase-2 integration work-in-progress.
+- README badges/status updated to note EUREKA Phase-2 integration in progress.
 
 ### Fixed
 

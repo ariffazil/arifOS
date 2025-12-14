@@ -56,8 +56,10 @@ from .memory.vault999 import Vault999
 
 # Memory Write Policy Engine (v38)
 from .memory.policy import MemoryWritePolicy
-from .memory.bands import MemoryBandRouter
+from .memory.bands import MemoryBandRouter, append_eureka_decision
 from .memory.audit import MemoryAuditLayer, compute_evidence_hash
+from .memory.eureka_types import ActorRole, MemoryWriteRequest
+from .memory.eureka_types import Verdict as EurekaVerdict
 
 # v38.2-alpha L7 Memory Layer (Mem0 + Qdrant)
 from .memory.memory import (
@@ -147,6 +149,7 @@ class PipelineState:
     memory_band_router: Optional[MemoryBandRouter] = None
     memory_audit_layer: Optional[MemoryAuditLayer] = None
     memory_evidence_hash: Optional[str] = None
+    eureka_store: Optional[Any] = None
 
     # v38.2-alpha L7 Memory Layer (Mem0 + Qdrant)
     l7_memory: Optional[Memory] = None
@@ -796,7 +799,30 @@ def _floor_margin(floor_key: str, floor_def: dict, metrics: Any) -> float:
     return 0.0
 
 
-def _write_memory_for_verdict(state: PipelineState) -> None:
+def _map_verdict_to_eureka(verdict: Optional[ApexVerdict]) -> EurekaVerdict:
+    """Map pipeline verdicts to EUREKA verdict enum with safe fallback."""
+    if verdict is None:
+        return EurekaVerdict.VOID
+
+    value = getattr(verdict, "value", None) or str(verdict)
+    value = str(value)
+
+    if value == "888_HOLD":
+        return EurekaVerdict.HOLD_888
+    if value == "SABAR_EXTENDED":
+        return EurekaVerdict.SABAR_EXTENDED
+    try:
+        return EurekaVerdict(value)  # type: ignore[arg-type]
+    except ValueError:
+        return EurekaVerdict.VOID
+
+
+def _write_memory_for_verdict(
+    state: PipelineState,
+    actor_role: ActorRole = ActorRole.JUDICIARY,
+    human_seal: bool = False,
+    eureka_store: Optional[Any] = None,
+) -> None:
     """
     v38: Centralized memory write for any verdict path.
 
@@ -869,14 +895,33 @@ def _write_memory_for_verdict(state: PipelineState) -> None:
         json.dumps({k: v for k, v in evidence_chain.items() if k != "hash"}, sort_keys=True).encode()
     ).hexdigest()
 
+    # Phase-2: route via EUREKA policy adapter + router (drop TOOL writes)
+    eureka_decision_allowed = True
+    if hasattr(state.memory_write_policy, "policy_route_write"):
+        eureka_request = MemoryWriteRequest(
+            actor_role=actor_role,
+            verdict=_map_verdict_to_eureka(state.verdict),
+            reason="pipeline_memory_write",
+            content={
+                "job_id": state.job_id,
+                "stakes_class": state.stakes_class.value,
+                "verdict": state.verdict,
+            },
+            human_seal=human_seal,
+        )
+        eureka_decision = state.memory_write_policy.policy_route_write(eureka_request)
+        eureka_decision_allowed = eureka_decision.allowed
+        if eureka_decision.allowed:
+            append_eureka_decision(eureka_decision, eureka_request, store=eureka_store)
+
     # Check write policy
     write_decision = state.memory_write_policy.should_write(
         verdict=state.verdict or "UNKNOWN",
         evidence_chain=evidence_chain,
     )
 
-    # Route write if allowed
-    if write_decision.allowed:
+    # Route write if allowed (and EUREKA routing did not DROP)
+    if write_decision.allowed and eureka_decision_allowed:
         content = {
             "query_hash": hashlib.sha256(state.query.encode()).hexdigest()[:16],
             "verdict": state.verdict,
@@ -994,7 +1039,7 @@ def stage_888_judge(
             state.floor_failures.append(state.sabar_reason)
 
     # Step 7: Write to memory (using centralized helper)
-    _write_memory_for_verdict(state)
+    _write_memory_for_verdict(state, actor_role=ActorRole.JUDICIARY, human_seal=False, eureka_store=state.eureka_store)
 
     return state
 
@@ -1096,6 +1141,9 @@ def stage_999_seal(state: PipelineState) -> PipelineState:
             f"[VOID] ACTION BLOCKED.\n"
             f"Constitutional Violation: {reason_str}."
         )
+
+    # Phase-2: route memory at seal stage (actor = ENGINE)
+    _write_memory_for_verdict(state, actor_role=ActorRole.ENGINE, human_seal=False, eureka_store=state.eureka_store)
 
     # v38.2-alpha: L7 Memory store with EUREKA Sieve (fail-open)
     # Only store if: L7 enabled + user_id present + verdict present
@@ -1233,7 +1281,7 @@ class Pipeline:
         state, should_continue = stage_000_amanah(job, state)
         if not should_continue:
             # Early short-circuit: write memory and finalize
-            _write_memory_for_verdict(state)
+            _write_memory_for_verdict(state, actor_role=ActorRole.JUDICIARY, human_seal=False, eureka_store=state.eureka_store)
             state = stage_999_seal(state)
             return self._finalize(state)
 

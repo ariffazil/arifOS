@@ -30,6 +30,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
+from .eureka_types import MemoryBand as EurekaMemoryBand
+from .eureka_types import MemoryWriteDecision, MemoryWriteRequest
+from .eureka_store import AppendOnlyJSONLStore, InMemoryStore
+
 
 # =============================================================================
 # CONSTANTS
@@ -937,6 +941,7 @@ class MemoryBandRouter:
             BandName.VAULT: VaultBand(),
             BandName.LEDGER: CoolingLedgerBand(),
             BandName.ACTIVE: ActiveStreamBand(),
+            BandName.PENDING: ActiveStreamBand(),
             BandName.PHOENIX: PhoenixCandidatesBand(),
             BandName.WITNESS: WitnessBand(),
             BandName.VOID: VoidBandStorage(),
@@ -1231,6 +1236,41 @@ class MemoryBandRouter:
 
 
 # =============================================================================
+# PHASE-2 EUREKA ADAPTERS
+# =============================================================================
+
+def append_eureka_decision(
+    decision: MemoryWriteDecision,
+    request: MemoryWriteRequest,
+    store: Optional[Any] = None,
+):
+    """Append a Phase-2 EUREKA routing decision to storage.
+
+    - Uses AppendOnlyJSONLStore by default (`vault-999/ledger/{band}.jsonl`).
+    - Supports InMemoryStore for tests.
+    - Drops TOOL/forbidden writes when `decision.allowed` is False or action is DROP.
+    """
+    if not decision.allowed or decision.action != "APPEND":
+        return None
+
+    target_band: EurekaMemoryBand = decision.target_band
+
+    # Choose store
+    if store is None:
+        store = AppendOnlyJSONLStore()
+
+    if isinstance(store, AppendOnlyJSONLStore):
+        return store.append(target_band, request, decision)
+
+    if isinstance(store, InMemoryStore):
+        store.append(target_band, request, decision)
+        return None
+
+    # Fallback: use default append-only store
+    default_store = AppendOnlyJSONLStore()
+    return default_store.append(target_band, request, decision)
+
+# =============================================================================
 # EXPORTS
 # =============================================================================
 
@@ -1253,6 +1293,10 @@ __all__ = [
     "VoidBandStorage",
     # Router
     "MemoryBandRouter",
+    # Phase-2 adapters
+    "append_eureka_decision",
+    "AppendOnlyJSONLStore",
+    "InMemoryStore",
     # Constants
     "BAND_PROPERTIES",
     "WRITER_PERMISSIONS",

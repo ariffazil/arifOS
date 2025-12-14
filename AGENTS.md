@@ -1,6 +1,6 @@
 ---
 name: arifOS Constitutional Agent
-version: v38.2.0
+version: v41.0.1
 runtime_law: v35Omega
 measurement_law: v38.2 (unified LAW+SPEC+CODE+MEMORY+TIME)
 role: clerk/tool (NOT judge, NOT authority)
@@ -14,7 +14,7 @@ verdicts: 6
 tests: 1624+
 safety_ceiling: 97%
 cli_tools: 7
-status: PRODUCTION
+status: PRODUCTION (EUREKA Phase-2 routing: policy adapter landed; bands/pipeline wiring in progress; TOOL writes drop → VOID)
 pypi: arifos
 motto: "DITEMPA BUKAN DIBERI - Forged, not given; truth must cool before it rules."
 escalation_threshold: 888_HOLD

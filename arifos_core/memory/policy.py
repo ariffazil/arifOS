@@ -28,6 +28,9 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
+from .eureka_types import MemoryWriteDecision, MemoryWriteRequest
+from .eureka_router import route_write
+
 
 # =============================================================================
 # CONSTANTS
@@ -661,6 +664,18 @@ class MemoryWritePolicy:
     def clear_write_log(self) -> None:
         """Clear the policy decision log."""
         self._write_log.clear()
+
+    def policy_route_write(self, request: MemoryWriteRequest) -> MemoryWriteDecision:
+        """
+        Thin wrapper to route memory writes via EUREKA router.
+
+        Args:
+            request: MemoryWriteRequest containing actor, verdict, and evidence.
+
+        Returns:
+            MemoryWriteDecision from EUREKA router.
+        """
+        return route_write(request)
 
 
 # =============================================================================
