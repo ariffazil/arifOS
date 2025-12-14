@@ -1,14 +1,14 @@
 # arifOS v41.0.1 — Full-Stack Constitutional AI Governance
 
-**Status:** ✅ **PRODUCTION** | **1624+ Tests Passing** | **97% Safety Ceiling** | **18 CLI Tools** | **PyPI Ready** | **Phases 1-4: COMPLETE ✅** | **Body + MCP + FAG: SHIPPED** | **EUREKA Phase-2: INTEGRATING**
+**Status:** ✅ **PRODUCTION** | **1927+ Tests Passing** | **97% Safety Ceiling** | **18 CLI Tools** | **PyPI Ready** | **Phases 1-4: COMPLETE ✅** | **Body + MCP + FAG: SHIPPED** | **APEX PRIME Contract: LIVE**
 
-![Version](https://img.shields.io/badge/Version-v41.0.1-0052cc) ![Tests](https://img.shields.io/badge/Tests-1624%2B-success) ![Safety](https://img.shields.io/badge/Safety-97%25-brightgreen) ![License](https://img.shields.io/badge/License-AGPL3-orange) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![Memory](https://img.shields.io/badge/Memory-EUREKA%20v38-blueviolet) ![FAG](https://img.shields.io/badge/FAG-v41-purple) ![API](https://img.shields.io/badge/API-FastAPI-009688) ![MCP](https://img.shields.io/badge/MCP-v40-ff6b6b)
+![Version](https://img.shields.io/badge/Version-v41.0.1-0052cc) ![Tests](https://img.shields.io/badge/Tests-1927%2B-success) ![Safety](https://img.shields.io/badge/Safety-97%25-brightgreen) ![License](https://img.shields.io/badge/License-AGPL3-orange) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![Memory](https://img.shields.io/badge/Memory-EUREKA%20v38-blueviolet) ![FAG](https://img.shields.io/badge/FAG-v41-purple) ![API](https://img.shields.io/badge/API-FastAPI-009688) ![MCP](https://img.shields.io/badge/MCP-v40-ff6b6b)
 
 ---
 
 ## Executive Summary
 
-arifOS v41.0 is a **full-stack constitutional governance kernel** that wraps any LLM (Claude, GPT, Gemini, Llama, SEA-LION) and enforces lawful behavior through **thermodynamic physics, not prompts** — now with a **Body (API)**, **Hands (MCP)**, and **Filesystem Governance (FAG)**.
+arifOS v41.0 is a **full-stack constitutional governance kernel** that wraps any LLM (Claude, GPT, Gemini, Llama, SEA-LION) and enforces lawful behavior through **thermodynamic physics, not prompts** — now with a **Body (API)**, **Hands (MCP)**, **Filesystem Governance (FAG)**, and a **public APEX PRIME contract** for clean API outputs.
 
 **What makes it different:**
 - Standard wrappers: "Please be safe" (the model can ignore you)
@@ -19,7 +19,7 @@ arifOS v41.0 is a **full-stack constitutional governance kernel** that wraps any
 **v41.0 delivers (Phases 1-4 Complete):**
 
 **Core (v38):**
-- **1,624+ tests** (EUREKA memory law validated)
+- **1,927+ tests** (EUREKA memory law validated)
 - **9 constitutional floors** (F1 Amanah → F9 Anti-Hantu)
 - **6 memory bands** with verdict-driven routing (VAULT, LEDGER, ACTIVE, PHOENIX, WITNESS, VOID)
 - **Phoenix-72 scheduler** — SABAR escalates after 24h, PARTIAL decays after 72h
@@ -41,6 +41,19 @@ arifOS v41.0 is a **full-stack constitutional governance kernel** that wraps any
 - Blocks .env, SSH keys, credentials, git internals
 - CLI tool: `arifos-safe-read` | MCP tool: `arifos_fag_read`
 - **23/23 tests passing** (12 core + 11 MCP integration)
+
+**APEX PRIME Contract (v41.0.1):**
+- **Public API contract**: `{verdict, apex_pulse, response, reason_code?}`
+- **3 public verdicts**: SEAL (approved), SABAR (cautious), VOID (blocked)
+- **Verdict-gated PSI bands**: VOID(0.00–0.94), SABAR(0.95–0.99), SEAL(1.00–1.10)
+- **Amanah-safe**: Missing internal PSI → `null` (no fake data)
+- **Reason codes**: Single-token floor references (F1–F9)
+- Endpoints: `/pipeline/run` (public) | `/pipeline/run/debug` (full telemetry)
+
+**SEA-LION LiteLLM Integration:**
+- **LiteLLM gateway** for governed LLM calls (SEA-LION, Claude, GPT, etc.)
+- Auto-fallback to stub mode when `ARIF_LLM_API_KEY` not set
+- Quickstart: `docs/SEALION_LITELLM_QUICKSTART.md`
 
 ---
 
@@ -398,7 +411,8 @@ arifOS separates governance into **3 immutability levels**:
 | **Anti-Hantu & Amanah** | 200+ | ✅ Passing |
 | **zkPC & Proofs** | 100+ | ✅ Passing |
 | **Integration End-to-End** | 391+ | ✅ Passing |
-| **TOTAL** | **1,603** | **✅ Production Ready** |
+| **APEX PRIME Contract** | 8+ | ✅ Passing |
+| **TOTAL** | **1,927** | **✅ Production Ready** |
 
 ---
 
@@ -516,7 +530,7 @@ python scripts/test_memory_verdict_routing.py
 - ✅ **EUREKA Memory Write Policy (v38)**
 - ✅ **6 Memory Bands (v38)**
 - ✅ **132 Memory Integration Tests (Phase 1 COMPLETE)**
-- ✅ 1,603 tests passing
+- ✅ 1,927 tests passing
 - ✅ PyPI production-ready
 
 ### Phase 2 (Q1 2026): Memory Integration + FastAPI Grid
@@ -608,8 +622,8 @@ python scripts/test_memory_verdict_routing.py
 
 **Made with 🔥 by Arif Fazil**
 
-*v41.0 Production | 1603 Tests | 97% Safety Ceiling | Physics-First Governance | EUREKA v38 Active | Phases 1-4 Complete*
+*v41.0.1 Production | 1927 Tests | 97% Safety Ceiling | Physics-First Governance | EUREKA v38 Active | Phases 1-4 Complete*
 
-*Body API (v39) | MCP Integration (v40) | FAG File Access (v41.0.0-alpha) | 23/23 FAG Tests Passing*
+*Body API (v39) | MCP Integration (v40) | FAG File Access (v41) | APEX PRIME Contract (v41.0.1) | SEA-LION LiteLLM*
 
 *Last Updated: December 14, 2025 | Python-Sovereign | Merkle Proofs Active | Phoenix-72 Active*
