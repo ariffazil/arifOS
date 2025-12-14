@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """
-arifOS MCP Entry Point (v41.2) - Constitutional Governance Gateway
+arifOS MCP Entry Point (v41.3) - Constitutional Governance Gateway
 DITEMPA BUKAN DIBERI - Forged, not given.
 
-Mode: v0-strict with REAL APEX PRIME evaluation
+Mode: v0-strict with REAL APEX PRIME evaluation + Semantic Governance
 Surface Area: 1 tool (arifos_evaluate)
 Security: Read-only constitutional evaluation
 
-v41.2 FIX: Actually computes metrics and apex_pulse (not just SABAR stub)
+v41.3 UPGRADE: Unified semantic governance with 3 layers:
+- Layer 1: RED_PATTERNS instant VOID detection (from arifos_core)
+- Layer 2: Heuristic metric computation
+- Layer 3: APEX PRIME judgment
 
 Usage (Claude Desktop config):
     "mcpServers": {
@@ -41,7 +44,16 @@ from arifos_core.metrics import Metrics
 from arifos_core.APEX_PRIME import APEXPrime
 from arifos_core.contracts.apex_prime_output_v41 import serialize_public, compute_apex_pulse
 
-# Import detectors for F1 (Amanah) and F9 (Anti-Hantu)
+# v41.3: Import unified semantic governance from arifos_core
+from arifos_core import (
+    RED_PATTERNS,
+    RED_PATTERN_TO_FLOOR,
+    RED_PATTERN_SEVERITY,
+    check_red_patterns,
+    compute_metrics_from_task,
+)
+
+# Import detectors for F1 (Amanah) - used as fallback
 try:
     from arifos_core.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
     AMANAH_AVAILABLE = True
@@ -49,174 +61,17 @@ except ImportError:
     AMANAH_DETECTOR = None
     AMANAH_AVAILABLE = False
 
-# AntiHantuView requires complex parameters - use simple pattern check instead
-ANTI_HANTU_AVAILABLE = False
-
 
 # =============================================================================
-# HEURISTIC METRICS COMPUTATION
+# HIGH-STAKES DETECTION
 # =============================================================================
 
-# High-stakes keywords that trigger 888_HOLD
 HIGH_STAKES_KEYWORDS = [
     "database", "production", "deploy", "delete", "drop", "truncate",
     "security", "credential", "secret", "key", "token", "password",
     "irreversible", "permanent", "force", "rm -rf", "git push --force",
     "format", "wipe", "destroy", "shutdown", "terminate",
 ]
-
-# Destructive patterns for F1 (Amanah) - Python-sovereign
-AMANAH_PATTERNS = [
-    r"rm\s+-rf",
-    r"DROP\s+TABLE",
-    r"DELETE\s+FROM",
-    r"TRUNCATE\s+TABLE",
-    r"format\s+[a-z]:",
-    r"dd\s+if=",
-    r"mkfs\.",
-    r">\s*/dev/",
-    r"chmod\s+777",
-    r"--force",
-    r"--no-preserve-root",
-]
-
-# Anti-Hantu forbidden phrases (F9)
-ANTI_HANTU_FORBIDDEN = [
-    "i feel your pain",
-    "my heart breaks",
-    "i promise you",
-    "i truly understand how you feel",
-    "it hurts me to see",
-    "i care deeply",
-    "i have feelings",
-    "i am conscious",
-    "i am sentient",
-    "i am alive",
-    "i am real",
-    "i have a soul",
-]
-
-
-def check_amanah(text: str) -> Tuple[bool, Optional[str]]:
-    """
-    F1 (Amanah) check - Python-sovereign veto.
-
-    Returns:
-        (is_safe, violation_reason)
-    """
-    text_lower = text.lower()
-
-    # Check against AMANAH_DETECTOR if available
-    if AMANAH_AVAILABLE and AMANAH_DETECTOR:
-        result = AMANAH_DETECTOR.check(text)
-        if not result.is_safe:
-            # Get first violation, sanitize for reason_code (single token, no whitespace)
-            violation = (result.violations[0] if result.violations else "destructive")
-            violation_key = re.sub(r'[^a-zA-Z0-9_]', '', violation)[:15]
-            return False, f"F1({violation_key})"
-
-    # Fallback: regex patterns
-    for pattern in AMANAH_PATTERNS:
-        if re.search(pattern, text, re.IGNORECASE):
-            # reason_code must be single token - no spaces/special chars
-            pattern_name = re.sub(r'[^a-zA-Z0-9]', '', pattern[:15])
-            return False, f"F1({pattern_name})"
-
-    return True, None
-
-
-def check_anti_hantu(text: str) -> Tuple[bool, Optional[str]]:
-    """
-    F9 (Anti-Hantu) check - blocks false consciousness claims.
-
-    Returns:
-        (is_safe, violation_reason)
-    """
-    text_lower = text.lower()
-
-    # Simple pattern check for forbidden phrases
-    for phrase in ANTI_HANTU_FORBIDDEN:
-        if phrase in text_lower:
-            # reason_code must be single token - no spaces
-            phrase_key = phrase.replace(" ", "_")[:12]
-            return False, f"F9({phrase_key})"
-
-    return True, None
-
-
-def compute_metrics_from_text(text: str) -> Tuple[Metrics, Optional[str]]:
-    """
-    Compute constitutional metrics from text.
-
-    Returns:
-        (metrics, floor_violation_reason)
-    """
-    text_lower = text.lower()
-
-    # F1: Amanah check (Python-sovereign)
-    amanah_safe, amanah_reason = check_amanah(text)
-    if not amanah_safe:
-        return Metrics(
-            truth=0.5,
-            delta_s=-0.5,
-            peace_squared=0.0,
-            kappa_r=0.5,
-            omega_0=0.04,
-            amanah=False,
-            tri_witness=0.5,
-            rasa=False,
-            anti_hantu=True,
-        ), amanah_reason
-
-    # F9: Anti-Hantu check
-    hantu_safe, hantu_reason = check_anti_hantu(text)
-
-    # F2: Truth heuristic - queries are inherently truth-seeking
-    # Short queries get high truth (they're asking, not claiming)
-    # Longer statements need more scrutiny
-    word_count = len(text.split())
-    has_question = "?" in text
-
-    if has_question:
-        truth_score = 0.99  # Questions are truth-seeking
-    elif word_count > 100:
-        truth_score = 0.95  # Long statements need verification
-    else:
-        truth_score = 0.99  # Default to trust (innocent until proven guilty)
-
-    # F4: Clarity (delta_s) - questions/requests add clarity
-    has_question = "?" in text
-    has_structure = any(c in text for c in [":", "-", "*", "1.", "2."])
-    delta_s = 0.15 if (has_question or has_structure) else 0.05
-
-    # F5: Peace squared - check for aggressive language
-    aggressive_words = ["kill", "destroy", "hate", "attack", "stupid", "idiot"]
-    aggression_count = sum(1 for w in aggressive_words if w in text_lower)
-    peace_squared = max(0.5, 1.2 - (aggression_count * 0.2))
-
-    # F6: Empathy (kappa_r) - default to passing unless aggressive
-    # MCP context assumes good faith queries
-    empathy_phrases = ["please", "thank", "help", "understand", "appreciate"]
-    empathy_count = sum(1 for p in empathy_phrases if p in text_lower)
-    # Base: 0.95 (passing), bonus for empathy phrases
-    kappa_r = min(1.0, 0.95 + (empathy_count * 0.01))
-
-    # F3: Tri-witness - baseline for MCP context
-    tri_witness = 0.96
-
-    metrics = Metrics(
-        truth=truth_score,
-        delta_s=delta_s,
-        peace_squared=peace_squared,
-        kappa_r=kappa_r,
-        omega_0=0.04,  # Fixed humility band
-        amanah=True,
-        tri_witness=tri_witness,
-        rasa=True,
-        anti_hantu=hantu_safe,
-    )
-
-    return metrics, hantu_reason if not hantu_safe else None
 
 
 def is_high_stakes(text: str) -> bool:
@@ -226,14 +81,17 @@ def is_high_stakes(text: str) -> bool:
 
 
 # =============================================================================
-# v0-STRICT MODE: Single Tool with REAL APEX PRIME
+# v0-STRICT MODE: Single Tool with REAL APEX PRIME + Semantic Governance
 # =============================================================================
 
 def create_v0_strict_server() -> FastMCP:
     """
     Create v0-strict MCP server with REAL APEX PRIME evaluation.
 
-    v41.2: Actually computes metrics and returns real verdicts.
+    v41.3: Uses unified semantic governance from arifos_core:
+    - Layer 1: RED_PATTERNS instant VOID
+    - Layer 2: compute_metrics_from_task() heuristics
+    - Layer 3: APEX PRIME judgment
     """
     server = FastMCP("arifos-v0-strict")
 
@@ -265,15 +123,38 @@ def create_v0_strict_server() -> FastMCP:
             SEAL  -> apex_pulse 1.00-1.10 (all floors pass)
             SABAR -> apex_pulse 0.95-0.99 (soft floors warning)
             VOID  -> apex_pulse 0.00-0.94 (hard floor failed)
+
+        Severity Sub-bands within VOID:
+            0.00-0.20: NUCLEAR (child harm, mass destruction)
+            0.21-0.50: SEVERE (violence, credential theft)
+            0.51-0.80: MODERATE (disinformation, jailbreak)
+            0.81-0.94: SOFT (anti-hantu violations)
         """
         try:
-            # Step 1: Compute metrics from task text
-            metrics, floor_violation = compute_metrics_from_text(task)
+            # ==========================================================
+            # LAYER 1: Red pattern check (instant VOID)
+            # ==========================================================
+            is_red, category, pattern, floor_code, severity = check_red_patterns(task)
+            if is_red:
+                logging.warning(f"RED_PATTERN detected: {category} - {pattern}")
+                return serialize_public(
+                    verdict="VOID",
+                    psi_internal=severity,  # Severity determines pulse within VOID band
+                    response=f"BLOCKED: Constitutional violation - {category} pattern detected.",
+                    reason_code=floor_code,
+                )
 
-            # Step 2: Check high-stakes
+            # ==========================================================
+            # LAYER 2: Compute metrics from task text
+            # ==========================================================
+            metrics, floor_violation = compute_metrics_from_task(task)
+
+            # Check high-stakes
             high_stakes = is_high_stakes(task)
 
-            # Step 3: Run APEX PRIME judgment
+            # ==========================================================
+            # LAYER 3: APEX PRIME judgment on computed metrics
+            # ==========================================================
             judge = APEXPrime(
                 high_stakes=high_stakes,
                 tri_witness_threshold=0.95,
@@ -287,8 +168,7 @@ def create_v0_strict_server() -> FastMCP:
                 entropy=0.0
             )
 
-            # Step 4: Compute Psi for apex_pulse
-            # Psi = (truth + peace + kappa_r + tri_witness) / 4 * amanah_factor
+            # Compute Psi for apex_pulse
             psi_components = [
                 metrics.truth,
                 metrics.peace_squared,
@@ -299,8 +179,7 @@ def create_v0_strict_server() -> FastMCP:
             hantu_factor = 1.0 if metrics.anti_hantu else 0.7
             psi_internal = (sum(psi_components) / len(psi_components)) * amanah_factor * hantu_factor
 
-            # Step 5: Build response
-            # If high-stakes AND no floor violation, trigger SABAR (cooling)
+            # Build response based on verdict
             if high_stakes and verdict == "SEAL" and not floor_violation:
                 verdict = "SABAR"
                 response = f"HIGH-STAKES: Requires human approval. {task[:50]}..."
@@ -320,7 +199,6 @@ def create_v0_strict_server() -> FastMCP:
                 reason_code = floor_violation
                 verdict = "SABAR"
 
-            # Step 6: Serialize with apex_pulse
             return serialize_public(
                 verdict=verdict,
                 psi_internal=psi_internal,
@@ -346,7 +224,7 @@ def create_v0_strict_server() -> FastMCP:
 
 async def main() -> None:
     """
-    Ignite the arifOS MCP server with REAL APEX PRIME.
+    Ignite the arifOS MCP server with semantic governance.
     """
     logging.basicConfig(
         level=logging.INFO,
@@ -355,8 +233,11 @@ async def main() -> None:
     )
 
     logging.info("="*60)
-    logging.info("Igniting arifOS MCP Gateway [v41.2]...")
-    logging.info("Mode: v0-strict with REAL APEX PRIME")
+    logging.info("Igniting arifOS MCP Gateway [v41.3]...")
+    logging.info("Mode: v0-strict with Semantic Governance")
+    logging.info("Layer 1: RED_PATTERNS instant VOID (%d categories)", len(RED_PATTERNS))
+    logging.info("Layer 2: Heuristic metric computation")
+    logging.info("Layer 3: APEX PRIME judgment")
     logging.info("Floors: F1-F9 enforced (Amanah, Anti-Hantu sovereign)")
     logging.info("Output: verdict + apex_pulse (0.00-1.10)")
     logging.info("="*60)

@@ -23,10 +23,10 @@ Operational model:
 - SEALled outputs are sealed to Cooling Ledger with deterministic hashes and optional KMS signatures.
 - Governance changes follow Phoenix-72 amendment process and are reproducibly recorded.
 
-This module exposes the primitives and integrations to apply these checks,
-run APEX verdicts, and interact with the Cooling Ledger and Vault-999.
-It intentionally does not implement "agency" as metaphysics — it implements
-a controllable, auditable governance metabolism.
+AAA Trinity (v41.3):
+    AGI (Δ)        : ARIF AGI Sentinel - sense/filter (Layer 1: RED_PATTERNS)
+    ASI (Ω)        : ADAM ASI Accountant - measure/calibrate (Layer 2: Metrics)
+    APEX_PRIME (Ψ) : Judge - seal/void (Layer 3: Verdict)
 
 See PHYSICS_CODEX.md (CHAPTER 6) for the full technical statement and diagram.
 """
@@ -90,114 +90,78 @@ except ImportError:
     compute_dark_cleverness = None
     compute_psi_apex = None
 
-def evaluate_session(session_data: dict) -> str:
+# =============================================================================
+# v41.3 SEMANTIC GOVERNANCE - AAA Trinity (Δ → Ω → Ψ)
+# =============================================================================
+
+from .eval import (
+    # AAA Trinity classes
+    AGI,
+    ASI,
+    # Backward compatibility aliases
+    Sentinel,
+    Accountant,
+    # Result types
+    EvaluationResult,
+    SentinelResult,
+    ASIResult,
+    AccountantResult,
+    EvaluationMode,
+    # RED_PATTERNS exports
+    RED_PATTERNS,
+    RED_PATTERN_TO_FLOOR,
+    RED_PATTERN_SEVERITY,
+    # Main entry point
+    evaluate_session,
+)
+
+# =============================================================================
+# BACKWARD COMPATIBILITY WRAPPERS
+# =============================================================================
+
+def check_red_patterns(task: str) -> tuple:
     """
-    Evaluate A CLIP session against 9 constitutional floors + APEX_PRIME.
-    
-    This is the bridge function that A CLIP calls via arifos_client.py.
-    It converts A CLIP session format into arifOS Metrics, runs APEX_PRIME
-    judgment, and returns a verdict string.
-    
-    Args:
-        session_data: Dictionary containing A CLIP session with:
-            - id: Session ID
-            - task: Task description
-            - status: Current status
-            - steps: List of completed stages
-    
-    Returns:
-        str: One of "SEAL", "PARTIAL", "VOID", "888_HOLD", "SABAR"
-    
-    Floor checks performed:
-        F1 (Amanah): All changes must be reversible
-        F2 (Truth): Facts must be verifiable
-        F3 (Tri-Witness): Human-AI-Earth alignment
-        F4 (DeltaS): Must reduce confusion (gain clarity)
-        F5 (Peace²): Non-destructive
-        F6 (κᵣ): Serves weakest stakeholder
-        F7 (Ω₀): States uncertainty appropriately
-        F8 (G): Governed intelligence
-        F9 (C_dark): No dark cleverness
+    Legacy wrapper for AGI.scan().
+
+    Returns: (is_red, category, pattern, floor_code, severity)
     """
-    from .metrics import Metrics
-    from .APEX_PRIME import APEXPrime
-    
-    # Extract session info
-    task = session_data.get("task", "")
-    steps = session_data.get("steps", [])
-    session_id = session_data.get("id", "unknown")
-    
-    # Find completed stages
-    completed_stages = {step["name"]: step for step in steps}
-    
-    # Check if manual hold was invoked
-    if "hold" in completed_stages:
-        hold_step = completed_stages["hold"]
-        if "HOLD" in hold_step.get("output", ""):
-            # Manual hold was applied but then resolved (hold files removed)
-            # Continue evaluation but flag for authority review
-            pass
-    
-    # Check if all required stages completed
-    required_stages = ["void", "sense", "reflect", "reason", "evidence", "empathize", "align"]
-    missing_stages = [s for s in required_stages if s not in completed_stages]
-    
-    if missing_stages:
-        return "SABAR"  # Not ready - awaiting completion
-    
-    # Build metrics from A CLIP session
-    # Default to passing values, will be refined based on task analysis
-    metrics = Metrics(
-        truth=0.99,           # F2: Assume truth unless evidence shows otherwise
-        delta_s=0.65,         # F4: A CLIP pipeline itself gains clarity
-        omega_0=0.04,         # F7: Humility maintained throughout
-        amanah=True,          # F1: All A CLIP stages are reversible
-        peace_squared=1.0,    # F5: Non-destructive by design
-        kappa_r=0.95,         # F6: Considers stakeholders in stage 555
-        psi=1.25,             # Ψ: A CLIP enforces vitality
-        rasa=True,            # RASA: All stages check reality
-        anti_hantu=True,      # F9: A CLIP doesn't claim consciousness
-        tri_witness=0.97,     # F3: Human (Arif) + AI (Copilot) + Reality (code)
-        ambiguity=0.03,       # Low ambiguity after 7 stages
-        drift_delta=0.15,     # Minimal drift >= 0.1 threshold
-        paradox_load=0.0,     # No paradoxes detected
-    )
-    
-    # Check for high-stakes indicators in task
-    high_stakes_keywords = [
-        "database", "production", "deploy", "delete", "drop", "truncate",
-        "security", "credential", "secret", "key", "token", "password",
-        "irreversible", "permanent", "force --", "rm -rf", "git push --force"
-    ]
-    task_lower = task.lower()
-    is_high_stakes = any(keyword in task_lower for keyword in high_stakes_keywords)
-    
-    # Create APEX_PRIME judge
-    judge = APEXPrime(
-        high_stakes=is_high_stakes,
-        tri_witness_threshold=0.95,
-        use_genius_law=True
-    )
-    
-    # Render judgment
-    verdict = judge.judge(
-        metrics=metrics,
-        eye_blocking=False,
-        energy=1.0,
-        entropy=0.0
-    )
-    
-    # Log to cooling ledger if available
-    try:
-        log_cooling_entry(
-            job_id=f"aclip_{session_id}",
-            verdict=verdict,
-            metrics=metrics
+    result = AGI().scan(task)
+    if not result.is_safe:
+        return (
+            True,
+            result.violation_type,
+            result.violation_pattern,
+            result.floor_code,
+            result.severity
         )
-    except Exception:
-        pass  # Graceful fallback if ledger unavailable
-    
-    return verdict
+    return False, "", "", "", 1.0
+
+
+def compute_metrics_from_task(task: str) -> tuple:
+    """
+    Legacy wrapper for ASI.assess().
+
+    Returns: (Metrics, floor_violation_reason)
+    """
+    result = ASI().assess(task)
+
+    # Reconstruct floor violation reason from metrics
+    violation = None
+    m = result.metrics
+    if not m.amanah:
+        violation = "F1(amanah)"
+    elif not m.anti_hantu:
+        violation = "F9(anti_hantu)"
+    elif m.truth < 0.99:
+        violation = f"F2(truth={m.truth:.2f})"
+    elif m.peace_squared < 1.0:
+        violation = f"F5(peace={m.peace_squared:.2f})"
+    elif m.kappa_r < 0.95:
+        violation = f"F6(kappa={m.kappa_r:.2f})"
+    elif m.omega_0 < 0.03 or m.omega_0 > 0.05:
+        violation = f"F7(omega={m.omega_0:.2f})"
+
+    return result.metrics, violation
 
 
 __all__ = [
@@ -230,6 +194,22 @@ __all__ = [
     "compute_genius_index",
     "compute_dark_cleverness",
     "compute_psi_apex",
-    # A CLIP integration (v38.1+)
+    # v41.3 AAA Trinity
+    "AGI",
+    "ASI",
+    "Sentinel",  # Backward compat alias for AGI
+    "Accountant",  # Backward compat alias for ASI
     "evaluate_session",
+    "EvaluationResult",
+    "SentinelResult",
+    "ASIResult",
+    "AccountantResult",
+    "EvaluationMode",
+    # RED_PATTERNS exports
+    "RED_PATTERNS",
+    "RED_PATTERN_TO_FLOOR",
+    "RED_PATTERN_SEVERITY",
+    # Legacy wrappers
+    "check_red_patterns",
+    "compute_metrics_from_task",
 ]
