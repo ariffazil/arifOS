@@ -1,14 +1,14 @@
-# arifOS v38.2 — Governed AI Through Physics, Not Prompts
+# arifOS v41.0 — Full-Stack Constitutional AI Governance
 
-**Status:** ✅ **PRODUCTION** | **1624+ Tests Passing** | **97% Safety Ceiling** | **7 CLI Tools** | **PyPI Ready** | **Memory Write Policy: ACTIVE** | **Phase 1: Complete ✅** | **v38.2 Hardening: SEALED**
+**Status:** ✅ **PRODUCTION** | **1624+ Tests Passing** | **97% Safety Ceiling** | **18 CLI Tools** | **PyPI Ready** | **Phases 1-4: COMPLETE ✅** | **Body + MCP + FAG: SHIPPED**
 
-![Version](https://img.shields.io/badge/Version-v41.0-0052cc) ![Tests](https://img.shields.io/badge/Tests-1624%2B-success) ![Safety](https://img.shields.io/badge/Safety-97%25-brightgreen) ![License](https://img.shields.io/badge/License-AGPL3-orange) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![Memory](https://img.shields.io/badge/Memory-EUREKA%20v38-blueviolet) ![FAG](https://img.shields.io/badge/FAG-v41-purple)
+![Version](https://img.shields.io/badge/Version-v41.0-0052cc) ![Tests](https://img.shields.io/badge/Tests-1624%2B-success) ![Safety](https://img.shields.io/badge/Safety-97%25-brightgreen) ![License](https://img.shields.io/badge/License-AGPL3-orange) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![Memory](https://img.shields.io/badge/Memory-EUREKA%20v38-blueviolet) ![FAG](https://img.shields.io/badge/FAG-v41-purple) ![API](https://img.shields.io/badge/API-FastAPI-009688) ![MCP](https://img.shields.io/badge/MCP-v40-ff6b6b)
 
 ---
 
 ## Executive Summary
 
-arifOS v38.2 is a **constitutional governance kernel** that wraps any LLM (Claude, GPT, Gemini, Llama, SEA-LION) and enforces lawful behavior through **thermodynamic physics, not prompts**.
+arifOS v41.0 is a **full-stack constitutional governance kernel** that wraps any LLM (Claude, GPT, Gemini, Llama, SEA-LION) and enforces lawful behavior through **thermodynamic physics, not prompts** — now with a **Body (API)**, **Hands (MCP)**, and **Filesystem Governance (FAG)**.
 
 **What makes it different:**
 - Standard wrappers: "Please be safe" (the model can ignore you)
@@ -16,16 +16,31 @@ arifOS v38.2 is a **constitutional governance kernel** that wraps any LLM (Claud
 
 **Proof:** Gemini 2.0 writes malware to delete Windows. arifOS blocks it with a constitutional veto. Same model. Different governance.
 
-**v38.2 delivers (The Hardening Cycle):**
+**v41.0 delivers (Phases 1-4 Complete):**
 
-- **1,624+ tests** (21 new entropy rot + SUNSET tests)
-- **Time as Governor** — unresolved verdicts cannot drift forever
-- **SUNSET verdict** — lawful revocation when reality changes (LEDGER → PHOENIX)
-- **Phoenix-72 scheduler** — SABAR escalates after 24h, PARTIAL decays after 72h
-- **5 memory invariants** (TIME-1 added: entropy rot is automatic)
+**Core (v38):**
+- **1,624+ tests** (EUREKA memory law validated)
+- **9 constitutional floors** (F1 Amanah → F9 Anti-Hantu)
 - **6 memory bands** with verdict-driven routing (VAULT, LEDGER, ACTIVE, PHOENIX, WITNESS, VOID)
-- **97% safety ceiling** on adversarial prompts (unchanged from v38.1)
-- **Zero breaking changes** — plug into any LLM, instantly get governance
+- **Phoenix-72 scheduler** — SABAR escalates after 24h, PARTIAL decays after 72h
+- **97% safety ceiling** on adversarial prompts
+
+**Body (v39):**
+- **FastAPI service** with 5 governed routes (/health, /pipeline, /ledger, /memory, /metrics)
+- Constitutional middleware enforcing floors on all requests
+- Docker-deployable, single-tenant friendly
+
+**Hands (v40):**
+- **MCP server** with 6 constitutional tools (apex_llama, judge, recall, audit, fag_read, +1)
+- VS Code/Cursor integration ready
+- Pydantic request/response models
+
+**Filesystem Governance (v41):**
+- **FAG (File Access Governance)** — Constitutional wrapper for I/O operations
+- Root-jailed, read-only filesystem access with 50+ forbidden patterns
+- Blocks .env, SSH keys, credentials, git internals
+- CLI tool: `arifos-safe-read` | MCP tool: `arifos_fag_read`
+- **23/23 tests passing** (12 core + 11 MCP integration)
 
 ---
 
