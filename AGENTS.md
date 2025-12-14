@@ -421,9 +421,9 @@ For detailed roadmap and task priorities, see [docs/ROADMAP.md](docs/ROADMAP.md)
 | Phase | Version | Focus | Timeframe | Status |
 |-------|---------|-------|-----------|--------|
 | Phase 1 | **v38** | Memory as Law (EUREKA) | Q1 2026 | ✅ SHIPPED |
-| Phase 2 | **v39** | Body API (FastAPI Grid) | Q2 2026 | PLANNED |
-| Phase 3 | **v40** | Hands (MCP + IDE Integration) | Q3 2026 | PLANNED |
-| Phase 4 | **v41** | Input Hygiene + zkPC Design | Q4 2026–Q1 2027 | RESEARCH |
+| Phase 2 | **v39** | Body API (FastAPI Grid) | Q2 2026 | ✅ SHIPPED |
+| Phase 3 | **v40** | Hands (MCP + IDE Integration) | Q3 2026 | ✅ SHIPPED |
+| Phase 4 | **v41** | FAG (File Access Governance) | Q4 2025–Q1 2026 | ✅ SHIPPED (v41.0.0) |
 | Phase 5 | **v42** | Cryptographic Optimization | Q2 2027+ | CONDITIONAL |
 
 ### Phase Summary
@@ -440,9 +440,15 @@ For detailed roadmap and task priorities, see [docs/ROADMAP.md](docs/ROADMAP.md)
 - Inline audits, verdict explanations, ledger visibility
 - Use MCP standard, avoid LangChain/AutoGen (preserve sovereignty)
 
-**v41 (Input Hygiene + zkPC):**
+**v41 (FAG - File Access Governance):**
 
-- Safe-FS: Root-jailed, read-only filesystem access with secret blocking
+- ✅ **v41.0.0-alpha SHIPPED** (January 2025): Read-only constitutional filesystem wrapper
+- Root-jailed, read-only filesystem access with 50+ forbidden patterns (.env, SSH keys, credentials)
+- 5 floor checks: F1 Amanah (root jail), F2 Truth (exists), F4 DeltaS (text only), F9 C_dark (secret blocking)
+- 3 interfaces: Python API (`FAG` class), CLI (`arifos-safe-read`), MCP (`arifos_fag_read` tool)
+- 12/12 core tests passing + 11/11 MCP integration tests passing
+- Cooling Ledger integration for audit trail
+- v41.1 (Q1 2026): Write operations with Phoenix-72 approval
 - zkPC: Design-only (requires formal verification + academic peer review)
 
 **v42 (Cryptographic Backend):**
@@ -452,9 +458,10 @@ For detailed roadmap and task priorities, see [docs/ROADMAP.md](docs/ROADMAP.md)
 
 ### Hard Gates (Sequential)
 
-- v39 blocked until v38 memory invariants hold
-- v40 blocked until v39 API is audited
-- v41 Safe-FS blocked until v40 MCP is stable
+- ✅ v39 blocked until v38 memory invariants hold — GATE PASSED
+- ✅ v40 blocked until v39 API is audited — GATE PASSED
+- ✅ v41.0 FAG blocked until v40 MCP is stable — GATE PASSED
+- ⏳ v41.1 write operations blocked until v41.0 validated (12/12 tests + 11/11 MCP tests passing)
 - zkPC blocked until peer review passes
 
 **If a gate fails → pause, fix, retest. Do not rush.**

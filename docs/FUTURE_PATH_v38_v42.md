@@ -37,9 +37,9 @@ This is correct. arifOS is law-first, not feature-first.
 | Phase   | Version | Focus                       | Timeframe       | Status        |
 | ------- | ------- | --------------------------- | --------------- | ------------- |
 | Phase 1 | **v38** | Memory as Law               | Q1 2026         | ✅ SHIPPED    |
-| Phase 2 | **v39** | Body (FastAPI Grid)         | Q2 2026         | PLANNED       |
-| Phase 3 | **v40** | Hands (MCP + IDE)           | Q3 2026         | PLANNED       |
-| Phase 4 | **v41** | Input Hygiene + zkPC Design | Q4 2026–Q1 2027 | RESEARCH      |
+| Phase 2 | **v39** | Body (FastAPI Grid)         | Q2 2026         | ✅ SHIPPED    |
+| Phase 3 | **v40** | Hands (MCP + IDE)           | Q3 2026         | ✅ SHIPPED    |
+| Phase 4 | **v41** | FAG (File Access Governance) | Q4 2025–Q1 2026 | ✅ v41.0.0 SHIPPED |
 | Phase 5 | **v42** | Cryptographic Optimization  | Q2 2027+        | CONDITIONAL   |
 
 ---
@@ -146,21 +146,41 @@ tests/test_mcp.py     - Integration tests
 
 ---
 
-## Phase 4 — v41: Input Hygiene + zkPC Design (RESEARCH)
+## Phase 4 — v41: FAG (File Access Governance) ✅
 
-### A. Safe-FS (Input Hygiene)
+### A. FAG v41.0.0-alpha (SHIPPED — January 2025)
 
 **Problem:** Ungoverned input is as dangerous as ungoverned output.
 
-**Solution:**
+**Solution (SHIPPED):**
 
-* Root-jailed, read-only filesystem access
-* Secret blocking (.env, keys, credentials)
-* Every read audited into the Cooling Ledger
+* ✅ Root-jailed, read-only filesystem wrapper (`FAG` class)
+* ✅ 50+ forbidden patterns: .env, SSH keys, credentials, git internals
+* ✅ 5 constitutional floors: F1 (root jail), F2 (exists), F4 (text only), F9 (no secrets)
+* ✅ 3 interfaces: Python API, CLI (`arifos-safe-read`), MCP (`arifos_fag_read`)
+* ✅ Cooling Ledger integration (every read audited)
+* ✅ 12/12 core tests + 11/11 MCP integration tests passing
 
-**Result:** Agents cannot poison themselves.
+**Result:** AI agents cannot read secrets or escape root jail.
 
-### B. zkPC (Design Only)
+**Documentation:**
+- Quick Start: `docs/FAG_QUICK_START.md`
+- v41.1 Roadmap: `docs/FAG_v41_1_ROADMAP.md`
+- Core Implementation: `arifos_core/fag.py`
+- Test Suite: `tests/test_fag.py`, `tests/test_mcp_fag_integration.py`
+
+### B. FAG v41.1 (PLANNED — Q1 2026)
+
+**Next:** Write operations with Phoenix-72 approval.
+
+* Write proposals → 888_HOLD verdict
+* Human approval via `arifos-seal-canon`
+* Delete operations → Move to `.arifos_trash/` (recoverable for 90 days)
+* Git auto-commit on seal
+
+**Blocked Until:** v41.0.0 MCP validation complete (✅ 11/11 tests passing)
+
+### C. zkPC (Design Only)
 
 **What it is:**
 
@@ -192,12 +212,13 @@ Possible outcomes:
 
 ## Hard Gates (Sequential)
 
-| Gate | Condition | Blocked Until |
-|------|-----------|---------------|
-| v39 | Memory invariants hold | v38 audited + stable |
-| v40 | API is audited | v39 tested + deployed |
-| v41 Safe-FS | MCP is stable | v40 integration complete |
-| zkPC | Peer review passes | Academic validation |
+| Gate | Condition | Blocked Until | Status |
+|------|-----------|---------------|--------|
+| v39 | Memory invariants hold | v38 audited + stable | ✅ PASSED |
+| v40 | API is audited | v39 tested + deployed | ✅ PASSED |
+| v41.0 FAG | MCP is stable | v40 integration complete | ✅ PASSED |
+| v41.1 FAG | v41.0 validated | 12/12 + 11/11 tests passing | ✅ READY |
+| zkPC | Peer review passes | Academic validation | ⏳ PENDING |
 
 **If a gate fails → pause, fix, retest.**
 

@@ -72,8 +72,14 @@ dev = [
 yaml = [
     "pyyaml>=6.0.0",
 ]
+api = [
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.23.0",
+]
 all = [
     "pyyaml>=6.0.0",
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.23.0",
 ]
 
 [project.scripts]
@@ -84,6 +90,18 @@ arifos-seal-canon = "scripts.seal_proposed_canon:main"
 arifos-compute-merkle = "scripts.compute_merkle_root:main"
 arifos-build-ledger-hashes = "scripts.build_ledger_hashes:main"
 arifos-show-merkle-proof = "scripts.show_merkle_proof:main"
+arifos-safe-read = "scripts.arifos_safe_read:main"
+# A CLIP - CLI Pipeline (000-999)
+"000" = "arifos_clip.aclip.cli._dispatcher000:main"
+"111" = "arifos_clip.aclip.cli._dispatcher111:main"
+"222" = "arifos_clip.aclip.cli._dispatcher222:main"
+"333" = "arifos_clip.aclip.cli._dispatcher333:main"
+"444" = "arifos_clip.aclip.cli._dispatcher444:main"
+"555" = "arifos_clip.aclip.cli._dispatcher555:main"
+"666" = "arifos_clip.aclip.cli._dispatcher666:main"
+"777" = "arifos_clip.aclip.cli._dispatcher777:main"
+"888" = "arifos_clip.aclip.cli._dispatcher888:main"
+"999" = "arifos_clip.aclip.cli._dispatcher999:main"
 
 [project.urls]
 Homepage = "https://github.com/ariffazil/arifOS"
@@ -105,8 +123,19 @@ packages = [
     "arifos_core.dream_forge",
     "arifos_core.guards",
     "arifos_core.wrappers",
+    "arifos_core.api",
+    "arifos_core.api.routes",
+    "arifos_core.mcp",
+    "arifos_core.mcp.tools",
+    "arifos_core.stages",
+    "arifos_core.integration",
     "arifos_eval",
     "arifos_eval.apex",
+    "arifos_clip",
+    "arifos_clip.aclip",
+    "arifos_clip.aclip.cli",
+    "arifos_clip.aclip.core",
+    "arifos_clip.aclip.bridge",
     "integrations",
     "integrations.sealion",
     "scripts",
@@ -183,6 +212,10 @@ module = [
     "guidance.*",
     "outlines.*",
     "llama_index.*",
+    # API dependencies (optional)
+    "fastapi.*",
+    "uvicorn.*",
+    "starlette.*",
 ]
 ignore_missing_imports = true
 
