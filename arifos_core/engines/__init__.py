@@ -1,9 +1,9 @@
 """
-arifos_core.engines - AAA Engines Facade (v35Omega)
+arifos_core.engines - AGI·ASI·APEX Engines Facade (v35Omega)
 
-Provides clean facades for the AAA Trinity:
-- ARIFEngine (Delta) - Mind/Cold Logic - clarity, structure, reasoning
-- ADAMEngine (Omega) - Heart/Warm Logic - empathy, tone, stability
+Provides clean facades for the AGI·ASI·APEX Trinity:
+- AGIEngine (Delta) - Mind/Cold Logic - clarity, structure, reasoning
+- ASIEngine (Omega) - Heart/Warm Logic - empathy, tone, stability
 - ApexEngine (Psi) - Judiciary - judgment, veto, seal
 
 These facades wrap existing pipeline logic without changing behavior.
@@ -15,12 +15,12 @@ Zero-break contract:
 - All production usage flows via pipeline.py
 """
 
-from .arif_engine import ARIFEngine
-from .adam_engine import ADAMEngine
+from .agi_engine import AGIEngine
+from .asi_engine import ASIEngine
 from .apex_engine import ApexEngine
 
 __all__ = [
-    "ARIFEngine",
-    "ADAMEngine",
+    "AGIEngine",
+    "ASIEngine",
     "ApexEngine",
 ]

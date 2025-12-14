@@ -1246,7 +1246,7 @@ def append_eureka_decision(
 ):
     """Append a Phase-2 EUREKA routing decision to storage.
 
-    - Uses AppendOnlyJSONLStore by default (`vault-999/ledger/{band}.jsonl`).
+    - Uses AppendOnlyJSONLStore by default (`vault_999/ledger/{band}.jsonl`).
     - Supports InMemoryStore for tests.
     - Drops TOOL/forbidden writes when `decision.allowed` is False or action is DROP.
     """

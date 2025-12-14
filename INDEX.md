@@ -154,10 +154,10 @@
 - `floor_detectors/__init__.py` — v38.0.0 · detector exports
 - `floor_detectors/amanah_risk_detectors.py` — v38.0.0 · **F1 Amanah enforcement** (code overrides LLM)
 
-### engines/ (AAA Engines)
-- `engines/__init__.py` — v38.0.0 · AAA facade exports
-- `engines/arif_engine.py` — v38.0.0 · ARIF Delta (Mind/Cold Logic)
-- `engines/adam_engine.py` — v38.0.0 · ADAM Omega (Heart/Warm Logic)
+### engines/ (AGI·ASI·APEX Trinity)
+- `engines/__init__.py` — v42.0 · Trinity facade exports
+- `engines/agi_engine.py` — v42.0 · AGI (Architect) Delta (Mind/Cold Logic)
+- `engines/asi_engine.py` — v42.0 · ASI (Auditor) Omega (Heart/Warm Logic)
 - `engines/apex_engine.py` — v38.0.0 · APEX PRIME Psi (Judiciary)
 
 ### waw/ (W@W Federation)
