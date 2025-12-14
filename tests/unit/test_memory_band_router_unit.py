@@ -141,19 +141,19 @@ class TestBasicRouting:
         assert results["LEDGER"].success, f"LEDGER write failed: {results['LEDGER'].error}"
         assert results["ACTIVE"].success, f"ACTIVE write failed: {results['ACTIVE'].error}"
     
-    def test_sabar_routes_to_ledger_and_active(self, router):
-        """SABAR verdict should route to LEDGER + ACTIVE."""
+    def test_sabar_routes_to_pending_and_ledger(self, router):
+        """SABAR verdict should route to PENDING + LEDGER (v38.3 AMENDMENT 2)."""
         results = router.route_write(
             verdict="SABAR",
             content={"output": "Test output", "reason": "Clarity insufficient"},
             writer_id="888_JUDGE",
             evidence_hash="test_hash_002",
         )
-        
+
         assert "LEDGER" in results, "SABAR should route to LEDGER"
-        assert "ACTIVE" in results, "SABAR should route to ACTIVE"
+        assert "PENDING" in results, "SABAR should route to PENDING"
         assert results["LEDGER"].success
-        assert results["ACTIVE"].success
+        assert results["PENDING"].success
     
     def test_partial_routes_to_phoenix_and_ledger(self, router):
         """PARTIAL verdict should route to PHOENIX + LEDGER."""

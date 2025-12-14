@@ -161,10 +161,10 @@ class TestSealRouting:
 # =============================================================================
 
 class TestSabarRouting:
-    """Test SABAR verdict routing to LEDGER + ACTIVE with failure reason."""
+    """Test SABAR verdict routing to PENDING + LEDGER with failure reason (v38.3)."""
 
-    def test_sabar_routes_to_ledger_and_active(self, write_policy):
-        """SABAR verdict should route to LEDGER + ACTIVE."""
+    def test_sabar_routes_to_pending_and_ledger(self, write_policy):
+        """SABAR verdict should route to PENDING + LEDGER (v38.3 AMENDMENT 2)."""
         decision = write_policy.should_write(
             verdict="SABAR",
             band_target=None,
@@ -172,7 +172,7 @@ class TestSabarRouting:
         )
         assert decision.allowed
         assert "LEDGER" in decision.target_bands
-        assert "ACTIVE" in decision.target_bands
+        assert "PENDING" in decision.target_bands
 
     def test_sabar_logs_failure_reason(self, write_policy):
         """SABAR should include failure reason in ledger entry."""

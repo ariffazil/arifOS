@@ -198,8 +198,8 @@ class TestVerdictRoutingToBands:
         assert "ACTIVE" in decision.target_bands
         assert len(decision.target_bands) == 2
 
-    def test_sabar_verdict_routes_to_ledger_and_active(self, write_policy):
-        """SABAR verdict should route to LEDGER + ACTIVE bands (with reason)."""
+    def test_sabar_verdict_routes_to_pending_and_ledger(self, write_policy):
+        """SABAR verdict should route to PENDING + LEDGER bands (v38.3 AMENDMENT 2)."""
         decision = write_policy.should_write(
             verdict="SABAR",
             band_target=None,
@@ -207,7 +207,7 @@ class TestVerdictRoutingToBands:
         )
         assert decision.allowed
         assert "LEDGER" in decision.target_bands
-        assert "ACTIVE" in decision.target_bands
+        assert "PENDING" in decision.target_bands
         assert len(decision.target_bands) == 2
 
     def test_partial_verdict_routes_to_phoenix_and_ledger(self, write_policy):
@@ -246,9 +246,10 @@ class TestVerdictRoutingToBands:
         assert decision.requires_human_approval
 
     def test_verdict_band_routing_constant_matches_code(self):
-        """VERDICT_BAND_ROUTING constant should match expected routing."""
+        """VERDICT_BAND_ROUTING constant should match expected routing (v38.3)."""
         assert VERDICT_BAND_ROUTING["SEAL"] == ["LEDGER", "ACTIVE"]
-        assert VERDICT_BAND_ROUTING["SABAR"] == ["LEDGER", "ACTIVE"]
+        # v38.3 AMENDMENT 2: SABAR routes to PENDING + LEDGER (epistemic queue)
+        assert VERDICT_BAND_ROUTING["SABAR"] == ["PENDING", "LEDGER"]
         assert VERDICT_BAND_ROUTING["PARTIAL"] == ["PHOENIX", "LEDGER"]
         assert VERDICT_BAND_ROUTING["VOID"] == ["VOID"]
         assert VERDICT_BAND_ROUTING["888_HOLD"] == ["LEDGER"]

@@ -169,16 +169,19 @@ class TestPipelineEndpoints:
         assert isinstance(data["response"], str)
 
     @pytest.mark.skipif(not FASTAPI_AVAILABLE, reason="FastAPI not installed")
-    def test_pipeline_run_returns_job_id(self, client):
-        """POST /pipeline/run should return a job_id."""
+    def test_pipeline_run_returns_apex_prime_contract(self, client):
+        """POST /pipeline/run should return APEX PRIME public contract (v41.0.1)."""
         response = client.post(
             "/pipeline/run",
             json={"query": "Test query"}
         )
         data = response.json()
-        assert "job_id" in data
-        assert isinstance(data["job_id"], str)
-        assert len(data["job_id"]) > 0
+        # v41.0.1 APEX PRIME contract: {verdict, apex_pulse, response, reason_code?}
+        assert "verdict" in data, "Contract should include verdict"
+        assert data["verdict"] in ["SEAL", "SABAR", "VOID"], f"Invalid verdict: {data['verdict']}"
+        assert "apex_pulse" in data, "Contract should include apex_pulse"
+        assert "response" in data, "Contract should include response"
+        # reason_code is optional (only present for non-SEAL)
 
     @pytest.mark.skipif(not FASTAPI_AVAILABLE, reason="FastAPI not installed")
     def test_pipeline_run_with_empty_query_fails(self, client):

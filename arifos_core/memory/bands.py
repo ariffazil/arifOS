@@ -941,7 +941,7 @@ class MemoryBandRouter:
             BandName.VAULT: VaultBand(),
             BandName.LEDGER: CoolingLedgerBand(),
             BandName.ACTIVE: ActiveStreamBand(),
-            BandName.PENDING: ActiveStreamBand(),
+            BandName.PENDING: PendingBand(),  # v38.3: Epistemic queue for SABAR
             BandName.PHOENIX: PhoenixCandidatesBand(),
             BandName.WITNESS: WitnessBand(),
             BandName.VOID: VoidBandStorage(),
