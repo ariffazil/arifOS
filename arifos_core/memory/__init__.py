@@ -240,6 +240,27 @@ from .retention import (
     BAND_TRANSITIONS,
 )
 
+# ============================================================================
+# v38.3Omega EUREKA Phase-1 Memory Engine
+# ============================================================================
+
+from .eureka_types import (
+    ActorRole,
+    MemoryBand as EurekaMemoryBand,
+    Verdict as EurekaVerdict,
+    MemoryWriteRequest,
+    MemoryWriteDecision,
+)
+
+from .eureka_router import (
+    route_write,
+)
+
+from .eureka_store import (
+    AppendOnlyJSONLStore,
+    InMemoryStore,
+)
+
 
 __all__ = [
     # Memory Context
@@ -399,4 +420,13 @@ __all__ = [
     "MAX_RECALL_ENTRIES",
     "STORABLE_VERDICTS",
     "DISCARD_VERDICTS",
+    # ===== v38.3Omega EUREKA Phase-1 =====
+    "ActorRole",
+    "EurekaMemoryBand",
+    "EurekaVerdict",
+    "MemoryWriteRequest",
+    "MemoryWriteDecision",
+    "route_write",
+    "AppendOnlyJSONLStore",
+    "InMemoryStore",
 ]

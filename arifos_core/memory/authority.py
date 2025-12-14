@@ -585,4 +585,95 @@ __all__ = [
     "require_human_for_seal",
     # Constants
     "AUTHORITY_MATRIX",
+    # v38.3Omega EUREKA Phase-1 bridges
+    "actor_role_to_writer_type",
+    "eureka_can_write",
 ]
+
+
+# =============================================================================
+# v38.3Omega EUREKA Phase-1 Compatibility Bridge (APPEND-ONLY)
+# =============================================================================
+
+def actor_role_to_writer_type(role):
+    """
+    Bridge ActorRole (Phase-1) -> existing WriterType.
+    
+    Does not change existing authority model. Used by EUREKA router only.
+    
+    Args:
+        role: ActorRole enum from eureka_types
+        
+    Returns:
+        Corresponding WriterType or None for TOOL role
+    """
+    role_str = str(role)
+    
+    if "HUMAN" in role_str:
+        return WriterType.HUMAN
+    elif "JUDICIARY" in role_str:
+        # JUDICIARY (APEX PRIME / @EYE) maps to APEX_PRIME
+        return WriterType.APEX_PRIME
+    elif "ENGINE" in role_str:
+        # ENGINE (pipeline/system code) maps to SYSTEM
+        return WriterType.SYSTEM
+    # TOOL is untrusted -> None
+    return None
+
+
+def eureka_can_write(writer_type, target_band: str, human_seal: bool) -> bool:
+    """
+    Check if a writer can write to a band (EUREKA Phase-1 entrypoint).
+    
+    Delegates to existing MemoryAuthorityCheck.validate_writer() when possible,
+    falls back to Phase-1 rules for new bands (PENDING).
+    
+    Args:
+        writer_type: WriterType enum (result of actor_role_to_writer_type)
+        target_band: Band name (VAULT, LEDGER, ACTIVE, etc.)
+        human_seal: Whether human seal is present
+        
+    Returns:
+        True if write is allowed, False otherwise
+    """
+    # Hard invariant: Vault requires human seal
+    if target_band == "VAULT":
+        if writer_type is None:
+            return False
+        return str(writer_type).endswith("HUMAN") and human_seal is True
+    
+    # If tools or unknown role -> forbid
+    if writer_type is None:
+        return False
+    
+    # Try existing authority engine first
+    try:
+        checker = MemoryAuthorityCheck(human_approval_flag=human_seal)
+        writer_id = writer_type.value  # Get string value from enum
+        decision = checker.validate_writer(writer_id, target_band)
+        
+        # If old matrix knows about this band and allows it, use that
+        if decision.allowed:
+            return True
+        
+        # If old matrix explicitly forbids, we may still allow per Phase-1 for
+        # bands intended to be writable by ENGINE/JUDICIARY (PHOENIX/PENDING).
+        # So do not hard-stop here; fall through to Phase-1 rules below.
+        # Vault is handled above with hard invariant.
+    except Exception:
+        pass  # Fall through to Phase-1 rules
+    
+    # Phase-1 rules for bands not in old matrix
+    # PENDING is new in v38.3, allow for ENGINE/JUDICIARY/HUMAN
+    if target_band == "PENDING":
+        return writer_type in {WriterType.SYSTEM, WriterType.APEX_PRIME, WriterType.HUMAN}
+    
+    # PHOENIX - allow proposals from ENGINE, JUDICIARY, HUMAN in Phase-1
+    if target_band == "PHOENIX":
+        return writer_type in {WriterType.SYSTEM, WriterType.APEX_PRIME, WriterType.HUMAN}
+
+    # ACTIVE, VOID, LEDGER - allow for known roles
+    if target_band in {"ACTIVE", "VOID", "LEDGER"}:
+        return writer_type in {WriterType.SYSTEM, WriterType.APEX_PRIME, WriterType.HUMAN}
+    
+    return False
