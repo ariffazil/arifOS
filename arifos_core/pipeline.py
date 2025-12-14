@@ -6,8 +6,8 @@ Implements the constitutional metabolism with Class A/B routing:
 - Class B (high-stakes/ethical): Deep track through 222 + 555 + 777
 
 AAA Engine Integration (v35.8.0):
-- ARIFEngine (Δ): sense/reason/align - cold logic, clarity
-- ADAMEngine (Ω): empathize/bridge - warm logic, stability
+- AGIEngine (Δ): sense/reason/align - cold logic, clarity
+- ASIEngine (Ω): empathize/bridge - warm logic, stability
 - ApexEngine (Ψ): judge - judiciary wrapper
 
 MemoryContext Integration (v37):
@@ -41,7 +41,7 @@ from .eye_sentinel import EyeSentinel, EyeReport
 from .waw.federation import WAWFederationCore, FederationVerdict
 
 # AAA Engines (internal facade - v35.8.0)
-from .engines import ARIFEngine, ADAMEngine
+from .engines import AGIEngine, ASIEngine
 from .engines.agi_engine import AGIPacket
 from .engines.asi_engine import ASIPacket
 
@@ -1182,7 +1182,7 @@ class Pipeline:
     Supports Class A (fast track) and Class B (deep track) routing.
 
     AAA Engine Integration (v35.8.0):
-    - Internally uses ARIFEngine, ADAMEngine, ApexEngine
+    - Internally uses AGIEngine, ASIEngine, ApexEngine
     - Preserves all existing behavior (zero-break contract)
     - Engine packets stored in PipelineState for debugging/audit
 
@@ -1225,8 +1225,8 @@ class Pipeline:
         self._vault = vault
 
         # AAA Engines (v35.8.0 - internal facade)
-        self._arif = ARIFEngine()
-        self._adam = ADAMEngine()
+        self._agi = AGIEngine()
+        self._asi = ASIEngine()
 
     def run(
         self,

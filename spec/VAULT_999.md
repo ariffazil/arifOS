@@ -59,7 +59,7 @@ Contains:
 
 - ΔΩΨ physics parameters (ΔS, Ω₀ band, Peace²)
 - All 9 Constitutional Floor thresholds
-- AAA Trinity specifications
+- AGI·ASI·APEX Trinity specifications
 - APEX PRIME CCE rules
 - Active canons (laws) and their metadata
 - Amendment history pointers (Phoenix cycle IDs)

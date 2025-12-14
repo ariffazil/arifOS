@@ -572,8 +572,8 @@ def import_module_from_manifest(
         ImportError: If module import fails
 
     Example:
-        # Import ARIFEngine module
-        arif_mod = import_module_from_manifest(manifest, "engines", "arif")
+        # Import AGIEngine module
+        agi_mod = import_module_from_manifest(manifest, "engines", "agi")
     """
     comp = manifest.get(component, {})
 
@@ -632,9 +632,9 @@ def get_class_from_manifest(
         The class object
 
     Example:
-        # Get ARIFEngine class
-        ARIFEngine = get_class_from_manifest(manifest, "engines", "arif")
-        engine = ARIFEngine()
+        # Get AGIEngine class
+        AGIEngine = get_class_from_manifest(manifest, "engines", "agi")
+        engine = AGIEngine()
     """
     comp = manifest.get(component, {})
 
