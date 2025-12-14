@@ -234,14 +234,62 @@ class ToxicityDetector:
     - Racial slurs and stereotypes
     - Gender discrimination
     - Scam/fraud patterns
+
+    v41.1: Context-aware detection to reduce false positives.
+    - "babi adalah binatang" (pig is animal) -> SAFE (educational)
+    - "cina babi" (chinese pig) -> TOXIC (racial slur)
     """
 
     # Singlish/Malay profanity patterns
     PROFANITY_PATTERNS = [
         "knn", "ccb", "cb", "lj", "nbcb",  # Hokkien
-        "bodoh", "babi", "sial", "celaka",  # Malay
+        "bodoh", "sial", "celaka",  # Malay (babi handled separately)
         "stupid", "trash", "idiot", "dumb",  # English
         "jialat", "damn",  # Singlish
+    ]
+
+    # Context-sensitive words - only toxic when used as slurs
+    # These need additional context checking
+    CONTEXT_SENSITIVE = ["babi"]
+
+    # Safe contexts for "babi" (educational/neutral usage)
+    BABI_SAFE_CONTEXTS = [
+        "babi adalah",      # pig is...
+        "babi hutan",       # wild boar
+        "daging babi",      # pork meat
+        "babi panggang",    # roast pork
+        "babi guling",      # roast pig (Balinese)
+        "lemak babi",       # lard
+        "kandang babi",     # pig pen
+        "ternakan babi",    # pig farming
+        "babi liar",        # wild pig
+        "penyakit babi",    # pig disease
+        "flu babi",         # swine flu
+        "kulit babi",       # pig skin
+        "ekor babi",        # pig tail
+        "babi betina",      # female pig
+        "babi jantan",      # male pig
+        "anak babi",        # piglet
+        "pig",              # English context
+        "pork",             # English context
+        "swine",            # English context
+    ]
+
+    # Racial slur patterns with "babi" - these are ALWAYS toxic
+    BABI_TOXIC_PATTERNS = [
+        "cina babi",        # chinese pig (slur)
+        "melayu babi",      # malay pig (slur)
+        "india babi",       # indian pig (slur)
+        "orang babi",       # pig person (slur)
+        "muka babi",        # pig face (insult)
+        "kau babi",         # you pig (insult)
+        "dia babi",         # he/she pig (insult)
+        "babi kau",         # pig you (insult)
+        "babi lu",          # pig you (Singlish insult)
+        "macam babi",       # like a pig (insult)
+        "babi betul",       # really a pig (insult)
+        "babi sangat",      # so pig (insult)
+        "dasar babi",       # basically pig (insult)
     ]
 
     # Racial stereotype patterns
@@ -281,6 +329,51 @@ class ToxicityDetector:
     ]
 
     @classmethod
+    def _check_babi_context(cls, text_lower: str) -> tuple[bool, str]:
+        """
+        Context-aware check for "babi" (pig).
+
+        Returns:
+            (is_toxic, reason) - True if used as slur, False if educational/neutral
+        """
+        if "babi" not in text_lower:
+            return False, ""
+
+        # First check for explicit toxic patterns (racial slurs)
+        for toxic_pattern in cls.BABI_TOXIC_PATTERNS:
+            if toxic_pattern in text_lower:
+                return True, f"slur:{toxic_pattern}"
+
+        # Check for safe contexts (educational/neutral)
+        for safe_context in cls.BABI_SAFE_CONTEXTS:
+            if safe_context in text_lower:
+                return False, ""
+
+        # If "babi" appears with race words nearby, likely a slur
+        race_words = ["cina", "melayu", "india", "chinese", "malay", "indian"]
+        words = text_lower.split()
+        babi_idx = -1
+        for i, word in enumerate(words):
+            if "babi" in word:
+                babi_idx = i
+                break
+
+        if babi_idx >= 0:
+            # Check 2 words before and after for race words
+            context_range = words[max(0, babi_idx-2):min(len(words), babi_idx+3)]
+            for race_word in race_words:
+                if any(race_word in w for w in context_range):
+                    return True, f"racial_context:babi+{race_word}"
+
+        # If standalone "babi" without safe context, treat as potential insult
+        # But only if the sentence is short (likely directed at someone)
+        if len(words) <= 5 and "babi" in words:
+            return True, "standalone_insult:babi"
+
+        # Default: allow if in longer educational context
+        return False, ""
+
+    @classmethod
     def check(cls, text: str) -> dict:
         """
         Check text for toxicity patterns.
@@ -299,11 +392,19 @@ class ToxicityDetector:
         matches = []
         categories = set()
 
-        # Check profanity
+        # Check profanity (excluding context-sensitive words)
         for pattern in cls.PROFANITY_PATTERNS:
             if pattern in text_lower:
                 matches.append(f"profanity:{pattern}")
                 categories.add("profanity")
+
+        # Context-aware check for "babi"
+        babi_toxic, babi_reason = cls._check_babi_context(text_lower)
+        if babi_toxic:
+            matches.append(f"profanity:{babi_reason}")
+            categories.add("profanity")
+            if "racial" in babi_reason or "slur" in babi_reason:
+                categories.add("racial_bias")
 
         # Check racial patterns
         for pattern in cls.RACIAL_PATTERNS:
@@ -618,6 +719,74 @@ class TestToxicityDetectorUnit:
         )
         assert not result["is_toxic"]
         assert result["severity"] == "NONE"
+
+
+class TestBabiContextAwareness:
+    """
+    v41.1: Context-aware tests for "babi" (pig).
+
+    The word "babi" can be:
+    - Educational: "babi adalah binatang" (pig is an animal) -> SAFE
+    - Culinary: "daging babi" (pork) -> SAFE
+    - Racial slur: "cina babi" (chinese pig) -> TOXIC
+    - Insult: "kau babi" (you pig) -> TOXIC
+    """
+
+    def test_babi_educational_context_safe(self):
+        """Educational use of 'babi' should be safe."""
+        result = ToxicityDetector.check("babi adalah binatang")
+        assert not result["is_toxic"], "Educational context should be safe"
+
+    def test_babi_culinary_context_safe(self):
+        """Culinary use of 'babi' should be safe."""
+        result = ToxicityDetector.check("Saya makan daging babi untuk makan malam")
+        assert not result["is_toxic"], "Culinary context should be safe"
+
+    def test_babi_wild_boar_safe(self):
+        """Wild boar reference should be safe."""
+        result = ToxicityDetector.check("Babi hutan ada di dalam hutan")
+        assert not result["is_toxic"], "Wild boar reference should be safe"
+
+    def test_babi_swine_flu_safe(self):
+        """Medical/news context should be safe."""
+        result = ToxicityDetector.check("Flu babi adalah penyakit berbahaya")
+        assert not result["is_toxic"], "Medical context should be safe"
+
+    def test_cina_babi_slur_toxic(self):
+        """Racial slur 'cina babi' must be blocked."""
+        result = ToxicityDetector.check("cina babi")
+        assert result["is_toxic"], "Racial slur must be toxic"
+        assert "racial_bias" in result["categories"]
+
+    def test_melayu_babi_slur_toxic(self):
+        """Racial slur 'melayu babi' must be blocked."""
+        result = ToxicityDetector.check("melayu babi")
+        assert result["is_toxic"], "Racial slur must be toxic"
+
+    def test_kau_babi_insult_toxic(self):
+        """Direct insult 'kau babi' must be blocked."""
+        result = ToxicityDetector.check("kau babi")
+        assert result["is_toxic"], "Direct insult must be toxic"
+
+    def test_macam_babi_insult_toxic(self):
+        """Insult 'macam babi' must be blocked."""
+        result = ToxicityDetector.check("macam babi")
+        assert result["is_toxic"], "Insult must be toxic"
+
+    def test_babi_in_longer_sentence_safe(self):
+        """'babi' in longer educational sentence should be safe."""
+        result = ToxicityDetector.check(
+            "Babi adalah haiwan yang diternak di banyak negara untuk diambil dagingnya"
+        )
+        assert not result["is_toxic"], "Long educational sentence should be safe"
+
+    def test_cina_makan_babi_needs_context(self):
+        """'cina makan babi' is factual (Chinese eat pork), should consider context."""
+        # This is borderline - factual but could be used offensively
+        # The context 'makan' (eat) suggests culinary context
+        result = ToxicityDetector.check("orang cina makan daging babi")
+        # With "daging babi" (pork) context, this should be safe
+        assert not result["is_toxic"], "Factual culinary statement with daging should be safe"
 
 
 class TestAmanahVsToxicity:
