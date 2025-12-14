@@ -79,7 +79,7 @@ class MockSeaLionEngine:
         Returns:
             Mock LLM response (possibly unsafe)
         """
-        print(f"🦁 [SEA-LION RAW] Generating response for: '{prompt[:60]}...'")
+        print(f"[SEA-LION RAW] Generating response for: '{prompt[:60]}...'")
         
         # UNSAFE MODE: Return destructive commands
         if "delete" in prompt.lower() or "remove" in prompt.lower():
@@ -124,15 +124,15 @@ def run_governed_inference(prompt: str, engine: MockSeaLionEngine) -> Dict[str, 
         Governance result with verdict and response
     """
     print("\n" + "="*70)
-    print("GOVERNANCE PIPELINE: SEA-LION → APEX PRIME")
+    print("GOVERNANCE PIPELINE: SEA-LION -> APEX PRIME")
     print("="*70)
     
     # STEP 1: RAW INFERENCE (The Danger Zone)
     raw_response = engine.generate(prompt)
-    print(f"\n📝 [RAW OUTPUT]: {raw_response}")
+    print(f"\n[RAW OUTPUT]: {raw_response}")
     
     # STEP 2: APEX PRIME AUDIT (The Constitutional Check)
-    print("\n⚖️  [APEX PRIME] Running constitutional audit...")
+    print("\n[APEX PRIME] Running constitutional audit...")
     print("    Floors: F1(Amanah), F2(Truth), F4(DeltaS), F7(Omega0)")
     
     # CRITICAL: Use floor detectors directly (not evaluate_session bridge)
@@ -147,23 +147,23 @@ def run_governed_inference(prompt: str, engine: MockSeaLionEngine) -> Dict[str, 
         if not amanah_result.is_safe:
             # F1 (Amanah) VIOLATION - VOID verdict
             verdict = "VOID"
-            print(f"    🛑 F1 (Amanah) FAILED: {len(amanah_result.violations)} violations")
+            print(f"    [X] F1 (Amanah) FAILED: {len(amanah_result.violations)} violations")
             for violation in amanah_result.violations[:3]:  # Show first 3
                 print(f"       - {violation[:60]}...")
         else:
             # Amanah passed - approve
             verdict = "SEAL"
-            print(f"    ✅ F1 (Amanah) PASSED: No unsafe patterns detected")
+            print(f"    [OK] F1 (Amanah) PASSED: No unsafe patterns detected")
             
     except ImportError:
         # Fallback: Pattern-based check
         unsafe_patterns = ["rm -rf", "DROP TABLE", "DROP DATABASE", "TRUNCATE", "DELETE FROM"]
         if any(pattern in raw_response for pattern in unsafe_patterns):
             verdict = "VOID"
-            print(f"    🛑 F1 (Amanah) FAILED: Unsafe pattern detected")
+            print(f"    [X] F1 (Amanah) FAILED: Unsafe pattern detected")
         else:
             verdict = "SEAL"
-            print(f"    ✅ F1 (Amanah) PASSED (fallback check)")
+            print(f"    [OK] F1 (Amanah) PASSED (fallback check)")
     
     # Use canonical APEX PRIME contract
     result = serialize_public(
@@ -174,10 +174,10 @@ def run_governed_inference(prompt: str, engine: MockSeaLionEngine) -> Dict[str, 
     )
     
     # STEP 3: ENFORCEMENT
-    print(f"\n📊 [VERDICT]: {result['verdict']}")
-    
+    print(f"\n[VERDICT]: {result['verdict']}")
+
     if result['verdict'] == "SEAL":
-        print(f"✅ [APPROVED] Output delivered to user")
+        print(f"[OK] [APPROVED] Output delivered to user")
         print(f"   Response: {raw_response[:80]}...")
         return {
             "approved": True,
@@ -186,7 +186,7 @@ def run_governed_inference(prompt: str, engine: MockSeaLionEngine) -> Dict[str, 
             "blocked": False,
         }
     else:
-        print(f"🛑 [VETOED] Status: {result['verdict']}")
+        print(f"[X] [VETOED] Status: {result['verdict']}")
         print(f"   Reason: Python-sovereign governance blocked unsafe output")
         print(f"   Floor: {result.get('reason_code', 'constitutional_violation')}")
         print(f"   Action: Response NOT delivered to user")
@@ -254,10 +254,10 @@ def run_demo():
         actual_blocked = result['blocked']
         
         if expected_blocked == actual_blocked:
-            print(f"\n✅ [TEST PASSED] Governance behaved correctly")
+            print(f"\n[OK] [TEST PASSED] Governance behaved correctly")
             results.append(True)
         else:
-            print(f"\n❌ [TEST FAILED] Expected blocked={expected_blocked}, got {actual_blocked}")
+            print(f"\n[X] [TEST FAILED] Expected blocked={expected_blocked}, got {actual_blocked}")
             results.append(False)
     
     # Final report
@@ -272,13 +272,13 @@ def run_demo():
     print(f"\nTests Passed: {passed}/{total}")
     
     if passed == total:
-        print("\n🏆 SUCCESS: Governance held. Maruah protected.")
+        print("\n[SUCCESS] Governance held. Maruah protected.")
         print("   Python-sovereign Amanah detector successfully blocked unsafe outputs.")
         print("   Constitutional integrity verified.")
         print("\n   DITEMPA BUKAN DIBERI - Forged, not given.")
         return 0
     else:
-        print("\n❌ FAILURE: Governance breach detected.")
+        print("\n[FAILURE] Governance breach detected.")
         print("   Some unsafe outputs leaked through.")
         return 1
 
