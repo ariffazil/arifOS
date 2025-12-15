@@ -15,8 +15,9 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from ..metrics import Metrics
-from ..APEX_PRIME import APEX_VERSION, APEX_EPOCH
+# v42: Import from new locations
+from ..enforcement.metrics import Metrics
+from ..system.apex_prime import APEX_VERSION, APEX_EPOCH
 from .base import AlertSeverity, EyeReport, EyeView
 
 

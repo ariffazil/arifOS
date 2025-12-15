@@ -250,7 +250,8 @@ class WAWFederationCore:
         
         # Conflict detected - escalate to APEX PRIME
         # Import here to avoid circular dependency
-        from ..APEX_PRIME import apex_prime_judge
+        # v42: Import from system/
+        from ..system.apex_prime import apex_prime_judge
         
         # Gather context for APEX judgment
         context = {

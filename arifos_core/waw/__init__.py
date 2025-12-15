@@ -33,6 +33,18 @@ from .geox import GeoxOrgan
 from .prompt import PromptOrgan
 from .federation import WAWFederationCore, FederationVerdict
 
+# @WELL File Care (v42 - Universal Migration Tool)
+from .well_file_care import (
+    WellFileCare,
+    WellConstants,
+    WellOperationType,
+    WellOperationStatus,
+    WellAuditEntry,
+    WellHealthReport,
+    WellOperationResult,
+    create_well_file_care,
+)
+
 __all__ = [
     # Base types
     "OrganSignal",
@@ -47,4 +59,13 @@ __all__ = [
     # Federation
     "WAWFederationCore",
     "FederationVerdict",
+    # @WELL File Care (v42)
+    "WellFileCare",
+    "WellConstants",
+    "WellOperationType",
+    "WellOperationStatus",
+    "WellAuditEntry",
+    "WellHealthReport",
+    "WellOperationResult",
+    "create_well_file_care",
 ]

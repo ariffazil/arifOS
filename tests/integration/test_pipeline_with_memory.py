@@ -104,8 +104,9 @@ class TestL7RecallAt111Sense:
 
     def test_recall_injects_memories_into_context_blocks(self, basic_pipeline_state, mock_memory_with_hits):
         """Test that recalled memories are injected into context_blocks."""
-        with patch('arifos_core.pipeline.is_l7_enabled', return_value=True):
-            with patch('arifos_core.pipeline._l7_recall', return_value=mock_memory_with_hits):
+        # v42: patch in system.pipeline where the actual implementation lives
+        with patch('arifos_core.system.pipeline.is_l7_enabled', return_value=True):
+            with patch('arifos_core.system.pipeline._l7_recall', return_value=mock_memory_with_hits):
                 state = stage_111_sense(basic_pipeline_state)
 
                 # Check that memories were injected
@@ -119,8 +120,9 @@ class TestL7RecallAt111Sense:
 
     def test_recall_stores_result_in_state(self, basic_pipeline_state, mock_memory_with_hits):
         """Test that recall result is stored in state.l7_recall_result."""
-        with patch('arifos_core.pipeline.is_l7_enabled', return_value=True):
-            with patch('arifos_core.pipeline._l7_recall', return_value=mock_memory_with_hits):
+        # v42: patch in system.pipeline where the actual implementation lives
+        with patch('arifos_core.system.pipeline.is_l7_enabled', return_value=True):
+            with patch('arifos_core.system.pipeline._l7_recall', return_value=mock_memory_with_hits):
                 state = stage_111_sense(basic_pipeline_state)
 
                 assert state.l7_recall_result is not None
@@ -135,7 +137,8 @@ class TestL7RecallAt111Sense:
             l7_user_id="",  # Empty user_id
         )
 
-        with patch('arifos_core.pipeline.is_l7_enabled', return_value=True):
+        # v42: patch in system.pipeline where the actual implementation lives
+        with patch('arifos_core.system.pipeline.is_l7_enabled', return_value=True):
             state = stage_111_sense(state)
 
             # No recall should happen
@@ -171,8 +174,9 @@ class TestL7StoreAt999Seal:
             memory_id="new-mem-123",
         )
 
-        with patch('arifos_core.pipeline.is_l7_enabled', return_value=True):
-            with patch('arifos_core.pipeline._l7_store', return_value=mock_store_result):
+        # v42: patch in system.pipeline where the actual implementation lives
+        with patch('arifos_core.system.pipeline.is_l7_enabled', return_value=True):
+            with patch('arifos_core.system.pipeline._l7_store', return_value=mock_store_result):
                 state = stage_999_seal(state)
 
                 assert state.l7_store_result is not None
@@ -199,8 +203,9 @@ class TestL7StoreAt999Seal:
             error="Verdict VOID is discarded by EUREKA Sieve",
         )
 
-        with patch('arifos_core.pipeline.is_l7_enabled', return_value=True):
-            with patch('arifos_core.pipeline._l7_store', return_value=mock_store_result):
+        # v42: patch in system.pipeline where the actual implementation lives
+        with patch('arifos_core.system.pipeline.is_l7_enabled', return_value=True):
+            with patch('arifos_core.system.pipeline._l7_store', return_value=mock_store_result):
                 state = stage_999_seal(state)
 
                 # VOID is blocked - store_result should show failure
@@ -235,8 +240,9 @@ class TestL7StoreAt999Seal:
                 memory_id="test",
             )
 
-        with patch('arifos_core.pipeline.is_l7_enabled', return_value=True):
-            with patch('arifos_core.pipeline._l7_store', side_effect=capture_store):
+        # v42: patch in system.pipeline where the actual implementation lives
+        with patch('arifos_core.system.pipeline.is_l7_enabled', return_value=True):
+            with patch('arifos_core.system.pipeline._l7_store', side_effect=capture_store):
                 stage_999_seal(state)
 
                 assert captured_metadata.get("job_id") == "test-job-123"
@@ -258,7 +264,8 @@ class TestFailOpenBehavior:
             l7_user_id="test-user",
         )
 
-        with patch('arifos_core.pipeline.is_l7_enabled', return_value=False):
+        # v42: patch in system.pipeline where the actual implementation lives
+        with patch('arifos_core.system.pipeline.is_l7_enabled', return_value=False):
             # Pipeline should not throw error
             state = stage_111_sense(state)
 
@@ -274,8 +281,9 @@ class TestFailOpenBehavior:
         def raise_error(*args, **kwargs):
             raise Exception("Connection failed")
 
-        with patch('arifos_core.pipeline.is_l7_enabled', return_value=True):
-            with patch('arifos_core.pipeline._l7_recall', side_effect=raise_error):
+        # v42: patch in system.pipeline where the actual implementation lives
+        with patch('arifos_core.system.pipeline.is_l7_enabled', return_value=True):
+            with patch('arifos_core.system.pipeline._l7_recall', side_effect=raise_error):
                 # Should not throw - fail-open
                 state = stage_111_sense(basic_pipeline_state)
 
@@ -295,8 +303,9 @@ class TestFailOpenBehavior:
         def raise_error(*args, **kwargs):
             raise Exception("Storage failed")
 
-        with patch('arifos_core.pipeline.is_l7_enabled', return_value=True):
-            with patch('arifos_core.pipeline._l7_store', side_effect=raise_error):
+        # v42: patch in system.pipeline where the actual implementation lives
+        with patch('arifos_core.system.pipeline.is_l7_enabled', return_value=True):
+            with patch('arifos_core.system.pipeline._l7_store', side_effect=raise_error):
                 # Should not throw - fail-open
                 state = stage_999_seal(state)
 

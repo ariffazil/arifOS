@@ -23,7 +23,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from ..APEX_PRIME import (
+# v42: Import from new location (system/apex_prime.py)
+from ..system.apex_prime import (
     APEXPrime,
     ApexVerdict,
     check_floors,
@@ -31,7 +32,7 @@ from ..APEX_PRIME import (
     APEX_VERSION,
     APEX_EPOCH,
 )
-from ..metrics import Metrics, FloorsVerdict
+from ..enforcement.metrics import Metrics, FloorsVerdict
 from .agi_engine import AGIPacket
 from .asi_engine import ASIPacket
 

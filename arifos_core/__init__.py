@@ -31,11 +31,16 @@ AAA Trinity (v41.3):
 See PHYSICS_CODEX.md (CHAPTER 6) for the full technical statement and diagram.
 """
 
-# Import base types first
-from .metrics import Metrics, FloorsVerdict, ConstitutionalMetrics
+# =============================================================================
+# v42 BACKWARD COMPATIBILITY RE-EXPORTS
+# Files moved to concern-based subdirs, re-exported here for compatibility
+# =============================================================================
 
-# Import APEX components
-from .APEX_PRIME import (
+# Import base types first (moved to enforcement/)
+from .enforcement.metrics import Metrics, FloorsVerdict, ConstitutionalMetrics
+
+# Import APEX components (moved to system/)
+from .system.apex_prime import (
     apex_review,
     ApexVerdict,
     Verdict,
@@ -45,8 +50,8 @@ from .APEX_PRIME import (
     APEX_EPOCH,
 )
 
-# Import @EYE Sentinel (v35Ω)
-from .eye_sentinel import AlertSeverity, EyeAlert, EyeReport, EyeSentinel
+# Import @EYE Sentinel (moved to utils/)
+from .utils.eye_sentinel import AlertSeverity, EyeAlert, EyeReport, EyeSentinel
 
 # Import memory components (optional - graceful fallback if not available)
 try:
@@ -65,17 +70,17 @@ except (ImportError, AttributeError):
             "verdict": kwargs.get("verdict", "UNKNOWN"),
         }
 
-# Import guard LAST (after all its dependencies are loaded)
+# Import guard LAST (after all its dependencies are loaded) - moved to integration/guards/
 try:
-    from .guard import apex_guardrail, GuardrailError
+    from .integration.guards.guard import apex_guardrail, GuardrailError
 except ImportError:
     # Guard requires memory module, make it optional
     apex_guardrail = None
     GuardrailError = None
 
-# Import GENIUS LAW telemetry (v35.13.0+)
+# Import GENIUS LAW telemetry (v35.13.0+) - moved to enforcement/
 try:
-    from .genius_metrics import (
+    from .enforcement.genius_metrics import (
         evaluate_genius_law,
         GeniusVerdict,
         compute_genius_index,

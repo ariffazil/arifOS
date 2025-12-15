@@ -241,7 +241,8 @@ def test_apex_with_specific_floor_failures(
 
 # --- Patching for integration tests -------------------------------------------
 
-@patch('arifos_core.APEX_PRIME.check_floors')
+# v42: patch in system.apex_prime where the actual implementation lives
+@patch('arifos_core.system.apex_prime.check_floors')
 def test_apex_with_patched_floor_check(mock_check_floors) -> None:
     """
     Example of patching the floor check function for integration testing.

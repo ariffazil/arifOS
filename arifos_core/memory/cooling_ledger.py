@@ -255,8 +255,9 @@ def log_cooling_entry(
 ) -> Dict[str, Any]:
     """Append a hash-chained Cooling Ledger entry and return the entry dict."""
 
-    from arifos_core.APEX_PRIME import check_floors
-    from arifos_core.metrics import Metrics
+    # v42: Use new locations
+    from arifos_core.system.apex_prime import check_floors
+    from arifos_core.enforcement.metrics import Metrics
 
     if pipeline_path is None:
         pipeline_path = []
