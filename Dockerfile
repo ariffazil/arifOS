@@ -1,4 +1,4 @@
-# arifOS v38.2 FastAPI Server Dockerfile
+# arifOS v42 FastAPI Server Dockerfile
 #
 # Build:
 #   docker build -t arifos-api .
@@ -8,12 +8,15 @@
 #
 # With Qdrant:
 #   docker-compose up
+#
+# NOTE: Body API (arifos_core.api.app) is planned for L7_DEMOS/body_api/
+#       This Dockerfile will be updated when Body API is implemented.
 
 FROM python:3.11-slim
 
 # Labels
 LABEL maintainer="arifOS Project <arifbfazil@gmail.com>"
-LABEL version="v38.2-alpha"
+LABEL version="v42.0.0"
 LABEL description="arifOS Constitutional Governance API"
 
 # Set environment variables
