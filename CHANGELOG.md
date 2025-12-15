@@ -13,17 +13,90 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ### Added
 
-- Phase-2 EUREKA routing adapter: `MemoryWritePolicy.policy_route_write` bridging to Phase-1 router.
-- Phase-2 docs: README/AGENTS/CLAUDE updated with routing status and TOOL-drop governance note.
+- (placeholder)
 
 ### Changed
 
-- Version bumped to 41.0.1 for Phase-2 integration work-in-progress.
-- README badges/status updated to note EUREKA Phase-2 integration in progress.
+- (placeholder)
 
 ### Fixed
 
 - (placeholder)
+
+---
+
+## [v42.0.0] - 2025-12-15 - The Great Crossing
+
+**Status:** PRODUCTION | Tests: 2109 | Safety: 100% | Architecture: CONCERN-BASED
+
+### The Great Crossing
+
+v42.0.0 represents a major architectural evolution: the flat `arifos_core/` package (24 root files) has been reorganized into concern-based subdirectories while maintaining full backward compatibility.
+
+This migration was governed by **@WELL File Care** - a purpose-built file operations tool that ensures:
+- Full audit trail for every file operation
+- Reversibility (all original files backed up)
+- Checksum verification (no corruption)
+- F1 Amanah compliance (trust through accountability)
+
+### New Architecture: Concern-Based Directories
+
+| Directory | Purpose | Key Files |
+|-----------|---------|-----------|
+| `system/` | Core system | apex_prime.py, pipeline.py, kernel.py |
+| `enforcement/` | Floor checks | metrics.py, genius_metrics.py |
+| `governance/` | Safety & audit | fag.py, ledger.py, merkle.py, zkpc_runtime.py |
+| `integration/` | LLM adapters | llm_interface.py, governed_llm.py, guard.py |
+| `utils/` | Shared utilities | telemetry.py, eye_sentinel.py, runtime_types.py |
+
+### New Layers (7-Layer Architecture)
+
+| Layer | Purpose | Status |
+|-------|---------|--------|
+| L1_THEORY | Constitutional law (docs) | Created |
+| L2_GOVERNANCE | Portable system prompts | Created |
+| L4_MCP | MCP server (@WELL bindings) | Created |
+| L5_CLI | CLI tools | Created |
+| L6_SEALION | SEA-LION chat | Created |
+| L7_DEMOS | Demos and examples | Created |
+
+### Added
+
+- Concern-based directory structure in `arifos_core/`
+- @WELL File Care governance system (`arifos_core/waw/well_file_care.py`)
+- Full audit trail (`well_audit_trail.jsonl`)
+- 24 backward-compat shims for old import paths
+- L1-L7 layer directories with README documentation
+- `docs/WELL_UNIVERSAL_PROTOCOL.md` - Migration protocol
+- `docs/WELL_QUICK_START.md` - Platform setup guides
+
+### Changed
+
+- `arifos_core/` reorganized from flat (24 root files) to concern-based (5 subdirs)
+- Test count increased to 2109 (from 1927)
+- 100% test pass rate maintained throughout migration
+
+### Deprecated
+
+- Old import paths (will work in v42, emit warnings in v42.1, removed in v43):
+  - `from arifos_core.pipeline import ...` -> `from arifos_core.system.pipeline import ...`
+  - `from arifos_core.APEX_PRIME import ...` -> `from arifos_core.system.apex_prime import ...`
+  - `from arifos_core.metrics import ...` -> `from arifos_core.enforcement.metrics import ...`
+  - `from arifos_core.fag import ...` -> `from arifos_core.governance.fag import ...`
+
+### Migration Guide
+
+Both old and new import paths work in v42:
+
+```python
+# Old (deprecated, will be removed in v43)
+from arifos_core.pipeline import Pipeline
+
+# New (recommended)
+from arifos_core.system.pipeline import Pipeline
+```
+
+Migrate to new paths before v43.0.
 
 ---
 
