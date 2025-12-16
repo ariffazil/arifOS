@@ -98,7 +98,8 @@ class TestConstitutionalInvariants:
 
     def test_human_sovereignty(self):
         """Constitutional seal must preserve human sovereignty"""
-        seal_path = REPO_ROOT / "CONSTITUTIONAL_SEAL_v38.3Omega.md"
+        # v42: File moved to archive/ during Phase 6 housekeeping
+        seal_path = REPO_ROOT / "archive" / "CONSTITUTIONAL_SEAL_v38.3Omega.md"
         with open(seal_path, encoding="utf-8") as f:
             content = f.read()
 

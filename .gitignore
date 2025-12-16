@@ -43,6 +43,12 @@ venv/
 runtime/vault_999/
 cooling_ledger.jsonl
 
+# Ledger runtime exhaust (v42: do not version control)
+vault_999/ledger/*.jsonl
+vault_999/ledger/pending.jsonl
+vault_999/ledger/phoenix.jsonl
+vault_999/ledger/void.jsonl
+
 # Misc
 *.so
 .DS_Store

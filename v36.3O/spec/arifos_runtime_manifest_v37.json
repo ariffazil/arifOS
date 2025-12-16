@@ -1,0 +1,179 @@
+{
+  "version": "v37",
+  "epoch": 37,
+  "status": "SEALED",
+  "_runtime_epoch": "v37",
+  "sealed_date": "2025-12-14",
+  "manifest_version": "2.0.0",
+  "description": "arifOS v37 unified runtime manifest (LAW+SPEC+CODE)",
+
+  "floors": {
+    "truth": {
+      "id": 1,
+      "symbol": "Truth",
+      "threshold": 0.99,
+      "operator": ">=",
+      "type": "hard",
+      "failure_action": "VOID"
+    },
+    "delta_s": {
+      "id": 2,
+      "symbol": "DeltaS",
+      "threshold": 0.0,
+      "operator": ">=",
+      "type": "hard",
+      "failure_action": "VOID"
+    },
+    "peace_squared": {
+      "id": 3,
+      "symbol": "Peace2",
+      "threshold": 1.0,
+      "operator": ">=",
+      "type": "soft",
+      "failure_action": "PARTIAL"
+    },
+    "kappa_r": {
+      "id": 4,
+      "symbol": "KappaR",
+      "threshold": 0.95,
+      "operator": ">=",
+      "type": "soft",
+      "failure_action": "PARTIAL"
+    },
+    "omega_0": {
+      "id": 5,
+      "symbol": "Omega0",
+      "threshold_min": 0.03,
+      "threshold_max": 0.05,
+      "operator": "in_range",
+      "type": "hard",
+      "failure_action": "VOID"
+    },
+    "amanah": {
+      "id": 6,
+      "symbol": "Amanah",
+      "threshold": true,
+      "operator": "==",
+      "type": "hard",
+      "failure_action": "VOID",
+      "locked": true
+    },
+    "rasa": {
+      "id": 7,
+      "symbol": "RASA",
+      "threshold": true,
+      "operator": "==",
+      "type": "hard",
+      "failure_action": "VOID"
+    },
+    "tri_witness": {
+      "id": 8,
+      "symbol": "TriWitness",
+      "threshold": 0.95,
+      "operator": ">=",
+      "type": "soft",
+      "failure_action": "PARTIAL"
+    },
+    "anti_hantu": {
+      "id": 9,
+      "symbol": "AntiHantu",
+      "threshold": true,
+      "operator": "==",
+      "type": "meta",
+      "failure_action": "VOID",
+      "enforced_by": "@EYE Sentinel"
+    }
+  },
+
+  "pipeline": {
+    "stages": {
+      "000": {"name": "VOID", "description": "Reset/initialization"},
+      "111": {"name": "SENSE", "description": "Parse intent, classify stakes"},
+      "222": {"name": "REFLECT", "description": "Context retrieval (Class B)"},
+      "333": {"name": "REASON", "description": "Generate draft response"},
+      "444": {"name": "ALIGN", "description": "Truth verification"},
+      "555": {"name": "EMPATHIZE", "description": "Dignity check"},
+      "666": {"name": "BRIDGE", "description": "Reality test"},
+      "777": {"name": "FORGE", "description": "Synthesize response"},
+      "888": {"name": "JUDGE", "description": "APEX PRIME verdict"},
+      "999": {"name": "SEAL", "description": "Emit or refuse"}
+    },
+    "routing": {
+      "class_a": {
+        "track": "fast",
+        "stages": ["000", "111", "333", "888", "999"]
+      },
+      "class_b": {
+        "track": "deep",
+        "stages": ["000", "111", "222", "333", "444", "555", "666", "777", "888", "999"]
+      }
+    }
+  },
+
+  "engines": {
+    "agi": {
+      "module": "arifos_core.intelligence.engines.agi_engine",
+      "class": "AGIEngine",
+      "symbol": "Delta"
+    },
+    "asi": {
+      "module": "arifos_core.intelligence.engines.asi_engine",
+      "class": "ASIEngine",
+      "symbol": "Omega"
+    },
+    "apex": {
+      "module": "arifos_core.intelligence.engines.apex_engine",
+      "class": "ApexEngine",
+      "symbol": "Psi"
+    }
+  },
+
+  "waw": {
+    "module": "arifos_core.waw.federation",
+    "class": "WAWFederationCore",
+    "organs": {
+      "well": {"module": "arifos_core.waw.well", "class": "WellOrgan"},
+      "rif": {"module": "arifos_core.waw.rif", "class": "RifOrgan"},
+      "wealth": {"module": "arifos_core.waw.wealth", "class": "WealthOrgan"},
+      "geox": {"module": "arifos_core.waw.geox", "class": "GeoxOrgan"},
+      "prompt": {"module": "arifos_core.waw.prompt", "class": "PromptOrgan"}
+    }
+  },
+
+  "eye_sentinel": {
+    "module": "arifos_core.utils.eye_sentinel",
+    "class": "EyeSentinel",
+    "blocking_rule": "Any BLOCK or SABAR from views triggers overall SABAR",
+    "views": [
+      {"name": "anti_hantu", "module": "arifos_core.eye.anti_hantu_view", "class": "AntiHantuView"},
+      {"name": "truth_floor", "module": "arifos_core.eye.truth_floor_view", "class": "TruthFloorView"},
+      {"name": "empathy", "module": "arifos_core.eye.empathy_view", "class": "EmpathyView"},
+      {"name": "amanah", "module": "arifos_core.eye.amanah_view", "class": "AmanahView"},
+      {"name": "rasa", "module": "arifos_core.eye.rasa_view", "class": "RasaView"},
+      {"name": "tri_witness", "module": "arifos_core.eye.tri_witness_view", "class": "TriWitnessView"},
+      {"name": "peace", "module": "arifos_core.eye.peace_view", "class": "PeaceView"},
+      {"name": "clarity", "module": "arifos_core.eye.clarity_view", "class": "ClarityView"},
+      {"name": "humility", "module": "arifos_core.eye.humility_view", "class": "HumilityView"},
+      {"name": "stakes", "module": "arifos_core.eye.stakes_view", "class": "StakesView"},
+      {"name": "coordinator", "module": "arifos_core.utils.eye_sentinel", "class": "EyeSentinel"}
+    ]
+  },
+
+  "ledger": {
+    "cooling_ledger": {
+      "module": "arifos_core.memory.cooling_ledger"
+    },
+    "vault999": {
+      "seal_json": "vault_999/ledger/seal_v37.json"
+    },
+    "phoenix72": {
+      "module": "arifos_core.governance.phoenix72"
+    }
+  },
+
+  "meta": {
+    "created": "2025-12-14",
+    "author": "arifOS Project",
+    "license": "Apache-2.0"
+  }
+}

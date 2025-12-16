@@ -41,16 +41,16 @@ def _baseline_metrics() -> Metrics:
 
 
 class TestVersionConstants:
-    """Tests for v36Ω version constants (upgraded from v35Ω)."""
+    """Tests for v42Ω version constants (upgraded from v36Ω)."""
 
-    def test_apex_version_is_v36(self) -> None:
-        """APEX_VERSION should be v36Ω (GENIUS LAW judiciary)."""
-        assert "36" in APEX_VERSION
-        assert APEX_VERSION == "v36Ω"
+    def test_apex_version_is_v42(self) -> None:
+        """APEX_VERSION should be v42Ω (ApexVerdict + Enum API)."""
+        assert "42" in APEX_VERSION
+        assert APEX_VERSION == "v42Ω"
 
-    def test_apex_epoch_is_36(self) -> None:
-        """APEX_EPOCH should be 36."""
-        assert APEX_EPOCH == 36
+    def test_apex_epoch_is_42(self) -> None:
+        """APEX_EPOCH should be 42."""
+        assert APEX_EPOCH == 42
 
     def test_apex_prime_class_has_version(self) -> None:
         """APEXPrime class should have version attributes."""

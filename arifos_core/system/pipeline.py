@@ -879,17 +879,28 @@ def _write_memory_for_verdict(
 
     timestamp = datetime.now(timezone.utc).isoformat()
 
+    # v42: Normalize verdict to string upstream before any serialization
+    # ApexVerdict → verdict.value, Verdict Enum → value, else str()
+    if state.verdict is None:
+        verdict_str = "UNKNOWN"
+    elif hasattr(state.verdict, 'verdict') and hasattr(state.verdict.verdict, 'value'):
+        verdict_str = state.verdict.verdict.value  # ApexVerdict
+    elif hasattr(state.verdict, 'value'):
+        verdict_str = state.verdict.value  # Verdict Enum
+    else:
+        verdict_str = str(state.verdict)
+
     # Compute evidence hash
     state.memory_evidence_hash = compute_evidence_hash(
         floor_checks=floor_checks,
-        verdict=state.verdict or "UNKNOWN",
+        verdict=verdict_str,
         timestamp=timestamp,
     )
 
     # Build evidence chain
     evidence_chain = {
         "floor_checks": floor_checks,
-        "verdict": state.verdict,
+        "verdict": verdict_str,
         "timestamp": timestamp,
         "job_id": state.job_id,
         "stakes_class": state.stakes_class.value,
@@ -908,7 +919,7 @@ def _write_memory_for_verdict(
             content={
                 "job_id": state.job_id,
                 "stakes_class": state.stakes_class.value,
-                "verdict": state.verdict,
+                "verdict": verdict_str,  # v42: use string for JSON serialization
             },
             human_seal=human_seal,
         )
@@ -919,7 +930,7 @@ def _write_memory_for_verdict(
 
     # Check write policy
     write_decision = state.memory_write_policy.should_write(
-        verdict=state.verdict or "UNKNOWN",
+        verdict=verdict_str,
         evidence_chain=evidence_chain,
     )
 
@@ -927,7 +938,7 @@ def _write_memory_for_verdict(
     if write_decision.allowed and eureka_decision_allowed:
         content = {
             "query_hash": hashlib.sha256(state.query.encode()).hexdigest()[:16],
-            "verdict": state.verdict,
+            "verdict": verdict_str,  # v42: use string for JSON serialization
             "floor_checks_summary": {
                 "passed": len([f for f in floor_checks if f.get("passed")]),
                 "failed": len([f for f in floor_checks if not f.get("passed")]),
@@ -937,7 +948,7 @@ def _write_memory_for_verdict(
         }
 
         write_results = state.memory_band_router.route_write(
-            verdict=state.verdict or "UNKNOWN",
+            verdict=verdict_str,
             content=content,
             writer_id="888_JUDGE",
             evidence_hash=state.memory_evidence_hash,
@@ -951,7 +962,7 @@ def _write_memory_for_verdict(
                     state.memory_audit_layer.record_memory_write(
                         band=band_name,
                         entry_data=content,
-                        verdict=state.verdict,
+                        verdict=verdict_str,  # v42: use string for serialization
                         evidence_hash=state.memory_evidence_hash,
                         entry_id=result.entry_id,
                         writer_id="888_JUDGE",
@@ -1152,15 +1163,22 @@ def stage_999_seal(state: PipelineState) -> PipelineState:
     # Only store if: L7 enabled + user_id present + verdict present
     if is_l7_enabled() and state.l7_user_id and state.verdict:
         try:
+            # v42: Normalize verdict to string upstream
+            if hasattr(state.verdict, 'verdict') and hasattr(state.verdict.verdict, 'value'):
+                verdict_str_l7 = state.verdict.verdict.value  # ApexVerdict
+            elif hasattr(state.verdict, 'value'):
+                verdict_str_l7 = state.verdict.value  # Verdict Enum
+            else:
+                verdict_str_l7 = str(state.verdict)
             # Build content to store (query + response summary)
-            content = f"Query: {state.query[:200]}... Response verdict: {state.verdict}"
+            content = f"Query: {state.query[:200]}... Response verdict: {verdict_str_l7}"
             if state.raw_response:
                 content += f" | Response: {state.raw_response[:300]}..."
 
             state.l7_store_result = _l7_store(
                 content=content,
                 user_id=state.l7_user_id,
-                verdict=state.verdict,
+                verdict=verdict_str_l7,  # v42: use string
                 metadata={
                     "job_id": state.job_id,
                     "stakes_class": state.stakes_class.value,
@@ -1374,13 +1392,22 @@ class Pipeline:
     def _finalize(self, state: PipelineState) -> PipelineState:
         """Log to ledger and return final state."""
         if self.ledger_sink and state.metrics:
+            # v42: Normalize verdict to string upstream
+            if state.verdict is None:
+                verdict_str_log = None
+            elif hasattr(state.verdict, 'verdict') and hasattr(state.verdict.verdict, 'value'):
+                verdict_str_log = state.verdict.verdict.value  # ApexVerdict
+            elif hasattr(state.verdict, 'value'):
+                verdict_str_log = state.verdict.value  # Verdict Enum
+            else:
+                verdict_str_log = str(state.verdict)
             entry: Dict[str, Any] = {
                 "job_id": state.job_id,
                 "query": state.query[:200],
                 "stakes_class": state.stakes_class.value,
                 "stage_trace": state.stage_trace,
                 "active_scars": [s.get("id") for s in state.active_scars],
-                "verdict": state.verdict,
+                "verdict": verdict_str_log,  # v42: use string
                 "sabar_triggered": state.sabar_triggered,
                 "hold_888_triggered": state.hold_888_triggered,
             }

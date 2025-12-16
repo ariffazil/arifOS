@@ -438,8 +438,11 @@ class TestApexEngine:
 
         verdict = apex.quick_verdict(metrics)
 
+        # v42: verdict is ApexVerdict object, supports string comparison via __eq__
         assert verdict == "SEAL"
-        assert isinstance(verdict, str)
+        # Test the actual type is ApexVerdict (v42 API)
+        from arifos_core import ApexVerdict
+        assert isinstance(verdict, ApexVerdict)
 
 
 # =============================================================================

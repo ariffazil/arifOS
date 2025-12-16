@@ -333,7 +333,7 @@ class TestCagedResultHelpers:
         summary = result.summary()
         assert isinstance(summary, str)
         assert result.job_id in summary
-        assert result.verdict in summary
+        assert str(result.verdict) in summary  # v42: verdict is ApexVerdict, convert to str
 
 
 # =============================================================================

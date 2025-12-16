@@ -41,9 +41,10 @@ from .enforcement.metrics import Metrics, FloorsVerdict, ConstitutionalMetrics
 
 # Import APEX components (moved to system/)
 from .system.apex_prime import (
-    apex_review,
-    ApexVerdict,
-    Verdict,
+    apex_review,     # v42: Returns ApexVerdict (structured)
+    apex_verdict,    # v42: Convenience shim, returns str
+    ApexVerdict,     # v42: Dataclass (verdict, pulse, reason, floors)
+    Verdict,         # v42: Enum (SEAL, SABAR, VOID, PARTIAL, HOLD_888, SUNSET)
     check_floors,
     APEXPrime,
     APEX_VERSION,
@@ -170,18 +171,19 @@ def compute_metrics_from_task(task: str) -> tuple:
 
 
 __all__ = [
-    # Version constants (v35Ω)
+    # Version constants (v42)
     "APEX_VERSION",
     "APEX_EPOCH",
     # Metrics
     "Metrics",
     "ConstitutionalMetrics",
     "FloorsVerdict",
-    # APEX
-    "apex_review",
+    # APEX (v42)
+    "apex_review",      # Returns ApexVerdict (structured)
+    "apex_verdict",     # Convenience shim, returns str
     "check_floors",
-    "ApexVerdict",
-    "Verdict",
+    "ApexVerdict",      # Dataclass
+    "Verdict",          # Enum: SEAL, SABAR, VOID, PARTIAL, HOLD_888, SUNSET
     "APEXPrime",
     # @EYE Sentinel (v35Ω)
     "AlertSeverity",

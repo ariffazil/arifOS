@@ -114,10 +114,17 @@ def apex_guardrail(
             pipeline_path: List[str] = context.get("pipeline_path", [])
             stakes: str = context.get("stakes", "high" if high_stakes else "normal")
 
-            # Log to Cooling Ledger
+            # Log to Cooling Ledger (v42: normalize verdict to string upstream)
+            # ApexVerdict → verdict.value, Verdict Enum → value, else str()
+            if hasattr(verdict, 'verdict') and hasattr(verdict.verdict, 'value'):
+                verdict_str = verdict.verdict.value  # ApexVerdict
+            elif hasattr(verdict, 'value'):
+                verdict_str = verdict.value  # Verdict Enum
+            else:
+                verdict_str = str(verdict)
             ledger_entry = log_cooling_entry(
                 job_id=job_id,
-                verdict=verdict,
+                verdict=verdict_str,
                 metrics=metrics,
                 query=str(user_input),
                 candidate_output=raw_answer,
