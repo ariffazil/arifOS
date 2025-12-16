@@ -2,7 +2,7 @@
 
 **"Ditempa Bukan Diberi"** — Forged, Not Given. Truth must cool before it rules.
 
-[![Version](https://img.shields.io/badge/Version-v42.0.0-0052cc)](https://github.com/ariffazil/arifOS/releases/tag/v42.0.0) [![Tests](https://img.shields.io/badge/Tests-2109%20passed-success)](https://github.com/ariffazil/arifOS/actions) [![Safety](https://img.shields.io/badge/Safety-100%25%20pass-brightgreen)](docs/CASE_STUDY_v38_GEMINI_KILLSHOT.md) [![License](https://img.shields.io/badge/License-AGPL3-orange)](LICENSE) [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://python.org)
+[![Version](https://img.shields.io/badge/Version-v42.0.0--rc2-0052cc)](https://github.com/ariffazil/arifOS/releases/tag/v42.0.0-rc2) [![Tests](https://img.shields.io/badge/Tests-2156%20passed-success)](https://github.com/ariffazil/arifOS/actions) [![Safety](https://img.shields.io/badge/Safety-100%25%20pass-brightgreen)](docs/CASE_STUDY_v38_GEMINI_KILLSHOT.md) [![License](https://img.shields.io/badge/License-AGPL3-orange)](LICENSE) [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://python.org)
 
 ---
 
@@ -105,6 +105,17 @@ v42 introduces **concern-based organization** in `arifos_core/`:
 | `intelligence/` | AGI/ASI engines, W@W Federation |
 | `memory/` | EUREKA bands and policy engine |
 | `utils/` | Telemetry, runtime types |
+
+### v42 API (rc2)
+
+| Function | Returns | Purpose |
+|----------|---------|---------|
+| `apex_review()` | `ApexVerdict` | Structured verdict (verdict, pulse, reason, floors) |
+| `apex_verdict()` | `str` | Convenience shim ("SEAL", "SABAR", "VOID") |
+
+`Verdict` is now a proper Enum with members: `SEAL`, `SABAR`, `VOID` (primary) + `PARTIAL`, `HOLD_888`, `SUNSET` (internal).
+
+**API contract:** [`arifos_core/system/api_registry.py`](arifos_core/system/api_registry.py) + [`tests/test_api_contract.py`](tests/test_api_contract.py)
 
 **Backward compatibility:** Old import paths still work via shims until v43.
 
