@@ -1467,6 +1467,9 @@ class Pipeline:
                 "verdict": verdict_str_log,  # v42: use string
                 "sabar_triggered": state.sabar_triggered,
                 "hold_888_triggered": state.hold_888_triggered,
+                # v42.1: constitutional metrics required for forensics checks
+                "psi": float(getattr(state.metrics, "psi", 0.0) or 0.0),
+                "amanah": int(bool(getattr(state.metrics, "amanah", False))),
             }
             # W@W Federation verdict (v36.3Ω)
             if state.waw_verdict is not None:
@@ -1553,3 +1556,14 @@ __all__ = [
     "StoreAtSealResult",
     "is_l7_enabled",
 ]
+
+
+def main() -> int:  # pragma: no cover
+    """CLI shim: `python -m arifos_core.system.pipeline --query \"...\"`."""
+    from .__main__ import main as _main
+
+    return _main()
+
+
+if __name__ == "__main__":  # pragma: no cover
+    raise SystemExit(main())
