@@ -39,6 +39,9 @@ from typing import Any, Callable, Dict, List, Optional
 from .apex_prime import apex_review, ApexVerdict, check_floors
 from ..enforcement.metrics import Metrics
 from ..utils.eye_sentinel import EyeSentinel, EyeReport
+from ..runtime.bootstrap import ensure_bootstrap, get_bootstrap_payload
+from ..audit.eye_adapter import evaluate_eye_vector
+from ..organs.prompt_bridge import compute_c_budi
 from ..waw.federation import WAWFederationCore, FederationVerdict
 
 # AAA Engines (internal facade - v35.8.0) - v42: engines is at arifos_core/engines/
@@ -124,6 +127,9 @@ class PipelineState:
     metrics: Optional[Metrics] = None
     verdict: Optional[ApexVerdict] = None
     floor_failures: List[str] = field(default_factory=list)
+    c_budi: Optional[float] = None
+    eye_vector: Optional[Dict[str, Any]] = None
+    epsilon_observed: Optional[Dict[str, float]] = None
 
     # W@W Federation verdict (v36.3Ω)
     waw_verdict: Optional[FederationVerdict] = None
@@ -645,7 +651,40 @@ def _run_eye_sentinel(
         return (eye_report, eye_blocking)
     except Exception:
         # @EYE failures must not crash the pipeline
-        return (None, False)
+        eye_report = None
+        eye_blocking = False
+
+    # v42.1 adapter: evaluate drift/dignity using spec hooks
+    try:
+        c_budi = compute_c_budi(state.query, state.draft_response or "")
+        bootstrap = get_bootstrap_payload()
+        epsilon_map = bootstrap.get("epsilon_map", {})
+        adapter_result = evaluate_eye_vector(
+            metrics=state.metrics,
+            c_budi=c_budi,
+            epsilon_map_override=epsilon_map,
+            amanah=bool(getattr(state.metrics, "amanah", False)),
+            psi_value=getattr(state.metrics, "psi", None),
+        )
+        # Attach reasons to floor failures
+        for reason in adapter_result.reasons:
+            state.floor_failures.append(f"EYE_ADAPTER:{reason}")
+        # Blocking if action requests SABAR/VOID/HOLD-888
+        if adapter_result.action in ("SABAR", "VOID", "HOLD-888"):
+            eye_blocking = True
+        # Store eye_vector for ledger
+        state.eye_vector = {
+            "level": adapter_result.level,
+            "action": adapter_result.action,
+            "reasons": adapter_result.reasons,
+            "payload": adapter_result.payload,
+        }
+        # Propagate c_budi for ledger enrichment
+        state.c_budi = c_budi
+    except Exception:
+        pass
+
+    return (eye_report, eye_blocking)
 
 
 def _merge_with_waw(
@@ -998,6 +1037,18 @@ def stage_888_judge(
 
     # Step 1: Compute metrics (standalone helper)
     state.metrics = _compute_888_metrics(state, compute_metrics)
+    # v42.1: compute epsilon observed placeholder using epsilon_map keys
+    try:
+        epsilon_map = get_bootstrap_payload().get("epsilon_map", {})
+        eps_obs: Dict[str, float] = {}
+        if state.metrics and epsilon_map:
+            for key in epsilon_map.keys():
+                metric_val = getattr(state.metrics, key.lower(), None)
+                if metric_val is not None:
+                    eps_obs[key] = abs(float(metric_val))
+        state.epsilon_observed = eps_obs
+    except Exception:
+        state.epsilon_observed = None
 
     # Step 2: Detect refusals (for safe refusal handling)
     def _looks_like_refusal(text: str) -> bool:
@@ -1241,6 +1292,12 @@ class Pipeline:
         self.context_retriever = context_retriever
         self.ledger_sink = ledger_sink
         self.eye_sentinel = eye_sentinel
+        # v42.1: bootstrap spec binding (fail-open raises to caller)
+        try:
+            self.bootstrap_payload = ensure_bootstrap()
+        except Exception:
+            # surface error; caller may wrap to VOID semantics
+            self.bootstrap_payload = {}
 
         # v37: Vault999 for constitutional memory
         self._vault = vault
@@ -1424,6 +1481,18 @@ class Pipeline:
                     "veto_organs": state.waw_verdict.veto_organs,
                     "warn_organs": state.waw_verdict.warn_organs,
                 }
+            # v42.1 enrichment
+            bootstrap_payload = get_bootstrap_payload()
+            if bootstrap_payload:
+                entry['spec_hashes'] = bootstrap_payload.get('spec_hashes', {})
+                entry['zkpc_receipt'] = bootstrap_payload.get('zkpc_receipt')
+            entry['commit_hash'] = os.getenv('ARIFOS_COMMIT_HASH') or os.getenv('GIT_COMMIT', 'unknown')
+            if state.epsilon_observed is not None:
+                entry['epsilon_observed'] = state.epsilon_observed
+            if getattr(state, 'eye_vector', None) is not None:
+                entry['eye_vector'] = state.eye_vector
+            if getattr(state, 'c_budi', None) is not None:
+                entry['c_budi'] = state.c_budi
             self.ledger_sink(entry)
 
         return state
