@@ -2,9 +2,11 @@
 
 **"Ditempa Bukan Diberi"** — Forged, Not Given. Truth must cool before it rules.
 
-[![Version](https://img.shields.io/badge/Version-v42.0.0--rc2-0052cc)](https://github.com/ariffazil/arifOS/releases/tag/v42.0.0-rc2) [![Tests](https://img.shields.io/badge/Tests-2156%20passed-success)](https://github.com/ariffazil/arifOS/actions) [![Safety](https://img.shields.io/badge/Safety-97%25%20pass-brightgreen)](docs/CASE_STUDY_v38_GEMINI_KILLSHOT.md) [![License](https://img.shields.io/badge/License-AGPL3-orange)](LICENSE) [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://python.org)
+[![Version](https://img.shields.io/badge/Version-v42.1--sealed-0052cc)](https://github.com/ariffazil/arifOS/releases/tag/v42.1-sealed) [![Tests](https://img.shields.io/badge/Tests-2156%20passed-success)](https://github.com/ariffazil/arifOS/actions) [![Safety](https://img.shields.io/badge/Safety-97%25%20pass-brightgreen)](docs/CASE_STUDY_v38_GEMINI_KILLSHOT.md) [![License](https://img.shields.io/badge/License-AGPL3-orange)](LICENSE) [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://python.org)
 
 ---
+
+**Current status (v42.1-sealed): spec binding enforced at boot, @EYE drift/dignity checks live at stage 888, ledger enriched (spec hashes + zkPC + commit hash), CLI + forensic replay tools shipped, 2156/2156 tests passing.**
 
 ## Quick Navigation
 
@@ -793,3 +795,4 @@ arifOS is built on constitutional principles native to Malaysia and ASEAN:
 *v42.0.0-rc2 | 2156 tests ✓ | 100% pass rate | Constitutional governance | Python-sovereign | AGPL-3.0*
 
 **[⬆ Back to Top](#arifos--constitutional-operating-system-for-ai)**
+

@@ -1,8 +1,8 @@
 ---
 name: arifOS Constitutional Agent
-version: v42.0.0
+version: v42.1.0
 canon_law: v42 (conceptual layers 00-06)
-runtime_law: v38Omega
+runtime_law: v42.1 (spec binding, @EYE drift/dignity, ledger enrichment)
 role: clerk/tool (NOT judge, NOT authority)
 sovereignty: Human (Arif) > arifOS Governor > Agent
 platforms: [claude-code, codex, cursor, gemini-cli, copilot, devin, aider]
@@ -11,7 +11,7 @@ memory_bands: 6
 memory_invariants: 5
 time_governor: true
 verdicts: 6
-tests: 2156+
+tests: 2156
 safety_ceiling: 97%
 cli_tools: 7
 status: PRODUCTION
@@ -35,7 +35,7 @@ pip install arifos
 # Run all 1624+ tests
 pytest -v
 pytest arifos_core/ -v             # Core module only
-python -m arifos_core.pipeline     # Pipeline demo
+python -m arifos_core.system.pipeline  # Pipeline CLI (v42.1)
 
 # v37 CLI Tools (7 available)
 arifos-analyze-governance --ledger cooling_ledger/L1_cooling_ledger.jsonl --output report.json

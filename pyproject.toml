@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "42.0.0rc2"
+version = "42.1.0"
 description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW, EUREKA Memory, Concern-Based Architecture (v42)"
 readme = "README.md"
 requires-python = ">=3.8"

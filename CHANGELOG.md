@@ -11,6 +11,28 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 > Use this section for upcoming changes.
 > When you cut a new version, move entries from here into a tagged release.
 
+## [v42.1.0] - 2025-12-16 - Runtime Wiring & Forensics
+
+**Status:** SEALED | Tests: 2156 | Safety: 97% | Tag: v42.1-sealed
+
+### Added
+- Spec binding bootstrap (spec_binding.json, eye_audit.yaml, measurement.yaml, pipeline.json, federation.json)
+- Runtime bootstrap + validator modules (fail-open VOID on spec mismatch)
+- @EYE drift/dignity hooks (epsilon_map + c_budi thresholds)
+- Ledger enrichment: spec_hashes, zkpc_receipt, commit_hash, epsilon_observed, eye_vector, c_budi
+- CLI entrypoint: python -m arifos_core.system.pipeline --query "..." [--verbose]
+- Forensic replay tool: scripts/forensics_replay.py (hash-chain + Psi/Amanah check)
+
+### Changed
+- Pipeline Stage 888 now evaluates @EYE adapter before APEX verdict
+- README badges/status updated to v42.1-sealed
+- PyPI/version bumped to 42.1.0
+
+### Tests
+- Full suite: 2156 passed, 17 skipped (expected)
+
+---
+
 ### Added
 
 - v42 canon skeleton with 7 conceptual layers (00-06)
