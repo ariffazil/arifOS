@@ -691,11 +691,12 @@ A: Yes. Extend `Floor` base class.
 ## What arifOS Is NOT
 
 **NOT:**
-- ✗ Replacement for LLM training
-- ✗ 100% jailbreak-proof (97% not 100%)
-- ✗ Fine-tuning framework
+- ✗ A model (it wraps models)
+- ✗ RLHF replacement (orthogonal approach)
+- ✗ Moral authority (humans decide values)
+- ✗ Autonomous agent (tool, not judge)
+- ✗ 100% jailbreak-proof (97%, not 100%)
 - ✗ Closed-source proprietary
-- ✗ Consciousness solution
 
 **IS:**
 - ✓ Governance layer (output level)
