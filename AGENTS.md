@@ -1,8 +1,8 @@
 ---
 name: arifOS Constitutional Agent
-version: v41.0.1
-runtime_law: v35Omega
-measurement_law: v38.2 (unified LAW+SPEC+CODE+MEMORY+TIME)
+version: v42.0.0
+canon_law: v42 (conceptual layers 00-06)
+runtime_law: v38Omega
 role: clerk/tool (NOT judge, NOT authority)
 sovereignty: Human (Arif) > arifOS Governor > Agent
 platforms: [claude-code, codex, cursor, gemini-cli, copilot, devin, aider]
@@ -11,14 +11,14 @@ memory_bands: 6
 memory_invariants: 5
 time_governor: true
 verdicts: 6
-tests: 1624+
+tests: 2156+
 safety_ceiling: 97%
 cli_tools: 7
-status: PRODUCTION (EUREKA Phase-2 routing: policy adapter landed; bands/pipeline wiring in progress; TOOL writes drop → VOID)
+status: PRODUCTION
 pypi: arifos
 motto: "DITEMPA BUKAN DIBERI - Forged, not given; truth must cool before it rules."
 escalation_threshold: 888_HOLD
-phoenix_patches: [psi_calibration, extract_response_robust, anti_hantu_expanded, telemetry, memory_write_policy, entropy_rot]
+canon_master: canon/_INDEX/00_MASTER_INDEX_v42.md
 ---
 
 # AGENTS.md - arifOS Unified Agent Governance (Tier 1)
@@ -79,19 +79,21 @@ python -m scripts.test_bogel_llama         # 33-prompt baseline (uncaged LLM)
 | F8 | G (Genius) | >=0.80 | T3 | Derived | Governed intelligence? |
 | F9 | C_dark | <0.30 | T3 | Derived | Dark cleverness contained? |
 
-### 2.1 v38Omega Law Stack (Authoritative Reference)
+### 2.1 v42 Canon Law Stack (Authoritative Reference)
 
-**v38Omega formalizes the constitutional law stack.** When working on floors, GENIUS, pipeline, memory, or W@W, treat v38Ω canon/spec as authoritative. Do not change thresholds without an explicit Phoenix-72 law amendment.
+**v42 organizes canon into 7 conceptual layers.** Do not change thresholds without Phoenix-72 amendment.
+
+**Master Index:** [canon/_INDEX/00_MASTER_INDEX_v42.md](canon/_INDEX/00_MASTER_INDEX_v42.md)
 
 | Layer | Canon | Spec |
 |-------|-------|------|
-| **Floors (F1–F9)** | `canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md` | `spec/constitutional_floors_v38Omega.json` |
-| **GENIUS LAW** | `canon/02_GENIUS_LAW_v38Omega.md` | `spec/genius_law_v38Omega.json` |
-| **Pipeline (000→999)** | `canon/03_PIPELINE_v38Omega.md` | `spec/pipeline_v38Omega.yaml` |
-| **W@W Prompt** | `canon/04_WAW_PROMPT_FLOORS_v38Omega.md` | `spec/waw_prompt_floors_v38Omega.json` |
-| **Cooling/Phoenix** | `canon/05_COOLING_LEDGER_PHOENIX_v38Omega.md` | `spec/cooling_ledger_phoenix_v38Omega.json` |
-
-**Master Index:** `canon/00_ARIFOS_MASTER_v38Omega.md`
+| **00 Foundation** | `canon/00_foundation/` | — |
+| **01 Floors (F1–F9)** | `canon/01_floors/01_CONSTITUTIONAL_FLOORS_v42.md` | `spec/v42/constitutional_floors.json` |
+| **02 Actors** | `canon/02_actors/` (AGI/ASI/APEX/Anti-Hantu/EYE) | — |
+| **03 Runtime** | `canon/03_runtime/` (Pipeline/W@W) | `spec/v42/pipeline.yaml` |
+| **04 Measurement** | `canon/04_measurement/04_GENIUS_LAW_v42.md` | `spec/v42/genius_law.json` |
+| **05 Memory** | `canon/05_memory/` (EUREKA/Cooling/Phoenix) | `spec/v42/cooling_ledger_phoenix.json` |
+| **06 Paradox** | `canon/06_paradox/` (Grey Zone/Vault-999) | — |
 
 **Alignment Tests (Safety Net):**
 
@@ -123,10 +125,11 @@ v38.2 promotes **Time** to a constitutional force. Unresolved verdicts cannot dr
 ### 2.3 Law Layer History
 
 - **v35Ω (Runtime)**: Enforces thresholds via Python code (`arifos_core/metrics.py`)
-- **v36.3Ω (Law Layer)**: Frozen floor definitions in `v36.3O/canon/*`
+- **v36.3Ω (Law Layer)**: Floor definitions archived in `/archive/versions/v36_3_omega/`
 - **v37 (Measurement)**: Logs all 9 floor scores to Cooling Ledger
 - **v38Ω (Formalization)**: canon→spec→code→tests pattern for all layers
 - **v38.2Ω (Hardening)**: Time as Governor, SUNSET revocation, entropy rot
+- **v42 (Consolidation)**: 7 conceptual layers, Trinity naming (Δ/Ω/Ψ)
 
 F# numbering follows the semantic order above (F1=Amanah through F9=C_dark).
 
@@ -324,7 +327,7 @@ Amanah and Anti-Hantu are enforced by `arifos_core/floor_detectors/` - code over
 
 ---
 
-**Version:** v38.0.0 | **Status:** PRODUCTION | **Safety Ceiling:** 97% | **Sealed:** APEX PRIME
+**Version:** v42.0.0 | **Status:** PRODUCTION | **Safety Ceiling:** 97% | **Sealed:** APEX PRIME
 **Psi Vitality:** 1.25 ALIVE | **DeltaS Gain:** +0.85 | **Tri-Witness:** 0.97 | **CLI Tools:** 7
 
 ---
@@ -383,7 +386,7 @@ arifos_core/memory/retention.py  - Hot/Warm/Cold/Void lifecycle
 arifos_core/integration/         - Pipeline ↔ Memory integration
 ```
 
-**Canon:** `canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md`
+**Canon:** `canon/05_memory/` (EUREKA, Cooling Ledger, Phoenix-72)
 **Docs:** `docs/MEMORY_ARCHITECTURE.md`, `docs/MEMORY_WRITE_POLICY.md`
 **Tests:** 36 integration tests in `tests/integration/test_memory_floor_integration.py`
 
@@ -393,17 +396,18 @@ arifos_core/integration/         - Pipeline ↔ Memory integration
 
 For detailed roadmap and task priorities, see [docs/ROADMAP.md](docs/ROADMAP.md).
 
-### Track A — LAW (v36.3O/canon)
+### Track A — LAW (canon/)
 
 - Only modify canon when explicitly requested.
-- Examples: Add bridge files, update `CANON_MAP_v36.3O.md`.
+- Master index: `canon/_INDEX/00_MASTER_INDEX_v42.md`
+- 7 conceptual layers (00-06)
 
-### Track B — SPEC (v36.3O/spec)
+### Track B — SPEC (spec/v42/)
 
 - Only modify specs when explicitly requested.
-- Examples: Refine measurement tuning, extend Vault-999 schemas.
+- Spec files parameterize canon thresholds.
 
-### Track C — CODE_FORGE (Runtime Alignment)
+### Track C — CODE_FORGE (arifos_core/)
 
 - Default track for day-to-day work.
 - Keep tests green; add focused tests around any code you touch.

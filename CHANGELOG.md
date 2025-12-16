@@ -13,11 +13,18 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ### Added
 
-- (placeholder)
+- v42 canon skeleton with 7 conceptual layers (00-06)
+- Canon master index at `canon/_INDEX/00_MASTER_INDEX_v42.md`
+- Naming convention and versioning policy at `canon/_INDEX/`
+- 33 draft v42 canon files organized by layer
+- Spec files copied to `spec/v42/` directory
+- Trinity naming (AGI/Δ, ASI/Ω, APEX/Ψ) standardized across canon
 
 ### Changed
 
-- (placeholder)
+- CLAUDE.md optimized as thin shim (398→97 lines, 76% reduction)
+- AGENTS.md updated to reference v42 canon structure
+- Canon references updated from v38Omega paths to v42 layers
 
 ### Fixed
 

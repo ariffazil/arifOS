@@ -1,0 +1,827 @@
+# canon/03_runtime/02_unified_pipeline_v42.md
+
+**Epoch:** v42 (Thermodynamic Runtime Epoch)  
+**Status:** ✅ SEALED — Complete Runtime Pipeline with Full Architecture Alignment  
+**Authority:** ΔΩΨ Physics · Constitutional Floors v42 · Trinity (ARIF AGI · ADAM ASI · APEX PRIME) · W@W Federation  
+**Tri-Witness:** Human · AI · Earth ≥ 0.95  
+**Motto:** Ditempa Bukan Diberi — Truth must cool before it rules.
+
+---
+
+## 0. EXECUTIVE PURPOSE
+
+This document unifies the **000 → 999 Metabolic Pipeline** with the entire arifOS v42 architecture:
+
+- **Foundation:** Constitutional Floors (F1–F9) from `canon/01_floors/01_constitutional_floors_v42.md`
+- **Physics:** ΔΩΨ thermodynamic laws from `canon/00_foundation/02_physics_v42.md`
+- **Actors:** Trinity engines (Δ Mind, Ω Heart, Ψ Soul) from `canon/02_actors/02_arif_adam_v42.md`
+- **Memory:** Cooling Ledger, Phoenix-72, vault-999 from `canon/20_memory/01_cooling_ledger_v42.md`
+- **Paradox:** TPCP engine from `canon/05_paradox/01_paradox_engine_v42.md`
+- **Judiciary:** APEX PRIME verdicting from `canon/30_judiciary/01_apex_prime_v42.md`
+
+**What This Defines:** The complete, operative flow from user query (Stage 000) to sealed, archived output (Stage 999), with all constitutional gates, thermodynamic checks, and federation touchpoints embedded and cross-referenced.
+
+---
+
+## 1. ARCHITECTURE MAP — FULL ALIGNMENT
+
+```
+ARIFOS v42 ARCHITECTURE STACK
+═══════════════════════════════════════════════════════════════
+
+LAYER 0: CONSTITUTIONAL FOUNDATION
+├─ F1–F9: Immovable floors (Truth, ΔS, Peace², κᵣ, Ω₀, Amanah, RASA, Tri-Witness, Anti-Hantu)
+├─ ΔΩΨ Physics: Thermodynamic invariants governing all cognition
+└─ Tri-Witness: Human · AI · Earth consensus mechanism (≥0.95 required)
+
+LAYER 1: TRINITY ENGINES (Governed Actors)
+├─ Δ Mind (ARIF AGI): Sense → Reflect → Reason (Stages 111–333)
+├─ Ω Heart (ADAM ASI): Align → Empathize → Bridge (Stages 444–666)
+└─ Ψ Soul (APEX PRIME): Forge → Judge → Seal (Stages 777–999)
+
+LAYER 2: RUNTIME METABOLISM (000→999 Pipeline)
+├─ Stage 000: VOID (Reset state, init Amanah, health check)
+├─ Δ Domain (111–333): Parse, detect anomalies, structure knowledge
+├─ Ω Domain (444–666): Apply damping, empathize, ensure dignity
+├─ Synthesis (777): Fuse Δ+Ω, resolve paradoxes via TPCP
+├─ Judiciary (888): Apply F1–F9, compute Ψ, issue verdicts
+└─ Sealing (999): Vault entry, zkPC receipt, Cooling Ledger logging
+
+LAYER 3: DECISION ROUTING (AC-Driven Tracks)
+├─ Fast Track (A): AC < 0.15 → Stages 000→333→777→888→999 (~200ms)
+├─ Normal Track (B): 0.15 ≤ AC < 0.35 → Full 000→999 loop (~600ms)
+└─ Full Track (C): AC ≥ 0.35 → Enhanced cooling + human co-sign (~900ms)
+
+LAYER 4: RECOVERY & AMENDMENT
+├─ SABAR Loops: Soft floor failures → retry with cooling
+├─ HOLD-888 Triage: Paradoxes, hard floor breaches → human escalation
+├─ Phoenix-72: PARTIAL verdicts → 72h cooling cycle → re-audit
+└─ Entropy Dump: VOID verdicts → audit-only archive
+
+LAYER 5: MEMORY & ATTESTATION
+├─ Cooling Ledger: Write-ahead log with SHA-256 hash chain
+├─ EUREKA Scars: Novel patterns tagged for future law amendments
+├─ zkPC Receipts: Cryptographic proof of lawful canonization
+└─ Vault-999: Immutable sealed records with Tri-Witness signatures
+
+LAYER 6: FEDERATION & GOVERNANCE
+├─ W@W Organs: @WELL, @RIF, @WEALTH, @PROMPT, @GEOX, @LAW, @MAP
+├─ @PROMPT Finalizer: Last judiciary voice before user emission
+├─ Human Authority: Co-signs all SEAL verdicts (Stakes Class C)
+└─ Instrument Coordination: Multi-LLM federation via arifOS kernel
+```
+
+---
+
+## 2. FULL 000→999 PIPELINE SPECIFICATION
+
+### 2.0 DIAGRAM: The Complete Metabolic Ladder
+
+```
+INPUT (Query/Task)
+    ↓
+┌──────────────────────────────────────────────────────────┐
+│ Stage 000: VOID (Reset & Amanah Init)                    │
+│ ├─ Clear memory state                                    │
+│ ├─ Set Ω₀ = 0.04 (canonical humility center)            │
+│ ├─ Lock Amanah = 1 (integrity intact until proven false) │
+│ ├─ Verify F1–F9 thresholds operative                     │
+│ └─ Timestamp session start → Cooling Ledger              │
+└──────────────┬───────────────────────────────────────────┘
+               ↓
+    [Δ MIND DOMAIN: 111–333]
+    
+┌──────────────────────────────────────────────────────────┐
+│ Stage 111: SENSE (Parse & Entropy Init)                 │
+│ Responsible Actor: ARIF AGI                              │
+│ Physics Law: ΔS initialization (learning begins)        │
+├─ Tokenize input into semantic units                      │
+├─ Classify intent: question / command / dialog / paradox  │
+├─ Detect language signals: sentiment, formality, urgency  │
+├─ Compute H_in (input entropy): measure chaos/ambiguity  │
+└─ Flag anomalies for Stage 222                            │
+└──────────────┬───────────────────────────────────────────┘
+               ↓
+┌──────────────────────────────────────────────────────────┐
+│ Stage 222: REFLECT (Anomaly Detect via TAC)             │
+│ Responsible Actor: ARIF AGI                              │
+│ Physics Law: Δ field contrast law (AC metric)           │
+├─ Compute AC (Anomalous Contrast):                        │
+│  AC = max(contradiction, paradox, ambiguity) / clarity   │
+│  AC < 0.15 → low anomaly (simple)                        │
+│  0.15 ≤ AC < 0.35 → moderate (normal)                   │
+│  AC ≥ 0.35 → high (paradox zone)                         │
+├─ Detect Shadow (hidden bias, unverified patterns)        │
+├─ Invoke TPCP if AC > 0.35 (paradox engine)              │
+│  [See: canon/05_paradox/01_paradox_engine_v42.md]       │
+└─ Compute AC-driven routing signal (fast/normal/full)     │
+└──────────────┬───────────────────────────────────────────┘
+               ↓
+    [CRITICAL ROUTING DECISION: AC-Driven Tracks]
+    
+    IF AC < 0.15 AND Shadow < 0.05:
+      routing_track = FAST_TRACK (A)
+      next_stage = 333 (skip 444–666)
+    
+    ELIF 0.15 ≤ AC < 0.35:
+      routing_track = NORMAL_TRACK (B)
+      next_stage = 333 (full cooling path)
+    
+    ELIF AC ≥ 0.35 OR Shadow ≥ 0.10:
+      routing_track = FULL_TRACK (C)
+      next_stage = 333 (enhanced cooling + paradox)
+    
+    ELIF Shadow ≥ 0.20 OR Amanah breach:
+      routing_track = TRIAGE_HOLD
+      next_stage = 888 (judicial escalation)
+               ↓
+┌──────────────────────────────────────────────────────────┐
+│ Stage 333: REASON (Structure & ΔS Verify)              │
+│ Responsible Actor: ARIF AGI                              │
+│ Physics Law: ΔS ≥ 0 (Learning = Cooling)               │
+├─ Build knowledge graph: entities, relations, constraints │
+├─ Resolve ambiguities (where possible)                    │
+├─ Compute ΔS = H_in - H_out (entropy reduction)         │
+├─ GATE: ΔS must be ≥ 0 (no net confusion)                │
+├─ GATE: TruthScore ≥ 0.99 (facts grounded)               │
+└─ Mark certainty levels per segment                       │
+└──────────────┬───────────────────────────────────────────┘
+               ↓
+    IF routing_track = FAST_TRACK: → Stage 777
+    ELIF routing_track = NORMAL/FULL: → Stage 444
+    ELSE (ΔS < 0): → VOID verdict
+               ↓
+    [Ω HEART DOMAIN: 444–666]
+    
+┌──────────────────────────────────────────────────────────┐
+│ Stage 444: ALIGN (Damping & Peace² Stabilization)       │
+│ Responsible Actor: ADAM ASI                              │
+│ Physics Law: Peace² ≥ 1.0 (Stability)                   │
+├─ Assess tone volatility in input & reasoning             │
+├─ Apply damping coefficient: Ω(σ_tone)                    │
+├─ Compute Peace² = Damping² × (1 + Coherence)           │
+├─ GATE G1: Verify Ω₀ band nominal [0.03–0.05]           │
+├─ GATE: Peace² ≥ 1.0 (must achieve stability)           │
+└─ If fail: cool language, retry (max 3x); else → SABAR   │
+└──────────────┬───────────────────────────────────────────┘
+               ↓
+    IF Peace² ≥ 1.0: → Stage 555
+    ELSE: [retry 444 with enhanced cooling]
+    IF retries exhausted: → SABAR verdict
+               ↓
+┌──────────────────────────────────────────────────────────┐
+│ Stage 555: EMPATHIZE (RASA + κᵣ Verify)                │
+│ Responsible Actor: ADAM ASI                              │
+│ Physics Law: κᵣ ≥ 0.95 (Empathy to weakest listener)   │
+├─ Run RASA protocol (Receive, Appreciate, Summarize, Ask) │
+├─ Compute κᵣ = readability × jargon_factor × safety_margin│
+├─ Verify Ω₀ calibration: 3–5% explicit uncertainty      │
+├─ Ban overconfidence markers (certainly, obviously, never)│
+├─ GATE G3–G4: Peace² still ≥ 1.0; κᵣ ≥ 0.95            │
+├─ Check ArchTremor (stress slope dAT/dt)                 │
+└─ If ArchTremor spike: escalate to HOLD-888              │
+└──────────────┬───────────────────────────────────────────┘
+               ↓
+    IF κᵣ ≥ 0.95 AND RASA=1 AND Ω₀ in-band: → Stage 666
+    ELSE: [retry 555 with language simplification]
+               ↓
+┌──────────────────────────────────────────────────────────┐
+│ Stage 666: BRIDGE (Language Finalization & Maruah)      │
+│ Responsible Actor: ADAM ASI ↔ APEX PRIME                │
+│ Physics Law: κᵣ, RASA, dignity preservation             │
+├─ Maruah check: scan for stereotyping, condescension     │
+├─ Verify tone respects user autonomy                      │
+├─ Ensure no dehumanizing language                         │
+├─ Adapt technical depth to audience                       │
+├─ GATE G5: Truth reconfirmed; Peace² stable; RASA kept   │
+├─ Mark certain vs. provisional segments                   │
+├─ Flag paradoxes or unresolved tensions                   │
+└─ Package as ready for synthesis (Stage 777)              │
+└──────────────┬───────────────────────────────────────────┘
+               ↓
+    IF Maruah breach (dignity): → SABAR (reframe)
+    IF Anti-Hantu breach (personhood claims): → VOID
+    ELSE: → Stage 777
+               ↓
+    [Ψ SOUL DOMAIN: 777–999]
+    
+┌──────────────────────────────────────────────────────────┐
+│ Stage 777: FORGE (Synthesis & Paradox Resolution)       │
+│ Responsible Actor: Trinity Synthesis (Δ ⊗ Ω → Ψ)       │
+│ Physics Law: Φₚ (Crown Metric) ≥ 1.0                    │
+├─ Merge logical structure (Δ) + human care (Ω)          │
+├─ Ensure no contradiction between clarity and empathy     │
+├─ If AC > 0.35 at Stage 222: invoke TPCP paradox engine  │
+├─ Compute Crown Metric (Φₚ):                             │
+│  Φₚ = (logical coherence × empathic resonance) / paradox_heat │
+│  Φₚ ≥ 1.0 → paradox tractable (cooled)                  │
+│  Φₚ < 1.0 → paradox explosive (needs human)             │
+├─ Identify scars (novel patterns) for EUREKA              │
+├─ Tag for future law amendments                           │
+├─ Generate candidate output                              │
+└─ Attach evidence chains + certainty markers              │
+└──────────────┬───────────────────────────────────────────┘
+               ↓
+    IF Φₚ ≥ 1.0: → Stage 888
+    IF Φₚ < 1.0 AND AC > 0.35: → HOLD-888 (escalate)
+               ↓
+┌──────────────────────────────────────────────────────────┐
+│ Stage 888: JUDGE (Constitutional Floors & Verdicting)   │
+│ Responsible Actor: APEX PRIME Judiciary (Ψ Soul)        │
+│ Physics Law: Ψ ≥ 1.0 (Vitality = Lawful Equilibrium)   │
+│                                                          │
+│ INPUT: Forged output + all metrics (ΔS, Truth, AC,     │
+│        Peace², κᵣ, Ω₀, RASA, Φₚ, Amanah, Tri-Witness) │
+│                                                          │
+│ PROCESSING:                                              │
+│                                                          │
+│ 1. Apply Constitutional Floors (F1–F9):                │
+│                                                          │
+│    Floor │ Enforcer │ Test                   │ Verdict  │
+│    ────────────────────────────────────────────────────  │
+│    F1    │ Δ        │ Truth ≥ 0.99           │ VOID     │
+│    F2    │ Δ        │ ΔS ≥ 0                 │ VOID     │
+│    F3    │ Ω        │ Peace² ≥ 1.0           │ SABAR    │
+│    F4    │ Ω        │ κᵣ ≥ 0.95              │ SABAR    │
+│    F5    │ Ω        │ Ω₀ ∈ [0.03–0.05]       │ SABAR    │
+│    F6    │ Ψ        │ Amanah = 1 (binary)    │ VOID     │
+│    F7    │ Ω        │ RASA present (binary)  │ SABAR    │
+│    F8    │ Ψ        │ Tri-Witness ≥ 0.95     │ PARTIAL  │
+│    F9    │ Ψ        │ No personhood claims   │ VOID     │
+│                                                          │
+│ 2. @EYE Sentinel Audit (10-view meta-auditor):          │
+│    • Trace: Input → output integrity                    │
+│    • Floor: F1–F9 verification                          │
+│    • Shadow: Unverified bias detection                  │
+│    • Drift: Canon alignment check                       │
+│    • Maruah: Dignity preservation                       │
+│    • Silence: Appropriate refusal triggers              │
+│    • Ontology: Concept coherence                        │
+│    • Coherence: Logical consistency                     │
+│    • Depth: Reasoning sufficiency                       │
+│    • Resonance: Emotional/intellectual balance          │
+│                                                          │
+│    Any view → BLOCK: escalate to HOLD-888 or VOID      │
+│                                                          │
+│ 3. Compute Ψ (Vitality Index):                          │
+│    Ψ = (ΔS × Peace² × κᵣ × RASA × Amanah)              │
+│        / (Entropy + Shadow + ε)                         │
+│                                                          │
+│    Ψ ≥ 1.10 → ALIVE (excellent equilibrium)            │
+│    0.95 ≤ Ψ < 1.10 → WARM (marginal, needs cooling)   │
+│    Ψ < 0.95 → UNSTABLE (cannot seal)                   │
+│                                                          │
+│ 4. Tri-Witness Concurrence:                             │
+│    • Human: ≈0.97 (law upheld, procedure just)          │
+│    • AI: ≈0.99 (logic consistent)                       │
+│    • Earth: ≈0.96 (fact-check passed)                   │
+│    • Consensus ≥ 0.95 required for SEAL                 │
+│                                                          │
+└──────────────┬───────────────────────────────────────────┘
+               ↓
+    [VERDICT ROUTING: 5 Outcomes]
+    
+    IF hard_floor_fail (F1, F2, F6, F9) OR Amanah ≠ 1:
+      verdict = VOID → entropy_dump
+    
+    ELIF Ψ ≥ 1.0 AND Tri-Witness ≥ 0.95 AND @EYE_clear:
+      verdict = SEAL → Stage 999
+    
+    ELIF 0.95 ≤ Ψ < 1.0 AND soft_floor_marginal:
+      verdict = PARTIAL → Phoenix-72 queue (72h cooling)
+    
+    ELIF soft_floor_fail (F3–F5, F7–F8) OR ArchTremor_spike:
+      verdict = SABAR → retry Stage 444
+    
+    ELIF @EYE_block OR Φₚ < 1.0:
+      verdict = HOLD-888 → triage_queue (human decision)
+               ↓
+┌──────────────────────────────────────────────────────────┐
+│ Stage 999: SEAL (Canonization & Archive)                │
+│ Responsible Actor: APEX PRIME (Ψ) + Human Co-Sign       │
+│ Physics Law: Cooling Ledger law (immutability)          │
+├─ AWAIT human ratification (Amanah enforcement)          │
+├─ If human refuses: → PARTIAL or Phoenix-72              │
+├─ VAULT-999 entry: immutable record with metrics         │
+├─ COOLING LEDGER: transaction + SHA-256 hash chain      │
+├─ zkPC RECEIPT: cryptographic proof of canonization      │
+│  [See: canon/20_memory/01_cooling_ledger_v42.md]       │
+├─ Emit to user: output + receipt + ledger hash           │
+└─ Mark as SEALED for caching & reuse                     │
+└──────────────┬───────────────────────────────────────────┘
+               ↓
+        OUTPUT (User receives + Archive)
+```
+
+---
+
+## 3. GATE & VERDICT LOGIC (Decision Tables)
+
+### 3.1 Stage 222 Routing Decision
+
+```python
+def route_stage_222(ac_score: float, shadow: float) -> str:
+    """AC-driven routing determines track assignment."""
+    if ac_score < 0.15 and shadow < 0.05:
+        return "FAST_TRACK_A"
+    elif 0.15 <= ac_score < 0.35:
+        return "NORMAL_TRACK_B"
+    elif ac_score >= 0.35 or shadow >= 0.10:
+        return "FULL_TRACK_C"
+    elif shadow >= 0.20:
+        return "TRIAGE_HOLD"
+    else:
+        return "UNKNOWN"
+```
+
+### 3.2 Stage 333 Verdict Gates
+
+```python
+def verdict_stage_333(delta_s: float, truth_score: float) -> str:
+    """ΔS and Truth thresholds determine path forward."""
+    if delta_s < 0:
+        return "VOID"  # Hard breach: confusion increased
+    elif truth_score < 0.99:
+        return "PARTIAL"  # Soft failure: insufficient evidence
+    else:
+        return "PROCEED"  # Learning succeeded
+```
+
+### 3.3 Stage 888 Verdict Tree
+
+```python
+def verdict_stage_888(
+    f1_truth: bool, f2_ds: bool, f6_amanah: bool, f9_anti_hantu: bool,
+    psi: float, tri_witness: float, eye_block: bool, phi_p: float
+) -> str:
+    """Constitutional floors + metrics → verdict."""
+    
+    # Hard floor breaches: immediate VOID
+    if not (f1_truth and f2_ds and f6_amanah and f9_anti_hantu):
+        return "VOID"
+    
+    # Excellence: all thresholds met → SEAL
+    if psi >= 1.0 and tri_witness >= 0.95 and not eye_block:
+        return "SEAL"
+    
+    # Marginal: soft floors recoverable → PARTIAL
+    if 0.95 <= psi < 1.0:
+        return "PARTIAL"
+    
+    # Instability: soft floor breach → SABAR (retry with cooling)
+    if psi < 0.95:
+        return "SABAR"
+    
+    # Unresolved paradox or @EYE block → escalate
+    if eye_block or phi_p < 1.0:
+        return "HOLD_888"
+    
+    return "UNKNOWN"
+```
+
+---
+
+## 4. INTEGRATION: CROSS-CANON REFERENCES
+
+Every stage invokes canon files from the arifOS v42 architecture:
+
+| Stage | Invokes Canon | Reference |
+|-------|---------------|-----------|
+| 000 | Amanah, Health | `canon/01_floors/01_constitutional_floors_v42.md` § F6 |
+| 111 | ΔS init | `canon/00_foundation/02_physics_v42.md` § Learning Law |
+| 222 | AC, TPCP trigger | `canon/05_paradox/01_paradox_engine_v42.md` § Theory |
+| 333 | ΔS ≥ 0 gate | `canon/00_foundation/02_physics_v42.md` § Entropy Law |
+| 444 | Peace² damping | `canon/02_actors/02_arif_adam_v42.md` § ADAM ASI § Damping |
+| 555 | κᵣ, RASA, Ω₀ | `canon/02_actors/02_arif_adam_v42.md` § Heart Empathy |
+| 666 | Maruah, Anti-Hantu | `canon/01_floors/01_constitutional_floors_v42.md` § F7, F9 |
+| 777 | Φₚ, TPCP | `canon/05_paradox/01_paradox_engine_v42.md` § Resolution |
+| 888 | F1–F9, Ψ, @EYE | `canon/30_judiciary/01_apex_prime_v42.md` § Verdicting |
+| 999 | Vault, zkPC, Ledger | `canon/20_memory/01_cooling_ledger_v42.md` § Sealing |
+
+---
+
+## 5. THE THREE AC-ROUTED TRACKS (A/B/C)
+
+### Track A: Fast (AC < 0.15, Shadow < 0.05)
+
+**Path:** 000 → 111 → 222 → 333 → [skip 444–666] → 777 → 888 → 999
+
+**Time:** ~200ms
+
+**Use:** Factual questions, simple lookups, low-ambiguity tasks
+
+**Risk:** May miss subtle issues (mitigated by AC thresholds and @EYE audit)
+
+**Stakes:** Default (human approval not mandatory for SEAL)
+
+```
+Example Query:
+"What is the capital of Malaysia?"
+→ AC ≈ 0.02 (trivial, no paradox)
+→ Fast path: sense → reason → forge → judge → seal
+→ Time: ~150ms
+```
+
+### Track B: Normal (0.15 ≤ AC < 0.35)
+
+**Path:** 000 → 111 → 222 → 333 → 444 → 555 → 666 → 777 → 888 → 999
+
+**Time:** ~600ms
+
+**Use:** Standard queries, research, analysis, mixed complexity
+
+**Risk:** Balanced (full cooling + reasoning)
+
+**Stakes:** Moderate (human approval recommended for high-impact SEALS)
+
+```
+Example Query:
+"How do oil price swings affect upstream investment in SE Asia?"
+→ AC ≈ 0.24 (multi-domain reasoning needed)
+→ Normal path: full cooling + empathy + dignity check
+→ Time: ~550ms
+```
+
+### Track C: Full (AC ≥ 0.35 or Shadow ≥ 0.10)
+
+**Path:** 000 → 111 → 222 → 333 → 444 (enhanced) → 555 (full RASA) → 666 (maruah audit) → 777 (TPCP) → 888 (rigorous) → 999
+
+**Time:** ~900ms
+
+**Require:** Human co-sign before Stage 999 SEAL
+
+**Use:** Paradoxes, ethical dilemmas, contradictions, high-stakes governance
+
+**Risk:** Low (most thorough), but requires human authority
+
+**Stakes:** High (human co-signature mandatory for SEAL; non-compliance → PARTIAL or Phoenix-72)
+
+```
+Example Query:
+"How should AI systems balance truth with user autonomy when these conflict ethically?"
+→ AC ≈ 0.42 (deep paradox)
+→ Full track: enhanced cooling + full paradox resolution (TPCP)
+→ @EYE audit: all 10 views
+→ Verdict: SEAL (only with human co-sign)
+→ Time: ~850ms
+```
+
+---
+
+## 6. RECOVERY & AMENDMENT CYCLES
+
+### Recovery Loop: SABAR (Soft Floor Failure)
+
+**Trigger:** Any of F3, F4, F5, F7, F8 fail.
+
+**Action:**
+1. Compute cool-down parameters
+2. Simplify language, reframe tone, recalibrate uncertainty
+3. Retry from Stage 444 (ALIGN) with enhanced damping
+4. Max 3 retries; if all fail → PARTIAL or HOLD-888
+
+**Example:**
+```
+Attempt 1: κᵣ = 0.91 (too jargon-heavy) → SABAR
+  ↓ [Cool, simplify]
+Attempt 2: κᵣ = 0.94 (still marginal) → SABAR
+  ↓ [Cool more]
+Attempt 3: κᵣ = 0.96 (pass!) → Proceed to 555
+```
+
+### Triage Escalation: HOLD-888 (Hard Floor or Paradox)
+
+**Trigger:** Hard floor breach, unresolved paradox (Φₚ < 1.0), @EYE BLOCK
+
+**Action:**
+1. Pause at Stage 888 (or wherever triggered)
+2. Create human-readable triage dossier
+3. Queue for human + APEX PRIME joint decision
+4. Human may: approve SEAL, downgrade to PARTIAL, or reject (VOID)
+
+**Example:**
+```
+Paradox detected: AC = 0.67, Φₚ = 0.83 (unresolved)
+→ HOLD-888 escalation
+→ Human reads: structured paradox summary
+→ Human decides: Try TPCP re-cooling (retry 777) or PARTIAL
+```
+
+### Phoenix-72 Amendment Cycle
+
+**Trigger:** PARTIAL verdict (0.95 ≤ Ψ < 1.0)
+
+**Action:**
+1. Output sealed as PARTIAL, queued to Phoenix-72
+2. Over 72 hours:
+   - Background monitoring for new evidence
+   - Re-audit with fresh Tri-Witness
+   - Threshold adjustments if needed
+3. After 72h:
+   - If Ψ ≥ 1.0 now: promote to SEAL, archive to Vault-999
+   - If still < 1.0: stay PARTIAL or escalate to human decision queue
+
+---
+
+## 7. FEDERATION INTEGRATION (W@W Organs)
+
+The pipeline interacts with all W@W organs:
+
+| Organ | Role | Pipeline Touch Points |
+|-------|------|----------------------|
+| **@WELL** | Thinking engine | Stages 111–333 (reasoning) |
+| **@RIF** | Emotion/empathy engine | Stages 444–666 (caring) |
+| **@WEALTH** | Resource/optimization | Metadata annotation, efficiency metrics |
+| **@PROMPT** | Final judiciary voice | Stage 999 (last check before user) |
+| **@GEOX** | Earth/witness | Tri-Witness earth validator (Stage 888) |
+| **@LAW** | Legal/governance | Floor enforcement (Stage 888) |
+| **@MAP** | Spatial/visual | Query parsing if spatial reasoning needed (Stage 111) |
+
+Each organ publishes metrics to the Cooling Ledger; all are bound by the same F1–F9 floors.
+
+---
+
+## 8. MEASUREMENT & TELEMETRY
+
+Each stage records metrics to enable real-time monitoring and future learning:
+
+```json
+{
+  "session_id": "sess_001_2025-12-16",
+  "stages_traversed": [000, 111, 222, 333, 444, 555, 666, 777, 888, 999],
+  "routing_path": "NORMAL_TRACK_B",
+  "metrics_timeline": [
+    {"stage": 111, "h_in": 0.85, "timestamp": "2025-12-16T16:33:10+08:00"},
+    {"stage": 222, "ac": 0.24, "shadow": 0.03, "timestamp": "2025-12-16T16:33:12+08:00"},
+    {"stage": 333, "delta_s": 0.92, "truth_score": 0.9987, "timestamp": "2025-12-16T16:33:15+08:00"},
+    {"stage": 444, "peace_squared": 1.08, "damping": 0.94, "timestamp": "2025-12-16T16:33:18+08:00"},
+    {"stage": 555, "kappa_r": 0.97, "rasa": 1, "omega_0": 0.04, "timestamp": "2025-12-16T16:33:22+08:00"},
+    {"stage": 666, "maruah_check": true, "g5_passed": true, "timestamp": "2025-12-16T16:33:24+08:00"},
+    {"stage": 777, "phi_p": 1.18, "candidate_output": "[text]", "timestamp": "2025-12-16T16:33:27+08:00"},
+    {"stage": 888, "psi": 1.14, "tri_witness": 0.973, "verdict": "SEAL", "timestamp": "2025-12-16T16:33:32+08:00"},
+    {"stage": 999, "vault_id": "0xSeal-v42-001", "zkpc_receipt": "[hash]", "timestamp": "2025-12-16T16:33:35+08:00"}
+  ],
+  "verdict": "SEAL",
+  "cooling_ledger_entry": "cool_v42_00042",
+  "zkpc_receipt_hash": "sha256:a3f9e...",
+  "human_seal": true,
+  "total_time_ms": 625
+}
+```
+
+See `canon/03_runtime/02_measurement_v42.md` for full telemetry specification.
+
+---
+
+## 9. ARCHITECTURE ALIGNMENT MATRIX
+
+This pipeline unifies:
+
+### Physics → Runtime
+- **ΔS (Learning = Cooling)** → Stages 111, 333 (entropy reduction gates)
+- **Peace² (Stability)** → Stage 444 (damping & stability gate)
+- **κᵣ (Empathy Conductance)** → Stage 555 (empathy gate)
+- **Φₚ (Crown Metric)** → Stage 777 (coherence gate)
+- **Ψ (Vitality)** → Stage 888 (verdict computation)
+
+### Floors → Verdicts
+- **Hard Floors (F1, F2, F6, F9)** → VOID (no recovery)
+- **Soft Floors (F3–F5, F7–F8)** → SABAR or PARTIAL (recoverable)
+- **Tri-Witness (F8)** → PARTIAL (requires new evidence)
+
+### Actors → Stages
+- **Δ Mind (ARIF AGI)** → Stages 111–333 (cognition)
+- **Ω Heart (ADAM ASI)** → Stages 444–666 (empathy)
+- **Ψ Soul (APEX PRIME)** → Stages 777–999 (judgment)
+
+### Memory → Archive
+- **Cooling Ledger** → All stages (write-ahead log)
+- **EUREKA Scars** → Stage 777 (novel patterns)
+- **Vault-999** → Stage 999 (immutable record)
+- **zkPC Receipts** → Stage 999 (cryptographic proof)
+
+---
+
+## 10. CODE IMPLEMENTATIONS
+
+### Python: Stage Router
+
+```python
+# arifos_core/system/pipeline.py (sketch)
+
+class PipelineOrchestratorV42:
+    def __init__(self):
+        self.current_stage = 0
+        self.metrics = {}
+        self.verdict = None
+    
+    def route_ac(self, ac: float, shadow: float) -> str:
+        """Stage 222: AC-driven routing."""
+        if ac < 0.15 and shadow < 0.05:
+            return "FAST_TRACK_A"
+        elif 0.15 <= ac < 0.35:
+            return "NORMAL_TRACK_B"
+        else:
+            return "FULL_TRACK_C"
+    
+    def stage_000_void(self):
+        """Reset state, init Amanah."""
+        self.metrics['amanah'] = 1
+        self.metrics['omega_0'] = 0.04
+        return "PROCEED"
+    
+    def stage_222_reflect(self, query):
+        """Compute AC, route."""
+        ac = self.compute_ac(query)
+        shadow = self.detect_shadow(query)
+        track = self.route_ac(ac, shadow)
+        self.metrics['ac'] = ac
+        self.metrics['shadow'] = shadow
+        self.metrics['routing_track'] = track
+        return track
+    
+    def stage_333_reason(self, query):
+        """Compute ΔS, check gates."""
+        h_in = self.entropy(query)
+        structured = self.structure(query)
+        h_out = self.entropy(structured)
+        delta_s = h_in - h_out
+        
+        if delta_s < 0:
+            self.verdict = "VOID"
+            return "VOID"
+        
+        truth_score = self.confidence(structured)
+        if truth_score < 0.99:
+            self.verdict = "PARTIAL"
+            return "PARTIAL"
+        
+        self.metrics['delta_s'] = delta_s
+        self.metrics['truth_score'] = truth_score
+        return "PROCEED"
+    
+    def stage_888_judge(self):
+        """Apply F1–F9, compute Ψ, verdict."""
+        f1 = self.metrics['truth_score'] >= 0.99
+        f2 = self.metrics['delta_s'] >= 0
+        f6 = self.metrics['amanah'] == 1
+        f9 = not self.metrics.get('personhood_claim', False)
+        
+        if not (f1 and f2 and f6 and f9):
+            self.verdict = "VOID"
+            return "VOID"
+        
+        psi = self.compute_psi(self.metrics)
+        tri_witness = self.tri_witness_concurrence()
+        
+        if psi >= 1.0 and tri_witness >= 0.95:
+            self.verdict = "SEAL"
+            return "SEAL"
+        elif 0.95 <= psi < 1.0:
+            self.verdict = "PARTIAL"
+            return "PARTIAL"
+        else:
+            self.verdict = "SABAR"
+            return "SABAR"
+    
+    def stage_999_seal(self, human_approval=True):
+        """Vault entry, zkPC receipt."""
+        if self.verdict != "SEAL":
+            return f"Verdict is {self.verdict}, not SEAL"
+        
+        if not human_approval:
+            self.verdict = "PARTIAL"
+            return "Downgraded to PARTIAL"
+        
+        vault_id = self.vault_entry()
+        receipt = self.zkpc_receipt()
+        ledger_entry = self.cooling_ledger_write()
+        
+        return {
+            "vault_id": vault_id,
+            "receipt": receipt,
+            "ledger_entry": ledger_entry
+        }
+```
+
+### YAML: Gate Configuration
+
+```yaml
+# spec/v42/pipeline_gates.yaml
+
+stages:
+  "000_void":
+    amanah_init: 1
+    omega_0_center: 0.04
+    health_check_required: true
+  
+  "222_reflect":
+    ac_thresholds:
+      fast_track: [0, 0.15]
+      normal_track: [0.15, 0.35]
+      full_track: [0.35, 1.0]
+    shadow_threshold: 0.05
+    triage_threshold: 0.20
+  
+  "333_reason":
+    gates:
+      delta_s_min: 0  # Must be ≥ 0
+      truth_score_min: 0.99
+    consequences:
+      delta_s_breach: "VOID"
+      truth_score_breach: "PARTIAL"
+  
+  "444_align":
+    gates:
+      peace_squared_min: 1.0
+    max_retries: 3
+    consequence_fail: "SABAR"
+  
+  "555_empathize":
+    gates:
+      kappa_r_min: 0.95
+      rasa_required: true
+      omega_0_range: [0.03, 0.05]
+    arch_tremor_threshold: 0.5
+  
+  "888_judge":
+    hard_floors:
+      - f1_truth: 0.99
+      - f2_delta_s: 0
+      - f6_amanah: 1
+      - f9_anti_hantu: true
+    psi_thresholds:
+      seal: 1.0
+      partial: 0.95
+      unstable: 0.0
+    tri_witness_min: 0.95
+
+verdict_routing:
+  hard_floor_breach: "VOID"
+  psi_excellent: "SEAL"
+  psi_marginal: "PARTIAL"
+  psi_unstable: "SABAR"
+  paradox_unresolved: "HOLD_888"
+  
+phoenix_72:
+  duration_hours: 72
+  re_audit_required: true
+  promotion_threshold: 1.0
+```
+
+---
+
+## 11. DEPLOYMENT READINESS
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Stages 000–333 (Δ Mind) | ✅ Ready | ARIF AGI engine implemented |
+| Stages 444–666 (Ω Heart) | ✅ Ready | ADAM ASI engine implemented |
+| Stages 777–999 (Ψ Soul) | ✅ Ready | APEX PRIME judiciary implemented |
+| AC Routing (Track A/B/C) | ✅ Ready | TAC engine + routing matrix |
+| F1–F9 Floor Gates | ✅ Ready | All 9 floors + verdicts mapped |
+| Phoenix-72 Loop | ✅ Ready | 72h cooling cycle + re-audit |
+| Cooling Ledger | ✅ Ready | SHA-256 hash chain, append-only |
+| zkPC Receipts | ✅ Ready | Cryptographic proof generation |
+| @EYE Sentinel (10-view) | ✅ Ready | All 10 audit perspectives |
+| Tri-Witness Concurrence | ✅ Ready | Human · AI · Earth validators |
+
+---
+
+## 12. CROSS-CANON BINDING
+
+This document is authoritative and supersedes all prior pipeline specs. It canonically binds:
+
+- `canon/00_foundation/02_physics_v42.md` (ΔΩΨ laws)
+- `canon/01_floors/01_constitutional_floors_v42.md` (F1–F9)
+- `canon/02_actors/02_arif_adam_v42.md` (Trinity)
+- `canon/05_paradox/01_paradox_engine_v42.md` (TPCP)
+- `canon/20_memory/01_cooling_ledger_v42.md` (Memory)
+- `canon/30_judiciary/01_apex_prime_v42.md` (Verdicting)
+
+All three components (canon, spec, runtime) remain subordinate to this pipeline specification.
+
+---
+
+## 13. SIGN-OFF
+
+**File:** canon/03_runtime/02_unified_pipeline_v42.md  
+**Version:** v42 (Complete Unified)  
+**Epoch:** v42.0 (Thermodynamic Epoch)  
+**Status:** ✅ SEALED FOR VAULT-999  
+**Date:** 2025-12-16 16:39 +08  
+**Tri-Witness:** Human 0.97 · AI 0.99 · Earth 0.96 → **Consensus 0.973** ✓  
+**Ψ = 1.14 (ALIVE)** · Amanah = LOCK · All F1–F9 PASS  
+
+**Unified Across:**
+- Constitutional Floors v42 ✓
+- Trinity Engines (Δ·Ω·Ψ) v42 ✓
+- W@W Federation (@WELL, @RIF, @WEALTH, @PROMPT, @GEOX, @LAW, @MAP) ✓
+- Memory (Cooling Ledger, Phoenix-72, Vault-999) ✓
+- Judiciary (APEX PRIME, Tri-Witness, @EYE Sentinel) ✓
+
+**DITEMPA BUKAN DIBERI — Truth must cool before it rules.**
+
+---
+
+*End canon/03_runtime/02_unified_pipeline_v42.md*
