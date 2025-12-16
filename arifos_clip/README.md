@@ -2,7 +2,9 @@
 
 A CLIP is a command-line pipeline (with commands `000` through `999`) for decision governance in the **arifOS** project. It enforces that changes and decisions go through a structured, multi-stage review aligned with APEX Theory and are approved by the arifOS law engine.
 
-## Pipeline Stages (000–999)
+**Precedence:** Repo root `AGENTS.md` is Tier-1 law (applies everywhere). `arifos_clip/AGENTS.md` provides stage-role guidance scoped to this subtree.
+
+## Pipeline Stages (000-999)
 
 - **000 (void):** Initialize a new session from the void (blank state) with a task description.
 - **111 (sense):** Sense the context – gather initial information about the task.
@@ -21,11 +23,11 @@ Each stage corresponds to a CLI command (`000` through `999`) that performs the 
 
 After installing A CLIP, use the numeric commands in sequence to carry out the governance workflow:
 
-1. **Start a session:** `000 void "<task description>"` – Creates a new session and records the task.
+1. **Start a session:** `000 void "<task description>"` (PowerShell: `& "000" void "<task description>"`) - Creates a new session and records the task.
 2. **Progress through stages:** Run `111 sense`, `222 reflect`, `333 reason`, `444 evidence`, `555 empathize`, and `666 align` in order. Each command adds its analysis to the session log.
 3. **Forge the output:** `777 forge` – Compiles all stage outputs into a final JSON "forge pack".
 4. **Apply a hold (if needed):** `888 hold --reason "reason text"` – (Optional) Invoke a hold if an issue arises. This will produce a hold report and block sealing until resolved.
-5. **Seal the decision:** `999 seal --apply --authority-token <TOKEN>` – Attempts to finalize the decision. By default, `999 seal` runs a dry-run check. Using `--apply` with a valid authority token will request arifOS to approve and finalize the changes.
+5. **Seal the decision:** `999 seal --apply --authority-token <TOKEN>` (PowerShell: `& "999" seal --apply --authority-token <TOKEN>`) - Attempts to finalize the decision. By default, `999 seal` runs a dry-run check. Using `--apply` with a valid authority token will request arifOS to approve and finalize the changes.
 
 Each command produces output to the console and updates files under the hidden directory `.arifos_clip/` (which tracks session state and artifacts). Use the `--json` flag with any command to get machine-readable JSON output instead of human-friendly text.
 
@@ -35,6 +37,11 @@ The **seal** stage (999) is protected by multiple safeguards:
 - It **requires** an explicit `--apply` flag and a valid `--authority-token` from a human authority to attempt applying changes.
 - Even with a token, the arifOS law engine must return a verdict of **SEAL** for the session, otherwise the seal will not proceed.
 - If these conditions are not met, 999 will exit with a HOLD or SABAR code and no external changes will be applied.
+- Minting an authority token (HMAC/expiry/repo-bound):
+  ```bash
+  python -c "from arifos_clip.aclip.bridge.authority import create_token; print(create_token('<SESSION_ID>'))"
+  ```
+  Set `ARIFOS_CLIP_AUTH_SECRET` (and optionally `ARIFOS_CLIP_REPO_ID`) before minting.
 
 Git hooks are provided (in `arifos_clip/hooks/`) to enforce the pipeline:
 - Commits are blocked if a hold exists (pre-commit) or if the session is not sealed (commit-msg).

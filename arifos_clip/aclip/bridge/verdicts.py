@@ -1,4 +1,5 @@
-# Verdict constants and mapping
+# Verdict constants and mapping (canonical CLIP <-> arifOS vocabulary)
+# PASS = non-terminal success (governance check succeeded; no sealing implied)
 
 # Possible verdict values from arifOS
 VERDICT_SEAL = "SEAL"

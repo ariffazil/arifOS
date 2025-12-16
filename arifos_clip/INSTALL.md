@@ -9,24 +9,37 @@
 ## Installation
 
 ### Step 1: Install Package
+
 ```bash
+# Bash
 cd /path/to/arifOS
 pip install -e .
+
+# PowerShell
+Set-Location /path/to/arifOS
+pip install -e ".[dev]"
 ```
 
 This installs arifOS + A CLIP and makes commands `000`, `111`, ..., `999` available globally.
 
 ### Step 2: Verify Installation
+
 ```bash
+# Bash
 000 --help
 999 --help
+
+# PowerShell (numeric commands must be invoked with &)
+& "000" --help
+& "999" --help
 ```
 
 You should see the argparse help for each command.
 
 ### Step 3: Enable Git Hooks (Optional but Recommended)
+
 ```bash
-# From arifOS root
+# From arifOS root (bash)
 cp arifos_clip/hooks/pre-commit .git/hooks/
 cp arifos_clip/hooks/commit-msg .git/hooks/
 cp arifos_clip/hooks/pre-push .git/hooks/
@@ -47,7 +60,10 @@ chmod +x .git/hooks/pre-push
 
 ```bash
 # 1. Initialize session
+# Bash:
 000 void "Add new metric calculator module"
+# PowerShell:
+& "000" void "Add new metric calculator module"
 
 # Session created at .arifos_clip/session.json
 # Exit code: 40 (VOID)
@@ -95,13 +111,19 @@ chmod +x .git/hooks/pre-push
 # Exit code: 20 (PARTIAL - forged but not sealed)
 
 # 9. Seal stage (dry-run first)
+# Bash:
 999 seal
+# PowerShell:
+& "999" seal
 
 # Checks if sealing is allowed (queries arifOS)
 # Exit code: 30 (SABAR - awaiting authority) or 88 (HOLD - law issue)
 
 # 10. Seal with authority (when ready)
+# Bash:
 999 seal --apply --authority-token YOUR_TOKEN
+# PowerShell:
+& "999" seal --apply --authority-token YOUR_TOKEN
 
 # If arifOS approves (SEAL verdict), session is finalized
 # Exit code: 100 (SEALED)
@@ -182,10 +204,17 @@ A CLIP uses specific exit codes for automation:
 
 Use these in scripts:
 ```bash
+# Bash
 000 void "Task"
 if [ $? -eq 40 ]; then
     echo "Session initialized"
 fi
+
+# PowerShell
+& "000" void "Task"
+if ($LASTEXITCODE -eq 40) {
+    Write-Host "Session initialized"
+}
 ```
 
 ---
@@ -197,16 +226,17 @@ A CLIP delegates law enforcement to arifOS via the bridge layer:
 ```python
 # arifos_clip/aclip/bridge/arifos_client.py
 def request_verdict(session):
-    # Calls arifOS law engine
-    verdict = arifos_core.evaluate_session(session.data)
-    return (verdict, None)
+    # Calls arifOS law engine (v42 path preferred), returns dict
+    # If arifOS unavailable or errors -> HOLD with reason
+    return {"verdict": "HOLD", "reason": "arifOS not available", "details": {}}
 ```
 
-To enable full governance:
+Sealing requires:
+1. arifOS law engine reachable (evaluate_session in arifos_core.bridge or legacy shim)
+2. arifOS returns SEAL
+3. Valid authority token (HMAC/expiry/repo-bound) when applying
 
-1. Implement `arifos_core.evaluate_session()` in arifOS core
-2. Connect to APEX_PRIME for floor evaluation
-3. Link to Memory Write Policy Engine for EUREKA compliance
+If arifOS is missing or returns non-SEAL, 999 seal will HOLD by design (safe-by-default).
 
 Until then, A CLIP will report "arifOS not available" and return HOLD (88) on seal attempts.
 
@@ -242,7 +272,10 @@ pip show -f arifos | grep "000"
 
 ```bash
 # If you want to start fresh, remove the session
+# Bash cleanup
 rm -rf .arifos_clip
+# PowerShell cleanup
+Remove-Item -Recurse -Force .\\.arifos_clip
 
 # Then start new session
 000 void "New task"
@@ -255,7 +288,10 @@ rm -rf .arifos_clip
 cat .arifos_clip/holds/hold.md
 
 # Resolve the issue, then remove hold files
+# Bash cleanup holds
 rm -rf .arifos_clip/holds
+# PowerShell cleanup holds
+Remove-Item -Recurse -Force .\\.arifos_clip\\holds
 
 # Now you can proceed
 ```

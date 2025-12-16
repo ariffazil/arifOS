@@ -2,14 +2,14 @@
 
 **Forged:** 2025-12-14  
 **Version:** v1.0 (MVP Complete)  
-**Status:** ✅ SEALED  
+**Status:** MVP FORGED (sealing delegates to arifOS; if law engine unavailable => HOLD)  
 **Repository:** arifOS @ `arifos_clip/`
 
 ---
 
 ## Summary
 
-A CLIP (arifOS CLI Pipeline) has been successfully forged within the arifOS repository. This is a complete implementation of the constitutional command-line pipeline for decision governance, featuring 10 numeric commands (000–999) that enforce structured multi-stage review aligned with APEX Theory.
+A CLIP (arifOS CLI Pipeline) has been forged within the arifOS repository. This is an MVP implementation of the constitutional command-line pipeline for decision governance, featuring 10 numeric commands (000-999) that enforce structured multi-stage review aligned with APEX Theory. Sealing authority is delegated to arifOS via the bridge; if the law engine is unavailable, 999 returns HOLD by design.
 
 ## What Was Forged
 
@@ -61,7 +61,7 @@ arifos_clip/
 | 666 | align | Check alignment with principles | 0 (PASS) |
 | 777 | forge | Compile decision package | 20 (PARTIAL) |
 | 888 | hold | Pause for review/issue | 88 (HOLD) |
-| 999 | seal | Finalize (requires authority) | 100 (SEALED) |
+| 999 | seal | Finalize (requires authority + arifOS SEAL) | 100 (SEALED) |
 
 ### 3. Console Scripts Integration
 
@@ -77,7 +77,7 @@ Added to `pyproject.toml`:
 ### 4. Core Invariants (Enforced)
 
 1. **No Silent Apply:** 999 seal requires `--apply` flag + authority token
-2. **Two-Tier Approval:** Human token + arifOS SEAL verdict required
+2. **Two-Tier Approval:** Human token + arifOS SEAL verdict required (via bridge; arifOS absence/errors => HOLD)
 3. **Hold Blocks Progress:** Unresolved holds prevent sealing and commits/pushes
 4. **Delegation to arifOS:** No law logic duplication; all verdicts from arifOS
 5. **Artifact Isolation:** All session data in `.arifos_clip/` directory
@@ -203,11 +203,11 @@ pytest arifos_clip/tests/ -v
 
 ## Constitutional Compliance
 
-✅ **F1 Amanah:** All operations reversible via git  
-✅ **F2 Truth:** Session provides full audit trail  
-✅ **F4 DeltaS:** Structured stages reduce confusion  
-✅ **F5 Peace²:** Non-destructive by default (requires --apply)  
-✅ **F7 Omega0:** System states its limitations (e.g., "arifOS not available")  
+ - **F1 Amanah:** All operations reversible via git  
+ - **F2 Truth:** Session provides full audit trail  
+ - **F4 DeltaS:** Structured stages reduce confusion  
+ - **F5 Peace2:** Non-destructive by default (requires --apply)  
+ - **F7 Omega0:** System states its limitations (e.g., "arifOS not available")  
 
 **Delegation to arifOS:** F3, F6, F8, F9 evaluated by arifOS law engine via bridge
 
@@ -260,7 +260,7 @@ pytest arifos_clip/tests/ -v
 
 ## Verdict
 
-**Status:** ✅ SEALED  
+**Status:** MVP FORGED (sealing delegated to arifOS; law engine missing/errors => HOLD)  
 **Forged By:** GitHub Copilot (Claude Sonnet 4.5)  
 **Governed By:** arifOS v38.2.0 Constitutional Framework  
 **Exit Code:** 100 (SEALED)
