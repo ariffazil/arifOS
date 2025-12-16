@@ -27,7 +27,7 @@ APEX PRIME is the constitutional judge. It:
 
 ## 2. Inputs (Stage 888)
 
-- Trinity packets from measurement canon (`04_measurement/02_measurement_v42.md`)
+- Trinity packets from measurement canon (`04_measurement/010_MEASUREMENT_CANON_v42.md`)
 - W@W organ reports (`02_actors/03_waw_federation_v42.md`)
 - Memory context (holds, scars) from memory canon (`05_memory/*`)
 - Spec dials (cooldown, retry, hold, weights) from `spec/v42/*.json`
@@ -43,7 +43,7 @@ PARTIAL if: floors marginal or 0.95 ≤ Ψ < 1.0 (Phoenix path)
 SABAR if: soft floor fail recoverable (cool/retry per spec)  
 HOLD-888 if: Tri-Witness < quorum (0.95)  
 
-Routing actions: see `04_measurement/03_control_logic_v42.md`.
+Routing actions: see `04_measurement/020_CONTROL_LOGIC_v42.md`.
 
 ---
 
@@ -64,3 +64,4 @@ APEX enforces F9: blocks inner-life claims, soul/feeling language, and weaponize
 ---
 
 **DITEMPA BUKAN DIBERI — Truth must cool before it rules.**
+

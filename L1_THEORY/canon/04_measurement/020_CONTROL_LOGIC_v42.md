@@ -3,7 +3,7 @@
 **Track:** A (Canon)  
 **Scope:** Deterministic verdict routing from Stage 888 → 999  
 **Spec sources:** `spec/v42/genius_law.json`, `spec/v42/pipeline.json`, `spec/v42/federation.json`  
-**Cross-links:** `04_measurement/02_measurement_v42.md`, `03_runtime/01_pipeline_v42.md`, `02_actors/04_apex_prime_v42.md`
+**Cross-links:** `04_measurement/010_MEASUREMENT_CANON_v42.md`, `03_runtime/010_PIPELINE_000TO999_v42.md`, `02_actors/04_apex_prime_v42.md`
 
 ---
 
@@ -62,3 +62,4 @@ Define the constitutional control logic that APEX PRIME applies at Stage 888 usi
 ---
 
 **DITEMPA BUKAN DIBERI — Truth must cool before it rules.**
+

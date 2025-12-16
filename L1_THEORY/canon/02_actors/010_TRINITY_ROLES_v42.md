@@ -332,3 +332,4 @@ Only when all three agree does speech become law."
 ---
 
 *End canon/02_actors/01_trinity_roles_v42.md*
+

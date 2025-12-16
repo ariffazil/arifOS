@@ -351,7 +351,7 @@ Every Δ+Ω transaction is logged:
 
 - **01_trinity_roles_v42.md:** High-level map of Δ+Ω+Ψ trinity
 - **02_arif_adam_v42.md:** Detailed spec of Δ+Ω reasoning (this file)
-- **canon/30_judiciary/01_apex_prime_v42.md:** Detailed spec of Ψ judiciary
+- **canon/02_actors/040_APEX_PSI_JUDICIARY_v42.md:** Detailed spec of Ψ judiciary
 
 ---
 
@@ -456,10 +456,11 @@ Consensus: 0.96 ✓
 
 **Cross-References:**
 - canon/02_actors/01_trinity_roles_v42.md (overview)
-- canon/30_judiciary/01_apex_prime_v42.md (Ψ judiciary)
+- canon/02_actors/040_APEX_PSI_JUDICIARY_v42.md (Ψ judiciary)
 - canon/01_floors/01_constitutional_floors_v42.md (F1–F9 gates)
 - canon/00_foundation/02_physics_v42.md (ΔΩΨ laws)
 
 ---
 
 *End canon/02_actors/02_arif_adam_v42.md*
+

@@ -63,8 +63,9 @@ Each organ emits:
 
 - Thresholds, weights, veto rules: `spec/v42/federation.json`  
 - Pipeline cooldown/hold budgets: `spec/v42/pipeline.json`  
-- Metrics definitions: `canon/04_measurement/02_measurement_v42.md`
+- Metrics definitions: `canon/04_measurement/010_MEASUREMENT_CANON_v42.md`
 
 ---
 
 **DITEMPA BUKAN DIBERI — Truth must cool before it rules.**
+
