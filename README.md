@@ -2,21 +2,21 @@
 
 **"Ditempa Bukan Diberi"** — Forged, Not Given. Truth must cool before it rules.
 
-[![Version](https://img.shields.io/badge/Version-v42.0.0--rc2-0052cc)](https://github.com/ariffazil/arifOS/releases/tag/v42.0.0-rc2) [![Tests](https://img.shields.io/badge/Tests-2156%20passed-success)](https://github.com/ariffazil/arifOS/actions) [![Safety](https://img.shields.io/badge/Safety-97%25%20pass-brightgreen)](../../../../Downloads/docs/CASE_STUDY_v38_GEMINI_KILLSHOT.md) [![License](https://img.shields.io/badge/License-AGPL3-orange)](../../../../Downloads/LICENSE) [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://python.org)
+[![Version](https://img.shields.io/badge/Version-v42.0.0--rc2-0052cc)](https://github.com/ariffazil/arifOS/releases/tag/v42.0.0-rc2) [![Tests](https://img.shields.io/badge/Tests-2156%20passed-success)](https://github.com/ariffazil/arifOS/actions) [![Safety](https://img.shields.io/badge/Safety-97%25%20pass-brightgreen)](docs/CASE_STUDY_v38_GEMINI_KILLSHOT.md) [![License](https://img.shields.io/badge/License-AGPL3-orange)](LICENSE) [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://python.org)
 
 ---
 
 ## Quick Navigation
 
-- [The Problem](../../../../Downloads/arifOS_README_v43.md#the-problem-ungoverned-ai-is-dangerous) — Why we need this
-- [The Solution](../../../../Downloads/arifOS_README_v43.md#the-solution-constitutional-governance) — How it works
-- [Proof](../../../../Downloads/arifOS_README_v43.md#proof-it-works---the-kill-shot) — Gemini malware test
-- [What Is arifOS](../../../../Downloads/arifOS_README_v43.md#what-is-arifos) — Clear explanation
-- [Quick Start](../../../../Downloads/arifOS_README_v43.md#quick-start-3-paths) — Get started in 2-10 minutes
-- [The 9 Floors](../../../../Downloads/arifOS_README_v43.md#the-9-constitutional-floors-explained) — Each rule explained
-- [Layer 2 Prompt](../../../../Downloads/arifOS_README_v43.md#layer-2-universal-system-prompt---copy-paste-ready) — Copy-paste governance
-- [7 Layers](../../../../Downloads/arifOS_README_v43.md#the-7-layer-architecture) — How it's built
-- [Installation](../../../../Downloads/arifOS_README_v43.md#installation--setup) — Setup guide
+- [The Problem](#the-problem-ungoverned-ai-is-dangerous) — Why we need this
+- [The Solution](#the-solution-constitutional-governance) — How it works
+- [Proof](#proof-it-works---the-kill-shot) — Gemini malware test
+- [What Is arifOS](#what-is-arifos) — Clear explanation
+- [Quick Start](#quick-start-3-paths) — Get started in 2-10 minutes
+- [The 9 Floors](#the-9-constitutional-floors-explained) — Each rule explained
+- [Layer 2 Prompt](#layer-2-universal-system-prompt---copy-paste-ready) — Copy-paste governance
+- [7 Layers](#the-7-layer-architecture) — How it's built
+- [Installation](#installation--setup) — Setup guide
 
 ---
 
@@ -137,7 +137,7 @@ Like a **judge for AI**:
 **Steps:**
 
 1. Open your AI's settings (ChatGPT Custom Instructions, etc.)
-2. Copy [`L2_GOVERNANCE/universal/system_prompt_v42.yaml`](../../../../Downloads/L2_GOVERNANCE/universal/system_prompt_v42.yaml)
+2. Copy [`L2_GOVERNANCE/universal/system_prompt_v42.yaml`](L2_GOVERNANCE/universal/system_prompt_v42.yaml)
 3. Paste into "System Instructions" field
 4. Save
 5. Test:
@@ -791,4 +791,4 @@ arifOS is built on constitutional principles native to Malaysia and ASEAN:
 
 *v42.0.0-rc2 | 2156 tests ✓ | 100% pass rate | Constitutional governance | Python-sovereign | AGPL-3.0*
 
-**[⬆ Back to Top](../../../../Downloads/arifOS_README_v43.md#arifos--constitutional-operating-system-for-ai)**
+**[⬆ Back to Top](#arifos--constitutional-operating-system-for-ai)**
