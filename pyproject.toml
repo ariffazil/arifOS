@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "41.0.1"
-description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW Judiciary, Memory Write Policy Engine (EUREKA), 6 Memory Bands, Body API (v39), MCP Integration (v40), FAG File Access Governance (v41), zkPC + Phoenix-72"
+version = "42.0.0rc2"
+description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW, EUREKA Memory, Concern-Based Architecture (v42)"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "AGPL-3.0"}
@@ -40,7 +40,7 @@ maintainers = [
     {name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com"}
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: GNU Affero General Public License v3",
@@ -119,6 +119,12 @@ Changelog = "https://github.com/ariffazil/arifOS/blob/main/CHANGELOG.md"
 [tool.setuptools]
 packages = [
     "arifos_core",
+    # v42 concern-based directories
+    "arifos_core.system",
+    "arifos_core.enforcement",
+    "arifos_core.governance",
+    "arifos_core.utils",
+    # Legacy directories (still functional)
     "arifos_core.memory",
     "arifos_core.adapters",
     "arifos_core.engines",

@@ -1,6 +1,6 @@
 # arifOS API Stability Reference
 
-**Version:** v42.0.0 | **Status:** CANONICAL | **Last Updated:** 2025-12-15
+**Version:** v42.0.0-rc2 | **Status:** CANONICAL | **Last Updated:** 2025-12-16
 **Package:** `pip install arifos`
 
 ---
@@ -398,7 +398,7 @@ from arifos_core.pipeline import Pipeline
 
 | Version | Status | Notes |
 |---------|--------|-------|
-| v42.0.0 | CURRENT | Concern-based architecture |
+| v42.0.0-rc2 | CURRENT | Concern-based architecture, ApexVerdict/Verdict Enum |
 | v41.x | STABLE | SEA-LION integration |
 | v38Ω | STABLE (LTS) | Memory as Law (EUREKA) |
 | v43.0 | FUTURE | Remove backward compat shims |

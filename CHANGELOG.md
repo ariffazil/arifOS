@@ -25,9 +25,70 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ---
 
+## [v42.0.0-rc2] - 2025-12-16 - API Normalization
+
+**Status:** RELEASE CANDIDATE | Tests: 2156 | Safety: 100% | Architecture: CONCERN-BASED
+
+### API Normalization (Serialization Boundary Law)
+
+rc2 formalizes the v42 public API with proper typing and serialization discipline:
+
+> **"Objects don't enter ledger. Only JSON-safe primitives cross audit boundary."**
+
+### New Public API
+
+| Function | Returns | Purpose |
+|----------|---------|---------|
+| `apex_review()` | `ApexVerdict` | Structured verdict (verdict, pulse, reason, floors) |
+| `apex_verdict()` | `str` | Convenience shim ("SEAL", "SABAR", "VOID") |
+
+### Verdict Enum
+
+`Verdict` is now a proper Enum with members:
+- **Primary:** `SEAL`, `SABAR`, `VOID`
+- **Internal:** `PARTIAL`, `HOLD_888`, `SUNSET`
+
+### Added
+
+- `ApexVerdict` dataclass with typed fields (verdict, floors, genius, reason, timestamp, hash)
+- `Verdict` Enum for type-safe verdict handling
+- `apex_review()` as primary judiciary entry point
+- `apex_verdict()` convenience wrapper returning `str`
+- API registry at `arifos_core/system/api_registry.py`
+- API contract tests at `tests/test_api_contract.py`
+- SEA-LION backward compatibility shim at `integrations/sealion/`
+- v37 runtime manifest at `v36.3O/spec/arifos_runtime_manifest_v37.json`
+
+### Changed
+
+- Test count increased to 2156 (from 2109)
+- All verdict serialization normalized through `.value` accessor
+- Ledger entries now receive `str` verdicts, not `Verdict` objects
+
+### Fixed
+
+- Fixed serialization boundary violations (Verdict objects crossing audit boundary)
+- Fixed SEA-LION import errors in legacy test suites
+- Fixed missing spec files for canon drift guard tests
+- Fixed test path for CONSTITUTIONAL_SEAL (moved to archive/)
+
+### API Contract
+
+```python
+# v42 API (recommended)
+from arifos_core import apex_review, Verdict
+
+result = apex_review(metrics)
+print(result.verdict)         # Verdict.SEAL
+print(result.verdict.value)   # "SEAL"
+print(result.reason)          # Human-readable explanation
+```
+
+---
+
 ## [v42.0.0] - 2025-12-15 - The Great Crossing
 
-**Status:** PRODUCTION | Tests: 2109 | Safety: 100% | Architecture: CONCERN-BASED
+**Status:** SUPERSEDED BY rc2 | Tests: 2109 | Safety: 100% | Architecture: CONCERN-BASED
 
 ### The Great Crossing
 
@@ -646,9 +707,10 @@ The foundational version where the 8 Constitutional Floors, AAA Trinity, and Δ�
 | v37.1 | PyPI | AGPL-3.0 license, PyPI release | ✅ LIVE |
 | v38.0 | Memory | Memory Write Policy Engine (EUREKA), 6 bands | ✅ LIVE |
 | v38.2 | Hardening | Time as Governor, SUNSET, Phoenix-72 scheduler | ✅ LIVE |
-| v39.0 | Q1 2026 | FastAPI Grid, Multi-model orchestration | PLANNED |
-| v40.0 | Q2 2026 | MCP Server, IDE integration, zkPC L3 | PLANNED |
-| v41.0 | Q3 2026 | Multimodal (vision + audio governance) | PLANNED |
+| v42.0 | Architecture | Concern-based arifos_core, 7-layer structure | ✅ RC2 |
+| v42.1 | Q1 2026 | Deprecation warnings on old import paths | PLANNED |
+| v43.0 | Q2 2026 | Remove backward compat shims, FastAPI Grid | PLANNED |
+| v44.0 | Q3 2026 | MCP Server, IDE integration | PLANNED |
 
 ---
 
