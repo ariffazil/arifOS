@@ -1128,6 +1128,21 @@ External documentation, blog posts, and papers may still use old terminology. Th
 
 ---
 
+## Appendix D: Dewey-Style Numbering for Canon (v42)
+
+- Pattern: `{LAYER}{SPARSE}_{SCREAMING_SNAKE_CASE}_v{MAJOR}.md`
+- Use sparse three-digit numbers inside a layer (010, 020, 030…) to allow inserts without churn.
+- Examples:
+  - `01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md`
+  - `02_actors/040_APEX_PSI_JUDICIARY_v42.md`
+  - `03_runtime/010_PIPELINE_000TO999_v42.md`
+  - `04_measurement/010_MEASUREMENT_CANON_v42.md`, `020_CONTROL_LOGIC_v42.md`
+- Canon: SCREAMING_SNAKE_CASE + version in filename (not folder).  
+  Spec: lowercase snake_case JSON in `spec/v42/*.json`.  
+  Code: snake_case modules, PascalCase classes; APEX PRIME judiciary under actors (`02_actors/`).
+
+---
+
 **END OF DOCUMENT**
 
 *This naming convention is binding for all arifOS development. Deviations require explicit approval via GitHub issue + human ratification.*
