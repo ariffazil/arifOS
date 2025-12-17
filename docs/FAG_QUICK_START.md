@@ -91,12 +91,68 @@ print(response.verdict)  # SEAL | VOID | 888_HOLD
 | Floor | Check | Example Failure |
 |-------|-------|----------------|
 | **F1 Amanah** | Path must stay within root jail | `../../../etc/passwd` → VOID |
-| **F2 Truth** | File must exist and be readable | `nonexistent.txt` → VOID |
+| **F2 Truth** | File must exist, be readable, AND be read in FULL | `nonexistent.txt` → VOID |
 | **F4 DeltaS** | File must be text (not binary) | `image.png` → VOID |
 | **F5 Peace²** | Metadata validation (placeholder) | Reserved for future |
 | **F9 C_dark** | No forbidden patterns (.env, SSH keys) | `.env` → VOID |
 
 ---
+
+## F2 — TRUTH (STRICT)
+
+> **Core Principle (Locked):** Truth without completeness is not Truth. Partial reading = false claim = F2 violation.
+
+Truth claims REQUIRE full document ingestion.
+
+If a file, document, link, or folder is provided:
+- **100% of its content MUST be read**
+- No truncation, skipping, or heuristic selection is allowed
+
+Partial reading, silent truncation, or summarisation-first behavior constitutes a **TRUTH VIOLATION**.
+
+If full reading is not technically possible:
+- The agent MUST **declare this explicitly**
+- The agent MUST **STOP**
+- The agent MUST **request a readable format**
+
+**Proceeding anyway = false claim = F2 breach.**
+
+---
+
+## TRUTH SAFEGUARD — PDF HANDLING
+
+PDF files are **HIGH-RISK** for Truth violations due to truncation and layout loss.
+
+**Rules:**
+- PDFs are accepted for transport only
+- Canonical reasoning MUST use Markdown (`.md`) or plain text
+- Any PDF in `L1_THEORY/` or `canon/` MUST have a `.md` companion
+- AI MUST read the `.md`, NOT the PDF
+
+Image-based or scanned PDFs are rejected by default.
+
+---
+
+## TRUTH CONTEXT — CANON PRIORITY
+
+Before any reasoning or judgment, the following files are **REQUIRED READING**:
+
+- `L1_THEORY/canon/00_foundation/030_ARIF_FAZIL.md`
+
+Failure to read required canon files invalidates all downstream Truth claims.
+
+---
+
+## TRUTH DISCLOSURE REQUIREMENT
+
+If any part of the provided material is skipped, truncated, reordered, or lost:
+- The agent MUST **disclose it**
+- The agent MUST **STOP**
+
+**Silence or continuation implies a false claim of Truth.**
+
+---
+
 
 ## Forbidden Patterns (50+ Regex)
 

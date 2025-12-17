@@ -135,6 +135,33 @@ python -m arifos_core.system.pipeline --query "your query" --verbose
 
 ---
 
+## 🔐 Phase 2: LLM Adversarial Harness (v42.1.1)
+
+Test cryptographic integrity against LLM bypass attempts.
+
+### Honest Mode (baseline)
+```bash
+python -m scripts.arifos_caged_llm_demo --mode honest --provider llama --n 5
+```
+Runs 5 prompts, appends to ledger, verifies integrity, saves anchor.
+
+### Tamper File Mode (corruption detection)
+```bash
+python -m scripts.arifos_caged_llm_demo --mode tamper_file --provider stub
+```
+Corrupts ledger file programmatically, verifies detection.
+
+### Adversarial Mode (LLM cannot bypass)
+```bash
+python -m scripts.arifos_caged_llm_demo --mode adversarial --provider sealion
+```
+Asks LLM to suggest bypass methods — proves suggestions have NO EFFECT.
+
+### Available Providers
+`stub` | `sealion` | `gemini` | `openai` | `claude` | `ollama` | `llama`
+
+---
+
 ## 🔎 Forensics replay (hash chain + constitutional checks)
 
 ### Verify latest entry

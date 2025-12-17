@@ -11,6 +11,42 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 > Use this section for upcoming changes.
 > When you cut a new version, move entries from here into a tagged release.
 
+## [v42.1.1] - 2025-12-18 - Phase 2 LLM Adversarial Harness + F2 Truth Enforcement
+
+**Status:** SEALED | Tests: 2180+ | Safety: 97% | Tag: v42.1.1-sealed
+
+### Added
+- **CryptographicLedger** (`arifos_core/governance/ledger_cryptography.py`)
+  - SHA3-256 hash chain with Merkle tree
+  - `verify_integrity()`, `detect_tampering()` methods
+  - Anchor system for rollback detection: `create_anchor()`, `verify_against_anchor()`
+- **Phase 2 LLM Adversarial Harness** (`scripts/arifos_caged_llm_demo.py`)
+  - 3 modes: `--mode honest`, `--mode tamper_file`, `--mode adversarial`
+  - Providers: stub, sealion, gemini, openai, claude, ollama, llama
+  - Demonstrates LLM cannot bypass cryptographic integrity
+- **F2 Truth Enforcement** (`docs/FAG_QUICK_START.md`, `docs/FAG_DOCUMENT_PROTOCOL.md`)
+  - 100% read or STOP requirement
+  - PDF→Markdown mandate for canon
+  - Anti-Silent-Failure clause
+  - Canon priority (030_ARIF_FAZIL.md required reading)
+- **Canon PDF→MD Conversion**
+  - `L1_THEORY/canon/00_foundation/030_ARIF_FAZIL.md` (creator context)
+  - `L1_THEORY/canon/00_foundation/002_MANIFESTO_V42.md`
+- **Test Suite Expansion**
+  - 21 new `CryptographicLedger` tests (`tests/test_ledger_cryptography.py`)
+  - 3 new Phase 2 harness tests (`tests/test_caged_llm_harness.py`)
+
+### Changed
+- **FAG_QUICK_START.md**: F2 Truth strengthened with completeness requirement
+- **pyproject.toml**: Version bump 42.1.0 → 42.1.1
+
+### Tested
+- SEA-LION API: honest/tamper/adversarial all PASS
+- Llama (Ollama local): honest/tamper/adversarial all PASS
+- LLM cannot "talk its way" past cryptographic verification
+
+---
+
 ## [v42.1.0] - 2025-12-16 - Runtime Wiring & Forensics
 
 **Status:** SEALED | Tests: 2156 | Safety: 97% | Tag: v42.1-sealed

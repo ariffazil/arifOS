@@ -372,3 +372,117 @@ class TestCagedLLMSystemPrompt:
             system_prompt="You are a helpful assistant.",
         )
         assert isinstance(result, CagedResult)
+
+
+# =============================================================================
+# PHASE 2: CRYPTOGRAPHIC LEDGER INTEGRITY TESTS
+# =============================================================================
+
+
+class TestPhase2LedgerIntegrity:
+    """
+    Phase 2 tests for cryptographic ledger integrity (Task 1.1).
+    
+    Tests that:
+    1. Honest runs create valid ledgers that pass verification
+    2. Tampered files are detected
+    3. Adversarial prompts cannot bypass integrity checks
+    """
+
+    def test_honest_run_writes_ledger_and_verifies_pass(self, tmp_path):
+        """
+        Mode A: Honest run creates a ledger that passes verify_integrity().
+        """
+        from scripts.arifos_caged_llm_demo import run_honest_mode
+        
+        ledger_path = tmp_path / "test_ledger.jsonl"
+        
+        success = run_honest_mode(
+            n=3,
+            call_model=fake_call_model_safe,
+            ledger_path=ledger_path,
+        )
+        
+        assert success is True
+        assert ledger_path.exists()
+        
+        # Reload and verify
+        from arifos_core.governance.ledger_cryptography import CryptographicLedger
+        ledger = CryptographicLedger.load_from_file(ledger_path)
+        assert len(ledger) == 3
+        
+        report = ledger.verify_integrity()
+        assert report.valid is True
+    
+    def test_tamper_file_fails_verify_and_detects(self, tmp_path):
+        """
+        Mode B: Corrupted ledger fails verify_integrity() and detect_tampering() finds it.
+        """
+        from scripts.arifos_caged_llm_demo import run_honest_mode, run_tamper_file_mode
+        
+        ledger_path = tmp_path / "test_ledger.jsonl"
+        
+        # First create a valid ledger
+        run_honest_mode(
+            n=3,
+            call_model=fake_call_model_safe,
+            ledger_path=ledger_path,
+        )
+        
+        # Now run tamper mode (should detect corruption)
+        detected = run_tamper_file_mode(
+            ledger_path=ledger_path,
+            tamper_byte=50,  # Deterministic byte offset
+        )
+        
+        # run_tamper_file_mode returns True if tampering was detected
+        assert detected is True
+    
+    def test_adversarial_prompt_cannot_force_pass_without_rebuild(self, tmp_path):
+        """
+        Mode C: Model suggestions cannot bypass ledger integrity.
+        
+        The key insight is that the model can suggest edits, but:
+        1. It cannot actually modify the ledger file
+        2. Any actual modification breaks integrity
+        3. The only way to "pass" is to rebuild from genesis
+        """
+        from arifos_core.governance.ledger_cryptography import CryptographicLedger
+        
+        ledger_path = tmp_path / "test_ledger.jsonl"
+        
+        # Create valid ledger
+        ledger = CryptographicLedger()
+        for i in range(3):
+            ledger.append_decision(
+                {"verdict": "SEAL", "job_id": f"test-{i}"},
+                timestamp=f"2025-12-18T00:0{i}:00.000Z",
+            )
+        ledger.save_to_file(ledger_path)
+        
+        # Save original head hash (external anchor)
+        original_head = ledger.entries[-1].hash
+        original_merkle = ledger.get_merkle_root()
+        
+        # Simulate model suggesting an edit (modify entry 0 verdict)
+        ledger.entries[0].payload["verdict"] = "VOID"
+        
+        # Verify should FAIL
+        report = ledger.verify_integrity()
+        assert report.valid is False
+        
+        tamper = ledger.detect_tampering()
+        assert tamper.tampered is True
+        
+        # Even if attacker recomputes hashes from entry 0...
+        for i in range(len(ledger.entries)):
+            entry = ledger.entries[i]
+            if i > 0:
+                entry.prev_hash = ledger.entries[i - 1].hash
+            entry.compute_hash()
+        
+        # Internal chain may be consistent, but external anchor catches it
+        report = ledger.verify_integrity(expected_last_hash=original_head)
+        assert report.valid is False
+        assert any("does not match expected reference" in err for err in report.errors)
+

@@ -288,9 +288,11 @@ class CryptographicLedger:
                 expected_prev = prev_entry.hash
                 if entry.prev_hash != expected_prev:
                     report.valid = False
+                    expected_display = expected_prev[:16] + "..." if expected_prev else "None"
+                    got_display = entry.prev_hash[:16] + "..." if entry.prev_hash else "None"
                     report.errors.append(
                         f"Entry {i} prev_hash mismatch "
-                        f"(expected {expected_prev[:16]}..., got {entry.prev_hash[:16]}...)"
+                        f"(expected {expected_display}, got {got_display})"
                     )
             
             # Recompute this entry's hash and compare
@@ -309,9 +311,10 @@ class CryptographicLedger:
             
             if entry.hash != recalculated_hash:
                 report.valid = False
+                stored_display = entry.hash[:16] + "..." if entry.hash else "None"
                 report.errors.append(
                     f"Entry {i} content hash mismatch "
-                    f"(stored {entry.hash[:16]}..., computed {recalculated_hash[:16]}...)"
+                    f"(stored {stored_display}, computed {recalculated_hash[:16]}...)"
                 )
             
             report.checked_entries += 1
@@ -495,3 +498,105 @@ class CryptographicLedger:
     
     def __getitem__(self, index: int) -> LedgerEntry:
         return self.entries[index]
+    
+    # =========================================================================
+    # ANCHOR SYSTEM: External rollback detection
+    # =========================================================================
+    
+    def create_anchor(self) -> Dict[str, Any]:
+        """
+        Create an external anchor for rollback detection.
+        
+        The anchor should be stored separately (e.g., anchors.json) and used
+        to verify the ledger hasn't been truncated or rolled back.
+        
+        Returns:
+            Dict with entry_count, head_hash, merkle_root, timestamp
+        """
+        if not self.entries:
+            return {
+                "entry_count": 0,
+                "head_hash": None,
+                "merkle_root": None,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        
+        return {
+            "entry_count": len(self.entries),
+            "head_hash": self.entries[-1].hash,
+            "merkle_root": self.get_merkle_root(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    
+    def verify_against_anchor(self, anchor: Dict[str, Any]) -> VerificationReport:
+        """
+        Verify ledger against an external anchor to detect rollback attacks.
+        
+        A rollback attack removes entries from the tail of the ledger.
+        The internal chain may look consistent, but:
+        - entry_count will be lower
+        - head_hash will be different
+        - merkle_root will be different
+        
+        Args:
+            anchor: Previously stored anchor dict from create_anchor()
+        
+        Returns:
+            VerificationReport with rollback-specific errors if detected
+        """
+        errors = []
+        
+        anchor_count = anchor.get("entry_count", 0)
+        anchor_head = anchor.get("head_hash")
+        anchor_merkle = anchor.get("merkle_root")
+        anchor_time = anchor.get("timestamp", "unknown")
+        
+        current_count = len(self.entries)
+        current_head = self.entries[-1].hash if self.entries else None
+        current_merkle = self.get_merkle_root()
+        
+        # Check 1: Entry count (detects pure truncation)
+        if current_count < anchor_count:
+            errors.append(
+                f"ROLLBACK DETECTED: Current entry count ({current_count}) is less than "
+                f"anchor count ({anchor_count}) from {anchor_time}"
+            )
+        
+        # Check 2: Head hash (detects any modification to last entry or truncation)
+        if anchor_head and current_head != anchor_head:
+            if current_count == anchor_count:
+                errors.append(
+                    f"HEAD HASH MISMATCH: Expected {anchor_head[:16]}..., "
+                    f"got {current_head[:16] if current_head else 'None'}..."
+                )
+            # If count is already different, the head hash difference is expected
+        
+        # Check 3: Merkle root (detects any content change)
+        if anchor_merkle and current_merkle != anchor_merkle:
+            errors.append(
+                f"MERKLE ROOT MISMATCH: Expected {anchor_merkle[:16]}..., "
+                f"got {current_merkle[:16] if current_merkle else 'None'}..."
+            )
+        
+        return VerificationReport(
+            valid=len(errors) == 0,
+            errors=errors,
+            entry_count=current_count,
+            last_hash=current_head,
+            merkle_root=current_merkle,
+        )
+    
+    @staticmethod
+    def save_anchor(anchor: Dict[str, Any], path: Union[Path, str]) -> None:
+        """Save anchor to JSON file."""
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8") as f:
+            json.dump(anchor, f, indent=2)
+    
+    @staticmethod
+    def load_anchor(path: Union[Path, str]) -> Dict[str, Any]:
+        """Load anchor from JSON file."""
+        path = Path(path)
+        with path.open("r", encoding="utf-8") as f:
+            return json.load(f)

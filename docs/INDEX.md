@@ -113,6 +113,8 @@
 - `COPILOT_INTEGRATION.md` — *LIVE* · Copilot integration guide
 - `OLLAMA_INTEGRATION_v37.md` — *LIVE* · Ollama integration (v37)
 - `DREAM_FORGE_LAB_MODE.md` — *LIVE* · Dream Forge (Lab Mode)
+- `FAG_QUICK_START.md` — *LIVE* · FAG (File Access Governance) Quick Start
+- `FAG_DOCUMENT_PROTOCOL.md` — *LIVE* · **F2 Truth Enforcement Protocol** (v42.1.1)
 
 ---
 
