@@ -32,7 +32,7 @@ from arifos_core.metrics import Metrics
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 V38_SPEC_PATH = REPO_ROOT / "spec" / "genius_law_v38Omega.json"
-V38_CANON_PATH = REPO_ROOT / "canon" / "02_GENIUS_LAW_v38Omega.md"
+V38_CANON_PATH = REPO_ROOT / "archive" / "v38_0_0" / "canon" / "_GENIUS_LAW_v38Omega.md"
 
 
 # =============================================================================

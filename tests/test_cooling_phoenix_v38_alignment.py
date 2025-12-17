@@ -38,7 +38,7 @@ from arifos_core.memory.scar_manager import (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 V38_SPEC_PATH = REPO_ROOT / "spec" / "cooling_ledger_phoenix_v38Omega.json"
-V38_CANON_PATH = REPO_ROOT / "canon" / "05_COOLING_LEDGER_PHOENIX_v38Omega.md"
+V38_CANON_PATH = REPO_ROOT / "archive" / "v38_0_0" / "canon" / "_COOLING_LEDGER_PHOENIX_v38Omega.md"
 
 
 # =============================================================================

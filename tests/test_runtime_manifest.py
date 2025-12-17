@@ -47,6 +47,32 @@ from arifos_core.metrics import (
     PSI_THRESHOLD,
 )
 
+LEGACY_CANON_PATH_MAP = {
+    "canon/000_ARIFOS_CANON_v35Omega.md": "archive/v35_0_0/canon/0_ARIFOS_CANON_v35Omega.md",
+    "canon/001_APEX_META_CONSTITUTION_v35Omega.md": "archive/v35_0_0/canon/1_APEX_META_CONSTITUTION_v35Omega.md",
+    "canon/002_APEX_TRINITY_v35Omega.md": "archive/v35_0_0/canon/2_APEX_TRINITY_v35Omega.md",
+    "canon/010_DeltaOmegaPsi_UNIFIED_FIELD_v35Omega.md": "archive/v35_0_0/canon/0_DeltaOmegaPsi_UNIFIED_FIELD_v35Omega.md",
+    "canon/020_ANTI_HANTU_v35Omega.md": "archive/v35_0_0/canon/0_ANTI_HANTU_v35Omega.md",
+    "canon/021_ANTI_HANTU_SUPPLEMENT_v35Omega.md": "archive/v35_0_0/canon/1_ANTI_HANTU_SUPPLEMENT_v35Omega.md",
+    "canon/030_EYE_SENTINEL_v35Omega.md": "archive/v35_0_0/canon/0_EYE_SENTINEL_v35Omega.md",
+    "canon/100_AAA_ENGINES_SPEC_v35Omega.md": "archive/v35_0_0/canon/0_AAA_ENGINES_SPEC_v35Omega.md",
+    "canon/880_000-999_METABOLIC_CANON_v35Omega.md": "archive/v35_0_0/canon/0_000-999_METABOLIC_CANON_v35Omega.md",
+    "canon/888_APEX_PRIME_CANON_v35Omega.md": "archive/v35_0_0/canon/8_APEX_PRIME_CANON_v35Omega.md",
+    "canon/99__README_Vault999_v35Omega.md": "archive/v35_0_0/canon/__README_Vault999_v35Omega.md",
+    "canon/99_Vault999_Seal_v35Omega.json": "archive/v35_0_0/canon/_Vault999_Seal_v35Omega.json",
+}
+
+
+def resolve_legacy_canon_path(repo_root: Path, canon_path: str) -> Path:
+    """Resolve v35 canon paths to archive locations when migrated."""
+    full_path = repo_root / canon_path
+    if full_path.exists():
+        return full_path
+    mapped = LEGACY_CANON_PATH_MAP.get(canon_path)
+    if mapped:
+        return repo_root / mapped
+    return full_path
+
 
 # =============================================================================
 # V35 LEGACY MANIFEST TESTS
@@ -511,7 +537,7 @@ class TestLedgerModulesV35:
     def test_vault999_seal_json_path_valid(self, manifest):
         """Vault999 seal JSON path should exist."""
         seal_path = manifest["ledger"]["vault999"]["seal_json"]
-        full_path = Path(__file__).parent.parent / seal_path
+        full_path = resolve_legacy_canon_path(Path(__file__).parent.parent, seal_path)
         assert full_path.exists(), f"Vault999 seal not found: {full_path}"
 
     def test_phoenix72_module_importable(self, manifest):
@@ -538,7 +564,7 @@ class TestCanonFileReferencesV35:
         canon_files = manifest["canon_files"]["runtime_law"]
         root = Path(__file__).parent.parent
         for file_path in canon_files:
-            full_path = root / file_path
+            full_path = resolve_legacy_canon_path(root, file_path)
             assert full_path.exists(), f"Canon file not found: {file_path}"
 
     def test_constitutional_floors_json_exists(self, manifest):

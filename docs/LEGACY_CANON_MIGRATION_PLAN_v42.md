@@ -1,7 +1,7 @@
 # Legacy Canon Migration Plan v42
 
 Date: 2025-12-17 23:19
-Authority: NAMING_CONVENTION_v42_FINAL.md; L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md; docs/SESSION_ANCHOR_v42_1.md
+Authority: docs/NAMING_CONVENTION_v42.md; L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md; docs/SESSION_ANCHOR_v42_1.md
 
 ## 1) Summary Counts
 

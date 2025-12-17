@@ -1,7 +1,7 @@
 # Canon QA Report v42
 
 Date: 2025-12-17 23:53
-Authority: NAMING_CONVENTION_v42_FINAL.md; L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md
+Authority: docs/NAMING_CONVENTION_v42.md; L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md
 
 ## 1) Summary
 

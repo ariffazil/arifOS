@@ -30,9 +30,9 @@ from arifos_core.waw.base import OrganVote
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 V38_SPEC_PATH = REPO_ROOT / "spec" / "waw_prompt_floors_v38Omega.json"
-V38_CANON_PATH = REPO_ROOT / "canon" / "04_WAW_PROMPT_FLOORS_v38Omega.md"
-HANTU_MAP_PATH = REPO_ROOT / "canon" / "050_HANTU_SEMANTIC_MAP_v36.2Omega.json"
-V36_CANON_PATH = REPO_ROOT / "canon" / "30_WAW_PROMPT_v36.3Omega.md"
+V38_CANON_PATH = REPO_ROOT / "archive" / "v38_0_0" / "canon" / "_WAW_PROMPT_FLOORS_v38Omega.md"
+HANTU_MAP_PATH = REPO_ROOT / "archive" / "v36_2_0" / "canon" / "0_HANTU_SEMANTIC_MAP_v36.2Omega.json"
+V36_CANON_PATH = REPO_ROOT / "archive" / "v36_3_0" / "canon" / "_WAW_PROMPT_v36.3Omega.md"
 
 
 # =============================================================================

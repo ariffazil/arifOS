@@ -40,7 +40,7 @@ from arifos_core.memory.policy import VERDICT_BAND_ROUTING
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-V38_CANON_PATH = REPO_ROOT / "canon" / "03_PIPELINE_v38Omega.md"
+V38_CANON_PATH = REPO_ROOT / "archive" / "v38_0_0" / "canon" / "_PIPELINE_v38Omega.md"
 V38_SPEC_PATH = REPO_ROOT / "spec" / "pipeline_v38Omega.yaml"
 
 

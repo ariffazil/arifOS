@@ -43,7 +43,7 @@ def repo_root() -> Path:
 @pytest.fixture
 def vault999_schema(repo_root) -> dict:
     """Load Vault-999 seal schema."""
-    path = repo_root / "canon" / "99_Vault999_Seal_v35Omega.json"
+    path = repo_root / "archive" / "v35_0_0" / "canon" / "_Vault999_Seal_v35Omega.json"
     assert path.exists(), f"Vault-999 schema not found at {path}"
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
