@@ -57,7 +57,7 @@ class TestEngineImports:
 # =============================================================================
 
 class TestAGIEngine:
-    """Tests for ARIF AGI (Delta) engine."""
+    """Tests for AGI (Architect) (Delta) engine."""
 
     def test_sense_basic(self):
         """ARIF.sense() parses input and returns AGIPacket."""
@@ -151,7 +151,7 @@ class TestAGIEngine:
 # =============================================================================
 
 class TestASIEngine:
-    """Tests for ADAM ASI (Omega) engine."""
+    """Tests for ASI (Auditor) (Omega) engine."""
 
     def test_empathize_basic(self):
         """ADAM.empathize() processes ARIF packet."""

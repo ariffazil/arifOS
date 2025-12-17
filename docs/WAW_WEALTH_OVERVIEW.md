@@ -173,7 +173,7 @@ When @WEALTH issues a VETO, it's non-negotiable and results in immediate VOID.
 
 @WEALTH feeds its signals into APEX PRIME at stage 888 JUDGE. The `is_absolute_veto` flag ensures @WEALTH vetoes cannot be overridden.
 
-### AAA Trinity
+### AGI·ASI·APEX Trinity
 
 - **ARIF**: Provides scope/resource constraints
 - **ADAM**: Collaborates on dignity/maruah assessment

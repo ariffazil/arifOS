@@ -202,7 +202,7 @@ When @WELL issues a VETO, it results in SABAR (pause-and-cool protocol).
 
 @WELL feeds its signals into APEX PRIME at stage 888 JUDGE. Peace² and κᵣ failures trigger SABAR verdicts.
 
-### AAA Trinity
+### AGI·ASI·APEX Trinity
 
 - **ARIF**: Receives clarity signals for non-confusing communication
 - **ADAM**: @WELL is W@W counterpart of ADAM's Ω-warmth; shares Peace² and κᵣ

@@ -186,7 +186,7 @@ When @GEOX issues a VETO, it results in HOLD-888 (runtime) or VOID (spec).
 
 @GEOX feeds its signals into APEX PRIME at stage 888 JUDGE. Physics violations trigger reality check holds.
 
-### AAA Trinity
+### AGI·ASI·APEX Trinity
 
 - **ARIF**: Receives physics-grounded clarity signals
 - **ADAM**: Grounds empathy in physical reality

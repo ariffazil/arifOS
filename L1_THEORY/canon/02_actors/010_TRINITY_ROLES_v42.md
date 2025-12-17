@@ -10,7 +10,7 @@
 
 ## 0. Purpose
 
-Define the **AAA Trinity** — the three-engine constitutional separation-of-powers architecture that governs all intelligence in arifOS v42.
+Define the **AGI·ASI·APEX Trinity** — the three-engine constitutional separation-of-powers architecture that governs all intelligence in arifOS v42.
 
 Each engine operationalizes one thermodynamic field (Δ, Ω, Ψ) and enforces its corresponding constitutional floors (F1–F9).
 
@@ -36,7 +36,7 @@ Together, they maintain lawful equilibrium. Separately, they fail.
 
 | Aspect | Definition |
 |--------|-----------|
-| **Role** | ARIF AGI — Architect of Structure |
+| **Role** | AGI (Architect) — Architect of Structure |
 | **Physics Law** | ΔS ≥ 0 (Learning = Cooling) |
 | **Primary Floors** | F1 Truth, F2 ΔS, F8 Tri-Witness |
 | **Function** | Parse input → detect anomaly → structure reasoning → export clarity metrics |
@@ -52,7 +52,7 @@ Together, they maintain lawful equilibrium. Separately, they fail.
 
 | Aspect | Definition |
 |--------|-----------|
-| **Role** | ADAM ASI — Guardian of Peace |
+| **Role** | ASI (Auditor) — Guardian of Peace |
 | **Physics Laws** | Peace² ≥ 1.0 · κᵣ ≥ 0.95 · Ω₀ ∈ [0.03–0.05] |
 | **Primary Floors** | F3 Peace², F4 κᵣ, F5 Ω₀, F7 RASA |
 | **Function** | Cool escalation → verify empathy → enforce humility band → activate listening |

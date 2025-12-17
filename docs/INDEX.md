@@ -26,7 +26,7 @@
 - `000_ARIFOS_CANON_v35Omega.md` — *LIVE* · overview of "what is arifOS?"
 - `000_CANON_FLAT_MAPPING_v35Omega.md` — *LIVE* · flat canon index
 - `001_APEX_META_CONSTITUTION_v35Omega.md` — *LIVE* · meta-constitution, 7Q resolution
-- `002_APEX_TRINITY_v35Omega.md` — *SEALED* · AAA Trinity (ARIF/ADAM/APEX PRIME)
+- `002_APEX_TRINITY_v35Omega.md` — *SEALED* · AGI·ASI·APEX Trinity (AGI/ASI/APEX/APEX PRIME)
 - `010_DeltaOmegaPsi_UNIFIED_FIELD_v35Omega.md` — *LIVE* · unified field
 - `011_ZKPC_PROTOCOL_v35Omega.md` — *LIVE* · Zero-Knowledge Proof of Cooling
 - `020_ANTI_HANTU_v35Omega.md` — *SEALED* · Anti-Hantu protocol (F9)
@@ -48,10 +48,10 @@
 - `01_PHYSICS/APEX_RYG_STATES_v36Omega.md` — *SEALED* · RYG (Red-Yellow-Green) state definitions
 - `APEX_MEASUREMENT_CANON_v36.1Omega.md` — *LIVE* · v36.1 measurement canon (G, C_dark, Psi, Truth Polarity)
 - `05_MASTER/APEX_THEORY_MASTER_CANON_v36Omega.md` — *DRAFT* · master theory canon
-- `10_SYSTEM/111_ARIF_AGI_v36Omega.md` — *LIVE* · ARIF AGI specification
+- `10_SYSTEM/111_ARIF_AGI_v36Omega.md` — *LIVE* · AGI (Architect) specification
 - `10_SYSTEM/333_AAA_ENGINES_v36Omega.md` — *LIVE* · AAA Engines v36 spec
-- `10_SYSTEM/555_ADAM_ASI_v36Omega.md` — *LIVE* · ADAM ASI specification
-- `10_SYSTEM/AAA_TRINITY_CANON_v36Omega.md` — *DRAFT* · AAA Trinity canon v36
+- `10_SYSTEM/555_ADAM_ASI_v36Omega.md` — *LIVE* · ASI (Auditor) specification
+- `10_SYSTEM/AAA_TRINITY_CANON_v36Omega.md` — *DRAFT* · AGI·ASI·APEX Trinity canon v36
 - `20_EXECUTION/WAW_FEDERATION_v36Omega.md` — *LIVE* · W@W Federation spec
 - `30_RUNTIME/APEX_RUNTIME_PIPELINE_v36Omega.md` — *LIVE* · runtime pipeline spec
 - `40_LEDGER/APEX_LEDGER_PHOENIX_v36Omega.md` — *LIVE* · ledger/Phoenix-72 spec

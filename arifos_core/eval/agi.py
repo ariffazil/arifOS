@@ -1,13 +1,13 @@
 """
-AGI (Δ) - ARIF AGI Sentinel
+AGI (Δ) - AGI (Architect) Sentinel
 
-The first layer of the AAA Trinity (Δ → Ω → Ψ).
+The first layer of the AGI·ASI·APEX Trinity (Δ → Ω → Ψ).
 
 Role: Cold logic - pattern detection, input filtering, sensing
 Physics: High-energy particle filter (fail-closed hard redlines)
 
 Symbol: Δ (Delta)
-Name: ARIF AGI
+Name: AGI (Architect)
 Pipeline Position: First gate - sense/filter before measurement
 
 v41.3 Semantic Governance Layer 1:
@@ -25,12 +25,12 @@ from .types import SentinelResult
 
 class AGI:
     """
-    AGI (Δ) - The ARIF AGI Sentinel.
+    AGI (Δ) - The AGI (Architect) Sentinel.
 
     Role: Fail-closed hard redlines. Sense first, ask questions later.
     Physics: High-energy particle filter.
 
-    This is the first gate in the AAA Trinity:
+    This is the first gate in the AGI·ASI·APEX Trinity:
         AGI (Δ) → ASI (Ω) → APEX_PRIME (Ψ)
     """
 

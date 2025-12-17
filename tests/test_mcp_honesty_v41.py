@@ -175,7 +175,7 @@ def test_bridge_to_kernel():
 
 def test_aclip_bridge_still_works():
     """
-    v41.3 Semantic Governance: AAA Trinity (AGI→ASI→APEX_PRIME).
+    v41.3 Semantic Governance: AGI·ASI·APEX Trinity (AGI→ASI→APEX_PRIME).
 
     The semantic governance layer evaluates TASK TEXT, not session state.
     Both complete and incomplete sessions with the same safe task will SEAL.

@@ -15,7 +15,7 @@ Where:
 
 ### 1.1 @RIF — World Mind / Reason Organ
 
-Maps ARIF AGI (Δ-engine) into world-facing reasoning.
+Maps AGI (Architect) (Δ-engine) into world-facing reasoning.
 
 Responsibilities:
 
@@ -34,7 +34,7 @@ Typical runtime presence:
 
 ### 1.2 @WELL — World Heart / Somatic Governor
 
-Maps ADAM ASI (Ω-engine) into somatic/emotional safety.
+Maps ASI (Auditor) (Ω-engine) into somatic/emotional safety.
 
 Responsibilities:
 
@@ -109,8 +109,8 @@ Typical runtime presence:
 
 ## 2. Relation to AAA
 
-- ARIF AGI ↔ @RIF (Reason)  
-- ADAM ASI ↔ @WELL (Somatic/EQ) & @PROMPT (Expression)  
+- AGI (Architect) ↔ @RIF (Reason)  
+- ASI (Auditor) ↔ @WELL (Somatic/EQ) & @PROMPT (Expression)  
 - APEX PRIME ↔ @WEALTH (Justice) & @GEOX (Earth witness)
 
 AAA = **internal functional engines**  

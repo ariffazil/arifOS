@@ -277,7 +277,7 @@ _REGISTRY.register(APIEntry(
     description="Compute Psi vitality",
 ))
 
-# AAA Trinity
+# AGI·ASI·APEX Trinity
 _REGISTRY.register(APIEntry(
     name="AGI",
     stability=StabilityLevel.STABLE,

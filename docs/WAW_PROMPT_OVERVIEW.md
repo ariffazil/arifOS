@@ -44,7 +44,7 @@ It enforces:
 - **spec/waw_prompt_spec_v36.3Omega.yaml**
   - Organ identity & federation position
   - 000->999 pipeline stages
-  - AAA Trinity interactions
+  - AGI·ASI·APEX Trinity interactions
   - Verdict types (SEAL, PARTIAL, VOID, SABAR, HOLD_888)
   - SABAR protocol
 

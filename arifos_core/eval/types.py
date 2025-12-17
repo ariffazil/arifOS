@@ -1,7 +1,7 @@
 """
-AAA Trinity Type Definitions
+AGI·ASI·APEX Trinity Type Definitions
 
-Defines the data structures used by the AAA Trinity:
+Defines the data structures used by the AGI·ASI·APEX Trinity:
 - AGI (Δ) - SentinelResult (Layer 1: RED_PATTERNS)
 - ASI (Ω) - ASIResult (Layer 2: Metrics)
 - APEX_PRIME (Ψ) - EvaluationResult (Layer 3: Verdict)
@@ -26,7 +26,7 @@ class EvaluationMode(Enum):
 @dataclass
 class SentinelResult:
     """
-    Result from AGI (Δ) - The ARIF AGI Sentinel.
+    Result from AGI (Δ) - The AGI (Architect) Sentinel.
 
     Layer 1: RED_PATTERNS instant VOID detection.
 
@@ -47,7 +47,7 @@ class SentinelResult:
 @dataclass
 class ASIResult:
     """
-    Result from ASI (Ω) - The ADAM ASI Accountant.
+    Result from ASI (Ω) - The ASI (Auditor) Accountant.
 
     Layer 2: Metrics computation and uncertainty calibration.
 

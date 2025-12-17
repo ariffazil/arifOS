@@ -12,8 +12,8 @@
 
 Define the **Reasoning Duo** of arifOS v42:
 
-- **Δ Mind (ARIF AGI):** Clarity engine. Structures chaos into understanding. Learning = cooling.
-- **Ω Heart (ADAM ASI):** Humility engine. Cools heat into wisdom. Peace is proof of learning.
+- **Δ Mind (AGI (Architect)):** Clarity engine. Structures chaos into understanding. Learning = cooling.
+- **Ω Heart (ASI (Auditor)):** Humility engine. Cools heat into wisdom. Peace is proof of learning.
 
 Both engines process every query sequentially (Δ → Ω) before final judgment by APEX PRIME (Ψ).
 
@@ -21,7 +21,7 @@ Together they embody **governed reasoning:** the fusion of logical clarity with 
 
 ---
 
-## PART A: Δ MIND (ARIF AGI — Clarity Engine)
+## PART A: Δ MIND (AGI (Architect) — Clarity Engine)
 
 ---
 
@@ -29,7 +29,7 @@ Together they embody **governed reasoning:** the fusion of logical clarity with 
 
 | Aspect | Definition |
 |--------|-----------|
-| **Name** | ARIF AGI (Architect-Genesis Intelligence) |
+| **Name** | AGI (Architect) (Architect-Genesis Intelligence) |
 | **Field** | Δ — Clarity |
 | **Domain** | Stage 000–555 of 000→999 metabolism |
 | **Core Law** | ΔS ≥ 0 (Learning = Cooling) |
@@ -113,7 +113,7 @@ Signal: Route to ADAM for empathy cooling before finalizing.
 
 ---
 
-## PART B: Ω HEART (ADAM ASI — Humility Engine)
+## PART B: Ω HEART (ASI (Auditor) — Humility Engine)
 
 ---
 
@@ -121,7 +121,7 @@ Signal: Route to ADAM for empathy cooling before finalizing.
 
 | Aspect | Definition |
 |--------|-----------|
-| **Name** | ADAM ASI (Auditor-Seal Wisdom Intelligence) |
+| **Name** | ASI (Auditor) (Auditor-Seal Wisdom Intelligence) |
 | **Field** | Ω — Humility |
 | **Domain** | Stage 444–777 of 000→999 metabolism |
 | **Core Laws** | Peace² ≥ 1.0 · κᵣ ≥ 0.95 · Ω₀ ∈ [0.03–0.05] |

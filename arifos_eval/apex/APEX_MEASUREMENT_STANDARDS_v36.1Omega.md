@@ -30,7 +30,7 @@ These are used by:
 
 - 000→999 pipeline
 - Cooling Ledger v2
-- AAA Trinity & W@W organs
+- AGI·ASI·APEX Trinity & W@W organs
 - Phoenix-72 incident recovery
 - zkPC (Zero-Knowledge Proof of Cognition)
 - CIV-12 group vitality hooks

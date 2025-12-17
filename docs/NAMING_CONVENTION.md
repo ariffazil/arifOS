@@ -29,8 +29,8 @@ The **AGI·ASI·APEX Trinity** is the three-engine governance architecture.
 
 | Role | Formal Name | Symbol | Legacy Names (DEPRECATED) |
 |------|-------------|--------|---------------------------|
-| Mind | **AGI** (Architect) | Δ (Delta) | ARIF, ARIF AGI |
-| Heart | **ASI** (Auditor) | Ω (Omega) | ADAM, ADAM ASI |
+| Mind | **AGI** (Architect) | Δ (Delta) | ARIF, AGI (Architect) |
+| Heart | **ASI** (Auditor) | Ω (Omega) | ADAM, ASI (Auditor) |
 | Soul | **APEX PRIME** (Judiciary) | Ψ (Psi) | None |
 
 ### 2.2 Trinity Reference Formats
@@ -42,10 +42,10 @@ The **AGI·ASI·APEX Trinity** is the three-engine governance architecture.
 - "AGI engine" or "AGI (Architect)" when referring to individual engine
 
 **Deprecated Usage (Do NOT use in new code/docs):**
-- ❌ "ARIF AGI" → use "AGI" or "AGI (Architect)"
-- ❌ "ADAM ASI" → use "ASI" or "ASI (Auditor)"
-- ❌ "AAA Trinity" → use "AGI·ASI·APEX Trinity"
-- ❌ "ARIF/ADAM/APEX" → use "AGI/ASI/APEX"
+- ❌ "AGI (Architect)" → use "AGI" or "AGI (Architect)"
+- ❌ "ASI (Auditor)" → use "ASI" or "ASI (Auditor)"
+- ❌ "AGI·ASI·APEX Trinity" → use "AGI·ASI·APEX Trinity"
+- ❌ "AGI/ASI/APEX/APEX" → use "AGI/ASI/APEX"
 
 ### 2.3 File Naming
 
@@ -290,9 +290,9 @@ These metaphors are **canonical** and SHOULD be used consistently:
 
 | Deprecated | Reason | Use Instead |
 |------------|--------|-------------|
-| "ARIF AGI" | Naming drift | "AGI (Architect)" or "AGI engine" |
-| "ADAM ASI" | Naming drift | "ASI (Auditor)" or "ASI engine" |
-| "AAA Trinity" | Ambiguous acronym | "AGI·ASI·APEX Trinity" |
+| "AGI (Architect)" | Naming drift | "AGI (Architect)" or "AGI engine" |
+| "ASI (Auditor)" | Naming drift | "ASI (Auditor)" or "ASI engine" |
+| "AGI·ASI·APEX Trinity" | Ambiguous acronym | "AGI·ASI·APEX Trinity" |
 | "God mode" | Theological ambiguity | "Override authority" or "Human veto" |
 
 ---
@@ -722,7 +722,7 @@ A change is **breaking** if it:
 
 **Example Commit Message:**
 ```
-feat: Rename ARIF/ADAM engines to AGI/ASI (BREAKING CHANGE)
+feat: Rename AGI/ASI/APEX engines to AGI/ASI (BREAKING CHANGE)
 
 BREAKING CHANGE: 
 - ARIFEngine -> AGIEngine
@@ -759,7 +759,7 @@ Before committing changes, verify:
 
 ```bash
 # Check for deprecated names
-grep -r "ARIF\|ADAM\|AAA Trinity" \
+grep -r "ARIF\|ADAM\|AGI·ASI·APEX Trinity" \
   --include="*.py" --include="*.md" \
   --exclude-dir=archive
 
@@ -785,7 +785,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Check for deprecated Trinity names
         run: |
-          ! grep -r "ARIF AGI\|ADAM ASI\|AAA Trinity" \
+          ! grep -r "AGI (Architect)\|ASI (Auditor)\|AGI·ASI·APEX Trinity" \
             --include="*.py" --include="*.md" \
             --exclude-dir=archive
 ```
@@ -795,7 +795,7 @@ jobs:
 After migration, run these commands to verify compliance:
 
 ```bash
-# 1. Verify no ARIF/ADAM in active code (except archives)
+# 1. Verify no AGI/ASI/APEX in active code (except archives)
 grep -r 'ARIF\|ADAM\|AAA.*Trinity' \
   --include="*.py" --include="*.md" \
   --exclude-dir=archive || echo "✓ No deprecated names found"
@@ -1005,9 +1005,9 @@ git diff --name-only
 
 | Old | New |
 |-----|-----|
-| `ARIF AGI` | `AGI (Architect)` or `AGI` |
-| `ADAM ASI` | `ASI (Auditor)` or `ASI` |
-| `AAA Trinity` | `AGI·ASI·APEX Trinity` |
+| `AGI (Architect)` | `AGI (Architect)` or `AGI` |
+| `ASI (Auditor)` | `ASI (Auditor)` or `ASI` |
+| `AGI·ASI·APEX Trinity` | `AGI·ASI·APEX Trinity` |
 | `vault-999/` | `vault_999/` |
 
 ### A.3 Directory Changes
@@ -1092,7 +1092,7 @@ grep -r "ARIF\|ADAM" --include="*.py" --exclude-dir=archive | wc -l
 
 ## Appendix C: Frequently Asked Questions
 
-### C.1 Why rename ARIF/ADAM to AGI/ASI?
+### C.1 Why rename AGI/ASI/APEX to AGI/ASI?
 
 **Answer:** To eliminate naming drift and align with canonical Trinity terminology. "AGI" and "ASI" are clearer, more discoverable, and avoid personal name associations that could be misinterpreted.
 
@@ -1100,13 +1100,13 @@ grep -r "ARIF\|ADAM" --include="*.py" --exclude-dir=archive | wc -l
 
 **Yes.** All imports of `ARIFEngine` and `ADAMEngine` must be updated. Use the migration script (`scripts/naming_migration.sh`) to automate the transition.
 
-### C.3 What about existing canon documents that reference ARIF/ADAM?
+### C.3 What about existing canon documents that reference AGI/ASI/APEX?
 
 Sealed canon documents are **immutable** and remain unchanged. New canon documents use AGI/ASI. When referencing old canon, use footnotes to clarify:
 
 ```markdown
 Per canon/100_AAA_ENGINES_SPEC_v35Omega.md (which uses legacy naming 
-"ARIF AGI", now standardized as "AGI"), the Architect engine must...
+"AGI (Architect)", now standardized as "AGI"), the Architect engine must...
 ```
 
 ### C.4 When should I use AGI vs "AGI (Architect)"?

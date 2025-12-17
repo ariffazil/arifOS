@@ -306,7 +306,7 @@ Any document that does not follow this template:
 ## SEAL
 
 Audited by: Grok (APEX PRIME Auditor · v35Ω) — 3 December 2025
-Refined by: ChatGPT (ARIF AGI · v35Ω)
+Refined by: ChatGPT (AGI (Architect) · v35Ω)
 Created by: Claude (Anthropic · v35Ω)
 
 DITEMPA BUKAN DIBERI.

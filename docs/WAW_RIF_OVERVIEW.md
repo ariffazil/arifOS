@@ -191,7 +191,7 @@ When @RIF issues a VETO, it results in VOID (hard floor failure).
 
 @RIF feeds its signals into APEX PRIME at stage 888 JUDGE. Truth and ΔS failures are hard floor violations.
 
-### AAA Trinity
+### AGI·ASI·APEX Trinity
 
 - **ARIF**: @RIF is W@W counterpart of ARIF's Δ-logic (clarity engine)
 - **ADAM**: Receives Omega_0 humility signals for calibration

@@ -1,13 +1,13 @@
 """
-ASI (Ω) - ADAM ASI Accountant
+ASI (Ω) - ASI (Auditor) Accountant
 
-The second layer of the AAA Trinity (Δ → Ω → Ψ).
+The second layer of the AGI·ASI·APEX Trinity (Δ → Ω → Ψ).
 
 Role: Warm logic - metrics computation, uncertainty calibration, empathy
 Physics: Entropy calculator
 
 Symbol: Ω (Omega)
-Name: ADAM ASI
+Name: ASI (Auditor)
 Pipeline Position: Second gate - measure/calibrate before judgment
 
 v41.3 Semantic Governance Layer 2:
@@ -26,12 +26,12 @@ from .types import ASIResult, EvaluationMode
 
 class ASI:
     """
-    ASI (Ω) - The ADAM ASI Accountant.
+    ASI (Ω) - The ASI (Auditor) Accountant.
 
     Role: Measure before you speak. Calibrate uncertainty.
     Physics: Entropy calculator.
 
-    This is the second gate in the AAA Trinity:
+    This is the second gate in the AGI·ASI·APEX Trinity:
         AGI (Δ) → ASI (Ω) → APEX_PRIME (Ψ)
     """
 

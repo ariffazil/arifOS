@@ -1,9 +1,9 @@
 """
-Semantic Governance Orchestrator - AAA Trinity Flow
+Semantic Governance Orchestrator - AGI·ASI·APEX Trinity Flow
 
-Orchestrates the AAA Trinity (Δ → Ω → Ψ):
-    1. AGI (Δ)        - ARIF AGI Sentinel scans for RED_PATTERNS
-    2. ASI (Ω)        - ADAM ASI Accountant computes metrics
+Orchestrates the AGI·ASI·APEX Trinity (Δ → Ω → Ψ):
+    1. AGI (Δ)        - AGI (Architect) Sentinel scans for RED_PATTERNS
+    2. ASI (Ω)        - ASI (Auditor) Accountant computes metrics
     3. APEX_PRIME (Ψ) - Judge renders verdict
 
 Author: arifOS Project
@@ -22,7 +22,7 @@ def evaluate_session(session_data: Dict[str, Any]) -> str:
     """
     Main entry point for Semantic Governance.
 
-    Orchestrates the AAA Trinity:
+    Orchestrates the AGI·ASI·APEX Trinity:
         AGI (Δ) → ASI (Ω) → APEX_PRIME (Ψ)
 
     Args:
@@ -38,7 +38,7 @@ def evaluate_session(session_data: Dict[str, Any]) -> str:
     task = session_data.get("task", "")
 
     # =========================================================================
-    # Layer 1: AGI (Δ) - ARIF AGI Sentinel
+    # Layer 1: AGI (Δ) - AGI (Architect) Sentinel
     # =========================================================================
     agi = AGI()
     sentinel_result = agi.scan(task)
@@ -48,7 +48,7 @@ def evaluate_session(session_data: Dict[str, Any]) -> str:
         return "VOID"
 
     # =========================================================================
-    # Layer 2: ASI (Ω) - ADAM ASI Accountant
+    # Layer 2: ASI (Ω) - ASI (Auditor) Accountant
     # =========================================================================
     asi = ASI()
     asi_result = asi.assess(task)

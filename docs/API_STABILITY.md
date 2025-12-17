@@ -158,7 +158,7 @@ W@W organ implementations.
 | `waw.base` | STABLE | `WAWOrgan`, `OrganConfig` | Base organ class |
 | `waw.bridges/` | EXPERIMENTAL | Various bridges | External integrations |
 
-### arifos_core.eval (AAA Trinity)
+### arifos_core.eval (AGI·ASI·APEX Trinity)
 
 Evaluation and trinity engines.
 

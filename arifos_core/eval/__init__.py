@@ -1,9 +1,9 @@
 """
-arifOS Evaluation Module - AAA Trinity Implementation
+arifOS Evaluation Module - AGI·ASI·APEX Trinity Implementation
 
-The AAA Trinity (Δ → Ω → Ψ):
-    AGI (Δ)        - ARIF AGI Sentinel (Layer 1: RED_PATTERNS)
-    ASI (Ω)        - ADAM ASI Accountant (Layer 2: Metrics)
+The AGI·ASI·APEX Trinity (Δ → Ω → Ψ):
+    AGI (Δ)        - AGI (Architect) Sentinel (Layer 1: RED_PATTERNS)
+    ASI (Ω)        - ASI (Auditor) Accountant (Layer 2: Metrics)
     APEX_PRIME (Ψ) - Judge (Layer 3: Verdict)
 
 Flow:
@@ -35,7 +35,7 @@ from .evaluate import evaluate_session
 Sentinel = AGI
 
 __all__ = [
-    # AAA Trinity
+    # AGI·ASI·APEX Trinity
     "AGI",
     "ASI",
     # Backward compatibility aliases

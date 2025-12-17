@@ -1,7 +1,7 @@
 """
 apex_engine.py - APEX PRIME (Psi Engine) Facade
 
-APEX PRIME is the Judiciary engine of the AAA Trinity.
+APEX PRIME is the Judiciary engine of the AGI·ASI·APEX Trinity.
 Role: Judgment, veto, seal - constitutional floor enforcement
 
 Pipeline stage owned:

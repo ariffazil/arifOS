@@ -23,13 +23,13 @@ Key files:
 
 - `canon/000_ARIFOS_CANON_v35Omega.md` — What is arifOS? (overview).  
 - `canon/001_APEX_META_CONSTITUTION_v35Omega.md` — Meta‑constitution.  
-- `canon/002_APEX_TRINITY_v35Omega.md` — AAA Trinity v35Ω.  
+- `canon/002_APEX_TRINITY_v35Omega.md` — AGI·ASI·APEX Trinity v35Ω.  
 - `canon/010_DeltaOmegaPsi_UNIFIED_FIELD_v35Omega.md` — ΔΩΨ unified field.  
 - `canon/011_ZKPC_PROTOCOL_v35Omega.md` — zkPC protocol.  
 - `canon/020_ANTI_HANTU_v35Omega.md` — F9 Anti‑Hantu law.  
 - `canon/021_ANTI_HANTU_SUPPLEMENT_v35Omega.md` — Anti‑Hantu supplement.  
 - `canon/030_EYE_SENTINEL_v35Omega.md` — @EYE sentinel canon.  
-- `canon/100_AAA_ENGINES_SPEC_v35Omega.md` — AAA engines spec (ARIF/ADAM/APEX).  
+- `canon/100_AAA_ENGINES_SPEC_v35Omega.md` — AAA engines spec (AGI/ASI/APEX/APEX).  
 - `canon/120_EUREKA_CUBE_FIELD_SPEC_v35Omega.md` — Eureka / Trinity field.  
 - `canon/200_ARIFOS_GOVERNANCE_KERNEL_FOR_LLMS_v35Omega.md` — Governance kernel for LLMs.  
 - `canon/880_000-999_METABOLIC_CANON_v35Omega.md` — 000→999 metabolic runtime canon.  
@@ -67,7 +67,7 @@ They still live under the original folders inside `canon/`:
 Use these when you need to:
 
 - derive or check metric formulas (ΔS, Peace², κᵣ, Ω₀, Ψ, Tri‑Witness, E_earth),  
-- implement ARIF/ADAM/W@W/APEX PRIME in code,  
+- implement AGI/ASI/APEX/W@W/APEX PRIME in code,  
 - reason about Phoenix‑72, scars, and ledger‑driven amendments,  
 - enforce Anti‑Hantu and language constraints at a theoretical level.
 

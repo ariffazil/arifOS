@@ -12,7 +12,7 @@ Algorithm:
 
 If κᵣ < 0.95, the stage triggers SABAR for empathy refinement.
 
-ADAM ASI (Ω) is the warm-logic engine that governs this stage.
+ASI (Auditor) (Ω) is the warm-logic engine that governs this stage.
 
 Author: arifOS Project
 Version: v38.0
@@ -314,7 +314,7 @@ def stage_555_empathy(
     """
     Stage 555 EMPATHIZE - Apply warm logic, measure empathy.
 
-    ADAM ASI (Ω) governs this stage - empathy, dignity, de-escalation.
+    ASI (Auditor) (Ω) governs this stage - empathy, dignity, de-escalation.
 
     This stage:
     1. Computes kappa_r from the draft response

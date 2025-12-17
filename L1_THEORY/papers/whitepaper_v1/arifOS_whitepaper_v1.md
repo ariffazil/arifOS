@@ -216,12 +216,12 @@ In code:
   - G_SEAL_THRESHOLD, G_PARTIAL_THRESHOLD, C_DARK thresholds in `APEX_PRIME.py`.
   - Psi_APEX thresholds in `genius_metrics.py` and `measurement_aggregates_v36.3O.json`.
 
-6. Constitutional Anatomy: AAA Trinity & W@W Federation
+6. Constitutional Anatomy: AGI·ASI·APEX Trinity & W@W Federation
 -------------------------------------------------------
 
-### 6.1 AAA Trinity — Separation of Powers
+### 6.1 AGI·ASI·APEX Trinity — Separation of Powers
 
-The AAA Trinity defines three roles:
+The AGI·ASI·APEX Trinity defines three roles:
 
 - **ARIF (Delta):** Logic and clarity generation.
 - **ADAM (Omega):** Empathy, humility, weakest-listener protection.
@@ -229,7 +229,7 @@ The AAA Trinity defines three roles:
 
 In code:
 
-- ARIF/ADAM engines: `arifos_core/engines/` and `v36.3O/spec/trinity_aaa_spec_v36.3O.yaml`.
+- AGI/ASI/APEX engines: `arifos_core/engines/` and `v36.3O/spec/trinity_aaa_spec_v36.3O.yaml`.
 - APEX PRIME:
   - `arifos_core/APEX_PRIME.py`
   - `v36.3O/canon/JUDICIARY_APEX_PRIME_v36.3O.md`

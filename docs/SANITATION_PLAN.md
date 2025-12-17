@@ -103,7 +103,7 @@ Gates:
 | :--- | :--- | :--- | :--- |
 | `docs/13_Human_Abstractions_Canon_v35Omega.md` | 7.0 KB | Legacy marker in filename | 2025-12-03 |
 | `docs/AAA_ENGINES_FACADE_PLAN_v35Omega.md` | 12.4 KB | Legacy marker in filename | 2025-12-05 |
-| `docs/AGI ASI/ARIF AGI ADAM ASI CANON v36.txt` | 72.4 KB | Legacy marker in filename | 2025-12-05 |
+| `docs/AGI ASI/AGI (Architect) ASI (Auditor) CANON v36.txt` | 72.4 KB | Legacy marker in filename | 2025-12-05 |
 | `docs/ANALYSIS_REPORT_v35.md` | 7.9 KB | Legacy marker in filename | 2025-12-11 |
 | `docs/APEX PRIME/APEX_PRIME_SEAL_v35Omega.md` | 35.6 KB | Legacy marker in filename | 2025-12-11 |
 | `docs/APEX PRIME/CANON_APEX_INVENTORY_v35_v36.md` | 10.8 KB | Legacy marker in filename | 2025-12-05 |

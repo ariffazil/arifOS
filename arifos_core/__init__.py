@@ -23,9 +23,9 @@ Operational model:
 - SEALled outputs are sealed to Cooling Ledger with deterministic hashes and optional KMS signatures.
 - Governance changes follow Phoenix-72 amendment process and are reproducibly recorded.
 
-AAA Trinity (v41.3):
-    AGI (Δ)        : ARIF AGI Sentinel - sense/filter (Layer 1: RED_PATTERNS)
-    ASI (Ω)        : ADAM ASI Accountant - measure/calibrate (Layer 2: Metrics)
+AGI·ASI·APEX Trinity (v41.3):
+    AGI (Δ)        : AGI (Architect) Sentinel - sense/filter (Layer 1: RED_PATTERNS)
+    ASI (Ω)        : ASI (Auditor) Accountant - measure/calibrate (Layer 2: Metrics)
     APEX_PRIME (Ψ) : Judge - seal/void (Layer 3: Verdict)
 
 See PHYSICS_CODEX.md (CHAPTER 6) for the full technical statement and diagram.
@@ -97,11 +97,11 @@ except ImportError:
     compute_psi_apex = None
 
 # =============================================================================
-# v41.3 SEMANTIC GOVERNANCE - AAA Trinity (Δ → Ω → Ψ)
+# v41.3 SEMANTIC GOVERNANCE - AGI·ASI·APEX Trinity (Δ → Ω → Ψ)
 # =============================================================================
 
 from .eval import (
-    # AAA Trinity classes
+    # AGI·ASI·APEX Trinity classes
     AGI,
     ASI,
     # Backward compatibility aliases
@@ -201,7 +201,7 @@ __all__ = [
     "compute_genius_index",
     "compute_dark_cleverness",
     "compute_psi_apex",
-    # v41.3 AAA Trinity
+    # v41.3 AGI·ASI·APEX Trinity
     "AGI",
     "ASI",
     "Sentinel",  # Backward compat alias for AGI

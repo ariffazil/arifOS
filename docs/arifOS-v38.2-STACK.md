@@ -11,7 +11,7 @@
 
 This ADR documents the **v38.2 runtime stack** as it exists today, based on the extracted implementation in `spec_archive/`:
 
-- `arifOS-v38-Core-Brain.md` — 000→999 pipeline, AAA Trinity, W@W organs, @EYE views
+- `arifOS-v38-Core-Brain.md` — 000→999 pipeline, AGI·ASI·APEX Trinity, W@W organs, @EYE views
 - `arifOS-Constitution-9-Floors.md` — 9 floors, thresholds, GENIUS LAW, detectors
 - `Cooling-Ledger-v35-Schema-and-Usage.md` — JSON schema, hash-chain, CLI tools
 - `Memory-Bands-v38-Policy-Current-State.md` — 6 bands, routing, invariants, Phoenix-72
@@ -81,9 +81,9 @@ This ADR **does not introduce new concepts**; it only locks in the stack decisio
 - Class A (fast track): 000 → 111 → 333 → 888 → 999  
 - Class B (deep track): 000 → 111 → 222 → 333 → 444 → 555 → 666 → 777 → 888 → 999
 
-### 3.2 AAA Trinity, W@W, @EYE
+### 3.2 AGI·ASI·APEX Trinity, W@W, @EYE
 
-- **AAA Trinity:** ARIF (cold logic), ADAM (warm logic), APEX PRIME (judiciary) are internal engines (`arifos_core/engines/*`, `APEX_PRIME.py`) that compute metrics and verdicts but do not call external APIs.
+- **AGI·ASI·APEX Trinity:** ARIF (cold logic), ADAM (warm logic), APEX PRIME (judiciary) are internal engines (`arifos_core/engines/*`, `APEX_PRIME.py`) that compute metrics and verdicts but do not call external APIs.
 - **W@W Federation:** @WELL, @RIF, @WEALTH, @GEOX, @PROMPT add organ-level signals and vetoes (`arifos_core/waw/*`), per spec_archive Doc 1 and Doc 2.
 - **@EYE Sentinel:** 12+ views (FloorView, DriftView, ParadoxView, ShadowView, SilenceView, MaruahView, TraceView, VersionView, BehaviorDriftView, SleeperView, AntiHantuView, GeniusView) scan outputs before final verdict.
 
@@ -209,7 +209,7 @@ Per spec_archive Doc 7 (Phase-4 Integration Status), the following are **explici
 ## 8. Summary
 
 - **Which Beast?** None is canonical. v38.2 standardizes a provider-agnostic cage with optional adapters (OpenAI, Claude, Gemini, SEA-LION, etc.), keeping LLM choice outside constitutional law.  
-- **Which Patterns?** A fixed 000→999 pipeline with AAA Trinity, W@W Federation, @EYE Sentinel, and GENIUS LAW verdicts is the only allowed route from query to verdict.  
+- **Which Patterns?** A fixed 000→999 pipeline with AGI·ASI·APEX Trinity, W@W Federation, @EYE Sentinel, and GENIUS LAW verdicts is the only allowed route from query to verdict.  
 - **Which Memory?** The v38 EUREKA memory stack (6 bands + 4 invariants + time-governed entropy rot) is the sole canonical memory architecture.  
 - **Which Ledger?** The Cooling Ledger (`L1_cooling_ledger.jsonl` + hash-chain + Merkle proofs + CLI tools) is the canonical external audit trail for all verdicts.
 

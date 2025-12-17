@@ -104,7 +104,7 @@ class TestStableAPIsExist:
         pass  # Import succeeded
 
     def test_top_level_trinity_exports(self):
-        """AAA Trinity classes are exported at top level."""
+        """AGI·ASI·APEX Trinity classes are exported at top level."""
         from arifos_core import AGI, ASI, evaluate_session
         from arifos_core import EvaluationResult, SentinelResult, ASIResult, EvaluationMode
         assert AGI is not None

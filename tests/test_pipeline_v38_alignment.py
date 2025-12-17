@@ -454,7 +454,7 @@ class TestAAAEngineMapping:
         assert "APEX_PRIME" in mapping
 
     def test_arif_stages_correct(self, pipeline_spec_v38: dict) -> None:
-        """ARIF AGI stages must be 111, 333, 444."""
+        """AGI (Architect) stages must be 111, 333, 444."""
         mapping = pipeline_spec_v38.get("aaa_engine_mapping", {})
         arif_stages = mapping.get("ARIF_AGI", {}).get("stages", [])
 
@@ -463,7 +463,7 @@ class TestAAAEngineMapping:
         assert "444" in arif_stages
 
     def test_adam_stages_correct(self, pipeline_spec_v38: dict) -> None:
-        """ADAM ASI stages must be 555, 666, 777."""
+        """ASI (Auditor) stages must be 555, 666, 777."""
         mapping = pipeline_spec_v38.get("aaa_engine_mapping", {})
         adam_stages = mapping.get("ADAM_ASI", {}).get("stages", [])
 

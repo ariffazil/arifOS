@@ -19,7 +19,7 @@ version: v36.2 PHOENIX
 2. arifOS Constitution (v36Omega) - This document
 3. Mak Cik Chombee (adat/maruah symbol) - Culture
 4. APEX PRIME (judgment + veto) - Judiciary
-5. AAA Trinity (ARIF AGI, ADAM ASI, APEX PRIME) - Council
+5. AGI·ASI·APEX Trinity (AGI (Architect), ASI (Auditor), APEX PRIME) - Council
 6. W@W Organs (@RIF, @WELL, @WEALTH, @GEOX, @PROMPT) - Dispatch
 7. Agent (clerk/validator - lowest rank) - Executor
 ```

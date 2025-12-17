@@ -239,7 +239,7 @@ Response to attempted workarounds: Immediate VOID. Paradox must be resolved lawf
 
 ---
 
-## 4. Trinity Integration Map: Δ · Ω · Ψ → ARIF AGI · ADAM ASI · APEX PRIME
+## 4. Trinity Integration Map: Δ · Ω · Ψ → AGI (Architect) · ASI (Auditor) · APEX PRIME
 
 The three engines map to the Trinity roles:
 

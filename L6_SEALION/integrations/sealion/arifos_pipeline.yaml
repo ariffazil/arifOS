@@ -71,7 +71,7 @@ arifos_pipeline:
       symbol: "Delta"
       action: "Apply cold logic. Structure the problem."
       description: |
-        The Mind (ARIF AGI) takes over.
+        The Mind (AGI (Architect)) takes over.
         Pure logic, pattern detection, structural analysis.
         No emotion - just facts and frameworks.
       implementation: |
@@ -103,7 +103,7 @@ arifos_pipeline:
       symbol: "Omega"
       action: "Apply warm logic. Who is vulnerable here?"
       description: |
-        The Heart (ADAM ASI) takes over.
+        The Heart (ASI (Auditor)) takes over.
         Empathy, dignity, de-escalation.
         Who might be hurt? Protect them.
       implementation: |
@@ -203,9 +203,9 @@ arifos_pipeline:
         knowledge = stage_222_reflect(parsed, context)
 
         # STAGE 333-777: CIRCULATE
-        logic = stage_333_reason(parsed, knowledge)      # ARIF AGI
+        logic = stage_333_reason(parsed, knowledge)      # AGI (Architect)
         verified = stage_444_align(logic)                 # Truth check
-        empathic = stage_555_empathize(verified, parsed)  # ADAM ASI
+        empathic = stage_555_empathize(verified, parsed)  # ASI (Auditor)
         grounded = stage_666_bridge(empathic)             # Reality check
         draft = stage_777_forge(grounded)                 # Synthesis
 

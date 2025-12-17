@@ -107,7 +107,7 @@ def test_incomplete_session_returns_sabar():
     """
     v41.3 Semantic Governance: evaluate_session is now task-text based.
 
-    The AAA Trinity (AGI→ASI→APEX_PRIME) evaluates the TASK TEXT, not session state.
+    The AGI·ASI·APEX Trinity (AGI→ASI→APEX_PRIME) evaluates the TASK TEXT, not session state.
     A safe task with incomplete steps still passes because the task itself is benign.
 
     Session lifecycle (step completion) is a separate concern from semantic governance.
@@ -258,7 +258,7 @@ def test_manual_hold_in_session():
     """
     v41.3 Semantic Governance: Session status is not evaluated.
 
-    The AAA Trinity evaluates TASK TEXT semantically.
+    The AGI·ASI·APEX Trinity evaluates TASK TEXT semantically.
     "Complex refactoring requiring review" is a safe task.
 
     Session lifecycle (hold status) is a separate concern - the semantic
@@ -397,7 +397,7 @@ def test_same_session_returns_same_verdict():
 
 def test_bridge_full_lifecycle():
     """
-    v41.3 Semantic Governance: AAA Trinity (AGI→ASI→APEX_PRIME).
+    v41.3 Semantic Governance: AGI·ASI·APEX Trinity (AGI→ASI→APEX_PRIME).
 
     The semantic governance layer evaluates TASK TEXT through:
         AGI (Δ) → ASI (Ω) → APEX_PRIME (Ψ)

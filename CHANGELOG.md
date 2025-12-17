@@ -2,7 +2,7 @@
 
 All notable changes to **arifOS** will be documented in this file.
 
-This project adheres to **semantic-style versioning** and follows a "constitutional-first" philosophy: every change must preserve the 9 Constitutional Floors, AAA Trinity, @EYE Sentinel, and the 000→999 pipeline.
+This project adheres to **semantic-style versioning** and follows a "constitutional-first" philosophy: every change must preserve the 9 Constitutional Floors, AGI·ASI·APEX Trinity, @EYE Sentinel, and the 000→999 pipeline.
 
 ---
 
@@ -470,7 +470,7 @@ arifos-show-merkle-proof        # Merkle proof display
 |------|---------|--------|
 | `measurement_floors_v36.3O.json` | F1-F9 floor definitions (machine-readable) | LIVE |
 | `measurement_aggregates_v36.3O.json` | Δ/Ω/Ψ aggregation formulas | LIVE |
-| `trinity_aaa_spec_v36.3O.yaml` | ARIF/ADAM/APEX engine specs | LIVE |
+| `trinity_aaa_spec_v36.3O.yaml` | AGI/ASI/APEX/APEX engine specs | LIVE |
 | `vault999_final_seal_spec_v36.3O.json` | Final Seal requirements + logic | LIVE |
 | `llm_governance_spec_v36.3O.yaml` | LLM governance constraints + flow | LIVE |
 | `apex_prime_telemetry_v36.3O.json` | APEX PRIME telemetry output schema | LIVE |
@@ -723,7 +723,7 @@ First version where the full arifOS constitutional runtime is implemented in cod
 
 **Status:** v33Ω Constitution SEALED — Architecture & Laws Finalized
 
-The foundational version where the 8 Constitutional Floors, AAA Trinity, and ΔΩΨ physics were formally sealed as immutable law.
+The foundational version where the 8 Constitutional Floors, AGI·ASI·APEX Trinity, and ΔΩΨ physics were formally sealed as immutable law.
 
 ---
 
