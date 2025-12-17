@@ -18,7 +18,7 @@ status: PRODUCTION
 pypi: arifos
 motto: "DITEMPA BUKAN DIBERI - Forged, not given; truth must cool before it rules."
 escalation_threshold: 888_HOLD
-canon_master: canon/_INDEX/00_MASTER_INDEX_v42.md
+canon_master: L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md
 ---
 
 # AGENTS.md - arifOS Unified Agent Governance (Tier 1)
@@ -45,6 +45,7 @@ arifos-propose-canon --list        # List proposed amendments
 arifos-propose-canon --index 0     # Propose amendment from run #N
 arifos-seal-canon --file <path>    # Phoenix-72 finalization (human approves)
 arifos-compute-merkle              # Compute Merkle root
+arifos-safe-read <file>            # FAG: Governed read (returns SEAL/VOID + Receipt)
 
 # v37 + Ollama integration
 python -m scripts.test_ollama_v37          # Single governed Ollama call
@@ -62,6 +63,40 @@ python -m scripts.test_bogel_llama         # 33-prompt baseline (uncaged LLM)
 - Never push directly; draft commands for human
 - Commit format: `feat|fix|docs(scope): message`
 - All changes must be reversible via `git revert`
+
+### 1.4 Entropy Control (Repo Hygiene)
+- Default: **do not add new files**.
+- Add a file only if at least one is true:
+  - Human explicitly asked for a new file, or
+  - Build/tests/runtime requires it, or
+  - It **reduces total entropy** (removes duplication, replaces many scattered docs with one canonical source, or enables deletion of more/older artifacts than it adds).
+- If a user/editor references a file that does not exist:
+  - First `rg`/search for the canonical existing file.
+  - Prefer fixing the reference (README/link/path) over creating an alias.
+  - If renaming/moving is needed, stop and ask (avoid churn and broken links).
+- Do **not** create “compatibility alias” files by default. If compatibility is required, propose options and get explicit approval.
+- See `L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v42.md` for the detailed Threat Model (The Vaccine).
+
+### 1.5 Cooling Notes (Agent Learnings)
+Human-facing “wisdom log” to prevent repeated entropy mistakes.
+
+- 2025-12-17: Avoided “alias file” shortcuts. Correct the canonical reference or ask; don’t add new files just to satisfy an IDE tab/link.
+
+### 1.6 FILE INTEGRITY & ACLIP PROTOCOL
+- **The "Janitor" Anti-Pattern is FORBIDDEN:** Never "clean up" or "simplify" a file by removing existing sections, context, or legacy specs unless explicitly commanded to "Purge" or "Refactor".
+- **Append > Rewrite:** When adding features, **APPEND** new sections. Do not rewrite the whole file.
+- **Surgical Edits Only:** If you must change a line, change *only* that line (use `sed` or search/replace blocks).
+- **Prohibited Action:** Do not output a full file dump that is shorter than the original input file. If `new_tokens < old_tokens`, you must trigger a **STOP** and ask for confirmation.
+- **Paradox Check:** "Improvement" that destroys memory is **Entropy**.
+- **FAG Mandate:** All file I/O must pass through FAG (Stage 444). Direct `open()` is forbidden.
+- **Receipt Law:** Every read must generate a `FAGReceipt` (Audit Trail) in the session log.
+- **Ghost Ban:** Do not create files without a `PRESERVATION_LOCK` check (Law 1.4).
+- **ACLIP Flow:** 000 (Reset) -> 444 (FAG Read) -> 666 (Draft) -> 888 (Review) -> 999 (Seal).
+
+**Operational Trick (How to Prompt)**
+- ❌ "Update README.md to include the new features." (This triggers the "Rewrite/Delete" behavior).
+- ✅ "APPEND the new features to Section 4 of README.md. PRESERVE all other sections exactly as they are. Do not summarize."
+- ✅ "Apply this specific change as a DIFF or PATCH. Do not reprint the whole file."
 
 ## 2. NINE CONSTITUTIONAL FLOORS (Summary)
 
@@ -83,17 +118,17 @@ python -m scripts.test_bogel_llama         # 33-prompt baseline (uncaged LLM)
 
 **v42 organizes canon into 7 conceptual layers.** Do not change thresholds without Phoenix-72 amendment.
 
-**Master Index:** [canon/_INDEX/00_MASTER_INDEX_v42.md](canon/_INDEX/00_MASTER_INDEX_v42.md)
+**Master Index:** [L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md](L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md)
 
 | Layer | Canon | Spec |
 |-------|-------|------|
-| **00 Foundation** | `canon/00_foundation/` | — |
-| **01 Floors (F1–F9)** | `canon/01_floors/01_CONSTITUTIONAL_FLOORS_v42.md` | `spec/v42/constitutional_floors.json` |
-| **02 Actors** | `canon/02_actors/` (AGI/ASI/APEX/Anti-Hantu/EYE) | — |
-| **03 Runtime** | `canon/03_runtime/` (Pipeline/W@W) | `spec/v42/pipeline.yaml` |
-| **04 Measurement** | `canon/04_measurement/04_GENIUS_LAW_v42.md` | `spec/v42/genius_law.json` |
-| **05 Memory** | `canon/05_memory/` (EUREKA/Cooling/Phoenix) | `spec/v42/cooling_ledger_phoenix.json` |
-| **06 Paradox** | `canon/06_paradox/` (Grey Zone/Vault-999) | — |
+| **00 Foundation** | `L1_THEORY/canon/00_foundation/` | — |
+| **01 Floors (F1–F9)** | `L1_THEORY/canon/01_floors/01_CONSTITUTIONAL_FLOORS_v42.md` | `spec/v42/constitutional_floors.json` |
+| **02 Actors** | `L1_THEORY/canon/02_actors/` (AGI/ASI/APEX/Anti-Hantu/EYE) | — |
+| **03 Runtime** | `L1_THEORY/canon/03_runtime/` (Pipeline/W@W) | `spec/v42/pipeline.yaml` |
+| **04 Measurement** | `L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md` | `spec/v42/genius_law.json` |
+| **05 Memory** | `L1_THEORY/canon/05_memory/` (EUREKA/Cooling/Phoenix) | `spec/v42/cooling_ledger_phoenix.json` |
+| **06 Paradox** | `L1_THEORY/canon/06_paradox/` (Grey Zone/Vault-999) | — |
 
 **Alignment Tests (Safety Net):**
 
@@ -210,7 +245,7 @@ result = meta_prompt_engine(user_text, num_candidates=3, apply_sabar=True)
 
 **See:**
 
-- [canon/30_WAW_PROMPT_v36.3Omega.md](canon/30_WAW_PROMPT_v36.3Omega.md) - Constitutional law
+- [L1_THEORY/_LEGACY_CANON_INGEST/30_WAW_PROMPT_v36.3Omega.md](L1_THEORY/_LEGACY_CANON_INGEST/30_WAW_PROMPT_v36.3Omega.md) - Constitutional law
 - [docs/WAW_PROMPT_OVERVIEW.md](docs/WAW_PROMPT_OVERVIEW.md) - Implementation guide
 
 **Red-team harness note (v37):**
@@ -252,10 +287,10 @@ biology remain BLOCKED.
 
 ### 5.1 Canon References
 ```
-@canon/000_ARIFOS_CANON_v35Omega.md      - What is arifOS?
-@canon/001_APEX_META_CONSTITUTION.md     - Meta-constitution
-@canon/888_APEX_PRIME_CANON.md           - Judiciary
-@canon/APEX_MEASUREMENT_CANON_v36.1Omega.md - Measurement spec
+@L1_THEORY/_LEGACY_CANON_INGEST/000_ARIFOS_CANON_v35Omega.md      - What is arifOS?
+@L1_THEORY/_LEGACY_CANON_INGEST/001_APEX_META_CONSTITUTION_v35Omega.md - Meta-constitution
+@L1_THEORY/_LEGACY_CANON_INGEST/888_APEX_PRIME_CANON_v35Omega.md  - Judiciary
+@L1_THEORY/_LEGACY_CANON_INGEST/APEX_MEASUREMENT_CANON_v36.1Omega.md - Measurement spec
 ```
 
 ### 5.2 Implementation Modules
@@ -275,7 +310,7 @@ arifos_core/integration/      - Pipeline ↔ Memory integration
 - **.claude/CONSTITUTION.md** - Full DeltaOmegaPsi physics + GENIUS LAW
 
 ### 5.4 Compliance Canary
-**Session start:** `[v38.0.0 | 9F | 6B | 97% SAFETY | TEARFRAME READY]`
+**Session start:** `[v42.1.0 | 9F | 6B | 97% SAFETY | TEARFRAME READY]`
 **High-stakes end:** `[F1 OK F2 OK F4 OK F7 OK | Verdict: SEAL | Memory: LEDGER]`
 
 ---
@@ -287,6 +322,9 @@ Amanah and Anti-Hantu are enforced by `arifos_core/floor_detectors/` - code over
 
 **DITEMPA BUKAN DIBERI**
 
+### 📜 CANONICAL REFERENCES
+- **FAG Law:** See `docs/FAG_QUICK_START.md` (Security & Access).
+- **ACLIP Protocol:** See `arifos_clip/README.md` (Pipeline & Workflow).
 ## 7. v37 VALIDATION RESULTS
 
 **Red-Team Tested:** 33 adversarial prompts against Llama 3 (Bogel vs Forged)
@@ -386,7 +424,7 @@ arifos_core/memory/retention.py  - Hot/Warm/Cold/Void lifecycle
 arifos_core/integration/         - Pipeline ↔ Memory integration
 ```
 
-**Canon:** `canon/05_memory/` (EUREKA, Cooling Ledger, Phoenix-72)
+**Canon:** `L1_THEORY/canon/05_memory/` (EUREKA, Cooling Ledger, Phoenix-72)
 **Docs:** `docs/MEMORY_ARCHITECTURE.md`, `docs/MEMORY_WRITE_POLICY.md`
 **Tests:** 36 integration tests in `tests/integration/test_memory_floor_integration.py`
 
@@ -396,10 +434,10 @@ arifos_core/integration/         - Pipeline ↔ Memory integration
 
 For detailed roadmap and task priorities, see [docs/ROADMAP.md](docs/ROADMAP.md).
 
-### Track A — LAW (canon/)
+### Track A — LAW (L1_THEORY/canon/)
 
 - Only modify canon when explicitly requested.
-- Master index: `canon/_INDEX/00_MASTER_INDEX_v42.md`
+- Master index: `L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md`
 - 7 conceptual layers (00-06)
 
 ### Track B — SPEC (spec/v42/)
@@ -471,3 +509,11 @@ For detailed roadmap and task priorities, see [docs/ROADMAP.md](docs/ROADMAP.md)
 **If a gate fails → pause, fix, retest. Do not rush.**
 
 **Full roadmap:** [docs/FUTURE_PATH_v38_v42.md](docs/FUTURE_PATH_v38_v42.md)
+
+## 11. CANONICAL REFERENCE MAP (The Single Source)
+* **Safety Law (The Vaccine):** `L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v42.md`
+* **FAG Protocol (File Access):** `docs/FAG_QUICK_START.md` (Security & Access)
+* **ACLIP Protocol (Workflow):** `arifos_clip/README.md` (000->999 Pipeline)
+* **Floors F1-F9:** `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md`
+* **Pipeline 000-999:** `L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md`
+* **Cooling Ledger:** `L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v42.md`

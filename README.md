@@ -825,4 +825,10 @@ Meaning: constitutional constraint failure (forensics tool)
 
 ---
 
+## Canonical Quick Links
+
+- Floors F1-F9: `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md`
+- Pipeline 000-999: `L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md`
+- Cooling Ledger: `L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v42.md`
+
 End of README.
