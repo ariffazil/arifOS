@@ -13,7 +13,7 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ## [v42.1.2] - 2025-12-18 - Packaging + Audit CLI
 
-**Status:** UNSEALED | Tests: not run | Tag: pending
+**Status:** SEALED | Tests: 2195 passed, 13 skipped | Tag: v42.1.2-sealed
 
 ### Added
 - `arifos-analyze-audit-trail` CLI entry for `scripts/analyze_audit_trail.py`.
