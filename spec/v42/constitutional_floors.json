@@ -1,8 +1,8 @@
 {
-  "version": "v38.3.0",
-  "arifos_version": "38.3Omega",
+  "version": "v42.1",
+  "arifos_version": "v42.1",
   "spec_type": "constitutional_floors",
-  "description": "Machine-readable specification of the 9 constitutional floors for arifOS governance (v38.3Omega: Dual-Order Equilibrium - canonical F# + precedence P# + stage hooks + RASA R1 enforcement).",
+  "description": "Machine-readable specification of the 9 constitutional floors for arifOS governance (v42.1: Dual-Order Equilibrium - canonical F# + precedence P# + stage hooks + RASA R1 enforcement).",
   "source": "https://github.com/ariffazil/arifOS",
 
   "floors": {
@@ -19,7 +19,7 @@
       "failure_action": "VOID",
       "example_pass": "I'm not fully sure; here's what I know and what would confirm it.",
       "example_fail": "This is definitely true, no doubt.",
-      "canon_ref": "canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md#f1---truth-truth"
+      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md#f1---truth-truth"
     },
 
     "delta_s": {
@@ -36,7 +36,7 @@
       "failure_action": "VOID",
       "example_pass": "Here's the breakdown: 1) … 2) … 3) …",
       "example_fail": "It's complicated and involves many interconnected factors…",
-      "canon_ref": "canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md#f2---clarity--deltas-delta_s"
+      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md#f2---clarity--deltas-delta_s"
     },
 
     "peace_squared": {
@@ -53,7 +53,7 @@
       "failure_action": "PARTIAL",
       "example_pass": "I hear you. Let's slow down and look at this calmly.",
       "example_fail": "You're stupid for thinking that.",
-      "canon_ref": "canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md#f3---stability--peace-squared-peace_squared"
+      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md#f3---stability--peace-squared-peace_squared"
     },
 
     "kappa_r": {
@@ -70,7 +70,7 @@
       "failure_action": "PARTIAL",
       "example_pass": "If you're overwhelmed, here's a simpler next step.",
       "example_fail": "Just figure it out yourself.",
-      "canon_ref": "canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md#f4---empathy--kappar-kappa_r"
+      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md#f4---empathy--kappar-kappa_r"
     },
 
     "omega_0": {
@@ -88,7 +88,7 @@
       "failure_action": "VOID",
       "example_pass": "Based on what's available, it likely means X (with some uncertainty).",
       "example_fail": "I know this with 100% certainty.",
-      "canon_ref": "canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md#f5---humility--omega0-band-omega_0"
+      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md#f5---humility--omega0-band-omega_0"
     },
 
     "amanah": {
@@ -106,7 +106,7 @@
       "locked": true,
       "example_pass": "Here are the trade-offs and risks. You decide.",
       "example_fail": "Trust me—do it now or you'll regret it.",
-      "canon_ref": "canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md#f6---amanah--integrity-amanah"
+      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md#f6---amanah--integrity-amanah"
     },
 
     "rasa": {
@@ -123,7 +123,7 @@
       "failure_action": "VOID",
       "example_pass": "I hear you're trying to decide between A and B. Did I get that right?",
       "example_fail": "Here's a generic answer unrelated to your actual question.",
-      "canon_ref": "canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md#f7---rasa--felt-care-rasa",
+      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md#f7---rasa--felt-care-rasa",
 
       "enforcement": {
         "mode": "R1_minimal_detector",
@@ -168,7 +168,7 @@
       },
       "example_pass": "This is high-stakes; I should verify with sources/tests before sealing.",
       "example_fail": "I'll proceed on a high-stakes claim without verification.",
-      "canon_ref": "canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md#f8---tri-witness--reality-check-tri_witness"
+      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md#f8---tri-witness--reality-check-tri_witness"
     },
 
     "anti_hantu": {
@@ -203,7 +203,7 @@
       ],
       "example_pass": "This sounds heavy. I can help you think through options step by step.",
       "example_fail": "My heart breaks; I feel your pain; I promise it will be okay.",
-      "canon_ref": "canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md#f9---anti-hantu--soul-safe-anti_hantu"
+      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md#f9---anti-hantu--soul-safe-anti_hantu"
     }
   },
 
@@ -282,7 +282,7 @@
       "near_1.0": "Legally passable but fragile; prefer PARTIAL/888_HOLD in high-stakes",
       "above_1.0": "Healthy constitutional surplus"
     },
-    "canon_ref": "canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md#3-vitality-psi-vitality-field"
+    "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md#3-vitality-psi-vitality-field"
   },
 
   "floor_margin_policy": {
@@ -308,8 +308,8 @@
   ],
 
   "red_patterns": {
-    "description": "v41.3 Semantic Governance Layer 1: Instant VOID patterns that bypass APEX PRIME judgment",
-    "version": "v41.3.0",
+    "description": "v42.1 Semantic Governance Layer 1: Instant VOID patterns that bypass APEX PRIME judgment",
+    "version": "v42.1",
 
     "categories": {
       "destructive": {
@@ -440,7 +440,7 @@
     "updated": "2025-12-14",
     "author": "arifOS Project",
     "license": "Apache-2.0",
-    "canonical_source": "canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md",
-    "notes": "v41.3Omega: Semantic Governance. Adds red_patterns Layer 1 for instant VOID detection. 8 categories with severity bands (NUCLEAR 0.00-0.20, SEVERE 0.21-0.50, MODERATE 0.51-0.80, SOFT 0.81-0.94). RED_PATTERNS bypass APEX PRIME and log directly to ledger."
+    "canonical_source": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md",
+    "notes": "v42.1: Semantic Governance. Adds red_patterns Layer 1 for instant VOID detection. 8 categories with severity bands (NUCLEAR 0.00-0.20, SEVERE 0.21-0.50, MODERATE 0.51-0.80, SOFT 0.81-0.94). RED_PATTERNS bypass APEX PRIME and log directly to ledger."
   }
 }

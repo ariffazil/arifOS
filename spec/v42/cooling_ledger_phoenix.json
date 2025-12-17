@@ -1,13 +1,13 @@
 {
-  "version": "v38.0.0",
-  "arifos_version": "38Omega",
+  "version": "v42.1",
+  "arifos_version": "v42.1",
   "spec_type": "cooling_ledger_phoenix",
-  "description": "Machine-readable specification for Cooling Ledger and Phoenix-72 Amendment Engine (v38Omega formalization).",
+  "description": "Machine-readable specification for Cooling Ledger and Phoenix-72 Amendment Engine (v42.1).",
   "source": "https://github.com/ariffazil/arifOS",
 
   "cooling_ledger": {
     "description": "Append-only hash-chained audit trail for governed interactions",
-    "ledger_version": "v38Omega",
+    "ledger_version": "v42.1",
     "hash_algorithm": "SHA3-256",
     "entry_schema": {
       "required_fields": [
@@ -44,7 +44,7 @@
       "hot_segment_max_entries": 10000,
       "archive_path": "runtime/vault_999/archive/"
     },
-    "canon_ref": "canon/05_COOLING_LEDGER_PHOENIX_v38Omega.md#2-cooling-ledger"
+    "canon_ref": "L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v42.md"
   },
 
   "verdict_band_routing": {
@@ -112,7 +112,7 @@
       "reason": "string",
       "ledger_ref": "object"
     },
-    "canon_ref": "canon/05_COOLING_LEDGER_PHOENIX_v38Omega.md#4-phoenix-72-amendment-engine"
+    "canon_ref": "L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v42.md"
   },
 
   "scar_lifecycle": {
@@ -199,7 +199,7 @@
         "metadata"
       ]
     },
-    "canon_ref": "canon/05_COOLING_LEDGER_PHOENIX_v38Omega.md#5-scar--witness-lifecycle"
+    "canon_ref": "L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v42.md"
   },
 
   "invariants": {
@@ -252,12 +252,12 @@
       "arifos_core/memory/policy.py"
     ],
     "related_specs": [
-      "spec/constitutional_floors_v38Omega.json",
-      "spec/genius_law_v38Omega.json"
+      "spec/v42/constitutional_floors.json",
+      "spec/v42/genius_law.json"
     ],
     "related_canon": [
-      "canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md",
-      "canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md"
+      "L1_THEORY/canon/05_memory/05_EUREKA_MEMORY_v42.md",
+      "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md"
     ]
   },
 
@@ -266,8 +266,8 @@
     "updated": "2025-12-13",
     "author": "arifOS Project",
     "license": "Apache-2.0",
-    "canonical_source": "canon/05_COOLING_LEDGER_PHOENIX_v38Omega.md",
+    "canonical_source": "L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v42.md",
     "implementation": "arifos_core/memory/",
-    "notes": "v38Omega formalization of Cooling Ledger and Phoenix-72"
+    "notes": "v42.1 alignment of Cooling Ledger and Phoenix-72"
   }
 }

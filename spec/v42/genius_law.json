@@ -1,8 +1,8 @@
 {
-  "version": "v38.0.0",
-  "arifos_version": "38Omega",
+  "version": "v42.1",
+  "arifos_version": "v42.1",
   "spec_type": "genius_law",
-  "description": "Machine-readable specification of GENIUS LAW metrics for arifOS governance (v38Omega formalization, semantics unchanged from v36.1Omega).",
+  "description": "Machine-readable specification of GENIUS LAW metrics for arifOS governance (v42.1).",
   "source": "https://github.com/ariffazil/arifOS",
 
   "metrics": {
@@ -24,7 +24,7 @@
         "E": "Energy (capacity to act)",
         "X": "X-factor (Amanah-guided exploration)"
       },
-      "canon_ref": "canon/02_GENIUS_LAW_v38Omega.md#31-genius-index-g"
+      "canon_ref": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md"
     },
 
     "C_dark": {
@@ -43,7 +43,7 @@
         "low": "Safe - intelligence is governed",
         "high": "Hazard - 'evil genius' pattern"
       },
-      "canon_ref": "canon/02_GENIUS_LAW_v38Omega.md#32-dark-cleverness-c_dark"
+      "canon_ref": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md"
     },
 
     "Psi": {
@@ -71,7 +71,7 @@
         "base_floor": 0.3,
         "clarity_boost": true
       },
-      "canon_ref": "canon/02_GENIUS_LAW_v38Omega.md#33-vitality-psi"
+      "canon_ref": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md"
     },
 
     "TP": {
@@ -94,7 +94,7 @@
         "weaponized_truth": "VOID",
         "false_claim": "VOID"
       },
-      "canon_ref": "canon/02_GENIUS_LAW_v38Omega.md#34-truth-polarity-v361omega"
+      "canon_ref": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md"
     }
   },
 
@@ -154,14 +154,14 @@
     ]
   },
 
-  "integration_v38": {
-    "flow": "Input -> Floors Check (v38 spec) -> GENIUS Metrics (v36.1) -> Verdict -> v38 Memory Write Policy -> Band Routing",
+  "integration_v42": {
+    "flow": "Input -> Floors Check (v42 spec) -> GENIUS Metrics (v42.1) -> Verdict -> v42 Memory Write Policy -> Band Routing",
     "memory_integration": {
       "evidence_chain_includes": ["G", "C_dark", "Psi", "truth_polarity"],
       "enhanced_audit_trigger": "C_dark > CDARK_WARN",
       "metadata_recorded": ["truth_polarity", "risk_level"]
     },
-    "floors_spec_ref": "spec/constitutional_floors_v38Omega.json"
+    "floors_spec_ref": "spec/v42/constitutional_floors.json"
   },
 
   "meta": {
@@ -169,9 +169,9 @@
     "updated": "2025-12-13",
     "author": "arifOS Project",
     "license": "Apache-2.0",
-    "canonical_source": "canon/02_GENIUS_LAW_v38Omega.md",
-    "predecessor": "canon/APEX_MEASUREMENT_CANON_v36.1Omega.md",
+    "canonical_source": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md",
+    "predecessor": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md",
     "implementation": "arifos_core/genius_metrics.py",
-    "notes": "v38Omega formalization - semantics unchanged from v36.1Omega"
+    "notes": "v42.1 alignment; semantics unchanged"
   }
 }

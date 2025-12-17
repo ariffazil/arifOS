@@ -1,6 +1,6 @@
 # spec/v42 - v42 Specification Files
 
-**Version:** v42.0 | **Status:** DRAFT | **Last Updated:** 2025-12-16
+**Version:** v42.1 | **Status:** DRAFT | **Last Updated:** 2025-12-16
 
 ---
 
@@ -14,12 +14,12 @@ This directory contains machine-readable specifications for v42 constitutional l
 
 | File | Purpose | Source |
 |------|---------|--------|
-| `constitutional_floors.json` | F1-F9 thresholds | v38Omega |
-| `genius_law.json` | G, C_dark params | v38Omega |
-| `pipeline.yaml` | Stage config | v38Omega |
-| `waw_prompt_floors.json` | W@W config | v38Omega |
-| `cooling_ledger_phoenix.json` | Ledger config | v38Omega |
-| `memory_bands.json` | Band definitions | v38 new |
+| `constitutional_floors.json` | F1-F9 thresholds | v42.1 |
+| `genius_law.json` | G, C_dark params | v42.1 |
+| `pipeline.yaml` | Stage config | v42.1 |
+| `waw_prompt_floors.json` | W@W config | v42.1 |
+| `cooling_ledger_phoenix.json` | Ledger config | v42.1 |
+| `memory_bands.json` | Band definitions | v42.1 |
 
 ---
 
@@ -27,7 +27,7 @@ This directory contains machine-readable specifications for v42 constitutional l
 
 | Track | Location | Purpose |
 |-------|----------|---------|
-| **A** (Canon) | `canon/` | Human-readable law |
+| **A** (Canon) | `L1_THEORY/canon/` | Human-readable law |
 | **B** (Spec) | `spec/v42/` | Machine-readable params |
 | **C** (Code) | `arifos_core/` | Runtime implementation |
 
@@ -37,8 +37,8 @@ This directory contains machine-readable specifications for v42 constitutional l
 
 ## Migration Notes
 
-These specs are copied from v38Omega with version updated to v42.
-Content changes will be applied when final v42 canon is provided.
+These specs are aligned to v42.1 and tracked under `spec/v42/`.
+Content changes follow canon updates.
 
 ---
 

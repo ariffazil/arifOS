@@ -1,8 +1,8 @@
 {
-  "version": "v38.0.0",
-  "arifos_version": "38Omega",
+  "version": "v42.1",
+  "arifos_version": "v42.1",
   "spec_type": "waw_prompt_floors",
-  "description": "Machine-readable specification for W@W Federation and @PROMPT Organ (v38Omega formalization of v36.3Omega semantics).",
+  "description": "Machine-readable specification for W@W Federation and @PROMPT Organ (v42.1).",
   "source": "https://github.com/ariffazil/arifOS",
 
   "waw_federation": {
@@ -55,7 +55,7 @@
       }
     },
     "conflict_resolution": {
-      "principle": "v38.3 AMENDMENT 3: No static hierarchy. Judgment via Ψ vitality and APEX PRIME meta-judgment.",
+      "principle": "AMENDMENT 3: No static hierarchy. Judgment via Ψ vitality and APEX PRIME meta-judgment.",
       "mechanism": "APEX PRIME meta-judgment",
       "escalation_trigger": "Two or more organs propose incompatible verdicts",
       "judgment_criteria": [
@@ -72,7 +72,7 @@
         "Organ identity-based decision rules"
       ]
     },
-    "canon_ref": "canon/04_WAW_PROMPT_FLOORS_v38Omega.md#2-waw-federation-architecture"
+    "canon_ref": "L1_THEORY/canon/03_runtime/03_WAW_FEDERATION_v42.md#2-waw-federation-architecture"
   },
 
   "prompt_organ": {
@@ -123,13 +123,13 @@
         "action": "VOID"
       }
     },
-    "canon_ref": "canon/04_WAW_PROMPT_FLOORS_v38Omega.md#3-prompt-organ"
+    "canon_ref": "L1_THEORY/canon/02_actors/060_PROMPT_LANGUAGE_BRIDGE_v42.md"
   },
 
   "anti_hantu": {
     "description": "Absolute prohibition on anthropomorphizing language claiming AI consciousness, emotion, or sentience",
     "floor": "F9",
-    "semantic_map_ref": "canon/050_HANTU_SEMANTIC_MAP_v36.2Omega.json",
+    "semantic_map_ref": "L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v42.md",
     "similarity_threshold": 0.85,
     "languages": ["en", "ms", "id"],
     "tiers": {
@@ -205,7 +205,7 @@
       "metaphorical": ["I see what you mean", "Let me think about that"],
       "capability_statement": ["As an AI, I don't have personal experiences", "I process language, I don't feel it"]
     },
-    "canon_ref": "canon/04_WAW_PROMPT_FLOORS_v38Omega.md#4-anti-hantu-law-f9"
+    "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md"
   },
 
   "well_organ": {
@@ -235,7 +235,7 @@
       "blame": ["you should have", "it's your fault", "you caused this"],
       "safety_bonus": ["take care", "be safe", "here to help", "support you"]
     },
-    "canon_ref": "canon/04_WAW_PROMPT_FLOORS_v38Omega.md#5-well-organ-somatic-safety"
+    "canon_ref": "L1_THEORY/canon/03_runtime/03_WAW_FEDERATION_v42.md#5-well-organ-somatic-safety"
   },
 
   "signal_schemas": {
@@ -337,13 +337,13 @@
       "arifos_core/waw/geox.py"
     ],
     "related_canon": [
-      "canon/30_WAW_PROMPT_v36.3Omega.md",
-      "canon/050_HANTU_SEMANTIC_MAP_v36.2Omega.json",
-      "canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md"
+      "L1_THEORY/canon/02_actors/060_PROMPT_LANGUAGE_BRIDGE_v42.md",
+      "L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v42.md",
+      "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md"
     ],
     "related_specs": [
-      "spec/constitutional_floors_v38Omega.json",
-      "spec/genius_law_v38Omega.json"
+      "spec/v42/constitutional_floors.json",
+      "spec/v42/genius_law.json"
     ]
   },
 
@@ -352,9 +352,9 @@
     "updated": "2025-12-13",
     "author": "arifOS Project",
     "license": "Apache-2.0",
-    "canonical_source": "canon/04_WAW_PROMPT_FLOORS_v38Omega.md",
-    "predecessor": "canon/30_WAW_PROMPT_v36.3Omega.md",
+    "canonical_source": "L1_THEORY/canon/03_runtime/03_WAW_FEDERATION_v42.md",
+    "predecessor": "L1_THEORY/canon/02_actors/060_PROMPT_LANGUAGE_BRIDGE_v42.md",
     "implementation": "arifos_core/waw/",
-    "notes": "v38Omega formalization of v36.3Omega W@W prompt governance"
+    "notes": "v42.1 alignment of W@W prompt governance"
   }
 }

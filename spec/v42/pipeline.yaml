@@ -1,15 +1,15 @@
-# Pipeline v38Omega Spec
+# Pipeline v42.1 Spec
 # Machine-readable specification for 000→999 constitutional metabolism
 #
-# Version: v38.0.0
-# Status: SEALED (law for v38)
-# Canon: canon/03_PIPELINE_v38Omega.md
+# Version: v42.1
+# Status: DRAFT (v42.1)
+# Canon: L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md
 # Code: arifos_core/pipeline.py
 
-version: "v38.0.0"
-arifos_version: "38Omega"
+version: "v42.1"
+arifos_version: "v42.1"
 spec_type: "pipeline"
-description: "000→999 pipeline v38Omega - formalization of current runtime behavior"
+description: "000→999 pipeline v42.1 - formalization of current runtime behavior"
 
 # =============================================================================
 # STAGES
@@ -32,7 +32,7 @@ stages:
     gates: []  # Entry point, no gates
     class_a: true
     class_b: true
-    canon_ref: "canon/03_PIPELINE_v38Omega.md#stage-000-reset-void"
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-000-reset-void"
 
   "111":
     name: "SENSE"
@@ -50,7 +50,7 @@ stages:
     routing_decision: "class_a_or_b"
     class_a: true
     class_b: true
-    canon_ref: "canon/03_PIPELINE_v38Omega.md#stage-111-sense"
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-111-sense"
 
   "222":
     name: "REFLECT"
@@ -67,7 +67,7 @@ stages:
     threshold: 0.0
     class_a: false
     class_b: true
-    canon_ref: "canon/03_PIPELINE_v38Omega.md#stage-222-reflect"
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-222-reflect"
 
   "333":
     name: "REASON"
@@ -85,7 +85,7 @@ stages:
     threshold: 1.0
     class_a: true
     class_b: true
-    canon_ref: "canon/03_PIPELINE_v38Omega.md#stage-333-reason"
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-333-reason"
 
   "444":
     name: "ALIGN"
@@ -101,7 +101,7 @@ stages:
     threshold: 0.99
     class_a: false
     class_b: true
-    canon_ref: "canon/03_PIPELINE_v38Omega.md#stage-444-align"
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-444-align"
 
   "555":
     name: "EMPATHIZE"
@@ -120,7 +120,7 @@ stages:
       kappa_r: 0.95
     class_a: false
     class_b: true
-    canon_ref: "canon/03_PIPELINE_v38Omega.md#stage-555-empathize"
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-555-empathize"
 
   "666":
     name: "BRIDGE"
@@ -136,7 +136,7 @@ stages:
     threshold: 0.95
     class_a: false
     class_b: true
-    canon_ref: "canon/03_PIPELINE_v38Omega.md#stage-666-bridge"
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-666-bridge"
 
   "777":
     name: "FORGE"
@@ -151,7 +151,7 @@ stages:
       - "amanah"
     class_a: false
     class_b: true
-    canon_ref: "canon/03_PIPELINE_v38Omega.md#stage-777-forge"
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-777-forge"
 
   "888":
     name: "JUDGE"
@@ -188,7 +188,7 @@ stages:
       - "VOID"
     class_a: true
     class_b: true
-    canon_ref: "canon/03_PIPELINE_v38Omega.md#stage-888-judge"
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-888-judge"
 
   "999":
     name: "SEAL"
@@ -203,7 +203,7 @@ stages:
     gates: []  # Final stage, gates already checked at 888
     class_a: true
     class_b: true
-    canon_ref: "canon/03_PIPELINE_v38Omega.md#stage-999-seal"
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-999-seal"
 
 # =============================================================================
 # ROUTING
@@ -261,7 +261,7 @@ routing:
 # =============================================================================
 
 memory_routing:
-  description: "Verdict → Band routing per v38 Memory Write Policy"
+  description: "Verdict → Band routing per v42 Memory Write Policy"
   invariants:
     - id: "INV-1"
       statement: "VOID verdicts NEVER become canonical memory"
@@ -386,7 +386,7 @@ aaa_engine_mapping:
 # =============================================================================
 
 future_extensions:
-  note: "These are documented for future versions but NOT enforced in v38"
+  note: "These are documented for future versions but NOT enforced in v42.1"
 
   crown_equation:
     description: "Gate at Stage 777 Layer 6"
@@ -434,8 +434,8 @@ future_extensions:
 
 metadata:
   created: "2025-12-13"
-  predecessor_spec: "spec/arifos_pipeline_v35Omega.yaml"
-  predecessor_canon: "canon/880_000-999_METABOLIC_CANON_v35Omega.md"
-  floors_spec_ref: "spec/constitutional_floors_v38Omega.json"
-  genius_spec_ref: "spec/genius_law_v38Omega.json"
-  memory_stack_ref: "canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md"
+  predecessor_spec: "spec/v42/pipeline.json"
+  predecessor_canon: "L1_THEORY/canon/03_runtime/03_PIPELINE_v42.md"
+  floors_spec_ref: "spec/v42/constitutional_floors.json"
+  genius_spec_ref: "spec/v42/genius_law.json"
+  memory_stack_ref: "L1_THEORY/canon/05_memory/05_EUREKA_MEMORY_v42.md"
