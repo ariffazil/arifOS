@@ -27,6 +27,60 @@ def run_stage(session, args):
         print('Cannot seal: unresolved HOLD present.')
         return EXIT_HOLD
 
+    # === FAG Write Contract Gate (v42.2) ===
+    # If write_plan.json exists, validate it before proceeding
+    write_plan_path = '.arifos_clip/write_plan.json'
+    if os.path.isfile(write_plan_path):
+        try:
+            with open(write_plan_path, 'r', encoding='utf-8') as f:
+                plan_data = json.load(f)
+            
+            # Load session allowlist if present
+            session_allowlist = []
+            session_json_path = '.arifos_clip/session.json'
+            if os.path.isfile(session_json_path):
+                with open(session_json_path, 'r', encoding='utf-8') as f:
+                    session_json = json.load(f)
+                    session_allowlist = session_json.get('allowlist', [])
+            
+            # Import FAG and validate
+            from arifos_core.governance.fag import FAG, FAGWritePlan
+            fag = FAG(root='.', enable_ledger=True, job_id=session.data.get('id', 'aclip-999'))
+            
+            # Parse plan
+            fag_plan = FAGWritePlan(
+                target_path=plan_data.get('target_path', ''),
+                operation=plan_data.get('operation', 'patch'),
+                justification=plan_data.get('justification', ''),
+                diff=plan_data.get('diff'),
+                read_sha256=plan_data.get('read_sha256'),
+                read_bytes=plan_data.get('read_bytes'),
+                read_mtime_ns=plan_data.get('read_mtime_ns'),
+                read_excerpt=plan_data.get('read_excerpt'),
+            )
+            
+            result = fag.write_validate(fag_plan, session_allowlist=session_allowlist)
+            
+            if result.verdict != 'SEAL':
+                # Auto-generate HOLD artifact
+                holds_dir = '.arifos_clip/holds'
+                os.makedirs(holds_dir, exist_ok=True)
+                hold_file = os.path.join(holds_dir, f'fag_write_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json')
+                with open(hold_file, 'w', encoding='utf-8') as f:
+                    json.dump({
+                        'source': 'FAG.write_validate',
+                        'verdict': result.verdict,
+                        'reason': result.reason,
+                        'floor_violations': result.floor_violations,
+                        'plan': plan_data,
+                    }, f, indent=2)
+                print(f'Cannot seal: FAG write validation failed - {result.reason}')
+                print(f'HOLD artifact created: {hold_file}')
+                return EXIT_HOLD
+        except Exception as e:
+            print(f'Warning: FAG write validation error - {e}')
+            # Non-fatal: proceed to verdict if validation has error
+
     verdict_response = arifos_client.request_verdict(session)
     verdict_value = verdict_response.get("verdict")
     verdict_reason = verdict_response.get("reason")
