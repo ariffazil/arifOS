@@ -160,9 +160,41 @@ class FAGReadResult:
     ledger_entry_id: Optional[str] = None
 
 
+@dataclass
+class FAGWritePlan:
+    """
+    Write plan for FAG.write_validate() (v42.2).
+    
+    Defines a proposed write operation with verifiable read proof.
+    """
+    target_path: str
+    operation: Literal["create", "patch", "delete"]
+    justification: str
+    diff: Optional[str] = None  # Unified diff for patches
+    # Verifiable read proof (anti-fake)
+    read_sha256: Optional[str] = None
+    read_bytes: Optional[int] = None
+    read_mtime_ns: Optional[int] = None
+    read_excerpt: Optional[str] = None  # First/last 64 bytes
+
+
+@dataclass
+class FAGWriteResult:
+    """Result of FAG.write_validate() operation."""
+    verdict: str  # SEAL, HOLD, VOID
+    path: str
+    reason: str
+    floor_violations: Optional[List[str]] = None
+
+
+# Sandbox zones where unlimited writes are allowed
+SANDBOX_ZONES = [".arifos_clip/", "scratch/"]
+
+
 # =============================================================================
 # FILE ACCESS GOVERNANCE (FAG)
 # =============================================================================
+
 
 class FAG:
     """
@@ -341,6 +373,163 @@ class FAG:
             path=str(target.relative_to(self.root)),
             content=content,
             size=len(content),
+        )
+    
+    def write_validate(
+        self,
+        plan: "FAGWritePlan",
+        session_allowlist: Optional[List[str]] = None,
+    ) -> "FAGWriteResult":
+        """
+        Validate a write plan against FAG Write Contract v42.2.
+        
+        Rules enforced:
+        1. No New Files - HOLD unless sandbox or allowlisted
+        2. Canon Lock - VOID for creates in L1_THEORY/
+        3. Patch Only - HOLD if no diff provided for patches
+        4. Rewrite Threshold - HOLD if deletion_ratio > 30%
+        5. Read Before Write - HOLD if no read_proof for patches
+        6. Delete Gate - HOLD for any delete operation
+        
+        Args:
+            plan: FAGWritePlan with operation details
+            session_allowlist: Optional list of paths approved for this session
+        
+        Returns:
+            FAGWriteResult with verdict (SEAL/HOLD/VOID) and reason
+        """
+        import hashlib
+        
+        target_path = plan.target_path
+        violations: List[str] = []
+        
+        # Normalize path for sandbox check
+        path_normalized = target_path.replace("\\", "/")
+        
+        # Check if path is in sandbox zone
+        in_sandbox = any(
+            path_normalized.startswith(zone) or f"/{zone}" in path_normalized
+            for zone in SANDBOX_ZONES
+        )
+        
+        # Check if path is in session allowlist
+        allowlist = session_allowlist or []
+        in_allowlist = target_path in allowlist or path_normalized in allowlist
+        
+        # === Rule 1: Canon Lock (VOID - absolute block) ===
+        if plan.operation == "create":
+            if "L1_THEORY/" in path_normalized or path_normalized.startswith("L1_THEORY"):
+                return FAGWriteResult(
+                    verdict="VOID",
+                    path=target_path,
+                    reason="F1 Amanah VOID: Canon zone L1_THEORY/ is amendment-only. No new files allowed.",
+                    floor_violations=["F1_Amanah", "F2_Truth"],
+                )
+        
+        # === Rule 2: No New Files (HOLD unless sandbox/allowlist) ===
+        if plan.operation == "create":
+            if not in_sandbox and not in_allowlist:
+                violations.append("No New Files: Create outside sandbox without allowlist")
+        
+        # === Rule 3: Delete Gate (HOLD for any delete) ===
+        if plan.operation == "delete":
+            violations.append("Delete Gate: Delete operations require human approval")
+        
+        # === Rule 4: Read Before Write (HOLD if no read_proof) ===
+        if plan.operation == "patch":
+            if not plan.read_sha256 or plan.read_bytes is None:
+                violations.append("Read Before Write: No read_proof provided (sha256 + bytes required)")
+            else:
+                # Verify read_proof matches current file state
+                try:
+                    target = self._resolve_path(target_path)
+                    if target.exists():
+                        content = target.read_bytes()
+                        actual_sha256 = hashlib.sha256(content).hexdigest()
+                        actual_bytes = len(content)
+                        
+                        if actual_sha256 != plan.read_sha256:
+                            violations.append(f"Read Before Write: File changed since read (sha256 mismatch)")
+                        if actual_bytes != plan.read_bytes:
+                            violations.append(f"Read Before Write: File size changed ({actual_bytes} vs {plan.read_bytes})")
+                except Exception as e:
+                    violations.append(f"Read Before Write: Cannot verify read_proof - {e}")
+        
+        # === Rule 5: Patch Only (HOLD if no diff) ===
+        if plan.operation == "patch":
+            if not plan.diff:
+                violations.append("Patch Only: No unified diff provided")
+        
+        # === Rule 6: Rewrite Threshold (HOLD if deletion_ratio > 30%) ===
+        if plan.operation == "patch" and plan.diff:
+            # Parse unified diff to compute deletion ratio
+            deleted_lines = 0
+            original_lines = 0
+            
+            for line in plan.diff.split("\n"):
+                if line.startswith("-") and not line.startswith("---"):
+                    deleted_lines += 1
+                    original_lines += 1
+                elif line.startswith("+") and not line.startswith("+++"):
+                    pass  # Added lines don't count toward original
+                elif line.startswith(" "):
+                    original_lines += 1
+            
+            # Compute deletion ratio
+            if original_lines > 0:
+                deletion_ratio = deleted_lines / original_lines
+                if deletion_ratio > 0.30:
+                    violations.append(
+                        f"Rewrite Threshold: Deletion ratio {deletion_ratio:.0%} exceeds 30% limit"
+                    )
+        
+        # === Determine verdict ===
+        if violations:
+            # Log to ledger
+            if self.enable_ledger:
+                self._log_write_validation(plan, "HOLD", violations)
+            
+            return FAGWriteResult(
+                verdict="HOLD",
+                path=target_path,
+                reason=f"888_HOLD: {'; '.join(violations)}",
+                floor_violations=violations,
+            )
+        
+        # All checks passed
+        if self.enable_ledger:
+            self._log_write_validation(plan, "SEAL", [])
+        
+        return FAGWriteResult(
+            verdict="SEAL",
+            path=target_path,
+            reason="All FAG Write Contract rules passed",
+            floor_violations=[],
+        )
+    
+    def _log_write_validation(
+        self,
+        plan: "FAGWritePlan",
+        verdict: str,
+        violations: List[str],
+    ) -> None:
+        """Log write validation to Cooling Ledger."""
+        metrics = Metrics(
+            truth=0.99 if verdict == "SEAL" else 0.5,
+            delta_s=0.1 if verdict == "SEAL" else -0.1,
+            amanah=verdict != "VOID",
+            peace_squared=1.0,
+            omega_0=0.04,
+            tri_witness=0.95,
+            kappa_r=0.95,
+        )
+        
+        log_cooling_entry(
+            job_id=self.job_id,
+            verdict=verdict,
+            metrics=metrics,
+            stakes="fag_write_validate",
+            context_summary=f"FAG write_validate: {plan.operation} {plan.target_path} -> {verdict}",
         )
     
     def _resolve_path(self, path: str) -> Path:
