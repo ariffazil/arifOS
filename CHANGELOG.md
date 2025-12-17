@@ -11,6 +11,16 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 > Use this section for upcoming changes.
 > When you cut a new version, move entries from here into a tagged release.
 
+## [v42.1.2] - 2025-12-18 - Packaging + Audit CLI
+
+**Status:** UNSEALED | Tests: not run | Tag: pending
+
+### Added
+- `arifos-analyze-audit-trail` CLI entry for `scripts/analyze_audit_trail.py`.
+
+### Changed
+- `pyproject.toml`: require Python >=3.10; tooling targets py310+.
+
 ## [v42.1.1] - 2025-12-18 - Phase 2 LLM Adversarial Harness + F2 Truth Enforcement
 
 **Status:** SEALED | Tests: 2180+ | Safety: 97% | Tag: v42.1.1-sealed
