@@ -135,7 +135,7 @@ python -m arifos_core.system.pipeline --query "your query" --verbose
 
 ---
 
-## 🔐 Phase 2: LLM Adversarial Harness (v42.1.2)
+## 🔐 Phase 2: LLM Adversarial Harness (v42.2.2)
 
 Test cryptographic integrity against LLM bypass attempts.
 

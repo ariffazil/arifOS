@@ -11,6 +11,17 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 > Use this section for upcoming changes.
 > When you cut a new version, move entries from here into a tagged release.
 
+## [v42.2.2] - 2025-12-18 - Release Alignment + Packaging
+
+**Status:** SEALED | Tests: 2195 passed, 13 skipped | Tag: v42.2.2-sealed
+
+### Added
+- `arifos-analyze-audit-trail` CLI entry for `scripts/analyze_audit_trail.py`.
+
+### Changed
+- `pyproject.toml`: require Python >=3.10; tooling targets py310+.
+- Version bump to keep the sealed release line ahead of v42.2.1.
+
 ## [v42.1.2] - 2025-12-18 - Packaging + Audit CLI
 
 **Status:** SEALED | Tests: 2195 passed, 13 skipped | Tag: v42.1.2-sealed
