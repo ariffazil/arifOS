@@ -98,7 +98,45 @@ Human-facing “wisdom log” to prevent repeated entropy mistakes.
 - ✅ "APPEND the new features to Section 4 of README.md. PRESERVE all other sections exactly as they are. Do not summarize."
 - ✅ "Apply this specific change as a DIFF or PATCH. Do not reprint the whole file."
 
+### 1.7 FAG Write Contract (v42.2)
+
+**Write Governance Rules** — All agents MUST obey:
+
+| Rule | Violation | Verdict |
+|------|-----------|---------|
+| **No New Files** | Create outside sandbox, not allowlisted | **HOLD** |
+| **Canon Lock** | Create inside `L1_THEORY/` | **VOID** |
+| **Patch Only** | No unified diff provided | **HOLD** |
+| **Rewrite Threshold** | Deletion ratio > 30% | **HOLD** |
+| **Read Before Write** | No `read_proof` (sha256 + bytes) | **HOLD** |
+| **Delete Gate** | Any delete operation | **HOLD** |
+
+**Sandbox Zones (Unlimited Writes):**
+- `.arifos_clip/*` — A-CLIP session artifacts
+- `scratch/*` — Temporary work area
+
+**Session Allowlist:**
+- Human may approve a new file path for current session only
+- Stored in `.arifos_clip/session.json`
+- Expires when session ends
+
+**Deletion Ratio Formula:**
+```
+deletion_ratio = deleted_lines / max(original_lines, 1)
+```
+
+**Read Proof Structure:**
+```python
+read_sha256: str      # SHA-256 of file content
+read_bytes: int       # File size in bytes
+read_mtime_ns: int    # Optional: modification time
+read_excerpt: str     # Optional: first/last 64 bytes
+```
+
+**Enforcement:** `FAG.write_validate(plan)` must return SEAL before 999 `--apply`.
+
 ## 2. NINE CONSTITUTIONAL FLOORS (Summary)
+
 
 **Logic:** All floors AND - every floor must PASS. Repair order: F1 first.
 
