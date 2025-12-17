@@ -29,8 +29,8 @@
 | File | Purpose |
 |------|---------|
 | `arifos_core/waw/well.py` | Runtime implementation with WellSignals |
-| `v36.3O/spec/waw_well_spec_v36.3O.yaml` | Organ-level specification |
-| `v36.3O/spec/well_floors_v36.3O.json` | Floor thresholds and governance logic |
+| `archive/versions/v36_3_omega/v36.3O/spec/waw_well_spec_v36.3O.yaml` | Organ-level specification |
+| `archive/versions/v36_3_omega/v36.3O/spec/well_floors_v36.3O.json` | Floor thresholds and governance logic |
 | `tests/test_waw_well_signals.py` | Unit tests for @WELL signals |
 | `canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md` | W@W Federation law |
 
@@ -213,10 +213,10 @@ When @WELL issues a VETO, it results in SABAR (pause-and-cool protocol).
 ## Law References
 
 - [WAW_FEDERATION_v36Omega.md](../canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md) - Federation canon
-- [waw_federation_spec_v36.3O.yaml](../v36.3O/spec/waw_federation_spec_v36.3O.yaml) - Federation spec
-- [waw_well_spec_v36.3O.yaml](../v36.3O/spec/waw_well_spec_v36.3O.yaml) - @WELL organ spec
-- [well_floors_v36.3O.json](../v36.3O/spec/well_floors_v36.3O.json) - Floor thresholds
-- [measurement_floors_v36.3O.json](../v36.3O/spec/measurement_floors_v36.3O.json) - F3/F4 laws
+- [waw_federation_spec_v36.3O.yaml](../archive/versions/v36_3_omega/v36.3O/spec/waw_federation_spec_v36.3O.yaml) - Federation spec
+- [waw_well_spec_v36.3O.yaml](../archive/versions/v36_3_omega/v36.3O/spec/waw_well_spec_v36.3O.yaml) - @WELL organ spec
+- [well_floors_v36.3O.json](../archive/versions/v36_3_omega/v36.3O/spec/well_floors_v36.3O.json) - Floor thresholds
+- [measurement_floors_v36.3O.json](../archive/versions/v36_3_omega/v36.3O/spec/measurement_floors_v36.3O.json) - F3/F4 laws
 
 ---
 

@@ -166,7 +166,7 @@ The arifOS governance system operates on **three tracks**:
 |----------|----------|--------|
 | `vault-999/` | `vault_999/` | RENAME |
 | `spec_archive/` | `archive/spec/` | MOVE |
-| `v36.3O/` | `archive/versions/v36_3_omega/` | MOVE |
+| `v36.3O/` | `archive/versions/v36_3_omega/v36.3O/` | MOVE |
 | `.arifos_clip_archive_*` | `archive/arifos_clip_YYYYMMDD/` | MOVE + RENAME |
 
 ---
@@ -181,7 +181,7 @@ All deprecated artifacts MUST be moved to `archive/` with this structure:
 archive/
 ├── spec/                    # Old spec files (from spec_archive/)
 ├── versions/                # Version snapshots
-│   ├── v36_3_omega/        # Historical version directory (from v36.3O/)
+│   ├── v36_3_omega/        # Historical version directory (contains v36.3O/ snapshot)
 │   ├── v37_alpha/
 │   └── v38_omega/
 ├── arifos_clip_YYYYMMDD/   # Dated ACLIP archives (from .arifos_clip_archive_*)

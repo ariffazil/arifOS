@@ -6,7 +6,7 @@ Domain: Tone, stability, weakest-listener protection
 
 Version: v36.3Omega
 Status: PRODUCTION
-Alignment: v36.3O/spec/waw_well_spec_v36.3O.yaml
+Alignment: archive/versions/v36_3_omega/v36.3O/spec/waw_well_spec_v36.3O.yaml
 
 Core responsibilities:
 - Peace² (F3) enforcement: stability ≥ 1.0
@@ -22,8 +22,8 @@ Veto Type: SABAR (Pause & Cool)
 
 Lead Stages: 111 SENSE, 555 EMPATHIZE, 666 BRIDGE
 
-See: v36.3O/spec/waw_well_spec_v36.3O.yaml
-     v36.3O/spec/well_floors_v36.3O.json
+See: archive/versions/v36_3_omega/v36.3O/spec/waw_well_spec_v36.3O.yaml
+     archive/versions/v36_3_omega/v36.3O/spec/well_floors_v36.3O.json
      canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md
 """
 

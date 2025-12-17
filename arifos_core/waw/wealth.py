@@ -6,7 +6,7 @@ Domain: Scope control, reversibility, resource integrity, fairness, dignity
 
 Version: v36.3Omega
 Status: PRODUCTION
-Alignment: v36.3O/spec/waw_wealth_spec_v36.3O.yaml
+Alignment: archive/versions/v36_3_omega/v36.3O/spec/waw_wealth_spec_v36.3O.yaml
 
 Core responsibilities:
 - Amanah (trust) enforcement = LOCK (must be true)
@@ -23,8 +23,8 @@ Veto Type: ABSOLUTE (Non-negotiable veto on trust violation)
 
 Lead Stages: 666 ALIG, 777 FORG, 888 JUDGE
 
-See: v36.3O/spec/waw_wealth_spec_v36.3O.yaml
-     v36.3O/spec/wealth_floors_v36.3O.json
+See: archive/versions/v36_3_omega/v36.3O/spec/waw_wealth_spec_v36.3O.yaml
+     archive/versions/v36_3_omega/v36.3O/spec/wealth_floors_v36.3O.json
      canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md
 """
 

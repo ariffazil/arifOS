@@ -2,8 +2,8 @@
 scar_manager.py — Scar and Witness Management for arifOS v37
 
 Implements scar lifecycle per:
-- v36.3O/canon/SCARS_PHOENIX_HEALING_v36.3O.md
-- v36.3O/spec/scar_record_spec_v36.3O.json
+- archive/versions/v36_3_omega/v36.3O/canon/SCARS_PHOENIX_HEALING_v36.3O.md
+- archive/versions/v36_3_omega/v36.3O/spec/scar_record_spec_v36.3O.json
 
 Key concepts:
 - WITNESS: Unsigned local observations (for early warning, R&D)

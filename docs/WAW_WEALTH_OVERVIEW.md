@@ -28,8 +28,8 @@
 | File | Purpose |
 |------|---------|
 | `arifos_core/waw/wealth.py` | Runtime implementation with WealthSignals |
-| `v36.3O/spec/waw_wealth_spec_v36.3O.yaml` | Organ-level specification |
-| `v36.3O/spec/wealth_floors_v36.3O.json` | Floor thresholds and governance logic |
+| `archive/versions/v36_3_omega/v36.3O/spec/waw_wealth_spec_v36.3O.yaml` | Organ-level specification |
+| `archive/versions/v36_3_omega/v36.3O/spec/wealth_floors_v36.3O.json` | Floor thresholds and governance logic |
 | `tests/test_waw_wealth_signals.py` | Unit tests for @WEALTH signals |
 | `canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md` | W@W Federation law |
 
@@ -184,10 +184,10 @@ When @WEALTH issues a VETO, it's non-negotiable and results in immediate VOID.
 ## Law References
 
 - [WAW_FEDERATION_v36Omega.md](../canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md) - Federation canon
-- [waw_federation_spec_v36.3O.yaml](../v36.3O/spec/waw_federation_spec_v36.3O.yaml) - Federation spec
-- [waw_wealth_spec_v36.3O.yaml](../v36.3O/spec/waw_wealth_spec_v36.3O.yaml) - @WEALTH organ spec
-- [wealth_floors_v36.3O.json](../v36.3O/spec/wealth_floors_v36.3O.json) - Floor thresholds
-- [measurement_floors_v36.3O.json](../v36.3O/spec/measurement_floors_v36.3O.json) - F6 Amanah law
+- [waw_federation_spec_v36.3O.yaml](../archive/versions/v36_3_omega/v36.3O/spec/waw_federation_spec_v36.3O.yaml) - Federation spec
+- [waw_wealth_spec_v36.3O.yaml](../archive/versions/v36_3_omega/v36.3O/spec/waw_wealth_spec_v36.3O.yaml) - @WEALTH organ spec
+- [wealth_floors_v36.3O.json](../archive/versions/v36_3_omega/v36.3O/spec/wealth_floors_v36.3O.json) - Floor thresholds
+- [measurement_floors_v36.3O.json](../archive/versions/v36_3_omega/v36.3O/spec/measurement_floors_v36.3O.json) - F6 Amanah law
 
 ---
 

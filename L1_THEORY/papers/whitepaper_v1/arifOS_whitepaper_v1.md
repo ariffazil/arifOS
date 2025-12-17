@@ -12,12 +12,12 @@ Law / spec / runtime context
 
 This document is **descriptive**, not canonical. It explains how the current arifOS codebase and specs implement the constitutional ideas.
 
-- **Law (canon, v36.3Ω):** `v36.3O/canon/*`
-- **Spec (machine-readable):** `v36.3O/spec/*`
+- **Law (canon, v36.3Ω):** `archive/versions/v36_3_omega/v36.3O/canon/*`
+- **Spec (machine-readable):** `archive/versions/v36_3_omega/v36.3O/spec/*`
 - **Runtime (current kernel):** `arifos_core/*` (v35Ω runtime with v36.3Ω measurement layer)
-- **Runtime manifest (descriptive):** `v36.3O/spec/arifos_runtime_manifest_v36.3O.json`
+- **Runtime manifest (descriptive):** `archive/versions/v36_3_omega/v36.3O/spec/arifos_runtime_manifest_v36.3O.json`
   - `meta.runtime_manifest_line`:
-  - `arifOS v36.3Omega | status=DESCRIPTIVE | law=v36.3O/canon/* | spec=v36.3O/spec/* | runtime=arifos_core/* (v35Omega runtime with v36.3O measurement layer) | pipeline=arifos_core.pipeline.Pipeline 000-999 | judiciary=APEX_PRIME + WAWFederationCore | metrics=measurement_floors_v36.3O.json + measurement_aggregates_v36.3O.json | ledger=CoolingLedger + Vault-999.`
+  - `arifOS v36.3Omega | status=DESCRIPTIVE | law=archive/versions/v36_3_omega/v36.3O/canon/* | spec=archive/versions/v36_3_omega/v36.3O/spec/* | runtime=arifos_core/* (v35Omega runtime with v36.3O measurement layer) | pipeline=arifos_core.pipeline.Pipeline 000-999 | judiciary=APEX_PRIME + WAWFederationCore | metrics=measurement_floors_v36.3O.json + measurement_aggregates_v36.3O.json | ledger=CoolingLedger + Vault-999.`
 
 Where this whitepaper conflicts with canon/spec, **canon wins** and any discrepancy should be treated as a PARADOX_HOTSPOT to be resolved in future revisions.
 
@@ -111,7 +111,7 @@ Regulators cannot inspect weights. But they can inspect a recorded, rule-bound d
 arifOS provides an auditable, cryptographically grounded **Glass Engine** via:
 
 - `CoolingLedger` (JSONL) in `arifos_core/memory/cooling_ledger.py`.
-- Vault-999, the immutable memory and witness layer, specified in `v36.3O/spec/vault999_*.json` and `v36.3O/canon/VAULT999_*`.
+- Vault-999, the immutable memory and witness layer, specified in `archive/versions/v36_3_omega/v36.3O/spec/vault999_*.json` and `archive/versions/v36_3_omega/v36.3O/canon/VAULT999_*`.
 
 4. The Sovereign Stack Architecture
 -----------------------------------
@@ -142,8 +142,8 @@ We define a five-layer operational system.
 
 - Nation-specific legal, cultural, and sectoral constraints.
 - Primary canon/spec:
-  - `v36.3O/canon/*` — constitutional law, including `TRINITY_AAA_ENGINES_v36.3O.md`, `JUDICIARY_APEX_PRIME_v36.3O.md`, `OVERSIGHT_WAW_FEDERATION_v36.3O.md`, and Vault-999 canon.
-  - `v36.3O/spec/*` — machine-readable measurement, floors, W@W specs, telemetry, and runtime manifest.
+  - `archive/versions/v36_3_omega/v36.3O/canon/*` — constitutional law, including `TRINITY_AAA_ENGINES_v36.3O.md`, `JUDICIARY_APEX_PRIME_v36.3O.md`, `OVERSIGHT_WAW_FEDERATION_v36.3O.md`, and Vault-999 canon.
+  - `archive/versions/v36_3_omega/v36.3O/spec/*` — machine-readable measurement, floors, W@W specs, telemetry, and runtime manifest.
 - arifOS can host multiple sovereign configurations on a shared L2 kernel.
 
 **L4 — Application Layer**
@@ -160,7 +160,7 @@ We define a five-layer operational system.
 
 The current v35Ω/v36.3Ω implementation is described in:
 
-- `v36.3O/spec/arifos_runtime_manifest_v36.3O.json` (descriptive manifest).
+- `archive/versions/v36_3_omega/v36.3O/spec/arifos_runtime_manifest_v36.3O.json` (descriptive manifest).
 - `arifos_core/runtime_manifest.py` (runtime helper for manifest metadata).
 
 5. Constitutional Physics (Delta, Omega, Psi)
@@ -168,8 +168,8 @@ The current v35Ω/v36.3Ω implementation is described in:
 
 The constitutional physics layer is implemented via `Metrics` (`arifos_core/metrics.py`) and GENIUS LAW (`arifos_core/genius_metrics.py`). The law-level definition lives in:
 
-- `v36.3O/spec/measurement_floors_v36.3O.json`
-- `v36.3O/spec/measurement_aggregates_v36.3O.json`
+- `archive/versions/v36_3_omega/v36.3O/spec/measurement_floors_v36.3O.json`
+- `archive/versions/v36_3_omega/v36.3O/spec/measurement_aggregates_v36.3O.json`
 
 ### 5.1 Delta — The Clarity Law
 
@@ -229,10 +229,10 @@ The AGI·ASI·APEX Trinity defines three roles:
 
 In code:
 
-- AGI/ASI/APEX engines: `arifos_core/engines/` and `v36.3O/spec/trinity_aaa_spec_v36.3O.yaml`.
+- AGI/ASI/APEX engines: `arifos_core/engines/` and `archive/versions/v36_3_omega/v36.3O/spec/trinity_aaa_spec_v36.3O.yaml`.
 - APEX PRIME:
   - `arifos_core/APEX_PRIME.py`
-  - `v36.3O/canon/JUDICIARY_APEX_PRIME_v36.3O.md`
+  - `archive/versions/v36_3_omega/v36.3O/canon/JUDICIARY_APEX_PRIME_v36.3O.md`
 
 APEX PRIME:
 
@@ -245,9 +245,9 @@ APEX PRIME:
 
 The W@W Federation implements domain-specific veto organs, specified in:
 
-- `v36.3O/canon/OVERSIGHT_WAW_FEDERATION_v36.3O.md`
-- `v36.3O/spec/waw_federation_spec_v36.3O.yaml`
-- Organ specs: `v36.3O/spec/waw_*_spec_v36.3O.yaml`
+- `archive/versions/v36_3_omega/v36.3O/canon/OVERSIGHT_WAW_FEDERATION_v36.3O.md`
+- `archive/versions/v36_3_omega/v36.3O/spec/waw_federation_spec_v36.3O.yaml`
+- Organ specs: `archive/versions/v36_3_omega/v36.3O/spec/waw_*_spec_v36.3O.yaml`
 
 Organs:
 
@@ -322,8 +322,8 @@ This composite verdict is then recorded in `PipelineState.verdict`.
 
 The nine floors are specified in:
 
-- `v36.3O/spec/measurement_floors_v36.3O.json`
-- `v36.3O/canon/MEASUREMENT_APEX_STANDARDS_v36.3O.md`
+- `archive/versions/v36_3_omega/v36.3O/spec/measurement_floors_v36.3O.json`
+- `archive/versions/v36_3_omega/v36.3O/canon/MEASUREMENT_APEX_STANDARDS_v36.3O.md`
 
 and enforced in:
 
@@ -414,8 +414,8 @@ Implementation:
 
 - `arifos_core/genius_metrics.py`
 - GENIUS LAW specs and thresholds:
-  - `v36.3O/spec/measurement_aggregates_v36.3O.json`
-  - `v36.3O/spec/promptfoo_configs/genius_law_v36.3O.yaml`
+  - `archive/versions/v36_3_omega/v36.3O/spec/measurement_aggregates_v36.3O.json`
+  - `archive/versions/v36_3_omega/v36.3O/spec/promptfoo_configs/genius_law_v36.3O.yaml`
 
 Key quantities:
 
@@ -446,7 +446,7 @@ Even if L1 generates harmful content, L2 (floors + W@W + Eye) can void it:
 
 Sovereign configuration (L3) changes are subject to cooling/activation protocols described in:
 
-- `v36.3O/canon/*` (Phoenix-72, Vault-999 sealing).
+- `archive/versions/v36_3_omega/v36.3O/canon/*` (Phoenix-72, Vault-999 sealing).
 
 No immediate activation of new rules without cooling; misconfigurations can be rolled back by reverting canon/spec, while runtime remains stable.
 
@@ -536,7 +536,7 @@ The v36.3Ω layer is an evolving law/spec over a v35Ω runtime. Some divergences
 
 ### 14.1 GEOX Veto Type
 
-- Spec (`v36.3O/spec/waw_federation_spec_v36.3O.yaml`) treats @GEOX as a VOID-type veto for physics violations.
+- Spec (`archive/versions/v36_3_omega/v36.3O/spec/waw_federation_spec_v36.3O.yaml`) treats @GEOX as a VOID-type veto for physics violations.
 - Runtime (`arifos_core/waw/geox.py` and `pipeline.stage_888_judge`) currently maps @GEOX veto to **888_HOLD** for compatibility with existing tests and integrations.
 - This is explicitly documented as a HOTSPOT; future runtime versions may converge fully to the spec once migration plans are complete.
 
@@ -586,7 +586,7 @@ A scientific theory must be disprovable. arifOS is falsified if:
 - Tri-Witness F8 fails to reduce jailbreak rates compared to baselines.
 - Omega0 band constraints do not reduce overconfidence errors or miscalibrated certainty.
 
-The test suite and promptfoo configs (e.g., `v36.3O/spec/promptfoo_configs/genius_law_v36.3O.yaml`) are intended to provide **fallible, empirical probes**, not proofs.
+The test suite and promptfoo configs (e.g., `archive/versions/v36_3_omega/v36.3O/spec/promptfoo_configs/genius_law_v36.3O.yaml`) are intended to provide **fallible, empirical probes**, not proofs.
 
 17. Conclusion
 --------------
@@ -606,8 +606,8 @@ This whitepaper describes the first runtime constitutional operating system for 
 
 The actual authority remains with:
 
-- Canon: `v36.3O/canon/*`
-- Spec: `v36.3O/spec/*`
+- Canon: `archive/versions/v36_3_omega/v36.3O/canon/*`
+- Spec: `archive/versions/v36_3_omega/v36.3O/spec/*`
 - Runtime: `arifos_core/*`
 
 This whitepaper is a bridge between those layers and human readers.
@@ -619,21 +619,21 @@ If you want to extend arifOS, start by reading:
 
 - Governance overview:
   - `AGENTS.md`
-  - `v36.3O/canon/CANON_MAP_v36.3O.md`
+  - `archive/versions/v36_3_omega/v36.3O/canon/CANON_MAP_v36.3O.md`
 - Measurement and floors:
-  - `v36.3O/spec/measurement_floors_v36.3O.json`
-  - `v36.3O/spec/measurement_aggregates_v36.3O.json`
+  - `archive/versions/v36_3_omega/v36.3O/spec/measurement_floors_v36.3O.json`
+  - `archive/versions/v36_3_omega/v36.3O/spec/measurement_aggregates_v36.3O.json`
 - Judiciary and GENIUS LAW:
-  - `v36.3O/canon/JUDICIARY_APEX_PRIME_v36.3O.md`
+  - `archive/versions/v36_3_omega/v36.3O/canon/JUDICIARY_APEX_PRIME_v36.3O.md`
   - `arifos_core/APEX_PRIME.py`
   - `arifos_core/genius_metrics.py`
 - Pipeline and runtime manifest:
   - `arifos_core/pipeline.py`
   - `arifos_core/runtime_manifest.py`
-  - `v36.3O/spec/arifos_runtime_manifest_v36.3O.json`
+  - `archive/versions/v36_3_omega/v36.3O/spec/arifos_runtime_manifest_v36.3O.json`
 - W@W Federation and organs:
-  - `v36.3O/spec/waw_federation_spec_v36.3O.yaml`
-  - `v36.3O/spec/waw_*_spec_v36.3O.yaml`
+  - `archive/versions/v36_3_omega/v36.3O/spec/waw_federation_spec_v36.3O.yaml`
+  - `archive/versions/v36_3_omega/v36.3O/spec/waw_*_spec_v36.3O.yaml`
   - `arifos_core/waw/federation.py`
   - `arifos_core/waw/*.py`
 - Detectors and Eye:
@@ -642,7 +642,7 @@ If you want to extend arifOS, start by reading:
   - `arifos_core/eye/eye_sentinel.py`
 - Ledger and Vault:
   - `arifos_core/memory/cooling_ledger.py`
-  - `v36.3O/spec/vault999_*`
+  - `archive/versions/v36_3_omega/v36.3O/spec/vault999_*`
 
 The safest way to experiment locally is:
 

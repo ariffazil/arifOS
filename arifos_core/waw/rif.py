@@ -6,7 +6,7 @@ Domain: Fact validation, coherence, epistemic integrity
 
 Version: v36.3Omega
 Status: PRODUCTION
-Alignment: v36.3O/spec/waw_rif_spec_v36.3O.yaml
+Alignment: archive/versions/v36_3_omega/v36.3O/spec/waw_rif_spec_v36.3O.yaml
 
 Core responsibilities:
 - Truth (F1) enforcement: factual accuracy ≥ 0.99
@@ -23,8 +23,8 @@ Veto Type: VOID (Hard stop on epistemic failure)
 
 Lead Stages: 333 REASON, 444 ALIG, 888 JUDGE
 
-See: v36.3O/spec/waw_rif_spec_v36.3O.yaml
-     v36.3O/spec/rif_floors_v36.3O.json
+See: archive/versions/v36_3_omega/v36.3O/spec/waw_rif_spec_v36.3O.yaml
+     archive/versions/v36_3_omega/v36.3O/spec/rif_floors_v36.3O.json
      canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md
 """
 

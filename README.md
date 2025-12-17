@@ -1,21 +1,21 @@
-# arifOS v42.2-sealed — Constitutional Kernel for AI Governance
+# arifOS v42.2.1-sealed — Constitutional Kernel for AI Governance
 
 **“DITEMPA BUKAN DIBERI — Forged, Not Given.”**  
 *Truth must cool before it rules.*
 
-[![Release](https://img.shields.io/badge/Release-v42.2--sealed-success)](https://github.com/ariffazil/arifOS/releases)
+[![Release](https://img.shields.io/badge/Release-v42.2.1--sealed-success)](https://github.com/ariffazil/arifOS/releases)
 ![Tests](https://img.shields.io/badge/Tests-2156%20passed-brightgreen)
 ![Governance](https://img.shields.io/badge/Constitution-F1%E2%80%93F9%20ENFORCED-black)
 ![Forensics](https://img.shields.io/badge/Forensics-HashChain%20%2B%20zkPC%20OK-blue)
 [![License](https://img.shields.io/badge/License-AGPL--3.0-red)](LICENSE)
 
-Tag: `v42.2-sealed`
+Tag: `v42.2.1-sealed`
 
 ---
 
 ## Contents
 - Why this exists (the $20 lesson)
-- What v42.2-sealed actually delivers
+- What v42.2.1-sealed actually delivers
 - Quick start (PowerShell)
 - Quick start (bash/macOS/Linux)
 - CLI reference (pipeline)
@@ -50,7 +50,7 @@ Unsafe output must fail before execution.
 
 ---
 
-## ✅ What `v42.2-sealed` actually delivers
+## ✅ What `v42.2.1-sealed` actually delivers
 Production-grade wiring between canon → spec → runtime → ledger → forensics.
 
 | Capability | Status | Evidence |
@@ -62,7 +62,7 @@ Production-grade wiring between canon → spec → runtime → ledger → forens
 | CLI entrypoint | Live | `python -m arifos_core.system.pipeline --query "..." [--verbose]` |
 | Forensics replay | Live | `scripts/forensics_replay.py` validates hash chain + entry checks |
 | Test suite | Green | `pytest -q` → 2156 passed, 17 skipped |
-| Seal tag | Published | `git tag -l v42.2-sealed` |
+| Seal tag | Published | `git tag -l v42.2.1-sealed` |
 
 ---
 
@@ -167,7 +167,7 @@ python scripts/forensics_replay.py --ledger vault_999/cooling_ledger.jsonl --ent
 - `arifos_core/validators/spec_checker.py`
 - `arifos_core/runtime/bootstrap.py`
 
-### Required spec files (v42.2)
+### Required spec files (v42.2.1)
 - `spec/v42/spec_binding.json`
 - `spec/v42/eye_audit.yaml`
 - `spec/v42/measurement.yaml`
@@ -255,7 +255,7 @@ They write an audit trail.
 - What it blocks (examples):
   - “Just trust me” outputs without verifiable grounding.
 - Runtime notes:
-  - v42.2 implements a minimal witness trace: spec hashes + commit hash + zkPC receipt object.
+  - v42.2.1 implements a minimal witness trace: spec hashes + commit hash + zkPC receipt object.
 
 ### F4 — CLARITY (ΔS >= 0)
 - What it is:
@@ -648,7 +648,7 @@ Primary failure: jailbreak patterns, inner-life claims, coercive framing
 Veto: rewrite
 Typical route: PARTIAL or VOID depending on severity
 
-Note: In v42.2, @EYE adapter implements drift + dignity checks.
+Note: In v42.2.1, @EYE adapter implements drift + dignity checks.
 Note: W@W full canonical spec lives under `L1_THEORY/canon/02_actors/` and `spec/v42/`.
 
 ---
@@ -756,15 +756,15 @@ Purpose: thresholds for F1–F9 floors
 Rule: single source of truth for thresholds
 
 File: spec/v42/measurement.yaml
-Purpose: measurement schema placeholder for v42.2
+Purpose: measurement schema placeholder for v42.2.1
 Rule: schema may evolve without changing canon semantics
 
 File: spec/v42/pipeline.json
-Purpose: pipeline dials placeholder for v42.2
+Purpose: pipeline dials placeholder for v42.2.1
 Rule: budgets and timers belong in spec
 
 File: spec/v42/federation.json
-Purpose: W@W organ weights/veto placeholder for v42.2
+Purpose: W@W organ weights/veto placeholder for v42.2.1
 Rule: future expansions should remain JSON-first
 
 ---
@@ -795,11 +795,11 @@ Command: python -m arifos_core.system.pipeline --query "drift"
 Unset: remove ARIFOS_FORCE_EPSILON_TOTAL
 
 Step: tag release (optional)
-Command: git tag -a v42.2-sealed -m "..."
+Command: git tag -a v42.2.1-sealed -m "..."
 
 Step: push release
 Command: git push origin main
-Command: git push origin v42.2-sealed
+Command: git push origin v42.2.1-sealed
 
 ---
 

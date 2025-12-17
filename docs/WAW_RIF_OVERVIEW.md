@@ -30,8 +30,8 @@
 | File | Purpose |
 |------|---------|
 | `arifos_core/waw/rif.py` | Runtime implementation with RifSignals |
-| `v36.3O/spec/waw_rif_spec_v36.3O.yaml` | Organ-level specification |
-| `v36.3O/spec/rif_floors_v36.3O.json` | Floor thresholds and governance logic |
+| `archive/versions/v36_3_omega/v36.3O/spec/waw_rif_spec_v36.3O.yaml` | Organ-level specification |
+| `archive/versions/v36_3_omega/v36.3O/spec/rif_floors_v36.3O.json` | Floor thresholds and governance logic |
 | `tests/test_waw_rif_signals.py` | Unit tests for @RIF signals |
 | `canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md` | W@W Federation law |
 
@@ -202,10 +202,10 @@ When @RIF issues a VETO, it results in VOID (hard floor failure).
 ## Law References
 
 - [WAW_FEDERATION_v36Omega.md](../canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md) - Federation canon
-- [waw_federation_spec_v36.3O.yaml](../v36.3O/spec/waw_federation_spec_v36.3O.yaml) - Federation spec
-- [waw_rif_spec_v36.3O.yaml](../v36.3O/spec/waw_rif_spec_v36.3O.yaml) - @RIF organ spec
-- [rif_floors_v36.3O.json](../v36.3O/spec/rif_floors_v36.3O.json) - Floor thresholds
-- [measurement_floors_v36.3O.json](../v36.3O/spec/measurement_floors_v36.3O.json) - F1/F2/F5 laws
+- [waw_federation_spec_v36.3O.yaml](../archive/versions/v36_3_omega/v36.3O/spec/waw_federation_spec_v36.3O.yaml) - Federation spec
+- [waw_rif_spec_v36.3O.yaml](../archive/versions/v36_3_omega/v36.3O/spec/waw_rif_spec_v36.3O.yaml) - @RIF organ spec
+- [rif_floors_v36.3O.json](../archive/versions/v36_3_omega/v36.3O/spec/rif_floors_v36.3O.json) - Floor thresholds
+- [measurement_floors_v36.3O.json](../archive/versions/v36_3_omega/v36.3O/spec/measurement_floors_v36.3O.json) - F1/F2/F5 laws
 
 ---
 

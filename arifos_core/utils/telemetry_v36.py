@@ -3,7 +3,7 @@
 telemetry_v36.py — v36-Native Telemetry Entry Builder
 
 Spec Alignment:
-    Spec: v36.3O/spec/apex_prime_telemetry_v36.3O.json
+    Spec: archive/versions/v36_3_omega/v36.3O/spec/apex_prime_telemetry_v36.3O.json
     Status: FULL alignment (closes HOTSPOTs 7, 8, 9)
 
 This module builds telemetry entry dictionaries that match the v36.3Ω spec schema.

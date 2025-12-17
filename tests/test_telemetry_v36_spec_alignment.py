@@ -3,7 +3,7 @@
 Tests for v36-native telemetry spec alignment.
 
 Validates that telemetry_v36.py produces entries matching
-v36.3O/spec/apex_prime_telemetry_v36.3O.json schema.
+archive/versions/v36_3_omega/v36.3O/spec/apex_prime_telemetry_v36.3O.json schema.
 
 HOTSPOTs Closed:
     HOTSPOT 7: query_hash/response_hash as SHA-256
@@ -47,7 +47,7 @@ from arifos_core.telemetry_v36 import (
 @pytest.fixture
 def spec_schema():
     """Load the v36.3Ω telemetry spec schema."""
-    spec_path = Path("v36.3O/spec/apex_prime_telemetry_v36.3O.json")
+    spec_path = Path("archive/versions/v36_3_omega/v36.3O/spec/apex_prime_telemetry_v36.3O.json")
     if not spec_path.exists():
         pytest.skip("Spec file not found - run from repo root")
     with spec_path.open("r", encoding="utf-8") as f:

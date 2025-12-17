@@ -86,10 +86,10 @@ MANIFEST_PATHS: Dict[EpochType, Dict[str, Path]] = {
         "json": _BASE_DIR / "spec" / "arifos_runtime_manifest_v35Omega.json",
     },
     "v36.3": {
-        "json": _BASE_DIR / "v36.3O" / "spec" / "arifos_runtime_manifest_v36.3O.json",
+        "json": _BASE_DIR / "archive" / "versions" / "v36_3_omega" / "v36.3O" / "spec" / "arifos_runtime_manifest_v36.3O.json",
     },
     "v37": {
-        "json": _BASE_DIR / "v36.3O" / "spec" / "arifos_runtime_manifest_v37.json",
+        "json": _BASE_DIR / "archive" / "versions" / "v36_3_omega" / "v36.3O" / "spec" / "arifos_runtime_manifest_v37.json",
     },
 }
 

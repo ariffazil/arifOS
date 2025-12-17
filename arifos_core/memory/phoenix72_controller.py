@@ -2,8 +2,8 @@
 phoenix72_controller.py — Phoenix-72 Amendment Controller for arifOS v37
 
 Implements the Phoenix-72 amendment protocol per:
-- v36.3O/canon/VAULT_999_AMENDMENTS_v36.3O.md
-- v36.3O/spec/phoenix72_amendment_spec_v36.3O.json
+- archive/versions/v36_3_omega/v36.3O/canon/VAULT_999_AMENDMENTS_v36.3O.md
+- archive/versions/v36_3_omega/v36.3O/spec/phoenix72_amendment_spec_v36.3O.json
 
 Key responsibilities:
 - Compute floor pressure P(F) from scars and ledger entries

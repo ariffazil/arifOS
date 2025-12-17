@@ -68,7 +68,7 @@
       "spec_type": "memory_stack",
       "version": "v38.0.0",
       "spec_refs": [
-        "v36.3O/spec/memory_context_spec_v36.3O.json",
+        "archive/versions/v36_3_omega/v36.3O/spec/memory_context_spec_v36.3O.json",
         "spec/pipeline_v38Omega.yaml",
         "spec/cooling_ledger_phoenix_v38Omega.json",
         "spec/arifos_v38_2.yaml"

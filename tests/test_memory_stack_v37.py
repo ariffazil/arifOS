@@ -9,11 +9,11 @@ Tests the v37 memory stack implementation:
 - CoolingLedgerV37 (hash-chain with head state)
 
 Per:
-- v36.3O/canon/ARIFOS_MEMORY_STACK_v36.3O.md
-- v36.3O/spec/memory_context_spec_v36.3O.json
-- v36.3O/spec/scar_record_spec_v36.3O.json
-- v36.3O/spec/phoenix72_amendment_spec_v36.3O.json
-- v36.3O/spec/eureka_receipt_spec_v36.3O.json
+- archive/versions/v36_3_omega/v36.3O/canon/ARIFOS_MEMORY_STACK_v36.3O.md
+- archive/versions/v36_3_omega/v36.3O/spec/memory_context_spec_v36.3O.json
+- archive/versions/v36_3_omega/v36.3O/spec/scar_record_spec_v36.3O.json
+- archive/versions/v36_3_omega/v36.3O/spec/phoenix72_amendment_spec_v36.3O.json
+- archive/versions/v36_3_omega/v36.3O/spec/eureka_receipt_spec_v36.3O.json
 
 Author: arifOS Project
 Version: v37

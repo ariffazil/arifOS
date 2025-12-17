@@ -6,7 +6,7 @@ Centralized telemetry for governance events. Logs every judgment
 to enable audit trails, calibration tuning, and regression detection.
 
 Spec Alignment (v36.3Ω):
-    Spec: v36.3O/spec/apex_prime_telemetry_v36.3O.json
+    Spec: archive/versions/v36_3_omega/v36.3O/spec/apex_prime_telemetry_v36.3O.json
     Status: PARTIAL alignment (lightweight logging vs full audit schema)
 
     This module provides a lightweight JSONL logger for governance events.

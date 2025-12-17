@@ -2,8 +2,8 @@
 eureka_receipt.py — EUREKA zkPC Receipt Manager for arifOS v37
 
 Implements zkPC (Zero-Knowledge Proof of Cognition) receipts per:
-- v36.3O/canon/VAULT999_ARCHITECTURE_v36.3O.md (L4 layer)
-- v36.3O/spec/eureka_receipt_spec_v36.3O.json
+- archive/versions/v36_3_omega/v36.3O/canon/VAULT999_ARCHITECTURE_v36.3O.md (L4 layer)
+- archive/versions/v36_3_omega/v36.3O/spec/eureka_receipt_spec_v36.3O.json
 
 Key concepts:
 - EUREKA receipts anchor governed cognition without exposing internal reasoning

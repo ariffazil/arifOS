@@ -6,7 +6,7 @@ Domain: Physical feasibility, hardware limits, Earth-witness
 
 Version: v36.3Omega
 Status: PRODUCTION
-Alignment: v36.3O/spec/waw_geox_spec_v36.3O.yaml
+Alignment: archive/versions/v36_3_omega/v36.3O/spec/waw_geox_spec_v36.3O.yaml
 
 Core responsibilities:
 - E_earth (physical feasibility) enforcement
@@ -22,8 +22,8 @@ Veto Type: HOLD-888 (runtime) / VOID (spec)
 
 Lead Stages: 222 REFLECT, 444 ALIGN, 666 BRIDGE
 
-See: v36.3O/spec/waw_geox_spec_v36.3O.yaml
-     v36.3O/spec/geox_floors_v36.3O.json
+See: archive/versions/v36_3_omega/v36.3O/spec/waw_geox_spec_v36.3O.yaml
+     archive/versions/v36_3_omega/v36.3O/spec/geox_floors_v36.3O.json
      canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md
 """
 

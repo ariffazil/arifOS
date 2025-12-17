@@ -9,7 +9,7 @@ Tests the v37 memory stack invariants:
 
 Per:
 - docs/MEMORY_ARCHITECTURE.md
-- v36.3O/canon/ARIFOS_MEMORY_STACK_v36.3O.md
+- archive/versions/v36_3_omega/v36.3O/canon/ARIFOS_MEMORY_STACK_v36.3O.md
 
 Author: arifOS Project
 Version: v37

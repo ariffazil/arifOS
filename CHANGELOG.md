@@ -86,7 +86,7 @@ rc2 formalizes the v42 public API with proper typing and serialization disciplin
 - API registry at `arifos_core/system/api_registry.py`
 - API contract tests at `tests/test_api_contract.py`
 - SEA-LION backward compatibility shim at `integrations/sealion/`
-- v37 runtime manifest at `v36.3O/spec/arifos_runtime_manifest_v37.json`
+- v37 runtime manifest at `archive/versions/v36_3_omega/v36.3O/spec/arifos_runtime_manifest_v37.json`
 
 ### Changed
 
@@ -428,8 +428,8 @@ Plus: **CLI Tools are now first-class citizens**. After `pip install arifos`, us
 #### 3-Track Architecture
 | Track | Layer | Format | Status | Location |
 |-------|-------|--------|--------|----------|
-| A | Law | Markdown + JSON | SEALED | `v36.3O/canon/` + `canon/` |
-| B | Spec | JSON/YAML | Mutable | `v36.3O/spec/` + `spec/` |
+| A | Law | Markdown + JSON | SEALED | `archive/versions/v36_3_omega/v36.3O/canon/` + `canon/` |
+| B | Spec | JSON/YAML | Mutable | `archive/versions/v36_3_omega/v36.3O/spec/` + `spec/` |
 | C | Code | Python | Active | `arifos_core/`, `arifos_eval/`, `scripts/` |
 
 **New:** `CANON_MAP_v36.3O.md` — Single source of truth mapping all 8 zones, 21 specs, 3-track alignment
@@ -465,7 +465,7 @@ arifos-show-merkle-proof        # Merkle proof display
 
 #### v36.3Ω Specification Documents
 
-**New Zone Specs (in `v36.3O/spec/`):**
+**New Zone Specs (in `archive/versions/v36_3_omega/v36.3O/spec/`):**
 | File | Purpose | Status |
 |------|---------|--------|
 | `measurement_floors_v36.3O.json` | F1-F9 floor definitions (machine-readable) | LIVE |
@@ -486,7 +486,7 @@ arifos-show-merkle-proof        # Merkle proof display
 ```
 Runtime Law    → v35Ω (APEX PRIME, Cooling Ledger, Vault-999)
 Measurement    → v36.3Ω (GENIUS LAW + Truth Polarity runtime)
-Canon & Spec   → v36.3Ω (bridges + specs in `v36.3O/`)
+Canon & Spec   → v36.3Ω (bridges + specs in `archive/versions/v36_3_omega/v36.3O/`)
 Package        → v36.3.0 (Python semantic versioning)
 ```
 
@@ -539,7 +539,7 @@ arifos-analyze-governance --help  # NOW WORKS
 **For developers:**
 - v35Ω runtime law is **unchanged** (still binding)
 - v36Ω GENIUS LAW measurement is **unchanged** (still live)
-- New: v36.3Ω specs in `v36.3O/spec/` (design docs, not yet in runtime)
+- New: v36.3Ω specs in `archive/versions/v36_3_omega/v36.3O/spec/` (design docs, not yet in runtime)
 - CLI tools moved to package + entry points (but scripts/ files unchanged)
 
 ### Governance Notes
@@ -551,7 +551,7 @@ arifos-analyze-governance --help  # NOW WORKS
 
 **Amanah Floor (Integrity):** All promises reversible:
 - If CLI tools cause issues, can revert `[project.scripts]` in pyproject.toml
-- Specs in `v36.3O/` don't affect runtime (design-only, reverting docs doesn't break code)
+- Specs in `archive/versions/v36_3_omega/v36.3O/` don't affect runtime (design-only, reverting docs doesn't break code)
 
 ---
 

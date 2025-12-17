@@ -18,8 +18,8 @@ Invariants (from canon):
 - VoidBand entries must be signed when promoted and never silently discarded.
 
 Specification:
-- v36.3O/spec/memory_context_spec_v36.3O.json
-- v36.3O/canon/ARIFOS_MEMORY_STACK_v36.3O.md
+- archive/versions/v36_3_omega/v36.3O/spec/memory_context_spec_v36.3O.json
+- archive/versions/v36_3_omega/v36.3O/canon/ARIFOS_MEMORY_STACK_v36.3O.md
 
 Author: arifOS Project
 Version: v37

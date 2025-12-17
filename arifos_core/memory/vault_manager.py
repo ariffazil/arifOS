@@ -2,9 +2,9 @@
 vault_manager.py — VAULT-999 Manager for arifOS v37
 
 Enhanced VAULT-999 management with amendment workflow integration per:
-- v36.3O/canon/VAULT999_ARCHITECTURE_v36.3O.md
-- v36.3O/canon/VAULT_999_AMENDMENTS_v36.3O.md
-- v36.3O/spec/phoenix72_amendment_spec_v36.3O.json
+- archive/versions/v36_3_omega/v36.3O/canon/VAULT999_ARCHITECTURE_v36.3O.md
+- archive/versions/v36_3_omega/v36.3O/canon/VAULT_999_AMENDMENTS_v36.3O.md
+- archive/versions/v36_3_omega/v36.3O/spec/phoenix72_amendment_spec_v36.3O.json
 
 Responsibilities:
 - Load and expose constitution (L0)

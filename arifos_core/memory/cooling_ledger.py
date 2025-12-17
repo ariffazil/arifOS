@@ -585,8 +585,8 @@ class CoolingLedgerV37:
     - Fail-open hardening (SABAR/HOLD + logging, not silent SEAL)
 
     Implements:
-    - v36.3O/spec/cooling_ledger_entry_spec_v36.3O.json
-    - v36.3O/canon/COOLING_LEDGER_INTEGRITY_v36.3O.md
+    - archive/versions/v36_3_omega/v36.3O/spec/cooling_ledger_entry_spec_v36.3O.json
+    - archive/versions/v36_3_omega/v36.3O/canon/COOLING_LEDGER_INTEGRITY_v36.3O.md
 
     Usage:
         ledger = CoolingLedgerV37()

@@ -61,11 +61,11 @@
 
 ## Development Tracks
 
-### Track A — LAW (v36.3O/canon)
+### Track A — LAW (archive/versions/v36_3_omega/v36.3O/canon)
 
 Only modify canon when explicitly requested.
 
-### Track B — SPEC (v36.3O/spec)
+### Track B — SPEC (archive/versions/v36_3_omega/v36.3O/spec)
 
 Only modify specs when explicitly requested.
 

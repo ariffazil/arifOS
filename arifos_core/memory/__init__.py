@@ -2,8 +2,8 @@
 arifOS Memory Stack — v38 Implementation
 
 This package implements the 6-band memory architecture per:
-- v36.3O/canon/ARIFOS_MEMORY_STACK_v36.3O.md
-- v36.3O/spec/memory_context_spec_v36.3O.json
+- archive/versions/v36_3_omega/v36.3O/canon/ARIFOS_MEMORY_STACK_v36.3O.md
+- archive/versions/v36_3_omega/v36.3O/spec/memory_context_spec_v36.3O.json
 - docs/arifOS-MEMORY-FORGING-DEEPRESEARCH.md (v38)
 
 Memory Bands:

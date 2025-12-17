@@ -29,8 +29,8 @@
 | File | Purpose |
 |------|---------|
 | `arifos_core/waw/geox.py` | Runtime implementation with GeoxSignals |
-| `v36.3O/spec/waw_geox_spec_v36.3O.yaml` | Organ-level specification |
-| `v36.3O/spec/geox_floors_v36.3O.json` | Floor thresholds and governance logic |
+| `archive/versions/v36_3_omega/v36.3O/spec/waw_geox_spec_v36.3O.yaml` | Organ-level specification |
+| `archive/versions/v36_3_omega/v36.3O/spec/geox_floors_v36.3O.json` | Floor thresholds and governance logic |
 | `tests/test_waw_geox_signals.py` | Unit tests for @GEOX signals |
 | `canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md` | W@W Federation law |
 
@@ -207,10 +207,10 @@ When @GEOX issues a VETO, it results in HOLD-888 (runtime) or VOID (spec).
 ## Law References
 
 - [WAW_FEDERATION_v36Omega.md](../canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md) - Federation canon
-- [waw_federation_spec_v36.3O.yaml](../v36.3O/spec/waw_federation_spec_v36.3O.yaml) - Federation spec
-- [waw_geox_spec_v36.3O.yaml](../v36.3O/spec/waw_geox_spec_v36.3O.yaml) - @GEOX organ spec
-- [geox_floors_v36.3O.json](../v36.3O/spec/geox_floors_v36.3O.json) - Floor thresholds
-- [measurement_floors_v36.3O.json](../v36.3O/spec/measurement_floors_v36.3O.json) - F8 Tri-Witness law
+- [waw_federation_spec_v36.3O.yaml](../archive/versions/v36_3_omega/v36.3O/spec/waw_federation_spec_v36.3O.yaml) - Federation spec
+- [waw_geox_spec_v36.3O.yaml](../archive/versions/v36_3_omega/v36.3O/spec/waw_geox_spec_v36.3O.yaml) - @GEOX organ spec
+- [geox_floors_v36.3O.json](../archive/versions/v36_3_omega/v36.3O/spec/geox_floors_v36.3O.json) - Floor thresholds
+- [measurement_floors_v36.3O.json](../archive/versions/v36_3_omega/v36.3O/spec/measurement_floors_v36.3O.json) - F8 Tri-Witness law
 
 ---
 
