@@ -16,7 +16,7 @@ This estimate assumes the remaining Phase 8–10 items are still required, plus 
 ## Current Git State (Snapshot)
 
 - Branch: `main`
-- Ahead of `origin/main`: 9 commits
+- Ahead of `origin/main`: dynamic (run `git rev-list --count origin/main..HEAD`)
 - Working tree: NOT clean
   - Modified: `vault_999/ledger/ledger.jsonl` (generated/updated during governed reads)
   - Untracked: `NAMING_CONVENTION_v42_FINAL.md`, `audit_report.md`, `audit_report_v2.md`, `scripts/analyze_audit_trail.py`
@@ -86,4 +86,3 @@ Remaining deprecated-name hits (excluded from Phase 7 edits by rule):
 - Phase 8: Code layer verification + shims audit (note: code was already mechanically edited in Phase 7; verification still pending)
 - Phase 9: Spec `spec/v42/` compliance lock (no double-versioned files detected, but final lock steps not executed)
 - Phase 10: Final compliance scan + tag (`v42.0`) (not executed)
-
