@@ -11,11 +11,11 @@ For the root layout map, see `L1_THEORY/canon/_INDEX/ROOT_MAP.md`.
 
 | File | Title | Purpose |
 |---|---|---|
-| **07_safety/01_SECURITY_SCENARIOS_v42.md** | 🛡️ Threat Model | Defines Janitor Maximizer, Ouroboros, and Glass Cannon risks. |
+| `07_safety/01_SECURITY_SCENARIOS_v42.md` | 🛡️ Threat Model | Defines Janitor Maximizer, Ouroboros, and Glass Cannon risks. |
 
 ## Index Addendum — Phase-0 (Cartographer)
 
-Appended: auto-registered all `_v42.md` under Track A canon sections (00–06).
+Appended: auto-registered all _v42.md under Track A canon sections (00–06).
 
 ## 00_foundation/
 
