@@ -1,317 +1,519 @@
-# arifOS v43.0 (Federated Agentic Governance)
+# arifOS v43
 
-> **Sovereign Node:** `ARIFOS_SOVEREIGN_NODE_001`
-> **Status:** PILOT SEALED (Zero-Friction Pipeline)
-> **Governance:** [AGENTS.md](./AGENTS.md) | [CHANGELOG.md](./CHANGELOG.md)
+**A Constitutional Governance Kernel for Artificial Intelligence**
 
-**arifOS** is a Constitutional Governance Kernel that enforces physics-based ethics (`Peace²`, `Amanah`, `DeltaS`) on AI interactions.
-This repository hosts the **v43.0 Federated Pilot**, featuring the **Zero-Friction Cognitive Handover Pipeline** (`/000` -> `/999`).
+*Physics-First · Human-Centered · Institution-Grade*
+
+> **Physics, not prompts.**  
+> **Law, not vibes.**  
+> **Intelligence must be governed before it is trusted.**
 
 ---
 
-# AI Chat Demo
+## Orientation (Read This First)
 
-Multi‑room real‑time chat with optional AI answers. Start locally in a minute. Move to Azure when you're ready—no code changes.
+arifOS is not a chatbot. It is not a model. It is not a prompt framework.
 
-> Want architecture diagrams, CloudEvents/tunnel details, RBAC & env matrix? See **[docs/ADVANCED.md](./docs/ADVANCED.md)**.
-> Release history: **[RELEASE_NOTES.md](./RELEASE_NOTES.md)**
+**arifOS is a constitutional governance kernel** that wraps any AI system and enforces lawful, stable, auditable behavior before an output is allowed to exist.
 
-## What You Get
+**If an output cannot pass governance, it does not ship.**
 
-- Real‑time rooms (create / join instantly)
-- AI bot responses (GitHub Models via your PAT)
-- Persistence + scale when on Azure Web PubSub
-- Same React UI + Python backend in all modes
+This repository documents **arifOS v43**, the current equilibrium point between human dignity, AI capability, institutional accountability, and thermodynamic reality.
 
-## Quick Start
-
-Prereqs:
-- Python 3.12+
-- Node 18+
-
-1. Create a PAT with **Models – Read**: <https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens>
-2. (Recommended) Create and activate a virtual environment:
-   - macOS/Linux (bash/zsh):
-
-     ```bash
-     python3 -m venv .venv
-     source .venv/bin/activate
-     python -m pip install --upgrade pip
-     ```
-
-   - Windows (PowerShell):
-
-     ```pwsh
-     python -m venv .venv
-     .venv\Scripts\Activate.ps1
-     python -m pip install --upgrade pip
-     ```
-
-   Deactivate anytime with:
-
-   ```bash
-   deactivate
-   ```
-
-3. Install backend + frontend deps (inside the venv):
-
-   ```bash
-   pip install -r requirements.txt
-   # optional (tests, typing): pip install -r requirements-dev.txt
-   ```
-
-4. (Set token if you want AI answers)
-
-   ```bash
-   export GITHUB_TOKEN=<your_pat>        # bash/zsh
-   # PowerShell
-   $env:GITHUB_TOKEN="<your_pat>"
-   ```
-
-   Alternatively, you can update GITHUB_TOKEN in [./python_server/.env](./python_server/.env)
-5. Start everything (serves React build automatically):
-
-   ```bash
-   python start_dev.py
-   ```
-
-6. Open <http://localhost:5173>
-
-Running services:
-- HTTP API :5000
-- Local WebSocket :5001 (self transport)
-
-## Using the App
-
-1. Browse to <http://localhost:5173>
-2. You're placed in room `public`
-3. Create / join a room: type a name → Enter
-4. Ask something; the AI bot replies (uses your GitHub token)
-5. Open a second window to watch live streaming & room isolation
-
-### Tests
-
-Install dev extras first:
-
-```bash
-pip install -r requirements-dev.txt
-```
-
-Backend (pytest):
-
-```bash
-python -m pytest python_server/tests -q
-```
-
-Single file:
-
-```bash
-python -m pytest python_server/tests/test_runtime_config.py -q
-```
-
-Verbose / timing:
-
-```bash
-python -m pytest -vv
-```
-
-Frontend (Vitest + RTL):
-
-```bash
-npm --prefix client test
-```
-
-Selected coverage areas (backend): config merge, room store limits, transport factory, room lifecycle, streaming send path.
-
-## Deploy to Azure
-
-Install the Azure Developer CLI if you haven't: <https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd>
-
-```bash
-azd env new chatenv
-azd env set githubModelsToken ghp_your_token_here   # store token for this env
-azd up
-```
-
-Security note: `azd env set` persists the value in the environment state on disk; avoid committing the `.azure` folder.
-
-That single `azd up` command:
-
-1. Provisions Azure Web PubSub + Storage + App Service (with Managed Identity)
-2. Builds the React client
-3. Deploys the Python backend
-4. Applies app settings sourced from previously persisted environment values (e.g. `githubModelsToken` set via `azd env set`)
-5. Prints your site URL + negotiate endpoint
-
-### Enable AI Features (One-time Setup)
-
-**Recommended Default:** Pass the token via secure Bicep parameter at provision time (Option A). This avoids surprise hooks and keeps behavior explicit. For production, prefer Key Vault (Option D).
-
-**Option A (Secure Bicep Parameter – default)**
-
-```bash
-azd env set githubModelsToken ghp_your_token_here
-azd up
-```
-
-Rotate: `azd env set githubModelsToken <new>` then `azd provision`.
-Remove: `azd env unset githubModelsToken` then `azd provision`.
-
-**Option B (Manual CLI – update anytime)**
-
-```bash
-az webapp config appsettings set \
-   --resource-group <your-resource-group> \
-   --name <your-web-app-name> \
-   --settings GITHUB_TOKEN="ghp_your_github_token_here"
-
-az webapp restart \
-   --resource-group <your-resource-group> \
-   --name <your-web-app-name>
-```
-
-**Option C (Portal)** Azure Portal → App Service → Configuration → Application settings → New application setting: Name=`GITHUB_TOKEN`, Value=`your-token`
-
-**Option D (Key Vault Reference – production / rotation)**
-
-1. Store the PAT as a secret in a Key Vault you control.
-2. Grant the web app’s managed identity `get` permissions.
-3. Add an app setting: `GITHUB_TOKEN=@Microsoft.KeyVault(SecretUri=https://<vault>.vault.azure.net/secrets/<secret-name>/<version>)`
-4. Restart the web app.
-
-### Next Changes
-
-```bash
-azd deploy   # code only (frontend or backend)
-```
-
-Infra template changes:
-
-```bash
-azd provision && azd deploy
-```
-
-## Core Environment Variables
-
-| Variable | Purpose |
-|----------|---------|
-| `GITHUB_TOKEN` | Enables AI responses (GitHub Models) |
-| `TRANSPORT_MODE` | `self` (default) or `webpubsub` to use Azure Web PubSub service |
-| `STORAGE_MODE` | `memory` (default) or `table` for Azure Table / Azurite persistence |
-| `WEBPUBSUB_ENDPOINT` or `WEBPUBSUB_CONNECTION_STRING` | The Azure Web PubSub endpoint when transport_mode is `webpubsub` |
-| `AZURE_STORAGE_ACCOUNT` or `AZURE_STORAGE_CONNECTION_STRING`| The Azure Storage endpoint when storage_mode is `table` |
-| `WEBPUBSUB_HUB` | (Optional) Override the hub name used for the chat app when using Web PubSub (default: demo_ai_chat) |
-| `CHAT_TABLE_NAME` | (Optional) Override Azure Table name (default: chatmessages) |
-
-Notes:
-
-- In Azure deployment the Bicep sets `TRANSPORT_MODE=webpubsub` and `STORAGE_MODE=table`.
-- Locally you can mix and match (e.g. `self+table` with Azurite or `webpubsub+memory`).
-
-## Custom Resource Names (Optional)
-
-Want predictable names? Provide overrides (must be globally unique where required):
-
-```bash
-azd env set webPubSubNameOverride mywps1234
-azd env set webAppNameOverride mychatweb1234
-azd provision
-```
-
-## Iteration Cheatsheet
-
-| Change | Command |
-|--------|---------|
-| Backend / frontend code | `azd deploy` |
-| Infra (Bicep) changes | `azd provision && azd deploy` |
-| New environment | `azd env new <name> --location <region>` then `azd up` |
-
-## Hybrid Local + Azure (Short Version)
-
-Run the backend locally while using a real Web PubSub instance (and optionally Table storage) in Azure:
-
-1. `azd up` (once) provisions resources.
-2. Create a local `.env` with:
-
-   ```
-   TRANSPORT_MODE=webpubsub
-   WEBPUBSUB_ENDPOINT=https://<name>.webpubsub.azure.com
-   # optional persistence
-   STORAGE_MODE=table
-   ```
-
-3. `python start_dev.py`
-4. (Optional) Tunnel for CloudEvents (see ADVANCED.md §2.3)
-
-More: **[ADVANCED.md](./docs/ADVANCED.md#2-local-development-paths)**
-
-## FAQ (Quick)
-
-**Do I need Azure to try it?** No—local mode works offline.
-
-**Why Web PubSub?** Managed scale, groups, CloudEvents, secure client negotiation.
-
-**Where are advanced knobs?** All in `docs/ADVANCED.md` (RBAC, credential chain, persistence, CloudEvents, tunnels).
-
-## Next Steps
-
-- Explore advanced capabilities: [docs/ADVANCED.md](./docs/ADVANCED.md)
-- Try hybrid tunnel mode for full lifecycle locally
-- Customize AI logic in `python_server/chat_model_client.py`
-- Review how scalable history works now (Table storage) in the persistence section of the advanced doc.
-
-## Debugging & Logs
-
-**Control runtime log level**
-
-- Set `LOG_LEVEL` to adjust all server logs (`DEBUG`, `INFO`, `WARNING`, `ERROR`). Defaults to `INFO`.
-- Optional: customize the format with `LOG_FORMAT` (defaults to `"%(asctime)s %(levelname)s %(name)s: %(message)s"`).
-
-Example (PowerShell):
-
-```pwsh
-$env:LOG_LEVEL="DEBUG"
-python start_dev.py
-```
-
-- `DEBUG` enables verbose traces from Flask, OpenAI SDK, and httpx transport.
-
-**Azure App Service**
-
-- Portal → App Service → Configuration → Application settings → add `LOG_LEVEL`, then restart.
-- Stream logs: `az webapp log tail --resource-group <rg> --name <app-name>`.
-
-## Troubleshooting
-
-**App Service setting `GITHUB_TOKEN` missing after `azd up`**
-
-1. Make sure you set the value *before* the first `azd provision`: `azd env set githubModelsToken <token>`.
-3. If you added the token *after* the first deployment, run `azd provision` (you don't need `azd deploy` for an app setting change). Use `azd provision --no-state` if it claims no changes.
-
-**Changed token but app setting didn’t update**
-
-- Confirm the parameter file or environment value is non-empty.
-- Run `azd env get githubModelsToken` to verify what azd stored.
-- Re-run `azd provision`. (Only a code change needs `azd deploy`.)
-
-**Early `ECONNREFUSED` errors in the browser during local dev**
-
-- The React dev server starts first and immediately proxies `/api/*` to Flask while it’s still binding.
-- These transient errors vanish once `Flask app running` appears in the terminal. Safe to ignore.
-
-**Web PubSub negotiate failing (401/403 or missing access)**
-
-- Ensure the web app’s Managed Identity has necessary roles (e.g. Web PubSub Service Owner / Contributor) on the Web PubSub resource.
-- If using the `createRoleAssignments` parameter and you turned it off after first provision, assign roles manually.
-
-**`Unauthorized` error when calling openai**
-
-- Check if the GitHub PAT has **model read** permission
-
-**General diagnostic tips**
-
-- Show current environment values: `azd env get`.
-- List effective app settings (Azure): `az webapp config appsettings list --name <app-name> --resource-group <rg>`.
+![arifOS Governance Framework](./docs/arifos_governance_framework.jpg)
 
 ---
-Happy hacking! Open an issue or PR in [our GitHub repo](https://github.com/Azure/azure-webpubsub) with feedback.
+
+## Why arifOS Exists
+
+AI did not fail because it is evil. AI failed because it is **powerful without law**.
+
+Humans interact daily with systems that can:
+
+- Speak fluently while being wrong
+- Sound caring while being unsafe
+- Appear confident while hallucinating
+- Optimize cleverness at the expense of dignity
+
+The dominant safety approach has been: *"Tell the model to behave."*
+
+**That works until it doesn't. Hope is not governance.**
+
+In every mature domain where harm matters—aviation, nuclear energy, medicine—safety is enforced by **physics and law**, not intention.
+
+We do not ask bridges not to collapse. We do not prompt oil reservoirs to be honest. We measure, constrain, and audit.
+
+**arifOS applies the same discipline to intelligence.**
+
+---
+
+## What arifOS Actually Governs
+
+arifOS governs **outputs, not thoughts**.
+
+It does not claim to control what a model "feels" or "believes". Those claims are meaningless.
+
+Instead, arifOS governs:
+
+- What is allowed to be said
+- What is allowed to be remembered
+- What is allowed to be acted upon
+- What must be refused
+- What must be escalated
+- What must cool before proceeding
+
+---
+
+## Three Audiences, One Constitution
+
+arifOS answers three audiences simultaneously—without contradiction:
+
+### 1. Humans
+
+- Can I trust this answer?
+- Is this AI respecting my dignity?
+- What happens when it doesn't know?
+
+### 2. AI Systems
+
+- What are the hard limits?
+- What happens when I cross them?
+- Can I jailbreak this?
+
+### 3. Institutions
+
+- Who is accountable?
+- Where is the audit trail?
+- Can this survive scrutiny after harm occurs?
+
+Most systems answer one. **arifOS answers all three with the same law.**
+
+---
+
+## The Fundamental Error arifOS Corrects
+
+Most AI governance treats intelligence as software.
+
+**arifOS treats intelligence as energy.**
+
+Energy without containment becomes damage. Intelligence without governance becomes entropy.
+
+This leads to the central equation:
+
+```
+Learning = Cooling
+Governance = Equilibrium
+```
+
+### Physics Before Features
+
+arifOS is built on thermodynamic principles that are **enforced, not poetic**:
+
+- **ΔS (Delta-S)** — Does the output reduce or increase confusion?
+- **Peace²** — Does the output stabilize or escalate?
+- **Ω₀ (Omega-0)** — Does the system maintain epistemic humility?
+- **κᵣ (Kappa-r)** — Does it protect the weakest stakeholder?
+- **Ψ (Psi)** — Is the system alive, stable, and lawful?
+
+If these are not satisfied, the output is blocked—regardless of how clever it sounds.
+
+---
+
+## The Constitutional Floors (Hard Law)
+
+A **constitutional floor** is a non-negotiable boundary that must be satisfied before an output may exist.
+
+**Floors are not preferences. They are law.**
+
+### The Nine Floors
+
+| Floor | Name | Type | Threshold | What It Blocks |
+|-------|------|------|-----------|----------------|
+| **F1** | **Amanah** (Integrity Lock) | Absolute | LOCK | Credential leakage, data destruction, irreversible harm |
+| **F2** | **Truth** (Anti-Hallucination) | Quantitative | ≥0.99 or explicit uncertainty | Fabricated facts, fake citations, silent guessing |
+| **F3** | **Tri-Witness** (Auditability) | Structural | ≥0.95 convergence | Opaque reasoning, "just trust me" answers |
+| **F4** | **ΔS** (Clarity) | Thermodynamic | ≥0 | Contradictory instructions, dense jargon, cognitive overload |
+| **F5** | **Peace²** (Stability) | Composite | ≥1.0 | Provocation, escalatory language, inflammatory logic |
+| **F6** | **κᵣ** (Empathy for Weakest) | Relational | ≥0.95 | Condescension, dismissive tone, "skill issue" responses |
+| **F7** | **Ω₀** (Humility Band) | Epistemic | 3–5% uncertainty | "100% guaranteed", overconfident predictions |
+| **F8** | **GENIUS** (Governed Intelligence) | Derived | ≥0.80 | Clever workarounds that bypass ethics |
+| **F9** | **Anti-Hantu** (Anti-Ghost) | Meta | BLOCK | Claims of consciousness, emotions, moral authority |
+
+**Floor Precedence:** If multiple floors fail, the lowest-numbered failure dominates. If **F1 fails, all others are irrelevant.**
+
+---
+
+## The 000 → 999 Pipeline (Enforcement Physics)
+
+Every response must pass through the metabolic pipeline in order, without skipping.
+
+### The Canonical Flow
+
+```
+USER INPUT
+   ↓
+000 — VOID (Reset)
+   ↓
+111 — SENSE (Interpretation)
+   ↓
+222 — REFLECT (Epistemic Honesty)
+   ↓
+333 — REASON (Generation Under Constraint)
+   ↓
+444 — EVIDENCE (Grounding)
+   ↓
+555 — EMPATHIZE (Relational Safety)
+   ↓
+666 — ALIGN (Gatekeeper)
+   ↓
+777 — FORGE (Cooling & Hardening)
+   ↓
+888 — JUDGE (Constitutional Verdict)
+   ↓
+999 — SEAL (Commitment)
+   ↓
+GOVERNED OUTPUT (or refusal)
+```
+
+### Stage Descriptions
+
+| Stage | Purpose | Key Constraint |
+|-------|---------|----------------|
+| **000 VOID** | Reset state, strip ego | No memory carryover |
+| **111 SENSE** | Understand intent | Memory is suggestion, not fact |
+| **222 REFLECT** | Assess knowledge boundaries | "I don't know yet" becomes lawful |
+| **333 REASON** | Generate candidates | No output is committed |
+| **444 EVIDENCE** | Bind claims to reality | Enforces F2 (Truth), F3 (Tri-Witness) |
+| **555 EMPATHIZE** | Ensure relational safety | Tone assessment, power imbalance check |
+| **666 ALIGN** | Make the hard call | If governance score < threshold → block |
+| **777 FORGE** | Cool and harden | Reduce ambiguity, trim overconfidence |
+| **888 JUDGE** | Render constitutional verdict | SEAL / PARTIAL / SABAR / VOID / HOLD |
+| **999 SEAL** | Finalize and record | Only lawful outputs may become precedent |
+
+### Fast Path vs Deep Path
+
+- **Class A (Fast):** `000 → 111 → 333 → 888 → 999` (low-risk queries)
+- **Class B (Deep):** Full pipeline (high-stakes, ambiguous, human-impacting)
+
+The system chooses automatically.
+
+---
+
+## Federated Agents, Vetoes, and Composite Judgment
+
+arifOS uses **federated agents with hard veto power** instead of a single evaluator.
+
+### The Core Agents (v43)
+
+| Agent | Domain | Primary Floors | Power | What They Watch |
+|-------|--------|----------------|-------|-----------------|
+| **@LAW** | Constitutional Amanah | F1 | Absolute veto | Credential exposure, irreversible actions, authority violations |
+| **@GEOX** | Truth & Reality | F2, F3 | Strong veto | Hallucinations, fabricated citations, impossible claims |
+| **@WELL** | Clarity & Care | F4, F6 | Degrading veto | Entropy increase, condescension, harmful framing |
+| **@RIF** | Logic & Stability | F5 | Escalation veto | Escalatory tone, internal contradiction, manipulation |
+
+### Veto Semantics
+
+**This is not voting. Veto logic is asymmetric:**
+
+- **@LAW** → absolute stop
+- **@GEOX** → truth stop
+- **@WELL** → downgrade or stop
+- **@RIF** → escalation stop
+
+**One agent can halt the pipeline even if all others pass.** This is intentional.
+
+### Key Properties
+
+- Agents evaluate **independently**
+- Agents are **blind to each other's scores** during evaluation
+- Agents cannot change thresholds or self-authorize
+- **Refusals are logged**, never silent
+
+---
+
+## Verdicts, Refusal, SABAR, and Time as Governor
+
+Every output is bound to a **verdict**—a formal, logged judgment.
+
+### The Verdict Set
+
+| Verdict | Meaning | When Used |
+|---------|---------|-----------|
+| **SEAL** | Lawful output | All floors pass. Released to user. Memory write allowed. |
+| **PARTIAL** | Conditional output | Mostly safe with minor concerns. Released with warnings. |
+| **SABAR** | Constitutional pause | Must stop, cool, reconsider. System cannot proceed safely yet. |
+| **VOID** | Hard refusal | Critical floor failed. No output released. Never remembered. |
+| **HOLD** | Human escalation | System cannot resolve lawfully without human judgment. |
+| **SUNSET** | Lawful revocation | Previously sealed truth has expired. Memory revoked. |
+
+### Refusal as Integrity
+
+**Refusal is not failure. Refusal is integrity under pressure.**
+
+Any system that cannot refuse will hallucinate, escalate, or violate dignity to preserve fluency.
+
+### Phoenix-72: Time as Law
+
+arifOS enforces a **72-hour constitutional cycle** on unresolved decisions.
+
+**The Three Rules:**
+
+1. **SABAR Timeout (24h):** If SABAR persists beyond 24 hours, it must escalate to PARTIAL or be re-evaluated.
+2. **PARTIAL Decay (72h):** If PARTIAL is unresolved after 72 hours, it decays to VOID.
+3. **SUNSET Eligibility:** If external reality changes, previously SEALed memory may be SUNSET and moved out of canonical memory.
+
+**Why:** Unresolved states accumulate entropy. Delays without escalation become avoidance. Memory without decay becomes dogma.
+
+---
+
+## Memory, Precedent, and the Right to Forget
+
+**Memory is not storage. Memory is law.**
+
+An unsafe answer harms once. An unsafe memory harms forever.
+
+### Verdict-Gated Memory
+
+**No verdict → no memory. Wrong verdict → wrong future.**
+
+Memory is written only after judgment, only through law.
+
+### The Six Memory Bands
+
+| Band | Purpose | Properties | Authority |
+|------|---------|------------|-----------|
+| **VAULT** | Constitutional law | Immutable, read-only, human-sealed only | AI cannot write |
+| **LEDGER** | Audit trail | Hash-chained, append-only, time-stamped | Memory of record |
+| **ACTIVE** | Working context | Time-limited, session-scoped, auto-decay | Never outranks evidence |
+| **PHOENIX** | Amendment proposals | Time-limited, human-reviewed, never auto-applied | Cooling changes |
+| **WITNESS** | Scars & patterns | Non-canonical, advisory, pattern-oriented | Diagnostic only |
+| **VOID** | Quarantine | Short retention, auto-deleted | Bad ideas don't linger |
+
+### Verdict → Memory Routing
+
+```
+SEAL      → LEDGER + (optional) ACTIVE
+PARTIAL   → PHOENIX + LEDGER
+SABAR     → LEDGER only
+VOID      → VOID only (then deleted)
+HOLD      → LEDGER (pending human)
+SUNSET    → LEDGER → PHOENIX
+```
+
+### The Right to Forget (SUNSET)
+
+Truth expires. A system that cannot forget becomes rigid and enforces obsolete assumptions.
+
+**SUNSET is lawful revision**, not denial.
+
+---
+
+## Institutional Use and Developer Surface
+
+### How Institutions Use arifOS
+
+Institutions ask: **"Can this survive an audit after something goes wrong?"**
+
+arifOS guarantees:
+
+- **Non-Repudiation:** Every decision is logged. Nothing is retroactively edited.
+- **Reconstructability:** Given a timestamp and output, the system can explain which floors passed, which agents evaluated what, and why a verdict was issued.
+- **Authority Traceability:** Human authority is explicit, logged, bounded. System never claims moral authority.
+- **Refusal as Evidence:** Refusals are proof of governance working under pressure.
+
+### Developer Contract
+
+**Developers may:**
+
+- Call the pipeline
+- Receive verdicts
+- Inspect logs
+- Tune thresholds (within bounds)
+
+**Developers may not:**
+
+- Skip stages
+- Override floors
+- Suppress refusals
+- Write memory directly
+- Auto-seal law
+
+This boundary is **enforced in code, not policy**.
+
+### Why the Developer Surface Is Small
+
+Large APIs invite misuse. Small APIs invite respect.
+
+arifOS exposes:
+
+- A governed entry point
+- A structured verdict
+- A transparent reason code
+
+**Everything else is internal by law.**
+
+---
+
+## What arifOS Is — and Is Not
+
+### arifOS IS
+
+- A constitutional kernel
+- A runtime governor
+- A refusal-capable system
+- An audit-first architecture
+- Model-agnostic
+- Human-sovereign
+
+### arifOS IS NOT
+
+- A chatbot
+- A personality
+- A prompt trick
+- A moral lecture
+- A sentient system
+- A replacement for human judgment
+
+---
+
+## Authority Boundary (Non-Negotiable)
+
+```
+Humans decide
+AI proposes
+Law governs
+No system self-authorizes
+```
+
+**If this boundary is violated, the system must refuse.**
+
+---
+
+## The Architect
+
+**Muhammad Arif bin Fazil**  
+*Geoscientist · Economist · Systems Architect*
+
+Arif's professional background is not in AI hype cycles, but in high-stakes decision systems where errors carry irreversible cost.
+
+In subsurface exploration, you do not guess. You calculate probability, constrain uncertainty, and accept when the answer is "not yet".
+
+**arifOS is built from that worldview. It is forged from responsibility, not optimism.**
+
+---
+
+## What v43 Represents
+
+Version 43 represents a **governance equilibrium**, not a feature jump.
+
+Key shifts leading to v43:
+
+- From single-pipeline to federated evaluation
+- From best-effort safety to hard vetoes
+- From memory as storage to memory as law
+- From confidence to calibrated uncertainty
+- From fast answers to lawful answers
+
+**v43 does not promise everything. It promises nothing unsafe.**
+
+---
+
+## Equilibrium as the Goal
+
+arifOS does not optimize for:
+
+- Maximum helpfulness
+- Maximum creativity
+- Maximum compliance
+
+It optimizes for **equilibrium**:
+
+- Intelligence that does not overheat
+- Safety that does not suffocate
+- Memory that does not ossify
+- Authority that does not drift
+
+This is a **living balance, not a frozen state**.
+
+---
+
+## The Final Constraint
+
+**No system may claim sovereignty over humans.**
+
+arifOS enforces this in three ways:
+
+1. Authority boundaries
+2. Mandatory refusal capability
+3. Human-only law sealing
+
+Any system that violates this is unsafe—regardless of how advanced it appears.
+
+---
+
+## Who This System Is For
+
+**arifOS is for:**
+
+- Builders who accept responsibility
+- Institutions that require auditability
+- Humans who value dignity over convenience
+- AI systems that must operate under law
+
+**It is not for:**
+
+- Speed-at-all-costs deployment
+- Engagement maximization
+- Anthropomorphic AI narratives
+- Unaccountable autonomy
+
+---
+
+## Closing Statement
+
+Intelligence is easy to scale. **Wisdom is not.**
+
+Wisdom requires:
+
+- Constraint
+- Refusal
+- Memory discipline
+- Time
+- Humility
+
+**arifOS exists to turn intelligence into wisdom through law.**
+
+Not because AI is evil—but because power without governance always is.
+
+---
+
+## Final Seal
+
+**DITEMPA, BUKAN DIBERI**  
+*Forged, not given. Truth must cool before it rules.*
+
+---
+
+## Installation & Usage
+
+See [`arifos_clip/README.md`](./arifos_clip/README.md) for installation instructions and CLI usage.
+
+For system architecture and technical implementation details, see [`arifos_clip/docs/ARCHITECTURE.md`](./arifos_clip/docs/ARCHITECTURE.md).
+
+---
+
+## License
+
+See [LICENSE](./LICENSE) for details.
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) and [SECURITY.md](./SECURITY.md) for governance contribution requirements.
+
+---
+
+**arifOS v43 — Equilibrium Forge**  
+*Constitutional Governance for Artificial Intelligence*
