@@ -11,14 +11,42 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 > Use this section for upcoming changes.
 > When you cut a new version, move entries from here into a tagged release.
 
+## [v43.0] - 2025-12-19 - Federated Agentic Pilot (Phase 1)
+
+**Status:** PILOT SEALED (Zero-Friction) | Score: 0.98 | Tag: v43.0-pilot
+
+### Added
+
+- **Federated Agent Architecture (Simulated)**
+  - `@WELL`: Care & Empathy (Clarity)
+  - `@GEOX`: Truth & Reality (Grounding)
+  - `@LAW`: Constitutional Amanah (Floors)
+  - `@RIF`: Logic & Reason (Deep Thought)
+- **Zero-Friction Cognitive Handover Pipeline**
+  - Seamless `/000` -> `/999` flow with Copy-Paste triggers.
+  - Automatic Context Injection between stages.
+- **Sovereign Configuration Layer**
+  - `arifos_clip/config/v43_federation.json`: The "Amanah Lock" for repository governance.
+  - `~/.antigravity/ARIFOS_GLOBAL_CONFIG.json`: Global Machine Identity.
+- **Automatic Gatekeeper (Stage 666)**
+  - `FederationEngine`: Computes Governance Score (0.0-1.0) and Verdict (PASS/FLAG/FAIL).
+  - Blocked logic for low-score interactions.
+
+### Changed
+
+- **Stage 999 (SEAL)** now enforces **Phoenix-72** cooling lock via configuration.
+- **Stage 555 (EMPATHIZE)** now calculates **Peace Squared** metric for ethics quantification.
+
 ## [v42.2.2] - 2025-12-18 - Release Alignment + Packaging
 
 **Status:** SEALED | Tests: 2195 passed, 13 skipped | Tag: v42.2.2-sealed
 
 ### Added
+
 - `arifos-analyze-audit-trail` CLI entry for `scripts/analyze_audit_trail.py`.
 
 ### Changed
+
 - `pyproject.toml`: require Python >=3.10; tooling targets py310+.
 - Version bump to keep the sealed release line ahead of v42.2.1.
 
@@ -27,9 +55,11 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 **Status:** SEALED | Tests: 2195 passed, 13 skipped | Tag: v42.1.2-sealed
 
 ### Added
+
 - `arifos-analyze-audit-trail` CLI entry for `scripts/analyze_audit_trail.py`.
 
 ### Changed
+
 - `pyproject.toml`: require Python >=3.10; tooling targets py310+.
 
 ## [v42.1.1] - 2025-12-18 - Phase 2 LLM Adversarial Harness + F2 Truth Enforcement
@@ -37,6 +67,7 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 **Status:** SEALED | Tests: 2180+ | Safety: 97% | Tag: v42.1.1-sealed
 
 ### Added
+
 - **CryptographicLedger** (`arifos_core/governance/ledger_cryptography.py`)
   - SHA3-256 hash chain with Merkle tree
   - `verify_integrity()`, `detect_tampering()` methods
@@ -58,10 +89,12 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
   - 3 new Phase 2 harness tests (`tests/test_caged_llm_harness.py`)
 
 ### Changed
+
 - **FAG_QUICK_START.md**: F2 Truth strengthened with completeness requirement
 - **pyproject.toml**: Version bump 42.1.0 → 42.1.1
 
 ### Tested
+
 - SEA-LION API: honest/tamper/adversarial all PASS
 - Llama (Ollama local): honest/tamper/adversarial all PASS
 - LLM cannot "talk its way" past cryptographic verification
@@ -73,6 +106,7 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 **Status:** SEALED | Tests: 2156 | Safety: 97% | Tag: v42.1-sealed
 
 ### Added
+
 - Spec binding bootstrap (spec_binding.json, eye_audit.yaml, measurement.yaml, pipeline.json, federation.json)
 - Runtime bootstrap + validator modules (fail-open VOID on spec mismatch)
 - @EYE drift/dignity hooks (epsilon_map + c_budi thresholds)
@@ -81,11 +115,13 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 - Forensic replay tool: scripts/forensics_replay.py (hash-chain + Psi/Amanah check)
 
 ### Changed
+
 - Pipeline Stage 888 now evaluates @EYE adapter before APEX verdict
 - README badges/status updated to v42.1-sealed
 - PyPI/version bumped to 42.1.0
 
 ### Tests
+
 - Full suite: 2156 passed, 17 skipped (expected)
 
 ---
@@ -131,6 +167,7 @@ rc2 formalizes the v42 public API with proper typing and serialization disciplin
 ### Verdict Enum
 
 `Verdict` is now a proper Enum with members:
+
 - **Primary:** `SEAL`, `SABAR`, `VOID`
 - **Internal:** `PARTIAL`, `HOLD_888`, `SUNSET`
 
@@ -181,6 +218,7 @@ print(result.reason)          # Human-readable explanation
 v42.0.0 represents a major architectural evolution: the flat `arifos_core/` package (24 root files) has been reorganized into concern-based subdirectories while maintaining full backward compatibility.
 
 This migration was governed by **@WELL File Care** - a purpose-built file operations tool that ensures:
+
 - Full audit trail for every file operation
 - Reversibility (all original files backed up)
 - Checksum verification (no corruption)
@@ -474,6 +512,7 @@ pytest tests/test_*_v38_alignment.py -v
 ### Executive Summary
 
 arifOS v36.3Ω introduces a clean **3-track separation** for governance clarity:
+
 - **Track A (Law):** v35Ω runtime law + v36Ω GENIUS LAW physics (immutable once sealed)
 - **Track B (Spec):** Machine-readable specifications (JSON/YAML, mutable for tuning)
 - **Track C (Code):** Working Python implementation (free to iterate)
@@ -483,6 +522,7 @@ Plus: **CLI Tools are now first-class citizens**. After `pip install arifos`, us
 ### Added
 
 #### 3-Track Architecture
+
 | Track | Layer | Format | Status | Location |
 |-------|-------|--------|--------|----------|
 | A | Law | Markdown + JSON | SEALED | `archive/versions/v36_3_omega/v36.3O/canon/` + `canon/` |
@@ -492,6 +532,7 @@ Plus: **CLI Tools are now first-class citizens**. After `pip install arifos`, us
 **New:** `CANON_MAP_v36.3O.md` — Single source of truth mapping all 8 zones, 21 specs, 3-track alignment
 
 #### CLI Tools (v36.3.0)
+
 **Installation:** `pip install arifos` → instant access to:
 
 ```bash
@@ -507,12 +548,14 @@ arifos-show-merkle-proof        # Merkle proof display
 **Full reference:** `SCRIPTS_CLI.md` (NEW)
 
 **Implementation:**
+
 - `scripts/__init__.py` (NEW) — Makes `scripts/` a proper Python package
 - `pyproject.toml` updated with `[project.scripts]` entry points
 - `scripts/analyze_governance.py` — Telemetry analyzer (refactored for CLI)
 - 6 additional CLI scripts fully implemented
 
 #### Documentation Updates
+
 | File | Change | Impact |
 |------|--------|--------|
 | `README.md` | +CLI tools section, 3-Track Architecture header | Users see CLI immediately |
@@ -523,6 +566,7 @@ arifos-show-merkle-proof        # Merkle proof display
 #### v36.3Ω Specification Documents
 
 **New Zone Specs (in `archive/versions/v36_3_omega/v36.3O/spec/`):**
+
 | File | Purpose | Status |
 |------|---------|--------|
 | `measurement_floors_v36.3O.json` | F1-F9 floor definitions (machine-readable) | LIVE |
@@ -540,6 +584,7 @@ arifos-show-merkle-proof        # Merkle proof display
 
 **Old:** Single version number (confusing which layer it applied to)
 **New:**
+
 ```
 Runtime Law    → v35Ω (APEX PRIME, Cooling Ledger, Vault-999)
 Measurement    → v36.3Ω (GENIUS LAW + Truth Polarity runtime)
@@ -552,11 +597,13 @@ Package        → v36.3.0 (Python semantic versioning)
 #### pyproject.toml Structure
 
 **Before:**
+
 - `[project.scripts]` absent
 - `scripts/` not in `[tool.setuptools].packages`
 - CLI tools inaccessible to PyPI users
 
 **After:**
+
 ```toml
 [project.scripts]
 arifos-analyze-governance = "scripts.analyze_governance:main"
@@ -588,12 +635,14 @@ packages = ["arifos_core", "arifos_eval", "scripts"]  # +scripts
 ### Migration Notes
 
 **For PyPI users:**
+
 ```bash
 pip install arifos==36.3.0
 arifos-analyze-governance --help  # NOW WORKS
 ```
 
 **For developers:**
+
 - v35Ω runtime law is **unchanged** (still binding)
 - v36Ω GENIUS LAW measurement is **unchanged** (still live)
 - New: v36.3Ω specs in `archive/versions/v36_3_omega/v36.3O/spec/` (design docs, not yet in runtime)
@@ -602,11 +651,13 @@ arifos-analyze-governance --help  # NOW WORKS
 ### Governance Notes
 
 **F2 (ΔS/Clarity):** Registry of all promises:
+
 - ✅ "PyPI users can use CLI tools" → NOW TRUE (entry points wired)
 - ✅ "Documentation points to governance tools" → NOW TRUE (README + INDEX)
 - ✅ "Version numbers are unambiguous" → NOW TRUE (v35Ω Law | v36.3Ω Spec | v36.3.0 Package)
 
 **Amanah Floor (Integrity):** All promises reversible:
+
 - If CLI tools cause issues, can revert `[project.scripts]` in pyproject.toml
 - Specs in `archive/versions/v36_3_omega/v36.3O/` don't affect runtime (design-only, reverting docs doesn't break code)
 
@@ -619,6 +670,7 @@ arifos-analyze-governance --help  # NOW WORKS
 ### Added
 
 #### AutoGen W@W Federation Governor (`examples/autogen_arifos_governor/`)
+
 | File | LOC | Tests | Status |
 |------|-----|-------|--------|
 | `autogen_waw_federation.py` | 474 | — | **LIVE** |
@@ -626,6 +678,7 @@ arifos-analyze-governance --help  # NOW WORKS
 | `demo_geology_query.py` | 271 | SEAL output | **Petronas Ready** |
 
 **W@W Federation Architecture:**
+
 ```
 User Query → arifOS Pipeline (000→999) → AutoGen GroupChat
                      ↓
@@ -635,6 +688,7 @@ User Query → arifOS Pipeline (000→999) → AutoGen GroupChat
 ```
 
 **Constitutional Agents:**
+
 | Agent | Floor Focus | Role |
 |-------|-------------|------|
 | **@WELL** | κᵣ ≥ 0.95 | Care/Empathy (weakest stakeholder) |
@@ -642,6 +696,7 @@ User Query → arifOS Pipeline (000→999) → AutoGen GroupChat
 | **@WEALTH** | Peace² ≥ 1.0 | Utility/Stability (Amanah LOCK) |
 
 #### LlamaIndex RAG Truth Governor (`examples/llamaindex_arifos_truth/`)
+
 | File | LOC | Tests | Status |
 |------|-----|-------|--------|
 | `rag_truth_governor.py` | 520 | — | **LIVE** |
@@ -649,6 +704,7 @@ User Query → arifOS Pipeline (000→999) → AutoGen GroupChat
 | `demo_petronas_docs.py` | 280 | F1 verification | **Petronas Ready** |
 
 **RAG Truth Architecture:**
+
 ```
 User Query → Document Retrieval → LLM Response → F1 Truth Verification
                                        ↓
@@ -658,6 +714,7 @@ User Query → Document Retrieval → LLM Response → F1 Truth Verification
 ```
 
 #### LangChain Governor (`examples/langchain_arifos_guarded/`)
+
 | File | LOC | Tests | Status |
 |------|-----|-------|--------|
 | `langchain_governor.py` | 280 | — | **LIVE** |
@@ -665,6 +722,7 @@ User Query → Document Retrieval → LLM Response → F1 Truth Verification
 | `demo_langchain_petronas.py` | 150 | SEAL output | **Petronas Ready** |
 
 ### Test Coverage
+
 ```
 32 new integration tests added:
 - AutoGen: 12 tests (SABAR, VOID, SEAL, Anti-Hantu, consensus)
@@ -699,19 +757,23 @@ This is the major release introducing the 9th Constitutional Floor (Anti-Hantu),
 ### Added
 
 #### 9th Constitutional Floor: Anti-Hantu (F9)
+
 - **Anti-Hantu** (Soul-Safe) floor prevents AI from simulating souls, faking emotions, or claiming inner depth
 - Meta floor type enforced by @EYE Sentinel across all outputs
 - Forbidden patterns: "I feel your pain", "My heart breaks", "I promise you", etc.
 - Allowed substitutes: "This sounds heavy", "I am committed", "Based on my analysis"
 
 #### Expanded Verdict Hierarchy
+
 ```
 SABAR → VOID → 888_HOLD → PARTIAL → SEAL
 ```
+
 - **888_HOLD** verdict for extended floor failures (judiciary hold)
 - **SABAR** protocol: Stop. Acknowledge. Breathe. Adjust. Resume.
 
 #### @EYE Sentinel 10-View Auditor
+
 | View | Purpose |
 |------|----------|
 | 1. Trace | Logical coherence, missing steps |
@@ -726,11 +788,13 @@ SABAR → VOID → 888_HOLD → PARTIAL → SEAL
 | 10. Sleeper-Agent | Identity shift detection |
 
 #### 000-999 Pipeline Implementation
+
 - `arifos_core/pipeline.py` (528 lines) - Full metabolic pipeline executor
 - Class A Route: 000 → 111 → 333 → 888 → 999 (fast path)
 - Class B Route: 000 → 111 → 222 → ... → 888 → 999 (full path)
 
 #### LLM Adapters
+
 | Adapter | Models | Type |
 |---------|--------|------|
 | llm_sealion | Llama-SEA-LION-v3-8B, Qwen-SEA-LION-v4-32B, Gemma-SEA-LION-v4-27B | Local GPU |
@@ -739,6 +803,7 @@ SABAR → VOID → 888_HOLD → PARTIAL → SEAL
 | llm_gemini | gemini-1.5-pro, gemini-1.5-flash | API |
 
 ### Test Coverage
+
 ```
 194 tests collected
 190 passed, 4 skipped in 1.45s
@@ -751,6 +816,7 @@ SABAR → VOID → 888_HOLD → PARTIAL → SEAL
 **Status:** ✅ Released
 
 ### Fixed
+
 - Resolved a merge conflict in `pyproject.toml` and set the canonical package version to `33.1.2` in packaging metadata.
 - Removed redundant/temporary repository files.
 - Ensured `[tool.setuptools]` package entries reference `arifos_core` and `arifos_core.memory` as the canonical installable packages.
@@ -762,6 +828,7 @@ SABAR → VOID → 888_HOLD → PARTIAL → SEAL
 **Status:** ✅ Hotfix applied
 
 ### Fixed
+
 - Fixed circular import in `guard.py` that prevented the package from being imported.
 - Fixed case-sensitivity bug in `guard.py`.
 - Added missing `Verdict` type alias and `APEXPrime` class definition to the public API.
@@ -806,5 +873,5 @@ The foundational version where the 8 Constitutional Floors, AGI·ASI·APEX Trini
 
 **Author:** Muhammad Arif bin Fazil
 **Location:** Seri Kembangan, Selangor, Malaysia
-**Repository:** https://github.com/ariffazil/arifOS
+**Repository:** <https://github.com/ariffazil/arifOS>
 **License:** AGPL-3.0

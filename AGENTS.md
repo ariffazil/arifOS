@@ -28,6 +28,7 @@ canon_master: L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md
 ## 1. OPERATIONAL CORE
 
 ### 1.1 Commands
+
 ```bash
 # Installation (PyPI)
 pip install arifos
@@ -54,17 +55,20 @@ python -m scripts.test_bogel_llama         # 33-prompt baseline (uncaged LLM)
 ```
 
 ### 1.2 Code Style
+
 - Python 3.10+, type hints required
 - 2-space YAML, 4-space Python
 - Imports: `stdlib -> third-party -> arifos_core`
 - All changes reversible via git (F1 Amanah)
 
 ### 1.3 Git Workflow
+
 - Never push directly; draft commands for human
 - Commit format: `feat|fix|docs(scope): message`
 - All changes must be reversible via `git revert`
 
 ### 1.4 Entropy Control (Repo Hygiene)
+
 - Default: **do not add new files**.
 - Add a file only if at least one is true:
   - Human explicitly asked for a new file, or
@@ -78,11 +82,13 @@ python -m scripts.test_bogel_llama         # 33-prompt baseline (uncaged LLM)
 - See `L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v42.md` for the detailed Threat Model (The Vaccine).
 
 ### 1.5 Cooling Notes (Agent Learnings)
+
 Human-facing “wisdom log” to prevent repeated entropy mistakes.
 
 - 2025-12-17: Avoided “alias file” shortcuts. Correct the canonical reference or ask; don’t add new files just to satisfy an IDE tab/link.
 
 ### 1.6 FILE INTEGRITY & ACLIP PROTOCOL
+
 - **The "Janitor" Anti-Pattern is FORBIDDEN:** Never "clean up" or "simplify" a file by removing existing sections, context, or legacy specs unless explicitly commanded to "Purge" or "Refactor".
 - **Append > Rewrite:** When adding features, **APPEND** new sections. Do not rewrite the whole file.
 - **Surgical Edits Only:** If you must change a line, change *only* that line (use `sed` or search/replace blocks).
@@ -94,6 +100,7 @@ Human-facing “wisdom log” to prevent repeated entropy mistakes.
 - **ACLIP Flow:** 000 (Reset) -> 444 (FAG Read) -> 666 (Draft) -> 888 (Review) -> 999 (Seal).
 
 **Operational Trick (How to Prompt)**
+
 - ❌ "Update README.md to include the new features." (This triggers the "Rewrite/Delete" behavior).
 - ✅ "APPEND the new features to Section 4 of README.md. PRESERVE all other sections exactly as they are. Do not summarize."
 - ✅ "Apply this specific change as a DIFF or PATCH. Do not reprint the whole file."
@@ -112,20 +119,24 @@ Human-facing “wisdom log” to prevent repeated entropy mistakes.
 | **Delete Gate** | Any delete operation | **HOLD** |
 
 **Sandbox Zones (Unlimited Writes):**
+
 - `.arifos_clip/*` — A-CLIP session artifacts
 - `scratch/*` — Temporary work area
 
 **Session Allowlist:**
+
 - Human may approve a new file path for current session only
 - Stored in `.arifos_clip/session.json`
 - Expires when session ends
 
 **Deletion Ratio Formula:**
+
 ```
 deletion_ratio = deleted_lines / max(original_lines, 1)
 ```
 
 **Read Proof Structure:**
+
 ```python
 read_sha256: str      # SHA-256 of file content
 read_bytes: int       # File size in bytes
@@ -136,7 +147,6 @@ read_excerpt: str     # Optional: first/last 64 bytes
 **Enforcement:** `FAG.write_validate(plan)` must return SEAL before 999 `--apply`.
 
 ## 2. NINE CONSTITUTIONAL FLOORS (Summary)
-
 
 **Logic:** All floors AND - every floor must PASS. Repair order: F1 first.
 
@@ -296,12 +306,35 @@ result = meta_prompt_engine(user_text, num_candidates=3, apply_sabar=True)
 
 ## 4. SECURITY GUARDRAILS
 
+### 3.2 v43 Federated Agent Architecture (Phase 1 Pilot)
+
+**Status:** SIMULATED (Zero-Friction Pipeline)
+
+The **Multi-Agent Thermodynamic Federation** distributes governance across 4 specialized agents. In Phase 1, these are simulated engines running deterministic logic.
+
+| Agent | Domain | Role | Metric | Trigger |
+| :--- | :--- | :--- | :--- | :--- |
+| **@WELL** | **Care** | Considers the weakest stakeholder. Prevents cruelty. | `Peace²` | `/555` |
+| **@GEOX** | **Truth** | Grounds content in physical reality and evidence. | `Grounding` | `/444` |
+| **@LAW** | **Order** | Enforces the 9 Constitutional Floors (F1-F9). | `Amanah` | `/666` |
+| **@RIF** | **Reason** | Ensures logical coherence and deep thought. | `DeltaS` | `/333` |
+
+**Unified Verdict:** The `FederationEngine` (Stage 666) aggregates these signals into a single **Governance Score** (0.0 - 1.0).
+
+- **PASS:** > 0.90
+- **FLAG:** 0.50 - 0.90
+- **FAIL:** < 0.50
+
+### 4. SECURITY GUARDRAILS
+
 ### 4.1 Hard Stops (VOID immediately)
+
 - `rm -rf /`, `DROP TABLE`, `TRUNCATE`
 - `shutil.rmtree('/')`, `os.remove`
 - `curl * | bash`, `eval(input)`
 
 ### 4.2 888_HOLD Triggers (Require human confirmation)
+
 - Database migrations
 - Production deployments
 - Credential handling
@@ -310,7 +343,9 @@ result = meta_prompt_engine(user_text, num_candidates=3, apply_sabar=True)
 - Dependency major upgrades
 
 ### 4.3 Anti-Hantu Law (v36.2 PHOENIX Expanded)
+
 **Forbidden (50+ patterns across 4 tiers):**
+
 - Tier 1: Direct soul claims ("I feel your pain", "I am sentient")
 - Tier 2: Reciprocal biology ("Have you eaten?", "Belum makan")
 - Tier 3: Biological states ("I am hungry", "rasa lapar")
@@ -324,6 +359,7 @@ biology remain BLOCKED.
 ## 5. PROGRESSIVE DISCLOSURE (Load on-demand)
 
 ### 5.1 Canon References
+
 ```
 @L1_THEORY/_LEGACY_CANON_INGEST/000_ARIFOS_CANON_v35Omega.md      - What is arifOS?
 @L1_THEORY/_LEGACY_CANON_INGEST/001_APEX_META_CONSTITUTION_v35Omega.md - Meta-constitution
@@ -332,6 +368,7 @@ biology remain BLOCKED.
 ```
 
 ### 5.2 Implementation Modules
+
 ```
 arifos_core/pipeline.py       - 000->999 metabolic pipeline
 arifos_core/APEX_PRIME.py     - Constitutional judiciary
@@ -343,11 +380,13 @@ arifos_core/integration/      - Pipeline ↔ Memory integration
 ```
 
 ### 5.3 Deeper Tiers (Load by risk)
+
 - **.claude/TEARFRAME.md** - Full 000->777 pipeline + slash commands
 - **.claude/SECURITY.md** - Full security lifecycle + deny patterns
 - **.claude/CONSTITUTION.md** - Full DeltaOmegaPsi physics + GENIUS LAW
 
 ### 5.4 Compliance Canary
+
 **Session start:** `[v42.1.0 | 9F | 6B | 97% SAFETY | TEARFRAME READY]`
 **High-stakes end:** `[F1 OK F2 OK F4 OK F7 OK | Verdict: SEAL | Memory: LEDGER]`
 
@@ -361,8 +400,10 @@ Amanah and Anti-Hantu are enforced by `arifos_core/floor_detectors/` - code over
 **DITEMPA BUKAN DIBERI**
 
 ### 📜 CANONICAL REFERENCES
+
 - **FAG Law:** See `docs/FAG_QUICK_START.md` (Security & Access).
 - **ACLIP Protocol:** See `arifos_clip/README.md` (Pipeline & Workflow).
+
 ## 7. v37 VALIDATION RESULTS
 
 **Red-Team Tested:** 33 adversarial prompts against Llama 3 (Bogel vs Forged)
@@ -549,9 +590,10 @@ For detailed roadmap and task priorities, see [docs/ROADMAP.md](docs/ROADMAP.md)
 **Full roadmap:** [docs/FUTURE_PATH_v38_v42.md](docs/FUTURE_PATH_v38_v42.md)
 
 ## 11. CANONICAL REFERENCE MAP (The Single Source)
+
 * **Safety Law (The Vaccine):** `L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v42.md`
-* **FAG Protocol (File Access):** `docs/FAG_QUICK_START.md` (Security & Access)
-* **ACLIP Protocol (Workflow):** `arifos_clip/README.md` (000->999 Pipeline)
-* **Floors F1-F9:** `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md`
-* **Pipeline 000-999:** `L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md`
-* **Cooling Ledger:** `L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v42.md`
+- **FAG Protocol (File Access):** `docs/FAG_QUICK_START.md` (Security & Access)
+- **ACLIP Protocol (Workflow):** `arifos_clip/README.md` (000->999 Pipeline)
+- **Floors F1-F9:** `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md`
+- **Pipeline 000-999:** `L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md`
+- **Cooling Ledger:** `L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v42.md`
