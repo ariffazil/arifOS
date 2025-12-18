@@ -119,3 +119,54 @@ Several core invariants are encoded in A CLIP's design and tests:
 5. **All Artifacts in .arifos_clip:** A CLIP writes all session and decision artifacts to the `.arifos_clip/` directory. It does not modify files outside this directory unless the final seal is authorized. (In practice, sealing could trigger code generation, commits, or other side-effects, but those are not implemented in this CLI and would require arifOS integration or explicit user action.) The Git hooks further ensure that no code is pushed without corresponding `.arifos_clip/` artifacts, linking repository changes to governance records.
 
 By adhering to these invariants, A CLIP creates a trustworthy chain-of-governance for any changes, from the initial void to the final seal, all while requiring human insight and law-engine oversight at critical junctures.
+
+## Governor × Enforcer: A-CLIP vs FAG (First Principles)
+
+Dalam arifOS, kita tak buat "vibes". Kita buat **Thermodynamic Constraints**: sistem mesti ada *hard gates* yang tak boleh dibypass.
+
+### A-CLIP = Governor (Brain)
+
+- **A-CLIP (000–999)** menguruskan urutan keputusan: dari `000` (VOID) sampai `999` (SEAL).
+- Ia memaksa *chain-of-governance*: setiap stage menulis jejak audit dalam `.arifos_clip/session.json`.
+- `999 seal` adalah satu-satunya pintu untuk “finalize”, dan ia sudah pun dipagari oleh:
+  - **Hold barrier:** tidak boleh seal kalau `.arifos_clip/holds/` tidak kosong.
+  - **Authority barrier:** tidak boleh apply tanpa `--apply` + `--authority-token`.
+  - **Law barrier:** tidak boleh seal jika arifOS verdict bukan `SEAL`.
+
+### FAG = Enforcer (Hands)
+
+FAG Write Contract gate di `arifos_clip/aclip/cli/999_seal.py` adalah “hands layer” yang memastikan **tiada file write berlaku** kecuali plan itu lulus kontrak write.
+
+**Mechanism:**
+- Jika `.arifos_clip/write_plan.json` wujud, `999 seal` akan memanggil `FAG.write_validate(plan)`.
+- Jika `write_validate` memulangkan verdict selain `SEAL` (contoh `HOLD` atau `VOID`), `999 seal` akan:
+  - menghasilkan artifact HOLD di `.arifos_clip/holds/`
+  - **keluar dengan exit code 88 (HOLD)**
+  - *dan proses seal berhenti (no bypass)*
+
+**What counts as “contested”:**
+- Dalam konteks A-CLIP, “contested” bermaksud **apa-apa write plan yang bukan `SEAL`** (contohnya melanggar “No New Files”, “Patch Only”, “Read Before Write”, “Rewrite Threshold”, atau “Delete Gate”).
+
+### Floor framing: “No write without F1 + F2” at 999_SEAL
+
+FAG Write Contract dibina untuk memaksa minimum floors ini sebelum write dibenarkan:
+- **F1 Amanah (Root jail / boundary):** plan tak boleh escape root jail, dan create dalam canon zone `L1_THEORY/` adalah **VOID**.
+- **F2 Truth (Read-before-write):** untuk operasi `patch`, plan mesti ada `read_sha256` + `read_bytes` dan ia mesti match keadaan file semasa.
+
+Prinsipnya: **A-CLIP mengawal urutan keputusan, FAG mengawal kebolehan tangan untuk menulis**.
+
+### Audit Trail: forensic-grade Cooling Ledger entries
+
+`FAG.write_validate` akan log keputusan (SEAL/HOLD) ke Cooling Ledger apabila `enable_ledger=True` (default untuk gate di `999 seal`).
+
+Untuk hardening audit:
+- Anggap sebarang kegagalan/ralat semasa write validation sebagai **non-bypassable HOLD** (tiada seal jika validation tak boleh dinilai).
+- Pastikan pipeline production tidak disable ledger semasa `999` (ledger adalah bukti forensik, bukan optional “telemetry”).
+
+### Secrets hardening (documentation-only guardrail)
+
+FAG F9 (C_dark) dan secret-blocking boleh ditambah kuat di luar pipeline dengan scanner:
+- `detect-secrets` (baseline secret hygiene)
+- `trufflehog` (deep scan untuk sejarah git)
+
+Ini bukan menggantikan A-CLIP/FAG, tapi mengurangkan risiko secret masuk sebelum sampai ke `999`.

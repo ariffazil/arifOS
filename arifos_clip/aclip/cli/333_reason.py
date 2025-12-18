@@ -20,5 +20,8 @@ def run_stage(session, args):
         # Output the latest step as JSON
         print(json.dumps(session.data['steps'][-1], indent=2))
     else:
-        print("Stage 333 (reason) completed: Logical reasoning completed.")
+        print("Stage 333 (REASON) Complete.")
+        print("Logic Decomposed: 000-999 is a 'Thermodynamic Metabolism' cycle.")
+        print("\nCopy-paste:")
+        print(f"/444 {session.data['id']}")
     return 0

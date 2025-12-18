@@ -7,6 +7,7 @@ from importlib import util
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="555", description="Execute A CLIP stage 555 - empathize")
     parser.add_argument("verb", choices=["empathize"], help="Stage verb (must be 'empathize')")
+    parser.add_argument("input", nargs="*", help="Stakeholder context or ethics query")
     parser.add_argument("--json", action="store_true", help="Output result in JSON")
     args = parser.parse_args(argv)
     sess = session_core.Session.load_or_init()

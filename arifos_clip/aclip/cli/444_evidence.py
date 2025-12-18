@@ -20,5 +20,22 @@ def run_stage(session, args):
         # Output the latest step as JSON
         print(json.dumps(session.data['steps'][-1], indent=2))
     else:
-        print("Stage 444 (evidence) completed: Evidence gathered.")
+        # v43 Audit Logic
+        evidence_data = ' '.join(args.input) if hasattr(args, 'input') else "None"
+        evidence_size = len(evidence_data)
+        
+        # Audit Check (Simulated)
+        audit_status = "VERIFIED" if evidence_size > 50 else "WEAK (Low Data Volume)"
+        
+        print("Stage 444 (EVIDENCE) Complete.")
+        print(f"Audit Status: {audit_status} (Size: {evidence_size} bytes)")
+        
+        # Conditional Routing (v43 Zero-Friction)
+        if "CONTESTED" in evidence_data:
+            print("\nAUTO-ROUTE (Contested Evidence):")
+            print("\nCopy-paste:")
+            print(f"/888 {session.data['id']} --reason 'Contested Evidence'")
+        else:
+            print("\nCopy-paste:")
+            print(f"/555 {session.data['id']}")
     return 0

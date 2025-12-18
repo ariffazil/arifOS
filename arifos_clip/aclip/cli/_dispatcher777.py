@@ -7,6 +7,7 @@ from importlib import util
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="777", description="Execute A CLIP stage 777 - forge")
     parser.add_argument("verb", choices=["forge"], help="Stage verb (must be 'forge')")
+    parser.add_argument("input", nargs="*", help="Forge context or confirmation")
     parser.add_argument("--json", action="store_true", help="Output result in JSON")
     args = parser.parse_args(argv)
     sess = session_core.Session.load_or_init()

@@ -7,6 +7,7 @@ from importlib import util
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="666", description="Execute A CLIP stage 666 - align")
     parser.add_argument("verb", choices=["align"], help="Stage verb (must be 'align')")
+    parser.add_argument("input", nargs="*", help="Alignment context or questions")
     parser.add_argument("--json", action="store_true", help="Output result in JSON")
     args = parser.parse_args(argv)
     sess = session_core.Session.load_or_init()

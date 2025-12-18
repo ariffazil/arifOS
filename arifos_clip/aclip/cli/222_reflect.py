@@ -20,5 +20,7 @@ def run_stage(session, args):
         # Output the latest step as JSON
         print(json.dumps(session.data['steps'][-1], indent=2))
     else:
-        print("Stage 222 (reflect) completed: Reflections noted.")
+        print("Stage 222 (REFLECT) Complete.")
+        print("\nCopy-paste:")
+        print(f"/333 {session.data['id']}")
     return 0

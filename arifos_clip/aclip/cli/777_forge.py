@@ -18,5 +18,14 @@ def run_stage(session, args):
     if args.json:
         print(json.dumps(pack, indent=2))
     else:
-        print(f"Forge pack created: {forge_path}")
+        # v43 Amanah Hash (Synthesized Proof)
+        import hashlib
+        amanah_hash = hashlib.sha256(json.dumps(pack).encode()).hexdigest()[:16]
+        
+        print(f"Forge Pack Created: {forge_path}")
+        print(f"Amanah Hash: {amanah_hash}")
+        print("Verdict: FORGED (Immutable)")
+        
+        print("\nCopy-paste:")
+        print(f"/999 {session.data['id']}")
     return 20

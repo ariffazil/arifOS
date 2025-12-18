@@ -7,6 +7,7 @@ from importlib import util
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="444", description="Execute A CLIP stage 444 - evidence")
     parser.add_argument("verb", choices=["evidence"], help="Stage verb (must be 'evidence')")
+    parser.add_argument("input", nargs="*", help="Evidence data or diff snippet")
     parser.add_argument("--json", action="store_true", help="Output result in JSON")
     args = parser.parse_args(argv)
     sess = session_core.Session.load_or_init()
