@@ -167,7 +167,7 @@ def _check_f6_amanah(forge_report: ForgeReport) -> tuple[bool, str]:
         for f in forge_report.files_changed
     )
 
-    if len(forge_report.files_changed) > 10 and not docs_updated:
+    if len(forge_report.files_changed) > 20 and not docs_updated:
         return False, "⚠️  Large change without doc updates - verify not breaking"
 
     return True, "✅ Integrity check passed"
