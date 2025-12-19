@@ -1,0 +1,244 @@
+#!/bin/bash
+
+################################################################################
+# aCLIP /DOC PUSH — Command-Line Interface Wrapper
+# Version: v43
+# Status: GOVERNANCE-GRADE DOCUMENTATION AUTOMATION
+# Doctrine: Ditempa, Bukan Diberi (Forged, Not Given)
+################################################################################
+
+set -euo pipefail
+
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+repo_root=$(cd "$script_dir/.." && pwd)
+python_module="$repo_root/arifos_clip/aclip/commands/doc_push.py"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# ============================================================================
+# USAGE & HELP
+# ============================================================================
+
+show_help() {
+    cat << 'EOF'
+aclip /doc push — Governance-Grade Documentation Automation
+
+USAGE:
+    aclip /doc push <files...> [OPTIONS]
+    aclip /doc review
+    aclip /doc ledger
+
+COMMANDS:
+    push <files...>     Push documentation through governance pipeline
+    review              Review pending seals from current session
+    ledger              View immutable documentation ledger
+
+OPTIONS:
+    --seal              Proceed to irreversible seal (requires --authority-token)
+    --authority-token=<TOKEN>  Your ARIFOS_CLIP_AUTH_SECRET (for sealing)
+    --help              Show this message
+
+EXAMPLES:
+    # Run governance checks (no seal)
+    aclip /doc push docs/ICL_v43.md
+    
+    # Review governance output, then seal if satisfied
+    aclip /doc push docs/ICL_v43.md --seal --authority-token=$ARIFOS_CLIP_AUTH_SECRET
+    
+    # Review multiple docs
+    aclip /doc push docs/*.md
+    
+    # View ledger
+    aclip /doc ledger
+
+DOCTRINE:
+    Ditempa, Bukan Diberi (Forged, Not Given)
+    Every documentation push is:
+    - Audited against constitutional floors (F1-F9)
+    - Human-authorized (explicit token required for sealing)
+    - Immutably recorded (append-only ledger)
+    - Wisdom-extracted (/EEE learning capture)
+
+FLOORS:
+    F1 Amanah      → Facts must be grounded [HARD]
+    F9 Anti-Hantu  → Human agency preserved [HARD]
+    F4 Clarity     → Docs reduce confusion [SOFT]
+    F5 Peace²      → No inflammatory language [SOFT]
+    F7 Humility    → Uncertainties acknowledged [SOFT]
+
+STATUS CODES:
+    PASS   = All floors satisfied; ready to seal
+    PARTIAL= Soft floors flagged; operator may override
+    FLAG   = Warning; review required
+    VOID   = Hard floor violated; cannot proceed
+
+EOF
+}
+
+# ============================================================================
+# COMMAND: /doc push
+# ============================================================================
+
+cmd_push() {
+    local files=()
+    local seal_flag=false
+    local authority_token=""
+    
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --seal)
+                seal_flag=true
+                shift
+                ;;
+            --authority-token=*)
+                authority_token="${1#*=}"
+                shift
+                ;;
+            --help)
+                show_help
+                exit 0
+                ;;
+            -*)  
+                echo -e "${RED}Unknown option: $1${NC}" >&2
+                exit 1
+                ;;
+            *)
+                files+=("$1")
+                shift
+                ;;
+        esac
+    done
+    
+    if [[ ${#files[@]} -eq 0 ]]; then
+        echo -e "${RED}Error: No files specified${NC}" >&2
+        show_help
+        exit 1
+    fi
+    
+    echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "${BLUE}  aCLIP /DOC PUSH — GOVERNANCE-GRADE AUTOMATION${NC}"
+    echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+    
+    # Verify files exist
+    for file in "${files[@]}"; do
+        if [[ ! -f "$repo_root/$file" ]]; then
+            echo -e "${RED}✗ File not found: $file${NC}"
+            exit 1
+        fi
+    done
+    
+    echo -e "${GREEN}✓ Files verified (${#files[@]} total)${NC}"
+    
+    # Load Python module and execute pipeline
+    if [[ ! -f "$python_module" ]]; then
+        echo -e "${RED}✗ Python module not found: $python_module${NC}"
+        exit 1
+    fi
+    
+    # Run Python pipeline
+    python3 << PYSCRIPT
+import sys
+sys.path.insert(0, '$repo_root')
+from pathlib import Path
+from arifos_clip.aclip.commands.doc_push import DocPushOrchestrator
+
+repo_root = Path('$repo_root')
+files = $([[ -z "${files[*]}" ]] && echo '[]' || printf '%s\n' "${files[@]}" | python3 -c "import sys, json; print(json.dumps([line.strip() for line in sys.stdin]))")
+
+sealing = $([[ $seal_flag == true ]] && echo 'True' || echo 'False')
+token = '$authority_token'
+
+try:
+    orchestrator = DocPushOrchestrator(repo_root)
+    session = orchestrator.execute_pipeline(
+        doc_files=[(f, open(repo_root / f).read()) for f in files],
+        authority_token=token if token else None,
+        auto_seal=sealing
+    )
+    print(f'\n\n✓ Session complete: {session["final_status"]}')
+except Exception as e:
+    print(f'✗ Error: {e}')
+    sys.exit(1)
+PYSCRIPT
+}
+
+# ============================================================================
+# COMMAND: /doc review
+# ============================================================================
+
+cmd_review() {
+    echo -e "${BLUE}[/DOC REVIEW]${NC} Pending governance audits..."
+    
+    eee_file="$repo_root/.arifos_clip/meta/eee_doc_pushes.jsonl"
+    if [[ -f "$eee_file" ]]; then
+        echo -e "${GREEN}✓ Wisdom extraction ledger found${NC}"
+        tail -5 "$eee_file"
+    else
+        echo -e "${YELLOW}~ No /EEE ledger yet${NC}"
+    fi
+}
+
+# ============================================================================
+# COMMAND: /doc ledger
+# ============================================================================
+
+cmd_ledger() {
+    echo -e "${BLUE}[/DOC LEDGER]${NC} Documentation push audit trail..."
+    
+    ledger_file="$repo_root/cooling_ledger/doc_pushes.jsonl"
+    if [[ -f "$ledger_file" ]]; then
+        echo -e "${GREEN}✓ Ledger entries (last 10)${NC}"
+        tail -10 "$ledger_file" | while read -r line; do
+            echo "  $line"
+        done
+    else
+        echo -e "${YELLOW}~ Ledger not yet initialized${NC}"
+    fi
+}
+
+# ============================================================================
+# MAIN
+# ============================================================================
+
+if [[ $# -eq 0 ]]; then
+    show_help
+    exit 0
+fi
+
+case "${1:-}" in
+    /doc)
+        shift
+        case "${1:-push}" in
+            push)
+                shift
+                cmd_push "$@"
+                ;;
+            review)
+                shift
+                cmd_review
+                ;;
+            ledger)
+                shift
+                cmd_ledger
+                ;;
+            *)
+                show_help
+                exit 1
+                ;;
+        esac
+        ;;
+    --help|-h|help)
+        show_help
+        exit 0
+        ;;
+    *)
+        echo -e "${RED}Unknown command: $1${NC}" >&2
+        show_help
+        exit 1
+        ;;
+esac
