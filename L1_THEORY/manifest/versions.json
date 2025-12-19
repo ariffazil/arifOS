@@ -1,0 +1,9 @@
+{
+  "v43.1.0": {
+    "bundle_hash": "sha256:efa55b85576dc6a2",
+    "commit_hash": "6a3d38e1c45b91839fc118ce624d5be0e267d8d2",
+    "tag": "v43.1.0",
+    "sealed_at": "2025-12-19T08:49:45.523923+00:00",
+    "human_authority": "Muhammad Arif bin Fazil"
+  }
+}

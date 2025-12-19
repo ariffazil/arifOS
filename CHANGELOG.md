@@ -11,6 +11,45 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 > Use this section for upcoming changes.
 > When you cut a new version, move entries from here into a tagged release.
 
+## [v43.1.0] - 2025-12-19 - Trinity Universal Interface
+
+**Status:** SEALED | Trinity Self-Sealed | Tag: v43.1.0
+
+### Added
+
+- **Universal Trinity CLI** (`scripts/trinity.py`)
+  - 3-command interface: `trinity forge`, `trinity qc`, `trinity seal`
+  - AI-agnostic (works with ChatGPT, Claude, Gemini, any AI)
+  - Platform-agnostic (Windows, Mac, Linux)
+  - Auto-detects repo root and human authority from git config
+- **Platform Wrappers**
+  - `trinity.ps1` - PowerShell wrapper for Windows
+  - `trinity.sh` - Bash wrapper for Unix/Mac/Linux
+- **AI Assistant Template** (`.arifos/trinity_ai_template.md`)
+  - Universal instructions for ANY AI to understand Trinity commands
+  - Copy-paste into ChatGPT/Claude/Gemini for instant integration
+- **Documentation Updates**
+  - `README.md`: Added Trinity section before Installation
+  - `CHANGELOG.md`: This entry
+
+### Changed
+
+- Trinity now accessible with simple commands instead of full Python paths
+- Reduced memory burden from 20+ git steps to 3 simple commands
+
+### Meta
+
+**Trinity sealed itself using the universal interface it built.**
+
+The governance system validated its own creation using the simplified commands,
+demonstrating accessibility without compromising constitutional rigor.
+
+**Bundle Hash**: `sha256:efa55b85576dc6a2`  
+**Authority**: Muhammad Arif bin Fazil  
+**ZKPC**: zkpc_stub_sha256:c7c80c7e0e5f83de
+
+---
+
 ## [v43.0] - 2025-12-19 - Federated Agentic Pilot (Phase 1)
 
 **Status:** PILOT SEALED (Zero-Friction) | Score: 0.98 | Tag: v43.0-pilot
