@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "42.2.2"
-description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW, EUREKA Memory, Concern-Based Architecture (v42)"
+version = "43.0.0"
+description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW, Fail-Closed Enforcement, SABAR-72 Time Governor, Master Flaw Set (v43)"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "AGPL-3.0"}
@@ -13,6 +13,10 @@ keywords = [
     "ai-governance",
     "constitutional-ai",
     "ai-safety",
+    "fail-closed-governance",
+    "sabar-72",
+    "master-flaw-set",
+    "trinity-governance",
     "thermodynamic-intelligence",
     "audit-trail",
     "empathy-conductance",
@@ -123,6 +127,7 @@ packages = [
     "arifos_core.enforcement",
     "arifos_core.governance",
     "arifos_core.utils",
+    "arifos_core.trinity",
     # Legacy directories (still functional)
     "arifos_core.memory",
     "arifos_core.adapters",
