@@ -141,6 +141,50 @@ class Vault999:
         amendments.append(amendment)
         self._save()
 
+    def record_gitseal_approval(
+        self,
+        version: str,
+        bundle_hash: str,
+        commit_hash: str,
+        human_authority: str,
+        entropy_delta: float,
+    ) -> None:
+        """
+        Record /gitseal approval in constitutional memory.
+
+        This creates an amendment entry tracking the sealed release,
+        integrating Trinity governance with Vault-999 canonical memory.
+
+        Args:
+            version: Semantic version (e.g. "43.0.1")
+            bundle_hash: Bundle hash from /gitseal
+            commit_hash: Git commit hash
+            human_authority: Name of approving authority
+            entropy_delta: ΔS from /gitforge analysis
+
+        Note:
+            Called by Trinity seal.py after successful APPROVE.
+        """
+        amendment = {
+            "id": f"gitseal_{version}",
+            "type": "GITSEAL_APPROVAL",
+            "version": version,
+            "bundle_hash": bundle_hash,
+            "commit_hash": commit_hash,
+            "human_authority": human_authority,
+            "entropy_delta": entropy_delta,
+            "applied_at": amendment_timestamp(),
+        }
+        amendments = self._constitution.setdefault("amendments", [])
+        amendments.append(amendment)
+
+        # Update entropy baseline
+        physics = self._constitution.setdefault("physics", {})
+        physics["last_entropy_delta"] = entropy_delta
+        physics["last_sealed_version"] = version
+
+        self._save()
+
     def update_floors(self, new_floors: Dict[str, Any], phoenix_id: str) -> None:
         """
         Update floors via a Phoenix cycle.

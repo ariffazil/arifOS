@@ -120,6 +120,16 @@ def execute_seal(
                 repo_path=repo_path,
             )
 
+            # Integrate with Vault-999 constitutional memory
+            _record_in_vault999(
+                version=housekeeper_proposal.new_version,
+                bundle_hash=bundle_result["bundle_hash"],
+                commit_hash=bundle_result["commit_hash"],
+                human_authority=human_authority,
+                entropy_delta=forge_report.entropy_delta,
+                repo_path=repo_path,
+            )
+
             return SealDecision(
                 verdict="APPROVED",
                 bundle_hash=bundle_result["bundle_hash"],
@@ -341,3 +351,43 @@ def _update_manifest(
     # Write back
     with manifest_path.open("w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2, ensure_ascii=False)
+
+
+def _record_in_vault999(
+    version: str,
+    bundle_hash: str,
+    commit_hash: str,
+    human_authority: str,
+    entropy_delta: float,
+    repo_path: Path,
+) -> None:
+    """
+    Record /gitseal approval in Vault-999 constitutional memory.
+
+    Integrates Trinity governance with canonical memory system.
+    """
+    try:
+        # Import vault999 module
+        import sys
+
+        sys.path.insert(0, str(repo_path))
+        from arifos_core.memory.vault999 import Vault999, VaultConfig
+
+        # Initialize vault
+        vault_config = VaultConfig(vault_path=repo_path / "runtime" / "vault_999" / "constitution.json")
+        vault = Vault999(vault_config)
+
+        # Record approval
+        vault.record_gitseal_approval(
+            version=version,
+            bundle_hash=bundle_hash,
+            commit_hash=commit_hash,
+            human_authority=human_authority,
+            entropy_delta=entropy_delta,
+        )
+
+    except Exception as e:
+        # Vault integration is best-effort, don't fail seal on vault errors
+        print(f"⚠️  Warning: Vault-999 integration failed: {e}")
+        print("    (Ledger and manifest still recorded successfully)")
+
