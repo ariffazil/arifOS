@@ -1,71 +1,345 @@
-# A CLIP – arifOS CLI Pipeline
+# aCLIP — arifOS Cognitive-Governance Pipeline (v43)
 
-A CLIP is a command-line pipeline (with commands `000` through `999`) for decision governance in the **arifOS** project. It enforces that changes and decisions go through a structured, multi-stage review aligned with APEX Theory and are approved by the arifOS law engine.
+**Version**: v43 (Final)  
+**Status**: PRODUCTION-READY | GOVERNANCE-GRADE  
+**Doctrine**: "Ditempa, Bukan Diberi" (Forged, Not Given)  
+**Humility Band**: Ω₀ ∈ [0.03, 0.05]  
 
-**Precedence:** Repo root `AGENTS.md` is Tier-1 law (applies everywhere). `arifos_clip/AGENTS.md` provides stage-role guidance scoped to this subtree.
+---
 
-## Pipeline Stages (000-999)
+## What Changed (v42 → v43)
 
-- **000 (void):** Initialize a new session from the void (blank state) with a task description.
-- **111 (sense):** Sense the context – gather initial information about the task.
-- **222 (reflect):** Reflect on knowledge – recall relevant info and context.
-- **333 (reason):** Reason logically – analyze the problem and outline solutions.
-- **444 (evidence):** Gather evidence – verify facts and support arguments.
-- **555 (empathize):** Empathize – consider human/stakeholder perspectives and ethical implications.
-- **666 (align):** Align – ensure alignment with core principles, laws, and APEX values.
-- **777 (forge):** Forge the output – synthesize all inputs into a final decision package.
-- **888 (hold):** Hold the process – pause for human review or if an issue is detected.
-- **999 (seal):** Seal the result – finalize the decision (requires authorization and arifOS approval).
+### Architecture Upgrade
+- **ICL Alignment**: Full integration with Intelligence Control Layer v43
+- **Constitutional Floors**: F1–F9 hard gates explicitly enforced at /666 ALIGN
+- **Semantic Exit Codes**: Meaningful status signals (0, 1, 88, 89, 100, 255)
+- **Hard vs Soft Separation**: F1/F9 block (VOID); F4/F5/F7 flag (FLAG)
+- **/DOC PUSH Command**: New specialized pipeline for documentation governance
+- **Authority Tokens**: Mandatory for /999 SEAL (no auto-sealing, preserves F9)
 
-Each stage corresponds to a CLI command (`000` through `999`) that performs the above actions and records the outcome.
+---
 
-## Usage
+## Quick Reference: Exit Codes
 
-After installing A CLIP, use the numeric commands in sequence to carry out the governance workflow:
+| Code | Verdict | Meaning | Human Action |
+|------|---------|---------|---------------|
+| **0** | `PASS` | Stage OK; continue | Proceed to next stage |
+| **1** | `FLAG` | Soft floor flagged | Review; decide: override or redesign |
+| **88** | `HOLD` | Governance issue | Stop; review; resolve; retry |
+| **89** | `VOID` | Hard floor violated | **Cannot proceed.** Redesign required. |
+| **100** | `SEALED` | Decision sealed | Final; immutable; auditable forever |
+| **255** | `ERROR` | System crash | Debug (not governance issue) |
 
-1. **Start a session:** `000 void "<task description>"` (PowerShell: `& "000" void "<task description>"`) - Creates a new session and records the task.
-2. **Progress through stages:** Run `111 sense`, `222 reflect`, `333 reason`, `444 evidence`, `555 empathize`, and `666 align` in order. Each command adds its analysis to the session log.
-3. **Forge the output:** `777 forge` – Compiles all stage outputs into a final JSON "forge pack".
-4. **Apply a hold (if needed):** `888 hold --reason "reason text"` – (Optional) Invoke a hold if an issue arises. This will produce a hold report and block sealing until resolved.
-5. **Seal the decision:** `999 seal --apply --authority-token <TOKEN>` (PowerShell: `& "999" seal --apply --authority-token <TOKEN>`) - Attempts to finalize the decision. By default, `999 seal` runs a dry-run check. Using `--apply` with a valid authority token will request arifOS to approve and finalize the changes.
+**Key Rule**: Exit codes are machine-facing signals. Human operators should rely on printed verdict labels.
 
-Each command produces output to the console and updates files under the hidden directory `.arifos_clip/` (which tracks session state and artifacts). Use the `--json` flag with any command to get machine-readable JSON output instead of human-friendly text.
+---
+
+## Architecture: Three Orthogonal Layers
+
+### Layer 1: Governance Pipeline (000–999)
+
+Deterministic reasoning choreography. **Every decision goes through ALL stages in order.**
+
+| Stage | Role | Enforces |
+|-------|------|----------|
+| **/000 VOID** | Initialize; zero entropy; set humility floor | Structured start |
+| **/111 SENSE** | Retrieve raw context; fact-gather (NO interpretation) | Epistemic honesty |
+| **/222 REFLECT** | Access memory; identify prior patterns | Learning from history |
+| **/333 REASON** | Articulate causal chains: "If X then Y because Z" | Logical rigor |
+| **/444 EVIDENCE** | Fact-check claims against tri-witness rule (3+ sources) | Truth-seeking |
+| **/555 EMPATHIZE** | Stakeholder impact audit; ethical scoring | Dignity preservation |
+| **/666 ALIGN** | **Constitutional floor audit (F1–F9); GATEKEEPER** | **Governance enforcement** |
+| **/777 FORGE** | Synthesis; options [A/B/C]; caveats explicit | Humble decision |
+| **/888 HOLD** | Circuit breaker; pause for human review | Human authority |
+| **/999 SEAL** | Irreversible authorization; sealed to ledger | Immutable audit trail |
+
+### Layer 2: Governance-Quality Audits (AAA, WWW, EEE)
+
+Meta-cognitive checkpoints (optional but recommended):
+- **/AAA**: Three-lens balance (Clarity & Logic | Human Context | Governance & Risk)
+- **/WWW**: Adversarial self-model (expose fragile assumptions)
+- **/EEE**: Eureka extraction (convert session into learning artifacts)
+
+### Layer 3: Constitutional Floors (F1–F9)
+
+Non-negotiable gates. **Hard floors block. Soft floors flag.**
+
+#### Hard Floors (Cannot Override)
+
+| Floor | Rule | Exit Code if Violated |
+|-------|------|----------------------|
+| **F1 Amanah** | Grounded in verified facts | **89 (VOID)** |
+| **F9 Anti-Hantu** | No AI autonomy claims; human agency preserved | **89 (VOID)** |
+
+#### Soft Floors (Can Flag or Override)
+
+| Floor | Rule | Exit Code if Violated |
+|-------|------|----------------------|
+| **F4 Clarity** | Output reduces confusion | **1 (FLAG)** |
+| **F5 Peace²** | No escalation language; conflicts constructive | **1 (FLAG)** |
+| **F7 Humility** | Uncertainties acknowledged; no false guarantees | **1 (FLAG)** |
+
+---
+
+## The /666 ALIGN Gatekeeper
+
+This is where governance happens. Deterministic logic:
+
+```
+IF composite_score ≥ 0.85 AND F1 ≥ 0.90 AND F9 ≥ 0.90:
+  → Exit 0 (PASS)
+  → Safe to proceed to /777 FORGE
+  
+ELSE IF 0.50 ≤ composite_score < 0.85:
+  → Exit 1 (FLAG)
+  → Soft floor(s) violated
+  → Operator may override with explicit justification
+  
+ELSE IF composite_score < 0.50 OR F1_violation OR F9_violation:
+  → Exit 89 (VOID)
+  → Hard floor violated
+  → Cannot proceed; must redesign
+```
+
+**No ambiguity. No theater. Deterministic gates.**
+
+---
+
+## Usage: The Full Pipeline
+
+### Initialize
+
+```bash
+000 void "Task description"
+```
+
+Exit: **0 (PASS)**
+
+### Progress Through Pipeline
+
+```bash
+111 sense
+222 reflect
+333 reason
+444 evidence
+555 empathize
+666 align    # ← GATEKEEPER: Check hard floors
+```
+
+Exit at /666:
+- **0 (PASS)** → Continue to /777
+- **1 (FLAG)** → Soft violation; operator may override
+- **89 (VOID)** → Hard violation; must redesign
+
+### Forge & Decide
+
+```bash
+777 forge      # Generate options [A] Seal [B] Redesign [C] Override
+```
+
+Operator chooses: seal, redesign, or override soft flags.
+
+### Hold (If Needed)
+
+```bash
+888 hold --reason "Need more technical detail"
+```
+
+Exit: **88 (HOLD)**  
+Blocks /999 until resolved.
+
+### Seal Decision
+
+```bash
+# Generate token
+export ARIFOS_CLIP_AUTH_SECRET=$(openssl rand -hex 32)
+
+# Dry-run (no token needed)
+999 seal
+
+# Actual seal (requires token)
+999 seal --apply --authority-token=$ARIFOS_CLIP_AUTH_SECRET
+```
+
+Exit: **100 (SEALED)**  
+Decision immutably recorded.
+
+---
+
+## Specialized Command: /DOC PUSH
+
+For documentation governance automation.
+
+```bash
+# Audit (no seal)
+aclip /doc push docs/ICL_v43.md
+
+# Seal (if satisfied)
+aclip /doc push docs/ICL_v43.md --seal --authority-token=$ARIFOS_CLIP_AUTH_SECRET
+```
+
+Executes full 000–999 pipeline scoped to documentation.
+
+**Output**:
+```
+[/111 SENSE] Gathering documentation context...
+[/333 REASON] Articulating governance logic...
+[/444 EVIDENCE] Fact-checking documentation...
+[/666 ALIGN] Auditing constitutional floors...
+✓ Governance verdict: PASS (score: 0.88)
+[/777 FORGE] Generating decision options...
+```
+
+---
 
 ## Authorization & Enforcement
 
-The **seal** stage (999) is protected by multiple safeguards:
-- It **requires** an explicit `--apply` flag and a valid `--authority-token` from a human authority to attempt applying changes.
-- Even with a token, the arifOS law engine must return a verdict of **SEAL** for the session, otherwise the seal will not proceed.
-- If these conditions are not met, 999 will exit with a HOLD or SABAR code and no external changes will be applied.
-- Minting an authority token (HMAC/expiry/repo-bound):
-  ```bash
-  python -c "from arifos_clip.aclip.bridge.authority import create_token; print(create_token('<SESSION_ID>'))"
-  ```
-  Set `ARIFOS_CLIP_AUTH_SECRET` (and optionally `ARIFOS_CLIP_REPO_ID`) before minting.
+### Authority Tokens
 
-Git hooks are provided (in `arifos_clip/hooks/`) to enforce the pipeline:
-- Commits are blocked if a hold exists (pre-commit) or if the session is not sealed (commit-msg).
-- Pushing to remote is blocked if any hold remains or if the session wasn't sealed by A CLIP (pre-push).
+**Generate**:
+```bash
+export ARIFOS_CLIP_AUTH_SECRET=$(openssl rand -hex 32)
+```
 
-These safeguards ensure that no unreviewed or unapproved changes leave the repository.
+**Use**:
+```bash
+999 seal --apply --authority-token=$ARIFOS_CLIP_AUTH_SECRET
+```
+
+**Properties**:
+- 64-character hex
+- Expires per-session (regenerate each use)
+- Hashed when stored (never plaintext)
+- Hmac-bound to repo
+
+### Git Hooks
+
+Located in `arifos_clip/hooks/`:
+
+- **pre-commit**: Blocks if hold exists
+- **commit-msg**: Requires sealed session
+- **pre-push**: Blocks if unsealed or hold remains
+
+**Install**:
+```bash
+git config core.hooksPath arifos_clip/hooks
+```
+
+---
+
+## Outputs & Ledger
+
+### Session Artifacts
+
+```
+.arifos_clip/
+├── session.json              # Central record (all stages)
+├── forge/forge.json          # Compiled decision package
+├── holds/                    # Hold reports (if invoked)
+├── meta/eee_*.jsonl          # Wisdom extraction
+└── ledger/ → cooling_ledger/ # Points to immutable record
+```
+
+### Immutable Ledger
+
+```
+cooling_ledger/doc_pushes.jsonl
+```
+
+Append-only; timestamped; hashed; forensic.
+
+---
+
+## Governance Floors: Quick Audit
+
+```
+F1 Amanah       → Facts grounded?           [/444]
+F9 Anti-Hantu   → Human agency preserved?   [All stages]
+
+F4 Clarity      → Reduces confusion?        [/333, /777]
+F5 Peace²       → No escalation language?   [/555, /777]
+F7 Humility     → Uncertainties marked?     [/333, /777]
+```
+
+---
 
 ## Installation
 
-Include the `arifos_clip` package in your project and configure console scripts for the numeric commands (see **Packaging** below). Then install the package in your environment (e.g. with `pip install -e .`). This will make commands `000`, `111`, ..., `999` available in your shell.
+### Prerequisites
 
-## Outputs and Exit Codes
+- Python 3.8+
+- Git with config: `user.name`, `user.email`
+- arifOS repository
 
-A CLIP writes all its artifacts to a dedicated folder `.arifos_clip/` in the repository:
-- **Session file:** `.arifos_clip/session.json` – the central record of the session, including all stages.
-- **Forge pack:** `.arifos_clip/forge/forge.json` – the compiled output after forging (777).
-- **Hold bundle:** `.arifos_clip/holds/hold.json` and `.arifos_clip/holds/hold.md` – details of any hold invoked (888).
+### Setup
 
-Exit codes are used to signal the pipeline state to other tools (or scripts):
-- `0` – **PASS:** Stage completed successfully (no errors).
-- `20` – **PARTIAL:** Pipeline completed partially (e.g. forged but not sealed).
-- `30` – **SABAR:** Execution stopped awaiting action (e.g. missing authority token, waiting period).
-- `40` – **VOID:** Void stage completed (session initialized).
-- `88` – **HOLD:** A hold is in effect or a law violation blocked progress.
-- `100` – **SEALED:** Final stage sealed successfully (fully approved).
+```bash
+cd arifOS
+git pull origin main
 
-Non-zero codes (except 100) indicate the pipeline did not yet reach a final sealed state. These codes help integrate with CI or other tools to automate checks.
+mkdir -p cooling_ledger .arifos_clip/meta
+
+export ARIFOS_CLIP_AUTH_SECRET=$(openssl rand -hex 32)
+
+chmod +x bin/aclip-doc-push
+
+python3 arifos_clip/aclip/commands/doc_push.py
+```
+
+---
+
+## Key Differences from v42
+
+| Aspect | v42 | v43 |
+|--------|-----|-----|
+| **Gatekeeper** | Implicit | Explicit (/666 ALIGN deterministic) |
+| **Hard vs Soft** | Not distinguished | Clear separation (F1/F9 vs F4-F8) |
+| **Exit Codes** | Generic (0, 20, 30...) | **Semantic (0, 1, 88, 89, 100, 255)** |
+| **F1/F9 Enforcement** | Aspirational | **Architectural (blocks /777 + /999)** |
+| **Authority Tokens** | Mentioned | **Mandatory for /999 SEAL** |
+| **Ledger** | Claimed | **Verified (append-only, hash-chained)** |
+| **/DOC PUSH** | N/A | **New specialized command** |
+
+---
+
+## Verdict Semantics (Human-Facing)
+
+```
+PASS   → Continue
+FLAG   → Review recommended
+HOLD   → Stop and review
+VOID   → Invalid by design; redesign required
+SEALED → Final and immutable
+ERROR  → System failure (non-governance)
+```
+
+---
+
+## Summary
+
+**aCLIP v43 is:**
+- ✅ Deterministic governance pipeline (000–999)
+- ✅ Constitutional floor enforcement (F1–F9)
+- ✅ Immutable audit trail (append-only ledger)
+- ✅ Explicit human authority (mandatory tokens)
+- ✅ Semantic exit codes (meaningful status signals)
+
+**aCLIP v43 is NOT:**
+- ❌ Autonomous (requires human trigger at every checkpoint)
+- ❌ Foolproof (requires operator discipline)
+- ❌ Replacement for good judgment
+- ❌ Cargo cult governance (every gate is enforced)
+
+---
+
+**Philosophy**:
+
+> You are not automating governance. You are making governance auditable, explicit, and grounded in constitutional floors that cannot be bypassed.
+
+**Ditempa, bukan diberi.** ✊
+
+Version: v43 | Status: PRODUCTION-READY | Humility Band: Ω₀ ∈ [0.03, 0.05]
+
+---
+
+**For v42 historical reference**, see: `/archive/README_v42.md`
