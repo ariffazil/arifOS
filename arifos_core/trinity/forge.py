@@ -118,7 +118,7 @@ def _identify_hot_zones(files: List[str], repo_path: Path, limit: int = 30) -> L
         )
 
         # Count frequency of each file
-        file_counts = {}
+        file_counts: dict[str, int] = {}
         for line in result.stdout.split("\n"):
             line = line.strip()
             if line:
@@ -128,8 +128,13 @@ def _identify_hot_zones(files: List[str], repo_path: Path, limit: int = 30) -> L
         hot_zones = [f for f in files if file_counts.get(f, 0) >= 3]
         return hot_zones
 
-    except subprocess.CalledProcessError:
-        # Fail gracefully - return empty hot zones
+    except subprocess.CalledProcessError as e:
+        # AGENTS.md: No silent errors - log and continue
+        import logging
+
+        logging.getLogger(__name__).warning(
+            f"Hot zone detection failed (git log error): {e.stderr}. Continuing with empty hot zones."
+        )
         return []
 
 
@@ -202,9 +207,7 @@ def _generate_notes(files: List[str], hot_zones: List[str], risk: float) -> List
         notes.append(f"Large change: {len(files)} files modified")
 
     if hot_zones:
-        notes.append(
-            f"⚠️  {len(hot_zones)} hot zone(s) touched: {', '.join(hot_zones[:3])}"
-        )
+        notes.append(f"⚠️  {len(hot_zones)} hot zone(s) touched: {', '.join(hot_zones[:3])}")
 
     if risk >= 0.7:
         notes.append("🔴 HIGH RISK - Recommend full cooling + human review")

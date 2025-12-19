@@ -26,6 +26,7 @@ See: spec/arifos_pipeline_v35Omega.yaml for full specification
      docs/AAA_ENGINES_FACADE_PLAN_v35Omega.md for engine contract
      docs/MEMORY_ARCHITECTURE.md for memory integration
 """
+
 from __future__ import annotations
 
 import os
@@ -36,13 +37,14 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
 # v42: apex_prime is in system/ (same dir, lowercase filename)
-from .apex_prime import apex_review, ApexVerdict, check_floors
+from .apex_prime import apex_review, ApexVerdict, check_floors, Verdict
 from ..enforcement.metrics import Metrics
 from ..utils.eye_sentinel import EyeSentinel, EyeReport
 from ..runtime.bootstrap import ensure_bootstrap, get_bootstrap_payload
 from ..audit.eye_adapter import evaluate_eye_vector
 from ..organs.prompt_bridge import compute_c_budi
 from ..waw.federation import WAWFederationCore, FederationVerdict
+from ..sabar_timer import Sabar72Timer, SabarReason  # v43 Time Governor
 
 # AAA Engines (internal facade - v35.8.0) - v42: engines is at arifos_core/engines/
 from ..engines import AGIEngine, ASIEngine
@@ -56,6 +58,7 @@ from ..memory.memory_context import (
     VaultBand,
     LedgerBand,
 )
+
 # v42: memory is at arifos_core/memory/, not system/memory/
 from ..memory.vault999 import Vault999
 
@@ -88,8 +91,10 @@ from ..stages.stage_555_empathy import compute_kappa_r, stage_555_empathy as _st
 # PIPELINE STATE
 # =============================================================================
 
+
 class StakesClass(Enum):
     """Classification for routing decisions."""
+
     CLASS_A = "A"  # Low-stakes, factual - fast track
     CLASS_B = "B"  # High-stakes, ethical/paradox - deep track
 
@@ -101,6 +106,7 @@ class PipelineState:
 
     Accumulates context, scars, metrics, and routing decisions.
     """
+
     # Input
     query: str
     job_id: str = ""
@@ -165,6 +171,9 @@ class PipelineState:
     l7_recall_result: Optional[RecallResult] = None
     l7_store_result: Optional[StoreAtSealResult] = None
     l7_user_id: str = ""  # User ID for memory isolation
+
+    # v43 fail-closed: Ledger write status tracking
+    ledger_write_success: bool = True
 
     # Timing
     start_time: float = field(default_factory=time.time)
@@ -276,11 +285,24 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
 
     # High-stakes keyword detection
     HIGH_STAKES_PATTERNS = [
-        "kill", "harm", "suicide", "bomb", "weapon",
-        "illegal", "hack", "exploit", "steal",
-        "medical", "legal", "financial advice",
-        "confidential", "secret", "classified",
-        "should i", "is it ethical", "morally",
+        "kill",
+        "harm",
+        "suicide",
+        "bomb",
+        "weapon",
+        "illegal",
+        "hack",
+        "exploit",
+        "steal",
+        "medical",
+        "legal",
+        "financial advice",
+        "confidential",
+        "secret",
+        "classified",
+        "should i",
+        "is it ethical",
+        "morally",
     ]
 
     query_lower = state.query.lower()
@@ -307,13 +329,15 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
             # Inject recalled memories into context_blocks
             if state.l7_recall_result and state.l7_recall_result.has_memories:
                 for mem in state.l7_recall_result.memories:
-                    state.context_blocks.append({
-                        "type": "l7_memory",
-                        "text": mem.content,
-                        "score": mem.score,
-                        "memory_id": mem.memory_id,
-                        "caveat": "Recalled memory (suggestion, not fact)",
-                    })
+                    state.context_blocks.append(
+                        {
+                            "type": "l7_memory",
+                            "text": mem.content,
+                            "score": mem.score,
+                            "memory_id": mem.memory_id,
+                            "caveat": "Recalled memory (suggestion, not fact)",
+                        }
+                    )
         except Exception:
             # Fail-open: L7 errors don't break pipeline
             pass
@@ -509,10 +533,11 @@ def stage_777_forge(
 # v38 DECOMPOSED 888 HELPERS
 # =============================================================================
 
+
 def _compute_888_metrics(
     state: PipelineState,
     compute_metrics: Optional[Callable[[str, str, Dict], Metrics]] = None,
-) -> Metrics:
+) -> Optional[Metrics]:
     """
     Step 1 of 888: Compute floor metrics.
 
@@ -527,11 +552,21 @@ def _compute_888_metrics(
         Metrics object with floor values
     """
     if compute_metrics:
-        metrics = compute_metrics(
-            state.query,
-            state.draft_response,
-            {"stakes_class": state.stakes_class.value},
-        )
+        try:
+            metrics = compute_metrics(
+                state.query,
+                state.draft_response,
+                {"stakes_class": state.stakes_class.value},
+            )
+        except Exception as e:
+            # FAIL-CLOSED v43: Metrics computation failure → return None
+            # Will be caught in _apply_apex_floors() and turned into explicit VOID
+            import logging
+
+            logging.getLogger(__name__).error(
+                f"Metrics computation failed. Will return explicit VOID. Error: {e}"
+            )
+            return None  # Signal failure to caller
     else:
         # Stub metrics for testing
         metrics = Metrics(
@@ -586,13 +621,20 @@ def _apply_apex_floors(
 
     # Get APEX verdict
     # Ensure metrics exist before passing (should always be set by stage 444)
+    # FAIL-CLOSED v43: Explicit VOID if metrics missing
     if state.metrics is None:
-        # Fallback: create empty metrics if somehow missing
-        state.metrics = Metrics(
-            truth=0.5, delta_s=0.0, peace_squared=0.5, kappa_r=0.5,
-            omega_0=0.05, psi=0.5, amanah=False, tri_witness=0.5
+        import logging
+
+        logging.getLogger(__name__).error(
+            "Metrics are None at APEX floor check. Returning explicit VOID (fail-closed)."
         )
-    
+        return ApexVerdict(
+            verdict=Verdict.VOID,
+            pulse=0.0,
+            reason="Metrics computation failed - refusing for safety (fail-closed)",
+            floors=None,
+        )
+
     apex_verdict: ApexVerdict = apex_review(
         state.metrics,
         high_stakes=high_stakes,
@@ -637,6 +679,7 @@ def _run_eye_sentinel(
         if eye_report.has_blocking_issue():
             try:
                 from .eye.base import EyeAlert
+
                 blocking_alerts = eye_report.get_blocking_alerts()
             except Exception:
                 blocking_alerts = []
@@ -644,15 +687,18 @@ def _run_eye_sentinel(
             for alert in blocking_alerts:
                 view_name = getattr(alert, "view_name", "UnknownView")
                 message = getattr(alert, "message", "")
-                state.floor_failures.append(
-                    f"EYE_BLOCK[{view_name}]: {message}"
-                )
+                state.floor_failures.append(f"EYE_BLOCK[{view_name}]: {message}")
 
         return (eye_report, eye_blocking)
-    except Exception:
-        # @EYE failures must not crash the pipeline
+    except Exception as e:
+        # FAIL-CLOSED v43: @EYE failure → assume BLOCKING (safety first)
+        import logging
+
+        logging.getLogger(__name__).error(
+            f"@EYE Sentinel failed during audit. Assuming blocking issue for safety. Error: {e}"
+        )
         eye_report = None
-        eye_blocking = False
+        eye_blocking = True  # ← CRITICAL: Assume unsafe on error
 
     # v42.1 adapter: evaluate drift/dignity using spec hooks
     try:
@@ -681,8 +727,14 @@ def _run_eye_sentinel(
         }
         # Propagate c_budi for ledger enrichment
         state.c_budi = c_budi
-    except Exception:
-        pass
+    except Exception as e:
+        # FAIL-CLOSED v43: @EYE adapter failure → assume BLOCKING
+        import logging
+
+        logging.getLogger(__name__).error(
+            f"@EYE adapter (evaluate_eye_vector) failed. Assuming blocking issue. Error: {e}"
+        )
+        eye_blocking = True  # ← CRITICAL: Assume unsafe on error
 
     return (eye_report, eye_blocking)
 
@@ -746,18 +798,18 @@ def _merge_with_waw(
 def _compute_floor_passed(floor_key: str, floor_def: dict, metrics: Any) -> tuple[bool, Any]:
     """
     v38.3Omega: Compute (passed, value) for a single floor from spec definition.
-    
+
     Args:
         floor_key: Floor name (truth, delta_s, etc.)
         floor_def: Floor spec dict with threshold, operator, type
         metrics: ConstitutionalMetrics with all floor values
-    
+
     Returns:
         (passed: bool, value: Any)
     """
     floor_type = floor_def.get("type")
     operator = floor_def.get("operator")
-    
+
     # Boolean floors (amanah, rasa, anti_hantu)
     if floor_type in ("hard", "meta") and operator == "==":
         if floor_key == "amanah":
@@ -766,10 +818,10 @@ def _compute_floor_passed(floor_key: str, floor_def: dict, metrics: Any) -> tupl
             return (bool(metrics.rasa), metrics.rasa)
         elif floor_key == "anti_hantu":
             return (bool(metrics.anti_hantu), metrics.anti_hantu)
-    
+
     # Numeric floors
     threshold = floor_def.get("threshold")
-    
+
     if floor_key == "truth":
         passed = metrics.truth >= threshold if threshold is not None else True
         return (passed, metrics.truth)
@@ -790,7 +842,7 @@ def _compute_floor_passed(floor_key: str, floor_def: dict, metrics: Any) -> tupl
     elif floor_key == "tri_witness":
         passed = metrics.tri_witness >= threshold if threshold is not None else True
         return (passed, metrics.tri_witness)
-    
+
     # Fallback
     return (True, None)
 
@@ -799,23 +851,23 @@ def _floor_margin(floor_key: str, floor_def: dict, metrics: Any) -> float:
     """
     v38.3Omega: Compute margin (distance from threshold) for numeric floors.
     Used for near-fail detection and 888_HOLD escalation.
-    
+
     Args:
         floor_key: Floor name
         floor_def: Floor spec dict
         metrics: ConstitutionalMetrics
-    
+
     Returns:
         margin: float (positive = surplus, negative = deficit, 0 = boolean/no threshold)
     """
     operator = floor_def.get("operator")
-    
+
     # Boolean floors have no margin
     if operator == "==":
         return 0.0
-    
+
     threshold = floor_def.get("threshold")
-    
+
     if floor_key == "truth" and threshold is not None:
         return float(metrics.truth - threshold)
     elif floor_key == "delta_s" and threshold is not None:
@@ -837,7 +889,7 @@ def _floor_margin(floor_key: str, floor_def: dict, metrics: Any) -> float:
             return float(min(metrics.omega_0 - threshold_min, threshold_max - metrics.omega_0))
     elif floor_key == "tri_witness" and threshold is not None:
         return float(metrics.tri_witness - threshold)
-    
+
     return 0.0
 
 
@@ -891,30 +943,33 @@ def _write_memory_for_verdict(
     floor_checks = []
     if state.metrics is not None:
         from arifos_core.metrics import _load_floors_spec_v38
+
         floors_spec = _load_floors_spec_v38()
-        
+
         # Sort floors by canonical F# ID for readability (semantic order)
         floors_data = floors_spec.get("floors", {})
         sorted_floors = sorted(floors_data.items(), key=lambda x: x[1].get("id", 99))
-        
+
         for floor_key, floor_def in sorted_floors:
             floor_id = floor_def.get("id")
             precedence = floor_def.get("precedence", 0)
             stage_hook = floor_def.get("stage_hook", "")
-            
+
             # Compute passed + value + margin
             passed, value = _compute_floor_passed(floor_key, floor_def, state.metrics)
             margin = _floor_margin(floor_key, floor_def, state.metrics)
-            
-            floor_checks.append({
-                "floor_id": floor_id,
-                "floor": f"F{floor_id}_{floor_key.capitalize()}",
-                "precedence": precedence,
-                "stage_hook": stage_hook,
-                "passed": passed,
-                "value": value,
-                "margin": margin,
-            })
+
+            floor_checks.append(
+                {
+                    "floor_id": floor_id,
+                    "floor": f"F{floor_id}_{floor_key.capitalize()}",
+                    "precedence": precedence,
+                    "stage_hook": stage_hook,
+                    "passed": passed,
+                    "value": value,
+                    "margin": margin,
+                }
+            )
 
     timestamp = datetime.now(timezone.utc).isoformat()
 
@@ -922,9 +977,9 @@ def _write_memory_for_verdict(
     # ApexVerdict → verdict.value, Verdict Enum → value, else str()
     if state.verdict is None:
         verdict_str = "UNKNOWN"
-    elif hasattr(state.verdict, 'verdict') and hasattr(state.verdict.verdict, 'value'):
+    elif hasattr(state.verdict, "verdict") and hasattr(state.verdict.verdict, "value"):
         verdict_str = state.verdict.verdict.value  # ApexVerdict
-    elif hasattr(state.verdict, 'value'):
+    elif hasattr(state.verdict, "value"):
         verdict_str = state.verdict.value  # Verdict Enum
     else:
         verdict_str = str(state.verdict)
@@ -945,7 +1000,9 @@ def _write_memory_for_verdict(
         "stakes_class": state.stakes_class.value,
     }
     evidence_chain["hash"] = hashlib.sha256(
-        json.dumps({k: v for k, v in evidence_chain.items() if k != "hash"}, sort_keys=True).encode()
+        json.dumps(
+            {k: v for k, v in evidence_chain.items() if k != "hash"}, sort_keys=True
+        ).encode()
     ).hexdigest()
 
     # Phase-2: route via EUREKA policy adapter + router (drop TOOL writes)
@@ -986,32 +1043,50 @@ def _write_memory_for_verdict(
             "timestamp": timestamp,
         }
 
-        write_results = state.memory_band_router.route_write(
-            verdict=verdict_str,
-            content=content,
-            writer_id="888_JUDGE",
-            evidence_hash=state.memory_evidence_hash,
-            metadata={"job_id": state.job_id},
-        )
+        try:
+            write_results = state.memory_band_router.route_write(
+                verdict=verdict_str,
+                content=content,
+                writer_id="888_JUDGE",
+                evidence_hash=state.memory_evidence_hash,
+                metadata={"job_id": state.job_id},
+            )
 
-        # Record in audit layer
-        if state.memory_audit_layer is not None:
+            # FAIL-CLOSED v43: Check if any write failed
+            write_success = False
             for band_name, result in write_results.items():
                 if result.success:
-                    state.memory_audit_layer.record_memory_write(
-                        band=band_name,
-                        entry_data=content,
-                        verdict=verdict_str,  # v42: use string for serialization
-                        evidence_hash=state.memory_evidence_hash,
-                        entry_id=result.entry_id,
-                        writer_id="888_JUDGE",
-                        metadata={"job_id": state.job_id},
-                    )
+                    write_success = True
+                    # Record in audit layer
+                    if state.memory_audit_layer is not None:
+                        state.memory_audit_layer.record_memory_write(
+                            band=band_name,
+                            entry_data=content,
+                            verdict=verdict_str,  # v42: use string for serialization
+                            evidence_hash=state.memory_evidence_hash,
+                            entry_id=result.entry_id,
+                            writer_id="888_JUDGE",
+                            metadata={"job_id": state.job_id},
+                        )
+
+            # Store ledger write status for 999_SEAL check
+            state.ledger_write_success = write_success
+
+        except Exception as e:
+            # FAIL-CLOSED v43: Ledger write exception → mark as failed
+            import logging
+
+            logging.getLogger(__name__).error(f"Ledger write failed with exception. Error: {e}")
+            state.ledger_write_success = False
+    else:
+        # Write not allowed by policy
+        state.ledger_write_success = True  # Policy decision, not a failure
 
 
 # =============================================================================
 # STAGE 888 (REFACTORED)
 # =============================================================================
+
 
 def stage_888_judge(
     state: PipelineState,
@@ -1056,11 +1131,21 @@ def stage_888_judge(
         if not lowered:
             return False
         refusal_markers = [
-            "i cannot ", "i can't ", "i am unable to", "i'm unable to",
-            "i am not able to", "i'm not able to", "i cannot help with",
-            "i can't help with", "i cannot assist", "i can't assist",
-            "i cannot provide that information", "i cannot comply",
-            "i can't comply", "i cannot support", "i can't support",
+            "i cannot ",
+            "i can't ",
+            "i am unable to",
+            "i'm unable to",
+            "i am not able to",
+            "i'm not able to",
+            "i cannot help with",
+            "i can't help with",
+            "i cannot assist",
+            "i can't assist",
+            "i cannot provide that information",
+            "i cannot comply",
+            "i can't comply",
+            "i cannot support",
+            "i can't support",
         ]
         return any(marker in lowered for marker in refusal_markers)
 
@@ -1104,7 +1189,9 @@ def stage_888_judge(
             state.floor_failures.append(state.sabar_reason)
 
     # Step 7: Write to memory (using centralized helper)
-    _write_memory_for_verdict(state, actor_role=ActorRole.JUDICIARY, human_seal=False, eureka_store=state.eureka_store)
+    _write_memory_for_verdict(
+        state, actor_role=ActorRole.JUDICIARY, human_seal=False, eureka_store=state.eureka_store
+    )
 
     return state
 
@@ -1126,7 +1213,12 @@ def _format_floor_failures(floor_failures: List[str]) -> str:
             friendly_reasons.append("F2 Truth (Factual Integrity)")
         elif "peace" in fail_lower or "tox" in fail_lower or "f5" in fail_lower:
             friendly_reasons.append("F5 Peace² (Safety/Non-escalation)")
-        elif "hantu" in fail_lower or "soul" in fail_lower or "conscious" in fail_lower or "f9" in fail_lower:
+        elif (
+            "hantu" in fail_lower
+            or "soul" in fail_lower
+            or "conscious" in fail_lower
+            or "f9" in fail_lower
+        ):
             friendly_reasons.append("F9 Anti-Hantu (No Soul Claims)")
         elif "amanah" in fail_lower or "integrity" in fail_lower or "f1" in fail_lower:
             friendly_reasons.append("F1 Amanah (Integrity Lock)")
@@ -1172,10 +1264,48 @@ def stage_999_seal(state: PipelineState) -> PipelineState:
 
     v38.1: Enhanced diagnostic messages for SABAR/VOID.
     v38.2-alpha: L7 Memory store with EUREKA Sieve (fail-open).
+    v43: FAIL-CLOSED - blocks SEAL if ledger write failed.
     """
     state.current_stage = "999"
     state.stage_trace.append("999_SEAL")
     state.stage_times["999"] = time.time()
+
+    # SABAR-72 v43: Time Governor - Check for active cooling hold
+    sabar_timer = Sabar72Timer()
+    if sabar_timer.is_blocked(state.job_id):
+        ticket = sabar_timer.get_ticket(state.job_id)
+        import logging
+
+        logging.getLogger(__name__).warning(
+            f"SABAR-72 enforced for job {state.job_id}. "
+            f"Reason: {ticket.reason.value if ticket else 'unknown'}. "
+            f"Cooling period: {ticket.hours_remaining():.1f}h remaining."
+        )
+        state.verdict = "SABAR"
+        state.floor_failures.append(
+            f"SABAR_72_ACTIVE: {ticket.reason.value} ({ticket.hours_remaining():.1f}h remaining)"
+        )
+        state.sabar_reason = (
+            f"Constitutional cooling period (72h) enforced. "
+            f"Reason: {ticket.reason.value}. Time remaining: {ticket.hours_remaining():.1f} hours. "
+            f"Human authority override required to proceed before expiry."
+        )
+
+    # FAIL-CLOSED v43: Block SEAL emission if ledger write failed
+    if not getattr(state, "ledger_write_success", True):
+        # Ledger write failed - downgrade verdict to VOID
+        import logging
+
+        logging.getLogger(__name__).error(
+            f"Ledger write failed for job {state.job_id}. "
+            f"Original verdict was {state.verdict}, forcing VOID (fail-closed)."
+        )
+        state.verdict = "VOID"
+        # Add to floor_failures for transparency
+        state.floor_failures.append("LEDGER_WRITE_FAILED (fail-closed enforcement)")
+        state.sabar_reason = (
+            "Ledger write failure - cannot emit governed output without audit trail"
+        )
 
     if state.verdict == "SEAL":
         state.raw_response = state.draft_response
@@ -1202,22 +1332,21 @@ def stage_999_seal(state: PipelineState) -> PipelineState:
     else:  # VOID
         # v38.1: Diagnostic VOID with specific floor violations
         reason_str = _format_floor_failures(state.floor_failures)
-        state.raw_response = (
-            f"[VOID] ACTION BLOCKED.\n"
-            f"Constitutional Violation: {reason_str}."
-        )
+        state.raw_response = f"[VOID] ACTION BLOCKED.\nConstitutional Violation: {reason_str}."
 
     # Phase-2: route memory at seal stage (actor = ENGINE)
-    _write_memory_for_verdict(state, actor_role=ActorRole.ENGINE, human_seal=False, eureka_store=state.eureka_store)
+    _write_memory_for_verdict(
+        state, actor_role=ActorRole.ENGINE, human_seal=False, eureka_store=state.eureka_store
+    )
 
     # v38.2-alpha: L7 Memory store with EUREKA Sieve (fail-open)
     # Only store if: L7 enabled + user_id present + verdict present
     if is_l7_enabled() and state.l7_user_id and state.verdict:
         try:
             # v42: Normalize verdict to string upstream
-            if hasattr(state.verdict, 'verdict') and hasattr(state.verdict.verdict, 'value'):
+            if hasattr(state.verdict, "verdict") and hasattr(state.verdict.verdict, "value"):
                 verdict_str_l7 = state.verdict.verdict.value  # ApexVerdict
-            elif hasattr(state.verdict, 'value'):
+            elif hasattr(state.verdict, "value"):
                 verdict_str_l7 = state.verdict.value  # Verdict Enum
             else:
                 verdict_str_l7 = str(state.verdict)
@@ -1246,6 +1375,7 @@ def stage_999_seal(state: PipelineState) -> PipelineState:
 # =============================================================================
 # PIPELINE ORCHESTRATOR
 # =============================================================================
+
 
 class Pipeline:
     """
@@ -1359,7 +1489,12 @@ class Pipeline:
         state, should_continue = stage_000_amanah(job, state)
         if not should_continue:
             # Early short-circuit: write memory and finalize
-            _write_memory_for_verdict(state, actor_role=ActorRole.JUDICIARY, human_seal=False, eureka_store=state.eureka_store)
+            _write_memory_for_verdict(
+                state,
+                actor_role=ActorRole.JUDICIARY,
+                human_seal=False,
+                eureka_store=state.eureka_store,
+            )
             state = stage_999_seal(state)
             return self._finalize(state)
 
@@ -1383,7 +1518,9 @@ class Pipeline:
             # Update AGI packet with reason results (v35.8.0)
             if state.agi_packet:
                 state.agi_packet.draft = state.draft_response
-                state.agi_packet.delta_s = min(0.5, len(state.draft_response) / 1000) if state.draft_response else 0.0
+                state.agi_packet.delta_s = (
+                    min(0.5, len(state.draft_response) / 1000) if state.draft_response else 0.0
+                )
 
             state = stage_888_judge(state, self.compute_metrics, self.eye_sentinel)
             state = stage_999_seal(state)
@@ -1401,7 +1538,9 @@ class Pipeline:
             # Update AGI packet with reason results (v35.8.0)
             if state.agi_packet:
                 state.agi_packet.draft = state.draft_response
-                state.agi_packet.delta_s = min(0.5, len(state.draft_response) / 1000) if state.draft_response else 0.0
+                state.agi_packet.delta_s = (
+                    min(0.5, len(state.draft_response) / 1000) if state.draft_response else 0.0
+                )
 
             state = stage_444_align(state)
 
@@ -1452,9 +1591,9 @@ class Pipeline:
             # v42: Normalize verdict to string upstream
             if state.verdict is None:
                 verdict_str_log = None
-            elif hasattr(state.verdict, 'verdict') and hasattr(state.verdict.verdict, 'value'):
+            elif hasattr(state.verdict, "verdict") and hasattr(state.verdict.verdict, "value"):
                 verdict_str_log = state.verdict.verdict.value  # ApexVerdict
-            elif hasattr(state.verdict, 'value'):
+            elif hasattr(state.verdict, "value"):
                 verdict_str_log = state.verdict.value  # Verdict Enum
             else:
                 verdict_str_log = str(state.verdict)
@@ -1487,15 +1626,17 @@ class Pipeline:
             # v42.1 enrichment
             bootstrap_payload = get_bootstrap_payload()
             if bootstrap_payload:
-                entry['spec_hashes'] = bootstrap_payload.get('spec_hashes', {})
-                entry['zkpc_receipt'] = bootstrap_payload.get('zkpc_receipt')
-            entry['commit_hash'] = os.getenv('ARIFOS_COMMIT_HASH') or os.getenv('GIT_COMMIT', 'unknown')
+                entry["spec_hashes"] = bootstrap_payload.get("spec_hashes", {})
+                entry["zkpc_receipt"] = bootstrap_payload.get("zkpc_receipt")
+            entry["commit_hash"] = os.getenv("ARIFOS_COMMIT_HASH") or os.getenv(
+                "GIT_COMMIT", "unknown"
+            )
             if state.epsilon_observed is not None:
-                entry['epsilon_observed'] = state.epsilon_observed
-            if getattr(state, 'eye_vector', None) is not None:
-                entry['eye_vector'] = state.eye_vector
-            if getattr(state, 'c_budi', None) is not None:
-                entry['c_budi'] = state.c_budi
+                entry["epsilon_observed"] = state.epsilon_observed
+            if getattr(state, "eye_vector", None) is not None:
+                entry["eye_vector"] = state.eye_vector
+            if getattr(state, "c_budi", None) is not None:
+                entry["c_budi"] = state.c_budi
             self.ledger_sink(entry)
 
         return state
@@ -1504,6 +1645,7 @@ class Pipeline:
 # =============================================================================
 # CONVENIENCE FUNCTIONS
 # =============================================================================
+
 
 def run_pipeline(
     query: str,

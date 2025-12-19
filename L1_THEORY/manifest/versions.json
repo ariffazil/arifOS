@@ -5,5 +5,12 @@
     "tag": "v43.1.0",
     "sealed_at": "2025-12-19T08:49:45.523923+00:00",
     "human_authority": "Muhammad Arif bin Fazil"
+  },
+  "v43.0.1": {
+    "bundle_hash": "sha256:170fe121ba068160",
+    "commit_hash": "57d1b6d1eee0aeba377406815338f2793908690e",
+    "tag": "v43.0.1",
+    "sealed_at": "2025-12-19T10:14:52.889448+00:00",
+    "human_authority": "ARIF FAZIL"
   }
 }

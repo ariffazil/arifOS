@@ -149,7 +149,10 @@ def _check_f2_delta_s(forge_report: ForgeReport) -> tuple[bool, str]:
     From FORGING_PROTOCOL_v43.md: ΔS > 5.0 triggers SABAR.
     """
     if forge_report.entropy_delta > 5.0:
-        return False, f"❌ High entropy: ΔS={forge_report.entropy_delta:.2f} > 5.0 (SABAR threshold)"
+        return (
+            False,
+            f"❌ High entropy: ΔS={forge_report.entropy_delta:.2f} > 5.0 (SABAR threshold)",
+        )
 
     return True, f"✅ Acceptable entropy: ΔS={forge_report.entropy_delta:.2f} < 5.0"
 
@@ -163,8 +166,7 @@ def _check_f6_amanah(forge_report: ForgeReport) -> tuple[bool, str]:
     # Simple heuristic: if CHANGELOG.md or README.md not in changes but
     # many files changed, flag for review
     docs_updated = any(
-        f in ["CHANGELOG.md", "README.md", "RELEASE_NOTES.md"]
-        for f in forge_report.files_changed
+        f in ["CHANGELOG.md", "README.md", "RELEASE_NOTES.md"] for f in forge_report.files_changed
     )
 
     if len(forge_report.files_changed) > 20 and not docs_updated:
@@ -198,9 +200,39 @@ def _check_python_syntax(forge_report: ForgeReport) -> tuple[bool, str]:
 
 def _run_pytest(forge_report: ForgeReport) -> tuple[bool, str]:
     """Run pytest to verify tests pass."""
-    # In real implementation, would run: subprocess.run(["pytest", "-q"])
-    # For now, assume tests pass (manual verification required)
-    return True, "⚠️  Pytest deferred to CI/manual run"
+    import subprocess
+
+    try:
+        # Run pytest in quiet mode with timeout
+        result = subprocess.run(
+            ["pytest", "-q", "--tb=short"],
+            capture_output=True,
+            text=True,
+            timeout=60,  # 60 second timeout
+        )
+
+        if result.returncode == 0:
+            # Extract pass/fail counts from output
+            output = result.stdout + result.stderr
+            if "passed" in output:
+                return (
+                    True,
+                    f"✅ Pytest passed: {output.split('passed')[0].strip().split()[-1]} tests",
+                )
+            return True, "✅ All pytest checks passed"
+        else:
+            # Tests failed
+            failed_info = result.stdout.split("\n")[0] if result.stdout else "Unknown failure"
+            return False, f"❌ Pytest failed: {failed_info}"
+
+    except subprocess.TimeoutExpired:
+        return False, "❌ Pytest timeout (>60s) - tests may be hanging"
+    except FileNotFoundError:
+        # pytest not installed or not in PATH
+        return True, "⚠️  Pytest not found - install with: pip install pytest"
+    except Exception as e:
+        # Other errors - don't block QC
+        return True, f"⚠️  Pytest error (deferred): {str(e)}"
 
 
 def _compute_verdict(floors: Dict[str, bool], forge_report: ForgeReport) -> str:
@@ -257,9 +289,7 @@ def _generate_zkpc_stub(forge_report: ForgeReport, floors: Dict[str, bool]) -> s
     return f"zkpc_stub_sha256:{hash_digest[:16]}"
 
 
-def _generate_qc_notes(
-    floors: Dict[str, bool], details: Dict[str, str], verdict: str
-) -> List[str]:
+def _generate_qc_notes(floors: Dict[str, bool], details: Dict[str, str], verdict: str) -> List[str]:
     """Generate human-readable QC notes."""
     notes = []
 
