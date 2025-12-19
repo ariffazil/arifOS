@@ -146,6 +146,81 @@ read_excerpt: str     # Optional: first/last 64 bytes
 
 **Enforcement:** `FAG.write_validate(plan)` must return SEAL before 999 `--apply`.
 
+### 1.8 Trinity: Universal Git Governance (v43.1.0)
+
+**3 Commands. AI-Agnostic. Human-Sovereign.**
+
+Trinity simplifies git governance to 3 commands—built for accessibility, usable by ANY AI assistant.
+
+**Quick Commands:**
+
+```bash
+# Analyze changes (what changed? how risky?)
+python scripts/trinity.py forge <branch>
+
+# Constitutional check (F1-F9 validation)
+python scripts/trinity.py qc <branch>
+
+# Seal with human approval (atomic bundling)
+python scripts/trinity.py seal <branch> "Reason for approval"
+```
+
+**AI Integration:**
+
+For full integration instructions, read `.arifos/trinity_ai_template.md`. This template provides:
+
+- Complete command syntax
+- Error handling guidance
+- Constitutional context (F1-F9 floors)
+- Thermodynamic metrics explanation (ΔS, Peace², Ψ)
+
+**What Trinity Does:**
+
+- **Phase 1 (Stabilization)**: Stash → reset → create clean branch
+- **Phase 2 (Trinity Gate)**:
+  - `/gitforge`: Scan history, detect hot zones, predict entropy
+  - `/gitQC`: Validate F1-F9 floors, generate ZKPC stub
+  - `/gitseal`: Human approval + atomic bundle (code + docs + version + ledger)
+- **Phase 3 (Crystallization)**: Housekeeper proposes version/CHANGELOG updates
+
+**Governance Properties:**
+
+✅ **Atomic**: All-or-nothing bundling (no partial failures)  
+✅ **Constitutional**: Auto-validates F1-F9 floors  
+✅ **Auditable**: Complete ledger in `L1_THEORY/ledger/gitseal_audit_trail.jsonl`  
+✅ **Human-Sovereign**: Requires explicit APPROVE from named authority  
+✅ **Accessible**: 20+ git commands → 3 simple commands
+
+**Example Workflow:**
+
+```bash
+# 1. Check current status
+python scripts/trinity.py forge main
+
+# 2. Validate changes on feature branch
+python scripts/trinity.py qc feat/my-changes
+
+# 3. Seal and push (human approval required)
+python scripts/trinity.py seal feat/my-changes "Feature complete and tested"
+```
+
+**Exit Codes:**
+
+- `0` = Success (PASS/APPROVED)
+- `1` = Warning (FLAG - review recommended)
+- `89` = VOID (hard floor breach)
+- `100` = SEALED (approved and bundled)
+
+**Documentation:**
+
+- Protocol: `L1_THEORY/canon/03_runtime/FORGING_PROTOCOL_v43.md`
+- AI Template: `.arifos/trinity_ai_template.md`
+- Governance: `GOVERNANCE_PROTOCOLS.md`
+
+**Key Innovation:**
+
+Trinity demonstrates that complex governance can be made accessible without sacrificing constitutional rigor. Built for people with memory/cognitive challenges, benefiting everyone.
+
 ## 2. NINE CONSTITUTIONAL FLOORS (Summary)
 
 **Logic:** All floors AND - every floor must PASS. Repair order: F1 first.
@@ -591,7 +666,8 @@ For detailed roadmap and task priorities, see [docs/ROADMAP.md](docs/ROADMAP.md)
 
 ## 11. CANONICAL REFERENCE MAP (The Single Source)
 
-* **Safety Law (The Vaccine):** `L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v42.md`
+- **Safety Law (The Vaccine):** `L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v42.md`
+
 - **FAG Protocol (File Access):** `docs/FAG_QUICK_START.md` (Security & Access)
 - **ACLIP Protocol (Workflow):** `arifos_clip/README.md` (000->999 Pipeline)
 - **Floors F1-F9:** `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md`
