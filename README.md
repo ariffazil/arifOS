@@ -1,11 +1,17 @@
-# arifOS v43
+# arifOS
 
-**A Constitutional Governance Kernel for Artificial Intelligence**
+_**Constitutional Governance Kernel for LLMs**_
 
-*Physics-First · Human-Centered · Institution-Grade*
+_**"DITEMPA BUKAN DIBERI" — Forged, not given; truth must cool before it rules.**_
 
-> **Physics, not prompts.**  
-> **Law, not vibes.**  
+## 📺 Watch: Introduction to arifOS
+
+[![arifOS Introduction](https://img.youtube.com/vi/bGnzIwZAgm0/maxresdefault.jpg)](https://youtu.be/bGnzIwZAgm0 "arifOS - Constitutional AI Governance")
+
+> Click to watch: How arifOS transforms any LLM into a lawful, auditable constitutional entity
+
+> **Physics, not prompts.**
+> **Law, not vibes.**
 > **Intelligence must be governed before it is trusted.**
 
 ---
@@ -35,7 +41,7 @@ Humans interact daily with systems that can:
 - Appear confident while hallucinating
 - Optimize cleverness at the expense of dignity
 
-The dominant safety approach has been: *"Tell the model to behave."*
+The dominant safety approach has been: _"Tell the model to behave."_
 
 **That works until it doesn't. Hope is not governance.**
 
@@ -393,7 +399,7 @@ No system self-authorizes
 ## The Architect
 
 **Muhammad Arif bin Fazil**  
-*Geoscientist · Economist · Systems Architect*
+_Geoscientist · Economist · Systems Architect_
 
 Arif's professional background is not in AI hype cycles, but in high-stakes decision systems where errors carry irreversible cost.
 
@@ -491,7 +497,7 @@ Not because AI is evil—but because power without governance always is.
 ## Final Seal
 
 **arifOS v43 — Equilibrium Forge**  
-*Constitutional Governance for Artificial Intelligence*
+_Constitutional Governance for Artificial Intelligence_
 
 ---
 
@@ -534,4 +540,4 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) and [SECURITY.md](./SECURITY.md) for go
 ---
 
 **arifOS v43 — Equilibrium Forge**  
-*Constitutional Governance for Artificial Intelligence*
+_Constitutional Governance for Artificial Intelligence_
