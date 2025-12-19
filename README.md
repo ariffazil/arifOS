@@ -6,7 +6,7 @@ _**"DITEMPA BUKAN DIBERI" — Forged, not given; truth must cool before it rules
 
 ## 📺 Watch: Introduction to arifOS
 
-[![arifOS Introduction](https://img.youtube.com/vi/bGnzIwZAgm0/maxresdefault.jpg)](https://youtu.be/bGnzIwZAgm0 "arifOS - Constitutional AI Governance")
+[![arifOS Introduction](https://i.ytimg.com/vi/bGnzIwZAgm0/hqdefault.jpg)](https://www.youtube.com/watch?v=bGnzIwZAgm0 "arifOS - Constitutional AI Governance")
 
 > Click to watch: How arifOS transforms any LLM into a lawful, auditable constitutional entity
 
