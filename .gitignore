@@ -77,3 +77,4 @@ tests/arifOS llama test*.md
 
 # Vault-999 runtime ledger data (test artifacts)
 vault-999/ledger/*.jsonl
+*.mp4
