@@ -25,12 +25,13 @@ logging.basicConfig(
 logger = logging.getLogger("arifos_core.system.__main__")
 
 
+from arifos_core.memory.cooling_ledger import append_entry
+
+
 def _write_ledger_entry(entry: dict) -> None:
-    """Append entry to cooling ledger JSONL."""
+    """Append entry to cooling ledger JSONL with hash chain integrity."""
     ledger_path = Path("vault_999/cooling_ledger.jsonl")
-    ledger_path.parent.mkdir(parents=True, exist_ok=True)
-    with ledger_path.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(entry, default=str) + "\n")
+    append_entry(ledger_path, entry)
 
 
 def main() -> int:

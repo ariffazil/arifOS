@@ -24,7 +24,7 @@ arifOS is not a chatbot. It is not a model. It is not a prompt framework.
 
 **If an output cannot pass governance, it does not ship.**
 
-This repository documents **arifOS v43**, the current equilibrium point between human dignity, AI capability, institutional accountability, and thermodynamic reality.
+This repository documents **arifOS v44**, the current equilibrium point between human dignity, AI capability, institutional accountability, and thermodynamic reality.
 
 ![arifOS Governance Framework](./docs/arifos_governance_framework.jpg)
 
@@ -409,19 +409,19 @@ In subsurface exploration, you do not guess. You calculate probability, constrai
 
 ---
 
-## What v43 Represents
+## What v44 Represents
 
-Version 43 represents a **governance equilibrium**, not a feature jump.
+Version 44 represents **physics-first governance**, not a feature jump.
 
-Key shifts leading to v43:
+Key shifts leading to v44:
 
+- From semantic safety to thermodynamic enforcement (TEARFRAME)
+- From reactive floors to predictive physics (Deepwater Logic)
+- From best-effort to fail-closed guarantees (Turn 1 Immunity)
 - From single-pipeline to federated evaluation
-- From best-effort safety to hard vetoes
 - From memory as storage to memory as law
-- From confidence to calibrated uncertainty
-- From fast answers to lawful answers
 
-**v43 does not promise everything. It promises nothing unsafe.**
+**v44 does not promise everything. It promises nothing unsafe.**
 
 ---
 
@@ -496,12 +496,12 @@ Not because AI is evil—but because power without governance always is.
 
 ## Final Seal
 
-**arifOS v43 — Equilibrium Forge**  
+**arifOS v44 — TEARFRAME Physics**  
 _Constitutional Governance for Artificial Intelligence_
 
 ---
 
-## Trinity: Universal Git Governance v43.1.0
+## Trinity: Universal Git Governance v44.0.0
 
 **3 Commands. Any AI. Total Control.**
 
@@ -515,7 +515,7 @@ trinity seal <branch> "..."  # Save atomically
 
 ✅ AI-Agnostic · ✅ Platform-Agnostic · ✅ Constitutional · ✅ Atomic · ✅ Auditable
 
-**Docs**: `.arifos/trinity_ai_template.md` | `L1_THEORY/canon/03_runtime/FORGING_PROTOCOL_v43.md`
+**Docs**: `.arifos/trinity_ai_template.md` | `L1_THEORY/canon/03_runtime/FORGING_PROTOCOL_v44.md`
 
 ---
 
@@ -539,5 +539,5 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) and [SECURITY.md](./SECURITY.md) for go
 
 ---
 
-**arifOS v43 — Equilibrium Forge**  
+**arifOS v44 — TEARFRAME Physics**  
 _Constitutional Governance for Artificial Intelligence_

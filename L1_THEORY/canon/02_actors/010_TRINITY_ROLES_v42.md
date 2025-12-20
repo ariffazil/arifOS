@@ -327,7 +327,7 @@ Only when all three agree does speech become law."
 **Next Steps:**
 1. Proceed to **02_arif_adam_v42.md** (Δ+Ω detailed canon)
 2. Confirm **30_judiciary/01_apex_prime_v42.md** (Ψ detailed canon)
-3. Both feed **01_floors/01_constitutional_floors_v42.md** (F1–F9 gates)
+3. Both feed **01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md** (F1–F9 gates)
 
 ---
 

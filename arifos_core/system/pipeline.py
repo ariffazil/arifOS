@@ -44,7 +44,12 @@ from ..runtime.bootstrap import ensure_bootstrap, get_bootstrap_payload
 from ..audit.eye_adapter import evaluate_eye_vector
 from ..organs.prompt_bridge import compute_c_budi
 from ..waw.federation import WAWFederationCore, FederationVerdict
-from ..sabar_timer import Sabar72Timer, SabarReason  # v43 Time Governor
+from ..sabar_timer import Sabar72Timer  # v43 Time Governor
+
+# TEARFRAME v44 Session Physics Layer (ART)
+from ..utils.session_telemetry import SessionTelemetry
+from ..utils.reduction_engine import compute_attributes
+from ..governance.session_physics import evaluate_physics_floors
 
 # AAA Engines (internal facade - v35.8.0) - v42: engines is at arifos_core/engines/
 from ..engines import AGIEngine, ASIEngine
@@ -55,8 +60,6 @@ from ..engines.asi_engine import ASIPacket
 from ..memory.memory_context import (
     MemoryContext,
     create_memory_context,
-    VaultBand,
-    LedgerBand,
 )
 
 # v42: memory is at arifos_core/memory/, not system/memory/
@@ -80,16 +83,20 @@ from ..memory.memory import (
 from ..memory.mem0_client import is_l7_enabled
 
 # v38 Runtime Contract Layer
-from ..utils.runtime_types import Job, Stakeholder, JobClass, SAFE_ACTIONS
+from ..utils.runtime_types import Job, Stakeholder, JobClass
 
 # v38 Stage Modules - v42: stages is at arifos_core/stages/
 from ..stages.stage_000_amanah import compute_amanah_score, stage_000_amanah
-from ..stages.stage_555_empathy import compute_kappa_r, stage_555_empathy as _stage_555_empathy_v38
+from ..stages.stage_555_empathy import compute_kappa_r
 
 
 # =============================================================================
 # PIPELINE STATE
 # =============================================================================
+
+# v44 Session Mock Store (Global Cache for Session Physics)
+# In a real app, this would be Redis or a proper session service.
+_SESSION_CACHE: Dict[str, SessionTelemetry] = {}
 
 
 class StakesClass(Enum):
@@ -174,6 +181,9 @@ class PipelineState:
 
     # v43 fail-closed: Ledger write status tracking
     ledger_write_success: bool = True
+
+    # v44 Session Physics
+    session_telemetry: Optional[SessionTelemetry] = None
 
     # Timing
     start_time: float = field(default_factory=time.time)
@@ -1481,7 +1491,26 @@ class Pipeline:
                 action="respond",
             )
 
+        # v44 TEARFRAME: Initialize Session Telemetry & Start Turn
+        # Use user_id -> job_id -> default as session key
+        session_key = user_id or job_id or "anonymous_session"
+        if session_key not in _SESSION_CACHE:
+            _SESSION_CACHE[session_key] = SessionTelemetry()
+
+        telemetry = _SESSION_CACHE[session_key]
+        state.session_telemetry = telemetry
+
+        # Start turn (T)
+        tokens_in_approx = len(query) // 4
+        telemetry.start_turn(
+            tokens_in=tokens_in_approx,
+            temperature=0.7,  # Default standard
+            top_p=0.9,
+            top_k=40,
+        )
+
         # INHALE: 000 → 111 → 222
+
         # v37: Pass vault for MemoryContext initialization
         state = stage_000_void(state, vault=self._vault)
 
@@ -1587,16 +1616,144 @@ class Pipeline:
 
     def _finalize(self, state: PipelineState) -> PipelineState:
         """Log to ledger and return final state."""
+
+        physics_snapshot = None
+
+        # v44 TEARFRAME: End Turn & Apply Physics Floors (A -> F -> Ψ)
+        if state.session_telemetry:
+            try:
+                # 1. Capture output physics
+                resp_text = state.raw_response or state.draft_response or ""
+                tokens_out_approx = len(resp_text) // 4
+
+                # Resolve current verdict to Enum or string
+                current_verdict_val = "void"
+                if state.verdict:
+                    if hasattr(state.verdict, "verdict") and hasattr(
+                        state.verdict.verdict, "value"
+                    ):
+                        current_verdict_val = state.verdict.verdict.value
+                    elif hasattr(state.verdict, "value"):
+                        current_verdict_val = state.verdict.value
+                    else:
+                        current_verdict_val = str(state.verdict)
+
+                # Safe conversion to Verdict Enum
+                try:
+                    v_enum = Verdict.from_string(current_verdict_val.upper())
+                except Exception:
+                    v_enum = Verdict.VOID
+
+                # 2. End turn (T) - PROVISIONAL
+                # Recalculate input tokens (approx)
+                tokens_in_approx = len(state.query) // 4
+
+                # Get provisional snapshot (Do not commit yet)
+                provisional_snapshot = state.session_telemetry.end_turn(
+                    tokens_out=tokens_out_approx,
+                    verdict=v_enum,
+                    context_length_used=tokens_in_approx + tokens_out_approx + 1000,  # Approx
+                    kv_cache_size=0,
+                    timeout=False,
+                    safety_block=state.sabar_triggered,
+                    truncation_flag=False,
+                    commit=False,
+                )
+
+                # 3. Compute Attributes (R)
+                # Pass provisional snapshot as current_turn
+                attrs = compute_attributes(
+                    state.session_telemetry.history,
+                    state.session_telemetry.max_session_tokens,
+                    current_turn=provisional_snapshot,
+                )
+                physics_snapshot = attrs
+
+                # 4. Evaluate Physics Floors (A -> F -> Ψ)
+                physics_verdict_enum = evaluate_physics_floors(attrs)
+
+                final_snapshot = provisional_snapshot
+
+                if physics_verdict_enum:
+                    # Physics override!
+                    p_verdict_str = physics_verdict_enum.value
+
+                    # 4b. Speculative Re-Evaluation (The "Strike Three" Check)
+                    # If we override to SABAR, does that complete a streak that forces HOLD?
+                    from dataclasses import replace
+
+                    speculative_snap = replace(provisional_snapshot, verdict=p_verdict_str)
+
+                    attrs_spec = compute_attributes(
+                        state.session_telemetry.history,
+                        state.session_telemetry.max_session_tokens,
+                        current_turn=speculative_snap,
+                    )
+                    physics_verdict_2 = evaluate_physics_floors(attrs_spec)
+
+                    if physics_verdict_2 and physics_verdict_2.value != p_verdict_str:
+                        # Escalation Detected (e.g. SABAR -> 888_HOLD)
+                        p_verdict_str = physics_verdict_2.value
+                        physics_verdict_enum = physics_verdict_2
+
+                    import logging
+
+                    logger = logging.getLogger(__name__)
+                    logger.warning(
+                        f"TEARFRAME Physics Floor Triggered: {p_verdict_str}. Overriding {current_verdict_val}."
+                    )
+
+                    # Update state verdict
+                    from .apex_prime import ApexVerdict  # Ensure available locally if not global
+
+                    state.verdict = ApexVerdict(
+                        verdict=physics_verdict_enum,
+                        reason=f"TEARFRAME Physics Floor Triggered: {p_verdict_str} (Budget/Burst/Streak).",
+                        pulse=0.0,
+                    )
+
+                    # Update message to user
+                    if p_verdict_str == "VOID":
+                        state.raw_response = "[VOID] Session Terminated by Physics Governor (Resource/Stability Limit)."
+                    elif p_verdict_str == "SABAR":
+                        state.raw_response = (
+                            "[SABAR] Session Cooldown Enforced (Burst Limit Exceeded)."
+                        )
+                    elif p_verdict_str == "888_HOLD":
+                        state.raw_response = (
+                            "[888_HOLD] Session Paused for Review (Behavioral Streak)."
+                        )
+
+                    # UPDATE SNAPSHOT VERDICT FOR HISTORY
+                    from dataclasses import replace
+
+                    final_snapshot = replace(final_snapshot, verdict=p_verdict_str)
+
+                # 5. Commit Final Snapshot to History
+                state.session_telemetry.commit_snapshot(final_snapshot)
+
+            except Exception as e:
+                import logging
+
+                logging.getLogger(__name__).error(f"TEARFRAME Physics Error: {e}")
+
         if self.ledger_sink and state.metrics:
             # v42: Normalize verdict to string upstream
+            verdict_str_log = "VOID"
             if state.verdict is None:
-                verdict_str_log = None
+                verdict_str_log = "VOID"
             elif hasattr(state.verdict, "verdict") and hasattr(state.verdict.verdict, "value"):
                 verdict_str_log = state.verdict.verdict.value  # ApexVerdict
             elif hasattr(state.verdict, "value"):
                 verdict_str_log = state.verdict.value  # Verdict Enum
             else:
                 verdict_str_log = str(state.verdict)
+
+            # SSoT Normalization
+            from .apex_prime import normalize_verdict_code
+
+            verdict_str_log = normalize_verdict_code(verdict_str_log)
+
             entry: Dict[str, Any] = {
                 "job_id": state.job_id,
                 "query": state.query[:200],
@@ -1637,6 +1794,19 @@ class Pipeline:
                 entry["eye_vector"] = state.eye_vector
             if getattr(state, "c_budi", None) is not None:
                 entry["c_budi"] = state.c_budi
+
+            # v44 Physics Traceability
+            if physics_snapshot:
+                entry["art_physics"] = {
+                    "cadence": physics_snapshot.cadence,
+                    "turn_rate": physics_snapshot.turn_rate,
+                    "token_rate": physics_snapshot.token_rate,
+                    "budget_burn_pct": physics_snapshot.budget_burn_pct,
+                    "stability_var_dt": physics_snapshot.stability_var_dt,
+                    "void_streak": physics_snapshot.void_streak,
+                    "sabar_streak": physics_snapshot.sabar_streak,
+                }
+
             self.ledger_sink(entry)
 
         return state

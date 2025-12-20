@@ -52,6 +52,7 @@ from typing import Any, Dict, List, Literal, Optional, Set, Union
 # PyYAML is optional - fall back to JSON if not available
 try:
     import yaml
+
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False
@@ -63,14 +64,14 @@ except ImportError:
 # =============================================================================
 
 # Epoch type alias
-EpochType = Literal["v35", "v36.3", "v37"]
+EpochType = Literal["v35", "v36.3", "v37", "v44"]
 
 # Environment variable for epoch selection
 EPOCH_ENV_VAR = "ARIFOS_RUNTIME_EPOCH"
 
-# Default epoch: v37 (unified LAW+SPEC+CODE runtime)
-# v35 and v36.3 are legacy epochs, selectable via ARIFOS_RUNTIME_EPOCH env var
-DEFAULT_EPOCH: EpochType = "v37"
+# Default epoch: v44 (TEARFRAME Physics + v42 spec structure)
+# v35, v36.3, and v37 are legacy epochs, selectable via ARIFOS_RUNTIME_EPOCH env var
+DEFAULT_EPOCH: EpochType = "v44"
 
 # Legacy epochs (for is_legacy_epoch helper)
 LEGACY_EPOCHS: Set[EpochType] = {"v35", "v36.3"}
@@ -86,10 +87,30 @@ MANIFEST_PATHS: Dict[EpochType, Dict[str, Path]] = {
         "json": _BASE_DIR / "spec" / "arifos_runtime_manifest_v35Omega.json",
     },
     "v36.3": {
-        "json": _BASE_DIR / "archive" / "versions" / "v36_3_omega" / "v36.3O" / "spec" / "arifos_runtime_manifest_v36.3O.json",
+        "json": _BASE_DIR
+        / "archive"
+        / "versions"
+        / "v36_3_omega"
+        / "v36.3O"
+        / "spec"
+        / "arifos_runtime_manifest_v36.3O.json",
     },
     "v37": {
-        "json": _BASE_DIR / "archive" / "versions" / "v36_3_omega" / "v36.3O" / "spec" / "arifos_runtime_manifest_v37.json",
+        "json": _BASE_DIR
+        / "archive"
+        / "versions"
+        / "v36_3_omega"
+        / "v36.3O"
+        / "spec"
+        / "arifos_runtime_manifest_v37.json",
+    },
+    "v44": {
+        # v44 uses v42 spec structure (TEARFRAME is code-driven)
+        # No separate manifest needed - v42 specs apply
+        # See spec/v44/README.md for rationale
+        "json": _BASE_DIR
+        / "spec"
+        / "arifos_runtime_manifest_v35Omega.json",  # Fallback to v35 structure
     },
 }
 
@@ -149,12 +170,15 @@ EPOCH_ALIASES: Dict[str, EpochType] = {
     "v36.3Omega": "v36.3",
     "v36.3O": "v36.3",
     "v37": "v37",
+    "v44": "v44",
+    "v44.0": "v44",
 }
 
 
 # =============================================================================
 # EPOCH SELECTION
 # =============================================================================
+
 
 def normalize_epoch(epoch: str) -> EpochType:
     """
@@ -193,6 +217,7 @@ def get_active_epoch() -> EpochType:
         except ValueError:
             # Invalid env value - fall back to default with warning
             import warnings
+
             warnings.warn(
                 f"Invalid {EPOCH_ENV_VAR}={env_epoch}, using default: {DEFAULT_EPOCH}",
                 UserWarning,
@@ -248,6 +273,7 @@ def get_manifest_path_for_epoch(epoch: EpochType) -> Path:
 # MANIFEST LOADER
 # =============================================================================
 
+
 def load_runtime_manifest(
     path: Optional[Path] = None,
     validate: bool = True,
@@ -298,8 +324,7 @@ def load_runtime_manifest(
         if path.suffix in (".yaml", ".yml"):
             if not HAS_YAML:
                 raise ImportError(
-                    "PyYAML is required to load YAML manifest. "
-                    "Install with: pip install pyyaml"
+                    "PyYAML is required to load YAML manifest. Install with: pip install pyyaml"
                 )
             manifest = yaml.safe_load(f)
         else:
@@ -393,6 +418,7 @@ def validate_manifest(
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
+
 
 def get_floor_threshold(
     manifest: Dict[str, Any],
@@ -551,6 +577,7 @@ def is_legacy_epoch(epoch: Optional[Union[str, EpochType]] = None) -> bool:
 # =============================================================================
 # DYNAMIC IMPORT HELPERS
 # =============================================================================
+
 
 def import_module_from_manifest(
     manifest: Dict[str, Any],

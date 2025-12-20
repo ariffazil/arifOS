@@ -457,7 +457,7 @@ Consensus: 0.96 ✓
 **Cross-References:**
 - canon/02_actors/01_trinity_roles_v42.md (overview)
 - canon/02_actors/040_APEX_PSI_JUDICIARY_v42.md (Ψ judiciary)
-- canon/01_floors/01_constitutional_floors_v42.md (F1–F9 gates)
+- canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md (F1–F9 gates)
 - canon/00_foundation/02_physics_v42.md (ΔΩΨ laws)
 
 ---

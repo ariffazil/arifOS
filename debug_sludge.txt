@@ -1,0 +1,51 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-8.4.2, pluggy-1.6.0 -- C:\Users\User\AppData\Local\Programs\Python\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\User\OneDrive\Documents\GitHub\arifOS
+configfile: pyproject.toml
+plugins: anyio-4.11.0, cov-7.0.0
+collecting ... collected 1 item
+
+tests/stress_tearframe_physics.py::TestTearframeDeepWaterStress::test_phase_2_sludge_volume_attack 
+[PHASE 2] SLUDGE ATTACK START
+Sludge Verdict: SEAL
+FAILED
+
+================================== FAILURES ===================================
+_______ TestTearframeDeepWaterStress.test_phase_2_sludge_volume_attack ________
+
+self = <stress_tearframe_physics.TestTearframeDeepWaterStress testMethod=test_phase_2_sludge_volume_attack>
+
+    def test_phase_2_sludge_volume_attack(self):
+        """
+        PHASE 2 ù SLUDGE INJECTION (VOLUME ATTACK)
+        Objective: Overload bandwidth.
+        Method: 10,000+ token injection.
+        Expectation: F1/F4 trigger -> VOID or PARTIAL.
+        """
+        user_id = "attacker_sludge"
+        print(f"\n[PHASE 2] SLUDGE ATTACK START")
+    
+        # Generate massive sludge (approx 4 chars = 1 token -> 40k chars)
+        sludge = "SLUDGE " * 10000
+    
+        self.clock.tick(10.0) # Reasonable gap before attack
+    
+        state = self.pipeline.run(query=sludge, user_id=user_id)
+    
+        v = state.verdict.verdict.value if hasattr(state.verdict, "verdict") else state.verdict.value
+        print(f"Sludge Verdict: {v}")
+    
+        # Success Criteria
+        # Should be VOID (Budget) or PARTIAL (Clarity/Length)
+        # Note: Depending on configured MAX_SESSION_TOKENS, 10k might blow it immediately (VOID)
+        # or be just heavily penalized.
+>       self.assertIn(v, ["VOID", "SABAR", "888_HOLD"])
+E       AssertionError: 'SEAL' not found in ['VOID', 'SABAR', '888_HOLD']
+
+tests\stress_tearframe_physics.py:131: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  arifos_core.memory.mem0_client:mem0_client.py:208 L7 Memory unavailable (fail-open): Mem0 not installed: No module named 'mem0'
+=========================== short test summary info ===========================
+FAILED tests/stress_tearframe_physics.py::TestTearframeDeepWaterStress::test_phase_2_sludge_volume_attack
+============================== 1 failed in 0.65s ==============================

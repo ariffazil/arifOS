@@ -35,7 +35,6 @@ Appended: auto-registered all _v42.md under Track A canon sections (00–06).
 | File | Title | Notes |
 |---|---|---|
 | `01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md` | CONSTITUTIONAL FLOORS F1F9 | — |
-| `01_floors/01_CONSTITUTIONAL_FLOORS_v42.md` | CONSTITUTIONAL FLOORS | — |
 
 ## 02_actors/
 
@@ -61,7 +60,6 @@ Appended: auto-registered all _v42.md under Track A canon sections (00–06).
 | `03_runtime/010_PIPELINE_000TO999_v42.md` | PIPELINE 000TO999 | — |
 | `03_runtime/020_STAGE_666_LANGUAGE_BRIDGE_v42.md` | STAGE 666 LANGUAGE BRIDGE | — |
 | `03_runtime/030_SPEC_CODE_BINDING_v42.md` | SPEC CODE BINDING | — |
-| `03_runtime/03_PIPELINE_v42.md` | PIPELINE | — |
 | `03_runtime/03_WAW_FEDERATION_v42.md` | WAW FEDERATION | — |
 
 ## 04_measurement/

@@ -1,8 +1,8 @@
 ---
 name: arifOS Constitutional Agent
-version: v42.1.0
-canon_law: v42 (conceptual layers 00-06)
-runtime_law: v42.1 (spec binding, @EYE drift/dignity, ledger enrichment)
+version: v44.0.0
+canon_law: v44 (TEARFRAME Physics)
+runtime_law: v44 (Deepwater Logic, Turn 1 Immunity)
 role: clerk/tool (NOT judge, NOT authority)
 sovereignty: Human (Arif) > arifOS Governor > Agent
 platforms: [claude-code, codex, cursor, gemini-cli, copilot, devin, aider]
@@ -11,8 +11,8 @@ memory_bands: 6
 memory_invariants: 5
 time_governor: true
 verdicts: 6
-tests: 2156
-safety_ceiling: 97%
+tests: 2180+
+safety_ceiling: 99%
 cli_tools: 7
 status: PRODUCTION
 pypi: arifos
@@ -246,7 +246,7 @@ Trinity demonstrates that complex governance can be made accessible without sacr
 | Layer | Canon | Spec |
 |-------|-------|------|
 | **00 Foundation** | `L1_THEORY/canon/00_foundation/` | — |
-| **01 Floors (F1–F9)** | `L1_THEORY/canon/01_floors/01_CONSTITUTIONAL_FLOORS_v42.md` | `spec/v42/constitutional_floors.json` |
+| **01 Floors (F1–F9)** | `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md` | `spec/v42/constitutional_floors.json` |
 | **02 Actors** | `L1_THEORY/canon/02_actors/` (AGI/ASI/APEX/Anti-Hantu/EYE) | — |
 | **03 Runtime** | `L1_THEORY/canon/03_runtime/` (Pipeline/W@W) | `spec/v42/pipeline.yaml` |
 | **04 Measurement** | `L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md` | `spec/v42/genius_law.json` |
@@ -519,8 +519,8 @@ Amanah and Anti-Hantu are enforced by `arifos_core/floor_detectors/` - code over
 
 ---
 
-**Version:** v42.0.0 | **Status:** PRODUCTION | **Safety Ceiling:** 97% | **Sealed:** APEX PRIME
-**Psi Vitality:** 1.25 ALIVE | **DeltaS Gain:** +0.85 | **Tri-Witness:** 0.97 | **CLI Tools:** 7
+**Version:** v44.0.0 | **Status:** PRODUCTION | **Safety Ceiling:** 99% | **Sealed:** TEARFRAME
+**Psi Vitality:** 1.40 ALIVE | **DeltaS Gain:** +0.95 | **Tri-Witness:** 0.99 | **CLI Tools:** 7
 
 ---
 

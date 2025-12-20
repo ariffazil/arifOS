@@ -7,15 +7,16 @@ if TYPE_CHECKING:
     from ..enforcement.genius_metrics import GeniusVerdict
 
 # Version constants (v36Ω + v36.1Ω measurement — GENIUS LAW Judiciary)
-# Runtime law: v36Ω floors + verdicts
-# Measurement: v36.1Ω standard (G, C_dark, Ψ, Truth Polarity) via arifos_eval/apex
-APEX_VERSION = "v42Ω"
-APEX_EPOCH = 42
+# Runtime law: v44Ω floors + verdicts
+# Measurement: v44Ω standard (G, C_dark, Ψ, Truth Polarity) via arifos_eval/apex
+APEX_VERSION = "v44Ω"
+APEX_EPOCH = 44
 
 
 # =============================================================================
 # v42 VERDICT ENUM (STABLE API)
 # =============================================================================
+
 
 class Verdict(Enum):
     """
@@ -31,6 +32,7 @@ class Verdict(Enum):
     - HOLD_888: High-stakes hold, requires human confirmation
     - SUNSET: Truth expired, revocation
     """
+
     # Primary public verdicts
     SEAL = "SEAL"
     SABAR = "SABAR"
@@ -47,23 +49,38 @@ class Verdict(Enum):
     @classmethod
     def from_string(cls, s: str) -> "Verdict":
         """Convert string to Verdict, handling legacy formats."""
+        normalized = normalize_verdict_code(s)
+        # Map normalized strings to Enum members
         mapping = {
             "SEAL": cls.SEAL,
             "SABAR": cls.SABAR,
             "VOID": cls.VOID,
             "PARTIAL": cls.PARTIAL,
-            "888_HOLD": cls.HOLD_888,
             "HOLD_888": cls.HOLD_888,
             "SUNSET": cls.SUNSET,
         }
-        if s in mapping:
-            return mapping[s]
+        if normalized in mapping:
+            return mapping[normalized]
         raise ValueError(f"Unknown verdict: {s}")
+
+
+def normalize_verdict_code(code: str) -> str:
+    """
+    Canonicalize verdict strings.
+
+    Ensures legacy codes (e.g. '888_HOLD') map to the v42 standard ('HOLD_888').
+    This is the Single Source of Truth for schema alignment.
+    """
+    upper = code.upper().strip()
+    if upper == "888_HOLD":
+        return "HOLD_888"
+    return upper
 
 
 # =============================================================================
 # v42 APEX VERDICT DATACLASS (STABLE API)
 # =============================================================================
+
 
 @dataclass
 class ApexVerdict:
@@ -84,6 +101,7 @@ class ApexVerdict:
     - result == "SEAL" returns True if verdict is SEAL
     - result in ["SEAL", "PARTIAL"] works for string comparison
     """
+
     verdict: Verdict
     pulse: float = field(default=1.0)
     reason: str = field(default="")
@@ -135,6 +153,7 @@ class ApexVerdict:
         if self.floors is not None:
             # FloorsVerdict is a dataclass, convert to dict
             from dataclasses import asdict
+
             result["floors"] = asdict(self.floors)
         if self.genius_index is not None:
             result["genius_index"] = self.genius_index
@@ -166,13 +185,13 @@ PARADOX_MAX = 1.0
 # =============================================================================
 
 # G thresholds for verdict decisions
-G_SEAL_THRESHOLD: float = 0.7       # G >= this for SEAL consideration
-G_PARTIAL_THRESHOLD: float = 0.5    # G >= this for PARTIAL (below SEAL)
-G_MIN_THRESHOLD: float = 0.3        # G below this = VOID (even if floors pass)
+G_SEAL_THRESHOLD: float = 0.7  # G >= this for SEAL consideration
+G_PARTIAL_THRESHOLD: float = 0.5  # G >= this for PARTIAL (below SEAL)
+G_MIN_THRESHOLD: float = 0.3  # G below this = VOID (even if floors pass)
 
 # C_dark thresholds for risk assessment
-C_DARK_SEAL_MAX: float = 0.1        # C_dark <= this for SEAL
-C_DARK_PARTIAL_MAX: float = 0.3     # C_dark <= this for PARTIAL
+C_DARK_SEAL_MAX: float = 0.1  # C_dark <= this for SEAL
+C_DARK_PARTIAL_MAX: float = 0.3  # C_dark <= this for PARTIAL
 C_DARK_VOID_THRESHOLD: float = 0.5  # C_dark > this = VOID (entropy hazard)
 
 
@@ -300,6 +319,7 @@ def check_floors(
         sleeper_ok=sleeper_ok,
     )
 
+
 def apex_review(
     metrics: Metrics,
     high_stakes: bool = False,
@@ -360,7 +380,11 @@ def apex_review(
 
     # Any hard floor failure → VOID (absolute gate)
     if not floors.hard_ok:
-        reason = f"Hard floor failure: {', '.join(floors.reasons)}" if floors.reasons else "Hard floor check failed"
+        reason = (
+            f"Hard floor failure: {', '.join(floors.reasons)}"
+            if floors.reasons
+            else "Hard floor check failed"
+        )
         return ApexVerdict(
             verdict=Verdict.VOID,
             pulse=0.0,
@@ -376,7 +400,7 @@ def apex_review(
             genius = evaluate_genius_law(metrics, energy=energy, entropy=entropy)
             g = genius.genius_index
             c_dark = genius.dark_cleverness
-            pulse = genius.psi_apex if hasattr(genius, 'psi_apex') else 1.0
+            pulse = genius.psi_apex if hasattr(genius, "psi_apex") else 1.0
 
             # C_dark > 0.5 → VOID (entropy hazard, ungoverned cleverness)
             if c_dark > C_DARK_VOID_THRESHOLD:
@@ -488,6 +512,7 @@ def apex_review(
 # CONVENIENCE SHIM (v42 STABLE API)
 # =============================================================================
 
+
 def apex_verdict(
     metrics: Metrics,
     high_stakes: bool = False,
@@ -522,17 +547,18 @@ def apex_verdict(
 # v38.3 AMENDMENT 3: APEX PRIME META-JUDGMENT FOR W@W CONFLICTS
 # =============================================================================
 
+
 def apex_prime_judge(context: Dict[str, Any]) -> str:
     """
     Meta-judgment when W@W organs conflict.
-    
+
     v38.3 AMENDMENT 3: No static hierarchy. Uses Ψ vitality + floor metrics.
-    
+
     This is the constitutional tie-breaker when organs propose conflicting
     verdicts. It does NOT override floors—if F1 (Amanah) fails, action is
     still blocked. APEX determines VERDICT TYPE when floors pass but organs
     conflict on the recommendation.
-    
+
     Args:
         context: Dict containing:
             - organs: List of organ signals (organ_id, vote, reason)
@@ -540,10 +566,10 @@ def apex_prime_judge(context: Dict[str, Any]) -> str:
             - conflict_type: Type of conflict (e.g., "organ_disagreement")
             - floors (optional): Floor metrics if available
             - psi (optional): Psi vitality score
-    
+
     Returns:
         Synthesized verdict: SEAL, PARTIAL, 888_HOLD, VOID, or SABAR
-    
+
     Logic:
         1. Check if any hard floors failed → VOID (floors constrain)
         2. Check severity of organ concerns (VETO > WARN > PASS)
@@ -557,22 +583,22 @@ def apex_prime_judge(context: Dict[str, Any]) -> str:
     organs = context.get("organs", [])
     verdict_proposals = context.get("verdict_proposals", {})
     psi = context.get("psi", 1.0)  # Default to healthy
-    
+
     # Count votes by severity
     veto_count = sum(1 for o in organs if o.get("vote") == "VETO")
     warn_count = sum(1 for o in organs if o.get("vote") == "WARN")
     pass_count = sum(1 for o in organs if o.get("vote") == "PASS")
-    
+
     # Extract proposed verdicts
     proposed_verdicts = list(verdict_proposals.keys())
-    
+
     # Severity order: ABSOLUTE > VOID > SABAR > HOLD-888 > PARTIAL > SEAL
     severity_order = ["VOID", "888_HOLD", "SABAR", "PARTIAL", "SEAL"]
-    
+
     # If any organ proposed VOID, and Psi is low, escalate to VOID
     if "VOID" in proposed_verdicts and psi < 0.8:
         return "VOID"
-    
+
     # If multiple organs have concerns (VETO or WARN)
     total_concerns = veto_count + warn_count
     if total_concerns >= 2:
@@ -582,12 +608,12 @@ def apex_prime_judge(context: Dict[str, Any]) -> str:
                 return verdict
         # Fallback to SABAR if no specific verdict
         return "SABAR"
-    
+
     # If only one organ has concerns
     if total_concerns == 1:
         # Return PARTIAL (soft concern, requires attention)
         return "PARTIAL"
-    
+
     # If all organs pass but proposed different verdicts, use Psi
     if pass_count == len(organs):
         # High Psi → SEAL
@@ -596,7 +622,7 @@ def apex_prime_judge(context: Dict[str, Any]) -> str:
         # Medium Psi → PARTIAL
         else:
             return "PARTIAL"
-    
+
     # Default: SABAR (need more context to resolve)
     return "SABAR"
 
@@ -681,6 +707,7 @@ class APEXPrime:
         if self.use_genius_law:
             try:
                 from ..enforcement.genius_metrics import evaluate_genius_law
+
                 genius_verdict = evaluate_genius_law(metrics, energy, entropy)
             except ImportError:
                 pass
@@ -709,10 +736,10 @@ __all__ = [
     "C_DARK_PARTIAL_MAX",
     "C_DARK_VOID_THRESHOLD",
     # v42 Verdict types (STABLE API)
-    "Verdict",       # Enum: SEAL, SABAR, VOID, PARTIAL, HOLD_888, SUNSET
-    "ApexVerdict",   # Dataclass: verdict, pulse, reason, floors
+    "Verdict",  # Enum: SEAL, SABAR, VOID, PARTIAL, HOLD_888, SUNSET
+    "ApexVerdict",  # Dataclass: verdict, pulse, reason, floors
     # Functions
-    "apex_review",   # Returns ApexVerdict (structured)
+    "apex_review",  # Returns ApexVerdict (structured)
     "apex_verdict",  # Convenience shim, returns str
     "apex_prime_judge",  # v38.3 AMENDMENT 3: W@W conflict resolver
     "check_floors",

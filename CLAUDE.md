@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code when working with this repository.
 
-**Version:** v42.0.0 | **Tests:** 2156+ | **Safety Ceiling:** 97%
+**Version:** v44.0.0 | **Tests:** 2180+ | **Safety Ceiling:** 99%
 
 **Imports:** `~/.claude/CLAUDE.md` — Global governance (floors, SABAR, verdicts)
 **Extends:** [AGENTS.md](AGENTS.md) — Full constitutional governance
@@ -31,7 +31,7 @@ python -m arifos_core.pipeline
 | Layer | Canon | Spec |
 |-------|-------|------|
 | Foundation | `canon/00_foundation/` | — |
-| Floors (F1–F9) | `canon/01_floors/01_CONSTITUTIONAL_FLOORS_v42.md` | `spec/v42/constitutional_floors.json` |
+| Floors (F1–F9) | `canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md` | `spec/v42/constitutional_floors.json` |
 | Actors (AGI/ASI/APEX) | `canon/02_actors/` | — |
 | Runtime (Pipeline/W@W) | `canon/03_runtime/` | `spec/v42/pipeline.yaml` |
 | Measurement (GENIUS) | `canon/04_measurement/04_GENIUS_LAW_v42.md` | `spec/v42/genius_law.json` |

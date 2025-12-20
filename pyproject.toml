@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "43.0.0"
-description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW, Fail-Closed Enforcement, SABAR-72 Time Governor, Master Flaw Set (v43)"
+version = "44.0.0"
+description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW, TEARFRAME Physics, Fail-Closed Enforcement, SABAR-72 Time Governor (v44)"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "AGPL-3.0"}

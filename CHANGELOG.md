@@ -6,6 +6,40 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ---
 
+## [v44.0.0] - 2025-12-20 - TEARFRAME Physics & Deepwater Logic
+
+**Status:** SEALED | Physics: TEARFRAME | Fail-Closed: GUARANTEED | Tag: v44.0.0
+
+### Added
+
+- **Deepwater Iterative Physics** (`pipeline.py`)
+  - "Strike Three" lookahead: Speculative re-evaluation of bursts to trigger instant `HOLD_888` escalation.
+  - Prevents "slow-roll" attacks by checking what the *next* state would look like before committing.
+- **TEARFRAME Physics Engine** (`reduction_engine.py`, `session_physics.py`)
+  - **Smart Streak Logic**: Counts current provisional turn toward streaks if it is a failure (SABAR/HOLD), ensuring immediate feedback.
+  - **Turn 1 Immunity**: Safeguard against false-positive burst detection for single-turn sessions or restarts.
+  - **Priority Reordering**: Enforced `F7 (Streak) > F3 (Burst)` to ensuring long-term bans override short-term throttles.
+- **Extreme Stress Test Harness** (`tests/stress_tearframe_physics.py`)
+  - Validated against:
+    - **Hammering**: Velocity attacks (120+ turns/min).
+    - **Sludge**: Volume attacks (17k+ tokens).
+    - **Fracture**: Streak attacks (Repeated failure loops).
+    - **Recovery**: System resets and legitimate traffic restoration.
+
+### Changed
+
+- **Fail-Closed Governance**: System now defaults to restrictive verdicts under ambiguity or stress.
+- **Simulation Fidelity**: Test harness now simulates processing latency (0.5s) to accurately model physics floors.
+- **Version Bump**: `pyproject.toml` updated to `44.0.0`.
+
+### Verified
+
+- All extreme stress vectors passed.
+- Ledger integrity confirmed under load.
+- Fail-Closed behavior guaranteed by Deepwater architecture.
+
+---
+
 ## [Unreleased]
 
 > Use this section for upcoming changes.

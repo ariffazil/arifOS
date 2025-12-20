@@ -114,9 +114,7 @@ class CoolingLedger:
                         ts = float(raw_ts)
                     elif isinstance(raw_ts, str):
                         try:
-                            ts = datetime.fromisoformat(
-                                raw_ts.replace("Z", "+00:00")
-                            ).timestamp()
+                            ts = datetime.fromisoformat(raw_ts.replace("Z", "+00:00")).timestamp()
                         except Exception:
                             ts = None
                     else:
@@ -222,13 +220,19 @@ def verify_chain(path: Union[Path, str]) -> Tuple[bool, str]:
 
         computed_hash = _compute_hash(entry)
         if stored_hash != computed_hash:
-            return False, f"Entry {i} hash mismatch: stored={stored_hash[:8]}..., computed={computed_hash[:8]}..."
+            return (
+                False,
+                f"Entry {i} hash mismatch: stored={stored_hash[:8]}..., computed={computed_hash[:8]}...",
+            )
 
         if i > 0:
             expected_prev_hash = entries[i - 1].get("hash")
             actual_prev_hash = entry.get("prev_hash")
             if actual_prev_hash != expected_prev_hash:
-                return False, f"Entry {i} prev_hash mismatch: expected={expected_prev_hash[:8]}..., actual={actual_prev_hash[:8] if actual_prev_hash else 'null'}..."
+                return (
+                    False,
+                    f"Entry {i} prev_hash mismatch: expected={expected_prev_hash[:8]}..., actual={actual_prev_hash[:8] if actual_prev_hash else 'null'}...",
+                )
 
     return True, f"Chain verified: {len(entries)} entries"
 
@@ -256,7 +260,7 @@ def log_cooling_entry(
     """Append a hash-chained Cooling Ledger entry and return the entry dict."""
 
     # v42: Use new locations
-    from arifos_core.system.apex_prime import check_floors
+    from arifos_core.system.apex_prime import check_floors, normalize_verdict_code
     from arifos_core.enforcement.metrics import Metrics
 
     if pipeline_path is None:
@@ -264,6 +268,9 @@ def log_cooling_entry(
 
     if not isinstance(metrics, Metrics):
         raise TypeError("metrics must be a Metrics instance")
+
+    # Normalize verdict using SSoT
+    verdict = normalize_verdict_code(verdict)
 
     floors = check_floors(
         metrics,
@@ -296,8 +303,8 @@ def log_cooling_entry(
                 )
 
     # ISO-8601 UTC timestamp (v35Ω schema)
-    timestamp_iso = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace(
-        "+00:00", "Z"
+    timestamp_iso = (
+        datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
     )
 
     entry = {
@@ -379,8 +386,8 @@ def log_cooling_entry_v36_stub(
         raise TypeError("metrics must be a Metrics instance")
 
     # ISO-8601 UTC timestamp (v36Ω design)
-    timestamp_iso = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace(
-        "+00:00", "Z"
+    timestamp_iso = (
+        datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
     )
 
     # Truth Polarity from GeniusVerdict if available
@@ -539,6 +546,7 @@ class LedgerConfigV37:
     - rotation thresholds for hot segment
     - fail behavior configuration
     """
+
     ledger_path: Path = Path("runtime/vault_999/cooling_ledger.jsonl")
     head_state_path: Path = Path("runtime/vault_999/head_state.json")
     archive_path: Path = Path("runtime/vault_999/archive/")
@@ -554,6 +562,7 @@ class HeadState:
 
     Tracks the latest entry hash for fast chain verification on startup.
     """
+
     last_entry_hash: Optional[str] = None
     entry_count: int = 0
     last_timestamp: Optional[str] = None
@@ -637,6 +646,7 @@ class CoolingLedgerV37:
     @dataclass
     class AppendResult:
         """Result of an append operation."""
+
         success: bool
         entry_hash: Optional[str] = None
         error: Optional[str] = None
@@ -849,9 +859,7 @@ class CoolingLedgerV37:
                         ts = float(raw_ts)
                     elif isinstance(raw_ts, str):
                         try:
-                            ts = datetime.fromisoformat(
-                                raw_ts.replace("Z", "+00:00")
-                            ).timestamp()
+                            ts = datetime.fromisoformat(raw_ts.replace("Z", "+00:00")).timestamp()
                         except Exception:
                             ts = None
                     else:
@@ -898,8 +906,8 @@ def log_cooling_entry_v37(
     response_hash = hashlib.sha256(str(candidate_output or "").encode()).hexdigest()
 
     # ISO-8601 UTC timestamp
-    timestamp_iso = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace(
-        "+00:00", "Z"
+    timestamp_iso = (
+        datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
     )
 
     # Build metrics block per spec
