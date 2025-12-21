@@ -20,6 +20,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from arifos_core.memory.cooling_ledger import DEFAULT_LEDGER_PATH
+
 
 @dataclass
 class ScarCandidate:
@@ -89,7 +91,7 @@ class VoidScanner:
             ledger_path: Path to cooling ledger JSONL
             output_path: Path to write proposals (default: runtime/vault_999/scar_proposals.jsonl)
         """
-        self.ledger_path = ledger_path or Path("runtime/vault_999/cooling_ledger.jsonl")
+        self.ledger_path = ledger_path or DEFAULT_LEDGER_PATH
         self.output_path = output_path or Path("runtime/vault_999/scar_proposals.jsonl")
 
     def scan(

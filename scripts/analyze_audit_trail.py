@@ -45,7 +45,12 @@ def get_sparkline(values: List[float], min_val: Optional[float] = None, max_val:
 
 def main():
     parser = argparse.ArgumentParser(description="Analyze Cooling Ledger Audit Trail")
-    parser.add_argument("--ledger", type=str, default="vault_999/cooling_ledger.jsonl", help="Path to ledger file")
+    parser.add_argument(
+        "--ledger",
+        type=str,
+        default="cooling_ledger/L1_cooling_ledger.jsonl",
+        help="Path to ledger file",
+    )
     parser.add_argument("--lines", type=int, default=50, help="Number of recent lines to analyze")
     parser.add_argument("--output", type=str, default=None, help="Output markdown file (stdout; use shell redirection)")
     args = parser.parse_args()

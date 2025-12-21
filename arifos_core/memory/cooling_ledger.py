@@ -20,6 +20,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, Callable, TYPE_CHECKING
 
+DEFAULT_LEDGER_PATH = Path("cooling_ledger") / "L1_cooling_ledger.jsonl"
+
 if TYPE_CHECKING:
     from arifos_core.kms_signer import KmsSigner
     from arifos_core.metrics import Metrics
@@ -60,7 +62,7 @@ class CoolingEntry:
 
 @dataclass
 class LedgerConfig:
-    ledger_path: Path = Path("runtime/vault_999/cooling_ledger.jsonl")
+    ledger_path: Path = DEFAULT_LEDGER_PATH
 
 
 class CoolingLedger:
@@ -250,12 +252,18 @@ def log_cooling_entry(
     context_summary: str = "",
     tri_witness_components: Optional[Dict[str, float]] = None,
     logger=None,
-    ledger_path: Union[Path, str] = LedgerConfig().ledger_path,
+    ledger_path: Union[Path, str] = DEFAULT_LEDGER_PATH,
     high_stakes: Optional[bool] = None,
     # GENIUS LAW telemetry (v35.13.0+)
     energy: Optional[float] = None,
     entropy: Optional[float] = None,
     include_genius_metrics: bool = True,
+    # Codex CLI metadata (optional, non-breaking)
+    source: Optional[str] = None,
+    task_type: Optional[str] = None,
+    task_description: Optional[str] = None,
+    scope: Optional[str] = None,
+    codex_audit: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Append a hash-chained Cooling Ledger entry and return the entry dict."""
 
@@ -341,6 +349,18 @@ def log_cooling_entry(
         except Exception:
             # Don't break ledger logging if genius_metrics fails
             pass
+
+    # Optional Codex CLI metadata (non-breaking additions)
+    if source is not None:
+        entry["source"] = source
+    if task_type is not None:
+        entry["task_type"] = task_type
+    if task_description:
+        entry["task_description"] = task_description
+    if scope is not None:
+        entry["scope"] = scope
+    if codex_audit is not None:
+        entry["codex_audit"] = codex_audit
 
     append_entry(ledger_path, entry)
 
@@ -547,7 +567,7 @@ class LedgerConfigV37:
     - fail behavior configuration
     """
 
-    ledger_path: Path = Path("runtime/vault_999/cooling_ledger.jsonl")
+    ledger_path: Path = DEFAULT_LEDGER_PATH
     head_state_path: Path = Path("runtime/vault_999/head_state.json")
     archive_path: Path = Path("runtime/vault_999/archive/")
     hot_segment_days: int = 7  # TODO(Arif): confirm
