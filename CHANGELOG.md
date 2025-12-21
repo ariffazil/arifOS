@@ -45,6 +45,18 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 > Use this section for upcoming changes.
 > When you cut a new version, move entries from here into a tagged release.
 
+### Added
+
+- **Codex-aware Cooling Ledger** (`arifos_core/codex_ledger.py`, `arifos_core/memory/cooling_ledger.py`)
+  - Codex CLI adapter logs F0–F9 audits with optional metadata (`source`, `task_type`, `scope`, `codex_audit`) via existing hash-chained ledger.
+  - Canonical ledger path normalized to `cooling_ledger/L1_cooling_ledger.jsonl` across pipeline, void scanner, and audit tooling.
+- **Ledger Documentation** (`cooling_ledger/LEDGER_README.md`)
+  - Notes Codex metadata fields and confirms append-only SHA3-256 chain.
+- **Audit Trail Script Alignment** (`scripts/analyze_audit_trail.py`)
+  - Default ledger path aligned to canonical location; reads via FAG.
+- **Tests** (`tests/test_codex_ledger.py`)
+  - Verifies Codex logging metadata and hash-chain integrity for Codex entries.
+
 ## [v43.1.0] - 2025-12-19 - Trinity Universal Interface
 
 **Status:** SEALED | Trinity Self-Sealed | Tag: v43.1.0

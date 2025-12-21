@@ -85,7 +85,8 @@ python -m scripts.test_bogel_llama         # 33-prompt baseline (uncaged LLM)
 
 Human-facing “wisdom log” to prevent repeated entropy mistakes.
 
-- 2025-12-17: Avoided “alias file” shortcuts. Correct the canonical reference or ask; don’t add new files just to satisfy an IDE tab/link.
+- 2025-12-17: Avoided "alias file" shortcuts. Correct the canonical reference or ask; don't add new files just to satisfy an IDE tab/link.
+- 2025-12-21: Canonical cooling ledger path is `cooling_ledger/L1_cooling_ledger.jsonl`; Codex CLI entries log via the same hash-chained ledger with optional metadata (source/task_type/scope/codex_audit).
 
 ### 1.6 FILE INTEGRITY & ACLIP PROTOCOL
 
