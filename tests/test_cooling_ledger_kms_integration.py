@@ -8,7 +8,13 @@ import pytest
 # If your cooling ledger lives at arifos_core.memory.cooling_ledger use that path.
 from arifos_core.memory.cooling_ledger import append_entry, verify_chain
 from arifos_core.kms_signer import KmsSigner, KmsSignerConfig
-from tests.test_kms_signer import FakeKmsClient  # uses the FakeKmsClient defined earlier
+
+try:
+    # Preferred when tests is importable as a top-level module
+    from tests.test_kms_signer import FakeKmsClient  # type: ignore
+except ModuleNotFoundError:
+    # Fallback when running as a flat test file
+    from test_kms_signer import FakeKmsClient  # type: ignore
 
 
 def test_ledger_appends_kms_signature_when_signer_present(tmp_path: Path) -> None:
