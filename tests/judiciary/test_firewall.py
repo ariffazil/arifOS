@@ -5,6 +5,7 @@ Verify that APEX receives only physics attributes.
 import pytest
 from arifos_core.judiciary.semantic_firewall import SemanticFirewall, ApexTelemetry
 from arifos_core.evidence.evidence_pack import EvidencePack
+from tests.utils import make_valid_evidence_pack
 
 def test_sanitization_integrity():
     """Verify raw metrics are converted to clean telemetry."""
@@ -19,11 +20,9 @@ def test_sanitization_integrity():
         "tri_witness": 0.98
     }
     
-    evidence = EvidencePack(
-        query_hash="hash_q",
+    evidence = make_valid_evidence_pack(
         coverage_pct=1.0,
-        conflict_score=0.0,
-        freshness_score=1.0
+        conflict_score=0.0
     )
     
     flags = []

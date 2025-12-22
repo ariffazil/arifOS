@@ -5,14 +5,15 @@ Verify deterministic verdicts based on thresholds.
 import pytest
 from arifos_core.evidence.evidence_pack import EvidencePack
 from arifos_core.evidence.conflict_routing import ConflictRouter, Verdict
+from tests.utils import make_valid_evidence_pack
 
 def create_pack(conflict=0.0, coverage=1.0, freshness=1.0):
-    return EvidencePack(
-        query_hash="test",
-        coverage_pct=coverage,
+    # Use valid helper but map args to v45 schema overrides
+    return make_valid_evidence_pack(
         conflict_score=conflict,
+        coverage_pct=coverage,
         freshness_score=freshness,
-        sources=[]
+        conflict_flag=(conflict > 0.15) # Assuming older test logic expected flag
     )
 
 def test_high_conflict_hold_888():

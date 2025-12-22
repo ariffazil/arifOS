@@ -11,6 +11,9 @@ from arifos_core.evidence.evidence_pack import EvidencePack
 VALID_HASH = "a" * 64
 VALID_URI = "https://example.com/source"
 
+from arifos_core.evidence.evidence_pack import EvidencePack
+from tests.utils import make_valid_evidence_pack, VALID_HASH
+
 def test_atomic_reject_incomplete_pack():
     """EvidencePack must fail validation if required fields are missing."""
     # Using Pydantic, missing required fields raises ValidationError
@@ -25,29 +28,14 @@ def test_coverage_gate_blocks_seal():
     """Logic gate: If coverage < 1.0, downstream logic must know."""
     # This test verifies the ATTRIBUTE exists and validation passes 0-1 range.
     # The actual blocking logic is in ConflictRouter/Firewall, butPack must hold the truth.
-    pack = EvidencePack(
-        query_hash=VALID_HASH,
-        coverage_pct=0.99, # Not 1.0
-        conflict_score=0.0,
-        conflict_flag=False,
-        freshness_timestamp=1000,
-        freshness_score=1.0,
-        hash_chain_provenance=[VALID_HASH],
-        source_uris=[VALID_URI],
-        jargon_density=0.0
+    pack = make_valid_evidence_pack(
+        coverage_pct=0.99 # Not 1.0
     )
     assert pack.coverage_pct == 0.99
 
 def test_source_uris_never_cross_firewall():
     """The EvidencePack holds URIs, but the Firewall strips them."""
-    pack = EvidencePack(
-        query_hash=VALID_HASH,
-        coverage_pct=1.0,
-        conflict_score=0.0,
-        conflict_flag=False,
-        freshness_timestamp=1000,
-        freshness_score=1.0,
-        hash_chain_provenance=[VALID_HASH],
+    pack = make_valid_evidence_pack(
         source_uris=["https://dangerous.semantic.content/leak"],
         jargon_density=0.1
     )
