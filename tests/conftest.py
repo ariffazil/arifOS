@@ -1,24 +1,18 @@
-
 import os
 import pytest
 
-@pytest.fixture(scope="session", autouse=True)
-def disable_physics_for_tests():
+@pytest.fixture(scope="function", autouse=True)
+def disable_physics_globally():
     """
-    Globally disable TEARFRAME Physics during tests.
-    
-    This prevents 'SABAR' bursts/streaks from triggering during
-    rapid-fire test execution, ensuring functional logic is tested
-    without kinetic interference.
+    Globally disable TEARFRAME Physics logic for all tests by default.
+    Tests that need physics (e.g. test_session_physics.py) must explicitly
+    enable it by removing this env var in their setup.
+    Function scope ensures it is reset even if a test misbehaves.
     """
-    # Set the env var
-    old_value = os.environ.get("ARIFOS_PHYSICS_DISABLED")
+    # Force disable
     os.environ["ARIFOS_PHYSICS_DISABLED"] = "1"
     
     yield
     
-    # Restore (optional, but good hygiene)
-    if old_value is None:
-        del os.environ["ARIFOS_PHYSICS_DISABLED"]
-    else:
-        os.environ["ARIFOS_PHYSICS_DISABLED"] = old_value
+    # Reset to disabled for safety
+    os.environ["ARIFOS_PHYSICS_DISABLED"] = "1"

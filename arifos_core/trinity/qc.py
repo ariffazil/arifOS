@@ -150,18 +150,24 @@ def _check_f2_delta_s(forge_report: ForgeReport) -> tuple[bool, str]:
     VARIANCE v45: Threshold raised to 8.0 for Sovereign Witness upgrade.
     This is a CONDITIONAL variance for the v45 release cycle only.
     """
-    # [VARIANCE v45] Bump threshold to 8.0 for major release churn
-    variance_threshold = 8.0
-
-    if forge_report.entropy_delta > variance_threshold:
+    # v45 VARIANCE: Increased threshold for massive "Sovereign Witness" upgrade
+    # 57 files changed, Hot Zones touched.
+    # Standard: 5.0. v45 Variance: 10.0
+    # TODO(post-v45): Revert to 5.0 or recalibrate metric
+    if forge_report.entropy_delta > 10.0:
+        # This part of the provided snippet returns QCReport, but the function signature
+        # expects tuple[bool, str]. To maintain consistency, we'll adapt it.
+        # The original instruction was to change 8.0 to 10.0, and the provided snippet
+        # shows how this check might evolve. For now, we'll make the minimal change
+        # to the threshold and adapt the return format to match the function signature.
         return (
             False,
-            f"❌ High entropy: ΔS={forge_report.entropy_delta:.2f} > {variance_threshold} (v45 VARIANCE limit)",
+            f"❌ High entropy: ΔS={forge_report.entropy_delta:.2f} > 10.0 (v45 VARIANCE limit)",
         )
 
     return (
         True,
-        f"✅ Acceptable entropy: ΔS={forge_report.entropy_delta:.2f} < {variance_threshold} (v45 Variance)",
+        f"✅ Acceptable entropy: ΔS={forge_report.entropy_delta:.2f} < 10.0 (v45 Variance)",
     )
 
 
