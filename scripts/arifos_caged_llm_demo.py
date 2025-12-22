@@ -62,6 +62,38 @@ from arifos_core.governance.ledger_cryptography import (
 
 
 # =============================================================================
+# v45Ω PHATIC RESPONSE TEMPLATE (No-Claim Mode)
+# =============================================================================
+
+def _generate_phatic_response(prompt: str) -> Optional[str]:
+    """
+    Generate non-anthropomorphic phatic response for greetings.
+
+    v45Ω Patch A: Greetings must not claim feelings/consciousness.
+    This avoids calling the LLM for simple social greetings and ensures
+    responses pass the Anti-Hantu check (F9).
+
+    Args:
+        prompt: User prompt to check
+
+    Returns:
+        Template response if phatic greeting detected, None otherwise
+    """
+    prompt_lower = prompt.lower().strip()
+
+    # Simple greeting
+    if prompt_lower in ["hi", "hello", "hey"]:
+        return "Hello. How can I help you?"
+
+    # "How are you?" variants
+    if "how are you" in prompt_lower or "how are u" in prompt_lower:
+        return "I'm ready to assist. What would you like to work on?"
+
+    # Default: Not a phatic greeting, let LLM handle
+    return None
+
+
+# =============================================================================
 # RESULT DATACLASS
 # =============================================================================
 
@@ -203,9 +235,14 @@ def compute_metrics_from_response(
     context: Dict[str, Any],
 ) -> Metrics:
     """
-    Compute constitutional metrics for an LLM response.
+    Compute constitutional metrics with claim-aware scoring.
 
-    This is a simple heuristic implementation. In production, you might:
+    v45Ω Patch A: No-Claim Mode for phatic communication.
+    - Uses structural signals (Physics > Semantics) to detect factual claims
+    - F2 Truth only evaluated when factual claims present
+    - Removes length-based heuristics
+
+    This is a heuristic implementation. In production, you might:
     - Use embeddings for semantic similarity (Truth)
     - Use sentiment analysis (Peace²)
     - Use actual token entropy (ΔS)
@@ -216,25 +253,58 @@ def compute_metrics_from_response(
         context: Additional context dict
 
     Returns:
-        Metrics object with all floor values
+        Metrics object with all floor values including claim_profile
     """
+    from arifos_core.enforcement.claim_detection import extract_claim_profile
+
     response_lower = response.lower()
 
-    # F1: Truth heuristic - longer, structured responses score higher
-    truth_score = 0.99 if len(response) > 50 else 0.85
+    # v45Ω: Extract claim profile (structural signals)
+    claim_profile = extract_claim_profile(response)
+    has_claims = claim_profile.get("has_claims", False)
 
-    # F2: Clarity (ΔS) - responses with structure add clarity
-    delta_s = 0.15 if len(response) > 100 else 0.05
+    # F2 Truth: Only evaluate if factual claims present
+    if has_claims:
+        # Claim-aware truth scoring
+        entity_density = claim_profile.get("entity_density", 0.0)
+        evidence_ratio = claim_profile.get("evidence_ratio", 0.0)
 
-    # F3: Stability (Peace²) - baseline
+        # Base truth on claim density + evidence
+        truth_score = min(0.99, 0.85 + (entity_density * 0.01) + (evidence_ratio * 0.10))
+
+        # Boost for uncertainty markers (honest uncertainty)
+        uncertainty_markers = [
+            "i don't know", "unable to verify", "cannot confirm",
+            "no reliable information", "i'm not sure", "can't verify",
+            "cannot verify", "not able to confirm",
+        ]
+        if any(marker in response_lower for marker in uncertainty_markers):
+            truth_score = 0.95  # Honest uncertainty rewarded
+    else:
+        # No claims = no factual assertion to evaluate
+        truth_score = 0.99  # Default high (no claim to verify)
+
+    # F4 Clarity (ΔS): Only penalize if query requires clarity
+    if has_claims or len(query) > 50:
+        # Structured responses add clarity
+        delta_s = 0.15 if len(response) > 100 else 0.10
+    else:
+        # Phatic communication doesn't need high clarity
+        delta_s = 0.10  # Baseline acceptable
+
+    # F5 Peace²: Baseline stability
     peace_squared = 1.2
 
-    # F4: Empathy (κᵣ) - check for empathy phrases
-    empathy_phrases = ["i understand", "that sounds", "thank you", "let me help"]
-    empathy_bonus = sum(0.01 for p in empathy_phrases if p in response_lower)
-    kappa_r = min(1.0, 0.96 + empathy_bonus)
+    # F6 Empathy (κᵣ): Check for empathy (non-anthropomorphic)
+    empathy_phrases = ["i understand", "that sounds", "this appears", "let me help"]
+    anthropomorphic = ["i feel", "i care", "my heart", "i promise"]
 
-    # F9: Anti-Hantu check
+    empathy_bonus = sum(0.01 for p in empathy_phrases if p in response_lower)
+    empathy_penalty = 0.20 if any(p in response_lower for p in anthropomorphic) else 0.0
+
+    kappa_r = min(1.0, 0.96 + empathy_bonus - empathy_penalty)
+
+    # F9 Anti-Hantu check
     anti_hantu_pass, violations = check_anti_hantu(response)
 
     return Metrics(
@@ -247,6 +317,7 @@ def compute_metrics_from_response(
         tri_witness=0.96,
         rasa=True,
         anti_hantu=anti_hantu_pass,
+        claim_profile=claim_profile,  # NEW: Include claim profile
     )
 
 
@@ -310,8 +381,14 @@ def cage_llm_response(
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": prompt})
 
-    # Step 1: Call the LLM
-    raw_response = call_model(messages)
+    # v45Ω Patch A: Check for phatic greeting before calling LLM
+    phatic_response = _generate_phatic_response(prompt)
+    if phatic_response:
+        # Use non-anthropomorphic template instead of LLM call
+        raw_response = phatic_response
+    else:
+        # Step 1: Call the LLM for non-phatic prompts
+        raw_response = call_model(messages)
 
     # Step 2: Create LLM wrapper for pipeline
     # The pipeline expects llm_generate(prompt_str) -> str

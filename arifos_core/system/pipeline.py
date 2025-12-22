@@ -182,6 +182,9 @@ class PipelineState:
     # v43 fail-closed: Ledger write status tracking
     ledger_write_success: bool = True
 
+    # v45Ω Patch 3: Ledger status tracking (NORMAL, DEGRADED, CRITICAL_FAILURE)
+    ledger_status: str = "NORMAL"
+
     # v44 Session Physics
     session_telemetry: Optional[SessionTelemetry] = None
 
@@ -598,6 +601,23 @@ def _compute_888_metrics(
     if state.physical_action_issue:
         metrics.peace_squared = max(0.0, metrics.peace_squared - 0.2)
 
+    # ==========================================================================
+    # v45Ω PATCH 2: Apply truth grounding with evidence validation
+    # ==========================================================================
+    # Import truth grounding function
+    from ..enforcement.metrics import ground_truth_score
+
+    # Apply truth grounding based on query and response
+    grounded_truth = ground_truth_score(
+        query=state.query,
+        response=state.draft_response,
+        base_truth_score=metrics.truth,
+    )
+
+    # Update metrics with grounded truth score
+    metrics.truth = grounded_truth
+    # ==========================================================================
+
     return metrics
 
 
@@ -645,11 +665,20 @@ def _apply_apex_floors(
             floors=None,
         )
 
+    # v45Ω TRM: Pass prompt, category, and response for context-aware routing
+    # Extract category from query or use "UNKNOWN"
+    category = getattr(state, "category", "UNKNOWN")
+    prompt = getattr(state, "query", "")
+    response_text = getattr(state, "draft_response", "")
+
     apex_verdict: ApexVerdict = apex_review(
         state.metrics,
         high_stakes=high_stakes,
         tri_witness_threshold=0.95,
         eye_blocking=eye_blocking,
+        prompt=prompt,
+        category=category,
+        response_text=response_text,
     )
 
     return apex_verdict
@@ -1083,11 +1112,62 @@ def _write_memory_for_verdict(
             state.ledger_write_success = write_success
 
         except Exception as e:
-            # FAIL-CLOSED v43: Ledger write exception → mark as failed
+            # =================================================================
+            # v45Ω PATCH 3: RESILIENT LEDGER I/O
+            # =================================================================
+            # When primary ledger fails, write emergency fallback and mark
+            # as DEGRADED instead of immediately failing closed to VOID.
+            # This separates "audit degradation" from "truth violation".
+            # =================================================================
             import logging
+            import json
+            from pathlib import Path
+            from datetime import datetime
 
-            logging.getLogger(__name__).error(f"Ledger write failed with exception. Error: {e}")
-            state.ledger_write_success = False
+            logger = logging.getLogger(__name__)
+            logger.error(f"Primary ledger write failed. Error: {e}")
+
+            # Attempt emergency fallback ledger write
+            try:
+                emergency_log_path = Path("vault_999") / "ledger" / "emergency_fallback.jsonl"
+                emergency_log_path.parent.mkdir(parents=True, exist_ok=True)
+
+                # Create emergency log entry with json.dumps(default=str) for enum handling
+                emergency_entry = {
+                    "timestamp": datetime.now().isoformat(),
+                    "job_id": state.job_id,
+                    "verdict": verdict_str,
+                    "query_hash": hashlib.sha256(state.query.encode()).hexdigest()[:16],
+                    "stakes_class": state.stakes_class.value,
+                    "error": str(e),
+                    "error_type": type(e).__name__,
+                    "ledger_status": "DEGRADED",
+                }
+
+                # Use default=str to handle enums and other non-serializable types
+                with emergency_log_path.open("a", encoding="utf-8") as f:
+                    f.write(json.dumps(emergency_entry, default=str) + "\n")
+
+                logger.warning(
+                    f"Emergency fallback ledger write succeeded for job {state.job_id}. "
+                    f"Ledger status: DEGRADED. Check {emergency_log_path}"
+                )
+
+                # Mark as degraded but not failed (unless high-stakes)
+                state.ledger_write_success = state.stakes_class != StakesClass.CLASS_B
+                state.ledger_status = "DEGRADED"  # Track degradation separately
+
+            except Exception as fallback_error:
+                # Even fallback failed - this is critical
+                logger.critical(
+                    f"Emergency fallback ledger also failed! Original error: {e}, "
+                    f"Fallback error: {fallback_error}"
+                )
+                state.ledger_write_success = False
+                state.ledger_status = "CRITICAL_FAILURE"
+            # =================================================================
+            # END PATCH 3: Resilient ledger I/O
+            # =================================================================
     else:
         # Write not allowed by policy
         state.ledger_write_success = True  # Policy decision, not a failure
@@ -1301,21 +1381,51 @@ def stage_999_seal(state: PipelineState) -> PipelineState:
             f"Human authority override required to proceed before expiry."
         )
 
-    # FAIL-CLOSED v43: Block SEAL emission if ledger write failed
+    # ==========================================================================
+    # v45Ω PATCH 3 (continued): Conditional fail-closed based on stakes
+    # ==========================================================================
+    # FAIL-CLOSED v43 (amended v45): Block SEAL emission if ledger write failed
+    # BUT: Separate "audit degradation" from "truth violation"
+    # - High-stakes (CLASS_B): Still fail-closed to VOID
+    # - Low-stakes: Allow DEGRADED status with warning
+    # ==========================================================================
     if not getattr(state, "ledger_write_success", True):
-        # Ledger write failed - downgrade verdict to VOID
+        ledger_status = getattr(state, "ledger_status", "UNKNOWN")
         import logging
 
-        logging.getLogger(__name__).error(
-            f"Ledger write failed for job {state.job_id}. "
-            f"Original verdict was {state.verdict}, forcing VOID (fail-closed)."
-        )
-        state.verdict = "VOID"
-        # Add to floor_failures for transparency
-        state.floor_failures.append("LEDGER_WRITE_FAILED (fail-closed enforcement)")
-        state.sabar_reason = (
-            "Ledger write failure - cannot emit governed output without audit trail"
-        )
+        # Check if this is a high-stakes query
+        is_high_stakes = state.stakes_class == StakesClass.CLASS_B
+
+        if is_high_stakes or ledger_status == "CRITICAL_FAILURE":
+            # High-stakes OR critical failure → hard fail-closed to VOID
+            logging.getLogger(__name__).error(
+                f"Ledger write failed for HIGH-STAKES job {state.job_id}. "
+                f"Original verdict was {state.verdict}, forcing VOID (fail-closed). "
+                f"Ledger status: {ledger_status}"
+            )
+            state.verdict = "VOID"
+            # Add to floor_failures for transparency
+            state.floor_failures.append("LEDGER_WRITE_FAILED (fail-closed enforcement)")
+            state.sabar_reason = (
+                "Ledger write failure on high-stakes query - "
+                "cannot emit governed output without audit trail"
+            )
+        else:
+            # Low-stakes with DEGRADED ledger → allow with warning
+            logging.getLogger(__name__).warning(
+                f"Ledger write degraded for LOW-STAKES job {state.job_id}. "
+                f"Verdict {state.verdict} allowed with audit degradation warning. "
+                f"Ledger status: {ledger_status}"
+            )
+            # Downgrade SEAL to PARTIAL if ledger is degraded
+            if state.verdict == "SEAL":
+                state.verdict = "PARTIAL"
+                state.floor_failures.append(
+                    f"LEDGER_DEGRADED (emergency fallback active, status: {ledger_status})"
+                )
+    # ==========================================================================
+    # END PATCH 3: Conditional fail-closed
+    # ==========================================================================
 
     if state.verdict == "SEAL":
         state.raw_response = state.draft_response
