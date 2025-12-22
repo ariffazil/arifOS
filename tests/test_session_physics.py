@@ -3,12 +3,25 @@ test_session_physics.py - Unit tests for TEARFRAME v44 Session Physics Layer
 """
 
 import unittest
+import os
 from arifos_core.utils.session_telemetry import SessionTelemetry, TelemetrySnapshot
 from arifos_core.utils.reduction_engine import compute_attributes, SessionAttributes
 from arifos_core.governance.session_physics import evaluate_physics_floors
 from arifos_core.system.apex_prime import Verdict
 
 class TestSessionPhysics(unittest.TestCase):
+    
+    def setUp(self):
+        """Enable physics for these tests by removing the disable flag."""
+        self._old_env_var = os.environ.get("ARIFOS_PHYSICS_DISABLED")
+        if "ARIFOS_PHYSICS_DISABLED" in os.environ:
+            del os.environ["ARIFOS_PHYSICS_DISABLED"]
+
+    def tearDown(self):
+        """Restore environment variable."""
+        if self._old_env_var is not None:
+            os.environ["ARIFOS_PHYSICS_DISABLED"] = self._old_env_var
+
     
     def test_stable_by_default(self):
         """Constant, low cadence and budget T no physics verdict (None)."""

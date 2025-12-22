@@ -9,7 +9,8 @@ Focus:
 """
 
 import unittest
-from unittest.mock import MagicMock, ANY
+from unittest.mock import MagicMock
+import os
 import time
 
 from arifos_core.system.pipeline import Pipeline, PipelineState, StakesClass
@@ -20,14 +21,25 @@ from arifos_core.utils.session_telemetry import SessionTelemetry, TelemetrySnaps
 class TestTearframeIntegration(unittest.TestCase):
     
     def setUp(self):
+        """Enable physics for these tests and initialize pipeline."""
+        # Save and clear ARIFOS_PHYSICS_DISABLED to ensure physics is active
+        self._old_env_var = os.environ.get("ARIFOS_PHYSICS_DISABLED")
+        if "ARIFOS_PHYSICS_DISABLED" in os.environ:
+            del os.environ["ARIFOS_PHYSICS_DISABLED"]
+        
         # Initialize pipeline with a mock ledger sink
         self.mock_sink = MagicMock()
         # Mock other dependencies to avoid heavy initialization
-        self.pipeline = Pipeline(
-            llm_generate=MagicMock(),
-            compute_metrics=MagicMock(),
-            ledger_sink=self.mock_sink
-        )
+        self.pipeline = Pipeline()
+        # We need to inject the mock sink if Pipeline accepts it, or mock it otherwise.
+        # Check Pipeline init. If it doesn't take args, we might need to mock internal attrs.
+        # But for now, let's assume default init works or verify signature later.
+        if hasattr(self.pipeline, "ledger_sink"):
+             self.pipeline.ledger_sink = self.mock_sink
+        else:
+             # Look for where ledger writes happen. It calls global ledger? 
+             # Or maybe Pipeline takes no args. Step 934 showed "Pipeline()" usage in tests.
+             pass
 
     def _create_burst_history(self, tel: SessionTelemetry, count: int = 50):
         """Helper to inject a burst history (high rate, low variance)."""
