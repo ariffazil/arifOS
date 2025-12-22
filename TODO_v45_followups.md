@@ -17,5 +17,8 @@
 ## 3. Missing Witness Policy Test
 *   **Context:** PR-4 implementation of `WitnessCouncil` handles missing witnesses via quorum math (low agreement -> PARTIAL/HOLD).
 *   **Task:** Add an explicit test case `test_missing_witness_policy` to `tests/judiciary/test_witness_council.py`.
+- [ ] **Test Coverage**: Add test case for `missing_witness` policy in `tests/judiciary/test_witness_council.py`
+- [ ] **QC Recalibration**: Recalibrate QC metric to distinguish "major release churn" vs "unsafe drift" (Post-v45).
+- [ ] **Revert Variance**: Revert F2 DeltaS threshold in `qc.py` from 8.0 back to 5.0 after v45 stabilization..
 *   **Requirement:** Verify that if N < 3 (or configured quorum), the system fails closed to `HOLD_888` or `PARTIAL` explicitly.
 *   **Priority:** Medium (Stability Lock).

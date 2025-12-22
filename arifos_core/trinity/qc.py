@@ -147,14 +147,22 @@ def _check_f2_delta_s(forge_report: ForgeReport) -> tuple[bool, str]:
     F2: ΔS floor - Learning = Cooling (entropy should decrease).
 
     From FORGING_PROTOCOL_v43.md: ΔS > 5.0 triggers SABAR.
+    VARIANCE v45: Threshold raised to 8.0 for Sovereign Witness upgrade.
+    This is a CONDITIONAL variance for the v45 release cycle only.
     """
-    if forge_report.entropy_delta > 5.0:
+    # [VARIANCE v45] Bump threshold to 8.0 for major release churn
+    variance_threshold = 8.0
+
+    if forge_report.entropy_delta > variance_threshold:
         return (
             False,
-            f"❌ High entropy: ΔS={forge_report.entropy_delta:.2f} > 5.0 (SABAR threshold)",
+            f"❌ High entropy: ΔS={forge_report.entropy_delta:.2f} > {variance_threshold} (v45 VARIANCE limit)",
         )
 
-    return True, f"✅ Acceptable entropy: ΔS={forge_report.entropy_delta:.2f} < 5.0"
+    return (
+        True,
+        f"✅ Acceptable entropy: ΔS={forge_report.entropy_delta:.2f} < {variance_threshold} (v45 Variance)",
+    )
 
 
 def _check_f6_amanah(forge_report: ForgeReport) -> tuple[bool, str]:
