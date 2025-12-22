@@ -7,10 +7,10 @@ if TYPE_CHECKING:
     from ..enforcement.genius_metrics import GeniusVerdict
 
 # Version constants (v36Ω + v36.1Ω measurement — GENIUS LAW Judiciary)
-# Runtime law: v44Ω floors + verdicts
-# Measurement: v44Ω standard (G, C_dark, Ψ, Truth Polarity) via arifos_eval/apex
-APEX_VERSION = "v44Ω"
-APEX_EPOCH = 44
+# Runtime law: v45Ω floors + verdicts (Sovereign Witness)
+# Measurement: v45Ω standard (G, C_dark, Ψ, Truth Polarity) via arifos_eval/apex
+APEX_VERSION = "v45Ω"
+APEX_EPOCH = 45
 
 
 # =============================================================================

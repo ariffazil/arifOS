@@ -144,12 +144,12 @@ class TestVersion:
     """Tests for v42Ω version constants."""
 
     def test_apex_version_is_v42(self):
-        """APEX_VERSION should be v42Ω."""
-        assert APEX_VERSION == "v42Ω"
+        """APEX_VERSION should be v45Ω."""
+        assert APEX_VERSION == "v45\u03a9"
 
     def test_apex_epoch_is_42(self):
-        """APEX_EPOCH should be 42."""
-        assert APEX_EPOCH == 42
+        """APEX_EPOCH should be 45."""
+        assert APEX_EPOCH == 45
 
     def test_genius_thresholds_exist(self):
         """GENIUS LAW thresholds should be defined."""
@@ -336,8 +336,8 @@ class TestAPEXPrimeClass:
         """APEXPrime should use GENIUS LAW by default."""
         prime = APEXPrime()
         assert prime.use_genius_law is True
-        assert prime.version == "v42Ω"
-        assert prime.epoch == 42
+        assert prime.version == "v45\u03a9"
+        assert prime.epoch == 45
 
     def test_judge_with_genius_returns_tuple(self, healthy_metrics):
         """judge_with_genius() should return (verdict, GeniusVerdict)."""

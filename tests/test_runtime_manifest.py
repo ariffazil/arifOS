@@ -608,18 +608,19 @@ class TestV37DefaultEpoch:
             if EPOCH_ENV_VAR in os.environ:
                 del os.environ[EPOCH_ENV_VAR]
 
-            # Verify DEFAULT_EPOCH constant is v37
-            assert DEFAULT_EPOCH == "v37", f"DEFAULT_EPOCH should be 'v37', got '{DEFAULT_EPOCH}'"
+            # Verify DEFAULT_EPOCH constant is v45
+            assert DEFAULT_EPOCH == "v45", f"DEFAULT_EPOCH should be 'v45', got '{DEFAULT_EPOCH}'"
 
-            # Verify get_active_epoch returns v37
+            # Verify get_active_epoch returns v45
             active_epoch = get_active_epoch()
-            assert active_epoch == "v37", f"Active epoch should be 'v37' when env unset, got '{active_epoch}'"
+            assert active_epoch == "v45", f"Active epoch should be 'v45' when env unset, got '{active_epoch}'"
 
-            # Verify is_v37_epoch returns True
-            assert is_v37_epoch() is True, "is_v37_epoch() should be True when env unset"
+            # Verify is_v37_epoch returns False (v45 is active)
+            assert is_v37_epoch() is False, "is_v37_epoch() should be False when v45 active"
 
-            # Verify is_legacy_epoch returns False
-            assert is_legacy_epoch() is False, "is_legacy_epoch() should be False for v37"
+            # Verify is_legacy_epoch returns False (because v45 is not legacy)
+            # v35, v36.3, v37, v44 ARE legacy.
+            assert is_legacy_epoch() is False, "is_legacy_epoch() should be False for v45"
 
         finally:
             # Restore original env value
@@ -691,9 +692,12 @@ class TestV37DefaultEpoch:
 
             manifest = load_runtime_manifest()
 
-            assert manifest["version"] == "v37", f"Expected v37 manifest, got {manifest['version']}"
-            assert manifest["epoch"] == 37, f"Expected epoch 37, got {manifest['epoch']}"
-            assert manifest.get("_runtime_epoch") == "v37"
+            assert manifest["version"] == "35Omega", \
+                "v45 epoch uses v35Omega JSON structure (descriptive base)"
+            assert manifest["epoch"] == 35, \
+                "v45 uses v35 epoch spec file (epoch 35)"
+            
+            assert manifest.get("_runtime_epoch") == "v45"
 
         finally:
             if original_value is not None:
@@ -701,10 +705,11 @@ class TestV37DefaultEpoch:
             elif EPOCH_ENV_VAR in os.environ:
                 del os.environ[EPOCH_ENV_VAR]
 
-    def test_legacy_epochs_set_contains_v35_and_v36_3(self):
-        """LEGACY_EPOCHS should contain v35 and v36.3."""
+    def test_legacy_epochs_set_contains_v35_and_others(self):
+        """LEGACY_EPOCHS should contain v35, v36.3, v37, v44."""
         from arifos_core.runtime_manifest import LEGACY_EPOCHS
 
         assert "v35" in LEGACY_EPOCHS
         assert "v36.3" in LEGACY_EPOCHS
-        assert "v37" not in LEGACY_EPOCHS
+        assert "v37" in LEGACY_EPOCHS
+        assert "v44" in LEGACY_EPOCHS

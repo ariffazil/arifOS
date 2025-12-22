@@ -1,0 +1,35 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-8.4.2, pluggy-1.6.0 -- C:\Users\User\AppData\Local\Programs\Python\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\User\OneDrive\Documents\GitHub\arifOS
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.11.0, cov-7.0.0
+collecting ... collected 2266 items / 2261 deselected / 5 selected
+run-last-failure: rerun previous 5 failures
+
+tests/test_governed_llm.py::TestGovernedPipeline::test_governed_answer_uses_pipeline PASSED [ 20%]
+tests/test_memory_policy_v38.py::TestPipelineMemoryV38Integration::test_pipeline_routes_seal_to_ledger PASSED [ 40%]
+tests/test_v38_runtime_upgrade.py::TestPipelineWithJob::test_pipeline_with_custom_job PASSED [ 60%]
+tests/test_v38_runtime_upgrade.py::TestPipelineWithJob::test_pipeline_blocks_injection PASSED [ 80%]
+tests/unit/test_mcp_server.py::TestJudgeTool::test_judge_handles_simple_factual_query PASSED [100%]
+
+============================== warnings summary ===============================
+arifos_core\evidence\evidence_pack.py:52
+  C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\evidence\evidence_pack.py:52: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    @validator("query_hash")
+
+arifos_core\evidence\evidence_pack.py:58
+  C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\evidence\evidence_pack.py:58: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    @validator("hash_chain_provenance", each_item=True)
+
+arifos_core\evidence\evidence_pack.py:64
+  C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\evidence\evidence_pack.py:64: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    @validator("source_uris")
+
+..\..\..\..\AppData\Local\Programs\Python\Python314\Lib\site-packages\litellm\litellm_core_utils\logging_utils.py:273: 17 warnings
+  C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\site-packages\litellm\litellm_core_utils\logging_utils.py:273: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=============== 5 passed, 2261 deselected, 20 warnings in 4.32s ===============
