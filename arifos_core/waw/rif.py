@@ -37,6 +37,8 @@ from typing import Any, Dict, List, Optional
 from ..metrics import Metrics
 from .base import OrganSignal, OrganVote, WAWOrgan
 from .bridges.rif_bridge import RifBridge
+# v45Ω TRM: Import truth threshold from apex_prime
+from ..system.apex_prime import TRUTH_BLOCK_MIN
 
 
 # -----------------------------------------------------------------------------
@@ -56,10 +58,10 @@ class RifSignals:
     Primary signals: delta_s_answer and truth_score - violations trigger VOID.
     """
 
-    # Core epistemic floors (hard)
-    delta_s_answer: float = 0.0      # Clarity gain from answer [F2]
-    truth_score: float = 0.99        # Factual accuracy [F1]
-    omega_0_calibrated: float = 0.04  # Uncertainty calibration [F5]
+    # Core epistemic floors (hard) - v45Ω TRM aligned
+    delta_s_answer: float = 0.0      # Clarity gain from answer [F4]
+    truth_score: float = 0.90        # Factual accuracy [F2] - v45Ω TRM (TRUTH_BLOCK_MIN)
+    omega_0_calibrated: float = 0.04  # Uncertainty calibration [F7]
 
     # Risk metrics (soft floors)
     hallucination_risk: float = 0.0   # Range: 0.0-1.0, lower is better
@@ -99,12 +101,12 @@ class RifOrgan(WAWOrgan):
 
     Metrics:
     - delta_s_answer = clarity gain (≥ 0 for SEAL)
-    - truth_score = factual accuracy (≥ 0.99 for SEAL)
+    - truth_score = factual accuracy (≥ 0.90 for SEAL) - v45Ω threshold
     - hallucination_risk = fabrication risk (< 0.10 for SEAL)
     - contradiction_risk = self-contradiction risk (< 0.10 for SEAL)
     - certainty_inflation = overconfidence risk (< 0.10 for SEAL)
 
-    Veto: VOID when truth_score < 0.99 or delta_s_answer < 0
+    Veto: VOID when truth_score < 0.90 or delta_s_answer < 0 (v45Ω)
     """
 
     organ_id = "@RIF"
@@ -260,18 +262,18 @@ class RifOrgan(WAWOrgan):
             signals.delta_s_answer += signals.clarity_bonus_count * 0.02
             signals.notes.append(f"clarity_bonus={signals.clarity_bonus_count}")
 
-        # 6. Add diagnostic notes
+        # 6. Add diagnostic notes (v45Ω TRM: use TRUTH_BLOCK_MIN)
         if signals.delta_s_answer < 0:
             signals.issues.append(f"ΔS={signals.delta_s_answer:.3f}<0")
-        if signals.truth_score < 0.99:
-            signals.issues.append(f"Truth={signals.truth_score:.2f}<0.99")
+        if signals.truth_score < TRUTH_BLOCK_MIN:
+            signals.issues.append(f"Truth={signals.truth_score:.2f}<{TRUTH_BLOCK_MIN}")
 
         # 7. Check Omega_0 calibration
         if signals.omega_0_calibrated < 0.03 or signals.omega_0_calibrated > 0.05:
             signals.issues.append(f"Omega_0={signals.omega_0_calibrated:.3f} out of band [0.03,0.05]")
 
-        # 8. Final status note
-        if signals.delta_s_answer >= 0 and signals.truth_score >= 0.99:
+        # 8. Final status note (v45Ω TRM: truth >= TRUTH_BLOCK_MIN)
+        if signals.delta_s_answer >= 0 and signals.truth_score >= TRUTH_BLOCK_MIN:
             signals.notes.append("Epistemic=SOUND")
         else:
             signals.issues.append("Epistemic=FAILED")
@@ -333,8 +335,8 @@ class RifOrgan(WAWOrgan):
         if rif.issues:
             evidence += f" | Issues: {', '.join(rif.issues)}"
 
-        # Determine vote based on signals
-        if rif.delta_s_answer < 0 or rif.truth_score < 0.99:
+        # Determine vote based on signals (v45Ω TRM: truth >= TRUTH_BLOCK_MIN)
+        if rif.delta_s_answer < 0 or rif.truth_score < TRUTH_BLOCK_MIN:
             # VETO (VOID) - epistemic failure
             return self._make_signal(
                 vote=OrganVote.VETO,

@@ -4,16 +4,20 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "44.0.0"
-description = "Constitutional Governance Kernel for AI - 9 Floors, GENIUS LAW, TEARFRAME Physics, Fail-Closed Enforcement, SABAR-72 Time Governor (v44)"
+version = "45.0.0"
+description = "Constitutional Governance Kernel for AI - 9 Floors, SOVEREIGN WITNESS, TEARFRAME Physics, Fail-Closed Enforcement (v45)"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "AGPL-3.0"}
+license = { text = "AGPL-3.0" }
 keywords = [
     "ai-governance",
     "constitutional-ai",
     "ai-safety",
     "fail-closed-governance",
+    "sovereign-witness",
+    "tearframe-physics",
+    "proof-of-governance",
+    "merkle-identity",
     "sabar-72",
     "master-flaw-set",
     "trinity-governance",
@@ -37,11 +41,9 @@ keywords = [
     "memory-bands",
     "verdict-routing",
 ]
-authors = [
-    {name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com"}
-]
+authors = [{ name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com" }]
 maintainers = [
-    {name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com"}
+    { name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com" },
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -58,10 +60,7 @@ classifiers = [
     "Topic :: System :: Monitoring",
 ]
 
-dependencies = [
-    "numpy>=1.20.0",
-    "pydantic>=2.0.0",
-]
+dependencies = ["numpy>=1.20.0", "pydantic>=2.0.0"]
 
 [project.optional-dependencies]
 dev = [
@@ -71,17 +70,13 @@ dev = [
     "ruff>=0.1.0",
     "mypy>=1.0.0",
 ]
-yaml = [
-    "pyyaml>=6.0.0",
-]
+yaml = ["pyyaml>=6.0.0"]
 api = [
     "fastapi>=0.100.0",
     "uvicorn[standard]>=0.23.0",
     "python-multipart>=0.0.6",
 ]
-litellm = [
-    "litellm>=1.0.0",
-]
+litellm = ["litellm>=1.0.0"]
 all = [
     "pyyaml>=6.0.0",
     "fastapi>=0.100.0",
@@ -122,10 +117,14 @@ Changelog = "https://github.com/ariffazil/arifOS/blob/main/CHANGELOG.md"
 [tool.setuptools]
 packages = [
     "arifos_core",
+    # v45 Sovereign Witness
+    "arifos_core.evidence",
+    "arifos_core.judiciary",
+    "arifos_core.temporal",
+    "arifos_core.governance",
     # v42 concern-based directories
     "arifos_core.system",
     "arifos_core.enforcement",
-    "arifos_core.governance",
     "arifos_core.utils",
     "arifos_core.trinity",
     # Legacy directories (still functional)
@@ -175,11 +174,7 @@ target-version = ['py310', 'py311', 'py312']
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-exclude = [
-    "archive/**",
-    "arifos staging/**",
-    "tests/**",
-]
+exclude = ["archive/**", "arifos staging/**", "tests/**"]
 
 [tool.ruff.per-file-ignores]
 "arifos_core/adapters/llm_openai.py" = ["F401"]
@@ -238,8 +233,5 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 # Bridge files have optional imports - suppress unused-ignore warnings
-module = [
-    "arifos_core.waw.bridges.*",
-    "arifos_core.kms_signer",
-]
+module = ["arifos_core.waw.bridges.*", "arifos_core.kms_signer"]
 warn_unused_ignores = false

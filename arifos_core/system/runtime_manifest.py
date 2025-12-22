@@ -64,17 +64,17 @@ except ImportError:
 # =============================================================================
 
 # Epoch type alias
-EpochType = Literal["v35", "v36.3", "v37", "v44"]
+EpochType = Literal["v35", "v36.3", "v37", "v44", "v45"]
 
 # Environment variable for epoch selection
 EPOCH_ENV_VAR = "ARIFOS_RUNTIME_EPOCH"
 
-# Default epoch: v44 (TEARFRAME Physics + v42 spec structure)
-# v35, v36.3, and v37 are legacy epochs, selectable via ARIFOS_RUNTIME_EPOCH env var
-DEFAULT_EPOCH: EpochType = "v44"
+# Default epoch: v45 (Sovereign Witness + v42 spec structure)
+# v35, v36.3, v37, v44 are legacy epochs, selectable via ARIFOS_RUNTIME_EPOCH env var
+DEFAULT_EPOCH: EpochType = "v45"
 
 # Legacy epochs (for is_legacy_epoch helper)
-LEGACY_EPOCHS: Set[EpochType] = {"v35", "v36.3"}
+LEGACY_EPOCHS: Set[EpochType] = {"v35", "v36.3", "v37", "v44"}
 
 # Base paths
 # v42: File moved from arifos_core/ to arifos_core/system/, need to go up 2 levels
@@ -106,11 +106,12 @@ MANIFEST_PATHS: Dict[EpochType, Dict[str, Path]] = {
     },
     "v44": {
         # v44 uses v42 spec structure (TEARFRAME is code-driven)
-        # No separate manifest needed - v42 specs apply
-        # See spec/v44/README.md for rationale
-        "json": _BASE_DIR
-        / "spec"
-        / "arifos_runtime_manifest_v35Omega.json",  # Fallback to v35 structure
+        "json": _BASE_DIR / "spec" / "arifos_runtime_manifest_v35Omega.json",
+    },
+    "v45": {
+        # v45 (Sovereign Witness) uses v42 spec structure + new code modules
+        # Manifest is descriptive; code enforces new logic (Firewall, EvidencePack, Seal)
+        "json": _BASE_DIR / "spec" / "arifos_runtime_manifest_v35Omega.json",
     },
 }
 
@@ -134,7 +135,7 @@ REQUIRED_TOP_LEVEL_KEYS_V35: Set[str] = {
     "harness",
 }
 
-# Required keys for v36.3/v37 manifests (relaxed - different structure)
+# Required keys for v36.3+ manifests (relaxed - different structure)
 REQUIRED_TOP_LEVEL_KEYS_V36: Set[str] = {
     "version",
     "epoch",
@@ -172,6 +173,8 @@ EPOCH_ALIASES: Dict[str, EpochType] = {
     "v37": "v37",
     "v44": "v44",
     "v44.0": "v44",
+    "v45": "v45",
+    "v45.0": "v45",
 }
 
 

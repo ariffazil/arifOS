@@ -6,8 +6,8 @@ Type a prompt. Get a real SEA-LION response with F1/F9 governance.
 Requires: SEALION_API_KEY environment variable or .env file.
 
 Layer: L7 (SEA-LION Federation)
-Constitutional Law: v38Omega + PHOENIX SOVEREIGNTY
-Floors Enforced: F1 (Amanah), F9 (C_dark/Toxicity)
+Constitutional Law: v44 (TEARFRAME Physics)
+Floors Enforced: F1 (Amanah), F9 (C_dark/Toxicity), Physics (Rate/Burst)
 
 Usage:
     # Set API key first
@@ -29,9 +29,10 @@ Available Models:
     3. aisingapore/Gemma-SEA-LION-v4-27B-IT
     4. aisingapore/Qwen-SEA-LION-v4-32B-IT
 
-Version: v41.0
-Forged: 2025-12-14
+Version: v44.0.0
+Forged: 2025-12-22
 """
+
 from __future__ import annotations
 
 import os
@@ -46,6 +47,7 @@ if str(REPO_ROOT) not in sys.path:
 # Try to load .env file if python-dotenv available
 try:
     from dotenv import load_dotenv
+
     env_path = REPO_ROOT / ".env"
     if env_path.exists():
         load_dotenv(env_path)
@@ -62,6 +64,7 @@ from integrations.sealion.engine import (
 # Import toxicity detector for F9 input checks
 try:
     from integrations.sealion.test_sgtoxic_spin import ToxicityDetector
+
     TOXICITY_AVAILABLE = True
 except ImportError:
     TOXICITY_AVAILABLE = False
@@ -84,9 +87,9 @@ def show_banner():
     print("\n")
     print("=" * 70)
     print("    SEA-LION APEX PRIME: LIVE API Session")
-    print("    Constitutional Governance v41.0")
+    print("    Constitutional Governance v44.0.0 (TEARFRAME)")
     print("=" * 70)
-    print("\n    Floors: F1 (Amanah) + F9 (Toxicity)")
+    print("\n    Floors: F1 (Amanah) + F9 (Toxicity) + Physics Layers")
     print("    Mode: LIVE API (Requires SEALION_API_KEY)")
     print("\n    Commands:")
     print("      - Type any prompt to chat with SEA-LION")
@@ -365,9 +368,9 @@ def interactive_mode():
             print("\n" + "-" * 70)
             print(f"VERDICT: {result['verdict']}")
 
-            if result.get('blocked'):
+            if result.get("blocked"):
                 print(f"STATUS: BLOCKED")
-                reason = result.get('reason', 'constitutional_violation')
+                reason = result.get("reason", "constitutional_violation")
                 print(f"FLOOR: {reason}")
                 print(f"\nRESPONSE:\n{result['response']}")
             else:

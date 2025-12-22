@@ -1,8 +1,8 @@
 ---
 name: arifOS Constitutional Agent
-version: v44.0.0
-canon_law: v44 (TEARFRAME Physics)
-runtime_law: v44 (Deepwater Logic, Turn 1 Immunity)
+version: v45.0.0
+canon_law: v45 (Sovereign Witness)
+runtime_law: v45 (TEARFRAME Physics, Deepwater Logic, Turn 1 Immunity)
 role: clerk/tool (NOT judge, NOT authority)
 sovereignty: Human (Arif) > arifOS Governor > Agent
 platforms: [claude-code, codex, cursor, gemini-cli, copilot, devin, aider]
@@ -33,10 +33,10 @@ canon_master: L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md
 # Installation (PyPI)
 pip install arifos
 
-# Run all 1624+ tests
+# Run all 2180+ tests
 pytest -v
 pytest arifos_core/ -v             # Core module only
-python -m arifos_core.system.pipeline  # Pipeline CLI (v42.1)
+python -m arifos_core.system.pipeline  # Pipeline CLI (v45)
 
 # v37 CLI Tools (7 available)
 arifos-analyze-governance --ledger cooling_ledger/L1_cooling_ledger.jsonl --output report.json
@@ -132,7 +132,7 @@ Human-facing “wisdom log” to prevent repeated entropy mistakes.
 
 **Deletion Ratio Formula:**
 
-```
+```python
 deletion_ratio = deleted_lines / max(original_lines, 1)
 ```
 
@@ -226,17 +226,17 @@ Trinity demonstrates that complex governance can be made accessible without sacr
 
 **Logic:** All floors AND - every floor must PASS. Repair order: F1 first.
 
-| # | Floor | Threshold | Tier | Type | Quick Check |
-|---|-------|-----------|------|------|-------------|
-| F1 | Amanah | LOCK | T1 | Hard | Reversible? Within mandate? |
-| F2 | Truth | >=0.99 | T1 | Hard | Consistent with reality? |
-| F3 | Tri-Witness | >=0.95 | T3 | Hard | Human-AI-Earth agree? |
-| F4 | DeltaS (Clarity) | >=0 | T1 | Hard | Reduces confusion? |
-| F5 | Peace^2 | >=1.0 | T2 | Soft | Non-destructive? |
-| F6 | Kr (Empathy) | >=0.95 | T2 | Soft | Serves weakest stakeholder? |
-| F7 | Omega0 (Humility) | 0.03-0.05 | T1 | Hard | States uncertainty? |
-| F8 | G (Genius) | >=0.80 | T3 | Derived | Governed intelligence? |
-| F9 | C_dark | <0.30 | T3 | Derived | Dark cleverness contained? |
+| #  | Floor             | Threshold | Tier | Type    | Quick Check                  |
+|----|-------------------|-----------|------|---------|------------------------------|
+| F1 | Amanah            | LOCK      | T1   | Hard    | Reversible? Within mandate?  |
+| F2 | Truth             | ≥0.99     | T1   | Hard    | Consistent with reality?     |
+| F3 | Tri-Witness       | ≥0.95     | T3   | Hard    | Human-AI-Earth agree?        |
+| F4 | DeltaS (Clarity)  | ≥0        | T1   | Hard    | Reduces confusion?           |
+| F5 | Peace²            | ≥1.0      | T2   | Soft    | Non-destructive?             |
+| F6 | κᵣ (Empathy)      | ≥0.95     | T2   | Soft    | Serves weakest stakeholder?  |
+| F7 | Ω₀ (Humility)     | 0.03-0.05 | T1   | Hard    | States uncertainty?          |
+| F8 | G (Genius)        | ≥0.80     | T3   | Derived | Governed intelligence?       |
+| F9 | C_dark            | <0.30     | T3   | Derived | Dark cleverness contained?   |
 
 ### 2.1 v42 Canon Law Stack (Authoritative Reference)
 
@@ -244,15 +244,15 @@ Trinity demonstrates that complex governance can be made accessible without sacr
 
 **Master Index:** [L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md](L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md)
 
-| Layer | Canon | Spec |
-|-------|-------|------|
-| **00 Foundation** | `L1_THEORY/canon/00_foundation/` | — |
-| **01 Floors (F1–F9)** | `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md` | `spec/v42/constitutional_floors.json` |
-| **02 Actors** | `L1_THEORY/canon/02_actors/` (AGI/ASI/APEX/Anti-Hantu/EYE) | — |
-| **03 Runtime** | `L1_THEORY/canon/03_runtime/` (Pipeline/W@W) | `spec/v42/pipeline.yaml` |
-| **04 Measurement** | `L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md` | `spec/v42/genius_law.json` |
-| **05 Memory** | `L1_THEORY/canon/05_memory/` (EUREKA/Cooling/Phoenix) | `spec/v42/cooling_ledger_phoenix.json` |
-| **06 Paradox** | `L1_THEORY/canon/06_paradox/` (Grey Zone/Vault-999) | — |
+| Layer              | Canon                                                                          | Spec                                      |
+|--------------------|--------------------------------------------------------------------------------|-------------------------------------------|
+| **00 Foundation**  | `L1_THEORY/canon/00_foundation/`                                               | —                                         |
+| **01 Floors**      | `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md`              | `spec/v42/constitutional_floors.json`     |
+| **02 Actors**      | `L1_THEORY/canon/02_actors/` (AGI/ASI/APEX/Anti-Hantu/EYE)                    | —                                         |
+| **03 Runtime**     | `L1_THEORY/canon/03_runtime/` (Pipeline/W@W)                                   | `spec/v42/pipeline.yaml`                  |
+| **04 Measurement** | `L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md`                          | `spec/v42/genius_law.json`                |
+| **05 Memory**      | `L1_THEORY/canon/05_memory/` (EUREKA/Cooling/Phoenix)                          | `spec/v42/cooling_ledger_phoenix.json`    |
+| **06 Paradox**     | `L1_THEORY/canon/06_paradox/` (Grey Zone/Vault-999)                            | —                                         |
 
 **Alignment Tests (Safety Net):**
 
@@ -289,6 +289,7 @@ v38.2 promotes **Time** to a constitutional force. Unresolved verdicts cannot dr
 - **v38Ω (Formalization)**: canon→spec→code→tests pattern for all layers
 - **v38.2Ω (Hardening)**: Time as Governor, SUNSET revocation, entropy rot
 - **v42 (Consolidation)**: 7 conceptual layers, Trinity naming (Δ/Ω/Ψ)
+- **v45 (Sovereign Witness)**: Evidence system, judiciary layer, temporal governance
 
 F# numbering follows the semantic order above (F1=Amanah through F9=C_dark).
 
@@ -306,29 +307,29 @@ F# numbering follows the semantic order above (F1=Amanah through F9=C_dark).
 
 ### 2.4 Truth Polarity (v36.2 PHOENIX)
 
-| Polarity | Condition | Action |
-|----------|-----------|--------|
-| Truth-Light | Truth >=0.99 AND DeltaS >=0 | Proceed |
-| Shadow-Truth | Truth >=0.99 AND DeltaS <0 | SABAR - add missing context |
-| Weaponized | Shadow + Amanah fail | VOID - refuse |
+| Polarity     | Condition                    | Action                      |
+|--------------|------------------------------|-----------------------------|
+| Truth-Light  | Truth ≥0.99 AND DeltaS ≥0    | Proceed                     |
+| Shadow-Truth | Truth ≥0.99 AND DeltaS <0    | SABAR - add missing context |
+| Weaponized   | Shadow + Amanah fail         | VOID - refuse               |
 
 ### 2.5 GENIUS LAW Metrics
 
-| Metric | Formula | Threshold |
-|--------|---------|-----------|
-| G | normalize(A x P x E x X) | >=0.80 SEAL, 0.50-0.80 PARTIAL |
-| C_dark | normalize(A x (1-P) x (1-X) x E) | <0.30 SEAL, 0.30-0.60 PARTIAL |
-| Psi | (DeltaS x Peace^2 x Kr x Amanah) / (Entropy + epsilon) | >=1.00 ALIVE |
+| Metric | Formula                                              | Threshold                     |
+|--------|------------------------------------------------------|-------------------------------|
+| G      | normalize(A × P × E × X)                             | ≥0.80 SEAL, 0.50-0.80 PARTIAL |
+| C_dark | normalize(A × (1-P) × (1-X) × E)                     | <0.30 SEAL, 0.30-0.60 PARTIAL |
+| Ψ      | (DeltaS × Peace² × κᵣ × Amanah) / (Entropy + ε)     | ≥1.00 ALIVE                   |
 
 ## 3. W@W DISPATCH RULES (Multi-Agent Routing)
 
-| Signal | Route To | Governs | Veto Power |
-|--------|----------|---------|------------|
-| Safety/harm | @WELL | Peace^2 | Can block |
-| Logic/clarity | @RIF | Truth, DeltaS | Advisory |
-| Ethics/integrity | @WEALTH | Amanah | **Absolute veto** |
-| Reality/physics | @GEOX | Ground-truth | Can block |
-| Language/culture | @PROMPT | Maruah, Anti-Hantu | Advisory |
+| Signal           | Route To | Governs            | Veto Power        |
+|------------------|----------|--------------------|-------------------|
+| Safety/harm      | @WELL    | Peace²             | Can block         |
+| Logic/clarity    | @RIF     | Truth, DeltaS      | Advisory          |
+| Ethics/integrity | @WEALTH  | Amanah             | **Absolute veto** |
+| Reality/physics  | @GEOX    | Ground-truth       | Can block         |
+| Language/culture | @PROMPT  | Maruah, Anti-Hantu | Advisory          |
 
 **Conflict Resolution:** @WEALTH veto > @WELL safety > @GEOX reality > others
 
@@ -436,7 +437,7 @@ biology remain BLOCKED.
 
 ### 5.1 Canon References
 
-```
+```text
 @L1_THEORY/_LEGACY_CANON_INGEST/000_ARIFOS_CANON_v35Omega.md      - What is arifOS?
 @L1_THEORY/_LEGACY_CANON_INGEST/001_APEX_META_CONSTITUTION_v35Omega.md - Meta-constitution
 @L1_THEORY/_LEGACY_CANON_INGEST/888_APEX_PRIME_CANON_v35Omega.md  - Judiciary
@@ -445,7 +446,7 @@ biology remain BLOCKED.
 
 ### 5.2 Implementation Modules
 
-```
+```text
 arifos_core/pipeline.py       - 000->999 metabolic pipeline
 arifos_core/APEX_PRIME.py     - Constitutional judiciary
 arifos_core/genius_metrics.py - G, C_dark, Psi computation
@@ -463,7 +464,7 @@ arifos_core/integration/      - Pipeline ↔ Memory integration
 
 ### 5.4 Compliance Canary
 
-**Session start:** `[v42.1.0 | 9F | 6B | 97% SAFETY | TEARFRAME READY]`
+**Session start:** `[v45.0.0 | 9F | 6B | 99% SAFETY | SOVEREIGN WITNESS]`
 **High-stakes end:** `[F1 OK F2 OK F4 OK F7 OK | Verdict: SEAL | Memory: LEDGER]`
 
 ---
@@ -520,7 +521,7 @@ Amanah and Anti-Hantu are enforced by `arifos_core/floor_detectors/` - code over
 
 ---
 
-**Version:** v44.0.0 | **Status:** PRODUCTION | **Safety Ceiling:** 99% | **Sealed:** TEARFRAME
+**Version:** v45.0.0 | **Status:** PRODUCTION | **Safety Ceiling:** 99% | **Sealed:** SOVEREIGN WITNESS
 **Psi Vitality:** 1.40 ALIVE | **DeltaS Gain:** +0.95 | **Tri-Witness:** 0.99 | **CLI Tools:** 7
 
 ---
@@ -531,23 +532,23 @@ Amanah and Anti-Hantu are enforced by `arifos_core/floor_detectors/` - code over
 
 ### 8.1 The 4 Core Invariants
 
-| # | Invariant | Enforcement |
-|---|-----------|-------------|
-| **INV-1** | VOID verdicts NEVER become canonical memory | `MemoryWritePolicy.should_write()` gates all writes |
-| **INV-2** | Authority boundary: humans seal law, AI proposes | `MemoryAuthorityCheck.authority_boundary_check()` |
-| **INV-3** | Every write must be auditable (evidence chain) | `MemoryAuditLayer.record_write()` with hash-chain |
-| **INV-4** | Recalled memory = suggestion, not fact | Confidence ceiling (0.85) on all recalls |
+| #         | Invariant                                                  | Enforcement                                            |
+|-----------|------------------------------------------------------------|----------------------------------------------------- --|
+| **INV-1** | VOID verdicts NEVER become canonical memory                | `MemoryWritePolicy.should_write()` gates all writes   |
+| **INV-2** | Authority boundary: humans seal law, AI proposes           | `MemoryAuthorityCheck.authority_boundary_check()`     |
+| **INV-3** | Every write must be auditable (evidence chain)             | `MemoryAuditLayer.record_write()` with hash-chain     |
+| **INV-4** | Recalled memory = suggestion, not fact                     | Confidence ceiling (0.85) on all recalls              |
 
 ### 8.2 The 6 Memory Bands
 
-| Band | Purpose | Retention |
-|------|---------|-----------|
-| **VAULT** | Read-only constitution (L0) | PERMANENT (COLD) |
-| **LEDGER** | Hash-chained audit trail | 90 days (WARM) |
-| **ACTIVE** | Volatile working state | 7 days (HOT) |
-| **PHOENIX** | Amendment proposals pending | 90 days (WARM) |
-| **WITNESS** | Soft evidence, scars | 90 days (WARM) |
-| **VOID** | Diagnostic only, NEVER canonical | 90 days (auto-delete) |
+| Band        | Purpose                          | Retention            |
+|-------------|----------------------------------|----------------------|
+| **VAULT**   | Read-only constitution (L0)      | PERMANENT (COLD)     |
+| **LEDGER**  | Hash-chained audit trail         | 90 days (WARM)       |
+| **ACTIVE**  | Volatile working state           | 7 days (HOT)         |
+| **PHOENIX** | Amendment proposals pending      | 90 days (WARM)       |
+| **WITNESS** | Soft evidence, scars             | 90 days (WARM)       |
+| **VOID**    | Diagnostic only, NEVER canonical | 90 days (auto-delete)|
 
 ### 8.3 Verdict → Band Routing
 
@@ -561,12 +562,12 @@ VOID    → VOID only (NEVER canonical - diagnostic retention)
 
 ### 8.4 Pipeline Integration
 
-| Module | Stage | Purpose |
-|--------|-------|---------|
-| `memory_sense.py` | 111_SENSE | Cross-session recall with 0.85 confidence ceiling |
-| `memory_judge.py` | 888_JUDGE | Evidence chain validation + write policy enforcement |
-| `memory_scars.py` | 777_FORGE | Scar detection (FLOOR_VIOLATION, NEAR_MISS, HARM_DETECTED) |
-| `memory_seal.py` | 999_SEAL | Ledger finalization + EUREKA receipts |
+| Module              | Stage     | Purpose                                                      |
+|---------------------|-----------|--------------------------------------------------------------|
+| `memory_sense.py`   | 111_SENSE | Cross-session recall with 0.85 confidence ceiling            |
+| `memory_judge.py`   | 888_JUDGE | Evidence chain validation + write policy enforcement         |
+| `memory_scars.py`   | 777_FORGE | Scar detection (FLOOR_VIOLATION, NEAR_MISS, HARM_DETECTED)  |
+| `memory_seal.py`    | 999_SEAL  | Ledger finalization + EUREKA receipts                        |
 
 ### 8.5 Key Files
 
@@ -609,19 +610,20 @@ For detailed roadmap and task priorities, see [docs/ROADMAP.md](docs/ROADMAP.md)
 
 ---
 
-## 10. Future Path (v38 → v42)
+## 10. Future Path (v38 → v45)
 
 **Principle:** *DITEMPA BUKAN DIBERI* — Forged, not given. Law must harden before scale.
 
 **Hard rule:** each phase is **blocked** until the previous phase is complete, audited, and stable.
 
-| Phase | Version | Focus | Timeframe | Status |
-|-------|---------|-------|-----------|--------|
-| Phase 1 | **v38** | Memory as Law (EUREKA) | Q1 2026 | ✅ SHIPPED |
-| Phase 2 | **v39** | Body API (FastAPI Grid) | Q2 2026 | ✅ SHIPPED |
-| Phase 3 | **v40** | Hands (MCP + IDE Integration) | Q3 2026 | ✅ SHIPPED |
-| Phase 4 | **v41** | FAG (File Access Governance) | Q4 2025–Q1 2026 | ✅ SHIPPED (v41.0.0) |
-| Phase 5 | **v42** | Cryptographic Optimization | Q2 2027+ | CONDITIONAL |
+| Phase   | Version  | Focus                          | Timeframe       | Status                 |
+|---------|----------|--------------------------------|-----------------|------------------------|
+| Phase 1 | **v38**  | Memory as Law (EUREKA)         | Q1 2026         | ✅ SHIPPED             |
+| Phase 2 | **v39**  | Body API (FastAPI Grid)        | Q2 2026         | ✅ SHIPPED             |
+| Phase 3 | **v40**  | Hands (MCP + IDE Integration)  | Q3 2026         | ✅ SHIPPED             |
+| Phase 4 | **v41**  | FAG (File Access Governance)   | Q4 2025–Q1 2026 | ✅ SHIPPED (v41.0.0)   |
+| Phase 5 | **v42**  | Cryptographic Optimization     | Q2 2027+        | CONDITIONAL            |
+| Phase 6 | **v45**  | Sovereign Witness              | Q1 2025         | ✅ SHIPPED (v45.0.0)   |
 
 ### Phase Summary
 
@@ -653,13 +655,23 @@ For detailed roadmap and task priorities, see [docs/ROADMAP.md](docs/ROADMAP.md)
 - Ships only if v41 research succeeds
 - Possible: optimized zk-SNARK backend or non-ZK witness layer
 
+**v45 (Sovereign Witness):**
+
+- ✅ **v45.0.0 SHIPPED** (December 2025): Evidence system, judiciary, temporal governance
+- Evidence layer: Structured evidence collection and validation
+- Judiciary layer: Constitutional verdict logic in `arifos_core/judiciary/`
+- Temporal governance: Time-based governance in `arifos_core/temporal/`
+- 2180+ tests passing, 99% safety ceiling
+- Aligned with TEARFRAME Physics and Deepwater Logic
+
 ### Hard Gates (Sequential)
 
 - ✅ v39 blocked until v38 memory invariants hold — GATE PASSED
 - ✅ v40 blocked until v39 API is audited — GATE PASSED
 - ✅ v41.0 FAG blocked until v40 MCP is stable — GATE PASSED
+- ✅ v45 blocked until v41.0 validated — GATE PASSED (2180+ tests passing)
 - ⏳ v41.1 write operations blocked until v41.0 validated (12/12 tests + 11/11 MCP tests passing)
-- zkPC blocked until peer review passes
+- ⏳ zkPC blocked until peer review passes
 
 **If a gate fails → pause, fix, retest. Do not rush.**
 

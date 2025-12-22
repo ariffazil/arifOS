@@ -6,6 +6,38 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ---
 
+## [v45.0.0] - 2025-12-22 - Sovereign Witness (Physics-First Judiciary)
+
+**Status:** FORGED NOT GIVEN | Physics: TEARFRAME SOVEREIGN | Fail-Closed: GUARANTEED
+
+### Core Upgrades (The 5 Pillars)
+- **Physics-Blind Judiciary (Semantic Firewall):**
+  - Implemented `arifos_core.judiciary.semantic_firewall`.
+  - **Rule:** API/LLM inputs are stripped of all raw text before reaching APEX PRIME. Only `ApexTelemetry` (F1-F9 attributes) is visible.
+
+- **Atomic Evidence Ingestion:**
+  - Implemented `arifos_core.evidence.evidence_pack`.
+  - **Rule:** Evidence is all-or-nothing. `coverage_pct < 1.0` blocks SEAL. Provenance requires hash chains.
+
+- **Built-in Temporal Logic (Phoenix Hold):**
+  - Implemented `arifos_core.temporal.phoenix_logic`.
+  - **Rule:** Stale evidence or Tier-4 conflicts trigger mandatory 72-hour `HOLD_888`.
+
+- **Federated Tri-Witness Council (Fixed):**
+  - Refined `arifos_core.judiciary.witness_council`.
+  - **Fix:** "Unanimous but Stale" votes now correctly yield `PARTIAL` (downgraded confidence) rather than `HOLD_888` (deadlock).
+
+- **Provable Sealing (Proof of Governance):**
+  - Implemented `arifos_core.governance.proof_of_governance`.
+  - **Artifact:** `SealReceipt` with UUIDv7 trace, signed by `SovereignSigner` (Ed25519) for Tier-4 verdicts.
+  - **Ledger:** Merkle Root appended on every seal.
+
+### Policy Notes
+- **Mock Signing:** Unit tests use deterministic mock signatures (`mock_sig:...`). Real Ed25519 signing requires `ARIFOS_SIGNING_KEY` environment variable. No keys are stored in repo.
+- **Deprecations:** Pydantic v1 `json()` serialization is replaced by `json.dumps` for hash determinism.
+
+---
+
 ## [v44.0.0] - 2025-12-20 - TEARFRAME Physics & Deepwater Logic
 
 **Status:** SEALED | Physics: TEARFRAME | Fail-Closed: GUARANTEED | Tag: v44.0.0

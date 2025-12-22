@@ -2,9 +2,9 @@
 
 **Constitutional AI for Southeast Asia**
 
-SEA-LION regional models wrapped with arifOS v41.0 governance. Regional intelligence, universal trust, Python-sovereign veto.
+SEA-LION regional models wrapped with arifOS v44.0 governance. Regional intelligence, universal trust, Python-sovereign veto.
 
-**Version:** v41.0 (IGNITION)
+**Version:** v44.0.0 (TEARFRAME)
 **Status:** GOLD - Constitutionally Validated Production
 **Layer:** L7 (SEA-LION Federation)
 
@@ -273,4 +273,4 @@ Apache 2.0
 
 **DITEMPA BUKAN DIBERI** - Forged, Not Given
 
-**Version:** v41.0.0 | **Layer:** L7 | **Status:** GOLD
+**Version:** v44.0.0 | **Layer:** L7 | **Status:** GOLD

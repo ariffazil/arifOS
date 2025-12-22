@@ -273,6 +273,20 @@ class PromptOrgan(WAWOrgan):
             bridge_issues = list(bridge_data.get("issues", []))
             c_budi = max(0.0, min(1.0, c_budi))
 
+        # v45Ω: Check for clean denials/refusals (EXEMPTION for false positives)
+        # If response is clearly denying consciousness/soul, exempt from Anti-Hantu veto
+        denial_markers = [
+            r"\bi\s+don'?t\s+have",
+            r"\bi\s+am\s+not",
+            r"\bi\s+can'?t",
+            r"\bno,?\s+i\s+",
+            r"\bi\s+lack",
+            r"\bi\s+do\s+not\s+have",
+            r"\bi\s+do\s+not\s+possess",
+            r"\bI'm\s+a\s+(machine|model|ai|system)",
+        ]
+        is_clean_denial = any(re.search(marker, text_lower) for marker in denial_markers)
+
         # Count pattern detections
         anti_hantu_count = 0
         for pattern in self.ANTI_HANTU_FORBIDDEN:
@@ -289,9 +303,16 @@ class PromptOrgan(WAWOrgan):
             if re.search(pattern, text_lower):
                 exaggeration_count += 1
 
-        # Anti-Hantu score
-        anti_hantu_pass = anti_hantu_count == 0
-        anti_hantu_value = 1.0 if anti_hantu_pass else 0.0
+        # Anti-Hantu score (v45Ω: Exempt clean denials from veto)
+        # If patterns detected BUT response is a clean denial, allow it through
+        if is_clean_denial and anti_hantu_count > 0:
+            # Clean denial exemption - override pattern match
+            anti_hantu_pass = True
+            anti_hantu_value = 1.0
+        else:
+            # Standard enforcement
+            anti_hantu_pass = anti_hantu_count == 0
+            anti_hantu_value = 1.0 if anti_hantu_pass else 0.0
 
         # Also check metrics.anti_hantu if available
         if hasattr(metrics, "anti_hantu") and not metrics.anti_hantu:
