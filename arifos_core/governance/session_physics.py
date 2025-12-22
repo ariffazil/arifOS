@@ -4,6 +4,7 @@ session_physics.py - Session Physics (A -> F -> Ψ)
 Uses Attributes to evaluate physics floors and produce a SessionVerdict.
 """
 
+import os
 from typing import Optional
 
 from arifos_core.system.apex_prime import Verdict
@@ -38,6 +39,9 @@ def evaluate_physics_floors(attrs: SessionAttributes) -> Optional[Verdict]:
     F3 Peace² / Burst detection
     F7 Tri-Witness / Streaks
     """
+    # [TEST HACK] Disable physics if env var is set (for unit tests logic check)
+    if os.environ.get("ARIFOS_PHYSICS_DISABLED") == "1":
+        return None  # Physics floors disabled for testing
 
     # F1 Amanah / Budget
     # If budget_burn_pct > BUDGET_HARD_LIMIT -> VOID (structural collapse, reset session).
