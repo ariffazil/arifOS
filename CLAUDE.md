@@ -2,10 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Version:** v45.0.0 | **Tests:** 2180+ | **Safety Ceiling:** 99%
+**Version:** v45.0.0 + Patch A | **Tests:** 2180+ | **Safety Ceiling:** 99%
 
 **Imports:** `~/.claude/CLAUDE.md` — Global governance (floors, SABAR, verdicts)
 **Extends:** [AGENTS.md](AGENTS.md) — Full constitutional governance
+
+**Latest:** v45Ω Patch A (2025-12-23) — No-Claim Mode for phatic communication. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ---
 
@@ -126,6 +128,8 @@ L1_THEORY/canon/       # Constitutional law documents (read-only canon)
 **Memory Bands:** VAULT (constitutional law), LEDGER (audit trail), ACTIVE (working state), PHOENIX (amendments), WITNESS (patterns), VOID (quarantine).
 
 **W@W Federation:** Multi-agent system with @LAW (Amanah), @GEOX (Truth), @WELL (Care), @RIF (Reason). Each agent has veto power within their domain.
+
+**Claim Detection (v45Ω Patch A):** Physics > Semantics structural analysis. Responses are analyzed for factual claims using entity density, numeric patterns, and assertion counting (NOT keyword matching). Phatic communication ("hi", "how are u?") is exempt from F2 Truth floor when `has_claims=False`. Identity hallucinations still blocked.
 
 ---
 

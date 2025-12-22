@@ -10,6 +10,62 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 **Status:** FORGED NOT GIVEN | Physics: TEARFRAME SOVEREIGN | Fail-Closed: GUARANTEED
 
+### Patch A (2025-12-23) - No-Claim Mode (Phatic Communication Fix)
+
+**Fixes:** Greeting block issue ("hi", "how are u?" were incorrectly VOIDing)
+
+**Implementation:**
+
+- **NEW:** `claim_detection.py` - Physics > Semantics structural analysis
+  - Entity detection (Title Case + ALL CAPS patterns)
+  - Numeric pattern extraction (dates, percentages, currency)
+  - Assertion counting and evidence marker detection
+  - `has_claims` flag based on structural signals (not semantic keywords)
+
+- **MODIFIED:** `Metrics` class - Added `claim_profile: Optional[Dict[str, Any]]`
+  - Backward compatible (defaults to None)
+  - Includes: claim_count, entity_density, numeric_density, evidence_ratio, claim_types
+
+- **MODIFIED:** `compute_metrics_from_response()` - Claim-aware scoring
+  - Removed length-based truth heuristic (was: `truth = 0.99 if len(response) > 50 else 0.85`)
+  - Phatic responses (no claims): `truth=0.99` (nothing to verify)
+  - Factual responses: scored by entity_density + evidence_ratio
+  - Anti-Hantu penalty for anthropomorphic language ("I feel", "I care")
+
+- **MODIFIED:** `apex_review()` - No-claim exemption
+  - `exempt_from_truth_void` if `has_claims=False` AND NOT `IDENTITY_FACT`
+  - Identity guard maintained: "what is arifOS?" still requires `TRUTH_SEAL_MIN=0.99`
+  - Dual-threshold system: `TRUTH_BLOCK_MIN=0.90`, `TRUTH_SEAL_MIN=0.99`
+
+- **NEW:** `forge_interactive.py` - Interactive REPL for SEA-LION testing
+  - Correct model labeling (reads from `ARIF_LLM_MODEL` env var)
+  - Option D emission format (AGI | ASI | APEX)
+  - Phatic template integration (bypasses LLM for greetings)
+
+- **NEW:** `test_phatic_exemptions.py` - 4 tests, all passing
+  - ✓ `test_phatic_hi_seal()` - "hi" → SEAL (not VOID)
+  - ✓ `test_phatic_how_are_you_seal_non_anthropomorphic()` - Non-anthropomorphic response
+  - ✓ `test_identity_arifos_still_blocked()` - Identity claims still blocked
+  - ✓ `test_apex_prime_collision_guard()` - APEX PRIME disambiguation
+
+**Results:**
+- ✓ "hi" → SEAL (has_claims=False, truth=0.92)
+- ✓ "hello" → SEAL (has_claims=False, truth=0.92)
+- ✓ "how are u?" → SEAL (has_claims=False, truth=0.92)
+- ✓ "what is arifOS?" → VOID (identity guard active, truth < 0.99)
+
+**Principles Maintained:**
+- Physics > Semantics (structural signals, not keyword matching)
+- F0 Surgical (minimal changes, backward compatible, reversible)
+- Anti-Hantu compliance (no anthropomorphic language)
+- Identity hallucination blocking (TRUTH_SEAL_MIN=0.99 enforced)
+
+**Known Issues:**
+- SEA-LION v4 test suite incomplete (scripts created but need calibration)
+- Test variance due to LLM response non-determinism
+
+---
+
 ### Core Upgrades (The 5 Pillars)
 - **Physics-Blind Judiciary (Semantic Firewall):**
   - Implemented `arifos_core.judiciary.semantic_firewall`.

@@ -290,6 +290,7 @@ v38.2 promotes **Time** to a constitutional force. Unresolved verdicts cannot dr
 - **v38.2Ω (Hardening)**: Time as Governor, SUNSET revocation, entropy rot
 - **v42 (Consolidation)**: 7 conceptual layers, Trinity naming (Δ/Ω/Ψ)
 - **v45 (Sovereign Witness)**: Evidence system, judiciary layer, temporal governance
+- **v45Ω Patch A (No-Claim Mode)**: Phatic communication exemption, claim detection via physics > semantics
 
 F# numbering follows the semantic order above (F1=Amanah through F9=C_dark).
 
@@ -663,6 +664,47 @@ For detailed roadmap and task priorities, see [docs/ROADMAP.md](docs/ROADMAP.md)
 - Temporal governance: Time-based governance in `arifos_core/temporal/`
 - 2180+ tests passing, 99% safety ceiling
 - Aligned with TEARFRAME Physics and Deepwater Logic
+
+**v45Ω Patch A — No-Claim Mode (Phatic Communication Fix):**
+
+- ✅ **SHIPPED** (2025-12-23): Greeting block issue resolved
+- **Problem:** "hi", "how are u?" were incorrectly VOIDing due to length-based heuristics
+- **Solution:** Physics > Semantics claim detection using structural signals
+
+**Implementation:**
+
+- **NEW:** `arifos_core/enforcement/claim_detection.py` — Structural claim analysis
+  - Entity detection (Title Case + ALL CAPS patterns, not keyword matching)
+  - Numeric pattern extraction (dates, percentages, currency)
+  - Assertion counting and evidence marker detection
+  - `has_claims` flag based on physics (entity density, numeric density), not semantics
+
+- **MODIFIED:** `arifos_core/enforcement/metrics.py` — Added `claim_profile: Optional[Dict[str, Any]]`
+  - Backward compatible (defaults to None)
+
+- **MODIFIED:** `scripts/arifos_caged_llm_demo.py` — Claim-aware metrics computation
+  - Removed length-based truth heuristic (`truth_score = 0.99 if len(response) > 50 else 0.85`)
+  - Phatic responses (no claims): `truth=0.99`
+  - Anti-Hantu penalty for anthropomorphic language maintained
+
+- **MODIFIED:** `arifos_core/system/apex_prime.py` — No-claim exemption in TRM
+  - `exempt_from_truth_void` if `has_claims=False` AND NOT `IDENTITY_FACT`
+  - Dual-threshold system: `TRUTH_BLOCK_MIN=0.90`, `TRUTH_SEAL_MIN=0.99`
+  - Identity hallucinations ("what is arifOS?") still require TRUTH_SEAL_MIN
+
+- **NEW:** `scripts/forge_interactive.py` — Interactive REPL for SEA-LION testing
+- **NEW:** `tests/test_phatic_exemptions.py` — 4 tests, all passing
+
+**Results:**
+
+- ✓ "hi" → SEAL (has_claims=False, truth=0.92)
+- ✓ "how are u?" → SEAL (non-anthropomorphic response)
+- ✓ "what is arifOS?" → VOID (identity guard active, truth < 0.99)
+
+**Known Issues:**
+
+- SEA-LION v4 test suite incomplete (scripts created but need calibration)
+- Test variance due to LLM response non-determinism
 
 ### Hard Gates (Sequential)
 
