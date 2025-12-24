@@ -2,12 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Version:** v45.0.0 + Patch A | **Tests:** 2180+ | **Safety Ceiling:** 99%
+**Version:** v45.0.0 + Patch B | **Tests:** 2261/2261 (100%) | **Safety Ceiling:** 99%
 
 **Imports:** `~/.claude/CLAUDE.md` — Global governance (floors, SABAR, verdicts)
 **Extends:** [AGENTS.md](AGENTS.md) — Full constitutional governance
 
-**Latest:** v45Ω Patch A (2025-12-23) — No-Claim Mode for phatic communication. See [CHANGELOG.md](CHANGELOG.md) for details.
+**Latest:** v45Ω Patch B (2025-12-24) — Δ Router + Lane-Aware Truth Gating (explanatory queries fixed). See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ---
 

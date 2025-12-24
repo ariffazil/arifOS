@@ -66,6 +66,73 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ---
 
+### Patch B (2025-12-24) - Δ Router + Lane-Aware Truth Gating
+
+**Status:** SEALED | Tests: 2261/2261 (100%) | GitQC: PASSED | Authority: Arif
+
+**Fix:** Benign explanatory queries ("explain machine learning") were incorrectly VOIDing due to missing applicability context
+
+**Implementation:**
+
+- **NEW:** `arifos_core/routing/` - Δ Router (ΔΩΨ Trinity completion)
+  - `prompt_router.py` - 4-lane classification (PHATIC/SOFT/HARD/REFUSE)
+  - `refusal_templates.py` - Safe refusal messages for REFUSE lane
+  - Physics > Semantics structural routing (interrogatives, not keywords)
+
+- **MODIFIED:** `arifos_core/system/pipeline.py` - Lane integration
+  - Added `applicability_lane` field to `PipelineState`
+  - `stage_111_sense` calls router, early REFUSE handling
+  - Lane context passed to `_compute_888_metrics` and `apex_review`
+  - **FIX:** Truth grounding only for stub metrics (callback integrity preserved)
+
+- **MODIFIED:** `arifos_core/system/apex_prime.py` - Lane-aware verdict logic
+  - `apex_review` now accepts `lane` parameter
+  - SOFT lane: truth 0.85-0.90 → PARTIAL (not VOID)
+  - HARD lane: truth < 0.90 → VOID (strict factual enforcement)
+  - **FIX:** Removed ΔS < 0.10 heuristic SABAR gate (caused false positives)
+  - **NEW:** Explicit ΔS < 0 → VOID check (clarity regression = hard fail)
+
+- **MODIFIED:** `arifos_core/mcp/tools/judge.py` - Pipeline routing
+  - Fixed import path: `run_pipeline` from `arifos_core.system.pipeline`
+  - Benign query bypass (evaluates questions, not just LLM answers)
+  - Now routes through v45Ω lane logic
+
+- **MODIFIED:** `arifos_core/waw/rif.py` - @RIF corrections
+  - RifSignals default `truth_score`: 0.90 → 0.99 (cleaner baseline)
+  - Added immediate VETO for contradiction patterns
+  - Truth threshold: consistently TRUTH_BLOCK_MIN (0.90)
+
+- **NEW:** `tests/test_lane_routing.py` - 5 tests, all passing
+  - ✓ Phatic routing ("hi" → PHATIC lane)
+  - ✓ SOFT lane ("explain X" → SOFT, truth 0.87 → PARTIAL)  
+  - ✓ HARD lane ("what is X?" → HARD, truth < 0.90 → VOID)
+  - ✓ REFUSE lane (disallowed patterns)
+
+- **UPDATED:** Test expectations aligned with v45Ω behavior
+  - `test_apex_prime_floors.py` - GENIUS LAW tolerance
+  - `test_waw_rif_signals.py` - TRUTH_BLOCK_MIN (0.90) threshold
+  - `test_waw_organs.py` - Same truth threshold
+  - `test_apex_prime_floors_mocked.py` - Omega_0 soft floor (PARTIAL)
+  - `test_caged_llm_harness.py` - Short no-claim response truth scoring
+
+**Results:**
+- ✓ "explain machine learning" → PARTIAL (SOFT lane, truth 0.87)
+- ✓ "what is 2+2?" → HARD lane enforcement (truth must be ≥0.90)
+- ✓ "hi" → PHATIC lane (bypasses truth check)
+- ✓ Disallowed content → REFUSE lane (safe refusal message)
+- ✓ All 2261 tests passing (was 2252 with 9 failures)
+
+**Principles Maintained:**
+- Physics > Semantics (structural lane markers, not keywords)
+- F1-F9 constitutional floors preserved
+- Fail-closed governance intact
+- ΔS < 0 = hard violation (explicit VOID)
+- Callback metrics respected as authoritative
+
+**Known Issues:** None - full test suite passing
+
+---
+
 ### Core Upgrades (The 5 Pillars)
 - **Physics-Blind Judiciary (Semantic Firewall):**
   - Implemented `arifos_core.judiciary.semantic_firewall`.

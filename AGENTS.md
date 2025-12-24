@@ -706,6 +706,24 @@ For detailed roadmap and task priorities, see [docs/ROADMAP.md](docs/ROADMAP.md)
 - SEA-LION v4 test suite incomplete (scripts created but need calibration)
 - Test variance due to LLM response non-determinism
 
+**v45Ω Patch B — Δ Router + Lane-Aware Truth Gating (SEALED 2025-12-24):**
+
+- ✅ **SHIPPED**: Explanatory queries ("explain X")  no longer incorrectly VOID
+- **Problem:** Benign explanatory queries were VOIDing due to missing applicability routing
+- **Solution:** Δ Router (ΔΩΨ Trinity completion) with 4-lane classification + lane-aware truth gating
+
+**Implementation:**
+
+- **NEW:** `arifos_core/routing/` — Δ Router with PHATIC/SOFT/HARD/REFUSE lanes
+- **MODIFIED:** Lane-aware verdict logic (SOFT: truth 0.85-0.90 → PARTIAL, HARD: < 0.90 → VOID)
+- **FIX:** Removed ΔS < 0.10 heuristic SABAR (false positives), added ΔS < 0 → VOID (hard breach)
+- **FIX:** MCP judge routing through v45Ω pipeline
+- **FIX:** Callback metrics integrity (truth grounding only for stubs)
+- **NEW:** `tests/test_lane_routing.py` — 5 tests validating 4-lane routing
+
+**Results:** 2261/2261 tests passing (100%), GitQC PASSED, all F1-F9 floors preserved
+
+
 ### Hard Gates (Sequential)
 
 - ✅ v39 blocked until v38 memory invariants hold — GATE PASSED
