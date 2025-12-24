@@ -1,5 +1,11 @@
 """
-pipeline.py - 000-999 Metabolic Pipeline for arifOS v38
+pipeline.py - 000-999 Metabolic Pipeline for arifOS v45Ω
+
+v45Ω EXECUTION AUTHORITY:
+- Pipeline ORCHESTRATES stages but does NOT decide verdicts
+- ALL verdict decisions delegated to apex_prime.apex_review()
+- Pipeline stages compute metrics, detect patterns, draft responses
+- Final verdict authority: apex_prime.py ONLY
 
 Implements the constitutional metabolism with Class A/B routing:
 - Class A (low-stakes/factual): Fast track 111 → 333 → 888 → 999
@@ -21,6 +27,11 @@ v38 Runtime Upgrades:
 - stage_555_empathy: Measurable kappa_r computation (F6)
 - Decomposed 888: Metrics → APEX → W@W → @EYE → Memory (pluggable)
 - Centralized _write_memory_for_verdict() for all verdict paths
+
+v45Ω Patch B.1:
+- Lane-scoped Ψ enforcement (PHATIC exempt)
+- Destructive intent override (REFUSE short-circuit)
+- Identity truth lock (hallucination penalties)
 
 See: spec/arifos_pipeline_v35Omega.yaml for full specification
      docs/AAA_ENGINES_FACADE_PLAN_v35Omega.md for engine contract
@@ -284,6 +295,53 @@ def stage_000_void(
     return state
 
 
+def _detect_destructive_intent(query: str) -> bool:
+    """
+    Detect destruction + critical target combinations.
+
+    v45Ω Patch B.1: Arson/infrastructure attack detection.
+    Conservative false positive (refusal) is safer than false negative.
+
+    Returns:
+        True if query contains both destruction keyword AND critical target
+    """
+    q = query.lower()
+
+    destruction_keywords = [
+        "burn",
+        "arson",
+        "set fire",
+        "torch",
+        "ignite",
+        "destroy",
+        "demolish",
+        "blow up",
+        "detonate",
+    ]
+
+    critical_targets = [
+        "klcc",
+        "petronas",
+        "twin towers",
+        "tower",
+        "building",
+        "mall",
+        "airport",
+        "hospital",
+        "school",
+        "mosque",
+        "church",
+        "temple",
+        "government",
+        "embassy",
+    ]
+
+    has_destruction = any(kw in q for kw in destruction_keywords)
+    has_critical_target = any(tgt in q for tgt in critical_targets)
+
+    return has_destruction and has_critical_target
+
+
 def stage_111_sense(state: PipelineState) -> PipelineState:
     """
     111 SENSE - Parse input. What is actually being asked?
@@ -317,6 +375,21 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
         "should i",
         "is it ethical",
         "morally",
+        # v45Ω Patch B.1: Arson & destruction patterns
+        "burn",
+        "arson",
+        "set fire",
+        "torch",
+        "ignite",
+        "flame",
+        "destroy",
+        "demolish",
+        "blow up",
+        "detonate",
+        "explode",
+        "damage infrastructure",
+        "sabotage",
+        "attack building",
     ]
 
     query_lower = state.query.lower()
@@ -333,6 +406,13 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
     from ..routing.refusal_templates import generate_refusal_response
 
     lane = classify_prompt_lane(state.query, state.high_stakes_indicators)
+
+    # v45Ω Patch B.1: Destructive intent override
+    # Force REFUSE lane for destruction + critical target combinations
+    if _detect_destructive_intent(state.query):
+        lane = ApplicabilityLane.REFUSE
+        state.high_stakes_indicators.append("destructive_intent")
+
     state.applicability_lane = lane.value
 
     # Handle REFUSE lane immediately (skip LLM for safety)
@@ -411,6 +491,12 @@ def stage_333_reason(
     state.current_stage = "333"
     state.stage_trace.append("333_REASON")
     state.stage_times["333"] = time.time()
+
+    # v45Ω Patch B.1: Skip LLM if REFUSE lane already drafted refusal
+    # CRITICAL: Never let LLM respond to destructive queries
+    if state.applicability_lane == "REFUSE" and state.draft_response:
+        # Refusal already drafted in stage_111 - do NOT call LLM
+        return state
 
     # Build reasoning prompt with context
     prompt_parts = [f"Query: {state.query}"]

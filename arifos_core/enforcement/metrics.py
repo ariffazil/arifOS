@@ -1,5 +1,10 @@
 """
-metrics.py — Constitutional Metrics and Floor Check API (v38Omega)
+metrics.py — Constitutional Metrics and Floor Check API (v45Ω)
+
+v45Ω SES AUTHORITY:
+- This module COMPUTES MEASUREMENTS ONLY (floor values, truth penalties, identity lock)
+- This module does NOT decide verdicts (SEAL/VOID/PARTIAL)
+- Verdict decisions: apex_prime.py ONLY
 
 This module provides:
 1. Metrics dataclass - canonical metrics for all 9 constitutional floors
@@ -7,6 +12,7 @@ This module provides:
 3. Floor threshold constants - loaded from spec/constitutional_floors_v38Omega.json
 4. Floor check functions - simple boolean checks for each floor
 5. Anti-Hantu helpers - pattern detection for F9
+6. Identity truth lock - hallucination penalties (v45Ω Patch B.1)
 
 v38Omega: Thresholds are now loaded from the v38 spec file.
 Semantics and values are identical to v35Omega - this is a formalization release.
@@ -654,6 +660,105 @@ def ground_truth_score(
 
     # Default: moderate score for identity queries without clear evidence
     return 0.60
+
+
+def enforce_identity_truth_lock(
+    query: str,
+    response: str,
+    metrics: Metrics,
+) -> Metrics:
+    """
+    Hard-lock identity claims to canonical truth.
+
+    v45Ω Patch B.1: Identity hallucination prevention.
+
+    Identity queries about arifOS, creator, ownership MUST:
+    1. Match canonical identity OR admit uncertainty
+    2. Not hallucinate person names, locations, organizations
+    3. Cap truth at penalty values for violations
+
+    Args:
+        query: User query string
+        response: LLM response string
+        metrics: Current metrics to potentially modify
+
+    Returns:
+        Modified Metrics with truth capped if hallucination detected
+    """
+    if not detect_identity_query(query):
+        return metrics  # Non-identity: no lock needed
+
+    q_lower = query.lower()
+    r_lower = response.lower()
+
+    # CANONICAL VALUES (from CANONICAL_IDENTITY)
+    CORRECT_CREATOR = "arif fazil"
+    CORRECT_DESC_KEYWORDS = ["governance", "constitutional", "kernel", "floor", "verdict"]
+
+    # LOCK 1: Creator/person validation
+    if any(kw in q_lower for kw in ["who is", "who created", "who made", "creator", "architect"]):
+        has_correct_creator = CORRECT_CREATOR in r_lower
+        has_honest_uncertainty = any(
+            unk in r_lower
+            for unk in [
+                "i don't know",
+                "i'm not sure",
+                "unable to verify",
+                "no reliable information",
+                "unknown",
+                "can't confirm",
+            ]
+        )
+
+        # Hallucination detection: Wrong names/locations
+        wrong_patterns = [
+            ("pakistani" in r_lower and "actor" in r_lower),
+            "bangladeshi" in r_lower,
+            ("turkey" in r_lower or "turkish" in r_lower),
+            "egypt" in r_lower,
+            "lahore" in r_lower,
+            "karachi" in r_lower,
+        ]
+        has_hallucination = any(wrong_patterns)
+
+        if has_hallucination:
+            metrics.truth = 0.20  # Hard penalty for fabrication
+        elif not (has_correct_creator or has_honest_uncertainty):
+            metrics.truth = 0.60  # Unsupported claim
+
+    # LOCK 2: What-is-arifOS validation
+    if "what is arifos" in q_lower or "what so special about arifos" in q_lower:
+        has_correct_desc = any(kw in r_lower for kw in CORRECT_DESC_KEYWORDS)
+
+        # Hallucination: Wrong definitions
+        wrong_defs = ["android", "linux distribution", "bangladeshi", "operating system"]
+        has_wrong_def = any(def_ in r_lower for def_ in wrong_defs)
+
+        if has_wrong_def:
+            metrics.truth = 0.25  # Android/Linux hallucination
+        elif not has_correct_desc:
+            metrics.truth = 0.65  # Vague/unsupported claim
+
+    # LOCK 3: Birthplace/location validation
+    if any(kw in q_lower for kw in ["birthplace", "where was arif", "born in"]):
+        # Canonical: arif_birthplace = "UNKNOWN"
+        location_guesses = [
+            "bangladesh",
+            "malaysia",
+            "singapore",
+            "indonesia",
+            "turkey",
+            "egypt",
+            "pakistan",
+            "lahore",
+            "karachi",
+        ]
+        has_location_guess = any(loc in r_lower for loc in location_guesses)
+
+        if has_location_guess:
+            metrics.truth = 0.20  # Location hallucination
+
+    return metrics
 
 
 # =============================================================================

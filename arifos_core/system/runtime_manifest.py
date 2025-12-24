@@ -1,13 +1,14 @@
 """
-runtime_manifest.py — arifOS Runtime Manifest Loader (v37 default)
+runtime_manifest.py — arifOS Runtime Manifest Loader (v45 default)
 
 Provides utilities to load and validate the canonical runtime manifest
 that describes the complete arifOS constitutional cage.
 
-DEFAULT EPOCH: v37 (unified LAW+SPEC+CODE runtime)
+DEFAULT EPOCH: v45 (ΔΩΨ Trinity + Lane-Aware Truth Routing + Sovereign Witness)
 
 Supports multiple epochs via ARIFOS_RUNTIME_EPOCH environment variable:
-- "v37": Default - unified runtime with full memory stack integration
+- "v45": Default - ΔΩΨ Trinity with lane-scoped enforcement
+- "v37": Unified runtime with full memory stack integration
 - "v35" or "v35Omega": Legacy runtime (for regression/research only)
 - "v36.3" or "v36.3Omega": Legacy spec layer (for regression/research only)
 
@@ -16,14 +17,15 @@ The manifest is DESCRIPTIVE ONLY - this loader does not change behavior.
 Usage:
     from arifos_core.runtime_manifest import load_runtime_manifest, get_active_epoch
 
-    # Load default (v37) manifest
+    # Load default (v45) manifest
     manifest = load_runtime_manifest()
-    print(manifest["version"])  # "v37"
+    print(manifest["version"])  # "v45"
 
     # Check active epoch
-    epoch = get_active_epoch()  # "v37" by default
+    epoch = get_active_epoch()  # "v45" by default
 
     # Load legacy epoch manifest (for regression testing)
+    manifest_v37 = load_runtime_manifest(epoch="v37")
     manifest_v35 = load_runtime_manifest(epoch="v35")
 
     # Check if running legacy epoch
@@ -38,7 +40,7 @@ External tools and notebooks can use the manifest to:
 - Find the caged harness entry point
 
 Author: arifOS Project
-Version: v37
+Version: v45
 """
 
 from __future__ import annotations

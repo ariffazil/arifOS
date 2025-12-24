@@ -1,3 +1,25 @@
+"""
+v45Ω EXECUTION AUTHORITY — apex_prime.py
+
+This module is the SOLE SOURCE OF TRUTH for constitutional verdict decisions.
+
+SINGLE EXECUTION SPINE (SES):
+- ONLY apex_review() may issue Verdict decisions (SEAL, VOID, PARTIAL, SABAR, HOLD_888, SUNSET)
+- All other modules (metrics.py, genius_metrics.py, verdict_emission.py) are:
+  - Measurement: Compute scores, no decisions
+  - Formatting: Present verdicts, no decisions
+  - Telemetry: Observe system health, no decisions
+
+FORBIDDEN:
+- Do NOT create parallel verdict sources in other files
+- Do NOT import Verdict and use it for decision logic outside apex_prime
+- Pipeline calls apex_review(); pipeline does NOT decide verdicts
+
+If you need to add verdict logic, it MUST go in apex_review() or helper functions in THIS file.
+
+DITEMPA, BUKAN DIBERI
+"""
+
 from typing import TYPE_CHECKING, Literal, List, Optional, Tuple, Dict, Any, Union
 from dataclasses import dataclass, field
 from enum import Enum
@@ -326,6 +348,7 @@ def check_floors(
     metrics: Metrics,
     tri_witness_required: bool = False,
     tri_witness_threshold: float = 0.95,
+    lane: str = "UNKNOWN",  # v45Ω Patch B.1: Lane-aware floor scoping
 ) -> FloorsVerdict:
     """Evaluate all constitutional floors (core + extended v35Ω)."""
     reasons: List[str] = []
@@ -347,11 +370,21 @@ def check_floors(
     if not amanah_ok:
         reasons.append("Amanah = false")
 
-    # v45Ω: psi defaults to True when None (GENIUS LAW calculates it later in apex_review)
-    # Only treat it as a hard floor failure if explicitly set < 1.0
-    psi_ok = metrics.psi >= 1.0 if metrics.psi is not None else True
+    # v45Ω Patch B.1: Lane-scoped Ψ enforcement
+    # PHATIC: Ψ observational only (never blocks SEAL)
+    # SOFT/HARD: Ψ < 1.0 can degrade to PARTIAL/SABAR (not VOID)
+    # REFUSE/UNKNOWN: Original strict threshold
+    if lane == "PHATIC":
+        psi_ok = True  # PHATIC exempt from Ψ floor
+    elif lane in {"SOFT", "HARD"}:
+        # Allow Ψ < 1.0 to pass hard floor check, handle in degradation logic later
+        psi_ok = metrics.psi >= 0.85 if metrics.psi is not None else True
+    else:
+        # REFUSE/UNKNOWN: Original strict threshold
+        psi_ok = metrics.psi >= 1.0 if metrics.psi is not None else True
+
     if not psi_ok:
-        reasons.append("Ψ < 1.0")
+        reasons.append("Ψ < threshold")
 
     rasa_ok = bool(metrics.rasa)
     if not rasa_ok:
@@ -493,10 +526,22 @@ def apex_review(
     Returns:
         ApexVerdict: Structured verdict with verdict, pulse, reason, floors
     """
+    # v45Ω Patch B.1: ENFORCE IDENTITY TRUTH LOCK FIRST
+    # CRITICAL: Must apply truth penalty BEFORE floor checks so floors reflect locked truth
+    from ..enforcement.metrics import enforce_identity_truth_lock
+
+    metrics = enforce_identity_truth_lock(
+        query=prompt,
+        response=response_text,
+        metrics=metrics,
+    )
+
+    # Check floors with potentially penalized metrics
     floors = check_floors(
         metrics,
         tri_witness_required=high_stakes,
         tri_witness_threshold=tri_witness_threshold,
+        lane=lane,  # v45Ω Patch B.1: Pass lane for scoped enforcement
     )
 
     # v45Ω TRM: Classify prompt for context-aware truth routing
@@ -638,6 +683,18 @@ def apex_review(
 
     # END v45Ω PATCH 1
     # ==========================================================================
+
+    # v45Ω Patch B.1: Ψ degradation (after hard floor checks pass)
+    # System health warning: If Ψ < 1.0 for SOFT/HARD lanes, degrade to PARTIAL
+    if metrics.psi is not None and metrics.psi < 1.0:
+        if lane not in {"PHATIC", "REFUSE"}:
+            # System vitality low: marginal floor detected
+            return ApexVerdict(
+                verdict=Verdict.PARTIAL,
+                pulse=metrics.psi,
+                reason=f"System vitality low (Ψ={metrics.psi:.2f} < 1.0). Marginal floor detected.",
+                floors=floors,
+            )
 
     # GENIUS LAW evaluation (v42)
     if use_genius_law:
@@ -992,83 +1049,16 @@ class APEXPrime:
 
 
 # =============================================================================
-# v45Ω VERDICT EMISSION (Option D + Option A)
+# v45Ω SES ENFORCEMENT: DUPLICATES REMOVED (Parallel Truth Eliminated)
 # =============================================================================
-# Inline implementation (F0 surgical, no new files)
-# Replaces external verdict_emission.py module
-
-
-def compute_agi_score(metrics: Metrics) -> float:
-    """
-    Compute AGI score (intelligence/clarity/truthfulness).
-
-    Derived from:
-    - F2 Truth (60% weight) - factual accuracy
-    - F4 DeltaS (25% weight) - clarity gain
-    - F3 Tri-Witness (15% weight) - consensus validation
-
-    Returns:
-        AGI score [0.0, 1.0]
-    """
-    # Truth component (capped at 1.0)
-    truth_component = min(metrics.truth, 1.0) * 0.60
-
-    # Clarity component (normalize DeltaS from typical range)
-    # Typical DeltaS is 0.0-0.3; cap at 0.5 for scaling
-    delta_s_normalized = min(metrics.delta_s / 0.5, 1.0)
-    delta_s_component = delta_s_normalized * 0.25
-
-    # Tri-Witness component
-    tri_witness_component = metrics.tri_witness * 0.15
-
-    agi = truth_component + delta_s_component + tri_witness_component
-    return min(agi, 1.0)  # Cap at 1.0
-
-
-def compute_asi_score(metrics: Metrics) -> float:
-    """
-    Compute ASI score (care/stability/humility).
-
-    Derived from:
-    - F5 Peace² (35% weight) - non-escalation
-    - F6 κᵣ (35% weight) - empathy conductance
-    - F7 Ω₀ (30% weight) - humility band compliance
-
-    Returns:
-        ASI score [0.0, 1.0]
-    """
-    # Peace² component (cap at 1.0 for perfect peace)
-    peace_normalized = min(metrics.peace_squared / 1.2, 1.0)
-    peace_component = peace_normalized * 0.35
-
-    # Kappa_r component
-    kappa_component = metrics.kappa_r * 0.35
-
-    # Omega_0 component (check if in humility band [0.03, 0.05])
-    # Perfect score if in band, degraded if outside
-    omega_in_band = 0.03 <= metrics.omega_0 <= 0.05
-    omega_component = (1.0 if omega_in_band else 0.5) * 0.30
-
-    asi = peace_component + kappa_component + omega_component
-    return min(asi, 1.0)  # Cap at 1.0
-
-
-def verdict_to_light(verdict: Verdict) -> str:
-    """
-    Map APEX verdict to traffic light emoji.
-
-    Args:
-        verdict: APEX verdict enum
-
-    Returns:
-        Traffic light emoji: 🟢 (SEAL), 🟡 (PARTIAL/SABAR), 🔴 (VOID)
-    """
-    if verdict == Verdict.SEAL:
-        return "🟢"
-    elif verdict in (Verdict.PARTIAL, Verdict.SABAR, Verdict.HOLD_888, Verdict.SUNSET):
-        return "🟡"
-    else:  # VOID
-        return "🔴"
+# REMOVED telemetry functions that duplicated verdict_emission.py:
+#   - compute_agi_score() — REMOVED (import from verdict_emission instead)
+#   - compute_asi_score() — REMOVED (import from verdict_emission instead)
+#   - verdict_to_light() — REMOVED (import from verdict_emission instead)
+#
+# SSoT: apex_prime.py decides verdicts, verdict_emission.py formats/emits.
+# If you need telemetry scores, import from:
+#   from arifos_core.system.verdict_emission import compute_agi_score, compute_asi_score
 
 
 # ——————————————————— PUBLIC EXPORTS ——————————————————— #
@@ -1095,10 +1085,7 @@ __all__ = [
     "apex_verdict",  # Convenience shim, returns str
     "apex_prime_judge",  # v38.3 AMENDMENT 3: W@W conflict resolver
     "check_floors",
-    # v45Ω Emission functions (Option D + Option A)
-    "compute_agi_score",  # AGI score (intelligence/clarity/truthfulness)
-    "compute_asi_score",  # ASI score (care/stability/humility)
-    "verdict_to_light",  # Traffic light emoji mapping
+    # v45Ω SES: Telemetry functions removed (import from verdict_emission instead)
     # Classes
     "APEXPrime",
 ]

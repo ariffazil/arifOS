@@ -15,6 +15,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Installation & Setup
 
+**Requirements:** Python 3.10+ (verify compatibility with your Python version)
+
 ```bash
 # Install package (PyPI)
 pip install arifos
@@ -24,6 +26,13 @@ pip install -e .
 
 # Install with optional dependencies
 pip install -e ".[dev,yaml,api,litellm]"
+
+# Core dependencies: numpy>=1.20.0, pydantic>=2.0.0
+# Optional dependencies:
+#   dev: pytest, pytest-cov, black, ruff, mypy
+#   yaml: pyyaml>=6.0.0
+#   api: fastapi, uvicorn
+#   litellm: litellm>=1.0.0
 ```
 
 ### Testing
@@ -69,9 +78,17 @@ arifos-safe-read <file>            # FAG: Governed file read
 999 seal --apply                   # Finalize
 
 # Trinity: Universal Git Governance
+# Use trinity wrapper scripts (cross-platform):
 python scripts/trinity.py forge <branch>     # Analyze changes
 python scripts/trinity.py qc <branch>        # Constitutional check
 python scripts/trinity.py seal <branch> "Reason"  # Seal with approval
+
+# Or use platform-specific wrappers:
+# Unix/Linux/Mac: ./trinity.sh forge <branch>
+# Windows PowerShell: .\trinity.ps1 forge <branch>
+
+# Full v45 Demo
+python demo_sealion_v45_full.py    # Complete ΔΩΨ Trinity demonstration
 ```
 
 ---
@@ -247,11 +264,36 @@ SABAR > VOID > 888_HOLD > PARTIAL > SEAL
 ### Testing
 
 - [tests/conftest.py](tests/conftest.py) — Pytest configuration & fixtures
-- [tests/governance/](tests/governance/) — Governance-specific tests
+- [tests/governance/](tests/governance/) — Governance-specific tests (proof-of-governance, merkle ledger, signatures)
+- [tests/evidence/](tests/evidence/) — Evidence system tests (atomic ingestion, conflict routing, evidence packs)
+- [tests/judiciary/](tests/judiciary/) — Judiciary tests (semantic firewall, witness council)
+- [tests/temporal/](tests/temporal/) — Temporal governance tests (Phoenix-72, freshness, hold logic)
+- [tests/integration/](tests/integration/) — Integration tests (memory bands, EUREKA policy, pipeline with memory)
+- [tests/unit/](tests/unit/) — Unit tests for individual components
 
 ---
 
-## Slash Commands
+## Platform & Environment Notes
+
+**Operating System:** Cross-platform (Windows, Linux, macOS)
+
+- Trinity commands work on all platforms (see trinity.sh, trinity.ps1 wrappers)
+- File paths use forward slashes in code, backslashes handled by pathlib
+
+**Python Environment:**
+
+- Virtual environment recommended (`.venv/` directory present)
+- Package is editable-installed during development (`pip install -e .`)
+
+**Key Scripts:**
+
+- [scripts/trinity.py](scripts/trinity.py) — Universal Git governance CLI
+- [demo_sealion_v45_full.py](demo_sealion_v45_full.py) — Full v45Ω demonstration
+- [scripts/diagnose_v45_patches.py](scripts/diagnose_v45_patches.py) — Diagnostic tool for v45 patches
+
+---
+
+## Slash Commands (Legacy/Reference)
 
 | Command | Purpose          |
 |---------|------------------|
@@ -272,6 +314,18 @@ SABAR > VOID > 888_HOLD > PARTIAL > SEAL
 - ✅ **Surgical edits** only
 - ❌ **No full file rewrites** that remove content
 - ❌ **No new files** unless explicitly required (entropy control)
+
+**Critical Implementation Details:**
+- All file I/O must pass through FAG (File Access Governance) — direct `open()` is forbidden
+- Every file read must generate a `FAGReceipt` for audit trail
+- Memory writes are verdict-gated (SEAL → LEDGER, PARTIAL → PHOENIX, VOID → VOID band)
+- Canon files in [L1_THEORY/canon/](L1_THEORY/canon/) are read-only; propose amendments via Phoenix-72
+
+**Test Coverage Expectations:**
+- Core governance modules must maintain 100% coverage
+- All new floor detectors require corresponding tests in [tests/](tests/)
+- Pipeline changes require both unit tests and integration tests
+- Breaking changes to constitutional law trigger 888_HOLD (requires human approval)
 
 ---
 

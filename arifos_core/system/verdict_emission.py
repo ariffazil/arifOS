@@ -1,6 +1,12 @@
 """
 verdict_emission.py — APEX PRIME Verdict Emission (v45Ω)
 
+v45Ω SES AUTHORITY:
+- This module FORMATS AND EMITS verdicts ONLY (presentation layer)
+- This module does NOT decide verdicts (no SEAL/VOID/PARTIAL logic)
+- Verdict decisions: apex_prime.py ONLY
+- This module receives ApexVerdict from apex_prime and formats it for display
+
 Implements Option D (Runtime) and Option A (Forensic) emission formats.
 
 Design Law:
