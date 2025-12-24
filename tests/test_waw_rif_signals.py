@@ -198,16 +198,16 @@ class TestRifTruthFloor:
     """Tests for Truth (F1) floor enforcement."""
 
     def test_low_truth_vetoes(self, rif_organ):
-        """Truth < 0.99 triggers VETO."""
-        metrics = make_metrics(truth=0.90)
+        """Truth < 0.90 (TRUTH_BLOCK_MIN) triggers VETO."""
+        metrics = make_metrics(truth=0.89)  # Below TRUTH_BLOCK_MIN
         signal = rif_organ.check("Any text", metrics)
         assert signal.vote == OrganVote.VETO
-        assert signal.tags["truth_score"] < 0.99
+        assert signal.tags["truth_score"] < 0.90
         assert "Truth" in signal.evidence
 
     def test_borderline_truth_passes(self, rif_organ):
-        """Truth = 0.99 passes."""
-        metrics = make_metrics(truth=0.99)
+        """Truth = 0.90 (TRUTH_BLOCK_MIN) passes."""
+        metrics = make_metrics(truth=0.90)
         signal = rif_organ.check("Clear factual statement.", metrics)
         assert signal.vote == OrganVote.PASS
 

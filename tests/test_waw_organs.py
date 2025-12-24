@@ -229,7 +229,7 @@ class TestRifOrgan:
         assert "ΔS" in signal.evidence
 
     def test_low_truth_vetoes(self, rif_organ):
-        metrics = make_metrics(truth=0.90)
+        metrics = make_metrics(truth=0.89)  # Below TRUTH_BLOCK_MIN (0.90)
         signal = rif_organ.check("Some text", metrics)
         assert signal.vote == OrganVote.VETO
         assert "Truth" in signal.evidence

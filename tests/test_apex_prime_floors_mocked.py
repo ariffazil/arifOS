@@ -219,7 +219,7 @@ def test_apex_with_mocked_metrics_computation(mock_metrics_computer: MockMetrics
     ("truth", "VOID"),
     ("delta_s", "VOID"),
     ("amanah", "VOID"),
-    ("omega_0", "VOID"),
+    ("omega_0", "PARTIAL"),  # Soft floor - out of humility band
     ("psi", "VOID"),
     ("peace_squared", "PARTIAL"),
     ("kappa_r", "PARTIAL"),

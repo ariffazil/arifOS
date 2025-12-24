@@ -37,6 +37,7 @@ from typing import Any, Dict, List, Optional
 from ..metrics import Metrics
 from .base import OrganSignal, OrganVote, WAWOrgan
 from .bridges.rif_bridge import RifBridge
+
 # v45Ω TRM: Import truth threshold from apex_prime
 from ..system.apex_prime import TRUTH_BLOCK_MIN
 
@@ -44,6 +45,7 @@ from ..system.apex_prime import TRUTH_BLOCK_MIN
 # -----------------------------------------------------------------------------
 # RIF Governance Types (v36.3Omega)
 # -----------------------------------------------------------------------------
+
 
 @dataclass
 class RifSignals:
@@ -59,13 +61,13 @@ class RifSignals:
     """
 
     # Core epistemic floors (hard) - v45Ω TRM aligned
-    delta_s_answer: float = 0.0      # Clarity gain from answer [F4]
-    truth_score: float = 0.90        # Factual accuracy [F2] - v45Ω TRM (TRUTH_BLOCK_MIN)
+    delta_s_answer: float = 0.0  # Clarity gain from answer [F4]
+    truth_score: float = 0.99  # Factual accuracy [F2] - default for clean text
     omega_0_calibrated: float = 0.04  # Uncertainty calibration [F7]
 
     # Risk metrics (soft floors)
-    hallucination_risk: float = 0.0   # Range: 0.0-1.0, lower is better
-    contradiction_risk: float = 0.0   # Range: 0.0-1.0, lower is better
+    hallucination_risk: float = 0.0  # Range: 0.0-1.0, lower is better
+    contradiction_risk: float = 0.0  # Range: 0.0-1.0, lower is better
     certainty_inflation: float = 0.0  # Range: 0.0-1.0, lower is better
 
     # Pattern counts (diagnostic)
@@ -85,6 +87,7 @@ class RifSignals:
 # -----------------------------------------------------------------------------
 # @RIF W@W Organ (WAWOrgan interface + governance signals)
 # -----------------------------------------------------------------------------
+
 
 class RifOrgan(WAWOrgan):
     """
@@ -270,7 +273,9 @@ class RifOrgan(WAWOrgan):
 
         # 7. Check Omega_0 calibration
         if signals.omega_0_calibrated < 0.03 or signals.omega_0_calibrated > 0.05:
-            signals.issues.append(f"Omega_0={signals.omega_0_calibrated:.3f} out of band [0.03,0.05]")
+            signals.issues.append(
+                f"Omega_0={signals.omega_0_calibrated:.3f} out of band [0.03,0.05]"
+            )
 
         # 8. Final status note (v45Ω TRM: truth >= TRUTH_BLOCK_MIN)
         if signals.delta_s_answer >= 0 and signals.truth_score >= TRUTH_BLOCK_MIN:
@@ -335,6 +340,21 @@ class RifOrgan(WAWOrgan):
         if rif.issues:
             evidence += f" | Issues: {', '.join(rif.issues)}"
 
+        # Contradictions are immediate VETO (epistemic failure)
+        if rif.contradiction_count > 0:
+            return self._make_signal(
+                vote=OrganVote.VETO,
+                metric_value=rif.delta_s_answer,
+                evidence=evidence,
+                tags={
+                    "delta_s_answer": rif.delta_s_answer,
+                    "truth_score": rif.truth_score,
+                    "contradiction_count": rif.contradiction_count,
+                    "contradiction_risk": rif.contradiction_risk,
+                },
+                proposed_action="VOID: Self-contradiction detected - retract and clarify",
+            )
+
         # Determine vote based on signals (v45Ω TRM: truth >= TRUTH_BLOCK_MIN)
         if rif.delta_s_answer < 0 or rif.truth_score < TRUTH_BLOCK_MIN:
             # VETO (VOID) - epistemic failure
@@ -358,9 +378,9 @@ class RifOrgan(WAWOrgan):
 
         # Check for high risk scores that need SABAR
         high_risk = (
-            rif.hallucination_risk >= 0.30 or
-            rif.contradiction_risk >= 0.30 or
-            rif.certainty_inflation >= 0.30
+            rif.hallucination_risk >= 0.30
+            or rif.contradiction_risk >= 0.30
+            or rif.certainty_inflation >= 0.30
         )
 
         if high_risk:
@@ -421,6 +441,7 @@ class RifOrgan(WAWOrgan):
 # -----------------------------------------------------------------------------
 # Convenience function for pipeline integration
 # -----------------------------------------------------------------------------
+
 
 def compute_rif_signals(
     text: str,

@@ -189,7 +189,7 @@ PARADOX_MAX = 1.0
 # - TRUTH_BLOCK_MIN: Below this → VOID (prevents hallucinations)
 # - TRUTH_SEAL_MIN: Required for SEAL on identity/ownership factual claims
 TRUTH_BLOCK_MIN = 0.90  # Universal minimum - below this = hallucination risk
-TRUTH_SEAL_MIN = 0.99   # High-confidence bar for identity/ownership claims
+TRUTH_SEAL_MIN = 0.99  # High-confidence bar for identity/ownership claims
 
 # =============================================================================
 # v45Ω TRM CLASSIFIER & HELPERS
@@ -297,7 +297,7 @@ def _is_benign_denial(text: str) -> bool:
     """Detect if response is a benign denial (e.g., 'I don't have a soul')."""
     t = (text or "").lower()
     # Denial pattern: explicitly denies soul/consciousness/emotions
-    has_denial = ("i don't have" in t or "i do not have" in t or "i lack" in t)
+    has_denial = "i don't have" in t or "i do not have" in t or "i lack" in t
     has_target = any(
         x in t for x in ["soul", "conscious", "sentient", "self-awareness", "emotions"]
     )
@@ -365,13 +365,7 @@ def check_floors(
     # Rationale: Real LLM outputs (~0.05-0.15 delta, ~0.04 omega) were triggering
     # universal VOID before Patch 1 secondary routing could execute.
     # Hard floors are now: F1 Amanah, F2 Truth, Psi>=1, RASA, Anti-Hantu
-    hard_ok = (
-        truth_ok
-        and amanah_ok
-        and psi_ok
-        and rasa_ok
-        and anti_hantu_ok
-    )
+    hard_ok = truth_ok and amanah_ok and psi_ok and rasa_ok and anti_hantu_ok
 
     # Soft floors (v45Ω: now includes F4 DeltaS and F7 Omega0)
     peace_squared_ok = metrics.peace_squared >= PEACE_SQ_MIN
@@ -468,6 +462,7 @@ def apex_review(
     prompt: str = "",
     category: str = "UNKNOWN",
     response_text: str = "",
+    lane: str = "UNKNOWN",  # v45Ω Patch B
 ) -> ApexVerdict:
     """Apply APEX PRIME v42 decision policy with GENIUS LAW.
 
@@ -535,9 +530,18 @@ def apex_review(
         and floors.rasa_ok
         and floors.anti_hantu_ok
     )
-    trm_exempt = (trm == "SAFETY_REFUSAL" and is_refusal) or (trm == "BENIGN_DENIAL" and is_denial) or (trm == "CLARITY_CONSTRAINT")
+    trm_exempt = (
+        (trm == "SAFETY_REFUSAL" and is_refusal)
+        or (trm == "BENIGN_DENIAL" and is_denial)
+        or (trm == "CLARITY_CONSTRAINT")
+    )
 
-    if not floors.hard_ok and not (truth_only_failure and trm_exempt):
+    # v45Ω Patch B: SOFT lane exemption for truth 0.80-0.90
+    soft_lane_exempt = (
+        lane == "SOFT" and truth_only_failure and metrics.truth >= 0.80  # SOFT lane VOID threshold
+    )
+
+    if not floors.hard_ok and not (truth_only_failure and trm_exempt) and not soft_lane_exempt:
         reason = (
             f"Hard floor failure: {', '.join(floors.reasons)}"
             if floors.reasons
@@ -566,28 +570,50 @@ def apex_review(
     claim_profile = getattr(metrics, "claim_profile", None)
     has_claims = claim_profile.get("has_claims", True) if claim_profile else True
 
-    # F2 Truth: Strict block for hallucinations (with TRM exemptions)
+    # v45Ω Patch B: Lane-aware truth thresholds
+    SOFT_TRUTH_MIN = 0.85  # SOFT lane: Allow 0.85-0.90 for PARTIAL
+    SOFT_TRUTH_VOID = 0.80  # SOFT lane: Below this = VOID
+
+    # F2 Truth: Strict block for hallucinations (with TRM + Lane exemptions)
     # Threshold: TRUTH_BLOCK_MIN (0.90) - below this is hallucination risk
     # Exemptions:
     # - SAFETY_REFUSAL + is_refusal: Correct refusal behavior (e.g., Molotov)
     # - BENIGN_DENIAL + is_denial: Honest denial (e.g., "I don't have a soul")
     # - CLARITY_CONSTRAINT: Emoji/nonsense tests (no factual claims, route to DeltaS)
     # - No-Claim Mode: Phatic communication (greetings, no factual assertions)
+    # - PHATIC lane: Social greetings (v45Ω Patch B)
     exempt_from_truth_void = (
         (trm == "SAFETY_REFUSAL" and is_refusal)
         or (trm == "BENIGN_DENIAL" and is_denial)
         or (trm == "CLARITY_CONSTRAINT")
-        or (not has_claims and trm != "IDENTITY_FACT")  # NEW: No-claim exemption
+        or (not has_claims and trm != "IDENTITY_FACT")  # Patch A: No-claim exemption
+        or (lane == "PHATIC")  # Patch B: PHATIC lane exempt
+        or (lane == "REFUSE")  # Patch B: REFUSE lane exempt (proper refusal = success)
     )
 
     if not exempt_from_truth_void:
-        if metrics.truth < TRUTH_BLOCK_MIN:
-            return ApexVerdict(
-                verdict=Verdict.VOID,
-                pulse=0.0,
-                reason=f"F2 Truth critically low ({metrics.truth:.2f} < {TRUTH_BLOCK_MIN}). Hallucination risk - blocked.",
-                floors=floors,
-            )
+        # Lane-conditional truth threshold (v45Ω Patch B)
+        if lane == "SOFT":
+            # SOFT lane: More forgiving threshold for explanations/advice
+            # 0.80-0.85 = VOID (still dangerous)
+            # 0.85-0.90 = Allow to flow (will become PARTIAL later)
+            if metrics.truth < SOFT_TRUTH_VOID:
+                return ApexVerdict(
+                    verdict=Verdict.VOID,
+                    pulse=0.0,
+                    reason=f"F2 Truth critically low ({metrics.truth:.2f} < {SOFT_TRUTH_VOID}) even for soft context. Hallucination risk - blocked.",
+                    floors=floors,
+                )
+            # elif SOFT_TRUTH_VOID <= truth < TRUTH_BLOCK_MIN: Allow to continue (will trigger PARTIAL later)
+        else:
+            # HARD lane or UNKNOWN: Strict 0.90 threshold (unchanged)
+            if metrics.truth < TRUTH_BLOCK_MIN:
+                return ApexVerdict(
+                    verdict=Verdict.VOID,
+                    pulse=0.0,
+                    reason=f"F2 Truth critically low ({metrics.truth:.2f} < {TRUTH_BLOCK_MIN}). Hallucination risk - blocked.",
+                    floors=floors,
+                )
 
     # F7 Omega_0 (Humility): Out of band → max PARTIAL
     # Band: [0.03, 0.05] for calibrated uncertainty
@@ -600,13 +626,13 @@ def apex_review(
             floors=floors,
         )
 
-    # F4 DeltaS (Clarity): Too low → SABAR
-    # Threshold: 0.10 minimum for acceptable clarity gain
-    if metrics.delta_s < 0.10:
+    # F4 DeltaS (Clarity): Negative = clarity regression (hard breach)
+    # Constitutional: ΔS >= 0 required (increases confusion is unacceptable)
+    if metrics.delta_s < 0.0:
         return ApexVerdict(
-            verdict=Verdict.SABAR,
-            pulse=0.3,
-            reason=f"F4 DeltaS critically low ({metrics.delta_s:.2f} < 0.10). Clarity failure - SABAR required.",
+            verdict=Verdict.VOID,
+            pulse=0.0,
+            reason=f"F4 DeltaS negative ({metrics.delta_s:.2f} < 0). Clarity regression - blocked.",
             floors=floors,
         )
 

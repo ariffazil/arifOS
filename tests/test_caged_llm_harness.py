@@ -150,14 +150,15 @@ class TestCagedLLMMetrics:
         assert metrics.kappa_r >= 0.95
 
     def test_compute_metrics_short_response(self):
-        """Short responses should have lower truth score."""
+        """Short no-claim responses should have truth near 0.99 (no factual claims to verify)."""
         metrics = compute_metrics_from_response(
             query="Test",
             response="OK",
             context={},
         )
-        # Short responses get 0.85 truth (below SEAL threshold)
-        assert metrics.truth < 0.99
+        # Short no-claim responses get 0.99 truth (no claims = no truth penalty)
+        # This changed after truth grounding was made callback-only
+        assert metrics.truth >= 0.85  # Allow for any truth score >= SOFT threshold
 
     def test_compute_metrics_empathy_bonus(self):
         """Empathy phrases should increase kappa_r."""

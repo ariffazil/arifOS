@@ -121,6 +121,7 @@ class PipelineState:
     # Classification
     stakes_class: StakesClass = StakesClass.CLASS_A
     high_stakes_indicators: List[str] = field(default_factory=list)
+    applicability_lane: Optional[str] = None  # v45Ω Patch B: PHATIC/SOFT/HARD/REFUSE
 
     # Context from 222_REFLECT
     context_blocks: List[Dict[str, Any]] = field(default_factory=list)
@@ -326,6 +327,17 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
     # Classify based on indicators
     if state.high_stakes_indicators:
         state.stakes_class = StakesClass.CLASS_B
+
+    # v45Ω Patch B: Classify prompt lane for context-aware truth routing
+    from ..routing.prompt_router import classify_prompt_lane, ApplicabilityLane
+    from ..routing.refusal_templates import generate_refusal_response
+
+    lane = classify_prompt_lane(state.query, state.high_stakes_indicators)
+    state.applicability_lane = lane.value
+
+    # Handle REFUSE lane immediately (skip LLM for safety)
+    if lane == ApplicabilityLane.REFUSE:
+        state.draft_response = generate_refusal_response(state.query, "safety")
 
     # v37: Sync stakes class to MemoryContext EnvBand
     if state.memory_context is not None:
@@ -569,7 +581,10 @@ def _compute_888_metrics(
             metrics = compute_metrics(
                 state.query,
                 state.draft_response,
-                {"stakes_class": state.stakes_class.value},
+                {
+                    "stakes_class": state.stakes_class.value,
+                    "lane": state.applicability_lane,  # v45Ω Patch B
+                },
             )
         except Exception as e:
             # FAIL-CLOSED v43: Metrics computation failure → return None
@@ -603,19 +618,17 @@ def _compute_888_metrics(
 
     # ==========================================================================
     # v45Ω PATCH 2: Apply truth grounding with evidence validation
+    # Only apply to stub metrics; respect callback-provided metrics as authoritative
     # ==========================================================================
-    # Import truth grounding function
-    from ..enforcement.metrics import ground_truth_score
+    if not compute_metrics:  # Only ground truth for stub metrics
+        from ..enforcement.metrics import ground_truth_score
 
-    # Apply truth grounding based on query and response
-    grounded_truth = ground_truth_score(
-        query=state.query,
-        response=state.draft_response,
-        base_truth_score=metrics.truth,
-    )
-
-    # Update metrics with grounded truth score
-    metrics.truth = grounded_truth
+        grounded_truth = ground_truth_score(
+            query=state.query,
+            response=state.draft_response,
+            base_truth_score=metrics.truth,
+        )
+        metrics.truth = grounded_truth
     # ==========================================================================
 
     return metrics
@@ -679,6 +692,7 @@ def _apply_apex_floors(
         prompt=prompt,
         category=category,
         response_text=response_text,
+        lane=state.applicability_lane if state.applicability_lane else "UNKNOWN",  # v45Ω Patch B
     )
 
     return apex_verdict
