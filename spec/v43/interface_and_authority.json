@@ -6,6 +6,9 @@
   "_status": "SEALED",
   "_sealed_date": "2025-12-19",
   "_sealed_authority": "Muhammad Arif bin Fazil",
+  "_deprecated": true,
+  "_deprecation_notice": "LEGACY SPEC (v43 experimental): This file is retained for history only. Superseded by v44.0 Track B consolidation. AUTHORITATIVE SPECS: spec/v44/ directory. See spec/LEGACY_SPECS_README.md for details.",
+  "_migration_guide": "spec/LEGACY_SPECS_README.md",
 
   "identity": {
     "arifos_is_governor": true,

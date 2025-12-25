@@ -4,6 +4,9 @@
   "spec_type": "genius_law",
   "description": "Machine-readable specification of GENIUS LAW metrics for arifOS governance (v38Omega formalization, semantics unchanged from v36.1Omega).",
   "source": "https://github.com/ariffazil/arifOS",
+  "_deprecated": true,
+  "_deprecation_notice": "LEGACY SPEC: This file is retained for history/tests only. AUTHORITATIVE SPEC: spec/v44/genius_law.json (v44.0). To enable legacy fallback, set ARIFOS_ALLOW_LEGACY_SPEC=1 (default OFF). See spec/LEGACY_SPECS_README.md for details.",
+  "_migration_guide": "spec/LEGACY_SPECS_README.md",
 
   "metrics": {
     "G": {

@@ -24,24 +24,33 @@ This suite provides end-to-end testing of arifOS constitutional governance with 
 
 ```bash
 # Windows PowerShell (SEA-LION via OpenAI-compatible endpoint)
-$env:ARIF_LLM_API_KEY="your-api-key-here"
+$env:SEALION_API_KEY="your-sealion-api-key"        # SEA-LION specific key
 $env:ARIF_LLM_API_BASE="https://api.sealion.ai/v1"  # Example endpoint
-$env:ARIF_LLM_MODEL="Qwen-SEA-LION-v4-32B-IT"  # Default
-$env:ARIF_LLM_PROVIDER="sealion"  # Default
+$env:ARIF_LLM_MODEL="Qwen-SEA-LION-v4-32B-IT"       # Default
+$env:ARIF_LLM_PROVIDER="sealion"                    # Default
+
+# Or use universal key name (works for any provider)
+$env:ARIF_LLM_API_KEY="your-api-key-here"
 
 # Or use OpenAI models for testing
-$env:ARIF_LLM_API_KEY="sk-..."
+$env:OPENAI_API_KEY="sk-..."
 $env:ARIF_LLM_MODEL="gpt-4o-mini"
 $env:ARIF_LLM_PROVIDER="openai"
 
 # Linux/Mac (SEA-LION)
-export ARIF_LLM_API_KEY="your-api-key-here"
+export SEALION_API_KEY="your-sealion-api-key"
 export ARIF_LLM_API_BASE="https://api.sealion.ai/v1"
 export ARIF_LLM_MODEL="Qwen-SEA-LION-v4-32B-IT"
 export ARIF_LLM_PROVIDER="sealion"
 ```
 
-**Note:** The harness defaults to SEA-LION but can test any LiteLLM-compatible model by setting env vars or using `--model` and `--provider` flags.
+**API Key Priority:** The harness checks for API keys in this order:
+1. `ARIF_LLM_API_KEY` (universal)
+2. `SEALION_API_KEY` (SEA-LION specific)
+3. `LLM_API_KEY` (generic)
+4. `OPENAI_API_KEY` (OpenAI specific)
+
+**Note:** SEA-LION users can now set `SEALION_API_KEY` directly; no duplication required. The harness defaults to SEA-LION but can test any LiteLLM-compatible model by setting env vars or using `--model` and `--provider` flags.
 
 ### 2. Run Smoke Test (5 cases, ~30 seconds)
 

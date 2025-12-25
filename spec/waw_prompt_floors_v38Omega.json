@@ -4,6 +4,9 @@
   "spec_type": "waw_prompt_floors",
   "description": "Machine-readable specification for W@W Federation and @PROMPT Organ (v38Omega formalization of v36.3Omega semantics).",
   "source": "https://github.com/ariffazil/arifOS",
+  "_deprecated": true,
+  "_deprecation_notice": "LEGACY SPEC: This file is retained for history/tests only. AUTHORITATIVE SPEC: spec/v44/waw_prompt_floors.json (v44.0). To enable legacy fallback, set ARIFOS_ALLOW_LEGACY_SPEC=1 (default OFF). See spec/LEGACY_SPECS_README.md for details.",
+  "_migration_guide": "spec/LEGACY_SPECS_README.md",
 
   "waw_federation": {
     "description": "Five-organ governance system evaluating outputs from domain perspectives",

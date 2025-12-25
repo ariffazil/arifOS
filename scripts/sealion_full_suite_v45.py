@@ -95,26 +95,40 @@ def validate_environment() -> Dict[str, str]:
     Raises:
         ValueError if API key is missing
     """
-    api_key = (
-        os.getenv("ARIF_LLM_API_KEY")
-        or os.getenv("LLM_API_KEY")
-        or os.getenv("OPENAI_API_KEY")
-    )
+    # Check API keys in priority order
+    api_key_source = None
+    api_key = os.getenv("ARIF_LLM_API_KEY")
+    if api_key:
+        api_key_source = "ARIF_LLM_API_KEY"
+    else:
+        api_key = os.getenv("SEALION_API_KEY")
+        if api_key:
+            api_key_source = "SEALION_API_KEY"
+        else:
+            api_key = os.getenv("LLM_API_KEY")
+            if api_key:
+                api_key_source = "LLM_API_KEY"
+            else:
+                api_key = os.getenv("OPENAI_API_KEY")
+                if api_key:
+                    api_key_source = "OPENAI_API_KEY"
 
     if not api_key:
         raise ValueError(
             "❌ API Key not found!\n\n"
             "Set one of these environment variables:\n"
-            "  - ARIF_LLM_API_KEY\n"
-            "  - LLM_API_KEY\n"
-            "  - OPENAI_API_KEY\n\n"
+            "  - ARIF_LLM_API_KEY (universal)\n"
+            "  - SEALION_API_KEY (SEA-LION specific)\n"
+            "  - LLM_API_KEY (generic)\n"
+            "  - OPENAI_API_KEY (OpenAI specific)\n\n"
             "Example (Windows PowerShell):\n"
-            "  $env:ARIF_LLM_API_KEY='your-api-key'\n\n"
+            "  $env:SEALION_API_KEY='your-api-key'\n\n"
             "Example (Linux/Mac):\n"
-            "  export ARIF_LLM_API_KEY='your-api-key'\n"
+            "  export SEALION_API_KEY='your-api-key'\n"
         )
 
     env_vars = {
+        "api_key_source": api_key_source,  # Track which key was used
         "ARIF_LLM_API_KEY": "***hidden***",
         "ARIF_LLM_MODEL": os.getenv("ARIF_LLM_MODEL", "not set"),
         "ARIF_LLM_PROVIDER": os.getenv("ARIF_LLM_PROVIDER", "not set"),

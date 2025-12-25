@@ -1,11 +1,12 @@
 """
-genius_metrics.py — GENIUS LAW Measurement (v38Omega Standard)
+genius_metrics.py — GENIUS LAW Measurement (v44.0 Track B Authority)
 
 Implements the GENIUS LAW measurement layer for arifOS.
 
-v38Omega: Canonical measurement for G, C_dark, and Psi_APEX.
-Thresholds now loaded from spec/genius_law_v38Omega.json.
-Semantics unchanged from v36.1Omega - this is a formalization release.
+v44.0 Track B Consolidation:
+Thresholds loaded from spec/v44/genius_law.json (AUTHORITATIVE).
+Falls back to legacy spec only if ARIFOS_ALLOW_LEGACY_SPEC=1.
+Semantics unchanged from v36.1Omega/v38Omega - threshold source consolidated.
 
 This module provides:
 1. Delta/Omega/Psi score computation from existing Metrics
@@ -14,15 +15,14 @@ This module provides:
 4. System Vitality (Psi_APEX) - global health metric
 5. GeniusVerdict dataclass for telemetry
 
-Key formulas (v36.1Omega, formalized in v38Omega):
+Key formulas (v36.1Omega, unchanged in v44.0):
     G = normalize(A x P x E x X)           [0, 1.2]
     C_dark = normalize(A x (1-P) x (1-X) x E)  [0, 1]
     Psi = (DeltaS x Peace2 x KappaR x RASA x Amanah) / (Entropy + epsilon)
 
 For full measurement spec, see:
-    spec/genius_law_v38Omega.json (primary source)
-    canon/02_GENIUS_LAW_v38Omega.md (canonical documentation)
-    arifos_eval/apex/APEX_MEASUREMENT_STANDARDS_v36.1Omega.md (detailed standard)
+    spec/v44/genius_law.json (Track B authority - v44.0)
+    L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md (Track A canon)
 """
 
 from __future__ import annotations
@@ -32,6 +32,10 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Any
+
+# Import schema validator and manifest verifier from spec package (avoids circular import)
+from arifos_core.spec.schema_validator import validate_spec_against_schema
+from arifos_core.spec.manifest_verifier import verify_manifest
 
 # v42: Use relative import to avoid circular dependency
 # (arifos_core/__init__.py imports from here, so we can't use absolute arifos_core.metrics)
@@ -46,40 +50,98 @@ from .metrics import (
 
 
 # =============================================================================
-# v38Omega SPEC LOADER
+# TRACK B SPEC LOADER (v44.0: GENIUS LAW Authority)
 # =============================================================================
 
 def _load_genius_spec_v38() -> dict:
     """
-    Load the v38Omega GENIUS LAW spec.
+    Load GENIUS LAW spec from spec/v44/genius_law.json (v44.0 Track B Authority).
 
-    Tries multiple locations:
-    1. spec/genius_law_v38Omega.json (relative to package)
-    2. ARIFOS_GENIUS_SPEC environment variable
-    3. Falls back to hardcoded defaults (identical to v36.1Omega)
+    Priority (fail-closed by default):
+    A) ARIFOS_GENIUS_SPEC env var (explicit override)
+    B) spec/v44/genius_law.json (AUTHORITATIVE - v44.0)
+    C) HARD FAIL (unless ARIFOS_ALLOW_LEGACY_SPEC=1)
+
+    Optional Legacy Fallback (enabled only if ARIFOS_ALLOW_LEGACY_SPEC=1):
+    C) spec/genius_law_v38Omega.json (legacy)
+    D) Hardcoded defaults (last resort)
 
     Returns:
         dict: The loaded spec, or a minimal fallback
+
+    Raises:
+        RuntimeError: If v44 spec missing/invalid and ARIFOS_ALLOW_LEGACY_SPEC not enabled
     """
-    # Try relative to this file (arifos_core/genius_metrics.py -> ../spec/)
-    pkg_dir = Path(__file__).resolve().parent.parent
-    spec_path = pkg_dir / "spec" / "genius_law_v38Omega.json"
+    pkg_dir = Path(__file__).resolve().parent.parent.parent  # repo root
+    allow_legacy = os.getenv("ARIFOS_ALLOW_LEGACY_SPEC", "0") == "1"
+    v44_schema_path = pkg_dir / "spec" / "v44" / "schema" / "genius_law.schema.json"
 
-    # Allow override via environment variable
+    # Verify cryptographic manifest (tamper-evident integrity for v44 specs)
+    manifest_path = pkg_dir / "spec" / "v44" / "MANIFEST.sha256.json"
+    verify_manifest(pkg_dir, manifest_path, allow_legacy=allow_legacy)
+
+    # Priority A: Environment variable override
     env_path = os.getenv("ARIFOS_GENIUS_SPEC")
-    if env_path:
-        spec_path = Path(env_path)
+    if env_path and Path(env_path).exists():
+        env_spec_path = Path(env_path).resolve()
 
-    if spec_path.exists():
+        # Strict mode: env override must point to spec/v44/ (manifest-covered files only)
+        if not allow_legacy:
+            v44_dir = (pkg_dir / "spec" / "v44").resolve()
+            try:
+                env_spec_path.relative_to(v44_dir)  # Check if within spec/v44/
+            except ValueError:
+                # Path is outside spec/v44/ - reject in strict mode
+                raise RuntimeError(
+                    f"TRACK B AUTHORITY FAILURE: Environment override points to path outside spec/v44/.\n"
+                    f"  Override path: {env_spec_path}\n"
+                    f"  Expected within: {v44_dir}\n"
+                    f"In strict mode, only manifest-covered files (spec/v44/) are allowed.\n"
+                    f"Set ARIFOS_ALLOW_LEGACY_SPEC=1 to bypass (NOT RECOMMENDED)."
+                )
+
         try:
-            with spec_path.open("r", encoding="utf-8") as f:
+            with open(env_path, "r", encoding="utf-8") as f:
+                spec_data = json.load(f)
+            # Schema validation (Track B authority enforcement)
+            validate_spec_against_schema(spec_data, v44_schema_path, allow_legacy=allow_legacy)
+            return spec_data
+        except (json.JSONDecodeError, IOError):
+            pass
+
+    # Priority B: spec/v44/genius_law.json (AUTHORITATIVE)
+    v44_path = pkg_dir / "spec" / "v44" / "genius_law.json"
+    if v44_path.exists():
+        try:
+            with open(v44_path, "r", encoding="utf-8") as f:
+                spec_data = json.load(f)
+            # Schema validation (Track B authority enforcement)
+            validate_spec_against_schema(spec_data, v44_schema_path, allow_legacy=allow_legacy)
+            return spec_data
+        except (json.JSONDecodeError, IOError):
+            pass
+
+    # Priority C: HARD FAIL (unless legacy fallback enabled)
+    if not allow_legacy:
+        raise RuntimeError(
+            "TRACK B AUTHORITY FAILURE: spec/v44/genius_law.json missing or invalid. "
+            "To enable legacy fallback (NOT RECOMMENDED), set ARIFOS_ALLOW_LEGACY_SPEC=1."
+        )
+
+    # --- LEGACY FALLBACK (only if ARIFOS_ALLOW_LEGACY_SPEC=1) ---
+
+    # Priority C (legacy): spec/genius_law_v38Omega.json
+    v38_path = pkg_dir / "spec" / "genius_law_v38Omega.json"
+    if v38_path.exists():
+        try:
+            with open(v38_path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except (json.JSONDecodeError, IOError):
-            pass  # Fall through to defaults
+            pass
 
-    # Fallback: return minimal spec with v36.1Omega-identical values
+    # Priority D (legacy): Hardcoded defaults
     return {
-        "version": "v38.0.0-fallback",
+        "version": "v38.0.0-fallback (LEGACY)",
         "metrics": {
             "G": {"thresholds": {"seal": 0.80, "void": 0.50}},
             "C_dark": {"thresholds": {"seal": 0.30, "sabar_warn": 0.60}},
@@ -272,8 +334,10 @@ def compute_dark_cleverness(
 # TRUTH POLARITY (v36.1Ω)
 # =============================================================================
 
-# Truth Polarity constants
-TRUTH_POLARITY_THRESHOLD = 0.99  # Truth floor for polarity detection
+# Truth Polarity constants (derived from constitutional floors)
+# NOTE: TRUTH_POLARITY_THRESHOLD is now an alias to TRUTH_THRESHOLD (v44.0 consolidation)
+# Kept for backward compatibility with existing tests
+TRUTH_POLARITY_THRESHOLD = TRUTH_THRESHOLD  # Alias for backward compatibility
 
 
 def detect_truth_polarity(
@@ -304,7 +368,7 @@ def detect_truth_polarity(
             is_weaponized: True if Weaponized Truth detected
             eval_recommendation: "SEAL" | "SABAR" | "VOID" (what eval layer would suggest)
     """
-    truth_passes = truth >= TRUTH_POLARITY_THRESHOLD
+    truth_passes = truth >= TRUTH_THRESHOLD  # Use constitutional floor threshold (spec/v44/)
     delta_s_positive = delta_s >= 0
 
     if not truth_passes:
@@ -638,7 +702,7 @@ __all__ = [
     "G_MIN_THRESHOLD",
     "C_DARK_MAX_THRESHOLD",
     "PSI_APEX_MIN",
-    "TRUTH_POLARITY_THRESHOLD",
+    "TRUTH_POLARITY_THRESHOLD",  # v44.0: Alias to TRUTH_THRESHOLD (backward compatibility)
     # Score functions
     "compute_delta_score",
     "compute_omega_score",

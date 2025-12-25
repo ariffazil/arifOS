@@ -4,6 +4,9 @@
   "spec_type": "cooling_ledger_phoenix",
   "description": "Machine-readable specification for Cooling Ledger and Phoenix-72 Amendment Engine (v42.1).",
   "source": "https://github.com/ariffazil/arifOS",
+  "_deprecated": true,
+  "_deprecation_notice": "LEGACY SPEC: This file is retained for history/tests only. AUTHORITATIVE SPEC: spec/v44/cooling_ledger_phoenix.json (v44.0). To enable legacy fallback, set ARIFOS_ALLOW_LEGACY_SPEC=1 (default OFF). See spec/LEGACY_SPECS_README.md for details.",
+  "_migration_guide": "spec/LEGACY_SPECS_README.md",
 
   "cooling_ledger": {
     "description": "Append-only hash-chained audit trail for governed interactions",

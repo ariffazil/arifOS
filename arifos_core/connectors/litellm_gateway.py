@@ -68,19 +68,28 @@ class LiteLLMConfig:
         # Read from environment with fallbacks
         self.provider = provider or os.getenv("ARIF_LLM_PROVIDER", "openai")
         self.api_base = api_base or os.getenv("ARIF_LLM_API_BASE")
-        self.api_key = api_key or os.getenv("ARIF_LLM_API_KEY")
+
+        # Check API key with priority fallback
+        self.api_key = (
+            api_key
+            or os.getenv("ARIF_LLM_API_KEY")
+            or os.getenv("SEALION_API_KEY")
+            or os.getenv("LLM_API_KEY")
+            or os.getenv("OPENAI_API_KEY")
+        )
+
         self.model = model or os.getenv(
-            "ARIF_LLM_MODEL", 
+            "ARIF_LLM_MODEL",
             "aisingapore/Llama-SEA-LION-v3-70B-IT"
         )
         self.temperature = temperature
         self.max_tokens = max_tokens
-        
+
         # Validate required fields
         if not self.api_key:
             raise ValueError(
-                "API key required. Set ARIF_LLM_API_KEY environment variable "
-                "or pass api_key parameter."
+                "API key required. Set one of: ARIF_LLM_API_KEY, SEALION_API_KEY, "
+                "LLM_API_KEY, OPENAI_API_KEY, or pass api_key parameter."
             )
 
 

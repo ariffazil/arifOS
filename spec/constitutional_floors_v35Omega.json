@@ -3,6 +3,9 @@
   "spec_type": "constitutional_floors",
   "description": "Machine-readable specification of the 8 constitutional floors for arifOS governance",
   "source": "https://github.com/ariffazil/arifOS",
+  "_deprecated": true,
+  "_deprecation_notice": "LEGACY SPEC: This file is retained for history/tests only. AUTHORITATIVE SPEC: spec/v44/constitutional_floors.json (v44.0). To enable legacy fallback, set ARIFOS_ALLOW_LEGACY_SPEC=1 (default OFF). See spec/LEGACY_SPECS_README.md for details.",
+  "_migration_guide": "spec/LEGACY_SPECS_README.md",
 
   "floors": {
     "truth": {
