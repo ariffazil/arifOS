@@ -14,6 +14,10 @@ Phase 2 (Veto Logic & Core Governance):
     - mcp_666_align: ABSOLUTE VETO GATES (F1/F8/F9)
     - mcp_777_forge: Clarity refinement & humility injection
     - mcp_888_judge: Final verdict aggregation (decision tree)
+
+Phase 3 (Cryptographic Audit Trail):
+    - mcp_889_proof: Merkle tree proof generation
+    - mcp_999_seal: Final verdict sealing & memory routing
 """
 
 # Phase 1 tools (Foundation)
@@ -27,6 +31,10 @@ from .mcp_555_empathize import mcp_555_empathize, mcp_555_empathize_sync
 from .mcp_666_align import mcp_666_align, mcp_666_align_sync
 from .mcp_777_forge import mcp_777_forge, mcp_777_forge_sync
 from .mcp_888_judge import mcp_888_judge, mcp_888_judge_sync
+
+# Phase 3 tools (Cryptographic Audit Trail)
+from .mcp_889_proof import mcp_889_proof, mcp_889_proof_sync
+from .mcp_999_seal import mcp_999_seal, mcp_999_seal_sync
 
 # Legacy tools (existing)
 from .judge import arifos_judge
@@ -53,6 +61,11 @@ __all__ = [
     "mcp_777_forge_sync",
     "mcp_888_judge",
     "mcp_888_judge_sync",
+    # Phase 3
+    "mcp_889_proof",
+    "mcp_889_proof_sync",
+    "mcp_999_seal",
+    "mcp_999_seal_sync",
     # Legacy
     "arifos_judge",
     "arifos_recall",
