@@ -10,7 +10,11 @@ either directly or through the run_tool dispatcher.
 
 from __future__ import annotations
 
+import sys
 from typing import Any, Callable, Dict, Optional
+
+from mcp.server import Server
+from mcp.server.stdio import stdio_server
 
 from .models import (
     JudgeRequest,
@@ -569,6 +573,51 @@ class MCPServer:
                 "phase_3": ["mcp_889_proof", "mcp_999_seal"],
             },
         }
+
+    async def run_stdio(self) -> None:
+        """
+        Run the MCP server using stdio transport.
+
+        This method initializes the MCP SDK server, registers all 15 tools,
+        and runs the stdio transport for IDE integration (VSCode/Cursor).
+
+        Constitutional: F1 (Amanah) - Clean session lifecycle with graceful shutdown.
+        """
+        # Create MCP Server instance
+        server = Server(self.name)
+
+        # Register all tools dynamically
+        tool_descriptions = get_tool_descriptions()
+
+        for tool_name, tool_desc in tool_descriptions.items():
+            # Create handler closure for each tool
+            async def make_handler(name: str):
+                async def handler(**kwargs) -> Dict[str, Any]:
+                    """Tool handler that calls run_tool."""
+                    result = run_tool(name, kwargs)
+                    return result if result else {"error": f"Tool {name} returned no result"}
+                return handler
+
+            # Register tool with MCP server
+            handler_func = await make_handler(tool_name)
+            server.add_tool(
+                name=tool_name,
+                description=tool_desc.get("description", ""),
+                parameters=tool_desc.get("parameters", {}),
+                handler=handler_func
+            )
+
+        # Run stdio transport
+        print(f"[arifOS MCP] Starting server: {self.name} v1.0.0", file=sys.stderr)
+        print(f"[arifOS MCP] Tools registered: {len(tool_descriptions)}", file=sys.stderr)
+        print("[arifOS MCP] Stdio transport active. Ready for IDE connection.", file=sys.stderr)
+
+        async with stdio_server() as (read_stream, write_stream):
+            await server.run(
+                read_stream,
+                write_stream,
+                server.create_initialization_options()
+            )
 
 
 # Default server instance
