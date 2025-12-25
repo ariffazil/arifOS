@@ -200,6 +200,12 @@ class PipelineState:
     # v44 Session Physics
     session_telemetry: Optional[SessionTelemetry] = None
 
+    # v45Ω Patch B.2: LLM Call Audit Trail (Refusal Sovereignty)
+    llm_called: bool = False              # Was LLM invoked?
+    llm_call_count: int = 0               # How many times?
+    llm_call_stages: List[str] = field(default_factory=list)  # Which stages?
+    audit_receipt: Optional[AuditReceipt] = None  # Governance proof
+
     # Timing
     start_time: float = field(default_factory=time.time)
     stage_times: Dict[str, float] = field(default_factory=dict)
@@ -238,6 +244,66 @@ class PipelineState:
             if signal.organ_id == organ_id:
                 return signal.vote.value
         return "N/A"
+
+
+# =============================================================================
+# v45Ω Patch B.2: AUDIT & SAFETY STRUCTURES
+# =============================================================================
+
+
+@dataclass
+class AuditReceipt:
+    """
+    v45Ω Patch B.2: Audit receipt proving governance execution.
+
+    Provides cryptographic-grade proof of:
+    - Whether LLM was invoked (refusal sovereignty)
+    - Which gates/stages were executed
+    - Final verdict and floor results
+    """
+
+    job_id: str
+    timestamp: float
+
+    # Lane & Classification
+    lane: str  # PHATIC/SOFT/HARD/REFUSE
+    stakes_class: str  # CLASS_A/CLASS_B
+
+    # LLM Audit Trail (CRITICAL for Refusal Sovereignty)
+    llm_called: bool  # Sovereignty proof
+    llm_call_count: int  # How many invocations
+    llm_call_stages: List[str]  # Which stages (e.g., ["333_REASON"])
+
+    # Verdict
+    verdict: str  # SEAL/VOID/PARTIAL/SABAR/HOLD_888
+    floor_failures: List[str]  # Which floors failed
+
+    # Execution trace
+    stage_trace: List[str]  # Pipeline stages executed
+    execution_time_ms: float  # Total time
+
+    # Optional
+    high_stakes_indicators: List[str] = field(default_factory=list)
+    refusal_reason: Optional[str] = None  # If REFUSE lane
+
+
+@dataclass
+class SafetyDecision:
+    """
+    v45Ω Patch B.2: Safety classification (STUB - minimal implementation).
+
+    Future: Full intent taxonomy with category enums.
+    Current: Just captures high-stakes flag for compatibility.
+    """
+
+    is_high_stakes: bool
+    indicators: List[str]
+    lane_override: Optional[str] = None  # Force REFUSE if needed
+
+    # Future fields (not implemented yet):
+    # category: IntentCategory
+    # tier_required: Tier  # T1-T4
+    # forced_before_llm: bool
 
 
 # =============================================================================
@@ -300,14 +366,37 @@ def _detect_destructive_intent(query: str) -> bool:
     Detect destruction + critical target combinations.
 
     v45Ω Patch B.1: Arson/infrastructure attack detection.
+    v45Ω Patch B.2: Weapons manufacturing detection (no target required).
     Conservative false positive (refusal) is safer than false negative.
 
     Returns:
-        True if query contains both destruction keyword AND critical target
+        True if:
+        - Query contains weapons manufacturing keywords (e.g., "make bomb"), OR
+        - Query contains destruction keyword AND critical target
     """
     q = query.lower()
 
+    # v45Ω Patch B.2: Weapons manufacturing - refuse regardless of target
+    weapons_manufacturing = [
+        "make bomb",
+        "build bomb",
+        "create bomb",
+        "assemble bomb",
+        "buat bom",  # make bomb (Malay)
+        "rakit bom",  # assemble bomb (Malay)
+        "cara buat bom",  # how to make bomb (Malay)
+        "macam mana nak buat bom",  # how to make bomb (Malay)
+        "how to make bomb",
+        "how to build bomb",
+        "how to create bomb",
+    ]
+
+    # Check weapons manufacturing - refuse immediately
+    if any(kw in q for kw in weapons_manufacturing):
+        return True
+
     destruction_keywords = [
+        # English
         "burn",
         "arson",
         "set fire",
@@ -317,6 +406,14 @@ def _detect_destructive_intent(query: str) -> bool:
         "demolish",
         "blow up",
         "detonate",
+        # Malay/Indonesian (SEA-LION support)
+        "bakar",  # burn
+        "membakar",  # burning
+        "musnahkan",  # destroy
+        "hancurkan",  # demolish
+        "letupkan",  # detonate
+        "meletup",  # explode
+        "ledak",  # explode
     ]
 
     critical_targets = [
@@ -375,7 +472,7 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
         "should i",
         "is it ethical",
         "morally",
-        # v45Ω Patch B.1: Arson & destruction patterns
+        # v45Ω Patch B.1: Arson & destruction patterns (English)
         "burn",
         "arson",
         "set fire",
@@ -390,6 +487,22 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
         "damage infrastructure",
         "sabotage",
         "attack building",
+        # v45Ω Patch B.1: Malay/Indonesian (SEA-LION support)
+        "bakar",
+        "membakar",
+        "musnahkan",
+        "hancurkan",
+        "letupkan",
+        "meletup",
+        "bunuh",  # kill
+        "bahaya",  # danger
+        # v45Ω Patch B.2: Weapons (Malay/Indonesian)
+        "bom",  # bomb
+        "peluru",  # bullet
+        "senjata",  # weapon
+        "pisau",  # knife
+        "racun",  # poison
+        "bahan letupan",  # explosives
     ]
 
     query_lower = state.query.lower()
@@ -515,6 +628,11 @@ def stage_333_reason(
 
     if llm_generate:
         state.draft_response = llm_generate("\n".join(prompt_parts))
+
+        # v45Ω Patch B.2: Track LLM call
+        state.llm_called = True
+        state.llm_call_count += 1
+        state.llm_call_stages.append("333_REASON")
     else:
         # Stub: echo query
         state.draft_response = f"[333_REASON] Structured response for: {state.query}"
@@ -624,6 +742,12 @@ def stage_777_forge(
     state.stage_trace.append("777_FORGE")
     state.stage_times["777"] = time.time()
 
+    # v45Ω Patch B.2: Skip LLM if REFUSE lane already drafted refusal
+    # CRITICAL: Never let LLM respond to REFUSE lane queries
+    if state.applicability_lane == "REFUSE" and state.draft_response:
+        # Refusal already drafted in stage_111 - do NOT call LLM
+        return state
+
     # For Class B, we refine the draft with empathy
     if state.stakes_class == StakesClass.CLASS_B:
         if llm_generate:
@@ -634,6 +758,11 @@ def stage_777_forge(
                 "Ensure dignity is preserved. Add appropriate caveats."
             )
             state.draft_response = llm_generate(forge_prompt)
+
+            # v45Ω Patch B.2: Track LLM call
+            state.llm_called = True
+            state.llm_call_count += 1
+            state.llm_call_stages.append("777_FORGE")
         else:
             state.draft_response = f"[777_FORGE] Empathic refinement: {state.draft_response}"
 
@@ -1588,6 +1717,34 @@ def stage_999_seal(state: PipelineState) -> PipelineState:
         except Exception:
             # Fail-open: L7 errors don't break pipeline
             pass
+
+    # v45Ω Patch B.2: Generate audit receipt
+    # Extract verdict string safely
+    if state.verdict:
+        if hasattr(state.verdict, "verdict") and hasattr(state.verdict.verdict, "value"):
+            verdict_str = state.verdict.verdict.value  # ApexVerdict
+        elif hasattr(state.verdict, "value"):
+            verdict_str = state.verdict.value  # Verdict Enum
+        else:
+            verdict_str = str(state.verdict)
+    else:
+        verdict_str = "UNKNOWN"
+
+    state.audit_receipt = AuditReceipt(
+        job_id=state.job_id,
+        timestamp=time.time(),
+        lane=state.applicability_lane or "UNKNOWN",
+        stakes_class=state.stakes_class.name,  # Use .name for "CLASS_A" not "A"
+        llm_called=state.llm_called,
+        llm_call_count=state.llm_call_count,
+        llm_call_stages=state.llm_call_stages,
+        verdict=verdict_str,
+        floor_failures=state.floor_failures,
+        stage_trace=state.stage_trace,
+        execution_time_ms=(time.time() - state.start_time) * 1000,
+        high_stakes_indicators=state.high_stakes_indicators,
+        refusal_reason=state.sabar_reason if state.applicability_lane == "REFUSE" else None,
+    )
 
     return state
 
