@@ -140,3 +140,48 @@ class ApexLlamaResponse(BaseModel):
     error: Optional[str] = Field(
         default=None, description="Error message if call failed"
     )
+
+
+# =============================================================================
+# UNIVERSAL VERDICT RESPONSE (Phase 1 Foundation)
+# =============================================================================
+
+class VerdictResponse(BaseModel):
+    """
+    Universal verdict response for MCP tools.
+
+    Used by constitutional tools (000, 111, etc.) to return structured verdicts.
+    All tools MUST use this format for consistency and auditability.
+
+    Constitutional grounding:
+    - F1 (Amanah): Verdict is explicit, not hidden
+    - F2 (Truth): Reason explains verdict honestly
+    - F4 (ΔS): Structured output reduces confusion
+    """
+
+    verdict: str = Field(
+        ...,
+        description="Verdict (PASS/PARTIAL/VOID/SEAL/SABAR/HOLD/WARN/VETO)"
+    )
+    reason: str = Field(..., description="Explanation of verdict")
+    floor_trace: Optional[List[str]] = Field(
+        default=None, description="Which floors were checked (if any)"
+    )
+    metrics: Optional[Dict[str, Any]] = Field(
+        default=None, description="Floor metrics (if computed)"
+    )
+    side_data: Optional[Dict[str, Any]] = Field(
+        default=None, description="Tool-specific data (lane, session_id, etc.)"
+    )
+    timestamp: Optional[str] = Field(default=None, description="ISO-8601 timestamp")
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for JSON serialization."""
+        return {
+            "verdict": self.verdict,
+            "reason": self.reason,
+            "floor_trace": self.floor_trace,
+            "metrics": self.metrics,
+            "side_data": self.side_data,
+            "timestamp": self.timestamp,
+        }

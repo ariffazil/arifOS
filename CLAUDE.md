@@ -150,6 +150,52 @@ L1_THEORY/canon/       # Constitutional law documents (read-only canon)
 
 ---
 
+## Source Verification Protocol
+
+**HARD RULE:** Constitutional claims MUST be verified against PRIMARY sources.
+
+### Source Authority Tiers
+
+**PRIMARY (Authoritative — REQUIRED for constitutional claims):**
+
+1. `spec/v42/*.json` — Constitutional floors, GENIUS law, thresholds
+2. `L1_THEORY/canon/*_v42.md` with SEALED status — Canonical law
+
+**SECONDARY (Implementation Reference):**
+
+1. `arifos_core/*.py` — Runtime enforcement (APEX_PRIME, metrics)
+
+**TERTIARY (Informational Only — may lag behind PRIMARY):**
+
+1. `docs/*.md` — User documentation
+2. `README.md`, `SECURITY.md` — Getting started guides
+
+**NOT EVIDENCE:**
+
+- ❌ grep/search results (discovery, not verification)
+- ❌ Comments in code or tests (may reflect outdated understanding)
+- ❌ This instruction file (summary only, not law)
+
+### Mandatory Verification Process
+
+**Before making ANY constitutional claim:**
+
+1. ☐ Read PRIMARY source (spec JSON or SEALED canon)
+2. ☐ Verify claim matches EXACT definition/threshold
+3. ☐ If conflict detected → **ESCALATE TO 888_HOLD**
+4. ☐ Document which PRIMARY source was verified
+
+**Constitutional claims include:**
+
+- Floor thresholds (F1-F9)
+- Verdict conditions (SEAL/PARTIAL/VOID/SABAR/888_HOLD)
+- Metric formulas (G, C_dark, Psi)
+- Process requirements (Stage 000-999 rules)
+
+**If you cannot answer "Which PRIMARY source did I read?" → you have NOT verified.**
+
+---
+
 ## Development Workflows
 
 ### Adding a New Floor Detector
@@ -190,6 +236,115 @@ L1_THEORY/canon/       # Constitutional law documents (read-only canon)
    ```
 
 6. Request human seal via `arifos-seal-canon`
+
+---
+
+## Code-Level Floor Enforcement
+
+**CRITICAL:** Constitutional floors apply to CODE you generate, not just statements you make. The governance layer extends INTO code generation.
+
+### F1-CODE: Amanah (Integrity in Code)
+
+**Law:** Code must be reversible. No silent side effects.
+
+```python
+# ❌ F1 VIOLATION - Irreversible without warning
+def process_data(items):
+    items.clear()  # Mutates input silently
+    return new_items
+
+# ✅ F1 COMPLIANT - Pure function, no side effects
+def process_data(items):
+    return [transform(item) for item in items]  # Input unchanged
+```
+
+### F2-CODE: Truth (Honest Data Structures)
+
+**Law:** Data must represent REALITY. Empty/null when data doesn't exist. Never fabricate evidence of work not performed.
+
+```python
+# ❌ F2 VIOLATION - Fabricating stages that didn't run
+session_data = {
+    "steps": [
+        {"name": "sense", "output": "Context gathered"},   # LIE - didn't run
+    ]
+}
+
+# ✅ F2 COMPLIANT - Honest representation
+session_data = {
+    "steps": []  # EMPTY - no stages ran, don't claim they did
+}
+```
+
+### F4-CODE: DeltaS (Clarity Gain)
+
+**Law:** Code must reduce confusion, not add it. No magic numbers.
+
+```python
+# ❌ F4 VIOLATION - Increases confusion
+if x > 0.95 and y < 0.30:  # What are these numbers?
+    return "SEAL"
+
+# ✅ F4 COMPLIANT - Self-documenting
+TRUTH_THRESHOLD = 0.95
+DARK_CLEVERNESS_CEILING = 0.30
+
+if truth >= TRUTH_THRESHOLD and c_dark < DARK_CLEVERNESS_CEILING:
+    return "SEAL"
+```
+
+### F5-CODE: Peace² (Non-Destructive Operations)
+
+**Law:** Code must not destroy data, corrupt state, or cause harm.
+
+```python
+# ❌ F5 VIOLATION - Destructive default
+def cleanup(path: str = "/"):
+    shutil.rmtree(path)  # Could delete entire filesystem!
+
+# ✅ F5 COMPLIANT - Safe defaults, explicit destruction
+def cleanup(path: str):
+    if not path or path == "/":
+        raise ValueError("Refusing to delete root or empty path")
+    # Proceed with caution...
+```
+
+### F7-CODE: Omega0 (Humility - State Uncertainty)
+
+**Law:** Code must acknowledge what it doesn't know. Never fake confidence.
+
+```python
+# ❌ F7 VIOLATION - False certainty
+def analyze(text) -> dict:
+    return {"sentiment": "positive", "confidence": 1.0}  # Impossible certainty
+
+# ✅ F7 COMPLIANT - Honest uncertainty
+def analyze(text) -> dict:
+    score = model.predict(text)
+    return {
+        "sentiment": "positive" if score > 0.5 else "negative",
+        "confidence": min(score, 0.95),  # Cap at 0.95
+        "uncertainty": "Model prediction, not ground truth"
+    }
+```
+
+### F8-CODE: G (Governed Intelligence)
+
+**Law:** Code must follow established patterns and governance structures.
+
+```python
+# ❌ F8 VIOLATION - Bypassing governance
+def process_query(query):
+    return llm.generate(query)  # Raw, ungoverned LLM output!
+
+# ✅ F8 COMPLIANT - Through governance layer
+def process_query(query):
+    from arifos_core.system.pipeline import run_governed_query
+    verdict = run_governed_query(query)
+    if verdict.status == "VOID":
+        return {"error": "Query blocked by constitutional review"}
+    return verdict.output
+```
 
 ---
 
@@ -308,12 +463,30 @@ SABAR > VOID > 888_HOLD > PARTIAL > SEAL
 
 ## Important: File Integrity Protocol
 
-**NEVER "clean up" or "simplify" files by removing sections.** Append, don't rewrite. See [AGENTS.md:92](AGENTS.md#L92) (File Integrity & ACLIP Protocol) for full rules.
+**The "Janitor" Anti-Pattern is FORBIDDEN.** NEVER "clean up" or "simplify" files by removing sections. See [AGENTS.md:92](AGENTS.md#L92) for full rules.
 
-- ✅ **APPEND** new sections
-- ✅ **Surgical edits** only
+### Mandatory Practices
+
+- ✅ **APPEND** new sections (don't rewrite entire files)
+- ✅ **Surgical edits** only (change specific lines, not whole files)
+- ✅ **If new_tokens < old_tokens** → STOP and ask confirmation
 - ❌ **No full file rewrites** that remove content
 - ❌ **No new files** unless explicitly required (entropy control)
+- ❌ **No "alias" or "compatibility" files** without explicit approval
+
+### Entropy Control Rules
+
+**Default:** Do not add new files. Only add a file if:
+
+- Human explicitly requested it, OR
+- Build/tests/runtime requires it, OR
+- It reduces total entropy (removes duplication, replaces scattered docs)
+
+**If a reference points to non-existent file:**
+
+1. Search for the canonical existing file first
+2. Prefer fixing the reference over creating a new file
+3. If renaming/moving needed, stop and ask (avoid churn)
 
 **Critical Implementation Details:**
 - All file I/O must pass through FAG (File Access Governance) — direct `open()` is forbidden
@@ -326,6 +499,51 @@ SABAR > VOID > 888_HOLD > PARTIAL > SEAL
 - All new floor detectors require corresponding tests in [tests/](tests/)
 - Pipeline changes require both unit tests and integration tests
 - Breaking changes to constitutional law trigger 888_HOLD (requires human approval)
+
+---
+
+## 888_HOLD Expanded Triggers
+
+**MANDATORY HOLD** when any of these conditions are met:
+
+### High-Stakes Operations
+
+- Database operations (DROP, TRUNCATE, DELETE without WHERE)
+- Production deployments
+- Mass file changes (>10 files)
+- Credential/secret handling
+- Git history modification (rebase, force push)
+- Dependency major version upgrades
+
+### Evidence/Verification Failures (v41.2+)
+
+- **H-USER-CORRECTION:** User corrects or disputes a constitutional claim
+- **H-SOURCE-CONFLICT:** Conflicting evidence across source tiers (PRIMARY vs SECONDARY vs TERTIARY)
+- **H-NO-PRIMARY:** Constitutional claim made without reading spec JSON
+- **H-GREP-CONTRADICTS:** grep results contradict spec/canon patterns
+- **H-RUSHED-FIX:** Proposing fixes based on <5 minutes audit
+
+### 888_HOLD Action Sequence
+
+When HOLD triggered:
+
+1. **Declare:** "888_HOLD — [trigger type] detected"
+2. **List conflicts:** Show PRIMARY vs SECONDARY vs TERTIARY sources
+3. **Re-read PRIMARY:** Explicitly verify against spec JSON or SEALED canon
+4. **Await instruction:** Wait for human approval before proceeding
+
+---
+
+## Critical Anti-Patterns (What NOT to Do)
+
+1. **Do NOT create new files by default** — Only if human asks, build requires, or it reduces total entropy
+2. **Do NOT "clean up" existing files** — Append, don't rewrite (violates File Integrity Protocol)
+3. **Do NOT claim constitutional facts without reading PRIMARY sources** — Grep is discovery, not verification
+4. **Do NOT generate code that bypasses governance** — All LLM calls must go through arifOS pipeline
+5. **Do NOT create alias/compatibility files** — Fix the canonical reference instead
+6. **Do NOT fabricate session steps** — Only include steps that actually ran (F2-CODE violation)
+7. **Do NOT use magic numbers** — Use named constants (F4-CODE violation)
+8. **Do NOT mutate inputs silently** — Pure functions only (F1-CODE violation)
 
 ---
 

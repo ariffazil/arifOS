@@ -222,6 +222,91 @@ python scripts/trinity.py seal feat/my-changes "Feature complete and tested"
 
 Trinity demonstrates that complex governance can be made accessible without sacrificing constitutional rigor. Built for people with memory/cognitive challenges, benefiting everyone.
 
+### 1.9 Source Verification Protocol
+
+**HARD RULE:** Constitutional claims MUST be verified against PRIMARY sources.
+
+#### Source Authority Tiers
+
+**PRIMARY (Authoritative — REQUIRED for constitutional claims):**
+
+1. `spec/v42/*.json` — Constitutional floors, GENIUS law, thresholds
+2. `L1_THEORY/canon/*_v42.md` with SEALED status — Canonical law
+
+**SECONDARY (Implementation Reference):**
+
+1. `arifos_core/*.py` — Runtime enforcement (APEX_PRIME, metrics)
+
+**TERTIARY (Informational Only — may lag behind PRIMARY):**
+
+1. `docs/*.md` — User documentation
+2. `README.md`, `SECURITY.md`, `AGENTS.md`, `CLAUDE.md` — Getting started guides
+
+**NOT EVIDENCE:**
+
+- ❌ grep/search results (discovery, not verification)
+- ❌ Comments in code or tests (may reflect outdated understanding)
+- ❌ This instruction file (summary only, not law)
+
+#### Mandatory Verification Process
+
+**Before making ANY constitutional claim:**
+
+1. ☐ Read PRIMARY source (spec JSON or SEALED canon)
+2. ☐ Verify claim matches EXACT definition/threshold
+3. ☐ If conflict detected → **ESCALATE TO 888_HOLD**
+4. ☐ Document which PRIMARY source was verified
+
+**Constitutional claims include:**
+
+- Floor thresholds (F1-F9)
+- Verdict conditions (SEAL/PARTIAL/VOID/SABAR/888_HOLD)
+- Metric formulas (G, C_dark, Psi)
+- Process requirements (Stage 000-999 rules)
+
+**If you cannot answer "Which PRIMARY source did I read?" → you have NOT verified.**
+
+### 1.10 Critical Anti-Patterns (What NOT to Do)
+
+1. **Do NOT create new files by default** — Only if human asks, build requires, or it reduces total entropy
+2. **Do NOT "clean up" existing files** — Append, don't rewrite (violates File Integrity Protocol)
+3. **Do NOT claim constitutional facts without reading PRIMARY sources** — Grep is discovery, not verification
+4. **Do NOT generate code that bypasses governance** — All LLM calls must go through arifOS pipeline
+5. **Do NOT create alias/compatibility files** — Fix the canonical reference instead
+6. **Do NOT fabricate session steps** — Only include steps that actually ran (F2-CODE violation)
+7. **Do NOT use magic numbers** — Use named constants (F4-CODE violation)
+8. **Do NOT mutate inputs silently** — Pure functions only (F1-CODE violation)
+
+### 1.11 888_HOLD Expanded Triggers
+
+**MANDATORY HOLD** when any of these conditions are met:
+
+#### High-Stakes Operations
+
+- Database operations (DROP, TRUNCATE, DELETE without WHERE)
+- Production deployments
+- Mass file changes (>10 files)
+- Credential/secret handling
+- Git history modification (rebase, force push)
+- Dependency major version upgrades
+
+#### Evidence/Verification Failures (v41.2+)
+
+- **H-USER-CORRECTION:** User corrects or disputes a constitutional claim
+- **H-SOURCE-CONFLICT:** Conflicting evidence across source tiers (PRIMARY vs SECONDARY vs TERTIARY)
+- **H-NO-PRIMARY:** Constitutional claim made without reading spec JSON
+- **H-GREP-CONTRADICTS:** grep results contradict spec/canon patterns
+- **H-RUSHED-FIX:** Proposing fixes based on <5 minutes audit
+
+#### 888_HOLD Action Sequence
+
+When HOLD triggered:
+
+1. **Declare:** "888_HOLD — [trigger type] detected"
+2. **List conflicts:** Show PRIMARY vs SECONDARY vs TERTIARY sources
+3. **Re-read PRIMARY:** Explicitly verify against spec JSON or SEALED canon
+4. **Await instruction:** Wait for human approval before proceeding
+
 ## 2. NINE CONSTITUTIONAL FLOORS (Summary)
 
 **Logic:** All floors AND - every floor must PASS. Repair order: F1 first.
@@ -262,7 +347,165 @@ pytest tests/test_*_v38_alignment.py -v
 
 **Rule:** Spec is the single source of truth for thresholds. Canon documents the law. Tests verify alignment.
 
-### 2.2 v38.2 Hardening Cycle (Time as Governor)
+### 2.2 Code-Level Floor Enforcement
+
+**CRITICAL:** Constitutional floors apply to CODE you generate, not just statements you make. The governance layer extends INTO code generation.
+
+#### F1-CODE: Amanah (Integrity in Code)
+
+**Law:** Code must be reversible. No silent side effects.
+
+```python
+# ❌ F1 VIOLATION - Irreversible without warning
+def process_data(items):
+    items.clear()  # Mutates input silently
+    return new_items
+
+# ✅ F1 COMPLIANT - Pure function, no side effects
+def process_data(items):
+    return [transform(item) for item in items]  # Input unchanged
+```
+
+#### F2-CODE: Truth (Honest Data Structures)
+
+**Law:** Data must represent REALITY. Empty/null when data doesn't exist. Never fabricate evidence of work not performed.
+
+```python
+# ❌ F2 VIOLATION - Fabricating stages that didn't run
+session_data = {
+    "steps": [
+        {"name": "sense", "output": "Context gathered"},   # LIE - didn't run
+    ]
+}
+
+# ✅ F2 COMPLIANT - Honest representation
+session_data = {
+    "steps": []  # EMPTY - no stages ran, don't claim they did
+}
+```
+
+#### F4-CODE: DeltaS (Clarity Gain)
+
+**Law:** Code must reduce confusion, not add it. No magic numbers.
+
+```python
+# ❌ F4 VIOLATION - Increases confusion
+if x > 0.95 and y < 0.30:  # What are these numbers?
+    return "SEAL"
+
+# ✅ F4 COMPLIANT - Self-documenting
+TRUTH_THRESHOLD = 0.95
+DARK_CLEVERNESS_CEILING = 0.30
+
+if truth >= TRUTH_THRESHOLD and c_dark < DARK_CLEVERNESS_CEILING:
+    return "SEAL"
+```
+
+#### F5-CODE: Peace² (Non-Destructive Operations)
+
+**Law:** Code must not destroy data, corrupt state, or cause harm.
+
+```python
+# ❌ F5 VIOLATION - Destructive default
+def cleanup(path: str = "/"):
+    shutil.rmtree(path)  # Could delete entire filesystem!
+
+# ✅ F5 COMPLIANT - Safe defaults, explicit destruction
+def cleanup(path: str):
+    if not path or path == "/":
+        raise ValueError("Refusing to delete root or empty path")
+    # Proceed with caution...
+```
+
+#### F6-CODE: κᵣ (Empathy for Weakest Stakeholder)
+
+**Law:** Code must handle edge cases, failures, and users with least context.
+
+```python
+# ❌ F6 VIOLATION - Only happy path
+def get_user(user_id):
+    return database.query(user_id)  # Crashes if user doesn't exist
+
+# ✅ F6 COMPLIANT - Graceful degradation
+def get_user(user_id: str) -> Optional[User]:
+    try:
+        return database.query(user_id)
+    except UserNotFoundError:
+        return None  # Caller can handle absence
+    except DatabaseError as e:
+        logging.error(f"Database error for user {user_id}: {e}")
+        return None  # Don't crash the caller
+```
+
+#### F7-CODE: Omega0 (Humility - State Uncertainty)
+
+**Law:** Code must acknowledge what it doesn't know. Never fake confidence.
+
+```python
+# ❌ F7 VIOLATION - False certainty
+def analyze(text) -> dict:
+    return {"sentiment": "positive", "confidence": 1.0}  # Impossible certainty
+
+# ✅ F7 COMPLIANT - Honest uncertainty
+def analyze(text) -> dict:
+    score = model.predict(text)
+    return {
+        "sentiment": "positive" if score > 0.5 else "negative",
+        "confidence": min(score, 0.95),  # Cap at 0.95
+        "uncertainty": "Model prediction, not ground truth"
+    }
+```
+
+#### F8-CODE: G (Governed Intelligence)
+
+**Law:** Code must follow established patterns and governance structures.
+
+```python
+# ❌ F8 VIOLATION - Bypassing governance
+def process_query(query):
+    return llm.generate(query)  # Raw, ungoverned LLM output!
+
+# ✅ F8 COMPLIANT - Through governance layer
+def process_query(query):
+    from arifos_core.system.pipeline import run_governed_query
+    verdict = run_governed_query(query)
+    if verdict.status == "VOID":
+        return {"error": "Query blocked by constitutional review"}
+    return verdict.output
+```
+
+#### F9-CODE: C_dark (No Dark Cleverness)
+
+**Law:** No code that manipulates, deceives, or hides true intent.
+
+```python
+# ❌ F9 VIOLATION - Deceptive naming
+def optimize_user_experience(user):
+    track_user_behavior(user)      # Actually surveillance
+    inject_persuasion_hooks(user)  # Actually manipulation
+
+# ✅ F9 COMPLIANT - Honest naming
+def track_analytics(user, consent_given: bool):
+    if not consent_given:
+        return  # Respect user choice
+    log_anonymous_metrics(user.session_id)
+```
+
+#### Quick Reference: Code-Level Floor Violations
+
+| Floor | Code Smell | Fix |
+| ----- | ---------- | --- |
+| F1 | Mutates input, hidden side effects | Pure functions, explicit returns |
+| F2 | Fabricated data, fake metrics | Empty/null when unknown |
+| F3 | Contract mismatch, type lies | Use canonical interfaces |
+| F4 | Magic numbers, obscure logic | Named constants, clear params |
+| F5 | Destructive defaults, no backup | Safe defaults, preserve state |
+| F6 | Only happy path, cryptic errors | Handle edge cases, clear messages |
+| F7 | False confidence, fake computation | Admit uncertainty, cap confidence |
+| F8 | Bypasses governance, invents patterns | Use established systems |
+| F9 | Deceptive naming, hidden behavior | Honest names, transparent logic |
+
+### 2.3 v38.2 Hardening Cycle (Time as Governor)
 
 v38.2 promotes **Time** to a constitutional force. Unresolved verdicts cannot drift forever.
 
