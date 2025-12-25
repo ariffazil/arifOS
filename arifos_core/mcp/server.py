@@ -583,29 +583,44 @@ class MCPServer:
 
         Constitutional: F1 (Amanah) - Clean session lifecycle with graceful shutdown.
         """
+        from mcp import types
+
         # Create MCP Server instance
         server = Server(self.name)
 
-        # Register all tools dynamically
+        # Get tool descriptions
         tool_descriptions = get_tool_descriptions()
 
-        for tool_name, tool_desc in tool_descriptions.items():
-            # Create handler closure for each tool
-            async def make_handler(name: str):
-                async def handler(**kwargs) -> Dict[str, Any]:
-                    """Tool handler that calls run_tool."""
-                    result = run_tool(name, kwargs)
-                    return result if result else {"error": f"Tool {name} returned no result"}
-                return handler
+        # Register list_tools handler
+        @server.list_tools()
+        async def handle_list_tools() -> list[types.Tool]:
+            """List all available tools."""
+            tools = []
+            for tool_name, tool_desc in tool_descriptions.items():
+                tools.append(
+                    types.Tool(
+                        name=tool_name,
+                        description=tool_desc.get("description", ""),
+                        inputSchema=tool_desc.get("parameters", {})
+                    )
+                )
+            return tools
 
-            # Register tool with MCP server
-            handler_func = await make_handler(tool_name)
-            server.add_tool(
-                name=tool_name,
-                description=tool_desc.get("description", ""),
-                parameters=tool_desc.get("parameters", {}),
-                handler=handler_func
-            )
+        # Register call_tool handler
+        @server.call_tool()
+        async def handle_call_tool(
+            name: str, arguments: dict
+        ) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
+            """Execute tool and return result."""
+            result = run_tool(name, arguments)
+            if not result:
+                result = {"error": f"Tool {name} returned no result"}
+
+            # Convert result to JSON string for TextContent
+            import json
+            result_text = json.dumps(result, indent=2)
+
+            return [types.TextContent(type="text", text=result_text)]
 
         # Run stdio transport
         print(f"[arifOS MCP] Starting server: {self.name} v1.0.0", file=sys.stderr)
