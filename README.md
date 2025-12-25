@@ -703,6 +703,23 @@ pytest -x
 
 **Current Status:** `2261/2261 tests passing` (100%)
 
+### Track B Spec Integrity Audit (3-Command Proof)
+
+Verify cryptographic integrity of constitutional specs (v44 Track B):
+
+```bash
+# 1. Verify SHA-256 manifest (tamper detection)
+python scripts/regenerate_manifest_v44.py --check
+
+# 2. Run schema enforcement tests (load-time validation)
+pytest tests/test_spec_v44_schema_enforcement_subprocess.py -v
+
+# 3. Run manifest enforcement tests (subprocess proof)
+pytest tests/test_spec_v44_manifest_enforcement_subprocess.py -v
+```
+
+See [spec/v44/SEAL_CHECKLIST.md](spec/v44/SEAL_CHECKLIST.md) for full audit procedures.
+
 ### CLI Tools
 
 ```bash
