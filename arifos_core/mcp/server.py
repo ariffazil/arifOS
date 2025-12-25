@@ -20,6 +20,7 @@ from .models import (
     AuditRequest,
     AuditResponse,
     ApexLlamaRequest,
+    VerdictResponse,
 )
 from .tools.judge import arifos_judge
 from .tools.recall import arifos_recall
@@ -32,6 +33,20 @@ from .tools.fag_read import (
 )
 from .tools.apex_llama import apex_llama
 
+# Phase 1-3 MCP Tools (Constitutional Pipeline)
+from .tools import (
+    mcp_000_reset_sync,
+    mcp_111_sense_sync,
+    mcp_222_reflect_sync,
+    mcp_444_evidence_sync,
+    mcp_555_empathize_sync,
+    mcp_666_align_sync,
+    mcp_777_forge_sync,
+    mcp_888_judge_sync,
+    mcp_889_proof_sync,
+    mcp_999_seal_sync,
+)
+
 
 # =============================================================================
 # TOOL REGISTRY
@@ -39,12 +54,24 @@ from .tools.apex_llama import apex_llama
 
 # Map of tool name -> callable
 TOOLS: Dict[str, Callable] = {
+    # Legacy tools
     "arifos_judge": arifos_judge,
     "arifos_recall": arifos_recall,
     "arifos_audit": arifos_audit,
     "arifos_fag_read": arifos_fag_read,
-    # APEX_LLAMA: local Llama via Ollama (unguarded raw model)
     "APEX_LLAMA": apex_llama,
+
+    # Phase 1-3 Constitutional Pipeline
+    "mcp_000_reset": mcp_000_reset_sync,
+    "mcp_111_sense": mcp_111_sense_sync,
+    "mcp_222_reflect": mcp_222_reflect_sync,
+    "mcp_444_evidence": mcp_444_evidence_sync,
+    "mcp_555_empathize": mcp_555_empathize_sync,
+    "mcp_666_align": mcp_666_align_sync,
+    "mcp_777_forge": mcp_777_forge_sync,
+    "mcp_888_judge": mcp_888_judge_sync,
+    "mcp_889_proof": mcp_889_proof_sync,
+    "mcp_999_seal": mcp_999_seal_sync,
 }
 
 # Map of tool name -> request model class (for payload conversion)
@@ -157,6 +184,261 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["prompt"],
         },
     },
+
+    # =========================================================================
+    # PHASE 1-3 CONSTITUTIONAL PIPELINE TOOLS
+    # =========================================================================
+
+    "mcp_000_reset": {
+        "name": "mcp_000_reset",
+        "description": (
+            "Initialize a new governance session. Generates a session ID, "
+            "clears active memory, and sets up the metabolic pipeline. "
+            "Constitutional: F1 (Amanah) - session initialization. "
+            "Always returns PASS."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "session_id": {
+                    "type": "string",
+                    "description": "Optional session ID (generated if not provided)",
+                },
+            },
+        },
+    },
+
+    "mcp_111_sense": {
+        "name": "mcp_111_sense",
+        "description": (
+            "Lane classification and truth threshold determination. "
+            "Classifies queries into HARD (factual), SOFT (explanatory), "
+            "PHATIC (social), or REFUSE (harmful/violations). "
+            "Constitutional: F2 (Truth) - determines required threshold. "
+            "Always returns PASS."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "Query to classify",
+                },
+            },
+            "required": ["query"],
+        },
+    },
+
+    "mcp_222_reflect": {
+        "name": "mcp_222_reflect",
+        "description": (
+            "Omega0 prediction for epistemic honesty. Predicts uncertainty "
+            "band (Omega0) based on confidence and generates humility annotations. "
+            "Constitutional: F7 (Humility) - uncertainty disclosure. "
+            "Always returns PASS."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "Query being evaluated",
+                },
+                "confidence": {
+                    "type": "number",
+                    "description": "Confidence score [0.0, 1.0]",
+                },
+            },
+            "required": ["query", "confidence"],
+        },
+    },
+
+    "mcp_444_evidence": {
+        "name": "mcp_444_evidence",
+        "description": (
+            "Truth grounding via tri-witness convergence (HUMAN-AI-EARTH). "
+            "Validates claims against sources, detects hallucinations, "
+            "generates cryptographic proof hashes. "
+            "Constitutional: F2 (Truth), F3 (Tri-Witness). "
+            "Returns: PASS, PARTIAL, or VOID."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "claim": {
+                    "type": "string",
+                    "description": "Claim to validate",
+                },
+                "sources": {
+                    "type": "array",
+                    "description": "Evidence sources (witness, id, score, text)",
+                    "items": {"type": "object"},
+                },
+                "lane": {
+                    "type": "string",
+                    "description": "Truth lane (HARD/SOFT/PHATIC)",
+                },
+            },
+            "required": ["claim", "sources", "lane"],
+        },
+    },
+
+    "mcp_555_empathize": {
+        "name": "mcp_555_empathize",
+        "description": (
+            "Power-aware recalibration (Peace^2 and kappa_r). Detects dismissive "
+            "or aggressive tone, calculates peace score, adjusts for power "
+            "dynamics. Constitutional: F5 (Peace^2), F6 (kappa_r/Empathy). "
+            "Returns: PASS or PARTIAL (never VOID)."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "response_text": {
+                    "type": "string",
+                    "description": "Response text to evaluate",
+                },
+                "recipient_context": {
+                    "type": "object",
+                    "description": "Recipient context (audience_level, power_level, etc.)",
+                },
+            },
+            "required": ["response_text"],
+        },
+    },
+
+    "mcp_666_align": {
+        "name": "mcp_666_align",
+        "description": (
+            "ABSOLUTE VETO GATES for constitutional violations. "
+            "Detects F1 (credential exposure, deception), F8 (low GENIUS, "
+            "high C_dark), F9 (consciousness claims). NO PARTIAL - only "
+            "PASS or VOID. Constitutional firewall before execution."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "User query",
+                },
+                "execution_plan": {
+                    "type": "object",
+                    "description": "Execution plan to validate",
+                },
+                "metrics": {
+                    "type": "object",
+                    "description": "GENIUS metrics (G, C_dark)",
+                },
+                "draft_text": {
+                    "type": "string",
+                    "description": "Draft response text",
+                },
+            },
+            "required": ["query", "execution_plan", "metrics", "draft_text"],
+        },
+    },
+
+    "mcp_777_forge": {
+        "name": "mcp_777_forge",
+        "description": (
+            "Clarity refinement and humility injection. Detects contradictions, "
+            "improves clarity (reduces entropy), injects humility markers "
+            "based on Omega0. Constitutional: F4 (DeltaS/Clarity), F7 (Humility). "
+            "Always returns PASS."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "draft_response": {
+                    "type": "string",
+                    "description": "Draft response to refine",
+                },
+                "omega_zero": {
+                    "type": "number",
+                    "description": "Omega0 uncertainty band",
+                },
+            },
+            "required": ["draft_response", "omega_zero"],
+        },
+    },
+
+    "mcp_888_judge": {
+        "name": "mcp_888_judge",
+        "description": (
+            "Final verdict aggregation via decision tree. Aggregates verdicts "
+            "from tools 222-777, applies veto cascade (any VOID -> VOID), "
+            "emits SEAL (all PASS), PARTIAL (any PARTIAL), or VOID. "
+            "Constitutional judiciary - final decision maker."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "verdicts": {
+                    "type": "object",
+                    "description": "Dict of tool_id -> verdict",
+                },
+            },
+            "required": ["verdicts"],
+        },
+    },
+
+    "mcp_889_proof": {
+        "name": "mcp_889_proof",
+        "description": (
+            "Generate cryptographic proof (Merkle tree) of verdict chain. "
+            "Creates SHA-256 proof hash, builds Merkle path, validates proof. "
+            "Constitutional: F2 (Truth - proves no hallucination), "
+            "F4 (Clarity - transparent). Always returns PASS."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "verdict_chain": {
+                    "type": "array",
+                    "description": "List of verdict strings ['222:PASS', '444:PASS', ...]",
+                    "items": {"type": "string"},
+                },
+                "decision_tree": {
+                    "type": "object",
+                    "description": "Decision tree with tool metadata",
+                },
+                "claim": {
+                    "type": "string",
+                    "description": "Claim being proved",
+                },
+            },
+            "required": ["verdict_chain"],
+        },
+    },
+
+    "mcp_999_seal": {
+        "name": "mcp_999_seal",
+        "description": (
+            "Final verdict sealing and memory routing. Creates base64 seal, "
+            "generates audit log ID, routes to memory location, validates seal. "
+            "Constitutional: F1 (Amanah - audit trail), F9 (Anti-Hantu - "
+            "timestamps). Always returns PASS."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "verdict": {
+                    "type": "string",
+                    "description": "Final verdict (SEAL/PARTIAL/VOID/SABAR/HOLD)",
+                },
+                "proof_hash": {
+                    "type": "string",
+                    "description": "SHA-256 proof hash from Tool 889",
+                },
+                "decision_metadata": {
+                    "type": "object",
+                    "description": "Decision metadata (query, response, floor_verdicts)",
+                },
+            },
+            "required": ["verdict", "proof_hash"],
+        },
+    },
 }
 
 
@@ -214,7 +496,8 @@ def run_tool(name: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         request = request_model(**payload)
         result = tool_fn(request)
     else:
-        result = tool_fn(**payload)
+        # MCP tools expect a dict as single argument
+        result = tool_fn(payload)
 
     # Convert response to dict
     if hasattr(result, "model_dump"):
@@ -268,13 +551,23 @@ class MCPServer:
         """Get server information."""
         return {
             "name": self.name,
-            "version": self.version,
+            "version": "1.0.0",
             "description": (
                 "arifOS Constitutional Governance MCP Server. "
-                "Provides tools for judging queries, recalling memories, "
-                "and auditing the governance ledger."
+                "Provides 15 tools: 5 legacy (judge, recall, audit, fag_read, APEX_LLAMA) "
+                "+ 10 constitutional pipeline tools (000->999) for real-time governance. "
+                "All tools enforce the 9 Constitutional Floors (F1-F9). "
+                "Complete audit trail with cryptographic proofs (Merkle tree + SHA-256)."
             ),
             "tools": list(TOOLS.keys()),
+            "tool_count": len(TOOLS),
+            "phases": {
+                "legacy": ["arifos_judge", "arifos_recall", "arifos_audit", "arifos_fag_read", "APEX_LLAMA"],
+                "phase_1": ["mcp_000_reset", "mcp_111_sense"],
+                "phase_2": ["mcp_222_reflect", "mcp_444_evidence", "mcp_555_empathize",
+                           "mcp_666_align", "mcp_777_forge", "mcp_888_judge"],
+                "phase_3": ["mcp_889_proof", "mcp_999_seal"],
+            },
         }
 
 

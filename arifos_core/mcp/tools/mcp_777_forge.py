@@ -79,6 +79,12 @@ async def mcp_777_forge(request: Dict[str, Any]) -> VerdictResponse:
     """
     draft = request.get("draft_response", "")
     omega = request.get("omega_zero", 0.04)
+
+    # Validate inputs
+    if not isinstance(draft, str):
+        draft = ""
+    if not isinstance(omega, (int, float)):
+        omega = 0.04
     
     contradictions = detect_contradictions(draft)
     refined = improve_clarity(draft)
