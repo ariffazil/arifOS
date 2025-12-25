@@ -79,3 +79,22 @@ tests/arifOS llama test*.md
 # Vault-999 runtime ledger data (test artifacts)
 vault-999/ledger/*.jsonl
 *.mp4
+
+# v45Ω Housekeeping (2025-12-25)
+# Runtime logs and evaluation artifacts
+logs/
+sealion_runs/
+*_results.json
+test_results.txt
+
+# Experimental scripts (root-level temp files)
+quick_test_*.py
+run_sealion_*.py
+test_my_*.py
+
+# Review artifacts (not runtime)
+TRACK_C_CORE_ENFORCEMENT_REFERENCE.py
+HOUSEKEEPING_PLAN.md
+
+# Patch summaries (move to docs/releases/ instead)
+PATCH_*.md
