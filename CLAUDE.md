@@ -2,10 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Version:** v45.0.0 + Patch B | **Tests:** 2261/2261 (100%) | **Safety Ceiling:** 99%
+**Version:** v45.0.0 + Patch B | **Tests:** 2581/2581 (100%) | **Safety Ceiling:** 99%
 
 **Imports:** `~/.claude/CLAUDE.md` — Global governance (floors, SABAR, verdicts)
 **Extends:** [AGENTS.md](AGENTS.md) — Full constitutional governance
+
+**Important:** This file works in conjunction with [AGENTS.md](AGENTS.md), which contains additional governance rules including:
+- File Integrity & ACLIP Protocol (never "clean up" files by removing sections)
+- Entropy Control rules (when to add new files)
+- Cooling Notes (agent learnings from past mistakes)
 
 **Latest:** v45Ω Patch B (2025-12-24) — Δ Router + Lane-Aware Truth Gating (explanatory queries fixed). See [CHANGELOG.md](CHANGELOG.md) for details.
 
@@ -98,6 +103,20 @@ python scripts/trinity.py seal <branch> "Reason"  # Seal with approval
 python scripts/arifos_mcp_entry.py
 # Provides: arifos_judge, arifos_recall, arifos_audit, arifos_fag_read tools
 
+# MCP Server Setup for VS Code/Cursor:
+# Add to .vscode/settings.json or workspace settings:
+# {
+#   "mcp.servers": {
+#     "arifos": {
+#       "command": "python",
+#       "args": ["scripts/arifos_mcp_entry.py"],
+#       "env": {
+#         "ARIFOS_LOG_LEVEL": "INFO"
+#       }
+#     }
+#   }
+# }
+
 # Full v45 Demo
 python demo_sealion_v45_full.py    # Complete ΔΩΨ Trinity demonstration
 ```
@@ -125,6 +144,59 @@ python -m arifos_core.system.pipeline  # See 000→999 pipeline demo
 type AGENTS.md  # Full governance guide
 # Unix/Linux/Mac:
 cat AGENTS.md   # Full governance guide
+```
+
+### Verify Installation & Health
+
+**Quick health check (run after installation):**
+```bash
+# 1. Verify package installed
+pip show arifos
+
+# 2. Check imports work
+python -c "from arifos_core.system.apex_prime import judge_output; print('✓ Core imports OK')"
+
+# 3. Run smoke test (5 quick tests)
+pytest tests/test_apex_prime_floors.py -k "seal_verdict or void_verdict" -v
+
+# 4. Verify ledger chain
+arifos-verify-ledger
+
+# Expected: All pass ✓
+```
+
+### Platform-Specific Commands
+
+**Windows (PowerShell):**
+```powershell
+# Read constitution
+Get-Content AGENTS.md
+
+# Run tests with specific file
+pytest tests\test_apex_genius_verdicts.py -v
+
+# Run specific test function
+pytest tests\test_apex_genius_verdicts.py::test_seal_verdict -v
+
+# Trinity commands (cross-platform via Python)
+python scripts\trinity.py forge main
+python scripts\trinity.py qc main
+```
+
+**Unix/Linux/Mac (Bash):**
+```bash
+# Read constitution
+cat AGENTS.md
+
+# Run tests with specific file
+pytest tests/test_apex_genius_verdicts.py -v
+
+# Run specific test function
+pytest tests/test_apex_genius_verdicts.py::test_seal_verdict -v
+
+# Trinity commands (native shell scripts)
+./trinity.sh forge main
+./trinity.sh qc main
 ```
 
 Then proceed to Architecture Overview below.
@@ -196,7 +268,7 @@ L1_THEORY/canon/       # Constitutional law documents (read-only canon)
 
 **PRIMARY (Authoritative — REQUIRED for constitutional claims):**
 
-1. `spec/v42/*.json` — Constitutional floors, GENIUS law, thresholds
+1. `spec/v44/*.json` — Constitutional floors, GENIUS law, thresholds (Track B with SHA-256 manifest)
 2. `L1_THEORY/canon/*_v42.md` with SEALED status — Canonical law
 
 **SECONDARY (Implementation Reference):**
@@ -241,9 +313,10 @@ L1_THEORY/canon/       # Constitutional law documents (read-only canon)
 1. Create detector in [arifos_core/floor_detectors/](arifos_core/floor_detectors/)
 2. Implement `detect()` method returning score 0.0-1.0
 3. Add to floor registry in [arifos_core/enforcement/](arifos_core/enforcement/)
-4. Update spec in [spec/v42/constitutional_floors.json](spec/v42/constitutional_floors.json)
+4. Update spec in [spec/v44/constitutional_floors.json](spec/v44/constitutional_floors.json)
 5. Add tests in [tests/test_*.py](tests/)
 6. Update canon docs in [L1_THEORY/canon/01_floors/](L1_THEORY/canon/01_floors/)
+7. Regenerate manifest: `python scripts/regenerate_manifest_v44.py`
 
 ### Adding a Pipeline Stage
 
@@ -265,15 +338,68 @@ L1_THEORY/canon/       # Constitutional law documents (read-only canon)
    arifos-propose-canon --list
    ```
 
-3. Update spec files in [spec/v42/](spec/v42/) first
+3. Update spec files in [spec/v44/](spec/v44/) first
 4. Update code in [arifos_core/](arifos_core/) to match spec
-5. Run alignment tests:
+5. Regenerate SHA-256 manifest:
+
+   ```bash
+   python scripts/regenerate_manifest_v44.py
+   ```
+
+6. Run alignment tests:
 
    ```bash
    pytest tests/test_*_v38_alignment.py -v
    ```
 
-6. Request human seal via `arifos-seal-canon`
+7. Verify spec integrity:
+
+   ```bash
+   python scripts/regenerate_manifest_v44.py --check
+   pytest tests/test_spec_v44_schema_enforcement_subprocess.py -v
+   ```
+
+8. Request human seal via `arifos-seal-canon`
+
+### Track B Spec Integrity (v44+)
+
+arifOS v44 introduces cryptographic spec verification via SHA-256 manifests.
+
+**Strict Mode (default):**
+- All specs must match MANIFEST.sha256.json hashes
+- JSON Schema validation enforced at load-time
+- Environment variable spec overrides restricted to spec/v44/ directory
+- Tampered specs trigger RuntimeError (fail-closed)
+
+**3-Command Audit (for CI/CD or manual verification):**
+```bash
+# 1. Verify manifest hashes match current files
+python scripts/regenerate_manifest_v44.py --check
+
+# 2. Test schema enforcement (load-time validation)
+pytest tests/test_spec_v44_schema_enforcement_subprocess.py -v
+
+# 3. Test manifest enforcement (subprocess proof)
+pytest tests/test_spec_v44_manifest_enforcement_subprocess.py -v
+```
+
+**Expected output (if integrity OK):**
+```
+[SUCCESS] All 8 files match manifest.
+Spec integrity verified. No tampering detected.
+Exit code: 0
+```
+
+**If tampered:**
+```
+[ERROR] Hash mismatch detected!
+File: spec/v44/constitutional_floors.json
+Expected: abc123...
+Actual: def456...
+Exit code: 1
+```
+
+See [spec/v44/SEAL_CHECKLIST.md](spec/v44/SEAL_CHECKLIST.md) for full audit procedures and strict vs legacy mode details.
 
 ---
 
@@ -386,19 +512,24 @@ def process_query(query):
 
 ---
 
-## Canon Index (v42)
+## Canon Index (v42 Law + v44 Spec)
 
-**Master:** [canon/_INDEX/00_MASTER_INDEX_v42.md](canon/_INDEX/00_MASTER_INDEX_v42.md)
+**Master:** [L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md](L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md)
 
-| Layer            | Canon                                                         | Spec                                      |
+| Layer            | Canon (v42 Law)                                               | Spec (v44 Track B)                        |
 |------------------|---------------------------------------------------------------|-------------------------------------------|
-| Foundation       | `canon/00_foundation/`                                        | —                                         |
-| Floors (F1–F9)   | `canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md`       | `spec/v42/constitutional_floors.json`     |
-| Actors           | `canon/02_actors/`                                            | —                                         |
-| Runtime          | `canon/03_runtime/`                                           | `spec/v42/pipeline.yaml`                  |
-| Measurement      | `canon/04_measurement/04_GENIUS_LAW_v42.md`                   | `spec/v42/genius_law.json`                |
-| Memory           | `canon/05_memory/`                                            | `spec/v42/cooling_ledger_phoenix.json`    |
-| Paradox          | `canon/06_paradox/`                                           | —                                         |
+| Foundation       | `L1_THEORY/canon/00_foundation/`                              | —                                         |
+| Floors (F1–F9)   | `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md` | `spec/v44/constitutional_floors.json` |
+| Actors           | `L1_THEORY/canon/02_actors/`                                  | —                                         |
+| Runtime          | `L1_THEORY/canon/03_runtime/`                                 | `spec/v44/session_physics.json`           |
+| Measurement      | `L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md`         | `spec/v44/genius_law.json`                |
+| Memory           | `L1_THEORY/canon/05_memory/`                                  | `spec/v44/cooling_ledger_phoenix.json`    |
+| Paradox          | `L1_THEORY/canon/06_paradox/`                                 | —                                         |
+| Policy           | —                                                             | `spec/v44/policy_text.json`               |
+| Red Patterns     | —                                                             | `spec/v44/red_patterns.json`              |
+| WAW Prompts      | —                                                             | `spec/v44/waw_prompt_floors.json`         |
+
+**Note:** v42 = canonical law (immutable philosophy), v44 = tunable thresholds (Track B with SHA-256 manifest)
 
 ---
 
@@ -434,9 +565,9 @@ SABAR > VOID > 888_HOLD > PARTIAL > SEAL
 
 ### Governance Logic
 
-- [arifos_core/APEX_PRIME.py](arifos_core/APEX_PRIME.py) — Constitutional judiciary
-- [arifos_core/genius_metrics.py](arifos_core/genius_metrics.py) — G, C_dark, Psi computation
-- [arifos_core/kernel.py](arifos_core/kernel.py) — Core kernel & entropy rot
+- [arifos_core/system/apex_prime.py](arifos_core/system/apex_prime.py) — Constitutional judiciary (888 JUDGE)
+- [arifos_core/enforcement/genius_metrics.py](arifos_core/enforcement/genius_metrics.py) — G, C_dark, Psi computation
+- [arifos_core/enforcement/metrics.py](arifos_core/enforcement/metrics.py) — Floor metrics (ξ, ΔS, Peace², κᵣ, Ω₀)
 
 ### Floor Enforcement
 
@@ -483,6 +614,78 @@ SABAR > VOID > 888_HOLD > PARTIAL > SEAL
 - [scripts/trinity.py](scripts/trinity.py) — Universal Git governance CLI
 - [demo_sealion_v45_full.py](demo_sealion_v45_full.py) — Full v45Ω demonstration
 - [scripts/diagnose_v45_patches.py](scripts/diagnose_v45_patches.py) — Diagnostic tool for v45 patches
+
+---
+
+## Common Issues & Debugging
+
+### Import Errors After Installation
+```bash
+# Verify installation
+pip show arifos
+
+# Check package location
+python -c "import arifos_core; print(arifos_core.__file__)"
+
+# Reinstall in editable mode
+pip uninstall arifos
+pip install -e ".[dev]"
+```
+
+### Test Failures
+```bash
+# Run single test with verbose output
+pytest tests/test_apex_prime_floors.py::test_seal_verdict -vv
+
+# Run with full traceback
+pytest tests/test_apex_genius_verdicts.py -vv --tb=long
+
+# Check for missing dependencies
+pip install -e ".[dev,yaml,api,litellm]"
+```
+
+### Ledger Verification Failures
+```bash
+# Rebuild ledger hashes
+arifos-build-ledger-hashes
+
+# Verify integrity
+arifos-verify-ledger
+
+# Show specific entry proof
+arifos-show-merkle-proof --index 0
+```
+
+### MCP Server Issues
+```bash
+# Test MCP server directly
+python scripts/arifos_mcp_entry.py
+
+# Check MCP tool availability in VS Code:
+# Open Command Palette → "MCP: List Tools"
+# Should show: arifos_judge, arifos_recall, arifos_audit, arifos_fag_read
+```
+
+### Spec Integrity Errors
+```bash
+# Check for tampered specs (v44 Track B)
+python scripts/regenerate_manifest_v44.py --check
+
+# If hash mismatch detected, restore from git:
+git checkout spec/v44/
+
+# Regenerate manifest after legitimate changes:
+python scripts/regenerate_manifest_v44.py
+```
+
+### Windows-Specific Issues
+```powershell
+# Path issues: use forward slashes in Python, backslashes in PowerShell
+python -c "from pathlib import Path; print(Path('spec/v44/constitutional_floors.json').exists())"
+
+# Virtual environment activation
+.venv\Scripts\Activate.ps1
+```
 
 ---
 
@@ -537,6 +740,8 @@ SABAR > VOID > 888_HOLD > PARTIAL > SEAL
 - All new floor detectors require corresponding tests in [tests/](tests/)
 - Pipeline changes require both unit tests and integration tests
 - Breaking changes to constitutional law trigger 888_HOLD (requires human approval)
+- Spec changes (v44 Track B) require manifest regeneration and integrity tests
+- Current test count: 2581/2581 (100%) as of 2025-12-26
 
 ---
 
