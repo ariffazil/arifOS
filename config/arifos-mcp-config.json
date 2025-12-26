@@ -3,7 +3,7 @@
     "arifos-mcp": {
       "command": "C:\\Users\\User\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
       "args": [
-        "c:\\Users\\User\\OneDrive\\Documents\\GitHub\\arifOS\\arifos_mcp_entry.py"
+        "c:\\Users\\User\\OneDrive\\Documents\\GitHub\\arifOS\\scripts\\arifos_mcp_entry.py"
       ],
       "metadata": {
         "name": "arifos-mcp",
