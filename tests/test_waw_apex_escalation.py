@@ -17,7 +17,7 @@ Version: v38.3
 import pytest
 from arifos_core.waw.federation import WAWFederationCore
 from arifos_core.waw.base import OrganSignal, OrganVote
-from arifos_core.APEX_PRIME import apex_prime_judge
+from arifos_core.system.apex_prime import apex_prime_judge
 
 
 class TestWAWApexEscalation:
@@ -26,7 +26,7 @@ class TestWAWApexEscalation:
     def test_apex_prime_judge_exists(self):
         """✅ apex_prime_judge() function exists in APEX_PRIME"""
         # Should be importable
-        from arifos_core.APEX_PRIME import apex_prime_judge
+        from arifos_core.system.apex_prime import apex_prime_judge
         assert callable(apex_prime_judge)
 
     def test_apex_judge_synthesizes_verdict(self):

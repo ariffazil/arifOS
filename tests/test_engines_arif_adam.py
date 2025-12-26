@@ -16,7 +16,7 @@ from arifos_core.engines import AGIEngine, ASIEngine, ApexEngine
 from arifos_core.engines.agi_engine import AGIPacket
 from arifos_core.engines.asi_engine import ASIPacket
 from arifos_core.engines.apex_engine import ApexJudgment
-from arifos_core.metrics import Metrics
+from arifos_core.enforcement.metrics import Metrics
 
 
 # =============================================================================

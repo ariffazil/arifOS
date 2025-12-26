@@ -19,7 +19,7 @@ import sys
 # Ensure we can import from arifos_core when running from repo root
 sys.path.append(os.getcwd())
 
-from arifos_core.metrics import Metrics
+from arifos_core.enforcement.metrics import Metrics
 from arifos_core.waw.geox import GeoxOrgan
 from arifos_core.waw.well import WellOrgan
 

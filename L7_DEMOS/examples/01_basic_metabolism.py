@@ -4,8 +4,8 @@ Shows the raw path: 000 → 111 → 222 → 333 → 555 → 777 → 888 → 999
 """
 
 from arifos_core import APEXPrime, Verdict
-from arifos_core.metrics import ConstitutionalMetrics
-from arifos_core.ignition import IgnitionLoader
+from arifos_core.enforcement.metrics import ConstitutionalMetrics
+from arifos_core.system.ignition import IgnitionLoader
 
 
 def basic_demo():

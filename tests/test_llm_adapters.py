@@ -7,7 +7,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from typing import Generator
 
-from arifos_core.llm_interface import (
+from arifos_core.integration.adapters.llm_interface import (
     LLMInterface,
     LLMConfig,
     StreamChunk,

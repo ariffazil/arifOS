@@ -23,9 +23,9 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, Callable, 
 DEFAULT_LEDGER_PATH = Path("cooling_ledger") / "L1_cooling_ledger.jsonl"
 
 if TYPE_CHECKING:
-    from arifos_core.kms_signer import KmsSigner
-    from arifos_core.metrics import Metrics
-    from arifos_core.genius_metrics import GeniusVerdict
+    from arifos_core.utils.kms_signer import KmsSigner
+    from arifos_core.enforcement.metrics import Metrics
+    from arifos_core.enforcement.genius_metrics import GeniusVerdict
 
 
 @dataclass
@@ -335,7 +335,7 @@ def log_cooling_entry(
     # GENIUS LAW telemetry (v35.13.0+) — optional, non-breaking
     if include_genius_metrics:
         try:
-            from arifos_core.genius_metrics import evaluate_genius_law, DEFAULT_ENERGY
+            from arifos_core.enforcement.genius_metrics import evaluate_genius_law, DEFAULT_ENERGY
 
             genius_verdict = evaluate_genius_law(
                 metrics,
@@ -400,7 +400,7 @@ def log_cooling_entry_v36_stub(
         A dictionary shaped according to the v36Ω design schema, with
         some fields left optional/omitted when not available.
     """
-    from arifos_core.metrics import Metrics as _Metrics
+    from arifos_core.enforcement.metrics import Metrics as _Metrics
 
     if not isinstance(metrics, _Metrics):
         raise TypeError("metrics must be a Metrics instance")
@@ -517,7 +517,7 @@ def log_cooling_entry_with_v36_telemetry(
     if isinstance(genius_block, dict):
         try:
             # Lazy import; if structure changes, this fails safely
-            from arifos_core.genius_metrics import GeniusVerdict as _GeniusVerdict
+            from arifos_core.enforcement.genius_metrics import GeniusVerdict as _GeniusVerdict
 
             genius_verdict_obj = _GeniusVerdict(**genius_block)
         except Exception:
@@ -916,7 +916,7 @@ def log_cooling_entry_v37(
         Tuple of (success, entry_dict, error_message)
         If success is False, caller should trigger SABAR/HOLD.
     """
-    from arifos_core.metrics import Metrics as _Metrics
+    from arifos_core.enforcement.metrics import Metrics as _Metrics
 
     if not isinstance(metrics, _Metrics):
         return (False, {}, "metrics must be a Metrics instance")
@@ -945,7 +945,7 @@ def log_cooling_entry_v37(
 
     # Add derived metrics if available
     try:
-        from arifos_core.genius_metrics import evaluate_genius_law, DEFAULT_ENERGY
+        from arifos_core.enforcement.genius_metrics import evaluate_genius_law, DEFAULT_ENERGY
 
         genius = evaluate_genius_law(metrics, energy=DEFAULT_ENERGY, entropy=0.0)
         metrics_block["psi"] = genius.psi

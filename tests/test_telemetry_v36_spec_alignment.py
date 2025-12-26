@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pytest
 
-from arifos_core.telemetry_v36 import (
+from arifos_core.utils.telemetry_v36 import (
     HARD_FLOORS,
     SOFT_FLOORS,
     VALID_VERDICT_CODES,

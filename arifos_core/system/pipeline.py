@@ -1210,7 +1210,7 @@ def _write_memory_for_verdict(
     # Build floor check evidence (v38.3Omega: spec-driven with F# + P# + stage hooks)
     floor_checks = []
     if state.metrics is not None:
-        from arifos_core.metrics import _load_floors_spec_v38
+        from arifos_core.enforcement.metrics import _load_floors_spec_v38
 
         floors_spec = _load_floors_spec_v38()
 

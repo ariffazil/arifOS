@@ -1164,7 +1164,7 @@ class TestPipelineMemoryV38Integration:
 
     def test_pipeline_initializes_v38_memory_system(self):
         """Pipeline should initialize v38 memory system at stage_000."""
-        from arifos_core.pipeline import Pipeline
+        from arifos_core.system.pipeline import Pipeline
 
         pipeline = Pipeline()
         state = pipeline.run("Hello world")
@@ -1176,7 +1176,7 @@ class TestPipelineMemoryV38Integration:
 
     def test_pipeline_computes_evidence_hash(self):
         """Pipeline should compute evidence hash after 888_JUDGE."""
-        from arifos_core.pipeline import Pipeline
+        from arifos_core.system.pipeline import Pipeline
 
         pipeline = Pipeline()
         state = pipeline.run("What is 2+2?")
@@ -1187,7 +1187,7 @@ class TestPipelineMemoryV38Integration:
 
     def test_pipeline_routes_seal_to_ledger(self):
         """SEAL verdict should route to LEDGER band."""
-        from arifos_core.pipeline import Pipeline
+        from arifos_core.system.pipeline import Pipeline
 
         pipeline = Pipeline()
         state = pipeline.run("What is the capital of France?")
@@ -1202,8 +1202,8 @@ class TestPipelineMemoryV38Integration:
 
     def test_pipeline_routes_void_to_void_band_only(self):
         """VOID verdict should route ONLY to VOID band."""
-        from arifos_core.pipeline import Pipeline, PipelineState
-        from arifos_core.metrics import Metrics
+        from arifos_core.system.pipeline import Pipeline, PipelineState
+        from arifos_core.enforcement.metrics import Metrics
 
         # Create pipeline with bad metrics to trigger VOID
         def bad_metrics(query, response, context):
@@ -1240,7 +1240,7 @@ class TestPipelineMemoryV38Integration:
 
     def test_pipeline_audit_trail_recorded(self):
         """Pipeline should record audit trail for writes."""
-        from arifos_core.pipeline import Pipeline
+        from arifos_core.system.pipeline import Pipeline
 
         pipeline = Pipeline()
         state = pipeline.run("Simple query")

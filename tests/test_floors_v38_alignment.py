@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from arifos_core.metrics import (
+from arifos_core.enforcement.metrics import (
     TRUTH_THRESHOLD,
     DELTA_S_THRESHOLD,
     PEACE_SQUARED_THRESHOLD,

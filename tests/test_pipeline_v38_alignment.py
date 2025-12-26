@@ -21,7 +21,7 @@ from typing import Any, Dict, List
 import pytest
 import yaml
 
-from arifos_core.pipeline import (
+from arifos_core.system.pipeline import (
     Pipeline,
     PipelineState,
     StakesClass,

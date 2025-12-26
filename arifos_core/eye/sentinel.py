@@ -23,7 +23,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from ..metrics import Metrics
+from ..enforcement.metrics import Metrics
 from .base import EyeReport, EyeView
 from .trace_view import TraceView
 from .floor_view import FloorView

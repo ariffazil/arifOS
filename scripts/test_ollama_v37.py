@@ -26,7 +26,7 @@ from typing import Any, Dict, List
 import requests
 
 from scripts.arifos_caged_llm_demo import cage_llm_response
-from arifos_core.context_injection import build_system_context
+from arifos_core.utils.context_injection import build_system_context
 
 
 def call_ollama(messages: List[Dict[str, str]], model: str = "llama3") -> str:

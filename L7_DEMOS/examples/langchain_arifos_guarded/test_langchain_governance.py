@@ -15,9 +15,9 @@ import pytest
 # Add parent for arifos_core and examples imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from arifos_core.metrics import Metrics
-from arifos_core.APEX_PRIME import APEXPrime
-from arifos_core.eye_sentinel import EyeSentinel
+from arifos_core.enforcement.metrics import Metrics
+from arifos_core.system.apex_prime import APEXPrime
+from arifos_core.utils.eye_sentinel import EyeSentinel
 
 from langchain_governor import (
     LangChainGovernor,

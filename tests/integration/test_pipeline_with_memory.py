@@ -15,7 +15,7 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timezone
 
-from arifos_core.pipeline import (
+from arifos_core.system.pipeline import (
     Pipeline,
     PipelineState,
     StakesClass,

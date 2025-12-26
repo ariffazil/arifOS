@@ -97,7 +97,7 @@ async def get_metrics() -> MetricsResponse:
     verdicts, and memory bands.
     """
     try:
-        from arifos_core.runtime_manifest import get_active_epoch
+        from arifos_core.system.runtime_manifest import get_active_epoch
         epoch = get_active_epoch()
     except Exception:
         epoch = "v38"

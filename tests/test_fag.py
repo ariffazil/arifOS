@@ -8,7 +8,7 @@ import pytest
 import tempfile
 from pathlib import Path
 
-from arifos_core.fag import FAG, FAGReadResult, fag_read
+from arifos_core.governance.fag import FAG, FAGReadResult, fag_read
 
 
 @pytest.fixture

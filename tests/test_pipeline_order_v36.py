@@ -9,8 +9,8 @@ signal a violation of the Amanah-first repair order described in CLAUDE.md.
 
 from __future__ import annotations
 
-from arifos_core.metrics import Metrics
-from arifos_core.pipeline import PipelineState, StakesClass, stage_888_judge
+from arifos_core.enforcement.metrics import Metrics
+from arifos_core.system.pipeline import PipelineState, StakesClass, stage_888_judge
 
 
 def test_amanah_failure_void_even_when_other_floors_pass() -> None:

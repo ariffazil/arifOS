@@ -17,7 +17,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Iterable, Optional
 
-from arifos_core.ledger_hashing import sha256_hex
+from arifos_core.governance.ledger_hashing import sha256_hex
 
 
 @dataclass

@@ -43,7 +43,7 @@ _TELEMETRY_AVAILABLE = False
 _telemetry = None
 
 try:
-    from arifos_core.telemetry import telemetry as _telemetry
+    from arifos_core.utils.telemetry_v36 import telemetry as _telemetry
     _TELEMETRY_AVAILABLE = True
 except ImportError:
     pass

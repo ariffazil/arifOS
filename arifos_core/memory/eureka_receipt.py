@@ -32,7 +32,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from arifos_core.metrics import Metrics
+    from arifos_core.enforcement.metrics import Metrics
 
 
 logger = logging.getLogger(__name__)

@@ -24,10 +24,10 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
-from ..runtime_types import Stakeholder
+from ..utils.runtime_types import Stakeholder
 
 if TYPE_CHECKING:
-    from ..pipeline import PipelineState
+    from ..system.pipeline import PipelineState
 
 
 # =============================================================================

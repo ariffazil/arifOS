@@ -1124,7 +1124,7 @@ class MemoryBandRouter:
         Returns:
             Dict with routing results and entropy rot info
         """
-        from ..kernel import VerdictPacket, check_entropy_rot
+        from ..system.kernel import VerdictPacket, check_entropy_rot
 
         # Build packet for entropy rot check
         packet = VerdictPacket(

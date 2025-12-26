@@ -50,12 +50,12 @@ from typing import Any, Callable, Dict, List, Optional
 if __name__ == "__main__":
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from arifos_core.pipeline import Pipeline, PipelineState, StakesClass
-from arifos_core.metrics import Metrics, check_anti_hantu
-from arifos_core.eye_sentinel import EyeSentinel
+from arifos_core.system.pipeline import Pipeline, PipelineState, StakesClass
+from arifos_core.enforcement.metrics import Metrics, check_anti_hantu
+from arifos_core.utils.eye_sentinel import EyeSentinel
 from arifos_core.waw import WAWFederationCore, FederationVerdict
-from arifos_core.APEX_PRIME import ApexVerdict
-from arifos_core.genius_metrics import evaluate_genius_law, GeniusVerdict
+from arifos_core.system.apex_prime import ApexVerdict
+from arifos_core.enforcement.genius_metrics import evaluate_genius_law, GeniusVerdict
 from arifos_core.governance.ledger_cryptography import (
     CryptographicLedger,
 )

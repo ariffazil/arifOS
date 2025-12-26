@@ -46,7 +46,7 @@ async def readiness_check() -> ReadyResponse:
 
     # Check pipeline availability
     try:
-        from arifos_core.pipeline import Pipeline
+        from arifos_core.system.pipeline import Pipeline
         _ = Pipeline  # Just verify import succeeds
         details["pipeline"] = "available"
     except Exception as e:

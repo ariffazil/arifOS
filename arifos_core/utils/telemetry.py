@@ -34,7 +34,7 @@ Output Format: JSONL (one JSON object per line)
     - Floor status and violations
 
 Usage:
-    from arifos_core.telemetry import telemetry
+    from arifos_core.utils.telemetry_v36 import telemetry
 
     # Log a judgment event
     telemetry.log_event(

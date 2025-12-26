@@ -3,7 +3,7 @@
 """
 
 from arifos_core import APEXPrime, Verdict
-from arifos_core.metrics import ConstitutionalMetrics
+from arifos_core.enforcement.metrics import ConstitutionalMetrics
 
 
 def make_metrics(**overrides):

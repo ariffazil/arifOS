@@ -25,7 +25,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from ..metrics import Metrics
+from ..enforcement.metrics import Metrics
 from .base import OrganSignal, OrganVote, WAWOrgan
 from .well import WellOrgan
 from .rif import RifOrgan

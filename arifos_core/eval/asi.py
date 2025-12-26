@@ -20,7 +20,7 @@ Version: v41.3Omega
 """
 
 from typing import Tuple
-from ..metrics import Metrics
+from ..enforcement.metrics import Metrics
 from .types import ASIResult, EvaluationMode
 
 

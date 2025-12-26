@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 from pathlib import Path
 
-from arifos_core.ledger_hashing import (
+from arifos_core.governance.ledger_hashing import (
     compute_entry_hash,
     dump_jsonl,
     load_jsonl,
@@ -32,7 +32,7 @@ from arifos_core.ledger_hashing import (
     PREVIOUS_HASH_FIELD,
     GENESIS_PREVIOUS_HASH,
 )
-from arifos_core.merkle import build_merkle_tree
+from arifos_core.governance.merkle import build_merkle_tree
 
 
 # Paths (can later be centralized in a config or manifest)

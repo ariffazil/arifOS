@@ -13,7 +13,7 @@ Version: v38.0
 """
 
 import pytest
-from arifos_core.pipeline import (
+from arifos_core.system.pipeline import (
     Pipeline,
     PipelineState,
     StakesClass,
@@ -29,7 +29,7 @@ from arifos_core.pipeline import (
 )
 from arifos_core.stages.stage_000_amanah import AmanahSignals
 from arifos_core.stages.stage_555_empathy import EmpathySignals
-from arifos_core.metrics import Metrics
+from arifos_core.enforcement.metrics import Metrics
 
 
 class TestJobContract:

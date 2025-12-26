@@ -3,7 +3,7 @@
 Demonstrates how ignition selects identity-specific profiles on top of the same kernel.
 """
 
-from arifos_core.ignition import IgnitionLoader
+from arifos_core.system.ignition import IgnitionLoader
 
 
 def show_profile(trigger):

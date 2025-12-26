@@ -644,8 +644,8 @@ def evaluate_genius_law(
         GeniusVerdict with all computed scores and Truth Polarity metadata
 
     Example:
-        from arifos_core.metrics import Metrics
-        from arifos_core.genius_metrics import evaluate_genius_law
+        from arifos_core.enforcement.metrics import Metrics
+        from arifos_core.enforcement.genius_metrics import evaluate_genius_law
 
         m = Metrics(
             truth=0.99, delta_s=0.1, peace_squared=1.1,

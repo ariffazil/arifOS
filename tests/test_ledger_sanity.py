@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from arifos_core.metrics import Metrics
+from arifos_core.enforcement.metrics import Metrics
 from arifos_core.memory.cooling_ledger import (
     CoolingEntry,
     CoolingMetrics,

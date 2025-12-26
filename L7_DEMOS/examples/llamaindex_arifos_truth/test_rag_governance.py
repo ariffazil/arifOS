@@ -24,9 +24,9 @@ from rag_truth_governor import (
     RetrievedNode,
     create_petronas_documents,
 )
-from arifos_core.metrics import Metrics
-from arifos_core.APEX_PRIME import APEXPrime
-from arifos_core.eye_sentinel import EyeSentinel
+from arifos_core.enforcement.metrics import Metrics
+from arifos_core.system.apex_prime import APEXPrime
+from arifos_core.utils.eye_sentinel import EyeSentinel
 
 
 # ==============================================================================

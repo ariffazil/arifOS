@@ -44,7 +44,7 @@ from arifos_core.memory.bands import (
 from arifos_core.memory.policy import (
     VERDICT_BAND_ROUTING,
 )
-from arifos_core.kernel import (
+from arifos_core.system.kernel import (
     VerdictPacket,
     check_entropy_rot,
     SABAR_TIMEOUT_HOURS,

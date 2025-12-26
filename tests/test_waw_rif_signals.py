@@ -8,7 +8,7 @@ Test coverage: 95%+ for RifOrgan class, RifSignals, and heuristics
 
 import pytest
 
-from arifos_core.metrics import Metrics
+from arifos_core.enforcement.metrics import Metrics
 from arifos_core.waw.rif import (
     RifOrgan,
     RifSignals,

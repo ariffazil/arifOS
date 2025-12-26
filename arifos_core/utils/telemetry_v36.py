@@ -15,7 +15,7 @@ Field Mappings Closed:
     HOTSPOT 9: verdict object with code/violations — structured verdict
 
 Usage:
-    from arifos_core.telemetry_v36 import build_telemetry_entry_v36
+    from arifos_core.utils.telemetry_v36 import build_telemetry_entry_v36
 
     entry = build_telemetry_entry_v36(
         query="What is AI?",

@@ -873,7 +873,7 @@ class TestRuntimeManifest:
 
     def test_normalize_epoch(self):
         """normalize_epoch should handle various formats."""
-        from arifos_core.runtime_manifest import normalize_epoch
+        from arifos_core.system.runtime_manifest import normalize_epoch
         import pytest
 
         assert normalize_epoch("v37") == "v37"
@@ -890,7 +890,7 @@ class TestRuntimeManifest:
 
     def test_is_v37_epoch(self):
         """is_v37_epoch should detect v37."""
-        from arifos_core.runtime_manifest import is_v37_epoch, set_active_epoch
+        from arifos_core.system.runtime_manifest import is_v37_epoch, set_active_epoch
 
         # Test with manifest dict
         manifest_v37 = {"_runtime_epoch": "v37"}

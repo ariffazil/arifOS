@@ -15,7 +15,7 @@ Supports multiple epochs via ARIFOS_RUNTIME_EPOCH environment variable:
 The manifest is DESCRIPTIVE ONLY - this loader does not change behavior.
 
 Usage:
-    from arifos_core.runtime_manifest import load_runtime_manifest, get_active_epoch
+    from arifos_core.system.runtime_manifest import load_runtime_manifest, get_active_epoch
 
     # Load default (v45) manifest
     manifest = load_runtime_manifest()
@@ -29,7 +29,7 @@ Usage:
     manifest_v35 = load_runtime_manifest(epoch="v35")
 
     # Check if running legacy epoch
-    from arifos_core.runtime_manifest import is_legacy_epoch
+    from arifos_core.system.runtime_manifest import is_legacy_epoch
     if is_legacy_epoch():
         print("Running in legacy mode")
 

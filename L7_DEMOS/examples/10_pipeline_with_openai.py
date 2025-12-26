@@ -35,8 +35,8 @@ from typing import Any, Dict
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from arifos_core.adapters.llm_openai import make_llm_generate
-from arifos_core.pipeline import Pipeline, StakesClass
-from arifos_core.metrics import Metrics
+from arifos_core.system.pipeline import Pipeline, StakesClass
+from arifos_core.enforcement.metrics import Metrics
 from arifos_core import apex_guardrail
 from arifos_core.memory.cooling_ledger import log_cooling_entry, LedgerConfig
 

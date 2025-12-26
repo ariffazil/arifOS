@@ -15,9 +15,9 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from arifos_core.pipeline import Pipeline, StakesClass
+from arifos_core.system.pipeline import Pipeline, StakesClass
 from arifos_core.memory.scars import ScarIndex, seed_scars
-from arifos_core.metrics import Metrics
+from arifos_core.enforcement.metrics import Metrics
 
 
 def create_scar_retriever(scar_index):

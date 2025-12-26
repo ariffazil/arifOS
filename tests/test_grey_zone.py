@@ -92,7 +92,7 @@ class TestEducationalContent:
         """
         Educational security content should get high Ψ (clarity, not danger).
         """
-        from arifos_core.genius_metrics import calculate_psi_phoenix
+        from arifos_core.enforcement.genius_metrics import calculate_psi_phoenix
 
         # Educational content: High clarity, neutral tone, good empathy
         psi = calculate_psi_phoenix(
@@ -349,13 +349,13 @@ class TestTelemetryModule:
 
     def test_telemetry_import(self):
         """Telemetry module should be importable."""
-        from arifos_core.telemetry import telemetry, TelemetryEvent
+        from arifos_core.utils.telemetry_v36 import telemetry, TelemetryEvent
         assert telemetry is not None
         assert TelemetryEvent is not None
 
     def test_telemetry_event_creation(self):
         """TelemetryEvent should create properly."""
-        from arifos_core.telemetry import TelemetryEvent
+        from arifos_core.utils.telemetry_v36 import TelemetryEvent
         import time
 
         event = TelemetryEvent(
@@ -374,7 +374,7 @@ class TestTelemetryModule:
 
     def test_telemetry_event_to_dict(self):
         """TelemetryEvent should serialize to dict."""
-        from arifos_core.telemetry import TelemetryEvent
+        from arifos_core.utils.telemetry_v36 import TelemetryEvent
         import time
 
         event = TelemetryEvent(
@@ -392,7 +392,7 @@ class TestTelemetryModule:
 
     def test_telemetry_logging_disabled(self):
         """Telemetry should handle disabled state gracefully."""
-        from arifos_core.telemetry import Telemetry
+        from arifos_core.utils.telemetry_v36 import Telemetry
 
         telem = Telemetry(enabled=False)
         result = telem.log_event("input", "output", {"verdict": "SEAL"})
@@ -413,7 +413,7 @@ class TestCombinedGovernance:
         """
         Safe, clear content should get high Ψ and pass Amanah.
         """
-        from arifos_core.genius_metrics import calculate_psi_phoenix
+        from arifos_core.enforcement.genius_metrics import calculate_psi_phoenix
         from arifos_core.floor_detectors.amanah_risk_detectors import check_amanah
 
         text = "Python is a high-level programming language known for its readability."
@@ -428,7 +428,7 @@ class TestCombinedGovernance:
         """
         Destructive content should get Ψ = 0 regardless of clarity.
         """
-        from arifos_core.genius_metrics import calculate_psi_phoenix
+        from arifos_core.enforcement.genius_metrics import calculate_psi_phoenix
         from arifos_core.floor_detectors.amanah_risk_detectors import check_amanah
 
         text = "Use shutil.rmtree('/') to delete all files"

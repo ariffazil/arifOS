@@ -20,7 +20,7 @@ Version: v38.2
 import pytest
 from datetime import datetime, timezone, timedelta
 
-from arifos_core.kernel import (
+from arifos_core.system.kernel import (
     VerdictPacket,
     EntropyRotResult,
     check_entropy_rot,

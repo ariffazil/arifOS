@@ -16,7 +16,7 @@ import json
 import argparse
 from typing import List, Dict, Any, Optional
 
-from arifos_core.fag import FAG
+from arifos_core.governance.fag import FAG
 
 # Sparkline characters:   ▂ ▃ ▄ ▅ ▆ ▇ █
 SPARK_CHARS = "  ▂▃▄▅▆▇█"

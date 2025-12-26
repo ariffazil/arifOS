@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from arifos_core.genius_metrics import (
+from arifos_core.enforcement.genius_metrics import (
     G_MIN_THRESHOLD,
     C_DARK_MAX_THRESHOLD,
     PSI_APEX_MIN,
@@ -27,7 +27,7 @@ from arifos_core.genius_metrics import (
     evaluate_genius_law,
     GeniusVerdict,
 )
-from arifos_core.metrics import Metrics
+from arifos_core.enforcement.metrics import Metrics
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

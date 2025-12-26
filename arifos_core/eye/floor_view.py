@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from ..metrics import Metrics
+from ..enforcement.metrics import Metrics
 from .base import AlertSeverity, EyeReport, EyeView
 
 

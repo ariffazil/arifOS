@@ -13,13 +13,13 @@ See: arifos_core/pipeline.py stage_888_judge()
 """
 
 import pytest
-from arifos_core.pipeline import (
+from arifos_core.system.pipeline import (
     Pipeline,
     PipelineState,
     StakesClass,
     stage_888_judge,
 )
-from arifos_core.metrics import Metrics
+from arifos_core.enforcement.metrics import Metrics
 from arifos_core.waw.federation import WAWFederationCore
 
 

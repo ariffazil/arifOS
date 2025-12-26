@@ -84,7 +84,7 @@ async def run_pipeline(request: PipelineRunRequest) -> dict:
     - 888_HOLD: High-stakes, awaiting human approval
     """
     try:
-        from arifos_core.pipeline import Pipeline
+        from arifos_core.system.pipeline import Pipeline
 
         # Get LLM backend (LiteLLM if configured, else stub)
         llm_generate = _get_llm_generate()
@@ -133,7 +133,7 @@ async def run_pipeline(request: PipelineRunRequest) -> dict:
 
             # Add GENIUS metrics if available
             try:
-                from arifos_core.genius_metrics import (
+                from arifos_core.enforcement.genius_metrics import (
                     compute_genius_index,
                     compute_dark_cleverness,
                     compute_psi_score,
@@ -190,7 +190,7 @@ async def run_pipeline_debug(request: PipelineRunRequest) -> PipelineRunResponse
     Use /run for the public APEX PRIME contract.
     """
     try:
-        from arifos_core.pipeline import Pipeline
+        from arifos_core.system.pipeline import Pipeline
 
         # Get LLM backend (LiteLLM if configured, else stub)
         llm_generate = _get_llm_generate()
@@ -239,7 +239,7 @@ async def run_pipeline_debug(request: PipelineRunRequest) -> PipelineRunResponse
 
             # Add GENIUS metrics if available
             try:
-                from arifos_core.genius_metrics import (
+                from arifos_core.enforcement.genius_metrics import (
                     compute_genius_index,
                     compute_dark_cleverness,
                     compute_psi_score,
@@ -364,7 +364,7 @@ async def pipeline_status() -> dict:
     LLM backend configuration.
     """
     try:
-        from arifos_core.runtime_manifest import get_active_epoch
+        from arifos_core.system.runtime_manifest import get_active_epoch
         epoch = get_active_epoch()
     except Exception:
         epoch = "v38"

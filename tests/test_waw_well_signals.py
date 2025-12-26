@@ -15,7 +15,7 @@ Comprehensive tests for WellSignals dataclass and compute_well_signals function:
 import pytest
 from arifos_core.waw.well import WellOrgan, compute_well_signals
 from arifos_core.waw.base import OrganVote
-from arifos_core.metrics import Metrics
+from arifos_core.enforcement.metrics import Metrics
 
 
 # =============================================================================

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from arifos_core.eye.anti_hantu_view import AntiHantuView
 from arifos_core.eye.base import AlertSeverity, EyeReport
-from arifos_core.metrics import Metrics
+from arifos_core.enforcement.metrics import Metrics
 
 
 def _baseline_metrics() -> Metrics:

@@ -1,6 +1,6 @@
 import pytest
 
-from arifos_core.pipeline import PipelineState, StakesClass, _write_memory_for_verdict
+from arifos_core.system.pipeline import PipelineState, StakesClass, _write_memory_for_verdict
 from arifos_core.memory.policy import MemoryWritePolicy
 from arifos_core.memory.bands import MemoryBandRouter, InMemoryStore, append_eureka_decision
 from arifos_core.memory.eureka_types import ActorRole, MemoryWriteRequest, Verdict

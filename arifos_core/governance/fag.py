@@ -18,7 +18,7 @@ Production Hardening (v41.0):
 - Context manager support (__enter__/__exit__)
 
 Usage:
-    from arifos_core.fag import FAG, SecurityAlert
+    from arifos_core.governance.fag import FAG, SecurityAlert
     
     # Basic usage
     fag = FAG(root="/project", read_only=True)

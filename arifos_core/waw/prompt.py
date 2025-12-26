@@ -32,7 +32,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-from ..metrics import Metrics
+from ..enforcement.metrics import Metrics
 from .base import OrganSignal, OrganVote, WAWOrgan
 from .bridges.prompt_bridge import PromptBridge
 

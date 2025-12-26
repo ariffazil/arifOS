@@ -183,28 +183,28 @@ class TestBackwardCompatShims:
 
     def test_old_pipeline_path_works(self):
         """Old arifos_core.pipeline import works via shim."""
-        from arifos_core.pipeline import Pipeline
+        from arifos_core.system.pipeline import Pipeline
         assert Pipeline is not None
 
     def test_old_apex_prime_path_works(self):
         """Old arifos_core.APEX_PRIME import works via shim."""
-        from arifos_core.APEX_PRIME import apex_review
+        from arifos_core.system.apex_prime import apex_review
         assert apex_review is not None
 
     def test_old_metrics_path_works(self):
         """Old arifos_core.metrics import works via shim."""
-        from arifos_core.metrics import Metrics
+        from arifos_core.enforcement.metrics import Metrics
         assert Metrics is not None
 
     def test_old_genius_metrics_path_works(self):
         """Old arifos_core.genius_metrics import works via shim."""
-        from arifos_core.genius_metrics import evaluate_genius_law
+        from arifos_core.enforcement.genius_metrics import evaluate_genius_law
         # May be None but import should work
         pass
 
     def test_old_fag_path_works(self):
         """Old arifos_core.fag import works via shim."""
-        from arifos_core.fag import FAG
+        from arifos_core.governance.fag import FAG
         assert FAG is not None
 
 

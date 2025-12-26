@@ -12,8 +12,8 @@ See: docs/GENIUS_LAW_MEASUREMENT_SPEC.md
 """
 
 import pytest
-from arifos_core.metrics import Metrics
-from arifos_core.genius_metrics import (
+from arifos_core.enforcement.metrics import Metrics
+from arifos_core.enforcement.genius_metrics import (
     # Constants
     DEFAULT_ENERGY,
     EPSILON,
@@ -583,7 +583,7 @@ class TestIntegration:
 # TRUTH POLARITY TESTS (v36.1Ω Stage 2)
 # =============================================================================
 
-from arifos_core.genius_metrics import detect_truth_polarity, TRUTH_POLARITY_THRESHOLD
+from arifos_core.enforcement.genius_metrics import detect_truth_polarity, TRUTH_POLARITY_THRESHOLD
 
 
 class TestTruthPolarityDetection:

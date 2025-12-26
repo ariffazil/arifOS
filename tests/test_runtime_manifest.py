@@ -19,7 +19,7 @@ import importlib
 import pytest
 from pathlib import Path
 
-from arifos_core.runtime_manifest import (
+from arifos_core.system.runtime_manifest import (
     load_runtime_manifest,
     validate_manifest,
     get_floor_threshold,
@@ -36,7 +36,7 @@ from arifos_core.runtime_manifest import (
 )
 
 # Import metrics constants for comparison
-from arifos_core.metrics import (
+from arifos_core.enforcement.metrics import (
     TRUTH_THRESHOLD,
     DELTA_S_THRESHOLD,
     PEACE_SQUARED_THRESHOLD,
@@ -592,7 +592,7 @@ class TestV37DefaultEpoch:
         This test verifies the v37 unified runtime is the mainline default.
         """
         import os
-        from arifos_core.runtime_manifest import (
+        from arifos_core.system.runtime_manifest import (
             get_active_epoch,
             is_v37_epoch,
             is_legacy_epoch,
@@ -632,7 +632,7 @@ class TestV37DefaultEpoch:
     def test_v35_selectable_via_env(self):
         """v35 should be selectable via ARIFOS_RUNTIME_EPOCH for legacy testing."""
         import os
-        from arifos_core.runtime_manifest import (
+        from arifos_core.system.runtime_manifest import (
             get_active_epoch,
             is_v37_epoch,
             is_legacy_epoch,
@@ -657,7 +657,7 @@ class TestV37DefaultEpoch:
     def test_v36_3_selectable_via_env(self):
         """v36.3 should be selectable via ARIFOS_RUNTIME_EPOCH for legacy testing."""
         import os
-        from arifos_core.runtime_manifest import (
+        from arifos_core.system.runtime_manifest import (
             get_active_epoch,
             is_v37_epoch,
             is_legacy_epoch,
@@ -682,7 +682,7 @@ class TestV37DefaultEpoch:
     def test_v37_manifest_loads_by_default(self):
         """When env unset, load_runtime_manifest should load v37 manifest."""
         import os
-        from arifos_core.runtime_manifest import load_runtime_manifest, EPOCH_ENV_VAR
+        from arifos_core.system.runtime_manifest import load_runtime_manifest, EPOCH_ENV_VAR
 
         original_value = os.environ.get(EPOCH_ENV_VAR)
 
@@ -707,7 +707,7 @@ class TestV37DefaultEpoch:
 
     def test_legacy_epochs_set_contains_v35_and_others(self):
         """LEGACY_EPOCHS should contain v35, v36.3, v37, v44."""
-        from arifos_core.runtime_manifest import LEGACY_EPOCHS
+        from arifos_core.system.runtime_manifest import LEGACY_EPOCHS
 
         assert "v35" in LEGACY_EPOCHS
         assert "v36.3" in LEGACY_EPOCHS

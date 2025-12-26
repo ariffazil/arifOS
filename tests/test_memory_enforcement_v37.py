@@ -93,7 +93,7 @@ class TestMemoryContextPropagation:
 
     def test_pipeline_creates_memory_context_at_000(self):
         """Pipeline should create MemoryContext during stage_000_void."""
-        from arifos_core.pipeline import PipelineState, stage_000_void
+        from arifos_core.system.pipeline import PipelineState, stage_000_void
 
         state = PipelineState(query="test query", job_id="test-job")
 
@@ -110,7 +110,7 @@ class TestMemoryContextPropagation:
 
     def test_pipeline_propagates_memory_context_through_stages(self):
         """Memory context should persist through all pipeline stages."""
-        from arifos_core.pipeline import (
+        from arifos_core.system.pipeline import (
             PipelineState,
             stage_000_void,
             stage_111_sense,
@@ -135,7 +135,7 @@ class TestMemoryContextPropagation:
 
     def test_pipeline_class_b_updates_env_band(self):
         """High-stakes query should update EnvBand.stakes_class."""
-        from arifos_core.pipeline import (
+        from arifos_core.system.pipeline import (
             PipelineState,
             StakesClass,
             stage_000_void,
@@ -372,7 +372,7 @@ class TestPipelineMemoryIntegration:
 
     def test_full_pipeline_run_has_memory_context(self):
         """Full pipeline run should have MemoryContext with frozen VaultBand."""
-        from arifos_core.pipeline import Pipeline
+        from arifos_core.system.pipeline import Pipeline
 
         pipeline = Pipeline()
         state = pipeline.run("What is the capital of France?")
@@ -389,7 +389,7 @@ class TestPipelineMemoryIntegration:
 
     def test_high_stakes_pipeline_updates_env_band(self):
         """High-stakes query should sync to EnvBand."""
-        from arifos_core.pipeline import Pipeline
+        from arifos_core.system.pipeline import Pipeline
 
         pipeline = Pipeline()
         # Use a high-stakes keyword

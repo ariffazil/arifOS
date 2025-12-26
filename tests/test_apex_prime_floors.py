@@ -5,8 +5,8 @@
 
 import pytest
 
-from arifos_core.metrics import Metrics
-from arifos_core.APEX_PRIME import apex_review
+from arifos_core.enforcement.metrics import Metrics
+from arifos_core.system.apex_prime import apex_review
 
 
 # --- Helper: baseline "all floors passing" metrics ----------------------------

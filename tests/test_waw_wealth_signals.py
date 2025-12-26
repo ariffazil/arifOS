@@ -8,7 +8,7 @@ Test coverage: 95%+ for WealthOrgan class, WealthSignals, and heuristics
 
 import pytest
 
-from arifos_core.metrics import Metrics
+from arifos_core.enforcement.metrics import Metrics
 from arifos_core.waw.wealth import (
     WealthOrgan,
     WealthSignals,

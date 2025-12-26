@@ -20,7 +20,7 @@ from scripts.arifos_caged_llm_demo import (
     stub_call_model,
     compute_metrics_from_response,
 )
-from arifos_core.APEX_PRIME import ApexVerdict
+from arifos_core.system.apex_prime import ApexVerdict
 
 
 # =============================================================================

@@ -24,7 +24,7 @@ from arifos_core.waw import (
     WAWFederationCore,
     FederationVerdict,
 )
-from arifos_core.metrics import Metrics
+from arifos_core.enforcement.metrics import Metrics
 
 
 # =============================================================================

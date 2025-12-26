@@ -4,14 +4,14 @@ Tests for lightweight heuristics in stages 444/555/666.
 
 import re
 
-from arifos_core.pipeline import (
+from arifos_core.system.pipeline import (
     PipelineState,
     stage_444_align,
     stage_555_empathize,
     stage_666_bridge,
     stage_888_judge,
 )
-from arifos_core.metrics import Metrics
+from arifos_core.enforcement.metrics import Metrics
 
 
 def _baseline_state(text: str = "Response text") -> PipelineState:
