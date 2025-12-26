@@ -9,6 +9,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Latest:** v45Ω Patch B (2025-12-24) — Δ Router + Lane-Aware Truth Gating (explanatory queries fixed). See [CHANGELOG.md](CHANGELOG.md) for details.
 
+**Quick Links:**
+
+- **[AGENTS.md](AGENTS.md)** — Full constitutional governance (extends this file)
+- **[SECURITY.md](SECURITY.md)** — Security vulnerability reporting
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — How to propose amendments
+- **[CHANGELOG.md](CHANGELOG.md)** — Version history and patches
+
 ---
 
 ## Quick Reference
@@ -87,9 +94,40 @@ python scripts/trinity.py seal <branch> "Reason"  # Seal with approval
 # Unix/Linux/Mac: ./trinity.sh forge <branch>
 # Windows PowerShell: .\trinity.ps1 forge <branch>
 
+# MCP Server (IDE Integration - VS Code, Cursor, etc.)
+python scripts/arifos_mcp_entry.py
+# Provides: arifos_judge, arifos_recall, arifos_audit, arifos_fag_read tools
+
 # Full v45 Demo
 python demo_sealion_v45_full.py    # Complete ΔΩΨ Trinity demonstration
 ```
+
+---
+
+## Quick Start for New Developers
+
+**First time here? Run this sequence:**
+
+```bash
+# 1. Clone and install
+git clone https://github.com/ariffazil/arifOS.git
+cd arifOS
+pip install -e ".[dev]"
+
+# 2. Verify installation
+pytest -x  # Run tests (stop on first error)
+
+# 3. Explore core governance
+python -m arifos_core.system.pipeline  # See 000→999 pipeline demo
+
+# 4. Read the constitution
+# Windows:
+type AGENTS.md  # Full governance guide
+# Unix/Linux/Mac:
+cat AGENTS.md   # Full governance guide
+```
+
+Then proceed to Architecture Overview below.
 
 ---
 
