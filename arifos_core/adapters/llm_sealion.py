@@ -19,7 +19,7 @@ import re
 from dataclasses import dataclass
 from typing import Callable, Generator, Optional, List
 
-from ..llm_interface import (
+from ..integration.adapters.llm_interface import (
     LLMConfig,
     LLMInterface,
     StreamChunk,

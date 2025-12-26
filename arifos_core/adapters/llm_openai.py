@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Callable, Generator, Optional
 
-from ..llm_interface import (
+from ..integration.adapters.llm_interface import (
     LLMConfig,
     LLMInterface,
     StreamChunk,
