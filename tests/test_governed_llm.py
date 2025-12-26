@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Dict
 
-from arifos_core.wrappers.governed_session import (
+from arifos_core.integration.adapters.governed_llm import (
   GovernedPipeline,
   configure_governed_pipeline,
   get_default_pipeline,

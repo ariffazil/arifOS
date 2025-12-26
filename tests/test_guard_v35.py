@@ -7,7 +7,7 @@ import pytest
 from typing import Any, Dict, Optional, Callable
 
 from arifos_core.enforcement.metrics import Metrics
-from arifos_core.guards.session_dependency import apex_guardrail, GuardrailError
+from arifos_core.integration.guards.guard import apex_guardrail, GuardrailError
 from arifos_core import EyeSentinel
 
 

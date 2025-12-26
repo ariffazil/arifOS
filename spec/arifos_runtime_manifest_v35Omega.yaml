@@ -18,7 +18,7 @@
 # - canon/888_APEX_PRIME_CANON_v35Omega.md
 # - canon/APEX_MEASUREMENT_CANON_v36.1Omega.md (measurement standard)
 # - integrations/sealion/constitutional_floors.json
-# - arifos_core/metrics.py (threshold constants)
+# - arifos_core/enforcement/metrics.py (threshold constants)
 #
 # Author: arifOS Project
 # Version: v35Omega (runtime law) + v36.1Omega (measurement)
@@ -531,11 +531,11 @@ eye_sentinel:
 # =============================================================================
 # METRICS API
 # =============================================================================
-# Source: arifos_core/metrics.py
+# Source: arifos_core/enforcement/metrics.py
 # =============================================================================
 
 metrics:
-  module: "arifos_core.metrics"
+  module: "arifos_core.enforcement.metrics"
   dataclass: "Metrics"
   legacy_alias: "ConstitutionalMetrics"
   verdict_class: "FloorsVerdict"

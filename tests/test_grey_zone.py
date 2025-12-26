@@ -349,13 +349,13 @@ class TestTelemetryModule:
 
     def test_telemetry_import(self):
         """Telemetry module should be importable."""
-        from arifos_core.utils.telemetry_v36 import telemetry, TelemetryEvent
+        from arifos_core.utils.telemetry import telemetry, TelemetryEvent
         assert telemetry is not None
         assert TelemetryEvent is not None
 
     def test_telemetry_event_creation(self):
         """TelemetryEvent should create properly."""
-        from arifos_core.utils.telemetry_v36 import TelemetryEvent
+        from arifos_core.utils.telemetry import TelemetryEvent
         import time
 
         event = TelemetryEvent(
@@ -374,7 +374,7 @@ class TestTelemetryModule:
 
     def test_telemetry_event_to_dict(self):
         """TelemetryEvent should serialize to dict."""
-        from arifos_core.utils.telemetry_v36 import TelemetryEvent
+        from arifos_core.utils.telemetry import TelemetryEvent
         import time
 
         event = TelemetryEvent(
@@ -392,7 +392,7 @@ class TestTelemetryModule:
 
     def test_telemetry_logging_disabled(self):
         """Telemetry should handle disabled state gracefully."""
-        from arifos_core.utils.telemetry_v36 import Telemetry
+        from arifos_core.utils.telemetry import Telemetry
 
         telem = Telemetry(enabled=False)
         result = telem.log_event("input", "output", {"verdict": "SEAL"})
