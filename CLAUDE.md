@@ -12,11 +12,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Entropy Control rules (when to add new files)
 - Cooling Notes (agent learnings from past mistakes)
 
-**Latest:** v45Ω Patch B (2025-12-24) — Δ Router + Lane-Aware Truth Gating (explanatory queries fixed). See [CHANGELOG.md](CHANGELOG.md) for details.
+**Latest:** v45Ω Patch B.2 (2025-12-27) — Lane-aware Psi recomputation + interactive testing. See [PATCH_B2_SUMMARY.md](PATCH_B2_SUMMARY.md) for details.
 
 **Quick Links:**
 
 - **[AGENTS.md](AGENTS.md)** — Full constitutional governance (extends this file)
+- **[PATCH_B2_SUMMARY.md](PATCH_B2_SUMMARY.md)** — v45Ω Patch B.2 technical details
+- **[WISDOM_SEALION_INTERACTIVE_v45.md](docs/WISDOM_SEALION_INTERACTIVE_v45.md)** — Future improvements (65%→95%)
 - **[SECURITY.md](SECURITY.md)** — Security vulnerability reporting
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — How to propose amendments
 - **[CHANGELOG.md](CHANGELOG.md)** — Version history and patches
@@ -76,6 +78,10 @@ pytest -x
 # Run the governed pipeline demo
 python -m arifos_core.system.pipeline
 
+# SEA-LION v4 Interactive Testing (v45Ω Patch B.2)
+python scripts/sealion_full_interactive.py     # Full pipeline RAW vs GOVERNED
+python scripts/verify_sealion_governance.py    # Automated 6-test verification suite
+
 # CLI Tools (installed as commands)
 arifos-analyze-governance --ledger cooling_ledger/L1_cooling_ledger.jsonl
 arifos-verify-ledger               # Hash-chain integrity check
@@ -117,8 +123,8 @@ python scripts/arifos_mcp_entry.py
 #   }
 # }
 
-# Full v45 Demo
-python demo_sealion_v45_full.py    # Complete ΔΩΨ Trinity demonstration
+# Full v45 Demo (after file reorganization - v45 migration)
+python L6_SEALION/tests/demo_sealion_v45_full.py    # Complete ΔΩΨ Trinity demonstration
 ```
 
 ---
@@ -242,6 +248,32 @@ L1_THEORY/canon/       # Constitutional law documents (read-only canon)
 ├── 03_runtime/        # Pipeline & execution
 ├── 04_measurement/    # GENIUS metrics
 └── 05_memory/         # EUREKA memory architecture
+
+L6_SEALION/            # SEA-LION LLM integration layer (v45 migration - Dec 2025)
+├── integrations/      # LLM adapter implementations
+│   └── sealion/       # SEA-LION-specific adapters
+└── tests/             # SEA-LION governance test suite
+    ├── demo_sealion_v45_full.py      # Full ΔΩΨ Trinity demo
+    ├── sealion_full_suite_v45.py     # Evaluation harness
+    └── test_sealion_*.py             # Integration tests
+
+L7_DEMOS/              # Integration examples & demos (v45 migration - Dec 2025)
+└── examples/          # Framework integrations & use cases
+    ├── autogen_arifos_governor/      # AutoGen multi-agent governance
+    ├── langchain_arifos_guarded/     # LangChain RAG governance
+    ├── llamaindex_arifos_truth/      # LlamaIndex truth verification
+    ├── langgraph_minimal/            # LangGraph integration
+    ├── arifos_caged_*.py             # Caged LLM demos (OpenAI, Gemini)
+    ├── test_*.py                     # Specific feature demos
+    └── demo_*.py                     # General demonstrations
+
+scripts/               # Governance utilities (reduced from 51 to ~10 files - Dec 2025)
+├── trinity.py                        # Universal Git governance CLI
+├── phoenix_72_guardrail.py           # Constitutional drift detector
+├── diagnose_v45_patches.py           # v45 diagnostic tool
+├── analyze_governance.py             # Audit analyzer
+├── verify_ledger_*.py                # Ledger verifiers
+└── arifos_mcp_entry.py               # MCP server entry point
 ```
 
 ### Key Concepts
@@ -612,8 +644,30 @@ SABAR > VOID > 888_HOLD > PARTIAL > SEAL
 **Key Scripts:**
 
 - [scripts/trinity.py](scripts/trinity.py) — Universal Git governance CLI
-- [demo_sealion_v45_full.py](demo_sealion_v45_full.py) — Full v45Ω demonstration
+- [L6_SEALION/tests/demo_sealion_v45_full.py](L6_SEALION/tests/demo_sealion_v45_full.py) — Full v45Ω demonstration
 - [scripts/diagnose_v45_patches.py](scripts/diagnose_v45_patches.py) — Diagnostic tool for v45 patches
+- [L7_DEMOS/examples/](L7_DEMOS/examples/) — Integration demos (LangChain, Autogen, LlamaIndex, caged LLMs)
+
+### Recent File Reorganization (v45 Migration - December 2025)
+
+**Entropy Reduction:** scripts/ directory was reduced from 51 files to ~10 files (80% reduction).
+
+**What Changed:**
+
+- **SEA-LION files** moved from `scripts/` → `L6_SEALION/tests/`
+  - Examples: `demo_sealion_v45_full.py`, `sealion_full_suite_v45.py`, all `test_sealion_*.py`
+- **Demo/integration files** moved from `scripts/` → `L7_DEMOS/examples/`
+  - Examples: `arifos_caged_*.py`, `test_waw_signals.py`, framework demos (AutoGen, LangChain, LlamaIndex)
+- **Governance utilities** remained in `scripts/`
+  - Examples: `trinity.py`, `phoenix_72_guardrail.py`, `verify_ledger_*.py`, `arifos_mcp_entry.py`
+
+**Why This Matters:**
+
+- Old references to `scripts/demo_*.py` or `scripts/test_sealion_*.py` need path updates
+- Import paths may have changed for moved files
+- Use `L6_SEALION/tests/` for SEA-LION-specific tests
+- Use `L7_DEMOS/examples/` for integration demonstrations
+- See [MIGRATION_PLAN.md](MIGRATION_PLAN.md) and [MIGRATION_COMPLETE.md](MIGRATION_COMPLETE.md) for full details
 
 ---
 
