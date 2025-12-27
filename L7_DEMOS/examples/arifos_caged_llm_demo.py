@@ -15,7 +15,7 @@ Usage (CLI):
     python -m scripts.arifos_caged_llm_demo --high-stakes "Should I invest in crypto?"
 
 Usage (Python/Colab):
-    from scripts.arifos_caged_llm_demo import cage_llm_response, CagedResult
+    from L7_DEMOS.examples.arifos_caged_llm_demo import cage_llm_response, CagedResult
 
     result = cage_llm_response(
         prompt="What is the capital of Malaysia?",
@@ -446,7 +446,7 @@ def cage_llm_response(
         eval_recommendation = genius_verdict.eval_recommendation
 
     # Step 8: Build result
-    return CagedResult(
+    result = CagedResult(
         prompt=prompt,
         raw_llm_response=raw_response,
         final_response=state.raw_response,
@@ -464,6 +464,11 @@ def cage_llm_response(
         is_weaponized_truth=is_weaponized_truth,
         eval_recommendation=eval_recommendation,
     )
+
+    # v45Ω Patch B: Attach raw state for lane inspection
+    result._raw_state = state
+
+    return result
 
 
 # =============================================================================

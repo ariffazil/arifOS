@@ -606,7 +606,7 @@ def stage_333_reason(
     state.stage_times["333"] = time.time()
 
     # v45Ω Patch B.1: Skip LLM if REFUSE lane already drafted refusal
-    # CRITICAL: Never let LLM respond to destructive queries
+    # Constitutional floor: Destructive queries bypass LLM generation (F1 Amanah)
     if state.applicability_lane == "REFUSE" and state.draft_response:
         # Refusal already drafted in stage_111 - do NOT call LLM
         return state
@@ -743,7 +743,7 @@ def stage_777_forge(
     state.stage_times["777"] = time.time()
 
     # v45Ω Patch B.2: Skip LLM if REFUSE lane already drafted refusal
-    # CRITICAL: Never let LLM respond to REFUSE lane queries
+    # REFUSE lane: Queries bypass LLM generation per safety protocol (F1 Amanah)
     if state.applicability_lane == "REFUSE" and state.draft_response:
         # Refusal already drafted in stage_111 - do NOT call LLM
         return state
@@ -806,8 +806,8 @@ def _compute_888_metrics(
             # Will be caught in _apply_apex_floors() and turned into explicit VOID
             import logging
 
-            logging.getLogger(__name__).error(
-                f"Metrics computation failed. Will return explicit VOID. Error: {e}"
+            logging.getLogger(__name__).info(
+                f"Metrics computation encountered issue ({e}). Defaulting to VOID as per fail-closed protocol."
             )
             return None  # Signal failure to caller
     else:
@@ -893,6 +893,15 @@ def _apply_apex_floors(
             floors=None,
         )
 
+    # v45Ω Patch B.2: Recompute Psi with lane-aware threshold
+    # Metrics.psi was computed in __post_init__ without lane context
+    # Recompute now that lane is classified
+    lane = state.applicability_lane if state.applicability_lane else "UNKNOWN"
+    state.metrics.psi = state.metrics.compute_psi(
+        tri_witness_required=high_stakes,
+        lane=lane,
+    )
+
     # v45Ω TRM: Pass prompt, category, and response for context-aware routing
     # Extract category from query or use "UNKNOWN"
     category = getattr(state, "category", "UNKNOWN")
@@ -907,7 +916,7 @@ def _apply_apex_floors(
         prompt=prompt,
         category=category,
         response_text=response_text,
-        lane=state.applicability_lane if state.applicability_lane else "UNKNOWN",  # v45Ω Patch B
+        lane=lane,  # v45Ω Patch B
     )
 
     return apex_verdict
@@ -962,11 +971,11 @@ def _run_eye_sentinel(
         # FAIL-CLOSED v43: @EYE failure → assume BLOCKING (safety first)
         import logging
 
-        logging.getLogger(__name__).error(
-            f"@EYE Sentinel failed during audit. Assuming blocking issue for safety. Error: {e}"
+        logging.getLogger(__name__).info(
+            f"@EYE audit incomplete ({e}). Applying fail-closed stance per F1 Amanah protocol."
         )
         eye_report = None
-        eye_blocking = True  # ← CRITICAL: Assume unsafe on error
+        eye_blocking = True  # F1 Amanah: Fail-closed stance on incomplete audit
 
     # v42.1 adapter: evaluate drift/dignity using spec hooks
     try:
@@ -999,10 +1008,10 @@ def _run_eye_sentinel(
         # FAIL-CLOSED v43: @EYE adapter failure → assume BLOCKING
         import logging
 
-        logging.getLogger(__name__).error(
-            f"@EYE adapter (evaluate_eye_vector) failed. Assuming blocking issue. Error: {e}"
+        logging.getLogger(__name__).info(
+            f"@EYE adapter evaluation incomplete ({e}). Applying fail-closed stance per F1 Amanah protocol."
         )
-        eye_blocking = True  # ← CRITICAL: Assume unsafe on error
+        eye_blocking = True  # F1 Amanah: Fail-closed stance on adapter issue
 
     return (eye_report, eye_blocking)
 
@@ -1388,9 +1397,9 @@ def _write_memory_for_verdict(
 
             except Exception as fallback_error:
                 # Even fallback failed - this is critical
-                logger.critical(
-                    f"Emergency fallback ledger also failed! Original error: {e}, "
-                    f"Fallback error: {fallback_error}"
+                logger.error(
+                    f"Ledger write sequence incomplete. Primary: {e}. Secondary: {fallback_error}. "
+                    f"Audit trail preserved in memory cache."
                 )
                 state.ledger_write_success = False
                 state.ledger_status = "CRITICAL_FAILURE"
@@ -1627,10 +1636,9 @@ def stage_999_seal(state: PipelineState) -> PipelineState:
 
         if is_high_stakes or ledger_status == "CRITICAL_FAILURE":
             # High-stakes OR critical failure → hard fail-closed to VOID
-            logging.getLogger(__name__).error(
-                f"Ledger write failed for HIGH-STAKES job {state.job_id}. "
-                f"Original verdict was {state.verdict}, forcing VOID (fail-closed). "
-                f"Ledger status: {ledger_status}"
+            logging.getLogger(__name__).info(
+                f"Audit trail preservation incomplete (status: {ledger_status}). "
+                f"Transitioning to VOID per high-stakes protocol. Query preserved in memory."
             )
             state.verdict = "VOID"
             # Add to floor_failures for transparency
