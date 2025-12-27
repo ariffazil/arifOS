@@ -152,13 +152,14 @@ class TestVersion:
         assert APEX_EPOCH == 45
 
     def test_genius_thresholds_exist(self):
-        """GENIUS LAW thresholds should be defined."""
-        assert G_SEAL_THRESHOLD == 0.7
-        assert G_PARTIAL_THRESHOLD == 0.5
-        assert G_MIN_THRESHOLD == 0.3
-        assert C_DARK_SEAL_MAX == 0.1
-        assert C_DARK_PARTIAL_MAX == 0.3
-        assert C_DARK_VOID_THRESHOLD == 0.5
+        """GENIUS LAW thresholds should be defined per spec/v44/genius_law.json."""
+        # v45Ω: Updated to spec-aligned values (was: 0.7, 0.3, 0.1)
+        assert G_SEAL_THRESHOLD == 0.80  # spec/v44/genius_law.json line 22
+        assert G_PARTIAL_THRESHOLD == 0.50  # spec line 23
+        assert G_MIN_THRESHOLD == 0.50  # spec line 23
+        assert C_DARK_SEAL_MAX == 0.30  # spec line 43
+        assert C_DARK_PARTIAL_MAX == 0.60  # spec line 44
+        assert C_DARK_VOID_THRESHOLD == 0.60  # spec line 44
 
 
 # =============================================================================
@@ -237,7 +238,7 @@ class TestGeniusLawVerdicts:
     """Tests for GENIUS LAW (G, C_dark) verdict decisions."""
 
     def test_high_g_low_cdark_is_seal(self, healthy_metrics):
-        """High G (≥0.7) + Low C_dark (≤0.1) → SEAL."""
+        """High G (≥0.80) + Low C_dark (≤0.30) → SEAL."""
         verdict = apex_review(healthy_metrics, use_genius_law=True)
         # Healthy metrics should have high G and low C_dark
         genius = evaluate_genius_law(healthy_metrics)
@@ -246,7 +247,7 @@ class TestGeniusLawVerdicts:
         assert verdict == "SEAL"
 
     def test_moderate_g_is_partial_or_888hold(self):
-        """Moderate G (0.5-0.7) with moderate C_dark → PARTIAL or 888_HOLD."""
+        """Moderate G (0.50-0.79) with moderate C_dark → PARTIAL or 888_HOLD."""
         # Create metrics that pass floors but have moderate GENIUS scores
         m = Metrics(
             truth=0.99,
@@ -263,7 +264,7 @@ class TestGeniusLawVerdicts:
         assert verdict in ("SEAL", "PARTIAL", "888_HOLD")
 
     def test_low_g_is_void(self):
-        """G < 0.3 → VOID even if floors pass."""
+        """G < 0.50 → VOID even if floors pass."""
         # Create metrics with low Ω (empathy) to drive G down
         m = Metrics(
             truth=0.99,
@@ -280,7 +281,7 @@ class TestGeniusLawVerdicts:
         assert verdict == "VOID"
 
     def test_high_cdark_is_void(self):
-        """C_dark > 0.5 → VOID (entropy hazard)."""
+        """C_dark > 0.60 → VOID (entropy hazard)."""
         # High C_dark requires: high Δ (clarity) but collapsed Ω and Ψ
         # However, collapsed Ω/Ψ likely fails hard floors
         # We test this through the direct C_dark check
@@ -297,6 +298,30 @@ class TestGeniusLawVerdicts:
         genius = evaluate_genius_law(m)
         # This would VOID on hard floor (amanah=False) before C_dark check
         assert apex_review(m, use_genius_law=True) == "VOID"
+
+    def test_g_drift_zone_no_seal(self):
+        """G in [0.70, 0.80) must NOT produce SEAL (spec threshold is 0.80)."""
+        # v45Ω: Test that old drift threshold (0.70) no longer produces SEAL
+        # Create metrics designed to produce G ≈ 0.75 (between old and new threshold)
+        m = Metrics(
+            truth=0.99,
+            delta_s=0.05,      # Moderate clarity
+            peace_squared=1.0,  # Exactly at threshold
+            kappa_r=0.95,      # Exactly at threshold
+            omega_0=0.04,
+            amanah=True,
+            tri_witness=0.95,
+            rasa=True,
+        )
+        verdict = apex_review(m, use_genius_law=True)
+        genius = evaluate_genius_law(m)
+
+        # If G is in drift zone (0.70-0.79), must NOT be SEAL
+        if 0.70 <= genius.genius_index < 0.80:
+            assert verdict != "SEAL", (
+                f"SEAL produced with G={genius.genius_index:.2f} (below spec 0.80). "
+                f"Verdict={verdict}"
+            )
 
     def test_energy_depletion_affects_g(self, healthy_metrics):
         """Low energy (E) should reduce G via E² bottleneck."""
@@ -506,16 +531,16 @@ class TestEdgeCases:
     """Tests for edge cases and boundary conditions."""
 
     def test_exact_threshold_g_seal(self):
-        """G exactly at SEAL threshold (0.7) should SEAL."""
+        """G exactly at SEAL threshold (0.80) should SEAL."""
         # Hard to engineer exact G, so we test the logic
-        assert G_SEAL_THRESHOLD == 0.7
-        assert G_PARTIAL_THRESHOLD == 0.5
+        assert G_SEAL_THRESHOLD == 0.80
+        assert G_PARTIAL_THRESHOLD == 0.50
 
     def test_exactly_at_cdark_threshold(self):
         """C_dark exactly at threshold should be handled correctly."""
-        assert C_DARK_SEAL_MAX == 0.1
-        assert C_DARK_PARTIAL_MAX == 0.3
-        assert C_DARK_VOID_THRESHOLD == 0.5
+        assert C_DARK_SEAL_MAX == 0.30
+        assert C_DARK_PARTIAL_MAX == 0.60
+        assert C_DARK_VOID_THRESHOLD == 0.60
 
     def test_zero_energy_collapses_g(self, healthy_metrics):
         """Energy = 0 should collapse G to 0 (E² = 0)."""

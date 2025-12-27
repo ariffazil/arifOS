@@ -201,7 +201,7 @@ def normalize_epoch(epoch: str) -> EpochType:
     normalized = EPOCH_ALIASES.get(epoch)
     if normalized is None:
         valid = list(set(EPOCH_ALIASES.values()))
-        raise ValueError(f"Unknown epoch: {epoch}. Valid epochs: {valid}")
+        raise ValueError(f"Epoch {epoch} not found in registry. Available epochs: {valid}")
     return normalized
 
 
@@ -271,7 +271,7 @@ def get_manifest_path_for_epoch(epoch: EpochType) -> Path:
         if paths.get("json", Path()).exists():
             return paths["json"]
 
-    raise FileNotFoundError(f"No manifest found for epoch: {epoch}")
+    raise FileNotFoundError(f"Manifest file for epoch {epoch} not located. Check spec/ directory.")
 
 
 # =============================================================================
@@ -323,7 +323,7 @@ def load_runtime_manifest(
         path = Path(path)
 
     if not path.exists():
-        raise FileNotFoundError(f"Manifest file not found: {path}")
+        raise FileNotFoundError(f"Manifest path {path} does not exist.")
 
     with path.open("r", encoding="utf-8") as f:
         if path.suffix in (".yaml", ".yml"):
@@ -378,23 +378,23 @@ def validate_manifest(
     # Check required top-level keys
     missing_keys = required_keys - set(manifest.keys())
     if missing_keys:
-        raise ValueError(f"Manifest missing required keys: {missing_keys}")
+        raise ValueError(f"Manifest incomplete. Required fields absent: {missing_keys}")
 
     # Check version format (relaxed for v36.3/v37)
     version = manifest.get("version", "")
     if not version:
-        raise ValueError("Manifest missing version")
+        raise ValueError("Manifest file does not specify version field.")
 
     # v35 strict check
     if epoch == "v35" and "Omega" not in version:
-        raise ValueError(f"Invalid v35 version format: {version}")
+        raise ValueError(f"Version field '{version}' does not match v35 schema pattern.")
 
     # Check floors (v35 only)
     if validate_floors:
         floors = manifest.get("floors", {})
         missing_floors = REQUIRED_FLOOR_IDS - set(floors.keys())
         if missing_floors:
-            raise ValueError(f"Manifest missing required floors: {missing_floors}")
+            raise ValueError(f"Manifest incomplete. Floor definitions absent: {missing_floors}")
 
     # Check pipeline stages
     pipeline = manifest.get("pipeline", {})
@@ -407,9 +407,9 @@ def validate_manifest(
         stage_ids = set(stages.keys())
 
     if "000" not in stage_ids:
-        raise ValueError("Pipeline missing stage 000 (VOID)")
+        raise ValueError("Pipeline configuration incomplete: Stage 000 (VOID) not defined.")
     if "999" not in stage_ids:
-        raise ValueError("Pipeline missing stage 999 (SEAL)")
+        raise ValueError("Pipeline configuration incomplete: Stage 999 (SEAL) not defined.")
 
     # Check engines (v35 only)
     if validate_engines:
@@ -417,7 +417,7 @@ def validate_manifest(
         required_engines = {"agi", "asi", "apex"}
         missing_engines = required_engines - set(engines.keys())
         if missing_engines:
-            raise ValueError(f"Manifest missing required engines: {missing_engines}")
+            raise ValueError(f"Manifest incomplete. Engine definitions absent: {missing_engines}")
 
 
 # =============================================================================
@@ -451,7 +451,7 @@ def get_floor_threshold(
             if fdata.get("metrics_field") == floor_id:
                 # Return from spec file - for now, return None (spec-driven)
                 return None
-        raise KeyError(f"Floor not found in mapping: {floor_id}")
+        raise KeyError(f"Floor {floor_id} not registered in mapping table.")
 
     # v35 direct structure
     floor = floors.get(floor_id)

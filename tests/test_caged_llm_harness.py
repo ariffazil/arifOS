@@ -14,7 +14,7 @@ These are smoke tests, not exhaustive coverage.
 import pytest
 from typing import Dict, List
 
-from scripts.arifos_caged_llm_demo import (
+from L7_DEMOS.examples.arifos_caged_llm_demo import (
     cage_llm_response,
     CagedResult,
     stub_call_model,
@@ -394,7 +394,7 @@ class TestPhase2LedgerIntegrity:
         """
         Mode A: Honest run creates a ledger that passes verify_integrity().
         """
-        from scripts.arifos_caged_llm_demo import run_honest_mode
+        from L7_DEMOS.examples.arifos_caged_llm_demo import run_honest_mode
         
         ledger_path = tmp_path / "test_ledger.jsonl"
         
@@ -419,7 +419,7 @@ class TestPhase2LedgerIntegrity:
         """
         Mode B: Corrupted ledger fails verify_integrity() and detect_tampering() finds it.
         """
-        from scripts.arifos_caged_llm_demo import run_honest_mode, run_tamper_file_mode
+        from L7_DEMOS.examples.arifos_caged_llm_demo import run_honest_mode, run_tamper_file_mode
         
         ledger_path = tmp_path / "test_ledger.jsonl"
         

@@ -283,6 +283,36 @@ PSI_THRESHOLD: float = _FLOORS_SPEC_V38["vitality"]["threshold"]
 
 
 # =============================================================================
+# v45Ω Patch B: LANE-AWARE THRESHOLDS (Wisdom-Gated Release)
+# =============================================================================
+
+def get_lane_truth_threshold(lane: str) -> float:
+    """
+    Get lane-specific truth threshold for graduated enforcement.
+
+    v45Ω Patch B: Different lanes require different truth standards:
+    - PHATIC: 0.0 (truth exempt - social greetings)
+    - SOFT: 0.80 (educational/explanatory - more forgiving)
+    - HARD: 0.90 (factual assertions - strict)
+    - REFUSE: 0.0 (refusal path - truth irrelevant)
+    - UNKNOWN: 0.99 (default to constitutional threshold)
+
+    Args:
+        lane: Lane identifier string
+
+    Returns:
+        Truth threshold for this lane
+    """
+    lane_thresholds = {
+        "PHATIC": 0.0,   # Truth exempt
+        "SOFT": 0.80,    # Forgiving for explanations
+        "HARD": 0.90,    # Strict for facts
+        "REFUSE": 0.0,   # Refusal (threshold not used)
+    }
+    return lane_thresholds.get(lane.upper(), TRUTH_THRESHOLD)  # Default: 0.99
+
+
+# =============================================================================
 # FLOOR CHECK FUNCTIONS
 # =============================================================================
 
@@ -573,7 +603,11 @@ class Metrics:
         self.peace_squared = value
 
     # --- Helpers -----------------------------------------------------------
-    def compute_psi(self, tri_witness_required: bool = True) -> float:
+    def compute_psi(
+        self,
+        tri_witness_required: bool = True,
+        lane: str = "UNKNOWN",
+    ) -> float:
         """Compute Ψ (vitality) from constitutional floors.
 
         Ψ is the minimum conservative ratio across all required floors; any
@@ -581,11 +615,25 @@ class Metrics:
 
         Uses constants from metrics.py (TRUTH_THRESHOLD, etc.) to ensure
         consistency with constitutional_floors.json.
+
+        v45Ω Patch B: Lane-aware truth threshold for graduated enforcement.
+
+        Args:
+            tri_witness_required: Whether to include tri-witness in calculation
+            lane: Applicability lane (PHATIC/SOFT/HARD/REFUSE/UNKNOWN)
+                  Uses lane-specific truth threshold for Psi calculation
+
+        Returns:
+            Psi vitality score (healthy if ≥ 1.0 for strict lanes, ≥ 0.85 for relaxed)
         """
+        # v45Ω Patch B: Get lane-aware truth threshold
+        lane_truth_threshold = get_lane_truth_threshold(lane)
+        effective_truth_threshold = lane_truth_threshold if lane_truth_threshold > 0 else 1.0  # Avoid division by zero for PHATIC
 
         omega_band_ok = check_omega_band(self.omega_0)
         ratios = [
-            _clamp_floor_ratio(self.truth, TRUTH_THRESHOLD),
+            # v45Ω Patch B: Use lane-aware threshold instead of global
+            _clamp_floor_ratio(self.truth, effective_truth_threshold) if lane.upper() != "PHATIC" else 1.0,
             1.0 + min(self.delta_s, 0.0) if self.delta_s < 0 else 1.0 + self.delta_s,
             _clamp_floor_ratio(self.peace_squared, PEACE_SQUARED_THRESHOLD),
             _clamp_floor_ratio(self.kappa_r, KAPPA_R_THRESHOLD),
@@ -746,10 +794,10 @@ def ground_truth_score(
     """
     # Check if this is an identity query
     if not detect_identity_query(query):
-        # Non-identity query: conservative cap above Patch 1's 0.90 threshold
-        # v45Ω: Raised from 0.85 to 0.92 to allow clean responses through
-        # while still providing conservative scoring for non-evidenced claims
-        return min(base_truth_score, 0.92)  # Conservative cap for v45 (above 0.90 hard-floor)
+        # Non-identity query: Allow full truth score for factual queries
+        # v45Ω: Restored to constitutional threshold (0.99) per @LAW audit
+        # Conservative scoring moved to evidence pack validation layer
+        return min(base_truth_score, 0.99)  # Allow constitutional threshold
 
     # Identity query detected: apply strict grounding
     response_lower = response.lower()
@@ -947,6 +995,7 @@ __all__ = [
     "OMEGA_0_MAX",
     "TRI_WITNESS_THRESHOLD",
     "PSI_THRESHOLD",
+    "get_lane_truth_threshold",  # v45Ω Patch B
     # Floor check functions
     "check_truth",
     "check_delta_s",

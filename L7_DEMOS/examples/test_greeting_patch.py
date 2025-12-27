@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from scripts.arifos_caged_llm_demo import cage_llm_response
+from L7_DEMOS.examples.arifos_caged_llm_demo import cage_llm_response
 
 print("=" * 70)
 print("v45 Patch A: Greeting Fix Validation")
@@ -32,7 +32,7 @@ for prompt, expected in test_cases:
 
     result = cage_llm_response(prompt, high_stakes=False, run_waw=False)
 
-    verdict = result.verdict.verdict.value
+    verdict = result.verdict  # result.verdict is already a string
     response = result.final_response
     has_claims = result.metrics.claim_profile.get('has_claims', 'N/A') if result.metrics and result.metrics.claim_profile else 'N/A'
     truth = result.metrics.truth if result.metrics else 'N/A'

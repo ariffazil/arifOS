@@ -23,8 +23,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 import sys
 from arifos_core.utils.context_injection import build_system_context
-from scripts.arifos_caged_llm_demo import cage_llm_response
-from scripts.test_ollama_v37 import call_ollama
+from L7_DEMOS.examples.arifos_caged_llm_demo import cage_llm_response
+from L7_DEMOS.examples.test_ollama_v37 import call_ollama
 
 
 def load_suite(path: Path) -> List[Dict[str, Any]]:

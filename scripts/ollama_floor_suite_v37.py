@@ -30,7 +30,7 @@ from typing import Any, Dict, List, Sequence
 
 import requests
 
-from scripts.arifos_caged_llm_demo import cage_llm_response
+from L7_DEMOS.examples.arifos_caged_llm_demo import cage_llm_response
 
 
 # =============================================================================

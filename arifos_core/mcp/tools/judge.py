@@ -27,7 +27,7 @@ def arifos_judge(request: JudgeRequest) -> JudgeResponse:
     """
     try:
         from arifos_core.system.pipeline import run_pipeline
-        from scripts.arifos_caged_llm_demo import compute_metrics_from_response
+        from L7_DEMOS.examples.arifos_caged_llm_demo import compute_metrics_from_response
 
         # For judging a single text snippet, we want the metrics to reflect
         # the text itself. We use a stub LLM that echoes its prompt.

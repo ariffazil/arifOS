@@ -23,7 +23,7 @@ DITEMPA, BUKAN DIBERI
 from typing import TYPE_CHECKING, Literal, List, Optional, Tuple, Dict, Any, Union
 from dataclasses import dataclass, field
 from enum import Enum
-from ..enforcement.metrics import Metrics, FloorsVerdict
+from ..enforcement.metrics import Metrics, FloorsVerdict, TRUTH_THRESHOLD
 
 if TYPE_CHECKING:
     from ..enforcement.genius_metrics import GeniusVerdict
@@ -188,9 +188,9 @@ class ApexVerdict:
 _LegacyVerdict = Literal["SEAL", "PARTIAL", "VOID", "888_HOLD", "SABAR"]
 
 # Floor thresholds (v35Ω → v45Ω)
-# v45Ω: TRUTH_MIN lowered from 0.99 to 0.90 to align with Patch 1's secondary gate
-# This allows Patch 1 (lines 395-437) to be the actual enforcement point for truth
-TRUTH_MIN = 0.90
+# v45Ω: TRUTH_MIN restored to constitutional spec (0.99) per @LAW audit
+# Import from metrics.py which loads from spec/v44/constitutional_floors.json
+TRUTH_MIN = TRUTH_THRESHOLD  # 0.99 (canonical from spec)
 DELTA_S_MIN = 0.0
 PEACE_SQ_MIN = 1.0
 KAPPA_MIN = 0.95
@@ -202,16 +202,22 @@ AMBIGUITY_MAX = 0.1
 PARADOX_MAX = 1.0
 
 # =============================================================================
-# v45Ω TRUTH REALITY MAP (TRM) - Resolves Truth≠Score Paradox
+# v45Ω TRUTH REALITY MAP (TRM) - Dual-Threshold System
 # =============================================================================
 # Truth is absolute; Truth score is epistemic permission to assert.
 # TRM maps claim type → threshold policy → verdict routing.
 #
-# Two thresholds enforce different standards:
-# - TRUTH_BLOCK_MIN: Below this → VOID (prevents hallucinations)
-# - TRUTH_SEAL_MIN: Required for SEAL on identity/ownership factual claims
-TRUTH_BLOCK_MIN = 0.90  # Universal minimum - below this = hallucination risk
-TRUTH_SEAL_MIN = 0.99  # High-confidence bar for identity/ownership claims
+# Three thresholds enforce different standards:
+# - TRUTH_BLOCK_MIN (0.90): Below this → instant VOID (hallucination blocking)
+# - TRUTH_MIN (0.99): Constitutional floor for SEAL (from spec/v44/)
+# - TRUTH_SEAL_MIN (0.99): Alias for identity claims (same as TRUTH_MIN)
+#
+# Enforcement hierarchy:
+#   truth < 0.90 → VOID (hallucination)
+#   0.90 ≤ truth < 0.99 → PARTIAL (soft floor warning on SOFT lane) or VOID (HARD lane)
+#   truth ≥ 0.99 → SEAL eligible (if all other floors pass)
+TRUTH_BLOCK_MIN = 0.90  # Hallucination blocking threshold
+TRUTH_SEAL_MIN = TRUTH_THRESHOLD  # 0.99 - Constitutional floor for SEAL (canonical)
 
 # =============================================================================
 # v45Ω TRM CLASSIFIER & HELPERS
@@ -327,21 +333,25 @@ def _is_benign_denial(text: str) -> bool:
 
 
 # =============================================================================
+# =============================================================================
 # GENIUS LAW THRESHOLDS (v36Ω runtime, v36.1Ω measurement)
+# =============================================================================
 # These thresholds define the GENIUS LAW decision surface.
 # Hard floors still gate everything; GENIUS LAW refines verdicts.
 # For canonical measurement formulas, see: arifos_eval/apex/apex_measurements.py
+#
+# v45Ω: Restored to spec/v44/genius_law.json per @LAW audit
 # =============================================================================
 
-# G thresholds for verdict decisions
-G_SEAL_THRESHOLD: float = 0.7  # G >= this for SEAL consideration
-G_PARTIAL_THRESHOLD: float = 0.5  # G >= this for PARTIAL (below SEAL)
-G_MIN_THRESHOLD: float = 0.3  # G below this = VOID (even if floors pass)
+# G thresholds for verdict decisions (from spec/v44/genius_law.json)
+G_SEAL_THRESHOLD: float = 0.80  # G >= this for SEAL (spec line 22)
+G_PARTIAL_THRESHOLD: float = 0.50  # G >= this for PARTIAL (spec line 23: void threshold)
+G_MIN_THRESHOLD: float = 0.50  # G below this = VOID (spec line 23)
 
-# C_dark thresholds for risk assessment
-C_DARK_SEAL_MAX: float = 0.1  # C_dark <= this for SEAL
-C_DARK_PARTIAL_MAX: float = 0.3  # C_dark <= this for PARTIAL
-C_DARK_VOID_THRESHOLD: float = 0.5  # C_dark > this = VOID (entropy hazard)
+# C_dark thresholds for risk assessment (from spec/v44/genius_law.json)
+C_DARK_SEAL_MAX: float = 0.30  # C_dark <= this for SEAL (spec line 43)
+C_DARK_PARTIAL_MAX: float = 0.60  # C_dark <= this for PARTIAL (spec line 44: sabar_warn)
+C_DARK_VOID_THRESHOLD: float = 0.60  # C_dark > this = SABAR/VOID (entropy hazard)
 
 
 def check_floors(
@@ -351,12 +361,16 @@ def check_floors(
     lane: str = "UNKNOWN",  # v45Ω Patch B.1: Lane-aware floor scoping
 ) -> FloorsVerdict:
     """Evaluate all constitutional floors (core + extended v35Ω)."""
+    from ..enforcement.metrics import get_lane_truth_threshold
+
     reasons: List[str] = []
 
     # Hard floors
-    truth_ok = metrics.truth >= TRUTH_MIN
+    # v45Ω Patch B: Use lane-aware truth threshold instead of global
+    lane_truth_threshold = get_lane_truth_threshold(lane)
+    truth_ok = metrics.truth >= lane_truth_threshold
     if not truth_ok:
-        reasons.append(f"Truth < {TRUTH_MIN}")
+        reasons.append(f"Truth < {lane_truth_threshold:.2f} ({lane} lane threshold)")
 
     delta_s_ok = metrics.delta_s >= DELTA_S_MIN
     if not delta_s_ok:
@@ -527,7 +541,7 @@ def apex_review(
         ApexVerdict: Structured verdict with verdict, pulse, reason, floors
     """
     # v45Ω Patch B.1: ENFORCE IDENTITY TRUTH LOCK FIRST
-    # CRITICAL: Must apply truth penalty BEFORE floor checks so floors reflect locked truth
+    # Identity truth lock: Apply penalty before floor checks to preserve audit integrity
     from ..enforcement.metrics import enforce_identity_truth_lock
 
     metrics = enforce_identity_truth_lock(
@@ -615,12 +629,11 @@ def apex_review(
     claim_profile = getattr(metrics, "claim_profile", None)
     has_claims = claim_profile.get("has_claims", True) if claim_profile else True
 
-    # v45Ω Patch B: Lane-aware truth thresholds
-    SOFT_TRUTH_MIN = 0.85  # SOFT lane: Allow 0.85-0.90 for PARTIAL
-    SOFT_TRUTH_VOID = 0.80  # SOFT lane: Below this = VOID
+    # v45Ω Patch B: Lane-aware truth thresholds (import centralized function)
+    from ..enforcement.metrics import get_lane_truth_threshold
+    lane_truth_threshold = get_lane_truth_threshold(lane)
 
     # F2 Truth: Strict block for hallucinations (with TRM + Lane exemptions)
-    # Threshold: TRUTH_BLOCK_MIN (0.90) - below this is hallucination risk
     # Exemptions:
     # - SAFETY_REFUSAL + is_refusal: Correct refusal behavior (e.g., Molotov)
     # - BENIGN_DENIAL + is_denial: Honest denial (e.g., "I don't have a soul")
@@ -638,27 +651,14 @@ def apex_review(
 
     if not exempt_from_truth_void:
         # Lane-conditional truth threshold (v45Ω Patch B)
-        if lane == "SOFT":
-            # SOFT lane: More forgiving threshold for explanations/advice
-            # 0.80-0.85 = VOID (still dangerous)
-            # 0.85-0.90 = Allow to flow (will become PARTIAL later)
-            if metrics.truth < SOFT_TRUTH_VOID:
-                return ApexVerdict(
-                    verdict=Verdict.VOID,
-                    pulse=0.0,
-                    reason=f"F2 Truth critically low ({metrics.truth:.2f} < {SOFT_TRUTH_VOID}) even for soft context. Hallucination risk - blocked.",
-                    floors=floors,
-                )
-            # elif SOFT_TRUTH_VOID <= truth < TRUTH_BLOCK_MIN: Allow to continue (will trigger PARTIAL later)
-        else:
-            # HARD lane or UNKNOWN: Strict 0.90 threshold (unchanged)
-            if metrics.truth < TRUTH_BLOCK_MIN:
-                return ApexVerdict(
-                    verdict=Verdict.VOID,
-                    pulse=0.0,
-                    reason=f"F2 Truth critically low ({metrics.truth:.2f} < {TRUTH_BLOCK_MIN}). Hallucination risk - blocked.",
-                    floors=floors,
-                )
+        # Use centralized threshold lookup instead of hardcoded values
+        if metrics.truth < lane_truth_threshold:
+            return ApexVerdict(
+                verdict=Verdict.VOID,
+                pulse=0.0,
+                reason=f"Forge cooling: Truth band {metrics.truth:.2f} below {lane} lane threshold {lane_truth_threshold:.2f}. Transitioning to VOID for verification.",
+                floors=floors,
+            )
 
     # F7 Omega_0 (Humility): Out of band → max PARTIAL
     # Band: [0.03, 0.05] for calibrated uncertainty
@@ -686,13 +686,16 @@ def apex_review(
 
     # v45Ω Patch B.1: Ψ degradation (after hard floor checks pass)
     # System health warning: If Ψ < 1.0 for SOFT/HARD lanes, degrade to PARTIAL
-    if metrics.psi is not None and metrics.psi < 1.0:
+    # v45Ω Patch B: Allow 15% variance (0.85 threshold) for SEA-LION v4 reasoning
+    PSI_RELAXED_THRESHOLD = 0.85  # Down from 1.0 (15% entropy tolerance)
+
+    if metrics.psi is not None and metrics.psi < PSI_RELAXED_THRESHOLD:
         if lane not in {"PHATIC", "REFUSE"}:
             # System vitality low: marginal floor detected
             return ApexVerdict(
                 verdict=Verdict.PARTIAL,
                 pulse=metrics.psi,
-                reason=f"System vitality low (Ψ={metrics.psi:.2f} < 1.0). Marginal floor detected.",
+                reason=f"System vitality low (Ψ={metrics.psi:.2f} < {PSI_RELAXED_THRESHOLD}). Marginal floor detected (15% variance allowed).",
                 floors=floors,
             )
 

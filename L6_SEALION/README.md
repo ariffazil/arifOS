@@ -80,4 +80,24 @@ arifOS wraps SEA-LION with constitutional governance to ensure safe, honest, and
 
 ---
 
+## Test Archive
+
+**Complete test suite consolidated:** All SEA-LION test and demo scripts are archived in:
+
+- [tests_consolidated/](tests_consolidated/) - Complete test suite archive (15 files)
+
+See [tests_consolidated/README.md](tests_consolidated/README.md) for complete index and run instructions.
+
+**Active test suite** remains in:
+
+- `tests/` - Current test suite (7 files)
+
+**Organization:**
+
+- `tests_consolidated/unit_tests/` - Unit & integration tests (8 files)
+- `tests_consolidated/demos/` - Full demonstrations (3 files)
+- `tests_consolidated/integration_examples/` - Integration patterns (4 files)
+
+---
+
 **DITEMPA BUKAN DIBERI** — Governed intelligence for Southeast Asia.

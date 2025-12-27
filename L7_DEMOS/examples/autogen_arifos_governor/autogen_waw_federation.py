@@ -31,7 +31,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 from arifos_core.enforcement.metrics import Metrics
 from arifos_core.system.apex_prime import APEXPrime
 from arifos_core.utils.eye_sentinel import EyeSentinel
-from arifos_core.guards.session_dependency import apex_guardrail
+from arifos_core.integration.guards.guard import apex_guardrail
 
 # W@W Federation Core (v35.9.0) - replaces inline organ logic
 from arifos_core.waw import WAWFederationCore, FederationVerdict, OrganVote
@@ -317,7 +317,7 @@ class GovernedAgent:
             "sender": sender,
             "message": message,
             "response": raw_response,
-            "verdict": verdict if isinstance(verdict, str) else verdict.value,
+            "verdict": verdict if isinstance(verdict, str) else str(verdict),
             "metrics": {
                 "truth": metrics.truth,
                 "delta_s": metrics.delta_s,

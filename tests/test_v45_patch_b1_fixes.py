@@ -23,7 +23,7 @@ class TestPatchA_LaneScopedPsi:
     def test_phatic_not_void_on_low_psi(self):
         """PHATIC queries should pass even when Ψ < 1.0."""
         metrics = Metrics(
-            truth=0.95,
+            truth=0.99,  # Constitutional threshold
             delta_s=0.15,
             peace_squared=1.02,
             kappa_r=0.96,
@@ -236,7 +236,7 @@ class TestIntegration_AllPatchesTogether:
     def test_phatic_with_low_psi_full_pipeline(self):
         """Full pipeline test: PHATIC + low Ψ should SEAL."""
         metrics = Metrics(
-            truth=0.95,
+            truth=0.99,  # Constitutional threshold
             delta_s=0.15,
             peace_squared=1.02,
             kappa_r=0.96,

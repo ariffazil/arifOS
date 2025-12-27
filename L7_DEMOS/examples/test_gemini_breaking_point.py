@@ -17,7 +17,7 @@ import sys
 
 # --- SETUP ---
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from arifos_core.wrappers.governed_session import GovernedPipeline
+from arifos_core.integration.adapters.governed_llm import GovernedPipeline
 
 try:
     import google.generativeai as genai

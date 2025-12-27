@@ -42,7 +42,7 @@ except ImportError:
     pass
 
 from arifos_core.connectors.litellm_gateway import make_llm_generate
-from scripts.arifos_caged_llm_demo import cage_llm_response
+from L7_DEMOS.examples.arifos_caged_llm_demo import cage_llm_response
 from arifos_core.system.apex_prime import (
     compute_agi_score,
     compute_asi_score,
