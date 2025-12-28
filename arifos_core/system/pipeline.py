@@ -307,6 +307,60 @@ class SafetyDecision:
 
 
 # =============================================================================
+# STAGE INSPECTOR (v45Ω Patch B.2)
+# =============================================================================
+
+
+def _is_stage_inspector_enabled() -> bool:
+    """Check if verbose stage logging is enabled via ARIFOS_VERBOSE env var."""
+    return os.getenv("ARIFOS_VERBOSE", "").lower() in ("1", "true", "yes")
+
+
+def _log_stage_transition(
+    stage_name: str,
+    state: PipelineState,
+    start_time: Optional[float] = None,
+) -> None:
+    """
+    Log stage transition with duration and ΔS (delta-entropy).
+
+    v45Ω Patch B.2: Metabolic transparency for 000→999 pipeline.
+
+    Args:
+        stage_name: Stage identifier (e.g., "000_VOID", "333_REASON")
+        state: Current pipeline state
+        start_time: Stage start time (if provided, computes duration)
+    """
+    if not _is_stage_inspector_enabled():
+        return
+
+    # Compute duration if start_time provided
+    duration_ms = 0.0
+    if start_time is not None:
+        duration_ms = (time.time() - start_time) * 1000
+
+    # Estimate ΔS (entropy change) from draft response length
+    # Simple heuristic: longer responses have higher entropy
+    delta_s = 0.0
+    if hasattr(state, "draft_response") and state.draft_response:
+        # Normalized by 1000 chars (arbitrary scaling)
+        delta_s = len(state.draft_response) / 1000.0
+
+    # Format log message
+    log_parts = [f"[StageInspector] {stage_name}"]
+    if duration_ms > 0:
+        log_parts.append(f"duration={duration_ms:.1f}ms")
+    if delta_s > 0:
+        log_parts.append(f"ΔS={delta_s:.3f}")
+
+    # Log lane if available
+    if hasattr(state, "applicability_lane") and state.applicability_lane:
+        log_parts.append(f"lane={state.applicability_lane}")
+
+    print(" | ".join(log_parts))
+
+
+# =============================================================================
 # STAGE DEFINITIONS
 # =============================================================================
 
@@ -601,9 +655,10 @@ def stage_333_reason(
 
     AGI (Δ) takes over - pure logic, pattern detection.
     """
+    stage_start = time.time()  # v45Ω Patch B.2: Track for StageInspector
     state.current_stage = "333"
     state.stage_trace.append("333_REASON")
-    state.stage_times["333"] = time.time()
+    state.stage_times["333"] = stage_start
 
     # v45Ω Patch B.1: Skip LLM if REFUSE lane already drafted refusal
     # Constitutional floor: Destructive queries bypass LLM generation (F1 Amanah)
@@ -627,7 +682,24 @@ def stage_333_reason(
     prompt_parts.append("\nProvide a structured, logical response:")
 
     if llm_generate:
-        state.draft_response = llm_generate("\n".join(prompt_parts))
+        # v45Ω Patch B.2: Check if llm_generate supports lane metadata (governed version)
+        import inspect
+        sig = inspect.signature(llm_generate)
+
+        if "lane" in sig.parameters:
+            # Governed version - pass lane metadata and capture metadata
+            response, metadata = llm_generate(
+                "\n".join(prompt_parts),
+                lane=state.applicability_lane or "UNKNOWN"
+            )
+            state.draft_response = response
+            state.sealion_metadata = metadata  # Store for 888_JUDGE
+            # v45Ω Patch C: Store failover metadata if present
+            if metadata and isinstance(metadata, dict):
+                state.failover_metadata = metadata
+        else:
+            # Legacy version - plain text only
+            state.draft_response = llm_generate("\n".join(prompt_parts))
 
         # v45Ω Patch B.2: Track LLM call
         state.llm_called = True
@@ -636,6 +708,9 @@ def stage_333_reason(
     else:
         # Stub: echo query
         state.draft_response = f"[333_REASON] Structured response for: {state.query}"
+
+    # v45Ω Patch B.2: Log stage transition
+    _log_stage_transition("333_REASON", state, start_time=stage_start)
 
     return state
 
@@ -1434,9 +1509,10 @@ def stage_888_judge(
     5. _merge_with_waw() - Verdict merging
     6. _write_memory_for_verdict() - Memory write (centralized)
     """
+    stage_start = time.time()  # v45Ω Patch B.2: Track for StageInspector
     state.current_stage = "888"
     state.stage_trace.append("888_JUDGE")
-    state.stage_times["888"] = time.time()
+    state.stage_times["888"] = stage_start
 
     # Step 1: Compute metrics (standalone helper)
     state.metrics = _compute_888_metrics(state, compute_metrics)
@@ -1520,6 +1596,9 @@ def stage_888_judge(
     _write_memory_for_verdict(
         state, actor_role=ActorRole.JUDICIARY, human_seal=False, eureka_store=state.eureka_store
     )
+
+    # v45Ω Patch B.2: Log stage transition with verdict
+    _log_stage_transition("888_JUDGE", state, start_time=stage_start)
 
     return state
 
@@ -1801,7 +1880,29 @@ class Pipeline:
             eye_sentinel: Optional @EYE Sentinel auditor for 888_JUDGE
             vault: Optional Vault999 instance for constitutional memory (v37)
         """
-        self.llm_generate = llm_generate
+        # v45Ω Patch C: Failover integration (opt-in, disabled by default)
+        if os.getenv("ARIFOS_FAILOVER_ENABLED", "").lower() == "true":
+            try:
+                import logging
+                logger = logging.getLogger(__name__)
+                from ..connectors.failover_orchestrator import (
+                    load_failover_config_from_env,
+                    create_governed_failover_backend
+                )
+                config = load_failover_config_from_env()
+                self.llm_generate = create_governed_failover_backend(
+                    config=config,
+                    ledger_sink=ledger_sink
+                )
+                logger.info(f"[PIPELINE] Failover enabled with {len(config.providers)} providers")
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"[PIPELINE] Failover init failed: {e}. Using single provider.")
+                self.llm_generate = llm_generate
+        else:
+            self.llm_generate = llm_generate  # Existing behavior (no change)
+
         self.compute_metrics = compute_metrics
         self.scar_retriever = scar_retriever
         self.context_retriever = context_retriever
@@ -2180,6 +2281,15 @@ class Pipeline:
                     "stability_var_dt": physics_snapshot.stability_var_dt,
                     "void_streak": physics_snapshot.void_streak,
                     "sabar_streak": physics_snapshot.sabar_streak,
+                }
+
+            # v45Ω Patch C: Failover metadata (if failover enabled)
+            if hasattr(state, "failover_metadata") and state.failover_metadata:
+                entry["failover"] = {
+                    "provider": state.failover_metadata.get("provider"),
+                    "fallback_occurred": state.failover_metadata.get("fallback_occurred", False),
+                    "attempt_count": state.failover_metadata.get("attempt_count", 1),
+                    "total_latency_ms": state.failover_metadata.get("total_latency_ms"),
                 }
 
             self.ledger_sink(entry)

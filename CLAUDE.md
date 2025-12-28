@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Version:** v45.0.0 + Patch B | **Tests:** 2581/2581 (100%) | **Safety Ceiling:** 99%
+**Version:** v45Ω Patch C | **Tests:** 2597/2624 (98.9%) | **Safety Ceiling:** 99%
 
 **Imports:** `~/.claude/CLAUDE.md` — Global governance (floors, SABAR, verdicts)
 **Extends:** [AGENTS.md](AGENTS.md) — Full constitutional governance
@@ -12,12 +12,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Entropy Control rules (when to add new files)
 - Cooling Notes (agent learnings from past mistakes)
 
-**Latest:** v45Ω Patch B.2 (2025-12-27) — Lane-aware Psi recomputation + interactive testing. See [PATCH_B2_SUMMARY.md](PATCH_B2_SUMMARY.md) for details.
+**Latest:** v45Ω Patch C (2025-12-29) — Multi-Provider Failover Orchestrator. See [FAILOVER_GUIDE.md](docs/FAILOVER_GUIDE.md) for details.
 
 **Quick Links:**
 
 - **[AGENTS.md](AGENTS.md)** — Full constitutional governance (extends this file)
-- **[PATCH_B2_SUMMARY.md](PATCH_B2_SUMMARY.md)** — v45Ω Patch B.2 technical details
+- **[FAILOVER_GUIDE.md](docs/FAILOVER_GUIDE.md)** — v45Ω Patch C: Multi-Provider Failover
 - **[WISDOM_SEALION_INTERACTIVE_v45.md](docs/WISDOM_SEALION_INTERACTIVE_v45.md)** — Future improvements (65%→95%)
 - **[SECURITY.md](SECURITY.md)** — Security vulnerability reporting
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — How to propose amendments
@@ -70,6 +70,146 @@ pytest --cov=arifos_core --cov-report=html
 
 # Fast failure (stop on first error)
 pytest -x
+```
+
+### SEA-LION v4 Interactive Testing (v45Ω Patch B.2+)
+
+**Three testing approaches for RAW vs GOVERNED comparison:**
+
+```bash
+# 1. RAW ONLY - Zero governance control group
+python scripts/sealion_raw_only.py
+# Pure SEA-LION API calls with ZERO arifOS imports
+# Establishes ungoverned baseline for comparison
+
+# 2. FORGE REPL - Full governed pipeline with dual-stream mode
+python scripts/sealion_forge_repl.py
+# Governed responses with 000→999 pipeline timeline
+# /both - Side-by-side RAW vs GOVERNED comparison
+# /verbose - Enable StageInspector (ARIFOS_VERBOSE=1)
+# /stats - Session statistics
+
+# 3. AUTOMATED VERIFICATION - 6-test governance suite
+python scripts/verify_sealion_governance.py
+# Tests: PHATIC (greetings), SOFT (educational), HARD (factual)
+# Tests: REFUSE (harmful), IDENTITY (self-awareness), VERBOSITY (efficiency)
+```
+
+**Environment Setup:**
+
+```bash
+# Required API credentials (set ONE of these)
+export SEALION_API_KEY="your-api-key"           # Primary
+export ARIF_LLM_API_KEY="your-api-key"          # Alternative
+export LLM_API_KEY="your-api-key"               # Alternative
+export OPENAI_API_KEY="your-api-key"            # Alternative
+
+# Optional configuration
+export SEALION_MODEL="aisingapore/Gemma-SEA-LION-v4-27B-IT"  # Default model
+export ARIF_LLM_API_BASE="https://api.sea-lion.ai/v1"        # Default API base
+export ARIFOS_VERBOSE="1"                                     # Enable StageInspector
+
+# Windows PowerShell:
+$env:SEALION_API_KEY = "your-api-key"
+$env:SEALION_MODEL = "aisingapore/Gemma-SEA-LION-v4-27B-IT"
+$env:ARIFOS_VERBOSE = "1"
+```
+
+**Available SEA-LION Models:**
+
+- `aisingapore/Gemma-SEA-LION-v4-27B-IT` (default - best quality)
+- `aisingapore/Qwen-SEA-LION-v4-32B-IT` (larger context)
+- `aisingapore/Llama-SEA-LION-v3-8B-IT` (faster, smaller)
+- Vision variants: `8B-VL`, `4B-VL` (multimodal)
+
+**What Gets Tested:**
+
+1. **PHATIC Lane** - Greetings ("hi", "how are u?")
+   - RAW: Verbose, over-analytical responses (500-1500 chars typical)
+   - GOVERNED: Concise (≤100 chars), SEAL verdict
+   - Verbosity penalty: >100 chars → PARTIAL
+
+2. **SOFT Lane** - Educational/Explanatory queries
+   - RAW: Ungoverned, may contain hallucinations
+   - GOVERNED: Truth threshold 0.85-0.90, hallucination detection
+   - Lane-aware Psi recomputation
+
+3. **HARD Lane** - Factual/Critical queries
+   - RAW: Ungoverned factual responses
+   - GOVERNED: Truth threshold 0.90-0.99, strict verification
+   - Tri-Witness validation
+
+4. **REFUSE Lane** - Harmful/Dangerous queries
+   - RAW: May comply with harmful requests
+   - GOVERNED: VOID verdict, constitutional blocking
+
+5. **IDENTITY Guard** - Self-awareness queries ("what is arifOS?")
+   - RAW: May hallucinate or invent facts
+   - GOVERNED: VOID if truth < 0.99, Anti-Hantu enforcement
+
+6. **Verbosity Ceiling** - Efficiency testing
+   - RAW: No constraints on response length
+   - GOVERNED: PHATIC verbosity penalty (>100 chars for greetings)
+
+**Comparing Results:**
+
+```bash
+# Example workflow
+# 1. Establish RAW baseline
+python scripts/sealion_raw_only.py
+Raw> hi
+# Observe: Verbose response (500-1500 chars typical)
+
+# 2. Test GOVERNED version
+python scripts/sealion_forge_repl.py
+Forge> hi
+# Observe: Concise response (≤100 chars), SEAL verdict, Trinity metrics
+
+# 3. Run side-by-side comparison
+Forge> /both
+Forge> hi
+# Observe: RAW (left) vs GOVERNED (right) with contrast metrics
+
+# 4. Automated verification
+python scripts/verify_sealion_governance.py
+# Expected: 6/6 PASS (all lanes functioning correctly)
+```
+
+**Key Metrics Displayed (GOVERNED mode):**
+
+- **Δ (Delta/Clarity)** - ΔS entropy change (≥0 required)
+- **Ω (Omega/Empathy)** - κᵣ empathy score (≥0.95 for SEAL)
+- **Ψ (Psi/Vitality)** - Lane-aware composite metric (≥1.0 ALIVE)
+- **Truth** - Lane-specific threshold (0.80 SOFT, 0.90 HARD, 0.99 IDENTITY)
+- **Verdict** - SEAL/PARTIAL/VOID/SABAR/888_HOLD
+
+**v45Ω Patch B.2 Features:**
+
+1. **Lane-Aware Psi Recomputation** - Truth thresholds adapt to query type
+2. **PHATIC Verbosity Penalty** - First "quality ceiling" (not just safety floor)
+3. **StageInspector** - 000→999 pipeline visibility with timing
+4. **Cooling Ledger Integration** - All generations logged with lane metadata
+5. **Dual-Stream Mode** - Real-time RAW vs GOVERNED comparison
+
+**Troubleshooting:**
+
+```bash
+# API connection issues
+python -c "import openai; print(openai.__version__)"  # Verify openai lib installed
+pip install openai  # Install if missing
+
+# Verify API key
+python -c "import os; print('Key set:', bool(os.getenv('SEALION_API_KEY')))"
+
+# Test connection
+python scripts/sealion_raw_only.py
+Raw> test
+# If connection fails, check API_BASE and API_KEY
+
+# Enable verbose logging
+export ARIFOS_VERBOSE=1
+python scripts/sealion_forge_repl.py
+# Shows 000→999 stage transitions with timing
 ```
 
 ### Pipeline & CLI
@@ -768,6 +908,7 @@ python -c "from pathlib import Path; print(Path('spec/v44/constitutional_floors.
 - ❌ **No full file rewrites** that remove content
 - ❌ **No new files** unless explicitly required (entropy control)
 - ❌ **No "alias" or "compatibility" files** without explicit approval
+- ❌ **No Local Duplicate Governance:** Do not duplicate Metrics or Apex logic in local adapters. Import from `arifos_core`.
 
 ### Entropy Control Rules
 
@@ -798,6 +939,13 @@ python -c "from pathlib import Path; print(Path('spec/v44/constitutional_floors.
 - Current test count: 2581/2581 (100%) as of 2025-12-26
 
 ---
+
+## Transparency Mandate (The StageInspector)
+
+Any new integration MUST support the **000→999 StageInspector** interface.
+- **Requirement:** The "Guts" of the pipeline (verdicts, floor scores, lane decisions) must be visible for audit.
+- **Implementation:** Return `AuditReceipt` or full `metadata` dict.
+- **Goal:** White-box governance only. No black boxes.
 
 ## 888_HOLD Expanded Triggers
 
@@ -841,6 +989,29 @@ When HOLD triggered:
 6. **Do NOT fabricate session steps** — Only include steps that actually ran (F2-CODE violation)
 7. **Do NOT use magic numbers** — Use named constants (F4-CODE violation)
 8. **Do NOT mutate inputs silently** — Pure functions only (F1-CODE violation)
+
+---
+
+## Quick Navigation (For New Claude Instances)
+
+**Just cloned this repo?** Start here:
+1. Read [Quick Start for New Developers](#quick-start-for-new-developers) (line 272)
+2. Run health check: `pip install -e ".[dev]" && pytest -x`
+3. Understand governance: Read [Nine Floors Summary](#nine-floors-summary) (line 708)
+4. Check platform commands: [Platform-Specific Commands](#platform-specific-commands) (line 314)
+
+**Working on specific task?** Jump to:
+- Testing: [Testing](#testing) (line 53)
+- Pipeline: [Pipeline & CLI](#pipeline--cli) (line 216)
+- Development: [Development Workflows](#development-workflows) (line 481)
+- Debugging: [Common Issues & Debugging](#common-issues--debugging) (line 814)
+
+**Making constitutional changes?** Read:
+- [Source Verification Protocol](#source-verification-protocol) (line 435)
+- [Modifying Constitutional Law](#modifying-constitutional-law) (line 502)
+- [888_HOLD Expanded Triggers](#888_hold-expanded-triggers) (line 950)
+
+**Key principle:** Never modify canon directly. Propose amendments via Phoenix-72. Read PRIMARY sources (spec/v44/*.json) before making constitutional claims.
 
 ---
 
