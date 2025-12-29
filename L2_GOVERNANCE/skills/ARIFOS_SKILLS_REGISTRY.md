@@ -344,6 +344,8 @@ sabar-threshold: 5.0
 
 Implements **Tri-Witness "Future (Mapping)" phase** – provides eyes-wide-open view of proposed changes before commitment. Serves **F4 (Clarity)** and **F1 (Trust)** by identifying entropy and risks upfront.
 
+**CANONICAL WORKFLOW:** Part 1 of 3 in [FORGING_PROTOCOL_v45.md](../../L1_THEORY/canon/03_runtime/FORGING_PROTOCOL_v45.md) (Phase 2: Trinity Gate)
+
 **Constitutional Mandate:**
 - Map change against repository history (Earth's witness)
 - Identify hot zones (frequently changed files)
@@ -434,6 +436,8 @@ zkpc-enabled: true
 ### LAW (Constitutional Function)
 
 **Constitutional gatekeeper** that validates proposed changes against **all 9 Floors** before allowing seal. Implements **Tri-Witness "Present (Proving)" phase** – a legal trial for code.
+
+**CANONICAL WORKFLOW:** Part 2 of 3 in [FORGING_PROTOCOL_v45.md](../../L1_THEORY/canon/03_runtime/FORGING_PROTOCOL_v45.md) (Phase 2: Trinity Gate)
 
 **Law:** "Only fully constitutional changes may be sealed."
 
@@ -539,6 +543,8 @@ human-approval-required: true
 ### LAW (Constitutional Function)
 
 **Final constitutional seal** binding **human authority** into process. By law (**F1 Amanah, F3 Tri-Witness**), no change is authorized until a human approves it.
+
+**CANONICAL WORKFLOW:** Part 3 of 3 in [FORGING_PROTOCOL_v45.md](../../L1_THEORY/canon/03_runtime/FORGING_PROTOCOL_v45.md) (Phase 3: Crystallization)
 
 **Principle:** "Humans decide, AI proposes." (F9 Anti-Hantu: AI cannot self-authorize)
 
@@ -1075,11 +1081,17 @@ derive-to: [codex, claude]
 
 ## See Also
 
+### Governance Framework
+
+- [AGENTS.md](../../AGENTS.md) – Full constitutional governance (F1-F9, 000→999 pipeline)
+- [FORGING_PROTOCOL_v45.md](../../L1_THEORY/canon/03_runtime/FORGING_PROTOCOL_v45.md) – **CANONICAL WORKFLOW** (Tri-Witness: /gitforge → /gitQC → /gitseal)
+- [spec/v44/](../../spec/v44/) – Track B constitutional specs (thresholds)
+
+### Plugin Governance
+
 - [PLUGIN_GOVERNANCE.md](../../.claude/plugins/arifos-governed/governance/PLUGIN_GOVERNANCE.md) – Plugin governance framework
 - [AAA_FRAMEWORK.md](../../.claude/plugins/arifos-governed/governance/AAA_FRAMEWORK.md) – Amanah-Authority-Accountability
 - [ENTROPY_TRACKING.md](../../.claude/plugins/arifos-governed/governance/ENTROPY_TRACKING.md) – ΔS measurement details
-- [AGENTS.md](../../AGENTS.md) – Full constitutional governance
-- [spec/v44/](../../spec/v44/) – Track B constitutional specs
 
 ---
 
