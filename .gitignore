@@ -98,3 +98,9 @@ HOUSEKEEPING_PLAN.md
 
 # Patch summaries (move to docs/releases/ instead)
 PATCH_*.md
+
+# SEA-LION session logs (runtime exhaust)
+cooling_ledger/sealion_forge_sessions.jsonl
+
+# Manual test scripts (ephemeral)
+scripts/manual_tests/
