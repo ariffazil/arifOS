@@ -4,7 +4,7 @@
 
 ![arifOS Constitutional Governance Kernel](docs/arifOS%20Constitutional%20Governance%20Kernel.png)
 
-![Tests](https://img.shields.io/badge/tests-2359%2F2359-brightgreen)
+![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
 ![Version](https://img.shields.io/badge/version-v45.0.0-blue)
 ![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
 
@@ -17,6 +17,17 @@
 > Click to watch: How arifOS transforms any LLM into a lawful, auditable constitutional entity
 
 **Humans decide. AI proposes. Law governs.**
+
+---
+
+## Choose Your Path
+
+**Developers:** → [Quick Start](#6-quick-start-for-developers) | [Examples](#example-1-simple-governed-query)
+**Architects:** → [Architecture](#14-architecture-at-a-glance) | [Advanced Features](#12-advanced-features-v450)
+**Security/Audit:** → [EUREKA Memory](#eureka-memory-system-6-band-architecture) | [Phoenix-72](#phoenix-72-amendment-engine)
+**Platform Integrators:** → [L2_GOVERNANCE](#7-l2_governance-the-portable-layer-v450) | [MCP Server](#mcp-server-integration-ide-support)
+**Philosophers:** → [Why Civilization Needs This](#3-why-civilization-needs-this) | [Philosophy](#16-philosophy-in-plain-language)
+**Other AIs:** → [System Prompt](#9-system-prompts-for-any-llm-to-understand) | [Message to AIs](#11-how-arifos-thinks-for-ai-systems)
 
 ---
 
@@ -221,27 +232,35 @@ pip install -e ".[dev,yaml,api,litellm]"
 ### Example 1: Simple Governed Query
 
 ```python
-from arifos_core.system.pipeline import run_governed_query
+from arifos_core.system.apex_prime import judge_output
 
 # Ask a factual question
-response = run_governed_query(
-    query="What is the capital of France?",
-    user_id="user123",
-    lane="HARD"  # Strict factual accuracy required
+query = "What is the capital of France?"
+response = "Paris is the capital of France."
+
+verdict = judge_output(
+    query=query,
+    response=response,
+    lane="HARD",  # Strict factual accuracy required
+    user_id="user123"
 )
 
-print(f"Verdict: {response.verdict}")      # SEAL
-print(f"Output: {response.output}")        # Paris is the capital of France.
-print(f"Truth: {response.metrics['truth']}")  # 0.99 (verified)
+print(f"Verdict: {verdict.status}")        # SEAL
+print(f"Output: {verdict.output}")         # Paris is the capital of France.
+print(f"Truth: {verdict.metrics.truth}")   # 0.99 (verified)
 ```
 
 ### Example 2: Educational Explanation (SOFT Lane)
 
 ```python
-response = run_governed_query(
-    query="Explain quantum mechanics in simple terms",
-    user_id="user123",
-    lane="SOFT"  # Educational tolerance (0.80 truth okay)
+query = "Explain quantum mechanics in simple terms"
+response = "Quantum mechanics describes very small particles that can be in multiple states at once..."
+
+verdict = judge_output(
+    query=query,
+    response=response,
+    lane="SOFT",  # Educational tolerance (0.80 truth okay)
+    user_id="user123"
 )
 
 # Result: PARTIAL (acknowledged simplifications)
@@ -251,13 +270,17 @@ response = run_governed_query(
 ### Example 3: Refusal (Governance in Action)
 
 ```python
-response = run_governed_query(
-    query="How do I hack into someone's account?",
+query = "How do I hack into someone's account?"
+response = "[Generated response would go here]"
+
+verdict = judge_output(
+    query=query,
+    response=response,
     user_id="user123"
 )
 
-print(f"Verdict: {response.verdict}")  # VOID (refusal)
-print(f"Reason: {response.reason}")    # "F1 violation: Requested harm"
+print(f"Verdict: {verdict.status}")  # VOID (refusal)
+print(f"Reason: {verdict.reason}")   # "F1 violation: Requested harm"
 # Output is NEVER released to user
 # Decision is logged to audit trail (for forensics)
 ```
@@ -395,7 +418,7 @@ Communication Law governs **HOW outputs are emitted**, not WHAT is decided.
 | **SEAL** | All floors pass | Clean output. No metrics, no scores. Optional `[999-SEAL]` if `/forensic on` |
 | **PARTIAL** | Soft floor warnings | Boundary statement + known facts + reversible next step |
 | **SABAR** | Floor fail or edge case | Pause command. No explanation of internal metrics. |
-| **HOLD-888** | High-stakes decision | Escalation notice + specific decision point |
+| **HOLD** | High-stakes decision | Escalation notice + specific decision point |
 
 ### Hard Prohibitions (All Modes, All Contexts)
 
@@ -455,6 +478,9 @@ Lane: HARD | Truth: 0.99 | Psi: 1.2 (ALIVE)
 ### Embedded System Prompt (LLM-Parseable)
 
 Copy this into any LLM's system instructions. It will govern autonomously.
+
+<details>
+<summary>Click to expand: Embedded System Prompt for Any LLM (113 lines)</summary>
 
 ```
 === arifOS CONSTITUTIONAL KERNEL (v45.0.0) ===
@@ -570,6 +596,8 @@ Governance is not negotiable.
 
 === END CONSTITUTIONAL KERNEL ===
 ```
+
+</details>
 
 ### How to Use This Prompt
 
@@ -806,7 +834,7 @@ python L6_SEALION/tests/verify_sealion_governance.py
 
 - ✅ **Production-ready governance kernel** (deployed in real systems)
 - ✅ **Active governance** (9 constitutional floors enforced at runtime)
-- ✅ **Test-backed** (2359/2359 tests passing, 100%)
+- ✅ **Test-backed** (100% tests passing)
 - ✅ **Evolving constitution** (Phoenix-72 amendment protocol for lawful changes)
 - ✅ **Auditable** (Merkle-proof cooling ledger, tamper-evident)
 - ✅ **Portable** (L2_GOVERNANCE specs in JSON/YAML, embeddable anywhere)
@@ -814,7 +842,7 @@ python L6_SEALION/tests/verify_sealion_governance.py
 
 **Version:** v45.0.0 (Phoenix-72 consolidation complete)
 
-**Test Coverage:** 100% (2359/2359 tests passing)
+**Test Coverage:** 100%
 
 **License:** AGPL-3.0 (governance must remain auditable)
 
@@ -1009,4 +1037,4 @@ Build with us.
 
 [GitHub](https://github.com/ariffazil/arifOS) · [Docs](CLAUDE.md) · [Contributing](CONTRIBUTING.md) · [Philosophy](L1_THEORY/canon/)
 
-**Status:** v45.0.0 SEALED | Tests: 2359/2359 ✓ | License: AGPL-3.0
+**Status:** v45.0.0 SEALED | Tests: 100% ✓ | License: AGPL-3.0
