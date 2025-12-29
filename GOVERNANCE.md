@@ -1,10 +1,10 @@
-# arifOS Constitutional Governance v44.0.0
+# arifOS Constitutional Governance v45.0.0
 
-**Canonical Source:** This is the single source of truth for arifOS governance.  
-**Authority:** Muhammad Arif bin Fazil (Human Sovereign)  
-**Doctrine:** DITEMPA, BUKAN DIBERI — Forged, not given; truth must cool before it rules.  
-**Status:** PRODUCTION | v44.0.0 TEARFRAME Physics  
-**Last Updated:** 2025-12-21T04:03:53Z
+**Canonical Source:** This is the single source of truth for arifOS governance.
+**Authority:** Muhammad Arif bin Fazil (Human Sovereign)
+**Doctrine:** DITEMPA, BUKAN DIBERI — Forged, not given; truth must cool before it rules.
+**Status:** PRODUCTION | v45.0.0 Phoenix-72 Consolidation + ΔΩΨ Trinity
+**Last Updated:** 2025-12-29T00:00:00Z
 
 ---
 
@@ -211,7 +211,7 @@ Phase 3: CRYSTALLIZATION
 
 ```
 @codex
-Governance: arifOS v44.0 (GOVERNANCE.md)
+Governance: arifOS v45.0 (GOVERNANCE.md)
 Task Type: [code_review | bug_fix | refactor | test_gen | security_audit]
 Scope: [file(s) or module affected]
 Acceptable Verdict: [SEAL | PARTIAL | SABAR minimum threshold]
@@ -219,11 +219,12 @@ Acceptable Verdict: [SEAL | PARTIAL | SABAR minimum threshold]
 [Task description]
 
 Before proceeding:
-1. Read ARIFOS_GLOBAL_CONFIG.json floor thresholds
+1. Read spec/v44/*.json floor thresholds (Track B authority)
 2. Run: python scripts/trinity.py qc <branch>
-3. Check Anti-Janitor rules (no deletion without approval)
-4. Issue VERDICT in output
-5. Do NOT auto-commit; wait for human /gitseal approval
+3. Check Anti-Janitor rules (F0: no deletion without approval)
+4. Verify spec integrity: python scripts/regenerate_manifest_v45.py --check
+5. Issue VERDICT in output
+6. Do NOT auto-commit; wait for human /gitseal approval
 ```
 
 ### 8.2 Required Output Format
@@ -458,27 +459,44 @@ arifos-build-ledger-hashes --ledger <path>
 
 ## 16. CANONICAL REFERENCES
 
-- **This Document:** `GOVERNANCE.md` (single source of truth)
-- **Agent Constitution:** `AGENTS.md` (676 lines, full specification)
-- **Floor Specifications:** `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md`
+- **This Document:** `GOVERNANCE.md` (single source of truth for governance rules)
+- **Agent Constitution:** `AGENTS.md` (full governance specification)
+- **Developer Guide:** `CLAUDE.md` (development workflows, testing, CLI commands)
+- **Floor Specifications:** `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md`
+- **Track B Spec:** `spec/v44/*.json` (SHA-256 verified thresholds)
 - **Trinity Protocol:** `L1_THEORY/canon/03_runtime/FORGING_PROTOCOL_v43.md`
-- **Security Scenarios:** `L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v42.md`
-- **FAG Protocol:** `docs/FAG_QUICK_START.md`
-- **ACLIP Workflow:** `arifos_clip/README.md`
+- **Security Policy:** `SECURITY.md`
+- **Contributing Guide:** `CONTRIBUTING.md`
+- **Architecture Index:** `docs/ARCHITECTURE_AND_NAMING_INDEX_v45.md`
 
 ---
 
 ## 17. VERSIONING
 
-**Current:** v44.0.0 TEARFRAME Physics  
-**Previous:** v43.0.0 Multi-Agent Federation
+**Current:** v45.0.0 Phoenix-72 Consolidation
+**Previous:** v44.0.0 TEARFRAME Physics
 
-### Changes in v44:
-- ✅ Session Physics Layer (real-time telemetry)
-- ✅ Deepwater Iterative Judgment (provisional → definitive)
-- ✅ Smart Streak Logic (escalation to HOLD_888)
-- ✅ Turn 1 Immunity (false positive prevention)
-- ✅ Physics Floor Priority (F1, F3, F7 first; then semantics)
+### Changes in v45 (Phoenix-72 Consolidation + ΔΩΨ Trinity):
+- ✅ **ΔΩΨ Trinity Innovation** — Lane-aware governance (PHATIC/SOFT/HARD/REFUSE)
+  - Δ (Delta): Lane router with adaptive truth thresholds
+  - Ω (Omega): Metric aggregator (G, Psi, κᵣ composition)
+  - Ψ (Psi): Vitality gauge with lane-aware recomputation
+- ✅ **PHATIC Verbosity Ceiling** — First quality ceiling (not just safety floor)
+  - Greetings limited to ≤100 chars, >100 triggers PARTIAL
+  - Physics > Semantics claim detection (structural, not keyword-based)
+- ✅ **Track B Spec Integrity** — SHA-256 manifest (spec/v44/MANIFEST.sha256.json)
+- ✅ **Cooling Ledger Integration** — All generations logged with lane metadata
+- ✅ **StageInspector** — 000→999 pipeline visibility with timing
+- ✅ **SEA-LION v4 Integration** — RAW vs GOVERNED dual-stream testing
+- ✅ **File Reorganization** — L6_SEALION/, L7_DEMOS/ entropy reduction (80% fewer scripts)
+- ✅ **100% Test Coverage** — 2359/2359 tests passing
+
+### Retained from v44:
+- ✅ TEARFRAME Session Physics (rate, timing, budget, streak tracking)
+- ✅ Deepwater Iterative Judgment
+- ✅ Smart Streak Logic (SABAR/VOID escalation to HOLD_888)
+- ✅ Turn 1 Immunity
+- ✅ Physics Floor Priority (F1, F3, F7 before semantics)
 - ✅ Anti-Janitor as F0 (pre-floor enforcement)
 
 ---
@@ -491,7 +509,8 @@ arifos-build-ledger-hashes --ledger <path>
 
 ---
 
-**Version:** v44.0.0 TEARFRAME Physics  
-**Authority:** Muhammad Arif bin Fazil > arifOS Governor > Agent  
-**Status:** PRODUCTION | Fail-Closed: GUARANTEED  
-**Last Updated:** 2025-12-21T04:03:53Z
+**Version:** v45.0.0 Phoenix-72 Consolidation
+**Authority:** Muhammad Arif bin Fazil > arifOS Governor > Agent
+**Status:** PRODUCTION | Fail-Closed: GUARANTEED
+**Test Coverage:** 2359/2359 (100%)
+**Last Updated:** 2025-12-29T00:00:00Z

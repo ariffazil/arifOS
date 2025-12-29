@@ -30,23 +30,24 @@ Issue template suggestion:
 ## Change Summary
 [What are you proposing?]
 
-## Constitutional Impact
-- [ ] Affects Truth floor (F1)
-- [ ] Affects ΔS (clarity) floor (F2)
-- [ ] Affects Peace² (tone) floor (F3)
-- [ ] Affects κᵣ (empathy) floor (F4)
-- [ ] Affects Ω₀ (humility) floor (F5)
-- [ ] Affects Amanah (integrity) floor (F6)
-- [ ] Affects Rasa (sentience) floor (F7)
-- [ ] Affects Tri-Witness (auditability) floor (F8)
-- [ ] Affects Anti-Hantu (jailbreak) floor (F9)
+## Constitutional Impact (F1-F9)
+- [ ] Affects F1: Amanah (Integrity/Reversibility)
+- [ ] Affects F2: Truth (Factual Accuracy ≥0.99)
+- [ ] Affects F3: Tri-Witness (Human·AI·Earth consensus ≥0.95)
+- [ ] Affects F4: ΔS/Clarity (Entropy reduction ≥0)
+- [ ] Affects F5: Peace² (Non-destructive ≥1.0)
+- [ ] Affects F6: κᵣ/Empathy (Serve weakest stakeholder ≥0.95)
+- [ ] Affects F7: Ω₀/Humility (Uncertainty band 0.03-0.05)
+- [ ] Affects F8: G/Genius (Governed intelligence ≥0.80)
+- [ ] Affects F9: C_dark/Anti-Hantu (Dark cleverness <0.30)
 
-## Memory Impact (v38)
+## Memory Impact (EUREKA - v45)
 - [ ] Affects Memory Write Policy (verdict → band routing)
-- [ ] Changes 6 Memory Bands (Vault, Ledger, Active, Phoenix, Witness, Void)
+- [ ] Changes 6 Memory Bands (VAULT, LEDGER, ACTIVE, PHOENIX, WITNESS, VOID)
 - [ ] Modifies Authority Boundary (human seal enforcement)
-- [ ] Changes Audit Layer (hash-chain or merkle proofs)
-- [ ] Affects Retention Lifecycle (Hot/Warm/Cold/Void)
+- [ ] Changes Audit Layer (SHA-256 hash-chain or Merkle proofs)
+- [ ] Affects Retention Lifecycle (HOT 7d / WARM 90d / COLD permanent / VOID 90d)
+- [ ] Impacts ΔΩΨ Trinity (Delta lane routing, Omega aggregation, Psi vitality)
 
 ## Justification
 [Why is this change aligned with arifOS governance?]
@@ -166,13 +167,14 @@ PR template suggestion:
 - [ ] Adds or improves tests
 - [ ] Updates documentation
 
-## Memory Impact (v38)
+## Memory Impact (EUREKA - v45)
 - [ ] Memory Write Policy enforced (verdict → band routing)
 - [ ] VOID verdicts isolated (never reach LEDGER/ACTIVE)
 - [ ] Authority boundary maintained (humans seal law)
-- [ ] Hash-chain verified on all writes
+- [ ] SHA-256 hash-chain verified on all writes
 - [ ] Confidence ceiling (0.85) enforced on recalls
-- [ ] Memory integration tests added/pass
+- [ ] Memory integration tests added/pass (2359/2359 ✓)
+- [ ] Spec manifest verified: python scripts/regenerate_manifest_v45.py --check
 
 ## Test Coverage
 - Tests added: [describe]
@@ -202,13 +204,14 @@ PR template suggestion:
 - Expect requests for additional tests and governance impact analysis.
 - Do not force-push reviewed branches; push new commits to address feedback.
 
-### Memory-Specific Reviews (v38)
-- PRs touching `arifos_core/memory/` or `arifos_core/integration/memory_*.py` require:
+### Memory-Specific Reviews (EUREKA - v45)
+- PRs touching `arifos_core/memory/` or memory integration require:
   - Confirmation that VOID verdicts cannot reach canonical bands (INV-1).
   - Verification that authority boundary is maintained—AI proposes, humans seal (INV-2).
-  - Hash-chain audit trail for every write (INV-3).
+  - SHA-256 hash-chain audit trail for every write (INV-3).
   - Confidence ceiling validation for recalled memory (INV-4).
-  - Evidence of integration with 111_SENSE, 777_FORGE, 888_JUDGE, 999_SEAL hooks.
+  - Evidence of integration with 000→999 pipeline stages (SENSE 111, FORGE 777, JUDGE 888, SEAL 999).
+  - Spec integrity: Verify spec/v44/MANIFEST.sha256.json after changes.
 
 Suggested CODEOWNERS entries should be added to `CODEOWNERS` separately.
 
@@ -324,12 +327,13 @@ Follow Phoenix‑72:
 ## 10) Documentation & style
 
 - Update **README.md** for user-facing changes.
-- Update **docs/MEMORY_ARCHITECTURE.md** for memory system changes (v38).
-- Update **docs/MEMORY_WRITE_POLICY.md** for verdict→band routing or authority changes (v38).
-- Update **spec/APEX_PRIME.yaml** for judiciary changes.
-- Update **canon/ARIFOS_MEMORY_STACK_v38Omega.md** for constitutional memory changes (v38).
+- Update **docs/** for architecture changes.
+- Update **spec/v44/*.json** for Track B specification changes (requires manifest regeneration).
+- Update **L1_THEORY/canon/** for constitutional law changes (requires Phoenix-72 amendment).
+- Update **CLAUDE.md** for development workflow changes.
+- Update **AGENTS.md** for agent governance changes.
 - Use docstrings on public APIs.
-- Maintain CHANGELOG.md and release notes.
+- Maintain **CHANGELOG.md** and release notes.
 
 ---
 
@@ -346,7 +350,8 @@ Security/governance questions:
 
 ---
 
-**Last updated:** 2025-12-13  
-**Version:** v38.0.0  
-**Maintainer contact:** arifbfazil@gmail.com  
-**Memory System (EUREKA):** Active since v38 | 4 Core Invariants enforced | 6 Memory Bands | 36+ integration tests
+**Last updated:** 2025-12-29
+**Version:** v45.0.0 (Phoenix-72 Consolidation)
+**Maintainer contact:** arifbfazil@gmail.com
+**Track B Spec:** spec/v44/ (SHA-256 verified) | **Canon:** L1_THEORY/canon/ (v45)
+**Memory System (EUREKA):** Active | 4 Core Invariants enforced | 6 Memory Bands | 2359/2359 tests passing

@@ -1,7 +1,9 @@
 # arifOS Security Policy
 
-**Version:** v38.0.0 | **Last Updated:** 2025-12-13
-**Runtime Law:** v35Omega | **Measurement:** v38 | **Memory/EUREKA:** v38Omega | **License:** AGPL-3.0
+**Version:** v45.0.0 | **Last Updated:** 2025-12-29
+**Status:** PRODUCTION | Phoenix-72 Consolidation + ΔΩΨ Trinity
+**Track B Spec:** spec/v44/ (SHA-256 verified) | **Canon:** L1_THEORY/canon/ (v45)
+**Test Coverage:** 2359/2359 (100%) | **License:** AGPL-3.0
 
 ---
 
@@ -28,7 +30,7 @@ Please include:
 
 If sending sensitive PoCs by email, encrypt them using the project PGP key (publish the fingerprint in the repo). If using GitHub Security Advisory, attach the PoC privately.
 
-**Governance-Aware Reporting:** If your finding relates to **constitutional law** (canon/ files) or **Memory Stack v38Omega**, mention this explicitly so it can be routed through Phoenix-72 governance.
+**Governance-Aware Reporting:** If your finding relates to **constitutional law** (L1_THEORY/canon/ files), **Track B spec** (spec/v44/), or **Memory Stack (EUREKA)**, mention this explicitly so it can be routed through Phoenix-72 governance.
 
 **Out-of-scope / Do not:**
 - Do not test on production systems without explicit permission.
@@ -53,8 +55,8 @@ Preferred: use GitHub Security Advisories. If emailing encrypted reports, includ
 
 | Severity | Definition | arifOS-Specific Examples | Response |
 |----------|------------|--------------------------|----------|
-| **Critical** | Remote code execution, private key compromise, systemic compromise | Ability to forge/delete Cooling Ledger or Memory Ledger entries without detection; Bypass of VOID isolation (VOID entries reaching LEDGER/ACTIVE); AI self-sealing canon/amendments without human approval; Downgrade/disable constitutional floors without canon/spec change | Acknowledge: 24h; Patch: 7 days |
-| **High** | Privilege escalation, significant bypass | Systematic bypass of APEX PRIME/Amanah lock via config/API; Breaking hash-chain or disabling verification; Disabling or raising recall confidence ceiling beyond 0.85; Bypass of Memory Write Policy invariants | Acknowledge: 24-48h; Fix: 14 days |
+| **Critical** | Remote code execution, private key compromise, systemic compromise | Ability to forge/delete Cooling Ledger or Memory Ledger entries without detection; Bypass of VOID isolation (VOID entries reaching LEDGER/ACTIVE); AI self-sealing canon/amendments without human approval; Downgrade/disable constitutional floors without canon/spec change; Spec manifest tampering (spec/v44/MANIFEST.sha256.json) | Acknowledge: 24h; Patch: 7 days |
+| **High** | Privilege escalation, significant bypass | Systematic bypass of APEX PRIME/Amanah lock via config/API; Breaking SHA-256 hash-chain or disabling verification; Disabling or raising recall confidence ceiling beyond 0.85; Bypass of Memory Write Policy invariants; ΔΩΨ Trinity lane misclassification (REFUSE → PHATIC) | Acknowledge: 24-48h; Fix: 14 days |
 | **Medium** | Information exposure, non-critical DoS | Single-session DoS on governance pipeline (e.g., repeated SABAR loops) without long-term data compromise; Partial floor bypass in edge cases | Acknowledge: 48h; Fix: next minor release |
 | **Low** | UI issues, minor bugs | Minor logging issues, cosmetic problems | Acknowledge: 5 business days |
 
@@ -74,22 +76,29 @@ Preferred: use GitHub Security Advisories. If emailing encrypted reports, includ
 We consider issues affecting:
 
 - **arifOS core runtime** (`arifos_core/`):
-  - `arifos_core/APEX_PRIME.py` (verdict engine)
-  - `arifos_core/memory/*` (EUREKA, bands, audit, retention)
-  - `arifos_core/integration/memory_*.py` (pipeline-memory integration)
-  - `arifos_core/waw/*` and `arifos_core/eye/*` (governance organs)
-  - `arifos_core/zkpc_runtime.py` (zkPC runtime)
-  - `arifos_core/floor_detectors/` (Python-sovereign enforcement)
+  - `arifos_core/system/apex_prime.py` (verdict engine - APEX PRIME judiciary)
+  - `arifos_core/memory/` (EUREKA: policy, bands, audit, retention)
+  - `arifos_core/evidence/` (Sovereign Witness evidence system)
+  - `arifos_core/judiciary/` (Constitutional verdict logic)
+  - `arifos_core/temporal/` (Phoenix-72 time-based governance)
+  - `arifos_core/enforcement/` (Floor detectors & validators)
+  - `arifos_core/floor_detectors/` (Python-sovereign F1-F9 enforcement)
+  - `arifos_core/stages/` (000→999 pipeline stages)
+  - `arifos_core/waw/` (Multi-agent federation: @LAW, @GEOX, @WELL, @RIF)
+  - `arifos_core/trinity/` (Git governance system)
 
-- **Cooling Ledger** and **Vault-999** implementations.
+- **Track B Spec** (`spec/v44/`) — SHA-256 verified JSON thresholds.
+  - `spec/v44/MANIFEST.sha256.json` (cryptographic integrity verification)
 
-- **Memory Stack v38Omega** files and 6 Memory Bands.
+- **Cooling Ledger** and audit trail implementations.
 
-- **APEX PRIME**, guardrails, and constitutional enforcement logic.
+- **Memory Stack (EUREKA)** — 6 Memory Bands (VAULT, LEDGER, ACTIVE, PHOENIX, WITNESS, VOID).
 
-- **Repository deployment scripts** and **CI/CD definitions**.
+- **Constitutional Canon** (`L1_THEORY/canon/`) — Immutable constitutional law (Phoenix-72 governed).
 
-- **Canon files** (`canon/`) that define constitutional law.
+- **Repository deployment scripts** (`scripts/trinity.py`, governance utilities).
+
+- **CI/CD definitions** and automated testing infrastructure.
 
 ### Exclusions
 
@@ -121,9 +130,9 @@ arifOS enforces **9 constitutional floors** as runtime invariants. Any bypass or
 
 ---
 
-## Memory & EUREKA Security (v38)
+## Memory & EUREKA Security (v45)
 
-v38 introduces the **Memory Write Policy Engine** with 4 core invariants that are security-critical:
+The **Memory Write Policy Engine (EUREKA)** enforces 4 core invariants that are security-critical:
 
 ### The 4 Core Invariants
 
@@ -275,19 +284,43 @@ We appreciate coordinated disclosure. Researchers who follow this policy will be
 ## Key Files (Security-Critical)
 
 ```text
-arifos_core/APEX_PRIME.py           - Verdict engine (CRITICAL)
-arifos_core/floor_detectors/        - Python-sovereign enforcement (CRITICAL)
-arifos_core/memory/policy.py        - Memory Write Policy Engine (CRITICAL)
-arifos_core/memory/bands.py         - 6 Memory Bands + router (CRITICAL)
-arifos_core/memory/authority.py     - Human seal enforcement (CRITICAL)
-arifos_core/memory/audit.py         - Hash-chain audit layer (CRITICAL)
-arifos_core/memory/retention.py     - Hot/Warm/Cold/Void lifecycle
-arifos_core/integration/            - Pipeline <-> Memory integration
-canon/                              - Constitutional law (Phoenix-72 governed)
+# Core Governance Engine
+arifos_core/system/apex_prime.py              - APEX PRIME verdict engine (CRITICAL)
+arifos_core/floor_detectors/                  - Python-sovereign F1-F9 enforcement (CRITICAL)
+arifos_core/enforcement/genius_metrics.py     - G, C_dark, Psi computation (CRITICAL)
+
+# Memory Stack (EUREKA)
+arifos_core/memory/policy.py                  - Memory Write Policy Engine (CRITICAL)
+arifos_core/memory/bands.py                   - 6 Memory Bands + router (CRITICAL)
+arifos_core/memory/authority.py               - Human seal enforcement (CRITICAL)
+arifos_core/memory/audit.py                   - SHA-256 hash-chain audit layer (CRITICAL)
+arifos_core/memory/retention.py               - Hot/Warm/Cold/Void lifecycle
+
+# Evidence & Judiciary
+arifos_core/evidence/                         - Sovereign Witness evidence system (HIGH)
+arifos_core/judiciary/                        - Constitutional verdict logic (CRITICAL)
+arifos_core/temporal/                         - Phoenix-72 time governance (HIGH)
+
+# Pipeline & Stages
+arifos_core/system/pipeline.py                - 000→999 pipeline orchestration (HIGH)
+arifos_core/stages/                           - Pipeline stage implementations
+
+# Track B Spec (Cryptographic Verification)
+spec/v44/MANIFEST.sha256.json                 - Spec integrity manifest (CRITICAL)
+spec/v44/constitutional_floors.json           - F1-F9 thresholds (CRITICAL)
+spec/v44/genius_law.json                      - GENIUS metrics (CRITICAL)
+
+# Constitutional Canon
+L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md  - Floor law (CRITICAL)
+L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v45.md              - GENIUS law (CRITICAL)
+
+# Governance Utilities
+scripts/trinity.py                            - Git governance CLI (HIGH)
+scripts/regenerate_manifest_v45.py            - Spec integrity verification (CRITICAL)
 ```
 
 ---
 
 **DITEMPA BUKAN DIBERI** — Forged, not given; truth must cool before it rules.
 
-**Version:** v38.0.0 | **Status:** PRODUCTION | **Safety Ceiling:** 97%
+**Version:** v45.0.0 | **Status:** PRODUCTION | **Test Coverage:** 2359/2359 (100%)
