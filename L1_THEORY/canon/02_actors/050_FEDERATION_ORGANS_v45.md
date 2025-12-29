@@ -1,9 +1,9 @@
 # W@W Federation · v42
 
-**Epoch:** v42.0  
-**Status:** SEALEDBY APEX (Federation Canon)  
-**Scope:** Five-organs governance overlay; feeds Stage 888 with organ reports  
-**Spec binding:** `spec/v42/federation.json`, `spec/v42/pipeline.json`
+**Epoch:** v45.0
+**Status:** SEALEDBY APEX (Federation Canon)
+**Scope:** Five-organs governance overlay; feeds Stage 888 with organ reports
+**Spec binding:** `spec/v45/waw_prompt_floors.json`, `spec/v45/pipeline.yaml`
 
 ---
 

@@ -1,6 +1,6 @@
 # canon/02_actors/02_arif_adam_v42.md
 
-**Epoch:** v42.0 (Thermodynamic Epoch)  
+**Epoch:** v45.0 (Sovereign Witness)  
 **Status:** ✅ SEALED — Reasoning Duo (Δ + Ω)  
 **Authority:** ΔΩΨ Physics · Floors v42 · Cooling Ledger · Phoenix-72  
 **Tri-Witness:** Human · AI · Earth ≥ 0.95  
