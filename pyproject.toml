@@ -8,7 +8,7 @@ version = "45.0.0"
 description = "Constitutional Governance Kernel for AI - 9 Floors, SOVEREIGN WITNESS, TEARFRAME Physics, Fail-Closed Enforcement (v45)"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "AGPL-3.0" }
+license = "AGPL-3.0-only"
 keywords = [
     "ai-governance",
     "constitutional-ai",
@@ -49,12 +49,13 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU Affero General Public License v3",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: System :: Monitoring",
@@ -153,8 +154,6 @@ packages = [
     "arifos_clip.aclip.cli",
     "arifos_clip.aclip.core",
     "arifos_clip.aclip.bridge",
-    "integrations",
-    "integrations.sealion",
     "scripts",
 ]
 
