@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Version:** v45Ω Patch C | **Tests:** 2597/2624 (98.9%) | **Safety Ceiling:** 99%
+**Version:** v45.0 (Phoenix-72 Consolidation) | **Track B:** spec/v45/ | **Safety Ceiling:** 99%
 
 **Imports:** `~/.claude/CLAUDE.md` — Global governance (floors, SABAR, verdicts)
 **Extends:** [AGENTS.md](AGENTS.md) — Full constitutional governance
@@ -12,13 +12,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Entropy Control rules (when to add new files)
 - Cooling Notes (agent learnings from past mistakes)
 
-**Latest:** v45Ω Patch C (2025-12-29) — Multi-Provider Failover Orchestrator. See [FAILOVER_GUIDE.md](docs/FAILOVER_GUIDE.md) for details.
+**Latest:** v45.0 Phoenix-72 Migration (2025-12-29) — Track A/B/C consolidation complete. See migration commit ff5ced3 for details.
 
 **Quick Links:**
 
 - **[AGENTS.md](AGENTS.md)** — Full constitutional governance (extends this file)
-- **[FAILOVER_GUIDE.md](docs/FAILOVER_GUIDE.md)** — v45Ω Patch C: Multi-Provider Failover
-- **[WISDOM_SEALION_INTERACTIVE_v45.md](docs/WISDOM_SEALION_INTERACTIVE_v45.md)** — Future improvements (65%→95%)
+- **[spec/v45/](spec/v45/)** — Track B authority (constitutional thresholds with SHA-256 verification)
+- **[archive/spec_v44/](archive/spec_v44/)** — v44 archive (complete with restoration procedures)
+- **[.agent/workflows/](. agent/workflows/)** — Master skills registry (000, fag, gitforge)
+- **[scripts/sealion_forge_repl.py](scripts/sealion_forge_repl.py)** — SEA-LION interactive testing (RAW vs GOVERNED)
 - **[SECURITY.md](SECURITY.md)** — Security vulnerability reporting
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — How to propose amendments
 - **[CHANGELOG.md](CHANGELOG.md)** — Version history and patches

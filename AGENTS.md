@@ -56,8 +56,10 @@ python -m scripts.test_bogel_llama         # 33-prompt baseline (uncaged LLM)
 
 **Skills Registry (v45.0.0+):**
 - **PRIMARY:** [L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md](L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md) – Canonical registry for all 7 core constitutional skills (/000, /fag, /entropy, /gitforge, /gitQC, /gitseal, /sabar)
-- Master definitions in `.agent/workflows/`, platform variants in `.codex/skills/` and `.claude/skills/`
-- Tool restrictions, verdict triggers, logging requirements, fail-closed enforcement
+- **MASTER:** [.agent/workflows/](.agent/workflows/) – Single source of truth (000.md, fag.md, gitforge.md with YAML frontmatter)
+- **DERIVED:** [.codex/skills/](.codex/skills/) and [.claude/skills/](.claude/skills/) – Platform variants with sync markers
+- **AUTOMATION:** [scripts/sync_skills.py](scripts/sync_skills.py) – Automated master→platform sync, [scripts/check_skill_drift.py](scripts/check_skill_drift.py) – Drift detection
+- Tool restrictions fail-closed (platforms can only RESTRICT, never EXPAND), verdict triggers, logging requirements
 
 ### 1.2 Code Style
 
@@ -88,10 +90,19 @@ python -m scripts.test_bogel_llama         # 33-prompt baseline (uncaged LLM)
 
 ### 1.5 Cooling Notes (Agent Learnings)
 
-Human-facing “wisdom log” to prevent repeated entropy mistakes.
+Human-facing "wisdom log" to prevent repeated entropy mistakes.
 
 - 2025-12-17: Avoided "alias file" shortcuts. Correct the canonical reference or ask; don't add new files just to satisfy an IDE tab/link.
 - 2025-12-21: Canonical cooling ledger path is `cooling_ledger/L1_cooling_ledger.jsonl`; Codex CLI entries log via the same hash-chained ledger with optional metadata (source/task_type/scope/codex_audit).
+- **2025-12-29 (v45.0 Phoenix-72 Migration):** Major entropy reduction session completed:
+  - Skills registry consolidated: Master-Derive model ([.agent/workflows/](.agent/workflows/) → [.codex/skills/](.codex/skills/) + [.claude/skills/](.claude/skills/)) with automated sync ([scripts/sync_skills.py](scripts/sync_skills.py), [scripts/check_skill_drift.py](scripts/check_skill_drift.py))
+  - Track B consolidated: spec/v44/ → spec/v45/ with SHA-256 manifest verification (zero information loss, all v44 content archived in [archive/spec_v44/](archive/spec_v44/))
+  - Legacy specs archived: v35Ω/v38Ω → [archive/legacy_specs/](archive/legacy_specs/), documentation → [archive/spec_legacy/](archive/spec_legacy/)
+  - Root directory cleaned: 9 duplicate/obsolete files removed → [archive/2025_cleanup/](archive/2025_cleanup/)
+  - SEA-LION testing suite added: [scripts/sealion_forge_repl.py](scripts/sealion_forge_repl.py) (governed REPL), [scripts/sealion_raw_only.py](scripts/sealion_raw_only.py) (RAW baseline), [scripts/sealion_raw_repl.py](scripts/sealion_raw_repl.py) (RAW REPL)
+  - Codex governance integrated: [.codex/AGENTS.md](.codex/AGENTS.md) (v44 TEARFRAME physics)
+  - Integration bridge created: [arifos_core/bridge.py](arifos_core/bridge.py) (aCLIP adapter)
+  - Total: 3 commits (a8c7a37, 6d62b94, ff5ced3), 97 files changed, +10,042 insertions, -2,166 deletions, ΔS_session = +5.8 (excellent clarity gain)
 
 ### 1.6 FILE INTEGRITY & ACLIP PROTOCOL
 
