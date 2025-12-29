@@ -14,16 +14,16 @@ This module provides:
 5. Anti-Hantu helpers - pattern detection for F9
 6. Identity truth lock - hallucination penalties (v45Ω Patch B.1)
 
-v45Ω Patch B.3 → v44.0 (Track B Spec Consolidation):
+v45Ω Patch B.3 → v45.0 (Track B Spec Consolidation):
 Thresholds loaded via strict priority order with fail-closed behavior:
   A) ARIFOS_FLOORS_SPEC env var (explicit override - highest priority)
-  B) spec/v44/constitutional_floors.json (AUTHORITATIVE - v44.0)
+  B) spec/v45/constitutional_floors.json (AUTHORITATIVE - v45.0)
   C) HARD FAIL (raise exception) - no silent defaults
 
   Optional: ARIFOS_ALLOW_LEGACY_SPEC=1 enables fallback to v42/v38/v35 (default OFF)
 
 Track A (Canon) remains authoritative for interpretation.
-Track B (Spec) spec/v44/ is SOLE RUNTIME AUTHORITY for thresholds.
+Track B (Spec) spec/v45/ is SOLE RUNTIME AUTHORITY for thresholds.
 """
 
 from dataclasses import dataclass, field
@@ -84,11 +84,11 @@ def _validate_floors_spec(spec: dict, source: str) -> bool:
 
 def _load_floors_spec_unified() -> dict:
     """
-    Load constitutional floors spec with strict priority order (Track B Authority v44.0).
+    Load constitutional floors spec with strict priority order (Track B Authority v45.0).
 
     Priority (fail-closed by default):
     A) ARIFOS_FLOORS_SPEC (env path override) - highest priority (explicit operator authority)
-    B) spec/v44/constitutional_floors.json (AUTHORITATIVE - v44.0 single source of truth)
+    B) spec/v45/constitutional_floors.json (AUTHORITATIVE - v45.0 single source of truth)
     C) HARD FAIL (raise RuntimeError) - no silent defaults
 
     Optional Legacy Fallback (enabled only if ARIFOS_ALLOW_LEGACY_SPEC=1):
@@ -124,19 +124,19 @@ def _load_floors_spec_unified() -> dict:
     if env_path:
         env_spec_path = Path(env_path).resolve()
 
-        # Strict mode: env override must point to spec/v44/ (manifest-covered files only)
+        # Strict mode: env override must point to spec/v45/ (manifest-covered files only)
         if not allow_legacy:
             v44_dir = (pkg_dir / "spec" / "v44").resolve()
             try:
-                # Check if env path is within spec/v44/
+                # Check if env path is within spec/v45/
                 env_spec_path.relative_to(v44_dir)
             except ValueError:
-                # Path is outside spec/v44/ - reject in strict mode
+                # Path is outside spec/v45/ - reject in strict mode
                 raise RuntimeError(
-                    f"TRACK B AUTHORITY FAILURE: Environment override points to path outside spec/v44/.\n"
+                    f"TRACK B AUTHORITY FAILURE: Environment override points to path outside spec/v45/.\n"
                     f"  Override path: {env_spec_path}\n"
                     f"  Expected within: {v44_dir}\n"
-                    f"In strict mode, only manifest-covered files (spec/v44/) are allowed.\n"
+                    f"In strict mode, only manifest-covered files (spec/v45/) are allowed.\n"
                     f"Set ARIFOS_ALLOW_LEGACY_SPEC=1 to bypass (NOT RECOMMENDED)."
                 )
 
@@ -153,7 +153,7 @@ def _load_floors_spec_unified() -> dict:
             except (json.JSONDecodeError, IOError, OSError):
                 pass  # Fall through to next priority
 
-    # Priority B: spec/v44/constitutional_floors.json (AUTHORITATIVE)
+    # Priority B: spec/v45/constitutional_floors.json (AUTHORITATIVE)
     if spec_data is None:
         v44_path = pkg_dir / "spec" / "v44" / "constitutional_floors.json"
         if v44_path.exists():
@@ -165,17 +165,17 @@ def _load_floors_spec_unified() -> dict:
                 # Structural validation (required keys)
                 if _validate_floors_spec(candidate, str(v44_path)):
                     spec_data = candidate
-                    loaded_from = "spec/v44/constitutional_floors.json"
+                    loaded_from = "spec/v45/constitutional_floors.json"
             except (json.JSONDecodeError, IOError):
                 pass  # Fall through to next priority
 
     # Priority C: HARD FAIL (unless legacy fallback enabled)
     if spec_data is None and not allow_legacy:
         raise RuntimeError(
-            "TRACK B AUTHORITY FAILURE: spec/v44/constitutional_floors.json missing or invalid. "
+            "TRACK B AUTHORITY FAILURE: spec/v45/constitutional_floors.json missing or invalid. "
             "This is a critical governance failure. "
             "To enable legacy fallback (NOT RECOMMENDED), set ARIFOS_ALLOW_LEGACY_SPEC=1. "
-            "To fix: Ensure spec/v44/constitutional_floors.json exists and is valid."
+            "To fix: Ensure spec/v45/constitutional_floors.json exists and is valid."
         )
 
     # --- LEGACY FALLBACK (only if ARIFOS_ALLOW_LEGACY_SPEC=1) ---

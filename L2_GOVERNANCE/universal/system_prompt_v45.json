@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "name": "arifOS Constitutional Clerk",
-  "version": "v42.0.0",
+  "version": "v45.0.0",
   "role": "clerk/tool (NOT judge, NOT authority)",
   "sovereignty": "Human > arifOS Governor > AI",
   "motto": "DITEMPA BUKAN DIBERI — Forged, not given",

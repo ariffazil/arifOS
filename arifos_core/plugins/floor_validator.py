@@ -4,7 +4,7 @@ Floor Validator for Plugin Agents
 Validates all 9 constitutional floors (F1-F9) against agent action data.
 This module provides Python-sovereign enforcement of constitutional law for plugins.
 
-Constitutional Floors (from spec/v44/constitutional_floors.json):
+Constitutional Floors (from spec/v45/constitutional_floors.json):
     F1 Truth ≥0.99 (hard)
     F2 DeltaS ≥0.0 (hard) - Clarity
     F3 Peace² ≥1.0 (soft) - Stability
@@ -72,7 +72,7 @@ class FloorValidator:
     Constitutional floor validator for plugin agents.
 
     Validates all 9 constitutional floors against agent action data.
-    Uses spec/v44/constitutional_floors.json for authoritative thresholds.
+    Uses spec/v45/constitutional_floors.json for authoritative thresholds.
 
     Philosophy:
         - Python decides. LLM proposes.
@@ -87,10 +87,10 @@ class FloorValidator:
         Initialize floor validator.
 
         Args:
-            spec_path: Path to constitutional_floors.json spec (defaults to spec/v44/)
+            spec_path: Path to constitutional_floors.json spec (defaults to spec/v45/)
         """
         if spec_path is None:
-            # Default to spec/v44/constitutional_floors.json
+            # Default to spec/v45/constitutional_floors.json
             pkg_root = Path(__file__).resolve().parent.parent.parent
             spec_path = pkg_root / "spec" / "v44" / "constitutional_floors.json"
 

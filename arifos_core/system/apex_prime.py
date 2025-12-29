@@ -189,7 +189,7 @@ _LegacyVerdict = Literal["SEAL", "PARTIAL", "VOID", "888_HOLD", "SABAR"]
 
 # Floor thresholds (v35Ω → v45Ω)
 # v45Ω: TRUTH_MIN restored to constitutional spec (0.99) per @LAW audit
-# Import from metrics.py which loads from spec/v44/constitutional_floors.json
+# Import from metrics.py which loads from spec/v45/constitutional_floors.json
 TRUTH_MIN = TRUTH_THRESHOLD  # 0.99 (canonical from spec)
 DELTA_S_MIN = 0.0
 PEACE_SQ_MIN = 1.0
@@ -209,7 +209,7 @@ PARADOX_MAX = 1.0
 #
 # Three thresholds enforce different standards:
 # - TRUTH_BLOCK_MIN (0.90): Below this → instant VOID (hallucination blocking)
-# - TRUTH_MIN (0.99): Constitutional floor for SEAL (from spec/v44/)
+# - TRUTH_MIN (0.99): Constitutional floor for SEAL (from spec/v45/)
 # - TRUTH_SEAL_MIN (0.99): Alias for identity claims (same as TRUTH_MIN)
 #
 # Enforcement hierarchy:
@@ -340,15 +340,15 @@ def _is_benign_denial(text: str) -> bool:
 # Hard floors still gate everything; GENIUS LAW refines verdicts.
 # For canonical measurement formulas, see: arifos_eval/apex/apex_measurements.py
 #
-# v45Ω: Restored to spec/v44/genius_law.json per @LAW audit
+# v45Ω: Restored to spec/v45/genius_law.json per @LAW audit
 # =============================================================================
 
-# G thresholds for verdict decisions (from spec/v44/genius_law.json)
+# G thresholds for verdict decisions (from spec/v45/genius_law.json)
 G_SEAL_THRESHOLD: float = 0.80  # G >= this for SEAL (spec line 22)
 G_PARTIAL_THRESHOLD: float = 0.50  # G >= this for PARTIAL (spec line 23: void threshold)
 G_MIN_THRESHOLD: float = 0.50  # G below this = VOID (spec line 23)
 
-# C_dark thresholds for risk assessment (from spec/v44/genius_law.json)
+# C_dark thresholds for risk assessment (from spec/v45/genius_law.json)
 C_DARK_SEAL_MAX: float = 0.30  # C_dark <= this for SEAL (spec line 43)
 C_DARK_PARTIAL_MAX: float = 0.60  # C_dark <= this for PARTIAL (spec line 44: sabar_warn)
 C_DARK_VOID_THRESHOLD: float = 0.60  # C_dark > this = SABAR/VOID (entropy hazard)

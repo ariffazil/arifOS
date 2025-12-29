@@ -1,10 +1,10 @@
 """
-genius_metrics.py — GENIUS LAW Measurement (v44.0 Track B Authority)
+genius_metrics.py — GENIUS LAW Measurement (v45.0 Track B Authority)
 
 Implements the GENIUS LAW measurement layer for arifOS.
 
-v44.0 Track B Consolidation:
-Thresholds loaded from spec/v44/genius_law.json (AUTHORITATIVE).
+v45.0 Track B Consolidation:
+Thresholds loaded from spec/v45/genius_law.json (AUTHORITATIVE).
 Falls back to legacy spec only if ARIFOS_ALLOW_LEGACY_SPEC=1.
 Semantics unchanged from v36.1Omega/v38Omega - threshold source consolidated.
 
@@ -15,13 +15,13 @@ This module provides:
 4. System Vitality (Psi_APEX) - global health metric
 5. GeniusVerdict dataclass for telemetry
 
-Key formulas (v36.1Omega, unchanged in v44.0):
+Key formulas (v36.1Omega, unchanged in v45.0):
     G = normalize(A x P x E x X)           [0, 1.2]
     C_dark = normalize(A x (1-P) x (1-X) x E)  [0, 1]
     Psi = (DeltaS x Peace2 x KappaR x RASA x Amanah) / (Entropy + epsilon)
 
 For full measurement spec, see:
-    spec/v44/genius_law.json (Track B authority - v44.0)
+    spec/v45/genius_law.json (Track B authority - v45.0)
     L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md (Track A canon)
 """
 
@@ -50,16 +50,16 @@ from .metrics import (
 
 
 # =============================================================================
-# TRACK B SPEC LOADER (v44.0: GENIUS LAW Authority)
+# TRACK B SPEC LOADER (v45.0: GENIUS LAW Authority)
 # =============================================================================
 
 def _load_genius_spec_v38() -> dict:
     """
-    Load GENIUS LAW spec from spec/v44/genius_law.json (v44.0 Track B Authority).
+    Load GENIUS LAW spec from spec/v45/genius_law.json (v45.0 Track B Authority).
 
     Priority (fail-closed by default):
     A) ARIFOS_GENIUS_SPEC env var (explicit override)
-    B) spec/v44/genius_law.json (AUTHORITATIVE - v44.0)
+    B) spec/v45/genius_law.json (AUTHORITATIVE - v45.0)
     C) HARD FAIL (unless ARIFOS_ALLOW_LEGACY_SPEC=1)
 
     Optional Legacy Fallback (enabled only if ARIFOS_ALLOW_LEGACY_SPEC=1):
@@ -85,18 +85,18 @@ def _load_genius_spec_v38() -> dict:
     if env_path and Path(env_path).exists():
         env_spec_path = Path(env_path).resolve()
 
-        # Strict mode: env override must point to spec/v44/ (manifest-covered files only)
+        # Strict mode: env override must point to spec/v45/ (manifest-covered files only)
         if not allow_legacy:
             v44_dir = (pkg_dir / "spec" / "v44").resolve()
             try:
-                env_spec_path.relative_to(v44_dir)  # Check if within spec/v44/
+                env_spec_path.relative_to(v44_dir)  # Check if within spec/v45/
             except ValueError:
-                # Path is outside spec/v44/ - reject in strict mode
+                # Path is outside spec/v45/ - reject in strict mode
                 raise RuntimeError(
-                    f"TRACK B AUTHORITY FAILURE: Environment override points to path outside spec/v44/.\n"
+                    f"TRACK B AUTHORITY FAILURE: Environment override points to path outside spec/v45/.\n"
                     f"  Override path: {env_spec_path}\n"
                     f"  Expected within: {v44_dir}\n"
-                    f"In strict mode, only manifest-covered files (spec/v44/) are allowed.\n"
+                    f"In strict mode, only manifest-covered files (spec/v45/) are allowed.\n"
                     f"Set ARIFOS_ALLOW_LEGACY_SPEC=1 to bypass (NOT RECOMMENDED)."
                 )
 
@@ -109,7 +109,7 @@ def _load_genius_spec_v38() -> dict:
         except (json.JSONDecodeError, IOError):
             pass
 
-    # Priority B: spec/v44/genius_law.json (AUTHORITATIVE)
+    # Priority B: spec/v45/genius_law.json (AUTHORITATIVE)
     v44_path = pkg_dir / "spec" / "v44" / "genius_law.json"
     if v44_path.exists():
         try:
@@ -124,7 +124,7 @@ def _load_genius_spec_v38() -> dict:
     # Priority C: HARD FAIL (unless legacy fallback enabled)
     if not allow_legacy:
         raise RuntimeError(
-            "TRACK B AUTHORITY FAILURE: spec/v44/genius_law.json missing or invalid. "
+            "TRACK B AUTHORITY FAILURE: spec/v45/genius_law.json missing or invalid. "
             "To enable legacy fallback (NOT RECOMMENDED), set ARIFOS_ALLOW_LEGACY_SPEC=1."
         )
 
@@ -335,7 +335,7 @@ def compute_dark_cleverness(
 # =============================================================================
 
 # Truth Polarity constants (derived from constitutional floors)
-# NOTE: TRUTH_POLARITY_THRESHOLD is now an alias to TRUTH_THRESHOLD (v44.0 consolidation)
+# NOTE: TRUTH_POLARITY_THRESHOLD is now an alias to TRUTH_THRESHOLD (v45.0 consolidation)
 # Kept for backward compatibility with existing tests
 TRUTH_POLARITY_THRESHOLD = TRUTH_THRESHOLD  # Alias for backward compatibility
 
@@ -368,7 +368,7 @@ def detect_truth_polarity(
             is_weaponized: True if Weaponized Truth detected
             eval_recommendation: "SEAL" | "SABAR" | "VOID" (what eval layer would suggest)
     """
-    truth_passes = truth >= TRUTH_THRESHOLD  # Use constitutional floor threshold (spec/v44/)
+    truth_passes = truth >= TRUTH_THRESHOLD  # Use constitutional floor threshold (spec/v45/)
     delta_s_positive = delta_s >= 0
 
     if not truth_passes:
@@ -702,7 +702,7 @@ __all__ = [
     "G_MIN_THRESHOLD",
     "C_DARK_MAX_THRESHOLD",
     "PSI_APEX_MIN",
-    "TRUTH_POLARITY_THRESHOLD",  # v44.0: Alias to TRUTH_THRESHOLD (backward compatibility)
+    "TRUTH_POLARITY_THRESHOLD",  # v45.0: Alias to TRUTH_THRESHOLD (backward compatibility)
     # Score functions
     "compute_delta_score",
     "compute_omega_score",

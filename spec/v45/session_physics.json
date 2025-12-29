@@ -1,0 +1,183 @@
+{
+  "version": "v45.0",
+  "authority": "Track B (tunable thresholds) governed by Track A canon",
+  "locked": true,
+  "_status": "AUTHORITATIVE",
+  "_note": "TEARFRAME Session Physics Thresholds. This file is the SOLE RUNTIME AUTHORITY for session-level governance parameters. Loaders MUST use this file (or env override).",
+  "arifos_version": "v45.0",
+  "spec_type": "session_physics",
+  "description": "Machine-readable specification for TEARFRAME session physics thresholds (v44.0).",
+  "source": "https://github.com/ariffazil/arifOS",
+  "budget_thresholds": {
+    "description": "Token/cost budget enforcement (F1: Amanah budget discipline)",
+    "warn_limit_percent": 80.0,
+    "hard_limit_percent": 100.0,
+    "rationale": "80% triggers PARTIAL warning, 100% triggers VOID reset",
+    "floor_mapping": "F1 (Amanah - budget discipline)",
+    "canon_ref": "docs/TEARFRAME_SESSION_PHYSICS.md#f1-budget-floors"
+  },
+  "burst_detection": {
+    "description": "Bot/attack detection via velocity physics (F3: Sabar burst throttling)",
+    "turn_rate_threshold_per_min": 30.0,
+    "token_rate_threshold_per_min": 5000.0,
+    "variance_dt_threshold": 0.05,
+    "rationale": ">30 turns/min (1 every 2s) with low variance (< 0.05) signals bot/script attack → SABAR",
+    "floor_mapping": "F3 (Peace² - burst throttling)",
+    "detection_logic": {
+      "description": "Burst = (turn_rate > 30 OR token_rate > 5000) AND variance_dt < 0.05",
+      "verdict": "SABAR"
+    },
+    "canon_ref": "docs/TEARFRAME_SESSION_PHYSICS.md#f3-burst-detection"
+  },
+  "streak_thresholds": {
+    "description": "Consecutive failure detection (F7: Tri-Witness streak breaks)",
+    "max_consecutive_failures": 3,
+    "rationale": "3+ consecutive VOID/SABAR verdicts → HOLD_888 (human intervention required)",
+    "floor_mapping": "F7 (Tri-Witness - pattern detection)",
+    "verdict": "HOLD_888",
+    "canon_ref": "docs/TEARFRAME_SESSION_PHYSICS.md#f7-streak-detection"
+  },
+  "session_attributes": {
+    "description": "9 session attributes computed by Reduction Engine",
+    "attributes": [
+      {
+        "name": "cadence",
+        "unit": "turns_per_min",
+        "description": "Average turn rate over session",
+        "floor_impact": "F3 (Peace²)"
+      },
+      {
+        "name": "turn_rate",
+        "unit": "turns_per_min",
+        "description": "Instantaneous turn rate (recent window)",
+        "floor_impact": "F3 (Peace²)"
+      },
+      {
+        "name": "token_rate",
+        "unit": "tokens_per_min",
+        "description": "Token throughput rate",
+        "floor_impact": "F3 (Peace²)"
+      },
+      {
+        "name": "burst_risk",
+        "unit": "boolean",
+        "description": "True if burst conditions met",
+        "floor_impact": "F3 (Peace²)"
+      },
+      {
+        "name": "budget_used_percent",
+        "unit": "percent",
+        "description": "Budget consumption percentage",
+        "floor_impact": "F1 (Amanah)"
+      },
+      {
+        "name": "budget_status",
+        "unit": "enum",
+        "values": [
+          "OK",
+          "WARN",
+          "CRITICAL"
+        ],
+        "description": "Budget status indicator",
+        "floor_impact": "F1 (Amanah)"
+      },
+      {
+        "name": "variance_dt",
+        "unit": "seconds",
+        "description": "Variance of inter-turn timing",
+        "floor_impact": "F3 (Peace²)"
+      },
+      {
+        "name": "streak_void",
+        "unit": "count",
+        "description": "Consecutive VOID verdicts",
+        "floor_impact": "F7 (Tri-Witness)"
+      },
+      {
+        "name": "streak_sabar",
+        "unit": "count",
+        "description": "Consecutive SABAR verdicts",
+        "floor_impact": "F7 (Tri-Witness)"
+      }
+    ]
+  },
+  "physics_floors": {
+    "description": "Three physics floors that override semantic verdicts (physics > semantics)",
+    "hierarchy": "PHYSICS > SEMANTIC (session-level constraints trump content-level scores)",
+    "floors": [
+      {
+        "floor": "F1",
+        "name": "Amanah Budget",
+        "trigger": "budget_used_percent >= 100.0",
+        "action": "VOID (reset session)",
+        "warning": "budget_used_percent >= 80.0 → PARTIAL",
+        "rationale": "Prevent runaway costs; hard budget discipline"
+      },
+      {
+        "floor": "F3",
+        "name": "Peace² Burst Throttling",
+        "trigger": "(turn_rate > 30 OR token_rate > 5000) AND variance_dt < 0.05",
+        "action": "SABAR (cooling required)",
+        "rationale": "Bot attack detection; require human-like cadence"
+      },
+      {
+        "floor": "F7",
+        "name": "Tri-Witness Streak Detection",
+        "trigger": "streak_void >= 3 OR streak_sabar >= 3",
+        "action": "HOLD_888 (human escalation)",
+        "rationale": "Persistent failure pattern → human oversight required"
+      }
+    ]
+  },
+  "reduction_engine": {
+    "description": "Pure function: Telemetry → 9 Session Attributes",
+    "function": "reduce_telemetry_to_attributes(telemetry: SessionTelemetry) -> SessionAttributes",
+    "implementation": "arifos_core/utils/reduction_engine.py",
+    "note": "Reduction Engine is NOT output simplification; it's data transformation for physics evaluation"
+  },
+  "test_isolation": {
+    "description": "TEARFRAME disabled in tests for isolation",
+    "env_var": "ARIFOS_PHYSICS_DISABLED",
+    "default_in_tests": "1 (disabled)",
+    "default_in_production": "0 (enabled)",
+    "rationale": "Test isolation: semantic floors tested independently from session physics",
+    "override": "Set ARIFOS_PHYSICS_DISABLED=0 in test to explicitly enable physics"
+  },
+  "integration": {
+    "pipeline_stages": {
+      "000_VOID": "Session init, budget allocation",
+      "111_SENSE": "Telemetry capture",
+      "777_FORGE": "Reduction Engine invocation",
+      "888_JUDGE": "Physics floor evaluation (BEFORE semantic verdict)",
+      "999_SEAL": "Final verdict (physics overrides semantic)"
+    },
+    "verdict_override_order": [
+      "1. Physics floors evaluated first (F1/F3/F7 session-level)",
+      "2. If physics floor fails, physics verdict wins (VOID/SABAR/HOLD_888)",
+      "3. If physics passes, proceed to semantic floors (F2/F4/F5/F6/F8/F9)",
+      "4. Final verdict = max(physics_verdict, semantic_verdict) by severity"
+    ]
+  },
+  "file_references": {
+    "core_modules": [
+      "arifos_core/utils/session_telemetry.py",
+      "arifos_core/utils/reduction_engine.py",
+      "arifos_core/governance/session_physics.py"
+    ],
+    "related_specs": [
+      "spec/v44/constitutional_floors.json"
+    ],
+    "related_docs": [
+      "docs/TEARFRAME_SESSION_PHYSICS.md"
+    ]
+  },
+  "meta": {
+    "created": "2025-12-25",
+    "updated": "2025-12-25",
+    "author": "arifOS Project",
+    "license": "Apache-2.0",
+    "canonical_source": "docs/TEARFRAME_SESSION_PHYSICS.md",
+    "implementation": "arifos_core/governance/session_physics.py",
+    "notes": "v44.0: TEARFRAME physics thresholds extracted from hardcoded values. This file is the SOLE RUNTIME AUTHORITY."
+  }
+}

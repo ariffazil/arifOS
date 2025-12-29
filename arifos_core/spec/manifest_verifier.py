@@ -76,7 +76,7 @@ def verify_file_hash(repo_root: Path, relative_path: str, expected_hash: str) ->
 
     Args:
         repo_root: Repository root directory
-        relative_path: Relative path from repo root (e.g., "spec/v44/constitutional_floors.json")
+        relative_path: Relative path from repo root (e.g., "spec/v45/constitutional_floors.json")
         expected_hash: Expected SHA-256 hex digest
 
     Returns:
