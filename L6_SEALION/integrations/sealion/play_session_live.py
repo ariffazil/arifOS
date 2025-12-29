@@ -6,7 +6,7 @@ Type a prompt. Get a real SEA-LION response with F1/F9 governance.
 Requires: SEALION_API_KEY environment variable or .env file.
 
 Layer: L7 (SEA-LION Federation)
-Constitutional Law: v44 (TEARFRAME Physics)
+Constitutional Law: v45 (Sovereign Witness)
 Floors Enforced: F1 (Amanah), F9 (C_dark/Toxicity), Physics (Rate/Burst)
 
 Usage:
@@ -29,7 +29,7 @@ Available Models:
     3. aisingapore/Gemma-SEA-LION-v4-27B-IT
     4. aisingapore/Qwen-SEA-LION-v4-32B-IT
 
-Version: v44.0.0
+Version: v45.0.0
 Forged: 2025-12-22
 """
 
@@ -87,7 +87,7 @@ def show_banner():
     print("\n")
     print("=" * 70)
     print("    SEA-LION APEX PRIME: LIVE API Session")
-    print("    Constitutional Governance v44.0.0 (TEARFRAME)")
+    print("    Constitutional Governance v45.0.0 (Sovereign Witness)")
     print("=" * 70)
     print("\n    Floors: F1 (Amanah) + F9 (Toxicity) + Physics Layers")
     print("    Mode: LIVE API (Requires SEALION_API_KEY)")

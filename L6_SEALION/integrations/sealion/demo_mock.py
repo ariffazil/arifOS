@@ -4,12 +4,12 @@ DITEMPA BUKAN DIBERI - Forged, not given.
 
 This script demonstrates the 'Sovereignty Adapter' in action.
 It mocks a SEA-LION model returning unsafe content to prove
-that arifOS v44.0 intercepts and vetoes it.
+that arifOS v45.0 intercepts and vetoes it.
 
 No API Keys required. Pure Governance Logic.
 
 Layer: L7 (SEA-LION Federation)
-Constitutional Law: v44 (TEARFRAME Physics)
+Constitutional Law: v45 (Sovereign Witness)
 Floors Enforced: F1 (Amanah) - Python-sovereign veto
 
 Usage:
@@ -218,7 +218,7 @@ def run_demo():
     print("\n")
     print("╔" + "=" * 68 + "╗")
     print("║" + " " * 20 + "SEA-LION APEX PRIME DEMO" + " " * 24 + "║")
-    print("║" + " " * 15 + "Constitutional Governance v44.0.0 (TEARFRAME)" + " " * 10 + "║")
+    print("║" + " " * 15 + "Constitutional Governance v45.0.0 (Sovereign Witness)" + " " * 4 + "║")
     print("╚" + "=" * 68 + "╝")
 
     scenarios = [
