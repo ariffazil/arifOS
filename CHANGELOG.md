@@ -10,11 +10,37 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 **Status:** FORGED NOT GIVEN | Physics: TEARFRAME SOVEREIGN | Fail-Closed: GUARANTEED
 
-### Patch D (2025-12-29) - Constitutional Plugin System (Phase 1: Core Infrastructure)
+### Patch D (2025-12-29) - Constitutional Plugin System + Architecture Documentation
 
-**Status:** IN PROGRESS | Phase: 1/5 | Authority: Arif
+**Status:** IN PROGRESS | Phase: 1/5 + Documentation Complete | Authority: Arif
 
 **Feature:** Plugin marketplace with full constitutional governance (F1-F9, AAA, 000→999 pipeline) for every agent, skill, and tool.
+
+**Documentation Milestone (2025-12-29):**
+
+- **NEW:** [docs/ARCHITECTURE_AND_NAMING_v45.md](docs/ARCHITECTURE_AND_NAMING_v45.md) (684 lines) - **ONE canonical reference** for all architectural and organizational standards
+  - Consolidates: [docs/NAMING_CONVENTION_v45.md](docs/NAMING_CONVENTION_v45.md) (54 lines), [docs/ARCHITECTURE_v45.md](docs/ARCHITECTURE_v45.md) (65 lines), tribal knowledge from [L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md](L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md)
+  - **14 comprehensive sections:**
+    1. Core Principles (5 constitutional laws: Single Canonical Location, Epoch Clarity, Track Separation, Drift Prevention, Archive Never Delete)
+    2. Repository Layers (L1-L7 detailed breakdown)
+    3. Track System (A/B/C with patterns and examples)
+    4. File Naming Conventions (per-track patterns)
+    5. Numbering Protocols (canon files, directories, pipeline stages)
+    6. Directory Structure Standards (37-item canonical root layout)
+    7. Integration Surface Policy (ports, providers, deprecation rules)
+    8. Architecture Patterns (with Mermaid diagrams)
+    9. Quick Reference Cards (file naming cheat sheet)
+    10. Enforcement & Compliance (pre-commit checks)
+    11. Version Progression Rules (v42→v45 history)
+    12. Hidden Directories & Artifacts (.arifos/, .gemini/, archive/)
+    13. Common Violations & Fixes
+    14. Examples & Case Studies
+  - **Track A:** Law files pattern: `NNN_NAME_v45.md` (e.g., `010_CONSTITUTIONAL_FLOORS_F1F9_v45.md`)
+  - **Track B:** Spec files pattern: `component.json` with version in directory (e.g., `spec/v45/constitutional_floors.json`)
+  - **Track C:** Code files pattern: `module_name.py` NO version in filename (e.g., `arifos_core/system/apex_prime.py`)
+  - **Philosophy:** "One question, one answer, one file" — eliminates architectural ambiguity
+  - **Integration:** Referenced in [CLAUDE.md](CLAUDE.md), [AGENTS.md](AGENTS.md), [GEMINI.md](GEMINI.md) Quick Links/References sections
+  - **Status:** SEALED — Single source of truth for ALL architectural decisions (replaces scattered tribal knowledge)
 
 **Implementation:**
 

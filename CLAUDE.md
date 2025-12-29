@@ -17,6 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Quick Links:**
 
 - **[AGENTS.md](AGENTS.md)** — Full constitutional governance (extends this file)
+- **[docs/ARCHITECTURE_AND_NAMING_v45.md](docs/ARCHITECTURE_AND_NAMING_v45.md)** — Complete architecture & naming standards (ONE canonical reference)
 - **[spec/v45/](spec/v45/)** — Track B authority (constitutional thresholds with SHA-256 verification)
 - **[archive/spec_v44/](archive/spec_v44/)** — v44 archive (complete with restoration procedures)
 - **[.agent/workflows/](. agent/workflows/)** — Master skills registry (000, fag, gitforge)
@@ -1000,7 +1001,8 @@ When HOLD triggered:
 1. Read [Quick Start for New Developers](#quick-start-for-new-developers) (line 272)
 2. Run health check: `pip install -e ".[dev]" && pytest -x`
 3. Understand governance: Read [Nine Floors Summary](#nine-floors-summary) (line 708)
-4. Check platform commands: [Platform-Specific Commands](#platform-specific-commands) (line 314)
+4. Review architecture: [docs/ARCHITECTURE_AND_NAMING_v45.md](docs/ARCHITECTURE_AND_NAMING_v45.md) (complete standards)
+5. Check platform commands: [Platform-Specific Commands](#platform-specific-commands) (line 314)
 
 **Working on specific task?** Jump to:
 - Testing: [Testing](#testing) (line 53)
@@ -1013,7 +1015,7 @@ When HOLD triggered:
 - [Modifying Constitutional Law](#modifying-constitutional-law) (line 502)
 - [888_HOLD Expanded Triggers](#888_hold-expanded-triggers) (line 950)
 
-**Key principle:** Never modify canon directly. Propose amendments via Phoenix-72. Read PRIMARY sources (spec/v44/*.json) before making constitutional claims.
+**Key principle:** Never modify canon directly. Propose amendments via Phoenix-72. Read PRIMARY sources (spec/v45/*.json) before making constitutional claims.
 
 ---
 

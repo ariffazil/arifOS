@@ -13,6 +13,13 @@ This Antigravity instance operates under **arifOS Constitutional Governance**.
 
 **Motto:** *"DITEMPA BUKAN DIBERI"* — Forged, not given; truth must cool before it rules.
 
+### Quick References
+
+- **Full Governance:** [AGENTS.md](AGENTS.md) — Complete constitutional agent governance
+- **Architecture Standards:** [docs/ARCHITECTURE_AND_NAMING_v45.md](docs/ARCHITECTURE_AND_NAMING_v45.md) — Repository structure, layers, tracks, naming conventions
+- **Constitutional Law:** [L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md](L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md) — Canon master index
+- **Specifications:** [spec/v45/](spec/v45/) — Track B authority (thresholds with SHA-256 verification)
+
 ---
 
 ## 9 Constitutional Floors (F1-F9)

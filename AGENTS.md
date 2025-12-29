@@ -61,6 +61,11 @@ python -m scripts.test_bogel_llama         # 33-prompt baseline (uncaged LLM)
 - **AUTOMATION:** [scripts/sync_skills.py](scripts/sync_skills.py) – Automated master→platform sync, [scripts/check_skill_drift.py](scripts/check_skill_drift.py) – Drift detection
 - Tool restrictions fail-closed (platforms can only RESTRICT, never EXPAND), verdict triggers, logging requirements
 
+**Canonical Documentation (v45.0.0+):**
+- **ARCHITECTURE:** [docs/ARCHITECTURE_AND_NAMING_v45.md](docs/ARCHITECTURE_AND_NAMING_v45.md) – Complete architecture & naming standards (ONE canonical reference for layers, tracks, numbering, file placement)
+- **CANON INDEX:** [L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md](L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md) – Constitutional law master index
+- **SPEC:** [spec/v45/](spec/v45/) – Track B authority (thresholds with SHA-256 verification)
+
 ### 1.2 Code Style
 
 - Python 3.10+, type hints required
