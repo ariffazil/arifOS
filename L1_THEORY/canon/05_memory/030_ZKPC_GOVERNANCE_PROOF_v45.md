@@ -447,4 +447,44 @@ By proving the process, we prove the output.
 
 ---
 
+## Governance Vector Specification (F1–F9 Audit Detail)
+
+### Structure
+
+`governance_vector`: Array of 9 numeric values representing constitutional floor results
+
+**Format:**
+```json
+"governance_vector": [
+  1.0,  // F1 Amanah (1=PASS, 0=FAIL)
+  0.99, // F2 Truth score (≥0.99 required for SEAL)
+  1.0,  // F3 Tri-Witness (≥0.95 required)
+  0.12, // F4 ΔS clarity gain (≥0 required)
+  1.05, // F5 Peace² stability index (≥1.0 required)
+  0.97, // F6 κᵣ empathy conductance (≥0.95 required)
+  0.04, // F7 Ω₀ humility band value (0.03-0.05 required)
+  1.0,  // F8 RASA active listening (1=confirmed)
+  1.0   // F9 Anti-Hantu (1=clean, 0=violation)
+]
+```
+
+### Verdict Derivation Logic
+
+- **All hard floors pass** (F1-F4, F7 within thresholds) → SEAL possible
+- **Soft floor partial** (F5-F6 near threshold) → May trigger SABAR
+- **Any F1 or F9 = 0** → Instant VOID (integrity/ontology breach)
+
+### Uncertainty Band (Ω₀) Enforcement
+
+`uncertainty_band`: Float in range [0.03, 0.05]
+
+**Validation:**
+- < 0.03 → Overconfident (trigger SABAR for humility adjustment)
+- > 0.05 → Excessive doubt (trigger SABAR for confidence recalibration)
+- Within [0.03, 0.05] → Humility floor satisfied
+
+**Example (SEAL verdict):** All governance_vector values pass + uncertainty_band=0.04 → SEAL approved
+
+---
+
 **End of canon/05_memory/03_zkpc_governance_proof_v45.md**

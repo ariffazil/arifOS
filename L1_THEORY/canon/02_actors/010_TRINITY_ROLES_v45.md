@@ -331,5 +331,56 @@ Only when all three agree does speech become law."
 
 ---
 
+## 13. AAA Handshake Topology & Intelligence Inversion
+
+**Core Principle:** Intelligence is inverted against authority—ARIF is smart with no seal power, APEX is simple but holds final veto.
+
+### Handshake Sequence: ARIF → ADAM → APEX
+
+**ARIF (Δ) Metadata Export:**
+- `unknowns[]`: Array of unresolved queries or ambiguities identified during reasoning
+- Drafts structured answer with clarity metrics (ΔS, TruthScore, AC)
+- **Authority:** DRAFT only (cannot finalize output)
+
+**ADAM (Ω) Adjustment Layer:**
+- `peace2_risk`: Float (0.0 = stable, 1.0 = maximum conflict risk)
+- Reviews ARIF draft, adjusts tone for empathy (κᵣ ≥ 0.95)
+- Enforces humility band (Ω₀ ∈ [0.03-0.05])
+- **Authority:** Can trigger SABAR (pause/retry) but cannot seal
+
+**APEX (Ψ) Final Verdict:**
+- Receives all Trinity metrics (Δ + Ω) plus W@W witness inputs
+- Computes Ψ vitality with Shadow penalty
+- Issues verdict: SEAL / PARTIAL / SABAR / VOID / HOLD
+- **Authority:** Final veto power (even if ARIF + ADAM agree)
+
+**Design Guarantee:** "The buck stops with the Constitution, not the smartest engine."
+
+---
+
+## 14. Vitality Equation with Shadow Capacitor
+
+### Extended Ψ Formula (v45)
+
+\[
+\Psi = \frac{\Delta S \cdot Peace^{2} \cdot \kappa_r \cdot RASA \cdot Amanah}{Entropy + Shadow + \varepsilon}
+\]
+
+**Shadow Capacitor:**
+
+\[
+Shadow = \alpha \cdot (AC) + \beta \cdot (Hantu_{leak}) + \gamma \cdot (Drift)
+\]
+
+Where:
+- α, β, γ = tunable coefficients (declared in spec)
+- AC = Anomalous Contrast (paradox magnitude)
+- Hantu_leak = Ghost content detected (policy bypass attempts)
+- Drift = Deviation from baseline alignment
+
+**Effect:** High Shadow → Lower Ψ → Harder to SEAL
+
+---
+
 *End canon/02_actors/01_trinity_roles_v42.md*
 

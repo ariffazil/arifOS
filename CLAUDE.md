@@ -481,6 +481,40 @@ scripts/               # Governance utilities (reduced from 51 to ~10 files - De
 
 ---
 
+## Tool Selection Guide (Efficient Usage)
+
+**Critical:** Every tool call + results consumes tokens. Sub-agents (Task tool) multiply context usage 3-5x vs direct tools.
+
+### Quick Decision Tree: When to Use Which Tool
+
+| Scenario | Tool | Reason |
+|----------|------|--------|
+| Know exact file path | `Read` directly | Fast, minimal tokens |
+| Know search pattern | `Grep` or `Glob` directly | Efficient, targeted |
+| Need multi-file context | `Task` with Explore agent | Handles complexity |
+| Verifying constitutional claim | `Read` PRIMARY source | Never delegate verification |
+| Simple 1-2 file operation | Direct tools | Avoid sub-agent overhead |
+
+### ✅ USE Task Tool (Explore) When:
+
+- **Multi-file context needed**: "Understand how authentication works" (spans 5+ files)
+- **Open-ended exploration**: "Find all error handling patterns"
+- **Complex codebase questions**: "How do the 9 floors interact with the pipeline?"
+- **Research before implementation**: Gather context before planning
+
+### ❌ DON'T Use Task Tool When:
+
+- **You know the exact file**: Use `Read` directly for `spec/v45/constitutional_floors.json`
+- **Simple grep needed**: Use `Grep` for "find all usages of apex_review"
+- **File listing**: Use `Glob` for `**/*.json` pattern matching
+- **Context already filled (>50%)**: Task tool adds significant token overhead
+
+**Decision rule:** If you can answer with 1-2 direct tool calls, don't spawn a sub-agent.
+
+**arifOS-specific:** For constitutional verification (PRIMARY sources), always `Read` the spec file directly—never delegate to sub-agent. Verification cannot be proxied.
+
+---
+
 ## Development Workflows
 
 ### Adding a New Floor Detector
@@ -694,17 +728,17 @@ def process_query(query):
 | Layer            | Canon (v42 Law)                                               | Spec (v44 Track B)                        |
 |------------------|---------------------------------------------------------------|-------------------------------------------|
 | Foundation       | `L1_THEORY/canon/00_foundation/`                              | —                                         |
-| Floors (F1–F9)   | `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md` | `spec/v44/constitutional_floors.json` |
+| Floors (F1–F9)   | `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md` | `spec/v45/constitutional_floors.json` |
 | Actors           | `L1_THEORY/canon/02_actors/`                                  | —                                         |
-| Runtime          | `L1_THEORY/canon/03_runtime/`                                 | `spec/v44/session_physics.json`           |
-| Measurement      | `L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v45.md`         | `spec/v44/genius_law.json`                |
-| Memory           | `L1_THEORY/canon/05_memory/`                                  | `spec/v44/cooling_ledger_phoenix.json`    |
+| Runtime          | `L1_THEORY/canon/03_runtime/`                                 | `spec/v45/session_physics.json`           |
+| Measurement      | `L1_THEORY/canon/04_measurement/030_GENIUS_LAW_v45.md`         | `spec/v45/genius_law.json`                |
+| Memory           | `L1_THEORY/canon/05_memory/`                                  | `spec/v45/cooling_ledger_phoenix.json`    |
 | Paradox          | `L1_THEORY/canon/06_paradox/`                                 | —                                         |
-| Policy           | —                                                             | `spec/v44/policy_text.json`               |
-| Red Patterns     | —                                                             | `spec/v44/red_patterns.json`              |
-| WAW Prompts      | —                                                             | `spec/v44/waw_prompt_floors.json`         |
+| Policy           | —                                                             | `spec/v45/policy_text.json`               |
+| Red Patterns     | —                                                             | `spec/v45/red_patterns.json`              |
+| WAW Prompts      | —                                                             | `spec/v45/waw_prompt_floors.json`         |
 
-**Note:** v42 = canonical law (immutable philosophy), v44 = tunable thresholds (Track B with SHA-256 manifest)
+**Note:** v42 = canonical law (immutable philosophy), v45 = tunable thresholds (Track B with SHA-256 manifest)
 
 ---
 
@@ -982,6 +1016,25 @@ When HOLD triggered:
 
 ---
 
+## Clarification Protocol (Ask Before Execute)
+
+**When to ASK user before proceeding:**
+
+| Situation | Example | Protocol |
+|-----------|---------|----------|
+| **Ambiguous requirement** | "Improve performance" | Ask: Which metric? What's acceptable trade-off? |
+| **Multiple valid approaches** | "Add caching" | Ask: Redis vs in-memory vs file-based? |
+| **High-risk change** | "Refactor pipeline" | Show plan, get explicit approval before execution |
+| **Constitutional impact** | "Change F2 threshold" | 888_HOLD → Explain rationale, await decision |
+| **Entropy risk** | "Need 15 new files" | Ask: Can we reduce? What gets archived/deleted? |
+| **Large scope** | "Modify >10 files" | Confirm scope and approach before starting |
+
+**Default stance:** When uncertain, ASK. Don't assume user intent.
+
+**arifOS rule:** Phoenix-72 amendments (constitutional changes) ALWAYS require explicit human approval. Never proceed with constitutional modifications without clear "yes, proceed" confirmation.
+
+---
+
 ## Critical Anti-Patterns (What NOT to Do)
 
 1. **Do NOT create new files by default** — Only if human asks, build requires, or it reduces total entropy
@@ -992,6 +1045,40 @@ When HOLD triggered:
 6. **Do NOT fabricate session steps** — Only include steps that actually ran (F2-CODE violation)
 7. **Do NOT use magic numbers** — Use named constants (F4-CODE violation)
 8. **Do NOT mutate inputs silently** — Pure functions only (F1-CODE violation)
+
+---
+
+## Context Management & Session Hygiene
+
+**Critical:** Claude Code's effective context window degrades significantly as it fills. Performance drops sharply after ~50-60% capacity.
+
+### Check Context Before Complex Tasks
+
+Use `/context` command to check current usage:
+
+- **<40%:** Proceed normally with any task
+- **40-60%:** Consider `/compact` to reduce context
+- **>60%:** Recommend starting fresh conversation for complex work
+
+**Why this matters:** Reasoning quality, tool selection accuracy, and constitutional compliance degrade when context is saturated. Complex refactors or multi-file changes should start with clean context.
+
+### Session Checkpoints
+
+| Checkpoint | Trigger | Action |
+|------------|---------|--------|
+| **Compact** | Context 40-60% | Use `/compact` to reduce context size |
+| **Fresh Start** | Context >60% OR major task switch | Start new conversation, summarize state |
+| **Rewind** | Wrong direction taken | Use `Esc+Esc` to backtrack recent steps |
+| **Review** | Before >5 file changes | Pause, show `git diff`, get explicit approval |
+
+### Token Cost Awareness
+
+- Every tool call + results consumes tokens (both request and response)
+- Agent loops (Task tool) accumulate context rapidly (3-5x multiplier)
+- MCP servers add tool definitions upfront (context overhead even before use)
+- Long sessions accumulate "dead weight" from completed tasks
+
+**Best practice for arifOS:** For constitutional changes (Track A/B modifications), start fresh conversation after research/planning phase complete. Execute implementation in clean context with full reasoning capacity available.
 
 ---
 

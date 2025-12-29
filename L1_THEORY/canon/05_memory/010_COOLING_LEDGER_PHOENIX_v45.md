@@ -253,4 +253,90 @@ This is not mystical. It is engineering discipline applied to intelligence itsel
 
 ---
 
+## Memory Trinity Integration (Vault-999 + Cooling Ledger + zkPC)
+
+### Three-Pillar Architecture Overview
+
+The Memory Trinity unifies three complementary systems to achieve governed, auditable, and sovereign AI memory:
+
+**1. Cooling Ledger (Write-Ahead Buffer):**
+- Append-only, hash-chained log of all decisions
+- Every AI output logged BEFORE finalization
+- Phoenix-72 cooling period enforced for uncertain outputs
+- Acts as the "inbox" for all potential knowledge
+
+**2. Vault-999 (Immutable Permanent Storage):**
+- Only SEAL-approved entries committed
+- `canonical_id`: Sequential identifier (0, 1, 2, ...)
+- `human_seal_sig`: Accountability signature
+- `precedent_link`: Reference to Cooling Ledger origin
+- Acts as the "permanent record" of verified truth
+
+**3. zkPC Receipts (Cryptographic Proof):**
+- `receipt_id`: Unique identifier per decision
+- `verdict`: SEAL/PARTIAL/SABAR/VOID/HOLD
+- `governance_vector`: F1–F9 floor results array
+- `uncertainty_band`: Ω₀ value (0.03–0.05)
+- `hash_alg`: SHA-256 (canonical v45 standard)
+- `ledger_ref`: Link to Cooling Ledger entry
+- `vault_ref`: Link to Vault-999 record (if sealed)
+- Acts as the "certificate of compliance" for audit
+
+---
+
+### Integrated Workflow (End-to-End)
+
+```
+1. DECISION LOGGED TO LEDGER
+   └─→ Entry created with timestamp + SHA-256 hash
+   └─→ Links to previous entry (hash chain continuity)
+   └─→ Tentative status: PENDING verification
+
+2. PHOENIX-72 COOLING (if PARTIAL/SABAR)
+   └─→ Ledger entry flagged with cooling_period_hours (default: 72)
+   └─→ Content quarantined in Phoenix band
+   └─→ Tri-Witness review initiated (Human + AI + Earth)
+   └─→ Auto-expiry if unsealed after 72 hours → VOID
+
+3. zkPC RECEIPT GENERATED
+   └─→ Records verdict + governance_vector (F1-F9 results)
+   └─→ Cryptographically links to ledger entry
+   └─→ Provides verifiable proof of lawful process
+   └─→ Generated for ALL outcomes (SEAL, VOID, HOLD, etc.)
+
+4. SEALING TO VAULT (if SEAL verdict)
+   └─→ Cooling Ledger entry marked as sealed
+   └─→ New Vault-999 record created:
+       • canonical_id assigned (sequential)
+       • human_seal_sig recorded (accountability)
+       • precedent_link to Cooling Ledger entry
+   └─→ Content now immutable, permanent, auditable
+
+5. GOVERNED OUTPUT OR REFUSAL
+   └─→ If SEAL: Return governed output to user
+   └─→ If VOID: Return refusal (content never exposed)
+   └─→ If HOLD: Escalate to human oversight
+```
+
+---
+
+### Cross-Linking Guarantees
+
+The three systems form an **end-to-end verifiable trail**:
+
+- **Ledger → zkPC**: Every ledger entry has corresponding receipt
+- **zkPC → Vault**: Every SEAL receipt links to vault canonical_id
+- **Vault → Ledger**: Every vault record traces back to cooling origin
+
+**Audit Path Example:**
+1. Inspector receives zkPC receipt (receipt_id: abc123...)
+2. Verifies receipt signature and governance_vector
+3. Follows `ledger_ref` to Cooling Ledger entry
+4. Follows `vault_ref` to Vault-999 permanent record
+5. Confirms hash chain integrity from genesis to present
+
+**Integrity Guarantee:** If any link breaks → tamper detected → audit fails.
+
+---
+
 **End of canon/05_memory/01_cooling_ledger_phoenix_v45.md**
