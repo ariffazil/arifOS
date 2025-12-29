@@ -171,4 +171,11 @@ VETO  - Hard objection
 
 ---
 
+## 11. See Also
+
+**Related Canon Documents:**
+- `065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md` — @PROMPT organ detailed specification (Stage 111/999 authority)
+
+---
+
 **DITEMPA BUKAN DIBERI** - Forged, not given; truth must cool before it rules.

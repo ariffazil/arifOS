@@ -15,6 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Latest:**
 - v45.0 Phoenix-72 Migration (2025-12-29) — Track A/B/C consolidation complete. See migration commit ff5ced3 for details.
 - arifos_eval v45 Upgrade (2025-12-29) — Evaluation framework aligned with Phoenix-72 (v36.1Ω → v45.0). Commit 2eb64d1.
+- **Reverse Transformer Architecture Canon (2025-12-29)** — Foundational theory integrated into Track A (060 + 065 @PROMPT). 🔵 PHOENIX cooling (72h).
 
 **Quick Links:**
 
@@ -434,6 +435,8 @@ scripts/               # Governance utilities (reduced from 51 to ~10 files - De
 **W@W Federation:** Multi-agent system with @LAW (Amanah), @GEOX (Truth), @WELL (Care), @RIF (Reason). Each agent has veto power within their domain.
 
 **Claim Detection (v45Ω Patch A):** Physics > Semantics structural analysis. Responses are analyzed for factual claims using entity density, numeric patterns, and assertion counting (NOT keyword matching). Phatic communication ("hi", "how are u?") is exempt from F2 Truth floor when `has_claims=False`. Identity hallucinations still blocked.
+
+**Reverse Transformer:** arifOS inverts standard transformer flow. See [L1_THEORY/canon/03_runtime/060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md](L1_THEORY/canon/03_runtime/060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md) for full specification. Standard transformers emit THEN check (too late). arifOS checks THEN emits (if SEAL). @PROMPT at Stage 999 is the final emission gate—non-bypassable constitutional lock before user sees output.
 
 ---
 

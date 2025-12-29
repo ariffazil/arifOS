@@ -109,6 +109,13 @@ Human-facing "wisdom log" to prevent repeated entropy mistakes.
   - Integration bridge created: [arifos_core/bridge.py](arifos_core/bridge.py) (aCLIP adapter)
   - **arifos_eval v45 Upgrade:** Evaluation framework aligned with Phoenix-72 (v36.1Ω → v45.0.0) - [arifos_eval/apex/apex_standards_v45.json](arifos_eval/apex/apex_standards_v45.json) with Anti-Hantu hypothetical patterns, crisis override awareness, Track B alignment. Tests: 45/45 + 5/5 PASSED. Commit 2eb64d1.
   - Total: 4 commits (a8c7a37, 6d62b94, ff5ced3, 2eb64d1), 122 files changed, +10,284 insertions, -2,196 deletions, ΔS_session = +6.2 (excellent clarity gain)
+- **2025-12-29 (Reverse Transformer Architecture Canon):** Integrated foundational theory into Track A:
+  - **NEW:** [L1_THEORY/canon/03_runtime/060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md](L1_THEORY/canon/03_runtime/060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md) (~1000 lines) — Standard vs arifOS comparison, why semantic reduction enables F1-F9
+  - **NEW:** [L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md](L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md) (~600 lines) — @PROMPT as "the key" (Stage 999 emission gate)
+  - Master Index updated, cross-references bound to PIPELINE/TEARFRAME/WAW/FLOORS/GENIUS
+  - Status: 🔵 PHOENIX (72-hour cooling required before SEAL)
+  - Amendment scope: Track A (constitutional law addition), no Track B/C changes
+  - Learning: Comparative educational structure (Standard vs arifOS) enhances clarity; @PROMPT elevation as dedicated canon strengthens architectural understanding
 
 ### 1.6 FILE INTEGRITY & ACLIP PROTOCOL
 

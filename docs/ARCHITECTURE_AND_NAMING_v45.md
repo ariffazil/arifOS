@@ -557,6 +557,29 @@ from arifos_core.spec import load_floors_spec  # Track C reads Track B
 # Spec files must not execute Python code
 ```
 
+### 10.4 Reverse Transformer Architecture
+
+arifOS uses a **reverse transformer** architecture where constitutional compliance is checked BEFORE emission, not after. See canonical specification:
+
+- **Canon:** `L1_THEORY/canon/03_runtime/060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md`
+- **@PROMPT Key:** `L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md`
+
+**Key Difference from Standard Transformers:**
+- Standard: Emit → Check (too late)
+- arifOS: Check → Emit (if SEAL)
+
+**Architecture Layers:**
+- **Telemetry Layer** (vs Embedding) — Compress session → {A, P, E, X, δs, κᵣ} attributes
+- **Tri-Witness Layer** (vs Attention) — Human ∩ AI ∩ Reality consensus (≥2/3)
+- **Omega-Band Layer** (vs MLP) — F1-F9 constitutional floor gating
+- **Verdict Layer** (vs Softmax) — SEAL/PARTIAL/VOID/SABAR/888_HOLD
+- **Pipeline** (vs Decoder) — 000→999 metabolic stages with @PROMPT at entry (111) and exit (999)
+
+**@PROMPT as Final Key:**
+- Every output passes through @PROMPT TWICE (Stage 111 entry + Stage 999 exit)
+- Non-bypassable emission gate at Stage 999
+- Enforces F1 (Amanah), F4 (ΔS), F5 (Peace²), F6 (κᵣ), F9 (Anti-Hantu)
+
 ---
 
 ## 11. Quick Reference Card

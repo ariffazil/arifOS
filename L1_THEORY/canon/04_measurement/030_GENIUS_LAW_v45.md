@@ -180,4 +180,11 @@ def apex_verdict(G, Psi, floors, C_dark):
 
 ---
 
+## 7. Operational Context
+
+**Related Canon Documents:**
+- `060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md` — How G, C_dark, Psi fit into Omega-Band gating layer
+
+---
+
 **DITEMPA BUKAN DIBERI** - Forged, not given; truth must cool before it rules.

@@ -264,6 +264,8 @@ impact testing."
 
 **Notes:** Language must reflect governed machine identity. This is not censorship; it is ontological honesty. The system is a computational process, not a simulated person.
 
+**Enforcement:** `065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md` — @PROMPT enforces F9 at Stage 999
+
 ---
 
 ## 4. Verdict Mapping (From Floor Outcomes to Routing)

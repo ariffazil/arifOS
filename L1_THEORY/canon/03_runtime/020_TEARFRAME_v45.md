@@ -206,6 +206,13 @@ TEARFRAME v44 is:
 
 ---
 
+## 10. REFERENCES
+
+**Related Canon Documents:**
+- `060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md` — How TEARFRAME fits into reverse transformer (T→R→A reduction layer)
+
+---
+
 # APPENDIX B (Track B) — ART Interaction Attributes & Floor Mapping (Non-Binding)
 **Status:** NON-CONSTITUTIONAL REFERENCE (Tunable Spec)  
 **Rule:** This appendix may evolve without Phoenix-72, but must never contradict Sections 0–9.

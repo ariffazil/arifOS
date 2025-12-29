@@ -10,9 +10,10 @@
 
 This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/`. All files upgraded to v45 during the 2025-12-29 Phoenix-72 consolidation.
 
-**File Count:** 35 v45 files + 5 metadata files = 40 total
+**File Count:** 37 v45 files + 5 metadata files = 42 total (includes 2 PHOENIX amendments)
 **Version Consistency:** 100% v45
 **Reduction:** 49 → 40 files (9 archived to `archive/v42_detail/`)
+**Phoenix Amendments:** 2 files pending 72-hour cooling (060, 065 in 03_runtime/)
 
 ---
 
@@ -102,6 +103,8 @@ This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/
 | [`050_WAW_FEDERATION_v45.md`](../03_runtime/050_WAW_FEDERATION_v45.md) | 🌐 **W@W Runtime** | W@W organ coordination in pipeline |
 | [`030_SPEC_CODE_BINDING_v45.md`](../03_runtime/030_SPEC_CODE_BINDING_v45.md) | 📋 **Spec Binding** | Canon↔Spec↔Code binding (Track A↔Track B) |
 | [`040_FORGING_PROTOCOL_v45.md`](../03_runtime/040_FORGING_PROTOCOL_v45.md) | 🔨 **Forging Protocol** | Constitution-compliant code generation |
+| [`060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md`](../03_runtime/060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md) | 🔄 **Reverse Transformer** | 🔵 PHOENIX - Constitutional architecture: Why semantic reduction enables F1-F9 enforcement (Standard vs arifOS comparison) |
+| [`065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md`](../03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md) | 🔑 **@PROMPT as Final Key** | 🔵 PHOENIX - Stage 999 emission gate: Non-bypassable final check before user sees output (Entry 111 + Exit 999) |
 
 ---
 
