@@ -30,6 +30,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from .eureka_types import MemoryWriteDecision, MemoryWriteRequest
 from .eureka_router import route_write
+from .ledger_config_loader import (
+    HOT_SEGMENT_DAYS,
+    SCAR_RETENTION_DAYS,
+    VERDICT_BAND_ROUTING as SPEC_VERDICT_BAND_ROUTING,
+)
 
 
 # =============================================================================
@@ -59,21 +64,19 @@ class MemoryBandTarget(str, Enum):
 
 
 # Verdict → Band routing rules (v38.3: SABAR→PENDING, PARTIAL→PHOENIX)
+# Merge spec routing with v38.3 memory-domain extensions (SABAR_EXTENDED, SUNSET)
 VERDICT_BAND_ROUTING: Dict[str, List[str]] = {
-    "SEAL": ["LEDGER", "ACTIVE"],            # Canonical + session
+    **SPEC_VERDICT_BAND_ROUTING,  # From spec (v45→v44 fallback)
     "SABAR": ["PENDING", "LEDGER"],          # v38.3 AMENDMENT 2: Epistemic queue + log
     "SABAR_EXTENDED": ["PENDING", "LEDGER"], # v38.3: Same routing as SABAR
-    "PARTIAL": ["PHOENIX", "LEDGER"],        # v38.3: Law mismatch queue + log
-    "VOID": ["VOID"],                         # Diagnostic ONLY, never canonical
-    "888_HOLD": ["LEDGER"],                   # Log hold for audit
     "SUNSET": ["PHOENIX"],                    # v38.2: Revocation pulse (LEDGER → PHOENIX)
 }
 
-# Retention tiers (days)
-RETENTION_HOT_DAYS = 7       # Active Stream, recent scars
-RETENTION_WARM_DAYS = 90     # Ledger entries, Phoenix proposals
-RETENTION_COLD_DAYS = 365    # Vault (permanent), archive
-RETENTION_VOID_DAYS = 90     # Void band (then auto-delete)
+# Retention tiers (days) - From spec where available
+RETENTION_HOT_DAYS = HOT_SEGMENT_DAYS      # From spec (default 7)
+RETENTION_WARM_DAYS = 90                    # Ledger entries, Phoenix proposals (local policy)
+RETENTION_COLD_DAYS = SCAR_RETENTION_DAYS  # From spec (default 365)
+RETENTION_VOID_DAYS = 90                    # Void band auto-delete (local policy)
 
 
 # =============================================================================

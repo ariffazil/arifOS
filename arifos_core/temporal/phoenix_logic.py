@@ -4,6 +4,7 @@ Enforces 72-hour cooling for High Stakes (T4) or Imperfect Evidence.
 """
 
 from arifos_core.evidence.evidence_pack import EvidencePack
+from arifos_core.memory.ledger_config_loader import PHOENIX_TIMEOUT_HOURS
 import time
 
 
@@ -12,7 +13,7 @@ class PhoenixLogic:
     Encapsulates v45 Phoenix-72 Hold Policy.
     """
 
-    PHOENIX_WINDOW_SECONDS = 72 * 3600  # 72 hours
+    PHOENIX_WINDOW_SECONDS = PHOENIX_TIMEOUT_HOURS * 3600  # From spec (v45→v44 fallback)
 
     @staticmethod
     def evaluate_hold(pack: EvidencePack, tier: str = "T1") -> str:

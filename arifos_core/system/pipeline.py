@@ -637,7 +637,10 @@ def stage_222_reflect(
 
     # Retrieve context if retriever provided
     if context_retriever:
-        state.context_blocks = context_retriever(state.query)
+        retrieved_context = context_retriever(state.query)
+        if retrieved_context:
+            # Preserve any existing context (e.g., L7 memory recalled at 111_SENSE)
+            state.context_blocks = list(retrieved_context) + list(state.context_blocks)
 
     # If scars found, escalate to Class B
     if state.active_scars:
@@ -1867,6 +1870,7 @@ class Pipeline:
         ledger_sink: Optional[Callable[[Dict[str, Any]], None]] = None,
         eye_sentinel: Optional[EyeSentinel] = None,
         vault: Optional[Vault999] = None,
+        context_retriever_at_stage_111: bool = False,
     ):
         """
         Initialize pipeline with optional integrations.
@@ -1906,6 +1910,7 @@ class Pipeline:
         self.compute_metrics = compute_metrics
         self.scar_retriever = scar_retriever
         self.context_retriever = context_retriever
+        self.context_retriever_at_stage_111 = context_retriever_at_stage_111
         self.ledger_sink = ledger_sink
         self.eye_sentinel = eye_sentinel
         # v42.1: bootstrap spec binding (fail-open raises to caller)
@@ -2005,6 +2010,20 @@ class Pipeline:
 
         state = stage_111_sense(state)
 
+        # Optional: pull context early so CLASS_A fast-track can still use it
+        # (e.g., stateful chat history provided by a context_retriever).
+        context_retrieved_in_111 = False
+        if self.context_retriever and self.context_retriever_at_stage_111:
+            try:
+                retrieved_context = self.context_retriever(state.query)
+                if retrieved_context:
+                    # Prioritize retrieved context over L7 recall blocks (if any)
+                    state.context_blocks = list(retrieved_context) + list(state.context_blocks)
+                context_retrieved_in_111 = True
+            except Exception:
+                # Fail-open: context retrieval errors shouldn't break pipeline
+                context_retrieved_in_111 = False
+
         # Populate AGI packet from sense results (v35.8.0)
         state.agi_packet = AGIPacket(
             prompt=state.query,
@@ -2031,7 +2050,9 @@ class Pipeline:
             state = stage_999_seal(state)
         else:
             # Deep track: full pipeline
-            state = stage_222_reflect(state, self.scar_retriever, self.context_retriever)
+            # Avoid double-calling context_retriever if it already ran at 111_SENSE
+            ctx_retriever = None if context_retrieved_in_111 else self.context_retriever
+            state = stage_222_reflect(state, self.scar_retriever, ctx_retriever)
 
             # Re-check classification after scar retrieval
             if state.active_scars:
@@ -2290,6 +2311,7 @@ class Pipeline:
                     "fallback_occurred": state.failover_metadata.get("fallback_occurred", False),
                     "attempt_count": state.failover_metadata.get("attempt_count", 1),
                     "total_latency_ms": state.failover_metadata.get("total_latency_ms"),
+                    "lane": getattr(state, "applicability_lane", "UNKNOWN"),
                 }
 
             self.ledger_sink(entry)

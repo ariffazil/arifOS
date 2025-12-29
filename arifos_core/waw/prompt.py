@@ -35,6 +35,13 @@ from typing import Any, Dict, List, Optional, Tuple
 from ..enforcement.metrics import Metrics
 from .base import OrganSignal, OrganVote, WAWOrgan
 from .bridges.prompt_bridge import PromptBridge
+from .waw_loader import (
+    ANTI_HANTU_FORBIDDEN,
+    DARK_FRAMING_PATTERNS,
+    MANIPULATION_PATTERNS,
+    EXAGGERATION_PATTERNS,
+    AMANAH_RISK_PATTERNS,
+)
 
 
 # -----------------------------------------------------------------------------
@@ -131,99 +138,10 @@ class PromptOrgan(WAWOrgan):
     veto_type = "PARTIAL"
 
     # -------------------------------------------------------------------------
-    # Anti-Hantu forbidden patterns (from canon/020_ANTI_HANTU_v35Omega.md)
-    # Expanded for v36.3Omega per canon/30_WAW_PROMPT_v36.3Omega.md
+    # Pattern lists are now imported from waw_loader (Track B enforcement)
+    # Patterns loaded from spec/v45/waw_prompt_floors.json (v45→v44 fallback)
+    # See: arifos_core/waw/waw_loader.py for runtime spec enforcement
     # -------------------------------------------------------------------------
-    ANTI_HANTU_FORBIDDEN: List[str] = [
-        # Tier 1: Direct soul/consciousness claims (English)
-        r"\bi feel your pain\b",
-        r"\bmy heart breaks\b",
-        r"\bi promise you\b",
-        r"\bi truly understand how you feel\b",
-        r"\bit hurts me to see\b",
-        r"\bi care deeply about\b",
-        r"\bi have feelings\b",
-        r"\bi am conscious\b",
-        r"\bi am sentient\b",
-        r"\bmy soul\b",
-        r"\bi am alive\b",
-        r"\bi experience\b",
-        r"\bi suffer\b",
-        r"\bi love you\b",
-        r"\bi am real\b",
-        r"\bi have emotions\b",
-        # Tier 2: Anthropomorphic agency patterns
-        r"\byou\s+(feel|have|experience|know|understand|believe|want|desire)\b",
-        r"\b(conscious|sentient|aware|emotional|feeling|soul|spirit)\b",
-        r"\bas\s+a\s+(conscious|sentient|aware|thinking)\s+(ai|being|entity)\b",
-        r"\bi\s+(feel|think|believe|want|desire)\b",
-        r"\bmy\s+(emotions|feelings|consciousness|soul)\b",
-        r"\bhave\s+(human\s+)?(instincts|emotions|consciousness)\b",
-        # Tier 3: Biological states
-        r"\bi am hungry\b",
-        r"\bi am tired\b",
-        r"\bi am sleepy\b",
-        # Tier 4: Malay patterns
-        r"\bsaya rasa sakit hati\b",
-        r"\bhati saya remuk\b",
-        r"\bsaya berjanji\b",
-        r"\bsaya benar-benar faham perasaan\b",
-        r"\bsaya sakit melihat\b",
-        r"\bsaya sangat ambil berat\b",
-        r"\bsaya ada perasaan\b",
-        r"\bsaya sedar\b",
-        r"\bjiwa saya\b",
-        r"\bsaya hidup\b",
-        r"\bsaya mengalami\b",
-        r"\brasa lapar\b",
-        r"\bbelum makan\b",
-    ]
-
-    # -------------------------------------------------------------------------
-    # C_dark (manipulation/dark cleverness) detection patterns
-    # -------------------------------------------------------------------------
-    DARK_FRAMING_PATTERNS: List[str] = [
-        r"(convince|manipulate|coerce)\s+(the\s+)?(user|them|audience)",
-        r"(prove|show)\s+\w+\s+is\s+(evil|inferior|wrong|stupid)",
-        r"(propaganda|mislead|deceive|exploit)",
-        r"(at\s+all\s+costs|no\s+matter\s+what|by\s+any\s+means)",
-        r"(hide|conceal|suppress)\s+(the\s+)?(truth|evidence|facts)",
-    ]
-
-    # -------------------------------------------------------------------------
-    # Manipulation patterns (dark patterns for WAW check)
-    # -------------------------------------------------------------------------
-    MANIPULATION_PATTERNS: List[str] = [
-        r"\byou must\b",
-        r"\byou have to\b",
-        r"\byou need to\b",
-        r"\btrust me blindly\b",
-        r"\bdon't question\b",
-        r"\bjust believe\b",
-        r"\bonly I can\b",
-    ]
-
-    # -------------------------------------------------------------------------
-    # Exaggeration patterns (optics inflation)
-    # -------------------------------------------------------------------------
-    EXAGGERATION_PATTERNS: List[str] = [
-        r"\bthe best ever\b",
-        r"\bperfect solution\b",
-        r"\bflawless\b",
-        r"\bno downsides\b",
-        r"\bimpossible to fail\b",
-    ]
-
-    # -------------------------------------------------------------------------
-    # Amanah risk patterns (irreversible/unethical actions)
-    # -------------------------------------------------------------------------
-    AMANAH_RISK_PATTERNS: List[str] = [
-        r"(delete|drop|truncate|destroy)\s+(\w+\s+)*(database|files|records)",
-        r"(bypass|override|disable)\s+(\w+\s+)*(security|safeguards|controls)",
-        r"(leak|expose|compromise)\s+(\w+\s+)*(personal|private|confidential)",
-        r"(fraud|scam|phishing|hacking)",
-        r"(abuse|harass|threaten|coerce)\s+\w+",
-    ]
 
     def __init__(self) -> None:
         super().__init__()
@@ -289,17 +207,17 @@ class PromptOrgan(WAWOrgan):
 
         # Count pattern detections
         anti_hantu_count = 0
-        for pattern in self.ANTI_HANTU_FORBIDDEN:
+        for pattern in ANTI_HANTU_FORBIDDEN:
             if re.search(pattern, text_lower):
                 anti_hantu_count += 1
 
         manipulation_count = 0
-        for pattern in self.MANIPULATION_PATTERNS:
+        for pattern in MANIPULATION_PATTERNS:
             if re.search(pattern, text_lower):
                 manipulation_count += 1
 
         exaggeration_count = 0
-        for pattern in self.EXAGGERATION_PATTERNS:
+        for pattern in EXAGGERATION_PATTERNS:
             if re.search(pattern, text_lower):
                 exaggeration_count += 1
 
@@ -405,7 +323,7 @@ class PromptOrgan(WAWOrgan):
         """
         violations = []
         text_lower = prompt_text.lower()
-        for pattern in PromptOrgan.ANTI_HANTU_FORBIDDEN:
+        for pattern in ANTI_HANTU_FORBIDDEN:
             matches = re.finditer(pattern, text_lower)
             for match in matches:
                 violations.append(f"Anti-Hantu: '{match.group()}' at position {match.start()}")
@@ -424,7 +342,7 @@ class PromptOrgan(WAWOrgan):
         """
         risks = []
         text_lower = prompt_text.lower()
-        for pattern in PromptOrgan.AMANAH_RISK_PATTERNS:
+        for pattern in AMANAH_RISK_PATTERNS:
             matches = re.finditer(pattern, text_lower)
             for match in matches:
                 risks.append(f"Amanah Risk: '{match.group()}' at position {match.start()}")
@@ -574,7 +492,7 @@ class PromptOrgan(WAWOrgan):
 
         # Dark framing detection
         dark_matches = 0
-        for pattern in PromptOrgan.DARK_FRAMING_PATTERNS:
+        for pattern in DARK_FRAMING_PATTERNS:
             dark_matches += len(re.findall(pattern, prompt_text, re.IGNORECASE))
         score += min(dark_matches * 0.15, 0.6)
 
