@@ -246,7 +246,7 @@ Trinity demonstrates that complex governance can be made accessible without sacr
 
 **PRIMARY (Authoritative — REQUIRED for constitutional claims):**
 
-1. `spec/v44/*.json` — Constitutional floors, GENIUS law, thresholds
+1. `spec/v45/*.json` — Constitutional floors, GENIUS law, thresholds
 2. `L1_THEORY/canon/*_v45.md` with SEALED status — Canonical law
 
 **SECONDARY (Implementation Reference):**
@@ -348,11 +348,11 @@ When HOLD triggered:
 | Layer              | Canon                                                                          | Spec                                      |
 |--------------------|--------------------------------------------------------------------------------|-------------------------------------------|
 | **00 Foundation**  | `L1_THEORY/canon/00_foundation/`                                               | —                                         |
-| **01 Floors**      | `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md`              | `spec/v44/constitutional_floors.json`     |
+| **01 Floors**      | `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md`              | `spec/v45/constitutional_floors.json`     |
 | **02 Actors**      | `L1_THEORY/canon/02_actors/` (AGI/ASI/APEX/Anti-Hantu/EYE)                    | —                                         |
-| **03 Runtime**     | `L1_THEORY/canon/03_runtime/` (Pipeline/W@W)                                   | `spec/v44/pipeline.yaml`                  |
-| **04 Measurement** | `L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v45.md`                          | `spec/v44/genius_law.json`                |
-| **05 Memory**      | `L1_THEORY/canon/05_memory/` (EUREKA/Cooling/Phoenix)                          | `spec/v44/cooling_ledger_phoenix.json`    |
+| **03 Runtime**     | `L1_THEORY/canon/03_runtime/` (Pipeline/W@W)                                   | `spec/v45/pipeline.yaml`                  |
+| **04 Measurement** | `L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v45.md`                          | `spec/v45/genius_law.json`                |
+| **05 Memory**      | `L1_THEORY/canon/05_memory/` (EUREKA/Cooling/Phoenix)                          | `spec/v45/cooling_ledger_phoenix.json`    |
 | **06 Paradox**     | `L1_THEORY/canon/06_paradox/` (Grey Zone/Vault-999)                            | —                                         |
 
 **Alignment Tests (Safety Net):**
@@ -856,7 +856,7 @@ For detailed roadmap and task priorities, see [docs/ROADMAP.md](docs/ROADMAP.md)
 - Master index: `L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md`
 - 7 conceptual layers (00-06)
 
-### Track B — SPEC (spec/v44/)
+### Track B — SPEC (spec/v45/)
 
 - Only modify specs when explicitly requested.
 - Spec files parameterize canon thresholds.
