@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/ariffazil/arifOS/spec/v44/schema/genius_law.schema.json",
-  "title": "GENIUS LAW v44 Specification Schema",
-  "description": "JSON Schema for validating v44.0 GENIUS LAW metrics specification (minimum: constants block)",
+  "$id": "https://github.com/ariffazil/arifOS/spec/v45/schema/genius_law.schema.json",
+  "title": "GENIUS LAW v45 Specification Schema",
+  "description": "JSON Schema for validating v45.0 GENIUS LAW metrics specification (minimum: constants block)",
   "type": "object",
 
   "required": [
@@ -21,8 +21,8 @@
   "properties": {
     "version": {
       "type": "string",
-      "pattern": "^v44\\.0$",
-      "description": "Must be v44.0"
+      "pattern": "^v45\\.0$",
+      "description": "Must be v45.0"
     },
     "authority": {
       "type": "string",
@@ -38,7 +38,7 @@
     },
     "arifos_version": {
       "type": "string",
-      "pattern": "^v44\\.0$"
+      "pattern": "^v45\\.0$"
     },
     "spec_type": {
       "type": "string",

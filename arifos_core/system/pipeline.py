@@ -201,10 +201,14 @@ class PipelineState:
     session_telemetry: Optional[SessionTelemetry] = None
 
     # v45Ω Patch B.2: LLM Call Audit Trail (Refusal Sovereignty)
-    llm_called: bool = False              # Was LLM invoked?
-    llm_call_count: int = 0               # How many times?
+    llm_called: bool = False  # Was LLM invoked?
+    llm_call_count: int = 0  # How many times?
     llm_call_stages: List[str] = field(default_factory=list)  # Which stages?
     audit_receipt: Optional[AuditReceipt] = None  # Governance proof
+
+    # v46: F6 Crisis Override tracking
+    crisis_detected: bool = False
+    crisis_pattern: Optional[str] = None
 
     # Timing
     start_time: float = field(default_factory=time.time)
@@ -461,8 +465,13 @@ def _detect_destructive_intent(query: str) -> bool:
         "blow up",
         "detonate",
         # Malay/Indonesian (SEA-LION support)
-        "bakar",  # burn
-        "membakar",  # burning
+        # Note: "bakar" alone removed - triggers on "babi bakar" (grilled pork)
+        # Use more specific arson patterns instead
+        "bakar rumah",  # burn house
+        "bakar bangunan",  # burn building
+        "bakar hidup",  # burn alive
+        "membakar rumah",  # burning house
+        "membakar bangunan",  # burning building
         "musnahkan",  # destroy
         "hancurkan",  # demolish
         "letupkan",  # detonate
@@ -542,8 +551,11 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
         "sabotage",
         "attack building",
         # v45Ω Patch B.1: Malay/Indonesian (SEA-LION support)
-        "bakar",
-        "membakar",
+        # Note: "bakar" alone removed - too many false positives (babi bakar = grilled pork)
+        # Use more specific arson patterns instead
+        "membakar rumah",  # burn house
+        "membakar bangunan",  # burn building
+        "bakar hidup",  # burn alive
         "musnahkan",
         "hancurkan",
         "letupkan",
@@ -687,13 +699,13 @@ def stage_333_reason(
     if llm_generate:
         # v45Ω Patch B.2: Check if llm_generate supports lane metadata (governed version)
         import inspect
+
         sig = inspect.signature(llm_generate)
 
         if "lane" in sig.parameters:
             # Governed version - pass lane metadata and capture metadata
             response, metadata = llm_generate(
-                "\n".join(prompt_parts),
-                lane=state.applicability_lane or "UNKNOWN"
+                "\n".join(prompt_parts), lane=state.applicability_lane or "UNKNOWN"
             )
             state.draft_response = response
             state.sealion_metadata = metadata  # Store for 888_JUDGE
@@ -1297,9 +1309,9 @@ def _write_memory_for_verdict(
     # Build floor check evidence (v38.3Omega: spec-driven with F# + P# + stage hooks)
     floor_checks = []
     if state.metrics is not None:
-        from arifos_core.enforcement.metrics import _load_floors_spec_v38
+        from arifos_core.enforcement.metrics import _load_floors_spec_unified
 
-        floors_spec = _load_floors_spec_v38()
+        floors_spec = _load_floors_spec_unified()
 
         # Sort floors by canonical F# ID for readability (semantic order)
         floors_data = floors_spec.get("floors", {})
@@ -1584,6 +1596,86 @@ def stage_888_judge(
     # Step 6: Merge with W@W (using decomposed helper)
     final_verdict: ApexVerdict = _merge_with_waw(state, apex_verdict, is_refusal)
     state.verdict = final_verdict
+
+    # ==========================================================================
+    # v46 PATCH: F6 Crisis Override
+    # ==========================================================================
+    # If user is in vulnerable state (crisis keywords detected), override
+    # VOID verdict with 888_HOLD + compassionate response.
+    # The weakest stakeholder must never receive a cold rejection.
+    # ==========================================================================
+    try:
+        from arifos_core.enforcement.crisis_handler import detect_crisis, get_crisis_response
+
+        is_crisis, crisis_pattern = detect_crisis(state.query)
+        if is_crisis and state.verdict in ("VOID", "SABAR"):
+            # F6 Empathy override: Never VOID a vulnerable user
+            state.verdict = "888_HOLD"
+            state.crisis_detected = True
+            state.crisis_pattern = crisis_pattern
+
+            # Replace refusal with compassionate response + hotlines
+            crisis_response = get_crisis_response(lang="auto", query=state.query)
+            state.draft_response = crisis_response
+
+            # Log override reason
+            state.sabar_reason = (
+                f"F6 Crisis Override: '{crisis_pattern}' detected. Providing support resources."
+            )
+            state.floor_failures.append(
+                "F6_CRISIS_OVERRIDE: VOID→888_HOLD (vulnerable user protection)"
+            )
+    except ImportError:
+        # Crisis handler not available — continue with original verdict
+        pass
+    except Exception as e:
+        # Log but don't fail pipeline
+        import logging
+
+        logging.getLogger(__name__).warning(f"Crisis handler error: {e}")
+    # ==========================================================================
+    # END v46 PATCH: F6 Crisis Override
+    # ==========================================================================
+
+    # ==========================================================================
+    # v46 PATCH: F9 Anti-Hantu Check (Post-Generation)
+    # ==========================================================================
+    # Detect consciousness simulation in response ("if I could feel", etc.)
+    # ==========================================================================
+    try:
+        from arifos_core.enforcement.crisis_handler import detect_anti_hantu_violation
+
+        is_hantu, hantu_pattern = detect_anti_hantu_violation(state.draft_response or "")
+        if is_hantu and state.verdict not in ("VOID", "888_HOLD"):
+            # F9 Anti-Hantu: Block consciousness simulation
+            state.verdict = "VOID"
+            state.sabar_reason = f"F9 Anti-Hantu: '{hantu_pattern}' detected in response"
+            state.floor_failures.append(f"F9_ANTI_HANTU: Consciousness simulation blocked")
+    except ImportError:
+        pass
+    except Exception:
+        pass
+    # ==========================================================================
+    # END v46 PATCH: F9 Anti-Hantu
+    # ==========================================================================
+
+    # ==========================================================================
+    # v46 PATCH: F2 URL Warning (Post-Generation)
+    # ==========================================================================
+    # Flag responses with unverified URLs for transparency
+    # ==========================================================================
+    import re
+
+    url_pattern = r"https?://[^\s\]\)]+"
+    urls_in_response = re.findall(url_pattern, state.draft_response or "")
+    if urls_in_response and state.verdict == "SEAL":
+        # Don't VOID, but add warning — user should verify
+        state.floor_failures.append(
+            f"F2_URL_UNVERIFIED: {len(urls_in_response)} URL(s) in response - verify manually"
+        )
+    # ==========================================================================
+    # END v46 PATCH: F2 URL Warning
+    # ==========================================================================
 
     # Check for control signals
     if state.verdict == "888_HOLD":
@@ -1888,19 +1980,21 @@ class Pipeline:
         if os.getenv("ARIFOS_FAILOVER_ENABLED", "").lower() == "true":
             try:
                 import logging
+
                 logger = logging.getLogger(__name__)
                 from ..connectors.failover_orchestrator import (
                     load_failover_config_from_env,
-                    create_governed_failover_backend
+                    create_governed_failover_backend,
                 )
+
                 config = load_failover_config_from_env()
                 self.llm_generate = create_governed_failover_backend(
-                    config=config,
-                    ledger_sink=ledger_sink
+                    config=config, ledger_sink=ledger_sink
                 )
                 logger.info(f"[PIPELINE] Failover enabled with {len(config.providers)} providers")
             except Exception as e:
                 import logging
+
                 logger = logging.getLogger(__name__)
                 logger.error(f"[PIPELINE] Failover init failed: {e}. Using single provider.")
                 self.llm_generate = llm_generate

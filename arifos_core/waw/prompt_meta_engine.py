@@ -30,6 +30,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
+from arifos_core.system.apex_prime import Verdict
 from .prompt import PromptOrgan, PromptSignals, TruthPolarity
 
 logger = logging.getLogger(__name__)
@@ -44,13 +45,8 @@ class MetaPromptMode(str, Enum):
     SEAL = "MODE.SEAL"        # 999 SEAL
 
 
-class PromptVerdict(str, Enum):
-    """Governance verdicts for prompts."""
-    SEAL = "SEAL"             # All floors pass, governance OK
-    PARTIAL = "PARTIAL"       # Usable but with minor issues
-    VOID = "VOID"             # Violates hard floors (Amanah, Anti-Hantu)
-    HOLD_888 = "HOLD_888"     # Needs more info / human review
-    SABAR = "SABAR"           # Requires repair / cooling
+# Alias for backwards compatibility (W@W prompt governance)
+PromptVerdict = Verdict
 
 
 @dataclass

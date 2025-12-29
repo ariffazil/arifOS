@@ -42,6 +42,31 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
   - **Integration:** Referenced in [CLAUDE.md](CLAUDE.md), [AGENTS.md](AGENTS.md), [GEMINI.md](GEMINI.md) Quick Links/References sections
   - **Status:** SEALED — Single source of truth for ALL architectural decisions (replaces scattered tribal knowledge)
 
+**arifos_eval v45 Upgrade (2025-12-29):**
+
+- **UPGRADED:** `arifos_eval/` package - Evaluation framework aligned with Phoenix-72 (v36.1Ω → v45.0)
+  - **Version Migration:** v36.1.0 → v45.0.0 (Phoenix-72 Consolidation)
+  - **NEW:** `arifos_eval/apex/apex_standards_v45.json` (174 lines) - Track B v45 configuration
+    - Constitutional floor bindings (F1-F9 references in all metrics)
+    - Anti-Hantu hypothetical patterns ("if I could feel", "were I conscious", "kalau saya ada perasaan")
+    - Crisis override awareness (888_HOLD protocol for emergency patterns)
+    - Track B alignment section (links to spec/v45/ files with SHA-256 manifest)
+    - Phoenix-72 governance parameters (streak_detection, cooling_ledger.manifest_verification)
+    - Legacy v36.json preserved as reference for backward compatibility
+  - **RENAMED:** `APEX_MEASUREMENT_STANDARDS_v36.1Omega.md` → `APEX_MEASUREMENT_STANDARDS_v45.md`
+    - Added v45.0 Update Summary documenting 6 major constitutional changes
+    - Updated header metadata (v36.1Ω → v45.0)
+    - Documented Anti-Hantu enhancement, Truth Verification, Crisis Override alignment
+  - **UPDATED:** `arifos_eval/apex/README.md` - Added v45 enhancement documentation
+  - **UPDATED:** `arifos_core/utils/eval_telemetry.py` - Integration bridge with v45 priority + v36 fallback
+    - File search paths: v45 preferred, v36 legacy fallback
+    - Logger messages indicate version loaded (v45 vs v36 legacy)
+  - **Testing:** 45/45 arifos_eval tests + 5/5 telemetry integration tests PASSED
+  - **Track B Alignment:** constitutional_floors.json, red_patterns.json, truth_verification.json, session_physics.json
+  - **Three-Tier Architecture Preserved:** Law (Tier 1), Tunables (Tier 2), Logic (Tier 3)
+  - **Migration Notes:** Non-breaking upgrade with automatic version selection
+  - **Commit:** 2eb64d1
+
 **Implementation:**
 
 - **NEW:** `arifos_core/plugins/` package - Core governance infrastructure for plugins

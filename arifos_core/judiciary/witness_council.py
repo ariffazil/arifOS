@@ -6,16 +6,8 @@ Enforces Law 5 (Re-Witness or Release) and Law 6 (Memory != Authority).
 
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict
-from enum import Enum
 from arifos_core.temporal.freshness_policy import FreshnessPolicy
-
-
-class Verdict(str, Enum):
-    SEAL = "SEAL"
-    PARTIAL = "PARTIAL"
-    SABAR = "SABAR"
-    VOID = "VOID"
-    HOLD_888 = "HOLD_888"
+from arifos_core.system.apex_prime import Verdict
 
 
 @dataclass

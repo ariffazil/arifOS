@@ -43,7 +43,7 @@ from datetime import datetime, timezone
 from ..adapters.llm_openai import make_llm_generate as make_openai_generate
 from ..adapters.llm_claude import make_llm_generate as make_claude_generate
 from ..adapters.llm_gemini import make_llm_generate as make_gemini_generate
-from ..adapters.llm_sealion import make_llm_generate_governed as make_sealion_generate
+from ..adapters.llm_sealion import make_llm_generate as make_sealion_generate
 from ..integration.adapters.llm_interface import LLMConfig
 
 logger = logging.getLogger(__name__)
@@ -56,20 +56,22 @@ logger = logging.getLogger(__name__)
 
 class ProviderStatus(Enum):
     """Provider health status for circuit breaker."""
-    HEALTHY = "HEALTHY"          # Circuit CLOSED - requests allowed
-    DEGRADED = "DEGRADED"        # Experiencing failures but not yet tripped
-    UNHEALTHY = "UNHEALTHY"      # Circuit OPEN - skip for cooldown period
-    HALF_OPEN = "HALF_OPEN"      # Testing recovery after cooldown
+
+    HEALTHY = "HEALTHY"  # Circuit CLOSED - requests allowed
+    DEGRADED = "DEGRADED"  # Experiencing failures but not yet tripped
+    UNHEALTHY = "UNHEALTHY"  # Circuit OPEN - skip for cooldown period
+    HALF_OPEN = "HALF_OPEN"  # Testing recovery after cooldown
 
 
 class FailureType(Enum):
     """Classification of provider failures for retry logic."""
-    RATE_LIMIT = "RATE_LIMIT"        # 429 - Retry with backoff
-    TIMEOUT = "TIMEOUT"              # Connection timeout - Retry
-    API_ERROR = "API_ERROR"          # 5xx server error - Retry
-    AUTH_ERROR = "AUTH_ERROR"        # 401/403 - Skip retries
+
+    RATE_LIMIT = "RATE_LIMIT"  # 429 - Retry with backoff
+    TIMEOUT = "TIMEOUT"  # Connection timeout - Retry
+    API_ERROR = "API_ERROR"  # 5xx server error - Retry
+    AUTH_ERROR = "AUTH_ERROR"  # 401/403 - Skip retries
     INVALID_RESPONSE = "INVALID_RESPONSE"  # Malformed response - Skip
-    UNKNOWN = "UNKNOWN"              # Unclassified - Skip
+    UNKNOWN = "UNKNOWN"  # Unclassified - Skip
 
 
 # ============================================================================
@@ -101,6 +103,7 @@ class ProviderConfig:
         last_failure_time: Timestamp of last failed request
         circuit_opened_at: Timestamp when circuit opened (UNHEALTHY)
     """
+
     name: str
     provider_type: str
     model: str
@@ -133,6 +136,7 @@ class ProviderAttempt:
         latency_ms: Request latency in milliseconds
         timestamp: Attempt timestamp
     """
+
     provider_name: str
     success: bool
     failure_type: Optional[FailureType] = None
@@ -155,6 +159,7 @@ class FailoverResult:
         total_latency_ms: Total time including retries and failover
         metadata: Additional metadata for cooling ledger
     """
+
     response: str
     success: bool
     successful_provider: Optional[str] = None
@@ -177,6 +182,7 @@ class FailoverConfig:
         exponential_backoff_max_ms: Maximum delay cap for backoff
         enable_ledger_logging: Write failover events to cooling ledger
     """
+
     providers: List[ProviderConfig]
     max_consecutive_failures: int = 3
     circuit_open_duration: float = 60.0  # seconds
@@ -252,7 +258,9 @@ class ProviderHealthTracker:
                 if elapsed >= self.config.circuit_open_duration:
                     # Transition to HALF_OPEN for testing
                     provider.status = ProviderStatus.HALF_OPEN
-                    logger.info(f"[CIRCUIT_BREAKER] Provider {provider.name} → HALF_OPEN (testing recovery)")
+                    logger.info(
+                        f"[CIRCUIT_BREAKER] Provider {provider.name} → HALF_OPEN (testing recovery)"
+                    )
                     return True  # Allow one test request
                 else:
                     # Still in cooldown
@@ -287,9 +295,7 @@ class FailoverOrchestrator:
     """
 
     def __init__(
-        self,
-        config: FailoverConfig,
-        ledger_sink: Optional[Callable[[dict], None]] = None
+        self, config: FailoverConfig, ledger_sink: Optional[Callable[[dict], None]] = None
     ):
         self.config = config
         self.ledger_sink = ledger_sink
@@ -313,7 +319,9 @@ class FailoverOrchestrator:
             try:
                 backend = self._create_backend(provider)
                 self._backends[provider.name] = backend
-                logger.info(f"[FAILOVER] Initialized backend for {provider.name} ({provider.provider_type})")
+                logger.info(
+                    f"[FAILOVER] Initialized backend for {provider.name} ({provider.provider_type})"
+                )
             except Exception as e:
                 logger.error(f"[FAILOVER] Failed to initialize {provider.name}: {e}")
                 provider.status = ProviderStatus.UNHEALTHY
@@ -325,41 +333,22 @@ class FailoverOrchestrator:
         Returns:
             Callable that takes prompt and returns response text
         """
-        llm_config = LLMConfig(
-            max_tokens=2048,
-            temperature=0.7
-        )
+        llm_config = LLMConfig(max_tokens=2048, temperature=0.7)
 
         if provider.provider_type == "openai":
             return make_openai_generate(
-                api_key=provider.api_key,
-                model=provider.model,
-                config=llm_config
+                api_key=provider.api_key, model=provider.model, config=llm_config
             )
         elif provider.provider_type == "claude":
             return make_claude_generate(
-                api_key=provider.api_key,
-                model=provider.model,
-                config=llm_config
+                api_key=provider.api_key, model=provider.model, config=llm_config
             )
         elif provider.provider_type == "gemini":
             return make_gemini_generate(
-                api_key=provider.api_key,
-                model=provider.model,
-                config=llm_config
+                api_key=provider.api_key, model=provider.model, config=llm_config
             )
         elif provider.provider_type == "sealion":
-            # SEA-LION uses governed variant (already returns tuple)
-            backend_tuple = make_sealion_generate(
-                model=provider.model,
-                config=llm_config,
-                ledger_sink=self.ledger_sink
-            )
-            # Wrap to extract text only
-            def sealion_wrapper(prompt: str) -> str:
-                response, _ = backend_tuple(prompt, lane="UNKNOWN")
-                return response
-            return sealion_wrapper
+            return make_sealion_generate(model=provider.model, config=llm_config)
         else:
             raise ValueError(f"Unknown provider type: {provider.provider_type}")
 
@@ -382,11 +371,7 @@ class FailoverOrchestrator:
 
     def _is_retryable(self, failure_type: FailureType) -> bool:
         """Check if failure type should be retried."""
-        return failure_type in [
-            FailureType.RATE_LIMIT,
-            FailureType.TIMEOUT,
-            FailureType.API_ERROR
-        ]
+        return failure_type in [FailureType.RATE_LIMIT, FailureType.TIMEOUT, FailureType.API_ERROR]
 
     def _exponential_backoff(self, retry_attempt: int) -> float:
         """
@@ -403,9 +388,7 @@ class FailoverOrchestrator:
         return delay_ms / 1000.0  # Convert to seconds
 
     def _try_provider(
-        self,
-        provider: ProviderConfig,
-        prompt: str
+        self, provider: ProviderConfig, prompt: str
     ) -> Tuple[bool, str, Optional[FailureType], Optional[str], float]:
         """
         Try to generate response from provider with retries.
@@ -461,11 +444,7 @@ class FailoverOrchestrator:
         # Exhausted retries
         return (False, "", FailureType.UNKNOWN, "Max retries exhausted", latency_ms)
 
-    def generate(
-        self,
-        prompt: str,
-        lane: Optional[str] = None
-    ) -> Tuple[str, Dict[str, Any]]:
+    def generate(self, prompt: str, lane: Optional[str] = None) -> Tuple[str, Dict[str, Any]]:
         """
         Generate response with automatic failover.
 
@@ -499,8 +478,7 @@ class FailoverOrchestrator:
 
             # Attempt generation
             success, response, failure_type, error_msg, latency_ms = self._try_provider(
-                provider,
-                prompt
+                provider, prompt
             )
 
             # Record attempt
@@ -509,14 +487,14 @@ class FailoverOrchestrator:
                 success=success,
                 failure_type=failure_type,
                 error_message=error_msg,
-                latency_ms=latency_ms
+                latency_ms=latency_ms,
             )
             attempts.append(attempt)
 
             if success:
                 # Success - return response
                 total_latency_ms = (time.time() - start_time) * 1000
-                fallback_occurred = (provider.name != primary_provider)
+                fallback_occurred = provider.name != primary_provider
 
                 metadata = {
                     "provider": provider.name,
@@ -524,7 +502,7 @@ class FailoverOrchestrator:
                     "fallback_occurred": fallback_occurred,
                     "attempt_count": len(attempts),
                     "total_latency_ms": total_latency_ms,
-                    "success": True
+                    "success": True,
                 }
 
                 # Log failover event if occurred
@@ -533,7 +511,7 @@ class FailoverOrchestrator:
                         lane=lane,
                         primary_provider=primary_provider,
                         successful_provider=provider.name,
-                        attempts=attempts
+                        attempts=attempts,
                     )
 
                 return (response, metadata)
@@ -552,10 +530,10 @@ class FailoverOrchestrator:
                 {
                     "provider": a.provider_name,
                     "failure_type": a.failure_type.value if a.failure_type else "UNKNOWN",
-                    "error": a.error_message
+                    "error": a.error_message,
                 }
                 for a in attempts
-            ]
+            ],
         }
 
         # Log catastrophic failure
@@ -570,7 +548,7 @@ class FailoverOrchestrator:
         lane: Optional[str],
         primary_provider: Optional[str],
         successful_provider: str,
-        attempts: List[ProviderAttempt]
+        attempts: List[ProviderAttempt],
     ) -> None:
         """Log failover event to cooling ledger."""
         if not self.ledger_sink:
@@ -588,10 +566,11 @@ class FailoverOrchestrator:
                     "provider": a.provider_name,
                     "failure_type": a.failure_type.value if a.failure_type else "UNKNOWN",
                     "error": a.error_message,
-                    "latency_ms": a.latency_ms
+                    "latency_ms": a.latency_ms,
                 }
-                for a in attempts if not a.success
-            ]
+                for a in attempts
+                if not a.success
+            ],
         }
 
         try:
@@ -600,9 +579,7 @@ class FailoverOrchestrator:
             logger.error(f"[FAILOVER] Failed to log failover event: {e}")
 
     def _log_all_providers_failed(
-        self,
-        lane: Optional[str],
-        attempts: List[ProviderAttempt]
+        self, lane: Optional[str], attempts: List[ProviderAttempt]
     ) -> None:
         """Log catastrophic failure event to cooling ledger."""
         if not self.ledger_sink:
@@ -618,10 +595,10 @@ class FailoverOrchestrator:
                     "provider": a.provider_name,
                     "failure_type": a.failure_type.value if a.failure_type else "UNKNOWN",
                     "error": a.error_message,
-                    "latency_ms": a.latency_ms
+                    "latency_ms": a.latency_ms,
                 }
                 for a in attempts
-            ]
+            ],
         }
 
         try:
@@ -642,7 +619,7 @@ class FailoverOrchestrator:
                 "successful_requests": p.successful_requests,
                 "consecutive_failures": p.consecutive_failures,
                 "last_success": p.last_success_time,
-                "last_failure": p.last_failure_time
+                "last_failure": p.last_failure_time,
             }
             for p in self.config.providers
         ]
@@ -717,7 +694,7 @@ def load_failover_config_from_env() -> FailoverConfig:
             api_base=api_base,
             priority=priority,
             timeout_seconds=timeout,
-            max_retries=max_retries
+            max_retries=max_retries,
         )
 
         providers.append(provider)
@@ -729,13 +706,12 @@ def load_failover_config_from_env() -> FailoverConfig:
     return FailoverConfig(
         providers=providers,
         max_consecutive_failures=max_failures,
-        circuit_open_duration=circuit_duration
+        circuit_open_duration=circuit_duration,
     )
 
 
 def create_governed_failover_backend(
-    config: FailoverConfig,
-    ledger_sink: Optional[Callable[[dict], None]] = None
+    config: FailoverConfig, ledger_sink: Optional[Callable[[dict], None]] = None
 ) -> Callable[[str, str], Tuple[str, Dict[str, Any]]]:
     """
     Create governed failover backend function.

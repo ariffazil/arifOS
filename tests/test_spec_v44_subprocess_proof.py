@@ -1,11 +1,13 @@
 """
-test_spec_v44_subprocess_proof.py - Subprocess-Based Proof Tests for v44 Authority
+test_spec_v44_subprocess_proof.py - Subprocess-Based Proof Tests for v45→v44 Authority
 
 PROOF-GRADE tests that verify spec loading behavior in fresh Python processes.
 Unlike code inspection tests, these actually execute the loader in isolation
 to prove runtime behavior.
 
 Windows-compatible: Uses subprocess.run() with sys.executable.
+
+NOTE: Updated for v45.0 - tests reflect v45→v44→FAIL priority (Phase 3 Step 3.1)
 """
 
 import json

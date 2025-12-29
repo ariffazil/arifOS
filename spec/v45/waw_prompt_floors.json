@@ -86,7 +86,7 @@
         "Organ identity-based decision rules"
       ]
     },
-    "canon_ref": "L1_THEORY/canon/03_runtime/03_WAW_FEDERATION_v45.md#2-waw-federation-architecture"
+    "canon_ref": "L1_THEORY/canon/03_runtime/050_WAW_FEDERATION_v45.md#2-waw-federation-architecture"
   },
   "prompt_organ": {
     "organ_id": "@PROMPT",
@@ -535,7 +535,7 @@
     "updated": "2025-12-13",
     "author": "arifOS Project",
     "license": "Apache-2.0",
-    "canonical_source": "L1_THEORY/canon/03_runtime/03_WAW_FEDERATION_v45.md",
+    "canonical_source": "L1_THEORY/canon/03_runtime/050_WAW_FEDERATION_v45.md",
     "predecessor": "L1_THEORY/canon/02_actors/060_PROMPT_LANGUAGE_BRIDGE_v45.md",
     "implementation": "arifos_core/waw/",
     "notes": "v42.1 alignment of W@W prompt governance"

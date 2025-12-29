@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/ariffazil/arifOS/spec/v44/schema/session_physics.schema.json",
-  "title": "Session Physics v44 Specification Schema",
-  "description": "JSON Schema for validating v44.0 TEARFRAME session physics specification",
+  "$id": "https://github.com/ariffazil/arifOS/spec/v45/schema/session_physics.schema.json",
+  "title": "Session Physics v45 Specification Schema",
+  "description": "JSON Schema for validating v45.0 TEARFRAME session physics specification",
   "type": "object",
 
   "required": [
@@ -23,8 +23,8 @@
   "properties": {
     "version": {
       "type": "string",
-      "pattern": "^v44\\.0$",
-      "description": "Must be v44.0"
+      "pattern": "^v45\\.0$",
+      "description": "Must be v45.0"
     },
     "authority": {
       "type": "string",
@@ -40,7 +40,7 @@
     },
     "arifos_version": {
       "type": "string",
-      "pattern": "^v44\\.0$"
+      "pattern": "^v45\\.0$"
     },
     "spec_type": {
       "type": "string",

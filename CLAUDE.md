@@ -12,7 +12,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Entropy Control rules (when to add new files)
 - Cooling Notes (agent learnings from past mistakes)
 
-**Latest:** v45.0 Phoenix-72 Migration (2025-12-29) — Track A/B/C consolidation complete. See migration commit ff5ced3 for details.
+**Latest:**
+- v45.0 Phoenix-72 Migration (2025-12-29) — Track A/B/C consolidation complete. See migration commit ff5ced3 for details.
+- arifos_eval v45 Upgrade (2025-12-29) — Evaluation framework aligned with Phoenix-72 (v36.1Ω → v45.0). Commit 2eb64d1.
 
 **Quick Links:**
 

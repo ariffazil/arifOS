@@ -44,7 +44,7 @@ SHORTCUTS:
     You can also use: /gitforge, /gitQC, /gitseal (for AI assistants)
 
 MORE INFO:
-    See: L1_THEORY/canon/03_runtime/FORGING_PROTOCOL_v43.md
+    See: L1_THEORY/canon/03_runtime/040_FORGING_PROTOCOL_v45.md
     GitHub: https://github.com/ariffazil/arifOS
 
 Built for accessibility. Forged, not given.

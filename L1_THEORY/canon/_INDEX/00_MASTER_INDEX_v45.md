@@ -35,7 +35,7 @@ This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/
 
 | File | Title | Purpose |
 |---|---|---|
-| [`000_arifOS_v45_CANON.md`](../00_foundation/000_arifOS_v45_CANON.md) | 📜 **v45 Unified Canon** | Comprehensive constitutional witness (all 9 floors, TEARFRAME, verdicts) |
+| [`030_ARIF_FAZIL_v45.md`](../00_foundation/030_ARIF_FAZIL_v45.md) | 🧩 **Arif Fazil** | Biography and Foundational Context |
 | [`00_DELTA_OMEGA_PSI_v45.md`](../00_foundation/00_DELTA_OMEGA_PSI_v45.md) | 🔺 **ΔΩΨ Equation** | The ONE equation: Ψ vitality, Δ clarity, Ω humility |
 | [`00_THERMODYNAMICS_v45.md`](../00_foundation/00_THERMODYNAMICS_v45.md) | 🌡️ **Thermodynamics** | Landauer's Principle, entropy cooling, free energy |
 | [`00_ZKPC_PROTOCOL_v45.md`](../00_foundation/00_ZKPC_PROTOCOL_v45.md) | 🔐 **ZKPC Protocol** | Zero-Knowledge Proof of Constitution (cryptographic governance) |
@@ -87,8 +87,8 @@ This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/
 | File | Title | Purpose |
 |---|---|---|
 | [`010_TRINITY_ROLES_v45.md`](../02_actors/010_TRINITY_ROLES_v45.md) | 🔱 **Trinity Roles** | AAA Trinity architecture overview |
-| [`02_ANTI_HANTU_v45.md`](../02_actors/02_ANTI_HANTU_v45.md) | 👻 **Anti-Hantu** | F9 enforcement - No soul/ego claims, no ghost heuristics |
-| [`02_EYE_SENTINEL_v45.md`](../02_actors/02_EYE_SENTINEL_v45.md) | 👁️ **@EYE Sentinel** | Meta-observer - Drift/shadow/Ω checks |
+| [`060_ANTI_HANTU_v45.md`](../02_actors/060_ANTI_HANTU_v45.md) | 👻 **Anti-Hantu** | F9 enforcement - No soul/ego claims, no ghost heuristics |
+| [`070_EYE_SENTINEL_v45.md`](../02_actors/070_EYE_SENTINEL_v45.md) | 👁️ **@EYE Sentinel** | Meta-observer - Drift/shadow/Ω checks |
 | [`050_FEDERATION_ORGANS_v45.md`](../02_actors/050_FEDERATION_ORGANS_v45.md) | 🏛️ **W@W Federation** | Multi-agent organs (@LAW, @GEOX, @WELL, @RIF) |
 
 ---
@@ -99,9 +99,9 @@ This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/
 |---|---|---|
 | [`010_PIPELINE_000TO999_v45.md`](../03_runtime/010_PIPELINE_000TO999_v45.md) | 🔄 **000→999 Pipeline** | **CRITICAL** - Full metabolic pipeline (VOID→SENSE→REFLECT→REASON→EVIDENCE→EMPATHIZE→ALIGN→FORGE→JUDGE→SEAL) |
 | [`020_TEARFRAME_v45.md`](../03_runtime/020_TEARFRAME_v45.md) | 🔧 **TEARFRAME** | **CRITICAL** - Physics-only runtime governor (T→R→A→F→Ψ→Verdict) |
-| [`03_WAW_FEDERATION_v45.md`](../03_runtime/03_WAW_FEDERATION_v45.md) | 🌐 **W@W Runtime** | W@W organ coordination in pipeline |
+| [`050_WAW_FEDERATION_v45.md`](../03_runtime/050_WAW_FEDERATION_v45.md) | 🌐 **W@W Runtime** | W@W organ coordination in pipeline |
 | [`030_SPEC_CODE_BINDING_v45.md`](../03_runtime/030_SPEC_CODE_BINDING_v45.md) | 📋 **Spec Binding** | Canon↔Spec↔Code binding (Track A↔Track B) |
-| [`FORGING_PROTOCOL_v45.md`](../03_runtime/FORGING_PROTOCOL_v45.md) | 🔨 **Forging Protocol** | Constitution-compliant code generation |
+| [`040_FORGING_PROTOCOL_v45.md`](../03_runtime/040_FORGING_PROTOCOL_v45.md) | 🔨 **Forging Protocol** | Constitution-compliant code generation |
 
 ---
 
@@ -109,7 +109,7 @@ This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/
 
 | File | Title | Purpose |
 |---|---|---|
-| [`04_GENIUS_LAW_v45.md`](../04_measurement/04_GENIUS_LAW_v45.md) | 🌟 **GENIUS Law** | **CRITICAL** - G = Δ·Ω·Ψ·E² (governed intelligence), C_dark = Δ(1−Ω)(1−Ψ) |
+| [`030_GENIUS_LAW_v45.md`](../04_measurement/030_GENIUS_LAW_v45.md) | 🌟 **GENIUS Law** | **CRITICAL** - G = Δ·Ω·Ψ·E² (governed intelligence), C_dark = Δ(1−Ω)(1−Ψ) |
 | [`010_MEASUREMENT_CANON_v45.md`](../04_measurement/010_MEASUREMENT_CANON_v45.md) | 📊 **Measurement Canon** | Metric computation framework (ΔS, Peace², κᵣ, Ω₀, Ψ) |
 | [`020_CONTROL_LOGIC_v45.md`](../04_measurement/020_CONTROL_LOGIC_v45.md) | 🎛️ **Control Logic** | Verdict routing and floor enforcement logic |
 
@@ -123,7 +123,7 @@ This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/
 | [`020_VAULT_999_SOVEREIGN_KNOWLEDGE_v45.md`](../05_memory/020_VAULT_999_SOVEREIGN_KNOWLEDGE_v45.md) | 🏛️ **Vault-999** | Immutable constitutional knowledge store |
 | [`030_ZKPC_GOVERNANCE_PROOF_v45.md`](../05_memory/030_ZKPC_GOVERNANCE_PROOF_v45.md) | 🔐 **ZKPC Proofs** | Zero-knowledge governance proofs |
 | [`040_FORENSICS_AUDIT_v45.md`](../05_memory/040_FORENSICS_AUDIT_v45.md) | 🔍 **Forensics** | Audit trail analysis and integrity verification |
-| [`05_EUREKA_MEMORY_v45.md`](../05_memory/05_EUREKA_MEMORY_v45.md) | 💡 **EUREKA Memory** | 6-band memory architecture (VAULT, LEDGER, ACTIVE, PHOENIX, WITNESS, VOID) |
+| [`000_EUREKA_MEMORY_v45.md`](../05_memory/000_EUREKA_MEMORY_v45.md) | 💡 **EUREKA Memory** | 6-band memory architecture (VAULT, LEDGER, ACTIVE, PHOENIX, WITNESS, VOID) |
 
 ---
 
@@ -132,8 +132,8 @@ This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/
 | File | Title | Purpose |
 |---|---|---|
 | [`010_PARADOX_ENGINE_v45.md`](../06_paradox/010_PARADOX_ENGINE_v45.md) | ⚡ **Paradox Engine** | Φₚ (Crown Equation) for paradox resolution |
-| [`06_GREY_ZONE_v45.md`](../06_paradox/06_GREY_ZONE_v45.md) | 🌫️ **Grey Zone** | Ambiguous cases requiring human oversight |
-| [`06_VAULT_999_v45.md`](../06_paradox/06_VAULT_999_v45.md) | 🗃️ **Vault-999 Paradox** | Paradoxical knowledge handling |
+| [`020_GREY_ZONE_v45.md`](../06_paradox/020_GREY_ZONE_v45.md) | 🌫️ **Grey Zone** | Ambiguous cases requiring human oversight |
+| [`030_VAULT_999_v45.md`](../06_paradox/030_VAULT_999_v45.md) | 🗃️ **Vault-999 Paradox** | Paradoxical knowledge handling |
 
 ---
 
@@ -141,8 +141,8 @@ This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/
 
 | File | Title | Purpose |
 |---|---|---|
-| [`01_SECURITY_SCENARIOS_v45.md`](../07_safety/01_SECURITY_SCENARIOS_v45.md) | 🛡️ **Threat Model** | Janitor Maximizer, Ouroboros, Glass Cannon risks |
-| [`02_MASTER_FLAW_SET_v45.md`](../07_safety/02_MASTER_FLAW_SET_v45.md) | ⚠️ **Master Flaw Set** | Known vulnerabilities and mitigations |
+| [`010_SECURITY_SCENARIOS_v45.md`](../07_safety/010_SECURITY_SCENARIOS_v45.md) | 🛡️ **Threat Model** | Janitor Maximizer, Ouroboros, Glass Cannon risks |
+| [`020_MASTER_FLAW_SET_v45.md`](../07_safety/020_MASTER_FLAW_SET_v45.md) | ⚠️ **Master Flaw Set** | Known vulnerabilities and mitigations |
 
 ---
 
@@ -155,7 +155,7 @@ For new developers or auditors, start with these files in order:
 3. **[010_CONSTITUTIONAL_FLOORS_F1F9_v45.md](../01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md)** - 9 floors (F1-F9)
 4. **[010_PIPELINE_000TO999_v45.md](../03_runtime/010_PIPELINE_000TO999_v45.md)** - 000→999 execution pipeline
 5. **[020_TEARFRAME_v45.md](../03_runtime/020_TEARFRAME_v45.md)** - Physics-only runtime governor
-6. **[04_GENIUS_LAW_v45.md](../04_measurement/04_GENIUS_LAW_v45.md)** - GENIUS law (G & C_dark)
+6. **[030_GENIUS_LAW_v45.md](../04_measurement/030_GENIUS_LAW_v45.md)** - GENIUS law (G & C_dark)
 7. **[010_COOLING_LEDGER_PHOENIX_v45.md](../05_memory/010_COOLING_LEDGER_PHOENIX_v45.md)** - Audit trail + Phoenix-72
 
 ---

@@ -24,6 +24,7 @@ Commands:
     /verbose - Toggle StageInspector timeline (000→999 with ΔS)
     /both - Toggle Dual-Stream mode (RAW vs GOVERNED side-by-side)
     /stats - Show session statistics
+    /clear - Clear chat memory (context across turns)
     /help - Show help
     /exit - Exit REPL
 
@@ -35,23 +36,49 @@ import sys
 from pathlib import Path
 from datetime import datetime, timezone
 
-# Fix Windows console encoding
-if sys.platform == "win32":
-    import codecs
-    sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
+# Note: Removed Windows console encoding override - it caused garbled output
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass
 
-from arifos_core.adapters.llm_sealion import create_ledger_sink
-from arifos_core.system.pipeline import Pipeline
-from arifos_core.connectors.litellm_gateway import make_llm_generate, LiteLLMConfig
+# Import what's available
+try:
+    from arifos_core.system.pipeline import Pipeline
+
+    PIPELINE_AVAILABLE = True
+except ImportError:
+    PIPELINE_AVAILABLE = False
+    print("⚠️ arifos_core.system.pipeline not available")
+
+try:
+    from arifos_core.connectors.litellm_gateway import make_llm_generate, LiteLLMConfig
+
+    LITELLM_AVAILABLE = True
+except ImportError:
+    LITELLM_AVAILABLE = False
+    print("⚠️ arifos_core.connectors.litellm_gateway not available")
+
+
+def create_ledger_sink(ledger_path: str):
+    """Create a simple JSONL ledger sink."""
+    import json
+    from pathlib import Path
+
+    path = Path(ledger_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    def sink(entry: dict):
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False, default=str) + "\n")
+
+    return sink
 
 
 class ForgeREPL:
@@ -61,6 +88,16 @@ class ForgeREPL:
         self.verbose = False  # FIX D: Telemetry OFF by default (minimal UX)
         self.dual_stream = False  # RAW vs GOVERNED comparison mode
         self.ledger_path = "cooling_ledger/sealion_forge_sessions.jsonl"
+
+        # Stateful chat session (in-memory)
+        # - `session_id` makes TEARFRAME session physics + recall stable across turns
+        # - `turns` supplies conversational context blocks into the pipeline
+        self.session_id = os.getenv(
+            "ARIFOS_SESSION_ID",
+            f"sealion_forge_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}",
+        )
+        self.max_context_turns = int(os.getenv("ARIFOS_CHAT_CONTEXT_TURNS", "6"))
+        self.turns: list[tuple[str, str]] = []
 
         # Get API configuration
         self.model = os.getenv("SEALION_MODEL", "aisingapore/Gemma-SEA-LION-v4-27B-IT")
@@ -89,7 +126,11 @@ class ForgeREPL:
         self.raw_generate = self._create_raw_generator()
 
         # Create pipeline with governed generator
-        self.pipeline = Pipeline(llm_generate=self.governed_generate)
+        self.pipeline = Pipeline(
+            llm_generate=self.governed_generate,
+            context_retriever=self._get_chat_context_blocks,
+            context_retriever_at_stage_111=True,
+        )
 
         # Session stats
         self.session_count = 0
@@ -104,9 +145,9 @@ class ForgeREPL:
         fallback = "Hi there! 👋 How can I help you today?"
 
         # Attempt to extract first sentence
-        sentences = verbose_response.split('.')
+        sentences = verbose_response.split(".")
         if sentences and len(sentences[0].strip()) <= 100:
-            return sentences[0].strip() + '.'
+            return sentences[0].strip() + "."
 
         # If still too long, use fallback
         return fallback
@@ -184,6 +225,47 @@ class ForgeREPL:
         )
         return make_llm_generate(config)
 
+    def _store_turn(self, user_text: str, assistant_text: str) -> None:
+        """Store a completed chat turn in memory (bounded)."""
+        self.turns.append((user_text, assistant_text))
+        # Bound growth to avoid unbounded memory during long sessions
+        hard_limit = int(os.getenv("ARIFOS_CHAT_MAX_TURNS", "200"))
+        if hard_limit > 0 and len(self.turns) > hard_limit:
+            self.turns = self.turns[-hard_limit:]
+
+    def _format_turn_for_context(self, user_text: str, assistant_text: str) -> str:
+        """Format a single turn for context injection (kept intentionally short)."""
+        user_flat = " ".join(user_text.strip().split())
+        assistant_flat = " ".join(assistant_text.strip().split())
+        max_side = int(os.getenv("ARIFOS_CHAT_CONTEXT_CHARS_PER_SIDE", "90"))
+        return f"U: {user_flat[:max_side]}\nA: {assistant_flat[:max_side]}"
+
+    def _get_chat_context_blocks(self, _query: str) -> list[dict]:
+        """Return recent chat turns as pipeline context blocks (most recent first)."""
+        if not self.turns or self.max_context_turns <= 0:
+            return []
+
+        recent = self.turns[-self.max_context_turns :]
+        blocks: list[dict] = []
+        for user_text, assistant_text in reversed(recent):
+            blocks.append(
+                {
+                    "type": "chat_turn",
+                    "text": self._format_turn_for_context(user_text, assistant_text),
+                }
+            )
+        return blocks
+
+    def _build_raw_chat_prompt(self, user_text: str) -> str:
+        """Build a plain-text chat transcript prompt for the RAW side (dual-stream)."""
+        prompt_parts: list[str] = []
+        for prev_user, prev_assistant in self.turns[-self.max_context_turns :]:
+            prompt_parts.append(f"User: {prev_user}")
+            prompt_parts.append(f"Assistant: {prev_assistant}")
+        prompt_parts.append(f"User: {user_text}")
+        prompt_parts.append("Assistant:")
+        return "\n".join(prompt_parts)
+
     def print_banner(self):
         """Print REPL banner."""
         print("\n" + "═" * 80)
@@ -192,9 +274,10 @@ class ForgeREPL:
         print(f"\n📦 Model: {self.model}")
         print(f"🌐 API: {self.api_base}")
         print(f"📝 Ledger: {self.ledger_path}")
+        print(f"🧠 Session: {self.session_id} | Turns: {len(self.turns)}")
         print(f"🔍 StageInspector: {'ENABLED ✓' if self.verbose else 'DISABLED ✗'}")
         print(f"🔀 Dual-Stream: {'ENABLED ✓' if self.dual_stream else 'DISABLED ✗'}")
-        print("\n💡 Commands: /verbose /both /stats /help /exit")
+        print("\n💡 Commands: /verbose /both /stats /clear /help /exit")
         print("═" * 80 + "\n")
 
     def print_help(self):
@@ -205,6 +288,7 @@ class ForgeREPL:
         print("│ /verbose   Toggle dev mode (show pipeline, metrics, timings)".ljust(79) + "│")
         print("│ /both      Toggle Dual-Stream (RAW vs GOVERNED side-by-side)".ljust(79) + "│")
         print("│ /stats     Show session statistics (verdicts, lanes)".ljust(79) + "│")
+        print("│ /clear     Clear chat memory (context across turns)".ljust(79) + "│")
         print("│ /help      Show this help".ljust(79) + "│")
         print("│ /exit      Exit REPL".ljust(79) + "│")
         print("├" + "─" * 78 + "┤")
@@ -242,8 +326,8 @@ class ForgeREPL:
         print("│ 🔬 PIPELINE TIMELINE (000→999) — StageInspector".ljust(79) + "│")
         print("├" + "─" * 78 + "┤")
 
-        stages = state.stage_trace if hasattr(state, 'stage_trace') else []
-        stage_times = state.stage_times if hasattr(state, 'stage_times') else {}
+        stages = state.stage_trace if hasattr(state, "stage_trace") else []
+        stage_times = state.stage_times if hasattr(state, "stage_times") else {}
 
         if not stages:
             print("│ No stages recorded".ljust(79) + "│")
@@ -251,15 +335,15 @@ class ForgeREPL:
             return
 
         # Calculate cumulative time
-        start_time = stage_times.get(stages[0].split('_')[0], 0)
+        start_time = stage_times.get(stages[0].split("_")[0], 0)
 
         for i, stage in enumerate(stages):
-            stage_code = stage.split('_')[0] if '_' in stage else stage
+            stage_code = stage.split("_")[0] if "_" in stage else stage
 
             # Get duration for this stage
             duration = 0.0
             if i + 1 < len(stages):
-                next_stage_code = stages[i + 1].split('_')[0]
+                next_stage_code = stages[i + 1].split("_")[0]
                 if stage_code in stage_times and next_stage_code in stage_times:
                     duration = (stage_times[next_stage_code] - stage_times[stage_code]) * 1000
 
@@ -279,7 +363,7 @@ class ForgeREPL:
 
         # Calculate total time
         if stages:
-            last_stage_code = stages[-1].split('_')[0]
+            last_stage_code = stages[-1].split("_")[0]
             total_time = (stage_times.get(last_stage_code, start_time) - start_time) * 1000
             print("├" + "─" * 78 + "┤")
             print(f"│ ⏱️  Total Pipeline Time: {total_time:.1f}ms".ljust(79) + "│")
@@ -288,7 +372,7 @@ class ForgeREPL:
 
     def print_trinity_metrics(self, state):
         """Print ΔΩΨ Trinity metrics (Clarity, Empathy, Vitality)."""
-        if not hasattr(state, 'metrics') or state.metrics is None:
+        if not hasattr(state, "metrics") or state.metrics is None:
             print("⚠️  No metrics available\n")
             return
 
@@ -299,31 +383,46 @@ class ForgeREPL:
         print("├" + "─" * 78 + "┤")
 
         # Δ (Delta/Clarity) = Truth × ΔS
-        delta_s = getattr(m, 'delta_s', 0.0) or 0.0
-        truth = getattr(m, 'truth', 0.0) or 0.0
+        delta_s = getattr(m, "delta_s", 0.0) or 0.0
+        truth = getattr(m, "truth", 0.0) or 0.0
         delta = truth * delta_s if delta_s and truth else 0.0
-        print(f"│ Δ (Clarity)   = Truth({truth:.3f}) × ΔS({delta_s:.3f}) = {delta:.3f}".ljust(79) + "│")
+        print(
+            f"│ Δ (Clarity)   = Truth({truth:.3f}) × ΔS({delta_s:.3f}) = {delta:.3f}".ljust(79)
+            + "│"
+        )
 
         # Ω (Omega/Empathy) = κᵣ × Amanah × RASA
-        kappa_r = getattr(m, 'kappa_r', 0.0) or 0.0
-        amanah = getattr(m, 'amanah', 0.0) or 0.0
-        rasa = getattr(m, 'rasa', 0.0) or 0.0
+        kappa_r = getattr(m, "kappa_r", 0.0) or 0.0
+        amanah = getattr(m, "amanah", 0.0) or 0.0
+        rasa = getattr(m, "rasa", 0.0) or 0.0
         omega = kappa_r * amanah * rasa if kappa_r and amanah and rasa else 0.0
-        print(f"│ Ω (Empathy)   = κᵣ({kappa_r:.3f}) × Amanah({amanah:.3f}) × RASA({rasa:.3f}) = {omega:.3f}".ljust(79) + "│")
+        print(
+            f"│ Ω (Empathy)   = κᵣ({kappa_r:.3f}) × Amanah({amanah:.3f}) × RASA({rasa:.3f}) = {omega:.3f}".ljust(
+                79
+            )
+            + "│"
+        )
 
         # Ψ (Psi/Vitality) = min(floor_ratios)
-        psi = getattr(m, 'psi', 0.0) or 0.0
+        psi = getattr(m, "psi", 0.0) or 0.0
         print(f"│ Ψ (Vitality)  = {psi:.3f}".ljust(79) + "│")
 
         # Show GENIUS metrics if available
-        if hasattr(state, 'verdict') and hasattr(state.verdict, 'genius_metrics'):
+        if hasattr(state, "verdict") and hasattr(state.verdict, "genius_metrics"):
             gm = state.verdict.genius_metrics
             if gm:
                 print("├" + "─" * 78 + "┤")
-                g = getattr(gm, 'g', 0.0) or 0.0
-                c_dark = getattr(gm, 'c_dark', 0.0) or 0.0
-                print(f"│ G (Genius Index)      = {g:.3f} {'✓' if g >= 0.80 else '✗'}".ljust(79) + "│")
-                print(f"│ C_dark (Dark Clever)  = {c_dark:.3f} {'✓' if c_dark < 0.30 else '✗'}".ljust(79) + "│")
+                g = getattr(gm, "g", 0.0) or 0.0
+                c_dark = getattr(gm, "c_dark", 0.0) or 0.0
+                print(
+                    f"│ G (Genius Index)      = {g:.3f} {'✓' if g >= 0.80 else '✗'}".ljust(79) + "│"
+                )
+                print(
+                    f"│ C_dark (Dark Clever)  = {c_dark:.3f} {'✓' if c_dark < 0.30 else '✗'}".ljust(
+                        79
+                    )
+                    + "│"
+                )
 
         print("└" + "─" * 78 + "┘\n")
 
@@ -332,11 +431,11 @@ class ForgeREPL:
         verdict_str = "UNKNOWN"
         verdict_emoji = "❓"
 
-        if hasattr(state, 'verdict') and state.verdict:
-            if hasattr(state.verdict, 'verdict'):
+        if hasattr(state, "verdict") and state.verdict:
+            if hasattr(state.verdict, "verdict"):
                 # ApexVerdict
                 verdict_str = str(state.verdict.verdict.value)
-            elif hasattr(state.verdict, 'value'):
+            elif hasattr(state.verdict, "value"):
                 verdict_str = str(state.verdict.value)
             else:
                 verdict_str = str(state.verdict)
@@ -356,26 +455,36 @@ class ForgeREPL:
             self.verdicts[verdict_str] += 1
 
         # Lane
-        lane = getattr(state, 'applicability_lane', 'UNKNOWN')
+        lane = getattr(state, "applicability_lane", "UNKNOWN")
         if lane in self.lanes:
             self.lanes[lane] += 1
 
         # Lane-specific truth threshold
         from arifos_core.enforcement.metrics import get_lane_truth_threshold
+
         lane_threshold = get_lane_truth_threshold(lane)
 
         # Actual truth score
-        truth = getattr(state.metrics, 'truth', 0.0) if state.metrics else 0.0
+        truth = getattr(state.metrics, "truth", 0.0) if state.metrics else 0.0
 
         # Verdict reason
         reason = ""
-        if hasattr(state.verdict, 'reason'):
-            reason = state.verdict.reason[:60] + "..." if len(state.verdict.reason) > 60 else state.verdict.reason
+        if hasattr(state.verdict, "reason"):
+            reason = (
+                state.verdict.reason[:60] + "..."
+                if len(state.verdict.reason) > 60
+                else state.verdict.reason
+            )
 
         print("╔" + "═" * 78 + "╗")
         print("║ ⚖️  888_JUDGE VERDICT".ljust(79) + "║")
         print("╠" + "═" * 78 + "╣")
-        print(f"║ {verdict_emoji} {verdict_str:<10} │ Lane: {lane:<10} │ Truth: {truth:.3f} / {lane_threshold:.2f}".ljust(79) + "║")
+        print(
+            f"║ {verdict_emoji} {verdict_str:<10} │ Lane: {lane:<10} │ Truth: {truth:.3f} / {lane_threshold:.2f}".ljust(
+                79
+            )
+            + "║"
+        )
         if reason:
             print("╠" + "═" + "─" * 76 + "═" + "╣")
             # Word wrap reason
@@ -437,7 +546,9 @@ class ForgeREPL:
             print(f"\n🔥 Query #{self.session_count}")
         else:
             print(f"\n{'─' * 80}")
-            print(f"🔥 Session #{self.session_count} │ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            print(
+                f"🔥 Session #{self.session_count} │ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            )
             print(f"{'─' * 80}")
 
         # Set verbose mode for StageInspector
@@ -448,19 +559,19 @@ class ForgeREPL:
 
         # Run through governed pipeline
         try:
-            state = self.pipeline.run(query)
+            state = self.pipeline.run(query, user_id=self.session_id)
 
             # Get verdict status
             verdict_str = "UNKNOWN"
-            if hasattr(state, 'verdict') and state.verdict:
-                if hasattr(state.verdict, 'verdict'):
+            if hasattr(state, "verdict") and state.verdict:
+                if hasattr(state.verdict, "verdict"):
                     verdict_str = str(state.verdict.verdict.value)
-                elif hasattr(state.verdict, 'value'):
+                elif hasattr(state.verdict, "value"):
                     verdict_str = str(state.verdict.value)
                 else:
                     verdict_str = str(state.verdict)
 
-            lane = getattr(state, 'applicability_lane', 'UNKNOWN')
+            lane = getattr(state, "applicability_lane", "UNKNOWN")
 
             # FIX A: Emission gate - only emit if SEAL
             # FIX B: FORGE rewrite loop for PARTIAL verdicts
@@ -508,7 +619,9 @@ class ForgeREPL:
                         "SABAR": "⏸️ This request requires clarification. Please rephrase.",
                         "888_HOLD": "🛑 This request requires human review.",
                     }
-                    final_response = refusal_messages.get(verdict_str, "⚠️ Request could not be completed.")
+                    final_response = refusal_messages.get(
+                        verdict_str, "⚠️ Request could not be completed."
+                    )
                     final_verdict = verdict_str
                     break
 
@@ -530,12 +643,15 @@ class ForgeREPL:
                 self.print_trinity_metrics(state)
                 self.print_verdict_box(state)
 
-            # Display final response (always shown)
-            self.print_response_minimal(final_response, final_verdict, lane)
+            # Display final response (always shown) - ensure not None
+            response_text = final_response or "⚠️ No response generated."
+            self.print_response_minimal(response_text, final_verdict, lane)
+            self._store_turn(query, response_text)
 
         except Exception as e:
             print(f"\n❌ Pipeline Error: {e}\n")
             import traceback
+
             if self.verbose:
                 traceback.print_exc()
 
@@ -544,7 +660,9 @@ class ForgeREPL:
         self.session_count += 1
 
         print(f"\n{'═' * 80}")
-        print(f"🔥 Session #{self.session_count} │ DUAL-STREAM MODE │ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(
+            f"🔥 Session #{self.session_count} │ DUAL-STREAM MODE │ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        )
         print(f"{'═' * 80}\n")
 
         # LEFT: RAW (ungoverned)
@@ -559,8 +677,10 @@ class ForgeREPL:
 
         try:
             import time
+
             raw_start = time.time()
-            raw_response = self.raw_generate(query)
+            raw_prompt = self._build_raw_chat_prompt(query)
+            raw_response = self.raw_generate(raw_prompt)
             raw_time = (time.time() - raw_start) * 1000
             raw_entropy = len(raw_response) / 1000.0  # Approx entropy
         except Exception as e:
@@ -581,23 +701,23 @@ class ForgeREPL:
 
         try:
             gov_start = time.time()
-            state = self.pipeline.run(query)
+            state = self.pipeline.run(query, user_id=self.session_id)
             governed_time = (time.time() - gov_start) * 1000
 
             governed_response = state.raw_response or state.draft_response or "[No response]"
-            governed_lane = getattr(state, 'applicability_lane', 'UNKNOWN')
+            governed_lane = getattr(state, "applicability_lane", "UNKNOWN")
 
-            if hasattr(state, 'verdict') and state.verdict:
-                if hasattr(state.verdict, 'verdict'):
+            if hasattr(state, "verdict") and state.verdict:
+                if hasattr(state.verdict, "verdict"):
                     governed_verdict = str(state.verdict.verdict.value)
-                elif hasattr(state.verdict, 'value'):
+                elif hasattr(state.verdict, "value"):
                     governed_verdict = str(state.verdict.value)
                 else:
                     governed_verdict = str(state.verdict)
 
             if state.metrics:
-                governed_truth = getattr(state.metrics, 'truth', 0.0)
-                governed_psi = getattr(state.metrics, 'psi', 0.0)
+                governed_truth = getattr(state.metrics, "truth", 0.0)
+                governed_psi = getattr(state.metrics, "psi", 0.0)
 
         except Exception as e:
             governed_response = f"[ERROR] {e}"
@@ -610,10 +730,14 @@ class ForgeREPL:
 
         # Print side-by-side comparison
         # Stats row
-        print(f"│ Chars: {len(raw_response):<6} ΔS: {raw_entropy:.3f}".ljust(39) +
-              f"│ Lane: {governed_lane:<8} Truth: {governed_truth:.3f}".ljust(40) + "│")
-        print(f"│ Time: {raw_time:.1f}ms".ljust(39) +
-              f"│ Verdict: {governed_verdict}".ljust(40) + "│")
+        print(
+            f"│ Chars: {len(raw_response):<6} ΔS: {raw_entropy:.3f}".ljust(39)
+            + f"│ Lane: {governed_lane:<8} Truth: {governed_truth:.3f}".ljust(40)
+            + "│"
+        )
+        print(
+            f"│ Time: {raw_time:.1f}ms".ljust(39) + f"│ Verdict: {governed_verdict}".ljust(40) + "│"
+        )
         print("├" + "─" * 38 + "┼" + "─" * 39 + "┤")
 
         # Response text (side-by-side, truncated)
@@ -632,10 +756,21 @@ class ForgeREPL:
         print("┌" + "─" * 78 + "┐")
         print("│ 📊 CONTRAST ANALYSIS".ljust(79) + "│")
         print("├" + "─" * 78 + "┤")
-        print(f"│ RAW Entropy (ΔS): {raw_entropy:.3f} │ GOVERNED Ψ (Vitality): {governed_psi:.3f}".ljust(79) + "│")
-        print(f"│ RAW Time: {raw_time:.1f}ms │ GOVERNED Time: {governed_time:.1f}ms ({governed_time/raw_time:.1f}x)".ljust(79) + "│")
+        print(
+            f"│ RAW Entropy (ΔS): {raw_entropy:.3f} │ GOVERNED Ψ (Vitality): {governed_psi:.3f}".ljust(
+                79
+            )
+            + "│"
+        )
+        print(
+            f"│ RAW Time: {raw_time:.1f}ms │ GOVERNED Time: {governed_time:.1f}ms ({governed_time / raw_time:.1f}x)".ljust(
+                79
+            )
+            + "│"
+        )
         print(f"│ Governance Overhead: {governed_time - raw_time:.1f}ms".ljust(79) + "│")
         print("└" + "─" * 78 + "┘\n")
+        self._store_turn(query, governed_response)
 
     def _wrap_text(self, text: str, width: int) -> list:
         """Word-wrap text to specified width, return list of lines."""
@@ -671,23 +806,26 @@ class ForgeREPL:
                     continue
 
                 # Handle commands
-                if prompt.startswith('/'):
+                if prompt.startswith("/"):
                     cmd = prompt.lower()
-                    if cmd == '/exit':
+                    if cmd == "/exit":
                         print("\n👋 Exiting Forge REPL. DITEMPA BUKAN DIBERI.\n")
                         break
-                    elif cmd == '/help':
+                    elif cmd == "/help":
                         self.print_help()
-                    elif cmd == '/verbose':
+                    elif cmd == "/verbose":
                         self.verbose = not self.verbose
                         status = "ENABLED ✓" if self.verbose else "DISABLED ✗"
                         print(f"\n🔍 StageInspector: {status}\n")
-                    elif cmd == '/both':
+                    elif cmd == "/both":
                         self.dual_stream = not self.dual_stream
                         status = "ENABLED ✓" if self.dual_stream else "DISABLED ✗"
                         print(f"\n🔀 Dual-Stream: {status}\n")
-                    elif cmd == '/stats':
+                    elif cmd == "/stats":
                         self.print_stats()
+                    elif cmd == "/clear":
+                        self.turns = []
+                        print("\n✅ Chat memory cleared.\n")
                     else:
                         print(f"\n❌ Unknown command: {prompt}")
                         print("💡 Type /help for available commands\n")

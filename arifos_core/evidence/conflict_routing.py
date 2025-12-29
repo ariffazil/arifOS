@@ -3,17 +3,9 @@ arifOS v45 - Conflict Routing (Sovereign Witness)
 Deterministic routing based on physics attributes.
 """
 
-from enum import Enum
 from dataclasses import dataclass
 from .evidence_pack import EvidencePack
-
-
-class Verdict(str, Enum):
-    SEAL = "SEAL"
-    PARTIAL = "PARTIAL"
-    SABAR = "SABAR"
-    VOID = "VOID"
-    HOLD_888 = "HOLD_888"
+from arifos_core.system.apex_prime import Verdict
 
 
 @dataclass

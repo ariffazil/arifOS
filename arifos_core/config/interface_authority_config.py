@@ -39,16 +39,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
+from arifos_core.system.apex_prime import Verdict
 
-class VerdictType(str, Enum):
-    """Verdict types that LLMs must accept."""
-    STOP = "STOP"
-    SABAR = "SABAR"
-    VOID = "VOID"
-    PARTIAL = "PARTIAL"
-    HOLD_888 = "HOLD_888"
-    SEAL = "SEAL"
-    SUNSET = "SUNSET"
+# Alias for backwards compatibility (v43 interface spec)
+VerdictType = Verdict
 
 
 class VetoType(str, Enum):

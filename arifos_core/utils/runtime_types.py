@@ -19,6 +19,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from arifos_core.system.apex_prime import Verdict
+
 
 # =============================================================================
 # ENUMS
@@ -30,17 +32,8 @@ class JobClass(str, Enum):
     RESTRICTED = "RESTRICTED"      # High-stakes, requires deep track
 
 
-class JudicialVerdict(str, Enum):
-    """
-    APEX PRIME verdicts.
-
-    Maps to string verdicts used internally for compatibility.
-    """
-    SEAL = "SEAL"           # Approved, constitutional
-    PARTIAL = "PARTIAL"     # Approved with hedges
-    SABAR = "SABAR"         # Stop, acknowledge, breathe, adjust, resume
-    VOID = "VOID"           # Rejected, floor violation
-    HOLD = "888_HOLD"       # Awaiting human approval
+# Alias for backwards compatibility
+JudicialVerdict = Verdict
 
 
 # =============================================================================

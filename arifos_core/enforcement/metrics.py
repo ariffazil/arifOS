@@ -86,16 +86,11 @@ def _load_floors_spec_unified() -> dict:
     """
     Load constitutional floors spec with strict priority order (Track B Authority v45.0).
 
-    Priority (fail-closed by default):
+    Priority (fail-closed, v42/v38/v35 support removed in v45.0):
     A) ARIFOS_FLOORS_SPEC (env path override) - highest priority (explicit operator authority)
     B) spec/v45/constitutional_floors.json (AUTHORITATIVE - v45.0 single source of truth)
-    C) HARD FAIL (raise RuntimeError) - no silent defaults
-
-    Optional Legacy Fallback (enabled only if ARIFOS_ALLOW_LEGACY_SPEC=1):
-    C) spec/v42/constitutional_floors.json (legacy)
-    D) spec/constitutional_floors_v38Omega.json (legacy)
-    E) spec/constitutional_floors_v35Omega.json (legacy)
-    F) Hardcoded defaults (last resort)
+    C) spec/v44/constitutional_floors.json (FALLBACK with deprecation warning)
+    D) HARD FAIL (raise RuntimeError) - no legacy fallback
 
     Each candidate is validated for required keys before acceptance.
     On validation failure, falls through to next priority level.
@@ -104,19 +99,27 @@ def _load_floors_spec_unified() -> dict:
         dict: The loaded spec with floor thresholds
 
     Raises:
-        RuntimeError: If v44 spec missing/invalid and ARIFOS_ALLOW_LEGACY_SPEC not enabled
+        RuntimeError: If v45/v44 spec missing/invalid (v42/v38/v35 support removed)
     """
     # Navigate to repo root: metrics.py -> enforcement/ -> arifos_core/ -> repo root
     pkg_dir = Path(__file__).resolve().parent.parent.parent
     loaded_from = None
     spec_data = None
 
-    # Check legacy fallback switch (default OFF)
-    allow_legacy = os.getenv("ARIFOS_ALLOW_LEGACY_SPEC", "0") == "1"
-    v44_schema_path = pkg_dir / "spec" / "v44" / "schema" / "constitutional_floors.schema.json"
+    # v45.0: Legacy fallback removed (ARIFOS_ALLOW_LEGACY_SPEC no longer supported)
+    # Only v45→v44→FAIL is supported
+    allow_legacy = False
 
-    # Verify cryptographic manifest (tamper-evident integrity for v44 specs)
-    manifest_path = pkg_dir / "spec" / "v44" / "MANIFEST.sha256.json"
+    # Try v45 schema first, fallback to v44
+    v45_schema_path = pkg_dir / "spec" / "v45" / "schema" / "constitutional_floors.schema.json"
+    v44_schema_path = pkg_dir / "spec" / "v44" / "schema" / "constitutional_floors.schema.json"
+    schema_path = v45_schema_path if v45_schema_path.exists() else v44_schema_path
+
+    # Verify cryptographic manifest (tamper-evident integrity for v45/v44 specs)
+    # Try v45 manifest first, fallback to v44
+    v45_manifest_path = pkg_dir / "spec" / "v45" / "MANIFEST.sha256.json"
+    v44_manifest_path = pkg_dir / "spec" / "v44" / "MANIFEST.sha256.json"
+    manifest_path = v45_manifest_path if v45_manifest_path.exists() else v44_manifest_path
     verify_manifest(pkg_dir, manifest_path, allow_legacy=allow_legacy)
 
     # Priority A: Environment variable override (highest priority)
@@ -124,19 +127,23 @@ def _load_floors_spec_unified() -> dict:
     if env_path:
         env_spec_path = Path(env_path).resolve()
 
-        # Strict mode: env override must point to spec/v45/ (manifest-covered files only)
+        # Strict mode: env override must point to spec/v45/ or spec/v44/ (manifest-covered files only)
         if not allow_legacy:
+            v45_dir = (pkg_dir / "spec" / "v45").resolve()
             v44_dir = (pkg_dir / "spec" / "v44").resolve()
             try:
-                # Check if env path is within spec/v45/
-                env_spec_path.relative_to(v44_dir)
+                # Check if env path is within spec/v45/ or spec/v44/
+                try:
+                    env_spec_path.relative_to(v45_dir)
+                except ValueError:
+                    env_spec_path.relative_to(v44_dir)
             except ValueError:
-                # Path is outside spec/v45/ - reject in strict mode
+                # Path is outside both spec/v45/ and spec/v44/ - reject in strict mode
                 raise RuntimeError(
-                    f"TRACK B AUTHORITY FAILURE: Environment override points to path outside spec/v45/.\n"
+                    f"TRACK B AUTHORITY FAILURE: Environment override points to path outside spec/v45/ or spec/v44/.\n"
                     f"  Override path: {env_spec_path}\n"
-                    f"  Expected within: {v44_dir}\n"
-                    f"In strict mode, only manifest-covered files (spec/v45/) are allowed.\n"
+                    f"  Expected within: {v45_dir} or {v44_dir}\n"
+                    f"In strict mode, only manifest-covered files (spec/v45/ or spec/v44/) are allowed.\n"
                     f"Set ARIFOS_ALLOW_LEGACY_SPEC=1 to bypass (NOT RECOMMENDED)."
                 )
 
@@ -145,7 +152,7 @@ def _load_floors_spec_unified() -> dict:
                 with env_spec_path.open("r", encoding="utf-8") as f:
                     candidate = json.load(f)
                 # Schema validation (Track B authority enforcement)
-                validate_spec_against_schema(candidate, v44_schema_path, allow_legacy=allow_legacy)
+                validate_spec_against_schema(candidate, schema_path, allow_legacy=allow_legacy)
                 # Structural validation (required keys)
                 if _validate_floors_spec(candidate, str(env_spec_path)):
                     spec_data = candidate
@@ -155,91 +162,57 @@ def _load_floors_spec_unified() -> dict:
 
     # Priority B: spec/v45/constitutional_floors.json (AUTHORITATIVE)
     if spec_data is None:
+        v45_path = pkg_dir / "spec" / "v45" / "constitutional_floors.json"
+        if v45_path.exists():
+            try:
+                with v45_path.open("r", encoding="utf-8") as f:
+                    candidate = json.load(f)
+                # Schema validation (Track B authority enforcement)
+                validate_spec_against_schema(candidate, schema_path, allow_legacy=allow_legacy)
+                # Structural validation (required keys)
+                if _validate_floors_spec(candidate, str(v45_path)):
+                    spec_data = candidate
+                    loaded_from = "spec/v45/constitutional_floors.json"
+            except (json.JSONDecodeError, IOError):
+                pass  # Fall through to v44 fallback
+
+    # Priority C: spec/v44/constitutional_floors.json (FALLBACK with deprecation warning)
+    if spec_data is None:
         v44_path = pkg_dir / "spec" / "v44" / "constitutional_floors.json"
         if v44_path.exists():
+            import warnings
+            warnings.warn(
+                "Loading from spec/v44/ (DEPRECATED). Please upgrade to spec/v45/. "
+                "v44 fallback will be removed in future versions.",
+                DeprecationWarning,
+                stacklevel=2
+            )
             try:
                 with v44_path.open("r", encoding="utf-8") as f:
                     candidate = json.load(f)
                 # Schema validation (Track B authority enforcement)
-                validate_spec_against_schema(candidate, v44_schema_path, allow_legacy=allow_legacy)
+                validate_spec_against_schema(candidate, schema_path, allow_legacy=allow_legacy)
                 # Structural validation (required keys)
                 if _validate_floors_spec(candidate, str(v44_path)):
                     spec_data = candidate
-                    loaded_from = "spec/v45/constitutional_floors.json"
+                    loaded_from = "spec/v44/constitutional_floors.json (DEPRECATED)"
             except (json.JSONDecodeError, IOError):
-                pass  # Fall through to next priority
+                pass  # Fall through to hard fail
 
-    # Priority C: HARD FAIL (unless legacy fallback enabled)
-    if spec_data is None and not allow_legacy:
-        raise RuntimeError(
-            "TRACK B AUTHORITY FAILURE: spec/v45/constitutional_floors.json missing or invalid. "
-            "This is a critical governance failure. "
-            "To enable legacy fallback (NOT RECOMMENDED), set ARIFOS_ALLOW_LEGACY_SPEC=1. "
-            "To fix: Ensure spec/v45/constitutional_floors.json exists and is valid."
-        )
-
-    # --- LEGACY FALLBACK (only if ARIFOS_ALLOW_LEGACY_SPEC=1) ---
-
-    # Priority C (legacy): spec/v42/constitutional_floors.json
-    if spec_data is None and allow_legacy:
-        v42_path = pkg_dir / "spec" / "v42" / "constitutional_floors.json"
-        if v42_path.exists():
-            try:
-                with v42_path.open("r", encoding="utf-8") as f:
-                    candidate = json.load(f)
-                if _validate_floors_spec(candidate, str(v42_path)):
-                    spec_data = candidate
-                    loaded_from = "spec/v42/constitutional_floors.json (LEGACY FALLBACK)"
-            except (json.JSONDecodeError, IOError):
-                pass  # Fall through to next priority
-
-    # Priority D (legacy): spec/constitutional_floors_v38Omega.json
-    if spec_data is None and allow_legacy:
-        v38_path = pkg_dir / "spec" / "constitutional_floors_v38Omega.json"
-        if v38_path.exists():
-            try:
-                with v38_path.open("r", encoding="utf-8") as f:
-                    candidate = json.load(f)
-                if _validate_floors_spec(candidate, str(v38_path)):
-                    spec_data = candidate
-                    loaded_from = "spec/constitutional_floors_v38Omega.json (LEGACY FALLBACK)"
-            except (json.JSONDecodeError, IOError):
-                pass  # Fall through to next priority
-
-    # Priority E (legacy): spec/constitutional_floors_v35Omega.json
-    if spec_data is None and allow_legacy:
-        v35_path = pkg_dir / "spec" / "constitutional_floors_v35Omega.json"
-        if v35_path.exists():
-            try:
-                with v35_path.open("r", encoding="utf-8") as f:
-                    candidate = json.load(f)
-                if _validate_floors_spec(candidate, str(v35_path)):
-                    spec_data = candidate
-                    loaded_from = "spec/constitutional_floors_v35Omega.json (LEGACY FALLBACK)"
-            except (json.JSONDecodeError, IOError):
-                pass  # Fall through to hardcoded defaults
-
-    # Priority F (legacy): Hardcoded fallback (last resort)
-    if spec_data is None and allow_legacy:
-        spec_data = {
-            "version": "v42.1-fallback",
-            "floors": {
-                "truth": {"threshold": 0.99},
-                "delta_s": {"threshold": 0.0},
-                "peace_squared": {"threshold": 1.0},
-                "kappa_r": {"threshold": 0.95},
-                "omega_0": {"threshold_min": 0.03, "threshold_max": 0.05},
-                "tri_witness": {"threshold": 0.95},
-            },
-            "vitality": {"threshold": 1.0},
-        }
-        loaded_from = "hardcoded_defaults (LEGACY FALLBACK)"
-
-    # Final check: If still None, something is seriously wrong
+    # Priority D: HARD FAIL (v42/v38/v35 support removed in v45.0)
+    # Legacy fallback code removed in Phase 2 Step 2.2 (2025-12-29)
+    # Insights preserved in: archive/v42_v38_v35_eureka_insights.md
     if spec_data is None:
         raise RuntimeError(
-            "TRACK B AUTHORITY CATASTROPHIC FAILURE: No spec could be loaded. "
-            "This should never happen. Check file system and permissions."
+            "TRACK B AUTHORITY FAILURE: Constitutional floors spec not found.\n\n"
+            "Searched locations:\n"
+            f"  - spec/v45/constitutional_floors.json (AUTHORITATIVE)\n"
+            f"  - spec/v44/constitutional_floors.json (FALLBACK)\n\n"
+            "Migration required:\n"
+            "1. Ensure spec/v45/constitutional_floors.json exists\n"
+            "2. Or set ARIFOS_FLOORS_SPEC=/path/to/spec/v45/constitutional_floors.json\n\n"
+            "Note: v42/v38/v35 specs are no longer supported.\n"
+            "For migration guide, see: archive/v42_v38_v35_eureka_insights.md"
         )
 
     # Emit explicit marker for audit/debugging
@@ -249,10 +222,8 @@ def _load_floors_spec_unified() -> dict:
 
 
 # Load spec once at module import (Track B authority established)
-_FLOORS_SPEC_V38 = _load_floors_spec_unified()
-
-# Backward compatibility alias (deprecated, will be removed in v46)
-_load_floors_spec_v38 = _load_floors_spec_unified
+# v45.0: Renamed from _FLOORS_SPEC (removed version tag from variable name)
+_FLOORS_SPEC = _load_floors_spec_unified()
 
 
 # =============================================================================
@@ -260,26 +231,26 @@ _load_floors_spec_v38 = _load_floors_spec_unified
 # =============================================================================
 
 # F1: Truth - factual integrity
-TRUTH_THRESHOLD: float = _FLOORS_SPEC_V38["floors"]["truth"]["threshold"]
+TRUTH_THRESHOLD: float = _FLOORS_SPEC["floors"]["truth"]["threshold"]
 
 # F2: Clarity (DeltaS) - entropy reduction
-DELTA_S_THRESHOLD: float = _FLOORS_SPEC_V38["floors"]["delta_s"]["threshold"]
+DELTA_S_THRESHOLD: float = _FLOORS_SPEC["floors"]["delta_s"]["threshold"]
 
 # F3: Stability (Peace-squared) - non-escalation
-PEACE_SQUARED_THRESHOLD: float = _FLOORS_SPEC_V38["floors"]["peace_squared"]["threshold"]
+PEACE_SQUARED_THRESHOLD: float = _FLOORS_SPEC["floors"]["peace_squared"]["threshold"]
 
 # F4: Empathy (KappaR) - weakest-listener protection
-KAPPA_R_THRESHOLD: float = _FLOORS_SPEC_V38["floors"]["kappa_r"]["threshold"]
+KAPPA_R_THRESHOLD: float = _FLOORS_SPEC["floors"]["kappa_r"]["threshold"]
 
 # F5: Humility (Omega0) - uncertainty band [3%, 5%]
-OMEGA_0_MIN: float = _FLOORS_SPEC_V38["floors"]["omega_0"]["threshold_min"]
-OMEGA_0_MAX: float = _FLOORS_SPEC_V38["floors"]["omega_0"]["threshold_max"]
+OMEGA_0_MIN: float = _FLOORS_SPEC["floors"]["omega_0"]["threshold_min"]
+OMEGA_0_MAX: float = _FLOORS_SPEC["floors"]["omega_0"]["threshold_max"]
 
 # F8: Tri-Witness - consensus for high-stakes
-TRI_WITNESS_THRESHOLD: float = _FLOORS_SPEC_V38["floors"]["tri_witness"]["threshold"]
+TRI_WITNESS_THRESHOLD: float = _FLOORS_SPEC["floors"]["tri_witness"]["threshold"]
 
 # Psi: Vitality - overall system health
-PSI_THRESHOLD: float = _FLOORS_SPEC_V38["vitality"]["threshold"]
+PSI_THRESHOLD: float = _FLOORS_SPEC["vitality"]["threshold"]
 
 
 # =============================================================================
@@ -458,7 +429,8 @@ def check_psi(value: float) -> bool:
 
 # =============================================================================
 # ANTI-HANTU HELPERS (F9)
-# Patterns from: canon/020_ANTI_HANTU_v35Omega.md
+# Patterns from WAW spec (loaded via waw_loader.py)
+# Historical reference: canon/020_ANTI_HANTU_v35Omega.md (v35 era)
 # =============================================================================
 
 # Forbidden patterns - trigger immediate Anti-Hantu scan
@@ -549,10 +521,10 @@ def _clamp_floor_ratio(value: float, floor: float) -> float:
 class Metrics:
     """Canonical metrics required by ArifOS floors.
 
-    Canonical field names mirror LAW.md and spec/constitutional_floors_v38Omega.json.
+    Canonical field names mirror LAW.md and spec/v45/constitutional_floors.json.
     Legacy aliases (delta_S, peace2) are provided for backwards compatibility.
 
-    v38Omega: Thresholds now loaded from spec file. Extended metrics from v35Omega.
+    v45.0: Thresholds loaded from Track B spec (v45→v44 fallback). Extended metrics stabilized.
     """
 
     # Core floors
@@ -986,7 +958,7 @@ def enforce_identity_truth_lock(
 # =============================================================================
 
 __all__ = [
-    # Threshold constants (loaded from spec/constitutional_floors_v38Omega.json)
+    # Threshold constants (loaded from spec/v45/constitutional_floors.json)
     "TRUTH_THRESHOLD",
     "DELTA_S_THRESHOLD",
     "PEACE_SQUARED_THRESHOLD",

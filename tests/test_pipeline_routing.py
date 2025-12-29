@@ -138,6 +138,57 @@ class TestStageExecution:
         state = stage_111_sense(state)
 
         assert len(state.high_stakes_indicators) == 0
+
+    def test_stage_222_preserves_existing_context_blocks(self):
+        """222_REFLECT should preserve existing context blocks (e.g., L7 recall)."""
+        state = PipelineState(query="test")
+        state.context_blocks = [{"type": "existing", "text": "EXISTING_CONTEXT"}]
+
+        def context_retriever(_query: str):
+            return [{"type": "retrieved", "text": "RETRIEVED_CONTEXT"}]
+
+        state = stage_222_reflect(state, scar_retriever=None, context_retriever=context_retriever)
+
+        texts = [c.get("text") for c in state.context_blocks]
+        assert "RETRIEVED_CONTEXT" in texts
+        assert "EXISTING_CONTEXT" in texts
+
+    def test_context_retriever_at_stage_111_applies_in_fast_track(self):
+        """Fast-track (Class A) should still receive context when enabled."""
+        captured = {}
+
+        def llm_generate(prompt: str) -> str:
+            captured["prompt"] = prompt
+            return "OK"
+
+        def compute_metrics(query: str, reply: str, _context):
+            return Metrics(
+                truth=0.99,
+                delta_s=0.1,
+                peace_squared=1.1,
+                kappa_r=0.97,
+                omega_0=0.04,
+                amanah=True,
+                tri_witness=0.96,
+                rasa=True,
+            )
+
+        def context_retriever(_query: str):
+            return [{"type": "chat_turn", "text": "U: hello\nA: hi"}]
+
+        pipeline = Pipeline(
+            llm_generate=llm_generate,
+            compute_metrics=compute_metrics,
+            context_retriever=context_retriever,
+            context_retriever_at_stage_111=True,
+        )
+
+        state = pipeline.run("What is 2 + 2?")
+
+        assert state.stakes_class == StakesClass.CLASS_A
+        assert "222_REFLECT" not in state.stage_trace
+        assert "Relevant context:" in captured.get("prompt", "")
+        assert "U: hello" in captured.get("prompt", "")
         assert state.stakes_class == StakesClass.CLASS_A
 
     def test_stage_888_computes_verdict(self):
