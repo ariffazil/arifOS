@@ -1,11 +1,11 @@
 # Spec ↔ Code Binding (v45)
 
-**Track:** A (Canon)  
-**Epoch:** v42 (Thermodynamic Runtime)  
-**Status:** ✅ SEALED — Spec/Code contract  
-**Authority:** ΔΩΨ physics · Constitutional Floors · Measurement layer · APEX Judiciary  
-**Spec sources:** `spec/v42/spec_binding.json`, `spec/v42/measurement.yaml`, `spec/v42/genius_law.json`, `spec/v42/pipeline.json`, `spec/v42/federation.json`  
-**Cross-links:** `03_runtime/010_PIPELINE_000TO999_v42.md`, `04_measurement/010_MEASUREMENT_CANON_v42.md`, `04_measurement/020_CONTROL_LOGIC_v42.md`
+**Track:** A (Canon)
+**Epoch:** v45 (Phoenix-72 Consolidation)
+**Status:** ✅ SEALED — Spec/Code contract
+**Authority:** ΔΩΨ physics · Constitutional Floors · Measurement layer · APEX Judiciary
+**Spec sources:** `spec/v45/constitutional_floors.json`, `spec/v45/genius_law.json`, `spec/v45/session_physics.json`, `spec/v45/red_patterns.json`, `spec/v45/cooling_ledger_phoenix.json`, `spec/v45/waw_prompt_floors.json`, `spec/v45/policy_text.json`
+**Cross-links:** `03_runtime/010_PIPELINE_000TO999_v45.md`, `04_measurement/010_MEASUREMENT_CANON_v45.md`, `02_actors/040_APEX_PSI_JUDICIARY_v45.md`
 
 ---
 
@@ -29,11 +29,11 @@ Declare the constitutional handshake between immutable law (canon + spec) and mu
 
 At process boot, the runtime MUST:
 
-1) Load `spec/v42/spec_binding.json`, `spec/v42/measurement.yaml`, `spec/v42/genius_law.json`.  
-2) Verify their SHA-256 hashes match the values recorded for this run in the Cooling Ledger header.  
-3) Validate schema fields (`epsilon_map`, `hash_policy`, `allowed_versions`).  
-4) If any mismatch or schema failure → **VOID** the session and abort startup.  
-5) If all pass → emit zkPC receipt, then proceed to pipeline stage 000.
+1) Load `spec/v45/constitutional_floors.json`, `spec/v45/genius_law.json`, `spec/v45/session_physics.json`, `spec/v45/red_patterns.json`, `spec/v45/cooling_ledger_phoenix.json`, `spec/v45/waw_prompt_floors.json`, `spec/v45/policy_text.json`.
+2) Verify their SHA-256 hashes match `spec/v45/MANIFEST.sha256.json` (cryptographic integrity check).
+3) Validate schema fields against corresponding `.schema.json` files using jsonschema library.
+4) If any mismatch or schema failure → **VOID** the session and abort startup.
+5) If all pass → emit zkPC receipt (proof of binding), then proceed to pipeline stage 000.
 
 ---
 
@@ -43,12 +43,15 @@ At process boot, the runtime MUST:
 # arifos_core/validators/spec_checker.py
 def validate_spec_binding(
     spec_paths = [
-        "spec/v42/spec_binding.json",
-        "spec/v42/measurement.yaml",
-        "spec/v42/genius_law.json",
-        "spec/v42/pipeline.json",
-        "spec/v42/federation.json",
+        "spec/v45/constitutional_floors.json",
+        "spec/v45/genius_law.json",
+        "spec/v45/session_physics.json",
+        "spec/v45/red_patterns.json",
+        "spec/v45/cooling_ledger_phoenix.json",
+        "spec/v45/waw_prompt_floors.json",
+        "spec/v45/policy_text.json",
     ],
+    manifest_path: str = "spec/v45/MANIFEST.sha256.json",
     epsilon_map_key: str = "epsilon_map",
 ) -> "ZkpcReceipt": ...
 ```
@@ -92,9 +95,10 @@ Hard drift → VOID + auditor escalation.
 
 Every Cooling Ledger entry MUST include:
 
-- `spec_hashes` (measurement.yaml, genius_law.json, spec_binding.json, pipeline.json, federation.json)  
-- `commit_hash` of runtime build  
-- `zkpc_receipt` proving binding validity  
+- `spec_hashes` (all 7 v45 specs: constitutional_floors.json, genius_law.json, session_physics.json, red_patterns.json, cooling_ledger_phoenix.json, waw_prompt_floors.json, policy_text.json)
+- `manifest_hash` (SHA-256 of MANIFEST.sha256.json itself, for tamper-evidence)
+- `commit_hash` of runtime build
+- `zkpc_receipt` proving binding validity
 - `epsilon_observed` per metric
 
 Append-only; any missing or mismatched hashes triggers VOID investigation.

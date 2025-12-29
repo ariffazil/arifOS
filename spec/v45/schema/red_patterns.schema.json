@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/ariffazil/arifOS/spec/v44/schema/red_patterns.schema.json",
-  "title": "Red Patterns v44 Specification Schema",
-  "description": "JSON Schema for validating v44.0 red patterns specification (instant VOID enforcement)",
+  "$id": "https://github.com/ariffazil/arifOS/spec/v45/schema/red_patterns.schema.json",
+  "title": "Red Patterns v45 Specification Schema",
+  "description": "JSON Schema for validating v45.0 red patterns specification (instant VOID enforcement)",
   "type": "object",
 
   "required": [
@@ -22,8 +22,8 @@
   "properties": {
     "version": {
       "type": "string",
-      "pattern": "^v44\\.0$",
-      "description": "Must be v44.0"
+      "pattern": "^v45\\.0$",
+      "description": "Must be v45.0"
     },
     "authority": {
       "type": "string",
