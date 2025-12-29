@@ -81,9 +81,51 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 - Entropy is complexity: High ΔS requires cooling
 - AAA framework: Amanah (reversible), Authority (boundaries), Accountability (audit trail)
 
+- **NEW:** `L2_GOVERNANCE/skills/` - Unified skills registry (v45.0.0+)
+  - `ARIFOS_SKILLS_REGISTRY.md` (2,000+ lines) - **CANONICAL SINGLE SOURCE OF TRUTH**
+    - Registry for all 7 core constitutional skills (/000, /fag, /entropy, /gitforge, /gitQC, /gitseal, /sabar)
+    - Master-Derive Model: `.agent/workflows/` (MASTER) → `.codex/skills/` + `.claude/skills/` (DERIVED)
+    - Per-skill specifications:
+      - LAW: Constitutional function and floor coverage
+      - INTERFACE: Usage examples, CLI invocation, expected outputs
+      - ENFORCEMENT: Verdict logic, logging requirements, fail-closed patterns
+    - YAML frontmatter schema for each skill (version, floors, allowed-tools, expose-cli, derive-to)
+    - Tool restrictions baseline (Security Policy: platforms can only RESTRICT, never EXPAND)
+    - Naming mappings across platforms (Codex workflow-style vs Claude descriptive)
+    - Master-Derive sync protocol with automated drift detection
+    - Two-section structure for platform skills (enhancements + canonical workflow)
+    - Verdict triggers & logging requirements (SEAL, PARTIAL, VOID, SABAR, 888_HOLD)
+    - Entropy thresholds by skill type (Commands: 1.0, Skills: 3.0, Agents: 5.0, Orchestrators: 7.0)
+    - Constitutional compliance checklist
+    - Integration with Track A canon (F1-F9) and Track B specs (thresholds)
+    - Future enhancements roadmap (memory governance skills, W@W federation, testing)
+  - `README.md` - Directory orientation and maintenance protocol
+    - Quick reference table (7 core skills with CLI safety classification)
+    - Master-Derive workflow documentation
+    - Step-by-step guides: Adding new skill, modifying existing, deprecating
+    - Relationship to governance layers (Track A, Track B, L2_GOVERNANCE, implementation)
+    - Skill governance principles (fail-closed enforcement, constitutional compliance)
+- **UPDATED:** `AGENTS.md` - Added cross-reference to skills registry (section 1.1)
+  - Link to `L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md`
+  - Summary of 7 core skills with master-derive model explanation
+
+**Consolidation Achievement:**
+- **Problem Solved:** Skill fragmentation across 3 locations (.agent/, .codex/, .claude/) with version drift
+- **Solution:** Single canonical registry with automated sync (master-derive model)
+- **Impact:**
+  - ✅ ONE source of truth (`.agent/workflows/` master files)
+  - ✅ Version drift prevention (automated sync scripts)
+  - ✅ Security baseline (tool restrictions propagated from master)
+  - ✅ Platform enhancements preserved (Codex/Claude-specific features)
+  - ✅ Constitutional compliance enforced (F1-F9, AAA, SABAR-72)
+  - ✅ Naming consistency (explicit mappings: short codes, workflow-style, descriptive)
+
 **Next Steps (Phase 1 Remaining):**
-- Create plugin templates (agent.md, skill.md, command.sh, orchestrator.md)
-- Write governance documentation (PLUGIN_GOVERNANCE.md, FLOOR_ENFORCEMENT.md, AAA_FRAMEWORK.md, ENTROPY_TRACKING.md)
+- ~~Create plugin templates (agent.md, skill.md, command.sh, orchestrator.md)~~ ✅ COMPLETED
+- ~~Write governance documentation (PLUGIN_GOVERNANCE.md, FLOOR_ENFORCEMENT.md, AAA_FRAMEWORK.md, ENTROPY_TRACKING.md)~~ ✅ COMPLETED
+- ~~Create unified skills registry (ARIFOS_SKILLS_REGISTRY.md)~~ ✅ COMPLETED
+- Implement sync automation (`scripts/sync_skills.py`, `scripts/check_skill_drift.py`)
+- Unit tests for governance engine, floor validator, entropy tracker, verdict generator
 
 **Roadmap:**
 - Phase 1: Core Infrastructure (Week 1) - IN PROGRESS

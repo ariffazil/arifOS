@@ -54,6 +54,11 @@ python -m scripts.ollama_redteam_suite_v37 # 33-prompt caged red-team suite
 python -m scripts.test_bogel_llama         # 33-prompt baseline (uncaged LLM)
 ```
 
+**Skills Registry (v45.0.0+):**
+- **PRIMARY:** [L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md](L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md) – Canonical registry for all 7 core constitutional skills (/000, /fag, /entropy, /gitforge, /gitQC, /gitseal, /sabar)
+- Master definitions in `.agent/workflows/`, platform variants in `.codex/skills/` and `.claude/skills/`
+- Tool restrictions, verdict triggers, logging requirements, fail-closed enforcement
+
 ### 1.2 Code Style
 
 - Python 3.10+, type hints required
