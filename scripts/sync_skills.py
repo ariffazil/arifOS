@@ -361,7 +361,7 @@ class SkillSyncer:
             print(f"[WARN] No master files found in {self.MASTER_DIR}")
             return []
 
-        print(f"📋 Found {len(master_files)} master skills")
+        print(f"[INFO] Found {len(master_files)} master skills")
 
         for master_file in master_files:
             skill_name = master_file.stem
@@ -388,7 +388,7 @@ class SkillSyncer:
             print(f"\n{'WOULD BE ' if self.dry_run else ''}SYNCED:")
             for r in results:
                 if r.synced:
-                    print(f"  [OK] {r.skill} → {r.platform}: {r.reason}")
+                    print(f"  [OK] {r.skill} -> {r.platform}: {r.reason}")
                     if show_diff and r.changes_preview:
                         print(f"\n{r.changes_preview}\n")
 
@@ -396,7 +396,7 @@ class SkillSyncer:
             print(f"\nSKIPPED/FAILED:")
             for r in results:
                 if not r.synced:
-                    print(f"  [WARN] {r.skill} → {r.platform}: {r.reason}")
+                    print(f"  [WARN] {r.skill} -> {r.platform}: {r.reason}")
 
         print("\n" + "="*60)
 
@@ -452,7 +452,7 @@ Exit Codes:
 
     syncer = SkillSyncer(dry_run=dry_run, verbose=args.verbose)
 
-    print("🔄 arifOS Skills Sync - Master-Derive Model")
+    print("[SYNC] arifOS Skills Sync - Master-Derive Model")
     print(f"Mode: {'DRY RUN (preview only)' if dry_run else 'APPLY (will modify files)'}")
     print()
 

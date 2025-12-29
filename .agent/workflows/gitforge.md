@@ -1,5 +1,21 @@
 ---
+skill: "gitforge"
+version: "1.0.0"
 description: Analyze git branch entropy and hot zones
+floors:
+  - F1
+  - F4
+  - F5
+allowed-tools:
+  - Bash(git:*)
+  - Bash(python:*)
+expose-cli: true
+derive-to:
+  - codex
+  - claude
+codex-name: arifos-workflow-gitforge
+claude-name: analyze-entropy
+sabar-threshold: 5.0
 ---
 # /gitforge - State Mapper & Entropy Predictor
 

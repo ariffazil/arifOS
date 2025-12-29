@@ -1,5 +1,28 @@
 ---
+skill: "fag"
+version: "1.0.0"
 description: Full Autonomy Governance Mode - AGI Coder Activation
+floors:
+  - F1
+  - F2
+  - F3
+  - F4
+  - F5
+  - F6
+  - F7
+  - F8
+  - F9
+allowed-tools:
+  - Read
+  - Bash(python:*)
+  - Bash(git:*)
+expose-cli: true
+derive-to:
+  - codex
+  - claude
+codex-name: arifos-workflow-fag
+claude-name: full-autonomy
+sabar-threshold: 5.0
 ---
 # /fag - Full Autonomy Governance
 
