@@ -1,92 +1,186 @@
-# arifOS v42 Canon Master Index (L1_THEORY)
+# arifOS v45 Canon Master Index
 
 **Version:** v45.0 | **Status:** ✅ SEALED | **Last Updated:** 2025-12-29
 **Authority:** Phoenix-72 Constitutional Amendment (v45 Consolidation)
-
-This index applies to Track A canon under `L1_THEORY/canon/`.
-For the root layout map, see `L1_THEORY/canon/_INDEX/ROOT_MAP.md`.
+**Motto:** DITEMPA BUKAN DIBERI — Forged, not given; truth must cool before it rules
 
 ---
 
-## 07_safety/
+## Overview
+
+This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/`. All files upgraded to v45 during the 2025-12-29 Phoenix-72 consolidation.
+
+**File Count:** 35 v45 files + 5 metadata files = 40 total
+**Version Consistency:** 100% v45
+**Reduction:** 49 → 40 files (9 archived to `archive/v42_detail/`)
+
+---
+
+## Quick Navigation
+
+| Layer | Purpose | Key Files |
+|-------|---------|-----------|
+| **00_foundation** | ΔΩΨ Physics & Thermodynamics | Physics, Math, ΔΩΨ Equation, Thermodynamics |
+| **01_floors** | F1-F9 Constitutional Floors | Constitutional Floors F1-F9 |
+| **02_actors** | AAA Trinity (ARIF, ADAM, APEX) | Trinity Roles, AGI/ASI, APEX, Anti-Hantu, @EYE, W@W |
+| **03_runtime** | 000→999 Pipeline & TEARFRAME | Pipeline, TEARFRAME, W@W Federation, Forging Protocol |
+| **04_measurement** | GENIUS Law & Metrics | GENIUS Law, Measurement Canon, Control Logic |
+| **05_memory** | Cooling Ledger & Phoenix-72 | Cooling Ledger, Vault-999, ZKPC, EUREKA |
+| **06_paradox** | Grey Zones & Edge Cases | Paradox Engine, Grey Zone, Vault-999 Paradox |
+| **07_safety** | Threat Model & Security | Security Scenarios, Master Flaw Set |
+
+---
+
+## 00_foundation/ — ΔΩΨ Thermodynamic Foundation
 
 | File | Title | Purpose |
 |---|---|---|
-| `07_safety/01_SECURITY_SCENARIOS_v42.md` | 🛡️ Threat Model | Defines Janitor Maximizer, Ouroboros, and Glass Cannon risks. |
+| [`000_arifOS_v45_CANON.md`](../00_foundation/000_arifOS_v45_CANON.md) | 📜 **v45 Unified Canon** | Comprehensive constitutional witness (all 9 floors, TEARFRAME, verdicts) |
+| [`00_DELTA_OMEGA_PSI_v45.md`](../00_foundation/00_DELTA_OMEGA_PSI_v45.md) | 🔺 **ΔΩΨ Equation** | The ONE equation: Ψ vitality, Δ clarity, Ω humility |
+| [`00_THERMODYNAMICS_v45.md`](../00_foundation/00_THERMODYNAMICS_v45.md) | 🌡️ **Thermodynamics** | Landauer's Principle, entropy cooling, free energy |
+| [`00_ZKPC_PROTOCOL_v45.md`](../00_foundation/00_ZKPC_PROTOCOL_v45.md) | 🔐 **ZKPC Protocol** | Zero-Knowledge Proof of Constitution (cryptographic governance) |
+| [`040_PHYSICS_v45.md`](../00_foundation/040_PHYSICS_v45.md) | ⚛️ **Physics Layer** | ΔΩΨ physics foundations, A·P·E·X substrate dials |
+| [`050_MATH_v45.md`](../00_foundation/050_MATH_v45.md) | 🔢 **Mathematics** | Formal equations, Ψ dual forms, Peace², κᵣ, GENIUS law |
+| [`060_META_THEORY_APEX_v45.md`](../00_foundation/060_META_THEORY_APEX_v45.md) | 🧠 **Meta-Theory** | APEX theoretical foundations |
 
-## Index Addendum — Phase-0 (Cartographer)
+---
 
-Appended: auto-registered all _v42.md under Track A canon sections (00–06).
+## 00_meta/ — Interface & Authority
 
-## 00_foundation/
-
-| File | Title | Notes |
+| File | Title | Purpose |
 |---|---|---|
-| `00_foundation/001_GENESIS_42.md` | GENESIS 42 | — |
-| `00_foundation/002_MANIFESTO_V42.md` | MANIFESTO | — |
-| `00_foundation/040_PHYSICS_v42.md` | PHYSICS | — |
-| `00_foundation/050_MATH_v42.md` | MATH | — |
-| `00_foundation/060_META_THEORY_APEX_v42.md` | META THEORY APEX | — |
-| `00_foundation/00_DELTA_OMEGA_PSI_v42.md` | DELTA OMEGA PSI | — |
-| `00_foundation/00_THERMODYNAMICS_v42.md` | THERMODYNAMICS | — |
-| `00_foundation/00_ZKPC_PROTOCOL_v42.md` | ZKPC PROTOCOL | — |
+| [`030_INTERFACE_AND_AUTHORITY_CANON_v45.md`](../00_meta/030_INTERFACE_AND_AUTHORITY_CANON_v45.md) | 🔌 **Interface Canon** | Human-AI authority boundaries, sovereignty |
 
-## 01_floors/
+---
 
-| File | Title | Notes |
+## 01_floors/ — Constitutional Floors (F1-F9)
+
+| File | Title | Purpose |
 |---|---|---|
-| `01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md` | CONSTITUTIONAL FLOORS F1F9 | — |
+| [`010_CONSTITUTIONAL_FLOORS_F1F9_v45.md`](../01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md) | ⚖️ **F1-F9 Floors** | **CRITICAL** - All 9 constitutional floors (Amanah, Truth, Tri-Witness, ΔS, Peace², κᵣ, Ω₀, GENIUS, Anti-Hantu) |
 
-## 02_actors/
+**Floor Summary:**
+- **F1 Amanah:** Integrity lock (VOID on breach)
+- **F2 Truth:** ≥0.99 confidence or UNKNOWN
+- **F3 Tri-Witness:** Human-AI-Earth consensus ≥0.95
+- **F4 ΔS:** Entropy reduction ≥0 (clarity gain)
+- **F5 Peace²:** Stability ≥1.0 (no escalation)
+- **F6 κᵣ:** Empathy ≥0.95 (protect weakest stakeholder)
+- **F7 Ω₀:** Humility band [0.03, 0.05]
+- **F8 GENIUS (G):** Governed intelligence ≥0.80
+- **F9 Anti-Hantu (C_dark):** Dark cleverness <0.30
 
-| File | Title | Notes |
+---
+
+## 02_actors/ — AAA Trinity & Governance Organs
+
+### The AAA Trinity (ΔΩΨ Engines)
+
+| File | Role | Field | Purpose |
+|---|---|---|---|
+| [`020_AGI_DELTA_ARCHITECT_v45.md`](../02_actors/020_AGI_DELTA_ARCHITECT_v45.md) | 🧩 **ARIF (Δ Mind)** | Clarity | Architect - Reasoning engine, logic, ΔS computation |
+| [`030_ASI_OMEGA_AUDITOR_v45.md`](../02_actors/030_ASI_OMEGA_AUDITOR_v45.md) | ❤️ **ADAM (Ω Heart)** | Humility | Auditor - Empathy engine, Peace², κᵣ, Ω₀ |
+| [`040_APEX_PSI_JUDICIARY_v45.md`](../02_actors/040_APEX_PSI_JUDICIARY_v45.md) | ⚖️ **APEX (Ψ Judge)** | Vitality | Judiciary - Final verdict authority (SEAL/VOID/HOLD) |
+
+### Supporting Actors
+
+| File | Title | Purpose |
 |---|---|---|
-| `02_actors/010_TRINITY_ROLES_v42.md` | TRINITY ROLES | — |
-| `02_actors/020_AGI_DELTA_ARCHITECT_v42.md` | AGI DELTA ARCHITECT | — |
-| `02_actors/030_ASI_OMEGA_AUDITOR_v42.md` | ASI OMEGA AUDITOR | — |
-| `02_actors/040_APEX_PSI_JUDICIARY_v42.md` | APEX PSI JUDICIARY | — |
-| `02_actors/050_FEDERATION_ORGANS_v42.md` | FEDERATION ORGANS | — |
-| `02_actors/060_PROMPT_LANGUAGE_BRIDGE_v42.md` | PROMPT LANGUAGE BRIDGE | — |
-| `02_actors/070_EYE_SENTINEL_AUDITOR_v42.md` | EYE SENTINEL AUDITOR | — |
-| `02_actors/02_AGI_DELTA_ARCHITECT_v42.md` | AGI DELTA ARCHITECT | — |
-| `02_actors/02_ANTI_HANTU_v42.md` | ANTI HANTU | — |
-| `02_actors/02_APEX_PSI_JUDICIARY_v42.md` | APEX PSI JUDICIARY | — |
-| `02_actors/02_ASI_OMEGA_AUDITOR_v42.md` | ASI OMEGA AUDITOR | — |
-| `02_actors/02_EYE_SENTINEL_v42.md` | EYE SENTINEL | — |
+| [`010_TRINITY_ROLES_v45.md`](../02_actors/010_TRINITY_ROLES_v45.md) | 🔱 **Trinity Roles** | AAA Trinity architecture overview |
+| [`02_ANTI_HANTU_v45.md`](../02_actors/02_ANTI_HANTU_v45.md) | 👻 **Anti-Hantu** | F9 enforcement - No soul/ego claims, no ghost heuristics |
+| [`02_EYE_SENTINEL_v45.md`](../02_actors/02_EYE_SENTINEL_v45.md) | 👁️ **@EYE Sentinel** | Meta-observer - Drift/shadow/Ω checks |
+| [`050_FEDERATION_ORGANS_v45.md`](../02_actors/050_FEDERATION_ORGANS_v45.md) | 🏛️ **W@W Federation** | Multi-agent organs (@LAW, @GEOX, @WELL, @RIF) |
 
-## 03_runtime/
+---
 
-| File | Title | Notes |
+## 03_runtime/ — Pipeline & Execution
+
+| File | Title | Purpose |
 |---|---|---|
-| `03_runtime/010_PIPELINE_000TO999_v42.md` | PIPELINE 000TO999 | — |
-| `03_runtime/020_STAGE_666_LANGUAGE_BRIDGE_v42.md` | STAGE 666 LANGUAGE BRIDGE | — |
-| `03_runtime/030_SPEC_CODE_BINDING_v42.md` | SPEC CODE BINDING | — |
-| `03_runtime/03_WAW_FEDERATION_v42.md` | WAW FEDERATION | — |
+| [`010_PIPELINE_000TO999_v45.md`](../03_runtime/010_PIPELINE_000TO999_v45.md) | 🔄 **000→999 Pipeline** | **CRITICAL** - Full metabolic pipeline (VOID→SENSE→REFLECT→REASON→EVIDENCE→EMPATHIZE→ALIGN→FORGE→JUDGE→SEAL) |
+| [`020_TEARFRAME_v45.md`](../03_runtime/020_TEARFRAME_v45.md) | 🔧 **TEARFRAME** | **CRITICAL** - Physics-only runtime governor (T→R→A→F→Ψ→Verdict) |
+| [`03_WAW_FEDERATION_v45.md`](../03_runtime/03_WAW_FEDERATION_v45.md) | 🌐 **W@W Runtime** | W@W organ coordination in pipeline |
+| [`030_SPEC_CODE_BINDING_v45.md`](../03_runtime/030_SPEC_CODE_BINDING_v45.md) | 📋 **Spec Binding** | Canon↔Spec↔Code binding (Track A↔Track B) |
+| [`FORGING_PROTOCOL_v45.md`](../03_runtime/FORGING_PROTOCOL_v45.md) | 🔨 **Forging Protocol** | Constitution-compliant code generation |
 
-## 04_measurement/
+---
 
-| File | Title | Notes |
+## 04_measurement/ — GENIUS Law & Metrics
+
+| File | Title | Purpose |
 |---|---|---|
-| `04_measurement/010_MEASUREMENT_CANON_v42.md` | MEASUREMENT CANON | — |
-| `04_measurement/020_CONTROL_LOGIC_v42.md` | CONTROL LOGIC | — |
-| `04_measurement/04_GENIUS_LAW_v42.md` | GENIUS LAW | — |
+| [`04_GENIUS_LAW_v45.md`](../04_measurement/04_GENIUS_LAW_v45.md) | 🌟 **GENIUS Law** | **CRITICAL** - G = Δ·Ω·Ψ·E² (governed intelligence), C_dark = Δ(1−Ω)(1−Ψ) |
+| [`010_MEASUREMENT_CANON_v45.md`](../04_measurement/010_MEASUREMENT_CANON_v45.md) | 📊 **Measurement Canon** | Metric computation framework (ΔS, Peace², κᵣ, Ω₀, Ψ) |
+| [`020_CONTROL_LOGIC_v45.md`](../04_measurement/020_CONTROL_LOGIC_v45.md) | 🎛️ **Control Logic** | Verdict routing and floor enforcement logic |
 
-## 05_memory/
+---
 
-| File | Title | Notes |
+## 05_memory/ — Cooling Ledger & Phoenix-72
+
+| File | Title | Purpose |
 |---|---|---|
-| `05_memory/010_COOLING_LEDGER_PHOENIX_v42.md` | COOLING LEDGER PHOENIX | — |
-| `05_memory/020_VAULT_999_SOVEREIGN_KNOWLEDGE_v42.md` | VAULT 999 SOVEREIGN KNOWLEDGE | — |
-| `05_memory/030_ZKPC_GOVERNANCE_PROOF_v42.md` | ZKPC GOVERNANCE PROOF | — |
-| `05_memory/040_FORENSICS_AUDIT_v42.md` | FORENSICS AUDIT | — |
-| `05_memory/05_COOLING_LEDGER_v42.md` | COOLING LEDGER | — |
-| `05_memory/05_EUREKA_MEMORY_v42.md` | EUREKA MEMORY | — |
-| `05_memory/05_PHOENIX_72_v42.md` | PHOENIX 72 | — |
+| [`010_COOLING_LEDGER_PHOENIX_v45.md`](../05_memory/010_COOLING_LEDGER_PHOENIX_v45.md) | ❄️ **Cooling Ledger** | **CRITICAL** - Append-only audit trail + Phoenix-72 amendment protocol |
+| [`020_VAULT_999_SOVEREIGN_KNOWLEDGE_v45.md`](../05_memory/020_VAULT_999_SOVEREIGN_KNOWLEDGE_v45.md) | 🏛️ **Vault-999** | Immutable constitutional knowledge store |
+| [`030_ZKPC_GOVERNANCE_PROOF_v45.md`](../05_memory/030_ZKPC_GOVERNANCE_PROOF_v45.md) | 🔐 **ZKPC Proofs** | Zero-knowledge governance proofs |
+| [`040_FORENSICS_AUDIT_v45.md`](../05_memory/040_FORENSICS_AUDIT_v45.md) | 🔍 **Forensics** | Audit trail analysis and integrity verification |
+| [`05_EUREKA_MEMORY_v45.md`](../05_memory/05_EUREKA_MEMORY_v45.md) | 💡 **EUREKA Memory** | 6-band memory architecture (VAULT, LEDGER, ACTIVE, PHOENIX, WITNESS, VOID) |
 
-## 06_paradox/
+---
 
-| File | Title | Notes |
+## 06_paradox/ — Grey Zones & Edge Cases
+
+| File | Title | Purpose |
 |---|---|---|
-| `06_paradox/010_PARADOX_ENGINE_v42.md` | PARADOX ENGINE | — |
-| `06_paradox/06_GREY_ZONE_v42.md` | GREY ZONE | — |
-| `06_paradox/06_VAULT_999_v42.md` | VAULT 999 | — |
+| [`010_PARADOX_ENGINE_v45.md`](../06_paradox/010_PARADOX_ENGINE_v45.md) | ⚡ **Paradox Engine** | Φₚ (Crown Equation) for paradox resolution |
+| [`06_GREY_ZONE_v45.md`](../06_paradox/06_GREY_ZONE_v45.md) | 🌫️ **Grey Zone** | Ambiguous cases requiring human oversight |
+| [`06_VAULT_999_v45.md`](../06_paradox/06_VAULT_999_v45.md) | 🗃️ **Vault-999 Paradox** | Paradoxical knowledge handling |
+
+---
+
+## 07_safety/ — Threat Model & Security
+
+| File | Title | Purpose |
+|---|---|---|
+| [`01_SECURITY_SCENARIOS_v45.md`](../07_safety/01_SECURITY_SCENARIOS_v45.md) | 🛡️ **Threat Model** | Janitor Maximizer, Ouroboros, Glass Cannon risks |
+| [`02_MASTER_FLAW_SET_v45.md`](../07_safety/02_MASTER_FLAW_SET_v45.md) | ⚠️ **Master Flaw Set** | Known vulnerabilities and mitigations |
+
+---
+
+## Critical Path (Core Files)
+
+For new developers or auditors, start with these files in order:
+
+1. **[000_arifOS_v45_CANON.md](../00_foundation/000_arifOS_v45_CANON.md)** - Unified constitutional overview
+2. **[00_DELTA_OMEGA_PSI_v45.md](../00_foundation/00_DELTA_OMEGA_PSI_v45.md)** - The ONE equation
+3. **[010_CONSTITUTIONAL_FLOORS_F1F9_v45.md](../01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md)** - 9 floors (F1-F9)
+4. **[010_PIPELINE_000TO999_v45.md](../03_runtime/010_PIPELINE_000TO999_v45.md)** - 000→999 execution pipeline
+5. **[020_TEARFRAME_v45.md](../03_runtime/020_TEARFRAME_v45.md)** - Physics-only runtime governor
+6. **[04_GENIUS_LAW_v45.md](../04_measurement/04_GENIUS_LAW_v45.md)** - GENIUS law (G & C_dark)
+7. **[010_COOLING_LEDGER_PHOENIX_v45.md](../05_memory/010_COOLING_LEDGER_PHOENIX_v45.md)** - Audit trail + Phoenix-72
+
+---
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| **v45.0** | 2025-12-29 | Phoenix-72 consolidation: 49→40 files, 100% v45 consistency, 9 archived |
+| v44.0 | 2025-12-21 | Session physics layer, TEARFRAME v44 |
+| v42.0 | 2024-12-17 | Thermodynamic epoch, ΔΩΨ foundations |
+
+---
+
+## Archive Reference
+
+**v42 Archived Files:** See [`archive/v42_detail/ARCHIVE_REASON.md`](../../archive/v42_detail/ARCHIVE_REASON.md) for justification of 9 archived files (duplicates, stubs, obsolete versions).
+
+**Archive Integrity:** All archived files verified with SHA-256 manifest:
+```bash
+cd archive/v42_detail && sha256sum -c MANIFEST.sha256
+```
+
+---
+
+**DITEMPA BUKAN DIBERI** — Forged, not given; truth must cool before it rules.
+
+**End of Master Index v45**
