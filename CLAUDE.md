@@ -441,7 +441,7 @@ scripts/               # Governance utilities (reduced from 51 to ~10 files - De
 **PRIMARY (Authoritative — REQUIRED for constitutional claims):**
 
 1. `spec/v44/*.json` — Constitutional floors, GENIUS law, thresholds (Track B with SHA-256 manifest)
-2. `L1_THEORY/canon/*_v42.md` with SEALED status — Canonical law
+2. `L1_THEORY/canon/*_v45.md` with SEALED status — Canonical law
 
 **SECONDARY (Implementation Reference):**
 
@@ -686,15 +686,15 @@ def process_query(query):
 
 ## Canon Index (v42 Law + v44 Spec)
 
-**Master:** [L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md](L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md)
+**Master:** [L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md](L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md)
 
 | Layer            | Canon (v42 Law)                                               | Spec (v44 Track B)                        |
 |------------------|---------------------------------------------------------------|-------------------------------------------|
 | Foundation       | `L1_THEORY/canon/00_foundation/`                              | —                                         |
-| Floors (F1–F9)   | `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md` | `spec/v44/constitutional_floors.json` |
+| Floors (F1–F9)   | `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md` | `spec/v44/constitutional_floors.json` |
 | Actors           | `L1_THEORY/canon/02_actors/`                                  | —                                         |
 | Runtime          | `L1_THEORY/canon/03_runtime/`                                 | `spec/v44/session_physics.json`           |
-| Measurement      | `L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md`         | `spec/v44/genius_law.json`                |
+| Measurement      | `L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v45.md`         | `spec/v44/genius_law.json`                |
 | Memory           | `L1_THEORY/canon/05_memory/`                                  | `spec/v44/cooling_ledger_phoenix.json`    |
 | Paradox          | `L1_THEORY/canon/06_paradox/`                                 | —                                         |
 | Policy           | —                                                             | `spec/v44/policy_text.json`               |

@@ -18,7 +18,7 @@ status: PRODUCTION
 pypi: arifos
 motto: "DITEMPA BUKAN DIBERI - Forged, not given; truth must cool before it rules."
 escalation_threshold: 888_HOLD
-canon_master: L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md
+canon_master: L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md
 ---
 
 # AGENTS.md - arifOS Unified Agent Governance (Tier 1)
@@ -84,7 +84,7 @@ python -m scripts.test_bogel_llama         # 33-prompt baseline (uncaged LLM)
   - Prefer fixing the reference (README/link/path) over creating an alias.
   - If renaming/moving is needed, stop and ask (avoid churn and broken links).
 - Do **not** create “compatibility alias” files by default. If compatibility is required, propose options and get explicit approval.
-- See `L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v42.md` for the detailed Threat Model (The Vaccine).
+- See `L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v45.md` for the detailed Threat Model (The Vaccine).
 
 ### 1.5 Cooling Notes (Agent Learnings)
 
@@ -235,8 +235,8 @@ Trinity demonstrates that complex governance can be made accessible without sacr
 
 **PRIMARY (Authoritative — REQUIRED for constitutional claims):**
 
-1. `spec/v42/*.json` — Constitutional floors, GENIUS law, thresholds
-2. `L1_THEORY/canon/*_v42.md` with SEALED status — Canonical law
+1. `spec/v44/*.json` — Constitutional floors, GENIUS law, thresholds
+2. `L1_THEORY/canon/*_v45.md` with SEALED status — Canonical law
 
 **SECONDARY (Implementation Reference):**
 
@@ -332,16 +332,16 @@ When HOLD triggered:
 
 **v42 organizes canon into 7 conceptual layers.** Do not change thresholds without Phoenix-72 amendment.
 
-**Master Index:** [L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md](L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md)
+**Master Index:** [L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md](L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md)
 
 | Layer              | Canon                                                                          | Spec                                      |
 |--------------------|--------------------------------------------------------------------------------|-------------------------------------------|
 | **00 Foundation**  | `L1_THEORY/canon/00_foundation/`                                               | —                                         |
-| **01 Floors**      | `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md`              | `spec/v42/constitutional_floors.json`     |
+| **01 Floors**      | `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md`              | `spec/v44/constitutional_floors.json`     |
 | **02 Actors**      | `L1_THEORY/canon/02_actors/` (AGI/ASI/APEX/Anti-Hantu/EYE)                    | —                                         |
-| **03 Runtime**     | `L1_THEORY/canon/03_runtime/` (Pipeline/W@W)                                   | `spec/v42/pipeline.yaml`                  |
-| **04 Measurement** | `L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md`                          | `spec/v42/genius_law.json`                |
-| **05 Memory**      | `L1_THEORY/canon/05_memory/` (EUREKA/Cooling/Phoenix)                          | `spec/v42/cooling_ledger_phoenix.json`    |
+| **03 Runtime**     | `L1_THEORY/canon/03_runtime/` (Pipeline/W@W)                                   | `spec/v44/pipeline.yaml`                  |
+| **04 Measurement** | `L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v45.md`                          | `spec/v44/genius_law.json`                |
+| **05 Memory**      | `L1_THEORY/canon/05_memory/` (EUREKA/Cooling/Phoenix)                          | `spec/v44/cooling_ledger_phoenix.json`    |
 | **06 Paradox**     | `L1_THEORY/canon/06_paradox/` (Grey Zone/Vault-999)                            | —                                         |
 
 **Alignment Tests (Safety Net):**
@@ -842,10 +842,10 @@ For detailed roadmap and task priorities, see [docs/ROADMAP.md](docs/ROADMAP.md)
 ### Track A — LAW (L1_THEORY/canon/)
 
 - Only modify canon when explicitly requested.
-- Master index: `L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v42.md`
+- Master index: `L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md`
 - 7 conceptual layers (00-06)
 
-### Track B — SPEC (spec/v42/)
+### Track B — SPEC (spec/v44/)
 
 - Only modify specs when explicitly requested.
 - Spec files parameterize canon thresholds.
@@ -983,14 +983,14 @@ For detailed roadmap and task priorities, see [docs/ROADMAP.md](docs/ROADMAP.md)
 
 **If a gate fails → pause, fix, retest. Do not rush.**
 
-**Full roadmap:** [docs/FUTURE_PATH_v38_v42.md](docs/FUTURE_PATH_v38_v42.md)
+**Full roadmap:** [docs/FUTURE_PATH_v38_v45.md](docs/FUTURE_PATH_v38_v45.md)
 
 ## 11. CANONICAL REFERENCE MAP (The Single Source)
 
-- **Safety Law (The Vaccine):** `L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v42.md`
+- **Safety Law (The Vaccine):** `L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v45.md`
 
 - **FAG Protocol (File Access):** `docs/FAG_QUICK_START.md` (Security & Access)
 - **ACLIP Protocol (Workflow):** `arifos_clip/README.md` (000->999 Pipeline)
-- **Floors F1-F9:** `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md`
-- **Pipeline 000-999:** `L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md`
-- **Cooling Ledger:** `L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v42.md`
+- **Floors F1-F9:** `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md`
+- **Pipeline 000-999:** `L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md`
+- **Cooling Ledger:** `L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v45.md`
