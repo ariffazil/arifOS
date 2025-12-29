@@ -1,6 +1,7 @@
 # arifOS v42 Canon Master Index (L1_THEORY)
 
-**Version:** v42.0 | **Status:** DRAFT | **Last Updated:** 2025-12-17
+**Version:** v45.0 | **Status:** ✅ SEALED | **Last Updated:** 2025-12-29
+**Authority:** Phoenix-72 Constitutional Amendment (v45 Consolidation)
 
 This index applies to Track A canon under `L1_THEORY/canon/`.
 For the root layout map, see `L1_THEORY/canon/_INDEX/ROOT_MAP.md`.

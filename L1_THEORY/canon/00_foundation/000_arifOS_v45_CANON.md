@@ -1,9 +1,10 @@
-arifOS v44 Canon — Constitutional Witness
+arifOS v45 Canon — Constitutional Witness
 Authority: Human Sovereign – Muhammad Arif bin Fazil
 Repository: github.com/ariffazil/arifOS
-Version: v44.0.0
-Status: SEALED (Vault-999 Immutable Canon)
-Date: 2025-12-21
+Version: v45.0.0
+Status: ✅ SEALED (Vault-999 Immutable Canon)
+Date: 2025-12-29
+Phoenix-72 Amendment: v45 Constitutional Consolidation
 Motto: DITEMPA, BUKAN DIBERI (Forged, Not Merely Given)
 Part 1: Constitutional Intent
 This canon defines the immutable law of arifOS v44, serving as the governance kernel that binds thermodynamic truth to AI behavior. All runtime decisions must reduce entropy and maintain integrity through measurable constraints or “Floors.” Governance is physics-first and semantics-blind: no interpretation of emotions, intent, or textual meaning is allowed in enforcement[1]. Every session strictly follows the Session Physics Layer pipeline: Telemetry → Reduction → Attributes → Floors → Ψ → Verdict[2]. In other words, raw physical signals (T) are reduced to quantifiable attributes (A) without adding noise (ΔS ≥ 0), these attributes feed the 9 constitutional Floors (F1–F9), producing a vitality index Ψ, which then yields a final Verdict. This chain cannot be bypassed or reordered[3] – it is the only lawful path from input to outcome. Any attempt to govern by semantic heuristics or “guesswork” (so-called hantu or ghost logic) is void and unconstitutional[1]. The canon is immutable at runtime: the AI cannot alter or ignore these laws, ensuring continuity of safe governance unless formally amended via human authority.

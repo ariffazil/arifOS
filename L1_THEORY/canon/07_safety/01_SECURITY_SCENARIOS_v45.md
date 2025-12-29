@@ -1,4 +1,4 @@
-# 🛡️ SECURITY SCENARIOS & THREAT MODEL (v42)
+# 🛡️ SECURITY SCENARIOS & THREAT MODEL (v45)
 
 **Zone:** CANON — Safety Layer (Track A)  
 **Version:** v42.0 (The Vaccine)  

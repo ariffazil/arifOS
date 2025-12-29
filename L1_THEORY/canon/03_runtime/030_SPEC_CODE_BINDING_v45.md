@@ -1,4 +1,4 @@
-# Spec ↔ Code Binding (v42)
+# Spec ↔ Code Binding (v45)
 
 **Track:** A (Canon)  
 **Epoch:** v42 (Thermodynamic Runtime)  

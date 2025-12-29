@@ -7,7 +7,7 @@ Epoch: December 2025
 Amanah: LOCKED (no unratified edits)
 ---
 
-# VAULT-999 · SOVEREIGN KNOWLEDGE STORE (v42)
+# VAULT-999 · SOVEREIGN KNOWLEDGE STORE (v45)
 
 ## What This System Does (In Plain Language)
 
@@ -351,4 +351,4 @@ The chef can borrow the recipe book. But you own it.
 
 ---
 
-**End of canon/05_memory/02_vault_999_v42.md**
+**End of canon/05_memory/02_vault_999_v45.md**

@@ -116,7 +116,7 @@ This document serves as the **single source of truth** for:
 | **O4** | Metrics exception handling | `_compute_888_metrics` try/except | ✅ SEALED |
 | **O4** | Explicit VOID on metrics=None | `_apply_apex_floors` transparency | ✅ SEALED |
 
-### Code Locations (v43)
+### Code Locations (v45)
 
 ```python
 # T4, E2: SABAR-72 Time Governor

@@ -135,7 +135,7 @@ The Forge must **abort** and **Kambus** (Bury) the task if:
 
 ---
 
-## 📜 THE CANONICAL arifOS GitForge Protocol (v43)
+## 📜 THE CANONICAL arifOS GitForge Protocol (v45)
 
 ### The Six Steps
 

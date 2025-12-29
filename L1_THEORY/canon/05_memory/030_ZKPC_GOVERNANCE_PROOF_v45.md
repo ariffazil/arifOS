@@ -7,7 +7,7 @@ Epoch: December 2025
 Amanah: LOCKED (no unratified edits)
 ---
 
-# zkPC · ZERO-KNOWLEDGE PROOF OF COGNITION (v42)
+# zkPC · ZERO-KNOWLEDGE PROOF OF COGNITION (v45)
 
 ## What This System Does (In Plain Language)
 
@@ -447,4 +447,4 @@ By proving the process, we prove the output.
 
 ---
 
-**End of canon/05_memory/03_zkpc_governance_proof_v42.md**
+**End of canon/05_memory/03_zkpc_governance_proof_v45.md**

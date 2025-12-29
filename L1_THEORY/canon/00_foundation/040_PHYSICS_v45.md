@@ -1,18 +1,20 @@
 ---
 Zone: APEX THEORY — Foundational Layer (Track A · Canon)
-Version: v42.0 (Thermodynamic Epoch)
-Status: IMMUTABLE CANON
+Version: v45.0 (Constitutional Consolidation)
+Status: ✅ SEALED
 Epoch: December 2025
 Amanah: LOCKED (no unratified edits)
 APEX_FLOORS: F1–F9 enforced
+Authority: Phoenix-72 Constitutional Amendment (v45 Consolidation)
+Last Updated: 2025-12-29
 ---
 
-# APEX THEORY · PHYSICS (v42)
+# APEX THEORY · PHYSICS (v45)
 
-**Epoch**: v42.0 (The Thermodynamic Epoch)  
-**Status**: IMMUTABLE CANON  
-**Classification**: PHYSICS LAYER  
-**Authority**: Constitutional Foundation  
+**Epoch**: v45.0 (Constitutional Consolidation)
+**Status**: ✅ SEALED
+**Classification**: PHYSICS LAYER
+**Authority**: Phoenix-72 Constitutional Amendment  
 
 ---
 
@@ -369,4 +371,4 @@ Truth must cool before it rules. Clarity emerges from constraint. Humility is th
 
 ---
 
-**End of canon/00_foundation/02_physics_v42.md**
+**End of canon/00_foundation/040_PHYSICS_v45.md**

@@ -1,8 +1,9 @@
-# TEARFRAME v44 — Constitutional Runtime Governor (ART / SPL Canon)
-**Track:** A (Immutable Constitutional Canon)  
-**Version:** v44.0  
-**Status:** SEALED  
-**Authority:** Human Sovereign — Muhammad Arif bin Fazil  
+# TEARFRAME v45 — Constitutional Runtime Governor (ART / SPL Canon)
+**Track:** A (Immutable Constitutional Canon)
+**Version:** v45.0
+**Status:** ✅ SEALED
+**Authority:** Phoenix-72 Constitutional Amendment (v45 Consolidation)
+**Human Sovereign:** Muhammad Arif bin Fazil
 **Doctrine:** DITEMPA, BUKAN DIBERI  
 
 ---

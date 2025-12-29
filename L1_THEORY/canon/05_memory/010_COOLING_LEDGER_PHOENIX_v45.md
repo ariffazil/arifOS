@@ -7,7 +7,7 @@ Epoch: December 2025
 Amanah: LOCKED (no unratified edits)
 ---
 
-# COOLING LEDGER · PHOENIX-72 GOVERNANCE (v42)
+# COOLING LEDGER · PHOENIX-72 GOVERNANCE (v45)
 
 ## What This System Does (In Plain Language)
 
@@ -253,4 +253,4 @@ This is not mystical. It is engineering discipline applied to intelligence itsel
 
 ---
 
-**End of canon/05_memory/01_cooling_ledger_phoenix_v42.md**
+**End of canon/05_memory/01_cooling_ledger_phoenix_v45.md**

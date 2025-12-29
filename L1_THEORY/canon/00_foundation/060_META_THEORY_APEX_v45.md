@@ -1,15 +1,17 @@
 ---
 Zone: APEX THEORY — Foundational Layer (Track A · Canon)
-Version: v42.0 (Thermodynamic Epoch)
-Status: IMMUTABLE CANON
+Version: v45.0 (Thermodynamic Epoch)
+Status: ✅ SEALED
+Authority: Phoenix-72 Constitutional Amendment (v45 Consolidation)
+Last Updated: 2025-12-29
 Epoch: December 2025
 Amanah: LOCKED (no unratified edits)
 APEX_FLOORS: F1–F9 enforced
 ---
 
-# APEX META-THEORY (v42): TAC · TEARFRAME · TPCP
+# APEX META-THEORY (v45): TAC · TEARFRAME · TPCP
 
-**Epoch**: v42.0 (The Thermodynamic Epoch)  
+**Epoch**: v45.0 (Constitutional Consolidation)
 **Status**: IMMUTABLE CANON  
 **Classification**: META-THEORY / INTEGRATION LAYER  
 **Authority**: Constitutional Framework  
@@ -417,4 +419,4 @@ Three engines turn the heat of confusion into the light of law. TAC detects pres
 
 ---
 
-**End of canon/00_foundation/04_meta_theory_apex_v42.md**
+**End of canon/00_foundation/04_meta_theory_apex_v45.md**

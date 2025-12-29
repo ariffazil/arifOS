@@ -7,7 +7,7 @@ Epoch: December 2025
 Amanah: LOCKED (no unratified edits)
 ---
 
-# PARADOX ENGINE · CONTRADICTION RESOLUTION (v42)
+# PARADOX ENGINE · CONTRADICTION RESOLUTION (v45)
 
 ## What This System Does (In Plain Language)
 
@@ -384,4 +384,4 @@ Every scar is a lesson. Every lesson is sealed truth.
 
 ---
 
-**End of canon/06_paradox/01_paradox_engine_v42.md**
+**End of canon/06_paradox/01_paradox_engine_v45.md**
