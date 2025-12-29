@@ -1,4 +1,4 @@
-# spec/v44 - SINGLE RUNTIME AUTHORITY (Track B)
+# spec/v45 - SINGLE RUNTIME AUTHORITY (Track B)
 
 **Version:** v45.0.0 | **Status:** AUTHORITATIVE | **Last Updated:** 2025-12-25
 
@@ -47,7 +47,7 @@ Extracted TEARFRAME physics thresholds from hardcoded values:
 - Streak detection: 3+ consecutive failures → HOLD_888
 
 ### 2. **Single Authority Enforcement**
-All specs now have v44 headers with explicit authority markers:
+All specs now have v45 headers with explicit authority markers:
 ```json
 {
   "version": "v45.0",
@@ -140,7 +140,7 @@ Potential enhancements (NOT in v44):
 
 ## 🛡️ Integrity Checks
 
-### Verify v44 Authority:
+### Verify v45 Authority:
 ```python
 # Check loaded spec version
 from arifos_core.enforcement.metrics import _FLOORS_SPEC_V38

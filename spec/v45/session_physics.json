@@ -178,6 +178,6 @@
     "license": "Apache-2.0",
     "canonical_source": "docs/TEARFRAME_SESSION_PHYSICS.md",
     "implementation": "arifos_core/governance/session_physics.py",
-    "notes": "v44.0: TEARFRAME physics thresholds extracted from hardcoded values. This file is the SOLE RUNTIME AUTHORITY."
+    "notes": "v45.0: Phoenix-72 consolidation (Track A/B/C alignment). This file is the SOLE RUNTIME AUTHORITY. Predecessor: v44 (TEARFRAME physics thresholds)."
   }
 }

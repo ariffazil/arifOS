@@ -324,8 +324,8 @@
     "dangerous"
   ],
   "_companion_files": {
-    "red_patterns": "spec/v44/red_patterns.json",
-    "policy_text": "spec/v44/policy_text.json"
+    "red_patterns": "spec/v45/red_patterns.json",
+    "policy_text": "spec/v45/policy_text.json"
   },
   "meta": {
     "created": "2025-12-25",
@@ -334,6 +334,6 @@
     "license": "Apache-2.0",
     "canonical_source": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md",
     "predecessor": "spec/v42/constitutional_floors.json (v42.1)",
-    "notes": "v44.0: TEARFRAME physics extension + spec split (red_patterns.json, policy_text.json). This file is the SOLE RUNTIME AUTHORITY. Loaders MUST use this file."
+    "notes": "v45.0: Phoenix-72 consolidation (Track A/B/C alignment). This file is the SOLE RUNTIME AUTHORITY. Loaders MUST use this file. Predecessor: v44 (TEARFRAME physics extension)."
   }
 }
