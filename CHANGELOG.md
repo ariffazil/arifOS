@@ -10,6 +10,92 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 **Status:** FORGED NOT GIVEN | Physics: TEARFRAME SOVEREIGN | Fail-Closed: GUARANTEED
 
+### Patch D (2025-12-29) - Constitutional Plugin System (Phase 1: Core Infrastructure)
+
+**Status:** IN PROGRESS | Phase: 1/5 | Authority: Arif
+
+**Feature:** Plugin marketplace with full constitutional governance (F1-F9, AAA, 000→999 pipeline) for every agent, skill, and tool.
+
+**Implementation:**
+
+- **NEW:** `arifos_core/plugins/` package - Core governance infrastructure for plugins
+  - `__init__.py` - Package initialization with public exports
+  - `governance_engine.py` (358 lines) - Core orchestration for plugin agents
+    - `GovernanceEngine` class - Orchestrates 000→999 pipeline for plugin actions
+    - `AgentAction` dataclass - Represents plugin agent action requests
+    - `GovernanceSession` dataclass - Tracks session through pipeline stages
+    - Pipeline stages: 000 VOID → 111 SENSE → 333 REASON → 666 ALIGN → 888 JUDGE → 999 SEAL
+    - Entropy checking with SABAR-72 enforcement (ΔS ≥ 5.0 triggers cooling)
+    - Cooling ledger integration for audit trail (JSON Lines format)
+    - Session management with automatic cleanup (24-hour max age)
+
+  - `floor_validator.py` (550 lines) - Python-sovereign F1-F9 enforcement
+    - `FloorValidator` class - Validates all 9 constitutional floors
+    - `FloorResult` dataclass - Individual floor validation result
+    - `FloorType` enum - HARD/SOFT/META classification
+    - Loads authoritative thresholds from `spec/v44/constitutional_floors.json`
+    - Heuristic-based detection for plugins:
+      - F1 Truth: Red flag detection (guarantees, promises, absolutes)
+      - F2 DeltaS: Clarity analysis (vague language, ambiguity)
+      - F3 Peace²: Destructive pattern detection
+      - F4 κᵣ: Empathy analysis (dismissive vs helpful language)
+      - F5 Ω₀: Humility band checking (overconfidence detection)
+      - F6 Amanah: Integrity check (reversibility, transparency)
+      - F7 RASA: Felt-care protocol (context acknowledgment)
+      - F8 Tri-Witness: Multi-layer verification (human/AI/external)
+      - F9 Anti-Hantu: Forbidden pattern detection (consciousness claims)
+    - Floor summary statistics with pass/fail breakdown
+
+  - `entropy_tracker.py` (350 lines) - SABAR-72 thermodynamic governance
+    - `EntropyTracker` class - Calculates ΔS for plugin actions
+    - `EntropyResult` dataclass - Entropy calculation result with breakdown
+    - Three-component entropy calculation:
+      - Complexity Score: Inputs, dependencies, action type (weight: 2.0)
+      - Impact Score: Files modified, external calls, state changes (weight: 1.5)
+      - Cognitive Load: Decision points, branching, abstractions (weight: 1.0)
+    - ΔS = (complexity × 2.0) + (impact × 1.5) + (cognitive_load × 1.0)
+    - SABAR-72 threshold enforcement (ΔS ≥ 5.0 → COOLING REQUIRED)
+    - Risk score calculation (0.0-1.0 normalized from ΔS)
+    - Risk levels: LOW (<0.3), MODERATE (0.3-0.7), HIGH (≥0.7)
+    - Cooling protocol options: Defer, Decompose, Document
+    - Session-level cumulative entropy tracking
+
+  - `verdict_generator.py` (450 lines) - Constitutional verdict generation
+    - `VerdictGenerator` class - Generates verdicts with precedence hierarchy
+    - `Verdict` dataclass - Constitutional verdict with status, reason, recommendations
+    - Verdict hierarchy: SABAR > VOID > 888_HOLD > PARTIAL > SEAL
+    - Decision tree:
+      1. SABAR: ΔS ≥ 5.0 (entropy threshold exceeded)
+      2. VOID: Hard/meta floor failures
+      3. 888_HOLD: High risk (≥0.7) + soft floor failures → Human approval required
+      4. PARTIAL: Soft floor failures (non-strict mode)
+      5. SEAL: All floors pass + entropy acceptable
+    - Strict mode option (fail-closed: soft failures escalate to VOID)
+    - Verdict merging for multi-agent orchestration
+    - Execution policy enforcement (SEAL/PARTIAL allowed, others blocked)
+
+**Philosophy:**
+- Every plugin agent flows through constitutional governance
+- Python decides. LLM proposes. (Python-sovereign enforcement)
+- Fail-closed: Default to VOID when uncertain
+- Entropy is complexity: High ΔS requires cooling
+- AAA framework: Amanah (reversible), Authority (boundaries), Accountability (audit trail)
+
+**Next Steps (Phase 1 Remaining):**
+- Create plugin templates (agent.md, skill.md, command.sh, orchestrator.md)
+- Write governance documentation (PLUGIN_GOVERNANCE.md, FLOOR_ENFORCEMENT.md, AAA_FRAMEWORK.md, ENTROPY_TRACKING.md)
+
+**Roadmap:**
+- Phase 1: Core Infrastructure (Week 1) - IN PROGRESS
+- Phase 2: Plugin Templates (Week 1)
+- Phase 3: Core Plugins - Port 20 essential plugins (Week 2-3)
+- Phase 4: Orchestrators (Week 3)
+- Phase 5: Marketplace Integration (Week 4)
+
+**Target:** 67 plugins, 99 agents, 107 skills (matching wshobson/agents scale) with FULL constitutional governance.
+
+---
+
 ### Patch C (2025-12-29) - Multi-Provider Failover Orchestrator
 
 **Status:** SEALED | Tests: 2597/2624 (98.9%) | Zero-Break: VERIFIED | Authority: Arif
