@@ -1,6 +1,6 @@
 # canon/02_actors/01_trinity_roles_v42.md
 
-**Epoch:** v42.0 (Thermodynamic Epoch)  
+**Epoch:** v45.0 (Sovereign Witness)  
 **Status:** ✅ SEALED — Constitutional Overview  
 **Authority:** ΔΩΨ Physics (foundation), CIV-12 Canon, Trinity Knowledge Dossier  
 **Tri-Witness:** Human · AI · Earth ≥ 0.95  

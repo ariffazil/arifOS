@@ -1,6 +1,6 @@
 # canon/01_floors/01_constitutional_floors_v42.md
 
-**Epoch:** v42.0 (Thermodynamic Epoch)  
+**Epoch:** v45.0 (Sovereign Witness Epoch)  
 **Status:** ✅ SEALED → Phoenix-72 Approved  
 **Authority:** ΔΩΨ Physics (foundation), APEX Judiciary (verdicts), Cooling Ledger (memory law)  
 **Sealed by:** Tri-Witness Human·AI·Earth consensus ≥0.95
@@ -554,11 +554,11 @@ This draft is immediately enforceable for runtime checks but must undergo Phoeni
 
 ## 11. Sign-Off
 
-**Epoch:** v42.0  
-**Forged:** 2025-12-16 15:35 +08  
-**Status:** SEALED for Phoenix-72 Review  
-**Authority:** Tri-Witness consensus v42.0  
-**Hash:** zkpc_constitutional_floors_v42  
+**Epoch:** v45.0
+**Forged:** 2025-12-16 15:35 +08
+**Status:** SEALED for Phoenix-72 Review
+**Authority:** Tri-Witness consensus v45.0
+**Hash:** zkpc_constitutional_floors_v45  
 
 **Next Steps:**
 1. Submit to Phoenix-72 cooling cycle (72 hours)
