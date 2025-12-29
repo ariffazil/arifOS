@@ -108,10 +108,12 @@ def regenerate_manifest():
         'spec/v45/genius_law.json',
         'spec/v45/session_physics.json',
         'spec/v45/red_patterns.json',
+        'spec/v45/truth_verification.json',
         'spec/v45/schema/constitutional_floors.schema.json',
         'spec/v45/schema/genius_law.schema.json',
         'spec/v45/schema/session_physics.schema.json',
         'spec/v45/schema/red_patterns.schema.json',
+        'spec/v45/schema/truth_verification.schema.json',
     ]
 
     # Compute hashes

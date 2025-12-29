@@ -1,16 +1,18 @@
 {
   "version": "v45.0",
-  "created_at": "2025-12-29T12:15:40.379196Z",
+  "created_at": "2025-12-29T14:51:26.861650Z",
   "algorithm": "SHA-256",
   "description": "Cryptographic manifest for Track B v45 specifications (tamper-evident integrity)",
   "files": {
-    "spec/v45/constitutional_floors.json": "043f7dc6d394257e67e99260842628ba0d77a73f31c571ce4585881fee8c8a0d",
+    "spec/v45/constitutional_floors.json": "07235000bc296109aff6df273759aec5a2c943c221d3f596e4a3f7aad5b38736",
     "spec/v45/genius_law.json": "63901c1b502c2d9990ba542c24d69cef7485ba637f633793ff627799156f87bf",
-    "spec/v45/session_physics.json": "ed05e303f29e04ff58ab828b1996d4287cfa74cd7c2863a1b0a2c5beea553057",
-    "spec/v45/red_patterns.json": "9231013fe918d9121a6225c6681eddb8e2402aa289e261c32b6ee05d08b6cdcb",
-    "spec/v45/schema/constitutional_floors.schema.json": "e79ce809c0124e7421ab3895433078aedcacad27327385562e85e150e3f11d37",
-    "spec/v45/schema/genius_law.schema.json": "b2376388611f40f33f2b7ebdcf0351726c39a03f96c4344f9e9e9fec38242d1a",
-    "spec/v45/schema/session_physics.schema.json": "cf1605835961304897494eaeb539350c62f3b6216b6283e38b334d879a18cb3d",
-    "spec/v45/schema/red_patterns.schema.json": "adb6b6cf246f29d18e22c8cdedfd8a79bf19bcfa95d5f882c6bb479c060c5d06"
+    "spec/v45/session_physics.json": "0fb30820e63fa751c68cae88e41f9383de073005045ed7f7067ccc829f9a6fbe",
+    "spec/v45/red_patterns.json": "9f2cb928d47ef38ac6a09c030a5b544f52b92818947c7f7abb39a531e1dd730f",
+    "spec/v45/truth_verification.json": "2b3e7ae193e0fe78201d0ec81c247a66c4accbefd936390a75b7256442a7bde8",
+    "spec/v45/schema/constitutional_floors.schema.json": "2d8fc9bd38e9f6fa698ce9756b5f62f00ce712f5a1d42030cb8ef5cc46f07301",
+    "spec/v45/schema/genius_law.schema.json": "bdf2544c76da1888421cc8bfa5d41044a9b81cc024aefc3538a88097b7709ef2",
+    "spec/v45/schema/session_physics.schema.json": "431e68b7166cf594a96a63fabc93db97e5da85686c3d0f561b6ceabfa69b9d35",
+    "spec/v45/schema/red_patterns.schema.json": "1cbd0771c2cdbc1d687966f9899caa695aebf34ab062bd5453cf491f3039e1d8",
+    "spec/v45/schema/truth_verification.schema.json": "dbacf7ea97916dd30b3accb1e19e866f7814536469813116517e447ea2fb04cf"
   }
 }
