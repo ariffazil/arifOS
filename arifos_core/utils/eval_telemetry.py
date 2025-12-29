@@ -1,7 +1,7 @@
 """
 eval_telemetry.py — Optional telemetry hook to arifos_eval/apex
 
-Phase 2: Light integration hook for v36.1Ω measurement layer.
+**v45.0 Update:** Integration hook for Phoenix-72 evaluation layer.
 
 This module provides an OPTIONAL bridge from arifos_core to arifos_eval.
 It does NOT change existing verdict logic in APEX_PRIME.py.
@@ -66,20 +66,23 @@ def _get_eval_instance() -> Optional[Any]:
         from arifos_eval.apex import ApexMeasurement
         import os
 
-        # Look for standards file in known locations
+        # Look for standards file in known locations (v45 preferred, v36 fallback)
         standards_paths = [
-            os.path.join(os.path.dirname(__file__), "..", "arifos_eval", "apex", "apex_standards_v36.json"),
-            os.path.join(os.path.dirname(__file__), "..", "spec", "apex_standards_v36.json"),
+            os.path.join(os.path.dirname(__file__), "..", "arifos_eval", "apex", "apex_standards_v45.json"),
+            os.path.join(os.path.dirname(__file__), "..", "spec", "apex_standards_v45.json"),
+            os.path.join(os.path.dirname(__file__), "..", "arifos_eval", "apex", "apex_standards_v36.json"),  # Fallback
+            os.path.join(os.path.dirname(__file__), "..", "spec", "apex_standards_v36.json"),  # Fallback
         ]
 
         for path in standards_paths:
             if os.path.exists(path):
                 _eval_instance = ApexMeasurement(path)
                 _eval_available = True
-                _logger.info(f"Eval telemetry loaded from {path}")
+                version = "v45" if "v45" in path else "v36 (legacy fallback)"
+                _logger.info(f"Eval telemetry loaded from {path} ({version})")
                 return _eval_instance
 
-        _logger.warning("apex_standards_v36.json not found, telemetry disabled")
+        _logger.warning("apex_standards_v45.json (or v36 fallback) not found, telemetry disabled")
         _eval_available = False
         return None
 

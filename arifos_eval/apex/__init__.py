@@ -1,13 +1,15 @@
 """
-APEX Measurement Layer (v36.1Ω)
+APEX Measurement Layer (v45.0)
 
 This module provides evaluation harness for APEX PRIME judiciary metrics.
 It is separate from arifos_core to allow independent testing and iteration.
 
+**v45.0 Update:** Aligned with Phoenix-72 constitutional framework and Track B v45 specs.
+
 Usage:
     from arifos_eval.apex import ApexMeasurement
 
-    apex = ApexMeasurement("apex_standards_v36.json")
+    apex = ApexMeasurement("apex_standards_v45.json")
     result = apex.judge(dials, output_text, output_metrics)
 """
 
@@ -29,5 +31,5 @@ __all__ = [
     "compute_vitality",
 ]
 
-__version__ = "36.1.0"
-__epoch__ = "v36.1Ω"
+__version__ = "45.0.0"
+__epoch__ = "v45.0"
