@@ -271,7 +271,7 @@ Floors: All pass (F1-F9)
 Verdict: SEAL"
 
 # Regenerate manifest if needed
-python scripts/regenerate_manifest_v44.py
+python scripts/regenerate_manifest_v45.py
 ```
 
 ---

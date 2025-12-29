@@ -488,7 +488,7 @@ scripts/               # Governance utilities (reduced from 51 to ~10 files - De
 4. Update spec in [spec/v44/constitutional_floors.json](spec/v44/constitutional_floors.json)
 5. Add tests in [tests/test_*.py](tests/)
 6. Update canon docs in [L1_THEORY/canon/01_floors/](L1_THEORY/canon/01_floors/)
-7. Regenerate manifest: `python scripts/regenerate_manifest_v44.py`
+7. Regenerate manifest: `python scripts/regenerate_manifest_v45.py`
 
 ### Adding a Pipeline Stage
 
@@ -515,7 +515,7 @@ scripts/               # Governance utilities (reduced from 51 to ~10 files - De
 5. Regenerate SHA-256 manifest:
 
    ```bash
-   python scripts/regenerate_manifest_v44.py
+   python scripts/regenerate_manifest_v45.py
    ```
 
 6. Run alignment tests:
@@ -527,7 +527,7 @@ scripts/               # Governance utilities (reduced from 51 to ~10 files - De
 7. Verify spec integrity:
 
    ```bash
-   python scripts/regenerate_manifest_v44.py --check
+   python scripts/regenerate_manifest_v45.py --check
    pytest tests/test_spec_v44_schema_enforcement_subprocess.py -v
    ```
 
@@ -546,7 +546,7 @@ arifOS v44 introduces cryptographic spec verification via SHA-256 manifests.
 **3-Command Audit (for CI/CD or manual verification):**
 ```bash
 # 1. Verify manifest hashes match current files
-python scripts/regenerate_manifest_v44.py --check
+python scripts/regenerate_manifest_v45.py --check
 
 # 2. Test schema enforcement (load-time validation)
 pytest tests/test_spec_v44_schema_enforcement_subprocess.py -v
@@ -863,13 +863,13 @@ python scripts/arifos_mcp_entry.py
 ### Spec Integrity Errors
 ```bash
 # Check for tampered specs (v44 Track B)
-python scripts/regenerate_manifest_v44.py --check
+python scripts/regenerate_manifest_v45.py --check
 
 # If hash mismatch detected, restore from git:
 git checkout spec/v44/
 
 # Regenerate manifest after legitimate changes:
-python scripts/regenerate_manifest_v44.py
+python scripts/regenerate_manifest_v45.py
 ```
 
 ### Windows-Specific Issues

@@ -1151,51 +1151,31 @@ See [spec/v44/SEAL_CHECKLIST.md](spec/v44/SEAL_CHECKLIST.md) for full audit proc
 
 ```
 arifOS/
-├── L1_THEORY/canon/          # Constitutional law (read-only)
-│   ├── 00_foundation/        # Core philosophy (Amanah, DITEMPA)
-│   ├── 01_floors/            # F1-F9 definitions
-│   ├── 03_runtime/           # Pipeline & execution
-│   ├── 04_measurement/       # GENIUS LAW metrics
-│   └── 05_memory/            # EUREKA memory architecture
-├── arifos_core/              # Core governance engine
-│   ├── system/
-│   │   ├── apex_prime.py     # 888 JUDGE (verdict renderer)
-│   │   ├── pipeline.py       # 000→999 metabolic pipeline
-│   │   └── routing/
-│   │       └── prompt_router.py  # Δ Router (lane classifier) v45Ω
-│   ├── enforcement/
-│   │   ├── metrics.py        # Ω computation (ξ, ΔS, Peace², κᵣ, Ω₀)
-│   │   └── genius_metrics.py # GENIUS LAW (G, C_dark, Ψ)
-│   ├── evidence/             # v45 Evidence system
-│   ├── judiciary/            # Semantic firewall, witness council
-│   ├── temporal/             # Phoenix-72 governance
-│   ├── memory/               # EUREKA 6-band system
-│   ├── waw/                  # W@W Federation (@LAW, @GEOX, @WELL, @RIF)
-│   ├── mcp/                  # MCP server + tools
-│   ├── integration/
-│   │   └── sealion_suite/    # SEA-LION evaluation harness
-│   └── stages/               # Pipeline stage implementations
-├── spec/v44/                 # Track B specifications
-│   ├── constitutional_floors.json
-│   ├── genius_law.json
-│   ├── MANIFEST.sha256.json
-│   └── schema/*.schema.json
-├── tests/                    # Test suite (2359 tests, 100%)
-│   ├── governance/           # Proof-of-governance tests
-│   ├── evidence/             # Evidence system tests
-│   ├── judiciary/            # Verdict logic tests
-│   └── temporal/             # Phoenix-72 tests
-├── scripts/                  # CLI tools & utilities
-│   ├── trinity.py            # Git governance (forge/qc/seal)
-│   ├── sealion_full_suite_v45.py  # SEA-LION evaluator
-│   ├── regenerate_manifest_v44.py # Track B integrity
-│   └── arifos_mcp_entry.py   # MCP server
-├── cooling_ledger/           # Merkle-proof audit trail
-├── vault_999/                # Ledger runtime (gitignored)
-├── docs/                     # Architecture + guides
-├── CHANGELOG.md              # Version history
-├── AGENTS.md                 # Full governance guide
-└── README.md                 # This file
+├── L1_THEORY/canon/          # Track A: Constitutional Law (Read-Only)
+│   ├── 00_foundation/        # Core: ΔΩΨ Invariants & Manifestos
+│   ├── 01_floors/            # F1-F9 Definitions
+│   ├── 03_runtime/           # TEARFRAME & Pipeline Law
+│   └── ...                   # Full Canon (7 Layers)
+├── L2_GOVERNANCE/            # Portable Constitution & Prompts
+├── arifos_core/              # Track C: Core Governance Runtime
+│   ├── system/               # Kernel: Pipeline, APEX Judges
+│   ├── governance/           # Law: FAG, Ledger, Merkle
+│   ├── enforcement/          # Metrics: Space-Time measurements
+│   ├── adapters/             # Providers: LLM Drivers (Claude, Gemini, etc.)
+│   └── integration/          # Wiring: Ports & Internal Interfaces
+├── spec/v45/                 # Track B: Specification (Tunable)
+├── L4_MCP/                   # Model Context Protocol Servers
+├── L5_CLI/                   # Command Line Interfaces
+├── L6_SEALION/               # Regional LLM (SEA-LION) Integration
+├── L7_DEMOS/                 # Examples & Legacy Demos
+├── integrations/             # (Deprecated) Redirect to Core/Demos
+├── canon/                    # (Legacy) Redirect to L1_THEORY
+├── tests/                    # Test Suite (2359+ Tests)
+├── scripts/                  # DevOps & Trinity CLI
+├── cooling_ledger/           # Audit Trail (Merkle-Proofed)
+├── docs/                     # Architecture & Guides
+├── AGENTS.md                 # Tier 1 Agent Constitution
+└── README.md                 # Manifest
 ```
 
 ---

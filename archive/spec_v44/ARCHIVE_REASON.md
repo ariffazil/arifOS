@@ -108,7 +108,7 @@ cp archive/spec_v44/constitutional_floors.json spec/v44/
 **Verify restoration**:
 ```bash
 cd spec/v44
-python ../../scripts/regenerate_manifest_v44.py --check
+python ../../scripts/regenerate_manifest_v45.py --check
 ```
 
 ---

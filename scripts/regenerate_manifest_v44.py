@@ -1,9 +1,9 @@
 """
-regenerate_manifest_v44.py - Regenerate SHA-256 Manifest for Track B v44 Specs
+regenerate_manifest_v45.py - Regenerate SHA-256 Manifest for Track B v44 Specs
 
 Usage:
-    python scripts/regenerate_manifest_v44.py           # Regenerate manifest
-    python scripts/regenerate_manifest_v44.py --check   # Verify manifest (CI mode)
+    python scripts/regenerate_manifest_v45.py           # Regenerate manifest
+    python scripts/regenerate_manifest_v45.py --check   # Verify manifest (CI mode)
 
 Generates spec/v44/MANIFEST.sha256.json with SHA-256 hashes for all v44 spec files.
 Run this after intentional modifications to v44 specs.
@@ -96,7 +96,7 @@ def check_manifest():
                 print(f"  - {path}")
         print("\nTo fix:")
         print("  1. Restore original files from git: git restore spec/v44/")
-        print("  2. Or regenerate manifest (if changes are intentional): python scripts/regenerate_manifest_v44.py")
+        print("  2. Or regenerate manifest (if changes are intentional): python scripts/regenerate_manifest_v45.py")
         return 1
 
 
@@ -153,8 +153,8 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python scripts/regenerate_manifest_v44.py           # Regenerate manifest
-  python scripts/regenerate_manifest_v44.py --check   # Verify manifest (CI mode)
+  python scripts/regenerate_manifest_v45.py           # Regenerate manifest
+  python scripts/regenerate_manifest_v45.py --check   # Verify manifest (CI mode)
         """
     )
     parser.add_argument(

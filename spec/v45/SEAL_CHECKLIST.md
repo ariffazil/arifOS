@@ -35,7 +35,7 @@ Track B v45 specifications use **SHA-256 manifest verification** to ensure tampe
 ### Proof 1: Verify Manifest Hashes Match Current Files
 
 ```bash
-python scripts/regenerate_manifest_v44.py --check
+python scripts/regenerate_manifest_v45.py --check
 ```
 
 **Expected output (if integrity OK):**
@@ -152,7 +152,7 @@ git restore spec/v45/constitutional_floors.json
 
 ```bash
 # Regenerate manifest with current file hashes
-python scripts/regenerate_manifest_v44.py
+python scripts/regenerate_manifest_v45.py
 
 # Commit both spec changes AND new manifest together
 git add spec/v45/
@@ -231,7 +231,7 @@ jobs:
         with:
           python-version: '3.10'
       - name: Verify manifest hashes
-        run: python scripts/regenerate_manifest_v44.py --check
+        run: python scripts/regenerate_manifest_v45.py --check
       - name: Run manifest enforcement tests
         run: pytest tests/test_spec_v44_manifest_enforcement_subprocess.py -v
 ```
@@ -265,9 +265,9 @@ gpg --sign --detach-sign --armor spec/v45/MANIFEST.sha256.json
 
 | Task | Command |
 |------|---------|
-| Verify integrity (CI check) | `python scripts/regenerate_manifest_v44.py --check` |
+| Verify integrity (CI check) | `python scripts/regenerate_manifest_v45.py --check` |
 | Run enforcement tests | `pytest tests/test_spec_v44_manifest_enforcement_subprocess.py -v` |
-| Regenerate manifest (after intentional changes) | `python scripts/regenerate_manifest_v44.py` |
+| Regenerate manifest (after intentional changes) | `python scripts/regenerate_manifest_v45.py` |
 | Enable strict mode (default) | `export ARIFOS_ALLOW_LEGACY_SPEC=0` or unset |
 | Enable legacy mode (bypass) | `export ARIFOS_ALLOW_LEGACY_SPEC=1` |
 | Restore tampered files | `git restore spec/v45/` |
