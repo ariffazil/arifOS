@@ -2,6 +2,8 @@
 
 **A governance engine that decides when AI is allowed to speak — and when it must stop.**
 
+![arifOS Constitutional Governance Kernel](docs/arifOS%20Constitutional%20Governance%20Kernel.png)
+
 ![Tests](https://img.shields.io/badge/tests-2359%2F2359-brightgreen)
 ![Version](https://img.shields.io/badge/version-v45.0.0-blue)
 ![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
