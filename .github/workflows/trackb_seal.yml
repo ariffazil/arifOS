@@ -4,21 +4,21 @@ on:
   push:
     branches: [ main, master ]
     paths:
-      - 'spec/v44/**'
+      - 'spec/v45/**'
       - 'arifos_core/enforcement/metrics.py'
       - 'arifos_core/enforcement/genius_metrics.py'
       - 'arifos_core/governance/session_physics.py'
       - 'arifos_core/spec/**'
-      - 'tests/test_spec_v44_*.py'
+      - 'tests/test_spec_v45_*.py'
   pull_request:
     branches: [ main, master ]
     paths:
-      - 'spec/v44/**'
+      - 'spec/v45/**'
       - 'arifos_core/enforcement/metrics.py'
       - 'arifos_core/enforcement/genius_metrics.py'
       - 'arifos_core/governance/session_physics.py'
       - 'arifos_core/spec/**'
-      - 'tests/test_spec_v44_*.py'
+      - 'tests/test_spec_v45_*.py'
 
 jobs:
   verify-manifest-integrity:
@@ -45,7 +45,7 @@ jobs:
 
       - name: Verify manifest hashes (CI check)
         run: |
-          python scripts/regenerate_manifest_v44.py --check
+          python scripts/regenerate_manifest_v45.py --check
 
   run-schema-enforcement-tests:
     name: Schema Validation Tests
@@ -71,7 +71,7 @@ jobs:
 
       - name: Run schema enforcement tests (subprocess proof)
         run: |
-          pytest tests/test_spec_v44_schema_enforcement_subprocess.py -v --tb=short
+          pytest tests/test_spec_v45_schema_enforcement_subprocess.py -v --tb=short
 
   run-manifest-enforcement-tests:
     name: Manifest Verification Tests
@@ -97,7 +97,7 @@ jobs:
 
       - name: Run manifest enforcement tests (subprocess proof)
         run: |
-          pytest tests/test_spec_v44_manifest_enforcement_subprocess.py -v --tb=short
+          pytest tests/test_spec_v45_manifest_enforcement_subprocess.py -v --tb=short
 
   run-full-test-suite:
     name: Full Test Suite (Green Gate)
@@ -137,7 +137,7 @@ jobs:
       - name: SEAL confirmed
         run: |
           echo "========================================="
-          echo "Track B v44 SEAL: VERIFIED"
+          echo "Track B v45 SEAL: VERIFIED"
           echo "========================================="
           echo "Manifest integrity: PASS"
           echo "Schema enforcement: PASS"
