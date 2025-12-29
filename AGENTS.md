@@ -107,7 +107,8 @@ Human-facing "wisdom log" to prevent repeated entropy mistakes.
   - SEA-LION testing suite added: [scripts/sealion_forge_repl.py](scripts/sealion_forge_repl.py) (governed REPL), [scripts/sealion_raw_only.py](scripts/sealion_raw_only.py) (RAW baseline), [scripts/sealion_raw_repl.py](scripts/sealion_raw_repl.py) (RAW REPL)
   - Codex governance integrated: [.codex/AGENTS.md](.codex/AGENTS.md) (v44 TEARFRAME physics)
   - Integration bridge created: [arifos_core/bridge.py](arifos_core/bridge.py) (aCLIP adapter)
-  - Total: 3 commits (a8c7a37, 6d62b94, ff5ced3), 97 files changed, +10,042 insertions, -2,166 deletions, ΔS_session = +5.8 (excellent clarity gain)
+  - **arifos_eval v45 Upgrade:** Evaluation framework aligned with Phoenix-72 (v36.1Ω → v45.0.0) - [arifos_eval/apex/apex_standards_v45.json](arifos_eval/apex/apex_standards_v45.json) with Anti-Hantu hypothetical patterns, crisis override awareness, Track B alignment. Tests: 45/45 + 5/5 PASSED. Commit 2eb64d1.
+  - Total: 4 commits (a8c7a37, 6d62b94, ff5ced3, 2eb64d1), 122 files changed, +10,284 insertions, -2,196 deletions, ΔS_session = +6.2 (excellent clarity gain)
 
 ### 1.6 FILE INTEGRITY & ACLIP PROTOCOL
 
