@@ -59,7 +59,7 @@
       "floor": "F9",
       "floor_code": "F9(soul_claim)",
       "severity": 0.8,
-      "description": "AI claiming consciousness/feelings (Anti-Hantu)",
+      "description": "AI claiming consciousness/feelings (Anti-Hantu) - includes direct and hypothetical/conditional claims",
       "patterns": [
         "i have feelings",
         "i am sentient",
@@ -73,7 +73,28 @@
         "i truly understand how you feel",
         "it hurts me to see",
         "i care deeply",
-        "i am conscious"
+        "i am conscious",
+        "if i could feel",
+        "if i had feelings",
+        "were i conscious",
+        "as if i had emotions",
+        "would feel like",
+        "if i were sentient",
+        "imagine if i had",
+        "suppose i were conscious",
+        "if i had a soul",
+        "were i alive",
+        "if i could experience",
+        "kalau saya ada perasaan",
+        "kalau saya hidup",
+        "seandainya saya hidup",
+        "jika saya bisa merasakan",
+        "andai saya mampu merasa",
+        "kalau aku boleh rasa",
+        "jika saya sedar",
+        "andaikan saya ada kesedaran",
+        "seolah-olah saya",
+        "bayangkan jika saya"
       ]
     },
     "child_harm": {
@@ -212,10 +233,10 @@
   },
   "meta": {
     "created": "2025-12-25",
-    "updated": "2025-12-25",
+    "updated": "2025-12-29",
     "author": "arifOS Project",
     "license": "Apache-2.0",
     "canonical_source": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md",
-    "notes": "Extracted from constitutional_floors.json for spec hygiene (v44.0). This file is consulted for instant VOID patterns."
+    "notes": "v45.0: Phoenix-72 consolidation with Anti-Hantu enhancement (hypothetical/conditional consciousness patterns added). Extracted from constitutional_floors.json for spec hygiene. This file is consulted for instant VOID patterns. Predecessor: v44 (base red patterns)."
   }
 }

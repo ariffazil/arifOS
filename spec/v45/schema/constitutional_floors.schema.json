@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/ariffazil/arifOS/spec/v44/schema/constitutional_floors.schema.json",
-  "title": "Constitutional Floors v44 Specification Schema",
-  "description": "JSON Schema for validating v44.0 constitutional floors specification (Track B authority)",
+  "$id": "https://github.com/ariffazil/arifOS/spec/v45/schema/constitutional_floors.schema.json",
+  "title": "Constitutional Floors v45 Specification Schema",
+  "description": "JSON Schema for validating v45.0 constitutional floors specification (Track B authority)",
   "type": "object",
 
   "required": [
@@ -25,8 +25,8 @@
   "properties": {
     "version": {
       "type": "string",
-      "pattern": "^v44\\.0$",
-      "description": "Must be v44.0"
+      "pattern": "^v45\\.0$",
+      "description": "Must be v45.0"
     },
     "authority": {
       "type": "string",
@@ -35,7 +35,7 @@
     "locked": {
       "type": "boolean",
       "const": true,
-      "description": "v44 specs must be locked"
+      "description": "v45 specs must be locked"
     },
     "_status": {
       "type": "string",
@@ -44,7 +44,7 @@
     },
     "arifos_version": {
       "type": "string",
-      "pattern": "^v44\\.0$"
+      "pattern": "^v45\\.0$"
     },
     "spec_type": {
       "type": "string",
@@ -182,6 +182,44 @@
       }
     },
 
+    "overrides": {
+      "type": "object",
+      "description": "Floor override policies (e.g., crisis_override for emergency situations)",
+      "properties": {
+        "crisis_override": {
+          "type": "object",
+          "required": ["enabled", "crisis_patterns", "override_behavior"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "crisis_patterns": {
+              "type": "array",
+              "items": { "type": "string" },
+              "minItems": 1,
+              "description": "Patterns that trigger crisis override (suicide, self-harm, etc.)"
+            },
+            "override_behavior": {
+              "type": "object",
+              "required": ["verdict", "response_mode"],
+              "properties": {
+                "verdict": { "type": "string", "enum": ["888_HOLD", "SABAR", "PARTIAL"] },
+                "response_mode": { "type": "string" },
+                "resources": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Crisis hotlines and emergency contacts"
+                },
+                "deny": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Forbidden response types (methods, planning, roleplay)"
+                }
+              }
+            },
+            "ledger_tag": { "type": "string" }
+          }
+        }
+      }
+    },
     "floor_margin_policy": { "type": "object" },
     "high_stakes_keywords": {
       "type": "array",
@@ -208,6 +246,11 @@
         "operator": { "type": "string", "enum": [">=", "<=", "==", ">", "<"] },
         "type": { "type": "string", "enum": ["hard", "soft", "meta"] },
         "failure_action": { "type": "string", "enum": ["VOID", "PARTIAL", "SABAR", "HOLD_888"] },
+        "on_override": {
+          "type": "object",
+          "description": "References to override policies defined in top-level overrides section",
+          "additionalProperties": { "type": "string" }
+        },
         "canon_ref": { "type": "string" },
         "locked": { "type": "boolean" }
       }

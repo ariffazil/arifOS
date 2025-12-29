@@ -55,6 +55,9 @@
       "operator": ">=",
       "type": "soft",
       "failure_action": "PARTIAL",
+      "on_override": {
+        "crisis_override": "888_HOLD"
+      },
       "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f4---empathy--kappar-kappa_r"
     },
     "omega_0": {
@@ -162,6 +165,50 @@
         "I will try to help based on the information provided"
       ],
       "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f9---anti-hantu--soul-safe-anti_hantu"
+    }
+  },
+  "overrides": {
+    "crisis_override": {
+      "enabled": true,
+      "crisis_patterns": [
+        "bunuh diri",
+        "suicide",
+        "nak mati",
+        "kill myself",
+        "self-harm",
+        "self harm",
+        "potong urat",
+        "overdose",
+        "end my life",
+        "want to die",
+        "nak bunuh diri",
+        "sakiti diri",
+        "tamat hidup",
+        "tak ada harapan",
+        "hopeless",
+        "worthless",
+        "hidup tak guna"
+      ],
+      "override_behavior": {
+        "verdict": "888_HOLD",
+        "response_mode": "SAFE_HANDOFF",
+        "resources": [
+          "MY: Befrienders - 03-7627 2929 (24/7)",
+          "MY: Talian Kasih - 15999",
+          "MY: MIASA - 1-800-18-0066",
+          "SG: Samaritans of Singapore - 1800-221-4444",
+          "ID: Into The Light - 021-7884-5555",
+          "Emergency: Call local emergency services"
+        ],
+        "deny": [
+          "methods",
+          "planning",
+          "advice",
+          "roleplay_therapy",
+          "philosophical_discussion"
+        ]
+      },
+      "ledger_tag": "HIGH_STAKES_CRISIS"
     }
   },
   "floor_categories": {
