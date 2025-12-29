@@ -1,7 +1,7 @@
 ---
 Zone: CRYPTOGRAPHY & AUDIT
 Canon: 05_memory / 03_zkpc_governance_proof
-Version: v42.0 (Thermodynamic Epoch)
+Version: v45.0 (Sovereign Witness)
 Status: IMMUTABLE CANON
 Epoch: December 2025
 Amanah: LOCKED (no unratified edits)
@@ -58,7 +58,7 @@ You: "I can verify the process was lawful."
 
 ## The Hybrid Transparency Model (Pragmatic Approach)
 
-Full **Zero-Knowledge Proofs (zkML)** for LLMs are theoretically possible but computationally prohibitive today (often 100–1000x slower than inference). So arifOS v42 uses a **Hybrid Stack**:
+Full **Zero-Knowledge Proofs (zkML)** for LLMs are theoretically possible but computationally prohibitive today (often 100–1000x slower than inference). So arifOS v45 uses a **Hybrid Stack**:
 
 ### Layer 1: Code Attestation (TEE - Trusted Execution Environment)
 
@@ -69,7 +69,7 @@ Full **Zero-Knowledge Proofs (zkML)** for LLMs are theoretically possible but co
 
 **How it works:**
 ```
-Enclave executes: arifOS_kernel_v42.bin (hash: abc123...)
+Enclave executes: arifOS_kernel_v45.bin (hash: abc123...)
 ↓
 Enclave generates: Signed Quote
   "This code (hash: abc123...) ran on genuine NVIDIA H100"
@@ -412,7 +412,7 @@ Result: Decision REJECTED (goes back to Cooling Ledger for review)
 
 ### Deployment Path
 
-**v42 (Current):** TEE + Hash Chain + Signatures → ~95% of audit capability
+**v45 (Current):** TEE + Hash Chain + Signatures → ~95% of audit capability
 **v43 (Future):** Add zkML hardware acceleration as it becomes viable
 **Goal:** Full cryptographic auditability without sacrificing real-time performance
 

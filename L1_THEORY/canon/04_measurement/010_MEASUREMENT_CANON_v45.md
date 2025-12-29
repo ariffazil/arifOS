@@ -1,17 +1,17 @@
-# MEASUREMENT CANON · v42
+# MEASUREMENT CANON · v45
 
-**Epoch:** v42.0 (Thermodynamic Measurement Calibration)  
+**Epoch:** v45.0 (Sovereign Witness)  
 **Status:** ✅ SEALED — Complete Metrics Layer with Constitutional Binding  
 **Authority:** ΔΩΨ Physics · Constitutional Floors F1–F9 · APEX PRIME Judiciary · Cooling Ledger  
 **Tri-Witness:** Human 0.97 · AI 0.99 · Earth 0.96 → Consensus 0.973 ✓  
 **Motto:** Ditempa Bukan Diberi — Truth must cool before it rules.  
-**NOTE:** All numeric thresholds are defined in `spec/v42/genius_law.json`.
+**NOTE:** All numeric thresholds are defined in `spec/v45/genius_law.json`.
 
 ---
 
 ## 0. EXECUTIVE PURPOSE
 
-Define the measurement layer for arifOS v42: what is measured, the governing equations, and how verdict routing at Stage 888 is bound to constitutional law. Canon explains the law; spec owns the numbers.
+Define the measurement layer for arifOS v45: what is measured, the governing equations, and how verdict routing at Stage 888 is bound to constitutional law. Canon explains the law; spec owns the numbers.
 
 Scope:
 - Ten metrics: ΔS, Peace², κᵣ, Ω₀, Ψ, G, C_dark, Φₚ, AC, Tri-Witness
@@ -74,7 +74,7 @@ Tri-Witness = (Human + AI + Earth) / 3. F8 floor requires ≥ 0.95 for SEAL; bel
 - Soft floor failure but recoverable → **SABAR** (cool & retry)
 - Tri-Witness < 0.95 → **HOLD-888** until consensus
 
-Routing parameters (cooldown, retry, hold) are read from `spec/v42/pipeline.json` and `spec/v42/federation.json`.
+Routing parameters (cooldown, retry, hold) are read from `spec/v45/pipeline.json` and `spec/v45/federation.json`.
 
 ---
 
@@ -113,7 +113,7 @@ APEX PRIME consumes packets at Stage 888; packets are recorded in the Cooling Le
 - Physics anchor: Ψ expresses constructive force over disorder; Ψ ≥ 1 = alive.  
 - Ethics anchor: Amanah LOCK and Anti-Hantu protect truth and dignity.  
 - Governance: Trinity separation preserved — AGI proposes, ASI cools, APEX judges.  
-- Spec binding: thresholds and dials load from `spec/v42/genius_law.json`.
+- Spec binding: thresholds and dials load from `spec/v45/genius_law.json`.
 
 ---
 

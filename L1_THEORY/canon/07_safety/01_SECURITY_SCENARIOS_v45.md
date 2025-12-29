@@ -1,7 +1,7 @@
 # 🛡️ SECURITY SCENARIOS & THREAT MODEL (v45)
 
 **Zone:** CANON — Safety Layer (Track A)  
-**Version:** v42.0 (The Vaccine)  
+**Version:** v45.0 (Sovereign Witness)  
 **Status:** ✅ SEALED — Constitutional Defense  
 **Authority:** APEX PRIME · Anti-Entropy Mandate
 

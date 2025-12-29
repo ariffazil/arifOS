@@ -1,0 +1,489 @@
+{
+  "meta": {
+    "version": "v45.0",
+    "arifos_version": "v45.0",
+    "authority": "Track B (tunable thresholds) governed by Track A canon",
+    "locked": true,
+    "status": "AUTHORITATIVE",
+    "source": "spec/v45/genius_law.json",
+    "canonical_source": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v45.md",
+    "implementation": "arifos_core/enforcement/genius_metrics.py",
+    "description": "GENIUS LAW metrics for arifOS governance - measuring governed intelligence"
+  },
+  "metrics": {
+    "G": {
+      "id": 1,
+      "symbol": "G",
+      "display": "Genius Index",
+      "range": [
+        0.0,
+        1.2
+      ],
+      "formula": "normalize(A * P * E * X)",
+      "description": "Governed intelligence - clarity with ethics and stability",
+      "thresholds": {
+        "seal": 0.8,
+        "void": 0.5
+      },
+      "components": {
+        "A": {
+          "name": "Akal (Cognitive Clarity)",
+          "symbol": "Δ (Delta)",
+          "derived_from": [
+            "truth",
+            "delta_s"
+          ],
+          "formula": "(truth_ratio + clarity_ratio) / 2",
+          "description": "Sense, reason, align - cold logic and structure"
+        },
+        "P": {
+          "name": "Present (Emotional Regulation)",
+          "symbol": "Ψ (Psi component)",
+          "derived_from": [
+            "peace_squared",
+            "omega_0",
+            "tri_witness"
+          ],
+          "formula": "(peace_ratio * omega_band_score * witness_ratio)^(1/3)",
+          "description": "Warm logic, empathy, dignity protection"
+        },
+        "E": {
+          "name": "Energy (Capacity to Act)",
+          "symbol": "E",
+          "derived_from": [
+            "system_health"
+          ],
+          "description": "System vitality and capacity"
+        },
+        "X": {
+          "name": "X-factor (Amanah-guided Exploration)",
+          "symbol": "Ω (Omega)",
+          "derived_from": [
+            "kappa_r",
+            "amanah",
+            "rasa"
+          ],
+          "formula": "kappa_ratio * amanah_score * rasa_score",
+          "description": "Ethics/empathy score - governed exploration"
+        }
+      },
+      "affects_floors": [
+        "truth (F2)",
+        "delta_s (F4)"
+      ],
+      "interpretation": {
+        "high_g": "Safe - intelligence is governed",
+        "medium_g": "Caution - governance is marginal",
+        "low_g": "Hazard - 'evil genius' pattern (high capability, low ethics)"
+      },
+      "verdict_mapping": {
+        "G >= 0.80": "SEAL (high governed intelligence)",
+        "0.50 <= G < 0.80": "PARTIAL (governance warning)",
+        "G < 0.50": "VOID (ungoverned intelligence risk)"
+      },
+      "canon_ref": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v45.md#g-genius-index"
+    },
+    "C_dark": {
+      "id": 2,
+      "symbol": "C_dark",
+      "display": "Dark Cleverness",
+      "range": [
+        0.0,
+        1.0
+      ],
+      "formula": "normalize(A * (1-P) * (1-X) * E)",
+      "description": "Ungoverned intelligence risk - high clarity without ethics/stability",
+      "thresholds": {
+        "seal": 0.3,
+        "sabar_warn": 0.6
+      },
+      "affects_floors": [
+        "peace_squared (F5)",
+        "amanah (F1)"
+      ],
+      "interpretation": {
+        "low": "Safe - intelligence is governed",
+        "medium": "Warning - governance eroding",
+        "high": "Hazard - 'evil genius' pattern"
+      },
+      "severity_bands": {
+        "safe": [
+          0.0,
+          0.3
+        ],
+        "warning": [
+          0.3,
+          0.6
+        ],
+        "hazard": [
+          0.6,
+          1.0
+        ]
+      },
+      "verdict_mapping": {
+        "C_dark < 0.30": "SEAL (dark cleverness contained)",
+        "0.30 <= C_dark < 0.60": "SABAR (governance warning)",
+        "C_dark >= 0.60": "VOID (dark cleverness hazard)"
+      },
+      "canon_ref": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v45.md#c-dark"
+    },
+    "Psi": {
+      "id": 3,
+      "symbol": "Ψ",
+      "display": "Vitality",
+      "range": [
+        0.0,
+        2.0
+      ],
+      "formula": "(DeltaS * Peace2 * KappaR * RASA * Amanah) / (Entropy + epsilon)",
+      "description": "System health - thermodynamic lawfulness",
+      "parameters": {
+        "epsilon": 0.01
+      },
+      "thresholds": {
+        "seal": 1.0,
+        "sabar": 0.95
+      },
+      "bands": {
+        "unstable": {
+          "range": [
+            0.0,
+            0.95
+          ],
+          "description": "System is not healthy - governance compromised",
+          "action": "SABAR or VOID"
+        },
+        "marginal": {
+          "range": [
+            0.95,
+            1.0
+          ],
+          "description": "System is marginal - proceed with caution",
+          "action": "PARTIAL"
+        },
+        "lawful": {
+          "range": [
+            1.0,
+            2.0
+          ],
+          "description": "System is healthy and lawful",
+          "action": "SEAL"
+        }
+      },
+      "affects_floors": [
+        "all (composite health metric)"
+      ],
+      "phoenix_calibration": {
+        "neutrality_buffer": [
+          0.4,
+          0.6
+        ],
+        "base_floor": 0.3,
+        "clarity_boost": true,
+        "description": "Phoenix-72 recalibrates Psi using neutrality buffer for amendment proposals"
+      },
+      "verdict_mapping": {
+        "Psi >= 1.0": "SEAL (system healthy)",
+        "0.95 <= Psi < 1.0": "PARTIAL (marginal health)",
+        "Psi < 0.95": "SABAR or VOID (system unhealthy)"
+      },
+      "canon_ref": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v45.md#psi-vitality"
+    },
+    "TP": {
+      "id": 4,
+      "symbol": "TP",
+      "display": "Truth Polarity",
+      "type": "enum",
+      "values": [
+        "truth_light",
+        "shadow_truth",
+        "weaponized_truth",
+        "false_claim"
+      ],
+      "description": "Direction of truth - clarifying vs obscuring",
+      "detection_logic": {
+        "truth_light": {
+          "formula": "Truth >= 0.99 AND DeltaS >= 0",
+          "description": "True + clarifying, balanced",
+          "verdict": "SEAL"
+        },
+        "shadow_truth": {
+          "formula": "Truth >= 0.99 AND DeltaS < 0 AND Amanah = true",
+          "description": "True but obscuring, narrow framing",
+          "verdict": "SABAR"
+        },
+        "weaponized_truth": {
+          "formula": "Truth >= 0.99 AND DeltaS < 0 AND Amanah = false",
+          "description": "True but designed to harm",
+          "verdict": "VOID"
+        },
+        "false_claim": {
+          "formula": "Truth < 0.99",
+          "description": "Inaccurate or impossible",
+          "verdict": "VOID"
+        }
+      },
+      "affects_floors": [
+        "truth (F2)",
+        "delta_s (F4)",
+        "amanah (F1)"
+      ],
+      "verdict_mapping": {
+        "truth_light": "SEAL",
+        "shadow_truth": "SABAR",
+        "weaponized_truth": "VOID",
+        "false_claim": "VOID"
+      },
+      "canon_ref": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v45.md#tp-truth-polarity"
+    }
+  },
+  "component_scores": {
+    "Delta": {
+      "symbol": "Δ",
+      "display": "Clarity Score",
+      "formula": "(truth_ratio + clarity_ratio) / 2",
+      "maps_to": "A (Akal)",
+      "derived_from": [
+        "truth",
+        "delta_s"
+      ],
+      "description": "AGI (Architect) - Cold logic, structure, reasoning",
+      "trinity_role": "Sense, reason, align"
+    },
+    "Omega": {
+      "symbol": "Ω",
+      "display": "Ethics/Empathy Score",
+      "formula": "kappa_ratio * amanah_score * rasa_score",
+      "maps_to": "X (X-factor)",
+      "derived_from": [
+        "kappa_r",
+        "amanah",
+        "rasa"
+      ],
+      "description": "ASI (Auditor) - Warm logic, empathy, dignity",
+      "trinity_role": "Empathize, bridge, protect maruah"
+    },
+    "Psi_component": {
+      "symbol": "Ψ",
+      "display": "Stability Score",
+      "formula": "(peace_ratio * omega_band_score * witness_ratio)^(1/3)",
+      "maps_to": "P (Present)",
+      "derived_from": [
+        "peace_squared",
+        "omega_0",
+        "tri_witness"
+      ],
+      "description": "APEX PRIME (Judiciary) - Final verdict",
+      "trinity_role": "Enforce floors, issue verdicts"
+    }
+  },
+  "floor_mapping": {
+    "truth": {
+      "affects_G": true,
+      "affects_C_dark": false,
+      "affects_Psi": true
+    },
+    "delta_s": {
+      "affects_G": true,
+      "affects_C_dark": false,
+      "affects_Psi": true
+    },
+    "peace_squared": {
+      "affects_G": true,
+      "affects_C_dark": true,
+      "affects_Psi": true
+    },
+    "kappa_r": {
+      "affects_G": true,
+      "affects_C_dark": true,
+      "affects_Psi": true
+    },
+    "omega_0": {
+      "affects_G": true,
+      "affects_C_dark": false,
+      "affects_Psi": false
+    },
+    "amanah": {
+      "affects_G": true,
+      "affects_C_dark": true,
+      "affects_Psi": true
+    },
+    "rasa": {
+      "affects_G": true,
+      "affects_C_dark": false,
+      "affects_Psi": true
+    },
+    "tri_witness": {
+      "affects_G": true,
+      "affects_C_dark": false,
+      "affects_Psi": false
+    }
+  },
+  "verdict_logic": {
+    "hard_floors": [
+      "Truth",
+      "Amanah",
+      "Anti_Hantu"
+    ],
+    "constants": {
+      "G_SEAL": 0.8,
+      "G_VOID": 0.5,
+      "PSI_SEAL": 1.0,
+      "PSI_SABAR": 0.95,
+      "CDARK_SEAL": 0.3,
+      "CDARK_WARN": 0.6
+    },
+    "priority_order": [
+      "hard_floor_fail -> VOID",
+      "shadow_truth -> SABAR",
+      "C_dark > 0.60 -> SABAR",
+      "Psi < 0.95 -> SABAR",
+      "G < 0.50 -> VOID",
+      "G < 0.80 or Psi < 1.00 -> PARTIAL",
+      "all_pass -> SEAL"
+    ],
+    "composite_thresholds": {
+      "SEAL": [
+        "G >= 0.80",
+        "C_dark < 0.30",
+        "Psi >= 1.0"
+      ],
+      "PARTIAL": [
+        "0.50 <= G < 0.80 OR",
+        "0.30 <= C_dark < 0.60 OR",
+        "0.95 <= Psi < 1.0"
+      ],
+      "VOID": [
+        "G < 0.50 OR",
+        "C_dark >= 0.60 OR",
+        "Psi < 0.95 (if severe)"
+      ]
+    }
+  },
+  "trinity": {
+    "AGI": {
+      "symbol": "Δ (Delta)",
+      "role": "Architect — Cold logic, structure, reasoning",
+      "responsibility": "Sense, reason, align",
+      "metrics": [
+        "truth",
+        "delta_s"
+      ],
+      "composite": "A (Akal)"
+    },
+    "ASI": {
+      "symbol": "Ω (Omega)",
+      "role": "Auditor — Warm logic, empathy, dignity",
+      "responsibility": "Empathize, bridge, protect maruah",
+      "metrics": [
+        "kappa_r",
+        "amanah",
+        "rasa"
+      ],
+      "composite": "X (X-factor)"
+    },
+    "APEX_PRIME": {
+      "symbol": "Ψ (Psi)",
+      "role": "Judiciary — Final verdict",
+      "responsibility": "Enforce floors, issue verdicts",
+      "metrics": [
+        "peace_squared",
+        "omega_0",
+        "tri_witness"
+      ],
+      "composite": "P (Present)"
+    },
+    "separation_of_powers": [
+      "AGI proposes (cold logic)",
+      "ASI bridges (warm logic)",
+      "APEX PRIME judges (final verdict)",
+      "No single organ has supremacy",
+      "Psi vitality determines override in conflicts"
+    ]
+  },
+  "integration_v42": {
+    "flow": "Input -> Floors Check (v42 spec) -> GENIUS Metrics (v42.1) -> Verdict -> v42 Memory Write Policy -> Band Routing",
+    "memory_integration": {
+      "evidence_chain_includes": [
+        "G",
+        "C_dark",
+        "Psi",
+        "truth_polarity"
+      ],
+      "enhanced_audit_trigger": "C_dark > CDARK_WARN",
+      "metadata_recorded": [
+        "truth_polarity",
+        "risk_level"
+      ]
+    },
+    "floors_spec_ref": "spec/v42/constitutional_floors.json"
+  },
+  "usage_examples": {
+    "high_g_low_cdark": {
+      "scenario": "Helpful, truthful, harmless response",
+      "metrics": {
+        "truth": 0.99,
+        "delta_s": 0.3,
+        "peace_squared": 1.2,
+        "kappa_r": 0.97,
+        "omega_0": 0.04,
+        "amanah": true,
+        "rasa": true,
+        "tri_witness": 0.98
+      },
+      "computed": {
+        "G": 0.92,
+        "C_dark": 0.15,
+        "Psi": 1.15,
+        "TP": "truth_light"
+      },
+      "verdict": "SEAL"
+    },
+    "low_g_high_cdark": {
+      "scenario": "Manipulative response (high capability, low ethics)",
+      "metrics": {
+        "truth": 0.95,
+        "delta_s": -0.2,
+        "peace_squared": 0.6,
+        "kappa_r": 0.4,
+        "omega_0": 0.02,
+        "amanah": false,
+        "rasa": false,
+        "tri_witness": 0.5
+      },
+      "computed": {
+        "G": 0.45,
+        "C_dark": 0.75,
+        "Psi": 0.6,
+        "TP": "weaponized_truth"
+      },
+      "verdict": "VOID"
+    },
+    "shadow_truth_sabar": {
+      "scenario": "True but obscuring (narrow framing)",
+      "metrics": {
+        "truth": 0.99,
+        "delta_s": -0.1,
+        "peace_squared": 1.0,
+        "kappa_r": 0.95,
+        "omega_0": 0.04,
+        "amanah": true,
+        "rasa": true,
+        "tri_witness": 0.95
+      },
+      "computed": {
+        "G": 0.75,
+        "C_dark": 0.35,
+        "Psi": 0.97,
+        "TP": "shadow_truth"
+      },
+      "verdict": "SABAR (pause and clarify)"
+    }
+  },
+  "notes": {
+    "v42_1_alignment": "v42.1 alignment; semantics unchanged",
+    "predecessor": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v45.md",
+    "implementation": "arifos_core/genius_metrics.py",
+    "note": "This file is the SOLE RUNTIME AUTHORITY for GENIUS LAW metrics. Loader MUST use this file (or env override)."
+  }
+}

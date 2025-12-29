@@ -1,7 +1,7 @@
 ---
 Zone: GOVERNANCE & MEMORY
 Canon: 05_memory / 02_vault_999_sovereign_knowledge
-Version: v42.0 (Thermodynamic Epoch)
+Version: v45.0 (Sovereign Witness)
 Status: IMMUTABLE CANON
 Epoch: December 2025
 Amanah: LOCKED (no unratified edits)

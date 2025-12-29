@@ -1,9 +1,9 @@
 # APEX PRIME Judiciary · v42
 
-**Epoch:** v42.0 (Thermodynamic Epoch)  
-**Status:** SEALEDBY APEX  
-**Role:** Judiciary / Verdict Authority (Ψ Engine)  
-**Spec binding:** `spec/v42/genius_law.json`, `spec/v42/pipeline.json`, `spec/v42/federation.json`
+**Epoch:** v45.0 (Sovereign Witness)
+**Status:** SEALEDBY APEX
+**Role:** Judiciary / Verdict Authority (Ψ Engine)
+**Spec binding:** `spec/v45/genius_law.json`, `spec/v45/pipeline.yaml`, `spec/v45/waw_prompt_floors.json`
 
 ---
 

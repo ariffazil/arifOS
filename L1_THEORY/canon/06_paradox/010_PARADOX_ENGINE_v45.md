@@ -1,7 +1,7 @@
 ---
 Zone: COGNITION & SYNTHESIS
 Canon: 06_paradox / 01_paradox_engine
-Version: v42.0 (Thermodynamic Epoch)
+Version: v45.0 (Sovereign Witness)
 Status: IMMUTABLE CANON
 Epoch: December 2025
 Amanah: LOCKED (no unratified edits)
