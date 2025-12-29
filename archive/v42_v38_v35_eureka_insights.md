@@ -300,6 +300,85 @@ spec_data["_loaded_from"] = loaded_from
 
 ---
 
+### 11. arifos_eval v36.1Ω → v45.0 Migration (2025-12-29)
+
+**Context:**
+- Evaluation framework (`arifos_eval/apex/`) was 9 versions behind core (v36.1Ω vs v45.0)
+- Caused telemetry comparison meaninglessness (comparing v36 metrics against v45 runtime)
+- Migration needed to align with Phoenix-72 constitutional consolidation
+
+**Migration Approach:**
+
+1. **Non-Breaking Upgrade Path:**
+   ```python
+   # eval_telemetry.py search paths (v45 preferred, v36 fallback)
+   standards_paths = [
+       "arifos_eval/apex/apex_standards_v45.json",
+       "spec/apex_standards_v45.json",
+       "arifos_eval/apex/apex_standards_v36.json",  # Fallback
+       "spec/apex_standards_v36.json",  # Fallback
+   ]
+   ```
+
+2. **Track B Alignment (Constitutional Consolidation):**
+   - Added `floor_binding` fields linking metrics to F1-F9 constitutional floors
+   - Added `track_b_alignment` section referencing spec/v45/ authority files
+   - Added Phoenix-72 governance parameters (streak_detection, manifest_verification)
+
+3. **Three-Tier Architecture Preserved:**
+   - Tier 1 (Law): Renamed `APEX_MEASUREMENT_STANDARDS_v36.1Omega.md` → `v45.md` via git mv
+   - Tier 2 (Tunables): Created `apex_standards_v45.json` (v36.json kept as reference)
+   - Tier 3 (Logic): No changes to `apex_measurements.py` (version-agnostic formulas)
+
+4. **Anti-Hantu Enhancement:**
+   - Added hypothetical consciousness patterns to v45 config
+   - Patterns: "if I could feel", "were I conscious", "kalau saya ada perasaan"
+   - Aligns with spec/v45/red_patterns.json soul_claims tier
+
+5. **Crisis Override Awareness:**
+   - Added crisis_override metadata linking to constitutional_floors.json overrides
+   - 888_HOLD protocol for emergency patterns (not cold VOID)
+
+**Eureka Insights:**
+
+> **Insight 11.1: Separate Eval from Core Runtime**
+> - arifos_eval can lag behind core by design (it's for comparison, not enforcement)
+> - BUT: Version drift > 3 major versions creates meaningless telemetry
+> - Solution: Periodic sync on constitutional milestones (Phoenix-72, major amendments)
+
+> **Insight 11.2: Legacy Fallback Enables Safe Upgrades**
+> - v45 files with v36 fallback = zero user disruption
+> - Optional telemetry (EVAL_TELEMETRY_ENABLED) means no breakage if v45 missing
+> - Progressive loading: try v45 → log version → fallback to v36 → disable if both fail
+
+> **Insight 11.3: Git Rename Preserves History**
+> - Used `git mv` for APEX_MEASUREMENT_STANDARDS rename (not delete+create)
+> - Preserves git history and blame tracking through renames
+> - Better for archaeology: "Why was this threshold chosen?" traces back through renames
+
+> **Insight 11.4: Three-Tier Stability**
+> - Tier 1 (Law) changes: Rare, require Phoenix-72 cooling
+> - Tier 2 (Tunables) changes: Common, backwards-compatible JSON extension
+> - Tier 3 (Logic) changes: Version-agnostic (works with v36, v45, v46 configs)
+> - Separation prevents config format changes from breaking measurement formulas
+
+**Testing Verification:**
+- 45/45 arifos_eval unit tests PASSED (measurement formulas unchanged)
+- 5/5 telemetry integration tests PASSED (v45 priority + v36 fallback both work)
+- No breaking changes to existing eval consumers
+
+**Files Changed:**
+- `arifos_eval/__init__.py` → v45.0.0
+- `arifos_eval/apex/__init__.py` → v45.0.0
+- `arifos_eval/apex/apex_standards_v45.json` (NEW)
+- `arifos_eval/apex/APEX_MEASUREMENT_STANDARDS_v45.md` (RENAMED from v36.1Omega.md)
+- `arifos_eval/apex/README.md` (v45 update section added)
+- `arifos_core/utils/eval_telemetry.py` (v45 priority search paths)
+
+**Commit:** 2eb64d1 (2025-12-29)
+
+---
+
 ## Migration Lessons for Future Versions
 
 **When creating v46, v47, etc.:**
