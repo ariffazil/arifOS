@@ -115,6 +115,7 @@ Issues = "https://github.com/ariffazil/arifOS/issues"
 Changelog = "https://github.com/ariffazil/arifOS/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
+include-package-data = true
 packages = [
     "arifos_core",
     # v45 Sovereign Witness
@@ -160,6 +161,9 @@ packages = [
 [tool.setuptools.package-data]
 arifos_core = ["py.typed", "*.py", "**/*.py"]
 "*" = ["spec/*.yaml", "spec/*.json"]
+
+[tool.setuptools.data-files]
+"spec" = ["spec/**/*.json", "spec/**/*.yaml", "spec/**/*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
