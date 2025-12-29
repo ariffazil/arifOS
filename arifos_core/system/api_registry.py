@@ -359,7 +359,7 @@ _REGISTRY.register(APIEntry(
     module="arifos_core",
     description="Alias for AGI",
     deprecated_in="v42.0",
-    removed_in="v43.0",
+    removed_in="v46.0",
     replacement="AGI",
 ))
 _REGISTRY.register(APIEntry(
@@ -369,7 +369,7 @@ _REGISTRY.register(APIEntry(
     module="arifos_core",
     description="Alias for ASI",
     deprecated_in="v42.0",
-    removed_in="v43.0",
+    removed_in="v46.0",
     replacement="ASI",
 ))
 _REGISTRY.register(APIEntry(
@@ -379,7 +379,7 @@ _REGISTRY.register(APIEntry(
     module="arifos_core",
     description="Alias for ASIResult",
     deprecated_in="v42.0",
-    removed_in="v43.0",
+    removed_in="v46.0",
     replacement="ASIResult",
 ))
 _REGISTRY.register(APIEntry(
@@ -389,7 +389,7 @@ _REGISTRY.register(APIEntry(
     module="arifos_core",
     description="Legacy pattern checker",
     deprecated_in="v42.0",
-    removed_in="v43.0",
+    removed_in="v46.0",
     replacement="AGI().scan()",
 ))
 _REGISTRY.register(APIEntry(
@@ -399,7 +399,7 @@ _REGISTRY.register(APIEntry(
     module="arifos_core",
     description="Legacy metric computation",
     deprecated_in="v42.0",
-    removed_in="v43.0",
+    removed_in="v46.0",
     replacement="ASI().assess()",
 ))
 
