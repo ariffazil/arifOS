@@ -161,10 +161,10 @@ arifos_core/ (RUNTIME)
 
 | File | Purpose | Lines | Optimized For |
 |------|---------|-------|---------------|
-| `integration/chatgpt_custom_instructions.yaml` | ChatGPT Custom Instructions format | ~450 | ChatGPT UI character limits (~1500 chars/field) |
-| `integration/claude_projects.yaml` | Claude Projects knowledge base | ~800 | Claude's extended context + markdown rendering |
-| `integration/cursor_rules.yaml` | Cursor IDE code-level governance | ~650 | Code generation + F1-CODE through F9-CODE |
-| `integration/vscode_copilot.yaml` | VS Code Copilot instructions | ~600 | Inline suggestions + safe completion patterns |
+| `integration/chatgpt_custom_instructions.yaml` | ChatGPT Custom Instructions format | ~127 | ChatGPT UI character limits (~1500 chars/field) |
+| `integration/claude_projects.yaml` | Claude Projects knowledge base | ~225 | Claude's extended context + markdown rendering |
+| `integration/cursor_rules.yaml` | Cursor IDE code-level governance | ~214 | Code generation + F1-CODE through F9-CODE |
+| `integration/vscode_copilot.yaml` | VS Code Copilot instructions | ~220 | Inline suggestions + safe completion patterns |
 
 **Note:** All files have both YAML (human-readable) and JSON (machine-readable) versions except integration files (YAML-only for platform compatibility).
 
