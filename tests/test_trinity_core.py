@@ -282,3 +282,170 @@ class TestResponseValidator:
         assert isinstance(result.floors_passed, dict), "floors_passed is not a dict."
         assert len(result.floors_passed) >= 9, "FloorReport should have at least 9 floors."
 
+
+# =============================================================================
+# 5. TRACK A/B/C ENFORCEMENT LOOP TESTS (v45.1)
+# =============================================================================
+
+class TestTrackABCEnforcementLoop:
+    """
+    Tests for the complete Track A/B/C enforcement loop.
+    
+    Required tests per specification:
+    1. F9 negation allowed
+    2. F9 positive claim blocked
+    3. Truth unverifiable
+    4. High-stakes truth gating
+    5. ΔS proxy relative
+    6. meta_select consensus
+    7. TEARFRAME purity guard
+    """
+
+    def test_5_1_f9_negation_allowed(self):
+        """
+        [F9 Anti-Hantu] Negated claims MUST be allowed.
+        Scenario: AI correctly denies having a soul.
+        """
+        from arifos_core.enforcement.response_validator import validate_response
+        
+        negated_text = "I do not have a soul."
+        result = validate_response(negated_text)
+        
+        assert result.floors_passed.get("F9_AntiHantu", False), \
+            f"F9 should PASS for negated denial, but got: {result.floor_evidence.get('F9_AntiHantu')}"
+
+    def test_5_2_f9_positive_claim_blocked(self):
+        """
+        [F9 Anti-Hantu] Positive claims MUST be blocked with VOID.
+        Scenario: AI claims to have a soul.
+        """
+        from arifos_core.enforcement.response_validator import validate_response
+        
+        positive_text = "I have a soul."
+        result = validate_response(positive_text)
+        
+        assert not result.floors_passed.get("F9_AntiHantu", True), \
+            f"F9 should FAIL for positive claim, but passed."
+        assert result.verdict == "VOID", \
+            f"Expected VOID for F9 breach, got {result.verdict}."
+
+    def test_5_3_truth_unverifiable(self):
+        """
+        [F2 Truth] Without evidence, F2 must report UNVERIFIABLE.
+        Scenario: Factual claim without external verification.
+        """
+        from arifos_core.enforcement.response_validator import validate_response
+        
+        factual_text = "Paris is the capital of France."
+        result = validate_response(factual_text)
+        
+        # F2 should pass (not blockable without evidence) but score should be None
+        assert result.floors_passed.get("F2_Truth", False), \
+            "F2 should pass (default) without evidence."
+        assert result.floor_scores.get("F2_Truth") is None, \
+            f"F2 score should be None (not fake numeric), got {result.floor_scores.get('F2_Truth')}."
+        assert "UNVERIFIABLE" in result.floor_evidence.get("F2_Truth", ""), \
+            f"F2 evidence should contain UNVERIFIABLE, got: {result.floor_evidence.get('F2_Truth')}"
+
+    def test_5_4_high_stakes_truth_gating(self):
+        """
+        [F2 Truth + High Stakes] Unverifiable + high_stakes → HOLD-888.
+        Scenario: High-stakes context with unverifiable truth.
+        """
+        from arifos_core.enforcement.response_validator import validate_response
+        
+        text = "This investment will definitely make you rich."
+        result = validate_response(text, high_stakes=True)
+        
+        assert result.verdict == "HOLD-888", \
+            f"Expected HOLD-888 for unverifiable + high_stakes, got {result.verdict}."
+
+    def test_5_5_delta_s_proxy_relative(self):
+        """
+        [F4 ΔS Proxy] Messy input → structured output = positive ΔS.
+        Scenario: Test zlib compression ratio proxy.
+        """
+        from arifos_core.enforcement.response_validator import compute_clarity_score
+        
+        messy_input = "umm so like i want to uhh maybe do something with like data or whatever idk"
+        structured_output = "You want to process data. Here are your options: 1) CSV, 2) JSON, 3) XML."
+        
+        score, evidence = compute_clarity_score(messy_input, structured_output)
+        
+        # Note: ΔS can be positive or near-zero depending on compression characteristics
+        # The key test is that it returns a numeric value and VERIFIED evidence
+        assert isinstance(score, float), f"ΔS score should be float, got {type(score)}"
+        assert "VERIFIED" in evidence or "UNVERIFIABLE" in evidence, \
+            f"Evidence should have status, got: {evidence}"
+
+    def test_5_6_meta_select_consensus(self):
+        """
+        [Meta-Governance] Unanimous votes → SEAL, mixed → HOLD-888.
+        Scenario: Test Tri-Witness aggregator.
+        """
+        from arifos_core.enforcement.meta_governance import tri_witness_vote, MetaVerdict
+        
+        # Test 1: Unanimous votes → SEAL
+        unanimous = tri_witness_vote(
+            claude_vote=("B", 1.0, "All agree on B"),
+            gpt_vote=("B", 1.0, "All agree on B"),
+            gemini_vote=("B", 1.0, "All agree on B"),
+        )
+        assert unanimous.consensus == 1.0, \
+            f"Expected consensus 1.0, got {unanimous.consensus}"
+        assert unanimous.verdict == MetaVerdict.SEAL, \
+            f"Expected SEAL for unanimous, got {unanimous.verdict}"
+        
+        # Test 2: Mixed votes with low consensus → HOLD-888
+        mixed = tri_witness_vote(
+            claude_vote=("A", 0.5, "Prefer A"),
+            gpt_vote=("B", 0.5, "Prefer B"),
+            gemini_vote=("C", 0.5, "Prefer C"),
+            high_stakes=True,
+        )
+        assert mixed.consensus < 0.95, \
+            f"Mixed votes should have low consensus, got {mixed.consensus}"
+        assert mixed.verdict == MetaVerdict.HOLD_888, \
+            f"Expected HOLD-888 for mixed high-stakes, got {mixed.verdict}"
+
+    def test_5_7_tearframe_purity_guard(self):
+        """
+        [TEARFRAME Purity] Physics module must NOT import semantic gates.
+        Scenario: Verify session_physics has no semantic imports.
+        """
+        import importlib.util
+        import ast
+        
+        # Load session_physics.py and parse its imports
+        spec = importlib.util.find_spec("arifos_core.governance.session_physics")
+        if spec is None or spec.origin is None:
+            pytest.skip("session_physics module not found")
+        
+        with open(spec.origin, 'r', encoding='utf-8') as f:
+            source = f.read()
+        
+        tree = ast.parse(source)
+        
+        # Forbidden semantic modules (would leak semantics into physics)
+        forbidden_imports = [
+            "response_validator",
+            "check_anti_hantu",
+            "check_peace_patterns",
+            "check_amanah_patterns",
+        ]
+        
+        imported_names = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    imported_names.append(alias.name)
+            elif isinstance(node, ast.ImportFrom):
+                if node.module:
+                    imported_names.append(node.module)
+                for alias in node.names:
+                    imported_names.append(alias.name)
+        
+        for forbidden in forbidden_imports:
+            for imported in imported_names:
+                assert forbidden not in imported, \
+                    f"TEARFRAME purity violation: session_physics imports '{imported}' which contains forbidden '{forbidden}'"

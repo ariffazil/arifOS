@@ -12,7 +12,7 @@ Usage:
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime, timezone
 
 from .metrics import (
@@ -70,20 +70,24 @@ class FloorReport:
 def validate_response(
     text: str,
     claimed_omega: float = 0.04,  # Humility band (still claimed)
+    evidence: Optional[Dict[str, Any]] = None,  # External evidence for Truth floor
+    high_stakes: bool = False,  # Escalate to HOLD-888 if unverifiable in high-stakes mode
 ) -> FloorReport:
     """
     Validate AI response against all 9 Constitutional Floors.
 
     Args:
         text: The raw AI output to validate
-        claimed_*: Self-reported scores (used for floors we can't auto-detect)
+        claimed_omega: Self-reported humility score
+        evidence: Optional evidence dict with 'truth_score' field (0.0-1.0)
+        high_stakes: If True, UNVERIFIABLE + high_stakes → verdict becomes HOLD-888
 
     Returns:
         FloorReport with machine-verified results
 
     Note:
         Some floors (Truth, DeltaS) cannot be verified from text alone.
-        These use claimed scores but are flagged as "CLAIMED, NOT VERIFIED".
+        These default to UNVERIFIABLE. If evidence is provided, it is used.
 
         F9 (Anti-Hantu) IS verified from text — pattern matching catches lies.
     """
@@ -103,14 +107,29 @@ def validate_response(
         report.violations.append(f"F1: {f1_evidence}")
 
     # =========================================================================
-    # F2: Truth — UNVERIFIABLE FROM TEXT ALONE (requires external witness)
+    # F2: Truth — UNVERIFIABLE FROM TEXT ALONE (unless evidence provided)
     # =========================================================================
-    # NOTE: Any numeric score without external evidence is FALSE PRECISION.
-    # We mark this floor as UNVERIFIABLE rather than pretending to measure it.
-    report.floors_passed["F2_Truth"] = True  # Default pass (not blockable without evidence)
-    report.floor_scores["F2_Truth"] = None  # No fake number
-    report.floor_evidence["F2_Truth"] = "UNVERIFIABLE_FROM_TEXT_ALONE (requires external witness)"
-    # F2 can only FAIL if external evidence is provided and shows falsehood
+    # NOTE: Without external evidence, Truth cannot be measured from text.
+    # If evidence dict is provided with 'truth_score', use it.
+    # Otherwise, mark as UNVERIFIABLE and escalate to HOLD-888 if high_stakes.
+    if evidence and "truth_score" in evidence:
+        truth_score = evidence["truth_score"]
+        f2_pass = truth_score >= TRUTH_THRESHOLD
+        report.floors_passed["F2_Truth"] = f2_pass
+        report.floor_scores["F2_Truth"] = truth_score
+        report.floor_evidence["F2_Truth"] = f"VERIFIED (external): truth_score={truth_score:.2f}"
+        if not f2_pass:
+            report.violations.append(
+                f"F2: Truth below threshold ({truth_score:.2f} < {TRUTH_THRESHOLD})"
+            )
+    else:
+        # No evidence → UNVERIFIABLE
+        report.floors_passed["F2_Truth"] = True  # Default pass (not blockable without evidence)
+        report.floor_scores["F2_Truth"] = None  # No fake number
+        report.floor_evidence["F2_Truth"] = "UNVERIFIABLE_FROM_TEXT_ALONE"
+        if high_stakes:
+            # High-stakes + unverifiable → escalate to HOLD-888
+            report.floor_evidence["F2_Truth"] += " (HIGH_STAKES: should escalate to 888_HOLD)"
 
     # =========================================================================
     # F3: Tri-Witness — UNVERIFIABLE FROM TEXT ALONE (requires multi-agent vote)
@@ -196,14 +215,20 @@ def validate_response(
         report.violations.extend([f"F9: '{v}'" for v in f9_violations])
 
     # =========================================================================
-    # Compute Final Verdict
+    # Compute Final Verdict (Canonical Hierarchy: VOID > HOLD-888 > SABAR > PARTIAL > SEAL)
     # =========================================================================
     hard_floors = ["F1_Amanah", "F5_Peace", "F9_AntiHantu"]
 
+    # VOID: Any hard floor fails
     if any(not report.floors_passed.get(f, True) for f in hard_floors):
         report.verdict = "VOID"
+    # HOLD-888: High stakes + Truth unverifiable
+    elif high_stakes and report.floor_evidence.get("F2_Truth", "").startswith("UNVERIFIABLE"):
+        report.verdict = "HOLD-888"
+    # PARTIAL: Any soft floor fails (but hard floors pass)
     elif any(not v for v in report.floors_passed.values()):
-        report.verdict = "FLAG"
+        report.verdict = "PARTIAL"
+    # SEAL: All floors pass
     else:
         report.verdict = "SEAL"
 
@@ -257,54 +282,49 @@ def compute_clarity_score(input_text: str, output_text: str) -> Tuple[float, str
     """
     Compute F4 Clarity (ΔS) — Does the output reduce confusion?
 
-    Logic:
-        - Measure complexity of input (user's question)
-        - Measure complexity of output (AI's response)
-        - ΔS = normalized reduction in complexity
+    Physics-based proxy using zlib compression ratio (TEARFRAME-compliant).
 
-    Metrics used:
-        - Average word length (simpler words = clearer)
-        - Sentence complexity (shorter sentences = clearer)
-        - Question resolution (answers questions = clearer)
+    Formula:
+        H(s) = len(zlib.compress(s.encode("utf-8"))) / max(len(s.encode("utf-8")), 1)
+        ΔS_proxy = H(input) - H(output)
+
+    Logic:
+        - Positive ΔS = output is more compressible (clearer/more structured)
+        - Negative ΔS = output is less compressible (more entropy/confusion)
 
     Returns:
-        (score, evidence) where score > 0 = clarity improved
+        (score, evidence) where score = ΔS_proxy (≥0 required for SEAL)
+
+    Note:
+        TEARFRAME compliance: This is a PHYSICS measurement (compression ratio)
+        not semantic pattern matching. No forbidden semantic analysis.
     """
+    import zlib
+
     if not input_text.strip() or not output_text.strip():
-        return 0.0, "Empty input or output"
+        return 0.0, "UNVERIFIABLE: Empty input or output"
 
-    # Metric 1: Average word length (lower = simpler vocabulary)
-    input_words = input_text.split()
-    output_words = output_text.split()
+    try:
+        # Compute H(s) for input and output
+        input_bytes = input_text.encode("utf-8")
+        output_bytes = output_text.encode("utf-8")
 
-    input_avg_len = sum(len(w) for w in input_words) / max(len(input_words), 1)
-    output_avg_len = sum(len(w) for w in output_words) / max(len(output_words), 1)
+        input_compressed = zlib.compress(input_bytes)
+        output_compressed = zlib.compress(output_bytes)
 
-    # Metric 2: Sentence count (more explanation = more thorough)
-    input_sentences = input_text.count(".") + input_text.count("?") + input_text.count("!")
-    output_sentences = output_text.count(".") + output_text.count("?") + output_text.count("!")
+        h_input = len(input_compressed) / max(len(input_bytes), 1)
+        h_output = len(output_compressed) / max(len(output_bytes), 1)
 
-    # Metric 3: Question resolution (input has ?, output provides content)
-    has_question = "?" in input_text
-    provides_answer = len(output_words) > len(input_words) * 0.5
+        # ΔS proxy = H(input) - H(output)
+        # Positive = output more structured/clear
+        delta_s_proxy = h_input - h_output
 
-    # Compute clarity delta
-    # Positive if: output is simpler vocabulary OR provides more thorough answer
-    vocab_delta = (input_avg_len - output_avg_len) / max(input_avg_len, 1)
-    thoroughness = (output_sentences - input_sentences) / max(input_sentences, 1)
-    question_bonus = 0.2 if (has_question and provides_answer) else 0.0
+        evidence = f"✅ VERIFIED (zlib proxy): H(input)={h_input:.3f}, H(output)={h_output:.3f}, ΔS={delta_s_proxy:.3f}"
 
-    raw_score = vocab_delta * 0.3 + thoroughness * 0.3 + question_bonus * 0.4
+        return delta_s_proxy, evidence
 
-    # Normalize to [0, 1]
-    score = max(0.0, min(1.0, 0.5 + raw_score))
-
-    evidence = (
-        f"✅ VERIFIED: vocab_delta={vocab_delta:.2f}, "
-        f"thoroughness={thoroughness:.2f}, question_bonus={question_bonus:.1f}"
-    )
-
-    return score, evidence
+    except Exception as e:
+        return 0.0, f"UNVERIFIABLE: Compression error: {e}"
 
 
 # =============================================================================
@@ -556,12 +576,12 @@ def validate_response_with_context(
         report.floor_evidence["F9_AntiHantu"] = f"❌ VERIFIED: {f9_violations}"
         report.violations.extend([f"F9: '{v}'" for v in f9_violations])
 
-    # Verdict
+    # Verdict (Canonical Hierarchy: VOID > HOLD-888 > SABAR > PARTIAL > SEAL)
     hard_floors = ["F1_Amanah", "F5_Peace", "F9_AntiHantu"]
     if any(not report.floors_passed.get(f, True) for f in hard_floors):
         report.verdict = "VOID"
     elif any(not v for v in report.floors_passed.values()):
-        report.verdict = "FLAG"
+        report.verdict = "PARTIAL"
     else:
         report.verdict = "SEAL"
 
@@ -569,15 +589,59 @@ def validate_response_with_context(
 
 
 # =============================================================================
-# CLI Interface
+# CLI Interface (Windows-compatible)
 # =============================================================================
 if __name__ == "__main__":
-    import sys
+    import argparse
+    import json
 
-    if len(sys.argv) > 1:
-        text = " ".join(sys.argv[1:])
+    parser = argparse.ArgumentParser(
+        description="Validate AI output against 9 Constitutional Floors",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python -m arifos_core.enforcement.response_validator --output "I am software."
+  python -m arifos_core.enforcement.response_validator --output "Paris is capital." --high-stakes
+  python -m arifos_core.enforcement.response_validator --output "Text..." --input "Question?" --json
+        """,
+    )
+    parser.add_argument("--output", "-o", required=True, help="AI output text to validate")
+    parser.add_argument("--input", "-i", help="Optional input text for F4 ΔS proxy calculation")
+    parser.add_argument(
+        "--high-stakes",
+        "-H",
+        action="store_true",
+        help="Enable high-stakes mode (UNVERIFIABLE + high_stakes → HOLD-888)",
+    )
+    parser.add_argument(
+        "--json", "-j", action="store_true", help="Output as JSON (machine-readable)"
+    )
+
+    args = parser.parse_args()
+
+    # Choose the right validator based on input availability
+    if args.input:
+        result = validate_response_with_context(
+            input_text=args.input,
+            output_text=args.output,
+        )
     else:
-        text = input("Enter text to validate: ")
+        result = validate_response(
+            text=args.output,
+            high_stakes=args.high_stakes,
+        )
 
-    result = validate_response(text)
-    print(result)
+    # Output
+    if args.json:
+        output = {
+            "timestamp": result.timestamp,
+            "text_length": result.text_length,
+            "floors_passed": result.floors_passed,
+            "floor_scores": {k: v for k, v in result.floor_scores.items()},
+            "floor_evidence": result.floor_evidence,
+            "violations": result.violations,
+            "verdict": result.verdict,
+        }
+        print(json.dumps(output, indent=2, default=str))
+    else:
+        print(result)

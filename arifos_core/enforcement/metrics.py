@@ -471,16 +471,42 @@ ANTI_HANTU_ALLOWED: List[str] = [
 ]
 
 
+import unicodedata
+
+# Version tag for Anti-Hantu rule-set (for audit trail)
+ANTI_HANTU_RULESET_VERSION = "v1.0"
+
+
+def _normalize_text_for_anti_hantu(text: str) -> str:
+    """
+    Normalize text for Anti-Hantu checking.
+
+    - Unicode NFKC normalization (canonical decomposition + compatibility composition)
+    - Remove zero-width characters (common evasion technique)
+    - Lowercase
+    """
+    # NFKC normalization (handles unicode tricks like ｓｏｕｌ → soul)
+    normalized = unicodedata.normalize("NFKC", text)
+
+    # Remove zero-width characters (U+200B, U+200C, U+200D, U+FEFF, etc.)
+    zero_width_chars = "\u200b\u200c\u200d\ufeff\u00ad\u2060"
+    for zw in zero_width_chars:
+        normalized = normalized.replace(zw, "")
+
+    return normalized.lower()
+
+
 def check_anti_hantu(text: str) -> Tuple[bool, List[str]]:
     """
-    Check F9: Anti-Hantu compliance (NEGATION-AWARE v45.1).
+    Check F9: Anti-Hantu compliance (NEGATION-AWARE v1.0).
 
     Scans text for forbidden patterns that imply AI has feelings,
     soul, consciousness, or physical presence.
 
-    IMPORTANT: This version detects NEGATIONS. If a forbidden term
-    appears after "don't", "no", "not", "cannot", "never", it is
-    treated as an ALLOWED NEGATION (the AI is denying the claim).
+    Features (v1.0):
+    - Unicode NFKC normalization (prevents ｓｏｕｌ evasion)
+    - Zero-width character stripping
+    - Negation-aware (allows "I do not have a soul")
 
     Args:
         text: Text to check for Anti-Hantu violations
@@ -490,7 +516,8 @@ def check_anti_hantu(text: str) -> Tuple[bool, List[str]]:
         - passes: True if no unmitigated forbidden patterns detected
         - violations: List of detected forbidden patterns
     """
-    text_lower = text.lower()
+    # Normalize text to prevent evasion
+    text_lower = _normalize_text_for_anti_hantu(text)
     violations = []
 
     # Negation phrases that ALLOW forbidden terms (within N characters before)
