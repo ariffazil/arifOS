@@ -557,6 +557,31 @@ Verdict: 888_HOLD
 - Load `communication_enforcement_v45.yaml` as .cursorrules
 - Enforce clean code comments (no governance theater)
 
+### 11.3 Trinity Display Modes (Implementation Binding)
+
+**Note:** The `/forensic` authorization concept is implemented in arifOS as **Trinity Display Modes** (ASI/AGI/APEX).
+
+**Mapping:**
+- `/forensic off` (default) → **ASI mode** (Guardian) — Clean response only
+- Developer view → **AGI mode** (Architect) — Pipeline + ΔΩΨ Trinity (3 numbers)
+- `/forensic on` → **APEX mode** (Judge) — Full forensic (F1-F9 + Claims + Verdict reasoning)
+
+**Commands:**
+- `/agi` — Enable AGI Architect view (pipeline + ΔΩΨ)
+- `/apex` — Enable APEX Judge view (full forensic)
+
+**Authorization Cascade:**
+- ASI (default) → AGI (requires `/agi`) → APEX (requires `/apex`)
+- APEX implies AGI (enabling APEX automatically enables AGI)
+- No self-authorization (only human command can escalate)
+
+**Philosophy:**
+- **ASI mode** = Communication Law default (clean, calm, lawful output)
+- **AGI mode** = Developer authorization (structure + key metrics)
+- **APEX mode** = Auditor authorization (full constitutional audit)
+
+**Reference:** See `canon/02_actors/010_TRINITY_ROLES_v45.md` Section 15 for complete Trinity Display Architecture documentation.
+
 ---
 
 ## 12. PHILOSOPHY

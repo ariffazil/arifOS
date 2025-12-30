@@ -109,6 +109,7 @@ def regenerate_manifest():
         'spec/v45/session_physics.json',
         'spec/v45/red_patterns.json',
         'spec/v45/truth_verification.json',
+        'spec/v45/trinity_display.json',
         'spec/v45/schema/constitutional_floors.schema.json',
         'spec/v45/schema/genius_law.schema.json',
         'spec/v45/schema/session_physics.schema.json',

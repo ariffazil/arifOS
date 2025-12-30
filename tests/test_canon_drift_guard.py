@@ -77,8 +77,8 @@ class TestRuntimeLawFilesExist:
         md_files = list(canon_dir.rglob("*.md"))
         assert len(md_files) > 0, "No canon markdown files found in L1_THEORY/canon"
         
-        # Check for Master Index
-        master_index = list(canon_dir.glob("*MASTER_INDEX*.md"))
+        # Check for Master Index (recursive search in subdirectories)
+        master_index = list(canon_dir.rglob("*MASTER_INDEX*.md"))
         assert len(master_index) > 0, "Master Index not found"
 
 

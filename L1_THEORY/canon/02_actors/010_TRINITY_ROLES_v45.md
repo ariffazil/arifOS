@@ -382,5 +382,170 @@ Where:
 
 ---
 
+## 15. Trinity Display Architecture (UI Projection)
+
+**Purpose:** Define how Trinity roles project to user-facing display modes, per Communication Law v45 "Measure everything. Show nothing (unless authorized)."
+
+### Display Mode Hierarchy
+
+```
+ASI (default) → AGI (/agi) → APEX (/apex)
+  ↓               ↓             ↓
+Clean only    + Pipeline    + Forensic
+              + ΔΩΨ         + F1-F9
+                            + Claims
+```
+
+### Mode 1: ASI (Guardian) - Default
+
+**Authority Level:** Public (reality-facing default)
+
+**What User Sees:**
+- Clean response only
+- Verdict emoji (✅/⚠️/❌/⏸️/🛑)
+- No metrics, no pipeline, no internals
+
+**Purpose:** Governed speech downstream (Communication Law compliance)
+
+**Example:**
+```
+✅ arifOS is a constitutional AI governance framework.
+```
+
+---
+
+### Mode 2: AGI (Architect) - Developer View
+
+**Authority Level:** Developer (requires `/agi` authorization)
+
+**What User Sees:**
+- Pipeline timeline (000→999 stages with timing)
+- ΔΩΨ Trinity (3-number display):
+  - 🧠 Δ (Clarity) = (truth + delta_s) / 2
+  - ❤️ Ω (Empathy) = kappa_r × amanah × rasa
+  - ⚖️ Ψ (Vitality) = composite metric
+- Verdict emoji
+
+**Purpose:** Structure + key metrics for architecture debugging
+
+**Example:**
+```
+┌────────────────────────────────────────────────┐
+│ 🔬 PIPELINE TIMELINE (000→999)                 │
+├────────────────────────────────────────────────┤
+│ 000 VOID    Session init              0ms    │
+│ 111 SENSE   Lane=HARD, AC=0.05       12ms    │
+│ 888 JUDGE   Verdict=SEAL             7ms     │
+│ 999 SEAL    Output approved          2ms     │
+└────────────────────────────────────────────────┘
+
+🧠 Δ=0.50  ❤️ Ω=0.93  ⚖️ Ψ=1.12  ✅
+```
+
+---
+
+### Mode 3: APEX (Judge) - Auditor View
+
+**Authority Level:** Auditor (requires `/apex` authorization)
+
+**What User Sees:**
+- Everything from AGI mode, PLUS:
+- F1-F9 constitutional floor scores with thresholds
+- Claim detection analysis (Physics > Semantics)
+- Full verdict reasoning box
+- Lane-specific truth thresholds
+- Evidence chain details
+
+**Purpose:** Full forensic audit for constitutional compliance
+
+**Example:**
+```
+┌────────────────────────────────────────────────┐
+│ 🏛️  CONSTITUTIONAL FLOORS (F1-F9)             │
+├────────────────────────────────────────────────┤
+│ F1 Amanah    True       ✓                     │
+│ F2 Truth     1.000   ✓  [≥0.99]               │
+│ F3 Tri-W     0.980   ✓  [≥0.95]               │
+│ F4 ΔS        0.000   ✓  [≥0.0]                │
+│ F5 Peace²    1.050   ✓  [≥1.0]                │
+│ F6 κᵣ        0.980   ✓  [≥0.95]                │
+│ F7 Ω₀        0.042   ✓  [0.03-0.05]            │
+│ F8 G         0.890   ✓  [≥0.80]                │
+│ F9 C_dark    0.120   ✓  [<0.30]                │
+└────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────┐
+│ 🔍 CLAIM DETECTION — Physics > Semantics      │
+├────────────────────────────────────────────────┤
+│ Has Claims: YES ✓                              │
+│ Claim Count: 3                                 │
+│ Entity Density: 2.45 per 100 chars             │
+└────────────────────────────────────────────────┘
+```
+
+---
+
+### Authorization Cascade
+
+**ASI → AGI:** Requires explicit `/agi` command (developer authorization)
+
+**AGI → APEX:** Requires explicit `/apex` command (auditor authorization)
+
+**APEX implies AGI:** Enabling APEX automatically enables AGI display
+
+**Forbidden:** No self-authorization. System cannot auto-enable forensic mode. Only human command can escalate display authority.
+
+---
+
+### Implementation Binding
+
+**File:** `scripts/sealion_forge_repl.py`
+
+**State Variables:**
+- `self.agi_mode = False` — AGI Architect view
+- `self.apex_mode = False` — APEX Judge view
+- Default = ASI (both false)
+
+**Display Methods:**
+- `print_response_minimal()` — ASI mode (clean only)
+- `print_trinity_minimal()` — AGI mode (ΔΩΨ 3-number)
+- `print_floors_detail()` — APEX mode (F1-F9 table)
+- `print_claim_analysis()` — APEX mode (claim detection)
+
+**Commands:**
+- `/agi` — Toggle AGI mode
+- `/apex` — Toggle APEX mode (implies AGI)
+
+---
+
+### Comparison Table
+
+| Feature | ASI | AGI | APEX |
+|---------|-----|-----|------|
+| Response | ✅ | ✅ | ✅ |
+| Verdict Emoji | ✅ | ✅ | ✅ |
+| Pipeline Timeline | ❌ | ✅ | ✅ |
+| ΔΩΨ Trinity (3 numbers) | ❌ | ✅ | ✅ |
+| F1-F9 Floor Scores | ❌ | ❌ | ✅ |
+| Claim Detection | ❌ | ❌ | ✅ |
+| Verdict Reasoning | ❌ | ❌ | ✅ |
+
+---
+
+### Philosophy
+
+**Governance upstream (internal):** All metrics computed, all floors checked
+
+**Speech downstream (external):** Only show what's authorized
+
+**Trinity alignment:**
+- **ASI mode** = Ω field (Guardian) — Clean, peaceful output
+- **AGI mode** = Δ field (Architect) — Structure + metrics
+- **APEX mode** = Ψ field (Judge) — Full constitutional audit
+
+**Motto:** "Measure everything. Show nothing (unless authorized)."
+
+---
+
 *End canon/02_actors/01_trinity_roles_v42.md*
 
