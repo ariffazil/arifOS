@@ -48,6 +48,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+# Configure module search paths
+import sys
+sys.path.insert(0, str(Path(__file__).parent))  # Add L6_SEALION/cli/ to path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))  # Add project root to path
+
 # Import RAW client (Phase 1)
 try:
     from sealion_raw_client import RawSEALionClient
@@ -59,18 +64,18 @@ except ImportError:
 # Import arifOS governance core
 try:
     from arifos_core.system.pipeline import Pipeline
-    from arifos_core.enforcement.genius_metrics import compute_genius_verdict
+    from arifos_core.enforcement.genius_metrics import compute_genius_index
     PIPELINE_AVAILABLE = True
 except ImportError:
     PIPELINE_AVAILABLE = False
-    print("⚠️ arifOS Pipeline unavailable. Install: pip install arifos-core")
+    print("[WARN] arifOS Pipeline unavailable. Install: pip install arifos-core")
 
 try:
     from arifos_core.connectors.litellm_gateway import make_llm_generate, LiteLLMConfig
     LITELLM_AVAILABLE = True
 except ImportError:
     LITELLM_AVAILABLE = False
-    print("⚠️ LiteLLM Gateway unavailable. Ensure arifOS is installed: pip install -e .")
+    print("[WARN] LiteLLM Gateway unavailable. Ensure arifOS is installed: pip install -e .")
 
 try:
     from arifos_core.enforcement.eye_sentinel import EyeSentinel
@@ -583,7 +588,7 @@ class GovernedSEALionClient:
         genius_verdict = None
         if hasattr(state, "metrics") and state.metrics:
             try:
-                genius_verdict = compute_genius_verdict(state.metrics)
+                genius_verdict = compute_genius_index(state.metrics)
                 self.last_genius_verdict = genius_verdict
             except Exception as e:
                 logger.warning(f"GENIUS computation failed: {e}")
@@ -659,12 +664,12 @@ def main():
     # Get API key
     api_key = os.getenv("SEALION_API_KEY") or os.getenv("ARIF_LLM_API_KEY")
     if not api_key:
-        print("❌ ERROR: No SEA-LION API key found.")
+        print("[ERROR] ERROR: No SEA-LION API key found.")
         print("   Set SEALION_API_KEY or ARIF_LLM_API_KEY environment variable.")
         sys.exit(1)
 
     # Create RAW client (Phase 1)
-    print("🔧 Creating RAW client...")
+    print("[INFO] Creating RAW client...")
     raw = RawSEALionClient(
         api_key=api_key,
         model="aisingapore/Qwen-SEA-LION-v4-32B-IT",
@@ -673,7 +678,7 @@ def main():
     )
 
     # Wrap with governance (Phase 2)
-    print("🔧 Creating governance wrapper...")
+    print("[INFO] Creating governance wrapper...")
     governed = GovernedSEALionClient(raw_client=raw)
 
     if args.test:

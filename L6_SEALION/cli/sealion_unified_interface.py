@@ -56,17 +56,18 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 try:
     from sealion_raw_client import RawSEALionClient
 except ImportError:
-    print("❌ ERROR: Phase 1 client not found.")
+    print("[ERROR] ERROR: Phase 1 client not found.")
     print("   Ensure L6_SEALION/cli/sealion_raw_client.py exists.")
     sys.exit(1)
 
 # Import Phase 2: Governance wrapper (same folder)
 try:
     from sealion_governed_client import GovernedSEALionClient
-except ImportError:
-    print("❌ ERROR: Phase 2 client not found.")
-    print("   Ensure L6_SEALION/cli/sealion_governed_client.py exists.")
-    sys.exit(1)
+except ImportError as e:
+    print("[WARN] Phase 2 client failed to import (likely litellm/httpx import weight).")
+    print(f"       Error: {e}")
+    print("       UI/REPL will still start, but governed features may be unavailable.")
+    GovernedSEALionClient = None
 
 # Try to import Gradio (for UI mode)
 try:
@@ -74,7 +75,7 @@ try:
     GRADIO_AVAILABLE = True
 except ImportError:
     GRADIO_AVAILABLE = False
-    print("⚠️ Gradio unavailable - UI mode disabled (install: pip install gradio)")
+    print("[WARN] Gradio unavailable - UI mode disabled (install: pip install gradio)")
 
 # ---------------------------------------------------------------------------
 # CONFIGURATION
@@ -157,7 +158,7 @@ Constitutional Floors (9):
   F6 Ω₀ (Humility):          {metrics.get('omega_0', 0):.3f}
   F7 RASA (Felt-Care):       {metrics.get('rasa', 'N/A')}
   F8 Tri-Witness:            {metrics.get('tri_witness', 0):.3f}
-  F9 Anti-Hantu:             {'✓ PASS' if not result.get('anti_hantu_violations') else '✗ FAIL'}
+  F9 Anti-Hantu:             {'[OK] PASS' if not result.get('anti_hantu_violations') else '✗ FAIL'}
 """
 
     if result.get("genius"):
@@ -239,7 +240,7 @@ def format_comparison(raw_result: Dict, governed_result: Dict) -> str:
 """
 
     if governed_result.get("anti_hantu_violations"):
-        output += f"""│ ⚠️ Anti-Hantu Violations: {len(governed_result["anti_hantu_violations"])}
+        output += f"""│ [WARN] Anti-Hantu Violations: {len(governed_result["anti_hantu_violations"])}
 """
 
     output += "└────────────────────────────────────────────────────────────────────────────┘\n"
@@ -281,7 +282,7 @@ class UnifiedInterface:
             enable_comparison: Start with /both mode enabled
         """
         # Create RAW client (Phase 1)
-        print("🔧 Initializing RAW client (Phase 1)...")
+        print("[INFO] Initializing RAW client (Phase 1)...")
         self.raw = RawSEALionClient(
             api_key=api_key,
             model=model,
@@ -291,13 +292,17 @@ class UnifiedInterface:
         )
 
         # Create Governed client (Phase 2 wraps Phase 1)
-        print("🔧 Initializing Governance wrapper (Phase 2)...")
-        self.governed = GovernedSEALionClient(
-            raw_client=self.raw,
-            enable_waw=True,
-            enable_memory=True,
-            enable_session_physics=True,
-        )
+        self.governed = None
+        if GovernedSEALionClient:
+            print("[INFO] Initializing Governance wrapper (Phase 2)...")
+            self.governed = GovernedSEALionClient(
+                raw_client=self.raw,
+                enable_waw=True,
+                enable_memory=True,
+                enable_session_physics=True,
+            )
+        else:
+            print("[WARN] Governance wrapper unavailable; running RAW-only.")
 
         # Display state
         self.display_mode = DISPLAY_MODE_ASI  # Default: ASI (clean output)
@@ -379,7 +384,7 @@ class UnifiedInterface:
             return "quit"  # Signal to exit
 
         else:
-            return f"❌ Unknown command: {cmd}\n   Available: /both, /asi, /agi, /apex, /stats, /clear, /quit"
+            return f"[ERROR] Unknown command: {cmd}\n   Available: /both, /asi, /agi, /apex, /stats, /clear, /quit"
 
     def _format_stats(self) -> str:
         """Format session statistics."""
@@ -424,7 +429,7 @@ class UnifiedInterface:
 def create_gradio_ui(interface: UnifiedInterface):
     """Create Gradio web interface."""
     if not GRADIO_AVAILABLE:
-        print("❌ Gradio not available. Cannot create UI.")
+        print("[ERROR] Gradio not available. Cannot create UI.")
         return None
 
     def respond(message: str, history: List) -> str:
@@ -528,7 +533,7 @@ def main():
     # Get API key
     api_key = os.getenv("SEALION_API_KEY") or os.getenv("ARIF_LLM_API_KEY")
     if not api_key:
-        print("❌ ERROR: No SEA-LION API key found.")
+        print("[ERROR] ERROR: No SEA-LION API key found.")
         print("   Set SEALION_API_KEY or ARIF_LLM_API_KEY environment variable.")
         sys.exit(1)
 
@@ -543,7 +548,7 @@ def main():
             enable_comparison=args.comparison,
         )
     except Exception as e:
-        print(f"❌ ERROR: Failed to initialize interface: {e}")
+        print(f"[ERROR] ERROR: Failed to initialize interface: {e}")
         sys.exit(1)
 
     # Launch UI or REPL
@@ -551,7 +556,7 @@ def main():
         run_repl(interface)
     else:
         if not GRADIO_AVAILABLE:
-            print("❌ Gradio not available. Falling back to REPL mode.")
+            print("[ERROR] Gradio not available. Falling back to REPL mode.")
             print("   Install Gradio: pip install gradio")
             run_repl(interface)
         else:
@@ -560,7 +565,7 @@ def main():
                 print("\n🚀 Launching Gradio UI...")
                 ui.launch(share=False)
             else:
-                print("❌ Failed to create Gradio UI. Falling back to REPL mode.")
+                print("[ERROR] Failed to create Gradio UI. Falling back to REPL mode.")
                 run_repl(interface)
 
 

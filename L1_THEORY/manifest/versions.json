@@ -12,5 +12,12 @@
     "tag": "v43.0.1",
     "sealed_at": "2025-12-19T10:14:52.889448+00:00",
     "human_authority": "ARIF FAZIL"
+  },
+  "v45.0.1": {
+    "bundle_hash": "sha256:030b77bb29863385",
+    "commit_hash": "631884ef19cfadfe28a8ef39fe6b6291daf752d3",
+    "tag": "v45.0.1",
+    "sealed_at": "2025-12-30T13:34:36.768386+00:00",
+    "human_authority": "ARIF FAZIL"
   }
 }
