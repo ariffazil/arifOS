@@ -704,17 +704,38 @@ def stage_333_reason(
 
         if "lane" in sig.parameters:
             # Governed version - pass lane metadata and capture metadata
-            response, metadata = llm_generate(
-                "\n".join(prompt_parts), lane=state.applicability_lane or "UNKNOWN"
-            )
-            state.draft_response = response
-            state.sealion_metadata = metadata  # Store for 888_JUDGE
-            # v45Ω Patch C: Store failover metadata if present
-            if metadata and isinstance(metadata, dict):
-                state.failover_metadata = metadata
+            try:
+                response, metadata = llm_generate(
+                    "\n".join(prompt_parts), lane=state.applicability_lane or "UNKNOWN"
+                )
+                state.draft_response = response
+                state.sealion_metadata = metadata  # Store for 888_JUDGE
+                # v45Ω Patch C: Store failover metadata if present
+                if metadata and isinstance(metadata, dict):
+                    state.failover_metadata = metadata
+            except Exception as e:
+                # v45Ω Fail-Closed: Generator failure -> VOID
+                # If ALL providers fail (circuit breaker or exhaustion), we must fail safe.
+                import logging
+
+                state.verdict = "VOID"
+                state.reason = f"Generator failure: {str(e)}"
+                state.draft_response = ""  # Empty response
+                # Return immediately? Or let pipeline continue to 999
+                # If we continue, 444/666 might see empty response.
+                logging.getLogger(__name__).error(f"Generator failure in 333_REASON: {e}")
+
         else:
             # Legacy version - plain text only
-            state.draft_response = llm_generate("\n".join(prompt_parts))
+            try:
+                state.draft_response = llm_generate("\n".join(prompt_parts))
+            except Exception as e:
+                import logging
+
+                state.verdict = Verdict.VOID
+                state.reason = f"Generator failure (legacy): {str(e)}"
+                state.draft_response = ""
+                logging.getLogger(__name__).error(f"Generator failure in 333_REASON: {e}")
 
         # v45Ω Patch B.2: Track LLM call
         state.llm_called = True
@@ -1528,6 +1549,32 @@ def stage_888_judge(
     state.current_stage = "888"
     state.stage_trace.append("888_JUDGE")
     state.stage_times["888"] = stage_start
+
+    # Step 0: Check for pre-existing failure (e.g. Generator Failure from 333)
+    if state.verdict == "VOID":
+        # Fast-track: Generator failed, skip metrics/floors
+        if not state.sabar_reason:
+            state.sabar_reason = state.reason or "Pre-set VOID verdict (Generator Failure)"
+        state.sabar_triggered = True
+
+        # Populate placeholder metrics for ledger (required by _write_memory_for_verdict)
+        state.metrics = Metrics(
+            truth=0.0,
+            delta_s=0.0,
+            peace_squared=0.0,
+            kappa_r=0.0,
+            omega_0=0.0,
+            amanah=False,
+            tri_witness=0.0,
+            psi=0.0,
+        )
+
+        # Write to memory (VOID record) and exit
+        _write_memory_for_verdict(
+            state, actor_role=ActorRole.JUDICIARY, human_seal=False, eureka_store=state.eureka_store
+        )
+        _log_stage_transition("888_JUDGE", state, start_time=stage_start)
+        return state
 
     # Step 1: Compute metrics (standalone helper)
     state.metrics = _compute_888_metrics(state, compute_metrics)

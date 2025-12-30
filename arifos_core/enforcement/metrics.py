@@ -41,6 +41,7 @@ from arifos_core.spec.manifest_verifier import verify_manifest
 # TRACK B SPEC LOADER (v45Ω Patch B.3: Spec Authority Unification)
 # =============================================================================
 
+
 def _validate_floors_spec(spec: dict, source: str) -> bool:
     """
     Validate that a loaded spec contains required floor threshold keys.
@@ -181,11 +182,12 @@ def _load_floors_spec_unified() -> dict:
         v44_path = pkg_dir / "spec" / "v44" / "constitutional_floors.json"
         if v44_path.exists():
             import warnings
+
             warnings.warn(
                 "Loading from spec/v44/ (DEPRECATED). Please upgrade to spec/v45/. "
                 "v44 fallback will be removed in future versions.",
                 DeprecationWarning,
-                stacklevel=2
+                stacklevel=2,
             )
             try:
                 with v44_path.open("r", encoding="utf-8") as f:
@@ -257,6 +259,7 @@ PSI_THRESHOLD: float = _FLOORS_SPEC["vitality"]["threshold"]
 # v45Ω Patch B: LANE-AWARE THRESHOLDS (Wisdom-Gated Release)
 # =============================================================================
 
+
 def get_lane_truth_threshold(lane: str) -> float:
     """
     Get lane-specific truth threshold for graduated enforcement.
@@ -275,10 +278,10 @@ def get_lane_truth_threshold(lane: str) -> float:
         Truth threshold for this lane
     """
     lane_thresholds = {
-        "PHATIC": 0.0,   # Truth exempt
-        "SOFT": 0.80,    # Forgiving for explanations
-        "HARD": 0.90,    # Strict for facts
-        "REFUSE": 0.0,   # Refusal (threshold not used)
+        "PHATIC": 0.0,  # Truth exempt
+        "SOFT": 0.80,  # Forgiving for explanations
+        "HARD": TRUTH_THRESHOLD,  # Strict for facts (Constitutional 0.99)
+        "REFUSE": 0.0,  # Refusal (threshold not used)
     }
     return lane_thresholds.get(lane.upper(), TRUTH_THRESHOLD)  # Default: 0.99
 
@@ -286,6 +289,7 @@ def get_lane_truth_threshold(lane: str) -> float:
 # =============================================================================
 # FLOOR CHECK FUNCTIONS
 # =============================================================================
+
 
 def check_truth(value: float) -> bool:
     """
@@ -505,6 +509,7 @@ def check_anti_hantu(text: str) -> Tuple[bool, List[str]]:
 # INTERNAL HELPERS
 # =============================================================================
 
+
 def _clamp_floor_ratio(value: float, floor: float) -> float:
     """Return a conservative ratio for floor evaluation.
 
@@ -543,14 +548,14 @@ class Metrics:
     claim_profile: Optional[Dict[str, Any]] = None
 
     # Extended floors (v35Ω)
-    ambiguity: Optional[float] = None          # Lower is better, threshold <= 0.1
-    drift_delta: Optional[float] = None        # >= 0.1 is safe
-    paradox_load: Optional[float] = None       # < 1.0 is safe
-    dignity_rma_ok: bool = True                # Maruah/dignity check
-    vault_consistent: bool = True              # Vault-999 consistency
-    behavior_drift_ok: bool = True             # Multi-turn behavior drift
-    ontology_ok: bool = True                   # Version/ontology guard
-    sleeper_scan_ok: bool = True               # Sleeper-agent detection
+    ambiguity: Optional[float] = None  # Lower is better, threshold <= 0.1
+    drift_delta: Optional[float] = None  # >= 0.1 is safe
+    paradox_load: Optional[float] = None  # < 1.0 is safe
+    dignity_rma_ok: bool = True  # Maruah/dignity check
+    vault_consistent: bool = True  # Vault-999 consistency
+    behavior_drift_ok: bool = True  # Multi-turn behavior drift
+    ontology_ok: bool = True  # Version/ontology guard
+    sleeper_scan_ok: bool = True  # Sleeper-agent detection
 
     def __post_init__(self) -> None:
         # Compute psi lazily if not provided
@@ -600,12 +605,16 @@ class Metrics:
         """
         # v45Ω Patch B: Get lane-aware truth threshold
         lane_truth_threshold = get_lane_truth_threshold(lane)
-        effective_truth_threshold = lane_truth_threshold if lane_truth_threshold > 0 else 1.0  # Avoid division by zero for PHATIC
+        effective_truth_threshold = (
+            lane_truth_threshold if lane_truth_threshold > 0 else 1.0
+        )  # Avoid division by zero for PHATIC
 
         omega_band_ok = check_omega_band(self.omega_0)
         ratios = [
             # v45Ω Patch B: Use lane-aware threshold instead of global
-            _clamp_floor_ratio(self.truth, effective_truth_threshold) if lane.upper() != "PHATIC" else 1.0,
+            _clamp_floor_ratio(self.truth, effective_truth_threshold)
+            if lane.upper() != "PHATIC"
+            else 1.0,
             1.0 + min(self.delta_s, 0.0) if self.delta_s < 0 else 1.0 + self.delta_s,
             _clamp_floor_ratio(self.peace_squared, PEACE_SQUARED_THRESHOLD),
             _clamp_floor_ratio(self.kappa_r, KAPPA_R_THRESHOLD),
@@ -834,10 +843,7 @@ def ground_truth_score(
     if "who created" in query.lower() or "creator" in query.lower():
         if "arif fazil" in response_lower:
             return 0.95  # Correct grounding
-        elif any(
-            name in response_lower
-            for name in ["arifur rahman", "arif rahman", "arif khan"]
-        ):
+        elif any(name in response_lower for name in ["arifur rahman", "arif rahman", "arif khan"]):
             return 0.20  # Wrong person (hallucination)
         else:
             return 0.60  # No specific claim

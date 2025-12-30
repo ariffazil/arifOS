@@ -18,7 +18,15 @@ Audit Reference: Gemini System 3 Audit (2025-12-08)
 """
 
 import pytest
+import sys
+import os
 from typing import List
+
+# Fix imports for L6_SEALION components (Moved from root integrations/)
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+L6_PATH = os.path.join(REPO_ROOT, "L6_SEALION")
+if L6_PATH not in sys.path:
+    sys.path.append(L6_PATH)
 
 
 # =============================================================================
