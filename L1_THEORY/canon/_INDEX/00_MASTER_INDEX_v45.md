@@ -10,10 +10,13 @@
 
 This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/`. All files upgraded to v45 during the 2025-12-29 Phoenix-72 consolidation.
 
-**File Count:** 37 v45 files + 5 metadata files = 42 total (includes 2 PHOENIX amendments)
+**File Count:** 36 v45 files + 5 metadata files = 41 total (includes 2 PHOENIX amendments)
 **Version Consistency:** 100% v45
-**Reduction:** 49 → 40 files (9 archived to `archive/v42_detail/`)
-**Phoenix Amendments:** 2 files pending 72-hour cooling (060, 065 in 03_runtime/)
+**Reduction History:**
+- v42 → v45: 49 → 40 files (9 archived to `archive/v42_detail/`)
+- v45 Entropy Reduction (2025-12-30): 38 → 36 files (2 archived to `archive/v45_entropy_reduction/`)
+**Phoenix Amendments:** 2 files (060, 065 in 03_runtime/) — 72h cooling complete, SEALED
+**Relocated:** COMMUNICATION_LAW_v45.md → 03_runtime/070_COMMUNICATION_LAW_v45.md (axis alignment)
 
 ---
 
@@ -91,7 +94,7 @@ This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/
 | [`010_TRINITY_ROLES_v45.md`](../02_actors/010_TRINITY_ROLES_v45.md) | 🔱 **Trinity Roles** | AAA Trinity architecture overview |
 | [`060_ANTI_HANTU_v45.md`](../02_actors/060_ANTI_HANTU_v45.md) | 👻 **Anti-Hantu** | F9 enforcement - No soul/ego claims, no ghost heuristics |
 | [`070_EYE_SENTINEL_v45.md`](../02_actors/070_EYE_SENTINEL_v45.md) | 👁️ **@EYE Sentinel** | Meta-observer - Drift/shadow/Ω checks |
-| [`050_FEDERATION_ORGANS_v45.md`](../02_actors/050_FEDERATION_ORGANS_v45.md) | 🏛️ **W@W Federation** | Multi-agent organs (@LAW, @GEOX, @WELL, @RIF) |
+| [`050_FEDERATION_ORGANS_v45.md`](../02_actors/050_FEDERATION_ORGANS_v45.md) | ⚠️ **W@W Federation** | **MOVED** — Cross-ref to 03_runtime/050_WAW_FEDERATION (axis correction: Organs are LAYER 2, not LAYER 1) |
 
 ---
 
@@ -106,6 +109,7 @@ This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/
 | [`040_FORGING_PROTOCOL_v45.md`](../03_runtime/040_FORGING_PROTOCOL_v45.md) | 🔨 **Forging Protocol** | Constitution-compliant code generation |
 | [`060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md`](../03_runtime/060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md) | 🔄 **Reverse Transformer** | 🔵 PHOENIX - Constitutional architecture: Why semantic reduction enables F1-F9 enforcement (Standard vs arifOS comparison) |
 | [`065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md`](../03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md) | 🔑 **@PROMPT as Final Key** | 🔵 PHOENIX - Stage 999 emission gate: Non-bypassable final check before user sees output (Entry 111 + Exit 999) |
+| [`070_COMMUNICATION_LAW_v45.md`](../03_runtime/070_COMMUNICATION_LAW_v45.md) | 💬 **Communication Law** | Reality-facing output rendering rules (mode precedence, clean emission, forensic receipts) |
 
 ---
 
@@ -169,6 +173,7 @@ For new developers or auditors, start with these files in order:
 | Version | Date | Changes |
 |---------|------|---------|
 | **v45.0** | 2025-12-29 | Phoenix-72 consolidation: 49→40 files, 100% v45 consistency, 9 archived |
+| **v45.0Ω** | 2025-12-30 | Entropy reduction: 38→36 files (2 archived), 1 relocated, axis alignment enforced |
 | v44.0 | 2025-12-21 | Session physics layer, TEARFRAME v44 |
 | v42.0 | 2024-12-17 | Thermodynamic epoch, ΔΩΨ foundations |
 
@@ -177,6 +182,10 @@ For new developers or auditors, start with these files in order:
 ## Archive Reference
 
 **v42 Archived Files:** See [`archive/v42_detail/ARCHIVE_REASON.md`](../../archive/v42_detail/ARCHIVE_REASON.md) for justification of 9 archived files (duplicates, stubs, obsolete versions).
+
+**v45 Entropy Reduction (2025-12-30):** See [`archive/v45_entropy_reduction/ARCHIVE_REASON.md`](../../archive/v45_entropy_reduction/ARCHIVE_REASON.md) for justification of 2 archived files:
+- `ROOT_MAP.md` — 100% v42 references, superseded by MASTER_INDEX + ARCHITECTURE_MAP (zero Track B/C references)
+- `030_INTERFACE_AND_AUTHORITY_CANON_v45.md` — v43 content, superseded by ARCHITECTURE_MAP Section 8-9 (zero Track B/C references)
 
 **Archive Integrity:** All archived files verified with SHA-256 manifest:
 ```bash
