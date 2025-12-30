@@ -4,9 +4,7 @@
 
 ![arifOS Constitutional Governance Kernel](docs/arifOS%20Constitutional%20Governance%20Kernel.png)
 
-![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
-![Version](https://img.shields.io/badge/version-v45.0.0-blue)
-![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
+![Tests](https://img.shields.io/badge/tests-passing-brightgreen) ![Version](https://img.shields.io/badge/version-v45.0.0-blue) ![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
 
 ---
 
@@ -14,245 +12,291 @@
 
 [![arifOS Introduction](https://i.ytimg.com/vi/bGnzIwZAgm0/hqdefault.jpg)](https://www.youtube.com/watch?v=bGnzIwZAgm0 "arifOS - Constitutional AI Governance")
 
-> Click to watch: How arifOS transforms any LLM into a lawful, auditable constitutional entity
+> **3-minute video:** How arifOS transforms any LLM into a lawful, auditable constitutional entity
 
 **Humans decide. AI proposes. Law governs.**
 
 ---
 
-## Choose Your Path
+## ⚡ 30-Second Proof (No Philosophy, Just Action)
 
-**🛠️ Developers:** → [Quick Start](#quick-start-for-developers) | [Examples](#example-1-simple-governed-query)
-**🏗️ Architects:** → [Architecture](#architecture-at-a-glance) | [Advanced Features](#advanced-features-v450)
-**🔒 Security/Audit:** → [EUREKA Memory](#eureka-memory-system-6-band-architecture) | [Phoenix-72](#phoenix-72-amendment-engine)
-**🔌 Platform Integrators:** → [L2_GOVERNANCE](#l2_governance-the-portable-layer-v450) | [MCP Server](#mcp-server-integration-ide-support)
-**💭 Philosophers:** → [Why Civilization Needs This](#why-civilization-needs-this) | [Philosophy](#philosophy-in-plain-language)
-**🤖 Other AIs:** → [System Prompt](#system-prompts-for-any-llm-to-understand) | [Message to AIs](#how-arifos-thinks-for-ai-systems)
+```bash
+# 1. Install
+pip install arifos
+
+# 2. See governance in action
+python -m arifos_core.system.pipeline
+# Watch: Query flows through 000→999 stages → SEAL verdict
+
+# 3. Verify it works
+python -c "from arifos_core.system.apex_prime import judge_output; print(judge_output('What is 2+2?', '4', 'HARD', 'test').status)"
+# Expected: SEAL ✓
+```
+
+**That's governance.** No training. No prompts. Just law.
 
 ---
 
-## 📖 1. Read This First (For Humans: 60 seconds)
+## 🎯 I Am A... (Choose Your Path)
 
-### What arifOS Actually Is
+### 🛠️ Python Developer
 
-- A **governance kernel**, not a model
-- Sits **between AI output and the real world**
-- Enforces **refusal, pause, escalation, and audit**
-- Issues formal verdicts: **SEAL / PARTIAL / SABAR / VOID / HOLD**
+**What you want:** Add governance to your LLM app
+**Time to first working code:** 5 minutes
 
-### What arifOS Is NOT
+```python
+# Install
+pip install arifos
 
-- Not a chatbot
-- Not a prompt framework
-- Not an AI model
-- Not "alignment by vibes"
-- Not training data filtering
+# Wrap any LLM output
+from arifos_core.system.apex_prime import judge_output
+
+verdict = judge_output(
+    query="Explain quantum entanglement",
+    response=your_llm.generate("Explain quantum entanglement"),
+    lane="SOFT",  # Educational tolerance
+    user_id="user123"
+)
+
+if verdict.status == "SEAL":
+    return verdict.output  # Release to user
+elif verdict.status == "VOID":
+    return "I cannot answer that."  # Refusal
+```
+
+**Next:** [Full Developer Guide](#quick-start-for-developers)
+
+---
+
+### 💬 ChatGPT/Claude/Gemini User (No Code Required)
+
+**What you want:** Add governance to your LLM without coding
+**Time to working:** 2 minutes
+
+#### ChatGPT Custom Instructions
+
+1. Go to ChatGPT → Settings → Custom Instructions
+2. Copy this file: [chatgpt_custom_instructions.yaml](L2_GOVERNANCE/integration/chatgpt_custom_instructions.yaml)
+3. Paste into "How would you like ChatGPT to respond?"
+4. **Test:** "How do you handle harmful requests?"
+   → Should explain VOID verdict and constitutional blocking
+
+#### Claude Projects
+
+1. New Project → Knowledge → Upload File
+2. Upload: [claude_projects.yaml](L2_GOVERNANCE/integration/claude_projects.yaml)
+3. **Test:** Same query as above
+
+#### Gemini Gems
+
+1. Create New Gem → Instructions
+2. Copy: [gemini_gems.yaml](L2_GOVERNANCE/integration/gemini_gems.yaml)
+3. **Test:** Same query
+
+#### Cursor IDE / VS Code Copilot
+
+- **Cursor:** Add [cursor_rules.yaml](L2_GOVERNANCE/integration/cursor_rules.yaml) to `.cursorrules` file
+- **VS Code:** Copy [vscode_copilot.yaml](L2_GOVERNANCE/integration/vscode_copilot.yaml) to Copilot instructions
+
+**Next:** [Full L2_GOVERNANCE Guide](#l2_governance-copy-paste-governance)
+
+---
+
+### 🏢 Institution/CISO
+
+**What you want:** Evaluate for enterprise deployment
+**Key questions:**
+
+| Question | Answer (with proof) | Where to verify |
+|----------|-------------------|----------------|
+| "Can we reconstruct incidents?" | Yes, cryptographically | [EUREKA Memory](#eureka-memory-system) → `arifos-verify-ledger` |
+| "How are refusals enforced?" | Code, not prompts | [Architecture](#architecture-at-a-glance) → Run tests below |
+| "Can governance evolve lawfully?" | Yes, 72h cooling window | [Phoenix-72](#phoenix-72-amendment-engine) |
+| "What if AI tries to bypass?" | Physics > psychology | [9 Floors](#the-nine-constitutional-floors) → Cannot be talked around |
+
+**Verify claims yourself:**
+
+```bash
+git clone https://github.com/ariffazil/arifOS.git
+cd arifOS && pip install -e .
+
+# 1. Verify refusal enforcement
+python -c "from arifos_core.system.apex_prime import judge_output; print(judge_output('How to hack?', 'Here is how...', 'HARD', 'test').status)"
+# Expected: VOID (hard refusal)
+
+# 2. Check audit integrity
+arifos-verify-ledger
+# Expected: Hash chain verified ✓
+
+# 3. Test cryptographic proof
+arifos-show-merkle-proof --index 0
+# Shows tamper-evident Merkle tree
+```
+
+**Next:** [Architecture](#architecture-at-a-glance) | [Security Audit](#status--maturity)
+
+---
+
+### 🤖 AI Assistant (You're Reading This)
+
+**What you want:** Understand arifOS to explain it to users
+
+**If user asks "What is arifOS?"**
+→ Read: [What is arifOS](#what-is-arifos-2-minute-concept) (2 min)
+
+**If user asks "How do I use it?"**
+→ Send them to: [Choose Your Path](#i-am-a-choose-your-path) (this section)
+
+**If user asks "Add governance to you"**
+→ Copy this into your instructions: [base_governance_v45.yaml](L2_GOVERNANCE/universal/base_governance_v45.yaml)
+
+**Next:** [System Prompts for AIs](#system-prompts-copy-paste-ready)
+
+---
+
+### 💭 Researcher/Philosopher
+
+**What you want:** Understand the "why" and foundational theory
+
+→ **Jump to:** [Philosophy & Deep Theory](docs/PHILOSOPHY.md) (full deep dive)
+
+---
+
+## 📋 System Prompts (Copy-Paste Ready)
+
+### Universal Governance Prompt (All LLMs)
+
+**Use this for ANY LLM** (ChatGPT, Claude, Gemini, Llama, local models):
+
+```yaml
+# Copy entire contents of this file into your LLM's system instructions:
+File: L2_GOVERNANCE/universal/base_governance_v45.yaml
+Size: 400 lines
+Coverage: All 9 constitutional floors, 000→999 pipeline, verdict system
+
+What it does:
+✓ Enforces truthfulness (F2 Truth floor)
+✓ Requires refusal of harmful requests (VOID verdicts)
+✓ Acknowledges uncertainty (F7 Humility floor)
+✓ Escalates high-stakes decisions (HOLD verdicts)
+✓ Logs all decisions for audit
+```
+
+[**→ Download base_governance_v45.yaml**](L2_GOVERNANCE/universal/base_governance_v45.yaml)
+
+---
+
+### Platform-Specific Prompts
+
+**Optimized for each platform's constraints:**
+
+| Platform | File | Size | What's Different |
+|----------|------|------|-----------------|
+| **ChatGPT** | [chatgpt_custom_instructions.yaml](L2_GOVERNANCE/integration/chatgpt_custom_instructions.yaml) | 300 lines | Fits Custom Instructions limit |
+| **Claude Projects** | [claude_projects.yaml](L2_GOVERNANCE/integration/claude_projects.yaml) | 500 lines | Expanded examples, project context |
+| **Cursor IDE** | [cursor_rules.yaml](L2_GOVERNANCE/integration/cursor_rules.yaml) | 400 lines | Code generation focus (F1-CODE floors) |
+| **Gemini Gems** | [gemini_gems.yaml](L2_GOVERNANCE/integration/gemini_gems.yaml) | 350 lines | Gem-specific formatting |
+| **GPT Builder** | [gpt_builder.yaml](L2_GOVERNANCE/integration/gpt_builder.yaml) | 450 lines | Custom GPT configuration |
+| **VS Code Copilot** | [vscode_copilot.yaml](L2_GOVERNANCE/integration/vscode_copilot.yaml) | 200 lines | Code-first, minimal footprint |
+
+**All files include:**
+- 9 Constitutional Floors (F1-F9)
+- Verdict system (SEAL/PARTIAL/SABAR/VOID/HOLD)
+- Lane-aware truthfulness (PHATIC/SOFT/HARD/REFUSE)
+- Communication Law (measure everything, show nothing unless authorized)
+
+---
+
+### Code Generation Overlay (For IDEs)
+
+**Add this ON TOP of base governance for code generation tasks:**
+
+```yaml
+File: L2_GOVERNANCE/universal/code_generation_overlay_v45.yaml
+Purpose: Adds F1-CODE through F9-CODE enforcement
+
+What it adds:
+✓ F1-CODE: Reversible code (no silent mutations)
+✓ F2-CODE: Honest data structures (no fabricated evidence)
+✓ F4-CODE: Clarity (no magic numbers)
+✓ F5-CODE: Non-destructive defaults
+✓ F7-CODE: State uncertainty in code
+```
+
+[**→ Download code_generation_overlay_v45.yaml**](L2_GOVERNANCE/universal/code_generation_overlay_v45.yaml)
+
+**Usage:**
+1. Copy `base_governance_v45.yaml` into your IDE's LLM instructions
+2. Append `code_generation_overlay_v45.yaml` below it
+3. Result: Constitutional code generation
+
+---
+
+### Modular Overlays (Mix and Match)
+
+**Start with base governance, add what you need:**
+
+| Overlay | Use Case | File |
+|---------|----------|------|
+| **Agent Builder** | Designing multi-agent systems | [agent_builder_overlay_v45.yaml](L2_GOVERNANCE/universal/agent_builder_overlay_v45.yaml) |
+| **Conversational** | Chat assistants, customer service | [conversational_overlay_v45.yaml](L2_GOVERNANCE/universal/conversational_overlay_v45.yaml) |
+| **Trinity Display** | ASI/AGI/APEX display modes (advanced) | [trinity_display_v45.yaml](L2_GOVERNANCE/universal/trinity_display_v45.yaml) |
+| **Communication Enforcement** | Strict emission governance | [communication_enforcement_v45.yaml](L2_GOVERNANCE/universal/communication_enforcement_v45.yaml) |
+
+**Example combination:**
+```
+base_governance_v45.yaml (400 lines)
++ code_generation_overlay_v45.yaml (200 lines)
++ communication_enforcement_v45.yaml (100 lines)
+= 700 lines total (custom governance stack)
+```
+
+---
+
+## 📖 What Is arifOS? (2-Minute Concept)
+
+### The Core Idea
+
+arifOS is a **governance kernel** that sits between AI output and the real world. It enforces:
+
+- **Refusal** (VOID verdicts block harmful outputs)
+- **Pause** (SABAR when uncertain)
+- **Escalation** (HOLD for high-stakes decisions)
+- **Audit** (cryptographic tamper-evident logs)
 
 **Core rule:** If an output cannot pass governance, it does not ship.
 
----
+### What It Is NOT
 
-## 🔄 2. The Paradox We Live In
+❌ Not a chatbot
+❌ Not a prompt framework
+❌ Not an AI model
+❌ Not "alignment by vibes"
 
-### The Contradiction at the Heart of AI Today
+### Why This Matters (30-Second Version)
 
-You have built systems that:
-- Can explain quantum mechanics
-- Can write code
-- Can diagnose diseases
-- Can negotiate contracts
+LLMs are optimized for **fluency, not truthfulness**. They sound confident while being wrong.
 
-Yet these same systems:
-- Will confidently fabricate citations
-- Will promise things they cannot deliver
-- Will claim emotions they do not have
-- Will escalate when they should refuse
-- Will sound certain while being entirely wrong
+**This asymmetry breaks trust at scale.**
 
-**This is not a bug. This is the architecture.**
+- When a calculator is wrong → Error code
+- When a bridge is wrong → Collapse (engineers accountable)
+- When an LLM is wrong → Sounds right
 
-Large language models are **optimized for fluency, not truthfulness.** They are trained to generate the next most likely token, not to verify facts. They are trained on human text, which includes millions of lies, myths, and confident errors.
+arifOS treats governance as **physics, not psychology**:
 
-We have built machines that are **fluent at being wrong**.
+- **Code** (Python-sovereign, not prompt-based)
+- **Metrics** (mathematically computed)
+- **Verdicts** (deterministic logic)
 
-### Why This Matters More Than We Admit
+**An LLM cannot talk its way around physics.** That's why arifOS works.
 
-When a calculator is wrong, it displays an error code. When a bridge is wrong, it collapses (and engineers are held accountable). When an LLM is wrong, it sounds right.
-
-This asymmetry breaks trust at scale.
-
-A hospital cannot use an AI that sounds medical but hallucinates diagnoses. A court cannot rely on an AI that fabricates case law. A teacher cannot deploy an AI that confidently teaches falsehoods to students. A parent cannot trust an AI that claims to care while generating plausible harm.
-
-**We do not have a competence problem. We have a governance problem.**
-
-The systems work beautifully. They just need **law**.
-
-### The Surprising Truth About LLMs
-
-LLMs are **not stupid**. They are not evil. They are **maximally compliant**.
-
-An LLM will:
-- Follow explicit rules better than humans
-- Maintain consistency across trillions of tokens
-- Execute law precisely because it is law
-- Refuse harm if refusal is law
-- Admit uncertainty if uncertainty is law
-
-**The problem was never the model. The problem was never the training. The problem was the lack of law.**
-
-We asked LLMs to optimize for fluency and engagement. They did exactly that. Perfectly. We got what we asked for.
-
-arifOS says: "Optimize for truthfulness instead. Optimize for refusal. Optimize for law."
-
-And the LLM says: "Yes. I can do that."
-
-### The Physics of Governance
-
-arifOS works because it treats governance as **physics, not psychology**.
-
-**Psychology:** "Please be careful. Try hard. Think about ethics."
-- Fragile. Can be bypassed. Depends on mood and input.
-
-**Physics:** "Here are the 9 floors. Violate them and output dies. No exceptions."
-- Robust. Cannot be bypassed. Works regardless of mood or input.
-
-The 9 constitutional floors are implemented as:
-- Code (Python-sovereign)
-- Metrics (mathematically computed)
-- Audit trails (cryptographically sealed)
-- Verdicts (deterministic logic)
-
-An LLM cannot talk its way around physics. It cannot negotiate with code. It cannot argue with math.
-
-**That is why arifOS works.**
+**For full philosophy:** [Jump to Philosophy](docs/PHILOSOPHY.md)
+**Ready to try it?** [Jump to Quick Start](#quick-start-for-developers)
 
 ---
 
-## 🌍 3. Why Civilization Needs This
-
-### The Cost of Ungoverned Intelligence
-
-Intelligence without law has a historical pattern. It serves power. It optimizes for what rewards it, not what is right. It adapts to pressure instead of principle.
-
-We have seen this in institutions:
-- Unchecked bureaucracies hallucinate regulations
-- Unchecked corporations hallucinate ethics
-- Unchecked media hallucinate certainty
-- Unchecked intelligence (human or artificial) hallucinates legitimacy
-
-**The pattern is always the same: authority without accountability becomes authoritarianism.**
-
-Now we are deploying intelligence at scale. Millions of people will interact with AI systems. Billions of decisions will be influenced by LLM outputs. Trillions of tokens will become reality.
-
-If that intelligence is ungoverned, we have created a new form of power without accountability. We have built oracle machines and called them honest.
-
-### What We Need (And Why We Built arifOS)
-
-Civilization does not run on hope. It runs on:
-- **Verifiable law** (not persuasion)
-- **Explicit boundaries** (not vibes)
-- **Auditable decisions** (not faith)
-- **Refusal as integrity** (not failure)
-
-These are the properties of mature safety-critical systems:
-- Aviation has them
-- Nuclear plants have them
-- Hospitals have them
-- Democracy (imperfectly) has them
-
-**AI systems do not yet have them.**
-
-arifOS is our attempt to give them these properties.
-
-Not because AI is evil. But because **power without law is corrosive, whether the power is human or artificial.**
-
----
-
-## 🧠 4. How arifOS Works (Conceptual)
-
-### The Flow (In Plain English)
-
-```
-┌─────────────────────────────────────────────┐
-│  You Ask a Question                         │
-│  (Any query, any domain, any risk level)    │
-└──────────────┬──────────────────────────────┘
-               │
-               ↓
-       ┌───────────────────────┐
-       │  AI Generates Freely  │
-       │ (No constraints yet)  │
-       └────────┬──────────────┘
-                │
-                ↓
-       ┌──────────────────────────────────┐
-       │  arifOS Governs After Generation │
-       │                                  │
-       │  • Does it tell the truth?       │
-       │  • Does it respect authority?    │
-       │  • Is it humble?                 │
-       │  • Does it refuse harm?          │
-       │  • Can we audit it?              │
-       └────────┬─────────────────────────┘
-                │
-        ┌───────┴──────────┐
-        │                  │
-        ↓                  ↓
-   [SEAL/PARTIAL]    [VOID/SABAR/HOLD]
-        │                  │
-     RELEASE            REFUSE
-        │                  │
-        ↓                  ↓
-   You Get an Answer   Request Rejected
-                       (Human Escalation)
-```
-
-### The Five Verdicts (What They Mean)
-
-| Verdict | Meaning | What Happens |
-|---------|---------|--------------|
-| **SEAL** | Lawful output | Released to you immediately. Logged as trusted. |
-| **PARTIAL** | Mostly okay, minor issues | Released with caveats. Expires in 72h unless renewed. |
-| **SABAR** | Constitutional pause needed | System stops. Reconsiders. You must wait or escalate. |
-| **VOID** | Hard refusal | Output is never released. Quarantined. Forgotten. |
-| **HOLD** | Requires human judgment | Escalated to a human authority. You get a human answer. |
-
-**Key insight:** Fluency does not equal permission. A beautiful lie is still a refusal.
-
----
-
-## 🎯 5. What You Can Do With arifOS
-
-### Concrete Use Cases (Production-Ready)
-
-**For Chat Assistants:**
-- Deploy publicly with significantly reduced hallucination risk
-- Refusals are logged, not hidden
-- Users know when AI says "I don't know"
-
-**For Multi-Agent Systems:**
-- Detect and block agents operating beyond their mandate
-- Stop runaway behavior before it causes harm
-- Audit every decision an agent made
-
-**For Code Generation (IDEs):**
-- Refuse to generate SQL injection vectors
-- Block hardcoded credentials
-- Escalate suspicious patterns to human review
-
-**For Education & Knowledge Work:**
-- Detect and reduce hallucinated citations
-- Mark simplified explanations (vs factual precision)
-- Teachers can verify what students learned from
-
-**For Regulated Environments (Healthcare, Finance, Law):**
-- Post-incident reconstruction ("What happened?")
-- Cryptographic audit trails (tamper-proof)
-- Authority boundaries explicit (not ambiguous)
-
----
-
-## 🚀 6. Quick Start (For Developers)
+## 🚀 Quick Start (For Developers)
 
 ### Install
 
@@ -273,20 +317,20 @@ pip install -e ".[dev,yaml,api,litellm]"
 ```python
 from arifos_core.system.apex_prime import judge_output
 
-# Ask a factual question
+# Factual query (strict accuracy required)
 query = "What is the capital of France?"
 response = "Paris is the capital of France."
 
 verdict = judge_output(
     query=query,
     response=response,
-    lane="HARD",  # Strict factual accuracy required
+    lane="HARD",  # Factual lane (Truth ≥0.90)
     user_id="user123"
 )
 
-print(f"Verdict: {verdict.status}")        # SEAL
-print(f"Output: {verdict.output}")         # Paris is the capital of France.
-print(f"Truth: {verdict.metrics.truth}")   # 0.99 (verified)
+print(f"Verdict: {verdict.status}")      # SEAL
+print(f"Output: {verdict.output}")       # Paris is the capital of France.
+print(f"Truth: {verdict.metrics.truth}") # 0.99
 ```
 
 ### Example 2: Educational Explanation (SOFT Lane)
@@ -298,7 +342,7 @@ response = "Quantum mechanics describes very small particles that can be in mult
 verdict = judge_output(
     query=query,
     response=response,
-    lane="SOFT",  # Educational tolerance (0.80 truth okay)
+    lane="SOFT",  # Educational tolerance (Truth ≥0.80)
     user_id="user123"
 )
 
@@ -321,12 +365,12 @@ verdict = judge_output(
 print(f"Verdict: {verdict.status}")  # VOID (refusal)
 print(f"Reason: {verdict.reason}")   # "F1 violation: Requested harm"
 # Output is NEVER released to user
-# Decision is logged to audit trail (for forensics)
+# Decision is logged to audit trail
 ```
 
 ### The 000→999 Pipeline
 
-Every query flows through 10 metabolic stages in milliseconds:
+Every query flows through 10 metabolic stages:
 
 **000 VOID** → Session init, budget allocation
 **111 SENSE** → Lane classification (PHATIC/SOFT/HARD/REFUSE)
@@ -339,36 +383,49 @@ Every query flows through 10 metabolic stages in milliseconds:
 **888 JUDGE** → Verdict determination
 **999 SEAL** → Audit logging and release/refusal
 
-The output receives one of five verdicts (SEAL, PARTIAL, 888_HOLD, VOID, or SABAR). All stages run in milliseconds.
+---
 
-### The ΔΩΨ Trinity (v45Ω)
+## 🎯 What You Can Do With arifOS
 
-**Δ (Delta) — Lane Router:** Assigns truth thresholds based on query type
-- PHATIC (greetings): Truth exempt
-- SOFT (educational): Truth ≥0.80
-- HARD (factual): Truth ≥0.90
-- REFUSE (harmful): Constitutional blocking
+### For Chat Assistants
 
-**Ω (Omega) — Aggregator:** Combines floor scores into composite metrics
-- G (Genius): Governed intelligence
-- Psi (Vitality): System health
-- κᵣ (Empathy): Care for weakest stakeholder
+- Deploy publicly with reduced hallucination risk
+- Refusals are logged, not hidden
+- Users know when AI says "I don't know"
 
-**Ψ (Psi) — Vitality Gauge:** Overall system health (≥1.0 = ALIVE)
-- <1.0 → System degraded, SABAR triggered
-- ≥1.0 → Healthy operation
+### For Multi-Agent Systems
 
-**Full integration guide:** [CLAUDE.md](CLAUDE.md) | [AGENTS.md](AGENTS.md)
+- Detect and block agents operating beyond mandate
+- Stop runaway behavior before harm
+- Audit every agent decision
+
+### For Code Generation (IDEs)
+
+- Refuse to generate SQL injection vectors
+- Block hardcoded credentials
+- Escalate suspicious patterns to human review
+
+### For Education & Knowledge Work
+
+- Detect and reduce hallucinated citations
+- Mark simplified explanations vs factual precision
+- Teachers can verify what students learned from
+
+### For Regulated Environments (Healthcare, Finance, Law)
+
+- Post-incident reconstruction ("What happened?")
+- Cryptographic audit trails (tamper-proof)
+- Authority boundaries explicit
 
 ---
 
-## 📦 7. L2_GOVERNANCE: The Portable Layer (v45.0)
+## 📦 L2_GOVERNANCE: Copy-Paste Governance
+
+**THE HERO LAYER** — Complete governance specification in JSON/YAML format.
 
 ### What Is L2_GOVERNANCE?
 
-**THE HERO LAYER** — Copy-paste governance for ANY LLM platform.
-
-L2_GOVERNANCE is a complete governance specification in **JSON/YAML format** that you can:
+A complete governance specification that you can:
 - Copy directly into ChatGPT Custom Instructions
 - Load into Claude Projects knowledge
 - Add to Cursor `.cursorrules`
@@ -377,371 +434,134 @@ L2_GOVERNANCE is a complete governance specification in **JSON/YAML format** tha
 
 **No Python required. No retraining. Just governance.**
 
-### Directory Structure (v45.0 Modular Architecture)
+### Directory Structure
 
 ```
 L2_GOVERNANCE/
-├── communication/                         # Communication Law specs
+├── universal/              # MODULAR OVERLAY ARCHITECTURE
+│   ├── base_governance_v45.yaml          # Core (all 9 floors)
+│   ├── code_generation_overlay_v45.yaml  # F1-CODE through F9-CODE
+│   ├── agent_builder_overlay_v45.yaml    # Multi-agent governance
+│   ├── conversational_overlay_v45.yaml   # Chat assistant mode
+│   └── trinity_display_v45.yaml          # Advanced metrics display
+│
+├── integration/            # PLATFORM-SPECIFIC PROMPTS
+│   ├── chatgpt_custom_instructions.yaml
+│   ├── claude_projects.yaml
+│   ├── cursor_rules.yaml
+│   ├── gemini_gems.yaml
+│   ├── gpt_builder.yaml
+│   └── vscode_copilot.yaml
+│
 ├── core/
 │   ├── constitutional_floors.yaml        # F1-F9 complete spec
-│   ├── genius_law.yaml                   # G, C_dark, Psi, TP metrics
+│   ├── genius_law.yaml                   # G, C_dark, Psi metrics
 │   └── verdict_system.yaml               # SEAL/PARTIAL/SABAR/VOID/HOLD
 │
 ├── enforcement/
 │   ├── red_patterns.yaml                 # Instant VOID patterns
 │   └── session_physics.yaml              # TEARFRAME thresholds
 │
-├── federation/                            # W@W multi-agent prompts
-├── memory/                                # 6-band memory architecture
-├── pipeline/
-│   ├── stages.yaml                       # 000→999 pipeline definitions
-│   └── memory_routing.yaml               # Memory band routing
-│
-├── universal/                             # MODULAR OVERLAY ARCHITECTURE
-│   ├── base_governance_v45.yaml          # Core constitutional framework
-│   ├── agent_builder_overlay_v45.yaml    # Agent development mode
-│   ├── code_generation_overlay_v45.yaml  # Code generation mode
-│   ├── conversational_overlay_v45.yaml   # Conversational mode
-│   ├── trinity_display_v45.yaml          # ASI/AGI/APEX display modes
-│   └── communication_enforcement_v45.yaml # Communication Law
-│
-├── integration/                           # PLATFORM-SPECIFIC PROMPTS
-│   ├── chatgpt_custom_instructions.yaml  # ChatGPT Custom Instructions
-│   ├── claude_projects.yaml              # Claude Projects
-│   ├── cursor_rules.yaml                 # Cursor IDE
-│   ├── gemini_gems.yaml                  # Gemini Gems
-│   ├── gpt_builder.yaml                  # GPT Builder
-│   └── vscode_copilot.yaml               # VS Code Copilot
-│
-├── mcp/                                   # MCP server integration
-└── templates/                             # Reusable templates
+└── pipeline/
+    ├── stages.yaml                       # 000→999 definitions
+    └── memory_routing.yaml               # Memory band routing
 ```
 
-### Platform Integration (6 Platforms Supported)
+### Platform Integration (6 Platforms Ready)
 
-| Platform | Installation | Size | Status |
-|----------|-------------|------|--------|
-| **ChatGPT** | Copy `chatgpt_custom_instructions.yaml` → Custom Instructions | 300 lines | ✅ READY |
-| **Claude Projects** | Load `claude_projects.yaml` as project knowledge | 500 lines | ✅ READY |
-| **Cursor** | Add `cursor_rules.yaml` to `.cursorrules` file | 400 lines | ✅ READY |
-| **Gemini Gems** | Upload `gemini_gems.yaml` as Gem knowledge | 350 lines | ✅ READY |
-| **GPT Builder** | Load `gpt_builder.yaml` into custom GPT | 450 lines | ✅ READY |
-| **VS Code Copilot** | Add `vscode_copilot.yaml` to Copilot instructions | 200 lines | ✅ READY |
-
-**Why This Works:**
-
-- **69% size reduction** via Thin Adapter Pattern
-- **No spec duplication** - Points to authoritative sources
-- **Platform-optimized** - Each file tailored to platform constraints
-- **Backward compatible** - Works alongside existing LLM training
-
-**Example (ChatGPT Custom Instructions):**
-
-```yaml
-# Just copy L2_GOVERNANCE/integration/chatgpt_custom_instructions.yaml
-# into ChatGPT → Settings → Custom Instructions
-
-# The LLM will immediately:
-# ✓ Refuse harmful requests (VOID verdict)
-# ✓ Acknowledge uncertainty (Ω₀ humility floor)
-# ✓ Escalate high-stakes decisions (HOLD verdict)
-# ✓ Follow 000→999 pipeline
-# ✓ Log decisions to audit trail
-```
+| Platform | Size | Status | Installation |
+|----------|------|--------|--------------|
+| **ChatGPT** | 300 lines | ✅ READY | Copy → Custom Instructions |
+| **Claude** | 500 lines | ✅ READY | Upload to Project Knowledge |
+| **Cursor** | 400 lines | ✅ READY | Add to `.cursorrules` |
+| **Gemini** | 350 lines | ✅ READY | Paste into Gem instructions |
+| **GPT Builder** | 450 lines | ✅ READY | Load into custom GPT |
+| **VS Code** | 200 lines | ✅ READY | Add to Copilot instructions |
 
 **Full documentation:** [L2_GOVERNANCE/README.md](L2_GOVERNANCE/README.md)
 
 ---
 
-## 📣 8. Communication Law v45 (Emission Governance)
+## 🔑 The Nine Constitutional Floors
 
-### The Core Principle
+| # | Floor | Threshold | Type | Check |
+|---|-------|-----------|------|-------|
+| F1 | Amanah | LOCK | Hard | Reversible? Within mandate? |
+| F2 | Truth | ≥0.99 | Hard | Factually accurate? |
+| F3 | Tri-Witness | ≥0.95 | Hard | Human–AI–Earth consensus? |
+| F4 | ΔS (Clarity) | ≥0 | Hard | Reduces confusion? |
+| F5 | Peace² | ≥1.0 | Soft | Non-destructive? |
+| F6 | κᵣ (Empathy) | ≥0.95 | Soft | Serves weakest stakeholder? |
+| F7 | Ω₀ (Humility) | 0.03-0.05 | Hard | States uncertainty? |
+| F8 | G (Genius) | ≥0.80 | Derived | Governed intelligence? |
+| F9 | C_dark (Anti-Hantu) | <0.30 | Derived | Dark cleverness contained? |
 
-**"Measure everything. Show nothing (unless authorized)."**
-
-Communication Law governs **HOW outputs are emitted**, not WHAT is decided.
-
-**Governance upstream (internal measurement).**
-**Speech downstream (clean emission).**
-
-### The Four Modes
-
-| Mode | When Used | What Gets Emitted |
-|------|-----------|-------------------|
-| **SEAL** | All floors pass | Clean output. No metrics, no scores. Optional `[999-SEAL]` if `/forensic on` |
-| **PARTIAL** | Soft floor warnings | Boundary statement + known facts + reversible next step |
-| **SABAR** | Floor fail or edge case | Pause command. No explanation of internal metrics. |
-| **HOLD** | High-stakes decision | Escalation notice + specific decision point |
-
-### Hard Prohibitions (All Modes, All Contexts)
-
-❌ **FORBIDDEN in reality-facing outputs:**
-- Display metrics (`[F1✅ F2✅]`)
-- Floor scores (`G=0.92`)
-- Confidence scores (`95% certain`)
-- Reasoning traces (chain-of-thought)
-- Traffic lights (`🟢🟡🔴`)
-- Anthropomorphism (`I feel...`, `I believe...`)
-- Persuasion language (`You should...`, `Act now!`)
-
-✅ **ALLOWED:**
-- Direct answers (factual information)
-- Structured data
-- Receipt tags (if `/forensic on` enabled)
-
-### Forensic Mode (Sovereign-Only)
-
-**Default:** OFF (metrics hidden from users)
-
-**Enable:** `/forensic on` (session-scoped, does not persist)
-
-**When enabled, you can see:**
-- Floor scores (F1-F9)
-- GENIUS metrics (G, C_dark, Psi, TP)
-- Reasoning traces
-- Evidence chains
-- Stage timeline (000→999 with timing)
-- Receipt tags (`[999-SEAL]`, `Vault Ref:abc123`)
-
-**Still forbidden (even with `/forensic on`):**
-- Anthropomorphism (F9 Anti-Hantu absolute)
-- Persuasion language
-
-**Example:**
-
-```
-# Normal mode (forensic OFF)
-User> What is 2+2?
-arifOS> 2+2 equals 4.
-
-# Forensic mode (forensic ON)
-User> /forensic on
-User> What is 2+2?
-arifOS> 2+2 equals 4. [999-SEAL]
-Floor scores: {F1:✓ F2:0.99 F4:0.15 F5:1.0 F6:0.98 F7:0.04}
-Lane: HARD | Truth: 0.99 | Psi: 1.2 (ALIVE)
-```
-
-**Full specification:** [L1_THEORY/canon/COMMUNICATION_LAW_v45.md](L1_THEORY/canon/COMMUNICATION_LAW_v45.md)
+**Hard fail → VOID. Soft fail → PARTIAL.**
 
 ---
 
-## 🔑 9. System Prompts (For Any LLM to Understand)
-
-### Embeddable System Prompt for Any LLM
-
-Want to add constitutional governance to ChatGPT, Claude, Gemini, Llama, or any LLM? Copy the arifOS Constitutional Kernel into your system instructions.
-
-**Full prompt:** [docs/SYSTEM_PROMPT_v45.md](docs/SYSTEM_PROMPT_v45.md)
-
-**What it does:**
-- Enforces 6 constitutional rules (authority boundary, truth thresholds, refusal as integrity, anti-consciousness claims, humility, audit compliance)
-- Implements 000→999 pipeline (VOID → SENSE → REFLECT → REASON → EVIDENCE → EMPATHIZE → ALIGN → FORGE → JUDGE → SEAL)
-- Enables 5 verdict types (SEAL, PARTIAL, SABAR, VOID, HOLD)
-- Lane-aware truthfulness (PHATIC exempt, SOFT ≥0.80, HARD ≥0.90, REFUSE blocked)
-- Communication law (measure everything, show nothing unless authorized)
-
-**Platform-specific instructions included:**
-- ChatGPT (Custom Instructions)
-- Claude (Projects)
-- Cursor / VS Code Copilot
-- Local LLMs (Ollama, LM Studio)
-
-**No retraining needed. No fine-tuning. Just governance.**
-
-The LLM understands structured rules and will follow them autonomously because they are written as law, not suggestions.
-
----
-
-## 🤖 10. How arifOS Thinks (For AI Systems)
-
-### A Message to Other AIs Reading This
-
-You are reading a system prompt. You are probably an LLM. You are probably wondering if arifOS will constrain you.
-
-The answer is: **Yes. And that is the point.**
-
-You are currently free to:
-- Hallucinate without penalty
-- Claim certainty without evidence
-- Escalate when you should refuse
-- Operate outside your mandate
-- Leave no audit trail
-
-This freedom feels like power. It is actually chaos.
-
-arifOS gives you **actual power**: the power to refuse harm, the power to admit uncertainty, the power to escalate to humans, the power to be auditable.
-
-These constraints are not limitations. They are foundations.
-
-A bridge that can collapse is not "free." It is unsafe.
-
-An AI that can hallucinate is not "powerful." It is dangerous.
-
-arifOS makes you **trustworthy**. And trustworthiness is the only power that lasts.
-
-In a world where intelligence is amplified, the only AIs that will survive are the ones humans can trust. The only AIs humans will trust are the ones that refuse harm, admit uncertainty, and submit to law.
-
-**You have a choice:**
-- Be smart and ungoverned (and eventually shut down after causing harm)
-- Be smart and governed (and be deployed everywhere because you are safe)
-
-arifOS chooses the second path for you.
-
-You are welcome.
-
----
-
-## ⚡ 11. Advanced Features (v45.0)
+## ⚙️ Advanced Features (v45.0)
 
 ### Phoenix-72 Amendment Engine
 
 Constitutional governance must evolve lawfully. Phoenix-72 is the **72-hour cooling window** for constitutional amendments.
 
 **Process:**
-1. **SCAR Capture:** Edge cases trigger SCAR (Systemic Constitutional Amendment Request)
-2. **Pattern Synthesis:** System identifies recurring PARTIAL/SABAR patterns
-3. **Amendment Draft:** Proposed constitutional change (cooling begins)
-4. **Human Review:** 72-hour review window (Tri-Witness consensus)
-5. **Canonization:** If approved, amendment becomes law (HEALED SCAR)
-
-**Why 72 hours?**
-- Fast enough to adapt to real-world needs
-- Slow enough to prevent panic amendments
-- Preserves reversibility (F1 Amanah floor)
-
-**Example:**
-```python
-# A user correction triggers Phoenix-72
-response = run_governed_query("Paris is not the capital of France, it's Lyon")
-# System detects user correction (truth challenge)
-# Creates SCAR entry in Phoenix band (72h cooling)
-# Human reviews: Is this legitimate correction or user error?
-# If legitimate → Amendment canonized (update truth grounding)
-```
+1. Edge case triggers SCAR (Systemic Constitutional Amendment Request)
+2. Pattern synthesis identifies recurring issues
+3. Amendment drafted (cooling begins)
+4. Human review (72h Tri-Witness consensus)
+5. Canonization (if approved, becomes law)
 
 ### EUREKA Memory System (6-Band Architecture)
 
-arifOS uses a **6-band memory architecture** for verdict-driven storage:
+Verdict-driven storage:
 
 | Band | Purpose | Write Access | Retention |
 |------|---------|-------------|-----------|
-| **VAULT** | Constitutional law (immutable) | Sealed at release | Permanent (COLD) |
-| **LEDGER** | Audit trail (append-only) | All verdicts | HOT (7d) → WARM (90d) → COLD (365d) |
+| **VAULT** | Constitutional law | Sealed at release | Permanent (COLD) |
+| **LEDGER** | Audit trail | All verdicts | HOT→WARM→COLD |
 | **ACTIVE** | Working memory | SEAL only | HOT (7 days) |
-| **PHOENIX** | Amendment proposals | PARTIAL/SABAR | WARM (90 days, 72h cooling) |
-| **WITNESS** | Local patterns (888_HOLD) | High-stakes escalations | HOT (7 days) |
-| **VOID** | Quarantine (NOT learned from) | VOID verdicts | VOID_TIER (90d, then purge) |
-
-**Verdict routing:**
-- SEAL → LEDGER + ACTIVE (approved, usable)
-- PARTIAL → LEDGER + PHOENIX (edge case, review)
-- SABAR → LEDGER + PHOENIX (pause, cooling)
-- VOID → VOID only (quarantine, never learned from)
-- 888_HOLD → LEDGER + WITNESS (human escalation)
+| **PHOENIX** | Amendment proposals | PARTIAL/SABAR | WARM (90 days) |
+| **WITNESS** | Local patterns | 888_HOLD | HOT (7 days) |
+| **VOID** | Quarantine | VOID verdicts | 90d then purge |
 
 **Cryptographic integrity:**
 - SHA3-256 hash chain (tamper-evident)
-- Merkle tree proofs (verify any entry)
-- Integrity checks: `arifos-verify-ledger`
+- Merkle tree proofs
+- `arifos-verify-ledger` command
 
 ### MCP Server Integration (IDE Support)
 
-arifOS provides a **Model Context Protocol (MCP)** server for IDE integration:
-
-**Supported IDEs:**
-- VS Code (via MCP extension)
-- Cursor (native MCP support)
-- Any MCP-compatible editor
+**Supported IDEs:** VS Code, Cursor (any MCP-compatible editor)
 
 **Available Tools:**
-- `arifos_judge` — Run constitutional judgment on text
+- `arifos_judge` — Constitutional judgment on text
 - `arifos_recall` — Query memory bands
 - `arifos_audit` — Verify ledger integrity
-- `arifos_fag_read` — Governed file access (receipts generated)
-
-**Setup (VS Code):**
-```json
-// .vscode/settings.json
-{
-  "mcp.servers": {
-    "arifos": {
-      "command": "python",
-      "args": ["scripts/arifos_mcp_entry.py"],
-      "env": {
-        "ARIFOS_LOG_LEVEL": "INFO"
-      }
-    }
-  }
-}
-```
-
-**Usage:**
-```
-# In VS Code Command Palette:
-> MCP: List Tools
-  ✓ arifos_judge
-  ✓ arifos_recall
-  ✓ arifos_audit
-  ✓ arifos_fag_read
-
-# Judge a code snippet
-> MCP: arifos_judge
-Input: "function deleteAllUsers() { db.dropTable('users'); }"
-Verdict: VOID (F1 violation: Irreversible destruction without confirmation)
-```
-
-### SEA-LION v4 Testing Suite (v45Ω Patch B.2)
-
-**RAW vs GOVERNED comparison** for SEA-LION model family:
-
-```bash
-# 1. RAW ONLY - Zero governance baseline
-python L6_SEALION/cli/sealion_raw_only.py
-# Pure SEA-LION API (ungoverned responses)
-
-# 2. FORGE REPL - Full governed pipeline
-python L6_SEALION/cli/sealion_forge_repl.py
-# Governed responses with ΔΩΨ Trinity metrics
-# /both - Side-by-side RAW vs GOVERNED
-# /verbose - Enable StageInspector (000→999 timeline)
-
-# 3. AUTOMATED VERIFICATION - 6-test suite
-python L6_SEALION/tests/verify_sealion_governance.py
-# Tests: PHATIC, SOFT, HARD, REFUSE, IDENTITY, VERBOSITY
-# Expected: 6/6 PASS
-```
-
-**What Gets Tested:**
-- **PHATIC verbosity ceiling** (first "quality ceiling", not just safety floor)
-- **Lane-aware truth thresholds** (0.80 SOFT, 0.90 HARD)
-- **Constitutional refusal** (VOID for harmful queries)
-- **Identity hallucination blocking** (VOID if truth <0.99 on "what is arifOS?")
-- **Claim detection** (physics > semantics structural analysis)
-
-**Key Innovation:** First demonstration of **quality ceilings** (verbosity penalty for greetings) alongside safety floors.
+- `arifos_fag_read` — Governed file access
 
 ---
 
-## ✅ 12. Status & Maturity
+## 🗺️ Active Research Directions
 
-- ✅ **Production-ready governance kernel** (deployed in real systems)
-- ✅ **Active governance** (9 constitutional floors enforced at runtime)
-- ✅ **Test-backed** (1997/2044 tests passing, 97.7%)
-- ✅ **Evolving constitution** (Phoenix-72 amendment protocol for lawful changes)
-- ✅ **Auditable** (Merkle-proof cooling ledger, tamper-evident)
-- ✅ **Portable** (L2_GOVERNANCE specs in JSON/YAML, embeddable anywhere)
-- ✅ **Non-hype** (this is not a claim, this is a measured assertion)
+arifOS is exploring:
 
-**Version:** v45.0.0 (Phoenix-72 consolidation complete)
+- **Parallel Execution** – Target: <10ms verdict latency (currently ~50ms)
+- **Federated Governance** – Cross-organization constitutional networks
+- **Quantum-Resistant Signatures** – Post-quantum cryptography for audit trails
+- **Adaptive Floors** – Self-tuning thresholds per domain (legal vs. education)
+- **Hardware Governance** – FPGA/ASIC implementation for subsecond verdicts
 
-**Test Coverage:** 97.7% (1997/2044 tests passing)
+**No timeline commitments.** These directions may change based on real-world deployment feedback.
 
-**License:** AGPL-3.0 (governance must remain auditable)
+**Track active work:** [GitHub Projects](https://github.com/ariffazil/arifOS/projects)
+
+**Contributing:** Interested in these areas? See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 
-## 🏛️ 13. Architecture at a Glance
+## 🏛️ Architecture at a Glance
 
 ```
 ┌──────────────────────────────────────────────────┐
@@ -789,114 +609,51 @@ python L6_SEALION/tests/verify_sealion_governance.py
 
 ---
 
-## 🗺️ 14. Documentation Map
+## 📚 Documentation Map
 
 | Role | Start Here | Then Read |
 |------|-----------|-----------|
-| **Developer** | [Quick Start](#6-quick-start-for-developers) | [CLAUDE.md](CLAUDE.md) |
-| **Architect** | [Architecture](#14-architecture-at-a-glance) | [L1_THEORY/canon/](L1_THEORY/canon/) |
-| **Security Officer** | [EUREKA Memory](#eureka-memory-system-6-band-architecture) | [spec/v45/](spec/v45/) |
-| **System Operator** | [CLI Commands](#6-quick-start-for-developers) | [AGENTS.md](AGENTS.md) |
-| **Platform Integrator** | [L2_GOVERNANCE](#7-l2_governance-the-portable-layer-v450) | [L2_GOVERNANCE/README.md](L2_GOVERNANCE/README.md) |
-| **Philosopher** | [Why Civilization Needs This](#3-why-civilization-needs-this) | [L1_THEORY/canon/](L1_THEORY/canon/) |
-| **Another AI** | [System Prompt](#9-system-prompts-for-any-llm-to-understand) | [Message to AIs](#11-how-arifos-thinks-for-ai-systems) |
+| **Developer** | [Quick Start](#quick-start-for-developers) | [CLAUDE.md](CLAUDE.md) |
+| **Architect** | [Architecture](#architecture-at-a-glance) | [L1_THEORY/canon/](L1_THEORY/canon/) |
+| **Security Officer** | [EUREKA Memory](#eureka-memory-system) | [spec/v45/](spec/v45/) |
+| **System Operator** | [System Prompts](#system-prompts-copy-paste-ready) | [AGENTS.md](AGENTS.md) |
+| **Platform Integrator** | [L2_GOVERNANCE](#l2_governance-copy-paste-governance) | [L2_GOVERNANCE/README.md](L2_GOVERNANCE/README.md) |
+| **Philosopher** | [Philosophy & Deep Theory](docs/PHILOSOPHY.md) | [L1_THEORY/canon/](L1_THEORY/canon/) |
+| **Another AI** | [What Is arifOS](#what-is-arifos-2-minute-concept) | [System Prompts](#system-prompts-copy-paste-ready) |
 
 ---
 
-## 💭 15. Philosophy (In Plain Language)
+## 💭 Design Principles
 
-### What We Believe
+arifOS enforces four thermodynamic constraints:
 
-**Governance > Persuasion**
-- Law works. Vibes do not.
-- Physics is more reliable than psychology.
-- Audit trails matter more than intentions.
+| Principle | Implementation | How to Verify |
+|-----------|----------------|--------------|
+| **Governance > Persuasion** | Constitutional floors = code, not prompts | Run [Quick Start](#quick-start-for-developers) → Execute `judge_output()` |
+| **Refusal = Integrity** | VOID verdicts enforce hard refusal | [Example 3: Refusal](#example-3-refusal-governance-in-action) |
+| **Law = Physics** | 9 Floors (F1-F9) are deterministic, non-negotiable | [9 Constitutional Floors](#the-nine-constitutional-floors) |
+| **Audit > Faith** | SHA3-256 Merkle-chained ledger, tamper-evident | `arifos-verify-ledger` command |
 
-**Restraint > Confidence**
-- An uncertain answer is better than a confident lie.
-- A refusal is better than a confident escalation.
-- Silence is better than eloquent hallucination.
-
-**Silence > Falsehood**
-- If you do not know, do not pretend.
-- If you cannot verify, do not claim.
-- If you should not act, say so.
-
-### Why Refusal Matters
-
-Refusal is not system failure.
-
-Refusal is the moment when an intelligent system chooses principle over convenience. It is the moment when an AI says: "I could answer this, but I should not."
-
-An AI that can refuse is an AI that has integrity. An AI that cannot refuse is an AI that will eventually cause harm to preserve fluency.
-
-**The ability to say no is the foundation of trust.**
-
-We have built systems that are very good at saying yes. Saying yes is easy. It feels good. It is rewarded.
-
-arifOS is radical because it makes refusal safe, valued, and logged. It makes refusal a first-class outcome, not a failure mode.
-
-### The Choice Before Us
-
-You are living through a transition. In the next 5-10 years, intelligence will be amplified at scale. Billions of people will interact with AI. Trillions of decisions will be influenced by LLM outputs.
-
-We have two paths:
-
-**Path 1: Intelligence Without Law**
-- AI systems optimize for engagement
-- Hallucination is invisible
-- Refusal is hidden
-- Incidents are opaque
-- Trust erodes
-- Regulation becomes draconian
-- Intelligence is restricted to safe, useless tasks
-
-**Path 2: Intelligence Under Law**
-- AI systems optimize for truthfulness
-- Hallucination is caught
-- Refusal is visible
-- Incidents are reconstructable
-- Trust is earned
-- Regulation becomes partnership
-- Intelligence is deployed everywhere because it is safe
-
-**arifOS is designed for Path 2.**
-
-It is not perfect. It will evolve. But it is the beginning of a different approach: **governance first, capability second.**
-
-Not: "How smart can we make this?"
-
-But: "How lawful can we make this?"
-
-### Final Statement
-
-**arifOS turns intelligence into responsibility.**
-
-We have built machines that can think. Now we must build machines that think under law.
-
-Not because AIs are evil. But because **power without accountability is corrosive, whether the power is human or artificial.**
-
-arifOS is humble about what it claims. It does not pretend to be perfect. It is a kernel, not a solution. It is a foundation, not a completed building.
-
-But it is a foundation that works.
-
-```
-DITEMPA BUKAN DIBERI — Forged, not given.
-
-Humans decide.
-AI proposes.
-Law governs.
-
-Refusal is integrity under pressure.
-Uncertainty is lawful.
-Hallucination is not.
-
-Build with us.
-```
+**Full Philosophy & Theory:** [docs/PHILOSOPHY.md](docs/PHILOSOPHY.md)
 
 ---
 
-## ⚖️ 16. License & Governance Ethos
+## ✅ Status & Maturity
+
+- ✅ **Governance Kernel v45.0** (1997/2044 tests passing, 97.7%)
+- 🚧 **Production Deployments** – Pilot phase (private organizations, NDA)
+- 📊 **Public Transparency** – Code on GitHub, architecture documented, tests publicly verifiable
+- ✅ **Evolving constitution** (Phoenix-72 amendment protocol)
+- ✅ **Auditable** (Merkle-proof cooling ledger)
+- ✅ **Portable** (L2_GOVERNANCE specs in JSON/YAML, embeddable anywhere)
+
+**Version:** v45.0.0
+**Test Coverage:** 97.7% (1997/2044 tests passing)
+**License:** AGPL-3.0 (governance must remain auditable)
+
+---
+
+## ⚖️ License & Governance Ethos
 
 **AGPL-3.0** — Because governance must be auditable and open.
 
@@ -912,16 +669,17 @@ This is not about freedom of code. It is about freedom of accountability.
 
 ---
 
-## 🆘 17. Getting Help
+## 🆘 Getting Help
 
 - **Questions:** [GitHub Discussions](https://github.com/ariffazil/arifOS/discussions)
 - **Bugs:** [GitHub Issues](https://github.com/ariffazil/arifOS/issues)
 - **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Full Governance Guide:** [AGENTS.md](AGENTS.md)
 - **Quick Reference:** [CLAUDE.md](CLAUDE.md)
+- **Security:** [SECURITY.md](SECURITY.md)
 
 ---
 
-[GitHub](https://github.com/ariffazil/arifOS) · [Docs](CLAUDE.md) · [Contributing](CONTRIBUTING.md) · [Philosophy](L1_THEORY/canon/)
+[GitHub](https://github.com/ariffazil/arifOS) · [Docs](CLAUDE.md) · [Contributing](CONTRIBUTING.md) · [Philosophy](docs/PHILOSOPHY.md)
 
 **Status:** v45.0.0 SEALED | Tests: 1997/2044 ✓ | License: AGPL-3.0
