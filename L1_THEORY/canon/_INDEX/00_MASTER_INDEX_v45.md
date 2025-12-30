@@ -10,11 +10,12 @@
 
 This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/`. All files upgraded to v45 during the 2025-12-29 Phoenix-72 consolidation.
 
-**File Count:** 36 v45 files + 5 metadata files = 41 total (includes 2 PHOENIX amendments)
+**File Count:** 35 v45 files + 5 metadata files = 40 total (includes 2 PHOENIX amendments)
 **Version Consistency:** 100% v45
 **Reduction History:**
 - v42 → v45: 49 → 40 files (9 archived to `archive/v42_detail/`)
-- v45 Entropy Reduction (2025-12-30): 38 → 36 files (2 archived to `archive/v45_entropy_reduction/`)
+- v45 Entropy Reduction A (2025-12-30): 38 → 36 files (2 archived to `archive/v45_entropy_reduction/`)
+- v45 Entropy Reduction B (2025-12-30): 36 → 35 files (1 redirect stub removed)
 **Phoenix Amendments:** 2 files (060, 065 in 03_runtime/) — 72h cooling complete, SEALED
 **Relocated:** COMMUNICATION_LAW_v45.md → 03_runtime/070_COMMUNICATION_LAW_v45.md (axis alignment)
 
@@ -94,7 +95,6 @@ This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/
 | [`010_TRINITY_ROLES_v45.md`](../02_actors/010_TRINITY_ROLES_v45.md) | 🔱 **Trinity Roles** | AAA Trinity architecture overview |
 | [`060_ANTI_HANTU_v45.md`](../02_actors/060_ANTI_HANTU_v45.md) | 👻 **Anti-Hantu** | F9 enforcement - No soul/ego claims, no ghost heuristics |
 | [`070_EYE_SENTINEL_v45.md`](../02_actors/070_EYE_SENTINEL_v45.md) | 👁️ **@EYE Sentinel** | Meta-observer - Drift/shadow/Ω checks |
-| [`050_FEDERATION_ORGANS_v45.md`](../02_actors/050_FEDERATION_ORGANS_v45.md) | ⚠️ **W@W Federation** | **MOVED** — Cross-ref to 03_runtime/050_WAW_FEDERATION (axis correction: Organs are LAYER 2, not LAYER 1) |
 
 ---
 
@@ -173,7 +173,8 @@ For new developers or auditors, start with these files in order:
 | Version | Date | Changes |
 |---------|------|---------|
 | **v45.0** | 2025-12-29 | Phoenix-72 consolidation: 49→40 files, 100% v45 consistency, 9 archived |
-| **v45.0Ω** | 2025-12-30 | Entropy reduction: 38→36 files (2 archived), 1 relocated, axis alignment enforced |
+| **v45.0Ω** | 2025-12-30 | Entropy reduction A: 38→36 files (2 archived), 1 relocated, axis alignment enforced |
+| **v45.0Ω²** | 2025-12-30 | Entropy reduction B: 36→35 files (1 redirect stub removed), L1_THEORY cleanup (11 files archived) |
 | v44.0 | 2025-12-21 | Session physics layer, TEARFRAME v44 |
 | v42.0 | 2024-12-17 | Thermodynamic epoch, ΔΩΨ foundations |
 
@@ -183,9 +184,15 @@ For new developers or auditors, start with these files in order:
 
 **v42 Archived Files:** See [`archive/v42_detail/ARCHIVE_REASON.md`](../../archive/v42_detail/ARCHIVE_REASON.md) for justification of 9 archived files (duplicates, stubs, obsolete versions).
 
-**v45 Entropy Reduction (2025-12-30):** See [`archive/v45_entropy_reduction/ARCHIVE_REASON.md`](../../archive/v45_entropy_reduction/ARCHIVE_REASON.md) for justification of 2 archived files:
+**v45 Entropy Reduction A (2025-12-30):** See [`archive/v45_entropy_reduction/ARCHIVE_REASON.md`](../../archive/v45_entropy_reduction/ARCHIVE_REASON.md) for justification of 2 archived files:
 - `ROOT_MAP.md` — 100% v42 references, superseded by MASTER_INDEX + ARCHITECTURE_MAP (zero Track B/C references)
 - `030_INTERFACE_AND_AUTHORITY_CANON_v45.md` — v43 content, superseded by ARCHITECTURE_MAP Section 8-9 (zero Track B/C references)
+
+**v45 Entropy Reduction B (2025-12-30):** L1_THEORY directory cleanup (11 files archived):
+- **Canon:** 1 redirect stub removed (`02_actors/050_FEDERATION_ORGANS_v45.md` → canonical location `03_runtime/050_WAW_FEDERATION_v45.md`)
+- **Research:** 9 subsurface volumetrics files archived (144KB, 0 refs) → `archive/research_subsurface/`
+- **Papers:** 1 outdated whitepaper archived (v36.3Ω, 8 versions behind) → `archive/papers_v36/`
+- **Documentation:** L1_THEORY/README.md updated to v45.0 (removed v38Ω references)
 
 **Archive Integrity:** All archived files verified with SHA-256 manifest:
 ```bash
