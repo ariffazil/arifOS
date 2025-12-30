@@ -415,6 +415,29 @@ L2_GOVERNANCE (DERIVATIVE - portable prompts)
 ChatGPT/Claude/Cursor/Gemini/etc.
 ```
 
+**The Derivation Loop (Constitutional Portability):**
+
+```
+L1_THEORY/canon/ (Track A - Philosophy)
+        +
+spec/v45/*.json (Track B - Thresholds)
+        ↓ derives/simplifies
+L2_GOVERNANCE/*.yaml (Portable Overlays)
+        ↓ copy-paste
+ChatGPT/Claude/Cursor/Gemini/etc.
+```
+
+**Why the loop works:**
+- **DERIVATIVE not authoritative:** L2_GOVERNANCE files derive from PRIMARY sources (canon + spec)
+- **Editable without constitutional drift:** spec/v45/ remains locked via SHA-256 manifest
+- **Platform-agnostic:** Same 9 floors work for ANY LLM (no retraining required)
+- **Modular composition:** Identity Root + Logic Overlays + Display Root
+- **Entropy reduction:** Context-specific overlays prevent prompt bloat
+
+**The loop is the lock:** Philosophy (Track A) → Thresholds (Track B) → Portable Prompts (L2) → Platform Deployment
+
+**DITEMPA BUKAN DIBERI** — Forged through derivation, not discovered through vibes.
+
 **Important:** L2_GOVERNANCE is NOT imported by Python code. It's for humans to copy-paste into LLMs.
 
 ## 2. NINE CONSTITUTIONAL FLOORS (Summary)
