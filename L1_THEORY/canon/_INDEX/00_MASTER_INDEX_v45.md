@@ -36,6 +36,7 @@ This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/
 
 | File | Title | Purpose |
 |---|---|---|
+| [`000_ARCHITECTURE_MAP_v45.md`](../00_foundation/000_ARCHITECTURE_MAP_v45.md) | 📌 **Architecture Map** | **CRITICAL** - Authoritative spine: WHO (actors) · WHAT (organs) · WHEN (pipeline) · WHERE (APEX Theory) |
 | [`030_ARIF_FAZIL_v45.md`](../00_foundation/030_ARIF_FAZIL_v45.md) | 🧩 **Arif Fazil** | Biography and Foundational Context |
 | [`00_DELTA_OMEGA_PSI_v45.md`](../00_foundation/00_DELTA_OMEGA_PSI_v45.md) | 🔺 **ΔΩΨ Equation** | The ONE equation: Ψ vitality, Δ clarity, Ω humility |
 | [`00_THERMODYNAMICS_v45.md`](../00_foundation/00_THERMODYNAMICS_v45.md) | 🌡️ **Thermodynamics** | Landauer's Principle, entropy cooling, free energy |
