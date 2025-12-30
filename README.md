@@ -8,7 +8,7 @@ keywords:
   - AI governance
   - LLM safety
   - constitutional AI
-  - hallucination prevention
+  - hallucination mitigation
   - audit trails
   - truthfulness enforcement
 categories:
@@ -18,7 +18,7 @@ categories:
 track_a: "L1_THEORY/canon/"
 track_b: "spec/v45/"
 track_c: "arifos_core/"
-tests: "100%"
+tests: "97.7% (1997/2044)"
 ---
 
 # arifOS — Constitutional Governance for AI Systems
@@ -249,12 +249,12 @@ Not because AI is evil. But because **power without law is corrosive, whether th
 ### Concrete Use Cases (Production-Ready)
 
 **For Chat Assistants:**
-- Deploy publicly without hallucination risk
+- Deploy publicly with significantly reduced hallucination risk
 - Refusals are logged, not hidden
 - Users know when AI says "I don't know"
 
 **For Multi-Agent Systems:**
-- Prevent agents from operating beyond their mandate
+- Detect and block agents operating beyond their mandate
 - Stop runaway behavior before it causes harm
 - Audit every decision an agent made
 
@@ -264,7 +264,7 @@ Not because AI is evil. But because **power without law is corrosive, whether th
 - Escalate suspicious patterns to human review
 
 **For Education & Knowledge Work:**
-- Prevent hallucinated citations
+- Detect and reduce hallucinated citations
 - Mark simplified explanations (vs factual precision)
 - Teachers can verify what students learned from
 
@@ -362,7 +362,7 @@ Every query flows through 10 metabolic stages in milliseconds:
 **888 JUDGE** → Verdict determination
 **999 SEAL** → Audit logging and release/refusal
 
-The output is either lawful (SEAL) or refused (VOID). All stages run in milliseconds.
+The output receives one of five verdicts (SEAL, PARTIAL, 888_HOLD, VOID, or SABAR). All stages run in milliseconds.
 
 ### The ΔΩΨ Trinity (v45Ω)
 
@@ -400,10 +400,11 @@ L2_GOVERNANCE is a complete governance specification in **JSON/YAML format** tha
 
 **No Python required. No retraining. Just governance.**
 
-### Directory Structure
+### Directory Structure (v45.0 Modular Architecture)
 
 ```
 L2_GOVERNANCE/
+├── communication/                         # Communication Law specs
 ├── core/
 │   ├── constitutional_floors.yaml        # F1-F9 complete spec
 │   ├── genius_law.yaml                   # G, C_dark, Psi, TP metrics
@@ -413,29 +414,42 @@ L2_GOVERNANCE/
 │   ├── red_patterns.yaml                 # Instant VOID patterns
 │   └── session_physics.yaml              # TEARFRAME thresholds
 │
+├── federation/                            # W@W multi-agent prompts
+├── memory/                                # 6-band memory architecture
 ├── pipeline/
 │   ├── stages.yaml                       # 000→999 pipeline definitions
-│   └── memory_routing.yaml               # 6-band memory architecture
+│   └── memory_routing.yaml               # Memory band routing
 │
-├── universal/
-│   └── communication_enforcement_v45.yaml # Communication Law derivative
+├── universal/                             # MODULAR OVERLAY ARCHITECTURE
+│   ├── base_governance_v45.yaml          # Core constitutional framework
+│   ├── agent_builder_overlay_v45.yaml    # Agent development mode
+│   ├── code_generation_overlay_v45.yaml  # Code generation mode
+│   ├── conversational_overlay_v45.yaml   # Conversational mode
+│   ├── trinity_display_v45.yaml          # ASI/AGI/APEX display modes
+│   └── communication_enforcement_v45.yaml # Communication Law
 │
-└── integration/
-    ├── chatgpt_custom_instructions.yaml  # ChatGPT-optimized
-    ├── claude_projects.yaml              # Claude Projects format
-    ├── cursor_rules.yaml                 # Cursor IDE governance
-    └── vscode_copilot.yaml               # VS Code Copilot instructions
+├── integration/                           # PLATFORM-SPECIFIC PROMPTS
+│   ├── chatgpt_custom_instructions.yaml  # ChatGPT Custom Instructions
+│   ├── claude_projects.yaml              # Claude Projects
+│   ├── cursor_rules.yaml                 # Cursor IDE
+│   ├── gemini_gems.yaml                  # Gemini Gems
+│   ├── gpt_builder.yaml                  # GPT Builder
+│   └── vscode_copilot.yaml               # VS Code Copilot
+│
+├── mcp/                                   # MCP server integration
+└── templates/                             # Reusable templates
 ```
 
-### Platform Integration (5-Minute Setup)
+### Platform Integration (6 Platforms Supported)
 
 | Platform | Installation | Size | Status |
 |----------|-------------|------|--------|
 | **ChatGPT** | Copy `chatgpt_custom_instructions.yaml` → Custom Instructions | 300 lines | ✅ READY |
 | **Claude Projects** | Load `claude_projects.yaml` as project knowledge | 500 lines | ✅ READY |
 | **Cursor** | Add `cursor_rules.yaml` to `.cursorrules` file | 400 lines | ✅ READY |
+| **Gemini Gems** | Upload `gemini_gems.yaml` as Gem knowledge | 350 lines | ✅ READY |
+| **GPT Builder** | Load `gpt_builder.yaml` into custom GPT | 450 lines | ✅ READY |
 | **VS Code Copilot** | Add `vscode_copilot.yaml` to Copilot instructions | 200 lines | ✅ READY |
-| **Any LLM** | Use `universal/communication_enforcement_v45.yaml` | 150 lines | ✅ READY |
 
 **Why This Works:**
 
@@ -736,7 +750,7 @@ python L6_SEALION/tests/verify_sealion_governance.py
 
 - ✅ **Production-ready governance kernel** (deployed in real systems)
 - ✅ **Active governance** (9 constitutional floors enforced at runtime)
-- ✅ **Test-backed** (100% tests passing)
+- ✅ **Test-backed** (1997/2044 tests passing, 97.7%)
 - ✅ **Evolving constitution** (Phoenix-72 amendment protocol for lawful changes)
 - ✅ **Auditable** (Merkle-proof cooling ledger, tamper-evident)
 - ✅ **Portable** (L2_GOVERNANCE specs in JSON/YAML, embeddable anywhere)
@@ -744,7 +758,7 @@ python L6_SEALION/tests/verify_sealion_governance.py
 
 **Version:** v45.0.0 (Phoenix-72 consolidation complete)
 
-**Test Coverage:** 100%
+**Test Coverage:** 97.7% (1997/2044 tests passing)
 
 **License:** AGPL-3.0 (governance must remain auditable)
 
@@ -933,4 +947,4 @@ This is not about freedom of code. It is about freedom of accountability.
 
 [GitHub](https://github.com/ariffazil/arifOS) · [Docs](CLAUDE.md) · [Contributing](CONTRIBUTING.md) · [Philosophy](L1_THEORY/canon/)
 
-**Status:** v45.0.0 SEALED | Tests: 100% ✓ | License: AGPL-3.0
+**Status:** v45.0.0 SEALED | Tests: 1997/2044 ✓ | License: AGPL-3.0
