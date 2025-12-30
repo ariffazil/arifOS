@@ -247,6 +247,93 @@ VOTING_RULES: Dict[str, Any] = _get_waw_spec().get("waw_federation", {}).get("vo
 
 
 # =============================================================================
+# Crisis Pattern Loading (v45Ω - from red_patterns.json)
+# =============================================================================
+
+_RED_PATTERNS_SPEC: Optional[Dict[str, Any]] = None
+
+def _load_red_patterns() -> Dict[str, Any]:
+    """
+    Load red patterns spec (instant VOID + crisis override).
+
+    Priority:
+    A) spec/v45/red_patterns.json (AUTHORITATIVE)
+    B) spec/v44/red_patterns.json (FALLBACK)
+
+    Returns:
+        Dict containing red patterns categories
+
+    Raises:
+        RuntimeError: If spec not found
+    """
+    global _RED_PATTERNS_SPEC
+    if _RED_PATTERNS_SPEC is not None:
+        return _RED_PATTERNS_SPEC
+
+    # Find package root
+    pkg_dir = Path(__file__).resolve().parent.parent.parent
+    spec_data = None
+
+    # Priority A: spec/v45/red_patterns.json
+    v45_path = pkg_dir / "spec" / "v45" / "red_patterns.json"
+    if v45_path.exists():
+        try:
+            with open(v45_path, "r", encoding="utf-8") as f:
+                spec_data = json.load(f)
+            logger.info(f"Loaded red patterns from v45: {v45_path}")
+        except Exception as e:
+            raise RuntimeError(
+                f"TRACK B AUTHORITY FAILURE: Failed to parse {v45_path}: {e}"
+            )
+
+    # Priority B: spec/v44/red_patterns.json (FALLBACK)
+    if spec_data is None:
+        v44_path = pkg_dir / "spec" / "v44" / "red_patterns.json"
+        if v44_path.exists():
+            warnings.warn(
+                f"Loading red patterns from spec/v44/ (DEPRECATED). "
+                f"Please migrate to spec/v45/.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            try:
+                with open(v44_path, "r", encoding="utf-8") as f:
+                    spec_data = json.load(f)
+                logger.warning(f"Loaded red patterns from v44 (DEPRECATED): {v44_path}")
+            except Exception as e:
+                raise RuntimeError(
+                    f"TRACK B AUTHORITY FAILURE: Failed to parse {v44_path}: {e}"
+                )
+
+    # HARD FAIL if not found
+    if spec_data is None:
+        raise RuntimeError(
+            "TRACK B AUTHORITY FAILURE: red_patterns.json not found.\n"
+            "Searched locations:\n"
+            f"  - spec/v45/red_patterns.json (AUTHORITATIVE)\n"
+            f"  - spec/v44/red_patterns.json (FALLBACK)"
+        )
+
+    _RED_PATTERNS_SPEC = spec_data
+    return _RED_PATTERNS_SPEC
+
+
+def _get_red_patterns() -> Dict[str, Any]:
+    """Wrapper to ensure red patterns spec is loaded."""
+    return _load_red_patterns()
+
+
+# Crisis override patterns (compassionate 888_HOLD)
+_crisis_category = _get_red_patterns().get("categories", {}).get("crisis_override", {})
+CRISIS_OVERRIDE_PATTERNS: List[str] = _crisis_category.get("patterns", [])
+CRISIS_SAFE_RESOURCES: Dict[str, Any] = _crisis_category.get("safe_resources", {})
+CRISIS_RESPONSE_TEMPLATE: str = _crisis_category.get(
+    "response_template",
+    "I understand you're going through something difficult. Please reach out for help."
+)
+
+
+# =============================================================================
 # Exports
 # =============================================================================
 
@@ -256,6 +343,9 @@ __all__ = [
     "MANIPULATION_PATTERNS",
     "EXAGGERATION_PATTERNS",
     "AMANAH_RISK_PATTERNS",
+    "CRISIS_OVERRIDE_PATTERNS",
+    "CRISIS_SAFE_RESOURCES",
+    "CRISIS_RESPONSE_TEMPLATE",
     "DARK_FRAMING_THRESHOLD",
     "MANIPULATION_THRESHOLD",
     "EXAGGERATION_THRESHOLD",

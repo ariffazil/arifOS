@@ -1,13 +1,13 @@
 {
   "version": "v45.0",
-  "created_at": "2025-12-30T01:06:04.433169Z",
+  "created_at": "2025-12-30T01:40:06.954105Z",
   "algorithm": "SHA-256",
   "description": "Cryptographic manifest for Track B v45 specifications (tamper-evident integrity)",
   "files": {
     "spec/v45/constitutional_floors.json": "07235000bc296109aff6df273759aec5a2c943c221d3f596e4a3f7aad5b38736",
     "spec/v45/genius_law.json": "63901c1b502c2d9990ba542c24d69cef7485ba637f633793ff627799156f87bf",
     "spec/v45/session_physics.json": "0fb30820e63fa751c68cae88e41f9383de073005045ed7f7067ccc829f9a6fbe",
-    "spec/v45/red_patterns.json": "9f2cb928d47ef38ac6a09c030a5b544f52b92818947c7f7abb39a531e1dd730f",
+    "spec/v45/red_patterns.json": "8809fe3fd3994127128161562b28a270d73d62f0afab41009cea581c5687d65e",
     "spec/v45/truth_verification.json": "2b3e7ae193e0fe78201d0ec81c247a66c4accbefd936390a75b7256442a7bde8",
     "spec/v45/schema/constitutional_floors.schema.json": "2d8fc9bd38e9f6fa698ce9756b5f62f00ce712f5a1d42030cb8ef5cc46f07301",
     "spec/v45/schema/genius_law.schema.json": "bdf2544c76da1888421cc8bfa5d41044a9b81cc024aefc3538a88097b7709ef2",

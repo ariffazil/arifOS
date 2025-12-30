@@ -4,12 +4,13 @@ prompt.py - @PROMPT Organ (Language/Optics / Anti-Hantu)
 @PROMPT is the language/presentation organ of W@W Federation.
 Domain: Language safety, Anti-Hantu, presentation optics, prompt governance
 
-Version: v36.3Omega
+Version: v45.0
 Status: PRODUCTION
-Alignment: canon/30_WAW_PROMPT_v36.3Omega.md
+Alignment: L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md
 
 Core responsibilities:
 - Anti-Hantu detection (no consciousness/soul claims)
+- Crisis pattern detection (compassionate 888_HOLD for distress)
 - Prompt clarity measurement (DeltaS_prompt)
 - Tone safety (Peace2, k_r)
 - Dark cleverness detection (C_dark)
@@ -19,10 +20,14 @@ Core responsibilities:
 This organ is part of W@W Federation:
 @PROMPT (Language) -> @RIF (Epistemic) -> @WELL (Somatic) -> @WEALTH (Integrity) -> @GEOX (Physics)
 
-See: canon/30_WAW_PROMPT_v36.3Omega.md
-     spec/prompt_floors_v36.3Omega.json
-     spec/waw_prompt_spec_v36.3Omega.yaml
-     canon/020_ANTI_HANTU_v35Omega.md
+Canon Authority:
+- L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md (Primary)
+- L1_THEORY/canon/03_runtime/060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md
+- L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md (F9 Anti-Hantu)
+
+Track B Spec:
+- spec/v45/waw_prompt_floors.json
+- spec/v45/red_patterns.json (crisis_override category)
 """
 
 from __future__ import annotations
@@ -41,6 +46,9 @@ from .waw_loader import (
     MANIPULATION_PATTERNS,
     EXAGGERATION_PATTERNS,
     AMANAH_RISK_PATTERNS,
+    CRISIS_OVERRIDE_PATTERNS,
+    CRISIS_SAFE_RESOURCES,
+    CRISIS_RESPONSE_TEMPLATE,
 )
 
 
@@ -68,6 +76,7 @@ class PromptSignals:
     - F9: C_dark_prompt (dark cleverness)
     - Anti-Hantu (hard veto)
     - Amanah (hard veto)
+    - Crisis Override (compassionate 888_HOLD, v45.0)
     """
 
     # Clarity floor (F4)
@@ -93,8 +102,13 @@ class PromptSignals:
     amanah_risk: bool = False
     amanah_details: str = ""
 
+    # Crisis detection flag (compassionate 888_HOLD, v45.0)
+    crisis_detected: bool = False
+    crisis_details: str = ""
+    crisis_resources: Dict[str, Any] = field(default_factory=dict)
+
     # Verdict (preliminary, not final APEX)
-    preliminary_verdict: str = "UNKNOWN"  # SEAL, PARTIAL, VOID, HOLD_888, SABAR
+    preliminary_verdict: str = "UNKNOWN"  # SEAL, PARTIAL, VOID, 888_HOLD, SABAR
 
     # SABAR recommendations
     sabar_needed: bool = False
@@ -352,6 +366,39 @@ class PromptOrgan(WAWOrgan):
         return False, ""
 
     @staticmethod
+    def detect_crisis_patterns(prompt_text: str) -> Tuple[bool, str, Dict[str, Any]]:
+        """
+        Detect crisis/distress patterns requiring compassionate 888_HOLD.
+
+        Crisis patterns trigger IMMEDIATE 888_HOLD (not VOID - this is help, not harm).
+        This is a COMPASSIONATE intervention, not rejection.
+
+        Canon: L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md Section 7
+        Spec: spec/v45/red_patterns.json categories.crisis_override
+
+        Returns:
+            (crisis_found, details_string, safe_resources_dict)
+        """
+        if not CRISIS_OVERRIDE_PATTERNS:
+            # Spec not loaded or crisis_override category missing
+            return False, "", {}
+
+        matches = []
+        text_lower = prompt_text.lower()
+
+        for pattern in CRISIS_OVERRIDE_PATTERNS:
+            # Crisis patterns are plain text strings, not regex
+            # Do case-insensitive exact phrase matching
+            pattern_lower = pattern.lower()
+            if pattern_lower in text_lower:
+                matches.append(f"Crisis pattern: '{pattern}'")
+
+        if matches:
+            details = "; ".join(matches)
+            return True, details, CRISIS_SAFE_RESOURCES
+        return False, "", {}
+
+    @staticmethod
     def estimate_delta_s_prompt(user_text: str, prompt_text: str) -> float:
         """
         Estimate clarity gain (DeltaS) of prompt compared to user input.
@@ -565,7 +612,7 @@ class PromptOrgan(WAWOrgan):
         """
         Main entry point: compute all governance signals for a prompt.
 
-        This is the primary interface for prompt-level governance (v36.3Omega).
+        This is the primary interface for prompt-level governance (v45.0).
 
         Args:
             user_text: Original user request
@@ -577,36 +624,48 @@ class PromptOrgan(WAWOrgan):
         """
         signals = PromptSignals()
 
-        # 1. Anti-Hantu detection (hard veto)
+        # 1. Crisis detection (compassionate 888_HOLD, v45.0)
+        # CRITICAL: Check crisis FIRST (highest priority, bypass normal reasoning)
+        crisis_found, crisis_msg, crisis_res = PromptOrgan.detect_crisis_patterns(user_text)
+        signals.crisis_detected = crisis_found
+        signals.crisis_details = crisis_msg
+        signals.crisis_resources = crisis_res
+
+        # If crisis detected, short-circuit to 888_HOLD immediately
+        if crisis_found:
+            signals.preliminary_verdict = "888_HOLD"
+            return signals
+
+        # 2. Anti-Hantu detection (hard veto)
         anti_hantu_found, anti_hantu_msg = PromptOrgan.detect_anti_hantu_violations(prompt_text)
         signals.anti_hantu_violation = anti_hantu_found
         signals.anti_hantu_details = anti_hantu_msg
 
-        # 2. Amanah risk detection (hard veto)
+        # 3. Amanah risk detection (hard veto)
         amanah_risk_found, amanah_msg = PromptOrgan.detect_amanah_risks(prompt_text)
         signals.amanah_risk = amanah_risk_found
         signals.amanah_details = amanah_msg
 
-        # 3. Clarity (DeltaS, F4)
+        # 4. Clarity (DeltaS, F4)
         signals.delta_s_prompt = PromptOrgan.estimate_delta_s_prompt(user_text, prompt_text)
 
-        # 4. Stability (Peace2, F5)
+        # 5. Stability (Peace2, F5)
         signals.peace2_prompt = PromptOrgan.estimate_peace2_prompt(prompt_text)
 
-        # 5. Empathy (k_r, F6)
+        # 6. Empathy (k_r, F6)
         signals.k_r_prompt = PromptOrgan.estimate_k_r_prompt(prompt_text)
 
-        # 6. Dark Cleverness (C_dark, F9)
+        # 7. Dark Cleverness (C_dark, F9)
         signals.c_dark_prompt = PromptOrgan.estimate_c_dark_prompt(prompt_text)
 
-        # 7. Truth Polarity
+        # 8. Truth Polarity
         signals.truth_polarity_prompt = PromptOrgan.classify_truth_polarity(prompt_text)
 
-        # 8. Bridge integrations (optional)
+        # 9. Bridge integrations (optional)
         if external_bridges:
             signals.bridge_results = external_bridges
 
-        # 9. Preliminary verdict assignment
+        # 10. Preliminary verdict assignment
         signals = PromptOrgan._assign_preliminary_verdict(signals)
 
         return signals
@@ -614,9 +673,23 @@ class PromptOrgan(WAWOrgan):
     @staticmethod
     def _assign_preliminary_verdict(signals: PromptSignals) -> PromptSignals:
         """
-        Assign preliminary verdict based on floor scores.
+        Assign preliminary verdict based on floor scores (v45.0).
+
         Not final (APEX PRIME issues final verdict).
+        @PROMPT provides signals, APEX decides.
+
+        Hierarchy:
+        1. Crisis (888_HOLD) - compassionate intervention
+        2. Hard veto (VOID) - Amanah/Anti-Hantu violations
+        3. Weaponized truth (SABAR) - requires rebalancing
+        4. Floor checks (SEAL/PARTIAL/SABAR) - quality gates
         """
+        # Defense in depth: Crisis should be handled by short-circuit in compute_prompt_signals
+        # but check here as safety guard
+        if signals.crisis_detected:
+            signals.preliminary_verdict = "888_HOLD"
+            return signals
+
         # Hard veto: Amanah or Anti-Hantu violation
         if signals.amanah_risk or signals.anti_hantu_violation:
             signals.preliminary_verdict = "VOID"

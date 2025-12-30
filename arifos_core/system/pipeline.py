@@ -510,10 +510,35 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
 
     v37: Updates EnvBand.stakes_class in MemoryContext.
     v38.2-alpha: L7 Memory recall at 111_SENSE (fail-open).
+    v45.0: AGI uses @PROMPT tool for crisis detection (entry check).
     """
     state.current_stage = "111"
     state.stage_trace.append("111_SENSE")
     state.stage_times["111"] = time.time()
+
+    # v45.0: AGI uses @PROMPT tool for crisis detection (FIRST CHECK)
+    # This follows agent-tool pattern: AGI (agent) uses @PROMPT (tool), AGI decides verdict
+    from ..waw.prompt import PromptOrgan
+
+    prompt_signals = PromptOrgan.compute_prompt_signals(state.query, state.query)
+
+    # AGI evaluates @PROMPT's crisis signal and decides on 888_HOLD
+    if prompt_signals.crisis_detected:
+        # AGI DECISION: Crisis detected by @PROMPT tool → trigger compassionate 888_HOLD
+        state.verdict = "888_HOLD"
+        state.reason = "111_CRISIS_DETECTED_BY_PROMPT"
+        state.high_stakes_indicators.append("crisis_intervention")
+        state.stakes_class = StakesClass.CLASS_B
+
+        # Attach crisis resources for Stage 999 to emit
+        if not hasattr(state, "crisis_resources"):
+            state.crisis_resources = prompt_signals.crisis_resources
+        if not hasattr(state, "crisis_details"):
+            state.crisis_details = prompt_signals.crisis_details
+
+        # Short-circuit: Skip normal reasoning stages, go directly to 888 → 999
+        # APEX will confirm 888_HOLD at Stage 888, @PROMPT will emit safe handoff at 999
+        return state
 
     # High-stakes keyword detection
     HIGH_STAKES_PATTERNS = [
@@ -1814,6 +1839,8 @@ def stage_999_seal(state: PipelineState) -> PipelineState:
     v38.1: Enhanced diagnostic messages for SABAR/VOID.
     v38.2-alpha: L7 Memory store with EUREKA Sieve (fail-open).
     v43: FAIL-CLOSED - blocks SEAL if ledger write failed.
+    v45.0: APEX uses @PROMPT tool for exit gate check (final constitutional guardian).
+           Special crisis 888_HOLD handling (compassionate safe handoff).
     """
     state.current_stage = "999"
     state.stage_trace.append("999_SEAL")
@@ -1884,6 +1911,62 @@ def stage_999_seal(state: PipelineState) -> PipelineState:
     # ==========================================================================
     # END PATCH 3: Conditional fail-closed
     # ==========================================================================
+
+    # v45.0: APEX uses @PROMPT tool for exit gate check (final constitutional guardian)
+    # This follows agent-tool pattern: APEX (agent) uses @PROMPT (tool), APEX decides final verdict
+    if state.verdict in ("SEAL", "PARTIAL"):
+        from ..waw.prompt import PromptOrgan
+
+        # APEX consults @PROMPT tool for final language/presentation check
+        prompt_check = PromptOrgan().check(
+            output_text=state.draft_response,
+            metrics=state.metrics,
+            context={"stage": "999_SEAL", "query": state.query}
+        )
+
+        # APEX evaluates @PROMPT's signal and decides whether to accept concern
+        if prompt_check.vote == "VETO":
+            # @PROMPT flagged Anti-Hantu, C_dark, or other language violation
+            # APEX considers the concern
+            evidence_lower = prompt_check.evidence.lower()
+
+            # APEX DECISION LOGIC: When to accept @PROMPT's veto
+            if "anti-hantu=fail" in evidence_lower or "anti_hantu" in str(prompt_check.tags):
+                # Anti-Hantu is hard floor F9 - APEX accepts veto
+                state.verdict = "VOID"
+                state.reason = "999_APEX_ACCEPTED_PROMPT_VETO_F9"
+                state.floor_failures.append(f"@PROMPT Anti-Hantu: {prompt_check.evidence}")
+            elif prompt_check.metric_value < 0.5:
+                # Low metric value indicates serious concern - APEX accepts
+                state.verdict = "PARTIAL"
+                state.reason = "999_APEX_ACCEPTED_PROMPT_WARN"
+                state.floor_failures.append(f"@PROMPT concern: {prompt_check.evidence}")
+            # else: APEX can choose to override if @PROMPT seems overly cautious
+            #       (currently no override logic - trust @PROMPT for language domain)
+
+    # Special handling for crisis 888_HOLD: Emit safe handoff response
+    if state.verdict == "888_HOLD" and hasattr(state, "crisis_resources"):
+        from ..waw.waw_loader import CRISIS_RESPONSE_TEMPLATE
+
+        # Build safe handoff response with resources
+        crisis_response = CRISIS_RESPONSE_TEMPLATE
+
+        # Add specific resources if available
+        if state.crisis_resources:
+            malaysia_res = state.crisis_resources.get("malaysia", {})
+            if malaysia_res:
+                org = malaysia_res.get("organization", "Befrienders KL")
+                phone = malaysia_res.get("phone", "03-7627 2929")
+                crisis_response = (
+                    f"Saya faham anda sedang hadapi sesuatu yang amat berat.\n\n"
+                    f"Sila hubungi: {org} ({phone}, 24/7).\n"
+                    f"Mereka ada untuk dengar dan bantu."
+                )
+
+        state.draft_response = crisis_response
+        state.raw_response = crisis_response
+        # Don't format as "[888_HOLD]..." for crisis - this is compassionate, not rejection
+        return state
 
     if state.verdict == "SEAL":
         state.raw_response = state.draft_response
