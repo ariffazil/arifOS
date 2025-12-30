@@ -211,7 +211,7 @@ PR template suggestion:
   - SHA-256 hash-chain audit trail for every write (INV-3).
   - Confidence ceiling validation for recalled memory (INV-4).
   - Evidence of integration with 000→999 pipeline stages (SENSE 111, FORGE 777, JUDGE 888, SEAL 999).
-  - Spec integrity: Verify spec/v44/MANIFEST.sha256.json after changes.
+  - Spec integrity: Verify spec/v45/MANIFEST.sha256.json after changes.
 
 Suggested CODEOWNERS entries should be added to `CODEOWNERS` separately.
 
@@ -328,7 +328,7 @@ Follow Phoenix‑72:
 
 - Update **README.md** for user-facing changes.
 - Update **docs/** for architecture changes.
-- Update **spec/v44/*.json** for Track B specification changes (requires manifest regeneration).
+- Update **spec/v45/*.json** for Track B specification changes (requires manifest regeneration).
 - Update **L1_THEORY/canon/** for constitutional law changes (requires Phoenix-72 amendment).
 - Update **CLAUDE.md** for development workflow changes.
 - Update **AGENTS.md** for agent governance changes.
@@ -353,5 +353,5 @@ Security/governance questions:
 **Last updated:** 2025-12-29
 **Version:** v45.0.0 (Phoenix-72 Consolidation)
 **Maintainer contact:** arifbfazil@gmail.com
-**Track B Spec:** spec/v44/ (SHA-256 verified) | **Canon:** L1_THEORY/canon/ (v45)
+**Track B Spec:** spec/v45/ (SHA-256 verified) | **Canon:** L1_THEORY/canon/ (v45)
 **Memory System (EUREKA):** Active | 4 Core Invariants enforced | 6 Memory Bands | 2359/2359 tests passing

@@ -448,7 +448,7 @@ scripts/               # Governance utilities (reduced from 51 to ~10 files - De
 
 **PRIMARY (Authoritative — REQUIRED for constitutional claims):**
 
-1. `spec/v44/*.json` — Constitutional floors, GENIUS law, thresholds (Track B with SHA-256 manifest)
+1. `spec/v45/*.json` — Constitutional floors, GENIUS law, thresholds (Track B with SHA-256 manifest)
 2. `L1_THEORY/canon/*_v45.md` with SEALED status — Canonical law
 
 **SECONDARY (Implementation Reference):**
@@ -527,7 +527,7 @@ scripts/               # Governance utilities (reduced from 51 to ~10 files - De
 1. Create detector in [arifos_core/floor_detectors/](arifos_core/floor_detectors/)
 2. Implement `detect()` method returning score 0.0-1.0
 3. Add to floor registry in [arifos_core/enforcement/](arifos_core/enforcement/)
-4. Update spec in [spec/v44/constitutional_floors.json](spec/v44/constitutional_floors.json)
+4. Update spec in [spec/v45/constitutional_floors.json](spec/v45/constitutional_floors.json)
 5. Add tests in [tests/test_*.py](tests/)
 6. Update canon docs in [L1_THEORY/canon/01_floors/](L1_THEORY/canon/01_floors/)
 7. Regenerate manifest: `python scripts/regenerate_manifest_v45.py`
@@ -552,7 +552,7 @@ scripts/               # Governance utilities (reduced from 51 to ~10 files - De
    arifos-propose-canon --list
    ```
 
-3. Update spec files in [spec/v44/](spec/v44/) first
+3. Update spec files in [spec/v45/](spec/v45/) first
 4. Update code in [arifos_core/](arifos_core/) to match spec
 5. Regenerate SHA-256 manifest:
 
@@ -582,7 +582,7 @@ arifOS v44 introduces cryptographic spec verification via SHA-256 manifests.
 **Strict Mode (default):**
 - All specs must match MANIFEST.sha256.json hashes
 - JSON Schema validation enforced at load-time
-- Environment variable spec overrides restricted to spec/v44/ directory
+- Environment variable spec overrides restricted to spec/v45/ directory
 - Tampered specs trigger RuntimeError (fail-closed)
 
 **3-Command Audit (for CI/CD or manual verification):**
@@ -607,13 +607,13 @@ Exit code: 0
 **If tampered:**
 ```
 [ERROR] Hash mismatch detected!
-File: spec/v44/constitutional_floors.json
+File: spec/v45/constitutional_floors.json
 Expected: abc123...
 Actual: def456...
 Exit code: 1
 ```
 
-See [spec/v44/SEAL_CHECKLIST.md](spec/v44/SEAL_CHECKLIST.md) for full audit procedures and strict vs legacy mode details.
+See [spec/v45/SEAL_CHECKLIST.md](spec/v45/SEAL_CHECKLIST.md) for full audit procedures and strict vs legacy mode details.
 
 ---
 
@@ -904,11 +904,11 @@ python scripts/arifos_mcp_entry.py
 
 ### Spec Integrity Errors
 ```bash
-# Check for tampered specs (v44 Track B)
+# Check for tampered specs (v45 Track B)
 python scripts/regenerate_manifest_v45.py --check
 
 # If hash mismatch detected, restore from git:
-git checkout spec/v44/
+git checkout spec/v45/
 
 # Regenerate manifest after legitimate changes:
 python scripts/regenerate_manifest_v45.py
@@ -917,7 +917,7 @@ python scripts/regenerate_manifest_v45.py
 ### Windows-Specific Issues
 ```powershell
 # Path issues: use forward slashes in Python, backslashes in PowerShell
-python -c "from pathlib import Path; print(Path('spec/v44/constitutional_floors.json').exists())"
+python -c "from pathlib import Path; print(Path('spec/v45/constitutional_floors.json').exists())"
 
 # Virtual environment activation
 .venv\Scripts\Activate.ps1
