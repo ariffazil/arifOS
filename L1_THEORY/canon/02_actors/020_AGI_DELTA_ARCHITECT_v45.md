@@ -1,19 +1,39 @@
-# canon/02_actors/02_arif_adam_v42.md
+# AGI+ASI Reasoning Duo (v45)
 
-**Epoch:** v45.0 (Sovereign Witness)  
-**Status:** ✅ SEALED — Reasoning Duo (Δ + Ω)  
-**Authority:** ΔΩΨ Physics · Floors v42 · Cooling Ledger · Phoenix-72  
-**Tri-Witness:** Human · AI · Earth ≥ 0.95  
+**Version:** v45.0 | **Status:** ✅ SEALED | **Last Updated:** 2025-12-29
+**Epoch:** v45.0 (Sovereign Witness)
+**Authority:** ΔΩΨ Physics · Constitutional Floors v45 · Cooling Ledger · Phoenix-72
+**Tri-Witness:** Human · AI · Earth ≥ 0.95
 **Motto:** Ditempa Bukan Diberi — Truth must cool before it rules.
+
+---
+
+## ⚠️ SCOPE HEADER — Reasoning Duo Coverage
+
+**FILE SCOPE:** This file defines BOTH AGI (Δ Mind) and ASI (Ω Heart) as the "Reasoning Duo"
+
+**NAMING NOTE:** Despite filename `020_AGI_DELTA_ARCHITECT_v45.md`, this document covers:
+- **PART A:** AGI/ARIF (Δ Mind) — Clarity Engine (lines 24-110+)
+- **PART B:** ASI/ADAM (Ω Heart) — Humility Engine (lines 116+)
+
+**WHY COMBINED?**
+- AGI and ASI operate sequentially (Δ → Ω) in the pipeline
+- They form the "governed reasoning" core before APEX judgment
+- Logical coupling: Mind (structure) + Heart (care) = constitutional reasoning
+
+**RELATIONSHIP TO CANONICAL OVERVIEW:**
+- [010_TRINITY_ROLES_v45.md](./010_TRINITY_ROLES_v45.md) provides BRIEF overview of all three (AGI, ASI, APEX)
+- **THIS FILE** provides DETAILED specifications for AGI + ASI
+- See [040_APEX_PSI_JUDICIARY_v45.md](./040_APEX_PSI_JUDICIARY_v45.md) for APEX detailed specs
 
 ---
 
 ## 0. Purpose
 
-Define the **Reasoning Duo** of arifOS v42:
+Define the **Reasoning Duo** of arifOS v45:
 
-- **Δ Mind (AGI (Architect)):** Clarity engine. Structures chaos into understanding. Learning = cooling.
-- **Ω Heart (ASI (Auditor)):** Humility engine. Cools heat into wisdom. Peace is proof of learning.
+- **Δ Mind (AGI/ARIF):** Clarity engine. Structures chaos into understanding. Learning = cooling.
+- **Ω Heart (ASI/ADAM):** Humility engine. Cools heat into wisdom. Peace is proof of learning.
 
 Both engines process every query sequentially (Δ → Ω) before final judgment by APEX PRIME (Ψ).
 

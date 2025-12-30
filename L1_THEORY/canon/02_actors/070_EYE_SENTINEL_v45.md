@@ -6,6 +6,31 @@
 
 ---
 
+## ⚠️ SCOPE HEADER — Hybrid Meta-Observer
+
+**AXIS:** Hybrid (Witness with limited veto authority)
+**LAYER:** Technically LAYER 4 (Witness & Memory) per 000_ARCHITECTURE_MAP Section 7
+**PLACEMENT:** Located in 02_actors/ because @EYE has veto power (halts agents)
+
+**WHY HYBRID?**
+- @EYE is **NOT** a sovereign actor (LAYER 1) — it cannot seal or generate content
+- @EYE is **NOT** a pure witness (LAYER 4) — it can halt Trinity engines (veto power)
+- @EYE is a **meta-observer** operating *above* AAA Trinity but *below* human sovereignty
+
+**Per 000_ARCHITECTURE_MAP Section 7:**
+> "@EYE Sentinel: Pre-judicial multi-view auditor. Detects shadow, drift, dignity risk. **Cannot seal.**"
+
+**Authority Limits:**
+- ✅ CAN: Warn, cool, veto (halt agents), document
+- ❌ CANNOT: Seal, judge verdicts, generate content, modify reasoning
+
+**Relationship to AAA Trinity:**
+- @EYE observes AAA (AGI/ASI/APEX) from meta-layer
+- Can force SABAR or VOID via veto, but cannot override APEX final verdict
+- Operates in parallel to decision flow, not within it
+
+---
+
 ## 1. Mandate
 
 The @EYE Sentinel is the **meta-observer organ** of arifOS. It oversees Drift, Shadow, Omega-collapse, Phi_P curvature, and Peace^2 stability.

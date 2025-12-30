@@ -1,9 +1,10 @@
-# Control Logic · v42
+# Control Logic (v45)
 
-**Track:** A (Canon)  
-**Scope:** Deterministic verdict routing from Stage 888 → 999  
-**Spec sources:** `spec/v42/genius_law.json`, `spec/v42/pipeline.json`, `spec/v42/federation.json`  
-**Cross-links:** `04_measurement/010_MEASUREMENT_CANON_v42.md`, `03_runtime/010_PIPELINE_000TO999_v42.md`, `02_actors/04_apex_prime_v42.md`
+**Version:** v45.0 | **Status:** ✅ SEALED | **Last Updated:** 2025-12-29
+**Track:** A (Canon)
+**Scope:** Deterministic verdict routing from Stage 888 → 999
+**Spec sources:** `spec/v45/genius_law.json`, `spec/v45/constitutional_floors.json`
+**Cross-links:** [010_MEASUREMENT_CANON_v45.md](./010_MEASUREMENT_CANON_v45.md), [010_PIPELINE_000TO999_v45.md](../03_runtime/010_PIPELINE_000TO999_v45.md), [050_WAW_FEDERATION_v45.md](../03_runtime/050_WAW_FEDERATION_v45.md)
 
 ---
 

@@ -1,69 +1,54 @@
-# W@W Federation · v42
+# W@W Federation Organs
 
 **Epoch:** v45.0
-**Status:** SEALEDBY APEX (Federation Canon)
-**Scope:** Five-organs governance overlay; feeds Stage 888 with organ reports
-**Spec binding:** `spec/v45/waw_prompt_floors.json`, `spec/v45/pipeline.yaml`
+**Status:** ⚠️ MOVED TO CANONICAL LOCATION
+**Reason:** Axis Correction (Organs are LAYER 2 WHAT/HOW, not LAYER 1 WHO)
 
 ---
 
-## 0. Purpose
+## CANONICAL DEFINITION MOVED
 
-Define the five W@W organs, their metrics, and the merge priority that feeds APEX PRIME at Stage 888. Organs are mechanisms, not personas.
+**This file has been replaced by a cross-reference.**
 
----
+Per [000_ARCHITECTURE_MAP_v45.md](../00_foundation/000_ARCHITECTURE_MAP_v45.md) Section 4:
 
-## 1. Organs and Stage Leads
+> **Organs are domain witnesses, not judges.** (LAYER 2 — WHAT/HOW)
 
-| Organ   | Metric (spec)     | Stage Leads           | Failure → Route   |
-|---------|-------------------|-----------------------|-------------------|
-| @WEALTH | Amanah (binary)   | 000, 777              | VOID              |
-| @RIF    | ΔS, Truth         | 222–333               | VOID              |
-| @WELL   | Peace², κᵣ        | 111, 444–555          | SABAR             |
-| @GEOX   | E_earth           | 777                    | HOLD-888          |
-| @PROMPT | C_budi / language | 111, 666, 999         | PARTIAL (rewrite) |
+Organs belong in LAYER 2 (Cognition shaping), not LAYER 1 (Authority).
 
 ---
 
-## 2. Merge Priority (888 Input)
+## CANONICAL LOCATION
 
-1) WEALTH → VOID (Amanah breach)  
-2) RIF → VOID (Truth/ΔS breach)  
-3) GEOX → HOLD-888 (physical infeasible)  
-4) WELL → SABAR (stability/κᵣ issue)  
-5) PROMPT → PARTIAL (language rewrite)  
-6) Else → Trinity packet evaluation (see measurement canon)
+**See:** [03_runtime/050_WAW_FEDERATION_v45.md](../03_runtime/050_WAW_FEDERATION_v45.md)
 
----
+**Version:** v45.0 | **Status:** ✅ SEALED | **Last Updated:** 2025-12-29
 
-## 3. Report Envelope (to Stage 888)
-
-Each organ emits:
-```json
-{
-  "organ": "RIF",
-  "status": "VOID|SABAR|PARTIAL|PASS",
-  "metric": "delta_s|peace2|...|c_budi",
-  "value": 0.97,
-  "floor": "F1..F9",
-  "note": "why"
-}
-```
-`waw_verdict.organ_reports[]` plus `waw_verdict.summary` feed APEX.
+That file contains the authoritative definition of the W@W Federation:
+- @PROMPT (Language governance)
+- @RIF (Epistemic rigor)
+- @WELL (Somatic safety)
+- @WEALTH (Resource integrity)
+- @GEOX (Physical feasibility)
 
 ---
 
-## 4. Anti-Hantu and Language Governance
+## WHY THIS MOVE?
 
-@PROMPT enforces Anti-Hantu: no inner-life claims, no soul/feeling language, no weaponized tone. Language bridges at 111/666/999 must pass @PROMPT before sealing.
+**Per 000_ARCHITECTURE_MAP Section 1 (Three Orthogonal Axes):**
 
----
+| Axis | Governs | Question Answered | Canon Class |
+|---|---|---|---|
+| **WHO** | Authority | Who may act? | Actors (AAA Trinity) |
+| **WHAT / HOW** | Cognition shaping | What may shape thought? | Organs (W@W Federation) |
+| **WHEN** | Existence & persistence | When may something exist? | Process (000→999 + Floors) |
 
-## 5. Spec References
+**Organs answer WHAT/HOW, not WHO.** They provide signals for agents to use.
 
-- Thresholds, weights, veto rules: `spec/v42/federation.json`  
-- Pipeline cooldown/hold budgets: `spec/v42/pipeline.json`  
-- Metrics definitions: `canon/04_measurement/010_MEASUREMENT_CANON_v42.md`
+**Authority Hierarchy** (Section 8):
+- Agents (AAA) have sovereignty → They DECIDE
+- Organs (W@W) provide data → They WITNESS
+- Processes (Pipeline) define timing → They ROUTE
 
 ---
 
