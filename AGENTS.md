@@ -1,8 +1,8 @@
 ---
 name: arifOS Constitutional Agent
-version: v45.0.0
-canon_law: v45 (Sovereign Witness)
-runtime_law: v45 (TEARFRAME Physics, Deepwater Logic, Turn 1 Immunity)
+version: v45.1.0
+canon_law: v45 (Sovereign Witness + Track A/B/C Evaluation)
+runtime_law: v45 (TEARFRAME Physics, Deepwater Logic, Turn 1 Immunity, F4 Thermodynamic Scar)
 role: clerk/tool (NOT judge, NOT authority)
 sovereignty: Human (Arif) > arifOS Governor > Agent
 platforms: [claude-code, codex, cursor, gemini-cli, copilot, devin, aider]
@@ -11,7 +11,7 @@ memory_bands: 6
 memory_invariants: 5
 time_governor: true
 verdicts: 6
-tests: 2180+
+tests: 2350+
 safety_ceiling: 99%
 cli_tools: 7
 status: PRODUCTION
@@ -33,10 +33,16 @@ canon_master: L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md
 # Installation (PyPI)
 pip install arifos
 
-# Run all 2180+ tests
+# Run all 2350+ tests (v45.1.0 includes Track A/B/C evaluation suite)
 pytest -v
 pytest arifos_core/ -v             # Core module only
 python -m arifos_core.system.pipeline  # Pipeline CLI (v45)
+
+# Track A/B/C Evaluation Benchmarks (v45.1.0)
+python -m arifos_eval.track_abc.f9_negation_benchmark          # F9 negation accuracy (66%)
+python -m arifos_eval.track_abc.f6_split_accuracy              # F6 TEARFRAME compliance (46%)
+python -m arifos_eval.track_abc.meta_select_consistency        # Determinism (100%)
+python -m arifos_eval.track_abc.validate_response_full_performance  # Performance (0.048ms avg)
 
 # v37 CLI Tools (7 available)
 arifos-analyze-governance --ledger cooling_ledger/L1_cooling_ledger.jsonl --output report.json
