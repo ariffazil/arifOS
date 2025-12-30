@@ -66,11 +66,11 @@ except ImportError:
     print("⚠️ arifOS Pipeline unavailable. Install: pip install arifos-core")
 
 try:
-    from arifos_litellm_gateway.make_llm_generate import make_llm_generate, LiteLLMConfig
+    from arifos_core.connectors.litellm_gateway import make_llm_generate, LiteLLMConfig
     LITELLM_AVAILABLE = True
 except ImportError:
     LITELLM_AVAILABLE = False
-    print("⚠️ LiteLLM Gateway unavailable. Install: pip install arifos-litellm-gateway")
+    print("⚠️ LiteLLM Gateway unavailable. Ensure arifOS is installed: pip install -e .")
 
 try:
     from arifos_core.enforcement.eye_sentinel import EyeSentinel

@@ -697,11 +697,11 @@ Verdict: VOID (F1 violation: Irreversible destruction without confirmation)
 
 ```bash
 # 1. RAW ONLY - Zero governance baseline
-python L6_SEALION/tests/sealion_raw_only.py
+python L6_SEALION/cli/sealion_raw_only.py
 # Pure SEA-LION API (ungoverned responses)
 
 # 2. FORGE REPL - Full governed pipeline
-python L6_SEALION/tests/sealion_forge_repl.py
+python L6_SEALION/cli/sealion_forge_repl.py
 # Governed responses with ΔΩΨ Trinity metrics
 # /both - Side-by-side RAW vs GOVERNED
 # /verbose - Enable StageInspector (000→999 timeline)
