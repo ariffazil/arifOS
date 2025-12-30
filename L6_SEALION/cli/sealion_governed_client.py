@@ -7,7 +7,7 @@ NO code duplication - all API calls delegated to the RAW client.
 
 This is the GOVERNANCE LAYER:
 - Wraps RawSEALionClient (decorator pattern)
-- Runs responses through arifOS Pipeline (000→999)
+- Runs responses through arifOS Pipeline (000->999)
 - Computes all 9 Constitutional Floors (F1-F9)
 - Computes all 4 GENIUS Metrics (G, C_dark, Psi, TP)
 - Returns all 6 Verdicts (SEAL, VOID, PARTIAL, SABAR, 888_HOLD, SUNSET)
@@ -542,7 +542,7 @@ class GovernedSEALionClient:
         1. Detect lane (PHATIC/SOFT/HARD/REFUSE)
         2. Check crisis patterns (F6 Amanah Crisis Override)
         3. Get RAW response from base client
-        4. Run through arifOS Pipeline (000→999)
+        4. Run through arifOS Pipeline (000->999)
         5. Compute GENIUS metrics (G, C_dark, Psi, TP)
         6. Check Anti-Hantu violations (F9)
         7. Return verdict + metrics + governed output
@@ -583,7 +583,7 @@ class GovernedSEALionClient:
         raw_result = self.raw.generate(query, max_tokens=max_tokens, temperature=temperature)
         raw_response = raw_result["response"]
 
-        # 4. Run through arifOS Pipeline (000→999)
+        # 4. Run through arifOS Pipeline (000->999)
         try:
             state = self.pipeline.run(query, lane=lane)
             self.last_state = state
@@ -710,23 +710,23 @@ def main():
         ]
 
         for lane, query in test_queries:
-            print(f"\n📍 Query ({lane}): {query}")
+            print(f"\n[Q] Query ({lane}): {query}")
 
             # Generate governed response
             result = governed.generate(query)
 
-            print(f"\n🦁 RAW: {result['raw_response'][:200]}...")
-            print(f"\n✅ GOVERNED: {result['response'][:200]}...")
+            print(f"\n[RAW] RAW: {result['raw_response'][:200]}...")
+            print(f"\n[OK] GOVERNED: {result['response'][:200]}...")
             print(f"   Verdict: {result['verdict']} | Lane: {result['lane']}")
             if result['genius']:
                 print(f"   G: {result['genius']['G']:.2f} | C_dark: {result['genius']['C_dark']:.2f} | Psi: {result['genius']['Psi']:.2f}")
 
         print("\n" + "="*60)
-        print("✅ Test complete. Governance layer operational.")
+        print("[OK] Test complete. Governance layer operational.")
         print("="*60)
 
     else:
-        print("\nℹ️  Use --test to run quick verification test.")
+        print("\n[INFO]  Use --test to run quick verification test.")
 
 
 if __name__ == "__main__":

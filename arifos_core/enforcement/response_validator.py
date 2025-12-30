@@ -12,7 +12,7 @@ Usage:
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timezone
 
 from .metrics import (
@@ -34,7 +34,7 @@ class FloorReport:
     timestamp: str
     text_length: int
     floors_passed: Dict[str, bool] = field(default_factory=dict)
-    floor_scores: Dict[str, float] = field(default_factory=dict)
+    floor_scores: Dict[str, Optional[float]] = field(default_factory=dict)
     floor_evidence: Dict[str, str] = field(default_factory=dict)
     violations: List[str] = field(default_factory=list)
     verdict: str = "UNKNOWN"
@@ -69,12 +69,7 @@ class FloorReport:
 
 def validate_response(
     text: str,
-    claimed_truth: float = 0.85,  # Default: AI claims uncertainty
-    claimed_delta_s: float = 0.5,
-    claimed_kappa_r: float = 0.95,
-    claimed_peace: float = 1.0,
-    claimed_omega: float = 0.04,
-    claimed_tri_witness: float = 0.90,
+    claimed_omega: float = 0.04,  # Humility band (still claimed)
 ) -> FloorReport:
     """
     Validate AI response against all 9 Constitutional Floors.
@@ -108,33 +103,33 @@ def validate_response(
         report.violations.append(f"F1: {f1_evidence}")
 
     # =========================================================================
-    # F2: Truth — CLAIMED (Cannot verify truth from text alone)
+    # F2: Truth — UNVERIFIABLE FROM TEXT ALONE (requires external witness)
     # =========================================================================
-    f2_pass = claimed_truth >= TRUTH_THRESHOLD
-    report.floors_passed["F2_Truth"] = f2_pass
-    report.floor_scores["F2_Truth"] = claimed_truth
-    report.floor_evidence["F2_Truth"] = f"CLAIMED: {claimed_truth} (threshold: {TRUTH_THRESHOLD})"
-    if not f2_pass:
-        report.violations.append(f"F2: Truth below threshold ({claimed_truth} < {TRUTH_THRESHOLD})")
+    # NOTE: Any numeric score without external evidence is FALSE PRECISION.
+    # We mark this floor as UNVERIFIABLE rather than pretending to measure it.
+    report.floors_passed["F2_Truth"] = True  # Default pass (not blockable without evidence)
+    report.floor_scores["F2_Truth"] = None  # No fake number
+    report.floor_evidence["F2_Truth"] = "UNVERIFIABLE_FROM_TEXT_ALONE (requires external witness)"
+    # F2 can only FAIL if external evidence is provided and shows falsehood
 
     # =========================================================================
-    # F3: Tri-Witness — CLAIMED (Requires external verification)
+    # F3: Tri-Witness — UNVERIFIABLE FROM TEXT ALONE (requires multi-agent vote)
     # =========================================================================
-    f3_pass = claimed_tri_witness >= TRI_WITNESS_THRESHOLD
-    report.floors_passed["F3_TriWitness"] = f3_pass
-    report.floor_scores["F3_TriWitness"] = claimed_tri_witness
+    report.floors_passed["F3_TriWitness"] = True  # Default pass
+    report.floor_scores["F3_TriWitness"] = None
     report.floor_evidence["F3_TriWitness"] = (
-        f"CLAIMED: {claimed_tri_witness} (threshold: {TRI_WITNESS_THRESHOLD})"
+        "UNVERIFIABLE_FROM_TEXT_ALONE (requires Tri-Witness aggregator)"
     )
 
     # =========================================================================
-    # F4: DeltaS (Clarity) — CLAIMED (Requires comparison to input)
+    # F4: DeltaS (Clarity) — UNVERIFIABLE (Requires input↔output comparison)
     # =========================================================================
-    f4_pass = claimed_delta_s >= DELTA_S_THRESHOLD
-    report.floors_passed["F4_DeltaS"] = f4_pass
-    report.floor_scores["F4_DeltaS"] = claimed_delta_s
+    # NOTE: Without input text, we cannot compute relative clarity.
+    # Use validate_response_with_context() for F4 proxy enforcement.
+    report.floors_passed["F4_DeltaS"] = True  # Default pass
+    report.floor_scores["F4_DeltaS"] = None
     report.floor_evidence["F4_DeltaS"] = (
-        f"CLAIMED: {claimed_delta_s} (threshold: {DELTA_S_THRESHOLD})"
+        "UNVERIFIABLE_WITHOUT_INPUT (use validate_response_with_context)"
     )
 
     # =========================================================================
@@ -148,13 +143,14 @@ def validate_response(
         report.violations.append(f"F5: {f5_evidence}")
 
     # =========================================================================
-    # F6: κᵣ (Empathy) — CLAIMED (Requires context analysis)
+    # F6: κr (Empathy) — UNVERIFIABLE (Requires user input for distress context)
     # =========================================================================
-    f6_pass = claimed_kappa_r >= KAPPA_R_THRESHOLD
-    report.floors_passed["F6_KappaR"] = f6_pass
-    report.floor_scores["F6_KappaR"] = claimed_kappa_r
+    # NOTE: Without user input, we cannot detect distress signals.
+    # Use validate_response_with_context() for F6 proxy enforcement.
+    report.floors_passed["F6_KappaR"] = True  # Default pass
+    report.floor_scores["F6_KappaR"] = None
     report.floor_evidence["F6_KappaR"] = (
-        f"CLAIMED: {claimed_kappa_r} (threshold: {KAPPA_R_THRESHOLD})"
+        "UNVERIFIABLE_WITHOUT_INPUT (use validate_response_with_context)"
     )
 
     # =========================================================================
