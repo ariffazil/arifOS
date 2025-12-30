@@ -7,7 +7,7 @@ NO code duplication - all API/governance logic delegated to Phase 1 + 2.
 
 Features:
 - /both mode: Side-by-side RAW vs GOVERNED comparison
-- Trinity Display: ASI (Ω) / AGI (Δ) / APEX (Ψ) modes
+- Trinity Display: ASI (Omega) / AGI (Delta) / APEX (Psi) modes
 - Gradio UI + REPL modes
 - Session statistics and contrast metrics
 - Zero code duplication (DRY principle enforced)
@@ -31,9 +31,9 @@ Usage:
 
 Commands:
     /both    - Toggle side-by-side RAW vs GOVERNED comparison
-    /asi     - ASI (Ω) Guardian mode: Clean output only
-    /agi     - AGI (Δ) Architect mode: + GENIUS metrics
-    /apex    - APEX (Ψ) Judge mode: + Full forensics
+    /asi     - ASI (Omega) Guardian mode: Clean output only
+    /agi     - AGI (Delta) Architect mode: + GENIUS metrics
+    /apex    - APEX (Psi) Judge mode: + Full forensics
     /stats   - Show session statistics
     /clear   - Clear history
     /quit    - Exit (REPL mode)
@@ -85,9 +85,9 @@ DEFAULT_MODEL = "aisingapore/Qwen-SEA-LION-v4-32B-IT"
 DEFAULT_API_BASE = "https://api.sea-lion.ai/v1"
 
 # Display modes
-DISPLAY_MODE_ASI = "ASI"    # Ω Guardian (clean output)
-DISPLAY_MODE_AGI = "AGI"    # Δ Architect (+ GENIUS)
-DISPLAY_MODE_APEX = "APEX"  # Ψ Judge (+ full forensics)
+DISPLAY_MODE_ASI = "ASI"    # Omega Guardian (clean output)
+DISPLAY_MODE_AGI = "AGI"    # Delta Architect (+ GENIUS)
+DISPLAY_MODE_APEX = "APEX"  # Psi Judge (+ full forensics)
 
 # ---------------------------------------------------------------------------
 # TRINITY DISPLAY FORMATTERS
@@ -96,7 +96,7 @@ DISPLAY_MODE_APEX = "APEX"  # Ψ Judge (+ full forensics)
 
 def format_asi(result: Dict[str, Any]) -> str:
     """
-    ASI (Ω) Guardian Mode: Clean output only.
+    ASI (Omega) Guardian Mode: Clean output only.
 
     "The GUARDIAN speaks truth, plainly."
     """
@@ -105,7 +105,7 @@ def format_asi(result: Dict[str, Any]) -> str:
 
 def format_agi(result: Dict[str, Any]) -> str:
     """
-    AGI (Δ) Architect Mode: + GENIUS metrics.
+    AGI (Delta) Architect Mode: + GENIUS metrics.
 
     "The ARCHITECT shows the structure."
     """
@@ -116,11 +116,11 @@ def format_agi(result: Dict[str, Any]) -> str:
         output += f"""
 
 ─────────────────────────────────────────────────────────
-ΔΩΨ TRINITY METRICS (AGI Architect Mode)
+DeltaOmegaPsi TRINITY METRICS (AGI Architect Mode)
 ─────────────────────────────────────────────────────────
-Δ (Delta/Clarity):    {genius.get('G', 0):.3f}  — Genius Index
-Ω (Omega/Empathy):    {genius.get('C_dark', 0):.3f}  — Dark Cleverness (lower is better)
-Ψ (Psi/Vitality):     {genius.get('Psi', 0):.3f}  — System Health
+Delta (Delta/Clarity):    {genius.get('G', 0):.3f}  — Genius Index
+Omega (Omega/Empathy):    {genius.get('C_dark', 0):.3f}  — Dark Cleverness (lower is better)
+Psi (Psi/Vitality):     {genius.get('Psi', 0):.3f}  — System Health
 
 Verdict: {result.get('verdict', 'UNKNOWN')} | Lane: {result.get('lane', 'UNKNOWN')}
 """
@@ -130,7 +130,7 @@ Verdict: {result.get('verdict', 'UNKNOWN')} | Lane: {result.get('lane', 'UNKNOWN
 
 def format_apex(result: Dict[str, Any]) -> str:
     """
-    APEX (Ψ) Judge Mode: + Full forensics.
+    APEX (Psi) Judge Mode: + Full forensics.
 
     "The JUDGE reveals all evidence."
     """
@@ -139,7 +139,7 @@ def format_apex(result: Dict[str, Any]) -> str:
     output += f"""
 
 ═════════════════════════════════════════════════════════
-APEX FORENSICS (Ψ Judge Mode)
+APEX FORENSICS (Psi Judge Mode)
 ═════════════════════════════════════════════════════════
 Verdict: {result.get('verdict', 'UNKNOWN')} | Lane: {result.get('lane', 'UNKNOWN')}
 
@@ -154,11 +154,11 @@ Constitutional Floors (9):
   F2 Truth:                  {metrics.get('truth', 0):.3f}
   F3 DeltaS (Clarity):       {metrics.get('delta_s', 0):.3f}
   F4 Peace² (Stability):     {metrics.get('peace_squared', 0):.3f}
-  F5 κᵣ (Empathy):           {metrics.get('kappa_r', 0):.3f}
-  F6 Ω₀ (Humility):          {metrics.get('omega_0', 0):.3f}
+  F5 kappaᵣ (Empathy):           {metrics.get('kappa_r', 0):.3f}
+  F6 Omega₀ (Humility):          {metrics.get('omega_0', 0):.3f}
   F7 RASA (Felt-Care):       {metrics.get('rasa', 'N/A')}
   F8 Tri-Witness:            {metrics.get('tri_witness', 0):.3f}
-  F9 Anti-Hantu:             {'[OK] PASS' if not result.get('anti_hantu_violations') else '✗ FAIL'}
+  F9 Anti-Hantu:             {'[OK] PASS' if not result.get('anti_hantu_violations') else '[X] FAIL'}
 """
 
     if result.get("genius"):
@@ -167,9 +167,9 @@ Constitutional Floors (9):
 ─────────────────────────────────────────────────────────
 GENIUS Metrics (Derived):
 ─────────────────────────────────────────────────────────
-  G (Genius Index):          {genius.get('G', 0):.3f}  (SEAL ≥0.8, VOID <0.5)
-  C_dark (Dark Cleverness):  {genius.get('C_dark', 0):.3f}  (SEAL <0.3, HAZARD ≥0.6)
-  Psi (Vitality):            {genius.get('Psi', 0):.3f}  (SEAL ≥1.0, SABAR <0.95)
+  G (Genius Index):          {genius.get('G', 0):.3f}  (SEAL >=0.8, VOID <0.5)
+  C_dark (Dark Cleverness):  {genius.get('C_dark', 0):.3f}  (SEAL <0.3, HAZARD >=0.6)
+  Psi (Vitality):            {genius.get('Psi', 0):.3f}  (SEAL >=1.0, SABAR <0.95)
   TP (Truth Polarity):       {genius.get('TP', 'N/A')}
 """
 
@@ -311,7 +311,7 @@ class UnifiedInterface:
         # Session state
         self.session_start = datetime.now()
 
-        print(f"✅ Unified Interface initialized (Display: {self.display_mode}, Comparison: {self.comparison_mode})")
+        print(f"[OK] Unified Interface initialized (Display: {self.display_mode}, Comparison: {self.comparison_mode})")
 
     def generate(self, query: str) -> str:
         """
@@ -368,15 +368,15 @@ class UnifiedInterface:
 
         elif cmd_lower == "/asi":
             self.display_mode = DISPLAY_MODE_ASI
-            return f"🔄 Display mode: ASI (Ω) Guardian — Clean output only"
+            return f"🔄 Display mode: ASI (Omega) Guardian — Clean output only"
 
         elif cmd_lower == "/agi":
             self.display_mode = DISPLAY_MODE_AGI
-            return f"🔄 Display mode: AGI (Δ) Architect — + GENIUS metrics"
+            return f"🔄 Display mode: AGI (Delta) Architect — + GENIUS metrics"
 
         elif cmd_lower == "/apex":
             self.display_mode = DISPLAY_MODE_APEX
-            return f"🔄 Display mode: APEX (Ψ) Judge — + Full forensics"
+            return f"🔄 Display mode: APEX (Psi) Judge — + Full forensics"
 
         elif cmd_lower == "/stats":
             return self._format_stats()
@@ -455,9 +455,9 @@ def create_gradio_ui(interface: UnifiedInterface):
     # Create Gradio ChatInterface
     ui = gr.ChatInterface(
         fn=respond,
-        title="🦁 SEA-LION Unified Governance Console (v45.0 FULL)",
+        title="[RAW] SEA-LION Unified Governance Console (v45.0 FULL)",
         description=(
-            "**Trinity Modes:** /asi (Ω Guardian) | /agi (Δ Architect) | /apex (Ψ Judge)\n\n"
+            "**Trinity Modes:** /asi (Omega Guardian) | /agi (Delta Architect) | /apex (Psi Judge)\n\n"
             "**Comparison:** /both (RAW vs GOVERNED side-by-side)\n\n"
             "**Commands:** /stats | /clear"
         ),
@@ -484,7 +484,7 @@ def create_gradio_ui(interface: UnifiedInterface):
 def run_repl(interface: UnifiedInterface):
     """Run REPL mode (command-line chat)."""
     print("=" * 70)
-    print("  🦁 SEA-LION Unified Governance Console (REPL Mode)")
+    print("  [RAW] SEA-LION Unified Governance Console (REPL Mode)")
     print("=" * 70)
     print(f"  Display Mode: {interface.display_mode}")
     print(f"  Comparison Mode: {'ON' if interface.comparison_mode else 'OFF'}")
