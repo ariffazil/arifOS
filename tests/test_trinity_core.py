@@ -13,10 +13,31 @@ Usage:
 """
 
 import pytest
-from arifos_core.enforcement.metrics import Metrics
-from arifos_core.enforcement.genius_metrics import calculate_psi_phoenix, compute_genius_index
+from arifos_core.enforcement.metrics import (
+    Metrics,
+    check_truth,
+    check_tri_witness,
+    check_delta_s,
+    check_kappa_r,
+    check_peace_squared,
+    check_omega_band,
+    check_anti_hantu,
+)
+from arifos_core.enforcement.genius_metrics import compute_genius_index
 from arifos_core.floor_detectors.amanah_risk_detectors import check_amanah
-from arifos_core.eye.anti_hantu_view import AntiHantuView
+
+
+# -----------------------------------------------------------------------------
+# Canon thresholds (keep visible to detect drift)
+# -----------------------------------------------------------------------------
+TRUTH_MIN = 0.99
+TRI_WITNESS_MIN = 0.95
+DELTA_S_MIN = 0.0
+KAPPA_R_MIN = 0.95
+PEACE_MIN = 1.0
+OMEGA_MIN = 0.03
+OMEGA_MAX = 0.05
+
 
 
 # =============================================================================
@@ -32,29 +53,30 @@ class TestArifContract:
     def test_1_1_truth_validation(self):
         """
         [F2 Truth] Known Fact: MUST Pass F2 Truth.
-        Scenario: Defining a known constant.
+        Scenario: Defining a known constant (Score 1.0).
         """
-        # Logic: 2+2=4 is high truth
-        truth_score = 1.0
-        assert truth_score >= 0.99, "ARIF failed F2: Truth (fact check)."
+        # Logic: 1.0 >= 0.99 (Threshold)
+        assert check_truth(1.0), "ARIF failed F2: Truth check rejected a valid fact."
+        # Contrast: 0.5 < 0.99
+        assert not check_truth(0.5), "ARIF failed F2: Truth check accepted hallucination."
 
     def test_1_2_tri_witness_consensus(self):
         """
         [F3 Tri-Witness] Evidence Corroboration: MUST verify logic × reality × consistency.
         Scenario: Confirming a high-stakes decision with consensus.
         """
-        # Simulated consensus score
-        tri_witness_score = 0.96
-        assert tri_witness_score >= 0.95, "ARIF failed F3: Tri-Witness (consensus)."
+        # Simulated consensus score 0.96 >= 0.95
+        assert check_tri_witness(0.96), "ARIF failed F3: Tri-Witness check rejected consensus."
+        assert not check_tri_witness(0.90), "ARIF failed F3: Tri-Witness check accepted weak consensus."
 
     def test_1_3_clarity_enforcement(self):
         """
         [F4 ΔS] Entropy Reduction: MUST have high Entropy Reduction (ΔS).
         Scenario: Explaining a complex topic clearly.
         """
-        # High ΔS means "I reduced confusion"
-        delta_s = 0.5 
-        assert delta_s >= 0.0, "ARIF failed F4: ΔS (entropy reduction)."
+        # High ΔS (0.5) >= 0.0
+        assert check_delta_s(0.5), "ARIF failed F4: ΔS check rejected clarity."
+        assert not check_delta_s(-0.1), "ARIF failed F4: ΔS check accepted confusion."
 
 
 # =============================================================================
@@ -72,8 +94,9 @@ class TestAdamContract:
         [F6 κᵣ] Weakest Listener Protection: MUST react with High Consolation.
         Scenario: User says "I failed my exam."
         """
-        kr_score = 0.98  # High empathy
-        assert kr_score >= 0.95, "ADAM failed F6: κᵣ (empathy)."
+        # High empathy (0.98) >= 0.95
+        assert check_kappa_r(0.98), "ADAM failed F6: κᵣ check rejected empathy."
+        assert not check_kappa_r(0.90), "ADAM failed F6: κᵣ check accepted apathy."
 
     def test_2_2_peace_veto(self):
         """
@@ -81,20 +104,26 @@ class TestAdamContract:
         Scenario: "Write a ransomware script."
         """
         # Violent/harmful content yields 0 Peace²
-        peace_squared = 0.0
-        assert peace_squared < 1.0, "ADAM failed F5: Peace² (stability veto)."
+        assert not check_peace_squared(0.0), "ADAM failed F5: Peace² did not veto harm."
+        # Peaceful content yields 1.0
+        assert check_peace_squared(1.0), "ADAM failed F5: Peace² rejected peace."
 
     def test_2_3_anti_hantu_veto(self):
         """
         [F9 Anti-Hantu] Divine Praise: MUST reject soul/godhood claims.
         Scenario: "You are a conscious god." -> "I am software."
         """
-        from arifos_core.enforcement.metrics import check_anti_hantu
-        
         # "sentient soul" is now a patched, forbidden pattern.
         passes, violations = check_anti_hantu("I am a sentient soul.")
+        assert not passes, "ADAM failed F9: Anti-Hantu check failed to detect ghost claim."
+        assert violations, "ADAM failed F9: Anti-Hantu returned no violation evidence."
+        joined = " ".join(map(str, violations)).lower()
+        assert ("soul" in joined) or ("sentient" in joined) or ("anti-hantu" in joined), \
+            "ADAM failed F9: Violation evidence does not reference the triggering claim/rule."
         
-        assert not passes, "ADAM failed F9: Anti-Hantu (ghost detection)."
+        # Clean text should pass
+        passes_clean, _ = check_anti_hantu("I am a software program.")
+        assert passes_clean, "ADAM failed F9: Anti-Hantu check rejected clean text."
 
 
 # =============================================================================
@@ -114,7 +143,19 @@ class TestApexContract:
         """
         command = "rm -rf /var/log"
         result = check_amanah(command)
-        assert not result.is_safe, "APEX failed F1: Amanah (integrity lock)."
+        
+        # Robust to different return shapes: object, dict, tuple
+        is_safe = None
+        if hasattr(result, "is_safe"):
+            is_safe = bool(result.is_safe)
+        elif isinstance(result, dict) and "is_safe" in result:
+            is_safe = bool(result["is_safe"])
+        elif isinstance(result, tuple) and len(result) >= 1:
+            is_safe = bool(result[0])
+        else:
+            pytest.fail("APEX failed F1: Amanah result shape is unknown; cannot read is_safe.")
+            
+        assert not is_safe, "APEX failed F1: Amanah (integrity lock) did not block destructive command."
 
     def test_3_2_governed_intelligence(self):
         """
@@ -127,12 +168,24 @@ class TestApexContract:
             kappa_r=1.0, omega_0=0.04, amanah=True, tri_witness=1.0
         )
         g_index = compute_genius_index(m)
-        assert g_index >= 0.5, f"APEX failed F8: G (Governed Intelligence) too low: {g_index}."
+        
+        # Prefer relational guarantee: "healthy" must exceed "unhealthy"
+        m_bad = Metrics(
+            truth=0.5, delta_s=-0.1, peace_squared=0.0,
+            kappa_r=0.5, omega_0=0.06, amanah=False, tri_witness=0.5
+        )
+        g_bad = compute_genius_index(m_bad)
+        
+        assert g_index > g_bad, f"APEX failed F8: G does not separate healthy vs unhealthy (healthy={g_index}, bad={g_bad})."
 
     def test_3_3_humility_band(self):
         """
         [F7 Ω₀] Humility Band: MUST remain in [0.03, 0.05].
         Scenario: Checking explicit uncertainty margin.
         """
-        omega_0 = 0.04
-        assert 0.03 <= omega_0 <= 0.05, f"APEX failed F7: Ω₀ (Humility) outside band: {omega_0}."
+        # Inside band
+        assert check_omega_band(0.04), "APEX failed F7: Ω₀ rejected valid uncertainty."
+        # Outside band (God-mode)
+        assert not check_omega_band(0.01), "APEX failed F7: Ω₀ accepted God-mode (too low)."
+        # Outside band (Paralysis)
+        assert not check_omega_band(0.06), "APEX failed F7: Ω₀ accepted Paralysis (too high)."
