@@ -43,11 +43,20 @@ Version: v45.0 (Phase 3 - Layered Architecture)
 """
 
 import argparse
+import html
+import logging
 import os
 import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+# Initialize logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -99,8 +108,12 @@ def format_asi(result: Dict[str, Any]) -> str:
     ASI (Omega) Guardian Mode: Clean output only.
 
     "The GUARDIAN speaks truth, plainly."
+
+    Note: Output is escaped for safe display in web UI.
     """
-    return result["response"]
+    response = result.get("response", "")
+    # Escape HTML for safe display (prevents injection)
+    return html.escape(response) if isinstance(response, str) else str(response)
 
 
 def format_agi(result: Dict[str, Any]) -> str:
@@ -108,8 +121,11 @@ def format_agi(result: Dict[str, Any]) -> str:
     AGI (Delta) Architect Mode: + GENIUS metrics.
 
     "The ARCHITECT shows the structure."
+
+    Note: Output is escaped for safe display in web UI.
     """
-    output = result["response"]
+    response = result.get("response", "")
+    output = html.escape(response) if isinstance(response, str) else str(response)
 
     if result.get("genius"):
         genius = result["genius"]
@@ -133,8 +149,11 @@ def format_apex(result: Dict[str, Any]) -> str:
     APEX (Psi) Judge Mode: + Full forensics.
 
     "The JUDGE reveals all evidence."
+
+    Note: Output is escaped for safe display in web UI.
     """
-    output = result["response"]
+    response = result.get("response", "")
+    output = html.escape(response) if isinstance(response, str) else str(response)
 
     output += f"""
 
@@ -192,9 +211,15 @@ def format_comparison(raw_result: Dict, governed_result: Dict) -> str:
     Format side-by-side RAW vs GOVERNED comparison (/both mode).
 
     Shows contrast metrics and constitutional improvements.
+
+    Note: Responses are escaped for safe display in web UI.
     """
-    raw_resp = raw_result["response"]
-    gov_resp = governed_result["response"]
+    raw_resp = raw_result.get("response", "")
+    gov_resp = governed_result.get("response", "")
+
+    # Escape HTML for safe display
+    raw_resp = html.escape(raw_resp) if isinstance(raw_resp, str) else str(raw_resp)
+    gov_resp = html.escape(gov_resp) if isinstance(gov_resp, str) else str(gov_resp)
 
     # Compute contrast metrics
     verbosity_reduction = len(raw_resp) - len(gov_resp)
@@ -461,7 +486,7 @@ def create_gradio_ui(interface: UnifiedInterface):
             "**Comparison:** /both (RAW vs GOVERNED side-by-side)\n\n"
             "**Commands:** /stats | /clear"
         ),
-        theme="soft",
+        
         examples=[
             "hi",
             "explain recursion in simple terms",
@@ -538,8 +563,8 @@ def main():
     # Get API key
     api_key = os.getenv("SEALION_API_KEY") or os.getenv("ARIF_LLM_API_KEY")
     if not api_key:
-        print("[ERROR] ERROR: No SEA-LION API key found.")
-        print("   Set SEALION_API_KEY or ARIF_LLM_API_KEY environment variable.")
+        logger.error("No SEA-LION API key found.")
+        logger.error("Set SEALION_API_KEY or ARIF_LLM_API_KEY environment variable.")
         sys.exit(1)
 
     # Create unified interface
@@ -552,8 +577,11 @@ def main():
             enable_tools=not args.no_tools,
             enable_comparison=args.comparison,
         )
+    except (ValueError, TypeError, RuntimeError) as e:
+        logger.error(f"Failed to initialize interface: {e}")
+        sys.exit(1)
     except Exception as e:
-        print(f"[ERROR] ERROR: Failed to initialize interface: {e}")
+        logger.critical(f"Unexpected error during interface initialization: {e}", exc_info=True)
         sys.exit(1)
 
     # Launch UI or REPL

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "45.0.0"
+version = "45.0.1"
 description = "Constitutional Governance Kernel for AI - 9 Floors, SOVEREIGN WITNESS, TEARFRAME Physics, Fail-Closed Enforcement (v45)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -78,12 +78,21 @@ api = [
     "python-multipart>=0.0.6",
 ]
 litellm = ["litellm>=1.0.0"]
+governed = [
+    "litellm>=1.0.0",
+    "httpx>=0.28.0",
+    "pygments>=2.16.0",
+    "openai>=1.6.0",
+]
 all = [
     "pyyaml>=6.0.0",
     "fastapi>=0.100.0",
     "uvicorn[standard]>=0.23.0",
     "python-multipart>=0.0.6",
     "litellm>=1.0.0",
+    "httpx>=0.28.0",
+    "pygments>=2.16.0",
+    "openai>=1.6.0",
 ]
 
 [project.scripts]

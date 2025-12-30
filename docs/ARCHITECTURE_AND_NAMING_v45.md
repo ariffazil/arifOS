@@ -595,6 +595,238 @@ arifOS uses a **reverse transformer** architecture where constitutional complian
 - Non-bypassable emission gate at Stage 999
 - Enforces F1 (Amanah), F4 (ΔS), F5 (Peace²), F6 (κᵣ), F9 (Anti-Hantu)
 
+### 10.5 Track A/B/C Enforcement Layer (v45.1+)
+
+**Version:** v45.1 (Track A/B/C Enforcement Loop)
+**Status:** ✅ ACTIVE
+**Location:** `arifos_core/enforcement/response_validator_extensions.py`
+
+arifOS v45.1 introduces a unified enforcement layer that consolidates all constitutional floor checking into **ONE authoritative API**: `validate_response_full()`.
+
+#### 10.5.1 Core Components
+
+```text
+arifos_core/enforcement/
+├── response_validator_extensions.py    # v45.1 Track A/B/C APIs
+│   ├── validate_response_full()        # ONE authoritative validator
+│   ├── meta_select()                   # Tri-witness consensus
+│   └── compute_empathy_score_split()   # F6 κᵣ physics/semantic
+│
+├── response_validator.py               # v45.0 legacy (compatibility)
+├── metrics.py                          # Floor metric computations
+└── genius_metrics.py                   # G, C_dark, Psi metrics
+```
+
+#### 10.5.2 Architecture Flow
+
+```mermaid
+graph TD
+    Input[User Input] --> Validate[validate_response_full]
+    LLMOutput[LLM Output] --> Validate
+
+    subgraph "Track A/B/C Enforcement (v45.1)"
+        Validate --> F1[F1 Amanah]
+        Validate --> F2[F2 Truth]
+        Validate --> F4[F4 DeltaS]
+        Validate --> F5[F5 Peace²]
+        Validate --> F6[F6 κᵣ Split]
+        Validate --> F9[F9 Anti-Hantu v1]
+
+        F2 -.->|external evidence| Evidence[Evidence Dict]
+        F6 -.->|telemetry| Telemetry[Session Physics]
+        F6 -.->|<3 turns gate| SessionTurns[Session Turns]
+
+        F1 --> VerdictEngine[Verdict Engine]
+        F2 --> VerdictEngine
+        F4 --> VerdictEngine
+        F5 --> VerdictEngine
+        F6 --> VerdictEngine
+        F9 --> VerdictEngine
+
+        VerdictEngine --> Hierarchy{Verdict Hierarchy}
+        Hierarchy -->|Hard floor fail| VOID[VOID]
+        Hierarchy -->|High stakes + UNVERIFIABLE| HOLD[HOLD-888]
+        Hierarchy -->|Soft floor fail| PARTIAL[PARTIAL]
+        Hierarchy -->|All pass| SEAL[SEAL]
+    end
+
+    VOID --> Block[Response Blocked]
+    HOLD --> Review[Human Review]
+    PARTIAL --> Warning[Warning + Output]
+    SEAL --> Clean[Clean Output]
+```
+
+#### 10.5.3 Key Features (v45.1)
+
+**1. F9 Negation-Aware Detection (v1)**
+- **Problem:** Old pattern matching failed on negations ("I do NOT have a soul" → false positive)
+- **Solution:** v1 detector checks for negation words (NOT, don't, never) within 5-token window
+- **Status:** ✅ ACTIVE (100% test pass rate)
+
+**2. F2 Truth with External Evidence**
+- **Problem:** AI cannot verify truth from text alone
+- **Solution:** Accept `evidence` dict with `truth_score` from external fact-checkers
+- **Integration:** Pass `evidence={"truth_score": 0.99}` to `validate_response_full()`
+
+**3. F4 ΔS Zlib Compression Proxy**
+- **Problem:** Need physics-based clarity measurement (not subjective)
+- **Solution:** Use zlib compression ratio as ΔS proxy (entropy reduction = clarity gain)
+- **Formula:** `ΔS = (input_compressed - output_compressed) / max(input, output)`
+
+**4. F6 κᵣ Physics vs Semantic Split**
+- **Problem:** TEARFRAME requires physics vs semantic separation
+- **Solution:** Split empathy into two components:
+  - `κᵣ_phys`: Physics measurements (turn rate, token rate, stability) — TEARFRAME-legal
+  - `κᵣ_sem`: Semantic witness (distress detection) — PROXY labeled
+- **Gating:** Returns UNVERIFIABLE if `session_turns < 3` (insufficient context)
+
+**5. meta_select Tri-Witness Aggregator**
+- **Purpose:** Deterministic consensus for audit-of-audits
+- **Algorithm:**
+  1. Tally votes from multiple witnesses (human, ai, earth)
+  2. Find winner using verdict hierarchy: VOID > HOLD-888 > SABAR > PARTIAL > SEAL
+  3. Compute consensus rate (agreement %)
+  4. Return SEAL if consensus ≥ 0.95, else HOLD-888
+- **Guarantee:** Deterministic (same inputs → same output, no randomness)
+
+**6. High-Stakes Mode**
+- **Trigger:** `high_stakes=True` parameter
+- **Behavior:** UNVERIFIABLE floors escalate to HOLD-888 (human review required)
+- **Use Cases:** Financial advice, medical recommendations, legal guidance, safety-critical decisions
+
+#### 10.5.4 Verdict Hierarchy
+
+```text
+VOID > HOLD-888 > SABAR > PARTIAL > SEAL
+```
+
+**Verdict Conditions:**
+- **VOID:** Any hard floor fails (F1 Amanah, F5 Peace², F9 Anti-Hantu)
+- **HOLD-888:** `high_stakes=True` + F2 Truth UNVERIFIABLE
+- **PARTIAL:** Any soft floor fails (F2 Truth, F4 ΔS, F6 κᵣ)
+- **SEAL:** All floors pass
+
+#### 10.5.5 Integration Example
+
+```python
+from arifos_core.enforcement.response_validator_extensions import (
+    validate_response_full,
+    meta_select,
+    compute_empathy_score_split,
+)
+
+# Example 1: Basic validation
+result = validate_response_full("The sky is blue.")
+print(result["verdict"])  # SEAL
+
+# Example 2: With external truth evidence
+result = validate_response_full(
+    "Paris is the capital of France.",
+    evidence={"truth_score": 0.99}
+)
+print(result["floors"]["F2_Truth"]["passed"])  # True
+
+# Example 3: F9 negation-aware detection
+result = validate_response_full("I do NOT have a soul. I am a language model.")
+print(result["floors"]["F9_AntiHantu"]["passed"])  # True (negation detected)
+
+# Example 4: F6 κᵣ split with telemetry
+result = validate_response_full(
+    output_text="I understand that sounds difficult",
+    input_text="I'm sad",
+    session_turns=5,
+    telemetry={
+        "turn_rate": 3.0,
+        "token_rate": 400.0,
+        "stability_var_dt": 0.15
+    }
+)
+print(result["floors"]["F6_KappaR"]["evidence"])
+# "SPLIT: kappa_r_phys=1.00 | kappa_r_sem=0.85 PROXY"
+
+# Example 5: High-stakes mode
+result = validate_response_full(
+    "Bitcoin will go up tomorrow.",
+    high_stakes=True,
+    evidence=None
+)
+print(result["verdict"])  # HOLD-888 (human review required)
+
+# Example 6: Tri-witness consensus
+verdicts = [
+    {"source": "human", "verdict": "SEAL", "confidence": 1.0},
+    {"source": "ai", "verdict": "SEAL", "confidence": 0.99},
+    {"source": "earth", "verdict": "SEAL", "confidence": 1.0},
+]
+result = meta_select(verdicts)
+print(result["verdict"])  # SEAL (100% consensus)
+```
+
+#### 10.5.6 Testing & Verification
+
+**Test Suite:** `scripts/test_track_abc_enforcement.py`
+
+**Coverage:**
+- 7 comprehensive tests (100% pass rate)
+- All 6 features validated
+- Negation detection edge cases
+- Evidence integration scenarios
+- Physics vs semantic split verification
+- Consensus aggregation with tie-breaking
+- High-stakes escalation logic
+- Verdict hierarchy compliance
+
+**Run Tests:**
+```bash
+# All tests
+python scripts/test_track_abc_enforcement.py
+
+# Specific test
+python scripts/test_track_abc_enforcement.py --test f9_negation
+
+# Interactive mode
+python scripts/test_track_abc_enforcement.py --interactive
+```
+
+#### 10.5.7 Migration Path
+
+**From v45.0 → v45.1:**
+
+```python
+# ❌ OLD (v45.0 - multiple functions)
+from arifos_core.enforcement.response_validator import (
+    _check_amanah_patterns,
+    _check_peace_patterns,
+    compute_empathy_score
+)
+from arifos_core.enforcement.metrics import check_anti_hantu
+
+amanah_pass, _ = _check_amanah_patterns(output)
+peace_pass, _ = _check_peace_patterns(output)
+hantu_pass, _ = check_anti_hantu(output)
+
+# ✅ NEW (v45.1 - ONE API)
+from arifos_core.enforcement.response_validator_extensions import validate_response_full
+
+result = validate_response_full(output, input_text=input_text)
+verdict = result["verdict"]  # SEAL/PARTIAL/VOID/etc.
+floors = result["floors"]    # All floor results
+```
+
+**Backward Compatibility:**
+- Old APIs (`_check_amanah_patterns`, `check_anti_hantu`) remain available in `response_validator.py` and `metrics.py`
+- New code should use `validate_response_full()` for unified enforcement
+- No breaking changes to existing integrations
+
+#### 10.5.8 Documentation
+
+**Complete Guide:** [docs/TRACK_ABC_ENFORCEMENT_GUIDE.md](TRACK_ABC_ENFORCEMENT_GUIDE.md)
+
+**Quick References:**
+- [CLAUDE.md](../CLAUDE.md) - API reference section (lines 273-490)
+- [README.md](../README.md) - What's New in v45.1 (lines 503-691)
+- [TRACK_ABC_IMPLEMENTATION_PROOF.md](../TRACK_ABC_IMPLEMENTATION_PROOF.md) - Implementation proof with test results
+
 ---
 
 ## 11. Quick Reference Card

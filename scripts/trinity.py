@@ -16,7 +16,7 @@ import subprocess
 from pathlib import Path
 
 
-VERSION = "43.1.0"
+VERSION = "45.1.0"  # Track A/B/C integration
 
 
 def print_help():
@@ -27,24 +27,37 @@ Trinity - Universal Git Governance System v{VERSION}
 USAGE:
     trinity <command> [options]
 
-COMMANDS:
+GIT GOVERNANCE COMMANDS:
     forge <branch>              Analyze git changes (entropy, risk, hot zones)
     qc <branch>                 Constitutional quality control (F1-F9 validation)
     seal <branch> <reason>      Seal changes with human authority
-    
+
+TRACK A/B/C ENFORCEMENT COMMANDS (v45.1):
+    validate <text>             Validate AI response against constitutional floors
+    validate --file <path>      Validate response from file
+    consensus <verdicts.json>   Aggregate multi-witness verdicts via consensus
+
     help                        Show this help message
     version                     Show version
 
 EXAMPLES:
+    # Git governance
     trinity forge my-feature
     trinity qc my-feature
     trinity seal my-feature "Feature complete and tested"
 
+    # Track A/B/C enforcement
+    trinity validate "The sky is blue."
+    trinity validate --file response.txt --input "What color is the sky?"
+    trinity consensus verdicts.json
+
 SHORTCUTS:
-    You can also use: /gitforge, /gitQC, /gitseal (for AI assistants)
+    Git: /gitforge, /gitQC, /gitseal (for AI assistants)
+    Track A/B/C: /validate, /consensus
 
 MORE INFO:
-    See: L1_THEORY/canon/03_runtime/040_FORGING_PROTOCOL_v45.md
+    See: docs/TRACK_ABC_ENFORCEMENT_GUIDE.md
+    Git: L1_THEORY/canon/03_runtime/040_FORGING_PROTOCOL_v45.md
     GitHub: https://github.com/ariffazil/arifOS
 
 Built for accessibility. Forged, not given.
@@ -102,12 +115,12 @@ def run_seal(branch, reason, human="Unknown"):
     """Execute /gitseal with human authority."""
     repo_root = get_repo_root()
     script = repo_root / "scripts" / "git_seal.py"
-    
+
     if not script.exists():
         print(f"❌ Error: Cannot find {script}")
         print(f"   Make sure you're running from arifOS repository root")
         return 1
-    
+
     # Detect human from git config if not provided
     if human == "Unknown":
         try:
@@ -120,7 +133,7 @@ def run_seal(branch, reason, human="Unknown"):
             human = result.stdout.strip()
         except:
             human = "Unknown"
-    
+
     args = [
         "python", str(script),
         "APPROVE",
@@ -128,7 +141,41 @@ def run_seal(branch, reason, human="Unknown"):
         "--human", human,
         "--reason", reason
     ]
-    
+
+    result = subprocess.run(args, cwd=repo_root)
+    return result.returncode
+
+
+def run_validate(args_list):
+    """Execute Track A/B/C validation (arifos_validate_cli.py)."""
+    repo_root = get_repo_root()
+    script = repo_root / "scripts" / "arifos_validate_cli.py"
+
+    if not script.exists():
+        print(f"❌ Error: Cannot find {script}")
+        print(f"   Make sure you're running from arifOS repository root")
+        return 1
+
+    # Forward all arguments to the CLI tool
+    args = ["python", str(script)] + args_list
+
+    result = subprocess.run(args, cwd=repo_root)
+    return result.returncode
+
+
+def run_consensus(args_list):
+    """Execute Track A/B/C consensus (arifos_meta_select_cli.py)."""
+    repo_root = get_repo_root()
+    script = repo_root / "scripts" / "arifos_meta_select_cli.py"
+
+    if not script.exists():
+        print(f"❌ Error: Cannot find {script}")
+        print(f"   Make sure you're running from arifOS repository root")
+        return 1
+
+    # Forward all arguments to the CLI tool
+    args = ["python", str(script)] + args_list
+
     result = subprocess.run(args, cwd=repo_root)
     return result.returncode
 
@@ -179,12 +226,37 @@ def main():
             print("   Usage: trinity seal <branch> <reason>")
             print('   Example: trinity seal my-work "Feature complete"')
             return 1
-        
+
         branch = sys.argv[2]
         reason = " ".join(sys.argv[3:])  # Join all remaining args as reason
-        
+
         return run_seal(branch, reason)
-    
+
+    # Track A/B/C: Validate command
+    if command in ["validate", "/validate"]:
+        if len(sys.argv) < 3:
+            print("❌ Error: Missing text or arguments")
+            print("   Usage: trinity validate <text>")
+            print("          trinity validate --file <path>")
+            print("   Example: trinity validate 'The sky is blue.'")
+            print("           trinity validate --file response.txt --input 'Question'")
+            return 1
+
+        # Forward all arguments after 'validate' to the CLI tool
+        return run_validate(sys.argv[2:])
+
+    # Track A/B/C: Consensus command
+    if command in ["consensus", "/consensus"]:
+        if len(sys.argv) < 3:
+            print("❌ Error: Missing verdicts file")
+            print("   Usage: trinity consensus <verdicts.json>")
+            print("   Example: trinity consensus verdicts.json")
+            print("           trinity consensus verdicts.json --threshold 0.80")
+            return 1
+
+        # Forward all arguments after 'consensus' to the CLI tool
+        return run_consensus(sys.argv[2:])
+
     # Unknown command
     print(f"❌ Error: Unknown command '{command}'")
     print("   Run: trinity help")

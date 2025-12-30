@@ -37,6 +37,20 @@ from .tools.fag_read import (
 )
 from .tools.apex_llama import apex_llama
 
+# Track A/B/C Enforcement Tools (v45.1)
+from .tools.validate_full import (
+    arifos_validate_full,
+    ValidateFullRequest,
+    ValidateFullResponse,
+    TOOL_METADATA as VALIDATE_FULL_METADATA,
+)
+from .tools.meta_select import (
+    arifos_meta_select,
+    MetaSelectRequest,
+    MetaSelectResponse,
+    TOOL_METADATA as META_SELECT_METADATA,
+)
+
 # Phase 1-3 MCP Tools (Constitutional Pipeline)
 from .tools import (
     mcp_000_reset_sync,
@@ -65,6 +79,10 @@ TOOLS: Dict[str, Callable] = {
     "arifos_fag_read": arifos_fag_read,
     "APEX_LLAMA": apex_llama,
 
+    # Track A/B/C Enforcement Tools (v45.1)
+    "arifos_validate_full": arifos_validate_full,
+    "arifos_meta_select": arifos_meta_select,
+
     # Phase 1-3 Constitutional Pipeline
     "mcp_000_reset": mcp_000_reset_sync,
     "mcp_111_sense": mcp_111_sense_sync,
@@ -85,6 +103,8 @@ TOOL_REQUEST_MODELS: Dict[str, type] = {
     "arifos_audit": AuditRequest,
     "arifos_fag_read": FAGReadRequest,
     "APEX_LLAMA": ApexLlamaRequest,
+    "arifos_validate_full": ValidateFullRequest,
+    "arifos_meta_select": MetaSelectRequest,
 }
 
 # Tool descriptions for MCP discovery
@@ -161,6 +181,8 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
         },
     },
     "arifos_fag_read": FAG_METADATA,
+    "arifos_validate_full": VALIDATE_FULL_METADATA,
+    "arifos_meta_select": META_SELECT_METADATA,
     "APEX_LLAMA": {
         "name": "APEX_LLAMA",
         "description": (
@@ -558,7 +580,8 @@ class MCPServer:
             "version": "1.0.0",
             "description": (
                 "arifOS Constitutional Governance MCP Server. "
-                "Provides 15 tools: 5 legacy (judge, recall, audit, fag_read, APEX_LLAMA) "
+                "Provides 17 tools: 5 legacy (judge, recall, audit, fag_read, APEX_LLAMA) "
+                "+ 2 Track A/B/C enforcement (validate_full, meta_select) "
                 "+ 10 constitutional pipeline tools (000->999) for real-time governance. "
                 "All tools enforce the 9 Constitutional Floors (F1-F9). "
                 "Complete audit trail with cryptographic proofs (Merkle tree + SHA-256)."
@@ -567,6 +590,7 @@ class MCPServer:
             "tool_count": len(TOOLS),
             "phases": {
                 "legacy": ["arifos_judge", "arifos_recall", "arifos_audit", "arifos_fag_read", "APEX_LLAMA"],
+                "track_abc": ["arifos_validate_full", "arifos_meta_select"],
                 "phase_1": ["mcp_000_reset", "mcp_111_sense"],
                 "phase_2": ["mcp_222_reflect", "mcp_444_evidence", "mcp_555_empathize",
                            "mcp_666_align", "mcp_777_forge", "mcp_888_judge"],
