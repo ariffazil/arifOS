@@ -131,7 +131,7 @@ def test_f4_delta_s_zlib():
     print(f"Output: {output}")
     print(f"Verdict: {result['verdict']}")
     print(f"F4 Status: {'PASS' if result['floors']['F4_DeltaS']['passed'] else 'FAIL'}")
-    print(f"F4 ΔS Score: {result['floors']['F4_DeltaS']['score']}")
+    print(f"F4 delta_S Score: {result['floors']['F4_DeltaS']['score']}")
     print(f"Evidence: {result['floors']['F4_DeltaS']['evidence']}")
 
     # Expected: Positive ΔS (clarity improved)
