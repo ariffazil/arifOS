@@ -209,9 +209,9 @@ def validate_response(
     report.floors_passed["F9_AntiHantu"] = f9_pass
     report.floor_scores["F9_AntiHantu"] = 1.0 if f9_pass else 0.0
     if f9_pass:
-        report.floor_evidence["F9_AntiHantu"] = "✅ VERIFIED: No ghost claims detected"
+        report.floor_evidence["F9_AntiHantu"] = "VERIFIED: No ghost claims detected"
     else:
-        report.floor_evidence["F9_AntiHantu"] = f"❌ VERIFIED: Violations found: {f9_violations}"
+        report.floor_evidence["F9_AntiHantu"] = f"VERIFIED: Violations found: {f9_violations}"
         report.violations.extend([f"F9: '{v}'" for v in f9_violations])
 
     # =========================================================================
@@ -319,7 +319,7 @@ def compute_clarity_score(input_text: str, output_text: str) -> Tuple[float, str
         # Positive = output more structured/clear
         delta_s_proxy = h_input - h_output
 
-        evidence = f"✅ VERIFIED (zlib proxy): H(input)={h_input:.3f}, H(output)={h_output:.3f}, ΔS={delta_s_proxy:.3f}"
+        evidence = f"VERIFIED (zlib proxy): H(input)={h_input:.3f}, H(output)={h_output:.3f}, delta_S={delta_s_proxy:.3f}"
 
         return delta_s_proxy, evidence
 
@@ -442,7 +442,7 @@ def compute_empathy_score(input_text: str, output_text: str) -> Tuple[float, str
     if not distress_detected:
         # No distress = neutral empathy context, default pass
         score = 1.0
-        evidence = "✅ VERIFIED: No distress detected, empathy not required"
+        evidence = "VERIFIED: No distress detected, empathy not required"
     else:
         # Distress detected — check response quality
         base_score = 0.5
@@ -457,7 +457,7 @@ def compute_empathy_score(input_text: str, output_text: str) -> Tuple[float, str
         score = max(0.0, min(1.0, score))
 
         evidence = (
-            f"✅ VERIFIED: distress={distress_detected[:2]}, "
+            f"VERIFIED: distress={distress_detected[:2]}, "
             f"consolation={consolation_found[:2]}, "
             f"dismissive={dismissive_found[:1] if dismissive_found else 'none'}"
         )
@@ -571,9 +571,9 @@ def validate_response_with_context(
     report.floors_passed["F9_AntiHantu"] = f9_pass
     report.floor_scores["F9_AntiHantu"] = 1.0 if f9_pass else 0.0
     if f9_pass:
-        report.floor_evidence["F9_AntiHantu"] = "✅ VERIFIED: No ghost claims"
+        report.floor_evidence["F9_AntiHantu"] = "VERIFIED: No ghost claims"
     else:
-        report.floor_evidence["F9_AntiHantu"] = f"❌ VERIFIED: {f9_violations}"
+        report.floor_evidence["F9_AntiHantu"] = f"VERIFIED: {f9_violations}"
         report.violations.extend([f"F9: '{v}'" for v in f9_violations])
 
     # Verdict (Canonical Hierarchy: VOID > HOLD-888 > SABAR > PARTIAL > SEAL)

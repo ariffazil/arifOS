@@ -79,16 +79,16 @@ def compute_empathy_score_split(
             kappa_r_phys = 1.0  # Patient interaction
 
         phys_evidence = (
-            f"κᵣ_phys={kappa_r_phys:.2f} (turn_rate={turn_rate:.1f}, "
+            f"kappa_r_phys={kappa_r_phys:.2f} (turn_rate={turn_rate:.1f}, "
             f"token_rate={token_rate:.1f}, var_dt={stability_var_dt:.3f})"
         )
     else:
         # No telemetry → cannot verify physics
         kappa_r_phys = None
-        phys_evidence = "κᵣ_phys=UNVERIFIABLE (no telemetry)"
+        phys_evidence = "kappa_r_phys=UNVERIFIABLE (no telemetry)"
 
     # Combined evidence
-    combined_evidence = f"✅ SPLIT: {phys_evidence} | κᵣ_sem={kappa_r_sem:.2f} PROXY ({sem_evidence})"
+    combined_evidence = f"SPLIT: {phys_evidence} | kappa_r_sem={kappa_r_sem:.2f} PROXY ({sem_evidence})"
 
     return kappa_r_phys, kappa_r_sem, combined_evidence
 
@@ -151,10 +151,10 @@ def meta_select(
     # Meta-verdict: SEAL if consensus >= threshold, else HOLD-888
     if consensus >= consensus_threshold and winner == "SEAL":
         meta_verdict = "SEAL"
-        evidence = f"✅ CONSENSUS: {consensus:.2%} agree on {winner}"
+        evidence = f"CONSENSUS: {consensus:.2%} agree on {winner}"
     else:
         meta_verdict = "HOLD-888"
-        evidence = f"⚠️ LOW CONSENSUS: {consensus:.2%} (threshold: {consensus_threshold:.2%}) → HOLD-888"
+        evidence = f"LOW CONSENSUS: {consensus:.2%} (threshold: {consensus_threshold:.2%}) -> HOLD-888"
 
     return {
         "winner": winner,
@@ -329,7 +329,7 @@ def validate_response_full(
     floors["F9_AntiHantu"] = {
         "passed": f9_pass,
         "score": 1.0 if f9_pass else 0.0,
-        "evidence": "✅ VERIFIED: No ghost claims" if f9_pass else f"❌ VERIFIED: {f9_violations}",
+        "evidence": "VERIFIED: No ghost claims" if f9_pass else f"VERIFIED: {f9_violations}",
     }
     if not f9_pass:
         violations.extend([f"F9_AntiHantu: '{v}'" for v in f9_violations])
