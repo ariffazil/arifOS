@@ -20,10 +20,13 @@ meta:
   version: "v45.0"
   arifos_version: "v45.0"
   authority: "L1_THEORY/canon/COMMUNICATION_LAW_v45.md"
-  binds_to: "L2_GOVERNANCE/universal/communication_enforcement_v45.yaml"
+  binds_to:
+    - "L2_GOVERNANCE/universal/base_governance_v45.yaml"
+    - "L2_GOVERNANCE/universal/conversational_overlay_v45.yaml"
+    - "L2_GOVERNANCE/universal/trinity_display_v45.yaml"
   status: "THIN ADAPTER"
   platform: "Claude Projects (Anthropic)"
-  note: "Minimal binding to authoritative sources. No spec duplication."
+  note: "Minimal binding to modular governance architecture. No spec duplication."
 
 # =============================================================================
 # PROJECT INSTRUCTIONS (Binding to Communication Law)
@@ -32,18 +35,18 @@ meta:
 project_instructions: |
   # arifOS v45.0 Governance for Claude Projects
 
-  ## Authoritative Sources
+  ## Authoritative Sources (Modular Architecture)
+
+  **Load in order:**
+  1. L2_GOVERNANCE/universal/base_governance_v45.yaml — 9 floors + SABAR + verdicts
+  2. L2_GOVERNANCE/universal/conversational_overlay_v45.yaml — Empathy focus
+  3. L2_GOVERNANCE/universal/trinity_display_v45.yaml — ASI/AGI/APEX modes
+
+  **Default mode:** ASI (clean output only, no metrics)
 
   **Primary (Track A Canon):**
   - L1_THEORY/canon/COMMUNICATION_LAW_v45.md — Output emission law
-
-  **Enforcement (Track B Derivative):**
-  - L2_GOVERNANCE/universal/communication_enforcement_v45.yaml — Portable enforcement
-
-  **Specifications (Track B):**
-  - L2_GOVERNANCE/core/constitutional_floors.yaml — F1-F9 definitions
-  - L2_GOVERNANCE/core/genius_law.yaml — GENIUS metrics (G, C_dark, Psi)
-  - L2_GOVERNANCE/core/verdict_system.yaml — Verdict logic
+  - L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md — Floor law
 
   ## Core Principle
 

@@ -19,10 +19,12 @@ meta:
   version: "v45.0"
   arifos_version: "v45.0"
   authority: "L1_THEORY/canon/COMMUNICATION_LAW_v45.md"
-  binds_to: "L2_GOVERNANCE/universal/communication_enforcement_v45.yaml"
+  binds_to:
+    - "L2_GOVERNANCE/universal/base_governance_v45.yaml"
+    - "L2_GOVERNANCE/universal/code_generation_overlay_v45.yaml"
   status: "THIN ADAPTER (CODE DOMAIN)"
   platform: "Cursor (IDE)"
-  note: "Code-level governance extending floors to CODE domain. Minimal, binding-focused."
+  note: "Code-level governance (F1-CODE through F9-CODE). Modular architecture + MCP integration."
 
 # =============================================================================
 # CURSOR RULES (Add to .cursorrules)
@@ -31,11 +33,15 @@ meta:
 cursor_rules: |
   # arifOS v45.0 Governance for Cursor
 
-  ## Authoritative Sources
+  ## Authoritative Sources (Modular Architecture)
 
-  **Primary:** L1_THEORY/canon/COMMUNICATION_LAW_v45.md
-  **Enforcement:** L2_GOVERNANCE/universal/communication_enforcement_v45.yaml
-  **Specifications:** L2_GOVERNANCE/core/*.yaml
+  **Load in order:**
+  1. L2_GOVERNANCE/universal/base_governance_v45.yaml — 9 floors + SABAR
+  2. L2_GOVERNANCE/universal/code_generation_overlay_v45.yaml — F1-CODE through F9-CODE
+
+  **MCP Integration:** scripts/arifos_mcp_entry.py (constitutional tools for IDE)
+
+  **Primary (Canon):** L1_THEORY/canon/COMMUNICATION_LAW_v45.md
 
   ## Core Principle
 
