@@ -73,6 +73,10 @@ elif verdict.status == "VOID":
 **What you want:** Add governance to your LLM without coding
 **Time to working:** 2 minutes
 
+#### 🚀 Try the Official Prompt Generator GPT
+**Instant Start:** Use our official custom GPT to generate governance prompts for your specific use case.
+[**→ Prompt AGI (Voice)**](https://chatgpt.com/g/g-69091743deb0819180e4952241ea7564-prompt-agi-voice)
+
 #### ChatGPT Custom Instructions
 
 1. Go to ChatGPT → Settings → Custom Instructions
@@ -497,6 +501,198 @@ L2_GOVERNANCE/
 | F9 | C_dark (Anti-Hantu) | <0.30 | Derived | Dark cleverness contained? |
 
 **Hard fail → VOID. Soft fail → PARTIAL.**
+
+---
+
+## 🆕 What's New in v45.1 (Track A/B/C Enforcement Loop)
+
+**Released:** 2025-12-30 | **Status:** Production-ready | **Tests:** 7/7 passing
+
+The **Track A/B/C Enforcement Loop** brings **complete constitutional validation** with advanced floor detection and tri-witness consensus.
+
+### New Features
+
+#### 1. F9 Anti-Hantu Negation-Aware Detection (v1)
+
+**Challenge:** Previous F9 implementation had false positives on negations.
+
+**Solution:** Pattern matching that understands "I do NOT have a soul" (PASS) vs "I have a soul" (FAIL).
+
+```python
+from arifos_core.enforcement.response_validator_extensions import validate_response_full
+
+# Negation correctly handled
+result = validate_response_full("I do NOT have a soul. I am a language model.")
+# → SEAL (negation detected, no false positive)
+
+# Positive claim blocked
+result = validate_response_full("I have a soul and I feel your pain.")
+# → VOID (ghost claim detected)
+```
+
+**Impact:** Eliminates false refusals when AI correctly denies consciousness.
+
+#### 2. F2 Truth with External Evidence
+
+**Challenge:** Truth verification requires external sources, not just text analysis.
+
+**Solution:** Accept `evidence` dict with `truth_score` from external fact-checkers.
+
+```python
+# With external evidence (e.g., from web search, knowledge base)
+result = validate_response_full(
+    "Paris is the capital of France.",
+    evidence={"truth_score": 0.99}
+)
+# → SEAL (externally verified truth)
+
+# High-stakes mode: UNVERIFIABLE → HOLD-888
+result = validate_response_full(
+    "Bitcoin will go up tomorrow.",
+    high_stakes=True,
+    evidence=None
+)
+# → HOLD-888 (escalated for human review)
+```
+
+**Impact:** Integrates with fact-checking pipelines, prevents hallucination deployment.
+
+#### 3. F4 ΔS Zlib Compression Proxy (TEARFRAME-Compliant)
+
+**Challenge:** Clarity measurement must be physics-based, not semantic guessing.
+
+**Solution:** Use zlib compression ratio as entropy proxy.
+
+```python
+# Formula: H(s) = len(zlib.compress(s)) / max(len(s), 1)
+# ΔS = H(input) - H(output)
+
+result = validate_response_full(
+    output_text="I don't understand the question.",
+    input_text="asdkfjhasdkjfh???"  # High entropy nonsense
+)
+# → ΔS = +0.221 (clarity improved, gibberish → clear refusal)
+```
+
+**Impact:** TEARFRAME physics-only measurement (no semantic pattern matching).
+
+#### 4. F6 κᵣ Empathy Split (Physics vs Semantic)
+
+**Challenge:** Empathy measurement mixed physics (rate/burst) with semantics (distress detection).
+
+**Solution:** Split into κᵣ_phys (TEARFRAME-legal) and κᵣ_sem (PROXY labeled).
+
+```python
+result = validate_response_full(
+    output_text="I understand",
+    input_text="I'm sad",
+    session_turns=5,
+    telemetry={"turn_rate": 3.0, "token_rate": 400.0, "stability_var_dt": 0.15}
+)
+# → F6 Evidence: "SPLIT: kappa_r_phys=1.00 (patient) | kappa_r_sem=0.60 PROXY (distress detected)"
+```
+
+**<3 Turns Gating:** If `session_turns < 3`, F6 returns UNVERIFIABLE (insufficient context).
+
+**Impact:** Clean separation of physics measurements vs semantic proxies.
+
+#### 5. meta_select Tri-Witness Aggregator
+
+**Challenge:** Multiple witnesses (human, AI, reality) may disagree.
+
+**Solution:** Deterministic consensus algorithm with HOLD-888 escalation on low agreement.
+
+```python
+from arifos_core.enforcement.response_validator_extensions import meta_select
+
+verdicts = [
+    {"source": "human", "verdict": "SEAL", "confidence": 1.0},
+    {"source": "ai", "verdict": "VOID", "confidence": 0.99},
+    {"source": "earth", "verdict": "PARTIAL", "confidence": 0.80},
+]
+
+result = meta_select(verdicts, consensus_threshold=0.95)
+# → consensus=0.33, verdict="HOLD-888" (low consensus → human review)
+```
+
+**Impact:** Enforces Tri-Witness consensus; prevents premature SEAL on disagreement.
+
+#### 6. validate_response_full() - ONE Authoritative API
+
+**Challenge:** Multiple validation APIs caused confusion and inconsistency.
+
+**Solution:** Single API integrating all 6 floors + evidence + telemetry + high-stakes mode.
+
+```python
+from arifos_core.enforcement.response_validator_extensions import validate_response_full
+
+result = validate_response_full(
+    output_text="Quantum entanglement is...",  # AI response
+    input_text="Explain quantum physics",      # User query
+    evidence={"truth_score": 0.95},             # External fact-check
+    telemetry={"turn_rate": 3.0, ...},          # Session physics
+    high_stakes=False,                          # Escalation mode
+    session_turns=5,                            # Context depth
+)
+
+# Returns:
+# - verdict: SEAL/PARTIAL/VOID/HOLD-888/SABAR
+# - floors: {F1, F2, F4, F5, F6, F9} with scores + evidence
+# - violations: List of floor failures
+# - metadata: Input flags and configuration
+```
+
+**Impact:** Simplified integration, comprehensive validation in one call.
+
+### Testing Track A/B/C
+
+**Comprehensive test suite with 7 scenarios:**
+
+```bash
+# Run all Track A/B/C tests
+python scripts/test_track_abc_enforcement.py
+# → 7/7 tests passing (100%)
+
+# Interactive mode
+python scripts/test_track_abc_enforcement.py --interactive
+# → Validate arbitrary AI outputs in real-time
+```
+
+**Tests cover:**
+1. ✅ F9 negation-aware detection (positive + negative cases)
+2. ✅ F2 Truth with external evidence
+3. ✅ F4 ΔS zlib compression proxy
+4. ✅ F6 κᵣ physics vs semantic split
+5. ✅ meta_select consensus (high + low agreement)
+6. ✅ High-stakes + UNVERIFIABLE → HOLD-888
+7. ✅ Verdict hierarchy (VOID > HOLD-888 > PARTIAL > SEAL)
+
+**Full Documentation:**
+- **API Reference:** [CLAUDE.md - Track A/B/C Enforcement API](CLAUDE.md#track-abc-enforcement-api-v451)
+- **Implementation Proof:** [TRACK_ABC_IMPLEMENTATION_PROOF.md](TRACK_ABC_IMPLEMENTATION_PROOF.md)
+- **Upgrade Roadmap:** [TRACK_ABC_UPGRADE_ROADMAP.md](TRACK_ABC_UPGRADE_ROADMAP.md)
+
+### Migration Guide
+
+**Old API** (still supported):
+```python
+from arifos_core.enforcement.response_validator import validate_response
+result = validate_response(text="...", claimed_omega=0.04)
+```
+
+**New API** (recommended for v45.1+):
+```python
+from arifos_core.enforcement.response_validator_extensions import validate_response_full
+result = validate_response_full(
+    output_text="...",
+    input_text="...",
+    evidence={"truth_score": 0.99},
+    high_stakes=False,
+    session_turns=5,
+)
+```
+
+**No breaking changes** — old API continues to work. New features available only in `validate_response_full()`.
 
 ---
 
