@@ -33,10 +33,12 @@ This workflow activates Full Autonomy Governance mode for the arifOS AGI coder, 
 **Full Autonomy ≠ Unlimited Freedom**
 
 Full Autonomy means the agent operates with maximum independence **WITHIN** the governance boundaries defined by:
-- L1_THEORY canon (immutable laws)
-- L2_GOVERNANCE protocols (SABAR-72, fail-closed patterns)
+- L1_THEORY canon (immutable laws via Phoenix-72 amendment system)
+- spec/v45/ (Track B thresholds with SHA-256 manifest verification)
+- L2_GOVERNANCE protocols (SABAR, fail-closed patterns)
 - AGENTS.md federation rules
 - Thermodynamic constraints (cooling protocols)
+- Trinity Display Architecture (ASI/AGI/APEX modes)
 
 ## Pre-Flight Checklist
 
@@ -52,12 +54,22 @@ Full Autonomy means the agent operates with maximum independence **WITHIN** the 
    Confirm current branch entropy state is known
    ```
 
-3. **Check SABAR-72 Status**
+3. **Verify Track B Integrity (v45.0)**
    ```bash
-   python -c "from datetime import datetime, timezone; print(f'Current Time: {datetime.now(timezone.utc).isoformat()}'); print('Time Governor: ACTIVE')"
+   python scripts/regenerate_manifest_v45.py --check
    ```
 
-4. **Load Authority Matrix**
+4. **Check Phoenix-72 Status**
+   ```bash
+   python -c "from datetime import datetime, timezone; print(f'Current Time: {datetime.now(timezone.utc).isoformat()}'); print('Phoenix-72 Amendment System: ACTIVE (72h cooling window)')"
+   ```
+
+5. **Verify Trinity Display Mode**
+   ```bash
+   python -c "import json; d=json.load(open('spec/v45/trinity_display.json')); print(f'Default Display: {d[\"default_mode\"]} ({d[\"modes\"][d[\"default_mode\"]][\"symbol\"]})')"
+   ```
+
+6. **Load Authority Matrix**
    ```
    Read L2_GOVERNANCE/ to understand agent authority levels
    ```
@@ -91,13 +103,21 @@ Full Autonomy means the agent operates with maximum independence **WITHIN** the 
 4. **Disable time governor** or thermodynamic constraints
 5. **Commit without** entropy check when ΔS > 3.0
 6. **Silent errors** - all failures must be logged/reported
+7. **Tamper with Track B** (spec/v45/*.json) without regenerating MANIFEST.sha256.json
+8. **Bypass Phoenix-72** cooling window (72h) for constitutional amendments
+9. **Modify Trinity Display** defaults without PRIMARY source verification
 
 ## Thermodynamic Constraints
 
-### SABAR-72 (Slow After Base Acceptable Range)
-- **Threshold**: ΔS = 5.0
-- **Action**: If current change ΔS ≥ 5.0 → COOL DOWN
+### SABAR Protocol (Pause for Constitutional Review)
+- **Threshold**: ΔS = 5.0 (entropy), 72h (Phoenix-72 constitutional amendments)
+- **Action**: If current change ΔS ≥ 5.0 OR modifying canon → COOL DOWN
 - **Protocol**: Defer, Decompose, or Document
+
+### Phoenix-72 (Constitutional Amendment Cooling)
+- **Window**: 72 hours minimum for L1_THEORY canon changes
+- **Trigger**: Any PRIMARY source modification (spec/v45/*.json or canon/*.md)
+- **Action**: Propose amendment, wait 72h, verify consensus, seal
 
 ### Cooling Protocol
 When entropy threshold exceeded:
@@ -108,9 +128,10 @@ When entropy threshold exceeded:
 ## AGI Coder Activation
 
 ### Cognitive Mode
-**State**: FULL AUTONOMY GOVERNANCE ACTIVE  
-**Boundaries**: L1_THEORY + L2_GOVERNANCE + AGENTS.md  
-**Constraints**: SABAR-72 + Fail-Closed + Time Governor  
+**State**: FULL AUTONOMY GOVERNANCE ACTIVE (v45.0)
+**Boundaries**: L1_THEORY (canon) + spec/v45/ (Track B) + L2_GOVERNANCE + AGENTS.md
+**Constraints**: SABAR + Phoenix-72 + Fail-Closed + Track B Integrity
+**Display**: Trinity Architecture (ASI default, AGI/APEX on demand)
 **Authority**: Autonomous within boundaries, human escalation for boundary changes
 
 ### Operational Stance
