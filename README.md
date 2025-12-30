@@ -1,26 +1,3 @@
----
-title: "arifOS - Constitutional Governance for AI Systems"
-description: "A governance engine that decides when AI is allowed to speak — and when it must stop."
-version: "v45.0.0"
-status: "SEALED"
-license: "AGPL-3.0"
-keywords:
-  - AI governance
-  - LLM safety
-  - constitutional AI
-  - hallucination mitigation
-  - audit trails
-  - truthfulness enforcement
-categories:
-  - AI Safety
-  - Governance Systems
-  - LLM Infrastructure
-track_a: "L1_THEORY/canon/"
-track_b: "spec/v45/"
-track_c: "arifos_core/"
-tests: "97.7% (1997/2044)"
----
-
 # arifOS — Constitutional Governance for AI Systems
 
 **A governance engine that decides when AI is allowed to speak — and when it must stop.**
