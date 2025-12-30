@@ -70,12 +70,9 @@ except ImportError:
     PIPELINE_AVAILABLE = False
     print("[WARN] arifOS Pipeline unavailable. Install: pip install arifos-core")
 
-try:
-    from arifos_core.connectors.litellm_gateway import make_llm_generate, LiteLLMConfig
-    LITELLM_AVAILABLE = True
-except ImportError:
-    LITELLM_AVAILABLE = False
-    print("[WARN] LiteLLM Gateway unavailable. Ensure arifOS is installed: pip install -e .")
+make_llm_generate = None
+LiteLLMConfig = None
+LITELLM_AVAILABLE = True  # will be confirmed lazily
 
 try:
     from arifos_core.enforcement.eye_sentinel import EyeSentinel
@@ -346,6 +343,9 @@ class GovernedSEALionClient:
 
         # Create governed LLM generator (wraps RAW client)
         self.governed_generate = self._create_governed_generator()
+        if self.governed_generate is None:
+            logger.warning("Governed generator unavailable; falling back to RAW generate.")
+            self.governed_generate = lambda prompt, lane=None: self.raw.generate(prompt)
 
         # Create pipeline
         self.pipeline = Pipeline(
@@ -447,15 +447,32 @@ class GovernedSEALionClient:
 
         This is the bridge: Pipeline calls this, which calls RAW client.
         """
-        config = LiteLLMConfig(
-            provider="openai",
-            api_base=self.raw.api_base,
-            api_key=self.raw.api_key,
-            model=self.raw.model,
-            temperature=DEFAULT_TEMPERATURE,
-            max_tokens=DEFAULT_MAX_TOKENS,
-        )
-        base_generate = make_llm_generate(config)
+        global make_llm_generate, LiteLLMConfig, LITELLM_AVAILABLE
+
+        if make_llm_generate is None or LiteLLMConfig is None:
+            try:
+                from arifos_core.connectors.litellm_gateway import make_llm_generate as _make, LiteLLMConfig as _cfg
+
+                make_llm_generate = _make
+                LiteLLMConfig = _cfg
+            except Exception as e:
+                LITELLM_AVAILABLE = False
+                logger.warning(f"LiteLLM gateway import failed: {e}")
+                return None
+
+        try:
+            config = LiteLLMConfig(
+                provider="openai",
+                api_base=self.raw.api_base,
+                api_key=self.raw.api_key,
+                model=self.raw.model,
+                temperature=DEFAULT_TEMPERATURE,
+                max_tokens=DEFAULT_MAX_TOKENS,
+            )
+            base_generate = make_llm_generate(config)
+        except Exception as e:
+            logger.warning(f"LiteLLM generator init failed: {e}")
+            return None
 
         phatic_generate = None
 
