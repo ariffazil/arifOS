@@ -8,6 +8,23 @@ version: v36.2 PHOENIX
 
 # CONSTITUTION.md - arifOS Full Canon (Tier 4)
 
+---
+## ⚠️ DEPRECATION NOTICE
+
+**This file (v36.2 PHOENIX) is outdated.**
+
+**For current governance (v45.0), see:**
+
+- **[L2_GOVERNANCE/universal/](../L2_GOVERNANCE/universal/)** - Copy-paste prompts for ANY LLM (ChatGPT, Claude, Gemini, etc.)
+- **[Root AGENTS.md](../AGENTS.md)** - v45.0 Full constitutional governance
+- **[L1_THEORY/canon/](../L1_THEORY/canon/)** - Canonical constitutional law
+
+**This file will be removed in v46.0** (after 72h Phoenix cooling period).
+
+**Why deprecated?** Version drift (v36.2 → v45.0) creates F2 Truth violations. L2_GOVERNANCE and root AGENTS.md are the canonical sources.
+
+---
+
 **Epoch 36Omega - Pure governance forge.**
 
 **Motto:** DITEMPA BUKAN DIBERI - Forged, not given; cooled, not cold; human, always.

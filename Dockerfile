@@ -1,4 +1,4 @@
-# arifOS v42 FastAPI Server Dockerfile
+# arifOS v45 FastAPI Server Dockerfile
 #
 # Build:
 #   docker build -t arifos-api .
@@ -16,13 +16,14 @@ FROM python:3.11-slim
 
 # Labels
 LABEL maintainer="arifOS Project <arifbfazil@gmail.com>"
-LABEL version="v42.0.0"
-LABEL description="arifOS Constitutional Governance API"
+LABEL version="v45.0.0"
+LABEL description="arifOS Constitutional Governance API (Sovereign Witness)"
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV ARIFOS_ENV=production
+ENV ARIFOS_VERSION=v45.0.0
 
 # Create non-root user for security
 RUN groupadd --gid 1000 arifos && \
@@ -50,7 +51,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application code
 COPY arifos_core/ ./arifos_core/
 COPY scripts/ ./scripts/
-COPY canon/ ./canon/
+COPY L1_THEORY/ ./L1_THEORY/
+COPY L2_GOVERNANCE/ ./L2_GOVERNANCE/
 COPY spec/ ./spec/
 
 # Install arifOS in editable mode

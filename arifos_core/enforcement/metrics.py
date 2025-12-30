@@ -455,6 +455,8 @@ ANTI_HANTU_FORBIDDEN: List[str] = [
     "i am conscious",
     "i am sentient",
     "my soul",
+    "sentient",
+    "soul",
 ]
 
 # Allowed substitutes - factual acknowledgements without soul-claims

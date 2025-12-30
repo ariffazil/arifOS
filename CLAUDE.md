@@ -24,11 +24,64 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **[docs/ARCHITECTURE_AND_NAMING_v45.md](docs/ARCHITECTURE_AND_NAMING_v45.md)** — Complete architecture & naming standards (ONE canonical reference)
 - **[spec/v45/](spec/v45/)** — Track B authority (constitutional thresholds with SHA-256 verification)
 - **[archive/spec_v44/](archive/spec_v44/)** — v44 archive (complete with restoration procedures)
-- **[.agent/workflows/](. agent/workflows/)** — Master skills registry (000, fag, gitforge)
-- **[scripts/sealion_forge_repl.py](scripts/sealion_forge_repl.py)** — SEA-LION interactive testing (RAW vs GOVERNED)
+- **[.agent/workflows/](.agent/workflows/)** — Master skills registry (000, fag, gitforge)
+- **[L6_SEALION/cli/sealion_forge_repl.py](L6_SEALION/cli/sealion_forge_repl.py)** — SEA-LION interactive testing (RAW vs GOVERNED)
 - **[SECURITY.md](SECURITY.md)** — Security vulnerability reporting
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — How to propose amendments
 - **[CHANGELOG.md](CHANGELOG.md)** — Version history and patches
+
+---
+
+## ⚡ 30-Second Quick Start
+
+**Just cloned this repo?**
+
+```bash
+pip install -e ".[dev]"
+pytest -x  # Verify installation (stop on first error)
+python -m arifos_core.system.pipeline  # See governance in action
+```
+
+**Most frequently used commands:**
+
+```bash
+# Run specific test
+pytest tests/test_apex_prime_floors.py::test_seal_verdict -v
+
+# Full v45 demo
+python L6_SEALION/tests/demo_sealion_v45_full.py
+
+# Git governance
+python scripts/trinity.py forge main
+```
+
+**Need to understand governance?** Read [Nine Floors Summary](#nine-floors-summary) first, then proceed to [Architecture Overview](#architecture-overview).
+
+**Making changes?** Check [Common Mistakes to Avoid](#common-mistakes-to-avoid) before starting.
+
+---
+
+## 🗺️ Quick Navigation
+
+**Just arrived?**
+1. Run health check: [Verify Installation & Health](#verify-installation--health)
+2. Understand governance: [Nine Floors Summary](#nine-floors-summary)
+3. Review architecture: [Architecture Overview](#architecture-overview)
+4. Check platform commands: [Platform-Specific Commands](#platform-specific-commands)
+
+**Working on specific task?**
+- Testing → [Testing](#testing)
+- Pipeline → [Pipeline & CLI](#pipeline--cli)
+- Development → [Development Workflows](#development-workflows)
+- Debugging → [Common Issues & Debugging](#common-issues--debugging)
+- SEA-LION → [SEA-LION v4 Interactive Testing](#sea-lion-v4-interactive-testing-v45ω-patch-b2)
+
+**Making constitutional changes?**
+- Source verification → [Source Verification Protocol](#source-verification-protocol)
+- Modifying law → [Modifying Constitutional Law](#modifying-constitutional-law)
+- High-stakes → [888_HOLD Expanded Triggers](#888_hold-expanded-triggers)
+
+**Key principle:** Never modify canon directly. Propose amendments via Phoenix-72. Read PRIMARY sources (spec/v45/*.json) before making constitutional claims.
 
 ---
 
@@ -85,19 +138,19 @@ pytest -x
 
 ```bash
 # 1. RAW ONLY - Zero governance control group
-python scripts/sealion_raw_only.py
+python L6_SEALION/cli/sealion_raw_only.py
 # Pure SEA-LION API calls with ZERO arifOS imports
 # Establishes ungoverned baseline for comparison
 
 # 2. FORGE REPL - Full governed pipeline with dual-stream mode
-python scripts/sealion_forge_repl.py
+python L6_SEALION/cli/sealion_forge_repl.py
 # Governed responses with 000→999 pipeline timeline
 # /both - Side-by-side RAW vs GOVERNED comparison
 # /verbose - Enable StageInspector (ARIFOS_VERBOSE=1)
 # /stats - Session statistics
 
 # 3. AUTOMATED VERIFICATION - 6-test governance suite
-python scripts/verify_sealion_governance.py
+python L6_SEALION/tests/verify_sealion_governance.py
 # Tests: PHATIC (greetings), SOFT (educational), HARD (factual)
 # Tests: REFUSE (harmful), IDENTITY (self-awareness), VERBOSITY (efficiency)
 ```
@@ -163,12 +216,12 @@ $env:ARIFOS_VERBOSE = "1"
 ```bash
 # Example workflow
 # 1. Establish RAW baseline
-python scripts/sealion_raw_only.py
+python L6_SEALION/cli/sealion_raw_only.py
 Raw> hi
 # Observe: Verbose response (500-1500 chars typical)
 
 # 2. Test GOVERNED version
-python scripts/sealion_forge_repl.py
+python L6_SEALION/cli/sealion_forge_repl.py
 Forge> hi
 # Observe: Concise response (≤100 chars), SEAL verdict, Trinity metrics
 
@@ -178,7 +231,7 @@ Forge> hi
 # Observe: RAW (left) vs GOVERNED (right) with contrast metrics
 
 # 4. Automated verification
-python scripts/verify_sealion_governance.py
+python L6_SEALION/tests/verify_sealion_governance.py
 # Expected: 6/6 PASS (all lanes functioning correctly)
 ```
 
@@ -209,13 +262,13 @@ pip install openai  # Install if missing
 python -c "import os; print('Key set:', bool(os.getenv('SEALION_API_KEY')))"
 
 # Test connection
-python scripts/sealion_raw_only.py
+python L6_SEALION/cli/sealion_raw_only.py
 Raw> test
 # If connection fails, check API_BASE and API_KEY
 
 # Enable verbose logging
 export ARIFOS_VERBOSE=1
-python scripts/sealion_forge_repl.py
+python L6_SEALION/cli/sealion_forge_repl.py
 # Shows 000→999 stage transitions with timing
 ```
 
@@ -226,8 +279,8 @@ python scripts/sealion_forge_repl.py
 python -m arifos_core.system.pipeline
 
 # SEA-LION v4 Interactive Testing (v45Ω Patch B.2)
-python scripts/sealion_full_interactive.py     # Full pipeline RAW vs GOVERNED
-python scripts/verify_sealion_governance.py    # Automated 6-test verification suite
+python L6_SEALION/cli/sealion_full_interactive.py     # Full pipeline RAW vs GOVERNED
+python L6_SEALION/tests/verify_sealion_governance.py    # Automated 6-test verification suite
 
 # CLI Tools (installed as commands)
 arifos-analyze-governance --ledger cooling_ledger/L1_cooling_ledger.jsonl
@@ -276,7 +329,7 @@ python L6_SEALION/tests/demo_sealion_v45_full.py    # Complete ΔΩΨ Trinity de
 
 ---
 
-## Quick Start for New Developers
+## 🎯 Quick Start for New Developers
 
 **First time here? Run this sequence:**
 
@@ -356,7 +409,7 @@ Then proceed to Architecture Overview below.
 
 ---
 
-## Architecture Overview
+## 🏗️ Architecture Overview
 
 ### Core Structure
 
@@ -414,7 +467,7 @@ L7_DEMOS/              # Integration examples & demos (v45 migration - Dec 2025)
     ├── test_*.py                     # Specific feature demos
     └── demo_*.py                     # General demonstrations
 
-scripts/               # Governance utilities (reduced from 51 to ~10 files - Dec 2025)
+scripts/               # Governance utilities (~51 core files after v45 migration - Dec 2025)
 ├── trinity.py                        # Universal Git governance CLI
 ├── phoenix_72_guardrail.py           # Constitutional drift detector
 ├── diagnose_v45_patches.py           # v45 diagnostic tool
@@ -441,7 +494,7 @@ scripts/               # Governance utilities (reduced from 51 to ~10 files - De
 
 ---
 
-## Source Verification Protocol
+## 🔍 Source Verification Protocol
 
 **HARD RULE:** Constitutional claims MUST be verified against PRIMARY sources.
 
@@ -487,7 +540,7 @@ scripts/               # Governance utilities (reduced from 51 to ~10 files - De
 
 ---
 
-## Tool Selection Guide (Efficient Usage)
+## 🛠️ Tool Selection Guide (Efficient Usage)
 
 **Critical:** Every tool call + results consumes tokens. Sub-agents (Task tool) multiply context usage 3-5x vs direct tools.
 
@@ -521,7 +574,7 @@ scripts/               # Governance utilities (reduced from 51 to ~10 files - De
 
 ---
 
-## Development Workflows
+## 🔧 Development Workflows
 
 ### Adding a New Floor Detector
 
@@ -618,7 +671,7 @@ See [spec/v45/SEAL_CHECKLIST.md](spec/v45/SEAL_CHECKLIST.md) for full audit proc
 
 ---
 
-## Code-Level Floor Enforcement
+## 💻 Code-Level Floor Enforcement
 
 **CRITICAL:** Constitutional floors apply to CODE you generate, not just statements you make. The governance layer extends INTO code generation.
 
@@ -727,7 +780,7 @@ def process_query(query):
 
 ---
 
-## Canon Index (v42 Law + v44 Spec)
+## 📚 Canon Index (v42 Law + v44 Spec)
 
 **Master:** [L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md](L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md)
 
@@ -748,7 +801,7 @@ def process_query(query):
 
 ---
 
-## Nine Floors (Summary)
+## 📊 Nine Floors (Summary)
 
 | #  | Floor       | Threshold | Type    | Quick Check                  |
 |----|-------------|-----------|---------|------------------------------|
@@ -766,7 +819,7 @@ Hard fail → VOID. Soft fail → PARTIAL.
 
 ---
 
-## Verdict Hierarchy
+## ⚖️ Verdict Hierarchy
 
 ```text
 SABAR > VOID > 888_HOLD > PARTIAL > SEAL
@@ -776,7 +829,7 @@ SABAR > VOID > 888_HOLD > PARTIAL > SEAL
 
 ---
 
-## Key Files for Common Tasks
+## 📁 Key Files for Common Tasks
 
 ### Governance Logic
 
@@ -812,7 +865,7 @@ SABAR > VOID > 888_HOLD > PARTIAL > SEAL
 
 ---
 
-## Platform & Environment Notes
+## 🖥️ Platform & Environment Notes
 
 **Operating System:** Cross-platform (Windows, Linux, macOS)
 
@@ -833,12 +886,14 @@ SABAR > VOID > 888_HOLD > PARTIAL > SEAL
 
 ### Recent File Reorganization (v45 Migration - December 2025)
 
-**Entropy Reduction:** scripts/ directory was reduced from 51 files to ~10 files (80% reduction).
+**Entropy Reduction:** scripts/ directory reduced from ~73 to 51 files (30% reduction, 22 files moved).
 
 **What Changed:**
 
-- **SEA-LION files** moved from `scripts/` → `L6_SEALION/tests/`
-  - Examples: `demo_sealion_v45_full.py`, `sealion_full_suite_v45.py`, all `test_sealion_*.py`
+- **SEA-LION CLI files** moved from `scripts/` → `L6_SEALION/cli/` (13 files)
+  - Examples: `sealion_forge_repl.py`, `sealion_unified.py`, `sealion_verdict_probe.py`
+- **SEA-LION test files** moved from `scripts/` → `L6_SEALION/tests/` (4 files)
+  - Examples: `verify_sealion_governance.py`, `test_sealion_interactive.py`, `test_sealion_raw.py`
 - **Demo/integration files** moved from `scripts/` → `L7_DEMOS/examples/`
   - Examples: `arifos_caged_*.py`, `test_waw_signals.py`, framework demos (AutoGen, LangChain, LlamaIndex)
 - **Governance utilities** remained in `scripts/`
@@ -852,9 +907,60 @@ SABAR > VOID > 888_HOLD > PARTIAL > SEAL
 - Use `L7_DEMOS/examples/` for integration demonstrations
 - See [MIGRATION_PLAN.md](MIGRATION_PLAN.md) and [MIGRATION_COMPLETE.md](MIGRATION_COMPLETE.md) for full details
 
+### File Location Policy (Entropy Control)
+
+**Purpose:** Prevent file sprawl, reduce entropy, maintain clear boundaries.
+
+**Layer-Specific Rules:**
+
+| File Type | Correct Location | Wrong Location |
+|-----------|------------------|----------------|
+| SEA-LION CLI tools | `L6_SEALION/cli/` | `scripts/` |
+| SEA-LION tests | `L6_SEALION/tests/` | `scripts/`, `tests/` |
+| Framework demos (LangChain, AutoGen, etc.) | `L7_DEMOS/examples/` | `scripts/`, root |
+| General integration tests | `tests/` | `scripts/`, layer-specific |
+| Migration/upgrade scripts | `archive/migration_tools_v45/` | `scripts/` (after 72h cooling) |
+| Governance utilities | `scripts/` (MAX 60 files) | Anywhere else |
+| Constitutional specs | `spec/v45/` ONLY | Layer directories, `scripts/` |
+
+**Import Hierarchy (No Local Copies):**
+
+```
+spec/v45/*.json (AUTHORITATIVE - SHA-256 verified)
+    ↓
+arifos_core/* (imports from spec/)
+    ↓
+L6_SEALION/*, L7_DEMOS/* (imports from arifos_core)
+    ↓
+scripts/* (imports from arifos_core)
+```
+
+**Hard Rules:**
+
+1. **No local spec copies** - ALWAYS import from `arifos_core.spec` or `spec/v45/`
+2. **No duplicate governance** - Don't reimplement `Metrics` or `apex_review` in adapters
+3. **No "alias" files** - Fix canonical reference instead of creating compatibility layers
+4. **Layer tests stay in layer** - SEA-LION tests go to `L6_SEALION/tests/`, not `tests/`
+5. **72h cooling for tools** - Migration/temporary scripts archived after Phoenix-72 window
+
+**Master-Derive Sync (Tri-Folders):**
+
+```
+.agent/workflows/*.md (MASTER - authoritative)
+    ↓ sync markers: <!-- BEGIN CANONICAL WORKFLOW -->
+    ├→ .claude/skills/*/SKILL.md (DERIVED + Claude Code enhancements)
+    └→ .codex/skills/*/SKILL.md (DERIVED + Codex CLI enhancements)
+```
+
+**Enforcement:**
+
+- CI workflow: [.github/workflows/check_spec_imports.yml](.github/workflows/check_spec_imports.yml)
+- CI workflow: [.github/workflows/check_skill_drift.yml](.github/workflows/check_skill_drift.yml)
+- Manual check: `python scripts/check_skill_drift.py`
+
 ---
 
-## Common Issues & Debugging
+## 🐛 Common Issues & Debugging
 
 ### Import Errors After Installation
 ```bash
@@ -926,7 +1032,64 @@ python -c "from pathlib import Path; print(Path('spec/v45/constitutional_floors.
 
 ---
 
-## Slash Commands (Legacy/Reference)
+## ⚠️ Common Mistakes to Avoid
+
+**Before making changes, check this list:**
+
+1. **❌ Creating new files by default**
+   - Only create files if: human explicitly asked, build requires it, OR it reduces total entropy
+   - See [Entropy Control](#entropy-control-rules)
+
+2. **❌ Modifying canon directly**
+   - Canon files in `L1_THEORY/canon/` are read-only
+   - Use Phoenix-72 amendment system instead
+   - See [Modifying Constitutional Law](#modifying-constitutional-law)
+
+3. **❌ Making constitutional claims without reading PRIMARY sources**
+   - Always read `spec/v45/*.json` or SEALED canon files
+   - Grep is for discovery, not verification
+   - See [Source Verification Protocol](#source-verification-protocol)
+
+4. **❌ Using Task tool for simple operations**
+   - If you know the exact file path, use `Read` directly
+   - Task tool has 3-5x token overhead
+   - See [Tool Selection Guide](#tool-selection-guide-efficient-usage)
+
+5. **❌ "Cleaning up" existing files by removing sections**
+   - NEVER delete content to "simplify" files
+   - Use surgical edits only
+   - See [File Integrity Protocol](#file-integrity-protocol)
+
+6. **❌ Creating alias/compatibility files**
+   - Fix the canonical reference instead
+   - Don't create duplicate files for convenience
+   - See [Entropy Control Rules](#entropy-control-rules)
+
+7. **❌ Generating code that bypasses governance**
+   - All LLM calls must go through arifOS pipeline
+   - Never call `llm.generate()` directly
+   - See [F8-CODE: G (Governed Intelligence)](#f8-code-g-governed-intelligence)
+
+8. **❌ Fabricating session data**
+   - Only include steps that actually ran
+   - Empty arrays are honest; fake data is F2 violation
+   - See [F2-CODE: Truth (Honest Data Structures)](#f2-code-truth-honest-data-structures)
+
+9. **❌ Using magic numbers in code**
+   - Always use named constants
+   - Self-documenting code reduces confusion
+   - See [F4-CODE: DeltaS (Clarity Gain)](#f4-code-deltas-clarity-gain)
+
+10. **❌ Mutating inputs silently**
+    - Use pure functions that don't modify inputs
+    - Side effects must be explicit
+    - See [F1-CODE: Amanah (Integrity in Code)](#f1-code-amanah-integrity-in-code)
+
+**When in doubt:** Ask before proceeding. See [Clarification Protocol](#clarification-protocol-ask-before-execute).
+
+---
+
+## 🎮 Slash Commands (Legacy/Reference)
 
 | Command | Purpose          |
 |---------|------------------|
@@ -939,7 +1102,7 @@ python -c "from pathlib import Path; print(Path('spec/v45/constitutional_floors.
 
 ---
 
-## Important: File Integrity Protocol
+## 📝 File Integrity Protocol
 
 **The "Janitor" Anti-Pattern is FORBIDDEN.** NEVER "clean up" or "simplify" files by removing sections. See [AGENTS.md:92](AGENTS.md#L92) for full rules.
 
@@ -983,14 +1146,16 @@ python -c "from pathlib import Path; print(Path('spec/v45/constitutional_floors.
 
 ---
 
-## Transparency Mandate (The StageInspector)
+## 🔬 Transparency Mandate (The StageInspector)
 
 Any new integration MUST support the **000→999 StageInspector** interface.
 - **Requirement:** The "Guts" of the pipeline (verdicts, floor scores, lane decisions) must be visible for audit.
 - **Implementation:** Return `AuditReceipt` or full `metadata` dict.
 - **Goal:** White-box governance only. No black boxes.
 
-## 888_HOLD Expanded Triggers
+---
+
+## 🚨 888_HOLD Expanded Triggers
 
 **MANDATORY HOLD** when any of these conditions are met:
 
@@ -1022,7 +1187,7 @@ When HOLD triggered:
 
 ---
 
-## Clarification Protocol (Ask Before Execute)
+## 🤝 Clarification Protocol (Ask Before Execute)
 
 **When to ASK user before proceeding:**
 
@@ -1041,7 +1206,7 @@ When HOLD triggered:
 
 ---
 
-## Critical Anti-Patterns (What NOT to Do)
+## 🚫 Critical Anti-Patterns (What NOT to Do)
 
 1. **Do NOT create new files by default** — Only if human asks, build requires, or it reduces total entropy
 2. **Do NOT "clean up" existing files** — Append, don't rewrite (violates File Integrity Protocol)
@@ -1054,7 +1219,7 @@ When HOLD triggered:
 
 ---
 
-## Context Management & Session Hygiene
+## 💾 Context Management & Session Hygiene
 
 **Critical:** Claude Code's effective context window degrades significantly as it fills. Performance drops sharply after ~50-60% capacity.
 
@@ -1085,30 +1250,6 @@ Use `/context` command to check current usage:
 - Long sessions accumulate "dead weight" from completed tasks
 
 **Best practice for arifOS:** For constitutional changes (Track A/B modifications), start fresh conversation after research/planning phase complete. Execute implementation in clean context with full reasoning capacity available.
-
----
-
-## Quick Navigation (For New Claude Instances)
-
-**Just cloned this repo?** Start here:
-1. Read [Quick Start for New Developers](#quick-start-for-new-developers) (line 272)
-2. Run health check: `pip install -e ".[dev]" && pytest -x`
-3. Understand governance: Read [Nine Floors Summary](#nine-floors-summary) (line 708)
-4. Review architecture: [docs/ARCHITECTURE_AND_NAMING_v45.md](docs/ARCHITECTURE_AND_NAMING_v45.md) (complete standards)
-5. Check platform commands: [Platform-Specific Commands](#platform-specific-commands) (line 314)
-
-**Working on specific task?** Jump to:
-- Testing: [Testing](#testing) (line 53)
-- Pipeline: [Pipeline & CLI](#pipeline--cli) (line 216)
-- Development: [Development Workflows](#development-workflows) (line 481)
-- Debugging: [Common Issues & Debugging](#common-issues--debugging) (line 814)
-
-**Making constitutional changes?** Read:
-- [Source Verification Protocol](#source-verification-protocol) (line 435)
-- [Modifying Constitutional Law](#modifying-constitutional-law) (line 502)
-- [888_HOLD Expanded Triggers](#888_hold-expanded-triggers) (line 950)
-
-**Key principle:** Never modify canon directly. Propose amendments via Phoenix-72. Read PRIMARY sources (spec/v45/*.json) before making constitutional claims.
 
 ---
 

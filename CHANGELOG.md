@@ -19,7 +19,7 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 **Documentation Milestone (2025-12-29):**
 
 - **NEW:** [docs/ARCHITECTURE_AND_NAMING_v45.md](docs/ARCHITECTURE_AND_NAMING_v45.md) (684 lines) - **ONE canonical reference** for all architectural and organizational standards
-  - Consolidates: [docs/NAMING_CONVENTION_v45.md](docs/NAMING_CONVENTION_v45.md) (54 lines), [docs/ARCHITECTURE_v45.md](docs/ARCHITECTURE_v45.md) (65 lines), tribal knowledge from [L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md](L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md)
+  - Consolidated: [docs/NAMING_CONVENTION_v45.md](docs/NAMING_CONVENTION_v45.md) (54 lines, removed), docs/ARCHITECTURE_v45.md (65 lines, removed Phase 3), tribal knowledge from [L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md](L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md)
   - **14 comprehensive sections:**
     1. Core Principles (5 constitutional laws: Single Canonical Location, Epoch Clarity, Track Separation, Drift Prevention, Archive Never Delete)
     2. Repository Layers (L1-L7 detailed breakdown)

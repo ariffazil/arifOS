@@ -104,7 +104,7 @@ Human-facing "wisdom log" to prevent repeated entropy mistakes.
   - Track B consolidated: spec/v44/ → spec/v45/ with SHA-256 manifest verification (zero information loss, all v44 content archived in [archive/spec_v44/](archive/spec_v44/))
   - Legacy specs archived: v35Ω/v38Ω → [archive/legacy_specs/](archive/legacy_specs/), documentation → [archive/spec_legacy/](archive/spec_legacy/)
   - Root directory cleaned: 9 duplicate/obsolete files removed → [archive/2025_cleanup/](archive/2025_cleanup/)
-  - SEA-LION testing suite added: [scripts/sealion_forge_repl.py](scripts/sealion_forge_repl.py) (governed REPL), [scripts/sealion_raw_only.py](scripts/sealion_raw_only.py) (RAW baseline), [scripts/sealion_raw_repl.py](scripts/sealion_raw_repl.py) (RAW REPL)
+  - SEA-LION testing suite added: [L6_SEALION/cli/sealion_forge_repl.py](L6_SEALION/cli/sealion_forge_repl.py) (governed REPL), [L6_SEALION/cli/sealion_raw_only.py](L6_SEALION/cli/sealion_raw_only.py) (RAW baseline), [L6_SEALION/cli/sealion_raw_repl.py](L6_SEALION/cli/sealion_raw_repl.py) (RAW REPL)
   - Codex governance integrated: [.codex/AGENTS.md](.codex/AGENTS.md) (v44 TEARFRAME physics)
   - Integration bridge created: [arifos_core/bridge.py](arifos_core/bridge.py) (aCLIP adapter)
   - **arifos_eval v45 Upgrade:** Evaluation framework aligned with Phoenix-72 (v36.1Ω → v45.0.0) - [arifos_eval/apex/apex_standards_v45.json](arifos_eval/apex/apex_standards_v45.json) with Anti-Hantu hypothetical patterns, crisis override awareness, Track B alignment. Tests: 45/45 + 5/5 PASSED. Commit 2eb64d1.

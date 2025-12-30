@@ -85,8 +85,8 @@ _BASE_DIR = Path(__file__).parent.parent.parent
 # Manifest paths by epoch
 MANIFEST_PATHS: Dict[EpochType, Dict[str, Path]] = {
     "v35": {
-        "yaml": _BASE_DIR / "spec" / "arifos_runtime_manifest_v35Omega.yaml",
-        "json": _BASE_DIR / "spec" / "arifos_runtime_manifest_v35Omega.json",
+        "yaml": _BASE_DIR / "archive" / "legacy_specs" / "arifos_runtime_manifest_v35Omega.yaml",
+        "json": _BASE_DIR / "archive" / "legacy_specs" / "arifos_runtime_manifest_v35Omega.json",
     },
     "v36.3": {
         "json": _BASE_DIR
@@ -108,12 +108,12 @@ MANIFEST_PATHS: Dict[EpochType, Dict[str, Path]] = {
     },
     "v44": {
         # v44 uses v42 spec structure (TEARFRAME is code-driven)
-        "json": _BASE_DIR / "spec" / "arifos_runtime_manifest_v35Omega.json",
+        "json": _BASE_DIR / "archive" / "legacy_specs" / "arifos_runtime_manifest_v35Omega.json",
     },
     "v45": {
         # v45 (Sovereign Witness) uses v42 spec structure + new code modules
         # Manifest is descriptive; code enforces new logic (Firewall, EvidencePack, Seal)
-        "json": _BASE_DIR / "spec" / "arifos_runtime_manifest_v35Omega.json",
+        "json": _BASE_DIR / "archive" / "legacy_specs" / "arifos_runtime_manifest_v35Omega.json",
     },
 }
 

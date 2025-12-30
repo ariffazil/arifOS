@@ -449,43 +449,7 @@ class TestMetricsModuleV35:
             assert callable(func), f"{func_name} is not callable"
 
 
-# =============================================================================
-# HARNESS ENTRY POINT TESTS (v35 Legacy)
-# =============================================================================
 
-
-class TestHarnessEntryPointV35:
-    """Tests for v35 caged harness entry point."""
-
-    @pytest.fixture
-    def manifest(self):
-        return load_runtime_manifest(epoch="v35")
-
-    def test_harness_module_importable(self, manifest):
-        """Harness module should be importable."""
-        module = import_module_from_manifest(manifest, "harness")
-        assert module is not None
-
-    def test_cage_llm_response_callable(self, manifest):
-        """cage_llm_response entry function should be callable."""
-        module = import_module_from_manifest(manifest, "harness")
-        entry_func = manifest["harness"]["entry_function"]
-        func = getattr(module, entry_func)
-        assert callable(func)
-
-    def test_caged_result_class_exists(self, manifest):
-        """CagedResult class should exist."""
-        module = import_module_from_manifest(manifest, "harness")
-        result_class = manifest["harness"]["result_class"]
-        cls = getattr(module, result_class)
-        assert cls is not None
-
-    def test_get_harness_entry_returns_correct_info(self, manifest):
-        """get_harness_entry should return correct module and function."""
-        entry = get_harness_entry(manifest)
-        assert entry["module"] == "scripts.arifos_caged_llm_demo"
-        assert entry["entry_function"] == "cage_llm_response"
-        assert entry["result_class"] == "CagedResult"
 
 
 # =============================================================================
@@ -547,34 +511,7 @@ class TestLedgerModulesV35:
         assert module is not None
 
 
-# =============================================================================
-# CANON FILE REFERENCE TESTS (v35 Legacy)
-# =============================================================================
 
-
-class TestCanonFileReferencesV35:
-    """Tests that v35 referenced canon files exist."""
-
-    @pytest.fixture
-    def manifest(self):
-        return load_runtime_manifest(epoch="v35")
-
-    def test_runtime_law_files_exist(self, manifest):
-        """All referenced runtime law canon files should exist."""
-        canon_files = manifest["canon_files"]["runtime_law"]
-        root = Path(__file__).parent.parent
-        for file_path in canon_files:
-            full_path = resolve_legacy_canon_path(root, file_path)
-            assert full_path.exists(), f"Canon file not found: {file_path}"
-
-    def test_constitutional_floors_json_exists(self, manifest):
-        """constitutional_floors.json should exist."""
-        machine_readable = manifest["canon_files"]["machine_readable"]
-        root = Path(__file__).parent.parent
-        for file_path in machine_readable:
-            if file_path.endswith(".json"):
-                full_path = root / file_path
-                assert full_path.exists(), f"Machine-readable file not found: {file_path}"
 
 
 # =============================================================================

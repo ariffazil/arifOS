@@ -5,7 +5,7 @@
 - **commands/**: Contains documentation (Markdown) for each CLI command (000-999), describing usage and intent.
 - **agents/**: Detailed profiles for key agent roles (sense, reflect, reason, empathize, align).
 
-**Precedence:** Repo root `AGENTS.md` is Tier-1 law (applies everywhere). `arifos_clip/AGENTS.md` is scoped stage-role guidance for this subtree only.
+**Precedence:** Repo root `AGENTS.md` is Tier-1 law (applies everywhere). `arifos_clip/PIPELINE_AGENTS.md` is scoped stage-role guidance for this subtree only.
 
 **Layer B – Executors:** The CLI stage executors in `aclip/cli/`. Each pipeline stage has a Python module (e.g., `000_void.py`, `111_sense.py`, ..., `999_seal.py`) implementing that stage's logic. These executors handle argument parsing (via dispatchers) and coordinate reading/writing session data.
 

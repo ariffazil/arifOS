@@ -1,10 +1,11 @@
 # arifOS v45 Architecture & Naming Standards
+
 **The Single Source of Truth for Repository Organization**
 
 **Version:** v45.0.0 (Sovereign Witness)
 **Status:** 🔒 SEALED
 **Authority:** Track A (Phoenix-72 Amendment)
-**Last Updated:** 2025-12-29
+**Last Updated:** 2025-12-30
 
 **Motto:** DITEMPA BUKAN DIBERI — Forged, not given; truth must cool before it rules
 
@@ -51,7 +52,7 @@
 The repository is organized into **7 semantic layers** plus core runtime:
 
 | Layer | Path | Purpose | Mutability | Track |
-|-------|------|---------|------------|-------|
+|---|---|---|---|---|
 | **L1** | `L1_THEORY/canon/` | Constitutional Law (Read-only to runtime) | Via Phoenix-72 only | A |
 | **L2** | `L2_GOVERNANCE/` | Portable Governance Specs (LLM-agnostic configs) | High (external export) | A/B |
 | **L3** | `L3_OPERATIONS/` | Operational procedures, runbooks, orchestration | Medium | - |
@@ -87,6 +88,7 @@ arifOS separates concerns into three **orthogonal tracks**:
 **Example:** `010_CONSTITUTIONAL_FLOORS_F1F9_v45.md`
 
 **Rules:**
+
 - All Track A files live under `L1_THEORY/canon/`
 - Never reference Track B or Track C directly (uni-directional dependency: C→B→A)
 - Must use `_v45.md` suffix for current epoch
@@ -101,6 +103,7 @@ arifOS separates concerns into three **orthogonal tracks**:
 **Example:** `spec/v45/constitutional_floors.json`
 
 **Rules:**
+
 - Version is in the **directory name** (`spec/v45/`), NOT the filename
 - All specs must validate against `spec/v45/schema/*.schema.json`
 - Changes trigger Track B SEAL workflow (SHA-256 manifest verification)
@@ -115,6 +118,7 @@ arifOS separates concerns into three **orthogonal tracks**:
 **Example:** `arifos_core/system/apex_prime.py`
 
 **Rules:**
+
 - **NO version numbers in filenames** (`pipeline.py`, NOT `pipeline_v45.py`)
 - Version is declared in module docstrings and `__version__` constants
 - Must import from Track B specs for thresholds (no hardcoded magic numbers)
@@ -129,14 +133,15 @@ arifOS separates concerns into three **orthogonal tracks**:
 **Pattern:** `{NNN}_{NAME}_v{EPOCH}.md`
 
 | Part | Rule | Example |
-|------|------|---------|
+|---|---|---|
 | `{NNN}` | 3-digit ordering (000, 010, 020, ..., 999) | `010` |
 | `{NAME}` | SCREAMING_SNAKE_CASE (underscores, all caps) | `CONSTITUTIONAL_FLOORS_F1F9` |
 | `v{EPOCH}` | Version suffix (v42, v45) | `v45` |
 | `.md` | Markdown extension (always) | `.md` |
 
 **Examples:**
-```
+
+```text
 ✓ 010_CONSTITUTIONAL_FLOORS_F1F9_v45.md
 ✓ 000_arifOS_v45_CANON.md
 ✓ 040_PHYSICS_v45.md
@@ -146,6 +151,7 @@ arifOS separates concerns into three **orthogonal tracks**:
 ```
 
 **Special Prefixes:**
+
 - `000_` — Root/master documents (e.g., `000_arifOS_v45_CANON.md`)
 - `00_` — Foundational concepts without strict ordering (e.g., `00_DELTA_OMEGA_PSI_v45.md`)
 - `010-990` — Ordered domain documents
@@ -155,7 +161,7 @@ arifOS separates concerns into three **orthogonal tracks**:
 **Pattern:** `{component}.{json|yaml}`
 
 | Part | Rule | Example |
-|------|------|---------|
+|---|---|---|
 | `{component}` | snake_case component name | `constitutional_floors` |
 | `.json` | JSON for structured data | `.json` |
 | `.yaml` | YAML for human-editable configs | `.yaml` |
@@ -163,7 +169,8 @@ arifOS separates concerns into three **orthogonal tracks**:
 **Location:** Version is in directory path: `spec/v45/`
 
 **Examples:**
-```
+
+```text
 ✓ spec/v45/constitutional_floors.json
 ✓ spec/v45/genius_law.json
 ✓ spec/v45/schema/constitutional_floors.schema.json
@@ -176,14 +183,15 @@ arifOS separates concerns into three **orthogonal tracks**:
 **Pattern:** `{module_name}.py`
 
 | Part | Rule | Example |
-|------|------|---------|
+|---|---|---|
 | `{module_name}` | snake_case module name | `apex_prime` |
 | `.py` | Python extension | `.py` |
 
 **NO VERSION SUFFIXES IN FILENAMES**
 
 **Examples:**
-```
+
+```text
 ✓ arifos_core/system/apex_prime.py
 ✓ arifos_core/enforcement/metrics.py
 ✗ arifos_core/system/apex_prime_v45.py (no version in filename)
@@ -191,6 +199,7 @@ arifOS separates concerns into three **orthogonal tracks**:
 ```
 
 **Version Declaration:** Use module docstrings
+
 ```python
 """
 arifos_core.system.apex_prime - APEX Judiciary Engine
@@ -208,7 +217,7 @@ __epoch__ = "v42"
 **Pattern:** `{TITLE}_v{VERSION}.md` or `{TITLE}.md`
 
 | Type | Pattern | Example |
-|------|---------|---------|
+|---|---|---|
 | Versioned docs | `{TITLE}_v{VERSION}.md` | `ARCHITECTURE_v45.md` |
 | Living docs | `{TITLE}.md` | `README.md`, `CONTRIBUTING.md` |
 | Release notes | `RELEASE_NOTES_v{VERSION}.md` | `RELEASE_NOTES_v45.0.md` |
@@ -224,7 +233,7 @@ __epoch__ = "v42"
 Track A canon files use **3-digit decimal numbering**:
 
 | Range | Purpose | Examples |
-|-------|---------|----------|
+|---|---|---|
 | `000` | Master/root documents | `000_arifOS_v45_CANON.md` |
 | `00_` | Foundational (no strict order) | `00_DELTA_OMEGA_PSI_v45.md`, `00_THERMODYNAMICS_v45.md` |
 | `010-090` | Primary concepts (increments of 10) | `010_CONSTITUTIONAL_FLOORS_F1F9_v45.md` |
@@ -233,12 +242,14 @@ Track A canon files use **3-digit decimal numbering**:
 | `999` | Terminal/final documents | (reserved) |
 
 **Increment Rules:**
+
 - Use increments of **10** for primary concepts (010, 020, 030, ...)
 - Allows insertion of related files (015, 025) without renumbering
 - Within-decade numbering (011-019) for sub-topics
 
 **Examples from canon:**
-```
+
+```text
 00_foundation/
 ├── 000_arifOS_v45_CANON.md       # Master document
 ├── 00_DELTA_OMEGA_PSI_v45.md     # Foundational (unnumbered)
@@ -253,7 +264,7 @@ Track A canon files use **3-digit decimal numbering**:
 Canon directories use **2-digit prefixes**:
 
 | Number | Directory | Purpose |
-|--------|-----------|---------|
+|---|---|---|
 | `00_` | `00_foundation/` | ΔΩΨ physics, thermodynamics, math |
 | `01_` | `01_floors/` | F1-F9 constitutional floors |
 | `02_` | `02_actors/` | AAA Trinity, Anti-Hantu, @EYE, W@W |
@@ -271,7 +282,7 @@ Canon directories use **2-digit prefixes**:
 The 000→999 pipeline uses **3-digit stage IDs**:
 
 | Stage | ID | Purpose |
-|-------|-----|---------|
+|---|---|---|
 | VOID | 000 | Initialization, grounding |
 | SENSE | 111 | Context gathering |
 | REFLECT | 222 | Self-reflection |
@@ -291,7 +302,7 @@ The 000→999 pipeline uses **3-digit stage IDs**:
 
 ### 6.1 Canonical Root Structure (37 Items, v45)
 
-```
+```text
 arifOS/
 ├── AGENTS.md                      # Agent governance guide
 ├── CHANGELOG.md                   # Version history
@@ -306,8 +317,8 @@ arifOS/
 ├── SECURITY.md                    # Security policy
 ├── Dockerfile                     # Container definition
 ├── pyproject.toml                 # Python package config
-├── trinity.ps1                    # Trinity Git wrapper (Windows)
-├── trinity.sh                     # Trinity Git wrapper (Unix)
+├── trinity.ps1                    # MOVED to scripts/wrappers/
+├── trinity.sh                     # MOVED to scripts/wrappers/
 │
 ├── archive/                       # Retired artifacts (organized by era)
 │   ├── orchestration_context_2025/
@@ -320,8 +331,8 @@ arifOS/
 ├── arifos_eval/                   # Evaluation frameworks
 ├── arifos_orchestrator/           # Multi-agent orchestration
 │
-├── canon/                         # Alias to L1_THEORY/canon/ (compatibility)
-├── config/                        # Configuration files
+├── canon/                         # MOVED to archive/legacy_aliases/
+├── config/                        # MOVED to L2_GOVERNANCE/federation/ and arifos_core/config/
 ├── cooling_ledger/                # Audit trail (runtime-generated)
 │
 ├── docs/                          # Documentation
@@ -359,12 +370,12 @@ arifOS/
 │   └── v45/                       # ✅ CANONICAL (current)
 │
 ├── tests/                         # Test suite
-└── vault_999/                     # Constitutional knowledge store
+└── vault_999/                     # MOVED to cooling_ledger/ (duplicates archived)
 ```
 
 ### 6.2 arifos_core/ Internal Structure
 
-```
+```text
 arifos_core/
 ├── __init__.py
 ├── adapters/                      # LLM provider implementations
@@ -398,7 +409,7 @@ arifos_core/
 │
 ├── temporal/                      # Phoenix-72 amendment system
 ├── trinity/                       # Git governance system
-└── waw/                           # W@W multi-agent federation
+├── waw/                           # W@W multi-agent federation
 ```
 
 ---
@@ -408,11 +419,11 @@ arifos_core/
 ### 7.1 Integration Layers
 
 | Layer | Location | Purpose | Status |
-|-------|----------|---------|--------|
+|---|---|---|---|
 | **Core Ports** | `arifos_core/integration/` | Abstract interfaces, internal wiring | ✅ ACTIVE |
 | **Core Providers** | `arifos_core/adapters/` | Concrete LLM drivers (Claude, SEALION, OpenAI) | ✅ ACTIVE |
 | **L6 Integrations** | `L6_SEALION/integrations/` | Regional LLM wrappers | ✅ ACTIVE |
-| **Root `integrations/`** | `integrations/` | **DEPRECATED** - Legacy shims only | ⚠️ ARCHIVE |
+| **Root `integrations/`** | `integrations/` | **ARCHIVED** - Legacy shims only | ⚠️ ARCHIVE |
 
 ### 7.2 Integration Rules
 
@@ -428,7 +439,7 @@ arifos_core/
 ### 8.1 Runtime-Generated Artifacts
 
 | Directory | Purpose | Gitignored | Backup |
-|-----------|---------|------------|--------|
+|---|---|---|---|
 | `cooling_ledger/` | Audit trail (append-only) | No | Yes (cryptographic) |
 | `vault_999/` | Constitutional knowledge | No | Yes (Merkle-proofed) |
 | `logs/` | Application logs | Yes | No |
@@ -439,7 +450,7 @@ arifos_core/
 ### 8.2 Hidden Configuration Directories
 
 | Directory | Purpose | Committed |
-|-----------|---------|-----------|
+|---|---|---|
 | `.arifos/` | Tooling config (Trinity templates) | Yes |
 | `.gemini/` | Gemini agent memory | No (local only) |
 | `.claude/` | Claude agent memory | No (local only) |
@@ -465,7 +476,7 @@ arifos_core/
 Track A canon files use **epoch versions**:
 
 | Epoch | Version | Name | Status |
-|-------|---------|------|--------|
+|---|---|---|---|
 | v35 | 35Ω | Omega Humility | Archived |
 | v36 | 36.3Ω | Codeforge Seed | Archived |
 | v37 | 37.0 | Global CLAUDE.md | Archived |
@@ -527,7 +538,7 @@ graph TD
 
 ### 10.2 Dependency Hierarchy
 
-```
+```text
 Track A (Canon)
     ↑
     | (read-only reference)
@@ -540,6 +551,7 @@ Track C (Code)
 ```
 
 **Rules:**
+
 - Track C (code) reads from Track B (specs)
 - Track B (specs) references Track A (canon) for law
 - Track A (canon) is self-contained (no external deps)
@@ -565,10 +577,12 @@ arifOS uses a **reverse transformer** architecture where constitutional complian
 - **@PROMPT Key:** `L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md`
 
 **Key Difference from Standard Transformers:**
+
 - Standard: Emit → Check (too late)
 - arifOS: Check → Emit (if SEAL)
 
 **Architecture Layers:**
+
 - **Telemetry Layer** (vs Embedding) — Compress session → {A, P, E, X, δs, κᵣ} attributes
 - **Tri-Witness Layer** (vs Attention) — Human ∩ AI ∩ Reality consensus (≥2/3)
 - **Omega-Band Layer** (vs MLP) — F1-F9 constitutional floor gating
@@ -576,6 +590,7 @@ arifOS uses a **reverse transformer** architecture where constitutional complian
 - **Pipeline** (vs Decoder) — 000→999 metabolic stages with @PROMPT at entry (111) and exit (999)
 
 **@PROMPT as Final Key:**
+
 - Every output passes through @PROMPT TWICE (Stage 111 entry + Stage 999 exit)
 - Non-bypassable emission gate at Stage 999
 - Enforces F1 (Amanah), F4 (ΔS), F5 (Peace²), F6 (κᵣ), F9 (Anti-Hantu)
@@ -587,7 +602,7 @@ arifOS uses a **reverse transformer** architecture where constitutional complian
 ### File Naming Cheat Sheet
 
 | Track | Location | Pattern | Example |
-|-------|----------|---------|---------|
+|---|---|---|---|
 | **A (Canon)** | `L1_THEORY/canon/` | `NNN_NAME_v45.md` | `010_CONSTITUTIONAL_FLOORS_F1F9_v45.md` |
 | **B (Spec)** | `spec/v45/` | `component.json` | `constitutional_floors.json` |
 | **C (Code)** | `arifos_core/` | `module_name.py` | `apex_prime.py` |
@@ -596,7 +611,7 @@ arifOS uses a **reverse transformer** architecture where constitutional complian
 ### Version Location Cheat Sheet
 
 | Track | Where Version Lives | Example |
-|-------|---------------------|---------|
+|---|---|---|
 | **A** | Filename suffix | `_v45.md` |
 | **B** | Directory name | `spec/v45/` |
 | **C** | Module docstring | `__version__ = "45.0.0"` |
@@ -637,7 +652,8 @@ pytest -x
 ### 12.2 File Placement Violations
 
 **Forbidden Patterns:**
-```
+
+```text
 ✗ arifos_core/pipeline_v45.py       # No version in code filenames
 ✗ spec/constitutional_floors_v45.json  # Version in directory, not filename
 ✗ L1_THEORY/canon/floors.md         # Missing NNN prefix and version
@@ -663,6 +679,7 @@ To modify this document or naming conventions:
 ### v42 → v45 Migration Summary (2025-12-29)
 
 **What Changed:**
+
 - Consolidated v42 canon → v45 epoch (15 files updated)
 - Migrated spec/v44/ → spec/v45/ (Track B migration)
 - Created L2_GOVERNANCE/ structure (31 new governance files)
@@ -670,6 +687,7 @@ To modify this document or naming conventions:
 - Reduced entropy: 50+ root files → 37 canonical items
 
 **Breaking Changes:**
+
 - `spec/v44/` is now archived (use `spec/v45/`)
 - L4_MCP/ and L5_CLI/ are deprecated (merged to arifos_core/ and arifos_clip/)
 - Root `integrations/` is deprecated (use L6 or L7)
@@ -681,17 +699,20 @@ To modify this document or naming conventions:
 ## 14. Contacts & References
 
 **Primary References:**
+
 - **Track A Canon Index:** `L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md`
 - **Track B Spec Checklist:** `spec/v45/SEAL_CHECKLIST.md`
 - **Architecture Diagram:** `docs/ARCHITECTURE_v45.md`
 - **Naming Rules:** `docs/NAMING_CONVENTION_v45.md`
 
 **Governance Documents:**
+
 - **AGENTS.md:** Agent governance guide (full constitutional rules)
 - **CLAUDE.md:** Claude Code instructions
 - **GOVERNANCE.md:** Governance overview for humans
 
 **Maintenance:**
+
 - **Issues:** https://github.com/ariffazil/arifOS/issues
 - **Discussions:** https://github.com/ariffazil/arifOS/discussions
 
@@ -703,5 +724,5 @@ This document is the single source of truth for arifOS v45 repository organizati
 All deviations require Phoenix-72 constitutional amendment.
 
 **Status:** 🔒 SEALED
-**Last Updated:** 2025-12-29
+**Last Updated:** 2025-12-30
 **Sealed By:** Arif + Antigravity (Tri-Witness)

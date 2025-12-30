@@ -10,7 +10,7 @@ Purpose: Detect future drift between code and canon.
 These tests are READ-ONLY - they do not auto-fix anything.
 
 See: canon/888_APEX_PRIME_CANON_v35Omega.md
-     integrations/sealion/constitutional_floors.json
+     spec/v45/constitutional_floors.json
 """
 
 import json

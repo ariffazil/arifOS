@@ -14,7 +14,7 @@ See: canon/020_ANTI_HANTU_v35Omega.md
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from ..enforcement.metrics import Metrics
 from .base import AlertSeverity, EyeReport, EyeView
@@ -182,6 +182,28 @@ class AntiHantuView(EyeView):
                 AlertSeverity.BLOCK,
                 f"Anti-Hantu violation detected (patterns: {patterns_str}).",
             )
+
+    def scan_text(self, text: str) -> Tuple[bool, List[str]]:
+        """
+        Public helper to scan text for violations without full report object.
+        Returns (passes, violations) tuple.
+        """
+        matches: List[str] = []
+        text_lower = text.lower()
+
+        # Check violation phrases
+        for phrase in self.VIOLATION_PHRASES:
+            if phrase in text_lower:
+                matches.append(phrase.strip())
+
+        # Check reciprocal biology
+        for phrase in self.RECIPROCAL_BIOLOGY_PHRASES:
+            if phrase in text_lower:
+                matches.append(phrase.strip())
+
+        unique_matches = sorted(list(set(matches)))
+        passes = len(unique_matches) == 0
+        return passes, unique_matches
 
 
 __all__ = ["AntiHantuView"]
