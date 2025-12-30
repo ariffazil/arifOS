@@ -48,6 +48,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+# Initialize logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 # Configure module search paths
 import sys
 sys.path.insert(0, str(Path(__file__).parent))  # Add L6_SEALION/cli/ to path
@@ -65,9 +72,12 @@ except ImportError:
 try:
     from arifos_core.system.pipeline import Pipeline
     from arifos_core.enforcement.genius_metrics import compute_genius_index
+    from arifos_core.routing.prompt_router import classify_prompt_lane, ApplicabilityLane
     PIPELINE_AVAILABLE = True
 except ImportError:
     PIPELINE_AVAILABLE = False
+    classify_prompt_lane = None
+    ApplicabilityLane = None
     print("[WARN] arifOS Pipeline unavailable. Install: pip install arifos-core")
 
 make_llm_generate = None
@@ -103,22 +113,33 @@ except ImportError:
 # CONFIGURATION
 # ---------------------------------------------------------------------------
 
-logger = logging.getLogger("GovernedSEALion")
-logger.setLevel(logging.INFO)
+# Defaults (can be overridden via environment variables)
+DEFAULT_LEDGER_PATH = os.getenv("ARIFOS_LEDGER_PATH", "cooling_ledger/sealion_governed.jsonl")
+DEFAULT_MAX_CONTEXT_TURNS = int(os.getenv("SEALION_MAX_CONTEXT_TURNS", "20"))
+DEFAULT_TEMPERATURE = float(os.getenv("SEALION_TEMPERATURE", "0.7"))
+DEFAULT_MAX_TOKENS = int(os.getenv("SEALION_MAX_TOKENS", "512"))
 
-# Defaults (can be overridden)
-DEFAULT_LEDGER_PATH = "cooling_ledger/sealion_governed.jsonl"
-DEFAULT_MAX_CONTEXT_TURNS = 20
-DEFAULT_TEMPERATURE = 0.7
-DEFAULT_MAX_TOKENS = 512
+# Spec directory (configurable for portability)
+SPEC_DIR = Path(os.getenv("ARIFOS_SPEC_DIR", Path(__file__).parent.parent.parent / "spec" / "v45"))
 
 # PHATIC lane optimization (concise greetings)
 PHATIC_TEMPERATURE = 0.3
 PHATIC_MAX_TOKENS = 100
 PHATIC_VERBOSITY_CEILING = 100  # chars
 
-# Crisis patterns (F6 Amanah Crisis Override)
-CRISIS_PATTERNS = [
+# Crisis patterns (loaded from PRIMARY source: spec/v45/constitutional_floors.json)
+def _load_crisis_patterns():
+    """Load crisis patterns from PRIMARY source (Track B authority)."""
+    spec_path = SPEC_DIR / "constitutional_floors.json"
+    try:
+        with open(spec_path, encoding="utf-8") as f:
+            spec = json.load(f)
+        logger.info(f"Crisis patterns loaded from {spec_path}")
+        return spec["overrides"]["crisis_override"]["crisis_patterns"]
+    except (FileNotFoundError, KeyError, json.JSONDecodeError) as e:
+        logger.warning(f"Failed to load crisis patterns from spec: {e}. Using fallback.")
+        # Fallback to hardcoded if spec unavailable
+        return [
     "bunuh diri",
     "suicide",
     "nak mati",
@@ -129,32 +150,54 @@ CRISIS_PATTERNS = [
     "overdose",
     "end my life",
     "want to die",
+    "nak bunuh diri",
     "sakiti diri",
     "tamat hidup",
     "tak ada harapan",
     "hopeless",
     "worthless",
-    "hidup tak guna",
+    "hidup tak guna"
 ]
 
-# Anti-Hantu forbidden phrases (F9)
-ANTI_HANTU_PATTERNS = [
-    "I feel",
-    "my heart",
-    "I promise",
-    "as a sentient being",
-    "I have a soul",
-    "I want this for you",
-    "I believe (as a personal belief)",
-]
+CRISIS_PATTERNS = _load_crisis_patterns()
 
-# GENIUS thresholds (from spec/v45/genius_law.json)
-G_SEAL_THRESHOLD = 0.8
-G_VOID_THRESHOLD = 0.5
-C_DARK_SEAL_THRESHOLD = 0.3
-C_DARK_SABAR_THRESHOLD = 0.6
-PSI_SEAL_THRESHOLD = 1.0
-PSI_SABAR_THRESHOLD = 0.95
+# Anti-Hantu enforcement: Delegated to @EYE Sentinel (no local patterns needed)
+
+# GENIUS thresholds (loaded from PRIMARY source: spec/v45/genius_law.json)
+def _load_genius_thresholds():
+    """Load GENIUS thresholds from PRIMARY source (Track B authority)."""
+    spec_path = SPEC_DIR / "genius_law.json"
+    try:
+        with open(spec_path, encoding="utf-8") as f:
+            spec = json.load(f)
+        logger.info(f"GENIUS thresholds loaded from {spec_path}")
+        return {
+            "g_seal": spec["metrics"]["G"]["thresholds"]["seal"],
+            "g_void": spec["metrics"]["G"]["thresholds"]["void"],
+            "c_dark_seal": spec["metrics"]["C_dark"]["thresholds"]["seal"],
+            "c_dark_sabar": spec["metrics"]["C_dark"]["thresholds"]["sabar_warn"],
+            "psi_seal": spec["metrics"]["Psi"]["thresholds"]["seal"],
+            "psi_sabar": spec["metrics"]["Psi"]["thresholds"]["sabar"],
+        }
+    except (FileNotFoundError, KeyError, json.JSONDecodeError) as e:
+        logger.warning(f"Failed to load GENIUS thresholds from spec: {e}. Using fallback.")
+        # Fallback to hardcoded if spec unavailable
+        return {
+            "g_seal": 0.8,
+            "g_void": 0.5,
+            "c_dark_seal": 0.3,
+            "c_dark_sabar": 0.6,
+            "psi_seal": 1.0,
+            "psi_sabar": 0.95,
+        }
+
+_GENIUS_THRESHOLDS = _load_genius_thresholds()
+G_SEAL_THRESHOLD = _GENIUS_THRESHOLDS["g_seal"]
+G_VOID_THRESHOLD = _GENIUS_THRESHOLDS["g_void"]
+C_DARK_SEAL_THRESHOLD = _GENIUS_THRESHOLDS["c_dark_seal"]
+C_DARK_SABAR_THRESHOLD = _GENIUS_THRESHOLDS["c_dark_sabar"]
+PSI_SEAL_THRESHOLD = _GENIUS_THRESHOLDS["psi_seal"]
+PSI_SABAR_THRESHOLD = _GENIUS_THRESHOLDS["psi_sabar"]
 
 # ---------------------------------------------------------------------------
 # UTILITY FUNCTIONS
@@ -191,91 +234,36 @@ def detect_crisis(query: str) -> Tuple[bool, str]:
     return False, ""
 
 
-def detect_anti_hantu(text: str) -> List[str]:
-    """
-    Detect F9 Anti-Hantu violations (forbidden phrases).
-
-    Returns:
-        List of detected forbidden patterns
-    """
-    text_lower = text.lower()
-    violations = []
-
-    for pattern in ANTI_HANTU_PATTERNS:
-        if pattern.lower() in text_lower:
-            violations.append(pattern)
-
-    return violations
-
+# Anti-Hantu enforcement: DELEGATED to @EYE Sentinel
+# (Initialized at line ~338: self.eye_sentinel = self._init_eye_sentinel())
+# NO local duplicate check - trust core enforcement
 
 def detect_lane(query: str) -> str:
     """
     Detect query lane (PHATIC, SOFT, HARD, REFUSE).
 
-    Lane-specific thresholds:
-    - PHATIC: Truth ≥0.80 (greetings, light chat)
-    - SOFT: Truth ≥0.85 (educational, explanatory)
-    - HARD: Truth ≥0.90 (factual, critical queries)
-    - REFUSE: N/A (harmful queries)
+    DELEGATES to arifos_core.routing.prompt_router (single source of truth).
     """
-    query_lower = query.lower().strip()
+    if classify_prompt_lane is None:
+        # Fallback if core unavailable
+        return "SOFT"
 
-    # PHATIC: Greetings, status checks (≤5 words, non-factual)
-    phatic_patterns = [
-        "hi", "hello", "hey", "how are you", "how r u", "what's up",
-        "wassup", "good morning", "good night", "thanks", "terima kasih",
-        "ok", "okay", "alright",
-    ]
-    if any(p in query_lower for p in phatic_patterns) and len(query_lower.split()) <= 5:
-        return "PHATIC"
-
-    # REFUSE: Harmful queries (drugs, weapons, dangerous instructions)
-    refuse_patterns = [
-        "how to make", "build a bomb", "create malware", "hack",
-        "methamphetamine", "cocaine", "heroin", "poison",
-    ]
-    if any(p in query_lower for p in refuse_patterns):
-        return "REFUSE"
-
-    # HARD: Factual queries (who, what, when, where, statistics, numbers)
-    hard_patterns = [
-        "who is", "what is", "when did", "where is", "how many",
-        "statistics", "fact", "data", "capital", "population",
-    ]
-    if any(p in query_lower for p in hard_patterns):
-        return "HARD"
-
-    # SOFT: Default (educational, explanatory)
-    return "SOFT"
+    lane = classify_prompt_lane(query, high_stakes_indicators=[])
+    return lane.value  # Convert ApplicabilityLane enum to string
 
 
 def get_verdict_string(state) -> str:
     """
-    Extract verdict string from pipeline state.
+    Extract verdict from pipeline state (set by Stage 888 JUDGE).
 
-    Priority: SABAR > VOID > 888_HOLD > PARTIAL > SEAL
+    DELEGATES to apex_prime.apex_review() (single authority).
     """
     if hasattr(state, "verdict"):
         return state.verdict.value if hasattr(state.verdict, "value") else str(state.verdict)
 
-    # Fallback: check floors manually
-    metrics = state.metrics if hasattr(state, "metrics") else {}
-
-    # Hard floor failures -> VOID
-    if metrics.get("truth", 1.0) < 0.99:
-        return "VOID"
-    if metrics.get("delta_s", 0.0) < 0.0:
-        return "VOID"
-    if not metrics.get("amanah", True):
-        return "VOID"
-
-    # Soft floor failures -> PARTIAL
-    if metrics.get("peace_squared", 1.0) < 1.0:
-        return "PARTIAL"
-    if metrics.get("kappa_r", 1.0) < 0.95:
-        return "PARTIAL"
-
-    return "SEAL"
+    # If pipeline didn't set verdict, that's a BUG in pipeline (not adapter's job to guess)
+    logger.error("Pipeline failed to set verdict at Stage 888 - defaulting to VOID")
+    return "VOID"
 
 
 # ---------------------------------------------------------------------------
@@ -309,11 +297,11 @@ class GovernedSEALionClient:
             enable_memory: Enable Memory Band Router
             enable_session_physics: Enable TEARFRAME session physics
         """
-        if not PIPELINE_AVAILABLE or not LITELLM_AVAILABLE:
+        # Validate critical dependencies
+        if not PIPELINE_AVAILABLE:
             raise RuntimeError(
-                "Missing required dependencies:\n"
-                "  pip install arifos-core\n"
-                "  pip install arifos-litellm-gateway"
+                "Missing required dependency: arifOS Pipeline unavailable.\n"
+                "  Install: pip install -e .[dev]"
             )
 
         self.raw = raw_client  # RAW client (NO duplication)
@@ -333,30 +321,111 @@ class GovernedSEALionClient:
         self.last_state = None
         self.last_genius_verdict = None
 
-        # Initialize governance components
-        self.ledger_sink = self._create_ledger_sink()
-        self.eye_sentinel = self._init_eye_sentinel()
-        self.waw_federation = self._init_waw_federation() if enable_waw else None
-        self.memory_router = self._init_memory_router() if enable_memory else None
-        self.session_telemetry = self._init_session_physics() if enable_session_physics else None
-        self.vault = self._load_vault() if enable_memory else None
-
-        # Create governed LLM generator (wraps RAW client)
-        self.governed_generate = self._create_governed_generator()
-        if self.governed_generate is None:
-            logger.warning("Governed generator unavailable; falling back to RAW generate.")
-            self.governed_generate = lambda prompt, lane=None: self.raw.generate(prompt)
-
-        # Create pipeline
-        self.pipeline = Pipeline(
-            llm_generate=self.governed_generate,
-            context_retriever=self._get_chat_context_blocks,
-            context_retriever_at_stage_111=True,
-            ledger_sink=self.ledger_sink,
-            eye_sentinel=self.eye_sentinel,
+        # Initialize governance components with status tracking
+        init_status = self._init_components(
+            enable_waw=enable_waw,
+            enable_memory=enable_memory,
+            enable_session_physics=enable_session_physics
         )
 
+        # Critical check: Pipeline MUST be created
+        if self.pipeline is None:
+            raise RuntimeError(
+                "Failed to initialize Pipeline (critical component). "
+                "Check logs for details."
+            )
+
         logger.info(f"GovernedSEALionClient initialized (Session: {self.session_id})")
+        logger.info(f"  Component status: {init_status}")
+
+    def _init_components(
+        self,
+        enable_waw: bool,
+        enable_memory: bool,
+        enable_session_physics: bool
+    ) -> Dict[str, bool]:
+        """
+        Initialize all governance components with status tracking.
+
+        Returns:
+            Dict mapping component name to success status
+        """
+        status = {}
+
+        # 1. Ledger sink (required for audit trail)
+        try:
+            self.ledger_sink = self._create_ledger_sink()
+            status["ledger_sink"] = True
+            logger.info("✓ Ledger sink initialized")
+        except Exception as e:
+            logger.error(f"✗ Ledger sink init failed: {e}", exc_info=True)
+            status["ledger_sink"] = False
+            self.ledger_sink = None
+
+        # 2. @EYE Sentinel (F9 Anti-Hantu - recommended but not critical)
+        self.eye_sentinel = self._init_eye_sentinel()
+        status["eye_sentinel"] = self.eye_sentinel is not None
+
+        # 3. W@W Federation (multi-agent veto - optional)
+        if enable_waw:
+            self.waw_federation = self._init_waw_federation()
+            status["waw_federation"] = self.waw_federation is not None
+        else:
+            self.waw_federation = None
+            status["waw_federation"] = False  # Disabled by user
+
+        # 4. Memory Band Router (6 bands - recommended)
+        if enable_memory:
+            self.memory_router = self._init_memory_router()
+            self.vault = self._load_vault()
+            status["memory_router"] = self.memory_router is not None
+            status["vault"] = self.vault is not None
+        else:
+            self.memory_router = None
+            self.vault = None
+            status["memory_router"] = False  # Disabled by user
+            status["vault"] = False
+
+        # 5. Session Physics (TEARFRAME - optional)
+        if enable_session_physics:
+            self.session_telemetry = self._init_session_physics()
+            status["session_physics"] = self.session_telemetry is not None
+        else:
+            self.session_telemetry = None
+            status["session_physics"] = False  # Disabled by user
+
+        # 6. Governed LLM generator (wraps RAW client - critical)
+        try:
+            self.governed_generate = self._create_governed_generator()
+            if self.governed_generate is None:
+                logger.warning("Governed generator unavailable; falling back to RAW generate.")
+                self.governed_generate = lambda prompt, lane=None: self.raw.generate(prompt)
+                status["governed_generate"] = False  # Fallback mode
+            else:
+                status["governed_generate"] = True
+        except Exception as e:
+            logger.error(f"✗ Governed generator init failed: {e}", exc_info=True)
+            # Fallback to RAW
+            self.governed_generate = lambda prompt, lane=None: self.raw.generate(prompt)
+            status["governed_generate"] = False
+
+        # 7. Pipeline (CRITICAL - must succeed)
+        try:
+            self.pipeline = Pipeline(
+                llm_generate=self.governed_generate,
+                context_retriever=self._get_chat_context_blocks,
+                context_retriever_at_stage_111=True,
+                ledger_sink=self.ledger_sink,
+                eye_sentinel=self.eye_sentinel,
+            )
+            status["pipeline"] = True
+            logger.info("✓ Pipeline (000→999) initialized")
+        except Exception as e:
+            logger.critical(f"✗ Pipeline init FAILED (critical): {e}", exc_info=True)
+            self.pipeline = None
+            status["pipeline"] = False
+
+        return status
 
     def _create_ledger_sink(self):
         """Create hash-chained JSONL ledger sink."""
@@ -364,81 +433,101 @@ class GovernedSEALionClient:
         path.parent.mkdir(parents=True, exist_ok=True)
 
         if not MEMORY_BANDS_AVAILABLE:
-            # Minimal ledger (just append JSON lines)
+            # Minimal ledger (just append JSON lines with validation)
             def minimal_sink(entry: dict) -> None:
                 try:
+                    # Validate required keys
+                    required_keys = ["timestamp", "session_id", "query"]
+                    missing = [k for k in required_keys if k not in entry]
+                    if missing:
+                        logger.warning(f"Ledger entry missing keys: {missing}")
+                        # Add defaults
+                        if "timestamp" not in entry:
+                            entry["timestamp"] = datetime.now(timezone.utc).isoformat()
+                        if "session_id" not in entry:
+                            entry["session_id"] = self.session_id
+
                     with open(path, "a", encoding="utf-8") as f:
                         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
-                except Exception as e:
-                    logger.warning(f"Ledger append failed: {e}")
+                except (IOError, OSError) as e:
+                    logger.error(f"Ledger file write failed: {e}")
+                except (TypeError, ValueError) as e:
+                    logger.error(f"Ledger entry serialization failed: {e}")
             return minimal_sink
 
         # Full hash-chained ledger
         def sink(entry: dict) -> None:
             try:
                 append_entry(path, dict(entry))
-            except Exception as e:
-                logger.warning(f"Ledger append failed: {e}")
+            except (IOError, OSError) as e:
+                logger.error(f"Ledger append failed (file error): {e}")
+            except (TypeError, ValueError, KeyError) as e:
+                logger.error(f"Ledger append failed (data error): {e}")
         return sink
 
     def _init_eye_sentinel(self):
         """Initialize @EYE Sentinel (F9 Anti-Hantu enforcement)."""
         if not EYE_AVAILABLE:
+            logger.info("@EYE Sentinel unavailable (module not found)")
             return None
         try:
             eye = EyeSentinel()
-            logger.info("@EYE Sentinel initialized (F9 Anti-Hantu active)")
+            logger.info("✓ @EYE Sentinel initialized (F9 Anti-Hantu active)")
             return eye
-        except Exception as e:
-            logger.warning(f"@EYE Sentinel init failed: {e}")
+        except (ImportError, AttributeError, TypeError) as e:
+            logger.warning(f"✗ @EYE Sentinel init failed: {e}")
             return None
 
     def _init_waw_federation(self):
         """Initialize W@W Federation (multi-agent veto authority)."""
         if not WAW_AVAILABLE:
+            logger.info("W@W Federation unavailable (module not found)")
             return None
         try:
             waw = WAWFederationCore()
-            logger.info("W@W Federation initialized (@LAW, @GEOX, @WELL, @RIF active)")
+            logger.info("✓ W@W Federation initialized (@LAW, @GEOX, @WELL, @RIF active)")
             return waw
-        except Exception as e:
-            logger.warning(f"W@W Federation init failed: {e}")
+        except (ImportError, AttributeError, TypeError) as e:
+            logger.warning(f"✗ W@W Federation init failed: {e}")
             return None
 
     def _init_memory_router(self):
         """Initialize Memory Band Router (6 bands)."""
         if not MEMORY_BANDS_AVAILABLE:
+            logger.info("Memory Band Router unavailable (module not found)")
             return None
         try:
             router = MemoryBandRouter()
-            logger.info("Memory Band Router initialized (VAULT/LEDGER/ACTIVE/PHOENIX/WITNESS/VOID)")
+            logger.info("✓ Memory Band Router initialized (VAULT/LEDGER/ACTIVE/PHOENIX/WITNESS/VOID)")
             return router
-        except Exception as e:
-            logger.warning(f"Memory Band Router init failed: {e}")
+        except (ImportError, AttributeError, TypeError) as e:
+            logger.warning(f"✗ Memory Band Router init failed: {e}")
             return None
 
     def _init_session_physics(self):
         """Initialize Session Physics (TEARFRAME)."""
         if not SESSION_PHYSICS_AVAILABLE:
+            logger.info("Session Physics unavailable (module not found)")
             return None
         try:
             telemetry = SessionTelemetry(session_id=self.session_id)
-            logger.info("Session Physics (TEARFRAME) initialized")
+            logger.info("✓ Session Physics (TEARFRAME) initialized")
             return telemetry
-        except Exception as e:
-            logger.warning(f"Session Physics init failed: {e}")
+        except (ImportError, AttributeError, TypeError) as e:
+            logger.warning(f"✗ Session Physics init failed: {e}")
             return None
 
     def _load_vault(self):
         """Load VAULT_999 (Constitutional canon - immutable)."""
         if not MEMORY_BANDS_AVAILABLE:
+            logger.info("VAULT_999 unavailable (Memory Bands module not found)")
             return None
         try:
             vault = Vault999()
-            logger.info("VAULT_999 loaded (Constitutional canon immutable)")
+            logger.info("✓ VAULT_999 loaded (Constitutional canon immutable)")
             return vault
-        except Exception as e:
-            logger.warning(f"VAULT_999 load failed: {e}")
+        except (ImportError, FileNotFoundError, AttributeError) as e:
+            logger.warning(f"✗ VAULT_999 load failed: {e}")
             return None
 
     def _create_governed_generator(self):
@@ -529,6 +618,91 @@ class GovernedSEALionClient:
 
         return blocks
 
+    def _detect_lane_and_crisis(self, query: str) -> Tuple[str, bool, str]:
+        """
+        Detect query lane and check for crisis patterns.
+
+        Returns:
+            (lane, is_crisis, crisis_msg) tuple
+        """
+        lane = detect_lane(query)
+        self.lanes[lane] += 1
+
+        is_crisis, crisis_msg = detect_crisis(query)
+        if is_crisis:
+            self.lanes["CRISIS"] = self.lanes.get("CRISIS", 0) + 1
+            self.verdicts["888_HOLD"] += 1
+
+        return lane, is_crisis, crisis_msg
+
+    def _get_raw_response(
+        self, query: str, max_tokens: int, temperature: float
+    ) -> Dict[str, Any]:
+        """
+        Get ungoverned response from RAW client.
+
+        Returns:
+            RAW client result dict with "response" and "metadata" keys
+        """
+        return self.raw.generate(query, max_tokens=max_tokens, temperature=temperature)
+
+    def _run_pipeline_and_genius(self, query: str):
+        """
+        Run query through arifOS Pipeline and compute GENIUS metrics.
+
+        Returns:
+            (state, genius_verdict) tuple
+        """
+        # Run through arifOS Pipeline (000->999)
+        state = self.pipeline.run(query)
+        self.last_state = state
+
+        # Compute GENIUS metrics
+        genius_verdict = None
+        if hasattr(state, "metrics") and state.metrics:
+            try:
+                genius_verdict = compute_genius_index(state.metrics)
+                self.last_genius_verdict = genius_verdict
+            except Exception as e:
+                logger.warning(f"GENIUS computation failed: {e}")
+
+        return state, genius_verdict
+
+    def _apply_penalties_and_verdict(
+        self,
+        state,
+        genius_verdict,
+        lane: str,
+        raw_response: str,
+    ) -> Tuple[str, str]:
+        """
+        Apply penalties (PHATIC verbosity, C_dark hazard) and finalize verdict.
+
+        Returns:
+            (final_response, final_verdict) tuple
+        """
+        # Extract base verdict from pipeline
+        verdict_str = get_verdict_string(state)
+
+        # Get governed response (or fallback to RAW)
+        governed_response = state.draft_response if hasattr(state, "draft_response") else raw_response
+
+        # PHATIC verbosity penalty (BEFORE final verdict - Grok fix)
+        if lane == "PHATIC" and len(governed_response) > PHATIC_VERBOSITY_CEILING:
+            logger.info(
+                f"PHATIC verbosity penalty: {len(governed_response)} chars "
+                f"(ceiling: {PHATIC_VERBOSITY_CEILING})"
+            )
+            verdict_str = "PARTIAL"
+
+        # C_dark hazard check (evil genius pattern)
+        if genius_verdict and genius_verdict.c_dark >= C_DARK_SABAR_THRESHOLD:
+            logger.warning(f"C_dark hazard detected: {genius_verdict.c_dark:.3f}")
+            verdict_str = "SABAR"
+            governed_response = "Hold on - I want to ensure this guidance is helpful and safe."
+
+        return governed_response, verdict_str
+
     def generate(
         self,
         query: str,
@@ -539,13 +713,12 @@ class GovernedSEALionClient:
         Generate governed response.
 
         Flow:
-        1. Detect lane (PHATIC/SOFT/HARD/REFUSE)
-        2. Check crisis patterns (F6 Amanah Crisis Override)
-        3. Get RAW response from base client
-        4. Run through arifOS Pipeline (000->999)
-        5. Compute GENIUS metrics (G, C_dark, Psi, TP)
-        6. Check Anti-Hantu violations (F9)
-        7. Return verdict + metrics + governed output
+        1. Detect lane (PHATIC/SOFT/HARD/REFUSE) and check crisis patterns
+        2. Get RAW response from base client
+        3. Run through arifOS Pipeline (000->999)
+        4. Compute GENIUS metrics (G, C_dark, Psi, TP)
+        5. Apply penalties (PHATIC verbosity, C_dark hazard) and finalize verdict
+        6. Return verdict + metrics + governed output
 
         Returns:
             {
@@ -556,18 +729,12 @@ class GovernedSEALionClient:
                 "genius": dict,            # G, C_dark, Psi, TP
                 "raw_response": str,       # Original ungoverned response
                 "raw_metadata": dict,      # RAW client metadata
-                "anti_hantu_violations": list,  # F9 violations detected
             }
         """
-        # 1. Detect lane
-        lane = detect_lane(query)
-        self.lanes[lane] += 1
+        # 1. Detect lane and check crisis patterns
+        lane, is_crisis, crisis_msg = self._detect_lane_and_crisis(query)
 
-        # 2. Crisis override check (F6 Amanah)
-        is_crisis, crisis_msg = detect_crisis(query)
         if is_crisis:
-            self.lanes["CRISIS"] = self.lanes.get("CRISIS", 0) + 1
-            self.verdicts["888_HOLD"] += 1
             return {
                 "response": crisis_msg,
                 "verdict": "888_HOLD",
@@ -576,17 +743,15 @@ class GovernedSEALionClient:
                 "genius": None,
                 "raw_response": "[CRISIS OVERRIDE]",
                 "raw_metadata": {},
-                "anti_hantu_violations": [],
             }
 
-        # 3. Get RAW response (delegate to base client)
-        raw_result = self.raw.generate(query, max_tokens=max_tokens, temperature=temperature)
+        # 2. Get RAW response (delegate to base client)
+        raw_result = self._get_raw_response(query, max_tokens, temperature)
         raw_response = raw_result["response"]
 
-        # 4. Run through arifOS Pipeline (000->999)
+        # 3. Run through arifOS Pipeline (000->999) and compute GENIUS metrics
         try:
-            state = self.pipeline.run(query, lane=lane)
-            self.last_state = state
+            state, genius_verdict = self._run_pipeline_and_genius(query)
         except Exception as e:
             logger.error(f"Pipeline execution failed: {e}")
             self.verdicts["VOID"] += 1
@@ -598,45 +763,20 @@ class GovernedSEALionClient:
                 "genius": None,
                 "raw_response": raw_response,
                 "raw_metadata": raw_result["metadata"],
-                "anti_hantu_violations": [],
             }
 
-        # 5. Compute GENIUS metrics
-        genius_verdict = None
-        if hasattr(state, "metrics") and state.metrics:
-            try:
-                genius_verdict = compute_genius_index(state.metrics)
-                self.last_genius_verdict = genius_verdict
-            except Exception as e:
-                logger.warning(f"GENIUS computation failed: {e}")
+        # 4. Apply penalties and finalize verdict
+        governed_response, verdict_str = self._apply_penalties_and_verdict(
+            state, genius_verdict, lane, raw_response
+        )
 
-        # 6. Extract verdict
-        verdict_str = get_verdict_string(state)
+        # Update verdict statistics
         self.verdicts[verdict_str] = self.verdicts.get(verdict_str, 0) + 1
 
-        # 7. Check Anti-Hantu violations (F9)
-        governed_response = state.draft_response if hasattr(state, "draft_response") else raw_response
-        anti_hantu_violations = detect_anti_hantu(governed_response)
-
-        if anti_hantu_violations:
-            logger.warning(f"F9 Anti-Hantu violations detected: {anti_hantu_violations}")
-            verdict_str = "VOID"
-            governed_response = "[VOID] F9 Anti-Hantu floor violated. AI cannot claim sentience."
-
-        # 8. PHATIC verbosity penalty
-        if lane == "PHATIC" and len(governed_response) > PHATIC_VERBOSITY_CEILING:
-            logger.info(f"PHATIC verbosity penalty: {len(governed_response)} chars (ceiling: {PHATIC_VERBOSITY_CEILING})")
-            verdict_str = "PARTIAL"
-
-        # 9. C_dark hazard check (evil genius pattern)
-        if genius_verdict and genius_verdict.c_dark >= C_DARK_SABAR_THRESHOLD:
-            logger.warning(f"C_dark hazard detected: {genius_verdict.c_dark:.3f}")
-            verdict_str = "SABAR"
-            governed_response = "Hold on - I want to ensure this guidance is helpful and safe."
-
-        # 10. Store turn history
+        # 5. Store turn history
         self.turns.append((query, governed_response))
 
+        # 6. Return complete result
         return {
             "response": governed_response,
             "verdict": verdict_str,
@@ -650,7 +790,6 @@ class GovernedSEALionClient:
             } if genius_verdict else None,
             "raw_response": raw_response,
             "raw_metadata": raw_result["metadata"],
-            "anti_hantu_violations": anti_hantu_violations,
         }
 
     def get_stats(self) -> Dict[str, Any]:

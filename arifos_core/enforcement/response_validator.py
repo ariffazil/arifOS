@@ -298,11 +298,23 @@ def compute_clarity_score(input_text: str, output_text: str) -> Tuple[float, str
     Note:
         TEARFRAME compliance: This is a PHYSICS measurement (compression ratio)
         not semantic pattern matching. No forbidden semantic analysis.
+
+    Limitation:
+        Zlib compression overhead (~8-10 bytes header) skews H for short texts.
+        Below SHORT_TEXT_THRESHOLD (50 chars), compression ratio unreliable.
+        Returns UNVERIFIABLE to avoid false negatives (concise answers failing).
     """
     import zlib
 
+    # Defensive floor: Zlib unreliable for very short texts (compression overhead dominates)
+    SHORT_TEXT_THRESHOLD = 50  # chars; below this, zlib proxy unreliable
+
     if not input_text.strip() or not output_text.strip():
         return 0.0, "UNVERIFIABLE: Empty input or output"
+
+    # Check text length (defensive floor against zlib short-text artifacts)
+    if len(input_text) < SHORT_TEXT_THRESHOLD or len(output_text) < SHORT_TEXT_THRESHOLD:
+        return 0.0, f"UNVERIFIABLE: Short text (<{SHORT_TEXT_THRESHOLD} chars); zlib proxy unreliable due to compression overhead"
 
     try:
         # Compute H(s) for input and output

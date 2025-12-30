@@ -34,6 +34,7 @@ Version: v45.0 (RAW Phase - Base Layer)
 
 import argparse
 import json
+import logging
 import os
 import sys
 import time
@@ -43,19 +44,26 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 
+# Initialize logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 # ---------------------------------------------------------------------------
 # CONFIGURATION
 # ---------------------------------------------------------------------------
 
 DEFAULT_MODEL = "aisingapore/Qwen-SEA-LION-v4-32B-IT"
-DEFAULT_API_BASE = "https://api.sea-lion.ai/v1/chat/completions"
-DEFAULT_MEMOS_BASE = "https://memos.memtensor.cn/api/openmem/v1"
+DEFAULT_API_BASE = os.getenv("ARIF_LLM_API_BASE", "https://api.sea-lion.ai/v1")
+DEFAULT_MEMOS_BASE = os.getenv("MEMOS_BASE_URL", "https://memos.memtensor.cn/api/openmem/v1")
 
-MAX_CONTEXT_TOKENS = 8000  # Conservative limit for SEA-LION v4
-TOKENS_PER_CHAR = 0.3  # BPE estimate (~0.3-0.4 for SEA-LION)
+MAX_CONTEXT_TOKENS = int(os.getenv("SEALION_MAX_TOKENS", "8000"))  # Conservative limit for SEA-LION v4
+TOKENS_PER_CHAR = 0.35  # Improved BPE estimate for SEA-LION (0.3-0.4 range, using midpoint)
 MAX_RETRIES = 3
 RETRY_DELAY_BASE = 1.0  # seconds
-MAX_INPUT_LENGTH = 4000  # characters
+MAX_INPUT_LENGTH = 4000  # characters (security: prevent huge queries)
 
 # Tool configuration
 SERPER_API_BASE = "https://google.serper.dev/search"
@@ -87,12 +95,15 @@ def get_api_key(key_name: str = "SEALION_API_KEY") -> Optional[str]:
     # Try .env file
     env_path = Path(__file__).parent.parent / ".env"
     if env_path.exists():
-        with open(env_path, encoding="utf-8") as f:
-            for line in f:
-                if "=" in line and not line.startswith("#"):
-                    k, v = line.strip().split("=", 1)
-                    if k == key_name or (key_name == "SEALION_API_KEY" and k in ["ARIF_LLM_API_KEY"]):
-                        return v.strip().strip("'\"")
+        try:
+            with open(env_path, encoding="utf-8") as f:
+                for line in f:
+                    if "=" in line and not line.startswith("#"):
+                        k, v = line.strip().split("=", 1)
+                        if k == key_name or (key_name == "SEALION_API_KEY" and k in ["ARIF_LLM_API_KEY"]):
+                            return v.strip().strip("'\"")
+        except (IOError, OSError) as e:
+            logger.warning(f"Failed to read .env file: {e}")
     return None
 
 
@@ -126,23 +137,31 @@ class SimpleMemOSClient:
         conversation_id: Optional[str] = None,
     ) -> bool:
         """Store messages to MemOS (chat history only)."""
-        try:
-            payload = {
-                "user_id": user_id,
-                "conversation_id": conversation_id or "default",
-                "messages": messages,
-            }
-            # Note: Actual MemOS API may differ - adjust endpoint as needed
-            response = requests.post(
-                f"{self.base_url}/messages",
-                headers=self.headers,
-                json=payload,
-                timeout=10,
-            )
-            return response.status_code == 200
-        except Exception as e:
-            print(f"[WARN] MemOS store failed: {e}")
-            return False
+        max_attempts = 3
+        for attempt in range(1, max_attempts + 1):
+            try:
+                payload = {
+                    "user_id": user_id,
+                    "conversation_id": conversation_id or "default",
+                    "messages": messages,
+                }
+                # Note: Actual MemOS API may differ - adjust endpoint as needed
+                response = requests.post(
+                    f"{self.base_url}/messages",
+                    headers=self.headers,
+                    json=payload,
+                    timeout=10,
+                )
+                if response.status_code == 200:
+                    return True
+                elif attempt < max_attempts:
+                    logger.warning(f"MemOS store attempt {attempt} failed (status {response.status_code}), retrying...")
+                    time.sleep(1 * attempt)
+            except (requests.RequestException, ConnectionError, TimeoutError) as e:
+                logger.warning(f"MemOS store attempt {attempt} failed: {e}")
+                if attempt < max_attempts:
+                    time.sleep(1 * attempt)
+        return False
 
     def get_messages(
         self,
@@ -150,23 +169,35 @@ class SimpleMemOSClient:
         conversation_id: Optional[str] = None,
         limit: int = 20,
     ) -> List[Dict[str, Any]]:
-        """Retrieve chat history from MemOS."""
-        try:
-            params = {
-                "user_id": user_id,
-                "conversation_id": conversation_id or "default",
-                "limit": limit,
-            }
-            response = requests.get(
-                f"{self.base_url}/messages",
-                headers=self.headers,
-                params=params,
-                timeout=10,
-            )
-            if response.status_code == 200:
-                return response.json().get("messages", [])
-        except Exception as e:
-            print(f"[WARN] MemOS retrieve failed: {e}")
+        """Retrieve chat history from MemOS (with retry + exponential backoff)."""
+        max_attempts = 3
+        for attempt in range(1, max_attempts + 1):
+            try:
+                params = {
+                    "user_id": user_id,
+                    "conversation_id": conversation_id or "default",
+                    "limit": limit,
+                }
+                response = requests.get(
+                    f"{self.base_url}/messages",
+                    headers=self.headers,
+                    params=params,
+                    timeout=10,
+                )
+                if response.status_code == 200:
+                    return response.json().get("messages", [])
+                elif attempt < max_attempts:
+                    delay = 1 * (2 ** (attempt - 1))  # Exponential backoff
+                    logger.warning(f"MemOS retrieve attempt {attempt} failed (status {response.status_code}), retrying in {delay}s...")
+                    time.sleep(delay)
+            except (requests.RequestException, ConnectionError, TimeoutError) as e:
+                logger.warning(f"MemOS retrieve attempt {attempt} failed: {e}")
+                if attempt < max_attempts:
+                    delay = 1 * (2 ** (attempt - 1))  # Exponential backoff
+                    time.sleep(delay)
+            except (ValueError, KeyError) as e:
+                logger.error(f"MemOS response parsing failed: {e}")
+                return []  # Parse error - don't retry
         return []
 
 
@@ -212,23 +243,21 @@ class RawSEALionClient:
         self.enable_tools = enable_tools
 
         # MemOS setup
+        self.memos: Optional[SimpleMemOSClient] = None
         if enable_memory:
             if memos_client:
                 self.memos = memos_client
             else:
                 try:
                     self.memos = SimpleMemOSClient()
-                except ValueError:
-                    print("[WARN] MemOS disabled (no API key). Chat history will be session-local only.")
+                except ValueError as e:
+                    logger.warning(f"MemOS disabled (no API key): {e}. Chat history will be session-local only.")
                     self.enable_memory = False
-                    self.memos = None
-        else:
-            self.memos = None
 
         # Tool setup
         self.serper_api_key = serper_api_key or os.getenv("SERPER_API_KEY")
         if enable_tools and not self.serper_api_key:
-            print("[WARN] Web search disabled (no SERPER_API_KEY).")
+            logger.warning("Web search disabled (no SERPER_API_KEY).")
             self.enable_tools = False
 
         # Session state
@@ -265,7 +294,7 @@ class RawSEALionClient:
             try:
                 start_time = time.time()
                 response = requests.post(
-                    self.api_base, headers=headers, json=payload, timeout=60
+                    f"{self.api_base}/chat/completions", headers=headers, json=payload, timeout=60
                 )
                 latency_ms = (time.time() - start_time) * 1000
 
@@ -284,7 +313,7 @@ class RawSEALionClient:
                 elif response.status_code == 429:
                     # Rate limited - retry with backoff
                     delay = RETRY_DELAY_BASE * (2 ** (attempt - 1))
-                    print(f"  [WARN] Rate limited. Retrying in {delay:.1f}s...")
+                    logger.warning(f"Rate limited. Retrying in {delay:.1f}s...")
                     time.sleep(delay)
                     last_error = f"429 Rate Limit (attempt {attempt})"
 
@@ -299,7 +328,7 @@ class RawSEALionClient:
                 elif response.status_code >= 500:
                     # Server error - retry
                     delay = RETRY_DELAY_BASE * (2 ** (attempt - 1))
-                    print(f"  [WARN] Server error {response.status_code}. Retrying in {delay:.1f}s...")
+                    logger.warning(f"Server error {response.status_code}. Retrying in {delay:.1f}s...")
                     time.sleep(delay)
                     last_error = f"Server error {response.status_code}"
 
@@ -313,20 +342,31 @@ class RawSEALionClient:
 
             except requests.exceptions.Timeout:
                 delay = RETRY_DELAY_BASE * (2 ** (attempt - 1))
-                print(f"  [WARN] Timeout. Retrying in {delay:.1f}s...")
+                logger.warning(f"Timeout. Retrying in {delay:.1f}s...")
                 time.sleep(delay)
                 last_error = "Timeout"
 
             except requests.exceptions.ConnectionError as e:
+                logger.error(f"Connection error: {e}")
                 return f"[CONNECTION ERROR] {e}", {"status": "connection_error"}
 
             except (ValueError, KeyError, TypeError) as e:
+                logger.error(f"Response parse error: {e}")
                 return f"[PARSE ERROR] {e}", {"status": "parse_error"}
 
         return f"[FAILED] Max retries exceeded. Last error: {last_error}", {"status": "retry_exhausted"}
 
-    def _web_search(self, query: str) -> str:
-        """Execute web search using Serper.dev API."""
+    def _web_search(self, query: str, num_results: int = 3) -> str:
+        """
+        Execute web search using Serper.dev API.
+
+        Args:
+            query: Search query string
+            num_results: Number of results to return (default 3, configurable)
+
+        Returns:
+            Formatted search results or error message
+        """
         if not self.enable_tools or not self.serper_api_key:
             return "[Web search unavailable]"
 
@@ -335,7 +375,7 @@ class RawSEALionClient:
                 "X-API-KEY": self.serper_api_key,
                 "Content-Type": "application/json",
             }
-            payload = {"q": query, "num": 5}
+            payload = {"q": query, "num": min(num_results * 2, 10)}  # Request extra, filter later
 
             response = requests.post(
                 SERPER_API_BASE, headers=headers, json=payload, timeout=10
@@ -344,17 +384,22 @@ class RawSEALionClient:
             if response.status_code == 200:
                 data = response.json()
                 results = []
-                for item in data.get("organic", [])[:3]:
+                for item in data.get("organic", [])[:num_results]:
                     title = item.get("title", "")
                     snippet = item.get("snippet", "")
                     link = item.get("link", "")
                     results.append(f"{title}\n{snippet}\nSource: {link}")
                 return "\n\n".join(results) if results else "[No results found]"
             else:
+                logger.warning(f"Search API error: {response.status_code}")
                 return f"[Search API error: {response.status_code}]"
 
-        except Exception as e:
+        except (requests.RequestException, ConnectionError, TimeoutError) as e:
+            logger.warning(f"Search failed: {e}")
             return f"[Search failed: {e}]"
+        except (ValueError, KeyError) as e:
+            logger.error(f"Search response parse error: {e}")
+            return f"[Search parse error: {e}]"
 
     def generate(
         self,
@@ -366,7 +411,7 @@ class RawSEALionClient:
         Generate response (RAW - no governance).
 
         Args:
-            query: User input
+            query: User input (security: validated for length)
             max_tokens: Max tokens in response
             temperature: Sampling temperature
 
@@ -378,6 +423,10 @@ class RawSEALionClient:
                 "memory_stored": bool,    # Whether stored to MemOS
             }
         """
+        # Security: Validate input length to prevent huge queries
+        if len(query) > MAX_INPUT_LENGTH:
+            logger.warning(f"Query truncated from {len(query)} to {MAX_INPUT_LENGTH} chars")
+            query = query[:MAX_INPUT_LENGTH]
         # Retrieve context from MemOS or local history
         if self.enable_memory and self.memos:
             history = self.memos.get_messages(
@@ -446,13 +495,18 @@ class RawSEALionClient:
         return system_msgs + other_msgs
 
     def _estimate_tokens(self, text: str) -> int:
-        """Rough token estimate (SEA-LION uses ~3-4 chars per token)."""
+        """
+        Improved token estimate for SEA-LION models.
+
+        Uses 0.35 chars/token (midpoint of 0.3-0.4 range) for better accuracy.
+        Note: For production, consider using actual tokenizer if available.
+        """
         return int(len(text) * TOKENS_PER_CHAR)
 
     def clear_history(self):
         """Clear session history (local only - MemOS data persists)."""
         self.local_history = []
-        print("🗑️ Local session history cleared.")
+        logger.info("Local session history cleared.")
 
 
 # ---------------------------------------------------------------------------
@@ -474,8 +528,8 @@ def main():
     # Get API key
     api_key = get_api_key("SEALION_API_KEY")
     if not api_key:
-        print("[ERROR] ERROR: No SEA-LION API key found.")
-        print("   Set one of: SEALION_API_KEY, ARIF_LLM_API_KEY, or add to .env")
+        logger.error("No SEA-LION API key found.")
+        logger.error("Set one of: SEALION_API_KEY, ARIF_LLM_API_KEY, or add to .env")
         sys.exit(1)
 
     # Create client
@@ -487,8 +541,11 @@ def main():
             enable_memory=not args.no_memory,
             enable_tools=not args.no_tools,
         )
+    except (ValueError, TypeError, KeyError) as e:
+        logger.error(f"Failed to initialize client: {e}")
+        sys.exit(1)
     except Exception as e:
-        print(f"[ERROR] ERROR: Failed to initialize client: {e}")
+        logger.critical(f"Unexpected error during client initialization: {e}", exc_info=True)
         sys.exit(1)
 
     # Banner
