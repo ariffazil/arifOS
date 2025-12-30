@@ -25,9 +25,7 @@ from arifos_core.trinity import (
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="/gitseal - Human authority gate for code changes"
-    )
+    parser = argparse.ArgumentParser(description="/gitseal - Human authority gate for code changes")
     parser.add_argument(
         "decision",
         choices=["APPROVE", "REJECT", "HOLD"],
@@ -40,7 +38,7 @@ def main():
         help="Human authority name (e.g. 'Muhammad Arif bin Fazil')",
     )
     parser.add_argument("--reason", required=True, help="Reason for decision")
-    parser.add_argument("--current-version", default="43.0.0", help="Current version")
+    parser.add_argument("--current-version", default="45.0.0", help="Current version")
     parser.add_argument("--json", action="store_true", help="Output as JSON")
 
     args = parser.parse_args()
@@ -59,19 +57,21 @@ def main():
             qc_report = validate_changes(forge_report)
 
             print("📝 Generating housekeeper proposal...")
-            housekeeper_proposal = propose_docs(
-                forge_report, qc_report, args.current_version
-            )
+            housekeeper_proposal = propose_docs(forge_report, qc_report, args.current_version)
 
             print("\n" + "=" * 60)
             print("📋 /GITSEAL SUMMARY")
             print("=" * 60)
-            print(f"\n🔨 Forge: {len(forge_report.files_changed)} files, "
-                  f"ΔS={forge_report.entropy_delta:.2f}, "
-                  f"risk={forge_report.risk_score:.2f}")
+            print(
+                f"\n🔨 Forge: {len(forge_report.files_changed)} files, "
+                f"ΔS={forge_report.entropy_delta:.2f}, "
+                f"risk={forge_report.risk_score:.2f}"
+            )
             print(f"🔍 QC: {qc_report.verdict}, ZKPC={qc_report.zkpc_id}")
-            print(f"📝 Housekeeper: {housekeeper_proposal.version_bump} → "
-                  f"v{housekeeper_proposal.new_version}")
+            print(
+                f"📝 Housekeeper: {housekeeper_proposal.version_bump} → "
+                f"v{housekeeper_proposal.new_version}"
+            )
             print("\n" + "=" * 60)
             print(f"\n⏸️  AWAITING HUMAN DECISION...")
             print(f"\nYou chose: {args.decision}")
@@ -105,7 +105,7 @@ def main():
                 timestamp="",
                 branch=args.branch or "unknown",
                 base_commit="",
-               head_commit="",
+                head_commit="",
             )
             qc_report = QCReport(
                 floors_passed={},
