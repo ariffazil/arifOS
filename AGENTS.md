@@ -336,6 +336,87 @@ When HOLD triggered:
 3. **Re-read PRIMARY:** Explicitly verify against spec JSON or SEALED canon
 4. **Await instruction:** Wait for human approval before proceeding
 
+### 1.12 L2 Modular Integration (v45.0)
+
+**L2_GOVERNANCE provides portable prompt-time governance** for ANY LLM (ChatGPT, Claude, Gemini, Cursor, etc.).
+
+**Location:** [L2_GOVERNANCE/](L2_GOVERNANCE/)
+
+**Architecture:** Modular overlays instead of monolithic prompts.
+
+```
+Identity Root: base_governance_v45.yaml (universal 9 floors + SABAR + verdicts)
+   ↓
+Logic Roots (context-specific overlays):
+   ├── conversational_overlay_v45.yaml (empathy focus for web chat - ASI mode default)
+   ├── code_generation_overlay_v45.yaml (F1-CODE through F9-CODE for IDEs)
+   └── agent_builder_overlay_v45.yaml (multi-turn tool governance for GPT Builder/Gems)
+   ↓
+Display Root: trinity_display_v45.yaml (ASI/AGI/APEX awareness)
+   ↓
+Action Root (optional): MCP server (runtime constitutional tools via scripts/arifos_mcp_entry.py)
+```
+
+**Key Files:**
+
+| File | Purpose | Use Case |
+|------|---------|----------|
+| [base_governance_v45.yaml](L2_GOVERNANCE/universal/base_governance_v45.yaml) | Universal core (F1-F9 + SABAR + verdicts) | Load FIRST for all platforms |
+| [conversational_overlay_v45.yaml](L2_GOVERNANCE/universal/conversational_overlay_v45.yaml) | Empathy focus (F6 κᵣ) + ASI mode | ChatGPT, Claude, Gemini web apps |
+| [code_generation_overlay_v45.yaml](L2_GOVERNANCE/universal/code_generation_overlay_v45.yaml) | F1-CODE through F9-CODE enforcement | Cursor, VS Code Copilot, code assistants |
+| [agent_builder_overlay_v45.yaml](L2_GOVERNANCE/universal/agent_builder_overlay_v45.yaml) | Multi-turn session state + high-stakes triggers | GPT Builder, Gemini Gems |
+| [trinity_display_v45.yaml](L2_GOVERNANCE/universal/trinity_display_v45.yaml) | ASI/AGI/APEX mode awareness | Load LAST for Trinity Display support |
+
+**Platform Integrations:**
+
+- [chatgpt_custom_instructions.yaml](L2_GOVERNANCE/integration/chatgpt_custom_instructions.yaml) — ChatGPT Custom Instructions (references base + conversational + trinity)
+- [claude_projects.yaml](L2_GOVERNANCE/integration/claude_projects.yaml) — Claude Projects (references base + conversational + trinity)
+- [cursor_rules.yaml](L2_GOVERNANCE/integration/cursor_rules.yaml) — Cursor IDE (references base + code_generation)
+- [vscode_copilot.yaml](L2_GOVERNANCE/integration/vscode_copilot.yaml) — VS Code Copilot (references base + code_generation)
+- [gpt_builder.yaml](L2_GOVERNANCE/integration/gpt_builder.yaml) — OpenAI GPT Builder (references base + agent_builder + trinity)
+- [gemini_gems.yaml](L2_GOVERNANCE/integration/gemini_gems.yaml) — Google Gemini Gems (references base + agent_builder + trinity)
+
+**MCP Integration (Runtime Tools):**
+
+- **Guide:** [L2_GOVERNANCE/mcp/integration_guide.md](L2_GOVERNANCE/mcp/integration_guide.md)
+- **Server:** [scripts/arifos_mcp_entry.py](scripts/arifos_mcp_entry.py)
+- **Tools:** `arifos_judge`, `arifos_fag_read`, `arifos_audit`, `arifos_recall`, `arifos_evaluate`
+- **Separation:** L2_GOVERNANCE = Prompt-time (what LLM knows), MCP = Runtime (tools LLM can call)
+
+**Loading Examples:**
+
+```yaml
+# Conversational AI (ChatGPT web, Claude, Gemini)
+1. Load base_governance_v45.yaml
+2. Load conversational_overlay_v45.yaml
+3. Load trinity_display_v45.yaml
+# Result: Empathetic, ASI-mode clean outputs
+
+# Code Generation (Cursor, VS Code Copilot)
+1. Load base_governance_v45.yaml
+2. Load code_generation_overlay_v45.yaml
+3. Optional: Install MCP server for runtime tools
+# Result: F1-CODE through F9-CODE enforcement
+
+# Agent Builders (GPT Builder, Gemini Gems)
+1. Load base_governance_v45.yaml
+2. Load agent_builder_overlay_v45.yaml
+3. Load trinity_display_v45.yaml
+# Result: Multi-turn constitutional tool governance with Trinity Display
+```
+
+**Data Flow:**
+
+```
+spec/v45/ (PRIMARY - runtime authority)
+    ↓ derives/simplifies
+L2_GOVERNANCE (DERIVATIVE - portable prompts)
+    ↓ copy-paste by users
+ChatGPT/Claude/Cursor/Gemini/etc.
+```
+
+**Important:** L2_GOVERNANCE is NOT imported by Python code. It's for humans to copy-paste into LLMs.
+
 ## 2. NINE CONSTITUTIONAL FLOORS (Summary)
 
 **Logic:** All floors AND - every floor must PASS. Repair order: F1 first.

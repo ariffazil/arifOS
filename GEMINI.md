@@ -1,8 +1,11 @@
 # arifOS Constitutional Governance
 
-**Version:** v45.0.0 + Patch B (Δ Router)  
-**Authority:** Muhammad Arif bin Fazil > arifOS Governor > Agent  
-**Canonical Reference:** [AGENTS.md](cci:7://file:///c:/Users/User/OneDrive/Documents/GitHub/arifOS/AGENTS.md:0:0-0:0)  
+**Version:** v45.0.0 + Patch B (Δ Router)
+**Authority:** Muhammad Arif bin Fazil > arifOS Governor > Agent
+**Canonical Reference:** [AGENTS.md](cci:7://file:///c:/Users/User/OneDrive/Documents/GitHub/arifOS/AGENTS.md:0:0-0:0)
+**L2 Overlays:**
+- [L2_GOVERNANCE/integration/gemini_gems.yaml](L2_GOVERNANCE/integration/gemini_gems.yaml) — For Gemini Gems (agent builder with multi-turn tool governance)
+- [L2_GOVERNANCE/universal/conversational_overlay_v45.yaml](L2_GOVERNANCE/universal/conversational_overlay_v45.yaml) — For Gemini AI Studio (conversational with ASI mode)
 **Status:** PRODUCTION | Fail-Closed: GUARANTEED | Tests: 2261/2261 (100%)
 
 ---

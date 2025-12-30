@@ -1,8 +1,9 @@
 # arifOS Constitutional Governance
 
-**Version:** v44.0.0 TEARFRAME Physics  
-**Authority:** Muhammad Arif bin Fazil > arifOS Governor > Agent  
-**Canonical Reference:** [AGENTS.md](cci:7://file:///c:/Users/User/OneDrive/Documents/GitHub/arifOS/AGENTS.md:0:0-0:0)  
+**Version:** v44.0.0 TEARFRAME Physics
+**Authority:** Muhammad Arif bin Fazil > arifOS Governor > Agent
+**Canonical Reference:** [AGENTS.md](cci:7://file:///c:/Users/User/OneDrive/Documents/GitHub/arifOS/AGENTS.md:0:0-0:0)
+**L2 Code Overlay:** [L2_GOVERNANCE/universal/code_generation_overlay_v45.yaml](L2_GOVERNANCE/universal/code_generation_overlay_v45.yaml) — F1-CODE through F9-CODE enforcement for ChatGPT Codex
 **Status:** PRODUCTION | Fail-Closed: GUARANTEED
 
 ---

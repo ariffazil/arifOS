@@ -6,6 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Imports:** `~/.claude/CLAUDE.md` — Global governance (floors, SABAR, verdicts)
 **Extends:** [AGENTS.md](AGENTS.md) — Full constitutional governance
+**L2 Overlay:** [L2_GOVERNANCE/universal/code_generation_overlay_v45.yaml](L2_GOVERNANCE/universal/code_generation_overlay_v45.yaml) — F1-CODE through F9-CODE enforcement (copy-paste ready for Claude Projects)
 
 **Important:** This file works in conjunction with [AGENTS.md](AGENTS.md), which contains additional governance rules including:
 - File Integrity & ACLIP Protocol (never "clean up" files by removing sections)
