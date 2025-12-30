@@ -1,0 +1,75 @@
+{
+  "_comment": "arifOS v45.0 Session Template - Copy and update for each new session",
+  "_usage": "cp .arifos_clip/session_template_v45.json .arifos_clip/session.json && edit session.json",
+
+  "id": "YYYYMMDDHHMMSS",
+  "task": "Task description here",
+  "status": "VOID",
+
+  "v45_config": {
+    "version": "v45.0.0",
+    "track_a": "L1_THEORY/canon/",
+    "track_b": "spec/v45/",
+    "track_c": "arifos_core/",
+    "trinity_display_mode": "ASI",
+    "floors_active": ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"],
+    "phoenix_72_cooling": false,
+    "tests_total": "2180+"
+  },
+
+  "steps": [
+    {
+      "stage": 0,
+      "name": "void",
+      "input": "Task description",
+      "output": null,
+      "exit_code": 40,
+      "timestamp": "ISO8601",
+      "metadata": {
+        "lane": null,
+        "claims_detected": false,
+        "floor_scores": {}
+      }
+    }
+  ],
+
+  "metadata": {
+    "agent": "claude-code",
+    "model": "claude-sonnet-4.5",
+    "platform": "vscode",
+    "created_at": "ISO8601",
+    "updated_at": "ISO8601"
+  },
+
+  "artifacts": {
+    "reports": [],
+    "audits": [],
+    "holds": []
+  },
+
+  "verdict": {
+    "final": null,
+    "floor_scores": {
+      "F1_amanah": null,
+      "F2_truth": null,
+      "F3_tri_witness": null,
+      "F4_delta_s": null,
+      "F5_peace_squared": null,
+      "F6_empathy": null,
+      "F7_omega_0": null,
+      "F8_genius": null,
+      "F9_c_dark": null
+    },
+    "genius_metrics": {
+      "G": null,
+      "C_dark": null,
+      "Psi": null,
+      "TP": null
+    },
+    "trinity_display": {
+      "delta": null,
+      "omega": null,
+      "psi": null
+    }
+  }
+}
