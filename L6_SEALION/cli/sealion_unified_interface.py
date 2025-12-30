@@ -21,13 +21,13 @@ Architecture:
 
 Usage:
     # UI Mode (Gradio)
-    python scripts/sealion_unified_interface_v2.py
+    python L6_SEALION/cli/sealion_unified_interface.py
 
     # REPL Mode
-    python scripts/sealion_unified_interface_v2.py --cli
+    python L6_SEALION/cli/sealion_unified_interface.py --cli
 
     # Both modes with comparison enabled
-    python scripts/sealion_unified_interface_v2.py --comparison
+    python L6_SEALION/cli/sealion_unified_interface.py --comparison
 
 Commands:
     /both    - Toggle side-by-side RAW vs GOVERNED comparison
@@ -50,22 +50,22 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 # Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-# Import Phase 1: RAW client
+# Import Phase 1: RAW client (same folder)
 try:
-    from scripts.sealion_raw_client import RawSEALionClient
+    from sealion_raw_client import RawSEALionClient
 except ImportError:
     print("❌ ERROR: Phase 1 client not found.")
-    print("   Ensure scripts/sealion_raw_client.py exists.")
+    print("   Ensure L6_SEALION/cli/sealion_raw_client.py exists.")
     sys.exit(1)
 
-# Import Phase 2: Governance wrapper
+# Import Phase 2: Governance wrapper (same folder)
 try:
-    from scripts.sealion_governed_client import GovernedSEALionClient
+    from sealion_governed_client import GovernedSEALionClient
 except ImportError:
     print("❌ ERROR: Phase 2 client not found.")
-    print("   Ensure scripts/sealion_governed_client.py exists.")
+    print("   Ensure L6_SEALION/cli/sealion_governed_client.py exists.")
     sys.exit(1)
 
 # Try to import Gradio (for UI mode)
