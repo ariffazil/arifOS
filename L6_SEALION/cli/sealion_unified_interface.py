@@ -326,6 +326,9 @@ class UnifiedInterface:
 
     def _generate_governed(self, query: str) -> str:
         """Generate governed response only (default)."""
+        if not self.governed:
+            return "[WARN] Governed client unavailable; RAW-only mode."
+
         result = self.governed.generate(query)
 
         if self.display_mode == DISPLAY_MODE_ASI:
@@ -343,6 +346,8 @@ class UnifiedInterface:
         raw_result = self.raw.generate(query)
 
         # Get GOVERNED response (Phase 2)
+        if not self.governed:
+            return format_comparison(raw_result, {"response": "[WARN] Governed client unavailable."})
         governed_result = self.governed.generate(query)
 
         # Format comparison
