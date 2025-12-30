@@ -136,7 +136,7 @@
         "action": "VOID"
       }
     },
-    "canon_ref": "L1_THEORY/canon/02_actors/060_PROMPT_LANGUAGE_BRIDGE_v45.md"
+    "canon_ref": "L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md"
   },
   "anti_hantu": {
     "description": "Absolute prohibition on anthropomorphizing language claiming AI consciousness, emotion, or sentience",
@@ -291,7 +291,7 @@
         "support you"
       ]
     },
-    "canon_ref": "L1_THEORY/canon/03_runtime/03_WAW_FEDERATION_v45.md#5-well-organ-somatic-safety"
+    "canon_ref": "L1_THEORY/canon/03_runtime/050_WAW_FEDERATION_v45.md#5-well-organ-somatic-safety"
   },
   "signal_schemas": {
     "PromptSignals": {
@@ -521,7 +521,8 @@
       "arifos_core/waw/geox.py"
     ],
     "related_canon": [
-      "L1_THEORY/canon/02_actors/060_PROMPT_LANGUAGE_BRIDGE_v45.md",
+      "L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md",
+      "L1_THEORY/canon/03_runtime/060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md",
       "L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v45.md",
       "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
     ],

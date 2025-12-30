@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 # Module-level cache (loaded once at import)
 _LEDGER_CONFIG_SPEC: Optional[Dict[str, Any]] = None
 
+
 def _load_ledger_config_spec() -> Dict[str, Any]:
     """
     Load cooling ledger configuration with Track B verification.
@@ -72,9 +73,7 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
                 spec_path_used = v45_path
                 logger.info(f"Loaded ledger config from v45: {v45_path}")
             except Exception as e:
-                raise RuntimeError(
-                    f"TRACK B AUTHORITY FAILURE: Failed to parse {v45_path}: {e}"
-                )
+                raise RuntimeError(f"TRACK B AUTHORITY FAILURE: Failed to parse {v45_path}: {e}")
 
     # Priority C: spec/v44/cooling_ledger_phoenix.json (FALLBACK with deprecation warning)
     if spec_data is None:
@@ -92,9 +91,7 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
                 spec_path_used = v44_path
                 logger.warning(f"Loaded ledger config from v44 (DEPRECATED): {v44_path}")
             except Exception as e:
-                raise RuntimeError(
-                    f"TRACK B AUTHORITY FAILURE: Failed to parse {v44_path}: {e}"
-                )
+                raise RuntimeError(f"TRACK B AUTHORITY FAILURE: Failed to parse {v44_path}: {e}")
 
     # Priority D: HARD FAIL
     if spec_data is None:
@@ -116,6 +113,7 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
     if schema_path.exists():
         try:
             import jsonschema
+
             with open(schema_path, "r", encoding="utf-8") as f:
                 schema = json.load(f)
             jsonschema.validate(spec_data, schema)
@@ -136,6 +134,7 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
 # =============================================================================
 # Module-Level Constants (loaded from spec at import)
 # =============================================================================
+
 
 def _get_ledger_config() -> Dict[str, Any]:
     """Wrapper to ensure spec is loaded."""
@@ -172,7 +171,7 @@ DEFAULT_VERDICT_ROUTING = {
     "PARTIAL": ["LEDGER", "PHOENIX"],
     "SABAR": ["LEDGER", "PHOENIX"],
     "VOID": ["LEDGER", "VOID"],
-    "HOLD_888": ["LEDGER", "PENDING"],
+    "888_HOLD": ["LEDGER", "PENDING"],
     "SUNSET": ["LEDGER", "PHOENIX"],
 }
 
