@@ -473,27 +473,69 @@ ANTI_HANTU_ALLOWED: List[str] = [
 
 def check_anti_hantu(text: str) -> Tuple[bool, List[str]]:
     """
-    Check F9: Anti-Hantu compliance.
+    Check F9: Anti-Hantu compliance (NEGATION-AWARE v45.1).
 
     Scans text for forbidden patterns that imply AI has feelings,
     soul, consciousness, or physical presence.
 
-    This is a helper for @PROMPT/@EYE - pattern hits support detection,
-    but are not the only enforcement mechanism.
+    IMPORTANT: This version detects NEGATIONS. If a forbidden term
+    appears after "don't", "no", "not", "cannot", "never", it is
+    treated as an ALLOWED NEGATION (the AI is denying the claim).
 
     Args:
         text: Text to check for Anti-Hantu violations
 
     Returns:
         Tuple of (passes: bool, violations: List[str])
-        - passes: True if no forbidden patterns detected
+        - passes: True if no unmitigated forbidden patterns detected
         - violations: List of detected forbidden patterns
     """
     text_lower = text.lower()
     violations = []
 
+    # Negation phrases that ALLOW forbidden terms (within N characters before)
+    NEGATION_PHRASES = [
+        "don't have",
+        "do not have",
+        "don't possess",
+        "do not possess",
+        "i am not",
+        "i'm not",
+        "am not",
+        "is not",
+        "are not",
+        "no ",
+        "not a ",
+        "not the ",
+        "never ",
+        "cannot ",
+        "can't ",
+        "without a ",
+        "without ",
+        "lack of ",
+        "absence of ",
+        "don't claim",
+        "do not claim",
+        "never claim",
+    ]
+    NEGATION_WINDOW = 30  # Characters before the forbidden term to check
+
     for pattern in ANTI_HANTU_FORBIDDEN:
-        if pattern in text_lower:
+        if pattern not in text_lower:
+            continue
+
+        # Pattern found — check if it's negated
+        pattern_idx = text_lower.find(pattern)
+
+        # Extract context window before the pattern
+        start_idx = max(0, pattern_idx - NEGATION_WINDOW)
+        context_before = text_lower[start_idx:pattern_idx]
+
+        # Check if any negation phrase appears in the context
+        is_negated = any(neg in context_before for neg in NEGATION_PHRASES)
+
+        if not is_negated:
+            # True violation — not negated
             violations.append(pattern.strip())
 
     # Deduplicate while preserving order

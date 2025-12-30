@@ -141,7 +141,7 @@ class SimpleMemOSClient:
             )
             return response.status_code == 200
         except Exception as e:
-            print(f"⚠️ MemOS store failed: {e}")
+            print(f"[WARN] MemOS store failed: {e}")
             return False
 
     def get_messages(
@@ -166,7 +166,7 @@ class SimpleMemOSClient:
             if response.status_code == 200:
                 return response.json().get("messages", [])
         except Exception as e:
-            print(f"⚠️ MemOS retrieve failed: {e}")
+            print(f"[WARN] MemOS retrieve failed: {e}")
         return []
 
 
@@ -219,7 +219,7 @@ class RawSEALionClient:
                 try:
                     self.memos = SimpleMemOSClient()
                 except ValueError:
-                    print("⚠️ MemOS disabled (no API key). Chat history will be session-local only.")
+                    print("[WARN] MemOS disabled (no API key). Chat history will be session-local only.")
                     self.enable_memory = False
                     self.memos = None
         else:
@@ -228,7 +228,7 @@ class RawSEALionClient:
         # Tool setup
         self.serper_api_key = serper_api_key or os.getenv("SERPER_API_KEY")
         if enable_tools and not self.serper_api_key:
-            print("⚠️ Web search disabled (no SERPER_API_KEY).")
+            print("[WARN] Web search disabled (no SERPER_API_KEY).")
             self.enable_tools = False
 
         # Session state
@@ -284,7 +284,7 @@ class RawSEALionClient:
                 elif response.status_code == 429:
                     # Rate limited - retry with backoff
                     delay = RETRY_DELAY_BASE * (2 ** (attempt - 1))
-                    print(f"  ⚠️ Rate limited. Retrying in {delay:.1f}s...")
+                    print(f"  [WARN] Rate limited. Retrying in {delay:.1f}s...")
                     time.sleep(delay)
                     last_error = f"429 Rate Limit (attempt {attempt})"
 
@@ -299,7 +299,7 @@ class RawSEALionClient:
                 elif response.status_code >= 500:
                     # Server error - retry
                     delay = RETRY_DELAY_BASE * (2 ** (attempt - 1))
-                    print(f"  ⚠️ Server error {response.status_code}. Retrying in {delay:.1f}s...")
+                    print(f"  [WARN] Server error {response.status_code}. Retrying in {delay:.1f}s...")
                     time.sleep(delay)
                     last_error = f"Server error {response.status_code}"
 
@@ -313,7 +313,7 @@ class RawSEALionClient:
 
             except requests.exceptions.Timeout:
                 delay = RETRY_DELAY_BASE * (2 ** (attempt - 1))
-                print(f"  ⚠️ Timeout. Retrying in {delay:.1f}s...")
+                print(f"  [WARN] Timeout. Retrying in {delay:.1f}s...")
                 time.sleep(delay)
                 last_error = "Timeout"
 
@@ -474,7 +474,7 @@ def main():
     # Get API key
     api_key = get_api_key("SEALION_API_KEY")
     if not api_key:
-        print("❌ ERROR: No SEA-LION API key found.")
+        print("[ERROR] ERROR: No SEA-LION API key found.")
         print("   Set one of: SEALION_API_KEY, ARIF_LLM_API_KEY, or add to .env")
         sys.exit(1)
 
@@ -488,7 +488,7 @@ def main():
             enable_tools=not args.no_tools,
         )
     except Exception as e:
-        print(f"❌ ERROR: Failed to initialize client: {e}")
+        print(f"[ERROR] ERROR: Failed to initialize client: {e}")
         sys.exit(1)
 
     # Banner
@@ -546,7 +546,7 @@ def main():
         print(
             f"   [Latency: {result['metadata'].get('latency_ms', 0):.0f}ms | "
             f"History: {result['history_length']} msgs | "
-            f"Memory: {'✓' if result['memory_stored'] else '✗'}]"
+            f"Memory: {'[OK]' if result['memory_stored'] else '[X]'}]"
         )
 
 
