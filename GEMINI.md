@@ -1,13 +1,13 @@
 # arifOS Constitutional Governance
 
-**Version:** v45.0.1 + Patch B (Δ Router) + APEX THEORY
+**Version:** v45.1.1 + L4_MCP Reclamation
 **Authority:** Muhammad Arif bin Fazil > arifOS Governor > Agent
 **Canonical Reference:** [AGENTS.md](cci:7://file:///c:/Users/User/OneDrive/Documents/GitHub/arifOS/AGENTS.md:0:0-0:0)
 **L2 Overlays:**
 
 - [L2_GOVERNANCE/integration/gemini_gems.yaml](L2_GOVERNANCE/integration/gemini_gems.yaml) — For Gemini Gems (agent builder with multi-turn tool governance)
 - [L2_GOVERNANCE/universal/conversational_overlay_v45.yaml](L2_GOVERNANCE/universal/conversational_overlay_v45.yaml) — For Gemini AI Studio (conversational with ASI mode)
-**Status:** PRODUCTION | Fail-Closed: GUARANTEED | Tests: 2261/2261 (100%)
+**Status:** PRODUCTION | Fail-Closed: GUARANTEED | Tests: 2350+ (100%)
 
 ---
 
@@ -187,6 +187,45 @@ python scripts/trinity.py seal <branch> "Approval reason"
 - All changes validated against F1-F9
 - Entropy trends visible before commit
 - Atomic bundling (all-or-nothing)
+
+---
+
+## L4_MCP Black-box Authority (v45.1.1)
+
+arifOS provides **two MCP surfaces** — different threat models, same constitutional law:
+
+### Glass-box (`arifos_core/mcp/`)
+
+**For:** IDE integration, debugging, research  
+**Tools:** 17 composable (full pipeline visibility)  
+**Ledger:** JSONL + Merkle tree (cryptographic proofs)  
+**Verdicts:** SEAL/VOID/SABAR/HOLD_888/PARTIAL
+
+### Black-box (`L4_MCP/`)
+
+**For:** Agents, production systems, external callers  
+**Tools:** 1 (`apex.verdict`) — non-bypassable  
+**Ledger:** SQLite (ACID transactions, fail-closed)  
+**Verdicts:** SEAL/VOID/SABAR/HOLD_888 (PARTIAL → SABAR)
+
+**Security Invariants:**
+
+- ✅ Fail-closed: Ledger down → VOID
+- ✅ Atomic: One call → one verdict
+- ✅ Non-bypassable: Internals hidden
+- ✅ Auditable: Every decision logged
+
+**Usage:**
+
+```python
+from L4_MCP.server import handle_apex_verdict_call
+
+result = handle_apex_verdict_call(
+    task="read file README.md",
+    context={"source": "claude-desktop", "trust_level": "high"}
+)
+# → {"verdict": "SEAL", "apex_pulse": 1.0, ...}
+```
 
 ---
 

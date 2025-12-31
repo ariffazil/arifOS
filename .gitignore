@@ -104,3 +104,4 @@ cooling_ledger/sealion_forge_sessions.jsonl
 
 # Manual test scripts (ephemeral)
 scripts/manual_tests/
+cooling_ledger_l4.sqlite3

@@ -4,7 +4,7 @@
 
 ![arifOS Constitutional Governance Kernel](docs/arifOS%20Constitutional%20Governance%20Kernel.png)
 
-![Tests](https://img.shields.io/badge/tests-passing-brightgreen) ![Version](https://img.shields.io/badge/version-v45.0.0-blue) ![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
+![Tests](https://img.shields.io/badge/tests-passing-brightgreen) ![Version](https://img.shields.io/badge/version-v45.1.1-blue) ![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
 
 ---
 
@@ -74,6 +74,7 @@ elif verdict.status == "VOID":
 **Time to working:** 2 minutes
 
 #### 🚀 Try the Official Prompt Generator GPT
+
 **Instant Start:** Use our official custom GPT to generate governance prompts for your specific use case.
 [**→ Prompt AGI (Voice)**](https://chatgpt.com/g/g-69091743deb0819180e4952241ea7564-prompt-agi-voice)
 
@@ -204,6 +205,7 @@ What it does:
 | **VS Code Copilot** | [vscode_copilot.yaml](L2_GOVERNANCE/integration/vscode_copilot.yaml) | 200 lines | Code-first, minimal footprint |
 
 **All files include:**
+
 - 9 Constitutional Floors (F1-F9)
 - Verdict system (SEAL/PARTIAL/SABAR/VOID/HOLD)
 - Lane-aware truthfulness (PHATIC/SOFT/HARD/REFUSE)
@@ -230,6 +232,7 @@ What it adds:
 [**→ Download code_generation_overlay_v45.yaml**](L2_GOVERNANCE/universal/code_generation_overlay_v45.yaml)
 
 **Usage:**
+
 1. Copy `base_governance_v45.yaml` into your IDE's LLM instructions
 2. Append `code_generation_overlay_v45.yaml` below it
 3. Result: Constitutional code generation
@@ -248,6 +251,7 @@ What it adds:
 | **Communication Enforcement** | Strict emission governance | [communication_enforcement_v45.yaml](L2_GOVERNANCE/universal/communication_enforcement_v45.yaml) |
 
 **Example combination:**
+
 ```
 base_governance_v45.yaml (400 lines)
 + code_generation_overlay_v45.yaml (200 lines)
@@ -430,6 +434,7 @@ Every query flows through 10 metabolic stages:
 ### What Is L2_GOVERNANCE?
 
 A complete governance specification that you can:
+
 - Copy directly into ChatGPT Custom Instructions
 - Load into Claude Projects knowledge
 - Add to Cursor `.cursorrules`
@@ -659,6 +664,7 @@ python scripts/test_track_abc_enforcement.py --interactive
 ```
 
 **Tests cover:**
+
 1. ✅ F9 negation-aware detection (positive + negative cases)
 2. ✅ F2 Truth with external evidence
 3. ✅ F4 ΔS zlib compression proxy
@@ -668,6 +674,7 @@ python scripts/test_track_abc_enforcement.py --interactive
 7. ✅ Verdict hierarchy (VOID > HOLD-888 > PARTIAL > SEAL)
 
 **Full Documentation:**
+
 - **API Reference:** [CLAUDE.md - Track A/B/C Enforcement API](CLAUDE.md#track-abc-enforcement-api-v451)
 - **Implementation Proof:** [TRACK_ABC_IMPLEMENTATION_PROOF.md](TRACK_ABC_IMPLEMENTATION_PROOF.md)
 - **Upgrade Roadmap:** [TRACK_ABC_UPGRADE_ROADMAP.md](TRACK_ABC_UPGRADE_ROADMAP.md)
@@ -675,12 +682,14 @@ python scripts/test_track_abc_enforcement.py --interactive
 ### Migration Guide
 
 **Old API** (still supported):
+
 ```python
 from arifos_core.enforcement.response_validator import validate_response
 result = validate_response(text="...", claimed_omega=0.04)
 ```
 
 **New API** (recommended for v45.1+):
+
 ```python
 from arifos_core.enforcement.response_validator_extensions import validate_response_full
 result = validate_response_full(
@@ -703,6 +712,7 @@ result = validate_response_full(
 Constitutional governance must evolve lawfully. Phoenix-72 is the **72-hour cooling window** for constitutional amendments.
 
 **Process:**
+
 1. Edge case triggers SCAR (Systemic Constitutional Amendment Request)
 2. Pattern synthesis identifies recurring issues
 3. Amendment drafted (cooling begins)
@@ -723,19 +733,55 @@ Verdict-driven storage:
 | **VOID** | Quarantine | VOID verdicts | 90d then purge |
 
 **Cryptographic integrity:**
+
 - SHA3-256 hash chain (tamper-evident)
 - Merkle tree proofs
 - `arifos-verify-ledger` command
 
-### MCP Server Integration (IDE Support)
+### MCP Server Integration (Two Surfaces, One Law)
 
-**Supported IDEs:** VS Code, Cursor (any MCP-compatible editor)
+arifOS provides **two MCP surfaces** for different use cases:
+
+#### Glass-box MCP (`arifos_core/mcp/`) — IDE Integration
+
+**Purpose:** Debugging, research, IDE integration  
+**Tools:** 17 composable (full pipeline visibility)  
+**Ledger:** JSONL + Merkle tree (cryptographic proofs)
 
 **Available Tools:**
+
 - `arifos_judge` — Constitutional judgment on text
 - `arifos_recall` — Query memory bands
 - `arifos_audit` — Verify ledger integrity
 - `arifos_fag_read` — Governed file access
+- `mcp_000_reset` → `mcp_999_seal` — Full 000→999 pipeline
+
+**Supported IDEs:** VS Code, Cursor (any MCP-compatible editor)
+
+#### Black-box MCP (`L4_MCP/`) — Agent Authority
+
+**Purpose:** Agents, production systems, external callers  
+**Tools:** 1 (`apex.verdict`) — non-bypassable  
+**Ledger:** SQLite (ACID transactions, fail-closed)
+
+**Single Tool API:**
+
+```python
+from L4_MCP.server import handle_apex_verdict_call
+
+result = handle_apex_verdict_call(
+    task="read file README.md",
+    context={"source": "claude-desktop", "trust_level": "high"}
+)
+# → {"verdict": "SEAL", "apex_pulse": 1.0, ...}
+```
+
+**Security Invariants:**
+
+- ✅ Fail-closed: Ledger down → VOID
+- ✅ Atomic: One call → one verdict
+- ✅ Non-bypassable: Internals hidden
+- ✅ Auditable: Every decision logged
 
 ---
 

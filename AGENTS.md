@@ -61,6 +61,7 @@ python -m scripts.test_bogel_llama         # 33-prompt baseline (uncaged LLM)
 ```
 
 **Skills Registry (v45.0.0+):**
+
 - **PRIMARY:** [L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md](L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md) – Canonical registry for all 7 core constitutional skills (/000, /fag, /entropy, /gitforge, /gitQC, /gitseal, /sabar)
 - **MASTER:** [.agent/workflows/](.agent/workflows/) – Single source of truth (000.md, fag.md, gitforge.md with YAML frontmatter)
 - **DERIVED:** [.codex/skills/](.codex/skills/) and [.claude/skills/](.claude/skills/) – Platform variants with sync markers
@@ -68,6 +69,7 @@ python -m scripts.test_bogel_llama         # 33-prompt baseline (uncaged LLM)
 - Tool restrictions fail-closed (platforms can only RESTRICT, never EXPAND), verdict triggers, logging requirements
 
 **Canonical Documentation (v45.0.0+):**
+
 - **ARCHITECTURE:** [docs/ARCHITECTURE_AND_NAMING_v45.md](docs/ARCHITECTURE_AND_NAMING_v45.md) – Complete architecture & naming standards (ONE canonical reference for layers, tracks, numbering, file placement)
 - **CANON INDEX:** [L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md](L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md) – Constitutional law master index
 - **SPEC:** [spec/v45/](spec/v45/) – Track B authority (thresholds with SHA-256 verification)
@@ -115,6 +117,14 @@ Human-facing "wisdom log" to prevent repeated entropy mistakes.
   - Integration bridge created: [arifos_core/bridge.py](arifos_core/bridge.py) (aCLIP adapter)
   - **arifos_eval v45 Upgrade:** Evaluation framework aligned with Phoenix-72 (v36.1Ω → v45.0.0) - [arifos_eval/apex/apex_standards_v45.json](arifos_eval/apex/apex_standards_v45.json) with Anti-Hantu hypothetical patterns, crisis override awareness, Track B alignment. Tests: 45/45 + 5/5 PASSED. Commit 2eb64d1.
   - Total: 4 commits (a8c7a37, 6d62b94, ff5ced3, 2eb64d1), 122 files changed, +10,284 insertions, -2,196 deletions, ΔS_session = +6.2 (excellent clarity gain)
+- **2025-12-31 (v45.1.1 L4_MCP Reclamation):** Constitutional architecture decision:
+  - **L4 Reclaimed:** Layer 4 reclaimed from deprecated status as Black-box MCP Authority
+  - **Two Surfaces, One Law:** `L4_MCP/` (black-box, 1 tool) + `arifos_core/mcp/` (glass-box, 17 tools)
+  - **New Package:** `L4_MCP/` with `apex.verdict` as single non-bypassable entry point
+  - **New Package:** `arifos_ledger/` with shared `LedgerStore(ABC)` abstraction
+  - **Security Alignment:** Matches 2025 MCP best practices (fail-closed, single gateway, external governance)
+  - **Floor Semantics Locked:** F5=Peace², F6=κᵣ, F7=Ω₀ (canonical L1_THEORY, no drift)
+  - Commit 1c6efd9, 22 new files, architecture doc updated
 - **2025-12-29 (Reverse Transformer Architecture Canon):** Integrated foundational theory into Track A:
   - **NEW:** [L1_THEORY/canon/03_runtime/060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md](L1_THEORY/canon/03_runtime/060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md) (~1000 lines) — Standard vs arifOS comparison, why semantic reduction enables F1-F9
   - **NEW:** [L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md](L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md) (~600 lines) — @PROMPT as "the key" (Stage 999 emission gate)
@@ -434,6 +444,7 @@ ChatGPT/Claude/Cursor/Gemini/etc.
 ```
 
 **Why the loop works:**
+
 - **DERIVATIVE not authoritative:** L2_GOVERNANCE files derive from PRIMARY sources (canon + spec)
 - **Editable without constitutional drift:** spec/v45/ remains locked via SHA-256 manifest
 - **Platform-agnostic:** Same 9 floors work for ANY LLM (no retraining required)
@@ -1104,7 +1115,6 @@ For detailed roadmap and task priorities, see [docs/ROADMAP.md](docs/ROADMAP.md)
 - **NEW:** `tests/test_lane_routing.py` — 5 tests validating 4-lane routing
 
 **Results:** 2261/2261 tests passing (100%), GitQC PASSED, all F1-F9 floors preserved
-
 
 ### Hard Gates (Sequential)
 

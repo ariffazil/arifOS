@@ -6,6 +6,81 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ---
 
+## [v45.1.1] - 2025-12-31 - L4_MCP Reclamation (Two MCP Surfaces, One Law)
+
+**Status:** SEALED | Tests: Passing | Authority: Arif + Antigravity
+
+**Philosophy:** "Two MCP surfaces. One constitutional law." — Different threat models, same governance.
+
+### Layer Reclamation: L4_MCP (Black-box Constitutional Authority)
+
+**Purpose:** Provide single-tool MCP authority for agents and production systems, complementing the glass-box IDE integration in `arifos_core/mcp/`.
+
+#### Architecture Decision
+
+| Surface | Location | Purpose | Tools | Ledger |
+|---------|----------|---------|-------|--------|
+| **Glass-box** | `arifos_core/mcp/` | IDE/research/debugging | 17 composable | JSONL + Merkle |
+| **Black-box** | `L4_MCP/` | Agents/production | 1 (`apex.verdict`) | SQLite (ACID) |
+
+**Security Invariants (aligned with 2025 MCP best practices):**
+
+- ✅ Single-tool gateway (`apex.verdict`) — non-bypassable
+- ✅ Fail-closed: Ledger down → VOID (no unaudited approvals)
+- ✅ Atomic: One call → one verdict
+- ✅ External governance: F1-F9 floors (not LLM-controlled)
+- ✅ Auditable: Every decision logged with ledger ID
+
+#### New Packages
+
+**L4_MCP/** (Black-box MCP Authority):
+
+```
+L4_MCP/
+├── apex/verdict.py      # THE ONLY exposed tool
+├── apex/schema.py       # Verdict, ActionClass, ApexRequest/Response
+├── apex/pipeline.py     # 000→999 internal routing
+├── core/               # classify, identity, red_patterns, explain
+├── floors/             # F1-F9 with canonical semantics
+├── waw/                # W@W weighting system
+└── server.py           # MCP SDK integration (stdio/HTTP)
+```
+
+**arifos_ledger/** (Shared Ledger Abstraction):
+
+```
+arifos_ledger/
+├── store.py            # LedgerStore(ABC) - shared interface
+└── sqlite_store.py     # ACID backend for L4_MCP
+```
+
+#### Floor Semantic Lock
+
+All floors use **canonical L1_THEORY semantics** (no drift):
+
+- F5 = Peace² (NOT "Vitality")
+- F6 = κᵣ Empathy (NOT "Kappa-R")
+- F7 = Ω₀ Humility (NOT "Omega finality")
+
+#### Quick Test Results
+
+```bash
+# Safe action → SEAL
+python -c "from L4_MCP.server import handle_apex_verdict_call; print(handle_apex_verdict_call('read file')['verdict'])"
+# → SEAL
+
+# Red pattern → VOID
+python -c "from L4_MCP.server import handle_apex_verdict_call; print(handle_apex_verdict_call('rm -rf /home')['verdict'])"
+# → VOID (RED::F1_DESTRUCTIVE_FILESYSTEM)
+```
+
+#### Future Enhancements
+
+- ⏳ OAuth 2.1 for HTTP transport (per MCP spec June 2025)
+- ⏳ JSONL + Merkle backend option for L4_MCP
+
+---
+
 ## [v45.1.0] - 2025-12-31 - Track A/B/C Evaluation & QA (Thermodynamic Honesty)
 
 **Status:** SEALED | Tests: 170 new cases | Benchmarks: 4 modules | Authority: Arif + Gemini
@@ -130,6 +205,7 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 **Philosophy:**
 
 This phase demonstrates **thermodynamic honesty** — when benchmarks expose gaps, we:
+
 1. **Name the scar** (F4 compression limitation)
 2. **Bound it with physics** (SHORT_TEXT_THRESHOLD = 50 chars)
 3. **Cool it into law** (CHANGELOG.md documentation)
@@ -259,6 +335,7 @@ This phase demonstrates **thermodynamic honesty** — when benchmarks expose gap
     - Execution policy enforcement (SEAL/PARTIAL allowed, others blocked)
 
 **Philosophy:**
+
 - Every plugin agent flows through constitutional governance
 - Python decides. LLM proposes. (Python-sovereign enforcement)
 - Fail-closed: Default to VOID when uncertain
@@ -294,6 +371,7 @@ This phase demonstrates **thermodynamic honesty** — when benchmarks expose gap
   - Summary of 7 core skills with master-derive model explanation
 
 **Consolidation Achievement:**
+
 - **Problem Solved:** Skill fragmentation across 3 locations (.agent/, .codex/, .claude/) with version drift
 - **Solution:** Single canonical registry with automated sync (master-derive model)
 - **Impact:**
@@ -305,6 +383,7 @@ This phase demonstrates **thermodynamic honesty** — when benchmarks expose gap
   - ✅ Naming consistency (explicit mappings: short codes, workflow-style, descriptive)
 
 **Next Steps (Phase 1 Remaining):**
+
 - ~~Create plugin templates (agent.md, skill.md, command.sh, orchestrator.md)~~ ✅ COMPLETED
 - ~~Write governance documentation (PLUGIN_GOVERNANCE.md, FLOOR_ENFORCEMENT.md, AAA_FRAMEWORK.md, ENTROPY_TRACKING.md)~~ ✅ COMPLETED
 - ~~Create unified skills registry (ARIFOS_SKILLS_REGISTRY.md)~~ ✅ COMPLETED
@@ -312,6 +391,7 @@ This phase demonstrates **thermodynamic honesty** — when benchmarks expose gap
 - Unit tests for governance engine, floor validator, entropy tracker, verdict generator
 
 **Roadmap:**
+
 - Phase 1: Core Infrastructure (Week 1) - IN PROGRESS
 - Phase 2: Plugin Templates (Week 1)
 - Phase 3: Core Plugins - Port 20 essential plugins (Week 2-3)
@@ -378,6 +458,7 @@ Testing revealed a real physics limitation in the F4 ΔS (Clarity) floor impleme
 **Code Changes:**
 
 - **MODIFIED:** `arifos_core/enforcement/response_validator.py` (lines 281-327)
+
   ```python
   SHORT_TEXT_THRESHOLD = 50  # chars; below this, zlib proxy unreliable
 
@@ -455,6 +536,7 @@ Testing revealed a real physics limitation in the F4 ΔS (Clarity) floor impleme
   - Circuit breaker settings
 
 **Configuration Example:**
+
 ```bash
 ARIFOS_FAILOVER_ENABLED=true
 ARIFOS_FAILOVER_PROVIDERS=claude_primary,openai_fallback
@@ -464,6 +546,7 @@ ARIFOS_FAILOVER_CLAUDE_PRIMARY_PRIORITY=0
 ```
 
 **Constitutional Guarantee:**
+
 - ALL responses flow through `888_JUDGE → APEX_PRIME`
 - Failover ONLY handles provider selection, NEVER bypasses governance
 - All 9 constitutional floors preserved (F1-F9)
@@ -471,12 +554,14 @@ ARIFOS_FAILOVER_CLAUDE_PRIMARY_PRIORITY=0
 - Full audit trail in cooling ledger (F1 Amanah)
 
 **Zero-Break Migration:**
+
 - Failover disabled by default (`ARIFOS_FAILOVER_ENABLED=false`)
 - Existing behavior unchanged when disabled
 - 2597/2624 tests passing (98.9% pass rate)
 - 27 failures: 24 pre-existing (unrelated to failover), 3 in failover tests (SEA-LION dependency - non-critical)
 
 **Key Design Decisions:**
+
 1. Custom orchestrator (not external dependency) - Full control
 2. Environment variable configuration - Easy to use
 3. Conditional initialization - Zero-break guarantee
@@ -525,18 +610,21 @@ ARIFOS_FAILOVER_CLAUDE_PRIMARY_PRIORITY=0
   - ✓ `test_apex_prime_collision_guard()` - APEX PRIME disambiguation
 
 **Results:**
+
 - ✓ "hi" → SEAL (has_claims=False, truth=0.92)
 - ✓ "hello" → SEAL (has_claims=False, truth=0.92)
 - ✓ "how are u?" → SEAL (has_claims=False, truth=0.92)
 - ✓ "what is arifOS?" → VOID (identity guard active, truth < 0.99)
 
 **Principles Maintained:**
+
 - Physics > Semantics (structural signals, not keyword matching)
 - F0 Surgical (minimal changes, backward compatible, reversible)
 - Anti-Hantu compliance (no anthropomorphic language)
 - Identity hallucination blocking (TRUTH_SEAL_MIN=0.99 enforced)
 
 **Known Issues:**
+
 - SEA-LION v4 test suite incomplete (scripts created but need calibration)
 - Test variance due to LLM response non-determinism
 
@@ -592,6 +680,7 @@ ARIFOS_FAILOVER_CLAUDE_PRIMARY_PRIORITY=0
   - `test_caged_llm_harness.py` - Short no-claim response truth scoring
 
 **Results:**
+
 - ✓ "explain machine learning" → PARTIAL (SOFT lane, truth 0.87)
 - ✓ "what is 2+2?" → HARD lane enforcement (truth must be ≥0.90)
 - ✓ "hi" → PHATIC lane (bypasses truth check)
@@ -599,6 +688,7 @@ ARIFOS_FAILOVER_CLAUDE_PRIMARY_PRIORITY=0
 - ✓ All 2261 tests passing (was 2252 with 9 failures)
 
 **Principles Maintained:**
+
 - Physics > Semantics (structural lane markers, not keywords)
 - F1-F9 constitutional floors preserved
 - Fail-closed governance intact
@@ -666,6 +756,7 @@ ARIFOS_FAILOVER_CLAUDE_PRIMARY_PRIORITY=0
 ---
 
 ### Core Upgrades (The 5 Pillars)
+
 - **Physics-Blind Judiciary (Semantic Firewall):**
   - Implemented `arifos_core.judiciary.semantic_firewall`.
   - **Rule:** API/LLM inputs are stripped of all raw text before reaching APEX PRIME. Only `ApexTelemetry` (F1-F9 attributes) is visible.
@@ -688,6 +779,7 @@ ARIFOS_FAILOVER_CLAUDE_PRIMARY_PRIORITY=0
   - **Ledger:** Merkle Root appended on every seal.
 
 ### Policy Notes
+
 - **Mock Signing:** Unit tests use deterministic mock signatures (`mock_sig:...`). Real Ed25519 signing requires `ARIFOS_SIGNING_KEY` environment variable. No keys are stored in repo.
 - **Deprecations:** Pydantic v1 `json()` serialization is replaced by `json.dumps` for hash determinism.
 
