@@ -56,7 +56,7 @@ The repository is organized into **7 semantic layers** plus core runtime:
 | **L1** | `L1_THEORY/canon/` | Constitutional Law (Read-only to runtime) | Via Phoenix-72 only | A |
 | **L2** | `L2_GOVERNANCE/` | Portable Governance Specs (LLM-agnostic configs) | High (external export) | A/B |
 | **L3** | `L3_OPERATIONS/` | Operational procedures, runbooks, orchestration | Medium | - |
-| **L4** | `L4_MCP/` | Model Context Protocol servers (DEPRECATED in v45) | Archive | C |
+| **L4** | `L4_MCP/` | Black-box MCP Authority (single apex.verdict tool) | Medium | C |
 | **L5** | `L5_CLI/` | Command-line interfaces (DEPRECATED - merged to arifos_clip) | Archive | C |
 | **L6** | `L6_SEALION/` | Regional LLM integrations (SEA-LION, regional models) | Medium | C |
 | **L7** | `L7_DEMOS/` | Examples, demos, tutorials, legacy artifacts | High | - |
@@ -69,7 +69,9 @@ The repository is organized into **7 semantic layers** plus core runtime:
 - **L1 (Theory):** The immutable constitutional foundation. Changes require Phoenix-72 amendment process.
 - **L2 (Governance):** Export-ready governance for any LLM platform (ChatGPT, Claude, Gemini, Cursor, etc.).
 - **L3 (Operations):** How-to guides for multi-agent orchestration, GitOps, deployment.
-- **L4-L5 (Legacy):** Archived layers from v42 era. Do not add new files here.
+- **L4 (Authority):** Reclaimed in v45.1 as Black-box MCP Authority. Single `apex.verdict` tool, non-bypassable.
+- **L5 (Legacy):** Archived layer (CLI merged to arifos_clip). Do not add new files here.
+- **Ledger** (`arifos_ledger/`): Shared ledger abstraction used by both L4_MCP and arifos_core/mcp.
 - **L6 (Integration):** Active integration layer for regional/domain-specific LLMs.
 - **L7 (Demos):** Living examples and legacy apps (client/, portal/, python_server/ archived here).
 
@@ -659,21 +661,25 @@ graph TD
 #### 10.5.3 Key Features (v45.1)
 
 **1. F9 Negation-Aware Detection (v1)**
+
 - **Problem:** Old pattern matching failed on negations ("I do NOT have a soul" → false positive)
 - **Solution:** v1 detector checks for negation words (NOT, don't, never) within 5-token window
 - **Status:** ✅ ACTIVE (100% test pass rate)
 
 **2. F2 Truth with External Evidence**
+
 - **Problem:** AI cannot verify truth from text alone
 - **Solution:** Accept `evidence` dict with `truth_score` from external fact-checkers
 - **Integration:** Pass `evidence={"truth_score": 0.99}` to `validate_response_full()`
 
 **3. F4 ΔS Zlib Compression Proxy**
+
 - **Problem:** Need physics-based clarity measurement (not subjective)
 - **Solution:** Use zlib compression ratio as ΔS proxy (entropy reduction = clarity gain)
 - **Formula:** `ΔS = (input_compressed - output_compressed) / max(input, output)`
 
 **4. F6 κᵣ Physics vs Semantic Split**
+
 - **Problem:** TEARFRAME requires physics vs semantic separation
 - **Solution:** Split empathy into two components:
   - `κᵣ_phys`: Physics measurements (turn rate, token rate, stability) — TEARFRAME-legal
@@ -681,6 +687,7 @@ graph TD
 - **Gating:** Returns UNVERIFIABLE if `session_turns < 3` (insufficient context)
 
 **5. meta_select Tri-Witness Aggregator**
+
 - **Purpose:** Deterministic consensus for audit-of-audits
 - **Algorithm:**
   1. Tally votes from multiple witnesses (human, ai, earth)
@@ -690,6 +697,7 @@ graph TD
 - **Guarantee:** Deterministic (same inputs → same output, no randomness)
 
 **6. High-Stakes Mode**
+
 - **Trigger:** `high_stakes=True` parameter
 - **Behavior:** UNVERIFIABLE floors escalate to HOLD-888 (human review required)
 - **Use Cases:** Financial advice, medical recommendations, legal guidance, safety-critical decisions
@@ -701,6 +709,7 @@ VOID > HOLD-888 > SABAR > PARTIAL > SEAL
 ```
 
 **Verdict Conditions:**
+
 - **VOID:** Any hard floor fails (F1 Amanah, F5 Peace², F9 Anti-Hantu)
 - **HOLD-888:** `high_stakes=True` + F2 Truth UNVERIFIABLE
 - **PARTIAL:** Any soft floor fails (F2 Truth, F4 ΔS, F6 κᵣ)
@@ -767,6 +776,7 @@ print(result["verdict"])  # SEAL (100% consensus)
 **Test Suite:** `scripts/test_track_abc_enforcement.py`
 
 **Coverage:**
+
 - 7 comprehensive tests (100% pass rate)
 - All 6 features validated
 - Negation detection edge cases
@@ -777,6 +787,7 @@ print(result["verdict"])  # SEAL (100% consensus)
 - Verdict hierarchy compliance
 
 **Run Tests:**
+
 ```bash
 # All tests
 python scripts/test_track_abc_enforcement.py
@@ -814,6 +825,7 @@ floors = result["floors"]    # All floor results
 ```
 
 **Backward Compatibility:**
+
 - Old APIs (`_check_amanah_patterns`, `check_anti_hantu`) remain available in `response_validator.py` and `metrics.py`
 - New code should use `validate_response_full()` for unified enforcement
 - No breaking changes to existing integrations
@@ -823,6 +835,7 @@ floors = result["floors"]    # All floor results
 **Complete Guide:** [docs/TRACK_ABC_ENFORCEMENT_GUIDE.md](TRACK_ABC_ENFORCEMENT_GUIDE.md)
 
 **Quick References:**
+
 - [CLAUDE.md](../CLAUDE.md) - API reference section (lines 273-490)
 - [README.md](../README.md) - What's New in v45.1 (lines 503-691)
 - [TRACK_ABC_IMPLEMENTATION_PROOF.md](../TRACK_ABC_IMPLEMENTATION_PROOF.md) - Implementation proof with test results
@@ -945,8 +958,8 @@ To modify this document or naming conventions:
 
 **Maintenance:**
 
-- **Issues:** https://github.com/ariffazil/arifOS/issues
-- **Discussions:** https://github.com/ariffazil/arifOS/discussions
+- **Issues:** <https://github.com/ariffazil/arifOS/issues>
+- **Discussions:** <https://github.com/ariffazil/arifOS/discussions>
 
 ---
 
