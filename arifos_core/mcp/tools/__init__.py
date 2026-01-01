@@ -20,6 +20,12 @@ Phase 3 (Cryptographic Audit Trail):
     - mcp_999_seal: Final verdict sealing & memory routing
 """
 
+from .apex_llama import apex_llama
+from .audit import arifos_audit
+
+# Legacy tools (existing)
+from .judge import arifos_judge
+
 # Phase 1 tools (Foundation)
 from .mcp_000_reset import mcp_000_reset, mcp_000_reset_sync
 from .mcp_111_sense import mcp_111_sense, mcp_111_sense_sync
@@ -35,12 +41,13 @@ from .mcp_888_judge import mcp_888_judge, mcp_888_judge_sync
 # Phase 3 tools (Cryptographic Audit Trail)
 from .mcp_889_proof import mcp_889_proof, mcp_889_proof_sync
 from .mcp_999_seal import mcp_999_seal, mcp_999_seal_sync
+from .memory_phoenix import memory_list_phoenix, memory_list_phoenix_sync
+from .memory_propose import memory_propose_entry, memory_propose_entry_sync
 
-# Legacy tools (existing)
-from .judge import arifos_judge
+# Phase 4: Memory Trinity (v45.2)
+from .memory_vault import memory_get_vault, memory_get_vault_sync
+from .memory_zkpc import memory_get_zkpc_receipt, memory_get_zkpc_receipt_sync
 from .recall import arifos_recall
-from .audit import arifos_audit
-from .apex_llama import apex_llama
 
 __all__ = [
     # Phase 1
@@ -71,4 +78,13 @@ __all__ = [
     "arifos_recall",
     "arifos_audit",
     "apex_llama",
+    # Phase 4: Memory Trinity (v45.2)
+    "memory_get_vault",
+    "memory_get_vault_sync",
+    "memory_propose_entry",
+    "memory_propose_entry_sync",
+    "memory_list_phoenix",
+    "memory_list_phoenix_sync",
+    "memory_get_zkpc_receipt",
+    "memory_get_zkpc_receipt_sync",
 ]

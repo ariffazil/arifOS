@@ -17,54 +17,46 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
 from .models import (
+    ApexLlamaRequest,
+    AuditRequest,
+    AuditResponse,
     JudgeRequest,
     JudgeResponse,
     RecallRequest,
     RecallResponse,
-    AuditRequest,
-    AuditResponse,
-    ApexLlamaRequest,
     VerdictResponse,
 )
-from .tools.judge import arifos_judge
-from .tools.recall import arifos_recall
-from .tools.audit import arifos_audit
-from .tools.fag_read import (
-    arifos_fag_read,
-    FAGReadRequest,
-    FAGReadResponse,
-    TOOL_METADATA as FAG_METADATA,
-)
-from .tools.apex_llama import apex_llama
 
-# Track A/B/C Enforcement Tools (v45.1)
-from .tools.validate_full import (
-    arifos_validate_full,
-    ValidateFullRequest,
-    ValidateFullResponse,
-    TOOL_METADATA as VALIDATE_FULL_METADATA,
-)
-from .tools.meta_select import (
-    arifos_meta_select,
-    MetaSelectRequest,
-    MetaSelectResponse,
-    TOOL_METADATA as META_SELECT_METADATA,
-)
-
+# Phase 4: Memory Trinity (v45.2)
 # Phase 1-3 MCP Tools (Constitutional Pipeline)
 from .tools import (
-    mcp_000_reset_sync,
-    mcp_111_sense_sync,
-    mcp_222_reflect_sync,
-    mcp_444_evidence_sync,
-    mcp_555_empathize_sync,
-    mcp_666_align_sync,
-    mcp_777_forge_sync,
-    mcp_888_judge_sync,
-    mcp_889_proof_sync,
-    mcp_999_seal_sync,
+    mcp_000_reset,
+    mcp_111_sense,
+    mcp_222_reflect,
+    mcp_444_evidence,
+    mcp_555_empathize,
+    mcp_666_align,
+    mcp_777_forge,
+    mcp_888_judge,
+    mcp_889_proof,
+    mcp_999_seal,
+    memory_get_vault_sync,
+    memory_get_zkpc_receipt_sync,
+    memory_list_phoenix_sync,
+    memory_propose_entry_sync,
 )
+from .tools.apex_llama import apex_llama
+from .tools.audit import arifos_audit
+from .tools.fag_read import TOOL_METADATA as FAG_METADATA
+from .tools.fag_read import FAGReadRequest, FAGReadResponse, arifos_fag_read
+from .tools.judge import arifos_judge
+from .tools.meta_select import TOOL_METADATA as META_SELECT_METADATA
+from .tools.meta_select import MetaSelectRequest, MetaSelectResponse, arifos_meta_select
+from .tools.recall import arifos_recall
 
+# Track A/B/C Enforcement Tools (v45.1)
+from .tools.validate_full import TOOL_METADATA as VALIDATE_FULL_METADATA
+from .tools.validate_full import ValidateFullRequest, ValidateFullResponse, arifos_validate_full
 
 # =============================================================================
 # TOOL REGISTRY
@@ -78,22 +70,25 @@ TOOLS: Dict[str, Callable] = {
     "arifos_audit": arifos_audit,
     "arifos_fag_read": arifos_fag_read,
     "APEX_LLAMA": apex_llama,
-
     # Track A/B/C Enforcement Tools (v45.1)
     "arifos_validate_full": arifos_validate_full,
     "arifos_meta_select": arifos_meta_select,
-
     # Phase 1-3 Constitutional Pipeline
-    "mcp_000_reset": mcp_000_reset_sync,
-    "mcp_111_sense": mcp_111_sense_sync,
-    "mcp_222_reflect": mcp_222_reflect_sync,
-    "mcp_444_evidence": mcp_444_evidence_sync,
-    "mcp_555_empathize": mcp_555_empathize_sync,
-    "mcp_666_align": mcp_666_align_sync,
-    "mcp_777_forge": mcp_777_forge_sync,
-    "mcp_888_judge": mcp_888_judge_sync,
-    "mcp_889_proof": mcp_889_proof_sync,
-    "mcp_999_seal": mcp_999_seal_sync,
+    "mcp_000_reset": mcp_000_reset,
+    "mcp_111_sense": mcp_111_sense,
+    "mcp_222_reflect": mcp_222_reflect,
+    "mcp_444_evidence": mcp_444_evidence,
+    "mcp_555_empathize": mcp_555_empathize,
+    "mcp_666_align": mcp_666_align,
+    "mcp_777_forge": mcp_777_forge,
+    "mcp_888_judge": mcp_888_judge,
+    "mcp_889_proof": mcp_889_proof,
+    "mcp_999_seal": mcp_999_seal,
+    # Phase 4: Memory Trinity (v45.2)
+    "memory_get_vault": memory_get_vault_sync,
+    "memory_propose_entry": memory_propose_entry_sync,
+    "memory_list_phoenix": memory_list_phoenix_sync,
+    "memory_get_zkpc_receipt": memory_get_zkpc_receipt_sync,
 }
 
 # Map of tool name -> request model class (for payload conversion)
@@ -210,11 +205,9 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["prompt"],
         },
     },
-
     # =========================================================================
     # PHASE 1-3 CONSTITUTIONAL PIPELINE TOOLS
     # =========================================================================
-
     "mcp_000_reset": {
         "name": "mcp_000_reset",
         "description": (
@@ -233,7 +226,6 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             },
         },
     },
-
     "mcp_111_sense": {
         "name": "mcp_111_sense",
         "description": (
@@ -254,7 +246,6 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["query"],
         },
     },
-
     "mcp_222_reflect": {
         "name": "mcp_222_reflect",
         "description": (
@@ -278,7 +269,6 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["query", "confidence"],
         },
     },
-
     "mcp_444_evidence": {
         "name": "mcp_444_evidence",
         "description": (
@@ -308,7 +298,6 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["claim", "sources", "lane"],
         },
     },
-
     "mcp_555_empathize": {
         "name": "mcp_555_empathize",
         "description": (
@@ -332,7 +321,6 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["response_text"],
         },
     },
-
     "mcp_666_align": {
         "name": "mcp_666_align",
         "description": (
@@ -364,7 +352,6 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["query", "execution_plan", "metrics", "draft_text"],
         },
     },
-
     "mcp_777_forge": {
         "name": "mcp_777_forge",
         "description": (
@@ -388,7 +375,6 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["draft_response", "omega_zero"],
         },
     },
-
     "mcp_888_judge": {
         "name": "mcp_888_judge",
         "description": (
@@ -408,7 +394,6 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["verdicts"],
         },
     },
-
     "mcp_889_proof": {
         "name": "mcp_889_proof",
         "description": (
@@ -437,7 +422,6 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["verdict_chain"],
         },
     },
-
     "mcp_999_seal": {
         "name": "mcp_999_seal",
         "description": (
@@ -471,6 +455,7 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
 # =============================================================================
 # SERVER FUNCTIONS
 # =============================================================================
+
 
 def list_tools() -> Dict[str, Callable]:
     """
@@ -538,6 +523,7 @@ def run_tool(name: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 # MCP-READY INTERFACE
 # =============================================================================
 
+
 class MCPServer:
     """
     MCP-ready server class.
@@ -553,7 +539,7 @@ class MCPServer:
 
     def __init__(self) -> None:
         self.name = "arifos-mcp"
-        self.version = "0.1.0"
+        self.version = "v45.1.1"
 
     def list_tools(self) -> Dict[str, Dict[str, Any]]:
         """List available tools with their descriptions."""
@@ -577,24 +563,43 @@ class MCPServer:
         """Get server information."""
         return {
             "name": self.name,
-            "version": "1.0.0",
+            "version": "v45.1.1",
             "description": (
-                "arifOS Constitutional Governance MCP Server. "
-                "Provides 17 tools: 5 legacy (judge, recall, audit, fag_read, APEX_LLAMA) "
+                "arifOS Constitutional Governance MCP Server (Glass-box). "
+                "Provides 15 tools: 5 legacy (judge, recall, audit, fag_read, APEX_LLAMA) "
                 "+ 2 Track A/B/C enforcement (validate_full, meta_select) "
                 "+ 10 constitutional pipeline tools (000->999) for real-time governance. "
+                "Phase 3 (999) implements JSONL Merkle Chaining for high-auditability. "
                 "All tools enforce the 9 Constitutional Floors (F1-F9). "
-                "Complete audit trail with cryptographic proofs (Merkle tree + SHA-256)."
+                "NOTE: Phase 4 Memory Trinity tools (4 tools) not yet implemented."
             ),
             "tools": list(TOOLS.keys()),
             "tool_count": len(TOOLS),
             "phases": {
-                "legacy": ["arifos_judge", "arifos_recall", "arifos_audit", "arifos_fag_read", "APEX_LLAMA"],
+                "legacy": [
+                    "arifos_judge",
+                    "arifos_recall",
+                    "arifos_audit",
+                    "arifos_fag_read",
+                    "APEX_LLAMA",
+                ],
                 "track_abc": ["arifos_validate_full", "arifos_meta_select"],
                 "phase_1": ["mcp_000_reset", "mcp_111_sense"],
-                "phase_2": ["mcp_222_reflect", "mcp_444_evidence", "mcp_555_empathize",
-                           "mcp_666_align", "mcp_777_forge", "mcp_888_judge"],
+                "phase_2": [
+                    "mcp_222_reflect",
+                    "mcp_444_evidence",
+                    "mcp_555_empathize",
+                    "mcp_666_align",
+                    "mcp_777_forge",
+                    "mcp_888_judge",
+                ],
                 "phase_3": ["mcp_889_proof", "mcp_999_seal"],
+                "phase_4_planned": [
+                    "memory_get_vault (not implemented)",
+                    "memory_propose_entry (not implemented)",
+                    "memory_list_phoenix (not implemented)",
+                    "memory_get_zkpc_receipt (not implemented)",
+                ],
             },
         }
 
@@ -625,7 +630,7 @@ class MCPServer:
                     types.Tool(
                         name=tool_name,
                         description=tool_desc.get("description", ""),
-                        inputSchema=tool_desc.get("parameters", {})
+                        inputSchema=tool_desc.get("parameters", {}),
                     )
                 )
             return tools
@@ -642,6 +647,7 @@ class MCPServer:
 
             # Convert result to JSON string for TextContent
             import json
+
             result_text = json.dumps(result, indent=2)
 
             return [types.TextContent(type="text", text=result_text)]
@@ -652,11 +658,7 @@ class MCPServer:
         print("[arifOS MCP] Stdio transport active. Ready for IDE connection.", file=sys.stderr)
 
         async with stdio_server() as (read_stream, write_stream):
-            await server.run(
-                read_stream,
-                write_stream,
-                server.create_initialization_options()
-            )
+            await server.run(read_stream, write_stream, server.create_initialization_options())
 
 
 # Default server instance
