@@ -12,7 +12,8 @@ import os
 from typing import Any, Dict
 
 # Canonical Vault Path (Directive 07)
-VAULT_CANON_PATH = "vault_999/canon"
+# Updated to point to Obsidian VAULT999 structure
+VAULT_CANON_PATH = "vault_999/VAULT999/L0_VAULT"
 
 
 async def memory_get_vault(path: str) -> Dict[str, Any]:
