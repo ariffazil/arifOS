@@ -6,6 +6,108 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ---
 
+## [v45.3.0] - 2026-01-03 - Temporal Intelligence Upgrade
+
+**Status:** PHOENIX (72h cooling) | Tests: 99/99 Passed | Authority: Arif + Antigravity
+
+**Philosophy:** "Time is a constitutional force. Entropy rot is automatic." — arifOS Temporal Intelligence
+
+### 🚀 Core Features
+
+This release implements the **v45xx Upgrade Integration Plan** with 4 major governance enhancements:
+
+#### 1. TCHA (Time-Critical Harm Awareness)
+Treats delay as harm in emergency contexts. Extends F1 (Amanah) to include time-loss-as-violation.
+
+| Component | Location |
+|-----------|----------|
+| `policy_tcha.json` | `spec/v45/` |
+| `tcha_metrics.py` | `arifos_core/enforcement/` |
+
+**Features:**
+- Emergency pattern detection (English + Malay)
+- Delay-as-harm thresholds (`max_delay_ms`, `delay_harm_threshold_ms`)
+- SABAR hold bypass for time-critical queries
+- Minimum safe response provision
+
+#### 2. Risk-Literacy Output Mode
+Explicit uncertainty disclosure and risk communication. Extends F7 (Humility) to require transparent confidence levels.
+
+| Component | Location |
+|-----------|----------|
+| `policy_risk_literacy.json` | `spec/v45/` |
+| `risk_literacy.py` | `arifos_core/enforcement/` |
+
+**Features:**
+- Confidence score calculation from floor metrics
+- Risk levels: LOW → MODERATE → HIGH → CRITICAL
+- Auto-appended disclaimers for low-confidence responses
+- New `ApexVerdict` fields: `confidence`, `risk_score`, `risk_level`, `uncertainty_flag`
+
+#### 3. Refusal Accountability Rules
+Transparent, auditable refusals with clear reason codes. Every VOID is explainable and logged.
+
+| Component | Location |
+|-----------|----------|
+| `policy_refusal.json` | `spec/v45/` |
+| `refusal_accountability.py` | `arifos_core/enforcement/` |
+
+**Features:**
+- Standardized reason codes (F1_AMANAH, F5_PEACE_SQUARED, F9_ANTI_HANTU, etc.)
+- Escalation tracking (HOLD_888 after 3 repeated refusals)
+- User-friendly guidance templates
+- Full audit trail with query hashing
+
+#### 4. Temporal Intelligence Primitives
+Timestamp anchoring, contradiction detection, and lag metrics. TIME-1 Invariant enforced.
+
+| Component | Location |
+|-----------|----------|
+| `policy_temporal.json` | `spec/v45/` |
+| `temporal_checks.py` | `arifos_core/enforcement/` |
+
+**Features:**
+- Domain-aware timestamp anchoring (medical, legal, financial, news)
+- Session-based contradiction detection (F3 violation)
+- Processing lag penalties on Ψ score
+- Combined temporal check function
+
+### Configuration (Feature Flags)
+
+All features are **disabled by default** for safe rollout:
+
+```bash
+export ARIFOS_TCHA_ENABLED=1                    # Time-Critical Harm Awareness
+export ARIFOS_RISK_LITERACY_ENABLED=1           # Risk-Literacy Output Mode
+export ARIFOS_REFUSAL_ACCOUNTABILITY_ENABLED=1  # Refusal Accountability
+export ARIFOS_TEMPORAL_INTEL_ENABLED=1          # Temporal Intelligence
+```
+
+### Pipeline Integration
+
+- **Stage 111 (SENSE):** TCHA detection, time-critical flagging
+- **Stage 888 (JUDGE):** Risk literacy metrics calculation
+- **Stage 999 (SEAL):** Risk disclaimers appended to output
+
+### Tests
+
+| Test File | Tests |
+|-----------|-------|
+| `test_tcha.py` | 31 |
+| `test_risk_literacy.py` | 28 |
+| `test_refusal_accountability.py` | 21 |
+| `test_temporal_intelligence.py` | 19 |
+| **Total** | **99** |
+
+All 99 tests pass (v45.3.0).
+
+### Breaking Changes
+
+None. All features are opt-in via environment variables.
+
+---
+
+
 ## [v45.2.0] - 2026-01-03 - VAULT999 Cross-Platform Constitutional Memory
 
 **Status:** SEALED | Verdict: PASS (9/9 Floors) | Authority: Arif + Antigravity + ChatGPT

@@ -6,7 +6,7 @@
       {
         "id": "ed656982f0cdbd3c",
         "type": "tabs",
-        "dimension": 58.59375,
+        "dimension": 58.57321652065082,
         "children": [
           {
             "id": "3e2b3c14db3f6ada",
@@ -28,12 +28,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "L0_VAULT/Decision_Axioms.md",
+                "file": "L0_VAULT/L0_COVENANT.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Decision_Axioms"
+              "title": "L0_COVENANT"
             }
           }
         ],
@@ -42,7 +42,7 @@
       {
         "id": "7970200517ccd424",
         "type": "tabs",
-        "dimension": 41.40625,
+        "dimension": 41.42678347934919,
         "children": [
           {
             "id": "e2dea3e4bb1ad311",
@@ -213,12 +213,12 @@
       "bases:Create new base": false
     }
   },
-  "active": "7dfb36e675831707",
+  "active": "1770f08101ab0bff",
   "lastOpenFiles": [
+    "L0_VAULT/Decision_Axioms.md",
+    "L0_VAULT/L0_COVENANT.md",
     "Untitled",
     "Untitled.base",
-    "L0_VAULT/Decision_Axioms.md",
-    "L0_VAULT/Constitutional.md",
     "L0_VAULT/Constant.md",
     "Welcome.md",
     "L5_VOID",
