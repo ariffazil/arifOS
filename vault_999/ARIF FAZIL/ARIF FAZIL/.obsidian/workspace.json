@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "ASAL USUL.md",
+                "file": "01_IDENTITY/Untitled.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "ASAL USUL"
+              "title": "Untitled"
             }
           }
         ]
@@ -110,7 +110,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "ASAL USUL.md",
+                "file": "01_IDENTITY/Untitled.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -120,7 +120,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for ASAL USUL"
+              "title": "Backlinks for Untitled"
             }
           },
           {
@@ -129,12 +129,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "ASAL USUL.md",
+                "file": "01_IDENTITY/Untitled.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from ASAL USUL"
+              "title": "Outgoing links from Untitled"
             }
           },
           {
@@ -172,13 +172,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "ASAL USUL.md",
+                "file": "01_IDENTITY/Untitled.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of ASAL USUL"
+              "title": "Outline of Untitled"
             }
           }
         ]
@@ -202,7 +202,7 @@
   "active": "f0d72690ad4d0b2a",
   "lastOpenFiles": [
     "ASAL USUL.md",
-    "ASAL USUL.md",
+    "01_IDENTITY/Untitled.md",
     "04_REALITY/desktop.ini",
     "99_INBOX",
     "08_WORLD",
