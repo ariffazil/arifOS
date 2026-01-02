@@ -6,7 +6,6 @@
       {
         "id": "ed656982f0cdbd3c",
         "type": "tabs",
-        "dimension": 58.57321652065082,
         "children": [
           {
             "id": "3e2b3c14db3f6ada",
@@ -49,26 +48,33 @@
               "icon": "lucide-file",
               "title": "README.md"
             }
-          }
-        ],
-        "currentTab": 2
-      },
-      {
-        "id": "7970200517ccd424",
-        "type": "tabs",
-        "dimension": 41.42678347934919,
-        "children": [
+          },
           {
-            "id": "e2dea3e4bb1ad311",
+            "id": "505734c0e423b7cf",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "mk-uri-view",
+              "state": {
+                "path": "https://www.make.md/static/latest.md"
+              },
+              "icon": "lucide-file",
+              "title": "https://www.make.md/static/latest.md"
+            }
+          },
+          {
+            "id": "345936b52e4c88cf",
+            "type": "leaf",
+            "state": {
+              "type": "mk-uri-view",
+              "state": {
+                "path": "https://www.make.md/static/GetStarted.md"
+              },
+              "icon": "lucide-file",
+              "title": "https://www.make.md/static/GetStarted.md"
             }
           }
-        ]
+        ],
+        "currentTab": 4
       }
     ],
     "direction": "vertical"
@@ -120,8 +126,19 @@
               "icon": "lucide-bookmark",
               "title": "Bookmarks"
             }
+          },
+          {
+            "id": "3d63699006ae63f8",
+            "type": "leaf",
+            "state": {
+              "type": "mk-path-view",
+              "state": {},
+              "icon": "layout-grid",
+              "title": "Navigator"
+            }
           }
-        ]
+        ],
+        "currentTab": 3
       }
     ],
     "direction": "horizontal",
@@ -227,8 +244,9 @@
       "bases:Create new base": false
     }
   },
-  "active": "e2dea3e4bb1ad311",
+  "active": "345936b52e4c88cf",
   "lastOpenFiles": [
+    "Tags",
     "L0_VAULT/L0_CONSTANTS.md",
     "README.md.md",
     "config.json.md",

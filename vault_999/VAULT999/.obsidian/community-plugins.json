@@ -1,4 +1,8 @@
 [
   "obsidian-linter",
-  "obsidian-git"
+  "obsidian-git",
+  "python-lab-plugin",
+  "obsidian-jsonifier",
+  "make-md",
+  "chatgpt-md"
 ]
