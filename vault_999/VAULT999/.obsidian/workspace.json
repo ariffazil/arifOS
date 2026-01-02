@@ -26,12 +26,14 @@
             "id": "1770f08101ab0bff",
             "type": "leaf",
             "state": {
-              "type": "release-notes",
+              "type": "markdown",
               "state": {
-                "currentVersion": "1.10.6"
+                "file": "L0_VAULT/Decision_Axioms.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-book-up",
-              "title": "Release Notes 1.10.6"
+              "icon": "lucide-file",
+              "title": "Decision_Axioms"
             }
           }
         ],
@@ -191,6 +193,7 @@
   },
   "left-ribbon": {
     "hiddenItems": {
+      "obsidian-git:Open Git source control": false,
       "switcher:Open quick switcher": false,
       "graph:Open graph view": false,
       "canvas:Create new canvas": false,
@@ -200,11 +203,11 @@
       "bases:Create new base": false
     }
   },
-  "active": "1770f08101ab0bff",
+  "active": "7dfb36e675831707",
   "lastOpenFiles": [
     "L0_VAULT/Constitutional.md",
-    "L0_VAULT/Decision_Axioms.md",
     "L0_VAULT/Constant.md",
+    "L0_VAULT/Decision_Axioms.md",
     "Welcome.md",
     "L5_VOID",
     "L4_WITNESS",

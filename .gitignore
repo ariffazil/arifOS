@@ -49,6 +49,10 @@ vault_999/ledger/pending.jsonl
 vault_999/ledger/phoenix.jsonl
 vault_999/ledger/void.jsonl
 
+# SSL/TLS certificates (VAULT999 MCP Server)
+*.pem
+arifos_core/mcp/certs/*.pem
+
 # Misc
 *.so
 .DS_Store

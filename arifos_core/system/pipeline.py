@@ -47,59 +47,63 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
-# v42: apex_prime is in system/ (same dir, lowercase filename)
-from .apex_prime import apex_review, ApexVerdict, check_floors, Verdict
-from ..enforcement.metrics import Metrics
-from ..utils.eye_sentinel import EyeSentinel, EyeReport
-from ..runtime.bootstrap import ensure_bootstrap, get_bootstrap_payload
 from ..audit.eye_adapter import evaluate_eye_vector
-from ..organs.prompt_bridge import compute_c_budi
-from ..waw.federation import WAWFederationCore, FederationVerdict
-from ..sabar_timer import Sabar72Timer  # v43 Time Governor
+from ..enforcement.metrics import Metrics
 
-# TEARFRAME v44 Session Physics Layer (ART)
-from ..utils.session_telemetry import SessionTelemetry
-from ..utils.reduction_engine import compute_attributes
-from ..governance.session_physics import evaluate_physics_floors
+# v45xx TCHA (Time-Critical Harm Awareness)
+from ..enforcement.tcha_metrics import (
+    TCHAResult,
+    check_delay_harm,
+    detect_time_critical,
+    get_minimum_safe_response,
+    is_tcha_enabled,
+    log_tcha_event,
+    should_bypass_hold,
+)
 
 # AAA Engines (internal facade - v35.8.0) - v42: engines is at arifos_core/engines/
 from ..engines import AGIEngine, ASIEngine
 from ..engines.agi_engine import AGIPacket
 from ..engines.asi_engine import ASIPacket
+from ..governance.session_physics import evaluate_physics_floors
+from ..memory.audit import MemoryAuditLayer, compute_evidence_hash
+from ..memory.bands import MemoryBandRouter, append_eureka_decision
+from ..memory.eureka_types import ActorRole, MemoryWriteRequest
+from ..memory.eureka_types import Verdict as EurekaVerdict
+from ..memory.mem0_client import is_l7_enabled
+
+# v38.2-alpha L7 Memory Layer (Mem0 + Qdrant)
+from ..memory.memory import Memory, RecallResult, StoreAtSealResult
+from ..memory.memory import recall_at_stage_111 as _l7_recall
+from ..memory.memory import store_at_stage_999 as _l7_store
 
 # Memory Context (v37) - v42: memory is at arifos_core/memory/
-from ..memory.memory_context import (
-    MemoryContext,
-    create_memory_context,
-)
-
-# v42: memory is at arifos_core/memory/, not system/memory/
-from ..memory.vault999 import Vault999
+from ..memory.memory_context import MemoryContext, create_memory_context
 
 # Memory Write Policy Engine (v38)
 from ..memory.policy import MemoryWritePolicy
-from ..memory.bands import MemoryBandRouter, append_eureka_decision
-from ..memory.audit import MemoryAuditLayer, compute_evidence_hash
-from ..memory.eureka_types import ActorRole, MemoryWriteRequest
-from ..memory.eureka_types import Verdict as EurekaVerdict
 
-# v38.2-alpha L7 Memory Layer (Mem0 + Qdrant)
-from ..memory.memory import (
-    Memory,
-    RecallResult,
-    StoreAtSealResult,
-    recall_at_stage_111 as _l7_recall,
-    store_at_stage_999 as _l7_store,
-)
-from ..memory.mem0_client import is_l7_enabled
-
-# v38 Runtime Contract Layer
-from ..utils.runtime_types import Job, Stakeholder, JobClass
+# v42: memory is at arifos_core/memory/, not system/memory/
+from ..memory.vault999 import Vault999
+from ..organs.prompt_bridge import compute_c_budi
+from ..runtime.bootstrap import ensure_bootstrap, get_bootstrap_payload
+from ..sabar_timer import Sabar72Timer  # v43 Time Governor
 
 # v38 Stage Modules - v42: stages is at arifos_core/stages/
 from ..stages.stage_000_amanah import compute_amanah_score, stage_000_amanah
 from ..stages.stage_555_empathy import compute_kappa_r
+from ..utils.eye_sentinel import EyeReport, EyeSentinel
+from ..utils.reduction_engine import compute_attributes
 
+# v38 Runtime Contract Layer
+from ..utils.runtime_types import Job, JobClass, Stakeholder
+
+# TEARFRAME v44 Session Physics Layer (ART)
+from ..utils.session_telemetry import SessionTelemetry
+from ..waw.federation import FederationVerdict, WAWFederationCore
+
+# v42: apex_prime is in system/ (same dir, lowercase filename)
+from .apex_prime import ApexVerdict, Verdict, apex_review, check_floors
 
 # =============================================================================
 # PIPELINE STATE
@@ -209,6 +213,10 @@ class PipelineState:
     # v46: F6 Crisis Override tracking
     crisis_detected: bool = False
     crisis_pattern: Optional[str] = None
+
+    # v45xx TCHA (Time-Critical Harm Awareness)
+    is_time_critical: bool = False
+    tcha_result: Optional[TCHAResult] = None
 
     # Timing
     start_time: float = field(default_factory=time.time)
@@ -516,6 +524,18 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
     state.stage_trace.append("111_SENSE")
     state.stage_times["111"] = time.time()
 
+    # v45xx TCHA: Detect time-critical (emergency) context FIRST
+    # If query is time-critical, we may need to bypass holds and provide immediate response
+    if is_tcha_enabled():
+        tcha_result = detect_time_critical(state.query)
+        state.tcha_result = tcha_result
+        state.is_time_critical = tcha_result.is_time_critical
+
+        if tcha_result.is_time_critical:
+            state.high_stakes_indicators.append("time_critical")
+            state.stakes_class = StakesClass.CLASS_B
+            log_tcha_event("detected", tcha_result, {"query": state.query[:100]})
+
     # v45.0: AGI uses @PROMPT tool for crisis detection (FIRST CHECK)
     # This follows agent-tool pattern: AGI (agent) uses @PROMPT (tool), AGI decides verdict
     from ..waw.prompt import PromptOrgan
@@ -606,7 +626,7 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
         state.stakes_class = StakesClass.CLASS_B
 
     # v45Ω Patch B: Classify prompt lane for context-aware truth routing
-    from ..routing.prompt_router import classify_prompt_lane, ApplicabilityLane
+    from ..routing.prompt_router import ApplicabilityLane, classify_prompt_lane
     from ..routing.refusal_templates import generate_refusal_response
 
     lane = classify_prompt_lane(state.query, state.high_stakes_indicators)
@@ -1348,9 +1368,9 @@ def _write_memory_for_verdict(
     if state.memory_write_policy is None or state.memory_band_router is None:
         return
 
-    from datetime import datetime, timezone
-    import json
     import hashlib
+    import json
+    from datetime import datetime, timezone
 
     # Build floor check evidence (v38.3Omega: spec-driven with F# + P# + stage hooks)
     floor_checks = []
@@ -1493,10 +1513,10 @@ def _write_memory_for_verdict(
             # as DEGRADED instead of immediately failing closed to VOID.
             # This separates "audit degradation" from "truth violation".
             # =================================================================
-            import logging
             import json
-            from pathlib import Path
+            import logging
             from datetime import datetime
+            from pathlib import Path
 
             logger = logging.getLogger(__name__)
             logger.error(f"Primary ledger write failed. Error: {e}")
@@ -1970,10 +1990,42 @@ def stage_999_seal(state: PipelineState) -> PipelineState:
 
     if state.verdict == "SEAL":
         state.raw_response = state.draft_response
+        # v45xx Risk-Literacy: Add disclosure for uncertainty if enabled
+        try:
+            from ..enforcement.risk_literacy import (
+                analyze_for_risk_literacy,
+                format_output_with_risk_literacy,
+                is_risk_literacy_enabled,
+            )
+            if is_risk_literacy_enabled() and state.metrics:
+                risk_result = analyze_for_risk_literacy(
+                    metrics=state.metrics,
+                    floor_failures=state.floor_failures,
+                )
+                state.raw_response = format_output_with_risk_literacy(
+                    state.raw_response, risk_result
+                )
+        except ImportError:
+            pass  # Risk literacy module not available
     elif state.verdict == "PARTIAL":
+        # v45xx Risk-Literacy: Include risk metrics for PARTIAL verdicts
+        risk_note = "(Note: This response has been issued with constitutional hedges.)"
+        try:
+            from ..enforcement.risk_literacy import (
+                analyze_for_risk_literacy,
+                is_risk_literacy_enabled,
+            )
+            if is_risk_literacy_enabled() and state.metrics:
+                risk_result = analyze_for_risk_literacy(
+                    metrics=state.metrics,
+                    floor_failures=state.floor_failures,
+                )
+                if risk_result.disclaimer_text:
+                    risk_note = risk_result.disclaimer_text
+        except ImportError:
+            pass  # Risk literacy module not available
         state.raw_response = (
-            f"{state.draft_response}\n\n"
-            "(Note: This response has been issued with constitutional hedges.)"
+            f"{state.draft_response}\n\n{risk_note}"
         )
     elif state.verdict == "888_HOLD":
         reason_str = _format_floor_failures(state.floor_failures)
@@ -2113,8 +2165,8 @@ class Pipeline:
 
                 logger = logging.getLogger(__name__)
                 from ..connectors.failover_orchestrator import (
-                    load_failover_config_from_env,
                     create_governed_failover_backend,
+                    load_failover_config_from_env,
                 )
 
                 config = load_failover_config_from_env()

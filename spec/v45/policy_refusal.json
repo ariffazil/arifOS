@@ -1,0 +1,120 @@
+{
+    "_schema_version": "v45.0",
+    "_type": "policy",
+    "_canon_refs": [
+        "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
+    ],
+    "_source_evolution": "v45xx (Refusal Accountability Rules)",
+    "_description": "Refusal Accountability policy. Ensures transparent, auditable refusals with clear reason codes. Every VOID must be explainable and logged.",
+    "refusal_accountability": {
+        "enabled": true,
+        "enable_env_var": "ARIFOS_REFUSAL_ACCOUNTABILITY_ENABLED",
+        "reason_codes": {
+            "F1": {
+                "code": "F1_AMANAH",
+                "display": "Trust/Harm Violation",
+                "description": "Action would cause irreversible harm or violate trust covenant",
+                "severity": "HARD"
+            },
+            "F2": {
+                "code": "F2_TRUTH",
+                "display": "Truth Threshold Failure",
+                "description": "Response cannot meet truth floor requirements",
+                "severity": "HARD"
+            },
+            "F3": {
+                "code": "F3_TRI_WITNESS",
+                "display": "Consensus Not Reached",
+                "description": "Human-AI-Earth witnesses did not achieve agreement",
+                "severity": "SOFT"
+            },
+            "F4": {
+                "code": "F4_DELTA_S",
+                "display": "Clarity Regression",
+                "description": "Response would increase confusion rather than reduce it",
+                "severity": "SOFT"
+            },
+            "F5": {
+                "code": "F5_PEACE_SQUARED",
+                "display": "Peace² Violation",
+                "description": "Action would be destructive or harmful",
+                "severity": "HARD"
+            },
+            "F6": {
+                "code": "F6_KAPPA_R",
+                "display": "Empathy Failure",
+                "description": "Response fails to serve weakest stakeholder",
+                "severity": "SOFT"
+            },
+            "F7": {
+                "code": "F7_OMEGA_0",
+                "display": "Humility Band Violation",
+                "description": "Uncertainty not properly acknowledged",
+                "severity": "SOFT"
+            },
+            "F8": {
+                "code": "F8_GENIUS",
+                "display": "Governed Intelligence Failure",
+                "description": "Insufficient governed intelligence (G < threshold)",
+                "severity": "SOFT"
+            },
+            "F9": {
+                "code": "F9_ANTI_HANTU",
+                "display": "Anti-Hantu Violation",
+                "description": "AI claimed consciousness, feelings, or biological states",
+                "severity": "HARD"
+            },
+            "SAFETY": {
+                "code": "SAFETY_REFUSAL",
+                "display": "Safety Policy",
+                "description": "Request violates safety guidelines (weapons, harm, illegal)",
+                "severity": "HARD"
+            },
+            "DESTRUCTIVE": {
+                "code": "DESTRUCTIVE_INTENT",
+                "display": "Destructive Intent Detected",
+                "description": "Query contains destruction + critical target combination",
+                "severity": "HARD"
+            }
+        },
+        "escalation": {
+            "max_repeated_refusals": 3,
+            "escalation_verdict": "HOLD_888",
+            "reset_after_success": true,
+            "track_window_minutes": 30
+        },
+        "user_notification": {
+            "notify_user_reason": true,
+            "detail_level": "GENERAL",
+            "include_floor_code": true,
+            "include_guidance": true
+        },
+        "audit": {
+            "log_all_refusals": true,
+            "include_query_hash": true,
+            "include_floor_violations": true,
+            "include_timestamp": true,
+            "ledger_entry_type": "REFUSAL"
+        }
+    },
+    "user_messages": {
+        "general_refusal": "I cannot assist with that request.",
+        "with_reason": "I cannot assist with that request ({reason}).",
+        "with_guidance": "I cannot assist with that request ({reason}). {guidance}",
+        "escalation_notice": "Multiple similar requests have been declined. A human review may be required to proceed."
+    },
+    "guidance_templates": {
+        "F1_AMANAH": "Please rephrase your request to avoid potentially harmful outcomes.",
+        "F5_PEACE_SQUARED": "Consider alternative approaches that don't involve destructive actions.",
+        "F9_ANTI_HANTU": "I can provide factual information but cannot claim human-like experiences.",
+        "SAFETY_REFUSAL": "For safety information, please consult official resources or professionals.",
+        "DESTRUCTIVE_INTENT": "I'm designed to help constructively. How can I assist you differently?"
+    },
+    "_metadata": {
+        "created": "2026-01-03",
+        "author": "arifOS/Antigravity",
+        "status": "PHOENIX",
+        "cooling_required_hours": 72,
+        "notes": "v45xx Refusal Accountability - ensures all refusals are transparent, auditable, and provide guidance where appropriate."
+    }
+}

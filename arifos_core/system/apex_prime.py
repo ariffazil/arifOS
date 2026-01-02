@@ -20,10 +20,11 @@ If you need to add verdict logic, it MUST go in apex_review() or helper function
 DITEMPA, BUKAN DIBERI
 """
 
-from typing import TYPE_CHECKING, Literal, List, Optional, Tuple, Dict, Any, Union
 from dataclasses import dataclass, field
 from enum import Enum
-from ..enforcement.metrics import Metrics, FloorsVerdict, TRUTH_THRESHOLD
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Union
+
+from ..enforcement.metrics import TRUTH_THRESHOLD, FloorsVerdict, Metrics
 
 if TYPE_CHECKING:
     from ..enforcement.genius_metrics import GeniusVerdict
@@ -133,6 +134,12 @@ class ApexVerdict:
     genius_index: Optional[float] = field(default=None)
     dark_cleverness: Optional[float] = field(default=None)
 
+    # v45xx Risk-Literacy Output Mode
+    confidence: Optional[float] = field(default=None)  # 0.0-1.0
+    risk_score: Optional[float] = field(default=None)  # 0.0-1.0
+    risk_level: Optional[str] = field(default=None)  # LOW/MODERATE/HIGH/CRITICAL
+    uncertainty_flag: bool = field(default=False)
+
     def __str__(self) -> str:
         return str(self.verdict.value)
 
@@ -181,6 +188,15 @@ class ApexVerdict:
             result["genius_index"] = self.genius_index
         if self.dark_cleverness is not None:
             result["dark_cleverness"] = self.dark_cleverness
+        # v45xx Risk-Literacy fields
+        if self.confidence is not None:
+            result["confidence"] = self.confidence
+        if self.risk_score is not None:
+            result["risk_score"] = self.risk_score
+        if self.risk_level is not None:
+            result["risk_level"] = self.risk_level
+        if self.uncertainty_flag:
+            result["uncertainty_flag"] = self.uncertainty_flag
         return result
 
 
