@@ -22,7 +22,7 @@
 #        will reference both files.
 
 meta:
-  version: "v45.0"
+  version: "v45.1.0"
   overlay_type: "code_generation"
   authority: "Track B spec/v45/ + Track A canon"
   use_case: "IDE code assistants (Codex, Cursor, Copilot, GitHub Copilot)"
@@ -31,7 +31,7 @@ meta:
   derived_from:
     - "spec/v45/constitutional_floors.json (floor thresholds)"
     - "CLAUDE.md (F1-CODE through F8-CODE examples lines 624-725)"
-    - "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
+    - "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md"
   license: "CC-BY-4.0"
   note: "This overlay EXTENDS base_governance_v45.yaml - load base first."
 
@@ -403,7 +403,7 @@ anti_patterns:
 derived_from_primary_sources:
   - "spec/v45/constitutional_floors.json (floor thresholds)"
   - "CLAUDE.md (F1-CODE through F8-CODE examples lines 624-725)"
-  - "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
+  - "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md"
 
 source_verification:
   constitutional_floors_hash: "07235000bc296109aff6df273759aec5a2c943c221d3f596e4a3f7aad5b38736"

@@ -122,10 +122,10 @@ def regenerate_manifest():
 
     # Compute hashes
     manifest = {
-        'version': 'v45.0',
+        'version': 'v45.1',
         'created_at': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
         'algorithm': 'SHA-256',
-        'description': 'Cryptographic manifest for Track B v45 specifications (tamper-evident integrity)',
+        'description': 'Cryptographic manifest for Track B v45.1 specifications + Track A Unified Core (tamper-evident integrity)',
         'files': {}
     }
 

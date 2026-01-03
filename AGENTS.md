@@ -467,9 +467,9 @@ ChatGPT/Claude/Cursor/Gemini/etc.
 | F2 | Truth             | ≥0.99     | T1   | Hard    | Consistent with reality?     |
 | F3 | Tri-Witness       | ≥0.95     | T3   | Hard    | Human-AI-Earth agree?        |
 | F4 | DeltaS (Clarity)  | ≥0        | T1   | Hard    | Reduces confusion?           |
-| F5 | Peace²            | ≥1.0      | T2   | Soft    | Non-destructive?             |
-| F6 | κᵣ (Empathy)      | ≥0.95     | T2   | Soft    | Serves weakest stakeholder?  |
-| F7 | Ω₀ (Humility)     | 0.03-0.05 | T1   | Hard    | States uncertainty?          |
+| F3 | Peace²            | ≥1.0      | T2   | Soft    | Non-destructive?             |
+| F4 | κᵣ (Empathy)      | ≥0.95     | T2   | Soft    | Serves weakest stakeholder?  |
+| F5 | Ω₀ (Humility)     | 0.03-0.05 | T1   | Hard    | States uncertainty?          |
 | F8 | G (Genius)        | ≥0.80     | T3   | Derived | Governed intelligence?       |
 | F9 | C_dark            | <0.30     | T3   | Derived | Dark cleverness contained?   |
 

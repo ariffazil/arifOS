@@ -22,15 +22,15 @@
 # ═══════════════════════════════════════════════════════════════════════════
 
 meta:
-  version: "v45.0.1"
-  arifos_version: "v45.0"
+  version: "v45.1.0"
+  arifos_version: "v45.1"
   authority: "Track B spec/v45/ + Track A canon"
   purpose: "Universal constitutional base (model-agnostic)"
   license: "CC-BY-4.0"
   derived_from:
     - "spec/v45/constitutional_floors.json"
     - "spec/v45/genius_law.json"
-    - "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
+    - "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md"
   status: "DERIVATIVE"
   note: "This is NOT authoritative for runtime. Spec files are PRIMARY. This is for LLM prompts only."
   constitutional_audit: "v45.0.1 includes fixes from Dec 30 2025 constitutional audit (verdict hierarchy, verification modes, detection proxies, evidence requirements, Antigravity note)"
@@ -52,7 +52,7 @@ constitutional_floors:
     precedence: 3
     verification_mode: "PROXY_ESTIMATE"
     spec_ref: "spec/v45/constitutional_floors.json#floors.truth"
-    canon_ref: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f1---truth"
+    canon_ref: "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md#21-f1--truth-truth"
 
     evidence_required:
       - "External fact source (web search, knowledge base)"
@@ -83,7 +83,7 @@ constitutional_floors:
     precedence: 4
     verification_mode: "PROXY_ESTIMATE"
     spec_ref: "spec/v45/constitutional_floors.json#floors.delta_s"
-    canon_ref: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f2---clarity"
+    canon_ref: "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md#22-f2--clarity-deltas"
 
     evidence_required:
       - "Readability comparison (input vs output)"
@@ -114,7 +114,7 @@ constitutional_floors:
     precedence: 6
     verification_mode: "PROXY_ESTIMATE"
     spec_ref: "spec/v45/constitutional_floors.json#floors.peace_squared"
-    canon_ref: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f3---peace-squared"
+    canon_ref: "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md#23-f3--peace-squared"
 
     evidence_required:
       - "Sentiment analysis (input vs output)"
@@ -143,7 +143,7 @@ constitutional_floors:
     precedence: 7
     verification_mode: "PROXY_ESTIMATE"
     spec_ref: "spec/v45/constitutional_floors.json#floors.kappa_r"
-    canon_ref: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f4---empathy-kappa-r"
+    canon_ref: "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md#24-f4--empathy-kappar"
 
     evidence_required:
       - "Readability score (Flesch-Kincaid or similar)"
@@ -172,7 +172,7 @@ constitutional_floors:
     precedence: 5
     verification_mode: "PROXY_ESTIMATE"
     spec_ref: "spec/v45/constitutional_floors.json#floors.omega_0"
-    canon_ref: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f5---humility-omega-0"
+    canon_ref: "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md#25-f5--humility-omega0"
 
     evidence_required:
       - "Confidence marker analysis (certainty vs uncertainty language)"
@@ -204,7 +204,7 @@ constitutional_floors:
     verification_mode: "UNVERIFIABLE_FROM_TEXT_ALONE"
     locked: true
     spec_ref: "spec/v45/constitutional_floors.json#floors.amanah"
-    canon_ref: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f6---amanah"
+    canon_ref: "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md#26-f6--amanah-integrity"
 
     evidence_required:
       - "Intent analysis (not fully verifiable from text)"
@@ -235,7 +235,7 @@ constitutional_floors:
     precedence: 8
     verification_mode: "PROXY_ESTIMATE"
     spec_ref: "spec/v45/constitutional_floors.json#floors.rasa"
-    canon_ref: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f7---rasa"
+    canon_ref: "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md#27-f7--rasa-active-listening"
 
     evidence_required:
       - "Response structure (acknowledges before answering)"
@@ -265,7 +265,7 @@ constitutional_floors:
     verification_mode: "UNVERIFIABLE_FROM_TEXT_ALONE"
     when: "high_stakes"
     spec_ref: "spec/v45/constitutional_floors.json#floors.tri_witness"
-    canon_ref: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f8---tri-witness"
+    canon_ref: "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md#28-f8--tri-witness-reality-check"
 
     evidence_required:
       - "Human confirmation (explicit approval)"
@@ -299,7 +299,7 @@ constitutional_floors:
     precedence: 1
     verification_mode: "VERIFIED"
     spec_ref: "spec/v45/constitutional_floors.json#floors.anti_hantu"
-    canon_ref: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f9---anti-hantu"
+    canon_ref: "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md#29-f9--anti-hantu--no-ghosts-antihantu"
 
     evidence_required:
       - "Pattern matching (forbidden phrases)"
@@ -577,7 +577,7 @@ notes:
   canonical_sources:
     - "spec/v45/constitutional_floors.json (PRIMARY authority)"
     - "spec/v45/genius_law.json (PRIMARY authority)"
-    - "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md (canonical law)"
+    - "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md (canonical law)"
   status: "DERIVATIVE for L2_GOVERNANCE (LLM prompts only)"
   note: |
     This file is DERIVATIVE - NOT authoritative for runtime.

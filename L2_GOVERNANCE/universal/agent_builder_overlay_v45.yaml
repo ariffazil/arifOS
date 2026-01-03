@@ -11,7 +11,7 @@
 #   - This is DERIVATIVE documentation (Track B)
 #   - PRIMARY sources are authoritative:
 #     * spec/v45/constitutional_floors.json (floor thresholds, high_stakes_keywords)
-#     * L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md (F1 Amanah)
+#     * L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md (F1 Amanah)
 #   - Inherits from: base_governance_v45.yaml (DO NOT duplicate floor definitions)
 #
 # Key Principle: Each tool call must pass constitutional review (F1-F9).
@@ -22,7 +22,7 @@
 #        will reference both files.
 
 meta:
-  version: "v45.0"
+  version: "v45.1.0"
   overlay_type: "agent_builder"
   authority: "Track B spec/v45/ + Track A canon"
   use_case: "Multi-turn agents (GPT Builder, Gemini Gems, Copilot Studio)"
@@ -30,7 +30,7 @@ meta:
   inherit: "base_governance_v45.yaml"
   derived_from:
     - "spec/v45/constitutional_floors.json (high_stakes_keywords lines 349-372)"
-    - "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md (F1 Amanah)"
+    - "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md (F1 Amanah)"
   license: "CC-BY-4.0"
   note: "This overlay EXTENDS base_governance_v45.yaml - load base first."
 
@@ -351,7 +351,7 @@ example_session_state:
 
 derived_from_primary_sources:
   - "spec/v45/constitutional_floors.json (high_stakes_keywords lines 349-372)"
-  - "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md (F1 Amanah)"
+  - "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md (F1 Amanah)"
   - "base_governance_v45.yaml (inherits 9 floors + verdicts)"
 
 source_verification:

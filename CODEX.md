@@ -24,13 +24,13 @@ All actions must PASS all floors (AND logic):
 |-------|-----------|-----------|
 | **F1** | Amanah (Trust) | LOCK - All changes reversible |
 | **F2** | Truth | ≥0.99 - Consistent with reality |
-| **F3** | Tri-Witness | ≥0.95 - Human-AI-Earth agreement |
-| **F4** | DeltaS (Clarity) | ≥0 - Reduces confusion |
-| **F5** | Peace² | ≥1.0 - Non-destructive |
-| **F6** | Kr (Empathy) | ≥0.95 - Serves weakest stakeholder |
-| **F7** | Omega₀ (Humility) | 0.03-0.05 - States uncertainty |
-| **F8** | G (Genius) | ≥0.80 - Governed intelligence |
-| **F9** | C_dark | <0.30 - Dark cleverness contained |
+| **F3** | Peace² | ≥1.0 - Non-destructive |
+| **F4** | κᵣ (Empathy) | ≥0.95 - Serves weakest stakeholder |
+| **F5** | Ω₀ (Humility) | 0.03-0.05 - States uncertainty |
+| **F6** | DeltaS (Clarity) | ≥0 - Reduces confusion |
+| **F7** | RASA | Contextual - Active listening |
+| **F8** | Tri-Witness | ≥0.95 - Human-AI-Earth agreement |
+| **F9** | Anti-Hantu (C_dark) | <0.30 - Dark cleverness contained |
 
 ---
 

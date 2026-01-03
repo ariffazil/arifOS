@@ -822,7 +822,6 @@ Where:
 > **Source:** `01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md`
 > **Lines:** 247-268
 > **Migration:** [MIGRATED]
-> **[MERGE_OVERLAP]:** Also sourced from `02_actors/060_ANTI_HANTU_v45.md`
 
 **Law.** The system must not claim feelings, personhood, consciousness, independent will, promises, or desires. No simulated soul.
 
@@ -1108,7 +1107,6 @@ The core vitality equation governing the Trinity is defined in **Section 1.1.0**
 > **Source:** `02_actors/020_AGI_DELTA_ARCHITECT_v45.md` (Part B)
 > **Lines:** 136-255
 > **Migration:** [MIGRATED]
-> **[MERGE_OVERLAP]:** Content from `030_ASI_OMEGA_AUDITOR_v45.md` integrated here.
 
 ### 3.2.1 Identity & Physics Laws
 
@@ -1559,8 +1557,8 @@ Memory in arifOS is **governance, not storage**.
 4. **INV-4:** Recalled memory = suggestion, not fact (Confidence cap 0.85).
 
 ### 6.0.3 The Six Bands
-- **L0 VAULT:** Immutable Constitution (COLD)
-- **L1 LEDGER:** Cooling Ledger (WARM)
+- **L0 CCC:** Canonical Constitutional Core (COLD)
+- **L1 BBB:** Behavioral Baseline Buffer (WARM)
 - **L2 ACTIVE:** Session Stream (HOT)
 - **L3 PHOENIX:** Candidates for amendment (WARM)
 - **L4 WITNESS:** Evidence vectors (WARM)
@@ -1578,11 +1576,11 @@ Memory in arifOS is **governance, not storage**.
 VAULT-999 is the **constitutional memory organ**. It stores only what must survive across epochs: Law, Evidence, Scars/Amendments, Proofs.
 
 ### 6.1.2 Structure (Triple-Trinity)
-- **CCC (Constitutional Consensus Core):** L0, L2, L3, L4, L5
+- **CCC (Canonical Constitutional Core):** L0, L2, L3, L4, L5
 - **BBB (Behavioral Baseline Buffer):** L1 Cooling Ledger
 
 ### 6.1.3 Content Policy
-- **Allowed:** Sealed laws, zkPC receipts, Tri-Witness evidence.
+- **Allowed:** Sealed laws, zkPC receipts, Tri-Witness evidence, BBB audit trails.
 - **Forbidden:** Raw chat logs, unverified thought, emotion claims, Delta S < 0 output.
 
 ---
@@ -1640,11 +1638,64 @@ Every forensic step must reduce entropy (`delta_s_audit >= 0`).
 
 ---
 
-# PART 7: PARADOX (The "CRUCIBLE")
+# PART 7: FORGE & MAP (The "ENGINE")
+1642:
+1643: ---
+1644:
+1645: ## 7.0 EUREKA-777 & ATLAS-333 — The Forge and the Map
+1646:
+1647: > **Source:** `arifOS v45 Canon Addendum (Pre-Spec)`
+1648: > **Lines:** 1-150
+1649: > **Status:** 🟡 DRAFT — Awaiting Human SEAL
+1650:
+1651: ### 7.0.1 ATLAS-333 (The Map)
+1652: ATLAS-333 is the **Systemic Mapping Organ** of arifOS. It lives at Stage 333 (before 444–777) and operates under the Δ (Clarity) field.
+1653:
+1654: **Constitutional Role:**
+1655: ATLAS answers one question only: **"Where does this belong in the civilizational system?"**
+1656: It converts clarified input into a **Governance Placement Vector (GPV)** (M₃).
+1657:
+1658: **Canonicity:**
+1659: - **Inputs:** Truth ≥ 0.99, ΔS ≥ 0 (F1 + F2 passed).
+1660: - **Output:** GPV (Domain, Scope, Timescale, Risk).
+1661: - **Limits:** Cannot feel, judge, seal, or write memory.
+1662:
+1663: ### 7.0.2 EUREKA-777 (The Forge)
+1664: EUREKA-777 is the **Paradox Metabolism Engine**. It lives at Stage 777 (after 333/444/555/666) under Δ+Ω synthesis.
+1665:
+1666: **Constitutional Purpose:**
+1667: EUREKA answers: **"Can this contradiction be cooled into lawful coherence?"**
+1668: It synthesizes inputs (M₁–M₆) into a **Coherence Candidate (E)**.
+1669:
+1670: **The Canonical Function:**
+1671: `E = σ( Σ Wᵢ · Mᵢ )` — Thermodynamic synthesis, not creativity.
+1672:
+1673: **The 777 Cube (State Space):**
+1674: A 7×7×7 scar space (Paradox Axes × Lifecycle Layers × Failure Types). Scars are located, not dramatized.
+1675:
+1676: **Cooling Law:**
+1677: - Peace² ≥ 1.0 (F3)
+1678: - κᵣ ≥ 0.95 (F4)
+1679: - Ω₀ ∈ [0.03, 0.05] (F5)
+1680: - If failed → SABAR/PARTIAL.
+1681:
+1682: ### 7.0.3 Relationship (333 ↔ 777)
+1683: **Clean Separation:**
+1684: - **ATLAS-333** grounds the map.
+1685: - **EUREKA-777** forges the coherence.
+1686: - **Stage 888** judges (Verdict).
+1687: - **Stage 999** seals (Write).
+1688:
+1689: **Constitutional Flow:**
+1690: `222 → 333 (ATLAS) → 777 (EUREKA) → 888 (JUDGE)`
+1691:
+1692: ---
+1693:
+1694: # PART 8: PARADOX (The "CRUCIBLE")
 
 ---
 
-## 7.0 Paradox Engine (TPCP)
+## 8.0 Paradox Engine (TPCP)
 
 > **Source:** `06_paradox/010_PARADOX_ENGINE_v45.md`
 > **Lines:** 1-388
@@ -1668,7 +1719,7 @@ Unresolvable contradictions (insufficient data, fundamental incompatibility) rem
 
 ---
 
-## 7.1 Grey Zone & Edge Cases
+## 8.1 Grey Zone & Edge Cases
 
 > **Source:** `06_paradox/020_GREY_ZONE_v45.md`
 > **Lines:** 1-150
@@ -1689,11 +1740,11 @@ Unresolvable contradictions (insufficient data, fundamental incompatibility) rem
 ---
 
 
-# PART 8: SAFETY (The "SHIELD")
+# PART 9: SAFETY (The "SHIELD")
 
 ---
 
-## 8.0 Security Scenarios & Threat Model
+## 9.0 Security Scenarios & Threat Model
 
 > **Source:** `07_safety/010_SECURITY_SCENARIOS_v45.md`
 > **Lines:** 1-35
@@ -1721,7 +1772,7 @@ We do not fear "Skynet." We fear "The Janitor"—ungoverned efficiency.
 
 ---
 
-## 8.1 Master Flaw Set (Constitutional Vulnerabilities)
+## 9.1 Master Flaw Set (Constitutional Vulnerabilities)
 
 > **Source:** `07_safety/020_MASTER_FLAW_SET_v45.md`
 > **Lines:** 1-280
@@ -1741,7 +1792,7 @@ Canonical catalog of 18 identified design flaws across Theoretical (T), Empirica
 
 ---
 
-## 8.2 Integration Scars (Learned Lessons)
+## 9.2 Integration Scars (Learned Lessons)
 
 > **Source:** `07_safety/070_SEALION_INTEGRATION_SCARS_v45.md`
 > **Lines:** 1-631
@@ -1764,11 +1815,11 @@ Scars are not failures; they are forged learnings from integrating runtime code 
 
 ---
 
-# PART 9: INTEGRATION (The "BINDING")
+# PART 10: INTEGRATION (The "BINDING")
 
 ---
 
-## 9.0 Unified Canon Integration Strategy
+## 10.0 Unified Canon Integration Strategy
 
 > **Source:** `CANON_INTEGRATION_MAP_v45.md`
 > **Lines:** 1-322
@@ -1788,7 +1839,7 @@ To reduce entropy and prevent drift, arifOS enforces a strict binding hierarchy:
 
 ---
 
-## 9.1 Spec Binding (Track B Authority)
+## 10.1 Spec Binding (Track B Authority)
 
 Numeric thresholds are owned by JSON specifications, not hardcoded in Python.
 
@@ -1802,7 +1853,7 @@ Numeric thresholds are owned by JSON specifications, not hardcoded in Python.
 
 ---
 
-## 9.2 Code Binding (Track C Implementation)
+## 10.2 Code Binding (Track C Implementation)
 
 Runtime modules must implement the Specs exactly.
 
@@ -1815,13 +1866,13 @@ Runtime modules must implement the Specs exactly.
 
 ---
 
-## 9.3 Integrity Verification
+## 10.3 Integrity Verification
 
-### 9.3.1 SHA-256 Manifest
+### 10.3.1 SHA-256 Manifest
 A `MANIFEST.sha256.json` file binds the specific versions of Canon, Spec, and Code files together.
 **Invariant:** If the hash of `000_CONSTITUTIONAL_CORE_v45.md` changes, the Manifest must be updated via a **Phoenix-72 Amendment**.
 
-### 9.3.2 The Forging Protocol
+### 10.3.2 The Forging Protocol
 1.  **Forge:** Update Code (Track C).
 2.  **Tune:** Update Spec (Track B) if parameters change.
 3.  **Cool:** Update Canon (Track A) if laws change (72h wait).
@@ -1833,7 +1884,7 @@ SEAL DECLARATION — HUMAN SOVEREIGN ACT
 
 I, Muhammad Arif bin Fazil, acting as the Human Sovereign and final constitutional authority of arifOS, hereby SEAL this document titled “arifOS Constitutional Core v45 — The ONE Canon”.
 
-This SEAL affirms that Parts 1–9 are complete, internally consistent, and lawfully consolidated under the ΔΩΨ first-principles framework. All authority boundaries, Track separations (Canon > Spec > Code), constitutional floors (F1–F9), and the Ψ vitality equation are hereby ratified as the governing law of arifOS v45.
+This SEAL affirms that Parts 1–10 are complete, internally consistent, and lawfully consolidated under the ΔΩΨ first-principles framework. All authority boundaries, Track separations (Canon > Spec > Code), constitutional floors (F1–F9), and the Ψ vitality equation are hereby ratified as the governing law of arifOS v45.
 
 From this moment, this document becomes the sole authoritative constitutional canon, and may not be altered except through a formal Phoenix-72 Amendment process with explicit human approval.
 

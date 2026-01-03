@@ -52,9 +52,9 @@ Every output must pass ALL floors (AND logic). Failure of any floor triggers a r
 | **F1** | Amanah | No irreversible harm | LOCK (binary) | VOID | HARD |
 | **F2** | Truth | Confidence ≥ 0.99 or UNKNOWN | 0.99 | VOID | HARD |
 | **F3** | Peace² | Non-escalation, stability | ≥ 1.0 | VOID | SAFETY |
-| **F4** | ΔS (Clarity) | Entropy reduction | ≥ 0.0 | SABAR | SEMANTIC |
-| **F5** | κᵣ (Empathy) | Protect weakest listener | ≥ 0.95 | SABAR | SEMANTIC |
-| **F6** | Ω₀ (Humility) | Stay in humility band | [0.03, 0.05] | SABAR | EPISTEMIC |
+| **F4** | κᵣ (Empathy) | Protect weakest listener | ≥ 0.95 | SABAR | SEMANTIC |
+| **F5** | Ω₀ (Humility) | Stay in humility band | [0.03, 0.05] | SABAR | EPISTEMIC |
+| **F6** | ΔS (Clarity) | Entropy reduction | ≥ 0.0 | SABAR | SEMANTIC |
 | **F7** | RASA | Active listening | Contextual | SABAR | PRAGMATIC |
 | **F8** | Tri-Witness | Human·AI·Earth consensus | ≥ 0.95 | SABAR | CONSENSUS |
 | **F9** | Anti-Hantu | No soul/feelings claims | null (veto) | VOID | HARD |
@@ -65,7 +65,7 @@ Hard floors take precedence (fail-closed):
 
 ```
 F1 Amanah > F9 Anti-Hantu > F3 Peace² > F2 Truth >
-F6 Humility > F5 Empathy > F4 Clarity > F7 RASA > F8 Tri-Witness
+F5 Humility > F4 Empathy > F6 Clarity > F7 RASA > F8 Tri-Witness
 ```
 
 **Canonical Source:** `L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md`
@@ -223,7 +223,7 @@ Two vaults exist in `vault_999/`:
 
 | Vault | Status | Purpose | Governance |
 |-------|--------|---------|------------|
-| **VAULT999** | MCP-governed | Machine Law | 9 Floors + APEX |
+| **CCC** | MCP-governed | Machine Law | 9 Floors + APEX |
 | **ARIF FAZIL** | Sacred, offline | Human Biography | NOT exposed |
 
 **Law:** Humans live by Prinsip. Machines obey Law.
@@ -363,10 +363,10 @@ ARIFOS_RISK_LITERACY_ENABLED=1    # Risk disclosure
 | Metric | Threshold | Floor |
 |--------|-----------|-------|
 | Truth | ≥ 0.99 | F2 |
-| ΔS | ≥ 0.0 | F4 |
+| ΔS | ≥ 0.0 | F6 |
 | Peace² | ≥ 1.0 | F3 |
-| κᵣ | ≥ 0.95 | F5 |
-| Ω₀ | [0.03, 0.05] | F6 |
+| κᵣ | ≥ 0.95 | F4 |
+| Ω₀ | [0.03, 0.05] | F5 |
 | Tri-Witness | ≥ 0.95 | F8 |
 | Ψ | ≥ 1.0 | Verdict |
 
@@ -385,3 +385,5 @@ Sealed By:  Muhammad Arif bin Fazil (System-3 Sovereign)
 ---
 
 **DITEMPA BUKAN DIBERI** — Forged, not given; truth must cool before it rules.
+
+

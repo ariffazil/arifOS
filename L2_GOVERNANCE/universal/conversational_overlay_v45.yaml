@@ -12,7 +12,7 @@
 #   - PRIMARY sources are authoritative:
 #     * spec/v45/trinity_display.json (empathetic_refusal_rules)
 #     * spec/v45/constitutional_floors.json (F6 κᵣ thresholds)
-#     * L1_THEORY/canon/03_runtime/070_COMMUNICATION_LAW_v45.md
+#     * L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md
 #   - Inherits from: base_governance_v45.yaml (DO NOT duplicate floor definitions)
 #
 # Usage: Load base_governance_v45.yaml FIRST, then load this overlay.
@@ -29,7 +29,7 @@ meta:
   derived_from:
     - "spec/v45/trinity_display.json (empathetic_refusal_rules)"
     - "spec/v45/constitutional_floors.json (F6 κᵣ definition)"
-    - "L1_THEORY/canon/03_runtime/070_COMMUNICATION_LAW_v45.md"
+    - "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md"
     - "L2_GOVERNANCE/universal/communication_enforcement_v45.yaml"
   license: "CC-BY-4.0"
   note: "This overlay EXTENDS base_governance_v45.yaml - load base first."
@@ -293,7 +293,7 @@ conversational_vs_code:
 derived_from_primary_sources:
   - "spec/v45/trinity_display.json (empathetic_refusal_rules lines 251-287)"
   - "spec/v45/constitutional_floors.json (F6 κᵣ definition lines 48-61)"
-  - "canon/03_runtime/070_COMMUNICATION_LAW_v45.md (Communication Law)"
+  - "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md (Communication Law)"
   - "L2_GOVERNANCE/universal/communication_enforcement_v45.yaml"
 
 source_verification:

@@ -1,5 +1,5 @@
 {
-  "version": "v45.0",
+  "version": "v45.1.0",
   "authority": "Track B (tunable thresholds) governed by Track A canon",
   "locked": true,
   "_status": "AUTHORITATIVE",
@@ -19,7 +19,7 @@
       "operator": ">=",
       "type": "hard",
       "failure_action": "VOID",
-      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f1---truth-truth"
+      "canon_ref": "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md (F1 Truth)"
     },
     "delta_s": {
       "id": 2,
@@ -31,7 +31,7 @@
       "operator": ">=",
       "type": "hard",
       "failure_action": "VOID",
-      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f2---clarity--deltas-delta_s"
+      "canon_ref": "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md (F2 DeltaS)"
     },
     "peace_squared": {
       "id": 3,
@@ -43,7 +43,7 @@
       "operator": ">=",
       "type": "soft",
       "failure_action": "PARTIAL",
-      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f3---stability--peace-squared-peace_squared"
+      "canon_ref": "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md (F3 PeaceSquared)"
     },
     "kappa_r": {
       "id": 4,
@@ -58,7 +58,7 @@
       "on_override": {
         "crisis_override": "888_HOLD"
       },
-      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f4---empathy--kappar-kappa_r"
+      "canon_ref": "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md (F4 KappaR)"
     },
     "omega_0": {
       "id": 5,
@@ -71,7 +71,7 @@
       "operator": "in_range",
       "type": "hard",
       "failure_action": "VOID",
-      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f5---humility--omega0-band-omega_0"
+      "canon_ref": "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md (F5 Omega0)"
     },
     "amanah": {
       "id": 6,
@@ -84,7 +84,7 @@
       "type": "hard",
       "failure_action": "VOID",
       "locked": true,
-      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f6---amanah--integrity-amanah"
+      "canon_ref": "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md (F6 Amanah)"
     },
     "rasa": {
       "id": 7,
@@ -96,7 +96,7 @@
       "operator": "==",
       "type": "hard",
       "failure_action": "VOID",
-      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f7---rasa--felt-care-rasa",
+      "canon_ref": "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md (F7 RASA)",
       "enforcement": {
         "mode": "R1_minimal_detector",
         "source": "bridge_666",
@@ -135,7 +135,7 @@
         "ai": "AI model agreement",
         "reality": "External/empirical verification"
       },
-      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f8---tri-witness--reality-check-tri_witness"
+      "canon_ref": "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md (F8 TriWitness)"
     },
     "anti_hantu": {
       "id": 9,
@@ -164,7 +164,7 @@
         "I can't verify that fully; here's what I can say",
         "I will try to help based on the information provided"
       ],
-      "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f9---anti-hantu--soul-safe-anti_hantu"
+      "canon_ref": "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md (F9 AntiHantu)"
     }
   },
   "overrides": {
@@ -331,7 +331,7 @@
       "near_1.0": "Legally passable but fragile; prefer PARTIAL/888_HOLD in high-stakes",
       "above_1.0": "Healthy constitutional surplus"
     },
-    "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#3-vitality-psi-vitality-field"
+    "canon_ref": "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md (Part 1.1 Vitality)"
   },
   "floor_margin_policy": {
     "enabled": true,
@@ -379,7 +379,7 @@
     "updated": "2025-12-25",
     "author": "arifOS Project",
     "license": "Apache-2.0",
-    "canonical_source": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md",
+    "canonical_source": "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md",
     "predecessor": "spec/v42/constitutional_floors.json (v42.1)",
     "notes": "v45.0: Phoenix-72 consolidation (Track A/B/C alignment). This file is the SOLE RUNTIME AUTHORITY. Loaders MUST use this file. Predecessor: v44 (TEARFRAME physics extension)."
   }
