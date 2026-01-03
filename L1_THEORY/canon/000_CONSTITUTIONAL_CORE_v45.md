@@ -1,4 +1,4 @@
-# arifOS Constitutional Core v45 — The ONE Canon (DRAFT)
+# arifOS Constitutional Core v45 — The ONE Canon
 
 **Version:** v45.1.0 (Triple-Trinity Consolidation)
 **Status:** ✅ SEALED — Sovereign Witness Ratified
