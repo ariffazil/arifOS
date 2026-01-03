@@ -1,7 +1,8 @@
 """
-MCP Tool: arifos_fag_read
+MCP Tool: tempa_read (vTEMPA External)
 
-Exposes FAG (File Access Governance) as an MCP tool for governed file reading.
+Exposes FAG (File Access Governance) as external MCP tool for governed file reading.
+vTEMPA = Governed File Access for External MCP (formerly FAG for internal).
 
 Tool Interface:
     Input: { "path": str, "root": str? }
@@ -9,6 +10,8 @@ Tool Interface:
 
 Constitutional Floors Enforced:
     F1 Amanah, F2 Truth, F4 DeltaS, F5 Peace², F7 Omega0, F8 G, F9 C_dark
+
+Version: v45.3.0
 """
 
 from __future__ import annotations
@@ -25,7 +28,6 @@ class FAGReadRequest(BaseModel):
     path: str = Field(..., description="Path to file (relative to root or absolute within root)")
     root: str = Field(default=".", description="Root directory for jailed access")
     enable_ledger: bool = Field(default=True, description="Log access to Cooling Ledger")
-    human_seal_token: Optional[str] = Field(None, description="Token to bypass protected path restrictions (v45.0.3)")
 
 
 class FAGReadResponse(BaseModel):
@@ -38,9 +40,9 @@ class FAGReadResponse(BaseModel):
     ledger_entry_id: Optional[str] = Field(None, description="Cooling Ledger entry ID")
 
 
-def arifos_fag_read(request: FAGReadRequest) -> FAGReadResponse:
+def tempa_read(request: FAGReadRequest) -> FAGReadResponse:
     """
-    Read file with constitutional governance (FAG).
+    vTEMPA: Read file with constitutional governance.
 
     Enforces 9 constitutional floors on file access:
     - F1 Amanah: Root jail enforcement
@@ -50,20 +52,25 @@ def arifos_fag_read(request: FAGReadRequest) -> FAGReadResponse:
     - F7 Omega0: Return verdict + uncertainty
     - F8 G: Log all access to Cooling Ledger
     - F9 C_dark: Block secrets, credentials, forbidden patterns
-    - v45.0.3: Protected path check (requires token)
 
     Args:
         request: FAGReadRequest with path, root, and options
 
     Returns:
         FAGReadResponse with verdict, content (if SEAL), and floor scores
+
+    Examples:
+        >>> arifos_fag_read(FAGReadRequest(path="README.md"))
+        FAGReadResponse(verdict="SEAL", content="...", ...)
+
+        >>> arifos_fag_read(FAGReadRequest(path=".env"))
+        FAGReadResponse(verdict="VOID", reason="F9 C_dark FAIL: Forbidden pattern")
     """
     try:
         fag = FAG(
             root=request.root,
             read_only=True,
             enable_ledger=request.enable_ledger,
-            human_seal_token=request.human_seal_token,
             job_id="mcp-fag-read",
         )
     except ValueError as e:
@@ -91,14 +98,13 @@ def arifos_fag_read(request: FAGReadRequest) -> FAGReadResponse:
 
 # MCP Tool metadata
 TOOL_METADATA = {
-    "name": "arifos_fag_read",
+    "name": "tempa_read",
     "description": (
-        "Read file with constitutional governance (FAG). "
+        "vTEMPA: Read file with constitutional governance. "
         "Enforces 9 constitutional floors: root jail (F1 Amanah), "
         "existence check (F2 Truth), binary rejection (F4 DeltaS), "
         "read-only safety (F5 Peace²), uncertainty handling (F7 Omega0), "
-        "ledger logging (F8 G), and secret blocking (F9 C_dark). "
-        "v45.0.3 adds protected path blocking."
+        "ledger logging (F8 G), and secret blocking (F9 C_dark)."
     ),
     "input_schema": FAGReadRequest.model_json_schema(),
     "output_schema": FAGReadResponse.model_json_schema(),

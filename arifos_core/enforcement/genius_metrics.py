@@ -18,7 +18,7 @@ This module provides:
 Key formulas (v36.1Omega, unchanged in v45.0):
     G = normalize(A x P x E x X)           [0, 1.2]
     C_dark = normalize(A x (1-P) x (1-X) x E)  [0, 1]
-    Psi = (DeltaS x Peace2 x KappaR x RASA x Amanah) / (Entropy + epsilon)
+    Psi = (DeltaS x Peace2 x KappaR x RASA x Amanah) / (Entropy + Shadow + epsilon)
 
 For full measurement spec, see:
     spec/v45/genius_law.json (Track B authority - v45.0)
@@ -503,13 +503,14 @@ def compute_psi_apex(
     energy: float = DEFAULT_ENERGY,
     entropy: float = 0.0,
 ) -> float:
-    """
-    Compute System Vitality Ψ_APEX = (A · P · E · X) / (Entropy + ε).
+    \"\"\"
+    Compute System Vitality Ψ_APEX per Canon v45.0.
+
+    Formula: Ψ = (ΔS · Peace² · κᵣ · RASA · Amanah) / (Entropy + Shadow + ε)
 
     Ψ_APEX measures global system health:
-    - ≥ 1.0 = healthy
-    - < 1.0 = strained
-    - >> 1.0 = thriving
+    - ≥ 1.0 = healthy (SEAL)
+    - < 1.0 = strained (SABAR/PARTIAL)
 
     Args:
         m: Metrics instance
@@ -518,23 +519,23 @@ def compute_psi_apex(
 
     Returns:
         Ψ_APEX: System Vitality (unbounded positive)
-    """
-    # Map to APEX dials:
-    # A (Akal) = truth-based clarity
-    a = min(m.truth, 1.0)
+    \"\"\"
+    # Numerator components
+    delta_s_gain = max(0.0, m.delta_s)
+    peace_score = m.peace_squared
+    empathy = m.kappa_r
+    rasa = 1.0 if m.rasa else 0.0
+    amanah = 1.0 if m.amanah else 0.0
 
-    # P (Present) = peace/regulation
-    p = min(m.peace_squared / PEACE_SQUARED_THRESHOLD, 1.0) if PEACE_SQUARED_THRESHOLD > 0 else 1.0
+    # Denominator components
+    shadow = m.shadow
 
-    # E (Energy) = provided
+    # Energy factor (E as multiplier per G formulation)
     e = energy
 
-    # X (Exploration with Amanah) = empathy + amanah
-    x = compute_omega_score(m)
-
-    # Ψ_APEX = (A · P · E · X) / (Entropy + ε)
-    numerator = a * p * e * x
-    denominator = entropy + EPSILON
+    # Formula per 010_MEASUREMENT_CANON_v45.md equation 2.5
+    numerator = (delta_s_gain * peace_score * empathy * rasa * amanah) * e
+    denominator = entropy + shadow + EPSILON
 
     return numerator / denominator
 
@@ -678,6 +679,9 @@ def evaluate_genius_law(
     delta = compute_delta_score(m)
     omega = compute_omega_score(m)
     psi = compute_psi_score(m)
+
+    # v45Ω: Shadow Detection (Clarity Loss as Obscurity)
+    m.shadow = max(0.0, -m.delta_s)
 
     g = compute_genius_index(m, energy)
     c_dark = compute_dark_cleverness(m, energy)

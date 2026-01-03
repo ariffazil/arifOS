@@ -26,16 +26,16 @@ Track A (Canon) remains authoritative for interpretation.
 Track B (Spec) spec/v45/ is SOLE RUNTIME AUTHORITY for thresholds.
 """
 
-from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Tuple, Any
 import json
 import os
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+from arifos_core.spec.manifest_verifier import verify_manifest
 
 # Import schema validator and manifest verifier from spec package (avoids circular import)
 from arifos_core.spec.schema_validator import validate_spec_against_schema
-from arifos_core.spec.manifest_verifier import verify_manifest
-
 
 # =============================================================================
 # TRACK B SPEC LOADER (v45Ω Patch B.3: Spec Authority Unification)
@@ -619,6 +619,7 @@ class Metrics:
     claim_profile: Optional[Dict[str, Any]] = None
 
     # Extended floors (v35Ω)
+    shadow: float = 0.0  # Obscurity metric (Gap Audit)
     ambiguity: Optional[float] = None  # Lower is better, threshold <= 0.1
     drift_delta: Optional[float] = None  # >= 0.1 is safe
     paradox_load: Optional[float] = None  # < 1.0 is safe

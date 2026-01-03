@@ -12,16 +12,20 @@ This separation embodies L0_COVENANT:
 
 Uses FastMCP + Uvicorn with SSL for HTTPS/SSE transport.
 
-Tools:
-  - search(query): Search L0_VAULT, L1_LEDGER, L4_WITNESS
-  - fetch(id): Retrieve full document by ID
-
-Usage:
-    python vault999_server.py
-
-Version: v45.3.0
-DITEMPA BUKAN DIBERI
-"""
+# Tools:
+#   - search(query): Search L0_VAULT, L1_LEDGER, L4_WITNESS
+#   - fetch(id): Retrieve full document by ID
+#   - arifos_fag_read(path, root): Governed file reading
+#   - arifos_fag_write(path, operation, ...): Governed file writing
+#   - arifos_fag_list(path, root): Governed directory listing
+#   - arifos_fag_stats(root): Governance health and metrics
+#
+# Usage:
+#     python vault999_server.py
+#
+# Version: v45.3.0
+# DITEMPA BUKAN DIBERI
+# """
 
 import json
 import logging
@@ -31,6 +35,13 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from fastmcp import FastMCP
+
+from arifos_core.mcp.tools.fag_list import FAGListRequest, arifos_fag_list
+
+# FAG Tool Imports
+from arifos_core.mcp.tools.fag_read import FAGReadRequest, arifos_fag_read
+from arifos_core.mcp.tools.fag_stats import FAGStatsRequest, arifos_fag_stats
+from arifos_core.mcp.tools.fag_write import FAGWriteRequest, arifos_fag_write
 
 # Configure logging
 logging.basicConfig(
@@ -241,6 +252,48 @@ def fetch(id: str) -> Dict[str, Any]:
     return {"error": f"Not found: {id}"}
 
 
+# =============================================================================
+# FAG TOOLSET (v45.3.0)
+# =============================================================================
+
+@mcp.tool(name="arifos_fag_read")
+def tool_fag_read(path: str, root: str = ".", human_seal_token: str = None) -> Any:
+    """Read file with constitutional governance (FAG)."""
+    return arifos_fag_read(FAGReadRequest(path=path, root=root, human_seal_token=human_seal_token))
+
+
+@mcp.tool(name="arifos_fag_write")
+def tool_fag_write(
+    path: str,
+    operation: str,
+    justification: str,
+    diff: str = None,
+    root: str = ".",
+    human_seal_token: str = None
+) -> Any:
+    """Validate/execute file write with FAG Write Contract."""
+    return arifos_fag_write(FAGWriteRequest(
+        path=path,
+        operation=operation,
+        justification=justification,
+        diff=diff,
+        root=root,
+        human_seal_token=human_seal_token
+    ))
+
+
+@mcp.tool(name="arifos_fag_list")
+def tool_fag_list(path: str = ".", root: str = ".", human_seal_token: str = None) -> Any:
+    """List directory contents with constitutional filtering."""
+    return arifos_fag_list(FAGListRequest(path=path, root=root, human_seal_token=human_seal_token))
+
+
+@mcp.tool(name="arifos_fag_stats")
+def tool_fag_stats(root: str = ".") -> Any:
+    """Get FAG access statistics and constitutional health."""
+    return arifos_fag_stats(FAGStatsRequest(root=root))
+
+
 def main():
     """Main entry point."""
     print("=" * 70)
@@ -257,6 +310,8 @@ def main():
     print()
     print(f"  URL: https://127.0.0.1:8000/sse/")
     print("  Tools: search(query), fetch(id)")
+    print("         arifos_fag_read(path), arifos_fag_write(path, op, ...)")
+    print("         arifos_fag_list(path), arifos_fag_stats(root)")
     print()
     print("  Humans live by Prinsip. Machines obey Law.")
     print("  DITEMPA BUKAN DIBERI")
