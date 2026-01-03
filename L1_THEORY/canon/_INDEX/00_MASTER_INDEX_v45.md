@@ -8,19 +8,12 @@
 
 ## Overview
 
-This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/`. All files upgraded to v45 during the 2025-12-29 Phoenix-72 consolidation.
+This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/`.
 
-**File Count:** 35 v45 files + 5 metadata files = 40 total (includes 2 PHOENIX amendments)
-**Version Consistency:** 100% v45
-**Reduction History:**
+**MAJOR UPDATE (2026-01-03):** All canon files have been consolidated into **ONE** authoritative document:
+👉 **[`000_CONSTITUTIONAL_CORE_v45.md`](000_CONSTITUTIONAL_CORE_v45.md)**
 
-- v42 → v45: 49 → 40 files (9 archived to `archive/v42_detail/`)
-- v45 Entropy Reduction A (2025-12-30): 38 → 36 files (2 archived to `archive/v45_entropy_reduction/`)
-- v45 Entropy Reduction B (2025-12-30): 36 → 35 files (1 redirect stub removed)
-- v45 Entropy Reduction C (2025-12-30): Root cleanup (canon/, vault_999/, config/ removed/moved)
-
-**Phoenix Amendments:** 2 files (060, 065 in 03_runtime/) — 72h cooling complete, SEALED
-**Relocated:** COMMUNICATION_LAW_v45.md → 03_runtime/070_COMMUNICATION_LAW_v45.md (axis alignment)
+All other files listed below are now considered **Source Material** (Historical/Reference) for the Unified Core. In case of conflict, the `CONSTITUTIONAL_CORE` prevails.
 
 ---
 
@@ -28,6 +21,7 @@ This index catalogs the **Track A Constitutional Canon** under `L1_THEORY/canon/
 
 | Layer | Purpose | Key Files |
 |-------|---------|-----------|
+| **SUPREME** | **Unified Constitutional Core** | **[`000_CONSTITUTIONAL_CORE_v45.md`](000_CONSTITUTIONAL_CORE_v45.md)** |
 | **00_foundation** | ΔΩΨ Physics & Thermodynamics | Physics, Math, ΔΩΨ Equation, Thermodynamics |
 | **01_floors** | F1-F9 Constitutional Floors | Constitutional Floors F1-F9 |
 | **02_actors** | AAA Trinity (ARIF, ADAM, APEX) | Trinity Roles, AGI/ASI, APEX, Anti-Hantu, @EYE, W@W |
