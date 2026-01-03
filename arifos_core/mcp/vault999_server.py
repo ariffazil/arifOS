@@ -2,6 +2,14 @@
 """
 VAULT999 MCP Server - Constitutional Memory Gateway for ChatGPT
 
+HUMAN-MACHINE CONCORDAT:
+  VAULT999     = Machine Law (MCP-governed, constitutional, exposed)
+  ARIF FAZIL   = Human Biography (sacred, offline, NEVER exposed)
+
+This separation embodies L0_COVENANT:
+  Humans live by Prinsip.
+  Machines obey Law.
+
 Uses FastMCP + Uvicorn with SSL for HTTPS/SSE transport.
 
 Tools:
@@ -11,7 +19,8 @@ Tools:
 Usage:
     python vault999_server.py
 
-Version: v45.2.0
+Version: v45.3.0
+DITEMPA BUKAN DIBERI
 """
 
 import json
@@ -39,7 +48,37 @@ CERT_DIR = Path(__file__).parent / "certs"
 SSL_CERT = CERT_DIR / "cert.pem"
 SSL_KEY = CERT_DIR / "key.pem"
 
-# Memory band configuration
+# =============================================================================
+# CONSTITUTIONAL BOUNDARY: HUMAN-MACHINE CONCORDAT
+# =============================================================================
+# Two vaults exist:
+#   VAULT999     = Machine Law (MCP-governed, constitutional, exposed)
+#   ARIF FAZIL   = Human Biography (sacred, offline, NEVER exposed)
+#
+# This separation embodies L0_COVENANT:
+#   Humans live by Prinsip.
+#   Machines obey Law.
+#
+# DITEMPA BUKAN DIBERI
+# =============================================================================
+
+SACRED_VAULT = REPO_ROOT / "vault_999" / "ARIF FAZIL"
+SACRED_VAULT_PATTERNS = ["ARIF FAZIL", "ARIF_FAZIL", "arif fazil", "arif_fazil"]
+
+def _is_sacred_path(path: Path) -> bool:
+    """Check if path is within or references the sacred human vault."""
+    path_str = str(path).lower()
+    for pattern in SACRED_VAULT_PATTERNS:
+        if pattern.lower() in path_str:
+            return True
+    return False
+
+def _log_sacred_violation(query: str, source: str) -> None:
+    """Log any attempt to access sacred human vault. F1 Amanah violation."""
+    logger.error(f"[VOID] SACRED_BOUNDARY_VIOLATION: source={source}, query='{query}'")
+    logger.error(f"[VOID] Human vault 'ARIF FAZIL' is offline. Machine may not access.")
+
+# Memory band configuration (ONLY MACHINE VAULT)
 BANDS = {
     "L0_VAULT": {
         "path": VAULT_ROOT / "L0_VAULT",
@@ -105,8 +144,24 @@ def search_band(band_name: str, query: str) -> List[Dict[str, Any]]:
 
 @mcp.tool()
 def search(query: str) -> Dict[str, Any]:
-    """Search constitutional memory across L0_VAULT, L1_LEDGER, L4_WITNESS."""
+    """Search constitutional memory across L0_VAULT, L1_LEDGER, L4_WITNESS.
+
+    CONSTITUTIONAL BOUNDARY: This function only searches VAULT999 (machine law).
+    The ARIF FAZIL vault (human biography) is sacred and offline.
+    """
     logger.info(f"Search: '{query}'")
+
+    # SACRED VAULT PROTECTION: Block any query targeting human biography
+    query_lower = query.lower()
+    for pattern in SACRED_VAULT_PATTERNS:
+        if pattern.lower() in query_lower:
+            _log_sacred_violation(query, "search")
+            return {
+                "error": "SACRED_BOUNDARY: Query references human vault which is offline.",
+                "verdict": "VOID",
+                "guidance": "The ARIF FAZIL vault contains human biography and is not MCP-governed.",
+                "results": []
+            }
 
     if not query or len(query.strip()) < 2:
         return {"error": "Query too short", "results": []}
@@ -123,14 +178,31 @@ def search(query: str) -> Dict[str, Any]:
     return {
         "query": query,
         "total_found": len(all_results),
-        "results": limited
+        "results": limited,
+        "vault": "VAULT999",
+        "governance": "Nine Floors + APEX PRIME"
     }
 
 
 @mcp.tool()
 def fetch(id: str) -> Dict[str, Any]:
-    """Retrieve full document by ID (format: BAND_filename)."""
+    """Retrieve full document by ID (format: BAND_filename).
+
+    CONSTITUTIONAL BOUNDARY: This function only fetches from VAULT999.
+    The ARIF FAZIL vault is sacred and offline.
+    """
     logger.info(f"Fetch: '{id}'")
+
+    # SACRED VAULT PROTECTION: Block any fetch targeting human biography
+    id_lower = id.lower() if id else ""
+    for pattern in SACRED_VAULT_PATTERNS:
+        if pattern.lower() in id_lower:
+            _log_sacred_violation(id, "fetch")
+            return {
+                "error": "SACRED_BOUNDARY: Document is in human vault which is offline.",
+                "verdict": "VOID",
+                "guidance": "The ARIF FAZIL vault contains human biography and is not MCP-governed."
+            }
 
     if not id or "_" not in id:
         return {"error": f"Invalid ID: {id}"}
@@ -158,7 +230,9 @@ def fetch(id: str) -> Dict[str, Any]:
                             "metadata": {
                                 "confidence": band["confidence"],
                                 "band": bn,
-                                "canonical": bn == "L0_VAULT"
+                                "canonical": bn == "L0_VAULT",
+                                "vault": "VAULT999",
+                                "governance": "Nine Floors + APEX PRIME"
                             }
                         }
                     except Exception as e:
@@ -170,14 +244,21 @@ def fetch(id: str) -> Dict[str, Any]:
 def main():
     """Main entry point."""
     print("=" * 70)
-    print("  VAULT999 MCP Server v45.2.0")
+    print("  VAULT999 MCP Server v45.3.0")
     print("  Constitutional Memory Gateway for ChatGPT")
     print("=" * 70)
-    print(f"  Vault: {VAULT_ROOT}")
-    print(f"  URL: https://127.0.0.1:8000/sse/")
     print()
+    print("  HUMAN-MACHINE CONCORDAT:")
+    print("    VAULT999     = Machine Law (MCP-governed, exposed)")
+    print("    ARIF FAZIL   = Human Biography (sacred, offline)")
+    print()
+    print(f"  Machine Vault: {VAULT_ROOT}")
+    print(f"  Sacred Vault:  {SACRED_VAULT} [OFFLINE]")
+    print()
+    print(f"  URL: https://127.0.0.1:8000/sse/")
     print("  Tools: search(query), fetch(id)")
     print()
+    print("  Humans live by Prinsip. Machines obey Law.")
     print("  DITEMPA BUKAN DIBERI")
     print("=" * 70)
 
