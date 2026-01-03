@@ -1,10 +1,10 @@
 {
-  "version": "v45.1",
-  "created_at": "2026-01-03T22:45:00Z",
+  "version": "v45.0",
+  "created_at": "2026-01-03T20:08:03.975629Z",
   "algorithm": "SHA-256",
-  "description": "Cryptographic manifest binding Track A (Canon) and Track B (Spec) for arifOS v45.1",
+  "description": "Cryptographic manifest for Track B v45 specifications (tamper-evident integrity)",
   "files": {
-    "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md": "0d5686f3c33e053bd98cfac6224c6b12a3d077b949987920401d670605963f4b",
+    "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md": "7f17a447b57ba231077c23bebaa1c0bcbc15010b38611ec89229ef45e4d6326e",
     "spec/v45/constitutional_floors.json": "07235000bc296109aff6df273759aec5a2c943c221d3f596e4a3f7aad5b38736",
     "spec/v45/cooling_ledger_phoenix.json": "bc0c3d435776f60ec615b591b246db9d6b561ee8c00d4a0cfdc9261a5593ffb0",
     "spec/v45/genius_law.json": "63901c1b502c2d9990ba542c24d69cef7485ba637f633793ff627799156f87bf",

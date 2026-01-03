@@ -104,6 +104,7 @@ def regenerate_manifest():
     """Regenerate v45 manifest with current SHA-256 hashes."""
     # Files to include in manifest
     files = [
+        'L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md',
         'spec/v45/constitutional_floors.json',
         'spec/v45/cooling_ledger_phoenix.json',
         'spec/v45/genius_law.json',
