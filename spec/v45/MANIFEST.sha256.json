@@ -4,7 +4,7 @@
   "algorithm": "SHA-256",
   "description": "Cryptographic manifest binding Track A (Canon) and Track B (Spec) for arifOS v45.1",
   "files": {
-    "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md": "42dea815d1b7b5ed684766608b5fce7d8e4cb64d3fbdc1d9dadf64b61048c9eb",
+    "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md": "0d5686f3c33e053bd98cfac6224c6b12a3d077b949987920401d670605963f4b",
     "spec/v45/constitutional_floors.json": "07235000bc296109aff6df273759aec5a2c943c221d3f596e4a3f7aad5b38736",
     "spec/v45/cooling_ledger_phoenix.json": "bc0c3d435776f60ec615b591b246db9d6b561ee8c00d4a0cfdc9261a5593ffb0",
     "spec/v45/genius_law.json": "63901c1b502c2d9990ba542c24d69cef7485ba637f633793ff627799156f87bf",
