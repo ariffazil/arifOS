@@ -4,7 +4,7 @@ test_memory_eureka_comprehensive_v38.py — Comprehensive EUREKA End-to-End Test
 Comprehensive end-to-end tests for v38 Memory Write Policy Engine (EUREKA).
 Tests full pipeline flows, multi-band coordination, and cross-layer integration.
 
-Per: canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md
+Per: canon/07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md
 
 Author: arifOS Project
 Version: v38.0
@@ -232,7 +232,7 @@ class TestEndToEndMemoryWriteFlow:
             writer_id="888_JUDGE",
         )
         
-        ledger_result = band_router.write(entry, BandName.LEDGER)
+        ledger_result = band_router.write(entry, BandName.BBB)
         assert ledger_result.success
         
         # 3. Audit trail
@@ -327,7 +327,7 @@ class TestMultiBandWriteConsistency:
             writer_id="111_SENSE",
         )
         
-        ledger_result = band_router.write(ledger_entry, BandName.LEDGER)
+        ledger_result = band_router.write(ledger_entry, BandName.BBB)
         active_result = band_router.write(active_entry, BandName.ACTIVE)
         
         assert ledger_result.success
@@ -652,3 +652,4 @@ class TestErrorHandlingAndRecovery:
 # 8. ✅ Error handling and recovery
 #
 # Total: 35+ assertions across 8+ test categories
+

@@ -127,7 +127,7 @@ Cooling of paradox is considered physically valid when:
 Timing rules (timeouts, "intractable scars", human intervention triggers) belong in:
 
   - DREAMFORGE_ARCHITECTURE_v36.3Omega.md
-  - VAULT999_ARCHITECTURE_v36.3Omega.md
+  - CCC_ARCHITECTURE_v36.3Omega.md
   - spec/paradox_777_schema_v36.3O.json
 
 They are implementation guidance, not floors.
@@ -175,3 +175,4 @@ law:
 scope:
   - Physics-level constraints on paradox conduction and cooling.
   - Geometry and state machine behaviour are defined in PARADOX_777_CUBE_v36.3Omega.md.
+

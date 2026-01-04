@@ -231,9 +231,9 @@ PP–PS Wave, Gradient, and EUREKA anchors are captured in 00_CANON and surfaced
 ## 7. VAULT-999
 
 ### Canon Files
-- `v36.3O/canon/80_VAULT999/VAULT-999-ALL-IN-ONE-v36.3O.pdf` — Complete Vault-999 specification
-- **`v36.3O/canon/VAULT999_ARCHITECTURE_v36.3O.md`** — Bridge/summary file
-- **`canon/07_VAULT999/062_VAULT999_FINAL_SEAL_PROTOCOL_v36.3Omega.md`** — Final Seal protocol canon
+- `v36.3O/canon/80_CCC/VAULT-999-ALL-IN-ONE-v36.3O.pdf` — Complete Vault-999 specification
+- **`v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md`** — Bridge/summary file
+- **`canon/07_CCC/062_CCC_FINAL_SEAL_PROTOCOL_v36.3Omega.md`** — Final Seal protocol canon
 - `canon/VAULT_999_v36Omega.md` — v36Ω Vault-999 design (5-layer architecture)
 - `spec/VAULT_999.md` — v35Ω spec (runtime binding)
 - `spec/cooling_ledger.schema.json` — v35Ic schema (runtime binding)
@@ -513,3 +513,4 @@ The following HOTSPOTs document drift between the v36.3Ω telemetry spec (`apex_
 ---
 
 **Version:** v36.3Ω | **Status:** Initial mapping | **Last Updated:** 2025-12-10
+

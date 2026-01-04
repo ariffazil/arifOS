@@ -64,7 +64,7 @@
 
 To change a spec threshold:
 
-1. **Propose** — Create amendment in `canon/07_VAULT999/`
+1. **Propose** — Create amendment in `canon/07_CCC/`
 2. **Cool** — 72-hour review period
 3. **Witness** — Requires F3 Tri-Witness (human + AI + evidence)
 4. **Seal** — Human approval via `arifos-seal-canon`
@@ -95,3 +95,4 @@ pytest tests/test_*_v38_alignment.py -v
 ---
 
 **DITEMPA BUKAN DIBERI** — Spec is law. Code follows spec.
+

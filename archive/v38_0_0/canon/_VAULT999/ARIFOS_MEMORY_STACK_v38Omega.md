@@ -7,7 +7,7 @@
 |  ARIFOS_MEMORY_STACK — Memory Write Policy Engine v38Omega                  |
 |  "VOID verdicts NEVER become canonical memory."                             |
 +=============================================================================+
-|  Zone:        07_VAULT999                                                   |
+|  Zone:        07_CCC                                                   |
 |  Version:     v38Omega                                                      |
 |  Status:      SEALED                                                        |
 |  Extends:     VAULT_999_v36Omega.md                                         |
@@ -471,3 +471,4 @@ INV-1: VOID→VOID ✓ | INV-2: Authority ✓ | INV-3: Audit ✓ | INV-4: Ceilin
 ---
 
 **Version:** v38Omega | **Status:** SEALED | **Last Updated:** 2025-12-13
+

@@ -29,8 +29,8 @@ Memory bands are governed storage tiers with different retention policies and wr
 
 ```python
 class BandName(str, Enum):
-    VAULT = "VAULT"
-    LEDGER = "LEDGER"
+    CCC = "CCC"
+    BBB = "BBB"
     ACTIVE = "ACTIVE"
     PHOENIX = "PHOENIX"
     WITNESS = "WITNESS"
@@ -438,7 +438,7 @@ class MemoryEntry:
 ## 10. References
 
 **Canon:**
-- `canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md` — Memory stack law
+- `canon/07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md` — Memory stack law
 - `canon/05_COOLING_LEDGER_PHOENIX_v38Omega.md` — Phoenix-72 spec
 
 **Spec:**
@@ -461,3 +461,4 @@ class MemoryEntry:
 ---
 
 **END OF DOCUMENT 4**
+

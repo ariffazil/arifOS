@@ -11,7 +11,7 @@
 | File | Location | Status |
 |------|----------|--------|
 | **COOLING_LEDGER_INTEGRITY_v36.3O.md** | `v36.3O/canon/` | **BINDING** |
-| VAULT999_ARCHITECTURE_v36.3O.md | `v36.3O/canon/` | Cross-reference |
+| CCC_ARCHITECTURE_v36.3O.md | `v36.3O/canon/` | Cross-reference |
 | vault999_final_seal_spec_v36.3O.json | `v36.3O/spec/` | Final Seal requirements |
 | cooling_ledger_entry_spec_v36.3O.json | `v36.3O/spec/` | Entry schema |
 
@@ -244,3 +244,4 @@ Phoenix-72 controllers MUST:
 **Last Verified:** 2025-12-12
 
 *This canon is authoritative for Cooling Ledger implementations. For derived integrity checks in APEX PRIME, consult vault999_final_seal_spec_v36.3O.json.*
+

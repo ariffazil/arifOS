@@ -111,7 +111,7 @@ Regulators cannot inspect weights. But they can inspect a recorded, rule-bound d
 arifOS provides an auditable, cryptographically grounded **Glass Engine** via:
 
 - `CoolingLedger` (JSONL) in `arifos_core/memory/cooling_ledger.py`.
-- Vault-999, the immutable memory and witness layer, specified in `archive/versions/v36_3_omega/v36.3O/spec/vault999_*.json` and `archive/versions/v36_3_omega/v36.3O/canon/VAULT999_*`.
+- Vault-999, the immutable memory and witness layer, specified in `archive/versions/v36_3_omega/v36.3O/spec/vault999_*.json` and `archive/versions/v36_3_omega/v36.3O/canon/CCC_*`.
 
 4. The Sovereign Stack Architecture
 -----------------------------------
@@ -663,4 +663,5 @@ UNKNOWNs:
 - Real-world failure patterns of Delta/Omega/Psi metrics across different frontier models are still under study.
 
 These unknowns are part of the research program that arifOS is designed to support.
+
 

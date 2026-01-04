@@ -10,7 +10,7 @@
 |  Zone:        05_MEMORY                                                     |
 |  Version:     v38Omega                                                      |
 |  Status:      SEALED                                                        |
-|  Extends:     07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md                   |
+|  Extends:     07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md                   |
 |  Runtime:     arifos_core/memory/*.py                                       |
 +=============================================================================+
 ```
@@ -374,7 +374,7 @@ User Query
 
 | File | Purpose |
 |------|---------|
-| `canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md` | Full v38 Memory Stack |
+| `canon/07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md` | Full v38 Memory Stack |
 | `canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md` | Floor definitions |
 
 ---
@@ -429,3 +429,4 @@ Scars (72h) → Pattern → Amendment Draft → Human Review → Canon Update
 ---
 
 **Version:** v38Omega | **Status:** SEALED | **Last Updated:** 2025-12-13
+

@@ -259,7 +259,7 @@
       "spec/genius_law_v38Omega.json"
     ],
     "related_canon": [
-      "canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md",
+      "canon/07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md",
       "canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md"
     ]
   },
@@ -274,3 +274,4 @@
     "notes": "v38Omega formalization of Cooling Ledger and Phoenix-72"
   }
 }
+

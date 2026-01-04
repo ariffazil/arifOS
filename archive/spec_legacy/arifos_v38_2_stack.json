@@ -73,7 +73,7 @@
         "spec/cooling_ledger_phoenix_v38Omega.json",
         "spec/arifos_v38_2.yaml"
       ],
-      "canon_ref": "canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md",
+      "canon_ref": "canon/07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md",
       "code_refs": [
         "arifos_core/memory/bands.py",
         "arifos_core/memory/policy.py",
@@ -130,7 +130,7 @@
         "canon/00_ARIFOS_MASTER_v38Omega.md",
         "canon/000_ARIFOS_CANON_v35Omega.md",
         "canon/05_COOLING_LEDGER_PHOENIX_v38Omega.md",
-        "canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md"
+        "canon/07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md"
       ],
       "code_refs": [
         "arifos_core/kernel.py",
@@ -178,4 +178,5 @@
     }
   }
 }
+
 

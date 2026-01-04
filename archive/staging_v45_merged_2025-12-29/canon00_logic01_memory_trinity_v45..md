@@ -154,7 +154,7 @@ class CoolingLedger:
         """Retrieve a ledger entry by index."""
         return self.entries[index]
 
-class Vault999:
+class CCC:
     def __init__(self):
         """Initialize the Vault-999 storage. (Permanent, immutable storage of sealed truths.)"""
         self.records = []  # list of vault records (dicts)
@@ -217,7 +217,7 @@ class zkPCGenerator:
 if __name__ == "__main__":
     # Initialize the components
     ledger = CoolingLedger()         # Cooling Ledger with default 72h cooling
-    vault = Vault999()               # Vault-999 for sealed entries
+    vault = CCC()               # Vault-999 for sealed entries
     zkpc = zkPCGenerator()           # zkPC receipt generator
 
     # Step 1: Process a "thought" and log to Cooling Ledger
@@ -258,3 +258,4 @@ file://file-4urmCJ6m696soaJ1wVgd4L
 https://medium.com/@arifbfazil/what-if-ai-couldnt-hallucinate-arifos-a-thermodynamic-constitution-204a8a9bb953
 [16] [17] [21] [22] arifos · PyPI
 https://pypi.org/project/arifos/
+

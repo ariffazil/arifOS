@@ -91,7 +91,7 @@ The v38 memory write policy is documented in:
 
 | Type | File |
 |------|------|
-| Canon | `canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md` |
+| Canon | `canon/07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md` |
 | Code | `arifos_core/memory/policy.py` |
 | Code | `arifos_core/memory/bands.py` |
 | Code | `arifos_core/memory/authority.py` |
@@ -217,3 +217,4 @@ v38Omega seals the constitutional law stack:
 ---
 
 **Version:** v38.0.0 | **Status:** SEALED | **Last Updated:** 2025-12-13
+

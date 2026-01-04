@@ -1,11 +1,11 @@
 {
   "version": "v45.1",
-  "created_at": "2026-01-03T20:42:00.572608Z",
+  "created_at": "2026-01-04T05:15:02.821095Z",
   "algorithm": "SHA-256",
   "description": "Cryptographic manifest for Track B v45.1 specifications + Track A Unified Core (tamper-evident integrity)",
   "files": {
-    "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md": "5e2e700437c6253343c52524b001c920e1a2e28804dd5e08be11d7c2e1294bb6",
-    "spec/v45/constitutional_floors.json": "1a9811474b56f961e5af54fa095226bea45f4ee51052437280c545b584f97c20",
+    "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md": "fc36e79ba3c7e7250f77feb3c2ba7972645e08682239d4984ab8727df6e06a80",
+    "spec/v45/constitutional_floors.json": "efcacdf2c63e70de4ffd9d3a6aa9fe072dc05ed21a34a53d348c23c163ff0853",
     "spec/v45/cooling_ledger_phoenix.json": "bc0c3d435776f60ec615b591b246db9d6b561ee8c00d4a0cfdc9261a5593ffb0",
     "spec/v45/genius_law.json": "63901c1b502c2d9990ba542c24d69cef7485ba637f633793ff627799156f87bf",
     "spec/v45/red_patterns.json": "8809fe3fd3994127128161562b28a270d73d62f0afab41009cea581c5687d65e",

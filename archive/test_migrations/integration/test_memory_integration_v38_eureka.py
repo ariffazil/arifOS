@@ -4,7 +4,7 @@ test_memory_integration_v38_eureka.py — Comprehensive v38 EUREKA Integration T
 Tests the v38 Memory Write Policy Engine (EUREKA) with 6 Memory Bands.
 Validates core invariants: VOID never canonical, verdict routing, evidence chains.
 
-Per: canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md
+Per: canon/07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md
 
 Author: arifOS Project
 Version: v38.0
@@ -658,3 +658,4 @@ class TestMerkleProofGeneration:
 # 12. ✅ Merkle proof generation (hash chain integrity)
 #
 # Total: 50+ assertions across 12+ test categories
+

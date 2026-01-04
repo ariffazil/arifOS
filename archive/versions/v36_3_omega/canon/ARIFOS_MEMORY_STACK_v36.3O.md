@@ -11,7 +11,7 @@
 | File | Location | Status |
 |------|----------|--------|
 | **ARIFOS_MEMORY_STACK_v36.3O.md** | `v36.3O/canon/` | **BINDING** |
-| VAULT999_ARCHITECTURE_v36.3O.md | `v36.3O/canon/` | Cross-reference |
+| CCC_ARCHITECTURE_v36.3O.md | `v36.3O/canon/` | Cross-reference |
 | PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md | `v36.3O/canon/` | Physics foundations |
 | spec/memory_context_spec_v36.3O.json | `v36.3O/spec/` | Machine-readable schema |
 
@@ -264,4 +264,5 @@ Any Phoenix-72 proposal must be anchored to:
 **Epoch:** v36.3Omega PHOENIX
 **Last Verified:** 2025-12-12
 
-*This canon is authoritative for arifOS memory behavior. For L0-L4 layer details, consult VAULT999_ARCHITECTURE_v36.3O.md.*
+*This canon is authoritative for arifOS memory behavior. For L0-L4 layer details, consult CCC_ARCHITECTURE_v36.3O.md.*
+

@@ -4,7 +4,7 @@ test_memory_band_routing_v38.py — Memory Band Routing Tests for v38
 Tests the 6 Memory Bands routing logic and lifecycle management.
 Validates: VAULT/LEDGER/ACTIVE/PHOENIX/WITNESS/VOID band operations.
 
-Per: canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md
+Per: canon/07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md
 
 Author: arifOS Project
 Version: v38.0
@@ -136,7 +136,7 @@ class TestSealRouting:
         entry = make_test_entry("seal_001", {"output": "Test"}, "SEAL")
         
         # Write to LEDGER
-        ledger_result = band_router.write(entry, BandName.LEDGER)
+        ledger_result = band_router.write(entry, BandName.BBB)
         assert ledger_result.success
         
         # Write to ACTIVE
@@ -529,7 +529,7 @@ class TestMultiBandWriteCoordination:
         """SEAL should write to both LEDGER and ACTIVE atomically."""
         entry = make_test_entry("multi_001", {"output": "Test"}, "SEAL")
         
-        ledger_result = band_router.write(entry, BandName.LEDGER)
+        ledger_result = band_router.write(entry, BandName.BBB)
         active_result = band_router.write(entry, BandName.ACTIVE)
         
         assert ledger_result.success
@@ -541,7 +541,7 @@ class TestMultiBandWriteCoordination:
         entry = make_test_entry("multi_002", {"proposal": "Test"}, "PARTIAL")
         
         phoenix_result = band_router.write(entry, BandName.PHOENIX)
-        ledger_result = band_router.write(entry, BandName.LEDGER)
+        ledger_result = band_router.write(entry, BandName.BBB)
         
         assert phoenix_result.success
         assert ledger_result.success
@@ -578,3 +578,4 @@ class TestMultiBandWriteCoordination:
 # 9. ✅ Multi-band write coordination
 #
 # Total: 45+ assertions across 8+ test categories
+

@@ -10,7 +10,7 @@
 
 | File | Location | Status |
 |------|----------|--------|
-| **VAULT-999-ALL-IN-ONE-v36.3O.pdf** | `v36.3O/canon/80_VAULT999/` | **BINDING** |
+| **VAULT-999-ALL-IN-ONE-v36.3O.pdf** | `v36.3O/canon/80_CCC/` | **BINDING** |
 | VAULT_999_v36Omega.md | `canon/` | v36Omega target design |
 | spec/VAULT_999.md | `spec/` | v35Omega spec (runtime binding) |
 | spec/cooling_ledger.schema.json | `spec/` | v35Ic schema (runtime binding) |
@@ -373,3 +373,4 @@ Known deltas between v36.3Omega VAULT-999 canon and current runtime code:
 **Last Verified:** 2025-12-10
 
 *This bridge file documents canonical VAULT-999 architecture. For authoritative specifications, consult the PDF sources.*
+

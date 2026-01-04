@@ -46,7 +46,7 @@ It answers:
 | 40 | LEDGER | `canon/40_LEDGER/` | Cooling Ledger, Phoenix-72 |
 | 05 | MASTER | `canon/05_MASTER/` | Master compilation documents |
 | 06 | PARADOX | `canon/06_PARADOX/` | Dream Forge protocol |
-| 07 | VAULT999 | `canon/07_VAULT999/` | Final Seal protocol |
+| 07 | CCC | `canon/07_CCC/` | Final Seal protocol |
 | 77 | 777 CUBE | `canon/777_*.md` | Paradox engine, layer transitions |
 | 88 | APEX PRIME | `canon/888_*.md` | Judiciary canon |
 
@@ -156,11 +156,11 @@ It answers:
 |------|--------|---------|
 | `canon/06_PARADOX/061_DREAM_FORGE_PROTOCOL_v36.3Omega.md` | ACTIVE | O-TASK cadence |
 
-### 4.11 Domain 07: VAULT999 (Final Seal)
+### 4.11 Domain 07: CCC (Final Seal)
 
 | File | Status | Purpose |
 |------|--------|---------|
-| `canon/07_VAULT999/062_VAULT999_FINAL_SEAL_PROTOCOL_v36.3Omega.md` | ACTIVE | Final Seal gate |
+| `canon/07_CCC/062_CCC_FINAL_SEAL_PROTOCOL_v36.3Omega.md` | ACTIVE | Final Seal gate |
 | `canon/99__README_Vault999_v35Omega.md` | FROZEN | Vault-999 overview |
 | `canon/VAULT_999_v36Omega.md` | ACTIVE | Vault architecture |
 
@@ -194,7 +194,7 @@ Located in `v36.3O/canon/`:
 | `OVERSIGHT_WAW_FEDERATION_v36.3O.md` | Domain 20 | `waw_federation_spec_v36.3O.yaml` | W@W bridge |
 | `PARADOX_777_CUBE_v36.3O.md` | Domain 77 | `paradox_777_schema_v36.3O.json` | Paradox bridge |
 | `DREAMFORGE_ARCHITECTURE_v36.3O.md` | Domain 06 | `dreamforge_otask_spec_v36.3O.yaml` | Dream Forge bridge |
-| `VAULT999_ARCHITECTURE_v36.3O.md` | Domain 07 | `vault999_ledger_schema_v36.3O.json` | Vault bridge |
+| `CCC_ARCHITECTURE_v36.3O.md` | Domain 07 | `vault999_ledger_schema_v36.3O.json` | Vault bridge |
 | `GOV_META_v36.3O.md` | Domain 00 | `llm_governance_spec_v36.3O.yaml` | Meta bridge |
 
 ---
@@ -367,3 +367,4 @@ EUREKA (insight)
 **Version:** v36.3Omega | **Status:** CANONICAL | **Last Updated:** 2025-12-11
 
 **DITEMPA BUKAN DIBERI** — Forged, not given. Truth must cool before it rules.
+

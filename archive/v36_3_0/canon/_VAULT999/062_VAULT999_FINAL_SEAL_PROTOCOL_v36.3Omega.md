@@ -1,11 +1,11 @@
-# 062_VAULT999_FINAL_SEAL_PROTOCOL_v36.3Omega.md
+# 062_CCC_FINAL_SEAL_PROTOCOL_v36.3Omega.md
 
-Zone: 07_VAULT999
+Zone: 07_CCC
 Status: CANON — SEALED
 Epoch: v36.3Omega
 
 Implements:
-  - VAULT999_ARCHITECTURE_v36.3Omega.md
+  - CCC_ARCHITECTURE_v36.3Omega.md
   - PHOENIX72_PROTOCOL_v36.3Omega.md
   - GOV_META_v36.3Omega.md
   - MEASUREMENT_APEX_STANDARDS_v36.3Omega.md
@@ -13,9 +13,9 @@ Implements:
 
 Precedence:
   - If any wording here conflicts with:
-      * VAULT999_ARCHITECTURE_v36.3Omega.md, or
+      * CCC_ARCHITECTURE_v36.3Omega.md, or
       * PHOENIX72_PROTOCOL_v36.3Omega.md, or
-      * the 80_VAULT999 PDF canon,
+      * the 80_CCC PDF canon,
     THEN those canons take precedence over this file.
 
 Role:
@@ -246,7 +246,7 @@ On successful Final Seal (SEAL or PARTIAL):
 ## 10. RELATIONSHIP TO OTHER CANONS
 
 Depends On:
-  - VAULT999_ARCHITECTURE_v36.3Omega.md (L0-L4 layers)
+  - CCC_ARCHITECTURE_v36.3Omega.md (L0-L4 layers)
   - JUDICIARY_APEX_PRIME_v36.3Omega.md (888_JUDGE, 999_SEAL stages)
   - MEASUREMENT_APEX_STANDARDS_v36.3Omega.md (floor thresholds)
   - GOV_META_v36.3Omega.md (verdict hierarchy)
@@ -266,14 +266,14 @@ Does NOT Do:
 ## 11. VERSIONING
 
 epoch: v36.3Omega
-file: 062_VAULT999_FINAL_SEAL_PROTOCOL_v36.3Omega.md
+file: 062_CCC_FINAL_SEAL_PROTOCOL_v36.3Omega.md
 seal: TRUE
 
 precedence:
   - If any wording here conflicts with:
-      * VAULT999_ARCHITECTURE_v36.3Omega.md
+      * CCC_ARCHITECTURE_v36.3Omega.md
       * PHOENIX72_PROTOCOL_v36.3Omega.md
-      * 80_VAULT999 canonical PDFs
+      * 80_CCC canonical PDFs
     THEN those canons take precedence.
 
 law:
@@ -286,3 +286,4 @@ scope:
   - Hash chain and signature requirements.
   - PARTIAL verdict handling.
   - zkPC integration points.
+
