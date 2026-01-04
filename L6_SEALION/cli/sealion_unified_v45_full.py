@@ -209,7 +209,7 @@ except ImportError:
 
 try:
     from arifos_core.memory.bands import MemoryBandRouter, append_eureka_decision
-    from arifos_core.memory.vault999 import Vault999
+    from arifos_core.memory.ccc import CCC
     from arifos_core.memory.cooling_ledger import append_entry
     MEMORY_BANDS_AVAILABLE = True
 except ImportError:
@@ -650,7 +650,7 @@ class GovernanceEngine:
         self.vault = None
         if MEMORY_BANDS_AVAILABLE:
             try:
-                self.vault = Vault999()
+                self.vault = CCC()
                 logger.info("VAULT_999 loaded (Constitutional canon immutable)")
             except Exception as e:
                 logger.warning(f"VAULT_999 load failed ({e})")
@@ -1587,3 +1587,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

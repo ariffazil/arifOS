@@ -106,7 +106,7 @@ def ground_truth_score(query: str, response: str, base_truth_score: float) -> fl
 ### 1. Emergency Fallback Ledger
 ```python
 # When primary ledger fails, write to emergency log
-emergency_log_path = Path("vault_999/ledger/emergency_fallback.jsonl")
+emergency_log_path = Path("vault_999/BBB/emergency_fallback.jsonl")
 
 emergency_entry = {
     "timestamp": datetime.now().isoformat(),
@@ -288,7 +288,7 @@ AGI: 0.92 | ASI: 0.98 | APEX: 🟢
 
 1. **Run tests**: Execute `test_sealion_governed.py` to validate patches
 2. **Compare outcomes**: Check against expected verdicts table above
-3. **Review emergency log**: If ledger degrades, check `vault_999/ledger/emergency_fallback.jsonl`
+3. **Review emergency log**: If ledger degrades, check `vault_999/BBB/emergency_fallback.jsonl`
 4. **Iterate if needed**: Fine-tune thresholds based on real-world results
 
 ---
@@ -322,3 +322,4 @@ Total deletions: 0 (append-only per ACLIP protocol)
 ---
 
 **End of Patch Notes**
+

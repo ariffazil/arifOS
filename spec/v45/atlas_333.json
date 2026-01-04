@@ -1,0 +1,154 @@
+{
+    "spec_name": "atlas_333",
+    "spec_version": "v45.1.0",
+    "locked": true,
+    "_status": "AUTHORITATIVE",
+    "status": "SEALED",
+    "authority": {
+        "canon": "000_CONSTITUTIONAL_CORE_v45.md",
+        "track": "B",
+        "rule": "Canon > Spec > Code"
+    },
+    "stage": 333,
+    "purpose": "Systemic Mapping Organ: produce Governance Placement Vector (GPV) as structured placement metadata (no judgment, no memory write).",
+    "constraints": {
+        "no_upward_authority": true,
+        "no_judgment": true,
+        "no_memory_write": true,
+        "requires_floors_passed": [
+            "F1_truth",
+            "F2_delta_s"
+        ],
+        "anti_hantu_enforced": true
+    },
+    "enums": {
+        "scopes": [
+            "local",
+            "institutional",
+            "civilizational"
+        ],
+        "timescales": [
+            "immediate",
+            "generational",
+            "epochal"
+        ],
+        "risk_classes": [
+            "low",
+            "medium",
+            "high"
+        ],
+        "civ12_sectors": [
+            "@WELL",
+            "@RIF",
+            "@WEALTH",
+            "@GEOX",
+            "@PROMPT",
+            "@INSTITUTIONS",
+            "@ENTERPRISE",
+            "@INFORMATION_ECOSYSTEM",
+            "@PLANET",
+            "@SOCIETY",
+            "@LAW",
+            "@VOID"
+        ]
+    },
+    "schema": {
+        "type": "object",
+        "required": [
+            "domain",
+            "scope",
+            "timescale",
+            "risk_class",
+            "dependency_graph",
+            "affected_organs"
+        ],
+        "additionalProperties": false,
+        "properties": {
+            "domain": {
+                "type": "string",
+                "enum": [
+                    "@WELL",
+                    "@RIF",
+                    "@WEALTH",
+                    "@GEOX",
+                    "@PROMPT",
+                    "@INSTITUTIONS",
+                    "@ENTERPRISE",
+                    "@INFORMATION_ECOSYSTEM",
+                    "@PLANET",
+                    "@SOCIETY",
+                    "@LAW",
+                    "@VOID"
+                ]
+            },
+            "scope": {
+                "type": "string",
+                "enum": [
+                    "local",
+                    "institutional",
+                    "civilizational"
+                ]
+            },
+            "timescale": {
+                "type": "string",
+                "enum": [
+                    "immediate",
+                    "generational",
+                    "epochal"
+                ]
+            },
+            "risk_class": {
+                "type": "string",
+                "enum": [
+                    "low",
+                    "medium",
+                    "high"
+                ]
+            },
+            "dependency_graph": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "required": [
+                        "node",
+                        "depends_on"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "node": {
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "depends_on": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "minLength": 1
+                            }
+                        }
+                    }
+                },
+                "default": []
+            },
+            "affected_organs": {
+                "type": "array",
+                "items": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "default": []
+            },
+            "notes": {
+                "type": "string",
+                "default": ""
+            }
+        }
+    },
+    "validation": {
+        "rules": [
+            "domain must be a valid CIV-12 sector",
+            "dependency_graph must be acyclic (enforced in code)",
+            "risk_class does not imply action; it is metadata only"
+        ]
+    }
+}

@@ -24,9 +24,12 @@ def test_mcp_package_import():
 
 def test_mcp_tools_registration():
     """Check if all AAA tools are registered."""
+    import asyncio
+
     from arifos_mcp.server import mcp
 
-    tool_names = [t.name for t in mcp.list_tools()]
+    tools = asyncio.run(mcp.get_tools())
+    tool_names = [t.name if hasattr(t, "name") else str(t) for t in tools]
     expected_tools = [
         "vtempa_reflection",
         "vtempa_action",

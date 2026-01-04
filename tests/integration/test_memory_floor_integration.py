@@ -524,7 +524,7 @@ class TestMemoryWritePolicy:
         decision = write_policy.should_write(
             verdict="VOID",
             evidence_chain=evidence_chain,
-            band_target=BandName.LEDGER.value,
+            band_target=BandName.BBB.value,
         )
         assert not decision.allowed
 
@@ -552,7 +552,7 @@ class TestMemoryWritePolicy:
         decision = write_policy.should_write(
             verdict="SABAR",
             evidence_chain=evidence_chain,
-            band_target=BandName.LEDGER.value,
+            band_target=BandName.BBB.value,
         )
         # SABAR is handled by the policy - just verify we get a decision
         assert hasattr(decision, 'allowed')
@@ -665,3 +665,4 @@ class TestIntegrationModuleImports:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+

@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\mcp\arifos_mcp_server.py", line 39, in <module>
+    from arifos_core.mcp.tools.fag_list import FAGListRequest, arifos_fag_list
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\mcp\tools\__init__.py", line 45, in <module>
+    from .memory_propose import memory_propose_entry, memory_propose_entry_sync
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\mcp\tools\memory_propose.py", line 15, in <module>
+    from arifos_core.enforcement.metrics import Metrics
+ModuleNotFoundError: No module named 'arifos_core.enforcement'

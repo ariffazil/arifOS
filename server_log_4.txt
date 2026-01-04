@@ -1,0 +1,39 @@
+Traceback (most recent call last):
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\spec\manifest_verifier.py", line 130, in verify_manifest
+    manifest = load_manifest(manifest_path)
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\spec\manifest_verifier.py", line 61, in load_manifest
+    manifest = json.load(f)
+  File "C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\json\__init__.py", line 293, in load
+    return loads(fp.read(),
+        cls=cls, object_hook=object_hook,
+        parse_float=parse_float, parse_int=parse_int,
+        parse_constant=parse_constant, object_pairs_hook=object_pairs_hook, **kw)
+  File "C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 363, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\mcp\arifos_mcp_server.py", line 39, in <module>
+    from arifos_core.mcp.tools.fag_list import FAGListRequest, arifos_fag_list
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\__init__.py", line 40, in <module>
+    from .enforcement.metrics import Metrics, FloorsVerdict, ConstitutionalMetrics
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\enforcement\__init__.py", line 13, in <module>
+    from .metrics import Metrics, FloorsVerdict, ConstitutionalMetrics
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\enforcement\metrics.py", line 228, in <module>
+    _FLOORS_SPEC = _load_floors_spec_unified()
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\enforcement\metrics.py", line 124, in _load_floors_spec_unified
+    verify_manifest(pkg_dir, manifest_path, allow_legacy=allow_legacy)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\spec\manifest_verifier.py", line 132, in verify_manifest
+    raise RuntimeError(
+        f"TRACK B AUTHORITY FAILURE: Failed to load manifest {manifest_path}: {e}"
+    )
+RuntimeError: TRACK B AUTHORITY FAILURE: Failed to load manifest C:\Users\User\OneDrive\Documents\GitHub\arifOS\spec\v45\MANIFEST.sha256.json: Expecting value: line 1 column 1 (char 0)

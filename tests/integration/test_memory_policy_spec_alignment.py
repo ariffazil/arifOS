@@ -4,7 +4,7 @@ test_memory_policy_spec_alignment.py — Spec Alignment Tests for v38
 Tests alignment between memory policy code and v38Omega specifications.
 Validates that code implementation matches canonical spec definitions.
 
-Per: canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md
+Per: canon/07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md
 
 Author: arifOS Project
 Version: v38.0
@@ -508,3 +508,4 @@ class TestMemoryWritePolicyInvariants:
 # 8. ✅ Memory Write Policy invariants (INV-1, INV-3, INV-4)
 #
 # Total: 40+ assertions across 6+ test categories
+

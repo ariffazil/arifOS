@@ -17,7 +17,7 @@ python examples/08_smoke_test_guardrail.py
 | `02_full_apex_runtime_demo.py` | 2 | Full runtime with APEX PRIME, Ledger, zkPC |
 | `03_governed_conversation_demo.py` | 2 | Multi-turn conversation governance |
 | `04_xos_identity_switch_demo.py` | 2 | X-OS identity profile switching |
-| `05_vault999_basic.py` | 2 | Vault-999 constitutional memory |
+| `05_ccc_basic.py` | 2 | CCC (formerly Vault-999) constitutional memory |
 | `06_vector_witness_demo.py` | 2 | External witness integration |
 | `07_zkpc_demo.py` | 2 | Zero-knowledge proof of compliance |
 | **`08_smoke_test_guardrail.py`** | **2.5** | **@apex_guardrail smoke test with basic heuristics** |

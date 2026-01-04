@@ -2,15 +2,14 @@
 Tests for Phoenix-72 metabolism (L2).
 """
 
-from pathlib import Path
 import shutil
 import tempfile
+from pathlib import Path
 
-from arifos_core.memory.vault999 import Vault999, VaultConfig
-from arifos_core.memory.cooling_ledger import (
-    CoolingLedger, LedgerConfig, CoolingEntry, CoolingMetrics
-)
+from arifos_core.memory.cooling_ledger import (CoolingEntry, CoolingLedger,
+                                               CoolingMetrics, LedgerConfig)
 from arifos_core.memory.phoenix72 import Phoenix72
+from arifos_core.memory.vault999 import Vault999, VaultConfig
 
 
 def _make_ledger_with_failure(tmpdir: str):

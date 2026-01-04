@@ -1,9 +1,9 @@
 """
 test_ledger_sanity.py — Cooling Ledger Sanity Tests (v35Ω)
 
-Smoke tests for Cooling Ledger / Vault-999 code path:
+Smoke tests for Cooling Ledger / legacy/CCC code path:
 1. A typical SEAL decision can be logged with current structures
-2. Entry JSON shape aligns with 99_Vault999_Seal_v35Omega.json
+2. Entry JSON shape aligns with legacy 99_Vault999_Seal_v35Omega.json
 
 These are sanity checks, not comprehensive integration tests.
 No new features - just verifying existing structures work.
@@ -19,16 +19,10 @@ from pathlib import Path
 import pytest
 
 from arifos_core.enforcement.metrics import Metrics
-from arifos_core.memory.cooling_ledger import (
-    CoolingEntry,
-    CoolingMetrics,
-    CoolingLedger,
-    LedgerConfig,
-    append_entry,
-    verify_chain,
-    log_cooling_entry,
-)
-
+from arifos_core.memory.cooling_ledger import (CoolingEntry, CoolingLedger,
+                                               CoolingMetrics, LedgerConfig,
+                                               append_entry, log_cooling_entry,
+                                               verify_chain)
 
 # =============================================================================
 # TEST FIXTURES
@@ -41,8 +35,8 @@ def repo_root() -> Path:
 
 
 @pytest.fixture
-def vault999_schema(repo_root) -> dict:
-    """Load Vault-999 seal schema."""
+def legacy_vault999_schema(repo_root) -> dict:
+    """Load legacy Vault-999 seal schema."""
     path = repo_root / "archive" / "v35_0_0" / "canon" / "_Vault999_Seal_v35Omega.json"
     assert path.exists(), f"Vault-999 schema not found at {path}"
     with open(path, "r", encoding="utf-8") as f:
@@ -159,10 +153,10 @@ class TestSealEntryCanBeLogged:
 
 
 # =============================================================================
-# TEST 2: ENTRY SHAPE ALIGNS WITH VAULT-999 SCHEMA
+# TEST 2: ENTRY SHAPE ALIGNS WITH LEGACY VAULT-999 SCHEMA
 # =============================================================================
 
-class TestEntryShapeMatchesVault999:
+class TestEntryShapeMatchesLegacyVault999:
     """Verify entry JSON shape aligns with 99_Vault999_Seal_v35Omega.json."""
 
     def test_entry_has_required_keys(self, temp_ledger_path, passing_metrics):
@@ -215,9 +209,9 @@ class TestEntryShapeMatchesVault999:
         for key in expected_metric_keys:
             assert key in entry_metrics, f"Missing metric key: {key}"
 
-    def test_vault999_floors_present_in_schema(self, vault999_schema):
-        """Vault-999 schema has constitutional floors defined."""
-        assert "constitutional_floors" in vault999_schema
+    def test_legacy_vault999_floors_present_in_schema(self, legacy_vault999_schema):
+        """Legacy Vault-999 schema has constitutional floors defined."""
+        assert "constitutional_floors" in legacy_vault999_schema
 
         expected_floors = [
             "truth",
@@ -232,18 +226,18 @@ class TestEntryShapeMatchesVault999:
         ]
 
         for floor in expected_floors:
-            assert floor in vault999_schema["constitutional_floors"], (
-                f"Missing floor in Vault-999 schema: {floor}"
+            assert floor in legacy_vault999_schema["constitutional_floors"], (
+                f"Missing floor in Legacy Vault-999 schema: {floor}"
             )
 
-    def test_vault999_pipeline_stages(self, vault999_schema):
-        """Vault-999 schema has 000→999 pipeline stages."""
-        assert "pipeline" in vault999_schema
+    def test_legacy_vault999_pipeline_stages(self, legacy_vault999_schema):
+        """Legacy Vault-999 schema has 000→999 pipeline stages."""
+        assert "pipeline" in legacy_vault999_schema
 
         expected_stages = ["000", "111", "222", "333", "444", "555", "666", "777", "888", "999"]
         for stage in expected_stages:
-            assert stage in vault999_schema["pipeline"], (
-                f"Missing pipeline stage in Vault-999 schema: {stage}"
+            assert stage in legacy_vault999_schema["pipeline"], (
+                f"Missing pipeline stage in Legacy Vault-999 schema: {stage}"
             )
 
 

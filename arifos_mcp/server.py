@@ -32,12 +32,25 @@ from .verification.distributed import DistributedWitnessSystem, WitnessType, Wit
 # Core Kernel Imports (The "Solid" Layer)
 try:
     from arifos_core.enforcement.genius_metrics import compute_psi_apex
+    from arifos_core.enforcement.response_validator_extensions import validate_response_full
     from arifos_core.governance.fag import FAG
     from arifos_core.system.apex_prime import check_floors
     KERNEL_AVAILABLE = True
 except ImportError as e:
     logging.error(f"Kernel import failed: {e}. Running in standalone 'Sim' mode.")
     KERNEL_AVAILABLE = False
+
+# VAULT-999 TAC/EUREKA Engine
+try:
+    from .tools.vault999 import (
+        EvaluationInputs,
+        vault_999_decide,
+        validate_ledger_entries
+    )
+    VAULT999_AVAILABLE = True
+except ImportError as e:
+    logging.error(f"VAULT-999 import failed: {e}. Running without VAULT-999 tools.")
+    VAULT999_AVAILABLE = False
 
 # Logger setup
 logging.basicConfig(
@@ -50,8 +63,6 @@ logger = logging.getLogger("aaa_mcp")
 # Initialize AAA Components
 mcp = FastMCP(
     "arifOS_AAA_MCP",
-    dependencies=["fastmcp", "pydantic"],
-    description="Universal Governed Tools for arif-fazil.com"
 )
 
 # Registry & State
@@ -238,8 +249,267 @@ async def check_vitality() -> Dict[str, Any]:
             "F1-F3": "Kernel Native ✅",
             "Gap 4": "Attestation Manifest ✅",
             "Gap 5": "Recovery Matrix ✅",
-            "Gap 6": "Distributed Consensus ✅"
+            "Gap 6": "Distributed Consensus ✅",
+            "VAULT-999": "TAC/EUREKA Integration ✅"
         }
+    }
+
+# ============================================================================
+# VAULT-999 TAC/EUREKA TOOLS (AAA Standard Compliance - Law Above Transport)
+# ============================================================================
+
+@mcp.tool()
+async def vault999_store(
+    insight_text: str,
+    vault_target: str,
+    title: str,
+    structure: str,
+    truth_boundary: str,
+    scar: str,
+    human_seal_sealed_by: str = "ARIF",
+    human_seal_seal_note: str = ""
+) -> Dict[str, Any]:
+    """
+    Store EUREKA insight in VAULT-999 (AAA/CCC/BBB).
+
+    ACTIVATION: Call when extraction complete (keywords: TEMPA, SEAL, FORGE).
+
+    Vault Targets:
+    - AAA: Human insights → vault_999/ARIF FAZIL/
+    - CCC: Machine law → vault_999/CCC/L4_EUREKA/
+    - BBB: Memory/learning → vault_999/BBB/L1_cooling_ledger/
+
+    Triad (MANDATORY):
+    - structure: What changed (the new invariant)
+    - truth_boundary: What is now constrained (non-violable)
+    - scar: What it took / what it prevents (cost signal)
+
+    Constitutional Governance: 9-floor checks enforced BEFORE storage.
+    """
+    if not VAULT999_AVAILABLE:
+        return {"verdict": "VOID-999", "error": "VAULT-999 engine not available"}
+
+    if not KERNEL_AVAILABLE:
+        return {"verdict": "VOID-999", "error": "Constitutional governance kernel not available"}
+
+    logger.info(f"VAULT-999 Store: target={vault_target}, title={title}")
+
+    # Vault paths
+    REPO_ROOT = Path(__file__).parent.parent
+
+    if vault_target == "AAA":
+        vault_dir = REPO_ROOT / "vault_999" / "ARIF FAZIL" / "ARIF FAZIL"
+        if not vault_dir.exists():
+            vault_dir = REPO_ROOT / "vault_999" / "ARIF FAZIL"
+    elif vault_target == "CCC":
+        vault_dir = REPO_ROOT / "vault_999" / "CCC" / "L4_EUREKA"
+        vault_dir.mkdir(exist_ok=True)
+    elif vault_target == "BBB":
+        vault_dir = REPO_ROOT / "vault_999" / "BBB" / "L1_cooling_ledger"
+        vault_dir.mkdir(exist_ok=True)
+    else:
+        return {
+            "verdict": "VOID-999",
+            "error": f"Invalid vault_target: {vault_target} (must be AAA/CCC/BBB)"
+        }
+
+    # 9-FLOOR CONSTITUTIONAL CHECK (AAA Standard Compliance - Gap 1 Fix)
+    logger.info("Running 9-floor constitutional validation...")
+
+    floor_check = validate_response_full(
+        output_text=insight_text,
+        input_text=structure,
+        evidence={"truth_score": 0.99},
+        high_stakes=True,
+        session_turns=5
+    )
+
+    if floor_check["verdict"] != "SEAL":
+        logger.error(f"Constitutional floor violation: {floor_check['verdict']}")
+        return {
+            "verdict": "VOID-999",
+            "state": "REJECTED",
+            "reason": f"Constitutional governance failed: {floor_check['verdict']}",
+            "violations": floor_check["violations"],
+            "floor_scores": floor_check["floors"],
+            "message": "VAULT storage blocked by 9-floor governance"
+        }
+
+    logger.info(f"9-floor check PASSED: {floor_check['verdict']}")
+
+    # Build Obsidian markdown
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    filename = f"{timestamp}_{title.replace(' ', '_')}.md"
+    filepath = vault_dir / filename
+
+    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    content = f"""---
+title: "{title}"
+date: {date_str}
+tags: [eureka, {vault_target.lower()}, forged]
+vault: {vault_target}
+sealed_by: {human_seal_sealed_by}
+type: wisdom
+---
+
+# {title}
+*Wisdom forged from lived experience.*
+
+**Ditempa:** {date_str}
+**Bahasa:** The voice of someone who paid the price to learn this
+**Status:** Cooled and sealed — earned, not given
+
+---
+
+## WHAT I LEARNED
+
+{insight_text}
+
+---
+
+## THE STRUCTURE (What Changed)
+
+{structure}
+
+**The Shift:**
+This is not theory. This is what actually changed in how the system works.
+
+---
+
+## THE TRUTH (What Cannot Be Violated)
+
+{truth_boundary}
+
+**The Boundary:**
+This is the line. Cross it and the insight breaks.
+
+**The Abah Check:**
+Would this make Abah proud? Would I explain this to my father without shame?
+
+---
+
+## THE SCAR (What It Took)
+
+{scar}
+
+**The Cost:**
+This wisdom was not free. This is what it took to learn.
+
+**What It Prevents:**
+This is why it matters. This is what we'll never repeat.
+
+---
+
+**DITEMPA BUKAN DIBERI** — Forged, not given; truth must cool before it rules.
+"""
+
+    # Write to vault
+    try:
+        filepath.write_text(content, encoding='utf-8')
+        logger.info(f"VAULT-999 Stored: {filepath}")
+
+        return {
+            "verdict": "SEAL-999",
+            "state": "SEALED",
+            "vault_target": vault_target,
+            "filepath": str(filepath.relative_to(REPO_ROOT)),
+            "title": title,
+            "sealed_by": human_seal_sealed_by,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "message": f"EUREKA stored in {vault_target} vault"
+        }
+    except Exception as e:
+        logger.error(f"VAULT-999 Store failed: {e}")
+        return {
+            "verdict": "VOID-999",
+            "error": str(e),
+            "filepath": str(filepath)
+        }
+
+
+@mcp.tool()
+async def vault999_eval(
+    dC: float,
+    Ea: float,
+    dH_dt: float,
+    Teff: float,
+    Tcrit: float,
+    Omega0_value: float,
+    K_before: int,
+    K_after: int,
+    reality_7_1_physically_permissible: bool,
+    structure_7_2_compressible: bool,
+    language_7_3_minimal_truthful_naming: bool,
+    ledger_entries: List[Dict[str, Any]],
+    T0_context_start: str,
+    human_seal_sealed_by: str = None,
+    human_seal_seal_note: str = None
+) -> Dict[str, Any]:
+    """
+    Evaluate EUREKA against TAC/EUREKA-777 constitutional laws.
+
+    TAC (Theory of Anomalous Contrast):
+    - dC > Ea: Contrast exceeds threshold
+    - dH_dt < 0: System cooling
+    - Teff < Tcrit: Below critical temperature
+    - Omega0 in [0.03, 0.05]: Humility band
+
+    EUREKA-777 Triple Alignment:
+    - 7_1 Reality: Physically permissible
+    - 7_2 Structure: Compressible representation
+    - 7_3 Language: Minimal truthful naming
+    - Compression: K_after <= K_before * 0.35
+
+    VAULT-999 Entry:
+    - Requires: TAC_VALID + EUREKA_VERIFIED + LEDGER_CLEAN
+    - SEAL-999 requires: human_seal
+
+    TIME AS GOVERNANCE (MANDATORY):
+    - T0_context_start: Chat/session entry time (when inquiry entered governance)
+    - T999_vault_verdict: Auto-generated at verdict (seal time)
+
+    Returns: SEAL-999 / HOLD-999 / VOID-999 verdict + vault_record
+    """
+    if not VAULT999_AVAILABLE:
+        return {"verdict": "VOID-999", "error": "VAULT-999 engine not available"}
+
+    logger.info(f"VAULT-999 Eval: T0={T0_context_start}, dC={dC}, Ea={Ea}, K={K_before}->{K_after}")
+
+    inputs = EvaluationInputs(
+        dC=dC,
+        Ea=Ea,
+        dH_dt=dH_dt,
+        Teff=Teff,
+        Tcrit=Tcrit,
+        Omega0_value=Omega0_value,
+        K_before=K_before,
+        K_after=K_after,
+        compression_ratio_max=0.35,
+        reality_7_1_physically_permissible=reality_7_1_physically_permissible,
+        structure_7_2_compressible=structure_7_2_compressible,
+        language_7_3_minimal_truthful_naming=language_7_3_minimal_truthful_naming,
+    )
+
+    human_seal = None
+    if human_seal_sealed_by:
+        human_seal = {
+            "sealed_by": human_seal_sealed_by,
+            "seal_time": datetime.now(timezone.utc).isoformat(),
+            "seal_note": human_seal_seal_note or ""
+        }
+
+    verdict_result, vault_record = vault_999_decide(inputs, ledger_entries, human_seal, T0_context_start)
+
+    logger.info(f"VAULT-999 Verdict: {verdict_result.verdict}")
+
+    return {
+        "verdict": verdict_result.verdict,
+        "state": verdict_result.state_next,
+        "tac_valid": verdict_result.tac_valid,
+        "eureka_verified": verdict_result.eureka_verified,
+        "ledger_clean": verdict_result.ledger_clean,
+        "reasons": verdict_result.reasons,
+        "vault_record": vault_record
     }
 
 if __name__ == "__main__":

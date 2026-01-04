@@ -53,6 +53,8 @@ from .tools.judge import arifos_judge
 from .tools.meta_select import TOOL_METADATA as META_SELECT_METADATA
 from .tools.meta_select import MetaSelectRequest, MetaSelectResponse, arifos_meta_select
 from .tools.recall import arifos_recall
+from .tools.remote.github_aaa import TOOL_METADATA as GITHUB_AAA_METADATA
+from .tools.remote.github_aaa import github_aaa_govern
 
 # Track A/B/C Enforcement Tools (v45.1)
 from .tools.validate_full import TOOL_METADATA as VALIDATE_FULL_METADATA
@@ -73,6 +75,8 @@ TOOLS: Dict[str, Callable] = {
     # Track A/B/C Enforcement Tools (v45.1)
     "arifos_validate_full": arifos_validate_full,
     "arifos_meta_select": arifos_meta_select,
+    # Remote Governance Tools
+    "github_aaa_govern": github_aaa_govern,
     # Phase 1-3 Constitutional Pipeline
     "mcp_000_reset": mcp_000_reset,
     "mcp_111_sense": mcp_111_sense,
@@ -178,6 +182,7 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
     "arifos_fag_read": FAG_METADATA,
     "arifos_validate_full": VALIDATE_FULL_METADATA,
     "arifos_meta_select": META_SELECT_METADATA,
+    "github_aaa_govern": GITHUB_AAA_METADATA,
     "APEX_LLAMA": {
         "name": "APEX_LLAMA",
         "description": (

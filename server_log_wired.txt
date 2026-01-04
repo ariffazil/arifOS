@@ -1,0 +1,15 @@
+[2026-01-04 18:34:38] [AAA] Starting server with SSL...
+[2026-01-04 18:34:38] [AAA] Ready for ChatGPT connection...
+C:\Users\User\OneDrive\Documents\GitHub\arifOS\.venv\Lib\site-packages\websockets\legacy\__init__.py:6: DeprecationWarning: websockets.legacy is deprecated; see https://websockets.readthedocs.io/en/stable/howto/upgrade.html for upgrade instructions
+  warnings.warn(  # deprecated in 14.0 - 2024-11-09
+C:\Users\User\OneDrive\Documents\GitHub\arifOS\.venv\Lib\site-packages\uvicorn\protocols\websockets\websockets_impl.py:17: DeprecationWarning: websockets.server.WebSocketServerProtocol is deprecated
+  from websockets.server import WebSocketServerProtocol
+INFO:     Started server process [37304]
+INFO:     Waiting for application startup.
+[2026-01-04 18:34:40] [AAA] Starting worker 'ARIFFAZIL#37304' with the following tasks:
+[2026-01-04 18:34:40] [AAA] * trace(message: str, ...)
+[2026-01-04 18:34:40] [AAA] * fail(message: str, ...)
+[2026-01-04 18:34:40] [AAA] * sleep(seconds: float, ...)
+[2026-01-04 18:34:40] [AAA] StreamableHTTP session manager started
+INFO:     Application startup complete.
+INFO:     Uvicorn running on https://127.0.0.1:8000 (Press CTRL+C to quit)

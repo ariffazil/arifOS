@@ -1557,7 +1557,7 @@ Memory in arifOS is **governance, not storage**.
 4. **INV-4:** Recalled memory = suggestion, not fact (Confidence cap 0.85).
 
 ### 6.0.3 The Six Bands
-- **L0 CCC:** Canonical Constitutional Core (COLD)
+- **L0 AAA:** Adaptive Agentic Architecture (COLD)
 - **L1 BBB:** Behavioral Baseline Buffer (WARM)
 - **L2 ACTIVE:** Session Stream (HOT)
 - **L3 PHOENIX:** Candidates for amendment (WARM)
@@ -1576,7 +1576,7 @@ Memory in arifOS is **governance, not storage**.
 VAULT-999 is the **constitutional memory organ**. It stores only what must survive across epochs: Law, Evidence, Scars/Amendments, Proofs.
 
 ### 6.1.2 Structure (Triple-Trinity)
-- **CCC (Canonical Constitutional Core):** L0, L2, L3, L4, L5
+- **AAA (Adaptive Agentic Architecture):** L0, L2, L3, L4, L5
 - **BBB (Behavioral Baseline Buffer):** L1 Cooling Ledger
 
 ### 6.1.3 Content Policy

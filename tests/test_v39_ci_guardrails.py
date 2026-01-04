@@ -8,8 +8,9 @@ Status: SEAL-READY validation suite
 """
 
 import json
-import pytest
 from pathlib import Path
+
+import pytest
 
 # Repo root detection
 REPO_ROOT = Path(__file__).parent.parent
@@ -20,7 +21,7 @@ class TestConstitutionalInvariants:
 
     def test_floor_ids_semantic(self):
         """F# numbering must be semantic (F1=Truth through F9=AntiHantu)"""
-        spec_path = REPO_ROOT / "spec" / "constitutional_floors_v38Omega.json"
+        spec_path = REPO_ROOT / "archive" / "legacy_specs" / "constitutional_floors_v38Omega.json"
         with open(spec_path) as f:
             spec = json.load(f)
 
@@ -44,7 +45,7 @@ class TestConstitutionalInvariants:
 
     def test_precedence_explicit(self):
         """P# precedence must be defined for all 9 floors"""
-        spec_path = REPO_ROOT / "spec" / "constitutional_floors_v38Omega.json"
+        spec_path = REPO_ROOT / "archive" / "legacy_specs" / "constitutional_floors_v38Omega.json"
         with open(spec_path) as f:
             spec = json.load(f)
 
@@ -65,7 +66,7 @@ class TestConstitutionalInvariants:
 
     def test_rasa_r1_enforced(self):
         """RASA R1 must have fail-closed enforcement"""
-        spec_path = REPO_ROOT / "spec" / "constitutional_floors_v38Omega.json"
+        spec_path = REPO_ROOT / "archive" / "legacy_specs" / "constitutional_floors_v38Omega.json"
         with open(spec_path) as f:
             spec = json.load(f)
 
@@ -82,7 +83,7 @@ class TestConstitutionalInvariants:
     def test_psi_canonical_preserved(self):
         """Psi formula must preserve canonical definition"""
         # Psi is in genius_law spec, check it documents the canonical formula
-        genius_path = REPO_ROOT / "spec" / "genius_law_v38Omega.json"
+        genius_path = REPO_ROOT / "archive" / "legacy_specs" / "genius_law_v38Omega.json"
         if genius_path.exists():
             with open(genius_path) as f:
                 genius = json.load(f)
@@ -90,7 +91,7 @@ class TestConstitutionalInvariants:
                 psi = genius["metrics"]["psi"]
                 assert "formula" in psi, "Psi missing formula"
         # Alternative: check constitutional_floors has vitality reference
-        spec_path = REPO_ROOT / "spec" / "constitutional_floors_v38Omega.json"
+        spec_path = REPO_ROOT / "archive" / "legacy_specs" / "constitutional_floors_v38Omega.json"
         with open(spec_path) as f:
             spec = json.load(f)
         # Just verify spec exists and has floors (Psi is documented in canon/GENIUS_LAW)
@@ -121,7 +122,7 @@ class TestSpecVersionAlignment:
     """Verify spec version is v38.3.0"""
 
     def test_spec_version_is_v38_3_0(self):
-        spec_path = REPO_ROOT / "spec" / "constitutional_floors_v38Omega.json"
+        spec_path = REPO_ROOT / "archive" / "legacy_specs" / "constitutional_floors_v38Omega.json"
         with open(spec_path) as f:
             spec = json.load(f)
 
@@ -134,7 +135,7 @@ class TestFloorCoverageCompleteness:
     """Verify all 9 floors have required fields"""
 
     def test_all_floors_have_stage_hooks(self):
-        spec_path = REPO_ROOT / "spec" / "constitutional_floors_v38Omega.json"
+        spec_path = REPO_ROOT / "archive" / "legacy_specs" / "constitutional_floors_v38Omega.json"
         with open(spec_path) as f:
             spec = json.load(f)
 
@@ -149,7 +150,7 @@ class TestFloorCoverageCompleteness:
             ), f"Invalid stage_hook for {floor_key}"
 
     def test_all_floors_have_thresholds(self):
-        spec_path = REPO_ROOT / "spec" / "constitutional_floors_v38Omega.json"
+        spec_path = REPO_ROOT / "archive" / "legacy_specs" / "constitutional_floors_v38Omega.json"
         with open(spec_path) as f:
             spec = json.load(f)
 
@@ -163,15 +164,15 @@ class TestFloorCoverageCompleteness:
             ), f"Floor {floor_key} missing threshold"
 
 
-class TestVault999Integrity:
-    """Verify Vault-999 certificate structure"""
+class TestLegacyVaultIntegrity:
+    """Verify legacy Vault-999 certificate structure in archive"""
 
     def test_certificate_exists(self):
-        cert_path = REPO_ROOT / "vault_999" / "ledger" / "seal_certificates.jsonl"
-        assert cert_path.exists(), "Vault-999 certificate file missing"
+        cert_path = REPO_ROOT / "archive" / "ledger_fragments" / "ledger" / "seal_certificates.jsonl"
+        assert cert_path.exists(), "Legacy Vault-999 certificate file missing in archive"
 
     def test_certificate_structure(self):
-        cert_path = REPO_ROOT / "vault_999" / "ledger" / "seal_certificates.jsonl"
+        cert_path = REPO_ROOT / "archive" / "ledger_fragments" / "ledger" / "seal_certificates.jsonl"
         with open(cert_path) as f:
             line = f.readline()
             cert = json.loads(line)

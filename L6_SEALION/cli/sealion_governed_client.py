@@ -57,6 +57,7 @@ logger = logging.getLogger(__name__)
 
 # Configure module search paths
 import sys
+
 sys.path.insert(0, str(Path(__file__).parent))  # Add L6_SEALION/cli/ to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))  # Add project root to path
 
@@ -70,9 +71,9 @@ except ImportError:
 
 # Import arifOS governance core
 try:
-    from arifos_core.system.pipeline import Pipeline
     from arifos_core.enforcement.genius_metrics import compute_genius_index
-    from arifos_core.routing.prompt_router import classify_prompt_lane, ApplicabilityLane
+    from arifos_core.routing.prompt_router import ApplicabilityLane, classify_prompt_lane
+    from arifos_core.system.pipeline import Pipeline
     PIPELINE_AVAILABLE = True
 except ImportError:
     PIPELINE_AVAILABLE = False
@@ -97,8 +98,9 @@ except ImportError:
     WAW_AVAILABLE = False
 
 try:
-    from arifos_core.memory.bands import MemoryBandRouter, Vault999
     from arifos_core.memory.ledger import append_entry
+
+    from arifos_core.memory.bands import CCC, MemoryBandRouter
     MEMORY_BANDS_AVAILABLE = True
 except ImportError:
     MEMORY_BANDS_AVAILABLE = False
@@ -523,7 +525,7 @@ class GovernedSEALionClient:
             logger.info("VAULT_999 unavailable (Memory Bands module not found)")
             return None
         try:
-            vault = Vault999()
+            vault = CCC()
             logger.info("✓ VAULT_999 loaded (Constitutional canon immutable)")
             return vault
         except (ImportError, FileNotFoundError, AttributeError) as e:
@@ -540,7 +542,8 @@ class GovernedSEALionClient:
 
         if make_llm_generate is None or LiteLLMConfig is None:
             try:
-                from arifos_core.connectors.litellm_gateway import make_llm_generate as _make, LiteLLMConfig as _cfg
+                from arifos_core.connectors.litellm_gateway import LiteLLMConfig as _cfg
+                from arifos_core.connectors.litellm_gateway import make_llm_generate as _make
 
                 make_llm_generate = _make
                 LiteLLMConfig = _cfg

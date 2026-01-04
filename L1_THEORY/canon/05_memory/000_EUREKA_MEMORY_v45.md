@@ -32,34 +32,34 @@ These invariants are **non-negotiable**. Hard floor violations trigger VOID.
 
 ---
 
-## 3. Six Memory Bands
+## 3. Six Memory Bands (BBB-CCC Mapping)
 
-| Band | Code Symbol | Purpose | Retention |
-|------|-------------|---------|-----------|
-| **L0 VAULT** | `VaultBand` | Read-only constitution | PERMANENT (COLD) |
-| **L1 LEDGER** | `CoolingLedgerBand` | Hash-chained audit trail | 90 days (WARM) |
-| **L2 ACTIVE** | `ActiveStreamBand` | Volatile working state | 7 days (HOT) |
-| **L3 PHOENIX** | `PhoenixCandidatesBand` | Amendment proposals | 90 days (WARM) |
-| **L4 WITNESS** | `WitnessBand` | Soft evidence, scars | 90 days (WARM) |
-| **L5 VOID** | `VoidBandStorage` | Diagnostic only, NEVER canonical | 90 days (auto-delete) |
+| Band | Code Symbol | System Mapping | Retention |
+|------|-------------|----------------|-----------|
+| **L0 VAULT** | `VaultBand` | **CCC**/L0 | PERMANENT (COLD) |
+| **L1 LEDGER** | `CoolingLedgerBand` | **BBB**/L1 | 90 days (WARM) |
+| **L2 ACTIVE** | `ActiveStreamBand` | Session Memory | 7 days (HOT) |
+| **L3 PHOENIX** | `PhoenixCandidatesBand` | **CCC**/L2 | 90 days (WARM) |
+| **L4 WITNESS** | `WitnessBand` | **CCC**/L3 | 90 days (WARM) |
+| **L5 VOID** | `VoidBandStorage` | **CCC**/L5 | 90 days (auto-delete) |
 
 ### Band Hierarchy
 
 ```
-VAULT (L0) - IMMUTABLE
+CCC/L0 (VAULT) - IMMUTABLE
     |
-LEDGER (L1) - Append-only
+BBB/L1 (LEDGER) - Append-only
     |
-WITNESS (L4) - Soft evidence
+CCC/L3 (WITNESS) - Soft evidence
     |
 ACTIVE (L2) - Per-session
     |
-PHOENIX (L3) - Pending seal
+CCC/L2 (PHOENIX) - Pending seal
     |
-VOID (L5) - NEVER CANONICAL
+CCC/L5 (VOID) - NEVER CANONICAL
 ```
 
-**Rule:** Higher bands cannot override lower bands. VAULT is supreme law.
+**Rule:** Higher bands cannot override lower bands. CCC/L0 is supreme law.
 
 ---
 

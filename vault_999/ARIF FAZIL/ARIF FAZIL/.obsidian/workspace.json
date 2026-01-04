@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "ASAL USUL.md",
+                "file": "01_IDENTITY/01_IDENTITY_forged.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "ASAL USUL"
+              "title": "01_IDENTITY_forged"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "ASAL USUL.md",
+                "file": "01_IDENTITY/01_IDENTITY_forged.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for ASAL USUL"
+              "title": "Backlinks for 01_IDENTITY_forged"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "ASAL USUL.md",
+                "file": "01_IDENTITY/01_IDENTITY_forged.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of ASAL USUL"
+              "title": "Outline of 01_IDENTITY_forged"
             }
           }
         ],
@@ -185,10 +185,18 @@
       "copilot:Open Copilot Chat": false
     }
   },
-  "active": "ff5e3c2edb7a1522",
+  "active": "f0d72690ad4d0b2a",
   "lastOpenFiles": [
-    "copilot/copilot-custom-prompts/Explain like I am 5.md",
+    "01_IDENTITY/Untitled.md",
+    "01_IDENTITY/01_IDENTITY_forged.md",
     "ASAL USUL.md",
+    "07_PRINSIP/07_PRINSIP_forged.md",
+    "06_WISDOM/06_WISDOM_forged.md",
+    "05_EUREKA/05_EUREKA_forged.md",
+    "04_REALITY/04_REALITY_forged.md",
+    "03_SCARS/03_SCARS_forged.md",
+    "02_LIFE/02_LIFE_forged.md",
+    "copilot/copilot-custom-prompts/Explain like I am 5.md",
     "copilot/copilot-custom-prompts/Rewrite as tweet thread.md",
     "copilot/copilot-custom-prompts/Rewrite as tweet.md",
     "copilot/copilot-custom-prompts/Remove URLs.md",
@@ -203,7 +211,6 @@
     "copilot/copilot-custom-prompts/Fix grammar and spelling.md",
     "copilot/copilot-custom-prompts",
     "copilot",
-    "01_IDENTITY/Untitled.md",
     "04_REALITY/desktop.ini",
     "99_INBOX",
     "08_WORLD",

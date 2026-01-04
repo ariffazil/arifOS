@@ -1,0 +1,43 @@
+Traceback (most recent call last):
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\mcp\arifos_mcp_server.py", line 39, in <module>
+    from arifos_core.mcp.tools.fag_list import FAGListRequest, arifos_fag_list
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\__init__.py", line 40, in <module>
+    from .enforcement.metrics import Metrics, FloorsVerdict, ConstitutionalMetrics
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\enforcement\__init__.py", line 13, in <module>
+    from .metrics import Metrics, FloorsVerdict, ConstitutionalMetrics
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\enforcement\metrics.py", line 228, in <module>
+    _FLOORS_SPEC = _load_floors_spec_unified()
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\enforcement\metrics.py", line 124, in _load_floors_spec_unified
+    verify_manifest(pkg_dir, manifest_path, allow_legacy=allow_legacy)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\spec\manifest_verifier.py", line 170, in verify_manifest
+    raise RuntimeError("\n".join(error_lines))
+RuntimeError: TRACK B AUTHORITY FAILURE: Manifest verification failed.
+
+Hash mismatches (7) - FILES HAVE BEEN TAMPERED:
+  - L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md
+    Expected: FC36E79BA3C7E7250F77FEB3C2BA7972645E08682239D4984AB8727DF6E06A80
+    Actual:   fc36e79ba3c7e7250f77feb3c2ba7972645e08682239d4984ab8727df6e06a80
+  - spec/v45/atlas_333.json
+    Expected: F22AB1FF20550847CE38A253093C0F1C1E965B38F7EDAA00218F3CA814D22F80
+    Actual:   f22ab1ff20550847ce38a253093c0f1c1e965b38f7edaa00218f3ca814d22f80
+  - spec/v45/eureka_777.json
+    Expected: 2B49FA7019AFD606287436D20D34F1723C2A2867B2463C79221C385A821064C1
+    Actual:   2b49fa7019afd606287436d20d34f1723c2a2867b2463c79221c385a821064c1
+  - spec/v45/constitutional_floors.json
+    Expected: 1A9811474B56F961E5AF54FA095226BEA45F4EE51052437280C545B584F97C20
+    Actual:   1a9811474b56f961e5af54fa095226bea45f4ee51052437280c545b584f97c20
+  - spec/v45/session_physics.json
+    Expected: 0FB30820E63FA751C68CAE88E41F9383DE073005045ED7F7067CCC829F9A6FBE
+    Actual:   0fb30820e63fa751c68cae88e41f9383de073005045ed7f7067ccc829f9a6fbe
+  - spec/v45/genius_law.json
+    Expected: 63901C1B502C2D9990BA542C24D69CEF7485BA637F633793FF627799156F87BF
+    Actual:   63901c1b502c2d9990ba542c24d69cef7485ba637f633793ff627799156f87bf
+  - spec/v45/cooling_ledger_phoenix.json
+    Expected: BC0C3D435776F60EC615B591B246DB9D6B561EE8C00D4A0CFDC9261A5593FFB0
+    Actual:   bc0c3d435776f60ec615b591b246db9d6b561ee8c00d4a0cfdc9261a5593ffb0
+
+To fix:
+  1. Restore original files from git
+  2. Or regenerate manifest: python -m arifos_core.spec.regenerate_manifest
+  3. Or bypass (NOT RECOMMENDED): set ARIFOS_ALLOW_LEGACY_SPEC=1

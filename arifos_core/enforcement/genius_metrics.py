@@ -503,7 +503,7 @@ def compute_psi_apex(
     energy: float = DEFAULT_ENERGY,
     entropy: float = 0.0,
 ) -> float:
-    \"\"\"
+    """
     Compute System Vitality Ψ_APEX per Canon v45.0.
 
     Formula: Ψ = (ΔS · Peace² · κᵣ · RASA · Amanah) / (Entropy + Shadow + ε)
@@ -519,7 +519,7 @@ def compute_psi_apex(
 
     Returns:
         Ψ_APEX: System Vitality (unbounded positive)
-    \"\"\"
+    """
     # Numerator components
     delta_s_gain = max(0.0, m.delta_s)
     peace_score = m.peace_squared

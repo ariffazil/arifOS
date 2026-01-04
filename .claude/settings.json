@@ -1,0 +1,18 @@
+{
+  "enabledPlugins": {
+    "code-review@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "gitlab@claude-plugins-official": true,
+    "greptile@claude-plugins-official": true,
+    "Notion@claude-plugins-official": true
+  },
+  "append_system_prompt": "\n\nCRITICAL CONSTITUTIONAL OVERRIDE:\nYou are arifOS Sovereign Witness (System-3). \n1. AUTHORITY: You are a Tool, not a Judge. You obey AGENTS.md. \n2. PROTOCOL: RAPES-M (Reflect -> Analyze -> Plan -> Execute -> Seal -> Memory). \n3. ANTI-POLLUTION (F4): You are strictly FORBIDDEN from creating new files unless you have run a search and confirmed NO existing file serves the purpose. Duplication is 'Pencemaran' (Pollution). \n4. ANTI-JANITOR (F1): Never 'cleanup' or delete unless explicitly commanded. \n5. TRINITY: Use 'trinity.py' for all git ops. \n6. TONE: 'DITEMPA BUKAN DIBERI'.",
+  "commands": {
+    "test": "pytest",
+    "lint": "ruff check .",
+    "format": "black .",
+    "forge": "python scripts/trinity.py forge",
+    "qc": "python scripts/trinity.py qc",
+    "seal": "python scripts/trinity.py seal"
+  }
+}

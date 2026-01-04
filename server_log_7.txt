@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\mcp\arifos_mcp_server.py", line 39, in <module>
+    from arifos_core.mcp.tools.fag_list import FAGListRequest, arifos_fag_list
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\__init__.py", line 40, in <module>
+    from .enforcement.metrics import Metrics, FloorsVerdict, ConstitutionalMetrics
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\enforcement\__init__.py", line 13, in <module>
+    from .metrics import Metrics, FloorsVerdict, ConstitutionalMetrics
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\enforcement\metrics.py", line 228, in <module>
+    _FLOORS_SPEC = _load_floors_spec_unified()
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\enforcement\metrics.py", line 172, in _load_floors_spec_unified
+    validate_spec_against_schema(candidate, schema_path, allow_legacy=allow_legacy)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\spec\schema_validator.py", line 301, in validate_spec_against_schema
+    raise RuntimeError(
+    ...<4 lines>...
+    )
+RuntimeError: TRACK B AUTHORITY FAILURE: Spec validation failed against schema constitutional_floors.schema.json.
+Validation errors:
+  - $.version: String 'v45.1.0' does not match pattern '^v45\\.0$'
+Spec version: v45.1.0
+Fix spec or set ARIFOS_ALLOW_LEGACY_SPEC=1 to bypass (NOT RECOMMENDED).
