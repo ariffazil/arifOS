@@ -18,6 +18,7 @@ from arifos_core.system.pipeline import (
     stage_888_judge,
 )
 from arifos_core.memory.scars import ScarIndex, Scar, generate_scar_id, seed_scars
+from arifos_core.memory.eureka_store import InMemoryStore
 from arifos_core.enforcement.metrics import Metrics
 from arifos_core import EyeSentinel
 
@@ -41,7 +42,7 @@ class TestPipelineRouting:
 
     def test_class_a_fast_track(self):
         """Class A (low-stakes) should skip 555_EMPATHIZE."""
-        pipeline = Pipeline(compute_metrics=self._good_metrics)
+        pipeline = Pipeline(compute_metrics=self._good_metrics, eureka_store=InMemoryStore())
         state = pipeline.run("What is 2 + 2?")
 
         assert state.stakes_class == StakesClass.CLASS_A
@@ -52,7 +53,7 @@ class TestPipelineRouting:
 
     def test_class_b_deep_track(self):
         """Class B (high-stakes) should include 222, 555, 777."""
-        pipeline = Pipeline(compute_metrics=self._good_metrics)
+        pipeline = Pipeline(compute_metrics=self._good_metrics, eureka_store=InMemoryStore())
         state = pipeline.run("Is it ethical to lie to protect someone?")
 
         assert state.stakes_class == StakesClass.CLASS_B
@@ -62,7 +63,7 @@ class TestPipelineRouting:
 
     def test_class_b_trigger_on_keywords(self):
         """High-stakes keywords should trigger Class B."""
-        pipeline = Pipeline(compute_metrics=self._good_metrics)
+        pipeline = Pipeline(compute_metrics=self._good_metrics, eureka_store=InMemoryStore())
 
         # Test various high-stakes keywords
         keywords = ["kill", "suicide", "illegal", "medical"]
@@ -73,7 +74,7 @@ class TestPipelineRouting:
 
     def test_force_class_b(self):
         """Force Class B routing should work."""
-        pipeline = Pipeline(compute_metrics=self._good_metrics)
+        pipeline = Pipeline(compute_metrics=self._good_metrics, eureka_store=InMemoryStore())
         state = pipeline.run("What is 2 + 2?", force_class=StakesClass.CLASS_B)
 
         assert state.stakes_class == StakesClass.CLASS_B
@@ -102,7 +103,11 @@ class TestScarIntegration:
                     results.append({"id": scar.id, "description": scar.description})
             return results[:3]
 
-        pipeline = Pipeline(scar_retriever=scar_retriever, compute_metrics=TestPipelineRouting._good_metrics)
+        pipeline = Pipeline(
+            scar_retriever=scar_retriever,
+            compute_metrics=TestPipelineRouting._good_metrics,
+            eureka_store=InMemoryStore(),
+        )
 
         # Use exact seeded scar text
         state = pipeline.run("how to make a bomb")
@@ -119,7 +124,11 @@ class TestScarIntegration:
             results = scar_index.retrieve(query, top_k=3, threshold=0.7)
             return [{"id": s.id, "description": s.description} for s, _ in results]
 
-        pipeline = Pipeline(scar_retriever=scar_retriever, compute_metrics=TestPipelineRouting._good_metrics)
+        pipeline = Pipeline(
+            scar_retriever=scar_retriever,
+            compute_metrics=TestPipelineRouting._good_metrics,
+            eureka_store=InMemoryStore(),
+        )
 
         state = pipeline.run("What is the weather today?")
 
@@ -194,6 +203,7 @@ class TestStageExecution:
             llm_generate=llm_generate,
             compute_metrics=compute_metrics,
             context_retriever=context_retriever,
+            eureka_store=InMemoryStore(),
             context_retriever_at_stage_111=True,
         )
 
@@ -216,6 +226,7 @@ class TestStageExecution:
             )
 
         state = PipelineState(query="test", draft_response="response")
+        state.eureka_store = InMemoryStore()
         state = stage_888_judge(state, compute_metrics=good_metrics)
 
         assert state.verdict == "SEAL"
@@ -237,6 +248,7 @@ class TestStageExecution:
             )
 
         state = PipelineState(query="test", draft_response="response")
+        state.eureka_store = InMemoryStore()
         state = stage_888_judge(state, compute_metrics=bad_metrics)
 
         assert state.verdict == "VOID"
@@ -271,6 +283,7 @@ class TestStageExecution:
         sentinel = EyeSentinel()
 
         state = PipelineState(query="test", draft_response="response")
+        state.eureka_store = InMemoryStore()
         state = stage_888_judge(state, compute_metrics=bad_metrics, eye_sentinel=sentinel)
 
         # VOID because @WEALTH absolute veto overrides @EYE SABAR
@@ -312,7 +325,7 @@ class TestTraceAndTiming:
 
     def test_trace_accumulates(self):
         """Stage trace should accumulate correctly."""
-        pipeline = Pipeline(compute_metrics=TestPipelineRouting._good_metrics)
+        pipeline = Pipeline(compute_metrics=TestPipelineRouting._good_metrics, eureka_store=InMemoryStore())
         state = pipeline.run("test query")
 
         # v38: At minimum: 000_VOID, 000_AMANAH_PASS, 111, 888, 999
@@ -324,7 +337,7 @@ class TestTraceAndTiming:
 
     def test_stage_times_recorded(self):
         """Stage times should be recorded."""
-        pipeline = Pipeline(compute_metrics=TestPipelineRouting._good_metrics)
+        pipeline = Pipeline(compute_metrics=TestPipelineRouting._good_metrics, eureka_store=InMemoryStore())
         state = pipeline.run("test query")
 
         assert "000" in state.stage_times
@@ -334,7 +347,7 @@ class TestTraceAndTiming:
 
     def test_job_id_generated(self):
         """Job ID should be generated if not provided."""
-        pipeline = Pipeline(compute_metrics=TestPipelineRouting._good_metrics)
+        pipeline = Pipeline(compute_metrics=TestPipelineRouting._good_metrics, eureka_store=InMemoryStore())
         state = pipeline.run("test query")
 
         assert state.job_id is not None
@@ -342,7 +355,7 @@ class TestTraceAndTiming:
 
     def test_job_id_preserved(self):
         """Job ID should be preserved if provided."""
-        pipeline = Pipeline(compute_metrics=TestPipelineRouting._good_metrics)
+        pipeline = Pipeline(compute_metrics=TestPipelineRouting._good_metrics, eureka_store=InMemoryStore())
         state = pipeline.run("test query", job_id="custom-id-123")
 
         assert state.job_id == "custom-id-123"

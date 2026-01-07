@@ -1,16 +1,31 @@
 """
-arifOS v45 - Conflict Routing (Sovereign Witness)
+arifOS v46 - Conflict Routing (Sovereign Witness)
 Deterministic routing based on physics attributes.
+
+ARCHITECTURAL CLARIFICATION:
+This module returns ROUTING RECOMMENDATIONS based on evidence quality.
+It does NOT issue constitutional verdicts - only APEX PRIME has that authority.
+
+v46 Refactor: Replaced Verdict enum with RoutingSignal to enforce architectural clarity.
 """
 
 from dataclasses import dataclass
 from .evidence_pack import EvidencePack
-from arifos_core.system.apex_prime import Verdict
+from .routing_signal import RoutingSignal, routing_signal_to_pathway
 
 
 @dataclass
 class RoutingResult:
-    verdict: Verdict
+    """
+    Evidence-based routing recommendation.
+
+    Fields:
+        signal: Routing recommendation (NOT a constitutional verdict)
+        pathway: Execution pathway (FAST, SLOW, GOVERNED)
+        confidence_modifier: Confidence adjustment based on evidence quality
+        reasons: Human-readable routing rationale
+    """
+    signal: RoutingSignal
     pathway: str  # FAST, SLOW, GOVERNED
     confidence_modifier: float
     reasons: list[str]
@@ -29,17 +44,27 @@ class ConflictRouter:
 
     @classmethod
     def evaluate(cls, pack: EvidencePack, requires_fact: bool = True) -> RoutingResult:
+        """
+        Evaluate EvidencePack and return routing recommendation.
+
+        IMPORTANT: This returns a RoutingSignal (routing recommendation),
+        NOT a constitutional Verdict. Only APEX PRIME issues verdicts.
+
+        Args:
+            pack: EvidencePack with conflict, coverage, freshness scores
+            requires_fact: Whether factual verification is required
+
+        Returns:
+            RoutingResult with signal, pathway, and confidence modifier
+        """
         reasons = []
-        # NOTE: This is a routing recommendation based on EvidencePack physics attributes.
-        # Final constitutional verdict authority remains APEX PRIME (apex_review).
-        verdict = Verdict.SEAL
-        pathway = "FAST"
+        signal = RoutingSignal.FAST_PATH
         confidence_mod = 1.0
 
         # 1. Conflict Check (Primary Hard Floor)
         if pack.conflict_score > cls.CONFLICT_THRESHOLD_HARD:
             return RoutingResult(
-                verdict=Verdict.HOLD_888,
+                signal=RoutingSignal.GOVERNED,
                 pathway="GOVERNED",
                 confidence_modifier=0.0,
                 reasons=[
@@ -47,11 +72,10 @@ class ConflictRouter:
                 ],
             )
 
-        # 1b. Fail-closed: "No evidence" on factual routing cannot SEAL.
-        # If evidence coverage is zero, we explicitly block with VOID.
+        # 1b. Fail-closed: "No evidence" on factual routing blocks processing
         if requires_fact and pack.coverage_pct <= 0.0:
             return RoutingResult(
-                verdict=Verdict.VOID,
+                signal=RoutingSignal.BLOCKED,
                 pathway="GOVERNED",
                 confidence_modifier=0.0,
                 reasons=["No evidence coverage for factual routing (coverage_pct=0.0)"],
@@ -59,9 +83,8 @@ class ConflictRouter:
 
         # 2. Coverage Check (Factuality)
         if requires_fact and pack.coverage_pct < cls.COVERAGE_THRESHOLD_FULL:
-            # Downgrade to PARTIAL if evidence is incomplete but safe
-            verdict = Verdict.PARTIAL
-            pathway = "SLOW"
+            # Route to SLOW path if evidence is incomplete but safe
+            signal = RoutingSignal.SLOW_PATH
             reasons.append(f"Coverage {pack.coverage_pct:.2f} < 1.0")
             confidence_mod *= pack.coverage_pct
 
@@ -74,15 +97,17 @@ class ConflictRouter:
             decay_factor = pack.freshness_score / cls.FRESHNESS_THRESHOLD_DECAY
             confidence_mod *= decay_factor
 
-            # If verdict was SEAL, downgrade to PARTIAL on staleness
-            if verdict == Verdict.SEAL:
-                verdict = Verdict.PARTIAL
+            # If signal was FAST_PATH, downgrade to SLOW_PATH on staleness
+            if signal == RoutingSignal.FAST_PATH:
+                signal = RoutingSignal.SLOW_PATH
 
-        # 4. Pathway Selection
-        # If conflict is non-zero but safe, or stale, force SLOW path
-        if pack.conflict_score > 0.0 or verdict != Verdict.SEAL:
+        # 4. Determine final pathway from signal
+        pathway = routing_signal_to_pathway(signal)
+
+        # Override pathway if any issues detected
+        if pack.conflict_score > 0.0 or signal != RoutingSignal.FAST_PATH:
             pathway = "SLOW"
 
         return RoutingResult(
-            verdict=verdict, pathway=pathway, confidence_modifier=confidence_mod, reasons=reasons
+            signal=signal, pathway=pathway, confidence_modifier=confidence_mod, reasons=reasons
         )

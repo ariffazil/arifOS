@@ -2144,6 +2144,7 @@ class Pipeline:
         ledger_sink: Optional[Callable[[Dict[str, Any]], None]] = None,
         eye_sentinel: Optional[EyeSentinel] = None,
         vault: Optional[Vault999] = None,
+        eureka_store: Optional[Any] = None,
         context_retriever_at_stage_111: bool = False,
     ):
         """
@@ -2157,6 +2158,7 @@ class Pipeline:
             ledger_sink: Function to log entries to cooling ledger
             eye_sentinel: Optional @EYE Sentinel auditor for 888_JUDGE
             vault: Optional Vault999 instance for constitutional memory (v37)
+            eureka_store: Optional EUREKA store (use InMemoryStore in tests to avoid file writes)
         """
         # v45Ω Patch C: Failover integration (opt-in, disabled by default)
         if os.getenv("ARIFOS_FAILOVER_ENABLED", "").lower() == "true":
@@ -2189,6 +2191,7 @@ class Pipeline:
         self.context_retriever_at_stage_111 = context_retriever_at_stage_111
         self.ledger_sink = ledger_sink
         self.eye_sentinel = eye_sentinel
+        self.eureka_store = eureka_store
         # v42.1: bootstrap spec binding (fail-open raises to caller)
         try:
             self.bootstrap_payload = ensure_bootstrap()
@@ -2231,6 +2234,7 @@ class Pipeline:
             query=query,
             job_id=job_id or str(uuid.uuid4())[:8],
         )
+        state.eureka_store = self.eureka_store
 
         if force_class:
             state.stakes_class = force_class
