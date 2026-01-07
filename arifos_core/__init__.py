@@ -37,22 +37,22 @@ See PHYSICS_CODEX.md (CHAPTER 6) for the full technical statement and diagram.
 # =============================================================================
 
 # Import base types first (moved to enforcement/)
-from .enforcement.metrics import Metrics, FloorsVerdict, ConstitutionalMetrics
+from .enforcement.metrics import ConstitutionalMetrics, FloorsVerdict, Metrics
+
+# Import @EYE Sentinel (moved to utils/)
+from .eye import AlertSeverity, Eye, EyeAlert, EyeReport, EyeSentinel
 
 # Import APEX components (moved to system/)
 from .system.apex_prime import (
-    apex_review,     # v42: Returns ApexVerdict (structured)
-    apex_verdict,    # v42: Convenience shim, returns str
-    ApexVerdict,     # v42: Dataclass (verdict, pulse, reason, floors)
-    Verdict,         # v42: Enum (SEAL, SABAR, VOID, PARTIAL, HOLD_888, SUNSET)
-    check_floors,
-    APEXPrime,
-    APEX_VERSION,
     APEX_EPOCH,
+    APEX_VERSION,
+    APEXPrime,
+    ApexVerdict,  # v42: Dataclass (verdict, pulse, reason, floors)
+    Verdict,  # v42: Enum (SEAL, SABAR, VOID, PARTIAL, HOLD_888, SUNSET)
+    apex_review,  # v42: Returns ApexVerdict (structured)
+    apex_verdict,  # v42: Convenience shim, returns str
+    check_floors,
 )
-
-# Import @EYE Sentinel (moved to utils/)
-from .utils.eye_sentinel import AlertSeverity, EyeAlert, EyeReport, EyeSentinel
 
 # Import memory components (optional - graceful fallback if not available)
 try:
@@ -73,7 +73,7 @@ except (ImportError, AttributeError):
 
 # Import guard LAST (after all its dependencies are loaded) - moved to integration/guards/
 try:
-    from .integration.guards.guard import apex_guardrail, GuardrailError
+    from .integration.guards.guard import GuardrailError, apex_guardrail
 except ImportError:
     # Guard requires memory module, make it optional
     apex_guardrail = None
@@ -82,11 +82,11 @@ except ImportError:
 # Import GENIUS LAW telemetry (v35.13.0+) - moved to enforcement/
 try:
     from .enforcement.genius_metrics import (
-        evaluate_genius_law,
         GeniusVerdict,
-        compute_genius_index,
         compute_dark_cleverness,
+        compute_genius_index,
         compute_psi_apex,
+        evaluate_genius_law,
     )
 except ImportError:
     # GENIUS metrics optional
@@ -100,24 +100,19 @@ except ImportError:
 # v41.3 SEMANTIC GOVERNANCE - AGI·ASI·APEX Trinity (Δ → Ω → Ψ)
 # =============================================================================
 
-from .eval import (
-    # AGI·ASI·APEX Trinity classes
+from .eval import (  # AGI·ASI·APEX Trinity classes; Backward compatibility aliases; Result types; RED_PATTERNS exports; Main entry point
     AGI,
     ASI,
-    # Backward compatibility aliases
-    Sentinel,
-    Accountant,
-    # Result types
-    EvaluationResult,
-    SentinelResult,
-    ASIResult,
-    AccountantResult,
-    EvaluationMode,
-    # RED_PATTERNS exports
-    RED_PATTERNS,
-    RED_PATTERN_TO_FLOOR,
     RED_PATTERN_SEVERITY,
-    # Main entry point
+    RED_PATTERN_TO_FLOOR,
+    RED_PATTERNS,
+    Accountant,
+    AccountantResult,
+    ASIResult,
+    EvaluationMode,
+    EvaluationResult,
+    Sentinel,
+    SentinelResult,
     evaluate_session,
 )
 

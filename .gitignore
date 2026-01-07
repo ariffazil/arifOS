@@ -109,3 +109,22 @@ cooling_ledger/sealion_forge_sessions.jsonl
 # Manual test scripts (ephemeral)
 scripts/manual_tests/
 cooling_ledger_l4.sqlite3
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Build artifacts
+kernel_output.txt
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+nul
+.DS_Store
+Thumbs.db

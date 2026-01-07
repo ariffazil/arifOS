@@ -623,8 +623,6 @@ def main():
         app,
         host="127.0.0.1",
         port=8000,
-        ssl_certfile=str(SSL_CERT),
-        ssl_keyfile=str(SSL_KEY),
         log_level="info"
     )
 

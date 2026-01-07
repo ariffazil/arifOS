@@ -24,20 +24,20 @@ Protocol:
 See: canon/030_EYE_SENTINEL_v35Omega.md
 """
 
+from .anti_hantu_view import AntiHantuView
 from .base import AlertSeverity, EyeAlert, EyeReport, EyeView
-from .trace_view import TraceView
-from .floor_view import FloorView
-from .shadow_view import ShadowView
+from .behavior_drift_view import BehaviorDriftView
+from .core import Eye, EyeSentinel
 from .drift_view import DriftView
+from .floor_view import FloorView
+from .genius_view import GeniusView
 from .maruah_view import MaruahView
 from .paradox_view import ParadoxView
+from .shadow_view import ShadowView
 from .silence_view import SilenceView
-from .version_view import VersionOntologyView
-from .behavior_drift_view import BehaviorDriftView
 from .sleeper_view import SleeperView
-from .anti_hantu_view import AntiHantuView
-from .genius_view import GeniusView
-from .sentinel import EyeSentinel
+from .trace_view import TraceView
+from .version_view import VersionOntologyView
 
 __all__ = [
     # Base types
@@ -59,5 +59,6 @@ __all__ = [
     "AntiHantuView",
     "GeniusView",
     # Coordinator
+    "Eye",
     "EyeSentinel",
 ]

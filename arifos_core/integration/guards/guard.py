@@ -19,16 +19,15 @@ See: docs/SOVEREIGN_ARCHITECTURE_v36.1Ic.md for details.
 =============================================================================
 """
 
+import logging
 from functools import wraps
-from typing import Callable, Any, Dict, Optional, List
+from typing import Any, Callable, Dict, List, Optional
 
 # v42: CORRECTED IMPORTS - Direct imports from relocated modules
 from ...enforcement.metrics import Metrics
-from ...system.apex_prime import apex_review, ApexVerdict
-from ...utils.eye_sentinel import EyeSentinel, EyeReport
+from ...eye import Eye, EyeReport
 from ...memory.cooling_ledger import log_cooling_entry
-
-import logging
+from ...system.apex_prime import ApexVerdict, apex_review
 
 logger = logging.getLogger("arifos_core.guard")
 
@@ -44,7 +43,7 @@ def apex_guardrail(
     tri_witness_threshold: float = 0.95,
     compute_metrics: Callable[[str, str, Dict[str, Any]], Metrics],
     cooling_ledger_sink: Optional[Callable[[Dict[str, Any]], None]] = None,
-    eye_sentinel: Optional[EyeSentinel] = None,
+    eye_sentinel: Optional[Eye] = None,
 ) -> Callable[[Callable[..., str]], Callable[..., str]]:
     """
     [LEGACY v35-STYLE] Decorator to enforce APEX PRIME governance.

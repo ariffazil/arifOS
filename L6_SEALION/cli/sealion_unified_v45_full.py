@@ -47,19 +47,19 @@ License: Apache-2.0
 
 from __future__ import annotations
 
+import argparse
+import hashlib
+import json
+import logging
 import os
 import sys
-import json
 import time
-import argparse
-import logging
-import hashlib
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from datetime import datetime, timezone, timedelta
-from typing import Optional, Dict, List, Tuple, Any
+from typing import Any, Dict, List, Optional, Tuple
 
 # Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 # Try to import Gradio (for UI mode)
 try:
@@ -162,7 +162,7 @@ except ImportError:
     sys.exit(1)
 
 try:
-    from arifos_core.connectors.litellm_gateway import make_llm_generate, LiteLLMConfig
+    from arifos_core.connectors.litellm_gateway import LiteLLMConfig, make_llm_generate
     LITELLM_AVAILABLE = True
 except ImportError:
     LITELLM_AVAILABLE = False
@@ -170,15 +170,15 @@ except ImportError:
     sys.exit(1)
 
 try:
-    from arifos_core.system.apex_prime import Verdict, ApexVerdict, check_floors
-    from arifos_core.enforcement.metrics import Metrics, FloorsVerdict
     from arifos_core.enforcement.genius_metrics import (
-        compute_genius_verdict,
         GeniusVerdict,
         compute_delta,
+        compute_genius_verdict,
         compute_omega,
         compute_psi_canonical,
     )
+    from arifos_core.enforcement.metrics import FloorsVerdict, Metrics
+    from arifos_core.system.apex_prime import ApexVerdict, Verdict, check_floors
     METRICS_AVAILABLE = True
 except ImportError as e:
     METRICS_AVAILABLE = False
@@ -186,30 +186,32 @@ except ImportError as e:
     sys.exit(1)
 
 try:
-    from arifos_core.utils.eye_sentinel import EyeSentinel, EyeReport
+    from arifos_core.utils.eye_sentinel import EyeReport, EyeSentinel
     EYE_AVAILABLE = True
 except ImportError:
     EYE_AVAILABLE = False
     logger.warning("@EYE Sentinel not available (proceeding without meta-floor enforcement)")
 
 try:
-    from arifos_core.waw.federation import WAWFederationCore, FederationVerdict
+    from arifos_core.waw.federation import FederationVerdict, WAWFederationCore
     WAW_AVAILABLE = True
 except ImportError:
     WAW_AVAILABLE = False
     logger.warning("W@W Federation not available (proceeding without multi-agent veto)")
 
 try:
-    from arifos_core.evidence.evidence_pack import create_evidence_pack, EvidencePack
     from arifos_core.evidence.conflict_router import detect_conflicts
+
+    from arifos_core.evidence.evidence_pack import EvidencePack, create_evidence_pack
     EVIDENCE_AVAILABLE = True
 except ImportError:
     EVIDENCE_AVAILABLE = False
     logger.warning("Evidence System not available (proceeding without Sovereign Witness)")
 
 try:
-    from arifos_core.memory.bands import MemoryBandRouter, append_eureka_decision
     from arifos_core.memory.ccc import CCC
+
+    from arifos_core.memory.bands import MemoryBandRouter, append_eureka_decision
     from arifos_core.memory.cooling_ledger import append_entry
     MEMORY_BANDS_AVAILABLE = True
 except ImportError:
@@ -1587,4 +1589,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

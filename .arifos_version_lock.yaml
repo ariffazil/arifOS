@@ -1,0 +1,52 @@
+# .arifos_version_lock.yaml
+# Purpose: Canonical version references and layer separation enforcement
+# Status: SEALED - Do not edit manually
+# Version: v45.0
+# Date: 2026-01-06
+
+canonical_spec_version: "v45"
+canonical_code_version: "2026-01-06"
+layer_separation_enforced: true
+last_entropy_audit: "2026-01-06T08:13:00+08"
+
+# Layer separation law (L1→L2→L3 uni-directional)
+layers:
+  L1_CANON:
+    path: "L1_THEORY/canon/"
+    status: "SEALED (Phoenix-72 amendment only)"
+    last_update: "2025-12-30"
+
+  L2_SPEC:
+    path:
+      - "spec/v45/"
+      - "L2_GOVERNANCE/"
+    status: "ACTIVE (versioned, SHA-256 verified)"
+    last_update: "2026-01-06"
+
+  L3_CODE:
+    path: "arifos_core/"
+    status: "ACTIVE (tested, audited)"
+    last_update: "2026-01-06"
+
+# Archived versions (historical reference only)
+archived_versions:
+  - "v44" # Location: archive/spec_history/v44/
+  - "v43" # Location: archive/spec_history/v43/
+  - "v42" # Location: archive/v42_detail/
+  - "v35-v38" # Location: archive/apex_theory_sources_v35/
+
+# Entropy reduction log
+entropy_audits:
+  - date: "2026-01-06T08:13:00+08"
+    agent: "Antigravity (Google Gemini)"
+    actions:
+      - "Deleted agent pollution (5 files)"
+      - "Moved logs to logs/ (17 files)"
+      - "Moved tests to tests/ (4 files)"
+      - "Created ARCHITECTURE_INTENT.yaml"
+      - "Created .arifosignore"
+      - "Archived v44/v43 specs"
+    entropy_reduction: "~15-20%"
+    layer_separation: "PRESERVED"
+
+# DITEMPA BUKAN DIBERI — Forged, not given; truth must cool before it rules.

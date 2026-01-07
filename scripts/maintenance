@@ -1,0 +1,215 @@
+"""
+arifOS Python Archaeology Scanner
+Purpose: Generate governance audit report for Python codebase
+Status: One-time audit tool (2026-01-06)
+"""
+
+import ast
+import json
+import os
+from collections import defaultdict
+from pathlib import Path
+
+
+def scan_python_archaeology():
+    """Scan all Python files in arifos_core/ and generate archaeology report."""
+
+    results = {
+        "total_files": 0,
+        "total_size_kb": 0,
+        "by_size": [],
+        "by_directory": defaultdict(int),
+        "no_imports": [],
+        "core_candidates": [],
+        "elaboration_candidates": [],
+        "dead_code_candidates": []
+    }
+
+    core_path = Path("arifos_core")
+
+    for pyfile in core_path.glob("**/*.py"):
+        if "__pycache__" in str(pyfile):
+            continue
+
+        results["total_files"] += 1
+        file_size_kb = pyfile.stat().st_size / 1024
+        results["total_size_kb"] += file_size_kb
+
+        # Read file content
+        try:
+            with open(pyfile, 'r', encoding='utf-8') as f:
+                content = f.read()
+        except:
+            continue
+
+        # Parse AST
+        try:
+            tree = ast.parse(content)
+            imports = [node.names[0].name for node in ast.walk(tree) if isinstance(node, ast.Import)]
+            from_imports = [node.module for node in ast.walk(tree) if isinstance(node, ast.ImportFrom) and node.module]
+            functions = [node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)]
+            classes = [node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]
+        except:
+            imports, from_imports, functions, classes = [], [], [], []
+
+        file_info = {
+            "path": str(pyfile.relative_to(Path.cwd())),
+            "name": pyfile.name,
+            "size_kb": round(file_size_kb, 1),
+            "directory": str(pyfile.parent.relative_to(core_path)),
+            "imports": len(imports) + len(from_imports),
+            "functions": len(functions),
+            "classes": len(classes),
+            "lines": len(content.splitlines())
+        }
+
+        results["by_size"].append(file_info)
+        results["by_directory"][file_info["directory"]] += 1
+
+        # Classify
+        if len(imports) == 0 and len(from_imports) == 0:
+            results["no_imports"].append(file_info)
+            if pyfile.name not in ["__init__.py"] and file_size_kb > 1:
+                results["dead_code_candidates"].append(file_info)
+
+        # Core candidates: Small, focused files with clear purpose
+        if 50 < file_info["lines"] < 300 and file_info["functions"] > 0:
+            results["core_candidates"].append(file_info)
+
+        # Elaboration candidates: Large files with many functions/classes
+        if file_info["lines"] > 500 or (file_info["functions"] + file_info["classes"]) > 15:
+            results["elaboration_candidates"].append(file_info)
+
+    # Sort results
+    results["by_size"].sort(key=lambda x: x["size_kb"], reverse=True)
+    results["core_candidates"].sort(key=lambda x: x["lines"])
+    results["elaboration_candidates"].sort(key=lambda x: x["size_kb"], reverse=True)
+
+    return results
+
+def generate_report(results):
+    """Generate markdown archaeology report."""
+
+    report = f"""# arifOS Python Archaeology Report
+**Date:** 2026-01-06
+**Purpose:** Governance audit - separate core from elaborations
+**Status:** Phase 1 - Archaeological Scan
+
+---
+
+## Executive Summary
+
+- **Total Python Files:** {results['total_files']}
+- **Total Size:** {round(results['total_size_kb'], 1)} KB
+- **Average File Size:** {round(results['total_size_kb'] / results['total_files'], 1)} KB
+
+---
+
+## Top 20 Files by Size (Elaboration Candidates)
+
+| Rank | File | Size (KB) | Lines | Functions | Classes | Directory |
+|------|------|-----------|-------|-----------|---------|-----------|
+"""
+
+    for i, file in enumerate(results["by_size"][:20], 1):
+        report += f"| {i} | `{file['name']}` | {file['size_kb']} | {file['lines']} | {file['functions']} | {file['classes']} | `{file['directory']}` |\n"
+
+    report += f"""
+
+---
+
+## Directory Distribution (Hot Zones)
+
+| Directory | File Count | Status |
+|-----------|------------|--------|
+"""
+
+    sorted_dirs = sorted(results["by_directory"].items(), key=lambda x: x[1], reverse=True)
+    for dir_name, count in sorted_dirs[:15]:
+        status = "🔥 HOT" if count > 15 else "⚠️ WARM" if count > 10 else "✓ OK"
+        report += f"| `{dir_name}` | {count} | {status} |\n"
+
+    report += f"""
+
+---
+
+## Files with NO Imports ({len(results['no_imports'])} files)
+
+**Potential dead code or standalone utilities**
+
+| File | Size (KB) | Lines | Path |
+|------|-----------|-------|------|
+"""
+
+    for file in results["no_imports"]:
+        report += f"| `{file['name']}` | {file['size_kb']} | {file['lines']} | `{file['path']}` |\n"
+
+    report += f"""
+
+---
+
+## Core Candidates ({len(results['core_candidates'])} files)
+
+**Small, focused files (50-300 lines) - likely essential**
+
+| File | Lines | Functions | Directory |
+|------|-------|-----------|-----------|
+"""
+
+    for file in results["core_candidates"][:30]:
+        report += f"| `{file['name']}` | {file['lines']} | {file['functions']} | `{file['directory']}` |\n"
+
+    report += f"""
+
+---
+
+## Elaboration Candidates ({len(results['elaboration_candidates'])} files)
+
+**Large files (>500 lines) or many functions (>15) - likely over-elaborated**
+
+| File | Size (KB) | Lines | Functions | Classes | Directory |
+|------|-----------|-------|-----------|---------|-----------|
+"""
+
+    for file in results["elaboration_candidates"][:30]:
+        report += f"| `{file['name']}` | {file['size_kb']} | {file['lines']} | {file['functions']} | {file['classes']} | `{file['directory']}` |\n"
+
+    report += """
+
+---
+
+## Next Steps (Phase 2: Cross-Check)
+
+1. **Classify each file** as CORE / ARCHIVE / RESEARCH
+2. **Cross-check** core files against L1 canon and L2 specs
+3. **Generate** L1↔L2↔L3 binding manifest
+4. **Archive** elaborations to `archive/python_elaborations_v45/`
+
+---
+
+**DITEMPA BUKAN DIBERI** — Forged, not given; truth must cool before it rules.
+"""
+
+    return report
+
+if __name__ == "__main__":
+    print("Scanning arifos_core/ Python files...")
+    results = scan_python_archaeology()
+
+    print(f"Found {results['total_files']} Python files")
+    print(f"Total size: {round(results['total_size_kb'], 1)} KB")
+
+    # Generate report
+    report = generate_report(results)
+
+    # Save to file
+    with open("PYTHON_ARCHAEOLOGY_REPORT.md", "w", encoding="utf-8") as f:
+        f.write(report)
+
+    print("\\nReport saved to: PYTHON_ARCHAEOLOGY_REPORT.md")
+
+    # Save raw data as JSON
+    with open("archaeology_data.json", "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2)
+
+    print("Raw data saved to: archaeology_data.json")
