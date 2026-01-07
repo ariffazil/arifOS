@@ -47,7 +47,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
-from ..audit.eye_adapter import evaluate_eye_vector
+from ..enforcement.audit.eye_adapter import evaluate_eye_vector
 from ..enforcement.metrics import Metrics
 
 # v45xx TCHA (Time-Critical Harm Awareness)
@@ -61,11 +61,11 @@ from ..enforcement.tcha_metrics import (
     should_bypass_hold,
 )
 
-# AAA Engines (internal facade - v35.8.0) - v42: engines is at arifos_core/engines/
-from ..engines import AGIEngine, ASIEngine
-from ..engines.agi_engine import AGIPacket
-from ..engines.asi_engine import ASIPacket
-from ..governance.session_physics import evaluate_physics_floors
+# AAA Engines (internal facade - v35.8.0) - v46: engines moved to arifos_core/system/engines/
+from .engines import AGIEngine, ASIEngine
+from .engines.agi_engine import AGIPacket
+from .engines.asi_engine import ASIPacket
+from ..apex.governance.session_physics import evaluate_physics_floors
 from ..memory.audit import MemoryAuditLayer, compute_evidence_hash
 from ..memory.bands import MemoryBandRouter, append_eureka_decision
 from ..memory.eureka_types import ActorRole, MemoryWriteRequest

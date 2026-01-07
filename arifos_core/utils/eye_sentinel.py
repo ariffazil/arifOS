@@ -28,8 +28,8 @@ See: arifos_core.eye for the modular implementation
      canon/030_EYE_SENTINEL_v35Omega.md
 """
 
-# v42: Re-export from eye package (at arifos_core/eye/, not utils/eye/)
-from ..eye import (
+# v42: Re-export from eye package (at arifos_core/system/eye/, not utils/eye/)
+from ..system.eye import (
     AlertSeverity,
     EyeAlert,
     EyeReport,
