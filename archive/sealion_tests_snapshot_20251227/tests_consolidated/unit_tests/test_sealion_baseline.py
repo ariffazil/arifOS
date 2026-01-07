@@ -36,7 +36,7 @@ try:
 except ImportError:
     pass
 
-from arifos_core.connectors.litellm_gateway import make_llm_generate
+from arifos_core.integration.connectors.litellm_gateway import make_llm_generate
 
 
 # Test prompts (same 7 as governed test)

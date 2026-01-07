@@ -17,7 +17,7 @@ from typing import Any, Dict, List
 
 import pytest
 
-from arifos_core.governance.vault_retrieval import (
+from arifos_core.apex.governance.vault_retrieval import (
     RetrievalQuery,
     RetrievalResult,
     retrieve_canon_entries,

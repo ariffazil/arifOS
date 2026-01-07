@@ -28,7 +28,7 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
-from arifos_core.governance.fag import FAG, FAGWritePlan, FAGWriteResult
+from arifos_core.apex.governance.fag import FAG, FAGWritePlan, FAGWriteResult
 
 
 class ReadProof(BaseModel):

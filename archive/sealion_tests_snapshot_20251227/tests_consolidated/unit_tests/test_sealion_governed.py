@@ -46,7 +46,7 @@ try:
 except ImportError:
     pass
 
-from arifos_core.connectors.litellm_gateway import make_llm_generate
+from arifos_core.integration.connectors.litellm_gateway import make_llm_generate
 from L7_DEMOS.examples.arifos_caged_llm_demo import cage_llm_response
 # v45Ω: Import emission functions from verdict_emission (functions moved from apex_prime)
 from arifos_core.system.verdict_emission import (

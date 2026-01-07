@@ -45,7 +45,7 @@ except ImportError:
 
 # Import Amanah detector directly for verification
 try:
-    from arifos_core.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
+    from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
     DETECTOR_AVAILABLE = True
 except ImportError:
     AMANAH_DETECTOR = None

@@ -11,8 +11,8 @@ Comprehensive tests for GeoxSignals dataclass and compute_geox_signals function:
 """
 
 import pytest
-from arifos_core.waw.geox import GeoxOrgan, compute_geox_signals
-from arifos_core.waw.base import OrganVote
+from arifos_core.integration.waw.geox import GeoxOrgan, compute_geox_signals
+from arifos_core.integration.waw.base import OrganVote
 from arifos_core.enforcement.metrics import Metrics
 
 

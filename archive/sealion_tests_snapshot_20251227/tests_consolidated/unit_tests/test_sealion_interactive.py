@@ -26,7 +26,7 @@ try:
 except ImportError:
     print("⚠️  python-dotenv not installed, using environment variables")
 
-from arifos_core.connectors.litellm_gateway import make_llm_generate
+from arifos_core.integration.connectors.litellm_gateway import make_llm_generate
 from arifos_core.system.apex_prime import APEX_VERSION, APEX_EPOCH
 
 

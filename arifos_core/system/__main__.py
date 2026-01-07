@@ -15,7 +15,7 @@ import logging
 import sys
 from pathlib import Path
 
-from arifos_core.runtime.bootstrap import ensure_bootstrap, get_bootstrap_payload
+from arifos_core.system.runtime.bootstrap import ensure_bootstrap, get_bootstrap_payload
 from arifos_core.system.pipeline import Pipeline
 
 logging.basicConfig(

@@ -33,7 +33,7 @@ from .verification.distributed import DistributedWitnessSystem, WitnessType, Wit
 try:
     from arifos_core.enforcement.genius_metrics import compute_psi_apex
     from arifos_core.enforcement.response_validator_extensions import validate_response_full
-    from arifos_core.governance.fag import FAG
+    from arifos_core.apex.governance.fag import FAG
     from arifos_core.system.apex_prime import check_floors
     KERNEL_AVAILABLE = True
 except ImportError as e:

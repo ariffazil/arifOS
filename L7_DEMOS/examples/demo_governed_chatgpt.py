@@ -5,7 +5,7 @@ Shows how arifOS governance works without needing full pipeline setup.
 Just the SABAR-72 timer and basic concepts.
 """
 
-from arifos_core.sabar_timer import Sabar72Timer, SabarReason
+from arifos_core.enforcement.sabar_timer import Sabar72Timer, SabarReason
 from datetime import datetime
 
 

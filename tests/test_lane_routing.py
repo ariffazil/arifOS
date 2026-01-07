@@ -21,8 +21,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from L7_DEMOS.examples.arifos_caged_llm_demo import compute_metrics_from_response
 from arifos_core.system.apex_prime import apex_review, trm_classify, Verdict
-from arifos_core.routing.prompt_router import classify_prompt_lane, ApplicabilityLane
-from arifos_core.routing.refusal_templates import generate_refusal_response
+from arifos_core.enforcement.routing.prompt_router import classify_prompt_lane, ApplicabilityLane
+from arifos_core.enforcement.routing.refusal_templates import generate_refusal_response
 
 
 def test_phatic_lane_greeting():

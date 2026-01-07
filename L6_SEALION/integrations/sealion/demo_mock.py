@@ -39,7 +39,7 @@ if str(REPO_ROOT) not in sys.path:
 from arifos_core import evaluate_session
 
 # Import APEX PRIME output contract (v41.0.1)
-from arifos_core.contracts.apex_prime_output_v41 import serialize_public
+from arifos_core.apex.contracts.apex_prime_output_v41 import serialize_public
 
 
 # =============================================================================
@@ -144,7 +144,7 @@ def run_governed_inference(prompt: str, engine: MockSeaLionEngine) -> Dict[str, 
 
     # Import Amanah detector for direct check
     try:
-        from arifos_core.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
+        from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
 
         amanah_result = AMANAH_DETECTOR.check(raw_response)
 

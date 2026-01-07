@@ -488,26 +488,26 @@ _REGISTRY.register(APIEntry(
     description="F9 dark ceiling (0.30)",
 ))
 
-# arifos_core.governance
+# arifos_core.apex.governance
 _REGISTRY.register(APIEntry(
     name="FAG",
     stability=StabilityLevel.STABLE,
     kind="class",
-    module="arifos_core.governance.fag",
+    module="arifos_core.apex.governance.fag",
     description="File Access Guardian",
 ))
 _REGISTRY.register(APIEntry(
     name="compute_merkle_root",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core.governance.merkle",
+    module="arifos_core.apex.governance.merkle",
     description="Compute Merkle root",
 ))
 _REGISTRY.register(APIEntry(
     name="get_merkle_proof",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core.governance.merkle",
+    module="arifos_core.apex.governance.merkle",
     description="Get Merkle proof for entry",
 ))
 
@@ -534,26 +534,26 @@ _REGISTRY.register(APIEntry(
     description="EUREKA receipt",
 ))
 
-# arifos_core.waw
+# arifos_core.integration.waw
 _REGISTRY.register(APIEntry(
     name="WAWFederation",
     stability=StabilityLevel.STABLE,
     kind="class",
-    module="arifos_core.waw.federation",
+    module="arifos_core.integration.waw.federation",
     description="W@W Federation router",
 ))
 _REGISTRY.register(APIEntry(
     name="WellFileCare",
     stability=StabilityLevel.STABLE,
     kind="class",
-    module="arifos_core.waw.well_file_care",
+    module="arifos_core.integration.waw.well_file_care",
     description="@WELL file migration",
 ))
 _REGISTRY.register(APIEntry(
     name="create_well_file_care",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core.waw.well_file_care",
+    module="arifos_core.integration.waw.well_file_care",
     description="Create @WELL instance",
 ))
 

@@ -18,7 +18,7 @@ from typing import List, Dict, Any
 import pytest
 
 from arifos_core.system.pipeline import Pipeline
-from arifos_core.connectors.failover_orchestrator import (
+from arifos_core.integration.connectors.failover_orchestrator import (
     ProviderConfig,
     FailoverConfig,
     FailureType,
@@ -302,7 +302,7 @@ def test_all_providers_fail_returns_void(mock_ledger_sink, failover_env_vars, mo
 
 def test_failover_config_validation():
     """Test that failover configuration validates correctly."""
-    from arifos_core.connectors.failover_orchestrator import load_failover_config_from_env
+    from arifos_core.integration.connectors.failover_orchestrator import load_failover_config_from_env
 
     # Valid config
     os.environ["ARIFOS_FAILOVER_ENABLED"] = "true"

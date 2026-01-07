@@ -42,7 +42,7 @@ if str(REPO_ROOT) not in sys.path:
 # Import core components
 from arifos_core.metrics import Metrics
 from arifos_core.APEX_PRIME import APEXPrime
-from arifos_core.contracts.apex_prime_output_v41 import serialize_public, compute_apex_pulse
+from arifos_core.apex.contracts.apex_prime_output_v41 import serialize_public, compute_apex_pulse
 
 # v41.3: Import unified semantic governance from arifos_core
 from arifos_core import (
@@ -55,7 +55,7 @@ from arifos_core import (
 
 # Import detectors for F1 (Amanah) - used as fallback
 try:
-    from arifos_core.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
+    from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
     AMANAH_AVAILABLE = True
 except ImportError:
     AMANAH_DETECTOR = None

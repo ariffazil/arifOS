@@ -21,7 +21,7 @@ __author__ = "arifOS Project"
 
 # Re-export from core module for convenience
 try:
-    from arifos_core.waw.well_file_care import (
+    from arifos_core.integration.waw.well_file_care import (
         WellConstants,
         WellFileCare,
         WellOperationType,

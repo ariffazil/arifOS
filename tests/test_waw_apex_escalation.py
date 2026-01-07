@@ -15,8 +15,8 @@ Version: v38.3
 """
 
 import pytest
-from arifos_core.waw.federation import WAWFederationCore
-from arifos_core.waw.base import OrganSignal, OrganVote
+from arifos_core.integration.waw.federation import WAWFederationCore
+from arifos_core.integration.waw.base import OrganSignal, OrganVote
 from arifos_core.system.apex_prime import apex_prime_judge
 
 
@@ -105,7 +105,7 @@ class TestWAWApexEscalation:
     def test_no_static_hierarchy_in_federation(self):
         """✅ No hardcoded "@WEALTH veto > @WELL safety" precedence"""
         # Read federation.py source to verify no hierarchy
-        import arifos_core.waw.federation as fed
+        import arifos_core.integration.waw.federation as fed
         source = fed.__doc__ or ''
         
         # Should mention APEX escalation, not hierarchy

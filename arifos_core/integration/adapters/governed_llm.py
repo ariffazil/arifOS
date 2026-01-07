@@ -43,7 +43,7 @@ class GovernedPipeline:
   Small façade around Pipeline for external integrators.
 
   Usage (pseudo-code):
-      from arifos_core.wrappers.governed_session import GovernedPipeline
+      from arifos_core.integration.wrappers.governed_session import GovernedPipeline
 
       def llm_generate(prompt: str) -> str:
           # Call Claude / OpenAI / local model here
@@ -175,7 +175,7 @@ def configure_governed_pipeline(
   to wire their LLM backend into arifOS.
 
   Example:
-      from arifos_core.wrappers.governed_session import configure_governed_pipeline, governed_answer
+      from arifos_core.integration.wrappers.governed_session import configure_governed_pipeline, governed_answer
 
       def llm_generate(prompt: str) -> str:
           # Call Claude/OpenAI here

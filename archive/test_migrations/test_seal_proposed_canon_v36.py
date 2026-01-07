@@ -28,14 +28,14 @@ from pathlib import Path
 
 import pytest
 
-from arifos_core.governance.ledger_hashing import (
+from arifos_core.apex.governance.ledger_hashing import (
     load_jsonl,
     compute_entry_hash,
     HASH_FIELD,
     PREVIOUS_HASH_FIELD,
     GENESIS_PREVIOUS_HASH,
 )
-from arifos_core.governance.merkle import build_merkle_tree
+from arifos_core.apex.governance.merkle import build_merkle_tree
 
 
 # Get the repo root (where scripts/ lives)

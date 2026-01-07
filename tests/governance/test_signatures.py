@@ -3,7 +3,7 @@ Tests for v45 Sovereign Signatures
 Verify signing and verification logic (with or without PyNaCl).
 """
 import pytest
-from arifos_core.governance.sovereign_signature import SovereignSigner, SignatureVerifier, HAS_NACL
+from arifos_core.apex.governance.sovereign_signature import SovereignSigner, SignatureVerifier, HAS_NACL
 
 def test_sign_and_verify():
     """Verify a valid signature passes verification."""

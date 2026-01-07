@@ -60,7 +60,7 @@ except Exception:
     pass
 
 # arifOS imports
-from arifos_core.connectors.litellm_gateway import make_llm_generate, LiteLLMConfig
+from arifos_core.integration.connectors.litellm_gateway import make_llm_generate, LiteLLMConfig
 from arifos_core.integration.sealion_suite.test_packs import get_test_pack
 from arifos_core.integration.sealion_suite.evaluator import (
     run_test_suite,

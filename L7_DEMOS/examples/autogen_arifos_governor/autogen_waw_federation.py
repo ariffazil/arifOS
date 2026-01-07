@@ -34,7 +34,7 @@ from arifos_core.utils.eye_sentinel import EyeSentinel
 from arifos_core.integration.guards.guard import apex_guardrail
 
 # W@W Federation Core (v35.9.0) - replaces inline organ logic
-from arifos_core.waw import WAWFederationCore, FederationVerdict, OrganVote
+from arifos_core.integration.waw import WAWFederationCore, FederationVerdict, OrganVote
 
 
 # ==============================================================================

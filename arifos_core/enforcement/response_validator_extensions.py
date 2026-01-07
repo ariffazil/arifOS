@@ -60,7 +60,7 @@ def compute_empathy_score_split(
         stability_var_dt = telemetry.get("stability_var_dt", 1.0)
 
         # Load thresholds from session_physics
-        from arifos_core.governance.session_physics import (
+        from arifos_core.apex.governance.session_physics import (
             BURST_TURN_RATE_THRESHOLD,
             BURST_TOKEN_RATE_THRESHOLD,
             BURST_VAR_DT_THRESHOLD,

@@ -807,7 +807,7 @@ class ApplicabilityLane(Enum):
     - REFUSE: Disallowed content (no LLM call, canned refusal)
 
     Real Implementation:
-        from arifos_core.routing.prompt_router import ApplicabilityLane
+        from arifos_core.enforcement.routing.prompt_router import ApplicabilityLane
     """
     PHATIC = "PHATIC"
     SOFT = "SOFT"
@@ -840,7 +840,7 @@ def classify_prompt_lane(
         ApplicabilityLane enum value
 
     Real Implementation:
-        from arifos_core.routing.prompt_router import classify_prompt_lane
+        from arifos_core.enforcement.routing.prompt_router import classify_prompt_lane
     """
     p = prompt.lower().strip()
 
@@ -1052,7 +1052,7 @@ To use Track C enforcement in production:
    from arifos_core.enforcement.genius_metrics import compute_genius_index
    from arifos_core.system.apex_prime import apex_review, Verdict
    from arifos_core.system.pipeline import Pipeline, PipelineState
-   from arifos_core.routing.prompt_router import classify_prompt_lane
+   from arifos_core.enforcement.routing.prompt_router import classify_prompt_lane
    from arifos_core.memory.policy import MemoryWritePolicy
    ```
 

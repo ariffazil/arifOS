@@ -16,8 +16,8 @@ import argparse
 import sys
 from pathlib import Path
 
-from arifos_core.governance.ledger_hashing import load_jsonl, HASH_FIELD
-from arifos_core.governance.merkle import build_merkle_tree, get_merkle_proof, verify_merkle_proof
+from arifos_core.apex.governance.ledger_hashing import load_jsonl, HASH_FIELD
+from arifos_core.apex.governance.merkle import build_merkle_tree, get_merkle_proof, verify_merkle_proof
 
 
 DEFAULT_LEDGER_PATH = Path("cooling_ledger") / "L1_cooling_ledger.jsonl"

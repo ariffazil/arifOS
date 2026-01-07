@@ -41,7 +41,7 @@ except Exception:
     PIPELINE_AVAILABLE = False
 
 try:
-    from arifos_core.connectors.litellm_gateway import make_llm_generate, LiteLLMConfig
+    from arifos_core.integration.connectors.litellm_gateway import make_llm_generate, LiteLLMConfig
 
     LITELLM_AVAILABLE = True
 except Exception:

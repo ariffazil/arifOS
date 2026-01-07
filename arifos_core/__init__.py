@@ -39,8 +39,8 @@ See PHYSICS_CODEX.md (CHAPTER 6) for the full technical statement and diagram.
 # Import base types first (moved to enforcement/)
 from .enforcement.metrics import ConstitutionalMetrics, FloorsVerdict, Metrics
 
-# Import @EYE Sentinel (moved to utils/)
-from .eye import AlertSeverity, Eye, EyeAlert, EyeReport, EyeSentinel
+# Import @EYE Sentinel (moved to system/)
+from .system.eye import AlertSeverity, Eye, EyeAlert, EyeReport, EyeSentinel
 
 # Import APEX components (moved to system/)
 from .system.apex_prime import (
@@ -100,7 +100,7 @@ except ImportError:
 # v41.3 SEMANTIC GOVERNANCE - AGI·ASI·APEX Trinity (Δ → Ω → Ψ)
 # =============================================================================
 
-from .eval import (  # AGI·ASI·APEX Trinity classes; Backward compatibility aliases; Result types; RED_PATTERNS exports; Main entry point
+from .enforcement.eval import (  # AGI·ASI·APEX Trinity classes; Backward compatibility aliases; Result types; RED_PATTERNS exports; Main entry point
     AGI,
     ASI,
     RED_PATTERN_SEVERITY,

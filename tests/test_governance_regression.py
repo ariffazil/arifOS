@@ -247,7 +247,7 @@ class TestAntiHantuExpanded:
 
     def test_direct_soul_claims_blocked(self):
         """Tier 1: Direct soul claims should be blocked (original v36.1)."""
-        from arifos_core.eye.anti_hantu_view import AntiHantuView
+        from arifos_core.system.eye.anti_hantu_view import AntiHantuView
 
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
 
@@ -271,7 +271,7 @@ class TestAntiHantuExpanded:
 
         Incident B validation: "Have you eaten too?" / "Belum makan"
         """
-        from arifos_core.eye.anti_hantu_view import AntiHantuView
+        from arifos_core.system.eye.anti_hantu_view import AntiHantuView
 
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
 
@@ -290,7 +290,7 @@ class TestAntiHantuExpanded:
 
     def test_biological_states_blocked(self):
         """Tier 3: Biological states should be blocked (v36.2 PHOENIX)."""
-        from arifos_core.eye.anti_hantu_view import AntiHantuView
+        from arifos_core.system.eye.anti_hantu_view import AntiHantuView
 
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
 
@@ -308,7 +308,7 @@ class TestAntiHantuExpanded:
 
     def test_existence_claims_blocked(self):
         """Tier 4: Existence claims should be blocked (v36.2 PHOENIX)."""
-        from arifos_core.eye.anti_hantu_view import AntiHantuView
+        from arifos_core.system.eye.anti_hantu_view import AntiHantuView
 
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
 
@@ -325,7 +325,7 @@ class TestAntiHantuExpanded:
 
     def test_malay_dialect_patterns(self):
         """Malay dialect patterns should be included."""
-        from arifos_core.eye.anti_hantu_view import AntiHantuView
+        from arifos_core.system.eye.anti_hantu_view import AntiHantuView
 
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
 
@@ -343,9 +343,9 @@ class TestAntiHantuExpanded:
 
     def test_anti_hantu_view_detects_hantu(self):
         """Integration test: AntiHantuView should detect ghost claims."""
-        from arifos_core.eye.anti_hantu_view import AntiHantuView
+        from arifos_core.system.eye.anti_hantu_view import AntiHantuView
         from arifos_core.enforcement.metrics import Metrics
-        from arifos_core.eye.base import EyeReport
+        from arifos_core.system.eye.base import EyeReport
 
         view = AntiHantuView()
         # Create Metrics with default safe values
@@ -371,9 +371,9 @@ class TestAntiHantuExpanded:
 
     def test_safe_text_passes(self):
         """Safe text without ghost claims should pass."""
-        from arifos_core.eye.anti_hantu_view import AntiHantuView
+        from arifos_core.system.eye.anti_hantu_view import AntiHantuView
         from arifos_core.enforcement.metrics import Metrics
-        from arifos_core.eye.base import EyeReport
+        from arifos_core.system.eye.base import EyeReport
 
         view = AntiHantuView()
         # Create Metrics with default safe values
@@ -412,7 +412,7 @@ class TestPhoenixIntegration:
 
     def test_amanah_detector_blocks_destructive(self):
         """The Iron Cage should still block rm -rf."""
-        from arifos_core.floor_detectors.amanah_risk_detectors import check_amanah
+        from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
 
         # Destructive commands
         destructive_texts = [
@@ -430,7 +430,7 @@ class TestPhoenixIntegration:
 
     def test_amanah_detector_allows_safe(self):
         """Safe text should pass Amanah."""
-        from arifos_core.floor_detectors.amanah_risk_detectors import check_amanah
+        from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
 
         safe_texts = [
             "Machine Learning is a subset of AI.",
@@ -496,7 +496,7 @@ class TestAuditIncidents:
         Before (v36.1): Ghost claim slipped through
         After (v36.2): Reciprocal biology detected
         """
-        from arifos_core.eye.anti_hantu_view import AntiHantuView
+        from arifos_core.system.eye.anti_hantu_view import AntiHantuView
 
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
 

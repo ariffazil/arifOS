@@ -14,7 +14,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from arifos_core.governance.ledger_hashing import load_jsonl, verify_chain
+from arifos_core.apex.governance.ledger_hashing import load_jsonl, verify_chain
 
 DEFAULT_LEDGER_PATH = Path("cooling_ledger") / "L1_cooling_ledger.jsonl"
 

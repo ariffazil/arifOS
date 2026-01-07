@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from arifos_core.codex_ledger import log_codex_cli_entry
+from arifos_core.memory.codex_ledger import log_codex_cli_entry
 from arifos_core.memory.cooling_ledger import verify_chain
 
 

@@ -1,5 +1,5 @@
 import pytest
-from arifos_core.contracts.apex_prime_output_v41 import compute_apex_pulse, serialize_public
+from arifos_core.apex.contracts.apex_prime_output_v41 import compute_apex_pulse, serialize_public
 
 def test_void_band():
     assert compute_apex_pulse(1.08, "VOID") <= 0.94

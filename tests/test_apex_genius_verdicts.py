@@ -500,7 +500,7 @@ class TestGeniusViewIntegration:
 
     def test_genius_view_registered(self):
         """GeniusView should be registered in EyeSentinel."""
-        from arifos_core.eye import EyeSentinel, GeniusView
+        from arifos_core.system.eye import EyeSentinel, GeniusView
 
         sentinel = EyeSentinel()
         genius_view = sentinel.get_view_by_id(12)
@@ -509,7 +509,7 @@ class TestGeniusViewIntegration:
 
     def test_genius_view_alerts_on_low_g(self, healthy_metrics):
         """GeniusView should emit alerts when G is low."""
-        from arifos_core.eye import EyeSentinel
+        from arifos_core.system.eye import EyeSentinel
 
         sentinel = EyeSentinel()
         # Create context with low energy to drop G

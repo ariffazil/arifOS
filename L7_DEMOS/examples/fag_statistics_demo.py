@@ -13,7 +13,7 @@ from pathlib import Path
 import tempfile
 import json
 
-from arifos_core.governance.fag import FAG
+from arifos_core.apex.governance.fag import FAG
 
 
 def demo_statistics():

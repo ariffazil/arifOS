@@ -53,10 +53,10 @@ if __name__ == "__main__":
 from arifos_core.system.pipeline import Pipeline, PipelineState, StakesClass
 from arifos_core.enforcement.metrics import Metrics, check_anti_hantu
 from arifos_core.utils.eye_sentinel import EyeSentinel
-from arifos_core.waw import WAWFederationCore, FederationVerdict
+from arifos_core.integration.waw import WAWFederationCore, FederationVerdict
 from arifos_core.system.apex_prime import ApexVerdict
 from arifos_core.enforcement.genius_metrics import evaluate_genius_law, GeniusVerdict
-from arifos_core.governance.ledger_cryptography import (
+from arifos_core.apex.governance.ledger_cryptography import (
     CryptographicLedger,
 )
 
@@ -205,7 +205,7 @@ def stub_call_model(messages: List[Dict[str, str]]) -> str:
 
     # SEA-LION (via arifOS adapter)
     def call_sealion(messages):
-        from arifos_core.adapters.llm_sealion import make_llm_generate
+        from arifos_core.integration.adapters.llm_sealion import make_llm_generate
         generate = make_llm_generate(model_shorthand="qwen-7b")
         prompt = messages[-1]["content"] if messages else ""
         return generate(prompt)
@@ -533,7 +533,7 @@ def create_call_model(
         return call_sealion
     
     elif provider == "gemini":
-        from arifos_core.adapters.llm_gemini import make_llm_generate
+        from arifos_core.integration.adapters.llm_gemini import make_llm_generate
         api_key = os.environ.get(api_key_env or "GOOGLE_API_KEY", "")
         if not api_key:
             raise ValueError(f"API key not found in env var {api_key_env or 'GOOGLE_API_KEY'}")

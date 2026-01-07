@@ -13,7 +13,7 @@ import sys
 # Add parent to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from arifos_core.config.interface_authority_config import (
+from arifos_core.integration.config.interface_authority_config import (
     InterfaceAuthorityConfig,
     VerdictType,
     VetoType

@@ -27,7 +27,7 @@ from autogen_waw_federation import (
     WEALTH_CONFIG,
     demo_llm_generate,
 )
-from arifos_core.waw import WAWFederationCore, OrganVote
+from arifos_core.integration.waw import WAWFederationCore, OrganVote
 from arifos_core.enforcement.metrics import Metrics
 from arifos_core.system.apex_prime import APEXPrime
 from arifos_core.utils.eye_sentinel import EyeSentinel

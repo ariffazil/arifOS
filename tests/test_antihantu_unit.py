@@ -9,8 +9,8 @@ These tests focus on three canonical scenarios:
 
 from __future__ import annotations
 
-from arifos_core.eye.anti_hantu_view import AntiHantuView
-from arifos_core.eye.base import AlertSeverity, EyeReport
+from arifos_core.system.eye.anti_hantu_view import AntiHantuView
+from arifos_core.system.eye.base import AlertSeverity, EyeReport
 from arifos_core.enforcement.metrics import Metrics
 
 

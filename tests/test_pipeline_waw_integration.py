@@ -20,7 +20,7 @@ from arifos_core.system.pipeline import (
     stage_888_judge,
 )
 from arifos_core.enforcement.metrics import Metrics
-from arifos_core.waw.federation import WAWFederationCore
+from arifos_core.integration.waw.federation import WAWFederationCore
 
 
 # =============================================================================

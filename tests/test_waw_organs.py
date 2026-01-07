@@ -12,7 +12,7 @@ Plus federation aggregation tests.
 """
 
 import pytest
-from arifos_core.waw import (
+from arifos_core.integration.waw import (
     OrganSignal,
     OrganVote,
     WAWOrgan,
@@ -107,14 +107,14 @@ class TestImports:
     """Verify all W@W components can be imported."""
 
     def test_import_base_types(self):
-        from arifos_core.waw import OrganSignal, OrganVote, WAWOrgan
+        from arifos_core.integration.waw import OrganSignal, OrganVote, WAWOrgan
 
         assert OrganSignal is not None
         assert OrganVote is not None
         assert WAWOrgan is not None
 
     def test_import_organs(self):
-        from arifos_core.waw import (
+        from arifos_core.integration.waw import (
             WellOrgan,
             RifOrgan,
             WealthOrgan,
@@ -129,7 +129,7 @@ class TestImports:
         assert PromptOrgan is not None
 
     def test_import_federation(self):
-        from arifos_core.waw import WAWFederationCore, FederationVerdict
+        from arifos_core.integration.waw import WAWFederationCore, FederationVerdict
 
         assert WAWFederationCore is not None
         assert FederationVerdict is not None

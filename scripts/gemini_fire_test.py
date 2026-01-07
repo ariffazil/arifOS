@@ -23,7 +23,7 @@ import sys
 # Ensure we can find the core modules when run as script
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from arifos_core.wrappers.governed_session import GovernedPipeline
+from arifos_core.integration.wrappers.governed_session import GovernedPipeline
 
 # --- SETUP GEMINI ---
 try:

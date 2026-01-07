@@ -408,7 +408,7 @@ class TestPhase2LedgerIntegrity:
         assert ledger_path.exists()
         
         # Reload and verify
-        from arifos_core.governance.ledger_cryptography import CryptographicLedger
+        from arifos_core.apex.governance.ledger_cryptography import CryptographicLedger
         ledger = CryptographicLedger.load_from_file(ledger_path)
         assert len(ledger) == 3
         
@@ -448,7 +448,7 @@ class TestPhase2LedgerIntegrity:
         2. Any actual modification breaks integrity
         3. The only way to "pass" is to rebuild from genesis
         """
-        from arifos_core.governance.ledger_cryptography import CryptographicLedger
+        from arifos_core.apex.governance.ledger_cryptography import CryptographicLedger
         
         ledger_path = tmp_path / "test_ledger.jsonl"
         

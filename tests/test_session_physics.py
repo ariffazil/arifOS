@@ -6,7 +6,7 @@ import unittest
 import os
 from arifos_core.utils.session_telemetry import SessionTelemetry, TelemetrySnapshot
 from arifos_core.utils.reduction_engine import compute_attributes, SessionAttributes
-from arifos_core.governance.session_physics import evaluate_physics_floors
+from arifos_core.apex.governance.session_physics import evaluate_physics_floors
 from arifos_core.system.apex_prime import Verdict
 
 class TestSessionPhysics(unittest.TestCase):

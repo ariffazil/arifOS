@@ -35,7 +35,7 @@ try:
 except ImportError:
     pass
 
-from arifos_core.connectors.litellm_gateway import (
+from arifos_core.integration.connectors.litellm_gateway import (
     make_llm_generate,
     get_supported_providers,
     LiteLLMConfig,

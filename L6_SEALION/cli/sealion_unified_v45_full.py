@@ -162,7 +162,7 @@ except ImportError:
     sys.exit(1)
 
 try:
-    from arifos_core.connectors.litellm_gateway import LiteLLMConfig, make_llm_generate
+    from arifos_core.integration.connectors.litellm_gateway import LiteLLMConfig, make_llm_generate
     LITELLM_AVAILABLE = True
 except ImportError:
     LITELLM_AVAILABLE = False
@@ -193,16 +193,16 @@ except ImportError:
     logger.warning("@EYE Sentinel not available (proceeding without meta-floor enforcement)")
 
 try:
-    from arifos_core.waw.federation import FederationVerdict, WAWFederationCore
+    from arifos_core.integration.waw.federation import FederationVerdict, WAWFederationCore
     WAW_AVAILABLE = True
 except ImportError:
     WAW_AVAILABLE = False
     logger.warning("W@W Federation not available (proceeding without multi-agent veto)")
 
 try:
-    from arifos_core.evidence.conflict_router import detect_conflicts
+    from arifos_core.enforcement.evidence.conflict_router import detect_conflicts
 
-    from arifos_core.evidence.evidence_pack import EvidencePack, create_evidence_pack
+    from arifos_core.enforcement.evidence.evidence_pack import EvidencePack, create_evidence_pack
     EVIDENCE_AVAILABLE = True
 except ImportError:
     EVIDENCE_AVAILABLE = False
@@ -219,7 +219,7 @@ except ImportError:
     logger.warning("Memory Bands not available (using minimal LEDGER-only mode)")
 
 try:
-    from arifos_core.governance.session_physics import evaluate_physics_floors
+    from arifos_core.apex.governance.session_physics import evaluate_physics_floors
     from arifos_core.utils.session_telemetry import SessionTelemetry
     SESSION_PHYSICS_AVAILABLE = True
 except ImportError:
@@ -227,8 +227,8 @@ except ImportError:
     logger.warning("Session Physics (TEARFRAME) not available")
 
 try:
-    from arifos_core.stages.stage_000_amanah import compute_amanah_score
-    from arifos_core.stages.stage_555_empathy import compute_kappa_r
+    from arifos_core.enforcement.stages.stage_000_amanah import compute_amanah_score
+    from arifos_core.enforcement.stages.stage_555_empathy import compute_kappa_r
     STAGE_MODULES_AVAILABLE = True
 except ImportError:
     STAGE_MODULES_AVAILABLE = False

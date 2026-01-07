@@ -29,7 +29,7 @@ from ..asi.floor_checks import (
 from ..apex.floor_checks import check_amanah_f6, check_anti_hantu_f9, check_tri_witness_f8
 
 # Import Amanah risk level for verdict logic
-from ..floor_detectors.amanah_risk_detectors import RiskLevel
+from .floor_detectors.amanah_risk_detectors import RiskLevel
 
 
 @dataclass

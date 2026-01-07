@@ -17,7 +17,7 @@ from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 
-from arifos_core.governance.fag import FAG, FAGReadResult
+from arifos_core.apex.governance.fag import FAG, FAGReadResult
 
 
 class FAGReadRequest(BaseModel):

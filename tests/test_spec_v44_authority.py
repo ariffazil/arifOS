@@ -106,7 +106,7 @@ class TestSessionPhysicsAuthority:
 
     def test_default_load_uses_v44(self):
         """Verify default load uses spec/v45/session_physics.json (v45→v44 priority)."""
-        from arifos_core.governance.session_physics import _PHYSICS_SPEC
+        from arifos_core.apex.governance.session_physics import _PHYSICS_SPEC
 
         # Verify v45 loaded (v45→v44 priority since Phase 1)
         assert _PHYSICS_SPEC["version"] == "v45.0", "Should load v45.0 by default (v45→v44 priority)"
@@ -133,8 +133,8 @@ class TestSessionPhysicsAuthority:
                 "ARIFOS_PHYSICS_SPEC": custom_path
             }):
                 import sys
-                if 'arifos_core.governance.session_physics' in sys.modules:
-                    del sys.modules['arifos_core.governance.session_physics']
+                if "arifos_core.apex.governance.session_physics" in sys.modules:
+                    del sys.modules["arifos_core.apex.governance.session_physics"]
 
                 # In strict mode, this will fail because custom_path is outside spec/v45/ or spec/v44/
                 # Marking as XFAIL until we decide if env override should support external paths
@@ -142,12 +142,12 @@ class TestSessionPhysicsAuthority:
         finally:
             os.unlink(custom_path)
             import sys
-            if 'arifos_core.governance.session_physics' in sys.modules:
-                del sys.modules['arifos_core.governance.session_physics']
+            if "arifos_core.apex.governance.session_physics" in sys.modules:
+                del sys.modules["arifos_core.apex.governance.session_physics"]
 
     def test_hard_fail_code_path_exists(self):
         """Verify hard-fail code path exists in loader (code inspection)."""
-        from arifos_core.governance import session_physics
+        from arifos_core.apex.governance import session_physics
         import inspect
 
         source = inspect.getsource(session_physics._load_session_physics_spec)

@@ -23,7 +23,7 @@ from typing import Any, Dict, Optional
 from ..enforcement.metrics import check_tri_witness
 
 # Import Amanah detector
-from ..floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR, RiskLevel
+from ..enforcement.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR, RiskLevel
 
 # Import existing tri-witness check
 

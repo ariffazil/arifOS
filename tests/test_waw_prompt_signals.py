@@ -8,7 +8,7 @@ Test coverage: 95%+ for PromptOrgan class and heuristics
 
 import pytest
 
-from arifos_core.waw.prompt import (
+from arifos_core.integration.waw.prompt import (
     PromptOrgan,
     PromptSignals,
     TruthPolarity,

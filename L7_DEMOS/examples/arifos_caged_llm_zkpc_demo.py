@@ -45,15 +45,15 @@ import sys
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
-from arifos_core.governance.vault_retrieval import RetrievalQuery, retrieve_canon_entries
-from arifos_core.governance.zkpc_runtime import ZKPCContext, run_zkpc_for_answer
+from arifos_core.apex.governance.vault_retrieval import RetrievalQuery, retrieve_canon_entries
+from arifos_core.apex.governance.zkpc_runtime import ZKPCContext, run_zkpc_for_answer
 
 # PHOENIX SOVEREIGNTY: Import real Claude adapter (optional)
 _REAL_LLM_AVAILABLE = False
 _make_llm_generate: Optional[Callable] = None
 
 try:
-    from arifos_core.adapters.llm_claude import make_llm_generate as _make_llm_generate
+    from arifos_core.integration.adapters.llm_claude import make_llm_generate as _make_llm_generate
     _REAL_LLM_AVAILABLE = True
 except ImportError:
     pass

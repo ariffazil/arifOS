@@ -20,10 +20,10 @@ try:
 except ImportError:
     pass
 
-from arifos_core.connectors.litellm_gateway import make_llm_generate
+from arifos_core.integration.connectors.litellm_gateway import make_llm_generate
 from arifos_core.utils.session_telemetry import SessionTelemetry
 from arifos_core.utils.reduction_engine import compute_attributes
-from arifos_core.governance.session_physics import evaluate_physics_floors
+from arifos_core.apex.governance.session_physics import evaluate_physics_floors
 from arifos_core.system.apex_prime import Verdict, APEX_VERSION
 import time
 

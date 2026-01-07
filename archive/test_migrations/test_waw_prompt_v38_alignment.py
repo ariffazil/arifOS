@@ -20,12 +20,12 @@ from pathlib import Path
 
 import pytest
 
-from arifos_core.waw.prompt import (
+from arifos_core.integration.waw.prompt import (
     PromptOrgan,
     TruthPolarity,
 )
-from arifos_core.waw.well import WellOrgan
-from arifos_core.waw.base import OrganVote
+from arifos_core.integration.waw.well import WellOrgan
+from arifos_core.integration.waw.base import OrganVote
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

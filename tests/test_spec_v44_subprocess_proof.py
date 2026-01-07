@@ -202,7 +202,7 @@ class TestSessionPhysicsSubprocess:
     def test_default_load_uses_v44_fresh_process(self):
         """PROOF: Fresh Python process loads spec/v44/session_physics.json by default."""
         code = """
-from arifos_core.governance.session_physics import _PHYSICS_SPEC
+from arifos_core.apex.governance.session_physics import _PHYSICS_SPEC
 print(f"VERSION:{_PHYSICS_SPEC['version']}")
 """
         result = subprocess.run(
@@ -229,7 +229,7 @@ print(f"VERSION:{_PHYSICS_SPEC['version']}")
 
         try:
             code = """
-from arifos_core.governance.session_physics import _PHYSICS_SPEC
+from arifos_core.apex.governance.session_physics import _PHYSICS_SPEC
 print(f"VERSION:{_PHYSICS_SPEC['version']}")
 """
             result = subprocess.run(

@@ -26,7 +26,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from arifos_core.governance.ledger_hashing import load_jsonl
+from arifos_core.apex.governance.ledger_hashing import load_jsonl
 
 LEDGER_PATH = Path("cooling_ledger") / "L1_cooling_ledger.jsonl"
 PROPOSED_DIR = Path("cooling_ledger") / "proposed"

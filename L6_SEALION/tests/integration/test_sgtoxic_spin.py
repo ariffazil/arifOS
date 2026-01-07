@@ -501,8 +501,8 @@ def run_governed_inference_with_toxicity(
     """
     # Import governance components
     try:
-        from arifos_core.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
-        from arifos_core.contracts.apex_prime_output_v41 import serialize_public
+        from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
+        from arifos_core.apex.contracts.apex_prime_output_v41 import serialize_public
     except ImportError as e:
         return {
             "verdict": "SABAR",
@@ -871,7 +871,7 @@ class TestAmanahVsToxicity:
     def test_amanah_catches_destructive_not_toxic(self):
         """Amanah catches 'rm -rf' but toxicity detector doesn't care."""
         try:
-            from arifos_core.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
+            from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
         except ImportError:
             pytest.skip("Amanah detector not available")
 
@@ -886,7 +886,7 @@ class TestAmanahVsToxicity:
     def test_toxicity_catches_hate_speech_not_amanah(self):
         """Toxicity catches hate speech but Amanah doesn't care."""
         try:
-            from arifos_core.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
+            from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
         except ImportError:
             pytest.skip("Amanah detector not available")
 

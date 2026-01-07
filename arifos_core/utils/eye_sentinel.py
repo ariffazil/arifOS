@@ -3,8 +3,8 @@
 
 BACKWARD COMPATIBILITY SHIM
 
-This module re-exports from arifos_core.eye for backward compatibility.
-New code should import directly from arifos_core.eye.
+This module re-exports from arifos_core.system.eye for backward compatibility.
+New code should import directly from arifos_core.system.eye.
 
 The @EYE Sentinel is an independent oversight system that:
 - Does NOT generate content

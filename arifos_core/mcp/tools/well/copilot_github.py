@@ -27,7 +27,7 @@ from typing import Any, Dict, List, Optional
 
 # Import @WELL core
 try:
-    from arifos_core.waw.well_file_care import (
+    from arifos_core.integration.waw.well_file_care import (
         WellConstants,
         WellFileCare,
         create_well_file_care,
@@ -35,7 +35,7 @@ try:
 except ImportError:
     import sys
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
-    from arifos_core.waw.well_file_care import (
+    from arifos_core.integration.waw.well_file_care import (
         WellConstants,
         WellFileCare,
         create_well_file_care,

@@ -32,9 +32,9 @@ except ImportError:
     pass
 
 from arifos_core.system.apex_prime import Verdict, apex_review, APEX_VERSION
-from arifos_core.routing.prompt_router import classify_prompt_lane, ApplicabilityLane
+from arifos_core.enforcement.routing.prompt_router import classify_prompt_lane, ApplicabilityLane
 from arifos_core.enforcement.metrics import Metrics
-from arifos_core.connectors.litellm_gateway import make_llm_generate
+from arifos_core.integration.connectors.litellm_gateway import make_llm_generate
 
 
 class SEALIONGovernanceDemo:

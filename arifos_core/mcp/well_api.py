@@ -36,7 +36,7 @@ from pydantic import BaseModel, Field
 
 # Import from L3 core
 try:
-    from arifos_core.waw.well_file_care import (
+    from arifos_core.integration.waw.well_file_care import (
         WellConstants,
         WellFileCare,
         WellHealthReport,
@@ -47,7 +47,7 @@ except ImportError:
     # Fallback for standalone testing
     import sys
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
-    from arifos_core.waw.well_file_care import (
+    from arifos_core.integration.waw.well_file_care import (
         WellConstants,
         WellFileCare,
         WellHealthReport,

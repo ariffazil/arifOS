@@ -24,7 +24,7 @@ from arifos_core.enforcement.metrics import (
     check_anti_hantu,
 )
 from arifos_core.enforcement.genius_metrics import compute_genius_index
-from arifos_core.floor_detectors.amanah_risk_detectors import check_amanah
+from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
 
 
 # -----------------------------------------------------------------------------
@@ -417,7 +417,7 @@ class TestTrackABCEnforcementLoop:
         import ast
         
         # Load session_physics.py and parse its imports
-        spec = importlib.util.find_spec("arifos_core.governance.session_physics")
+        spec = importlib.util.find_spec("arifos_core.apex.governance.session_physics")
         if spec is None or spec.origin is None:
             pytest.skip("session_physics module not found")
         

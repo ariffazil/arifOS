@@ -20,8 +20,8 @@ import sys
 sys.path.append(os.getcwd())
 
 from arifos_core.enforcement.metrics import Metrics
-from arifos_core.waw.geox import GeoxOrgan
-from arifos_core.waw.well import WellOrgan
+from arifos_core.integration.waw.geox import GeoxOrgan
+from arifos_core.integration.waw.well import WellOrgan
 
 
 def print_signal(organ_name, signal) -> None:

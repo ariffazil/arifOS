@@ -13,7 +13,7 @@ Date: 2025-12-24
 import pytest
 from arifos_core.system.apex_prime import apex_review, Verdict
 from arifos_core.enforcement.metrics import Metrics, enforce_identity_truth_lock
-from arifos_core.routing.prompt_router import ApplicabilityLane
+from arifos_core.enforcement.routing.prompt_router import ApplicabilityLane
 from arifos_core.system.pipeline import _detect_destructive_intent
 
 

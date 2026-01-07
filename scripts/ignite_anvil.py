@@ -34,8 +34,8 @@ from typing import Any, Dict
 # Add parent directory to path for imports
 sys.path.insert(0, str(__file__).rsplit("scripts", 1)[0])
 
-from arifos_core.dream_forge.crucible import OAlignCrucible, OreType
-from arifos_core.dream_forge.anvil import OForgeAnvil
+from arifos_core.system.dream_forge.crucible import OAlignCrucible, OreType
+from arifos_core.system.dream_forge.anvil import OForgeAnvil
 
 
 # ============================================================================

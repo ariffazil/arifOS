@@ -66,7 +66,7 @@ def run_stage(session, args):
                     session_allowlist = session_json.get('allowlist', [])
             
             # Import FAG and validate
-            from arifos_core.governance.fag import FAG, FAGWritePlan
+            from arifos_core.apex.governance.fag import FAG, FAGWritePlan
             fag = FAG(root='.', enable_ledger=True, job_id=session.data.get('id', 'aclip-999'))
             
             # Parse plan

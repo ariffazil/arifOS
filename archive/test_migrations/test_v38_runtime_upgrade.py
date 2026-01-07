@@ -27,8 +27,8 @@ from arifos_core.system.pipeline import (
     _apply_apex_floors,
     _write_memory_for_verdict,
 )
-from arifos_core.stages.stage_000_amanah import AmanahSignals
-from arifos_core.stages.stage_555_empathy import EmpathySignals
+from arifos_core.enforcement.stages.stage_000_amanah import AmanahSignals
+from arifos_core.enforcement.stages.stage_555_empathy import EmpathySignals
 from arifos_core.enforcement.metrics import Metrics
 
 

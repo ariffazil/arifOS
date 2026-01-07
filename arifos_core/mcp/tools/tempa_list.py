@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from arifos_core.governance.fag import BINARY_EXTENSIONS, FAG, FORBIDDEN_PATTERNS
+from arifos_core.apex.governance.fag import BINARY_EXTENSIONS, FAG, FORBIDDEN_PATTERNS
 
 
 class FAGFileEntry(BaseModel):

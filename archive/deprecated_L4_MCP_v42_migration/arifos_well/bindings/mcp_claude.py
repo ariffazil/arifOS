@@ -40,7 +40,7 @@ except ImportError:
 
 # Import @WELL core from L3
 try:
-    from arifos_core.waw.well_file_care import (
+    from arifos_core.integration.waw.well_file_care import (
         WellConstants,
         WellFileCare,
         create_well_file_care,
@@ -48,7 +48,7 @@ try:
 except ImportError:
     # Add parent paths for standalone testing
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
-    from arifos_core.waw.well_file_care import (
+    from arifos_core.integration.waw.well_file_care import (
         WellConstants,
         WellFileCare,
         create_well_file_care,

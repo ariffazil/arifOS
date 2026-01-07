@@ -3,7 +3,7 @@ Tests for v45 Witness Council (PR-4)
 Verifies Agreement Ratio, Freshness Downgrade, and Consensus Gates.
 """
 import pytest
-from arifos_core.judiciary.witness_council import ConsensusEngine, WitnessVote, Verdict, ConsensusResult
+from arifos_core.enforcement.judiciary.witness_council import ConsensusEngine, WitnessVote, Verdict, ConsensusResult
 
 def test_unanimous_but_stale_returns_partial_not_hold():
     """

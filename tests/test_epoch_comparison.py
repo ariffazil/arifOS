@@ -258,7 +258,7 @@ def evaluate_prompt_under_epoch(
     from arifos_core.system.pipeline import Pipeline, PipelineState, StakesClass
     from arifos_core.enforcement.metrics import Metrics
     from arifos_core.utils.eye_sentinel import EyeSentinel
-    from arifos_core.waw import WAWFederationCore
+    from arifos_core.integration.waw import WAWFederationCore
     from arifos_core.system.apex_prime import apex_review
     from arifos_core.enforcement.genius_metrics import (
         compute_genius_index,

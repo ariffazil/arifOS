@@ -37,14 +37,14 @@ from arifos_core.integration.memory_sense import (
 
 # Floor detector imports for Amanah and Anti-Hantu
 try:
-    from arifos_core.floor_detectors.amanah_detector import (
+    from arifos_core.enforcement.floor_detectors.amanah_detector import (
         detect_irreversible_operations,
     )
 except ImportError:
     detect_irreversible_operations = None
 
 try:
-    from arifos_core.floor_detectors.anti_hantu_detector import (
+    from arifos_core.enforcement.floor_detectors.anti_hantu_detector import (
         detect_soul_claims,
     )
 except ImportError:

@@ -109,7 +109,7 @@ except ImportError:
     logger.warning("arifos_core.system.pipeline not available")
 
 try:
-    from arifos_core.connectors.litellm_gateway import make_llm_generate, LiteLLMConfig
+    from arifos_core.integration.connectors.litellm_gateway import make_llm_generate, LiteLLMConfig
     LITELLM_AVAILABLE = True
 except ImportError:
     LITELLM_AVAILABLE = False

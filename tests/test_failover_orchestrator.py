@@ -12,7 +12,7 @@ import time
 from unittest.mock import Mock, patch
 from typing import Callable
 
-from arifos_core.connectors.failover_orchestrator import (
+from arifos_core.integration.connectors.failover_orchestrator import (
     ProviderConfig,
     ProviderStatus,
     FailureType,
@@ -476,7 +476,7 @@ def test_governed_backend_lane_metadata(failover_config):
     backend = create_governed_failover_backend(failover_config)
 
     # Patch orchestrator creation
-    with patch('arifos_core.connectors.failover_orchestrator.FailoverOrchestrator', return_value=orchestrator):
+    with patch("arifos_core.integration.connectors.failover_orchestrator.FailoverOrchestrator", return_value=orchestrator):
         response, metadata = backend("Test prompt", lane="SOFT")
 
     assert response == "Test response"
@@ -521,7 +521,7 @@ def test_empty_provider_list():
 def test_backend_initialization_failure(failover_config):
     """Test handling of backend initialization failures."""
     # Mock backend creation to fail
-    with patch('arifos_core.connectors.failover_orchestrator.make_claude_generate', side_effect=Exception("Init failed")):
+    with patch("arifos_core.integration.connectors.failover_orchestrator.make_claude_generate", side_effect=Exception(\"Init failed\")):
         orchestrator = FailoverOrchestrator(failover_config)
 
         # Primary should be marked UNHEALTHY

@@ -53,7 +53,7 @@ _AMANAH_DETECTOR = None
 _AMANAH_AVAILABLE = False
 
 try:
-    from arifos_core.floor_detectors.amanah_risk_detectors import (
+    from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import (
         AMANAH_DETECTOR as _AMANAH_DETECTOR,
         AmanahResult,
     )

@@ -72,7 +72,7 @@ except ImportError:
 # Import arifOS governance core
 try:
     from arifos_core.enforcement.genius_metrics import compute_genius_index
-    from arifos_core.routing.prompt_router import ApplicabilityLane, classify_prompt_lane
+    from arifos_core.enforcement.routing.prompt_router import ApplicabilityLane, classify_prompt_lane
     from arifos_core.system.pipeline import Pipeline
     PIPELINE_AVAILABLE = True
 except ImportError:
@@ -92,7 +92,7 @@ except ImportError:
     EYE_AVAILABLE = False
 
 try:
-    from arifos_core.waw.federation import WAWFederationCore
+    from arifos_core.integration.waw.federation import WAWFederationCore
     WAW_AVAILABLE = True
 except ImportError:
     WAW_AVAILABLE = False
@@ -106,7 +106,7 @@ except ImportError:
     MEMORY_BANDS_AVAILABLE = False
 
 try:
-    from arifos_core.temporal.session_physics import SessionTelemetry
+    from arifos_core.system.temporal.session_physics import SessionTelemetry
     SESSION_PHYSICS_AVAILABLE = True
 except ImportError:
     SESSION_PHYSICS_AVAILABLE = False
@@ -542,8 +542,8 @@ class GovernedSEALionClient:
 
         if make_llm_generate is None or LiteLLMConfig is None:
             try:
-                from arifos_core.connectors.litellm_gateway import LiteLLMConfig as _cfg
-                from arifos_core.connectors.litellm_gateway import make_llm_generate as _make
+                from arifos_core.integration.connectors.litellm_gateway import LiteLLMConfig as _cfg
+                from arifos_core.integration.connectors.litellm_gateway import make_llm_generate as _make
 
                 make_llm_generate = _make
                 LiteLLMConfig = _cfg

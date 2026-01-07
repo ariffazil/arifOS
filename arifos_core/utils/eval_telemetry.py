@@ -8,7 +8,7 @@ It does NOT change existing verdict logic in APEX_PRIME.py.
 It only logs telemetry for comparison and validation.
 
 Usage:
-    from arifos_core.eval_telemetry import log_eval_telemetry, EVAL_TELEMETRY_ENABLED
+    from arifos_core.enforcement.eval_telemetry import log_eval_telemetry, EVAL_TELEMETRY_ENABLED
 
     if EVAL_TELEMETRY_ENABLED:
         log_eval_telemetry(dials, output_text, output_metrics)

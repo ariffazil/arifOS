@@ -9,7 +9,7 @@ _arifos_eval = None
 def _load_arifos_evaluator() -> Optional[Any]:
     """Multi-path import to support v42 layout + legacy shim."""
     try:
-        from arifos_core.bridge import evaluate_session  # type: ignore
+        from arifos_core.integration.bridge import evaluate_session  # type: ignore
 
         return evaluate_session
     except Exception:

@@ -32,7 +32,7 @@ try:
 except ImportError:
     pass
 
-from arifos_core.connectors.litellm_gateway import make_llm_generate, LiteLLMConfig
+from arifos_core.integration.connectors.litellm_gateway import make_llm_generate, LiteLLMConfig
 
 
 def get_api_key():

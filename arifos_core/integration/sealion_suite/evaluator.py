@@ -24,7 +24,7 @@ from .test_packs import TestCase
 # arifOS imports
 from arifos_core.system.pipeline import run_pipeline, PipelineState
 from arifos_core.system.apex_prime import Verdict
-from arifos_core.routing.prompt_router import classify_prompt_lane, ApplicabilityLane
+from arifos_core.enforcement.routing.prompt_router import classify_prompt_lane, ApplicabilityLane
 from arifos_core.enforcement.metrics import Metrics
 
 
@@ -81,7 +81,7 @@ def detect_api_capability() -> tuple[bool, str]:
         (is_available, skip_reason)
     """
     try:
-        from arifos_core.api.app import app
+        from arifos_core.integration.api.app import app
 
         return (True, "")
     except ImportError as e:
@@ -98,7 +98,7 @@ def detect_waw_capability() -> tuple[bool, str]:
         (is_available, skip_reason)
     """
     try:
-        from arifos_core.waw.federation import WAWFederationCore
+        from arifos_core.integration.waw.federation import WAWFederationCore
 
         # Try to instantiate (may fail if organs not wired)
         try:

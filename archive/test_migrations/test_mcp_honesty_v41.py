@@ -83,7 +83,7 @@ def test_module_uses_serialize_public():
     # Check imports
     source = (REPO_ROOT / "scripts" / "arifos_mcp_entry.py").read_text()
 
-    assert "from arifos_core.contracts.apex_prime_output_v41 import serialize_public" in source, \
+    assert "from arifos_core.apex.contracts.apex_prime_output_v41 import serialize_public" in source, \
         "Must import serialize_public"
     assert "serialize_public(" in source, \
         "Must call serialize_public()"

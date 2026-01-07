@@ -18,7 +18,7 @@ The repository is divided into three "Magisteria" (Layers of Authority):
 *   **Governance:** Medium friction. Defines *how* we apply the Canon.
 *   **Contents:** `active/` (Current specs), `archive/` (Superseded specs).
 
-### Layer 3: The Operations (`arifos_*`, `L3_OPERATIONS`)
+### Layer 3: The Operations (`arifos_*`)
 *   **Purpose:** The machine itself. Source code and runtime logic.
 *   **Governance:** Low friction (during Dev), High friction (during Deploy).
 *   **Naming:** Python packages must use `snake_case` and start with `arifos_` (e.g., `arifos_core`, `arifos_clip`).

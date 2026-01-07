@@ -168,12 +168,12 @@ class TestModuleLevelAPIs:
 
     def test_governance_fag_imports(self):
         """Governance module exports FAG."""
-        from arifos_core.governance.fag import FAG
+        from arifos_core.apex.governance.fag import FAG
         assert FAG is not None
 
     def test_waw_well_imports(self):
         """W@W module exports @WELL."""
-        from arifos_core.waw.well_file_care import WellFileCare, create_well_file_care
+        from arifos_core.integration.waw.well_file_care import WellFileCare, create_well_file_care
         assert WellFileCare is not None
         assert create_well_file_care is not None
 
@@ -204,7 +204,7 @@ class TestBackwardCompatShims:
 
     def test_old_fag_path_works(self):
         """Old arifos_core.fag import works via shim."""
-        from arifos_core.governance.fag import FAG
+        from arifos_core.apex.governance.fag import FAG
         assert FAG is not None
 
 
