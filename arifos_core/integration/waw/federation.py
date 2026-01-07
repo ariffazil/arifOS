@@ -25,7 +25,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from ..enforcement.metrics import Metrics
+from ...enforcement.metrics import Metrics
 from .base import OrganSignal, OrganVote, WAWOrgan
 from .well import WellOrgan
 from .rif import RifOrgan
@@ -251,7 +251,7 @@ class WAWFederationCore:
         # Conflict detected - escalate to APEX PRIME
         # Import here to avoid circular dependency
         # v42: Import from system/
-        from ..system.apex_prime import apex_prime_judge
+        from ...system.apex_prime import apex_prime_judge
         
         # Gather context for APEX judgment
         context = {

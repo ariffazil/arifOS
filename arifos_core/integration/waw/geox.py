@@ -33,7 +33,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from ..enforcement.metrics import Metrics
+from ...enforcement.metrics import Metrics
 from .base import OrganSignal, OrganVote, WAWOrgan
 from .bridges.geox_bridge import GeoxBridge
 

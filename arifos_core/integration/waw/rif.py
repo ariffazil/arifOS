@@ -34,12 +34,12 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from ..enforcement.metrics import Metrics
+from ...enforcement.metrics import Metrics
 from .base import OrganSignal, OrganVote, WAWOrgan
 from .bridges.rif_bridge import RifBridge
 
 # v45Ω TRM: Import truth threshold from apex_prime
-from ..system.apex_prime import TRUTH_BLOCK_MIN
+from ...system.apex_prime import TRUTH_BLOCK_MIN
 
 
 # -----------------------------------------------------------------------------

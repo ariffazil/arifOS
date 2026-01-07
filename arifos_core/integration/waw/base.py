@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Optional
 
-from ..enforcement.metrics import Metrics
+from ...enforcement.metrics import Metrics
 
 
 class OrganVote(Enum):

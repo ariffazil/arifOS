@@ -56,4 +56,4 @@ Write-Host "[STARTING] arifOS API server on ${host}:${port}" -ForegroundColor Cy
 Write-Host ""
 
 # Start uvicorn server
-uvicorn arifos_core.api.app:app --host $host --port $port --reload
+uvicorn arifos_core.integration.api.app:app --host $host --port $port --reload

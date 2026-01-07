@@ -521,7 +521,7 @@ def test_empty_provider_list():
 def test_backend_initialization_failure(failover_config):
     """Test handling of backend initialization failures."""
     # Mock backend creation to fail
-    with patch("arifos_core.integration.connectors.failover_orchestrator.make_claude_generate", side_effect=Exception(\"Init failed\")):
+    with patch("arifos_core.integration.connectors.failover_orchestrator.make_claude_generate", side_effect=Exception("Init failed")):
         orchestrator = FailoverOrchestrator(failover_config)
 
         # Primary should be marked UNHEALTHY

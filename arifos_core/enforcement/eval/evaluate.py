@@ -15,7 +15,7 @@ from .types import EvaluationResult, SentinelResult
 from .agi import AGI
 from .asi import ASI
 # v42: Import from new location
-from ..system.apex_prime import APEXPrime
+from ...system.apex_prime import APEXPrime
 
 
 def evaluate_session(session_data: Dict[str, Any]) -> str:

@@ -100,7 +100,7 @@ Ledger integrity, merkle proof validation.
 ### API (Capability-Detected)
 FastAPI routes testing (health, pipeline, memory, federation).
 
-**Capability Detection:** Skips if `arifos_core.api.app` not importable.
+**Capability Detection:** Skips if `arifos_core.integration.api.app` not importable.
 
 ### WAW (Capability-Detected)
 W@W organ signal validation (@LAW, @GEOX, @WELL, @RIF).
