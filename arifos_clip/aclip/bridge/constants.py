@@ -28,7 +28,8 @@ VERDICT_PASS = "PASS"        # exit 0
 VERDICT_FLAG = "FLAG"        # exit 1
 VERDICT_HOLD = "HOLD"        # exit 88
 VERDICT_VOID = "VOID"        # exit 89
-VERDICT_SEALED = "SEALED"    # exit 100
+VERDICT_SEALED = "SEALED"    # exit 100 (Legacy)
+VERDICT_SEAL = "SEAL"          # exit 100 (v46 Core)
 VERDICT_ERROR = "ERROR"      # exit 255
 
 # ============================================================================
@@ -42,6 +43,7 @@ VERDICT_TO_EXIT_CODE: Dict[str, int] = {
     VERDICT_VOID: EXIT_VOID,
     VERDICT_SEALED: EXIT_SEALED,
     VERDICT_ERROR: EXIT_ERROR,
+    "SEAL": EXIT_SEALED,  # v46 Core Compatibility
 }
 
 EXIT_CODE_TO_VERDICT: Dict[int, str] = {v: k for k, v in VERDICT_TO_EXIT_CODE.items()}
@@ -121,13 +123,13 @@ VERDICT_SEMANTICS: Dict[str, str] = {
 def get_verdict_from_exit_code(exit_code: int) -> str:
     """
     Convert exit code to verdict label.
-    
+
     Args:
         exit_code: Integer exit code (0, 1, 88, 89, 100, 255)
-    
+
     Returns:
         Verdict label (PASS, FLAG, HOLD, VOID, SEALED, ERROR)
-    
+
     Raises:
         ValueError if exit_code is unknown
     """
@@ -139,13 +141,13 @@ def get_verdict_from_exit_code(exit_code: int) -> str:
 def get_exit_code_from_verdict(verdict: str) -> int:
     """
     Convert verdict label to exit code.
-    
+
     Args:
         verdict: Verdict label (PASS, FLAG, HOLD, VOID, SEALED, ERROR)
-    
+
     Returns:
         Integer exit code (0, 1, 88, 89, 100, 255)
-    
+
     Raises:
         ValueError if verdict is unknown
     """
@@ -157,13 +159,13 @@ def get_exit_code_from_verdict(verdict: str) -> int:
 def get_semantic_description(verdict: str) -> str:
     """
     Get human-friendly description of a verdict.
-    
+
     Args:
         verdict: Verdict label (PASS, FLAG, HOLD, VOID, SEALED, ERROR)
-    
+
     Returns:
         Human-readable description
-    
+
     Raises:
         ValueError if verdict is unknown
     """
@@ -175,10 +177,10 @@ def get_semantic_description(verdict: str) -> str:
 def is_hard_floor_violation(floor_code: str) -> bool:
     """
     Check if a floor code represents a hard floor (cannot override).
-    
+
     Args:
         floor_code: Floor code (e.g., F1_AMANAH, F9_ANTI_HANTU)
-    
+
     Returns:
         True if hard floor; False otherwise
     """
@@ -188,10 +190,10 @@ def is_hard_floor_violation(floor_code: str) -> bool:
 def is_soft_floor_violation(floor_code: str) -> bool:
     """
     Check if a floor code represents a soft floor (can flag/override).
-    
+
     Args:
         floor_code: Floor code (e.g., F4_CLARITY, F5_PEACE2)
-    
+
     Returns:
         True if soft floor; False otherwise
     """
@@ -202,7 +204,7 @@ def is_soft_floor_violation(floor_code: str) -> bool:
 # VERSION & METADATA
 # ============================================================================
 
-BRIDGE_VERSION = "v43"
-BRIDGE_STATUS = "PRODUCTION-GRADE"
-LAST_UPDATED = "2025-12-19"
+BRIDGE_VERSION = "v46"
+BRIDGE_STATUS = "PRODUCTION-GRADE (Sovereign Witness)"
+LAST_UPDATED = "2026-01-08"
 DOCTRINE = "Ditempa, Bukan Diberi"

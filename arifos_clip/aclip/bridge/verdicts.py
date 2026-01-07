@@ -6,29 +6,26 @@ This file is the translation layer between arifOS core and aCLIP.
 All logic is delegated to constants.py (source of truth).
 """
 
-from arifos_clip.aclip.bridge.constants import (
-    # Verdict labels
-    VERDICT_PASS,
-    VERDICT_FLAG,
-    VERDICT_HOLD,
-    VERDICT_VOID,
-    VERDICT_SEALED,
-    VERDICT_ERROR,
-    # Exit codes
-    EXIT_PASS,
+from arifos_clip.aclip.bridge.constants import (  # Verdict labels; Exit codes; Mappings; Helper functions
+    EXIT_CODE_TO_VERDICT,
+    EXIT_ERROR,
     EXIT_FLAG,
     EXIT_HOLD,
-    EXIT_VOID,
+    EXIT_PASS,
     EXIT_SEALED,
-    EXIT_ERROR,
-    # Mappings
-    VERDICT_TO_EXIT_CODE,
-    EXIT_CODE_TO_VERDICT,
+    EXIT_VOID,
+    VERDICT_ERROR,
+    VERDICT_FLAG,
+    VERDICT_HOLD,
+    VERDICT_PASS,
+    VERDICT_SEAL,
+    VERDICT_SEALED,
     VERDICT_SEMANTICS,
-    # Helper functions
-    get_verdict_from_exit_code,
+    VERDICT_TO_EXIT_CODE,
+    VERDICT_VOID,
     get_exit_code_from_verdict,
     get_semantic_description,
+    get_verdict_from_exit_code,
     is_hard_floor_violation,
     is_soft_floor_violation,
 )
@@ -74,7 +71,7 @@ exit_code_to_verdict = EXIT_CODE_TO_VERDICT
 def get_verdict_name(exit_code: int) -> str:
     """
     (LEGACY) Convert exit code to verdict label.
-    
+
     Deprecated: Use get_verdict_from_exit_code() instead.
     """
     try:
@@ -86,7 +83,7 @@ def get_verdict_name(exit_code: int) -> str:
 def get_exit_code(verdict: str) -> int:
     """
     (LEGACY) Convert verdict label to exit code.
-    
+
     Deprecated: Use get_exit_code_from_verdict() instead.
     """
     try:
