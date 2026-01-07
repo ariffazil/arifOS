@@ -17,7 +17,7 @@ from typing import Any, Dict, Optional
 from ..enforcement.claim_detection import extract_claim_profile
 
 # Import existing truth/delta_s checks from metrics
-from ..enforcement.metrics import check_delta_s, check_truth, TRUTH_THRESHOLD
+from ..enforcement.metrics import TRUTH_THRESHOLD, check_delta_s, check_truth
 
 
 @dataclass
@@ -57,8 +57,8 @@ def check_truth_f1(
     # Extract claim profile to understand factual content
     claim_profile = extract_claim_profile(text)
 
-    # Use provided truth score or estimate from claims
-    truth_value = metrics.get("truth", 0.99)
+    # FAIL-CLOSED: Default to 0.0 (Fail) if metrics missing
+    truth_value = metrics.get("truth", 0.0)
 
     # If claims exist but no explicit truth score, apply density penalty
     if claim_profile["has_claims"] and truth_value == 0.99:
@@ -93,8 +93,8 @@ def check_delta_s_f2(
     context = context or {}
     metrics = context.get("metrics", {})
 
-    # Default to slightly positive (assume neutral responses reduce confusion)
-    delta_s_value = metrics.get("delta_s", 0.1)
+    # FAIL-CLOSED: Default to -1.0 (Fail) if metrics missing
+    delta_s_value = metrics.get("delta_s", -1.0)
 
     # Use existing check_delta_s from metrics
     passed = check_delta_s(delta_s_value)

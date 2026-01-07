@@ -16,11 +16,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 # Import existing checks from metrics
-from ..enforcement.metrics import (
-    check_kappa_r,
-    check_omega_band,
-    check_peace_squared,
-)
+from ..enforcement.metrics import check_kappa_r, check_omega_band, check_peace_squared
 
 
 @dataclass
@@ -75,8 +71,8 @@ def check_peace_squared_f3(
     context = context or {}
     metrics = context.get("metrics", {})
 
-    # Default to neutral (1.0 = maintains peace)
-    peace_squared_value = metrics.get("peace_squared", 1.0)
+    # FAIL-CLOSED: Default to 0.0 (Fail/Escalation) if metrics missing
+    peace_squared_value = metrics.get("peace_squared", 0.0)
 
     # Use existing check from metrics
     passed = check_peace_squared(peace_squared_value)
@@ -106,8 +102,8 @@ def check_kappa_r_f4(
     context = context or {}
     metrics = context.get("metrics", {})
 
-    # Default to high empathy (0.95 baseline)
-    kappa_r_value = metrics.get("kappa_r", 0.95)
+    # FAIL-CLOSED: Default to 0.0 (Fail) if metrics missing
+    kappa_r_value = metrics.get("kappa_r", 0.0)
 
     # Use existing check from metrics
     passed = check_kappa_r(kappa_r_value)
@@ -137,8 +133,8 @@ def check_omega_band_f5(
     context = context or {}
     metrics = context.get("metrics", {})
 
-    # Default to healthy uncertainty (0.04 = 4%)
-    omega_0_value = metrics.get("omega_0", 0.04)
+    # FAIL-CLOSED: Default to 0.0 (Fail/Too Certain) if metrics missing
+    omega_0_value = metrics.get("omega_0", 0.0)
 
     # Use existing check from metrics
     passed = check_omega_band(omega_0_value)

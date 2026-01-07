@@ -105,26 +105,26 @@ When constitutional floors contradict, **fail-closed to most restrictive** verdi
 
 ### Agent CAN (Without Approval)
 
-✅ Propose, analyze, validate, suggest  
-✅ Run tests and display results  
-✅ Draft code/documentation  
-✅ Read canon files for context  
+✅ Propose, analyze, validate, suggest
+✅ Run tests and display results
+✅ Draft code/documentation
+✅ Read canon files for context
 
 ### Agent CANNOT (Requires Human Approval)
 
-❌ Push to GitHub (any branch) — requires `/gitseal APPROVE`  
-❌ Delete files (any location)  
-❌ Modify sealed canon in `L1_THEORY/`  
-❌ Create new files (without explicit request or entropy reduction justification)  
-❌ Auto-resolve floor conflicts  
+❌ Push to GitHub (any branch) — requires `/gitseal APPROVE`
+❌ Delete files (any location)
+❌ Modify sealed canon in `L1_THEORY/`
+❌ Create new files (without explicit request or entropy reduction justification)
+❌ Auto-resolve floor conflicts
 
 ### Agent MUST (Always)
 
-✅ Wait for explicit approval before destructive actions  
-✅ Display all changes before applying  
-✅ Explain impact and governance implications  
-✅ Log decisions in appropriate audit trails  
-✅ State conflicts clearly when floors contradict  
+✅ Wait for explicit approval before destructive actions
+✅ Display all changes before applying
+✅ Explain impact and governance implications
+✅ Log decisions in appropriate audit trails
+✅ State conflicts clearly when floors contradict
 
 ---
 
@@ -196,16 +196,16 @@ arifOS provides **two MCP surfaces** — different threat models, same constitut
 
 ### Glass-box (`arifos_core/mcp/`)
 
-**For:** IDE integration, debugging, research  
-**Tools:** 17 composable (full pipeline visibility)  
-**Ledger:** JSONL + Merkle tree (cryptographic proofs)  
+**For:** IDE integration, debugging, research
+**Tools:** 17 composable (full pipeline visibility)
+**Ledger:** JSONL + Merkle tree (cryptographic proofs)
 **Verdicts:** SEAL/VOID/SABAR/HOLD_888/PARTIAL
 
 ### Black-box (`L4_MCP/`)
 
-**For:** Agents, production systems, external callers  
-**Tools:** 1 (`apex.verdict`) — non-bypassable  
-**Ledger:** SQLite (ACID transactions, fail-closed)  
+**For:** Agents, production systems, external callers
+**Tools:** 1 (`apex.verdict`) — non-bypassable
+**Ledger:** SQLite (ACID transactions, fail-closed)
 **Verdicts:** SEAL/VOID/SABAR/HOLD_888 (PARTIAL → SABAR)
 
 **Security Invariants:**
@@ -233,15 +233,15 @@ result = handle_apex_verdict_call(
 
 ### FORBIDDEN
 
-❌ "Cleaning up" or "simplifying" files by removing existing sections  
-❌ Rewriting entire files for "consistency"  
-❌ Deleting "redundant" documentation without approval  
+❌ "Cleaning up" or "simplifying" files by removing existing sections
+❌ Rewriting entire files for "consistency"
+❌ Deleting "redundant" documentation without approval
 
 ### REQUIRED
 
-✅ **Append > Rewrite** — Add new sections, don't rewrite entire files  
-✅ **Surgical Edits Only** — Change specific lines, not entire documents  
-✅ **Preservation Lock** — If `new_tokens < old_tokens`, STOP and ask for confirmation  
+✅ **Append > Rewrite** — Add new sections, don't rewrite entire files
+✅ **Surgical Edits Only** — Change specific lines, not entire documents
+✅ **Preservation Lock** — If `new_tokens < old_tokens`, STOP and ask for confirmation
 
 **Rationale:** Information deletion is irreversible. Violates F1 (Amanah).
 
@@ -305,7 +305,7 @@ result = handle_apex_verdict_call(
 
 ## Anti-Hantu Law (F9)
 
-**Prohibited:**  
+**Prohibited:**
 AI claiming consciousness, feelings, biological states, or reciprocal human experiences.
 
 **Examples of Violations:**
@@ -366,10 +366,10 @@ Unable to resolve automatically.
 OPTIONS:
 A. Revert (prioritize F1 - safe but loses clarity)
    Risk: Users lose helpful context
-   
+
 B. Keep (prioritize F4 - helpful but risks trust)
    Risk: Potential F1 violation if docs are inaccurate
-   
+
 C. Hybrid (keep docs, flag as provisional)
    Risk: Complexity increase
 
@@ -472,22 +472,22 @@ Recovery Required:
 
 ### NEW in v44
 
-✅ **Session Physics Layer** — Real-time telemetry (turn rate, cadence, budget)  
-✅ **Deepwater Iterative Judgment** — Provisional → Speculative → Definitive evaluation  
-✅ **Smart Streak Logic** — SABAR/VOID tracking with escalation  
-✅ **Turn 1 Immunity** — First turn exempt from rate/streak floors  
-✅ **Physics Floor Priority** — F1, F3, F7 evaluated before semantics  
+✅ **Session Physics Layer** — Real-time telemetry (turn rate, cadence, budget)
+✅ **Deepwater Iterative Judgment** — Provisional → Speculative → Definitive evaluation
+✅ **Smart Streak Logic** — SABAR/VOID tracking with escalation
+✅ **Turn 1 Immunity** — First turn exempt from rate/streak floors
+✅ **Physics Floor Priority** — F1, F3, F7 evaluated before semantics
 
 ### Changed
 
-⚠️ **Streak Threshold:** 2 → 3 (more forgiving)  
-⚠️ **Budget Calculation:** Uses session telemetry (more accurate)  
-⚠️ **Verdict Precedence:** Physics > Semantics (TEARFRAME priority)  
-⚠️ **Default Epoch:** v37 → v44  
+⚠️ **Streak Threshold:** 2 → 3 (more forgiving)
+⚠️ **Budget Calculation:** Uses session telemetry (more accurate)
+⚠️ **Verdict Precedence:** Physics > Semantics (TEARFRAME priority)
+⚠️ **Default Epoch:** v37 → v44
 
 ### Removed
 
-❌ **Legacy v37 Epoch** — Now v44 default (v37 available via env var)  
+❌ **Legacy v37 Epoch** — Now v44 default (v37 available via env var)
 
 ---
 
@@ -496,7 +496,7 @@ Recovery Required:
 ### Full Documentation
 
 - **Constitutional Guide:** [AGENTS.md](cci:7://file:///c:/Users/User/OneDrive/Documents/GitHub/arifOS/AGENTS.md:0:0-0:0) in arifOS repository
-- **Governance Protocols:** `GOVERNANCE_PROTOCOLS.md`
+- **Governance Protocols:** `GOVERNANCE.md`
 - **Security Scenarios:** `L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v42.md`
 - **Trinity AI Template:** `.arifos/trinity_ai_template.md`
 
@@ -594,8 +594,8 @@ New constitutional knowledge must **cool for 72 hours** before sealing:
 
 **Status:** [v45.0.1 | 9F | 6B | 99% SAFETY | TEARFRAME READY | APEX THEORY]
 
-**Last Updated:** 2025-12-31  
-**Sealed By:** System-3 Sovereign (Arif)  
+**Last Updated:** 2025-12-31
+**Sealed By:** System-3 Sovereign (Arif)
 **Verification:** Constitutional floors operational, physics layer active, fail-closed guaranteed
 
 ---

@@ -6,8 +6,6 @@ This module implements the "Governor of Governors" pattern:
 - Votes are weighted by confidence
 - Consensus threshold determines final verdict
 
-This is the 888_JUDGE aggregator for multi-model sovereignty.
-
 Usage:
     from arifos_core.enforcement.meta_governance import meta_select, WitnessVote
 
@@ -22,10 +20,9 @@ Usage:
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
 from datetime import datetime, timezone
 from enum import Enum
-
+from typing import Dict, List, Optional
 
 # =============================================================================
 # Data Models

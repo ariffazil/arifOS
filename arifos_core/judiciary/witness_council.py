@@ -2,6 +2,10 @@
 arifOS v45 - Witness Council (Sovereign Witness)
 Federated Tri-Witness Consensus Engine.
 Enforces Law 5 (Re-Witness or Release) and Law 6 (Memory != Authority).
+
+Architectural note (v46): This module aggregates witness votes into a consensus signal,
+but it does NOT issue the final constitutional verdict. Only APEX PRIME
+(`arifos_core.system.apex_prime.apex_review`) may SEAL.
 """
 
 from dataclasses import dataclass, field
@@ -32,6 +36,15 @@ class ConsensusResult:
 class ConsensusEngine:
     """
     Deterministic Quorum Aggregator.
+
+    TODO(v46): Architectural Review - Verdict Authority
+    This consensus engine creates Verdict enums by aggregating witness votes.
+    While this is consensus mathematics (not independent judgment), it still
+    produces verdicts outside apex_review(). Consider architectural pattern:
+    - Option A: Witnesses call apex_review() before voting (verdicts pre-validated)
+    - Option B: Consensus result feeds into apex_review() for final validation
+    - Option C: Consensus layer is exempt (mathematical aggregation, not judgment)
+    Current: Creates Verdict.VOID, Verdict.HOLD_888, Verdict.PARTIAL directly.
     """
 
     CONSENSUS_THRESHOLD = 0.95

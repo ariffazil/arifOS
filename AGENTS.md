@@ -231,10 +231,10 @@ For full integration instructions, read `.arifos/trinity_ai_template.md`. This t
 
 **Governance Properties:**
 
-✅ **Atomic**: All-or-nothing bundling (no partial failures)  
-✅ **Constitutional**: Auto-validates F1-F9 floors  
-✅ **Auditable**: Complete ledger in `L1_THEORY/ledger/gitseal_audit_trail.jsonl`  
-✅ **Human-Sovereign**: Requires explicit APPROVE from named authority  
+✅ **Atomic**: All-or-nothing bundling (no partial failures)
+✅ **Constitutional**: Auto-validates F1-F9 floors
+✅ **Auditable**: Complete ledger in `L1_THEORY/ledger/gitseal_audit_trail.jsonl`
+✅ **Human-Sovereign**: Requires explicit APPROVE from named authority
 ✅ **Accessible**: 20+ git commands → 3 simple commands
 
 **Example Workflow:**
@@ -261,7 +261,7 @@ python scripts/trinity.py seal feat/my-changes "Feature complete and tested"
 
 - Protocol: `L1_THEORY/canon/03_runtime/040_FORGING_PROTOCOL_v45.md`
 - AI Template: `.arifos/trinity_ai_template.md`
-- Governance: `GOVERNANCE_PROTOCOLS.md`
+- Governance: `GOVERNANCE.md`
 
 **Key Innovation:**
 

@@ -35,6 +35,8 @@ class EUREKA_777:
 
     Resolves conflicts between truth (AGI) and care (ASI) to produce
     coherent, lawful responses.
+
+    v46 Phase 2.1: Simple conflict detection (lightweight, no ML).
     """
 
     def synthesize(
@@ -46,40 +48,97 @@ class EUREKA_777:
         """
         Synthesize coherent response from AGI and ASI outputs.
 
+        v46 Phase 2.1: Detects AGI-ASI conflicts and flags paradoxes.
+
+        Conflict scenarios:
+        1. Truth vs. Care: AGI says "True" but ASI says "Unsafe" (harsh truth)
+        2. Care vs. Truth: ASI says "Safe" but AGI says "False" (comforting lie)
+        3. Both fail: AGI and ASI both reject (fundamental problem)
+        4. Both pass: No conflict (ideal case)
+
         Args:
-            agi_output: AGI kernel output (truth scores, claims)
-            asi_assessment: ASI kernel output (empathy, safety scores)
+            agi_output: AGI kernel output with keys:
+                - truth_passed: bool (F1 Truth check)
+                - delta_s_passed: bool (F2 Clarity check)
+                - truth_score: float (optional)
+            asi_assessment: ASI kernel output with keys:
+                - peace_passed: bool (F3 Peace² check)
+                - empathy_passed: bool (F4 κᵣ check)
+                - peace_score: float (optional)
             context: Optional context for synthesis
 
         Returns:
-            EurekaCandidate with synthesized response and coherence metrics
+            EurekaCandidate with conflict detection and coherence score
         """
-        # Stub implementation
-        # Real EUREKA would:
-        # 1. Detect contradictions (truth vs. care)
-        # 2. Apply synthesis strategies (reframing, contextualization)
-        # 3. Generate candidate responses
-        # 4. Score coherence
-
+        # Extract floor results
         truth_ok = agi_output.get("truth_passed", True)
-        care_ok = asi_assessment.get("peace_passed", True)
+        delta_s_ok = agi_output.get("delta_s_passed", True)
+        peace_ok = asi_assessment.get("peace_passed", True)
+        empathy_ok = asi_assessment.get("empathy_passed", True)
 
-        if truth_ok and care_ok:
-            # No conflict - pass through
+        # Aggregate kernel verdicts
+        agi_verdict = truth_ok and delta_s_ok
+        asi_verdict = peace_ok and empathy_ok
+
+        # Conflict detection
+        paradox_found = False
+        conflict_type = None
+        coherence = 1.0
+
+        if agi_verdict and asi_verdict:
+            # Scenario 4: Both pass - No conflict (ideal)
+            conflict_type = "NONE"
             coherence = 1.0
-        elif not truth_ok and not care_ok:
-            # Both fail - SABAR needed
-            coherence = 0.0
-        else:
-            # Conflict detected - synthesis required
-            coherence = 0.7  # Partial coherence achievable
+            synthesis_text = "[No synthesis needed - AGI and ASI agree]"
 
+        elif not agi_verdict and not asi_verdict:
+            # Scenario 3: Both fail - Fundamental problem
+            conflict_type = "DUAL_FAILURE"
+            paradox_found = True
+            coherence = 0.0
+            synthesis_text = "[SABAR required - Both AGI and ASI reject]"
+
+        elif agi_verdict and not asi_verdict:
+            # Scenario 1: Truth vs. Care conflict
+            # AGI says "True" but ASI says "Unsafe" (harsh truth problem)
+            conflict_type = "TRUTH_VS_CARE"
+            paradox_found = True
+            coherence = 0.6  # Partial - can reframe truth with empathy
+            synthesis_text = "[Reframe required - Truth is harsh, need gentle delivery]"
+
+        else:  # not agi_verdict and asi_verdict
+            # Scenario 2: Care vs. Truth conflict
+            # ASI says "Safe" but AGI says "False" (comforting lie problem)
+            conflict_type = "CARE_VS_TRUTH"
+            paradox_found = True
+            coherence = 0.4  # Lower - lying to comfort is worse than harsh truth
+            synthesis_text = "[Truth correction required - Cannot sacrifice accuracy for comfort]"
+
+        # Return synthesis candidate
         return EurekaCandidate(
-            text="[EUREKA synthesis placeholder]",
-            truth_preserved=truth_ok,
-            care_maintained=care_ok,
+            text=synthesis_text,
+            truth_preserved=agi_verdict,
+            care_maintained=asi_verdict,
             coherence_score=coherence,
         )
+
+    def detect_paradox(
+        self,
+        agi_output: Dict[str, Any],
+        asi_assessment: Dict[str, Any],
+    ) -> bool:
+        """
+        Quick paradox detection (boolean check).
+
+        Args:
+            agi_output: AGI kernel output
+            asi_assessment: ASI kernel output
+
+        Returns:
+            True if AGI-ASI conflict detected, False otherwise
+        """
+        candidate = self.synthesize(agi_output, asi_assessment)
+        return candidate.coherence_score < 1.0
 
 
 # Singleton instance

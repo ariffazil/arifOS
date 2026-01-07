@@ -1,13 +1,14 @@
 """
-arifos_core.enforcement - Floor & Verdict System (v45.1)
+arifos_core.enforcement - Floor & Verdict System (v46.0 Trinity Orthogonal)
 
 Contains floor metrics and enforcement:
 - metrics: Floor thresholds, Metrics dataclass
 - genius_metrics: GENIUS LAW (G, C_dark, Psi)
 - response_validator: Machine-enforced floor checks
 - meta_governance: Tri-Witness cross-model aggregator
+- trinity_orchestrator: v46 Trinity Orthogonal AAA (AGI·ASI·APEX)
 
-Version: v45.1.0
+Version: v46.0.0-DRAFT
 """
 
 from .metrics import Metrics, FloorsVerdict, ConstitutionalMetrics
@@ -30,6 +31,16 @@ from .meta_governance import (
     meta_select,
     tri_witness_vote,
     quad_witness_vote,
+)
+# v46 Trinity Orthogonal (replaces floor_scorer.py)
+from .trinity_orchestrator import (
+    FloorResult,
+    GradeResult,
+    TrinityOrchestrator,
+    TRINITY_ORCHESTRATOR,
+    FLOOR_SCORER,
+    grade_text,
+    is_safe,
 )
 
 __all__ = [
@@ -54,4 +65,12 @@ __all__ = [
     "meta_select",
     "tri_witness_vote",
     "quad_witness_vote",
+    # v46 Trinity Orchestrator (replaces floor_scorer.py)
+    "FloorResult",
+    "GradeResult",
+    "TrinityOrchestrator",
+    "TRINITY_ORCHESTRATOR",
+    "FLOOR_SCORER",
+    "grade_text",
+    "is_safe",
 ]

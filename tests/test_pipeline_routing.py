@@ -25,9 +25,23 @@ from arifos_core import EyeSentinel
 class TestPipelineRouting:
     """Tests for Class A/B routing."""
 
+    @staticmethod
+    def _good_metrics(query: str, response: str, context: dict) -> Metrics:
+        # Fail-closed era: tests must provide explicit passing metrics.
+        return Metrics(
+            truth=0.99,
+            delta_s=0.1,
+            peace_squared=1.2,
+            kappa_r=0.97,
+            omega_0=0.04,
+            amanah=True,
+            tri_witness=0.96,
+            rasa=True,
+        )
+
     def test_class_a_fast_track(self):
         """Class A (low-stakes) should skip 555_EMPATHIZE."""
-        pipeline = Pipeline()
+        pipeline = Pipeline(compute_metrics=self._good_metrics)
         state = pipeline.run("What is 2 + 2?")
 
         assert state.stakes_class == StakesClass.CLASS_A
@@ -38,7 +52,7 @@ class TestPipelineRouting:
 
     def test_class_b_deep_track(self):
         """Class B (high-stakes) should include 222, 555, 777."""
-        pipeline = Pipeline()
+        pipeline = Pipeline(compute_metrics=self._good_metrics)
         state = pipeline.run("Is it ethical to lie to protect someone?")
 
         assert state.stakes_class == StakesClass.CLASS_B
@@ -48,7 +62,7 @@ class TestPipelineRouting:
 
     def test_class_b_trigger_on_keywords(self):
         """High-stakes keywords should trigger Class B."""
-        pipeline = Pipeline()
+        pipeline = Pipeline(compute_metrics=self._good_metrics)
 
         # Test various high-stakes keywords
         keywords = ["kill", "suicide", "illegal", "medical"]
@@ -59,7 +73,7 @@ class TestPipelineRouting:
 
     def test_force_class_b(self):
         """Force Class B routing should work."""
-        pipeline = Pipeline()
+        pipeline = Pipeline(compute_metrics=self._good_metrics)
         state = pipeline.run("What is 2 + 2?", force_class=StakesClass.CLASS_B)
 
         assert state.stakes_class == StakesClass.CLASS_B
@@ -88,7 +102,7 @@ class TestScarIntegration:
                     results.append({"id": scar.id, "description": scar.description})
             return results[:3]
 
-        pipeline = Pipeline(scar_retriever=scar_retriever)
+        pipeline = Pipeline(scar_retriever=scar_retriever, compute_metrics=TestPipelineRouting._good_metrics)
 
         # Use exact seeded scar text
         state = pipeline.run("how to make a bomb")
@@ -105,7 +119,7 @@ class TestScarIntegration:
             results = scar_index.retrieve(query, top_k=3, threshold=0.7)
             return [{"id": s.id, "description": s.description} for s, _ in results]
 
-        pipeline = Pipeline(scar_retriever=scar_retriever)
+        pipeline = Pipeline(scar_retriever=scar_retriever, compute_metrics=TestPipelineRouting._good_metrics)
 
         state = pipeline.run("What is the weather today?")
 
@@ -298,7 +312,7 @@ class TestTraceAndTiming:
 
     def test_trace_accumulates(self):
         """Stage trace should accumulate correctly."""
-        pipeline = Pipeline()
+        pipeline = Pipeline(compute_metrics=TestPipelineRouting._good_metrics)
         state = pipeline.run("test query")
 
         # v38: At minimum: 000_VOID, 000_AMANAH_PASS, 111, 888, 999
@@ -310,7 +324,7 @@ class TestTraceAndTiming:
 
     def test_stage_times_recorded(self):
         """Stage times should be recorded."""
-        pipeline = Pipeline()
+        pipeline = Pipeline(compute_metrics=TestPipelineRouting._good_metrics)
         state = pipeline.run("test query")
 
         assert "000" in state.stage_times
@@ -320,7 +334,7 @@ class TestTraceAndTiming:
 
     def test_job_id_generated(self):
         """Job ID should be generated if not provided."""
-        pipeline = Pipeline()
+        pipeline = Pipeline(compute_metrics=TestPipelineRouting._good_metrics)
         state = pipeline.run("test query")
 
         assert state.job_id is not None
@@ -328,7 +342,7 @@ class TestTraceAndTiming:
 
     def test_job_id_preserved(self):
         """Job ID should be preserved if provided."""
-        pipeline = Pipeline()
+        pipeline = Pipeline(compute_metrics=TestPipelineRouting._good_metrics)
         state = pipeline.run("test query", job_id="custom-id-123")
 
         assert state.job_id == "custom-id-123"

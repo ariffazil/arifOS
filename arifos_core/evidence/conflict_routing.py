@@ -30,6 +30,8 @@ class ConflictRouter:
     @classmethod
     def evaluate(cls, pack: EvidencePack, requires_fact: bool = True) -> RoutingResult:
         reasons = []
+        # NOTE: This is a routing recommendation based on EvidencePack physics attributes.
+        # Final constitutional verdict authority remains APEX PRIME (apex_review).
         verdict = Verdict.SEAL
         pathway = "FAST"
         confidence_mod = 1.0
@@ -43,6 +45,16 @@ class ConflictRouter:
                 reasons=[
                     f"Conflict score {pack.conflict_score:.2f} > {cls.CONFLICT_THRESHOLD_HARD}"
                 ],
+            )
+
+        # 1b. Fail-closed: "No evidence" on factual routing cannot SEAL.
+        # If evidence coverage is zero, we explicitly block with VOID.
+        if requires_fact and pack.coverage_pct <= 0.0:
+            return RoutingResult(
+                verdict=Verdict.VOID,
+                pathway="GOVERNED",
+                confidence_modifier=0.0,
+                reasons=["No evidence coverage for factual routing (coverage_pct=0.0)"],
             )
 
         # 2. Coverage Check (Factuality)

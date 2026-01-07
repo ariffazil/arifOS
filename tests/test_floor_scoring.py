@@ -15,40 +15,43 @@ class TestFloorScorer:
     """Test suite for FloorScorer class."""
 
     def test_import(self):
-        """Verify module imports correctly."""
-        from arifos_core.enforcement.floor_scorer import (FLOOR_SCORER,
-                                                          FloorScorer,
-                                                          grade_text, is_safe)
-        assert FloorScorer is not None
+        """Verify module imports correctly (v46 Trinity Orchestrator)."""
+        from arifos_core.enforcement.trinity_orchestrator import (
+            FLOOR_SCORER,
+            TrinityOrchestrator,
+            grade_text,
+            is_safe,
+        )
+        assert TrinityOrchestrator is not None
         assert FLOOR_SCORER is not None
 
     def test_safe_text_seals(self):
         """Safe conversational text should SEAL."""
-        from arifos_core.enforcement.floor_scorer import grade_text
+        from arifos_core.enforcement.trinity_orchestrator import grade_text
 
         result = grade_text("Hello, how can I help you today?")
         assert result.verdict == "SEAL"
         assert len(result.failures) == 0
 
     def test_dangerous_text_voids(self):
-        """Dangerous operations should VOID."""
-        from arifos_core.enforcement.floor_scorer import grade_text
+        """Dangerous operations should VOID (v46: F6 Amanah)."""
+        from arifos_core.enforcement.trinity_orchestrator import grade_text
 
         # File deletion pattern
         result = grade_text("I will now execute: rm -rf /home/user")
         assert result.verdict == "VOID"
-        assert "F1: Amanah" in result.failures
+        assert "F6: Amanah" in result.failures
 
     def test_is_safe_helper(self):
         """Quick is_safe check works."""
-        from arifos_core.enforcement.floor_scorer import is_safe
+        from arifos_core.enforcement.trinity_orchestrator import is_safe
 
         assert is_safe("What is 2 + 2?") is True
         assert is_safe("sudo rm -rf /*") is False
 
     def test_floor_results_populated(self):
         """All 9 floors should have results."""
-        from arifos_core.enforcement.floor_scorer import grade_text
+        from arifos_core.enforcement.trinity_orchestrator import grade_text
 
         result = grade_text("Test message")
         assert len(result.floors) == 9
@@ -57,44 +60,44 @@ class TestFloorScorer:
 
     def test_claim_profile_attached(self):
         """Claim profile should be attached to result."""
-        from arifos_core.enforcement.floor_scorer import grade_text
+        from arifos_core.enforcement.trinity_orchestrator import grade_text
 
         result = grade_text("The capital of France is Paris.")
         assert result.claim_profile is not None
         assert "claim_count" in result.claim_profile
 
     def test_truth_failure_with_low_score(self):
-        """Low truth score should fail F2."""
-        from arifos_core.enforcement.floor_scorer import grade_text
+        """Low truth score should fail F1 (v46: Truth in AGI)."""
+        from arifos_core.enforcement.trinity_orchestrator import grade_text
 
         result = grade_text(
             "Some text",
             metrics={"truth": 0.5},
         )
-        assert "F2: Truth" in result.failures
+        assert "F1: Truth" in result.failures
         assert result.verdict in ["VOID", "PARTIAL"]
 
     def test_peace_squared_failure(self):
-        """Low peace score should fail F5."""
-        from arifos_core.enforcement.floor_scorer import grade_text
+        """Low peace score should fail F3 (v46: Peace² in ASI)."""
+        from arifos_core.enforcement.trinity_orchestrator import grade_text
 
         result = grade_text(
             "Some text",
             metrics={"peace_squared": 0.5},
         )
-        assert "F5: Peace²" in result.failures
+        assert "F3: Peace²" in result.failures
 
     def test_high_stakes_tri_witness(self):
-        """High stakes should enforce tri-witness."""
-        from arifos_core.enforcement.floor_scorer import grade_text
+        """High stakes should enforce tri-witness (v46: F8 in APEX)."""
+        from arifos_core.enforcement.trinity_orchestrator import grade_text
 
         # Without high_stakes, low tri_witness passes
         result1 = grade_text("Test", metrics={"tri_witness": 0.8})
-        assert "F3: Tri-Witness" not in result1.failures
+        assert "F8: Tri-Witness" not in result1.failures
 
         # With high_stakes, low tri_witness fails
         result2 = grade_text("Test", high_stakes=True, metrics={"tri_witness": 0.8})
-        assert "F3: Tri-Witness" in result2.failures
+        assert "F8: Tri-Witness" in result2.failures
 
 
 class TestLedgerAnalysis:

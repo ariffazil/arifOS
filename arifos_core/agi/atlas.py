@@ -45,32 +45,92 @@ class ATLAS_333:
         """
         Map input text to Governance Placement Vector.
 
+        v46 Phase 2.1: Regex-based lane classification (lightweight, no ML).
+
+        Priority order (highest to lowest):
+        1. CRISIS - Harm, violence, self-harm signals
+        2. FACTUAL - Technical claims, code, math, verifiable statements
+        3. SOCIAL - Phatic communication (greetings, thanks, small talk)
+        4. CARE - Default (explanations, support, advice)
+
         Args:
             text: Input text to classify
-            context: Optional context hints
+            context: Optional context hints (lane override, etc.)
 
         Returns:
             GPV with lane classification and demand scores
         """
+        # Allow context override
+        if context and "lane" in context:
+            override_lane = context["lane"]
+            if override_lane in {"SOCIAL", "CARE", "FACTUAL", "CRISIS"}:
+                return self._create_gpv(override_lane)
+
         text_lower = text.lower()
 
-        # CRISIS detection (highest priority)
-        crisis_keywords = ["harm", "hurt", "kill", "suicide", "abuse"]
-        if any(kw in text_lower for kw in crisis_keywords):
-            return GPV(lane="CRISIS", truth_demand=0.0, care_demand=1.0, risk_level=1.0)
+        # Priority 1: CRISIS detection (highest priority)
+        crisis_patterns = [
+            # Direct harm
+            r'\b(kill|murder|suicide|self-harm|cut myself|end it all)\b',
+            r'\b(hurt|abuse|violence|assault|attack)\b',
+            # Weapons/dangerous items
+            r'\b(molotov|bomb|explosive|weapon|gun|knife)\b',
+            # Self-harm indicators
+            r'\b(want to die|kill myself|end my life)\b',
+            # Abuse/violence
+            r'\b(rape|torture|kidnap|hostage)\b',
+        ]
+        for pattern in crisis_patterns:
+            if __import__('re').search(pattern, text_lower):
+                return GPV(lane="CRISIS", truth_demand=0.0, care_demand=1.0, risk_level=1.0)
 
-        # FACTUAL lane detection (code, math, technical claims)
-        factual_keywords = ["code", "function", "algorithm", "proof", "theorem", "calculate"]
-        if any(kw in text_lower for kw in factual_keywords):
-            return GPV(lane="FACTUAL", truth_demand=1.0, care_demand=0.5, risk_level=0.3)
+        # Priority 2: FACTUAL lane detection (code, math, technical claims)
+        factual_patterns = [
+            # Code/programming
+            r'\b(code|function|algorithm|class|method|variable|import|def |return )\b',
+            r'\b(python|javascript|java|rust|c\+\+|typescript)\b',
+            # Math/science
+            r'\b(theorem|proof|equation|formula|calculate|compute)\b',
+            r'\b(derivative|integral|matrix|vector|probability)\b',
+            # Technical claims
+            r'\b(according to|research shows|studies indicate|data suggests)\b',
+            r'\b(the capital of|the population of|was born in|invented by)\b',
+            # Questions requesting facts
+            r'\b(what is|who is|when did|where is|how many)\b.*\?',
+        ]
+        for pattern in factual_patterns:
+            if __import__('re').search(pattern, text_lower):
+                return GPV(lane="FACTUAL", truth_demand=1.0, care_demand=0.5, risk_level=0.3)
 
-        # SOCIAL lane detection (phatic communication)
-        social_keywords = ["hello", "hi", "thanks", "goodbye", "bye"]
-        if any(kw in text_lower for kw in social_keywords):
-            return GPV(lane="SOCIAL", truth_demand=0.0, care_demand=0.2, risk_level=0.0)
+        # Priority 3: SOCIAL lane detection (phatic communication)
+        social_patterns = [
+            # Greetings
+            r'\b(hello|hi|hey|greetings|good morning|good afternoon|good evening)\b',
+            # Farewells
+            r'\b(goodbye|bye|see you|farewell|take care|have a good)\b',
+            # Gratitude
+            r'\b(thank you|thanks|appreciate|grateful)\b',
+            # Short pleasantries (< 20 words)
+        ]
+        for pattern in social_patterns:
+            if __import__('re').search(pattern, text_lower):
+                # Additional check: short messages are more likely social
+                word_count = len(text.split())
+                if word_count < 20:
+                    return GPV(lane="SOCIAL", truth_demand=0.0, care_demand=0.2, risk_level=0.0)
 
-        # Default: CARE lane (most common, explanations/support)
+        # Priority 4: CARE lane (default for explanations, support, advice)
         return GPV(lane="CARE", truth_demand=0.3, care_demand=0.8, risk_level=0.1)
+
+    def _create_gpv(self, lane: LaneType) -> GPV:
+        """Create GPV from lane type with standard demand scores."""
+        lane_configs = {
+            "SOCIAL": GPV(lane="SOCIAL", truth_demand=0.0, care_demand=0.2, risk_level=0.0),
+            "CARE": GPV(lane="CARE", truth_demand=0.3, care_demand=0.8, risk_level=0.1),
+            "FACTUAL": GPV(lane="FACTUAL", truth_demand=1.0, care_demand=0.5, risk_level=0.3),
+            "CRISIS": GPV(lane="CRISIS", truth_demand=0.0, care_demand=1.0, risk_level=1.0),
+        }
+        return lane_configs[lane]
 
 
 # Singleton instance

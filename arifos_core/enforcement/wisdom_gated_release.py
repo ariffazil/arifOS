@@ -14,12 +14,12 @@ DITEMPA BUKAN DIBERI — Forged, not given; wisdom must cool before it rules.
 """
 
 from dataclasses import dataclass
-from typing import Optional
 from enum import Enum
+from typing import Optional
 
-from ..system.apex_prime import Verdict
-from .metrics import Metrics
+from ..system.apex_prime import Verdict, apex_review
 from .emergency_calibration_v45 import get_lane_truth_threshold
+from .metrics import Metrics
 
 
 class BudiTier(Enum):
@@ -107,6 +107,8 @@ def wisdom_gated_verdict(
     metrics: Metrics,
     lane: str,
     high_stakes: bool = False,
+    text: str = "[System] Wisdom check",     # Added for apex_review context
+    verdict_issuer=apex_review,              # Dependency injection for authority
 ) -> BudiVerdict:
     """
     Apply Wisdom-Gated Release (Budi) logic.
@@ -139,15 +141,24 @@ def wisdom_gated_verdict(
 
     # PHATIC Lane Short-Circuit (v45Ω Patch B)
     if lane.upper() == "PHATIC":
+        # DELEGATION: Only APEX PRIME may issue SEAL (sole verdict authority).
+        authority_result = verdict_issuer(
+            metrics=metrics,
+            high_stakes=high_stakes,
+            response_text=text,
+            lane=lane,
+            category="BUDI",
+        )
+
         return BudiVerdict(
             tier=BudiTier.FULL_APPROVAL,
-            verdict=Verdict.SEAL,
+            verdict=authority_result.verdict,  # Sourced from APEX
             agi_score=agi_score,
             asi_score=asi_score,
             truth_score=metrics.truth,
             psi_score=metrics.psi or 1.0,
             lane=lane,
-            reason="PHATIC communication (truth exempt per v45Ω Patch B)",
+            reason="PHATIC communication (Authorized via APEX)",
         )
 
     # REFUSE Lane Auto-Block
@@ -212,9 +223,18 @@ def wisdom_gated_verdict(
         seal_threshold = max(truth_threshold * 0.95, 0.75)  # 5% grace for low-stakes
 
     if agi_score >= seal_threshold and psi_score >= psi_threshold:
+        # DELEGATION: Call apex_review for official stamp
+        authority_result = verdict_issuer(
+            metrics=metrics,
+            high_stakes=high_stakes,
+            response_text=text,
+            lane=lane,
+            category="BUDI",
+        )
+
         return BudiVerdict(
             tier=BudiTier.FULL_APPROVAL,
-            verdict=Verdict.SEAL,
+            verdict=authority_result.verdict, # Sourced from APEX
             agi_score=agi_score,
             asi_score=asi_score,
             truth_score=metrics.truth,

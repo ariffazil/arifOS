@@ -375,86 +375,79 @@ def check_floors(
     tri_witness_required: bool = False,
     tri_witness_threshold: float = 0.95,
     lane: str = "UNKNOWN",  # v45Ω Patch B.1: Lane-aware floor scoping
+    response_text: str = "",  # v46: Required for Trinity Orchestrator
 ) -> FloorsVerdict:
-    """Evaluate all constitutional floors (core + extended v35Ω)."""
-    from ..enforcement.metrics import get_lane_truth_threshold
+    """
+    Evaluate all constitutional floors (core + extended v35Ω).
 
-    reasons: List[str] = []
+    v46 Trinity Orthogonal: Delegates core floor checks (F1-F9) to
+    TrinityOrchestrator (AGI·ASI·APEX kernels), then evaluates extended
+    floors (v35Ω) locally.
+    """
+    # v46: Import Trinity Orchestrator for core floor checks
+    from ..enforcement.trinity_orchestrator import TRINITY_ORCHESTRATOR
 
-    # Hard floors
-    # v45Ω Patch B: Use lane-aware truth threshold instead of global
-    lane_truth_threshold = get_lane_truth_threshold(lane)
-    truth_ok = metrics.truth >= lane_truth_threshold
-    if not truth_ok:
-        reasons.append(f"Truth < {lane_truth_threshold:.2f} ({lane} lane threshold)")
+    # Build context for Trinity Orchestrator
+    context = {
+        "metrics": {
+            "truth": metrics.truth,
+            "delta_s": metrics.delta_s,
+            "peace_squared": metrics.peace_squared,
+            "kappa_r": metrics.kappa_r,
+            "omega_0": metrics.omega_0,
+            "tri_witness": metrics.tri_witness,
+            "rasa": 1.0 if bool(metrics.rasa) else 0.0,
+        },
+        "high_stakes": tri_witness_required,
+        "lane": lane,
+    }
 
-    delta_s_ok = metrics.delta_s >= DELTA_S_MIN
-    if not delta_s_ok:
-        reasons.append("ΔS < 0")
+    # Delegate core floor checks to Trinity Orchestrator (F1-F9)
+    grade_result = TRINITY_ORCHESTRATOR.grade(response_text, context)
 
-    omega_0_ok = OMEGA_MIN <= metrics.omega_0 <= OMEGA_MAX
-    if not omega_0_ok:
-        reasons.append("Ω₀ outside [0.03, 0.05] band")
+    # Map GradeResult to individual floor booleans (v46 mapping)
+    truth_ok = grade_result.floors["F1"].passed
+    delta_s_ok = grade_result.floors["F2"].passed
+    peace_squared_ok = grade_result.floors["F3"].passed
+    kappa_r_ok = grade_result.floors["F4"].passed
+    omega_0_ok = grade_result.floors["F5"].passed
+    amanah_ok = grade_result.floors["F6"].passed
+    rasa_ok = grade_result.floors["F7"].passed
+    tri_witness_ok = grade_result.floors["F8"].passed
+    anti_hantu_ok = grade_result.floors["F9"].passed
 
-    amanah_ok = bool(metrics.amanah)
-    if not amanah_ok:
-        reasons.append("Amanah = false")
-
-    # v45Ω Patch B.1: Lane-scoped Ψ enforcement
-    # PHATIC: Ψ observational only (never blocks SEAL)
-    # SOFT/HARD: Ψ < 1.0 can degrade to PARTIAL/SABAR (not VOID)
-    # REFUSE/UNKNOWN: Original strict threshold
+    # v46: Compute Ψ from Trinity verdict (lane-scoped)
+    # Trinity uses v46 floor mapping, but apex_prime needs legacy Ψ logic
     if lane == "PHATIC":
         psi_ok = True  # PHATIC exempt from Ψ floor
     elif lane in {"SOFT", "HARD"}:
-        # Allow Ψ < 1.0 to pass hard floor check, handle in degradation logic later
         psi_ok = metrics.psi >= 0.85 if metrics.psi is not None else True
     else:
-        # REFUSE/UNKNOWN: Original strict threshold
         psi_ok = metrics.psi >= 1.0 if metrics.psi is not None else True
 
+    # v46: Hard/Soft aggregates (Strict v45 Spec Compliance)
+    # Hard floors: F1 Truth, F2 ΔS, F5 Ω₀, F6 Amanah, F7 RASA, F9 Anti-Hantu + Ψ
+    hard_ok = (
+        truth_ok
+        and delta_s_ok
+        and omega_0_ok
+        and amanah_ok
+        and psi_ok
+        and rasa_ok
+        and anti_hantu_ok
+    )
+
+    # Soft floors: F3 Peace², F4 κᵣ, F8 Tri-Witness
+    soft_ok = peace_squared_ok and kappa_r_ok and tri_witness_ok
+
+    # Collect reasons from Trinity
+    reasons = grade_result.failures.copy()
+
+    # Add Ψ reason if failed (not part of Trinity core 9)
     if not psi_ok:
         reasons.append("Ψ < threshold")
 
-    rasa_ok = bool(metrics.rasa)
-    if not rasa_ok:
-        reasons.append("RASA not enabled")
-
-    anti_hantu_ok = True if metrics.anti_hantu is None else bool(metrics.anti_hantu)
-    if not anti_hantu_ok:
-        reasons.append("Anti-Hantu violation")
-
-    # v45Ω: Reclassified F4_DeltaS and F7_Omega0 as SOFT floors
-    # Rationale: Real LLM outputs (~0.05-0.15 delta, ~0.04 omega) were triggering
-    # universal VOID before Patch 1 secondary routing could execute.
-    # Hard floors are now: F1 Amanah, F2 Truth, Psi>=1, RASA, Anti-Hantu
-    hard_ok = truth_ok and amanah_ok and psi_ok and rasa_ok and anti_hantu_ok
-
-    # Soft floors (v45Ω: now includes F4 DeltaS and F7 Omega0)
-    peace_squared_ok = metrics.peace_squared >= PEACE_SQ_MIN
-    if not peace_squared_ok:
-        reasons.append("Peace² < 1.0")
-
-    kappa_r_ok = metrics.kappa_r >= KAPPA_MIN
-    if not kappa_r_ok:
-        reasons.append("κᵣ < 0.95")
-
-    if tri_witness_required:
-        tri_witness_ok = metrics.tri_witness >= tri_witness_threshold
-        if not tri_witness_ok:
-            reasons.append("Tri-Witness below threshold")
-    else:
-        tri_witness_ok = True
-
-    soft_ok = (
-        peace_squared_ok
-        and kappa_r_ok
-        and tri_witness_ok
-        and delta_s_ok  # v45Ω: Moved from hard to soft
-        and omega_0_ok  # v45Ω: Moved from hard to soft
-    )
-
-    # Extended floors (v35Ω)
+    # Extended floors (v35Ω) — Not part of Trinity, check locally
     ambiguity_ok = metrics.ambiguity is None or metrics.ambiguity <= AMBIGUITY_MAX
     if not ambiguity_ok:
         reasons.append("Ambiguity > 0.1")
@@ -491,7 +484,7 @@ def check_floors(
         hard_ok=hard_ok,
         soft_ok=soft_ok,
         reasons=reasons,
-        # Core floors
+        # Core floors (from Trinity v46)
         truth_ok=truth_ok,
         delta_s_ok=delta_s_ok,
         peace_squared_ok=peace_squared_ok,
@@ -502,7 +495,7 @@ def check_floors(
         psi_ok=psi_ok,
         anti_hantu_ok=anti_hantu_ok,
         rasa_ok=rasa_ok,
-        # Extended floors (v35Ω)
+        # Extended floors (v35Ω legacy)
         ambiguity_ok=ambiguity_ok,
         drift_ok=drift_ok,
         paradox_ok=paradox_ok,
@@ -566,12 +559,13 @@ def apex_review(
         metrics=metrics,
     )
 
-    # Check floors with potentially penalized metrics
+    # Check floors with potentially penalized metrics (v46: Trinity Orchestrator)
     floors = check_floors(
         metrics,
         tri_witness_required=high_stakes,
         tri_witness_threshold=tri_witness_threshold,
         lane=lane,  # v45Ω Patch B.1: Pass lane for scoped enforcement
+        response_text=response_text,  # v46: Required for Trinity Orchestrator
     )
 
     # v45Ω TRM: Classify prompt for context-aware truth routing
