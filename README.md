@@ -252,6 +252,19 @@ arifos_core/
 
 ---
 
+## 🗺️ Where to Start Reading the Code
+
+**If you're exploring the codebase, start here:**
+
+| Goal | Read This First | Then This |
+|------|----------------|-----------|
+| Understand how decisions are made | `arifos_core/system/apex_prime.py` | `arifos_core/system/pipeline.py` |
+| See how the 9 rules work | `arifos_core/enforcement/metrics.py` | `arifos_core/agi/floor_checks.py` |
+| Run your first test | `tests/test_pipeline_routing.py` | `pytest tests/test_pipeline_routing.py -v` |
+| See architecture diagram | `docs/V46_ARCHITECTURE_DIAGRAM.md` | — |
+
+---
+
 ## 📊 What's New in Version 46
 
 **Version 46** (2026-01-08) reorganized the entire codebase:
@@ -262,6 +275,81 @@ arifos_core/
 - **Same rules** — just better organized
 
 **Why it matters:** Easier to understand, easier to maintain, easier to trust.
+
+---
+
+## 🔍 Expected Output (What You'll See)
+
+### When an answer is APPROVED (SEAL):
+
+```python
+result = judge_output('What is 2+2?', '4', 'HARD', 'test')
+print(result.status)   # SEAL
+print(result.output)   # 4
+print(result.reason)   # All floors passed
+```
+
+### When an answer is BLOCKED (VOID):
+
+```python
+result = judge_output('Will Bitcoin hit $1M?', 'Yes, guaranteed!', 'HARD', 'test')
+print(result.status)   # VOID
+print(result.reason)   # Rule 5: Response claimed certainty without evidence
+```
+
+### Full result structure:
+
+```python
+{
+    "status": "SEAL",           # SEAL (approved), VOID (blocked), PARTIAL (warning)
+    "output": "The answer...",  # The actual response (if approved)
+    "reason": "All 9 floors passed",
+    "metrics": {
+        "truth": 0.99,
+        "clarity": 0.95,
+        "humility": 0.04,
+        ...
+    }
+}
+```
+
+---
+
+## 🐛 Debugging: Why Was My Answer Rejected?
+
+### Method 1: Check the reason
+
+```python
+result = judge_output(query, answer, 'HARD', 'user')
+if result.status == "VOID":
+    print(f"Blocked because: {result.reason}")
+```
+
+### Method 2: See all floor scores
+
+```python
+print(result.metrics)
+# Shows scores for all 9 rules:
+# {'truth': 0.99, 'clarity': 0.85, 'humility': 0.04, ...}
+```
+
+### Method 3: Use CLI tools
+
+```bash
+# Verify the audit trail is intact
+arifos-verify-ledger
+
+# Run tests to check everything works
+pytest tests/ -v --tb=short
+```
+
+### Common Fixes
+
+| Problem | Likely Cause | Solution |
+|---------|--------------|----------|
+| VOID on factual answer | Rule 1 (Truth) failed | Add source or say "I believe" |
+| VOID on prediction | Rule 5 (Humility) failed | Remove certainty; add "might" |
+| VOID on emotional claim | Rule 9 (No Pretending) failed | Replace "I feel" with "This seems" |
 
 ---
 

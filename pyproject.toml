@@ -113,68 +113,9 @@ Changelog = "https://github.com/ariffazil/arifOS/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
 include-package-data = true
-packages = [
-    # v46 8-Folder Orthogonal Structure
-    "arifos_core",
-    # Trinity Kernels
-    "arifos_core.agi",
-    "arifos_core.asi",
-    "arifos_core.apex",
-    "arifos_core.apex.contracts",
-    "arifos_core.apex.governance",
-    # Enforcement Zone
-    "arifos_core.enforcement",
-    "arifos_core.enforcement.audit",
-    "arifos_core.enforcement.eval",
-    "arifos_core.enforcement.evidence",
-    "arifos_core.enforcement.floor_detectors",
-    "arifos_core.enforcement.judiciary",
-    "arifos_core.enforcement.stages",
-    "arifos_core.enforcement.trinity",
-    "arifos_core.enforcement.validators",
-    # Integration Zone
-    "arifos_core.integration",
-    "arifos_core.integration.adapters",
-    "arifos_core.integration.api",
-    "arifos_core.integration.api.routes",
-    "arifos_core.integration.connectors",
-    "arifos_core.integration.sealion_suite",
-    "arifos_core.integration.waw",
-    "arifos_core.integration.waw.bridges",
-    # Memory Zone
-    "arifos_core.memory",
-    # System Zone
-    "arifos_core.system",
-    "arifos_core.system.engines",
-    "arifos_core.system.eye",
-    "arifos_core.system.recovery",
-    "arifos_core.system.runtime",
-    "arifos_core.system.temporal",
-    # MCP Zone
-    "arifos_core.mcp",
-    "arifos_core.mcp.tools",
-    # Utilities
-    "arifos_core.utils",
-    "arifos_core.attestation",
-    # Evaluation Package
-    "arifos_eval",
-    "arifos_eval.apex",
-    "arifos_eval.track_abc",
-    # CLI Package
-    "arifos_clip",
-    "arifos_clip.aclip",
-    "arifos_clip.aclip.cli",
-    "arifos_clip.aclip.core",
-    "arifos_clip.aclip.bridge",
-    # Ledger Package
-    "arifos_ledger",
-    # MCP Package
-    "arifos_mcp",
-    # Orchestrator Package
-    "arifos_orchestrator",
-    # Scripts
-    "scripts",
-]
+
+[tool.setuptools.packages.find]
+include = ["arifos_core*", "arifos_eval*", "arifos_clip*", "arifos_ledger*", "arifos_mcp*", "arifos_orchestrator*", "scripts*"]
 
 [tool.setuptools.package-data]
 arifos_core = ["py.typed", "*.py", "**/*.py"]
