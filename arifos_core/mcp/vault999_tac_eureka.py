@@ -25,7 +25,7 @@ from pathlib import Path
 
 
 # Path to spec (relative to repo root)
-REPO_ROOT = Path(__file__).parent.parent.parent.parent.parent
+REPO_ROOT = Path(__file__).parent.parent.parent
 SPEC_PATH = REPO_ROOT / "spec" / "v45" / "tac_eureka_vault999.json"
 
 

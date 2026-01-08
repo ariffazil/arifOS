@@ -1,0 +1,44 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Users\User\OneDrive\Documents\GitHub\arifOS
+configfile: pyproject.toml
+plugins: anyio-4.12.0
+collected 0 items / 1 error
+
+=================================== ERRORS ====================================
+_______________ ERROR collecting tests/test_pipeline_routing.py _______________
+tests\test_pipeline_routing.py:11: in <module>
+    from arifos_core.system.pipeline import (
+arifos_core\system\pipeline.py:69: in <module>
+    from ..integration.waw.federation import FederationVerdict, WAWFederationCore
+arifos_core\integration\waw\__init__.py:33: in <module>
+    from .prompt import PromptOrgan
+arifos_core\integration\waw\prompt.py:43: in <module>
+    from .waw_loader import (
+arifos_core\integration\waw\waw_loader.py:237: in <module>
+    THRESHOLDS = _get_waw_spec().get("thresholds", {})
+                 ^^^^^^^^^^^^^^^
+arifos_core\integration\waw\waw_loader.py:142: in _get_waw_spec
+    return _load_waw_spec()
+           ^^^^^^^^^^^^^^^^
+arifos_core\integration\waw\waw_loader.py:101: in _load_waw_spec
+    raise RuntimeError(
+E   RuntimeError: TRACK B AUTHORITY FAILURE: WAW spec not found.
+E   
+E   Searched locations:
+E     - spec/v45/waw_prompt_floors.json (AUTHORITATIVE)
+E     - spec/v44/waw_prompt_floors.json (FALLBACK)
+E   
+E   Migration required:
+E   1. Ensure spec/v45/waw_prompt_floors.json exists
+E   2. Or set ARIFOS_WAW_SPEC=/path/to/spec/v45/waw_prompt_floors.json
+============================== warnings summary ===============================
+.venv\Lib\site-packages\litellm\litellm_core_utils\logging_utils.py:273: 17 warnings
+  C:\Users\User\OneDrive\Documents\GitHub\arifOS\.venv\Lib\site-packages\litellm\litellm_core_utils\logging_utils.py:273: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+ERROR tests/test_pipeline_routing.py - RuntimeError: TRACK B AUTHORITY FAILUR...
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+======================== 17 warnings, 1 error in 7.66s ========================

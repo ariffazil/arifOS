@@ -47,8 +47,14 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
+from ..apex.governance.session_physics import evaluate_physics_floors
 from ..enforcement.audit.eye_adapter import evaluate_eye_vector
 from ..enforcement.metrics import Metrics
+from ..enforcement.sabar_timer import Sabar72Timer  # v43 Time Governor
+
+# v38 Stage Modules - v42: stages is at arifos_core/stages/
+from ..enforcement.stages.stage_000_amanah import compute_amanah_score, stage_000_amanah
+from ..enforcement.stages.stage_555_empathy import compute_kappa_r
 
 # v45xx TCHA (Time-Critical Harm Awareness)
 from ..enforcement.tcha_metrics import (
@@ -60,12 +66,8 @@ from ..enforcement.tcha_metrics import (
     log_tcha_event,
     should_bypass_hold,
 )
-
-# AAA Engines (internal facade - v35.8.0) - v46: engines moved to arifos_core/system/engines/
-from .engines import AGIEngine, ASIEngine
-from .engines.agi_engine import AGIPacket
-from .engines.asi_engine import ASIPacket
-from ..apex.governance.session_physics import evaluate_physics_floors
+from ..integration.waw.bridges.prompt_bridge import compute_c_budi
+from ..integration.waw.federation import FederationVerdict, WAWFederationCore
 from ..memory.audit import MemoryAuditLayer, compute_evidence_hash
 from ..memory.bands import MemoryBandRouter, append_eureka_decision
 from ..memory.eureka_types import ActorRole, MemoryWriteRequest
@@ -85,13 +87,6 @@ from ..memory.policy import MemoryWritePolicy
 
 # v42: memory is at arifos_core/memory/, not system/memory/
 from ..memory.vault999 import Vault999
-from ..organs.prompt_bridge import compute_c_budi
-from ..runtime.bootstrap import ensure_bootstrap, get_bootstrap_payload
-from ..sabar_timer import Sabar72Timer  # v43 Time Governor
-
-# v38 Stage Modules - v42: stages is at arifos_core/stages/
-from ..stages.stage_000_amanah import compute_amanah_score, stage_000_amanah
-from ..stages.stage_555_empathy import compute_kappa_r
 from ..utils.eye_sentinel import EyeReport, EyeSentinel
 from ..utils.reduction_engine import compute_attributes
 
@@ -100,10 +95,15 @@ from ..utils.runtime_types import Job, JobClass, Stakeholder
 
 # TEARFRAME v44 Session Physics Layer (ART)
 from ..utils.session_telemetry import SessionTelemetry
-from ..waw.federation import FederationVerdict, WAWFederationCore
 
 # v42: apex_prime is in system/ (same dir, lowercase filename)
 from .apex_prime import ApexVerdict, Verdict, apex_review, check_floors
+
+# AAA Engines (internal facade - v35.8.0) - v46: engines moved to arifos_core/system/engines/
+from .engines import AGIEngine, ASIEngine
+from .engines.agi_engine import AGIPacket
+from .engines.asi_engine import ASIPacket
+from .runtime.bootstrap import ensure_bootstrap, get_bootstrap_payload
 
 # =============================================================================
 # PIPELINE STATE
@@ -538,7 +538,7 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
 
     # v45.0: AGI uses @PROMPT tool for crisis detection (FIRST CHECK)
     # This follows agent-tool pattern: AGI (agent) uses @PROMPT (tool), AGI decides verdict
-    from ..waw.prompt import PromptOrgan
+    from ..integration.waw.prompt import PromptOrgan
 
     prompt_signals = PromptOrgan.compute_prompt_signals(state.query, state.query)
 
@@ -626,8 +626,8 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
         state.stakes_class = StakesClass.CLASS_B
 
     # v45Ω Patch B: Classify prompt lane for context-aware truth routing
-    from ..routing.prompt_router import ApplicabilityLane, classify_prompt_lane
-    from ..routing.refusal_templates import generate_refusal_response
+    from ..enforcement.routing.prompt_router import ApplicabilityLane, classify_prompt_lane
+    from ..enforcement.routing.refusal_templates import generate_refusal_response
 
     lane = classify_prompt_lane(state.query, state.high_stakes_indicators)
 
@@ -1935,7 +1935,7 @@ def stage_999_seal(state: PipelineState) -> PipelineState:
     # v45.0: APEX uses @PROMPT tool for exit gate check (final constitutional guardian)
     # This follows agent-tool pattern: APEX (agent) uses @PROMPT (tool), APEX decides final verdict
     if state.verdict in ("SEAL", "PARTIAL"):
-        from ..waw.prompt import PromptOrgan
+        from ..integration.waw.prompt import PromptOrgan
 
         # APEX consults @PROMPT tool for final language/presentation check
         prompt_check = PromptOrgan().check(

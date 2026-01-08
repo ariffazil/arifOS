@@ -10,6 +10,7 @@ Version: v45.0
 """
 
 from __future__ import annotations
+
 import json
 import logging
 import os
@@ -43,7 +44,7 @@ def _load_waw_spec() -> Dict[str, Any]:
         return _WAW_SPEC
 
     # Find package root
-    pkg_dir = Path(__file__).resolve().parent.parent.parent
+    pkg_dir = Path(__file__).resolve().parent.parent.parent.parent
     spec_data = None
     spec_path_used = None
 
@@ -271,7 +272,7 @@ def _load_red_patterns() -> Dict[str, Any]:
         return _RED_PATTERNS_SPEC
 
     # Find package root
-    pkg_dir = Path(__file__).resolve().parent.parent.parent
+    pkg_dir = Path(__file__).resolve().parent.parent.parent.parent
     spec_data = None
 
     # Priority A: spec/v45/red_patterns.json

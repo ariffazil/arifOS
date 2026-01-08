@@ -16,11 +16,11 @@ from pathlib import Path
 # Add parent directory to path to import arifos_core
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from arifos_core.trinity import (
+from arifos_core.enforcement.trinity import (
     analyze_branch,
-    validate_changes,
-    propose_docs,
     execute_seal,
+    propose_docs,
+    validate_changes,
 )
 
 
@@ -92,9 +92,9 @@ def main():
 
         else:
             # REJECT or HOLD - minimal ledger entry only
-            from arifos_core.trinity.forge import ForgeReport
-            from arifos_core.trinity.qc import QCReport
-            from arifos_core.trinity.housekeeper import HousekeeperProposal
+            from arifos_core.enforcement.trinity.forge import ForgeReport
+            from arifos_core.enforcement.trinity.housekeeper import HousekeeperProposal
+            from arifos_core.enforcement.trinity.qc import QCReport
 
             # Create placeholder reports for ledger
             forge_report = ForgeReport(

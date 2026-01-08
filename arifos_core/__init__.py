@@ -39,9 +39,6 @@ See PHYSICS_CODEX.md (CHAPTER 6) for the full technical statement and diagram.
 # Import base types first (moved to enforcement/)
 from .enforcement.metrics import ConstitutionalMetrics, FloorsVerdict, Metrics
 
-# Import @EYE Sentinel (moved to system/)
-from .system.eye import AlertSeverity, Eye, EyeAlert, EyeReport, EyeSentinel
-
 # Import APEX components (moved to system/)
 from .system.apex_prime import (
     APEX_EPOCH,
@@ -53,6 +50,9 @@ from .system.apex_prime import (
     apex_verdict,  # v42: Convenience shim, returns str
     check_floors,
 )
+
+# Import @EYE Sentinel (moved to system/)
+from .utils.eye_sentinel import AlertSeverity, EyeAlert, EyeReport, EyeSentinel
 
 # Import memory components (optional - graceful fallback if not available)
 try:

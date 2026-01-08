@@ -15,7 +15,7 @@ from pathlib import Path
 # Add parent directory to path to import arifos_core
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from arifos_core.trinity import analyze_branch
+from arifos_core.enforcement.trinity import analyze_branch
 
 
 def main():

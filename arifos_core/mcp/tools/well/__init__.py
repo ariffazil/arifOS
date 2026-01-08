@@ -7,7 +7,7 @@ Provides MCP/tool bindings for @WELL file care operations across:
 - ChatGPT Codex (chatgpt_codex.py)
 - Google Gemini CLI (gemini_cli.py)
 
-Core Logic: arifos_core.waw.well_file_care
+Core Logic: arifos_core.integration.waw.well_file_care
 
 Version: v42.0.0 (migrated from L4_MCP)
 """

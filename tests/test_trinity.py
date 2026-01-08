@@ -13,16 +13,10 @@ from pathlib import Path
 
 import pytest
 
-from arifos_core.trinity import (
-    ForgeReport,
-    QCReport,
-    HousekeeperProposal,
-    SealDecision,
-    analyze_branch,
-    validate_changes,
-    propose_docs,
-    execute_seal,
-)
+from arifos_core.enforcement.trinity import (ForgeReport, HousekeeperProposal,
+                                             QCReport, SealDecision,
+                                             analyze_branch, execute_seal,
+                                             propose_docs, validate_changes)
 
 
 class TestGitForge:
