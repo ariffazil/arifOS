@@ -44,7 +44,7 @@ from ..adapters.llm_openai import make_llm_generate as make_openai_generate
 from ..adapters.llm_claude import make_llm_generate as make_claude_generate
 from ..adapters.llm_gemini import make_llm_generate as make_gemini_generate
 from ..adapters.llm_sealion import make_llm_generate as make_sealion_generate
-from ..integration.adapters.llm_interface import LLMConfig
+from ..adapters.llm_interface import LLMConfig
 
 logger = logging.getLogger(__name__)
 
