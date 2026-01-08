@@ -54,6 +54,13 @@ That's it. AI answers are now checked before reaching you.
 **Simple:** If rules 1-9 pass → Answer released ✅
 If any rule fails → Answer blocked ❌
 
+**What a blocked answer looks like:**
+```
+Status: VOID
+Reason: Rule 5 violation - Response claimed certainty without evidence
+Output: "I cannot provide that answer. The response was blocked because it made claims without proper uncertainty."
+```
+
 ---
 
 ## 📖 For Different Users
@@ -332,17 +339,41 @@ Yes. Works with OpenAI, Claude, Gemini, Llama, Mistral, local models — any LLM
 
 ## 📦 Installation Options
 
+**Which should I choose?**
+
+| Method | Best For | Updates |
+|--------|----------|--------|
+| `pip install arifos` | Most users | Stable releases only |
+| `git clone` + `pip install -e .` | Contributors & latest features | Get updates with `git pull` |
+
 ```bash
-# Basic install
+# Basic install (recommended for most users)
 pip install arifos
 
-# From source (latest)
+# From source (for contributors or latest features)
 git clone https://github.com/ariffazil/arifOS.git
 cd arifOS
 pip install -e .
 
-# With all extras
+# With all extras (includes API server)
 pip install -e ".[dev,yaml,api,litellm]"
+```
+
+### 🌐 REST API (No Python Required)
+
+If you don't want to write Python, run the API server:
+
+```bash
+# Install with API support
+pip install arifos[api]
+
+# Start the server
+uvicorn arifos_core.integration.api.main:app --reload
+
+# Now send requests from any language
+curl -X POST http://localhost:8000/judge \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Is the sky blue?", "response": "Yes, the sky is blue."}'
 ```
 
 ---
