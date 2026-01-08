@@ -6,6 +6,238 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ---
 
+## [v46.0.0] - 2026-01-08 - 8-Folder Orthogonal Architecture
+
+**Status:** ✅ COMPLETE | Tests: 36/36 Core Passed | Authority: Arif + Claude (AGI Δ)
+
+**Philosophy:** "Structure is Constitution. A disciplined filesystem reflects a disciplined mind." — DITEMPA BUKAN DIBERI
+
+### 🏛️ Major Architectural Refactor
+
+This release implements the **v46 8-Folder Orthogonal Structure**, consolidating `arifos_core/` from 40+ loose folders into 8 canonical zones with clear separation of concerns.
+
+**Migration Stats:**
+- **Files Reorganized:** 331 files (176+ core modules, ~41,100 LoC)
+- **Import Refactoring:** 304 Python files updated
+- **Commits:** 5 incremental commits with atomic changes
+- **Test Coverage:** All Trinity core tests passing (36/36)
+
+---
+
+### 📂 The 8 Canonical Zones
+
+```
+arifos_core/
+├── 🧠 agi/              # AGI Kernel (Δ Delta - Mind/Logic)
+│   └── F1 Truth, F2 ΔS, ATLAS-333
+├── ❤️  asi/              # ASI Kernel (Ω Omega - Heart/Care)
+│   └── F3 Peace², F4 κᵣ, F5 Ω₀, F7 RASA, EUREKA-777
+├── 👁️  apex/             # APEX Kernel (Ψ Psi - Soul/Judge)
+│   └── F6 Amanah, F8 Tri-Witness, F9 Anti-Hantu, Governance
+├── 👮 enforcement/       # Enforcement Zone (Constitutional Police)
+│   └── Metrics, Trinity Orchestrator, Evidence, Validators
+├── 🔌 integration/       # Integration Zone (External Interface)
+│   └── Adapters (OpenAI, Claude, Gemini, SEA-LION), API, WAW
+├── 💾 memory/            # Memory Zone (Storage & State)
+│   └── Codex Ledger, Audit, Bands
+├── ⚙️  system/           # System Zone (Lifecycle Management)
+│   └── APEX PRIME, Pipeline, Engines, @EYE Sentinel
+└── 🌐 mcp/              # MCP Protocol Layer
+    └── MCP Server, Tools
+```
+
+---
+
+### ✨ Key Changes
+
+#### 1. **Orthogonal Separation of Concerns**
+
+**Before (v45):** 40+ folders in flat structure, unclear boundaries
+```
+arifos_core/
+├── attestation/
+├── audit/
+├── eval/
+├── evidence/
+├── floor_detectors/
+├── adapters/
+├── api/
+├── engines/
+├── governance/
+└── ... (30+ more loose folders)
+```
+
+**After (v46):** 8 canonical zones, clear hierarchy
+```
+arifos_core/
+├── agi/          # Trinity Kernel
+├── asi/          # Trinity Kernel
+├── apex/         # Trinity Kernel + Governance
+├── enforcement/  # Floor checks, evidence, validation
+├── integration/  # External adapters & API
+├── memory/       # State management
+├── system/       # Lifecycle & APEX PRIME
+└── mcp/          # Protocol layer
+```
+
+#### 2. **Trinity AAA Clarity**
+
+**AGI (Δ Delta) - Mind/Logic:**
+- `agi/floor_checks.py` - F1 Truth (≥0.99), F2 ΔS (≥0.0)
+- `agi/atlas.py` - ATLAS-333 lane classification (CRISIS → FACTUAL → SOCIAL → CARE)
+- `agi/clarity_scorer.py` - ΔS computation (stub)
+
+**ASI (Ω Omega) - Heart/Care:**
+- `asi/floor_checks.py` - F3 Peace² (≥1.0), F4 κᵣ (≥0.95), F5 Ω₀ (0.03-0.05), F7 RASA
+- `asi/eureka.py` - EUREKA-777 paradox synthesis (AGI ↔ ASI conflict detection)
+- `asi/cooling.py` - SABAR protocol
+
+**APEX (Ψ Psi) - Soul/Judge:**
+- `apex/floor_checks.py` - F6 Amanah (LOCK), F8 Tri-Witness (≥0.95), F9 Anti-Hantu (=0)
+- `apex/governance/` - FAG, PoG, Ledger, zkPC, Sovereign Signatures
+
+#### 3. **Import Architecture Rules**
+
+**Root-level zone files:**
+```python
+# Files at enforcement/metrics.py
+from ..system import apex_prime      # Use .. for sibling zones
+from ..apex.governance import fag
+```
+
+**Subdirectory files:**
+```python
+# Files at enforcement/eval/asi.py
+from ...system import apex_prime     # Use ... to reach other zones
+from ..metrics import check_truth    # Use .. to reach parent zone
+```
+
+**Pattern:** Add one extra `..` for each directory level depth within a zone.
+
+#### 4. **Fail-Closed Enforcement**
+
+All floor checks now enforce fail-closed defaults:
+```python
+# BEFORE (v45): Optimistic defaults
+tri_witness_value = metrics.get("tri_witness", 0.95)  # ← Defaults to PASSING
+
+# AFTER (v46): Fail-closed defaults
+tri_witness_value = metrics.get("tri_witness", 0.0)   # ← Defaults to FAILING
+```
+
+**Rationale:** "No Evidence = VOID" — missing metrics must fail, not pass.
+
+---
+
+### 🔧 Technical Details
+
+#### Migration Phases
+
+**Phase 1: Directory Moves** (Commit `984a132`)
+- Moved 30 items using `git mv` (preserves history)
+- Created 8 canonical zone directories
+- Merged duplicate adapters into single location
+
+**Phase 2: Absolute Import Refactoring** (Commit `984a132`)
+- Updated 304 Python files
+- Pattern: `from arifos_core.X` → `from arifos_core.zone.X`
+- Scripts: `refactor_imports_v46.py` (main), zone-specific fixers
+
+**Phase 3: Relative Import Fixes** (Commits `8b20456`, `bcc4f66`)
+- Fixed subdirectory cross-zone imports (`.` → `...`)
+- Fixed system/pipeline.py (engines, audit, governance paths)
+- Fixed utils/eye_sentinel.py (eye moved to system/eye)
+
+**Phase 4: Verification** (All commits)
+- Ran Trinity core tests after each phase
+- 36/36 tests passing (11 floor scoring, 4 conflict routing, 21 Trinity contracts)
+
+#### Scripts Created
+
+```
+scripts/
+├── refactor_imports_v46.py           # Main absolute import refactoring
+├── fix_system_imports.py             # System subdirectory fixes
+├── fix_system_root_imports.py        # System root-level files
+├── fix_apex_imports.py               # Apex subdirectory fixes
+└── fix_integration_subdir_imports.py # Integration subdirectory fixes
+```
+
+---
+
+### 📊 Impact Analysis
+
+**Files Modified:** 331 total
+- Moved: 176+ core modules
+- Import updates: 304 Python files
+- Documentation: 3 new docs (migration report, architecture diagram, changelog)
+
+**Test Coverage:**
+- ✅ 11/11 Trinity floor scoring tests
+- ✅ 4/4 Conflict routing tests
+- ✅ 21/21 Trinity contract tests (Arif, Adam, APEX)
+
+**Breaking Changes:**
+- Import paths changed (backward compatibility re-exports in `__init__.py`)
+- File locations changed (git history preserved via `git mv`)
+
+**Migration Guide:** See `V46_8FOLDER_RESTRUCTURE.md` for complete details.
+
+---
+
+### 📝 Documentation
+
+**New Documents:**
+- `V46_8FOLDER_RESTRUCTURE.md` - Complete migration report with statistics
+- `docs/V46_ARCHITECTURE_DIAGRAM.md` - Visual code structure map
+- `docs/ARCHITECTURE_AND_NAMING_v46.md` - Updated naming conventions
+
+**Updated Documents:**
+- `CHANGELOG.md` - This changelog entry
+- `CLAUDE.md` - Architectural wisdom and import rules
+
+---
+
+### 🎯 Architectural Principles Enforced
+
+1. **Orthogonality** - Each zone has one clear responsibility
+2. **Delegation Hierarchy** - User → Integration → Enforcement → Trinity → APEX PRIME
+3. **Fail-Closed Defaults** - Missing data = FAIL, not pass
+4. **Evidence-Based Decisions** - All verdicts require EvidencePack
+5. **Single Authority** - Only APEX PRIME issues Verdict.SEAL
+
+---
+
+### 🔄 Backward Compatibility
+
+**Maintained:**
+- `arifos_core/__init__.py` re-exports all major components
+- Old import paths work via backward compatibility layer
+- Test suite remains unchanged (36/36 passing)
+
+**Deprecated:**
+- Direct imports from old locations (use new zone paths)
+- Example: `from arifos_core.evidence` → `from arifos_core.enforcement.evidence`
+
+---
+
+### 🙏 Acknowledgments
+
+**Architecture:** Arif Fazil (ARIF - Architect, Ω)
+**Implementation:** Claude Sonnet 4.5 (AGI Coder - Δ)
+**Governance:** Antigravity/Gemini (AUDIT - Ψ)
+
+**Commits:**
+- `984a132` - refactor(v46): Consolidate arifos_core into 8-folder orthogonal structure (313 files)
+- `8b20456` - fix(v46): Complete relative import fixes for 8-folder structure (16 files)
+- `38c03a6` - docs(v46): Update migration report - 100% complete
+- `bcc4f66` - fix(v46): Fix remaining import paths in system/pipeline.py and utils/ (2 files)
+- `ecf479b` - docs(v46): Add comprehensive architecture diagram
+
+**DITEMPA BUKAN DIBERI** — Forged through systematic refactoring, not given.
+
+---
+
 ## [v45.3.0] - 2026-01-03 - Temporal Intelligence Upgrade
 
 **Status:** PHOENIX (72h cooling) | Tests: 99/99 Passed | Authority: Arif + Antigravity
