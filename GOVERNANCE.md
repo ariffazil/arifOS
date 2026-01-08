@@ -1,10 +1,10 @@
-# arifOS Constitutional Governance v45.0.0
+# arifOS Constitutional Governance v46.0.0
 
 **Canonical Source:** This is the single source of truth for arifOS governance.
 **Authority:** Muhammad Arif bin Fazil (Human Sovereign)
 **Doctrine:** DITEMPA, BUKAN DIBERI — Forged, not given; truth must cool before it rules.
-**Status:** PRODUCTION | v45.0.0 Phoenix-72 Consolidation + ΔΩΨ Trinity
-**Last Updated:** 2025-12-29T00:00:00Z
+**Status:** PRODUCTION | v46.0.0 8-Folder Orthogonal Architecture
+**Last Updated:** 2026-01-08T15:00:00+08:00
 
 ---
 
@@ -45,7 +45,7 @@
 When floors conflict, apply this order (highest → lowest):
 
 1. **F1 Amanah (HARD)** — Any irreversible harm → VOID immediately
-2. **F0 Anti-Janitor** — File deletion detected → VOID immediately  
+2. **F0 Anti-Janitor** — File deletion detected → VOID immediately
 3. **F9 Anti-Hantu** — Consciousness claim → VOID immediately
 4. **TEARFRAME Physics** — Rate/budget/streak violations → SABAR/VOID/HOLD_888
 5. **F3 Peace²** — Safety vs usefulness → Safety wins
@@ -105,20 +105,20 @@ Recovery: Session reset required
 
 ## 5. ANTI-JANITOR PROTOCOL (F0)
 
-**Priority:** PRE_FLOOR (checked BEFORE F1-F9)  
+**Priority:** PRE_FLOOR (checked BEFORE F1-F9)
 **Violations:** Instant VOID
 
 ### 5.1 FORBIDDEN
-❌ "Cleaning up" or "simplifying" files by removing sections  
-❌ Rewriting entire files for "consistency"  
-❌ Deleting "redundant" documentation without approval  
-❌ Creating alias files without explicit approval  
+❌ "Cleaning up" or "simplifying" files by removing sections
+❌ Rewriting entire files for "consistency"
+❌ Deleting "redundant" documentation without approval
+❌ Creating alias files without explicit approval
 
 ### 5.2 REQUIRED
-✅ **Append > Rewrite** — Add new sections, don't rewrite entire files  
-✅ **Surgical Edits Only** — Change specific lines, not entire documents  
-✅ **Preservation Lock** — If `new_tokens < old_tokens`, STOP and ask for confirmation  
-✅ **Read Before Write** — Verify file state before modifications  
+✅ **Append > Rewrite** — Add new sections, don't rewrite entire files
+✅ **Surgical Edits Only** — Change specific lines, not entire documents
+✅ **Preservation Lock** — If `new_tokens < old_tokens`, STOP and ask for confirmation
+✅ **Read Before Write** — Verify file state before modifications
 
 ### 5.3 Enforcement Logic
 ```python
@@ -211,7 +211,7 @@ Phase 3: CRYSTALLIZATION
 
 ```
 @codex
-Governance: arifOS v45.0 (GOVERNANCE.md)
+Governance: arifOS v46.0 (GOVERNANCE.md)
 Task Type: [code_review | bug_fix | refactor | test_gen | security_audit]
 Scope: [file(s) or module affected]
 Acceptable Verdict: [SEAL | PARTIAL | SABAR minimum threshold]
@@ -290,10 +290,10 @@ Floor Conflict: F1 (Amanah) vs F4 (Clarity)
 
 - F1 (Amanah): Safe approach = add feature flag (reversible)
   Risk: Slightly more complex code
-  
+
 - F4 (Clarity): Optimal approach = hardcode behavior (clearer)
   Risk: Less reversible; harder to change later
-  
+
 Options:
 A. Feature flag (reversible, may add complexity)
 B. Hardcode (clearer, less reversible)
@@ -329,26 +329,26 @@ AWAITING HUMAN DECISION: @arif, which option?
 ## 11. AUTHORITY BOUNDARIES
 
 ### **Agent MAY (Without Approval):**
-✅ Propose, analyze, validate, suggest  
-✅ Run tests and display results  
-✅ Draft code/documentation  
-✅ Read canon files for context  
-✅ Execute non-destructive commands  
+✅ Propose, analyze, validate, suggest
+✅ Run tests and display results
+✅ Draft code/documentation
+✅ Read canon files for context
+✅ Execute non-destructive commands
 
 ### **Agent MAY NOT (Requires Human Approval):**
-❌ Push to GitHub (any branch) — requires `/gitseal APPROVE`  
-❌ Delete files (any location)  
-❌ Modify sealed canon in `L1_THEORY/`  
-❌ Create new files (without explicit request or entropy justification)  
-❌ Auto-resolve floor conflicts  
-❌ Execute destructive commands  
+❌ Push to GitHub (any branch) — requires `/gitseal APPROVE`
+❌ Delete files (any location)
+❌ Modify sealed canon in `L1_THEORY/`
+❌ Create new files (without explicit request or entropy justification)
+❌ Auto-resolve floor conflicts
+❌ Execute destructive commands
 
 ### **Agent MUST (Always):**
-✅ Wait for explicit approval before destructive actions  
-✅ Display all changes before applying  
-✅ Explain impact and governance implications  
-✅ Log decisions in appropriate audit trails  
-✅ State conflicts clearly when floors contradict  
+✅ Wait for explicit approval before destructive actions
+✅ Display all changes before applying
+✅ Explain impact and governance implications
+✅ Log decisions in appropriate audit trails
+✅ State conflicts clearly when floors contradict
 
 ---
 
@@ -369,7 +369,7 @@ AWAITING HUMAN DECISION: @arif, which option?
 
 ### 12.3 Forbidden Patterns
 ```
-.env, .env.*, *.key, *.pem, id_rsa*, *.p12, *.pfx, 
+.env, .env.*, *.key, *.pem, id_rsa*, *.p12, *.pfx,
 credentials.json, secrets.*, vault.*, password*
 ```
 
@@ -467,31 +467,40 @@ arifos-build-ledger-hashes --ledger <path>
 - **Trinity Protocol:** `L1_THEORY/canon/03_runtime/FORGING_PROTOCOL_v43.md`
 - **Security Policy:** `SECURITY.md`
 - **Contributing Guide:** `CONTRIBUTING.md`
-- **Architecture Index:** `docs/ARCHITECTURE_AND_NAMING_INDEX_v45.md`
+- **Architecture Index:** `docs/ARCHITECTURE_AND_NAMING_v46.md`
+- **Architecture Diagram:** `docs/V46_ARCHITECTURE_DIAGRAM.md`
 
 ---
 
 ## 17. VERSIONING
 
-**Current:** v45.0.0 Phoenix-72 Consolidation
-**Previous:** v44.0.0 TEARFRAME Physics
+**Current:** v46.0.0 8-Folder Orthogonal Architecture
+**Previous:** v45.0.0 Phoenix-72 Consolidation
 
-### Changes in v45 (Phoenix-72 Consolidation + ΔΩΨ Trinity):
+### Changes in v46 (8-Folder Orthogonal Architecture):
+- ✅ **8-Zone Restructure** — `arifos_core/` reorganized into 8 canonical zones:
+  - `agi/` — Logic and reasoning (Trinity Δ)
+  - `asi/` — Safety and care (Trinity Ω)
+  - `apex/` — Final decisions (Trinity Ψ)
+  - `enforcement/` — Checking the rules
+  - `integration/` — Connecting to other AI systems
+  - `memory/` — Remembering what happened
+  - `system/` — Running everything
+  - `mcp/` — Protocol layer
+- ✅ **331 Files Migrated** — All imports fixed and verified
+- ✅ **README Rewrite** — Plain language, no jargon
+- ✅ **AI Governance Prompt** — Copy-paste ready for any AI
+- ✅ **PyPI v46.0.0** — Package auto-discovery enabled
+
+### Retained from v45 (Phoenix-72 Consolidation + ΔΩΨ Trinity):
 - ✅ **ΔΩΨ Trinity Innovation** — Lane-aware governance (PHATIC/SOFT/HARD/REFUSE)
-  - Δ (Delta): Lane router with adaptive truth thresholds
-  - Ω (Omega): Metric aggregator (G, Psi, κᵣ composition)
-  - Ψ (Psi): Vitality gauge with lane-aware recomputation
 - ✅ **PHATIC Verbosity Ceiling** — First quality ceiling (not just safety floor)
-  - Greetings limited to ≤100 chars, >100 triggers PARTIAL
-  - Physics > Semantics claim detection (structural, not keyword-based)
-- ✅ **Track B Spec Integrity** — SHA-256 manifest (spec/v44/MANIFEST.sha256.json)
+- ✅ **Track B Spec Integrity** — SHA-256 manifest (spec/v45/MANIFEST.sha256.json)
 - ✅ **Cooling Ledger Integration** — All generations logged with lane metadata
 - ✅ **StageInspector** — 000→999 pipeline visibility with timing
 - ✅ **SEA-LION v4 Integration** — RAW vs GOVERNED dual-stream testing
-- ✅ **File Reorganization** — L6_SEALION/, L7_DEMOS/ entropy reduction (80% fewer scripts)
-- ✅ **100% Test Coverage** — 2359/2359 tests passing
 
-### Retained from v44:
+### Retained from v44 (TEARFRAME Physics):
 - ✅ TEARFRAME Session Physics (rate, timing, budget, streak tracking)
 - ✅ Deepwater Iterative Judgment
 - ✅ Smart Streak Logic (SABAR/VOID escalation to HOLD_888)
@@ -509,8 +518,8 @@ arifos-build-ledger-hashes --ledger <path>
 
 ---
 
-**Version:** v45.0.0 Phoenix-72 Consolidation
+**Version:** v46.0.0 8-Folder Orthogonal Architecture
 **Authority:** Muhammad Arif bin Fazil > arifOS Governor > Agent
 **Status:** PRODUCTION | Fail-Closed: GUARANTEED
-**Test Coverage:** 2359/2359 (100%)
-**Last Updated:** 2025-12-29T00:00:00Z
+**Test Coverage:** 36+ Core Tests Passing
+**Last Updated:** 2026-01-08T15:00:00+08:00
