@@ -5,41 +5,28 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "arifos"
 version = "46.0.0"
-description = "Constitutional Governance Kernel for AI - 9 Floors, 8-Folder Orthogonal Structure, TEARFRAME Physics, Fail-Closed Enforcement (v46)"
+description = "9 simple rules for AI safety. Works with ChatGPT, Claude, Gemini, and any LLM."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "AGPL-3.0-only"
 keywords = [
     "ai-governance",
-    "constitutional-ai",
     "ai-safety",
-    "fail-closed-governance",
-    "sovereign-witness",
-    "tearframe-physics",
-    "proof-of-governance",
-    "merkle-identity",
-    "sabar-72",
-    "master-flaw-set",
-    "trinity-governance",
-    "thermodynamic-intelligence",
-    "audit-trail",
-    "empathy-conductance",
-    "humility-firewall",
-    "paradox-physics",
-    "zkpc",
-    "phoenix-72",
-    "cooling-ledger",
-    "merkle-tree",
-    "phoenix-sovereignty",
-    "python-sovereign",
-    "amanah-detector",
-    "sea-lion",
-    "telemetry",
-    "anti-hantu",
-    "memory-governance",
-    "eureka",
-    "memory-bands",
-    "verdict-routing",
+    "constitutional-ai",
+    "llm-safety",
+    "llm-governance",
+    "ai-rules",
+    "fail-safe-ai",
+    "safe-ai",
+    "ai-ethics",
+    "responsible-ai",
+    "ai-alignment",
+    "openai",
+    "claude",
+    "gemini",
+    "chatgpt",
+    "llm",
+    "guardrails",
 ]
 authors = [{ name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com" }]
 maintainers = [
@@ -127,42 +114,65 @@ Changelog = "https://github.com/ariffazil/arifOS/blob/main/CHANGELOG.md"
 [tool.setuptools]
 include-package-data = true
 packages = [
+    # v46 8-Folder Orthogonal Structure
     "arifos_core",
-    # v45 Sovereign Witness
-    "arifos_core.evidence",
-    "arifos_core.judiciary",
-    "arifos_core.temporal",
-    "arifos_core.governance",
-    # v42 concern-based directories
-    "arifos_core.system",
+    # Trinity Kernels
+    "arifos_core.agi",
+    "arifos_core.asi",
+    "arifos_core.apex",
+    "arifos_core.apex.contracts",
+    "arifos_core.apex.governance",
+    # Enforcement Zone
     "arifos_core.enforcement",
-    "arifos_core.utils",
-    "arifos_core.trinity",
-    # Legacy directories (still functional)
+    "arifos_core.enforcement.audit",
+    "arifos_core.enforcement.eval",
+    "arifos_core.enforcement.evidence",
+    "arifos_core.enforcement.floor_detectors",
+    "arifos_core.enforcement.judiciary",
+    "arifos_core.enforcement.stages",
+    "arifos_core.enforcement.trinity",
+    "arifos_core.enforcement.validators",
+    # Integration Zone
+    "arifos_core.integration",
+    "arifos_core.integration.adapters",
+    "arifos_core.integration.api",
+    "arifos_core.integration.api.routes",
+    "arifos_core.integration.connectors",
+    "arifos_core.integration.sealion_suite",
+    "arifos_core.integration.waw",
+    "arifos_core.integration.waw.bridges",
+    # Memory Zone
     "arifos_core.memory",
-    "arifos_core.adapters",
-    "arifos_core.engines",
-    "arifos_core.connectors",
-    "arifos_core.waw",
-    "arifos_core.waw.bridges",
-    "arifos_core.eye",
-    "arifos_core.floor_detectors",
-    "arifos_core.dream_forge",
-    "arifos_core.guards",
-    "arifos_core.wrappers",
-    "arifos_core.api",
-    "arifos_core.api.routes",
+    # System Zone
+    "arifos_core.system",
+    "arifos_core.system.engines",
+    "arifos_core.system.eye",
+    "arifos_core.system.recovery",
+    "arifos_core.system.runtime",
+    "arifos_core.system.temporal",
+    # MCP Zone
     "arifos_core.mcp",
     "arifos_core.mcp.tools",
-    "arifos_core.stages",
-    "arifos_core.integration",
+    # Utilities
+    "arifos_core.utils",
+    "arifos_core.attestation",
+    # Evaluation Package
     "arifos_eval",
     "arifos_eval.apex",
+    "arifos_eval.track_abc",
+    # CLI Package
     "arifos_clip",
     "arifos_clip.aclip",
     "arifos_clip.aclip.cli",
     "arifos_clip.aclip.core",
     "arifos_clip.aclip.bridge",
+    # Ledger Package
+    "arifos_ledger",
+    # MCP Package
+    "arifos_mcp",
+    # Orchestrator Package
+    "arifos_orchestrator",
+    # Scripts
     "scripts",
 ]
 
