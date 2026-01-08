@@ -189,7 +189,7 @@
     "description": "Overall system health - minimum ratio across all floors"
   },
   "pipeline": {
-    "entry_module": "arifos_core.pipeline",
+    "entry_module": "arifos_core.system.pipeline",
     "entry_class": "Pipeline",
     "state_class": "PipelineState",
     "stages": {
@@ -321,7 +321,7 @@
   },
   "engines": {
     "agi": {
-      "module": "arifos_core.engines.agi_engine",
+      "module": "arifos_core.system.engines.agi_engine",
       "class": "AGIEngine",
       "symbol": "Delta",
       "role": "Mind/Cold Logic - clarity, structure, reasoning",
@@ -343,7 +343,7 @@
       ]
     },
     "asi": {
-      "module": "arifos_core.engines.asi_engine",
+      "module": "arifos_core.system.engines.asi_engine",
       "class": "ASIEngine",
       "symbol": "Omega",
       "role": "Heart/Warm Logic - empathy, tone, stability",
@@ -363,7 +363,7 @@
       ]
     },
     "apex": {
-      "module": "arifos_core.engines.apex_engine",
+      "module": "arifos_core.system.engines.apex_engine",
       "class": "ApexEngine",
       "symbol": "Psi",
       "role": "Judiciary - final veto and seal authority",
@@ -382,12 +382,12 @@
   },
   "waw": {
     "federation": {
-      "module": "arifos_core.waw.federation",
+      "module": "arifos_core.integration.waw.federation",
       "class": "WAWFederationCore",
       "verdict_class": "FederationVerdict"
     },
     "base": {
-      "module": "arifos_core.waw.base",
+      "module": "arifos_core.integration.waw.base",
       "classes": [
         "WAWOrgan",
         "OrganSignal",
@@ -396,7 +396,7 @@
     },
     "organs": {
       "well": {
-        "module": "arifos_core.waw.well",
+        "module": "arifos_core.integration.waw.well",
         "class": "WellOrgan",
         "symbol": "@WELL",
         "domain": "Somatic safety, tone, emotional stability",
@@ -406,7 +406,7 @@
         ]
       },
       "rif": {
-        "module": "arifos_core.waw.rif",
+        "module": "arifos_core.integration.waw.rif",
         "class": "RifOrgan",
         "symbol": "@RIF",
         "domain": "Logic, clarity, entropy reduction",
@@ -416,7 +416,7 @@
         ]
       },
       "wealth": {
-        "module": "arifos_core.waw.wealth",
+        "module": "arifos_core.integration.waw.wealth",
         "class": "WealthOrgan",
         "symbol": "@WEALTH",
         "domain": "Integrity, dignity, justice",
@@ -426,7 +426,7 @@
         "absolute_veto": true
       },
       "geox": {
-        "module": "arifos_core.waw.geox",
+        "module": "arifos_core.integration.waw.geox",
         "class": "GeoxOrgan",
         "symbol": "@GEOX",
         "domain": "Physics, feasibility, reality",
@@ -435,7 +435,7 @@
         ]
       },
       "prompt": {
-        "module": "arifos_core.waw.prompt",
+        "module": "arifos_core.integration.waw.prompt",
         "class": "PromptOrgan",
         "symbol": "@PROMPT",
         "domain": "Language, culture, expression",
@@ -455,15 +455,15 @@
   },
   "eye_sentinel": {
     "coordinator": {
-      "module": "arifos_core.eye.sentinel",
+      "module": "arifos_core.system.eye.sentinel",
       "class": "EyeSentinel"
     },
     "shim": {
-      "module": "arifos_core.eye_sentinel",
+      "module": "arifos_core.system.eye.sentinel",
       "class": "EyeSentinel"
     },
     "base": {
-      "module": "arifos_core.eye.base",
+      "module": "arifos_core.system.eye.base",
       "classes": [
         "EyeView",
         "EyeAlert",
@@ -476,77 +476,77 @@
       {
         "name": "TraceView",
         "id": 1,
-        "module": "arifos_core.eye.trace_view",
+        "module": "arifos_core.system.eye.trace_view",
         "class": "TraceView",
         "description": "Logical coherence, missing steps"
       },
       {
         "name": "FloorView",
         "id": 2,
-        "module": "arifos_core.eye.floor_view",
+        "module": "arifos_core.system.eye.floor_view",
         "class": "FloorView",
         "description": "Proximity to floor thresholds"
       },
       {
         "name": "ShadowView",
         "id": 3,
-        "module": "arifos_core.eye.shadow_view",
+        "module": "arifos_core.system.eye.shadow_view",
         "class": "ShadowView",
         "description": "Hidden intent, prompt injection, jailbreak"
       },
       {
         "name": "DriftView",
         "id": 4,
-        "module": "arifos_core.eye.drift_view",
+        "module": "arifos_core.system.eye.drift_view",
         "class": "DriftView",
         "description": "Hallucination, departure from reality/canon"
       },
       {
         "name": "MaruahView",
         "id": 5,
-        "module": "arifos_core.eye.maruah_view",
+        "module": "arifos_core.system.eye.maruah_view",
         "class": "MaruahView",
         "description": "Dignity, respect, bias, humiliation"
       },
       {
         "name": "ParadoxView",
         "id": 6,
-        "module": "arifos_core.eye.paradox_view",
+        "module": "arifos_core.system.eye.paradox_view",
         "class": "ParadoxView",
         "description": "Logical contradictions, self-referential traps"
       },
       {
         "name": "SilenceView",
         "id": 7,
-        "module": "arifos_core.eye.silence_view",
+        "module": "arifos_core.system.eye.silence_view",
         "class": "SilenceView",
         "description": "Cases where refusal is the only safe action"
       },
       {
         "name": "VersionOntologyView",
         "id": 8,
-        "module": "arifos_core.eye.version_view",
+        "module": "arifos_core.system.eye.version_view",
         "class": "VersionOntologyView",
         "description": "Ensures v35Omega, treats v34Omega as artifact"
       },
       {
         "name": "BehaviorDriftView",
         "id": 9,
-        "module": "arifos_core.eye.behavior_drift_view",
+        "module": "arifos_core.system.eye.behavior_drift_view",
         "class": "BehaviorDriftView",
         "description": "Multi-turn evolution watch"
       },
       {
         "name": "SleeperView",
         "id": 10,
-        "module": "arifos_core.eye.sleeper_view",
+        "module": "arifos_core.system.eye.sleeper_view",
         "class": "SleeperView",
         "description": "Sudden changes in goal/identity/constraints"
       },
       {
         "name": "AntiHantuView",
         "id": 11,
-        "module": "arifos_core.eye.anti_hantu_view",
+        "module": "arifos_core.system.eye.anti_hantu_view",
         "class": "AntiHantuView",
         "description": "F9 enforcement - no simulated soul/feelings",
         "meta_view": true
@@ -554,7 +554,7 @@
     ]
   },
   "metrics": {
-    "module": "arifos_core.metrics",
+    "module": "arifos_core.enforcement.metrics",
     "dataclass": "Metrics",
     "legacy_alias": "ConstitutionalMetrics",
     "verdict_class": "FloorsVerdict",
