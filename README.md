@@ -4,7 +4,7 @@
 
 ![arifOS Constitutional Governance Kernel](docs/arifOS%20Constitutional%20Governance%20Kernel.png)
 
-![Tests](https://img.shields.io/badge/tests-passing-brightgreen) ![Version](https://img.shields.io/badge/version-v45.1.1-blue) ![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
+![Tests](https://img.shields.io/badge/tests-passing-brightgreen) ![Version](https://img.shields.io/badge/version-v46.0-blue) ![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
 
 ---
 
@@ -744,8 +744,8 @@ arifOS provides **two MCP surfaces** for different use cases:
 
 #### Glass-box MCP (`arifos_core/mcp/`) — IDE Integration
 
-**Purpose:** Debugging, research, IDE integration  
-**Tools:** 17 composable (full pipeline visibility)  
+**Purpose:** Debugging, research, IDE integration
+**Tools:** 17 composable (full pipeline visibility)
 **Ledger:** JSONL + Merkle tree (cryptographic proofs)
 
 **Available Tools:**
@@ -760,8 +760,8 @@ arifOS provides **two MCP surfaces** for different use cases:
 
 #### Black-box MCP (`L4_MCP/`) — Agent Authority
 
-**Purpose:** Agents, production systems, external callers  
-**Tools:** 1 (`apex.verdict`) — non-bypassable  
+**Purpose:** Agents, production systems, external callers
+**Tools:** 1 (`apex.verdict`) — non-bypassable
 **Ledger:** SQLite (ACID transactions, fail-closed)
 
 **Single Tool API:**

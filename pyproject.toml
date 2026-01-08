@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "46.0.0-alpha"
-description = "Constitutional Governance Kernel for AI - 9 Floors, SOVEREIGN WITNESS, TEARFRAME Physics, Fail-Closed Enforcement (v45)"
+version = "46.0.0"
+description = "Constitutional Governance Kernel for AI - 9 Floors, 8-Folder Orthogonal Structure, TEARFRAME Physics, Fail-Closed Enforcement (v46)"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "AGPL-3.0-only"
