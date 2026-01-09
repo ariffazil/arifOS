@@ -22,10 +22,18 @@ The `.agent/` directory contains **workflow definitions** (also called "skills")
 ```
 .agent/
 ├── README.md              # This file
+├── ARCHITECT.md           # Architect role definition (Antigravity)
+├── rules/                 # Tool restrictions and boundaries
+│   ├── arifos_ontology.md
+│   └── architect_boundaries.md
 └── workflows/             # Workflow definitions (*.md files)
     ├── 000.md            # Session initialization
     ├── fag.md            # Full Autonomy Governance activation
-    └── gitforge.md       # Git entropy analysis
+    ├── gitforge.md       # Git entropy analysis
+    ├── ledger.md         # THE EYE ledger operations
+    ├── plan.md           # Architect planning workflow
+    ├── review.md         # Architect review workflow
+    └── handoff.md        # Architect handoff workflow
 ```
 
 ---
@@ -161,6 +169,81 @@ If ΔS ≥ 5.0 OR Risk Score ≥ 0.7 OR modifying PRIMARY sources:
 - **Trinity Display:** Entropy analysis can trigger AGI/APEX mode (forensic review)
 
 **When to use:** Before making significant changes, before committing, during code review
+
+---
+
+### 4. /plan — Architect Planning Mode
+
+**Command:** `/plan` or `architect-plan`
+**Purpose:** Create implementation plans (Architect role - Antigravity)
+**Floors enforced:** F4, F7
+
+**What it does:**
+1. Understands user's feature request
+2. Searches existing codebase (MANDATORY discovery before creating files)
+3. Identifies affected components
+4. Designs solution architecture with file-by-file changes
+5. Creates `implementation_plan.md` artifact
+6. Requests user review
+
+**Who uses this:** Antigravity (Architect Δ) when designing solutions
+
+---
+
+### 5. /review — Architect Review
+
+**Command:** `/review` or `architect-review`
+**Purpose:** Validate Engineer's completed work (Architect role - Antigravity)
+**Floors enforced:** F4, F8
+
+**What it does:**
+1. Loads the original approved plan
+2. Reviews changes made by Engineer (Claude)
+3. Verifies implementation matches architectural intent
+4. Checks for F4 violations (entropy increase)
+5. Issues decision: APPROVED / CHANGES REQUESTED / VOID
+
+**Who uses this:** Antigravity (Architect Δ) after Claude implements
+
+---
+
+### 6. /handoff — Architect Handoff
+
+**Command:** `/handoff` or `architect-handoff`
+**Purpose:** Hand off approved plan to Engineer (Architect role - Antigravity)
+**Floors enforced:** F4, F3
+
+**What it does:**
+1. Verifies plan is approved by human
+2. Creates handoff directory (`.antigravity/`)
+3. Writes `HANDOFF_FOR_CLAUDE.md` with:
+   - Approved plan summary
+   - Files to create/modify
+   - Tests to write
+   - Success criteria
+4. Notifies user how to proceed
+
+**Who uses this:** Antigravity (Architect Δ) to delegate implementation
+
+---
+
+## Agent Roles
+
+arifOS uses a **Trinity governance model** with three specialized AI agents:
+
+| Role | Agent | Symbol | Config File |
+|------|-------|--------|-------------|
+| **Architect** | Antigravity (Gemini) | Δ (Delta) | [.agent/ARCHITECT.md](.agent/ARCHITECT.md) |
+| **Engineer** | Claude Code | Ω (Omega) | [CLAUDE.md](../CLAUDE.md) |
+| **Auditor** | Codex (ChatGPT) | Ψ (Psi) | `.codex/` or `L2_GOVERNANCE/agents/CODEX.md` |
+
+**Separation of Powers:**
+- **Architect (Δ)** designs and plans → creates implementation_plan.md
+- **Engineer (Ω)** builds and tests → implements the plan
+- **Auditor (Ψ)** validates and seals → issues SEAL/VOID verdict
+- **Human (Arif)** has final authority → ratifies or rejects
+
+**No agent can both propose AND seal their own work.**
 
 ---
 
