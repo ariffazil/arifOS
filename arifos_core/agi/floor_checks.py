@@ -19,6 +19,9 @@ from ..enforcement.claim_detection import extract_claim_profile
 # Import existing truth/delta_s checks from metrics
 from ..enforcement.metrics import TRUTH_THRESHOLD, check_delta_s, check_truth
 
+# Import type safety utilities
+from ..foundation.safe_types import safe_float
+
 
 @dataclass
 class F2TruthResult:
@@ -58,7 +61,8 @@ def check_truth_f2(
     claim_profile = extract_claim_profile(text)
 
     # FAIL-CLOSED: Default to 0.0 (Fail) if metrics missing
-    truth_value = metrics.get("truth", 0.0)
+    # F1 (Amanah) Type Safety: safe_float prevents crashes on malformed metrics
+    truth_value = safe_float(metrics.get("truth"), 0.0)
 
     # If claims exist but no explicit truth score, apply density penalty
     if claim_profile["has_claims"] and truth_value == 0.99:
@@ -94,7 +98,8 @@ def check_delta_s_f6(
     metrics = context.get("metrics", {})
 
     # FAIL-CLOSED: Default to -1.0 (Fail) if metrics missing
-    delta_s_value = metrics.get("delta_s", -1.0)
+    # F1 (Amanah) Type Safety: safe_float prevents crashes on malformed metrics
+    delta_s_value = safe_float(metrics.get("delta_s"), -1.0)
 
     # Use existing check_delta_s from metrics
     passed = check_delta_s(delta_s_value)

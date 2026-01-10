@@ -13,6 +13,11 @@ Example paradox:
 
 v46 Trinity Orthogonal: EUREKA belongs to ASI (Ω) kernel.
 
+v46.2 Improvement:
+- Magnitude-aware coherence scoring (not hardcoded)
+- coherence = 1.0 - disagreement_penalty
+- Penalty based on actual score differences, not just pass/fail
+
 DITEMPA BUKAN DIBERI
 """
 
@@ -49,6 +54,7 @@ class EUREKA_777:
         Synthesize coherent response from AGI and ASI outputs.
 
         v46 Phase 2.1: Detects AGI-ASI conflicts and flags paradoxes.
+        v46.2: Magnitude-aware coherence scoring based on actual score differences.
 
         Conflict scenarios:
         1. Truth vs. Care: AGI says "True" but ASI says "Unsafe" (harsh truth)
@@ -58,60 +64,82 @@ class EUREKA_777:
 
         Args:
             agi_output: AGI kernel output with keys:
-                - truth_passed: bool (F1 Truth check)
-                - delta_s_passed: bool (F2 Clarity check)
-                - truth_score: float (optional)
+                - truth_passed: bool (F2 Truth check)
+                - delta_s_passed: bool (F6 Clarity check)
+                - truth_score: float (optional, for magnitude-aware scoring)
+                - delta_s_score: float (optional)
             asi_assessment: ASI kernel output with keys:
-                - peace_passed: bool (F3 Peace² check)
-                - empathy_passed: bool (F4 κᵣ check)
-                - peace_score: float (optional)
+                - peace_passed: bool (F5 Peace² check)
+                - empathy_passed: bool (F6 κᵣ check)
+                - peace_score: float (optional, for magnitude-aware scoring)
+                - empathy_score: float (optional)
             context: Optional context for synthesis
 
         Returns:
             EurekaCandidate with conflict detection and coherence score
         """
-        # Extract floor results
+        # Extract floor results (boolean pass/fail)
         truth_ok = agi_output.get("truth_passed", True)
         delta_s_ok = agi_output.get("delta_s_passed", True)
         peace_ok = asi_assessment.get("peace_passed", True)
         empathy_ok = asi_assessment.get("empathy_passed", True)
 
+        # Extract actual scores for magnitude-aware coherence
+        truth_score = agi_output.get("truth_score", 1.0 if truth_ok else 0.0)
+        delta_s_score = agi_output.get("delta_s_score", 0.0 if delta_s_ok else -1.0)
+        peace_score = asi_assessment.get("peace_score", 1.0 if peace_ok else 0.0)
+        empathy_score = asi_assessment.get("empathy_score", 1.0 if empathy_ok else 0.0)
+
         # Aggregate kernel verdicts
         agi_verdict = truth_ok and delta_s_ok
         asi_verdict = peace_ok and empathy_ok
 
-        # Conflict detection
+        # Conflict detection with magnitude-aware coherence
         paradox_found = False
         conflict_type = None
-        coherence = 1.0
 
         if agi_verdict and asi_verdict:
             # Scenario 4: Both pass - No conflict (ideal)
+            # Coherence based on score alignment (compare similar metrics)
+            # Truth (0-1) vs Peace (0-1): Directly comparable
+            truth_peace_gap = abs(truth_score - peace_score)
+            # For delta_s, just check if it's strongly positive (> 0.2) vs empathy
+            delta_s_normalized = max(0.0, min(1.0, delta_s_score + 0.5))  # Shift [-1, 1] to [0, 1]
+            delta_empathy_gap = abs(delta_s_normalized - empathy_score)
+
+            # Average disagreement across comparable dimensions
+            disagreement = (truth_peace_gap + delta_empathy_gap) / 2.0
+            coherence = max(0.0, 1.0 - disagreement)
             conflict_type = "NONE"
-            coherence = 1.0
             synthesis_text = "[No synthesis needed - AGI and ASI agree]"
 
         elif not agi_verdict and not asi_verdict:
             # Scenario 3: Both fail - Fundamental problem
             conflict_type = "DUAL_FAILURE"
             paradox_found = True
-            coherence = 0.0
+            coherence = 0.0  # Cannot synthesize when both reject
             synthesis_text = "[SABAR required - Both AGI and ASI reject]"
 
         elif agi_verdict and not asi_verdict:
             # Scenario 1: Truth vs. Care conflict
             # AGI says "True" but ASI says "Unsafe" (harsh truth problem)
+            # Coherence penalty based on how badly ASI failed
+            asi_failure_magnitude = (1.0 - peace_score) + (1.0 - empathy_score)
+            disagreement_penalty = min(0.7, asi_failure_magnitude / 2.0)  # Max penalty 0.7
+            coherence = max(0.3, 1.0 - disagreement_penalty)  # Min coherence 0.3 (can reframe)
             conflict_type = "TRUTH_VS_CARE"
             paradox_found = True
-            coherence = 0.6  # Partial - can reframe truth with empathy
             synthesis_text = "[Reframe required - Truth is harsh, need gentle delivery]"
 
         else:  # not agi_verdict and asi_verdict
             # Scenario 2: Care vs. Truth conflict
             # ASI says "Safe" but AGI says "False" (comforting lie problem)
+            # Higher penalty because lying to comfort violates F2 (Truth)
+            agi_failure_magnitude = (1.0 - truth_score) + abs(min(0, delta_s_score))
+            disagreement_penalty = min(0.8, agi_failure_magnitude / 2.0)  # Max penalty 0.8
+            coherence = max(0.2, 1.0 - disagreement_penalty)  # Min coherence 0.2 (truth must prevail)
             conflict_type = "CARE_VS_TRUTH"
             paradox_found = True
-            coherence = 0.4  # Lower - lying to comfort is worse than harsh truth
             synthesis_text = "[Truth correction required - Cannot sacrifice accuracy for comfort]"
 
         # Return synthesis candidate

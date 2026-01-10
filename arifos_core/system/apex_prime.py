@@ -397,6 +397,8 @@ def check_floors(
             "omega_0": metrics.omega_0,
             "tri_witness": metrics.tri_witness,
             "rasa": 1.0 if bool(metrics.rasa) else 0.0,
+            "amanah": metrics.amanah,  # v46: Pass amanah for F1 override
+            "anti_hantu": metrics.anti_hantu if hasattr(metrics, "anti_hantu") else True,  # v46: Pass anti_hantu for F9 override
         },
         "high_stakes": tri_witness_required,
         "lane": lane,

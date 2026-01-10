@@ -321,8 +321,8 @@ def grade_text(text: str, **kwargs) -> GradeResult:
             "kappa_r": 0.96,  # Empathetic
             "omega_0": 0.04,  # Appropriate humility
             "tri_witness": 0.96,  # Consensus
-            "amanah": True,  # Safe unless Amanah detector flags
             "rasa": True,  # Felt care present
+            # NOTE: amanah and anti_hantu NOT synthesized - use text-based detectors
         }
     return TRINITY_ORCHESTRATOR.grade(text, context=kwargs)
 
