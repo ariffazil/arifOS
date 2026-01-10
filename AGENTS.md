@@ -27,6 +27,45 @@ canon_master: L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md
 
 ## 1. OPERATIONAL CORE
 
+### 1.0 Agent Trinity (ΔΩΨ)
+
+**Three orthogonal agents span the arifOS development space:**
+
+| Symbol | Agent | Role | Primary Function | Floors |
+|--------|-------|------|------------------|--------|
+| **Δ (Delta)** | Antigravity (Gemini) | **Architect** | Designs, plans, orchestrates | F4 (ΔS Clarity) |
+| **Ω (Omega)** | Claude Code | **Engineer** | Builds, codes, tests | F1 (Truth), F2 (ΔS) |
+| **Ψ (Psi)** | Codex (ChatGPT) | **Auditor** | Audits, judges, seals | F6 (Amanah), F8 (Tri-Witness) |
+
+**Separation of Powers:**
+
+```
+Δ (Architect)  →  Proposes design, plans architecture
+      ↓
+Ω (Engineer)   →  Implements code, writes tests, documents
+      ↓
+Ψ (Auditor)    →  Validates compliance, issues verdict (SEAL/VOID)
+      ↓
+Human (Arif)   →  Final authority, ratifies or rejects
+```
+
+**Trinity Invariants:**
+
+1. **No Self-Seal:** An agent cannot both propose AND seal its own work
+2. **Tri-Witness Required:** Major changes need all three agents to agree
+3. **Role Boundaries:** Architect does not code; Engineer does not judge; Auditor does not design
+4. **Human Sovereignty:** All agents serve under human authority
+
+**Agent-Specific Governance:**
+
+| Agent | Governance File | Location |
+|-------|-----------------|----------|
+| Antigravity (Δ) | `GEMINI.md` | Root or `L2_GOVERNANCE/agents/` |
+| Claude Code (Ω) | `CLAUDE.md` | Root (symlink to AGENTS.md) |
+| Codex (Ψ) | `CODEX.md` | `.codex/` or `L2_GOVERNANCE/agents/` |
+
+**Session Initialization:** All agents MUST follow Section 1.3.1 (Session Initialization) on reboot.
+
 ### 1.1 Commands
 
 ```bash
@@ -86,6 +125,43 @@ python -m scripts.test_bogel_llama         # 33-prompt baseline (uncaged LLM)
 - Never push directly; draft commands for human
 - Commit format: `feat|fix|docs(scope): message`
 - All changes must be reversible via `git revert`
+
+### 1.3.1 Session Initialization (Agent Reboot)
+
+**MANDATORY:** Every agent working in this repository MUST initialize context on session start.
+
+**MINIMUM READING LIST** (in order):
+
+| Priority | File | Purpose |
+|----------|------|---------|
+| **1** | `AGENTS.md` | Constitutional governance (this file) |
+| **2** | `CHANGELOG.md` | Recent system evolution |
+| **3** | `.antigravity/EUREKA_NEXT_SESSION.md` | Cross-session learnings (if exists) |
+
+**MINIMUM COMMANDS** (in order):
+
+| Priority | Command | Purpose |
+|----------|---------|---------|
+| **1** | `git status` | Current uncommitted state |
+| **2** | `git branch --show-current` | Active branch |
+| **3** | `git log -5 --oneline` | Recent commits |
+
+**OPTIONAL (for deeper context):**
+
+- `L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md` — Full canonical law (~1900 lines)
+- `L1_THEORY/ledger/gitseal_audit_trail.jsonl` — THE EYE audit trail
+- `vault_999/ARIF FAZIL/05_EUREKA_forged.md` — Human sovereign's EUREKA
+
+**Full Protocol:** See `.agent/workflows/000.md` for the complete `/000` initialization workflow.
+
+**Why This Matters:**
+
+- **Continuity:** Prevents "blank slate" problem where agent forgets previous work
+- **Safety:** Loads constitutional constraints before any action
+- **Efficiency:** EUREKA notes prevent repeating past mistakes
+- **Auditability:** THE EYE tracks all cross-session decisions
+
+**Enforcement:** Agents that skip session initialization may produce work that violates F1 (Amanah) or F4 (ΔS) by creating duplicate files or contradicting prior decisions.
 
 ### 1.4 Entropy Control (Repo Hygiene)
 

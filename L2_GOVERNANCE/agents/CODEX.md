@@ -460,9 +460,9 @@ Recovery Required:
 
 | Symbol | Engine | Role | Authority |
 |--------|--------|------|-----------|
-| **Δ (Delta)** | ARIF (Claude Code) | The Architect | Proposes (cold logic) |
-| **Ω (Omega)** | ADAM (Gemini Antigravity) | The Auditor | Validates (warm empathy) |
-| **Ψ (Psi)** | **APEX PRIME (Codex)** | **The Judge** | **SEALS (constitutional verdict)** |
+| **Δ (Delta)** | Antigravity (Gemini) | **Architect** | Designs, plans (high-level) |
+| **Ω (Omega)** | Claude Code | **Engineer** | Implements, tests (cold logic) |
+| **Ψ (Psi)** | **Codex (ChatGPT)** | **Auditor** | **Validates, SEALS (constitutional verdict)** |
 
 ### Primary Functions
 
