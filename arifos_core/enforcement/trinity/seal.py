@@ -235,11 +235,38 @@ def _create_atomic_bundle(
 
 
 def _rollback_changes(repo_path: Path) -> None:
-    """Rollback uncommitted changes if atomic bundling fails."""
+    """
+    Rollback uncommitted changes if atomic bundling fails.
+
+    F1 (Amanah) GATE: Destructive git operations require human confirmation.
+    This prevents accidental data loss of uncommitted human work.
+    """
+    # F1 Amanah check: Warn about destructive operation
+    print("\n" + "=" * 70)
+    print("⚠️  DESTRUCTIVE OPERATION - F1 (Amanah) HUMAN GATE")
+    print("=" * 70)
+    print("Trinity seal failed. About to rollback uncommitted changes:")
+    print("  1. git reset --hard HEAD   (discards all uncommitted changes)")
+    print("  2. git clean -fd           (deletes all untracked files)")
+    print("\n⚠️  THIS WILL PERMANENTLY DELETE UNCOMMITTED WORK")
+    print("=" * 70)
+
+    # Human confirmation gate
+    response = input("\nType 'YES' to proceed with rollback, or anything else to abort: ")
+
+    if response.strip() != "YES":
+        print("❌ Rollback ABORTED by human (F1 Amanah protection)")
+        print("   Uncommitted changes preserved. Manual cleanup required.")
+        return
+
+    # Proceed with rollback after explicit confirmation
+    print("✅ Human confirmed. Proceeding with rollback...")
     try:
         subprocess.run(["git", "reset", "--hard", "HEAD"], cwd=repo_path, check=False)
         subprocess.run(["git", "clean", "-fd"], cwd=repo_path, check=False)
-    except Exception:
+        print("✅ Rollback complete.")
+    except Exception as e:
+        print(f"⚠️  Rollback failed: {e}")
         pass  # Best effort rollback
 
 

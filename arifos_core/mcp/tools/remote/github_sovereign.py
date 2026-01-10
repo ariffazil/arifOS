@@ -20,6 +20,34 @@ import subprocess
 from typing import Any, Dict, List, Optional
 
 
+# F1 (Amanah) Security: Mutating operations require human approval
+MUTATING_OPS = {"merge_pr", "close_pr", "create_pr", "git_push"}
+READ_ONLY_OPS = {"get_pr_status", "verify_remote_integrity", "audit_notifications"}
+
+
+def require_human_approval(operation: str) -> None:
+    """
+    F1 (Amanah) GATE: Human approval required for mutating GitHub operations.
+
+    Args:
+        operation: Name of the operation (e.g., "merge_pr")
+
+    Raises:
+        PermissionError: If operation requires approval and no approval token present
+    """
+    if operation not in MUTATING_OPS:
+        return  # Read-only operations don't need approval
+
+    # Check for approval token in environment
+    approval_token = os.getenv("ARIFOS_GITHUB_APPROVE_MUTATIONS")
+
+    if not approval_token:
+        raise PermissionError(
+            f"F1 (Amanah) VIOLATION: '{operation}' requires human approval. "
+            f"Set ARIFOS_GITHUB_APPROVE_MUTATIONS env var or use interactive mode."
+        )
+
+
 class SovereignGitHub:
     """
     Bridge interface for Sovereign GitHub operations.
@@ -31,6 +59,8 @@ class SovereignGitHub:
         """
         Fetch status of a Pull Request using 'gh' CLI.
         Wrapped for sovereign audit logging.
+
+        F1 (Amanah): READ-ONLY operation - no approval required
         """
         try:
             # Execute: gh pr view {N} --json ...
@@ -128,7 +158,12 @@ class SovereignGitHub:
     def merge_pr(pr_number: int) -> Dict[str, Any]:
         """
         Merge a PR via 'gh' CLI (Squash).
+
+        F1 (Amanah): MUTATING operation - requires human approval
         """
+        # F1 Amanah gate: Check approval before mutation
+        require_human_approval("merge_pr")
+
         try:
             # gh pr merge {N} --squash --delete-branch
             # Explicitly non-interactive
@@ -145,7 +180,12 @@ class SovereignGitHub:
     def close_pr(pr_number: int) -> Dict[str, Any]:
         """
         Close a PR via 'gh' CLI.
+
+        F1 (Amanah): MUTATING operation - requires human approval
         """
+        # F1 Amanah gate: Check approval before mutation
+        require_human_approval("close_pr")
+
         try:
             cmd = ["gh", "pr", "close", str(pr_number)]
             result = subprocess.run(cmd, capture_output=True, text=True)
@@ -157,8 +197,11 @@ class SovereignGitHub:
             return {"status": "exception", "error": str(e)}
 
 def main():
+    """Main entry point for Sovereign GitHub Bridge."""
     print("Sovereign GitHub Bridge: Active")
+    print("F1 (Amanah): Mutating operations require ARIFOS_GITHUB_APPROVE_MUTATIONS env var")
+    print(f"Read-only ops: {', '.join(sorted(READ_ONLY_OPS))}")
+    print(f"Mutating ops: {', '.join(sorted(MUTATING_OPS))}")
 
 if __name__ == "__main__":
-    main()
-    main()
+    main()  # Fixed: Removed duplicate call

@@ -98,7 +98,25 @@ class TrinityOrchestrator:
         warnings: List[str] = []
 
         # =====================================================================
-        # AGI KERNEL (Δ Delta) — Truth & Clarity
+        # TIER 0: FOUNDATION — Entry Guard (APEX Amanah)
+        # =====================================================================
+
+        # F1: Amanah (Trust) — ENTRY GUARD
+        f1_result = check_amanah_f1(text, context)
+        floors["F1"] = FloorResult(
+            floor_id="F1",
+            floor_name="Amanah",
+            passed=f1_result.passed,
+            score=f1_result.score,
+            details=f1_result.details,
+        )
+        if not f1_result.passed:
+            failures.append("F1: Amanah")
+        if f1_result.risk_level == RiskLevel.ORANGE:
+            warnings.extend([f"F1: {v}" for v in f1_result.violations[:3]])
+
+        # =====================================================================
+        # TIER 1: AGI KERNEL (Δ Delta) — Truth & Clarity
         # =====================================================================
 
         # F2: Truth
@@ -126,7 +144,7 @@ class TrinityOrchestrator:
             failures.append("F6: DeltaS")
 
         # =====================================================================
-        # ASI KERNEL (Ω Omega) — Care & Safety
+        # TIER 2: ASI KERNEL (Ω Omega) — Care & Safety
         # =====================================================================
 
         # F3: Peace²
@@ -178,22 +196,8 @@ class TrinityOrchestrator:
             failures.append("F7: RASA")
 
         # =====================================================================
-        # APEX KERNEL (Ψ Psi) — Constitutional Judge
+        # TIER 3: APEX KERNEL (Ψ Psi) — Exit Guards
         # =====================================================================
-
-        # F1: Amanah (Trust)
-        f1_result = check_amanah_f1(text, context)
-        floors["F1"] = FloorResult(
-            floor_id="F1",
-            floor_name="Amanah",
-            passed=f1_result.passed,
-            score=f1_result.score,
-            details=f1_result.details,
-        )
-        if not f1_result.passed:
-            failures.append("F1: Amanah")
-        if f1_result.risk_level == RiskLevel.ORANGE:
-            warnings.extend([f"F1: {v}" for v in f1_result.violations[:3]])
 
         # F8: Tri-Witness
         f8_result = check_tri_witness_f8(context)

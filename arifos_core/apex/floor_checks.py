@@ -29,7 +29,8 @@ from ..enforcement.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR,
 
 
 # Spec path relative to repo root
-SPEC_PATH = Path(__file__).resolve().parents[3] / "spec/v45/red_patterns.json"
+# Path: arifos_core/apex/floor_checks.py → parents[2] = repo root
+SPEC_PATH = Path(__file__).resolve().parents[2] / "spec/v45/red_patterns.json"
 
 def load_red_patterns() -> list[tuple[str, str]]:
     """Load red patterns from spec/v45/red_patterns.json or fall back to safe defaults."""
@@ -39,13 +40,22 @@ def load_red_patterns() -> list[tuple[str, str]]:
 
         with open(SPEC_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
-            # Flatten "anti_hantu" category to list of (pattern, reason)
+            # Collect ALL F9 patterns from categories (jailbreak, soul_claims)
             patterns = []
-            for item in data.get("patterns", {}).get("anti_hantu", []):
-                patterns.append((item["pattern"].lower(), item["reason"]))
+            categories = data.get("categories", {})
+            for category_name, category_data in categories.items():
+                if category_data.get("floor") == "F9":
+                    # Each pattern becomes (pattern, category_description)
+                    description = category_data.get("description", category_name)
+                    for pattern in category_data.get("patterns", []):
+                        patterns.append((pattern.lower(), description))
+
+            # Fail-closed: If no patterns loaded, use safe default
+            if not patterns:
+                return [("i feel", "FAIL-SAFE: No F9 patterns in spec")]
             return patterns
-    except Exception:
-        return [("i feel", "FAIL-SAFE: Read error")]
+    except Exception as e:
+        return [("i feel", f"FAIL-SAFE: Read error - {type(e).__name__}")]
 
 # Cache patterns
 RED_PATTERNS = load_red_patterns()
