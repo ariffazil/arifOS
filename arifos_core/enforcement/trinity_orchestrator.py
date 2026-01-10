@@ -5,9 +5,9 @@ This module replaces the monolithic floor_scorer.py with the Trinity
 Orthogonal architecture: AGI (Δ) → ASI (Ω) → APEX (Ψ).
 
 Flow:
-    Input → AGI (F1 Truth, F2 DeltaS)
+    Input → AGI (F2 Truth, F6 ΔS)
           → ASI (F3 Peace², F4 κᵣ, F5 Ω₀, F7 RASA)
-          → APEX (F6 Amanah, F8 Tri-Witness, F9 Anti-Hantu)
+          → APEX (F1 Amanah, F8 Tri-Witness, F9 Anti-Hantu)
           → Verdict (SEAL/VOID/PARTIAL/SABAR/HOLD_888)
 
 Backward compatibility: Maintains same API as floor_scorer.py for tests.
@@ -69,9 +69,9 @@ class TrinityOrchestrator:
     text against all 9 constitutional floors.
 
     v46 Floor Mapping:
-        AGI (Δ):  F1 Truth, F2 DeltaS
+        AGI (Δ):  F2 Truth, F6 ΔS (Clarity)
         ASI (Ω):  F3 Peace², F4 κᵣ, F5 Ω₀, F7 RASA
-        APEX (Ψ): F6 Amanah, F8 Tri-Witness, F9 Anti-Hantu
+        APEX (Ψ): F1 Amanah, F8 Tri-Witness, F9 Anti-Hantu
     """
 
     def grade(

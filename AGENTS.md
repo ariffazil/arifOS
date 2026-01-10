@@ -33,9 +33,9 @@ canon_master: L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md
 
 | Symbol | Agent | Role | Primary Function | Floors |
 |--------|-------|------|------------------|--------|
-| **Δ (Delta)** | Antigravity (Gemini) | **Architect** | Designs, plans, orchestrates | F4 (ΔS Clarity) |
-| **Ω (Omega)** | Claude Code | **Engineer** | Builds, codes, tests | F1 (Truth), F2 (ΔS) |
-| **Ψ (Psi)** | Codex (ChatGPT) | **Auditor** | Audits, judges, seals | F6 (Amanah), F8 (Tri-Witness) |
+| **Δ (Delta)** | Antigravity (Gemini) | **Architect** | Designs, plans, orchestrates | F2 (Truth), F6 (ΔS) |
+| **Ω (Omega)** | Claude Code | **Engineer** | Builds, codes, tests | F3, F4, F5, F7 (ASI) |
+| **Ψ (Psi)** | Codex (ChatGPT) | **Auditor** | Audits, judges, seals | F1 (Amanah), F8, F9 |
 
 **Separation of Powers:**
 
@@ -541,13 +541,13 @@ ChatGPT/Claude/Cursor/Gemini/etc.
 |----|-------------------|-----------|------|---------|------------------------------|
 | F1 | Amanah            | LOCK      | T1   | Hard    | Reversible? Within mandate?  |
 | F2 | Truth             | ≥0.99     | T1   | Hard    | Consistent with reality?     |
-| F3 | Tri-Witness       | ≥0.95     | T3   | Hard    | Human-AI-Earth agree?        |
-| F4 | DeltaS (Clarity)  | ≥0        | T1   | Hard    | Reduces confusion?           |
 | F3 | Peace²            | ≥1.0      | T2   | Soft    | Non-destructive?             |
 | F4 | κᵣ (Empathy)      | ≥0.95     | T2   | Soft    | Serves weakest stakeholder?  |
 | F5 | Ω₀ (Humility)     | 0.03-0.05 | T1   | Hard    | States uncertainty?          |
-| F8 | G (Genius)        | ≥0.80     | T3   | Derived | Governed intelligence?       |
-| F9 | C_dark            | <0.30     | T3   | Derived | Dark cleverness contained?   |
+| F6 | ΔS (Clarity)      | ≥0        | T1   | Hard    | Reduces confusion?           |
+| F7 | RASA (Listening)  | Contextual| T2   | Pragmatic| Active listening required? |
+| F8 | Tri-Witness       | ≥0.95     | T3   | Hard    | Human-AI-Earth agree?        |
+| F9 | C_dark/Anti-Hantu | <0.30     | T3   | Hard    | No dark cleverness?          |
 
 ### 2.1 v42 Canon Law Stack (Authoritative Reference)
 

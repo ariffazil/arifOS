@@ -51,6 +51,8 @@ That's it. AI answers are now checked before reaching you.
 | 8 | **Double-Check** | For important decisions, get human approval. |
 | 9 | **No Pretending** | AI must not claim to have feelings or a soul. |
 
+> **Note for developers:** These rules follow thermodynamic execution order. Technical floor IDs: F1 (Honesty/Amanah), F2 (Truth), F3 (Stability/Peace²), F4 (Kindness/Empathy), F5 (Humility), F6 (Clarity/ΔS), F7 (Listening/RASA), F8 (Double-Check/Tri-Witness), F9 (No Pretending/Anti-Hantu). Execution: F1→F2→F6→F3→F4→F5→F7→F8→F9.
+
 **Simple:** If rules 1-9 pass → Answer released ✅
 If any rule fails → Answer blocked ❌
 
