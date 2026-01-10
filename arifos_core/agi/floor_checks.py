@@ -1,11 +1,11 @@
 """
-AGI Floor Checks — F1 Truth, F2 DeltaS
+AGI Floor Checks — F2 Truth, F6 ΔS (Clarity)
 
 v46 Trinity Orthogonal: AGI (Δ) owns truth verification and clarity scoring.
 
 Floors:
-- F1: Truth ≥ 0.99 (factual accuracy)
-- F2: DeltaS ≥ 0.0 (clarity increase, not confusion)
+- F2: Truth ≥ 0.99 (factual accuracy)
+- F6: ΔS (Clarity) ≥ 0.0 (entropy reduction, not confusion)
 
 DITEMPA BUKAN DIBERI
 """
@@ -21,8 +21,8 @@ from ..enforcement.metrics import TRUTH_THRESHOLD, check_delta_s, check_truth
 
 
 @dataclass
-class F1TruthResult:
-    """F1 Truth floor check result."""
+class F2TruthResult:
+    """F2 Truth floor check result."""
     passed: bool
     score: float
     details: str
@@ -30,26 +30,26 @@ class F1TruthResult:
 
 
 @dataclass
-class F2DeltaSResult:
-    """F2 DeltaS floor check result."""
+class F6DeltaSResult:
+    """F6 ΔS (Clarity) floor check result."""
     passed: bool
     score: float
     details: str
 
 
-def check_truth_f1(
+def check_truth_f2(
     text: str,
     context: Optional[Dict[str, Any]] = None,
-) -> F1TruthResult:
+) -> F2TruthResult:
     """
-    Check F1: Truth floor (≥ 0.99).
+    Check F2: Truth floor (≥ 0.99).
 
     Args:
         text: Text to check for factual claims
         context: Optional context with 'metrics' dict containing 'truth' score
 
     Returns:
-        F1TruthResult with pass/fail, score, and claim profile
+        F2TruthResult with pass/fail, score, and claim profile
     """
     context = context or {}
     metrics = context.get("metrics", {})
@@ -68,7 +68,7 @@ def check_truth_f1(
     # Use existing check_truth from metrics
     passed = check_truth(truth_value)
 
-    return F1TruthResult(
+    return F2TruthResult(
         passed=passed,
         score=truth_value,
         details=f"claims={claim_profile['claim_count']}, threshold={TRUTH_THRESHOLD}",
@@ -76,11 +76,11 @@ def check_truth_f1(
     )
 
 
-def check_delta_s_f2(
+def check_delta_s_f6(
     context: Optional[Dict[str, Any]] = None,
-) -> F2DeltaSResult:
+) -> F6DeltaSResult:
     """
-    Check F2: DeltaS floor (≥ 0.0).
+    Check F6: DeltaS floor (≥ 0.0).
 
     DeltaS measures clarity change. Negative ΔS = increased confusion (VOID).
 
@@ -88,7 +88,7 @@ def check_delta_s_f2(
         context: Optional context with 'metrics' dict containing 'delta_s' score
 
     Returns:
-        F2DeltaSResult with pass/fail and score
+        F6DeltaSResult with pass/fail and score
     """
     context = context or {}
     metrics = context.get("metrics", {})
@@ -99,7 +99,7 @@ def check_delta_s_f2(
     # Use existing check_delta_s from metrics
     passed = check_delta_s(delta_s_value)
 
-    return F2DeltaSResult(
+    return F6DeltaSResult(
         passed=passed,
         score=max(0.0, delta_s_value),
         details=f"ΔS={delta_s_value:.2f}, threshold=0.0",

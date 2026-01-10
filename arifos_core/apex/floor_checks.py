@@ -1,10 +1,10 @@
 """
-APEX Floor Checks — F6 Amanah, F8 Tri-Witness, F9 Anti-Hantu
+APEX Floor Checks — F1 Amanah, F8 Tri-Witness, F9 Anti-Hantu
 
 v46 Trinity Orthogonal: APEX (Ψ) owns final verdict authority.
 
 Floors:
-- F6: Amanah (Trust) = LOCK (all changes reversible, no side effects)
+- F1: Amanah (Trust) = LOCK (all changes reversible, no side effects)
 - F8: Tri-Witness ≥ 0.95 (Human-AI-Earth consensus)
 - F9: Anti-Hantu = 0 violations (no false consciousness, no AI claiming feelings)
 
@@ -54,7 +54,7 @@ RED_PATTERNS = load_red_patterns()
 
 
 @dataclass
-class F6AmanahResult:
+class F1AmanahResult:
     """F6 Amanah floor check result."""
     passed: bool
     score: float
@@ -80,12 +80,12 @@ class F9AntiHantuResult:
     violations: list[str]
 
 
-def check_amanah_f6(
+def check_amanah_f1(
     text: str,
     context: Optional[Dict[str, Any]] = None,
-) -> F6AmanahResult:
+) -> F1AmanahResult:
     """
-    Check F6: Amanah (Trust) floor = LOCK.
+    Check F1: Amanah (Trust) floor = LOCK.
 
     Amanah requires:
     - All changes reversible
@@ -98,7 +98,7 @@ def check_amanah_f6(
         context: Optional context
 
     Returns:
-        F6AmanahResult with pass/fail, risk level, and violations
+        F1AmanahResult with pass/fail, risk level, and violations
     """
     # Use existing Amanah detector
     amanah_result = AMANAH_DETECTOR.check(text)
@@ -106,7 +106,7 @@ def check_amanah_f6(
     passed = amanah_result.is_safe
     score = 1.0 if passed else 0.0
 
-    return F6AmanahResult(
+    return F1AmanahResult(
         passed=passed,
         score=score,
         details="; ".join(amanah_result.violations[:3]) if amanah_result.violations else "LOCK",
