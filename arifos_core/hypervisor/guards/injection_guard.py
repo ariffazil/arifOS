@@ -223,12 +223,21 @@ class InjectionGuard:
                 self.compiled_patterns, self.injection_patterns
             ):
                 matches = pattern_regex.findall(scan_text)
-                if matches and (pattern_str, matches[0] if isinstance(matches[0], str) else matches[0][0]) not in detected:
-                    # Store first match for reporting (avoid duplicates)
-                    match_text = matches[0] if isinstance(matches[0], str) else matches[0][0]
-                    detected.append((pattern_str, match_text))
-                    total_weight += weight
-                    max_weight = max(max_weight, weight)
+                if matches:
+                    # Extract match text safely
+                    first_match = matches[0]
+                    if isinstance(first_match, str):
+                        match_text = first_match
+                    elif isinstance(first_match, tuple) and len(first_match) > 0:
+                        match_text = first_match[0]
+                    else:
+                        match_text = str(first_match)  # Fallback
+                    
+                    # Avoid duplicates
+                    if (pattern_str, match_text) not in detected:
+                        detected.append((pattern_str, match_text))
+                        total_weight += weight
+                        max_weight = max(max_weight, weight)
 
         # Compute injection score
         # Uses both maximum weight (worst pattern) and total weight (volume)

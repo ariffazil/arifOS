@@ -1,5 +1,5 @@
 """
-arifOS v45 - Merkle Tree Ledger (Sovereign Witness)
+arifOS v47 - Merkle Tree Ledger (Sovereign Witness)
 Append-only, cryptographically verifiable ledger structure.
 
 Moved to arifos_core.state as part of v47 Equilibrium Architecture.

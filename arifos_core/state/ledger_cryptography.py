@@ -123,10 +123,21 @@ class VerificationReport:
         valid: True if chain is intact, False if any inconsistency found
         errors: List of error strings describing inconsistencies
         checked_entries: Number of entries verified
+        entry_count: Total number of entries (alias for checked_entries)
+        last_hash: Hash of the last entry
+        merkle_root: Current merkle root
     """
     valid: bool = True
     errors: List[str] = field(default_factory=list)
     checked_entries: int = 0
+    entry_count: Optional[int] = None  # Alias for checked_entries
+    last_hash: Optional[str] = None
+    merkle_root: Optional[str] = None
+    
+    def __post_init__(self):
+        """Sync entry_count with checked_entries if not set."""
+        if self.entry_count is None:
+            self.entry_count = self.checked_entries
 
 
 @dataclass

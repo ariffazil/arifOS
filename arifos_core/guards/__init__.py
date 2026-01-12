@@ -57,8 +57,17 @@ def _issue_deprecation_warning():
 
 def __getattr__(name):
     """Intercept module-level attribute access."""
-    _issue_deprecation_warning()
-    return globals().get(name)
+    # Only warn for the specific guards-related attributes
+    valid_exports = [
+        "DependencyGuard", "SessionRisk", "SessionState",
+        "OntologyGuard", "OntologyGuardResult", "OntologyRisk", "detect_literalism",
+        "NonceManager", "NonceStatus", "NonceVerificationResult", "SessionNonce",
+        "InjectionGuard", "InjectionGuardResult", "InjectionRisk", "scan_for_injection",
+    ]
+    if name in valid_exports:
+        _issue_deprecation_warning()
+        return globals().get(name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 __all__ = [
