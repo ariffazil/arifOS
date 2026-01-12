@@ -14,6 +14,8 @@ This module implements a non-cryptographic zkPC runtime that:
 NOTE:
 - This is v0.1 and deliberately conservative.
 - It DOES NOT perform real zkSNARK/STARK proofs; it shapes data for future zk.
+
+Updated in v47: Uses arifos_core.state for ledger/merkle functionality.
 """
 
 from __future__ import annotations
@@ -24,7 +26,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 from pathlib import Path
 
-from arifos_core.apex.governance.ledger_hashing import (
+from arifos_core.state.ledger_hashing import (
     compute_entry_hash,
     dump_jsonl,
     load_jsonl,
@@ -32,7 +34,7 @@ from arifos_core.apex.governance.ledger_hashing import (
     PREVIOUS_HASH_FIELD,
     GENESIS_PREVIOUS_HASH,
 )
-from arifos_core.apex.governance.merkle import build_merkle_tree
+from arifos_core.state.merkle import build_merkle_tree
 
 
 # Paths (can later be centralized in a config or manifest)
