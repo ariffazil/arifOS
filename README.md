@@ -29,6 +29,8 @@ python -c "from arifos_core.system.apex_prime import judge_output; print(judge_o
 
 That's it. AI answers are now checked before reaching you.
 
+**→ New to v46.1?** Read the [5-Minute Quick Start Guide](docs/V46_QUICKSTART.md) for engineers and policy makers.
+
 ---
 
 ## 🎯 What Does arifOS Do?
