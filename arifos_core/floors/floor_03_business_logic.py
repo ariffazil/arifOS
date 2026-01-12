@@ -107,22 +107,11 @@ class StateMachine:
             "RETRY": ["PROCESSING", "FAILED"],
             "FAILED": ["ARCHIVED"],
             "CANCELLED": ["ARCHIVED"],
-            "ARCHIVED": []  # Terminal state
+            "ARCHIVED": []
         }
     
     def transition(self, to_state: str, actor: str, metadata: Optional[Dict] = None) -> Dict[str, Any]:
-        """
-        Execute state transition.
-        
-        Args:
-            to_state: Target state
-            actor: Actor executing transition
-            metadata: Optional metadata
-            
-        Returns:
-            Dictionary with transition result
-        """
-        # Validate transition
+        """Execute state transition."""
         allowed_states = self.valid_transitions.get(self.current_state, [])
         
         if to_state not in allowed_states:
@@ -136,7 +125,6 @@ class StateMachine:
                 "psi": compute_psi_floor3(delta_s=0.0, peace_squared=0.8, kappa_r=0.9)
             }
         
-        # Execute transition
         transition_id = generate_transition_id(self.current_state, to_state)
         transition = StateTransition(
             id=transition_id,
@@ -148,7 +136,6 @@ class StateMachine:
             status=StateStatus.COMPLETED
         )
         
-        # Update state
         old_state = self.current_state
         self.current_state = to_state
         self.state_history.append(transition)
@@ -178,19 +165,14 @@ class StateMachine:
 
 
 class TransactionManager:
-    """Transaction manager for business operations with ACID-like guarantees."""
+    """Transaction manager for business operations."""
     
     def __init__(self):
         """Initialize transaction manager."""
         self.active_transactions: Dict[str, Transaction] = {}
         self.completed_transactions: List[Transaction] = []
     
-    def begin_transaction(
-        self,
-        transaction_type: TransactionType,
-        payload: Dict[str, Any],
-        actor: str
-    ) -> Dict[str, Any]:
+    def begin_transaction(self, transaction_type: TransactionType, payload: Dict[str, Any], actor: str) -> Dict[str, Any]:
         """Begin a new transaction."""
         transaction_id = generate_transaction_id(transaction_type.value, actor)
         
@@ -281,7 +263,7 @@ def generate_transaction_id(txn_type: str, actor: str) -> str:
 
 
 def compute_psi_floor3(delta_s: float, peace_squared: float, kappa_r: float) -> Dict[str, float]:
-    """Compute Ψ (governance vitality) for Floor 3 operations."""
+    """Compute Ψ for Floor 3 operations."""
     psi_total = delta_s * peace_squared * kappa_r
     return {
         "delta_s": delta_s,
@@ -291,7 +273,45 @@ def compute_psi_floor3(delta_s: float, peace_squared: float, kappa_r: float) -> 
     }
 
 
-# Constitutional metadata
+def execute_workflow(workflow_steps: List[Dict[str, Any]], actor: str, initial_state: str = "INIT") -> Dict[str, Any]:
+    """Execute a multi-step workflow with state management."""
+    state_machine = StateMachine(initial_state=initial_state)
+    
+    steps_completed = 0
+    errors = []
+    
+    for i, step in enumerate(workflow_steps):
+        step_name = step.get("name", f"step_{i}")
+        target_state = step.get("target_state")
+        action = step.get("action")
+        
+        transition_result = state_machine.transition(
+            to_state=target_state,
+            actor=actor,
+            metadata={"step": step_name, "action": action}
+        )
+        
+        if transition_result["status"] != "success":
+            errors.append({"step": step_name, "error": transition_result.get("reason")})
+            break
+        
+        steps_completed += 1
+    
+    final_state = state_machine.get_state()
+    success = steps_completed == len(workflow_steps)
+    
+    return {
+        "status": "success" if success else "failed",
+        "steps_completed": steps_completed,
+        "total_steps": len(workflow_steps),
+        "final_state": final_state,
+        "history": state_machine.get_history(),
+        "errors": errors,
+        "floor": 3,
+        "psi": compute_psi_floor3(delta_s=2.0 if success else 0.5, peace_squared=1.0, kappa_r=1.0 if success else 0.7)
+    }
+
+
 __floor__ = 3
 __name__ = "Business Logic & State Management"
 __authority__ = "Execute validated business rules with deterministic state transitions"
