@@ -46,6 +46,7 @@ class SkillMetadata:
     derive_to: List[str]
     codex_name: Optional[str] = None
     claude_name: Optional[str] = None
+    kimi_name: Optional[str] = None
     sabar_threshold: Optional[float] = None
 
 
@@ -65,6 +66,7 @@ class SkillSyncer:
     MASTER_DIR = Path(".agent/workflows")
     CODEX_DIR = Path(".codex/skills")
     CLAUDE_DIR = Path(".claude/skills")
+    KIMI_DIR = Path(".kimi/skills")
 
     CANONICAL_BEGIN = "<!-- BEGIN CANONICAL WORKFLOW -->"
     CANONICAL_END = "<!-- END CANONICAL WORKFLOW -->"
@@ -114,6 +116,7 @@ class SkillSyncer:
                 derive_to=metadata_dict.get("derive-to", []),
                 codex_name=metadata_dict.get("codex-name"),
                 claude_name=metadata_dict.get("claude-name"),
+                kimi_name=metadata_dict.get("kimi-name"),
                 sabar_threshold=metadata_dict.get("sabar-threshold"),
             )
         except Exception as e:
@@ -339,6 +342,22 @@ class SkillSyncer:
                 SyncResult(
                     skill=skill_name,
                     platform="claude",
+                    synced=changed,
+                    reason=reason,
+                    changes_preview=diff,
+                )
+            )
+
+        # Sync to Kimi (if specified)
+        if "kimi" in master_metadata.derive_to and master_metadata.kimi_name:
+            kimi_file = self.KIMI_DIR / master_metadata.kimi_name / "SKILL.md"
+            changed, reason, diff = self.update_platform_skill(
+                kimi_file, canonical_content, master_metadata
+            )
+            results.append(
+                SyncResult(
+                    skill=skill_name,
+                    platform="kimi",
                     synced=changed,
                     reason=reason,
                     changes_preview=diff,
