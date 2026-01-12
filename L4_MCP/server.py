@@ -96,21 +96,21 @@ def handle_apex_verdict_call(
     if resp.floor_triggered:
         lines.append("Constitutional Floors Triggered:")
         for floor in resp.floor_triggered:
-            lines.append(f"  • {floor}")
+            lines.append(f"  - {floor}")
         lines.append("")
 
     # Add required evidence if any
     if resp.required_evidence:
         lines.append("What would be needed to proceed:")
         for evidence in resp.required_evidence:
-            lines.append(f"  • {evidence}")
+            lines.append(f"  - {evidence}")
         lines.append("")
 
     # Add constraints
     if resp.constraints:
         lines.append("Constraints Applied:")
         for constraint in resp.constraints:
-            lines.append(f"  • {constraint}")
+            lines.append(f"  - {constraint}")
         lines.append("")
 
     # Add system health

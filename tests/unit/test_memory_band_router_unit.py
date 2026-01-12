@@ -34,14 +34,14 @@ import json
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List
 
-from arifos_core.memory.bands import (
+from arifos_core.memory.core.bands import (
     MemoryBandRouter,
     BandName,
     MemoryEntry,
     WriteResult,
     QueryResult,
 )
-from arifos_core.memory.policy import (
+from arifos_core.memory.core.policy import (
     VERDICT_BAND_ROUTING,
 )
 from arifos_core.system.kernel import (

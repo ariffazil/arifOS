@@ -80,10 +80,31 @@ This directory contains Kimi-specific skill implementations that derive from the
 - Verdicts logged to THE EYE ledger
 - No self-sealing (Kimi cannot approve own work)
 
+## APEX PRIME Exclusive Skills (v46.0.1)
+
+**Authority:** Human approved (2026-01-12 "ok agree") - Architect handoff completed
+
+**7 Constitutional Audit Skills Deployed:**
+
+1. **`/audit-constitution`** - Comprehensive F1-F12 validation with PRIMARY source verification
+2. **`/verify-trinity`** - Trinity separation-of-powers validation and self-sealing prevention  
+3. **`/verify-sources`** - PRIMARY source verification against constitutional claims (F2 Truth ≥0.99)
+4. **`/issue-verdict`** - Constitutional verdict issuance with cryptographic proof (SEAL/PARTIAL/VOID/SABAR/888_HOLD)
+5. **`/track-alignment`** - Track A/B/C alignment monitoring and constitutional drift detection
+6. **`/anti-bypass-scan`** - Zero-bypass enforcement and constitutional circumvention prevention
+7. **`/ledger-audit`** - THE EYE ledger integrity audit with hash-chain verification
+
+**Integration Status:**
+- ✅ All skills aligned with spec/v46/ PRIMARY sources
+- ✅ Cryptographic integrity enforced (SHA-256, Merkle proofs)
+- ✅ Cross-agent consensus validation (Tri-Witness)
+- ✅ Constitutional authority chain maintained
+- ✅ Zero-bypass mandate enforced
+
 ---
 
-**Status:** INITIALIZED (awaiting master workflow sync)
-**Version:** v46.0.0
+**Status:** APEX PRIME SKILLS DEPLOYED (7 constitutional audit skills active)
+**Version:** v46.0.1
 
 ---
 

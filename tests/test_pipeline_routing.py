@@ -17,8 +17,8 @@ from arifos_core.system.pipeline import (
     stage_222_reflect,
     stage_888_judge,
 )
-from arifos_core.memory.scars import ScarIndex, Scar, generate_scar_id, seed_scars
-from arifos_core.memory.eureka_store import InMemoryStore
+from arifos_core.memory.scars.scars import ScarIndex, Scar, generate_scar_id, seed_scars
+from arifos_core.memory.eureka.eureka_store import InMemoryStore
 from arifos_core.enforcement.metrics import Metrics
 from arifos_core import EyeSentinel
 

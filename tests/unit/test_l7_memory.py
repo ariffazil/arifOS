@@ -25,7 +25,7 @@ from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timezone
 
 # Import L7 Memory components
-from arifos_core.memory.mem0_client import (
+from arifos_core.memory.l7.mem0_client import (
     Mem0Client,
     Mem0Config,
     MemoryHit,
@@ -40,7 +40,7 @@ from arifos_core.memory.mem0_client import (
     DEFAULT_TOP_K,
 )
 
-from arifos_core.memory.memory import (
+from arifos_core.memory.core.memory import (
     Memory,
     RecallResult,
     SieveResult,

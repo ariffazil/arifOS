@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 
 from arifos_core import Metrics, EyeSentinel, log_cooling_entry
-from arifos_core.memory.cooling_ledger import LedgerConfig, CoolingLedger
+from arifos_core.memory.ledger.cooling_ledger import LedgerConfig, CoolingLedger
 
 
 def _baseline_metrics() -> Metrics:

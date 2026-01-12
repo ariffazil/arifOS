@@ -23,13 +23,13 @@ from arifos_core.system.pipeline import (
     stage_999_seal,
     is_l7_enabled,
 )
-from arifos_core.memory.memory import (
+from arifos_core.memory.core.memory import (
     Memory,
     RecallResult,
     StoreAtSealResult,
     SieveResult,
 )
-from arifos_core.memory.mem0_client import (
+from arifos_core.memory.l7.mem0_client import (
     Mem0Client,
     Mem0Config,
     MemoryHit,
