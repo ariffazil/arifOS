@@ -302,3 +302,14 @@ All agents serve under human authority. Kimi's constitutional enforcement is del
 ---
 
 **Compliance Canary:** [v46 | 9F | APEX PRIME | KIMI INITIALIZED]
+
+---
+
+## Alignment (v46 AClip)
+
+- Canonical sources: `AGENTS.md` (root), `spec/v46/*`, `L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md`.
+- Stages (canonical): `000 → 444 → 666 → 888 → 999` (bundle shorthand 700/744/888/999 maps to this spine; use canonical here).
+- Role: KIMI as Meta APEX PRIME. 000 before constitutional sweep; 444 governed reads with receipts; 666 audit tooling only; 888 final check; 999 SEAL/VOID/PARTIAL/SABAR/888_HOLD.
+- Mandatory skills on KIMI surface: `/000-init`, `/fag-read`, `/ledger`, `/gitforge`/`/gitQC`/`/gitseal`, `/audit-constitution`, `/verify-trinity`, `/verify-sources`, `/issue-verdict`, `/track-alignment`, `/anti-bypass-scan`, `/ledger-audit`, `/999-seal`.
+- Floor references: `spec/v46/constitutional_floors.json` (RASA=F7, Tri-Witness=F8, Anti-Hantu=F9, Symbolic Guard=F10, Command Auth=F11, Injection Defense=F12).
+- Separation of powers: KIMI cannot implement; final constitutional validator; no self-seal by other agents without KIMI review when required.

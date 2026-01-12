@@ -1,0 +1,29 @@
+{
+  "version": "v46.1",
+  "created_at": "2026-01-12T10:13:08.791356Z",
+  "description": "Cryptographic manifest for L2_PROTOCOLS v46.1 (Sovereign Witness)",
+  "files": {
+    "L1_THEORY/canon/000_MASTER_INDEX_v46.md": "408a520a1d34fbeb50d763f912f88f6fef1f1f91a5d0a7c7830a1af0f1fc565e",
+    "L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json": "667213daf6e690312d2a184c81e4d9414747d474afdff9e6d98f608f5fc5e739",
+    "L2_PROTOCOLS/v46/000_foundation/session_physics.json": "0fb30820e63fa751c68cae88e41f9383de073005045ed7f7067ccc829f9a6fbe",
+    "L2_PROTOCOLS/v46/333_atlas/agi_core.json": "6de6993650b2d01277e527cc49d4ba8bf3ade2918f27e311e2420179f29de9de",
+    "L2_PROTOCOLS/v46/333_atlas/atlas_333.json": "f22ab1ff20550847ce38a253093c0f1c1e965b38f7edaa00218f3ca814d22f80",
+    "L2_PROTOCOLS/v46/444_align/peace_floor.json": "0f98f450cd27e14a44a6c05ab8556bdc0879346a2aa444c4e7d6526805e92a71",
+    "L2_PROTOCOLS/v46/555_empathize/empathy_floor.json": "9860dcb5c98c43c5a523160569e470b796501cd77a88310f6d600027b6f1e77a",
+    "L2_PROTOCOLS/v46/666_bridge/humility_floor.json": "6116c3d3dc73d21d4271545262e06d712174152272ff83b8d5061d252f26717a",
+    "L2_PROTOCOLS/v46/777_eureka/eureka_777.json": "2b49fa7019afd606287436d20d34f1723c2a2867b2463c79221c385a821064c1",
+    "L2_PROTOCOLS/v46/777_eureka/rasa_floor.json": "0bd4d44a23e9c8759d47a8268322ccc0f24fabfc080d53cab51a6b17d317757d",
+    "L2_PROTOCOLS/v46/888_compass/waw_prompt_floors.json": "4096896bcda1854d54c6a946d4b901e9319b5423f89640e7baf96af89bbdb7ac",
+    "L2_PROTOCOLS/v46/README.md": "1a9a30983682d361318ac993f32bc59f840a57805bc4df26a0a66e9ec136fa91",
+    "L2_PROTOCOLS/v46/governance/aaa_trinity.json": "a859341214acfc24c626f47fd1c171b819fb89fdba28d5b66ed86dc5a1e0da75",
+    "L2_PROTOCOLS/v46/governance/crisis_patterns.json": "53b69d310a07c87b5de0110c1ce1fd877eb9a3ed54eed23c47cf24d7b2d639ea",
+    "L2_PROTOCOLS/v46/governance/pipeline_stages.json": "46fd2720b9ddbb4ec3eaf5b79dcb389b8c7bedc2afe05ba28532e6889ee59c9b",
+    "L2_PROTOCOLS/v46/governance/waw_federation.json": "2bfb92613ccc5e58b9c795d3208271efda02b00191ff31cbe4afbec00edbc722",
+    "L2_PROTOCOLS/v46/schema/constitutional_floors.schema.json": "9b518134e482623e078e2c9e9ed6c5ea03d150f4fff89e26c7a30a5a8044a444",
+    "L2_PROTOCOLS/v46/schema/genius_law.schema.json": "bdf2544c76da1888421cc8bfa5d41044a9b81cc024aefc3538a88097b7709ef2",
+    "L2_PROTOCOLS/v46/schema/handshake_packet.schema.json": "4a5f269713ac535de292742bf7d0ee99ed395b3ecad200919f6e06b101746670",
+    "L2_PROTOCOLS/v46/schema/red_patterns.schema.json": "1cbd0771c2cdbc1d687966f9899caa695aebf34ab062bd5453cf491f3039e1d8",
+    "L2_PROTOCOLS/v46/schema/session_physics.schema.json": "431e68b7166cf594a96a63fabc93db97e5da85686c3d0f561b6ceabfa69b9d35",
+    "L2_PROTOCOLS/v46/schema/truth_verification.schema.json": "dbacf7ea97916dd30b3accb1e19e866f7814536469813116517e447ea2fb04cf"
+  }
+}

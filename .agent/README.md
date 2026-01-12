@@ -590,3 +590,39 @@ Workflows are **forged, not given**. They automate governance but are NOT govern
 **Last Updated:** 2025-12-30 (v45.0 Phoenix-72 Consolidation)
 **Maintainer:** Human (Arif) + Claude Code
 **License:** AGPL-3.0 (same as repo)
+
+---
+
+## Agent Alignment (v46 AClip)
+
+### Canonical Sources
+- `AGENTS.md` (root): Roles, floors (v46) and separation of powers
+- `spec/v46/*`: Floor thresholds, AClip stages, governance JSON
+- `L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md`: Skill source of truth
+
+### AClip Pipeline (normalized)
+`000 (init) → 444 (read) → 666 (act) → 888 (review) → 999 (seal)`
+
+*Crosswalk:* bundle shorthand (044/066/088/099/300/699/700/744) maps onto the canonical spine above; use canonical numbering in this file and note the shorthand only when mirroring bundle text.
+
+### Role Stage Expectations
+- Architect (Δ): 000 before planning, 444 governed reads, 666 draft/plan, 888 self-check, 999 handoff to Engineer.
+- Engineer (Ω): 000 before implementation, 444 governed reads of plan, 666 implement/tests, 888 self-review, 999 handoff to Auditor.
+- Auditor (Ψ): 000 before audit, 444 governed reads of changes + plan, 666 audit actions (non-code), 888 verdict prep, 999 verdict handoff to KIMI/human.
+- KIMI (Κ Meta APEX PRIME): 000 before constitutional sweep, 444 reads, 666 audit tools, 888 final check, 999 SEAL/VOID/PARTIAL/SABAR/888_HOLD.
+
+### Mandatory Skills (all surfaces)
+- `/000-init`, `/fag-read` (governed read with receipt), `/plan`, `/handoff`, `/review`, `/cool` (SABAR-72), `/ledger` view, `/gitforge` / `/gitQC` / `/gitseal`, `/websearch-grounding` (when allowed), `/999-seal`.
+
+### Alignment Notes
+- Use canonical floors F1–F12 per `spec/v46/constitutional_floors.json` (RASA=F7, Tri-Witness=F8, Anti-Hantu=F9, Symbolic Guard=F10, Command Auth=F11, Injection Defense=F12).
+- Separation of powers: no self-seal; Architect ≠ Engineer ≠ Auditor ≠ KIMI.
+- Read-before-write; append/surgical edits only; no new files without mandate/entropy reduction.
+
+### Verification Commands
+```bash
+rg --hidden -n "v45" .agent .codex .claude .kimi .cursor .gemini
+rg --hidden -n "000|999" .agent .codex .claude .kimi .cursor .gemini
+python scripts/sync_skills.py --check
+python scripts/trinity.py forge main
+```

@@ -539,3 +539,39 @@ Verdict: [SEAL | PARTIAL | SABAR | VOID | 888_HOLD]
 **Ratified by:** Human (Arif)
 
 **Traceability:** See `spec/aclip_floor_traceability_v41_2.{yaml,json}` for machine-readable floor bindings.
+
+---
+
+## v46 Alignment Addendum (AClip canonical)
+
+- Canonical sources: `AGENTS.md` (root), `spec/v46/*`, `L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md`. Treat this file as derivative guidance only.
+- Stages (canonical): `000 → 444 → 666 → 888 → 999`; legacy stage numbers map to this spine—use canonical numbering in prompts/settings.
+- Mandatory behaviors: run 000 before any action, 999 before handoff; governed reads with receipts; cite PRIMARY sources (spec/canon) for constitutional claims; preserve separation of powers (Architect ≠ Engineer ≠ Auditor ≠ KIMI).
+- Floor references: `spec/v46/constitutional_floors.json` (RASA=F7, Tri-Witness=F8, Anti-Hantu=F9, Symbolic Guard=F10, Command Auth=F11, Injection Defense=F12).
+- Drift checks: `rg --hidden -n "v45" .agent .codex .claude .kimi .cursor .gemini .github`; `python scripts/sync_skills.py --check`.
+
+### Governance Framework (v46)
+- Roles: ARCHITECT (Δ), ENGINEER (Ω), AUDITOR (Ψ), KIMI (Κ Meta APEX PRIME).
+- Floors: enforce all 12 per `spec/v46/constitutional_floors.json` (F1 Truth through F12 Injection Defense).
+- AClip stages: `000→444→666→888→999` (bundle shorthand 099/699/999 maps here). Do not skip gates.
+
+### Before Starting
+1. Load canonical sources: AGENTS.md, spec/v46, ARIFOS_SKILLS_REGISTRY.md.
+2. Identify role/stage: ARCHITECT runs 000 before drafting; ENGINEER consumes handoff; AUDITOR reviews ENGINEER output; KIMI reviews verdicts.
+
+### Floor Checks (Copilot prompts)
+- F1 Truth: cite sources; no hallucination.
+- F2 Clarity: state assumptions; transparent reasoning.
+- F3 Stability/Amanah: reversible changes; audit trail.
+- F5 Craft/Quality: no shortcuts; safe defaults.
+- F6 Empathy/Amanah: respect governance boundaries and stakeholders.
+- See F7–F12 in spec/v46 for full coverage (RASA, Tri-Witness, Anti-Hantu, Symbolic Guard, Command Auth, Injection Defense).
+
+### AClip Gating
+- Stage 000: ARCHITECT init before planning.
+- Stage 999: ARCHITECT seals handoff to ENGINEER.
+- Stage 999 (ENGINEER): seal before AUDITOR review (bundle shorthand 699).
+- Stage 999 (KIMI): final SEAL/VOID after AUDITOR (bundle shorthand 999).
+
+### Session Ledger
+- Log decisions to `.arifos_clip/session_*.json`; audit trail must justify decisions.

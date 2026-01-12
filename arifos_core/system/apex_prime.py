@@ -519,8 +519,11 @@ def apex_review(
     category: str = "UNKNOWN",
     response_text: str = "",
     lane: str = "UNKNOWN",  # v45Ω Patch B
+    user_id: Optional[str] = None,  # v46: For F11 nonce verification
+    nonce: Optional[str] = None,  # v46: For F11 nonce verification
+    symbolic_mode: bool = False,  # v46: For F10 ontology guard
 ) -> ApexVerdict:
-    """Apply APEX PRIME v42 decision policy with GENIUS LAW.
+    """Apply APEX PRIME v46 decision policy with GENIUS LAW and Hypervisor Layer.
 
     Returns structured ApexVerdict with:
     - verdict: Verdict enum (SEAL, SABAR, VOID, PARTIAL, HOLD_888)
@@ -528,14 +531,16 @@ def apex_review(
     - reason: Human-readable explanation
     - floors: Detailed floor check results
 
-    Verdict hierarchy (v42):
+    Verdict hierarchy (v46):
+    0. If Hypervisor preprocessing fails (F12 Injection or F11 Nonce) → SABAR
     1. If @EYE has blocking issue → SABAR (stop, breathe, re-evaluate)
     2. If any hard floor fails → VOID (Truth, ΔS, Ω₀, Amanah, Ψ, RASA, Anti-Hantu)
     3. If C_dark > 0.5 → VOID (ungoverned cleverness = entropy hazard)
     4. If G < 0.3 → VOID (insufficient governed intelligence)
-    5. If extended floors fail → HOLD_888 (judiciary hold)
-    6. If soft floors fail OR (G < 0.7 or C_dark > 0.1) → PARTIAL
-    7. If all floors pass AND G >= 0.7 AND C_dark <= 0.1 → SEAL
+    5. If Hypervisor judgment fails (F10 Ontology) → HOLD_888
+    6. If extended floors fail → HOLD_888 (judiciary hold)
+    7. If soft floors fail OR (G < 0.7 or C_dark > 0.1) → PARTIAL
+    8. If all floors pass AND G >= 0.7 AND C_dark <= 0.1 → SEAL
 
     Args:
         metrics: Constitutional metrics to evaluate
@@ -545,10 +550,34 @@ def apex_review(
         energy: Energy metric for GENIUS LAW [0, 1], default 1.0 (no depletion)
         entropy: System entropy for GENIUS LAW, default 0.0
         use_genius_law: Whether to apply GENIUS LAW (default True, set False for v35 compat)
+        user_id: User identifier for F11 nonce verification (v46)
+        nonce: Nonce for F11 command authentication (v46)
+        symbolic_mode: Whether symbolic mode flag is set for F10 (v46)
 
     Returns:
         ApexVerdict: Structured verdict with verdict, pulse, reason, floors
     """
+    # v46.0: HYPERVISOR PREPROCESSING (F12 Injection + F11 Nonce)
+    # Must run BEFORE floor checks to block malicious inputs
+    from .hypervisor import Hypervisor
+
+    hypervisor = Hypervisor()
+    hypervisor_precheck = hypervisor.preprocess_input(
+        user_input=prompt,
+        user_id=user_id,
+        nonce=nonce,
+        symbolic_mode=symbolic_mode,
+    )
+
+    # If preprocessing fails (F12 or F11), return SABAR immediately
+    if not hypervisor_precheck.passed:
+        return ApexVerdict(
+            verdict=Verdict.SABAR,
+            pulse=0.5,
+            reason=hypervisor_precheck.reason,
+            floors=None,  # Floors not checked yet
+        )
+
     # v45Ω Patch B.1: ENFORCE IDENTITY TRUTH LOCK FIRST
     # Identity truth lock: Apply penalty before floor checks to preserve audit integrity
     from ..enforcement.metrics import enforce_identity_truth_lock
@@ -736,6 +765,19 @@ def apex_review(
                     verdict=Verdict.VOID,
                     pulse=pulse,
                     reason=f"Insufficient governed intelligence (G={g:.2f} < {G_MIN_THRESHOLD}).",
+                    floors=floors,
+                    genius_index=g,
+                    dark_cleverness=c_dark,
+                )
+
+            # v46.0: HYPERVISOR JUDGMENT (F10 Ontology)
+            # Check output for literalism after core floors pass
+            hypervisor_judgment = hypervisor.judge_output(response_text, symbolic_mode)
+            if not hypervisor_judgment.passed:
+                return ApexVerdict(
+                    verdict=Verdict.HOLD_888,
+                    pulse=pulse,
+                    reason=hypervisor_judgment.reason,
                     floors=floors,
                     genius_index=g,
                     dark_cleverness=c_dark,

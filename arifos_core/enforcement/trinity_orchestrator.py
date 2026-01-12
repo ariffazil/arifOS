@@ -10,6 +10,16 @@ Flow:
           → APEX (F6 Amanah, F8 Tri-Witness, F9 Anti-Hantu)
           → Verdict (SEAL/VOID/PARTIAL/SABAR/HOLD_888)
 
+v46.0 Hypervisor Layer (F10-F12):
+    The Hypervisor Floors (F10 Ontology, F11 Command Auth, F12 Injection Defense)
+    are NOT handled by Trinity Orchestrator. They are enforced in apex_prime.py
+    via the Hypervisor module (arifos_core/system/hypervisor.py).
+
+    Execution order:
+    1. F12 + F11 (Hypervisor preprocessing) → SABAR if fails
+    2. F1-F9 (Trinity core floors) → VOID/PARTIAL if fails
+    3. F10 (Hypervisor judgment) → HOLD_888 if fails
+
 Backward compatibility: Maintains same API as floor_scorer.py for tests.
 
 DITEMPA BUKAN DIBERI — Forged, not given; truth must cool before it rules.
@@ -66,12 +76,17 @@ class TrinityOrchestrator:
     Trinity Orchestrator for v46 Constitutional Floor Scoring.
 
     Coordinates AGI (Δ), ASI (Ω), and APEX (Ψ) kernels to evaluate
-    text against all 9 constitutional floors.
+    text against the 9 core constitutional floors (F1-F9).
 
     v46 Floor Mapping:
         AGI (Δ):  F1 Truth, F2 DeltaS
         ASI (Ω):  F3 Peace², F4 κᵣ, F5 Ω₀, F7 RASA
         APEX (Ψ): F6 Amanah, F8 Tri-Witness, F9 Anti-Hantu
+
+    v46 Hypervisor Floors (F10-F12):
+        Hypervisor floors are enforced separately in apex_prime.py via
+        the Hypervisor module (arifos_core/system/hypervisor.py).
+        See: L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json
     """
 
     def grade(

@@ -309,3 +309,10 @@ for platform in ['codex', 'claude', 'kimi', 'cursor', 'gemini']:
 ---
 
 **End State**: Light, clear, no new code. Just **alignment of surfaces to v46 + AClip 000/999 with transparent roles and handoff paths**.
+
+---
+
+### In-Progress Notes (2026-01-13)
+- Stage normalization applied inline to canonical spine `000→444→666→888→999`; bundle shorthand noted only as crosswalk where needed.
+- Updated this pass: `.agent/README.md`, `.codex/AGENTS.md`, `.codex/skills/README.md`, `.claude/ENGINEER.md`, `.claude/skills/README.md`, `.claude/settings.json`, `.kimi/AGENTS.md`, `.kimi/skills/README.md`, `.cursor/aclip.md`, `.arifos_clip/README.md`, `.github/copilot-instructions.md`, `.gemini/ARCHITECT_SURFACE.md`, `.arifos/README_v46.md`.
+- Pending per bundle/status report: `.github/AGENTS.md` (not present in repo; awaiting directive), verification sweeps (`rg`/`sync_skills`/`trinity forge`), and any remaining platform-specific inserts not covered above.

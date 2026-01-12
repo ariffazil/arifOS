@@ -84,3 +84,13 @@ This directory contains Kimi-specific skill implementations that derive from the
 
 **Status:** INITIALIZED (awaiting master workflow sync)
 **Version:** v46.0.0
+
+---
+
+## Alignment (v46 AClip)
+
+- Canonical sources: `AGENTS.md` (root), `spec/v46/*`, `L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md`.
+- Stages (canonical): `000 → 444 → 666 → 888 → 999` (bundle shorthand 700/744/888/999 maps to this spine; use canonical here).
+- Mandatory skills on KIMI surface: `/000-init`, `/fag-read`, `/ledger`, `/gitforge`/`/gitQC`/`/gitseal`, `/audit-constitution`, `/verify-trinity`, `/verify-sources`, `/issue-verdict`, `/track-alignment`, `/anti-bypass-scan`, `/ledger-audit`, `/999-seal`.
+- Floor references: `spec/v46/constitutional_floors.json` (RASA=F7, Tri-Witness=F8, Anti-Hantu=F9, Symbolic Guard=F10, Command Auth=F11, Injection Defense=F12).
+- Drift checks: `python scripts/sync_skills.py --check`; `rg --hidden -n "v45" .kimi`.

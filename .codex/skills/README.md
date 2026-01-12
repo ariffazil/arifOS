@@ -25,3 +25,13 @@ Each skill directory contains a `SKILL.md` with:
 - `name`: Skill identifier
 - `description`: When to trigger this skill
 - Procedure steps pointing to the canonical workflow source
+
+---
+
+## Alignment (v46 AClip)
+
+- Canonical sources: `AGENTS.md` (root), `spec/v46/*`, `L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md`.
+- Stages (canonical): `000 → 444 → 666 → 888 → 999`; bundle shorthand (044/066/088/099/700/744) maps to the same spine—prefer canonical numbering here.
+- Mandatory skills on Codex surface: `/000-init`, `/fag-read` (governed read with receipt), `/ledger`, `/review` (audit), `/websearch-grounding`, `/gitforge`/`/gitQC`/`/gitseal`, `/999-seal`.
+- Floor references: use `spec/v46/constitutional_floors.json` (F7 RASA, F8 Tri-Witness, F9 Anti-Hantu, F10 Symbolic Guard, F11 Command Auth, F12 Injection Defense).
+- Drift checks: `python scripts/sync_skills.py --check`; `rg --hidden -n "v45" .codex`.

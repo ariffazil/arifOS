@@ -395,3 +395,13 @@ This directory is for **working notes, not eternal truth**.
 **Last Updated:** 2025-12-30 (v45.0 Phoenix-72 Consolidation)
 **Maintainer:** Human (Arif) + Claude Code
 **License:** AGPL-3.0 (same as repo)
+
+---
+
+## Alignment (v46 AClip)
+
+- Canonical sources: `AGENTS.md` (root), `spec/v46/*`, `L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md`.
+- Stages (canonical): `000 → 444 → 666 → 888 → 999`; legacy 111/222/333/555/777 map to sense/reflect/reason/empathize/forge but use the canonical spine for new entries.
+- Purpose: session artifacts only (ledger excerpts, forge/QC outputs, holds, handoff snapshots). Not authoritative.
+- Mandatory handling: governed reads with receipts; append/surgical edits only; archive rather than delete; clearly label session stage and verdict (SEAL/VOID/PARTIAL/SABAR/888_HOLD) in files.
+- Drift checks: `rg --hidden -n "v45" .arifos_clip`; ensure new templates reference spec/v46 and canonical stage names.
