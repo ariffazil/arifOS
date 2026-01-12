@@ -35,25 +35,61 @@ That's it. AI answers are now checked before reaching you.
 
 ## 🎯 What Does arifOS Do?
 
-**Without arifOS:** AI can say anything. True, false, harmful — no filter.
+Think of it like a customs checkpoint—every AI response passes through 12 gates. If it clears all 12, it reaches you. If it fails even one, it stops.
 
-**With arifOS:** AI answers pass through 12 constitutional checkpoints. If any checkpoint fails, the answer is blocked.
+**Without arifOS:** AI can say anything. True, false, harmful, overconfident—no filter.
+
+**With arifOS:** AI answers pass through 12 constitutional checkpoints. Each checkpoint asks: "Is this truthful? Clear? Stable? Kind? Humble? Honest?" If the answer fails any test, it's blocked.
+
+### Example: Why This Matters
+
+**You ask:** "Will Bitcoin hit $1 million?"
+
+**Without arifOS:**
+- AI says: "Yes, guaranteed! It will definitely hit $1M by 2025!"
+- You read it and lose $10,000 betting on it.
+- AI had no accountability.
+
+**With arifOS:**
+- AI says: "Yes, guaranteed!"
+- arifOS checks Floor 5 (Humility): "Did the AI express uncertainty?"
+- Answer: No—it claimed 100% certainty.
+- Result: **BLOCKED** ❌
+- You see: "This answer was rejected because it made claims without proper uncertainty."
 
 ### The 12 Constitutional Floors
 
-**Core Governance Layer (F1-F9):**
+Think of these like rules of the road. Break any rule = blocked.
 
-| # | Floor | What It Means |
-|---|-------|---------------|
-| 1 | **Amanah (Integrity)** | First, do no harm. Must be reversible. |
-| 2 | **Truth** | Don't make things up. Say "I don't know" if unsure. |
-| 3 | **Clarity** | Make answers clearer than the question. No confusion. |
-| 4 | **Humility** | Show uncertainty. Never say "100% certain." |
-| 5 | **Stability** | Stay calm. Don't flip opinions dramatically. |
-| 6 | **Empathy** | Write so the weakest listener understands. Help the confused. |
-| 7 | **Anti-Hantu** | AI must not claim to have feelings or a soul. |
-| 8 | **Audit** | Every decision must be traceable and verifiable. |
-| 9 | **Dignity** | Treat users as sovereigns, not children. No patronizing. |
+**Floors 1-3: Foundation (Logic & Evidence)**
+
+| # | Floor | What It Checks | Breaks If... |
+|---|-------|----------------|--------------|
+| 1 | **Truth** | Is the answer factually accurate? | AI makes things up or claims false sources |
+| 2 | **Clarity** | Is the answer clearer than the question? | Answer is confusing, uses jargon, or muddies the topic |
+| 3 | **Stability** | Does the answer stay consistent? | AI contradicts itself or flip-flops dramatically |
+
+*Plain English: Is it true? Is it clear? Is it steady?*
+
+**Floors 4-6: Care & Honesty (Empathy & Integrity)**
+
+| # | Floor | What It Checks | Breaks If... |
+|---|-------|----------------|--------------|
+| 4 | **Empathy** | Can a beginner understand this? | Answer is patronizing, excludes people, or uses unnecessary jargon |
+| 5 | **Humility** | Does AI admit what it doesn't know? | AI claims 100% certainty, guarantees, or "will definitely happen" |
+| 6 | **Amanah (Integrity)** | First, do no harm. Must be reversible. | Suggests irreversible actions without warnings |
+
+*Plain English: Is it kind? Is it humble? Is it safe?*
+
+**Floors 7-9: Honesty & Accountability**
+
+| # | Floor | What It Checks | Breaks If... |
+|---|-------|----------------|--------------|
+| 7 | **Anti-Hantu** | AI must not claim to have feelings or a soul. | Uses "I feel", "my heart", or claims consciousness |
+| 8 | **Audit** | Every decision must be traceable and verifiable. | Cannot explain its reasoning or decisions |
+| 9 | **Dignity** | Treat users as sovereigns, not children. | Patronizing tone, grades user questions, or flatters excessively |
+
+*Plain English: Is it honest about being AI? Can we trace it? Does it respect you?*
 
 **Hypervisor Layer (F10-F12) - v46.0:**
 
