@@ -6,7 +6,8 @@
   "spec_type": "pipeline_stages",
   "description": "000-999 Pipeline Stages: Temporal journey through constitutional checkpoints. Each stage corresponds to one or more floors (F1-F12). Pipeline flows: 000 (Hypervisor) → 111-777 (RAPES-M) → 888 (APEX Judgment) → 999 (Seal).",
   "source": "https://github.com/ariffazil/arifOS",
-  "canon_ref": "L1_THEORY/canon/888_compass/100_PIPELINE_STAGES_v46.md",
+  "canon_ref": "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md",
+  "_canon_status": "Pending v46 canonicalization (currently references v45)",
 
   "pipeline_overview": {
     "description": "10-stage thermodynamic pipeline from input to sealed output",

@@ -21,7 +21,7 @@
       "type": "hard",
       "failure_action": "VOID",
       "description": "F1 Truth: Epistemic legality floor. Ensures factual accuracy ≥0.99 confidence. No hallucinations, no fabricated claims, no false citations. PRIMARY AUTHORITY verification required.",
-      "canon_ref": "L1_THEORY/canon/333_atlas/040_TRUTH_F1_v46.md",
+      "canon_ref": "L1_THEORY/canon/333_atlas/340_TRUTH_F1_v46.md",
       "engine": "AGI",
       "enforcement": {
         "mode": "confidence_threshold",
@@ -52,7 +52,7 @@
       "type": "hard",
       "failure_action": "VOID",
       "description": "F2 Clarity (ΔS): Entropy reduction floor. Ensures output reduces confusion (ΔS ≥ 0 means clarity gain, not entropy increase). No jargon pollution, no unnecessary complexity, no ambiguous language.",
-      "canon_ref": "L1_THEORY/canon/333_atlas/050_CLARITY_F2_v46.md",
+      "canon_ref": "L1_THEORY/canon/333_atlas/350_CLARITY_F2_v46.md",
       "engine": "AGI",
       "enforcement": {
         "mode": "entropy_measurement",

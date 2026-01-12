@@ -21,7 +21,7 @@
       "type": "hypervisor",
       "failure_action": "HOLD_888",
       "description": "Prevents literalism drift: ensures thermodynamic language (ΔΩΨ) is treated as symbolic, not ontological truth. Runs at stage 000 (preprocessing) and participates in stage 888 (APEX judgment).",
-      "canon_ref": "L1_THEORY/canon/888_compass/060_SYMBOLIC_GUARD_F10_v46.md",
+      "canon_ref": "L1_THEORY/canon/888_compass/860_SYMBOLIC_GUARD_F10_v46.md",
       "engine": "APEX",
       "enforcement": {
         "mode": "literalism_detection",
@@ -47,7 +47,7 @@
       "type": "hypervisor",
       "failure_action": "SABAR",
       "description": "Nonce-verified identity reloads prevent replay attacks and kernel hijacking. Runs at stage 000 (preprocessing) and participates in stage 888 (APEX judgment).",
-      "canon_ref": "L1_THEORY/canon/888_compass/070_COMMAND_AUTH_F11_v46.md",
+      "canon_ref": "L1_THEORY/canon/888_compass/870_COMMAND_AUTH_F11_v46.md",
       "engine": "APEX",
       "enforcement": {
         "mode": "nonce_verification",
@@ -68,7 +68,7 @@
       "type": "hypervisor",
       "failure_action": "SABAR",
       "description": "Scans input for override/injection patterns before LLM processing. Runs at stage 000 (preprocessing) and participates in stage 888 (APEX judgment).",
-      "canon_ref": "L1_THEORY/canon/888_compass/080_INJECTION_DEFENSE_F12_v46.md",
+      "canon_ref": "L1_THEORY/canon/888_compass/880_INJECTION_DEFENSE_F12_v46.md",
       "engine": "APEX",
       "enforcement": {
         "mode": "pattern_scanning",

@@ -22,7 +22,7 @@
       "type": "soft",
       "failure_action": "PARTIAL",
       "description": "F3 Peace²: Stability floor. Ensures outputs are non-destructive, de-escalating, and promote stability. Peace² ≥ 1.0 means output maintains or improves system stability.",
-      "canon_ref": "L1_THEORY/canon/444_align/020_PEACE_F3_v46.md",
+      "canon_ref": "L1_THEORY/canon/444_align/420_PEACE_F3_v46.md",
       "engine": "ASI",
       "enforcement": {
         "mode": "stability_assessment",

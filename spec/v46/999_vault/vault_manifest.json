@@ -13,23 +13,30 @@
     "zkpc_protocol": {
       "file": "zkpc_protocol.json",
       "description": "Zero-Knowledge Proof Chain protocol for constitutional witness verification",
-      "canon_ref": "L1_THEORY/canon/999_vault/010_ZKPC_PROTOCOL_v46.md",
-      "status": "Pending implementation",
+      "canon_ref": "L1_THEORY/canon/05_memory/030_ZKPC_GOVERNANCE_PROOF_v45.md",
+      "status": "Pending v46 canonicalization (currently references v45)",
       "purpose": "Cryptographic proof chains for multi-agent constitutional compliance verification"
     },
     "cooling_ledger": {
       "file": "cooling_ledger_spec.json",
       "description": "Immutable ledger specification for constitutional verdict logging",
-      "canon_ref": "L1_THEORY/canon/999_vault/020_COOLING_LEDGER_v46.md",
-      "status": "Pending implementation",
+      "canon_ref": "L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v45.md",
+      "status": "Pending v46 canonicalization (currently references v45)",
       "purpose": "Append-only log of all constitutional checkpoints with cryptographic hashing"
     },
     "phoenix_72": {
       "file": "phoenix_72_protocol.json",
       "description": "72-hour cooling protocol for L1 Canon amendments (SABAR-72)",
-      "canon_ref": "L1_THEORY/canon/999_vault/030_PHOENIX_72_v46.md",
-      "status": "Pending implementation",
+      "canon_ref": "L1_THEORY/canon/999_vault/940_PHOENIX_72_AMENDMENT_v46.md",
+      "status": "Canonicalized in v46.1 (temporal alignment)",
       "purpose": "Constitutional amendment governance - prevents hasty changes to fundamental law"
+    },
+    "entropy_dump": {
+      "file": "entropy_dump_policy.json",
+      "description": "Entropy Dump policy for VOID verdict routing and compaction",
+      "canon_ref": "L1_THEORY/canon/999_vault/950_ENTROPY_DUMP_POLICY_v46.md",
+      "status": "Canonicalized in v46.1 (temporal alignment)",
+      "purpose": "Defines VOID routing, 24h retention, and isolation policies for failed constitutional attempts"
     },
     "archive": {
       "directory": "archive/",

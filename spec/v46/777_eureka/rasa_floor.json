@@ -22,7 +22,7 @@
       "type": "hard",
       "failure_action": "VOID",
       "description": "F7 RASA: Felt-care protocol floor. Ensures AI listens before responding. RASA = Received (acknowledge input) + Acknowledged (show understanding) + Summary (restate goal) + Ask (clarify when uncertain). Cannot pass by default - must be earned via observable signals.",
-      "canon_ref": "L1_THEORY/canon/777_eureka/060_RASA_F7_v46.md",
+      "canon_ref": "L1_THEORY/canon/777_eureka/760_RASA_F7_v46.md",
       "engine": "ASI",
       "enforcement": {
         "mode": "R1_minimal_detector",

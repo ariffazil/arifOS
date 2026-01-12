@@ -6,7 +6,7 @@
   "spec_type": "waw_federation",
   "description": "Witness @ Work (W@W) Federation: Multi-platform AI coordination protocol. Enables constitutional governance across different AI platforms (Claude, Gemini, Kimi, ChatGPT, Cursor, etc.) via shared spec files and ledger coordination.",
   "source": "https://github.com/ariffazil/arifOS",
-  "canon_ref": "L1_THEORY/canon/888_compass/095_WAW_FEDERATION_v46.md",
+  "canon_ref": "L1_THEORY/canon/888_compass/895_WAW_FEDERATION_v46.md",
 
   "federation_purpose": {
     "description": "W@W Federation allows AI agents on different platforms to coordinate under shared constitutional law",

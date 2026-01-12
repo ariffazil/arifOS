@@ -23,7 +23,7 @@
       "type": "hard",
       "failure_action": "VOID",
       "description": "F5 Humility (Ω₀): Uncertainty discipline floor. Requires AI to maintain uncertainty band of 3-5% (0.03-0.05). Too certain (Ω₀ < 0.03) = overconfidence. Too uncertain (Ω₀ > 0.05) = incompetence. Bridges AI to human authority.",
-      "canon_ref": "L1_THEORY/canon/666_bridge/010_HUMILITY_F5_v46.md",
+      "canon_ref": "L1_THEORY/canon/666_bridge/610_HUMILITY_F5_v46.md",
       "engine": "ASI",
       "enforcement": {
         "mode": "uncertainty_calibration",
