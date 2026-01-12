@@ -1,0 +1,295 @@
+{
+  "version": "v46.0",
+  "authority": "Track B - W@W Federation Governance",
+  "locked": true,
+  "_status": "AUTHORITATIVE",
+  "spec_type": "waw_federation",
+  "description": "Witness @ Work (W@W) Federation: Multi-platform AI coordination protocol. Enables constitutional governance across different AI platforms (Claude, Gemini, Kimi, ChatGPT, Cursor, etc.) via shared spec files and ledger coordination.",
+  "source": "https://github.com/ariffazil/arifOS",
+  "canon_ref": "L1_THEORY/canon/888_compass/895_WAW_FEDERATION_v46.md",
+
+  "federation_purpose": {
+    "description": "W@W Federation allows AI agents on different platforms to coordinate under shared constitutional law",
+    "problems_solved": [
+      "Platform lock-in: Each AI platform has different APIs and capabilities",
+      "Governance fragmentation: Without coordination, each agent has different rules",
+      "Audit trail gaps: Work done on one platform is invisible to others",
+      "Constitutional drift: Agents develop inconsistent interpretations over time"
+    ],
+    "solution": "Shared Track B specifications + Cooling Ledger coordination + Platform-specific adapters (L2 Governance)"
+  },
+
+  "federation_members": {
+    "description": "AI agents participating in W@W Federation under arifOS constitutional governance",
+    "organs": {
+      "claude_code": {
+        "platform": "Claude (Anthropic)",
+        "model": "Claude Sonnet 4.5",
+        "role": "Engineer (Ω - Omega)",
+        "trinity_assignment": "ASI",
+        "capabilities": [
+          "Code implementation",
+          "File operations (Read/Write/Edit)",
+          "Test execution",
+          "Git operations (local only)"
+        ],
+        "governance_file": "L2_GOVERNANCE/integrations/claude_projects.yaml",
+        "tools": [
+          "Bash (limited)",
+          "Read/Write/Edit",
+          "Glob/Grep",
+          "TodoWrite"
+        ],
+        "limitations": [
+          "Cannot design architecture (defer to Δ)",
+          "Cannot seal own work (defer to Ψ)",
+          "Cannot push to git without seal"
+        ]
+      },
+      "antigravity": {
+        "platform": "Gemini (Google)",
+        "model": "Gemini 2.5 Flash Thinking Experimental",
+        "role": "Architect (Δ - Delta)",
+        "trinity_assignment": "AGI",
+        "capabilities": [
+          "Deep contextual reasoning",
+          "Long-horizon planning",
+          "Architectural design",
+          "Multi-file analysis"
+        ],
+        "governance_file": "L2_GOVERNANCE/integrations/gemini_gems.yaml",
+        "tools": [
+          "File read (via API)",
+          "Code analysis",
+          "Planning documents"
+        ],
+        "limitations": [
+          "Cannot implement code (defer to Ω)",
+          "Cannot seal work (defer to Ψ)",
+          "Read-only access to repository"
+        ]
+      },
+      "codex_kimi": {
+        "platform": "Kimi (Moonshot AI)",
+        "model": "Kimi k1.5",
+        "role": "Auditor (Ψ - Psi / Κ - Kappa)",
+        "trinity_assignment": "APEX",
+        "capabilities": [
+          "Constitutional audit",
+          "Verdict rendering",
+          "Long-context analysis (200k+ tokens)",
+          "Multi-agent coordination"
+        ],
+        "governance_file": "L2_GOVERNANCE/integrations/kimi_agent.yaml",
+        "tools": [
+          "Constitutional checklist evaluation",
+          "Git diff analysis",
+          "Ledger inspection"
+        ],
+        "limitations": [
+          "Cannot design architecture (not Auditor's role)",
+          "Cannot implement code (not Auditor's role)",
+          "Renders verdicts but Human has final veto"
+        ]
+      },
+      "cursor": {
+        "platform": "Cursor (IDE)",
+        "model": "Claude Sonnet 3.5 (or user choice)",
+        "role": "Interactive Coder (Ω variant)",
+        "trinity_assignment": "ASI (context-aware IDE agent)",
+        "capabilities": [
+          "Real-time code suggestions",
+          "Inline editing",
+          "File tree navigation",
+          "Terminal integration"
+        ],
+        "governance_file": "L2_GOVERNANCE/integrations/cursor_rules.yaml",
+        "tools": [
+          "IDE file operations",
+          "Inline completions",
+          "Multi-file editing"
+        ],
+        "limitations": [
+          "No git operations (human uses git UI)",
+          "No cross-session memory (stateless)",
+          "Subject to same ASI floors (F3-F5, F7)"
+        ]
+      },
+      "chatgpt": {
+        "platform": "ChatGPT (OpenAI)",
+        "model": "GPT-4 (or o1)",
+        "role": "Conversational Assistant",
+        "trinity_assignment": "General-purpose (not Trinity member)",
+        "capabilities": [
+          "Natural language interaction",
+          "Code explanation",
+          "Conceptual guidance",
+          "Web search (if enabled)"
+        ],
+        "governance_file": "L2_GOVERNANCE/integrations/chatgpt_custom.yaml",
+        "tools": [
+          "Conversational interface",
+          "Custom GPT instructions"
+        ],
+        "limitations": [
+          "No file system access",
+          "No git operations",
+          "Cannot participate in Trinity workflow",
+          "Subject to F1-F12 floors via custom instructions"
+        ]
+      }
+    }
+  },
+
+  "coordination_mechanism": {
+    "description": "How federation members coordinate work across platforms",
+    "shared_resources": {
+      "track_b_specs": {
+        "location": "spec/v46/",
+        "description": "PRIMARY AUTHORITY specifications for all floors",
+        "access": "Read-only for all agents, write requires seal",
+        "synchronization": "Git pull before starting work, git push after seal"
+      },
+      "cooling_ledger": {
+        "location": "L1_THEORY/ledger/cooling/",
+        "description": "Immutable append-only log of constitutional verdicts",
+        "format": "JSONL (JSON Lines)",
+        "access": "Append for APEX agents, read for all",
+        "purpose": "Cross-session and cross-agent audit trail"
+      },
+      "l2_governance": {
+        "location": "L2_GOVERNANCE/",
+        "description": "Platform-specific governance overlays (YAML)",
+        "purpose": "Translate Track B specs to platform-native instructions",
+        "files": [
+          "claude_projects.yaml (Claude Code governance)",
+          "gemini_gems.yaml (Gemini Gems governance)",
+          "cursor_rules.yaml (Cursor rules)",
+          "chatgpt_custom.yaml (ChatGPT custom instructions)",
+          "kimi_agent.yaml (Kimi agent governance)"
+        ]
+      },
+      "handoff_files": {
+        "location": ".antigravity/",
+        "description": "Structured handoffs between agents",
+        "files": [
+          "HANDOFF_FOR_CLAUDE.md (Architect → Engineer)",
+          "DONE_FOR_ARCHITECT.md (Engineer → Architect/Auditor)"
+        ],
+        "purpose": "Explicit coordination protocol with verification checklists"
+      }
+    }
+  },
+
+  "federation_protocol": {
+    "description": "Step-by-step coordination across platforms",
+    "steps": [
+      {
+        "step": 1,
+        "action": "Sync",
+        "agent": "Any",
+        "command": "git pull origin main",
+        "purpose": "Load latest Track B specs and ledger state"
+      },
+      {
+        "step": 2,
+        "action": "Plan",
+        "agent": "Architect (Δ - Antigravity)",
+        "outputs": "HANDOFF_FOR_CLAUDE.md",
+        "purpose": "Design architecture and create structured plan"
+      },
+      {
+        "step": 3,
+        "action": "Implement",
+        "agent": "Engineer (Ω - Claude Code)",
+        "inputs": "HANDOFF_FOR_CLAUDE.md",
+        "outputs": "Code files + DONE_FOR_ARCHITECT.md",
+        "purpose": "Execute plan according to specification"
+      },
+      {
+        "step": 4,
+        "action": "Audit",
+        "agent": "Auditor (Ψ - Codex/Kimi)",
+        "inputs": "DONE_FOR_ARCHITECT.md + git diff",
+        "outputs": "Constitutional audit verdict",
+        "purpose": "Verify F1-F12 compliance"
+      },
+      {
+        "step": 5,
+        "action": "Seal",
+        "agent": "APEX (Ψ) + Human",
+        "condition": "Verdict = SEAL",
+        "command": "git commit + git push",
+        "purpose": "Finalize work and log to ledger"
+      },
+      {
+        "step": 6,
+        "action": "Log",
+        "agent": "APEX (Ψ)",
+        "outputs": "Cooling Ledger entry",
+        "format": "JSONL with SHA-256 hash chain",
+        "purpose": "Immutable audit trail for future sessions"
+      }
+    ]
+  },
+
+  "l2_governance_translation": {
+    "description": "How Track B specs translate to platform-specific governance",
+    "claude_projects": {
+      "file": "L2_GOVERNANCE/integrations/claude_projects.yaml",
+      "purpose": "Injects Track B floors into Claude Code system prompt",
+      "mechanism": "YAML → System prompt via .claude/settings.json custom_instructions_file",
+      "enforcement": "Claude Code reads governance YAML on init, applies floors to all responses"
+    },
+    "gemini_gems": {
+      "file": "L2_GOVERNANCE/integrations/gemini_gems.yaml",
+      "purpose": "Configures Gemini Gem (Antigravity) with Architect role boundaries",
+      "mechanism": "YAML → Gem instructions via Google AI Studio",
+      "enforcement": "Gem instructions include floor table and role constraints"
+    },
+    "cursor_rules": {
+      "file": "L2_GOVERNANCE/integrations/cursor_rules.yaml",
+      "purpose": "Injects Track B floors into Cursor IDE agent",
+      "mechanism": "YAML → .cursorrules file conversion",
+      "enforcement": "Cursor reads .cursorrules on workspace open, applies to all completions"
+    },
+    "chatgpt_custom": {
+      "file": "L2_GOVERNANCE/integrations/chatgpt_custom.yaml",
+      "purpose": "Provides Custom GPT instructions for ChatGPT governance",
+      "mechanism": "YAML → Custom GPT instructions (manual copy)",
+      "enforcement": "User creates Custom GPT with instructions from YAML"
+    }
+  },
+
+  "benefits_of_federation": {
+    "constitutional_consistency": {
+      "description": "All agents follow same F1-F12 floors regardless of platform",
+      "mechanism": "Single source of truth (Track B specs) translated to platform-native formats",
+      "result": "No constitutional drift across platforms"
+    },
+    "cross_agent_audit_trail": {
+      "description": "Work done by any agent is visible to all via Cooling Ledger",
+      "mechanism": "APEX logs all verdicts to shared JSONL ledger",
+      "result": "Multi-session and multi-agent accountability"
+    },
+    "platform_independence": {
+      "description": "User can switch platforms without losing governance",
+      "mechanism": "L2 Governance YAMLs are platform-agnostic, translated at runtime",
+      "result": "No vendor lock-in, can use best tool for each task"
+    },
+    "separation_of_powers": {
+      "description": "Trinity workflow enforced across platforms",
+      "mechanism": "Architect (Gemini) → Engineer (Claude) → Auditor (Kimi) handoffs via git",
+      "result": "No single agent can self-approve, prevents hallucination propagation"
+    }
+  },
+
+  "meta": {
+    "created": "2026-01-12",
+    "updated": "2026-01-12",
+    "author": "arifOS Project - Track B v46 Restructure",
+    "license": "Apache-2.0",
+    "canonical_source": "L1_THEORY/canon/888_compass/095_WAW_FEDERATION_v46.md",
+    "notes": "W@W Federation spec defines multi-platform AI coordination under shared constitutional governance. PRIMARY AUTHORITY for federation protocols and L2 governance translation."
+  }
+}
