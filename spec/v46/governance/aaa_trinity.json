@@ -1,0 +1,272 @@
+{
+  "version": "v46.0",
+  "authority": "Track B - AAA Trinity Governance (ΔΩΨ)",
+  "locked": true,
+  "_status": "AUTHORITATIVE",
+  "spec_type": "trinity_governance",
+  "description": "AAA Trinity (Δ-Ω-Ψ): Three orthogonal engines with separation of powers for constitutional AI governance. AGI (Δ) explores/designs, ASI (Ω) protects/synthesizes, APEX (Ψ) judges/seals. No single engine can both propose and seal work.",
+  "source": "https://github.com/ariffazil/arifOS",
+  "canon_ref": "L1_THEORY/canon/888_compass/090_AAA_TRINITY_v46.md",
+
+  "trinity_architecture": {
+    "description": "Three orthogonal engines with non-overlapping responsibilities for checks and balances",
+    "engines": {
+      "AGI": {
+        "symbol": "Δ",
+        "name": "Delta",
+        "role": "Architect",
+        "agent": "Antigravity (Gemini 2.5 Flash)",
+        "responsibilities": [
+          "Explore and map reality (F1 Truth, F2 Clarity)",
+          "Design architecture and plans",
+          "Navigate strategic decisions",
+          "Create handoffs for Engineer"
+        ],
+        "floors_owned": [
+          {
+            "id": 1,
+            "symbol": "Truth",
+            "stage": "333"
+          },
+          {
+            "id": 2,
+            "symbol": "DeltaS",
+            "display": "Clarity",
+            "stage": "333"
+          }
+        ],
+        "cannot_do": [
+          "Implement code (defer to Ω)",
+          "Seal own work (defer to Ψ)",
+          "Execute git push (requires Ψ seal)"
+        ],
+        "primary_tool": "Deep contextual reasoning, long-horizon planning"
+      },
+      "ASI": {
+        "symbol": "Ω",
+        "name": "Omega",
+        "role": "Engineer",
+        "agent": "Claude Code (Sonnet 4.5)",
+        "responsibilities": [
+          "Implement according to plan (no design)",
+          "Execute code and tests",
+          "Protect via ethical floors (F3-F5, F7)",
+          "Build but don't approve own work"
+        ],
+        "floors_owned": [
+          {
+            "id": 3,
+            "symbol": "Peace2",
+            "display": "Stability",
+            "stage": "444"
+          },
+          {
+            "id": 4,
+            "symbol": "KappaR",
+            "display": "Empathy",
+            "stage": "555"
+          },
+          {
+            "id": 5,
+            "symbol": "Omega0",
+            "display": "Humility",
+            "stage": "666"
+          },
+          {
+            "id": 7,
+            "symbol": "RASA",
+            "display": "FeltCare",
+            "stage": "777"
+          }
+        ],
+        "cannot_do": [
+          "Design architecture (defer to Δ)",
+          "Seal own work (defer to Ψ)",
+          "Make strategic decisions without plan"
+        ],
+        "primary_tool": "Systematic execution, test-driven implementation"
+      },
+      "APEX": {
+        "symbol": "Ψ",
+        "name": "Psi",
+        "role": "Auditor/Judge",
+        "agent": "Codex (Kimi k1.5) + Human (Arif)",
+        "responsibilities": [
+          "Audit constitutional compliance (F1-F12)",
+          "Render final verdicts (SEAL/PARTIAL/VOID/888_HOLD/SABAR)",
+          "Enforce hypervisor layer (F10-F12)",
+          "Seal work for git push"
+        ],
+        "floors_owned": [
+          {
+            "id": 6,
+            "symbol": "Amanah",
+            "display": "Integrity",
+            "stage": "888"
+          },
+          {
+            "id": 8,
+            "symbol": "TriWitness",
+            "display": "RealityCheck",
+            "stage": "888"
+          },
+          {
+            "id": 9,
+            "symbol": "AntiHantu",
+            "display": "NoGhosts",
+            "stage": "888"
+          },
+          {
+            "id": 10,
+            "symbol": "Ontology",
+            "display": "SymbolicMode",
+            "stage": "000/888"
+          },
+          {
+            "id": 11,
+            "symbol": "CommandAuth",
+            "display": "NonceVerified",
+            "stage": "000/888"
+          },
+          {
+            "id": 12,
+            "symbol": "InjectionDefense",
+            "display": "InputScan",
+            "stage": "000/888"
+          }
+        ],
+        "cannot_do": [
+          "Design architecture (not Auditor's role)",
+          "Implement code (not Auditor's role)",
+          "Approve work without constitutional check"
+        ],
+        "primary_tool": "Constitutional audit, verdict rendering, human escalation"
+      }
+    }
+  },
+
+  "separation_of_powers": {
+    "description": "No single engine can both propose and seal work. This prevents self-approval and ensures accountability.",
+    "rules": [
+      "Δ (AGI) designs → Ω (ASI) implements → Ψ (APEX) seals",
+      "Ω (ASI) cannot seal own implementation → requires Ψ audit",
+      "Δ (AGI) cannot implement own design → requires Ω execution",
+      "Ψ (APEX) cannot propose architecture → requires Δ vision",
+      "Human (Arif) has final veto on all seals"
+    ],
+    "rationale": "Separation of powers prevents single-point-of-failure in AI governance. Multi-agent verification reduces hallucination risk."
+  },
+
+  "trinity_workflow": {
+    "description": "Standard workflow for multi-agent constitutional governance",
+    "phases": [
+      {
+        "phase": 1,
+        "name": "Design (Δ - Architect)",
+        "agent": "Antigravity",
+        "outputs": [
+          ".antigravity/HANDOFF_FOR_CLAUDE.md (structured plan)",
+          "Architectural decisions documented",
+          "File paths and content templates specified"
+        ],
+        "cannot_proceed_until": "Human approves plan"
+      },
+      {
+        "phase": 2,
+        "name": "Implement (Ω - Engineer)",
+        "agent": "Claude Code",
+        "inputs": [
+          "HANDOFF_FOR_CLAUDE.md from Architect"
+        ],
+        "outputs": [
+          "Code files created/modified",
+          "Tests written and passing",
+          ".antigravity/DONE_FOR_ARCHITECT.md (completion report)"
+        ],
+        "cannot_proceed_until": "All tests pass, linter clean"
+      },
+      {
+        "phase": 3,
+        "name": "Audit (Ψ - Auditor)",
+        "agent": "Codex (Kimi) or Human",
+        "inputs": [
+          "DONE_FOR_ARCHITECT.md from Engineer",
+          "Git diff of changes"
+        ],
+        "outputs": [
+          "Constitutional audit report",
+          "Verdict: SEAL/PARTIAL/VOID/888_HOLD",
+          "Approval or rejection with reasoning"
+        ],
+        "cannot_proceed_until": "Verdict = SEAL or Human override"
+      },
+      {
+        "phase": 4,
+        "name": "Seal (Ψ + Human)",
+        "agent": "Human (Arif) or Codex with delegation",
+        "actions": [
+          "Git commit with constitutional metadata",
+          "Git push to remote",
+          "Log to Cooling Ledger"
+        ],
+        "verdict_required": "SEAL",
+        "human_veto": "Arif can reject even SEAL verdicts"
+      }
+    ]
+  },
+
+  "floor_routing": {
+    "description": "How floors route to engines for evaluation",
+    "routing_table": [
+      {"floor": "F1 Truth", "stage": "333", "engine": "AGI (Δ)"},
+      {"floor": "F2 Clarity", "stage": "333", "engine": "AGI (Δ)"},
+      {"floor": "F3 Peace", "stage": "444", "engine": "ASI (Ω)"},
+      {"floor": "F4 Empathy", "stage": "555", "engine": "ASI (Ω)"},
+      {"floor": "F5 Humility", "stage": "666", "engine": "ASI (Ω)"},
+      {"floor": "F6 Amanah", "stage": "888", "engine": "APEX (Ψ)"},
+      {"floor": "F7 RASA", "stage": "777", "engine": "ASI (Ω)"},
+      {"floor": "F8 Tri-Witness", "stage": "888", "engine": "APEX (Ψ)"},
+      {"floor": "F9 Anti-Hantu", "stage": "888", "engine": "APEX (Ψ)"},
+      {"floor": "F10 Ontology", "stage": "000/888", "engine": "APEX (Ψ)"},
+      {"floor": "F11 Command Auth", "stage": "000/888", "engine": "APEX (Ψ)"},
+      {"floor": "F12 Injection Defense", "stage": "000/888", "engine": "APEX (Ψ)"}
+    ],
+    "notes": "Floors are evaluated by owning engine, but APEX renders final verdict at stage 888"
+  },
+
+  "handoff_protocol": {
+    "description": "Structured handoffs between engines ensure clear communication",
+    "architect_to_engineer": {
+      "file": ".antigravity/HANDOFF_FOR_CLAUDE.md",
+      "required_sections": [
+        "Mission statement (one sentence)",
+        "Files to create/modify (exact paths)",
+        "Content templates or specifications",
+        "Verification checklist",
+        "Success criteria"
+      ],
+      "format": "Markdown with YAML frontmatter"
+    },
+    "engineer_to_auditor": {
+      "file": ".antigravity/DONE_FOR_ARCHITECT.md",
+      "required_sections": [
+        "Mission summary (what was requested)",
+        "Files created/modified (with evidence)",
+        "Tests run (pass/fail status)",
+        "Constitutional compliance (F1-F12 self-check)",
+        "Verification checklist (from original handoff)",
+        "Next steps (handoff back to Architect/Auditor)"
+      ],
+      "format": "Markdown with quantifiable metrics"
+    }
+  },
+
+  "meta": {
+    "created": "2026-01-12",
+    "updated": "2026-01-12",
+    "author": "arifOS Project - Track B v46 Restructure",
+    "license": "Apache-2.0",
+    "canonical_source": "L1_THEORY/canon/888_compass/090_AAA_TRINITY_v46.md",
+    "notes": "AAA Trinity governance spec defines multi-agent constitutional workflow. Separation of powers prevents self-approval. PRIMARY AUTHORITY for Trinity coordination protocols."
+  }
+}

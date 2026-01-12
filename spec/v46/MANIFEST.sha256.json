@@ -1,0 +1,8 @@
+{
+  "version": "v46.0",
+  "description": "Track B v46 SHA-256 manifest",
+  "files": {
+    "spec/v46/constitutional_floors.json": "23923bd81b0dfed1bf4c9309bbb472c47ab18579a0d48f9c42c17469d6807f60",
+    "spec/v46/schema/constitutional_floors.schema.json": "9b518134e482623e078e2c9e9ed6c5ea03d150f4fff89e26c7a30a5a8044a444"
+  }
+}

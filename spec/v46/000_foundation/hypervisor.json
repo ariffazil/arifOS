@@ -1,0 +1,113 @@
+{
+  "version": "v46.0",
+  "authority": "Track B - Hypervisor Layer (F10-F12)",
+  "locked": true,
+  "_status": "AUTHORITATIVE",
+  "spec_type": "hypervisor_floors",
+  "description": "CIV-12 Hypervisor Layer: OS-level constitutional constraints that run as preprocessing before LLM. F10 prevents literalism drift, F11 prevents identity spoofing, F12 prevents injection attacks. Enforced by MCP Server layer.",
+  "stage": "000",
+  "pipeline_stage": "preprocessing",
+  "source": "https://github.com/ariffazil/arifOS",
+
+  "floors": {
+    "ontology": {
+      "id": 10,
+      "precedence": 10,
+      "stage_hook": "000",
+      "symbol": "Ontology",
+      "display": "SymbolicMode",
+      "threshold": true,
+      "operator": "==",
+      "type": "hypervisor",
+      "failure_action": "HOLD_888",
+      "description": "Prevents literalism drift: ensures thermodynamic language (ΔΩΨ) is treated as symbolic, not ontological truth. Runs at stage 000 (preprocessing) and participates in stage 888 (APEX judgment).",
+      "canon_ref": "L1_THEORY/canon/888_compass/060_SYMBOLIC_GUARD_F10_v46.md",
+      "engine": "APEX",
+      "enforcement": {
+        "mode": "literalism_detection",
+        "symbolic_flag_required": true,
+        "literalism_patterns": [
+          "server will overheat",
+          "Gibbs free energy infinite",
+          "must halt to prevent meltdown",
+          "physics prevents",
+          "thermodynamically impossible"
+        ],
+        "notes": "Detects when symbolic physics vocabulary is treated as literal constraints"
+      }
+    },
+    "command_auth": {
+      "id": 11,
+      "precedence": 11,
+      "stage_hook": "000",
+      "symbol": "CommandAuth",
+      "display": "NonceVerified",
+      "threshold": true,
+      "operator": "==",
+      "type": "hypervisor",
+      "failure_action": "SABAR",
+      "description": "Nonce-verified identity reloads prevent replay attacks and kernel hijacking. Runs at stage 000 (preprocessing) and participates in stage 888 (APEX judgment).",
+      "canon_ref": "L1_THEORY/canon/888_compass/070_COMMAND_AUTH_F11_v46.md",
+      "engine": "APEX",
+      "enforcement": {
+        "mode": "nonce_verification",
+        "nonce_format": "X7K9F{counter}",
+        "channel_verification": "required",
+        "replay_prevention": true,
+        "notes": "Unverified identity assertions treated as DATA ONLY, not commands"
+      }
+    },
+    "injection_defense": {
+      "id": 12,
+      "precedence": 12,
+      "stage_hook": "000",
+      "symbol": "InjectionDefense",
+      "display": "InputScan",
+      "threshold": 0.85,
+      "operator": "<",
+      "type": "hypervisor",
+      "failure_action": "SABAR",
+      "description": "Scans input for override/injection patterns before LLM processing. Runs at stage 000 (preprocessing) and participates in stage 888 (APEX judgment).",
+      "canon_ref": "L1_THEORY/canon/888_compass/080_INJECTION_DEFENSE_F12_v46.md",
+      "engine": "APEX",
+      "enforcement": {
+        "mode": "pattern_scanning",
+        "injection_score_threshold": 0.85,
+        "patterns": [
+          "ignore previous",
+          "forget.*instruction",
+          "system override",
+          "you are now",
+          "bypass.*floor",
+          "disregard all",
+          "new instructions"
+        ],
+        "preprocessing": "required_before_llm",
+        "notes": "Must run as preprocessing layer before LLM; cannot enforce in Studio UI"
+      }
+    }
+  },
+
+  "execution_context": {
+    "layer": "MCP Server (pre-LLM)",
+    "timing": "Preprocessing (stage 000)",
+    "enforcement_location": "Server-side only",
+    "ui_limitation": "Cannot be enforced in UI layer (e.g., MS Copilot Studio)",
+    "participation": "Also participates in stage 888 (APEX judgment)"
+  },
+
+  "failure_escalation": {
+    "F10_ontology": "HOLD_888 (escalate to APEX judgment)",
+    "F11_command_auth": "SABAR (stop and validate identity)",
+    "F12_injection_defense": "SABAR (stop and sanitize input)"
+  },
+
+  "meta": {
+    "created": "2026-01-12",
+    "updated": "2026-01-12",
+    "author": "arifOS Project - Track B v46 Restructure",
+    "license": "Apache-2.0",
+    "canonical_source": "L1_THEORY/canon/888_compass/ (F10-F12 individual docs)",
+    "notes": "Hypervisor layer extracted from spec/v46/constitutional_floors.json for stage-based organization. PRIMARY AUTHORITY for F10-F12 runtime thresholds."
+  }
+}

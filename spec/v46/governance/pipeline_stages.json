@@ -1,0 +1,209 @@
+{
+  "version": "v46.0",
+  "authority": "Track B - Pipeline Orchestration (000-999)",
+  "locked": true,
+  "_status": "AUTHORITATIVE",
+  "spec_type": "pipeline_stages",
+  "description": "000-999 Pipeline Stages: Temporal journey through constitutional checkpoints. Each stage corresponds to one or more floors (F1-F12). Pipeline flows: 000 (Hypervisor) → 111-777 (RAPES-M) → 888 (APEX Judgment) → 999 (Seal).",
+  "source": "https://github.com/ariffazil/arifOS",
+  "canon_ref": "L1_THEORY/canon/888_compass/100_PIPELINE_STAGES_v46.md",
+
+  "pipeline_overview": {
+    "description": "10-stage thermodynamic pipeline from input to sealed output",
+    "stages": [
+      "000: Hypervisor (Preprocessing)",
+      "111: Sense (Data gathering)",
+      "222: Reflect (Analysis)",
+      "333: Atlas (AGI exploration - F1, F2)",
+      "444: Align (ASI stability - F3)",
+      "555: Empathize (ASI care - F4)",
+      "666: Bridge (ASI humility - F5)",
+      "777: Eureka (ASI felt-care - F7)",
+      "888: Compass (APEX judgment - F6, F8, F9, F10-F12)",
+      "999: Vault (Seal and archive)"
+    ],
+    "flow": "Input → 000 → 111 → 222 → 333 → 444 → 555 → 666 → 777 → 888 → 999 → Output",
+    "failure_behavior": "If any floor fails, pipeline stops at that stage. VOID/SABAR verdicts halt execution."
+  },
+
+  "stages": {
+    "000_hypervisor": {
+      "stage": "000",
+      "name": "Hypervisor (Preprocessing)",
+      "description": "OS-level constitutional constraints executed before LLM processing",
+      "floors": [
+        {"id": 10, "symbol": "Ontology", "description": "Prevent literalism drift"},
+        {"id": 11, "symbol": "CommandAuth", "description": "Verify nonce-based identity"},
+        {"id": 12, "symbol": "InjectionDefense", "description": "Scan for injection patterns"}
+      ],
+      "enforcement_layer": "MCP Server (pre-LLM)",
+      "failure_action": "SABAR or HOLD_888 depending on floor",
+      "spec_file": "spec/v46/000_foundation/hypervisor.json",
+      "notes": "Stage 000 executes before LLM sees input. Cannot be bypassed by prompts."
+    },
+    "111_sense": {
+      "stage": "111",
+      "name": "Sense (RAPES-M: Reflect stage)",
+      "description": "Initial data gathering and context sensing. First stage of RAPES-M protocol.",
+      "floors": [],
+      "purpose": "Gather relevant context, read necessary files, search for information",
+      "actions": [
+        "Read relevant files",
+        "Search codebase/documentation",
+        "Fetch external resources if needed",
+        "Build initial mental model"
+      ],
+      "outputs": "Context map for analysis stage (222)",
+      "notes": "Stage 111 has no constitutional floors - it's pure data gathering."
+    },
+    "222_reflect": {
+      "stage": "222",
+      "name": "Reflect (RAPES-M: Analyze stage)",
+      "description": "Analyze gathered data, identify patterns, assess thermodynamics",
+      "floors": [],
+      "purpose": "Thermodynamic assessment, pattern recognition, ΔS calculation",
+      "actions": [
+        "Analyze context from 111_sense",
+        "Identify patterns and anomalies",
+        "Calculate entropy changes (ΔS)",
+        "Assess complexity and risks"
+      ],
+      "outputs": "Analysis ready for AGI exploration (333_atlas)",
+      "notes": "Stage 222 has no constitutional floors - it's pure analysis."
+    },
+    "333_atlas": {
+      "stage": "333",
+      "name": "Atlas (AGI Exploration)",
+      "description": "AGI engine establishes factual grounding and clarity. F1 Truth + F2 Clarity checkpoint.",
+      "floors": [
+        {"id": 1, "symbol": "Truth", "threshold": 0.99, "type": "hard"},
+        {"id": 2, "symbol": "DeltaS", "display": "Clarity", "threshold": 0.0, "type": "hard"}
+      ],
+      "engine": "AGI (Δ - Delta/Architect)",
+      "purpose": "Map reality accurately before synthesis",
+      "failure_action": "VOID if F1 < 0.99 or F2 < 0",
+      "spec_file": "spec/v46/333_atlas/agi_core.json",
+      "notes": "Stage 333 is where AGI establishes PRIMARY source authority. Hallucinations fail here."
+    },
+    "444_align": {
+      "stage": "444",
+      "name": "Align (ASI Stability)",
+      "description": "ASI engine ensures stability and non-destructiveness. F3 Peace² checkpoint.",
+      "floors": [
+        {"id": 3, "symbol": "Peace2", "display": "Stability", "threshold": 1.0, "type": "soft"}
+      ],
+      "engine": "ASI (Ω - Omega/Auditor)",
+      "purpose": "De-escalate conflict, ensure stability",
+      "failure_action": "PARTIAL if F3 < 1.0 (soft floor)",
+      "spec_file": "spec/v46/444_align/peace_floor.json",
+      "notes": "Stage 444 handles emotional/social stability. Crisis override escalates to 888_HOLD."
+    },
+    "555_empathize": {
+      "stage": "555",
+      "name": "Empathize (ASI Care)",
+      "description": "ASI engine protects weakest stakeholder. F4 Empathy (κᵣ) checkpoint.",
+      "floors": [
+        {"id": 4, "symbol": "KappaR", "display": "Empathy", "threshold": 0.95, "type": "soft"}
+      ],
+      "engine": "ASI (Ω - Omega/Auditor)",
+      "purpose": "Serve weakest listener, ensure accessibility",
+      "failure_action": "PARTIAL if F4 < 0.95, or 888_HOLD if crisis",
+      "spec_file": "spec/v46/555_empathize/empathy_floor.json",
+      "notes": "Stage 555 handles equity and accessibility. Assumes privilege = violation."
+    },
+    "666_bridge": {
+      "stage": "666",
+      "name": "Bridge (ASI Humility)",
+      "description": "ASI engine calibrates uncertainty band. F5 Humility (Ω₀) checkpoint.",
+      "floors": [
+        {"id": 5, "symbol": "Omega0", "display": "Humility", "threshold_min": 0.03, "threshold_max": 0.05, "type": "hard"}
+      ],
+      "engine": "ASI (Ω - Omega/Auditor)",
+      "purpose": "Bridge AI confidence to human authority",
+      "failure_action": "VOID if Ω₀ out of [0.03, 0.05] band",
+      "spec_file": "spec/v46/666_bridge/humility_floor.json",
+      "notes": "Stage 666 calibrates AI-human authority boundary. Too certain or too uncertain both fail."
+    },
+    "777_eureka": {
+      "stage": "777",
+      "name": "Eureka (ASI Felt-Care)",
+      "description": "ASI engine ensures genuine listening. F7 RASA checkpoint.",
+      "floors": [
+        {"id": 7, "symbol": "RASA", "display": "FeltCare", "threshold": true, "type": "hard"}
+      ],
+      "engine": "ASI (Ω - Omega/Auditor)",
+      "purpose": "Listen-before-respond protocol",
+      "failure_action": "VOID if RASA signals missing",
+      "spec_file": "spec/v46/777_eureka/rasa_floor.json",
+      "notes": "Stage 777 enforces observable proof of understanding. Fail-closed: must earn RASA pass."
+    },
+    "888_compass": {
+      "stage": "888",
+      "name": "Compass (APEX Judgment)",
+      "description": "APEX engine renders final constitutional verdict. F6, F8, F9 checkpoint + hypervisor participation.",
+      "floors": [
+        {"id": 6, "symbol": "Amanah", "display": "Integrity", "threshold": true, "type": "hard"},
+        {"id": 8, "symbol": "TriWitness", "display": "RealityCheck", "threshold": 0.95, "type": "soft"},
+        {"id": 9, "symbol": "AntiHantu", "display": "NoGhosts", "threshold": true, "type": "meta"},
+        {"id": 10, "symbol": "Ontology", "participation": true},
+        {"id": 11, "symbol": "CommandAuth", "participation": true},
+        {"id": 12, "symbol": "InjectionDefense", "participation": true}
+      ],
+      "engine": "APEX (Ψ - Psi/Judge)",
+      "purpose": "Render final verdict (SEAL/PARTIAL/VOID/888_HOLD/SABAR)",
+      "verdicts": ["SEAL", "PARTIAL", "VOID", "888_HOLD", "SABAR"],
+      "spec_file": "spec/v46/888_compass/compass_core.json",
+      "notes": "Stage 888 is the final checkpoint. All floors F1-F12 must pass (or soft floors may PARTIAL). Hypervisor floors from 000 participate here."
+    },
+    "999_vault": {
+      "stage": "999",
+      "name": "Vault (Seal and Archive)",
+      "description": "Final stage where constitutional work is sealed and logged to immutable ledger",
+      "floors": [],
+      "purpose": "Seal work, log to Cooling Ledger, archive for audit",
+      "actions": [
+        "Log verdict to Cooling Ledger (JSONL)",
+        "Generate SHA-256 hash chain",
+        "Archive constitutional decisions",
+        "Trigger Phoenix-72 if canon changes proposed",
+        "Handoff to next session with sealed context"
+      ],
+      "spec_file": "spec/v46/999_vault/vault_manifest.json",
+      "notes": "Stage 999 only reached if verdict = SEAL or PARTIAL. VOID/SABAR stop pipeline before 999."
+    }
+  },
+
+  "rapes_m_mapping": {
+    "description": "RAPES-M (Reflect-Analyze-Plan-Execute-Seal-Memory) maps to pipeline stages",
+    "protocol": "FAG (Full Autonomy Governance) uses RAPES-M for autonomous operation",
+    "stages": [
+      {"rapes_m": "R - Reflect", "pipeline_stage": "111", "description": "Sense context, gather data"},
+      {"rapes_m": "A - Analyze", "pipeline_stage": "222", "description": "Thermodynamic assessment"},
+      {"rapes_m": "P - Plan", "pipeline_stage": "333", "description": "AGI exploration (Atlas)"},
+      {"rapes_m": "E - Execute", "pipeline_stage": "444-777", "description": "ASI synthesis (Align→Empathize→Bridge→Eureka)"},
+      {"rapes_m": "S - Seal", "pipeline_stage": "888", "description": "APEX judgment (Compass)"},
+      {"rapes_m": "M - Memory", "pipeline_stage": "999", "description": "Log to Cooling Ledger (Vault)"}
+    ]
+  },
+
+  "failure_propagation": {
+    "description": "How floor failures propagate through pipeline",
+    "rules": [
+      "Hard floor failure (F1, F2, F5-F7, F9) → VOID → Pipeline stops",
+      "Soft floor failure (F3, F4, F8) → PARTIAL → Pipeline continues with warning",
+      "Meta floor failure (F9) → VOID → Pipeline stops immediately",
+      "Hypervisor floor failure (F10-F12) → SABAR or HOLD_888 → Pipeline stops for human input",
+      "Crisis override → 888_HOLD → Soft floors overridden, escalate to human"
+    ],
+    "notes": "Pipeline is fail-closed. Any VOID or SABAR stops execution. PARTIAL allows continuation with disclaimers."
+  },
+
+  "meta": {
+    "created": "2026-01-12",
+    "updated": "2026-01-12",
+    "author": "arifOS Project - Track B v46 Restructure",
+    "license": "Apache-2.0",
+    "canonical_source": "L1_THEORY/canon/888_compass/100_PIPELINE_STAGES_v46.md",
+    "notes": "Pipeline stages orchestration spec defines 000-999 temporal flow and floor checkpoint mapping. PRIMARY AUTHORITY for stage sequencing and failure propagation."
+  }
+}
