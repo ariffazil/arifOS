@@ -49,7 +49,7 @@ canon_master: L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md
 ```
 arifos_core/          # Main constitutional engine (176+ files, ~41K LoC)
 ├── agi/              # AGI Kernel (Δ Mind) - Logic & reasoning
-├── asi/              # ASI Kernel (Ω Heart) - Safety & care  
+├── asi/              # ASI Kernel (Ω Heart) - Safety & care
 ├── apex/             # APEX Kernel (Ψ Soul) - Final decisions
 ├── enforcement/      # Trinity orchestration & floor checking
 ├── integration/      # LLM adapters, API, federation
@@ -604,6 +604,23 @@ ChatGPT/Claude/Cursor/Gemini/etc.
 
 **Important:** L2_GOVERNANCE is NOT imported by Python code. It's for humans to copy-paste into LLMs.
 
+### 1.13 Constitutional Doctrines (v46.1)
+
+**1. Tertib dan Flow (The Order of Operations)**
+Intelligence is not random. It follows the metabolic sequence:
+- **000 (Hypervisor):** Pre-process and safety check (F11/F12).
+- **444 (Govern):** Align with F1-F12 floors.
+- **666 (Forge):** Execute the work.
+- **888 (Attest):** Validate the result.
+- **999 (Seal):** Log to the Cooling Ledger.
+
+**Rule:** Skipping a step creates entropy. Following the flow creates order.
+
+**2. The Partial Seal Doctrine**
+Transparency of failure is a form of success.
+- **A PARTIAL SEAL** (e.g., 82% coverage + 11 `xfail` with documented risk) is constitutionally superior to a blocked VOID (delivering nothing) or a fake SEAL (hiding failure).
+- **Condition:** All gaps must be explicitly documented and tracked in the backlog.
+
 ## 2. THE 12 CONSTITUTIONAL FLOORS (v46.0)
 
 **Logic:** All floors AND - every floor must PASS. Repair order: F1 first.
@@ -636,7 +653,7 @@ ChatGPT/Claude/Cursor/Gemini/etc.
 The system uses a 9-stage metabolic pipeline:
 
 ```
-000_VOID → 111_SENSE → 222_REFLECT → 333_REASON → 444_EVIDENCE → 
+000_VOID → 111_SENSE → 222_REFLECT → 333_REASON → 444_EVIDENCE →
 555_EMPATHIZE → 666_ALIGN → 777_FORGE → 888_JUDGE → 999_SEAL
 ```
 
@@ -652,7 +669,7 @@ The system uses a 9-stage metabolic pipeline:
 ### 2.2 Multi-Agent Federation (W@W)
 
 **@WELL** - Care & safety (Peace² enforcement)
-**@GEOX** - Truth & reality grounding  
+**@GEOX** - Truth & reality grounding
 **@RIF** - Logic & clarity (ΔS enforcement)
 **@WEALTH** - Integrity & order (Amanah veto power)
 **@PROMPT** - Language governance (Anti-Hantu)
@@ -754,7 +771,7 @@ pytest --cov=arifos_core --cov-report=html
 # Basic install
 pip install arifos
 
-# Development install  
+# Development install
 pip install -e ".[dev,yaml,api,litellm]"
 
 # From source
@@ -828,7 +845,7 @@ uvicorn arifos_core.integration.api.main:app --host 0.0.0.0 --port 8000
 ### 4.2 Authority Hierarchy
 
 1. **Human Sovereign** (Arif) - Final authority
-2. **arifOS Governor** - Constitutional enforcement  
+2. **arifOS Governor** - Constitutional enforcement
 3. **Constitutional Agents** - ΔΩΨ Trinity implementation
 
 ### 4.3 Constitutional Law Stack

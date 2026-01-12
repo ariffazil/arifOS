@@ -37,12 +37,14 @@ That's it. AI answers are now checked before reaching you.
 
 ## 🚀 What's New in v46.1 (Sovereign Witness)
 
-**Date:** 2026-01-12
+**Date:** 2026-01-13
 
 1.  **Pipeline Ontology (000-999):** The `L1_THEORY` Canon is now strictly numbered to match the metabolic lifecycle.
     *   `000_foundation` → `333_atlas` → `777_eureka` → `888_compass` → `999_vault`
 2.  **ZKPC Protocol ("The Seal"):** A Zero-Knowledge Proof of Constitution now cryptographically binds the Canon and Protocols. A session cannot be SEALED without a valid ZKPC Root (`L1_THEORY/canon/999_vault/CONSTITUTIONAL_SEAL_v46.1.json`).
 3.  **L2 Protocols:** `L2_GOVERNANCE` has been renamed to `L2_PROTOCOLS` to reflect its role as the "Hero Layer" for LLM specifications.
+4.  **Constitutional Meta-Search:** Web search integration is now governed by F1 (Truth), F2 (Clarity), and F5 (Humility). Search results are validated against constitutional floors before use.
+5.  **Grand Unification Ledger:** AGI, ASI, and APEX insights are now unified in `L1_THEORY/knowledge/`, establishing a shared "EUREKA" memory across all agents.
 
 ---
 
