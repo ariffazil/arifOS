@@ -35,6 +35,17 @@ That's it. AI answers are now checked before reaching you.
 
 ---
 
+## 🚀 What's New in v46.1 (Sovereign Witness)
+
+**Date:** 2026-01-12
+
+1.  **Pipeline Ontology (000-999):** The `L1_THEORY` Canon is now strictly numbered to match the metabolic lifecycle.
+    *   `000_foundation` → `333_atlas` → `777_eureka` → `888_compass` → `999_vault`
+2.  **ZKPC Protocol ("The Seal"):** A Zero-Knowledge Proof of Constitution now cryptographically binds the Canon and Protocols. A session cannot be SEALED without a valid ZKPC Root (`L1_THEORY/canon/999_vault/CONSTITUTIONAL_SEAL_v46.1.json`).
+3.  **L2 Protocols:** `L2_GOVERNANCE` has been renamed to `L2_PROTOCOLS` to reflect its role as the "Hero Layer" for LLM specifications.
+
+---
+
 ## 🎯 What Does arifOS Do?
 
 Think of it like a customs checkpoint—every AI response passes through 12 gates. If it clears all 12, it reaches you. If it fails even one, it stops.
@@ -106,7 +117,7 @@ Think of these like rules of the road. Break any rule = blocked.
 Input → F12 (Injection Scan) → F11 (Nonce Verify) → LLM → F10 (Ontology Check) → F1-F9 (Governance) → F8 (Audit) → Output
 ```
 
-**Simple:** If all 12 floors pass → Answer released ✅  
+**Simple:** If all 12 floors pass → Answer released ✅
 If any floor fails → Answer blocked ❌
 
 **What a blocked answer looks like:**
@@ -333,20 +344,32 @@ arifOS v46.1 | 12 Rules | Fail-Closed | ZKPC-Sealed | https://github.com/ariffaz
 
 ```text
 arifos_core/
-  agi/         → Logic and reasoning
-  asi/         → Safety and care
-  apex/        → Final decisions
-  enforcement/ → Checking the rules
-  integration/ → Connecting to other AI systems
-  memory/      → Remembering what happened
-  system/      → Running everything
-  mcp/         → Protocol layer
-
-L1_THEORY/     → Canon + thermodynamic foundations
-L2_PROTOCOLS/  → Pipeline-aligned constitutional rules (v46.1)
+├── agi/          → Logic and reasoning
+├── asi/          → Safety and care
+├── apex/         → Final decisions
+├── enforcement/  → Checking the rules
+├── integration/  → Connecting to other AI systems
+├── memory/       → Remembering what happened
+├── system/       → Running everything
+├── mcp/          → Protocol layer
 ```
 
-**Simple rule:** Code lives in `arifos_core/`, constitutions and specs live in `L1_THEORY/` and `L2_PROTOCOLS/`.
+### The Knowledge Graph (Canon & Protocols)
+
+```
+L1_THEORY/        → The "Why" (Constitutional Law)
+├── canon/        → Authoritative source of truth
+    ├── 000_foundation/  → Physics & Floors
+    ├── 333_atlas/       → AGI Specifications
+    ├── 777_eureka/      → ASI Specifications
+    ├── 888_compass/     → APEX Specifications
+    └── 999_vault/       → The Seal & Immutable Records
+
+L2_PROTOCOLS/     → The "How" (LLM Specs)
+├── v46/          → Runtime schemas synced with L1 Canon
+```
+
+**Simple rule:** `arifos_core` is the engine. `L1_THEORY` is the law. `L2_PROTOCOLS` are the instructions.
 
 ---
 
@@ -611,7 +634,7 @@ pytest tests/ -v
 | `arifos_core/system/apex_prime.py` | Main decision-making (the "judge") |
 | `arifos_core/system/pipeline.py` | Runs answers through all 9 rules |
 | `arifos_core/enforcement/metrics.py` | Measures if rules are followed |
-| `L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json` | Primary spec authority (F1-F12 thresholds) |
+| `L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json` | Full rule definitions (Runtime Authority) |
 | `L2_PROTOCOLS/v46/governance/crisis_patterns.json` | Crisis detection patterns |
 | `L1_THEORY/canon/` | Canonical philosophy (Track A) |
 
@@ -660,3 +683,4 @@ AGPL-3.0 — Free to use, modify, and share. If you modify and distribute, you m
 ---
 
 **arifOS v46.1 "Sovereign Witness"** — Simple rules. Clear answers. Safe AI. ZKPC-Sealed.
+```
