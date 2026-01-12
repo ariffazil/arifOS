@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "arifos"
 version = "46.0.0"
-description = "9 simple rules for AI safety. Works with ChatGPT, Claude, Gemini, and any LLM."
+description = "12 constitutional floors for AI safety. Works with ChatGPT, Claude, Gemini, and any LLM."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "AGPL-3.0-only"

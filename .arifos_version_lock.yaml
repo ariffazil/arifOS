@@ -1,35 +1,37 @@
 # .arifos_version_lock.yaml
 # Purpose: Canonical version references and layer separation enforcement
 # Status: SEALED - Do not edit manually
-# Version: v45.0
-# Date: 2026-01-06
+# Version: v46.0
+# Date: 2026-01-12
 
-canonical_spec_version: "v45"
-canonical_code_version: "2026-01-06"
+canonical_spec_version: "v46"
+canonical_code_version: "2026-01-12"
 layer_separation_enforced: true
-last_entropy_audit: "2026-01-06T08:13:00+08"
+last_entropy_audit: "2026-01-12T03:51:00+00"
 
 # Layer separation law (L1→L2→L3 uni-directional)
 layers:
   L1_CANON:
     path: "L1_THEORY/canon/"
     status: "SEALED (Phoenix-72 amendment only)"
-    last_update: "2025-12-30"
+    last_update: "2026-01-12"
 
   L2_SPEC:
     path:
-      - "spec/v45/"
+      - "spec/v46/"
+      - "spec/CIV_12_DOSSIER.md"
       - "L2_GOVERNANCE/"
     status: "ACTIVE (versioned, SHA-256 verified)"
-    last_update: "2026-01-06"
+    last_update: "2026-01-12"
 
   L3_CODE:
     path: "arifos_core/"
     status: "ACTIVE (tested, audited)"
-    last_update: "2026-01-06"
+    last_update: "2026-01-12"
 
 # Archived versions (historical reference only)
 archived_versions:
+  - "v45" # Location: spec/v45/ (9 floors baseline)
   - "v44" # Location: archive/spec_history/v44/
   - "v43" # Location: archive/spec_history/v43/
   - "v42" # Location: archive/v42_detail/
@@ -37,6 +39,19 @@ archived_versions:
 
 # Entropy reduction log
 entropy_audits:
+  - date: "2026-01-12T03:51:00+00"
+    agent: "GitHub Copilot"
+    actions:
+      - "Implemented CIV-12: v46.0 upgrade (9→12 floors)"
+      - "Added F10 (Ontology Guard) - literalism detection"
+      - "Added F11 (Nonce Manager) - command authentication"
+      - "Added F12 (Injection Guard) - prompt injection defense"
+      - "Created spec/v46/ directory with constitutional_floors.json"
+      - "Created spec/CIV_12_DOSSIER.md"
+      - "Updated arifos_core/guards/ with hypervisor layer"
+    entropy_reduction: "~3-5%"
+    layer_separation: "PRESERVED"
+    breaking_changes: "F11-F12 require MCP-side execution"
   - date: "2026-01-06T08:13:00+08"
     agent: "Antigravity (Google Gemini)"
     actions:

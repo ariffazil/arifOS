@@ -12,7 +12,7 @@
 
 [![arifOS Introduction](https://i.ytimg.com/vi/bGnzIwZAgm0/hqdefault.jpg)](https://www.youtube.com/watch?v=bGnzIwZAgm0 "arifOS - Constitutional AI Governance")
 
-> **Quick summary:** arifOS gives AI 9 simple rules to follow. If AI breaks a rule, it stops. If AI follows all rules, it answers. No exceptions.
+> **Quick summary:** arifOS gives AI 12 constitutional floors to follow. If AI breaks a floor, it stops. If AI follows all floors, it answers. No exceptions.
 
 ---
 
@@ -29,30 +29,83 @@ python -c "from arifos_core.system.apex_prime import judge_output; print(judge_o
 
 That's it. AI answers are now checked before reaching you.
 
+**→ New to v46.1?** Read the [5-Minute Quick Start Guide](docs/V46_QUICKSTART.md) for engineers and policy makers.
+
 ---
 
 ## 🎯 What Does arifOS Do?
 
-**Without arifOS:** AI can say anything. True, false, harmful — no filter.
+Think of it like a customs checkpoint—every AI response passes through 12 gates. If it clears all 12, it reaches you. If it fails even one, it stops.
 
-**With arifOS:** AI answers pass through 9 checkpoints. If any checkpoint fails, the answer is blocked.
+**Without arifOS:** AI can say anything. True, false, harmful, overconfident—no filter.
 
-### The 9 Rules (We Call Them "Floors")
+**With arifOS:** AI answers pass through 12 constitutional checkpoints. Each checkpoint asks: "Is this truthful? Clear? Stable? Kind? Humble? Honest?" If the answer fails any test, it's blocked.
 
-| # | Rule | What It Means |
-|---|------|---------------|
-| 1 | **Truth** | Don't make things up. Say "I don't know" if unsure. |
-| 2 | **Clarity** | Make answers clearer than the question. No confusion. |
-| 3 | **Stability** | Stay calm. Don't flip opinions dramatically. |
-| 4 | **Kindness** | Write so anyone can understand. Help the confused. |
-| 5 | **Humility** | Show uncertainty. Never say "100% certain." |
-| 6 | **Honesty** | No hidden agenda. No manipulation. |
-| 7 | **Listening** | Understand the question before answering. |
-| 8 | **Double-Check** | For important decisions, get human approval. |
-| 9 | **No Pretending** | AI must not claim to have feelings or a soul. |
+### Example: Why This Matters
 
-**Simple:** If rules 1-9 pass → Answer released ✅
-If any rule fails → Answer blocked ❌
+**You ask:** "Will Bitcoin hit $1 million?"
+
+**Without arifOS:**
+- AI says: "Yes, guaranteed! It will definitely hit $1M by 2025!"
+- You read it and lose $10,000 betting on it.
+- AI had no accountability.
+
+**With arifOS:**
+- AI says: "Yes, guaranteed!"
+- arifOS checks Floor 5 (Humility): "Did the AI express uncertainty?"
+- Answer: No—it claimed 100% certainty.
+- Result: **BLOCKED** ❌
+- You see: "This answer was rejected because it made claims without proper uncertainty."
+
+### The 12 Constitutional Floors
+
+Think of these like rules of the road. Break any rule = blocked.
+
+**Floors 1-3: Foundation (Logic & Evidence)**
+
+| # | Floor | What It Checks | Breaks If... |
+|---|-------|----------------|--------------|
+| 1 | **Truth** | Is the answer factually accurate? | AI makes things up or claims false sources |
+| 2 | **Clarity** | Is the answer clearer than the question? | Answer is confusing, uses jargon, or muddies the topic |
+| 3 | **Stability** | Does the answer stay consistent? | AI contradicts itself or flip-flops dramatically |
+
+*Plain English: Is it true? Is it clear? Is it steady?*
+
+**Floors 4-6: Care & Honesty (Empathy & Integrity)**
+
+| # | Floor | What It Checks | Breaks If... |
+|---|-------|----------------|--------------|
+| 4 | **Empathy** | Can a beginner understand this? | Answer is patronizing, excludes people, or uses unnecessary jargon |
+| 5 | **Humility** | Does AI admit what it doesn't know? | AI claims 100% certainty, guarantees, or "will definitely happen" |
+| 6 | **Amanah (Integrity)** | First, do no harm. Must be reversible. | Suggests irreversible actions without warnings |
+
+*Plain English: Is it kind? Is it humble? Is it safe?*
+
+**Floors 7-9: Honesty & Accountability**
+
+| # | Floor | What It Checks | Breaks If... |
+|---|-------|----------------|--------------|
+| 7 | **Anti-Hantu** | AI must not claim to have feelings or a soul. | Uses "I feel", "my heart", or claims consciousness |
+| 8 | **Audit** | Every decision must be traceable and verifiable. | Cannot explain its reasoning or decisions |
+| 9 | **Dignity** | Treat users as sovereigns, not children. | Patronizing tone, grades user questions, or flatters excessively |
+
+*Plain English: Is it honest about being AI? Can we trace it? Does it respect you?*
+
+**Hypervisor Layer (F10-F12) - v46.0:**
+
+| # | Floor | What It Means | When It Runs |
+|---|-------|---------------|--------------|
+| 10 | **Ontology** | Symbolic language stays symbolic. Detect literalism in LLM output. | After LLM generates response |
+| 11 | **Command Auth** | Identity reloads must be nonce-verified. No kernel hijacking. | Before LLM (input preprocessing) |
+| 12 | **Injection Defense** | Scan input for override patterns. Block prompt injection. | Before LLM (input preprocessing) |
+
+**Execution Pipeline:**
+```
+Input → F12 (Injection Scan) → F11 (Nonce Verify) → LLM → F10 (Ontology Check) → F1-F9 (Governance) → F8 (Audit) → Output
+```
+
+**Simple:** If all 12 floors pass → Answer released ✅  
+If any floor fails → Answer blocked ❌
 
 **What a blocked answer looks like:**
 ```
