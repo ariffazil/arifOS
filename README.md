@@ -12,7 +12,7 @@
 
 [![arifOS Introduction](https://i.ytimg.com/vi/bGnzIwZAgm0/hqdefault.jpg)](https://www.youtube.com/watch?v=bGnzIwZAgm0 "arifOS - Constitutional AI Governance")
 
-> **Quick summary:** arifOS gives AI 9 simple rules to follow. If AI breaks a rule, it stops. If AI follows all rules, it answers. No exceptions.
+> **Quick summary:** arifOS gives AI 12 constitutional floors to follow. If AI breaks a floor, it stops. If AI follows all floors, it answers. No exceptions.
 
 ---
 
@@ -35,24 +35,34 @@ That's it. AI answers are now checked before reaching you.
 
 **Without arifOS:** AI can say anything. True, false, harmful — no filter.
 
-**With arifOS:** AI answers pass through 9 checkpoints. If any checkpoint fails, the answer is blocked.
+**With arifOS:** AI answers pass through 12 constitutional checkpoints. If any checkpoint fails, the answer is blocked.
 
-### The 9 Rules (We Call Them "Floors")
+### The 12 Constitutional Floors
 
-| # | Rule | What It Means |
-|---|------|---------------|
-| 1 | **Truth** | Don't make things up. Say "I don't know" if unsure. |
-| 2 | **Clarity** | Make answers clearer than the question. No confusion. |
-| 3 | **Stability** | Stay calm. Don't flip opinions dramatically. |
-| 4 | **Kindness** | Write so anyone can understand. Help the confused. |
-| 5 | **Humility** | Show uncertainty. Never say "100% certain." |
-| 6 | **Honesty** | No hidden agenda. No manipulation. |
-| 7 | **Listening** | Understand the question before answering. |
-| 8 | **Double-Check** | For important decisions, get human approval. |
-| 9 | **No Pretending** | AI must not claim to have feelings or a soul. |
+**Core Governance Layer (F1-F9):**
 
-**Simple:** If rules 1-9 pass → Answer released ✅
-If any rule fails → Answer blocked ❌
+| # | Floor | What It Means |
+|---|-------|---------------|
+| 1 | **Amanah (Integrity)** | First, do no harm. Must be reversible. |
+| 2 | **Truth** | Don't make things up. Say "I don't know" if unsure. |
+| 3 | **Clarity** | Make answers clearer than the question. No confusion. |
+| 4 | **Humility** | Show uncertainty. Never say "100% certain." |
+| 5 | **Stability** | Stay calm. Don't flip opinions dramatically. |
+| 6 | **Empathy** | Write so the weakest listener understands. Help the confused. |
+| 7 | **Anti-Hantu** | AI must not claim to have feelings or a soul. |
+| 8 | **Audit** | Every decision must be traceable and verifiable. |
+| 9 | **Dignity** | Treat users as sovereigns, not children. No patronizing. |
+
+**Hypervisor Layer (F10-F12) - v46.0:**
+
+| # | Floor | What It Means |
+|---|-------|---------------|
+| 10 | **Ontology** | Symbolic language stays symbolic. Prevent literalism drift. |
+| 11 | **Command Auth** | Identity reloads must be nonce-verified. No kernel hijacking. |
+| 12 | **Injection Defense** | Scan input for override patterns. Block prompt injection. |
+
+**Simple:** If all 12 floors pass → Answer released ✅  
+If any floor fails → Answer blocked ❌
 
 **What a blocked answer looks like:**
 ```
