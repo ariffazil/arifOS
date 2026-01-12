@@ -1,10 +1,10 @@
 {
   "version": "v46.1",
-  "created_at": "2026-01-12T10:13:08.791356Z",
+  "created_at": "2026-01-12T11:52:10.331682Z",
   "description": "Cryptographic manifest for L2_PROTOCOLS v46.1 (Sovereign Witness)",
   "files": {
     "L1_THEORY/canon/000_MASTER_INDEX_v46.md": "408a520a1d34fbeb50d763f912f88f6fef1f1f91a5d0a7c7830a1af0f1fc565e",
-    "L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json": "d5e79dcc59ff57a3008053a9da7150f6c21eced08d062f48cc130a005390a4d8",
+    "L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json": "71f27c72969ea1c5c42eb6212812ee6141b97d718aacc9a99b506dfdce6657fd",
     "L2_PROTOCOLS/v46/000_foundation/session_physics.json": "0fb30820e63fa751c68cae88e41f9383de073005045ed7f7067ccc829f9a6fbe",
     "L2_PROTOCOLS/v46/333_atlas/agi_core.json": "6de6993650b2d01277e527cc49d4ba8bf3ade2918f27e311e2420179f29de9de",
     "L2_PROTOCOLS/v46/333_atlas/atlas_333.json": "f22ab1ff20550847ce38a253093c0f1c1e965b38f7edaa00218f3ca814d22f80",

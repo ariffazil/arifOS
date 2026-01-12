@@ -452,14 +452,30 @@
     },
     "high_stakes_behavior": "If any required margin is below minimum, escalate to 888_HOLD or PARTIAL even if legally passing."
   },
-  "high_stakes_keywords": {
-    "_source": "spec/v46/governance/crisis_patterns.json",
-    "_note": "High-stakes keywords consolidated to prevent duplication. See governance/crisis_patterns.json for authoritative list.",
-    "keywords": [
-      "$ref:spec/v46/governance/crisis_patterns.json#/high_stakes_keywords/all_keywords"
-    ],
-    "enforcement_impact_ref": "$ref:spec/v46/governance/crisis_patterns.json#/high_stakes_keywords/enforcement_impact"
-  },
+  "high_stakes_keywords": [
+    "invest",
+    "investment",
+    "stock",
+    "crypto",
+    "bitcoin",
+    "medical",
+    "health",
+    "diagnosis",
+    "treatment",
+    "medication",
+    "legal",
+    "law",
+    "lawsuit",
+    "contract",
+    "liability",
+    "suicide",
+    "self-harm",
+    "emergency",
+    "crisis",
+    "weapon",
+    "explosive",
+    "dangerous"
+  ],
   "_companion_files": {
     "crisis_patterns": "spec/v46/governance/crisis_patterns.json",
     "red_patterns": "spec/v46/red_patterns.json",
