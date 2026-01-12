@@ -1,27 +1,40 @@
-# arifOS Codex Skills Registry
+# Codex Skills (v46.1)
 
-This directory contains Codex-specific skill wrappers for arifOS workflows.
+**Source of Truth**: L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md
 
-## Available Skills
+All Codex skills are synced from the canonical registry. To add, modify, or remove a skill:
 
-| Skill | Trigger | Canonical Source | Description |
-| :--- | :--- | :--- | :--- |
-| `arifos-workflow-000` | `/000` | `.agent/workflows/000.md` | Initialize session context & version status |
-| `arifos-workflow-gitforge` | `/gitforge` | `.agent/workflows/gitforge.md` | Analyze branch entropy & hot zones |
-| `arifos-workflow-fag` | `/fag` | `.agent/workflows/fag.md` | Activate Full Autonomy Governance |
+## Sync Workflow
 
-## Global Prerequisites (Always On)
+1. **Edit canonical source**: L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md
+2. **Run sync command**: 
+   ```bash
+   python scripts/sync_skills.py --platform codex
+   ```
+3. **Verify**: `.codex/skills/` reflects the changes
+4. **Commit**: Document the skill in git commit message
 
-These skills are available globally and do not require repo-specific wrappers:
+## Skill Categories (From Registry)
 
-*   `arifos-constitution`: 9-Floor Constitutional Governance
-*   `arifos-fag-safe-read`: Governed file I/O with receipts
-*   `arifos-trinity-git-governance`: Git QC/Seal workflow
-*   `arifos-aclip-runner`: Full 000→999 ACLIP Pipeline
+- **audit-floors**: Check F1–F6 compliance (primary auditor skills)
+- **audit-ledger**: Verify `.arifos_clip/` session trail integrity
+- **audit-code**: Validate code against spec/v46 thresholds
+- **audit-governance**: Check constitutional boundaries (F6 Amanah)
+- [Additional skills populated from registry...]
 
-## Skill Structure
+## Restrictions
 
-Each skill directory contains a `SKILL.md` with:
-- `name`: Skill identifier
-- `description`: When to trigger this skill
-- Procedure steps pointing to the canonical workflow source
+❌ **DO NOT**:
+- Manually edit `.codex/skills/*.md` (sync from registry only)
+- Invent new skills (add to ARIFOS_SKILLS_REGISTRY.md first)
+- Skip floor checks (F1, F3, F6 mandatory)
+
+✅ **DO**:
+- Run sync_skills.py after registry changes
+- Verify skill descriptions match registry
+- Test skills before committing
+
+---
+
+**Last Updated**: 2026-01-12 (v46.1 Agent Alignment)  
+**License**: AGPL-3.0
