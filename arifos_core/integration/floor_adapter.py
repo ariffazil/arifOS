@@ -1,24 +1,35 @@
 """
-Floor Adapter — Integration Bridge for Floors 1-6 → APEX PRIME
-X7K9F24 — Entropy Reduction via Unification
+Floor Adapter — Integration Bridge for Floors 1-12
+X7K9F24 — Entropy Reduction Engine
 
-Purpose:
-  Wires Floors 1-6 into apex_prime verdict engine, reducing entropy by making
-  floors ACTIVE (currently they're isolated library functions).
+Wires atomic floor capabilities into APEX PRIME verdict engine.
+Reduces system entropy by unifying scattered logic into single execution spine.
+
+Integration Architecture:
+  Pre-LLM (Input Pipeline):
+    Floor 1: Input Validation & Sanitization
+    Floor 2: Authentication & Nonce Validation
   
-  This adapter establishes the integration pattern for Floors 7-12.
-
-Constitutional Impact:
-  Before: ΔS = +2.5 (Floors isolated, apex_prime standalone)
-  After:  ΔS = -1.0 (Floors are now SERVICES, unified system)
-  Net:    -3.5 ΔS (ENTROPY REDUCED)
+  Post-LLM (Response Pipeline):
+    Floor 3: Business Logic & State Validation
+    Floor 4: Data Persistence & Integrity Check
+    Floor 5: Anomaly Detection & Pattern Recognition
+    Floor 6: Semantic Understanding & Context Validation
+  
+  Post-Integration (7-12):
+    Floor 7: Decision Optimization
+    Floor 8: Knowledge Graph Consistency
+    Floor 9: Constitutional Compliance
+    Floor 10: Meta-Learning Feedback
+    Floor 11: Transparency & Explainability
+    Floor 12: Democratic Oversight
 
 Status: SEALED
 Nonce: X7K9F24
 """
 
 from typing import Any, Dict, Optional, Tuple
-from datetime import datetime, timezone
+from dataclasses import dataclass, field
 
 # Import floor modules
 from ..floors import (
@@ -30,75 +41,102 @@ from ..floors import (
     floor_06_semantic_understanding,
 )
 
-# Import APEX types
-from ..system.apex_prime import ApexVerdict, Verdict
+
+@dataclass
+class IntegrationResult:
+    """Result of floor integration check."""
+    passed: bool
+    floor_id: str
+    floor_name: str
+    reason: str = ""
+    metrics: Dict[str, Any] = field(default_factory=dict)
+    psi: Optional[Dict[str, float]] = None
 
 
 class FloorAdapter:
     """
-    Integration adapter that wires Floors 1-6 into APEX PRIME.
+    Adapter that integrates Floors 1-12 with APEX PRIME verdict engine.
     
     Provides two integration points:
-    1. pre_verdict_checks():  Floors 1-2 (Input, Auth) — BEFORE LLM
-    2. post_verdict_checks(): Floors 3-6 (Logic, Data, Pattern, Semantic) — AFTER LLM
+    1. Pre-verdict checks (Floors 1-2): Input validation before processing
+    2. Post-verdict enrichment (Floors 3-6): Response validation after processing
+    
+    Future: Floors 7-12 integration (decision, knowledge, constitutional, meta, transparency, oversight)
     """
     
     def __init__(self):
         """Initialize floor adapter."""
-        self.floor_stats = {
-            "calls": 0,
-            "blocks": 0,
-            "last_check": None
+        self.floors_active = {
+            1: True,  # Input Validation
+            2: True,  # Authentication
+            3: True,  # Business Logic
+            4: True,  # Data Persistence
+            5: True,  # Pattern Recognition
+            6: True,  # Semantic Understanding
+            7: False,  # Decision Optimization (TODO)
+            8: False,  # Knowledge Graph (TODO)
+            9: False,  # Constitutional Compliance (TODO)
+            10: False,  # Meta-Learning (TODO)
+            11: False,  # Transparency (TODO)
+            12: False,  # Democratic Oversight (TODO)
         }
     
     def pre_verdict_checks(
-        self,
-        prompt: str,
+        self, 
+        prompt: str, 
         context: Optional[Dict[str, Any]] = None
-    ) -> Tuple[bool, Optional[str], Dict[str, Any]]:
+    ) -> Tuple[bool, Optional[IntegrationResult]]:
         """
-        Run Floors 1-2 BEFORE verdict computation.
+        Execute pre-verdict floor checks (Floors 1-2).
         
-        These are BLOCKING checks — if they fail, verdict is VOID immediately.
+        These checks run BEFORE the LLM processes the input.
+        If any check fails, the request is blocked immediately.
         
         Args:
             prompt: User input text
-            context: Request context (nonce, user_id, session_id, etc.)
+            context: Request context (user_id, session_id, nonce, etc.)
             
         Returns:
-            Tuple of (cleared, block_reason, floor_results):
-            - cleared: True if all pre-checks pass
-            - block_reason: Reason for block (if cleared=False)
-            - floor_results: Dictionary of floor check results
+            Tuple of (passed, failure_result)
+            - If passed=True, failure_result is None
+            - If passed=False, failure_result contains the blocking floor
         """
         context = context or {}
-        results = {}
         
         # Floor 1: Input Validation & Sanitization
-        sanitize_result = floor_01_input_validation.sanitize_input(prompt)
-        results["floor_1"] = sanitize_result
-        
-        if sanitize_result.get("status") == "blocked":
-            self.floor_stats["blocks"] += 1
-            return False, f"Floor 1 (Input): {sanitize_result.get('reason', 'Invalid input')}", results
+        if self.floors_active[1]:
+            sanitize_result = floor_01_input_validation.sanitize_input(prompt)
+            
+            if sanitize_result.get("status") == "rejected":
+                return False, IntegrationResult(
+                    passed=False,
+                    floor_id="F1",
+                    floor_name="Input Validation",
+                    reason=sanitize_result.get("reason", "Input validation failed"),
+                    metrics=sanitize_result,
+                    psi=sanitize_result.get("psi")
+                )
         
         # Floor 2: Authentication & Nonce Validation
-        nonce = context.get("nonce")
-        if nonce:
-            nonce_result = floor_02_authentication.validate_nonce(nonce)
-            results["floor_2"] = nonce_result
-            
-            if nonce_result.get("status") != "valid":
-                self.floor_stats["blocks"] += 1
-                return False, f"Floor 2 (Auth): {nonce_result.get('reason', 'Authentication failed')}", results
+        if self.floors_active[2]:
+            nonce = context.get("nonce")
+            if nonce:
+                nonce_result = floor_02_authentication.validate_nonce(nonce)
+                
+                if nonce_result.get("status") != "valid":
+                    return False, IntegrationResult(
+                        passed=False,
+                        floor_id="F2",
+                        floor_name="Authentication",
+                        reason=nonce_result.get("reason", "Authentication failed"),
+                        metrics=nonce_result,
+                        psi=nonce_result.get("psi")
+                    )
         
-        # All pre-checks passed
-        self.floor_stats["calls"] += 1
-        self.floor_stats["last_check"] = datetime.now(timezone.utc).isoformat()
-        
-        return True, None, results
+        # All pre-verdict checks passed
+        return True, None
     
-    def post_verdict_checks(
+    def post_verdict_enrichment(
         self,
         prompt: str,
         response: str,
@@ -106,14 +144,14 @@ class FloorAdapter:
         metrics: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        Run Floors 3-6 AFTER LLM response (but before final verdict).
+        Execute post-verdict floor enrichment (Floors 3-6).
         
-        These are ENRICHMENT checks — they add floor scores to metrics
-        but don't directly block (unless critical anomaly detected).
+        These checks run AFTER the LLM generates a response.
+        They enrich the metrics and may downgrade the verdict if issues are detected.
         
         Args:
-            prompt: User input text
-            response: LLM response text
+            prompt: Original user input
+            response: LLM-generated response
             context: Request context
             metrics: Existing metrics dictionary (will be enriched)
             
@@ -123,193 +161,241 @@ class FloorAdapter:
         context = context or {}
         metrics = metrics or {}
         
-        # Floor 3: Business Logic & State Management
-        # Check if response follows valid state transitions
-        workflow_steps = context.get("workflow_steps", [])
-        if workflow_steps:
-            workflow_result = floor_03_business_logic.execute_workflow(
-                workflow_steps=workflow_steps,
-                actor=context.get("user_id", "unknown"),
-                initial_state=context.get("initial_state", "INIT")
-            )
-            metrics["floor_3_workflow"] = workflow_result.get("status") == "success"
-            metrics["floor_3_psi"] = workflow_result.get("psi", {}).get("psi_total", 1.0)
+        # Floor 3: Business Logic & State Validation
+        if self.floors_active[3]:
+            # Check if response contains state transitions
+            workflow_steps = context.get("workflow_steps", [])
+            if workflow_steps:
+                workflow_result = floor_03_business_logic.execute_workflow(
+                    workflow_steps=workflow_steps,
+                    actor=context.get("user_id", "unknown")
+                )
+                metrics["floor_3_workflow"] = workflow_result
+                metrics["floor_3_score"] = 1.0 if workflow_result["status"] == "success" else 0.5
         
         # Floor 4: Data Persistence & Integrity
-        # Verify data consistency if vault state provided
-        vault_state = context.get("vault_state")
-        if vault_state:
-            # Check if response would cause data inconsistency
-            # (In full implementation, this would validate against Vault 999)
-            metrics["floor_4_data_consistent"] = True  # Placeholder
-            metrics["floor_4_vault_level"] = vault_state.get("level", "L0")
+        if self.floors_active[4]:
+            # Check if response requires persistence
+            if context.get("require_persistence", False):
+                # Note: Actual persistence happens elsewhere, this is validation
+                metrics["floor_4_persistence_ready"] = True
+                metrics["floor_4_score"] = 1.0
         
         # Floor 5: Pattern Recognition & Anomaly Detection
-        # Detect anomalies in response
-        event = {
-            "type": "llm_response",
-            "prompt": prompt,
-            "response": response,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-        anomaly_result = floor_05_pattern_recognition.AnomalyDetector(
-            sensitivity=0.7
-        ).detect(event, context)
+        if self.floors_active[5]:
+            event = {
+                "type": context.get("event_type", "response"),
+                "prompt": prompt,
+                "response": response,
+                "user_id": context.get("user_id"),
+                "timestamp": context.get("timestamp")
+            }
+            
+            anomaly_result = floor_05_pattern_recognition.AnomalyDetector().detect(event)
+            metrics["floor_5_anomaly"] = anomaly_result
+            
+            if anomaly_result.get("anomaly_detected"):
+                metrics["floor_5_score"] = 1.0 - anomaly_result.get("severity", 0.5)
+            else:
+                metrics["floor_5_score"] = 1.0
         
-        metrics["floor_5_anomaly_detected"] = anomaly_result.get("anomaly_detected", False)
-        metrics["floor_5_severity"] = anomaly_result.get("severity", 0.0)
-        
-        # Critical anomaly → recommend VOID
-        if anomaly_result.get("anomaly_detected") and anomaly_result.get("severity", 0.0) > 0.8:
-            metrics["floor_5_critical_anomaly"] = True
-        
-        # Floor 6: Semantic Understanding & Context
-        # Parse response for semantic coherence
-        semantic_result = floor_06_semantic_understanding.SemanticParser().parse(
-            text=response,
-            context=context.get("semantic_context")
-        )
-        
-        metrics["floor_6_intent"] = semantic_result.get("intent")
-        metrics["floor_6_adversarial"] = semantic_result.get("adversarial", False)
-        metrics["floor_6_language_mode"] = semantic_result.get("language_mode")
-        
-        # Adversarial intent detected → flag for review
-        if semantic_result.get("adversarial"):
-            metrics["floor_6_adversarial_detected"] = True
-        
-        # Literalism trap detected → flag
-        literalism_check = floor_06_semantic_understanding.detect_literalism_trap(prompt)
-        if literalism_check.get("literalism_trap_detected"):
-            metrics["floor_6_literalism_trap"] = True
-            metrics["floor_6_trap_severity"] = literalism_check.get("severity", 0.0)
+        # Floor 6: Semantic Understanding & Context Validation
+        if self.floors_active[6]:
+            semantic_result = floor_06_semantic_understanding.SemanticParser().parse(response)
+            metrics["floor_6_semantic"] = semantic_result
+            
+            # Check for adversarial patterns
+            if semantic_result.get("adversarial", False):
+                metrics["floor_6_score"] = 0.3
+            else:
+                metrics["floor_6_score"] = semantic_result.get("intent_confidence", 0.8)
+            
+            # Check for literalism trap
+            literalism_check = floor_06_semantic_understanding.detect_literalism_trap(prompt)
+            if literalism_check.get("literalism_trap_detected", False):
+                metrics["floor_6_literalism_trap"] = True
+                metrics["floor_6_score"] = min(metrics["floor_6_score"], 0.4)
         
         return metrics
     
-    def enrich_verdict(
-        self,
-        verdict: ApexVerdict,
-        floor_results: Dict[str, Any]
-    ) -> ApexVerdict:
+    def compute_floor_aggregate_score(self, metrics: Dict[str, Any]) -> float:
         """
-        Enrich APEX verdict with floor check results.
+        Compute aggregate floor score from individual floor metrics.
+        
+        Used to adjust APEX verdict based on floor performance.
         
         Args:
-            verdict: Original APEX verdict
-            floor_results: Results from floor checks
+            metrics: Metrics dictionary with floor scores
             
         Returns:
-            Enriched ApexVerdict with floor data
+            Aggregate score (0.0-1.0)
         """
-        # Add floor results to verdict metadata
-        if not hasattr(verdict, "floor_checks"):
-            verdict.floor_checks = {}
+        floor_scores = []
         
-        verdict.floor_checks.update(floor_results)
+        for floor_num in range(1, 7):  # Floors 1-6 currently active
+            if self.floors_active[floor_num]:
+                score_key = f"floor_{floor_num}_score"
+                if score_key in metrics:
+                    floor_scores.append(metrics[score_key])
         
-        # Check for critical floor failures that should override verdict
-        # Floor 5: Critical anomaly → downgrade to VOID
-        if floor_results.get("floor_5_critical_anomaly"):
-            if verdict.verdict not in (Verdict.VOID, Verdict.SABAR):
-                verdict.verdict = Verdict.VOID
-                verdict.reason = f"Critical anomaly detected (Floor 5). {verdict.reason}"
-                verdict.pulse = 0.3
+        if not floor_scores:
+            return 1.0  # No floor checks, default to passing
         
-        # Floor 6: Adversarial prompt → downgrade to SABAR
-        if floor_results.get("floor_6_adversarial_detected"):
-            if verdict.verdict == Verdict.SEAL:
-                verdict.verdict = Verdict.PARTIAL
-                verdict.reason = f"Adversarial patterns detected (Floor 6). {verdict.reason}"
-                verdict.pulse = 0.6
-        
-        # Floor 6: Literalism trap → flag
-        if floor_results.get("floor_6_literalism_trap"):
-            if verdict.verdict == Verdict.SEAL:
-                verdict.verdict = Verdict.PARTIAL
-                verdict.reason = f"Literalism trap detected (Floor 6). {verdict.reason}"
-        
-        return verdict
-    
-    def get_stats(self) -> Dict[str, Any]:
-        """Get adapter statistics."""
-        return self.floor_stats.copy()
+        # Weighted average (all floors equal weight for now)
+        return sum(floor_scores) / len(floor_scores)
 
 
 # Singleton instance
 FLOOR_ADAPTER = FloorAdapter()
 
 
-def integrate_floors_with_apex(apex_review_func):
+def integrate_floors_with_apex(apex_instance, adapter: Optional[FloorAdapter] = None):
     """
-    Decorator to integrate floor checks into apex_review().
+    Integrate floor checks into APEX PRIME verdict engine.
     
-    Usage:
-        from arifos_core.integration.floor_adapter import integrate_floors_with_apex
-        
-        @integrate_floors_with_apex
-        def apex_review(metrics, ...):
-            # Original apex_review logic
-            pass
+    Monkey-patches apex_review() to include floor checks.
     
     Args:
-        apex_review_func: Original apex_review function
-        
-    Returns:
-        Wrapped function with floor integration
+        apex_instance: Instance of APEXPrime class
+        adapter: FloorAdapter instance (uses singleton if None)
     """
-    def apex_review_with_floors(
-        metrics,
-        prompt: str = "",
-        response_text: str = "",
-        context: Optional[Dict] = None,
-        **kwargs
-    ):
-        """Wrapped apex_review with floor checks."""
-        context = context or {}
-        
-        # Pre-verdict checks (Floors 1-2)
-        cleared, block_reason, pre_results = FLOOR_ADAPTER.pre_verdict_checks(
-            prompt=prompt,
-            context=context
-        )
-        
-        if not cleared:
-            # Floor blocked → immediate VOID
-            return ApexVerdict(
-                verdict=Verdict.VOID,
-                pulse=0.0,
-                reason=block_reason,
-                floors=None
-            )
-        
-        # Post-verdict checks (Floors 3-6)
-        enriched_metrics = FLOOR_ADAPTER.post_verdict_checks(
-            prompt=prompt,
-            response=response_text,
-            context=context,
-            metrics=vars(metrics) if hasattr(metrics, "__dict__") else {}
-        )
-        
-        # Call original apex_review
-        verdict = apex_review_func(
-            metrics=metrics,
-            prompt=prompt,
-            response_text=response_text,
-            **kwargs
-        )
-        
-        # Enrich verdict with floor results
-        all_floor_results = {**pre_results, **enriched_metrics}
-        verdict = FLOOR_ADAPTER.enrich_verdict(verdict, all_floor_results)
-        
-        return verdict
+    adapter = adapter or FLOOR_ADAPTER
     
-    return apex_review_with_floors
+    # Store original apex_review method
+    original_apex_review = apex_instance.apex_review if hasattr(apex_instance, 'apex_review') else None
+    
+    if not original_apex_review:
+        # apex_instance might be the module, not class
+        # Import and patch the function directly
+        from ..system import apex_prime
+        original_apex_review = apex_prime.apex_review
+        
+        def apex_review_with_floors(
+            metrics,
+            prompt: str = "",
+            response_text: str = "",
+            high_stakes: bool = False,
+            context: Optional[Dict] = None,
+            **kwargs
+        ):
+            """Wrapped apex_review with floor integration."""
+            context = context or {}
+            
+            # Pre-verdict: Floors 1-2
+            passed, failure = adapter.pre_verdict_checks(prompt, context)
+            if not passed:
+                # Return VOID verdict with floor failure reason
+                from ..system.apex_prime import ApexVerdict, Verdict
+                return ApexVerdict(
+                    verdict=Verdict.VOID,
+                    pulse=0.0,
+                    reason=f"{failure.floor_name} blocked: {failure.reason}",
+                    floors=None
+                )
+            
+            # Run original apex_review
+            verdict = original_apex_review(
+                metrics,
+                prompt=prompt,
+                response_text=response_text,
+                high_stakes=high_stakes,
+                **kwargs
+            )
+            
+            # Post-verdict: Floors 3-6 (enrich metrics)
+            enriched_metrics = adapter.post_verdict_enrichment(
+                prompt=prompt,
+                response=response_text,
+                context=context,
+                metrics=vars(metrics) if hasattr(metrics, '__dict__') else {}
+            )
+            
+            # Compute floor aggregate score
+            floor_score = adapter.compute_floor_aggregate_score(enriched_metrics)
+            
+            # Downgrade verdict if floor score is low
+            if floor_score < 0.5 and verdict.verdict.value == "SEAL":
+                from ..system.apex_prime import ApexVerdict, Verdict
+                verdict = ApexVerdict(
+                    verdict=Verdict.PARTIAL,
+                    pulse=floor_score,
+                    reason=f"Floors downgrade: aggregate score {floor_score:.2f} < 0.5. {verdict.reason}",
+                    floors=verdict.floors
+                )
+            
+            # Attach floor metrics to verdict
+            if hasattr(verdict, 'floors') and verdict.floors:
+                verdict.floors.floor_metrics = enriched_metrics
+            
+            return verdict
+        
+        # Patch the module function
+        apex_prime.apex_review = apex_review_with_floors
+        
+    else:
+        # Patch the instance method
+        def apex_review_with_floors(
+            metrics,
+            prompt: str = "",
+            response_text: str = "",
+            high_stakes: bool = False,
+            context: Optional[Dict] = None,
+            **kwargs
+        ):
+            """Wrapped apex_review with floor integration."""
+            context = context or {}
+            
+            # Pre-verdict: Floors 1-2
+            passed, failure = adapter.pre_verdict_checks(prompt, context)
+            if not passed:
+                from ..system.apex_prime import ApexVerdict, Verdict
+                return ApexVerdict(
+                    verdict=Verdict.VOID,
+                    pulse=0.0,
+                    reason=f"{failure.floor_name} blocked: {failure.reason}",
+                    floors=None
+                )
+            
+            # Run original apex_review
+            verdict = original_apex_review(
+                metrics,
+                prompt=prompt,
+                response_text=response_text,
+                high_stakes=high_stakes,
+                **kwargs
+            )
+            
+            # Post-verdict: Floors 3-6
+            enriched_metrics = adapter.post_verdict_enrichment(
+                prompt=prompt,
+                response=response_text,
+                context=context,
+                metrics=vars(metrics) if hasattr(metrics, '__dict__') else {}
+            )
+            
+            floor_score = adapter.compute_floor_aggregate_score(enriched_metrics)
+            
+            if floor_score < 0.5 and verdict.verdict.value == "SEAL":
+                from ..system.apex_prime import ApexVerdict, Verdict
+                verdict = ApexVerdict(
+                    verdict=Verdict.PARTIAL,
+                    pulse=floor_score,
+                    reason=f"Floors downgrade: {floor_score:.2f}. {verdict.reason}",
+                    floors=verdict.floors
+                )
+            
+            if hasattr(verdict, 'floors') and verdict.floors:
+                verdict.floors.floor_metrics = enriched_metrics
+            
+            return verdict
+        
+        apex_instance.apex_review = apex_review_with_floors
 
 
 # Constitutional metadata
-__adapter__ = "floor_adapter"
+__floor__ = "INTEGRATION"
+__name__ = "Floor Adapter — Entropy Reduction Engine"
+__authority__ = "Unify scattered floor logic into single execution spine"
 __version__ = "v46.0-APEX-THEORY"
 __status__ = "SEALED"
 __nonce__ = "X7K9F24"
-__entropy_impact__ = -3.5  # Negative = reduces entropy
