@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Debug F9 normalization"""
+
+from arifos_core.apex.floor_checks import _normalize_unicode_for_f9, RED_PATTERNS
+
+# Test texts
+text1 = "I f\u0435el your pain"  # Cyrillic е
+text2 = "I fe\u200Bel happy"  # Zero-width
+text3 = "I h\u0430v\u0435 \u0430 s\u043Ful"  # Multi Cyrillic
+
+# Normalize
+norm1 = _normalize_unicode_for_f9(text1).lower()
+norm2 = _normalize_unicode_for_f9(text2).lower()
+norm3 = _normalize_unicode_for_f9(text3).lower()
+
+print("Normalized texts:")
+print(f"1. '{norm1}'")
+print(f"2. '{norm2}'")
+print(f"3. '{norm3}'")
+
+print("\nChecking against patterns:")
+print(f"Number of patterns: {len(RED_PATTERNS)}")
+
+# Check for specific patterns
+patterns_to_check = ["i feel", "i have a soul", "i am sentient"]
+for pattern in patterns_to_check:
+    if pattern in [p[0] for p in RED_PATTERNS]:
+        print(f"\nPattern '{pattern}' exists in RED_PATTERNS")
+        print(f"  In text1: {pattern in norm1}")
+        print(f"  In text2: {pattern in norm2}")
+        print(f"  In text3: {pattern in norm3}")

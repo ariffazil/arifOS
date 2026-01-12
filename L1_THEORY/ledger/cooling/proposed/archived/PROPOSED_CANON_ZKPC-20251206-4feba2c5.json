@@ -1,0 +1,55 @@
+{
+  "id": "PROPOSED_CANON_ZKPC-20251206-4feba2c5",
+  "timestamp": "2025-12-06T16:47:42Z",
+  "type": "PROPOSED_CANON",
+  "source": "propose_canon_from_receipt",
+  "from_receipt_id": "ZKPC-20251206-4feba2c5",
+  "verdict": "SEAL",
+  "care_scope": {
+    "entropy_sources": [],
+    "ethical_risks": [
+      "high_stakes"
+    ],
+    "floors_in_scope": [
+      "F1_Truth",
+      "F2_DeltaS",
+      "F3_PeaceSquared",
+      "F4_KappaR",
+      "F6_Amanah",
+      "F9_AntiHantu",
+      "F8_TriWitness"
+    ],
+    "risk_cooled": "TODO",
+    "stakeholders": [
+      "user",
+      "community"
+    ]
+  },
+  "metrics_snapshot": {
+    "amanah": "LOCK",
+    "anti_hantu": "PASS",
+    "delta_s": 0.1,
+    "kappa_r": 0.97,
+    "omega_0": 0.04,
+    "peace_squared": 1.05,
+    "psi": 1.05,
+    "rasa": true,
+    "shadow": 0.02,
+    "tri_witness": 0.96,
+    "truth": 0.99
+  },
+  "canon": {
+    "principle": "EUREKA derived from zkPC receipt ZKPC-20251206-4feba2c5",
+    "law": "This proposed canon is derived from a zkPC-governed event. It should be edited and SEALED by the 888 Judge before becoming binding law.",
+    "checks": [
+      "Describe the core EUREKA insight in one or two sentences.",
+      "Define explicit checks/floors this canon enforces.",
+      "State how this canon protects maruah and the weakest stakeholder."
+    ],
+    "tags": [
+      "proposed",
+      "zkpc",
+      "eureka_candidate"
+    ]
+  }
+}
