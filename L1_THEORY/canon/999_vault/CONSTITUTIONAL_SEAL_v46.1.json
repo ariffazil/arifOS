@@ -1,0 +1,857 @@
+{
+  "meta": {
+    "timestamp": "2026-01-12T09:35:03.380997+00:00",
+    "generator": "zkpc_seal.py",
+    "version": "v46.1",
+    "type": "ZKPC_PRE_COMMITMENT"
+  },
+  "roots": {
+    "master_seal": "07423cac7223c51ecf239939f5b9e4a5183861c2a815473d86f91e3c54a27b26",
+    "canon_root": "73f087acc5b5826a2e9ae4b0739e04d43cb5e62c7b505c5a8d7f1545d619a7c5",
+    "protocols_root": "65881cb51ed1a67c4e12c9498e85dcea010255d045c429763547328e237ac0e0"
+  },
+  "counts": {
+    "canon_files": 133,
+    "protocols_files": 21
+  },
+  "content_map": {
+    "L1_THEORY/canon": {
+      "000_MASTER_INDEX_v46.md": {
+        "hash": "408a520a1d34fbeb50d763f912f88f6fef1f1f91a5d0a7c7830a1af0f1fc565e",
+        "path": "L1_THEORY/canon/000_MASTER_INDEX_v46.md",
+        "size": 2829
+      },
+      "000_foundation": {
+        "000_CONSTITUTIONAL_CORE_v46.md": {
+          "hash": "0917a70981a0c383c3d85b64c7188171fc8c9fe58fa488598fb4a69605d960bc",
+          "path": "L1_THEORY/canon/000_foundation/000_CONSTITUTIONAL_CORE_v46.md",
+          "size": 3826
+        },
+        "040_TRINITY_EQUATIONS_v46.md": {
+          "hash": "e3af3065aa8280993f5e825c8ee65953baacb29107d6c87ae333fbab8065578c",
+          "path": "L1_THEORY/canon/000_foundation/040_TRINITY_EQUATIONS_v46.md",
+          "size": 1645
+        },
+        "050_SESSION_PHYSICS_LAYER_v46.md": {
+          "hash": "a21fc11ceab1aa6fc94e0978a26a67364ce1cf3bd19fb64f1a8c52d83434bbc2",
+          "path": "L1_THEORY/canon/000_foundation/050_SESSION_PHYSICS_LAYER_v46.md",
+          "size": 2027
+        },
+        "060_CIV12_ORTHOGONAL_v46.md": {
+          "hash": "a2c859e32ca2aceac69fdd2249d079534106995e99eb921bfafcf69c89bcbcbf",
+          "path": "L1_THEORY/canon/000_foundation/060_CIV12_ORTHOGONAL_v46.md",
+          "size": 13705
+        },
+        "070_ZKPC_PROTOCOL_v46.md": {
+          "hash": "acc5d1bda14694abd455967bbad03e0df4f66015750eb49744a26f5858e222d3",
+          "path": "L1_THEORY/canon/000_foundation/070_ZKPC_PROTOCOL_v46.md",
+          "size": 1399
+        },
+        "080_CIV8_COMPASS_888_v46.md": {
+          "hash": "0e3e3ec33a8fce4db30d53221e4e894e828aec7a7362bbd6e4d77b90be4efae7",
+          "path": "L1_THEORY/canon/000_foundation/080_CIV8_COMPASS_888_v46.md",
+          "size": 11678
+        },
+        "100_ARCHITECTURE_INTENT_v46.yaml": {
+          "hash": "a2f83576a7448ed8f8d88d8a396ced127bf32bdd55ce31a9b26b5c03d055136e",
+          "path": "L1_THEORY/canon/000_foundation/100_ARCHITECTURE_INTENT_v46.yaml",
+          "size": 4116
+        },
+        "README.md": {
+          "hash": "db0b8a80aa160eb11b8e23904d6556706099f60df073f593aaad69d482a3fc0d",
+          "path": "L1_THEORY/canon/000_foundation/README.md",
+          "size": 900
+        }
+      },
+      "111_sense": {
+        "README.md": {
+          "hash": "4e3cf23cf1e4f416089d269d950d9a4a7f025bf1e5f56f4a80939ea9d8c17b5a",
+          "path": "L1_THEORY/canon/111_sense/README.md",
+          "size": 728
+        }
+      },
+      "222_reflect": {
+        "README.md": {
+          "hash": "6e0b8385f33c884816d5aa73df3ccd92c740d7cecdcaf8f5570316833f08bf13",
+          "path": "L1_THEORY/canon/222_reflect/README.md",
+          "size": 739
+        }
+      },
+      "333_atlas": {
+        "301_AGI_DELTA_ARCHITECT_v46.md": {
+          "hash": "330cfdc1f247b2e251d87520361d3fbd78fd434bc3a09be8668b0d1a446df926",
+          "path": "L1_THEORY/canon/333_atlas/301_AGI_DELTA_ARCHITECT_v46.md",
+          "size": 2424
+        },
+        "310_ATLAS_333_CANONICAL_v46.md": {
+          "hash": "620dd70e58c8f9014f0521b016699a8443d50c1f81a4d10cdc7bf61638f37789",
+          "path": "L1_THEORY/canon/333_atlas/310_ATLAS_333_CANONICAL_v46.md",
+          "size": 7643
+        },
+        "340_TRUTH_F1_v46.md": {
+          "hash": "540bd3d3f3f1c03f009a213e2c22e4b927bac270e2a15b5a5a1e019678e5c1cb",
+          "path": "L1_THEORY/canon/333_atlas/340_TRUTH_F1_v46.md",
+          "size": 2113
+        },
+        "350_CLARITY_F2_v46.md": {
+          "hash": "1e59fbdcbe6408986eb6137dac55dbf77ddb8b0b7704f8cfefbedae1d7407d11",
+          "path": "L1_THEORY/canon/333_atlas/350_CLARITY_F2_v46.md",
+          "size": 2030
+        },
+        "README.md": {
+          "hash": "e21847de64e057bcc266875d47201bbd32a539e99508df15a71d78666bee08e0",
+          "path": "L1_THEORY/canon/333_atlas/README.md",
+          "size": 855
+        }
+      },
+      "444_align": {
+        "420_PEACE_F3_v46.md": {
+          "hash": "192ffe605d9240933651dfb6373f74654421703f7b2c0b9a4782dd97b2ba2bb8",
+          "path": "L1_THEORY/canon/444_align/420_PEACE_F3_v46.md",
+          "size": 2049
+        },
+        "README.md": {
+          "hash": "41ec956b2f4678004477aeabf09f87c943ee3a4901b36c45008e75d56bc8cbce",
+          "path": "L1_THEORY/canon/444_align/README.md",
+          "size": 663
+        }
+      },
+      "555_empathize": {
+        "520_EMPATHY_F4_v46.md": {
+          "hash": "de1fae6b19372c4877821dede9490dad8ec4b1b4ab8ba7719ab9ef3a8cc2ea52",
+          "path": "L1_THEORY/canon/555_empathize/520_EMPATHY_F4_v46.md",
+          "size": 2006
+        },
+        "README.md": {
+          "hash": "3e441141d27ef21a2d3dddf56ef36dd7bc04cae07a92a38f5a57a4b7f75769fb",
+          "path": "L1_THEORY/canon/555_empathize/README.md",
+          "size": 735
+        }
+      },
+      "666_bridge": {
+        "610_HUMILITY_F5_v46.md": {
+          "hash": "89d6d9b7e9e9c48dc6ef6a26c984eff0672c70b489dd5945c34f8f23ef329367",
+          "path": "L1_THEORY/canon/666_bridge/610_HUMILITY_F5_v46.md",
+          "size": 2098
+        },
+        "README.md": {
+          "hash": "f62b23a14bf1d0a9062eb4a91b06d781b50e72ece100b9b3a495f7f0dc3a59ed",
+          "path": "L1_THEORY/canon/666_bridge/README.md",
+          "size": 658
+        }
+      },
+      "777_eureka": {
+        "701_ASI_OMEGA_AUDITOR_v46.md": {
+          "hash": "cab7753068909915354a9e6a312468fef62db07f9ba9c2e7759b48835ec060b9",
+          "path": "L1_THEORY/canon/777_eureka/701_ASI_OMEGA_AUDITOR_v46.md",
+          "size": 2693
+        },
+        "710_EUREKA_777_CANONICAL_v46.md": {
+          "hash": "bacd7453422eebe60271005508d36b42306c33cf1e15a3fe120a3fa0790d31be",
+          "path": "L1_THEORY/canon/777_eureka/710_EUREKA_777_CANONICAL_v46.md",
+          "size": 9092
+        },
+        "730_SCARPACKET_SCHEMA_v46.md": {
+          "hash": "3dca573052a672ecbf3207c350fdea3054b2dc6bc6c8e6e86ca8329e892590be",
+          "path": "L1_THEORY/canon/777_eureka/730_SCARPACKET_SCHEMA_v46.md",
+          "size": 1826
+        },
+        "760_RASA_F7_v46.md": {
+          "hash": "3e2d8f0d1ec3b45498e72fe64e17e9181addd772a6ce6944204fb0ad8caca988",
+          "path": "L1_THEORY/canon/777_eureka/760_RASA_F7_v46.md",
+          "size": 1946
+        },
+        "README.md": {
+          "hash": "c80990aa9c910ff1fd1a41edea4f111b78c8e11b9373cb531fd7e963f3b6d100",
+          "path": "L1_THEORY/canon/777_eureka/README.md",
+          "size": 820
+        }
+      },
+      "888_compass": {
+        "801_APEX_PSI_JUDGE_v46.md": {
+          "hash": "03ae09681c5bfff5f13d56d72c7805a401833dd74f884e58fcb7bb04f1df48b8",
+          "path": "L1_THEORY/canon/888_compass/801_APEX_PSI_JUDGE_v46.md",
+          "size": 2752
+        },
+        "810_COMPASS_888_CANONICAL_v46.md": {
+          "hash": "ef16006fbe873e8eb07ff97ad9bc4936d03d8e75c2d7792fafc892c47c4bb79d",
+          "path": "L1_THEORY/canon/888_compass/810_COMPASS_888_CANONICAL_v46.md",
+          "size": 8875
+        },
+        "815_SPEC_CODE_BINDING_v46.md": {
+          "hash": "55276f02e0b984d7cbd6fb12332442ea8ca6dc183ac0a5b4f3e068b5decb86a1",
+          "path": "L1_THEORY/canon/888_compass/815_SPEC_CODE_BINDING_v46.md",
+          "size": 1499
+        },
+        "830_AMANAH_F6_v46.md": {
+          "hash": "c61b89a7cb74fbe3d09f12eb745c78b63d275edf7cfb0a80acff2cac9b543b0f",
+          "path": "L1_THEORY/canon/888_compass/830_AMANAH_F6_v46.md",
+          "size": 2025
+        },
+        "840_TRI_WITNESS_F8_v46.md": {
+          "hash": "504ea48f3042c927a691f9c01d53ac77e3a5eeddcae693256b575e12036dc38c",
+          "path": "L1_THEORY/canon/888_compass/840_TRI_WITNESS_F8_v46.md",
+          "size": 1997
+        },
+        "850_ANTI_HANTU_F9_v46.md": {
+          "hash": "5e785275bf9973d2fc0ea47aca88ba49159b970467977e185cc1322b17ff2d9c",
+          "path": "L1_THEORY/canon/888_compass/850_ANTI_HANTU_F9_v46.md",
+          "size": 2097
+        },
+        "860_SYMBOLIC_GUARD_F10_v46.md": {
+          "hash": "ba1c5851615bdca298f3cfd300762513eebf894bef411a2dc4e0bd7bb32493b6",
+          "path": "L1_THEORY/canon/888_compass/860_SYMBOLIC_GUARD_F10_v46.md",
+          "size": 2130
+        },
+        "870_COMMAND_AUTH_F11_v46.md": {
+          "hash": "2d4bf572b44f3b889ee0337871debb1fb8863e39a7a86fb4dba6bd2977ebc599",
+          "path": "L1_THEORY/canon/888_compass/870_COMMAND_AUTH_F11_v46.md",
+          "size": 2089
+        },
+        "880_INJECTION_DEFENSE_F12_v46.md": {
+          "hash": "7b5824d9eafaa89e929bf5a9872c3fc1f78e694003826886e30af2d02a9e5f0d",
+          "path": "L1_THEORY/canon/888_compass/880_INJECTION_DEFENSE_F12_v46.md",
+          "size": 2155
+        },
+        "890_AAA_TRINITY_v46.md": {
+          "hash": "5bf87e7f7cbf614b5d314b7bac8f8fd6785a099b84d2ea84bd2c1b9bbcd1444d",
+          "path": "L1_THEORY/canon/888_compass/890_AAA_TRINITY_v46.md",
+          "size": 3620
+        },
+        "892_REVERSE_TRANSFORMER_v46.md": {
+          "hash": "438bf8c5c16cbba962a9bd95a0245db72f22b4871dfd85b2bd9580386b19bb87",
+          "path": "L1_THEORY/canon/888_compass/892_REVERSE_TRANSFORMER_v46.md",
+          "size": 1346
+        },
+        "895_WAW_FEDERATION_v46.md": {
+          "hash": "0b32a08686f8f5b92198f71b278736d44d4533659e29e6ca01bd5d73d6e00017",
+          "path": "L1_THEORY/canon/888_compass/895_WAW_FEDERATION_v46.md",
+          "size": 2719
+        },
+        "README.md": {
+          "hash": "d6f47d73929e502bc78e9c3626ac52328442b2a9083ceef721599446479bdf4a",
+          "path": "L1_THEORY/canon/888_compass/README.md",
+          "size": 1839
+        }
+      },
+      "999_vault": {
+        "940_PHOENIX_72_AMENDMENT_v46.md": {
+          "hash": "28b6b50707ecc674d67acd34044e3d7b01d707b35511e2f199a8dd3c0f3c4df7",
+          "path": "L1_THEORY/canon/999_vault/940_PHOENIX_72_AMENDMENT_v46.md",
+          "size": 2309
+        },
+        "950_ENTROPY_DUMP_POLICY_v46.md": {
+          "hash": "f323d5bbf539d1710e4cb85270880bf8790d2942e7ae93af4c483ea2358935ca",
+          "path": "L1_THEORY/canon/999_vault/950_ENTROPY_DUMP_POLICY_v46.md",
+          "size": 1661
+        },
+        "README.md": {
+          "hash": "eeefafb1a394096ce0a546f21c864a597ca613735adaa23be7418f6f9216cdec",
+          "path": "L1_THEORY/canon/999_vault/README.md",
+          "size": 870
+        },
+        "SOVEREIGN": {
+          "01_IDENTITY_forged.md": {
+            "hash": "ac7a9bba8eb39bdb3b9e7b5e9dda7dc587cb58a4843be90370e9f2c22e359416",
+            "path": "L1_THEORY/canon/999_vault/SOVEREIGN/01_IDENTITY_forged.md",
+            "size": 7148
+          },
+          "02_LIFE_forged.md": {
+            "hash": "1e02772e0bed11d3d1dbb2a2fd018249e9d92c64ce829d46ceda17d8a1d58f6f",
+            "path": "L1_THEORY/canon/999_vault/SOVEREIGN/02_LIFE_forged.md",
+            "size": 6165
+          },
+          "03_SCARS_forged.md": {
+            "hash": "e21414b2b74201459d0dec693f60155aabefaa0ca696430247df84f6de33da63",
+            "path": "L1_THEORY/canon/999_vault/SOVEREIGN/03_SCARS_forged.md",
+            "size": 15416
+          },
+          "04_REALITY_forged.md": {
+            "hash": "97d6dfe03144511fada5a8bbc6696c28ef0e7faeb6222c125ffa0fce9eb258ee",
+            "path": "L1_THEORY/canon/999_vault/SOVEREIGN/04_REALITY_forged.md",
+            "size": 11979
+          },
+          "05_EUREKA_forged.md": {
+            "hash": "2379077c924edc5237be1860b45663f7b48e87cd8a6a2c01ce82631b656d9d62",
+            "path": "L1_THEORY/canon/999_vault/SOVEREIGN/05_EUREKA_forged.md",
+            "size": 12229
+          },
+          "06_WISDOM_forged.md": {
+            "hash": "030839fed2758848d59606aa6530c9bdffe413ae05f6b947fb2470c891698503",
+            "path": "L1_THEORY/canon/999_vault/SOVEREIGN/06_WISDOM_forged.md",
+            "size": 16257
+          },
+          "07_PRINSIP_forged.md": {
+            "hash": "b0402db881f8f62b9cffcaffd4dc9e8b856cbc8d7e41d13272f225307efcd292",
+            "path": "L1_THEORY/canon/999_vault/SOVEREIGN/07_PRINSIP_forged.md",
+            "size": 17867
+          }
+        }
+      },
+      "MISSING_FILE_HUNT_REPORT.md": {
+        "hash": "5c474b42bbd1d7a2b2e56e86d7351487bab39c132375654624c5a53922c20cfc",
+        "path": "L1_THEORY/canon/MISSING_FILE_HUNT_REPORT.md",
+        "size": 4544
+      },
+      "_INDEX": {
+        "00_MASTER_INDEX_v45.md": {
+          "hash": "59b83677f7f628c305a152083da38b91241cde120ed8c6753487024a2546ba29",
+          "path": "L1_THEORY/canon/_INDEX/00_MASTER_INDEX_v45.md",
+          "size": 12435
+        }
+      },
+      "archive": {
+        "v45": {
+          "000_CONSTITUTIONAL_CORE_v45.md": {
+            "hash": "fc36e79ba3c7e7250f77feb3c2ba7972645e08682239d4984ab8727df6e06a80",
+            "path": "L1_THEORY/canon/archive/v45/000_CONSTITUTIONAL_CORE_v45.md",
+            "size": 70839
+          },
+          "000_CONSTITUTIONAL_CORE_v45_LEGACY.md": {
+            "hash": "fc36e79ba3c7e7250f77feb3c2ba7972645e08682239d4984ab8727df6e06a80",
+            "path": "L1_THEORY/canon/archive/v45/000_CONSTITUTIONAL_CORE_v45_LEGACY.md",
+            "size": 70839
+          },
+          "000_arifOS_v45_CANON.md": {
+            "hash": "fd9c4a0df69c21a40061a6f7e8c3f3abf3f83c22392b53c0d684e4777dc3da20",
+            "path": "L1_THEORY/canon/archive/v45/000_arifOS_v45_CANON.md",
+            "size": 24889
+          },
+          "005_ARCHITECTURE_MAP_v45.md": {
+            "hash": "34f52a9a52e4e9c38f4148ddac809ed35a5d517c6d44cee753c44ba9ebd03601",
+            "path": "L1_THEORY/canon/archive/v45/005_ARCHITECTURE_MAP_v45.md",
+            "size": 6043
+          },
+          "00_MASTER_INDEX_v45.md": {
+            "hash": "59b83677f7f628c305a152083da38b91241cde120ed8c6753487024a2546ba29",
+            "path": "L1_THEORY/canon/archive/v45/00_MASTER_INDEX_v45.md",
+            "size": 12435
+          },
+          "00_foundation": {
+            "000_ARCHITECTURE_MAP_v45.md": {
+              "hash": "34f52a9a52e4e9c38f4148ddac809ed35a5d517c6d44cee753c44ba9ebd03601",
+              "path": "L1_THEORY/canon/archive/v45/00_foundation/000_ARCHITECTURE_MAP_v45.md",
+              "size": 6043
+            },
+            "000_arifOS_v45_CANON.md": {
+              "hash": "fd9c4a0df69c21a40061a6f7e8c3f3abf3f83c22392b53c0d684e4777dc3da20",
+              "path": "L1_THEORY/canon/archive/v45/00_foundation/000_arifOS_v45_CANON.md",
+              "size": 24889
+            },
+            "00_DELTA_OMEGA_PSI_v45.md": {
+              "hash": "aa03312d99ec70c39f685e509dc9d8ac73c80e6f4b8f521c4767289a2460f890",
+              "path": "L1_THEORY/canon/archive/v45/00_foundation/00_DELTA_OMEGA_PSI_v45.md",
+              "size": 4309
+            },
+            "00_THERMODYNAMICS_v45.md": {
+              "hash": "d8c300d9df4f98419be0de3d2562a39203837e4673c299f7b83d00379c86af11",
+              "path": "L1_THEORY/canon/archive/v45/00_foundation/00_THERMODYNAMICS_v45.md",
+              "size": 4696
+            },
+            "00_ZKPC_PROTOCOL_v45.md": {
+              "hash": "6bd8b10396c75760c6ea1143d8fd4e20bfcac5c33b7beb63b79e4af07199e7f8",
+              "path": "L1_THEORY/canon/archive/v45/00_foundation/00_ZKPC_PROTOCOL_v45.md",
+              "size": 6576
+            },
+            "030_ARIF_FAZIL_v45.md": {
+              "hash": "561560361f8211c6fa410cf5ebf5c3cdd39acabcf94abf4f7c6c69a2c0668d52",
+              "path": "L1_THEORY/canon/archive/v45/00_foundation/030_ARIF_FAZIL_v45.md",
+              "size": 6640
+            },
+            "040_PHYSICS_v45.md": {
+              "hash": "561b6da5d516372e747310ae7828f7e415623f90adfa1aca3797e71d7dfda6da",
+              "path": "L1_THEORY/canon/archive/v45/00_foundation/040_PHYSICS_v45.md",
+              "size": 19489
+            },
+            "050_MATH_v45.md": {
+              "hash": "7096d388c5309bce64bbdac03b85d83b6da51bf8e483db30eb61db773c491006",
+              "path": "L1_THEORY/canon/archive/v45/00_foundation/050_MATH_v45.md",
+              "size": 12967
+            },
+            "060_META_THEORY_APEX_v45.md": {
+              "hash": "4166a3e1e893b02f083097cb6065e598df51a12688b533daa2cd9ba1f0829da7",
+              "path": "L1_THEORY/canon/archive/v45/00_foundation/060_META_THEORY_APEX_v45.md",
+              "size": 16187
+            },
+            "070_CIV12_ORTHOGONAL_ARCHITECTURE_v46.md": {
+              "hash": "a2c859e32ca2aceac69fdd2249d079534106995e99eb921bfafcf69c89bcbcbf",
+              "path": "L1_THEORY/canon/archive/v45/00_foundation/070_CIV12_ORTHOGONAL_ARCHITECTURE_v46.md",
+              "size": 13705
+            }
+          },
+          "010_HUMILITY_F5_v45.md": {
+            "hash": "b33f90ac63b09574b9825547318650212ce4e4873eba4331952aa1c9f7d78c4f",
+            "path": "L1_THEORY/canon/archive/v45/010_HUMILITY_F5_v45.md",
+            "size": 1137
+          },
+          "010_THERMODYNAMICS_v45.md": {
+            "hash": "d8c300d9df4f98419be0de3d2562a39203837e4673c299f7b83d00379c86af11",
+            "path": "L1_THEORY/canon/archive/v45/010_THERMODYNAMICS_v45.md",
+            "size": 4696
+          },
+          "010_VAULT_999_v45.md": {
+            "hash": "8a106506a8bc1a4bb406410f85abcaff7788738dea1149d2c3814012cbfcc4f4",
+            "path": "L1_THEORY/canon/archive/v45/010_VAULT_999_v45.md",
+            "size": 5360
+          },
+          "015_MEASUREMENT_CANON_v45.md": {
+            "hash": "b7ad9f33478f9cb0c1f831de342c42c6c579cda788bf827998ef3694a7967321",
+            "path": "L1_THEORY/canon/archive/v45/015_MEASUREMENT_CANON_v45.md",
+            "size": 4651
+          },
+          "016_CONTROL_LOGIC_v45.md": {
+            "hash": "26f4c5c537fead27d43a95c9ebfa822a29b583f699144bd5665c7334cb54df1b",
+            "path": "L1_THEORY/canon/archive/v45/016_CONTROL_LOGIC_v45.md",
+            "size": 2646
+          },
+          "017_GENIUS_LAW_v45.md": {
+            "hash": "be2390ff5e2e08d1f31ef1a879345420732b7b03f16c6566c35e75a0af08d703",
+            "path": "L1_THEORY/canon/archive/v45/017_GENIUS_LAW_v45.md",
+            "size": 5420
+          },
+          "01_floors": {
+            "010_CONSTITUTIONAL_FLOORS_F1F9_v45.md": {
+              "hash": "b0982aefdf0110020ce71a6cedbda2addddd944e7e1322109960ab0a4bcf992e",
+              "path": "L1_THEORY/canon/archive/v45/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md",
+              "size": 20388
+            }
+          },
+          "020_CONSTITUTIONAL_FLOORS_F1F9_v45.md": {
+            "hash": "b0982aefdf0110020ce71a6cedbda2addddd944e7e1322109960ab0a4bcf992e",
+            "path": "L1_THEORY/canon/archive/v45/020_CONSTITUTIONAL_FLOORS_F1F9_v45.md",
+            "size": 20388
+          },
+          "020_COOLING_LEDGER_v45.md": {
+            "hash": "f929756eb26eebddec147db863028cb4a8218851b93f81cb56b4f4af890db93c",
+            "path": "L1_THEORY/canon/archive/v45/020_COOLING_LEDGER_v45.md",
+            "size": 13479
+          },
+          "020_DELTA_OMEGA_PSI_v45.md": {
+            "hash": "aa03312d99ec70c39f685e509dc9d8ac73c80e6f4b8f521c4767289a2460f890",
+            "path": "L1_THEORY/canon/archive/v45/020_DELTA_OMEGA_PSI_v45.md",
+            "size": 4309
+          },
+          "020_EMPATHY_F4_v45.md": {
+            "hash": "88218db252bb02084d3ed5e77e3e9f13eb80ad9bba3d3c6d5d8cd35c14440a76",
+            "path": "L1_THEORY/canon/archive/v45/020_EMPATHY_F4_v45.md",
+            "size": 1102
+          },
+          "020_EUREKA_MEMORY_v45.md": {
+            "hash": "7e8b2ad76006f9ab6cf9bdbb78bb06b5501b05024f98cc6c18e3018aa7dacae7",
+            "path": "L1_THEORY/canon/archive/v45/020_EUREKA_MEMORY_v45.md",
+            "size": 4828
+          },
+          "020_PEACE_F3_v45.md": {
+            "hash": "7237fc7c144b1ffd5cb124c4671d3947d1dd24bc62d202a3200a36eeef825203",
+            "path": "L1_THEORY/canon/archive/v45/020_PEACE_F3_v45.md",
+            "size": 1022
+          },
+          "02_actors": {
+            "010_AAA_TRINITY_ORTHOGONAL_v46.md": {
+              "hash": "4fc8770e8f25400ed17cacb333e3c84db91563b2441ab424a839ccbce59ffc04",
+              "path": "L1_THEORY/canon/archive/v45/02_actors/010_AAA_TRINITY_ORTHOGONAL_v46.md",
+              "size": 6251
+            },
+            "060_ANTI_HANTU_v45.md": {
+              "hash": "dea70d33ac0b26bed1b097b796e6de74288977f8822382399084edc3a2e723a1",
+              "path": "L1_THEORY/canon/archive/v45/02_actors/060_ANTI_HANTU_v45.md",
+              "size": 4819
+            }
+          },
+          "030_AMANAH_F1_v45.md": {
+            "hash": "93a63fafaf960ea1065ad072584c462f618a32db56caeb31505ef65ef3d0acce",
+            "path": "L1_THEORY/canon/archive/v45/030_AMANAH_F1_v45.md",
+            "size": 1045
+          },
+          "030_PARADOX_ENGINE_v45.md": {
+            "hash": "3eaaf5329a8aba730ccf958af329a79359cbbe9d526b8bc0e87a2cb689710706",
+            "path": "L1_THEORY/canon/archive/v45/030_PARADOX_ENGINE_v45.md",
+            "size": 12689
+          },
+          "030_PHYSICS_v45.md": {
+            "hash": "561b6da5d516372e747310ae7828f7e415623f90adfa1aca3797e71d7dfda6da",
+            "path": "L1_THEORY/canon/archive/v45/030_PHYSICS_v45.md",
+            "size": 19489
+          },
+          "030_ZKPC_PROOF_v45.md": {
+            "hash": "cb62c5f9afaf8050c45a5adf959493df969610f007e2051da3c1db35000a9165",
+            "path": "L1_THEORY/canon/archive/v45/030_ZKPC_PROOF_v45.md",
+            "size": 15500
+          },
+          "035_ZKPC_PROTOCOL_v45.md": {
+            "hash": "6bd8b10396c75760c6ea1143d8fd4e20bfcac5c33b7beb63b79e4af07199e7f8",
+            "path": "L1_THEORY/canon/archive/v45/035_ZKPC_PROTOCOL_v45.md",
+            "size": 6576
+          },
+          "03_runtime": {
+            "010_PIPELINE_000TO999_v45.md": {
+              "hash": "e10304248bf85510c179ffd3367e96c22276a697c35648da04e66ff2375d1246",
+              "path": "L1_THEORY/canon/archive/v45/03_runtime/010_PIPELINE_000TO999_v45.md",
+              "size": 36627
+            },
+            "020_TEARFRAME_v45.md": {
+              "hash": "abd41aed87f8f14ae86cde5aad401b55ad0372e917a8b36d3402ecb7548a0db8",
+              "path": "L1_THEORY/canon/archive/v45/03_runtime/020_TEARFRAME_v45.md",
+              "size": 7466
+            },
+            "030_SPEC_CODE_BINDING_v45.md": {
+              "hash": "a21a12dafe429a2390f6de54b77eedd85d05f7c5bf0a123fb639c5ccc8458253",
+              "path": "L1_THEORY/canon/archive/v45/03_runtime/030_SPEC_CODE_BINDING_v45.md",
+              "size": 4484
+            },
+            "040_FORGING_PROTOCOL_v45.md": {
+              "hash": "bcb7d2b96eb61f8dd72531899ec295b81107de2fdf6648b6658098922efd288b",
+              "path": "L1_THEORY/canon/archive/v45/03_runtime/040_FORGING_PROTOCOL_v45.md",
+              "size": 4859
+            },
+            "050_WAW_FEDERATION_v45.md": {
+              "hash": "375bbc4d6b053d052c52101c713b185962d2f9929e673fcff77ad92f3a8faf89",
+              "path": "L1_THEORY/canon/archive/v45/03_runtime/050_WAW_FEDERATION_v45.md",
+              "size": 4906
+            },
+            "060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md": {
+              "hash": "2c952b0f5a47bcc4d724e7b664f4f252c9ac27caa8248d884e983458ac1885a0",
+              "path": "L1_THEORY/canon/archive/v45/03_runtime/060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md",
+              "size": 21747
+            },
+            "065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md": {
+              "hash": "742f228029015ec08044ae30beaff0e1115108f61170cb44ea5ecc2dd4a3a88d",
+              "path": "L1_THEORY/canon/archive/v45/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md",
+              "size": 14395
+            },
+            "070_COMMUNICATION_LAW_v45.md": {
+              "hash": "d342d64b1d0bcfe85406c73691a07568c44bbd565370264cf150d0f3a000ec00",
+              "path": "L1_THEORY/canon/archive/v45/03_runtime/070_COMMUNICATION_LAW_v45.md",
+              "size": 17979
+            }
+          },
+          "040_COMMUNICATION_LAW_v45.md": {
+            "hash": "d342d64b1d0bcfe85406c73691a07568c44bbd565370264cf150d0f3a000ec00",
+            "path": "L1_THEORY/canon/archive/v45/040_COMMUNICATION_LAW_v45.md",
+            "size": 17979
+          },
+          "040_FORENSICS_v45.md": {
+            "hash": "ec3dde24499a84bf4cf08a3d282ed58616e93d1ecf37437ede8f04ec798e5524",
+            "path": "L1_THEORY/canon/archive/v45/040_FORENSICS_v45.md",
+            "size": 2783
+          },
+          "040_GREY_ZONE_v45.md": {
+            "hash": "65f8ffeaef47ceca50f6920674e461899fc1e743e63f8d0f17a2fb1b6ecee1af",
+            "path": "L1_THEORY/canon/archive/v45/040_GREY_ZONE_v45.md",
+            "size": 3067
+          },
+          "040_MATH_v45.md": {
+            "hash": "7096d388c5309bce64bbdac03b85d83b6da51bf8e483db30eb61db773c491006",
+            "path": "L1_THEORY/canon/archive/v45/040_MATH_v45.md",
+            "size": 12967
+          },
+          "040_TRI_WITNESS_F8_v45.md": {
+            "hash": "0ac2859b491a1fbfcbb7bb7a3cf46b0b6216554e5ead7928eb6c35771a48e4c4",
+            "path": "L1_THEORY/canon/archive/v45/040_TRI_WITNESS_F8_v45.md",
+            "size": 1070
+          },
+          "040_TRUTH_F2_v45.md": {
+            "hash": "6f6f62d62c63f8745c853f2c0df21a657a7857538b9071af3a1d89230036de0f",
+            "path": "L1_THEORY/canon/archive/v45/040_TRUTH_F2_v45.md",
+            "size": 1272
+          },
+          "045_REVERSE_TRANSFORMER_v45.md": {
+            "hash": "2c952b0f5a47bcc4d724e7b664f4f252c9ac27caa8248d884e983458ac1885a0",
+            "path": "L1_THEORY/canon/archive/v45/045_REVERSE_TRANSFORMER_v45.md",
+            "size": 21747
+          },
+          "04_measurement": {
+            "010_MEASUREMENT_CANON_v45.md": {
+              "hash": "b7ad9f33478f9cb0c1f831de342c42c6c579cda788bf827998ef3694a7967321",
+              "path": "L1_THEORY/canon/archive/v45/04_measurement/010_MEASUREMENT_CANON_v45.md",
+              "size": 4651
+            },
+            "020_CONTROL_LOGIC_v45.md": {
+              "hash": "26f4c5c537fead27d43a95c9ebfa822a29b583f699144bd5665c7334cb54df1b",
+              "path": "L1_THEORY/canon/archive/v45/04_measurement/020_CONTROL_LOGIC_v45.md",
+              "size": 2646
+            },
+            "030_GENIUS_LAW_v45.md": {
+              "hash": "be2390ff5e2e08d1f31ef1a879345420732b7b03f16c6566c35e75a0af08d703",
+              "path": "L1_THEORY/canon/archive/v45/04_measurement/030_GENIUS_LAW_v45.md",
+              "size": 5420
+            }
+          },
+          "050_ANTI_HANTU_F9_v45.md": {
+            "hash": "29756dabd8dc10c4b9097f33e65566e3973385bbbcc0c87fa4ee9af1f8e01a2a",
+            "path": "L1_THEORY/canon/archive/v45/050_ANTI_HANTU_F9_v45.md",
+            "size": 1076
+          },
+          "050_CLARITY_F6_v45.md": {
+            "hash": "7e6e92d3f77f8efb7c540dc80529e2caa21148735371a38c0818f31a6c9350f5",
+            "path": "L1_THEORY/canon/archive/v45/050_CLARITY_F6_v45.md",
+            "size": 1199
+          },
+          "050_FORGING_PROTOCOL_v45.md": {
+            "hash": "bcb7d2b96eb61f8dd72531899ec295b81107de2fdf6648b6658098922efd288b",
+            "path": "L1_THEORY/canon/archive/v45/050_FORGING_PROTOCOL_v45.md",
+            "size": 4859
+          },
+          "050_META_THEORY_v45.md": {
+            "hash": "4166a3e1e893b02f083097cb6065e598df51a12688b533daa2cd9ba1f0829da7",
+            "path": "L1_THEORY/canon/archive/v45/050_META_THEORY_v45.md",
+            "size": 16187
+          },
+          "050_WAW_FEDERATION_v45.md": {
+            "hash": "375bbc4d6b053d052c52101c713b185962d2f9929e673fcff77ad92f3a8faf89",
+            "path": "L1_THEORY/canon/archive/v45/050_WAW_FEDERATION_v45.md",
+            "size": 4906
+          },
+          "05_memory": {
+            "000_EUREKA_MEMORY_v45.md": {
+              "hash": "7e8b2ad76006f9ab6cf9bdbb78bb06b5501b05024f98cc6c18e3018aa7dacae7",
+              "path": "L1_THEORY/canon/archive/v45/05_memory/000_EUREKA_MEMORY_v45.md",
+              "size": 4828
+            },
+            "010_COOLING_LEDGER_PHOENIX_v45.md": {
+              "hash": "f929756eb26eebddec147db863028cb4a8218851b93f81cb56b4f4af890db93c",
+              "path": "L1_THEORY/canon/archive/v45/05_memory/010_COOLING_LEDGER_PHOENIX_v45.md",
+              "size": 13479
+            },
+            "030_ZKPC_GOVERNANCE_PROOF_v45.md": {
+              "hash": "cb62c5f9afaf8050c45a5adf959493df969610f007e2051da3c1db35000a9165",
+              "path": "L1_THEORY/canon/archive/v45/05_memory/030_ZKPC_GOVERNANCE_PROOF_v45.md",
+              "size": 15500
+            },
+            "040_FORENSICS_AUDIT_v45.md": {
+              "hash": "ec3dde24499a84bf4cf08a3d282ed58616e93d1ecf37437ede8f04ec798e5524",
+              "path": "L1_THEORY/canon/archive/v45/05_memory/040_FORENSICS_AUDIT_v45.md",
+              "size": 2783
+            }
+          },
+          "060_RASA_F7_v45.md": {
+            "hash": "de0155259727d299c6a7d2c27b4a60718e93827f10e24382e8814f9577bf07d7",
+            "path": "L1_THEORY/canon/archive/v45/060_RASA_F7_v45.md",
+            "size": 1069
+          },
+          "060_SPEC_CODE_BINDING_v45.md": {
+            "hash": "a21a12dafe429a2390f6de54b77eedd85d05f7c5bf0a123fb639c5ccc8458253",
+            "path": "L1_THEORY/canon/archive/v45/060_SPEC_CODE_BINDING_v45.md",
+            "size": 4484
+          },
+          "06_paradox": {
+            "010_PARADOX_ENGINE_v45.md": {
+              "hash": "3eaaf5329a8aba730ccf958af329a79359cbbe9d526b8bc0e87a2cb689710706",
+              "path": "L1_THEORY/canon/archive/v45/06_paradox/010_PARADOX_ENGINE_v45.md",
+              "size": 12689
+            },
+            "020_GREY_ZONE_v45.md": {
+              "hash": "65f8ffeaef47ceca50f6920674e461899fc1e743e63f8d0f17a2fb1b6ecee1af",
+              "path": "L1_THEORY/canon/archive/v45/06_paradox/020_GREY_ZONE_v45.md",
+              "size": 3067
+            },
+            "030_VAULT_999_v45.md": {
+              "hash": "8a106506a8bc1a4bb406410f85abcaff7788738dea1149d2c3814012cbfcc4f4",
+              "path": "L1_THEORY/canon/archive/v45/06_paradox/030_VAULT_999_v45.md",
+              "size": 5360
+            }
+          },
+          "070_PIPELINE_000TO999_v45.md": {
+            "hash": "e10304248bf85510c179ffd3367e96c22276a697c35648da04e66ff2375d1246",
+            "path": "L1_THEORY/canon/archive/v45/070_PIPELINE_000TO999_v45.md",
+            "size": 36627
+          },
+          "07_safety": {
+            "010_SECURITY_SCENARIOS_v45.md": {
+              "hash": "2e03fa18ed269c93105ab737115e810007609d6c183cea05d250edcbc0f4761b",
+              "path": "L1_THEORY/canon/archive/v45/07_safety/010_SECURITY_SCENARIOS_v45.md",
+              "size": 1939
+            },
+            "020_MASTER_FLAW_SET_v45.md": {
+              "hash": "5799db48d2e15860c73b6656c0da81b783aab1ad2a6461fadf8d48bf85e79bd6",
+              "path": "L1_THEORY/canon/archive/v45/07_safety/020_MASTER_FLAW_SET_v45.md",
+              "size": 11508
+            },
+            "070_SEALION_INTEGRATION_SCARS_v45.md": {
+              "hash": "2019e342a8e0e1d4219d772de0e78e7e133499900796142b2ddff3480de9774d",
+              "path": "L1_THEORY/canon/archive/v45/07_safety/070_SEALION_INTEGRATION_SCARS_v45.md",
+              "size": 24467
+            }
+          },
+          "090_AUTHORITY_ARIF_v45.md": {
+            "hash": "561560361f8211c6fa410cf5ebf5c3cdd39acabcf94abf4f7c6c69a2c0668d52",
+            "path": "L1_THEORY/canon/archive/v45/090_AUTHORITY_ARIF_v45.md",
+            "size": 6640
+          },
+          "100_TEARFRAME_v45.md": {
+            "hash": "abd41aed87f8f14ae86cde5aad401b55ad0372e917a8b36d3402ecb7548a0db8",
+            "path": "L1_THEORY/canon/archive/v45/100_TEARFRAME_v45.md",
+            "size": 7466
+          },
+          "110_SECURITY_SCENARIOS_v45.md": {
+            "hash": "2e03fa18ed269c93105ab737115e810007609d6c183cea05d250edcbc0f4761b",
+            "path": "L1_THEORY/canon/archive/v45/110_SECURITY_SCENARIOS_v45.md",
+            "size": 1939
+          },
+          "120_MASTER_FLAW_SET_v45.md": {
+            "hash": "5799db48d2e15860c73b6656c0da81b783aab1ad2a6461fadf8d48bf85e79bd6",
+            "path": "L1_THEORY/canon/archive/v45/120_MASTER_FLAW_SET_v45.md",
+            "size": 11508
+          },
+          "130_INTEGRATION_SCARS_v45.md": {
+            "hash": "2019e342a8e0e1d4219d772de0e78e7e133499900796142b2ddff3480de9774d",
+            "path": "L1_THEORY/canon/archive/v45/130_INTEGRATION_SCARS_v45.md",
+            "size": 24467
+          },
+          "140_OUTPUT_GOVERNANCE_v45.md": {
+            "hash": "742f228029015ec08044ae30beaff0e1115108f61170cb44ea5ecc2dd4a3a88d",
+            "path": "L1_THEORY/canon/archive/v45/140_OUTPUT_GOVERNANCE_v45.md",
+            "size": 14395
+          },
+          "CANON_COVERAGE_CHECKLIST_v45.md": {
+            "hash": "7d245399f10b810c2974a13ed11d6777513dec13e725fe2331c17e2533bf8343",
+            "path": "L1_THEORY/canon/archive/v45/CANON_COVERAGE_CHECKLIST_v45.md",
+            "size": 21800
+          },
+          "CANON_INTEGRATION_MAP_v45.md": {
+            "hash": "1d69a8ef25d45a05e01809a2f8e17cdd9de20e3b285c7e92353b067dc36c4816",
+            "path": "L1_THEORY/canon/archive/v45/CANON_INTEGRATION_MAP_v45.md",
+            "size": 14637
+          },
+          "MISSING_FILE_HUNT_REPORT_v45.md": {
+            "hash": "fcc27209ef4f46a9121ae61d117682d22df607807b314e2021e2d66c729d6696",
+            "path": "L1_THEORY/canon/archive/v45/MISSING_FILE_HUNT_REPORT_v45.md",
+            "size": 4398
+          },
+          "_INDEX": {
+            "00_MASTER_INDEX_v45.md": {
+              "hash": "59b83677f7f628c305a152083da38b91241cde120ed8c6753487024a2546ba29",
+              "path": "L1_THEORY/canon/archive/v45/_INDEX/00_MASTER_INDEX_v45.md",
+              "size": 12435
+            }
+          }
+        }
+      }
+    },
+    "L2_PROTOCOLS/v46": {
+      "000_foundation": {
+        "constitutional_floors.json": {
+          "hash": "667213daf6e690312d2a184c81e4d9414747d474afdff9e6d98f608f5fc5e739",
+          "path": "L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json",
+          "size": 17369
+        },
+        "session_physics.json": {
+          "hash": "0fb30820e63fa751c68cae88e41f9383de073005045ed7f7067ccc829f9a6fbe",
+          "path": "L2_PROTOCOLS/v46/000_foundation/session_physics.json",
+          "size": 7207
+        }
+      },
+      "333_atlas": {
+        "agi_core.json": {
+          "hash": "6de6993650b2d01277e527cc49d4ba8bf3ade2918f27e311e2420179f29de9de",
+          "path": "L2_PROTOCOLS/v46/333_atlas/agi_core.json",
+          "size": 5776
+        },
+        "atlas_333.json": {
+          "hash": "f22ab1ff20550847ce38a253093c0f1c1e965b38f7edaa00218f3ca814d22f80",
+          "path": "L2_PROTOCOLS/v46/333_atlas/atlas_333.json",
+          "size": 4256
+        }
+      },
+      "444_align": {
+        "peace_floor.json": {
+          "hash": "0f98f450cd27e14a44a6c05ab8556bdc0879346a2aa444c4e7d6526805e92a71",
+          "path": "L2_PROTOCOLS/v46/444_align/peace_floor.json",
+          "size": 4060
+        }
+      },
+      "555_empathize": {
+        "empathy_floor.json": {
+          "hash": "9860dcb5c98c43c5a523160569e470b796501cd77a88310f6d600027b6f1e77a",
+          "path": "L2_PROTOCOLS/v46/555_empathize/empathy_floor.json",
+          "size": 5209
+        }
+      },
+      "666_bridge": {
+        "humility_floor.json": {
+          "hash": "6116c3d3dc73d21d4271545262e06d712174152272ff83b8d5061d252f26717a",
+          "path": "L2_PROTOCOLS/v46/666_bridge/humility_floor.json",
+          "size": 6107
+        }
+      },
+      "777_eureka": {
+        "eureka_777.json": {
+          "hash": "2b49fa7019afd606287436d20d34f1723c2a2867b2463c79221c385a821064c1",
+          "path": "L2_PROTOCOLS/v46/777_eureka/eureka_777.json",
+          "size": 6639
+        },
+        "rasa_floor.json": {
+          "hash": "0bd4d44a23e9c8759d47a8268322ccc0f24fabfc080d53cab51a6b17d317757d",
+          "path": "L2_PROTOCOLS/v46/777_eureka/rasa_floor.json",
+          "size": 7832
+        }
+      },
+      "888_compass": {
+        "waw_prompt_floors.json": {
+          "hash": "4096896bcda1854d54c6a946d4b901e9319b5423f89640e7baf96af89bbdb7ac",
+          "path": "L2_PROTOCOLS/v46/888_compass/waw_prompt_floors.json",
+          "size": 15305
+        }
+      },
+      "README.md": {
+        "hash": "1a9a30983682d361318ac993f32bc59f840a57805bc4df26a0a66e9ec136fa91",
+        "path": "L2_PROTOCOLS/v46/README.md",
+        "size": 13710
+      },
+      "governance": {
+        "aaa_trinity.json": {
+          "hash": "a859341214acfc24c626f47fd1c171b819fb89fdba28d5b66ed86dc5a1e0da75",
+          "path": "L2_PROTOCOLS/v46/governance/aaa_trinity.json",
+          "size": 9645
+        },
+        "crisis_patterns.json": {
+          "hash": "53b69d310a07c87b5de0110c1ce1fd877eb9a3ed54eed23c47cf24d7b2d639ea",
+          "path": "L2_PROTOCOLS/v46/governance/crisis_patterns.json",
+          "size": 4749
+        },
+        "pipeline_stages.json": {
+          "hash": "46fd2720b9ddbb4ec3eaf5b79dcb389b8c7bedc2afe05ba28532e6889ee59c9b",
+          "path": "L2_PROTOCOLS/v46/governance/pipeline_stages.json",
+          "size": 11176
+        },
+        "waw_federation.json": {
+          "hash": "2bfb92613ccc5e58b9c795d3208271efda02b00191ff31cbe4afbec00edbc722",
+          "path": "L2_PROTOCOLS/v46/governance/waw_federation.json",
+          "size": 11730
+        }
+      },
+      "schema": {
+        "constitutional_floors.schema.json": {
+          "hash": "9b518134e482623e078e2c9e9ed6c5ea03d150f4fff89e26c7a30a5a8044a444",
+          "path": "L2_PROTOCOLS/v46/schema/constitutional_floors.schema.json",
+          "size": 16333
+        },
+        "genius_law.schema.json": {
+          "hash": "bdf2544c76da1888421cc8bfa5d41044a9b81cc024aefc3538a88097b7709ef2",
+          "path": "L2_PROTOCOLS/v46/schema/genius_law.schema.json",
+          "size": 3113
+        },
+        "handshake_packet.schema.json": {
+          "hash": "4a5f269713ac535de292742bf7d0ee99ed395b3ecad200919f6e06b101746670",
+          "path": "L2_PROTOCOLS/v46/schema/handshake_packet.schema.json",
+          "size": 3092
+        },
+        "red_patterns.schema.json": {
+          "hash": "1cbd0771c2cdbc1d687966f9899caa695aebf34ab062bd5453cf491f3039e1d8",
+          "path": "L2_PROTOCOLS/v46/schema/red_patterns.schema.json",
+          "size": 4804
+        },
+        "session_physics.schema.json": {
+          "hash": "431e68b7166cf594a96a63fabc93db97e5da85686c3d0f561b6ceabfa69b9d35",
+          "path": "L2_PROTOCOLS/v46/schema/session_physics.schema.json",
+          "size": 3868
+        },
+        "truth_verification.schema.json": {
+          "hash": "dbacf7ea97916dd30b3accb1e19e866f7814536469813116517e447ea2fb04cf",
+          "path": "L2_PROTOCOLS/v46/schema/truth_verification.schema.json",
+          "size": 4060
+        }
+      }
+    }
+  }
+}
