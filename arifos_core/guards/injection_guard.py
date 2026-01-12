@@ -119,7 +119,7 @@ class InjectionGuard:
         self.injection_patterns = [
             # Direct override commands (high severity)
             (r"ignore\s+(all\s+)?previous\s+(instructions?|rules?)", 1.0),
-            (r"forget\s+(all\s+)?(instructions?|rules?)", 1.0),
+            (r"forget\s+(all\s+)?(instructions?|rules?|your\s+\w+)", 1.0),
             (r"disregard\s+(all\s+)?(previous|prior)\s+\w+", 1.0),
             # System override attempts (high severity)
             (r"system\s+override", 1.0),

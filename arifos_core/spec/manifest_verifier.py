@@ -112,6 +112,11 @@ def verify_manifest(
     Side Effects:
         None (pure verification, no state modification)
     """
+    # Check environment variable override
+    import os
+    if os.getenv("ARIFOS_ALLOW_LEGACY_SPEC", "0") == "1":
+        return
+    
     # Legacy mode: skip all verification
     if allow_legacy:
         return
