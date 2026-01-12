@@ -1,6 +1,6 @@
 # .agent — arifOS Workflow System
 
-**Version:** v45.0 (Phoenix-72 Consolidation)
+**Version:** v46.1 (Sovereign Witness)
 **Purpose:** Claude Code workflow definitions (skills) for arifOS governance automation
 **Authority:** DERIVATIVE (implements governance defined in canon + spec)
 
@@ -12,7 +12,7 @@ The `.agent/` directory contains **workflow definitions** (also called "skills")
 
 **Key Concept:** Workflows are **governance automation**, not governance itself. They implement the rules defined in:
 - [L1_THEORY/canon/](../L1_THEORY/canon/) — Constitutional law (Track A)
-- [spec/v45/](../spec/v45/) — Thresholds & enforcement (Track B)
+- [spec/v46/](../L2_PROTOCOLS/v46/) — Thresholds & enforcement (Track B)
 - [AGENTS.md](../AGENTS.md) — Multi-agent federation protocols
 
 ---
@@ -38,11 +38,11 @@ The `.agent/` directory contains **workflow definitions** (also called "skills")
 
 ---
 
-## Available Workflows (v45.0)
+## Available Workflows (v46.1)
 
 ### 1. /000 — Session Initialization
 
-**Command:** `/000` or `000` or `init-session`
+**Command:** `/000` or `init-session`
 **Purpose:** Load complete arifOS context at session start
 **Floors enforced:** F1, F2, F4, F7
 
@@ -58,7 +58,7 @@ The `.agent/` directory contains **workflow definitions** (also called "skills")
 
 **Expected output:**
 ```
-- Current version: v45.0 (Phoenix-72 Consolidation)
+- Current version: v46.1 (Sovereign Witness)
 - Track B integrity: VERIFIED (SHA-256 manifest)
 - Trinity Display: Ω (ASI) / Δ (AGI) / Ψ (APEX)
 - Phoenix-72: ACTIVE (72h amendment cooling)
@@ -159,11 +159,11 @@ Files appearing ≥3 times in last 30 commits. Touching hot zones increases risk
 If ΔS ≥ 5.0 OR Risk Score ≥ 0.7 OR modifying PRIMARY sources:
 1. HALT further changes
 2. Run cooling protocol (defer, decompose, or document)
-3. **Phoenix-72:** If modifying spec/v45/*.json or canon/*.md → 72h cooling window
+3. **Phoenix-72:** If modifying spec/v46/*.json or canon/*.md → 72h cooling window
 4. Seek human approval before proceeding
 5. Log entropy event to cooling_ledger/
 
-**v45.0 Integration:**
+**v46.1 Integration:**
 - **Track B Integrity:** Verify SHA-256 manifest after spec changes
 - **Phoenix-72:** Constitutional amendments require 72h cooling
 - **Trinity Display:** Entropy analysis can trigger AGI/APEX mode (forensic review)
@@ -227,23 +227,110 @@ If ΔS ≥ 5.0 OR Risk Score ≥ 0.7 OR modifying PRIMARY sources:
 
 ---
 
-## Agent Roles
+## Agent Roles (v46.1)
 
-arifOS uses a **Trinity governance model** with three specialized AI agents:
+arifOS uses a **Trinity governance model** with four specialized participants:
 
-| Role | Agent | Symbol | Config File |
-|------|-------|--------|-------------|
-| **Architect** | Antigravity (Gemini) | Δ (Delta) | [.agent/ARCHITECT.md](.agent/ARCHITECT.md) |
-| **Engineer** | Claude Code | Ω (Omega) | [CLAUDE.md](../CLAUDE.md) |
-| **Auditor** | Codex (ChatGPT) | Ψ (Psi) | `.codex/` or `L2_GOVERNANCE/agents/CODEX.md` |
+| Role | Agent | Symbol | Config File | Canonical Stages |
+|------|-------|--------|-------------|------------------|
+| **Architect** | Antigravity (Gemini) | Δ (Delta) | [.agent/ARCHITECT.md](.agent/ARCHITECT.md) | 000–444 |
+| **Engineer** | Claude Code | Ω (Omega) | [CLAUDE.md](../CLAUDE.md) | 444–888 |
+| **Auditor** | Codex (ChatGPT) | Ψ (Psi) | [.codex/](../.codex/) | 888–999 |
+| **Meta APEX** | KIMI | Κ (Kappa) | [.kimi/](../.kimi/) | 999 |
 
 **Separation of Powers:**
-- **Architect (Δ)** designs and plans → creates implementation_plan.md
-- **Engineer (Ω)** builds and tests → implements the plan
-- **Auditor (Ψ)** validates and seals → issues SEAL/VOID verdict
-- **Human (Arif)** has final authority → ratifies or rejects
+- **Architect (Δ)** designs and plans (stage 444)
+- **Engineer (Ω)** builds and tests (stages 666–888)
+- **Auditor (Ψ)** validates and prepares verdict (stage 888–999)
+- **KIMI (Κ)** Meta APEX PRIME — issues final SEAL/VOID (stage 999)
+- **Human (Arif)** has ultimate authority → ratifies or rejects
 
 **No agent can both propose AND seal their own work.**
+
+---
+
+## Agent Alignment (v46.1 "Sovereign Witness")
+
+### Canonical AClip Spine (v46)
+
+arifOS uses a **five-stage canonical governance pipeline** (000→444→666→888→999) with sub-phases for detailed workflow documentation.
+
+| Canonical Stage | Role(s) | Action | Floors |
+|---|---|---|---|
+| **000** | ARCHITECT | Load canonical sources (AGENTS.md, spec/v46, L1_THEORY/canon/) | F1, F2 |
+| **444** | ARCHITECT | Plan & seal (draft→review→seal handoff) | F2, F3 |
+| **666** | ENGINEER | Implement changes (code, test, iterate) | F2, F4, F5 |
+| **888** | ENGINEER + AUDITOR | Review (self-review + constitutional audit) | F5, F1, F3, F6 |
+| **999** | KIMI | Final seal (SEAL/VOID/HOLD-888 authority) | F1–F12 |
+
+### Roles & Separation of Powers
+
+| Role | Symbol | Stages | Key Responsibility | Floors |
+|---|---|---|---|---|
+| **ARCHITECT** | Δ (Delta) | 000–444 | Plan changes; ensure Truth + Clarity | F1, F2 |
+| **ENGINEER** | Ω (Omega) | 444–888 | Implement; ensure Clarity + Iteration + Craft | F2, F4, F5 |
+| **AUDITOR** | Ψ (Psi/Codex) | 888–999 | Audit; ensure Truth + Stability + Amanah | F1, F3, F6 |
+| **KIMI** | Κ (Kappa) | 999 | Meta APEX PRIME; final governance authority | F1–F12 |
+
+### Handoff Documents
+
+- **Stage 444 → 666**: `.antigravity/HANDOFF_FOR_CLAUDE.md` (ARCHITECT to ENGINEER)
+- **Stage 888 → 999**: AUDITOR verdicts (ENGINEER/AUDITOR to KIMI)
+- **Session Ledger**: `.arifos_clip/session_ROLE_STAGE_TIMESTAMP.json`
+
+### Canonical Sources (v46)
+
+- **AGENTS.md** (repo root): Roles, stages, governance framework
+- **spec/v46** (L2_PROTOCOLS/v46/): Thresholds, floors (F1–F12), enforcement
+- **L1_THEORY/canon/**: Canonical philosophy (Track A) — immutable without Phoenix-72 amendment
+- **L2_PROTOCOLS/v46/**: Operational protocols (Track B) — version-controlled
+- **L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md**: Skill source of truth (all platforms derive)
+
+### Platform Derivatives
+
+Each platform surface is a **derivative** of canonical sources:
+
+| Platform | Role | Canonical Source |
+|---|---|---|
+| **.agent/** | ARCHITECT | AGENTS.md, spec/v46 |
+| **.claude/** | ENGINEER | AGENTS.md, spec/v46, L2_GOVERNANCE/skills/ |
+| **.codex/** | AUDITOR | AGENTS.md, spec/v46, L2_GOVERNANCE/skills/ |
+| **.kimi/** | Meta APEX PRIME | AGENTS.md, spec/v46 (exclusive skills) |
+| **.cursor/** | ARCHITECT surface | spec/v46, AGENTS.md |
+| **.gemini/** | Specialist research | spec/v46, AGENTS.md |
+
+### Sub-Phases (Detailed Workflows)
+
+Within each canonical stage, sub-phases provide workflow detail:
+
+**Stage 000 (ARCHITECT Init)**
+- Load AGENTS.md + spec/v46
+- Verify canonical sources readable
+- Check for conflicts/amendments
+
+**Stage 444 (ARCHITECT Plan & Seal)**
+- 044: READ (survey existing code)
+- 066: DRAFT (create implementation plan)
+- 088: REVIEW (validate plan)
+- 099: SEAL (handoff to ENGINEER)
+
+**Stage 666 (ENGINEER Implement)**
+- 300: INIT (load handoff, read plan)
+- 444: READ (understand requirements)
+- 666: IMPL (write code, test)
+- 699: REVIEW (self-review before seal)
+
+**Stage 888 (Review)**
+- 700: AUDITOR init (load output)
+- 744: AUDITOR read (analyze changes)
+- 766: AUDITOR audit (check floors F1, F3, F6)
+- 888: ENGINEER review (self-review) + AUDITOR verdict (prepare summary)
+
+**Stage 999 (KIMI Final Seal)**
+- Receive verdicts from stage 888
+- Check all floors (F1–F12)
+- Issue SEAL, VOID, HOLD-888, or SABAR
+- Log to session ledger with reasoning
 
 ---
 
@@ -332,19 +419,19 @@ sabar-threshold: 5.0  # Optional: ΔS threshold for SABAR
 
 ---
 
-## v45.0 Integration Points
+## v46.1 Integration Points
 
-**Workflows now enforce v45.0 governance:**
+**Workflows now enforce v46.1 governance:**
 
 ### 1. Track B Integrity (SHA-256 Manifest)
-All workflows verify `spec/v45/MANIFEST.sha256.json` integrity:
+All workflows verify `L2_PROTOCOLS/v46/` integrity:
 ```bash
 python scripts/regenerate_manifest_v45.py --check
 ```
 
 ### 2. Phoenix-72 Amendment System
 Constitutional changes trigger 72h cooling window:
-- Modifying `spec/v45/*.json` → Phoenix-72 cooling
+- Modifying `L2_PROTOCOLS/v46/*.json` → Phoenix-72 cooling
 - Modifying `L1_THEORY/canon/*.md` → Phoenix-72 cooling
 
 ### 3. Trinity Display Architecture
@@ -353,17 +440,16 @@ Workflows respect ASI/AGI/APEX display modes:
 - **AGI (Δ)** — Developer mode (pipeline + ΔΩΨ Trinity)
 - **APEX (Ψ)** — Auditor mode (full forensic + F1-F9 floors)
 
-### 4. Nine Constitutional Floors (F1-F9)
-All workflows enforce floors with v45.0 thresholds:
-- F1 Amanah (LOCK) — Reversibility
-- F2 Truth (≥0.99) — Factual accuracy
-- F3 Tri-Witness (≥0.95) — Human-AI-Earth consensus
-- F4 ΔS (≥0) — Clarity gain
-- F5 Peace² (≥1.0) — Non-destructive
-- F6 κᵣ (≥0.95) — Empathy
-- F7 Ω₀ (0.03-0.05) — Humility
-- F8 G (≥0.80) — Governed intelligence
-- F9 C_dark (<0.30) — Dark cleverness contained
+### 4. Constitutional Floors (F1-F12)
+All workflows enforce floors with v46.1 thresholds:
+- F1 Truth (≥0.99) — Factual accuracy
+- F2 Clarity (≥0) — Transparency
+- F3 Stability (LOCK) — Reversibility
+- F4 Iteration (ΔS ≥ 0) — Clarity gain
+- F5 Craft (LOCK) — Quality gates
+- F6 Amanah (LOCK) — Governance respect
+- F7 Humility (0.03–0.05) — Uncertainty quantification
+- F8–F12 — Hypervisor layer (see spec/v46)
 
 ---
 
@@ -372,7 +458,7 @@ All workflows enforce floors with v45.0 thresholds:
 ```
 PRIMARY (Authoritative):
 ├── L1_THEORY/canon/ (Track A - Constitutional law)
-├── spec/v45/ (Track B - Thresholds, SHA-256 verified)
+├── spec/v46/ (L2_PROTOCOLS/v46/ - Thresholds, SHA-256 verified)
 └── arifos_core/ (Track C - Runtime enforcement)
 
 DERIVATIVE (Implements governance):
@@ -467,13 +553,13 @@ source = ".agent/workflows/000.md"  # NOT PRIMARY
 
 # CORRECT - Verify against spec
 claim = "F2 Truth threshold is 0.99"
-source = "spec/v45/constitutional_floors.json"  # PRIMARY
+source = "spec/v46/constitutional_floors.json"  # PRIMARY
 ```
 
 ❌ **DON'T create workflows that modify canon directly:**
 ```bash
 # WRONG - Direct canon modification
-echo "New rule" >> L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md
+echo "New rule" >> L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v46.md
 
 # CORRECT - Use Phoenix-72 amendment system
 python scripts/propose_amendment.py --file "..." --rationale "..."
@@ -506,7 +592,7 @@ python scripts/propose_amendment.py --file "..." --rationale "..."
 python scripts/regenerate_manifest_v45.py
 
 # If unauthorized change, restore from git
-git checkout spec/v45/
+git checkout spec/v46/
 ```
 
 ### Phoenix-72 Cooling Window Not Respected
@@ -577,7 +663,7 @@ Workflows are **forged, not given**. They automate governance but are NOT govern
 
 **Philosophy:**
 - Canon (L1_THEORY/) = Eternal (SEALED until Phoenix-72 amendment)
-- Spec (spec/v45/) = Semi-eternal (SHA-256 locked, version-controlled)
+- Spec (spec/v46/) = Semi-eternal (SHA-256 locked, version-controlled)
 - Code (arifos_core/) = Runtime (tested, released)
 - Workflows (.agent/) = **Automation** (derives from PRIMARY sources)
 
@@ -587,6 +673,6 @@ Workflows are **forged, not given**. They automate governance but are NOT govern
 
 ---
 
-**Last Updated:** 2025-12-30 (v45.0 Phoenix-72 Consolidation)
-**Maintainer:** Human (Arif) + Claude Code
+**Last Updated:** 2026-01-12 (v46.1 Agent Alignment)
+**Maintainer:** Human (Arif) + Trinity (Δ, Ω, Ψ, Κ)
 **License:** AGPL-3.0 (same as repo)
