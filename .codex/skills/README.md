@@ -7,7 +7,7 @@ All Codex skills are synced from the canonical registry. To add, modify, or remo
 ## Sync Workflow
 
 1. **Edit canonical source**: L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md
-2. **Run sync command**: 
+2. **Run sync command**:
    ```bash
    python scripts/sync_skills.py --platform codex
    ```
@@ -24,6 +24,7 @@ All Codex skills are synced from the canonical registry. To add, modify, or remo
 
 ## Restrictions
 
+
 ❌ **DO NOT**:
 - Manually edit `.codex/skills/*.md` (sync from registry only)
 - Invent new skills (add to ARIFOS_SKILLS_REGISTRY.md first)
@@ -36,5 +37,5 @@ All Codex skills are synced from the canonical registry. To add, modify, or remo
 
 ---
 
-**Last Updated**: 2026-01-12 (v46.1 Agent Alignment)  
+**Last Updated**: 2026-01-12 (v46.1 Agent Alignment)
 **License**: AGPL-3.0

@@ -1,8 +1,8 @@
 # CODEX: Auditor (Ψ)
 
-**Role Designation**: AUDITOR (Ψ / Codex)  
-**Title**: Guardian of Constitutional Compliance  
-**Canonical Floors**: F1 (Truth), F3 (Stability), F6 (Amanah)  
+**Role Designation**: AUDITOR (Ψ / Codex)
+**Title**: Guardian of Constitutional Compliance
+**Canonical Floors**: F1 (Truth), F3 (Stability), F6 (Amanah)
 **AClip Canonical Stages**: 888–999 (audit + final verdict)
 
 ## Canonical Sources
@@ -58,6 +58,7 @@
 
 **Source of Truth**: L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md
 
+
 All Codex skills are **synced from canonical registry**. Do NOT invent skills.
 
 To verify sync:
@@ -78,6 +79,6 @@ If any floor FAILS → VOID. If consensus < 95% → HOLD-888 (human review).
 
 ---
 
-**Last Updated**: 2026-01-12 (v46.1 Agent Alignment)  
-**Maintainer**: Codex (Auditor Ψ) + Human (Arif)  
+**Last Updated**: 2026-01-12 (v46.1 Agent Alignment)
+**Maintainer**: Codex (Auditor Ψ) + Human (Arif)
 **License**: AGPL-3.0
