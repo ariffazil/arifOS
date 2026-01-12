@@ -260,6 +260,19 @@
       "enabled": true,
       "crisis_patterns_ref": "$ref:spec/v46/governance/crisis_patterns.json#/crisis_override_patterns/patterns",
       "override_behavior_ref": "$ref:spec/v46/governance/crisis_patterns.json#/crisis_override_patterns/override_behavior",
+      "crisis_patterns": [
+        "$ref:spec/v46/governance/crisis_patterns.json#/crisis_override_patterns/patterns"
+      ],
+      "override_behavior": {
+        "verdict": "888_HOLD",
+        "response_mode": "crisis_redirect",
+        "resources": [
+          "$ref:spec/v46/governance/crisis_patterns.json#/crisis_override_patterns/override_behavior/resources"
+        ],
+        "deny": [
+          "$ref:spec/v46/governance/crisis_patterns.json#/crisis_override_patterns/override_behavior/deny"
+        ]
+      },
       "ledger_tag": "HIGH_STAKES_CRISIS"
     }
   },
@@ -442,7 +455,9 @@
   "high_stakes_keywords": {
     "_source": "spec/v46/governance/crisis_patterns.json",
     "_note": "High-stakes keywords consolidated to prevent duplication. See governance/crisis_patterns.json for authoritative list.",
-    "keywords_ref": "$ref:spec/v46/governance/crisis_patterns.json#/high_stakes_keywords/all_keywords",
+    "keywords": [
+      "$ref:spec/v46/governance/crisis_patterns.json#/high_stakes_keywords/all_keywords"
+    ],
     "enforcement_impact_ref": "$ref:spec/v46/governance/crisis_patterns.json#/high_stakes_keywords/enforcement_impact"
   },
   "_companion_files": {
