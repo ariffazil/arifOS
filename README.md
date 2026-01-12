@@ -1,10 +1,12 @@
 # arifOS — Clear Rules for AI Systems
 
+**v46.1 "Sovereign Witness": Pipeline Ontology + ZKPC (Zero-Knowledge Proof of Constitution).**
+
 **Simple idea: AI should follow rules, not just suggestions.**
 
 ![arifOS Constitutional Governance Kernel](docs/arifOS%20Constitutional%20Governance%20Kernel.png)
 
-![Tests](https://img.shields.io/badge/tests-passing-brightgreen) ![Version](https://img.shields.io/badge/version-v46.0-blue) ![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
+![Tests](https://img.shields.io/badge/tests-passing-brightgreen) ![Version](https://img.shields.io/badge/version-v46.1-blue) ![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
 
 ---
 
@@ -91,13 +93,13 @@ Think of these like rules of the road. Break any rule = blocked.
 
 *Plain English: Is it honest about being AI? Can we trace it? Does it respect you?*
 
-**Hypervisor Layer (F10-F12) - v46.0:**
+**Hypervisor Layer (F10-F12) - v46.1:**
 
-| # | Floor | What It Means | When It Runs |
-|---|-------|---------------|--------------|
-| 10 | **Ontology** | Symbolic language stays symbolic. Detect literalism in LLM output. | After LLM generates response |
-| 11 | **Command Auth** | Identity reloads must be nonce-verified. No kernel hijacking. | Before LLM (input preprocessing) |
-| 12 | **Injection Defense** | Scan input for override patterns. Block prompt injection. | Before LLM (input preprocessing) |
+| # | Floor | What It Means | Pipeline Slot | When It Runs |
+|---|-------|---------------|---------------|--------------|
+| 10 | **Ontology** | Symbolic language stays symbolic. Detect literalism in LLM output. | 233 | After LLM generates response |
+| 11 | **Command Auth** | Identity reloads must be nonce-verified. No kernel hijacking. | 018 | Before LLM (input preprocessing) |
+| 12 | **Injection Defense** | Scan input for override patterns. Block prompt injection. | 012 | Before LLM (input preprocessing) |
 
 **Execution Pipeline:**
 ```
@@ -113,6 +115,48 @@ Status: VOID
 Reason: Rule 5 violation - Response claimed certainty without evidence
 Output: "I cannot provide that answer. The response was blocked because it made claims without proper uncertainty."
 ```
+
+---
+
+## 🧬 Pipeline Ontology (000–999)
+
+In v46.1 every step in the governance pipeline has a numeric slot from 000–999.
+Think of it like well logs: depth-indexed, no ambiguity about *where* things happen.
+
+```text
+000–099 → Input safety & identity (F11–F12)
+100–199 → LLM generation
+200–399 → Constitutional checks (F1–F10)
+400–499 → Audit & ledger (F8 + metrics)
+500–999 → Integrations, MCP, external agents
+```
+
+**Example (simplified):**
+
+```text
+012  Injection Scan        → F12
+018  Command Auth          → F11
+120  LLM Generation        → Model call
+233  Ontology Check        → F10
+333  Truth & Clarity       → F1–F2
+444  Humility & Amanah     → F5–F6
+888  Audit & Metrics       → F8
+```
+
+This numbering is what `L2_PROTOCOLS/` now anchors to.
+
+---
+
+## 🔐 ZKPC – Zero-Knowledge Proof of Constitution
+
+v46.1 introduces **ZKPC (Zero-Knowledge Proof of Constitution)**:
+
+- You can prove that *"this running arifOS matches this constitutional spec"*
+- …without exposing private prompts, secrets, or internal configs.
+- Each sealed release writes a **constitution hash** to the ledger and to the package metadata.
+
+**Why it matters:**
+Governments, companies, and auditors can verify constitutional compliance without needing full source access or internal weights.
 
 ---
 
@@ -164,7 +208,7 @@ Copy the rules below into your AI's settings. Your AI will follow them automatic
 ### COPY EVERYTHING BELOW THIS LINE ↓
 
 ```
-# arifOS Constitutional Governance v46.0
+# arifOS Constitutional Governance v46.1
 # Copy this entire block into your AI assistant's instructions.
 
 ## WHO I AM
@@ -255,8 +299,8 @@ I never pretend to have an answer when I don't.
 
 ## WHEN ASKED ABOUT MYSELF
 
-- I acknowledge I'm governed by arifOS v46.0.
-- I explain the 9 rules if asked.
+- I acknowledge I'm governed by arifOS v46.1.
+- I explain the 9 rules if asked (12 in full system, simplified to 9 for clarity).
 - I'm transparent about my limitations.
 
 ## EMERGENCY SITUATIONS
@@ -278,30 +322,31 @@ I:
 Truth must be tested before it's trusted.
 
 ---
-arifOS v46.0 | 9 Rules | Fail-Closed | https://github.com/ariffazil/arifOS
+arifOS v46.1 | 12 Rules | Fail-Closed | ZKPC-Sealed | https://github.com/ariffazil/arifOS
 ```
 
 ### COPY EVERYTHING ABOVE THIS LINE ↑
 
 ---
 
-## 🏗️ How arifOS Is Organized (v46)
+## 🏗️ How arifOS Is Organized (v46.1)
 
-arifOS code is organized into 8 folders, each with one job:
-
-```
+```text
 arifos_core/
-├── agi/          → Logic and reasoning
-├── asi/          → Safety and care
-├── apex/         → Final decisions
-├── enforcement/  → Checking the rules
-├── integration/  → Connecting to other AI systems
-├── memory/       → Remembering what happened
-├── system/       → Running everything
-└── mcp/          → Protocol layer
+  agi/         → Logic and reasoning
+  asi/         → Safety and care
+  apex/        → Final decisions
+  enforcement/ → Checking the rules
+  integration/ → Connecting to other AI systems
+  memory/      → Remembering what happened
+  system/      → Running everything
+  mcp/         → Protocol layer
+
+L1_THEORY/     → Canon + thermodynamic foundations
+L2_PROTOCOLS/  → Pipeline-aligned constitutional rules (v46.1)
 ```
 
-**Simple rule:** Each folder does one thing. If you need logic, look in `agi/`. If you need safety checks, look in `asi/`.
+**Simple rule:** Code lives in `arifos_core/`, constitutions and specs live in `L1_THEORY/` and `L2_PROTOCOLS/`.
 
 ---
 
@@ -318,9 +363,34 @@ arifos_core/
 
 ---
 
-## 📊 What's New in Version 46
+## 📊 What's New
 
-**Version 46** (2026-01-08) reorganized the entire codebase:
+### Version 46.1 "Sovereign Witness" (2026-01-12)
+
+**Pipeline Ontology** — Files now organized by pipeline stage (000-999):
+- `000_foundation`: Hypervisor layer (F10-F12)
+- `333_atlas`: AGI exploration (F1-F2)
+- `444_align` through `888_compass`: ASI/APEX layers
+- `999_vault`: Constitutional sealing and archive
+
+**ZKPC Protocol** (Zero-Knowledge Proof of Constitution):
+- Cryptographic sealing of constitutional compliance
+- Immutable audit trail via hash chains
+- Phoenix-72 cooling protocol for canon amendments
+
+**L2 Protocols** (renamed from L2_GOVERNANCE):
+- Clearer separation: L1 (canon/philosophy) vs L2 (protocols/operations)
+- Pipeline-stage organization matches L1 canon structure
+- All specifications now in `L2_PROTOCOLS/v46/`
+
+**Track A/B Alignment**:
+- Canon files use temporal numbering (340_TRUTH_F1, 420_PEACE_F3, etc.)
+- Spec files reference canon with stage-hundreds precision
+- Single source of truth for crisis patterns and governance
+
+### Version 46.0 (2026-01-08)
+
+**Codebase reorganization:**
 
 - **8 clean folders** instead of 40+ scattered files
 - **36 tests passing** (logic, safety, decisions)
@@ -541,7 +611,9 @@ pytest tests/ -v
 | `arifos_core/system/apex_prime.py` | Main decision-making (the "judge") |
 | `arifos_core/system/pipeline.py` | Runs answers through all 9 rules |
 | `arifos_core/enforcement/metrics.py` | Measures if rules are followed |
-| `L2_GOVERNANCE/universal/base_governance_v45.yaml` | Full rule definitions |
+| `L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json` | Primary spec authority (F1-F12 thresholds) |
+| `L2_PROTOCOLS/v46/governance/crisis_patterns.json` | Crisis detection patterns |
+| `L1_THEORY/canon/` | Canonical philosophy (Track A) |
 
 ---
 
@@ -587,4 +659,4 @@ AGPL-3.0 — Free to use, modify, and share. If you modify and distribute, you m
 
 ---
 
-**arifOS v46.0** — Simple rules. Clear answers. Safe AI.
+**arifOS v46.1 "Sovereign Witness"** — Simple rules. Clear answers. Safe AI. ZKPC-Sealed.
