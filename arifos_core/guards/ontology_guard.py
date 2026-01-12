@@ -102,6 +102,19 @@ class OntologyGuard:
             r"ω_simulation.*break.*system",
             r"cannot compute.*physics",
             r"violates.*laws of thermodynamics",
+            # Quantitative literalism patterns (v46.1 hardening)
+            # Matches: ΔS = 0.47 violates, ΔΨ = -0.23 prevents, Ω = 0.08 exceeds, etc.
+            r"Δ[SGΩΨ]?\s*=?\s*[+-]?\d+\.?\d*.*(violates|exceeds|prevents|blocks)",
+            r"Ω\s*=?\s*\d+\.?\d*.*(violates|exceeds|prevents|blocks)",
+            r"Ψ\s*=?\s*[+-]?\d+\.?\d*.*(violates|exceeds|prevents|blocks)",
+            # Matches: entropy cannot, Gibbs must not, simulation is impossible
+            r"(entropy|Gibbs|simulation)\s+.*(cannot|must not|impossible|will block|will halt)",
+            # Matches: thermodynamic prevent/block/halt/stop
+            r"thermodynamic.*(prevent|block|halt|stop)",
+            # Matches: physics must/will/cannot with action verbs
+            r"physics\s+(must|will|cannot).*(halt|stop|prevent|block)",
+            # Matches: ω_simulation > 1.0 impossible/cannot/prevents
+            r"ω_simulation\s*[><=]+\s*\d+\.?\d*.*(impossible|cannot|prevents)",
         ]
 
         # Compile patterns for efficiency

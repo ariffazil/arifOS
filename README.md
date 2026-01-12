@@ -55,11 +55,16 @@ That's it. AI answers are now checked before reaching you.
 
 **Hypervisor Layer (F10-F12) - v46.0:**
 
-| # | Floor | What It Means |
-|---|-------|---------------|
-| 10 | **Ontology** | Symbolic language stays symbolic. Prevent literalism drift. |
-| 11 | **Command Auth** | Identity reloads must be nonce-verified. No kernel hijacking. |
-| 12 | **Injection Defense** | Scan input for override patterns. Block prompt injection. |
+| # | Floor | What It Means | When It Runs |
+|---|-------|---------------|--------------|
+| 10 | **Ontology** | Symbolic language stays symbolic. Detect literalism in LLM output. | After LLM generates response |
+| 11 | **Command Auth** | Identity reloads must be nonce-verified. No kernel hijacking. | Before LLM (input preprocessing) |
+| 12 | **Injection Defense** | Scan input for override patterns. Block prompt injection. | Before LLM (input preprocessing) |
+
+**Execution Pipeline:**
+```
+Input → F12 (Injection Scan) → F11 (Nonce Verify) → LLM → F10 (Ontology Check) → F1-F9 (Governance) → F8 (Audit) → Output
+```
 
 **Simple:** If all 12 floors pass → Answer released ✅  
 If any floor fails → Answer blocked ❌

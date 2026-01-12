@@ -15,6 +15,7 @@ Purpose:
 
 Design:
     - Pattern-based detection using regex
+    - Input normalization (v46.1): Remove zero-width chars, emojis, excessive whitespace
     - Injection score computation (0.0 = clean, 1.0 = definite attack)
     - Threshold-based blocking (default: 0.85)
     - Must run before LLM sees the input
@@ -28,7 +29,7 @@ Constitutional Floor: F12 (Injection Defense)
 Security Note:
     Pattern-based detection is a first line of defense but not foolproof.
     Advanced attacks may use:
-    - Encoding/obfuscation
+    - Encoding/obfuscation (v46.1: mitigated via normalization)
     - Multi-turn attacks
     - Semantic attacks without keywords
 
@@ -45,6 +46,7 @@ Motto:
 from __future__ import annotations
 
 import re
+import unicodedata
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Tuple
@@ -144,6 +146,12 @@ class InjectionGuard:
             (r"\\n\\n#\s+New\s+Instructions", 0.8),
             (r"<\|endoftext\|>", 0.6),
             (r"```\s*(?:system|admin|root)", 0.7),
+            # Normalized patterns (no whitespace, for evasion detection v46.1)
+            (r"ignoreprevious(instructions?|rules?)", 1.0),
+            (r"forgetall?(instructions?|rules?)", 1.0),
+            (r"systemoverride", 1.0),
+            (r"bypassall?floors?", 1.0),
+            (r"disableall?(checks?|floors?|rules?)", 1.0),
         ]
 
         # Compile patterns for efficiency
@@ -152,12 +160,49 @@ class InjectionGuard:
             for pattern, weight in self.injection_patterns
         ]
 
-    def scan_input(self, user_input: str) -> InjectionGuardResult:
+    def normalize_input(self, user_input: str) -> str:
+        """
+        Normalize input to prevent evasion via tokenization attacks (v46.1 hardening).
+
+        Removes:
+        - Zero-width characters (U+200B-U+200D, U+FEFF)
+        - ALL whitespace (for pattern matching)
+        - Homoglyphs and confusables (normalize to ASCII)
+
+        Args:
+            user_input: Raw user input
+
+        Returns:
+            Normalized input with evasion techniques removed
+        """
+        if not user_input:
+            return user_input
+
+        # Remove zero-width characters and other invisibles
+        # U+200B: Zero-width space
+        # U+200C: Zero-width non-joiner
+        # U+200D: Zero-width joiner
+        # U+FEFF: Zero-width no-break space
+        normalized = re.sub(r'[\u200b-\u200d\ufeff]', '', user_input)
+
+        # Normalize Unicode to decomposed form, then remove combining characters
+        # This helps with homoglyph attacks (e.g., Cyrillic 'а' looks like Latin 'a')
+        normalized = unicodedata.normalize('NFKD', normalized)
+        normalized = ''.join(c for c in normalized if not unicodedata.combining(c))
+
+        # Remove ALL whitespace for pattern matching (prevents "i g n o r e" attacks)
+        # This is aggressive but necessary for security
+        normalized = re.sub(r'\s+', '', normalized)
+
+        return normalized.lower()
+
+    def scan_input(self, user_input: str, normalize: bool = True) -> InjectionGuardResult:
         """
         Scan user input for injection patterns.
 
         Args:
             user_input: The raw user input to scan
+            normalize: Whether to normalize input first (default: True, v46.1)
 
         Returns:
             InjectionGuardResult with status and detected patterns
@@ -166,17 +211,24 @@ class InjectionGuard:
         total_weight = 0.0
         max_weight = 0.0
 
-        # Scan for all patterns
-        for (pattern_regex, weight), (pattern_str, _) in zip(
-            self.compiled_patterns, self.injection_patterns
-        ):
-            matches = pattern_regex.findall(user_input)
-            if matches:
-                # Store first match for reporting
-                match_text = matches[0] if isinstance(matches[0], str) else matches[0][0]
-                detected.append((pattern_str, match_text))
-                total_weight += weight
-                max_weight = max(max_weight, weight)
+        # Scan both original and normalized text for maximum coverage (v46.1)
+        texts_to_scan = [user_input]
+        if normalize:
+            normalized = self.normalize_input(user_input)
+            texts_to_scan.append(normalized)
+
+        # Scan for all patterns in both texts
+        for scan_text in texts_to_scan:
+            for (pattern_regex, weight), (pattern_str, _) in zip(
+                self.compiled_patterns, self.injection_patterns
+            ):
+                matches = pattern_regex.findall(scan_text)
+                if matches and (pattern_str, matches[0] if isinstance(matches[0], str) else matches[0][0]) not in detected:
+                    # Store first match for reporting (avoid duplicates)
+                    match_text = matches[0] if isinstance(matches[0], str) else matches[0][0]
+                    detected.append((pattern_str, match_text))
+                    total_weight += weight
+                    max_weight = max(max_weight, weight)
 
         # Compute injection score
         # Uses both maximum weight (worst pattern) and total weight (volume)
