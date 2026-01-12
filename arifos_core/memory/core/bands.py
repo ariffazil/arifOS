@@ -30,9 +30,9 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
-from .eureka_types import MemoryBand as EurekaMemoryBand
-from .eureka_types import MemoryWriteDecision, MemoryWriteRequest
-from .eureka_store import AppendOnlyJSONLStore, InMemoryStore
+from ..eureka.eureka_types import MemoryBand as EurekaMemoryBand
+from ..eureka.eureka_types import MemoryWriteDecision, MemoryWriteRequest
+from ..eureka.eureka_store import AppendOnlyJSONLStore, InMemoryStore
 
 
 # =============================================================================

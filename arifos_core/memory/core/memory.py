@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 from enum import Enum
 
-from .mem0_client import (
+from ..l7.mem0_client import (
     Mem0Client,
     Mem0Config,
     MemoryHit,

@@ -28,9 +28,9 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-from .eureka_types import MemoryWriteDecision, MemoryWriteRequest
-from .eureka_router import route_write
-from .ledger_config_loader import (
+from ..eureka.eureka_types import MemoryWriteDecision, MemoryWriteRequest
+from ..eureka.eureka_router import route_write
+from ..ledger.ledger_config_loader import (
     HOT_SEGMENT_DAYS,
     SCAR_RETENTION_DAYS,
     VERDICT_BAND_ROUTING as SPEC_VERDICT_BAND_ROUTING,

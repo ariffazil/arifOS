@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from arifos_core.memory.cooling_ledger import DEFAULT_LEDGER_PATH
+from ..ledger.cooling_ledger import DEFAULT_LEDGER_PATH
 
 
 @dataclass

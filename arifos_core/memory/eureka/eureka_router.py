@@ -14,7 +14,7 @@ Version: v38.3 Phase 1
 
 from __future__ import annotations
 from .eureka_types import MemoryBand, MemoryWriteDecision, MemoryWriteRequest, Verdict
-from .authority import actor_role_to_writer_type, eureka_can_write
+from ..core.authority import actor_role_to_writer_type, eureka_can_write
 
 
 def route_write(req: MemoryWriteRequest) -> MemoryWriteDecision:
