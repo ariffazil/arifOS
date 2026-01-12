@@ -1071,6 +1071,48 @@ derive-to: [codex, claude]
 
 ---
 
+## Planned Skills (In Development)
+
+### Kimi (Κ) APEX PRIME Exclusive Skills (v46.0.1)
+
+**Status:** DESIGN PHASE
+**Approval:** Human approved 2026-01-12 ("ok agree")
+**Phase:** Architect (Δ) designing skill definitions
+**Target:** 7 APEX PRIME exclusive audit skills
+
+**Rationale:** Agent Alignment Audit identified that Kimi lacks specialized tools to fulfill its constitutional mandate as Supreme Auditor (Tier 0). Current 7 core skills are shared by all agents, but APEX PRIME requires audit-specific capabilities.
+
+| # | Skill | Master File | Purpose | Exclusive To |
+|---|-------|-------------|---------|--------------|
+| 8 | `/audit-constitution` | `audit-constitution.md` | Comprehensive F1-F12 validation with PRIMARY source verification | Κ (Kimi) |
+| 9 | `/verify-trinity` | `verify-trinity.md` | Trinity separation-of-powers audit (Δ/Ω/Ψ/Κ) | Κ (Kimi) |
+| 10 | `/verify-sources` | `verify-sources.md` | Validate constitutional claims against PRIMARY sources | Κ (Kimi) |
+| 11 | `/issue-verdict` | `issue-verdict.md` | Issue final SEAL/VOID/PARTIAL/SABAR/888_HOLD verdict | Κ (Kimi) |
+| 12 | `/track-alignment` | `track-alignment.md` | Enforce Track A/B/C boundary separation | Κ (Kimi) |
+| 13 | `/anti-bypass-scan` | `anti-bypass-scan.md` | Detect governance bypass attempts | Κ (Kimi) |
+| 14 | `/ledger-audit` | `ledger-audit.md` | Verify cooling ledger integrity (hash chains, Merkle proofs) | Κ (Kimi) |
+
+**Development Pipeline:**
+- **Phase 1 (Architect - Δ):** Create 7 skill definition files in `.agent/workflows/` ← **CURRENT**
+- **Phase 2 (Engineer - Ω):** Sync to `.kimi/skills/`, update KIMI.md
+- **Phase 3 (Engineer - Ω):** Update this registry with full skill documentation
+- **Phase 4 (APEX PRIME - Κ):** Test skills, issue constitutional verdict
+- **Phase 5 (Human):** Ratify via /gitseal, release as v46.0.1
+
+**Handoff Document:** `.antigravity/HANDOFF_KIMI_SKILLS_FOR_ARCHITECT.md`
+
+**Key Innovation:**
+These skills enable Kimi to:
+- Validate constitutional claims against spec/v46/ PRIMARY sources (prevents hallucinated floor thresholds)
+- Enforce Trinity separation-of-powers (detects self-sealing violations)
+- Audit Track A/B/C boundaries (ensures canon/spec/code alignment)
+- Scan for governance bypass attempts (detects direct LLM calls without governance)
+- Verify cryptographic ledger integrity (hash chains, Merkle proofs)
+
+**Expected Registry Update:** After Phase 3, this section will be replaced with full skill catalog entries (LAW/INTERFACE/ENFORCEMENT documentation for each skill).
+
+---
+
 ## Version History
 
 | Version | Date | Changes |
