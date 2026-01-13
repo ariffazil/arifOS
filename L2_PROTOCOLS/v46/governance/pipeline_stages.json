@@ -55,6 +55,7 @@
         "Build initial mental model"
       ],
       "outputs": "Context map for analysis stage (222)",
+      "spec_file": "L2_PROTOCOLS/v46/111_sense/111_sense_stage.json",
       "notes": "Stage 111 has no constitutional floors - it's pure data gathering."
     },
     "222_reflect": {

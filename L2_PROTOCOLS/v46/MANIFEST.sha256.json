@@ -1,11 +1,12 @@
 {
   "version": "v46.1",
-  "created_at": "2026-01-13T04:15:00.000000Z",
-  "description": "Cryptographic manifest for L2_PROTOCOLS v46.1 (Sovereign Witness + Stage 000 VOID spec)",
+  "created_at": "2026-01-13T05:00:00.000000Z",
+  "description": "Cryptographic manifest for L2_PROTOCOLS v46.1 (Sovereign Witness + Stage 000 VOID + Stage 111 SENSE specs)",
   "files": {
     "L1_THEORY/canon/000_MASTER_INDEX_v46.md": "408a520a1d34fbeb50d763f912f88f6fef1f1f91a5d0a7c7830a1af0f1fc565e",
     "L2_PROTOCOLS/v46/000_foundation/000_void_stage.json": "eb768e47bb88ac8d233c68f2e10e65fdf1f5cf0dabeece74d177ce9e1b0e58bf",
     "L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json": "71f27c72969ea1c5c42eb6212812ee6141b97d718aacc9a99b506dfdce6657fd",
+    "L2_PROTOCOLS/v46/111_sense/111_sense_stage.json": "414a0a5a4027cc4bb60d4836e71a64abfdec082169e7a9e2ea695f3b99f8ba13",
     "L2_PROTOCOLS/v46/000_foundation/session_physics.json": "0fb30820e63fa751c68cae88e41f9383de073005045ed7f7067ccc829f9a6fbe",
     "L2_PROTOCOLS/v46/333_atlas/agi_core.json": "6de6993650b2d01277e527cc49d4ba8bf3ade2918f27e311e2420179f29de9de",
     "L2_PROTOCOLS/v46/333_atlas/atlas_333.json": "f22ab1ff20550847ce38a253093c0f1c1e965b38f7edaa00218f3ca814d22f80",
@@ -18,7 +19,7 @@
     "L2_PROTOCOLS/v46/README.md": "1a9a30983682d361318ac993f32bc59f840a57805bc4df26a0a66e9ec136fa91",
     "L2_PROTOCOLS/v46/governance/aaa_trinity.json": "a859341214acfc24c626f47fd1c171b819fb89fdba28d5b66ed86dc5a1e0da75",
     "L2_PROTOCOLS/v46/governance/crisis_patterns.json": "53b69d310a07c87b5de0110c1ce1fd877eb9a3ed54eed23c47cf24d7b2d639ea",
-    "L2_PROTOCOLS/v46/governance/pipeline_stages.json": "7d63923389f888ae495c73e74b1493bf9fa782054eb0ebd39020f7e1845ce28a",
+    "L2_PROTOCOLS/v46/governance/pipeline_stages.json": "a06089fb45638a398396229bf5e09310d057f459b26cd2949f8ed691914c2f40",
     "L2_PROTOCOLS/v46/governance/waw_federation.json": "2bfb92613ccc5e58b9c795d3208271efda02b00191ff31cbe4afbec00edbc722",
     "L2_PROTOCOLS/v46/schema/constitutional_floors.schema.json": "9b518134e482623e078e2c9e9ed6c5ea03d150f4fff89e26c7a30a5a8044a444",
     "L2_PROTOCOLS/v46/schema/genius_law.schema.json": "bdf2544c76da1888421cc8bfa5d41044a9b81cc024aefc3538a88097b7709ef2",
