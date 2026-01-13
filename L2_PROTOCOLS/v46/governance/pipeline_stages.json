@@ -39,7 +39,7 @@
       ],
       "enforcement_layer": "MCP Server (pre-LLM)",
       "failure_action": "SABAR or HOLD_888 depending on floor",
-      "spec_file": "spec/v46/000_foundation/hypervisor.json",
+      "spec_file": "L2_PROTOCOLS/v46/000_foundation/000_void_stage.json",
       "notes": "Stage 000 executes before LLM sees input. Cannot be bypassed by prompts."
     },
     "111_sense": {
