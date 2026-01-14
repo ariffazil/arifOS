@@ -20,6 +20,24 @@ Authority:
 - Track C (Code): arifos_core/runtime/[stage].py
 """
 
+# Stage 000: VOID - Hypervisor entry gate (recursive intelligence)
+from .void_000 import (
+    void_stage,
+    VoidBundle000,
+    HypervisorChecks,
+    AmanahRiskSignals,
+    TelemetryPacket,
+    VoidVerdict,
+    AuthLevel,
+    check_f10_symbolic_guard,
+    check_f11_command_auth,
+    check_f12_injection_defense,
+    evaluate_amanah_risk,
+    generate_session_metadata,
+    generate_zkpc_commitment,
+    initialize_telemetry,
+)
+
 # Stage 111: SENSE - Input measurement and classification
 from .sense_111 import (
     sense_stage,
@@ -152,6 +170,21 @@ from .seal_999 import (
 
 
 __all__ = [
+    # Stage 000 VOID
+    "void_stage",
+    "VoidBundle000",
+    "HypervisorChecks",
+    "AmanahRiskSignals",
+    "TelemetryPacket",
+    "VoidVerdict",
+    "AuthLevel",
+    "check_f10_symbolic_guard",
+    "check_f11_command_auth",
+    "check_f12_injection_defense",
+    "evaluate_amanah_risk",
+    "generate_session_metadata",
+    "generate_zkpc_commitment",
+    "initialize_telemetry",
     # Stage 111 SENSE
     "sense_stage",
     "SensedBundle111",

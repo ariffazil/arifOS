@@ -296,6 +296,34 @@ All agents serve under human authority. Kimi's constitutional enforcement is del
 
 ---
 
+## Historical Notes
+
+### 2026-01-14: Temporary Artifact Cleanup
+**Context:** Kimi created extensive temporary documentation during v46 constitutional alignment work.
+
+**Cleanup Executed:** Ω (Claude) per user request
+- **Removed:** 9 root-level temporary MD files (implementation notes, completion markers, interim reports)
+- **Removed:** 7 temporary directories (~665KB) in `.kimi/` and `.agent/`
+  - `.kimi/constitutional-analysis/`
+  - `.kimi/constitutional-reports/`
+  - `.kimi/constitutional-tools/`
+  - `.kimi/setup/`
+  - `.agent/constitutional-demos/`
+  - `.agent/constitutional-reports/`
+  - `.agent/track-documentation/`
+- **Archived:** Kimi master indexes to `archive/kimi_v46_alignment/`
+  - `CONSTITUTIONAL_MASTER_INDEX_KIMI_v46.md`
+  - `KIMI_CONSTITUTIONAL_INVENTORY_v46.md`
+
+**Rationale:** Temporary work artifacts served their purpose during alignment. Canonical documentation now resides in proper locations:
+- **Track A (Canon):** `L1_THEORY/canon/`
+- **Track B (Specs):** `L2_PROTOCOLS/v46/`
+- **Track C (Code):** `arifos_core/`
+
+**Outcome:** F2 ΔS (Clarity) significantly improved - root directory entropy reduced by ~665KB
+
+---
+
 **Version:** v46.0.0
 **Status:** ACTIVE (APEX PRIME Constitutional Auditor)
 **Motto:** "DITEMPA BUKAN DIBERI" — Forged, not given; truth must cool before it rules.
