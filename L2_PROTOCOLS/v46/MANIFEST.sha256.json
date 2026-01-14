@@ -3,7 +3,7 @@
   "created_at": "2026-01-14T12:19:09.272407Z",
   "description": "Cryptographic manifest for L2_PROTOCOLS v46.1 (Sovereign Witness)",
   "files": {
-    "L1_THEORY/canon/000_MASTER_INDEX_v46.md": "c7774fcfc8dea27043fc78efe6eb4484cea7b57486b8af30712ecf856ecc18a6",
+    "L1_THEORY/canon/000_MASTER_INDEX_v46.md": "ed55860542966fffeaf5ab346b02b4dcf8226fd7256c95e01b4ec19f7ae92096",
     "L2_PROTOCOLS/v46/000_foundation/000_void_stage.json": "eb768e47bb88ac8d233c68f2e10e65fdf1f5cf0dabeece74d177ce9e1b0e58bf",
     "L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json": "b4378ca993103c9ccfda68ddf2ce8249889515f8dbea6e769208088a4e2b9fe8",
     "L2_PROTOCOLS/v46/000_foundation/session_physics.json": "0fb30820e63fa751c68cae88e41f9383de073005045ed7f7067ccc829f9a6fbe",

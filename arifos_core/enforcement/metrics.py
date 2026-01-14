@@ -827,6 +827,21 @@ ConstitutionalMetrics = Metrics
 
 
 @dataclass
+class FloorCheckResult:
+    """Detailed result for a single floor check.
+
+    Used to trace individual floor evaluations through the system.
+    """
+    floor_id: str      # e.g., "F1", "F2"
+    name: str          # e.g., "Truth", "Clarity"
+    threshold: float   # e.g., 0.99
+    value: float       # e.g., 0.98
+    passed: bool       # True/False
+    reason: Optional[str] = None # Failure reason or note
+    is_hard: bool = False # Whether this is a HARD floor (VOID) vs SOFT (SABAR)
+
+
+@dataclass
 class FloorsVerdict:
     """Result of evaluating all floors.
 
@@ -1166,4 +1181,5 @@ __all__ = [
     "Metrics",
     "ConstitutionalMetrics",  # Legacy alias
     "FloorsVerdict",
+    "FloorCheckResult",
 ]

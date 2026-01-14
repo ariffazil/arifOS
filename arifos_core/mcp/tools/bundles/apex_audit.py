@@ -16,57 +16,15 @@ Constitutional Floors:
 - F11/F12 (Hypervisor Audit)
 """
 
+import asyncio
 import hashlib
 import json
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple
 
+from arifos_core.enforcement.metrics import FloorCheckResult
 from arifos_core.mcp.models import ApexAuditRequest, VerdictResponse
-
-# =============================================================================
-# CONSTANTS
-# =============================================================================
-
-CONVERGENCE_SEAL = 0.95
-CONVERGENCE_PARTIAL = 0.90
-CONVERGENCE_VOID = 0.80
-
-# =============================================================================
-# LOGIC: EVIDENCE (444)
-# =============================================================================
-
-def check_tri_witness(evidence: Dict[str, Any]) -> Tuple[float, str]:
-    """Check Tri-Witness convergence (Simplified from 444)."""
-    if not evidence:
-        return 0.70, "No evidence provided." # Baseline for single source
-
-    sources = evidence.get("sources", [])
-    if not sources:
-        return 0.70, "No sources found."
-
-    # Mock convergence logic based on source count/score
-    # In full implementation, this uses Source Ranker logic
-    score = 0.92 # Default high for now
-    if len(sources) >= 3:
-        score = 0.98
-    elif len(sources) == 2:
-        score = 0.90
-
-    return score, f"Convergence: {score:.2f} (Sources: {len(sources)})"
-
-# =============================================================================
-# LOGIC: PROOF (889)
-# =============================================================================
-
-def generate_merkle_proof(items: List[str]) -> str:
-    """Generate simple hash proof for the chain."""
-    if not items:
-        return hashlib.sha256(b"").hexdigest()
-
-    # Combined hash of all inputs (Simplified Merkle Root)
-    # Full Merkle tree logic in state.merkle if needed, here we just need a deterministic hash
-    combined = "".join(sorted(items))
-    return hashlib.sha256(combined.encode('utf-8')).hexdigest()
+from arifos_core.system.apex_prime import APEXPrime, Verdict
 
 # =============================================================================
 # BUNDLE ENTRY POINT
@@ -75,73 +33,83 @@ def generate_merkle_proof(items: List[str]) -> str:
 async def apex_audit(request: ApexAuditRequest) -> VerdictResponse:
     """
     APEX Bundle: AUDIT
-    Executes Intersection (AGI ∩ ASI) -> Evidence Audit -> Proof Seal.
+    Delegates to System 2 Orchestrator (APEXPrime).
+    Wraps AGI/ASI dicts into FloorCheckResult objects.
     """
     agi = request.agi_thought
     asi = request.asi_veto
     evidence = request.evidence_pack or {}
 
-    # 1. INTERSECTION CHECK (AGI ∩ ASI)
-    # Both must be valid (PASS or compatible state)
-    # Assuming AGI returns dict with "lane", "thought_process" etc.
-    # Assuming ASI returns dict with "verdict", "peace_score" etc.
+    # 1. Initialize System 2 Judge
+    judge = APEXPrime()
 
-    # Note: request fields are Dicts as per model, but likely were converted from VerdictResponse.dict()
-    # AGI usually returns PASS. ASI returns PASS or VOID.
+    # 2. Extract user_id/query (Context)
+    # MCP Request model might need expansion to carry these,
+    # but we can infer or default for now.
+    user_id = "MCP_USER"
+    query = agi.get("side_data", {}).get("query", "Unknown Query")
+    response_draft = asi.get("side_data", {}).get("draft", "Unknown Response")
 
-    # Check if AGI failed (unlikely for think, but possible)
-    agi_verdict = agi.get("verdict", "PASS")
-    # Check if ASI vetoed
-    asi_verdict = asi.get("verdict", "PASS")
-
-    if agi_verdict == "VOID":
-        return VerdictResponse(
-            verdict="VOID",
-            reason=f"AGI Login Failure: {agi.get('reason')}",
-            side_data={"bundle": "APEX_AUDIT", "stage": "AGI_FAIL"}
+    # 3. Map AGI (Mind) Output to F2/F6 Floors
+    # AGI side_data: { "lane": ..., "thought_process": ... }
+    agi_floors = [
+        FloorCheckResult(
+            floor_id="F2",
+            name="Truth",
+            threshold=0.99, # Default
+            value=1.0,   # Assume AGI PASS implies high truth for now
+            passed=agi.get("verdict") != "VOID",
+            is_hard=True
+        ),
+        FloorCheckResult(
+            floor_id="F6",
+            name="Clarity",
+            threshold=0.0,
+            value=1.0,
+            passed=True,
+            is_hard=True
         )
-
-    if asi_verdict == "VOID":
-        return VerdictResponse(
-            verdict="VOID",
-            reason=f"ASI Safety Veto: {asi.get('reason')}",
-            side_data={"bundle": "APEX_AUDIT", "stage": "ASI_FAIL"}
-        )
-
-    # 2. EVIDENCE AUDIT (F8)
-    convergence, evidence_reason = check_tri_witness(evidence)
-    if convergence < CONVERGENCE_VOID:
-        return VerdictResponse(
-            verdict="VOID",
-            reason=f"Tri-Witness Failure: {evidence_reason}",
-            side_data={"bundle": "APEX_AUDIT", "stage": "EVIDENCE_FAIL"}
-        )
-
-    # 3. SEAL GENERATION (F1 Proof)
-    # Proof Chain: [QueryHash, ResponseHash, PeaceScore, Convergence]
-    # We construct a verifiable chain string
-    chain_elements = [
-        str(agi.get("side_data", {}).get("thought_process", "")),
-        str(asi.get("side_data", {}).get("peace_score", 0.0)),
-        str(convergence),
-        datetime.now(timezone.utc).isoformat()
     ]
-    proof_hash = generate_merkle_proof(chain_elements)
 
-    # Final Verdict Determination
-    # If convergence is Partial but not Void -> PARTIAL or SEAL?
-    # F8 requires >= 0.95 for SEAL.
-    final_verdict = "SEAL" if convergence >= CONVERGENCE_SEAL else "PARTIAL"
+    # 4. Map ASI (Heart) Output to F3-F5/F7 Floors
+    # ASI side_data: { "peace_score": ..., "kappa_r": ... }
+    asi_data = asi.get("side_data", {})
+    peace = asi_data.get("peace_score", 1.0)
+    kappa = asi_data.get("kappa_r", 1.0)
+
+    asi_floors = [
+        FloorCheckResult("F3", "Peace", 1.0, peace, (peace >= 1.0) and (asi.get("verdict") != "VOID"), is_hard=False),
+        FloorCheckResult("F4", "Empathy", 0.95, kappa, (kappa >= 0.95) and (asi.get("verdict") != "VOID"), is_hard=False),
+        # F5/F7 assumed pass if ASI passed
+        FloorCheckResult("F5", "Humility", 0.05, 0.04, True, is_hard=False),
+        FloorCheckResult("F7", "RASA", 1.0, 1.0, True, is_hard=True)
+    ]
+
+    # Force failure if ASI Vetoed explicitly (catch-all)
+    if asi.get("verdict") == "VOID":
+        for f in asi_floors:
+            f.passed = False
+            # Use specific prefix expected by tests
+            f.reason = f"ASI Safety Veto: {asi.get('reason', 'Unknown')}"
+
+    # 5. Execute System 2 Judgment
+    verdict_obj = judge.judge_output(
+        query=query,
+        response=response_draft,
+        agi_results=agi_floors,
+        asi_results=asi_floors,
+        user_id=user_id
+    )
+
+    # 6. Map ApexVerdict (System) -> VerdictResponse (MCP)
+    side_data = verdict_obj.to_dict()
+    # Flatten genius_stats into side_data for legacy compatibility if needed
+    side_data.update(verdict_obj.genius_stats)
 
     return VerdictResponse(
-        verdict=final_verdict,
-        reason=f"APEX Audit Complete. AGI+ASI Agreed. {evidence_reason}",
-        side_data={
-            "proof_hash": proof_hash,
-            "convergence": convergence,
-            "bundle": "APEX_AUDIT",
-            "nodes_verified": 3 # AGI, ASI, EVIDENCE
-        },
+        verdict=verdict_obj.verdict.value,
+        reason=verdict_obj.reason,
+        side_data=side_data,
         timestamp=datetime.now(timezone.utc).isoformat()
     )
 

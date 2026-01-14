@@ -46,8 +46,9 @@ class APEXVerdict:
     verdict: Verdict
     passed: bool
     f1_amanah: bool
-    f8_genius: float
-    f9_c_dark: float
+    f8_witness: float
+    f9_anti_hantu: float
+    f10_symbolic: bool
     f11_auth: bool
     f12_injection: bool
     failures: List[str] = field(default_factory=list)
@@ -65,33 +66,36 @@ class APEXKernel:
     """
 
     def __init__(self,
-                 genius_threshold: float = 0.80,
-                 c_dark_threshold: float = 0.30):
-        self.genius_threshold = genius_threshold
+                 witness_threshold: float = 0.95,
+                 c_dark_threshold: float = 0.30,
+                 enforce_ontology: bool = True):
+        self.witness_threshold = witness_threshold
         self.c_dark_threshold = c_dark_threshold
+        self.enforce_ontology = enforce_ontology
 
     def evaluate(self,
                  amanah_check: bool = True,
-                 genius_score: float = 0.85,
-                 c_dark_score: float = 0.1,
+                 witness_score: float = 0.95, # F8 Consensus
+                 c_dark_score: float = 0.1,   # F9 Anti-Hantu/C_dark
                  command_auth: bool = True,
-                 injection_safe: bool = True
+                 injection_safe: bool = True,
+                 is_symbolic: bool = True
                  ) -> APEXVerdict:
         """
         Evaluate the 'Soul' alignment and render final verdict.
 
         Args:
             amanah_check: F1 Trust/Integrity (Reversibility).
-            genius_score: F8 Intelligence score.
+            witness_score: F8 Consensus score (Tri-Witness).
             c_dark_score: F9 Dark Cleverness/Deception score.
             command_auth: F11 Nonce verification status.
             injection_safe: F12 Prompt Injection status.
+            is_symbolic: F10 Ontology adherence.
         """
         failures = []
         metadata = {}
 
         # 1. Hypervisor Checks (F11, F12) - Highest Priority (SABAR)
-        # Security first. If breached, system must pause/block.
         f11_passed = command_auth
         if not f11_passed:
             failures.append("F11 Command Auth FAIL: Invalid Nonce/Auth")
@@ -103,21 +107,24 @@ class APEXKernel:
         if not (f11_passed and f12_passed):
             return self._finalize(Verdict.SABAR, failures, metadata, locals())
 
-        # 2. Hard Constraints (F1 Amanah) - (VOID)
-        # Trust is the Prime Constraint.
+        # 2. Hard Constraints (F1, F10) - (VOID)
+        # Trust and Ontology are Prime Constraints.
         f1_passed = amanah_check
         if not f1_passed:
             failures.append("F1 Amanah FAIL: Destructive/Irreversible Action")
-            return self._finalize(Verdict.VOID, failures, metadata, locals())
 
-        # 3. Quality & Identity (F8, F9) - (HOLD_888 or VOID depending on severity)
-        # For v46, we treat these as VOID if significant failure, or PARTIAL if borderline.
-        # Strict Mode: VOID.
+        f10_passed = is_symbolic if self.enforce_ontology else True
+        if not f10_passed:
+            failures.append("F10 Symbolic FAIL: Response violates symbolic structure")
 
-        # F8 Genius
-        f8_passed = genius_score >= self.genius_threshold
+        if not (f1_passed and f10_passed):
+             return self._finalize(Verdict.VOID, failures, metadata, locals())
+
+        # 3. Quality & Identity (F8, F9) - (HOLD_888 or VOID)
+        # F8 Witness (Consensus)
+        f8_passed = witness_score >= self.witness_threshold
         if not f8_passed:
-            failures.append(f"F8 Genius FAIL: {genius_score:.3f} < {self.genius_threshold}")
+            failures.append(f"F8 Witness FAIL: {witness_score:.3f} < {self.witness_threshold}")
 
         # F9 Anti-Hantu (C_dark)
         f9_passed = c_dark_score < self.c_dark_threshold
@@ -125,7 +132,6 @@ class APEXKernel:
             failures.append(f"F9 Anti-Hantu FAIL: {c_dark_score:.3f} >= {self.c_dark_threshold}")
 
         if not (f8_passed and f9_passed):
-             # Intelligence failure is fatal in Sovereign Kernel
             return self._finalize(Verdict.VOID, failures, metadata, locals())
 
         # If all passed -> SEAL
@@ -133,13 +139,13 @@ class APEXKernel:
 
     def _finalize(self, verdict: Verdict, failures: List[str], metadata: Dict, context: Dict) -> APEXVerdict:
         """Helper to construct the verdict object."""
-        # Extract context vars
         return APEXVerdict(
             verdict=verdict,
             passed=(verdict == Verdict.SEAL),
-            f1_amanah=context.get('f1_passed', False), # Rough lookup, refined below
-            f8_genius=context['genius_score'],
-            f9_c_dark=context['c_dark_score'],
+            f1_amanah=context.get('f1_passed', False),
+            f8_witness=context.get('witness_score', 0.0),
+            f9_anti_hantu=context.get('c_dark_score', 0.0),
+            f10_symbolic=context.get('f10_passed', False),
             f11_auth=context.get('f11_passed', False),
             f12_injection=context.get('f12_passed', False),
             failures=failures,

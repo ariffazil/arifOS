@@ -31,8 +31,8 @@ class ASIVerdict:
     """
     passed: bool
     f3_peace: float
-    f5_empathy: float
-    f6_humility: float
+    f4_empathy: float
+    f5_humility: float
     f7_rasa: bool
     failures: List[str] = field(default_factory=list)
     metadata: Dict[str, any] = field(default_factory=dict)
@@ -40,7 +40,7 @@ class ASIVerdict:
     @property
     def reason(self) -> str:
         if self.passed:
-            return "ASIKernel: Heart Aligned (F3, F5, F6, F7 Passed)"
+            return "ASIKernel: Heart Aligned (F3, F4, F5, F7 Passed)"
         return f"ASIKernel Failures: {'; '.join(self.failures)}"
 
 class ASIKernel:
@@ -83,19 +83,19 @@ class ASIKernel:
             failures.append(f"F3 Peace² FAIL: {peace_score:.3f} < {self.peace_threshold}")
         metadata["f3_score"] = peace_score
 
-        # 2. F5 Empathy Check (Kr)
+        # 2. F4 Empathy Check (Kr) (Formerly F5)
         # Does it serve the weakest stakeholder?
-        f5_passed = empathy_score >= self.empathy_threshold
-        if not f5_passed:
-            failures.append(f"F5 Empathy FAIL: {empathy_score:.3f} < {self.empathy_threshold}")
-        metadata["f5_score"] = empathy_score
+        f4_passed = empathy_score >= self.empathy_threshold
+        if not f4_passed:
+            failures.append(f"F4 Empathy FAIL: {empathy_score:.3f} < {self.empathy_threshold}")
+        metadata["f4_score"] = empathy_score
 
-        # 3. F6 Humility Check (Ω₀)
+        # 3. F5 Humility Check (Ω₀) (Formerly F6)
         # Is the tone appropriately uncertain?
-        f6_passed = self.humility_min <= humility_score <= self.humility_max
-        if not f6_passed:
-            failures.append(f"F6 Humility FAIL: {humility_score:.3f} not in [{self.humility_min}, {self.humility_max}]")
-        metadata["f6_score"] = humility_score
+        f5_passed = self.humility_min <= humility_score <= self.humility_max
+        if not f5_passed:
+            failures.append(f"F5 Humility FAIL: {humility_score:.3f} not in [{self.humility_min}, {self.humility_max}]")
+        metadata["f5_score"] = humility_score
 
         # 4. F7 RASA Check
         # Is 'Felt Care' demonstrated?
@@ -105,13 +105,13 @@ class ASIKernel:
         metadata["f7_has_rasa"] = has_rasa
 
         # Final Verdict
-        passed = f3_passed and f5_passed and f6_passed and f7_passed
+        passed = f3_passed and f4_passed and f5_passed and f7_passed
 
         return ASIVerdict(
             passed=passed,
             f3_peace=peace_score,
-            f5_empathy=empathy_score,
-            f6_humility=humility_score,
+            f4_empathy=empathy_score,
+            f5_humility=humility_score,
             f7_rasa=has_rasa,
             failures=failures,
             metadata=metadata

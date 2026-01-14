@@ -50,7 +50,7 @@
 50: - `760_RASA_F7_v46.md` - F7: Listening (👂)
 51:
 52: ### 🧭 [888_compass](./888_compass/)
-53: - `801_APEX_PSI_JUDGE_v46.md` - **APEX IDENTITY** (Soul)
+53: - `100_APEX_PSI_v46.3.1.md` - **APEX IDENTITY** (Soul) CANONICAL
 54: - `810_COMPASS_888_CANONICAL_v46.md` - Compass Spec (CANON)
 55: - `815_SPEC_CODE_BINDING_v46.md` - Spec → Code Protocol
 56: - `830_AMANAH_F6_v46.md` - F6: Amanah (🤲)

@@ -1,53 +1,58 @@
 """
-arifos_core/stages/stage_888_judge.py
+arifos_core/888_judge/stage.py
 
 Stage 888: JUDGE (Verdict Rendering)
-Function: Final Judgment via APEX Kernel (Ψ).
-Kernel: APEX (Ψ) - Axis 3
-
-DITEMPA BUKAN DIBERI - Forged v46.2
+Function: Final Judgment via APEX Prime (System 2 Orchestrator).
+Kernel: APEX Prime
 """
 
 from typing import Any, Dict
 
-from arifos_core.apex.kernel import APEXKernel, APEXVerdict, Verdict
+from arifos_core.system.apex_prime import APEXPrime, Verdict
 
-KERNEL = APEXKernel()
+# Initialize Single Execution Spine
+ORCHESTRATOR = APEXPrime()
 
 def execute_stage(context: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Execute State 888.
-    Uses APEX Kernel to render final verdict.
+    Execute Stage 888 (Judge).
+    Delegates final verdict to APEX Prime.
     """
     context["stage"] = "888"
 
-    # Gather inputs for APEX Evaluation
-    # F1 Amanah - check if we broke anything (heuristic)
-    amanah_check = True # Placeholder
+    # Extract Inputs from Context
+    query = context.get("query", "")
+    response = context.get("response", "") # The draft to judge
+    user_id = context.get("user_id")
 
-    # F8 Genius - check intelligence of final response
-    genius_score = 0.85 # Placeholder
+    # Extract upstream kernel traces if available in metabolic state
+    # Assuming context['trace'] or similar holds results
+    trace = context.get("trace", {})
+    agi_results = trace.get("agi_results", [])
+    asi_results = trace.get("asi_results", [])
 
-    # F9 C_dark
-    c_dark_score = 0.1 # Placeholder
-
-    # F11/F12 (Hypervisor) - usually checked at 111/Pre-process, but verified here
-    auth_ok = True
-    injection_ok = True
-
-    verdict: APEXVerdict = KERNEL.evaluate(
-        amanah_check=amanah_check,
-        genius_score=genius_score,
-        c_dark_score=c_dark_score,
-        command_auth=auth_ok,
-        injection_safe=injection_ok
+    # Execute APEX Prime
+    verdict_obj = ORCHESTRATOR.judge_output(
+        query=query,
+        response=response,
+        agi_results=agi_results,
+        asi_results=asi_results,
+        user_id=user_id
     )
 
+    # Update Context with Verdict
     context["apex_verdict"] = {
-        "verdict": verdict.verdict.value,
-        "passed": verdict.passed,
-        "reason": verdict.reason,
-        "failures": verdict.failures
+        "verdict": verdict_obj.verdict.value,
+        "reason": verdict_obj.reason,
+        "violated_floors": verdict_obj.violated_floors,
+        "metrics": verdict_obj.genius_stats,
+        "compass_alignment": verdict_obj.compass_alignment,
+        "proof_hash": verdict_obj.proof_hash
     }
+
+    # If VOID, we might want to flag the context to stop pipeline
+    if verdict_obj.verdict == Verdict.VOID:
+        context["stop_pipeline"] = True
+        context["error"] = verdict_obj.reason
 
     return context
