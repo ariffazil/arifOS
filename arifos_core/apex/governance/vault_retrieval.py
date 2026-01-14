@@ -18,6 +18,8 @@ Design:
 In future:
 - This module can be extended to call an external embedding/RAG layer
   while preserving the same function signatures.
+
+Updated in v47: Uses arifos_core.state for ledger functionality.
 """
 
 from __future__ import annotations
@@ -26,7 +28,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from arifos_core.apex.governance.ledger_hashing import load_jsonl
+from arifos_core.state.ledger_hashing import load_jsonl
 
 # Default path for L1 Cooling Ledger
 DEFAULT_LEDGER_PATH = Path("cooling_ledger") / "L1_cooling_ledger.jsonl"

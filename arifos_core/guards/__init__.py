@@ -1,9 +1,11 @@
 """
-arifOS Session Guards Package
+arifOS Session Guards Package (Deprecated in v47)
 
-This package contains guards that operate over longer horizons
-than a single model invocation (for example, session-level
-dependency and usage rhythm).
+This package has been moved to arifos_core.hypervisor in v47 Equilibrium Architecture.
+Backward compatibility imports are provided below.
+
+Use: from arifos_core.hypervisor import InjectionGuard
+Instead of: from arifos_core.guards import InjectionGuard
 
 Current components (v46.0):
     - session_dependency.py: SessionDuration / interaction density guard (v45)
@@ -14,25 +16,59 @@ Current components (v46.0):
 
 from __future__ import annotations
 
-from .injection_guard import (
+import warnings
+
+# Import from new location (hypervisor) for backward compatibility
+from arifos_core.hypervisor.guards.injection_guard import (
     InjectionGuard,
     InjectionGuardResult,
     InjectionRisk,
     scan_for_injection,
 )
-from .nonce_manager import (
+from arifos_core.hypervisor.guards.nonce_manager import (
     NonceManager,
     NonceStatus,
     NonceVerificationResult,
     SessionNonce,
 )
-from .ontology_guard import (
+from arifos_core.hypervisor.guards.ontology_guard import (
     OntologyGuard,
     OntologyGuardResult,
     OntologyRisk,
     detect_literalism,
 )
-from .session_dependency import DependencyGuard, SessionRisk, SessionState
+from arifos_core.hypervisor.guards.session_dependency import (
+    DependencyGuard,
+    SessionRisk,
+    SessionState,
+)
+
+
+def _issue_deprecation_warning():
+    """Issue deprecation warning for guards imports."""
+    warnings.warn(
+        "Importing from arifos_core.guards is deprecated. "
+        "Use 'from arifos_core.hypervisor import ...' instead. "
+        "This compatibility shim will be removed in v48.",
+        DeprecationWarning,
+        stacklevel=3
+    )
+
+
+def __getattr__(name):
+    """Intercept module-level attribute access."""
+    # Only warn for the specific guards-related attributes
+    valid_exports = [
+        "DependencyGuard", "SessionRisk", "SessionState",
+        "OntologyGuard", "OntologyGuardResult", "OntologyRisk", "detect_literalism",
+        "NonceManager", "NonceStatus", "NonceVerificationResult", "SessionNonce",
+        "InjectionGuard", "InjectionGuardResult", "InjectionRisk", "scan_for_injection",
+    ]
+    if name in valid_exports:
+        _issue_deprecation_warning()
+        return globals().get(name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     # Session dependency (v45)
