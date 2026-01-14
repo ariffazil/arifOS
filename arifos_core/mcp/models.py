@@ -10,7 +10,6 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-
 # =============================================================================
 # JUDGE TOOL MODELS
 # =============================================================================
@@ -140,6 +139,30 @@ class ApexLlamaResponse(BaseModel):
     error: Optional[str] = Field(
         default=None, description="Error message if call failed"
     )
+
+
+# =============================================================================
+# ORTHOGONAL HYPERVISOR BUNDLES (Phase 2)
+# =============================================================================
+
+class AgiThinkRequest(BaseModel):
+    """Request for AGI Bundle (The Mind)."""
+    query: str = Field(..., description="User query to think about")
+    context: Optional[Dict[str, Any]] = Field(default=None, description="Optional context")
+
+
+class AsiActRequest(BaseModel):
+    """Request for ASI Bundle (The Heart)."""
+    draft_response: str = Field(..., description="Draft text to validate")
+    recipient_context: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Recipient context")
+    intent: Optional[str] = Field("general", description="Intent of the action")
+
+
+class ApexAuditRequest(BaseModel):
+    """Request for APEX Bundle (The Soul)."""
+    agi_thought: Dict[str, Any] = Field(..., description="Output from AGI Bundle")
+    asi_veto: Dict[str, Any] = Field(..., description="Output from ASI Bundle")
+    evidence_pack: Optional[Dict[str, Any]] = Field(None, description="Tri-Witness Evidence")
 
 
 # =============================================================================

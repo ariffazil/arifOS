@@ -17,7 +17,10 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
 from .models import (
+    AgiThinkRequest,
+    ApexAuditRequest,
     ApexLlamaRequest,
+    AsiActRequest,
     AuditRequest,
     AuditResponse,
     JudgeRequest,
@@ -29,17 +32,17 @@ from .models import (
 
 # Phase 4: Memory Trinity (v45.2)
 # Phase 1-3 MCP Tools (Constitutional Pipeline)
+from .tools import mcp_000_reset_sync as mcp_000_reset
+from .tools import mcp_111_sense_sync as mcp_111_sense
+from .tools import mcp_222_reflect_sync as mcp_222_reflect
+from .tools import mcp_444_evidence_sync as mcp_444_evidence
+from .tools import mcp_555_empathize_sync as mcp_555_empathize
+from .tools import mcp_666_align_sync as mcp_666_align
+from .tools import mcp_777_forge_sync as mcp_777_forge
+from .tools import mcp_888_judge_sync as mcp_888_judge
+from .tools import mcp_889_proof_sync as mcp_889_proof
+from .tools import mcp_999_seal_sync as mcp_999_seal
 from .tools import (
-    mcp_000_reset,
-    mcp_111_sense,
-    mcp_222_reflect,
-    mcp_444_evidence,
-    mcp_555_empathize,
-    mcp_666_align,
-    mcp_777_forge,
-    mcp_888_judge,
-    mcp_889_proof,
-    mcp_999_seal,
     memory_get_vault_sync,
     memory_get_zkpc_receipt_sync,
     memory_list_phoenix_sync,
@@ -47,6 +50,11 @@ from .tools import (
 )
 from .tools.apex_llama import apex_llama
 from .tools.audit import arifos_audit
+
+# Orthogonal Hypervisor Bundles (Phase 2)
+from .tools.bundles import agi_think_sync as agi_think
+from .tools.bundles import apex_audit_sync as apex_audit
+from .tools.bundles import asi_act_sync as asi_act
 from .tools.fag_read import TOOL_METADATA as FAG_METADATA
 from .tools.fag_read import FAGReadRequest, FAGReadResponse, arifos_fag_read
 from .tools.judge import arifos_judge
@@ -93,6 +101,11 @@ TOOLS: Dict[str, Callable] = {
     "memory_propose_entry": memory_propose_entry_sync,
     "memory_list_phoenix": memory_list_phoenix_sync,
     "memory_get_zkpc_receipt": memory_get_zkpc_receipt_sync,
+    "memory_get_zkpc_receipt": memory_get_zkpc_receipt_sync,
+    # Phase 2: Orthogonal Hypervisor Bundles
+    "agi_think": agi_think,
+    "asi_act": asi_act,
+    "apex_audit": apex_audit,
 }
 
 # Map of tool name -> request model class (for payload conversion)
@@ -104,10 +117,53 @@ TOOL_REQUEST_MODELS: Dict[str, type] = {
     "APEX_LLAMA": ApexLlamaRequest,
     "arifos_validate_full": ValidateFullRequest,
     "arifos_meta_select": MetaSelectRequest,
+    "arifos_validate_full": ValidateFullRequest,
+    "arifos_meta_select": MetaSelectRequest,
+    "agi_think": AgiThinkRequest,
+    "asi_act": AsiActRequest,
+    "apex_audit": ApexAuditRequest,
 }
 
 # Tool descriptions for MCP discovery
 TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
+    "agi_think": {
+        "name": "agi_think",
+        "description": "AGI Bundle (The Mind). Proposes answers, structures truth, detects clarity. Consolidates 111, 222, 777.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "User query to think about"},
+                "context": {"type": "object", "description": "Optional context"}
+            },
+            "required": ["query"]
+        }
+    },
+    "asi_act": {
+        "name": "asi_act",
+        "description": "ASI Bundle (The Heart). Validates safety, vetoes harm, ensures empathy. Consolidates 555, 666, Hypervisor.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "draft_response": {"type": "string", "description": "Draft text to validate"},
+                "recipient_context": {"type": "object", "description": "Recipient context"},
+                "intent": {"type": "string", "description": "Intent of the action"}
+            },
+            "required": ["draft_response"]
+        }
+    },
+    "apex_audit": {
+        "name": "apex_audit",
+        "description": "APEX Bundle (The Soul). Audits AGI/ASI states, verifies evidence, seals verdict. Consolidates 444, 888, 889.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "agi_thought": {"type": "object", "description": "Output from AGI Bundle"},
+                "asi_veto": {"type": "object", "description": "Output from ASI Bundle"},
+                "evidence_pack": {"type": "object", "description": "Tri-Witness Evidence"}
+            },
+            "required": ["agi_thought", "asi_veto"]
+        }
+    },
     "arifos_judge": {
         "name": "arifos_judge",
         "description": (
