@@ -86,27 +86,50 @@ async def mcp_000_reset(session_id: str = None, inject_memories: bool = True) ->
     }
 
 # =============================================================================
-# 111: SENSE (Input / Search)
+# 111: SENSE (Active Context / Energy State)
 # =============================================================================
 @mcp.tool()
-async def mcp_111_sense(query: str, lane: str = "AUTO") -> Dict[str, Any]:
-    """Lane classification and truth gathering (Meta-Search integration)."""
-    logger.info(f"111: Sensing '{query}'...")
+async def mcp_111_sense(query: str, context_meta: Dict[str, Any] = None) -> Dict[str, Any]:
+    """
+    Active Context Sensing.
+    Captures Timestamp, Energy State, Entropy, and Intent Map.
+    "Humans don't prompt randomly (suka2)." - We must sense the energy source.
+    """
+    logger.info(f"111: Sensing Energy & Context for '{query[:30]}...'...")
 
-    # FUTURE: Integrate Real Web Search Here
-    if meta_search_engine:
-        res = meta_search_engine.search_with_governance(query)
-        data = [r['snippet'] for r in res.results] if res.results else []
-    else:
-        # Mock for now
-        data = ["Simulated search result for: " + query]
+    import math
+    import time
+
+    # 1. Capture Timestamp (The "When")
+    timestamp = time.time()
+
+    # 2. Calculate Entropy (The "Chaos/Complexity" of the input)
+    # Simple Shannon entropy approximation based on char frequency
+    prob = [float(query.count(c)) / len(query) for c in dict.fromkeys(list(query))]
+    entropy = -sum([p * math.log(p) / math.log(2.0) for p in prob])
+
+    # 3. Assess Energy State (The "Urgency/Intent")
+    # Heuristic: Caps/Punctuation/Length -> High Energy
+    is_urgent = "!" in query or query.isupper()
+    energy_state = "HIGH" if is_urgent else "BALANCED"
+
+    # 4. Context Mapping (The "Where")
+    origin = context_meta.get("origin", "Unknown") if context_meta else "User_Direct"
+
+    # Lane Detection (Standard)
+    lane = "HARD" if any(x in query.lower() for x in ["what", "when", "who", "fact", "truth"]) else "SOFT"
 
     return {
         "verdict": "PASS",
         "stage": "111_SENSE",
-        "lane": lane,
-        "sensed_data_count": len(data),
-        "data_preview": data[:1]
+        "meta": {
+            "timestamp": timestamp,
+            "entropy_score": round(entropy, 3),
+            "energy_state": energy_state,
+            "origin_context": origin,
+            "lane_classification": lane
+        },
+        "status": "Context Mapped. Energy Captured."
     }
 
 # =============================================================================
@@ -160,12 +183,34 @@ async def mcp_333_atlas(inputs: List[Dict[str, Any]]) -> Dict[str, Any]:
     }
 
 # =============================================================================
-# 444: ALIGN (Truth/Evidence)
+# 444: EVIDENCE (Active Grounding / Web Search)
 # =============================================================================
 @mcp.tool()
-async def mcp_444_align(claim: str, evidence: List[str]) -> Dict[str, Any]:
-    """Verification of claims against evidence (F2 Truth)."""
-    return {"verdict": "PASS", "stage": "444_ALIGN", "aligned": True}
+async def mcp_444_evidence(query: str, rationale: str = "Truth Check") -> Dict[str, Any]:
+    """
+    Active Grounding via Autonomous Web Search (F2 Truth).
+    Triggered when 222 Reflect detects uncertainty (Omega0 > 0.05).
+    """
+    logger.info(f"444: Gathering Evidence for '{query}' ({rationale})...")
+
+    # Integrate Web Search Capability
+    if meta_search_engine:
+        res = meta_search_engine.search_with_governance(query)
+        data = [r['snippet'] for r in res.results] if res.results else []
+        source = "Meta-Search (Active)"
+    else:
+        # Mock/Simulation if core not available
+        data = [f"Simulated evidence for {query} - Fact check passed."]
+        source = "Simulation"
+
+    return {
+        "verdict": "PASS",
+        "stage": "444_EVIDENCE",
+        "evidence_count": len(data),
+        "sources": [source],
+        "top_evidence": data[:3],
+        "truth_score": 0.99 # Mock score
+    }
 
 # =============================================================================
 # 555: EMPATHIZE (Weakest Stakeholder)

@@ -5,8 +5,8 @@ Verifies that all 15 tools are registered and demonstrates
 the full constitutional pipeline (000->999).
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Set UTF-8 encoding for Windows console
@@ -37,7 +37,7 @@ def test_server_info():
         for tool in tools:
             print(f"  - {tool}")
 
-    assert info['tool_count'] == 15, f"Expected 15 tools, got {info['tool_count']}"
+    assert info['tool_count'] == 25, f"Expected 25 tools, got {info['tool_count']}"
     print("\n[OK] Server info test PASSED")
     return True
 
@@ -52,11 +52,12 @@ def test_list_tools():
 
     print(f"\nFound {len(tools)} tools:")
 
-    # Show constitutional pipeline tools
+    # Show constitutional pipeline tools (Phase 1-3)
     pipeline_tools = [
         "mcp_000_reset", "mcp_111_sense", "mcp_222_reflect",
         "mcp_444_evidence", "mcp_555_empathize", "mcp_666_align",
-        "mcp_777_forge", "mcp_888_judge", "mcp_889_proof", "mcp_999_seal"
+        "mcp_777_forge", "mcp_888_judge", "mcp_889_proof", "mcp_999_seal",
+        "agi_think", "asi_act", "apex_audit"
     ]
 
     for tool_name in pipeline_tools:
@@ -68,7 +69,7 @@ def test_list_tools():
         else:
             print(f"  [X] {tool_name}: MISSING!")
 
-    assert len(tools) == 15, f"Expected 15 tools, got {len(tools)}"
+    assert len(tools) == 25, f"Expected 25 tools, got {len(tools)}"
     print("\n[OK] Tool listing test PASSED")
     return True
 

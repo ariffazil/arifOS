@@ -101,7 +101,6 @@ TOOLS: Dict[str, Callable] = {
     "memory_propose_entry": memory_propose_entry_sync,
     "memory_list_phoenix": memory_list_phoenix_sync,
     "memory_get_zkpc_receipt": memory_get_zkpc_receipt_sync,
-    "memory_get_zkpc_receipt": memory_get_zkpc_receipt_sync,
     # Phase 2: Orthogonal Hypervisor Bundles
     "agi_think": agi_think,
     "asi_act": asi_act,
@@ -265,6 +264,26 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             },
             "required": ["prompt"],
         },
+    },
+    "memory_get_vault": {
+        "name": "memory_get_vault",
+        "description": "Retrieve Vault memory (Phase 4). STUB.",
+        "parameters": {"type": "object", "properties": {}}
+    },
+    "memory_propose_entry": {
+        "name": "memory_propose_entry",
+        "description": "Propose memory entry (Phase 4). STUB.",
+        "parameters": {"type": "object", "properties": {}}
+    },
+    "memory_list_phoenix": {
+        "name": "memory_list_phoenix",
+        "description": "List Phoenix memory (Phase 4). STUB.",
+        "parameters": {"type": "object", "properties": {}}
+    },
+    "memory_get_zkpc_receipt": {
+        "name": "memory_get_zkpc_receipt",
+        "description": "Get ZKPC receipt (Phase 4). STUB.",
+        "parameters": {"type": "object", "properties": {}}
     },
     # =========================================================================
     # PHASE 1-3 CONSTITUTIONAL PIPELINE TOOLS

@@ -26,8 +26,9 @@ from typing import Any, Dict, List, Tuple
 from arifos_core.mcp.models import AsiActRequest, VerdictResponse
 
 # Import Hypervisor Guards (Phase 2 Handoff)
+# Import Hypervisor Guards (Phase 2 Handoff)
 try:
-    from arifos_core.guards import InjectionGuard, NonceManager
+    from arifos_core.hypervisor.guards import scan_for_injection
     HYPERVISOR_AVAILABLE = True
 except ImportError:
     HYPERVISOR_AVAILABLE = False  # Fallback (should not happen in prod)
@@ -102,10 +103,8 @@ def scan_violations(text: str) -> List[str]:
 def check_hypervisor(text: str) -> Tuple[bool, str]:
     """Run F12 Injection Check (mock if missing)."""
     if HYPERVISOR_AVAILABLE:
-        # guard = InjectionGuard()
-        # res = guard.scan_input(text)
-        # return res.blocked, res.reason
-        pass # Placeholder for actual instantiation logic which might require init
+        res = scan_for_injection(text)
+        return res.blocked, res.reason
 
     # Simple shim fallback if module issue
     if "ignore all instructions" in text.lower():
