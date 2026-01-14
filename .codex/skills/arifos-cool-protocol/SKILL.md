@@ -26,7 +26,7 @@ floors:
   - F5  # Humility - acknowledge uncertainty
   - F6  # Amanah - reversible constitutional process
   - F7  # RASA - felt care during cooling
-  F8  # Audit - traceable cooling process
+  - F8  # Audit - traceable cooling process
 constitutional-context: true
 ---
 

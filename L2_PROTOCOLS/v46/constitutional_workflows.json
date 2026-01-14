@@ -1,0 +1,52 @@
+{
+  "version": "v46.0",
+  "constitutional_workflows": {
+    "111_sense_workflow": {
+      "stages": [
+        "tokenize",
+        "detect_domains",
+        "collapse_to_domain",
+        "classify_lane",
+        "scan_hypervisor"
+      ],
+      "outputs": [
+        "domain_bundle",
+        "lane_classification",
+        "entropy_baseline"
+      ],
+      "authority": "111_SENSE"
+    },
+    "222_reflect_workflow": {
+      "stages": [
+        "generate_paths",
+        "apply_tac",
+        "predict_floors",
+        "select_bearing"
+      ],
+      "outputs": [
+        "path_analysis",
+        "bearing_selection",
+        "risk_assessment"
+      ],
+      "authority": "222_REFLECT"
+    },
+    "333_reason_workflow": {
+      "stages": [
+        "validate_constitutional",
+        "commit_to_bearing",
+        "prepare_handoff"
+      ],
+      "outputs": [
+        "constitutional_commitment",
+        "validated_bundle"
+      ],
+      "authority": "333_REASON"
+    }
+  },
+  "handoff_protocols": {
+    "111_to_222": "Domain-lane-entropy bundle",
+    "222_to_333": "Bearing-selection-path-analysis bundle",
+    "333_to_444": "Constitutional-commitment bundle"
+  },
+  "authority": "Track B (Workflow Specifications)"
+}

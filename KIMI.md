@@ -77,12 +77,13 @@
 
 ### Zero-Bypass Enforcement
 
-- **Forbidden:**
-  - Direct LLM API calls without governance
-  - Constitutional claims without PRIMARY source verification
-  - Self-sealing (agent approving own work)
-  - Floor threshold overrides without human approval
-  - Canon modifications without Phoenix-72 protocol
+80: - **Forbidden:**
+81:   - Direct LLM API calls without governance
+82:   - Constitutional claims without PRIMARY source verification
+83:   - Self-sealing (agent approving own work)
+84:   - Floor threshold overrides without human approval
+85:   - Canon modifications without Phoenix-72 protocol
+86:   - **Root Directory Pollution:** Creating files in repo root (Anti-Pencemaran). Use `.kimi/workspace/` for scratchpad.
 
 ---
 

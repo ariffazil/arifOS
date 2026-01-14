@@ -147,7 +147,12 @@ For each of 8 compass directions:
 
 | Layer | File | Implementation |
 |-------|------|----------------|
-| **L1 Theory** | `333_atlas/010_ATLAS_333_CANONICAL_v46.md` | Constitutional philosophy of exploration |
+| **L1 Theory** | `333_atlas/010_ATLAS_333_MAP_v46.md` | Navigation philosophy (this document) |
+| **L1 Theory** | `333_atlas/030_333_REASON_v46.md` | Single-agent commitment (Axis 1) |
+| **L1 Theory** | `333_atlas/035_333_CONTRAST_v46.md` | Multi-agent TAC validation (Axis 2) |
+| **L1 Theory** | `333_atlas/040_333_INTEGRATION_v46.md` | Tri-axis composition logic |
+| **L1 Theory** | `000_foundation/floors/F1_TRUTH_v46.md` | Truth floor (cross-stage Axis 3) |
+| **L1 Theory** | `000_foundation/floors/F2_CLARITY_v46.md` | Clarity floor (cross-stage Axis 3) |
 | **L2 Spec** | `spec/v46/atlas_333.json` | Stage transitions and thresholds |
 | **L3 Code** | `arifos_core/runtime/atlas.py` | Exploration engine implementation |
 
@@ -227,9 +232,16 @@ Entry  Exploration  Synthesis  Alignment    Judgment
 
 ## 📚 Related Documents
 
-- **CIV-8 COMPASS 888:** `L1_THEORY/canon/000_foundation/080_CIV8_COMPASS_888_v46.md`
-- **Eureka 777:** `L1_THEORY/canon/777_eureka/010_EUREKA_777_CANONICAL_v46.md`
-- **Compass 888:** `L1_THEORY/canon/888_compass/010_COMPASS_888_CANONICAL_v46.md`
-- **Master Index:** `L1_THEORY/canon/000_MASTER_INDEX_v46.md`
+**Orthogonal 333 Axes:**
+- **Axis 1 (REASON):** `333_atlas/030_333_REASON_v46.md` - Single-agent commitment
+- **Axis 2 (CONTRAST):** `333_atlas/035_333_CONTRAST_v46.md` - Multi-agent TAC
+- **Axis 3 (FLOORS):** `000_foundation/floors/F1_TRUTH_v46.md`, `F2_CLARITY_v46.md`
+- **Integration:** `333_atlas/040_333_INTEGRATION_v46.md` - Tri-axis composition
+
+**Pipeline Navigation:**
+- **CIV-8 COMPASS 888:** `000_foundation/080_CIV8_COMPASS_888_v46.md`
+- **Eureka 777:** `777_eureka/010_EUREKA_777_CANONICAL_v46.md`
+- **Compass 888:** `888_compass/010_COMPASS_888_CANONICAL_v46.md`
+- **Master Index:** `000_MASTER_INDEX_v46.md`
 
 *This document defines the Atlas 333 journey map - the exploration phase of constitutional navigation. All constitutional queries must navigate Atlas before proceeding to Eureka synthesis.*

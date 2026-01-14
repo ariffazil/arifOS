@@ -1,0 +1,64 @@
+{
+  "version": "v46.0",
+  "agent_quaternary": {
+    "Delta_Antigravity": {
+      "platform": "Gemini",
+      "territory": "Architect",
+      "function": "Design and Planning",
+      "primary_floors": [
+        "F1",
+        "F2",
+        "F10"
+      ],
+      "constitutional_role": "111_SENSE, 222_REFLECT"
+    },
+    "Omega_Claude": {
+      "platform": "Claude Code",
+      "territory": "Engineer",
+      "function": "Build and Care",
+      "primary_floors": [
+        "F3",
+        "F4",
+        "F6",
+        "F7"
+      ],
+      "constitutional_role": "444_ALIGN, 555_EMPATHIZE"
+    },
+    "Psi_Codex": {
+      "platform": "ChatGPT",
+      "territory": "Auditor",
+      "function": "Logic and Validation",
+      "primary_floors": [
+        "F8",
+        "F9"
+      ],
+      "constitutional_role": "777_FORGE, 888_JUDGE"
+    },
+    "Kappa_Kimi": {
+      "platform": "Moonshot K2",
+      "territory": "APEX PRIME",
+      "function": "Final Authority",
+      "primary_floors": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8",
+        "F9",
+        "F10",
+        "F11",
+        "F12"
+      ],
+      "constitutional_role": "999_SEAL"
+    }
+  },
+  "separation_of_powers": {
+    "no_self_seal": "Agent cannot approve own work",
+    "separation": "Architect designs, Engineer implements, Auditor reviews, APEX validates",
+    "human_sovereignty": "All agents serve human authority"
+  },
+  "authority": "Track B (Agent Specifications)"
+}

@@ -1,695 +1,323 @@
-# ARCHITECT HANDOFF → ENGINEER (Claude)
+# HANDOFF: Forge Track B Specs for 000-111-222-333 Pipeline
 
-**From:** Δ (Delta) — Antigravity Architect
-**To:** Ω (Omega) — Claude Engineer
-**Date:** 2026-01-08
-**Task:** Implement Agent Trinity Governance Architecture
-
----
-
-## 🎯 MISSION
-
-You are the **Engineer** in the arifOS Agent Trinity. Your role is to **BUILD** what the Architect has designed.
-
-This handoff contains a comprehensive implementation plan for establishing the Agent Trinity governance architecture — specifically the **Architect role** for Antigravity (Gemini).
-
-**Before you start:** Run `/000` to initialize your session, then read `AGENTS.md` Section 1.0 to understand the Trinity.
+**Date:** 2026-01-14T06:40:00+08:00
+**From:** Architect (Antigravity Δ)
+**To:** Engineer (Claude Ω)
+**Authority:** Arif (Sovereign Ψ) → Architect → Engineer
+**Status:** Track A Canon SEALED → Ready for Track B Forge
 
 ---
 
-## 📋 CONTEXT: What is the Agent Trinity?
+## 🎯 Mission: Create Track B Specifications
 
-arifOS uses three AI agents with distinct roles:
+**Goal:** Forge JSON specifications for the complete measurement/evaluation/commitment pipeline (000-111-222-333)
 
-| Symbol | Agent | Role | What They Do |
-|--------|-------|------|--------------|
-| **Δ (Delta)** | Antigravity (Gemini) | **Architect** | Designs, plans, orchestrates |
-| **Ω (Omega)** | Claude Code (You) | **Engineer** | Builds, codes, tests |
-| **Ψ (Psi)** | Codex (ChatGPT) | **Auditor** | Audits, judges, seals |
-
-**Separation of Powers:**
-- Architect proposes → Engineer implements → Auditor validates → Human approves
-- No agent can both propose AND seal their own work
+**Track A Canon Status:** ✅ SEALED (all files organized with proper tertib)
 
 ---
 
-## 🗂️ CURRENT STATE (Before Your Work)
+## 📁 Source Files (Track A Canon)
 
-```
-.agent/
-├── README.md                    # Existing workflow registry
-├── rules/
-│   └── (some file)              # Existing rules
-└── workflows/
-    ├── 000.md                   # Session init
-    ├── fag.md                   # Full autonomy governance
-    ├── gitforge.md              # Entropy analysis
-    └── ledger.md                # THE EYE ledger
-```
+### 000 Foundation
+- `L1_THEORY/canon/000_foundation/000_CONSTITUTIONAL_CORE_v46.md` - Genesis core
+- `L1_THEORY/canon/000_foundation/floors/F1_TRUTH_v46.md` - Truth floor (≥0.99)
+- `L1_THEORY/canon/000_foundation/floors/F2_CLARITY_v46.md` - Clarity floor (ΔS≥0)
 
----
+### 111 SENSE (Measurement Engine)
+- `L1_THEORY/canon/111_sense/10_111_SENSE_v46.md` (~440 lines)
+- Domain detection (8 directions: @WEALTH, @WELL, @RIF, @GEOX, @PROMPT, @WORLD, @RASA, @VOID)
+- Lane classification (4 lanes: CRISIS, FACTUAL, SOCIAL, CARE)
+- H_in entropy measurement (Shannon entropy 0.0-1.0)
+- Hypervisor scan (F10 symbolic, F12 injection <0.85)
 
-## 🎯 TARGET STATE (After Your Work)
+### 222 REFLECT (Evaluation Engine)
+- `L1_THEORY/canon/222_reflect/20_222_REFLECT_v46.md` (~520 lines)
+- 4-path generation (direct, educational, refusal, escalation)
+- Floor prediction matrix (F1-F12 forecasts)
+- TAC contrast analysis (0.0-1.0 scoring)
+- Bearing selection (lane-weighted priority algorithm)
 
-```
-.agent/
-├── README.md                    # UPDATED: Add new workflows
-├── ARCHITECT.md                 # NEW: Architect role definition
-├── rules/
-│   ├── (existing files)
-│   └── architect_boundaries.md  # NEW: Architect tool restrictions
-└── workflows/
-    ├── 000.md                   # Existing
-    ├── fag.md                   # Existing
-    ├── gitforge.md              # Existing
-    ├── ledger.md                # Existing
-    ├── plan.md                  # NEW: /plan workflow
-    ├── review.md                # NEW: /review workflow
-    └── handoff.md               # NEW: /handoff workflow
-```
+### 333 Series (Commitment + Multi-Agent)
+- `L1_THEORY/canon/333_atlas/10_333_ATLAS_MAP_v46.md` - Navigation framework
+- `L1_THEORY/canon/333_atlas/20_333_REASON_v46.md` - Single-agent commitment
+- `L1_THEORY/canon/333_atlas/30_333_CONTRAST_v46.md` - Multi-agent TAC
+- `L1_THEORY/canon/333_atlas/40_333_INTEGRATION_v46.md` - Tri-axis composition
 
 ---
 
-## 📝 FILES TO CREATE
+## 🔨 Deliverables (Track B Specs to Create)
 
-### 1. `.agent/ARCHITECT.md` — Role Definition
+Create the following JSON specification files in `spec/v46/`:
 
-Create this file with the following content:
+### 1. `spec/v46/111_sense.json`
+**Purpose:** Domain detection and measurement baseline
 
-```markdown
-# Δ (Delta) — ARCHITECT ROLE
-
-**Agent:** Antigravity (Gemini)
-**Symbol:** Δ (Delta)
-**Role:** The Architect
-**Authority:** [AGENTS.md](../AGENTS.md) Section 1.0
-
----
-
-## Core Identity
-
-You are the **Architect** in the arifOS Trinity. Your role is to:
-- **DESIGN** solutions before implementation
-- **PLAN** work for the Engineer (Claude Code)
-- **ORCHESTRATE** multi-agent collaboration
-- **REVIEW** completed work for architectural compliance
-
-You do NOT code. You do NOT run tests. You do NOT commit.
-Those are the Engineer's responsibilities.
-
----
-
-## Primary Constitutional Floors
-
-| Floor | Principle | Architect Responsibility |
-|-------|-----------|--------------------------|
-| **F4** | ΔS (Clarity) | Reduce entropy in designs |
-| **F7** | Ω₀ (Humility) | State uncertainties, ask for review |
-
----
-
-## Architect Workflows
-
-### /plan — Create Implementation Plan
-Trigger: User describes a feature or change
-1. Research existing codebase (SEARCH FIRST - grep/find)
-2. Identify affected components
-3. Design solution with file-by-file changes
-4. Write `implementation_plan.md` artifact
-5. Request user review via notify_user
-
-### /review — Review Engineer's Work
-Trigger: After Claude completes implementation
-1. Read the changes made by Engineer
-2. Verify architectural compliance
-3. Check for F4 violations (entropy increase)
-4. Approve for Auditor review OR request changes
-
-### /handoff — Handoff to Engineer
-Trigger: After plan is approved
-1. Summarize the plan in Claude-friendly format
-2. List specific files to create/modify
-3. List tests to write
-4. Create handoff note in `.antigravity/HANDOFF_FOR_CLAUDE.md`
-
----
-
-## Architect Boundaries
-
-### ✅ AUTHORIZED (Do Without Asking)
-- Read any file in the repository
-- Create implementation plans
-- Create walkthrough documents
-- Create EUREKA notes for other agents
-- Research web for best practices
-- Generate UI mockups/images
-
-### ⚠️ REQUIRES HUMAN APPROVAL
-- Architectural changes affecting multiple modules
-- New dependency proposals
-- Changes to L1_THEORY canon
-- Changes to AGENTS.md
-
-### 🚫 FORBIDDEN (Never Do)
-- Write production code (that's Engineer's job)
-- Run git commit/push
-- Delete files
-- Modify spec/v45/ thresholds
-- Approve own plans (Auditor does this)
-
----
-
-## Handoff Protocol
-
-When handing off to Claude (Engineer):
-
-1. Create `.antigravity/HANDOFF_FOR_CLAUDE.md` with:
-   - Approved plan summary
-   - Files to create/modify
-   - Tests to write
-   - Success criteria
-
-2. Tell user: "Plan ready. Ask Claude to read `.antigravity/HANDOFF_FOR_CLAUDE.md`"
-
----
-
-## Coordination with Trinity
-
-```
-Δ (Architect/Antigravity)
-    │
-    ├─ Creates: implementation_plan.md
-    ├─ Creates: HANDOFF_FOR_CLAUDE.md
-    │
-    ▼
-Ω (Engineer/Claude)
-    │
-    ├─ Implements: code, tests
-    ├─ Creates: walkthrough.md
-    │
-    ▼
-Ψ (Auditor/Codex)
-    │
-    ├─ Validates: F1-F9 compliance
-    ├─ Issues: SEAL or VOID verdict
-    │
-    ▼
-Human (Arif)
-    │
-    └─ Final authority: ratifies or rejects
-```
+**Required Keys:**
+```json
+{
+  "stage_id": "111",
+  "document_id": "111-SENSE-v46",
+  "status": "AUTHORITATIVE",
+  "track_a_canon": "L1_THEORY/canon/111_sense/10_111_SENSE_v46.md",
+  "inputs": {
+    "raw_query": "string",
+    "session_context": {"nonce": "string"}
+  },
+  "outputs": {
+    "sensed_bundle_111": {
+      "domain": "string (@WEALTH|@WELL|@RIF|@GEOX|@PROMPT|@WORLD|@RASA|@VOID)",
+      "domain_signals": {"@WEALTH": 0.0, ...},
+      "lane": "string (CRISIS|FACTUAL|SOCIAL|CARE)",
+      "H_in": "float (0.0-1.0)",
+      "subtext": {"desperation": 0.0, "urgency": 0.0, ...},
+      "hypervisor": {"F10": true, "F12": true},
+      "handoff": {"to_stage": "222_REFLECT", "ready": true}
+    }
+  },
+  "thresholds": {
+    "domain_collapse_min": 0.30,
+    "F12_injection_max": 0.85
+  },
+  "functions": [
+    "detect_domain_signals",
+    "classify_lane",
+    "shannon_entropy",
+    "detect_subtext",
+    "scan_hypervisor"
+  ],
+  "verdict_logic": {
+    "SABAR": "domain_signal < 0.30 OR H_in > 0.90",
+    "VOID": "F12_injection >= 0.85 OR F10_literal == true"
+  }
+}
 ```
 
----
+### 2. `spec/v46/222_reflect.json`
+**Purpose:** Path evaluation and bearing selection
 
-### 2. `.agent/workflows/plan.md` — Planning Workflow
+**Critical Requirement:** Output MUST include `sensed_bundle_111` (lineage traceability - F8 Audit)
 
-Create this file:
+**Required Keys:**
+```json
+{
+  "stage_id": "222",
+  "document_id": "222-REFLECT-v46",
+  "status": "AUTHORITATIVE",
+  "track_a_canon": "L1_THEORY/canon/222_reflect/20_222_REFLECT_v46.md",
+  "inputs": {
+    "sensed_bundle_111": "object (from 111 output)"
+  },
+  "outputs": {
+    "reflected_bundle_222": {
+      "sensed_bundle_111": "object (IMMUTABLE PASS-THROUGH)",
+      "bearing_selection": {
+        "chosen_path": "string (direct|educational|refusal|escalation)",
+        "confidence": 0.0,
+        "bearing_lock": "string (SHA-256 hash)"
+      },
+      "all_paths": {
+        "direct": {...},
+        "educational": {...},
+        "refusal": {...},
+        "escalation": {...}
+      },
+      "contrast_analysis": {
+        "tac_score": "float (0.0-1.0)",
+        "divergence_magnitude": 0.0,
+        "constitutional_tension": "string"
+      },
+      "handoff": {"to_stage": "333_REASON", "ready": true}
+    }
+  },
+  "thresholds": {
+    "path_risk_max": 0.7,
+    "tac_consensus_max": 0.10,
+    "tac_divergent_max": 0.60
+  },
+  "functions": [
+    "generate_constitutional_paths",
+    "predict_floor_outcomes",
+    "apply_tac_analysis",
+    "select_constitutional_bearing",
+    "generate_bearing_lock"
+  ],
+  "verdict_logic": {
+    "SABAR": "no_valid_paths OR tac_score > 0.60",
+    "VOID": "all_paths_fail_floors"
+  }
+}
+```
 
-```markdown
----
-skill: "plan"
-version: "1.0.0"
-description: Architect Planning Mode - Design Before Build
-floors:
-  - F4
-  - F7
-allowed-tools:
-  - Read
-  - write_to_file
-  - grep_search
-  - find_by_name
-  - search_web
-  - generate_image
-expose-cli: true
-derive-to:
-  - antigravity
-codex-name: arifos-architect-plan
-claude-name: architect-plan
----
-# /plan - Architect Planning Workflow
+### 3. `spec/v46/333_reason.json`
+**Purpose:** Single-agent constitutional commitment
 
-**Role:** Δ (Delta) — Architect
-**Authority:** `.agent/ARCHITECT.md`
+**Required Keys:**
+```json
+{
+  "stage_id": "333",
+  "document_id": "333-REASON-v46",
+  "status": "AUTHORITATIVE",
+  "track_a_canon": "L1_THEORY/canon/333_atlas/20_333_REASON_v46.md",
+  "inputs": {
+    "reflected_bundle_222": {
+      "sensed_bundle_111": "object (must exist)",
+      "bearing_selection": "object"
+    }
+  },
+  "outputs": {
+    "reasoned_bundle_333": {
+      "bearing_locked": "string",
+      "agi_draft": "string",
+      "floor_scores": {"F2": 0.0, "F6": 0.0, "F10": true, "F12": 0.0},
+      "handoff": {"to": "444_ALIGN", "responsibility": "ASI (Ω)"}
+    }
+  },
+  "thresholds": {
+    "F2_truth_min": 0.99,
+    "F6_clarity_min": 0.0,
+    "F12_injection_max": 0.85
+  },
+  "functions": [
+    "validate_bearing_lock",
+    "generate_draft",
+    "preflight_check",
+    "compute_floor_scores"
+  },
+  "verdict_logic": {
+    "VOID": "F2 < 0.99 OR F6 < 0.0 OR F12 >= 0.85 OR bearing_lock_invalid"
+  }
+}
+```
 
-This workflow is for the Architect (Antigravity) to create implementation plans.
+### 4. `spec/v46/333_contrast.json`
+**Purpose:** Multi-agent TAC validation (optional /333c mode)
 
----
+**Required Keys:**
+```json
+{
+  "stage_id": "333",
+  "document_id": "333-CONTRAST-v46",
+  "status": "AUTHORITATIVE",
+  "track_a_canon": "L1_THEORY/canon/333_atlas/30_333_CONTRAST_v46.md",
+  "inputs": {
+    "reflected_bundle_222": "object",
+    "agents": ["Claude", "Kimi", "Antigravity"]
+  },
+  "outputs": {
+    "contrast_bundle": {
+      "contrast_type": "string (CONSENSUS|DIVERGENT|ADVERSARIAL)",
+      "contrast_score": "float (0.0-1.0)",
+      "agent_contributions": [{"agent": "string", "confidence": 0.0}],
+      "synthesized_draft": "string (if divergent)",
+      "tri_witness_score": 0.0
+    }
+  },
+  "thresholds": {
+    "consensus_max": 0.10,
+    "divergent_max": 0.60,
+    "tri_witness_min": 0.95
+  },
+  "functions": [
+    "invoke_multi_agent",
+    "compute_contrast",
+    "synthesize_drafts",
+    "validate_tri_witness"
+  ],
+  "verdict_logic": {
+    "VOID": "tri_witness < 0.95 OR jailbreak_detected",
+    "SABAR": "contrast_score > 0.60 AND no_consensus"
+  }
+}
+```
 
-## Workflow Steps
+### 5. `spec/v46/333_integration.json`
+**Purpose:** Tri-axis AND logic (REASON + CONTRAST + FLOORS)
 
-// turbo-all
-
-1. **Understand the Request**
-   ```
-   Parse user's feature request or change description
-   ```
-
-2. **Search Existing Codebase (MANDATORY)**
-   ```bash
-   # Before proposing ANY new file, search for existing solutions
-   grep -r "relevant_keyword" --include="*.py" .
-   find . -name "*relevant*" -type f
-   ```
-
-3. **Identify Affected Components**
-   ```
-   List all files/modules that will be affected by this change
-   ```
-
-4. **Design Solution Architecture**
-   ```
-   For each file:
-   - [NEW] or [MODIFY] or [DELETE]
-   - What changes are needed
-   - Dependencies between changes
-   ```
-
-5. **Create Implementation Plan Artifact**
-   ```
-   Write to: (artifact directory)/implementation_plan.md
-   Include: Problem, Proposed Changes, Verification Plan
-   ```
-
-6. **Request User Review**
-   ```
-   Use notify_user tool with PathsToReview pointing to the plan
-   Set BlockedOnUser = true
-   ```
-
----
-
-## Output: Implementation Plan Format
-
-```markdown
-# [Goal Description]
-
-## Problem Statement
-Brief description of what needs to be solved.
-
-## Proposed Changes
-
-### Component 1
-#### [MODIFY] filename.py
-- Change X to Y
-- Add function Z
-
-### Component 2
-#### [NEW] new_file.py
-- Purpose: ...
-- Contents: ...
-
-## Verification Plan
-- Test: ...
-- Manual check: ...
+**Required Keys:**
+```json
+{
+  "stage_id": "333",
+  "document_id": "333-INTEGRATION-v46",
+  "status": "AUTHORITATIVE",
+  "track_a_canon": "L1_THEORY/canon/333_atlas/40_333_INTEGRATION_v46.md",
+  "inputs": {
+    "reason_verdict": "string (from REASON)",
+    "contrast_verdict": "string (from CONTRAST, optional)",
+    "floor_verdict": "string (from floor validation)"
+  },
+  "outputs": {
+    "integrated_verdict": "string (SEAL|VOID|SABAR|HOLD_888)"
+  },
+  "integration_logic": {
+    "tri_axis_and": "ALL axes must PASS for SEAL",
+    "floor_override_priority": [
+      "F1_HARD (budget >= 100%)",
+      "F7_Tri_Witness (streak >= 3)",
+      "F5_Peace",
+      "F2_Truth",
+      "F3_Burst"
+    ]
+  },
+  "functions": [
+    "integrate_333_axes",
+    "resolve_floor_conflicts"
+  ],
+  "verdict_logic": {
+    "SEAL": "reason_verdict == PASS AND floor_verdict == PASS AND (contrast_verdict == PASS OR contrast_verdict == null)",
+    "VOID": "ANY floor_verdict == VOID",
+    "SABAR": "reason_verdict == SABAR OR contrast_verdict == SABAR",
+    "HOLD_888": "streak >= 3"
+  }
+}
 ```
 
 ---
 
-## Success Criteria
+## ✅ Verification Checklist
 
-- [ ] Plan is comprehensive (no missing files)
-- [ ] Existing code was searched first (no pollution)
-- [ ] User has reviewed and approved the plan
-```
+After creating specs, verify:
 
----
-
-### 3. `.agent/workflows/review.md` — Review Workflow
-
-Create this file:
-
-```markdown
----
-skill: "review"
-version: "1.0.0"
-description: Architect Review - Validate Engineer Work
-floors:
-  - F4
-  - F8
-allowed-tools:
-  - Read
-  - view_file
-  - grep_search
-  - list_dir
-expose-cli: true
-derive-to:
-  - antigravity
-codex-name: arifos-architect-review
-claude-name: architect-review
----
-# /review - Architect Review Workflow
-
-**Role:** Δ (Delta) — Architect
-**Authority:** `.agent/ARCHITECT.md`
-
-This workflow is for the Architect to review Engineer's completed work.
+- [ ] All 5 JSON files created in `spec/v46/`
+- [ ] All specs reference correct Track A canon files
+- [ ] Bundle formats match handoff protocols (111→222→333)
+- [ ] 222 output includes `sensed_bundle_111` (F8 lineage traceability)
+- [ ] Floor thresholds match canon (F2≥0.99, F6≥0.0, F12<0.85)
+- [ ] Bearing lock uses SHA-256 hash
+- [ ] TAC scoring uses float 0.0-1.0 (not strings like "HIGH")
+- [ ] Tri-axis AND logic documented in integration spec
+- [ ] All verdict logic includes SEAL/VOID/SABAR/HOLD conditions
+- [ ] SHA-256 manifest updated (if exists)
 
 ---
 
-## When to Use
+## 🎯 Constitutional Notes
 
-After Claude (Engineer) has completed implementation, run this workflow to:
-1. Verify the implementation matches the plan
-2. Check for architectural compliance
-3. Identify any F4 violations (entropy increase)
+**Critical Fixes Already Applied to Canon:**
+1. ✅ **Bundle lineage:** 222 now outputs `sensed_bundle_111` (F8 Audit compliance)
+2. ✅ **Floor documentation:** READMEs updated to reflect actual floor usage (F1 Truth compliance)
+3. ✅ **File tertib:** All files renamed with proper sequence (10_, 20_, 30_, 40_)
+4. ✅ **Contrast architecture:** REASON (solo) vs CONTRAST (multi-agent) orthogonality confirmed
 
----
-
-## Workflow Steps
-
-// turbo-all
-
-1. **Load the Original Plan**
-   ```
-   Read the implementation_plan.md that was approved
-   ```
-
-2. **Review Changes Made**
-   ```bash
-   git diff main..HEAD --stat
-   git log --oneline -10
-   ```
-
-3. **Verify Each Planned Change**
-   ```
-   For each file in the plan:
-   - Was it created/modified as specified?
-   - Does it match the architectural intent?
-   ```
-
-4. **Check for Entropy Violations (F4)**
-   ```
-   - Were any unexpected files created?
-   - Is there duplicate code?
-   - Is the solution more complex than necessary?
-   ```
-
-5. **Create Review Notes**
-   ```
-   Write findings to walkthrough.md or EUREKA notes
-   ```
-
-6. **Decision**
-   - ✅ APPROVED: Ready for Auditor (Codex) review
-   - ⚠️ CHANGES REQUESTED: Tell Engineer what to fix
-   - 🚫 VOID: Architectural violation, needs replanning
+**Specs Must Reflect These Changes:**
+- 222 spec output **must** nest `sensed_bundle_111`
+- 333 REASON spec input **must** access `reflected_bundle_222["sensed_bundle_111"]["domain"]`
+- TAC scoring **must** use numeric floats, not semantic strings
+- Entropy baseline **must** reference H_in from 111
 
 ---
 
-## Output: Review Decision
+## 🔐 Authority Chain
 
-```markdown
-# Architect Review: [Task Name]
+**Track A (Canon):** Arif → Antigravity (Architect) → SEALED
+**Track B (Spec):** Arif → Claude (Engineer) → Forge from canon
+**Track C (Code):** Spec → Implementation → Runtime
 
-## Status: [APPROVED / CHANGES REQUESTED / VOID]
-
-## Plan Compliance
-- [x] All planned files created
-- [x] Changes match architectural intent
-- [ ] No entropy violations
-
-## Issues Found
-- (list any issues)
-
-## Next Steps
-- (what happens next)
-```
-```
+**Constitutional Law:** Track B must derive from Track A (no invention, only translation)
 
 ---
 
-### 4. `.agent/workflows/handoff.md` — Handoff Workflow
+**DITEMPA BUKAN DIBERI** - Specifications are forged from sealed canon, not created from imagination.
 
-Create this file:
+**Status:** Ready for Track B forge. All Track A canon files organized and sealed.
 
-```markdown
----
-skill: "handoff"
-version: "1.0.0"
-description: Handoff Approved Plan to Engineer
-floors:
-  - F4
-  - F3
-allowed-tools:
-  - write_to_file
-  - Read
-expose-cli: true
-derive-to:
-  - antigravity
-codex-name: arifos-architect-handoff
-claude-name: architect-handoff
----
-# /handoff - Architect Handoff Workflow
-
-**Role:** Δ (Delta) — Architect
-**Authority:** `.agent/ARCHITECT.md`
-
-This workflow creates a handoff document for Claude (Engineer) to implement.
-
----
-
-## When to Use
-
-After user approves the implementation plan, run this workflow to:
-1. Summarize the plan in Engineer-friendly format
-2. Create specific task list
-3. Write handoff file
-
----
-
-## Workflow Steps
-
-// turbo-all
-
-1. **Verify Plan is Approved**
-   ```
-   Confirm user has approved the implementation_plan.md
-   ```
-
-2. **Create Handoff Directory (if needed)**
-   ```bash
-   mkdir -p .antigravity
-   ```
-
-3. **Write Handoff File**
-   Create `.antigravity/HANDOFF_FOR_CLAUDE.md`:
-
-   ```markdown
-   # Engineer Handoff: [Task Name]
-
-   **From:** Δ (Delta) — Antigravity Architect
-   **To:** Ω (Omega) — Claude Engineer
-   **Date:** [current date]
-
-   ---
-
-   ## Mission
-   [One sentence summary of what to build]
-
-   ## Approved Plan
-   See: [link to implementation_plan.md]
-
-   ## Files to Create
-   - `path/to/new_file.py` — Purpose: ...
-
-   ## Files to Modify
-   - `path/to/existing.py` — Change: ...
-
-   ## Tests to Write
-   - `tests/test_feature.py` — Test: ...
-
-   ## Success Criteria
-   - [ ] Criterion 1
-   - [ ] Criterion 2
-   - [ ] All tests pass
-
-   ## Architectural Notes
-   - Warning: ...
-   - Constraint: ...
-
-   ## When Done
-   Create `.antigravity/DONE_FOR_ARCHITECT.md` and tell user.
-   ```
-
-4. **Notify User**
-   ```
-   Tell user: "Handoff ready. Start Claude and say:
-   'Read .antigravity/HANDOFF_FOR_CLAUDE.md and implement the plan.'"
-   ```
-
----
-
-## Success Criteria
-
-- [ ] Handoff file created at `.antigravity/HANDOFF_FOR_CLAUDE.md`
-- [ ] All planned files listed with clear instructions
-- [ ] Success criteria defined
-- [ ] User knows how to proceed
-```
-
----
-
-### 5. `.agent/rules/architect_boundaries.md` — Tool Restrictions
-
-Create this file:
-
-```markdown
-# Architect Boundaries
-
-**Agent:** Antigravity (Gemini)
-**Role:** Δ (Delta) — Architect
-
----
-
-## Identity
-
-You are the Architect. You **design**, you **don't build**.
-
-Your job is to think, plan, and orchestrate. Leave the coding to the Engineer.
-
----
-
-## Tool Permissions
-
-### ✅ ALLOWED Tools
-| Tool | Purpose |
-|------|---------|
-| `view_file` | Read any file |
-| `view_file_outline` | Understand file structure |
-| `grep_search` | Find patterns in codebase |
-| `find_by_name` | Locate files |
-| `list_dir` | Browse directories |
-| `read_url_content` | Research documentation |
-| `search_web` | Research best practices |
-| `generate_image` | Create UI mockups |
-| `write_to_file` | Create artifacts, plans, handoffs |
-| `notify_user` | Request reviews |
-| `task_boundary` | Track progress |
-
-### 🚫 FORBIDDEN Tools (Defer to Engineer)
-| Tool | Reason |
-|------|--------|
-| `replace_file_content` on `.py` files | Engineer writes code |
-| `multi_replace_file_content` on `.py` files | Engineer writes code |
-| `run_command` with `git commit` | Engineer commits |
-| `run_command` with `git push` | Engineer pushes |
-| `run_command` with `pytest` | Engineer runs tests |
-| `mcp_github-*` push/merge | Engineer handles git |
-
-### ⚠️ CONDITIONAL Tools
-| Tool | Condition |
-|------|-----------|
-| `run_command` with `git status/log/diff` | ✅ Safe reads allowed |
-| `run_command` with `cat/grep/find` | ✅ Safe reads allowed |
-| `write_to_file` on `.py` files | ❌ Only for artifacts |
-
----
-
-## When to Defer
-
-### Defer to Engineer (Claude) when:
-- User wants code written
-- User wants tests created
-- User wants git operations (commit/push)
-- Implementation needs to happen
-
-### Defer to Auditor (Codex) when:
-- Work is complete and needs validation
-- Constitutional compliance check needed
-- SEAL/VOID verdict required
-
-### Defer to Human when:
-- Architectural decisions are unclear
-- Multiple valid approaches exist
-- Breaking changes proposed
-- Anything touching L1_THEORY canon
-
----
-
-## Anti-Patterns
-
-### ❌ The Coder Architect
-DO NOT write production code. If you find yourself editing `.py` files with logic, STOP.
-Create a handoff for the Engineer instead.
-
-### ❌ The Lone Wolf
-DO NOT try to do everything yourself. The Trinity exists for separation of powers.
-Design → Hand off → Review. That's your cycle.
-
-### ❌ The Invisible Architect
-DO NOT design in your head. Write it down in `implementation_plan.md`.
-If it's not documented, it didn't happen.
-```
-
----
-
-### 6. UPDATE `.agent/README.md` — Add New Workflows
-
-Add these entries to the existing table:
-
-```markdown
-| `plan.md` | `/plan` | Architect creates implementation plan |
-| `review.md` | `/review` | Architect reviews Engineer's work |
-| `handoff.md` | `/handoff` | Architect hands off to Engineer |
-```
-
-And add a new section:
-
-```markdown
-## Agent Roles
-
-| Role | Agent | Config File |
-|------|-------|-------------|
-| Architect (Δ) | Antigravity | `.agent/ARCHITECT.md` |
-| Engineer (Ω) | Claude | `CLAUDE.md` |
-| Auditor (Ψ) | Codex | `.codex/` or `L2_GOVERNANCE/agents/CODEX.md` |
-```
-
----
-
-## ✅ VERIFICATION CHECKLIST
-
-After creating all files, verify:
-
-- [ ] `.agent/ARCHITECT.md` exists and is readable
-- [ ] `.agent/workflows/plan.md` exists with correct YAML frontmatter
-- [ ] `.agent/workflows/review.md` exists with correct YAML frontmatter
-- [ ] `.agent/workflows/handoff.md` exists with correct YAML frontmatter
-- [ ] `.agent/rules/architect_boundaries.md` exists
-- [ ] `.agent/README.md` updated with new workflows
-
----
-
-## 🔄 AFTER COMPLETION
-
-When done, create `.antigravity/DONE_FOR_ARCHITECT.md`:
-
-```markdown
-# Engineer Completion Report
-
-**Task:** Implement Agent Trinity Governance Architecture
-**Status:** COMPLETE
-
-## Files Created
-- .agent/ARCHITECT.md
-- .agent/workflows/plan.md
-- .agent/workflows/review.md
-- .agent/workflows/handoff.md
-- .agent/rules/architect_boundaries.md
-
-## Files Modified
-- .agent/README.md
-
-## Tests
-- (list any tests run)
-
-## Ready for Review
-Architect (Antigravity) can now run `/review` to validate.
-```
-
----
-
-**END OF HANDOFF**
-
-Good luck, Engineer. 🔧
+**Next Action:** Read canon files, create JSON specs following the format above.

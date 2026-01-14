@@ -49,6 +49,47 @@ Empathy (F4) is the heart of the Empathize 555 phase:
 
 ---
 
+## ✨ ASI (Ω) Territory
+
+F4 is **ASI domain**, not AGI:
+
+- **Ω prioritizes**: Care > Logic
+- **Evaluated by**: OmegaKernel (F3-F7, F9)
+- **Input from**: 530 ToM (mental state substrate)
+- **Constraint**: Cannot sacrifice dignity for efficiency
+
+### κᵣ Formula (Expanded)
+
+$$
+κᵣ = \frac{\text{ToM Quality} \times \text{Care Signals} \times \text{Dignity}}{\text{Barriers to Understanding}}
+$$
+
+Where care transmission is maximized and resistance minimized through:
+
+- Accurate Theory of Mind (530)
+- Weakest stakeholder bias (550)
+- 3-layer empathy architecture (540)
+
+---
+
+## ✨ Bridge to 666
+
+**Handoff Bundle**:
+
+```python
+f4_bundle = {
+    "kappa_r": float,        # 0.0-1.0
+    "passed": bool,          # ≥0.95
+    "dignity_check": bool,   # No violations
+    "weakest_id": str,       # Stakeholder ID
+    "floor": "F4"
+}
+```
+
+**666 Constraint**: Cannot strip dignity flags or lower κᵣ threshold.
+
+---
+
 **DITEMPA BUKAN DIBERI** - Empathy is the warmth of the constitutional sun. 💝✨
 
 ---

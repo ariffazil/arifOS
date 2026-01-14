@@ -11,10 +11,9 @@ Works with ANY AI (ChatGPT, Claude, Gemini, etc.) - just tell them:
 "Run: trinity forge my-work"
 """
 
-import sys
 import subprocess
+import sys
 from pathlib import Path
-
 
 VERSION = "45.1.0"  # Track A/B/C integration
 
@@ -32,6 +31,9 @@ GIT GOVERNANCE COMMANDS:
     qc <branch>                 Constitutional quality control (F1-F9 validation)
     seal <branch> <reason>      Seal changes with human authority
 
+STATE COMMANDS:
+    sync                        Synchronize Governance (AGENTS.md) with L2 Specs
+
 TRACK A/B/C ENFORCEMENT COMMANDS (v45.1):
     validate <text>             Validate AI response against constitutional floors
     validate --file <path>      Validate response from file
@@ -45,6 +47,9 @@ EXAMPLES:
     trinity forge my-feature
     trinity qc my-feature
     trinity seal my-feature "Feature complete and tested"
+
+    # State Sync
+    trinity sync
 
     # Track A/B/C enforcement
     trinity validate "The sky is blue."
@@ -68,11 +73,11 @@ def get_repo_root():
     """Find repository root (where scripts/ directory is)."""
     # Start from current file location
     current = Path(__file__).parent.parent
-    
+
     # If we're already in repo root, use it
     if (current / "scripts").exists():
         return current
-    
+
     # Otherwise use current directory
     return Path.cwd()
 
@@ -81,16 +86,16 @@ def run_forge(branch, base="main"):
     """Execute /gitforge analysis."""
     repo_root = get_repo_root()
     script = repo_root / "scripts" / "git_forge.py"
-    
+
     if not script.exists():
         print(f"❌ Error: Cannot find {script}")
         print(f"   Make sure you're running from arifOS repository root")
         return 1
-    
+
     args = ["python", str(script), "--branch", branch]
     if base != "main":
         args.extend(["--base", base])
-    
+
     result = subprocess.run(args, cwd=repo_root)
     return result.returncode
 
@@ -99,14 +104,14 @@ def run_qc(branch):
     """Execute /gitQC constitutional validation."""
     repo_root = get_repo_root()
     script = repo_root / "scripts" / "git_qc.py"
-    
+
     if not script.exists():
         print(f"❌ Error: Cannot find {script}")
         print(f"   Make sure you're running from arifOS repository root")
         return 1
-    
+
     args = ["python", str(script), "--branch", branch]
-    
+
     result = subprocess.run(args, cwd=repo_root)
     return result.returncode
 
@@ -180,45 +185,61 @@ def run_consensus(args_list):
     return result.returncode
 
 
+def run_sync():
+    """Execute /sync state synchronization."""
+    repo_root = get_repo_root()
+    script = repo_root / "scripts" / "trinity_sync.py"
+
+    if not script.exists():
+        print(f"❌ Error: Cannot find {script}")
+        print(f"   Make sure you're running from arifOS repository root")
+        return 1
+
+    # Execute the sync script
+    args = ["python", str(script)]
+    result = subprocess.run(args, cwd=repo_root)
+    return result.returncode
+
+
 def main():
     """Main entry point."""
     if len(sys.argv) < 2:
         print("❌ Error: No command specified")
         print("   Run: trinity help")
         return 1
-    
+
     command = sys.argv[1].lower()
-    
+
     # Help and version
     if command in ["help", "-h", "--help"]:
         print_help()
         return 0
-    
+
     if command in ["version", "-v", "--version"]:
         print(f"Trinity v{VERSION}")
         return 0
-    
+
     # Forge command
     if command in ["forge", "gitforge", "/gitforge"]:
         if len(sys.argv) < 3:
             print("❌ Error: Missing branch name")
             print("   Usage: trinity forge <branch>")
             return 1
-        
+
         branch = sys.argv[2]
         base = sys.argv[3] if len(sys.argv) > 3 else "main"
         return run_forge(branch, base)
-    
+
     # QC command
     if command in ["qc", "gitqc", "/gitqc"]:
         if len(sys.argv) < 3:
             print("❌ Error: Missing branch name")
             print("   Usage: trinity qc <branch>")
             return 1
-        
+
         branch = sys.argv[2]
         return run_qc(branch)
-    
+
     # Seal command
     if command in ["seal", "gitseal", "/gitseal"]:
         if len(sys.argv) < 4:
@@ -231,6 +252,10 @@ def main():
         reason = " ".join(sys.argv[3:])  # Join all remaining args as reason
 
         return run_seal(branch, reason)
+
+    # Sync command (NEW)
+    if command in ["sync", "/sync"]:
+        return run_sync()
 
     # Track A/B/C: Validate command
     if command in ["validate", "/validate"]:

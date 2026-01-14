@@ -6,6 +6,17 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ---
 
+## [v46.1.1] - 2026-01-14 - Runtime + Spec Realignment
+
+**Status:** ⚠️ PENDING SEAL | Tests: not run | Authority: TBD
+
+### Changes
+- Fix runtime config thresholds to support range-based floors (F5).
+- Implement MCP v46 helper methods to prevent tool crashes on first use.
+- Add runtime stage modules and v46 spec artifacts under `L2_PROTOCOLS` (migration in progress).
+
+---
+
 ## [v46.1.0] - 2026-01-13 - Constitutional Meta-Search & Grand Unification
 
 **Status:** ✅ SEALED | Tests: 49/60 Passing (11 xfail) | Authority: Arif + Antigravity + Claude Code

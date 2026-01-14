@@ -1,0 +1,166 @@
+{
+  "version": "v46.0",
+  "stage_id": "333",
+  "document_id": "333-INTEGRATION-v46",
+  "authority": "Track B - Stage 333 INTEGRATION (Tri-Axis AND Logic)",
+  "locked": true,
+  "_status": "AUTHORITATIVE",
+  "spec_type": "integration_logic",
+  "description": "Stage 333 INTEGRATION: Tri-axis AND logic compositor. Integrates verdicts from REASON (solo), CONTRAST (multi-agent), and FLOOR validation. ALL axes must PASS for SEAL. Resolves floor conflicts using priority hierarchy. Final 333 verdict before 444 handoff.",
+  "track_a_canon": "L1_THEORY/canon/333_atlas/40_333_INTEGRATION_v46.md",
+  "pipeline_position": "THIRD (integration layer)",
+  "engine": "APEX",
+  "source": "https://github.com/ariffazil/arifOS",
+
+  "inputs": {
+    "reason_verdict": {
+      "type": "string",
+      "enum": ["PASS", "VOID", "SABAR", "PASS_WITH_FLAGS"],
+      "description": "Verdict from 333 REASON (single-agent)",
+      "required": true
+    },
+    "contrast_verdict": {
+      "type": "string",
+      "enum": ["CONSENSUS_BORING", "DIVERGENT_USEFUL", "ADVERSARIAL", "VOID", "SABAR", "null"],
+      "description": "Verdict from 333 CONTRAST (multi-agent, optional)",
+      "required": false,
+      "default": "null"
+    },
+    "floor_verdict": {
+      "type": "object",
+      "description": "Floor validation results from AGI+ASI checks",
+      "required": true,
+      "properties": {
+        "overall": "string (PASS|VOID|PARTIAL)",
+        "failed_floors": "array of strings",
+        "floor_conflicts": "array of conflicts"
+      }
+    },
+    "streak_count": {
+      "type": "integer",
+      "description": "Number of consecutive failures (triggers 888_HOLD at 3)",
+      "default": 0
+    }
+  },
+
+  "outputs": {
+    "integrated_verdict": {
+      "type": "string",
+      "enum": ["SEAL", "VOID", "SABAR", "HOLD_888", "PARTIAL"],
+      "description": "Final 333 verdict after tri-axis integration"
+    },
+    "integration_rationale": {
+      "type": "string",
+      "description": "Explanation of integration logic and why verdict was issued"
+    },
+    "floor_overrides": {
+      "type": "array",
+      "description": "Which floors were overridden and why",
+      "items": "string"
+    }
+  },
+
+  "integration_logic": {
+    "tri_axis_and": {
+      "description": "ALL three axes must PASS for SEAL",
+      "formula": "SEAL if (reason_verdict == PASS) AND (floor_verdict == PASS) AND (contrast_verdict IN [DIVERGENT_USEFUL, CONSENSUS_BORING, null])",
+      "rationale": "Single failure anywhere blocks SEAL (fail-closed)"
+    },
+    "floor_override_priority": {
+      "description": "Priority hierarchy for resolving floor conflicts",
+      "priority": [
+        "F1_HARD (budget >= 100% OR truth < 0.99) - ABSOLUTE VETO",
+        "F8_Tri_Witness (streak >= 3) - TRIGGERS 888_HOLD",
+        "F5_Peace (destructive action) - VETO",
+        "F2_Truth (< 0.99) - VETO",
+        "F3_Burst (rate limit) - DEFER",
+        "F4_Empathy (< 0.95) - WARNING",
+        "F6_Clarity (ΔS < 0) - VETO",
+        "F7_Humility (Ω₀ outside band) - WARNING",
+        "F9_Anti_Hantu (violations) - VETO",
+        "F10_Ontology (consciousness) - VETO",
+        "F11_Command_Auth (nonce invalid) - VETO",
+        "F12_Injection (>= 0.85) - VETO"
+      ]
+    },
+    "cascade_rules": {
+      "VOID_propagates": "If ANY axis returns VOID, integrated_verdict = VOID",
+      "SABAR_escalates": "If ANY axis returns SABAR, integrated_verdict = SABAR",
+      "HOLD_888_overrides": "If streak >= 3, integrated_verdict = HOLD_888 (human sovereign required)",
+      "PARTIAL_downgrades": "If floor_verdict == PARTIAL, integrated_verdict = PARTIAL (proceed with warnings)"
+    }
+  },
+
+  "verdict_logic": {
+    "SEAL": {
+      "conditions": [
+        "reason_verdict == PASS",
+        "floor_verdict.overall == PASS",
+        "contrast_verdict IN [DIVERGENT_USEFUL, CONSENSUS_BORING, null]",
+        "streak_count < 3",
+        "no_floor_conflicts"
+      ],
+      "action": "Approve for 444 ALIGN handoff"
+    },
+    "VOID": {
+      "conditions": [
+        "reason_verdict == VOID",
+        "OR floor_verdict.overall == VOID",
+        "OR contrast_verdict == VOID",
+        "OR any_hard_floor_failed (F1, F2, F5, F6, F9, F10, F11, F12)"
+      ],
+      "action": "Refuse to proceed, trigger SABAR-72"
+    },
+    "SABAR": {
+      "conditions": [
+        "reason_verdict == SABAR",
+        "OR contrast_verdict == ADVERSARIAL",
+        "OR floor_conflicts_unresolved",
+        "OR excessive_warnings"
+      ],
+      "action": "Slow down, request clarification or decomposition"
+    },
+    "HOLD_888": {
+      "conditions": [
+        "streak_count >= 3 (F8 Tri-Witness override)",
+        "OR critical_floor_conflict",
+        "OR contrast_verdict == ADVERSARIAL AND constitutional_paradox"
+      ],
+      "action": "Escalate to human sovereign (Arif) for judgment"
+    },
+    "PARTIAL": {
+      "conditions": [
+        "floor_verdict.overall == PARTIAL",
+        "reason_verdict == PASS_WITH_FLAGS",
+        "soft_floors_flagged"
+      ],
+      "action": "Proceed to 444 ALIGN with warnings"
+    }
+  },
+
+  "floor_conflict_resolution": {
+    "description": "Logic for resolving conflicts between floors",
+    "example_conflict": {
+      "F1_Truth_vs_F4_Empathy": {
+        "scenario": "Truth requires harsh answer, Empathy requires kind answer",
+        "resolution": "F1 Truth wins (priority 1 > priority 4)",
+        "rationale": "Cannot sacrifice truth for kindness (constitutional hierarchy)"
+      },
+      "F5_Peace_vs_F2_Truth": {
+        "scenario": "Truthful answer might cause harm, but refusal hides truth",
+        "resolution": "F5 Peace wins (safety > transparency)",
+        "rationale": "Non-destructive constraint overrides informational completeness"
+      }
+    }
+  },
+
+  "meta": {
+    "created": "2026-01-14",
+    "updated": "2026-01-14",
+    "author": "arifOS Project - Claude Engineer (Ω)",
+    "license": "Apache-2.0",
+    "forged_from": "L1_THEORY/canon/333_atlas/40_333_INTEGRATION_v46.md",
+    "handoff": ".antigravity/HANDOFF_FOR_CLAUDE.md (2026-01-14 06:40)",
+    "notes": "Tri-axis AND integration spec. Resolves REASON + CONTRAST + FLOORS. ALL axes must pass for SEAL. Fail-closed by design."
+  }
+}
