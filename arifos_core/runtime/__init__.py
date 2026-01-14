@@ -113,6 +113,21 @@ from .bridge_666 import (
     synthesize_dual_process,
 )
 
+# Stage 777: EUREKA - Insight crystallization (F7 RASA + ScarPacket)
+from .eureka_777 import (
+    eureka_stage,
+    EurekaBundle777,
+    RASAMetrics,
+    ScarPacket,
+    ConstitutionalPrecheck,
+    EurekaVerdict,
+    ScarType,
+    measure_rasa_compliance,
+    generate_scar_packet,
+    precheck_constitutional_compliance,
+    crystallize_insight,
+)
+
 # Stage 888: WITNESS - APEX final judgment
 from .witness_888 import (
     witness_stage,
@@ -206,6 +221,18 @@ __all__ = [
     "determine_context_gate",
     "compute_moe_weights",
     "synthesize_dual_process",
+    # Stage 777 EUREKA
+    "eureka_stage",
+    "EurekaBundle777",
+    "RASAMetrics",
+    "ScarPacket",
+    "ConstitutionalPrecheck",
+    "EurekaVerdict",
+    "ScarType",
+    "measure_rasa_compliance",
+    "generate_scar_packet",
+    "precheck_constitutional_compliance",
+    "crystallize_insight",
     # Stage 888 WITNESS
     "witness_stage",
     "WitnessBundle888",
