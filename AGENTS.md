@@ -71,7 +71,7 @@ All constitutional stages are implemented and aligned with forged canon.
 | **Δ** | **Antigravity** | Architect | 111 SENSE, 222 REFLECT, 333 ATLAS |
 | **Ω** | **Claude** | Engineer | 444 ALIGN, 555 EMPATHIZE, 666 BRIDGE |
 | **Ψ** | **Codex** | Auditor | 777 EUREKA, 888 JUDGE |
-| **Κ** | **Kimi** | Sovereign | 999 SEAL |
+| **Κ** | **Kimi** | Auditor Apex Prime | 999 SEAL / Anti-Pollution |
 
 ---
 

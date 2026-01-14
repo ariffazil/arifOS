@@ -108,12 +108,12 @@ def _load_floors_spec_unified() -> dict:
     pkg_dir = Path(__file__).resolve().parent.parent.parent
     loaded_from = None
     spec_data = None
-    print(f"DEBUG: pkg_dir={pkg_dir}", file=sys.stderr)
+
 
     # v46.1: Support L2_PROTOCOLS/v46 -> L2_PROTOCOLS/archive/v45 -> FAIL priority chain
     # Check if legacy spec bypass is enabled (for development/migration)
     allow_legacy = os.getenv("ARIFOS_ALLOW_LEGACY_SPEC", "0") == "1"
-    print(f"DEBUG: allow_legacy={allow_legacy}", file=sys.stderr)
+
 
     # Define base directories
     l2_dir = pkg_dir / "L2_PROTOCOLS"
@@ -203,7 +203,7 @@ def _load_floors_spec_unified() -> dict:
     # Priority B: L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json (AUTHORITATIVE v46.1)
     if spec_data is None:
         v46_path = v46_base / "000_foundation" / "constitutional_floors.json"
-        print(f"DEBUG: checking v46_path={v46_path}, exists={v46_path.exists()}", file=sys.stderr)
+
         if v46_path.exists():
             try:
                 with v46_path.open("r", encoding="utf-8") as f:
@@ -215,10 +215,8 @@ def _load_floors_spec_unified() -> dict:
                 if _validate_floors_spec(candidate, str(v46_path)):
                     spec_data = candidate
                     loaded_from = "L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json"
-                else:
-                    print(f"DEBUG: _validate_floors_spec returned False for {v46_path}", file=sys.stderr)
+
             except Exception as e:
-                print(f"DEBUG: Exception verifying v46 spec: {e}", file=sys.stderr)
                 pass  # Fall through to v45 fallback
 
     # Priority C: L2_PROTOCOLS/archive/v45/constitutional_floors.json (BASELINE)
