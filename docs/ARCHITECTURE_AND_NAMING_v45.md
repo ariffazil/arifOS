@@ -392,8 +392,11 @@ arifos_core/
 ├── floor_detectors/               # F1-F9 individual detectors
 ├── governance/                    # FAG, ledger, session physics
 │   ├── fag.py                     # File Access Governance
-│   ├── ledger.py                  # Cooling ledger
-│   └── session_physics.py         # TEARFRAME enforcement
+│   ├── session_physics.py         # TEARFRAME enforcement
+│
+├── state/                         # Persistent Cryptographic State
+│   ├── merkle.py                  # Merkle Trees
+│   └── ledger.py                  # Hash Chains
 │
 ├── integration/                   # Internal ports & interfaces
 ├── memory/                        # 6-band memory system
@@ -402,10 +405,22 @@ arifos_core/
 │   └── scar_manager.py            # SCAR lifecycle management
 │
 ├── mcp/                           # MCP server integration
-├── stages/                        # 000-999 pipeline stages
+├── 000_void/                      # 000 VOID (Reset/Init)
+├── 111_sense/                     # 111 SENSE (Context)
+├── 222_reflect/                   # 222 REFLECT (Entropy/ΔS)
+├── 333_reason/                    # 333 REASON (AGI Logic)
+├── 444_evidence/                  # 444 EVIDENCE (RAG)
+├── 555_empathize/                 # 555 EMPATHIZE (ASI Care)
+├── 666_align/                     # 666 ALIGN (Bridge)
+├── 777_forge/                     # 777 FORGE (Action)
+├── 888_judge/                     # 888 JUDGE (APEX Verdict)
+├── 999_seal/                      # 999 SEAL (Finalization)
+├── pipeline/                      # Sovereign Pipeline Orchestration
+│   ├── manager.py                 # 000->999 Runner
+│   └── state.py                   # Vector State Object
 ├── system/                        # Core system modules
 │   ├── apex_prime.py              # APEX Judiciary (verdict engine)
-│   ├── pipeline.py                # 000→999 pipeline runner
+│   ├── pipeline_legacy.py         # [ARCHIVED] Old pipeline
 │   ├── api_registry.py            # API stability tracking
 │   └── runtime_manifest.py        # Runtime version tracking
 │

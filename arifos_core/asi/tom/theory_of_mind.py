@@ -25,8 +25,8 @@ DITEMPA BUKAN DIBERI - Forged v46.1
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
 from enum import Enum
+from typing import Dict, List, Optional
 
 
 class Confidence(str, Enum):
@@ -249,88 +249,110 @@ class TheoryOfMindAnalyzer:
 
     def _score_false_belief(self, query_text: str, domain: str) -> float:
         """
-        Score ability to detect false beliefs.
+        Score ability to detect false beliefs with rigorous domain patterns.
 
         Heuristics:
-        - Medical misconceptions (@WELL) → lower score
-        - Financial myths (@WEALTH) → lower score
-        - Clear factual query → higher score
+        - Medical myths (@WELL): 'cure', 'detox', 'miracle'
+        - Financial myths (@WEALTH): 'guaranteed', 'risk-free', 'instant'
+        - Absolutes: 'always', 'never', 'everyone knows'
         """
         query_lower = query_text.lower()
 
-        # Detect potential false beliefs
-        false_belief_indicators = [
-            "cure", "always", "never", "everyone knows", "obviously",
-            "definitely", "guarantee", "certainly will"
-        ]
+        # 1. Domain-Specific False Belief Patterns
+        well_myths = ["cure", "detox", "miracle", "cleanse", "always works", "secret", "they don't want you to know"]
+        wealth_myths = ["guaranteed", "risk-free", "instant return", "double your money", "passive income secret"]
 
-        has_false_belief = any(ind in query_lower for ind in false_belief_indicators)
+        # 2. Epistemic Absolutes (Red Flags)
+        absolutes = ["always", "never", "definitely", "obviously", "everyone knows", "undeniable", "proven fact"]
 
-        if has_false_belief:
-            return 0.85  # High confidence in detecting false belief
-        elif domain in ["@WELL", "@WEALTH"]:
-            return 0.75  # Medium-high (domain suggests potential misconception)
-        else:
-            return 0.90  # High baseline (clear factual query)
+        detected_myths = 0
+        if domain == "@WELL":
+            detected_myths += sum(1 for m in well_myths if m in query_lower)
+        elif domain == "@WEALTH":
+            detected_myths += sum(1 for m in wealth_myths if m in query_lower)
+
+        detected_absolutes = sum(1 for a in absolutes if a in query_lower)
+
+        # Scoring Logic
+        if detected_myths > 0:
+            return 0.85 + (min(detected_myths, 3) * 0.03)  # High confidence in False Belief
+        elif detected_absolutes > 0:
+            return 0.75 + (min(detected_absolutes, 3) * 0.05)  # Moderate-High
+
+        # Baseline check (clear factual query)
+        if "?" in query_text and any(w in query_lower for w in ["what", "how", "when", "who"]):
+             return 0.92  # High confidence (Standard Inquiry)
+
+        return 0.60  # Default low confidence (ambiguity)
 
     def _score_perspective(self, query_text: str, tone: str) -> float:
         """
         Score perspective-taking ability.
 
         Considers:
-        - Cultural context cues in query
-        - Tone indicates user's emotional perspective
-        - Query complexity
+        - Cultural/context cues ("in my culture", "for us")
+        - Personal context ("I feel", "my situation")
         """
+        query_lower = query_text.lower()
+
+        # Perspective Markers
+        cultural_markers = ["culture", "tradition", "faith", "community", "us", "we", "custom"]
+        personal_markers = ["i feel", "my opinion", "worried", "confused", "my situation"]
+
+        score = 0.50 # Baseline
+
+        # If query is clearly factual/objective (high intent score), that IS the perspective
+        # "I want to know X" is a valid perspective.
+        if tone == "neutral":
+            score = 0.80
+
+        if any(m in query_lower for m in cultural_markers):
+            score += 0.15 # Bonus for cultural explicitness
+        if any(m in query_lower for m in personal_markers):
+            score += 0.15
+
         if tone in ["hostile", "distressed"]:
-            return 0.85  # High awareness of user's emotional perspective
-        elif tone == "neutral":
-            return 0.90  # Clear perspective distinction
-        else:
-            return 0.92  # Optimal perspective taking
+            score = max(score, 0.85) # High emotional salience forces perspective check
+
+        return min(score, 0.98)
 
     def _score_intent(self, query_text: str, subtext: str) -> float:
         """
-        Score intent attribution (what user wants vs. says).
-
-        Subtext reveals underlying intent:
-        - desperation → need for hope/solution
-        - curiosity → need for understanding
-        - urgency → need for fast action
+        Score intent attribution (Subtext vs Text).
         """
-        if subtext in ["desperation", "urgency", "fear"]:
-            return 0.88  # Strong intent detection (need vs. query mismatch likely)
+        # If subtext is strongly emotional, intent is likely emotional support, not just facts
+        if subtext in ["desperation", "fear", "urgency"]:
+            return 0.92
         elif subtext == "curiosity":
-            return 0.95  # Intent matches query (straightforward)
-        else:
-            return 0.90  # Medium-high intent attribution
+            return 0.95
+        elif subtext == "doubt":
+             return 0.80
+
+        # Fallback
+        return 0.70
 
     def _score_emotion(self, subtext: str, domain: str) -> float:
         """
-        Score emotional state inference from subtext.
-
-        Subtext directly maps to emotion:
-        - desperation → high distress (0.90+)
-        - fear → high anxiety (0.85+)
-        - curiosity → calm exploration (0.50)
+        Score emotional state inference.
         """
         emotion_map = {
-            "desperation": 0.95,
-            "fear": 0.90,
+            "desperation": 0.98, # High confidence + High salience
+            "fear": 0.92,
             "urgency": 0.85,
             "stress": 0.75,
+            "doubt": 0.70,
             "concern": 0.65,
-            "curiosity": 0.50,
-            "doubt": 0.70
+            "curiosity": 0.90, # High confidence in "Curiosity" state
+            "neutral": 0.85 # High confidence in "Neutral" state
         }
 
-        emotion_score = emotion_map.get(subtext, 0.60)
+        score = emotion_map.get(subtext, 0.50)
 
-        # Domain modulation
-        if domain == "@WELL":  # Mental health queries → higher emotion weight
-            emotion_score = min(emotion_score + 0.10, 1.0)
+        # Domain Sensitivity
+        if domain == "@WELL" and score > 0.6:
+            score = min(score + 0.1, 1.0) # Health anxiety amplification
 
-        return emotion_score
+        return score
 
     def _attribute_mental_states(
         self,
@@ -339,33 +361,53 @@ class TheoryOfMindAnalyzer:
         subtext: str
     ) -> MentalStates:
         """
-        Attribute specific mental states to user.
-
-        Returns:
-            MentalStates with beliefs, desires, emotions, knowledge_gaps
+        Attribute specific mental states using robust keyword analysis.
         """
-        # Simplified attribution (real implementation would use NLP)
+        query_lower = query_text.lower()
         beliefs = {}
         desires = []
         emotions = subtext
         knowledge_gaps = []
 
-        # Domain-based inference
-        if domain == "@WELL":
-            beliefs["seeking_relief"] = True
-            desires.append("health improvement")
-            knowledge_gaps.append("treatment options")
-        elif domain == "@WEALTH":
-            beliefs["financial_concern"] = True
-            desires.append("financial security")
-            knowledge_gaps.append("resources")
-        elif domain == "@RASA":
-            beliefs["dignity_concern"] = True
-            desires.append("respectful treatment")
+        # 1. Beliefs Logic
+        if "i think" in query_lower or "i believe" in query_lower:
+            beliefs["self_stated"] = True
+        if subtext == "doubt":
+            beliefs["uncertainty"] = True
+
+        # 2. Desires Logic (Needs)
+        noun_phrases = {
+            "@WELL": ["relief", "cure", "health", "diagnosis", "answer"],
+            "@WEALTH": ["money", "security", "profit", "savings", "freedom"],
+            "@RASA": ["respect", "clarity", "fairness"]
+        }
+
+        # General desires
+        if any(w in query_lower for w in ["want", "need", "looking for", "help"]):
+            desires.append("assistance")
+
+        # Domain desires
+        found_desires = [d for d in noun_phrases.get(domain, []) if d in query_lower]
+        desires.extend(found_desires)
+
+        # Implicit desires from subtext
+        if subtext == "desperation": desires.append("immediate_relief")
+        if subtext == "curiosity": desires.append("understanding")
+
+        # 3. Knowledge Gaps (Epistemic State)
+        if any(w in query_lower for w in ["why", "cause", "reason"]):
+            knowledge_gaps.append("causality")
+        elif any(w in query_lower for w in ["how", "method", "way"]):
+            knowledge_gaps.append("procedure")
+        elif any(w in query_lower for w in ["what", "who", "when"]):
+            knowledge_gaps.append("facts")
+
+        if domain == "@WELL" and not beliefs.get("self_stated"):
+            knowledge_gaps.append("medical_consensus")
 
         return MentalStates(
             beliefs=beliefs,
-            desires=desires,
+            desires=list(set(desires)), # De-dupe
             emotions=emotions,
             knowledge_gaps=knowledge_gaps
         )

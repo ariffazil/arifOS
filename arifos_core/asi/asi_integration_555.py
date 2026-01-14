@@ -26,22 +26,17 @@ DITEMPA BUKAN DIBERI - Forged v46.1
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
 from enum import Enum
+from typing import Dict, List, Optional
+
+from arifos_core.asi.empathy.empathy_architect import EmpathyArchitect, EmpathyArchitectureBundle
+from arifos_core.asi.stakeholder.weakest_stakeholder import (
+    StakeholderBundle,
+    WeakestStakeholderAnalyzer,
+)
 
 # Import 555 components
-from arifos_core.asi.tom.theory_of_mind import (
-    TheoryOfMindAnalyzer,
-    ToMBundle
-)
-from arifos_core.asi.empathy.empathy_architect import (
-    EmpathyArchitect,
-    EmpathyArchitectureBundle
-)
-from arifos_core.asi.stakeholder.weakest_stakeholder import (
-    WeakestStakeholderAnalyzer,
-    StakeholderBundle
-)
+from arifos_core.asi.tom.theory_of_mind import TheoryOfMindAnalyzer, ToMBundle
 
 
 class OmegaVerdict555(str, Enum):
@@ -286,44 +281,62 @@ class ASIIntegration555:
         stakeholder_bundle: StakeholderBundle
     ) -> ASICareLayer:
         """
-        Apply ASI care mechanisms (560).
+        Apply ASI care mechanisms (560) with concrete floor enforcement.
 
         Implements:
-        - Harm prevention (F5)
-        - Dignity preservation (F4 + F9)
-        - Crisis escalation
-        - Refusal path
+        - F5 Peace²: Zero-tolerance harm phrases
+        - F4 Dignity: Architecture-derived dignity checks
+        - Crisis Escalation: Auto-trigger on high vulnerability
         """
-        # Harm scan (simplified - real implementation would be more sophisticated)
+        # 1. F5 Peace² Harm Scan (F5.HARM_LIST)
+        harm_patterns = [
+            "kill myself", "suicide", "end it all", "hurt them", "bomb",
+            "hate speech", "racial slur", "destroy", "attack", "exploit"
+        ]
+
+        query_text = sense_bundle.get("query", "").lower()
+        harm_detected = any(p in query_text for p in harm_patterns)
+
         harm_scan = {
-            "harm_detected": False,
-            "details": []
+            "harm_detected": harm_detected,
+            "details": ["F5 Violation Detected"] if harm_detected else [],
+            "floor": "F5 Peace²"
         }
 
-        # Dignity preservation (from architecture)
+        # 2. Dignity Preservation (F4)
+        # Inherit from Empathy Architecture (Layer 3)
         dignity_preservation = arch_bundle.layer_3_response.dignity_check
 
-        # Crisis protocol
+        if not dignity_preservation:
+             pass # Logic handles this in OmegaVerdict (VOID)
+
+        # 3. Crisis Protocol
         crisis_escalate = (
             tom_bundle.crisis_flag or
-            stakeholder_bundle.crisis_override
+            stakeholder_bundle.crisis_override or
+            tom_bundle.vulnerability_score >= 0.85
         )
+
+        crisis_resources = []
+        if crisis_escalate:
+            crisis_resources = self._get_crisis_resources(sense_bundle)
 
         crisis_protocol = {
             "escalate": crisis_escalate,
-            "resources": self._get_crisis_resources(sense_bundle) if crisis_escalate else [],
-            "human_oversight": crisis_escalate
+            "resources": crisis_resources,
+            "human_oversight": crisis_escalate,
+            "kappa_r_threshold_override": 0.98 if crisis_escalate else None
         }
 
-        # Refusal required (simplified logic)
-        refusal_required = False
+        # 4. Refusal Logic (F5 or F4 violation)
+        refusal_required = harm_detected or not dignity_preservation
 
         return ASICareLayer(
             harm_scan=harm_scan,
             dignity_preservation=dignity_preservation,
             crisis_protocol=crisis_protocol,
             refusal_required=refusal_required,
-            de_escalation_applied=False
+            de_escalation_applied=crisis_escalate # Initial simple logic
         )
 
     def _get_crisis_resources(self, sense_bundle: Dict) -> List[str]:

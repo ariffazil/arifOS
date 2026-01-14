@@ -102,7 +102,7 @@ BANDS = {
         "tag": "[CANONICAL]",
         "extensions": ["*.md", "*.json"]
     },
-    "L1_LEDGER": {
+    "L1_LEDGERS": {
         "path": VAULT_ROOT / "L1_LEDGERS",
         "confidence": 1.0,
         "tag": "[SEALED]",
@@ -113,6 +113,12 @@ BANDS = {
         "confidence": 0.85,
         "tag": "[OBSERVATION]",
         "extensions": ["*.md"]
+    },
+    "00_ENTROPY": {
+        "path": VAULT_ROOT / "00_ENTROPY",
+        "confidence": 0.1,  # Low confidence for hot/unverified data
+        "tag": "[HOT]",
+        "extensions": ["*.json", "*.md", "*.txt"]
     }
 }
 
@@ -183,7 +189,7 @@ def search(query: str) -> Dict[str, Any]:
         return {"error": "Query too short", "results": []}
 
     all_results = []
-    for band_name in ["L0_VAULT", "L1_LEDGER", "L4_WITNESS"]:
+    for band_name in ["L0_VAULT", "L1_LEDGERS", "L4_WITNESS", "00_ENTROPY"]:
         all_results.extend(search_band(band_name, query))
 
     all_results.sort(key=lambda x: -x["confidence"])

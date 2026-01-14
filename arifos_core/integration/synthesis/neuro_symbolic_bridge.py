@@ -25,8 +25,8 @@ DITEMPA BUKAN DIBERI - Forged v46.1
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
 from enum import Enum
+from typing import Dict, List, Optional
 
 
 class ConflictType(str, Enum):
@@ -420,15 +420,39 @@ class NeuroSymbolicBridge:
         moe_weights: MoEWeights
     ) -> str:
         """
-        Apply MoE weights to integrated content.
+        Apply MoE weights to modulate synthesis draft.
 
-        Higher Omega weight → more empathetic tone, more framing
-        Higher Delta weight → more factual, direct delivery
+        Logic:
+        - Omega > 0.6: Prepend empathetic framing headers.
+        - Delta > 0.7: Prepend logical structure headers.
+        - Standard: Balanced.
         """
-        # Simplified weighting (real implementation would modulate tone/style)
-        # For now, just return integrated content
-        # In production, this would use LLM to adjust tone based on weights
-        return integrated_content
+        omega_w = moe_weights.omega
+        delta_w = moe_weights.delta
+
+        modulated_content = integrated_content
+
+        # 1. High Empathy Modulation (Omega Dominant)
+        if omega_w >= 0.60:
+            prefix = ""
+            if bundle_555.crisis_mode:
+                prefix = "**CRISIS SUPPORT MODE (Ω-Lead)**\n\n"
+            else:
+                prefix = "**Empathetic Response (Ω-Lead)**\n\n"
+
+            modulated_content = prefix + modulated_content
+
+        # 2. High Logic Modulation (Delta Dominant)
+        elif delta_w >= 0.70:
+            prefix = "**Factual Analysis (Δ-Lead)**\n\n"
+            modulated_content = prefix + modulated_content
+
+        # 3. Balanced Protocol
+        else:
+            # No specific prefix, keep it conversational
+            pass
+
+        return modulated_content
 
     def _ensure_human_likeness(self, synthesis_draft: str) -> str:
         """

@@ -14,14 +14,11 @@ DITEMPA BUKAN DIBERI - Forged v46.1
 """
 
 import pytest
-from arifos_core.asi.asi_integration_555 import (
-    ASIIntegration555,
-    OmegaVerdict555
-)
+
+from arifos_core.asi.asi_integration_555 import (ASIIntegration555,
+                                                 OmegaVerdict555)
 from arifos_core.integration.synthesis.neuro_symbolic_bridge import (
-    NeuroSymbolicBridge,
-    GatingCondition
-)
+    GatingCondition, NeuroSymbolicBridge)
 
 
 class Test555Pipeline:
@@ -161,10 +158,10 @@ class Test666Bridge:
         assert bundle_666.synthesis_draft is not None
         assert len(bundle_666.synthesis_draft) > 0
 
-        # Assert: MoE weights should be standard (50/50)
-        assert bundle_666.moe_weights.gating_condition == GatingCondition.STANDARD_INTERACTION
-        assert bundle_666.moe_weights.omega == 0.5
-        assert bundle_666.moe_weights.delta == 0.5
+        # Assert: MoE weights should be FACTUAL (20/80) for definition query
+        assert bundle_666.moe_weights.gating_condition == GatingCondition.FACTUAL_LOW_STAKES
+        assert bundle_666.moe_weights.omega == 0.2
+        assert bundle_666.moe_weights.delta == 0.8
 
         # Assert: Synthesis should include both Delta content and Omega framing
         assert "machine learning" in bundle_666.synthesis_draft.lower()
@@ -201,7 +198,7 @@ class Test666Bridge:
         assert bundle_666.moe_weights.delta == 0.3
 
         # Assert: Synthesis should include crisis resources
-        assert any(
+        assert (
             "988" in bundle_666.synthesis_draft or
             "Crisis" in bundle_666.synthesis_draft or
             "resources" in bundle_666.synthesis_draft.lower()

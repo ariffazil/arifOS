@@ -1,11 +1,11 @@
 """
-genius_metrics.py — GENIUS LAW Measurement (v45.0 Track B Authority)
+genius_metrics.py — GENIUS LAW Measurement (v46.0 Track B Authority)
 
 Implements the GENIUS LAW measurement layer for arifOS.
 
-v45.0 Track B Consolidation:
-Thresholds loaded from spec/v45/genius_law.json (AUTHORITATIVE).
-Falls back to legacy spec only if ARIFOS_ALLOW_LEGACY_SPEC=1.
+v46.0 Track B Consolidation:
+Thresholds loaded from L2_PROTOCOLS/v46/genius_law.json (PRIMARY AUTHORITY).
+Falls back to archive only if ARIFOS_ALLOW_LEGACY_SPEC=1.
 Semantics unchanged from v36.1Omega/v38Omega - threshold source consolidated.
 
 This module provides:
@@ -15,13 +15,13 @@ This module provides:
 4. System Vitality (Psi_APEX) - global health metric
 5. GeniusVerdict dataclass for telemetry
 
-Key formulas (v36.1Omega, unchanged in v45.0):
+Key formulas (v36.1Omega, unchanged in v46.0):
     G = normalize(A x P x E x X)           [0, 1.2]
     C_dark = normalize(A x (1-P) x (1-X) x E)  [0, 1]
     Psi = (DeltaS x Peace2 x KappaR x RASA x Amanah) / (Entropy + Shadow + epsilon)
 
 For full measurement spec, see:
-    spec/v45/genius_law.json (Track B authority - v45.0)
+    L2_PROTOCOLS/v46/genius_law.json (Track B authority - v46.0)
     L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md (Track A canon)
 """
 
@@ -55,19 +55,19 @@ from .metrics import (
 
 def _load_genius_spec() -> dict:
     """
-    Load GENIUS LAW spec from spec/v45/genius_law.json (v45.0 Track B Authority).
+    Load GENIUS LAW spec from L2_PROTOCOLS/v46/genius_law.json (v46.0 Track B Authority).
 
-    Priority (fail-closed, v38 support removed in v45.0):
+    Priority (fail-closed):
     A) ARIFOS_GENIUS_SPEC env var (explicit override)
-    B) spec/v45/genius_law.json (AUTHORITATIVE - v45.0)
-    C) spec/v44/genius_law.json (FALLBACK with deprecation warning)
+    B) L2_PROTOCOLS/v46/genius_law.json (PRIMARY AUTHORITY - v46.0)
+    C) L2_PROTOCOLS/archive/v45/genius_law.json (DEPRECATED fallback)
     D) HARD FAIL (no legacy fallback)
 
     Returns:
         dict: The loaded spec
 
     Raises:
-        RuntimeError: If v45/v44 spec missing/invalid (v38 support removed in v45.0)
+        RuntimeError: If v46/v45 spec missing/invalid
     """
     pkg_dir = Path(__file__).resolve().parent.parent.parent  # repo root
     # v46.0: Support L2_PROTOCOLS/v46/ as primary, fall back to spec/v45/v44
@@ -150,18 +150,18 @@ def _load_genius_spec() -> dict:
         except (json.JSONDecodeError, IOError):
             pass
 
-    # Priority C: spec/v45/genius_law.json (FALLBACK v45)
-    v45_path = pkg_dir / "spec" / "v45" / "genius_law.json"
-    if v45_path.exists():
+    # Priority C: L2_PROTOCOLS/v45/genius_law.json (active v45 runtime compat)
+    v45_active_path = pkg_dir / "L2_PROTOCOLS" / "v45" / "genius_law.json"
+    if v45_active_path.exists():
         import warnings
         warnings.warn(
-            "Loading from spec/v45/ (DEPRECATED in v46+). Please migrate to L2_PROTOCOLS/v46/. "
-            "spec/v45/ fallback will be removed in future versions.",
+            "Loading from L2_PROTOCOLS/v45/ (v45 runtime compatibility). "
+            "Please migrate to L2_PROTOCOLS/v46/ for full 12-floor support.",
             DeprecationWarning,
             stacklevel=2
         )
         try:
-            with open(v45_path, "r", encoding="utf-8") as f:
+            with open(v45_active_path, "r", encoding="utf-8") as f:
                 spec_data = json.load(f)
             # Schema validation (Track B authority enforcement)
             validate_spec_against_schema(spec_data, schema_path, allow_legacy=allow_legacy)
@@ -169,39 +169,41 @@ def _load_genius_spec() -> dict:
         except (json.JSONDecodeError, IOError):
             pass
 
-    # Priority D: spec/v44/genius_law.json (FALLBACK with deprecation warning)
-    v44_path = pkg_dir / "spec" / "v44" / "genius_law.json"
-    if v44_path.exists():
-        import warnings
-        warnings.warn(
-            "Loading from spec/v44/ (DEPRECATED). Please upgrade to L2_PROTOCOLS/v46/. "
-            "v44 fallback will be removed in future versions.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        try:
-            with open(v44_path, "r", encoding="utf-8") as f:
-                spec_data = json.load(f)
-            # Schema validation (Track B authority enforcement)
-            validate_spec_against_schema(spec_data, schema_path, allow_legacy=allow_legacy)
-            return spec_data
-        except (json.JSONDecodeError, IOError):
-            pass
+    # Priority D: L2_PROTOCOLS/archive/v45/genius_law.json (ARCHIVE fallback if legacy enabled)
+    if allow_legacy:
+        v45_archive_path = pkg_dir / "L2_PROTOCOLS" / "archive" / "v45" / "genius_law.json"
+        if v45_archive_path.exists():
+            import warnings
+            warnings.warn(
+                "Loading from L2_PROTOCOLS/archive/v45/ (DEPRECATED ARCHIVE). "
+                "Please migrate to L2_PROTOCOLS/v46/. Archive fallback will be removed.",
+                DeprecationWarning,
+                stacklevel=2
+            )
+            try:
+                with open(v45_archive_path, "r", encoding="utf-8") as f:
+                    spec_data = json.load(f)
+                # Schema validation (Track B authority enforcement)
+                validate_spec_against_schema(spec_data, schema_path, allow_legacy=allow_legacy)
+                return spec_data
+            except (json.JSONDecodeError, IOError):
+                pass
 
-    # Priority E: HARD FAIL (v38 support removed in v45.0)
+    # Priority E: HARD FAIL (v38/v44 support removed in v46.0)
     # Legacy fallback code removed in Phase 2 Step 2.2 (2025-12-29)
     # Insights preserved in: archive/v42_v38_v35_eureka_insights.md
     raise RuntimeError(
         "TRACK B AUTHORITY FAILURE: GENIUS LAW spec not found.\n\n"
-        "Searched locations:\n"
-        f"  - L2_PROTOCOLS/v46/genius_law.json (AUTHORITATIVE v46+)\n"
-        f"  - spec/v45/genius_law.json (FALLBACK v45)\n"
-        f"  - spec/v44/genius_law.json (FALLBACK v44)\n\n"
-        "Migration required:\n"
-        "1. Ensure L2_PROTOCOLS/v46/genius_law.json exists OR\n"
-        "2. Set ARIFOS_GENIUS_SPEC=/path/to/genius_law.json\n\n"
-        "Note: v38Omega specs are no longer supported.\n"
-        "For migration guide, see: archive/v42_v38_v35_eureka_insights.md"
+        "Searched locations (in priority order):\n"
+        f"  1. L2_PROTOCOLS/v46/genius_law.json (PRIMARY AUTHORITY - v46.0)\n"
+        f"  2. L2_PROTOCOLS/v45/genius_law.json (v45 runtime compatibility)\n"
+        f"  3. L2_PROTOCOLS/archive/v45/genius_law.json (ARCHIVE - if ARIFOS_ALLOW_LEGACY_SPEC=1)\n\n"
+        "Resolution:\n"
+        "1. Ensure L2_PROTOCOLS/v46/genius_law.json exists and is valid OR\n"
+        "2. Set ARIFOS_GENIUS_SPEC env var to explicit path\n"
+        "3. Verify MANIFEST.sha256.json integrity if using strict mode\n\n"
+        "Note: spec/v45/ and spec/v44/ are no longer supported. Use L2_PROTOCOLS/ structure.\n"
+        "For migration guide, see: L2_PROTOCOLS/MIGRATION_SPEC_TO_L2_v46.md"
     )
 
 
