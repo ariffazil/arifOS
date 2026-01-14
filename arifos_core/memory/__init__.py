@@ -31,8 +31,21 @@ Author: arifOS Project
 Version: v38
 """
 
+# ============================================================================
+# MEMORY ZONE ORGANIZATION (v46.1)
+# ============================================================================
+# Files organized into 7 subdirectories for better navigation:
+#   - core/: Core memory abstractions (memory, context, policy, bands, etc.)
+#   - ledger/: Cooling ledger and audit trail
+#   - vault/: VAULT-999 constitutional snapshot
+#   - eureka/: EUREKA receipt and proof system
+#   - phoenix/: Phoenix-72 amendment controller
+#   - l7/: L7 memory layer (Mem0, vector storage)
+#   - scars/: Scars, witnesses, and void scanner
+# ============================================================================
+
 # Core memory context
-from .memory_context import (
+from .core.memory_context import (
     MemoryContext,
     EnvBand,
     VaultBand,
@@ -45,7 +58,7 @@ from .memory_context import (
 )
 
 # Cooling Ledger (L1)
-from .cooling_ledger import (
+from .ledger.cooling_ledger import (
     CoolingLedger,
     CoolingLedgerV37,
     CoolingEntry,
@@ -60,13 +73,13 @@ from .cooling_ledger import (
 )
 
 # VAULT-999 (L0-L4)
-from .vault999 import (
+from .vault.vault999 import (
     Vault999,
     VaultConfig,
     VaultInitializationError,
 )
 
-from .vault_manager import (
+from .vault.vault_manager import (
     VaultManager,
     VaultManagerConfig,
     AmendmentRecord,
@@ -75,7 +88,7 @@ from .vault_manager import (
 )
 
 # Scars & Witnesses
-from .scars import (
+from .scars.scars import (
     Scar,
     ScarIndex,
     ScarIndexConfig,
@@ -84,7 +97,7 @@ from .scars import (
     generate_scar_id,
 )
 
-from .scar_manager import (
+from .scars.scar_manager import (
     ScarManager,
     ScarManagerConfig,
     ScarRecord,
@@ -94,9 +107,9 @@ from .scar_manager import (
 )
 
 # Phoenix-72 (Amendment Controller)
-from .phoenix72 import Phoenix72
+from .phoenix.phoenix72 import Phoenix72
 
-from .phoenix72_controller import (
+from .phoenix.phoenix72_controller import (
     Phoenix72Controller,
     Phoenix72Config,
     PressureReport,
@@ -113,7 +126,7 @@ from .phoenix72_controller import (
 )
 
 # EUREKA (zkPC L4)
-from .eureka_receipt import (
+from .eureka.eureka_receipt import (
     EurekaReceiptManager,
     EurekaConfig,
     EurekaReceipt,
@@ -126,17 +139,17 @@ from .eureka_receipt import (
 )
 
 # Vector Adapter
-from .vector_adapter import VectorAdapter, WitnessHit
+from .l7.vector_adapter import VectorAdapter, WitnessHit
 
 # Void Scanner
-from .void_scanner import VoidScanner, ScarCandidate, ScarProposal
+from .scars.void_scanner import VoidScanner, ScarCandidate, ScarProposal
 
 # ============================================================================
 # v38.2-alpha L7 MEMORY LAYER (Mem0 + Qdrant)
 # ============================================================================
 
 # Mem0 Client
-from .mem0_client import (
+from .l7.mem0_client import (
     Mem0Client,
     Mem0Config,
     MemoryHit,
@@ -152,7 +165,7 @@ from .mem0_client import (
 )
 
 # L7 Memory Layer
-from .memory import (
+from .core.memory import (
     Memory,
     RecallResult,
     SieveResult,
@@ -172,7 +185,7 @@ from .memory import (
 # ============================================================================
 
 # Memory Write Policy (v38)
-from .policy import (
+from .core.policy import (
     Verdict,
     MemoryBandTarget,
     WriteDecision,
@@ -188,7 +201,7 @@ from .policy import (
 )
 
 # Memory Bands Router (v38)
-from .bands import (
+from .core.bands import (
     BandName,
     MemoryBand,
     MemoryEntry,
@@ -206,7 +219,7 @@ from .bands import (
 )
 
 # Memory Authority (v38)
-from .authority import (
+from .core.authority import (
     MemoryAuthorityViolation,
     HumanApprovalRequiredError,
     SelfModificationError,
@@ -215,7 +228,7 @@ from .authority import (
 )
 
 # Memory Audit Layer (v38)
-from .audit import (
+from .core.audit import (
     AuditRecord,
     ChainVerificationResult,
     MerkleProof,
@@ -225,7 +238,7 @@ from .audit import (
 )
 
 # Memory Retention Manager (v38)
-from .retention import (
+from .core.retention import (
     RetentionTier,
     RetentionConfig,
     RetentionAction,
@@ -244,7 +257,7 @@ from .retention import (
 # v38.3Omega EUREKA Phase-1 Memory Engine
 # ============================================================================
 
-from .eureka_types import (
+from .eureka.eureka_types import (
     ActorRole,
     MemoryBand as EurekaMemoryBand,
     Verdict as EurekaVerdict,
@@ -252,11 +265,11 @@ from .eureka_types import (
     MemoryWriteDecision,
 )
 
-from .eureka_router import (
+from .eureka.eureka_router import (
     route_write,
 )
 
-from .eureka_store import (
+from .eureka.eureka_store import (
     AppendOnlyJSONLStore,
     InMemoryStore,
 )

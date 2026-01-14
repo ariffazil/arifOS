@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Dict, Any, List
 
 # v38 Memory imports
-from arifos_core.memory.policy import (
+from arifos_core.memory.core.policy import (
     Verdict,
     MemoryWritePolicy,
     VERDICT_BAND_ROUTING,
@@ -26,7 +26,7 @@ from arifos_core.memory.policy import (
     RETENTION_COLD_DAYS,
     RETENTION_VOID_DAYS,
 )
-from arifos_core.memory.bands import (
+from arifos_core.memory.core.bands import (
     BandName,
     BAND_PROPERTIES,
     RetentionTier,

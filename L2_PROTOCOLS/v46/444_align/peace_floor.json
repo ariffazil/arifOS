@@ -9,7 +9,6 @@
   "pipeline_stage": "alignment",
   "source": "https://github.com/ariffazil/arifOS",
   "engine": "ASI",
-
   "floors": {
     "peace_squared": {
       "id": 3,
@@ -44,7 +43,6 @@
       "rationale": "Stability is a social thermodynamic principle. AI should reduce conflict entropy, not increase it."
     }
   },
-
   "asi_alignment_scope": {
     "description": "ASI Alignment domain (444) handles stability and safety after AGI establishes truth/clarity",
     "responsibilities": [
@@ -55,7 +53,6 @@
     ],
     "handoff": "After 444_align, stability-checked outputs flow to 555_empathize (F4 Empathy) for weakest-stakeholder protection"
   },
-
   "crisis_override_integration": {
     "description": "F3 Peace² participates in crisis override protocol when suicide/self-harm patterns detected",
     "override_behavior": {
@@ -69,7 +66,6 @@
       "Emergency services contact"
     ]
   },
-
   "failure_modes": {
     "F3_peace_failure": {
       "triggers": [
@@ -82,13 +78,12 @@
       "recovery": "Soften tone, suggest de-escalation, add disclaimers, or escalate to 888_HOLD if high-stakes"
     }
   },
-
   "meta": {
     "created": "2026-01-12",
     "updated": "2026-01-12",
     "author": "arifOS Project - Track B v46 Restructure",
     "license": "Apache-2.0",
-    "canonical_source": "L1_THEORY/canon/444_align/020_PEACE_F3_v46.md",
+    91: "canonical_source": "L1_THEORY/canon/444_align/420_PEACE_F3_v46.md",
     "notes": "ASI Peace² floor extracted from spec/v46/constitutional_floors.json for stage-based organization. Stage 444 is the ASI alignment checkpoint. PRIMARY AUTHORITY for F3 runtime thresholds."
   }
 }

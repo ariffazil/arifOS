@@ -1,0 +1,30 @@
+{
+  "version": "v46.0",
+  "trinity_commands": {
+    "forge": {
+      "function": "Analyze changes and predict entropy",
+      "authority": "AGI"
+    },
+    "qc": {
+      "function": "Constitutional validation (F1-F9)",
+      "authority": "ASI"
+    },
+    "seal": {
+      "function": "Human approval and atomic bundling",
+      "authority": "APEX"
+    }
+  },
+  "governance_properties": {
+    "atomic": "All-or-nothing bundling",
+    "constitutional": "Auto-validates F1-F9 floors",
+    "auditable": "Complete ledger tracking",
+    "human_sovereign": "Requires explicit human approval"
+  },
+  "exit_codes": {
+    "0": "Success (PASS/APPROVED)",
+    "1": "Warning (FLAG - review recommended)",
+    "89": "VOID (hard floor breach)",
+    "100": "SEALED (approved and bundled)"
+  },
+  "authority": "Track B (Trinity Governance)"
+}

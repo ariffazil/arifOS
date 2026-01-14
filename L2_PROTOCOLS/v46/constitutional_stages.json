@@ -1,0 +1,49 @@
+{
+  "version": "v46.0",
+  "constitutional_stages": {
+    "111_SENSE": {
+      "function": "Constitutional measurement and domain detection",
+      "outputs": [
+        "domain",
+        "lane",
+        "H_in",
+        "subtext",
+        "hypervisor_status"
+      ],
+      "implementation": "IMPLEMENTED"
+    },
+    "222_REFLECT": {
+      "function": "4-path exploration with TAC analysis",
+      "outputs": [
+        "bearing_selection",
+        "all_paths",
+        "tac_analysis"
+      ],
+      "implementation": "IMPLEMENTED"
+    },
+    "333_REASON": {
+      "function": "Constitutional commitment with floor validation",
+      "outputs": [
+        "constitutional_commitment",
+        "floor_validation"
+      ],
+      "implementation": "IMPLEMENTED"
+    }
+  },
+  "handoff_protocols": {
+    "111_to_222": {
+      "domain": "required",
+      "lane": "required",
+      "H_in": "required"
+    },
+    "222_to_333": {
+      "bearing_selection": "required",
+      "tac_analysis": "required"
+    },
+    "333_to_444": {
+      "constitutional_commitment": "required",
+      "floor_validation": "required"
+    }
+  },
+  "authority": "Track B (Stage Specifications)"
+}

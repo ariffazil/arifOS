@@ -30,7 +30,7 @@ from arifos_core.enforcement.genius_metrics import (
     compute_genius_index,
     compute_dark_cleverness,
 )
-from arifos_core.memory.cooling_ledger import (
+from arifos_core.memory.ledger.cooling_ledger import (
     log_cooling_entry_with_v36_telemetry,
 )
 
@@ -565,7 +565,7 @@ class TestCoolingLedgerIntegration:
 
     def test_log_cooling_entry_includes_genius(self, healthy_metrics, tmp_path):
         """log_cooling_entry should include GENIUS metrics."""
-        from arifos_core.memory.cooling_ledger import log_cooling_entry
+        from arifos_core.memory.ledger.cooling_ledger import log_cooling_entry
 
         ledger_path = tmp_path / "cooling_ledger.jsonl"
         entry = log_cooling_entry(
@@ -583,7 +583,7 @@ class TestCoolingLedgerIntegration:
 
     def test_log_cooling_entry_respects_energy(self, healthy_metrics, tmp_path):
         """log_cooling_entry should use provided energy parameter."""
-        from arifos_core.memory.cooling_ledger import log_cooling_entry
+        from arifos_core.memory.ledger.cooling_ledger import log_cooling_entry
 
         ledger_path = tmp_path / "cooling_ledger.jsonl"
         entry = log_cooling_entry(

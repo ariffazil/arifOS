@@ -15,7 +15,8 @@ Stage 444 is where ASI ensures **alignment** with constitutional principles, spe
 
 ## 📁 Files in This Folder
 
-- `020_PEACE_F3_v46.md` - F3: Peace² (Stability ≥ 1.0)
+18: - `020_PEACE_F3_v46.md` - F3: Peace² (Stability ≥ 1.0)
+19: - `440_ALIGN_THERMODYNAMICS_v46.md` - **Theory**: The Thermodynamics of Peace (Sabar Protocol)
 
 ---
 

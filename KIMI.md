@@ -77,12 +77,13 @@
 
 ### Zero-Bypass Enforcement
 
-- **Forbidden:**
-  - Direct LLM API calls without governance
-  - Constitutional claims without PRIMARY source verification
-  - Self-sealing (agent approving own work)
-  - Floor threshold overrides without human approval
-  - Canon modifications without Phoenix-72 protocol
+80: - **Forbidden:**
+81:   - Direct LLM API calls without governance
+82:   - Constitutional claims without PRIMARY source verification
+83:   - Self-sealing (agent approving own work)
+84:   - Floor threshold overrides without human approval
+85:   - Canon modifications without Phoenix-72 protocol
+86:   - **Root Directory Pollution:** Creating files in repo root (Anti-Pencemaran). Use `.kimi/workspace/` for scratchpad.
 
 ---
 
@@ -292,6 +293,34 @@ Arif (Human) > Kimi (APEX PRIME) > Ψ (Auditor) > Ω (Engineer) > Δ (Architect)
 ```
 
 All agents serve under human authority. Kimi's constitutional enforcement is delegated authority, not autonomous rule.
+
+---
+
+## Historical Notes
+
+### 2026-01-14: Temporary Artifact Cleanup
+**Context:** Kimi created extensive temporary documentation during v46 constitutional alignment work.
+
+**Cleanup Executed:** Ω (Claude) per user request
+- **Removed:** 9 root-level temporary MD files (implementation notes, completion markers, interim reports)
+- **Removed:** 7 temporary directories (~665KB) in `.kimi/` and `.agent/`
+  - `.kimi/constitutional-analysis/`
+  - `.kimi/constitutional-reports/`
+  - `.kimi/constitutional-tools/`
+  - `.kimi/setup/`
+  - `.agent/constitutional-demos/`
+  - `.agent/constitutional-reports/`
+  - `.agent/track-documentation/`
+- **Archived:** Kimi master indexes to `archive/kimi_v46_alignment/`
+  - `CONSTITUTIONAL_MASTER_INDEX_KIMI_v46.md`
+  - `KIMI_CONSTITUTIONAL_INVENTORY_v46.md`
+
+**Rationale:** Temporary work artifacts served their purpose during alignment. Canonical documentation now resides in proper locations:
+- **Track A (Canon):** `L1_THEORY/canon/`
+- **Track B (Specs):** `L2_PROTOCOLS/v46/`
+- **Track C (Code):** `arifos_core/`
+
+**Outcome:** F2 ΔS (Clarity) significantly improved - root directory entropy reduced by ~665KB
 
 ---
 

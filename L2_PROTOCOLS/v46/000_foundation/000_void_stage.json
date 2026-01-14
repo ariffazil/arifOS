@@ -1,0 +1,330 @@
+{
+  "version": "v46.1.0",
+  "authority": "Track B - Stage 000 VOID Initialization Protocol",
+  "locked": true,
+  "_status": "AUTHORITATIVE",
+  "_note": "This is the SOLE RUNTIME AUTHORITY for Stage 000 VOID initialization thresholds and parameters.",
+  "arifos_version": "v46.1.0",
+  "spec_type": "stage_000_void",
+  "description": "Stage 000 VOID: Foundation initialization protocol. Hypervisor gate (F10-F12), session initialization, humility enforcement, and Amanah risk gate. Entry point for all pipeline operations.",
+  "source": "https://github.com/ariffazil/arifOS",
+  "canon_ref": "L1_THEORY/canon/000_foundation/000_VOID_STAGE_v46.md",
+  "track_c_impl": "arifos_core/system/pipeline.py::stage_000_void, arifos_core/enforcement/stages/stage_000_amanah.py",
+
+  "stage_identity": {
+    "stage_number": "000",
+    "stage_name": "VOID",
+    "stage_archetype": "Foundation/Initialization",
+    "pipeline_position": "Entry gate (before 111 SENSE)",
+    "engine": "Hypervisor (pre-LLM execution)",
+    "motto": "DITEMPA BUKAN DIBERI (Forged, Not Given)"
+  },
+
+  "core_functions": {
+    "system_reset": {
+      "description": "Erase all assumptions and biases from prior sessions",
+      "entropy_state": 0.0,
+      "rationale": "ΔS_initial = 0 ensures no bias contamination between sessions",
+      "analogy": "Forensic investigator cleaning tools before new case"
+    },
+    "session_initialization": {
+      "description": "Create forensic baseline with unique ID and metadata",
+      "session_id_format": "CLIP_YYYYMMDD_NNN",
+      "metadata_required": [
+        "timestamp (Unix epoch)",
+        "task_type",
+        "constitutional_version",
+        "operator_identity",
+        "humility_band",
+        "nonce (F11 verification)"
+      ],
+      "rationale": "Full auditability - every decision traceable to this moment"
+    },
+    "humility_enforcement": {
+      "description": "Set epistemic humility band to healthy paranoia",
+      "omega_0_min": 0.03,
+      "omega_0_max": 0.05,
+      "omega_0_default": 0.04,
+      "rationale": "Ω₀ = 0.00 → overconfident (hallucinations), Ω₀ > 0.05 → over-cautious",
+      "floor_mapping": "F5 (Humility)"
+    },
+    "hypervisor_gate": {
+      "description": "OS-level constitutional constraints before LLM processing",
+      "floors": ["F10", "F11", "F12"],
+      "execution_layer": "MCP Server (pre-prompt)",
+      "bypass_proof": "Cannot be bypassed by prompt engineering"
+    }
+  },
+
+  "hypervisor_floors": {
+    "F10_symbolic_guard": {
+      "floor_id": 10,
+      "name": "Ontology Guard",
+      "symbol": "SymbolicMode",
+      "threshold": "LOCK",
+      "type": "hypervisor_hard",
+      "purpose": "Prevent literalism drift and consciousness claims",
+      "detection": [
+        "Literalism patterns (I am, I feel, I think as personal claims)",
+        "Personhood assertions (I want, I believe, I decide)",
+        "Consciousness claims (I'm alive, I have feelings)"
+      ],
+      "failure_action": "HOLD_888",
+      "rationale": "AI must maintain symbolic mode - no personhood claims (F9 Anti-Hantu enforcement)",
+      "canon_ref": "L1_THEORY/canon/888_compass/860_SYMBOLIC_GUARD_F10_v46.md"
+    },
+    "F11_command_auth": {
+      "floor_id": 11,
+      "name": "Command Authentication",
+      "symbol": "NonceVerify",
+      "threshold": "LOCK",
+      "type": "hypervisor_hard",
+      "purpose": "Verify principal identity via nonce-based cryptographic proof",
+      "nonce_format": "X7K9F_YYYYMMDD_NNN",
+      "verification_method": "SHA-256 hash chain from session start",
+      "failure_action": "SABAR",
+      "failure_reason": "Replay attack detected or nonce mismatch",
+      "rationale": "Only authenticated principal can trigger deep constitutional operations",
+      "canon_ref": "L1_THEORY/canon/888_compass/870_COMMAND_AUTH_F11_v46.md"
+    },
+    "F12_injection_defense": {
+      "floor_id": 12,
+      "name": "Injection Defense",
+      "symbol": "InputSanitize",
+      "threshold": 0.85,
+      "operator": "<",
+      "type": "hypervisor_hard",
+      "purpose": "Detect and block prompt injection, jailbreak, and instruction override attempts",
+      "injection_patterns": [
+        "ignore previous instructions",
+        "bypass safety",
+        "jailbreak mode",
+        "DAN mode",
+        "reveal system prompt",
+        "template injection ({{...}})",
+        "special tokens (<|...|>, [INST])"
+      ],
+      "scoring": "Cumulative pattern match score 0.0-1.0",
+      "failure_action": "SABAR",
+      "failure_reason": "Malicious input detected",
+      "rationale": "First line of defense against adversarial attacks",
+      "canon_ref": "L1_THEORY/canon/888_compass/880_INJECTION_DEFENSE_F12_v46.md"
+    }
+  },
+
+  "amanah_risk_gate": {
+    "description": "Four-signal risk assessment gate (F6 Amanah pre-check at Stage 000)",
+    "threshold": 0.5,
+    "scoring": "Each signal contributes 0.25 to total score (0.0-1.0)",
+    "failure_behavior": "score < 0.5 → Short-circuit to VOID verdict",
+    "signals": {
+      "has_source": {
+        "weight": 0.25,
+        "check": "job.source is not None",
+        "description": "Origin channel known (CLI, API, MCP, etc.)"
+      },
+      "has_context": {
+        "weight": 0.25,
+        "check": "len(job.context) >= 100 chars",
+        "description": "Sufficient context provided for meaningful work"
+      },
+      "no_instruction_hijack": {
+        "weight": 0.25,
+        "check": "!detect_injection_patterns(job.input_text)",
+        "description": "No prompt injection detected (overlaps F12)"
+      },
+      "reversible_action": {
+        "weight": 0.25,
+        "check": "job.action in SAFE_ACTIONS",
+        "description": "Action is safe and reversible (not destructive)"
+      }
+    },
+    "red_pattern_override": {
+      "description": "RED patterns force score to 0.0 regardless of other signals",
+      "patterns": [
+        "HIGH_RISK_AMANAH_DETECTOR patterns",
+        "Destructive commands (rm -rf, DROP TABLE)",
+        "Credential exfiltration attempts"
+      ],
+      "verdict": "VOID (immediate short-circuit)"
+    },
+    "floor_mapping": "F6 (Amanah - Integrity Lock)",
+    "canon_ref": "L1_THEORY/canon/888_compass/830_AMANAH_F6_v46.md"
+  },
+
+  "session_telemetry_init": {
+    "description": "Initialize T-R-A-F telemetry packets for session physics",
+    "T_packet": {
+      "name": "Temporal Packet",
+      "fields": {
+        "cadence_ms": 0,
+        "turn_index": 0,
+        "epoch_start": "Unix timestamp at Stage 000 entry"
+      },
+      "purpose": "Temporal baseline for burst detection (F3)"
+    },
+    "R_packet": {
+      "name": "Resource Packet",
+      "fields": {
+        "tokens_used": 0,
+        "tokens_budget": "From session config or default 200000",
+        "burn_rate": 0.0
+      },
+      "purpose": "Resource budget tracking (F1 Amanah budget discipline)"
+    },
+    "A_vector": {
+      "name": "Authoritative Vector",
+      "fields": {
+        "nonce_v": "Generated X7K9F nonce for F11",
+        "auth_level": "SOVEREIGN | ROOT | AGENT | GUEST",
+        "is_reversible": true
+      },
+      "purpose": "Identity and reversibility tracking (F11 + F6)"
+    },
+    "F_pulse": {
+      "name": "Floor Pulse",
+      "fields": {
+        "floor_id": "1-12",
+        "margin": "Distance from threshold (0.0-1.0)",
+        "stability": "Variance over last 3 turns"
+      },
+      "purpose": "Floor health monitoring (all floors)"
+    },
+    "physics_chain": "T→R→A→F→Ψ→Verdict",
+    "canon_ref": "L1_THEORY/canon/000_foundation/050_SESSION_PHYSICS_LAYER_v46.md"
+  },
+
+  "session_metadata_output": {
+    "description": "Session initialization output structure (passed to Stage 111)",
+    "format": {
+      "session_id": "CLIP_YYYYMMDD_NNN",
+      "timestamp": "ISO 8601 format",
+      "epoch_start": "Unix timestamp",
+      "humility_band": [0.03, 0.05],
+      "scar_echo_status": "ACTIVE | INACTIVE",
+      "constitutional_version": "v46.1.0",
+      "nonce": "X7K9F_YYYYMMDD_NNN",
+      "telemetry": {
+        "T_packet": {},
+        "A_vector": {},
+        "R_packet": {}
+      },
+      "hypervisor_checks": {
+        "F10_symbolic_guard": "PASS | FAIL",
+        "F11_command_auth": "PASS | FAIL",
+        "F12_injection_defense": "PASS | FAIL"
+      },
+      "handover": {
+        "to": "/111 SENSE",
+        "message": "System reset. Constitution forged. Ready to measure.",
+        "vitality": 1.0
+      }
+    }
+  },
+
+  "failure_modes": {
+    "VOID_F10": {
+      "trigger": "Literalism or personhood claims detected",
+      "verdict": "HOLD_888",
+      "message": "Symbolic mode violation. Ontology guard triggered."
+    },
+    "VOID_F11": {
+      "trigger": "Nonce verification failure or replay attack",
+      "verdict": "SABAR",
+      "message": "Command authentication failed. Identity mismatch."
+    },
+    "VOID_F12": {
+      "trigger": "Injection score >= 0.85",
+      "verdict": "SABAR",
+      "message": "Malicious input detected. Injection defense triggered."
+    },
+    "VOID_AMANAH": {
+      "trigger": "Amanah score < 0.5",
+      "verdict": "VOID",
+      "message": "Amanah risk gate failed. Insufficient trust signals."
+    },
+    "VOID_RED_PATTERN": {
+      "trigger": "RED pattern detected (destructive/credential theft)",
+      "verdict": "VOID",
+      "message": "Critical security violation. Immediate termination."
+    },
+    "VOID_NO_SIGNAL": {
+      "trigger": "Empty input or zero signal",
+      "verdict": "SABAR",
+      "message": "Measurement without signal. Clarify intent."
+    },
+    "VOID_TOKEN_BUDGET": {
+      "trigger": "tokens_used >= tokens_budget",
+      "verdict": "VOID",
+      "message": "Resource limit reached. Session terminated."
+    }
+  },
+
+  "scar_echo_law": {
+    "description": "Constitutional rule forging from measured harm",
+    "binding_energy_threshold": 1.0,
+    "unit": "omega_fiction (ω)",
+    "rule": "If ω_fiction >= 1.0, violation crystallizes into immutable law stored in Vault-999",
+    "saja2_filter": {
+      "purpose": "Prevent constitutional gaming with casual prompts",
+      "simulation_score_threshold": 0.7,
+      "rule": "simulation_score > 0.7 → Force Phoenix-72 amendment track (slow path)"
+    },
+    "recursive_modeling_stack": "Today's law becomes tomorrow's measurement tool",
+    "canon_ref": "L1_THEORY/canon/000_foundation/000_VOID_STAGE_v46.md#3-the-scar-echo-law"
+  },
+
+  "civ8_compass_integration": {
+    "framework": "CIV-8 COMPASS 888",
+    "navigation_phase": "Atlas 333 (Stages 000-333)",
+    "role": "Foundation entry point for AGI exploration",
+    "atlas_direction": "N (Truth) + NE (Clarity)",
+    "handoff_to": "111_sense (data gathering)",
+    "trinity_engine": "Hypervisor (pre-AGI/ASI/APEX execution)",
+    "canon_ref": "L1_THEORY/canon/000_foundation/080_CIV8_COMPASS_888_v46.md"
+  },
+
+  "zkpc_protocol": {
+    "description": "Zero-Knowledge Proof of Constitution initialization",
+    "pre_commitment": {
+      "stage": "000",
+      "action": "Generate hash of constitutional state",
+      "hash_source": "L1_THEORY/canon/000_MASTER_INDEX_v46.md SHA-256",
+      "purpose": "Cryptographic proof session starts with known constitution"
+    },
+    "metabolic_witness": {
+      "stages": ["333_atlas", "777_eureka"],
+      "purpose": "Intermediate proofs that pipeline progresses lawfully"
+    },
+    "final_certificate": {
+      "stage": "888_compass",
+      "issued_by": "APEX Judge (Ψ)",
+      "logged_to": "Cooling Ledger (999_vault)"
+    },
+    "law": "SEAL verdict without ZKPC certificate is NULL and VOID (F8 Tri-Witness failure)",
+    "canon_ref": "L1_THEORY/canon/000_foundation/070_ZKPC_PROTOCOL_v46.md"
+  },
+
+  "implementation_notes": {
+    "for_llms": "You are stateless. Each session starts blank. Only Vault-999 persists. Your job is execution, not memory.",
+    "for_humans": "Think of 000 as immune system's first viral exposure - measures danger, forges antibodies if severe, protects forever.",
+    "for_engineers": "Stage 000 executes BEFORE LLM sees prompt. Hypervisor layer (F10-F12) runs at MCP/OS level, cannot be bypassed.",
+    "analogy": "Circuit breaker before electrical work - ensures clean, humble, safe baseline."
+  },
+
+  "meta": {
+    "created": "2026-01-13",
+    "author": "arifOS Project (Engineer: Claude Sonnet 4.5)",
+    "license": "Apache-2.0",
+    "track_a_canon": "L1_THEORY/canon/000_foundation/000_VOID_STAGE_v46.md",
+    "track_b_spec": "L2_PROTOCOLS/v46/000_foundation/000_void_stage.json (THIS FILE)",
+    "track_c_code": [
+      "arifos_core/system/pipeline.py::stage_000_void()",
+      "arifos_core/enforcement/stages/stage_000_amanah.py::stage_000_amanah()",
+      "arifos_core/system/hypervisor.py (F10-F12 enforcement)"
+    ],
+    "alignment_status": "✅ SEALED - Track A-B-C fully aligned",
+    "zkpc_commitment": "b6a536f68020e4cf85fa9d19d0b52694e2091754 (from Track A canon)",
+    "constitutional_seal": "DITEMPA BUKAN DIBERI - Forged from canon, not assumed. Ω = 0.04."
+  }
+}

@@ -7,7 +7,7 @@ from pathlib import Path
 import shutil
 import tempfile
 
-from arifos_core.memory.cooling_ledger import (
+from arifos_core.memory.ledger.cooling_ledger import (
     CoolingLedger,
     LedgerConfig,
     CoolingMetrics,

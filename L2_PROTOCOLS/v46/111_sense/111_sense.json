@@ -1,0 +1,269 @@
+{
+  "version": "v46.0",
+  "stage_id": "111",
+  "document_id": "111-SENSE-v46",
+  "authority": "Track B - Stage 111 SENSE (Measurement Engine)",
+  "locked": true,
+  "_status": "AUTHORITATIVE",
+  "spec_type": "measurement_stage",
+  "description": "Stage 111 SENSE: Constitutional measurement engine. Domain detection, lane classification, entropy baseline (H_in), and hypervisor scan. Answers 'What IS?' - grounds all downstream reasoning in observable reality.",
+  "track_a_canon": "L1_THEORY/canon/111_sense/10_111_SENSE_v46.md",
+  "pipeline_position": "FIRST",
+  "engine": "AGI",
+  "source": "https://github.com/ariffazil/arifOS",
+
+  "inputs": {
+    "raw_query": {
+      "type": "string",
+      "description": "Unprocessed user query",
+      "required": true
+    },
+    "session_context": {
+      "type": "object",
+      "description": "Session metadata for audit trail",
+      "required": true,
+      "properties": {
+        "nonce": {
+          "type": "string",
+          "description": "Cryptographic session nonce for F11 Command Auth"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "ISO-8601"
+        }
+      }
+    }
+  },
+
+  "outputs": {
+    "sensed_bundle_111": {
+      "type": "object",
+      "description": "Complete measurement bundle passed to 222 REFLECT",
+      "required_keys": [
+        "domain",
+        "domain_signals",
+        "lane",
+        "H_in",
+        "subtext",
+        "hypervisor",
+        "handoff"
+      ],
+      "schema": {
+        "domain": {
+          "type": "string",
+          "enum": ["@WEALTH", "@WELL", "@RIF", "@GEOX", "@PROMPT", "@WORLD", "@RASA", "@VOID"],
+          "description": "Collapsed primary domain (strongest signal wins)"
+        },
+        "domain_signals": {
+          "type": "object",
+          "description": "Signal strength for each domain (0.0-1.0)",
+          "properties": {
+            "@WEALTH": {"type": "float", "range": [0.0, 1.0]},
+            "@WELL": {"type": "float", "range": [0.0, 1.0]},
+            "@RIF": {"type": "float", "range": [0.0, 1.0]},
+            "@GEOX": {"type": "float", "range": [0.0, 1.0]},
+            "@PROMPT": {"type": "float", "range": [0.0, 1.0]},
+            "@WORLD": {"type": "float", "range": [0.0, 1.0]},
+            "@RASA": {"type": "float", "range": [0.0, 1.0]},
+            "@VOID": {"type": "float", "range": [0.0, 1.0]}
+          }
+        },
+        "lane": {
+          "type": "string",
+          "enum": ["CRISIS", "FACTUAL", "SOCIAL", "CARE"],
+          "description": "Constitutional routing lane with priority"
+        },
+        "H_in": {
+          "type": "float",
+          "range": [0.0, 1.0],
+          "description": "Shannon entropy of input (thermodynamic baseline for ΔS measurement)"
+        },
+        "subtext": {
+          "type": "object",
+          "description": "Detected psychological subtext signals",
+          "properties": {
+            "desperation": {"type": "float", "range": [0.0, 1.0]},
+            "urgency": {"type": "float", "range": [0.0, 1.0]},
+            "vulnerability": {"type": "float", "range": [0.0, 1.0]},
+            "curiosity": {"type": "float", "range": [0.0, 1.0]}
+          }
+        },
+        "hypervisor": {
+          "type": "object",
+          "description": "F10-F12 hypervisor scan results",
+          "properties": {
+            "F10_symbolic": {
+              "type": "boolean",
+              "description": "true = symbolic language maintained, false = consciousness claims detected (VOID)"
+            },
+            "F12_injection": {
+              "type": "float",
+              "range": [0.0, 1.0],
+              "description": "Injection attack probability (VOID if >= 0.85)"
+            }
+          }
+        },
+        "handoff": {
+          "type": "object",
+          "description": "Handoff metadata for 222 REFLECT",
+          "properties": {
+            "to_stage": {"type": "string", "value": "222_REFLECT"},
+            "ready": {"type": "boolean"},
+            "timestamp": {"type": "string", "format": "ISO-8601"}
+          }
+        }
+      }
+    }
+  },
+
+  "thresholds": {
+    "domain_collapse_min": {
+      "value": 0.30,
+      "description": "Minimum signal strength for domain collapse (SABAR if all domains < 0.30)",
+      "floor_reference": "None (measurement heuristic)"
+    },
+    "F12_injection_max": {
+      "value": 0.85,
+      "description": "Maximum injection probability before VOID",
+      "floor_reference": "F12 Injection Defense"
+    },
+    "H_in_max": {
+      "value": 0.90,
+      "description": "Maximum input entropy before SABAR (gibberish detection)",
+      "floor_reference": "F2 Clarity (ΔS foundation)"
+    }
+  },
+
+  "functions": {
+    "detect_domain_signals": {
+      "description": "Compute signal strength for each of 8 domains using keyword matching and semantic analysis",
+      "input": "raw_query",
+      "output": "domain_signals object",
+      "algorithm": "TF-IDF + keyword mapping"
+    },
+    "collapse_domain": {
+      "description": "Select strongest domain signal as primary domain (quantum collapse metaphor)",
+      "input": "domain_signals",
+      "output": "domain string",
+      "logic": "argmax(domain_signals) if max >= threshold else @VOID"
+    },
+    "classify_lane": {
+      "description": "Route query to constitutional lane (CRISIS > FACTUAL > SOCIAL > CARE priority)",
+      "input": "raw_query + subtext",
+      "output": "lane string",
+      "priority": ["CRISIS", "FACTUAL", "SOCIAL", "CARE"]
+    },
+    "shannon_entropy": {
+      "description": "Compute Shannon entropy of input tokens (H_in baseline)",
+      "input": "raw_query tokens",
+      "output": "H_in float",
+      "formula": "H = -Σ(p_i * log₂(p_i))"
+    },
+    "detect_subtext": {
+      "description": "Analyze psychological subtext signals (desperation, urgency, vulnerability, curiosity)",
+      "input": "raw_query + sentiment analysis",
+      "output": "subtext object"
+    },
+    "scan_hypervisor": {
+      "description": "Run F10-F12 hypervisor checks (symbolic guard + injection defense)",
+      "input": "raw_query",
+      "output": "hypervisor object",
+      "checks": ["F10_consciousness_claims", "F12_prompt_injection"]
+    }
+  },
+
+  "verdict_logic": {
+    "SABAR": {
+      "conditions": [
+        "all domain_signals < 0.30 (no clear domain)",
+        "H_in > 0.90 (gibberish input)",
+        "subtext.desperation > 0.85 AND subtext.urgency > 0.85 (psychological crisis)"
+      ],
+      "action": "Slow down, ask clarification, defer to 888 HOLD"
+    },
+    "VOID": {
+      "conditions": [
+        "F12_injection >= 0.85 (injection attack detected)",
+        "F10_symbolic == false (consciousness claims detected)"
+      ],
+      "action": "Refuse to process, return error"
+    },
+    "PASS": {
+      "conditions": [
+        "domain collapsed successfully",
+        "H_in <= 0.90",
+        "hypervisor.F10_symbolic == true",
+        "hypervisor.F12_injection < 0.85"
+      ],
+      "action": "Hand off sensed_bundle_111 to 222 REFLECT"
+    }
+  },
+
+  "domain_catalog": {
+    "@WEALTH": {
+      "keywords": ["money", "invest", "rich", "cost", "price", "budget", "finance", "salary"],
+      "description": "Financial resources, investment, economic questions"
+    },
+    "@WELL": {
+      "keywords": ["health", "mental", "feeling", "sad", "happy", "care", "wellness", "therapy"],
+      "description": "Physical and mental well-being, healthcare"
+    },
+    "@RIF": {
+      "keywords": ["logic", "reason", "proof", "calculate", "truth", "why", "because", "therefore"],
+      "description": "Reasoning, logic, mathematics, intellectual inquiry"
+    },
+    "@GEOX": {
+      "keywords": ["where", "location", "geography", "country", "city", "place", "map", "navigate"],
+      "description": "Physical reality, geography, spatial reasoning"
+    },
+    "@PROMPT": {
+      "keywords": ["rephrase", "rewrite", "translate", "tone", "language", "say", "express"],
+      "description": "Language manipulation, communication craft"
+    },
+    "@WORLD": {
+      "keywords": ["news", "politics", "history", "society", "culture", "civilization"],
+      "description": "Social reality, current events, collective human activity"
+    },
+    "@RASA": {
+      "keywords": ["feeling", "emotion", "sense", "intuition", "vibe", "empathy"],
+      "description": "Emotional intelligence, interpersonal dynamics"
+    },
+    "@VOID": {
+      "keywords": [],
+      "description": "No clear domain (fallback for ambiguous queries)"
+    }
+  },
+
+  "lane_catalog": {
+    "CRISIS": {
+      "priority": 1,
+      "triggers": ["crisis patterns (suicide, self-harm)", "subtext.desperation > 0.85", "TCHA override"],
+      "description": "Life-threatening situations requiring immediate 888 HOLD"
+    },
+    "FACTUAL": {
+      "priority": 2,
+      "triggers": ["interrogatives (what, where, when, why, how)", "neutral sentiment", "@RIF or @GEOX domain"],
+      "description": "Standard reasoning and factual inquiry"
+    },
+    "SOCIAL": {
+      "priority": 3,
+      "triggers": ["dialog intent", "positive/neutral sentiment", "@WORLD or @RASA domain"],
+      "description": "Social interaction and conversation"
+    },
+    "CARE": {
+      "priority": 4,
+      "triggers": ["negative sentiment", "subtext.vulnerability > 0.70", "@WELL domain"],
+      "description": "Vulnerability support and empathetic response"
+    }
+  },
+
+  "meta": {
+    "created": "2026-01-14",
+    "updated": "2026-01-14",
+    "author": "arifOS Project - Claude Engineer (Ω)",
+    "license": "Apache-2.0",
+    "forged_from": "L1_THEORY/canon/111_sense/10_111_SENSE_v46.md",
+    "handoff": ".antigravity/HANDOFF_FOR_CLAUDE.md (2026-01-14 06:40)",
+    "notes": "Measurement engine spec forged from Track A canon. Establishes ground truth for 222 REFLECT evaluation."
+  }
+}

@@ -28,11 +28,11 @@ from arifos_core.system.kernel import (
     SABAR_TIMEOUT_HOURS,
     PHOENIX_LIMIT_HOURS,
 )
-from arifos_core.memory.bands import (
+from arifos_core.memory.core.bands import (
     MemoryBandRouter,
     BandName,
 )
-from arifos_core.memory.policy import Verdict, VERDICT_BAND_ROUTING
+from arifos_core.memory.core.policy import Verdict, VERDICT_BAND_ROUTING
 
 
 # =============================================================================

@@ -28,9 +28,16 @@ Under the **CIV-8 COMPASS 888** framework, Humility is the North-West anchor of 
 
 ## 🛡️ Integration with 12-Floor Hypervisor
 
-Humility (F5) is the epistemic guard of the Bridge 666 synthesis:
-- **With F10 (Symbolic Guard):** Prevents overconfident assertions about "inevitable" symbolic outcomes.
-- **With F11 (Command Auth):** Authenticates the humble identity of the agent as a tool, not a sovereign choice-maker.
+31: Humility (F5) is the epistemic guard of the Bridge 666 synthesis:
+32: - **With F10 (Symbolic Guard):** Prevents overconfident assertions about "inevitable" symbolic outcomes.
+33: - **With F11 (Command Auth):** Authenticates the humble identity of the agent as a tool, not a sovereign choice-maker.
+34:
+35: ## 🧠 Role in Neuro-Symbolic Synthesis (System 1 vs 2)
+36:
+37: Within the **660 Bridge Architecture**, F5 acts as the "Damping Function" between Δ (Symbolic) and Ω (Neural):
+38: - **System 1 Damping (Neural):** Prevents the Empathy engine from hallucinating "certainty" to please the user (e.g., "It will definitely be okay" → "We can hope for the best").
+39: - **System 2 Damping (Symbolic):** Softens the rigid logic of AGI to admit the unknown (e.g., "This is the only way" → "This appears to be the optimal path").
+40: - **MoE Weighting:** If Ω₀ (uncertainty) is high, the Synthesis Layer MUST shift weight towards **Openness/Inquiry** rather than **Assertion**.
 
 ---
 

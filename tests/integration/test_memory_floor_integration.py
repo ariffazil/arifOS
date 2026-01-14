@@ -17,28 +17,28 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List
 
 # v38 Memory imports
-from arifos_core.memory.policy import (
+from arifos_core.memory.core.policy import (
     Verdict,
     MemoryBandTarget,
     MemoryWritePolicy,
     WriteDecision,
     EvidenceChainValidation,
 )
-from arifos_core.memory.bands import (
+from arifos_core.memory.core.bands import (
     BandName,
     MemoryBandRouter,
     MemoryEntry,
 )
-from arifos_core.memory.authority import (
+from arifos_core.memory.core.authority import (
     MemoryAuthorityCheck,
     AuthorityDecision,
     HumanApprovalRequiredError,
     SelfModificationError,
 )
-from arifos_core.memory.audit import (
+from arifos_core.memory.core.audit import (
     MemoryAuditLayer,
 )
-from arifos_core.memory.retention import (
+from arifos_core.memory.core.retention import (
     RetentionTier,
     MemoryRetentionManager,
 )

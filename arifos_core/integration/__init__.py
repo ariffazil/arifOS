@@ -7,8 +7,10 @@ This module provides the integration layer between:
 - APEX PRIME (constitutional verdict engine)
 - ATLAS-333 (lane routing)
 - EUREKA-777 (paradox synthesis)
+- Constitutional Meta-Search System
 
 Purpose: Reduce entropy by unifying scattered floor logic into single execution spine.
+Includes constitutional meta-search, cost tracking, and search caching capabilities.
 
 Status: SEALED
 Nonce: X7K9F24
@@ -22,12 +24,56 @@ from .floor_adapter import (
     integrate_floors_with_apex,
 )
 
+from .meta_search import (
+    ConstitutionalMetaSearch,
+    SearchResult,
+    ConstitutionalSearchError,
+    constitutional_check,
+)
+
+from .cost_tracker import (
+    CostTracker,
+    BudgetExceededError,
+    ConstitutionalBudgetError,
+    CostEstimate,
+    ActualCost,
+    BudgetLevel,
+    CostType,
+)
+
+from .search_cache import (
+    ConstitutionalSearchCache,
+    CacheEntry,
+    TTLAwareCache,
+)
+
 __all__ = [
+    # Floor Adapter
     "FloorAdapter",
     "FloorCheckResult",
     "FloorFailure",
     "FLOOR_ADAPTER",
     "integrate_floors_with_apex",
+    
+    # Constitutional Meta-Search
+    "ConstitutionalMetaSearch",
+    "SearchResult",
+    "ConstitutionalSearchError",
+    "constitutional_check",
+    
+    # Cost Tracker
+    "CostTracker",
+    "BudgetExceededError",
+    "ConstitutionalBudgetError",
+    "CostEstimate",
+    "ActualCost",
+    "BudgetLevel",
+    "CostType",
+    
+    # Search Cache
+    "ConstitutionalSearchCache",
+    "CacheEntry",
+    "TTLAwareCache",
 ]
 
 __version__ = "v46.0-APEX-THEORY"

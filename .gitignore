@@ -128,3 +128,12 @@ logs/
 nul
 .DS_Store
 Thumbs.db
+# Secret files (GitHub push protection)
+mcp_config_antigravity_constitutional.json
+mcp_config_antigravity_constitutional_fixed.json
+scripts/setup_antigravity_constitutional_mcp.py
+
+# Temporary/generated directories (v46.1.1 Anti-Pencemaran)
+.arifos_clip/
+.well_snapshots/
+cooling_ledger/

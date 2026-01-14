@@ -1,0 +1,100 @@
+{
+  "version": "v46.0",
+  "pipeline_stages": {
+    "000": {
+      "name": "VOID",
+      "function": "Input safety & identity",
+      "floors": [
+        "F10",
+        "F11",
+        "F12"
+      ]
+    },
+    "111": {
+      "name": "SENSE",
+      "function": "Constitutional measurement",
+      "floors": [
+        "F1",
+        "F2"
+      ]
+    },
+    "222": {
+      "name": "REFLECT",
+      "function": "Constitutional evaluation",
+      "floors": [
+        "F3",
+        "F4"
+      ]
+    },
+    "333": {
+      "name": "REASON",
+      "function": "Constitutional commitment",
+      "floors": [
+        "F5",
+        "F6",
+        "F7"
+      ]
+    },
+    "444": {
+      "name": "EVIDENCE",
+      "function": "Evidence validation",
+      "floors": [
+        "F8"
+      ]
+    },
+    "555": {
+      "name": "EMPATHIZE",
+      "function": "Empathy calibration",
+      "floors": [
+        "F4"
+      ]
+    },
+    "666": {
+      "name": "ALIGN",
+      "function": "Constitutional alignment",
+      "floors": [
+        "F6",
+        "F7"
+      ]
+    },
+    "777": {
+      "name": "FORGE",
+      "function": "Response generation",
+      "floors": [
+        "F1",
+        "F2"
+      ]
+    },
+    "888": {
+      "name": "JUDGE",
+      "function": "Final review",
+      "floors": [
+        "F8",
+        "F9"
+      ]
+    },
+    "999": {
+      "name": "SEAL",
+      "function": "Cryptographic sealing",
+      "floors": []
+    }
+  },
+  "class_a_routing": [
+    "111",
+    "333",
+    "888",
+    "999"
+  ],
+  "class_b_routing": [
+    "111",
+    "222",
+    "333",
+    "444",
+    "555",
+    "666",
+    "777",
+    "888",
+    "999"
+  ],
+  "authority": "Track B (Protocol Specifications)"
+}

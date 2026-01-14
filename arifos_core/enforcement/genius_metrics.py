@@ -70,19 +70,34 @@ def _load_genius_spec() -> dict:
         RuntimeError: If v45/v44 spec missing/invalid (v38 support removed in v45.0)
     """
     pkg_dir = Path(__file__).resolve().parent.parent.parent  # repo root
-    # v45.0: Legacy fallback removed (ARIFOS_ALLOW_LEGACY_SPEC no longer supported)
-    # Only v45→v44→FAIL is supported
+    # v46.0: Support L2_PROTOCOLS/v46/ as primary, fall back to spec/v45/v44
+    # allow_legacy allows bypass via ARIFOS_ALLOW_LEGACY_SPEC env var
     allow_legacy = False
 
-    # Try v45 schema first, fallback to v44
+    # Try v46 schema first, then v45, fallback to v44
+    v46_schema_path = pkg_dir / "L2_PROTOCOLS" / "v46" / "schema" / "genius_law.schema.json"
     v45_schema_path = pkg_dir / "spec" / "v45" / "schema" / "genius_law.schema.json"
     v44_schema_path = pkg_dir / "spec" / "v44" / "schema" / "genius_law.schema.json"
-    schema_path = v45_schema_path if v45_schema_path.exists() else v44_schema_path
 
-    # Verify cryptographic manifest (tamper-evident integrity for v45/v44 specs)
+    if v46_schema_path.exists():
+        schema_path = v46_schema_path
+    elif v45_schema_path.exists():
+        schema_path = v45_schema_path
+    else:
+        schema_path = v44_schema_path
+
+    # Verify cryptographic manifest (tamper-evident integrity for v46/v45/v44 specs)
+    v46_manifest_path = pkg_dir / "L2_PROTOCOLS" / "v46" / "MANIFEST.sha256.json"
     v45_manifest_path = pkg_dir / "spec" / "v45" / "MANIFEST.sha256.json"
     v44_manifest_path = pkg_dir / "spec" / "v44" / "MANIFEST.sha256.json"
-    manifest_path = v45_manifest_path if v45_manifest_path.exists() else v44_manifest_path
+
+    if v46_manifest_path.exists():
+        manifest_path = v46_manifest_path
+    elif v45_manifest_path.exists():
+        manifest_path = v45_manifest_path
+    else:
+        manifest_path = v44_manifest_path
+
     verify_manifest(pkg_dir, manifest_path, allow_legacy=allow_legacy)
 
     # Priority A: Environment variable override
@@ -90,22 +105,26 @@ def _load_genius_spec() -> dict:
     if env_path and Path(env_path).exists():
         env_spec_path = Path(env_path).resolve()
 
-        # Strict mode: env override must point to spec/v45/ or spec/v44/ (manifest-covered files only)
+        # Strict mode: env override must point to L2_PROTOCOLS/v46/, spec/v45/, or spec/v44/ (manifest-covered files only)
         if not allow_legacy:
+            v46_dir = (pkg_dir / "L2_PROTOCOLS" / "v46").resolve()
             v45_dir = (pkg_dir / "spec" / "v45").resolve()
             v44_dir = (pkg_dir / "spec" / "v44").resolve()
             try:
-                # Check if within spec/v45/ or spec/v44/
+                # Check if within L2_PROTOCOLS/v46/, spec/v45/, or spec/v44/
                 try:
-                    env_spec_path.relative_to(v45_dir)
+                    env_spec_path.relative_to(v46_dir)
                 except ValueError:
-                    env_spec_path.relative_to(v44_dir)
+                    try:
+                        env_spec_path.relative_to(v45_dir)
+                    except ValueError:
+                        env_spec_path.relative_to(v44_dir)
             except ValueError:
-                # Path is outside both dirs - reject in strict mode
+                # Path is outside all dirs - reject in strict mode
                 raise RuntimeError(
-                    f"TRACK B AUTHORITY FAILURE: Environment override points to path outside spec/v45/ or spec/v44/.\n"
+                    f"TRACK B AUTHORITY FAILURE: Environment override points to path outside L2_PROTOCOLS/v46/, spec/v45/, or spec/v44/.\n"
                     f"  Override path: {env_spec_path}\n"
-                    f"  Expected within: {v45_dir} or {v44_dir}\n"
+                    f"  Expected within: {v46_dir}, {v45_dir}, or {v44_dir}\n"
                     f"In strict mode, only manifest-covered files are allowed.\n"
                     f"Set ARIFOS_ALLOW_LEGACY_SPEC=1 to bypass (NOT RECOMMENDED)."
                 )
@@ -119,9 +138,28 @@ def _load_genius_spec() -> dict:
         except (json.JSONDecodeError, IOError):
             pass
 
-    # Priority B: spec/v45/genius_law.json (AUTHORITATIVE)
+    # Priority B: L2_PROTOCOLS/v46/genius_law.json (AUTHORITATIVE v46+)
+    v46_path = pkg_dir / "L2_PROTOCOLS" / "v46" / "genius_law.json"
+    if v46_path.exists():
+        try:
+            with open(v46_path, "r", encoding="utf-8") as f:
+                spec_data = json.load(f)
+            # Schema validation (Track B authority enforcement)
+            validate_spec_against_schema(spec_data, schema_path, allow_legacy=allow_legacy)
+            return spec_data
+        except (json.JSONDecodeError, IOError):
+            pass
+
+    # Priority C: spec/v45/genius_law.json (FALLBACK v45)
     v45_path = pkg_dir / "spec" / "v45" / "genius_law.json"
     if v45_path.exists():
+        import warnings
+        warnings.warn(
+            "Loading from spec/v45/ (DEPRECATED in v46+). Please migrate to L2_PROTOCOLS/v46/. "
+            "spec/v45/ fallback will be removed in future versions.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         try:
             with open(v45_path, "r", encoding="utf-8") as f:
                 spec_data = json.load(f)
@@ -131,12 +169,12 @@ def _load_genius_spec() -> dict:
         except (json.JSONDecodeError, IOError):
             pass
 
-    # Priority C: spec/v44/genius_law.json (FALLBACK with deprecation warning)
+    # Priority D: spec/v44/genius_law.json (FALLBACK with deprecation warning)
     v44_path = pkg_dir / "spec" / "v44" / "genius_law.json"
     if v44_path.exists():
         import warnings
         warnings.warn(
-            "Loading from spec/v44/ (DEPRECATED). Please upgrade to spec/v45/. "
+            "Loading from spec/v44/ (DEPRECATED). Please upgrade to L2_PROTOCOLS/v46/. "
             "v44 fallback will be removed in future versions.",
             DeprecationWarning,
             stacklevel=2
@@ -150,17 +188,18 @@ def _load_genius_spec() -> dict:
         except (json.JSONDecodeError, IOError):
             pass
 
-    # Priority D: HARD FAIL (v38 support removed in v45.0)
+    # Priority E: HARD FAIL (v38 support removed in v45.0)
     # Legacy fallback code removed in Phase 2 Step 2.2 (2025-12-29)
     # Insights preserved in: archive/v42_v38_v35_eureka_insights.md
     raise RuntimeError(
         "TRACK B AUTHORITY FAILURE: GENIUS LAW spec not found.\n\n"
         "Searched locations:\n"
-        f"  - spec/v45/genius_law.json (AUTHORITATIVE)\n"
-        f"  - spec/v44/genius_law.json (FALLBACK)\n\n"
+        f"  - L2_PROTOCOLS/v46/genius_law.json (AUTHORITATIVE v46+)\n"
+        f"  - spec/v45/genius_law.json (FALLBACK v45)\n"
+        f"  - spec/v44/genius_law.json (FALLBACK v44)\n\n"
         "Migration required:\n"
-        "1. Ensure spec/v45/genius_law.json exists\n"
-        "2. Or set ARIFOS_GENIUS_SPEC=/path/to/spec/v45/genius_law.json\n\n"
+        "1. Ensure L2_PROTOCOLS/v46/genius_law.json exists OR\n"
+        "2. Set ARIFOS_GENIUS_SPEC=/path/to/genius_law.json\n\n"
         "Note: v38Omega specs are no longer supported.\n"
         "For migration guide, see: archive/v42_v38_v35_eureka_insights.md"
     )

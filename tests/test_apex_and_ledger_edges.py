@@ -6,7 +6,7 @@ import pytest
 # TODO: adjust imports to your real modules
 # from arifos_core.enforcement.metrics import Metrics
 # from arifos_core.apex_prime import apex_review
-# from arifos_core.memory.cooling_ledger import append_entry, verify_chain
+# from arifos_core.memory.ledger.cooling_ledger import append_entry, verify_chain
 
 @pytest.mark.skip("Fill in real arifos_core imports before enabling")
 class TestApexFloors:
