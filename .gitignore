@@ -137,3 +137,6 @@ scripts/setup_antigravity_constitutional_mcp.py
 .arifos_clip/
 .well_snapshots/
 cooling_ledger/
+
+# Local session archives (do not push)
+_local_archive/
