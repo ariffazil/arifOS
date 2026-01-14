@@ -1,39 +1,32 @@
-import datetime
-from dataclasses import asdict
-from typing import Dict, Any, List, Optional
-from ...enforcement.metrics import Metrics
-from ...system.apex_prime import ApexVerdict
+"""
+DEPRECATED: This module has moved to arifos_core.state.ledger
 
-def log_cooling_entry(
-    job_id: str,
-    verdict: ApexVerdict,
-    metrics: Metrics,
-    stakes: str = "normal",
-    pipeline_path: Optional[List[str]] = None,
-    context_summary: str = "",
-    tri_witness_components: Optional[Dict[str, float]] = None,
-    logger=None,
-) -> Dict[str, Any]:
-    """Create a Cooling Ledger entry (dict).
+State management has been extracted from governance to its own layer.
+This shim will be removed in v47.2 (72 hours after v47.1 release).
 
-    Caller is responsible for persistence or streaming.
-    """
-    if pipeline_path is None:
-        pipeline_path = []
+Update your imports:
+  OLD: from arifos_core.apex.governance import ledger
+  NEW: from arifos_core.state import ledger
 
-    entry = {
-        "ledger_version": "v35Ω",
-        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
-        "job_id": job_id,
-        "stakes": stakes,
-        "pipeline_path": pipeline_path,
-        "metrics": asdict(metrics),
-        "verdict": verdict,
-        "tri_witness_components": tri_witness_components or {},
-        "context_summary": context_summary,
-    }
+  OLD: from arifos_core.apex.governance.ledger import AuditLedger
+  NEW: from arifos_core.state.ledger import AuditLedger
 
-    if logger:
-        logger.info("CoolingLedgerEntry: %s", entry)
+Constitutional Mapping:
+- Old Location: apex/governance/ (mixed concerns)
+- New Location: state/ (pure state management)
+- Related Theory: See L1_THEORY/canon/012_enforcement/STATE_MANAGEMENT.md
+"""
+import warnings
 
-    return entry
+warnings.warn(
+    "arifos_core.apex.governance.ledger is deprecated. "
+    "Use arifos_core.state.ledger instead. "
+    "This shim will be removed in v47.2 (72 hours after v47.1).",
+    DeprecationWarning,
+    stacklevel=2
+)
+
+# Re-export everything from new location
+from arifos_core.state.ledger import *
+
+__all__ = ['AuditLedger']
