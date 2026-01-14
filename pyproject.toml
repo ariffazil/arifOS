@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "47.1.0"
-description = "12 constitutional floors for AI safety. v47.1 Entropy Optimized. Works with ChatGPT, Claude, Gemini, and any LLM."
+version = "46.2.0"
+description = "12 constitutional floors for AI safety. v46.2 Sovereign Witness Refined. Works with ChatGPT, Claude, Gemini, and any LLM."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "AGPL-3.0-only"
