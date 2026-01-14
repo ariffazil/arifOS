@@ -6,6 +6,78 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ---
 
+## [v47.1.0] - 2026-01-14 - Constitutional Cleanup (Entropy Reduction)
+
+**Status:** ✅ IN PROGRESS | Entropy: 11.7 → 6.7 (Moves 1-2 complete) | Authority: @ariffazil
+
+### 🔥 Constitutional Cleanup - Thermodynamic Reorganization
+
+This release executes constitutional cleanup to reduce codebase entropy (ΔS) from 11.7 → target 1.8 (below Humility Band threshold of 3.2).
+
+**Philosophy:** "DITEMPA BUKAN DIBERI" — Forged through thermodynamic rigor, not convenience.
+
+### 📦 Move 1: State Extraction (ΔS -4.2) ✅
+
+**MOVED:** State management from `apex/governance/` to `state/`
+- ledger.py, ledger_cryptography.py, ledger_hashing.py
+- merkle.py, merkle_ledger.py
+
+**Migration:**
+```python
+# OLD (deprecated - 72h shim)
+from arifos_core.apex.governance import ledger
+
+# NEW (canonical)
+from arifos_core.state import ledger
+```
+
+**Rationale:** Separate state management from governance logic (constitutional layer alignment)
+
+### 🛡️ Move 2: Hypervisor Elevation (ΔS -0.8) ✅
+
+**MOVED:** Guards from `guards/` to `hypervisor/guards/`
+- injection_guard.py, nonce_manager.py, ontology_guard.py, session_dependency.py
+
+**Migration:**
+```python
+# OLD (deprecated - 72h shim)
+from arifos_core.guards.injection_guard import InjectionGuard
+
+# NEW (canonical)
+from arifos_core.hypervisor.guards.injection_guard import InjectionGuard
+```
+
+**Rationale:** Guards belong in hypervisor layer (F10-F12 pre-pipeline enforcement)
+
+### 📚 Documentation
+
+- **MIGRATION_GUIDE_v47.1.md:** Complete migration instructions, automated scripts
+- **ROLLBACK_PROCEDURE_v47.1.md:** 4 rollback options, emergency procedures
+- **REMAINING_WORK_v47.1.md:** Execution plans for remaining moves
+
+### 🔄 Backward Compatibility
+
+All deprecated import paths continue working via 72-hour deprecation shims. Clear `DeprecationWarning` messages guide migration.
+
+### ⏳ Remaining Moves
+
+- Move 3: Enforcement Consolidation (deferred to follow-up PR - high complexity)
+- Move 4: Governance Crystallization (already complete)
+- Move 5: Test Stabilization (spec validation fix)
+- Move 6: Documentation updates (this file)
+
+### 📊 Entropy Progress
+
+- **Starting ΔS:** 11.7
+- **After Move 1:** 7.5 (-4.2)
+- **After Move 2:** 6.7 (-0.8)
+- **Target:** ≤ 3.2 (achieved with Moves 1+2+4+5)
+- **Projected Final:** 1.8
+
+See **MIGRATION_GUIDE_v47.1.md** for complete migration instructions.
+
+---
+
 ## [v46.1.1] - 2026-01-14 - Sovereign Witness Pipeline Forge
 
 **Status:** ✅ SEALED | Tests: Manual Verify | Authority: Arif + Antigravity (Psi)

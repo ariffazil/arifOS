@@ -639,3 +639,33 @@ All agents must comply with arifOS constitutional floors. See `AGENTS.md` for un
 ---
 
 **arifOS v46.1.1 "Sovereign Witness"** — Simple rules. Clear answers. Safe AI. ZKPC-Sealed.
+
+---
+
+## 🔥 v47.1 Update: Constitutional Cleanup
+
+**Entropy Reduction:** 11.7 → 6.7 (Moves 1-2 complete)
+
+### Import Path Changes
+
+**State Management:**
+```python
+# OLD (deprecated - 72h shim)
+from arifos_core.apex.governance import ledger
+
+# NEW (canonical)
+from arifos_core.state import ledger
+```
+
+**Guards (Hypervisor):**
+```python
+# OLD (deprecated - 72h shim)  
+from arifos_core.guards.injection_guard import InjectionGuard
+
+# NEW (canonical)
+from arifos_core.hypervisor.guards.injection_guard import InjectionGuard
+```
+
+See **MIGRATION_GUIDE_v47.1.md** for complete migration instructions and **ROLLBACK_PROCEDURE_v47.1.md** for rollback options.
+
+**Backward Compatibility:** All old imports work for 72 hours with deprecation warnings.
