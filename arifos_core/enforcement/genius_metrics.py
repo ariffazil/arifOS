@@ -31,23 +31,23 @@ import json
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
+
+from arifos_core.spec.manifest_verifier import verify_manifest
 
 # Import schema validator and manifest verifier from spec package (avoids circular import)
 from arifos_core.spec.schema_validator import validate_spec_against_schema
-from arifos_core.spec.manifest_verifier import verify_manifest
 
 # v42: Use relative import to avoid circular dependency
 # (arifos_core/__init__.py imports from here, so we can't use absolute arifos_core.metrics)
 from .metrics import (
-    Metrics,
-    TRUTH_THRESHOLD,
     DELTA_S_THRESHOLD,
-    PEACE_SQUARED_THRESHOLD,
     KAPPA_R_THRESHOLD,
+    PEACE_SQUARED_THRESHOLD,
+    TRUTH_THRESHOLD,
+    Metrics,
     check_omega_band,
 )
-
 
 # =============================================================================
 # TRACK B SPEC LOADER (v45.0: GENIUS LAW Authority)
@@ -72,7 +72,7 @@ def _load_genius_spec() -> dict:
     pkg_dir = Path(__file__).resolve().parent.parent.parent  # repo root
     # v46.0: Support L2_PROTOCOLS/v46/ as primary, fall back to spec/v45/v44
     # allow_legacy allows bypass via ARIFOS_ALLOW_LEGACY_SPEC env var
-    allow_legacy = False
+    allow_legacy = os.getenv("ARIFOS_ALLOW_LEGACY_SPEC", "0") == "1"
 
     # Try v46 schema first, then v45, fallback to v44
     v46_schema_path = pkg_dir / "L2_PROTOCOLS" / "v46" / "schema" / "genius_law.schema.json"
