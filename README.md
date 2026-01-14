@@ -606,6 +606,30 @@ AGPL-3.0 — Free to use, modify, and share. If you modify and distribute, you m
 
 ---
 
+## Technical Debt and Roadmap
+
+**Current Status:** v46.1.1 (Stable) - v47 reorganization in progress
+
+Known structural improvements tracked in:
+- [Issue ariffazil/arifOS#45: Core Equilibrium Architecture v47](https://github.com/ariffazil/arifOS/issues/45)
+
+### Agent Configuration Directories
+
+This repository includes configuration for multiple AI coding agents:
+
+| Directory | Agent | Purpose |
+|-----------|-------|---------|
+| `.agent/` | Generic | Base agent instructions |
+| `.antigravity/` | Antigravity | Google agent config |
+| `.claude/` | Claude Code | Anthropic agent config |
+| `.codex/` | OpenAI Codex | OpenAI agent config |
+| `.cursor/` | Cursor | Cursor IDE config |
+| `.kimi/` | Kimi | Moonshot agent config (APEX PRIME) |
+
+All agents must comply with arifOS constitutional floors. See `AGENTS.md` for unified governance.
+
+---
+
 ## 👤 Author
 
 **Muhammad Arif bin Fazil**
