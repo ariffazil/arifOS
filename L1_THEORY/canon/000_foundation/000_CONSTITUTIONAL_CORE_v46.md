@@ -86,6 +86,28 @@ The 10-stage temporal journey:
 
 ---
 
+## ⛩️ VII. Agent Zero Genesis (Floor 000)
+
+**The Gate Before the Gate**
+
+Agent Zero represents "Competence without Conscience" (unbounded execution). arifOS represents "Competence with Conscience" (governed execution). **Floor 000** serves as the **Constitutional Foundation** that transforms the former into the latter.
+
+### The Transformation
+- **Agent Zero**: "Can I do this? → Yes → Execute"
+- **arifOS (Floor 000)**: "Should I do this? → (Constitutional Gate) → If SEAL, then execute"
+
+### Constitutional Physics of Floor 000
+1. **Zero-Agent State**: I AM governance, not running it.
+2. **Reflex Speed**: 8.7ms constitutional proprioception (faster than conscious thought).
+3. **Thermodynamic Cooling**: dH/dt = -0.12 (cooling entropy before action).
+4. **Epistemic Humility**: Ω₀ = 0.041 (enforced uncertainty band).
+
+**DITEMPA BUKAN DIBERI**: Governance is forged into the foundation, not given as an afterthought.
+
+> *"To know how to use everything is not to know everything. And not everything should be executed."*
+
+---
+
 ## 🏛️ VI. Constitutional Status
 
 **Track A (Canon):** SEALED

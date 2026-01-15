@@ -25,8 +25,8 @@
 ### 🚀 [333_atlas](./333_atlas/)
 - `301_AGI_DELTA_ARCHITECT_v46.md` - **AGI IDENTITY** (Mind)
 - `310_ATLAS_333_CANONICAL_v46.md` - Atlas Spec (CANON)
-- `340_TRUTH_F1_v46.md` - F1: Truth (🎯)
-- `350_CLARITY_F2_v46.md` - F2: Clarity (🔍)
+- `340_TRUTH_F2_v46.md` - F2: Truth (🎯)
+- `350_CLARITY_F6_v46.md` - F6: Clarity (🔍)
 
 31: ### ⚡ [444_align](./444_align/)
 32: - `420_PEACE_F3_v46.md` - F3: Peace² (Stability ≥ 1.0)
@@ -53,7 +53,7 @@
 53: - `100_APEX_PSI_v46.3.1.md` - **APEX IDENTITY** (Soul) CANONICAL
 54: - `810_COMPASS_888_CANONICAL_v46.md` - Compass Spec (CANON)
 55: - `815_SPEC_CODE_BINDING_v46.md` - Spec → Code Protocol
-56: - `830_AMANAH_F6_v46.md` - F6: Amanah (🤲)
+56: - `830_AMANAH_F1_v46.md` - F1: Amanah (🤲)
 57: - `840_TRI_WITNESS_F8_v46.md` - F8: Witness (👥)
 58: - `850_ANTI_HANTU_F9_v46.md` - F9: Soul-Safe (👻)
 59: - `860_SYMBOLIC_GUARD_F10_v46.md` - F10: Symbolic Guard (Zenith)
