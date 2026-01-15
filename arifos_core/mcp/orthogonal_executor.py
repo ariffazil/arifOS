@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
 
 from .tools.bundles import agi_think_sync, asi_act_sync, apex_audit_sync
-from .models import VerdictResponse
+from .models import VerdictResponse, AgiThinkRequest, AsiActRequest, ApexAuditRequest
 
 
 # =============================================================================
@@ -128,10 +128,11 @@ class OrthogonalExecutor:
 
         # Execute in thread pool (sync function)
         loop = asyncio.get_event_loop()
+        request = AgiThinkRequest(query=query, context=context or {})
         result = await loop.run_in_executor(
             None,
             agi_think_sync,
-            {"query": query, "context": context or {}}
+            request
         )
         return result
 
@@ -151,17 +152,18 @@ class OrthogonalExecutor:
 
         # ASI needs draft text to validate
         # For now, use query itself (in real flow, this comes from AGI output)
-        draft_response = context.get("draft_response", query)
+        draft_response = (context or {}).get("draft_response", query)
 
         loop = asyncio.get_event_loop()
+        request = AsiActRequest(
+            draft_response=draft_response,
+            recipient_context=context or {},
+            intent="validate_safety"
+        )
         result = await loop.run_in_executor(
             None,
             asi_act_sync,
-            {
-                "draft_response": draft_response,
-                "recipient_context": context or {},
-                "intent": "validate_safety"
-            }
+            request
         )
         return result
 
@@ -180,14 +182,15 @@ class OrthogonalExecutor:
         """
 
         loop = asyncio.get_event_loop()
+        request = ApexAuditRequest(
+            agi_thought=agi_result.dict() if hasattr(agi_result, 'dict') else agi_result,
+            asi_veto=asi_result.dict() if hasattr(asi_result, 'dict') else asi_result,
+            evidence_pack={}
+        )
         result = await loop.run_in_executor(
             None,
             apex_audit_sync,
-            {
-                "agi_thought": agi_result.dict() if hasattr(agi_result, 'dict') else agi_result,
-                "asi_veto": asi_result.dict() if hasattr(asi_result, 'dict') else asi_result,
-                "evidence_pack": {}
-            }
+            request
         )
         return result
 

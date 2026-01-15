@@ -298,16 +298,16 @@ def _load_floors_spec_unified() -> dict:
         v46_floors = spec_data["constitutional_floors"]
 
         spec_data["floors"] = {
-            "truth": v46_floors.get("F1", {}),
-            "delta_s": v46_floors.get("F2", {}),
-            "peace_squared": v46_floors.get("F3", {}),
-            "kappa_r": v46_floors.get("F4", {}),
-            "omega_0": v46_floors.get("F5", {}),
-            "amanah": v46_floors.get("F6", {}),
-            "rasa": v46_floors.get("F7", {}),
-            "tri_witness": v46_floors.get("F8", {}),
-            "anti_hantu": v46_floors.get("F9", {}),
-            # v46-specific hypervisor floors (optional for v45 compatibility)
+            "amanah": v46_floors.get("F1", {}),        # F1 = Amanah (Trust)
+            "truth": v46_floors.get("F2", {}),         # F2 = Truth
+            "peace_squared": v46_floors.get("F3", {}), # F3 = Peace
+            "kappa_r": v46_floors.get("F4", {}),       # F4 = Empathy
+            "omega_0": v46_floors.get("F5", {}),       # F5 = Humility
+            "delta_s": v46_floors.get("F6", {}),       # F6 = Clarity (DeltaS)
+            "rasa": v46_floors.get("F7", {}),          # F7 = RASA
+            "tri_witness": v46_floors.get("F8", {}),   # F8 = Tri-Witness
+            "anti_hantu": v46_floors.get("F9", {}),    # F9 = Anti-Hantu
+            # v46-specific hypervisor floors
             "ontology": v46_floors.get("F10", {}),
             "command_auth": v46_floors.get("F11", {}),
             "injection_defense": v46_floors.get("F12", {}),
@@ -329,10 +329,10 @@ _FLOORS_SPEC = _load_floors_spec_unified()
 # FLOOR THRESHOLD CONSTANTS (loaded from unified spec loader)
 # =============================================================================
 
-# F1: Truth - factual integrity
+# F2: Truth - factual integrity
 TRUTH_THRESHOLD: float = _FLOORS_SPEC["floors"]["truth"]["threshold"]
 
-# F2: Clarity (DeltaS) - entropy reduction
+# F6: Clarity (DeltaS) - entropy reduction
 DELTA_S_THRESHOLD: float = _FLOORS_SPEC["floors"]["delta_s"]["threshold"]
 
 # F3: Stability (Peace-squared) - non-escalation
