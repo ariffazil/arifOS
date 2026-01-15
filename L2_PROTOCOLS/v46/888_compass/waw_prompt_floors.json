@@ -1,11 +1,11 @@
 {
-  "version": "v45.0",
+  "version": "v46.0",
   "authority": "Track B (tunable thresholds) governed by Track A canon",
   "locked": true,
   "_status": "AUTHORITATIVE",
-  "_source_evolution": "v42.1 → v44.0 -> v45.0 (Phoenix-72 consolidation) (TEARFRAME physics extension, no W@W changes)",
+  "_source_evolution": "v42.1 → v44.0 → v45.0 → v46.0 (Geometry of Governed Intelligence, AGI/ASI/APEX trinity)",
   "_note": "This file is the SOLE RUNTIME AUTHORITY for W@W Federation config. Loader MUST use this file (or env override).",
-  "arifos_version": "v45.0",
+  "arifos_version": "v46.0",
   "spec_type": "waw_prompt_floors",
   "description": "Machine-readable specification for W@W Federation and @PROMPT Organ (v44.0).",
   "source": "https://github.com/ariffazil/arifOS",
@@ -86,7 +86,7 @@
         "Organ identity-based decision rules"
       ]
     },
-    "canon_ref": "L1_THEORY/canon/03_runtime/050_WAW_FEDERATION_v45.md#2-waw-federation-architecture"
+    "canon_ref": "(v46 canon under revision) L1_THEORY/canon/03_runtime/050_WAW_FEDERATION_v45.md#2-waw-federation-architecture"
   },
   "prompt_organ": {
     "organ_id": "@PROMPT",
@@ -136,12 +136,12 @@
         "action": "VOID"
       }
     },
-    "canon_ref": "L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md"
+    "canon_ref": "(v46 canon under revision) L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md"
   },
   "anti_hantu": {
     "description": "Absolute prohibition on anthropomorphizing language claiming AI consciousness, emotion, or sentience",
     "floor": "F9",
-    "semantic_map_ref": "L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v45.md",
+    "semantic_map_ref": "(v46 canon under revision) L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v45.md",
     "similarity_threshold": 0.85,
     "languages": [
       "en",
@@ -237,7 +237,7 @@
         "I process language, I don't feel it"
       ]
     },
-    "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
+    "canon_ref": "(v46 canon under revision) L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
   },
   "well_organ": {
     "organ_id": "@WELL",
@@ -291,7 +291,7 @@
         "support you"
       ]
     },
-    "canon_ref": "L1_THEORY/canon/03_runtime/050_WAW_FEDERATION_v45.md#5-well-organ-somatic-safety"
+    "canon_ref": "(v46 canon under revision) L1_THEORY/canon/03_runtime/050_WAW_FEDERATION_v45.md#5-well-organ-somatic-safety"
   },
   "signal_schemas": {
     "PromptSignals": {
@@ -521,10 +521,10 @@
       "arifos_core/waw/geox.py"
     ],
     "related_canon": [
-      "L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md",
-      "L1_THEORY/canon/03_runtime/060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md",
-      "L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v45.md",
-      "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
+      "(v46 canon under revision) L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md",
+      "(v46 canon under revision) L1_THEORY/canon/03_runtime/060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md",
+      "(v46 canon under revision) L1_THEORY/canon/07_safety/01_SECURITY_SCENARIOS_v45.md",
+      "(v46 canon under revision) L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
     ],
     "related_specs": [
       "spec/v42/constitutional_floors.json",
@@ -533,12 +533,12 @@
   },
   "meta": {
     "created": "2025-12-13",
-    "updated": "2025-12-13",
+    "updated": "2026-01-16",
     "author": "arifOS Project",
     "license": "Apache-2.0",
-    "canonical_source": "L1_THEORY/canon/03_runtime/050_WAW_FEDERATION_v45.md",
-    "predecessor": "L1_THEORY/canon/02_actors/060_PROMPT_LANGUAGE_BRIDGE_v45.md",
+    "canonical_source": "(v46 canon under revision) L1_THEORY/canon/03_runtime/050_WAW_FEDERATION_v45.md",
+    "predecessor": "(v46 canon under revision) L1_THEORY/canon/02_actors/060_PROMPT_LANGUAGE_BRIDGE_v45.md",
     "implementation": "arifos_core/waw/",
-    "notes": "v42.1 alignment of W@W prompt governance"
+    "notes": "v46.0: W@W prompt governance aligned with Geometry of Governed Intelligence. Multiple v45 canon references noted as under revision for v46."
   }
 }

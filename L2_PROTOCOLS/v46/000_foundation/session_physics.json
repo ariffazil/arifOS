@@ -1,10 +1,10 @@
 {
-  "version": "v45.0",
+  "version": "v46.0",
   "authority": "Track B (tunable thresholds) governed by Track A canon",
   "locked": true,
   "_status": "AUTHORITATIVE",
   "_note": "TEARFRAME Session Physics Thresholds. This file is the SOLE RUNTIME AUTHORITY for session-level governance parameters. Loaders MUST use this file (or env override).",
-  "arifos_version": "v45.0",
+  "arifos_version": "v46.0",
   "spec_type": "session_physics",
   "description": "Machine-readable specification for TEARFRAME session physics thresholds (v44.0).",
   "source": "https://github.com/ariffazil/arifOS",
@@ -173,11 +173,11 @@
   },
   "meta": {
     "created": "2025-12-25",
-    "updated": "2025-12-25",
+    "updated": "2026-01-16",
     "author": "arifOS Project",
     "license": "Apache-2.0",
     "canonical_source": "docs/TEARFRAME_SESSION_PHYSICS.md",
     "implementation": "arifos_core/governance/session_physics.py",
-    "notes": "v45.0: Phoenix-72 consolidation (Track A/B/C alignment). This file is the SOLE RUNTIME AUTHORITY. Predecessor: v44 (TEARFRAME physics thresholds)."
+    "notes": "v46.0: Geometry of Governed Intelligence alignment. This file is the SOLE RUNTIME AUTHORITY. Session physics aligned with AGI/ASI/APEX trinity."
   }
 }

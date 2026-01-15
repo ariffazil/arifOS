@@ -1,11 +1,11 @@
 {
     "spec_name": "atlas_333",
-    "spec_version": "v45.1.0",
+    "spec_version": "v46.0",
     "locked": true,
     "_status": "AUTHORITATIVE",
     "status": "SEALED",
     "authority": {
-        "canon": "000_CONSTITUTIONAL_CORE_v45.md",
+        "canon": "L1_THEORY/canon/000_foundation/002_GEOMETRY_OF_INTELLIGENCE_v46.md (AGI: Orthogonal Mind)",
         "track": "B",
         "rule": "Canon > Spec > Code"
     },

@@ -1,11 +1,11 @@
 {
-  "version": "v45.0",
+  "version": "v46.0",
   "authority": "Track B (tunable thresholds) governed by Track A canon",
   "locked": true,
   "_status": "AUTHORITATIVE",
-  "_source_evolution": "v42.1 → v44.0 -> v45.0 (Phoenix-72 consolidation) (TEARFRAME physics extension, no ledger changes)",
+  "_source_evolution": "v42.1 → v44.0 → v45.0 → v46.0 (Geometry of Governed Intelligence, 6-layer memory tower)",
   "_note": "This file is the SOLE RUNTIME AUTHORITY for Cooling Ledger config. Loader MUST use this file (or env override).",
-  "arifos_version": "v45.0",
+  "arifos_version": "v46.0",
   "spec_type": "cooling_ledger_phoenix",
   "description": "Machine-readable specification for Cooling Ledger and Phoenix-72 Amendment Engine (v44.0).",
   "source": "https://github.com/ariffazil/arifOS",
@@ -52,7 +52,7 @@
       "hot_segment_max_entries": 10000,
       "archive_path": "runtime/vault_999/archive/"
     },
-    "canon_ref": "L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v45.md"
+    "canon_ref": "L1_THEORY/canon/000_foundation/005_GEOMETRY_OF_MEMORY_v46.md"
   },
   "verdict_band_routing": {
     "SEAL": [
@@ -79,42 +79,56 @@
     ]
   },
   "retention_tiers": {
-    "HOT": {
-      "days": 7,
-      "bands": [
-        "ACTIVE"
-      ],
-      "description": "Fast queries, active governance"
-    },
-    "WARM": {
-      "days": 90,
-      "bands": [
-        "LEDGER",
-        "PHOENIX",
-        "WITNESS"
-      ],
-      "description": "Phoenix-72 pattern synthesis"
-    },
-    "COLD": {
-      "days": 365,
+    "HOT_VAULT": {
+      "days": 1,
       "bands": [
         "VAULT"
       ],
-      "description": "Constitutional law, never expires"
+      "description": "L1: Raw ingestion (0-24h), high plasticity, temporary paradox storage"
     },
-    "VOID_TIER": {
-      "days": 90,
+    "WARM_LEDGER": {
+      "days": 7,
+      "bands": [
+        "LEDGER"
+      ],
+      "description": "L2: Consolidating (24-72h), progressive strengthening via replay"
+    },
+    "COOLING_PHOENIX": {
+      "days": 3,
+      "bands": [
+        "PHOENIX"
+      ],
+      "description": "L5: Governance cooling (72h mandatory), tri-witness consensus"
+    },
+    "COLD_WITNESS": {
+      "days": 365,
+      "bands": [
+        "WITNESS"
+      ],
+      "description": "L3: Semantic facts (72h+), immutable, permanent, constitutional law"
+    },
+    "FLUID_ACTIVE": {
+      "days": 0,
+      "bands": [
+        "ACTIVE"
+      ],
+      "description": "L4: Working memory (current turn only), ephemeral, no persistence"
+    },
+    "DUST_VOID": {
+      "days": 1,
       "bands": [
         "VOID"
       ],
-      "description": "Diagnostic only, auto-cleanup"
+      "description": "L6: Entropy dump (24h forensic window), then irreversible deletion"
     }
   },
   "retention_constants": {
-    "RETENTION_HOT_DAYS": 7,
-    "RETENTION_WARM_DAYS": 90,
-    "RETENTION_COLD_DAYS": 365,
-    "RETENTION_VOID_DAYS": 90
+    "RETENTION_HOT_VAULT_DAYS": 1,
+    "RETENTION_WARM_LEDGER_DAYS": 7,
+    "RETENTION_COOLING_PHOENIX_DAYS": 3,
+    "RETENTION_COLD_WITNESS_DAYS": 365,
+    "RETENTION_FLUID_ACTIVE_DAYS": 0,
+    "RETENTION_DUST_VOID_DAYS": 1
   },
   "phoenix72": {
     "description": "Constitutional amendment engine with 72-hour cooling window",
@@ -142,7 +156,7 @@
       "reason": "string",
       "ledger_ref": "object"
     },
-    "canon_ref": "L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v45.md"
+    "canon_ref": "L1_THEORY/canon/000_foundation/005_GEOMETRY_OF_MEMORY_v46.md"
   },
   "scar_lifecycle": {
     "kinds": {
@@ -233,7 +247,7 @@
         "metadata"
       ]
     },
-    "canon_ref": "L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v45.md"
+    "canon_ref": "L1_THEORY/canon/000_foundation/005_GEOMETRY_OF_MEMORY_v46.md"
   },
   "invariants": {
     "INV-1": {
@@ -287,17 +301,17 @@
       "spec/v42/genius_law.json"
     ],
     "related_canon": [
-      "L1_THEORY/canon/05_memory/000_EUREKA_MEMORY_v45.md",
-      "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
+      "L1_THEORY/canon/000_foundation/005_GEOMETRY_OF_MEMORY_v46.md",
+      "L1_THEORY/canon/000_foundation/004_ARCHITECTURAL_MAP_v46.md"
     ]
   },
   "meta": {
     "created": "2025-12-13",
-    "updated": "2025-12-13",
+    "updated": "2026-01-16",
     "author": "arifOS Project",
     "license": "Apache-2.0",
-    "canonical_source": "L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v45.md",
+    "canonical_source": "L1_THEORY/canon/000_foundation/005_GEOMETRY_OF_MEMORY_v46.md",
     "implementation": "arifos_core/memory/",
-    "notes": "v42.1 alignment of Cooling Ledger and Phoenix-72"
+    "notes": "v46.0: 6-layer memory tower alignment (VAULT→LEDGER→WITNESS→ACTIVE→PHOENIX→VOID) with neuroscience grounding"
   }
 }

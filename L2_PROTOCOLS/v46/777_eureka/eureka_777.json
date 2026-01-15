@@ -1,11 +1,11 @@
 {
     "spec_name": "eureka_777",
-    "spec_version": "v45.1.0",
+    "spec_version": "v46.0",
     "locked": true,
     "_status": "AUTHORITATIVE",
     "status": "SEALED",
     "authority": {
-        "canon": "000_CONSTITUTIONAL_CORE_v45.md",
+        "canon": "L1_THEORY/canon/000_foundation/004_ARCHITECTURAL_MAP_v46.md (777 EUREKA Stage)",
         "track": "B",
         "rule": "Canon > Spec > Code"
     },
