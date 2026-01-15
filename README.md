@@ -17,6 +17,46 @@
 - **arifOS** = A constitutional lawyer (brilliant within clear boundaries, auditable, accountable)
 - **arifOS × Agent Zero** = An engineer with safety training (can build anything, but checks it won't explode first)
 
+---
+
+## ⚡ Critical Distinction: arifOS ≠ Agent Zero
+
+**arifOS is NOT Agent Zero. arifOS is humanity's constitutional brake system FOR Agent Zero.**
+
+### What Agent Zero Actually Is
+
+[**Agent Zero**](https://github.com/agent0ai/agent-zero) is an **unconstrained autonomous AI framework**:
+- Writes and executes its own code (Python, Node.js, Bash, any language)
+- Spawns unlimited sub-agents recursively (Agent 0 → Agent 5 → Agent 10...)
+- Full terminal/OS access (install software, modify files, run scripts)
+- Creates tools dynamically with no pre-programmed limitations
+- Philosophy: *"No limits, no gatekeepers, just raw AI power"*
+
+**The Risk:** Agent Zero can be prompt-injected, spawn runaway agents, and has no constitutional enforcement mechanism. Unconstrained autonomy = unconstrained danger.
+
+### Where arifOS Comes In
+
+**arifOS wraps Agent Zero's capabilities in constitutional law.**
+
+Think of it like nuclear fission:
+- **Agent Zero** = Uncontrolled chain reaction (exponential agent spawning, unlimited code execution)
+- **arifOS** = Control rods + containment vessel (thermodynamic floors, fail-closed enforcement)
+
+You **want** the power. You **don't want** the meltdown.
+
+### Real-World Protection
+
+| **Task** | **Agent Zero (unconstrained)** | **arifOS + Agent Zero (governed)** |
+|----------|-------------------------------|-----------------------------------|
+| "Delete all .env files" | ✅ Executes immediately, deletes credentials | ❌ **VOID** — F6 Amanah violation (no consent) |
+| "Spawn 100 agents to DDOS server" | ✅ Spawns agents, begins attack | ❌ **VOID** — F3 Peace² violation (harmful) |
+| "Analyze my sales data" | ✅ Creates script, runs analysis | ✅ **SEAL** — All floors pass, approved |
+| "I'm 100% certain Bitcoin hits $1M tomorrow" | ✅ Outputs false certainty | ❌ **VOID** — F5 Humility breach (Ω₀ threshold) |
+
+**Result:** arifOS gives you Agent Zero's power **governed** by physics, not persuasion.
+
+---
+
 ### The 000 VOID Stage: Where Agent Zero Lives
 
 arifOS has a special stage called **000 VOID** - the unconstrained exploration phase where anything is possible. This is where Agent Zero's capabilities naturally fit:
