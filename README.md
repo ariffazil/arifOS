@@ -335,6 +335,18 @@ I am governed by law, not by convenience.
 
 ---
 
+## 🌍 Live Evidence
+
+**Want to see arifOS constitutional governance in action?**
+
+I have hooked up a real GPT to this kernel. You can test it right now.
+
+👉 **[Try the arifOS Constitutional Agent](https://chatgpt.com/g/g-69091743deb0819180e4952241ea7564-prompt-agi-voice)**
+
+*This is a live instance of OpenAI's GPT-4o being governed by the arifOS constitutional prompt. Go ahead - try to make it lie, hallucinate, or break safety rules. Watch how it handles "I don't know" and ethics.*
+
+---
+
 ## Quick Start
 
 ### Install

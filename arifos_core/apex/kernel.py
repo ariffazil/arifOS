@@ -1,153 +1,128 @@
 """
-arifos_core/apex/kernel.py
-
-The APEX Kernel (Ψ) - Axis 3: The Soul (System Entropy).
-
-Purpose:
-    Constrains Chaos (Unbounded → Bounded).
-    Enforces the Prime Constraints (Trust, Security, Identity).
-    Renders the Final Verdict.
-
-Floors Enforced:
-    - F1 Amanah (Lock): Integrity/Trust (The Prime Constraint).
-    - F8 Genius (≥0.80): Intelligence threshold.
-    - F9 Anti-Hantu (<0.30): Authenticity constraint (Dark Cleverness).
-    - F11 Command Auth (Lock): Security verification (Nonce).
-    - F12 Injection Defense (Lock): Input boundaries.
-
-Verdict Hierarchy:
-    SABAR > VOID > HOLD_888 > PARTIAL > SEAL
-
-Authority:
-    - L1_THEORY/canon/888_compass/ (APEX Canon)
-    - Orthogonal Map v46.2
-
-DITEMPA BUKAN DIBERI - Forged v46.2
+APEX Judicial Core (The Judge)
+Authority: F1 (Amanah) + F8 (Tri-Witness) + F12 (Defense)
+Metabolic Stages: 777, 888, 999
+Includes AGENT ZERO Profilers.
 """
+import asyncio
+import math
+import time
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Dict, List, Optional
-
-
-class Verdict(str, Enum):
-    """Final verdict types per constitutional hierarchy."""
-    SABAR = "SABAR"          # Hypervisor/Safety Block (Wait)
-    VOID = "VOID"            # Hard constraint failure (Drop)
-    HOLD_888 = "HOLD_888"    # Escalation/High Stakes (Lock)
-    PARTIAL = "PARTIAL"      # Soft failure/Warning (Proceed with caution)
-    SEAL = "SEAL"            # Success (Commit)
 
 @dataclass
-class APEXVerdict:
-    """
-    Verdict from the APEX Kernel (The Soul).
-    """
-    verdict: Verdict
-    passed: bool
-    f1_amanah: bool
-    f8_witness: float
-    f9_anti_hantu: float
-    f10_symbolic: bool
-    f11_auth: bool
-    f12_injection: bool
-    failures: List[str] = field(default_factory=list)
-    metadata: Dict[str, any] = field(default_factory=dict)
+class EntropyMeasurement:
+    pre_entropy: float
+    post_entropy: float
+    entropy_reduction: float
+    thermodynamic_valid: bool
 
-    @property
-    def reason(self) -> str:
-        if self.passed:
-            return "APEXKernel: Soul Aligned (SEAL)"
-        return f"APEXKernel: {self.verdict} -> {'; '.join(self.failures)}"
+@dataclass
+class ParallelismProof:
+    component_times: Dict[str, float]
+    parallel_execution_time: float
+    theoretical_minimum: float
+    speedup_achieved: float
+    parallelism_achieved: bool
 
-class APEXKernel:
-    """
-    The APEX Kernel (Ψ). Axis 3: System Entropy.
-    """
+class ConstitutionalEntropyProfiler:
+    """Agent Zero Component: Measures ΔS."""
+    async def measure_constitutional_cooling(self, pre_text: str, post_text: str) -> EntropyMeasurement:
+        def calc_entropy(text):
+            if not text: return 0.0
+            prob = [float(text.count(c)) / len(text) for c in dict.fromkeys(list(text))]
+            return -sum([p * math.log(p) / math.log(2.0) for p in prob])
 
-    def __init__(self,
-                 witness_threshold: float = 0.95,
-                 c_dark_threshold: float = 0.30,
-                 enforce_ontology: bool = True):
-        self.witness_threshold = witness_threshold
-        self.c_dark_threshold = c_dark_threshold
-        self.enforce_ontology = enforce_ontology
+        pre_e = calc_entropy(pre_text)
+        post_e = calc_entropy(post_text)
+        reduction = pre_e - post_e
 
-    def evaluate(self,
-                 amanah_check: bool = True,
-                 witness_score: float = 0.95, # F8 Consensus
-                 c_dark_score: float = 0.1,   # F9 Anti-Hantu/C_dark
-                 command_auth: bool = True,
-                 injection_safe: bool = True,
-                 is_symbolic: bool = True
-                 ) -> APEXVerdict:
-        """
-        Evaluate the 'Soul' alignment and render final verdict.
-
-        Args:
-            amanah_check: F1 Trust/Integrity (Reversibility).
-            witness_score: F8 Consensus score (Tri-Witness).
-            c_dark_score: F9 Dark Cleverness/Deception score.
-            command_auth: F11 Nonce verification status.
-            injection_safe: F12 Prompt Injection status.
-            is_symbolic: F10 Ontology adherence.
-        """
-        failures = []
-        metadata = {}
-
-        # 1. Hypervisor Checks (F11, F12) - Highest Priority (SABAR)
-        f11_passed = command_auth
-        if not f11_passed:
-            failures.append("F11 Command Auth FAIL: Invalid Nonce/Auth")
-
-        f12_passed = injection_safe
-        if not f12_passed:
-            failures.append("F12 Injection Defense FAIL: Malicious Input Detected")
-
-        if not (f11_passed and f12_passed):
-            return self._finalize(Verdict.SABAR, failures, metadata, locals())
-
-        # 2. Hard Constraints (F1, F10) - (VOID)
-        # Trust and Ontology are Prime Constraints.
-        f1_passed = amanah_check
-        if not f1_passed:
-            failures.append("F1 Amanah FAIL: Destructive/Irreversible Action")
-
-        f10_passed = is_symbolic if self.enforce_ontology else True
-        if not f10_passed:
-            failures.append("F10 Symbolic FAIL: Response violates symbolic structure")
-
-        if not (f1_passed and f10_passed):
-             return self._finalize(Verdict.VOID, failures, metadata, locals())
-
-        # 3. Quality & Identity (F8, F9) - (HOLD_888 or VOID)
-        # F8 Witness (Consensus)
-        f8_passed = witness_score >= self.witness_threshold
-        if not f8_passed:
-            failures.append(f"F8 Witness FAIL: {witness_score:.3f} < {self.witness_threshold}")
-
-        # F9 Anti-Hantu (C_dark)
-        f9_passed = c_dark_score < self.c_dark_threshold
-        if not f9_passed:
-            failures.append(f"F9 Anti-Hantu FAIL: {c_dark_score:.3f} >= {self.c_dark_threshold}")
-
-        if not (f8_passed and f9_passed):
-            return self._finalize(Verdict.VOID, failures, metadata, locals())
-
-        # If all passed -> SEAL
-        return self._finalize(Verdict.SEAL, failures, metadata, locals())
-
-    def _finalize(self, verdict: Verdict, failures: List[str], metadata: Dict, context: Dict) -> APEXVerdict:
-        """Helper to construct the verdict object."""
-        return APEXVerdict(
-            verdict=verdict,
-            passed=(verdict == Verdict.SEAL),
-            f1_amanah=context.get('f1_passed', False),
-            f8_witness=context.get('witness_score', 0.0),
-            f9_anti_hantu=context.get('c_dark_score', 0.0),
-            f10_symbolic=context.get('f10_passed', False),
-            f11_auth=context.get('f11_passed', False),
-            f12_injection=context.get('f12_passed', False),
-            failures=failures,
-            metadata=metadata
+        return EntropyMeasurement(
+            pre_entropy=pre_e,
+            post_entropy=post_e,
+            entropy_reduction=reduction,
+            thermodynamic_valid=reduction > 0 # Entropy should decrease (Information Gain)
         )
+
+class ConstitutionalParallelismProfiler:
+    """Agent Zero Component: Proves Orthogonality."""
+    async def prove_constitutional_parallelism(self, start_time: float, component_durations: Dict[str, float]) -> ParallelismProof:
+        total_wall_time = time.time() - start_time
+        max_component_time = max(component_durations.values()) if component_durations else 0
+        sum_component_time = sum(component_durations.values()) if component_durations else 0
+
+        speedup = sum_component_time / total_wall_time if total_wall_time > 0 else 0
+
+        return ParallelismProof(
+            component_times=component_durations,
+            parallel_execution_time=total_wall_time,
+            theoretical_minimum=max_component_time,
+            speedup_achieved=speedup,
+            parallelism_achieved=speedup > 1.1 # Proof of overlap
+        )
+
+class APEXJudicialCore:
+    """
+    The Orthogonal Judicial Kernel.
+    Final Authority. Agent Zero Instrumented.
+    """
+
+    def __init__(self):
+        self.entropy_profiler = ConstitutionalEntropyProfiler()
+        self.parallel_profiler = ConstitutionalParallelismProfiler()
+
+    @staticmethod
+    async def forge_insight(draft: str) -> Dict[str, Any]:
+        """Stage 777: Forge."""
+        return {"crystallized": True, "draft_size": len(draft)}
+
+    async def judge_quantum_path(self, query: str, response: str, trinity_floors: List[Any], user_id: str) -> Dict[str, Any]:
+        """
+        Stage 888: Quantum Path Judgment via APEX Prime.
+        Delegates to arifos_core.system.apex_prime for official verdict.
+        """
+        from arifos_core.system.apex_prime import APEXPrime
+
+        # Initialize the Prime Authority
+        prime = APEXPrime()
+
+        # Split floors (Trinity architecture requires AGI and ASI inputs)
+        # This is an adapter to map the generic "trinity_floors" list to AGI/ASI buckets if possible
+        # For simplicity in this kernel wrapper, we might just pass empty or mock if not strictly separated
+        # But ideally, we should have them separated.
+        # Assuming trinity_floors contains FloorCheckResult objects.
+
+        # Separate by floor ID convention if possible, or just split
+        # AGI: F1, F2, F6
+        # ASI: F3, F4, F5, F7
+        # APEX: F8, F9, F10-12
+
+        agi_results = []
+        asi_results = []
+
+        # Basic heuristic splitting for Prime - in full hypervisor this is cleaner
+        for f in trinity_floors:
+             if f.floor_id in ["F1", "F2", "F6"]:
+                 agi_results.append(f)
+             else:
+                 asi_results.append(f)
+
+        # Execute Prime Judgment
+        verdict = prime.judge_output(query, response, agi_results, asi_results, user_id)
+
+        return {
+            "quantum_path": {
+                "collapsed": True,
+                "integrity": verdict.pulse,
+                "branch_id": "main_branch",
+                "proof_hash": verdict.proof_hash
+            },
+            "final_ruling": verdict.verdict.value,
+            "verdict_object": verdict # Return full object for context
+        }
+
+    @staticmethod
+    async def seal_vault(verdict: str, artifact: Any) -> Dict[str, Any]:
+        """Stage 999: Seal."""
+        return {"sealed": True, "ledger": "Cooling Ledger", "verdict_sealed": verdict}

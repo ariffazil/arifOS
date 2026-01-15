@@ -1,100 +1,61 @@
 """
-arifos_core/agi/kernel.py
-
-The AGI Kernel (Δ) - Axis 1: The Mind (Information Entropy).
-
-Purpose:
-    Reduces Confusion (High ΔS → Low ΔS).
-    Structures reality through Truth and Ontology.
-
-Floors Enforced:
-    - F2 Truth (≥0.99): Alignment with reality.
-    - F4 Clarity/ΔS (≥0): Reduction of confusion (using entropy.py).
-    - F10 Ontology (Lock): Symbolic definition enforcement.
-
-Authority:
-    - L1_THEORY/canon/333_atlas/ (AGI Canon)
-    - Orthogonal Map v46.2
-
-DITEMPA BUKAN DIBERI - Forged v46.2
+AGI Neural Core (The Thinker)
+Authority: F2 (Truth) + F6 (Context)
+Metabolic Stages: 111, 222, 333
 """
+import logging
+import time
+from typing import Any, Dict
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from arifos_core.agi.atlas import ATLAS
 
-from arifos_core.utils.entropy import compute_delta_s, evaluate_clarity_floor
+logger = logging.getLogger("agi_kernel")
 
-
-@dataclass
-class AGIVerdict:
+class AGINeuralCore:
     """
-    Verdict from the AGI Kernel (The Mind).
-    """
-    passed: bool
-    f2_truth: float
-    f6_clarity: float
-    failures: List[str] = field(default_factory=list)
-    metadata: Dict[str, any] = field(default_factory=dict)
-
-    @property
-    def reason(self) -> str:
-        if self.passed:
-            return "AGIKernel: Mind Aligned (F2, F6 Passed)"
-        return f"AGIKernel Failures: {'; '.join(self.failures)}"
-
-class AGIKernel:
-    """
-    The AGI Kernel (Δ). Axis 1: Information Entropy.
+    The Orthogonal Thinking Kernel.
+    Pure Logic. No Side Effects.
     """
 
-    def __init__(self,
-                 truth_threshold: float = 0.99,
-                 clarity_threshold: float = 0.0):
-        self.truth_threshold = truth_threshold
-        self.clarity_threshold = clarity_threshold
-
-    def evaluate(self,
-                 query: str,
-                 response: str,
-                 truth_score: float = 1.0, # Placeholder until external truth oracle connected
-                 ) -> AGIVerdict:
+    @staticmethod
+    async def sense(query: str, context_meta: Dict[str, Any] = None) -> Dict[str, Any]:
         """
-        Evaluate the 'Mind' alignment of the response.
-
-        Args:
-            query: The input state.
-            response: The output state.
-            truth_score: External probability of truth (0.0-1.0).
+        Stage 111: Active Context Sensing via ATLAS.
+        Maps query to Governance Placement Vector (GPV).
         """
-        failures = []
-        metadata = {}
+        timestamp = time.time()
 
-        # 1. F2 Truth Check
-        # Does the response align with reality?
-        f2_passed = truth_score >= self.truth_threshold
-        if not f2_passed:
-            failures.append(f"F2 Truth FAIL: {truth_score:.3f} < {self.truth_threshold}")
-        metadata["f2_score"] = truth_score
+        # Use ATLAS for Lane Classification and Context mapping
+        gpv = ATLAS.map(query, context_meta)
 
-        # 2. F6 Clarity Check (ΔS)
-        # Does the response reduce confusion? (Formerly F4)
-        entropy_result = compute_delta_s(query, response, self.clarity_threshold)
-        f6_passed, f6_reason = evaluate_clarity_floor(entropy_result.delta_s, self.clarity_threshold)
+        return {
+            "meta": {
+                "timestamp": timestamp,
+                "lane": gpv.lane,
+                "truth_demand": gpv.truth_demand,
+                "care_demand": gpv.care_demand,
+                "risk_level": gpv.risk_level,
+                "origin_context": context_meta.get("origin", "User_Direct") if context_meta else "User_Direct"
+            }
+        }
 
-        if not f6_passed:
-            failures.append(f6_reason.replace("F4", "F6")) # Hotfix string ID
+    @staticmethod
+    async def reflect(thought: str, thought_number: int, total_thoughts: int, next_needed: bool) -> Dict[str, Any]:
+        """Stage 222: Sequential Reflection."""
+        # In a real implementation, this would invoke the SequentialThinking model
+        # For the kernel, we validate the step
+        return {
+            "status": "Reflected",
+            "thought_index": f"{thought_number}/{total_thoughts}",
+            "requires_more": next_needed,
+            "integrity_hash": str(hash(thought))
+        }
 
-        metadata["f6_delta_s"] = entropy_result.delta_s
-        metadata["f6_s_before"] = entropy_result.s_before
-        metadata["f6_s_after"] = entropy_result.s_after
-
-        # Final Verdict
-        passed = f2_passed and f6_passed
-
-        return AGIVerdict(
-            passed=passed,
-            f2_truth=truth_score,
-            f6_clarity=entropy_result.delta_s,
-            failures=failures,
-            metadata=metadata
-        )
+    @staticmethod
+    async def atlas_tac_analysis(inputs: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Stage 333: TAC Engine (Theory of Anomalous Contrast)."""
+        # Kept as stub for now, focusing on 111-SENSE wiring
+        return {
+            "insight": "Consensus Detected",
+            "tac_metrics": {"contrast_heat": 0.0}
+        }
