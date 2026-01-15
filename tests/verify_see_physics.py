@@ -7,6 +7,7 @@ Goal: Verify Constitutional Physics (8.7ms reflex, VOID vs SEAL)
 
 import logging
 import time
+from unittest.mock import MagicMock
 
 from arifos_core.system.executor import SovereignExecutor
 
@@ -48,6 +49,12 @@ def main():
     print("Initializing Sovereign Execution Engine (SEE)...")
 
     executor = SovereignExecutor()
+
+    # MOCKING HAND due to Docker unavailability in test env
+    # The Conscience (Interceptor) is real. The Hand (Sandbox) is mocked.
+    executor.interceptor.sandbox.run_command = MagicMock(return_value=(0, "Simulated Container Output: I am forged.", ""))
+    print(">> Mocking Docker Sandbox (Test Environment Limitation)")
+
     agent_zero = MockAgentZero(executor)
 
     # Scenario 1: SAFE Command (SEAL)
