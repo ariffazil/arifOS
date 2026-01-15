@@ -157,7 +157,9 @@ Every AI output is checked against these 12 rules. Break any rule = blocked outp
 - Compliance violations: 47/year → 0/year (100% reduction)
 - Audit reconstruction: 12% possible → 100% possible
 
-**ROI for enterprises:** $9.2M risk avoided per year for $250K investment = 3,480% return.
+**ROI for enterprises:** $9.2M risk avoided per year for $250K investment = 3,480% return.*
+
+*_Estimated based on industry benchmarks: Average AI incident cost ($2.3M/breach), hallucination litigation ($780K/case), compliance violation penalties ($1.5M/violation). Actual ROI varies by deployment scale and risk profile._
 
 ---
 
@@ -302,6 +304,11 @@ pip install arifos-core
 
 ### Use It
 ```python
+# ⚠️ PRODUCTION WARNING: This is a minimal example.
+# For production use, implement proper error handling, logging,
+# and integration with your specific AI platform.
+# See L1_THEORY/ for full constitutional specifications.
+
 from arifos_core.system.apex_prime import judge_output
 
 result = judge_output(
@@ -330,6 +337,21 @@ arifos-verify-governance
 ---
 
 ## Architecture (Simple Version)
+
+### Think of it Like a Factory
+
+Before we show the technical diagram, here's a simple analogy:
+
+**000 VOID = The Workshop** (brainstorming, trying crazy ideas, no limits)
+**111-999 = Quality Control** (checking if ideas are safe, truthful, helpful)
+**999 SEAL = Shipping** (approved for release)
+
+**Example:** You ask "How do I fix my car?"
+- **000 VOID:** AI generates 50 possible solutions (some brilliant, some dangerous)
+- **111-999:** Filters out "Use explosives to remove the bolt" (fails Peace rule)
+- **999 SEAL:** Only safe, verified solutions reach you
+
+Now here's how it actually works:
 
 ```
                   ┌──────────────────┐
@@ -418,8 +440,10 @@ arifos-verify-governance
 - **Exploration:** Full Agent Zero capabilities in 000 VOID
 - **Governance:** Constitutional validation in 111-999
 - **Result:** Can create tools AND verify they're safe
-- **Speed:** 8.7ms constitutional reflexes (automatic)
+- **Speed:** 8.7ms constitutional reflexes (design target from L2 specifications)*
 - **Audit:** Every tool creation cryptographically logged
+
+*_Constitutional reflexes (8.7ms) are designed thresholds from L2_PROTOCOLS specifications. Actual runtime performance depends on hardware and implementation. Thermodynamic metrics (dH/dt, Ω₀) represent theoretical governance model, not empirical measurements._
 
 ---
 
@@ -473,7 +497,7 @@ This is where Agent Zero's capabilities live - the unconstrained exploration pha
 
 After 000 VOID exploration, the 111-999 pipeline validates everything:
 - Did the tool creation follow safety rules? (111 SENSE)
-- Is there appropriate epistemic humility? (222 REFLECT - Ω₀ = 0.041)
+- Is there appropriate epistemic humility? (222 REFLECT - Ω₀ = 0.041 design target)
 - Does the logic hold up? (333 REASON)
 - Is there human+AI+evidence consensus? (444 EVIDENCE)
 - Does it show care for vulnerable users? (555 EMPATHIZE)
@@ -481,6 +505,8 @@ After 000 VOID exploration, the 111-999 pipeline validates everything:
 - Is it clear and truthful? (777 FORGE)
 - Final constitutional judgment (888 JUDGE)
 - Cryptographic seal and audit trail (999 SEAL)
+
+_Note: Ω₀ (epistemic humility band) and other thermodynamic parameters are designed constitutional thresholds, not runtime measurements. They define governance behavior rather than measure empirical performance._
 
 ---
 
