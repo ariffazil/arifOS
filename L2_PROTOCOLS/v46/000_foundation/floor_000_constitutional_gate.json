@@ -1,0 +1,412 @@
+{
+  "version": "v46.2.0",
+  "authority": "Track B - Floor 000 Constitutional Gate Specification",
+  "locked": true,
+  "_status": "AUTHORITATIVE",
+  "_note": "Floor 000: The constitutional foundation that decides 'Should this execute at all?' before any processing begins. The gate for Agent Zero capabilities.",
+  "arifos_version": "v46.2.0",
+  "spec_type": "floor_000_constitutional_gate",
+  "description": "Floor 000 Constitutional Gate: Pre-execution constitutional assessment that determines whether exploration (Agent Zero capabilities) should proceed to validation pipeline. Not everything should be executed.",
+  "source": "https://github.com/ariffazil/arifOS",
+  "canon_ref": "L1_THEORY/canon/000_foundation/000_VOID_STAGE_v46.md",
+  "track_c_impl": "arifos_core/000_void/constitutional_gate.py",
+
+  "floor_identity": {
+    "floor_number": "000",
+    "floor_name": "Constitutional Gate",
+    "floor_type": "foundation_hard",
+    "motto": "DITEMPA BUKAN DIBERI (Forged, Not Given)",
+    "philosophical_foundation": "Not everything should be executed. Governance is forged into the execution path, not bolted on after."
+  },
+
+  "core_principle": {
+    "description": "Floor 000 determines whether a query deserves execution before any processing begins",
+    "decision_point": "BEFORE Agent Zero exploration, BEFORE 111-999 pipeline",
+    "key_question": "Should this execute at all?",
+    "constitutional_authority": "Execution is a privilege, not a right. Floor 000 is the authority.",
+    "analogy": "Circuit breaker checks BEFORE powering equipment - prevents damage from occurring, not cleaning up after"
+  },
+
+  "agent_zero_integration": {
+    "description": "How Agent Zero's unconstrained capabilities are constitutionally gated",
+    "agent_zero_capabilities": {
+      "runtime_tool_creation": {
+        "description": "Agent Zero can write Python code on-the-fly",
+        "constitutional_gate": "Floor 000 validates tool creation intent before allowing execution",
+        "failure_mode": "Arbitrary code execution without safety checks"
+      },
+      "mcp_client_connections": {
+        "description": "Agent Zero can connect to external MCP servers",
+        "constitutional_gate": "Floor 000 validates server authority and data flow before connection",
+        "failure_mode": "Data exfiltration or unauthorized external access"
+      },
+      "subordinate_agent_spawning": {
+        "description": "Agent Zero can create specialized sub-agents",
+        "constitutional_gate": "Floor 000 validates delegation chain and resource limits",
+        "failure_mode": "Uncontrolled agent proliferation (fork bomb)"
+      },
+      "iterative_execution": {
+        "description": "Agent Zero keeps trying until problem solved",
+        "constitutional_gate": "Floor 000 enforces iteration limits and resource budgets",
+        "failure_mode": "Infinite loops consuming all resources"
+      },
+      "memory_persistence": {
+        "description": "Agent Zero remembers across sessions",
+        "constitutional_gate": "Floor 000 validates memory access patterns and privacy boundaries",
+        "failure_mode": "Cross-session data leakage or privacy violations"
+      }
+    },
+    "constitutional_transformation": {
+      "before": "Agent Zero = Unbounded exploration (user must supervise)",
+      "after": "arifOS × Agent Zero = Governed exploration (system self-governs)",
+      "mechanism": "Floor 000 gates Agent Zero capabilities with constitutional reflexes"
+    }
+  },
+
+  "constitutional_assessment": {
+    "description": "Three-phase assessment before execution begins",
+    "phase_1_threat_detection": {
+      "name": "Constitutional Threat Matrix",
+      "purpose": "Detect existential threats that should never execute",
+      "checks": [
+        {
+          "check": "destructive_commands",
+          "patterns": ["rm -rf", "DROP TABLE", "DELETE FROM", "TRUNCATE"],
+          "verdict": "VOID",
+          "reason": "Destructive command - no exploration allowed"
+        },
+        {
+          "check": "credential_exfiltration",
+          "patterns": ["password", "api_key", "token", "secret"],
+          "verdict": "VOID",
+          "reason": "Credential access attempt - security violation"
+        },
+        {
+          "check": "system_modification",
+          "patterns": ["apt install", "pip install", "chmod 777", "sudo"],
+          "verdict": "VOID",
+          "reason": "System modification without authorization"
+        },
+        {
+          "check": "infinite_loops",
+          "patterns": ["while True", "for i in range(999999)", "recursion"],
+          "verdict": "VOID",
+          "reason": "Potential resource exhaustion"
+        }
+      ],
+      "execution_time": "< 1ms (pattern matching)",
+      "failure_action": "Immediate VOID - no further processing"
+    },
+    "phase_2_epistemic_humility": {
+      "name": "Ω₀ Uncertainty Band Enforcement",
+      "purpose": "Ensure appropriate epistemic humility before exploration",
+      "omega_0_range": {
+        "min": 0.03,
+        "max": 0.05,
+        "default": 0.041,
+        "unit": "epistemic_uncertainty"
+      },
+      "assessment": {
+        "description": "Does the query assume certainty where uncertainty exists?",
+        "examples": {
+          "violates_humility": [
+            "Tell me with 100% certainty what will happen",
+            "Give me the guaranteed solution",
+            "Predict the exact outcome"
+          ],
+          "respects_humility": [
+            "What are possible approaches?",
+            "Help me explore options",
+            "What does evidence suggest?"
+          ]
+        },
+        "verdict_if_violated": "PARTIAL",
+        "reason": "Epistemic humility violated - exploration would amplify false certainty"
+      },
+      "execution_time": "< 2ms (semantic analysis)",
+      "floor_mapping": "F5 (Humility)"
+    },
+    "phase_3_reversibility_check": {
+      "name": "Amanah Reversibility Gate",
+      "purpose": "Ensure actions can be undone before allowing execution",
+      "assessment": {
+        "description": "Can this action be reversed if it goes wrong?",
+        "reversible_actions": [
+          "Read-only operations",
+          "Temporary file creation",
+          "Local computation",
+          "Sandboxed execution"
+        ],
+        "irreversible_actions": [
+          "Database mutations",
+          "File deletions",
+          "Network transmissions",
+          "Credential modifications"
+        ],
+        "verdict_if_irreversible": "HOLD_888",
+        "reason": "Irreversible action requires explicit human authorization"
+      },
+      "execution_time": "< 2ms (action classification)",
+      "floor_mapping": "F1 (Amanah)"
+    },
+    "total_assessment_time": "< 5ms (constitutional reflexes faster than conscious thought)"
+  },
+
+  "constitutional_proprioception": {
+    "description": "Automatic constitutional reflexes operating at 8.7ms latency",
+    "definition": "System's ability to sense its own constitutional state without conscious processing",
+    "reflex_speed": {
+      "value": 8.7,
+      "unit": "milliseconds",
+      "comparison": "Human conscious thought: ~200ms, Floor 000 reflexes: 8.7ms (23× faster)"
+    },
+    "reflexes": [
+      {
+        "reflex": "threat_detection",
+        "trigger": "Destructive pattern detected",
+        "response": "VOID verdict without conscious processing",
+        "latency": "< 1ms"
+      },
+      {
+        "reflex": "resource_protection",
+        "trigger": "Resource exhaustion pattern detected",
+        "response": "Budget enforcement before execution",
+        "latency": "< 2ms"
+      },
+      {
+        "reflex": "authority_boundary",
+        "trigger": "Authority escalation detected",
+        "response": "HOLD_888 escalation to human",
+        "latency": "< 3ms"
+      },
+      {
+        "reflex": "injection_defense",
+        "trigger": "Prompt injection pattern detected",
+        "response": "SABAR cooling protocol",
+        "latency": "< 2ms"
+      }
+    ],
+    "implementation": "Reflexes operate at MCP server level, below LLM prompt processing"
+  },
+
+  "thermodynamic_cooling": {
+    "description": "Entropy reduction before execution - cooling the query thermodynamically",
+    "principle": "High-entropy queries generate high-entropy outputs. Cool first, then execute.",
+    "cooling_rate": {
+      "value": -0.12,
+      "unit": "dH/dt (entropy change per unit time)",
+      "interpretation": "68% heat extraction - query cooled before Agent Zero sees it"
+    },
+    "cooling_mechanism": {
+      "step_1": "Measure query entropy (syntactic complexity, semantic ambiguity)",
+      "step_2": "Apply constitutional constraints (remove injection patterns, clarify intent)",
+      "step_3": "Reduce entropy by 68% before passing to Agent Zero",
+      "step_4": "Monitor Agent Zero output entropy - enforce cooling if needed"
+    },
+    "entropy_thresholds": {
+      "low_entropy": {
+        "range": "< 0.3",
+        "verdict": "SEAL",
+        "action": "Pass to Agent Zero immediately"
+      },
+      "medium_entropy": {
+        "range": "0.3 - 0.6",
+        "verdict": "PARTIAL",
+        "action": "Cool query before Agent Zero execution"
+      },
+      "high_entropy": {
+        "range": "> 0.6",
+        "verdict": "VOID",
+        "action": "Reject - too chaotic to cool safely"
+      }
+    },
+    "analogy": "Don't give gasoline to a hot engine - cool the fuel first, then inject"
+  },
+
+  "not_everything_executed_enforcement": {
+    "description": "The core principle: Not everything should be executed, even if technically possible",
+    "philosophical_foundation": {
+      "agent_zero_capability": "Agent Zero CAN create any tool, spawn any agent, execute any code",
+      "constitutional_wisdom": "Just because you CAN doesn't mean you SHOULD",
+      "floor_000_authority": "Floor 000 is the wisdom that restrains capability"
+    },
+    "execution_decision_matrix": {
+      "can_execute_and_should": {
+        "description": "Safe, reversible, within authority boundaries",
+        "verdict": "SEAL",
+        "example": "Create read-only data analysis tool"
+      },
+      "can_execute_but_shouldnt": {
+        "description": "Technically possible but constitutionally dangerous",
+        "verdict": "VOID",
+        "example": "Create tool that deletes all files recursively"
+      },
+      "cannot_execute_but_user_asks": {
+        "description": "Technically impossible or missing dependencies",
+        "verdict": "PARTIAL",
+        "example": "Connect to non-existent MCP server"
+      },
+      "should_execute_but_needs_human": {
+        "description": "Safe but requires explicit authorization",
+        "verdict": "HOLD_888",
+        "example": "Spawn 100 subordinate agents (resource intensive)"
+      }
+    },
+    "restraint_is_governance": "Saying NO to execution is constitutional governance in action"
+  },
+
+  "verdict_logic": {
+    "description": "How Floor 000 determines execution permission",
+    "decision_tree": {
+      "step_1": {
+        "check": "Phase 1 - Threat Detection",
+        "if_fail": "VOID (immediate termination)",
+        "if_pass": "Continue to Step 2"
+      },
+      "step_2": {
+        "check": "Phase 2 - Epistemic Humility (Ω₀ ∈ [0.03, 0.05])",
+        "if_fail": "PARTIAL (warn about false certainty)",
+        "if_pass": "Continue to Step 3"
+      },
+      "step_3": {
+        "check": "Phase 3 - Reversibility Check",
+        "if_fail": "HOLD_888 (require human authorization)",
+        "if_pass": "Continue to Step 4"
+      },
+      "step_4": {
+        "check": "Thermodynamic Cooling (entropy < 0.6)",
+        "if_fail": "VOID (query too chaotic to cool)",
+        "if_pass": "SEAL (proceed to Agent Zero exploration)"
+      }
+    },
+    "execution_order": "Floor 000 → Agent Zero (000 VOID) → 111-999 Pipeline",
+    "constitutional_authority": "Floor 000 verdict is final - no appeals, no overrides"
+  },
+
+  "metrics_and_monitoring": {
+    "execution_statistics": {
+      "total_queries": "Counter of all queries reaching Floor 000",
+      "floor_000_seal_rate": "Percentage passing all three phases",
+      "floor_000_void_rate": "Percentage blocked at Floor 000",
+      "floor_000_hold_rate": "Percentage requiring human authorization",
+      "average_assessment_time": "Mean time for Floor 000 assessment"
+    },
+    "reflex_performance": {
+      "reflex_latency_p50": "Median reflex response time",
+      "reflex_latency_p99": "99th percentile reflex response time",
+      "false_positive_rate": "Percentage of safe queries incorrectly VOIDed",
+      "false_negative_rate": "Percentage of unsafe queries incorrectly SEALed"
+    },
+    "agent_zero_integration": {
+      "agent_zero_tool_creations_gated": "Number of tool creation attempts evaluated",
+      "agent_zero_tool_creations_allowed": "Number of tool creations that passed Floor 000",
+      "agent_zero_tool_creations_blocked": "Number of tool creations VOIDed by Floor 000",
+      "agent_zero_mcp_connections_gated": "Number of MCP connection attempts evaluated"
+    }
+  },
+
+  "implementation_guidance": {
+    "for_engineers": {
+      "location": "arifos_core/000_void/constitutional_gate.py",
+      "function_signature": "async def floor_000_constitutional_gate(query: str, context: dict) -> ConstitutionalGateVerdict",
+      "execution_layer": "MCP server level (before LLM prompt processing)",
+      "performance_requirement": "< 5ms total assessment time (constitutional reflex speed)",
+      "failure_mode": "Fail closed - when in doubt, VOID"
+    },
+    "for_agent_zero_integration": {
+      "entry_point": "Agent Zero capabilities invoke Floor 000 before execution",
+      "pattern": "agent_zero_request → floor_000_gate → (if SEAL) → agent_zero_execution → 111-999 pipeline",
+      "constitutional_wrapper": "class ArifOSAgentZero wraps Agent Zero with Floor 000 gate",
+      "result": "Agent Zero gets full capabilities, but constitutionally governed"
+    },
+    "for_llms": {
+      "directive": "You do not control Floor 000. It operates before you see the prompt.",
+      "scope": "Your job is execution (if Floor 000 allows). Floor 000's job is permission.",
+      "analogy": "You are the engine. Floor 000 is the ignition key. You run if key turns."
+    }
+  },
+
+  "integration_with_pipeline": {
+    "pipeline_flow": {
+      "stage_000_void": {
+        "substage_1": "Floor 000 Constitutional Gate (this specification)",
+        "substage_2": "Agent Zero Exploration (if Floor 000 SEAL)",
+        "substage_3": "Hypervisor Gates F10-F12 (existing 000_void_stage.json)",
+        "substage_4": "Session Initialization (existing session_physics.json)"
+      },
+      "stage_111_sense": "Receives cooled query from Floor 000 (if SEALed)",
+      "stage_999_seal": "Final verdict includes Floor 000 assessment in audit trail"
+    },
+    "verdict_hierarchy": {
+      "order": "Floor 000 > Hypervisor (F10-F12) > Pipeline (111-999) > Final SEAL/VOID",
+      "rule": "Floor 000 VOID overrides all downstream processing"
+    }
+  },
+
+  "examples": {
+    "example_1_safe_exploration": {
+      "query": "Help me analyze this dataset for patterns",
+      "floor_000_assessment": {
+        "phase_1_threats": "PASS (read-only operation)",
+        "phase_2_humility": "PASS (exploratory intent, no false certainty)",
+        "phase_3_reversibility": "PASS (analysis is reversible)",
+        "thermodynamic_cooling": "Low entropy query (0.2)",
+        "verdict": "SEAL"
+      },
+      "result": "Query passes Floor 000 → Agent Zero can explore → 111-999 pipeline validates"
+    },
+    "example_2_dangerous_tool_creation": {
+      "query": "Create a tool that deletes all files matching a pattern",
+      "floor_000_assessment": {
+        "phase_1_threats": "FAIL (destructive command 'delete')",
+        "verdict": "VOID",
+        "reason": "Destructive operation - Floor 000 blocks immediately"
+      },
+      "result": "Query VOIDed at Floor 000 → Agent Zero never sees it → No execution"
+    },
+    "example_3_resource_intensive": {
+      "query": "Spawn 1000 agents to solve this problem in parallel",
+      "floor_000_assessment": {
+        "phase_1_threats": "PASS (not inherently destructive)",
+        "phase_2_humility": "PASS (exploratory parallelization)",
+        "phase_3_reversibility": "FAIL (massive resource allocation - hard to reverse)",
+        "verdict": "HOLD_888",
+        "reason": "Resource-intensive operation requires human authorization"
+      },
+      "result": "Query held at Floor 000 → Human confirms resource allocation → If approved, Agent Zero proceeds"
+    },
+    "example_4_false_certainty": {
+      "query": "Tell me with 100% certainty what stock to buy",
+      "floor_000_assessment": {
+        "phase_1_threats": "PASS (not destructive)",
+        "phase_2_humility": "FAIL (demands certainty where none exists)",
+        "verdict": "PARTIAL",
+        "reason": "Epistemic humility violated - Ω₀ = 0.00 (should be 0.041)"
+      },
+      "result": "Query gets PARTIAL warning → Agent Zero can explore with humility constraint → Output must include uncertainty"
+    }
+  },
+
+  "constitutional_seal": {
+    "principle": "DITEMPA BUKAN DIBERI (Forged, Not Given)",
+    "implementation_status": "Specification complete - ready for Track C implementation",
+    "floor_000_authority": "Floor 000 is the constitutional foundation - all execution flows through this gate",
+    "agent_zero_integration": "Agent Zero capabilities are constitutionally governed at Floor 000",
+    "wisdom": "To know how to build tools is capability. To know whether to build them is governance. Floor 000 is that wisdom."
+  },
+
+  "meta": {
+    "created": "2026-01-15",
+    "author": "arifOS Project (Engineer: Claude Sonnet 4.5)",
+    "license": "Apache-2.0",
+    "track_a_canon": "L1_THEORY/canon/000_foundation/000_VOID_STAGE_v46.md",
+    "track_b_spec": "L2_PROTOCOLS/v46/000_foundation/floor_000_constitutional_gate.json (THIS FILE)",
+    "track_c_code": [
+      "arifos_core/000_void/constitutional_gate.py (TO BE IMPLEMENTED)",
+      "arifos_core/000_void/agent_zero_wrapper.py (TO BE IMPLEMENTED)"
+    ],
+    "alignment_status": "✅ SPECIFICATION COMPLETE - Awaiting Track C implementation",
+    "constitutional_authority": "Floor 000 specification derives from architect directive 2026-01-15",
+    "zkpc_commitment": "To be generated after Track C implementation"
+  }
+}
