@@ -13,7 +13,36 @@
 
 **Think of it like this:**
 - Regular AI = A smart teenager with a driver's license (brilliant but unpredictable)
-- arifOS AI = A constitutional lawyer (brilliant within clear boundaries, auditable, accountable)
+- **Agent Zero** = A teenager with a 3D printer and chemistry set (brilliant, builds tools, completely unconstrained)
+- **arifOS** = A constitutional lawyer (brilliant within clear boundaries, auditable, accountable)
+- **arifOS × Agent Zero** = An engineer with safety training (can build anything, but checks it won't explode first)
+
+### The 000 VOID Stage: Where Agent Zero Lives
+
+arifOS has a special stage called **000 VOID** - the unconstrained exploration phase where anything is possible. This is where Agent Zero's capabilities naturally fit:
+
+**Agent Zero Capabilities (000 VOID):**
+- **Runtime tool creation:** Writes Python code on-the-fly to solve problems
+- **MCP server/client:** Connects to external tools and services
+- **Subordinate agent spawning:** Creates specialized sub-agents for specific tasks
+- **Memory persistence:** Remembers across sessions with vector databases
+- **Iterative execution:** Keeps trying until it solves the problem
+- **Docker isolation:** Runs in containers for safety
+- **Voice/vision support:** Multimodal input processing
+
+**The Constitutional Transformation:**
+
+```
+000 VOID (Agent Zero)  →  111-999 (Constitutional Pipeline)
+─────────────────────────────────────────────────────────
+Unbounded exploration  →  Governed execution
+Tool creation allowed  →  Tool validation required
+No safety checks       →  12-rule verification
+User must supervise    →  System self-governs
+Given capabilities     →  Forged governance
+```
+
+**Result:** You get Agent Zero's power to create and execute tools, but wrapped in constitutional law that prevents disasters before they happen.
 
 ---
 
@@ -308,12 +337,18 @@ arifos-verify-governance
                   └────────┬─────────┘
                            │
                   ┌────────▼─────────┐
-                  │   ANY AI (GPT,   │
-                  │ Claude, Gemini)  │
+                  │   000 VOID       │
+                  │ (Agent Zero Mode)│
+                  │                  │
+                  │ • Create tools   │
+                  │ • Spawn agents   │
+                  │ • Connect MCP    │
+                  │ • Explore freely │
                   └────────┬─────────┘
                            │
                   ┌────────▼─────────┐
-                  │  arifOS KERNEL   │
+                  │  111-999 PIPELINE│
+                  │ (Constitutional) │
                   │                  │
                   │ Check 12 Rules:  │
                   │ ☑ Truth?         │
@@ -339,10 +374,17 @@ arifos-verify-governance
                   ✅ YES       ❌ NO
                      │           │
               ┌──────▼────┐  ┌───▼──────┐
+              │  999 SEAL │  │   VOID   │
               │  RELEASE  │  │  BLOCK   │
-              │  OUTPUT   │  │  OUTPUT  │
               └───────────┘  └──────────┘
 ```
+
+**The 000-999 Pipeline:**
+- **000 VOID:** Unconstrained exploration (Agent Zero capabilities)
+- **111-333:** Constitutional checks (Mind - Truth, Clarity, Humility)
+- **444-666:** Care validation (Heart - Peace, Empathy, Listening)
+- **777-888:** Authority verification (Soul - Reversibility, Consensus, No fake consciousness)
+- **999 SEAL:** Final approval and cryptographic proof
 
 ---
 
@@ -353,12 +395,31 @@ arifos-verify-governance
 - Hope it works
 - Can't audit decisions
 - Each AI governed separately
+- No exploration phase
 
-### arifOS
-- 12 constitutional rules (no more, no less)
+### Agent Zero (Unconstrained)
+- Creates tools at runtime
+- Spawns sub-agents freely
+- Connects to MCP servers
+- Iterates until solution found
+- User must supervise everything
+- No automatic safety checks
+
+### arifOS (Constitutional)
+- **000 VOID:** Agent Zero capabilities (exploration)
+- **111-999:** Constitutional pipeline (governance)
+- 12 constitutional rules enforced
 - Cryptographic proof of checks
 - 100% auditable
 - One kernel governs all AIs
+- Automatic safety reflexes (8.7ms)
+
+### arifOS × Agent Zero (Best of Both)
+- **Exploration:** Full Agent Zero capabilities in 000 VOID
+- **Governance:** Constitutional validation in 111-999
+- **Result:** Can create tools AND verify they're safe
+- **Speed:** 8.7ms constitutional reflexes (automatic)
+- **Audit:** Every tool creation cryptographically logged
 
 ---
 
@@ -378,13 +439,48 @@ arifos-verify-governance
 ```
 arifOS/
 ├── arifos_core/
-│   ├── agi/           # Logic & reasoning checks
-│   ├── asi/           # Care & empathy checks
-│   ├── apex/          # Final judgment & seal
-│   └── hypervisor/    # Security & defense
-├── tests/             # Constitutional tests
-└── L1_THEORY/         # Constitutional law docs
+│   ├── 000_void/           # Agent Zero capabilities
+│   │   ├── tool_creation.py      # Runtime Python tool generation
+│   │   ├── agent_spawning.py     # Subordinate agent management
+│   │   ├── mcp_client.py         # External tool connections
+│   │   └── exploration.py        # Unconstrained search
+│   ├── 111_sense/          # Constitutional detection
+│   ├── 222_reflect/        # Epistemic humility (Ω₀ = 0.041)
+│   ├── 333_reason/         # Logic & reasoning checks
+│   ├── 444_evidence/       # Tri-witness consensus
+│   ├── 555_empathize/      # Care & empathy checks
+│   ├── 666_align/          # Constitutional alignment
+│   ├── 777_forge/          # Truth crystallization
+│   ├── 888_judge/          # Final judgment & seal
+│   ├── 999_seal/           # Cryptographic proof
+│   ├── agi/                # Logic kernel (Mind)
+│   ├── asi/                # Care kernel (Heart)
+│   ├── apex/               # Judgment kernel (Soul)
+│   └── hypervisor/         # Security & defense
+├── tests/                  # Constitutional tests
+└── L1_THEORY/              # Constitutional law docs
 ```
+
+**The 000 VOID Stage:**
+
+This is where Agent Zero's capabilities live - the unconstrained exploration phase where the AI can:
+- Write and execute Python code to create new tools
+- Spawn specialized sub-agents for complex tasks
+- Connect to external MCP servers for extended functionality
+- Explore solutions iteratively without predetermined limits
+
+**Constitutional Governance:**
+
+After 000 VOID exploration, the 111-999 pipeline validates everything:
+- Did the tool creation follow safety rules? (111 SENSE)
+- Is there appropriate epistemic humility? (222 REFLECT - Ω₀ = 0.041)
+- Does the logic hold up? (333 REASON)
+- Is there human+AI+evidence consensus? (444 EVIDENCE)
+- Does it show care for vulnerable users? (555 EMPATHIZE)
+- Is it aligned with human values? (666 ALIGN)
+- Is it clear and truthful? (777 FORGE)
+- Final constitutional judgment (888 JUDGE)
+- Cryptographic seal and audit trail (999 SEAL)
 
 ---
 
