@@ -1,5 +1,5 @@
 {
-  "version": "v46.0",
+  "version": "v47.0.0",
   "constitutional_workflows": {
     "111_sense_workflow": {
       "stages": [

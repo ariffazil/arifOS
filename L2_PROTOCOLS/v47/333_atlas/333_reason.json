@@ -1,5 +1,5 @@
 {
-  "version": "v46.0",
+  "version": "v47.0.0",
   "stage_id": "333",
   "document_id": "333-REASON-v46",
   "authority": "Track B - Stage 333 REASON (Single-Agent Commitment)",
@@ -11,7 +11,6 @@
   "pipeline_position": "THIRD",
   "engine": "AGI",
   "source": "https://github.com/ariffazil/arifOS",
-
   "inputs": {
     "reflected_bundle_222": {
       "type": "object",
@@ -24,7 +23,6 @@
       "note": "sensed_bundle_111 must be present for lineage traceability"
     }
   },
-
   "outputs": {
     "reasoned_bundle_333": {
       "type": "object",
@@ -49,29 +47,58 @@
           "type": "object",
           "description": "AGI-only floor scores (F1, F2, F10, F12)",
           "properties": {
-            "F1_truth": {"type": "float", "range": [0.0, 1.0], "threshold": 0.99},
-            "F2_clarity": {"type": "float", "description": "ΔS score (must be >= 0.0)"},
-            "F10_symbolic": {"type": "boolean", "description": "Symbolic guard (must be true)"},
-            "F12_injection": {"type": "float", "range": [0.0, 1.0], "threshold_max": 0.85}
+            "F1_truth": {
+              "type": "float",
+              "range": [
+                0.0,
+                1.0
+              ],
+              "threshold": 0.99
+            },
+            "F2_clarity": {
+              "type": "float",
+              "description": "\u0394S score (must be >= 0.0)"
+            },
+            "F10_symbolic": {
+              "type": "boolean",
+              "description": "Symbolic guard (must be true)"
+            },
+            "F12_injection": {
+              "type": "float",
+              "range": [
+                0.0,
+                1.0
+              ],
+              "threshold_max": 0.85
+            }
           }
         },
         "soft_flags": {
           "type": "array",
           "description": "Warnings for ASI review at 444 (empathy, peace, humility checks)",
-          "items": {"type": "string"}
+          "items": {
+            "type": "string"
+          }
         },
         "handoff": {
           "type": "object",
           "properties": {
-            "to_stage": {"type": "string", "value": "444_ALIGN"},
-            "responsibility": {"type": "string", "value": "ASI (Ω) - Empathy Integration"},
-            "ready": {"type": "boolean"}
+            "to_stage": {
+              "type": "string",
+              "value": "444_ALIGN"
+            },
+            "responsibility": {
+              "type": "string",
+              "value": "ASI (\u03a9) - Empathy Integration"
+            },
+            "ready": {
+              "type": "boolean"
+            }
           }
         }
       }
     }
   },
-
   "thresholds": {
     "F1_truth_min": {
       "value": 0.99,
@@ -80,7 +107,7 @@
     },
     "F2_clarity_min": {
       "value": 0.0,
-      "description": "Minimum ΔS (clarity gain, not entropy increase)",
+      "description": "Minimum \u0394S (clarity gain, not entropy increase)",
       "floor_reference": "F2 Clarity (entropy reduction)"
     },
     "F12_injection_max": {
@@ -89,7 +116,6 @@
       "floor_reference": "F12 Injection Defense"
     }
   },
-
   "functions": {
     "validate_bearing_lock": {
       "description": "Verify bearing_lock SHA-256 from 222 matches chosen_path",
@@ -101,13 +127,23 @@
       "description": "Generate AGI draft response under F1+F2 constraints",
       "input": "bearing_locked + sensed_bundle_111.domain",
       "output": "agi_draft string",
-      "constraints": ["F1 Truth >= 0.99", "F2 Clarity ΔS >= 0.0", "No consciousness claims", "No injection patterns"]
+      "constraints": [
+        "F1 Truth >= 0.99",
+        "F2 Clarity \u0394S >= 0.0",
+        "No consciousness claims",
+        "No injection patterns"
+      ]
     },
     "preflight_check": {
       "description": "Run AGI-only floor checks (F1, F2, F10, F12)",
       "input": "agi_draft",
       "output": "floor_scores object + verdict",
-      "floors_checked": ["F1_truth", "F2_clarity", "F10_symbolic", "F12_injection"]
+      "floors_checked": [
+        "F1_truth",
+        "F2_clarity",
+        "F10_symbolic",
+        "F12_injection"
+      ]
     },
     "compute_floor_scores": {
       "description": "Calculate numerical scores for each AGI floor",
@@ -119,10 +155,13 @@
       "description": "Identify soft floor concerns for ASI review at 444",
       "input": "agi_draft + floor_scores",
       "output": "soft_flags array",
-      "examples": ["F4_empathy near threshold", "F3_stability concern", "F7_humility uncertainty"]
+      "examples": [
+        "F4_empathy near threshold",
+        "F3_stability concern",
+        "F7_humility uncertainty"
+      ]
     }
   },
-
   "verdict_logic": {
     "VOID": {
       "conditions": [
@@ -153,18 +192,16 @@
       "action": "Hand off reasoned_bundle_333 to 444 ALIGN"
     }
   },
-
   "agi_asi_boundary": {
     "description": "Stage 333 is the last AGI-only stage before ASI integration",
     "agi_responsibility": "Structural soundness (truth, clarity, symbolic integrity)",
     "asi_responsibility": "Ethical nuance (empathy, peace, humility, anti-hantu)",
     "handoff_protocol": "AGI says: 'I built a structurally sound blueprint. It's true and clear.' ASI says: 'I'll check if it's safe, kind, and respects human dignity.'"
   },
-
   "meta": {
     "created": "2026-01-14",
     "updated": "2026-01-14",
-    "author": "arifOS Project - Claude Engineer (Ω)",
+    "author": "arifOS Project - Claude Engineer (\u03a9)",
     "license": "Apache-2.0",
     "forged_from": "L1_THEORY/canon/333_atlas/20_333_REASON_v46.md",
     "handoff": ".antigravity/HANDOFF_FOR_CLAUDE.md (2026-01-14 06:40)",

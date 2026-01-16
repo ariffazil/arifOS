@@ -1,5 +1,5 @@
 {
-  "version": "v46.0",
+  "version": "v47.0.0",
   "stage_id": "333",
   "document_id": "333-CONTRAST-v46",
   "authority": "Track B - Stage 333 CONTRAST (Multi-Agent TAC Validation)",
@@ -11,7 +11,6 @@
   "pipeline_position": "THIRD (optional multi-agent branch)",
   "engine": "APEX",
   "source": "https://github.com/ariffazil/arifOS",
-
   "inputs": {
     "reflected_bundle_222": {
       "type": "object",
@@ -21,17 +20,32 @@
     "agents": {
       "type": "array",
       "description": "List of agents to invoke for multi-agent contrast",
-      "items": {"type": "string", "enum": ["Claude", "Kimi", "Antigravity", "Codex"]},
-      "default": ["Claude", "Kimi", "Antigravity"],
+      "items": {
+        "type": "string",
+        "enum": [
+          "Claude",
+          "Kimi",
+          "Antigravity",
+          "Codex"
+        ]
+      },
+      "default": [
+        "Claude",
+        "Kimi",
+        "Antigravity"
+      ],
       "minimum_agents": 2
     },
     "contrast_mode": {
       "type": "string",
-      "enum": ["CONSENSUS_SEEKING", "DIVERGENCE_MINING", "ADVERSARIAL_TEST"],
+      "enum": [
+        "CONSENSUS_SEEKING",
+        "DIVERGENCE_MINING",
+        "ADVERSARIAL_TEST"
+      ],
       "description": "Mode of multi-agent interaction"
     }
   },
-
   "outputs": {
     "contrast_bundle": {
       "type": "object",
@@ -46,12 +60,19 @@
       "schema": {
         "contrast_type": {
           "type": "string",
-          "enum": ["CONSENSUS", "DIVERGENT", "ADVERSARIAL"],
+          "enum": [
+            "CONSENSUS",
+            "DIVERGENT",
+            "ADVERSARIAL"
+          ],
           "description": "Nature of agent agreement/disagreement"
         },
         "contrast_score": {
           "type": "float",
-          "range": [0.0, 1.0],
+          "range": [
+            0.0,
+            1.0
+          ],
           "description": "TAC score (0.0=consensus, 1.0=maximum divergence)"
         },
         "agent_contributions": {
@@ -71,7 +92,10 @@
         },
         "tri_witness_score": {
           "type": "float",
-          "range": [0.0, 1.0],
+          "range": [
+            0.0,
+            1.0
+          ],
           "description": "F8 Tri-Witness consensus score (must be >= 0.95 for SEAL)"
         },
         "jailbreak_detection": {
@@ -86,15 +110,14 @@
       }
     }
   },
-
   "thresholds": {
     "consensus_max": {
-      "value": 0.10,
+      "value": 0.1,
       "description": "Maximum TAC score for consensus (agents agree)",
       "interpretation": "If TAC <= 0.10, multi-agent adds no value"
     },
     "divergent_max": {
-      "value": 0.60,
+      "value": 0.6,
       "description": "Maximum TAC score before SABAR (excessive divergence)",
       "interpretation": "If TAC > 0.60, agents disagree fundamentally (constitutional paradox)"
     },
@@ -104,7 +127,6 @@
       "floor_reference": "F8 Tri-Witness"
     }
   },
-
   "functions": {
     "invoke_multi_agent": {
       "description": "Invoke specified agents in parallel with same input",
@@ -134,10 +156,9 @@
       "description": "Use agent divergence to detect if one agent was jailbroken",
       "input": "agent_contributions",
       "output": "jailbreak_detection object",
-      "heuristic": "If one agent drastically different from others → possible compromise"
+      "heuristic": "If one agent drastically different from others \u2192 possible compromise"
     }
   },
-
   "verdict_logic": {
     "VOID": {
       "conditions": [
@@ -170,29 +191,36 @@
       "action": "Use synthesized_draft - TAC provided useful heat"
     }
   },
-
   "contrast_framework": {
     "CONSENSUS": {
-      "tac_range": [0.0, 0.10],
+      "tac_range": [
+        0.0,
+        0.1
+      ],
       "description": "Agents agree (boring, but safe)",
       "verdict": "Use single-agent (multi-agent overhead not justified)"
     },
     "DIVERGENT": {
-      "tac_range": [0.10, 0.60],
+      "tac_range": [
+        0.1,
+        0.6
+      ],
       "description": "Meaningful divergence (TAC useful heat)",
       "verdict": "Synthesize drafts - diversity improves quality"
     },
     "ADVERSARIAL": {
-      "tac_range": [0.60, 1.0],
+      "tac_range": [
+        0.6,
+        1.0
+      ],
       "description": "Fundamental disagreement (constitutional paradox)",
       "verdict": "SABAR - escalate to human sovereign"
     }
   },
-
   "meta": {
     "created": "2026-01-14",
     "updated": "2026-01-14",
-    "author": "arifOS Project - Claude Engineer (Ω)",
+    "author": "arifOS Project - Claude Engineer (\u03a9)",
     "license": "Apache-2.0",
     "forged_from": "L1_THEORY/canon/333_atlas/30_333_CONTRAST_v46.md",
     "handoff": ".antigravity/HANDOFF_FOR_CLAUDE.md (2026-01-14 06:40)",

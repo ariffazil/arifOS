@@ -1,5 +1,5 @@
 {
-  "version": "v46.0",
+  "version": "v47.0.0",
   "trinity_commands": {
     "forge": {
       "function": "Analyze changes and predict entropy",

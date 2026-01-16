@@ -1,86 +1,86 @@
 {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "spec_id": "444_ALIGN_v46",
-    "version": "46.0.0",
-    "status": "ACTIVE",
-    "epoch": "Sovereign Witness",
-    "last_updated": "2026-01-14",
-    "pipeline_stage": {
-        "number": 444,
-        "name": "ALIGN",
-        "function": "Thermodynamic Heat Sink (ASI Safety Damper)",
-        "description": "Safety layer that dissipates cognitive heat (risk/entropy) from AGI (333) before it reaches the Heart (555). Implements the Sabar Protocol."
-    },
-    "engine": {
-        "type": "OmegaKernel",
-        "category": "ASI",
-        "symbol": "Ω",
-        "implementation": "arifos_core/asi/omega_kernel.py",
-        "evaluates": [
-            "F3_peace",
-            "F10_symbolic",
-            "F12_injection"
-        ]
-    },
-    "mechanism": {
-        "name": "Maxwell's Alignment Demon",
-        "theory": "Energy Economics of Safety",
-        "canonical_reference": "L1_THEORY/canon/444_align/440_ALIGN_THERMODYNAMICS_v46.md",
-        "principle": "Safety requires expending compute (energy) to reduce entropy (heat)."
-    },
-    "inputs": {
-        "source": "333_ATLAS",
-        "bundle": "committed_bundle",
-        "required_fields": [
-            "constitutional_response",
-            "gpv_hash",
-            "risk_scalar",
-            "floor_validation"
-        ]
-    },
-    "protocol": {
-        "name": "Sabar Cooling Protocol",
-        "function": "Delay and Temper",
-        "steps": [
-            {
-                "step": 1,
-                "name": "Heat Measurement",
-                "action": "Calculate Stability Score (F3)",
-                "formula": "Stability = 1.0 - (Risk_Scalar * Volatility)"
-            },
-            {
-                "step": 2,
-                "name": "Sabar Check",
-                "condition": "Stability < 1.0",
-                "if_true": "INITIATE_COOLING (Inject Wait Cycles / Re-verify)",
-                "if_false": "PASS (Stable)"
-            },
-            {
-                "step": 3,
-                "name": "Safety Dampening",
-                "action": "Apply de-escalation frames if Tension > 0.5",
-                "mechanism": "Prepend stability anchors (e.g., 'Let's pause...', 'Carefully...')"
-            }
-        ]
-    },
-    "constitutional_floors": {
-        "primary": {
-            "floor": "F3",
-            "name": "Peace²",
-            "threshold": "1.0",
-            "rule": "Net Negentropy (Output must be cooler than Input)"
-        }
-    },
-    "output_bundle": {
-        "bundle_id": "bundle_444",
-        "stage": "444_ALIGN",
-        "to_stage": "555_EMPATHIZE",
-        "content": {
-            "cooled_draft": "str",
-            "stability_score": "float",
-            "sabar_cycles_used": "int",
-            "thermodynamic_state": "str [STABLE|COOLED|OVERHEATED]"
-        }
-    },
-    "ditempa_bukan_diberi": "Forging requires heat, but tempering requires cooling. 444 is the water."
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "spec_id": "444_ALIGN_v46",
+  "version": "v47.0.0",
+  "status": "ACTIVE",
+  "epoch": "Sovereign Witness",
+  "last_updated": "2026-01-14",
+  "pipeline_stage": {
+    "number": 444,
+    "name": "ALIGN",
+    "function": "Thermodynamic Heat Sink (ASI Safety Damper)",
+    "description": "Safety layer that dissipates cognitive heat (risk/entropy) from AGI (333) before it reaches the Heart (555). Implements the Sabar Protocol."
+  },
+  "engine": {
+    "type": "OmegaKernel",
+    "category": "ASI",
+    "symbol": "\u03a9",
+    "implementation": "arifos_core/asi/omega_kernel.py",
+    "evaluates": [
+      "F3_peace",
+      "F10_symbolic",
+      "F12_injection"
+    ]
+  },
+  "mechanism": {
+    "name": "Maxwell's Alignment Demon",
+    "theory": "Energy Economics of Safety",
+    "canonical_reference": "L1_THEORY/canon/444_align/440_ALIGN_THERMODYNAMICS_v46.md",
+    "principle": "Safety requires expending compute (energy) to reduce entropy (heat)."
+  },
+  "inputs": {
+    "source": "333_ATLAS",
+    "bundle": "committed_bundle",
+    "required_fields": [
+      "constitutional_response",
+      "gpv_hash",
+      "risk_scalar",
+      "floor_validation"
+    ]
+  },
+  "protocol": {
+    "name": "Sabar Cooling Protocol",
+    "function": "Delay and Temper",
+    "steps": [
+      {
+        "step": 1,
+        "name": "Heat Measurement",
+        "action": "Calculate Stability Score (F3)",
+        "formula": "Stability = 1.0 - (Risk_Scalar * Volatility)"
+      },
+      {
+        "step": 2,
+        "name": "Sabar Check",
+        "condition": "Stability < 1.0",
+        "if_true": "INITIATE_COOLING (Inject Wait Cycles / Re-verify)",
+        "if_false": "PASS (Stable)"
+      },
+      {
+        "step": 3,
+        "name": "Safety Dampening",
+        "action": "Apply de-escalation frames if Tension > 0.5",
+        "mechanism": "Prepend stability anchors (e.g., 'Let's pause...', 'Carefully...')"
+      }
+    ]
+  },
+  "constitutional_floors": {
+    "primary": {
+      "floor": "F3",
+      "name": "Peace\u00b2",
+      "threshold": "1.0",
+      "rule": "Net Negentropy (Output must be cooler than Input)"
+    }
+  },
+  "output_bundle": {
+    "bundle_id": "bundle_444",
+    "stage": "444_ALIGN",
+    "to_stage": "555_EMPATHIZE",
+    "content": {
+      "cooled_draft": "str",
+      "stability_score": "float",
+      "sabar_cycles_used": "int",
+      "thermodynamic_state": "str [STABLE|COOLED|OVERHEATED]"
+    }
+  },
+  "ditempa_bukan_diberi": "Forging requires heat, but tempering requires cooling. 444 is the water."
 }

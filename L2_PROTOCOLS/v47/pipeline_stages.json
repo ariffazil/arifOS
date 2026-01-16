@@ -1,5 +1,5 @@
 {
-  "version": "v46.0",
+  "version": "v47.0.0",
   "pipeline_stages": {
     "000": {
       "name": "VOID",

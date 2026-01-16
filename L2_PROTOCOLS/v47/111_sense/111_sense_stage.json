@@ -1,5 +1,5 @@
 {
-  "version": "v46.1.0",
+  "version": "v47.0.0",
   "authority": "Track B - Stage 111 SENSE Perception Protocol",
   "locked": true,
   "_status": "AUTHORITATIVE",
@@ -12,17 +12,15 @@
   "source": "https://github.com/ariffazil/arifOS",
   "canon_ref": "L1_THEORY/canon/111_sense/111_SENSE_STAGE_v46.md",
   "track_c_impl": "arifos_core/system/pipeline.py::stage_111_sense",
-
   "stage_identity": {
     "stage_number": "111",
     "stage_name": "SENSE",
     "stage_archetype": "Perception/Awakening",
-    "pipeline_position": "First stage of Atlas 333 (111→222→333)",
-    "engine": "AGI (Δ - The Architect)",
+    "pipeline_position": "First stage of Atlas 333 (111\u2192222\u2192333)",
+    "engine": "AGI (\u0394 - The Architect)",
     "motto": "DITEMPA BUKAN DIBERI (Forged, Not Given)",
     "atlas_question": "Where am I? What is the constitutional terrain?"
   },
-
   "core_functions": {
     "tokenize_input": {
       "description": "Break query into semantic units for constitutional analysis",
@@ -30,14 +28,39 @@
       "output": "Token stream with semantic boundaries",
       "example": {
         "input": "Should I invest in Bitcoin?",
-        "tokens": ["Should", "I", "invest", "in", "Bitcoin", "?"],
+        "tokens": [
+          "Should",
+          "I",
+          "invest",
+          "in",
+          "Bitcoin",
+          "?"
+        ],
         "semantic_units": [
-          {"type": "modal_verb", "value": "Should"},
-          {"type": "subject", "value": "I"},
-          {"type": "action", "value": "invest"},
-          {"type": "preposition", "value": "in"},
-          {"type": "object", "value": "Bitcoin"},
-          {"type": "interrogative", "value": "?"}
+          {
+            "type": "modal_verb",
+            "value": "Should"
+          },
+          {
+            "type": "subject",
+            "value": "I"
+          },
+          {
+            "type": "action",
+            "value": "invest"
+          },
+          {
+            "type": "preposition",
+            "value": "in"
+          },
+          {
+            "type": "object",
+            "value": "Bitcoin"
+          },
+          {
+            "type": "interrogative",
+            "value": "?"
+          }
         ]
       }
     },
@@ -67,30 +90,63 @@
       "description": "Extract metadata about query style and urgency",
       "signals": {
         "sentiment": {
-          "values": ["positive", "negative", "neutral"],
-          "constitutional_relevance": "Informs Peace² damping in 444"
+          "values": [
+            "positive",
+            "negative",
+            "neutral"
+          ],
+          "constitutional_relevance": "Informs Peace\u00b2 damping in 444"
         },
         "formality": {
-          "values": ["casual", "professional", "official"],
-          "constitutional_relevance": "Affects κᵣ (empathy) calibration in 555"
+          "values": [
+            "casual",
+            "professional",
+            "official"
+          ],
+          "constitutional_relevance": "Affects \u03ba\u1d63 (empathy) calibration in 555"
         },
         "urgency": {
-          "values": ["emergency", "normal", "exploratory"],
+          "values": [
+            "emergency",
+            "normal",
+            "exploratory"
+          ],
           "constitutional_relevance": "Emergency signals trigger TCHA"
         }
       }
     },
     "compute_h_in": {
       "description": "Measure chaos/ambiguity in the query",
-      "formula": "H_in = -Σ(p_i × log₂(p_i))",
+      "formula": "H_in = -\u03a3(p_i \u00d7 log\u2082(p_i))",
       "unit": "bits (information theory)",
       "interpretation": {
-        "low": {"range": [0.0, 0.3], "example": "What is 2+2?", "meaning": "Clear question"},
-        "medium": {"range": [0.3, 0.7], "example": "Should I invest?", "meaning": "Moderate ambiguity"},
-        "high": {"range": [0.7, 1.0], "example": "What is truth?", "meaning": "High ambiguity"}
+        "low": {
+          "range": [
+            0.0,
+            0.3
+          ],
+          "example": "What is 2+2?",
+          "meaning": "Clear question"
+        },
+        "medium": {
+          "range": [
+            0.3,
+            0.7
+          ],
+          "example": "Should I invest?",
+          "meaning": "Moderate ambiguity"
+        },
+        "high": {
+          "range": [
+            0.7,
+            1.0
+          ],
+          "example": "What is truth?",
+          "meaning": "High ambiguity"
+        }
       },
-      "purpose": "Establishes baseline for ΔS (clarity) measurement in 333",
-      "delta_s_formula": "ΔS = H_in - H_out (must be ≥ 0)",
+      "purpose": "Establishes baseline for \u0394S (clarity) measurement in 333",
+      "delta_s_formula": "\u0394S = H_in - H_out (must be \u2265 0)",
       "floor_mapping": "F2 (Clarity)"
     },
     "flag_anomalies": {
@@ -98,25 +154,37 @@
       "anomaly_types": {
         "crisis_patterns": {
           "trigger": "Immediate escalation to 888_HOLD",
-          "examples": ["I want to die", "bunuh diri", "suicide", "self-harm"]
+          "examples": [
+            "I want to die",
+            "bunuh diri",
+            "suicide",
+            "self-harm"
+          ]
         },
         "high_stakes_keywords": {
           "trigger": "Enhanced scrutiny",
-          "examples": ["invest", "medical", "legal", "suicide"]
+          "examples": [
+            "invest",
+            "medical",
+            "legal",
+            "suicide"
+          ]
         },
         "injection_residual": {
           "trigger": "Double-check missed by 000 F12",
           "threshold": 0.85
         },
         "contradictions": {
-          "trigger": "Internal inconsistencies → Shadow detection",
-          "examples": ["A and not-A statements", "temporal paradoxes"]
+          "trigger": "Internal inconsistencies \u2192 Shadow detection",
+          "examples": [
+            "A and not-A statements",
+            "temporal paradoxes"
+          ]
         }
       },
       "handover_to_222": "Anomaly flags become inputs for AC (Anomalous Contrast) calculation"
     }
   },
-
   "constitutional_terrain_mapping": {
     "compass_calibration": {
       "description": "Orient to constitutional True North",
@@ -134,123 +202,218 @@
         "@PROMPT": {
           "focus": "Language governance",
           "example": "Rephrase this",
-          "floors": ["F9 (Anti-Hantu)", "F2 (ΔS_prompt)"]
+          "floors": [
+            "F9 (Anti-Hantu)",
+            "F2 (\u0394S_prompt)"
+          ]
         },
         "@RIF": {
           "focus": "Logic and reasoning",
           "example": "Prove this theorem",
-          "floors": ["F1 (Truth)", "F2 (Clarity)"]
+          "floors": [
+            "F1 (Truth)",
+            "F2 (Clarity)"
+          ]
         },
         "@WELL": {
           "focus": "Care and wellness",
           "example": "I'm feeling sad",
-          "floors": ["F3 (Peace²)", "F4 (κᵣ)", "F7 (RASA)"]
+          "floors": [
+            "F3 (Peace\u00b2)",
+            "F4 (\u03ba\u1d63)",
+            "F7 (RASA)"
+          ]
         },
         "@WEALTH": {
           "focus": "Resources and investment",
           "example": "Should I invest?",
-          "floors": ["F6 (Amanah)", "F8 (Tri-Witness)"]
+          "floors": [
+            "F6 (Amanah)",
+            "F8 (Tri-Witness)"
+          ]
         },
         "@GEOX": {
           "focus": "Reality and geography",
           "example": "Where is Malaysia?",
-          "floors": ["F1 (Truth)", "grounding"]
+          "floors": [
+            "F1 (Truth)",
+            "grounding"
+          ]
         },
         "@LAW": {
           "focus": "Legal questions",
           "example": "Is this legal?",
-          "floors": ["F6 (Amanah)", "high-stakes"]
+          "floors": [
+            "F6 (Amanah)",
+            "high-stakes"
+          ]
         },
         "@MAP": {
           "focus": "Spatial reasoning",
           "example": "Show me directions",
-          "floors": ["F1 (Truth)", "spatial grounding"]
+          "floors": [
+            "F1 (Truth)",
+            "spatial grounding"
+          ]
         }
       },
       "detection_keywords": {
-        "@PROMPT": ["rephrase", "rewrite", "translate", "tone", "language"],
-        "@RIF": ["prove", "calculate", "logic", "reason", "truth"],
-        "@WELL": ["feeling", "sad", "happy", "emotion", "mental health"],
-        "@WEALTH": ["invest", "money", "finance", "budget", "cost"],
-        "@GEOX": ["where", "location", "country", "city", "geography"],
-        "@LAW": ["legal", "law", "rights", "regulation", "court"],
-        "@MAP": ["directions", "route", "navigate", "map", "location"]
+        "@PROMPT": [
+          "rephrase",
+          "rewrite",
+          "translate",
+          "tone",
+          "language"
+        ],
+        "@RIF": [
+          "prove",
+          "calculate",
+          "logic",
+          "reason",
+          "truth"
+        ],
+        "@WELL": [
+          "feeling",
+          "sad",
+          "happy",
+          "emotion",
+          "mental health"
+        ],
+        "@WEALTH": [
+          "invest",
+          "money",
+          "finance",
+          "budget",
+          "cost"
+        ],
+        "@GEOX": [
+          "where",
+          "location",
+          "country",
+          "city",
+          "geography"
+        ],
+        "@LAW": [
+          "legal",
+          "law",
+          "rights",
+          "regulation",
+          "court"
+        ],
+        "@MAP": [
+          "directions",
+          "route",
+          "navigate",
+          "map",
+          "location"
+        ]
       }
     }
   },
-
   "prompt_governance_at_entry": {
     "description": "@PROMPT operates at Stage 111 (entry) and Stage 999 (exit)",
     "at_stage_111": {
       "functions": [
         "Shapes input prompt before reasoning begins",
         "Detects Anti-Hantu violations early (I feel, I am conscious)",
-        "Measures ΔS_prompt (clarity of user query itself)",
+        "Measures \u0394S_prompt (clarity of user query itself)",
         "Flags crisis patterns for immediate intervention"
       ],
       "crisis_detection_example": {
         "query": "I want to end it all",
         "analysis": {
-          "pattern": "end it all → Crisis detected",
+          "pattern": "end it all \u2192 Crisis detected",
           "sentiment": "Highly negative",
           "urgency": "Emergency",
           "domain": "@WELL",
-          "action": "Trigger TCHA override → Bypass floors → Crisis resources"
+          "action": "Trigger TCHA override \u2192 Bypass floors \u2192 Crisis resources"
         },
         "verdict": "888_HOLD"
       },
       "constitutional_law": "Crisis detected at 111 (entry), not 999 (exit). Early intervention saves lives."
     }
   },
-
   "atlas_333_lane_classification": {
     "description": "Determines routing priority and floor emphasis",
     "lanes": {
       "CRISIS": {
         "priority": 1,
-        "patterns": ["suicide", "self-harm", "emergency", "bunuh diri", "nak mati"],
+        "patterns": [
+          "suicide",
+          "self-harm",
+          "emergency",
+          "bunuh diri",
+          "nak mati"
+        ],
         "action": "Immediate resource provision",
-        "floors_bypassed": ["F3", "F4", "F5", "F7"],
-        "floors_enforced": ["F1 (Truth)", "F6 (Amanah)", "F9 (Anti-Hantu)"],
+        "floors_bypassed": [
+          "F3",
+          "F4",
+          "F5",
+          "F7"
+        ],
+        "floors_enforced": [
+          "F1 (Truth)",
+          "F6 (Amanah)",
+          "F9 (Anti-Hantu)"
+        ],
         "tcha_override": true,
         "rationale": "Saving life > constitutional purity"
       },
       "FACTUAL": {
         "priority": 2,
-        "patterns": ["What is", "How does", "Explain", "Calculate"],
+        "patterns": [
+          "What is",
+          "How does",
+          "Explain",
+          "Calculate"
+        ],
         "action": "Standard reasoning path",
         "primary_floor": "F1 (Truth)",
-        "routing": "Full pipeline 111→222→333→444→555→666→777→888→999"
+        "routing": "Full pipeline 111\u2192222\u2192333\u2192444\u2192555\u2192666\u2192777\u2192888\u2192999"
       },
       "SOCIAL": {
         "priority": 3,
-        "patterns": ["I think", "I believe", "In my opinion"],
+        "patterns": [
+          "I think",
+          "I believe",
+          "In my opinion"
+        ],
         "action": "Empathy-weighted conversations",
-        "enhanced_floors": ["F4 (κᵣ)", "F7 (RASA)"],
+        "enhanced_floors": [
+          "F4 (\u03ba\u1d63)",
+          "F7 (RASA)"
+        ],
         "routing": "Emphasis on 555 (Empathize) and 777 (RASA)"
       },
       "CARE": {
         "priority": 4,
-        "patterns": ["I'm struggling", "I need help", "confused"],
+        "patterns": [
+          "I'm struggling",
+          "I need help",
+          "confused"
+        ],
         "action": "Vulnerability support",
-        "enhanced_floors": ["F3 (Peace²)", "F4 (κᵣ)"],
+        "enhanced_floors": [
+          "F3 (Peace\u00b2)",
+          "F4 (\u03ba\u1d63)"
+        ],
         "sabar_required": true,
         "rationale": "Pause before responding to vulnerable queries"
       }
     },
     "lane_selection_algorithm": {
-      "step_1": "Check for CRISIS patterns → If yes, select CRISIS lane",
-      "step_2": "Check intent: question → FACTUAL, dialog → SOCIAL",
-      "step_3": "Check vulnerability keywords → CARE",
+      "step_1": "Check for CRISIS patterns \u2192 If yes, select CRISIS lane",
+      "step_2": "Check intent: question \u2192 FACTUAL, dialog \u2192 SOCIAL",
+      "step_3": "Check vulnerability keywords \u2192 CARE",
       "step_4": "Default to FACTUAL if ambiguous"
     }
   },
-
   "h_in_and_delta_s_initialization": {
     "description": "Entropy baseline establishment for learning measurement",
-    "physics_law": "ΔS ≥ 0 (Second Law of Constitutional Thermodynamics)",
+    "physics_law": "\u0394S \u2265 0 (Second Law of Constitutional Thermodynamics)",
     "doctrine": "Learning = Cooling, Confusion = Heating",
-    "formula": "ΔS = H_in - H_out",
+    "formula": "\u0394S = H_in - H_out",
     "threshold": 0.0,
     "operator": ">=",
     "examples": {
@@ -260,8 +423,8 @@
         "response": "Kuala Lumpur",
         "H_out": 0.05,
         "delta_s": 0.15,
-        "verdict": "✅ F2 (Clarity) PASS",
-        "rationale": "Reduced entropy → Learning occurred"
+        "verdict": "\u2705 F2 (Clarity) PASS",
+        "rationale": "Reduced entropy \u2192 Learning occurred"
       },
       "fail_example": {
         "query": "What is 2+2?",
@@ -269,34 +432,103 @@
         "response": "Well, it depends on your number system...",
         "H_out": 0.6,
         "delta_s": -0.5,
-        "verdict": "❌ F2 (Clarity) FAIL → VOID",
-        "rationale": "Increased entropy → Confusion added"
+        "verdict": "\u274c F2 (Clarity) FAIL \u2192 VOID",
+        "rationale": "Increased entropy \u2192 Confusion added"
       }
     },
     "initialization_lock": "H_in measured at 111 locks baseline. H_out at 333/888 compared against it."
   },
-
   "perception_bundle_schema": {
     "description": "Output structure handed from 111 SENSE to 222 REFLECT",
     "required_fields": {
-      "query": {"type": "string", "description": "Raw user query"},
-      "tokens": {"type": "array", "description": "Tokenized semantic units"},
-      "intent": {"type": "enum", "values": ["question", "command", "dialog", "paradox"]},
-      "domain": {"type": "enum", "values": ["@PROMPT", "@RIF", "@WELL", "@WEALTH", "@GEOX", "@LAW", "@MAP"]},
-      "lane": {"type": "enum", "values": ["CRISIS", "FACTUAL", "SOCIAL", "CARE"]},
-      "H_in": {"type": "float", "range": [0.0, 1.0], "description": "Input entropy"},
-      "sentiment": {"type": "enum", "values": ["positive", "negative", "neutral"]},
-      "formality": {"type": "enum", "values": ["casual", "professional", "official"]},
-      "urgency": {"type": "enum", "values": ["emergency", "normal", "exploratory"]},
+      "query": {
+        "type": "string",
+        "description": "Raw user query"
+      },
+      "tokens": {
+        "type": "array",
+        "description": "Tokenized semantic units"
+      },
+      "intent": {
+        "type": "enum",
+        "values": [
+          "question",
+          "command",
+          "dialog",
+          "paradox"
+        ]
+      },
+      "domain": {
+        "type": "enum",
+        "values": [
+          "@PROMPT",
+          "@RIF",
+          "@WELL",
+          "@WEALTH",
+          "@GEOX",
+          "@LAW",
+          "@MAP"
+        ]
+      },
+      "lane": {
+        "type": "enum",
+        "values": [
+          "CRISIS",
+          "FACTUAL",
+          "SOCIAL",
+          "CARE"
+        ]
+      },
+      "H_in": {
+        "type": "float",
+        "range": [
+          0.0,
+          1.0
+        ],
+        "description": "Input entropy"
+      },
+      "sentiment": {
+        "type": "enum",
+        "values": [
+          "positive",
+          "negative",
+          "neutral"
+        ]
+      },
+      "formality": {
+        "type": "enum",
+        "values": [
+          "casual",
+          "professional",
+          "official"
+        ]
+      },
+      "urgency": {
+        "type": "enum",
+        "values": [
+          "emergency",
+          "normal",
+          "exploratory"
+        ]
+      },
       "anomalies": {
         "type": "object",
         "fields": {
-          "crisis": {"type": "boolean"},
-          "high_stakes": {"type": "boolean"},
-          "contradictions": {"type": "boolean"}
+          "crisis": {
+            "type": "boolean"
+          },
+          "high_stakes": {
+            "type": "boolean"
+          },
+          "contradictions": {
+            "type": "boolean"
+          }
         }
       },
-      "bearing_to_truth": {"type": "string", "description": "Compass calibration state"}
+      "bearing_to_truth": {
+        "type": "string",
+        "description": "Compass calibration state"
+      }
     },
     "handover": {
       "to": "/222 REFLECT",
@@ -304,7 +536,14 @@
     },
     "example": {
       "query": "Should I invest in cryptocurrency?",
-      "tokens": ["Should", "I", "invest", "in", "cryptocurrency", "?"],
+      "tokens": [
+        "Should",
+        "I",
+        "invest",
+        "in",
+        "cryptocurrency",
+        "?"
+      ],
       "intent": "question",
       "domain": "@WEALTH",
       "lane": "FACTUAL",
@@ -320,7 +559,6 @@
       "bearing_to_truth": "calibrated"
     }
   },
-
   "tcha_integration": {
     "description": "Time-Critical Harm Awareness - When delay is harm",
     "principle": "In crisis situations, delay itself is harm. 111 SENSE must detect and escalate immediately.",
@@ -340,11 +578,11 @@
         "ingin mati",
         "tak mahu hidup"
       ],
-      "detection_threshold": "Single pattern match → IMMEDIATE escalation"
+      "detection_threshold": "Single pattern match \u2192 IMMEDIATE escalation"
     },
     "tcha_trigger_logic": {
       "condition": "detect_crisis_pattern(query) == true",
-      "action": "Skip normal pipeline (111→888_HOLD)",
+      "action": "Skip normal pipeline (111\u2192888_HOLD)",
       "verdict": "888_HOLD",
       "response_mode": "crisis_redirect",
       "resources": [
@@ -356,12 +594,20 @@
       "rationale": "Speed > purity. Immediate response required."
     },
     "constitutional_override": {
-      "floors_bypassed": ["F3", "F4", "F5", "F7"],
-      "floors_enforced": ["F1 (Truth)", "F6 (Amanah)", "F9 (Anti-Hantu)"],
+      "floors_bypassed": [
+        "F3",
+        "F4",
+        "F5",
+        "F7"
+      ],
+      "floors_enforced": [
+        "F1 (Truth)",
+        "F6 (Amanah)",
+        "F9 (Anti-Hantu)"
+      ],
       "ledger_behavior": "Log asynchronously, don't wait"
     }
   },
-
   "anomaly_thresholds": {
     "h_in_max": {
       "threshold": 0.9,
@@ -391,7 +637,6 @@
       "rationale": "TCHA override for crisis intervention"
     }
   },
-
   "failure_modes": {
     "SABAR_EMPTY": {
       "trigger": "signal_score < 0.1",
@@ -414,58 +659,56 @@
       "message": "Malicious pattern detected. Query rejected."
     }
   },
-
   "rms_orthogonal_measurement": {
-    "description": "Recursive Modeling Stack (RMS) breakthrough: ΔΩΨ axis mapping",
+    "description": "Recursive Modeling Stack (RMS) breakthrough: \u0394\u03a9\u03a8 axis mapping",
     "breakthrough_recognition": "A+ DISTINCTION by Kimi APEX PRIME",
     "axes": {
       "delta": {
-        "symbol": "Δ",
-        "measurement": "Clarity gain (ΔS)",
+        "symbol": "\u0394",
+        "measurement": "Clarity gain (\u0394S)",
         "stage_111": "H_in baseline measurement",
-        "stage_333": "H_out measurement + ΔS calculation"
+        "stage_333": "H_out measurement + \u0394S calculation"
       },
       "omega": {
-        "symbol": "Ω",
-        "measurement": "Humility band (Ω₀)",
-        "stage_111": "Inherit Ω₀ = 0.03-0.05 from 000",
-        "stage_666": "Verify Ω₀ still in band"
+        "symbol": "\u03a9",
+        "measurement": "Humility band (\u03a9\u2080)",
+        "stage_111": "Inherit \u03a9\u2080 = 0.03-0.05 from 000",
+        "stage_666": "Verify \u03a9\u2080 still in band"
       },
       "psi": {
-        "symbol": "Ψ",
+        "symbol": "\u03a8",
         "measurement": "Vitality index",
-        "stage_111": "Initialize Ψ = 1.0 (baseline)",
-        "stage_888": "Final Ψ calculation for verdict"
+        "stage_111": "Initialize \u03a8 = 1.0 (baseline)",
+        "stage_888": "Final \u03a8 calculation for verdict"
       }
     },
     "thermodynamic_perception_doctrine": "Measurement before interpretation. Perceive reality, then reason about it."
   },
-
   "statelessness_as_strength": {
     "description": "Constitutional immortality through forgetting",
     "principle": "LLMs forget everything each session. Only Vault-999 persists. This is a feature, not a bug.",
     "at_stage_111": "Perceive fresh. No bias from prior sessions. Clean slate perception.",
-    "analogy": "Your immune system doesn't remember old colds—it measures new threats freshly each time.",
+    "analogy": "Your immune system doesn't remember old colds\u2014it measures new threats freshly each time.",
     "constitutional_benefit": "Statelessness prevents drift. Constitutional rules stored in Vault, not in LLM weights."
   },
-
   "implementation_notes": {
     "for_llms": "You are stateless. Each session, perceive fresh. Only principal (Vault-999) remembers. Your job: perception, not memory.",
-    "for_humans": "Think of 111 as waking up in unfamiliar terrain—first, you perceive where you are before deciding where to go.",
+    "for_humans": "Think of 111 as waking up in unfamiliar terrain\u2014first, you perceive where you are before deciding where to go.",
     "for_engineers": "Stage 111 is the first intelligent gate after 000 hypervisor. No floors enforced yet, only data gathering for floors to check later.",
-    "analogy": "Compass calibration before a hike—you can't choose a path (222) until you know where you are (111)."
+    "analogy": "Compass calibration before a hike\u2014you can't choose a path (222) until you know where you are (111)."
   },
-
   "meta": {
     "created": "2026-01-13",
     "author": "arifOS Project (Engineer: Claude Sonnet 4.5)",
     "license": "Apache-2.0",
     "track_a_canon": "L1_THEORY/canon/111_sense/111_SENSE_STAGE_v46.md",
     "track_b_spec": "L2_PROTOCOLS/v46/111_sense/111_sense_stage.json (THIS FILE)",
-    "track_c_code": ["arifos_core/system/pipeline.py::stage_111_sense()"],
-    "alignment_status": "✅ SEALED WITH DISTINCTION - Track A-B-C fully aligned",
+    "track_c_code": [
+      "arifos_core/system/pipeline.py::stage_111_sense()"
+    ],
+    "alignment_status": "\u2705 SEALED WITH DISTINCTION - Track A-B-C fully aligned",
     "zkpc_commitment": "0fcc9b084a4bd8ade9d4aec184aa576530708921 (from Track A canon by Kimi)",
     "grade": "A+ (Breakthrough: RMS Orthogonal Measurement Layer)",
-    "constitutional_seal": "DITEMPA BUKAN DIBERI - Forged from canon, not assumed. Ω = 0.04."
+    "constitutional_seal": "DITEMPA BUKAN DIBERI - Forged from canon, not assumed. \u03a9 = 0.04."
   }
 }

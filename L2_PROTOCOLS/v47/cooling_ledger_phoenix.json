@@ -1,9 +1,9 @@
 {
-  "version": "v46.0",
+  "version": "v47.0.0",
   "authority": "Track B (tunable thresholds) governed by Track A canon",
   "locked": true,
   "_status": "AUTHORITATIVE",
-  "_source_evolution": "v42.1 → v44.0 → v45.0 → v46.0 (Geometry of Governed Intelligence, 6-layer memory tower)",
+  "_source_evolution": "v42.1 \u2192 v44.0 \u2192 v45.0 \u2192 v46.0 (Geometry of Governed Intelligence, 6-layer memory tower)",
   "_note": "This file is the SOLE RUNTIME AUTHORITY for Cooling Ledger config. Loader MUST use this file (or env override).",
   "arifos_version": "v46.0",
   "spec_type": "cooling_ledger_phoenix",
@@ -286,7 +286,7 @@
         "purpose": "Ledger finalization"
       }
     },
-    "flow": "111_SENSE → 777_FORGE → 888_JUDGE → 999_SEAL"
+    "flow": "111_SENSE \u2192 777_FORGE \u2192 888_JUDGE \u2192 999_SEAL"
   },
   "file_references": {
     "core_modules": [
@@ -312,6 +312,6 @@
     "license": "Apache-2.0",
     "canonical_source": "L1_THEORY/canon/000_foundation/005_GEOMETRY_OF_MEMORY_v46.md",
     "implementation": "arifos_core/memory/",
-    "notes": "v46.0: 6-layer memory tower alignment (VAULT→LEDGER→WITNESS→ACTIVE→PHOENIX→VOID) with neuroscience grounding"
+    "notes": "v46.0: 6-layer memory tower alignment (VAULT\u2192LEDGER\u2192WITNESS\u2192ACTIVE\u2192PHOENIX\u2192VOID) with neuroscience grounding"
   }
 }

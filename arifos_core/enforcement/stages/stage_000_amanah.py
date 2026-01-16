@@ -1,5 +1,5 @@
 """
-stage_000_amanah.py — Amanah Scoring at Stage 000 (v38)
+stage_000_amanah.py — Amanah Scoring at Stage 000 (v47.0.0)
 
 Stage 000 is no longer just a state reset. It is the FIRST risk gate.
 Before any processing begins, we compute an Amanah score to determine

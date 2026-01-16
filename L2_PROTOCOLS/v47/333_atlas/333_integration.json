@@ -1,5 +1,5 @@
 {
-  "version": "v46.0",
+  "version": "v47.0.0",
   "stage_id": "333",
   "document_id": "333-INTEGRATION-v46",
   "authority": "Track B - Stage 333 INTEGRATION (Tri-Axis AND Logic)",
@@ -11,17 +11,28 @@
   "pipeline_position": "THIRD (integration layer)",
   "engine": "APEX",
   "source": "https://github.com/ariffazil/arifOS",
-
   "inputs": {
     "reason_verdict": {
       "type": "string",
-      "enum": ["PASS", "VOID", "SABAR", "PASS_WITH_FLAGS"],
+      "enum": [
+        "PASS",
+        "VOID",
+        "SABAR",
+        "PASS_WITH_FLAGS"
+      ],
       "description": "Verdict from 333 REASON (single-agent)",
       "required": true
     },
     "contrast_verdict": {
       "type": "string",
-      "enum": ["CONSENSUS_BORING", "DIVERGENT_USEFUL", "ADVERSARIAL", "VOID", "SABAR", "null"],
+      "enum": [
+        "CONSENSUS_BORING",
+        "DIVERGENT_USEFUL",
+        "ADVERSARIAL",
+        "VOID",
+        "SABAR",
+        "null"
+      ],
       "description": "Verdict from 333 CONTRAST (multi-agent, optional)",
       "required": false,
       "default": "null"
@@ -42,11 +53,16 @@
       "default": 0
     }
   },
-
   "outputs": {
     "integrated_verdict": {
       "type": "string",
-      "enum": ["SEAL", "VOID", "SABAR", "HOLD_888", "PARTIAL"],
+      "enum": [
+        "SEAL",
+        "VOID",
+        "SABAR",
+        "HOLD_888",
+        "PARTIAL"
+      ],
       "description": "Final 333 verdict after tri-axis integration"
     },
     "integration_rationale": {
@@ -59,7 +75,6 @@
       "items": "string"
     }
   },
-
   "integration_logic": {
     "tri_axis_and": {
       "description": "ALL three axes must PASS for SEAL",
@@ -75,8 +90,8 @@
         "F2_Truth (< 0.99) - VETO",
         "F3_Burst (rate limit) - DEFER",
         "F4_Empathy (< 0.95) - WARNING",
-        "F6_Clarity (ΔS < 0) - VETO",
-        "F7_Humility (Ω₀ outside band) - WARNING",
+        "F6_Clarity (\u0394S < 0) - VETO",
+        "F7_Humility (\u03a9\u2080 outside band) - WARNING",
         "F9_Anti_Hantu (violations) - VETO",
         "F10_Ontology (consciousness) - VETO",
         "F11_Command_Auth (nonce invalid) - VETO",
@@ -90,7 +105,6 @@
       "PARTIAL_downgrades": "If floor_verdict == PARTIAL, integrated_verdict = PARTIAL (proceed with warnings)"
     }
   },
-
   "verdict_logic": {
     "SEAL": {
       "conditions": [
@@ -137,7 +151,6 @@
       "action": "Proceed to 444 ALIGN with warnings"
     }
   },
-
   "floor_conflict_resolution": {
     "description": "Logic for resolving conflicts between floors",
     "example_conflict": {
@@ -153,11 +166,10 @@
       }
     }
   },
-
   "meta": {
     "created": "2026-01-14",
     "updated": "2026-01-14",
-    "author": "arifOS Project - Claude Engineer (Ω)",
+    "author": "arifOS Project - Claude Engineer (\u03a9)",
     "license": "Apache-2.0",
     "forged_from": "L1_THEORY/canon/333_atlas/40_333_INTEGRATION_v46.md",
     "handoff": ".antigravity/HANDOFF_FOR_CLAUDE.md (2026-01-14 06:40)",

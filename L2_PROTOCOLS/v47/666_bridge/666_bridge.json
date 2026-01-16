@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "spec_id": "666_BRIDGE_v46",
-  "version": "46.0.0",
+  "version": "v47.0.0",
   "status": "ACTIVE",
   "epoch": "Sovereign",
   "last_updated": "2026-01-14",

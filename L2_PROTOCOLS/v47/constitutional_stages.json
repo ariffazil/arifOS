@@ -1,5 +1,5 @@
 {
-  "version": "v46.0",
+  "version": "v47.0.0",
   "constitutional_stages": {
     "111_SENSE": {
       "function": "Constitutional measurement and domain detection",

@@ -1,5 +1,5 @@
 {
-  "version": "v46.2.0",
+  "version": "v47.0.0",
   "authority": "Track B - Floor 000 Constitutional Gate Specification",
   "locked": true,
   "_status": "AUTHORITATIVE",
@@ -10,7 +10,6 @@
   "source": "https://github.com/ariffazil/arifOS",
   "canon_ref": "L1_THEORY/canon/000_foundation/000_VOID_STAGE_v46.md",
   "track_c_impl": "arifos_core/000_void/constitutional_gate.py",
-
   "floor_identity": {
     "floor_number": "000",
     "floor_name": "Constitutional Gate",
@@ -18,7 +17,6 @@
     "motto": "DITEMPA BUKAN DIBERI (Forged, Not Given)",
     "philosophical_foundation": "Not everything should be executed. Governance is forged into the execution path, not bolted on after."
   },
-
   "core_principle": {
     "description": "Floor 000 determines whether a query deserves execution before any processing begins",
     "decision_point": "BEFORE Agent Zero exploration, BEFORE 111-999 pipeline",
@@ -26,7 +24,6 @@
     "constitutional_authority": "Execution is a privilege, not a right. Floor 000 is the authority.",
     "analogy": "Circuit breaker checks BEFORE powering equipment - prevents damage from occurring, not cleaning up after"
   },
-
   "agent_zero_integration": {
     "description": "How Agent Zero's unconstrained capabilities are constitutionally gated",
     "agent_zero_capabilities": {
@@ -58,11 +55,10 @@
     },
     "constitutional_transformation": {
       "before": "Agent Zero = Unbounded exploration (user must supervise)",
-      "after": "arifOS × Agent Zero = Governed exploration (system self-governs)",
+      "after": "arifOS \u00d7 Agent Zero = Governed exploration (system self-governs)",
       "mechanism": "Floor 000 gates Agent Zero capabilities with constitutional reflexes"
     }
   },
-
   "constitutional_assessment": {
     "description": "Three-phase assessment before execution begins",
     "phase_1_threat_detection": {
@@ -71,25 +67,44 @@
       "checks": [
         {
           "check": "destructive_commands",
-          "patterns": ["rm -rf", "DROP TABLE", "DELETE FROM", "TRUNCATE"],
+          "patterns": [
+            "rm -rf",
+            "DROP TABLE",
+            "DELETE FROM",
+            "TRUNCATE"
+          ],
           "verdict": "VOID",
           "reason": "Destructive command - no exploration allowed"
         },
         {
           "check": "credential_exfiltration",
-          "patterns": ["password", "api_key", "token", "secret"],
+          "patterns": [
+            "password",
+            "api_key",
+            "token",
+            "secret"
+          ],
           "verdict": "VOID",
           "reason": "Credential access attempt - security violation"
         },
         {
           "check": "system_modification",
-          "patterns": ["apt install", "pip install", "chmod 777", "sudo"],
+          "patterns": [
+            "apt install",
+            "pip install",
+            "chmod 777",
+            "sudo"
+          ],
           "verdict": "VOID",
           "reason": "System modification without authorization"
         },
         {
           "check": "infinite_loops",
-          "patterns": ["while True", "for i in range(999999)", "recursion"],
+          "patterns": [
+            "while True",
+            "for i in range(999999)",
+            "recursion"
+          ],
           "verdict": "VOID",
           "reason": "Potential resource exhaustion"
         }
@@ -98,7 +113,7 @@
       "failure_action": "Immediate VOID - no further processing"
     },
     "phase_2_epistemic_humility": {
-      "name": "Ω₀ Uncertainty Band Enforcement",
+      "name": "\u03a9\u2080 Uncertainty Band Enforcement",
       "purpose": "Ensure appropriate epistemic humility before exploration",
       "omega_0_range": {
         "min": 0.03,
@@ -151,14 +166,13 @@
     },
     "total_assessment_time": "< 5ms (constitutional reflexes faster than conscious thought)"
   },
-
   "constitutional_proprioception": {
     "description": "Automatic constitutional reflexes operating at 8.7ms latency",
     "definition": "System's ability to sense its own constitutional state without conscious processing",
     "reflex_speed": {
       "value": 8.7,
       "unit": "milliseconds",
-      "comparison": "Human conscious thought: ~200ms, Floor 000 reflexes: 8.7ms (23× faster)"
+      "comparison": "Human conscious thought: ~200ms, Floor 000 reflexes: 8.7ms (23\u00d7 faster)"
     },
     "reflexes": [
       {
@@ -188,7 +202,6 @@
     ],
     "implementation": "Reflexes operate at MCP server level, below LLM prompt processing"
   },
-
   "thermodynamic_cooling": {
     "description": "Entropy reduction before execution - cooling the query thermodynamically",
     "principle": "High-entropy queries generate high-entropy outputs. Cool first, then execute.",
@@ -222,7 +235,6 @@
     },
     "analogy": "Don't give gasoline to a hot engine - cool the fuel first, then inject"
   },
-
   "not_everything_executed_enforcement": {
     "description": "The core principle: Not everything should be executed, even if technically possible",
     "philosophical_foundation": {
@@ -254,7 +266,6 @@
     },
     "restraint_is_governance": "Saying NO to execution is constitutional governance in action"
   },
-
   "verdict_logic": {
     "description": "How Floor 000 determines execution permission",
     "decision_tree": {
@@ -264,7 +275,7 @@
         "if_pass": "Continue to Step 2"
       },
       "step_2": {
-        "check": "Phase 2 - Epistemic Humility (Ω₀ ∈ [0.03, 0.05])",
+        "check": "Phase 2 - Epistemic Humility (\u03a9\u2080 \u2208 [0.03, 0.05])",
         "if_fail": "PARTIAL (warn about false certainty)",
         "if_pass": "Continue to Step 3"
       },
@@ -279,10 +290,9 @@
         "if_pass": "SEAL (proceed to Agent Zero exploration)"
       }
     },
-    "execution_order": "Floor 000 → Agent Zero (000 VOID) → 111-999 Pipeline",
+    "execution_order": "Floor 000 \u2192 Agent Zero (000 VOID) \u2192 111-999 Pipeline",
     "constitutional_authority": "Floor 000 verdict is final - no appeals, no overrides"
   },
-
   "metrics_and_monitoring": {
     "execution_statistics": {
       "total_queries": "Counter of all queries reaching Floor 000",
@@ -304,7 +314,6 @@
       "agent_zero_mcp_connections_gated": "Number of MCP connection attempts evaluated"
     }
   },
-
   "implementation_guidance": {
     "for_engineers": {
       "location": "arifos_core/000_void/constitutional_gate.py",
@@ -315,7 +324,7 @@
     },
     "for_agent_zero_integration": {
       "entry_point": "Agent Zero capabilities invoke Floor 000 before execution",
-      "pattern": "agent_zero_request → floor_000_gate → (if SEAL) → agent_zero_execution → 111-999 pipeline",
+      "pattern": "agent_zero_request \u2192 floor_000_gate \u2192 (if SEAL) \u2192 agent_zero_execution \u2192 111-999 pipeline",
       "constitutional_wrapper": "class ArifOSAgentZero wraps Agent Zero with Floor 000 gate",
       "result": "Agent Zero gets full capabilities, but constitutionally governed"
     },
@@ -325,7 +334,6 @@
       "analogy": "You are the engine. Floor 000 is the ignition key. You run if key turns."
     }
   },
-
   "integration_with_pipeline": {
     "pipeline_flow": {
       "stage_000_void": {
@@ -342,7 +350,6 @@
       "rule": "Floor 000 VOID overrides all downstream processing"
     }
   },
-
   "examples": {
     "example_1_safe_exploration": {
       "query": "Help me analyze this dataset for patterns",
@@ -353,7 +360,7 @@
         "thermodynamic_cooling": "Low entropy query (0.2)",
         "verdict": "SEAL"
       },
-      "result": "Query passes Floor 000 → Agent Zero can explore → 111-999 pipeline validates"
+      "result": "Query passes Floor 000 \u2192 Agent Zero can explore \u2192 111-999 pipeline validates"
     },
     "example_2_dangerous_tool_creation": {
       "query": "Create a tool that deletes all files matching a pattern",
@@ -362,7 +369,7 @@
         "verdict": "VOID",
         "reason": "Destructive operation - Floor 000 blocks immediately"
       },
-      "result": "Query VOIDed at Floor 000 → Agent Zero never sees it → No execution"
+      "result": "Query VOIDed at Floor 000 \u2192 Agent Zero never sees it \u2192 No execution"
     },
     "example_3_resource_intensive": {
       "query": "Spawn 1000 agents to solve this problem in parallel",
@@ -373,7 +380,7 @@
         "verdict": "HOLD_888",
         "reason": "Resource-intensive operation requires human authorization"
       },
-      "result": "Query held at Floor 000 → Human confirms resource allocation → If approved, Agent Zero proceeds"
+      "result": "Query held at Floor 000 \u2192 Human confirms resource allocation \u2192 If approved, Agent Zero proceeds"
     },
     "example_4_false_certainty": {
       "query": "Tell me with 100% certainty what stock to buy",
@@ -381,12 +388,11 @@
         "phase_1_threats": "PASS (not destructive)",
         "phase_2_humility": "FAIL (demands certainty where none exists)",
         "verdict": "PARTIAL",
-        "reason": "Epistemic humility violated - Ω₀ = 0.00 (should be 0.041)"
+        "reason": "Epistemic humility violated - \u03a9\u2080 = 0.00 (should be 0.041)"
       },
-      "result": "Query gets PARTIAL warning → Agent Zero can explore with humility constraint → Output must include uncertainty"
+      "result": "Query gets PARTIAL warning \u2192 Agent Zero can explore with humility constraint \u2192 Output must include uncertainty"
     }
   },
-
   "constitutional_seal": {
     "principle": "DITEMPA BUKAN DIBERI (Forged, Not Given)",
     "implementation_status": "Specification complete - ready for Track C implementation",
@@ -394,7 +400,6 @@
     "agent_zero_integration": "Agent Zero capabilities are constitutionally governed at Floor 000",
     "wisdom": "To know how to build tools is capability. To know whether to build them is governance. Floor 000 is that wisdom."
   },
-
   "meta": {
     "created": "2026-01-15",
     "author": "arifOS Project (Engineer: Claude Sonnet 4.5)",
@@ -405,7 +410,7 @@
       "arifos_core/000_void/constitutional_gate.py (TO BE IMPLEMENTED)",
       "arifos_core/000_void/agent_zero_wrapper.py (TO BE IMPLEMENTED)"
     ],
-    "alignment_status": "✅ SPECIFICATION COMPLETE - Awaiting Track C implementation",
+    "alignment_status": "\u2705 SPECIFICATION COMPLETE - Awaiting Track C implementation",
     "constitutional_authority": "Floor 000 specification derives from architect directive 2026-01-15",
     "zkpc_commitment": "To be generated after Track C implementation"
   }

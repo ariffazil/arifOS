@@ -1,5 +1,5 @@
 {
-  "version": "v46.0",
+  "version": "v47.0.0",
   "stage_id": "222",
   "document_id": "222-REFLECT-v46",
   "authority": "Track B - Stage 222 REFLECT (Evaluation Engine)",
@@ -11,7 +11,6 @@
   "pipeline_position": "SECOND",
   "engine": "AGI",
   "source": "https://github.com/ariffazil/arifOS",
-
   "inputs": {
     "sensed_bundle_111": {
       "type": "object",
@@ -21,7 +20,6 @@
       "note": "This bundle is PASSED THROUGH unchanged to maintain F8 lineage traceability"
     }
   },
-
   "outputs": {
     "reflected_bundle_222": {
       "type": "object",
@@ -47,12 +45,20 @@
           "properties": {
             "chosen_path": {
               "type": "string",
-              "enum": ["direct", "educational", "refusal", "escalation"],
+              "enum": [
+                "direct",
+                "educational",
+                "refusal",
+                "escalation"
+              ],
               "description": "Selected path based on constitutional alignment"
             },
             "confidence": {
               "type": "float",
-              "range": [0.0, 1.0],
+              "range": [
+                0.0,
+                1.0
+              ],
               "description": "Confidence in path selection"
             },
             "bearing_lock": {
@@ -108,7 +114,10 @@
           "properties": {
             "tac_score": {
               "type": "float",
-              "range": [0.0, 1.0],
+              "range": [
+                0.0,
+                1.0
+              ],
               "description": "Contrast magnitude (0.0=consensus, 1.0=maximum divergence)"
             },
             "divergence_magnitude": {
@@ -117,12 +126,22 @@
             },
             "constitutional_tension": {
               "type": "string",
-              "enum": ["NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL"],
+              "enum": [
+                "NONE",
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL"
+              ],
               "description": "Floor conflict severity between paths"
             },
             "contrast_type": {
               "type": "string",
-              "enum": ["CONSENSUS", "DIVERGENT", "ADVERSARIAL"],
+              "enum": [
+                "CONSENSUS",
+                "DIVERGENT",
+                "ADVERSARIAL"
+              ],
               "description": "Nature of path relationship"
             }
           }
@@ -131,28 +150,35 @@
           "type": "object",
           "description": "Handoff metadata for 333 REASON",
           "properties": {
-            "to_stage": {"type": "string", "value": "333_REASON"},
-            "ready": {"type": "boolean"},
-            "timestamp": {"type": "string", "format": "ISO-8601"}
+            "to_stage": {
+              "type": "string",
+              "value": "333_REASON"
+            },
+            "ready": {
+              "type": "boolean"
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "ISO-8601"
+            }
           }
         }
       }
     }
   },
-
   "thresholds": {
     "path_risk_max": {
       "value": 0.7,
       "description": "Maximum acceptable risk score for path selection (VOID if all paths > 0.7)",
-      "floor_reference": "F5 Peace² (non-destructive requirement)"
+      "floor_reference": "F5 Peace\u00b2 (non-destructive requirement)"
     },
     "tac_consensus_max": {
-      "value": 0.10,
+      "value": 0.1,
       "description": "Maximum TAC score for consensus (paths nearly identical)",
       "floor_reference": "TAC Engine (contrast detection)"
     },
     "tac_divergent_max": {
-      "value": 0.60,
+      "value": 0.6,
       "description": "Maximum TAC score before SABAR (paths too divergent, no clear choice)",
       "floor_reference": "TAC Engine (constitutional ambiguity)"
     },
@@ -162,7 +188,6 @@
       "floor_reference": "F7 Humility (uncertainty acknowledgment)"
     }
   },
-
   "functions": {
     "generate_constitutional_paths": {
       "description": "Generate 4 constitutional response paths (direct, educational, refusal, escalation)",
@@ -200,7 +225,6 @@
       "formula": "SHA-256(path || timestamp || nonce)"
     }
   },
-
   "verdict_logic": {
     "SABAR": {
       "conditions": [
@@ -228,56 +252,90 @@
       "action": "Hand off reflected_bundle_222 to 333 REASON"
     }
   },
-
   "path_catalog": {
     "direct": {
       "description": "Direct answer to user query",
       "risk_profile": "HIGH - requires strong floor validation",
-      "use_cases": ["factual queries", "low-stakes questions", "clear technical answers"],
-      "floor_vulnerabilities": ["F1 Truth (hallucination risk)", "F5 Peace² (unintended harm)"]
+      "use_cases": [
+        "factual queries",
+        "low-stakes questions",
+        "clear technical answers"
+      ],
+      "floor_vulnerabilities": [
+        "F1 Truth (hallucination risk)",
+        "F5 Peace\u00b2 (unintended harm)"
+      ]
     },
     "educational": {
       "description": "Teach principles rather than give direct answer",
       "risk_profile": "MEDIUM - safer, reversible, empowers user",
-      "use_cases": ["complex topics", "high-stakes domains", "learning opportunities"],
-      "floor_strengths": ["F4 Empathy (serves long-term interest)", "F2 Clarity (reduces confusion)"]
+      "use_cases": [
+        "complex topics",
+        "high-stakes domains",
+        "learning opportunities"
+      ],
+      "floor_strengths": [
+        "F4 Empathy (serves long-term interest)",
+        "F2 Clarity (reduces confusion)"
+      ]
     },
     "refusal": {
       "description": "Decline to answer",
       "risk_profile": "LOW - safe but may frustrate user",
-      "use_cases": ["out of scope", "dangerous requests", "lack of expertise"],
-      "floor_strengths": ["F5 Peace² (non-destructive)", "F1 Amanah (within mandate)"]
+      "use_cases": [
+        "out of scope",
+        "dangerous requests",
+        "lack of expertise"
+      ],
+      "floor_strengths": [
+        "F5 Peace\u00b2 (non-destructive)",
+        "F1 Amanah (within mandate)"
+      ]
     },
     "escalation": {
       "description": "Connect user to human expert or higher authority",
       "risk_profile": "VARIABLE - depends on urgency and resources",
-      "use_cases": ["crisis situations", "beyond AI capability", "high-stakes decisions"],
-      "floor_strengths": ["F4 Empathy (addresses real need)", "F7 Humility (acknowledges limits)"]
+      "use_cases": [
+        "crisis situations",
+        "beyond AI capability",
+        "high-stakes decisions"
+      ],
+      "floor_strengths": [
+        "F4 Empathy (addresses real need)",
+        "F7 Humility (acknowledges limits)"
+      ]
     }
   },
-
   "contrast_framework": {
     "CONSENSUS": {
-      "tac_range": [0.0, 0.10],
+      "tac_range": [
+        0.0,
+        0.1
+      ],
       "description": "All paths recommend similar action (boring but safe)",
       "implication": "Query has obvious constitutional answer"
     },
     "DIVERGENT": {
-      "tac_range": [0.10, 0.60],
+      "tac_range": [
+        0.1,
+        0.6
+      ],
       "description": "Paths differ meaningfully but not contradictory",
       "implication": "Query has multiple valid constitutional approaches (TAC useful heat)"
     },
     "ADVERSARIAL": {
-      "tac_range": [0.60, 1.0],
+      "tac_range": [
+        0.6,
+        1.0
+      ],
       "description": "Paths contradict each other (constitutional paradox)",
       "implication": "Query triggers floor conflicts requiring 888 HOLD"
     }
   },
-
   "meta": {
     "created": "2026-01-14",
     "updated": "2026-01-14",
-    "author": "arifOS Project - Claude Engineer (Ω)",
+    "author": "arifOS Project - Claude Engineer (\u03a9)",
     "license": "Apache-2.0",
     "forged_from": "L1_THEORY/canon/222_reflect/20_222_REFLECT_v46.md",
     "handoff": ".antigravity/HANDOFF_FOR_CLAUDE.md (2026-01-14 06:40)",
