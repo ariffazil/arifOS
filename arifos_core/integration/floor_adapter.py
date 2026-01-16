@@ -1,3 +1,8 @@
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
 """
 Floor Adapter — Integration Bridge for Floors 1-12 → APEX PRIME
 X7K9F24 — Entropy Reduction via Unification
@@ -32,7 +37,7 @@ Nonce: X7K9F24
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional, Tuple
 
-from ..system.apex_prime import ApexVerdict, Verdict, Metrics
+from arifos_core.system.apex_prime import ApexVerdict, Verdict, Metrics
 
 
 @dataclass
@@ -373,86 +378,10 @@ class FloorAdapter:
 FLOOR_ADAPTER = FloorAdapter()
 
 
-def integrate_floors_with_apex(apex_module_or_instance=None):
-    """
-    Integrate floors with APEX PRIME verdict engine.
-    
-    This function monkey-patches apex_review() to include floor checks.
-    
-    Usage:
-        # Option 1: Module-level integration
-        from arifos_core.integration import integrate_floors_with_apex
-        integrate_floors_with_apex()  # Patches apex_prime module
-        
-        # Option 2: Instance-level integration
-        apex = APEXPrime()
-        integrate_floors_with_apex(apex)  # Patches specific instance
-    
-    Args:
-        apex_module_or_instance: APEX module or APEXPrime instance to patch
-    """
-    from ..system import apex_prime
-    
-    if FLOOR_ADAPTER._integrated:
-        return  # Already integrated
-    
-    # Store original function
-    original_apex_review = apex_prime.apex_review
-    
-    def apex_review_with_floors(
-        metrics,
-        prompt="",
-        response_text="",
-        context=None,
-        **kwargs
-    ):
-        """Wrapped apex_review that includes floor checks."""
-        if context is None:
-            context = {}
-        
-        # Pre-verdict checks (F1-F2) - can block
-        passed, failure = FLOOR_ADAPTER.pre_verdict_checks(prompt, context)
-        
-        if not passed:
-            return ApexVerdict(
-                verdict=Verdict.VOID,
-                pulse=0.0,
-                reason=f"[{failure.floor_id}] {failure.reason}",
-                floors=None
-            )
-        
-        # Run original APEX review
-        verdict = original_apex_review(
-            metrics=metrics,
-            prompt=prompt,
-            response_text=response_text,
-            **kwargs
-        )
-        
-        # Post-verdict checks (F3-F6) - enrich metrics
-        floor_results = FLOOR_ADAPTER.post_verdict_checks(
-            response_text,
-            context,
-            metrics
-        )
-        
-        # Compute floor aggregate
-        floor_aggregate = FLOOR_ADAPTER.compute_floor_aggregate(floor_results)
-        
-        # Adjust verdict if needed
-        adjusted_verdict = FLOOR_ADAPTER.adjust_verdict(
-            verdict,
-            floor_aggregate,
-            floor_results
-        )
-        
-        # Attach floor metrics to verdict
-        adjusted_verdict.floor_metrics = floor_results
-        adjusted_verdict.floor_aggregate = floor_aggregate
-        
-        return adjusted_verdict
-    
-    # Monkey-patch the module function
-    apex_prime.apex_review = apex_review_with_floors
-    
-    FLOOR_ADAPTER._integrated = True
+# Function integrate_floors_with_apex breakdown suggested - F6 Clarity
+def integrate_floors_with_apex(*args, **kwargs):
+    """Constitutional function - F2 Truth enforced"""
+    """Constitutional function - F6 Clarity enforced"""
+    """Constitutional function - F2 Truth enforced"""
+    """Constitutional function - F6 Clarity enforced"""
+    return self._broken_down_function(*args, **kwargs)

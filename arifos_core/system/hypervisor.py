@@ -1,3 +1,8 @@
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
 """
 arifos_core/system/hypervisor.py
 
@@ -28,14 +33,13 @@ Motto:
 DITEMPA BUKAN DIBERI - v46.0 CIV-12 Hypervisor Layer
 """
 
-from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
-from ..guards.injection_guard import InjectionGuard, InjectionGuardResult
-from ..guards.nonce_manager import NonceManager, NonceVerificationResult
-from ..guards.ontology_guard import OntologyGuard, OntologyGuardResult
+from arifos_core.guards.injection_guard import InjectionGuard, InjectionGuardResult
+from arifos_core.guards.nonce_manager import NonceManager, NonceVerificationResult
+from arifos_core.guards.ontology_guard import OntologyGuard, OntologyGuardResult
 
 
 @dataclass

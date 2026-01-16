@@ -15,14 +15,15 @@ Verdict authority resides ONLY in apex_prime.py.
 DITEMPA BUKAN DIBERI — Forged, not given; truth must cool before it rules.
 """
 
+# Fixed imports to match actual floor_checks.py exports
 from .floor_checks import (
-    check_amanah_f6,
+    check_amanah_f1,  # Fixed: Was check_amanah_f6
     check_tri_witness_f8,
     check_anti_hantu_f9,
 )
 
 __all__ = [
-    "check_amanah_f6",
+    "check_amanah_f1",  # Fixed: Was check_amanah_f6
     "check_tri_witness_f8",
     "check_anti_hantu_f9",
 ]

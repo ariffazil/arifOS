@@ -1,3 +1,14 @@
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
+# APEX Geometry - Toroidal Manifold
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
 """
 arifos_core/apex/psi_kernel.py
 
@@ -31,10 +42,8 @@ Design:
 DITEMPA BUKAN DIBERI - Forged v46.1
 """
 
-from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import Dict, List, Optional
 
 

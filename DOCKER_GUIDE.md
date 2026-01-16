@@ -101,6 +101,9 @@ These directories are automatically created on first run.
 # Build arifOS API image
 docker build -t arifos-api:v47 .
 
+# Tag for Registry (v47)
+docker tag arifos-api:v47-local user/arifos-api:v47.0.0
+
 # Or use docker-compose
 docker-compose build
 ```

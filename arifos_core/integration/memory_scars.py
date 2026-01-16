@@ -1,3 +1,8 @@
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
 """
 memory_scars.py — 777_FORGE ↔ Scar Detection for arifOS v38
 
@@ -22,31 +27,29 @@ Author: arifOS Project
 Version: v38.0
 """
 
-from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 import logging
 import re
 
 # v38 Memory imports
-from ..memory.policy import (
+from arifos_core.memory.policy import (
     MemoryWritePolicy,
 )
-from ..memory.bands import (
+from arifos_core.memory.bands import (
     BandName,
     MemoryBandRouter,
     MemoryEntry,
     WriteResult,
 )
-from ..memory.audit import (
+from arifos_core.memory.audit import (
     MemoryAuditLayer,
 )
 
 # Import shared utility to eliminate duplication
-from .common_utils import compute_integration_evidence_hash
+from arifos_core.integration.common_utils import compute_integration_evidence_hash
 
 
 logger = logging.getLogger(__name__)

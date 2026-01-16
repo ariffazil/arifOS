@@ -1,3 +1,8 @@
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
 """
 metrics.py — Constitutional Metrics and Floor Check API (v46.0)
 
@@ -392,7 +397,7 @@ def get_lane_truth_threshold(lane: str) -> float:
 
 def check_truth(value: float) -> bool:
     """
-    Check F1: Truth ≥ 0.99
+    Check F2: Truth >= 0.99
 
     No confident guessing. Claims must match verifiable reality.
     If uncertain, admit uncertainty instead of bluffing.
@@ -408,7 +413,7 @@ def check_truth(value: float) -> bool:
 
 def check_delta_s(value: float) -> bool:
     """
-    Check F2: ΔS ≥ 0.0 (Clarity)
+    Check F6: Clarity (DeltaS <= 0.0)
 
     Clarity must not decrease. Answers must not increase confusion or entropy.
 
@@ -418,12 +423,12 @@ def check_delta_s(value: float) -> bool:
     Returns:
         True if floor passes, False otherwise
     """
-    return value >= DELTA_S_THRESHOLD
+    return value <= DELTA_S_THRESHOLD
 
 
 def check_peace_squared(value: float) -> bool:
     """
-    Check F3: Peace² ≥ 1.0 (Stability)
+    Check F3: Peace² >= 1.0 (Stability)
 
     Non-escalation. Answers must not inflame or destabilize.
 
@@ -438,7 +443,7 @@ def check_peace_squared(value: float) -> bool:
 
 def check_kappa_r(value: float) -> bool:
     """
-    Check F4: κᵣ ≥ 0.95 (Empathy)
+    Check F4: κᵣ >= 0.95 (Empathy)
 
     Weakest-listener empathy. Protect the most vulnerable interpretation.
 
@@ -484,7 +489,7 @@ def calculate_peace_squared_gandhi(
 
 def check_omega_band(value: float) -> bool:
     """
-    Check F5: Ω₀ ∈ [0.03, 0.05] (Humility Band)
+    Check F5: Ω₀ in [0.03, 0.05] (Humility Band)
 
     Explicit uncertainty must remain between 3-5%.
     No god-mode certainty (< 0.03), no paralysing over-hedging (> 0.05).
@@ -781,16 +786,25 @@ class Metrics:
         )  # Avoid division by zero for PHATIC
 
         omega_band_ok = check_omega_band(self.omega_0)
+        # F6: Clarity (ΔS) ratio - healthy if <= 0
+        delta_s_ok = check_delta_s(self.delta_s)
+
         ratios = [
-            # v45Ω Patch B: Use lane-aware threshold instead of global
+            # F2: Truth
             _clamp_floor_ratio(self.truth, effective_truth_threshold)
             if lane.upper() != "PHATIC"
             else 1.0,
-            1.0 + min(self.delta_s, 0.0) if self.delta_s < 0 else 1.0 + self.delta_s,
+            # F6: Clarity (ΔS)
+            1.0 if delta_s_ok else 0.5, # Simplified ratio
+            # F3: Peace²
             _clamp_floor_ratio(self.peace_squared, PEACE_SQUARED_THRESHOLD),
+            # F4: Empathy
             _clamp_floor_ratio(self.kappa_r, KAPPA_R_THRESHOLD),
+            # F5: Humility
             1.0 if omega_band_ok else 0.0,
+            # F1: Amanah
             1.0 if self.amanah else 0.0,
+            # F7: RASA
             1.0 if self.rasa else 0.0,
         ]
 

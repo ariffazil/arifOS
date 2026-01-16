@@ -9,7 +9,7 @@ Contains the central runtime components of arifOS:
 - ignition: Startup
 - stack_manifest: Stack tracking
 
-Version: v46.3.1Ω (+Toroidal Loop)
+Version: v47.0.0 (+Toroidal Loop)
 """
 
 from .apex_prime import (
@@ -19,7 +19,7 @@ from .apex_prime import (
                          ApexVerdict,
                          Verdict,
                          apex_review,
-                         apex_verdict,  # v42: Convenience shim returning str
+                         # apex_verdict,  # TODO: Missing from apex_prime.py - needs implementation
                          check_floors,
 )
 
@@ -41,7 +41,7 @@ __all__ = [
     # APEX PRIME (v42)
     "APEXPrime",
     "apex_review",      # Returns ApexVerdict (structured)
-    "apex_verdict",     # Convenience shim, returns str
+    # "apex_verdict",   # TODO: Convenience shim not yet implemented
     "ApexVerdict",      # Dataclass
     "Verdict",          # Enum: SEAL, SABAR, VOID, PARTIAL, HOLD_888, SUNSET
     "check_floors",

@@ -1,3 +1,8 @@
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
 """
 pipeline.py - 000-999 Metabolic Pipeline for arifOS v45Ω
 
@@ -38,7 +43,6 @@ See: spec/arifos_pipeline_v35Omega.yaml for full specification
      docs/MEMORY_ARCHITECTURE.md for memory integration
 """
 
-from __future__ import annotations
 
 import os
 import re
@@ -47,17 +51,17 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
-from ..apex.governance.session_physics import evaluate_physics_floors
-from ..enforcement.audit.eye_adapter import evaluate_eye_vector
-from ..enforcement.metrics import Metrics
-from ..enforcement.sabar_timer import Sabar72Timer  # v43 Time Governor
+from arifos_core.apex.governance.session_physics import evaluate_physics_floors
+from arifos_core.enforcement.audit.eye_adapter import evaluate_eye_vector
+from arifos_core.enforcement.metrics import Metrics
+from arifos_core.enforcement.sabar_timer import Sabar72Timer  # v43 Time Governor
 
 # v38 Stage Modules - v42: stages is at arifos_core/stages/
-from ..enforcement.stages.stage_000_amanah import compute_amanah_score, stage_000_amanah
-from ..enforcement.stages.stage_555_empathy import compute_kappa_r
+from arifos_core.enforcement.stages.stage_000_amanah import compute_amanah_score, stage_000_amanah
+from arifos_core.enforcement.stages.stage_555_empathy import compute_kappa_r
 
 # v45xx TCHA (Time-Critical Harm Awareness)
-from ..enforcement.tcha_metrics import (
+from arifos_core.enforcement.tcha_metrics import (
     TCHAResult,
     check_delay_harm,
     detect_time_critical,
@@ -66,44 +70,44 @@ from ..enforcement.tcha_metrics import (
     log_tcha_event,
     should_bypass_hold,
 )
-from ..integration.waw.bridges.prompt_bridge import compute_c_budi
-from ..integration.waw.federation import FederationVerdict, WAWFederationCore
-from ..memory.audit import MemoryAuditLayer, compute_evidence_hash
-from ..memory.bands import MemoryBandRouter, append_eureka_decision
-from ..memory.eureka_types import ActorRole, MemoryWriteRequest
-from ..memory.eureka_types import Verdict as EurekaVerdict
-from ..memory.mem0_client import is_l7_enabled
+from arifos_core.integration.waw.bridges.prompt_bridge import compute_c_budi
+from arifos_core.integration.waw.federation import FederationVerdict, WAWFederationCore
+from arifos_core.memory.audit import MemoryAuditLayer, compute_evidence_hash
+from arifos_core.memory.bands import MemoryBandRouter, append_eureka_decision
+from arifos_core.memory.eureka_types import ActorRole, MemoryWriteRequest
+from arifos_core.memory.eureka_types import Verdict as EurekaVerdict
+from arifos_core.memory.mem0_client import is_l7_enabled
 
 # v38.2-alpha L7 Memory Layer (Mem0 + Qdrant)
-from ..memory.memory import Memory, RecallResult, StoreAtSealResult
-from ..memory.memory import recall_at_stage_111 as _l7_recall
-from ..memory.memory import store_at_stage_999 as _l7_store
+from arifos_core.memory.memory import Memory, RecallResult, StoreAtSealResult
+from arifos_core.memory.memory import recall_at_stage_111 as _l7_recall
+from arifos_core.memory.memory import store_at_stage_999 as _l7_store
 
 # Memory Context (v37) - v42: memory is at arifos_core/memory/
-from ..memory.memory_context import MemoryContext, create_memory_context
+from arifos_core.memory.memory_context import MemoryContext, create_memory_context
 
 # Memory Write Policy Engine (v38)
-from ..memory.policy import MemoryWritePolicy
+from arifos_core.memory.policy import MemoryWritePolicy
 
 # v42: memory is at arifos_core/memory/, not system/memory/
-from ..memory.vault999 import Vault999
-from ..utils.eye_sentinel import EyeReport, EyeSentinel
-from ..utils.reduction_engine import compute_attributes
-
-# v38 Runtime Contract Layer
-from ..utils.runtime_types import Job, JobClass, Stakeholder
-
-# TEARFRAME v44 Session Physics Layer (ART)
-from ..utils.session_telemetry import SessionTelemetry
+from arifos_core.memory.vault999 import Vault999
 
 # v42: apex_prime is in system/ (same dir, lowercase filename)
-from .apex_prime import ApexVerdict, Verdict, apex_review, check_floors
+from arifos_core.system.apex_prime import ApexVerdict, Verdict, apex_review, check_floors
+from arifos_core.utils.eye_sentinel import EyeReport, EyeSentinel
+from arifos_core.utils.reduction_engine import compute_attributes
+
+# v38 Runtime Contract Layer
+from arifos_core.utils.runtime_types import Job, JobClass, Stakeholder
+
+# TEARFRAME v44 Session Physics Layer (ART)
+from arifos_core.utils.session_telemetry import SessionTelemetry
 
 # AAA Engines (internal facade - v35.8.0) - v46: engines moved to arifos_core/system/engines/
-from .engines import AGIEngine, ASIEngine
-from .engines.agi_engine import AGIPacket
-from .engines.asi_engine import ASIPacket
-from .runtime.bootstrap import ensure_bootstrap, get_bootstrap_payload
+from arifos_core.system.engines import AGIEngine, ASIEngine
+from arifos_core.system.engines.agi_engine import AGIPacket
+from arifos_core.system.engines.asi_engine import ASIPacket
+from arifos_core.system.runtime.bootstrap import ensure_bootstrap, get_bootstrap_payload
 
 # =============================================================================
 # PIPELINE STATE

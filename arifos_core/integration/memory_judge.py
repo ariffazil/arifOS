@@ -1,3 +1,14 @@
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
+# APEX Geometry - Toroidal Manifold
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
 """
 memory_judge.py — 888_JUDGE ↔ Memory Integration for arifOS v38
 
@@ -21,7 +32,6 @@ Author: arifOS Project
 Version: v38.0
 """
 
-from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -29,31 +39,31 @@ from typing import Any, Dict, List, Optional
 import logging
 
 # v38 Memory imports
-from ..memory.policy import (
+from arifos_core.memory.policy import (
     Verdict,
     MemoryWritePolicy,
     WriteDecision,
     EvidenceChainValidation,
     VERDICT_BAND_ROUTING,
 )
-from ..memory.bands import (
+from arifos_core.memory.bands import (
     BandName,
     MemoryBandRouter,
     MemoryEntry,
     WriteResult,
 )
-from ..memory.authority import (
+from arifos_core.memory.authority import (
     MemoryAuthorityCheck,
     AuthorityDecision,
     HumanApprovalRequiredError,
     SelfModificationError,
 )
-from ..memory.audit import (
+from arifos_core.memory.audit import (
     MemoryAuditLayer,
 )
 
 # Import shared utility to eliminate duplication
-from .common_utils import compute_integration_evidence_hash
+from arifos_core.integration.common_utils import compute_integration_evidence_hash
 
 
 logger = logging.getLogger(__name__)

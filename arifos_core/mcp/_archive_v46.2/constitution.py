@@ -1,3 +1,8 @@
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
 """
 ConstitutionalParticle - Kimi Orthogonal Directive Implementation
 AAA MCP Architecture: AGI ∩ ASI ∩ APEX (Parallel Hypervisor)
@@ -16,7 +21,6 @@ import asyncio
 import hashlib
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union
 

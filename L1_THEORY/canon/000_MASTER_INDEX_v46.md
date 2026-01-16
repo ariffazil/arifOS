@@ -10,6 +10,7 @@
 ## 🧭 Pipeline-Numbered Map
 
 ### 🏛️ [000_foundation](./000_foundation/)
+- `000_ONTOLOGY.md` - **The Unified Origin Point** (NEW v47)
 - `000_CONSTITUTIONAL_CORE_v46.md` - Master Framework
 - `002_GEOMETRY_OF_INTELLIGENCE_v46.md` - The Topological Trinity
 - `003_GEOMETRY_IMPLEMENTATION_v46.md` - The Physics of Code
@@ -32,36 +33,7 @@
 - `340_TRUTH_F2_v46.md` - F2: Truth (🎯)
 - `350_CLARITY_F6_v46.md` - F6: Clarity (🔍)
 
-31: ### ⚡ [444_align](./444_align/)
-32: - `420_PEACE_F3_v46.md` - F3: Peace² (Stability ≥ 1.0)
-33: - `440_ALIGN_THERMODYNAMICS_v46.md` - **Theory**: The Thermodynamics of Peace (Sabar Protocol)
-34:
-35: ### 💝 [555_empathize](./555_empathize/)
-36: - `520_EMPATHY_F4_v46.md` - F4: Empathy (💝)
-37: - `530_THEORY_OF_MIND_v46.md` - ToM Architecture
-38: - `540_EMPATHY_ARCHITECTURE_v46.md` - Kappa Conductance
-39: - `550_WEAKEST_STAKEHOLDER_v46.md` - Vulnerability Assessment
-40: - `560_ASI_INTEGRATION_v46.md` - **ASI IDENTITY** (Heart)
-41:
-42: ### 🌉 [666_bridge](./666_bridge/)
-43: - `610_HUMILITY_F5_v46.md` - F5: Humility (📏)
-44: - `660_BRIDGE_SYNTHESIS_v46.md` - **Theory**: Neuro-Symbolic Synthesis
-45:
-46: ### ✨ [777_eureka](./777_eureka/)
-47: - `701_ASI_OMEGA_AUDITOR_v46.md` - **ASI IDENTITY** (Auditor)
-48: - `710_EUREKA_777_CANONICAL_v46.md` - Eureka Spec (CANON)
-49: - `730_SCARPACKET_SCHEMA_v46.md` - ScarPacket Schema
-50: - `760_RASA_F7_v46.md` - F7: Listening (👂)
-51:
-52: ### 🧭 [888_compass](./888_compass/)
-53: - `100_APEX_PSI_v46.3.1.md` - **APEX IDENTITY** (Soul) CANONICAL
-54: - `810_COMPASS_888_CANONICAL_v46.md` - Compass Spec (CANON)
-55: - `815_SPEC_CODE_BINDING_v46.md` - Spec → Code Protocol
-56: - `830_AMANAH_F1_v46.md` - F1: Amanah (🤲)
-57: - `840_TRI_WITNESS_F8_v46.md` - F8: Witness (👥)
-58: - `850_ANTI_HANTU_F9_v46.md` - F9: Soul-Safe (👻)
-59: - `860_SYMBOLIC_GUARD_F10_v46.md` - F10: Symbolic Guard (Zenith)
-60: - `870_COMMAND_AUTH_F11_v46.md` - F11: Command Auth (Zenith)
+
 ### ⚡ [444_align](./444_align/)
 - `420_PEACE_F3_v46.md` - F3: Peace² (Stability ≥ 1.0)
 - `440_ALIGN_THERMODYNAMICS_v46.md` - **Theory**: The Thermodynamics of Peace (Sabar Protocol)

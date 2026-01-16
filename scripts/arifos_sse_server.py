@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="arifOS MCP Server",
     description="Constitutional Governance for AI Systems - Unified MCP Interface",
-    version="46.3"
+    version="v47.0.0"
 )
 
 # Enable CORS (for Claude Desktop, ChatGPT integration)
@@ -86,7 +86,7 @@ async def health() -> Dict[str, Any]:
         "vault": "VAULT999",
         "tools": 17 if server_registry else 0,
         "timestamp": datetime.now().isoformat(),
-        "version": "46.3",
+        "version": "v47.0.0",
         "server": "online" if server_registry else "demo_mode"
     }
 
@@ -94,7 +94,7 @@ async def health() -> Dict[str, Any]:
 async def root() -> Dict[str, str]:
     """Root endpoint - returns service info"""
     return {
-        "message": "arifOS MCP Server v46.3 (Constitutional Governance)",
+        "message": "arifOS MCP Server v47.0.0 (Constitutional Governance)",
         "status": "healthy" if server_registry else "degraded",
         "endpoints": {
             "/health": "Liveness probe",
@@ -312,7 +312,7 @@ async def judge(query: str, response: str, lane: str = "default") -> Dict[str, A
 async def startup_event():
     """Log startup info"""
     logger.info("=" * 80)
-    logger.info("🔥 arifOS MCP Server v46.3 Starting")
+    logger.info("🔥 arifOS MCP Server v47.0.0 Starting")
     logger.info(f"   Unified Server: {'✅ Ready' if server_registry else '⚠️ Demo Mode'}")
     logger.info(f"   Constitutional Tools: 17")
     logger.info(f"   Endpoints: /health, /sse, /tools, /invoke, /judge, /docs")

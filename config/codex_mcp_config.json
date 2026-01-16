@@ -1,0 +1,70 @@
+{
+  "mcpServers": {
+    "arifos-codex": {
+      "command": "python",
+      "args": [
+        "-m",
+        "arifos_core.mcp.codex_server"
+      ],
+      "env": {
+        "ARIFOS_CODEX_MODE": "constitutional",
+        "ARIFOS_USER_ID": "codex_user",
+        "ARIFOS_TRINITY_ENABLED": "true",
+        "ARIFOS_VAULT999_ENABLED": "true"
+      }
+    }
+  },
+  "codexClient": {
+    "apiKey": "${OPENAI_API_KEY}",
+    "baseURL": "https://api.openai.com/v1",
+    "model": "gpt-4",
+    "temperature": 0.1,
+    "maxTokens": 4000,
+    "timeout": 30.0,
+    "constitutionalMode": true,
+    "trinityCoordination": true
+  },
+  "constitutionalSettings": {
+    "f4ClarityThreshold": 0.3,
+    "f6ClarityThreshold": 0.3,
+    "consensusThreshold": 0.7,
+    "geometricPurityRequirement": 0.9,
+    "sessionTimeout": 3600,
+    "maxSessions": 10
+  },
+  "toolConfiguration": {
+    "enabledTools": [
+      "arifos_live",
+      "agi_think", 
+      "asi_act",
+      "apex_seal",
+      "vault999_query",
+      "vault999_store",
+      "fag_read",
+      "fag_write",
+      "codex_code_analysis",
+      "codex_code_generation",
+      "codex_debug_assistance",
+      "codex_architectural_review"
+    ],
+    "toolTimeouts": {
+      "constitutional": 30.0,
+      "code_analysis": 45.0,
+      "code_generation": 60.0,
+      "trinity_coordination": 90.0
+    }
+  },
+  "memoryConfiguration": {
+    "vault999Enabled": true,
+    "memoryBands": {
+      "VOID": false,
+      "LEDGER": true,
+      "ACTIVE": true,
+      "CCC": true,
+      "BBB": true,
+      "AAA": false
+    },
+    "recallConfidenceCeiling": 0.85,
+    "constitutionalAmendmentStorage": "CCC"
+  }
+}

@@ -18,14 +18,14 @@ Track B is the **specification layer** of arifOS - the operational thresholds an
 
 ---
 
-## v46.0 Architecture: Pipeline-Numbered Organization
+## v47.0 Architecture: Pipeline-Numbered Organization
 
-Track B v46 introduces **pipeline-numbered folders** that mirror Track A canon structure. Each folder corresponds to a stage (or set of stages) in the 000-999 constitutional pipeline.
+Track B v47 continues the **pipeline-numbered folders** pattern. Each folder corresponds to a stage (or set of stages) in the 000-999 constitutional pipeline.
 
 ### Directory Structure
 
 ```
-spec/v46/
+spec/v47/
 ├── 000_foundation/          # Stage 000: Hypervisor (Preprocessing)
 │   └── hypervisor.json      # F10-F12 hypervisor floors
 ├── 333_atlas/               # Stage 333: AGI Exploration

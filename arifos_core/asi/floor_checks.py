@@ -9,14 +9,14 @@ Floors:
 - F5: Ω₀ (Humility) ∈ [0.03, 0.05] (states uncertainty)
 - F7: RASA (Felt Care) = true (active listening, genuine attention)
 
-DITEMPA BUKAN DIBERI
+DITEMPA BUKAN DIBERI - v47.0
 """
 
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 # Import existing checks from metrics
-from ..enforcement.metrics import check_kappa_r, check_omega_band, check_peace_squared
+from arifos_core.enforcement.metrics import check_kappa_r, check_omega_band, check_peace_squared
 
 
 @dataclass

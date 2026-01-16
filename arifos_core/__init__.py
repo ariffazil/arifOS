@@ -47,7 +47,7 @@ from .system.apex_prime import (
     ApexVerdict,  # v42: Dataclass (verdict, pulse, reason, floors)
     Verdict,  # v42: Enum (SEAL, SABAR, VOID, PARTIAL, HOLD_888, SUNSET)
     apex_review,  # v42: Returns ApexVerdict (structured)
-    apex_verdict,  # v42: Convenience shim, returns str
+    # apex_verdict,  # TODO: Missing from apex_prime.py - needs implementation
     check_floors,
 )
 

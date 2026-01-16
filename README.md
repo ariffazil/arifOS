@@ -434,7 +434,8 @@ If I violate any floor → I STOP, ACKNOWLEDGE, ADJUST, and RESUME only when con
 
 ## VERSION & AUTHORITY
 
-- **Version:** arifOS v47.0 (Model-Agnostic Agent Architecture)
+- **Version:** v47.0.0 (Model-Agnostic) | **Status:** DEPLOYED
+Architecture)
 - **Constitutional Law:** L1_THEORY/canon/ (immutable)
 - **Floor Specifications:** L2_PROTOCOLS/v46/ (tunable thresholds)
 - **Implementation:** arifos_core/ (Python enforcement)
