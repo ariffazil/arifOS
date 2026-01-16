@@ -64,6 +64,7 @@ RUN pip install --prefix=/install --no-warn-script-location \
 
 # Copy application source
 COPY arifos_core/ ./arifos_core/
+COPY arifos_ledger/ ./arifos_ledger/
 COPY L1_THEORY/ ./L1_THEORY/
 COPY L2_PROTOCOLS/ ./L2_PROTOCOLS/
 COPY config/ ./config/
@@ -114,6 +115,7 @@ COPY --from=builder --chown=arifos:arifos /install /usr/local
 
 # Copy application code
 COPY --chown=arifos:arifos arifos_core/ ./arifos_core/
+COPY --chown=arifos:arifos arifos_ledger/ ./arifos_ledger/
 COPY --chown=arifos:arifos L1_THEORY/ ./L1_THEORY/
 COPY --chown=arifos:arifos L2_PROTOCOLS/ ./L2_PROTOCOLS/
 COPY --chown=arifos:arifos config/ ./config/

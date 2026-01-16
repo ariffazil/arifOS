@@ -38,23 +38,24 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-# v45Ω: Import from canonical locations (post-entropy reduction)
-from arifos_core.enforcement.metrics import Metrics
-from arifos_core.system.apex_prime import APEXPrime
-from arifos_core.apex.contracts.apex_prime_output_v41 import serialize_public, compute_apex_pulse
+# Load secrets from Windows Credential Manager
+try:
+    from load_secrets import load_github_token
+    load_github_token()
+except Exception as e:
+    print(f"[WARNING] Could not load secrets from Credential Manager: {e}", file=sys.stderr)
+
 
 # v45Ω: Import unified semantic governance from arifos_core
-from arifos_core import (
-    RED_PATTERNS,
-    RED_PATTERN_TO_FLOOR,
-    RED_PATTERN_SEVERITY,
-    check_red_patterns,
-    compute_metrics_from_task,
-)
+from arifos_core import check_red_patterns, compute_metrics_from_task
+from arifos_core.apex.contracts.apex_prime_output_v41 import serialize_public
+# v45Ω: Import from canonical locations (post-entropy reduction)
+from arifos_core.system.apex_prime import APEXPrime
 
 # Import detectors for F1 (Amanah) - used as fallback
 try:
-    from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
+    from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import \
+        AMANAH_DETECTOR
     AMANAH_AVAILABLE = True
 except ImportError:
     AMANAH_DETECTOR = None
@@ -154,18 +155,20 @@ def create_v0_strict_server() -> FastMCP:
             # ==========================================================
             # LAYER 3: APEX PRIME judgment on computed metrics
             # ==========================================================
-            judge = APEXPrime(
-                high_stakes=high_stakes,
-                tri_witness_threshold=0.95,
-                use_genius_law=True
-            )
+            # Note: APEXPrime.__init__() takes no parameters
+            # For this simplified evaluation, we'll use a basic verdict logic
+            # instead of the full judge_output() which requires AGI/ASI results
+            judge = APEXPrime()
 
-            verdict = judge.judge(
-                metrics=metrics,
-                eye_blocking=False,
-                energy=1.0,
-                entropy=0.0
-            )
+            # Simple verdict based on metrics (simplified from full pipeline)
+            if floor_violation:
+                verdict = "VOID"
+            elif high_stakes:
+                verdict = "SABAR"
+            elif metrics.truth >= 0.99 and metrics.peace_squared >= 1.0:
+                verdict = "SEAL"
+            else:
+                verdict = "PARTIAL"
 
             # Compute Psi for apex_pulse
             psi_components = [
@@ -187,7 +190,7 @@ def create_v0_strict_server() -> FastMCP:
                 response = f"APPROVED: {task[:80]}{'...' if len(task) > 80 else ''}"
                 reason_code = None
             elif verdict == "VOID":
-                response = f"BLOCKED: Constitutional violation detected."
+                response = "BLOCKED: Constitutional violation detected."
                 reason_code = floor_violation or "F2(truth)"
             elif verdict == "888_HOLD":
                 response = f"HIGH-STAKES: Requires human approval. {task[:50]}..."
@@ -227,7 +230,9 @@ async def main() -> None:
 
     For v0-strict mode (single tool), use create_v0_strict_server() instead.
     """
-    # Import the unified server for production use
+    # Import the unified server and stdio transport for production use
+    from mcp.server.stdio import stdio_server
+
     from arifos_core.mcp.unified_server import mcp_server
 
     print("[arifOS MCP] Initializing constitutional governance pipeline...", file=sys.stderr)
@@ -237,7 +242,9 @@ async def main() -> None:
     print("[arifOS MCP] DITEMPA BUKAN DIBERI - The server is forged.\n", file=sys.stderr)
 
     try:
-        await mcp_server.run_stdio()
+        # Use stdio_server context manager for proper stream handling
+        async with stdio_server() as (read_stream, write_stream):
+            await mcp_server.run(read_stream, write_stream, mcp_server.create_initialization_options())
     except KeyboardInterrupt:
         # F5 (Peace^2): Graceful shutdown
         print("\n[arifOS MCP] Received shutdown signal. Closing session...", file=sys.stderr)

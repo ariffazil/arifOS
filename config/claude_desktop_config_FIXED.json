@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "arifos-mcp": {
+      "command": "C:\\Users\\User\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+      "args": [
+        "C:\\Users\\User\\OneDrive\\Documents\\GitHub\\arifOS\\scripts\\arifos_mcp_entry.py"
+      ],
+      "env": {
+        "PYTHONPATH": "C:\\Users\\User\\OneDrive\\Documents\\GitHub\\arifOS"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": ""
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\User\\OneDrive\\Documents\\GitHub\\arifOS"
+      ]
+    }
+  }
+}

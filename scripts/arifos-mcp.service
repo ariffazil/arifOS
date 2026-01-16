@@ -1,0 +1,61 @@
+# arifOS MCP Systemd Service (Linux)
+# Stage 000: Auto-ignition for constitutional governance
+#
+# Installation:
+#   sudo cp scripts/arifos-mcp.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable arifos-mcp
+#   sudo systemctl start arifos-mcp
+#
+# Management:
+#   sudo systemctl status arifos-mcp
+#   sudo systemctl stop arifos-mcp
+#   sudo systemctl restart arifos-mcp
+#   journalctl -u arifos-mcp -f
+
+[Unit]
+Description=arifOS MCP Server - Constitutional Governance Pipeline (000→999)
+Documentation=https://github.com/ariffazil/arifOS
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=YOUR_USERNAME
+Group=YOUR_USERNAME
+WorkingDirectory=/path/to/arifOS
+Environment="PYTHONUNBUFFERED=1"
+Environment="ARIFOS_ENV=production"
+Environment="PATH=/usr/local/bin:/usr/bin:/bin"
+
+# F2 (Truth): Logging configuration
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=arifos-mcp
+
+# 000 Stage: Start MCP server
+ExecStart=/usr/bin/python3 /path/to/arifOS/scripts/arifos_mcp_entry.py
+
+# F5 (Peace²): Graceful shutdown
+ExecStop=/bin/kill -SIGTERM $MAINPID
+KillMode=process
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+# F6 (Amanah): Auto-restart on failure
+Restart=on-failure
+RestartSec=10s
+
+# Resource limits (F6 Amanah - Resource governance)
+MemoryLimit=2G
+CPUQuota=200%
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/path/to/arifOS/ledger /path/to/arifOS/sessions /path/to/arifOS/logs
+
+[Install]
+WantedBy=multi-user.target
