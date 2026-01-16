@@ -6,6 +6,21 @@
 
 ---
 
+## 📚 Documentation Index
+For complete constitutional documentation, see:
+- **[DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)** - Complete documentation navigation
+- **[START_HERE_SIMPLE.md](START_HERE_SIMPLE.md)** - Copy/paste commands to get started
+- **[QUICK_START_AUTO.md](QUICK_START_AUTO.md)** - Auto-start setup guide
+- **[QUICK_START_DOCKER.md](QUICK_START_DOCKER.md)** - Docker deployment guide
+- **[WHERE_IS_EVERYTHING.md](WHERE_IS_EVERYTHING.md)** - Visual guide to find everything
+
+**Analysis & Reports:**
+- **[docs/analysis/](docs/analysis/)** - Constitutional entropy analysis and unification reports
+- **[reports/](reports/)** - Operational completion reports (MCP forging, agent enhancements)
+- **[docs/testing/](docs/testing/)** - Test unification plans and import failure analysis
+
+---
+
 ## 🏛️ Project Overview
 
 **arifOS v46.2.2** is a constitutional AI kernel that implements 12 immutable governance floors to force AI systems to pass constitutional rules before releasing outputs. It operates as a kernel between LLMs and humans, not as a chatbot or filter wrapper.

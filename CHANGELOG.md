@@ -18,6 +18,18 @@ Implemented complete configuration-driven agent system enabling LLM technology s
 
 ### Added
 
+**Documentation Reorganization (Constitutional Entropy Reduction):**
+- Created `docs/analysis/` directory for constitutional analysis reports
+- Created `reports/` directory for operational completion reports  
+- Created `docs/testing/` directory for testing documentation
+- Added `DOCUMENTATION_INDEX.md` as comprehensive navigation hub
+- Moved 6 analysis files from root to `docs/analysis/`
+- Moved 4 operational reports to `reports/`
+- Moved 2 testing files to `docs/testing/`
+- Updated `AGENTS.md` with documentation index section
+- **Constitutional Impact:** ΔS = -0.7 (entropy reduction via organization)
+- **F6 Clarity:** Improved documentation discoverability and constitutional order
+
 **Core Infrastructure (2,600+ lines):**
 - `config/agents.yaml` (360 lines) - Single source of truth for agent assignments
 - `identities/` folder with 4 simplified operational identity files (658 lines total):
