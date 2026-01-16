@@ -52,19 +52,18 @@ app.add_middleware(
 )
 
 # Initialize unified server (17 tools)
-server = None
+server_registry = None
 try:
-    # Try to import your unified server (17 tools)
-    # If import fails, graceful degradation — server will report unhealthy
-    from arifos.unified_server import UnifiedServer
-    server = UnifiedServer()
-    logger.info("✅ UnifiedServer initialized with 17 constitutional tools")
-except ImportError:
-    logger.warning("⚠️ UnifiedServer not found — running in demo mode")
-    server = None
+    # Use functional interface from unified_server.py
+    import arifos_core.mcp.unified_server as unified
+    server_registry = unified
+    logger.info("✅ Unified tool registry initialized with 17 constitutional tools")
+except ImportError as e:
+    logger.warning(f"⚠️ Unified tool registry not found: {e} — running in demo mode")
+    server_registry = None
 except Exception as e:
     logger.error(f"❌ Failed to initialize UnifiedServer: {e}")
-    server = None
+    server_registry = None
 
 # ============================================================================
 # HEALTH & LIVENESS ENDPOINTS
@@ -79,12 +78,12 @@ async def health() -> Dict[str, Any]:
       {"status": "healthy", "vault": "VAULT999", "tools": 17, ...}
     """
     return {
-        "status": "healthy" if server else "degraded",
+        "status": "healthy" if server_registry else "degraded",
         "vault": "VAULT999",
-        "tools": 17 if server else 0,
+        "tools": 17 if server_registry else 0,
         "timestamp": datetime.now().isoformat(),
         "version": "46.3",
-        "server": "online" if server else "demo_mode"
+        "server": "online" if server_registry else "demo_mode"
     }
 
 @app.get("/")
@@ -92,7 +91,7 @@ async def root() -> Dict[str, str]:
     """Root endpoint - returns service info"""
     return {
         "message": "arifOS MCP Server v46.3 (Constitutional Governance)",
-        "status": "healthy" if server else "degraded",
+        "status": "healthy" if server_registry else "degraded",
         "endpoints": {
             "/health": "Liveness probe",
             "/sse": "Server-Sent Events stream",
@@ -121,7 +120,8 @@ async def list_tools() -> Dict[str, Any]:
         ]
       }
     """
-    if not server:
+    if not server_registry:
+        # Static list if server not loaded
         return {
             "count": 17,
             "tools": [
@@ -147,11 +147,21 @@ async def list_tools() -> Dict[str, Any]:
         }
 
     try:
-        # If unified_server is loaded, call its list_tools method
-        tools = server.list_tools() if hasattr(server, 'list_tools') else []
+        # Use functional list_tools from unified_server
+        tools = server_registry.list_tools()
+        # Get descriptions
+        descriptions = []
+        import arifos_core.mcp.unified_server as unified
+        for name in tools:
+            desc = unified.TOOL_DESCRIPTIONS.get(name, {})
+            descriptions.append({
+                "name": desc.get("name", name),
+                "description": desc.get("description", ""),
+                "parameters": desc.get("parameters", {})
+            })
         return {
-            "count": len(tools),
-            "tools": tools,
+            "count": len(descriptions),
+            "tools": descriptions,
             "vault": "VAULT999"
         }
     except Exception as e:
@@ -223,17 +233,15 @@ async def invoke_tool(tool_name: str, params: Dict[str, Any]) -> Dict[str, Any]:
         "timestamp": "..."
       }
     """
-    if not server:
-        raise HTTPException(status_code=503, detail="UnifiedServer not initialized (demo mode)")
+    if not server_registry:
+        raise HTTPException(status_code=503, detail="Unified tool registry not initialized (demo mode)")
 
     try:
         logger.info(f"Invoking tool: {tool_name} with params: {params}")
 
-        # Call unified server
-        if hasattr(server, 'invoke_tool'):
-            result = await server.invoke_tool(tool_name, params)
-        else:
-            result = {"status": "tool_not_found", "tool": tool_name}
+        # Use functional run_tool from unified_server
+        # Note: run_tool in unified_server is synchronous
+        result = server_registry.run_tool(tool_name, params)
 
         return {
             "tool": tool_name,
@@ -266,7 +274,7 @@ async def judge(query: str, response: str, lane: str = "default") -> Dict[str, A
         "timestamp": "..."
       }
     """
-    if not server:
+    if not server_registry:
         return {
             "verdict": "VOID",
             "reason": "Server not initialized (demo mode)",
@@ -276,12 +284,18 @@ async def judge(query: str, response: str, lane: str = "default") -> Dict[str, A
     try:
         logger.info(f"Judge invoked: query={query[:50]}..., lane={lane}")
 
-        if hasattr(server, 'judge'):
-            result = await server.judge(query, response, lane)
-        else:
-            result = {"verdict": "VOID", "reason": "Judge method not available"}
+        # arifos_judge is the function used by arifos_live
+        from arifos_core.mcp.models import JudgeRequest
+        from arifos_core.mcp.tools.judge import arifos_judge
 
-        return result
+        request = JudgeRequest(query=f"Judging response to: {query}\nResponse: {response}")
+        result = arifos_judge(request)
+
+        return {
+            "verdict": result.verdict,
+            "reasoning": result.reasoning,
+            "timestamp": datetime.now().isoformat()
+        }
     except Exception as e:
         logger.error(f"Judge error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -295,7 +309,7 @@ async def startup_event():
     """Log startup info"""
     logger.info("=" * 80)
     logger.info("🔥 arifOS MCP Server v46.3 Starting")
-    logger.info(f"   Unified Server: {'✅ Ready' if server else '⚠️ Demo Mode'}")
+    logger.info(f"   Unified Server: {'✅ Ready' if server_registry else '⚠️ Demo Mode'}")
     logger.info(f"   Constitutional Tools: 17")
     logger.info(f"   Endpoints: /health, /sse, /tools, /invoke, /judge, /docs")
     logger.info(f"   Vault: VAULT999")
