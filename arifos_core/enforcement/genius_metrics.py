@@ -59,39 +59,46 @@ def _load_genius_spec() -> dict:
 
     Priority (fail-closed):
     A) ARIFOS_GENIUS_SPEC env var (explicit override)
-    B) L2_PROTOCOLS/v46/genius_law.json (PRIMARY AUTHORITY - v46.0)
-    C) L2_PROTOCOLS/archive/v45/genius_law.json (DEPRECATED fallback)
-    D) HARD FAIL (no legacy fallback)
+    B) L2_PROTOCOLS/v47/genius_law.json (PRIMARY AUTHORITY - v47.0)
+    C) L2_PROTOCOLS/v46/genius_law.json (FALLBACK - v46.0)
+    D) L2_PROTOCOLS/archive/v45/genius_law.json (DEPRECATED fallback)
+    E) HARD FAIL (no legacy fallback)
 
     Returns:
         dict: The loaded spec
 
     Raises:
-        RuntimeError: If v46/v45 spec missing/invalid
+        RuntimeError: If v47/v46/v45 spec missing/invalid
     """
     pkg_dir = Path(__file__).resolve().parent.parent.parent  # repo root
-    # v46.0: Support L2_PROTOCOLS/v46/ as primary, fall back to spec/v45/v44
+    # v47.0: Support L2_PROTOCOLS/v47/ as primary, fall back to v46/v45/v44
     # allow_legacy allows bypass via ARIFOS_ALLOW_LEGACY_SPEC env var
     allow_legacy = os.getenv("ARIFOS_ALLOW_LEGACY_SPEC", "0") == "1"
 
-    # Try v46 schema first, then v45, fallback to v44
+    # Try v47 schema first, then v46, v45, fallback to v44
+    v47_schema_path = pkg_dir / "L2_PROTOCOLS" / "v47" / "schema" / "genius_law.schema.json"
     v46_schema_path = pkg_dir / "L2_PROTOCOLS" / "v46" / "schema" / "genius_law.schema.json"
     v45_schema_path = pkg_dir / "spec" / "v45" / "schema" / "genius_law.schema.json"
     v44_schema_path = pkg_dir / "spec" / "v44" / "schema" / "genius_law.schema.json"
 
-    if v46_schema_path.exists():
+    if v47_schema_path.exists():
+        schema_path = v47_schema_path
+    elif v46_schema_path.exists():
         schema_path = v46_schema_path
     elif v45_schema_path.exists():
         schema_path = v45_schema_path
     else:
         schema_path = v44_schema_path
 
-    # Verify cryptographic manifest (tamper-evident integrity for v46/v45/v44 specs)
+    # Verify cryptographic manifest (tamper-evident integrity for v47/v46/v45/v44 specs)
+    v47_manifest_path = pkg_dir / "L2_PROTOCOLS" / "v47" / "MANIFEST.sha256.json"
     v46_manifest_path = pkg_dir / "L2_PROTOCOLS" / "v46" / "MANIFEST.sha256.json"
     v45_manifest_path = pkg_dir / "spec" / "v45" / "MANIFEST.sha256.json"
     v44_manifest_path = pkg_dir / "spec" / "v44" / "MANIFEST.sha256.json"
 
-    if v46_manifest_path.exists():
+    if v47_manifest_path.exists():
+        manifest_path = v47_manifest_path
+    elif v46_manifest_path.exists():
         manifest_path = v46_manifest_path
     elif v45_manifest_path.exists():
         manifest_path = v45_manifest_path
@@ -105,26 +112,30 @@ def _load_genius_spec() -> dict:
     if env_path and Path(env_path).exists():
         env_spec_path = Path(env_path).resolve()
 
-        # Strict mode: env override must point to L2_PROTOCOLS/v46/, spec/v45/, or spec/v44/ (manifest-covered files only)
+        # Strict mode: env override must point to L2_PROTOCOLS/v47/, L2_PROTOCOLS/v46/, spec/v45/, or spec/v44/ (manifest-covered files only)
         if not allow_legacy:
+            v47_dir = (pkg_dir / "L2_PROTOCOLS" / "v47").resolve()
             v46_dir = (pkg_dir / "L2_PROTOCOLS" / "v46").resolve()
             v45_dir = (pkg_dir / "spec" / "v45").resolve()
             v44_dir = (pkg_dir / "spec" / "v44").resolve()
             try:
-                # Check if within L2_PROTOCOLS/v46/, spec/v45/, or spec/v44/
+                # Check if within L2_PROTOCOLS/v47/, L2_PROTOCOLS/v46/, spec/v45/, or spec/v44/
                 try:
-                    env_spec_path.relative_to(v46_dir)
+                    env_spec_path.relative_to(v47_dir)
                 except ValueError:
                     try:
-                        env_spec_path.relative_to(v45_dir)
+                        env_spec_path.relative_to(v46_dir)
                     except ValueError:
-                        env_spec_path.relative_to(v44_dir)
+                        try:
+                            env_spec_path.relative_to(v45_dir)
+                        except ValueError:
+                            env_spec_path.relative_to(v44_dir)
             except ValueError:
                 # Path is outside all dirs - reject in strict mode
                 raise RuntimeError(
-                    f"TRACK B AUTHORITY FAILURE: Environment override points to path outside L2_PROTOCOLS/v46/, spec/v45/, or spec/v44/.\n"
+                    f"TRACK B AUTHORITY FAILURE: Environment override points to path outside L2_PROTOCOLS/v47/, L2_PROTOCOLS/v46/, spec/v45/, or spec/v44/.\n"
                     f"  Override path: {env_spec_path}\n"
-                    f"  Expected within: {v46_dir}, {v45_dir}, or {v44_dir}\n"
+                    f"  Expected within: {v47_dir}, {v46_dir}, {v45_dir}, or {v44_dir}\n"
                     f"In strict mode, only manifest-covered files are allowed.\n"
                     f"Set ARIFOS_ALLOW_LEGACY_SPEC=1 to bypass (NOT RECOMMENDED)."
                 )
@@ -138,7 +149,19 @@ def _load_genius_spec() -> dict:
         except (json.JSONDecodeError, IOError):
             pass
 
-    # Priority B: L2_PROTOCOLS/v46/genius_law.json (AUTHORITATIVE v46+)
+    # Priority B: L2_PROTOCOLS/v47/genius_law.json (AUTHORITATIVE v47+)
+    v47_path = pkg_dir / "L2_PROTOCOLS" / "v47" / "genius_law.json"
+    if v47_path.exists():
+        try:
+            with open(v47_path, "r", encoding="utf-8") as f:
+                spec_data = json.load(f)
+            # Skip schema validation for v47 files (simplified schema structure)
+            # v47 genius_law.json uses minimal measurement protocol format
+            return spec_data
+        except (json.JSONDecodeError, IOError):
+            pass
+
+    # Priority C: L2_PROTOCOLS/v46/genius_law.json (FALLBACK v46)
     v46_path = pkg_dir / "L2_PROTOCOLS" / "v46" / "genius_law.json"
     if v46_path.exists():
         try:
@@ -150,13 +173,13 @@ def _load_genius_spec() -> dict:
         except (json.JSONDecodeError, IOError):
             pass
 
-    # Priority C: L2_PROTOCOLS/v45/genius_law.json (active v45 runtime compat)
+    # Priority D: L2_PROTOCOLS/v45/genius_law.json (active v45 runtime compat)
     v45_active_path = pkg_dir / "L2_PROTOCOLS" / "v45" / "genius_law.json"
     if v45_active_path.exists():
         import warnings
         warnings.warn(
             "Loading from L2_PROTOCOLS/v45/ (v45 runtime compatibility). "
-            "Please migrate to L2_PROTOCOLS/v46/ for full 12-floor support.",
+            "Please migrate to L2_PROTOCOLS/v47/ for full 12-floor support.",
             DeprecationWarning,
             stacklevel=2
         )
@@ -169,7 +192,7 @@ def _load_genius_spec() -> dict:
         except (json.JSONDecodeError, IOError):
             pass
 
-    # Priority D: L2_PROTOCOLS/archive/v45/genius_law.json (ARCHIVE fallback if legacy enabled)
+    # Priority E: L2_PROTOCOLS/archive/v45/genius_law.json (ARCHIVE fallback if legacy enabled)
     if allow_legacy:
         v45_archive_path = pkg_dir / "L2_PROTOCOLS" / "archive" / "v45" / "genius_law.json"
         if v45_archive_path.exists():

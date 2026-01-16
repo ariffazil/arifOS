@@ -91,24 +91,41 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
                     f"TRACK B AUTHORITY FAILURE: Failed to load ledger config from ARIFOS_LEDGER_SPEC={env_path}: {e}"
                 )
 
-    # Priority B: L2_PROTOCOLS/v46/cooling_ledger_phoenix.json (AUTHORITATIVE v46+)
+    # Priority B: L2_PROTOCOLS/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)
+    if spec_data is None:
+        v47_path = pkg_dir / "L2_PROTOCOLS" / "v47" / "cooling_ledger_phoenix.json"
+        if v47_path.exists():
+            try:
+                with open(v47_path, "r", encoding="utf-8") as f:
+                    spec_data = json.load(f)
+                spec_path_used = v47_path
+                logger.info(f"Loaded ledger config from v47: {v47_path}")
+            except Exception as e:
+                raise RuntimeError(f"TRACK B AUTHORITY FAILURE: Failed to parse {v47_path}: {e}")
+
+    # Priority C: L2_PROTOCOLS/v46/cooling_ledger_phoenix.json (FALLBACK v46)
     if spec_data is None:
         v46_path = pkg_dir / "L2_PROTOCOLS" / "v46" / "cooling_ledger_phoenix.json"
         if v46_path.exists():
+            warnings.warn(
+                f"Loading from L2_PROTOCOLS/v46/ (v46 fallback). Please migrate to L2_PROTOCOLS/v47/.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             try:
                 with open(v46_path, "r", encoding="utf-8") as f:
                     spec_data = json.load(f)
                 spec_path_used = v46_path
-                logger.info(f"Loaded ledger config from v46: {v46_path}")
+                logger.warning(f"Loaded ledger config from v46 (FALLBACK): {v46_path}")
             except Exception as e:
                 raise RuntimeError(f"TRACK B AUTHORITY FAILURE: Failed to parse {v46_path}: {e}")
 
-    # Priority C: spec/v45/cooling_ledger_phoenix.json (FALLBACK v45)
+    # Priority D: spec/v45/cooling_ledger_phoenix.json (DEPRECATED v45)
     if spec_data is None:
         v45_path = pkg_dir / "spec" / "v45" / "cooling_ledger_phoenix.json"
         if v45_path.exists():
             warnings.warn(
-                f"Loading from spec/v45/ (DEPRECATED in v46+). Please migrate to L2_PROTOCOLS/v46/. "
+                f"Loading from spec/v45/ (DEPRECATED in v47+). Please migrate to L2_PROTOCOLS/v47/. "
                 f"spec/v45/ fallback will be removed in future versions.",
                 DeprecationWarning,
                 stacklevel=2,
@@ -121,12 +138,12 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
             except Exception as e:
                 raise RuntimeError(f"TRACK B AUTHORITY FAILURE: Failed to parse {v45_path}: {e}")
 
-    # Priority D: spec/v44/cooling_ledger_phoenix.json (FALLBACK v44)
+    # Priority E: spec/v44/cooling_ledger_phoenix.json (DEPRECATED v44)
     if spec_data is None:
         v44_path = pkg_dir / "spec" / "v44" / "cooling_ledger_phoenix.json"
         if v44_path.exists():
             warnings.warn(
-                f"Loading from spec/v44/ (DEPRECATED). Please migrate to L2_PROTOCOLS/v46/. "
+                f"Loading from spec/v44/ (DEPRECATED). Please migrate to L2_PROTOCOLS/v47/. "
                 f"v44 fallback will be removed in future versions.",
                 DeprecationWarning,
                 stacklevel=2,
@@ -139,25 +156,29 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
             except Exception as e:
                 raise RuntimeError(f"TRACK B AUTHORITY FAILURE: Failed to parse {v44_path}: {e}")
 
-    # Priority E: HARD FAIL
+    # Priority F: HARD FAIL
     if spec_data is None:
         raise RuntimeError(
             "TRACK B AUTHORITY FAILURE: Cooling ledger config not found.\n\n"
             "Searched locations:\n"
-            f"  - L2_PROTOCOLS/v46/cooling_ledger_phoenix.json (AUTHORITATIVE v46+)\n"
-            f"  - spec/v45/cooling_ledger_phoenix.json (FALLBACK v45)\n"
-            f"  - spec/v44/cooling_ledger_phoenix.json (FALLBACK v44)\n\n"
+            f"  - L2_PROTOCOLS/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)\n"
+            f"  - L2_PROTOCOLS/v46/cooling_ledger_phoenix.json (FALLBACK v46)\n"
+            f"  - spec/v45/cooling_ledger_phoenix.json (DEPRECATED v45)\n"
+            f"  - spec/v44/cooling_ledger_phoenix.json (DEPRECATED v44)\n\n"
             "Migration required:\n"
-            "1. Ensure L2_PROTOCOLS/v46/cooling_ledger_phoenix.json exists OR\n"
+            "1. Ensure L2_PROTOCOLS/v47/cooling_ledger_phoenix.json exists OR\n"
             "2. Set ARIFOS_LEDGER_SPEC=/path/to/cooling_ledger_phoenix.json"
         )
 
     # Schema validation (if schema exists)
+    v47_schema_path = pkg_dir / "L2_PROTOCOLS" / "v47" / "schema" / "cooling_ledger_phoenix.schema.json"
     v46_schema_path = pkg_dir / "L2_PROTOCOLS" / "v46" / "schema" / "cooling_ledger_phoenix.schema.json"
     v45_schema_path = pkg_dir / "spec" / "v45" / "schema" / "cooling_ledger_phoenix.schema.json"
     v44_schema_path = pkg_dir / "spec" / "v44" / "schema" / "cooling_ledger_phoenix.schema.json"
 
-    if v46_schema_path.exists():
+    if v47_schema_path.exists():
+        schema_path = v47_schema_path
+    elif v46_schema_path.exists():
         schema_path = v46_schema_path
     elif v45_schema_path.exists():
         schema_path = v45_schema_path
