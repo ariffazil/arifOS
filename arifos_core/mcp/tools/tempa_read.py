@@ -106,7 +106,7 @@ TOOL_METADATA = {
         "read-only safety (F5 Peace²), uncertainty handling (F7 Omega0), "
         "ledger logging (F8 G), and secret blocking (F9 C_dark)."
     ),
-    "input_schema": FAGReadRequest.model_json_schema(),
+    "parameters": FAGReadRequest.model_json_schema(),
     "output_schema": FAGReadResponse.model_json_schema(),
     "constitutional_floors": ["F1", "F2", "F4", "F5", "F7", "F8", "F9"],
     "version": "v45.3.0",

@@ -103,7 +103,7 @@ TOOL_METADATA = {
         "vTEMPA: Get FAG access statistics. Returns counts of granted/denied "
         "operations categorized by floor violation type (F1, F2, F4, F9)."
     ),
-    "input_schema": FAGStatsRequest.model_json_schema(),
+    "parameters": FAGStatsRequest.model_json_schema(),
     "output_schema": FAGStatsResponse.model_json_schema(),
     "constitutional_floors": [],
     "version": "v45.3.0",

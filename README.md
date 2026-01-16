@@ -1153,6 +1153,7 @@ See [Quick Start (30 Seconds)](#quick-start-30-seconds) above.
 ### For First-Time Users
 - This README (you are here)
 - [Release Notes v47.0](RELEASE_NOTES_v47.0.md)
+- [System Operations Guide](SYSTEM.md) - [NEW] Setup, Boot, Reboot
 - [Quick Bootstrap Guide](setup/bootstrap/BOOTSTRAP_GUIDE.md)
 
 ### For AI Developers

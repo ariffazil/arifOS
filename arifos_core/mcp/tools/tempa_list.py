@@ -203,7 +203,7 @@ TOOL_METADATA = {
         "Filters forbidden patterns (secrets, .env, credentials) per F9 C_dark. "
         "Returns filtered_count for transparency."
     ),
-    "input_schema": FAGListRequest.model_json_schema(),
+    "parameters": FAGListRequest.model_json_schema(),
     "output_schema": FAGListResponse.model_json_schema(),
     "constitutional_floors": ["F1", "F9"],
     "version": "v45.3.0",

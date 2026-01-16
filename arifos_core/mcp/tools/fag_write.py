@@ -128,7 +128,7 @@ TOOL_METADATA = {
         "read-before-write proof, patch-only, and rewrite thresholds. "
         "Includes v45.0.3 hardening: watchdog anomalies and rollback snapshots."
     ),
-    "input_schema": FAGWriteRequest.model_json_schema(),
+    "parameters": FAGWriteRequest.model_json_schema(),
     "output_schema": FAGWriteResponse.model_json_schema(),
     "constitutional_floors": ["F1", "F2", "F3", "F5", "F7", "F8", "F9"],
     "version": "v45.3.0",

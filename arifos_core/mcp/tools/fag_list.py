@@ -85,7 +85,7 @@ TOOL_METADATA = {
         "Filters out secrets (F9 C_dark) and protected no-touch zones (v45.0.3). "
         "Requires HUMAN_SEAL_TOKEN for protected path visibility."
     ),
-    "input_schema": FAGListRequest.model_json_schema(),
+    "parameters": FAGListRequest.model_json_schema(),
     "output_schema": FAGListResponse.model_json_schema(),
     "constitutional_floors": ["F1", "F9"],
     "version": "v45.3.0",

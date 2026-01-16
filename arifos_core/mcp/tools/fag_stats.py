@@ -69,7 +69,7 @@ TOOL_METADATA = {
         "Reports totals for granted/denied access, floor-specific failures, "
         "and v45.0.3 metrics (snapshots, rollbacks, watchdog anomalies)."
     ),
-    "input_schema": FAGStatsRequest.model_json_schema(),
+    "parameters": FAGStatsRequest.model_json_schema(),
     "output_schema": FAGStatsResponse.model_json_schema(),
     "constitutional_floors": ["F8"],
     "version": "v45.3.0",

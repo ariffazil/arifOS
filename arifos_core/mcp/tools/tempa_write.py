@@ -144,7 +144,7 @@ TOOL_METADATA = {
         "Enforces: root jail (F1 Amanah), entropy control (F4 ΔS), "
         "non-destruction (F5 Peace²), secret blocking (F9 C_dark)."
     ),
-    "input_schema": FAGWriteRequest.model_json_schema(),
+    "parameters": FAGWriteRequest.model_json_schema(),
     "output_schema": FAGWriteResponse.model_json_schema(),
     "constitutional_floors": ["F1", "F4", "F5", "F9"],
     "version": "v45.3.0",
