@@ -5,6 +5,55 @@
 
 ---
 
+## 🚀 Quick Start (New Machine)
+
+```bash
+# Clone and bootstrap in one go!
+git clone https://github.com/ariffazil/arifOS.git
+cd arifOS
+python setup/bootstrap/bootstrap.py --full
+
+# 3-5 minutes later: Done! ✅
+```
+
+**See:** [`setup/bootstrap/BOOTSTRAP_GUIDE.md`](setup/bootstrap/BOOTSTRAP_GUIDE.md) for details.
+
+---
+
+## 🚀 Setup & Auto-Bootstrap (v46.2+)
+
+arifOS now features a **function-based setup** and a fully IDE-agnostic, auto-repairing environment:
+
+- **One-command setup:**
+  ```bash
+  python setup/bootstrap/bootstrap.py --full
+  ```
+- **Auto-bootstrap:**
+  - Run `python setup/on_workspace_open.py` on workspace/session open (or configure your IDE to do this automatically)
+  - Ensures `.venv` and all dependencies are always present
+  - Self-healing: If anything is missing, it repairs itself
+  - Works in Antigravity, VS Code, PyCharm, CLI, etc.
+
+**Benefits:**
+- Zero-click onboarding: new devs/agents can start coding in 5 minutes
+- No more “foundation not complete” errors
+- No coding knowledge required for setup
+- Professional, maintainable, and easy to upgrade
+
+**See:** [`setup/bootstrap/BOOTSTRAP_GUIDE.md`](setup/bootstrap/BOOTSTRAP_GUIDE.md) for details.
+
+---
+
+## 🆕 What’s New (v46.2+)
+
+- Function-based `setup/` directory (bootstrap, docs, tools, verification)
+- IDE-agnostic auto-bootstrap script (`setup/on_workspace_open.py`)
+- All setup, docs, and tools unified and organized
+- One-command, self-healing environment for all contributors
+- Documentation and onboarding updated for clarity and speed
+
+---
+
 ## What Is This?
 
 **Short version:** arifOS makes AI tell the truth, admit what it doesn't know, and stop pretending it has feelings.
@@ -668,3 +717,4 @@ MIT License - See LICENSE file
 *"The future belongs to constitutional AI."*
 
 *arifOS v46.2 | January 2026*
+

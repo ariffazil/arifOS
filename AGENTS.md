@@ -628,3 +628,22 @@ Required for changes to:
 **DITEMPA BUKAN DIBERI** - Governance synced from live specifications.
 **Version:** v46.2.1 Constitutional Calibrations & Agent Zero Integration | **Status:** PRODUCTION-READY
 **Last Updated:** January 15, 2026
+
+---
+
+## 🛠️ Contributor Workflow: Function-Based Setup & Auto-Bootstrap
+
+**arifOS now uses a function-based setup and auto-repairing environment:**
+
+- **Setup:**
+  - Run `python setup/bootstrap/bootstrap.py --full` once after cloning
+  - Or, for zero-click onboarding, run `python setup/on_workspace_open.py` on workspace/session open (or configure your IDE to do this automatically)
+- **Benefits:**
+  - No manual setup or coding knowledge required
+  - Environment is always ready and self-healing
+  - Works in any IDE (Antigravity, VS Code, PyCharm, CLI, etc.)
+  - Onboarding new agents is fast and reliable
+- **Expectation:**
+  - All contributors/agents should use the auto-bootstrap for a consistent, error-free environment
+
+**See:** `setup/README.md` and `setup/bootstrap/BOOTSTRAP_GUIDE.md` for details.
