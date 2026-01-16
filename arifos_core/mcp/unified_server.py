@@ -823,10 +823,10 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["dC", "Ea", "dH_dt", "Teff", "Tcrit", "Omega0_value", "K_before", "K_after", "reality_7_1_physically_permissible", "structure_7_2_compressible", "language_7_3_minimal_truthful_naming", "ledger_entries", "T0_context_start"],
         },
     },
-    "arifos_audit": {
-        "name": "arifos_audit",
+    "vault999_audit": {
+        "name": "vault999_audit",
         "description": (
-            "Retrieve audit/ledger data for a user. "
+            "Retrieve audit/ledger data from VAULT-999 for a user. "
             "STUB: Full implementation coming in future sprint."
         ),
         "parameters": {
@@ -836,6 +836,34 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
                 "days": {"type": "integer", "description": "Days to look back (default: 7)", "default": 7},
             },
             "required": ["user_id"],
+        },
+    },
+    "vault999_verify_receipts": {
+        "name": "vault999_verify_receipts",
+        "description": (
+            "Get ZKPC cryptographic receipts for memory operations. "
+            "Returns Zero-Knowledge Proof of Cooling receipts."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "limit": {"type": "integer", "description": "Maximum receipts to return (default: 10)", "default": 10},
+            },
+            "required": [],
+        },
+    },
+    "vault999_verify_seal": {
+        "name": "vault999_verify_seal",
+        "description": (
+            "Verify cryptographic seal for memory integrity. "
+            "Returns seal verification status."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "seal_id": {"type": "string", "description": "Seal ID to verify"},
+            },
+            "required": ["seal_id"],
         },
     },
 
@@ -903,32 +931,6 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
         }
     },
     "github_govern": GITHUB_METADATA,
-
-    # -------------------------------------------------------------------------
-    # MEMORY TOOLS
-    # -------------------------------------------------------------------------
-    "memory_receipts": {
-        "name": "memory_receipts",
-        "description": "Get ZKPC memory receipts for verification",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "limit": {"type": "integer", "description": "Maximum receipts to return", "default": 10},
-            },
-            "required": [],
-        },
-    },
-    "memory_verify_seal": {
-        "name": "memory_verify_seal",
-        "description": "Verify cryptographic seal for memory integrity",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "seal_id": {"type": "string", "description": "Seal ID to verify"},
-            },
-            "required": ["seal_id"],
-        },
-    },
 }
 
 # =============================================================================
@@ -1016,18 +1018,18 @@ def print_stats():
     print(f"Deprecated Aliases: {len(DEPRECATED_ALIASES)}")
     print()
     print("Tools by Category:")
-    print("  - Constitutional Pipeline: 4 tools")
-    print("  - Memory & Retrieval: 6 tools")
-    print("  - File Access Governance: 4 tools")
+    print("  - Constitutional Pipeline (APEX): 4 tools")
+    print("  - VAULT-999 Memory System: 9 tools")
+    print("  - File Access Governance (FAG): 4 tools")
     print("  - Validation & Routing: 2 tools")
-    print("  - System Operations: 3 tools")
-    print("  - Memory Tools: 2 tools")
+    print("  - System Operations: 2 tools")
     print()
     print("Consolidation Result:")
-    print("  - From 34 tools -> 22 tools (-35%)")
+    print("  - From 34 tools -> 21 tools (-38%)")
     print("  - Removed 11 redundant pipeline stage tools")
     print("  - Deleted 1 ungoverned tool (APEX_LLAMA)")
-    print("  - Clean naming convention (no mcp_ prefix)")
+    print("  - Unified vault999_* namespace for memory")
+    print("  - Clean naming: apexprime_judge, vault999_*, fag_*")
     print("  - All 18 core capabilities preserved")
     print("=" * 80)
 
