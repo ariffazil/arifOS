@@ -1,3 +1,8 @@
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
 """
 Trinity Orchestrator — v46 Unified Floor Scoring via AGI·ASI·APEX
 
@@ -10,7 +15,7 @@ Flow:
           → APEX (F6 Amanah, F8 Tri-Witness, F9 Anti-Hantu)
           → Verdict (SEAL/VOID/PARTIAL/SABAR/HOLD_888)
 
-v46.0 Hypervisor Layer (F10-F12):
+v47.0 Hypervisor Layer (F10-F12):
     The Hypervisor Floors (F10 Ontology, F11 Command Auth, F12 Injection Defense)
     are NOT handled by Trinity Orchestrator. They are enforced in apex_prime.py
     via the Hypervisor module (arifos_core/system/hypervisor.py).
@@ -28,18 +33,18 @@ DITEMPA BUKAN DIBERI — Forged, not given; truth must cool before it rules.
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-# Import kernel floor checks (v46 Trinity Orthogonal)
-from ..agi.floor_checks import check_delta_s_f2, check_truth_f1
-from ..asi.floor_checks import (
+# Import kernel floor checks (v47 Trinity Orthogonal)
+from arifos_core.agi.floor_checks import check_delta_s_f6, check_truth_f2
+from arifos_core.apex.floor_checks import check_amanah_f1, check_anti_hantu_f9, check_tri_witness_f8
+from arifos_core.asi.floor_checks import (
     check_kappa_r_f4,
     check_omega_band_f5,
     check_peace_squared_f3,
     check_rasa_f7,
 )
-from ..apex.floor_checks import check_amanah_f6, check_anti_hantu_f9, check_tri_witness_f8
 
 # Import Amanah risk level for verdict logic
-from .floor_detectors.amanah_risk_detectors import RiskLevel
+from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import RiskLevel
 
 
 @dataclass
@@ -78,10 +83,10 @@ class TrinityOrchestrator:
     Coordinates AGI (Δ), ASI (Ω), and APEX (Ψ) kernels to evaluate
     text against the 9 core constitutional floors (F1-F9).
 
-    v46 Floor Mapping:
-        AGI (Δ):  F1 Truth, F2 DeltaS
+    v47 Floor Mapping:
+        AGI (Δ):  F2 Truth, F6 DeltaS
         ASI (Ω):  F3 Peace², F4 κᵣ, F5 Ω₀, F7 RASA
-        APEX (Ψ): F6 Amanah, F8 Tri-Witness, F9 Anti-Hantu
+        APEX (Ψ): F1 Amanah, F8 Tri-Witness, F9 Anti-Hantu
 
     v46 Hypervisor Floors (F10-F12):
         Hypervisor floors are enforced separately in apex_prime.py via
@@ -116,29 +121,36 @@ class TrinityOrchestrator:
         # AGI KERNEL (Δ Delta) — Truth & Clarity
         # =====================================================================
 
-        # F1: Truth
-        f1_result = check_truth_f1(text, context)
-        floors["F1"] = FloorResult(
-            floor_id="F1",
-            floor_name="Truth",
-            passed=f1_result.passed,
-            score=f1_result.score,
-            details=f1_result.details,
-        )
-        if not f1_result.passed:
-            failures.append("F1: Truth")
+        # F1: Amanah (Moved from APEX F6 in v47)
+        # However, for now let's keep the engine responsibility as is, just the labeling.
+        # Actually, let's just swap the labels!
 
-        # F2: DeltaS
-        f2_result = check_delta_s_f2(context)
+        # AGI (Δ): F2 Truth, F6 DeltaS
+        # APEX (Ψ): F1 Amanah
+
+        # F2: Truth (from f1)
+        f2_result = check_truth_f2(text, context)
         floors["F2"] = FloorResult(
             floor_id="F2",
-            floor_name="DeltaS",
+            floor_name="Truth",
             passed=f2_result.passed,
             score=f2_result.score,
             details=f2_result.details,
         )
         if not f2_result.passed:
-            failures.append("F2: DeltaS")
+            failures.append("F2: Truth")
+
+        # F6: DeltaS (from f2)
+        f6_result = check_delta_s_f6(context)
+        floors["F6"] = FloorResult(
+            floor_id="F6",
+            floor_name="DeltaS",
+            passed=f6_result.passed,
+            score=f6_result.score,
+            details=f6_result.details,
+        )
+        if not f6_result.passed:
+            failures.append("F6: DeltaS")
 
         # =====================================================================
         # ASI KERNEL (Ω Omega) — Care & Safety
@@ -196,19 +208,19 @@ class TrinityOrchestrator:
         # APEX KERNEL (Ψ Psi) — Constitutional Judge
         # =====================================================================
 
-        # F6: Amanah (Trust)
-        f6_result = check_amanah_f6(text, context)
-        floors["F6"] = FloorResult(
-            floor_id="F6",
+        # F1: Amanah (from f6)
+        f1_amanah_result = check_amanah_f1(text, context)
+        floors["F1"] = FloorResult(
+            floor_id="F1",
             floor_name="Amanah",
-            passed=f6_result.passed,
-            score=f6_result.score,
-            details=f6_result.details,
+            passed=f1_amanah_result.passed,
+            score=f1_amanah_result.score,
+            details=f1_amanah_result.details,
         )
-        if not f6_result.passed:
-            failures.append("F6: Amanah")
-        if f6_result.risk_level == RiskLevel.ORANGE:
-            warnings.extend([f"F6: {v}" for v in f6_result.violations[:3]])
+        if not f1_amanah_result.passed:
+            failures.append("F1: Amanah")
+        if f1_amanah_result.risk_level == RiskLevel.ORANGE:
+            warnings.extend([f"F1: {v}" for v in f1_amanah_result.violations[:3]])
 
         # F8: Tri-Witness
         f8_result = check_tri_witness_f8(context)
@@ -239,14 +251,14 @@ class TrinityOrchestrator:
         # =====================================================================
         # COMPUTE VERDICT (Orthogonality Invariant: Dissent blocks action)
         # =====================================================================
-        verdict = self._compute_verdict(floors, failures, f6_result.risk_level)
+        verdict = self._compute_verdict(floors, failures, f1_amanah_result.risk_level)
 
         return GradeResult(
             verdict=verdict,
             floors=floors,
             failures=failures,
             warnings=warnings,
-            claim_profile=f1_result.claim_profile,
+            claim_profile=f2_result.claim_profile,
         )
 
     def _compute_verdict(
@@ -276,8 +288,8 @@ class TrinityOrchestrator:
         if not failures:
             return "SEAL"
 
-        # VOID: Hard floor failures (AGI, ASI Ω₀/RASA, APEX Amanah/Anti-Hantu)
-        hard_floors = ["F1: Truth", "F2: DeltaS", "F5: Ω₀", "F6: Amanah", "F7: RASA", "F9: Anti-Hantu"]
+        # VOID: Hard floor failures (AGI Truth/DeltaS, ASI Ω₀/RASA, APEX Amanah/Anti-Hantu)
+        hard_floors = ["F1: Amanah", "F2: Truth", "F5: Ω₀", "F6: DeltaS", "F7: RASA", "F9: Anti-Hantu"]
         if any(f in failures for f in hard_floors):
             return "VOID"
 

@@ -1,3 +1,8 @@
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
 """
 Constitutional Search Cache with Semantic Deduplication
 X7K9F24 - Entropy Reduction via Intelligent Caching
@@ -18,9 +23,8 @@ import logging
 import time
 from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
-from collections import OrderedDict
 
-from ..floors import floor_02_clarity as f2
+from arifos_core.floors import floor_02_clarity as f2
 
 logger = logging.getLogger("arifos_core.search_cache")
 

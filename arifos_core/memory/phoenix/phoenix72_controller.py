@@ -1,3 +1,8 @@
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
 """
 phoenix72_controller.py — Phoenix-72 Amendment Controller for arifOS v37
 
@@ -18,7 +23,6 @@ Author: arifOS Project
 Version: v37
 """
 
-from __future__ import annotations
 
 import hashlib
 import hmac
@@ -27,7 +31,6 @@ import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone, timedelta
-from pathlib import Path
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:

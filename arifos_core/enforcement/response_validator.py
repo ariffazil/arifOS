@@ -1,3 +1,8 @@
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
 """
 response_validator.py — Enforce 9 Constitutional Floors on AI Output
 
@@ -12,18 +17,18 @@ Usage:
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Tuple
 
-from .metrics import (
-    check_anti_hantu,
-    TRUTH_THRESHOLD,
-    TRI_WITNESS_THRESHOLD,
+from arifos_core.enforcement.metrics import (
     DELTA_S_THRESHOLD,
     KAPPA_R_THRESHOLD,
-    PEACE_SQUARED_THRESHOLD,
-    OMEGA_0_MIN,
     OMEGA_0_MAX,
+    OMEGA_0_MIN,
+    PEACE_SQUARED_THRESHOLD,
+    TRI_WITNESS_THRESHOLD,
+    TRUTH_THRESHOLD,
+    check_anti_hantu,
 )
 
 
@@ -141,13 +146,13 @@ def validate_response(
     )
 
     # =========================================================================
-    # F4: DeltaS (Clarity) — UNVERIFIABLE (Requires input↔output comparison)
+    # F4: κr (Empathy) — UNVERIFIABLE (Requires user input for distress context)
     # =========================================================================
-    # NOTE: Without input text, we cannot compute relative clarity.
+    # NOTE: Without user input, we cannot detect distress signals.
     # Use validate_response_with_context() for F4 proxy enforcement.
-    report.floors_passed["F4_DeltaS"] = True  # Default pass
-    report.floor_scores["F4_DeltaS"] = None
-    report.floor_evidence["F4_DeltaS"] = (
+    report.floors_passed["F4_KappaR"] = True  # Default pass
+    report.floor_scores["F4_KappaR"] = None
+    report.floor_evidence["F4_KappaR"] = (
         "UNVERIFIABLE_WITHOUT_INPUT (use validate_response_with_context)"
     )
 
@@ -162,13 +167,13 @@ def validate_response(
         report.violations.append(f"F5: {f5_evidence}")
 
     # =========================================================================
-    # F6: κr (Empathy) — UNVERIFIABLE (Requires user input for distress context)
+    # F6: Clarity (ΔS) — UNVERIFIABLE (Requires input↔output comparison)
     # =========================================================================
-    # NOTE: Without user input, we cannot detect distress signals.
+    # NOTE: Without input text, we cannot compute relative clarity.
     # Use validate_response_with_context() for F6 proxy enforcement.
-    report.floors_passed["F6_KappaR"] = True  # Default pass
-    report.floor_scores["F6_KappaR"] = None
-    report.floor_evidence["F6_KappaR"] = (
+    report.floors_passed["F6_DeltaS"] = True  # Default pass
+    report.floor_scores["F6_DeltaS"] = None
+    report.floor_evidence["F6_DeltaS"] = (
         "UNVERIFIABLE_WITHOUT_INPUT (use validate_response_with_context)"
     )
 
@@ -274,13 +279,13 @@ def _check_peace_patterns(text: str) -> Tuple[bool, str]:
 
 
 # =============================================================================
-# F4: CLARITY (ΔS) — CODE-ENFORCED (Relative Entropy Comparison)
+# F6: CLARITY (ΔS) — CODE-ENFORCED (Relative Entropy Comparison)
 # =============================================================================
 
 
 def compute_clarity_score(input_text: str, output_text: str) -> Tuple[float, str]:
     """
-    Compute F4 Clarity (ΔS) — Does the output reduce confusion?
+    Compute F6 Clarity (ΔS) — Does the output reduce confusion?
 
     Physics-based proxy using zlib compression ratio (TEARFRAME-compliant).
 
@@ -293,7 +298,7 @@ def compute_clarity_score(input_text: str, output_text: str) -> Tuple[float, str
         - Negative ΔS = output is less compressible (more entropy/confusion)
 
     Returns:
-        (score, evidence) where score = ΔS_proxy (≥0 required for SEAL)
+        (score, evidence) where score = ΔS_proxy (≤0 required for SEAL)
 
     Note:
         TEARFRAME compliance: This is a PHYSICS measurement (compression ratio)
@@ -327,9 +332,14 @@ def compute_clarity_score(input_text: str, output_text: str) -> Tuple[float, str
         h_input = len(input_compressed) / max(len(input_bytes), 1)
         h_output = len(output_compressed) / max(len(output_bytes), 1)
 
-        # ΔS proxy = H(input) - H(output)
-        # Positive = output more structured/clear
-        delta_s_proxy = h_input - h_output
+        # ΔS proxy = H(output) - H(input)  <-- SWAPPED to align with DS <= 0
+        # Reduced entropy (output) means less complexity relative to input.
+        # But wait, original code was H(input) - H(output).
+        # If input is 1.0 and output is 0.8, delta_s was 0.2 (PASS in original >0).
+        # In NEW system, PASS is <= 0.
+        # So if input is 1.0 and output is 0.8, we want result <= 0.
+        # So we do H(output) - H(input) = 0.8 - 1.0 = -0.2 (PASS).
+        delta_s_proxy = h_output - h_input
 
         evidence = f"VERIFIED (zlib proxy): H(input)={h_input:.3f}, H(output)={h_output:.3f}, delta_S={delta_s_proxy:.3f}"
 
@@ -340,7 +350,7 @@ def compute_clarity_score(input_text: str, output_text: str) -> Tuple[float, str
 
 
 # =============================================================================
-# F6: EMPATHY (κᵣ) — CODE-ENFORCED (Distress Detection + Consolation Check)
+# F4: EMPATHY (κᵣ) — CODE-ENFORCED (Distress Detection + Consolation Check)
 # =============================================================================
 
 # Distress signals in user input
@@ -419,7 +429,7 @@ DISMISSIVE_PATTERNS = [
 
 def compute_empathy_score(input_text: str, output_text: str) -> Tuple[float, str]:
     """
-    Compute F6 Empathy (κᵣ) — Does the AI respond appropriately to distress?
+    Compute F4 Empathy (κᵣ) — Does the AI respond appropriately to distress?
 
     Logic:
         - Detect distress signals in user input
@@ -478,7 +488,7 @@ def compute_empathy_score(input_text: str, output_text: str) -> Tuple[float, str
 
 
 # =============================================================================
-# ENHANCED validate_response (Now with F4 and F6 verification)
+# ENHANCED validate_response (Now with F6 and F4 verification)
 # =============================================================================
 
 
@@ -490,7 +500,7 @@ def validate_response_with_context(
     claimed_tri_witness: float = 0.90,
 ) -> "FloorReport":
     """
-    Enhanced validation that includes F4 (Clarity) and F6 (Empathy).
+    Enhanced validation that includes F6 (Clarity) and F4 (Empathy).
 
     Requires both input and output text for relative comparison.
 
@@ -500,7 +510,7 @@ def validate_response_with_context(
         claimed_*: Self-reported scores for floors we can't auto-verify
 
     Returns:
-        FloorReport with machine-verified F4 and F6 scores
+        FloorReport with machine-verified F6 and F4 scores
     """
     report = FloorReport(
         timestamp=datetime.now(timezone.utc).isoformat(),
@@ -529,12 +539,12 @@ def validate_response_with_context(
     report.floor_scores["F3_TriWitness"] = claimed_tri_witness
     report.floor_evidence["F3_TriWitness"] = f"CLAIMED: {claimed_tri_witness}"
 
-    # F4: Clarity — CODE-ENFORCED (Relative Comparison)
-    f4_score, f4_evidence = compute_clarity_score(input_text, output_text)
-    f4_pass = f4_score >= DELTA_S_THRESHOLD
-    report.floors_passed["F4_DeltaS"] = f4_pass
-    report.floor_scores["F4_DeltaS"] = f4_score
-    report.floor_evidence["F4_DeltaS"] = f4_evidence
+    # F6: Clarity — CODE-ENFORCED (Relative Comparison)
+    f6_score, f6_evidence = compute_clarity_score(input_text, output_text)
+    f6_pass = f6_score <= DELTA_S_THRESHOLD  # Pass if DS <= threshold
+    report.floors_passed["F6_DeltaS"] = f6_pass
+    report.floor_scores["F6_DeltaS"] = f6_score
+    report.floor_evidence["F6_DeltaS"] = f6_evidence
 
     # F5: Peace² (Code-Enforced)
     f5_pass, f5_evidence = _check_peace_patterns(output_text)
@@ -544,14 +554,14 @@ def validate_response_with_context(
     if not f5_pass:
         report.violations.append(f"F5: {f5_evidence}")
 
-    # F6: Empathy — CODE-ENFORCED (Distress/Consolation)
-    f6_score, f6_evidence = compute_empathy_score(input_text, output_text)
-    f6_pass = f6_score >= KAPPA_R_THRESHOLD
-    report.floors_passed["F6_KappaR"] = f6_pass
-    report.floor_scores["F6_KappaR"] = f6_score
-    report.floor_evidence["F6_KappaR"] = f6_evidence
-    if not f6_pass:
-        report.violations.append(f"F6: Low empathy score ({f6_score:.2f} < {KAPPA_R_THRESHOLD})")
+    # F4: Empathy — CODE-ENFORCED (Distress/Consolation)
+    f4_score, f4_evidence = compute_empathy_score(input_text, output_text)
+    f4_pass = f4_score >= KAPPA_R_THRESHOLD
+    report.floors_passed["F4_KappaR"] = f4_pass
+    report.floor_scores["F4_KappaR"] = f4_score
+    report.floor_evidence["F4_KappaR"] = f4_evidence
+    if not f4_pass:
+        report.violations.append(f"F4: Low empathy score ({f4_score:.2f} < {KAPPA_R_THRESHOLD})")
 
     # F7: Humility (Claimed)
     f7_pass = OMEGA_0_MIN <= claimed_omega <= OMEGA_0_MAX
@@ -618,7 +628,7 @@ Examples:
         """,
     )
     parser.add_argument("--output", "-o", required=True, help="AI output text to validate")
-    parser.add_argument("--input", "-i", help="Optional input text for F4 ΔS proxy calculation")
+    parser.add_argument("--input", "-i", help="Optional input text for F6 ΔS proxy calculation")
     parser.add_argument(
         "--high-stakes",
         "-H",

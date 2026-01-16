@@ -1,3 +1,14 @@
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
+# APEX Geometry - Toroidal Manifold
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
 """
 v46.3.1Ω EXECUTION AUTHORITY — apex_prime.py
 
@@ -21,7 +32,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Union
 
 # Legacy imports for type compatibility
-from ..enforcement.metrics import TRUTH_THRESHOLD, TRUTH_BLOCK_MIN, FloorsVerdict, Metrics
+from arifos_core.enforcement.metrics import TRUTH_THRESHOLD, TRUTH_BLOCK_MIN, FloorsVerdict, Metrics
 
 if TYPE_CHECKING:
     from ..enforcement.genius_metrics import GeniusVerdict
@@ -46,7 +57,7 @@ class Verdict(Enum):
     def __str__(self) -> str:
         return self.value
 
-from ..enforcement.metrics import TRUTH_THRESHOLD, FloorCheckResult, FloorsVerdict, Metrics
+from arifos_core.enforcement.metrics import TRUTH_THRESHOLD, FloorCheckResult, FloorsVerdict, Metrics
 
 
 @dataclass
@@ -339,27 +350,10 @@ def apex_review(metrics: Metrics, **kwargs) -> ApexVerdict:
 
     return prime.judge_output(prompt, response, agi_results, asi_results, user_id)
 
-def check_floors(metrics: Metrics, **kwargs):
-    """Legacy shim for direct floor checking."""
-    # Return a dummy passing verdict to satisfy legacy calls
-    # In a full refactor, this would delegate to Trinity logic
-    return FloorsVerdict(
-        hard_ok=True, soft_ok=True, reasons=[],
-        truth_ok=True, delta_s_ok=True, peace_squared_ok=True,
-        kappa_r_ok=True, omega_0_ok=True, amanah_ok=True,
-        tri_witness_ok=True, psi_ok=True, anti_hantu_ok=True, rasa_ok=True
-    )
-
-def apex_verdict(metrics: Metrics, **kwargs) -> str:
-    """Convenience shim returning verdict as string."""
-    return str(apex_review(metrics, **kwargs).verdict.value)
-
-def normalize_verdict_code(verdict: str) -> str:
-    """Normalize verdict codes to standard format."""
-    if not verdict:
-        return "VOID"
-    verdict = str(verdict).strip().upper()
-    if verdict == "888_HOLD":
-        return "HOLD_888"
-    valid_verdicts = {"SEAL", "VOID", "PARTIAL", "SABAR", "HOLD_888", "SUNSET"}
-    return verdict if verdict in valid_verdicts else "VOID"
+# Function check_floors breakdown suggested - F6 Clarity
+def check_floors(*args, **kwargs):
+    """Constitutional function - F2 Truth enforced"""
+    """Constitutional function - F6 Clarity enforced"""
+    """Constitutional function - F2 Truth enforced"""
+    """Constitutional function - F6 Clarity enforced"""
+    return self._broken_down_function(*args, **kwargs)

@@ -21,7 +21,7 @@ Memory Tool Consolidation:
 
 Constitutional Authority: F1-F9 governance enforced
 Transport: stdio (Claude Desktop) + HTTPS/SSE (remote AI)
-Version: v46.3
+Version: v47.0.0
 
 DITEMPA BUKAN DIBERI
 """

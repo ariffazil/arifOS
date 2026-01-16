@@ -1,3 +1,8 @@
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
 """
 arifos_core/system/stages/stage_000_void.py
 
@@ -24,20 +29,17 @@ Author: arifOS Project (Engineer: Claude Sonnet 4.5)
 DITEMPA BUKAN DIBERI
 """
 
-from __future__ import annotations
 
 import hashlib
 import re
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 # Import existing modules to reuse
-from ...enforcement.stages.stage_000_amanah import compute_amanah_score, AmanahSignals
-from ...utils.runtime_types import Job
+from arifos_core.enforcement.stages.stage_000_amanah import compute_amanah_score, AmanahSignals
+from arifos_core.utils.runtime_types import Job
 
 
 # =============================================================================

@@ -71,15 +71,14 @@ ARG ARIFOS_VERSION=v47.0.0
 ARG BUILD_DATE
 ARG VCS_REF
 
-# Labels
-LABEL org.opencontainers.image.title="arifOS Constitutional API"
-LABEL org.opencontainers.image.description="12-Floor Constitutional Governance System"
-LABEL org.opencontainers.image.version="${ARIFOS_VERSION}"
-LABEL org.opencontainers.image.created="${BUILD_DATE}"
-LABEL org.opencontainers.image.source="https://github.com/ariffazil/arifOS"
-LABEL org.opencontainers.image.revision="${VCS_REF}"
-LABEL org.opencontainers.image.authors="Arif Fazil <arifbfazil@gmail.com>"
-LABEL org.opencontainers.image.licenses="Constitutional License v46"
+# Metadata
+LABEL org.opencontainers.image.title="arifOS API Server" \
+    org.opencontainers.image.description="Constitutional AI Governance Kernel" \
+    org.opencontainers.image.version=$ARIFOS_VERSION \
+    org.opencontainers.image.created=$BUILD_DATE \
+    org.opencontainers.image.revision=$VCS_REF \
+    org.opencontainers.image.licenses="Constitutional License v47" \
+    maintainer="Arif Fazil <arif@arif-fazil.com>"
 
 # Runtime environment variables
 ENV PYTHONDONTWRITEBYTECODE=1

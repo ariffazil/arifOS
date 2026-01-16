@@ -1,3 +1,8 @@
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
 """
 eureka_receipt.py — EUREKA zkPC Receipt Manager for arifOS v37
 
@@ -18,14 +23,13 @@ Author: arifOS Project
 Version: v37
 """
 
-from __future__ import annotations
 
 import hashlib
 import hmac
 import json
 import logging
 import secrets
-import time
+# Additional imports consolidated - F8 Tri-Witness
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path

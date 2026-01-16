@@ -1,6 +1,7 @@
 # arifOS v45 Canon Master Index
 
-**Version:** v45.0 | **Status:** ✅ SEALED | **Last Updated:** 2025-12-30
+**Version:** v47.0.0 + APEX Sovereign (2026-01)
+✅ SEALED | **Last Updated:** 2025-12-30
 **Authority:** Phoenix-72 Constitutional Amendment (v45 Consolidation)
 **Motto:** DITEMPA BUKAN DIBERI — Forged, not given; truth must cool before it rules
 
@@ -33,18 +34,17 @@ All other files listed below are now considered **Source Material** (Historical/
 
 ---
 
-## 00_foundation/ — ΔΩΨ Thermodynamic Foundation
-
-| File | Title | Purpose |
-|---|---|---|
-| [`000_ARCHITECTURE_MAP_v45.md`](../00_foundation/000_ARCHITECTURE_MAP_v45.md) | 📌 **Architecture Map** | **CRITICAL** - Authoritative spine: WHO (actors) · WHAT (organs) · WHEN (pipeline) · WHERE (APEX Theory) |
-| [`030_ARIF_FAZIL_v45.md`](../00_foundation/030_ARIF_FAZIL_v45.md) | 🧩 **Arif Fazil** | Biography and Foundational Context |
-| [`00_DELTA_OMEGA_PSI_v45.md`](../00_foundation/00_DELTA_OMEGA_PSI_v45.md) | 🔺 **ΔΩΨ Equation** | The ONE equation: Ψ vitality, Δ clarity, Ω humility |
-| [`00_THERMODYNAMICS_v45.md`](../00_foundation/00_THERMODYNAMICS_v45.md) | 🌡️ **Thermodynamics** | Landauer's Principle, entropy cooling, free energy |
-| [`00_ZKPC_PROTOCOL_v45.md`](../00_foundation/00_ZKPC_PROTOCOL_v45.md) | 🔐 **ZKPC Protocol** | Zero-Knowledge Proof of Constitution (cryptographic governance) |
-| [`040_PHYSICS_v45.md`](../00_foundation/040_PHYSICS_v45.md) | ⚛️ **Physics Layer** | ΔΩΨ physics foundations, A·P·E·X substrate dials |
-| [`050_MATH_v45.md`](../00_foundation/050_MATH_v45.md) | 🔢 **Mathematics** | Formal equations, Ψ dual forms, Peace², κᵣ, GENIUS law |
-| [`060_META_THEORY_APEX_v45.md`](../00_foundation/060_META_THEORY_APEX_v45.md) | 🧠 **Meta-Theory** | APEX theoretical foundations |
+## 000_FOUNDATION (Core Canon)
+- [Constitutional Core v47](file:///c:/Users/User/OneDrive/Documents/GitHub/arifOS/L1_THEORY/canon/000_foundation/000_CONSTITUTIONAL_CORE_v47.md)
+- [Geometry of Intelligence v47](file:///c:/Users/User/OneDrive/Documents/GitHub/arifOS/L1_THEORY/canon/000_foundation/002_GEOMETRY_OF_INTELLIGENCE_v47.md)
+- [Geometry Implementation v47](file:///c:/Users/User/OneDrive/Documents/GitHub/arifOS/L1_THEORY/canon/000_foundation/003_GEOMETRY_IMPLEMENTATION_v47.md)
+- [Architectural Map v47](file:///c:/Users/User/OneDrive/Documents/GitHub/arifOS/L1_THEORY/canon/000_foundation/004_ARCHITECTURAL_MAP_v47.md)
+- [Geometry of Memory v47](file:///c:/Users/User/OneDrive/Documents/GitHub/arifOS/L1_THEORY/canon/000_foundation/005_GEOMETRY_OF_MEMORY_v47.md)
+- [Trinity Equations v47](file:///c:/Users/User/OneDrive/Documents/GitHub/arifOS/L1_THEORY/canon/000_foundation/040_TRINITY_EQUATIONS_v47.md)
+- [Session Physics Layer v47](file:///c:/Users/User/OneDrive/Documents/GitHub/arifOS/L1_THEORY/canon/000_foundation/050_SESSION_PHYSICS_LAYER_v47.md)
+- [CIV12 Orthogonal v47](file:///c:/Users/User/OneDrive/Documents/GitHub/arifOS/L1_THEORY/canon/000_foundation/060_CIV12_ORTHOGONAL_v47.md)
+- [ZKPC Protocol v47](file:///c:/Users/User/OneDrive/Documents/GitHub/arifOS/L1_THEORY/canon/000_foundation/070_ZKPC_PROTOCOL_v47.md)
+- [CIV8 Compass 888 v47](file:///c:/Users/User/OneDrive/Documents/GitHub/arifOS/L1_THEORY/canon/000_foundation/080_CIV8_COMPASS_888_v47.md)
 
 ---
 

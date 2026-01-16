@@ -1,7 +1,7 @@
-# AGENTS - Constitutional Governance v47.0
+# AGENTS - Constitutional Governance v47.0.0
 **Constitutional Agent Specifications**
-**Status:** ✅ ALIGNED with Canon v46 + Model-Agnostic System v47
-**Authority:** Track A (Canonical Law) + Track B (Protocol Enforcement)
+**Version:** v47.0.0 + Model-Agnostic (2026-01)
+**Authority:** Muhammad Arif bin Fazil > arifOS Governor > Agent
 **Sync Source:** L2_PROTOCOLS/v46/* + config/agents.yaml
 
 ---
@@ -254,6 +254,7 @@ All agents execute actions through this 10-stage governance pipeline:
 | **999** | SEAL | Cryptographic sealing | All | Validator (Κ) |
 
 **Key principle:** Every autonomous action passes through this pipeline regardless of which LLM executes it.
+## Release Notes: v47.0.0
 
 ### Cross-Layer Vocabulary Mapping
 

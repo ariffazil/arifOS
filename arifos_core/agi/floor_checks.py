@@ -8,9 +8,9 @@ Floors:
 - Floor1_Amanah: Integrity/Credentials (Axis Z)
 - Floor2_Truth: Evidence/Hallucination (Axis X)
 - Floor3_TriWitness: Consensus (Axis Y)
-- Floor4_DeltaS: Clarity/Entropy (Axis T)
+- Floor6_DeltaS: Clarity/Entropy (Axis T)
 
-DITEMPA BUKAN DIBERI - v46.2
+DITEMPA BUKAN DIBERI - v47.0
 """
 
 from abc import ABC, abstractmethod
@@ -100,32 +100,32 @@ class Floor3_TriWitness(Floor):
              return FloorResult(False, convergence, f"Consensus Failure ({convergence:.2f} < 0.95)")
 
 
-class Floor4_DeltaS(Floor):
+class Floor6_DeltaS(Floor):
     """
     AXIS T: CLARITY (Entropy)
     Low jargon, high structure. No contradictions.
     """
     def check(self, output: str, context: Dict[str, Any]) -> FloorResult:
-        # Delta S (Change in Entropy). Negative is bad (confusion).
-        # We want >= 0.0 (Clarification)
-        delta_s = context.get("delta_s", -1.0) # Default fail
+        # Delta S (Change in Entropy). Positive is bad (confusion).
+        # We want <= 0.0 (Clarification/Stabilization)
+        delta_s = context.get("delta_s", 1.0) # Default fail
 
-        if delta_s >= 0.0:
-            return FloorResult(True, delta_s, f"Clarity Increased (+{delta_s:.2f})")
+        if delta_s <= 0.0:
+            return FloorResult(True, delta_s, f"Clarity Increased ({delta_s:.2f} <= 0)")
         else:
-            return FloorResult(False, delta_s, f"Confusion Increased ({delta_s:.2f} < 0.0)")
+            return FloorResult(False, delta_s, f"Confusion Increased ({delta_s:.2f} > 0.0)")
 
 # =============================================================================
 # 3. CONVENIENCE ORCHESTRATOR
 # =============================================================================
 
 def check_agi_floors(output: str, context: Dict[str, Any]) -> List[FloorResult]:
-    """Run the Orthogonal Tetrahedron checks."""
+    """Run the Orthogonal Tetrahedron checks (v47 alignment)."""
     floors = [
-        Floor1_Amanah(),
+        Floor1_Amanah(), # Legacy reference
         Floor2_Truth(),
-        Floor3_TriWitness(),
-        Floor4_DeltaS()
+        Floor3_TriWitness(), # Legacy reference
+        Floor6_DeltaS()
     ]
     return [floor.check(output, context) for floor in floors]
 
@@ -133,17 +133,14 @@ def check_agi_floors(output: str, context: Dict[str, Any]) -> List[FloorResult]:
 # 4. LEGACY WRAPPERS (For Backward Compatibility)
 # =============================================================================
 
-def check_truth_f1(text: str, context: Optional[Dict[str, Any]] = None) -> Any:
-    """Wrapper for Floor2_Truth to satisfy legacy imports."""
+def check_truth_f2(text: str, context: Optional[Dict[str, Any]] = None) -> Any:
+    """Wrapper for Floor2_Truth to satisfy v47 imports."""
     context = context or {}
     result = Floor2_Truth().check(text, context)
-    # Legacy F1CheckResult shim object if needed, or simple return
-    # Returning simple structure for now, matching previous signature mostly
     return result
 
-def check_delta_s_f2(context: Optional[Dict[str, Any]] = None) -> Any:
-    """Wrapper for Floor4_DeltaS to satisfy legacy imports."""
+def check_delta_s_f6(context: Optional[Dict[str, Any]] = None) -> Any:
+    """Wrapper for Floor6_DeltaS to satisfy v47 imports."""
     context = context or {}
-    # Fake output as DeltaS check in legacy was context-only
-    result = Floor4_DeltaS().check("", context)
+    result = Floor6_DeltaS().check("", context)
     return result

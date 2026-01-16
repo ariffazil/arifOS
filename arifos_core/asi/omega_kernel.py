@@ -1,3 +1,14 @@
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
+# ASI Geometry - Fractal Spiral
+"""Constitutional module - F2 Truth enforced
+Part of arifOS constitutional governance system
+DITEMPA BUKAN DIBERI - Forged, not given
+"""
+
 """
 arifos_core/asi/omega_kernel.py
 
@@ -28,7 +39,6 @@ Design:
 DITEMPA BUKAN DIBERI - Forged v46.1
 """
 
-from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
