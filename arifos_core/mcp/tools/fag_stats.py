@@ -30,7 +30,7 @@ class FAGStatsResponse(BaseModel):
     root: str = Field(..., description="Root jail path")
 
 
-def arifos_fag_stats(request: FAGStatsRequest) -> FAGStatsResponse:
+def arifos_fag_stats(request: FAGStatsRequest) -> Dict[str, Any]:
     """
     Get FAG access statistics and health status.
 
@@ -52,13 +52,13 @@ def arifos_fag_stats(request: FAGStatsRequest) -> FAGStatsResponse:
             stats=fag.access_stats,
             health=fag.health_check(),
             root=str(fag.root),
-        )
+        ).model_dump()
     except Exception as e:
         return FAGStatsResponse(
             stats={},
             health={"status": "ERROR", "error": str(e)},
             root=request.root,
-        )
+        ).model_dump()
 
 
 # MCP Tool metadata

@@ -28,11 +28,25 @@ DITEMPA BUKAN DIBERI
 
 from __future__ import annotations
 
+import json
+import logging
 import sys
-from typing import Any, Callable, Dict, Optional
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
 
+import mcp.types
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
+
+# Vault999 TAC/EUREKA imports
+from arifos_core.mcp.vault999_tac_eureka import (
+    EvaluationInputs,
+    utc_now_iso,
+    validate_ledger_entries,
+    vault_999_decide,
+)
+from arifos_core.memory.vault.vault_manager import VaultManager
 
 from .models import (
     AgiThinkRequest,
@@ -46,22 +60,35 @@ from .models import (
     RecallResponse,
     VerdictResponse,
 )
+from .tools.audit import arifos_audit  # Audit trail inspection
+from .tools.bundles import agi_think_sync as agi_think  # AGI bundle (111+222+777)
+from .tools.bundles import apex_audit_sync as apex_audit  # APEX bundle (444+888+889)
+from .tools.bundles import asi_act_sync as asi_act  # ASI bundle (555+666)
+from .tools.executor import ExecutorRequest, arifos_executor
+from .tools.fag_list import FAGListRequest, arifos_fag_list
+from .tools.fag_read import TOOL_METADATA as FAG_READ_METADATA
+from .tools.fag_read import FAGReadRequest, FAGReadResponse, arifos_fag_read
+from .tools.fag_stats import FAGStatsRequest, arifos_fag_stats
+from .tools.fag_write import FAGWriteRequest, arifos_fag_write
+from .tools.judge import arifos_judge  # Full pipeline (000→999)
+from .tools.memory_tools import memory_get_receipts, memory_verify_seal
+from .tools.meta_select import TOOL_METADATA as META_SELECT_METADATA
+from .tools.meta_select import MetaSelectRequest, MetaSelectResponse, arifos_meta_select
+from .tools.recall import arifos_recall  # L7 Mem0+Qdrant recall
+from .tools.remote.github_aaa import TOOL_METADATA as GITHUB_METADATA
+from .tools.remote.github_aaa import github_aaa_govern
+from .tools.validate_full import TOOL_METADATA as VALIDATE_FULL_METADATA
+from .tools.validate_full import ValidateFullRequest, ValidateFullResponse, arifos_validate_full
 
 # =============================================================================
 # CORE IMPORTS - Constitutional Pipeline (4 tools)
 # =============================================================================
 
-from .tools.judge import arifos_judge  # Full pipeline (000→999)
-from .tools.bundles import agi_think_sync as agi_think  # AGI bundle (111+222+777)
-from .tools.bundles import asi_act_sync as asi_act  # ASI bundle (555+666)
-from .tools.bundles import apex_audit_sync as apex_audit  # APEX bundle (444+888+889)
 
 # =============================================================================
 # MEMORY & RETRIEVAL IMPORTS (6 tools)
 # =============================================================================
 
-from .tools.recall import arifos_recall  # L7 Mem0+Qdrant recall
-from .tools.audit import arifos_audit  # Audit trail inspection
 
 # Vault tools (search/fetch/receipts) - implemented inline below
 # vault999_store and vault999_eval - to be imported from arifos_mcp_server
@@ -70,54 +97,28 @@ from .tools.audit import arifos_audit  # Audit trail inspection
 # FILE ACCESS GOVERNANCE (FAG) IMPORTS (4 tools)
 # =============================================================================
 
-from .tools.fag_read import TOOL_METADATA as FAG_READ_METADATA
-from .tools.fag_read import FAGReadRequest, FAGReadResponse, arifos_fag_read
-from .tools.fag_write import FAGWriteRequest, arifos_fag_write
-from .tools.fag_list import FAGListRequest, arifos_fag_list
-from .tools.fag_stats import FAGStatsRequest, arifos_fag_stats
 
 # =============================================================================
 # VALIDATION & ROUTING IMPORTS (2 tools)
 # =============================================================================
 
-from .tools.validate_full import TOOL_METADATA as VALIDATE_FULL_METADATA
-from .tools.validate_full import ValidateFullRequest, ValidateFullResponse, arifos_validate_full
-from .tools.meta_select import TOOL_METADATA as META_SELECT_METADATA
-from .tools.meta_select import MetaSelectRequest, MetaSelectResponse, arifos_meta_select
 
 # =============================================================================
 # SYSTEM OPERATIONS IMPORTS (3 tools)
 # =============================================================================
 
-from .tools.executor import ExecutorRequest, arifos_executor
-from .tools.remote.github_aaa import TOOL_METADATA as GITHUB_METADATA
-from .tools.remote.github_aaa import github_aaa_govern
 
 # =============================================================================
 # MEMORY TOOLS IMPORTS (2 tools)
 # =============================================================================
 
-from .tools.memory_tools import memory_get_receipts, memory_verify_seal
 
 # =============================================================================
 # VAULT IMPORTS
 # =============================================================================
 
-from pathlib import Path
-import json
-import logging
-from datetime import datetime, timezone
-from typing import List
 
-from arifos_core.memory.vault.vault_manager import VaultManager
 
-# Vault999 TAC/EUREKA imports
-from arifos_core.mcp.vault999_tac_eureka import (
-    EvaluationInputs,
-    validate_ledger_entries,
-    vault_999_decide,
-    utc_now_iso
-)
 
 logger = logging.getLogger(__name__)
 
@@ -1232,7 +1233,11 @@ def create_stdio_server() -> Server:
         """List all available tools."""
         # Return only non-deprecated tools for discovery
         non_deprecated = [
-            TOOL_DESCRIPTIONS[name]
+            mcp.types.Tool(
+                name=TOOL_DESCRIPTIONS[name]["name"],
+                description=TOOL_DESCRIPTIONS[name]["description"],
+                inputSchema=TOOL_DESCRIPTIONS[name]["parameters"],
+            )
             for name in TOOL_DESCRIPTIONS
             if name not in DEPRECATED_ALIASES
         ]

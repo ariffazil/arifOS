@@ -9,10 +9,11 @@ Phase: 2A (Post-Refactoring)
 """
 
 import asyncio
-import sys
 
 # Configure logging to stderr (MCP protocol requirement)
 import logging
+import sys
+
 logging.basicConfig(
     level=logging.INFO,
     format='[arifOS MCP] %(message)s',
@@ -21,30 +22,16 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-async def main():
-    """Main entry point for glass-box MCP server."""
-    try:
-        logger.info("Initializing constitutional governance pipeline...")
-        
-        # Import the MCP server
-        from arifos_core.mcp.server import MCPServer
-        
-        # Create server instance
-        mcp_server = MCPServer()
-        
-        logger.info("15 tools ready: 5 legacy + 10 constitutional (000->999)")
-        logger.info("All tools enforce the 9 Constitutional Floors (F1-F9)")
-        logger.info("DITEMPA BUKAN DIBERI - The server is forged.\n")
-        
-        # Run stdio server
-        await mcp_server.run_stdio()
-        
-    except Exception as e:
-        logger.error(f"ERROR: {e}")
-        import traceback
-        traceback.print_exc(file=sys.stderr)
-        sys.exit(1)
 
+# Updated entry point: use the unified MCP server for Kimi/ChatGPT MCP compatibility
+from .unified_server import main as unified_main
+from .unified_server import print_stats
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    print_stats()
+    print()
+    print("Starting arifOS Unified MCP Server (Kimi/ChatGPT MCP entry)...")
+    print("Transport: stdio (Kimi CLI/Claude Desktop)")
+    print("Press Ctrl+C to stop.")
+    print()
+    asyncio.run(unified_main())
