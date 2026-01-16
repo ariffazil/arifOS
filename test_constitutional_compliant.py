@@ -38,10 +38,13 @@ def test_compliant_constitutional_governance():
         if hasattr(result, 'violated_floors'):
             print(f"Violated floors: {result.violated_floors}")
         
-        if hasattr(result, 'floors'):
+        if hasattr(result, 'floors') and result.floors is not None:
             print(f"Floor details available: {len(result.floors)} floors checked")
+        else:
+            print("Floor details: None (basic verdict)")
             
-        return result.verdict == "SEAL"
+        print(f"Return value check: verdict='{result.verdict}', type={type(result.verdict)}")
+        return str(result.verdict) == "SEAL"
         
     except Exception as e:
         print(f"Error: {e}")

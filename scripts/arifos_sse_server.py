@@ -53,15 +53,18 @@ app.add_middleware(
 
 # Initialize unified server (17 tools)
 server_registry = None
+init_error = None
 try:
     # Use functional interface from unified_server.py
     import arifos_core.mcp.unified_server as unified
     server_registry = unified
     logger.info("✅ Unified tool registry initialized with 17 constitutional tools")
 except ImportError as e:
+    init_error = f"ImportError: {e}"
     logger.warning(f"⚠️ Unified tool registry not found: {e} — running in demo mode")
     server_registry = None
 except Exception as e:
+    init_error = f"Error: {e}"
     logger.error(f"❌ Failed to initialize UnifiedServer: {e}")
     server_registry = None
 
@@ -79,6 +82,7 @@ async def health() -> Dict[str, Any]:
     """
     return {
         "status": "healthy" if server_registry else "degraded",
+        "error": init_error,
         "vault": "VAULT999",
         "tools": 17 if server_registry else 0,
         "timestamp": datetime.now().isoformat(),
