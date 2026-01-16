@@ -32,6 +32,7 @@ from .models import (
 
 # Phase 4: Memory Trinity (v45.2)
 # Phase 1-3 MCP Tools (Constitutional Pipeline)
+from .tools import mcp_000_gate_sync as mcp_000_gate
 from .tools import mcp_000_reset_sync as mcp_000_reset
 from .tools import mcp_111_sense_sync as mcp_111_sense
 from .tools import mcp_222_reflect_sync as mcp_222_reflect
@@ -42,12 +43,6 @@ from .tools import mcp_777_forge_sync as mcp_777_forge
 from .tools import mcp_888_judge_sync as mcp_888_judge
 from .tools import mcp_889_proof_sync as mcp_889_proof
 from .tools import mcp_999_seal_sync as mcp_999_seal
-from .tools import (
-    memory_get_vault_sync,
-    memory_get_zkpc_receipt_sync,
-    memory_list_phoenix_sync,
-    memory_propose_entry_sync,
-)
 from .tools.apex_llama import apex_llama
 from .tools.audit import arifos_audit
 
@@ -55,9 +50,12 @@ from .tools.audit import arifos_audit
 from .tools.bundles import agi_think_sync as agi_think
 from .tools.bundles import apex_audit_sync as apex_audit
 from .tools.bundles import asi_act_sync as asi_act
+from .tools.executor import ExecutorRequest, arifos_executor
 from .tools.fag_read import TOOL_METADATA as FAG_METADATA
 from .tools.fag_read import FAGReadRequest, FAGReadResponse, arifos_fag_read
 from .tools.judge import arifos_judge
+from .tools.mcp_000_gate import GateRequest, mcp_000_gate
+from .tools.memory_tools import memory_get_receipts, memory_verify_seal
 from .tools.meta_select import TOOL_METADATA as META_SELECT_METADATA
 from .tools.meta_select import MetaSelectRequest, MetaSelectResponse, arifos_meta_select
 from .tools.recall import arifos_recall
@@ -85,6 +83,7 @@ TOOLS: Dict[str, Callable] = {
     "arifos_meta_select": arifos_meta_select,
     # Remote Governance Tools
     "github_aaa_govern": github_aaa_govern,
+    "arifos_executor": arifos_executor,
     # Phase 1-3 Constitutional Pipeline
     "mcp_000_reset": mcp_000_reset,
     "mcp_111_sense": mcp_111_sense,
@@ -96,11 +95,10 @@ TOOLS: Dict[str, Callable] = {
     "mcp_888_judge": mcp_888_judge,
     "mcp_889_proof": mcp_889_proof,
     "mcp_999_seal": mcp_999_seal,
-    # Phase 4: Memory Trinity (v45.2)
-    "memory_get_vault": memory_get_vault_sync,
-    "memory_propose_entry": memory_propose_entry_sync,
-    "memory_list_phoenix": memory_list_phoenix_sync,
-    "memory_get_zkpc_receipt": memory_get_zkpc_receipt_sync,
+    "mcp_000_gate": mcp_000_gate,
+    # Phase 3: ZKPC Memory Tools (v46.1)
+    "memory_get_receipts": memory_get_receipts,
+    "memory_verify_seal": memory_verify_seal,
     # Phase 2: Orthogonal Hypervisor Bundles
     "agi_think": agi_think,
     "asi_act": asi_act,
@@ -121,6 +119,8 @@ TOOL_REQUEST_MODELS: Dict[str, type] = {
     "agi_think": AgiThinkRequest,
     "asi_act": AsiActRequest,
     "apex_audit": ApexAuditRequest,
+    "mcp_000_gate": GateRequest,
+    "arifos_executor": ExecutorRequest,
 }
 
 # Tool descriptions for MCP discovery
@@ -238,6 +238,18 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
     "arifos_validate_full": VALIDATE_FULL_METADATA,
     "arifos_meta_select": META_SELECT_METADATA,
     "github_aaa_govern": GITHUB_AAA_METADATA,
+    "arifos_executor": {
+        "name": "arifos_executor",
+        "description": "Sovereign Execution Engine (The Hand). Executes shell commands with constitutional oversight (F1-F9). Requires clear INTENT.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "command": {"type": "string", "description": "The shell command to execute."},
+                "intent": {"type": "string", "description": "The reason/intent for this action (for Constitutional verification)."}
+            },
+            "required": ["command", "intent"]
+        }
+    },
     "APEX_LLAMA": {
         "name": "APEX_LLAMA",
         "description": (
@@ -285,9 +297,33 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
         "description": "Get ZKPC receipt (Phase 4). STUB.",
         "parameters": {"type": "object", "properties": {}}
     },
+    "mcp_000_gate": {
+        "name": "mcp_000_gate",
+        "description": "Constitutional Gate (Floor 000). Pre-execution assessment of threats, humility, and thermodynamics. Returns SEAL/VOID/PARTIAL.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "The user query or agent intention to assess"},
+                "context": {"type": "object", "description": "Context metadata (user_role, etc.)"}
+            },
+            "required": ["query"]
+        }
+    },
     # =========================================================================
     # PHASE 1-3 CONSTITUTIONAL PIPELINE TOOLS
     # =========================================================================
+    "mcp_000_gate": {
+        "name": "mcp_000_gate",
+        "description": "Floor 000 Constitutional Gate. Validates execution intent: Threats (Phase 1), Humility (Phase 2), Reversibility (Phase 3). Returns SEAL/VOID/PARTIAL/HOLD_888.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Proposed action or query"},
+                "context": {"type": "object", "description": "Context metadata"}
+            },
+            "required": ["query"]
+        }
+    },
     "mcp_000_reset": {
         "name": "mcp_000_reset",
         "description": (
@@ -674,6 +710,7 @@ class MCPServer:
                     "mcp_888_judge",
                 ],
                 "phase_3": ["mcp_889_proof", "mcp_999_seal"],
+                "phase_0": ["mcp_000_gate"],
                 "phase_4_planned": [
                     "memory_get_vault (not implemented)",
                     "memory_propose_entry (not implemented)",

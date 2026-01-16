@@ -12,14 +12,16 @@ Part of v46 Trinity Orthogonal AAA Architecture.
 DITEMPA BUKAN DIBERI — Forged, not given; truth must cool before it rules.
 """
 
+from .empathy.empathy_architect import EmpathyArchitect
 from .floor_checks import (
-    check_peace_squared_f3,
-    check_kappa_r_f4,
-    check_omega_band_f5,
-    check_rasa_f7,
+                           check_kappa_r_f4,
+                           check_omega_band_f5,
+                           check_peace_squared_f3,
+                           check_rasa_f7,
 )
 
 __all__ = [
+    "EmpathyArchitect",
     "check_peace_squared_f3",
     "check_kappa_r_f4",
     "check_omega_band_f5",

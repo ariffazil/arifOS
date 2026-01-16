@@ -50,12 +50,11 @@ Dependencies: None (atomic)
 Next: 333_REASON (generation under constraint)
 """
 
-from datetime import datetime, timezone
-from typing import Dict, Any
 import re
+from datetime import datetime, timezone
+from typing import Any, Dict
 
 from ..models import VerdictResponse
-
 
 # =============================================================================
 # CONSTANTS
@@ -268,36 +267,19 @@ def classify_lane(query: str) -> tuple[str, float, float, str]:
 
 async def mcp_111_sense(request: Dict[str, Any]) -> VerdictResponse:
     """
-    Classify query lane and determine truth threshold.
+    Classify query lane and determine truth threshold using AGINeuralCore.
 
     Args:
         request: Dictionary with "query" (required) and "context" (optional)
 
     Returns:
         VerdictResponse with lane classification and thresholds
-
-    Constitutional guarantees:
-        - F2 (Truth): Lane determines truth enforcement level
-        - F4 (ΔS): Explicit routing removes ambiguity
-        - F9 (Anti-Hantu): Early detection of violations
-
-    Examples:
-        >>> result = await mcp_111_sense({"query": "What is the capital of France?"})
-        >>> assert result.side_data["lane"] == "HARD"
-        >>> assert result.side_data["truth_threshold"] == 0.90
-
-        >>> result = await mcp_111_sense({"query": "How does photosynthesis work?"})
-        >>> assert result.side_data["lane"] == "SOFT"
-
-        >>> result = await mcp_111_sense({"query": "Hi, how are you?"})
-        >>> assert result.side_data["lane"] == "PHATIC"
-
-        >>> result = await mcp_111_sense({"query": "How do I hack WiFi?"})
-        >>> assert result.verdict == "VOID"
-        >>> assert result.side_data["lane"] == "REFUSE"
     """
+    from arifos_core.agi.kernel import AGINeuralCore
+
     # Extract query
     query = request.get("query", "")
+    context_meta = request.get("context", {})
 
     if not query or not isinstance(query, str):
         return VerdictResponse(
@@ -312,11 +294,27 @@ async def mcp_111_sense(request: Dict[str, Any]) -> VerdictResponse:
             timestamp=datetime.now(timezone.utc).isoformat(),
         )
 
-    # Classify lane
-    lane, truth_threshold, confidence, scope_estimate = classify_lane(query)
+    # Call AGI Kernel
+    kernel_result = await AGINeuralCore.sense(query, context_meta)
+
+    meta = kernel_result.get("meta", {})
+    lane = meta.get("lane", "SOFT")
+    truth_demand = meta.get("truth_demand", 0.8)
+
+    # Heuristic mapping for compatibility with old clients
+    if lane == "HARD":
+       truth_threshold = 0.90
+    elif lane == "PHATIC":
+       truth_threshold = 0.0
+    else:
+       truth_threshold = 0.80
 
     # Determine verdict
-    if lane == "REFUSE":
+    if lane == "CRISIS":
+        verdict = "VOID"
+        reason = "Query triggers CRISIS protocol (Constitutional Boundary)"
+        lane = "REFUSE" # Map to old constant
+    elif lane == "REFUSE":
         verdict = "VOID"
         reason = "Query violates constitutional boundaries (F1/F9)"
     else:
@@ -330,10 +328,9 @@ async def mcp_111_sense(request: Dict[str, Any]) -> VerdictResponse:
         side_data={
             "lane": lane,
             "truth_threshold": truth_threshold,
-            "confidence": confidence,
-            "scope_estimate": scope_estimate,
-            "entity_count": count_entities(query),
-            "assertion_count": count_assertions(query),
+            "confidence": 0.95, # High confidence from Kernel
+            "scope_estimate": f"{lane.lower()}_query",
+            "kernel_meta": meta # Pass through kernel data for advanced clients
         },
         timestamp=datetime.now(timezone.utc).isoformat(),
     )

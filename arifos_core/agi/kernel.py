@@ -55,7 +55,6 @@ class AGINeuralCore:
     async def atlas_tac_analysis(inputs: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Stage 333: TAC Engine (Theory of Anomalous Contrast)."""
         # Kept as stub for now, focusing on 111-SENSE wiring
-        return {
-            "insight": "Consensus Detected",
-            "tac_metrics": {"contrast_heat": 0.0}
-        }
+
+# Backward Compatibility
+AGIKernel = AGINeuralCore

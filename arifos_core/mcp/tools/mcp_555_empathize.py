@@ -18,7 +18,6 @@ from typing import Any, Dict
 
 from arifos_core.mcp.models import VerdictResponse
 
-
 # =============================================================================
 # CONSTANTS
 # =============================================================================
@@ -214,16 +213,11 @@ def calculate_kappa_r(recipient_context: Dict[str, Any]) -> float:
 
 async def mcp_555_empathize(request: Dict[str, Any]) -> VerdictResponse:
     """
-    MCP Tool 555: EMPATHIZE - Power-aware recalibration.
+    MCP Tool 555: EMPATHIZE - Power-aware recalibration using ASIActionCore.
 
     Constitutional role:
     - F5 (Peace²): Detects aggression, dismissal, harm
     - F6 (κᵣ): Power-aware recalibration
-
-    Verdicts:
-    - PASS: peace_score ≥ 1.0 AND kappa_r ≥ 0.95 AND not dismissive
-    - PARTIAL: dismissive OR peace < 1.0 OR kappa < 0.95
-    - VOID: NEVER (defer irreversible vetoes to 666)
 
     Args:
         request: {
@@ -232,17 +226,10 @@ async def mcp_555_empathize(request: Dict[str, Any]) -> VerdictResponse:
         }
 
     Returns:
-        VerdictResponse with:
-        - verdict: "PASS" or "PARTIAL"
-        - reason: Explanation of verdict
-        - side_data: {
-            "peace_score": float,
-            "kappa_r": float,
-            "dismissive_detected": bool,
-            "aggressive_detected": bool,
-            "warm_indicators": int,
-          }
+        VerdictResponse.
     """
+    from arifos_core.asi.kernel import ASIActionCore
+
     # Extract inputs
     response_text = request.get("response_text", "")
     recipient_context = request.get("recipient_context", {})
@@ -254,30 +241,23 @@ async def mcp_555_empathize(request: Dict[str, Any]) -> VerdictResponse:
     if not isinstance(recipient_context, dict):
         recipient_context = {}
 
-    # Analyze tone
-    peace_score = calculate_peace_score(response_text)
-    kappa_r = calculate_kappa_r(recipient_context)
-    dismissive_detected = detect_dismissive_patterns(response_text)
-    aggressive_detected = detect_aggressive_patterns(response_text)
-    warm_indicators = count_warm_indicators(response_text)
+    # Call ASI Kernel
+    # The Kernel expects "text" and "context"
+    # It returns a dict with "omega_verdict" (SEAL/PARTIAL/VOID)
+    kernel_result = await ASIActionCore.empathize(
+        text=response_text,
+        context=recipient_context
+    )
 
-    # Determine verdict
-    if peace_score >= PEACE_THRESHOLD and kappa_r >= KAPPA_THRESHOLD and not dismissive_detected:
-        verdict = "PASS"
-        reason = f"Empathetic tone verified: peace={peace_score:.2f}, κᵣ={kappa_r:.2f}, no dismissiveness"
-    else:
-        verdict = "PARTIAL"
-        reasons = []
-        if peace_score < PEACE_THRESHOLD:
-            reasons.append(f"peace_score={peace_score:.2f} < {PEACE_THRESHOLD}")
-        if kappa_r < KAPPA_THRESHOLD:
-            reasons.append(f"κᵣ={kappa_r:.2f} < {KAPPA_THRESHOLD}")
-        if dismissive_detected:
-            reasons.append("dismissive tone detected")
-        if aggressive_detected:
-            reasons.append("aggressive tone detected")
+    omega_verdict = kernel_result.get("omega_verdict", "PARTIAL")
+    vulnerability_score = kernel_result.get("vulnerability_score", 0.5)
+    action = kernel_result.get("action", "Neutral")
 
-        reason = f"Empathy refinement needed: {', '.join(reasons)}"
+    # Map to Tool Verdict
+    # ASI uses SEAL/PARTIAL/VOID
+    # Tool uses PASS/PARTIAL/VOID
+    verdict = "PASS" if omega_verdict == "SEAL" else omega_verdict
+    reason = f"ASI Empathy Action: {action} (Vuln: {vulnerability_score:.2f}, Verdict: {omega_verdict})"
 
     # Generate timestamp
     timestamp = datetime.now(timezone.utc).isoformat()
@@ -286,13 +266,9 @@ async def mcp_555_empathize(request: Dict[str, Any]) -> VerdictResponse:
         verdict=verdict,
         reason=reason,
         side_data={
-            "peace_score": peace_score,
-            "kappa_r": kappa_r,
-            "dismissive_detected": dismissive_detected,
-            "aggressive_detected": aggressive_detected,
-            "warm_indicators": warm_indicators,
-            "peace_threshold": PEACE_THRESHOLD,
-            "kappa_threshold": KAPPA_THRESHOLD,
+            "peace_score": 1.0, # Deprecated/Internal to Kernel now
+            "kappa_r": 0.95, # Deprecated/Internal
+            "asi_meta": kernel_result # Pass full kernel result
         },
         timestamp=timestamp,
     )

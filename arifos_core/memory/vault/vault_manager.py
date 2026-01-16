@@ -21,14 +21,13 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
 # Import existing Vault999 for backwards compatibility
 from .vault999 import Vault999, VaultConfig, VaultInitializationError, amendment_timestamp
-
 
 logger = logging.getLogger(__name__)
 
@@ -164,6 +163,7 @@ class VaultManagerConfig:
     """Configuration for VaultManager."""
     vault_path: Path = Path("runtime/vault_999/constitution.json")
     amendments_path: Path = Path("runtime/vault_999/amendments.jsonl")
+    receipts_path: Path = Path("runtime/vault_999/receipts.jsonl")
     safety_constraints: SafetyConstraints = field(default_factory=SafetyConstraints)
 
 
@@ -495,6 +495,59 @@ class VaultManager:
         logger.info(f"Amendment {amendment_id} revoked: {reason}")
 
         return (True, [])
+
+
+    # =========================================================================
+    # CONSTITUTIONAL RECEIPT STORAGE (ZKPC L0)
+    # =========================================================================
+
+    def record_receipt(self, receipt: Dict[str, Any]) -> None:
+        """
+        Record a Constitutional Receipt to the ZKPC Vault.
+
+        Args:
+            receipt: The dictionary representation of a ConstitutionalReceipt.
+        """
+        path = self.config.receipts_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        with path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(receipt, sort_keys=True) + "\n")
+
+    def get_receipts(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """
+        Retrieve recent constitutional receipts.
+
+        Args:
+            limit: Max number of receipts to return (from newest).
+
+        Returns:
+            List of receipt dicts.
+        """
+        path = self.config.receipts_path
+        if not path.exists():
+            return []
+
+        receipts = []
+        try:
+            with path.open("r", encoding="utf-8") as f:
+                # Read specific lines or all? For typical usage, reading all is okay if file isn't huge.
+                # Optimized approach: read all lines, reverse, then slice.
+                lines = f.readlines()
+                for line in reversed(lines):
+                    if not line.strip():
+                        continue
+                    try:
+                        receipts.append(json.loads(line))
+                        if len(receipts) >= limit:
+                            break
+                    except json.JSONDecodeError:
+                        continue
+        except Exception as e:
+            logger.error(f"Failed to read receipts: {e}")
+            return []
+
+        return receipts
 
 
 # =============================================================================

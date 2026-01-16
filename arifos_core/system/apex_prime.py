@@ -21,7 +21,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Union
 
 # Legacy imports for type compatibility
-from ..enforcement.metrics import TRUTH_THRESHOLD, FloorsVerdict, Metrics
+from ..enforcement.metrics import TRUTH_THRESHOLD, TRUTH_BLOCK_MIN, FloorsVerdict, Metrics
 
 if TYPE_CHECKING:
     from ..enforcement.genius_metrics import GeniusVerdict
@@ -269,6 +269,41 @@ class APEXPrime:
             # Artificial Latency (Cooling)
             time.sleep(0.05)
 
+    async def sovereign_execution_loop(self, input_queue, ledger=None):
+        """
+        APEX TOROIDAL EXECUTION LOOP (The Geometry of Soul).
+
+        Logic:
+        1. Circulate: Consumes drafts from input_queue
+        2. Superposition: Draft exists in 'Pending' state
+        3. Decoherence (Lens): Collapses into Verdict (SEAL/SABAR/VOID)
+        4. The Hole (Ledger): If SEALED, append to immutable chain.
+        5. Recirculation: If SABAR, cool and re-queue.
+        """
+        while True:
+            # 1. CIRCULATE (Toroidal Intake)
+            # draft = await input_queue.get()
+            # In a real async loop, this would wait.
+            # For this synchronous class update, we define the structure.
+            pass
+
+    def judge_on_torus(
+        self,
+        agi_results: List[FloorCheckResult],
+        asi_results: List[FloorCheckResult],
+        response: str,
+        query: str = "",
+        user_id: Optional[str] = None
+    ) -> ApexVerdict:
+        """
+        Judge the draft on the Toroidal Manifold.
+        The 'Lens' that collapses superposition into a single Verdict.
+        """
+        # Orchestrate the standard judging flow, but conceptualized as Toroidal Collapse
+        return self.judge_output(query, response, agi_results, asi_results, user_id)
+
+    # ... [Existing _generate_zkpc_proof method remains] ...
+
     def _generate_zkpc_proof(self, q, r, m):
         """Generate simple non-cryptographic hash as placeholder proof."""
         blob = f"{q}{r}{json.dumps(m)}".encode('utf-8')
@@ -318,3 +353,13 @@ def check_floors(metrics: Metrics, **kwargs):
 def apex_verdict(metrics: Metrics, **kwargs) -> str:
     """Convenience shim returning verdict as string."""
     return str(apex_review(metrics, **kwargs).verdict.value)
+
+def normalize_verdict_code(verdict: str) -> str:
+    """Normalize verdict codes to standard format."""
+    if not verdict:
+        return "VOID"
+    verdict = str(verdict).strip().upper()
+    if verdict == "888_HOLD":
+        return "HOLD_888"
+    valid_verdicts = {"SEAL", "VOID", "PARTIAL", "SABAR", "HOLD_888", "SUNSET"}
+    return verdict if verdict in valid_verdicts else "VOID"

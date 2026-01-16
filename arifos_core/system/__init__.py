@@ -9,29 +9,29 @@ Contains the central runtime components of arifOS:
 - ignition: Startup
 - stack_manifest: Stack tracking
 
-Version: v42.0.0
+Version: v46.3.1Ω (+Toroidal Loop)
 """
 
 from .apex_prime import (
-    APEXPrime,
-    apex_review,
-    apex_verdict,  # v42: Convenience shim returning str
-    ApexVerdict,
-    Verdict,
-    check_floors,
-    APEX_VERSION,
-    APEX_EPOCH,
+                         APEX_EPOCH,
+                         APEX_VERSION,
+                         APEXPrime,
+                         ApexVerdict,
+                         Verdict,
+                         apex_review,
+                         apex_verdict,  # v42: Convenience shim returning str
+                         check_floors,
 )
 
 # API Registry (v42)
 from .api_registry import (
-    StabilityLevel,
-    APIEntry,
-    APIRegistry,
-    get_registry,
-    get_stable_exports,
-    get_deprecated_exports,
-    check_module_stability,
+                         APIEntry,
+                         APIRegistry,
+                         StabilityLevel,
+                         check_module_stability,
+                         get_deprecated_exports,
+                         get_registry,
+                         get_stable_exports,
 )
 
 # Pipeline imports deferred to avoid circular imports

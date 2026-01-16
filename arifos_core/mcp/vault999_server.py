@@ -15,6 +15,7 @@ Uses FastMCP + Uvicorn with SSL for HTTPS/SSE transport.
 # Tools:
 #   - search(query): Search L0_VAULT, L1_LEDGER, L4_WITNESS
 #   - fetch(id): Retrieve full document by ID
+#   - receipts(limit): Verify ZKPC receipts in ledger
 #   - arifos_fag_read(path, root): Governed file reading
 #   - arifos_fag_write(path, operation, ...): Governed file writing
 #   - arifos_fag_list(path, root): Governed directory listing
@@ -23,7 +24,7 @@ Uses FastMCP + Uvicorn with SSL for HTTPS/SSE transport.
 # Usage:
 #     python vault999_server.py
 #
-# Version: v45.3.0
+# Version: v46.0.0
 # DITEMPA BUKAN DIBERI
 # """
 
@@ -31,10 +32,6 @@ import json
 import logging
 import os
 import sys
-
-# Bypass strict spec validation for immediate launch
-os.environ["ARIFOS_ALLOW_LEGACY_SPEC"] = "1"
-
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
@@ -47,6 +44,14 @@ from arifos_core.mcp.tools.fag_list import FAGListRequest, arifos_fag_list
 from arifos_core.mcp.tools.fag_read import FAGReadRequest, arifos_fag_read
 from arifos_core.mcp.tools.fag_stats import FAGStatsRequest, arifos_fag_stats
 from arifos_core.mcp.tools.fag_write import FAGWriteRequest, arifos_fag_write
+from arifos_core.memory.vault.vault_manager import VaultManager
+
+# Strict ZKPC Compliance (v46)
+# Legacy Spec Bypass REMOVED
+
+
+
+
 
 # Configure logging
 logging.basicConfig(
@@ -100,24 +105,28 @@ BANDS = {
         "path": VAULT_ROOT / "L0_VAULT",
         "confidence": 1.0,
         "tag": "[CANONICAL]",
+        "geometry": "ORTHOGONAL",  # The Crystal (Truth)
         "extensions": ["*.md", "*.json"]
     },
     "L1_LEDGERS": {
         "path": VAULT_ROOT / "L1_LEDGERS",
         "confidence": 1.0,
         "tag": "[SEALED]",
+        "geometry": "TOROIDAL",    # The Loop (History)
         "extensions": ["*.jsonl", "*.md"]
     },
     "L4_WITNESS": {
         "path": VAULT_ROOT / "L4_WITNESS",
         "confidence": 0.85,
         "tag": "[OBSERVATION]",
+        "geometry": "FRACTAL",     # The Spiral (Context)
         "extensions": ["*.md"]
     },
     "00_ENTROPY": {
         "path": VAULT_ROOT / "00_ENTROPY",
-        "confidence": 0.1,  # Low confidence for hot/unverified data
+        "confidence": 0.1,
         "tag": "[HOT]",
+        "geometry": "CHAOS",       # The Heat (Raw)
         "extensions": ["*.json", "*.md", "*.txt"]
     }
 }
@@ -156,7 +165,8 @@ def search_band(band_name: str, query: str) -> List[Dict[str, Any]]:
                         "text": snippet,
                         "url": f"vault://{band_name}/{file.name}",
                         "confidence": band["confidence"],
-                        "band": band_name
+                        "band": band_name,
+                        "geometry": band.get("geometry", "UNKNOWN")
                     })
             except Exception as e:
                 logger.warning(f"Error reading {file}: {e}")
@@ -254,13 +264,34 @@ def fetch(id: str) -> Dict[str, Any]:
                                 "band": bn,
                                 "canonical": bn == "L0_VAULT",
                                 "vault": "VAULT999",
-                                "governance": "Nine Floors + APEX PRIME"
+                                "governance": "Nine Floors + APEX PRIME",
+                                "geometry": band.get("geometry", "UNKNOWN")
                             }
                         }
                     except Exception as e:
                         return {"error": str(e)}
 
     return {"error": f"Not found: {id}"}
+
+@mcp.tool()
+def receipts(limit: int = 10) -> Dict[str, Any]:
+    """
+    Verify ZKPC receipts in the constitutional ledger.
+
+    Proof of Integrity (F8 Tri-Witness):
+    Returns the cryptographic receipts for recent actions.
+    """
+    try:
+        manager = VaultManager()
+        items = manager.get_receipts(limit=limit)
+        return {
+            "status": "SEALED",
+            "protocol": "ZKPC-v46",
+            "count": len(items),
+            "receipts": items
+        }
+    except Exception as e:
+        return {"error": str(e), "status": "BROKEN"}
 
 
 # =============================================================================
@@ -308,7 +339,7 @@ def tool_fag_stats(root: str = ".") -> Any:
 def main():
     """Main entry point."""
     print("=" * 70)
-    print("  VAULT999 MCP Server v45.3.0")
+    print("  VAULT999 MCP Server v46.0.0")
     print("  Constitutional Memory Gateway for ChatGPT")
     print("=" * 70)
     print()
@@ -320,7 +351,7 @@ def main():
     print(f"  Sacred Vault:  {SACRED_VAULT} [OFFLINE]")
     print()
     print(f"  URL: https://127.0.0.1:8000/sse/")
-    print("  Tools: search(query), fetch(id)")
+    print("  Tools: search(query), fetch(id), receipts(limit)")
     print("         arifos_fag_read(path), arifos_fag_write(path, op, ...)")
     print("         arifos_fag_list(path), arifos_fag_stats(root)")
     print()
@@ -350,7 +381,7 @@ def main():
     uvicorn.run(
         app,
         host="127.0.0.1",
-        port=8000,
+        port=9999,
         ssl_certfile=str(SSL_CERT),
         ssl_keyfile=str(SSL_KEY),
         log_level="info"

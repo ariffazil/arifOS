@@ -331,6 +331,8 @@ _FLOORS_SPEC = _load_floors_spec_unified()
 
 # F2: Truth - factual integrity
 TRUTH_THRESHOLD: float = _FLOORS_SPEC["floors"]["truth"]["threshold"]
+# v45Ω TRM: TRUTH_BLOCK_MIN alias for RIF organ compatibility
+TRUTH_BLOCK_MIN: float = TRUTH_THRESHOLD
 
 # F6: Clarity (DeltaS) - entropy reduction
 DELTA_S_THRESHOLD: float = _FLOORS_SPEC["floors"]["delta_s"]["threshold"]

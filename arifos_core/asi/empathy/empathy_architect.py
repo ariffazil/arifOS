@@ -26,8 +26,8 @@ DITEMPA BUKAN DIBERI - Forged v46.1
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List
 from enum import Enum
+from typing import Dict, List
 
 
 class EmpathyRequirement(str, Enum):
@@ -317,6 +317,26 @@ class EmpathyArchitect:
             stakes=stakes
         )
 
+    def apply_empathy_fractal(self, local_kappa: float, depth: int = 0, max_depth: int = 3) -> float:
+        """
+        ASI FRACTAL GEOMETRY — Recursive Empathy Field.
+        Self-similar amplification across scales.
+
+        Formula: combined = local * (1.0 + 0.2 * deeper_resonance)
+        Bounded: [0.0, 1.0]
+        """
+        if depth >= max_depth:
+            return 0.5  # Neutral baseline at infinity (singularity)
+
+        # Recursive self-reference (Mirroring)
+        deeper_resonance = self.apply_empathy_fractal(local_kappa, depth + 1, max_depth)
+
+        # Fractal Combination: Resonance amplifies existing empathy
+        # If local_kappa is high, it pulls deeper resonance up.
+        combined = local_kappa * (1.0 + 0.2 * deeper_resonance)
+
+        return min(combined, 1.0)
+
     def _layer_3_response(
         self,
         tom_bundle: "ToMBundle",
@@ -324,15 +344,7 @@ class EmpathyArchitect:
         layer_2: Layer2Understanding
     ) -> Layer3Response:
         """
-        Layer 3: Response - Compute κᵣ conductance.
-
-        κᵣ = (ToM_Quality × Care_Signals × Dignity) / Barriers_to_Understanding
-
-        Components:
-        - ToM_Quality: tom_bundle.composite_score
-        - Care_Signals: Based on empathy_required and urgency
-        - Dignity: Always 1.0 (no violations assumed)
-        - Barriers: Computed from complexity, assumptions, cultural factors
+        Layer 3: Response - Compute κᵣ conductance using FRACTAL GEOMETRY.
         """
         # ToM Quality
         tom_quality = tom_bundle.composite_score
@@ -349,10 +361,14 @@ class EmpathyArchitect:
         # Barriers to Understanding
         barriers = self._compute_barriers(layer_2.knowledge_gaps)
 
-        # κᵣ formula
+        # Base Linear κᵣ formula
         numerator = tom_quality * care_signals_score * dignity
         denominator = max(barriers, 0.1)  # Prevent division by zero
-        kappa_r = numerator / denominator
+        linear_kappa = numerator / denominator
+
+        # --- FRACTAL ENHANCEMENT (ASI Geometry) ---
+        # Apply recursive resonance to the linear score
+        kappa_r = self.apply_empathy_fractal(linear_kappa)
 
         # Clamp to [0.0, 1.0]
         kappa_r = min(kappa_r, 1.0)
@@ -371,14 +387,15 @@ class EmpathyArchitect:
             "acknowledge_emotional_state",
             "address_knowledge_gaps",
             "provide_actionable_resources",
-            "preserve_dignity"
+            "preserve_dignity",
+            "fractal_resonance_applied"
         ]
 
         return Layer3Response(
             kappa_r=kappa_r,
             passed=passed,
             care_signals=care_signals,
-            dignity_check=True  # Assume preserved unless violated
+            dignity_check=True
         )
 
     def _compute_care_signals(
@@ -388,8 +405,6 @@ class EmpathyArchitect:
     ) -> float:
         """
         Compute care signals score based on empathy requirement.
-
-        Higher empathy requirement → higher care signal expectation
         """
         base_scores = {
             EmpathyRequirement.LOW: 0.90,
@@ -399,30 +414,14 @@ class EmpathyArchitect:
         }
 
         base = base_scores[empathy_required]
-
-        # Urgency modulation
         care_signals = base + (urgency_score * 0.05)
-
         return min(care_signals, 1.0)
 
     def _compute_barriers(self, knowledge_gaps: List[str]) -> float:
         """
         Compute barriers to understanding.
-
-        Barriers include:
-        - Complexity (# of knowledge gaps)
-        - Assumptions (implied by gaps)
-        - Cultural factors (domain-specific)
-
-        Lower barriers → higher κᵣ conductance
         """
-        # Base barrier (minimum complexity)
         base_barrier = 0.5
-
-        # Knowledge gaps add barriers
         gap_barrier = len(knowledge_gaps) * 0.10
-
         total_barrier = base_barrier + gap_barrier
-
-        # Clamp to reasonable range [0.3, 1.5]
         return max(0.3, min(total_barrier, 1.5))
