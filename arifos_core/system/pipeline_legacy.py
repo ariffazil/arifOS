@@ -51,31 +51,9 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
-from arifos_core.apex.governance.session_physics import evaluate_physics_floors
-from arifos_core.enforcement.audit.eye_adapter import evaluate_eye_vector
-from arifos_core.enforcement.metrics import Metrics
-from arifos_core.enforcement.sabar_timer import Sabar72Timer  # v43 Time Governor
-
 # v38 Stage Modules - v42: stages is at arifos_core/stages/
 from arifos_core.enforcement.stages.stage_000_amanah import compute_amanah_score, stage_000_amanah
 from arifos_core.enforcement.stages.stage_555_empathy import compute_kappa_r
-
-# v45xx TCHA (Time-Critical Harm Awareness)
-from arifos_core.enforcement.tcha_metrics import (
-    TCHAResult,
-    check_delay_harm,
-    detect_time_critical,
-    get_minimum_safe_response,
-    is_tcha_enabled,
-    log_tcha_event,
-    should_bypass_hold,
-)
-from arifos_core.integration.waw.bridges.prompt_bridge import compute_c_budi
-from arifos_core.integration.waw.federation import FederationVerdict, WAWFederationCore
-from arifos_core.memory.audit import MemoryAuditLayer, compute_evidence_hash
-from arifos_core.memory.bands import MemoryBandRouter, append_eureka_decision
-from arifos_core.memory.eureka_types import ActorRole, MemoryWriteRequest
-from arifos_core.memory.eureka_types import Verdict as EurekaVerdict
 from arifos_core.memory.mem0_client import is_l7_enabled
 
 # v38.2-alpha L7 Memory Layer (Mem0 + Qdrant)
@@ -83,31 +61,8 @@ from arifos_core.memory.memory import Memory, RecallResult, StoreAtSealResult
 from arifos_core.memory.memory import recall_at_stage_111 as _l7_recall
 from arifos_core.memory.memory import store_at_stage_999 as _l7_store
 
-# Memory Context (v37) - v42: memory is at arifos_core/memory/
-from arifos_core.memory.memory_context import MemoryContext, create_memory_context
-
-# Memory Write Policy Engine (v38)
-from arifos_core.memory.policy import MemoryWritePolicy
-
-# v42: memory is at arifos_core/memory/, not system/memory/
-from arifos_core.memory.vault999 import Vault999
-
-# v42: apex_prime is in system/ (same dir, lowercase filename)
-from arifos_core.system.apex_prime import ApexVerdict, Verdict, apex_review, check_floors
-from arifos_core.utils.eye_sentinel import EyeReport, EyeSentinel
-from arifos_core.utils.reduction_engine import compute_attributes
-
 # v38 Runtime Contract Layer
 from arifos_core.utils.runtime_types import Job, JobClass, Stakeholder
-
-# TEARFRAME v44 Session Physics Layer (ART)
-from arifos_core.utils.session_telemetry import SessionTelemetry
-
-# AAA Engines (internal facade - v35.8.0) - v46: engines moved to arifos_core/system/engines/
-from arifos_core.system.engines import AGIEngine, ASIEngine
-from arifos_core.system.engines.agi_engine import AGIPacket
-from arifos_core.system.engines.asi_engine import ASIPacket
-from arifos_core.system.runtime.bootstrap import ensure_bootstrap, get_bootstrap_payload
 
 # =============================================================================
 # PIPELINE STATE
@@ -115,7 +70,7 @@ from arifos_core.system.runtime.bootstrap import ensure_bootstrap, get_bootstrap
 
 # v44 Session Mock Store (Global Cache for Session Physics)
 # In a real app, this would be Redis or a proper session service.
-_SESSION_CACHE: Dict[str, SessionTelemetry] = {}
+_SESSION_CACHE: Dict[str, "SessionTelemetry"] = {}
 
 
 class StakesClass(Enum):
@@ -157,15 +112,15 @@ class PipelineState:
     response_logprobs: Optional[List[float]] = None
 
     # Metrics & Verdict
-    metrics: Optional[Metrics] = None
-    verdict: Optional[ApexVerdict] = None
+    metrics: Optional["Metrics"] = None
+    verdict: Optional["ApexVerdict"] = None
     floor_failures: List[str] = field(default_factory=list)
     c_budi: Optional[float] = None
     eye_vector: Optional[Dict[str, Any]] = None
     epsilon_observed: Optional[Dict[str, float]] = None
 
     # W@W Federation verdict (v36.3Ω)
-    waw_verdict: Optional[FederationVerdict] = None
+    waw_verdict: Optional["FederationVerdict"] = None
 
     # Control signals
     sabar_triggered: bool = False
@@ -180,16 +135,16 @@ class PipelineState:
 
     # AAA Engine packets (v35.8.0 - internal, optional)
     # v42: Canonical naming - AGI (Mind), ASI (Heart)
-    agi_packet: Optional[AGIPacket] = None
-    asi_packet: Optional[ASIPacket] = None
+    agi_packet: Optional["AGIPacket"] = None
+    asi_packet: Optional["ASIPacket"] = None
 
     # Memory Context (v37) - ONE per pipeline run
-    memory_context: Optional[MemoryContext] = None
+    memory_context: Optional["MemoryContext"] = None
 
     # v38 Memory System - Write policy, routing, and audit
-    memory_write_policy: Optional[MemoryWritePolicy] = None
-    memory_band_router: Optional[MemoryBandRouter] = None
-    memory_audit_layer: Optional[MemoryAuditLayer] = None
+    memory_write_policy: Optional["MemoryWritePolicy"] = None
+    memory_band_router: Optional["MemoryBandRouter"] = None
+    memory_audit_layer: Optional["MemoryAuditLayer"] = None
     memory_evidence_hash: Optional[str] = None
     eureka_store: Optional[Any] = None
 
@@ -206,13 +161,13 @@ class PipelineState:
     ledger_status: str = "NORMAL"
 
     # v44 Session Physics
-    session_telemetry: Optional[SessionTelemetry] = None
+    session_telemetry: Optional["SessionTelemetry"] = None
 
     # v45Ω Patch B.2: LLM Call Audit Trail (Refusal Sovereignty)
     llm_called: bool = False  # Was LLM invoked?
     llm_call_count: int = 0  # How many times?
     llm_call_stages: List[str] = field(default_factory=list)  # Which stages?
-    audit_receipt: Optional[AuditReceipt] = None  # Governance proof
+    audit_receipt: Optional["AuditReceipt"] = None  # Governance proof
 
     # v46: F6 Crisis Override tracking
     crisis_detected: bool = False
@@ -220,7 +175,7 @@ class PipelineState:
 
     # v45xx TCHA (Time-Critical Harm Awareness)
     is_time_critical: bool = False
-    tcha_result: Optional[TCHAResult] = None
+    tcha_result: Optional["TCHAResult"] = None
 
     # Timing
     start_time: float = field(default_factory=time.time)
@@ -385,8 +340,14 @@ StageFunc = Callable[[PipelineState], PipelineState]
 
 
 def stage_000_void(
+    from arifos_core.memory.audit import MemoryAuditLayer
+    from arifos_core.memory.bands import MemoryBandRouter
+    from arifos_core.memory.memory_context import create_memory_context
+    from arifos_core.memory.policy import MemoryWritePolicy
+    from arifos_core.memory.vault999 import Vault999
+
     state: PipelineState,
-    vault: Optional[Vault999] = None,
+    vault: Optional["Vault999"] = None,
 ) -> PipelineState:
     """
     000 VOID - Reset to uncertainty. Ego to zero.
@@ -524,6 +485,12 @@ def stage_111_sense(state: PipelineState) -> PipelineState:
     v38.2-alpha: L7 Memory recall at 111_SENSE (fail-open).
     v45.0: AGI uses @PROMPT tool for crisis detection (entry check).
     """
+    from arifos_core.enforcement.tcha_metrics import (
+        detect_time_critical,
+        is_tcha_enabled,
+        log_tcha_event,
+    )
+
     state.current_stage = "111"
     state.stage_trace.append("111_SENSE")
     state.stage_times["111"] = time.time()
@@ -711,6 +678,8 @@ def stage_222_reflect(
 
 
 def stage_333_reason(
+    from arifos_core.system.apex_prime import Verdict
+
     state: PipelineState,
     llm_generate: Optional[Callable[[str], str]] = None,
 ) -> PipelineState:
@@ -935,9 +904,11 @@ def stage_777_forge(
 
 
 def _compute_888_metrics(
+    from arifos_core.enforcement.metrics import Metrics
+
     state: PipelineState,
-    compute_metrics: Optional[Callable[[str, str, Dict], Metrics]] = None,
-) -> Optional[Metrics]:
+    compute_metrics: Optional[Callable[[str, str, Dict], "Metrics"]] = None,
+) -> Optional["Metrics"]:
     """
     Step 1 of 888: Compute floor metrics.
 
@@ -1010,6 +981,8 @@ def _compute_888_metrics(
 
 
 def _apply_apex_floors(
+    from arifos_core.system.apex_prime import ApexVerdict, Verdict, apex_review, check_floors
+
     state: PipelineState,
     eye_blocking: bool = False,
 ) -> ApexVerdict:
@@ -1083,9 +1056,13 @@ def _apply_apex_floors(
 
 
 def _run_eye_sentinel(
+    from arifos_core.enforcement.audit.eye_adapter import evaluate_eye_vector
+    from arifos_core.integration.waw.bridges.prompt_bridge import compute_c_budi
+    from arifos_core.system.runtime.bootstrap import get_bootstrap_payload
+
     state: PipelineState,
-    eye_sentinel: Optional[EyeSentinel] = None,
-) -> tuple[Optional[EyeReport], bool]:
+    eye_sentinel: Optional["EyeSentinel"] = None,
+) -> tuple[Optional["EyeReport"], bool]:
     """
     Step 3 of 888: Run @EYE Sentinel audit.
 
@@ -1330,8 +1307,10 @@ def _floor_margin(floor_key: str, floor_def: dict, metrics: Any) -> float:
     return 0.0
 
 
-def _map_verdict_to_eureka(verdict: Optional[ApexVerdict]) -> EurekaVerdict:
+def _map_verdict_to_eureka(verdict: Optional["ApexVerdict"]) -> EurekaVerdict:
     """Map pipeline verdicts to EUREKA verdict enum with safe fallback."""
+    from arifos_core.memory.eureka_types import Verdict as EurekaVerdict
+
     if verdict is None:
         return EurekaVerdict.VOID
 
@@ -1349,8 +1328,14 @@ def _map_verdict_to_eureka(verdict: Optional[ApexVerdict]) -> EurekaVerdict:
 
 
 def _write_memory_for_verdict(
+    from arifos_core.memory.audit import compute_evidence_hash
+    from arifos_core.memory.bands import append_eureka_decision
+    from arifos_core.memory.eureka_types import ActorRole, MemoryWriteRequest
+    if actor_role is None:
+        actor_role = ActorRole.JUDICIARY
+
     state: PipelineState,
-    actor_role: ActorRole = ActorRole.JUDICIARY,
+    actor_role: Optional["ActorRole"] = None,
     human_seal: bool = False,
     eureka_store: Optional[Any] = None,
 ) -> None:
@@ -1577,9 +1562,14 @@ def _write_memory_for_verdict(
 
 
 def stage_888_judge(
+    from arifos_core.enforcement.metrics import Metrics
+    from arifos_core.integration.waw.federation import WAWFederationCore
+    from arifos_core.memory.eureka_types import ActorRole
+    from arifos_core.system.runtime.bootstrap import get_bootstrap_payload
+
     state: PipelineState,
-    compute_metrics: Optional[Callable[[str, str, Dict], Metrics]] = None,
-    eye_sentinel: Optional[EyeSentinel] = None,
+    compute_metrics: Optional[Callable[[str, str, Dict], "Metrics"]] = None,
+    eye_sentinel: Optional["EyeSentinel"] = None,
 ) -> PipelineState:
     """
     888 JUDGE - Check all floors. Pass or fail?
@@ -1866,6 +1856,8 @@ def stage_999_seal(state: PipelineState) -> PipelineState:
     v45.0: APEX uses @PROMPT tool for exit gate check (final constitutional guardian).
            Special crisis 888_HOLD handling (compassionate safe handoff).
     """
+    from arifos_core.enforcement.sabar_timer import Sabar72Timer
+
     state.current_stage = "999"
     state.stage_trace.append("999_SEAL")
     state.stage_times["999"] = time.time()
@@ -2140,14 +2132,17 @@ class Pipeline:
     """
 
     def __init__(
+        from arifos_core.system.engines import AGIEngine, ASIEngine
+        from arifos_core.system.runtime.bootstrap import ensure_bootstrap
+
         self,
         llm_generate: Optional[Callable[[str], str]] = None,
-        compute_metrics: Optional[Callable[[str, str, Dict], Metrics]] = None,
+        compute_metrics: Optional[Callable[[str, str, Dict], "Metrics"]] = None,
         scar_retriever: Optional[Callable[[str], List[Dict[str, Any]]]] = None,
         context_retriever: Optional[Callable[[str], List[Dict[str, Any]]]] = None,
         ledger_sink: Optional[Callable[[Dict[str, Any]], None]] = None,
-        eye_sentinel: Optional[EyeSentinel] = None,
-        vault: Optional[Vault999] = None,
+        eye_sentinel: Optional["EyeSentinel"] = None,
+        vault: Optional["Vault999"] = None,
         eureka_store: Optional[Any] = None,
         context_retriever_at_stage_111: bool = False,
     ):
@@ -2211,6 +2206,12 @@ class Pipeline:
         self._asi = ASIEngine()
 
     def run(
+        from arifos_core.memory.eureka_types import ActorRole
+        from arifos_core.system.apex_prime import Verdict
+        from arifos_core.system.engines.agi_engine import AGIPacket
+        from arifos_core.system.engines.asi_engine import ASIPacket
+        from arifos_core.utils.session_telemetry import SessionTelemetry
+
         self,
         query: str,
         job_id: Optional[str] = None,
@@ -2403,6 +2404,9 @@ class Pipeline:
         # v44 TEARFRAME: End Turn & Apply Physics Floors (A -> F -> Ψ)
         if state.session_telemetry:
             try:
+                from arifos_core.apex.governance.session_physics import evaluate_physics_floors
+                from arifos_core.utils.reduction_engine import compute_attributes
+
                 # 1. Capture output physics
                 resp_text = state.raw_response or state.draft_response or ""
                 tokens_out_approx = len(resp_text) // 4
@@ -2611,7 +2615,7 @@ class Pipeline:
 def run_pipeline(
     query: str,
     llm_generate: Optional[Callable[[str], str]] = None,
-    compute_metrics: Optional[Callable[[str, str, Dict], Metrics]] = None,
+    compute_metrics: Optional[Callable[[str, str, Dict], "Metrics"]] = None,
 ) -> PipelineState:
     """
     Convenience function to run pipeline with minimal setup.
