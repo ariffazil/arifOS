@@ -1,252 +1,34 @@
-# arifOS v47 Docker Compose Configuration
-# Constitutional Governance System with Vector Database
-#
-# Usage:
-#   docker-compose up              # Start all services
-#   docker-compose up -d           # Start in background
-#   docker-compose logs -f arifos  # Follow arifOS logs
-#   docker-compose down            # Stop all services
-#   docker-compose down -v         # Stop and remove volumes
-
 version: '3.8'
 
 services:
-  ###############################################################################
-  # arifOS Constitutional API Server
-  ###############################################################################
   arifos:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        ARIFOS_VERSION: v47.0.0
-        BUILD_DATE: ${BUILD_DATE:-}
-        VCS_REF: ${VCS_REF:-}
-    image: arifos-api:v47
-    container_name: arifos-api
-    restart: unless-stopped
-
-    # Environment configuration
-    environment:
-      - ARIFOS_ENV=${ARIFOS_ENV:-development}
-      - ARIFOS_VERSION=v47.0.0
-      - PYTHONUNBUFFERED=1
-      - LOG_LEVEL=${LOG_LEVEL:-info}
-
-      # Database connections
-      - QDRANT_HOST=qdrant
-      - QDRANT_PORT=6333
-      - QDRANT_GRPC_PORT=6334
-
-      # Constitutional settings
-      - FLOOR_ENFORCEMENT_MODE=${FLOOR_ENFORCEMENT_MODE:-strict}
-      - TRINITY_ENABLED=${TRINITY_ENABLED:-true}
-      - LEDGER_PATH=/app/ledger
-
-    # Port mappings
     ports:
-      - "${ARIFOS_PORT:-8000}:8000"
-
-    # Volume mounts for persistence
+      - "8000:8000"
+    environment:
+      PORT: 8000
+      LOG_LEVEL: info
     volumes:
       - ./ledger:/app/ledger              # Constitutional ledger
       - ./sessions:/app/sessions          # Agent sessions
       - ./logs:/app/logs                  # Application logs
       - ./L1_THEORY:/app/L1_THEORY:ro    # Read-only constitutional canon
-
-    # Dependencies
-    depends_on:
-      qdrant:
-        condition: service_healthy
-
-    # Resource limits (F6 Amanah - Resource governance)
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 4G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-
-    # Health check
+      - ./L2_PROTOCOLS:/app/L2_PROTOCOLS:ro # Read-only protocols
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 5s
 
-    # Networking
-    networks:
-      - arifos-network
-
-    # Logging configuration
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  ###############################################################################
-  # Qdrant Vector Database
-  ###############################################################################
-  qdrant:
-    image: qdrant/qdrant:v1.7.4
-    container_name: arifos-qdrant
-    restart: unless-stopped
-
-    # Port mappings
-    ports:
-      - "${QDRANT_HTTP_PORT:-6333}:6333"   # HTTP API
-      - "${QDRANT_GRPC_PORT:-6334}:6334"   # gRPC API
-      - "${QDRANT_WEB_PORT:-6335}:6335"    # Web UI (dashboard)
-
-    # Volume for persistent storage
-    volumes:
-      - qdrant-storage:/qdrant/storage
-
-    # Environment configuration
-    environment:
-      - QDRANT__SERVICE__HTTP_PORT=6333
-      - QDRANT__SERVICE__GRPC_PORT=6334
-      - QDRANT__LOG_LEVEL=${QDRANT_LOG_LEVEL:-INFO}
-
-    # Resource limits
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2G
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-
-    # Health check
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
-    # Networking
-    networks:
-      - arifos-network
-
-    # Logging
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  ###############################################################################
-  # Optional: PostgreSQL for Ledger Storage
-  ###############################################################################
-  postgres:
-    image: postgres:16-alpine
-    container_name: arifos-postgres
-    restart: unless-stopped
-    profiles:
-      - postgres  # Only start if explicitly requested
-
-    # Environment
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB:-arifos}
-      - POSTGRES_USER=${POSTGRES_USER:-arifos}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
-      - POSTGRES_INITDB_ARGS=--encoding=UTF8 --locale=C
-
-    # Ports
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
-
-    # Volumes
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./scripts/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-
-    # Health check
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U arifos"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-    # Networking
-    networks:
-      - arifos-network
-
-    # Logging
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "5m"
-        max-file: "2"
-
-  ###############################################################################
-  # Optional: Redis for Caching
-  ###############################################################################
-  redis:
-    image: redis:7-alpine
-    container_name: arifos-redis
-    restart: unless-stopped
-    profiles:
-      - redis  # Only start if explicitly requested
-
-    # Ports
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
-
-    # Volumes
-    volumes:
-      - redis-data:/data
-
-    # Command
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
-
-    # Health check
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-
-    # Networking
-    networks:
-      - arifos-network
-
-    # Logging
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "5m"
-        max-file: "2"
-
-###############################################################################
-# Networks
-###############################################################################
-networks:
-  arifos-network:
-    driver: bridge
-    name: arifos-network
-    ipam:
-      config:
-        - subnet: 172.28.0.0/16
-
-###############################################################################
-# Volumes
-###############################################################################
-volumes:
-  qdrant-storage:
-    driver: local
-    name: arifos-qdrant-storage
-
-  postgres-data:
-    driver: local
-    name: arifos-postgres-data
-
-  redis-data:
-    driver: local
-    name: arifos-redis-data
+  # Optional: Cloudflare Tunnel (if you want local -> public)
+  # Uncomment if needed
+  # cloudflare-tunnel:
+  #   image: cloudflare/cloudflared:latest
+  #   command: tunnel run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+  #   depends_on:
+  #     - arifos
+  #   environment:
+  #     CLOUDFLARE_TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}

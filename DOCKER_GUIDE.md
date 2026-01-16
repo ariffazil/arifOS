@@ -105,18 +105,13 @@ docker build -t arifos-api:v47 .
 docker-compose build
 ```
 
-### Multi-Stage Build (Recommended)
-
-```bash
-# Use improved Dockerfile with multi-stage build
-docker build -f Dockerfile.improved -t arifos-api:v47 .
-```
-
-**Benefits:**
+### Multi-Stage Build (Standard)
+The `Dockerfile` is now configured with a robust multi-stage build as the standard:
 - 40-60% smaller final image size
 - Faster startup times
 - Better layer caching
 - Production-optimized
+- Railway-compatible (no `VOLUME` directive)
 
 ### Build Arguments
 
@@ -326,6 +321,27 @@ docker-compose logs --since 2024-01-16T10:00:00
 
 ---
 
+---
+
+## Railway Deployment (Cloud)
+
+Railway.app does NOT support Docker `VOLUME` directives in the `Dockerfile`. Our unified v47 `Dockerfile` is pre-configured for Railway compatibility.
+
+### Best Practices for Railway
+
+1. **Volume Persistence**: Railway manages persistence via their dashboard.
+   - Dashboard → Add Volume → Mount path: `/app/ledger`
+2. **Environment Variables**: Add these in the Railway dashboard "Variables" tab, not in a `.env` file.
+3. **Port**: Railway sets the `PORT` environment variable automatically.
+
+### Railway Build Settings (if needed)
+
+If you need to specify the build command manually:
+- **Build Command**: `docker build -t arifos-api:v47 .`
+- **Start Command**: `python scripts/arifos_sse_server.py`
+
+---
+
 ## Production Deployment
 
 ### Best Practices
@@ -509,14 +525,14 @@ services:
 
 ```
 arifOS/
-├── Dockerfile                  # Current Dockerfile
-├── Dockerfile.improved         # Multi-stage optimized
+├── Dockerfile                  # Unified multi-stage build
 ├── docker-compose.yml          # Service orchestration
 ├── .dockerignore              # Build context exclusions
 ├── .env.docker.example        # Environment template
 ├── DOCKER_GUIDE.md            # This file
 ├── arifos_core/               # Application code
 ├── L1_THEORY/                 # Constitutional canon
+├── L2_PROTOCOLS/              # Constitutional protocols
 ├── ledger/                    # Persistent ledger (created)
 ├── sessions/                  # Session data (created)
 └── logs/                      # Application logs (created)

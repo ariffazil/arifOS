@@ -17,8 +17,9 @@ curl http://localhost:8000/health
 ```json
 {
   "status": "healthy",
-  "details": {"service": "arifos-api"},
-  "version": "v38.2-alpha"
+  "vault": "VAULT999",
+  "tools": 17,
+  "version": "v47.0.0"
 }
 ```
 
