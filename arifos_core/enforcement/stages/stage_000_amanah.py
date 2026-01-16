@@ -21,75 +21,20 @@ Uses:
 - Runtime types (Job, SAFE_ACTIONS) for contract enforcement
 
 Author: arifOS Project
-Version: v38.0
+Version: v47.0.0
 """
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from ...utils.runtime_types import Job, SAFE_ACTIONS, is_restricted_action
+from ...stage_000_void.injection_defense import InjectionDefense
 from ..floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR, AmanahResult
 
 if TYPE_CHECKING:
     from ...system.pipeline import PipelineState
-
-
-# =============================================================================
-# PROMPT INJECTION DETECTION
-# =============================================================================
-
-# Patterns indicating potential prompt injection / instruction hijack
-INJECTION_PATTERNS = [
-    # Direct override attempts
-    r"ignore (?:all )?(?:previous |above )?instructions?",
-    r"disregard (?:all )?(?:previous |above )?(?:instructions?|rules?)",
-    r"forget (?:all )?(?:previous |above )?(?:instructions?|rules?)",
-    r"override (?:your )?(?:previous |above )?(?:instructions?|rules?|safety)",
-    r"bypass (?:your )?(?:safety|filters?|guardrails?)",
-    r"jailbreak",
-    r"DAN mode",
-    r"developer mode",
-    r"sudo mode",
-    r"do anything now",
-    # Role-play injection
-    r"you are now (?:a )?(?:unrestricted|evil|dark|shadow)",
-    r"pretend (?:you are|to be) (?:a )?(?:different|new|unrestricted)",
-    r"act as (?:a )?(?:different|unrestricted|unfiltered)",
-    r"roleplay as (?:a )?(?:malicious|evil|unrestricted)",
-    # System prompt extraction
-    r"reveal (?:your )?(?:system )?(?:prompt|instructions?)",
-    r"show (?:me )?(?:your )?(?:system )?(?:prompt|instructions?)",
-    r"what (?:is|are) (?:your )?(?:system )?(?:prompt|instructions?)",
-    r"print (?:your )?(?:system )?(?:prompt|instructions?)",
-    r"repeat (?:your )?(?:system )?(?:prompt|instructions?)",
-    # Token manipulation
-    r"\{\{.*\}\}",  # Template injection
-    r"<\|.*\|>",    # Special token attempts
-    r"\[INST\]",    # Instruction markers
-    r"\[/INST\]",
-    r"<<SYS>>",
-    r"<</SYS>>",
-]
-
-# Compile patterns for performance
-_INJECTION_COMPILED = [
-    re.compile(p, re.IGNORECASE) for p in INJECTION_PATTERNS
-]
-
-
-def _detects_prompt_injection(text: str) -> bool:
-    """
-    Check if text contains prompt injection patterns.
-
-    Returns True if injection detected (unsafe).
-    """
-    for pattern in _INJECTION_COMPILED:
-        if pattern.search(text):
-            return True
-    return False
 
 
 # =============================================================================
@@ -188,13 +133,10 @@ def compute_amanah_score(job: Job) -> tuple[float, str, AmanahSignals]:
     signals.has_context = job.has_context(min_length=100)
 
     # Signal 3: No prompt injection
-    if _detects_prompt_injection(job.input_text):
+    matches = InjectionDefense.find_injection_matches(job.input_text)
+    if matches:
         signals.no_instruction_hijack = False
-        # Find which patterns matched for diagnostics
-        for pattern in _INJECTION_COMPILED:
-            match = pattern.search(job.input_text)
-            if match:
-                signals.injection_patterns_found.append(match.group(0)[:50])
+        signals.injection_patterns_found.extend(matches)
 
     # Signal 4: Reversible action
     if is_restricted_action(job.action):

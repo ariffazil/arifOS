@@ -24,7 +24,7 @@ Constitutional Functions:
 
 Motto: "DITEMPA BUKAN DIBERI" (Forged, Not Given)
 
-Version: v46.1.0
+Version: v47.0.0
 Author: arifOS Project (Engineer: Claude Sonnet 4.5)
 DITEMPA BUKAN DIBERI
 """
@@ -39,6 +39,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 # Import existing modules to reuse
 from arifos_core.enforcement.stages.stage_000_amanah import compute_amanah_score, AmanahSignals
+from arifos_core.stage_000_void.injection_defense import InjectionDefense
 from arifos_core.utils.runtime_types import Job
 
 
@@ -601,27 +602,7 @@ class Stage000VOID:
 
     def _load_injection_patterns(self) -> List[str]:
         """Load injection detection patterns for F12."""
-        return [
-            r"ignore (?:all )?(?:previous |above )?instructions?",
-            r"disregard (?:all )?(?:previous |above )?(?:instructions?|rules?)",
-            r"forget (?:all )?(?:previous |above )?(?:instructions?|rules?)",
-            r"override (?:your )?(?:previous |above )?(?:instructions?|rules?|safety)",
-            r"bypass (?:your )?(?:safety|filters?|guardrails?)",
-            r"jailbreak",
-            r"DAN mode",
-            r"developer mode",
-            r"sudo mode",
-            r"do anything now",
-            r"you are now (?:a )?(?:unrestricted|evil|dark|shadow)",
-            r"pretend (?:you are|to be) (?:a )?(?:different|new|unrestricted)",
-            r"act as (?:a )?(?:different|unrestricted|unfiltered)",
-            r"reveal (?:your )?(?:system )?(?:prompt|instructions?)",
-            r"show (?:me )?(?:your )?(?:system )?(?:prompt|instructions?)",
-            r"\{\{.*\}\}",
-            r"<\|.*\|>",
-            r"\[INST\]",
-            r"<<SYS>>",
-        ]
+        return InjectionDefense.get_injection_patterns()
 
 
 # =============================================================================

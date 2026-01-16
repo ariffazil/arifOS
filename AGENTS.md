@@ -6,15 +6,15 @@
 
 ---
 
-## 📚 Documentation Index
-For complete constitutional documentation, see:
-- **[DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)** - Complete documentation navigation
-- **[START_HERE_SIMPLE.md](START_HERE_SIMPLE.md)** - Copy/paste commands to get started
-- **[QUICK_START_AUTO.md](QUICK_START_AUTO.md)** - Auto-start setup guide
-- **[QUICK_START_DOCKER.md](QUICK_START_DOCKER.md)** - Docker deployment guide
-- **[WHERE_IS_EVERYTHING.md](WHERE_IS_EVERYTHING.md)** - Visual guide to find everything
+## 📚 Constitutional Quick Start (3 Files Only)
+**Compressed to functional What/Where/How mapping for entropy reduction:**
 
-**Analysis & Reports:**
+- **[WHAT.md](WHAT.md)** → What arifOS does constitutionally
+- **[WHERE.md](WHERE.md)** → Where everything is located  
+- **[HOW.md](HOW.md)** → How to start and use (3 commands)
+
+**Complete Documentation:**
+- **[DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)** - Complete navigation hub
 - **[docs/analysis/](docs/analysis/)** - Constitutional entropy analysis and unification reports
 - **[reports/](reports/)** - Operational completion reports (MCP forging, agent enhancements)
 - **[docs/testing/](docs/testing/)** - Test unification plans and import failure analysis

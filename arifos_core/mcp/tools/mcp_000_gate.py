@@ -60,10 +60,11 @@ def mcp_000_gate(request: GateRequest) -> Dict[str, Any]:
     # Implementation decision: Wrapper runs asyncio.run() to be safe for future extensibility.
     
     verdict_obj = asyncio.run(ConstitutionalGate.assess_query(request.query, request.context))
-    
+
     return {
-        "verdict": verdict_obj.verdict,
-        "reason": verdict_obj.reason,
-        "metadata": verdict_obj.metadata,
-        "authority_manifest": AuthorityManifest.Is_Agent_Zero_Allowed # Conceptual, currently dict in Manifest
+        "verdict": verdict_obj.get("verdict"),
+        "reason": verdict_obj.get("reason"),
+        "floor_000_assessment": verdict_obj.get("floor_000_assessment", {}),
+        "metadata": verdict_obj.get("meta", {}),
+        "authority_manifest": AuthorityManifest.get_hierarchy(),
     }

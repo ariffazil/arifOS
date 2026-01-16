@@ -2,14 +2,12 @@
 
 **Constitutional Governance System v47.0.0**
 
-## 🚀 Quick Start Guides
-For immediate accessibility, these guides remain in the root directory:
-- **[START_HERE_SIMPLE.md](START_HERE_SIMPLE.md)** - Copy/paste commands to get started
-- **[QUICK_START_AUTO.md](QUICK_START_AUTO.md)** - Auto-start setup guide
-- **[QUICK_START_DOCKER.md](QUICK_START_DOCKER.md)** - Docker deployment guide
-- **[AUTO_START_GUIDE.md](AUTO_START_GUIDE.md)** - Automated setup instructions
-- **[COPY_PASTE_THIS.md](COPY_PASTE_THIS.md)** - Quick reference commands
-- **[WHERE_IS_EVERYTHING.md](WHERE_IS_EVERYTHING.md)** - Visual guide to find everything
+## 🚀 Constitutional Quick Start (3 Files Only)
+**Compressed to functional What/Where/How mapping for entropy reduction:**
+
+- **[WHAT.md](WHAT.md)** → What arifOS does constitutionally
+- **[WHERE.md](WHERE.md)** → Where everything is located  
+- **[HOW.md](HOW.md)** → How to start and use (3 commands)
 
 ## 📋 System Documentation
 Core system documentation and governance:
@@ -18,6 +16,7 @@ Core system documentation and governance:
 - **[SECURITY.md](SECURITY.md)** - Security policy and compliance
 - **[CHANGELOG.md](CHANGELOG.md)** - Version history and release notes
 - **[RELEASE_NOTES_v47.0.md](RELEASE_NOTES_v47.0.md)** - Current release details
+- **[README.md](README.md)** - Project overview and introduction
 
 ## 🔍 Analysis & Reports
 Detailed constitutional analysis and operational reports:
