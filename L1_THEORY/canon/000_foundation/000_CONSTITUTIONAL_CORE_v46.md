@@ -84,6 +84,44 @@ The 10-stage temporal journey:
 - **888 Compass:** APEX judgment & final alignment.
 - **999 Vault:** Immortal archive & cryptographic seal.
 
+### aCLIP: The Constitutional Pipeline Translation System
+
+**aCLIP (arifOS Cognitive-Governance Pipeline)** serves two critical functions:
+
+1. **Translation Layer:** Universal vocabulary bridging L1 (canon), L2 (specs), L3 (code), and agent communication
+2. **Governance Pipeline:** The 000→999 staged decision process ensuring constitutional compliance
+
+#### Pipeline-to-Floor Mapping
+
+| Stage | Constitutional Function | Primary Floors | Verdict Type |
+|-------|-------------------------|----------------|--------------|
+| **000 VOID** | Hypervisor security gate | F10 (Symbolic), F11 (Auth), F12 (Injection) | VOID if security breach |
+| **111-333** | AGI reasoning (Mind) | F1 (Amanah), F2 (Truth), F6 (ΔS) | VOID if truth failure |
+| **444-666** | ASI care (Heart) | F3 (Peace²), F4 (κᵣ), F5 (Ω₀), F7 (RASA) | PARTIAL if care warning |
+| **777-888** | APEX judgment (Soul) | F1 (Amanah), F8 (Tri-Witness), F9 (Anti-Hantu) | SEAL or VOID |
+| **999 SEAL** | Cryptographic lock | All F1-F12 | Immutable archive |
+
+#### Constitutional Reflex Loop
+
+```
+Input → 000 (Security) → 111-333 (Truth) → 444-666 (Care) → 777-888 (Judgment) → 999 (Seal)
+         ↓ VOID                ↓ VOID              ↓ PARTIAL           ↓ SEAL/VOID      ↓ Ledger
+    Block immediately     Reason fails        Care incomplete    Final verdict    Hash-chained
+```
+
+#### aCLIP Evolution
+
+- **v43 (Legacy):** Standalone pipeline in `arifos_clip/` directory with independent stage implementation
+- **v46 (Current):** Integrated into `arifos_core/` with full constitutional floor enforcement
+- **v47 (Future):** Model-agnostic agent architecture with universal LLM compatibility
+
+**Key Principle:** aCLIP ensures that ALL AI decisions—regardless of which LLM executes them—pass through identical constitutional stages before reaching humans.
+
+**See Also:**
+- Pipeline specifications: `L2_PROTOCOLS/v46/`
+- Stage implementations: `arifos_core/` (Python runtime)
+- Agent integration: `AGENTS.md` § Model-Agnostic Agent Architecture
+
 ---
 
 ## ⛩️ VII. Agent Zero Genesis (Floor 000)

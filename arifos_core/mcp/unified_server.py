@@ -7,15 +7,21 @@ This is the unified MCP server that consolidates 3 previous servers:
 - vault999_server.py (Vault-999 gateway, 8 tools)
 
 Consolidation Result:
-- From 34 tools → 22 tools (-35%)
+- From 34 tools → 15 tools (-56%)
 - Removed 11 redundant pipeline stage tools
 - Deleted 1 ungoverned tool (APEX_LLAMA)
+- Consolidated 9 vault999 tools → 3 tools (-67% memory tools)
 - Clean naming convention (no mcp_ prefix)
 - All 18 core capabilities preserved
 
+Memory Tool Consolidation:
+- vault999_query: Universal query (recall + search + fetch)
+- vault999_store: EUREKA storage (includes TAC eval)
+- vault999_seal: Universal seal/verification (audit + receipts + seal)
+
 Constitutional Authority: F1-F9 governance enforced
 Transport: stdio (Claude Desktop) + HTTPS/SSE (remote AI)
-Version: v46.2
+Version: v46.3
 
 DITEMPA BUKAN DIBERI
 """
@@ -164,10 +170,54 @@ def _is_sacred_query(query: str) -> bool:
     return False
 
 # =============================================================================
-# VAULT TOOLS (Inline Implementation)
+# VAULT TOOLS (Consolidated 3-Tool Interface)
 # =============================================================================
+# Consolidates 9 vault999 tools into 3 core operations:
+# 1. vault999_query (GET) - recall + search + fetch
+# 2. vault999_store (SET) - store + eval (validation before storage)
+# 3. vault999_seal (PROVE) - audit + receipts + verify_receipts + verify_seal
 
-def vault_search(query: str) -> Dict[str, Any]:
+def vault999_query(
+    query: Optional[str] = None,
+    user_id: Optional[str] = None,
+    document_id: Optional[str] = None,
+    max_results: int = 10
+) -> Dict[str, Any]:
+    """
+    Universal query interface for VAULT-999 memory retrieval.
+
+    Intelligently routes to appropriate backend based on parameters:
+    - If document_id provided → fetch full document by ID
+    - If user_id provided → recall semantic memories (Mem0+Qdrant)
+    - If query provided → search across vault bands
+
+    Parameters:
+    - query: Search query string (for keyword search)
+    - user_id: User ID (for semantic memory recall)
+    - document_id: Document ID in format BAND_filename (for direct fetch)
+    - max_results: Maximum results to return (default: 10)
+
+    Returns unified response with results, metadata, and governance info.
+    """
+    logger.info(f"vault999_query: query={query}, user_id={user_id}, document_id={document_id}")
+
+    # Route 1: Fetch specific document by ID
+    if document_id:
+        return _vault_fetch_internal(document_id)
+
+    # Route 2: Recall semantic memories for user
+    if user_id:
+        if not query:
+            return {"error": "user_id requires query parameter for semantic search"}
+        return _vault_recall_internal(user_id=user_id, prompt=query, max_results=max_results)
+
+    # Route 3: Search across vault bands
+    if query:
+        return _vault_search_internal(query, max_results)
+
+    return {"error": "Must provide at least one of: query, user_id, or document_id"}
+
+def _vault_search_internal(query: str, max_results: int = 10) -> Dict[str, Any]:
     """
     Search constitutional memory across vault bands.
 
@@ -177,7 +227,7 @@ def vault_search(query: str) -> Dict[str, Any]:
     Constitutional Boundary: Only searches VAULT999 (machine law).
     The ARIF FAZIL vault (human biography) is sacred and offline.
     """
-    logger.info(f"vault_search: '{query}'")
+    logger.info(f"_vault_search_internal: '{query}'")
 
     # Sacred vault protection
     if _is_sacred_query(query):
@@ -225,7 +275,7 @@ def vault_search(query: str) -> Dict[str, Any]:
                     logger.warning(f"Error reading {file}: {e}")
 
     all_results.sort(key=lambda x: -x["confidence"])
-    limited = all_results[:MAX_RESULTS]
+    limited = all_results[:max_results]
 
     logger.info(f"Found {len(all_results)}, returning {len(limited)}")
 
@@ -237,14 +287,14 @@ def vault_search(query: str) -> Dict[str, Any]:
         "governance": "Nine Floors + APEX PRIME"
     }
 
-def vault_fetch(id: str) -> Dict[str, Any]:
+def _vault_fetch_internal(id: str) -> Dict[str, Any]:
     """
     Retrieve full document by ID (format: BAND_filename).
 
     Constitutional Boundary: Only fetches from VAULT999.
     The ARIF FAZIL vault is sacred and offline.
     """
-    logger.info(f"vault_fetch: '{id}'")
+    logger.info(f"_vault_fetch_internal: '{id}'")
 
     # Sacred vault protection
     if _is_sacred_query(id):
@@ -291,6 +341,91 @@ def vault_fetch(id: str) -> Dict[str, Any]:
                         return {"error": str(e)}
 
     return {"error": f"Not found: {id}"}
+
+def _vault_recall_internal(user_id: str, prompt: str, max_results: int = 5) -> Dict[str, Any]:
+    """
+    Recall semantic memories from L7 (Mem0 + Qdrant).
+
+    Wrapper around arifos_recall with RecallRequest model.
+    All recalled memories are capped at 0.85 confidence (INV-4).
+    """
+    logger.info(f"_vault_recall_internal: user_id={user_id}, prompt={prompt}")
+
+    try:
+        request = RecallRequest(user_id=user_id, prompt=prompt, max_results=max_results)
+        return arifos_recall(request)
+    except Exception as e:
+        logger.error(f"Recall failed: {e}")
+        return {"error": str(e), "status": "FAILED"}
+
+def vault999_seal(
+    verification_type: str,
+    user_id: Optional[str] = None,
+    seal_id: Optional[str] = None,
+    limit: int = 10,
+    days: int = 7
+) -> Dict[str, Any]:
+    """
+    Universal seal/verification interface for VAULT-999 integrity proofs.
+
+    Routes to appropriate verification backend based on verification_type:
+    - "audit" → Audit trail inspection (requires user_id)
+    - "receipts" → ZKPC receipt verification
+    - "seal" → Cryptographic seal verification (requires seal_id)
+
+    Parameters:
+    - verification_type: Type of verification ("audit", "receipts", "seal")
+    - user_id: User ID (for audit)
+    - seal_id: Seal ID (for seal verification)
+    - limit: Maximum items to return (for receipts)
+    - days: Days to look back (for audit, default: 7)
+
+    Returns verification response with status and proof data.
+    """
+    logger.info(f"vault999_seal: type={verification_type}, user_id={user_id}, seal_id={seal_id}")
+
+    # Route 1: Audit trail inspection
+    if verification_type == "audit":
+        if not user_id:
+            return {"error": "audit verification requires user_id parameter"}
+        try:
+            request = AuditRequest(user_id=user_id, days=days)
+            return arifos_audit(request)
+        except Exception as e:
+            logger.error(f"Audit failed: {e}")
+            return {"error": str(e), "status": "FAILED"}
+
+    # Route 2: ZKPC receipt verification
+    elif verification_type == "receipts":
+        try:
+            manager = VaultManager()
+            items = manager.get_receipts(limit=limit)
+            return {
+                "status": "SEALED",
+                "protocol": "ZKPC-v46",
+                "count": len(items),
+                "receipts": items,
+                "verification_type": "receipts"
+            }
+        except Exception as e:
+            logger.error(f"Receipts verification failed: {e}")
+            return {"error": str(e), "status": "BROKEN"}
+
+    # Route 3: Cryptographic seal verification
+    elif verification_type == "seal":
+        if not seal_id:
+            return {"error": "seal verification requires seal_id parameter"}
+        try:
+            return memory_verify_seal(seal_id=seal_id)
+        except Exception as e:
+            logger.error(f"Seal verification failed: {e}")
+            return {"error": str(e), "status": "FAILED"}
+
+    else:
+        return {
+            "error": f"Invalid verification_type: {verification_type}",
+            "valid_types": ["audit", "receipts", "seal"]
+        }
 
 def vault_receipts(limit: int = 10) -> Dict[str, Any]:
     """
@@ -545,38 +680,154 @@ def vault999_eval(
     }
 
 # =============================================================================
-# UNIFIED TOOL REGISTRY (21 Tools)
+# SEARCH TOOLS (Constitutional Web Search with Dual Semantics)
+# =============================================================================
+
+def agi_search(
+    query: str,
+    max_results: int = 10,
+    budget_limit: Optional[float] = None,
+    context: Optional[Dict] = None
+) -> Dict[str, Any]:
+    """
+    AGI Extended SENSE (111+) - Constitutional web search for knowledge acquisition.
+
+    Purpose: Information gathering for learning, exploration, and thinking.
+    Semantic: "What is X?" / "Tell me about Y" / "How does Z work?"
+
+    Expands AGI's sensory input beyond chat context to include web knowledge.
+    Results feed into AGI reasoning pipeline (111→222→333→777).
+
+    Constitutional Governance:
+    - F1 (Amanah): Reversible, read-only
+    - F2 (Truth): Verified sources
+    - F4 (ΔS): Reduces entropy via knowledge
+    - F6 (Amanah): No credentials exposed
+    - F7 (Ω₀): Acknowledges search limitations
+
+    Parameters:
+    - query: Search query for knowledge acquisition
+    - max_results: Maximum results (default: 10)
+    - budget_limit: Optional cost limit
+    - context: Optional search context
+
+    Returns: Search results with governance metadata, cache status, cost info
+    """
+    logger.info(f"agi_search (111 SENSE): '{query}'")
+
+    try:
+        from arifos_core.integration.meta_search import ConstitutionalMetaSearch
+        search_engine = ConstitutionalMetaSearch()
+        result = search_engine.search_with_governance(
+            query=query,
+            max_results=max_results,
+            budget_limit=budget_limit,
+            context=context or {}
+        )
+        return {
+            **result.__dict__,
+            "stage": "111_SENSE",
+            "semantic": "knowledge_acquisition",
+            "purpose": "AGI learning and exploration"
+        }
+    except Exception as e:
+        logger.error(f"AGI search failed: {e}")
+        return {
+            "error": str(e),
+            "stage": "111_SENSE",
+            "status": "FAILED"
+        }
+
+def asi_search(
+    query: str,
+    max_results: int = 10,
+    budget_limit: Optional[float] = None,
+    context: Optional[Dict] = None
+) -> Dict[str, Any]:
+    """
+    ASI EVIDENCE (444) - Constitutional web search for claim validation.
+
+    Purpose: Evidence gathering for verification, validation, and fact-checking.
+    Semantic: "Verify that X" / "Prove Y is true" / "Find evidence for Z"
+
+    Validates claims by gathering evidence from web sources.
+    Results feed into ASI synthesis pipeline (444→555→666).
+
+    Constitutional Governance:
+    - F1 (Amanah): Reversible, read-only
+    - F2 (Truth): Verified sources required
+    - F3 (Peace²): Non-destructive validation
+    - F4 (ΔS): Reduces epistemic uncertainty
+    - F6 (Amanah): No credentials exposed
+    - F8 (Tri-Witness): Multiple source validation
+
+    Parameters:
+    - query: Search query for claim validation
+    - max_results: Maximum results (default: 10)
+    - budget_limit: Optional cost limit
+    - context: Optional validation context
+
+    Returns: Search results with governance metadata, evidence scores, validation status
+    """
+    logger.info(f"asi_search (444 EVIDENCE): '{query}'")
+
+    try:
+        from arifos_core.integration.meta_search import ConstitutionalMetaSearch
+        search_engine = ConstitutionalMetaSearch()
+        result = search_engine.search_with_governance(
+            query=query,
+            max_results=max_results,
+            budget_limit=budget_limit,
+            context=context or {}
+        )
+        return {
+            **result.__dict__,
+            "stage": "444_EVIDENCE",
+            "semantic": "claim_validation",
+            "purpose": "ASI evidence gathering and verification"
+        }
+    except Exception as e:
+        logger.error(f"ASI search failed: {e}")
+        return {
+            "error": str(e),
+            "stage": "444_EVIDENCE",
+            "status": "FAILED"
+        }
+
+# =============================================================================
+# UNIFIED TOOL REGISTRY (17 Tools)
 # =============================================================================
 
 TOOLS: Dict[str, Callable] = {
     # -------------------------------------------------------------------------
-    # CONSTITUTIONAL PIPELINE (4 tools)
+    # CONSTITUTIONAL PIPELINE (5 tools)
     # -------------------------------------------------------------------------
-    "apexprime_judge": arifos_judge,   # Full pipeline (000→999) via APEX Prime
-    "agi_think": agi_think,            # AGI bundle (111+222+777)
-    "asi_act": asi_act,                # ASI bundle (555+666)
-    "apex_audit": apex_audit,          # APEX bundle (444+888+889)
+    "arifos_live": arifos_judge,       # Full pipeline (000→999) - live constitutional governance
+    "agi_think": agi_think,            # AGI bundle (111+222+777) - The Mind
+    "agi_reflect": arifos_validate_full,  # AGI meta-reflection - Track A/B/C coherence (333-like)
+    "asi_act": asi_act,                # ASI bundle (555+666) - The Heart
+    "apex_seal": apex_audit,           # APEX bundle (444+888+889) - Final judgment & sealing
 
     # -------------------------------------------------------------------------
-    # VAULT-999 MEMORY SYSTEM (9 tools)
+    # SEARCH TOOLS (2 tools) - Constitutional Web Search
     # -------------------------------------------------------------------------
-    "vault999_recall": arifos_recall,  # L7 Mem0+Qdrant recall
-    "vault999_search": vault_search,   # Vault band search
-    "vault999_fetch": vault_fetch,     # Document retrieval
-    "vault999_receipts": vault_receipts,  # ZKPC receipt verification
-    "vault999_store": vault999_store,  # EUREKA storage (CCC/BBB)
-    "vault999_eval": vault999_eval,    # TAC/EUREKA-777 evaluation
-    "vault999_audit": arifos_audit,    # Audit trail inspection
-    "vault999_verify_receipts": memory_get_receipts,  # ZKPC cryptographic receipts
-    "vault999_verify_seal": memory_verify_seal,  # Cryptographic seal verification
+    "agi_search": agi_search,          # AGI extended SENSE (111+) - knowledge acquisition
+    "asi_search": asi_search,          # ASI evidence (444) - claim validation
 
     # -------------------------------------------------------------------------
-    # FILE ACCESS GOVERNANCE (4 tools) - RENAMED
+    # VAULT-999 MEMORY SYSTEM (3 tools) - CONSOLIDATED
     # -------------------------------------------------------------------------
-    "fag_read": arifos_fag_read,       # Governed file read (was arifos_fag_read)
-    "fag_write": arifos_fag_write,     # Governed file write (was arifos_fag_write)
-    "fag_list": arifos_fag_list,       # Governed directory list (was arifos_fag_list)
-    "fag_stats": arifos_fag_stats,     # Governance statistics (was arifos_fag_stats)
+    "vault999_query": vault999_query,  # Universal query (recall + search + fetch)
+    "vault999_store": vault999_store,  # EUREKA storage (CCC/BBB) + TAC eval
+    "vault999_seal": vault999_seal,    # Universal seal/verification (audit + receipts + seal)
+
+    # -------------------------------------------------------------------------
+    # FILE ACCESS GOVERNANCE (4 tools)
+    # -------------------------------------------------------------------------
+    "fag_read": arifos_fag_read,       # Governed file read
+    "fag_write": arifos_fag_write,     # Governed file write
+    "fag_list": arifos_fag_list,       # Governed directory list
+    "fag_stats": arifos_fag_stats,     # Governance statistics
 
     # -------------------------------------------------------------------------
     # VALIDATION & ROUTING (2 tools)
@@ -588,7 +839,7 @@ TOOLS: Dict[str, Callable] = {
     # SYSTEM OPERATIONS (2 tools)
     # -------------------------------------------------------------------------
     "arifos_executor": arifos_executor,        # Shell execution with F1-F9 oversight
-    "github_govern": github_aaa_govern,        # GitHub operations governance (was github_aaa_govern)
+    "github_govern": github_aaa_govern,        # GitHub operations governance
 }
 
 # =============================================================================
@@ -605,23 +856,38 @@ DEPRECATED_ALIASES: Dict[str, str] = {
     # Old GitHub tool → New name
     "github_aaa_govern": "github_govern",
 
-    # Old constitutional pipeline → New name
-    "arifos_judge": "apexprime_judge",
+    # Old constitutional pipeline → New semantic names
+    "arifos_judge": "arifos_live",
+    "apexprime_judge": "arifos_live",  # Previous rename
+    "apex_audit": "apex_seal",
+    "arifos_validate_full": "agi_reflect",
 
-    # Old memory/vault tools → New vault999_* names
-    "arifos_recall": "vault999_recall",
-    "arifos_audit": "vault999_audit",
-    "vault_search": "vault999_search",
-    "vault_fetch": "vault999_fetch",
-    "vault_receipts": "vault999_receipts",
-    "memory_get_receipts": "vault999_verify_receipts",
-    "memory_receipts": "vault999_verify_receipts",
-    "memory_verify_seal": "vault999_verify_seal",
+    # Old memory/vault tools → New vault999_* consolidated tools
+    # All query operations → vault999_query
+    "arifos_recall": "vault999_query",
+    "vault999_recall": "vault999_query",
+    "vault_search": "vault999_query",
+    "vault999_search": "vault999_query",
+    "vault_fetch": "vault999_query",
+    "vault999_fetch": "vault999_query",
+    "search": "vault999_query",  # From old vault999_server
+    "fetch": "vault999_query",   # From old vault999_server
 
-    # Old vault999_server tool names → New names
-    "search": "vault999_search",
-    "fetch": "vault999_fetch",
-    "receipts": "vault999_receipts",
+    # All verification/seal operations → vault999_seal
+    "arifos_audit": "vault999_seal",
+    "vault999_audit": "vault999_seal",
+    "vault_receipts": "vault999_seal",
+    "vault999_receipts": "vault999_seal",
+    "memory_get_receipts": "vault999_seal",
+    "vault999_verify_receipts": "vault999_seal",
+    "memory_receipts": "vault999_seal",
+    "memory_verify_seal": "vault999_seal",
+    "vault999_verify_seal": "vault999_seal",
+    "vault999_verify": "vault999_seal",  # Old name
+    "receipts": "vault999_seal",  # From old vault999_server
+
+    # Storage/evaluation (keep as vault999_store)
+    "vault999_eval": "vault999_store",  # Eval is now part of store validation
 }
 
 # Add aliases to TOOLS registry
@@ -634,18 +900,18 @@ for old_name, new_name in DEPRECATED_ALIASES.items():
 # =============================================================================
 
 TOOL_REQUEST_MODELS: Dict[str, type] = {
-    "apexprime_judge": JudgeRequest,
+    "arifos_live": JudgeRequest,
     "vault999_recall": RecallRequest,
     "vault999_audit": AuditRequest,
     "fag_read": FAGReadRequest,
     "fag_write": FAGWriteRequest,
     "fag_list": FAGListRequest,
     "fag_stats": FAGStatsRequest,
-    "arifos_validate_full": ValidateFullRequest,
+    "agi_reflect": ValidateFullRequest,
     "arifos_meta_select": MetaSelectRequest,
     "agi_think": AgiThinkRequest,
     "asi_act": AsiActRequest,
-    "apex_audit": ApexAuditRequest,
+    "apex_seal": ApexAuditRequest,
     "arifos_executor": ExecutorRequest,
 }
 
@@ -657,11 +923,12 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
     # -------------------------------------------------------------------------
     # CONSTITUTIONAL PIPELINE
     # -------------------------------------------------------------------------
-    "apexprime_judge": {
-        "name": "apexprime_judge",
+    "arifos_live": {
+        "name": "arifos_live",
         "description": (
-            "Judge a query through APEX Prime - the full arifOS constitutional pipeline (000→999). "
-            "Returns verdict (SEAL/PARTIAL/VOID/SABAR/888_HOLD) based on 9 floors."
+            "Live constitutional governance through the full arifOS pipeline (000→999). "
+            "Stage 000: Initialization, intuition, and real-time governance. "
+            "Returns verdict (SEAL/PARTIAL/VOID/SABAR/888_HOLD) based on 12 constitutional floors."
         ),
         "parameters": {
             "type": "object",
@@ -697,9 +964,31 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["draft_response"]
         }
     },
-    "apex_audit": {
-        "name": "apex_audit",
-        "description": "APEX Bundle (The Soul). Audits AGI/ASI states, verifies evidence, seals verdict. Consolidates 444, 888, 889.",
+    "agi_reflect": {
+        "name": "agi_reflect",
+        "description": (
+            "AGI meta-reflection layer for Track A/B/C coherence validation. "
+            "Stage 333-like recursive reflection: validates alignment between canonical law (Track A), "
+            "specs (Track B), and code (Track C). Returns coherence verdict and delta analysis."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "track_a_path": {"type": "string", "description": "Path to canonical law file (L1_THEORY)"},
+                "track_b_path": {"type": "string", "description": "Path to spec file (L2_PROTOCOLS)"},
+                "track_c_path": {"type": "string", "description": "Path to code file (arifos_core)"},
+            },
+            "required": ["track_a_path"],
+        },
+    },
+    "apex_seal": {
+        "name": "apex_seal",
+        "description": (
+            "APEX Bundle (The Soul) - Final judgment and sealing authority. "
+            "Consolidates stages 444 (evidence), 888 (judgment), 889 (proof). "
+            "Audits AGI/ASI states, verifies tri-witness evidence, renders final verdict, "
+            "and seals with cryptographic proof. Returns SEAL/PARTIAL/VOID/888_HOLD."
+        ),
         "parameters": {
             "type": "object",
             "properties": {
@@ -712,63 +1001,66 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
     },
 
     # -------------------------------------------------------------------------
-    # VAULT-999 MEMORY SYSTEM
+    # SEARCH TOOLS (2 Tools) - Constitutional Web Search
     # -------------------------------------------------------------------------
-    "vault999_recall": {
-        "name": "vault999_recall",
+    "agi_search": {
+        "name": "agi_search",
         "description": (
-            "Recall relevant memories from L7 (Mem0 + Qdrant). "
-            "All recalled memories are capped at 0.85 confidence. "
-            "Memories are suggestions, not facts (INV-4)."
+            "AGI Extended SENSE (111+) - Constitutional web search for knowledge acquisition. "
+            "Purpose: Information gathering for learning, exploration, thinking. "
+            "Semantic: 'What is X?' / 'Tell me about Y' / 'How does Z work?' "
+            "Features: 12-floor governance, cost tracking, semantic caching, ledger integration."
         ),
         "parameters": {
             "type": "object",
             "properties": {
-                "user_id": {"type": "string", "description": "User ID for memory isolation"},
-                "prompt": {"type": "string", "description": "Query prompt for semantic search"},
-                "max_results": {"type": "integer", "description": "Maximum memories to return (default: 5)", "default": 5},
+                "query": {"type": "string", "description": "Search query for knowledge acquisition"},
+                "max_results": {"type": "integer", "description": "Maximum results to return (default: 10)", "default": 10},
+                "budget_limit": {"type": "number", "description": "Optional cost limit in USD"},
+                "context": {"type": "object", "description": "Optional search context"}
             },
-            "required": ["user_id", "prompt"],
-        },
+            "required": ["query"]
+        }
     },
-    "vault999_search": {
-        "name": "vault999_search",
+    "asi_search": {
+        "name": "asi_search",
         "description": (
-            "Search constitutional memory across vault bands (L0_VAULT, L1_LEDGERS, L4_WITNESS, 00_ENTROPY). "
-            "Returns ranked results by confidence. Only searches VAULT999 (machine law)."
+            "ASI EVIDENCE (444) - Constitutional web search for claim validation. "
+            "Purpose: Evidence gathering for verification, validation, fact-checking. "
+            "Semantic: 'Verify that X' / 'Prove Y is true' / 'Find evidence for Z' "
+            "Features: 12-floor governance, tri-witness validation, evidence scoring, cost tracking."
         ),
         "parameters": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "Search query string"},
+                "query": {"type": "string", "description": "Search query for claim validation"},
+                "max_results": {"type": "integer", "description": "Maximum results to return (default: 10)", "default": 10},
+                "budget_limit": {"type": "number", "description": "Optional cost limit in USD"},
+                "context": {"type": "object", "description": "Optional validation context"}
             },
-            "required": ["query"],
-        },
+            "required": ["query"]
+        }
     },
-    "vault999_fetch": {
-        "name": "vault999_fetch",
+
+    # -------------------------------------------------------------------------
+    # VAULT-999 MEMORY SYSTEM (3 Consolidated Tools)
+    # -------------------------------------------------------------------------
+    "vault999_query": {
+        "name": "vault999_query",
         "description": (
-            "Retrieve full document by ID from vault bands. "
-            "ID format: BAND_filename (e.g., L0_VAULT_canon_v46)"
+            "Universal query interface for VAULT-999 memory retrieval. "
+            "Intelligently routes to recall (semantic), search (keyword), or fetch (document ID). "
+            "- For semantic memory: Provide user_id + query "
+            "- For keyword search: Provide query only "
+            "- For document fetch: Provide document_id (format: BAND_filename)"
         ),
         "parameters": {
             "type": "object",
             "properties": {
-                "id": {"type": "string", "description": "Document ID (BAND_filename)"},
-            },
-            "required": ["id"],
-        },
-    },
-    "vault999_receipts": {
-        "name": "vault999_receipts",
-        "description": (
-            "Verify ZKPC receipts in the constitutional ledger. "
-            "Returns cryptographic proof of integrity (F8 Tri-Witness)."
-        ),
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "limit": {"type": "integer", "description": "Maximum receipts to return (default: 10)", "default": 10},
+                "query": {"type": "string", "description": "Search query or prompt (optional if document_id provided)"},
+                "user_id": {"type": "string", "description": "User ID for semantic memory recall (optional)"},
+                "document_id": {"type": "string", "description": "Document ID for direct fetch (format: BAND_filename, optional)"},
+                "max_results": {"type": "integer", "description": "Maximum results to return (default: 10)", "default": 10},
             },
             "required": [],
         },
@@ -778,7 +1070,8 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
         "description": (
             "Store EUREKA insight in VAULT-999 (CCC/BBB). "
             "Requires structure/truth_boundary/scar triad. "
-            "AAA (human vault) is protected and offline."
+            "AAA (human vault) is protected and offline. "
+            "Optionally validates against TAC/EUREKA-777 before storage."
         ),
         "parameters": {
             "type": "object",
@@ -795,75 +1088,25 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["insight_text", "vault_target", "title", "structure", "truth_boundary", "scar"],
         },
     },
-    "vault999_eval": {
-        "name": "vault999_eval",
+    "vault999_seal": {
+        "name": "vault999_seal",
         "description": (
-            "Evaluate EUREKA against TAC/EUREKA-777 constitutional laws. "
-            "Returns SEAL-999/HOLD-999/VOID-999 verdict with vault record."
+            "Universal seal/verification interface for VAULT-999 integrity proofs. "
+            "Routes to audit trail, ZKPC receipts, or cryptographic seal verification. "
+            "- For audit: verification_type='audit', user_id required "
+            "- For receipts: verification_type='receipts' "
+            "- For seal: verification_type='seal', seal_id required"
         ),
         "parameters": {
             "type": "object",
             "properties": {
-                "dC": {"type": "number", "description": "Contrast value"},
-                "Ea": {"type": "number", "description": "Activation threshold"},
-                "dH_dt": {"type": "number", "description": "System cooling rate"},
-                "Teff": {"type": "number", "description": "Effective temperature"},
-                "Tcrit": {"type": "number", "description": "Critical temperature"},
-                "Omega0_value": {"type": "number", "description": "Humility metric [0.03, 0.05]"},
-                "K_before": {"type": "integer", "description": "Complexity before"},
-                "K_after": {"type": "integer", "description": "Complexity after"},
-                "reality_7_1_physically_permissible": {"type": "boolean", "description": "EUREKA-777: Physically permissible"},
-                "structure_7_2_compressible": {"type": "boolean", "description": "EUREKA-777: Compressible representation"},
-                "language_7_3_minimal_truthful_naming": {"type": "boolean", "description": "EUREKA-777: Minimal truthful naming"},
-                "ledger_entries": {"type": "array", "description": "Cooling ledger entries"},
-                "T0_context_start": {"type": "string", "description": "Session start time (ISO-8601)"},
-                "human_seal_sealed_by": {"type": "string", "description": "Who sealed this"},
-                "human_seal_seal_note": {"type": "string", "description": "Seal note"},
+                "verification_type": {"type": "string", "description": "Type: 'audit', 'receipts', or 'seal'"},
+                "user_id": {"type": "string", "description": "User ID (for audit verification)"},
+                "seal_id": {"type": "string", "description": "Seal ID (for seal verification)"},
+                "limit": {"type": "integer", "description": "Maximum items to return (for receipts, default: 10)", "default": 10},
+                "days": {"type": "integer", "description": "Days to look back (for audit, default: 7)", "default": 7},
             },
-            "required": ["dC", "Ea", "dH_dt", "Teff", "Tcrit", "Omega0_value", "K_before", "K_after", "reality_7_1_physically_permissible", "structure_7_2_compressible", "language_7_3_minimal_truthful_naming", "ledger_entries", "T0_context_start"],
-        },
-    },
-    "vault999_audit": {
-        "name": "vault999_audit",
-        "description": (
-            "Retrieve audit/ledger data from VAULT-999 for a user. "
-            "STUB: Full implementation coming in future sprint."
-        ),
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "user_id": {"type": "string", "description": "User ID to audit"},
-                "days": {"type": "integer", "description": "Days to look back (default: 7)", "default": 7},
-            },
-            "required": ["user_id"],
-        },
-    },
-    "vault999_verify_receipts": {
-        "name": "vault999_verify_receipts",
-        "description": (
-            "Get ZKPC cryptographic receipts for memory operations. "
-            "Returns Zero-Knowledge Proof of Cooling receipts."
-        ),
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "limit": {"type": "integer", "description": "Maximum receipts to return (default: 10)", "default": 10},
-            },
-            "required": [],
-        },
-    },
-    "vault999_verify_seal": {
-        "name": "vault999_verify_seal",
-        "description": (
-            "Verify cryptographic seal for memory integrity. "
-            "Returns seal verification status."
-        ),
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "seal_id": {"type": "string", "description": "Seal ID to verify"},
-            },
-            "required": ["seal_id"],
+            "required": ["verification_type"],
         },
     },
 
@@ -912,7 +1155,6 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
     # -------------------------------------------------------------------------
     # VALIDATION & ROUTING
     # -------------------------------------------------------------------------
-    "arifos_validate_full": VALIDATE_FULL_METADATA,
     "arifos_meta_select": META_SELECT_METADATA,
 
     # -------------------------------------------------------------------------
@@ -936,6 +1178,15 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
 # =============================================================================
 # TOOL INVOCATION
 # =============================================================================
+
+def list_tools() -> List[str]:
+    """
+    List all available tool names (non-deprecated only).
+
+    Returns list of tool names that should be exposed to clients.
+    Deprecated aliases are excluded from this list.
+    """
+    return [name for name in TOOLS.keys() if name not in DEPRECATED_ALIASES]
 
 def run_tool(tool_name: str, arguments: Dict[str, Any]) -> Any:
     """
@@ -999,6 +1250,13 @@ def create_stdio_server() -> Server:
 
     return server
 
+# =============================================================================
+# GLOBAL SERVER INSTANCE (for entry point compatibility)
+# =============================================================================
+
+# Create global server instance for scripts/arifos_mcp_entry.py compatibility
+mcp_server = create_stdio_server()
+
 async def main():
     """Main entry point for stdio server."""
     async with stdio_server() as (read_stream, write_stream):
@@ -1018,19 +1276,32 @@ def print_stats():
     print(f"Deprecated Aliases: {len(DEPRECATED_ALIASES)}")
     print()
     print("Tools by Category:")
-    print("  - Constitutional Pipeline (APEX): 4 tools")
-    print("  - VAULT-999 Memory System: 9 tools")
+    print("  - Constitutional Pipeline: 5 tools")
+    print("    * arifos_live (000->999 full pipeline)")
+    print("    * agi_think (111+222+777 - The Mind)")
+    print("    * agi_reflect (333 meta-reflection - Track A/B/C)")
+    print("    * asi_act (555+666 - The Heart)")
+    print("    * apex_seal (444+888+889 - Final judgment)")
+    print("  - Search Tools: 2 tools (NEW)")
+    print("    * agi_search (111+ extended SENSE - knowledge acquisition)")
+    print("    * asi_search (444 EVIDENCE - claim validation)")
+    print("  - VAULT-999 Memory System: 3 tools (CONSOLIDATED)")
+    print("    * vault999_query (recall + search + fetch)")
+    print("    * vault999_store (EUREKA storage + TAC eval)")
+    print("    * vault999_seal (audit + receipts + seal)")
     print("  - File Access Governance (FAG): 4 tools")
-    print("  - Validation & Routing: 2 tools")
+    print("  - Validation & Routing: 1 tool")
     print("  - System Operations: 2 tools")
     print()
     print("Consolidation Result:")
-    print("  - From 34 tools -> 21 tools (-38%)")
+    print("  - From 34 tools -> 17 tools (-50%)")
     print("  - Removed 11 redundant pipeline stage tools")
     print("  - Deleted 1 ungoverned tool (APEX_LLAMA)")
+    print("  - Consolidated 9 vault999 tools -> 3 tools (-67% memory tools)")
+    print("  - Exposed 2 search tools (agi_search, asi_search)")
+    print("  - Semantic renaming: arifos_live, agi_reflect, apex_seal")
     print("  - Unified vault999_* namespace for memory")
-    print("  - Clean naming: apexprime_judge, vault999_*, fag_*")
-    print("  - All 18 core capabilities preserved")
+    print("  - All 19 core capabilities preserved")
     print("=" * 80)
 
 if __name__ == "__main__":

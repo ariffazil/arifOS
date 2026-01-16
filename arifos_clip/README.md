@@ -1,8 +1,31 @@
+---
+**⚠️ DEPRECATION NOTICE (v47.0)**
+
+**Status:** LEGACY - This documentation describes aCLIP v43, which is superseded by v46/v47.
+
+**Migration Path:**
+- aCLIP pipeline concept is now integrated into `arifos_core/` (L3 implementation)
+- Pipeline specifications moved to `L2_PROTOCOLS/v46/` (L2 specs)
+- Constitutional pipeline documented in `L1_THEORY/canon/000_foundation/000_CONSTITUTIONAL_CORE_v46.md` (L1 canon)
+- Agent integration guide at `AGENTS.md` § Model-Agnostic Agent Architecture
+
+**What changed:**
+- v43: Standalone pipeline in this directory
+- v46+: Fully integrated into constitutional core with 12-floor enforcement
+
+**Should you use this?**
+- ✅ For understanding aCLIP history and v43 architecture
+- ❌ For new implementations (use v46+ from `arifos_core/`)
+
+**See:** [`AGENTS.md`](../AGENTS.md) and [`L1_THEORY/canon/000_foundation/000_CONSTITUTIONAL_CORE_v46.md`](../L1_THEORY/canon/000_foundation/000_CONSTITUTIONAL_CORE_v46.md)
+
+---
+
 # aCLIP — arifOS Cognitive-Governance Pipeline (v43)
 
-**Version**: v43 (Final)  
-**Status**: PRODUCTION-READY | GOVERNANCE-GRADE  
-**Doctrine**: "Ditempa, Bukan Diberi" (Forged, Not Given)  
+**Version**: v43 (Final - LEGACY)
+**Status**: PRODUCTION-READY | GOVERNANCE-GRADE (superseded by v46+)
+**Doctrine**: "Ditempa, Bukan Diberi" (Forged, Not Given)
 **Humility Band**: Ω₀ ∈ [0.03, 0.05]  
 
 ---

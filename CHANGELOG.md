@@ -6,6 +6,162 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ---
 
+## [v47.0] - 2026-01-16 - Model-Agnostic Agent System
+
+**Status:** ✅ IMPLEMENTED | Authority: @ariffazil + Claude (Ω - Engineer)
+
+### 🔄 Model-Agnostic Agent Architecture
+
+Implemented complete configuration-driven agent system enabling LLM technology swapping while preserving constitutional role assignments.
+
+**Constitutional Principle:** Agent ROLES are immutable law (L1 Canon). Agent TECHNOLOGY (which LLM) is swappable implementation.
+
+### Added
+
+**Core Infrastructure (2,600+ lines):**
+- `config/agents.yaml` (360 lines) - Single source of truth for agent assignments
+- `identities/` folder with 4 simplified operational identity files (658 lines total):
+  - `architect.md` (108 lines) - Design and planning role
+  - `engineer.md` (166 lines) - Build and test role
+  - `auditor.md` (182 lines) - Review and validation role (NEW)
+  - `validator.md` (202 lines) - Final constitutional verdict role (NEW)
+- `arifos_core/trinity/` module (1,070 lines):
+  - `agent_loader.py` (540 lines) - Load LLM configurations from YAML
+  - `session_manager.py` (530 lines) - Enforce constitutional session isolation
+  - `__init__.py` - Module initialization
+- `scripts/cleanup_sessions.py` (200 lines) - Clean stale session locks
+- `.antigravity/AGENT_INVENTORY_REPORT_v47.md` (300+ lines) - Agent discovery documentation
+
+**Session Isolation Enforcement:**
+- In-memory tracking for fast role conflict detection
+- On-disk lock files (`workspaces/.sessions/*.lock`) for crash recovery
+- `AgentSession` context manager for auto-cleanup
+- Hard failures with explicit `SessionIsolationError` on violations
+
+**Validation System:**
+- Type-safe `AgentConfig` dataclass with full validation
+- Workspace existence checks
+- Identity file validation
+- API key verification
+- Constitutional separation of powers validation
+
+### Changed
+
+**Updated Existing Files:**
+- `AGENTS.md` - Added Model-Agnostic Architecture section (v47.0), updated version to v47.0
+- `.claude/ENGINEER.md` - Added pointer note to `identities/engineer.md` and `config/agents.yaml`
+- `.agent/ARCHITECT.md` - Added pointer note to `identities/architect.md` and `config/agents.yaml`
+
+**Agent Assignment Changes:**
+- Architect: Still Gemini 2.5 Flash (now configured in YAML)
+- Engineer: Still Claude Sonnet 4.5 (now configured in YAML)
+- Auditor: Still GPT-4 (now configured in YAML)
+- Validator: Still Kimi K2 (now configured in YAML)
+
+### Features
+
+**Configuration-Driven Assignment:**
+```yaml
+# config/agents.yaml
+agents:
+  engineer:
+    llm:
+      provider: "anthropic"
+      model: "claude-sonnet-4.5"
+    workspace: ".claude"
+    identity_file: "identities/engineer.md"
+```
+
+**Programmatic Usage:**
+```python
+from arifos_core.trinity import AgentLoader, SessionManager, AgentSession
+
+# Load any agent configuration
+loader = AgentLoader()
+config = loader.get_agent_config("engineer")
+
+# Enforce session isolation
+manager = SessionManager()
+with AgentSession(manager, "engineer", "session_001", ...) as session:
+    # Constitutional separation enforced automatically
+    pass
+```
+
+**Command-Line Tools:**
+```bash
+# Test agent loader
+python arifos_core/trinity/agent_loader.py
+
+# Test session manager
+python arifos_core/trinity/session_manager.py
+
+# Check session status
+python scripts/cleanup_sessions.py --status
+
+# Clean up crashed sessions
+python scripts/cleanup_sessions.py
+```
+
+### Benefits
+
+1. **Technology Flexibility:** Change LLM provider/model by editing one YAML file
+2. **Constitutional Integrity:** Roles and responsibilities remain immutable regardless of LLM
+3. **Vendor Independence:** No lock-in to specific LLM provider
+4. **Cost Optimization:** Easily switch to cheaper models when appropriate
+5. **Session Safety:** Programmatic enforcement prevents role conflicts
+6. **Crash Recovery:** On-disk lock files survive process crashes
+7. **Future-Proof:** New LLMs can be added without code changes
+
+### Technical Details
+
+**File Structure:**
+- 13 new files created
+- 3 existing files updated
+- ~2,600 lines of new code
+- All modules tested and working
+
+**Test Results:**
+- ✅ Agent loader: 4/4 agents validated
+- ✅ Session manager: All isolation tests passed
+- ✅ Cleanup script: Status check working
+- ✅ Identity files: All UTF-8 encoded, properly loaded
+
+**Constitutional Compliance:**
+- F6 (Amanah): Session isolation prevents unauthorized role switching
+- F8 (Tri-Witness): Different agents required for same work item
+- F1 (Truth): Configuration validated at load time
+- F4 (Clarity): Simplified identity files reduce operational entropy
+
+### Migration Notes
+
+**For Users:**
+- No immediate action required - existing workflows unchanged
+- Agent assignments remain the same (now just configured in YAML)
+- Detailed identity files (`.claude/ENGINEER.md`) preserved as reference
+- New simplified identities (`identities/engineer.md`) for daily use
+
+**For Developers:**
+- Import from `arifos_core.trinity` for agent orchestration
+- Use `AgentLoader` to read configurations
+- Use `SessionManager` to enforce isolation
+- See `.antigravity/AGENT_INVENTORY_REPORT_v47.md` for full details
+
+### Documentation
+
+**New Documentation:**
+- Agent inventory report (discovery process)
+- Implementation architecture diagrams
+- Session isolation protocol
+- Configuration format specification
+- Usage examples and integration patterns
+
+**Updated Documentation:**
+- AGENTS.md - Model-agnostic section
+- Identity files - Pointer notes to new system
+- This CHANGELOG - Complete v47.0 documentation
+
+---
+
 ## [v46.2.2] - 2026-01-18
 ### Added
 - Function-based `setup/` directory with subfolders: `bootstrap/`, `docs/`, `tools/`, `verification/`

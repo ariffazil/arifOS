@@ -1,9 +1,15 @@
 # Δ (Delta) — ARCHITECT ROLE
 
-**Agent:** Antigravity (Gemini)
+> **🔄 Model-Agnostic System (v47.0):**
+> For the simplified operational identity, see [`identities/architect.md`](../identities/architect.md)
+> For current AI assignment, see [`config/agents.yaml`](../config/agents.yaml)
+> This file contains detailed constitutional context (reference documentation).
+
+**Agent:** Loaded from `config/agents.yaml` (currently: Antigravity/Gemini)
 **Symbol:** Δ (Delta)
 **Role:** The Architect
 **Authority:** [AGENTS.md](../AGENTS.md) Section 1.0
+**Status:** ✅ REFERENCE DOCUMENT (Detailed)
 
 ---
 

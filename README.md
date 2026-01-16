@@ -1,6 +1,6 @@
 # arifOS: Constitutional AI That Actually Works
 
-**Version 46.2** | January 2026
+**Version 47.0** | January 2026
 **Motto:** *"Ditempa Bukan Diberi"* — Forged, not given. Truth must cool before it rules.
 
 ---
@@ -44,13 +44,54 @@ arifOS now features a **function-based setup** and a fully IDE-agnostic, auto-re
 
 ---
 
-## 🆕 What’s New (v46.2+)
+## 🆕 What's New in v47.0
 
+### 🔄 Model-Agnostic Agent Architecture
+The biggest change: **Any LLM can now serve any role via configuration**.
+
+**Before v47.0:**
+- Architect = hardcoded Gemini
+- Engineer = hardcoded Claude
+- Auditor = hardcoded ChatGPT
+
+**After v47.0:**
+- Architect = `config/agents.yaml` (swap LLMs anytime)
+- Engineer = `config/agents.yaml` (swap LLMs anytime)
+- Auditor = `config/agents.yaml` (swap LLMs anytime)
+
+**Why this matters:**
+- **Flexibility:** Use the best LLM for each task based on current capabilities/cost
+- **Continuity:** Constitutional governance stays constant as AI technology evolves
+- **Scalability:** Add new LLMs (GPT-5, Gemini Pro, etc.) via config, not code
+
+**Key principle:** Agent ROLES are immutable constitutional law. Agent TECHNOLOGY is swappable configuration.
+
+**See:** [`AGENTS.md` § Model-Agnostic Agent Architecture](AGENTS.md#L119) for complete documentation.
+
+### 📚 Documentation Consolidation (Entropy Reduction)
+Massive cleanup eliminating scattered documentation:
+
+- **aCLIP** (constitutional pipeline): 74 scattered mentions → 3 canonical sources ([`AGENTS.md`](AGENTS.md), [`L1_THEORY/canon/`](L1_THEORY/canon/000_foundation/000_CONSTITUTIONAL_CORE_v46.md), this README)
+- **Evaluation harness**: Duplication eliminated, [`arifos_eval/`](arifos_eval/) established as canonical source
+- **60+ legacy files** moved to [`archive/`](archive/) for historical reference
+
+**Result:** ΔS < 0 (entropy reduced), clarity increased.
+
+### 🎯 Agent Skills & Identity System
+New [`identities/`](identities/) directory with role-specific guides:
+
+- [`architect.md`](identities/architect.md) — Quick reference for Architect role (~200 lines)
+- [`engineer.md`](identities/engineer.md) — Quick reference for Engineer role (~200 lines)
+- [`auditor.md`](identities/auditor.md) — Quick reference for Auditor role (~200 lines)
+- [`validator.md`](identities/validator.md) — Quick reference for Validator role
+- [`SKILLS_MATRIX.md`](identities/SKILLS_MATRIX.md) — Comprehensive skills/workflows breakdown (500+ lines)
+
+**Purpose:** Any LLM can pick up any role by reading its identity file.
+
+### ⚙️ Infrastructure (v46.2 Carried Forward)
 - Function-based `setup/` directory (bootstrap, docs, tools, verification)
 - IDE-agnostic auto-bootstrap script (`setup/on_workspace_open.py`)
-- All setup, docs, and tools unified and organized
 - One-command, self-healing environment for all contributors
-- Documentation and onboarding updated for clarity and speed
 
 ---
 
@@ -643,16 +684,17 @@ _Note: Ω₀ (epistemic humility band) and other thermodynamic parameters are de
 
 ## Current Status
 
-**Production Ready:** Yes, version 46.2
+**Production Ready:** Yes, version 47.0
 **Active Deployments:** Testing phase
 **Test Coverage:** 324 constitutional test cases
-**Last Updated:** January 14, 2026
+**Last Updated:** January 16, 2026
 
 ### Roadmap
-- **v46.2 (Now):** 12-rule constitutional kernel active
-- **v47.0 (Q2 2026):** Context-adaptive rule thresholds
-- **v47.1 (Q3 2026):** Probabilistic rule evaluation
-- **v47.2 (Q4 2026):** Complex rule interactions
+- **v47.0 (Current):** Model-agnostic agent architecture + documentation consolidation ✅
+- **v47.1 (Q2 2026):** Runtime config loading (`config/agents.yaml` implementation)
+- **v47.2 (Q3 2026):** Session isolation enforcement (programmatic guards)
+- **v47.3 (Q3 2026):** Context-adaptive rule thresholds
+- **v48.0 (Q4 2026):** Probabilistic rule evaluation + complex rule interactions
 
 ---
 
@@ -687,6 +729,30 @@ Constitutional Architect | Penang, Malaysia
 - **Codex (ChatGPT):** Constitutional judgment
 - **Kimi (Moonshot):** Security enforcement
 
+### Model-Agnostic Agent Architecture
+
+**Key Innovation (v47.0):** Agent ROLES are immutable constitutional law. Agent TECHNOLOGY (which LLM) is swappable implementation detail.
+
+| Principle | Meaning |
+|-----------|---------|
+| **Roles are law** | Architect, Engineer, Auditor, Validator = constitutional responsibilities defined in `L1_THEORY/canon/` |
+| **Tech is config** | Claude, Gemini, GPT, Kimi = LLM assignments via workspace files (`.claude/`, `.antigravity/`, etc.) |
+| **Any LLM, any role** | Same LLM can serve different roles in different sessions (with session isolation enforcement) |
+
+**Why this matters:**
+- **Flexibility:** Switch LLMs based on cost, capability, or availability without changing governance
+- **Continuity:** Constitutional rules remain constant even as AI technology evolves
+- **Scalability:** Add new LLMs or swap existing ones via configuration, not code rewrite
+
+**Example:**
+```
+Today:    Claude = Engineer, Gemini = Architect
+Tomorrow: Claude = Architect, GPT-4 = Engineer
+Result:   Constitutional governance unchanged, technology optimized
+```
+
+**See:** `AGENTS.md` § Model-Agnostic Agent Architecture for complete documentation.
+
 ---
 
 ## The Bottom Line
@@ -716,5 +782,5 @@ MIT License - See LICENSE file
 
 *"The future belongs to constitutional AI."*
 
-*arifOS v46.2 | January 2026*
+*arifOS v47.0 | January 2026*
 

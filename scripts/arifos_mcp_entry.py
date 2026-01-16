@@ -223,16 +223,17 @@ def create_v0_strict_server() -> FastMCP:
 
 async def main() -> None:
     """
-    Ignite the arifOS MCP server (full 15-tool version for production).
+    Ignite the arifOS MCP server (unified 17-tool version for production).
 
     For v0-strict mode (single tool), use create_v0_strict_server() instead.
     """
-    # Import the full server for production use
-    from arifos_core.mcp.server import mcp_server
+    # Import the unified server for production use
+    from arifos_core.mcp.unified_server import mcp_server
 
     print("[arifOS MCP] Initializing constitutional governance pipeline...", file=sys.stderr)
-    print("[arifOS MCP] 15 tools ready: 5 legacy + 10 constitutional (000->999)", file=sys.stderr)
-    print("[arifOS MCP] All tools enforce the 9 Constitutional Floors (F1-F9)", file=sys.stderr)
+    print("[arifOS MCP] 17 tools ready: Unified architecture with dual search", file=sys.stderr)
+    print("[arifOS MCP] - 5 constitutional pipeline + 2 search + 3 vault999 + 4 FAG + 1 validation + 2 system", file=sys.stderr)
+    print("[arifOS MCP] All tools enforce the 12 Constitutional Floors (F1-F12)", file=sys.stderr)
     print("[arifOS MCP] DITEMPA BUKAN DIBERI - The server is forged.\n", file=sys.stderr)
 
     try:

@@ -1,4 +1,4 @@
-# ?? Development Setup & Enhancement - Complete Documentation Index
+﻿# ?? Development Setup & Enhancement - Complete Documentation Index
 
 **Created:** 2026-01-18  
 **Purpose:** Central navigation for all setup and enhancement documentation  
@@ -56,7 +56,7 @@
 
 ---
 
-## ?? Auto-Bootstrap & Function-Based Setup
+## 🚀 Auto-Bootstrap & Function-Based Setup
 
 - **Auto-Bootstrap Script:** [`setup/on_workspace_open.py`](../on_workspace_open.py)
 - **Bootstrap Guide:** [`setup/bootstrap/BOOTSTRAP_GUIDE.md`](../bootstrap/BOOTSTRAP_GUIDE.md)

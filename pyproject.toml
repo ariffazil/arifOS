@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "46.2.2"
-# Prime Directive SEALED: Geometry of Governed Intelligence (2026-01-16)
+version = "47.0.0"
+# v47.0: Model-Agnostic Agent Architecture + Documentation Consolidation (2026-01-16)
 description = "Constitutional AI governance with 12 immutable floors. Integrates Agent Zero exploration (000 VOID) with constitutional validation (111-999). Real async parallel execution. Works with ChatGPT, Claude, Gemini, and any LLM."
 readme = "README.md"
 requires-python = ">=3.10"
