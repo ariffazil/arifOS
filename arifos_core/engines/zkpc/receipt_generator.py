@@ -11,11 +11,15 @@ Constitutional Integration:
 from datetime import datetime
 import json
 import uuid
+import logging
 from pathlib import Path
 from typing import Dict, Optional, List
 from dataclasses import dataclass, asdict
 
 from arifos_core.engines.zkpc.merkle_tree import MerkleTree
+from arifos_core.memory.ledger.db_connection import DatabaseConnection
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -228,9 +232,53 @@ class ReceiptGenerator:
         return signature
 
     def _save_receipt(self, receipt: ZKPCReceiptV47):
-        """Save receipt to JSONL file."""
+        """
+        Save receipt to JSONL file and database (dual storage).
+
+        Dual Storage Strategy:
+        1. Always write to JSONL (file-based fallback)
+        2. Optionally write to Postgres (if available)
+
+        Constitutional Compliance:
+        - F1 (Amanah): Reversible - files provide backup
+        - F5 (Peace²): Non-destructive - database failure doesn't lose data
+        """
+        # 1. Always write to file (primary fallback)
         with open(self.receipts_path, "a") as f:
             f.write(json.dumps(receipt.to_dict()) + "\n")
+
+        # 2. Write to database if available
+        if DatabaseConnection.is_available():
+            try:
+                # Prepare data for database
+                db_data = {
+                    "id": uuid.uuid4(),  # New UUID for database row
+                    "entry_id": uuid.UUID(receipt.entry_id) if receipt.entry_id else None,
+                    "proof_type": "Merkle",  # zkPC uses Merkle tree
+                    "proof_data": receipt.to_dict(),  # Full receipt as JSONB
+                    "merkle_root": receipt.merkle_root,
+                    "merkle_depth": len(self.merkle_tree.leaves) if self.merkle_tree.leaves else 0,
+                    "sealed_by": "Tri-Witness",  # Per Track B spec
+                    "verification_status": "VALID"  # Sealed receipts are valid
+                }
+
+                # Insert to zkpc_receipts table
+                result = DatabaseConnection.insert_one(
+                    "zkpc_receipts",
+                    db_data,
+                    returning="id"
+                )
+
+                if result:
+                    logger.debug(f"✓ zkPC receipt saved to database: {result['id']}")
+                else:
+                    logger.warning(f"Database insert returned None for receipt {receipt.zkpc_id}")
+
+            except Exception as e:
+                logger.warning(f"Database save failed for receipt {receipt.zkpc_id}: {e}")
+                logger.info("  Fallback: File-based storage preserved")
+        else:
+            logger.debug(f"Database unavailable - receipt {receipt.zkpc_id} saved to file only")
 
     def get_receipt(self, zkpc_id: str) -> Optional[ZKPCReceiptV47]:
         """

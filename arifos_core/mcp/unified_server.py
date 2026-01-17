@@ -122,45 +122,94 @@ from .tools.validate_full import ValidateFullRequest, ValidateFullResponse, arif
 
 logger = logging.getLogger(__name__)
 
-# Vault configuration
+# Vault configuration (v47.1 Consolidated 3×3 Architecture)
 REPO_ROOT = Path(__file__).parent.parent.parent
-VAULT_ROOT = REPO_ROOT / "vault_999" / "VAULT999"
+VAULT_ROOT = REPO_ROOT / "vault_999"
 
+# Memory bands aligned with 3×3 geological structure
+# AAA_HUMAN intentionally excluded (F11 - forbidden to machines)
 BANDS = {
-    "L0_VAULT": {
-        "path": VAULT_ROOT / "L0_VAULT",
+    # CCC_CONSTITUTIONAL: Human-sealed, machine read-only
+    "CCC_L0_FOUNDATION": {
+        "path": VAULT_ROOT / "CCC_CONSTITUTIONAL" / "LAYER_1_FOUNDATION",
         "confidence": 1.0,
         "tag": "[CANONICAL]",
         "geometry": "ORTHOGONAL",
-        "extensions": ["*.md", "*.json"]
+        "extensions": ["*.md", "*.json"],
+        "description": "L0 Constitutional law (immutable)"
     },
-    "L1_LEDGERS": {
-        "path": VAULT_ROOT / "L1_LEDGERS",
+    "CCC_L1_PERMANENT": {
+        "path": VAULT_ROOT / "CCC_CONSTITUTIONAL" / "LAYER_2_PERMANENT",
         "confidence": 1.0,
         "tag": "[SEALED]",
         "geometry": "TOROIDAL",
-        "extensions": ["*.jsonl", "*.md"]
+        "extensions": ["*.jsonl", "*.md"],
+        "description": "L1 Sealed ledger (hash-chained)"
     },
-    "L4_WITNESS": {
-        "path": VAULT_ROOT / "L4_WITNESS",
+    "CCC_L2_PROCESSING": {
+        "path": VAULT_ROOT / "CCC_CONSTITUTIONAL" / "LAYER_3_PROCESSING" / "L2_active_state",
+        "confidence": 0.85,
+        "tag": "[ACTIVE]",
+        "geometry": "FRACTAL",
+        "extensions": ["*.jsonl", "*.md"],
+        "description": "L2 Active state (7-day TTL)"
+    },
+    "CCC_L3_COOLING": {
+        "path": VAULT_ROOT / "CCC_CONSTITUTIONAL" / "LAYER_3_PROCESSING" / "L3_phoenix_cooling",
+        "confidence": 0.75,
+        "tag": "[COOLING]",
+        "geometry": "TEMPORAL",
+        "extensions": ["*.jsonl", "*.md"],
+        "description": "L3 Phoenix-72 cooling queue"
+    },
+    "CCC_L4_WITNESS": {
+        "path": VAULT_ROOT / "CCC_CONSTITUTIONAL" / "LAYER_3_PROCESSING" / "L4_witness_observations",
         "confidence": 0.85,
         "tag": "[OBSERVATION]",
         "geometry": "FRACTAL",
-        "extensions": ["*.md"]
+        "extensions": ["*.jsonl", "*.md"],
+        "description": "L4 Tri-witness observations"
     },
-    "00_ENTROPY": {
-        "path": VAULT_ROOT / "00_ENTROPY",
-        "confidence": 0.1,
-        "tag": "[HOT]",
-        "geometry": "CHAOS",
-        "extensions": ["*.json", "*.md", "*.txt"]
+    "CCC_L5_VOID": {
+        "path": VAULT_ROOT / "CCC_CONSTITUTIONAL" / "LAYER_3_PROCESSING" / "L5_void_rejections",
+        "confidence": 0.5,
+        "tag": "[VOID]",
+        "geometry": "NEGATIVE",
+        "extensions": ["*.jsonl", "*.md"],
+        "description": "L5 VOID rejections (learning archive)"
+    },
+
+    # BBB_MACHINE: Machine read/write operational memory
+    "BBB_OPERATIONAL": {
+        "path": VAULT_ROOT / "BBB_MACHINE" / "LAYER_1_OPERATIONAL",
+        "confidence": 0.8,
+        "tag": "[PIPELINE]",
+        "geometry": "LINEAR",
+        "extensions": ["*.jsonl"],
+        "description": "Operational pipeline records"
+    },
+    "BBB_WORKING": {
+        "path": VAULT_ROOT / "BBB_MACHINE" / "LAYER_2_WORKING",
+        "confidence": 0.7,
+        "tag": "[SESSION]",
+        "geometry": "EPHEMERAL",
+        "extensions": ["*.jsonl"],
+        "description": "Session state (7-day TTL)"
+    },
+    "BBB_AUDIT": {
+        "path": VAULT_ROOT / "BBB_MACHINE" / "LAYER_3_AUDIT",
+        "confidence": 1.0,
+        "tag": "[AUDIT]",
+        "geometry": "APPEND_ONLY",
+        "extensions": ["*.jsonl"],
+        "description": "Decision audit trail (immutable)"
     }
 }
 
 MAX_RESULTS = 10
 
-# Sacred vault protection
-SACRED_VAULT_PATTERNS = ["ARIF FAZIL", "ARIF_FAZIL", "arif fazil", "arif_fazil"]
+# Sacred vault protection (F11 - AAA_HUMAN forbidden to machines)
+SACRED_VAULT_PATTERNS = ["AAA_HUMAN", "AAA", "ARIF FAZIL", "ARIF_FAZIL", "arif fazil", "arif_fazil", "aaa_human"]
 
 def _is_sacred_query(query: str) -> bool:
     """Check if query targets sacred human vault."""
@@ -225,7 +274,7 @@ def _vault_search_internal(query: str, max_results: int = 10) -> Dict[str, Any]:
     Searches L0_VAULT (canonical), L1_LEDGERS (sealed), L4_WITNESS (observation), 00_ENTROPY (hot).
     Returns ranked results by confidence.
 
-    Constitutional Boundary: Only searches VAULT999 (machine law).
+    Constitutional Boundary: Only searches CCC/BBB (machine law).
     The ARIF FAZIL vault (human biography) is sacred and offline.
     """
     logger.info(f"_vault_search_internal: '{query}'")
@@ -284,7 +333,7 @@ def _vault_search_internal(query: str, max_results: int = 10) -> Dict[str, Any]:
         "query": query,
         "total_found": len(all_results),
         "results": limited,
-        "vault": "VAULT999",
+        "vault": "CCC/BBB",
         "governance": "Nine Floors + APEX PRIME"
     }
 
@@ -292,7 +341,7 @@ def _vault_fetch_internal(id: str) -> Dict[str, Any]:
     """
     Retrieve full document by ID (format: BAND_filename).
 
-    Constitutional Boundary: Only fetches from VAULT999.
+    Constitutional Boundary: Only fetches from CCC/BBB.
     The ARIF FAZIL vault is sacred and offline.
     """
     logger.info(f"_vault_fetch_internal: '{id}'")
@@ -333,7 +382,7 @@ def _vault_fetch_internal(id: str) -> Dict[str, Any]:
                                 "confidence": band["confidence"],
                                 "band": band_name,
                                 "canonical": band_name == "L0_VAULT",
-                                "vault": "VAULT999",
+                                "vault": "CCC/BBB",
                                 "governance": "Nine Floors + APEX PRIME",
                                 "geometry": band.get("geometry", "UNKNOWN")
                             }
@@ -462,10 +511,10 @@ def vault999_store(
 
     ACTIVATION: Call this when extraction complete.
 
-    Vault Targets:
-    - AAA: Human insights -> vault_999/ARIF FAZIL/
-    - CCC: Machine law -> vault_999/CCC/L4_EUREKA/
-    - BBB: Memory/learning -> vault_999/BBB/L1_cooling_ledger/
+    Vault Targets (v47.1 Consolidated):
+    - AAA: Human insights -> vault_999/AAA_HUMAN/ (FORBIDDEN)
+    - CCC: Machine law -> vault_999/CCC_CONSTITUTIONAL/LAYER_3_PROCESSING/L4_witness_observations/
+    - BBB: Memory/learning -> vault_999/INFRASTRUCTURE/cooling_ledger/
 
     Triad (MANDATORY):
     - structure: What changed (the new invariant)
@@ -476,22 +525,25 @@ def vault999_store(
     """
     logger.info(f"VAULT-999 Store: target={vault_target}, title={title}")
 
-    # Determine vault path
-    CCC_ROOT = REPO_ROOT / "vault_999" / "CCC"
-    BBB_ROOT = REPO_ROOT / "vault_999" / "BBB"
-    SACRED_VAULT = REPO_ROOT / "vault_999" / "ARIF FAZIL"
+    # Determine vault path (v47.1 Consolidated Structure)
+    CCC_ROOT = REPO_ROOT / "vault_999" / "CCC_CONSTITUTIONAL"
+    BBB_ROOT = REPO_ROOT / "vault_999" / "BBB_MACHINE"
+    SACRED_VAULT = REPO_ROOT / "vault_999" / "AAA_HUMAN"
+    INFRASTRUCTURE = REPO_ROOT / "vault_999" / "INFRASTRUCTURE"
 
     if vault_target == "AAA":
         logger.error("[VOID] SACRED_BOUNDARY: Cannot write to AAA (human vault) via MCP")
         return {
             "verdict": "VOID-999",
-            "error": "SACRED_BOUNDARY: The ARIF FAZIL vault is offline and not MCP-governed",
-            "guidance": "AAA (human biography) is protected. Use CCC (machine law) or BBB (memory/learning)."
+            "error": "SACRED_BOUNDARY: The AAA_HUMAN vault is offline and not MCP-governed (F11)",
+            "guidance": "AAA (human biography) is protected by F11. Use CCC (machine law) or BBB (memory/learning)."
         }
     elif vault_target == "CCC":
-        vault_path = CCC_ROOT / "L4_EUREKA"
+        # Store insights in L4_WITNESS (observations layer)
+        vault_path = CCC_ROOT / "LAYER_3_PROCESSING" / "L4_witness_observations"
     elif vault_target == "BBB":
-        vault_path = BBB_ROOT / "L1_cooling_ledger"
+        # Store in cooling ledger infrastructure
+        vault_path = INFRASTRUCTURE / "cooling_ledger"
     else:
         return {
             "verdict": "VOID-999",
@@ -1248,10 +1300,22 @@ def create_stdio_server() -> Server:
         """Execute a tool by name."""
         try:
             result = run_tool(name, arguments)
+
+            # FIX: Convert Pydantic models to dicts for MCP serialization
+            # Issue: Antigravity expects dict format, not tuple pairs from .items()
+            from pydantic import BaseModel
+            if isinstance(result, BaseModel):
+                # Use .model_dump() for Pydantic v2 (or .dict() for v1)
+                if hasattr(result, 'model_dump'):
+                    return result.model_dump()
+                elif hasattr(result, 'dict'):
+                    return result.dict()
+
             return result
         except Exception as e:
             logger.error(f"Error executing tool {name}: {e}")
             return {"error": str(e), "tool": name}
+
 
     return server
 

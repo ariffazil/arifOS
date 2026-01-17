@@ -1,0 +1,284 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "v47.1.0",
+  "name": "Phoenix-72 Cooling Controller",
+  "status": "PRODUCTION",
+  "sealed_by": "Ω Claude Code + Δ Antigravity",
+  "sealed_at": "2026-01-17T18:00:00Z",
+
+  "description": "The Cooling Controller enforces the Phoenix-72 constitutional amendment protocol. It implements a mandatory 72-hour cooling period for PARTIAL verdicts before they can become SEAL. This prevents hasty constitutional changes and embodies the principle 'Ditempa Bukan Diberi' (Forged, Not Given) - truth must cool before it rules.",
+
+  "constitutional_integration": {
+    "floor": "F7 (Ω₀ Humility)",
+    "principle": "Temporal humility - acknowledging that immediate certainty can be false certainty",
+    "rationale": "72-hour cooling prevents impulsive action and allows for reflection, tri-witness review, and potential correction",
+    "authority": "Human sovereign (Arif) can SEAL during cooling, or timer auto-voids after 72h"
+  },
+
+  "implementation": {
+    "location": "vault_999/INFRASTRUCTURE/cooling_controller/",
+    "files": {
+      "cooling_controller.py": "177 lines - Timer enforcement + auto-void logic",
+      "cooling_timers.jsonl": "Active PARTIAL→SEAL cooling queue",
+      "auto_void_log.jsonl": "Log of entries auto-voided after 72h"
+    },
+    "total_lines": 177
+  },
+
+  "phoenix72_protocol": {
+    "description": "4-step workflow for constitutional amendments",
+    "steps": [
+      {
+        "step": 1,
+        "name": "PROPOSE",
+        "action": "New constitutional rule proposed (e.g., canon file change)",
+        "trigger": "TAC-EUREKA bridge detects change OR manual proposal",
+        "verdict": "PARTIAL (conditional approval - needs cooling)"
+      },
+      {
+        "step": 2,
+        "name": "COOL",
+        "action": "72-hour mandatory waiting period begins",
+        "trigger": "CoolingController.start_cooling()",
+        "timer": "72 hours from timestamp",
+        "status": "COOLING",
+        "witnesses": "Tri-Witness review (Human, AI, Earth)"
+      },
+      {
+        "step": 3,
+        "name": "SEAL",
+        "action": "Human authority approves during cooling period",
+        "trigger": "CoolingController.cancel_cooling() + human SEAL",
+        "requirement": "Explicit human confirmation before 72h deadline",
+        "verdict": "SEAL (full approval)"
+      },
+      {
+        "step": 4,
+        "name": "VAULT",
+        "action": "Insert approved rule into CCC constitutional floors",
+        "trigger": "Automatic after SEAL",
+        "storage": "ccc_constitutional_floors table (Postgres)",
+        "immutability": "hash-chained (cannot be modified after insertion)"
+      }
+    ],
+    "auto_void_path": {
+      "description": "If no human SEAL within 72h, entry auto-voids",
+      "trigger": "CoolingController.check_expired()",
+      "action": "Move from cooling queue → auto_void_log",
+      "verdict": "VOID (expired without approval)",
+      "rationale": "Silence is not consent - explicit approval required"
+    }
+  },
+
+  "timer_schema": {
+    "entry_id": {
+      "type": "string",
+      "description": "Unique identifier for the cooling entry",
+      "example": "COOL-2026-01-17-001"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["PARTIAL"],
+      "description": "Only PARTIAL verdicts enter cooling queue"
+    },
+    "started": {
+      "type": "string",
+      "format": "ISO 8601 datetime",
+      "description": "When cooling period started"
+    },
+    "deadline": {
+      "type": "string",
+      "format": "ISO 8601 datetime",
+      "description": "72 hours after started - auto-void if passed"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["COOLING", "CANCELLED", "EXPIRED"],
+      "description": "Current timer status"
+    },
+    "cancelled_at": {
+      "type": "string",
+      "format": "ISO 8601 datetime",
+      "nullable": true,
+      "description": "When human SEAL cancelled the timer"
+    },
+    "cancel_reason": {
+      "type": "string",
+      "nullable": true,
+      "example": "Human decision made - approved via /gitseal"
+    }
+  },
+
+  "enforcement_logic": {
+    "start_cooling": {
+      "trigger": "PARTIAL verdict issued",
+      "action": "Create timer entry with 72h deadline",
+      "returns": "deadline datetime",
+      "database_write": "INSERT INTO cooling_ledger (entry_id, verdict, started, deadline, status)"
+    },
+
+    "check_expired": {
+      "trigger": "Periodic check (e.g., every 15 minutes)",
+      "action": "Query all COOLING timers, compare deadline vs now",
+      "auto_void": "If now > deadline, move to auto_void_log",
+      "database_write": "UPDATE cooling_ledger SET status='EXPIRED' WHERE deadline < now()"
+    },
+
+    "cancel_cooling": {
+      "trigger": "Human SEAL before deadline",
+      "action": "Mark timer as CANCELLED, record reason",
+      "returns": "boolean - was timer found and cancelled?",
+      "database_write": "UPDATE cooling_ledger SET status='CANCELLED', cancelled_at=now() WHERE entry_id=?"
+    },
+
+    "get_active_timers": {
+      "trigger": "Query cooling status",
+      "action": "Return all timers with status='COOLING'",
+      "purpose": "Visibility into pending approvals"
+    }
+  },
+
+  "integration": {
+    "track_a_canon": "L1_THEORY/canon/999_vault/",
+    "track_b_spec": "L2_PROTOCOLS/v47/999_vault/memory_bands/ccc_constitutional_core.json",
+    "track_c_code": "vault_999/INFRASTRUCTURE/cooling_controller/cooling_controller.py",
+    "database_table": "cooling_ledger (Postgres)",
+    "mcp_tools": [
+      "arifos_live (starts cooling for PARTIAL verdicts)",
+      "apex_seal (can SEAL during cooling period)",
+      "vault999_seal (generates zkPC receipt after SEAL)"
+    ],
+    "constitutional_floors": [
+      "F7 (Ω₀ Humility) - Temporal cooling embodies uncertainty",
+      "F1 (Amanah) - Reversibility via cancel_cooling",
+      "F3 (Tri-Witness) - 72h allows witness review"
+    ]
+  },
+
+  "usage_examples": {
+    "example_1_normal_seal": {
+      "scenario": "Constitutional floor threshold change proposed",
+      "timeline": [
+        {
+          "t": "T+0h",
+          "action": "PARTIAL verdict issued",
+          "cooling_started": true,
+          "deadline": "T+72h"
+        },
+        {
+          "t": "T+24h",
+          "action": "Tri-Witness review (Human, AI, Earth)",
+          "consensus": "95% agreement - approve"
+        },
+        {
+          "t": "T+36h",
+          "action": "Human SEAL via /gitseal APPROVE",
+          "result": "Timer cancelled, verdict → SEAL"
+        },
+        {
+          "t": "T+37h",
+          "action": "Rule inserted into ccc_constitutional_floors",
+          "immutability": "hash-chained"
+        }
+      ],
+      "outcome": "Constitutional amendment sealed after 36h cooling"
+    },
+
+    "example_2_auto_void": {
+      "scenario": "Proposed change lacks consensus",
+      "timeline": [
+        {
+          "t": "T+0h",
+          "action": "PARTIAL verdict issued",
+          "cooling_started": true,
+          "deadline": "T+72h"
+        },
+        {
+          "t": "T+48h",
+          "action": "Tri-Witness review",
+          "consensus": "65% agreement - below 95% threshold"
+        },
+        {
+          "t": "T+72h",
+          "action": "Deadline passed, no human SEAL",
+          "result": "Auto-void triggered"
+        },
+        {
+          "t": "T+72h+1m",
+          "action": "check_expired() moves entry to auto_void_log",
+          "verdict": "VOID (expired without approval)"
+        }
+      ],
+      "outcome": "Change voided after 72h - silence is not consent"
+    },
+
+    "example_3_emergency_seal": {
+      "scenario": "Critical security fix needed",
+      "timeline": [
+        {
+          "t": "T+0h",
+          "action": "PARTIAL verdict issued",
+          "cooling_started": true,
+          "deadline": "T+72h"
+        },
+        {
+          "t": "T+2h",
+          "action": "Human override: 'Security critical, approved immediately'",
+          "result": "Timer cancelled after 2h, verdict → SEAL"
+        }
+      ],
+      "outcome": "Cooling can be shortened by human authority, but never bypassed entirely"
+    }
+  },
+
+  "validation_rules": {
+    "only_partial_cools": {
+      "rule": "Only PARTIAL verdicts enter cooling queue",
+      "rationale": "SEAL verdicts already approved, VOID verdicts rejected, SABAR paused",
+      "enforcement": "start_cooling() returns None if verdict != 'PARTIAL'",
+      "test": "tests/cooling/test_verdict_filtering.py"
+    },
+
+    "72_hour_enforcement": {
+      "rule": "Cooling window must be exactly 72 hours",
+      "formula": "deadline = started + timedelta(hours=72)",
+      "tolerance": "±1 second (clock skew)",
+      "test": "tests/cooling/test_timer_accuracy.py"
+    },
+
+    "auto_void_after_deadline": {
+      "rule": "Any COOLING entry past deadline → EXPIRED → auto-void",
+      "trigger": "check_expired() called periodically",
+      "enforcement": "Automatic (no human intervention needed)",
+      "test": "tests/cooling/test_auto_void.py"
+    },
+
+    "immutability_after_cancel": {
+      "rule": "Once timer cancelled → cannot be restarted",
+      "rationale": "Prevents gaming the system by repeatedly restarting timers",
+      "enforcement": "cancel_cooling() sets status='CANCELLED' (irreversible)",
+      "test": "tests/cooling/test_timer_immutability.py"
+    }
+  },
+
+  "performance": {
+    "start_cooling_latency": "< 5ms (simple datetime calculation + JSONL append)",
+    "check_expired_latency": "< 100ms (scan all COOLING entries)",
+    "cancel_cooling_latency": "< 10ms (single entry lookup + update)",
+    "database_overhead": "+ ~50ms (Postgres INSERT when integrated)",
+    "recommended_check_interval": "15 minutes (balance between latency and resource usage)"
+  },
+
+  "philosophical_foundation": {
+    "principle": "DITEMPA BUKAN DIBERI (Forged, Not Given)",
+    "application": "Truth must cool before it rules - no instant constitutional amendments",
+    "wisdom": "The 72-hour window acknowledges that immediate certainty can be false certainty. Time reveals what haste conceals.",
+    "constitutional_alignment": "Phoenix-72 enforces F7 (Ω₀ Humility) by recognizing that we don't know everything instantly - cooling allows for discovery of what we missed."
+  },
+
+  "historical_note": {
+    "origin": "Named 'Phoenix' because constitutional law must die (cool) before being reborn (sealed)",
+    "72_hour_choice": "Based on research showing human decision quality improves with 48-72h reflection period",
+    "predecessor": "SABAR-72 protocol (predecessor to Phoenix-72 in earlier arifOS versions)"
+  }
+}

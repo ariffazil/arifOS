@@ -30,8 +30,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from arifos_core.state.ledger_hashing import load_jsonl
 
-# Default path for L1 Cooling Ledger
-DEFAULT_LEDGER_PATH = Path("cooling_ledger") / "L1_cooling_ledger.jsonl"
+# Default path for L1 Cooling Ledger (v47.1 Consolidated)
+DEFAULT_LEDGER_PATH = Path("vault_999/INFRASTRUCTURE/cooling_ledger") / "L1_cooling_ledger.jsonl"
 
 
 @dataclass

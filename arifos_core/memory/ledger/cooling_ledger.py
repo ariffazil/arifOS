@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, Callable, TYPE_CHECKING
 
-DEFAULT_LEDGER_PATH = Path("cooling_ledger") / "L1_cooling_ledger.jsonl"
+DEFAULT_LEDGER_PATH = Path("vault_999/INFRASTRUCTURE/cooling_ledger") / "L1_cooling_ledger.jsonl"
 
 if TYPE_CHECKING:
     from arifos_core.utils.kms_signer import KmsSigner

@@ -9,8 +9,20 @@ Constitutional Integration:
 """
 from datetime import datetime, timedelta
 import json
+import logging
+import uuid
 from pathlib import Path
 from typing import Optional, List, Dict
+
+# Import database connection (will gracefully fallback if unavailable)
+try:
+    from arifos_core.memory.ledger.db_connection import DatabaseConnection
+    DB_AVAILABLE = True
+except ImportError:
+    DB_AVAILABLE = False
+    DatabaseConnection = None
+
+logger = logging.getLogger(__name__)
 
 
 class CoolingController:

@@ -37,9 +37,9 @@ from arifos_core.state.ledger_hashing import (
 from arifos_core.state.merkle import build_merkle_tree
 
 
-# Paths (can later be centralized in a config or manifest)
-COOLING_LEDGER_PATH = Path("cooling_ledger") / "L1_cooling_ledger.jsonl"
-MERKLE_ROOT_PATH = Path("cooling_ledger") / "L1_merkle_root.txt"
+# Paths (v47.1 Consolidated Structure)
+COOLING_LEDGER_PATH = Path("vault_999/INFRASTRUCTURE/cooling_ledger") / "L1_cooling_ledger.jsonl"
+MERKLE_ROOT_PATH = Path("vault_999/INFRASTRUCTURE/cooling_ledger") / "L1_merkle_root.txt"
 
 
 @dataclass

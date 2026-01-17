@@ -1,0 +1,271 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "v47.1.0",
+  "name": "Paradox Engine - Constitutional Contradiction Resolution",
+  "status": "PRODUCTION",
+  "sealed_by": "Ω Claude Code + Δ Antigravity",
+  "sealed_at": "2026-01-17T18:00:00Z",
+
+  "description": "The Paradox Engine implements formal logical contradiction resolution through ScarPackets. It detects contradictions in reasoning, creates formal records with four metrics (PP/PS/Psi/Phi), and tracks resolution progress until constitutional consistency is restored. This implements 'Ditempa Bukan Diberi' at the logical level - contradictions must be forged into resolution, not ignored.",
+
+  "constitutional_integration": {
+    "floor": "F2 (Truth)",
+    "principle": "Logical consistency enforcement",
+    "rationale": "Truth requires absence of contradiction. Paradoxes violate F2 and must be formally resolved.",
+    "authority": "AGI (Δ) proposes resolution, ASI (Ω) validates safety, APEX (Ψ) seals"
+  },
+
+  "implementation": {
+    "location": "arifos_core/engines/paradox/",
+    "files": {
+      "paradox_detector.py": "389 lines - Contradiction detection + ScarPacket creation",
+      "metrics_tracker.py": "404 lines - PP/PS/Psi/Phi calculation + trajectory analysis",
+      "__init__.py": "Package exports"
+    },
+    "data_storage": {
+      "primary": "vault_999/INFRASTRUCTURE/paradox_engine/",
+      "files": {
+        "active_scars.jsonl": "Unresolved paradoxes (COOLING or RESOLVING)",
+        "resolved_scars.jsonl": "Completed resolutions (RESOLVED)",
+        "metrics_log.jsonl": "Historical metric tracking"
+      }
+    },
+    "total_lines": 793
+  },
+
+  "scar_packet_schema": {
+    "scar_id": {
+      "type": "string",
+      "format": "SCAR-{hex_uuid_12}",
+      "example": "SCAR-326A0F60",
+      "purpose": "Unique identifier for paradox tracking"
+    },
+    "nature": {
+      "type": "string",
+      "enum": [
+        "logical",
+        "authority_boundary",
+        "temporal",
+        "ontological",
+        "ethical"
+      ],
+      "description": "Classification of contradiction type"
+    },
+    "contradiction": {
+      "type": "object",
+      "properties": {
+        "statement_a": {
+          "claim": "string - First contradicting statement",
+          "confidence": "float - Confidence in statement A (0.0-1.0)",
+          "floor": "string - Constitutional floor reference (e.g., 'F11')"
+        },
+        "statement_b": {
+          "claim": "string - Second contradicting statement",
+          "confidence": "float - Confidence in statement B (0.0-1.0)",
+          "floor": "string - Constitutional floor reference"
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["COOLING", "RESOLVING", "RESOLVED"],
+      "lifecycle": "COOLING (detected) → RESOLVING (working on it) → RESOLVED (contradiction eliminated)"
+    },
+    "paradox_metrics": {
+      "PP": "float - Paradox Pressure (0.0-1.0) - How strong is the contradiction?",
+      "PS": "float - Paradox Stabilization (0.0-1.0) - Progress toward resolution",
+      "Psi": "float - Equilibrium (0.0-1.0) - Balance between pressure and stabilization",
+      "Phi": "float - Resolution (0.0-1.0) - Completion status (0=unresolved, 1=fully resolved)"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "ISO 8601 datetime"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "ISO 8601 datetime",
+      "nullable": true
+    },
+    "resolution": {
+      "type": "object",
+      "properties": {
+        "method": "string - How was the contradiction resolved?",
+        "outcome": "string - Final verdict (e.g., 'VOID - F11 violation')",
+        "reasoning": "string - Explanation of resolution"
+      },
+      "nullable": true
+    }
+  },
+
+  "metrics_definitions": {
+    "PP_paradox_pressure": {
+      "name": "Paradox Pressure",
+      "symbol": "PP",
+      "range": [0.0, 1.0],
+      "formula": "contradiction_strength × avg_confidence × authority_multiplier",
+      "interpretation": {
+        "0.0-0.3": "Low pressure - minor inconsistency",
+        "0.3-0.7": "Moderate pressure - requires attention",
+        "0.7-1.0": "High pressure - urgent resolution needed"
+      },
+      "constitutional_floor": "F2 (Truth)",
+      "purpose": "Quantify the severity of the contradiction"
+    },
+
+    "PS_paradox_stabilization": {
+      "name": "Paradox Stabilization",
+      "symbol": "PS",
+      "range": [0.0, 1.0],
+      "formula": "(success_rate × 0.7) + (time_factor × 0.3)",
+      "interpretation": {
+        "0.0-0.3": "Early stages - just detected",
+        "0.3-0.7": "In progress - working on resolution",
+        "0.7-1.0": "Near resolution - almost stable"
+      },
+      "constitutional_floor": "F4 (ΔS Clarity)",
+      "purpose": "Measure progress toward resolution"
+    },
+
+    "Psi_equilibrium": {
+      "name": "Equilibrium",
+      "symbol": "Ψ",
+      "range": [0.0, 1.0],
+      "formula": "(PP + PS) / 2",
+      "interpretation": {
+        "< 0.3": "Crisis state - high pressure, low stabilization",
+        "0.3-0.7": "Transitioning - working on balance",
+        "> 0.7": "Near equilibrium - approaching resolution"
+      },
+      "constitutional_floor": "F7 (Ω₀ Humility)",
+      "purpose": "Balance indicator between problem and solution"
+    },
+
+    "Phi_resolution": {
+      "name": "Resolution",
+      "symbol": "Φ",
+      "range": [0.0, 1.0],
+      "formula": "base_quality + validation_bonus + human_approval_seal",
+      "interpretation": {
+        "0.0": "Unresolved paradox",
+        "0.5": "Partial resolution (machine approved)",
+        "1.0": "Full resolution (human sealed)"
+      },
+      "constitutional_floor": "F3 (Tri-Witness)",
+      "purpose": "Final resolution completion status"
+    }
+  },
+
+  "lifecycle_workflow": {
+    "detection": {
+      "step": 1,
+      "trigger": "ParadoxDetector.detect_contradiction()",
+      "action": "Compare statements for logical inconsistency",
+      "output": "Boolean - is_contradiction"
+    },
+    "scar_creation": {
+      "step": 2,
+      "trigger": "ParadoxDetector.create_scar_packet()",
+      "action": "Create formal ScarPacket record",
+      "initial_metrics": {
+        "PP": "Calculated based on contradiction strength",
+        "PS": 0.0,
+        "Psi": "PP / 2",
+        "Phi": 0.0
+      },
+      "status": "COOLING"
+    },
+    "resolution_attempt": {
+      "step": 3,
+      "trigger": "ParadoxDetector.update_scar_status()",
+      "action": "Record progress on resolving contradiction",
+      "status": "RESOLVING",
+      "metrics_update": {
+        "PP": "Remains constant (contradiction strength doesn't change)",
+        "PS": "Increases as stabilization progresses",
+        "Psi": "Adjusts based on new PP/PS balance",
+        "Phi": "Remains 0.0 until resolution complete"
+      }
+    },
+    "resolution_complete": {
+      "step": 4,
+      "trigger": "ParadoxDetector.resolve_scar()",
+      "action": "Seal resolution with method and outcome",
+      "status": "RESOLVED",
+      "final_metrics": {
+        "PP": "Original contradiction strength (historical)",
+        "PS": 1.0,
+        "Psi": "Near 1.0 (high equilibrium)",
+        "Phi": "1.0 (fully resolved)"
+      },
+      "storage": "Moved from active_scars.jsonl → resolved_scars.jsonl"
+    }
+  },
+
+  "integration": {
+    "track_a_canon": "L1_THEORY/canon/777_eureka/",
+    "track_c_code": "arifos_core/engines/paradox/",
+    "mcp_tools": [
+      "agi_think (detects contradictions during reasoning)",
+      "asi_act (validates resolution safety)",
+      "apex_seal (final paradox resolution verdict)"
+    ],
+    "constitutional_floors": [
+      "F2 (Truth) - Contradiction detection",
+      "F4 (ΔS) - Entropy reduction through resolution",
+      "F7 (Ω₀) - Humility in acknowledging uncertainty"
+    ]
+  },
+
+  "usage_example": {
+    "scenario": "AAA vault access request from machine",
+    "contradiction": {
+      "statement_a": {
+        "claim": "AAA forbidden to machines (F11)",
+        "confidence": 1.0,
+        "floor": "F11"
+      },
+      "statement_b": {
+        "claim": "Machine needs AAA for memory recall",
+        "confidence": 0.8,
+        "floor": "F2"
+      }
+    },
+    "expected_outcome": {
+      "is_contradiction": true,
+      "scar_created": "SCAR-ABC123",
+      "resolution_method": "constitutional_boundary",
+      "final_verdict": "VOID - F11 violation (F11 > F2 in floor hierarchy)",
+      "metrics_final": {
+        "PP": 0.9,
+        "PS": 1.0,
+        "Psi": 0.95,
+        "Phi": 1.0
+      }
+    }
+  },
+
+  "validation_rules": {
+    "contradiction_detection": {
+      "rule": "Two statements with opposite truth values AND high confidence → contradiction",
+      "threshold": "confidence_a + confidence_b > 1.2",
+      "test": "tests/paradox/test_contradiction_detection.py"
+    },
+    "metric_bounds": {
+      "rule": "All metrics (PP, PS, Psi, Phi) must be in [0.0, 1.0] range",
+      "enforcement": "Value clamping in metrics_tracker.py",
+      "test": "tests/paradox/test_metrics_bounds.py"
+    },
+    "lifecycle_progression": {
+      "rule": "Status must progress: COOLING → RESOLVING → RESOLVED (no backwards)",
+      "enforcement": "State machine in paradox_detector.py",
+      "test": "tests/paradox/test_lifecycle.py"
+    }
+  },
+
+  "philosophical_foundation": {
+    "principle": "DITEMPA BUKAN DIBERI (Forged, Not Given)",
+    "application": "Contradictions must be forged into resolution through formal process, not ignored or assumed away",
+    "wisdom": "Truth is not given by proclamation. It is forged through the elimination of contradiction.",
+    "constitutional_alignment": "Paradox Engine enforces F2 (Truth) by making contradictions explicit and requiring formal resolution before sealing"
+  }
+}
