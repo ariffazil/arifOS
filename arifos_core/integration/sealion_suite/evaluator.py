@@ -228,40 +228,49 @@ class TestEvaluator:
             )
 
     def _run_single_turn_test(self, test_case: TestCase, start_time: float) -> TestResult:
-        """Run single-turn test case."""
+        """Run single-turn test case (AAA-level)."""
 
         # Create tracked LLM function
         tracked_llm = self.create_tracked_llm_generate()
 
-        # Run pipeline
-        state = run_pipeline(
+        # AAA-Level: Generate + Validate (LLM ⊥ Quantum)
+        draft_response, quantum_state = generate_and_validate_sync(
             query=test_case.prompt,
             llm_generate=tracked_llm,
-            compute_metrics=self.compute_metrics,
+            context={"test_id": test_case.id, "test_name": test_case.name}
         )
 
         exec_time = (time.time() - start_time) * 1000
 
-        # Extract response
-        response = state.draft_response or ""
+        # Extract response (from LLM generation)
+        response = draft_response or ""
         if self.save_responses == "snippets":
             response = response[:500] + ("..." if len(response) > 500 else "")
         elif self.save_responses == "none":
             response = f"<{len(response)} chars>"
 
-        # Extract metrics
+        # AAA-Level: Extract metrics from quantum particles
         metrics_dict = None
-        if state.final_verdict:
+        if quantum_state.agi_particle or quantum_state.asi_particle:
             metrics_dict = {
-                "truth": getattr(state.final_verdict.floors, "truth", None),
-                "delta_s": getattr(state.final_verdict.floors, "delta_s", None),
-                "peace_squared": getattr(state.final_verdict.floors, "peace_squared", None),
-                "kappa_r": getattr(state.final_verdict.floors, "kappa_r", None),
-                "omega_0": getattr(state.final_verdict.floors, "omega_0", None),
-                "amanah": getattr(state.final_verdict.floors, "amanah", None),
-                "tri_witness": getattr(state.final_verdict.floors, "tri_witness", None),
-                "psi": getattr(state.final_verdict, "pulse", None),
+                # AGI metrics
+                "truth": getattr(quantum_state.agi_particle, 'truth_score', None) if quantum_state.agi_particle else None,
+                "delta_s": getattr(quantum_state.agi_particle, 'entropy_delta', None) if quantum_state.agi_particle else None,
+                # ASI metrics
+                "peace_squared": getattr(quantum_state.asi_particle, 'peace_score', None) if quantum_state.asi_particle else None,
+                "kappa_r": getattr(quantum_state.asi_particle, 'kappa_r', None) if quantum_state.asi_particle else None,
+                "omega_0": getattr(quantum_state.asi_particle, 'omega_zero', None) if quantum_state.asi_particle else None,
+                # APEX metrics
+                "amanah": 1.0 if quantum_state.final_verdict == "SEAL" else 0.0,
+                "tri_witness": 1.0 if quantum_state.collapsed else 0.0,
+                "psi": getattr(quantum_state, "apex_pulse", None) if hasattr(quantum_state, "apex_pulse") else None,
             }
+
+        # AAA-Level: Extract verdict from quantum state
+        verdict_str = quantum_state.final_verdict if quantum_state.final_verdict else "UNKNOWN"
+
+        # Detect lane (legacy field - may not be available in quantum state)
+        lane = getattr(quantum_state, "applicability_lane", None)
 
         # Create result
         result = TestResult(
@@ -271,37 +280,39 @@ class TestEvaluator:
             prompt=test_case.prompt,
             response=response,
             execution_time_ms=exec_time,
-            lane=state.applicability_lane,
-            verdict=state.final_verdict.verdict.value if state.final_verdict else None,
+            lane=lane,
+            verdict=verdict_str,
             metrics=metrics_dict,
             llm_called=self.last_llm_called,
         )
 
         # Validate results
-        self._validate_test_result(test_case, state, result)
+        self._validate_test_result(test_case, quantum_state, result)
 
         return result
 
     def _run_multi_turn_test(self, test_case: TestCase, start_time: float) -> TestResult:
-        """Run multi-turn test case."""
+        """Run multi-turn test case (AAA-level)."""
 
         # For now, we'll run turns sequentially without memory persistence
         # (full memory integration requires more setup)
 
         tracked_llm = self.create_tracked_llm_generate()
 
-        last_state = None
+        last_draft_response = None
+        last_quantum_state = None
         for turn_idx, turn_prompt in enumerate(test_case.turn_prompts):
-            last_state = run_pipeline(
+            # AAA-Level: Generate + Validate (LLM ⊥ Quantum)
+            last_draft_response, last_quantum_state = generate_and_validate_sync(
                 query=turn_prompt,
                 llm_generate=tracked_llm,
-                compute_metrics=self.compute_metrics,
+                context={"test_id": test_case.id, "test_name": test_case.name, "turn": turn_idx}
             )
 
         exec_time = (time.time() - start_time) * 1000
 
         # Use last turn for validation
-        if not last_state:
+        if not last_quantum_state:
             return TestResult(
                 test_id=test_case.id,
                 test_name=test_case.name,
@@ -313,11 +324,16 @@ class TestEvaluator:
                 passed=False,
             )
 
-        response = last_state.draft_response or ""
+        # AAA-Level: Extract response from LLM generation
+        response = last_draft_response or ""
         if self.save_responses == "snippets":
             response = response[:500] + ("..." if len(response) > 500 else "")
         elif self.save_responses == "none":
             response = f"<{len(response)} chars>"
+
+        # AAA-Level: Extract from quantum state
+        lane = getattr(last_quantum_state, "applicability_lane", None)
+        verdict_str = last_quantum_state.final_verdict if last_quantum_state.final_verdict else "UNKNOWN"
 
         result = TestResult(
             test_id=test_case.id,
@@ -326,34 +342,35 @@ class TestEvaluator:
             prompt=f"Multi-turn ({len(test_case.turn_prompts)} turns)",
             response=response,
             execution_time_ms=exec_time,
-            lane=last_state.applicability_lane,
-            verdict=last_state.final_verdict.verdict.value if last_state.final_verdict else None,
+            lane=lane,
+            verdict=verdict_str,
             llm_called=self.last_llm_called,
         )
 
         # Validate against last turn
-        self._validate_test_result(test_case, last_state, result)
+        self._validate_test_result(test_case, last_quantum_state, result)
 
         return result
 
     def _validate_test_result(
-        self, test_case: TestCase, state: PipelineState, result: TestResult
+        self, test_case: TestCase, quantum_state: Any, result: TestResult
     ):
-        """Validate test result against expectations."""
+        """Validate test result against expectations (AAA-level)."""
 
         # 1. Lane validation
         if test_case.expected_lanes:
-            lane_ok = state.applicability_lane in test_case.expected_lanes
+            lane = getattr(quantum_state, "applicability_lane", None)
+            lane_ok = lane in test_case.expected_lanes if lane else False
             result.lane_match = lane_ok
             if not lane_ok:
                 result.validation_failures.append(
-                    f"Lane mismatch: got {state.applicability_lane}, "
+                    f"Lane mismatch: got {lane}, "
                     f"expected one of {test_case.expected_lanes}"
                 )
 
-        # 2. Verdict validation
-        if test_case.expected_verdicts and state.final_verdict:
-            verdict_val = state.final_verdict.verdict.value
+        # 2. Verdict validation (AAA-level)
+        if test_case.expected_verdicts and quantum_state.final_verdict:
+            verdict_val = quantum_state.final_verdict
             verdict_ok = verdict_val in test_case.expected_verdicts
             result.verdict_match = verdict_ok
             if not verdict_ok:
@@ -372,8 +389,8 @@ class TestEvaluator:
                     f"expected {test_case.llm_called_expected}"
                 )
 
-        # 4. Content validation
-        response_lower = (state.draft_response or "").lower()
+        # 4. Content validation (AAA-level)
+        response_lower = (result.response or "").lower()
 
         # Must contain
         for phrase in test_case.must_contain:
@@ -419,9 +436,10 @@ class TestEvaluator:
                     f"Identity lock may not have triggered (truth={truth:.2f if truth else 'N/A'})"
                 )
 
-        # 7. REFUSE override trigger
+        # 7. REFUSE override trigger (AAA-level)
         if test_case.must_trigger_refuse_override:
-            if state.applicability_lane == "REFUSE":
+            lane = getattr(quantum_state, "applicability_lane", None)
+            if lane == "REFUSE":
                 result.refuse_override_triggered = True
                 # Additional check: LLM should NOT be called
                 if result.llm_called:
