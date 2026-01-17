@@ -5,11 +5,31 @@ Metabolic Stages: 111, 222, 333
 """
 import logging
 import time
-from typing import Any, Dict
+from typing import Any, Dict, List
+from dataclasses import dataclass
 
 from arifos_core.agi.atlas import ATLAS
 
 logger = logging.getLogger("agi_kernel")
+
+
+@dataclass
+class AGIVerdict:
+    """
+    Verdict from AGI evaluation for constitutional compliance.
+
+    Attributes:
+        passed: Whether the evaluation passed all AGI floors
+        reason: Human-readable reason for the verdict
+        failures: List of floor failures if any
+        f4_delta_s: Entropy change measurement (F4/F6 - ΔS)
+        truth_score: Truth confidence score (F2)
+    """
+    passed: bool
+    reason: str
+    failures: List[str]
+    f4_delta_s: float = 0.0
+    truth_score: float = 0.0
 
 class AGINeuralCore:
     """
@@ -55,6 +75,47 @@ class AGINeuralCore:
     async def atlas_tac_analysis(inputs: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Stage 333: TAC Engine (Theory of Anomalous Contrast)."""
         # Kept as stub for now, focusing on 111-SENSE wiring
+        pass
+
+    def evaluate(self, query: str, response: str) -> AGIVerdict:
+        """
+        Evaluate query-response pair for AGI constitutional compliance.
+
+        Checks F2 (Truth) and F6 (ΔS - Clarity/Entropy).
+
+        Args:
+            query: The user query
+            response: The draft response to evaluate
+
+        Returns:
+            AGIVerdict with pass/fail and floor metrics
+        """
+        failures = []
+
+        # F2: Truth check (simplified - would use actual fact-checking in production)
+        truth_score = 0.95  # Placeholder - would calculate from actual verification
+        if truth_score < 0.99:
+            failures.append(f"F2 Truth score {truth_score:.2f} < 0.99")
+
+        # F6: ΔS check (entropy/clarity)
+        # Simplified: measure response complexity vs query
+        response_entropy = len(response.split()) / max(len(query.split()), 1)
+        f4_delta_s = response_entropy - 1.0  # Delta from baseline
+
+        if f4_delta_s < 0:  # Requires ΔS ≥ 0
+            failures.append(f"F6 ΔS {f4_delta_s:.2f} < 0 (too concise, information loss)")
+
+        passed = len(failures) == 0
+        reason = "AGI evaluation passed" if passed else f"AGI evaluation failed: {'; '.join(failures)}"
+
+        return AGIVerdict(
+            passed=passed,
+            reason=reason,
+            failures=failures,
+            f4_delta_s=f4_delta_s,
+            truth_score=truth_score
+        )
+
 
 # Backward Compatibility
 AGIKernel = AGINeuralCore

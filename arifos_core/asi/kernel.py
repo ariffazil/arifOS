@@ -73,3 +73,7 @@ class ASIActionCore:
             "synthesis_hash": "synth_bridged_123",
             "status": "Bridged Logic & Empathy"
         }
+
+
+# Backward Compatibility (matching AGIKernel pattern)
+ASIKernel = ASIActionCore

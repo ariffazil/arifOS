@@ -12,6 +12,9 @@ Part of v46 Trinity Orthogonal AAA Architecture.
 DITEMPA BUKAN DIBERI — Forged, not given; truth must cool before it rules.
 """
 
+# Import kernel classes
+from .kernel import ASIKernel, ASIActionCore
+
 from .empathy.empathy_architect import EmpathyArchitect
 from .floor_checks import (
                            check_kappa_r_f4,
@@ -21,6 +24,10 @@ from .floor_checks import (
 )
 
 __all__ = [
+    # Kernel classes
+    "ASIKernel",
+    "ASIActionCore",
+    # Empathy and floor checks
     "EmpathyArchitect",
     "check_peace_squared_f3",
     "check_kappa_r_f4",

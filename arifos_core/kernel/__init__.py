@@ -74,14 +74,30 @@ class UnifiedConstitutionalKernel:
         """
         Calculate all 12 constitutional floor metrics
 
-        NOTE: Delegates to arifos_core.enforcement.metrics until MetricsKernel is implemented
+        Uses ASI (Ω) engine for metric computation with heuristic-based scoring.
         """
-        from ..enforcement.metrics import Metrics
-        metrics = Metrics()
-        # TODO: Implement proper metric calculation
+        from ..enforcement.eval.asi import ASI
+
+        # Use ASI to compute metrics from content
+        asi = ASI()
+        result = asi.assess(content)
+        metrics = result.metrics
+
+        # Return metrics as dict for MCP compatibility
         return {
-            "status": "not_yet_implemented",
-            "note": "Use arifos_core.enforcement.metrics directly for now"
+            "truth": metrics.truth,
+            "delta_s": metrics.delta_s,
+            "peace_squared": metrics.peace_squared,
+            "kappa_r": metrics.kappa_r,
+            "omega_0": metrics.omega_0,
+            "amanah": metrics.amanah,
+            "tri_witness": metrics.tri_witness,
+            "rasa": metrics.rasa,
+            "anti_hantu": metrics.anti_hantu,
+            "psi": metrics.psi,
+            "mode": result.mode.value,
+            "uncertainty_calibration": result.uncertainty_calibration,
+            "clarity_gain": result.clarity_gain
         }
 
     def validate_constitutional_compliance(self, query: str, response: str) -> dict:

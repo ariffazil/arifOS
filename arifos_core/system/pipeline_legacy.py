@@ -1,10 +1,23 @@
 """Constitutional module - F2 Truth enforced
 Part of arifOS constitutional governance system
 DITEMPA BUKAN DIBERI - Forged, not given
+
+⚠️ DEPRECATION WARNING - v47.0.0 ⚠️
+===================================
+This sequential pipeline is DEPRECATED.
+
+USE INSTEAD: arifos_core.mcp.orthogonal_executor.OrthogonalExecutor
+- Parallel AGI + ASI execution (quantum superposition)
+- Faster, more accurate, matches philosophy
+- See: QUANTUM_ARCHITECTURE_ANNOUNCEMENT.md
+
+This file remains for backward compatibility only.
+Will be removed in v48.0.0
+===================================
 """
 
 """
-pipeline.py - 000-999 Metabolic Pipeline for arifOS v45Ω
+pipeline_legacy.py - 000-999 Sequential Pipeline for arifOS v45Ω (DEPRECATED)
 
 v45Ω EXECUTION AUTHORITY:
 - Pipeline ORCHESTRATES stages but does NOT decide verdicts
@@ -54,12 +67,12 @@ from typing import Any, Callable, Dict, List, Optional
 # v38 Stage Modules - v42: stages is at arifos_core/stages/
 from arifos_core.enforcement.stages.stage_000_amanah import compute_amanah_score, stage_000_amanah
 from arifos_core.enforcement.stages.stage_555_empathy import compute_kappa_r
-from arifos_core.memory.mem0_client import is_l7_enabled
+from arifos_core.memory.l7.mem0_client import is_l7_enabled
 
 # v38.2-alpha L7 Memory Layer (Mem0 + Qdrant)
-from arifos_core.memory.memory import Memory, RecallResult, StoreAtSealResult
-from arifos_core.memory.memory import recall_at_stage_111 as _l7_recall
-from arifos_core.memory.memory import store_at_stage_999 as _l7_store
+from arifos_core.memory.core.memory import Memory, RecallResult, StoreAtSealResult
+from arifos_core.memory.core.memory import recall_at_stage_111 as _l7_recall
+from arifos_core.memory.core.memory import store_at_stage_999 as _l7_store
 
 # v38 Runtime Contract Layer
 from arifos_core.utils.runtime_types import Job, JobClass, Stakeholder
@@ -340,12 +353,6 @@ StageFunc = Callable[[PipelineState], PipelineState]
 
 
 def stage_000_void(
-    from arifos_core.memory.audit import MemoryAuditLayer
-    from arifos_core.memory.bands import MemoryBandRouter
-    from arifos_core.memory.memory_context import create_memory_context
-    from arifos_core.memory.policy import MemoryWritePolicy
-    from arifos_core.memory.vault999 import Vault999
-
     state: PipelineState,
     vault: Optional["Vault999"] = None,
 ) -> PipelineState:
@@ -678,8 +685,6 @@ def stage_222_reflect(
 
 
 def stage_333_reason(
-    from arifos_core.system.apex_prime import Verdict
-
     state: PipelineState,
     llm_generate: Optional[Callable[[str], str]] = None,
 ) -> PipelineState:
@@ -688,6 +693,7 @@ def stage_333_reason(
 
     AGI (Δ) takes over - pure logic, pattern detection.
     """
+    from arifos_core.system.apex_prime import Verdict
     stage_start = time.time()  # v45Ω Patch B.2: Track for StageInspector
     state.current_stage = "333"
     state.stage_trace.append("333_REASON")
@@ -904,8 +910,6 @@ def stage_777_forge(
 
 
 def _compute_888_metrics(
-    from arifos_core.enforcement.metrics import Metrics
-
     state: PipelineState,
     compute_metrics: Optional[Callable[[str, str, Dict], "Metrics"]] = None,
 ) -> Optional["Metrics"]:
@@ -922,6 +926,8 @@ def _compute_888_metrics(
     Returns:
         Metrics object with floor values
     """
+    from arifos_core.enforcement.metrics import Metrics
+
     if compute_metrics:
         try:
             metrics = compute_metrics(
@@ -981,11 +987,9 @@ def _compute_888_metrics(
 
 
 def _apply_apex_floors(
-    from arifos_core.system.apex_prime import ApexVerdict, Verdict, apex_review, check_floors
-
     state: PipelineState,
     eye_blocking: bool = False,
-) -> ApexVerdict:
+) -> "ApexVerdict":
     """
     Step 2 of 888: Apply APEX PRIME floor checks.
 
@@ -999,6 +1003,8 @@ def _apply_apex_floors(
     Returns:
         APEX verdict string (SEAL/PARTIAL/VOID/SABAR/888_HOLD)
     """
+    from arifos_core.system.apex_prime import ApexVerdict, Verdict, apex_review, check_floors
+
     high_stakes = state.stakes_class == StakesClass.CLASS_B
 
     # Populate floor_failures for audit
@@ -1056,10 +1062,6 @@ def _apply_apex_floors(
 
 
 def _run_eye_sentinel(
-    from arifos_core.enforcement.audit.eye_adapter import evaluate_eye_vector
-    from arifos_core.integration.waw.bridges.prompt_bridge import compute_c_budi
-    from arifos_core.system.runtime.bootstrap import get_bootstrap_payload
-
     state: PipelineState,
     eye_sentinel: Optional["EyeSentinel"] = None,
 ) -> tuple[Optional["EyeReport"], bool]:
@@ -1328,12 +1330,6 @@ def _map_verdict_to_eureka(verdict: Optional["ApexVerdict"]) -> EurekaVerdict:
 
 
 def _write_memory_for_verdict(
-    from arifos_core.memory.audit import compute_evidence_hash
-    from arifos_core.memory.bands import append_eureka_decision
-    from arifos_core.memory.eureka_types import ActorRole, MemoryWriteRequest
-    if actor_role is None:
-        actor_role = ActorRole.JUDICIARY
-
     state: PipelineState,
     actor_role: Optional["ActorRole"] = None,
     human_seal: bool = False,
@@ -1354,6 +1350,13 @@ def _write_memory_for_verdict(
     Args:
         state: PipelineState with verdict, metrics, and memory components
     """
+    from arifos_core.memory.audit import compute_evidence_hash
+    from arifos_core.memory.bands import append_eureka_decision
+    from arifos_core.memory.eureka_types import ActorRole, MemoryWriteRequest
+
+    if actor_role is None:
+        actor_role = ActorRole.JUDICIARY
+
     if state.memory_write_policy is None or state.memory_band_router is None:
         return
 
@@ -1562,11 +1565,6 @@ def _write_memory_for_verdict(
 
 
 def stage_888_judge(
-    from arifos_core.enforcement.metrics import Metrics
-    from arifos_core.integration.waw.federation import WAWFederationCore
-    from arifos_core.memory.eureka_types import ActorRole
-    from arifos_core.system.runtime.bootstrap import get_bootstrap_payload
-
     state: PipelineState,
     compute_metrics: Optional[Callable[[str, str, Dict], "Metrics"]] = None,
     eye_sentinel: Optional["EyeSentinel"] = None,
@@ -1584,6 +1582,11 @@ def stage_888_judge(
     5. _merge_with_waw() - Verdict merging
     6. _write_memory_for_verdict() - Memory write (centralized)
     """
+    from arifos_core.enforcement.metrics import Metrics
+    from arifos_core.integration.waw.federation import WAWFederationCore
+    from arifos_core.memory.eureka_types import ActorRole
+    from arifos_core.system.runtime.bootstrap import get_bootstrap_payload
+
     stage_start = time.time()  # v45Ω Patch B.2: Track for StageInspector
     state.current_stage = "888"
     state.stage_trace.append("888_JUDGE")
@@ -2132,9 +2135,6 @@ class Pipeline:
     """
 
     def __init__(
-        from arifos_core.system.engines import AGIEngine, ASIEngine
-        from arifos_core.system.runtime.bootstrap import ensure_bootstrap
-
         self,
         llm_generate: Optional[Callable[[str], str]] = None,
         compute_metrics: Optional[Callable[[str, str, Dict], "Metrics"]] = None,
@@ -2159,6 +2159,9 @@ class Pipeline:
             vault: Optional Vault999 instance for constitutional memory (v37)
             eureka_store: Optional EUREKA store (use InMemoryStore in tests to avoid file writes)
         """
+        from arifos_core.system.engines import AGIEngine, ASIEngine
+        from arifos_core.system.runtime.bootstrap import ensure_bootstrap
+
         # v45Ω Patch C: Failover integration (opt-in, disabled by default)
         if os.getenv("ARIFOS_FAILOVER_ENABLED", "").lower() == "true":
             try:
@@ -2206,12 +2209,6 @@ class Pipeline:
         self._asi = ASIEngine()
 
     def run(
-        from arifos_core.memory.eureka_types import ActorRole
-        from arifos_core.system.apex_prime import Verdict
-        from arifos_core.system.engines.agi_engine import AGIPacket
-        from arifos_core.system.engines.asi_engine import ASIPacket
-        from arifos_core.utils.session_telemetry import SessionTelemetry
-
         self,
         query: str,
         job_id: Optional[str] = None,
@@ -2233,6 +2230,11 @@ class Pipeline:
             Final PipelineState with response and audit trail
         """
         import uuid
+        from arifos_core.memory.eureka_types import ActorRole
+        from arifos_core.system.apex_prime import Verdict
+        from arifos_core.system.engines.agi_engine import AGIPacket
+        from arifos_core.system.engines.asi_engine import ASIPacket
+        from arifos_core.utils.session_telemetry import SessionTelemetry
 
         # Initialize state
         state = PipelineState(

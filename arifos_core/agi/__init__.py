@@ -12,6 +12,9 @@ Part of v46 Trinity Orthogonal AAA Architecture.
 DITEMPA BUKAN DIBERI — Forged, not given; truth must cool before it rules.
 """
 
+# Import kernel classes
+from .kernel import AGIKernel, AGINeuralCore, AGIVerdict
+
 # Fixed imports to match actual floor_checks.py exports
 from .floor_checks import (
     Floor,
@@ -26,6 +29,11 @@ from .floor_checks import (
 )
 
 __all__ = [
+    # Kernel classes
+    "AGIKernel",
+    "AGINeuralCore",
+    "AGIVerdict",
+    # Floor checks
     "Floor",
     "Floor1_Amanah",
     "Floor2_Truth",
