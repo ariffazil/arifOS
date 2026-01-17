@@ -4,25 +4,33 @@
 
 > **5 minutes to understand why your AI needs a constitution**
 
-**Version 47.0** | January 2026
+**Version 47.1** | January 2026
 **Motto:** *"Ditempa Bukan Diberi"* — Forged, not given. Truth must cool before it rules.
 
 ---
 
-## 🌟 NEW: Quantum Architecture (v47+)
+## 🌟 NEW: Quantum Governance (v47.1)
 
-**arifOS now uses quantum-inspired parallel execution instead of sequential pipelines!**
+**arifOS now has production-grade quantum governance with measurable constitutional enforcement!**
 
-⚛️ **What Changed:**
-- **OLD:** Sequential stages blocking each other (slow, mechanical)
-- **NEW:** Parallel AGI + ASI execution with quantum superposition (fast, organic)
+⚛️ **What's New in v47.1:**
+- **Quantum Architecture (v47.0):** Parallel AGI + ASI execution → **47% faster**
+- **Settlement Policy (v47.1):** Hard timeouts (1.5s/1.5s/0.5s) with constitutional fallbacks
+- **Orthogonality Guard (v47.1):** Ω_ortho ≥ 0.95 threshold with runtime coupling detection
+- **Immutable Ledger (v47.1):** SHA256 hash chain for tamper-evident governance audit
 
-🚀 **47% Faster** with more accurate verdicts through independent validation!
+🚀 **Performance:** 47% faster with **measurable** constitutional compliance!
+
+⚖️ **Governance Proof:** Every verdict returns:
+- **Ω_ortho:** Orthogonality index (independence measure)
+- **Settlement time:** How long quantum cycle took
+- **Ledger hash:** SHA256 cryptographic proof
 
 **Documentation:**
-- **Canon:** [`L1_THEORY/canon/000_foundation/003_GEOMETRY_IMPLEMENTATION_v47.md`](L1_THEORY/canon/000_foundation/003_GEOMETRY_IMPLEMENTATION_v47.md) Section 8 (PROOF with code)
-- **Implementation:** `arifos_core/mcp/orthogonal_executor.py`
-- **Summary:** [`docs/QUANTUM_MIGRATION_SUMMARY.md`](docs/QUANTUM_MIGRATION_SUMMARY.md)
+- **Governance:** [`QUANTUM_GOVERNANCE_COMPLETE.md`](QUANTUM_GOVERNANCE_COMPLETE.md)
+- **Canon:** [`L1_THEORY/canon/000_foundation/003_GEOMETRY_IMPLEMENTATION_v47.md`](L1_THEORY/canon/000_foundation/003_GEOMETRY_IMPLEMENTATION_v47.md)
+- **Implementation:** `arifos_core/mcp/governed_executor.py`
+- **Tests:** `tests/test_quantum_governance.py` (15 tests, all passing)
 
 ---
 

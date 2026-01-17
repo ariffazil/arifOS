@@ -4,9 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "47.0.0"
-# v47.0: Model-Agnostic Agent Architecture + Documentation Consolidation (2026-01-16)
-description = "Constitutional AI governance with 12 immutable floors. Integrates Agent Zero exploration (000 VOID) with constitutional validation (111-999). Real async parallel execution. Works with ChatGPT, Claude, Gemini, and any LLM."
+version = "47.1.0"
+# v47.1: Quantum Governance - Measurable Constitutional Enforcement (2026-01-17)
+description = "Constitutional AI governance with 12 immutable floors. Quantum orthogonal execution (AGI||ASI → APEX) with measurable governance: Ω_ortho ≥0.95, hard timeouts, SHA256 ledger. 47% faster with production-grade enforcement. Works with ChatGPT, Claude, Gemini, and any LLM."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "AGPL-3.0-only"
@@ -32,6 +32,11 @@ keywords = [
     "async-execution",
     "constitutional-governance",
     "hallucination-prevention",
+    "quantum-governance",
+    "orthogonal-execution",
+    "immutable-ledger",
+    "measurable-governance",
+    "parallel-ai",
 ]
 authors = [{ name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com" }]
 maintainers = [

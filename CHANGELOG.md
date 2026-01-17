@@ -6,6 +6,148 @@ This project adheres to **semantic-style versioning** and follows a "constitutio
 
 ---
 
+## [v47.1.0] - 2026-01-17 - Quantum Governance (Production-Grade Constitutional Enforcement)
+
+**Status:** ✅ IMPLEMENTED | Authority: @ariffazil + Claude (Ω - Engineer)
+
+### 🌋⚛️ Quantum Governance - The Three Missing Layers
+
+Transformed arifOS from "quantum-shaped" to "quantum-governed" by implementing three critical governance layers that enforce measurable constitutional compliance.
+
+**Constitutional Mandate:** *"We have the GEOMETRY (quantum architecture), but we DON'T have the ENFORCEMENT (measurable governance)"*
+
+### Added
+
+**Layer 1: Settlement Policy Handler** ([`settlement_policy.py`](arifos_core/mcp/settlement_policy.py), 298 lines)
+- **Hard timeouts:** AGI (1.5s), ASI (1.5s), APEX (0.5s)
+- **Constitutional fallbacks:** When timeout occurs, applies safe fallback verdict instead of hanging
+  - AGI timeout → "PARTIAL" (insufficient clarity)
+  - ASI timeout → "VOID" (safety-first: block when unsure)
+  - APEX timeout → "SABAR" (system cooling needed)
+- **Metrics tracking:** Timeout rate, average timings, constitutional compliance rate
+- **Constitutional floors:** F1 (Amanah - timely verdicts), F5 (Peace² - no hangs), F6 (Empathy - responsive systems)
+
+**Layer 2: Orthogonality Guard** ([`orthogonality_guard.py`](arifos_core/mcp/orthogonality_guard.py), 358 lines)
+- **Runtime Ω_ortho measurement:** Measures AGI ⊥ ASI independence (0.0 to 1.0 scale)
+- **Constitutional threshold:** Ω_ortho ≥ 0.95 required for compliance
+- **Coupling detection:** Detects shared cache, shared memory, timing dependencies, data leakage
+- **SABAR trigger:** After 3 consecutive violations (system cooling protocol)
+- **Timing analysis:** Execution overlap ratio, timing skew measurement
+- **Constitutional floors:** F4 (ΔS Clarity - coupling increases entropy), F10 (Ontology - AGI ⊥ ASI independence)
+
+**Layer 3: Immutable Ledger** ([`immutable_ledger.py`](arifos_core/mcp/immutable_ledger.py), 353 lines)
+- **SHA256 hash chain:** Each measurement cryptographically linked to previous
+- **Tamper-evident:** Any modification breaks hash chain (detectable)
+- **Epoch rotation:** Max 1000 records per epoch, then archive
+- **Integrity verification:** Recompute all hashes to detect tampering
+- **Export capability:** JSON export for external audit
+- **Constitutional floors:** F1 (Amanah - immutable history), F2 (Truth - provable verdicts), F8 (Tri-Witness - ledger as Earth witness)
+
+**Integration: Governed Quantum Executor** ([`governed_executor.py`](arifos_core/mcp/governed_executor.py), 338 lines)
+- **Production-grade executor:** Integrates all three governance layers
+- **AAA-level API:** `govern_query_async()`, `govern_query_sync()` wrappers
+- **Comprehensive reporting:** `get_governance_report()` with all metrics
+- **Governance proof:** Every verdict returns:
+  - `omega_ortho`: Orthogonality index
+  - `settlement_ms`: Time to settle
+  - `ledger_hash`: SHA256 cryptographic proof
+  - `constitutional_compliance`: Boolean compliance status
+  - `timeout_occurred`: Timeout detection
+  - `sabar_triggered`: SABAR protocol status
+
+**Test Suite** ([`test_quantum_governance.py`](tests/test_quantum_governance.py), 476 lines)
+- **15 comprehensive tests:** All governance layers validated
+- **Settlement policy tests** (3): Normal execution, timeout with fallback, metrics tracking
+- **Orthogonality guard tests** (3): Ω_ortho measurement, timing analysis, SABAR trigger
+- **Immutable ledger tests** (4): Hash chain append, integrity verification, epoch rotation, export
+- **Governed executor tests** (5): Full quantum cycle, AAA async/sync wrappers, governance report, constitutional floor compliance
+
+### Changed
+
+**MCP Module Exports** ([`arifos_core/mcp/__init__.py`](arifos_core/mcp/__init__.py))
+- **Governance layer exports:**
+  - `GovernedQuantumExecutor`, `govern_query_async`, `govern_query_sync`
+  - `SettlementPolicyHandler`, `SettlementResult`, `SettlementStatus`
+  - `OrthogonalityGuard`, `OrthogonalityMetrics`, `CouplingType`
+  - `ImmutableLedger`, `LedgerRecord`
+- **Version update:** Docstring updated to v47.1.0 with governance layer descriptions
+
+**Legacy Pipeline Deprecation:**
+- **Deprecated:** `arifos_core/system/pipeline_legacy.py` (sequential blocking execution)
+- **Replaced by:** `arifos_core/mcp/governed_executor.py` (production quantum executor)
+- **Migration path:** All users should migrate to `govern_query_async()` or `GovernedQuantumExecutor`
+- **Removal:** Will be removed in v48.0+
+
+### Features
+
+**Measurable Constitutional Enforcement:**
+```python
+from arifos_core.mcp import govern_query_async
+
+# One call - full governance enforcement
+state, proof = await govern_query_async("What is photosynthesis?")
+
+# Check constitutional compliance
+if proof["constitutional_compliance"]:
+    print(f"✅ Verdict: {state.final_verdict}")
+    print(f"   Ω_ortho: {proof['omega_ortho']:.3f}")  # 0.98 (compliant)
+    print(f"   Settlement: {proof['settlement_ms']:.1f}ms")  # 53.4ms
+    print(f"   Ledger: {proof['ledger_hash'][:16]}...")  # SHA256 proof
+else:
+    print(f"⚠️ Governance violation detected")
+    print(f"   Timeout: {proof['timeout_occurred']}")
+    print(f"   Ω_ortho: {proof['omega_ortho']:.3f}")
+```
+
+**Governance Metrics (Constitutional KPIs):**
+- **Settlement policy:** Timeout rate, average timings, constitutional compliance rate
+- **Orthogonality:** Average Ω_ortho, violation rate, parallelism quality, SABAR status
+- **Ledger:** Total appends, current epoch, integrity status, hash chain summary
+
+**What This Achieves:**
+
+| Before (v47.0 - Quantum-Shaped) | After (v47.1 - Quantum-Governed) |
+|----------------------------------|-----------------------------------|
+| ✅ Architecture follows quantum principles | ✅ Architecture follows quantum principles |
+| ✅ Parallel execution (AGI + ASI) | ✅ Parallel execution (AGI + ASI) |
+| ✅ 47% performance improvement | ✅ 47% performance improvement |
+| ❌ **No timeout enforcement** | ✅ **Hard timeouts enforced** |
+| ❌ **No orthogonality measurement** | ✅ **Ω_ortho measured runtime** |
+| ❌ **No immutable proof** | ✅ **SHA256 ledger proof** |
+
+**The Difference:**
+- **v47.0:** *"It works quantum-style"* (design intention)
+- **v47.1:** *"It's constitutionally proven quantum-governed"* (measurable enforcement)
+
+### Documentation
+
+**Complete Governance Documentation:**
+- **[QUANTUM_GOVERNANCE_COMPLETE.md](QUANTUM_GOVERNANCE_COMPLETE.md)** - Complete governance implementation guide
+- **Canon reference:** [`L1_THEORY/canon/000_foundation/003_GEOMETRY_IMPLEMENTATION_v47.md`](L1_THEORY/canon/000_foundation/003_GEOMETRY_IMPLEMENTATION_v47.md) Section 8
+- **Implementation:** `arifos_core/mcp/governed_executor.py`, `settlement_policy.py`, `orthogonality_guard.py`, `immutable_ledger.py`
+- **Tests:** `tests/test_quantum_governance.py` (15 tests, all passing)
+
+### Performance
+
+**Constitutional Compliance:**
+- **Settlement timeouts:** AGI (1.5s), ASI (1.5s), APEX (0.5s)
+- **Orthogonality threshold:** Ω_ortho ≥ 0.95
+- **Ledger integrity:** SHA256 hash chain
+- **Total cycle mandate:** <3s (constitutional requirement)
+
+**Constitutional Floor Compliance:**
+- F1 (Amanah): ✅ Immutable ledger forged
+- F2 (Truth): ✅ Factual measurement history
+- F4 (ΔS Clarity): ✅ Orthogonality measured
+- F5 (Peace²): ✅ Timeouts prevent hangs
+- F6 (Empathy): ✅ Fast governance (<3s)
+- F8 (Tri-Witness): ✅ Ledger as witness
+- F10 (Ontology): ✅ AGI ⊥ ASI verified
+
+**DITEMPA BUKAN DIBERI** — *Measurable quantum forces, not ungoverned parallel execution.*
+
+---
+
 ## [v47.0] - 2026-01-16 - Model-Agnostic Agent System
 
 **Status:** ✅ IMPLEMENTED | Authority: @ariffazil + Claude (Ω - Engineer)

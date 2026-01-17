@@ -1,8 +1,10 @@
-# AGENTS - Constitutional Governance v47.0.0
+# AGENTS - Constitutional Governance v47.1.0
 **Constitutional Agent Specifications**
-**Version:** v47.0.0 + Model-Agnostic (2026-01)
+**Version:** v47.1.0 + Quantum Governance (2026-01-17)
 **Authority:** Muhammad Arif bin Fazil > arifOS Governor > Agent
 **Sync Source:** L2_PROTOCOLS/v46/* + config/agents.yaml
+
+**🌋⚛️ NEW IN v47.1:** Production-grade quantum governance with measurable constitutional enforcement (Ω_ortho ≥0.95, hard timeouts, SHA256 ledger). See [QUANTUM_GOVERNANCE_COMPLETE.md](QUANTUM_GOVERNANCE_COMPLETE.md) for details.
 
 ---
 
