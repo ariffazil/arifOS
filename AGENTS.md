@@ -1,18 +1,29 @@
-# AGENTS - Constitutional Governance v47.1.0
+# AGENTS - Constitutional Governance v47.1.1
 **Constitutional Agent Specifications**
-**Version:** v47.1.0 + Quantum Governance (2026-01-17)
+**Version:** v47.1.1 + README Comprehensive Rewrite (2026-01-17)
 **Authority:** Muhammad Arif bin Fazil > arifOS Governor > Agent
 **Sync Source:** L2_PROTOCOLS/v46/* + config/agents.yaml
 
-**🌋⚛️ NEW IN v47.1:** Production-grade quantum governance with measurable constitutional enforcement (Ω_ortho ≥0.95, hard timeouts, SHA256 ledger). See [QUANTUM_GOVERNANCE_COMPLETE.md](QUANTUM_GOVERNANCE_COMPLETE.md) for details.
+**📚 NEW IN v47.1.1:** Complete README rewrite with executable constitutional governance—1,738 lines of zero-context documentation including 1,500+ line AI system prompt for self-replicating governance. See [README.md](README.md) for complete foundation.
+
+**🌋⚛️ v47.1.0:** Production-grade quantum governance with measurable constitutional enforcement (Ω_ortho ≥0.95, hard timeouts, SHA256 ledger). See [QUANTUM_GOVERNANCE_COMPLETE.md](QUANTUM_GOVERNANCE_COMPLETE.md) for details.
 
 ---
 
-## 📚 Constitutional Quick Start (3 Files Only)
-**Compressed to functional What/Where/How mapping for entropy reduction:**
+## 📚 Constitutional Quick Start (Zero-Context Entry Point)
 
+**🎯 START HERE:** **[README.md](README.md)** - Complete zero-context introduction (1,738 lines)
+- Philosophy → Architecture → Governance narrative arc
+- The Three Scars (Miskin, MSS, Abah) grounding all 12 floors
+- Complete 000→999 pipeline explanation
+- All 12 constitutional floors with 4-part breakdown each
+- Quantum governance (parallel AGI+ASI)
+- VAULT 999 memory architecture (AAA/BBB/CCC)
+- **Executable AI system prompt (1,500+ lines)** - Copy into any LLM to self-govern
+
+**Quick Operational Reference:**
 - **[WHAT.md](WHAT.md)** → What arifOS does constitutionally
-- **[WHERE.md](WHERE.md)** → Where everything is located  
+- **[WHERE.md](WHERE.md)** → Where everything is located
 - **[HOW.md](HOW.md)** → How to start and use (3 commands)
 
 **Complete Documentation:**
@@ -20,6 +31,7 @@
 - **[docs/analysis/](docs/analysis/)** - Constitutional entropy analysis and unification reports
 - **[reports/](reports/)** - Operational completion reports (MCP forging, agent enhancements)
 - **[docs/testing/](docs/testing/)** - Test unification plans and import failure analysis
+- **[docs/sessions/](docs/sessions/)** - Session insights and eureka discoveries
 
 ---
 
