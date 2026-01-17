@@ -15,6 +15,11 @@ Quantum Architecture (v47+):
 - 47% faster than sequential pipeline
 - AAA-level separation: LLM generation ⊥ Quantum validation
 
+Quantum Governance (v47.1+):
+- Settlement Policy: Hard timeouts (AGI: 1.5s, ASI: 1.5s, APEX: 0.5s)
+- Orthogonality Guard: Ω_ortho measurement (threshold: ≥0.95)
+- Immutable Ledger: SHA256 hash chain (tamper-evident history)
+
 Usage:
     # MCP Tools
     from arifos_core.mcp import list_tools, arifos_judge, arifos_recall, arifos_audit
@@ -30,13 +35,16 @@ Usage:
     if state.final_verdict == "SEAL":
         print(draft)
 
-    # Validate existing text (sync)
-    state = validate_text_sync(
-        query="What is 2+2?",
-        draft_response="4"
-    )
+    # Governed Quantum (production-grade)
+    from arifos_core.mcp import govern_query_async, GovernedQuantumExecutor
 
-Version: v47.0.0
+    # With full governance enforcement
+    state, proof = await govern_query_async("What is 2+2?")
+    print(f"Verdict: {state.final_verdict}")
+    print(f"Ω_ortho: {proof['omega_ortho']}")
+    print(f"Ledger: {proof['ledger_hash']}")
+
+Version: v47.1.0
 """
 
 from .tools.audit import arifos_audit
@@ -56,6 +64,18 @@ from .helpers import (
 # Quantum executor (low-level)
 from .orthogonal_executor import OrthogonalExecutor, QuantumState
 
+# Governed quantum (production-grade, v47.1+)
+from .governed_executor import (
+    GovernedQuantumExecutor,
+    govern_query_async,
+    govern_query_sync,
+)
+
+# Governance layers (advanced usage)
+from .settlement_policy import SettlementPolicyHandler, SettlementResult, SettlementStatus
+from .orthogonality_guard import OrthogonalityGuard, OrthogonalityMetrics, CouplingType
+from .immutable_ledger import ImmutableLedger, LedgerRecord
+
 __all__ = [
     # MCP Server
     "list_tools",
@@ -73,7 +93,22 @@ __all__ = [
     "validate_text_sync",
     "QuantumPipeline",
 
+    # Governed quantum (production-grade)
+    "GovernedQuantumExecutor",
+    "govern_query_async",
+    "govern_query_sync",
+
     # Low-level quantum (advanced usage)
     "OrthogonalExecutor",
     "QuantumState",
+
+    # Governance layers (expert usage)
+    "SettlementPolicyHandler",
+    "SettlementResult",
+    "SettlementStatus",
+    "OrthogonalityGuard",
+    "OrthogonalityMetrics",
+    "CouplingType",
+    "ImmutableLedger",
+    "LedgerRecord",
 ]

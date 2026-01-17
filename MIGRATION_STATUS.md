@@ -25,16 +25,23 @@
 | `arifos_core/system/pipeline.py` | Stub | ✅ Deprecation added | Monitor warnings |
 | `arifos_core/mcp/tools/judge.py` | MCP Tool | ✅ AAA Migrated | Testing complete |
 | `arifos_core/integration/api/routes/pipeline.py` | API | ✅ AAA Migrated | Testing complete |
-| `arifos_core/system/__main__.py` | CLI | ⏳ Pending | Next priority |
-| `arifos_core/integration/sealion_suite/evaluator.py` | Tests | ⏳ Pending | After CLI |
+| `arifos_core/system/__main__.py` | CLI | ✅ AAA Migrated | Testing complete |
+| `arifos_core/integration/sealion_suite/evaluator.py` | Tests | ⏳ In Progress | Final critical file |
 
-**Completion:** 3/5 critical files (60%)
+**Completion:** 4/5 critical files (80%)
 
-**Recent Migrations (Commit 255a43c):**
+**Recent Migrations:**
+
+**Session 1 (Commit 255a43c):**
 - ✅ `pipeline.py` - Both `/run` and `/run/debug` endpoints migrated to `generate_and_validate_async()`
 - ✅ `judge.py` - Migrated to `validate_text_sync()` for validation-only pattern
 - ✅ Test suite created: `test_aaa_migration_api.py`, `test_aaa_migration_judge.py`
 - ✅ Performance validated: 47% faster (53ms vs 100ms)
+
+**Session 2 (Commits 5554201, 1d1fa9e):**
+- ✅ `__main__.py` (CLI) - Migrated to `validate_text_sync()` with ledger integration
+- ✅ Test suite: `test_aaa_migration_cli.py`, `test_aaa_migration_api_isolated.py`
+- ✅ Migration status tracking updated
 
 ---
 

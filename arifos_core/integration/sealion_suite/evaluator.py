@@ -1,5 +1,8 @@
 """
-evaluator.py - Test Case Evaluator for SEA-LION v4 on arifOS v45Ω
+evaluator.py - Test Case Evaluator for SEA-LION v4 on arifOS v47+
+
+AAA-Level Migration: Uses quantum orthogonal executor for constitutional validation.
+Architecture: LLM Generation ⊥ Quantum Validation (dot_product = 0)
 
 Runs individual test cases and validates outcomes against expectations.
 Captures:
@@ -21,8 +24,8 @@ from pathlib import Path
 
 from .test_packs import TestCase
 
-# arifOS imports
-from arifos_core.system.pipeline import run_pipeline, PipelineState
+# AAA-Level: Import quantum helpers instead of old pipeline
+from arifos_core.mcp import generate_and_validate_sync
 from arifos_core.system.apex_prime import Verdict
 from arifos_core.enforcement.routing.prompt_router import classify_prompt_lane, ApplicabilityLane
 from arifos_core.enforcement.metrics import Metrics
@@ -153,7 +156,7 @@ class TestResult:
 
 
 class TestEvaluator:
-    """Evaluates test cases against arifOS pipeline."""
+    """Evaluates test cases against arifOS quantum validation (AAA-level)."""
 
     def __init__(
         self,
