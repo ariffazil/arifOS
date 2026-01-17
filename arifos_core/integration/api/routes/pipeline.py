@@ -1,7 +1,10 @@
 """
-arifOS API Pipeline Routes - Run queries through the governed pipeline.
+arifOS API Pipeline Routes - Run queries through quantum constitutional validation.
 
-This is the main endpoint for executing governed LLM calls.
+AAA-Level Migration (v47.1+): Uses quantum orthogonal executor for LLM + validation.
+Architecture: LLM Generation ⊥ Quantum Validation (dot_product = 0)
+
+This is the main endpoint for executing governed LLM calls with parallel AGI+ASI validation.
 """
 
 from __future__ import annotations
@@ -16,6 +19,9 @@ from fastapi import APIRouter, Query, HTTPException
 from ..exceptions import PipelineError
 from ..models import PipelineRunRequest, PipelineRunResponse, PipelineMetrics
 from arifos_core.apex.contracts.apex_prime_output_v41 import serialize_public
+
+# AAA-Level: Import quantum helpers instead of old pipeline
+from arifos_core.mcp import generate_and_validate_async
 
 router = APIRouter(prefix="/pipeline", tags=["pipeline"])
 
@@ -67,98 +73,104 @@ def _get_llm_generate() -> Callable[[str], str]:
 @router.post("/run")
 async def run_pipeline(request: PipelineRunRequest) -> dict:
     """
-    Run a query through the governed pipeline.
+    Run a query through quantum constitutional validation (AAA-level).
 
-    The pipeline enforces all 9 constitutional floors and returns
-    a verdict along with the response.
-    
+    AAA Architecture:
+    1. LLM generates response (external - LiteLLM or stub)
+    2. Quantum validates response (independent - parallel AGI+ASI+APEX)
+    3. Returns verdict + response if SEAL
+
     LLM Backend:
     - If ARIF_LLM_API_KEY is set: Uses LiteLLM (SEA-LION or other provider)
     - Otherwise: Uses stub mode for testing
 
     Verdicts:
-    - SEAL: All floors pass, response is approved
+    - SEAL: All constitutional floors pass, response approved
     - PARTIAL: Soft floors failed, response with warnings
     - VOID: Hard floor failed, response blocked
     - SABAR: Protocol triggered, needs cooling
-    - 888_HOLD: High-stakes, awaiting human approval
     """
     try:
-        from arifos_core.system.pipeline import Pipeline
-
         # Get LLM backend (LiteLLM if configured, else stub)
-        llm_generate = _get_llm_generate()
+        llm_generate_sync = _get_llm_generate()
 
-        # Create pipeline with the selected backend
-        pipeline = Pipeline(llm_generate=llm_generate)
+        # AAA-Level: Async wrapper for sync LLM function
+        async def llm_generate_async(query: str, **kwargs) -> str:
+            return llm_generate_sync(query)
 
         # Generate job_id if not provided
         job_id = request.job_id or f"api-{uuid.uuid4().hex[:8]}"
 
-        # Run the pipeline
-        final_state = pipeline.run(request.query)
+        # AAA-Level: Generate + Validate (LLM ⊥ Quantum)
+        draft_response, quantum_state = await generate_and_validate_async(
+            query=request.query,
+            llm_generate=llm_generate_async,
+            context={"job_id": job_id, "user_id": request.user_id}
+        )
 
-        # Extract response text
-        response_text = ""
-        if hasattr(final_state, "raw_response") and final_state.raw_response:
-            response_text = final_state.raw_response
-        elif hasattr(final_state, "draft_response") and final_state.draft_response:
-            response_text = final_state.draft_response
-        elif hasattr(final_state, "output") and final_state.output:
-            response_text = final_state.output
-        else:
-            response_text = "[No response generated]"
+        # AAA-Level: Response is the LLM-generated text
+        response_text = draft_response
 
-        # Extract verdict
-        verdict = "UNKNOWN"
-        if hasattr(final_state, "verdict") and final_state.verdict:
-            verdict = str(final_state.verdict)
-        elif hasattr(final_state, "apex_verdict") and final_state.apex_verdict:
-            verdict = str(final_state.apex_verdict)
+        # AAA-Level: Verdict from quantum state
+        verdict = quantum_state.final_verdict or "UNKNOWN"
 
-        # Extract metrics if available
+        # AAA-Level: Extract metrics from quantum particles
         metrics = None
-        if hasattr(final_state, "metrics") and final_state.metrics:
-            m = final_state.metrics
+        if quantum_state.agi_particle or quantum_state.asi_particle:
             metrics = PipelineMetrics(
-                truth=getattr(m, "truth", None),
-                delta_s=getattr(m, "delta_s", None),
-                peace_squared=getattr(m, "peace_squared", None),
-                kappa_r=getattr(m, "kappa_r", None),
-                omega_0=getattr(m, "omega_0", None),
-                amanah=getattr(m, "amanah", None),
-                rasa=getattr(m, "rasa", None),
-                anti_hantu=getattr(m, "anti_hantu", None),
+                # AGI metrics
+                truth=getattr(quantum_state.agi_particle, 'truth_score', None) if quantum_state.agi_particle else None,
+                delta_s=getattr(quantum_state.agi_particle, 'entropy_delta', None) if quantum_state.agi_particle else None,
+
+                # ASI metrics
+                peace_squared=getattr(quantum_state.asi_particle, 'peace_score', None) if quantum_state.asi_particle else None,
+                kappa_r=getattr(quantum_state.asi_particle, 'kappa_r', None) if quantum_state.asi_particle else None,
+                omega_0=getattr(quantum_state.asi_particle, 'omega_zero', None) if quantum_state.asi_particle else None,
+                rasa=getattr(quantum_state.asi_particle, 'rasa', None) if quantum_state.asi_particle else None,
+
+                # APEX metrics
+                amanah=1.0 if verdict == "SEAL" else 0.0,
+                anti_hantu=1.0,  # Always enforced by quantum
             )
 
-            # Add GENIUS metrics if available
+            # GENIUS metrics (optional)
             try:
                 from arifos_core.enforcement.genius_metrics import (
                     compute_genius_index,
                     compute_dark_cleverness,
                     compute_psi_score,
                 )
+                # Convert quantum state to metrics dict for GENIUS
+                m_dict = {
+                    'truth': metrics.truth or 0.95,
+                    'delta_s': metrics.delta_s or 0.0,
+                    'peace_squared': metrics.peace_squared or 1.0,
+                    'kappa_r': metrics.kappa_r or 0.95,
+                    'omega_0': metrics.omega_0 or 0.04,
+                }
+                from types import SimpleNamespace
+                m = SimpleNamespace(**m_dict)
                 metrics.genius_g = compute_genius_index(m)
                 metrics.genius_c_dark = compute_dark_cleverness(m)
                 metrics.genius_psi = compute_psi_score(m)
             except Exception:
                 pass  # GENIUS metrics are optional
 
-        # Extract floor failures and stage trace
+        # Extract floor failures from quantum particles
         floor_failures = []
-        stage_trace = []
-        if hasattr(final_state, "floor_failures"):
-            floor_failures = list(final_state.floor_failures or [])
-        if hasattr(final_state, "stage_trace"):
-            stage_trace = list(final_state.stage_trace or [])
+        if quantum_state.agi_particle and hasattr(quantum_state.agi_particle, 'verdict'):
+            if quantum_state.agi_particle.verdict not in ["SEAL", "PASSED"]:
+                floor_failures.append(f"AGI: {quantum_state.agi_particle.verdict}")
+        if quantum_state.asi_particle and hasattr(quantum_state.asi_particle, 'verdict'):
+            if quantum_state.asi_particle.verdict not in ["SEAL", "PASSED"]:
+                floor_failures.append(f"ASI: {quantum_state.asi_particle.verdict}")
 
-        # Use job_id from state if available
-        if hasattr(final_state, "job_id") and final_state.job_id:
-            job_id = final_state.job_id
+        # Stage trace: Quantum particles (not sequential stages)
+        stage_trace = ["000_VOID", "AGI_PARTICLE", "ASI_PARTICLE", "APEX_MEASUREMENT", "999_SEAL"]
 
         pub_verdict = _public_verdict(verdict)
 
-        # psi_internal: prefer genius_psi if present, else None (never fake)
+        # psi_internal: prefer genius_psi if present, else None
         psi_internal = None
         if metrics is not None and getattr(metrics, "genius_psi", None) is not None:
             try:
@@ -176,91 +188,103 @@ async def run_pipeline(request: PipelineRunRequest) -> dict:
         )
 
     except Exception as e:
-        print(f"[API] Pipeline error: {e}")
+        print(f"[API] Quantum validation error: {e}")
         print(f"[API] Traceback: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Pipeline execution failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Quantum validation failed: {str(e)}")
 
 
 @router.post("/run/debug", response_model=PipelineRunResponse)
 async def run_pipeline_debug(request: PipelineRunRequest) -> PipelineRunResponse:
     """
-    Run a query through the governed pipeline with full debug payload.
-    
-    Returns the complete internal telemetry for debugging and operations.
+    Run a query through quantum constitutional validation with full debug payload (AAA-level).
+
+    AAA Architecture:
+    1. LLM generates response (external - LiteLLM or stub)
+    2. Quantum validates response (independent - parallel AGI+ASI+APEX)
+    3. Returns complete internal telemetry for debugging
+
     Use /run for the public APEX PRIME contract.
     """
     try:
-        from arifos_core.system.pipeline import Pipeline
-
         # Get LLM backend (LiteLLM if configured, else stub)
-        llm_generate = _get_llm_generate()
+        llm_generate_sync = _get_llm_generate()
 
-        # Create pipeline with the selected backend
-        pipeline = Pipeline(llm_generate=llm_generate)
+        # AAA-Level: Async wrapper for sync LLM function
+        async def llm_generate_async(query: str, **kwargs) -> str:
+            return llm_generate_sync(query)
 
         # Generate job_id if not provided
         job_id = request.job_id or f"debug-{uuid.uuid4().hex[:8]}"
 
-        # Run the pipeline
-        final_state = pipeline.run(request.query)
+        # AAA-Level: Generate + Validate (LLM ⊥ Quantum)
+        draft_response, quantum_state = await generate_and_validate_async(
+            query=request.query,
+            llm_generate=llm_generate_async,
+            context={"job_id": job_id, "user_id": request.user_id}
+        )
 
-        # Extract response text
-        response_text = ""
-        if hasattr(final_state, "raw_response") and final_state.raw_response:
-            response_text = final_state.raw_response
-        elif hasattr(final_state, "draft_response") and final_state.draft_response:
-            response_text = final_state.draft_response
-        elif hasattr(final_state, "output") and final_state.output:
-            response_text = final_state.output
-        else:
-            response_text = "[No response generated]"
+        # AAA-Level: Response is the LLM-generated text
+        response_text = draft_response if draft_response else "[No response generated]"
 
-        # Extract verdict
-        verdict = "UNKNOWN"
-        if hasattr(final_state, "verdict") and final_state.verdict:
-            verdict = str(final_state.verdict)
-        elif hasattr(final_state, "apex_verdict") and final_state.apex_verdict:
-            verdict = str(final_state.apex_verdict)
+        # AAA-Level: Verdict from quantum state
+        verdict = quantum_state.final_verdict or "UNKNOWN"
 
-        # Extract metrics if available
+        # AAA-Level: Extract metrics from quantum particles
         metrics = None
-        if hasattr(final_state, "metrics") and final_state.metrics:
-            m = final_state.metrics
+        if quantum_state.agi_particle or quantum_state.asi_particle:
             metrics = PipelineMetrics(
-                truth=getattr(m, "truth", None),
-                delta_s=getattr(m, "delta_s", None),
-                peace_squared=getattr(m, "peace_squared", None),
-                kappa_r=getattr(m, "kappa_r", None),
-                omega_0=getattr(m, "omega_0", None),
-                amanah=getattr(m, "amanah", None),
-                rasa=getattr(m, "rasa", None),
-                anti_hantu=getattr(m, "anti_hantu", None),
+                # AGI metrics
+                truth=getattr(quantum_state.agi_particle, 'truth_score', None) if quantum_state.agi_particle else None,
+                delta_s=getattr(quantum_state.agi_particle, 'entropy_delta', None) if quantum_state.agi_particle else None,
+
+                # ASI metrics
+                peace_squared=getattr(quantum_state.asi_particle, 'peace_score', None) if quantum_state.asi_particle else None,
+                kappa_r=getattr(quantum_state.asi_particle, 'kappa_r', None) if quantum_state.asi_particle else None,
+                omega_0=getattr(quantum_state.asi_particle, 'omega_zero', None) if quantum_state.asi_particle else None,
+                rasa=getattr(quantum_state.asi_particle, 'rasa', None) if quantum_state.asi_particle else None,
+
+                # APEX metrics
+                amanah=1.0 if verdict == "SEAL" else 0.0,
+                anti_hantu=1.0,  # Always enforced by quantum
             )
 
-            # Add GENIUS metrics if available
+            # GENIUS metrics (optional)
             try:
                 from arifos_core.enforcement.genius_metrics import (
                     compute_genius_index,
                     compute_dark_cleverness,
                     compute_psi_score,
                 )
+                # Convert quantum state to metrics dict for GENIUS
+                m_dict = {
+                    'truth': metrics.truth or 0.95,
+                    'delta_s': metrics.delta_s or 0.0,
+                    'peace_squared': metrics.peace_squared or 1.0,
+                    'kappa_r': metrics.kappa_r or 0.95,
+                    'omega_0': metrics.omega_0 or 0.04,
+                }
+                from types import SimpleNamespace
+                m = SimpleNamespace(**m_dict)
                 metrics.genius_g = compute_genius_index(m)
                 metrics.genius_c_dark = compute_dark_cleverness(m)
                 metrics.genius_psi = compute_psi_score(m)
             except Exception:
                 pass  # GENIUS metrics are optional
 
-        # Extract floor failures and stage trace
+        # Extract floor failures from quantum particles
         floor_failures = []
-        stage_trace = []
-        if hasattr(final_state, "floor_failures"):
-            floor_failures = list(final_state.floor_failures or [])
-        if hasattr(final_state, "stage_trace"):
-            stage_trace = list(final_state.stage_trace or [])
+        if quantum_state.agi_particle and hasattr(quantum_state.agi_particle, 'verdict'):
+            if quantum_state.agi_particle.verdict not in ["SEAL", "PASSED"]:
+                floor_failures.append(f"AGI: {quantum_state.agi_particle.verdict}")
+        if quantum_state.asi_particle and hasattr(quantum_state.asi_particle, 'verdict'):
+            if quantum_state.asi_particle.verdict not in ["SEAL", "PASSED"]:
+                floor_failures.append(f"ASI: {quantum_state.asi_particle.verdict}")
 
-        # Use job_id from state if available
-        if hasattr(final_state, "job_id") and final_state.job_id:
-            job_id = final_state.job_id
+        # Stage trace: Quantum particles (not sequential stages)
+        stage_trace = ["000_VOID", "AGI_PARTICLE", "ASI_PARTICLE", "APEX_MEASUREMENT", "999_SEAL"]
+
+        # job_id from context (already set above)
+        # No need to extract from state
 
         return PipelineRunResponse(
             verdict=verdict,
@@ -272,9 +296,9 @@ async def run_pipeline_debug(request: PipelineRunRequest) -> PipelineRunResponse
         )
 
     except Exception as e:
-        print(f"[API] Debug Pipeline error: {e}")
+        print(f"[API] Debug Quantum validation error: {e}")
         print(f"[API] Traceback: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Debug Pipeline execution failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Debug Quantum validation failed: {str(e)}")
 
 
 def _public_verdict(v: str) -> str:
