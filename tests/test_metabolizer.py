@@ -3,12 +3,17 @@
 Test Component 4: Metabolizer
 ============================
 Verifies the Encoder -> Metabolizer -> Decoder pipeline.
+
+Canonical Location: arifos.orchestrator.metabolizer (v49 single-body)
+NOTE: Tests use arifos_core imports during consolidation due to arifos/__init__.py
+      having deep spec file dependencies. After L2_PROTOCOLS migration, switch to:
+      from arifos.orchestrator.metabolizer import ...
 """
 import pytest
 
 from arifos_core.orchestrator.metabolizer import (AAAMetabolizer,
-                                                  PresentationStrategy,
-                                                  UserProfile)
+                                             PresentationStrategy,
+                                             UserProfile)
 
 
 @pytest.fixture
