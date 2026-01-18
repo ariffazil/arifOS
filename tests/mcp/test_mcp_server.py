@@ -6,6 +6,10 @@ the full constitutional pipeline (000->999).
 """
 
 import sys
+print("sys.path inside test_mcp_server.py:", sys.path)
+import pytest
+from fastapi.testclient import TestClient
+from unittest.mock import MagicMock, patch
 import os
 from pathlib import Path
 

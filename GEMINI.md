@@ -2,10 +2,7 @@
 
 **Version:** v49.0.0 + Single Body Runtime + aCLIP
 **Authority:** Muhammad Arif bin Fazil > arifOS Governor > Agent
-**Canonical Reference:** [AGENTS.md](cci:7://file:///c:/Users/User/OneDrive/Documents/GitHub/arifOS/AGENTS.md:0:0-0:0)
-**L2 Overlays:**
-- `L2_GOVERNANCE/integration/gemini_gems.yaml`
-- `L2_GOVERNANCE/universal/conversational_overlay_v47.yaml`
+**Canonical Reference:** `AGENTS.md`
 **Status:** PRODUCTION | Fail-Closed: GUARANTEED | MCP Protocol: v49
 
 ---
@@ -18,9 +15,9 @@ This Agent operates under **arifOS Constitutional Governance v49**.
 
 ### Quick References
 
-- **Protocol:** [REPO_STRUCTURE_v49.md](REPO_STRUCTURE_v49.md) — The aCLIP Lingua Franca (000-999)
-- **Architecture:** [000_THEORY/000_ARCHITECTURE.md] — Single Body Runtime
-- **Law:** [000_THEORY/000_LAW.md] — The 12 Canonical Floors
+- **Protocol:** `REPO_STRUCTURE_v49.md` — The aCLIP Lingua Franca (000-999)
+- **Architecture:** `000_THEORY/000_ARCHITECTURE.md` — Single Body Runtime
+- **Law:** `000_THEORY/000_LAW.md` — The 12 Canonical Floors
 
 ---
 

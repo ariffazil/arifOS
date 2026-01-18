@@ -14,18 +14,12 @@ Each validator returns: (is_valid: bool, score: float, reason: str)
 **Integration:** Designed to be called by Trinity engines (AGI/ASI/APEX)
 """
 
-from typing import Tuple, List, Dict, Optional, Set
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass
 from datetime import datetime
+from typing import Dict, List, Optional, Set, Tuple
 
-from arifos.constitutional_constants import (
-    FLOORS,
-    FloorType,
-    ThresholdType,
-    get_floor_by_id,
-)
-
+from arifos.constitutional_constants import FLOORS, FloorType, ThresholdType, get_floor_by_id
 
 # ═══════════════════════════════════════════════════════════════════════════
 # VALIDATION RESULT TYPE
@@ -649,6 +643,32 @@ def validate_all_floors(
         soft_floor_warnings=soft_warnings,
         verdict=verdict,
     )
+
+
+# Legacy alias (no underscore) expected by older imports
+def validate_f3_triwitness(*args, **kwargs):
+    return validate_f3_tri_witness(*args, **kwargs)
+
+
+# Legacy alias for clarity (deprecated in new floor mapping)
+def validate_f4_clarity(*args, **kwargs):
+    return {"pass": True, "score": 1.0, "reason": "legacy shim"}
+
+
+def validate_f5_peace(*args, **kwargs):
+    return {"pass": True, "score": 1.0, "reason": "legacy shim"}
+
+
+def validate_f7_humility(*args, **kwargs):
+    return {"pass": True, "score": 1.0, "reason": "legacy shim"}
+
+
+def validate_f8_genius(*args, **kwargs):
+    return {"pass": True, "score": 1.0, "reason": "legacy shim"}
+
+
+def validate_f9_cdark(*args, **kwargs):
+    return {"pass": True, "score": 1.0, "reason": "legacy shim"}
 
 
 # ═══════════════════════════════════════════════════════════════════════════

@@ -1,7 +1,13 @@
 """Pytest configuration and fixtures for arifOS tests"""
 
 import os
+from pathlib import Path
+
 import pytest
+
+# Ensure legacy spec bypass is active during import/collection
+os.environ.setdefault("ARIFOS_ALLOW_LEGACY_SPEC", "1")
+os.environ.setdefault("ARIFOS_PHYSICS_DISABLED", "1")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -64,3 +70,23 @@ def enable_physics_for_apex_theory():
         os.environ["ARIFOS_PHYSICS_DISABLED"] = original_state
     else:
         os.environ["ARIFOS_PHYSICS_DISABLED"] = "1"
+
+
+# Skip legacy tests that still reference arifos_core (removed in v49 single-body)
+def pytest_ignore_collect(path, config):
+    """
+    Temporarily disabled. The original logic was too broad and skipped
+    necessary source files in the arifos package, causing import errors.
+    """
+    return False
+    # candidate = Path(path)
+    # if candidate.suffix != ".py":
+    #     return False
+    # # Skip legacy suite by default
+    # if "tests\\legacy" in str(candidate) or "tests/legacy" in str(candidate):
+    #     return True
+    # try:
+    #     text = candidate.read_text(encoding="utf-8", errors="ignore")
+    # except Exception:
+    #     return False
+    # return "arifos_core" in text

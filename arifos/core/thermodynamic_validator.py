@@ -15,17 +15,11 @@ Implements thermodynamic physics for constitutional governance:
 These are NOT metaphors. These are measurable, computable, verifiable metrics.
 """
 
-from typing import Dict, List, Tuple, Optional
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
 
-from arifos.constitutional_constants import (
-    HUMILITY_RANGE,
-    PEACE_SQUARED_MIN,
-    GENIUS_MIN,
-    CDARK_MAX,
-)
-
+from arifos.constitutional_constants import CDARK_MAX, GENIUS_MIN, HUMILITY_RANGE, PEACE_SQUARED_MIN
 
 # ═══════════════════════════════════════════════════════════════════════════
 # THERMODYNAMIC STATE

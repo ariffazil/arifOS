@@ -1,25 +1,32 @@
 # Bridge client to call arifOS law engine functions (v42-aware).
 from typing import Any, Dict, Optional, Tuple
 
-from arifos_clip.aclip.bridge import verdicts
+from arifos.clip.aclip.bridge import verdicts
 
 _arifos_eval = None
 
 
 def _load_arifos_evaluator() -> Optional[Any]:
-    """Multi-path import to support v42 layout + legacy shim."""
+    """Multi-path import to support v49 single-body layout."""
     try:
-        from arifos_core.integration.bridge import evaluate_session  # type: ignore
-
+        # v49: Primary Path (arifos package)
+        from arifos.integration.bridge import evaluate_session
         return evaluate_session
-    except Exception:
+    except ImportError:
         pass
-    try:
-        import arifos_core as arifos_core_pkg  # legacy root export
 
-        if hasattr(arifos_core_pkg, "evaluate_session"):
-            return arifos_core_pkg.evaluate_session
-    except Exception:
+    try:
+        # v49: Core Path (arifos.core)
+        from arifos.core.integration.bridge import evaluate_session
+        return evaluate_session
+    except ImportError:
+        pass
+
+    try:
+        # Legacy: Fallback (should be removed in v50)
+        import arifos_core.integration.bridge as legacy_bridge  # type: ignore
+        return legacy_bridge.evaluate_session
+    except ImportError:
         pass
     return None
 

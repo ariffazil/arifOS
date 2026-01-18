@@ -27,7 +27,16 @@ from typing import Any, Dict, List, Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-# Phase 9.4: EUREKA sieve memory TTL
+# Constitutional imports (Phase 8.1: Canonical validators)
+# VAULT enforces all 13 floors
+from arifos.core.floor_validators import (
+    validate_all_floors,
+    validate_f1_amanah,
+)
+from arifos.core.thermodynamic_validator import (
+    validate_thermodynamics,
+    ThermodynamicState,
+)
 from arifos.vault.memory_tower import EUREKA_SIEVE
 
 logger = logging.getLogger(__name__)

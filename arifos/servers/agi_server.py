@@ -32,6 +32,10 @@ from arifos.core.floor_validators import (
     validate_f10_ontology,
     validate_f13_curiosity,
 )
+    validate_f7_humility,
+    validate_f10_ontology,
+    validate_f13_curiosity,
+)
 
 logger = logging.getLogger(__name__)
 

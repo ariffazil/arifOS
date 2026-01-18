@@ -24,9 +24,9 @@ Note:
 
 from __future__ import annotations
 
-import os
 import logging
-from typing import Dict, Any, Optional
+import os
+from typing import Any, Dict, Optional
 
 # =============================================================================
 # CONFIGURATION
@@ -63,14 +63,16 @@ def _get_eval_instance() -> Optional[Any]:
         return _eval_instance
 
     try:
-        from arifos_eval.apex import ApexMeasurement
         import os
 
+        from arifos.eval.apex import ApexMeasurement
+
         # Look for standards file in known locations (v45 preferred, v36 fallback)
+        # v49 Update: Path is now relative to arifos/ (so ../eval/apex/...)
         standards_paths = [
-            os.path.join(os.path.dirname(__file__), "..", "arifos_eval", "apex", "apex_standards_v45.json"),
+            os.path.join(os.path.dirname(__file__), "..", "eval", "apex", "apex_standards_v45.json"),
             os.path.join(os.path.dirname(__file__), "..", "spec", "apex_standards_v45.json"),
-            os.path.join(os.path.dirname(__file__), "..", "arifos_eval", "apex", "apex_standards_v36.json"),  # Fallback
+            os.path.join(os.path.dirname(__file__), "..", "eval", "apex", "apex_standards_v36.json"),  # Fallback
             os.path.join(os.path.dirname(__file__), "..", "spec", "apex_standards_v36.json"),  # Fallback
         ]
 
@@ -87,7 +89,7 @@ def _get_eval_instance() -> Optional[Any]:
         return None
 
     except ImportError as e:
-        _logger.debug(f"arifos_eval not available: {e}")
+        _logger.debug(f"arifos.eval not available: {e}")
         _eval_available = False
         return None
 

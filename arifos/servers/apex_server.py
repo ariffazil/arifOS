@@ -26,12 +26,6 @@ from typing import Any, Dict, List, Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-# Constitutional imports (Phase 8.1: Canonical validators)
-from arifos.core.floor_validators import validate_f3_triwitness, validate_f8_genius
-
-# Ledger dual-write import
-from arifos.memory.ledger.postgres_ledger import get_ledger
-
 # Phase 9.2: zkPC cryptographic sealing
 from arifos.apex.governance.zkpc_runtime import (
     ZKPCContext,
@@ -41,6 +35,13 @@ from arifos.apex.governance.zkpc_runtime import (
 
 # Phase 9.3: Phoenix-72 cooling enforcement
 from arifos.asi.cooling import COOLING
+
+# Constitutional imports (Phase 8.1: Canonical validators)
+from arifos.core.floor_validators import validate_f3_tri_witness
+from arifos.core.floor_validators import validate_f8_genius as validate_f8_genius_canonic
+
+# Ledger dual-write import
+from arifos.memory.ledger.postgres_ledger import get_ledger
 
 logger = logging.getLogger(__name__)
 
@@ -271,7 +272,11 @@ class APEXServer:
         verdict = "SEAL" if all_floors_pass else "PARTIAL"
 
         # Build care scope (Phase I - PAUSE)
-        from arifos.apex.governance.zkpc_runtime import build_care_scope, compute_metrics_stub, run_eye_cool_phase_stub
+        from arifos.apex.governance.zkpc_runtime import (
+            build_care_scope,
+            compute_metrics_stub,
+            run_eye_cool_phase_stub,
+        )
         care_scope = build_care_scope(ctx)
 
         # Compute metrics (Phase II/III - CONTRAST/INTEGRATE)

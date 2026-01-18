@@ -47,9 +47,17 @@ from .system.apex_prime import (
     ApexVerdict,  # v42: Dataclass (verdict, pulse, reason, floors)
     Verdict,  # v42: Enum (SEAL, SABAR, VOID, PARTIAL, HOLD_888, SUNSET)
     apex_review,  # v42: Returns ApexVerdict (structured)
-    # apex_verdict,  # TODO: Missing from apex_prime.py - needs implementation
     check_floors,
 )
+
+# Legacy convenience shim (v42): returns the verdict string from apex_review
+def apex_verdict(*args, **kwargs):
+    result = apex_review(*args, **kwargs)
+    # Prefer enum value if available
+    if hasattr(result, "verdict"):
+        v = result.verdict
+        return v.value if hasattr(v, "value") else str(v)
+    return result
 
 # Import @EYE Sentinel (moved to system/)
 from .utils.eye_sentinel import AlertSeverity, EyeAlert, EyeReport, EyeSentinel
