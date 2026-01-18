@@ -11,10 +11,10 @@ from typing import Dict, List, Any
 from unittest.mock import Mock, patch, AsyncMock
 
 # arifOS components
-from arifos_core.mcp.codex_client import ConstitutionalCodexClient, ConstitutionalCodexResponse
-from arifos_core.mcp.tools.codex_skills import CodexConstitutionalSkills, CodeVerdict
-from arifos_core.trinity.coordinator import TrinityCoordinator, TrinityResult, CodexTrinitySynthesis
-from arifos_core.system.apex_prime import Verdict
+from arifos.mcp.codex_client import ConstitutionalCodexClient, ConstitutionalCodexResponse
+from arifos.mcp.tools.codex_skills import CodexConstitutionalSkills, CodeVerdict
+from arifos.trinity.coordinator import TrinityCoordinator, TrinityResult, CodexTrinitySynthesis
+from arifos.system.apex_prime import Verdict
 
 
 class TestConstitutionalCodexClient:
@@ -456,7 +456,7 @@ class TestCodexMCPIntegration:
         
         # This would test vault999_store and vault999_query
         # For now, just verify the integration points exist
-        from arifos_core.memory.vault999 import vault999_store, vault999_query
+        from arifos.memory.vault999 import vault999_store, vault999_query
         
         assert vault999_store is not None
         assert vault999_query is not None
@@ -501,7 +501,7 @@ class TestConfigurationAndDeployment:
         os.environ["ARIFOS_CONSTITUTIONAL_MODE"] = "true"
         os.environ["ARIFOS_TRINITY_ENABLED"] = "true"
         
-        from arifos_core.mcp.codex_server import CodexMCPServerConfig
+        from arifos.mcp.codex_server import CodexMCPServerConfig
         
         config = CodexMCPServerConfig()
         
@@ -599,7 +599,7 @@ async def test_integration_summary():
     print(f"✅ Trinity Coordinator: {trinity_result.constitutional_verdict} verdict with {trinity_result.trinity_metrics.get('consensus_score', 0):.2f} consensus")
     
     # Test 4: Memory Integration
-    from arifos_core.memory.vault999 import vault999_query, vault999_store
+    from arifos.memory.vault999 import vault999_query, vault999_store
     
     print("✅ Memory Integration: VAULT-999 query and store functions available")
     

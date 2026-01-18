@@ -11,7 +11,7 @@ import asyncio
 import pytest
 from datetime import datetime
 
-from arifos_core.mcp.orthogonal_executor import (
+from arifos.mcp.orthogonal_executor import (
     OrthogonalExecutor,
     QuantumState,
     ConstitutionalForces,
@@ -236,7 +236,7 @@ def test_real_asyncio_not_mythology():
 @pytest.mark.asyncio
 async def test_integration_with_bundle_tools():
     """Test orthogonal executor uses real bundle tools."""
-    from arifos_core.mcp.tools.bundles import (
+    from arifos.mcp.tools.bundles import (
         agi_think_sync,
         asi_act_sync,
         apex_audit_sync,

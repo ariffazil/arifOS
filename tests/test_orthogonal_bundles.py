@@ -6,9 +6,9 @@ import asyncio
 
 import pytest
 
-from arifos_core.mcp.models import (AgiThinkRequest, ApexAuditRequest,
+from arifos.mcp.models import (AgiThinkRequest, ApexAuditRequest,
                                     AsiActRequest, VerdictResponse)
-from arifos_core.mcp.tools.bundles import agi_think, apex_audit, asi_act
+from arifos.mcp.tools.bundles import agi_think, apex_audit, asi_act
 
 # =============================================================================
 # AGI (THINK) TESTS

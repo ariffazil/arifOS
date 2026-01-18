@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from arifos_core.apex.governance.fag import FAG, SecurityAlert
+from arifos.apex.governance.fag import FAG, SecurityAlert
 
 
 class TestAuditFileRotation:

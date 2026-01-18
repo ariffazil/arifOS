@@ -16,7 +16,7 @@ Target: ≥80% code coverage
 
 import hashlib
 import pytest
-from arifos_core.runtime.reflect_222 import (
+from arifos.runtime.reflect_222 import (
     generate_constitutional_paths,
     predict_floor_outcomes,
     apply_tac_analysis,
@@ -30,7 +30,7 @@ from arifos_core.runtime.reflect_222 import (
     ContrastAnalysis,
     ReflectedBundle222,
 )
-from arifos_core.runtime.sense_111 import SensedBundle111, SessionContext, sense_stage
+from arifos.runtime.sense_111 import SensedBundle111, SessionContext, sense_stage
 
 
 # Test fixtures

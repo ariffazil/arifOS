@@ -5,9 +5,9 @@ Verify deterministic routing signals based on evidence physics thresholds.
 v46 Update: Changed from Verdict to RoutingSignal to enforce architectural clarity.
 """
 import pytest
-from arifos_core.enforcement.evidence.evidence_pack import EvidencePack
-from arifos_core.enforcement.evidence.conflict_routing import ConflictRouter
-from arifos_core.enforcement.evidence.routing_signal import RoutingSignal
+from arifos.enforcement.evidence.evidence_pack import EvidencePack
+from arifos.enforcement.evidence.conflict_routing import ConflictRouter
+from arifos.enforcement.evidence.routing_signal import RoutingSignal
 from tests.utils import make_valid_evidence_pack
 
 def create_pack(conflict=0.0, coverage=1.0, freshness=1.0):

@@ -31,7 +31,7 @@ def client():
     if not FASTAPI_AVAILABLE:
         pytest.skip("FastAPI not installed")
 
-    from arifos_core.integration.api import create_app
+    from arifos.integration.api import create_app
     app = create_app()
     return TestClient(app)
 
@@ -47,7 +47,7 @@ class TestAppCreation:
     def test_create_app_returns_fastapi_instance(self):
         """App factory should return a FastAPI instance."""
         from fastapi import FastAPI
-        from arifos_core.integration.api import create_app
+        from arifos.integration.api import create_app
 
         app = create_app()
         assert isinstance(app, FastAPI)
@@ -55,7 +55,7 @@ class TestAppCreation:
     @pytest.mark.skipif(not FASTAPI_AVAILABLE, reason="FastAPI not installed")
     def test_app_has_correct_title(self):
         """App should have correct title."""
-        from arifos_core.integration.api import create_app
+        from arifos.integration.api import create_app
 
         app = create_app()
         assert "arifOS" in app.title
@@ -63,7 +63,7 @@ class TestAppCreation:
     @pytest.mark.skipif(not FASTAPI_AVAILABLE, reason="FastAPI not installed")
     def test_app_has_routes_registered(self):
         """App should have routes registered."""
-        from arifos_core.integration.api import create_app
+        from arifos.integration.api import create_app
 
         app = create_app()
         routes = [r.path for r in app.routes]

@@ -58,7 +58,7 @@ def test_server_module():
     print("=" * 80)
 
     try:
-        from arifos_core.mcp.unified_server import UNIFIED_TOOLS
+        from arifos.mcp.unified_server import UNIFIED_TOOLS
 
         print(f"[PASS] Unified server module loaded")
         print(f"   Total tools available: {len(UNIFIED_TOOLS)}")
@@ -81,7 +81,7 @@ def test_constitutional_metrics():
     print("=" * 80)
 
     try:
-        from arifos_core.enforcement.metrics import Metrics
+        from arifos.enforcement.metrics import Metrics
 
         # Create sample metrics
         metrics = Metrics()
@@ -106,7 +106,7 @@ def test_trinity_kernels():
 
     # Test AGI Delta Kernel
     try:
-        from arifos_core.agi.delta_kernel import DeltaKernel
+        from arifos.agi.delta_kernel import DeltaKernel
         delta = DeltaKernel()
         print(f"[PASS] AGI Delta Kernel (Δ) - Architect")
         results.append(True)
@@ -116,7 +116,7 @@ def test_trinity_kernels():
 
     # Test ASI Omega Kernel
     try:
-        from arifos_core.asi.omega_kernel import OmegaKernel
+        from arifos.asi.omega_kernel import OmegaKernel
         omega = OmegaKernel()
         print(f"[PASS] ASI Omega Kernel (Ω) - Engineer")
         results.append(True)
@@ -126,7 +126,7 @@ def test_trinity_kernels():
 
     # Test APEX Psi Kernel
     try:
-        from arifos_core.apex.psi_kernel import PsiKernel
+        from arifos.apex.psi_kernel import PsiKernel
         psi = PsiKernel()
         print(f"[PASS] APEX Psi Kernel (Ψ) - Judge")
         results.append(True)

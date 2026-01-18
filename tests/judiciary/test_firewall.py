@@ -3,8 +3,8 @@ Tests for v45 Semantic Firewall (Telemetry Isolation)
 Verify that APEX receives only physics attributes.
 """
 import pytest
-from arifos_core.enforcement.judiciary.semantic_firewall import SemanticFirewall, ApexTelemetry
-from arifos_core.enforcement.evidence.evidence_pack import EvidencePack
+from arifos.enforcement.judiciary.semantic_firewall import SemanticFirewall, ApexTelemetry
+from arifos.enforcement.evidence.evidence_pack import EvidencePack
 from tests.utils import make_valid_evidence_pack
 
 def test_sanitization_integrity():

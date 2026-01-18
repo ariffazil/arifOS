@@ -10,13 +10,13 @@ from __future__ import annotations
 
 from typing import Dict
 
-from arifos_core.integration.adapters.governed_llm import (
+from arifos.integration.adapters.governed_llm import (
   GovernedPipeline,
   configure_governed_pipeline,
   get_default_pipeline,
   governed_answer,
 )
-from arifos_core.system.pipeline import PipelineState, StakesClass
+from arifos.system.pipeline import PipelineState, StakesClass
 
 
 def _stub_llm_generate(prompt: str) -> str:
@@ -26,7 +26,7 @@ def _stub_llm_generate(prompt: str) -> str:
 
 def _stub_compute_metrics(query: str, reply: str, context: Dict[str, str]):
   # Minimal metrics stub: always passes floors
-  from arifos_core.enforcement.metrics import Metrics
+  from arifos.enforcement.metrics import Metrics
 
   return Metrics(
     truth=0.99,

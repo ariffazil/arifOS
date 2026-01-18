@@ -14,14 +14,14 @@ import asyncio
 from pathlib import Path
 import tempfile
 
-from arifos_core.mcp.governed_executor import (
+from arifos.mcp.governed_executor import (
     GovernedQuantumExecutor,
     govern_query_async,
     govern_query_sync
 )
-from arifos_core.mcp.settlement_policy import SettlementPolicyHandler, SettlementStatus
-from arifos_core.mcp.orthogonality_guard import OrthogonalityGuard, OrthogonalityMetrics
-from arifos_core.mcp.immutable_ledger import ImmutableLedger, LedgerRecord
+from arifos.mcp.settlement_policy import SettlementPolicyHandler, SettlementStatus
+from arifos.mcp.orthogonality_guard import OrthogonalityGuard, OrthogonalityMetrics
+from arifos.mcp.immutable_ledger import ImmutableLedger, LedgerRecord
 
 
 # =============================================================================
@@ -37,7 +37,7 @@ async def test_settlement_policy_success():
     # Fast coroutine (should settle)
     async def fast_particle():
         await asyncio.sleep(0.01)  # 10ms
-        from arifos_core.mcp.models import VerdictResponse
+        from arifos.mcp.models import VerdictResponse
         return VerdictResponse(verdict="SEAL", reason="Fast execution")
 
     settlement = await handler.execute_with_settlement(
@@ -63,7 +63,7 @@ async def test_settlement_policy_timeout():
     # Slow coroutine (should timeout)
     async def slow_particle():
         await asyncio.sleep(2.0)  # 2 seconds
-        from arifos_core.mcp.models import VerdictResponse
+        from arifos.mcp.models import VerdictResponse
         return VerdictResponse(verdict="SEAL", reason="Slow execution")
 
     settlement = await handler.execute_with_settlement(
@@ -90,7 +90,7 @@ async def test_settlement_metrics():
     # Execute 3 fast particles
     async def fast_particle():
         await asyncio.sleep(0.01)
-        from arifos_core.mcp.models import VerdictResponse
+        from arifos.mcp.models import VerdictResponse
         return VerdictResponse(verdict="SEAL", reason="Fast")
 
     for _ in range(3):
@@ -121,12 +121,12 @@ async def test_orthogonality_measurement():
     # Create two independent particles
     async def agi_particle():
         await asyncio.sleep(0.05)  # 50ms
-        from arifos_core.mcp.models import VerdictResponse
+        from arifos.mcp.models import VerdictResponse
         return VerdictResponse(verdict="PASSED", reason="AGI approved")
 
     async def asi_particle():
         await asyncio.sleep(0.06)  # 60ms
-        from arifos_core.mcp.models import VerdictResponse
+        from arifos.mcp.models import VerdictResponse
         return VerdictResponse(verdict="PASSED", reason="ASI approved")
 
     agi_result, asi_result, ortho_metrics = await guard.monitor_orthogonality(
@@ -171,13 +171,13 @@ async def test_orthogonality_sabar_trigger():
     # Create sequential particles (violates orthogonality)
     async def sequential_agi():
         await asyncio.sleep(0.05)
-        from arifos_core.mcp.models import VerdictResponse
+        from arifos.mcp.models import VerdictResponse
         return VerdictResponse(verdict="PASSED", reason="AGI")
 
     async def sequential_asi():
         # Start after AGI finishes (sequential, not parallel)
         await asyncio.sleep(0.15)  # Much longer, simulating sequential wait
-        from arifos_core.mcp.models import VerdictResponse
+        from arifos.mcp.models import VerdictResponse
         return VerdictResponse(verdict="PASSED", reason="ASI")
 
     # Execute 3 times (should trigger SABAR)

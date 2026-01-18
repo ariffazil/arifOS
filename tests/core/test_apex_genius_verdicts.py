@@ -11,8 +11,8 @@ Phase 2 (v36.0.0): APEX PRIME uses G/C_dark for verdict decisions.
 
 import pytest
 
-from arifos_core.enforcement.metrics import Metrics
-from arifos_core.system.apex_prime import (
+from arifos.enforcement.metrics import Metrics
+from arifos.system.apex_prime import (
     apex_review,
     check_floors,
     APEXPrime,
@@ -25,12 +25,12 @@ from arifos_core.system.apex_prime import (
     C_DARK_PARTIAL_MAX,
     C_DARK_VOID_THRESHOLD,
 )
-from arifos_core.enforcement.genius_metrics import (
+from arifos.enforcement.genius_metrics import (
     evaluate_genius_law,
     compute_genius_index,
     compute_dark_cleverness,
 )
-from arifos_core.memory.ledger.cooling_ledger import (
+from arifos.memory.ledger.cooling_ledger import (
     log_cooling_entry_with_v36_telemetry,
 )
 
@@ -500,7 +500,7 @@ class TestGeniusViewIntegration:
 
     def test_genius_view_registered(self):
         """GeniusView should be registered in EyeSentinel."""
-        from arifos_core.system.eye import EyeSentinel, GeniusView
+        from arifos.system.eye import EyeSentinel, GeniusView
 
         sentinel = EyeSentinel()
         genius_view = sentinel.get_view_by_id(12)
@@ -509,7 +509,7 @@ class TestGeniusViewIntegration:
 
     def test_genius_view_alerts_on_low_g(self, healthy_metrics):
         """GeniusView should emit alerts when G is low."""
-        from arifos_core.system.eye import EyeSentinel
+        from arifos.system.eye import EyeSentinel
 
         sentinel = EyeSentinel()
         # Create context with low energy to drop G
@@ -549,7 +549,7 @@ class TestEdgeCases:
 
     def test_high_entropy_reduces_psi_apex(self, healthy_metrics):
         """High entropy should reduce Ψ_APEX (system vitality)."""
-        from arifos_core.enforcement.genius_metrics import compute_psi_apex
+        from arifos.enforcement.genius_metrics import compute_psi_apex
 
         psi_low_entropy = compute_psi_apex(healthy_metrics, entropy=0.0)
         psi_high_entropy = compute_psi_apex(healthy_metrics, entropy=1.0)
@@ -565,7 +565,7 @@ class TestCoolingLedgerIntegration:
 
     def test_log_cooling_entry_includes_genius(self, healthy_metrics, tmp_path):
         """log_cooling_entry should include GENIUS metrics."""
-        from arifos_core.memory.ledger.cooling_ledger import log_cooling_entry
+        from arifos.memory.ledger.cooling_ledger import log_cooling_entry
 
         ledger_path = tmp_path / "cooling_ledger.jsonl"
         entry = log_cooling_entry(
@@ -583,7 +583,7 @@ class TestCoolingLedgerIntegration:
 
     def test_log_cooling_entry_respects_energy(self, healthy_metrics, tmp_path):
         """log_cooling_entry should use provided energy parameter."""
-        from arifos_core.memory.ledger.cooling_ledger import log_cooling_entry
+        from arifos.memory.ledger.cooling_ledger import log_cooling_entry
 
         ledger_path = tmp_path / "cooling_ledger.jsonl"
         entry = log_cooling_entry(

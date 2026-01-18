@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from arifos_core.integration.common_utils import compute_integration_evidence_hash
+from arifos.integration.common_utils import compute_integration_evidence_hash
 
 
 class TestComputeIntegrationEvidenceHash:

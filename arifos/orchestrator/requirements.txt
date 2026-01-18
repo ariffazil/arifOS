@@ -1,0 +1,13 @@
+# arifOS Multi-Agent Orchestrator Dependencies
+
+# Core dependencies
+anthropic>=0.24.0  # Claude API
+openai>=1.0.0      # ChatGPT/Codex API
+
+# Testing dependencies
+pytest>=7.4.0
+pytest-mock>=3.11.0
+
+# Development dependencies (optional)
+black>=23.0.0      # Code formatter
+ruff>=0.1.0        # Linter

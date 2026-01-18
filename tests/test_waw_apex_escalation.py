@@ -15,9 +15,9 @@ Version: v38.3
 """
 
 import pytest
-from arifos_core.integration.waw.federation import WAWFederationCore
-from arifos_core.integration.waw.base import OrganSignal, OrganVote
-from arifos_core.system.apex_prime import apex_prime_judge
+from arifos.integration.waw.federation import WAWFederationCore
+from arifos.integration.waw.base import OrganSignal, OrganVote
+from arifos.system.apex_prime import apex_prime_judge
 
 
 class TestWAWApexEscalation:
@@ -26,7 +26,7 @@ class TestWAWApexEscalation:
     def test_apex_prime_judge_exists(self):
         """✅ apex_prime_judge() function exists in APEX_PRIME"""
         # Should be importable
-        from arifos_core.system.apex_prime import apex_prime_judge
+        from arifos.system.apex_prime import apex_prime_judge
         assert callable(apex_prime_judge)
 
     def test_apex_judge_synthesizes_verdict(self):
@@ -105,7 +105,7 @@ class TestWAWApexEscalation:
     def test_no_static_hierarchy_in_federation(self):
         """✅ No hardcoded "@WEALTH veto > @WELL safety" precedence"""
         # Read federation.py source to verify no hierarchy
-        import arifos_core.integration.waw.federation as fed
+        import arifos.integration.waw.federation as fed
         source = fed.__doc__ or ''
         
         # Should mention APEX escalation, not hierarchy

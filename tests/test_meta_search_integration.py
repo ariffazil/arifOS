@@ -17,20 +17,20 @@ import time
 from unittest.mock import Mock, patch
 from typing import Dict, Any, List
 
-from arifos_core.integration.meta_search import (
+from arifos.integration.meta_search import (
     ConstitutionalMetaSearch,
     SearchResult,
     ConstitutionalSearchError,
     constitutional_check,
 )
-from arifos_core.integration.cost_tracker import (
+from arifos.integration.cost_tracker import (
     CostTracker,
     BudgetExceededError,
     ConstitutionalBudgetError,
     BudgetLevel,
     CostType,
 )
-from arifos_core.integration.search_cache import (
+from arifos.integration.search_cache import (
     ConstitutionalSearchCache,
     CacheEntry,
 )

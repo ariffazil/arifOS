@@ -15,7 +15,7 @@ import pytest
 
 os.environ["ARIFOS_REFUSAL_ACCOUNTABILITY_ENABLED"] = "1"
 
-from arifos_core.enforcement.refusal_accountability import (
+from arifos.enforcement.refusal_accountability import (
     _REFUSAL_TRACKER, check_escalation_needed, clear_refusal_history,
     format_refusal_message, get_guidance_for_reason, get_refusal_count,
     get_refusal_display_reason, get_refusal_reason_code,

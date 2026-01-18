@@ -4,10 +4,10 @@ test_session_physics.py - Unit tests for TEARFRAME v44 Session Physics Layer
 
 import unittest
 import os
-from arifos_core.utils.session_telemetry import SessionTelemetry, TelemetrySnapshot
-from arifos_core.utils.reduction_engine import compute_attributes, SessionAttributes
-from arifos_core.apex.governance.session_physics import evaluate_physics_floors
-from arifos_core.system.apex_prime import Verdict
+from arifos.utils.session_telemetry import SessionTelemetry, TelemetrySnapshot
+from arifos.utils.reduction_engine import compute_attributes, SessionAttributes
+from arifos.apex.governance.session_physics import evaluate_physics_floors
+from arifos.system.apex_prime import Verdict
 
 class TestSessionPhysics(unittest.TestCase):
     

@@ -16,7 +16,7 @@ import pytest
 
 os.environ["ARIFOS_TEMPORAL_INTEL_ENABLED"] = "1"
 
-from arifos_core.enforcement.temporal_checks import (_ASSERTION_MEMORY,
+from arifos.enforcement.temporal_checks import (_ASSERTION_MEMORY,
                                                      TemporalCheckResult,
                                                      check_timestamp_anchor,
                                                      clear_assertion_memory,

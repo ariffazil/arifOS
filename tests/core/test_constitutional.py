@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Test script for constitutional governance system"""
 
-from arifos_core.system.apex_prime import apex_review
-from arifos_core.enforcement.metrics import Metrics, ConstitutionalMetrics
+from arifos.system.apex_prime import apex_review
+from arifos.enforcement.metrics import Metrics, ConstitutionalMetrics
 
 def test_constitutional_governance():
     """Test basic constitutional governance functionality"""
@@ -10,7 +10,7 @@ def test_constitutional_governance():
     
     # Check available metrics
     print("Available in metrics module:")
-    import arifos_core.enforcement.metrics as metrics_module
+    import arifos.enforcement.metrics as metrics_module
     available_metrics = [x for x in dir(metrics_module) if not x.startswith('_')]
     print(available_metrics[:10])  # Show first 10 to avoid clutter
     

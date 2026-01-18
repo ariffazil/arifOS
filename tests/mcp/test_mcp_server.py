@@ -5,7 +5,9 @@ Verifies that all 15 tools are registered and demonstrates
 the full constitutional pipeline (000->999).
 """
 
-import sys
+import pytest
+from fastapi.testclient import TestClient
+from unittest.mock import MagicMock, patch
 import os
 from pathlib import Path
 
@@ -17,7 +19,7 @@ if sys.platform == "win32":
 repo_root = Path(__file__).parent.parent
 sys.path.insert(0, str(repo_root))
 
-from arifos_core.mcp.server import mcp_server
+from arifos.mcp.server import mcp_server
 
 
 def test_server_info():

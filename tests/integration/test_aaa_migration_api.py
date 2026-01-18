@@ -10,8 +10,8 @@ import asyncio
 def test_api_imports():
     """Test that AAA imports work in API routes."""
     try:
-        from arifos_core.integration.api.routes.pipeline import router
-        from arifos_core.mcp import generate_and_validate_async
+        from arifos.integration.api.routes.pipeline import router
+        from arifos.mcp import generate_and_validate_async
         print("[PASS] AAA imports successful")
         return True
     except ImportError as e:
@@ -22,7 +22,7 @@ def test_api_imports():
 def test_api_structure():
     """Test that API endpoints exist with correct signatures."""
     try:
-        from arifos_core.integration.api.routes.pipeline import router, run_pipeline, run_pipeline_debug
+        from arifos.integration.api.routes.pipeline import router, run_pipeline, run_pipeline_debug
 
         # Check endpoints are registered
         routes = [route.path for route in router.routes]
@@ -40,7 +40,7 @@ def test_api_structure():
 async def test_api_helpers():
     """Test that AAA helpers can be called (without actual LLM)."""
     try:
-        from arifos_core.mcp import validate_text_async
+        from arifos.mcp import validate_text_async
 
         # Test validation-only (no LLM needed)
         state = await validate_text_async(

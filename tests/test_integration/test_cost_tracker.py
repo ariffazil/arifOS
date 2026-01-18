@@ -8,7 +8,7 @@ Nonce: X7K9F24
 """
 
 import pytest
-from arifos_core.integration.cost_tracker import CostTracker
+from arifos.integration.cost_tracker import CostTracker
 
 
 class TestBudgetEnforcementConstitutional:

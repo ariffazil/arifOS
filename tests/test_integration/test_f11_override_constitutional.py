@@ -24,7 +24,7 @@ import logging
 from unittest.mock import patch
 from datetime import datetime
 
-from arifos_core.enforcement.floor_detectors.search_governance import (
+from arifos.enforcement.floor_detectors.search_governance import (
     SearchGovernanceDetector,
     SearchGovernanceResult
 )

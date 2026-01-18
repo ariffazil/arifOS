@@ -17,7 +17,7 @@ import hashlib
 import pytest
 from pathlib import Path
 
-from arifos_core.apex.governance.fag import FAG, FAGWritePlan, FAGWriteResult
+from arifos.apex.governance.fag import FAG, FAGWritePlan, FAGWriteResult
 
 
 @pytest.fixture

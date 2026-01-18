@@ -4,9 +4,9 @@ Verify that stale evidence or T4 risks trigger Phoenix-72 HOLD.
 """
 import pytest
 import time
-from arifos_core.system.temporal.freshness_policy import FreshnessPolicy
-from arifos_core.enforcement.evidence.evidence_pack import EvidencePack
-from arifos_core.system.temporal.phoenix_logic import PhoenixLogic
+from arifos.system.temporal.freshness_policy import FreshnessPolicy
+from arifos.enforcement.evidence.evidence_pack import EvidencePack
+from arifos.system.temporal.phoenix_logic import PhoenixLogic
 
 VALID_HASH = "a" * 64
 

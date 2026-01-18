@@ -18,7 +18,7 @@ Usage:
 """
 
 import pytest
-from arifos_core.enforcement.response_validator_extensions import meta_select
+from arifos.enforcement.response_validator_extensions import meta_select
 
 
 # =============================================================================

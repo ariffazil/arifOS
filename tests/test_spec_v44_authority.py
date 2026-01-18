@@ -29,7 +29,7 @@ class TestConstitutionalFloorsAuthority:
     def test_default_load_uses_v44(self):
         """Verify default load uses spec/v45/constitutional_floors.json (v45→v44 priority)."""
         # Import triggers module-level load
-        from arifos_core.enforcement.metrics import _FLOORS_SPEC
+        from arifos.enforcement.metrics import _FLOORS_SPEC
 
         # Verify v45 loaded (v45→v44 priority since Phase 1)
         assert _FLOORS_SPEC["version"] == "v45.0", "Should load v45.0 by default (v45→v44 priority)"
@@ -44,7 +44,7 @@ class TestConstitutionalFloorsAuthority:
         """Verify env override code path exists in loader (code inspection)."""
         # NOTE: Full runtime test of env override requires subprocess to reload module.
         # Here we verify the loader has env override logic by reading source.
-        from arifos_core.enforcement import metrics
+        from arifos.enforcement import metrics
         import inspect
 
         source = inspect.getsource(metrics._load_floors_spec_unified)
@@ -55,7 +55,7 @@ class TestConstitutionalFloorsAuthority:
 
     def test_hard_fail_code_path_exists(self):
         """Verify hard-fail code path exists in loader (code inspection)."""
-        from arifos_core.enforcement import metrics
+        from arifos.enforcement import metrics
         import inspect
 
         source = inspect.getsource(metrics._load_floors_spec_unified)
@@ -68,7 +68,7 @@ class TestConstitutionalFloorsAuthority:
     def test_legacy_fallback_removed(self):
         """Verify legacy fallback (v42/v38/v35) removed in Phase 2 Step 2.2."""
         # v45.0: Legacy fallback code removed (allow_legacy hardcoded to False)
-        from arifos_core.enforcement import metrics
+        from arifos.enforcement import metrics
         import inspect
 
         source = inspect.getsource(metrics._load_floors_spec_unified)
@@ -83,7 +83,7 @@ class TestConstitutionalFloorsAuthority:
 
     def test_v44_priority_in_code(self):
         """Verify v45→v44 priority in code (code inspection)."""
-        from arifos_core.enforcement import metrics
+        from arifos.enforcement import metrics
         import inspect
 
         source = inspect.getsource(metrics._load_floors_spec_unified)
@@ -106,7 +106,7 @@ class TestSessionPhysicsAuthority:
 
     def test_default_load_uses_v44(self):
         """Verify default load uses spec/v45/session_physics.json (v45→v44 priority)."""
-        from arifos_core.apex.governance.session_physics import _PHYSICS_SPEC
+        from arifos.apex.governance.session_physics import _PHYSICS_SPEC
 
         # Verify v45 loaded (v45→v44 priority since Phase 1)
         assert _PHYSICS_SPEC["version"] == "v45.0", "Should load v45.0 by default (v45→v44 priority)"
@@ -147,7 +147,7 @@ class TestSessionPhysicsAuthority:
 
     def test_hard_fail_code_path_exists(self):
         """Verify hard-fail code path exists in loader (code inspection)."""
-        from arifos_core.apex.governance import session_physics
+        from arifos.apex.governance import session_physics
         import inspect
 
         source = inspect.getsource(session_physics._load_session_physics_spec)
@@ -163,7 +163,7 @@ class TestGeniusLawAuthority:
 
     def test_default_load_uses_v44(self):
         """Verify default load uses spec/v45/genius_law.json (v45→v44 priority)."""
-        from arifos_core.enforcement.genius_metrics import _GENIUS_SPEC
+        from arifos.enforcement.genius_metrics import _GENIUS_SPEC
 
         # Verify v45 loaded (v45→v44 priority since Phase 1)
         assert _GENIUS_SPEC["version"] == "v45.0", "Should load v45.0 by default (v45→v44 priority)"
@@ -209,7 +209,7 @@ class TestGeniusLawAuthority:
 
     def test_hard_fail_code_path_exists(self):
         """Verify hard-fail code path exists in loader (code inspection)."""
-        from arifos_core.enforcement import genius_metrics
+        from arifos.enforcement import genius_metrics
         import inspect
 
         source = inspect.getsource(genius_metrics._load_genius_spec)

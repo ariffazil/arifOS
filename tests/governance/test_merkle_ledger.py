@@ -3,7 +3,7 @@ Tests for v45 Merkle Ledger
 Verify chain integrity and tampering detection.
 """
 import pytest
-from arifos_core.apex.governance.merkle_ledger import MerkleLedger
+from arifos.apex.governance.merkle_ledger import MerkleLedger
 
 def test_ledger_append_consistency():
     """Verify appending updates root deterministically."""

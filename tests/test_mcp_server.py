@@ -17,7 +17,7 @@ if sys.platform == "win32":
 repo_root = Path(__file__).parent.parent
 sys.path.insert(0, str(repo_root))
 
-from arifos_core.mcp.server import mcp_server
+from arifos.mcp.server import mcp_server
 
 
 def test_server_info():

@@ -1,1 +1,1 @@
-web: python -m arifos_core.mcp sse
+web: python -m arifos.mcp sse

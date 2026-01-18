@@ -19,7 +19,7 @@ DITEMPA BUKAN DIBERI
 """
 
 import pytest
-from arifos_core.system.stages import (
+from arifos.system.stages import (
     Stage111SENSE,
     IntentType,
     DomainType,

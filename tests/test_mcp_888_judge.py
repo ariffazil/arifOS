@@ -1,6 +1,6 @@
 """Tests for MCP Tool 888: JUDGE"""
 import pytest
-from arifos_core.mcp.tools.mcp_888_judge import mcp_888_judge, mcp_888_judge_sync, aggregate_verdicts
+from arifos.mcp.tools.mcp_888_judge import mcp_888_judge, mcp_888_judge_sync, aggregate_verdicts
 
 def test_aggregate_all_pass_yields_seal():
     result = aggregate_verdicts({"222": "PASS", "444": "PASS", "555": "PASS", "666": "PASS", "777": "PASS"})
@@ -70,7 +70,7 @@ def test_aggregate_empty_dict():
 
 def test_confidence_band_partial_case():
     """Test: Confidence band calculation for partial approval."""
-    from arifos_core.mcp.tools.mcp_888_judge import assign_confidence_band
+    from arifos.mcp.tools.mcp_888_judge import assign_confidence_band
 
     verdicts = {"222": "PASS", "444": "PARTIAL", "555": "PASS", "666": "PASS"}
     confidence = assign_confidence_band(verdicts)

@@ -10,7 +10,7 @@ Tests that:
 """
 
 import pytest
-from arifos_core.system.pipeline import run_pipeline, PipelineState
+from arifos.system.pipeline import run_pipeline, PipelineState
 
 
 def test_refuse_lane_no_llm_call():

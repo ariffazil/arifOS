@@ -25,7 +25,7 @@ from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timezone
 
 # Import L7 Memory components
-from arifos_core.memory.l7.mem0_client import (
+from arifos.memory.l7.mem0_client import (
     Mem0Client,
     Mem0Config,
     MemoryHit,
@@ -40,7 +40,7 @@ from arifos_core.memory.l7.mem0_client import (
     DEFAULT_TOP_K,
 )
 
-from arifos_core.memory.core.memory import (
+from arifos.memory.core.memory import (
     Memory,
     RecallResult,
     SieveResult,
@@ -171,7 +171,7 @@ class TestMem0ClientInit:
     def test_mem0_client_singleton_pattern(self):
         """Test get_mem0_client returns singleton."""
         # Clear singleton
-        import arifos_core.memory.mem0_client as m
+        import arifos.memory.mem0_client as m
         m._default_client = None
 
         with patch.object(Mem0Client, '_initialize'):
@@ -462,7 +462,7 @@ class TestMemoryHelpers:
 
     def test_memory_singleton_pattern(self):
         """Test get_memory returns singleton."""
-        import arifos_core.memory.memory as m
+        import arifos.memory.memory as m
         m._default_memory = None
 
         memory1 = get_memory()

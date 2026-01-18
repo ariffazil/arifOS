@@ -18,8 +18,8 @@ from pathlib import Path
 
 import pytest
 
-from arifos_core.enforcement.metrics import Metrics
-from arifos_core.memory.ledger.cooling_ledger import (CoolingEntry, CoolingLedger,
+from arifos.enforcement.metrics import Metrics
+from arifos.memory.ledger.cooling_ledger import (CoolingEntry, CoolingLedger,
                                                CoolingMetrics, LedgerConfig,
                                                append_entry, log_cooling_entry,
                                                verify_chain)

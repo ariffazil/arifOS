@@ -11,7 +11,7 @@ Constitutional validation:
 
 import pytest
 
-from arifos_core.mcp.tools.mcp_222_reflect import (
+from arifos.mcp.tools.mcp_222_reflect import (
     mcp_222_reflect,
     mcp_222_reflect_sync,
     predict_omega_zero,

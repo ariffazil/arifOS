@@ -42,7 +42,7 @@ except ImportError:
 
 # Import AMANAH_DETECTOR for direct checks
 try:
-    from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
+    from arifos.enforcement.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
     AMANAH_AVAILABLE = True
 except ImportError:
     AMANAH_DETECTOR = None

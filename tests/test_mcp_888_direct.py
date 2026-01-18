@@ -1,8 +1,8 @@
 
 import pytest
 
-from arifos_core.mcp.tools.mcp_888_judge import mcp_888_judge_sync
-from arifos_core.system.apex_prime import APEXPrime
+from arifos.mcp.tools.mcp_888_judge import mcp_888_judge_sync
+from arifos.system.apex_prime import APEXPrime
 
 
 def test_mcp_888_judge_integration():

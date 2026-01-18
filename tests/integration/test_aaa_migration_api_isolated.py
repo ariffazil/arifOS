@@ -11,7 +11,7 @@ def test_aaa_imports():
     """Test that AAA helpers are correctly imported."""
     try:
         # Test direct AAA imports work
-        from arifos_core.mcp import generate_and_validate_async, validate_text_sync
+        from arifos.mcp import generate_and_validate_async, validate_text_sync
         print("[PASS] AAA helpers imported successfully")
         return True
     except ImportError as e:
@@ -26,11 +26,11 @@ def test_pipeline_file_structure():
             content = f.read()
 
         # Check for AAA-level imports
-        assert "from arifos_core.mcp import generate_and_validate_async" in content, \
+        assert "from arifos.mcp import generate_and_validate_async" in content, \
             "Missing AAA import"
 
         # Check old pipeline is NOT imported
-        assert "from arifos_core.system.pipeline import Pipeline" not in content or \
+        assert "from arifos.system.pipeline import Pipeline" not in content or \
                "# OLD" in content or "DEPRECATED" in content, \
             "Old pipeline still imported"
 
@@ -60,7 +60,7 @@ def test_pipeline_file_structure():
 async def test_aaa_validation():
     """Test that AAA validation works."""
     try:
-        from arifos_core.mcp import validate_text_async
+        from arifos.mcp import validate_text_async
 
         # Test validation-only (no LLM needed)
         state = await validate_text_async(
@@ -89,14 +89,14 @@ def test_judge_migration():
             content = f.read()
 
         # Check for AAA imports
-        assert "from arifos_core.mcp import validate_text_sync" in content, \
+        assert "from arifos.mcp import validate_text_sync" in content, \
             "Judge missing AAA import"
 
         # Check AAA usage
         assert "validate_text_sync(" in content, "Judge not using AAA function"
 
         # Check old pipeline is NOT used
-        assert "from arifos_core.system.pipeline import" not in content or \
+        assert "from arifos.system.pipeline import" not in content or \
                "# OLD" in content, \
             "Judge still using old pipeline"
 

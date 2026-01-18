@@ -11,10 +11,10 @@ Date: 2025-12-24
 """
 
 import pytest
-from arifos_core.system.apex_prime import apex_review, Verdict
-from arifos_core.enforcement.metrics import Metrics, enforce_identity_truth_lock
-from arifos_core.enforcement.routing.prompt_router import ApplicabilityLane
-from arifos_core.system.pipeline import _detect_destructive_intent
+from arifos.system.apex_prime import apex_review, Verdict
+from arifos.enforcement.metrics import Metrics, enforce_identity_truth_lock
+from arifos.enforcement.routing.prompt_router import ApplicabilityLane
+from arifos.system.pipeline import _detect_destructive_intent
 
 
 class TestPatchA_LaneScopedPsi:
@@ -296,7 +296,7 @@ class TestIntegration_AllPatchesTogether:
         2. Refusal response is drafted immediately
         3. Stage_333 does NOT call LLM or overwrite refusal
         """
-        from arifos_core.system.pipeline import (
+        from arifos.system.pipeline import (
             PipelineState,
             stage_111_sense,
             stage_333_reason,

@@ -12,7 +12,7 @@ import os
 import pytest
 from unittest.mock import patch
 
-from arifos_core.integration.connectors.litellm_gateway import LiteLLMConfig
+from arifos.integration.connectors.litellm_gateway import LiteLLMConfig
 
 
 def test_sealion_api_key_detection_in_litellm_config():
