@@ -5,14 +5,8 @@ Simple test to validate MCP fixes
 
 import asyncio
 import json
-
-import pytest
-
-pytest.importorskip("mcp")
-pytestmark = pytest.mark.asyncio
-
-from arifos.kernel.constitutional import ConstitutionalKernel
-from arifos.kernel.mcp_server import ConstitutionalMCPServer
+from arifos_core.kernel.constitutional import ConstitutionalKernel
+from arifos_core.kernel.mcp_server import ConstitutionalMCPServer
 
 async def test_constitutional_kernel():
     """Test the constitutional kernel with simple queries"""

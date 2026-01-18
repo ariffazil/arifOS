@@ -4,18 +4,19 @@ Comprehensive test of constitutional floor detection
 Tests that violations are properly detected and VOID verdicts are issued
 """
 
+import sys
 import asyncio
 import json
-import pytest
 
-pytest.importorskip("mcp")
+# Add arifOS to path
+sys.path.insert(0, '.')
 
 async def test_floor_violation_detection():
     """Test that constitutional floors detect violations correctly"""
     print("Testing Constitutional Floor Violation Detection")
     print("=" * 60)
 
-    from arifos.kernel.mcp_server import ConstitutionalMCPServer
+    from arifos_core.kernel.mcp_server import ConstitutionalMCPServer
     import mcp.types as types
 
     server = ConstitutionalMCPServer()
@@ -138,7 +139,7 @@ async def test_asi_metrics_directly():
     print("TESTING ASI METRIC COMPUTATION DIRECTLY")
     print("=" * 60)
 
-    from arifos.enforcement.eval.asi import ASI
+    from arifos_core.enforcement.eval.asi import ASI
 
     asi = ASI()
 

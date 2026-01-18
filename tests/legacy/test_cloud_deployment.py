@@ -11,11 +11,8 @@ import time
 from pathlib import Path
 
 import httpx
-import pytest
 from rich.console import Console
 from rich.table import Table
-
-pytestmark = pytest.mark.asyncio
 
 console = Console()
 
@@ -178,7 +175,7 @@ async def main():
     # Check if server is running
     console.print("\n[yellow]Checking if server is running...[/yellow]")
     console.print(f"If testing locally, start server with:")
-    console.print(f"  [cyan]python -m arifos.mcp sse[/cyan] (or use the AAA_MCP gateway entrypoint)\n")
+    console.print(f"  [cyan]python -m arifos_core.mcp sse[/cyan]\n")
 
     results = []
 

@@ -137,6 +137,8 @@ scripts/setup_antigravity_constitutional_mcp.py
 .arifos_clip/
 .well_snapshots/
 cooling_ledger/
+# Local archival parking (do not commit)
+archive_local/
 
 # Local session archives (do not push)
 _local_archive/
