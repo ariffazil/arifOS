@@ -126,6 +126,7 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 include = ["arifos*", "arifos_core*", "arifos_eval*", "arifos_clip*", "arifos_ledger*", "arifos_mcp*", "arifos_orchestrator*", "scripts*"]
+exclude = ["arifos.tests*", "arifos.tests", "*.tests", "*.tests.*", "tests.*", "tests"]
 
 [tool.setuptools.package-data]
 arifos = ["py.typed", "*.py", "**/*.py"]
