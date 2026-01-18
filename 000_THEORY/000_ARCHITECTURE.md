@@ -5,14 +5,22 @@ epoch: "2026-01-18"
 sealed_by: "888_Judge"
 authority: "Muhammad Arif bin Fazil"
 status: "SOVEREIGNLY_SEALED"
-reference: "See 000_CANON_1_CONSTITUTION.md for F1-F13 constitutional law"
+reference: "See 000_LAW.md for F1-F13 constitutional law"
 ---
 
 # L2 SYSTEM ARCHITECTURE & TOPOLOGY (v49)
 
 **Motto:** *Ditempa Bukan Diberi* (Forged, Not Given)
-**Scope:** Canon-2 is the topology map (runtime + MCP layout). Canon-1 is law; Canon-3 is operations.
-**Reference:** All engineering and MCP specs **must anchor to this map**.       
+**Scope:** Architecture (Topology). Law (Constitution). Operations (Playbook).
+**Reference:** All engineering and MCP specs **must anchor to this map**.
+
+---
+
+## 00. ARCHITECTURAL HIERARCHY
+
+**Foundations (Meta):** [000_FOUNDATIONS.md](000_FOUNDATIONS.md) (Gödel Lock, Physics)
+**Law (Constitution):** [000_LAW.md](000_LAW.md) (F1-F13 Floors)
+**Topology (This File):** [000_ARCHITECTURE.md](000_ARCHITECTURE.md) (Structural Map)
 
 ---
 
