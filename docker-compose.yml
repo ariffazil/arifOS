@@ -19,11 +19,13 @@ services:
     volumes:
       - ./vault_999:/app/vault_999:rw
       - ./000_THEORY:/app/000_THEORY:ro
-      - ./L1_THEORY:/app/L1_THEORY:ro
     environment:
       - ARIFOS_MODE=VAULT
       - ARIFOS_VERSION=v49.0.0
       - FLOORS=F1-F13
+      # MCP Tool API Keys (optional, set in .env file)
+      - BRAVE_API_KEY=${BRAVE_API_KEY:-}
+      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY:-}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
       interval: 30s
@@ -48,6 +50,9 @@ services:
       - ARIFOS_MODE=AGI
       - FLOORS=F2,F4,F7,F10,F13
       - VAULT_URL=http://vault_server:9000
+      # MCP Tool API Keys (AGI uses 11 tools: brave_search, perplexity, arxiv, wiki, http, memory, paradox, python, time, sequential_thinking, executor)
+      - BRAVE_API_KEY=${BRAVE_API_KEY:-}
+      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY:-}
     depends_on:
       vault_server:
         condition: service_healthy
@@ -74,6 +79,9 @@ services:
       - ARIFOS_MODE=ASI
       - FLOORS=F1,F5,F6,F9,F11,F12
       - VAULT_URL=http://vault_server:9000
+      # MCP Tool API Keys (ASI uses 5 tools: filesystem, slack, github, postgres, executor)
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - SLACK_TOKEN=${SLACK_TOKEN:-}
     depends_on:
       vault_server:
         condition: service_healthy
@@ -103,6 +111,9 @@ services:
       - AGI_URL=http://agi_server:9001
       - ASI_URL=http://asi_server:9002
       - DATABASE_URL=postgresql://arifos:arifos@postgres:5432/arifos
+      # MCP Tool API Keys (APEX uses 4 tools: claude_api PAID, cryptography, vector_db, zkpc_merkle)
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     depends_on:
       vault_server:
         condition: service_healthy

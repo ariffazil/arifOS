@@ -8,7 +8,8 @@ Version: v49.0.0
 Authority: Delta (Architect)
 
 Architecture:
-- Hosts 11 MCP tools (Tier 1-3): brave_search, time, sequential_thinking, python, arxiv, wikipedia, http_client, memory, paradox_engine, perplexity_ask, executor
+- Hosts 13 MCP tools: brave_search, time, sequential_thinking, python, arxiv, wikipedia,
+  http_client, memory, paradox_engine, perplexity_ask, executor, reddit, youtube_transcript
 - Enforces F2/F4/F7/F10/F13 floors on all operations
 - Routes to VAULT and APEX servers
 
@@ -23,8 +24,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-# Constitutional imports
-from arifos_core.enforcement.floor_validators import (
+# Constitutional imports (Phase 8.1: Canonical validators)
+from arifos.core.floor_validators import (
     validate_f2_truth,
     validate_f4_clarity,
     validate_f7_humility,
@@ -73,7 +74,8 @@ class AGIServer:
         self.mcp_tools = [
             "brave_search", "time", "sequential_thinking", "python",
             "arxiv", "wikipedia", "http_client", "memory",
-            "paradox_engine", "perplexity_ask", "executor"
+            "paradox_engine", "perplexity_ask", "executor",
+            "reddit", "youtube_transcript"
         ]
         self.floors = ["F2", "F4", "F7", "F10", "F13"]
         self.stages = ["111_SENSE", "222_THINK", "333_ATLAS"]

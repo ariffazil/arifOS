@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy arifOS core
+# Copy arifOS packages (Phase 8.3: Add canonical validators + canon)
+COPY arifos/ /app/arifos/
 COPY arifos_core/ /app/arifos_core/
 COPY 000_THEORY/ /app/000_THEORY/
 
