@@ -312,6 +312,61 @@ async def process_stage(request: APEXRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =============================================================================
+# MCP TOOL PROXY (Phase 8.2 - Generic handler for all APEX MCP tools)
+# =============================================================================
+
+@app.post("/mcp/{tool_name}")
+async def execute_mcp_tool(tool_name: str, request: Dict[str, Any]):
+    """
+    Generic MCP tool executor for APEX server.
+
+    Phase 8.2: Proof-of-concept for 4 APEX tools
+    - claude_api (PAID LLM reasoning)
+    - cryptography (zkPC sealing)
+    - vector_db (memory embeddings)
+    - zkpc_merkle (Merkle proofs)
+    """
+    import importlib
+    import time
+    start_time = time.time()
+
+    try:
+        tool_module_name = f"arifos_core.mcp.tools.mcp_{tool_name}"
+        try:
+            tool_module = importlib.import_module(tool_module_name)
+        except ModuleNotFoundError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"MCP tool '{tool_name}' not found. Available: {', '.join(apex_server.mcp_tools)}"
+            )
+
+        if hasattr(tool_module, 'execute'):
+            result = await tool_module.execute(request)
+        elif hasattr(tool_module, tool_name):
+            func = getattr(tool_module, tool_name)
+            result = await func(request) if asyncio.iscoroutinefunction(func) else func(request)
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Tool module '{tool_module_name}' has no execute() or {tool_name}() function"
+            )
+
+        latency_ms = (time.time() - start_time) * 1000
+
+        return {
+            "mcp_tool": tool_name,
+            "result": result,
+            "latency_ms": latency_ms,
+            "server": "APEX",
+            "floors": apex_server.floors,
+        }
+
+    except Exception as e:
+        logger.error(f"MCP tool '{tool_name}' error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=9003)

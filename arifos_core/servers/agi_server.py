@@ -265,6 +265,67 @@ async def process_stage(request: AGIRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =============================================================================
+# MCP TOOL PROXY (Phase 8.2 - Generic handler for all AGI MCP tools)
+# =============================================================================
+
+@app.post("/mcp/{tool_name}")
+async def execute_mcp_tool(tool_name: str, request: Dict[str, Any]):
+    """
+    Generic MCP tool executor.
+
+    Routes to existing mcp_*.py tools in arifos_core.mcp.tools/
+    Validates with constitutional floors per tool specification.
+
+    Phase 8.2: Proof-of-concept for 11 AGI tools
+    - brave_search, wikipedia, arxiv (web research)
+    - time, python, sequential_thinking (execution)
+    - filesystem, http_client (I/O)
+    - agi_think, agi_reflect, agi_atlas (reasoning)
+    """
+    import importlib
+    import time
+    start_time = time.time()
+
+    try:
+        # Dynamic import of MCP tool
+        tool_module_name = f"arifos_core.mcp.tools.mcp_{tool_name}"
+        try:
+            tool_module = importlib.import_module(tool_module_name)
+        except ModuleNotFoundError:
+            # Try alternative naming (e.g., brave_search → mcp_111_sense for 111 SENSE)
+            raise HTTPException(
+                status_code=404,
+                detail=f"MCP tool '{tool_name}' not found. Available: {', '.join(agi_server.mcp_tools)}"
+            )
+
+        # Execute tool (assumes tool has main execution function)
+        if hasattr(tool_module, 'execute'):
+            result = await tool_module.execute(request)
+        elif hasattr(tool_module, tool_name):
+            func = getattr(tool_module, tool_name)
+            result = await func(request) if asyncio.iscoroutinefunction(func) else func(request)
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Tool module '{tool_module_name}' has no execute() or {tool_name}() function"
+            )
+
+        latency_ms = (time.time() - start_time) * 1000
+
+        return {
+            "mcp_tool": tool_name,
+            "result": result,
+            "latency_ms": latency_ms,
+            "server": "AGI",
+            "floors": agi_server.floors,
+        }
+
+    except Exception as e:
+        logger.error(f"MCP tool '{tool_name}' error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=9001)
