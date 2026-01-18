@@ -200,24 +200,32 @@ def _load_floors_spec_unified() -> dict:
         if not allow_legacy:
             v46_dir = (pkg_dir / "L2_PROTOCOLS" / "v46").resolve()
             v45_dir = (pkg_dir / "L2_PROTOCOLS" / "archive" / "v45").resolve()
-            try:
-                # Check if env path is within spec/v46/, spec/v45/, or spec/v44/
+            v44_dir = (pkg_dir / "L2_PROTOCOLS" / "v44").resolve()
+
+            def _is_within(path: Path, base: Path) -> bool:
                 try:
-                    env_spec_path.relative_to(v46_dir)
+                    path.relative_to(base)
+                    return True
                 except ValueError:
-                    try:
-                        env_spec_path.relative_to(v45_dir)
-                    except ValueError:
-                        env_spec_path.relative_to(v44_dir)
-            except ValueError:
-                # Path is outside all three spec directories - reject in strict mode
-                raise RuntimeError(
-                    f"TRACK B AUTHORITY FAILURE: Environment override points to path outside spec/v46/, spec/v45/, or spec/v44/.\n"
-                    f"  Override path: {env_spec_path}\n"
-                    f"  Expected within: {v46_dir} or {v45_dir}\n"
-                    f"In strict mode, only manifest-covered files are allowed.\n"
-                    f"Set ARIFOS_ALLOW_LEGACY_SPEC=1 to bypass (NOT RECOMMENDED)."
-                )
+                    return False
+
+            try:
+                allowed_dirs = [v46_dir, v45_dir]
+                if v44_dir.exists():
+                    allowed_dirs.append(v44_dir)
+
+                if not any(_is_within(env_spec_path, d) for d in allowed_dirs):
+                    # Path is outside manifest-covered specs - reject in strict mode
+                    allowed_str = " or ".join(str(d) for d in allowed_dirs)
+                    raise RuntimeError(
+                        f"TRACK B AUTHORITY FAILURE: Environment override points to path outside manifest-covered specs.\n"
+                        f"  Override path: {env_spec_path}\n"
+                        f"  Expected within: {allowed_str}\n"
+                        f"In strict mode, only manifest-covered files are allowed.\n"
+                        f"Set ARIFOS_ALLOW_LEGACY_SPEC=1 to bypass (NOT RECOMMENDED)."
+                    )
+            except RuntimeError:
+                raise
 
         if env_spec_path.exists():
             try:

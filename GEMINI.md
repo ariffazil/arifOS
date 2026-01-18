@@ -112,4 +112,17 @@ All Agents MUST speak `aCLIP`:
 
 ---
 
+## Gemini CLI Integration
+
+The system integrates with `@google/gemini-cli` for terminal-based AI operations.
+
+- **Global**: Installed via `npm install -g @google/gemini-cli`
+- **Context**: Use `GEMINI.md` (this file) as the context provider:
+  ```bash
+  gemini context add GEMINI.md
+  ```
+- **Usage**: Directly accessible via `gemini` command in terminal.
+
+---
+
 **DITEMPA BUKAN DIBERI** — Forged, not given.
