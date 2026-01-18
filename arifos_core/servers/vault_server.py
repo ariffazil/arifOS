@@ -1,17 +1,19 @@
+# -*- coding: utf-8 -*-
 """
 arifOS VAULT Server - Memory (999)
 
 Constitutional Alignment: All F1-F13 (enforcement + memory storage)
 Stages: 000 INIT, 999 VAULT
 Version: v49.0.0
-Authority: Δ (Architect)
+Authority: Delta (Architect)
 
 Architecture:
-- Hosts 6 MCP tools (Tier 1-2 + custom): git, obsidian, ledger, vault999, cooling_controller, zkpc_merkle
+- Hosts 6 MCP tools: git, obsidian, ledger, vault999, cooling_controller, zkpc_merkle
 - Enforces all F1-F13 floors (read-only for 000, write for 999)
 - Memory tower L0-L5 cooling bands
 - EUREKA sieve and Phoenix-72 tier management
-- Session initialization and final storage authority
+
+NOTE: Blueprint status. EUREKA sieve not implemented. See IMPLEMENTATION_GAPS.md.
 """
 
 import asyncio

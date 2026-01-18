@@ -22,6 +22,7 @@ import pytest
 # HEALTH CHECK TESTS (All 4 Servers)
 # =============================================================================
 
+@pytest.mark.integration  # Requires running Docker services
 @pytest.mark.asyncio
 async def test_vault_health():
     """Test VAULT server health endpoint."""
@@ -34,6 +35,7 @@ async def test_vault_health():
         assert "constitutional_floors_loaded" in data
 
 
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_agi_health():
     """Test AGI server health endpoint."""
@@ -46,6 +48,8 @@ async def test_agi_health():
         assert data["floors"] == ["F2", "F4", "F7", "F10", "F13"]
 
 
+@pytest.mark.integration
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_asi_health():
     """Test ASI server health endpoint."""
@@ -58,6 +62,7 @@ async def test_asi_health():
         assert data["floors"] == ["F1", "F5", "F6", "F9", "F11", "F12"]
 
 
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_apex_health():
     """Test APEX server health endpoint."""
@@ -74,6 +79,7 @@ async def test_apex_health():
 # UNIT TESTS (Per-Server Floor Enforcement)
 # =============================================================================
 
+@pytest.mark.integration  # Requires running services
 @pytest.mark.asyncio
 async def test_agi_f2_truth_floor():
     """Test AGI F2 Truth floor enforcement."""
@@ -93,6 +99,7 @@ async def test_agi_f2_truth_floor():
         assert "F2_Truth" in data["floor_scores"]
 
 
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_asi_f1_amanah_floor():
     """Test ASI F1 Amanah floor enforcement."""

@@ -1,17 +1,20 @@
+# -*- coding: utf-8 -*-
 """
-arifOS APEX Server - The Soul (Ψ)
+arifOS APEX Server - The Soul (Psi)
 
 Constitutional Alignment: F3 (Tri-Witness), F8 (Genius)
 Stages: 444 EVIDENCE, 777 EUREKA, 888 SEAL, 889 PROOF
 Version: v49.0.0
-Authority: Δ (Architect)
+Authority: Delta (Architect)
 
 Architecture:
-- Hosts 6 MCP tools (Tier 2-3): claude_api, cryptography, notion, metabase, vector_db, airtable
+- Hosts 4 MCP tools: claude_api (PAID), cryptography, vector_db, zkpc_merkle
 - Enforces F3/F8 floors on all operations
 - Final judgment and sealing authority
 - Generates zkPC receipts and Merkle proofs
 - Dual-write to PostgreSQL + JSONL cooling ledger
+
+NOTE: Blueprint status. zkPC/Merkle are placeholders. See IMPLEMENTATION_GAPS.md.
 """
 
 import asyncio

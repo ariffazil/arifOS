@@ -1,17 +1,19 @@
+# -*- coding: utf-8 -*-
 """
-arifOS AGI Server - The Mind (Δ)
+arifOS AGI Server - The Mind (Delta)
 
 Constitutional Alignment: F2 (Truth), F4 (Clarity), F7 (Humility), F10 (Ontology), F13 (Curiosity)
 Stages: 111 SENSE, 222 THINK, 333 ATLAS
 Version: v49.0.0
-Authority: Δ (Architect)
+Authority: Delta (Architect)
 
 Architecture:
-- Hosts 10 MCP tools (Tier 1-3): brave_search, time, sequential_thinking, python, arxiv,
-  wikipedia, browserbase, http_client, memory, paradox_engine
+- Hosts 11 MCP tools (Tier 1-3): brave_search, time, sequential_thinking, python, arxiv, wikipedia, http_client, memory, paradox_engine, perplexity_ask, executor
 - Enforces F2/F4/F7/F10/F13 floors on all operations
-- Communicates with VAULT server for 000/999 handoff
-- Communicates with APEX server for 444 EVIDENCE handoff
+- Routes to VAULT and APEX servers
+
+NOTE: This is an ARCHITECTURAL BLUEPRINT. MCP tools are declared but not yet wired.
+See IMPLEMENTATION_GAPS.md for production readiness status.
 """
 
 import asyncio

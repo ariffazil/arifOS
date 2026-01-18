@@ -1,15 +1,18 @@
+# -*- coding: utf-8 -*-
 """
-arifOS ASI Server - The Heart (Ω)
+arifOS ASI Server - The Heart (Omega)
 
 Constitutional Alignment: F1 (Amanah), F5 (Peace), F6 (Empathy), F9 (Cdark), F11 (CommandAuth), F12 (InjectionDefense)
 Stages: 555 EMPATHY, 666 ACT
 Version: v49.0.0
-Authority: Δ (Architect)
+Authority: Delta (Architect)
 
 Architecture:
-- Hosts 8 MCP tools (Tier 1-3): filesystem, slack, github, postgres, cloudrun, n8n, context7, executor
+- Hosts 5 MCP tools: filesystem, slack, github, postgres, executor
 - Enforces F1/F5/F6/F9/F11/F12 floors on all operations
-- Safety gate and execution checkpoint
+- Safety gatekeeper and execution layer
+
+NOTE: Blueprint status. See IMPLEMENTATION_GAPS.md for production gaps.
 - Communicates with VAULT for session state and APEX for post-execution audit
 """
 
