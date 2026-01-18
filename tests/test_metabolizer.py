@@ -164,7 +164,7 @@ def test_phase9_full_stack(metabolizer):
     raw_output = {
         "verdict": "SEAL",
         "session_id": "session_full_phase9",
-        "stage": "999_VAULT",
+        "stage": "999_STORE",  # Fixed: aCLIP canonical name
         "latency_ms": 67.3,
         "floor_scores": {
             "F1_Amanah": {"pass": True, "score": 1.0},
@@ -202,4 +202,30 @@ def test_phase9_full_stack(metabolizer):
     assert "L2_WITNESS" in output
     assert "zkPC Receipt" in output
     assert "session_full_phase9" in output
-    assert "999_VAULT" in output
+    assert "999_STORE" in output  # Fixed: aCLIP canonical name
+
+
+def test_aclip_stage_inference():
+    """Test aCLIP Protocol v49 stage inference from tool names."""
+    from arifos_core.orchestrator.mcp_gateway import MCPGateway
+
+    gateway = MCPGateway()
+
+    # Test all 10 canonical aCLIP stages
+    assert gateway._infer_stage_from_tool("vault/init") == "000_INIT"
+    assert gateway._infer_stage_from_tool("sense_patterns") == "111_SENSE"
+    assert gateway._infer_stage_from_tool("agi/think") == "222_THINK"
+    assert gateway._infer_stage_from_tool("reason_about") == "333_REASON"
+    assert gateway._infer_stage_from_tool("align_values") == "444_ALIGN"
+    assert gateway._infer_stage_from_tool("asi/empathy") == "555_EMPATHY"
+    assert gateway._infer_stage_from_tool("bridge_neuro") == "666_BRIDGE"
+    assert gateway._infer_stage_from_tool("reflect_verdict") == "777_REFLECT"
+    assert gateway._infer_stage_from_tool("apex/seal") == "888_SEAL"
+    assert gateway._infer_stage_from_tool("vault/store") == "999_STORE"
+
+    # Test numeric code fallback
+    assert gateway._infer_stage_from_tool("tool_111") == "111_SENSE"
+    assert gateway._infer_stage_from_tool("tool_999") == "999_STORE"
+
+    # Test unknown tools
+    assert gateway._infer_stage_from_tool("random_tool") == "unknown"

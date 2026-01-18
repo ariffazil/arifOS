@@ -197,17 +197,49 @@ class MCPGateway:
         }
 
     def _infer_stage_from_tool(self, tool_name: str) -> str:
-        """Infer arifOS stage from tool name."""
+        """
+        Infer arifOS aCLIP stage from tool name.
+
+        aCLIP Protocol (v49 Canonical):
+        000_INIT → vault_server (Session bootstrap)
+        111_SENSE → agi_server (Pattern matching, RED_PATTERN scanning)
+        222_THINK → agi_server (Deep reasoning, architectural planning)
+        333_REASON → agi_server (Formal logic checks, pre-computation)
+        444_ALIGN → asi_server (Value alignment, floor prep)
+        555_EMPATHY → asi_server (Stakeholder modeling, κᵣ calculation)
+        666_BRIDGE → asi_server (Gatekeeper, neuro-symbolic translation)
+        777_REFLECT → apex_server (Evaluation, synthesis)
+        888_SEAL → apex_server (Judgement, verdict issuance)
+        999_STORE → vault_server (Memory persistence, EUREKA sealing)
+        """
+        # VAULT-999 (000, 999)
         if "init" in tool_name or "vault/init" == tool_name:
             return "000_INIT"
-        elif "think" in tool_name or "agi" in tool_name:
+        elif "store" in tool_name or "vault/store" == tool_name or "999" in tool_name:
+            return "999_STORE"
+
+        # AGI-Δ (111, 222, 333)
+        elif "sense" in tool_name or "111" in tool_name:
             return "111_SENSE"
-        elif "empathy" in tool_name or "asi" in tool_name:
+        elif "think" in tool_name or "222" in tool_name or "agi/think" in tool_name:
+            return "222_THINK"
+        elif "reason" in tool_name or "333" in tool_name:
+            return "333_REASON"
+
+        # ASI-Ω (444, 555, 666)
+        elif "align" in tool_name or "444" in tool_name:
+            return "444_ALIGN"
+        elif "empathy" in tool_name or "555" in tool_name or "asi/empathy" in tool_name:
             return "555_EMPATHY"
-        elif "seal" in tool_name or "apex" in tool_name:
+        elif "bridge" in tool_name or "666" in tool_name:
+            return "666_BRIDGE"
+
+        # APEX-Ψ (777, 888)
+        elif "reflect" in tool_name or "777" in tool_name:
+            return "777_REFLECT"
+        elif "seal" in tool_name or "888" in tool_name or "apex/seal" in tool_name:
             return "888_SEAL"
-        elif "store" in tool_name or "vault/store" == tool_name:
-            return "999_VAULT"
+
         else:
             return "unknown"
 
