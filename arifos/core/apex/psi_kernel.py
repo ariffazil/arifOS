@@ -29,8 +29,8 @@ Verdict Hierarchy:
     SABAR > VOID > HOLD_888 > PARTIAL > SEAL
 
 Authority:
-    - L1_THEORY/canon/888_compass/ (APEX canon)
-    - L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json
+    - 000_THEORY/canon/888_compass/ (APEX canon)
+    - AAA_MCP/v46/000_foundation/constitutional_floors.json
     - arifos_core/system/hypervisor.py (F10-F12)
 
 Design:

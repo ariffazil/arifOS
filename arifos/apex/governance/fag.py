@@ -650,7 +650,7 @@ class FAG:
 
         Rules enforced:
         1. No New Files - HOLD unless sandbox or allowlisted
-        2. Canon Lock - VOID for creates in L1_THEORY/
+        2. Canon Lock - VOID for creates in 000_THEORY/
         3. Patch Only - HOLD if no diff provided for patches
         4. Rewrite Threshold - HOLD if deletion_ratio > 30%
         5. Read Before Write - HOLD if no read_proof for patches
@@ -709,11 +709,11 @@ class FAG:
 
         # === Rule 1: Canon Lock (VOID - absolute block) ===
         if plan.operation == "create":
-            if "L1_THEORY/" in path_normalized or path_normalized.startswith("L1_THEORY"):
+            if "000_THEORY/" in path_normalized or path_normalized.startswith("000_THEORY"):
                 return FAGWriteResult(
                     verdict="VOID",
                     path=target_path,
-                    reason="F1 Amanah VOID: Canon zone L1_THEORY/ is amendment-only. No new files allowed.",
+                    reason="F1 Amanah VOID: Canon zone 000_THEORY/ is amendment-only. No new files allowed.",
                     floor_violations=["F1_Amanah", "F2_Truth"],
                 )
 

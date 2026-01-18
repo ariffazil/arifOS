@@ -13,8 +13,8 @@ Purpose:
     This is the OmegaKernel's output port for Stage 555.
 
 Authority:
-    - L1_THEORY/canon/555_empathize/560_ASI_INTEGRATION_v46.md
-    - L2_PROTOCOLS/v46/555_empathize/555_empathize.json
+    - 000_THEORY/canon/555_empathize/560_ASI_INTEGRATION_v46.md
+    - AAA_MCP/v46/555_empathize/555_empathize.json
 
 Design:
     Input: SENSE bundle from 111

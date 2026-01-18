@@ -11,7 +11,7 @@ Update your imports:
 Constitutional Mapping:
 - Old Location: guards/ (incorrect layer)
 - New Location: hypervisor/guards/ (F10 Ontology/Symbolic)
-- Related Theory: See L1_THEORY/canon/012_enforcement/F10_ONTOLOGY.md
+- Related Theory: See 000_THEORY/canon/012_enforcement/F10_ONTOLOGY.md
 """
 import warnings
 

@@ -64,7 +64,7 @@ def arifos_fag_write(request: FAGWriteRequest) -> FAGWriteResponse:
     Validate a write operation with constitutional governance (FAG).
 
     Enforces the FAG Write Contract:
-    - Rule 1: Canon Lock (L1_THEORY is immutable)
+    - Rule 1: Canon Lock (000_THEORY is immutable)
     - Rule 2: No New Files (outside sandbox/allowlist)
     - Rule 3: Delete Gate (requires human approval)
     - Rule 4: Read Before Write (verifiable read proof required)

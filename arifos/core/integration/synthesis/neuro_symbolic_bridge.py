@@ -12,8 +12,8 @@ Purpose:
     - Neural (Fast): Omega empathy, tone, emotional resonance
 
 Authority:
-    - L1_THEORY/canon/666_bridge/660_BRIDGE_SYNTHESIS_v46.md
-    - L2_PROTOCOLS/v46/666_bridge/666_bridge.json
+    - 000_THEORY/canon/666_bridge/660_BRIDGE_SYNTHESIS_v46.md
+    - AAA_MCP/v46/666_bridge/666_bridge.json
 
 Design:
     Input: bundle_333 (Delta) + bundle_555 (Omega)

@@ -22,15 +22,15 @@ This module provides:
 v46.0 Track B Consolidation:
 Thresholds loaded via strict priority order with fail-closed behavior:
   A) ARIFOS_FLOORS_SPEC env var (explicit override - highest priority)
-  B) L2_PROTOCOLS/v46/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors)
-  C) L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json (fallback if root unavailable)
-  D) L2_PROTOCOLS/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors baseline)
+  B) AAA_MCP/v46/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors)
+  C) AAA_MCP/v46/000_foundation/constitutional_floors.json (fallback if root unavailable)
+  D) AAA_MCP/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors baseline)
   E) HARD FAIL (raise exception) - no silent defaults
 
   Optional: ARIFOS_ALLOW_LEGACY_SPEC=1 enables archive fallback (default OFF)
 
 Track A (Canon) remains authoritative for interpretation.
-Track B (Spec) L2_PROTOCOLS/v46/ is SOLE RUNTIME AUTHORITY for thresholds.
+Track B (Spec) AAA_MCP/v46/ is SOLE RUNTIME AUTHORITY for thresholds.
 """
 
 import json
@@ -122,9 +122,9 @@ def _load_floors_spec_unified() -> dict:
 
     Priority (fail-closed):
     A) ARIFOS_FLOORS_SPEC (env path override) - highest priority (explicit operator authority)
-    B) L2_PROTOCOLS/v46/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors, complete)
-    C) L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json (v46 fallback if root unavailable)
-    D) L2_PROTOCOLS/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors baseline)
+    B) AAA_MCP/v46/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors, complete)
+    C) AAA_MCP/v46/000_foundation/constitutional_floors.json (v46 fallback if root unavailable)
+    D) AAA_MCP/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors baseline)
     E) HARD FAIL (raise RuntimeError) - no legacy fallback
 
     Each candidate is validated for required keys before acceptance.
@@ -142,13 +142,13 @@ def _load_floors_spec_unified() -> dict:
     spec_data = None
 
 
-    # v46.1: Support L2_PROTOCOLS/v46 -> L2_PROTOCOLS/archive/v45 -> FAIL priority chain
+    # v46.1: Support AAA_MCP/v46 -> AAA_MCP/archive/v45 -> FAIL priority chain
     # Check if legacy spec bypass is enabled (for development/migration)
     allow_legacy = os.getenv("ARIFOS_ALLOW_LEGACY_SPEC", "0") == "1"
 
 
     # Define base directories
-    l2_dir = pkg_dir / "L2_PROTOCOLS"
+    l2_dir = pkg_dir / "AAA_MCP"
     v46_base = l2_dir / "v46"
     v45_archive = l2_dir / "archive" / "v45"
 
@@ -162,7 +162,7 @@ def _load_floors_spec_unified() -> dict:
     elif v45_schema_path.exists():
         schema_path = v45_schema_path
     else:
-        # Fallback to legacy spec/ folder if L2_PROTOCOLS structure missing (during migration)
+        # Fallback to legacy spec/ folder if AAA_MCP structure missing (during migration)
         schema_path = pkg_dir / "spec" / "v46" / "schema" / "constitutional_floors.schema.json"
 
     # Verify cryptographic manifest (tamper-evident integrity)
@@ -196,10 +196,10 @@ def _load_floors_spec_unified() -> dict:
     if env_path:
         env_spec_path = Path(env_path).resolve()
 
-        # Strict mode: env override must point to L2_PROTOCOLS (manifest-covered files only)
+        # Strict mode: env override must point to AAA_MCP (manifest-covered files only)
         if not allow_legacy:
-            v46_dir = (pkg_dir / "L2_PROTOCOLS" / "v46").resolve()
-            v45_dir = (pkg_dir / "L2_PROTOCOLS" / "archive" / "v45").resolve()
+            v46_dir = (pkg_dir / "AAA_MCP" / "v46").resolve()
+            v45_dir = (pkg_dir / "AAA_MCP" / "archive" / "v45").resolve()
             try:
                 # Check if env path is within spec/v46/, spec/v45/, or spec/v44/
                 try:
@@ -232,7 +232,7 @@ def _load_floors_spec_unified() -> dict:
             except (json.JSONDecodeError, IOError, OSError):
                 pass  # Fall through to next priority
 
-    # Priority B: L2_PROTOCOLS/v46/constitutional_floors.json (PRIMARY AUTHORITY v46.0)
+    # Priority B: AAA_MCP/v46/constitutional_floors.json (PRIMARY AUTHORITY v46.0)
     # Root-level consolidated file is authoritative (69 lines, complete type fields)
     if spec_data is None:
         v46_root_path = v46_base / "constitutional_floors.json"
@@ -245,7 +245,7 @@ def _load_floors_spec_unified() -> dict:
                 # Structural validation is sufficient for v46 format
                 if _validate_floors_spec(candidate, str(v46_root_path)):
                     spec_data = candidate
-                    loaded_from = "L2_PROTOCOLS/v46/constitutional_floors.json"
+                    loaded_from = "AAA_MCP/v46/constitutional_floors.json"
 
             except Exception as e:
                 # If root file fails, try foundation subfolder as fallback
@@ -257,11 +257,11 @@ def _load_floors_spec_unified() -> dict:
                         # Skip schema validation for v46 files (they use different schema)
                         if _validate_floors_spec(candidate, str(v46_foundation_path)):
                             spec_data = candidate
-                            loaded_from = "L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json (fallback)"
+                            loaded_from = "AAA_MCP/v46/000_foundation/constitutional_floors.json (fallback)"
                     except Exception:
                         pass  # Fall through to v45 fallback
 
-    # Priority C: L2_PROTOCOLS/archive/v45/constitutional_floors.json (BASELINE)
+    # Priority C: AAA_MCP/archive/v45/constitutional_floors.json (BASELINE)
     if spec_data is None:
         v45_path = v45_archive / "constitutional_floors.json"
         if v45_path.exists():
@@ -274,7 +274,7 @@ def _load_floors_spec_unified() -> dict:
                 # Structural validation (required keys)
                 if _validate_floors_spec(candidate, str(v45_path)):
                     spec_data = candidate
-                    loaded_from = "L2_PROTOCOLS/archive/v45/constitutional_floors.json"
+                    loaded_from = "AAA_MCP/archive/v45/constitutional_floors.json"
             except (json.JSONDecodeError, IOError):
                 pass  # Fall through to v44 fallback
 
@@ -283,11 +283,11 @@ def _load_floors_spec_unified() -> dict:
         raise RuntimeError(
             "TRACK B AUTHORITY FAILURE: Constitutional floors spec not found.\n\n"
             "Searched locations (in priority order):\n"
-            f"  1. L2_PROTOCOLS/v46/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors)\n"
-            f"  2. L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json (v46 fallback)\n"
-            f"  3. L2_PROTOCOLS/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors)\n\n"
+            f"  1. AAA_MCP/v46/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors)\n"
+            f"  2. AAA_MCP/v46/000_foundation/constitutional_floors.json (v46 fallback)\n"
+            f"  3. AAA_MCP/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors)\n\n"
             "Resolution:\n"
-            "1. Ensure L2_PROTOCOLS/v46/constitutional_floors.json exists and is valid\n"
+            "1. Ensure AAA_MCP/v46/constitutional_floors.json exists and is valid\n"
             "2. Or set ARIFOS_FLOORS_SPEC env var to explicit path\n"
             "3. Verify MANIFEST.sha256.json integrity if using strict mode\n\n"
         )

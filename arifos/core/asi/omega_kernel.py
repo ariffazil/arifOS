@@ -27,8 +27,8 @@ Floors:
     - F9 (C_dark): Anti-hantu - no dark cleverness < 0.30
 
 Authority:
-    - L1_THEORY/canon/444_align/, 555_empathize/, 666_bridge/, 777_eureka/
-    - L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json
+    - 000_THEORY/canon/444_align/, 555_empathize/, 666_bridge/, 777_eureka/
+    - AAA_MCP/v46/000_foundation/constitutional_floors.json
 
 Design:
     Input: Response metadata (tri_witness, peace_squared, kappa_r, omega_0, rasa, c_dark)

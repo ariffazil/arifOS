@@ -24,7 +24,7 @@ Design:
     - Failure actions: SABAR (F11, F12) or HOLD_888 (F10)
 
 Authority:
-    - PRIMARY: L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json
+    - PRIMARY: AAA_MCP/v46/000_foundation/constitutional_floors.json
     - Guard implementations: arifos_core/guards/{ontology_guard, nonce_manager, injection_guard}
 
 Motto:

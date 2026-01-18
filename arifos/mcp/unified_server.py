@@ -1027,8 +1027,8 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
         "parameters": {
             "type": "object",
             "properties": {
-                "track_a_path": {"type": "string", "description": "Path to canonical law file (L1_THEORY)"},
-                "track_b_path": {"type": "string", "description": "Path to spec file (L2_PROTOCOLS)"},
+                "track_a_path": {"type": "string", "description": "Path to canonical law file (000_THEORY)"},
+                "track_b_path": {"type": "string", "description": "Path to spec file (AAA_MCP)"},
                 "track_c_path": {"type": "string", "description": "Path to code file (arifos_core)"},
             },
             "required": ["track_a_path"],
@@ -1176,7 +1176,7 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
                 "path": {"type": "string", "description": "File path to write"},
                 "operation": {"type": "string", "description": "Operation type (create/update/append)"},
                 "content": {"type": "string", "description": "File content"},
-                "root": {"type": "string", "description": "Root directory (L1_THEORY/L2_PROTOCOLS/etc)"},
+                "root": {"type": "string", "description": "Root directory (000_THEORY/AAA_MCP/etc)"},
             },
             "required": ["path", "operation", "content"],
         },

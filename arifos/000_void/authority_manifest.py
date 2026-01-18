@@ -10,7 +10,7 @@ Architecture:
 - Level 2: Human (User) - Override authority (HOLD_888 only)
 - Level 3: Agent Zero (Tool) - Proposal capability ONLY
 
-See: L2_PROTOCOLS/v46/000_foundation/floor_000_constitutional_gate.json
+See: AAA_MCP/v46/000_foundation/floor_000_constitutional_gate.json
 """
 
 from typing import Dict, Final

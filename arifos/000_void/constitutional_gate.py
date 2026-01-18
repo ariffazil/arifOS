@@ -3,7 +3,7 @@ arifOS Floor 000 Constitutional Gate
 DITEMPA BUKAN DIBERI
 
 This module implements the 3-Phase Assessment defined in
-L2_PROTOCOLS/v46/000_foundation/floor_000_constitutional_gate.json.
+AAA_MCP/v46/000_foundation/floor_000_constitutional_gate.json.
 
 It aggregates:
 1. Threat Detection (Phase 1)

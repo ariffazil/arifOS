@@ -11,7 +11,7 @@ Update your imports:
 Constitutional Mapping:
 - Old Location: guards/ (incorrect layer)
 - New Location: hypervisor/guards/ (F12 Injection Defense)
-- Related Theory: See L1_THEORY/canon/012_enforcement/F12_INJECTION_DEFENSE.md
+- Related Theory: See 000_THEORY/canon/012_enforcement/F12_INJECTION_DEFENSE.md
 """
 import warnings
 

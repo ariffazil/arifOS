@@ -11,7 +11,7 @@ Update your imports:
 Constitutional Mapping:
 - Old Location: apex/governance/ (mixed concerns)
 - New Location: state/ (pure state management)
-- Related Theory: See L1_THEORY/canon/012_enforcement/ZKPC.md
+- Related Theory: See 000_THEORY/canon/012_enforcement/ZKPC.md
 """
 import warnings
 

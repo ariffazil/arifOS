@@ -27,7 +27,7 @@ Constitutional Floor: F2 (ΔS/Clarity)
     - Failure Action: VOID
 
 Authority:
-    - L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json (F2)
+    - AAA_MCP/v46/000_foundation/constitutional_floors.json (F2)
     - Mathematical: Claude Shannon, "A Mathematical Theory of Communication" (1948)
 
 DITEMPA BUKAN DIBERI — Physics over prompts.

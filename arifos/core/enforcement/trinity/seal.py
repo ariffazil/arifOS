@@ -278,7 +278,7 @@ def _write_ledger_entry(
     import hashlib
     import uuid
 
-    ledger_path = repo_path / "L1_THEORY" / "ledger" / "gitseal_audit_trail.jsonl"
+    ledger_path = repo_path / "000_THEORY" / "ledger" / "gitseal_audit_trail.jsonl"
     ledger_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Create entry ID
@@ -329,7 +329,7 @@ def _update_manifest(
 
     Manifest format: {version: {bundle_hash, commit_hash, tag, sealed_at, authority}}
     """
-    manifest_path = repo_path / "L1_THEORY" / "manifest" / "versions.json"
+    manifest_path = repo_path / "000_THEORY" / "manifest" / "versions.json"
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Load existing manifest or create new

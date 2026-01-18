@@ -216,7 +216,7 @@ These files CANNOT be moved or deleted:
 
 ## V42 Architecture Layers
 
-- L1_THEORY - Constitutional law (docs only)
+- 000_THEORY - Constitutional law (docs only)
 - L2_GOVERNANCE - System prompts, IDE configs
 - L3_KERNEL - Intelligence kernel (arifos_core)
 - L4_MCP - MCP server (this module)

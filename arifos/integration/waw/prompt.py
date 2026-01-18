@@ -6,7 +6,7 @@ Domain: Language safety, Anti-Hantu, presentation optics, prompt governance
 
 Version: v45.0
 Status: PRODUCTION
-Alignment: L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md
+Alignment: 000_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md
 
 Core responsibilities:
 - Anti-Hantu detection (no consciousness/soul claims)
@@ -21,9 +21,9 @@ This organ is part of W@W Federation:
 @PROMPT (Language) -> @RIF (Epistemic) -> @WELL (Somatic) -> @WEALTH (Integrity) -> @GEOX (Physics)
 
 Canon Authority:
-- L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md (Primary)
-- L1_THEORY/canon/03_runtime/060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md
-- L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md (F9 Anti-Hantu)
+- 000_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md (Primary)
+- 000_THEORY/canon/03_runtime/060_REVERSE_TRANSFORMER_ARCHITECTURE_v45.md
+- 000_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md (F9 Anti-Hantu)
 
 Track B Spec:
 - spec/v45/waw_prompt_floors.json
@@ -373,7 +373,7 @@ class PromptOrgan(WAWOrgan):
         Crisis patterns trigger IMMEDIATE 888_HOLD (not VOID - this is help, not harm).
         This is a COMPASSIONATE intervention, not rejection.
 
-        Canon: L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md Section 7
+        Canon: 000_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md Section 7
         Spec: spec/v45/red_patterns.json categories.crisis_override
 
         Returns:

@@ -8,7 +8,7 @@ Implements the three-stage governance gate for code changes:
 
 PLUS: Real-time response validation for AI outputs.
 
-See: L1_THEORY/canon/03_runtime/FORGING_PROTOCOL_v45.md
+See: 000_THEORY/canon/03_runtime/FORGING_PROTOCOL_v45.md
 """
 
 from .forge import ForgeReport, analyze_branch

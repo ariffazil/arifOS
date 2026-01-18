@@ -4,8 +4,8 @@ arifos_core/system/stages/stage_111_sense.py
 Stage 111 SENSE - Perception and Orientation Protocol (Track C)
 
 Authority:
-- Track A Canon: L1_THEORY/canon/111_sense/111_SENSE_STAGE_v46.md (Grade A+)
-- Track B Spec: L2_PROTOCOLS/v46/111_sense/111_sense_stage.json
+- Track A Canon: 000_THEORY/canon/111_sense/111_SENSE_STAGE_v46.md (Grade A+)
+- Track B Spec: AAA_MCP/v46/111_sense/111_sense_stage.json
 - Track C Code: THIS FILE
 
 Constitutional Functions:

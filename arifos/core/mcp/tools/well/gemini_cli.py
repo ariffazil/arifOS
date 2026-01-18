@@ -102,7 +102,7 @@ def get_gemini_tools() -> List[Dict[str, Any]]:
                 },
                 {
                     "name": "well_heal_structure",
-                    "description": "Create missing layer directories to fix repository structure. Creates L1_THEORY through L7_DEMOS if they don't exist.",
+                    "description": "Create missing layer directories to fix repository structure. Creates 000_THEORY through L7_DEMOS if they don't exist.",
                     "parameters": {
                         "type": "object",
                         "properties": {

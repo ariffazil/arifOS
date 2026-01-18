@@ -12,8 +12,8 @@ Floors:
     - F2 (Truth/ΔS): Clarity check (entropy must not increase beyond threshold)
 
 Authority:
-    - L1_THEORY/canon/333_atlas/ (AGI canon)
-    - L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json
+    - 000_THEORY/canon/333_atlas/ (AGI canon)
+    - AAA_MCP/v46/000_foundation/constitutional_floors.json
 
 Design:
     Input: Context (query + response + metadata)

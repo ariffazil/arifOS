@@ -61,7 +61,7 @@ def fag_write(request: FAGWriteRequest) -> FAGWriteResponse:
 
     Write Contract Rules:
     1. No New Files - HOLD unless in sandbox (.arifos_clip/, scratch/)
-    2. Canon Lock - VOID for creates in L1_THEORY/
+    2. Canon Lock - VOID for creates in 000_THEORY/
     3. Patch Only - HOLD if no diff provided
     4. Rewrite Threshold - HOLD if deletion_ratio > 30%
     5. Read Before Write - HOLD if no read_proof (sha256 + bytes)
@@ -85,7 +85,7 @@ def fag_write(request: FAGWriteRequest) -> FAGWriteResponse:
         FAGWriteResponse(verdict="SEAL", requires_human_approval=True, ...)
 
         >>> fag_write(FAGWriteRequest(
-        ...     path="L1_THEORY/canon/new.md",
+        ...     path="000_THEORY/canon/new.md",
         ...     operation="create",
         ...     justification="Add new canon"
         ... ))

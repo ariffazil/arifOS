@@ -3,7 +3,7 @@ arifOS Floor 000 Thermodynamic Cooling
 DITEMPA BUKAN DIBERI
 
 This module implements the Thermodynamic Cooling protocols defined in
-L2_PROTOCOLS/v46/000_foundation/floor_000_constitutional_gate.json.
+AAA_MCP/v46/000_foundation/floor_000_constitutional_gate.json.
 
 Principle: High-entropy queries generate high-entropy outputs.
 Cool first, then execute.

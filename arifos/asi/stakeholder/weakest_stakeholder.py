@@ -11,8 +11,8 @@ Purpose:
     not utilitarian (greatest good for most).
 
 Authority:
-    - L1_THEORY/canon/555_empathize/550_WEAKEST_STAKEHOLDER_v46.md
-    - L2_PROTOCOLS/v46/555_empathize/555_empathize.json
+    - 000_THEORY/canon/555_empathize/550_WEAKEST_STAKEHOLDER_v46.md
+    - AAA_MCP/v46/555_empathize/555_empathize.json
 
 Design:
     Input: ToM bundle (vulnerability scores)

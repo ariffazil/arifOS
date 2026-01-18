@@ -8,7 +8,7 @@ PHILOSOPHY:
     It serves as the 'Air Gap' between the User's Intent and the Model's Execution.
 
 AUTHORITY:
-    L1_THEORY/canon/00_MASTER_INDEX_v45.md (Sovereign Pivot)
+    000_THEORY/canon/00_MASTER_INDEX_v45.md (Sovereign Pivot)
 
 USAGE:
     from arifos.integration.router import IntelligenceRouter, RoutingProfile, Intent

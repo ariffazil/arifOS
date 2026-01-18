@@ -60,7 +60,7 @@ class ConstitutionalRuntimeConfig:
                 "Human_Sovereign",
                 "arifOS_Governor", 
                 "Constitutional_Canon",
-                "L2_PROTOCOLS",
+                "AAA_MCP",
                 "Implementation"
             ]
         }

@@ -9,8 +9,8 @@ arifos_core/system/stages/stage_000_void.py
 Stage 000 VOID - Foundation Initialization Protocol (Track C)
 
 Authority:
-- Track A Canon: L1_THEORY/canon/000_foundation/000_VOID_STAGE_v46.md
-- Track B Spec: L2_PROTOCOLS/v46/000_foundation/000_void_stage.json
+- Track A Canon: 000_THEORY/canon/000_foundation/000_VOID_STAGE_v46.md
+- Track B Spec: AAA_MCP/v46/000_foundation/000_void_stage.json
 - Track C Code: THIS FILE
 
 Constitutional Functions:

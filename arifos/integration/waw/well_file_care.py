@@ -79,7 +79,7 @@ class WellConstants:
 
     # Valid layer prefixes (v42 architecture)
     VALID_LAYERS = frozenset([
-        "L1_THEORY",
+        "000_THEORY",
         "L2_GOVERNANCE",
         "L3_KERNEL",
         "L4_MCP",

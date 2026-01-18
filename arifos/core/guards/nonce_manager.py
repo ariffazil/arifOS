@@ -11,7 +11,7 @@ Update your imports:
 Constitutional Mapping:
 - Old Location: guards/ (incorrect layer)
 - New Location: hypervisor/guards/ (F11 Command Auth)
-- Related Theory: See L1_THEORY/canon/012_enforcement/F11_COMMAND_AUTH.md
+- Related Theory: See 000_THEORY/canon/012_enforcement/F11_COMMAND_AUTH.md
 """
 import warnings
 

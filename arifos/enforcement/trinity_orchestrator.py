@@ -91,7 +91,7 @@ class TrinityOrchestrator:
     v46 Hypervisor Floors (F10-F12):
         Hypervisor floors are enforced separately in apex_prime.py via
         the Hypervisor module (arifos_core/system/hypervisor.py).
-        See: L2_PROTOCOLS/v46/000_foundation/constitutional_floors.json
+        See: AAA_MCP/v46/000_foundation/constitutional_floors.json
     """
 
     def grade(
