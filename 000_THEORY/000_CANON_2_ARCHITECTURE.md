@@ -1,17 +1,18 @@
 ---
-title: "000-v49-CANON-2_ARCHITECTURE.md"
+title: "000_CANON_2_ARCHITECTURE.md"
 version: "v49.0.0"
 epoch: "2026-01-18"
 sealed_by: "888_Judge"
 authority: "Muhammad Arif bin Fazil"
 status: "SOVEREIGNLY_SEALED"
-reference: "See 000_CANON.md for F1-F13 constitutional law"
+reference: "See 000_CANON_1_CONSTITUTION.md for F1-F13 constitutional law"
 ---
 
 # L2 SYSTEM ARCHITECTURE & TOPOLOGY (v49)
 
 **Motto:** *Ditempa Bukan Diberi* (Forged, Not Given)
-**Reference:** All engineering and MCP specs **must anchor to this map**.
+**Scope:** Canon-2 is the topology map (runtime + MCP layout). Canon-1 is law; Canon-3 is operations.
+**Reference:** All engineering and MCP specs **must anchor to this map**.       
 
 ---
 
