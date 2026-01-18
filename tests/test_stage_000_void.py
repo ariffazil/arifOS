@@ -15,8 +15,8 @@ DITEMPA BUKAN DIBERI
 """
 
 import pytest
-from arifos_core.system.stages import Stage000VOID, VerdictType, stage_000_void
-from arifos_core.utils.runtime_types import Job
+from arifos.system.stages import Stage000VOID, VerdictType, stage_000_void
+from arifos.utils.runtime_types import Job
 
 
 # =============================================================================

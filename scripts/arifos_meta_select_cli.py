@@ -62,7 +62,7 @@ from typing import List, Dict, Any
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from arifos_core.enforcement.response_validator_extensions import meta_select
+from arifos.enforcement.response_validator_extensions import meta_select
 
 
 def load_verdicts_from_file(file_path: str) -> List[Dict[str, Any]]:

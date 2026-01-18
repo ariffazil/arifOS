@@ -8,7 +8,7 @@ Tests:
 4. SABAR flag set on entropy spike (simulated)
 """
 import pytest
-from arifos_core.system.pipeline import (
+from arifos.system.pipeline import (
     Pipeline,
     PipelineState,
     StakesClass,
@@ -17,10 +17,10 @@ from arifos_core.system.pipeline import (
     stage_222_reflect,
     stage_888_judge,
 )
-from arifos_core.memory.scars.scars import ScarIndex, Scar, generate_scar_id, seed_scars
-from arifos_core.memory.eureka.eureka_store import InMemoryStore
-from arifos_core.enforcement.metrics import Metrics
-from arifos_core import EyeSentinel
+from arifos.memory.scars.scars import ScarIndex, Scar, generate_scar_id, seed_scars
+from arifos.memory.eureka.eureka_store import InMemoryStore
+from arifos.enforcement.metrics import Metrics
+from arifos import EyeSentinel
 
 
 class TestPipelineRouting:
@@ -308,7 +308,7 @@ class TestEntropySpike:
 
     def test_sabar_response_format(self):
         """SABAR verdict should return cooling response."""
-        from arifos_core.system.pipeline import stage_999_seal
+        from arifos.system.pipeline import stage_999_seal
 
         state = PipelineState(query="test")
         state.verdict = "SABAR"

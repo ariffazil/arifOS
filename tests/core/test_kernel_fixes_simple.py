@@ -15,7 +15,7 @@ def test_kernel_imports():
     print("Testing kernel imports...")
     
     try:
-        from arifos_core.kernel.constitutional import ConstitutionalKernel, PipelineStage
+        from arifos.kernel.constitutional import ConstitutionalKernel, PipelineStage
         print("SUCCESS: ConstitutionalKernel import successful")
         print(f"SUCCESS: PipelineStage enum working: {PipelineStage.STAGE_000_VOID}")
         return True
@@ -28,7 +28,7 @@ def test_mcp_server_imports():
     print("\nTesting MCP server imports...")
     
     try:
-        from arifos_core.kernel.mcp_server import ConstitutionalMCPServer
+        from arifos.kernel.mcp_server import ConstitutionalMCPServer
         print("SUCCESS: ConstitutionalMCPServer import successful")
         return True
     except ImportError as e:
@@ -40,7 +40,7 @@ def test_response_format():
     print("\nTesting response format standardization...")
     
     try:
-        from arifos_core.kernel.mcp_server import ConstitutionalMCPServer
+        from arifos.kernel.mcp_server import ConstitutionalMCPServer
         import mcp.types as types
         
         # Create a test server instance
@@ -80,7 +80,7 @@ def test_constitutional_kernel_functionality():
     print("\nTesting constitutional kernel functionality...")
     
     try:
-        from arifos_core.kernel.constitutional import ConstitutionalKernel
+        from arifos.kernel.constitutional import ConstitutionalKernel
         
         kernel = ConstitutionalKernel()
         

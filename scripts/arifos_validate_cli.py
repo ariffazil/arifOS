@@ -48,7 +48,7 @@ from typing import Optional
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from arifos_core.enforcement.response_validator_extensions import validate_response_full
+from arifos.enforcement.response_validator_extensions import validate_response_full
 
 
 def load_text_from_file(file_path: str) -> str:

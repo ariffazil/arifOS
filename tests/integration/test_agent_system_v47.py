@@ -17,14 +17,14 @@ import os
 # Add arifos_core to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from arifos_core.trinity.agent_loader import AgentLoader, AgentConfig
-from arifos_core.trinity.session_manager import (
+from arifos.trinity.agent_loader import AgentLoader, AgentConfig
+from arifos.trinity.session_manager import (
     SessionManager,
     SessionInfo,
     SessionIsolationError,
     AgentSession
 )
-from arifos_core.trinity.config_validator import ConfigValidator
+from arifos.trinity.config_validator import ConfigValidator
 
 
 def test_agent_loader_loads_all_roles():

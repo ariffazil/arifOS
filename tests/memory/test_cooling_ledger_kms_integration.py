@@ -6,8 +6,8 @@ import pytest
 
 # Adjust these imports to match your repository layout.
 # If your cooling ledger lives at arifos_core.memory.cooling_ledger use that path.
-from arifos_core.memory.ledger.cooling_ledger import append_entry, verify_chain
-from arifos_core.utils.kms_signer import KmsSigner, KmsSignerConfig
+from arifos.memory.ledger.cooling_ledger import append_entry, verify_chain
+from arifos.utils.kms_signer import KmsSigner, KmsSignerConfig
 
 try:
     # Preferred when tests is importable as a top-level module

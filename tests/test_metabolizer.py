@@ -11,7 +11,7 @@ NOTE: Tests use arifos_core imports during consolidation due to arifos/__init__.
 """
 import pytest
 
-from arifos_core.orchestrator.metabolizer import (AAAMetabolizer,
+from arifos.orchestrator.metabolizer import (AAAMetabolizer,
                                              PresentationStrategy,
                                              UserProfile)
 
@@ -207,7 +207,7 @@ def test_phase9_full_stack(metabolizer):
 
 def test_aclip_stage_inference():
     """Test aCLIP Protocol v49 stage inference from tool names."""
-    from arifos_core.orchestrator.mcp_gateway import MCPGateway
+    from arifos.orchestrator.mcp_gateway import MCPGateway
 
     gateway = MCPGateway()
 

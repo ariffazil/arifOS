@@ -27,10 +27,10 @@ print()
 # Test 1: Import arifOS core
 print("[1/5] Testing arifOS core imports...")
 try:
-    from arifos_core.utils.session_telemetry import SessionTelemetry
-    from arifos_core.utils.reduction_engine import compute_attributes
-    from arifos_core.enforcement.metrics import Metrics
-    from arifos_core.system.apex_prime import apex_review
+    from arifos.utils.session_telemetry import SessionTelemetry
+    from arifos.utils.reduction_engine import compute_attributes
+    from arifos.enforcement.metrics import Metrics
+    from arifos.system.apex_prime import apex_review
     print("? All arifOS core modules imported successfully")
 except ImportError as e:
     print(f"? Import failed: {e}")

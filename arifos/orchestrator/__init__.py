@@ -1,20 +1,17 @@
 """
-arifOS Orchestrator
-===================
-MCP transport and coordination layer.
+arifOS Multi-Agent Orchestrator
 
-This subpackage is intentionally lightweight and does NOT import enforcement
-dependencies to avoid spec file requirements during development.
+Constitutional governance orchestration system synchronizing:
+- Claude (Reasoning/Truth layer)
+- ChatGPT Codex (Code generation)
+- AntiGravity (Validation)
+
+DITEMPA BUKAN DIBERI — Forged, not given.
 """
 
-from .metabolizer import AAAMetabolizer, PresentationStrategy, UserProfile
-from .mcp_gateway import MCPGateway, TransportClient, gateway
+__version__ = "0.1.0"
+__author__ = "arifOS Project"
 
-__all__ = [
-    "AAAMetabolizer",
-    "PresentationStrategy",
-    "UserProfile",
-    "MCPGateway",
-    "TransportClient",
-    "gateway",
-]
+from arifos.orchestrator.core.orchestrator import run_orchestration
+
+__all__ = ["run_orchestration"]

@@ -56,7 +56,7 @@ server_registry = None
 init_error = None
 try:
     # Use functional interface from unified_server.py
-    import arifos_core.mcp.unified_server as unified
+    import arifos.mcp.unified_server as unified
     server_registry = unified
     logger.info("✅ Unified tool registry initialized with 17 constitutional tools")
 except ImportError as e:
@@ -155,7 +155,7 @@ async def list_tools() -> Dict[str, Any]:
         tools = server_registry.list_tools()
         # Get descriptions
         descriptions = []
-        import arifos_core.mcp.unified_server as unified
+        import arifos.mcp.unified_server as unified
         for name in tools:
             desc = unified.TOOL_DESCRIPTIONS.get(name, {})
             descriptions.append({
@@ -289,8 +289,8 @@ async def judge(query: str, response: str, lane: str = "default") -> Dict[str, A
         logger.info(f"Judge invoked: query={query[:50]}..., lane={lane}")
 
         # arifos_judge is the function used by arifos_live
-        from arifos_core.mcp.models import JudgeRequest
-        from arifos_core.mcp.tools.judge import arifos_judge
+        from arifos.mcp.models import JudgeRequest
+        from arifos.mcp.tools.judge import arifos_judge
 
         request = JudgeRequest(query=f"Judging response to: {query}\nResponse: {response}")
         result = arifos_judge(request)

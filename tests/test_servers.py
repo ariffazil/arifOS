@@ -147,7 +147,7 @@ async def test_apex_f3_triwitness_floor():
 @pytest.mark.asyncio
 async def test_full_000_to_999_pipeline():
     """Test full 000→999 metabolic loop."""
-    from arifos_core.orchestrator.pipeline import Pipeline
+    from arifos.orchestrator.pipeline import Pipeline
 
     pipeline = Pipeline()
 

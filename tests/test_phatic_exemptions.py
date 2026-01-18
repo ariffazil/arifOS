@@ -20,7 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from L7_DEMOS.examples.arifos_caged_llm_demo import compute_metrics_from_response
-from arifos_core.system.apex_prime import apex_review, trm_classify, Verdict
+from arifos.system.apex_prime import apex_review, trm_classify, Verdict
 
 
 def test_phatic_hi_seal():

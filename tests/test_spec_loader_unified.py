@@ -15,7 +15,7 @@ from unittest.mock import patch
 import pytest
 
 # Import the loader functions directly
-from arifos_core.enforcement.metrics import (
+from arifos.enforcement.metrics import (
     _validate_floors_spec,
     _load_floors_spec_unified,
     TRUTH_THRESHOLD,

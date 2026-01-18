@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from typing import List
 
-from arifos_core.guards.session_dependency import DependencyGuard, DependencyGuardResult
-from arifos_core.integration.wrappers.governed_session import GovernedSessionWrapper
+from arifos.guards.session_dependency import DependencyGuard, DependencyGuardResult
+from arifos.integration.wrappers.governed_session import GovernedSessionWrapper
 
 
 class DummyGuard(DependencyGuard):

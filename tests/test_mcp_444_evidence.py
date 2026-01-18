@@ -11,7 +11,7 @@ Constitutional validation:
 
 import pytest
 
-from arifos_core.mcp.tools.mcp_444_evidence import (
+from arifos.mcp.tools.mcp_444_evidence import (
     mcp_444_evidence,
     mcp_444_evidence_sync,
     score_truth_claim,

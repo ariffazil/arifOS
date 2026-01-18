@@ -45,14 +45,14 @@ def main():
     # 3. Check Imports
     print("\n--- Testing Imports ---")
     try:
-        from arifos_core.memory.ccc import CCC
+        from arifos.memory.ccc import CCC
         all_passed &= check("Import CCC class", True)
     except Exception as e:
         print(f"[FAIL] Import CCC class: {e}")
         all_passed = False
 
     try:
-        from arifos_core.memory.bands import BandName
+        from arifos.memory.bands import BandName
         all_passed &= check("Import BandName (BBB/CCC)", BandName.CCC == "CCC" and BandName.BBB == "BBB")
     except Exception as e:
         print(f"[FAIL] Import BandName: {e}")

@@ -46,7 +46,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from arifos_core.apex.governance.ledger_hashing import (
+from arifos.apex.governance.ledger_hashing import (
     load_jsonl,
     dump_jsonl,
     compute_entry_hash,
@@ -54,7 +54,7 @@ from arifos_core.apex.governance.ledger_hashing import (
     PREVIOUS_HASH_FIELD,
     GENESIS_PREVIOUS_HASH,
 )
-from arifos_core.apex.governance.merkle import build_merkle_tree
+from arifos.apex.governance.merkle import build_merkle_tree
 
 
 LEDGER_PATH = Path("cooling_ledger") / "L1_cooling_ledger.jsonl"

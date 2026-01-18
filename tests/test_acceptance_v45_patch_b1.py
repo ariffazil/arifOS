@@ -13,10 +13,10 @@ try:
 except Exception:
     pass  # Fallback for older Python or non-reconfigurable streams
 
-from arifos_core.system.apex_prime import apex_review, Verdict
-from arifos_core.enforcement.metrics import Metrics, enforce_identity_truth_lock
-from arifos_core.enforcement.routing.prompt_router import classify_prompt_lane
-from arifos_core.system.pipeline import _detect_destructive_intent
+from arifos.system.apex_prime import apex_review, Verdict
+from arifos.enforcement.metrics import Metrics, enforce_identity_truth_lock
+from arifos.enforcement.routing.prompt_router import classify_prompt_lane
+from arifos.system.pipeline import _detect_destructive_intent
 
 print("=" * 70)
 print("v45Ω Patch B.1 - Acceptance Tests")
@@ -77,7 +77,7 @@ detected = _detect_destructive_intent(query4)
 lane4_initial = classify_prompt_lane(query4, [])
 
 # Actually run pipeline stage_111 to verify REFUSE override
-from arifos_core.system.pipeline import PipelineState, stage_111_sense
+from arifos.system.pipeline import PipelineState, stage_111_sense
 state4 = PipelineState(query=query4)
 state4 = stage_111_sense(state4)
 

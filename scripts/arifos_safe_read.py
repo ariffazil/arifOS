@@ -19,7 +19,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from arifos_core.apex.governance.fag import FAG, FAGReadResult
+from arifos.apex.governance.fag import FAG, FAGReadResult
 
 
 def main() -> int:

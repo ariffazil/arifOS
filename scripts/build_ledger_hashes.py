@@ -18,7 +18,7 @@ import argparse
 import shutil
 from pathlib import Path
 
-from arifos_core.apex.governance.ledger_hashing import (
+from arifos.apex.governance.ledger_hashing import (
     chain_entries,
     dump_jsonl,
     load_jsonl,

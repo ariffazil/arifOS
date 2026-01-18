@@ -18,7 +18,7 @@ Reference: L1_THEORY/canon/000_foundation/003_GEOMETRY_IMPLEMENTATION_v47.md Sec
 
 import pytest
 import asyncio
-from arifos_core.mcp.orthogonal_executor import OrthogonalExecutor, QuantumState
+from arifos.mcp.orthogonal_executor import OrthogonalExecutor, QuantumState
 
 
 class TestQuantumOrthogonalExecutor:

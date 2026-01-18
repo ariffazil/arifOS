@@ -16,8 +16,8 @@ from __future__ import annotations
 
 import json
 
-from arifos_core.memory.cooling_ledger import log_cooling_entry_v36_stub
-from arifos_core.enforcement.metrics import Metrics
+from arifos.memory.cooling_ledger import log_cooling_entry_v36_stub
+from arifos.enforcement.metrics import Metrics
 
 
 class DummyGeniusVerdict:

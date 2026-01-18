@@ -28,7 +28,7 @@ class TestConstitutionalFloorsSubprocess:
         # Run in subprocess to bypass module caching
         code = """
 import sys
-from arifos_core.enforcement.metrics import _FLOORS_SPEC_V38
+from arifos.enforcement.metrics import _FLOORS_SPEC_V38
 print(f"VERSION:{_FLOORS_SPEC_V38['version']}")
 print(f"LOADED_FROM:{_FLOORS_SPEC_V38.get('_loaded_from', 'UNKNOWN')}")
 """
@@ -67,7 +67,7 @@ print(f"LOADED_FROM:{_FLOORS_SPEC_V38.get('_loaded_from', 'UNKNOWN')}")
             code = """
 import os
 os.environ['ARIFOS_ALLOW_LEGACY_SPEC'] = '0'  # Ensure fail-closed
-from arifos_core.enforcement.metrics import _FLOORS_SPEC_V38
+from arifos.enforcement.metrics import _FLOORS_SPEC_V38
 print('LOADED')  # Should NOT reach here
 """
             result = subprocess.run(
@@ -118,7 +118,7 @@ print('LOADED')  # Should NOT reach here
             # Run with env override
             code = f"""
 import sys
-from arifos_core.enforcement.metrics import _FLOORS_SPEC_V38
+from arifos.enforcement.metrics import _FLOORS_SPEC_V38
 print(f"VERSION:{{_FLOORS_SPEC_V38['version']}}")
 """
             result = subprocess.run(
@@ -143,7 +143,7 @@ class TestGeniusMetricsSubprocess:
     def test_default_load_uses_v44_fresh_process(self):
         """PROOF: Fresh Python process loads spec/v44/genius_law.json by default."""
         code = """
-from arifos_core.enforcement.genius_metrics import _GENIUS_SPEC_V38
+from arifos.enforcement.genius_metrics import _GENIUS_SPEC_V38
 print(f"VERSION:{_GENIUS_SPEC_V38['version']}")
 """
         result = subprocess.run(
@@ -177,7 +177,7 @@ print(f"VERSION:{_GENIUS_SPEC_V38['version']}")
 
         try:
             code = """
-from arifos_core.enforcement.genius_metrics import _GENIUS_SPEC_V38
+from arifos.enforcement.genius_metrics import _GENIUS_SPEC_V38
 print(f"VERSION:{_GENIUS_SPEC_V38['version']}")
 """
             result = subprocess.run(
@@ -202,7 +202,7 @@ class TestSessionPhysicsSubprocess:
     def test_default_load_uses_v44_fresh_process(self):
         """PROOF: Fresh Python process loads spec/v44/session_physics.json by default."""
         code = """
-from arifos_core.apex.governance.session_physics import _PHYSICS_SPEC
+from arifos.apex.governance.session_physics import _PHYSICS_SPEC
 print(f"VERSION:{_PHYSICS_SPEC['version']}")
 """
         result = subprocess.run(
@@ -229,7 +229,7 @@ print(f"VERSION:{_PHYSICS_SPEC['version']}")
 
         try:
             code = """
-from arifos_core.apex.governance.session_physics import _PHYSICS_SPEC
+from arifos.apex.governance.session_physics import _PHYSICS_SPEC
 print(f"VERSION:{_PHYSICS_SPEC['version']}")
 """
             result = subprocess.run(

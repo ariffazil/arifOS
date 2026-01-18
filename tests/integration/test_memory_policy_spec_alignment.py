@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Dict, Any, List
 
 # v38 Memory imports
-from arifos_core.memory.core.policy import (
+from arifos.memory.core.policy import (
     Verdict,
     MemoryWritePolicy,
     VERDICT_BAND_ROUTING,
@@ -26,25 +26,25 @@ from arifos_core.memory.core.policy import (
     RETENTION_COLD_DAYS,
     RETENTION_VOID_DAYS,
 )
-from arifos_core.memory.core.bands import (
+from arifos.memory.core.bands import (
     BandName,
     BAND_PROPERTIES,
     RetentionTier,
 )
-from arifos_core.integration.memory_sense import (
+from arifos.integration.memory_sense import (
     RECALL_CONFIDENCE_CEILING,
 )
 
 # Floor detector imports for Amanah and Anti-Hantu
 try:
-    from arifos_core.enforcement.floor_detectors.amanah_detector import (
+    from arifos.enforcement.floor_detectors.amanah_detector import (
         detect_irreversible_operations,
     )
 except ImportError:
     detect_irreversible_operations = None
 
 try:
-    from arifos_core.enforcement.floor_detectors.anti_hantu_detector import (
+    from arifos.enforcement.floor_detectors.anti_hantu_detector import (
         detect_soul_claims,
     )
 except ImportError:

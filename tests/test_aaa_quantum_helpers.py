@@ -8,7 +8,7 @@ Reference: docs/AAA_QUANTUM_MIGRATION.md
 """
 
 import pytest
-from arifos_core.mcp.helpers import (
+from arifos.mcp.helpers import (
     validate_text_sync,
     validate_text_async,
     QuantumPipeline,

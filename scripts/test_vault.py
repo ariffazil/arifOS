@@ -6,7 +6,7 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-from arifos_core.memory.vault.vault_manager import VaultManager
+from arifos.memory.vault.vault_manager import VaultManager
 
 
 def test_vault_write():

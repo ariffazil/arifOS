@@ -30,7 +30,7 @@ from pathlib import Path
 # Add arifos_core to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from arifos_core.enforcement.response_validator_extensions import (
+from arifos.enforcement.response_validator_extensions import (
     validate_response_full,
     meta_select,
     compute_empathy_score_split,

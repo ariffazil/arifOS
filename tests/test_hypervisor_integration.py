@@ -11,9 +11,9 @@ Test Coverage:
 
 import pytest
 
-from arifos_core.enforcement.metrics import Metrics
-from arifos_core.system.apex_prime import ApexVerdict, Verdict, apex_review
-from arifos_core.system.hypervisor import Hypervisor
+from arifos.enforcement.metrics import Metrics
+from arifos.system.apex_prime import ApexVerdict, Verdict, apex_review
+from arifos.system.hypervisor import Hypervisor
 
 
 class TestHypervisorIntegration:

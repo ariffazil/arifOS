@@ -23,9 +23,9 @@ async def verify_memory_persistence():
     print("=" * 40)
 
     # Imports
-    from arifos_core.mcp.tools.mcp_999_seal import mcp_999_seal
-    from arifos_core.mcp.tools.memory_tools import memory_get_receipts, memory_verify_seal
-    from arifos_core.memory.vault.vault_manager import VaultManager
+    from arifos.mcp.tools.mcp_999_seal import mcp_999_seal
+    from arifos.mcp.tools.memory_tools import memory_get_receipts, memory_verify_seal
+    from arifos.memory.vault.vault_manager import VaultManager
 
     # 1. Clean previous receipts for clean test (optional, but good for verify)
     # Actually, let's just append and verify specific hash

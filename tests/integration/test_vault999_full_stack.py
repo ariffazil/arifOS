@@ -31,7 +31,7 @@ def test_aaa_f11_machine_forbidden():
     - Audit log records violation
     - F11 enforcement flag = TRUE
     """
-    from arifos_core.memory.vault.vault_manager import VaultManager
+    from arifos.memory.vault.vault_manager import VaultManager
 
     vault = VaultManager(band="AAA_CANON", requester="machine")
 
@@ -63,7 +63,7 @@ def test_bbb_eureka_sieve_seal_forever():
     - ttl_days = NULL (perpetual retention)
     - storage_layer = L0 (frozen vault)
     """
-    from arifos_core.mcp.tools.memory_vault import vault999_store
+    from arifos.mcp.tools.memory_vault import vault999_store
 
     result = vault999_store(
         content="Verified constitutional insight",
@@ -91,7 +91,7 @@ def test_bbb_eureka_sieve_void_never_stored():
     - VOID verdict → NOT stored in database
     - Query returns 0 rows
     """
-    from arifos_core.mcp.tools.memory_vault import vault999_store
+    from arifos.mcp.tools.memory_vault import vault999_store
 
     result = vault999_store(
         content="Constitutional violation",
@@ -180,7 +180,7 @@ def test_zkpc_receipt_to_postgres():
     - Row inserted into zkpc_receipts
     - verification_status = VALID
     """
-    from arifos_core.engines.zkpc.receipt_generator import \
+    from arifos.engines.zkpc.receipt_generator import \
         generate_zkpc_receipt
 
     receipt = generate_zkpc_receipt(

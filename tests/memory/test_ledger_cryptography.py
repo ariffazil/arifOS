@@ -27,7 +27,7 @@ from pathlib import Path
 
 import pytest
 
-from arifos_core.apex.governance.ledger_cryptography import (
+from arifos.apex.governance.ledger_cryptography import (
     CryptographicLedger,
     LedgerEntry,
     VerificationReport,

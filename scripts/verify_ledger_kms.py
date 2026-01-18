@@ -26,11 +26,11 @@ from pathlib import Path
 from typing import Optional, Tuple, Dict
 import logging
 
-# canonical compute_hash from arifos_core.cooling_ledger
+# canonical compute_hash from arifos.cooling_ledger
 try:
-    from arifos_core.memory.cooling_ledger import compute_hash  # type: ignore
+    from arifos.memory.cooling_ledger import compute_hash  # type: ignore
 except Exception:
-    print("ERROR: could not import arifos_core.cooling_ledger.compute_hash. Ensure PYTHONPATH points to repo root.", file=sys.stderr)
+    print("ERROR: could not import arifos.cooling_ledger.compute_hash. Ensure PYTHONPATH points to repo root.", file=sys.stderr)
     raise
 
 # Optional crypto & boto3 imports
@@ -48,7 +48,7 @@ except Exception:
     CRYPTO_AVAILABLE = False
 
 try:
-    from arifos_core.utils.kms_signer import KmsSigner, KmsSignerConfig  # type: ignore
+    from arifos.utils.kms_signer import KmsSigner, KmsSignerConfig  # type: ignore
 except Exception:
     KmsSigner = None  # type: ignore
     KmsSignerConfig = None  # type: ignore

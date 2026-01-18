@@ -5,7 +5,7 @@ Verification: arifOS Floor 000 Constitutional Gate
 import time
 import unittest
 
-from arifos_core.stage_000_void.constitutional_gate import ConstitutionalGate
+from arifos.stage_000_void.constitutional_gate import ConstitutionalGate
 
 
 class TestConstitutionalGate(unittest.TestCase):

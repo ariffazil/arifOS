@@ -13,7 +13,7 @@ Target: ≥80% code coverage
 """
 
 import pytest
-from arifos_core.runtime.sense_111 import (
+from arifos.runtime.sense_111 import (
     tokenize,
     shannon_entropy,
     detect_domain_signals,

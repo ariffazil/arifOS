@@ -17,53 +17,53 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List
 
 # v38 Memory imports
-from arifos_core.memory.core.policy import (
+from arifos.memory.core.policy import (
     Verdict,
     MemoryBandTarget,
     MemoryWritePolicy,
     WriteDecision,
     EvidenceChainValidation,
 )
-from arifos_core.memory.core.bands import (
+from arifos.memory.core.bands import (
     BandName,
     MemoryBandRouter,
     MemoryEntry,
 )
-from arifos_core.memory.core.authority import (
+from arifos.memory.core.authority import (
     MemoryAuthorityCheck,
     AuthorityDecision,
     HumanApprovalRequiredError,
     SelfModificationError,
 )
-from arifos_core.memory.core.audit import (
+from arifos.memory.core.audit import (
     MemoryAuditLayer,
 )
-from arifos_core.memory.core.retention import (
+from arifos.memory.core.retention import (
     RetentionTier,
     MemoryRetentionManager,
 )
 
 # Integration imports
-from arifos_core.integration.memory_sense import (
+from arifos.integration.memory_sense import (
     MemorySenseIntegration,
     RecallContext,
     SenseRecallResult,
     sense_should_recall_from_vault,
     RECALL_CONFIDENCE_CEILING,
 )
-from arifos_core.integration.memory_judge import (
+from arifos.integration.memory_judge import (
     MemoryJudgeIntegration,
     JudgeWriteContext,
     JudgeWriteResult,
     judge_compute_evidence_hash,
 )
-from arifos_core.integration.memory_scars import (
+from arifos.integration.memory_scars import (
     MemoryScarsIntegration,
     ScarDetectionContext,
     ScarType,
     SeverityLevel,
 )
-from arifos_core.integration.memory_seal import (
+from arifos.integration.memory_seal import (
     MemorySealIntegration,
     SealContext,
     SealStatus,
@@ -331,7 +331,7 @@ class TestScarDetectionOnFloorViolations:
 
     def test_severity_computation(self, scars_integration):
         """Severity should be computed from patterns."""
-        from arifos_core.integration.memory_scars import DetectedPattern
+        from arifos.integration.memory_scars import DetectedPattern
         patterns = [
             DetectedPattern(
                 pattern_type=ScarType.FLOOR_VIOLATION,
@@ -618,7 +618,7 @@ class TestIntegrationModuleImports:
 
     def test_memory_sense_imports(self):
         """memory_sense module should import successfully."""
-        from arifos_core.integration.memory_sense import (
+        from arifos.integration.memory_sense import (
             MemorySenseIntegration,
             RecallContext,
             SenseRecallResult,
@@ -630,7 +630,7 @@ class TestIntegrationModuleImports:
 
     def test_memory_judge_imports(self):
         """memory_judge module should import successfully."""
-        from arifos_core.integration.memory_judge import (
+        from arifos.integration.memory_judge import (
             MemoryJudgeIntegration,
             JudgeWriteContext,
             JudgeWriteResult,
@@ -642,7 +642,7 @@ class TestIntegrationModuleImports:
 
     def test_memory_scars_imports(self):
         """memory_scars module should import successfully."""
-        from arifos_core.integration.memory_scars import (
+        from arifos.integration.memory_scars import (
             MemoryScarsIntegration,
             ScarDetectionContext,
             ScarDetectionResult,
@@ -653,7 +653,7 @@ class TestIntegrationModuleImports:
 
     def test_memory_seal_imports(self):
         """memory_seal module should import successfully."""
-        from arifos_core.integration.memory_seal import (
+        from arifos.integration.memory_seal import (
             MemorySealIntegration,
             SealContext,
             SealResult,

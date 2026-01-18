@@ -14,9 +14,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # Bypass manifest verification for testing
 os.environ["ARIFOS_ALLOW_LEGACY_SPEC"] = "1"
 
-from arifos_core.mcp.tools.mcp_111_sense import mcp_111_sense
-from arifos_core.mcp.tools.mcp_555_empathize import mcp_555_empathize
-from arifos_core.mcp.tools.mcp_999_seal import mcp_999_seal
+from arifos.mcp.tools.mcp_111_sense import mcp_111_sense
+from arifos.mcp.tools.mcp_555_empathize import mcp_555_empathize
+from arifos.mcp.tools.mcp_999_seal import mcp_999_seal
 
 
 async def verify_orthogonal_pipeline():

@@ -20,7 +20,7 @@ Version: v38.2
 import pytest
 from datetime import datetime, timezone, timedelta
 
-from arifos_core.system.kernel import (
+from arifos.system.kernel import (
     VerdictPacket,
     EntropyRotResult,
     check_entropy_rot,
@@ -28,11 +28,11 @@ from arifos_core.system.kernel import (
     SABAR_TIMEOUT_HOURS,
     PHOENIX_LIMIT_HOURS,
 )
-from arifos_core.memory.core.bands import (
+from arifos.memory.core.bands import (
     MemoryBandRouter,
     BandName,
 )
-from arifos_core.memory.core.policy import Verdict, VERDICT_BAND_ROUTING
+from arifos.memory.core.policy import Verdict, VERDICT_BAND_ROUTING
 
 
 # =============================================================================

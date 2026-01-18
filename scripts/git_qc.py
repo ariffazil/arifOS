@@ -12,13 +12,13 @@ import json
 import sys
 from pathlib import Path
 
-# Add repo root to path to import arifos_core
+# Add repo root to path to import arifos
 # We are in scripts/, so repo root is parent
 repo_root = Path(__file__).resolve().parent.parent
 if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
 
-from arifos_core.enforcement.trinity import ForgeReport, analyze_branch, validate_changes
+from arifos.enforcement.trinity import ForgeReport, analyze_branch, validate_changes
 
 
 def main():

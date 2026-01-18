@@ -7,7 +7,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from typing import Generator
 
-from arifos_core.integration.adapters.llm_interface import (
+from arifos.integration.adapters.llm_interface import (
     LLMInterface,
     LLMConfig,
     StreamChunk,
@@ -224,7 +224,7 @@ class TestAdapterFactories:
         # Mock the openai module before importing the adapter function
         mock_openai = MagicMock()
         with patch.dict("sys.modules", {"openai": mock_openai}):
-            from arifos_core.integration.adapters.llm_openai import make_backend
+            from arifos.integration.adapters.llm_openai import make_backend
 
             backend = make_backend(api_key="test-key", model="gpt-4o-mini")
 
@@ -234,7 +234,7 @@ class TestAdapterFactories:
         """make_llm_generate should return a callable."""
         mock_openai = MagicMock()
         with patch.dict("sys.modules", {"openai": mock_openai}):
-            from arifos_core.integration.adapters.llm_openai import make_llm_generate
+            from arifos.integration.adapters.llm_openai import make_llm_generate
 
             generate = make_llm_generate(api_key="test-key", model="gpt-4o-mini")
 
@@ -244,7 +244,7 @@ class TestAdapterFactories:
         """Claude make_backend should return a callable."""
         mock_anthropic = MagicMock()
         with patch.dict("sys.modules", {"anthropic": mock_anthropic}):
-            from arifos_core.integration.adapters.llm_claude import make_backend
+            from arifos.integration.adapters.llm_claude import make_backend
 
             backend = make_backend(api_key="test-key", model="claude-3-haiku")
 
@@ -254,7 +254,7 @@ class TestAdapterFactories:
         """Claude make_llm_generate should return a callable."""
         mock_anthropic = MagicMock()
         with patch.dict("sys.modules", {"anthropic": mock_anthropic}):
-            from arifos_core.integration.adapters.llm_claude import make_llm_generate
+            from arifos.integration.adapters.llm_claude import make_llm_generate
 
             generate = make_llm_generate(api_key="test-key", model="claude-3-haiku")
 
@@ -264,7 +264,7 @@ class TestAdapterFactories:
         """Gemini make_backend should return a callable."""
         mock_genai = MagicMock()
         with patch.dict("sys.modules", {"google.generativeai": mock_genai, "google": MagicMock()}):
-            from arifos_core.integration.adapters.llm_gemini import make_backend
+            from arifos.integration.adapters.llm_gemini import make_backend
 
             backend = make_backend(api_key="test-key", model="gemini-1.5-flash")
 
@@ -274,7 +274,7 @@ class TestAdapterFactories:
         """Gemini make_llm_generate should return a callable."""
         mock_genai = MagicMock()
         with patch.dict("sys.modules", {"google.generativeai": mock_genai, "google": MagicMock()}):
-            from arifos_core.integration.adapters.llm_gemini import make_llm_generate
+            from arifos.integration.adapters.llm_gemini import make_llm_generate
 
             generate = make_llm_generate(api_key="test-key", model="gemini-1.5-flash")
 
@@ -301,7 +301,7 @@ class TestAdapterIntegration:
         mock_client.chat.completions.create.return_value = [mock_response]
 
         with patch.dict("sys.modules", {"openai": mock_openai}):
-            from arifos_core.integration.adapters.llm_openai import make_llm_generate
+            from arifos.integration.adapters.llm_openai import make_llm_generate
 
             generate = make_llm_generate(api_key="test-key")
 
@@ -314,7 +314,7 @@ class TestAdapterIntegration:
 
         mock_openai = MagicMock()
         with patch.dict("sys.modules", {"openai": mock_openai}):
-            from arifos_core.integration.adapters.llm_openai import make_backend
+            from arifos.integration.adapters.llm_openai import make_backend
 
             # Backend should be created with config values
             backend = make_backend(api_key="test", config=config)

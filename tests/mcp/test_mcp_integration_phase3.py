@@ -4,7 +4,7 @@ Integration Tests for Phase 3 MCP Tools
 Tests the complete pipeline with cryptographic proof and sealing.
 """
 import pytest
-from arifos_core.mcp.tools import (
+from arifos.mcp.tools import (
     mcp_222_reflect,
     mcp_444_evidence,
     mcp_555_empathize,
@@ -287,7 +287,7 @@ async def test_integration_merkle_path_correctness():
 @pytest.mark.asyncio
 async def test_integration_seal_determinism():
     """Test: Same input produces same seal (with same timestamp)."""
-    from arifos_core.mcp.tools.mcp_999_seal import generate_seal
+    from arifos.mcp.tools.mcp_999_seal import generate_seal
 
     verdict = "SEAL"
     proof_hash = "abc123"

@@ -2,7 +2,7 @@
 Tests for X-OS profile ignition (Wave 5)
 """
 
-from arifos_core.system.ignition import IgnitionLoader
+from arifos.system.ignition import IgnitionLoader
 
 
 def test_profile_match_arif():

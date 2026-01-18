@@ -7,10 +7,10 @@ from unittest.mock import patch, MagicMock
 from pathlib import Path
 
 # Core System
-from arifos_core.system.pipeline import Pipeline, _SESSION_CACHE
-from arifos_core.system.apex_prime import Verdict
-from arifos_core.enforcement.metrics import Metrics
-from arifos_core.memory.cooling_ledger import verify_chain
+from arifos.system.pipeline import Pipeline, _SESSION_CACHE
+from arifos.system.apex_prime import Verdict
+from arifos.enforcement.metrics import Metrics
+from arifos.memory.cooling_ledger import verify_chain
 
 # Simulation Constants
 SIM_START_TIME = 1000000.0
@@ -58,7 +58,7 @@ class TestTearframeDeepWaterStress(unittest.TestCase):
         )
         
         # Ledger Sink using REAL cooling_ledger logic (for Audit phase)
-        from arifos_core.memory.cooling_ledger import append_entry
+        from arifos.memory.cooling_ledger import append_entry
         def controlled_sink(entry):
             append_entry(self.ledger_path, entry)
             

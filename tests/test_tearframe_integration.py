@@ -13,10 +13,10 @@ from unittest.mock import MagicMock
 import os
 import time
 
-from arifos_core.system.pipeline import Pipeline, PipelineState, StakesClass
-from arifos_core.system.apex_prime import Verdict, ApexVerdict
-from arifos_core.utils.session_telemetry import SessionTelemetry, TelemetrySnapshot
-# from arifos_core.utils.runtime_types import StakesClass # Removed as StakesClass is in pipeline.py
+from arifos.system.pipeline import Pipeline, PipelineState, StakesClass
+from arifos.system.apex_prime import Verdict, ApexVerdict
+from arifos.utils.session_telemetry import SessionTelemetry, TelemetrySnapshot
+# from arifos.utils.runtime_types import StakesClass # Removed as StakesClass is in pipeline.py
 
 class TestTearframeIntegration(unittest.TestCase):
     

@@ -3,8 +3,8 @@ Quick test for AAA-migrated arifos_judge tool.
 Tests that quantum validation works after migration.
 """
 
-from arifos_core.mcp.tools.judge import arifos_judge
-from arifos_core.mcp.models import JudgeRequest
+from arifos.mcp.tools.judge import arifos_judge
+from arifos.mcp.models import JudgeRequest
 
 
 def test_judge_benign_query():

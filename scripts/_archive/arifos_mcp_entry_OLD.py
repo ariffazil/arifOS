@@ -8,7 +8,7 @@ Surface Area: 1 tool (arifos_evaluate) + full 15-tool server
 Security: Read-only constitutional evaluation
 
 v45Ω UPGRADE: Entropy reduction complete - canonical import paths
-- Layer 1: RED_PATTERNS instant VOID detection (from arifos_core)
+- Layer 1: RED_PATTERNS instant VOID detection (from arifos)
 - Layer 2: Heuristic metric computation
 - Layer 3: APEX PRIME judgment
 
@@ -46,15 +46,15 @@ except Exception as e:
     print(f"[WARNING] Could not load secrets from Credential Manager: {e}", file=sys.stderr)
 
 
-# v45Ω: Import unified semantic governance from arifos_core
-from arifos_core import check_red_patterns, compute_metrics_from_task
-from arifos_core.apex.contracts.apex_prime_output_v41 import serialize_public
+# v45Ω: Import unified semantic governance from arifos
+from arifos import check_red_patterns, compute_metrics_from_task
+from arifos.apex.contracts.apex_prime_output_v41 import serialize_public
 # v45Ω: Import from canonical locations (post-entropy reduction)
-from arifos_core.system.apex_prime import APEXPrime
+from arifos.system.apex_prime import APEXPrime
 
 # Import detectors for F1 (Amanah) - used as fallback
 try:
-    from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import \
+    from arifos.enforcement.floor_detectors.amanah_risk_detectors import \
         AMANAH_DETECTOR
     AMANAH_AVAILABLE = True
 except ImportError:
@@ -88,7 +88,7 @@ def create_v0_strict_server() -> FastMCP:
     """
     Create v0-strict MCP server with REAL APEX PRIME evaluation.
 
-    v45Ω: Uses unified semantic governance from arifos_core:
+    v45Ω: Uses unified semantic governance from arifos:
     - Layer 1: RED_PATTERNS instant VOID
     - Layer 2: compute_metrics_from_task() heuristics
     - Layer 3: APEX PRIME judgment
@@ -233,7 +233,7 @@ async def main() -> None:
     # Import the unified server and stdio transport for production use
     from mcp.server.stdio import stdio_server
 
-    from arifos_core.mcp.unified_server import mcp_server
+    from arifos.mcp.unified_server import mcp_server
 
     print("[arifOS MCP] Initializing constitutional governance pipeline...", file=sys.stderr)
     print("[arifOS MCP] 17 tools ready: Unified architecture with dual search", file=sys.stderr)

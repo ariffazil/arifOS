@@ -12,8 +12,8 @@ Ensure NO path can produce verdict=SEAL when kappa_r < 0.95 OR tri_witness < 0.9
 """
 
 import pytest
-from arifos_core.system.apex_prime import apex_review, KAPPA_MIN, TRI_MIN, Verdict
-from arifos_core.enforcement.metrics import Metrics
+from arifos.system.apex_prime import apex_review, KAPPA_MIN, TRI_MIN, Verdict
+from arifos.enforcement.metrics import Metrics
 
 
 class TestF6KappaRThresholdEnforcement:

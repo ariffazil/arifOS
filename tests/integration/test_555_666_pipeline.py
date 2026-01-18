@@ -15,9 +15,9 @@ DITEMPA BUKAN DIBERI - Forged v46.1
 
 import pytest
 
-from arifos_core.asi.asi_integration_555 import (ASIIntegration555,
+from arifos.asi.asi_integration_555 import (ASIIntegration555,
                                                  OmegaVerdict555)
-from arifos_core.integration.synthesis.neuro_symbolic_bridge import (
+from arifos.integration.synthesis.neuro_symbolic_bridge import (
     GatingCondition, NeuroSymbolicBridge)
 
 

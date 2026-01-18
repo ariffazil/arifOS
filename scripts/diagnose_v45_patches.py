@@ -101,7 +101,7 @@ def check_patch_3_wired():
 def test_truth_grounding_logic():
     """Test if truth grounding actually works"""
     try:
-        from arifos_core.enforcement.metrics import (
+        from arifos.enforcement.metrics import (
             ground_truth_score,
             CANONICAL_IDENTITY,
             detect_identity_query
@@ -138,8 +138,8 @@ def test_truth_grounding_logic():
 def test_hard_floor_router():
     """Test if hard-floor router blocks SEAL"""
     try:
-        from arifos_core.system.apex_prime import apex_review, Verdict
-        from arifos_core.enforcement.metrics import Metrics
+        from arifos.system.apex_prime import apex_review, Verdict
+        from arifos.enforcement.metrics import Metrics
 
         # Create metrics with F2 < 0.90 (should trigger VOID)
         metrics = Metrics(

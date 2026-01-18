@@ -17,7 +17,7 @@ from __future__ import annotations
 import time
 from typing import NoReturn
 
-from arifos_core.guards.session_dependency import DependencyGuard
+from arifos.guards.session_dependency import DependencyGuard
 
 
 def simulate_binge() -> None:

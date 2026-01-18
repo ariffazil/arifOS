@@ -1,9 +1,9 @@
 import pytest
 
-from arifos_core.system.pipeline import PipelineState, StakesClass, _write_memory_for_verdict
-from arifos_core.memory.core.policy import MemoryWritePolicy
-from arifos_core.memory.core.bands import MemoryBandRouter, InMemoryStore, append_eureka_decision
-from arifos_core.memory.eureka.eureka_types import ActorRole, MemoryWriteRequest, Verdict
+from arifos.system.pipeline import PipelineState, StakesClass, _write_memory_for_verdict
+from arifos.memory.core.policy import MemoryWritePolicy
+from arifos.memory.core.bands import MemoryBandRouter, InMemoryStore, append_eureka_decision
+from arifos.memory.eureka.eureka_types import ActorRole, MemoryWriteRequest, Verdict
 
 
 def test_phase2_pipeline_write_appends_to_store():

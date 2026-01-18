@@ -20,7 +20,7 @@ def validate_import_fixes():
     
     # Test 1: ConstitutionalKernel import
     try:
-        from arifos_core.kernel.constitutional import ConstitutionalKernel, PipelineStage
+        from arifos.kernel.constitutional import ConstitutionalKernel, PipelineStage
         print("SUCCESS: ConstitutionalKernel import successful")
         print(f"SUCCESS: PipelineStage enum: {PipelineStage.STAGE_000_VOID.value}")
         success_count += 1
@@ -38,7 +38,7 @@ def validate_import_fixes():
     
     # Test 3: MCP server import
     try:
-        from arifos_core.kernel.mcp_server import ConstitutionalMCPServer
+        from arifos.kernel.mcp_server import ConstitutionalMCPServer
         print("SUCCESS: ConstitutionalMCPServer import successful")
         success_count += 1
     except Exception as e:
@@ -65,7 +65,7 @@ def validate_response_format():
     total_tests = 3
     
     try:
-        from arifos_core.kernel.mcp_server import ConstitutionalMCPServer
+        from arifos.kernel.mcp_server import ConstitutionalMCPServer
         import mcp.types as types
         
         server = ConstitutionalMCPServer()
@@ -120,7 +120,7 @@ def validate_constitutional_guarantees():
     total_tests = 3
     
     try:
-        from arifos_core.kernel.mcp_server import ConstitutionalMCPServer
+        from arifos.kernel.mcp_server import ConstitutionalMCPServer
         
         server = ConstitutionalMCPServer()
         

@@ -24,7 +24,7 @@ def run_async(coro):
     """Helper to run async functions in sync tests."""
     return asyncio.new_event_loop().run_until_complete(coro)
 
-from arifos_core.integration.connectors.federation_router import (
+from arifos.integration.connectors.federation_router import (
     FederationRouter,
     FederationConfig,
     OrganConfig,

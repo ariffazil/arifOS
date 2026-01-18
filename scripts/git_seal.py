@@ -13,13 +13,13 @@ import json
 import sys
 from pathlib import Path
 
-# Add repo root to path to import arifos_core
+# Add repo root to path to import arifos
 # We are in scripts/, so repo root is parent
 repo_root = Path(__file__).resolve().parent.parent
 if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
 
-from arifos_core.enforcement.trinity import (
+from arifos.enforcement.trinity import (
     analyze_branch,
     execute_seal,
     propose_docs,
@@ -95,9 +95,9 @@ def main():
 
         else:
             # REJECT or HOLD - minimal ledger entry only
-            from arifos_core.enforcement.trinity.forge import ForgeReport
-            from arifos_core.enforcement.trinity.housekeeper import HousekeeperProposal
-            from arifos_core.enforcement.trinity.qc import QCReport
+            from arifos.enforcement.trinity.forge import ForgeReport
+            from arifos.enforcement.trinity.housekeeper import HousekeeperProposal
+            from arifos.enforcement.trinity.qc import QCReport
 
             # Create placeholder reports for ledger
             forge_report = ForgeReport(

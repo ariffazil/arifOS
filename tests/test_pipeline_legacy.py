@@ -14,8 +14,8 @@ Coverage:
 
 import pytest
 
-from arifos_core.apex.psi_kernel import Verdict
-from arifos_core.pipeline import PipelineContext, PipelineOrchestrator
+from arifos.apex.psi_kernel import Verdict
+from arifos.pipeline import PipelineContext, PipelineOrchestrator
 
 
 class TestPipelineOrchestrator:
@@ -168,7 +168,7 @@ class TestStageIndividual:
 
     def test_stage_333_delta_evaluation(self):
         """Stage 333 should evaluate Delta kernel."""
-        from arifos_core.pipeline.stage_333_reason import stage_333_reason
+        from arifos.pipeline.stage_333_reason import stage_333_reason
 
         context = PipelineContext(
             query="What is 2+2?",
@@ -183,7 +183,7 @@ class TestStageIndividual:
 
     def test_stage_555_omega_evaluation(self):
         """Stage 555 should evaluate Omega kernel."""
-        from arifos_core.pipeline.stage_555_feel import stage_555_feel
+        from arifos.pipeline.stage_555_feel import stage_555_feel
 
         context = PipelineContext(
             query="test",
@@ -204,10 +204,10 @@ class TestStageIndividual:
 
     def test_stage_888_psi_evaluation(self):
         """Stage 888 should evaluate Psi kernel and render verdict."""
-        from arifos_core.agi.delta_kernel import DeltaVerdict
-        from arifos_core.apex.psi_kernel import Verdict
-        from arifos_core.asi.omega_kernel import OmegaVerdict
-        from arifos_core.pipeline.stage_888_witness import stage_888_witness
+        from arifos.agi.delta_kernel import DeltaVerdict
+        from arifos.apex.psi_kernel import Verdict
+        from arifos.asi.omega_kernel import OmegaVerdict
+        from arifos.pipeline.stage_888_witness import stage_888_witness
 
         context = PipelineContext(
             query="test",

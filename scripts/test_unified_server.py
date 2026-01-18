@@ -15,7 +15,7 @@ print()
 try:
     # Test imports
     print("1. Testing imports...")
-    from arifos_core.mcp.unified_server import (
+    from arifos.mcp.unified_server import (
         TOOLS,
         DEPRECATED_ALIASES,
         TOOL_DESCRIPTIONS,

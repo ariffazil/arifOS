@@ -12,7 +12,7 @@ import time
 from unittest.mock import Mock, patch
 from typing import Callable
 
-from arifos_core.integration.connectors.failover_orchestrator import (
+from arifos.integration.connectors.failover_orchestrator import (
     ProviderConfig,
     ProviderStatus,
     FailureType,

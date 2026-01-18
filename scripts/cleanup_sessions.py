@@ -19,7 +19,7 @@ from pathlib import Path
 # Add arifos_core to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from arifos_core.trinity.session_manager import SessionManager
+from arifos.trinity.session_manager import SessionManager
 
 
 def show_status(manager: SessionManager):

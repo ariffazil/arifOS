@@ -1,4 +1,4 @@
-from arifos_core.mcp.unified_server import JudgeRequest, arifos_judge
+from arifos.mcp.unified_server import JudgeRequest, arifos_judge
 
 print("Testing arifOS Governance Pipeline...")
 try:

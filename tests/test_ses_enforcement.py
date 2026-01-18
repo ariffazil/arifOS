@@ -172,7 +172,7 @@ def test_genius_metrics_canonical_path():
         shim_source = shim.read_text(encoding='utf-8')
         shim_lines = len(shim_source.splitlines())
         assert shim_lines < 50, f"Root genius_metrics.py shim too large ({shim_lines} lines) - must be < 50"
-        assert "from arifos_core.enforcement.genius_metrics import" in shim_source, \
+        assert "from arifos.enforcement.genius_metrics import" in shim_source, \
             "Root genius_metrics.py must import from canonical enforcement/ location"
         assert "DEPRECATED" in shim_source or "deprecated" in shim_source, \
             "Root genius_metrics.py must warn about deprecation"

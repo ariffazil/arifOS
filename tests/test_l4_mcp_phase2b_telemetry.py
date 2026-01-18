@@ -34,10 +34,10 @@ from L4_MCP.apex.verdict import apex_verdict, _build_metrics_from_telemetry, _es
 def test_arifos_core_imports():
     """Verify that L4_MCP can import arifOS core modules."""
     try:
-        from arifos_core.utils.session_telemetry import SessionTelemetry
-        from arifos_core.utils.reduction_engine import compute_attributes
-        from arifos_core.enforcement.metrics import Metrics
-        from arifos_core.system.apex_prime import apex_review
+        from arifos.utils.session_telemetry import SessionTelemetry
+        from arifos.utils.reduction_engine import compute_attributes
+        from arifos.enforcement.metrics import Metrics
+        from arifos.system.apex_prime import apex_review
         
         assert SessionTelemetry is not None, "SessionTelemetry not importable"
         assert compute_attributes is not None, "compute_attributes not importable"

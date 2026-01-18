@@ -26,25 +26,25 @@ from typing import Dict, Any
 from unittest.mock import Mock, patch, MagicMock
 
 # Import modules under test
-from arifos_core.integration.meta_search import (
+from arifos.integration.meta_search import (
     ConstitutionalMetaSearch,
     SearchResult,
     constitutional_check,
     ConstitutionalSearchError
 )
-from arifos_core.integration.search_cache import ConstitutionalSearchCache, CacheEntry
-from arifos_core.integration.cost_tracker import (
+from arifos.integration.search_cache import ConstitutionalSearchCache, CacheEntry
+from arifos.integration.cost_tracker import (
     CostTracker,
     BudgetExceededError,
     BudgetLevel,
     CostType
 )
-from arifos_core.enforcement.floor_detectors.search_governance import (
+from arifos.enforcement.floor_detectors.search_governance import (
     SearchGovernanceDetector,
     SearchGovernanceViolation,
     SearchGovernanceResult
 )
-from arifos_core.system.apex_prime import ApexVerdict, Verdict
+from arifos.system.apex_prime import ApexVerdict, Verdict
 
 
 # ==================== FIXTURES ====================

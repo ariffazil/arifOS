@@ -7,8 +7,8 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 from typing import Dict, Any, Tuple
 
-from arifos_core.enforcement.metrics import Metrics
-from arifos_core.system.apex_prime import apex_review
+from arifos.enforcement.metrics import Metrics
+from arifos.system.apex_prime import apex_review
 
 
 # --- Mock Tri-Witness adapter -------------------------------------------------
@@ -247,7 +247,7 @@ def test_apex_with_patched_floor_check(mock_check_floors) -> None:
     """
     Example of patching the floor check function for integration testing.
     """
-    from arifos_core.enforcement.metrics import FloorsVerdict
+    from arifos.enforcement.metrics import FloorsVerdict
 
     # Configure mock to return passing floors
     mock_check_floors.return_value = FloorsVerdict(

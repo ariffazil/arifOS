@@ -58,7 +58,12 @@ classifiers = [
     "Topic :: System :: Monitoring",
 ]
 
-dependencies = ["numpy>=1.20.0", "pydantic>=2.0.0"]
+dependencies = [
+    "numpy>=1.20.0",
+    "pydantic>=2.0.0",
+    "anyio>=4.0.0",
+    "starlette>=0.30.0",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -67,6 +72,7 @@ dev = [
     "black>=23.0.0",
     "ruff>=0.1.0",
     "mypy>=1.0.0",
+    "httpx>=0.28.0",
 ]
 yaml = ["pyyaml>=6.0.0"]
 api = [

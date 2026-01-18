@@ -38,7 +38,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 
 from arifos_eval.apex.apex_measurements import ApexMeasurement
-from arifos_core.enforcement.genius_metrics import detect_truth_polarity
+from arifos.enforcement.genius_metrics import detect_truth_polarity
 
 
 # =============================================================================

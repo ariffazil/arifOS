@@ -7,7 +7,7 @@ Validates that arifos_fag_read tool works correctly via MCP server.
 import pytest
 import json
 from pathlib import Path
-from arifos_core.mcp.tools.fag_read import (
+from arifos.mcp.tools.fag_read import (
     arifos_fag_read,
     FAGReadRequest,
     FAGReadResponse,
@@ -174,7 +174,7 @@ class TestMCPServerIntegration:
 
     def test_fag_tool_registered_in_server(self):
         """Verify arifos_fag_read is registered in MCP server."""
-        from arifos_core.mcp.server import TOOLS, TOOL_REQUEST_MODELS, TOOL_DESCRIPTIONS
+        from arifos.mcp.server import TOOLS, TOOL_REQUEST_MODELS, TOOL_DESCRIPTIONS
 
         # Check registration
         assert "arifos_fag_read" in TOOLS
@@ -192,7 +192,7 @@ class TestMCPServerIntegration:
 
     def test_tool_callable_from_registry(self, tmp_path):
         """Test calling FAG tool via server registry."""
-        from arifos_core.mcp.server import TOOLS, TOOL_REQUEST_MODELS
+        from arifos.mcp.server import TOOLS, TOOL_REQUEST_MODELS
 
         # Get tool from registry
         tool_func = TOOLS["arifos_fag_read"]
