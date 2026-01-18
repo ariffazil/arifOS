@@ -140,3 +140,4 @@ cooling_ledger/
 
 # Local session archives (do not push)
 _local_archive/
+coverage.xml

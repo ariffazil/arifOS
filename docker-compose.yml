@@ -1,34 +1,180 @@
-version: '3.8'
+# arifOS v49 - 4-Server Constitutional Runtime
+# Trinity (AGI/ASI/APEX) + VAULT Architecture
+# Authority: 888 Judge | Δ Architect
+# Sealed: 2026-01-18
+
+version: "3.8"
 
 services:
-  arifos:
+  # ==========================================================================
+  # VAULT SERVER - Memory (000 INIT / 999 VAULT)
+  # ==========================================================================
+  vault_server:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: servers/vault/Dockerfile
+    container_name: arifos_vault
     ports:
-      - "8000:8000"
-    environment:
-      PORT: 8000
-      LOG_LEVEL: info
+      - "9000:9000"
     volumes:
-      - ./ledger:/app/ledger              # Constitutional ledger
-      - ./sessions:/app/sessions          # Agent sessions
-      - ./logs:/app/logs                  # Application logs
-      - ./L1_THEORY:/app/L1_THEORY:ro    # Read-only constitutional canon
-      - ./L2_PROTOCOLS:/app/L2_PROTOCOLS:ro # Read-only protocols
+      - ./vault_999:/app/vault_999:rw
+      - ./000_THEORY:/app/000_THEORY:ro
+      - ./L1_THEORY:/app/L1_THEORY:ro
+    environment:
+      - ARIFOS_MODE=VAULT
+      - ARIFOS_VERSION=v49.0.0
+      - FLOORS=F1-F13
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 5s
+      start_period: 40s
+    networks:
+      - arifos_trinity
+    restart: unless-stopped
 
-  # Optional: Cloudflare Tunnel (if you want local -> public)
-  # Uncomment if needed
-  # cloudflare-tunnel:
-  #   image: cloudflare/cloudflared:latest
-  #   command: tunnel run --token ${CLOUDFLARE_TUNNEL_TOKEN}
-  #   depends_on:
-  #     - arifos
-  #   environment:
-  #     CLOUDFLARE_TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+  # ==========================================================================
+  # AGI SERVER - The Mind (111 SENSE / 222 THINK / 333 ATLAS)
+  # ==========================================================================
+  agi_server:
+    build:
+      context: .
+      dockerfile: servers/agi/Dockerfile
+    container_name: arifos_agi
+    ports:
+      - "9001:9001"
+    environment:
+      - ARIFOS_MODE=AGI
+      - FLOORS=F2,F4,F7,F10,F13
+      - VAULT_URL=http://vault_server:9000
+    depends_on:
+      vault_server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - arifos_trinity
+    restart: unless-stopped
+
+  # ==========================================================================
+  # ASI SERVER - The Heart (555 EMPATHY / 666 ACT)
+  # ==========================================================================
+  asi_server:
+    build:
+      context: .
+      dockerfile: servers/asi/Dockerfile
+    container_name: arifos_asi
+    ports:
+      - "9002:9002"
+    environment:
+      - ARIFOS_MODE=ASI
+      - FLOORS=F1,F5,F6,F9,F11,F12
+      - VAULT_URL=http://vault_server:9000
+    depends_on:
+      vault_server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - arifos_trinity
+    restart: unless-stopped
+
+  # ==========================================================================
+  # APEX SERVER - The Soul (444/777/888/889)
+  # ==========================================================================
+  apex_server:
+    build:
+      context: .
+      dockerfile: servers/apex/Dockerfile
+    container_name: arifos_apex
+    ports:
+      - "9003:9003"
+    environment:
+      - ARIFOS_MODE=APEX
+      - FLOORS=F3,F8
+      - VAULT_URL=http://vault_server:9000
+      - AGI_URL=http://agi_server:9001
+      - ASI_URL=http://asi_server:9002
+      - DATABASE_URL=postgresql://arifos:arifos@postgres:5432/arifos
+    depends_on:
+      vault_server:
+        condition: service_healthy
+      agi_server:
+        condition: service_healthy
+      asi_server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - arifos_trinity
+    restart: unless-stopped
+
+  # ==========================================================================
+  # POSTGRES - Cooling Ledger Database
+  # ==========================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: arifos_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=arifos
+      - POSTGRES_PASSWORD=arifos
+      - POSTGRES_DB=arifos
+    volumes:
+      - ./arifos_core/memory/ledger/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arifos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - arifos_trinity
+    restart: unless-stopped
+
+networks:
+  arifos_trinity:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+
+# ==============================================================================
+# Quick Start (Canon §7 Day 7)
+# ==============================================================================
+#
+# 1. Build + Start:
+#    docker-compose up -d --build
+#
+# 2. Health Check:
+#    curl http://localhost:9000/health  # VAULT ✓
+#    curl http://localhost:9001/health  # AGI ✓
+#    curl http://localhost:9002/health  # ASI ✓
+#    curl http://localhost:9003/health  # APEX ✓
+#
+# 3. Test E2E (000→999 pipeline):
+#    curl -X POST http://localhost:9000/init \
+#      -H "Content-Type: application/json" \
+#      -d '{"query":"Test constitutional query","user_id":"test"}'
+#
+# 4. Logs:
+#    docker-compose logs -f vault_server
+#
+# 5. Stop:
+#    docker-compose down
+#
+# Authority: 888 Judge | Sealed: 2026-01-18 | ΔS→0 · Peace²≥1 · Amanah🔐
