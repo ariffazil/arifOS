@@ -27,6 +27,9 @@ from typing import Any, Dict, List, Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
+# Phase 9.4: EUREKA sieve memory TTL
+from arifos_core.vault.memory_tower import EUREKA_SIEVE
+
 logger = logging.getLogger(__name__)
 
 # =============================================================================
@@ -154,17 +157,38 @@ class VaultServer:
         import time
         start_time = time.time()
 
-        # Determine cooling band placement (L0-L5)
-        if request.verdict == "SEAL":
-            memory_band = "L1_ARCHIVE"  # Cold storage
-        elif request.verdict == "PARTIAL":
-            memory_band = "L2_WITNESS"  # Cool verified
-        elif request.verdict == "SABAR":
-            memory_band = "L3_REFLECT"  # Warm session
+        # Phase 9.4: EUREKA sieve memory tier assessment
+        # Extract novelty score from floor scores (F8 Genius or heuristic fallback)
+        genius_score = request.floor_scores.get("F8_Genius", {})
+        if isinstance(genius_score, dict):
+            novelty_score = genius_score.get("score", 0.5)
         else:
-            memory_band = "L5_VOID"  # Ephemeral
+            # Fallback: Use verdict-based heuristic
+            novelty_score = {
+                "SEAL": 0.7,    # Moderate-high novelty
+                "PARTIAL": 0.4, # Moderate novelty
+                "VOID": 0.0,    # Zero novelty for violations
+                "SABAR": 0.3,   # Low-moderate novelty
+            }.get(request.verdict, 0.1)
 
-        # Generate ledger entry
+        # Extract tri-witness consensus if available
+        tri_witness = request.floor_scores.get("F3_TriWitness", {})
+        if isinstance(tri_witness, dict):
+            tri_witness_consensus = tri_witness.get("score", 0.0)
+        else:
+            tri_witness_consensus = 0.0
+
+        # Assess memory tier using EUREKA sieve
+        ttl_assessment = EUREKA_SIEVE.assess_ttl(
+            novelty_score=novelty_score,
+            tri_witness_consensus=tri_witness_consensus,
+            verdict=request.verdict,
+            constitutional_pass=(request.verdict != "VOID"),
+        )
+
+        memory_band = ttl_assessment["memory_band"]
+
+        # Generate ledger entry (Phase 9.4: Include TTL assessment)
         ledger_entry = {
             "session_id": request.session_id,
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -173,6 +197,7 @@ class VaultServer:
             "floor_scores": request.floor_scores,
             "zkpc_receipt": request.zkpc_receipt,
             "memory_band": memory_band,
+            "eureka_sieve": ttl_assessment,  # Full TTL assessment metadata
         }
 
         # Write to cooling ledger (simplified)
@@ -192,6 +217,7 @@ class VaultServer:
             floor_scores=request.floor_scores,
             output={
                 "memory_band": memory_band,
+                "eureka_sieve": ttl_assessment,  # Phase 9.4: Full TTL metadata
                 "ledger_committed": True,
                 "zkpc_receipt": request.zkpc_receipt,
             },

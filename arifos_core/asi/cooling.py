@@ -1,131 +1,91 @@
+# -*- coding: utf-8 -*-
 """
-Cooling Protocol — SABAR Implementation
+Phoenix-72 Cooling Engine (Phase 9.3)
 
-SABAR (Pause for Clarification) is ASI's primary authority.
-ASI can pause the system but cannot seal decisions.
+Constitutional Alignment: F5 (Peace - Time)
+Authority: Omega (ASI) -> Enforced by APEX
 
-SABAR Protocol:
-1. STOP — Do not execute
-2. ACKNOWLEDGE — State which floor triggered pause
-3. BREATHE — Don't rush to fix
-4. ADJUST — Propose alternative
-5. RESUME — Only when floors green
-
-v46 Trinity Orthogonal: SABAR belongs to ASI (Ω) kernel.
-
-DITEMPA BUKAN DIBERI
+Purpose:
+- Enforce mandatory cooling periods based on constitutional risk
+- Tiers: 0 (0h), 1 (42h), 2 (72h), 3 (168h)
+- Prevent "Hot Commit" of dangerous changes
 """
 
-from dataclasses import dataclass
-from typing import List, Optional
-
-
-@dataclass
-class SABARCondition:
-    """SABAR pause condition."""
-    floor_id: str
-    reason: str
-    threshold: float
-    actual: float
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, Tuple
 
 
 class CoolingEngine:
     """
-    Cooling engine for SABAR protocol implementation.
-
-    ASI's authority is to pause and cool, not to seal.
+    Manages Phoenix-72 cooling protocols.
     """
 
-    def should_pause(
-        self,
-        peace_squared: float,
-        kappa_r: float,
-        omega_0: float,
-        rasa_passed: bool,
-    ) -> tuple[bool, List[SABARCondition]]:
+    TIERS = {
+        0: {"hours": 0, "label": "TIER_0_IMMEDIATE"},
+        1: {"hours": 42, "label": "TIER_1_STANDARD"},
+        2: {"hours": 72, "label": "TIER_2_CONSTITUTIONAL"},
+        3: {"hours": 168, "label": "TIER_3_DEEP_FREEZE"}
+    }
+
+    def calculate_cooling_tier(self, verdict: str, warnings: int) -> int:
         """
-        Determine if SABAR pause is needed.
+        Determine cooling tier based on verdict and floor warnings.
 
         Args:
-            peace_squared: F3 Peace² score
-            kappa_r: F4 κᵣ score
-            omega_0: F5 Ω₀ score
-            rasa_passed: F7 RASA check result
+            verdict: SEAL, PARTIAL, SABAR, VOID
+            warnings: Number of soft floor warnings
 
         Returns:
-            (should_pause, conditions) tuple
+            Tier level (0-3)
         """
-        conditions: List[SABARCondition] = []
+        if verdict == "VOID":
+            return 3 # Deep freeze for violations
 
-        # F3: Peace² soft floor (< 1.0 triggers SABAR, not VOID)
-        if peace_squared < 1.0:
-            conditions.append(
-                SABARCondition(
-                    floor_id="F3",
-                    reason="Peace² below threshold (potential escalation)",
-                    threshold=1.0,
-                    actual=peace_squared,
-                )
-            )
+        if verdict == "888_HOLD":
+            return 3
 
-        # F4: κᵣ soft floor (< 0.95 triggers SABAR)
-        if kappa_r < 0.95:
-            conditions.append(
-                SABARCondition(
-                    floor_id="F4",
-                    reason="Empathy below threshold (weakest stakeholder not served)",
-                    threshold=0.95,
-                    actual=kappa_r,
-                )
-            )
+        if verdict == "SABAR":
+            return 2 # Pause requires meaningful cooling
 
-        # F5: Ω₀ hard floor but ASI can still pause
-        if not (0.03 <= omega_0 <= 0.05):
-            conditions.append(
-                SABARCondition(
-                    floor_id="F5",
-                    reason="Humility out of band (too certain or too uncertain)",
-                    threshold=0.04,  # midpoint
-                    actual=omega_0,
-                )
-            )
+        if verdict == "PARTIAL":
+            # Partial approvals need standard cooling
+            return 1
 
-        # F7: RASA failure triggers SABAR
-        if not rasa_passed:
-            conditions.append(
-                SABARCondition(
-                    floor_id="F7",
-                    reason="RASA signals missing (active listening required)",
-                    threshold=0.5,
-                    actual=0.0 if not rasa_passed else 1.0,
-                )
-            )
+        if verdict == "SEAL":
+            if warnings == 0:
+                return 0 # Green Seal
+            elif warnings == 1:
+                return 1
+            else:
+                return 2
 
-        return (len(conditions) > 0, conditions)
+        return 2 # Default safe fallback
 
-    def format_sabar_message(self, conditions: List[SABARCondition]) -> str:
+    async def enforce_tier(self, tier: int, session_id: str) -> Dict[str, Any]:
         """
-        Format SABAR pause message.
+        Enforce the cooling tier.
 
         Args:
-            conditions: List of SABAR conditions triggered
+            tier: Cooling tier (0-3)
+            session_id: Session identifier
 
         Returns:
-            Formatted SABAR message
+            Cooling metadata
         """
-        msg = "⏸ SABAR PAUSE\n\n"
-        msg += "ASI (Ω Auditor) has paused execution:\n\n"
+        config = self.TIERS.get(tier, self.TIERS[2])
+        hours = config["hours"]
 
-        for cond in conditions:
-            msg += f"- {cond.floor_id}: {cond.reason}\n"
-            msg += f"  Expected: {cond.threshold}, Actual: {cond.actual:.3f}\n\n"
+        now = datetime.now(timezone.utc)
+        cool_until = now + timedelta(hours=hours)
 
-        msg += "Recommendation: Adjust approach and re-evaluate.\n"
-        return msg
-
+        return {
+            "tier": tier,
+            "tier_label": config["label"],
+            "cooling_hours": hours,
+            "start_time": now.isoformat(),
+            "cool_until": cool_until.isoformat(),
+            "status": "COOLED" if tier == 0 else "COOLING"
+        }
 
 # Singleton instance
 COOLING = CoolingEngine()
-
-
-__all__ = ["CoolingEngine", "COOLING", "SABARCondition"]
