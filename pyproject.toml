@@ -4,7 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "49.0.0"
+version = "49.0.1"
+# v49.0.1: F6 Empathy fix - Remove Chinese characters, add hero image (2026-01-19)
 # v49.0.0: Constitutional Forge - 13 Floors, Trinity Engines, 25 MCP Servers (2026-01-18)
 description = "Constitutional AI governance with 13 immutable floors (F1-F13). Trinity architecture (AGI·ASI·APEX) with 25 MCP servers mapped to constitutional enforcement. Thermodynamic physics (Delta_S->0, Peace_squared>=1, Omega_0 in [0.03,0.05]), tri-witness consensus (>=0.95), zkPC cryptographic sealing. Production-hardened 000-999 metabolic loop. Works with ChatGPT, Claude, Gemini, and any LLM."
 readme = "README.md"

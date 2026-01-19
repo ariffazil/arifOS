@@ -6,7 +6,7 @@
 
 > **The first AI system where governance isn't optional—it's constitutional law.**
 
-**Version:** v49.0.0 | **Released:** January 2026 | **Status:** FORGE-READY
+**Version:** v49.0.1 | **Released:** January 2026 | **Status:** FORGE-READY
 **Motto:** *"Ditempa Bukan Diberi"* — Forged, Not Given
 **Authority:** Muhammad Arif bin Fazil | Penang, Malaysia
 
