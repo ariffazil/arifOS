@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "arifos": {
+      "command": "c:\\Users\\User\\OneDrive\\Documents\\GitHub\\arifOS\\scripts\\boot_local.bat",
+      "args": [],
+      "env": {}
+    }
+  }
+}
