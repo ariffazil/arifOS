@@ -1,6 +1,6 @@
 # arifOS: Constitutional AI Governance
 
-![The Great Contrast: Standard AI vs. arifOS Governance](docs/arifreadme.png)
+![The Great Contrast: Standard AI vs. arifOS Governance](https://raw.githubusercontent.com/ariffazil/arifOS/main/docs/arifOSreadme.png)
 
 [![Watch Introduction](https://img.youtube.com/vi/bGnzIwZAgm0/maxresdefault.jpg)](https://www.youtube.com/watch?v=bGnzIwZAgm0 "arifOS - Constitutional AI That Actually Works")
 
