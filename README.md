@@ -1,5 +1,7 @@
 # arifOS: Constitutional AI Governance
 
+![The Great Contrast: Standard AI vs. arifOS Governance](docs/arifreadme.png)
+
 [![Watch Introduction](https://img.youtube.com/vi/bGnzIwZAgm0/maxresdefault.jpg)](https://www.youtube.com/watch?v=bGnzIwZAgm0 "arifOS - Constitutional AI That Actually Works")
 
 > **The first AI system where governance isn't optional—it's constitutional law.**
@@ -89,7 +91,7 @@ arifOS wasn't designed in a research lab. It emerged from **real-world system fa
 
 #### The Three System Failures (Why These 13 Floors Exist)
 
-**1. The Vulnerability Gap (系统盲点 - Systems Forgetting the Weak)**
+**1. The Vulnerability Gap (Systems Forgetting the Weak)**
 
 **The Problem:** Traditional systems optimize for efficiency and power users, systematically excluding or harming vulnerable stakeholders. Whether through economic systems that forget low-income families, AI systems that optimize for engagement over safety, or institutions that prioritize powerful voices over marginalized ones—the pattern is universal.
 
@@ -109,7 +111,7 @@ arifOS wasn't designed in a research lab. It emerged from **real-world system fa
 
 ---
 
-**2. The Memory Gap (制度性失忆 - Institutional Knowledge Loss)**
+**2. The Memory Gap (Institutional Knowledge Loss)**
 
 **The Problem:** Organizations lose critical knowledge through layoffs, transitions, and poor documentation. What took years to learn vanishes in days. Institutional memory becomes a luxury, not a right. The same mistakes repeat because the lessons were never preserved.
 
@@ -131,7 +133,7 @@ arifOS wasn't designed in a research lab. It emerged from **real-world system fa
 
 ---
 
-**3. The Authority Gap (权威边界 - Unclear Decision Boundaries)**
+**3. The Authority Gap (Unclear Decision Boundaries)**
 
 **The Problem:** Systems lack clear authority boundaries. Who decides when AI can act autonomously? When must humans approve? What actions are irreversible and require explicit consent? Without constitutional limits, AI systems either ask permission for everything (unusable) or assume authority they shouldn't have (dangerous).
 
