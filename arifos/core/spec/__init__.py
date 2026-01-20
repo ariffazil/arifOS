@@ -1,5 +1,5 @@
 """
-arifos_core.spec - Specification validation and loading
+arifos.core.spec - Specification validation and loading
 
 This package provides schema validation and cryptographic manifest verification
 for v44 Track B specs. Moved here from utils/ to avoid circular import chains.

@@ -1,11 +1,11 @@
 """
-arifos_core.governance - Safety & Audit Module
+arifos.core.governance - Safety & Audit Module
 
 Contains governance and audit components:
 - fag: File Access Guardian
-- ledger: Cooling ledger operations (MOVED to arifos_core.state in v47)
-- ledger_hashing: Hash chain integrity (MOVED to arifos_core.state in v47)
-- merkle: Merkle proofs (MOVED to arifos_core.state in v47)
+- ledger: Cooling ledger operations (MOVED to arifos.core.state in v47)
+- ledger_hashing: Hash chain integrity (MOVED to arifos.core.state in v47)
+- merkle: Merkle proofs (MOVED to arifos.core.state in v47)
 - zkpc_runtime: zkPC 5-phase runtime
 - vault_retrieval: Vault access
 

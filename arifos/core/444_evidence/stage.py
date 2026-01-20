@@ -1,5 +1,5 @@
 """
-arifos_core/stages/stage_444_evidence.py
+arifos.core/stages/stage_444_evidence.py
 
 Stage 444: EVIDENCE (Evidence Collection)
 Function: RAG, External Search, Expert Validation.

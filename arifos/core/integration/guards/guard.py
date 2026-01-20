@@ -1,5 +1,5 @@
 """
-arifos_core/guard.py - APEX Guardrail Decorator
+arifos.core/guard.py - APEX Guardrail Decorator
 
 =============================================================================
 LEGACY v35-STYLE TRUST MODEL
@@ -29,7 +29,7 @@ from ...eye import Eye, EyeReport
 from ...memory.cooling_ledger import log_cooling_entry
 from ...system.apex_prime import ApexVerdict, apex_review
 
-logger = logging.getLogger("arifos_core.guard")
+logger = logging.getLogger("arifos.core.guard")
 
 
 class GuardrailError(Exception):

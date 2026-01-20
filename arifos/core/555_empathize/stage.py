@@ -1,5 +1,5 @@
 """
-arifos_core/stages/stage_555_empathize.py
+arifos.core/stages/stage_555_empathize.py
 
 Stage 555: EMPATHIZE (Empathy Computation)
 Function: Empathy, Safety, Stakeholder Alignment.

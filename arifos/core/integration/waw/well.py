@@ -462,7 +462,7 @@ def compute_well_signals(
     """
     Pipeline-friendly entry point for somatic safety governance.
 
-    Usage in arifos_core/pipeline.py (stage 111 SENSE, 555 EMPA):
+    Usage in arifos.core/pipeline.py (stage 111 SENSE, 555 EMPA):
         from arifos.core.integration.waw.well import compute_well_signals
         signals = compute_well_signals(answer_text, metrics)
         if signals.peace_squared < 1.0 or signals.kappa_r < 0.95:

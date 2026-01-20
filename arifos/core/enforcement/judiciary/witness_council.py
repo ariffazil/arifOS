@@ -5,7 +5,7 @@ Enforces Law 5 (Re-Witness or Release) and Law 6 (Memory != Authority).
 
 Architectural note (v46): This module aggregates witness votes into a consensus signal,
 but it does NOT issue the final constitutional verdict. Only APEX PRIME
-(`arifos_core.system.apex_prime.apex_review`) may SEAL.
+(`arifos.core.system.apex_prime.apex_review`) may SEAL.
 """
 
 from dataclasses import dataclass, field

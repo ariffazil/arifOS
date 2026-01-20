@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 import json
 
-# Add arifos_core to path for imports
+# Add arifos.core to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from arifos.core.trinity.agent_loader import AgentLoader, AgentConfig
@@ -367,9 +367,9 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python -m arifos_core.trinity.config_validator
-  python -m arifos_core.trinity.config_validator --config custom/agents.yaml
-  python -m arifos_core.trinity.config_validator --json
+  python -m arifos.core.trinity.config_validator
+  python -m arifos.core.trinity.config_validator --config custom/agents.yaml
+  python -m arifos.core.trinity.config_validator --json
 
 Constitutional Context:
   This validator ensures all agent configurations comply with the 12-floor

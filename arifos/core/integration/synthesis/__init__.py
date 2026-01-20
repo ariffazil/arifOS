@@ -1,5 +1,5 @@
 """
-arifos_core/integration/synthesis - Neuro-Symbolic Bridge (666)
+arifos.core/integration/synthesis - Neuro-Symbolic Bridge (666)
 
 Δ+Ω Unification - Bridging AGI logic and ASI care.
 """

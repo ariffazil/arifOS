@@ -9,7 +9,7 @@ Constitutional role:
 - Emits final verdict: SEAL, PARTIAL, VOID, SABAR, HOLD.
 
 Layer: APEX (Judge) - F1, F8, F9, F11, F12
-Authority: arifos_core/system/apex_prime.py
+Authority: arifos.core/system/apex_prime.py
 """
 
 import asyncio

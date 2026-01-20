@@ -116,21 +116,21 @@ _REGISTRY.register(APIEntry(
     name="Metrics",
     stability=StabilityLevel.STABLE,
     kind="dataclass",
-    module="arifos_core",
+    module="arifos.core",
     description="Floor metric container (F1-F9 values)",
 ))
 _REGISTRY.register(APIEntry(
     name="FloorsVerdict",
     stability=StabilityLevel.STABLE,
     kind="dataclass",
-    module="arifos_core",
+    module="arifos.core",
     description="Floor check result",
 ))
 _REGISTRY.register(APIEntry(
     name="ConstitutionalMetrics",
     stability=StabilityLevel.STABLE,
     kind="dataclass",
-    module="arifos_core",
+    module="arifos.core",
     description="Extended constitutional metrics",
 ))
 
@@ -139,49 +139,49 @@ _REGISTRY.register(APIEntry(
     name="apex_review",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core",
+    module="arifos.core",
     description="Main judiciary entry point",
 ))
 _REGISTRY.register(APIEntry(
     name="ApexVerdict",
     stability=StabilityLevel.STABLE,
     kind="dataclass",
-    module="arifos_core",
+    module="arifos.core",
     description="APEX PRIME verdict result",
 ))
 _REGISTRY.register(APIEntry(
     name="Verdict",
     stability=StabilityLevel.STABLE,
     kind="enum",
-    module="arifos_core",
+    module="arifos.core",
     description="SEAL/PARTIAL/VOID/888_HOLD/SABAR/SUNSET",
 ))
 _REGISTRY.register(APIEntry(
     name="check_floors",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core",
+    module="arifos.core",
     description="Check all 9 floors",
 ))
 _REGISTRY.register(APIEntry(
     name="APEXPrime",
     stability=StabilityLevel.STABLE,
     kind="class",
-    module="arifos_core",
+    module="arifos.core",
     description="Judiciary engine class",
 ))
 _REGISTRY.register(APIEntry(
     name="APEX_VERSION",
     stability=StabilityLevel.STABLE,
     kind="constant",
-    module="arifos_core",
+    module="arifos.core",
     description="Current APEX version string",
 ))
 _REGISTRY.register(APIEntry(
     name="APEX_EPOCH",
     stability=StabilityLevel.STABLE,
     kind="constant",
-    module="arifos_core",
+    module="arifos.core",
     description="Current epoch identifier",
 ))
 
@@ -190,28 +190,28 @@ _REGISTRY.register(APIEntry(
     name="AlertSeverity",
     stability=StabilityLevel.STABLE,
     kind="enum",
-    module="arifos_core",
+    module="arifos.core",
     description="@EYE alert severity levels",
 ))
 _REGISTRY.register(APIEntry(
     name="EyeAlert",
     stability=StabilityLevel.STABLE,
     kind="dataclass",
-    module="arifos_core",
+    module="arifos.core",
     description="@EYE alert structure",
 ))
 _REGISTRY.register(APIEntry(
     name="EyeReport",
     stability=StabilityLevel.STABLE,
     kind="dataclass",
-    module="arifos_core",
+    module="arifos.core",
     description="@EYE report container",
 ))
 _REGISTRY.register(APIEntry(
     name="EyeSentinel",
     stability=StabilityLevel.STABLE,
     kind="class",
-    module="arifos_core",
+    module="arifos.core",
     description="@EYE multi-view sentinel",
 ))
 
@@ -220,7 +220,7 @@ _REGISTRY.register(APIEntry(
     name="log_cooling_entry",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core",
+    module="arifos.core",
     description="Log to cooling ledger",
 ))
 
@@ -229,14 +229,14 @@ _REGISTRY.register(APIEntry(
     name="apex_guardrail",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core",
+    module="arifos.core",
     description="Guard wrapper for LLM calls",
 ))
 _REGISTRY.register(APIEntry(
     name="GuardrailError",
     stability=StabilityLevel.STABLE,
     kind="exception",
-    module="arifos_core",
+    module="arifos.core",
     description="Guardrail exception class",
 ))
 
@@ -245,35 +245,35 @@ _REGISTRY.register(APIEntry(
     name="evaluate_genius_law",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core",
+    module="arifos.core",
     description="GENIUS LAW evaluation",
 ))
 _REGISTRY.register(APIEntry(
     name="GeniusVerdict",
     stability=StabilityLevel.STABLE,
     kind="dataclass",
-    module="arifos_core",
+    module="arifos.core",
     description="GENIUS evaluation result",
 ))
 _REGISTRY.register(APIEntry(
     name="compute_genius_index",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core",
+    module="arifos.core",
     description="Compute G index",
 ))
 _REGISTRY.register(APIEntry(
     name="compute_dark_cleverness",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core",
+    module="arifos.core",
     description="Compute C_dark",
 ))
 _REGISTRY.register(APIEntry(
     name="compute_psi_apex",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core",
+    module="arifos.core",
     description="Compute Psi vitality",
 ))
 
@@ -282,49 +282,49 @@ _REGISTRY.register(APIEntry(
     name="AGI",
     stability=StabilityLevel.STABLE,
     kind="class",
-    module="arifos_core",
+    module="arifos.core",
     description="AGI (Delta) engine - cold logic",
 ))
 _REGISTRY.register(APIEntry(
     name="ASI",
     stability=StabilityLevel.STABLE,
     kind="class",
-    module="arifos_core",
+    module="arifos.core",
     description="ASI (Omega) engine - warm logic",
 ))
 _REGISTRY.register(APIEntry(
     name="evaluate_session",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core",
+    module="arifos.core",
     description="Full session evaluation",
 ))
 _REGISTRY.register(APIEntry(
     name="EvaluationResult",
     stability=StabilityLevel.STABLE,
     kind="dataclass",
-    module="arifos_core",
+    module="arifos.core",
     description="Evaluation result",
 ))
 _REGISTRY.register(APIEntry(
     name="SentinelResult",
     stability=StabilityLevel.STABLE,
     kind="dataclass",
-    module="arifos_core",
+    module="arifos.core",
     description="AGI scan result",
 ))
 _REGISTRY.register(APIEntry(
     name="ASIResult",
     stability=StabilityLevel.STABLE,
     kind="dataclass",
-    module="arifos_core",
+    module="arifos.core",
     description="ASI assessment result",
 ))
 _REGISTRY.register(APIEntry(
     name="EvaluationMode",
     stability=StabilityLevel.STABLE,
     kind="enum",
-    module="arifos_core",
+    module="arifos.core",
     description="Evaluation mode flags",
 ))
 
@@ -333,21 +333,21 @@ _REGISTRY.register(APIEntry(
     name="RED_PATTERNS",
     stability=StabilityLevel.STABLE,
     kind="constant",
-    module="arifos_core",
+    module="arifos.core",
     description="Red pattern definitions",
 ))
 _REGISTRY.register(APIEntry(
     name="RED_PATTERN_TO_FLOOR",
     stability=StabilityLevel.STABLE,
     kind="constant",
-    module="arifos_core",
+    module="arifos.core",
     description="Pattern to floor mapping",
 ))
 _REGISTRY.register(APIEntry(
     name="RED_PATTERN_SEVERITY",
     stability=StabilityLevel.STABLE,
     kind="constant",
-    module="arifos_core",
+    module="arifos.core",
     description="Pattern severity levels",
 ))
 
@@ -356,7 +356,7 @@ _REGISTRY.register(APIEntry(
     name="Sentinel",
     stability=StabilityLevel.DEPRECATED,
     kind="alias",
-    module="arifos_core",
+    module="arifos.core",
     description="Alias for AGI",
     deprecated_in="v42.0",
     removed_in="v46.0",
@@ -366,7 +366,7 @@ _REGISTRY.register(APIEntry(
     name="Accountant",
     stability=StabilityLevel.DEPRECATED,
     kind="alias",
-    module="arifos_core",
+    module="arifos.core",
     description="Alias for ASI",
     deprecated_in="v42.0",
     removed_in="v46.0",
@@ -376,7 +376,7 @@ _REGISTRY.register(APIEntry(
     name="AccountantResult",
     stability=StabilityLevel.DEPRECATED,
     kind="alias",
-    module="arifos_core",
+    module="arifos.core",
     description="Alias for ASIResult",
     deprecated_in="v42.0",
     removed_in="v46.0",
@@ -386,7 +386,7 @@ _REGISTRY.register(APIEntry(
     name="check_red_patterns",
     stability=StabilityLevel.DEPRECATED,
     kind="function",
-    module="arifos_core",
+    module="arifos.core",
     description="Legacy pattern checker",
     deprecated_in="v42.0",
     removed_in="v46.0",
@@ -396,7 +396,7 @@ _REGISTRY.register(APIEntry(
     name="compute_metrics_from_task",
     stability=StabilityLevel.DEPRECATED,
     kind="function",
-    module="arifos_core",
+    module="arifos.core",
     description="Legacy metric computation",
     deprecated_in="v42.0",
     removed_in="v46.0",
@@ -407,190 +407,190 @@ _REGISTRY.register(APIEntry(
 # MODULE-LEVEL APIs
 # =============================================================================
 
-# arifos_core.system
+# arifos.core.system
 _REGISTRY.register(APIEntry(
     name="Pipeline",
     stability=StabilityLevel.STABLE,
     kind="class",
-    module="arifos_core.system.pipeline",
+    module="arifos.core.system.pipeline",
     description="000-999 metabolic pipeline",
 ))
 _REGISTRY.register(APIEntry(
     name="PipelineConfig",
     stability=StabilityLevel.STABLE,
     kind="dataclass",
-    module="arifos_core.system.pipeline",
+    module="arifos.core.system.pipeline",
     description="Pipeline configuration",
 ))
 _REGISTRY.register(APIEntry(
     name="run_pipeline",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core.system.pipeline",
+    module="arifos.core.system.pipeline",
     description="Run pipeline on input",
 ))
 _REGISTRY.register(APIEntry(
     name="TimeGovernor",
     stability=StabilityLevel.STABLE,
     kind="class",
-    module="arifos_core.system.kernel",
+    module="arifos.core.system.kernel",
     description="Time governor for entropy rot",
 ))
 _REGISTRY.register(APIEntry(
     name="check_entropy_rot",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core.system.kernel",
+    module="arifos.core.system.kernel",
     description="Check for entropy rot",
 ))
 _REGISTRY.register(APIEntry(
     name="route_memory",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core.system.kernel",
+    module="arifos.core.system.kernel",
     description="Route verdict to memory band",
 ))
 _REGISTRY.register(APIEntry(
     name="RuntimeManifest",
     stability=StabilityLevel.STABLE,
     kind="class",
-    module="arifos_core.system.runtime_manifest",
+    module="arifos.core.system.runtime_manifest",
     description="Runtime manifest",
 ))
 _REGISTRY.register(APIEntry(
     name="get_manifest",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core.system.runtime_manifest",
+    module="arifos.core.system.runtime_manifest",
     description="Get current manifest",
 ))
 
-# arifos_core.enforcement
+# arifos.core.enforcement
 _REGISTRY.register(APIEntry(
     name="TRUTH_THRESHOLD",
     stability=StabilityLevel.STABLE,
     kind="constant",
-    module="arifos_core.enforcement.metrics",
+    module="arifos.core.enforcement.metrics",
     description="F2 truth threshold (0.99)",
 ))
 _REGISTRY.register(APIEntry(
     name="GENIUS_FLOOR",
     stability=StabilityLevel.STABLE,
     kind="constant",
-    module="arifos_core.enforcement.genius_metrics",
+    module="arifos.core.enforcement.genius_metrics",
     description="F8 genius floor (0.80)",
 ))
 _REGISTRY.register(APIEntry(
     name="DARK_CEILING",
     stability=StabilityLevel.STABLE,
     kind="constant",
-    module="arifos_core.enforcement.genius_metrics",
+    module="arifos.core.enforcement.genius_metrics",
     description="F9 dark ceiling (0.30)",
 ))
 
-# arifos_core.apex.governance
+# arifos.core.apex.governance
 _REGISTRY.register(APIEntry(
     name="FAG",
     stability=StabilityLevel.STABLE,
     kind="class",
-    module="arifos_core.apex.governance.fag",
+    module="arifos.core.apex.governance.fag",
     description="File Access Guardian",
 ))
 _REGISTRY.register(APIEntry(
     name="compute_merkle_root",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core.apex.governance.merkle",
+    module="arifos.core.apex.governance.merkle",
     description="Compute Merkle root",
 ))
 _REGISTRY.register(APIEntry(
     name="get_merkle_proof",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core.apex.governance.merkle",
+    module="arifos.core.apex.governance.merkle",
     description="Get Merkle proof for entry",
 ))
 
-# arifos_core.memory
+# arifos.core.memory
 _REGISTRY.register(APIEntry(
     name="MemoryWritePolicy",
     stability=StabilityLevel.STABLE,
     kind="class",
-    module="arifos_core.memory.policy",
+    module="arifos.core.memory.policy",
     description="Memory write policy engine",
 ))
 _REGISTRY.register(APIEntry(
     name="MemoryBand",
     stability=StabilityLevel.STABLE,
     kind="enum",
-    module="arifos_core.memory.bands",
+    module="arifos.core.memory.bands",
     description="6 memory bands enum",
 ))
 _REGISTRY.register(APIEntry(
     name="EurekaReceipt",
     stability=StabilityLevel.STABLE,
     kind="class",
-    module="arifos_core.memory.eureka_receipt",
+    module="arifos.core.memory.eureka_receipt",
     description="EUREKA receipt",
 ))
 
-# arifos_core.integration.waw
+# arifos.core.integration.waw
 _REGISTRY.register(APIEntry(
     name="WAWFederation",
     stability=StabilityLevel.STABLE,
     kind="class",
-    module="arifos_core.integration.waw.federation",
+    module="arifos.core.integration.waw.federation",
     description="W@W Federation router",
 ))
 _REGISTRY.register(APIEntry(
     name="WellFileCare",
     stability=StabilityLevel.STABLE,
     kind="class",
-    module="arifos_core.integration.waw.well_file_care",
+    module="arifos.core.integration.waw.well_file_care",
     description="@WELL file migration",
 ))
 _REGISTRY.register(APIEntry(
     name="create_well_file_care",
     stability=StabilityLevel.STABLE,
     kind="function",
-    module="arifos_core.integration.waw.well_file_care",
+    module="arifos.core.integration.waw.well_file_care",
     description="Create @WELL instance",
 ))
 
-# arifos_core.mcp (BETA)
+# arifos.core.mcp (BETA)
 _REGISTRY.register(APIEntry(
     name="MCPServer",
     stability=StabilityLevel.BETA,
     kind="class",
-    module="arifos_core.mcp.server",
+    module="arifos.core.mcp.server",
     description="MCP server class",
 ))
 _REGISTRY.register(APIEntry(
     name="arifos_judge",
     stability=StabilityLevel.BETA,
     kind="function",
-    module="arifos_core.mcp.tools.judge",
+    module="arifos.core.mcp.tools.judge",
     description="MCP judge tool",
 ))
 _REGISTRY.register(APIEntry(
     name="arifos_recall",
     stability=StabilityLevel.BETA,
     kind="function",
-    module="arifos_core.mcp.tools.recall",
+    module="arifos.core.mcp.tools.recall",
     description="MCP recall tool",
 ))
 _REGISTRY.register(APIEntry(
     name="arifos_audit",
     stability=StabilityLevel.BETA,
     kind="function",
-    module="arifos_core.mcp.tools.audit",
+    module="arifos.core.mcp.tools.audit",
     description="MCP audit tool",
 ))
 _REGISTRY.register(APIEntry(
     name="arifos_fag_read",
     stability=StabilityLevel.BETA,
     kind="function",
-    module="arifos_core.mcp.tools.fag_read",
+    module="arifos.core.mcp.tools.fag_read",
     description="MCP FAG read tool",
 ))
 
@@ -617,7 +617,7 @@ def check_module_stability(module_name: str, actual_all: List[str]) -> Dict:
     Check a module's __all__ against the registry.
 
     Args:
-        module_name: Full module path (e.g., "arifos_core")
+        module_name: Full module path (e.g., "arifos.core")
         actual_all: The module's __all__ list
 
     Returns:

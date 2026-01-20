@@ -1,5 +1,5 @@
 """
-arifos_core/agi/entropy.py
+arifos.core/agi/entropy.py
 
 Shannon Entropy & ΔS Computation (F2: Clarity Floor)
 

@@ -1,5 +1,5 @@
 """
-arifos_core/asi/asi_integration_555.py
+arifos.core/asi/asi_integration_555.py
 
 560 ASI Integration - Omega Care Layer Unification
 

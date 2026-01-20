@@ -1,5 +1,5 @@
 """
-DEPRECATED: This module has moved to arifos_core.hypervisor.guards.injection_guard
+DEPRECATED: This module has moved to arifos.core.hypervisor.guards.injection_guard
 
 Injection defense belongs in the hypervisor layer (F12 enforcement).
 This shim will be removed in v47.2 (72 hours after v47.1 release).
@@ -16,8 +16,8 @@ Constitutional Mapping:
 import warnings
 
 warnings.warn(
-    "arifos_core.guards.injection_guard is deprecated. "
-    "Use arifos_core.hypervisor.guards.injection_guard instead. "
+    "arifos.core.guards.injection_guard is deprecated. "
+    "Use arifos.core.hypervisor.guards.injection_guard instead. "
     "This shim will be removed in v47.2 (72 hours after v47.1).",
     DeprecationWarning,
     stacklevel=2

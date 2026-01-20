@@ -1,5 +1,5 @@
 """
-arifos_core.engines - AGI·ASI·APEX Engines Facade (v35Omega)
+arifos.core.engines - AGI·ASI·APEX Engines Facade (v35Omega)
 
 Provides clean facades for the AGI·ASI·APEX Trinity:
 - AGIEngine (Delta) - Mind/Cold Logic - clarity, structure, reasoning

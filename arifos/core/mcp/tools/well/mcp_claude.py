@@ -9,7 +9,7 @@ Usage in Claude Desktop (claude_desktop_config.json):
     "mcpServers": {
         "well": {
             "command": "python",
-            "args": ["-m", "arifos_core.mcp.tools.well.mcp_claude"],
+            "args": ["-m", "arifos.core.mcp.tools.well.mcp_claude"],
             "env": {
                 "WELL_REPO_ROOT": "/path/to/repo"
             }

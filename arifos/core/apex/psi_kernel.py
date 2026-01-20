@@ -10,7 +10,7 @@ DITEMPA BUKAN DIBERI - Forged, not given
 """
 
 """
-arifos_core/apex/psi_kernel.py
+arifos.core/apex/psi_kernel.py
 
 PsiKernel (Ψ) - APEX Soul
 
@@ -31,7 +31,7 @@ Verdict Hierarchy:
 Authority:
     - 000_THEORY/canon/888_compass/ (APEX canon)
     - AAA_MCP/v46/000_foundation/constitutional_floors.json
-    - arifos_core/system/hypervisor.py (F10-F12)
+    - arifos.core/system/hypervisor.py (F10-F12)
 
 Design:
     Input: DeltaVerdict, OmegaVerdict, Genius score, Hypervisor result

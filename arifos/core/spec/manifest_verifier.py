@@ -1,5 +1,5 @@
 """
-arifos_core.spec.manifest_verifier - Cryptographic Manifest Verification
+arifos.core.spec.manifest_verifier - Cryptographic Manifest Verification
 
 Provides SHA-256 manifest verification for Track B v44 specifications.
 Ensures tamper-evident integrity at load-time (fail-closed).
@@ -169,7 +169,7 @@ def verify_manifest(
 
         error_lines.append("\nTo fix:")
         error_lines.append("  1. Restore original files from git")
-        error_lines.append("  2. Or regenerate manifest: python -m arifos_core.spec.regenerate_manifest")
+        error_lines.append("  2. Or regenerate manifest: python -m arifos.core.spec.regenerate_manifest")
         error_lines.append("  3. Or bypass (NOT RECOMMENDED): set ARIFOS_ALLOW_LEGACY_SPEC=1")
 
         raise RuntimeError("\n".join(error_lines))

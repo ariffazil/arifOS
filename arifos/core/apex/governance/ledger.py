@@ -1,5 +1,5 @@
 """
-DEPRECATED: This module has moved to arifos_core.state.ledger
+DEPRECATED: This module has moved to arifos.core.state.ledger
 
 State management has been extracted from governance to its own layer.
 This shim will be removed in v47.2 (72 hours after v47.1 release).
@@ -19,8 +19,8 @@ Constitutional Mapping:
 import warnings
 
 warnings.warn(
-    "arifos_core.apex.governance.ledger is deprecated. "
-    "Use arifos_core.state.ledger instead. "
+    "arifos.core.apex.governance.ledger is deprecated. "
+    "Use arifos.core.state.ledger instead. "
     "This shim will be removed in v47.2 (72 hours after v47.1).",
     DeprecationWarning,
     stacklevel=2

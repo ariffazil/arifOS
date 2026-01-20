@@ -7,7 +7,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 
-CERT_DIR = Path("arifos_core/mcp/certs")
+CERT_DIR = Path("arifos.core/mcp/certs")
 CERT_DIR.mkdir(parents=True, exist_ok=True)
 CERT_FILE = CERT_DIR / "cert.pem"
 KEY_FILE = CERT_DIR / "key.pem"

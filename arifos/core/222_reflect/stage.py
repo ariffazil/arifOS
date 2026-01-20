@@ -1,5 +1,5 @@
 """
-arifos_core/stages/stage_222_reflect.py
+arifos.core/stages/stage_222_reflect.py
 
 Stage 222: REFLECT (Self-Reflection)
 Function: Entropy calculation (ΔS), Clarity assessment.

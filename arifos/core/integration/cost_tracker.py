@@ -24,7 +24,7 @@ from enum import Enum
 
 from arifos_ledger import LedgerStore
 
-logger = logging.getLogger("arifos_core.cost_tracker")
+logger = logging.getLogger("arifos.core.cost_tracker")
 
 
 class BudgetLevel(Enum):

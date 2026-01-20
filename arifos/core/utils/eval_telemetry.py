@@ -52,7 +52,7 @@ def _get_eval_instance() -> Optional[Any]:
     Lazily load ApexMeasurement from arifos_eval.
 
     Returns None if arifos_eval is not available.
-    This ensures arifos_core never hard-depends on arifos_eval.
+    This ensures arifos.core never hard-depends on arifos_eval.
     """
     global _eval_instance, _eval_available
 

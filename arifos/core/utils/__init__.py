@@ -1,5 +1,5 @@
 """
-arifos_core.utils - Shared Utilities
+arifos.core.utils - Shared Utilities
 
 Contains utility modules:
 - telemetry: Telemetry and logging

@@ -26,7 +26,7 @@ from dataclasses import dataclass, field
 
 from arifos.core.floors import floor_02_clarity as f2
 
-logger = logging.getLogger("arifos_core.search_cache")
+logger = logging.getLogger("arifos.core.search_cache")
 
 
 @dataclass

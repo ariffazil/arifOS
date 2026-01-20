@@ -8,7 +8,7 @@ Constitutional validation:
 - F2 (Truth): Implicitly checked via Kernel.
 
 Layer: AGI (Mind) - F2, F6
-Authority: arifos_core/agi/kernel.py
+Authority: arifos.core/agi/kernel.py
 """
 
 import asyncio

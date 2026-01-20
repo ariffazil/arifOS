@@ -4,7 +4,7 @@ from typing import Dict, Any, List, Optional
 from arifos.core.enforcement.metrics import Metrics
 from arifos.core.system.apex_prime import ApexVerdict
 
-# NOTE: This file is part of arifos_core.state (v47 Equilibrium Architecture)
+# NOTE: This file is part of arifos.core.state (v47 Equilibrium Architecture)
 # It was moved from apex/governance to separate state management from governance logic.
 
 def log_cooling_entry(

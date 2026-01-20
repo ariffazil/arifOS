@@ -70,7 +70,7 @@ except (ImportError, AttributeError):
     def log_cooling_entry(*args, **kwargs):
         """Fallback stub for log_cooling_entry when memory module unavailable."""
         import logging
-        logging.getLogger("arifos_core").warning(
+        logging.getLogger("arifos.core").warning(
             "log_cooling_entry unavailable - using stub. Install full arifos package."
         )
         return {

@@ -1,5 +1,5 @@
 """
-arifos_core/guards/ontology_guard.py
+arifos.core/guards/ontology_guard.py
 
 F10: Ontology Guard (Symbolic Mode Enforcement)
 

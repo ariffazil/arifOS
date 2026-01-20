@@ -1,5 +1,5 @@
 """
-arifos_core/888_judge/stage.py
+arifos.core/888_judge/stage.py
 
 Stage 888: JUDGE (Verdict Rendering)
 Function: Final Judgment via APEX Prime (System 2 Orchestrator).

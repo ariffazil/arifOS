@@ -1,5 +1,5 @@
 """
-arifos_core/system/executor/__init__.py
+arifos.core/system/executor/__init__.py
 
 The Sovereign Execution Engine (SEE).
 Forges the "Hand" (Sandbox) with the "Conscience" (Interceptor).

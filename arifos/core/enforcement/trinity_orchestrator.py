@@ -18,7 +18,7 @@ Flow:
 v47.0 Hypervisor Layer (F10-F12):
     The Hypervisor Floors (F10 Ontology, F11 Command Auth, F12 Injection Defense)
     are NOT handled by Trinity Orchestrator. They are enforced in apex_prime.py
-    via the Hypervisor module (arifos_core/system/hypervisor.py).
+    via the Hypervisor module (arifos.core/system/hypervisor.py).
 
     Execution order:
     1. F12 + F11 (Hypervisor preprocessing) → SABAR if fails
@@ -90,7 +90,7 @@ class TrinityOrchestrator:
 
     v46 Hypervisor Floors (F10-F12):
         Hypervisor floors are enforced separately in apex_prime.py via
-        the Hypervisor module (arifos_core/system/hypervisor.py).
+        the Hypervisor module (arifos.core/system/hypervisor.py).
         See: AAA_MCP/v46/000_foundation/constitutional_floors.json
     """
 

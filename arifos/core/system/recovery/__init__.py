@@ -1,5 +1,5 @@
 """
-arifos_core.recovery — Floor-Specific Recovery System.
+arifos.core.recovery — Floor-Specific Recovery System.
 
 Gap 5 Fix: Structured fallback logic for floor failures.
 Graceful degradation > brittle failure.

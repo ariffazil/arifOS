@@ -1,8 +1,8 @@
-# arifos_core/dream_forge/anvil.py
+# arifos.core/dream_forge/anvil.py
 """
 arifOS Dream Forge: O-FORGE Anvil
 
-Module: arifos_core.dream_forge.anvil
+Module: arifos.core.dream_forge.anvil
 Version: v36.2 PHOENIX
 Purpose: Generative Replay. Synthesizes variations of scars to inoculate the system.
 Safety: Outputs are quarantined. This is a LAB tool.

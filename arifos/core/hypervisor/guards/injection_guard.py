@@ -1,5 +1,5 @@
 """
-arifos_core/guards/injection_guard.py
+arifos.core/guards/injection_guard.py
 
 F12: Injection Defense (Override Pattern Scanning)
 

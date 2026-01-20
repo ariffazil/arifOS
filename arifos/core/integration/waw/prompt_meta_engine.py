@@ -1,5 +1,5 @@
 """
-arifos_core/waw/prompt_meta_engine.py
+arifos.core/waw/prompt_meta_engine.py
 @PROMPT Meta-Prompter Engine - Governed Prompt Generation
 
 Version: v36.3Omega

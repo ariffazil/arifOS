@@ -1,5 +1,5 @@
 """
-arifos_core.spec.schema_validator - Minimal JSON Schema Validator
+arifos.core.spec.schema_validator - Minimal JSON Schema Validator
 
 LIGHTWEIGHT validator for v44 spec files (Track B authority enforcement).
 Does NOT require jsonschema dependency.

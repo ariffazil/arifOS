@@ -1,5 +1,5 @@
 """
-arifos_core.system.pipeline - Pipeline Module Stub (DEPRECATED v47+)
+arifos.core.system.pipeline - Pipeline Module Stub (DEPRECATED v47+)
 
 ⚠️ **DEPRECATION WARNING** ⚠️
 
@@ -35,7 +35,7 @@ import warnings
 warnings.warn(
     "\n"
     "═══════════════════════════════════════════════════════════════\n"
-    "⚠️  arifos_core.system.pipeline is DEPRECATED (v47+)\n"
+    "⚠️  arifos.core.system.pipeline is DEPRECATED (v47+)\n"
     "═══════════════════════════════════════════════════════════════\n"
     "\n"
     "RECOMMENDED: Switch to quantum executor for 70% faster performance\n"

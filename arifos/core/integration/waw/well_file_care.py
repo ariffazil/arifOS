@@ -397,17 +397,17 @@ class WellFileCare:
                 if f.name not in ("setup.py", "conftest.py"):
                     report.warnings.append(f"Python file in root: {f.name}")
 
-        # 2. Check arifos_core structure (if exists)
-        arifos_core = self.repo_root / "arifos_core"
-        if arifos_core.exists():
+        # 2. Check arifos.core structure (if exists)
+        arifos.core = self.repo_root / "arifos.core"
+        if arifos.core.exists():
             # Count top-level files (should be minimal after reorganization)
             top_level_files = [
-                f for f in arifos_core.glob("*.py")
+                f for f in arifos.core.glob("*.py")
                 if f.name != "__init__.py"
             ]
             if len(top_level_files) > 10:
                 report.warnings.append(
-                    f"arifos_core has {len(top_level_files)} top-level files "
+                    f"arifos.core has {len(top_level_files)} top-level files "
                     "(consider reorganization)"
                 )
                 report.suggestions.append(

@@ -1,5 +1,5 @@
 """
-arifos_core/system/executor/interceptor.py
+arifos.core/system/executor/interceptor.py
 
 The Conscience (Constitutional Wrapper).
 Orchestrates the Orthogonal Kernels (AGI, ASI, APEX) to validate execution.

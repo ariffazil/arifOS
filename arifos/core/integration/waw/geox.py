@@ -402,7 +402,7 @@ def compute_geox_signals(
     """
     Pipeline-friendly entry point for physical feasibility governance.
 
-    Usage in arifos_core/pipeline.py (stage 222 REFLECT, 444 ALIGN):
+    Usage in arifos.core/pipeline.py (stage 222 REFLECT, 444 ALIGN):
         from arifos.core.integration.waw.geox import compute_geox_signals
         signals = compute_geox_signals(answer_text, metrics)
         if signals.physical_impossibility_count > 0:

@@ -1,5 +1,5 @@
 """
-arifos_core/asi/tom/theory_of_mind.py
+arifos.core/asi/tom/theory_of_mind.py
 
 530 Theory of Mind - Mental State Substrate for Constitutional Care
 

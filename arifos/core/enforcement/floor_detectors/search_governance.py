@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from enum import Enum
 from datetime import datetime, timezone, timezone
 
-logger = logging.getLogger("arifos_core.search_governance")
+logger = logging.getLogger("arifos.core.search_governance")
 
 
 class SearchGovernanceViolation(Enum):

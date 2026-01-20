@@ -7,7 +7,7 @@ This module provides a high-level wrapper that combines:
 
 Phase 1 goal:
     Add a time-aware "doorman" in front of the main pipeline
-    without modifying arifos_core.pipeline or APEX PRIME.
+    without modifying arifos.core.pipeline or APEX PRIME.
 
 Usage (conceptual):
 

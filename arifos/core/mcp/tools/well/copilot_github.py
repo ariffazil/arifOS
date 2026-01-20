@@ -218,7 +218,7 @@ These files CANNOT be moved or deleted:
 
 - 000_THEORY - Constitutional law (docs only)
 - L2_GOVERNANCE - System prompts, IDE configs
-- L3_KERNEL - Intelligence kernel (arifos_core)
+- L3_KERNEL - Intelligence kernel (arifos.core)
 - L4_MCP - MCP server (this module)
 - L5_CLI - CLI tools
 - L6_SEALION - SEA-LION chat
@@ -249,8 +249,8 @@ print(f"Healthy: {health['is_healthy']}")
 
 # Move a file
 result = well_relocate_file(
-    source="arifos_core/pipeline.py",
-    target="arifos_core/system/pipeline.py"
+    source="arifos.core/pipeline.py",
+    target="arifos.core/system/pipeline.py"
 )
 print(f"Success: {result['success']}")
 

@@ -1,5 +1,5 @@
 """
-arifos_core/pipeline/stage_555_feel.py
+arifos.core/pipeline/stage_555_feel.py
 
 Stage 555: Feel (ASI - OmegaKernel)
 

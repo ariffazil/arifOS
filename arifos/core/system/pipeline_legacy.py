@@ -6,7 +6,7 @@ DITEMPA BUKAN DIBERI - Forged, not given
 ===================================
 This sequential pipeline is DEPRECATED.
 
-USE INSTEAD: arifos_core.mcp.orthogonal_executor.OrthogonalExecutor
+USE INSTEAD: arifos.core.mcp.orthogonal_executor.OrthogonalExecutor
 - Parallel AGI + ASI execution (quantum superposition)
 - Faster, more accurate, matches philosophy
 - See: QUANTUM_ARCHITECTURE_ANNOUNCEMENT.md
@@ -64,7 +64,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
-# v38 Stage Modules - v42: stages is at arifos_core/stages/
+# v38 Stage Modules - v42: stages is at arifos.core/stages/
 from arifos.core.enforcement.stages.stage_000_amanah import compute_amanah_score, stage_000_amanah
 from arifos.core.enforcement.stages.stage_555_empathy import compute_kappa_r
 from arifos.core.memory.l7.mem0_client import is_l7_enabled
@@ -2668,7 +2668,7 @@ __all__ = [
 
 
 def main() -> int:  # pragma: no cover
-    """CLI shim: `python -m arifos_core.system.pipeline --query \"...\"`."""
+    """CLI shim: `python -m arifos.core.system.pipeline --query \"...\"`."""
     from .__main__ import main as _main
 
     return _main()

@@ -24,11 +24,11 @@ Views in v35Ω:
 10. Sleeper-Agent View — sudden changes in goal/identity/constraints
 11. Anti-Hantu View — F9 enforcement (meta-view)
 
-See: arifos_core.eye for the modular implementation
+See: arifos.core.eye for the modular implementation
      canon/030_EYE_SENTINEL_v35Omega.md
 """
 
-# v42: Re-export from eye package (at arifos_core/system/eye/, not utils/eye/)
+# v42: Re-export from eye package (at arifos.core/system/eye/, not utils/eye/)
 from ..system.eye import (
     AlertSeverity,
     EyeAlert,

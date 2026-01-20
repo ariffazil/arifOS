@@ -4,9 +4,9 @@ AAA-Level Migration: Uses quantum orthogonal executor for constitutional validat
 Architecture: LLM Generation ⊥ Quantum Validation (dot_product = 0)
 
 Usage (PowerShell examples):
-  python -m arifos_core.system --query "test query" --verbose
+  python -m arifos.core.system --query "test query" --verbose
 
-Legacy compatibility: python -m arifos_core.system.pipeline --query "test"
+Legacy compatibility: python -m arifos.core.system.pipeline --query "test"
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
-logger = logging.getLogger("arifos_core.system.__main__")
+logger = logging.getLogger("arifos.core.system.__main__")
 
 
 from arifos.core.memory.ledger.cooling_ledger import DEFAULT_LEDGER_PATH, append_entry

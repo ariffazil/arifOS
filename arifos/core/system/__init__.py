@@ -1,5 +1,5 @@
 """
-arifos_core.system - Core System Module
+arifos.core.system - Core System Module
 
 Contains the central runtime components of arifOS:
 - APEX_PRIME: Judiciary engine (verdicts)

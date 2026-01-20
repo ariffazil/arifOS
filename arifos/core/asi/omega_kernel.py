@@ -10,7 +10,7 @@ DITEMPA BUKAN DIBERI - Forged, not given
 """
 
 """
-arifos_core/asi/omega_kernel.py
+arifos.core/asi/omega_kernel.py
 
 OmegaKernel (Ω) - ASI Heart
 

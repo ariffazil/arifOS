@@ -1,5 +1,5 @@
 """
-arifos_core.verification — Distributed Verification System.
+arifos.core.verification — Distributed Verification System.
 
 Gap 6 Fix: Multi-source Tri-Witness consensus.
 No single source of truth. Only convergence of evidence.

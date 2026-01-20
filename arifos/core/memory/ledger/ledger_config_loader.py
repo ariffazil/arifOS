@@ -70,8 +70,8 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
         }
         return _LEDGER_CONFIG_SPEC
 
-    # Find package root (repo root, not arifos_core/)
-    # ledger_config_loader.py -> ledger/ -> memory/ -> arifos_core/ -> repo root
+    # Find package root (repo root, not arifos.core/)
+    # ledger_config_loader.py -> ledger/ -> memory/ -> arifos.core/ -> repo root
     pkg_dir = Path(__file__).resolve().parent.parent.parent.parent
     spec_data = None
     spec_path_used = None

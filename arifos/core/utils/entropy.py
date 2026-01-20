@@ -1,5 +1,5 @@
 """
-arifos_core/utils/entropy.py
+arifos.core/utils/entropy.py
 
 Thermodynamic Clarity (ΔS) - The Shannon Entropy Engine.
 

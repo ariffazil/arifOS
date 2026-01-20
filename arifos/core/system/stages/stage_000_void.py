@@ -4,7 +4,7 @@ DITEMPA BUKAN DIBERI - Forged, not given
 """
 
 """
-arifos_core/system/stages/stage_000_void.py
+arifos.core/system/stages/stage_000_void.py
 
 Stage 000 VOID - Foundation Initialization Protocol (Track C)
 

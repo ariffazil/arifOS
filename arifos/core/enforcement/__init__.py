@@ -1,5 +1,5 @@
 """
-arifos_core.enforcement - Floor & Verdict System (v46.0 Trinity Orthogonal)
+arifos.core.enforcement - Floor & Verdict System (v46.0 Trinity Orthogonal)
 
 Contains floor metrics and enforcement:
 - metrics: Floor thresholds, Metrics dataclass

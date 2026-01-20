@@ -2,7 +2,7 @@
 arifOS v45 - Proof of Governance (Sovereign Witness)
 Thin wiring layer for SealReceipt assembly, signing, and ledger integration.
 
-Updated in v47: Uses arifos_core.state for merkle ledger functionality.
+Updated in v47: Uses arifos.core.state for merkle ledger functionality.
 """
 
 from typing import Optional, Dict, Any

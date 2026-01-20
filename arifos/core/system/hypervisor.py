@@ -4,7 +4,7 @@ DITEMPA BUKAN DIBERI - Forged, not given
 """
 
 """
-arifos_core/system/hypervisor.py
+arifos.core/system/hypervisor.py
 
 v46.0 HYPERVISOR LAYER (F10-F12)
 
@@ -25,7 +25,7 @@ Design:
 
 Authority:
     - PRIMARY: AAA_MCP/v46/000_foundation/constitutional_floors.json
-    - Guard implementations: arifos_core/guards/{ontology_guard, nonce_manager, injection_guard}
+    - Guard implementations: arifos.core/guards/{ontology_guard, nonce_manager, injection_guard}
 
 Motto:
     "The Hypervisor never sleeps. Literalism, hijacking, and injection die at the gate."

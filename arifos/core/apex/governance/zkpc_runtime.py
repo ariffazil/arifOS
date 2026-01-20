@@ -1,4 +1,4 @@
-# arifos_core/zkpc_runtime.py
+# arifos.core/zkpc_runtime.py
 """
 zkPC Runtime (v36Ω) — v0.1 Implementation Stub
 
@@ -15,7 +15,7 @@ NOTE:
 - This is v0.1 and deliberately conservative.
 - It DOES NOT perform real zkSNARK/STARK proofs; it shapes data for future zk.
 
-Updated in v47: Uses arifos_core.state for ledger/merkle functionality.
+Updated in v47: Uses arifos.core.state for ledger/merkle functionality.
 """
 
 from __future__ import annotations
@@ -119,7 +119,7 @@ def compute_metrics_stub(ctx: ZKPCContext, answer: str) -> Dict[str, Any]:
     Placeholder for metrics computation.
 
     TODO:
-    - Replace with real call into arifos_core.metrics (or equivalent).
+    - Replace with real call into arifos.core.metrics (or equivalent).
     - For now, we return safe "dummy pass" values so this stub can run
       without breaking anything.
     """

@@ -45,7 +45,8 @@ async def mcp_222_reflect(request: Dict[str, Any]) -> VerdictResponse:
         side_data={
             "delta_s": verdict.f4_delta_s,  # v49: field is f4_delta_s, not f6_clarity
             "clarity_pass": verdict.f4_delta_s >= 0.0,
-            "kernel_failures": verdict.failures
+            "kernel_failures": verdict.failures,
+            "omega_zero": 0.04  # F7 Humility: stub value in constitutional range [0.03, 0.05]
         }
     )
 

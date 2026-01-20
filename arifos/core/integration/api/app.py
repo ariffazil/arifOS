@@ -6,10 +6,10 @@ All endpoints are stateless, fail-open, and read-only or append-only.
 
 Usage:
     # Development
-    uvicorn arifos_core.integration.api.app:app --reload --host 0.0.0.0 --port 8000
+    uvicorn arifos.core.integration.api.app:app --reload --host 0.0.0.0 --port 8000
 
     # Production
-    uvicorn arifos_core.integration.api.app:app --host 0.0.0.0 --port 8000
+    uvicorn arifos.core.integration.api.app:app --host 0.0.0.0 --port 8000
 
     # In Python
     from arifos.core.integration.api import create_app
@@ -92,7 +92,7 @@ def main() -> None:
     import uvicorn
 
     uvicorn.run(
-        "arifos_core.integration.api.app:app",
+        "arifos.core.integration.api.app:app",
         host="0.0.0.0",
         port=8000,
         reload=True,

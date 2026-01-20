@@ -1,5 +1,5 @@
 """
-arifos_core/guards/nonce_manager.py
+arifos.core/guards/nonce_manager.py
 
 F11: Command Authentication (Nonce Verification)
 

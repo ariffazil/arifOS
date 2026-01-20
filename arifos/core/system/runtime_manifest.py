@@ -79,7 +79,7 @@ DEFAULT_EPOCH: EpochType = "v45"
 LEGACY_EPOCHS: Set[EpochType] = {"v35", "v36.3", "v37", "v44"}
 
 # Base paths
-# v42: File moved from arifos.core/ to arifos_core/system/, need to go up 2 levels
+# v42: File moved from arifos.core/ to arifos.core/system/, need to go up 2 levels
 _BASE_DIR = Path(__file__).parent.parent.parent
 
 # Manifest paths by epoch

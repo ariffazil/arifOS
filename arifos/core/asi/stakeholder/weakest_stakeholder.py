@@ -1,5 +1,5 @@
 """
-arifos_core/asi/stakeholder/weakest_stakeholder.py
+arifos.core/asi/stakeholder/weakest_stakeholder.py
 
 550 Weakest Stakeholder - Constitutional Bias Protocol
 

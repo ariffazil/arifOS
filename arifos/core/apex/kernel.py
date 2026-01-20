@@ -80,7 +80,7 @@ class APEXJudicialCore:
     async def judge_quantum_path(self, query: str, response: str, trinity_floors: List[Any], user_id: str) -> Dict[str, Any]:
         """
         Stage 888: Quantum Path Judgment via APEX Prime.
-        Delegates to arifos_core.system.apex_prime for official verdict.
+        Delegates to arifos.core.system.apex_prime for official verdict.
         """
         from arifos.core.system.apex_prime import APEXPrime
 

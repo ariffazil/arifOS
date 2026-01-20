@@ -1,5 +1,5 @@
 """
-arifos_core/asi/empathy - Empathy Architecture (540)
+arifos.core/asi/empathy - Empathy Architecture (540)
 
 Three-layer empathy model for κᵣ conductance.
 """

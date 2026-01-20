@@ -1,5 +1,5 @@
 """
-DEPRECATED: This module has moved to arifos_core.hypervisor.guards.session_dependency
+DEPRECATED: This module has moved to arifos.core.hypervisor.guards.session_dependency
 
 Session dependency validation belongs in the hypervisor layer.
 This shim will be removed in v47.2 (72 hours after v47.1 release).
@@ -16,8 +16,8 @@ Constitutional Mapping:
 import warnings
 
 warnings.warn(
-    "arifos_core.guards.session_dependency is deprecated. "
-    "Use arifos_core.hypervisor.guards.session_dependency instead. "
+    "arifos.core.guards.session_dependency is deprecated. "
+    "Use arifos.core.hypervisor.guards.session_dependency instead. "
     "This shim will be removed in v47.2 (72 hours after v47.1).",
     DeprecationWarning,
     stacklevel=2

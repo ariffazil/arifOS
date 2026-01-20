@@ -1,5 +1,5 @@
 """
-arifos_core/stages/stage_777_forge.py
+arifos.core/stages/stage_777_forge.py
 
 Stage 777: FORGE (Output Forging)
 Function: Final response construction.

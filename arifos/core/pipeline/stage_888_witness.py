@@ -1,5 +1,5 @@
 """
-arifos_core/pipeline/stage_888_witness.py
+arifos.core/pipeline/stage_888_witness.py
 
 Stage 888: Witness (APEX - PsiKernel)
 

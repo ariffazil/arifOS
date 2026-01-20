@@ -1,5 +1,5 @@
 """
-arifos_core/stages/stage_666_align.py
+arifos.core/stages/stage_666_align.py
 
 Stage 666: ALIGN (Constitutional Alignment)
 Function: Aligning Empathetic Draft with Constitutional Constraints.

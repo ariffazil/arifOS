@@ -1,4 +1,4 @@
-# arifos_core/state/merkle.py
+# arifos.core/state/merkle.py
 """
 Merkle tree utilities for Cooling Ledger / zkPC (v36Ω).
 
@@ -11,7 +11,7 @@ Merkle tree utilities for Cooling Ledger / zkPC (v36Ω).
 
 This is v0.1 (non-zk). It is Merkle/zkPC-ready for future zk integration.
 
-Moved to arifos_core.state as part of v47 Equilibrium Architecture.
+Moved to arifos.core.state as part of v47 Equilibrium Architecture.
 """
 
 from __future__ import annotations

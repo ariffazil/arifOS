@@ -1,7 +1,7 @@
 
 """
 arifOS MCP Entry Point
-Usage: python -m arifos_core.mcp [mode]
+Usage: python -m arifos.core.mcp [mode]
 Modes:
   stdio (default): Run standard I/O server (for local Claude Desktop)
   sse: Run SSE server (for remote/cloud access)

@@ -1,4 +1,4 @@
-# arifos_core/vault_retrieval.py
+# arifos.core/vault_retrieval.py
 """
 Vault Retrieval (v36Ω) — Cooling Ledger RAG Stub
 
@@ -19,7 +19,7 @@ In future:
 - This module can be extended to call an external embedding/RAG layer
   while preserving the same function signatures.
 
-Updated in v47: Uses arifos_core.state for ledger functionality.
+Updated in v47: Uses arifos.core.state for ledger functionality.
 """
 
 from __future__ import annotations

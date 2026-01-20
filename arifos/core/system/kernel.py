@@ -25,7 +25,7 @@ from datetime import datetime, timezone, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-# v42: memory is at arifos_core/memory/
+# v42: memory is at arifos.core/memory/
 from ..memory.policy import Verdict, VERDICT_BAND_ROUTING
 
 

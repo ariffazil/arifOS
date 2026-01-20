@@ -1,5 +1,5 @@
 """
-arifos_core/asi/tom - Theory of Mind (530)
+arifos.core/asi/tom - Theory of Mind (530)
 
 Mental state substrate for constitutional care.
 """

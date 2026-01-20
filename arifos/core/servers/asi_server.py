@@ -233,7 +233,7 @@ async def execute_mcp_tool(tool_name: str, request: Dict[str, Any]):
     """
     Generic MCP tool executor for ASI server.
 
-    Routes to existing mcp_*.py tools in arifos_core.mcp.tools/
+    Routes to existing mcp_*.py tools in arifos.core.mcp.tools/
     Validates with constitutional floors per tool specification.
 
     Phase 8.2: Proof-of-concept for 5 ASI tools
@@ -247,7 +247,7 @@ async def execute_mcp_tool(tool_name: str, request: Dict[str, Any]):
     start_time = time.time()
 
     try:
-        tool_module_name = f"arifos_core.mcp.tools.mcp_{tool_name}"
+        tool_module_name = f"arifos.core.mcp.tools.mcp_{tool_name}"
         try:
             tool_module = importlib.import_module(tool_module_name)
         except ModuleNotFoundError:

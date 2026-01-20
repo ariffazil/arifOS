@@ -1029,7 +1029,7 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "properties": {
                 "track_a_path": {"type": "string", "description": "Path to canonical law file (000_THEORY)"},
                 "track_b_path": {"type": "string", "description": "Path to spec file (AAA_MCP)"},
-                "track_c_path": {"type": "string", "description": "Path to code file (arifos_core)"},
+                "track_c_path": {"type": "string", "description": "Path to code file (arifos.core)"},
             },
             "required": ["track_a_path"],
         },

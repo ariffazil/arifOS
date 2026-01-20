@@ -39,7 +39,7 @@ from arifos.core.spec.manifest_verifier import verify_manifest
 from arifos.core.spec.schema_validator import validate_spec_against_schema
 
 # v42: Use relative import to avoid circular dependency
-# (arifos_core/__init__.py imports from here, so we can't use absolute arifos_core.metrics)
+# (arifos.core/__init__.py imports from here, so we can't use absolute arifos.core.metrics)
 from .metrics import (
     DELTA_S_THRESHOLD,
     KAPPA_R_THRESHOLD,
