@@ -22,7 +22,7 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
-from arifos.apex.governance.fag import FAG, FAGWritePlan, FAGWriteResult
+from arifos.core.apex.governance.fag import FAG, FAGWritePlan, FAGWriteResult
 
 
 class FAGWriteRequest(BaseModel):

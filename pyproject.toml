@@ -4,7 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "49.0.2"
+version = "50.0.0"
+# v50.0.0: Constitutional Housekeeping - Consolidated core, archived legacy duplicates (2026-01-20)
 # v49.0.2: Fix hero image rendering on GitHub + PyPI (2026-01-19)
 # v49.0.1: F6 Empathy fix - Remove Chinese characters, add hero image (2026-01-19)
 # v49.0.0: Constitutional Forge - 13 Floors, Trinity Engines, 25 MCP Servers (2026-01-18)

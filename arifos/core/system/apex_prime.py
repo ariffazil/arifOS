@@ -163,7 +163,7 @@ class APEXPrime:
             if self.sabar_triggered_count >= 3:
                 return ApexVerdict(Verdict.HOLD_888, reason="SABAR Lock: Frequent instability")
             if metrics["C_dark"] > 0.60:
-                return ApexVerdict(Verdict.SABAR, reason=f"High C_dark ({metrics['C_dark']:.2f}). Cooling requested.")
+                return ApexVerdict(Verdict.SABAR, reason=f"High C_dark ({metrics['C_dark']:.2f}). Cooling requested.", genius_stats=metrics)
 
         # 7. Render Verdict
         # Priority: VOID > SABAR > PARTIAL > SEAL

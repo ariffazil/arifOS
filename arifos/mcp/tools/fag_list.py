@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from arifos.apex.governance.fag import FAG
+from arifos.core.apex.governance.fag import FAG
 
 
 class FAGListRequest(BaseModel):

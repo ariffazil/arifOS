@@ -1,5 +1,5 @@
-# arifOS v49.1 - Constitutional Canon Version Lock
-# Location: L1_THEORY/canon/ (CCC Layer)
+# arifOS v50.0.0 - Constitutional Canon Version Lock
+# Location: 999_TEMPA/canon/ (CCC Layer - FORGED STATE)
 # Authority: 888 Judge | Sovereign Constitutional State
 # Status: SOVEREIGNLY_SEALED
 #
@@ -23,11 +23,16 @@ zero_agent_achievement: "ACHIEVED"
 mcp_unification_status: "COMPLETED"
 unified_tools_count: 17
 constitutional_nonce: "X7K9F24-MCP-UNIFIED"
-canonical_documents_updated: 
-  - "L1_THEORY/canon/000_MASTER_INDEX_v47.md"
-  - "L1_THEORY/canon/888_compass/100_APEX_PSI_v47.0.0.md"
-  - "L1_THEORY/canon/000_foundation/095_THERMODYNAMIC_CONSTITUTION_v47.md"
-  - "L1_THEORY/canon/000_foundation/090_UNIFIED_MCP_v47.md"
+v50_changes:
+  - "L1_THEORY renamed to 999_TEMPA (forged state, not theory)"
+  - "Agent files consolidated to v50 (AGENTS.md, GEMINI.md, CLAUDE.md, CODEX.md, KIMI.md)"
+  - "Trinity role mapping table added"
+  - "Duplication eliminated (~270 lines)"
+canonical_documents_updated:
+  - "999_TEMPA/canon/000_MASTER_INDEX_v47.md"
+  - "999_TEMPA/canon/888_compass/100_APEX_PSI_v47.0.0.md"
+  - "999_TEMPA/canon/000_foundation/095_THERMODYNAMIC_CONSTITUTION_v47.md"
+  - "999_TEMPA/canon/000_foundation/090_UNIFIED_MCP_v47.md"
 v47_sovereign_synthesis: "ACHIEVED"
 thermodynamic_physics: "VERIFIED"
 constitutional_physics_demo: "COMPLETED"
