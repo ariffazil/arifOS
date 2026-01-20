@@ -1,5 +1,5 @@
 """
-arifos_core/asi/stakeholder - Weakest Stakeholder Protocol (550)
+arifos/asi/stakeholder - Weakest Stakeholder Protocol (550)
 
 Constitutional bias toward most vulnerable.
 """

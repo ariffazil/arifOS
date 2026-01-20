@@ -1,5 +1,5 @@
 """
-arifos_core.attestation — Agent Capability Attestation.
+arifos.attestation — Agent Capability Attestation.
 
 Gap 4 Fix: AAA-compliant agent attestation system.
 Every agent must declare capabilities and constraints with proof.

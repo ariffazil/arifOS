@@ -622,9 +622,9 @@ if __name__ == "__main__":
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python -m arifos_core.enforcement.response_validator --output "I am software."
-  python -m arifos_core.enforcement.response_validator --output "Paris is capital." --high-stakes
-  python -m arifos_core.enforcement.response_validator --output "Text..." --input "Question?" --json
+  python -m arifos.enforcement.response_validator --output "I am software."
+  python -m arifos.enforcement.response_validator --output "Paris is capital." --high-stakes
+  python -m arifos.enforcement.response_validator --output "Text..." --input "Question?" --json
         """,
     )
     parser.add_argument("--output", "-o", required=True, help="AI output text to validate")

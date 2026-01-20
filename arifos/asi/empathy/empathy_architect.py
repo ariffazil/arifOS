@@ -1,5 +1,5 @@
 """
-arifos_core/asi/empathy/empathy_architect.py
+arifos/asi/empathy/empathy_architect.py
 
 540 Empathy Architecture - Three-Layer Model for κᵣ Conductance
 

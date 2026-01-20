@@ -52,12 +52,12 @@ class ASIResult:
     Layer 2: Metrics computation and uncertainty calibration.
 
     Attributes:
-        metrics: Computed floor metrics (arifos_core.metrics.Metrics)
+        metrics: Computed floor metrics (arifos.metrics.Metrics)
         mode: Evaluation mode (factual, creative, code)
         uncertainty_calibration: Ω calibration score
         clarity_gain: ΔS score
     """
-    metrics: Any  # arifos_core.metrics.Metrics
+    metrics: Any  # arifos.metrics.Metrics
     mode: EvaluationMode
     uncertainty_calibration: float  # Ω calibration score
     clarity_gain: float  # ΔS score
