@@ -1,5 +1,5 @@
 """
-DEPRECATED: Guards have moved to arifos_core.hypervisor.guards
+DEPRECATED: Guards have moved to arifos.hypervisor.guards
 
 Guards belong in the hypervisor layer (F10-F12 pre-pipeline enforcement).
 This module will be removed in v47.2 (72 hours after v47.1 release).
@@ -16,8 +16,8 @@ Constitutional Mapping:
 import warnings
 
 warnings.warn(
-    "arifos_core.guards is deprecated. "
-    "Use arifos_core.hypervisor.guards instead. "
+    "arifos.guards is deprecated. "
+    "Use arifos.hypervisor.guards instead. "
     "This module will be removed in v47.2 (72 hours after v47.1).",
     DeprecationWarning,
     stacklevel=2

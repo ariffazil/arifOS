@@ -1,6 +1,6 @@
 """Compatibility shim for Stage 000 canonical implementation.
 
-Canonical source: arifos_core/000_void/injection_defense.py
+Canonical source: arifos/000_void/injection_defense.py
 """
 
 from pathlib import Path

@@ -1,6 +1,6 @@
 """Compatibility shim for Stage 000 canonical implementation.
 
-Canonical source: arifos_core/000_void/authority_manifest.py
+Canonical source: arifos/000_void/authority_manifest.py
 """
 
 from pathlib import Path

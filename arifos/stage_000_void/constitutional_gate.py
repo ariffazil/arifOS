@@ -1,6 +1,6 @@
 """Compatibility shim for Stage 000 canonical implementation.
 
-Canonical source: arifos_core/000_void/constitutional_gate.py
+Canonical source: arifos/000_void/constitutional_gate.py
 """
 
 from pathlib import Path

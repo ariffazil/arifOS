@@ -1,5 +1,5 @@
 """
-arifos_core/guards/session_dependency.py
+arifos/guards/session_dependency.py
 
 arifOS Session Dependency Guard
 

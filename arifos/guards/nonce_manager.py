@@ -1,5 +1,5 @@
 """
-DEPRECATED: This module has moved to arifos_core.hypervisor.guards.nonce_manager
+DEPRECATED: This module has moved to arifos.hypervisor.guards.nonce_manager
 
 Nonce management belongs in the hypervisor layer (F11 Command Auth).
 This shim will be removed in v47.2 (72 hours after v47.1 release).
@@ -16,8 +16,8 @@ Constitutional Mapping:
 import warnings
 
 warnings.warn(
-    "arifos_core.guards.nonce_manager is deprecated. "
-    "Use arifos_core.hypervisor.guards.nonce_manager instead. "
+    "arifos.guards.nonce_manager is deprecated. "
+    "Use arifos.hypervisor.guards.nonce_manager instead. "
     "This shim will be removed in v47.2 (72 hours after v47.1).",
     DeprecationWarning,
     stacklevel=2
