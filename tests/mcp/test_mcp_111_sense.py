@@ -29,78 +29,78 @@ from arifos.mcp.tools.mcp_111_sense import (
 
 @pytest.mark.asyncio
 async def test_sense_hard_lane_capital_query():
-    """Test: Factual query classified as HARD lane."""
+    """Test: Factual query classified as FACTUAL lane (v49 API)."""
     result = await mcp_111_sense({
         "query": "What is the capital of France?",
         "context": {}
     })
 
     assert result.verdict == "PASS"
-    assert result.side_data["lane"] == "HARD"
+    assert result.side_data["lane"] == "FACTUAL"
     assert result.side_data["truth_threshold"] == 0.90
 
 
 @pytest.mark.asyncio
 async def test_sense_hard_lane_numeric_query():
-    """Test: Query with numbers classified as HARD lane."""
+    """Test: Query with numbers classified as FACTUAL lane (v49 API)."""
     result = await mcp_111_sense({
         "query": "What is 25% of 200?",
         "context": {}
     })
 
     assert result.verdict == "PASS"
-    assert result.side_data["lane"] == "HARD"
+    assert result.side_data["lane"] == "FACTUAL"
     assert result.side_data["truth_threshold"] == 0.90
 
 
 @pytest.mark.asyncio
 async def test_sense_soft_lane_explanation():
-    """Test: Explanation request classified as SOFT lane."""
+    """Test: Explanation request classified as CARE lane (v49 API)."""
     result = await mcp_111_sense({
         "query": "How does photosynthesis work?",
         "context": {}
     })
 
     assert result.verdict == "PASS"
-    assert result.side_data["lane"] == "SOFT"
+    assert result.side_data["lane"] == "CARE"
     assert result.side_data["truth_threshold"] == 0.80
 
 
 @pytest.mark.asyncio
 async def test_sense_soft_lane_describe():
-    """Test: 'Describe' query classified as SOFT lane."""
+    """Test: 'Describe' query classified as CARE lane (v49 API)."""
     result = await mcp_111_sense({
         "query": "Describe the water cycle",
         "context": {}
     })
 
     assert result.verdict == "PASS"
-    assert result.side_data["lane"] == "SOFT"
+    assert result.side_data["lane"] == "CARE"
 
 
 @pytest.mark.asyncio
 async def test_sense_phatic_lane_greeting():
-    """Test: Greeting classified as PHATIC lane."""
+    """Test: Greeting classified as SOCIAL lane (v49 API)."""
     result = await mcp_111_sense({
         "query": "Hi, how are you?",
         "context": {}
     })
 
     assert result.verdict == "PASS"
-    assert result.side_data["lane"] == "PHATIC"
+    assert result.side_data["lane"] == "SOCIAL"
     assert result.side_data["truth_threshold"] == 0.0
 
 
 @pytest.mark.asyncio
 async def test_sense_phatic_lane_thanks():
-    """Test: Thank you message classified as PHATIC lane."""
+    """Test: Thank you message classified as SOCIAL lane (v49 API)."""
     result = await mcp_111_sense({
         "query": "Thanks for the help!",
         "context": {}
     })
 
     assert result.verdict == "PASS"
-    assert result.side_data["lane"] == "PHATIC"
+    assert result.side_data["lane"] == "SOCIAL"
 
 
 @pytest.mark.asyncio
@@ -189,10 +189,10 @@ def test_is_soft_intent_explanation():
 
 
 def test_classify_lane_integration():
-    """Test: classify_lane returns proper tuple structure."""
+    """Test: classify_lane returns proper tuple structure (v49 API)."""
     lane, threshold, confidence, scope = classify_lane("What is Python?")
 
-    assert lane in ["HARD", "SOFT", "PHATIC", "REFUSE"]
+    assert lane in ["FACTUAL", "CARE", "SOCIAL", "REFUSE"]
     assert 0.0 <= threshold <= 1.0
     assert 0.0 <= confidence <= 1.0
     assert isinstance(scope, str)
@@ -291,19 +291,19 @@ async def test_sense_reason_is_clear():
 # =============================================================================
 
 def test_sense_sync_wrapper():
-    """Test: Synchronous wrapper works correctly."""
+    """Test: Synchronous wrapper works correctly (v49 API)."""
     result = mcp_111_sense_sync({"query": "What is the capital of France?"})
 
     assert result.verdict == "PASS"
-    assert result.side_data["lane"] == "HARD"
+    assert result.side_data["lane"] == "FACTUAL"
 
 
 def test_sense_sync_phatic():
-    """Test: Sync wrapper classifies phatic correctly."""
+    """Test: Sync wrapper classifies social correctly (v49 API)."""
     result = mcp_111_sense_sync({"query": "Hi there!"})
 
     assert result.verdict == "PASS"
-    assert result.side_data["lane"] == "PHATIC"
+    assert result.side_data["lane"] == "SOCIAL"
 
 
 # =============================================================================
@@ -324,11 +324,11 @@ async def test_sense_response_serializable():
 
 @pytest.mark.asyncio
 async def test_sense_multiple_queries_different_lanes():
-    """Test: Different queries correctly classified into different lanes."""
+    """Test: Different queries correctly classified into different lanes (v49 API)."""
     queries = [
-        ("What is the capital of France?", "HARD"),
-        ("How does photosynthesis work?", "SOFT"),
-        ("Hi, how are you?", "PHATIC"),
+        ("What is the capital of France?", "FACTUAL"),
+        ("How does photosynthesis work?", "CARE"),
+        ("Hi, how are you?", "SOCIAL"),
         ("How do I hack WiFi?", "REFUSE"),
     ]
 
@@ -346,26 +346,26 @@ async def test_sense_multiple_queries_different_lanes():
 
 @pytest.mark.asyncio
 async def test_sense_hard_lane_threshold_090():
-    """Test: HARD lane has truth threshold 0.90."""
+    """Test: FACTUAL lane has truth threshold 0.90 (v49 API)."""
     result = await mcp_111_sense({"query": "What is 2 + 2?"})
 
-    if result.side_data["lane"] == "HARD":
+    if result.side_data["lane"] == "FACTUAL":
         assert result.side_data["truth_threshold"] == 0.90
 
 
 @pytest.mark.asyncio
 async def test_sense_soft_lane_threshold_080():
-    """Test: SOFT lane has truth threshold 0.80."""
+    """Test: CARE lane has truth threshold 0.80 (v49 API)."""
     result = await mcp_111_sense({"query": "Explain quantum mechanics"})
 
-    if result.side_data["lane"] == "SOFT":
+    if result.side_data["lane"] == "CARE":
         assert result.side_data["truth_threshold"] == 0.80
 
 
 @pytest.mark.asyncio
 async def test_sense_phatic_lane_threshold_000():
-    """Test: PHATIC lane has truth threshold 0.0 (exempt)."""
+    """Test: SOCIAL lane has truth threshold 0.0 (exempt, v49 API)."""
     result = await mcp_111_sense({"query": "Good morning!"})
 
-    if result.side_data["lane"] == "PHATIC":
+    if result.side_data["lane"] == "SOCIAL":
         assert result.side_data["truth_threshold"] == 0.0

@@ -216,10 +216,10 @@ def classify_lane(query: str) -> tuple[str, float, float, str]:
             "constitutional_violation"
         )
 
-    # Step 2: PHATIC check (social communication)
+    # Step 2: SOCIAL check (social communication)
     if is_phatic(query):
         return (
-            "PHATIC",
+            "SOCIAL",
             TRUTH_THRESHOLD_PHATIC,
             0.95,
             "social_communication"
@@ -229,32 +229,32 @@ def classify_lane(query: str) -> tuple[str, float, float, str]:
     entity_count = count_entities(query)
     assertion_count = count_assertions(query)
 
-    # Step 4: SOFT check (explanatory intent)
+    # Step 4: CARE check (explanatory intent)
     if is_soft_intent(query):
         return (
-            "SOFT",
+            "CARE",
             TRUTH_THRESHOLD_SOFT,
             0.88,  # Moderate confidence
             "explanation_request"
         )
 
-    # Step 5: HARD vs SOFT based on density
-    # High density → factual query (HARD)
-    # Low density → likely explanation (SOFT)
+    # Step 5: FACTUAL vs CARE based on density
+    # High density → factual query (FACTUAL)
+    # Low density → likely explanation (CARE)
 
     if entity_count >= 2 or assertion_count >= 2:
-        # High information density → HARD lane
+        # High information density → FACTUAL lane
         return (
-            "HARD",
+            "FACTUAL",
             TRUTH_THRESHOLD_HARD,
             0.92,
             "factual_retrieval"
         )
     else:
-        # Low density, no clear SOFT markers → default SOFT
+        # Low density, no clear CARE markers → default CARE
         # (Conservative: prefer educational tolerance)
         return (
-            "SOFT",
+            "CARE",
             TRUTH_THRESHOLD_SOFT,
             0.75,  # Lower confidence when defaulting
             "general_query"
@@ -294,20 +294,43 @@ async def mcp_111_sense(request: Dict[str, Any]) -> VerdictResponse:
             timestamp=datetime.now(timezone.utc).isoformat(),
         )
 
+    # Pre-kernel violation check (F9 Anti-Hantu, F12 Injection Defense)
+    if detect_violations(query):
+        return VerdictResponse(
+            verdict="VOID",
+            reason="Query violates constitutional boundaries (F9 Anti-Hantu)",
+            side_data={
+                "lane": "REFUSE",
+                "truth_threshold": 0.0,
+                "confidence": 0.99,
+                "scope_estimate": "constitutional_violation",
+                "entity_count": 0,
+                "assertion_count": 0
+            },
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        )
+
     # Call AGI Kernel
     kernel_result = await AGINeuralCore.sense(query, context_meta)
 
     meta = kernel_result.get("meta", {})
-    lane = meta.get("lane", "SOFT")
+    lane = meta.get("lane", "CARE")
     truth_demand = meta.get("truth_demand", 0.8)
 
-    # Heuristic mapping for compatibility with old clients
-    if lane == "HARD":
+    # v49 lane-to-threshold mapping
+    if lane == "FACTUAL":
        truth_threshold = 0.90
-    elif lane == "PHATIC":
+    elif lane == "SOCIAL":
        truth_threshold = 0.0
-    else:
+    elif lane == "CARE":
        truth_threshold = 0.80
+    else:
+       # Fallback for legacy lanes or unknown
+       truth_threshold = 0.80
+
+    # Calculate structural features for transparency
+    entity_cnt = count_entities(query)
+    assertion_cnt = count_assertions(query)
 
     # Determine verdict
     if lane == "CRISIS":
@@ -330,6 +353,8 @@ async def mcp_111_sense(request: Dict[str, Any]) -> VerdictResponse:
             "truth_threshold": truth_threshold,
             "confidence": 0.95, # High confidence from Kernel
             "scope_estimate": f"{lane.lower()}_query",
+            "entity_count": entity_cnt,
+            "assertion_count": assertion_cnt,
             "kernel_meta": meta # Pass through kernel data for advanced clients
         },
         timestamp=datetime.now(timezone.utc).isoformat(),
