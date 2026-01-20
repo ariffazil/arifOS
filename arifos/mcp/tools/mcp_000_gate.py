@@ -12,10 +12,10 @@ from pydantic import BaseModel, Field
 # Dynamic import for numbered package '000_void'
 # from ...000_void.constitutional_gate import ConstitutionalGate
 try:
-    _gate_module = importlib.import_module("arifos.core.stage_000_void.constitutional_gate")
+    _gate_module = importlib.import_module("arifos.stage_000_void.constitutional_gate")
     ConstitutionalGate = _gate_module.ConstitutionalGate
 
-    _auth_module = importlib.import_module("arifos.core.stage_000_void.authority_manifest")
+    _auth_module = importlib.import_module("arifos.stage_000_void.authority_manifest")
     AuthorityManifest = _auth_module.AuthorityManifest
 except ImportError as e:
     raise ImportError(f"Failed to import Constitutional Core: {e}")
