@@ -136,8 +136,8 @@ def _load_floors_spec_unified() -> dict:
     Raises:
         RuntimeError: If v46/v45 spec missing/invalid
     """
-    # Navigate to repo root: metrics.py -> enforcement/ -> core/ -> arifos/ -> repo root
-    pkg_dir = Path(__file__).resolve().parent.parent.parent.parent
+    # Navigate to repo root: metrics.py -> enforcement -> core -> arifos -> repo root
+    pkg_dir = Path(__file__).resolve().parents[3]
     loaded_from = None
     spec_data = None
 
