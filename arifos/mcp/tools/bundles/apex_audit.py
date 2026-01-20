@@ -22,9 +22,9 @@ import json
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple
 
-from arifos.enforcement.metrics import FloorCheckResult
+from arifos.core.enforcement.metrics import FloorCheckResult
 from arifos.mcp.models import ApexAuditRequest, VerdictResponse
-from arifos.system.apex_prime import APEXPrime, Verdict
+from arifos.core.system.apex_prime import APEXPrime, Verdict
 
 # =============================================================================
 # BUNDLE ENTRY POINT

@@ -4,7 +4,7 @@
 
 ## Change Summary
 
-**File:** `arifos_core/mcp/unified_server.py:1298-1318`
+**File:** `arifos/mcp/unified_server.py:1298-1318`
 **Pattern:** Serialize Pydantic → JSON at MCP transport boundary
 **Impact:** All 17 MCP tools
 

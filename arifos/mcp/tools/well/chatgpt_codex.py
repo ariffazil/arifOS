@@ -114,7 +114,7 @@ def get_openai_tools() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "well_heal_structure",
-                "description": "Heal repository structure by creating missing layer directories (000_THEORY through L7_DEMOS).",
+                "description": "Heal repository structure by creating missing layer directories (L1_THEORY through L7_DEMOS).",
                 "parameters": {
                     "type": "object",
                     "properties": {

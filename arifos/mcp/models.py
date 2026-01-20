@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from arifos.enforcement.metrics import FloorCheckResult
+from arifos.core.enforcement.metrics import FloorCheckResult
 
 # =============================================================================
 # JUDGE TOOL MODELS

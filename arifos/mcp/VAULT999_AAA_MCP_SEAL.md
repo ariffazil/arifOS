@@ -60,7 +60,7 @@ VAULT-999 MCP integration with full constitutional governance (F1-F9) enforced B
 - Tri-Witness consensus: Human + AI + Earth
 
 ### 2. Evaluation Engine
-**File:** `.github/workflows/arifos_core/mcp/vault999_tac_eureka.py`
+**File:** `.github/workflows/arifos/mcp/vault999_tac_eureka.py`
 **Purpose:** Python-sovereign verdict logic
 **Functions:**
 - `vault_999_decide()` - Returns SEAL-999 / HOLD-999 / VOID-999
@@ -70,7 +70,7 @@ VAULT-999 MCP integration with full constitutional governance (F1-F9) enforced B
 - Fail-closed by design (VOID on uncertainty)
 
 ### 3. MCP Server Integration
-**File:** `.github/workflows/arifos_core/mcp/aaa_server.py`
+**File:** `.github/workflows/arifos/mcp/aaa_server.py`
 **Tools Exposed:**
 
 #### vault999_store (Lines 307-468)
@@ -106,14 +106,14 @@ if floor_check["verdict"] != "SEAL":
 **Mandatory:** T0_context_start (time governance)
 
 ### 4. Test Suite
-**File:** `.github/workflows/arifos_core/mcp/test_vault999_store.py`
+**File:** `.github/workflows/arifos/mcp/test_vault999_store.py`
 **Coverage:**
 - AAA vault storage (human insights)
 - CCC vault storage (machine law)
 - Obsidian format validation
 - EUREKA triad enforcement
 
-**File:** `.github/workflows/arifos_core/mcp/test_vault999_9floor_integration.py`
+**File:** `.github/workflows/arifos/mcp/test_vault999_9floor_integration.py`
 **Coverage:**
 - Valid insight acceptance (SEAL-999)
 - Ghost claim blocking (F9 Anti-Hantu)
@@ -121,7 +121,7 @@ if floor_check["verdict"] != "SEAL":
 - EUREKA triad completeness
 
 ### 5. AAA Compliance Assessment
-**File:** `arifos_core/mcp/AAA_COMPLIANCE_ASSESSMENT.md`
+**File:** `arifos/mcp/AAA_COMPLIANCE_ASSESSMENT.md`
 **Purpose:** Map VAULT-999 to AAA 5-layer stack
 **Verdict:** ✅ AAA KERNEL COMPLIANT
 **Gaps Resolved:**
@@ -130,7 +130,7 @@ if floor_check["verdict"] != "SEAL":
 - Gap 4: Merkle chain (CEO nanti — not required now)
 
 ### 6. Obsidian Template
-**File:** `.github/workflows/arifos_core/mcp/VAULT999_OBSIDIAN_TEMPLATE.md`
+**File:** `.github/workflows/arifos/mcp/VAULT999_OBSIDIAN_TEMPLATE.md`
 **Purpose:** Template for generated vault entries
 **Features:**
 - Personal voice (not robotic)

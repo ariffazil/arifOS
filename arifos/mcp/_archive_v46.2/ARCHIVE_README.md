@@ -74,12 +74,12 @@ This directory contains MCP server implementations that were **consolidated** in
 
 **Old Import (DEPRECATED):**
 ```python
-from arifos_core.mcp.server import mcp_server
+from arifos.mcp.server import mcp_server
 ```
 
 **New Import (ACTIVE):**
 ```python
-from arifos_core.mcp.unified_server import mcp_server
+from arifos.mcp.unified_server import mcp_server
 ```
 
 ### **For Old Tool Names:**
@@ -148,7 +148,7 @@ The orphaned Meta Search implementation revealed that powerful capabilities can 
 
 **Version**: v46.3
 **Status**: ARCHIVED
-**Active Server**: `arifos_core/mcp/unified_server.py`
+**Active Server**: `arifos/mcp/unified_server.py`
 **Entry Point**: `scripts/arifos_mcp_entry.py` (updated to use unified_server)
 
 **Verdict**: SEAL - Consolidation complete, backward compatibility maintained, history preserved.

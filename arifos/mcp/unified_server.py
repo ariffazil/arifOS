@@ -40,15 +40,14 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
 # Vault999 TAC/EUREKA imports
-from arifos.mcp.vault999_tac_eureka import (
+from arifos.core.mcp.vault999_tac_eureka import (
     EvaluationInputs,
     utc_now_iso,
     validate_ledger_entries,
     vault_999_decide,
 )
-from arifos.memory.vault.vault_manager import VaultManager
-
-from .models import (
+from arifos.core.memory.vault.vault_manager import VaultManager
+from arifos.mcp.models import (
     AgiThinkRequest,
     ApexAuditRequest,
     AsiActRequest,
@@ -60,6 +59,7 @@ from .models import (
     RecallResponse,
     VerdictResponse,
 )
+
 from .tools.audit import arifos_audit  # Audit trail inspection
 from .tools.bundles import agi_think_sync as agi_think  # AGI bundle (111+222+777)
 from .tools.bundles import apex_audit_sync as apex_audit  # APEX bundle (444+888+889)
@@ -466,7 +466,8 @@ def vault999_seal(
         if not seal_id:
             return {"error": "seal verification requires seal_id parameter"}
         try:
-            return memory_verify_seal(seal_id=seal_id)
+            verification_result = memory_verify_seal({"action_hash": seal_id})
+            return {"result": verification_result, "status": "COMPLETED"}
         except Exception as e:
             logger.error(f"Seal verification failed: {e}")
             return {"error": str(e), "status": "FAILED"}
@@ -662,8 +663,8 @@ def vault999_eval(
     language_7_3_minimal_truthful_naming: bool,
     ledger_entries: List[Dict[str, Any]],
     T0_context_start: str,  # MANDATORY: Chat/session start time (ISO-8601)
-    human_seal_sealed_by: str = None,
-    human_seal_seal_note: str = None
+    human_seal_sealed_by: Optional[str] = None,
+    human_seal_seal_note: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Evaluate EUREKA against TAC/EUREKA-777 constitutional laws.
@@ -1029,7 +1030,7 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "properties": {
                 "track_a_path": {"type": "string", "description": "Path to canonical law file (000_THEORY)"},
                 "track_b_path": {"type": "string", "description": "Path to spec file (AAA_MCP)"},
-                "track_c_path": {"type": "string", "description": "Path to code file (arifos_core)"},
+                "track_c_path": {"type": "string", "description": "Path to code file (arifos)"},
             },
             "required": ["track_a_path"],
         },
@@ -1374,6 +1375,6 @@ def print_stats():
     print("=" * 80)
 
 if __name__ == "__main__":
-    print_stats()
+    # print_stats()  # DISABLED: stdout pollution breaks MCP stdio transport
     import asyncio
     asyncio.run(main())

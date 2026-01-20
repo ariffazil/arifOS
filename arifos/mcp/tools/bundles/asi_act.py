@@ -29,7 +29,7 @@ from arifos.mcp.models import AsiActRequest, VerdictResponse
 # Import Hypervisor Guards (Phase 2 Handoff)
 # Import Hypervisor Guards (Phase 2 Handoff)
 try:
-    from arifos.hypervisor.guards import scan_for_injection
+    from arifos.core.hypervisor.guards import scan_for_injection
     HYPERVISOR_AVAILABLE = True
 except ImportError:
     HYPERVISOR_AVAILABLE = False  # Fallback (should not happen in prod)

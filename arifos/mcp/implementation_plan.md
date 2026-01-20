@@ -13,7 +13,7 @@
 ```
 ✅ unified_server.py         → 17 constitutional tools (THE REAL CODE)
 🟡 arifos_sse_server.py      → FastAPI wrapper (unclear if integrated)
-❌ arifos_core/api/app.py    → Legacy FastAPI (Dockerfile references this)
+❌ arifos/api/app.py    → Legacy FastAPI (Dockerfile references this)
 ❌ scripts/arifos_api_server.py → Another variant (maybe deprecated)
 ```
 
@@ -25,7 +25,7 @@ WORKDIR /app
 COPY . .
 RUN pip install -e .
 # ❌ This command doesn't exist:
-CMD ["python", "-m", "arifos_core.api.app"]
+CMD ["python", "-m", "arifos.api.app"]
 # ✅ Should be:
 # CMD ["python", "scripts/arifos_sse_server.py"]
 ```

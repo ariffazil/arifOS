@@ -96,7 +96,7 @@ def vault999_eval(
 **What's Missing:**
 ```python
 # SHOULD BE CALLED BEFORE vault_999_decide():
-from arifos_core.enforcement.response_validator_extensions import validate_response_full
+from arifos.enforcement.response_validator_extensions import validate_response_full
 
 result = validate_response_full(
     output_text=insight_text,
