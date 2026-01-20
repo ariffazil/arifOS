@@ -82,7 +82,7 @@ META             ✅ /fag, /gitforge, /plan, /review, /handoff
 ### **Claude (Ω Engineer) - 14 Skills**
 **Territory:** Build, Test, Implement (ASI care engine)
 
-See: `MY_SKILLS_AND_WORKFLOWS.md` for complete Engineer skill catalog
+See: `.claude/MY_SKILLS_AND_WORKFLOWS.md` for complete Engineer skill catalog
 
 **Key Engineer-Only Skills:**
 - `/empathize` (555 ASI) - κᵣ empathy engine

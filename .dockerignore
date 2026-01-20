@@ -90,7 +90,7 @@ config/*.local.*
 
 # User-specific
 identities/
-MY_SKILLS_AND_WORKFLOWS.md
+.claude/MY_SKILLS_AND_WORKFLOWS.md
 
 # Large model files (mount as volumes instead)
 *.ckpt
