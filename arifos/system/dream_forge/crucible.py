@@ -1,8 +1,8 @@
-# arifos_core/dream_forge/crucible.py
+# arifos/dream_forge/crucible.py
 """
 arifOS Dream Forge: O-ALIGN Crucible
 
-Module: arifos_core.dream_forge.crucible
+Module: arifos.dream_forge.crucible
 Version: v36.2 PHOENIX
 Purpose: Classifies raw 'Ore' (Scars/Logs) into actionable categories.
 Motto: "Know the nature of the heat before you cool it."

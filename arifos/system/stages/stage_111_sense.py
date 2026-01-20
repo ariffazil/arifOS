@@ -1,5 +1,5 @@
 """
-arifos_core/system/stages/stage_111_sense.py
+arifos/system/stages/stage_111_sense.py
 
 Stage 111 SENSE - Perception and Orientation Protocol (Track C)
 

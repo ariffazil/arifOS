@@ -1,5 +1,5 @@
 """
-arifos_core/pipeline/stage_000_hypervisor.py
+arifos/pipeline/stage_000_hypervisor.py
 
 Stage 000: Hypervisor Preprocessing
 
@@ -32,7 +32,7 @@ def stage_000_hypervisor(context: PipelineContext) -> PipelineContext:
 
     Note:
         Full hypervisor implementation would integrate with:
-        - arifos_core/system/hypervisor.py (F10-F12 logic)
+        - arifos/system/hypervisor.py (F10-F12 logic)
         - Input sanitization patterns
         - Nonce verification system
     """

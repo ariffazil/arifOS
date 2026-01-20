@@ -1,5 +1,5 @@
 """
-arifos_core/pipeline/stage_333_reason.py
+arifos/pipeline/stage_333_reason.py
 
 Stage 333: Reason (AGI - DeltaKernel)
 

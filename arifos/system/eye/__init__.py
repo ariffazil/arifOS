@@ -1,5 +1,5 @@
 """
-arifos_core.eye - @EYE Sentinel Modular Views (v36Omega)
+arifos.eye - @EYE Sentinel Modular Views (v36Omega)
 
 The @EYE Sentinel is an independent oversight system with 10+2 views:
 1. Trace View — logical coherence, missing steps

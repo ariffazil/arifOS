@@ -1,5 +1,5 @@
 """
-arifos_core/pipeline/manager.py
+arifos/pipeline/manager.py
 
 The Pipeline Orchestrator.
 Drivers the Sovereign Cleanse (000 -> 999).
@@ -20,16 +20,16 @@ from arifos.pipeline.state import PipelineState, PipelineStatus
 
 # Correct stage mapping
 STAGE_MODULES = {
-    "000": "arifos_core.000_void.stage",
-    "111": "arifos_core.111_sense.stage",
-    "222": "arifos_core.222_reflect.stage",
-    "333": "arifos_core.333_reason.stage",
-    "444": "arifos_core.444_evidence.stage",
-    "555": "arifos_core.555_empathize.stage",
-    "666": "arifos_core.666_align.stage",
-    "777": "arifos_core.777_forge.stage",
-    "888": "arifos_core.888_judge.stage",
-    "999": "arifos_core.999_seal.stage",
+    "000": "arifos.000_void.stage",
+    "111": "arifos.111_sense.stage",
+    "222": "arifos.222_reflect.stage",
+    "333": "arifos.333_reason.stage",
+    "444": "arifos.444_evidence.stage",
+    "555": "arifos.555_empathize.stage",
+    "666": "arifos.666_align.stage",
+    "777": "arifos.777_forge.stage",
+    "888": "arifos.888_judge.stage",
+    "999": "arifos.999_seal.stage",
 }
 
 class PipelineManager:

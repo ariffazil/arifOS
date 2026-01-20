@@ -1,5 +1,5 @@
 """
-arifos_core/system/executor/sandbox.py
+arifos/system/executor/sandbox.py
 
 The Hand (Primitive).
 Executes commands in an isolated Docker container.

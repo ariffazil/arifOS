@@ -1,5 +1,5 @@
 """
-arifos_core/pipeline/stage_999_seal.py
+arifos/pipeline/stage_999_seal.py
 
 Stage 999: Seal (Cooling Ledger)
 
@@ -32,7 +32,7 @@ def stage_999_seal(context: PipelineContext) -> PipelineContext:
 
     Note:
         Full implementation would integrate with:
-        - arifos_core/memory/cooling_ledger.py
+        - arifos/memory/cooling_ledger.py
         - Merkle tree computation
         - Append-only file/database write
     """

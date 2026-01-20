@@ -1,5 +1,5 @@
 """
-arifos_core/pipeline/state.py
+arifos/pipeline/state.py
 
 The Vector State.
 Carries the 3-Axis Truth across the 9 Stages.

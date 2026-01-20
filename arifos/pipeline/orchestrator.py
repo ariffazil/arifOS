@@ -1,5 +1,5 @@
 """
-arifos_core/pipeline/orchestrator.py
+arifos/pipeline/orchestrator.py
 
 PipelineOrchestrator - Chains stages 000→999
 

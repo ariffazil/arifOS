@@ -1,8 +1,8 @@
-# arifos_core/dream_forge/__init__.py
+# arifos/dream_forge/__init__.py
 """
 arifOS Dream Forge: Offline Generative Replay System
 
-Module: arifos_core.dream_forge
+Module: arifos.dream_forge
 Version: v36.2 PHOENIX
 Purpose: O-TASK Cadence implementation for healing from past failures (scars)
 

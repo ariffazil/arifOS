@@ -1,5 +1,5 @@
 """
-arifos_core/pipeline/context.py
+arifos/pipeline/context.py
 
 PipelineContext - Shared state object that flows through stages
 
