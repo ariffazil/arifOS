@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 
-from arifos.system.executor import SovereignExecutor
+from arifos.core.system.executor import SovereignExecutor
 
 # Initialize the Executor Facade
 _executor = SovereignExecutor()

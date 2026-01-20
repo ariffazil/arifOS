@@ -14,9 +14,9 @@ Authority: arifos_core/agi/kernel.py
 import asyncio
 from typing import Any, Dict
 
-from arifos.agi.kernel import AGIKernel
+from arifos.core.agi.kernel import AGIKernel
 from arifos.mcp.models import VerdictResponse
-from arifos.utils.entropy import compute_delta_s
+from arifos.core.utils.entropy import compute_delta_s
 
 
 async def mcp_222_reflect(request: Dict[str, Any]) -> VerdictResponse:

@@ -203,7 +203,7 @@ async def mcp_999_seal(request: Dict[str, Any]) -> VerdictResponse:
             try:
                 from dataclasses import asdict
 
-                from arifos.memory.vault.vault_manager import VaultManager
+                from arifos.core.memory.vault.vault_manager import VaultManager
 
                 vault = VaultManager()
                 print(f"[DEBUG_999] Vault path: {vault.config.receipts_path}")

@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict
 
 from arifos.mcp.models import FloorCheckResult, VerdictResponse
-from arifos.system.apex_prime import APEXPrime, Verdict
+from arifos.core.system.apex_prime import APEXPrime, Verdict
 
 
 async def mcp_888_judge(request: Dict[str, Any]) -> VerdictResponse:

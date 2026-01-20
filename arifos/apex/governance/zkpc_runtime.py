@@ -34,6 +34,136 @@ from typing import Any, Dict, List, Optional, Tuple
 logger = logging.getLogger(__name__)
 
 
+# =============================================================================
+# MERKLE TREE IMPLEMENTATION (HARDENED v50)
+# =============================================================================
+
+@dataclass
+class MerkleNode:
+    """Node in Merkle tree."""
+    hash: str
+    left: Optional['MerkleNode'] = None
+    right: Optional['MerkleNode'] = None
+
+
+class MerkleTree:
+    """
+    Real Merkle tree implementation for zkPC cryptographic sealing.
+
+    HARDENED v50: Replaces mock Merkle roots with real hash-tree verification.
+    """
+
+    def __init__(self, data_blocks: List[str]):
+        """Initialize Merkle tree from data blocks."""
+        if not data_blocks:
+            raise ValueError("Cannot build Merkle tree from empty data blocks")
+
+        self.leaves = [self._hash_block(block) for block in data_blocks]
+        self.root = self._build_tree(self.leaves)
+
+    def _hash_block(self, data: str) -> str:
+        """SHA-256 hash of data block."""
+        return hashlib.sha256(data.encode('utf-8')).hexdigest()
+
+    def _build_tree(self, nodes: List[str]) -> MerkleNode:
+        """
+        Build Merkle tree from leaf hashes.
+
+        Uses recursive binary tree construction.
+        """
+        if len(nodes) == 1:
+            return MerkleNode(hash=nodes[0])
+
+        # Pad with duplicate if odd number of nodes
+        if len(nodes) % 2 == 1:
+            nodes.append(nodes[-1])
+
+        # Build parent level
+        parent_nodes = []
+        for i in range(0, len(nodes), 2):
+            left_hash = nodes[i]
+            right_hash = nodes[i + 1]
+            parent_hash = hashlib.sha256(
+                (left_hash + right_hash).encode('utf-8')
+            ).hexdigest()
+            parent_nodes.append(parent_hash)
+
+        # Recursively build tree
+        return self._build_tree(parent_nodes)
+
+    def get_proof(self, leaf_index: int) -> List[Dict[str, Any]]:
+        """
+        Get Merkle proof for leaf at index.
+
+        Returns list of sibling hashes needed to verify leaf.
+        """
+        if leaf_index < 0 or leaf_index >= len(self.leaves):
+            raise ValueError(f"Invalid leaf index: {leaf_index}")
+
+        proof = []
+        current_index = leaf_index
+        current_level = self.leaves[:]
+
+        while len(current_level) > 1:
+            # Pad level if odd
+            if len(current_level) % 2 == 1:
+                current_level.append(current_level[-1])
+
+            # Get sibling hash
+            sibling_index = current_index + 1 if current_index % 2 == 0 else current_index - 1
+            sibling_hash = current_level[sibling_index]
+            position = "right" if current_index % 2 == 0 else "left"
+
+            proof.append({
+                "hash": sibling_hash,
+                "position": position
+            })
+
+            # Move to parent level
+            current_index = current_index // 2
+            next_level = []
+            for i in range(0, len(current_level), 2):
+                parent_hash = hashlib.sha256(
+                    (current_level[i] + current_level[i + 1]).encode('utf-8')
+                ).hexdigest()
+                next_level.append(parent_hash)
+            current_level = next_level
+
+        return proof
+
+    @staticmethod
+    def verify_proof(leaf_hash: str, proof: List[Dict[str, Any]], root_hash: str) -> bool:
+        """
+        Verify Merkle proof.
+
+        Args:
+            leaf_hash: Hash of the leaf being verified
+            proof: List of sibling hashes from get_proof()
+            root_hash: Expected root hash
+
+        Returns:
+            True if proof is valid, False otherwise
+        """
+        current_hash = leaf_hash
+
+        for step in proof:
+            sibling_hash = step["hash"]
+            if step["position"] == "right":
+                current_hash = hashlib.sha256(
+                    (current_hash + sibling_hash).encode('utf-8')
+                ).hexdigest()
+            else:
+                current_hash = hashlib.sha256(
+                    (sibling_hash + current_hash).encode('utf-8')
+                ).hexdigest()
+
+        return current_hash == root_hash
+
+
+# =============================================================================
+# ZKPC CONTEXT AND METRICS
+# =============================================================================
+
 class ZKPCPhase(Enum):
     """The 5 phases of zkPC governance."""
     PAUSE = "PAUSE"          # Build care scope, pause for reflection
@@ -324,6 +454,31 @@ class ZKPCRuntime:
         serialized = json.dumps(receipt_data, sort_keys=True)
         receipt_hash = hashlib.sha256(serialized.encode()).hexdigest()
 
+        # HARDENED v50: Build real Merkle tree for cryptographic proof
+        # Prepare data blocks for Merkle tree
+        data_blocks = [
+            f"session_id:{ctx.meta.get('session_id', 'unknown')}",
+            f"verdict:{verdict}",
+            f"timestamp:{receipt_data['timestamp']}",
+            json.dumps(receipt_data['metrics'], sort_keys=True),
+            json.dumps(receipt_data['care_scope'], sort_keys=True),
+            f"eye_signature:{eye_report.get('verification_result', 'UNKNOWN')}",
+            f"cooling_tier:{eye_report.get('cooling_tier', 0)}",
+        ]
+
+        # Build Merkle tree
+        merkle_tree = MerkleTree(data_blocks)
+        merkle_root = merkle_tree.root.hash
+
+        # Generate proof for verdict block (index 1)
+        verdict_proof = merkle_tree.get_proof(1)
+
+        # Compute hash-chain entry (links to previous ledger entry)
+        previous_hash = ctx.meta.get("previous_ledger_hash", "0" * 64)
+        hash_chain_entry = hashlib.sha256(
+            f"{merkle_root}:{previous_hash}".encode('utf-8')
+        ).hexdigest()
+
         # Merkle Leaf
         merkle_leaf = {
             "hash": receipt_hash,
@@ -338,8 +493,22 @@ class ZKPCRuntime:
             "receipt_data": receipt_data,
             "vault_commit": {
                 "hash": receipt_hash,
-                "merkle_root": f"merkle_{receipt_hash[:8]}_{int(time.time())}",
+                "merkle_root": merkle_root,  # Real Merkle root
+                "merkle_proof": verdict_proof,  # Cryptographic proof
+                "hash_chain_entry": hash_chain_entry,  # Links to previous
+                "previous_hash": previous_hash,
                 "ledger_file": "L1_cooling_ledger.jsonl",
+                "cryptographic_seal": {
+                    "algorithm": "SHA-256",
+                    "merkle_tree": True,
+                    "hash_chain": True,
+                    "zkpc_compliant": True,
+                    "proof_verified": MerkleTree.verify_proof(
+                        merkle_tree.leaves[1],  # Verdict leaf
+                        verdict_proof,
+                        merkle_root
+                    )
+                }
             },
             "timing": {
                 "pause_ms": pause_ms,

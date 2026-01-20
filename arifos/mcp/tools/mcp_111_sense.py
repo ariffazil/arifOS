@@ -275,7 +275,7 @@ async def mcp_111_sense(request: Dict[str, Any]) -> VerdictResponse:
     Returns:
         VerdictResponse with lane classification and thresholds
     """
-    from arifos.agi.kernel import AGINeuralCore
+    from arifos.core.agi.kernel import AGINeuralCore
 
     # Extract query
     query = request.get("query", "")

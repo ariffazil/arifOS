@@ -18,6 +18,7 @@ from typing import Any, Dict
 
 from arifos.mcp.models import VerdictResponse
 
+
 # =============================================================================
 # CONSTANTS
 # =============================================================================
@@ -228,7 +229,7 @@ async def mcp_555_empathize(request: Dict[str, Any]) -> VerdictResponse:
     Returns:
         VerdictResponse.
     """
-    from arifos.asi.kernel import ASIActionCore
+    from arifos.core.asi.kernel import ASIActionCore
 
     # Extract inputs
     response_text = request.get("response_text", "")

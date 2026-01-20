@@ -5,7 +5,7 @@ Provides constitutional read access to the ZKPC Vault.
 Replaces legacy stub memory tools.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from arifos.memory.vault.vault_manager import VaultManager
 

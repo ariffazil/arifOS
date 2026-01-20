@@ -8,6 +8,7 @@ Exposes validate_response_full() via MCP for IDE integration.
 """
 
 from typing import Any, Dict, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -116,7 +117,7 @@ def arifos_validate_full(request: ValidateFullRequest) -> ValidateFullResponse:
         ))
         # → verdict: HOLD-888 (requires human review)
     """
-    from arifos.enforcement.response_validator_extensions import validate_response_full
+    from arifos.core.enforcement.response_validator_extensions import validate_response_full
 
     # Call the core validation function
     result = validate_response_full(
