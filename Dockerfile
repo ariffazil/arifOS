@@ -142,4 +142,5 @@ HEALTHCHECK --interval=10s --timeout=10s --start-period=45s --retries=3 \
 
 # Run the Constitutional SSE server via Uvicorn
 # Railway will override PORT via environment variable
-CMD uvicorn arifos.core.mcp.sse:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --log-level info
+# Use shell form to properly handle PORT variable
+CMD ["/bin/sh", "-c", "exec uvicorn arifos.core.mcp.sse:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --log-level info"]
