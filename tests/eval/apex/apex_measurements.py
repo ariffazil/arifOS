@@ -17,7 +17,7 @@ from typing import Dict, Any, Optional
 
 # PHOENIX SOVEREIGNTY: Import Python-sovereign Amanah detector
 try:
-    from arifos.enforcement.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
+    from arifos.core.enforcement.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR
     AMANAH_DETECTOR_AVAILABLE = True
 except ImportError:
     AMANAH_DETECTOR_AVAILABLE = False

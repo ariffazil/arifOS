@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Test script for constitutional governance system with compliant metrics"""
 
-from arifos.system.apex_prime import apex_review
-from arifos.enforcement.metrics import Metrics
+from arifos.core.system.apex_prime import apex_review
+from arifos.core.enforcement.metrics import Metrics
 
 def test_compliant_constitutional_governance():
     """Test constitutional governance with compliant metrics"""

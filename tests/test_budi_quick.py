@@ -8,9 +8,9 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from arifos.enforcement.metrics import Metrics, get_lane_truth_threshold
-from arifos.system.apex_prime import apex_review, Verdict
-from arifos.enforcement.routing.prompt_router import classify_prompt_lane
+from arifos.core.enforcement.metrics import Metrics, get_lane_truth_threshold
+from arifos.core.system.apex_prime import apex_review, Verdict
+from arifos.core.enforcement.routing.prompt_router import classify_prompt_lane
 
 # Test cases
 test_cases = [

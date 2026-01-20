@@ -48,6 +48,6 @@ elseif ($Mode -eq "Local") {
     Write-Host "Igniting Local STDIO Server..." -ForegroundColor Green
     # Run inline for stdio communication
     $env:PYTHONPATH = "$RootDir"
-    $env:ARIFOS_ALLOW_LEGACY_SPEC = "1"
-    python -u -m arifos.mcp.unified_server
+    $env:ARIFOS_ALLOW_LEGACY_SPEC = '1'
+    python -u -m arifos.core.mcp.unified_server
 }

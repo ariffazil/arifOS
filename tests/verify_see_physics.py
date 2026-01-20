@@ -9,7 +9,7 @@ import logging
 import time
 from unittest.mock import MagicMock
 
-from arifos.system.executor import SovereignExecutor
+from arifos.core.system.executor import SovereignExecutor
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("SEE_Verifier")

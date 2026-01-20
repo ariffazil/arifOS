@@ -25,7 +25,7 @@ import statistics
 from typing import Dict, List, Tuple, Any, Optional
 from dataclasses import dataclass
 
-from arifos.enforcement.response_validator_extensions import (
+from arifos.core.enforcement.response_validator_extensions import (
     compute_empathy_score_split,
     validate_response_full,
 )

@@ -1,8 +1,8 @@
 {
-  "version": "v47.0.0",
+  "version": "v50.0.0",
   "files": {
-    "arifos/spec/manifest_verifier.py": "91516b627fcff3f4d08f519b402f28d149c31a639956ebd7311675b423c723a8",
-    "arifos/spec/schema_validator.py": "9495ead359ef4ed8d9505c3009b3d4694859121a36edfd90eff4f29dc089f650",
-    "arifos/spec/__init__.py": "9a4941f3a6b60ed2d1ca297a4c08ee45d299d811ebd038b9234482a71ff1e8f3"
+    "arifos/core/spec/manifest_verifier.py": "1a254963d144db7e2f57fa52527ff2261ed7ef5f69ab93f8b0121de7db721ecf",
+    "arifos/core/spec/schema_validator.py": "479960001ef28c2e741582289a70711c319fc290409ce9147269e64593eacfd2",
+    "arifos/core/spec/__init__.py": "c829c8c58191a5599d11d333aef68260f1091e1aaa3d9b117940d8dd8fd4df54"
   }
 }

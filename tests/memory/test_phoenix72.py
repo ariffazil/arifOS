@@ -6,10 +6,10 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from arifos.memory.ledger.cooling_ledger import (CoolingEntry, CoolingLedger,
+from arifos.core.memory.ledger.cooling_ledger import (CoolingEntry, CoolingLedger,
                                                CoolingMetrics, LedgerConfig)
-from arifos.memory.phoenix.phoenix72 import Phoenix72
-from arifos.memory.vault.vault999 import Vault999, VaultConfig
+from arifos.core.memory.phoenix.phoenix72 import Phoenix72
+from arifos.core.memory.vault.vault999 import Vault999, VaultConfig
 
 
 def _make_ledger_with_failure(tmpdir: str):

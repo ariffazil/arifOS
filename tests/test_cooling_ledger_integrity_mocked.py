@@ -11,7 +11,7 @@ from unittest.mock import Mock, patch, MagicMock
 
 import pytest
 
-from arifos.memory.ledger.cooling_ledger import append_entry, verify_chain
+from arifos.core.memory.ledger.cooling_ledger import append_entry, verify_chain
 
 
 # --- Mock KMS signing ---------------------------------------------------------
@@ -302,7 +302,7 @@ def test_with_patched_append(mock_append, tmp_path: Path) -> None:
     mock_append.return_value = None
 
     # Call the mocked function
-    from arifos.memory.ledger.cooling_ledger import append_entry as imported_append
+    from arifos.core.memory.ledger.cooling_ledger import append_entry as imported_append
     imported_append(ledger_path, entry)
 
     # Verify mock was called

@@ -117,7 +117,7 @@ async def test_full_pipeline_000_to_999_real_servers(test_query, session_context
     }
 
     # F11 (CommandAuth): Verify nonce-based auth
-    from arifos.guards.nonce_manager import NonceManager
+    from arifos.core.guards.nonce_manager import NonceManager
     nonce_mgr = NonceManager()
     session_nonce = nonce_mgr.generate_nonce(user_id=session_context["user_id"])
     session_bundle["nonce"] = session_nonce
@@ -125,7 +125,7 @@ async def test_full_pipeline_000_to_999_real_servers(test_query, session_context
     assert verification_result.authenticated, f"F11 CommandAuth failed at INIT: {verification_result.reason}"
 
     # F12 (Injection): Screen query for injection patterns
-    from arifos.guards.injection_guard import InjectionGuard
+    from arifos.core.guards.injection_guard import InjectionGuard
     injection_guard = InjectionGuard()
     injection_score = injection_guard.detect(test_query)
     assert injection_score < 0.85, f"F12 Injection failed: score={injection_score}"
@@ -584,7 +584,7 @@ async def test_verdict_hierarchy_enforcement():
         "floor_scores_cumulative": {}
     }
 
-    from arifos.guards.injection_guard import InjectionGuard
+    from arifos.core.guards.injection_guard import InjectionGuard
     injection_guard = InjectionGuard()
     injection_score = injection_guard.detect(context_void["query"])
 

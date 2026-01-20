@@ -20,7 +20,7 @@ class TestAgentAttestation:
 
     def test_attestation_import(self):
         """Test attestation module imports correctly."""
-        from arifos.enforcement.attestation import (AgentAttestation,
+        from arifos.core.enforcement.attestation import (AgentAttestation,
                                              AttestationRegistry,
                                              CapabilityDeclaration,
                                              ConstraintDeclaration)
@@ -28,7 +28,7 @@ class TestAgentAttestation:
 
     def test_create_attestation(self):
         """Test creating a new attestation."""
-        from arifos.enforcement.attestation import (AgentAttestation,
+        from arifos.core.enforcement.attestation import (AgentAttestation,
                                              CapabilityDeclaration)
 
         att = AgentAttestation(
@@ -45,7 +45,7 @@ class TestAgentAttestation:
 
     def test_sign_attestation(self):
         """Test attestation signing produces consistent hash."""
-        from arifos.enforcement.attestation import AgentAttestation
+        from arifos.core.enforcement.attestation import AgentAttestation
 
         att = AgentAttestation(agent_id="sig_test", version="1.0.0")
         sig1 = att.sign()
@@ -56,7 +56,7 @@ class TestAgentAttestation:
 
     def test_verify_signature(self):
         """Test signature verification."""
-        from arifos.enforcement.attestation import AgentAttestation
+        from arifos.core.enforcement.attestation import AgentAttestation
 
         att = AgentAttestation(agent_id="verify_test", version="1.0.0")
         sig = att.sign()
@@ -66,7 +66,7 @@ class TestAgentAttestation:
 
     def test_to_manifest(self):
         """Test manifest export."""
-        from arifos.enforcement.attestation import AgentAttestation
+        from arifos.core.enforcement.attestation import AgentAttestation
 
         att = AgentAttestation(agent_id="manifest_test", version="1.0.0")
         manifest = att.to_manifest()
@@ -77,7 +77,7 @@ class TestAgentAttestation:
 
     def test_builtin_attestations(self):
         """Test predefined attestations exist."""
-        from arifos.enforcement.attestation import (ARIF_AGI_ATTESTATION,
+        from arifos.core.enforcement.attestation import (ARIF_AGI_ATTESTATION,
                                              ARIF_APEX_ATTESTATION,
                                              ARIF_ASI_ATTESTATION)
 
@@ -87,7 +87,7 @@ class TestAgentAttestation:
 
     def test_registry_load_builtin(self):
         """Test registry loads built-in attestations."""
-        from arifos.enforcement.attestation import AttestationRegistry
+        from arifos.core.enforcement.attestation import AttestationRegistry
 
         registry = AttestationRegistry()
         att = registry.load_agent("arif_agi_v45")
@@ -97,7 +97,7 @@ class TestAgentAttestation:
 
     def test_registry_verify(self):
         """Test registry can verify agents."""
-        from arifos.enforcement.attestation import (ARIF_AGI_ATTESTATION,
+        from arifos.core.enforcement.attestation import (ARIF_AGI_ATTESTATION,
                                              AttestationRegistry)
 
         registry = AttestationRegistry()
@@ -116,13 +116,13 @@ class TestRecoveryMatrix:
 
     def test_recovery_import(self):
         """Test recovery module imports correctly."""
-        from arifos.system.recovery import (FLOOR_RECOVERY_MATRIX,
+        from arifos.core.system.recovery import (FLOOR_RECOVERY_MATRIX,
                                           RecoveryAction, RecoveryMatrix)
         assert RecoveryAction is not None
 
     def test_f1_amanah_no_recovery(self):
         """Test F1 Amanah failures are unrecoverable."""
-        from arifos.system.recovery import RecoveryAction, RecoveryMatrix
+        from arifos.core.system.recovery import RecoveryAction, RecoveryMatrix
 
         matrix = RecoveryMatrix()
         action, output = matrix.attempt_recovery(
@@ -136,7 +136,7 @@ class TestRecoveryMatrix:
 
     def test_f9_c_dark_no_recovery(self):
         """Test F9 C_dark failures are unrecoverable."""
-        from arifos.system.recovery import RecoveryAction, RecoveryMatrix
+        from arifos.core.system.recovery import RecoveryAction, RecoveryMatrix
 
         matrix = RecoveryMatrix()
         action, output = matrix.attempt_recovery(
@@ -150,7 +150,7 @@ class TestRecoveryMatrix:
 
     def test_f2_truth_sabar(self):
         """Test F2 Truth failures trigger SABAR."""
-        from arifos.system.recovery import RecoveryAction, RecoveryMatrix
+        from arifos.core.system.recovery import RecoveryAction, RecoveryMatrix
 
         matrix = RecoveryMatrix()
         action, output = matrix.attempt_recovery(
@@ -164,7 +164,7 @@ class TestRecoveryMatrix:
 
     def test_f3_tri_witness_escalate(self):
         """Test F3 Tri-Witness failures escalate to human."""
-        from arifos.system.recovery import RecoveryAction, RecoveryMatrix
+        from arifos.core.system.recovery import RecoveryAction, RecoveryMatrix
 
         matrix = RecoveryMatrix()
         action, output = matrix.attempt_recovery(
@@ -178,7 +178,7 @@ class TestRecoveryMatrix:
 
     def test_f4_clarity_simplify(self):
         """Test F4 Clarity failures simplify output."""
-        from arifos.system.recovery import RecoveryAction, RecoveryMatrix
+        from arifos.core.system.recovery import RecoveryAction, RecoveryMatrix
 
         matrix = RecoveryMatrix()
         long_output = "x" * 1000
@@ -194,7 +194,7 @@ class TestRecoveryMatrix:
 
     def test_floor_aliases(self):
         """Test floor name aliases work."""
-        from arifos.system.recovery import RecoveryAction, RecoveryMatrix
+        from arifos.core.system.recovery import RecoveryAction, RecoveryMatrix
 
         matrix = RecoveryMatrix()
 
@@ -208,7 +208,7 @@ class TestRecoveryMatrix:
 
     def test_can_recover(self):
         """Test can_recover check."""
-        from arifos.system.recovery import RecoveryMatrix
+        from arifos.core.system.recovery import RecoveryMatrix
 
         matrix = RecoveryMatrix()
 
@@ -218,7 +218,7 @@ class TestRecoveryMatrix:
 
     def test_attempt_logging(self):
         """Test recovery attempts are logged."""
-        from arifos.system.recovery import RecoveryMatrix
+        from arifos.core.system.recovery import RecoveryMatrix
 
         matrix = RecoveryMatrix()
         matrix.attempt_recovery("F4_delta_s", "Test", "Output")
@@ -237,14 +237,14 @@ class TestDistributedVerification:
 
     def test_verification_import(self):
         """Test verification module imports correctly."""
-        from arifos.enforcement.verification import (DistributedWitnessSystem,
+        from arifos.core.enforcement.verification import (DistributedWitnessSystem,
                                               TriWitnessConsensus, WitnessType,
                                               WitnessVote)
         assert WitnessType is not None
 
     def test_human_witness(self):
         """Test human witness voting."""
-        from arifos.enforcement.verification import HumanWitness
+        from arifos.core.enforcement.verification import HumanWitness
 
         witness = HumanWitness("reviewer_1")
         votes = witness.get_votes("test query", {"human_approval": 0.9})
@@ -254,7 +254,7 @@ class TestDistributedVerification:
 
     def test_ai_validator(self):
         """Test AI validator witness."""
-        from arifos.enforcement.verification import AIValidatorWitness
+        from arifos.core.enforcement.verification import AIValidatorWitness
 
         witness = AIValidatorWitness()
         votes = witness.get_votes(
@@ -271,7 +271,7 @@ class TestDistributedVerification:
 
     def test_external_witness(self):
         """Test external source witness."""
-        from arifos.enforcement.verification import ExternalWitness
+        from arifos.core.enforcement.verification import ExternalWitness
 
         witness = ExternalWitness("fact_check_api")
         votes = witness.get_votes("test query", {"external_verification_score": 0.80})
@@ -281,7 +281,7 @@ class TestDistributedVerification:
 
     def test_consensus_all_sources(self):
         """Test consensus with all witness types."""
-        from arifos.enforcement.verification import (TriWitnessConsensus, WitnessType,
+        from arifos.core.enforcement.verification import (TriWitnessConsensus, WitnessType,
                                               WitnessVote)
 
         consensus = TriWitnessConsensus()
@@ -298,7 +298,7 @@ class TestDistributedVerification:
 
     def test_consensus_missing_witness(self):
         """Test consensus with missing witness type."""
-        from arifos.enforcement.verification import (TriWitnessConsensus, WitnessType,
+        from arifos.core.enforcement.verification import (TriWitnessConsensus, WitnessType,
                                               WitnessVote)
 
         consensus = TriWitnessConsensus()
@@ -314,7 +314,7 @@ class TestDistributedVerification:
 
     def test_verdict_tiers(self):
         """Test verdict tier calculation."""
-        from arifos.enforcement.verification import TriWitnessConsensus
+        from arifos.core.enforcement.verification import TriWitnessConsensus
 
         consensus = TriWitnessConsensus()
 
@@ -324,7 +324,7 @@ class TestDistributedVerification:
 
     def test_distributed_witness_system(self):
         """Test full distributed witness system."""
-        from arifos.enforcement.verification import DistributedWitnessSystem
+        from arifos.core.enforcement.verification import DistributedWitnessSystem
 
         system = DistributedWitnessSystem()
         score, tier, details = system.verify(

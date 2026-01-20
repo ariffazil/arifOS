@@ -7,7 +7,7 @@ Validates that arifos_fag_read tool works correctly via MCP server.
 import pytest
 import json
 from pathlib import Path
-from arifos.mcp.tools.fag_read import (
+from arifos.core.mcp.tools.fag_read import (
     arifos_fag_read,
     FAGReadRequest,
     FAGReadResponse,

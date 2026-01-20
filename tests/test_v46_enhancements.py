@@ -11,8 +11,8 @@ Tests:
 
 import pytest
 
-from arifos.guards.injection_guard import InjectionGuard
-from arifos.guards.ontology_guard import OntologyGuard
+from arifos.core.guards.injection_guard import InjectionGuard
+from arifos.core.guards.ontology_guard import OntologyGuard
 
 
 class TestF10QuantitativeLiteralism:

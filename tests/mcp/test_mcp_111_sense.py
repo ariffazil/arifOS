@@ -11,7 +11,7 @@ Constitutional validation:
 
 import pytest
 
-from arifos.mcp.tools.mcp_111_sense import (
+from arifos.core.mcp.tools.mcp_111_sense import (
     mcp_111_sense,
     mcp_111_sense_sync,
     count_entities,

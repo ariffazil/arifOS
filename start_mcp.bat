@@ -21,7 +21,7 @@ echo Press Ctrl+C to stop
 echo.
 
 REM Start the server
-python scripts\unified_mcp_entry.py
+python -m arifos.core.mcp.sse
 
 echo.
 echo MCP server stopped.

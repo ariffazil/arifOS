@@ -47,7 +47,7 @@ class TestConstitutionalFloorsSchemaEnforcement:
         try:
             code = """
 import sys
-from arifos.enforcement.metrics import _FLOORS_SPEC_V38
+from arifos.core.enforcement.metrics import _FLOORS_SPEC_V38
 print('SHOULD NOT REACH HERE')
 sys.exit(0)
 """
@@ -100,7 +100,7 @@ sys.exit(0)
 
         try:
             code = """
-from arifos.enforcement.metrics import _FLOORS_SPEC_V38
+from arifos.core.enforcement.metrics import _FLOORS_SPEC_V38
 print('SHOULD NOT REACH HERE')
 """
             result = subprocess.run(
@@ -125,7 +125,7 @@ print('SHOULD NOT REACH HERE')
     def test_valid_v44_spec_attaches_schema_used_marker(self):
         """PROOF: Valid v44 spec loads successfully and attaches _schema_used marker."""
         code = """
-from arifos.enforcement.metrics import _FLOORS_SPEC_V38
+from arifos.core.enforcement.metrics import _FLOORS_SPEC_V38
 if '_schema_used' in _FLOORS_SPEC_V38:
     print(f"SCHEMA_USED:{_FLOORS_SPEC_V38['_schema_used']}")
 else:
@@ -175,7 +175,7 @@ class TestGeniusLawSchemaEnforcement:
 
         try:
             code = """
-from arifos.enforcement.genius_metrics import _GENIUS_SPEC_V38
+from arifos.core.enforcement.genius_metrics import _GENIUS_SPEC_V38
 print('SHOULD NOT REACH HERE')
 """
             result = subprocess.run(
@@ -200,7 +200,7 @@ print('SHOULD NOT REACH HERE')
     def test_valid_genius_spec_attaches_schema_used_marker(self):
         """PROOF: Valid GENIUS spec loads successfully and attaches _schema_used marker."""
         code = """
-from arifos.enforcement.genius_metrics import _GENIUS_SPEC_V38
+from arifos.core.enforcement.genius_metrics import _GENIUS_SPEC_V38
 if '_schema_used' in _GENIUS_SPEC_V38:
     print(f"SCHEMA_USED:{_GENIUS_SPEC_V38['_schema_used']}")
 else:
@@ -253,7 +253,7 @@ class TestSessionPhysicsSchemaEnforcement:
 
         try:
             code = """
-from arifos.apex.governance.session_physics import _PHYSICS_SPEC
+from arifos.core.apex.governance.session_physics import _PHYSICS_SPEC
 print('SHOULD NOT REACH HERE')
 """
             result = subprocess.run(
@@ -278,7 +278,7 @@ print('SHOULD NOT REACH HERE')
     def test_valid_physics_spec_attaches_schema_used_marker(self):
         """PROOF: Valid session physics spec loads successfully and attaches _schema_used marker."""
         code = """
-from arifos.apex.governance.session_physics import _PHYSICS_SPEC
+from arifos.core.apex.governance.session_physics import _PHYSICS_SPEC
 if '_schema_used' in _PHYSICS_SPEC:
     print(f"SCHEMA_USED:{_PHYSICS_SPEC['_schema_used']}")
 else:

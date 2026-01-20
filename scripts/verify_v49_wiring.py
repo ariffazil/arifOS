@@ -45,13 +45,13 @@ def test_imports():
         logger.info("   - Loaded thermodynamic_validator")
 
         logger.info("4. Checking Trinity Servers...")
-        import arifos.servers.agi_server as agi
+        import arifos.core.servers.agi_server as agi
         logger.info("   - Loaded AGI Server")
-        import arifos.servers.asi_server as asi
+        import arifos.core.servers.asi_server as asi
         logger.info("   - Loaded ASI Server")
-        import arifos.servers.apex_server as apex
+        import arifos.core.servers.apex_server as apex
         logger.info("   - Loaded APEX Server")
-        import arifos.servers.vault_server as vault
+        import arifos.core.servers.vault_server as vault
         logger.info("   - Loaded VAULT Server")
 
         logger.info("✅ ALL IMPORTS SUCCESSFUL - v49 WIRING COMPLETE")

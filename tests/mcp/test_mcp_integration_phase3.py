@@ -14,7 +14,7 @@ These tests were written for pre-v49 deterministic verdict flows.
 See archived v41-v44 tests in archive_local/blocked_tests_v49/ for context.
 """
 import pytest
-from arifos.mcp.tools import (
+from arifos.core.mcp.tools import (
     mcp_222_reflect,
     mcp_444_evidence,
     mcp_555_empathize,
@@ -302,7 +302,7 @@ async def test_integration_merkle_path_correctness():
 @pytest.mark.asyncio
 async def test_integration_seal_determinism():
     """Test: Same input produces same seal (with same timestamp)."""
-    from arifos.mcp.tools.mcp_999_seal import generate_seal
+    from arifos.core.mcp.tools.mcp_999_seal import generate_seal
 
     verdict = "SEAL"
     proof_hash = "abc123"

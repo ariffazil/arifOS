@@ -22,25 +22,25 @@ class TestAPIRegistryStructure:
 
     def test_registry_loads(self):
         """Registry module can be imported."""
-        from arifos.system.api_registry import get_registry
+        from arifos.core.system.api_registry import get_registry
         registry = get_registry()
         assert registry is not None
 
     def test_registry_has_entries(self):
         """Registry has registered entries."""
-        from arifos.system.api_registry import get_registry
+        from arifos.core.system.api_registry import get_registry
         registry = get_registry()
         assert len(registry.entries) > 0, "Registry should have entries"
 
     def test_registry_version(self):
         """Registry version matches expected."""
-        from arifos.system.api_registry import get_registry
+        from arifos.core.system.api_registry import get_registry
         registry = get_registry()
         assert registry._version == "42.0.0"
 
     def test_stability_levels_defined(self):
         """All stability levels are defined."""
-        from arifos.system.api_registry import StabilityLevel
+        from arifos.core.system.api_registry import StabilityLevel
         levels = [StabilityLevel.STABLE, StabilityLevel.BETA,
                   StabilityLevel.EXPERIMENTAL, StabilityLevel.DEPRECATED,
                   StabilityLevel.INTERNAL]
@@ -48,7 +48,7 @@ class TestAPIRegistryStructure:
 
     def test_api_entry_structure(self):
         """APIEntry has required fields."""
-        from arifos.system.api_registry import APIEntry, StabilityLevel
+        from arifos.core.system.api_registry import APIEntry, StabilityLevel
         entry = APIEntry(
             name="test_api",
             stability=StabilityLevel.STABLE,
@@ -146,7 +146,7 @@ class TestModuleLevelAPIs:
 
     def test_system_module_imports(self):
         """System module exports core components."""
-        from arifos.system import (
+        from arifos.core.system import (
             APEXPrime, apex_review, ApexVerdict, Verdict,
             check_floors, APEX_VERSION, APEX_EPOCH
         )
@@ -154,7 +154,7 @@ class TestModuleLevelAPIs:
 
     def test_system_api_registry_imports(self):
         """System module exports API registry."""
-        from arifos.system import (
+        from arifos.core.system import (
             StabilityLevel, APIEntry, APIRegistry,
             get_registry, get_stable_exports
         )
@@ -163,17 +163,17 @@ class TestModuleLevelAPIs:
 
     def test_enforcement_metrics_imports(self):
         """Enforcement module exports metrics."""
-        from arifos.enforcement.metrics import Metrics, FloorsVerdict
+        from arifos.core.enforcement.metrics import Metrics, FloorsVerdict
         assert Metrics is not None
 
     def test_governance_fag_imports(self):
         """Governance module exports FAG."""
-        from arifos.apex.governance.fag import FAG
+        from arifos.core.apex.governance.fag import FAG
         assert FAG is not None
 
     def test_waw_well_imports(self):
         """W@W module exports @WELL."""
-        from arifos.integration.waw.well_file_care import WellFileCare, create_well_file_care
+        from arifos.core.integration.waw.well_file_care import WellFileCare, create_well_file_care
         assert WellFileCare is not None
         assert create_well_file_care is not None
 
@@ -183,28 +183,28 @@ class TestBackwardCompatShims:
 
     def test_old_pipeline_path_works(self):
         """Old arifos_core.pipeline import works via shim."""
-        from arifos.system.pipeline import Pipeline
+        from arifos.core.system.pipeline import Pipeline
         assert Pipeline is not None
 
     def test_old_apex_prime_path_works(self):
         """Old arifos_core.APEX_PRIME import works via shim."""
-        from arifos.system.apex_prime import apex_review
+        from arifos.core.system.apex_prime import apex_review
         assert apex_review is not None
 
     def test_old_metrics_path_works(self):
         """Old arifos_core.metrics import works via shim."""
-        from arifos.enforcement.metrics import Metrics
+        from arifos.core.enforcement.metrics import Metrics
         assert Metrics is not None
 
     def test_old_genius_metrics_path_works(self):
         """Old arifos_core.genius_metrics import works via shim."""
-        from arifos.enforcement.genius_metrics import evaluate_genius_law
+        from arifos.core.enforcement.genius_metrics import evaluate_genius_law
         # May be None but import should work
         pass
 
     def test_old_fag_path_works(self):
         """Old arifos_core.fag import works via shim."""
-        from arifos.apex.governance.fag import FAG
+        from arifos.core.apex.governance.fag import FAG
         assert FAG is not None
 
 
@@ -213,7 +213,7 @@ class TestAPIRegistryValidation:
 
     def test_get_stable_exports(self):
         """get_stable_exports returns set of stable API names."""
-        from arifos.system.api_registry import get_stable_exports
+        from arifos.core.system.api_registry import get_stable_exports
         stable = get_stable_exports()
         assert isinstance(stable, set)
         assert "apex_review" in stable
@@ -222,7 +222,7 @@ class TestAPIRegistryValidation:
 
     def test_get_deprecated_exports(self):
         """get_deprecated_exports returns dict with replacements."""
-        from arifos.system.api_registry import get_deprecated_exports
+        from arifos.core.system.api_registry import get_deprecated_exports
         deprecated = get_deprecated_exports()
         assert isinstance(deprecated, dict)
         assert "Sentinel" in deprecated
@@ -232,7 +232,7 @@ class TestAPIRegistryValidation:
 
     def test_check_module_stability(self):
         """check_module_stability validates exports."""
-        from arifos.system.api_registry import check_module_stability
+        from arifos.core.system.api_registry import check_module_stability
         from arifos import __all__ as actual_all
 
         result = check_module_stability("arifos_core", actual_all)
@@ -346,19 +346,19 @@ class TestMCPAPIsBeta:
 
     def test_mcp_server_importable(self):
         """MCP server can be imported."""
-        from arifos.mcp.server import MCPServer
+        from arifos.core.mcp.server import MCPServer
         assert MCPServer is not None
 
     def test_mcp_tools_importable(self):
         """MCP tools can be imported."""
-        from arifos.mcp.server import TOOLS
+        from arifos.core.mcp.server import TOOLS
         assert "arifos_judge" in TOOLS
         assert "arifos_recall" in TOOLS
         assert "arifos_audit" in TOOLS
 
     def test_mcp_models_importable(self):
         """MCP models can be imported."""
-        from arifos.mcp.models import JudgeRequest, JudgeResponse
+        from arifos.core.mcp.models import JudgeRequest, JudgeResponse
         assert JudgeRequest is not None
         assert JudgeResponse is not None
 
@@ -368,12 +368,12 @@ class TestConstitutionalConstants:
 
     def test_truth_threshold(self):
         """F2 truth threshold is 0.99."""
-        from arifos.enforcement.metrics import TRUTH_THRESHOLD
+        from arifos.core.enforcement.metrics import TRUTH_THRESHOLD
         assert TRUTH_THRESHOLD == 0.99
 
     def test_genius_thresholds(self):
         """F8 genius floor and F9 dark ceiling via evaluate_genius_law."""
-        from arifos.enforcement.genius_metrics import evaluate_genius_law
+        from arifos.core.enforcement.genius_metrics import evaluate_genius_law
         from arifos import Metrics
         # GENIUS_FLOOR and DARK_CEILING may not be exported as constants
         # but the thresholds are enforced in evaluate_genius_law
@@ -397,7 +397,7 @@ class TestConstitutionalConstants:
 
     def test_omega_bounds(self):
         """F7 omega bounds are [0.03, 0.05]."""
-        from arifos.enforcement.metrics import OMEGA_0_MIN, OMEGA_0_MAX
+        from arifos.core.enforcement.metrics import OMEGA_0_MIN, OMEGA_0_MAX
         assert OMEGA_0_MIN == 0.03
         assert OMEGA_0_MAX == 0.05
 

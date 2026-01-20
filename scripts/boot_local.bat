@@ -11,4 +11,4 @@ if not exist "%~dp0\..\logs" mkdir "%~dp0\..\logs"
 set "PYTHON_EXE=%~dp0\..\.venv\Scripts\python.exe"
 
 :: Run with -u for unbuffered binary I/O (CRITICAL for MCP stdio)
-"%PYTHON_EXE%" -u -m arifos.mcp.unified_server 2> "%~dp0\..\logs\kimi_mcp_stderr.log"
+"%PYTHON_EXE%" -u -m arifos.core.mcp.unified_server 2> "%~dp0\..\logs\kimi_mcp_stderr.log"

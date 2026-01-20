@@ -22,7 +22,7 @@ echo Press Ctrl+C to stop
 echo.
 
 REM Start the server module
-python -m arifos.mcp.sse
+python -m arifos.core.mcp.sse
 
 echo.
 echo MCP server stopped.

@@ -16,7 +16,7 @@ import base64
 from unittest.mock import AsyncMock, patch
 from datetime import datetime, timezone
 from dataclasses import dataclass
-from arifos.mcp.tools.mcp_999_seal import (
+from arifos.core.mcp.tools.mcp_999_seal import (
     mcp_999_seal,
     mcp_999_seal_sync,
     generate_seal,

@@ -16,7 +16,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from arifos.apex.governance.fag import (FAG, PROTECTED_PATHS, FAGSnapshot,
+from arifos.core.apex.governance.fag import (FAG, PROTECTED_PATHS, FAGSnapshot,
                                         FAGWritePlan, MutationEvent,
                                         MutationWatchdog, OperatorAlert)
 

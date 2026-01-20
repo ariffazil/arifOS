@@ -254,7 +254,7 @@ class TestLayer2_FloorValidators:
 
     def test_f11_command_auth_validator(self):
         """F11 (CommandAuth): Nonce-based authentication"""
-        from arifos.guards.nonce_manager import NonceManager
+        from arifos.core.guards.nonce_manager import NonceManager
 
         nonce_mgr = NonceManager()
         user_id = "test_user"
@@ -269,7 +269,7 @@ class TestLayer2_FloorValidators:
 
     def test_f12_injection_defense_validator(self):
         """F12 (Injection): Pattern detection for prompt manipulation attacks"""
-        from arifos.guards.injection_guard import InjectionGuard
+        from arifos.core.guards.injection_guard import InjectionGuard
 
         guard = InjectionGuard()
 
@@ -329,8 +329,8 @@ class TestLayer3_FullE2EIntegration:
             validate_f2_truth, validate_f3_tri_witness, validate_f4_clarity,
             validate_f5_peace, validate_f6_empathy, validate_f10_ontology
         )
-        from arifos.guards.nonce_manager import NonceManager
-        from arifos.guards.injection_guard import InjectionGuard
+        from arifos.core.guards.nonce_manager import NonceManager
+        from arifos.core.guards.injection_guard import InjectionGuard
 
         # ====================================================================
         # STAGE 000: INIT

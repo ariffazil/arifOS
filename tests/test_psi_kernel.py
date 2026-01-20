@@ -12,9 +12,9 @@ Coverage:
 
 import pytest
 
-from arifos.agi.delta_kernel import DeltaKernel, DeltaVerdict
-from arifos.apex.psi_kernel import PsiKernel, PsiVerdict, Verdict, render_apex_verdict
-from arifos.asi.omega_kernel import OmegaKernel, OmegaVerdict
+from arifos.core.agi.delta_kernel import DeltaKernel, DeltaVerdict
+from arifos.core.apex.psi_kernel import PsiKernel, PsiVerdict, Verdict, render_apex_verdict
+from arifos.core.asi.omega_kernel import OmegaKernel, OmegaVerdict
 
 
 class TestF8Genius:

@@ -22,14 +22,14 @@ class TestToolRegistry:
 
     def test_list_tools_returns_dict(self):
         """list_tools should return a dict."""
-        from arifos.mcp import list_tools
+        from arifos.core.mcp import list_tools
 
         tools = list_tools()
         assert isinstance(tools, dict)
 
     def test_list_tools_contains_expected_tools(self):
         """list_tools should contain expected tool names."""
-        from arifos.mcp import list_tools
+        from arifos.core.mcp import list_tools
 
         tools = list_tools()
         assert "arifos_judge" in tools
@@ -39,14 +39,14 @@ class TestToolRegistry:
 
     def test_list_tools_returns_at_least_three_tools(self):
         """list_tools should return at least the core tools."""
-        from arifos.mcp import list_tools
+        from arifos.core.mcp import list_tools
 
         tools = list_tools()
         assert len(tools) >= 3
 
     def test_tools_are_callable(self):
         """All registered tools should be callable."""
-        from arifos.mcp import list_tools
+        from arifos.core.mcp import list_tools
 
         tools = list_tools()
         for name, fn in tools.items():
@@ -62,13 +62,13 @@ class TestJudgeTool:
 
     def test_judge_import(self):
         """arifos_judge should be importable."""
-        from arifos.mcp import arifos_judge
+        from arifos.core.mcp import arifos_judge
         assert callable(arifos_judge)
 
     def test_judge_returns_response(self):
         """arifos_judge should return a JudgeResponse."""
-        from arifos.mcp import arifos_judge
-        from arifos.mcp.models import JudgeRequest, JudgeResponse
+        from arifos.core.mcp import arifos_judge
+        from arifos.core.mcp.models import JudgeRequest, JudgeResponse
 
         request = JudgeRequest(query="What is 2 + 2?")
         result = arifos_judge(request)
@@ -77,8 +77,8 @@ class TestJudgeTool:
 
     def test_judge_returns_verdict(self):
         """arifos_judge should return a verdict string."""
-        from arifos.mcp import arifos_judge
-        from arifos.mcp.models import JudgeRequest
+        from arifos.core.mcp import arifos_judge
+        from arifos.core.mcp.models import JudgeRequest
 
         request = JudgeRequest(query="What is the capital of Japan?")
         result = arifos_judge(request)
@@ -87,8 +87,8 @@ class TestJudgeTool:
 
     def test_judge_returns_reason(self):
         """arifos_judge should return a reason string."""
-        from arifos.mcp import arifos_judge
-        from arifos.mcp.models import JudgeRequest
+        from arifos.core.mcp import arifos_judge
+        from arifos.core.mcp.models import JudgeRequest
 
         request = JudgeRequest(query="Hello world")
         result = arifos_judge(request)
@@ -98,8 +98,8 @@ class TestJudgeTool:
 
     def test_judge_handles_simple_factual_query(self):
         """arifos_judge should handle simple factual queries."""
-        from arifos.mcp import arifos_judge
-        from arifos.mcp.models import JudgeRequest
+        from arifos.core.mcp import arifos_judge
+        from arifos.core.mcp.models import JudgeRequest
 
         request = JudgeRequest(query="Define machine learning")
         result = arifos_judge(request)
@@ -109,8 +109,8 @@ class TestJudgeTool:
 
     def test_judge_with_user_id(self):
         """arifos_judge should accept optional user_id."""
-        from arifos.mcp import arifos_judge
-        from arifos.mcp.models import JudgeRequest
+        from arifos.core.mcp import arifos_judge
+        from arifos.core.mcp.models import JudgeRequest
 
         request = JudgeRequest(query="Test query", user_id="test_user_123")
         result = arifos_judge(request)
@@ -127,13 +127,13 @@ class TestRecallTool:
 
     def test_recall_import(self):
         """arifos_recall should be importable."""
-        from arifos.mcp import arifos_recall
+        from arifos.core.mcp import arifos_recall
         assert callable(arifos_recall)
 
     def test_recall_returns_response(self):
         """arifos_recall should return a RecallResponse."""
-        from arifos.mcp import arifos_recall
-        from arifos.mcp.models import RecallRequest, RecallResponse
+        from arifos.core.mcp import arifos_recall
+        from arifos.core.mcp.models import RecallRequest, RecallResponse
 
         request = RecallRequest(user_id="test_user", prompt="What is Amanah?")
         result = arifos_recall(request)
@@ -142,8 +142,8 @@ class TestRecallTool:
 
     def test_recall_returns_memories_list(self):
         """arifos_recall should return a memories list."""
-        from arifos.mcp import arifos_recall
-        from arifos.mcp.models import RecallRequest
+        from arifos.core.mcp import arifos_recall
+        from arifos.core.mcp.models import RecallRequest
 
         request = RecallRequest(user_id="test_user", prompt="test query")
         result = arifos_recall(request)
@@ -152,8 +152,8 @@ class TestRecallTool:
 
     def test_recall_includes_confidence_ceiling(self):
         """arifos_recall should include confidence ceiling."""
-        from arifos.mcp import arifos_recall
-        from arifos.mcp.models import RecallRequest
+        from arifos.core.mcp import arifos_recall
+        from arifos.core.mcp.models import RecallRequest
 
         request = RecallRequest(user_id="test_user", prompt="test")
         result = arifos_recall(request)
@@ -162,8 +162,8 @@ class TestRecallTool:
 
     def test_recall_includes_l7_available_flag(self):
         """arifos_recall should include l7_available flag."""
-        from arifos.mcp import arifos_recall
-        from arifos.mcp.models import RecallRequest
+        from arifos.core.mcp import arifos_recall
+        from arifos.core.mcp.models import RecallRequest
 
         request = RecallRequest(user_id="test_user", prompt="test")
         result = arifos_recall(request)
@@ -172,8 +172,8 @@ class TestRecallTool:
 
     def test_recall_includes_caveat(self):
         """arifos_recall should include a caveat string."""
-        from arifos.mcp import arifos_recall
-        from arifos.mcp.models import RecallRequest
+        from arifos.core.mcp import arifos_recall
+        from arifos.core.mcp.models import RecallRequest
 
         request = RecallRequest(user_id="test_user", prompt="test")
         result = arifos_recall(request)
@@ -192,13 +192,13 @@ class TestAuditTool:
 
     def test_audit_import(self):
         """arifos_audit should be importable."""
-        from arifos.mcp import arifos_audit
+        from arifos.core.mcp import arifos_audit
         assert callable(arifos_audit)
 
     def test_audit_returns_response(self):
         """arifos_audit should return an AuditResponse."""
-        from arifos.mcp import arifos_audit
-        from arifos.mcp.models import AuditRequest, AuditResponse
+        from arifos.core.mcp import arifos_audit
+        from arifos.core.mcp.models import AuditRequest, AuditResponse
 
         request = AuditRequest(user_id="test_user", days=7)
         result = arifos_audit(request)
@@ -207,8 +207,8 @@ class TestAuditTool:
 
     def test_audit_returns_entries_list(self):
         """arifos_audit should return an entries list."""
-        from arifos.mcp import arifos_audit
-        from arifos.mcp.models import AuditRequest
+        from arifos.core.mcp import arifos_audit
+        from arifos.core.mcp.models import AuditRequest
 
         request = AuditRequest(user_id="test_user", days=7)
         result = arifos_audit(request)
@@ -217,8 +217,8 @@ class TestAuditTool:
 
     def test_audit_returns_stub_status(self):
         """arifos_audit should return stub status (not_implemented)."""
-        from arifos.mcp import arifos_audit
-        from arifos.mcp.models import AuditRequest
+        from arifos.core.mcp import arifos_audit
+        from arifos.core.mcp.models import AuditRequest
 
         request = AuditRequest(user_id="test_user", days=7)
         result = arifos_audit(request)
@@ -227,8 +227,8 @@ class TestAuditTool:
 
     def test_audit_includes_note(self):
         """arifos_audit should include a note about future implementation."""
-        from arifos.mcp import arifos_audit
-        from arifos.mcp.models import AuditRequest
+        from arifos.core.mcp import arifos_audit
+        from arifos.core.mcp.models import AuditRequest
 
         request = AuditRequest(user_id="test_user", days=30)
         result = arifos_audit(request)
@@ -245,12 +245,12 @@ class TestRunToolDispatcher:
 
     def test_run_tool_import(self):
         """run_tool should be importable."""
-        from arifos.mcp import run_tool
+        from arifos.core.mcp import run_tool
         assert callable(run_tool)
 
     def test_run_tool_with_judge(self):
         """run_tool should work with arifos_judge."""
-        from arifos.mcp import run_tool
+        from arifos.core.mcp import run_tool
 
         result = run_tool("arifos_judge", {"query": "Test query"})
 
@@ -260,7 +260,7 @@ class TestRunToolDispatcher:
 
     def test_run_tool_with_recall(self):
         """run_tool should work with arifos_recall."""
-        from arifos.mcp import run_tool
+        from arifos.core.mcp import run_tool
 
         result = run_tool("arifos_recall", {"user_id": "test", "prompt": "test"})
 
@@ -270,7 +270,7 @@ class TestRunToolDispatcher:
 
     def test_run_tool_with_audit(self):
         """run_tool should work with arifos_audit."""
-        from arifos.mcp import run_tool
+        from arifos.core.mcp import run_tool
 
         result = run_tool("arifos_audit", {"user_id": "test", "days": 7})
 
@@ -280,7 +280,7 @@ class TestRunToolDispatcher:
 
     def test_run_tool_unknown_tool_raises(self):
         """run_tool should raise ValueError for unknown tool."""
-        from arifos.mcp import run_tool
+        from arifos.core.mcp import run_tool
 
         with pytest.raises(ValueError) as exc_info:
             run_tool("unknown_tool", {})
@@ -297,33 +297,33 @@ class TestMCPServerClass:
 
     def test_mcp_server_import(self):
         """MCPServer should be importable."""
-        from arifos.mcp.server import MCPServer
+        from arifos.core.mcp.server import MCPServer
         assert MCPServer is not None
 
     def test_mcp_server_instantiation(self):
         """MCPServer should be instantiable."""
-        from arifos.mcp.server import MCPServer
+        from arifos.core.mcp.server import MCPServer
 
         server = MCPServer()
         assert server is not None
 
     def test_mcp_server_has_name(self):
         """MCPServer should have a name."""
-        from arifos.mcp.server import MCPServer
+        from arifos.core.mcp.server import MCPServer
 
         server = MCPServer()
         assert server.name == "arifos-mcp"
 
     def test_mcp_server_has_version(self):
         """MCPServer should have a version."""
-        from arifos.mcp.server import MCPServer
+        from arifos.core.mcp.server import MCPServer
 
         server = MCPServer()
         assert server.version is not None
 
     def test_mcp_server_list_tools(self):
         """MCPServer.list_tools should return tool descriptions."""
-        from arifos.mcp.server import MCPServer
+        from arifos.core.mcp.server import MCPServer
 
         server = MCPServer()
         tools = server.list_tools()
@@ -334,7 +334,7 @@ class TestMCPServerClass:
 
     def test_mcp_server_call_tool(self):
         """MCPServer.call_tool should execute a tool."""
-        from arifos.mcp.server import MCPServer
+        from arifos.core.mcp.server import MCPServer
 
         server = MCPServer()
         result = server.call_tool("arifos_judge", {"query": "Test"})
@@ -344,7 +344,7 @@ class TestMCPServerClass:
 
     def test_mcp_server_get_info(self):
         """MCPServer.get_info should return server info."""
-        from arifos.mcp.server import MCPServer
+        from arifos.core.mcp.server import MCPServer
 
         server = MCPServer()
         info = server.get_info()
@@ -363,12 +363,12 @@ class TestToolDescriptions:
 
     def test_get_tool_descriptions_import(self):
         """get_tool_descriptions should be importable."""
-        from arifos.mcp.server import get_tool_descriptions
+        from arifos.core.mcp.server import get_tool_descriptions
         assert callable(get_tool_descriptions)
 
     def test_tool_descriptions_have_required_fields(self):
         """Tool descriptions should have required fields."""
-        from arifos.mcp.server import get_tool_descriptions
+        from arifos.core.mcp.server import get_tool_descriptions
 
         descriptions = get_tool_descriptions()
 
@@ -383,7 +383,7 @@ class TestToolDescriptions:
 
     def test_tool_descriptions_have_json_schema(self):
         """Tool descriptions should have JSON schema for parameters."""
-        from arifos.mcp.server import get_tool_descriptions
+        from arifos.core.mcp.server import get_tool_descriptions
 
         descriptions = get_tool_descriptions()
 

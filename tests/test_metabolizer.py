@@ -8,7 +8,7 @@ Canonical Location: arifos.orchestrator.metabolizer (v49 single-body)
 """
 import pytest
 
-from arifos.orchestrator.metabolizer import (AAAMetabolizer,
+from arifos.core.orchestrator.metabolizer import (AAAMetabolizer,
                                              PresentationStrategy, UserProfile)
 
 
@@ -203,7 +203,7 @@ def test_phase9_full_stack(metabolizer):
 
 def test_aclip_stage_inference():
     """Test aCLIP Protocol v49 stage inference from tool names."""
-    from arifos.orchestrator.mcp_gateway import MCPGateway
+    from arifos.core.orchestrator.mcp_gateway import MCPGateway
 
     gateway = MCPGateway()
 

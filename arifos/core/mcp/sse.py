@@ -1,4 +1,3 @@
-
 import os
 import sys
 
@@ -7,7 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from mcp.server.sse import SseServerTransport
 
-from arifos.core.mcp.unified_server import mcp_server
+from arifos.core.mcp.unified_server import mcp_server, TOOLS
 
 # =============================================================================
 # arifOS SSE Web Adapter (Stage 000 Cloud Bridge)
@@ -15,8 +14,8 @@ from arifos.core.mcp.unified_server import mcp_server
 
 app = FastAPI(
     title="arifOS Unified Cloud Interface",
-    description="Authorized Cloud Bridge for arifOS Constitutional Kernel. Exposes 17 MCP tools via SSE.",
-    version="v47.0.0 (Cloud)",
+    description=f"Authorized Cloud Bridge for arifOS Constitutional Kernel. Exposes {len(TOOLS)} MCP tools via SSE.",
+    version="v50.0.0 (Cloud)",
     docs_url="/docs",
     redoc_url="/redoc"
 )
@@ -48,7 +47,7 @@ async def handle_health():
     return {
         "status": "healthy",
         "mode": "SSE",
-        "tools": 17,
+        "tools": len(TOOLS),
         "framework": "FastAPI",
         "doc_url": "/docs"
     }
@@ -56,8 +55,9 @@ async def handle_health():
 def main():
     """Run the server."""
     port = int(os.environ.get("PORT", 8000))
-    print(f"Starting arifOS SSE Server on port {port}...")
+    print(f"Starting arifOS SSE Server v50.0.0 on port {port}...")
     print(f"Docs: http://localhost:{port}/docs")
+    # Use lifespan handling by default in modern FastAPI/Uvicorn
     uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
 
 if __name__ == "__main__":

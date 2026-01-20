@@ -33,8 +33,8 @@ class MCPConstitutionalValidator:
         print("-" * 50)
         
         try:
-            from arifos.kernel.mcp_server import ConstitutionalMCPServer
-            from arifos.kernel.constitutional import ConstitutionalKernel
+            from arifos.core.kernel.mcp_server import ConstitutionalMCPServer
+            from arifos.core.kernel.constitutional import ConstitutionalKernel
             import mcp.types as types
             
             # Test 1: Kernel imports translate to MCP server
@@ -77,7 +77,7 @@ class MCPConstitutionalValidator:
         print("-" * 50)
         
         try:
-            from arifos.kernel.mcp_server import ConstitutionalMCPServer
+            from arifos.core.kernel.mcp_server import ConstitutionalMCPServer
             
             server = ConstitutionalMCPServer()
             
@@ -135,7 +135,7 @@ class MCPConstitutionalValidator:
         print("-" * 50)
         
         try:
-            from arifos.kernel.mcp_server import ConstitutionalMCPServer
+            from arifos.core.kernel.mcp_server import ConstitutionalMCPServer
             
             server = ConstitutionalMCPServer()
             
@@ -196,7 +196,7 @@ class MCPConstitutionalValidator:
         print("-" * 50)
         
         try:
-            from arifos.kernel.mcp_server import ConstitutionalMCPServer
+            from arifos.core.kernel.mcp_server import ConstitutionalMCPServer
             
             server = ConstitutionalMCPServer()
             
@@ -269,7 +269,7 @@ class MCPConstitutionalValidator:
                     print(f"FAILED: {component} is missing: {e}")
             
             # Check MCP tool registration
-            from arifos.kernel.mcp_server import ConstitutionalMCPServer
+            from arifos.core.kernel.mcp_server import ConstitutionalMCPServer
             server = ConstitutionalMCPServer()
             
             expected_tools = ["arifos_live", "agi_think", "asi_act", "apex_seal", "get_constitutional_metrics", "constitutional_health"]

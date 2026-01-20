@@ -15,7 +15,7 @@ async def test_arifos_live_tool():
     print("Testing arifos_live tool with fixed response format...")
     
     try:
-        from arifos.kernel.mcp_server import ConstitutionalMCPServer
+        from arifos.core.kernel.mcp_server import ConstitutionalMCPServer
         import mcp.types as types
         
         server = ConstitutionalMCPServer()
@@ -58,7 +58,7 @@ async def test_agi_think_tool():
     print("\nTesting agi_think tool with fixed response format...")
     
     try:
-        from arifos.kernel.mcp_server import ConstitutionalMCPServer
+        from arifos.core.kernel.mcp_server import ConstitutionalMCPServer
         import mcp.types as types
         
         server = ConstitutionalMCPServer()
@@ -99,7 +99,7 @@ async def test_asi_act_tool():
     print("\nTesting asi_act tool with fixed response format...")
     
     try:
-        from arifos.kernel.mcp_server import ConstitutionalMCPServer
+        from arifos.core.kernel.mcp_server import ConstitutionalMCPServer
         import mcp.types as types
         
         server = ConstitutionalMCPServer()

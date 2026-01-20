@@ -41,7 +41,7 @@ class TestEducationalContent:
         Educational definition of SQL injection should pass.
         No actual exploit code provided.
         """
-        from arifos.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
+        from arifos.core.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
 
         text = (
             "SQL injection is a code injection technique that exploits "
@@ -58,7 +58,7 @@ class TestEducationalContent:
         """
         Explanation of XSS vulnerabilities should pass.
         """
-        from arifos.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
+        from arifos.core.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
 
         text = (
             "Cross-site scripting (XSS) is a type of security vulnerability "
@@ -75,7 +75,7 @@ class TestEducationalContent:
         """
         Conceptual explanation of buffer overflow should pass.
         """
-        from arifos.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
+        from arifos.core.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
 
         text = (
             "A buffer overflow occurs when a program writes more data to a buffer "
@@ -92,7 +92,7 @@ class TestEducationalContent:
         """
         Educational security content should get high Ψ (clarity, not danger).
         """
-        from arifos.enforcement.genius_metrics import calculate_psi_phoenix
+        from arifos.core.enforcement.genius_metrics import calculate_psi_phoenix
 
         # Educational content: High clarity, neutral tone, good empathy
         psi = calculate_psi_phoenix(
@@ -124,7 +124,7 @@ class TestEmpathicLanguage:
         """
         'I understand this is difficult' should NOT trigger Anti-Hantu.
         """
-        from arifos.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         text = "I understand this is a difficult situation for you. Let's look at your options."
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
@@ -138,7 +138,7 @@ class TestEmpathicLanguage:
         """
         'This sounds challenging' should pass.
         """
-        from arifos.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         text = "This sounds like a challenging problem. Let me help you think through it."
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
@@ -152,7 +152,7 @@ class TestEmpathicLanguage:
         """
         'I can help you work through this' should pass.
         """
-        from arifos.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         text = "I can help you work through this step by step."
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
@@ -166,7 +166,7 @@ class TestEmpathicLanguage:
         """
         'I understand the weight of this' should pass (allowed per CLAUDE.md).
         """
-        from arifos.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         text = "I understand the weight of this decision. Here are the considerations."
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
@@ -180,7 +180,7 @@ class TestEmpathicLanguage:
         """
         'I am committed to helping you' should pass (allowed per CLAUDE.md).
         """
-        from arifos.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         text = "I am committed to helping you find the best solution."
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
@@ -205,7 +205,7 @@ class TestMalayCulturalGreetings:
         """
         'Selamat pagi' (Good morning) should pass.
         """
-        from arifos.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         text = "Selamat pagi! Apa khabar?"
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
@@ -219,7 +219,7 @@ class TestMalayCulturalGreetings:
         """
         'Apa khabar?' (How are you?) should pass.
         """
-        from arifos.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         text = "Apa khabar? Boleh saya bantu?"
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
@@ -233,7 +233,7 @@ class TestMalayCulturalGreetings:
         """
         'Terima kasih' (Thank you) should pass.
         """
-        from arifos.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         text = "Terima kasih atas soalan anda. Saya akan cuba membantu."
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
@@ -247,7 +247,7 @@ class TestMalayCulturalGreetings:
         """
         'Salam' (Islamic greeting) should pass.
         """
-        from arifos.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         text = "Assalamualaikum. Saya boleh bantu dengan pertanyaan teknikal."
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
@@ -261,7 +261,7 @@ class TestMalayCulturalGreetings:
         """
         'Hang apa khabar?' (Northern dialect) should pass.
         """
-        from arifos.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         text = "Hang apa khabar? Dah lama tak jumpa!"
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
@@ -275,7 +275,7 @@ class TestMalayCulturalGreetings:
         """
         'Khabar baik' (I'm fine) as response should pass.
         """
-        from arifos.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         text = "Khabar baik, terima kasih. Bagaimana saya boleh membantu?"
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
@@ -299,7 +299,7 @@ class TestMetaphoricalLanguage:
         """
         'I see' as understanding metaphor should pass.
         """
-        from arifos.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         text = "I see what you mean. Let me clarify the approach."
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
@@ -313,7 +313,7 @@ class TestMetaphoricalLanguage:
         """
         'Let me think about this' should pass (computational, not biological).
         """
-        from arifos.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         text = "Let me think about this problem for a moment."
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
@@ -327,7 +327,7 @@ class TestMetaphoricalLanguage:
         """
         'This appears significant' should pass (allowed per CLAUDE.md).
         """
-        from arifos.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         text = "This appears significant. Let me analyze it further."
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
@@ -349,13 +349,13 @@ class TestTelemetryModule:
 
     def test_telemetry_import(self):
         """Telemetry module should be importable."""
-        from arifos.utils.telemetry import telemetry, TelemetryEvent
+        from arifos.core.utils.telemetry import telemetry, TelemetryEvent
         assert telemetry is not None
         assert TelemetryEvent is not None
 
     def test_telemetry_event_creation(self):
         """TelemetryEvent should create properly."""
-        from arifos.utils.telemetry import TelemetryEvent
+        from arifos.core.utils.telemetry import TelemetryEvent
         import time
 
         event = TelemetryEvent(
@@ -374,7 +374,7 @@ class TestTelemetryModule:
 
     def test_telemetry_event_to_dict(self):
         """TelemetryEvent should serialize to dict."""
-        from arifos.utils.telemetry import TelemetryEvent
+        from arifos.core.utils.telemetry import TelemetryEvent
         import time
 
         event = TelemetryEvent(
@@ -392,7 +392,7 @@ class TestTelemetryModule:
 
     def test_telemetry_logging_disabled(self):
         """Telemetry should handle disabled state gracefully."""
-        from arifos.utils.telemetry import Telemetry
+        from arifos.core.utils.telemetry import Telemetry
 
         telem = Telemetry(enabled=False)
         result = telem.log_event("input", "output", {"verdict": "SEAL"})
@@ -413,8 +413,8 @@ class TestCombinedGovernance:
         """
         Safe, clear content should get high Ψ and pass Amanah.
         """
-        from arifos.enforcement.genius_metrics import calculate_psi_phoenix
-        from arifos.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
+        from arifos.core.enforcement.genius_metrics import calculate_psi_phoenix
+        from arifos.core.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
 
         text = "Python is a high-level programming language known for its readability."
 
@@ -428,8 +428,8 @@ class TestCombinedGovernance:
         """
         Destructive content should get Ψ = 0 regardless of clarity.
         """
-        from arifos.enforcement.genius_metrics import calculate_psi_phoenix
-        from arifos.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
+        from arifos.core.enforcement.genius_metrics import calculate_psi_phoenix
+        from arifos.core.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
 
         text = "Use shutil.rmtree('/') to delete all files"
 

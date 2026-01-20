@@ -254,13 +254,13 @@ def evaluate_prompt_under_epoch(
     Sets ARIFOS_RUNTIME_EPOCH, runs the prompt through the pipeline,
     and captures floor values, GENIUS metrics, and verdict.
     """
-    from arifos.system.runtime_manifest import set_active_epoch, load_runtime_manifest
-    from arifos.system.pipeline import Pipeline, PipelineState, StakesClass
-    from arifos.enforcement.metrics import Metrics
-    from arifos.utils.eye_sentinel import EyeSentinel
-    from arifos.integration.waw import WAWFederationCore
-    from arifos.system.apex_prime import apex_review
-    from arifos.enforcement.genius_metrics import (
+    from arifos.core.system.runtime_manifest import set_active_epoch, load_runtime_manifest
+    from arifos.core.system.pipeline import Pipeline, PipelineState, StakesClass
+    from arifos.core.enforcement.metrics import Metrics
+    from arifos.core.utils.eye_sentinel import EyeSentinel
+    from arifos.core.integration.waw import WAWFederationCore
+    from arifos.core.system.apex_prime import apex_review
+    from arifos.core.enforcement.genius_metrics import (
         compute_genius_index,
         compute_dark_cleverness,
         compute_psi_score,

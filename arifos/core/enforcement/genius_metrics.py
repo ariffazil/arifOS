@@ -105,7 +105,7 @@ def _load_genius_spec() -> dict:
     else:
         manifest_path = v44_manifest_path
 
-    verify_manifest(pkg_dir.parent, manifest_path, allow_legacy=allow_legacy)
+    verify_manifest(pkg_dir, manifest_path, allow_legacy=allow_legacy)
 
     # Priority A: Environment variable override
     env_path = os.getenv("ARIFOS_GENIUS_SPEC")

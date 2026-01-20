@@ -37,7 +37,7 @@ def _load_session_physics_spec() -> dict:
     Returns:
         dict: The loaded spec with physics thresholds
     """
-    pkg_dir = Path(__file__).resolve().parent.parent.parent.parent  # repo root
+    pkg_dir = Path(__file__).resolve().parent.parent.parent.parent.parent  # repo root
     allow_legacy = os.getenv("ARIFOS_ALLOW_LEGACY_SPEC", "0") == "1"
 
     # Try v45 schema first, fallback to v44

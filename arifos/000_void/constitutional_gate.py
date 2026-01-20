@@ -17,7 +17,7 @@ import time
 from dataclasses import asdict, dataclass
 from typing import Any, Dict, Tuple
 
-from ..system.apex_prime import ApexVerdict, Verdict
+from ..core.system.apex_prime import ApexVerdict, Verdict
 from .authority_manifest import AuthorityManifest
 from .injection_defense import InjectionDefense
 from .thermodynamics import ThermodynamicCooling

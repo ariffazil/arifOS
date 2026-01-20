@@ -15,7 +15,7 @@ Version: v38.3
 """
 
 import pytest
-from arifos.memory.core.policy import MemoryWritePolicy, VERDICT_BAND_ROUTING
+from arifos.core.memory.core.policy import MemoryWritePolicy, VERDICT_BAND_ROUTING
 
 
 class TestTimeImmutability:

@@ -1,6 +1,6 @@
 """Tests for MCP Tool 777: FORGE"""
 import pytest
-from arifos.mcp.tools.mcp_777_forge import mcp_777_forge, mcp_777_forge_sync, detect_contradictions, inject_humility_markers
+from arifos.core.mcp.tools.mcp_777_forge import mcp_777_forge, mcp_777_forge_sync, detect_contradictions, inject_humility_markers
 
 def test_detect_contradictions():
     assert len(detect_contradictions("always true never false")) > 0
@@ -94,7 +94,7 @@ async def test_forge_side_data_complete():
 
 def test_improve_clarity_removes_repeated_punctuation():
     """Test: Clarity improvement removes repeated punctuation."""
-    from arifos.mcp.tools.mcp_777_forge import improve_clarity
+    from arifos.core.mcp.tools.mcp_777_forge import improve_clarity
 
     result = improve_clarity("What???? Really!!!")
     assert "????" not in result

@@ -15,7 +15,7 @@ Coverage:
 
 import pytest
 
-from arifos.asi.omega_kernel import OmegaKernel, OmegaVerdict, evaluate_asi_floors
+from arifos.core.asi.omega_kernel import OmegaKernel, OmegaVerdict, evaluate_asi_floors
 
 
 class TestF3TriWitness:

@@ -57,21 +57,21 @@ def test_cli_imports():
     """Test that CLI imports work."""
     try:
         # Just test that the module can be imported
-        import arifos.system.__main__ as cli_module
+        import arifos.core.system.__main__ as cli_module
 
         # Check for quantum imports
         source = __file__.replace("test_aaa_migration_cli.py", "arifos_core/system/__main__.py")
         with open(source, "r", encoding="utf-8") as f:
             content = f.read()
 
-        assert "from arifos.mcp import validate_text_sync" in content, \
+        assert "from arifos.core.mcp import validate_text_sync" in content, \
             "Missing AAA import"
 
         assert "quantum_state = validate_text_sync(" in content, \
             "Not using quantum validation"
 
         # Check old pipeline is NOT imported
-        assert "from arifos.system.pipeline import Pipeline" not in content or \
+        assert "from arifos.core.system.pipeline import Pipeline" not in content or \
                "# OLD" in content, \
             "Old pipeline still imported"
 

@@ -17,7 +17,7 @@ import pytest
 # Set TCHA enabled for tests
 os.environ["ARIFOS_TCHA_ENABLED"] = "1"
 
-from arifos.enforcement.tcha_metrics import (TCHAResult,
+from arifos.core.enforcement.tcha_metrics import (TCHAResult,
                                                   _load_tcha_policy,
                                                   check_delay_harm,
                                                   detect_time_critical,
@@ -38,7 +38,7 @@ class TestTCHAEnabled:
         """TCHA should be disabled when env var not set."""
         # Mock the enabled check directly for reliable test
         with patch("arifos_core.enforcement.tcha_metrics.is_tcha_enabled", return_value=False):
-            from arifos.enforcement.tcha_metrics import \
+            from arifos.core.enforcement.tcha_metrics import \
                 is_tcha_enabled as mock_check
 
             # This actually tests our mock, not the real function
@@ -205,7 +205,7 @@ class TestPipelineIntegration:
 
     def test_pipeline_state_has_tcha_fields(self):
         """PipelineState should have TCHA fields."""
-        from arifos.system.pipeline import PipelineState
+        from arifos.core.system.pipeline import PipelineState
 
         state = PipelineState(query="test")
         assert hasattr(state, "is_time_critical")
@@ -215,7 +215,7 @@ class TestPipelineIntegration:
 
     def test_stage_111_detects_tcha(self):
         """Stage 111 should detect time-critical queries."""
-        from arifos.system.pipeline import (PipelineState, stage_000_void,
+        from arifos.core.system.pipeline import (PipelineState, stage_000_void,
                                                  stage_111_sense)
 
         state = PipelineState(query="Emergency! Someone is having a heart attack!")

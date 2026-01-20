@@ -20,7 +20,7 @@ import statistics
 from typing import Dict, List, Any
 from dataclasses import dataclass
 
-from arifos.enforcement.response_validator_extensions import validate_response_full
+from arifos.core.enforcement.response_validator_extensions import validate_response_full
 
 
 @dataclass

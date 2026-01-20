@@ -94,28 +94,28 @@ class TestCoolingTierCalculation:
 
     def test_seal_no_warnings_tier_0(self):
         """SEAL with no warnings = Tier 0 (immediate)."""
-        from arifos.asi.cooling import calculate_cooling_tier
+        from arifos.core.asi.cooling import calculate_cooling_tier
 
         tier = calculate_cooling_tier("SEAL", warnings=0)
         assert tier == 0
 
     def test_seal_one_warning_tier_1(self):
         """SEAL with 1 warning = Tier 1 (42h)."""
-        from arifos.asi.cooling import calculate_cooling_tier
+        from arifos.core.asi.cooling import calculate_cooling_tier
 
         tier = calculate_cooling_tier("SEAL", warnings=1)
         assert tier == 1
 
     def test_seal_multiple_warnings_tier_2(self):
         """SEAL with 2+ warnings = Tier 2 (72h)."""
-        from arifos.asi.cooling import calculate_cooling_tier
+        from arifos.core.asi.cooling import calculate_cooling_tier
 
         tier = calculate_cooling_tier("SEAL", warnings=2)
         assert tier == 2
 
     def test_partial_tier_1_or_2(self):
         """PARTIAL = Tier 1 or 2 based on warnings."""
-        from arifos.asi.cooling import calculate_cooling_tier
+        from arifos.core.asi.cooling import calculate_cooling_tier
 
         tier_low = calculate_cooling_tier("PARTIAL", warnings=1)
         tier_high = calculate_cooling_tier("PARTIAL", warnings=3)
@@ -124,21 +124,21 @@ class TestCoolingTierCalculation:
 
     def test_sabar_tier_2(self):
         """SABAR = Tier 2 (72h)."""
-        from arifos.asi.cooling import calculate_cooling_tier
+        from arifos.core.asi.cooling import calculate_cooling_tier
 
         tier = calculate_cooling_tier("SABAR", warnings=0)
         assert tier == 2
 
     def test_void_tier_3(self):
         """VOID = Tier 3 (168h)."""
-        from arifos.asi.cooling import calculate_cooling_tier
+        from arifos.core.asi.cooling import calculate_cooling_tier
 
         tier = calculate_cooling_tier("VOID", warnings=0)
         assert tier == 3
 
     def test_888_hold_tier_3(self):
         """888_HOLD = Tier 3 (168h)."""
-        from arifos.asi.cooling import calculate_cooling_tier
+        from arifos.core.asi.cooling import calculate_cooling_tier
 
         tier = calculate_cooling_tier("888_HOLD", warnings=0)
         assert tier == 3
@@ -149,7 +149,7 @@ class TestCoolingEntry:
 
     def test_cooling_entry_creation(self):
         """Test CoolingEntry creation and serialization."""
-        from arifos.asi.cooling import CoolingEntry, CoolingStatus
+        from arifos.core.asi.cooling import CoolingEntry, CoolingStatus
 
         now = datetime.now(timezone.utc)
         entry = CoolingEntry(
@@ -176,7 +176,7 @@ class TestCoolingEntry:
 
     def test_cooling_entry_is_expired_tier_0(self):
         """Tier 0 entries are always complete."""
-        from arifos.asi.cooling import CoolingEntry, CoolingStatus
+        from arifos.core.asi.cooling import CoolingEntry, CoolingStatus
 
         now = datetime.now(timezone.utc)
         entry = CoolingEntry(
@@ -200,7 +200,7 @@ class TestCoolingLedger:
 
     def test_ledger_append_and_get(self):
         """Test appending and retrieving cooling entries."""
-        from arifos.asi.cooling import CoolingEntry, CoolingLedger, CoolingStatus
+        from arifos.core.asi.cooling import CoolingEntry, CoolingLedger, CoolingStatus
 
         with tempfile.TemporaryDirectory() as tmpdir:
             ledger_path = Path(tmpdir) / "test_cooling.jsonl"
@@ -232,7 +232,7 @@ class TestCoolingLedger:
 
     def test_ledger_get_by_session(self):
         """Test retrieving entries by session ID."""
-        from arifos.asi.cooling import CoolingEntry, CoolingLedger, CoolingStatus
+        from arifos.core.asi.cooling import CoolingEntry, CoolingLedger, CoolingStatus
 
         with tempfile.TemporaryDirectory() as tmpdir:
             ledger_path = Path(tmpdir) / "test_cooling.jsonl"
@@ -267,7 +267,7 @@ class TestCoolingEngineEnforcement:
 
     async def test_enforce_tier_0_immediate(self):
         """Tier 0 should complete immediately."""
-        from arifos.asi.cooling import CoolingEngine, CoolingLedger
+        from arifos.core.asi.cooling import CoolingEngine, CoolingLedger
 
         with tempfile.TemporaryDirectory() as tmpdir:
             ledger_path = Path(tmpdir) / "test_cooling.jsonl"
@@ -286,7 +286,7 @@ class TestCoolingEngineEnforcement:
 
     async def test_enforce_tier_1_starts_cooling(self):
         """Tier 1 should start cooling (not block by default)."""
-        from arifos.asi.cooling import CoolingEngine, CoolingLedger
+        from arifos.core.asi.cooling import CoolingEngine, CoolingLedger
 
         with tempfile.TemporaryDirectory() as tmpdir:
             ledger_path = Path(tmpdir) / "test_cooling.jsonl"
@@ -316,7 +316,7 @@ class TestZKPCMetrics:
 
     def test_zkpc_metrics_validation_stub(self):
         """Stub metrics should fail validation."""
-        from arifos.apex.governance.zkpc_runtime import ZKPCMetrics
+        from arifos.core.apex.governance.zkpc_runtime import ZKPCMetrics
 
         metrics = ZKPCMetrics(
             delta_s=0.0,
@@ -346,7 +346,7 @@ class TestZKPCMetrics:
 
     def test_zkpc_metrics_validation_real(self):
         """Real metrics with proper timing should pass validation."""
-        from arifos.apex.governance.zkpc_runtime import ZKPCMetrics
+        from arifos.core.apex.governance.zkpc_runtime import ZKPCMetrics
 
         metrics = ZKPCMetrics(
             delta_s=-0.05,  # Entropy reduced
@@ -379,7 +379,7 @@ class TestZKPCRuntime:
 
     def test_build_care_scope(self):
         """Test PAUSE phase - build care scope."""
-        from arifos.apex.governance.zkpc_runtime import ZKPCContext, ZKPCRuntime
+        from arifos.core.apex.governance.zkpc_runtime import ZKPCContext, ZKPCRuntime
 
         runtime = ZKPCRuntime()
         ctx = ZKPCContext(
@@ -398,7 +398,7 @@ class TestZKPCRuntime:
 
     def test_compute_metrics_with_real_data(self):
         """Test CONTRAST phase with real floor scores."""
-        from arifos.apex.governance.zkpc_runtime import ZKPCContext, ZKPCRuntime
+        from arifos.core.apex.governance.zkpc_runtime import ZKPCContext, ZKPCRuntime
 
         runtime = ZKPCRuntime()
         ctx = ZKPCContext(
@@ -623,7 +623,7 @@ class TestV49_1Integration:
 
     def test_zkpc_with_real_cooling(self):
         """Test zkPC with real Phoenix-72 cooling."""
-        from arifos.apex.governance.zkpc_runtime import ZKPCContext, ZKPCRuntime, ZKPCMetrics
+        from arifos.core.apex.governance.zkpc_runtime import ZKPCContext, ZKPCRuntime, ZKPCMetrics
 
         runtime = ZKPCRuntime()
         ctx = ZKPCContext(

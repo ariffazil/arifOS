@@ -1,6 +1,6 @@
 """Tests for MCP Tool 889: PROOF - Cryptographic Proof Generation"""
 import pytest
-from arifos.mcp.tools.mcp_889_proof import (
+from arifos.core.mcp.tools.mcp_889_proof import (
     mcp_889_proof,
     mcp_889_proof_sync,
     generate_proof_hash,
