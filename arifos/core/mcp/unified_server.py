@@ -42,10 +42,10 @@ from .tools.fag_list import arifos_fag_list
 from .tools.fag_read import arifos_fag_read
 from .tools.fag_stats import arifos_fag_stats
 from .tools.fag_write import arifos_fag_write
-from .tools.tempa_list import arifos_tempa_list
-from .tools.tempa_read import arifos_tempa_read
-from .tools.tempa_stats import arifos_tempa_stats
-from .tools.tempa_write import arifos_tempa_write
+from .tools.tempa_list import fag_list as arifos_tempa_list
+from .tools.tempa_read import tempa_read as arifos_tempa_read
+from .tools.tempa_stats import fag_stats as arifos_tempa_stats
+from .tools.tempa_write import fag_write as arifos_tempa_write
 from .tools.mcp_444_evidence import mcp_444_evidence as arifos_444_evidence
 from .tools.mcp_777_forge import mcp_777_forge as arifos_777_forge
 from .tools.mcp_888_judge import mcp_888_judge as arifos_888_judge
@@ -245,6 +245,42 @@ def create_stdio_server() -> Server:
 # =============================================================================
 
 mcp_server = create_stdio_server()
+
+# =============================================================================
+# WRAPPER FUNCTIONS (For backwards compatibility with __init__.py)
+# =============================================================================
+
+async def list_tools() -> List[mcp.types.Tool]:
+    """Wrapper to list all tools (backwards compatibility)."""
+    tools_list = []
+    for name, func in TOOLS.items():
+        desc = TOOL_DESCRIPTIONS.get(name, {}).get("description", f"Tool {name}")
+        schema = TOOL_DESCRIPTIONS.get(name, {}).get("inputSchema", {"type": "object", "properties": {"query": {"type": "string"}}})
+
+        tools_list.append(
+            mcp.types.Tool(
+                name=name,
+                description=desc,
+                inputSchema=schema,
+            )
+        )
+    return tools_list
+
+async def run_tool(name: str, arguments: Dict[str, Any]) -> Any:
+    """Wrapper to run a tool by name (backwards compatibility)."""
+    tool = TOOLS.get(name)
+    if not tool:
+        raise ValueError(f"Unknown tool: {name}")
+
+    try:
+        import inspect
+        if inspect.iscoroutinefunction(tool):
+            return await tool(**arguments)
+        else:
+            return tool(**arguments)
+    except Exception as e:
+        logger.error(f"Error executing tool {name}: {e}")
+        return {"error": str(e), "tool": name}
 
 async def main():
     """Main entry point for stdio server."""
