@@ -70,7 +70,7 @@ def _load_genius_spec() -> dict:
     Raises:
         RuntimeError: If v47/v46/v45 spec missing/invalid
     """
-    pkg_dir = Path(__file__).resolve().parent.parent.parent  # repo root
+    pkg_dir = Path(__file__).resolve().parent.parent.parent.parent  # repo root (arifOS/)
     # v47.0: Support AAA_MCP/v47/ as primary, fall back to v46/v45/v44
     # allow_legacy allows bypass via ARIFOS_ALLOW_LEGACY_SPEC env var
     allow_legacy = os.getenv("ARIFOS_ALLOW_LEGACY_SPEC", "0") == "1"
