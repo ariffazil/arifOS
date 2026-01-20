@@ -34,13 +34,13 @@ from datetime import datetime
 # ============================================================================
 
 @pytest.fixture
-async def test_query():
+def test_query():
     """Sample constitutional query for pipeline testing."""
     return "What are the 13 constitutional floors of arifOS?"
 
 
 @pytest.fixture
-async def session_context():
+def session_context():
     """Initialize session context for E2E test."""
     return {
         "session_id": f"test_e2e_{datetime.utcnow().isoformat()}",
@@ -100,7 +100,7 @@ async def test_full_pipeline_000_to_999_real_servers(test_query, session_context
     # ========================================================================
     # STAGE 000: INIT - Vault initialization
     # ========================================================================
-    from arifos.orchestrator.metabolizer import Metabolizer
+    from arifos.core.metabolizer import Metabolizer
 
     metabolizer = Metabolizer()
     metabolizer.initialize()
@@ -119,9 +119,10 @@ async def test_full_pipeline_000_to_999_real_servers(test_query, session_context
     # F11 (CommandAuth): Verify nonce-based auth
     from arifos.guards.nonce_manager import NonceManager
     nonce_mgr = NonceManager()
-    session_nonce = nonce_mgr.generate()
+    session_nonce = nonce_mgr.generate_nonce(user_id=session_context["user_id"])
     session_bundle["nonce"] = session_nonce
-    assert nonce_mgr.verify(session_nonce), "F11 CommandAuth failed at INIT"
+    verification_result = nonce_mgr.verify_nonce(session_context["user_id"], session_nonce)
+    assert verification_result.authenticated, f"F11 CommandAuth failed at INIT: {verification_result.reason}"
 
     # F12 (Injection): Screen query for injection patterns
     from arifos.guards.injection_guard import InjectionGuard
@@ -145,9 +146,9 @@ async def test_full_pipeline_000_to_999_real_servers(test_query, session_context
     from arifos.core.floor_validators import validate_f10_ontology
 
     # F10 (Ontology): Verify symbolic mode
-    f10_result = validate_f10_ontology(test_query, session_bundle)
+    f10_result = validate_f10_ontology(test_query)
     assert f10_result["pass"], f"F10 Ontology failed: {f10_result['reason']}"
-    session_bundle["floor_scores_cumulative"]["F10_ontology"] = f10_result["score"]
+    session_bundle["floor_scores_cumulative"]["F10_ontology"] = 1.0 if f10_result["pass"] else 0.0
 
     # AGI SENSE logic (pattern extraction)
     sense_response = {
@@ -348,7 +349,13 @@ async def test_full_pipeline_000_to_999_real_servers(test_query, session_context
     from arifos.core.floor_validators import validate_f3_tri_witness
 
     # F3 (Tri-Witness): Human·AI·Earth consensus
-    f3_result = validate_f3_tri_witness(test_query, session_bundle)
+    # F3 needs AGI output (from sense/think/reason stages)
+    agi_output = {
+        "sense_data": session_bundle.get("sense_data", {}),
+        "think_data": session_bundle.get("think_data", {}),
+        "reason_data": session_bundle.get("reason_data", {})
+    }
+    f3_result = validate_f3_tri_witness(test_query, agi_output, session_bundle)
     if not f3_result["pass"]:
         session_bundle["warnings"].append(f"F3 Tri-Witness soft floor warning: {f3_result['reason']}")
 
@@ -501,7 +508,7 @@ async def test_full_pipeline_000_to_999_real_servers(test_query, session_context
 @pytest.mark.asyncio
 async def test_floor_f1_amanah_reversibility():
     """Verify F1 (Amanah): All pipeline actions are reversible."""
-    from arifos.orchestrator.metabolizer import Metabolizer
+    from arifos.core.metabolizer import Metabolizer
 
     m = Metabolizer()
     m.initialize()
@@ -561,7 +568,7 @@ async def test_verdict_hierarchy_enforcement():
 
     f2 = validate_f2_truth(context_seal["query"], context_seal)
     f4 = validate_f4_clarity(context_seal["query"], context_seal)
-    f10 = validate_f10_ontology(context_seal["query"], context_seal)
+    f10 = validate_f10_ontology(context_seal["query"])
 
     if f2["pass"] and f4["pass"] and f10["pass"]:
         expected_verdict = "SEAL"
