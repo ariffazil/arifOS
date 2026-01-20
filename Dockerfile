@@ -46,7 +46,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy dependency files first for better layer caching
-COPY pyproject.toml README.md requirements.txt requirements-railway.txt . ./
+COPY pyproject.toml README.md requirements-railway.txt ./
 
 # Install dependencies to a specific directory (Railway-specific, no database)
 RUN pip install --prefix=/install --no-warn-script-location -r requirements-railway.txt
