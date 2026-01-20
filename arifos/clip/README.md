@@ -4,7 +4,7 @@
 **Status:** LEGACY - This documentation describes aCLIP v43, which is superseded by v46/v47.
 
 **Migration Path:**
-- aCLIP pipeline concept is now integrated into `arifos_core/` (L3 implementation)
+- aCLIP pipeline concept is now integrated into `arifos/` (L3 implementation)
 - Pipeline specifications moved to `L2_PROTOCOLS/v46/` (L2 specs)
 - Constitutional pipeline documented in `L1_THEORY/canon/000_foundation/000_CONSTITUTIONAL_CORE_v46.md` (L1 canon)
 - Agent integration guide at `AGENTS.md` § Model-Agnostic Agent Architecture
@@ -15,7 +15,7 @@
 
 **Should you use this?**
 - ✅ For understanding aCLIP history and v43 architecture
-- ❌ For new implementations (use v46+ from `arifos_core/`)
+- ❌ For new implementations (use v46+ from `arifos/`)
 
 **See:** [`AGENTS.md`](../AGENTS.md) and [`L1_THEORY/canon/000_foundation/000_CONSTITUTIONAL_CORE_v46.md`](../L1_THEORY/canon/000_foundation/000_CONSTITUTIONAL_CORE_v46.md)
 

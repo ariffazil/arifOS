@@ -232,7 +232,7 @@ def request_verdict(session):
 ```
 
 Sealing requires:
-1. arifOS law engine reachable (evaluate_session in arifos_core.bridge or legacy shim)
+1. arifOS law engine reachable (evaluate_session in arifos.bridge or legacy shim)
 2. arifOS returns SEAL
 3. Valid authority token (HMAC/expiry/repo-bound) when applying
 
@@ -298,7 +298,7 @@ Remove-Item -Recurse -Force .\\.arifos_clip\\holds
 
 ### arifOS not available error
 
-This is expected until `arifos_core.evaluate_session()` is implemented. A CLIP is designed to be safe-by-default: if the law engine isn't available, it refuses to seal (HOLD).
+This is expected until `arifos.evaluate_session()` is implemented. A CLIP is designed to be safe-by-default: if the law engine isn't available, it refuses to seal (HOLD).
 
 ---
 

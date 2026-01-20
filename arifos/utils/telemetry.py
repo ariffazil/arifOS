@@ -1,4 +1,4 @@
-# arifos_core/telemetry.py
+# arifos/telemetry.py
 """
 telemetry.py — The Eye of arifOS (v36.2 PHOENIX Observability)
 

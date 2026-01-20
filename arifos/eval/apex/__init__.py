@@ -2,7 +2,7 @@
 APEX Measurement Layer (v45.0)
 
 This module provides evaluation harness for APEX PRIME judiciary metrics.
-It is separate from arifos_core to allow independent testing and iteration.
+It is separate from arifos to allow independent testing and iteration.
 
 **v45.0 Update:** Aligned with Phoenix-72 constitutional framework and Track B v45 specs.
 

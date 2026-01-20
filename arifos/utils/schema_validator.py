@@ -1,7 +1,7 @@
 """
-arifos_core.utils.schema_validator - BACKWARD COMPATIBILITY SHIM
+arifos.utils.schema_validator - BACKWARD COMPATIBILITY SHIM
 
-This module has been moved to arifos_core.spec.schema_validator to avoid
+This module has been moved to arifos.spec.schema_validator to avoid
 circular import issues (utils imports eye which imports metrics).
 
 This shim maintains backward compatibility for any code that imports from

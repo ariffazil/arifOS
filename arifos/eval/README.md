@@ -21,7 +21,7 @@
 
 | Component | Location | Purpose |
 |-----------|----------|---------|
-| **aCLIP (Pipeline)** | `arifos_core/` | Runtime governance (000→999 stages) |
+| **aCLIP (Pipeline)** | `arifos/` | Runtime governance (000→999 stages) |
 | **arifos_eval (Metrics)** | `arifos_eval/` | Evaluation harness (measure compliance) |
 
 ---
@@ -127,11 +127,11 @@ print(f"Meta-Select Consistency: {consistency:.2%}")
 
 | Component | Phase | Purpose | Example |
 |-----------|-------|---------|---------|
-| **`arifos_core/`** | Runtime | Execute constitutional pipeline | `from arifos_core.system.apex_prime import judge_output` |
+| **`arifos/`** | Runtime | Execute constitutional pipeline | `from arifos.system.apex_prime import judge_output` |
 | **`arifos_eval/`** | Evaluation | Measure compliance & performance | `from arifos_eval.apex import ApexMeasurement` |
 
 **Analogy:**
-- `arifos_core/` = The car's engine (runs the system)
+- `arifos/` = The car's engine (runs the system)
 - `arifos_eval/` = The dyno (measures performance)
 
 ### Integration with Tests
@@ -217,7 +217,7 @@ When adding evaluation metrics:
 
 **Don't:**
 - Duplicate code in `tests/eval/` (it's a re-export layer)
-- Mix evaluation with runtime code (`arifos_core/`)
+- Mix evaluation with runtime code (`arifos/`)
 
 ---
 
@@ -225,7 +225,7 @@ When adding evaluation metrics:
 
 - **L1 Constitutional Canon:** `L1_THEORY/canon/000_foundation/000_CONSTITUTIONAL_CORE_v46.md`
 - **L2 Specifications:** `L2_PROTOCOLS/v46/`
-- **L3 Runtime:** `arifos_core/`
+- **L3 Runtime:** `arifos/`
 - **Test Integration:** `tests/eval/README.md`
 - **APEX Details:** `apex/README.md`
 

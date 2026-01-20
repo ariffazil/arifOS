@@ -15,16 +15,11 @@ def _load_arifos_evaluator() -> Optional[Any]:
     except ImportError:
         pass
 
-    try:
-        # v49: Core Path (arifos.core)
-        from arifos.core.integration.bridge import evaluate_session
-        return evaluate_session
-    except ImportError:
-        pass
+    # v49: Core Path (arifos.core) - REMOVED (Redundant)
 
     try:
         # Legacy: Fallback (should be removed in v50)
-        import arifos_core.integration.bridge as legacy_bridge  # type: ignore
+        import arifos.integration.bridge as legacy_bridge  # type: ignore
         return legacy_bridge.evaluate_session
     except ImportError:
         pass

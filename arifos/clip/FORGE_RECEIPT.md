@@ -235,7 +235,7 @@ pytest arifos_clip/tests/ -v
    ```
 
 4. **Integration with arifOS:**
-   - Implement `arifos_core.evaluate_session()` for verdict generation
+   - Implement `arifos.evaluate_session()` for verdict generation
    - Connect to APEX_PRIME for floor evaluation
    - Link to Memory Write Policy Engine for EUREKA compliance
 
