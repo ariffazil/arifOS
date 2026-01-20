@@ -5,15 +5,11 @@ Test Component 4: Metabolizer
 Verifies the Encoder -> Metabolizer -> Decoder pipeline.
 
 Canonical Location: arifos.orchestrator.metabolizer (v49 single-body)
-NOTE: Tests use arifos_core imports during consolidation due to arifos/__init__.py
-      having deep spec file dependencies. After L2_PROTOCOLS migration, switch to:
-      from arifos.orchestrator.metabolizer import ...
 """
 import pytest
 
 from arifos.orchestrator.metabolizer import (AAAMetabolizer,
-                                             PresentationStrategy,
-                                             UserProfile)
+                                             PresentationStrategy, UserProfile)
 
 
 @pytest.fixture
@@ -94,7 +90,7 @@ def test_phase9_phoenix72_cooling(metabolizer):
     raw_output = {
         "verdict": "SABAR",
         "session_id": "session_cooling_test",
-        "stage": "888_SEAL",
+        "stage": "888_JUDGE",
         "output": {
             "phoenix72_cooling": {
                 "tier": 2,
@@ -164,7 +160,7 @@ def test_phase9_full_stack(metabolizer):
     raw_output = {
         "verdict": "SEAL",
         "session_id": "session_full_phase9",
-        "stage": "999_STORE",  # Fixed: aCLIP canonical name
+        "stage": "999_VAULT",  # Canonical name
         "latency_ms": 67.3,
         "floor_scores": {
             "F1_Amanah": {"pass": True, "score": 1.0},
@@ -202,7 +198,7 @@ def test_phase9_full_stack(metabolizer):
     assert "L2_WITNESS" in output
     assert "zkPC Receipt" in output
     assert "session_full_phase9" in output
-    assert "999_STORE" in output  # Fixed: aCLIP canonical name
+    assert "999_VAULT" in output
 
 
 def test_aclip_stage_inference():
@@ -215,17 +211,17 @@ def test_aclip_stage_inference():
     assert gateway._infer_stage_from_tool("vault/init") == "000_INIT"
     assert gateway._infer_stage_from_tool("sense_patterns") == "111_SENSE"
     assert gateway._infer_stage_from_tool("agi/think") == "222_THINK"
-    assert gateway._infer_stage_from_tool("reason_about") == "333_REASON"
+    assert gateway._infer_stage_from_tool("reason_about") == "333_ATLAS"
     assert gateway._infer_stage_from_tool("align_values") == "444_ALIGN"
     assert gateway._infer_stage_from_tool("asi/empathy") == "555_EMPATHY"
     assert gateway._infer_stage_from_tool("bridge_neuro") == "666_BRIDGE"
-    assert gateway._infer_stage_from_tool("reflect_verdict") == "777_REFLECT"
-    assert gateway._infer_stage_from_tool("apex/seal") == "888_SEAL"
-    assert gateway._infer_stage_from_tool("vault/store") == "999_STORE"
+    assert gateway._infer_stage_from_tool("reflect_verdict") == "777_EUREKA"
+    assert gateway._infer_stage_from_tool("apex/seal") == "888_JUDGE"
+    assert gateway._infer_stage_from_tool("vault/store") == "999_VAULT"
 
     # Test numeric code fallback
     assert gateway._infer_stage_from_tool("tool_111") == "111_SENSE"
-    assert gateway._infer_stage_from_tool("tool_999") == "999_STORE"
+    assert gateway._infer_stage_from_tool("tool_999") == "999_VAULT"
 
     # Test unknown tools
     assert gateway._infer_stage_from_tool("random_tool") == "unknown"

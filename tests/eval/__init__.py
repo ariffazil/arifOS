@@ -11,7 +11,7 @@ For new code, import directly from arifos_eval:
 See: arifos_eval/README.md for canonical documentation
 """
 
-# Re-export from canonical arifos_eval package
-from arifos_eval import *  # noqa: F401, F403
+# Re-export from canonical arifos.eval package (v49 namespace)
+from arifos.eval import *  # noqa: F401, F403
 
 __version__ = "45.0.0"  # Tracks arifos_eval version

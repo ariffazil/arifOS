@@ -1,5 +1,5 @@
 """
-arifos_core/agi/delta_kernel.py
+arifos/agi/delta_kernel.py
 
 DeltaKernel (Δ) - AGI Architect
 

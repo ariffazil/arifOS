@@ -1,5 +1,5 @@
 """
-arifos_core/stages/stage_333_reason.py
+arifos/stages/stage_333_reason.py
 
 Stage 333: REASON (Logic Generation)
 Function: Reasoning, Exploration, Structured Logic.

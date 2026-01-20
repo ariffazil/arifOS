@@ -1,5 +1,5 @@
 """
-arifos_core/stages/stage_111_sense.py
+arifos/stages/stage_111_sense.py
 
 Stage 111: SENSE (Context Gathering)
 Function: Input sensing, intent parsing, raw data collection.

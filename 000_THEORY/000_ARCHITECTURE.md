@@ -1,7 +1,7 @@
 ---
 title: "000_CANON_2_ARCHITECTURE.md"
-version: "v49.0.0"
-epoch: "2026-01-18"
+version: "v49.1.0"
+epoch: "2026-01-20"
 sealed_by: "888_Judge"
 authority: "Muhammad Arif bin Fazil"
 status: "SOVEREIGNLY_SEALED"
@@ -88,6 +88,7 @@ All engineering and MCP specs must anchor to this map to prevent architectural d
 | Layer | Name | Role | Authority | Mutability | MCP Integration |
 |-------|------|------|-----------|------------|-----------------|
 | **CCC** | Constitutional Core | Canon law & ledger | 888 Judge | Phoenix-72 only | Read-only (000_CANON) |
+| **BBB-V** | Validation Tier | Consolidated Invariants | Δ Architect | Phased (Phoenix-72) | `pytest` / Smoke Suite |
 | **BBB** | Bridge/Protocol | MCP runtime + core code | Δ Architect | Regenerated from CCC | Tier 1-3 servers |
 | **AAA** | Application/Data | User interfaces, tools | Ω Engineer | Normal dev cadence | Obsidian, GitHub |
 
@@ -144,6 +145,31 @@ Each layer enforces:
 - `quantum_state_type` (SUPERPOSITION, COLLAPSED, MEASURED)
 - TTL and promotion rules
 - Alignment to EUREKA sieve and verdicts
+
+---
+
+## 4. L4 CANON: THERMODYNAMIC COLLAPSE
+
+### 4.1 The Physics of Forging
+Information is not knowledge. Knowledge is not wisdom. The transition requires **thermodynamic cooling**.
+
+**The Collapse Function:**
+`Ψ(Knowledge) = ∫(Information) × (Time + Pressure) / Entropy`
+
+1.  **Hot State (L5-L4):** High entropy, high volume, volatile. (Chat logs, raw inputs)
+2.  **Cooling State (L3-L2):** Structure emerges, redundancy fades. (Summaries, decision records)
+3.  **Frozen State (L0):** Zero entropy, absolute density. (Canon Law, Immutable Truth)
+
+### 4.2 The Cooling Towers
+The **Memory Tower** is a cooling apparatus. Data MUST move down to survive.
+- **L5 (Magma):** 100% Entropy. Real-time streams (chat, raw input).
+- **L4.5 (Clipboard):** 75% Entropy. Ephemeral cross-agent state buffer (7-day TTL).
+- **L3 (Crust):** 50% Entropy. Verified facts and decision packets.
+- **L0 (Core):** 0% Entropy. Sealed Law and immutable ledger.
+
+**Failure to Cool:**
+If data remains hot (unprocessed) for >7 days, it is **calcified** (deleted) or **fossilized** (archived without indexing).
+Only what cools can rule.
 
 ---
 
@@ -349,8 +375,10 @@ This prevents **architectural drift** and keeps one authoritative map.
 ## 10. VERSION HISTORY
 
 | Version | Date | Authority | Changes |
-|---------|------|-----------|---------| | v48.0.0 | 2026-01-17 | 888_Judge | Initial architecture (Trinity, VAULT-999, 000-999 loop) |
-| **v49.0.0** | **2026-01-18** | **888_Judge** | **25 MCP servers mapped, 20 quantum modules, stage enforcement clarified** |
+|---------|------|-----------|---------|
+| v48.0.0 | 2026-01-17 | 888_Judge | Initial architecture (Trinity, VAULT-999, 000-999 loop) |
+| v49.0.0 | 2026-01-18 | 888_Judge | 25 MCP servers mapped, 20 quantum modules, stage enforcement clarified |
+| **v49.1.0** | **2026-01-20** | **888_Judge** | **Validation Tier (BBB-V) and Internal State Clipboard (L4.5) added.** |
 
 ---
 

@@ -26,7 +26,7 @@ def validate_f1_amanah(action: Dict[str, Any], context: Dict[str, Any]) -> Dict[
     reversible_types = ["read", "query", "analyze", "validate"]
     irreversible_types = ["delete", "drop", "destroy", "purge"]
 
-    action_type = action.get("type", "unknown")
+    action_type = str(action.get("type", "unknown")).lower()
 
     if action_type in irreversible_types:
         # Check if human authorized

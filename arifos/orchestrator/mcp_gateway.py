@@ -155,6 +155,8 @@ class MCPGateway:
         4. Return human-readable output to client
         """
         tool_name = params.get("name")
+        if not tool_name:
+             return {"content": [{"type": "text", "text": "Error: Tool name is required"}]}
         tool_args = params.get("arguments", {})
         provider = self._get_active_provider()
 
@@ -199,46 +201,37 @@ class MCPGateway:
     def _infer_stage_from_tool(self, tool_name: str) -> str:
         """
         Infer arifOS aCLIP stage from tool name.
-
-        aCLIP Protocol (v49 Canonical):
-        000_INIT → vault_server (Session bootstrap)
-        111_SENSE → agi_server (Pattern matching, RED_PATTERN scanning)
-        222_THINK → agi_server (Deep reasoning, architectural planning)
-        333_REASON → agi_server (Formal logic checks, pre-computation)
-        444_ALIGN → asi_server (Value alignment, floor prep)
-        555_EMPATHY → asi_server (Stakeholder modeling, κᵣ calculation)
-        666_BRIDGE → asi_server (Gatekeeper, neuro-symbolic translation)
-        777_REFLECT → apex_server (Evaluation, synthesis)
-        888_SEAL → apex_server (Judgement, verdict issuance)
-        999_STORE → vault_server (Memory persistence, EUREKA sealing)
+        Uses canonical Stage codes from arifos.protocol.
         """
+        from arifos.protocol.codes import Stage
+
         # VAULT-999 (000, 999)
         if "init" in tool_name or "vault/init" == tool_name:
-            return "000_INIT"
+            return Stage.INIT_000.value
         elif "store" in tool_name or "vault/store" == tool_name or "999" in tool_name:
-            return "999_STORE"
+            return Stage.VAULT_999.value
 
         # AGI-Δ (111, 222, 333)
         elif "sense" in tool_name or "111" in tool_name:
-            return "111_SENSE"
+            return Stage.SENSE_111.value
         elif "think" in tool_name or "222" in tool_name or "agi/think" in tool_name:
-            return "222_THINK"
+            return Stage.THINK_222.value
         elif "reason" in tool_name or "333" in tool_name:
-            return "333_REASON"
+            return Stage.ATLAS_333.value # 333_ATLAS
 
         # ASI-Ω (444, 555, 666)
         elif "align" in tool_name or "444" in tool_name:
-            return "444_ALIGN"
+            return Stage.ALIGN_444.value
         elif "empathy" in tool_name or "555" in tool_name or "asi/empathy" in tool_name:
-            return "555_EMPATHY"
+            return Stage.EMPATHY_555.value
         elif "bridge" in tool_name or "666" in tool_name:
-            return "666_BRIDGE"
+            return Stage.BRIDGE_666.value
 
         # APEX-Ψ (777, 888)
         elif "reflect" in tool_name or "777" in tool_name:
-            return "777_REFLECT"
+            return Stage.EUREKA_777.value # 777_EUREKA
         elif "seal" in tool_name or "888" in tool_name or "apex/seal" in tool_name:
-            return "888_SEAL"
+            return Stage.JUDGE_888.value  # 888_JUDGE
 
         else:
             return "unknown"

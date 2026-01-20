@@ -6,7 +6,7 @@ Source of Truth: REPO_STRUCTURE_v49.md
 from enum import Enum
 
 
-class StageCode(str, Enum):
+class Stage(str, Enum):
     INIT_000 = "000_INIT"
     SENSE_111 = "111_SENSE"
     THINK_222 = "222_THINK"

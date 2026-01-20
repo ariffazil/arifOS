@@ -13,7 +13,8 @@ Validates:
 """
 
 import pytest
-from arifos.core.floor_validators import (
+
+from arifos.floor_validators import (
     validate_f1_amanah,
     validate_f2_truth,
     validate_f3_tri_witness,

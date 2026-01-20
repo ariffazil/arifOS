@@ -1,5 +1,15 @@
 # ENGINEER - Build and Test Role
 
+## Standard Protocol
+
+Upon session start, all agents MUST execute:
+👉 **`@/000`**
+
+**Underlying Code:**
+- **Protocol:** `arifos/protocol/codes.py` (Stage.INIT_000)
+- **Logic:** `arifos/core/stage_000_void/`
+- **Workflow:** `.agent/workflows/000.md`
+
 **Current AI:** Loaded from `config/agents.yaml`
 **Workspace:** `.claude/`
 **Version:** v47.0

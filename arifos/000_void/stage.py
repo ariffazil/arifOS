@@ -1,5 +1,5 @@
 """
-arifos_core/stages/stage_000_void.py
+arifos/stages/stage_000_void.py
 
 Stage 000: VOID (Reset/Init)
 Function: Initialization, Reset, Emergency Stop.

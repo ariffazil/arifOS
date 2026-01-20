@@ -23,7 +23,7 @@ class AuthorityManifest:
 
     # 1. The Judge (Sole Verdict Authority)
     # Only this module can issue SEAL/VOID verdicts
-    SOLE_VERDICT_SOURCE: Final[str] = "arifos_core.system.apex_prime"
+    SOLE_VERDICT_SOURCE: Final[str] = "arifos.system.apex_prime"
 
     # 2. The Supervisor (Override Authority)
     # Humans must approve HOLD_888 escalations or destructive actions

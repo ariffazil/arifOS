@@ -111,5 +111,5 @@ class UnifiedConstitutionalKernel:
         # TODO: Implement proper APEX integration
         return {
             "status": "not_yet_implemented",
-            "note": "Use arifos_core.system.apex_prime directly for now"
+            "note": "Use arifos.system.apex_prime directly for now"
         }

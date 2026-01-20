@@ -1,4 +1,4 @@
-# arifos_core/state/ledger_hashing.py
+# arifos/state/ledger_hashing.py
 """
 SHA-256 hashing + chain helpers for Cooling Ledger (v36Ω).
 
@@ -12,7 +12,7 @@ This module is designed to be:
 - zkPC-ready,
 - Safe to use across platforms.
 
-Moved to arifos_core.state as part of v47 Equilibrium Architecture.
+Moved to arifos.state as part of v47 Equilibrium Architecture.
 """
 
 from __future__ import annotations

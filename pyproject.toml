@@ -111,16 +111,16 @@ arifos-build-ledger-hashes = "scripts.build_ledger_hashes:main"
 arifos-show-merkle-proof = "scripts.show_merkle_proof:main"
 arifos-safe-read = "scripts.arifos_safe_read:main"
 # A CLIP - CLI Pipeline (000-999)
-"000" = "arifos_clip.aclip.cli._dispatcher000:main"
-"111" = "arifos_clip.aclip.cli._dispatcher111:main"
-"222" = "arifos_clip.aclip.cli._dispatcher222:main"
-"333" = "arifos_clip.aclip.cli._dispatcher333:main"
-"444" = "arifos_clip.aclip.cli._dispatcher444:main"
-"555" = "arifos_clip.aclip.cli._dispatcher555:main"
-"666" = "arifos_clip.aclip.cli._dispatcher666:main"
-"777" = "arifos_clip.aclip.cli._dispatcher777:main"
-"888" = "arifos_clip.aclip.cli._dispatcher888:main"
-"999" = "arifos_clip.aclip.cli._dispatcher999:main"
+# "000" = "arifos_clip.aclip.cli._dispatcher000:main"
+# "111" = "arifos_clip.aclip.cli._dispatcher111:main"
+# "222" = "arifos_clip.aclip.cli._dispatcher222:main"
+# "333" = "arifos_clip.aclip.cli._dispatcher333:main"
+# "444" = "arifos_clip.aclip.cli._dispatcher444:main"
+# "555" = "arifos_clip.aclip.cli._dispatcher555:main"
+# "666" = "arifos_clip.aclip.cli._dispatcher666:main"
+# "777" = "arifos_clip.aclip.cli._dispatcher777:main"
+# "888" = "arifos_clip.aclip.cli._dispatcher888:main"
+# "999" = "arifos_clip.aclip.cli._dispatcher999:main"
 
 [project.urls]
 Homepage = "https://github.com/ariffazil/arifOS"
@@ -133,12 +133,11 @@ Changelog = "https://github.com/ariffazil/arifOS/blob/main/CHANGELOG.md"
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["arifos*", "arifos_core*", "arifos_eval*", "arifos_clip*", "arifos_ledger*", "arifos_mcp*", "arifos_orchestrator*", "scripts*"]
+include = ["arifos*", "scripts*"]
 exclude = ["arifos.tests*", "arifos.tests", "*.tests", "*.tests.*", "tests.*", "tests"]
 
 [tool.setuptools.package-data]
 arifos = ["py.typed", "*.py", "**/*.py"]
-arifos_core = ["py.typed", "*.py", "**/*.py"]
 "*" = ["spec/*.yaml", "spec/*.json"]
 
 [tool.setuptools.data-files]
@@ -157,11 +156,11 @@ target-version = ['py310', 'py311', 'py312']
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-exclude = ["archive/**", "arifos staging/**", "tests/**"]
+exclude = ["archive/**", "archive_local/**", "tests/**"]
 
 [tool.ruff.per-file-ignores]
-"arifos_core/adapters/llm_openai.py" = ["F401"]
-"arifos_core/engines/apex_engine.py" = ["F401"]
+# "arifos_core/adapters/llm_openai.py" = ["F401"]
+# "arifos_core/engines/apex_engine.py" = ["F401"]
 "tests/test_runtime_manifest.py" = ["F401"]
 "tests/test_session_dependency_guard.py" = ["F821", "F841"]
 "tests/test_sovereignty_all_providers.py" = ["F401", "F841"]
@@ -180,11 +179,11 @@ disallow_untyped_defs = false
 [[tool.mypy.overrides]]
 # Core governance modules - stricter type enforcement
 module = [
-    "arifos_core.metrics",
-    "arifos_core.genius_metrics",
-    "arifos_core.APEX_PRIME",
-    "arifos_core.pipeline",
-    "arifos_core.waw.*",
+    "arifos.enforcement.metrics",
+    "arifos.enforcement.genius_metrics",
+    "arifos.engines.APEX_PRIME",
+    "arifos.pipeline",
+    "arifos.organs.*",
 ]
 disallow_untyped_defs = true
 disallow_incomplete_defs = true

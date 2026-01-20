@@ -1,5 +1,5 @@
 """
-arifos_core/stages/stage_999_seal.py
+arifos/stages/stage_999_seal.py
 
 Stage 999: SEAL (Finalization)
 Function: Output Gating, Ledger Sealing.

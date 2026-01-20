@@ -1,7 +1,7 @@
 """
 LedgerStore - Abstract interface for cooling ledger storage.
 
-Both MCP surfaces (L4_MCP black-box, arifos_core/mcp glass-box)
+Both MCP surfaces (L4_MCP black-box, arifos/mcp glass-box)
 depend on this abstraction for audit logging.
 
 Version: v45.1.0
@@ -18,7 +18,7 @@ class LedgerStore(ABC):
 
     Implementations:
     - SQLiteLedgerStore: ACID transactions, fail-closed (L4_MCP default)
-    - JSONLMerkleLedger: Cryptographic proofs, portable (arifos_core/mcp default)
+    - JSONLMerkleLedger: Cryptographic proofs, portable (arifos/mcp default)
     """
 
     @abstractmethod

@@ -1,0 +1,209 @@
+# arifOS v49.1 - 4-Server Constitutional Runtime
+# Trinity (AGI/ASI/APEX) + VAULT Architecture
+# Authority: 888 Judge | Delta Architect
+# Version: v49.1.0
+# Location: config/infrastructure/ (BBB Layer)
+#
+# HIGH 3 Fix (v49.1): Fixed Dockerfile paths and volume mounts
+# Constitutional Reorganization: Anchored to 000_THEORY/ canon
+
+version: "3.8"
+
+services:
+  # ==========================================================================
+  # VAULT SERVER - Memory (000 INIT / 999 VAULT)
+  # ==========================================================================
+  vault_server:
+    build:
+      context: .
+      dockerfile: servers/vault/Dockerfile
+    container_name: arifos_vault
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./vault_999:/app/vault_999:rw
+      - ./000_THEORY:/app/000_THEORY:ro
+      - ./config:/app/config:ro
+    environment:
+      - ARIFOS_MODE=VAULT
+      - ARIFOS_VERSION=v49.1.0
+      - FLOORS=F1-F13
+      # MCP Tool API Keys (optional, set in .env file)
+      - BRAVE_API_KEY=${BRAVE_API_KEY:-}
+      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY:-}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - arifos_trinity
+    restart: unless-stopped
+
+  # ==========================================================================
+  # AGI SERVER - The Mind (111 SENSE / 222 THINK / 333 ATLAS)
+  # ==========================================================================
+  agi_server:
+    build:
+      context: .
+      dockerfile: servers/agi/Dockerfile
+    container_name: arifos_agi
+    ports:
+      - "9001:9001"
+    volumes:
+      - ./000_THEORY:/app/000_THEORY:ro
+      - ./config:/app/config:ro
+    environment:
+      - ARIFOS_MODE=AGI
+      - ARIFOS_VERSION=v49.1.0
+      - FLOORS=F2,F4,F7,F10,F13
+      - VAULT_URL=http://vault_server:9000
+      # MCP Tool API Keys
+      - BRAVE_API_KEY=${BRAVE_API_KEY:-}
+      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY:-}
+    depends_on:
+      vault_server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - arifos_trinity
+    restart: unless-stopped
+
+  # ==========================================================================
+  # ASI SERVER - The Heart (555 EMPATHY / 666 ACT)
+  # ==========================================================================
+  asi_server:
+    build:
+      context: .
+      dockerfile: servers/asi/Dockerfile
+    container_name: arifos_asi
+    ports:
+      - "9002:9002"
+    volumes:
+      - ./000_THEORY:/app/000_THEORY:ro
+      - ./config:/app/config:ro
+    environment:
+      - ARIFOS_MODE=ASI
+      - ARIFOS_VERSION=v49.1.0
+      - FLOORS=F1,F5,F6,F9,F11,F12
+      - VAULT_URL=http://vault_server:9000
+      # MCP Tool API Keys
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - SLACK_TOKEN=${SLACK_TOKEN:-}
+    depends_on:
+      vault_server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - arifos_trinity
+    restart: unless-stopped
+
+  # ==========================================================================
+  # APEX SERVER - The Soul (444/777/888/889)
+  # ==========================================================================
+  apex_server:
+    build:
+      context: .
+      dockerfile: servers/apex/Dockerfile
+    container_name: arifos_apex
+    ports:
+      - "9003:9003"
+    volumes:
+      - ./000_THEORY:/app/000_THEORY:ro
+      - ./vault_999:/app/vault_999:rw
+      - ./config:/app/config:ro
+    environment:
+      - ARIFOS_MODE=APEX
+      - ARIFOS_VERSION=v49.1.0
+      - FLOORS=F3,F8
+      - VAULT_URL=http://vault_server:9000
+      - AGI_URL=http://agi_server:9001
+      - ASI_URL=http://asi_server:9002
+      - DATABASE_URL=postgresql://arifos:arifos@postgres:5432/arifos
+      # MCP Tool API Keys
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    depends_on:
+      vault_server:
+        condition: service_healthy
+      agi_server:
+        condition: service_healthy
+      asi_server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - arifos_trinity
+    restart: unless-stopped
+
+  # ==========================================================================
+  # POSTGRES - Cooling Ledger Database
+  # ==========================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: arifos_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=arifos
+      - POSTGRES_PASSWORD=arifos
+      - POSTGRES_DB=arifos
+    volumes:
+      - ./arifos/memory/ledger/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arifos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - arifos_trinity
+    restart: unless-stopped
+
+networks:
+  arifos_trinity:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+
+# ==============================================================================
+# Quick Start (v49.1)
+# ==============================================================================
+#
+# 1. Build + Start:
+#    docker-compose up -d --build
+#
+# 2. Health Check:
+#    curl http://localhost:9000/health  # VAULT
+#    curl http://localhost:9001/health  # AGI
+#    curl http://localhost:9002/health  # ASI
+#    curl http://localhost:9003/health  # APEX
+#
+# 3. Test E2E (000->999 pipeline):
+#    curl -X POST http://localhost:9000/init \
+#      -H "Content-Type: application/json" \
+#      -d '{"query":"Test constitutional query","user_id":"test"}'
+#
+# 4. Logs:
+#    docker-compose logs -f vault_server
+#
+# 5. Stop:
+#    docker-compose down
+#
+# Authority: 888 Judge | v49.1 | DITEMPA BUKAN DIBERI

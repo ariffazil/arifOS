@@ -31,20 +31,20 @@ async def mcp_222_reflect(request: Dict[str, Any]) -> VerdictResponse:
     if not response_draft:
          response_draft = query # Fallback if reflecting on query itself? Or just empty.
 
-    # Initialize Kernel
-    kernel = AGIKernel(clarity_threshold=0.0) # F6 > 0
+    # Initialize Kernel (v49: AGINeuralCore has no __init__ parameters)
+    kernel = AGIKernel()
 
     # Execute Kernel Logic (F2, F6)
     # Note: Truth score mocked to 1.0 here as Reflection is primarily about Clarity dynamics
-    verdict = kernel.evaluate(query, response_draft, truth_score=1.0)
+    verdict = kernel.evaluate(query, response_draft)
 
     # Construct VerdictResponse
     return VerdictResponse(
         verdict="PASS" if verdict.passed else "PARTIAL", # Reflect is advisory
         reason=verdict.reason,
         side_data={
-            "delta_s": verdict.f6_clarity,
-            "clarity_pass": verdict.f6_clarity >= 0.0,
+            "delta_s": verdict.f4_delta_s,  # v49: field is f4_delta_s, not f6_clarity
+            "clarity_pass": verdict.f4_delta_s >= 0.0,
             "kernel_failures": verdict.failures
         }
     )

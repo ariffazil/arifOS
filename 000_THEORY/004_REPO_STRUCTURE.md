@@ -1,7 +1,7 @@
 # arifOS v49 Repository Structure & aCLIP Protocol
 
 **Authority:** Δ Antigravity
-**Epoch:** v49.0.0 (2026-01-18)
+**Epoch:** v49.1.0 (2026-01-20)
 **Status:** CANONICAL
 
 ---
@@ -93,7 +93,11 @@ arifOS/
 ├── arifos_clip/           # DEPRECATED (Thin proxy to arifos.protocol)
 └── 000_THEORY/            # CONSTITUTIONAL CANON
     ├── 000_LAW.md
+    ├── 000_LAW.md
     └── 000_ARCHITECTURE.md
+├── tests/                 # VALIDATION TIER (BBB-V)
+    ├── constitutional/    # <--- THE INVARIANTS (15 Forged Tests)
+    └── archive/           # Legacy/Redundant tests (Phased deprecation)
 ```
 
 ---
@@ -103,3 +107,13 @@ arifOS/
 1. **Agents:** MUST import schemas from `arifos.protocol`.
 2. **MCP:** MUST validate `stage` and `verdict` against `arifos.protocol.codes`.
 3. **Logs:** All audit logs MUST capture the Phase 9 fields if present.
+4. **Archive + Forge Protocol:** To reduce entropy (F4 ΔS), any tool or test that is redundant must be archived to `archive/` or `archive_local/` rather than deleted. New canonical logic must be forged into the `tests/constitutional/` or `arifos/` directory.
+
+---
+
+## 4. VERSION HISTORY
+
+| Version | Date | Authority | Changes |
+|---------|------|-----------|---------|
+| v49.0.0 | 2026-01-18 | 888_Judge | Initial structure with aCLIP and single-body arifos/ package. |
+| **v49.1.0** | **2026-01-20** | **888_Judge** | **Validation Tier (BBB-V) and Archive + Forge Protocol added.** |

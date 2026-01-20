@@ -72,6 +72,11 @@ arifos-test/
 # Gemini CLI
 .gemini/
 
+# Gemini CLI config - keep baseline, ignore backups
+!config/gemini/*.json
+!config/gemini/*.md
+config/gemini/backups/
+
 # Temporary staging folders
 staging.delete*/
 docs/staging/

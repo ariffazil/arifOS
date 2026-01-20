@@ -3,7 +3,25 @@ import os
 import sys
 
 # Bypass legacy spec enforcements for v49 transition
-os.environ["ALLOW_LEGACY_SPEC"] = "1"
+# Must be set BEFORE importing any arifos modules that check manifest
+os.environ["ARIFOS_ALLOW_LEGACY_SPEC"] = "1"
+
+# Explicitly set the floors spec path to resolve "not found" errors
+# Using v46 as the authoritative source for the current pinned runtime
+specs = {
+    "ARIFOS_FLOORS_SPEC": "AAA_MCP/v46/constitutional_floors.json",
+    "ARIFOS_GENIUS_SPEC": "AAA_MCP/v46/genius_law.json",
+    "ARIFOS_STAGES_SPEC": "AAA_MCP/v46/constitutional_stages.json",
+    "ARIFOS_WORKFLOWS_SPEC": "AAA_MCP/v46/constitutional_workflows.json"
+}
+
+for env_var, rel_path in specs.items():
+    abs_path = os.path.abspath(rel_path)
+    if os.path.exists(abs_path):
+        os.environ[env_var] = abs_path
+        print(f"DEBUG: Set {env_var} = {abs_path}")
+    else:
+        print(f"DEBUG: Could not find spec at {abs_path}")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

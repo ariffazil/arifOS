@@ -9,13 +9,14 @@ Validates:
 """
 
 import pytest
-from arifos.core.thermodynamic_validator import (
+
+from arifos.thermodynamic_validator import (
     calculate_delta_s,
-    validate_entropy_reduction,
-    calculate_peace_squared,
-    validate_peace_squared,
     calculate_humility,
+    calculate_peace_squared,
+    validate_entropy_reduction,
     validate_humility,
+    validate_peace_squared,
     validate_thermodynamics,
 )
 

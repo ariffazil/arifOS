@@ -84,8 +84,8 @@ pip install psycopg2-binary  # PostgreSQL
 
 ## Tool Wrappers Created
 
-- `arifos_core/mcp/tools/reddit_searcher.py` (F2/F13)
-- `arifos_core/mcp/tools/youtube_extractor.py` (F2/F13)
+- `arifos/mcp/tools/reddit_searcher.py` (F2/F13)
+- `arifos/mcp/tools/youtube_extractor.py` (F2/F13)
 
 ---
 

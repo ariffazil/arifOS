@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, Literal, Optional
 
-from .codes import Role, StageCode, Verdict
+from .codes import Role, Stage, Verdict
 
 
 @dataclass
@@ -19,7 +19,7 @@ class ACLIPMessage:
     """
     aclip_version: str = "v49"
     id: str = field(default_factory=lambda: f"req_{uuid.uuid4().hex[:8]}")
-    stage: StageCode = StageCode.INIT_000
+    stage: Stage = Stage.INIT_000
     source: str = "mcp_gateway"
     target: str = "vault_server"
 

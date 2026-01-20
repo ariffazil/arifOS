@@ -16,7 +16,7 @@ Design References:
 NOTE: Uses SHA3-256 (not SHA-256) for backward compatibility with existing ledger.
 SHA3-256 offers equivalent security properties (collision resistance, preimage resistance).
 
-Moved to arifos_core.state as part of v47 Equilibrium Architecture.
+Moved to arifos.state as part of v47 Equilibrium Architecture.
 """
 
 from __future__ import annotations

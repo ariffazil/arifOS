@@ -32,10 +32,6 @@ from arifos.core.floor_validators import (
     validate_f10_ontology,
     validate_f13_curiosity,
 )
-    validate_f7_humility,
-    validate_f10_ontology,
-    validate_f13_curiosity,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -278,7 +274,7 @@ async def execute_mcp_tool(tool_name: str, request: Dict[str, Any]):
     """
     Generic MCP tool executor.
 
-    Routes to existing mcp_*.py tools in arifos_core.mcp.tools/
+    Routes to existing mcp_*.py tools in arifos.mcp.tools/
     Validates with constitutional floors per tool specification.
 
     Phase 8.2: Proof-of-concept for 11 AGI tools
@@ -293,7 +289,7 @@ async def execute_mcp_tool(tool_name: str, request: Dict[str, Any]):
 
     try:
         # Dynamic import of MCP tool
-        tool_module_name = f"arifos_core.mcp.tools.mcp_{tool_name}"
+        tool_module_name = f"arifos.mcp.tools.mcp_{tool_name}"
         try:
             tool_module = importlib.import_module(tool_module_name)
         except ModuleNotFoundError:
