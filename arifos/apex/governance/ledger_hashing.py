@@ -1,5 +1,5 @@
 """
-DEPRECATED: This module has moved to arifos_core.state.ledger_hashing
+DEPRECATED: This module has moved to arifos.state.ledger_hashing
 
 Ledger hashing functionality is now part of the state layer.
 This shim will be removed in v47.2 (72 hours after v47.1 release).
@@ -16,8 +16,8 @@ Constitutional Mapping:
 import warnings
 
 warnings.warn(
-    "arifos_core.apex.governance.ledger_hashing is deprecated. "
-    "Use arifos_core.state.ledger_hashing instead. "
+    "arifos.apex.governance.ledger_hashing is deprecated. "
+    "Use arifos.state.ledger_hashing instead. "
     "This shim will be removed in v47.2 (72 hours after v47.1).",
     DeprecationWarning,
     stacklevel=2
