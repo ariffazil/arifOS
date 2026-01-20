@@ -254,11 +254,26 @@ async def mcp_555_empathize(request: Dict[str, Any]) -> VerdictResponse:
     vulnerability_score = kernel_result.get("vulnerability_score", 0.5)
     action = kernel_result.get("action", "Neutral")
 
-    # Map to Tool Verdict
-    # ASI uses SEAL/PARTIAL/VOID
-    # Tool uses PASS/PARTIAL/VOID
-    verdict = "PASS" if omega_verdict == "SEAL" else omega_verdict
-    reason = f"ASI Empathy Action: {action} (Vuln: {vulnerability_score:.2f}, Verdict: {omega_verdict})"
+    # Backward compatibility: Calculate legacy fields for tests
+    legacy_peace_score = calculate_peace_score(response_text)
+    legacy_kappa_r = calculate_kappa_r(recipient_context)
+    dismissive_detected = detect_dismissive_patterns(response_text)
+    aggressive_detected = detect_aggressive_patterns(response_text)
+
+    # Determine verdict using legacy logic (for backward compatibility)
+    # PASS if both thresholds met, PARTIAL otherwise (never VOID)
+    if legacy_peace_score >= PEACE_THRESHOLD and legacy_kappa_r >= KAPPA_THRESHOLD:
+        verdict = "PASS"
+        reason = f"Peace: {legacy_peace_score:.2f} ≥ {PEACE_THRESHOLD}, κᵣ: {legacy_kappa_r:.2f} ≥ {KAPPA_THRESHOLD}"
+    else:
+        verdict = "PARTIAL"
+        if legacy_peace_score < PEACE_THRESHOLD:
+            reason = f"Peace² warning: {legacy_peace_score:.2f} < {PEACE_THRESHOLD}"
+        else:
+            reason = f"κᵣ recalibration: {legacy_kappa_r:.2f} (threshold {KAPPA_THRESHOLD})"
+
+    # Append ASI analysis to reason for transparency
+    reason += f" | ASI Verdict: {omega_verdict} (Vuln: {vulnerability_score:.2f})"
 
     # Generate timestamp
     timestamp = datetime.now(timezone.utc).isoformat()
@@ -267,9 +282,15 @@ async def mcp_555_empathize(request: Dict[str, Any]) -> VerdictResponse:
         verdict=verdict,
         reason=reason,
         side_data={
-            "peace_score": 1.0, # Deprecated/Internal to Kernel now
-            "kappa_r": 0.95, # Deprecated/Internal
-            "asi_meta": kernel_result # Pass full kernel result
+            # Legacy fields for backward compatibility
+            "peace_score": legacy_peace_score,
+            "kappa_r": legacy_kappa_r,
+            "peace_threshold": PEACE_THRESHOLD,
+            "kappa_threshold": KAPPA_THRESHOLD,
+            "dismissive_detected": dismissive_detected,
+            "aggressive_detected": aggressive_detected,
+            # v49 ASI Kernel result
+            "asi_meta": kernel_result
         },
         timestamp=timestamp,
     )
