@@ -1,5 +1,6 @@
-# arifOS v47 - Core Dependencies
-# v47.0.0 | F1 Truth alignment
+# arifOS v50 - Core Dependencies (Railway Optimized)
+# Minimal dependencies for SSE/HTTP MCP server deployment
+# Database dependencies (psycopg2-binary) removed for Railway
 
 # FastAPI & Web Server
 fastapi>=0.104.1
@@ -12,6 +13,7 @@ pydantic>=2.5.0
 pydantic-settings>=2.1.0
 python-dotenv>=1.0.0
 requests>=2.31.0
+# psycopg2-binary>=2.9.9  # Removed - not needed for Railway MCP server
 aiohttp>=3.9.1
 
 # MCP & Tools
