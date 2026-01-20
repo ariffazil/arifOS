@@ -1,7 +1,9 @@
-# arifOS v49 - 4-Server Constitutional Runtime
+# arifOS v49.1 - 4-Server Constitutional Runtime
 # Trinity (AGI/ASI/APEX) + VAULT Architecture
-# Authority: 888 Judge | Δ Architect
-# Sealed: 2026-01-18
+# Authority: 888 Judge | Delta Architect
+# Version: v49.1.0
+#
+# HIGH 3 Fix (v49.1): Fixed Dockerfile paths and volume mounts
 
 version: "3.8"
 
@@ -19,9 +21,10 @@ services:
     volumes:
       - ./vault_999:/app/vault_999:rw
       - ./000_THEORY:/app/000_THEORY:ro
+      - ./config:/app/config:ro
     environment:
       - ARIFOS_MODE=VAULT
-      - ARIFOS_VERSION=v49.0.0
+      - ARIFOS_VERSION=v49.1.0
       - FLOORS=F1-F13
       # MCP Tool API Keys (optional, set in .env file)
       - BRAVE_API_KEY=${BRAVE_API_KEY:-}
@@ -46,11 +49,15 @@ services:
     container_name: arifos_agi
     ports:
       - "9001:9001"
+    volumes:
+      - ./000_THEORY:/app/000_THEORY:ro
+      - ./config:/app/config:ro
     environment:
       - ARIFOS_MODE=AGI
+      - ARIFOS_VERSION=v49.1.0
       - FLOORS=F2,F4,F7,F10,F13
       - VAULT_URL=http://vault_server:9000
-      # MCP Tool API Keys (AGI uses 11 tools: brave_search, perplexity, arxiv, wiki, http, memory, paradox, python, time, sequential_thinking, executor)
+      # MCP Tool API Keys
       - BRAVE_API_KEY=${BRAVE_API_KEY:-}
       - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY:-}
     depends_on:
@@ -75,11 +82,15 @@ services:
     container_name: arifos_asi
     ports:
       - "9002:9002"
+    volumes:
+      - ./000_THEORY:/app/000_THEORY:ro
+      - ./config:/app/config:ro
     environment:
       - ARIFOS_MODE=ASI
+      - ARIFOS_VERSION=v49.1.0
       - FLOORS=F1,F5,F6,F9,F11,F12
       - VAULT_URL=http://vault_server:9000
-      # MCP Tool API Keys (ASI uses 5 tools: filesystem, slack, github, postgres, executor)
+      # MCP Tool API Keys
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - SLACK_TOKEN=${SLACK_TOKEN:-}
     depends_on:
@@ -104,14 +115,19 @@ services:
     container_name: arifos_apex
     ports:
       - "9003:9003"
+    volumes:
+      - ./000_THEORY:/app/000_THEORY:ro
+      - ./vault_999:/app/vault_999:rw
+      - ./config:/app/config:ro
     environment:
       - ARIFOS_MODE=APEX
+      - ARIFOS_VERSION=v49.1.0
       - FLOORS=F3,F8
       - VAULT_URL=http://vault_server:9000
       - AGI_URL=http://agi_server:9001
       - ASI_URL=http://asi_server:9002
       - DATABASE_URL=postgresql://arifos:arifos@postgres:5432/arifos
-      # MCP Tool API Keys (APEX uses 4 tools: claude_api PAID, cryptography, vector_db, zkpc_merkle)
+      # MCP Tool API Keys
       - CLAUDE_API_KEY=${CLAUDE_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     depends_on:
@@ -145,7 +161,7 @@ services:
       - POSTGRES_PASSWORD=arifos
       - POSTGRES_DB=arifos
     volumes:
-      - ./arifos_core/memory/ledger/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+      - ./arifos/memory/ledger/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U arifos"]
@@ -165,19 +181,19 @@ volumes:
     driver: local
 
 # ==============================================================================
-# Quick Start (Canon §7 Day 7)
+# Quick Start (v49.1)
 # ==============================================================================
 #
 # 1. Build + Start:
 #    docker-compose up -d --build
 #
 # 2. Health Check:
-#    curl http://localhost:9000/health  # VAULT ✓
-#    curl http://localhost:9001/health  # AGI ✓
-#    curl http://localhost:9002/health  # ASI ✓
-#    curl http://localhost:9003/health  # APEX ✓
+#    curl http://localhost:9000/health  # VAULT
+#    curl http://localhost:9001/health  # AGI
+#    curl http://localhost:9002/health  # ASI
+#    curl http://localhost:9003/health  # APEX
 #
-# 3. Test E2E (000→999 pipeline):
+# 3. Test E2E (000->999 pipeline):
 #    curl -X POST http://localhost:9000/init \
 #      -H "Content-Type: application/json" \
 #      -d '{"query":"Test constitutional query","user_id":"test"}'
@@ -188,4 +204,4 @@ volumes:
 # 5. Stop:
 #    docker-compose down
 #
-# Authority: 888 Judge | Sealed: 2026-01-18 | ΔS→0 · Peace²≥1 · Amanah🔐
+# Authority: 888 Judge | v49.1 | DITEMPA BUKAN DIBERI
