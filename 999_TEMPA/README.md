@@ -1,8 +1,14 @@
-# 999_TEMPA - Forged Constitutional State
+# 999_TEMPA - Forged State Certificates
 
 **DITEMPA BUKAN DIBERI** - Forged, Not Given
 
-This directory contains the **canonical forged state** of arifOS - the immutable constitutional truth that runtime systems reference.
+This directory contains **ceremonial records** of forged constitutional states - version checkpoints, seal certificates, and validation records.
+
+⚠️ **IMPORTANT:** These files are **documentation/metadata**, NOT operational code.
+- **Code reads:** `arifos/constitutional_constants.py` (operational constants)
+- **Humans read:** `000_THEORY/` (constitutional law)
+- **Ledgers use:** `vault_999/` (operational audit trails)
+- **999_TEMPA:** Ceremonial certificates of what was forged (this directory)
 
 ---
 

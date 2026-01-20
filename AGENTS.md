@@ -40,96 +40,112 @@
 
 ---
 
-## Canonical References
-- `000_THEORY/000_LAW.md` lists the 13 floors (F1-F13).
-- `000_THEORY/000_ARCHITECTURE.md` explains the Trinity architecture, the 000->999 metabolic loop, and thermodynamic enforcement (Delta S, Peace squared, Omega0).
-- `000_THEORY/000_FOUNDATIONS.md` documents the physics/logic basis including the Godel lock.
-- `000_THEORY/001_AGENTS.md` describes the Trinity roles, witness panopticon, and federation rules.
-- `000_THEORY/007_aclip.md` is the canonical aCLIP protocol reference; each stage (`/000` through `/999`) is treated as a modular handler.
-- `000_THEORY/009_witness_system.md` provides the canonical witness system specification and implementation details.
-- Agent adapters (`GEMINI.md`, `.claude/CLAUDE.md`, `.codex/CODEX.md`, `.kimi/KIMI.md`) remain lightweight pointers to the canon and do not duplicate policy.
+## Project Overview
 
-## Key Configuration Files
-- `pyproject.toml` plus `requirements.txt` declare the dependency surface (`numpy`, `pydantic`, `anyio`, `starlette` plus optional extras such as `fastapi`, `uvicorn`, `litellm`, `httpx`, `pygments`, `openai`).
-- Tooling rules are governed by `pytest.ini`, `mypy.ini` (with strict overrides for `arifos/enforcement`, `arifos.engines.APEX_PRIME`, `arifos.pipeline`, etc.), `.pre-commit-config.yaml`, `MANIFEST.in`, and `runtime.txt`.
-- Bootstrapping and verification scripts in `setup/bootstrap/` and `setup/verification/` enforce reproducible environments.
+arifOS is a constitutional AI governance system that implements a 13-floor immutable constitution (F1-F13) with thermodynamic enforcement. The system acts as a "metabolizer" between AI models (GPT, Claude, Gemini, Llama) and humans, ensuring all outputs pass through constitutional floors before delivery.
 
-## Technology Stack & Runtime Architecture
-- Python 3.10-3.14, FastAPI + Uvicorn, MCP orchestration (`arifos/mcp/` tools, settlement policy, orthogonal executor).
-- Trinity engines live under `arifos/agi`, `arifos/asi`, and `arifos/apex` with floor validators in the respective `floor_checks.py` files plus `arifos/floor_validators.py`.
-- VAULT-999 memory sovereignty spans `vault_999/`, `arifos/core/memory/vault/`, `arifos/core/memory/ledger/` (SQLite/Postgres), and `arifos/core/memory/phoenix/` (Phoenix-72 cooling).
-- Governance primitives include ledger cryptography (`arifos/core/apex/governance/`, `arifos/engines/zkpc/`), the orthogonality guard (`arifos/mcp/orthogonality_guard.py`), and the hypervisor (`arifos/core/system/hypervisor.py`).
-- aCLIP definitions are found in `arifos/protocol/aclip.py`, stage codes in `arifos/protocol/codes.py`, connectors in `arifos/clip/`, documentation in `docs/ACLIP_DOC_PUSH_README.md` and `docs/ACLIP_DOC_PUSH_INTEGRATION_GUIDE.md`.
-- Container deployments rely on `Dockerfile`, `docker-compose.yml`, and the `config/` + `servers/` Dockerfiles per organ.
+### Core Architecture
 
-## Build, Test & Deployment
+**Trinity Engines:**
+- **AGI (Δ)** - Analysis and reasoning engine (`arifos/core/agi/`)
+- **ASI (Ω)** - Empathy and alignment engine (`arifos/core/asi/`)
+- **APEX (Ψ)** - Judgment and sealing engine (`arifos/core/apex/`)
 
-### Bootstrap & Setup
-- Bootstrap with `python setup/bootstrap/bootstrap.py --full`
-- Verify with `python setup/verification/verify_setup.py`
+**Constitutional Floors (F1-F13):**
+- F1: Amanah (Trust) - Reversibility and mandate checking
+- F2: Truth - Factual accuracy (≥99% threshold)
+- F3: Tri-Witness - Human·AI·Earth consensus (≥95%)
+- F4: Clarity (ΔS) - Entropy reduction
+- F5: Peace - Non-destructive actions (≥1.0)
+- F6: Empathy - Weakest stakeholder consideration (≥95%)
+- F7: Humility (Ω₀) - Uncertainty acknowledgment [0.03, 0.05]
+- F8: Genius - Intelligence governance (≥80%)
+- F9: Cdark - Dark cleverness containment (≤30%)
+- F10: Ontology - Role boundary maintenance
+- F11: Command Authority - Human authorization required
+- F12: Injection Defense - Security pattern detection (≥85%)
+- F13: Curiosity - System exploration (≥85%)
 
-### Developer Loop (All Agents)
+**Metabolic Loop (000-999):**
+- 000: Void - Entry point and hypervisor
+- 111: Sense - Information gathering
+- 222: Reflect - Analysis and consideration
+- 333: Reason - Logical processing
+- 444: Evidence - Fact validation
+- 555: Empathize - Stakeholder consideration
+- 666: Align - System alignment
+- 777: Forge - Solution creation
+- 888: Judge - Final judgment
+- 889: Proof - Cryptographic proof generation
+- 999: Seal - Final sealing and delivery
+
+---
+
+## Technology Stack
+
+**Core Dependencies:**
+- Python 3.10-3.14
+- FastAPI + Uvicorn (API layer)
+- Pydantic (data validation)
+- NumPy (mathematical operations)
+- AnyIO (async operations)
+- Starlette (ASGI framework)
+
+**Optional Dependencies:**
+- LiteLLM (multi-LLM support)
+- OpenAI, Anthropic, Google AI APIs
+- PostgreSQL/SQLite (ledger storage)
+- Redis (caching)
+- Docker/containerization
+
+**Key Components:**
+- **MCP Servers:** 25 servers mapped to constitutional floors
+- **VAULT-999:** Memory sovereignty system with L0-L5 cooling bands
+- **zkPC:** Zero-knowledge proof system for cryptographic sealing
+- **Phoenix-72:** Cooling system for constitutional amendments
+- **Orthogonality Guard:** Ensures system independence
+
+---
+
+## Code Organization
+
+```
+arifos/
+├── core/                    # Trinity engines and constitutional enforcement
+│   ├── agi/                # Analysis engine (Δ)
+│   ├── asi/                # Empathy engine (Ω)
+│   ├── apex/               # Judgment engine (Ψ)
+│   ├── 000_void/           # Entry point and security
+│   ├── 111_sense/          # Information gathering
+│   └── ... (all metabolic stages)
+├── enforcement/             # Constitutional floor validators
+├── integration/             # LLM adapters and API connectors
+├── mcp/                     # Model Context Protocol implementation
+├── memory/                  # VAULT-999 memory systems
+├── protocol/                # aCLIP protocol definitions
+├── system/                  # Runtime and hypervisor components
+└── utils/                   # Utility functions
+```
+
+---
+
+## Build and Test Commands
+
+### Environment Setup
 ```bash
-# Run tests with coverage
+# Bootstrap full environment
+python setup/bootstrap/bootstrap.py --full
+
+# Verify installation
+python setup/verification/verify_setup.py
+```
+
+### Development Workflow
+```bash
+# Run full test suite with coverage
 pytest tests/ -v --cov=arifos
 
-# Format code
-black arifos/ --line-length=100
-
-# Lint and fix
-ruff check arifos/ --fix
-
-# Type checking
-mypy arifos/ --strict
-
-# Pre-commit hooks
-pre-commit run --all-files
-```
-
-### Constitutional Verification (Pre-Commit)
-
-A **pre-commit hook** automatically runs constitutional alignment checks before any code is committed.
-
-**Script:** `scripts/check_track_alignment_v49.py`
-
-**Validates:**
-- F1 (Amanah) - Reversibility checks
-- F2 (Truth) - Factual accuracy validation
-- F7 (Ω₀ Humility) - Uncertainty acknowledgment
-- F10 (Ontology) - Symbolic mode maintenance
-- F12 (Injection Defense) - Security pattern detection
-
-**Trigger:** Automatic on `git commit`
-
-**If check fails:** Commit is aborted to prevent constitutional violations from entering the repository.
-
-### Test Suite Execution (All Agents)
-
-Comprehensive test suite (~2000+ tests) verifies the entire arifOS system.
-
-**Script:** `scripts/run_tests.ps1`
-
-**Function:**
-1. Sets up correct Python environment
-2. Installs development dependencies (`pytest`, coverage tools)
-3. Runs full `pytest` suite with coverage analysis
-
-**Usage:**
-```powershell
-# From project root
-.\scripts\run_tests.ps1
-```
-
-**Test Markers** (defined in `pytest.ini`):
-- `constitutional` - F1-F13 floor tests
-- `f1-f13` - Individual floor tests
-- `integration` - 000-999 loop tests
-- `security` - Injection, authority tests
-- `slow` - Long-running tests
-
-**Examples:**
-```bash
-# Run constitutional tests
+# Run constitutional tests only
 pytest tests/ -m constitutional
 
 # Run specific floor tests
@@ -138,8 +154,32 @@ pytest tests/ -m "f2 or f6 or f12"
 # Run integration tests
 pytest tests/integration/ -v
 
-# Run security tests
-pytest tests/security/ -m injection
+# Format code (100 char lines)
+black arifos/ --line-length=100
+
+# Lint and fix
+ruff check arifos/ --fix
+
+# Type checking (strict for core modules)
+mypy arifos/ --strict
+
+# Pre-commit hooks
+pre-commit run --all-files
+```
+
+### PowerShell Scripts (Windows)
+```powershell
+# Run tests
+.\scripts\run_tests.ps1
+
+# Check constitutional alignment
+python scripts/check_track_alignment_v49.py
+
+# Verify system wiring
+python scripts/verify_v49_wiring.py
+
+# Analyze cooling ledger
+python scripts/analyze_cooling_ledger.py
 ```
 
 ### Docker Deployment
@@ -147,46 +187,143 @@ pytest tests/security/ -m injection
 # Build image
 docker build -t arifos:v50 .
 
-# Start services
+# Run with docker-compose
 docker-compose -f docker-compose.yml up -d
+
+# Health check
+curl http://localhost:8000/health
 ```
 
-See `docs/DOCKER_GUIDE.md` and `config/deployment/render.yaml` for environment configuration.
+---
 
-### Monitoring Scripts
-- `scripts/check_track_alignment_v49.py` - Constitutional alignment
-- `scripts/verify_v49_wiring.py` - System wiring validation
-- `scripts/test_v49_ledger.py` - Ledger integrity check
-- `scripts/analyze_cooling_ledger.py` - Phoenix-72 analysis
-- `scripts/verify_ledger_chain.py` - Merkle chain verification
+## Code Style Guidelines
 
-## Code Style & Constitutional Behavior
-- obey Amanah (reversibility), Truth >= 0.99, Delta S >= 0, Peace squared >= 1, Omega0 in [0.03, 0.05], kappa_r >= 0.95, orthogonality >= 0.95, and tri-witness consensus.
-- Python norms: 100-character lines (`black`), typed public APIs (strict `mypy` overrides apply), Google-style docstrings, snake_case for functions, PascalCase for classes, grouped absolute imports.
-- Floor-check patterns live in `arifos/core/agi/floor_checks.py`, `arifos/core/asi/floor_checks.py`, `arifos/core/apex/floor_checks.py`, and `arifos/floor_validators.py`.
+**Python Standards:**
+- 100-character line length (enforced by black)
+- Google-style docstrings
+- Snake_case for functions, PascalCase for classes
+- Grouped absolute imports
+- Strict mypy typing for core governance modules
+
+**Constitutional Behavior:**
+- All operations must pass through 13 constitutional floors
+- Tri-witness consensus ≥95% required
+- Thermodynamic constraints: ΔS ≥ 0, Peace² ≥ 1, Ω₀ ∈ [0.03, 0.05]
+- Cryptographic receipts for all operations
+- Amanah (reversibility) principle always maintained
+
+---
 
 ## Testing Strategy
-- Constitutional (F1-F13), integration (000-999 loop), unit (`tests/`), security (`tests/security/`, `arifos/core/stage_000_void/`), and temporal specialization (`tests/temporal/`).
-- Use markers defined in `pytest.ini` (`constitutional`, `f1-f13`, `integration`, `slow`, `security`). Typical commands: `pytest tests/ -m constitutional`, `pytest tests/ -m "f2 or f6 or f12"`, `pytest tests/integration/ -v`, `pytest tests/security/ -m injection`.
-- Verification script: `python setup/verification/verify_setup.py`.
 
-## Security & Governance Notes
-- F12 (injection defense) runs in `arifos/core/stage_000_void/injection_defense.py` and logs attempts to the cooling ledger (`arifos/core/memory/ledger/cooling_ledger.py`).
-- F11 (command authority) uses `arifos/core/stage_000_void/authority_manifest.py` to require nonces, 888_HOLD for irreversible work, and explicit mandates.
-- Memory accountability is enforced by `arifos/core/memory/vault/vault999.py`, `vault_999/BBB_LEDGER`, and `arifos/core/memory/ledger/ledger_store.py`; hashing is handled in `arifos/core/state/merkle*`.
-- Witness logs under `000_WITNESS/` show Gemini, Claude, Codex, and Kimi verdicts for tri-witness auditing.
+**Test Categories:**
+- **Constitutional:** F1-F13 floor validation tests
+- **Integration:** 000-999 metabolic loop tests
+- **Security:** Injection defense and authority tests
+- **Unit:** Component-level validation
+- **Temporal:** Time-sensitive operation tests
+
+**Test Markers:**
+- `constitutional` - Core governance tests
+- `f1-f13` - Individual floor tests
+- `integration` - System integration tests
+- `security` - Security validation tests
+- `slow` - Long-running performance tests
+
+**Coverage Requirements:**
+- New code: 100% coverage required
+- Legacy code: Baseline 1% (gradual improvement target)
+- Overall goal: 70% coverage by Q2 2026
+
+---
+
+## Security Considerations
+
+**F12 Injection Defense:**
+- Pattern detection in `arifos/core/stage_000_void/injection_defense.py`
+- Logs attempts to cooling ledger
+- ≥85% detection threshold
+
+**F11 Command Authority:**
+- Nonce-based authorization system
+- 888_HOLD for irreversible operations
+- Human mandate verification
+
+**Memory Security:**
+- VAULT-999 sovereignty enforcement
+- Cryptographic ledger hashing
+- Merkle tree integrity proofs
+- Phoenix-72 cooling for amendments
+
+**Witness System:**
+- Tri-witness consensus (Human·AI·Earth)
+- Cross-agent transparency
+- Panopticon logging (no secrets between organs)
+- Emergency council protocols
+
+---
+
+## Key Configuration Files
+
+**Project Configuration:**
+- `pyproject.toml` - Package metadata and dependencies
+- `requirements.txt` - Core runtime dependencies
+- `pytest.ini` - Test configuration and markers
+- `mypy.ini` - Type checking configuration
+- `.pre-commit-config.yaml` - Git hooks
+
+**Runtime Configuration:**
+- `.env` - Environment variables
+- `docker-compose.yml` - Container orchestration
+- `Dockerfile` - Container build instructions
+- `runtime.txt` - Python version specification
+
+**Constitutional Configuration:**
+- `arifos/constitutional_constants.py` - Floor definitions and thresholds
+- `000_THEORY/000_LAW.md` - Canonical constitutional law
+- `000_THEORY/000_ARCHITECTURE.md` - System architecture
+
+---
 
 ## Agent & Adapter Guidance
-- Maintain adapters (`GEMINI.md`, `.claude/CLAUDE.md`, `.codex/CODEX.md`, `.kimi/KIMI.md`) as pointers to canonical theory files.
-- Use `000_THEORY/001_AGENTS.md` to obey the "no secrets between organs" witness rule, and consult `000_THEORY/009_witness_system.md` for cross-agent transparency before issuing outputs.
-- Recall that aCLIP stages (`/000` through `/999`) are modular command handlers; do not duplicate floor explanations in multiple adapters.
+
+**Adapter Maintenance:**
+- Keep adapters as lightweight pointers to canonical theory
+- Reference `000_THEORY/` files, don't duplicate content
+- Maintain "no secrets between organs" principle
+- Use aCLIP stage handlers for modular command processing
+
+**Cross-Agent Communication:**
+- Use witness system for transparency
+- Follow tri-witness consensus protocols
+- Log all reasoning to `000_WITNESS/` directory
+- Respect role boundaries (F10 Ontology)
+
+---
 
 ## Additional Resources
-- `SESSION_REQUIREMENTS.md` for onboarding and environment expectations.
-- `000_THEORY/004_REPO_STRUCTURE.md`, `docs/AGENTS_TOOLS_PROCESSES_MAP_v45.md`, `docs/ARIFOS_CORE_ARCHITECTURE.md` for architecture orientation.
-- Deployment references: `docs/DOCKER_GUIDE.md`, `docs/WELL_UNIVERSAL_PROTOCOL.md`, `docs/MCP_KERNEL_MANUAL.md`, `docs/MCP_QUICKSTART.md`.
+
+**Documentation:**
+- `000_THEORY/` - Constitutional canon and architecture
+- `docs/` - Technical documentation and guides
+- `SESSION_REQUIREMENTS.md` - Environment setup
+- `README.md` - Project overview and quick start
+
+**Monitoring & Analysis:**
+- `scripts/check_track_alignment_v49.py` - Constitutional alignment
+- `scripts/verify_v49_wiring.py` - System validation
+- `scripts/analyze_cooling_ledger.py` - Ledger analysis
+- `scripts/verify_ledger_chain.py` - Merkle verification
+
+**Support:**
+- GitHub Issues: https://github.com/ariffazil/arifOS/issues
+- Documentation: https://github.com/ariffazil/arifOS/blob/main/README.md
+- Authority: Muhammad Arif bin Fazil (888 Judge)
 
 ---
 
 **Authority:** Muhammad Arif bin Fazil (888 Judge)  
 **Motto:** *Ditempa Bukan Diberi* -- Forged, Not Given.
+
+**Constitutional Hash:** SHA256 verification required for all amendments  
+**Status:** SOVEREIGNLY_SEALED v50.0.0
