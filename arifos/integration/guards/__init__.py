@@ -1,5 +1,5 @@
 """
-arifos_core.integration.guards - Session Guards
+arifos.integration.guards - Session Guards
 
 Contains session guard components.
 

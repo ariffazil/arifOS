@@ -154,7 +154,7 @@ class PromptOrgan(WAWOrgan):
     # -------------------------------------------------------------------------
     # Pattern lists are now imported from waw_loader (Track B enforcement)
     # Patterns loaded from spec/v45/waw_prompt_floors.json (v45→v44 fallback)
-    # See: arifos_core/waw/waw_loader.py for runtime spec enforcement
+    # See: arifos/waw/waw_loader.py for runtime spec enforcement
     # -------------------------------------------------------------------------
 
     def __init__(self) -> None:
@@ -742,7 +742,7 @@ def compute_prompt_signals(
     """
     Pipeline-friendly entry point for prompt governance.
 
-    Usage in arifos_core/pipeline.py (stage 555 EMPA, 666 ALIG):
+    Usage in arifos/pipeline.py (stage 555 EMPA, 666 ALIG):
         from arifos.integration.waw.prompt import compute_prompt_signals
         signals = compute_prompt_signals(user_input, candidate_prompt)
         if signals.preliminary_verdict == "VOID":

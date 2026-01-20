@@ -451,7 +451,7 @@ def compute_rif_signals(
     """
     Pipeline-friendly entry point for epistemic governance.
 
-    Usage in arifos_core/pipeline.py (stage 333 REASON, 444 ALIG):
+    Usage in arifos/pipeline.py (stage 333 REASON, 444 ALIG):
         from arifos.integration.waw.rif import compute_rif_signals
         signals = compute_rif_signals(answer_text, metrics)
         if signals.delta_s_answer < 0 or signals.truth_score < 0.99:

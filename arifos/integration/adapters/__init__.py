@@ -1,5 +1,5 @@
 """
-arifos_core.integration.adapters - LLM Provider Adapters
+arifos.integration.adapters - LLM Provider Adapters
 
 This package provides adapters for connecting real LLMs to arifOS.
 

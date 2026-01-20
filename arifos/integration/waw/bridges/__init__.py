@@ -1,5 +1,5 @@
 """
-arifos_core.integration.waw.bridges - Synergy Link Layer
+arifos.integration.waw.bridges - Synergy Link Layer
 
 This package contains the bridges that connect arifOS W@W organs to
 external detection libraries ("muscles").

@@ -1,5 +1,5 @@
 """
-arifos_core/integration/synthesis/neuro_symbolic_bridge.py
+arifos/integration/synthesis/neuro_symbolic_bridge.py
 
 666 BRIDGE - Neuro-Symbolic Synthesis (Δ+Ω Unification)
 

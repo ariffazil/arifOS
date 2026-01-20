@@ -473,7 +473,7 @@ def compute_wealth_signals(
     """
     Pipeline-friendly entry point for integrity/Amanah governance.
 
-    Usage in arifos_core/pipeline.py (stage 666 ALIG, 777 FORG):
+    Usage in arifos/pipeline.py (stage 666 ALIG, 777 FORG):
         from arifos.integration.waw.wealth import compute_wealth_signals
         signals = compute_wealth_signals(output_text, metrics)
         if not signals.amanah_ok:

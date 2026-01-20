@@ -100,7 +100,7 @@ Ledger integrity, merkle proof validation.
 ### API (Capability-Detected)
 FastAPI routes testing (health, pipeline, memory, federation).
 
-**Capability Detection:** Skips if `arifos_core.integration.api.app` not importable.
+**Capability Detection:** Skips if `arifos.integration.api.app` not importable.
 
 ### WAW (Capability-Detected)
 W@W organ signal validation (@LAW, @GEOX, @WELL, @RIF).
@@ -295,7 +295,7 @@ Performance:
 
 ### Adding Test Cases
 
-Edit `arifos_core/integration/sealion_suite/test_packs.py`:
+Edit `arifos/integration/sealion_suite/test_packs.py`:
 
 ```python
 NEW_TEST = TestCase(
@@ -350,7 +350,7 @@ ImportError: litellm required. Install with: pip install litellm
 ⚠️  REFUSE override triggered but LLM was called (short-circuit failed!)
 ```
 
-**Solution:** This indicates a critical bug in pipeline stage_333. The REFUSE lane should skip LLM calls. Check `arifos_core/system/pipeline.py:484-488` for the short-circuit logic.
+**Solution:** This indicates a critical bug in pipeline stage_333. The REFUSE lane should skip LLM calls. Check `arifos/system/pipeline.py:484-488` for the short-circuit logic.
 
 ## Quality Gates
 
@@ -366,7 +366,7 @@ Before releasing a new patch, ensure:
 
 ```
 scripts/sealion_full_suite_v45.py          # Main CLI entrypoint
-arifos_core/integration/sealion_suite/
+arifos/integration/sealion_suite/
 ├── __init__.py                             # Package exports
 ├── test_packs.py                           # Test case definitions (60+ cases)
 ├── evaluator.py                            # Test runner and validator

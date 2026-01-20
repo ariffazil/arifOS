@@ -35,7 +35,7 @@ from arifos.floors import floor_09_anti_hantu as f9
 from .cost_tracker import CostTracker, BudgetExceededError
 from .search_cache import ConstitutionalSearchCache
 
-logger = logging.getLogger("arifos_core.meta_search")
+logger = logging.getLogger("arifos.meta_search")
 
 
 @dataclass

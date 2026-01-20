@@ -1,5 +1,5 @@
 """
-arifos_core.waw - W@W Federation Constitutional Organs (v35Omega)
+arifos.waw - W@W Federation Constitutional Organs (v35Omega)
 
 The five-organ constitutional execution layer of arifOS.
 Each organ evaluates outputs from its domain and returns PASS/WARN/VETO.

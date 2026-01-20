@@ -781,5 +781,5 @@ if __name__ == "__main__":
             print(f"Error loading config: {e}")
             sys.exit(1)
     else:
-        print("Usage: python -m arifos_core.integration.connectors.failover_orchestrator --status")
+        print("Usage: python -m arifos.integration.connectors.failover_orchestrator --status")
         sys.exit(1)

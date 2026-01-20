@@ -22,9 +22,9 @@ from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass, field
 from enum import Enum
 
-from arifos_ledger import LedgerStore
+from arifos.ledger import LedgerStore
 
-logger = logging.getLogger("arifos_core.cost_tracker")
+logger = logging.getLogger("arifos.cost_tracker")
 
 
 class BudgetLevel(Enum):
