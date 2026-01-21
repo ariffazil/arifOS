@@ -21,7 +21,9 @@ import mcp.types
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
-from .unified_tools import (
+# FIX: Use ABSOLUTE imports instead of relative (RFC 2025-01-22)
+# Relative imports fail when module is loaded via string path (e.g., uvicorn app:arifos.core.mcp.sse)
+from arifos.core.mcp.unified_tools import (
     stage_000_init,
     stage_111_sense,
     stage_222_think,
