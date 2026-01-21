@@ -15,9 +15,13 @@ echo "Governance: ${GOVERNANCE_MODE:-HARD}"
 echo "Trinity: ${TRINITY_ENABLED:-true}"
 echo "Python Path: ${PYTHONPATH:-not set}"
 
-# Ensure current directory is in PYTHONPATH for absolute imports
-export PYTHONPATH=$PYTHONPATH:.
-echo "Updated PYTHONPATH: $PYTHONPATH"
+# Ensure /app is in PYTHONPATH for absolute imports
+export PYTHONPATH=$PYTHONPATH:/app
+echo "Final PYTHONPATH: $PYTHONPATH"
+
+# Debug: List arifos directory to verify presence
+ls -d arifos || echo "❌ arifos directory NOT found in CWD"
+ls -F arifos/__init__.py || echo "❌ arifos/__init__.py NOT found"
 
 # Constitutional pre-flight check
 echo ""

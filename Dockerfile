@@ -11,6 +11,9 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 COPY . /app
 
+# Ensure /app is in Python path for absolute imports
+ENV PYTHONPATH=/app
+
 # Install Python deps
 RUN pip install --no-cache-dir -r requirements.txt
 
