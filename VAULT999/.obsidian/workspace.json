@@ -206,25 +206,25 @@
     "type": "floating",
     "children": [
       {
-        "id": "423971fd9d6f7a96",
+        "id": "2bb3105635013848",
         "type": "window",
         "children": [
           {
-            "id": "68fc1b9a6a456b9d",
+            "id": "5d46205e56d99915",
             "type": "tabs",
             "children": [
               {
-                "id": "cfc4aee278bd1fad",
+                "id": "6d2ea3480b008501",
                 "type": "leaf",
                 "state": {
                   "type": "webviewer",
                   "state": {
-                    "url": "https://obsidian.md/auth#",
-                    "title": "Account - Obsidian",
+                    "url": "https://coddingtonbear.github.io/obsidian-local-rest-api/",
+                    "title": "Local Rest API for Obsidian: Interactive API Documentation",
                     "mode": "webview"
                   },
                   "icon": "globe-2",
-                  "title": "Account - Obsidian"
+                  "title": "Local Rest API for Obsidian: Interactive API Documentation"
                 }
               }
             ]
@@ -240,10 +240,10 @@
       }
     ]
   },
-  "active": "cfc4aee278bd1fad",
+  "active": "6d2ea3480b008501",
   "lastOpenFiles": [
-    "v50_roadmap.md",
     "vault_999 Architecture.canvas",
+    "v50_roadmap.md",
     "Welcome.md",
     "v51_roadmap.md",
     "CCC Constitutional Memory.md",
