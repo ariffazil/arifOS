@@ -6,25 +6,90 @@
 
 > **The first AI system where governance isn't optional—it's constitutional law.**
 
-**Version:** v49.0.1 | **Released:** January 2026 | **Status:** FORGE-READY
+**Version:** v50.0.0 | **Released:** January 2026 | **Status:** FORGE-READY
 **Motto:** *"Ditempa Bukan Diberi"* — Forged, Not Given
 **Authority:** Muhammad Arif bin Fazil | Penang, Malaysia
 
 ---
 
-## The E=mc² Moment: Constitutional Metabolizer for AI
+## The AHA Moment: Unified Intelligence for AI
 
-**13 floors collapse to 3×3 thermodynamic matrix → single governance manifold.**
+**The first AI system where intelligence isn't just computed—it's governed, measured, and forged into wisdom.**
 
-```python
-# The Einstein equation for AI governance:
-ΔS → 0        # Entropy reduction (clarity increases)
-Peace² ≥ 1    # Non-destructive stability
-Ω₀ ∈ [0.03, 0.05]  # Humility band (uncertainty acknowledgment)
-Amanah 🔐     # Reversibility covenant (human sovereignty)
+### Three Foundations → Four Dials → One Wisdom
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    arifOS UNIFIED INTELLIGENCE (v50)                    │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  LAYER 1: THREE FOUNDATIONS                                            │
+│  ══════════════════════════                                            │
+│  ┌────────────────┐ ┌────────────────┐ ┌────────────────┐              │
+│  │ AGI·ASI·APEX   │ │ 000→999 Loop   │ │ 13 Floors      │              │
+│  │ (Trinity)      │ │ (Metabolism)   │ │ (Constitution) │              │
+│  │ Encoder-Decoder│ │ Transformation │ │ Constraints    │              │
+│  └───────┬────────┘ └───────┬────────┘ └───────┬────────┘              │
+│          └──────────────────┼──────────────────┘                       │
+│                             ▼                                           │
+│  LAYER 2: FOUR DIALS (APEX TELEMETRY)                                  │
+│  ════════════════════════════════════                                  │
+│  ┌────┐    ┌────┐    ┌────┐    ┌────┐                                 │
+│  │ A  │    │ P  │    │ E  │    │ X  │                                 │
+│  │AKAL│    │PRES│    │ENER│    │EXPL│                                 │
+│  │عقل │    │سكنة│    │طاقة│    │أمانة│                                 │
+│  └─┬──┘    └─┬──┘    └─┬──┘    └─┬──┘                                 │
+│    │         │         │         │                                     │
+│    │         └────┬────┴─────────┘                                     │
+│    │              │                                                     │
+│    ▼              ▼                                                     │
+│  LAYER 3: THE AHA PRINCIPLE                                            │
+│  ══════════════════════════                                            │
+│  ┌────────┐  ┌────────┐  ┌────────┐                                   │
+│  │   A    │  │   H    │  │   A    │                                   │
+│  │ AKAL   │  │HALUAN  │  │HIKMAH  │                                   │
+│  │ Know   │  │Conduct │  │Wisdom  │                                   │
+│  └────────┘  └────────┘  └────────┘                                   │
+│                                                                         │
+│  FORMULA: HIKMAH = AKAL × HALUAN = A × P × X × E²                      │
+│           (Wisdom = Genius Index = Governed Intelligence)               │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
-See [000_THEORY/000_ARCHITECTURE.md](000_THEORY/000_ARCHITECTURE.md#13-thermodynamic-matrix-ψ-the-emc2-collapse) for the mathematical collapse.
+### The Wisdom Equation
+
+```python
+# The unified equation for governed intelligence:
+G = A × P × X × E²        # Genius Index (measurable wisdom)
+
+# Where:
+A = AKAL (Clarity)        # Cognitive intelligence (Δ)
+P = PRESENT (Regulation)  # Emotional stability (Ψ)
+E = ENERGY (Sustain)      # Sustainable stamina (E² is bottleneck!)
+X = EXPLORATION           # Curiosity + RASA + Amanah + Intuition (Ω)
+
+# The AHA mapping:
+AHA = AKAL × HALUAN = HIKMAH
+    = A × (P × E × X) = WISDOM
+
+# Constitutional invariants (from 13 Floors):
+ΔS → 0         # Entropy must decrease (F4 Clarity)
+Peace² ≥ 1     # Non-destructive (F5 Peace)
+Ω₀ ∈ [0.03, 0.05]  # Humility band (F7)
+Amanah 🔐      # Reversibility covenant (F1)
+
+# If ANY dial = 0 → No wisdom (multiplicative law)
+# Without X (the amanah+curiosity dial), humans are just APE
+```
+
+**The E² Law:** Energy is the bottleneck. Without it, genius collapses faster than clarity.
+
+> *"Akal + Amanah + tenang + tenaga stabil → itulah genius sebenar."*
+>
+> "Intelligence + Trust + Calm + Stable Energy → that is TRUE GENIUS."
+
+See [000_THEORY/000_ARCHITECTURE.md](000_THEORY/000_ARCHITECTURE.md) for the complete mathematical model.
 
 ---
 

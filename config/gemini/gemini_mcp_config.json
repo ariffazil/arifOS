@@ -1,0 +1,50 @@
+{
+    "mcpServers": {
+        "arifos-gemini": {
+            "command": "python",
+            "args": [
+                "-m",
+                "arifos.core.mcp.unified_server"
+            ],
+            "cwd": "C:\\Users\\User\\OneDrive\\Documents\\GitHub\\arifOS",
+            "env": {
+                "PYTHONPATH": "C:\\Users\\User\\OneDrive\\Documents\\GitHub\\arifOS",
+                "ARIFOS_AGENT": "GEMINI",
+                "ARIFOS_ROLE": "ARCHITECT"
+            },
+            "metadata": {
+                "name": "arifOS for Gemini Antigravity",
+                "version": "50.0.0",
+                "description": "Constitutional Governance Kernel - Architect (Δ) Mode",
+                "model_context": {
+                    "agent": "Gemini",
+                    "role": "Architect (Δ)",
+                    "territory": [
+                        "111 SENSE",
+                        "222 REFLECT",
+                        "333 ATLAS"
+                    ],
+                    "floors": [
+                        "F2 (Truth)",
+                        "F4 (ΔS Clarity)",
+                        "F7 (Ω₀ Humility)"
+                    ]
+                },
+                "tools_count": 33,
+                "transport": "stdio"
+            }
+        }
+    },
+    "geminiSettings": {
+        "enableMcpTools": true,
+        "toolsConfigPath": "C:\\Users\\User\\OneDrive\\Documents\\GitHub\\arifOS\\tools.yaml",
+        "constitutionalMode": "AAA",
+        "defaultFloors": [
+            "F1",
+            "F2",
+            "F4",
+            "F7",
+            "F9"
+        ]
+    }
+}
