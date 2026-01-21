@@ -13,6 +13,11 @@ echo "Port: ${AAA_MCP_PORT:-8000}"
 echo "Transport: ${AAA_MCP_TRANSPORT:-http}"
 echo "Governance: ${GOVERNANCE_MODE:-HARD}"
 echo "Trinity: ${TRINITY_ENABLED:-true}"
+echo "Python Path: ${PYTHONPATH:-not set}"
+
+# Ensure current directory is in PYTHONPATH for absolute imports
+export PYTHONPATH=$PYTHONPATH:.
+echo "Updated PYTHONPATH: $PYTHONPATH"
 
 # Constitutional pre-flight check
 echo ""
