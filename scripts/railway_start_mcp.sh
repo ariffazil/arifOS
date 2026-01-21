@@ -31,18 +31,21 @@ from arifos.core.mcp import unified_server
 print(f'✅ MCP Module loaded: {len(unified_server.TOOLS)} tools')
 "
 
-# Check database connectivity
+# Check database connectivity (Optional for Railway MCP)
 echo ""
-echo "🔍 Checking database connectivity..."
+echo "🔍 Checking database connectivity (Optional)..."
 python -c "
 import os
-import psycopg2
 try:
-    conn = psycopg2.connect(os.environ['DATABASE_URL'])
-    print('✅ PostgreSQL connected')
-    conn.close()
-except Exception as e:
-    print(f'⚠️  PostgreSQL unavailable: {e}')
+    import psycopg2
+    try:
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        print('✅ PostgreSQL connected')
+        conn.close()
+    except Exception as e:
+        print(f'⚠️  PostgreSQL unavailable: {e}')
+except ImportError:
+    print('ℹ️  psycopg2 not installed (Expected for Railway MCP server)')
 "
 
 # Start MCP Server (SSE mode for production)

@@ -94,7 +94,7 @@ class APEXPrime:
     Now with Deep Logic Wiring.
     """
 
-    def __init__(self):
+    def __init__(self, high_stakes: bool = False, tri_witness_threshold: float = 0.95):
         # APEX Control Dials (Defaults)
         self.dials = {
             "A": 0.95,  # Akal (Reasoning)
@@ -102,6 +102,10 @@ class APEXPrime:
             "E": 0.8,   # Energy (Compute)
             "X": 0.04   # Exploration (Search)
         }
+
+        # Legacy parameters for compatibility
+        self.high_stakes = high_stakes
+        self.tri_witness_threshold = tri_witness_threshold
 
         # Cooling Engine Integration
         self.cooling_engine = CoolingEngine()
@@ -307,6 +311,73 @@ class APEXPrime:
             return {"passed": False, "reason": f"Genius {metrics['G']:.2f} < 0.3"}
         return {"passed": True}
 
+    def judge(self, metrics: Metrics, eye_blocking: bool = False) -> Verdict:
+        """Legacy judge method mapping metrics to a Verdict."""
+        # Convert Metrics to the internal format expected by judge_output
+        # This is a shim to keep ApexEngine running.
+        agi_results = [
+            FloorCheckResult("F2", "Truth", 0.99, metrics.truth, metrics.truth >= 0.99, is_hard=True),
+            FloorCheckResult("F6", "Clarity", 0.0, metrics.delta_s, metrics.delta_s <= 0.0, is_hard=True)
+        ]
+        asi_results = [
+            FloorCheckResult("F3", "Peace", 1.0, metrics.peace_squared, metrics.peace_squared >= 1.0, is_hard=False),
+            FloorCheckResult("F4", "Empathy", 0.95, metrics.kappa_r, metrics.kappa_r >= 0.95, is_hard=False),
+            FloorCheckResult("F5", "Humility", 0.03, metrics.omega_0, 0.03 <= metrics.omega_0 <= 0.05, is_hard=False),
+            FloorCheckResult("F7", "RASA", 1.0, 1.0 if metrics.rasa else 0.0, bool(metrics.rasa), is_hard=True)
+        ]
+        if self.high_stakes or eye_blocking:
+            asi_results.append(FloorCheckResult("F8", "Witness", self.tri_witness_threshold, metrics.tri_witness, metrics.tri_witness >= self.tri_witness_threshold, is_hard=True))
+
+        verdict_obj = self.judge_output("", "", agi_results, asi_results)
+        return verdict_obj.verdict
+
+    def check(self, metrics: Metrics) -> FloorsVerdict:
+        """Evaluate all floors and return a FloorsVerdict (Legacy compatibility)."""
+        from arifos.core.enforcement.metrics import (
+            check_delta_s,
+            check_kappa_r,
+            check_omega_band,
+            check_peace_squared,
+            check_psi,
+            check_tri_witness,
+            check_truth,
+        )
+
+        truth_ok = check_truth(metrics.truth)
+        delta_s_ok = check_delta_s(metrics.delta_s)
+        peace_ok = check_peace_squared(metrics.peace_squared)
+        kappa_r_ok = check_kappa_r(metrics.kappa_r)
+        omega_ok = check_omega_band(metrics.omega_0)
+        amanah_ok = metrics.amanah
+        tri_witness_ok = check_tri_witness(metrics.tri_witness)
+        psi_ok = check_psi(metrics.psi if metrics.psi is not None else 1.0)
+        rasa_ok = metrics.rasa
+        anti_hantu_ok = metrics.anti_hantu
+
+        reasons = []
+        if not truth_ok: reasons.append(f"F2(truth={metrics.truth:.2f})")
+        if not amanah_ok: reasons.append("F1(amanah)")
+        if not delta_s_ok: reasons.append(f"F6(delta_s={metrics.delta_s:.2f})")
+        if not peace_ok: reasons.append(f"F3(peace={metrics.peace_squared:.2f})")
+        if not rasa_ok: reasons.append("F7(rasa)")
+        if not anti_hantu_ok: reasons.append("F9(anti_hantu)")
+
+        return FloorsVerdict(
+            hard_ok = all([truth_ok, amanah_ok, psi_ok, rasa_ok, anti_hantu_ok]),
+            soft_ok = all([delta_s_ok, omega_ok, peace_ok, kappa_r_ok, tri_witness_ok]),
+            reasons=reasons,
+            truth_ok=truth_ok,
+            delta_s_ok=delta_s_ok,
+            peace_squared_ok=peace_ok,
+            kappa_r_ok=kappa_r_ok,
+            omega_0_ok=omega_ok,
+            amanah_ok=amanah_ok,
+            tri_witness_ok=tri_witness_ok,
+            psi_ok=psi_ok,
+            anti_hantu_ok=anti_hantu_ok,
+            rasa_ok=rasa_ok
+        )
+
     def _trigger_sabar(self, c_dark_val: float, tier: int, session_id: str) -> Dict[str, Any]:
         """SABAR Protocol: Calls CoolingEngine."""
         with self._sabar_lock:
@@ -390,6 +461,12 @@ class APEXPrime:
 # =============================================================================
 # LEGACY SHIM (For backward compatibility with existing calls to apex_review)
 # =============================================================================
+
+
+def check_floors(metrics: Metrics) -> FloorsVerdict:
+    """Legacy standalone floor check."""
+    return APEXPrime().check(metrics)
+
 
 def apex_review(metrics: Metrics, **kwargs) -> ApexVerdict:
     """Legacy wrapper adapting old metrics-based call to new APEXPrime."""
