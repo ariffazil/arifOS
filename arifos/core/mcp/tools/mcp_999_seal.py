@@ -220,6 +220,56 @@ async def mcp_999_seal(request: Dict[str, Any]) -> VerdictResponse:
         else:
             print("[DEBUG_999] No receipt found in hypervisor result.")
 
+        # 4. Phoenix-72 Cooling Enforcement (Deep Logic)
+        cooling_metadata = {}
+        try:
+            from arifos.core.asi.cooling import COOLING
+
+            # Calculate Tier based on verdict and potentially warnings in metadata
+            # For now, simplistic calculation based on verdict alone
+            warnings = decision_metadata.get("warnings", 0)
+            tier = COOLING.calculate_cooling_tier(final_verdict, warnings)
+
+            # Enforce Cooling (Async)
+            # This returns metadata about the required cooling period
+            cooling_metadata = await COOLING.enforce_tier(tier, user_id)
+
+        except ImportError:
+            cooling_metadata = {"error": "Cooling engine not found"}
+        except Exception as e:
+            cooling_metadata = {"error": f"Cooling enforcement failed: {str(e)}"}
+
+        # 5. Eureka Sieve Memory Tiering (Stage 999)
+        memory_result = {}
+        try:
+            from arifos.core.vault.memory_tower import store_memory
+
+            # Extract metrics for Sieve
+            genius_stats = hypervisor_result.get("genius_stats", {})
+            novelty = genius_stats.get("novelty", 0.5)
+            consensus = genius_stats.get("convergence", 0.95)
+
+            # Store Verdict in Memory Tower
+            memory_result = store_memory(
+                session_id=user_id, # Using user_id as session key context
+                content=f"Verdict: {final_verdict} | Purpose: {query}",
+                novelty_score=novelty,
+                tri_witness_consensus=consensus,
+                verdict=final_verdict,
+                constitutional_pass=(final_verdict == "SEAL"),
+                metadata={
+                    "proof_hash": proof_hash_from_hypervisor,
+                    "timestamp": timestamp,
+                    "cooling_tier": cooling_metadata.get("tier", 0)
+                }
+            )
+            print(f"[DEBUG_999] Memory Sieve Result: {memory_result}")
+        except ImportError:
+             memory_result = {"error": "Memory Tower not found"}
+        except Exception as e:
+             memory_result = {"error": f"Memory storage failed: {str(e)}"}
+
+
         return VerdictResponse(
             verdict="PASS" if final_verdict == "SEAL" else "VOID", # Tool execution passed, but verdict might be VOID
             reason=f"Quantum Measurement Complete: {final_verdict}",
@@ -230,7 +280,18 @@ async def mcp_999_seal(request: Dict[str, Any]) -> VerdictResponse:
                 "timestamp": timestamp,
                 "seal_valid": True,
                 "hypervisor_proof": proofs,
-                "constitutional_status": hypervisor_result.get("constitutional_status")
+                "constitutional_status": hypervisor_result.get("constitutional_status"),
+                "cooling_metadata": cooling_metadata, # Added Phoenix-72 Data
+                # Phase 3: Metabolic Feedback (ScarPacket)
+                "feedback_signal": {
+                    "verdict": final_verdict,
+                    "correction": "RE-SCAN" if final_verdict == "VOID" else "CONTINUE",
+                    "focus_adjust": "sensitivity" if final_verdict == "VOID" else "none",
+                    "metrics": {
+                        "drift": cooling_metadata.get("drift", 0.0),
+                        "entropy": genius_stats.get("entropy", 0.0)
+                    }
+                }
             },
             timestamp=timestamp
         )

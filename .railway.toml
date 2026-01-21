@@ -1,0 +1,13 @@
+[build]
+  builder = "NIXPACKS"
+
+[deploy]
+  startCommand = "python arifos/core/mcp/unified_server.py"
+  healthcheckPath = "/health"
+  healthcheckTimeout = 30
+  sleepApplication = false
+
+[env]
+  VAULT_PATH = "/vault"
+  ARIFOS_CONSTITUTIONAL_MODE = "AAA"
+  ARIFOS_DEBUG = "false"

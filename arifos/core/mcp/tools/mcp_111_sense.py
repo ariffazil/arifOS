@@ -281,6 +281,18 @@ async def mcp_111_sense(request: Dict[str, Any]) -> VerdictResponse:
     query = request.get("query", "")
     context_meta = request.get("context", {})
 
+    # Phase 3: Metabolic Feedback Reception
+    # Adjust sensing parameters based on previous cycle feedback (ScarPacket)
+    feedback_signal = context_meta.get("feedback_signal", {})
+    sensitivity_modifier = 0.0
+
+    if feedback_signal.get("correction") == "RE-SCAN":
+        # Previous cycle was VOID: Increase sensitivity
+        sensitivity_modifier = 0.05
+    elif feedback_signal.get("metrics", {}).get("drift", 0.0) > 0.1:
+        # High drift detected: Tighten thresholds
+        sensitivity_modifier = 0.03
+
     if not query or not isinstance(query, str):
         return VerdictResponse(
             verdict="VOID",
@@ -303,11 +315,14 @@ async def mcp_111_sense(request: Dict[str, Any]) -> VerdictResponse:
 
     # Heuristic mapping for compatibility with old clients
     if lane == "HARD":
-       truth_threshold = 0.90
+       truth_threshold = 0.90 + sensitivity_modifier
     elif lane == "PHATIC":
-       truth_threshold = 0.0
+       truth_threshold = 0.0 # Phatic remains exempt
     else:
-       truth_threshold = 0.80
+       truth_threshold = 0.80 + sensitivity_modifier
+
+    # Cap threshold at 0.99 (Constitutionally bounded)
+    truth_threshold = min(truth_threshold, 0.99)
 
     # Determine verdict
     if lane == "CRISIS":

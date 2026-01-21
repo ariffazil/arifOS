@@ -17,7 +17,7 @@ from __future__ import annotations
 import json
 import time
 import urllib.error
-import urllib.request
+from typing import Optional
 
 from ..models import ApexLlamaRequest, ApexLlamaResponse
 
@@ -26,14 +26,19 @@ def _call_ollama(
     prompt: str,
     model: str,
     max_tokens: int,
-    host: str = "http://localhost:11434",
-    timeout: float = 60.0,
+    host: Optional[str] = None,
+    timeout: Optional[float] = None,
 ) -> str:
     """
     Call local Ollama HTTP API and return the generated text.
 
     This uses only Python stdlib to avoid new dependencies.
     """
+    import os
+    if host is None:
+        host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+    if timeout is None:
+        timeout = float(os.getenv("OLLAMA_TIMEOUT", "60.0"))
     payload = {
         "model": model,
         "prompt": prompt,
@@ -103,4 +108,3 @@ def apex_llama(request: ApexLlamaRequest) -> ApexLlamaResponse:
 
 
 __all__ = ["apex_llama"]
-

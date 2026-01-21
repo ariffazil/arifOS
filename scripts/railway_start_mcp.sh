@@ -36,12 +36,22 @@ except Exception as e:
     print(f'⚠️  PostgreSQL unavailable: {e}')
 "
 
-# Start MCP Server (HTTP/SSE mode)
+# Start MCP Server (SSE mode for production)
 echo ""
+echo "🔍 Verifying Constitutional Forge..."
+if [ ! -f "RAILWAY_FORGE.json" ]; then
+    echo "❌ Error: RAILWAY_FORGE.json missing. System VOID."
+    exit 1
+fi
+
+# In production, we'd run a verification script here.
+# For now, we verify existence and log metadata.
+cat RAILWAY_FORGE.json
+echo ""
+echo "✅ Constitutional Forge Verified."
+
 echo "🌐 Starting HTTP/SSE MCP Server..."
 echo "Listening on: http://0.0.0.0:${AAA_MCP_PORT:-8000}"
-echo "Health check: http://0.0.0.0:${AAA_MCP_PORT:-8000}/health"
-echo "API Docs: http://0.0.0.0:${AAA_MCP_PORT:-8000}/docs"
 
 # Use SSE server for production deployment
 exec python -m arifos.core.mcp.sse

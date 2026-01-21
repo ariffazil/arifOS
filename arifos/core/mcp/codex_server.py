@@ -8,15 +8,15 @@ import asyncio
 import json
 import logging
 import os
-from typing import Dict, List, Optional, Any, Union
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Union
 
 # MCP server components
 try:
     from mcp.server import Server
     from mcp.server.models import InitializationOptions
     from mcp.server.stdio import stdio_server
-    from mcp.types import Tool, TextContent, ImageContent, EmbeddedResource
+    from mcp.types import EmbeddedResource, ImageContent, TextContent, Tool
     MCP_AVAILABLE = True
 except ImportError:
     MCP_AVAILABLE = False
@@ -25,53 +25,53 @@ except ImportError:
 # arifOS constitutional components
 from arifos.core.mcp.codex_client import ConstitutionalCodexClient
 from arifos.core.mcp.tools.codex_skills import CodexConstitutionalSkills
-from arifos.core.trinity.coordinator import TrinityCoordinator, coordinate_codex_trinity
-from arifos.core.system.apex_prime import Verdict
 from arifos.core.memory.vault999 import vault999_query, vault999_store
+from arifos.core.system.apex_prime import Verdict
+from arifos.core.trinity.coordinator import TrinityCoordinator, coordinate_codex_trinity
 
 
 @dataclass
 class CodexMCPServerConfig:
     """Configuration for Constitutional Codex MCP Server"""
-    user_id: str = "codex_user"
-    api_key: Optional[str] = None
-    base_url: str = "https://api.openai.com/v1"
-    model: str = "gpt-4"
-    temperature: float = 0.1
-    max_tokens: int = 4000
-    timeout: float = 30.0
-    constitutional_mode: bool = True
-    trinity_coordination: bool = True
-    session_timeout: int = 3600
-    max_sessions: int = 10
+    user_id: str = os.getenv("CODEX_USER_ID", "codex_user")
+    api_key: Optional[str] = os.getenv("OPENAI_API_KEY")
+    base_url: str = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+    model: str = os.getenv("CODEX_MODEL", "gpt-4")
+    temperature: float = float(os.getenv("CODEX_TEMPERATURE", "0.1"))
+    max_tokens: int = int(os.getenv("CODEX_MAX_TOKENS", "4000"))
+    timeout: float = float(os.getenv("CODEX_TIMEOUT", "30.0"))
+    constitutional_mode: bool = os.getenv("ARI_CONSTITUTIONAL_MODE", "True").lower() == "true"
+    trinity_coordination: bool = os.getenv("ARI_TRINITY_MODE", "True").lower() == "true"
+    session_timeout: int = int(os.getenv("CODEX_SESSION_TIMEOUT", "3600"))
+    max_sessions: int = int(os.getenv("CODEX_MAX_SESSIONS", "10"))
 
 
 class ConstitutionalCodexMCPServer:
     """Constitutional MCP server for OpenAI Codex integration"""
-    
+
     def __init__(self, config: CodexMCPServerConfig):
         self.config = config
-        
+
         # Initialize constitutional components
         self.codex_client = ConstitutionalCodexClient(
             api_key=config.api_key,
             user_id=config.user_id
         )
-        
+
         self.codex_skills = CodexConstitutionalSkills(user_id=config.user_id)
         self.trinity_coordinator = TrinityCoordinator(user_id=config.user_id)
-        
+
         # Session management
         self.sessions: Dict[str, Dict] = {}
-        
+
         # Tool registry
         self.tools = self._initialize_constitutional_tools()
-        
+
         logging.info(f"ConstitutionalCodexMCPServer initialized for user: {config.user_id}")
-    
+
     def _initialize_constitutional_tools(self) -> List[Tool]:
         """Initialize all constitutional tools for Codex"""
-        
+
         tools = [
             # Constitutional Pipeline Tools
             Tool(
@@ -106,7 +106,7 @@ class ConstitutionalCodexMCPServer:
                     "required": ["query", "user_id"]
                 }
             ),
-            
+
             Tool(
                 name="agi_think",
                 description="AGI bundle: 111 SENSE + 222 REFLECT + 777 EUREKA - The Mind",
@@ -131,7 +131,7 @@ class ConstitutionalCodexMCPServer:
                     "required": ["query", "user_id"]
                 }
             ),
-            
+
             Tool(
                 name="asi_act",
                 description="ASI bundle: 555 EMPATHIZE + 666 BRIDGE - The Heart",
@@ -154,7 +154,7 @@ class ConstitutionalCodexMCPServer:
                     "required": ["action", "user_id"]
                 }
             ),
-            
+
             # Codex-Specific Constitutional Skills
             Tool(
                 name="codex_code_analysis",
@@ -183,7 +183,7 @@ class ConstitutionalCodexMCPServer:
                     "required": ["code", "analysis_type", "user_id"]
                 }
             ),
-            
+
             Tool(
                 name="codex_code_generation",
                 description="Generate code with constitutional constraints and trinity validation",
@@ -218,7 +218,7 @@ class ConstitutionalCodexMCPServer:
                     "required": ["requirements", "user_id"]
                 }
             ),
-            
+
             Tool(
                 name="codex_debug_assistance",
                 description="Debug assistance with trinity coordination and constitutional validation",
@@ -247,7 +247,7 @@ class ConstitutionalCodexMCPServer:
                     "required": ["error_description", "user_id"]
                 }
             ),
-            
+
             Tool(
                 name="codex_architectural_review",
                 description="Architectural review with AGI perspective",
@@ -272,7 +272,7 @@ class ConstitutionalCodexMCPServer:
                     "required": ["architecture_description", "user_id"]
                 }
             ),
-            
+
             # Memory and Governance Tools
             Tool(
                 name="vault999_query",
@@ -301,7 +301,7 @@ class ConstitutionalCodexMCPServer:
                     "required": ["query"]
                 }
             ),
-            
+
             Tool(
                 name="vault999_store",
                 description="Store insights in arifOS constitutional memory",
@@ -338,7 +338,7 @@ class ConstitutionalCodexMCPServer:
                     "required": ["insight_text", "structure", "truth_boundary", "scar", "user_id"]
                 }
             ),
-            
+
             Tool(
                 name="fag_read",
                 description="Governed file read with constitutional oversight",
@@ -362,7 +362,7 @@ class ConstitutionalCodexMCPServer:
                     "required": ["path"]
                 }
             ),
-            
+
             Tool(
                 name="fag_write",
                 description="Governed file write with constitutional oversight",
@@ -391,15 +391,15 @@ class ConstitutionalCodexMCPServer:
                 }
             )
         ]
-        
+
         return tools
-    
+
     async def handle_tool_call(self, name: str, arguments: Dict) -> Union[TextContent, List[TextContent]]:
         """Handle tool calls with constitutional governance"""
-        
+
         try:
             logging.info(f"Handling tool call: {name} with arguments: {arguments}")
-            
+
             # Validate arguments constitutionally
             validation_result = await self._validate_tool_arguments(name, arguments)
             if not validation_result["valid"]:
@@ -407,7 +407,7 @@ class ConstitutionalCodexMCPServer:
                     type="text",
                     text=f"Constitutional validation failed: {validation_result['reason']}"
                 )
-            
+
             # Route to appropriate tool handler
             if name == "arifos_live":
                 return await self._handle_arifos_live(arguments)
@@ -436,35 +436,35 @@ class ConstitutionalCodexMCPServer:
                     type="text",
                     text=f"Unknown tool: {name}"
                 )
-                
+
         except Exception as e:
             logging.error(f"Error handling tool call {name}: {e}")
             return TextContent(
                 type="text",
                 text=f"Error processing tool {name}: {str(e)}"
             )
-    
+
     async def _validate_tool_arguments(self, tool_name: str, arguments: Dict) -> Dict:
         """Validate tool arguments constitutionally"""
-        
+
         # Basic validation
         if not arguments or not isinstance(arguments, dict):
             return {"valid": False, "reason": "Invalid arguments format"}
-        
+
         # Tool-specific validation
         if tool_name in ["codex_code_analysis", "codex_code_generation", "codex_debug_assistance"]:
             # Validate code-related arguments don't contain malicious patterns
             code_content = arguments.get("code", "") or arguments.get("requirements", "")
             if self._detect_malicious_patterns(code_content):
                 return {"valid": False, "reason": "F12 Injection violation: Malicious patterns detected"}
-        
+
         # User ID validation
         user_id = arguments.get("user_id")
         if user_id and not self._validate_user_id(user_id):
             return {"valid": False, "reason": "F11 Command Auth violation: Invalid user identifier"}
-        
+
         return {"valid": True, "reason": "Arguments validated successfully"}
-    
+
     def _detect_malicious_patterns(self, content: str) -> bool:
         """Detect potentially malicious patterns in content"""
         malicious_patterns = [
@@ -477,25 +477,25 @@ class ConstitutionalCodexMCPServer:
             r'del\s+/f',
             r'format\s*\(.*\*.*\*)'  # SQL injection patterns
         ]
-        
+
         import re
         for pattern in malicious_patterns:
             if re.search(pattern, content, re.IGNORECASE):
                 return True
-        
+
         return False
-    
+
     def _validate_user_id(self, user_id: str) -> bool:
         """Validate user ID format"""
         if not user_id or not isinstance(user_id, str):
             return False
-        
+
         # Basic validation - alphanumeric with underscores and hyphens
         import re
         return bool(re.match(r'^[a-zA-Z0-9_-]+$', user_id))
-    
+
     # Individual tool handlers
-    
+
     async def _handle_arifos_live(self, arguments: Dict) -> TextContent:
         """Handle arifos_live tool call"""
         query = arguments.get("query", "")
@@ -503,14 +503,14 @@ class ConstitutionalCodexMCPServer:
         intent = arguments.get("intent", "general_inquiry")
         lane = arguments.get("lane", "HARD")
         context = arguments.get("context", {})
-        
+
         result = await self.codex_client.process_constitutional_request(
             query=query,
             user_id=user_id,
             intent=intent,
             context=context
         )
-        
+
         return TextContent(
             type="text",
             text=f"Constitutional Verdict: {result.verdict}\n"
@@ -519,16 +519,16 @@ class ConstitutionalCodexMCPServer:
                  f"Constitutional Score: {result.metrics.get('constitutional_score', 'N/A')}\n"
                  f"Session ID: {result.session_id}"
         )
-    
+
     async def _handle_agi_think(self, arguments: Dict) -> TextContent:
         """Handle agi_think tool call"""
         query = arguments.get("query", "")
         user_id = arguments.get("user_id", self.config.user_id)
         depth = arguments.get("depth", "deep")
-        
+
         # Simulate AGI thinking (would call actual AGI in production)
         agi_result = await self._simulate_agi_thinking(query, user_id, depth)
-        
+
         return TextContent(
             type="text",
             text=f"AGI Analysis: {agi_result['analysis']}\n"
@@ -536,16 +536,16 @@ class ConstitutionalCodexMCPServer:
                  f"Confidence: {agi_result['confidence']:.2f}\n"
                  f"Constitutional Compliance: {agi_result['constitutional_compliance']}"
         )
-    
+
     async def _handle_asi_act(self, arguments: Dict) -> TextContent:
         """Handle asi_act tool call"""
         action = arguments.get("action", "")
         user_id = arguments.get("user_id", self.config.user_id)
         stakeholder_context = arguments.get("stakeholder_context", {})
-        
+
         # Simulate ASI validation (would call actual ASI in production)
         asi_result = await self._simulate_asi_validation(action, user_id, stakeholder_context)
-        
+
         return TextContent(
             type="text",
             text=f"ASI Validation: {asi_result['validation']}\n"
@@ -553,16 +553,16 @@ class ConstitutionalCodexMCPServer:
                  f"Weakest Stakeholder Protected: {asi_result['weakest_protected']}\n"
                  f"κᵣ (Empathy Conductance): {asi_result['kappa_r']:.2f}"
         )
-    
+
     async def _handle_codex_code_analysis(self, arguments: Dict) -> TextContent:
         """Handle codex_code_analysis tool call"""
         code = arguments.get("code", "")
         analysis_type = arguments.get("analysis_type", "security")
         user_id = arguments.get("user_id", self.config.user_id)
         context = arguments.get("context", {})
-        
+
         result = await self.codex_skills.analyze_code(code, analysis_type, user_id, context)
-        
+
         return TextContent(
             type="text",
             text=f"Code Analysis Verdict: {result['verdict']}\n"
@@ -574,7 +574,7 @@ class ConstitutionalCodexMCPServer:
                  f"AGI Insights: {len(result['agi_insights'])} insights\n"
                  f"Recommendations: {len(result['recommendations'])} recommendations"
         )
-    
+
     async def _handle_codex_code_generation(self, arguments: Dict) -> TextContent:
         """Handle codex_code_generation tool call"""
         requirements = arguments.get("requirements", "")
@@ -582,11 +582,11 @@ class ConstitutionalCodexMCPServer:
         user_id = arguments.get("user_id", self.config.user_id)
         language = arguments.get("language", "python")
         complexity_level = arguments.get("complexity_level", "moderate")
-        
+
         result = await self.codex_skills.generate_code(
             requirements, constraints, user_id, language, complexity_level
         )
-        
+
         return TextContent(
             type="text",
             text=f"Code Generation Verdict: {result['verdict']}\n"
@@ -596,17 +596,17 @@ class ConstitutionalCodexMCPServer:
                  f"Constraints Applied: {len(result['constraints_applied'])}\n"
                  f"Generated Code:\n{result['generated_code'][:500]}..."
         )
-    
+
     async def _handle_codex_debug_assistance(self, arguments: Dict) -> TextContent:
         """Handle codex_debug_assistance tool call"""
         error_description = arguments.get("error_description", "")
         code_context = arguments.get("code_context", "")
         user_id = arguments.get("user_id", self.config.user_id)
         debug_level = arguments.get("debug_level", "advanced")
-        
+
         # Simulate debug assistance (would implement actual debugging logic)
         debug_result = await self._simulate_debug_assistance(error_description, code_context, debug_level)
-        
+
         return TextContent(
             type="text",
             text=f"Debug Analysis: {debug_result['analysis']}\n"
@@ -615,16 +615,16 @@ class ConstitutionalCodexMCPServer:
                  f"Prevention: {debug_result['prevention']}\n"
                  f"Constitutional Validation: {debug_result['constitutional_valid']}"
         )
-    
+
     async def _handle_codex_architectural_review(self, arguments: Dict) -> TextContent:
         """Handle codex_architectural_review tool call"""
         architecture_description = arguments.get("architecture_description", "")
         user_id = arguments.get("user_id", self.config.user_id)
         review_focus = arguments.get("review_focus", "maintainability")
-        
+
         # Simulate architectural review (would implement actual review logic)
         review_result = await self._simulate_architectural_review(architecture_description, review_focus)
-        
+
         return TextContent(
             type="text",
             text=f"Architectural Review: {review_result['review']}\n"
@@ -634,14 +634,14 @@ class ConstitutionalCodexMCPServer:
                  f"Security Assessment: {review_result['security']}\n"
                  f"Constitutional Compliance: {review_result['constitutional_compliance']}"
         )
-    
+
     async def _handle_vault999_query(self, arguments: Dict) -> TextContent:
         """Handle vault999_query tool call"""
         query = arguments.get("query", "")
         user_id = arguments.get("user_id", self.config.user_id)
         document_id = arguments.get("document_id")
         max_results = arguments.get("max_results", 10)
-        
+
         try:
             result = await vault999_query(
                 query=query,
@@ -649,18 +649,18 @@ class ConstitutionalCodexMCPServer:
                 document_id=document_id,
                 max_results=max_results
             )
-            
+
             return TextContent(
                 type="text",
                 text=f"VAULT-999 Query Results:\n{json.dumps(result, indent=2, default=str)}"
             )
-            
+
         except Exception as e:
             return TextContent(
                 type="text",
                 text=f"VAULT-999 query failed: {str(e)}"
             )
-    
+
     async def _handle_vault999_store(self, arguments: Dict) -> TextContent:
         """Handle vault999_store tool call"""
         insight_text = arguments.get("insight_text", "")
@@ -669,7 +669,7 @@ class ConstitutionalCodexMCPServer:
         scar = arguments.get("scar", "")
         user_id = arguments.get("user_id", self.config.user_id)
         vault_target = arguments.get("vault_target", "BBB")
-        
+
         try:
             result = await vault999_store(
                 insight_text=insight_text,
@@ -679,24 +679,24 @@ class ConstitutionalCodexMCPServer:
                 vault_target=vault_target,
                 user_id=user_id
             )
-            
+
             return TextContent(
                 type="text",
                 text=f"VAULT-999 Storage Result:\n{json.dumps(result, indent=2, default=str)}"
             )
-            
+
         except Exception as e:
             return TextContent(
                 type="text",
                 text=f"VAULT-999 storage failed: {str(e)}"
             )
-    
+
     async def _handle_fag_read(self, arguments: Dict) -> TextContent:
         """Handle fag_read tool call"""
         path = arguments.get("path", "")
         root = arguments.get("root", ".")
         enable_ledger = arguments.get("enable_ledger", True)
-        
+
         try:
             # This would call the actual FAG read implementation
             # For now, return mock result
@@ -708,20 +708,20 @@ class ConstitutionalCodexMCPServer:
                      f"Ledger Logging: {enable_ledger}\n"
                      f"Status: Constitutional read access granted"
             )
-            
+
         except Exception as e:
             return TextContent(
                 type="text",
                 text=f"FAG read failed: {str(e)}"
             )
-    
+
     async def _handle_fag_write(self, arguments: Dict) -> TextContent:
         """Handle fag_write tool call"""
         path = arguments.get("path", "")
         content = arguments.get("content", "")
         root = arguments.get("root", ".")
         operation = arguments.get("operation", "create")
-        
+
         try:
             # This would call the actual FAG write implementation
             # For now, return mock result
@@ -734,15 +734,15 @@ class ConstitutionalCodexMCPServer:
                      f"Content Length: {len(content)} characters\n"
                      f"Status: Constitutional write access granted"
             )
-            
+
         except Exception as e:
             return TextContent(
                 type="text",
                 text=f"FAG write failed: {str(e)}"
             )
-    
+
     # Simulation methods for development
-    
+
     async def _simulate_agi_thinking(self, query: str, user_id: str, depth: str) -> Dict:
         """Simulate AGI thinking for development"""
         return {
@@ -759,7 +759,7 @@ class ConstitutionalCodexMCPServer:
                 "f10_symbolic": True
             }
         }
-    
+
     async def _simulate_asi_validation(self, action: str, user_id: str, stakeholder_context: Dict) -> Dict:
         """Simulate ASI validation for development"""
         return {
@@ -773,7 +773,7 @@ class ConstitutionalCodexMCPServer:
                 "system": 0.5
             }
         }
-    
+
     async def _simulate_debug_assistance(self, error_description: str, code_context: str, debug_level: str) -> Dict:
         """Simulate debug assistance for development"""
         return {
@@ -783,7 +783,7 @@ class ConstitutionalCodexMCPServer:
             "prevention": "Implement comprehensive input validation",
             "constitutional_valid": True
         }
-    
+
     async def _simulate_architectural_review(self, architecture_description: str, review_focus: str) -> Dict:
         """Simulate architectural review for development"""
         return {
@@ -794,31 +794,31 @@ class ConstitutionalCodexMCPServer:
             "security": "Security patterns properly integrated",
             "constitutional_compliance": True
         }
-    
+
     async def run_server(self):
         """Run the constitutional Codex MCP server"""
-        
+
         if not MCP_AVAILABLE:
             logging.error("MCP package not available. Cannot run server.")
             return
-        
+
         from mcp.server.stdio import stdio_server
-        
+
         server = Server("arifos-codex-constitutional")
-        
+
         @server.list_tools()
         async def handle_list_tools() -> List[Tool]:
             """List available constitutional tools"""
             return self.tools
-        
+
         @server.call_tool()
         async def handle_call_tool(name: str, arguments: Optional[Dict]) -> Union[TextContent, List[TextContent]]:
             """Handle tool calls with constitutional governance"""
             if arguments is None:
                 arguments = {}
-            
+
             return await self.handle_tool_call(name, arguments)
-        
+
         # Run server with stdio transport
         async with stdio_server() as (read_stream, write_stream):
             await server.run(
@@ -834,7 +834,7 @@ class ConstitutionalCodexMCPServer:
 
 async def main():
     """Main entry point for Constitutional Codex MCP Server"""
-    
+
     # Load configuration from environment
     config = CodexMCPServerConfig(
         user_id=os.getenv("ARIFOS_USER_ID", "codex_user"),
@@ -849,13 +849,13 @@ async def main():
         session_timeout=int(os.getenv("ARIFOS_SESSION_TIMEOUT", "3600")),
         max_sessions=int(os.getenv("ARIFOS_MAX_SESSIONS", "10"))
     )
-    
+
     # Create and run server
     server = ConstitutionalCodexMCPServer(config)
-    
+
     logging.info("Starting Constitutional Codex MCP Server...")
     logging.info(f"Configuration: user_id={config.user_id}, constitutional_mode={config.constitutional_mode}, trinity_coordination={config.trinity_coordination}")
-    
+
     try:
         await server.run_server()
     except KeyboardInterrupt:
@@ -871,6 +871,6 @@ if __name__ == "__main__":
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
-    
+
     # Run server
     asyncio.run(main())

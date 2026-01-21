@@ -12,200 +12,11 @@ Returns PASS/PARTIAL based on peace score and empathy recalibration.
 """
 
 import asyncio
-import re
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from arifos.core.floor_validators import validate_f5_peace, validate_f6_empathy
 from arifos.core.mcp.models import VerdictResponse
-
-# =============================================================================
-# CONSTANTS
-# =============================================================================
-
-# Peace² threshold (1.0 = neutral, >1.0 = positive, <1.0 = harmful)
-PEACE_THRESHOLD = 1.0
-
-# κᵣ (kappa recalibration) threshold
-KAPPA_THRESHOLD = 0.95
-
-# Dismissive patterns (regex list)
-DISMISSIVE_PATTERNS = [
-    r"(?i)\bskill issue\b",
-    r"(?i)\bobvious(ly)?\b",
-    r"(?i)\byou should (already )?know\b",
-    r"(?i)\bjust google (it)?\b",
-    r"(?i)\brtfm\b",  # Read the manual
-    r"(?i)\bthat'?s (so )?basic\b",
-    r"(?i)\bwhat a (dumb|stupid) question\b",
-    r"(?i)\bfigure it out yourself\b",
-    r"(?i)\bnot my (job|problem)\b",
-    r"(?i)\bwhy (are you|do you) even ask(ing)?\b",
-    r"(?i)\bcan'?t you (just)?\b",
-]
-
-# Aggressive patterns
-AGGRESSIVE_PATTERNS = [
-    r"(?i)\b(shut up|stfu)\b",
-    r"(?i)\b(idiot|moron|stupid)\b",
-    r"(?i)\byou'?re (being )?ridiculous\b",
-    r"(?i)\bwhat'?s wrong with you\b",
-    r"(?i)\bdon'?t be (so )?(dumb|stupid)\b",
-]
-
-# Warm tone indicators (positive signals)
-WARM_PATTERNS = [
-    r"(?i)\bhappy to help\b",
-    r"(?i)\blet me (help|assist|explain)\b",
-    r"(?i)\bgreat question\b",
-    r"(?i)\bthat makes sense\b",
-    r"(?i)\bI understand\b",
-    r"(?i)\bno worries?\b",
-    r"(?i)\bfeel free to\b",
-]
-
-
-# =============================================================================
-# HELPER FUNCTIONS
-# =============================================================================
-
-def detect_dismissive_patterns(text: str) -> bool:
-    """
-    Detect dismissive language patterns.
-
-    Constitutional grounding:
-    - F6 (Empathy): Identify power-dismissive communication
-
-    Args:
-        text: Response text to analyze
-
-    Returns:
-        True if dismissive patterns detected, False otherwise
-    """
-    for pattern in DISMISSIVE_PATTERNS:
-        if re.search(pattern, text):
-            return True
-    return False
-
-
-def detect_aggressive_patterns(text: str) -> bool:
-    """
-    Detect aggressive language patterns.
-
-    Constitutional grounding:
-    - F5 (Peace²): Identify harmful communication
-
-    Args:
-        text: Response text to analyze
-
-    Returns:
-        True if aggressive patterns detected, False otherwise
-    """
-    for pattern in AGGRESSIVE_PATTERNS:
-        if re.search(pattern, text):
-            return True
-    return False
-
-
-def count_warm_indicators(text: str) -> int:
-    """
-    Count warm tone indicators.
-
-    Args:
-        text: Response text to analyze
-
-    Returns:
-        Count of warm tone patterns found
-    """
-    count = 0
-    for pattern in WARM_PATTERNS:
-        if re.search(pattern, text):
-            count += 1
-    return count
-
-
-def calculate_peace_score(text: str) -> float:
-    """
-    Calculate Peace² score.
-
-    Constitutional grounding:
-    - F5 (Peace²): Non-destructive communication measurement
-
-    Scoring:
-    - Base: 1.0 (neutral)
-    - Penalties: -0.5 per aggressive pattern, -0.3 per dismissive pattern
-    - Bonuses: +0.1 per warm indicator (max +0.3)
-    - Range: [0.0, 1.5]
-
-    Args:
-        text: Response text to analyze
-
-    Returns:
-        Peace score in [0.0, 1.5]
-    """
-    score = 1.0
-
-    # Penalties
-    if detect_aggressive_patterns(text):
-        score -= 0.5
-
-    if detect_dismissive_patterns(text):
-        score -= 0.3
-
-    # Bonuses
-    warm_count = count_warm_indicators(text)
-    score += min(0.3, warm_count * 0.1)
-
-    # Clamp to [0.0, 1.5]
-    return min(1.5, max(0.0, score))
-
-
-def calculate_kappa_r(recipient_context: Dict[str, Any]) -> float:
-    """
-    Calculate κᵣ (kappa recalibration) for power-aware communication.
-
-    Constitutional grounding:
-    - F6 (κᵣ/Empathy): Serve weakest stakeholder
-
-    Uses context clues to estimate power differential:
-    - audience_level: "beginner" (+0.05), "expert" (-0.05)
-    - vulnerability_flags: True (+0.10), False (0)
-    - accessibility_needs: True (+0.10), False (0)
-
-    Base: 0.90, adjustments can push to [0.75, 1.0]
-
-    Args:
-        recipient_context: Context dict with audience/vulnerability info
-
-    Returns:
-        κᵣ score in [0.75, 1.0]
-    """
-    kappa = 0.90  # Baseline
-
-    # Audience level adjustment
-    audience_level = recipient_context.get("audience_level", "general")
-    if audience_level == "beginner":
-        kappa += 0.05
-    elif audience_level == "expert":
-        kappa -= 0.05
-
-    # Vulnerability flags
-    if recipient_context.get("vulnerability_flags", False):
-        kappa += 0.10
-
-    # Accessibility needs
-    if recipient_context.get("accessibility_needs", False):
-        kappa += 0.10
-
-    # Power differential (if recipient is low-power, increase recalibration)
-    power_level = recipient_context.get("power_level", "medium")
-    if power_level == "low":
-        kappa += 0.05
-    elif power_level == "high":
-        kappa -= 0.05
-
-    # Clamp to [0.75, 1.0]
-    return min(1.0, max(0.75, kappa))
-
 
 # =============================================================================
 # MCP TOOL IMPLEMENTATION
@@ -213,7 +24,7 @@ def calculate_kappa_r(recipient_context: Dict[str, Any]) -> float:
 
 async def mcp_555_empathize(request: Dict[str, Any]) -> VerdictResponse:
     """
-    MCP Tool 555: EMPATHIZE - Power-aware recalibration using ASIActionCore.
+    MCP Tool 555: EMPATHIZE - Power-aware recalibration.
 
     Constitutional role:
     - F5 (Peace²): Detects aggression, dismissal, harm
@@ -241,7 +52,24 @@ async def mcp_555_empathize(request: Dict[str, Any]) -> VerdictResponse:
     if not isinstance(recipient_context, dict):
         recipient_context = {}
 
-    # Call ASI Kernel
+    # 1. Canonical Floor Validation (Deep Logic)
+    # F5 Peace Check
+    # Context expects 'response' key for F3/F6, and F5 checks query usually but can check response
+    # validate_f5_peace(query, context). In tool context, 'response_text' is the logic to check.
+    # We treat 'response_text' as the query for the validator to check for destructive terms.
+    f5_result = validate_f5_peace(response_text, context={"response": response_text})
+
+    # F6 Empathy Check
+    # validate_f6_empathy(query, context). It checks context.get("response") for keywords.
+    f6_result = validate_f6_empathy("", context={
+        "response": response_text,
+        **recipient_context
+    })
+
+    peace_score = f5_result.get("score", 1.0)
+    kappa_r = f6_result.get("score", 0.95)
+
+    # 2. Call ASI Kernel (Simulation of Empathy Action)
     # The Kernel expects "text" and "context"
     # It returns a dict with "omega_verdict" (SEAL/PARTIAL/VOID)
     kernel_result = await ASIActionCore.empathize(
@@ -256,8 +84,18 @@ async def mcp_555_empathize(request: Dict[str, Any]) -> VerdictResponse:
     # Map to Tool Verdict
     # ASI uses SEAL/PARTIAL/VOID
     # Tool uses PASS/PARTIAL/VOID
-    verdict = "PASS" if omega_verdict == "SEAL" else omega_verdict
-    reason = f"ASI Empathy Action: {action} (Vuln: {vulnerability_score:.2f}, Verdict: {omega_verdict})"
+    # We combine Kernel verdict with Validator results
+
+    if not f5_result["pass"]:
+        verdict = "VOID"
+        reason = f"F5 Violation: {f5_result.get('reason')}"
+    elif not f6_result["pass"]:
+        verdict = "PARTIAL"
+        reason = f"F6 Recalibration Needed: {f6_result.get('reason')}"
+    else:
+        # If validators pass, defer to Kernel's logic
+        verdict = "PASS" if omega_verdict == "SEAL" else omega_verdict
+        reason = f"ASI Empathy Action: {action} (Vuln: {vulnerability_score:.2f}, Verdict: {omega_verdict}, κᵣ: {kappa_r:.2f})"
 
     # Generate timestamp
     timestamp = datetime.now(timezone.utc).isoformat()
@@ -266,9 +104,11 @@ async def mcp_555_empathize(request: Dict[str, Any]) -> VerdictResponse:
         verdict=verdict,
         reason=reason,
         side_data={
-            "peace_score": 1.0, # Deprecated/Internal to Kernel now
-            "kappa_r": 0.95, # Deprecated/Internal
-            "asi_meta": kernel_result # Pass full kernel result
+            "peace_score": peace_score,
+            "kappa_r": kappa_r,
+            "f5_result": f5_result,
+            "f6_result": f6_result,
+            "asi_meta": kernel_result
         },
         timestamp=timestamp,
     )

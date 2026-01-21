@@ -230,6 +230,27 @@ async def mcp_889_proof(request: Dict[str, Any]) -> VerdictResponse:
     # Generate timestamp
     timestamp = datetime.now(timezone.utc).isoformat()
 
+    # 3. Cryptographic Signing (Deep Logic)
+    # Use the cryptography module to sign the proof hash
+    crypto_signature = {}
+    try:
+        from arifos.core.mcp.tools.cryptography import cryptography_sign
+
+        # Sign the proof hash
+        sign_result = await cryptography_sign(proof_hash)
+        if sign_result.get("status") == "success":
+            crypto_signature = {
+                "signature": sign_result.get("signature"),
+                "algorithm": sign_result.get("algorithm"),
+                "timestamp": sign_result.get("timestamp")
+            }
+        else:
+            crypto_signature = {"error": "Signing failed", "details": sign_result}
+    except ImportError:
+        crypto_signature = {"error": "Cryptography module not found"}
+    except Exception as e:
+        crypto_signature = {"error": f"Signing error: {str(e)}"}
+
     return VerdictResponse(
         verdict="PASS",
         reason="Cryptographic proof generated successfully",
@@ -238,7 +259,8 @@ async def mcp_889_proof(request: Dict[str, Any]) -> VerdictResponse:
             "merkle_path": merkle_path,
             "proof_valid": proof_valid,
             "timestamp": timestamp,
-            "nodes_verified": nodes_verified
+            "nodes_verified": nodes_verified,
+            "crypto_signature": crypto_signature  # Added Deep Logic Signature
         },
         timestamp=timestamp
     )
