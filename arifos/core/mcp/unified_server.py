@@ -21,7 +21,7 @@ import mcp.types
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
-from arifos.core.mcp.unified_tools import (
+from .unified_tools import (
     stage_000_init,
     stage_111_sense,
     stage_222_think,
