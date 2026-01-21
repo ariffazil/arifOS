@@ -1,6 +1,9 @@
 # arifOS Agent Gateway
 
-**Version:** v50.0.0 | **Status:** PRODUCTION | **Authority:** Muhammad Arif bin Fazil
+**Title:** arifOS Agent Gateway
+**Version:** v50.0.0
+**Status:** PRODUCTION
+**Authority:** Muhammad Arif bin Fazil
 
 > This file is the canonical agent configuration for the arifOS Trinity Federation. The constitutional canon lives in `000_THEORY/`, witness functionality is implemented via aCLIP protocol, and agent adapters are lightweight pointers to this gateway.
 
@@ -322,8 +325,8 @@ curl http://localhost:8000/health
 
 ---
 
-**Authority:** Muhammad Arif bin Fazil (888 Judge)  
+**Authority:** Muhammad Arif bin Fazil (888 Judge)
 **Motto:** *Ditempa Bukan Diberi* -- Forged, Not Given.
 
-**Constitutional Hash:** SHA256 verification required for all amendments  
+**Constitutional Hash:** SHA256 verification required for all amendments
 **Status:** SOVEREIGNLY_SEALED v50.0.0

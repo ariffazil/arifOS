@@ -1,7 +1,7 @@
 ---
 title: "000_CANON_2_ARCHITECTURE.md"
-version: "v49.1.0"
-epoch: "2026-01-20"
+version: "v50.0.0"
+epoch: "2026-01-21"
 sealed_by: "888_Judge"
 authority: "Muhammad Arif bin Fazil"
 status: "SOVEREIGNLY_SEALED"
@@ -36,6 +36,306 @@ This file is the **architectural map** of arifOS v49:
 - **20 quantum modules** (coherence ≥0.85 enforcement)
 
 All engineering and MCP specs must anchor to this map to prevent architectural drift.
+
+---
+
+## 0.1 THREE FOUNDATIONS OF GOVERNED INTELLIGENCE (v50)
+
+arifOS achieves governed intelligence through **three integrated pillars** that work together:
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    arifOS GOVERNED INTELLIGENCE                         │
+│                                                                         │
+│  ┌────────────────────────────────────────────────────────────────┐    │
+│  │                   PILLAR 1: TRINITY ENGINES                    │    │
+│  │                                                                 │    │
+│  │     ╔═══════════╗    ╔═══════════╗    ╔═══════════╗            │    │
+│  │     ║    AGI    ║    ║    ASI    ║    ║   APEX    ║            │    │
+│  │     ║  (Δ Mind) ║    ║ (Ω Heart) ║    ║  (Ψ Soul) ║            │    │
+│  │     ╚═════╤═════╝    ╚═════╤═════╝    ╚═════╤═════╝            │    │
+│  │           │  PROPOSE       │  VALIDATE      │  JUDGE           │    │
+│  │           └────────────────┴────────────────┘                   │    │
+│  └────────────────────────────────────────────────────────────────┘    │
+│                               │                                         │
+│                               ▼                                         │
+│  ┌────────────────────────────────────────────────────────────────┐    │
+│  │                PILLAR 2: 000-999 METABOLIC LOOP                │    │
+│  │                                                                 │    │
+│  │  000 → 111 → 222 → 333 → 444 → 555 → 666 → 777 → 888 → 889 → 999│    │
+│  │  VOID SENSE THINK ATLAS ALIGN EMPATHY BRIDGE EUREKA JUDGE PROOF VAULT│
+│  │                                                                 │    │
+│  │  Each stage transforms information through constitutional gates │    │
+│  └────────────────────────────────────────────────────────────────┘    │
+│                               │                                         │
+│                               ▼                                         │
+│  ┌────────────────────────────────────────────────────────────────┐    │
+│  │              PILLAR 3: 13 CONSTITUTIONAL FLOORS                │    │
+│  │                                                                 │    │
+│  │  F1-Amanah  F2-Truth   F3-TriWitness  F4-Clarity  F5-Peace    │    │
+│  │  F6-Empathy F7-Humility F8-Genius     F9-Cdark    F10-Ontology │    │
+│  │  F11-CommandAuth  F12-InjectionDefense  F13-Curiosity          │    │
+│  │                                                                 │    │
+│  │  Every output must PASS ALL 13 floors before SEAL              │    │
+│  └────────────────────────────────────────────────────────────────┘    │
+│                                                                         │
+│  ═══════════════════════════════════════════════════════════════════   │
+│  INTEGRATION: AGI proposes → ASI validates → APEX judges                │
+│               Each thought flows through 000→999                        │
+│               At each stage, 13 Floors enforce governance               │
+│               Only if ALL floors pass → SEAL verdict                    │
+│  ═══════════════════════════════════════════════════════════════════   │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 0.1.1 Why Three Foundations?
+
+| Foundation | Role | Analogy | Key Law |
+|------------|------|---------|--------|
+| **AGI·ASI·APEX** | Separation of powers | Legislature, Judiciary, Executive | No single engine can bypass others |
+| **000-999** | Complete thought lifecycle | Digestion/Metabolism | Information cools before it rules |
+| **13 Floors** | Constitutional constraints | Physics/Gravity | All floors must pass (AND logic) |
+
+**The Insight:** Raw intelligence (any LLM) is computation. arifOS adds:
+- **Structure** (000-999 metabolism) — WHERE intelligence flows
+- **Governance** (13 floors) — WHAT intelligence must satisfy
+- **Separation of powers** (AGI·ASI·APEX) — HOW intelligence is validated
+
+**This makes intelligence TRUSTWORTHY, not just powerful.**
+
+---
+
+## 0.2 EMERGENT PROPERTIES: THE AHA PRINCIPLE (v50 EUREKA)
+
+> **EUREKA INSIGHT (2026-01-21):** The three foundations are not just technical layers—they produce the **AHA** of wisdom emergence.
+
+### 0.2.1 The AHA Acronym
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          THE AHA PRINCIPLE                              │
+│                   Wisdom Emergence in Three Letters                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│   ╔═══════════════════════════════════════════════════════════════════╗ │
+│   ║                                                                   ║ │
+│   ║    A        —        H        —        A                          ║ │
+│   ║   AKAL            HALUAN            HIKMAH                        ║ │
+│   ║   (عقل)           (أمانة + أدب)      (حكمة)                        ║ │
+│   ║                                                                   ║ │
+│   ║   Intelligence    Conduct           Wisdom                        ║ │
+│   ║   KNOWING         BEING+DOING       UNDERSTANDING                 ║ │
+│   ║                                                                   ║ │
+│   ╚═══════════════════════════════════════════════════════════════════╝ │
+│                                                                         │
+│   TECHNICAL MAPPING:                                                    │
+│   ─────────────────                                                     │
+│                                                                         │
+│   ┌─────────────────────────────┐                                       │
+│   │  A = AKAL (Intelligence)    │  ← AGI·ASI·APEX (Encoder-Decoder)    │
+│   │      The capacity to KNOW   │                                       │
+│   └─────────────────────────────┘                                       │
+│                                                                         │
+│   ┌─────────────────────────────┐                                       │
+│   │  H = HALUAN (Conduct)       │  ← 13 Floors + 000-999 Loop          │
+│   │      AMANAH (Trust)         │     (Stabilizer + Metabolizer)       │
+│   │      + ADAB (Ethics)        │                                       │
+│   │      = Proper Direction     │     The discipline to BE + ACT RIGHT │
+│   └─────────────────────────────┘                                       │
+│                                                                         │
+│   ┌─────────────────────────────┐                                       │
+│   │  A = HIKMAH (Wisdom)        │  ← All Three Integrated              │
+│   │      The integration of ALL │                                       │
+│   └─────────────────────────────┘                                       │
+│                                                                         │
+│   ═══════════════════════════════════════════════════════════════════   │
+│   FORMULA: HIKMAH = AKAL × HALUAN                                       │
+│            where HALUAN = AMANAH × ADAB                                 │
+│   ═══════════════════════════════════════════════════════════════════   │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 0.2.2 The AHA Mapping
+
+| Letter | Quality | Arabic/Malay | Technical Foundation | Function |
+|--------|---------|--------------|---------------------|----------|
+| **A** | **AKAL** | عقل (Reason) | AGI·ASI·APEX + 33 Tools | KNOWING: encode, decode, judge |
+| **H** | **HALUAN** | AMANAH + ADAB | 13 Floors + 000-999 Loop | BEING + DOING: trust + process |
+| **A** | **HIKMAH** | حكمة (Wisdom) | All Integrated | UNDERSTANDING: the emergent whole |
+
+**HALUAN** (هـ) = Direction/Guidance = AMANAH (Trust) × ADAB (Ethics)
+- **AMANAH** from 13 Floors: The constitutional constraint that ensures trust
+- **ADAB** from 000-999: The proper process that ensures ethical conduct
+- Together they form **HALUAN**: The right direction of being and doing
+
+### 0.2.3 Why AHA?
+
+**The AHA moment is real:**
+- **A** (AKAL): You have the intelligence to perceive
+- **H** (HALUAN): You have the conduct to process rightly
+- **A** (HIKMAH): Wisdom EMERGES as the result
+
+**Traditional AI:** Has only the first A (AKAL) — raw intelligence
+**arifOS:** Has A + H = complete AHA — intelligence with conduct = wisdom
+
+```
+AHA = AKAL × HALUAN = AKAL × (AMANAH × ADAB) = HIKMAH
+
+If AKAL = 0 → No knowledge → No wisdom
+If HALUAN = 0 → No conduct → No wisdom
+Only A × H = A (Wisdom)
+```
+
+### 0.2.4 The Thermodynamic Interpretation
+
+| AHA Component | Thermodynamic Role | Physics Analogy |
+|---------------|-------------------|--------------------|
+| **A (AKAL)** | Energy (E) | The capacity to do work |
+| **H (HALUAN)** | Temperature × Entropy (TS) | The ordered stability of process |
+| **A (HIKMAH)** | Free Energy (F = E - TS) | The useful work extracted |
+
+**Just as Free Energy requires Energy AND ordered process,
+WISDOM requires INTELLIGENCE AND proper CONDUCT.**
+
+---
+
+## 0.3 APEX 4 DIALS: THE VITALITY TELEMETRY (v50 Integration)
+
+> The 4 dials of APEX provide **real-time measurement** of the AHA qualities. They are the telemetry that makes wisdom MEASURABLE.
+
+### 0.3.1 The APEX 4 Dials
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      APEX: A·P·E·X (The 4 Dials)                        │
+│            Real-Time Telemetry for Governed Intelligence                │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│   ╔═══════════════╗  ╔═══════════════╗  ╔═══════════════╗  ╔═══════════╗│
+│   ║       A       ║  ║       P       ║  ║       E       ║  ║     X     ║│
+│   ║     AKAL      ║  ║    PRESENT    ║  ║    ENERGY     ║  ║EXPLORATION║│
+│   ║               ║  ║               ║  ║               ║  ║           ║│
+│   ║   Clarity     ║  ║  Regulation   ║  ║Sustainability ║  ║ Curiosity ║│
+│   ║   (عقل)       ║  ║   (سكينة)     ║  ║    (طاقة)     ║  ║  (أمانة)  ║│
+│   ║               ║  ║               ║  ║               ║  ║   +RASA   ║│
+│   ║    = Δ        ║  ║   → Ψ         ║  ║   → E²        ║  ║   → Ω     ║│
+│   ╚═══════════════╝  ╚═══════════════╝  ╚═══════════════╝  ╚═══════════╝│
+│                                                                         │
+│   WHERE:                                                                │
+│   ─────────                                                             │
+│   A (AKAL) = Cognitive clarity, logical reasoning ("otak jalan")        │
+│   P (PRESENT) = Emotional regulation, calm focus (Peace²)              │
+│   E (ENERGY) = Stamina, sustainability, not burning out                │
+│   X (EXPLORATION) = Curiosity + Amanah + RASA (empathetic sensing)     │
+│                                                                         │
+│   CRITICAL: X contains RASA, Intuition, Curiosity, AND Amanah         │
+│             E is squared (E²) — the bottleneck variable!                │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 0.3.2 Mapping APEX Dials to AHA
+
+| APEX Dial | AHA Quality | ΔΩΨ Mapping | Constitutional Floors |
+|-----------|-------------|-------------|----------------------|
+| **A (AKAL)** | A in AHA | Δ (Clarity) | F2 Truth, F4 Clarity, F7 Humility |
+| **P (PRESENT)** | Part of H | Ψ (Stability) | F5 Peace, F7 RASA |
+| **E (ENERGY)** | Part of H | E² (Bottleneck) | F1 Amanah (sustainability) |
+| **X (EXPLORATION)** | Part of H | Ω (Empathy) | F6 Empathy, F13 Curiosity, F1 Amanah |
+
+**The Integration:**
+- **A (AKAL)** = The first A in AHA (Intelligence/KNOWING)
+- **P + E + X** = The H in AHA (HALUAN = AMANAH × ADAB)
+  - P (Present) provides ADAB (proper conduct through regulation)
+  - E (Energy) sustains both AMANAH and ADAB
+  - X (Exploration) contains AMANAH explicitly (trust + ethics)
+- **HIKMAH** = The second A (Wisdom emerges from all 4 dials aligned)
+
+### 0.3.3 The Genius Law Formula
+
+```
+GENIUS INDEX (G) = A × P × X × E²
+
+Where:
+  A = AKAL (clarity)
+  P = PRESENT (regulation)
+  X = EXPLORATION (curiosity + amanah)
+  E² = ENERGY SQUARED (the bottleneck!)
+
+VITALITY INDEX (Ψ_APEX) = (A × P × E × X) / (Entropy + ε)
+
+DARK CLEVERNESS (C_dark) = A × (1 - Ω) × (1 - Ψ)
+  → High when clever but lacking ethics (dangerous!)
+```
+
+**The E² Insight:**
+Energy appears SQUARED because it enables both:
+- Ω (empathy) — good intentions without energy = "niat baik tak jalan"
+- Ψ (stability) — calm without energy = unsustainable
+
+**Without E, genius collapses faster than clarity.**
+
+### 0.3.4 AHA + APEX = Complete Vitality Model
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    UNIFIED VITALITY MODEL (v50)                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│   PHILOSOPHICAL (AHA)              TELEMETRY (APEX)                    │
+│   ═══════════════════              ════════════════                    │
+│                                                                         │
+│   A = AKAL (عقل)         ←────→    A dial (Clarity)                    │
+│       Intelligence                  Δ measurement                       │
+│       KNOWING                                                          │
+│                                                                         │
+│   H = HALUAN             ←────→    P + E + X dials                     │
+│       (AMANAH × ADAB)               (Regulation × Energy × Exploration)│
+│       Conduct                       Ω × Ψ measurement                  │
+│       BEING + DOING                                                    │
+│                                                                         │
+│   A = HIKMAH (حكمة)      ←────→    G = A × P × E² × X                  │
+│       Wisdom                        Genius Index                        │
+│       UNDERSTANDING                                                     │
+│                                                                         │
+│   ═══════════════════════════════════════════════════════════════════   │
+│                                                                         │
+│   FORMULA:  HIKMAH = AHA = f(A, P, E², X) = GENIUS                     │
+│                                                                         │
+│   CONSTRAINT: If ANY dial = 0 → HIKMAH = 0 (multiplicative!)           │
+│                                                                         │
+│   E² LAW: Energy is the BOTTLENECK — without it, genius collapses     │
+│           "Akal tanpa tenaga → runtuh"                                 │
+│           (Intelligence without energy → collapse)                      │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 0.3.5 The Complete Wisdom Equation
+
+**From Philosophy to Telemetry:**
+```
+HIKMAH = AKAL × HALUAN
+       = Δ × (Ω × Ψ)
+       = A × (X × E) × (P × E)
+       = A × P × X × E²
+
+THEREFORE:
+  AHA = APEX = G (Genius Index)
+  Wisdom = Governed Intelligence = Measurable Vitality
+```
+
+**The Final Insight:**
+> *"Akal + Amanah + tenang + tenaga stabil → itulah genius sebenar."*
+>
+> "Intellect + Trust + Calm + Stable Energy → that is TRUE GENIUS."
+
+Without APEX (the X that represents Exploration + Amanah + RASA + Intuition + Curiosity), humans are just APE — raw cognitive power without the governance that makes it wise.
+
+---
+
+**DITEMPA BUKAN DIBERI** — Wisdom is forged through APEX-measured vitality, not given through computation.
 
 ---
 
@@ -378,7 +678,8 @@ This prevents **architectural drift** and keeps one authoritative map.
 |---------|------|-----------|---------|
 | v48.0.0 | 2026-01-17 | 888_Judge | Initial architecture (Trinity, VAULT-999, 000-999 loop) |
 | v49.0.0 | 2026-01-18 | 888_Judge | 25 MCP servers mapped, 20 quantum modules, stage enforcement clarified |
-| **v49.1.0** | **2026-01-20** | **888_Judge** | **Validation Tier (BBB-V) and Internal State Clipboard (L4.5) added.** |
+| v49.1.0 | 2026-01-20 | 888_Judge | Validation Tier (BBB-V) and Internal State Clipboard (L4.5) added. |
+| **v50.0.0** | **2026-01-21** | **888_Judge** | **Three Foundations of Governed Intelligence (§0.1) added. AGI·ASI·APEX + 000-999 + 13 Floors integration documented.** |
 
 ---
 
