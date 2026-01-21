@@ -19,11 +19,11 @@ Previous versions only tracked state but didn't execute stages (geological strat
 DITEMPA BUKAN DIBERI - Pipeline execution forged through systematic implementation.
 """
 
-import time
 import importlib
-from typing import List, Optional, Dict, Any
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 
 class StageSequenceError(Exception):
@@ -73,11 +73,11 @@ class Metabolizer:
 
     # Stage module mappings (v50: wire to actual implementations)
     STAGE_MODULES = {
-        0: None,  # Special case - hypervisor handled separately
+        0: "arifos.core.000_void.stage",  # v50.1: Consolidated from root to core
         111: "arifos.core.111_sense.stage",
         222: "arifos.core.222_reflect.stage",
         333: "arifos.core.333_reason.stage",
-        444: "arifos.core.444_evidence.stage",  # TODO: Rename to 444_align in v50.1
+        444: "arifos.core.444_align.stage",  # v50.1: Renamed from evidence
         555: "arifos.core.555_empathize.stage",
         666: "arifos.core.666_align.stage",
         777: "arifos.core.777_forge.stage",
@@ -141,6 +141,10 @@ class Metabolizer:
         # Start performance tracking for stage 000
         self.current_stage_metrics = StageMetrics(stage=0, start_time=time.time())
         self.metrics.append(self.current_stage_metrics)
+
+        # v50.1: Actually execute Stage 000 logic
+        if self.enable_execution:
+            self._execute_stage(0)
 
     def transition_to(self, stage: int):
         """

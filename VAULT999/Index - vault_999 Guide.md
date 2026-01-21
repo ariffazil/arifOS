@@ -6,13 +6,13 @@
 
 ## Overview
 
-This note serves as your **human-readable guide** to the operational `vault_999/` cryptographic vault.
+This note serves as your **human-readable guide** to the operational `VAULT999/operational/` cryptographic vault.
 
 **Key Principle:**
-- `vault_999/` = **Operational vault** (code reads this)
-- `VAULT999/VAULT999/` (this Obsidian vault) = **Knowledge management** (you read this)
+- `VAULT999/operational/` = **Operational vault** (code reads this)
+- `VAULT999/` (this Obsidian vault) = **Knowledge management** (you read this)
 
-**Single Source of Truth:** `vault_999/` is canonical. This vault documents and explains it.
+**Single Source of Truth:** `VAULT999/operational/` is canonical. This vault documents and explains it.
 
 ---
 
@@ -20,25 +20,25 @@ This note serves as your **human-readable guide** to the operational `vault_999/
 
 ### **Operational Vault Location**
 ```
-📁 C:\Users\User\OneDrive\Documents\GitHub\arifOS\vault_999\
+📁 C:\Users\User\OneDrive\Documents\GitHub\arifOS\VAULT999\operational\
 ```
 
 ### **Key Directories**
 
 | Directory | Purpose | Obsidian Note |
 |-----------|---------|---------------|
-| `vault_999/seals/` | ZKPC constitutional seals (cryptographic keys) | [[Seals - ZKPC Keys]] |
-| `vault_999/AAA_MEMORY/` | Human memory bands (L0-L5) | [[AAA Memory Bands]] |
-| `vault_999/BBB_LEDGER/` | Machine audit trail (JSONL) | [[BBB Ledger Trail]] |
-| `vault_999/CCC_CONSTITUTIONAL/` | Constitutional decisions | [[CCC Constitutional Memory]] |
-| `vault_999/INFRASTRUCTURE/` | Cooling, paradox, zkpc systems | [[Infrastructure Systems]] |
-| `vault_999/README.md` | Complete technical documentation | [[Vault Architecture]] |
+| `VAULT999/operational/seals/` | ZKPC constitutional seals (cryptographic keys) | [[Seals - ZKPC Keys]] |
+| `VAULT999/operational/AAA_MEMORY/` | Human memory bands (L0-L5) | [[AAA Memory Bands]] |
+| `VAULT999/operational/BBB_LEDGER/` | Machine audit trail (JSONL) | [[BBB Ledger Trail]] |
+| `VAULT999/operational/CCC_CONSTITUTIONAL/` | Constitutional decisions | [[CCC Constitutional Memory]] |
+| `VAULT999/operational/INFRASTRUCTURE/` | Cooling, paradox, zkpc systems | [[Infrastructure Systems]] |
+| `VAULT999/operational/README.md` | Complete technical documentation | [[Vault Architecture]] |
 
 ---
 
 ## What Each Directory Does
 
-### 🔑 **Seals** (`vault_999/seals/`)
+### 🔑 **Seals** (`VAULT999/operational/seals/`)
 
 **Purpose:** Cryptographic keys that unlock vault access
 
@@ -53,7 +53,7 @@ This note serves as your **human-readable guide** to the operational `vault_999/
 
 ---
 
-### 🧠 **AAA Memory** (`vault_999/AAA_MEMORY/`)
+### 🧠 **AAA Memory** (`VAULT999/operational/AAA_MEMORY/`)
 
 **Purpose:** Human context and memory bands
 
@@ -69,7 +69,7 @@ This note serves as your **human-readable guide** to the operational `vault_999/
 
 ---
 
-### 📊 **BBB Ledger** (`vault_999/BBB_LEDGER/`)
+### 📊 **BBB Ledger** (`VAULT999/operational/BBB_LEDGER/`)
 
 **Purpose:** Machine audit trail (append-only JSONL)
 
@@ -85,7 +85,7 @@ This note serves as your **human-readable guide** to the operational `vault_999/
 
 ---
 
-### ⚖️ **CCC Constitutional** (`vault_999/CCC_CONSTITUTIONAL/`)
+### ⚖️ **CCC Constitutional** (`VAULT999/operational/CCC_CONSTITUTIONAL/`)
 
 **Purpose:** Constitutional memory referencing vault seals
 
@@ -105,7 +105,7 @@ threshold = ccc.get_floor_threshold("F2_truth")  # Gets from sealed vault
 
 ---
 
-### 🏗️ **Infrastructure** (`vault_999/INFRASTRUCTURE/`)
+### 🏗️ **Infrastructure** (`VAULT999/operational/INFRASTRUCTURE/`)
 
 **Purpose:** Vault supporting systems
 
@@ -150,8 +150,8 @@ truth_threshold = ccc.get_floor_threshold("F2_truth")  # From sealed state
 
 ### **For Understanding Architecture**
 
-1. Read operational `vault_999/README.md` (494 lines of technical docs)
-2. Review seal structure in `vault_999/seals/v50.0.0_seal.yaml`
+1. Read operational `VAULT999/operational/README.md` (494 lines of technical docs)
+2. Review seal structure in `VAULT999/operational/seals/v50.0.0_seal.yaml`
 3. Check code implementation in `arifos/core/memory/vault/`
 
 ---
@@ -160,8 +160,8 @@ truth_threshold = ccc.get_floor_threshold("F2_truth")  # From sealed state
 
 | File | Location | Purpose |
 |------|----------|---------|
-| **Vault README** | `vault_999/README.md` | Complete technical documentation (494 lines) |
-| **Current Seal** | `vault_999/seals/v50.0.0_seal.yaml` | Active cryptographic key (91 lines) |
+| **Vault README** | `VAULT999/operational/README.md` | Complete technical documentation (494 lines) |
+| **Current Seal** | `VAULT999/operational/seals/v50.0.0_seal.yaml` | Active cryptographic key (91 lines) |
 | **Seal Accessor** | `arifos/core/memory/vault/vault_seal_accessor.py` | Vault access code (329 lines) |
 | **CCC Memory** | `arifos/core/memory/vault/ccc_constitutional_memory.py` | Constitutional memory (239 lines) |
 
@@ -169,7 +169,7 @@ truth_threshold = ccc.get_floor_threshold("F2_truth")  # From sealed state
 
 ## Code Dependencies
 
-**500+ Python references** to `vault_999/` across:
+**500+ Python references** to `VAULT999/operational/` across:
 - `arifos/core/memory/` - Memory management
 - `arifos/mcp/tools/` - MCP server tools
 - `tests/` - Integration tests
@@ -189,7 +189,7 @@ from arifos.core.memory.vault.ccc_constitutional_memory import get_constitutiona
 
 999_TEMPA was ceremonial documentation that nobody read. It has been:
 - ✅ **Archived:** `archive_local/v50_999_tempa_deprecated/`
-- ✅ **Migrated:** Seals moved to `vault_999/seals/`
+- ✅ **Migrated:** Seals moved to `VAULT999/operational/seals/`
 - ✅ **Operational:** Seals now serve as cryptographic keys
 
 ### **To vault_999 (New)**
@@ -205,7 +205,7 @@ The vault is now:
 ## Next Steps
 
 1. **Explore:** Browse through the linked notes to understand each component
-2. **Read Code:** Check `vault_999/README.md` for technical details
+2. **Read Code:** Check `VAULT999/operational/README.md` for technical details
 3. **Experiment:** Try the code examples above
 4. **Extend:** Add your own observations and discoveries to this vault
 

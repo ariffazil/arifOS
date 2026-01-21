@@ -161,9 +161,9 @@ class AmendmentRecord:
 @dataclass
 class VaultManagerConfig:
     """Configuration for VaultManager."""
-    vault_path: Path = Path("runtime/vault_999/constitution.json")
-    amendments_path: Path = Path("runtime/vault_999/amendments.jsonl")
-    receipts_path: Path = Path("runtime/vault_999/receipts.jsonl")
+    vault_path: Path = Path("VAULT999/operational/constitution.json")
+    amendments_path: Path = Path("VAULT999/operational/amendments.jsonl")
+    receipts_path: Path = Path("VAULT999/operational/receipts.jsonl")
     safety_constraints: SafetyConstraints = field(default_factory=SafetyConstraints)
 
 

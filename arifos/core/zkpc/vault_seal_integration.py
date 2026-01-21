@@ -20,13 +20,14 @@ Usage:
 """
 
 import json
-import yaml
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
-from datetime import datetime
 
-from .merkle_vault import VaultMerkleValidator, MerkleProof
-from .constitutional_zkpc import VaultZKPCValidator, ConstitutionalZKPC
+import yaml
+
+from .constitutional_zkpc import ConstitutionalZKPC, VaultZKPCValidator
+from .merkle_vault import MerkleProof, VaultMerkleValidator
 
 
 class VaultSealManager:
@@ -314,7 +315,7 @@ if __name__ == "__main__":
         metadata={
             "engineer": "Claude (Ω)",
             "session": "2026-01-20",
-            "changes": "Agent consolidation + 999_TEMPA rename"
+            "changes": "Agent consolidation + VAULT999 convergence"
         }
     )
 

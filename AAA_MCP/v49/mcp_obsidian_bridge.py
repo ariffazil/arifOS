@@ -25,7 +25,7 @@ import httpx
 # Configuration
 OBSIDIAN_API_URL = os.getenv("OBSIDIAN_API_URL", "http://127.0.0.1:27123")
 OBSIDIAN_API_KEY = os.getenv("OBSIDIAN_API_KEY", "")
-VAULT_999_PATH = Path(__file__).parent.parent.parent / "vault_999"
+VAULT_999_PATH = Path(__file__).parent.parent.parent / "VAULT999" / "operational"
 OBSIDIAN_VAULT_PATH = Path(__file__).parent.parent.parent / "VAULT999"
 
 

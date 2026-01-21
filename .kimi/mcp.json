@@ -1,9 +1,13 @@
 {
   "mcpServers": {
     "arifos": {
-      "command": "c:\\Users\\User\\OneDrive\\Documents\\GitHub\\arifOS\\scripts\\boot_local.bat",
-      "args": [],
-      "env": {}
+      "command": "c:\\Users\\User\\OneDrive\\Documents\\GitHub\\arifOS\\.venv\\Scripts\\python.exe",
+      "args": [
+        "c:\\Users\\User\\OneDrive\\Documents\\GitHub\\arifOS\\arifos_mcp_entry.py"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-8"
+      }
     }
   }
 }

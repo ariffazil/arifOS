@@ -12,7 +12,7 @@ Architecture:
 
 Authority:
 - 000_THEORY/000_ARCHITECTURE.md (Trinity Memory Architecture)
-- vault_999/seals/current_seal.yaml (Operational seal)
+- VAULT999/operational/seals/current_seal.yaml (Operational seal)
 
 DITEMPA BUKAN DIBERI - Forged v50.1
 """
@@ -21,11 +21,12 @@ from __future__ import annotations
 
 import hashlib
 import json
-import yaml
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+import yaml
 
 
 class VaultAccessError(Exception):
@@ -85,7 +86,7 @@ class VaultSealAccessor:
         - Invalid floors → VaultAccessError (constitutional violation)
     """
 
-    def __init__(self, vault_path: str = "vault_999"):
+    def __init__(self, vault_path: str = "VAULT999/operational"):
         self.vault_path = Path(vault_path)
         self.seal_path = self.vault_path / "seals"
 
@@ -290,7 +291,7 @@ class VaultSealAccessor:
 # Convenience function for quick access
 def get_vault_seal() -> VaultSealAccessor:
     """Get vault accessor with seal validation"""
-    return VaultSealAccessor("vault_999")
+    return VaultSealAccessor("VAULT999/operational")
 
 
 def verify_vault_integrity() -> bool:
