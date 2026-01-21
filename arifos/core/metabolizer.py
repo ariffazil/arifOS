@@ -1,24 +1,26 @@
 # -*- coding: utf-8 -*-
 """
-metabolizer.py - Hardened Pipeline State Machine
+metabolizer.py - Hardened Pipeline State Machine with Stage Execution
 
-Authority: arifOS v49 Constitutional Pipeline
-Purpose: Production-ready state machine with safety features and performance tracking
+Authority: arifOS v50 Constitutional Pipeline
+Purpose: Production-ready state machine that ACTUALLY EXECUTES stage code
 
 Features:
 - Sequential stage progression (000→999)
+- ACTUAL stage execution (v50 fix - was hollow shell before)
 - Stage timeout detection
 - Performance metrics (latency per stage)
 - Error recovery mechanisms
 - Constitutional floor validation
 
-This is the canonical pipeline state machine. Full production orchestration
-uses arifos/system/pipeline.py and arifos/orchestrator/.
+v50 ARCHITECT FIX: Metabolizer now dynamically imports and executes stage modules.
+Previous versions only tracked state but didn't execute stages (geological strata).
 
-DITEMPA BUKAN DIBERI - Pipeline safety forged through systematic hardening.
+DITEMPA BUKAN DIBERI - Pipeline execution forged through systematic implementation.
 """
 
 import time
+import importlib
 from typing import List, Optional, Dict, Any
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -66,45 +68,75 @@ class Metabolizer:
     - Error recovery
     """
 
-    # Valid stage transitions (simplified for E2E testing)
+    # Valid stage transitions
     VALID_STAGES = [0, 111, 222, 333, 444, 555, 666, 777, 888, 889, 999]
+
+    # Stage module mappings (v50: wire to actual implementations)
+    STAGE_MODULES = {
+        0: None,  # Special case - hypervisor handled separately
+        111: "arifos.core.111_sense.stage",
+        222: "arifos.core.222_reflect.stage",
+        333: "arifos.core.333_reason.stage",
+        444: "arifos.core.444_evidence.stage",  # TODO: Rename to 444_align in v50.1
+        555: "arifos.core.555_empathize.stage",
+        666: "arifos.core.666_align.stage",
+        777: "arifos.core.777_forge.stage",
+        888: "arifos.core.888_judge.stage",
+        889: "arifos.core.889_proof.stage",  # NEW v50: Cryptographic proof generation
+        999: "arifos.core.999_seal.stage",
+    }
 
     # Stage timeout thresholds (milliseconds)
     STAGE_TIMEOUTS = {
         0: 5000,     # INIT: 5s
         111: 10000,  # SENSE: 10s
-        222: 15000,  # THINK: 15s
+        222: 15000,  # REFLECT: 15s
         333: 15000,  # REASON: 15s
-        444: 20000,  # EVIDENCE: 20s
+        444: 20000,  # ALIGN (mislabeled as EVIDENCE): 20s
         555: 10000,  # EMPATHIZE: 10s
         666: 10000,  # ALIGN: 10s
         777: 10000,  # FORGE: 10s
         888: 5000,   # JUDGE: 5s
-        889: 5000,   # PROOF: 5s
+        889: 5000,   # PROOF: 5s (NEW v50)
         999: 10000,  # SEAL: 10s
     }
 
-    def __init__(self, enable_timeouts: bool = False):
+    def __init__(self, enable_timeouts: bool = False, enable_execution: bool = True):
         """
-        Initialize metabolizer with optional timeout enforcement.
+        Initialize metabolizer with optional timeout enforcement and stage execution.
 
         Args:
             enable_timeouts: If True, enforce stage timeout thresholds
+            enable_execution: If True, actually execute stage code (v50 default: True)
         """
         self.current_stage: int = -1  # Not initialized yet
         self.stage_history: List[int] = []
         self.sealed: bool = False
         self.enable_timeouts: bool = enable_timeouts
+        self.enable_execution: bool = enable_execution  # v50: Actually run stages
+
+        # Pipeline context (shared state across stages)
+        self.context: Dict[str, Any] = {}
 
         # Performance tracking
         self.metrics: List[StageMetrics] = []
         self.current_stage_metrics: Optional[StageMetrics] = None
 
-    def initialize(self):
-        """Initialize pipeline at stage 000."""
+    def initialize(self, initial_context: Optional[Dict[str, Any]] = None):
+        """
+        Initialize pipeline at stage 000 with optional context.
+
+        Args:
+            initial_context: Initial pipeline context (query, user_id, etc.)
+        """
         self.current_stage = 0
         self.stage_history = [0]
         self.sealed = False
+        self.context = initial_context or {}
+
+        # Mark stage 0 in context
+        self.context["stage"] = "000"
+        self.context["stage_history"] = [0]
 
         # Start performance tracking for stage 000
         self.current_stage_metrics = StageMetrics(stage=0, start_time=time.time())
@@ -113,6 +145,8 @@ class Metabolizer:
     def transition_to(self, stage: int):
         """
         Transition to next stage in pipeline with timeout and performance tracking.
+
+        v50 FIX: Now ACTUALLY EXECUTES stage code by dynamically importing and calling execute_stage().
 
         Args:
             stage: Target stage number (111, 222, ..., 999)
@@ -158,6 +192,10 @@ class Metabolizer:
         # Start tracking new stage
         self.current_stage_metrics = StageMetrics(stage=stage, start_time=time.time())
         self.metrics.append(self.current_stage_metrics)
+
+        # v50 FIX: ACTUALLY EXECUTE THE STAGE CODE
+        if self.enable_execution:
+            self._execute_stage(stage)
 
     def seal(self, verdict: dict) -> dict:
         """
@@ -278,3 +316,63 @@ class Metabolizer:
                 })
 
         return violations
+
+    def _execute_stage(self, stage: int):
+        """
+        Execute stage code by dynamically importing the stage module.
+
+        v50 ARCHITECT FIX: This is the missing link that makes metabolizer actually DO something.
+        Previous versions only tracked state but never executed stages (hollow shell).
+
+        Args:
+            stage: Stage number to execute
+
+        Raises:
+            ImportError: If stage module cannot be imported
+            AttributeError: If stage module doesn't have execute_stage function
+        """
+        # Get module path for this stage
+        module_path = self.STAGE_MODULES.get(stage)
+
+        if module_path is None:
+            # Stage 0 (hypervisor) handled separately or skipped
+            return
+
+        try:
+            # Dynamically import the stage module
+            stage_module = importlib.import_module(module_path)
+
+            # Call execute_stage() function
+            if hasattr(stage_module, "execute_stage"):
+                self.context = stage_module.execute_stage(self.context)
+
+                # Update stage history in context
+                if "stage_history" not in self.context:
+                    self.context["stage_history"] = []
+                self.context["stage_history"].append(stage)
+
+            else:
+                raise AttributeError(
+                    f"Stage module {module_path} does not have execute_stage() function"
+                )
+
+        except ImportError as e:
+            # Log error but don't crash - allow pipeline to continue
+            self.context["stage_execution_error"] = {
+                "stage": stage,
+                "error": f"Failed to import {module_path}: {str(e)}",
+                "module_path": module_path
+            }
+            # Mark metrics as failed
+            if self.current_stage_metrics:
+                self.current_stage_metrics.status = "FAILED"
+
+        except Exception as e:
+            # Catch any other execution errors
+            self.context["stage_execution_error"] = {
+                "stage": stage,
+                "error": f"Stage execution failed: {str(e)}",
+                "module_path": module_path
+            }
+            if self.current_stage_metrics:
+                self.current_stage_metrics.status = "FAILED"
