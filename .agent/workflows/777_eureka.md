@@ -1,5 +1,5 @@
 ---
-description: 777 EUREKA - Discovery & Synthesis (v49 aCLIP)
+description: 777 EUREKA - Discovery & Synthesis (v50 aCLIP)
 ---
 # 777 EUREKA: Synthesis
 

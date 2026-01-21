@@ -1,5 +1,5 @@
 ---
-description: 889 PROOF - zkPC Cryptographic Sealing (v49 aCLIP)
+description: 889 PROOF - zkPC Cryptographic Sealing (v50 aCLIP)
 ---
 # 889 PROOF: Cryptographic Seal
 

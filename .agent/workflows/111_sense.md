@@ -1,5 +1,5 @@
 ---
-description: 111 SENSE - Pattern Matching & Search (v49 aCLIP)
+description: 111 SENSE - Pattern Matching & Search (v50 aCLIP)
 ---
 # 111 SENSE: Pattern Recognition
 

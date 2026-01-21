@@ -1,5 +1,5 @@
 ---
-description: 333 ATLAS - Meta-Cognition & Map Making (v49 aCLIP)
+description: 333 ATLAS - Meta-Cognition & Map Making (v50 aCLIP)
 ---
 # 333 ATLAS: Map Making
 

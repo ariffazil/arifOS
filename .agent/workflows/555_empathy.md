@@ -1,5 +1,5 @@
 ---
-description: 555 EMPATHY - Stakeholder Modeling (v49 aCLIP)
+description: 555 EMPATHY - Stakeholder Modeling (v50 aCLIP)
 ---
 # 555 EMPATHY: Stakeholder Analysis
 

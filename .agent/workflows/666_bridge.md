@@ -1,5 +1,5 @@
 ---
-description: 666 BRIDGE - Neuro-Symbolic Gateway (v49 aCLIP)
+description: 666 BRIDGE - Neuro-Symbolic Gateway (v50 aCLIP)
 ---
 # 666 BRIDGE: The Gatekeeper
 

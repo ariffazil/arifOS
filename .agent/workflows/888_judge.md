@@ -1,5 +1,5 @@
 ---
-description: 888 JUDGE - Final Verdict Issuance (v49 aCLIP)
+description: 888 JUDGE - Final Verdict Issuance (v50 aCLIP)
 ---
 # 888 JUDGE: The Verdict
 

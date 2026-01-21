@@ -1,5 +1,5 @@
 ---
-description: 999 VAULT - Immutable Storage (v49 aCLIP)
+description: 999 VAULT - Immutable Storage (v50 aCLIP)
 ---
 # 999 VAULT: Sealing
 
