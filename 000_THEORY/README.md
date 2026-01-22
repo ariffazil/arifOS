@@ -51,7 +51,7 @@ Plus the **Gate** (`000_init`) and **Seal** (`999_vault`) that bound all operati
 
 ### The Floors — Constitutional Law
 
-Twelve immutable floors. No exceptions. No overrides.
+Thirteen immutable floors. No exceptions. No overrides.
 
 | Floor | Name | Threshold |
 |-------|------|-----------|
