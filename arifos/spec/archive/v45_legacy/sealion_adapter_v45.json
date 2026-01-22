@@ -1,0 +1,187 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SEA-LION Adapter Configuration (v45)",
+  "description": "Runtime constants for SEA-LION LLM integration with arifOS constitutional governance. Extracted from Track C (L6_SEALION/cli/) to Track B (spec/v45/) per constitutional loop doctrine.",
+  "version": "45.0",
+  "last_updated": "2025-12-31",
+  "track": "B",
+  "authority": "tunable_thresholds",
+  "binding": {
+    "raw_client": "L6_SEALION/cli/sealion_raw_client.py",
+    "governed_client": "L6_SEALION/cli/sealion_governed_client.py"
+  },
+  "constants": {
+    "token_estimation": {
+      "tokens_per_char": 0.35,
+      "rationale": "Improved BPE estimate for SEA-LION models. Midpoint of 0.3-0.4 range based on empirical testing. More accurate than naive 0.25 estimate.",
+      "discovered": "2025-12-31",
+      "scar_reference": "EXTERNAL_AUDIT_FIX_SUMMARY.md#fix-3-token-estimation"
+    },
+    "retry_policy": {
+      "max_retries": 3,
+      "retry_delay_base_seconds": 1.0,
+      "exponential_backoff_formula": "delay = base * (2 ** (attempt - 1))",
+      "backoff_sequence": [1.0, 2.0, 4.0],
+      "rationale": "Industry-standard exponential backoff prevents overwhelming servers during outages. Symmetric retry for both read (get_messages) and write (add_messages) operations prevents asymmetric reliability.",
+      "discovered": "2025-12-31",
+      "scar_reference": "GROK_FINAL_FIX_SUMMARY.md#fix-1-retry-logic"
+    },
+    "input_validation": {
+      "max_input_length_chars": 4000,
+      "rationale": "Security ceiling to prevent huge queries. Conservative limit for SEA-LION v4 context window. Prevents DoS via oversized inputs.",
+      "discovered": "2025-12-31",
+      "scar_reference": "EXTERNAL_AUDIT_FIX_SUMMARY.md#fix-9-input-validation"
+    },
+    "context_management": {
+      "max_context_turns": 20,
+      "max_context_tokens": 8000,
+      "rationale": "Conservative limit for SEA-LION v4 models. Balances context richness with token budget. Prevents context overflow.",
+      "discovered": "2025-12-31"
+    },
+    "phatic_lane_optimization": {
+      "temperature": 0.3,
+      "max_tokens": 100,
+      "verbosity_ceiling_chars": 100,
+      "rationale": "PHATIC lane (greetings) requires concise responses. Temperature 0.3 reduces creativity for short interactions. Verbosity ceiling enforces efficiency - first 'quality ceiling' (not just safety floor). Penalty applied BEFORE verdict finalization to prevent stats/verdict inconsistency.",
+      "discovered": "2025-12-30",
+      "scar_reference": "SEALION_GOVERNANCE_FIX_SUMMARY.md#phatic-verbosity-penalty",
+      "bug_fix": "GROK_FINAL_FIX_SUMMARY.md#critical-bug-fix-phatic-penalty-ordering"
+    },
+    "genius_thresholds": {
+      "source": "spec/v45/genius_law.json",
+      "rationale": "GENIUS thresholds (G, C_dark, Psi) loaded dynamically from PRIMARY source. Track B authority respected. No hardcoded values in Track C.",
+      "discovered": "2025-12-30",
+      "scar_reference": "SEALION_GOVERNANCE_FIX_SUMMARY.md#fix-3-genius-thresholds"
+    },
+    "crisis_patterns": {
+      "source": "spec/v45/constitutional_floors.json#overrides.crisis_override.crisis_patterns",
+      "rationale": "Crisis patterns loaded from PRIMARY source (Track B). No local duplication. Single source of truth for F6 Amanah Crisis Override.",
+      "discovered": "2025-12-30",
+      "scar_reference": "SEALION_GOVERNANCE_FIX_SUMMARY.md#fix-2-crisis-patterns"
+    }
+  },
+  "scars_and_lessons": {
+    "retry_asymmetry": {
+      "discovered": "2025-12-31",
+      "description": "MemOS read operations (get_messages) had no retry logic while write operations (add_messages) did. Asymmetric reliability pattern created partial context loss during network hiccups.",
+      "fix": "Added symmetric retry with exponential backoff to both read and write operations.",
+      "impact": "Improved chat history reliability. Prevents silent degradation.",
+      "reference": "GROK_FINAL_FIX_SUMMARY.md#fix-1"
+    },
+    "phatic_penalty_timing": {
+      "discovered": "2025-12-31",
+      "description": "PHATIC verbosity penalty applied AFTER verdict extraction. If pipeline returned VOID early, penalty could skip or create verdict/stats inconsistency.",
+      "fix": "Moved penalty application to _apply_penalties_and_verdict() method, executed BEFORE verdict finalization.",
+      "impact": "Stats now always match returned verdicts. No drift between logging and output.",
+      "reference": "GROK_FINAL_FIX_SUMMARY.md#critical-bug-fix"
+    },
+    "method_complexity_threshold": {
+      "discovered": "2025-12-31",
+      "description": "Monolithic generate() method at 118 lines became unmaintainable. Subtle bugs (like PHATIC penalty timing) hard to spot. Violates Single Responsibility Principle.",
+      "fix": "Refactored into 4 helper methods: _detect_lane_and_crisis, _get_raw_response, _run_pipeline_and_genius, _apply_penalties_and_verdict.",
+      "impact": "Reduced method length to 88 lines (-25%). Each step testable in isolation. Easier to extend.",
+      "reference": "GROK_FINAL_FIX_SUMMARY.md#fix-2"
+    },
+    "exception_handling_narrowing": {
+      "discovered": "2025-12-30",
+      "description": "80% of exception handlers used broad 'except Exception' which swallows errors silently. Security and debugging risk.",
+      "fix": "Narrowed to specific types: (IOError, OSError), (ValueError, KeyError, json.JSONDecodeError), (requests.RequestException, ConnectionError, TimeoutError).",
+      "impact": "Network errors retry, parse errors fail fast. Correct error semantics.",
+      "reference": "EXTERNAL_AUDIT_FIX_SUMMARY.md#fix-1"
+    },
+    "hardcoded_configuration": {
+      "discovered": "2025-12-30",
+      "description": "Paths and config hardcoded in code (e.g., spec/v45/ directory path). Breaks portability across environments.",
+      "fix": "Environment variable configuration: ARIFOS_SPEC_DIR, ARIFOS_LEDGER_PATH, SEALION_MAX_TOKENS, etc.",
+      "impact": "Deployment flexibility. Docker/container friendly.",
+      "reference": "EXTERNAL_AUDIT_FIX_SUMMARY.md#fix-3"
+    }
+  },
+  "quality_metrics": {
+    "external_audit_compliance": {
+      "items_fixed": 10,
+      "items_total": 10,
+      "completion_rate": 1.0,
+      "reference": "EXTERNAL_AUDIT_FIX_SUMMARY.md"
+    },
+    "grok_final_review_compliance": {
+      "items_fixed": 2,
+      "items_total": 2,
+      "completion_rate": 1.0,
+      "reference": "GROK_FINAL_FIX_SUMMARY.md"
+    },
+    "code_quality_improvements": {
+      "duplicate_code_reduction": {
+        "before_lines": 159,
+        "after_lines": 0,
+        "reduction_percent": 100
+      },
+      "method_length_reduction": {
+        "before_lines": 118,
+        "after_lines": 88,
+        "reduction_percent": 25.4
+      },
+      "exception_handling_precision": {
+        "before_broad_exceptions": 0.8,
+        "after_broad_exceptions": 0.0,
+        "improvement_percent": 100
+      }
+    }
+  },
+  "deployment_requirements": {
+    "environment_variables": {
+      "required": [
+        "SEALION_API_KEY"
+      ],
+      "optional": [
+        "SEALION_MODEL",
+        "SEALION_MAX_CONTEXT_TURNS",
+        "SEALION_TEMPERATURE",
+        "SEALION_MAX_TOKENS",
+        "ARIFOS_SPEC_DIR",
+        "ARIFOS_LEDGER_PATH",
+        "ARIFOS_VERBOSE"
+      ]
+    },
+    "runtime_dependencies": {
+      "python_version": ">=3.10",
+      "core_packages": [
+        "requests",
+        "arifos-core"
+      ],
+      "optional_packages": [
+        "litellm"
+      ]
+    }
+  },
+  "testing_requirements": {
+    "unit_tests": [
+      "test_detect_lane_and_crisis_normal_query",
+      "test_detect_lane_and_crisis_crisis_query",
+      "test_apply_penalties_phatic_verbosity",
+      "test_apply_penalties_c_dark_hazard",
+      "test_get_messages_retry_logic",
+      "test_add_messages_retry_logic"
+    ],
+    "integration_tests": [
+      "test_raw_client_smoke",
+      "test_governed_client_phatic_lane",
+      "test_governed_client_crisis_override",
+      "test_unified_interface_launch"
+    ],
+    "verification_suite": "scripts/verify_sealion_governance.py"
+  },
+  "production_readiness": {
+    "status": "SEAL",
+    "verdict": "All external audit + Grok items fixed. Production-ready.",
+    "date_sealed": "2025-12-31",
+    "blocking_issues": 0,
+    "warnings": 0,
+    "recommendations": [
+      "Add unit tests for helper methods",
+      "Monitor MemOS retry rates in production",
+      "Track PHATIC penalty frequency",
+      "Verify verdict/stats consistency in logs"
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+    "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/specification/main/schema/claude-desktop.schema.json",
+    "mcpServers": {
+        "arifos-trinity": {
+            "command": "python",
+            "args": ["-m", "arifos.mcp", "trinity"],
+            "env": {
+                "PYTHONPATH": "${ARIFOS_PATH}"
+            }
+        }
+    }
+}

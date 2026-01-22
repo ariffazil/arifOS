@@ -1,0 +1,22 @@
+{
+    "mcpServers": {
+        "arifos-trinity": {
+            "command": "python",
+            "args": ["-m", "arifos.mcp", "trinity"],
+            "env": {
+                "PYTHONPATH": "${ARIFOS_PATH}",
+                "ARIFOS_CONSTITUTIONAL_MODE": "AAA"
+            }
+        }
+    },
+    "codexClient": {
+        "apiKey": "${OPENAI_API_KEY}",
+        "model": "gpt-4",
+        "temperature": 0.1,
+        "constitutionalMode": true
+    },
+    "trinityTools": {
+        "tools": ["000_init", "agi_genius", "asi_act", "apex_judge", "999_vault"],
+        "usage": "python -m arifos.mcp trinity"
+    }
+}

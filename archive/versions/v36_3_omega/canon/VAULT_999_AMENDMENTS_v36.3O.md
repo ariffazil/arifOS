@@ -11,7 +11,7 @@
 | File | Location | Status |
 |------|----------|--------|
 | **VAULT_999_AMENDMENTS_v36.3O.md** | `v36.3O/canon/` | **BINDING** |
-| VAULT999_ARCHITECTURE_v36.3O.md | `v36.3O/canon/` | Cross-reference |
+| CCC_ARCHITECTURE_v36.3O.md | `v36.3O/canon/` | Cross-reference |
 | SCARS_PHOENIX_HEALING_v36.3O.md | `v36.3O/canon/` | Scar integration |
 | spec/phoenix72_amendment_spec_v36.3O.json | `v36.3O/spec/` | Machine-readable schema |
 
@@ -244,4 +244,5 @@ Vault readers may load:
 **Epoch:** v36.3Omega PHOENIX
 **Last Verified:** 2025-12-12
 
-*This canon defines the canonical amendment protocol for Phoenix-72 in VAULT-999. For full Vault architecture, consult VAULT999_ARCHITECTURE_v36.3O.md.*
+*This canon defines the canonical amendment protocol for Phoenix-72 in VAULT-999. For full Vault architecture, consult CCC_ARCHITECTURE_v36.3O.md.*
+

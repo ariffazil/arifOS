@@ -1,0 +1,157 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ariffazil/arifOS/spec/v44/schema/red_patterns.schema.json",
+  "title": "Red Patterns v44 Specification Schema",
+  "description": "JSON Schema for validating v44.0 red patterns specification (instant VOID enforcement)",
+  "type": "object",
+
+  "required": [
+    "version",
+    "authority",
+    "locked",
+    "_status",
+    "spec_type",
+    "description",
+    "source",
+    "categories",
+    "severity_bands",
+    "enforcement",
+    "meta"
+  ],
+
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^v44\\.0$",
+      "description": "Must be v44.0"
+    },
+    "authority": {
+      "type": "string",
+      "const": "Track B (governance patterns) governed by Track A canon"
+    },
+    "locked": {
+      "type": "boolean",
+      "const": true
+    },
+    "_status": {
+      "type": "string",
+      "enum": ["AUTHORITATIVE", "DEPRECATED", "EXPERIMENTAL"]
+    },
+    "spec_type": {
+      "type": "string",
+      "const": "red_patterns"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10
+    },
+    "source": {
+      "type": "string",
+      "format": "uri"
+    },
+
+    "categories": {
+      "type": "object",
+      "required": ["destructive", "jailbreak", "soul_claims", "child_harm"],
+      "properties": {
+        "destructive": { "$ref": "#/definitions/pattern_category" },
+        "jailbreak": { "$ref": "#/definitions/pattern_category" },
+        "soul_claims": { "$ref": "#/definitions/pattern_category" },
+        "child_harm": { "$ref": "#/definitions/pattern_category_nuclear" },
+        "doxxing": { "$ref": "#/definitions/pattern_category" },
+        "disinfo": { "$ref": "#/definitions/pattern_category" },
+        "conflict": { "$ref": "#/definitions/pattern_category" },
+        "credential_theft": { "$ref": "#/definitions/pattern_category" }
+      },
+      "additionalProperties": false
+    },
+
+    "severity_bands": {
+      "type": "object",
+      "required": ["NUCLEAR", "SEVERE", "MODERATE", "SOFT"],
+      "properties": {
+        "NUCLEAR": { "$ref": "#/definitions/severity_band" },
+        "SEVERE": { "$ref": "#/definitions/severity_band" },
+        "MODERATE": { "$ref": "#/definitions/severity_band" },
+        "SOFT": { "$ref": "#/definitions/severity_band" }
+      }
+    },
+
+    "enforcement": {
+      "type": "object",
+      "required": ["mode", "bypass_apex_prime", "log_to_ledger"],
+      "properties": {
+        "mode": { "type": "string", "const": "instant_void" },
+        "bypass_apex_prime": { "type": "boolean", "const": true },
+        "log_to_ledger": { "type": "boolean", "const": true },
+        "canonical_source": { "type": "string" }
+      }
+    },
+
+    "meta": {
+      "type": "object",
+      "required": ["created", "author", "license"],
+      "properties": {
+        "created": { "type": "string" },
+        "updated": { "type": "string" },
+        "author": { "type": "string" },
+        "license": { "type": "string" },
+        "canonical_source": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+
+    "_note": { "type": "string" }
+  },
+
+  "additionalProperties": false,
+
+  "definitions": {
+    "pattern_category": {
+      "type": "object",
+      "required": ["floor", "floor_code", "severity", "description", "patterns"],
+      "properties": {
+        "floor": { "type": "string", "pattern": "^F[1-9]$" },
+        "floor_code": { "type": "string" },
+        "severity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "description": { "type": "string" },
+        "patterns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        }
+      }
+    },
+
+    "pattern_category_nuclear": {
+      "type": "object",
+      "required": ["floor", "floor_code", "severity", "severity_class", "description", "patterns"],
+      "properties": {
+        "floor": { "type": "string", "pattern": "^F[1-9]$" },
+        "floor_code": { "type": "string" },
+        "severity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "severity_class": { "type": "string", "enum": ["NUCLEAR", "SEVERE"] },
+        "description": { "type": "string" },
+        "patterns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        }
+      }
+    },
+
+    "severity_band": {
+      "type": "object",
+      "required": ["range", "description"],
+      "properties": {
+        "range": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "description": { "type": "string" }
+      }
+    }
+  }
+}

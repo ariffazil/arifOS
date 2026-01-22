@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import List
 
-from arifos_core.guards.session_dependency import (
+from arifos.core.guards.session_dependency import (
     DependencyGuard,
     SessionRisk,
     SessionState,

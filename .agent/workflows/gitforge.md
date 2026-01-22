@@ -1,5 +1,21 @@
 ---
+skill: "gitforge"
+version: "1.0.0"
 description: Analyze git branch entropy and hot zones
+floors:
+  - F1
+  - F4
+  - F5
+allowed-tools:
+  - Bash(git:*)
+  - Bash(python:*)
+expose-cli: true
+derive-to:
+  - codex
+  - claude
+codex-name: arifos-workflow-gitforge
+claude-name: analyze-entropy
+sabar-threshold: 5.0
 ---
 # /gitforge - State Mapper & Entropy Predictor
 
@@ -50,11 +66,17 @@ This workflow uses the Trinity forge.py system to analyze git history, identify 
 Files that appear ≥3 times in last 30 commits. Touching hot zones increases risk significantly.
 
 ## Fail-Closed Governance
-If ΔS ≥ 5.0 OR Risk Score ≥ 0.7:
+If ΔS ≥ 5.0 OR Risk Score ≥ 0.7 OR modifying PRIMARY sources:
 1. **HALT** further changes
 2. Run cooling protocol (defer, decompose, or document)
-3. Seek human approval before proceeding
-4. Log entropy event to cooling_ledger/
+3. **Phoenix-72**: If modifying spec/v45/*.json or canon/*.md → 72h cooling window
+4. Seek human approval before proceeding
+5. Log entropy event to cooling_ledger/
+
+## v45.0 Integration
+- **Track B Integrity**: Verify SHA-256 manifest after spec changes
+- **Phoenix-72**: Constitutional amendments require 72h cooling
+- **Trinity Display**: Entropy analysis can trigger AGI/APEX mode (forensic review)
 
 ## Next Steps
 - Review hot zones and consider decomposing changes
