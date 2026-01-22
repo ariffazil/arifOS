@@ -1,0 +1,29 @@
+{
+  "version": "v42.1",
+  "allowed_versions": [
+    "v42.*"
+  ],
+  "hash_policy": {
+    "require_ledger_header_hashes": true,
+    "require_runtime_commit_hash": true,
+    "fail_on_missing_spec": true
+  },
+  "epsilon_map": {
+    "DeltaS": 0.001,
+    "Peace2": 0.01,
+    "kappa_r": 0.005,
+    "omega0": 0.002,
+    "Psi": 0.01,
+    "G": 0.02,
+    "C_dark": 0.02,
+    "Phi_p": 0.02,
+    "AC": 0.01
+  },
+  "required_spec_files": [
+    "spec/v42/measurement.yaml",
+    "spec/v42/genius_law.json",
+    "spec/v42/pipeline.json",
+    "spec/v42/federation.json",
+    "spec/v42/eye_audit.yaml"
+  ]
+}

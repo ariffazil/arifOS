@@ -1,0 +1,236 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://arifos/spec/cooling_ledger_entry_spec_v36.3O.json",
+  "$comment": "Implements: COOLING_LEDGER_INTEGRITY_v36.3O.md, CCC_ARCHITECTURE_v36.3O.md | Law: v36.3Omega",
+  "title": "Cooling Ledger Entry v36.3Omega",
+  "description": "Schema for a single Cooling Ledger JSONL entry (VAULT-999 L1).",
+  "type": "object",
+  "meta": {
+    "spec_id": "cooling_ledger_entry_spec_v36.3O",
+    "epoch": "v36.3Omega",
+    "implements": [
+      "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md",
+      "v36.3O/canon/COOLING_LEDGER_INTEGRITY_v36.3O.md",
+      "v36.3O/spec/vault999_ledger_schema_v36.3O.json"
+    ],
+    "purpose": "Single-line JSONL entry schema for Cooling Ledger writers and validators.",
+    "status": "SEALED",
+    "backwards_compatible_with": "spec/cooling_ledger.schema.json (v35Ic)"
+  },
+  "properties": {
+    "ledger_version": {
+      "type": "string",
+      "enum": ["v35Ic", "v36Omega", "v36.3Omega"],
+      "description": "Schema version for this entry."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO8601 timestamp when the verdict was sealed."
+    },
+    "query_hash": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "description": "SHA-256 hash of the governed input."
+    },
+    "response_hash": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "description": "SHA-256 hash of the governed output."
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Floor metrics and derived signals at the time of verdict.",
+      "properties": {
+        "truth": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "F1 Truth score."
+        },
+        "delta_s": {
+          "type": "number",
+          "description": "F2 DeltaS (clarity gain/loss)."
+        },
+        "peace_squared": {
+          "type": "number",
+          "minimum": 0,
+          "description": "F3 Peace^2 stability score."
+        },
+        "kappa_r": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "F4 Empathy conductance."
+        },
+        "omega_0": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "F5 Humility band value."
+        },
+        "amanah": {
+          "type": ["string", "boolean"],
+          "description": "F6 Amanah lock status (LOCK/BROKEN or boolean)."
+        },
+        "rasa": {
+          "type": "boolean",
+          "description": "F7 RASA (felt care) status."
+        },
+        "tri_witness": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "F8 Tri-Witness consensus score."
+        },
+        "anti_hantu": {
+          "type": "boolean",
+          "description": "F9 Anti-Hantu pass status."
+        },
+        "psi": {
+          "type": ["number", "null"],
+          "description": "Derived Psi vitality metric."
+        },
+        "G": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Derived Governed Intelligence index."
+        },
+        "C_dark": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Derived Dark Cleverness index."
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "tri_witness_detail": {
+      "type": ["object", "null"],
+      "description": "Tri-Witness components for high-stakes entries (v36.3Omega extension).",
+      "properties": {
+        "human": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "ai": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "earth": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "consensus": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "truth_polarity": {
+      "type": ["string", "null"],
+      "enum": ["LIGHT", "SHADOW", "WEAPONIZED", null],
+      "description": "Truth polarity classification (v36.3Omega extension)."
+    },
+    "cce_audits": {
+      "type": ["object", "null"],
+      "description": "CCE audit outcomes for this interaction.",
+      "properties": {
+        "delta_p": {
+          "type": "string",
+          "enum": ["PASS", "FAIL"]
+        },
+        "omega_p": {
+          "type": "string",
+          "enum": ["PASS", "FAIL"]
+        },
+        "psi_p": {
+          "type": "string",
+          "enum": ["PASS", "FAIL"]
+        },
+        "phi_p": {
+          "type": "string",
+          "enum": ["PASS", "FAIL"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["SEAL", "PARTIAL", "HOLD_888", "SABAR", "VOID"],
+      "description": "Final verdict emitted by APEX PRIME."
+    },
+    "class": {
+      "type": ["string", "null"],
+      "enum": ["CLASS_A", "CLASS_B", null],
+      "description": "Stakes classification."
+    },
+    "floor_warnings": {
+      "type": ["array", "null"],
+      "description": "List of soft floor IDs that failed (for PARTIAL verdicts).",
+      "items": {
+        "type": "string",
+        "pattern": "^F[1-9]$"
+      }
+    },
+    "phoenix_cycle_id": {
+      "type": ["string", "null"],
+      "description": "Identifier of the Phoenix-72 cycle triggered by this entry, if any."
+    },
+    "eureka_receipt_id": {
+      "type": ["string", "null"],
+      "description": "Identifier of the associated EUREKA receipt, if anchored."
+    },
+    "scar_ids": {
+      "type": ["array", "null"],
+      "description": "IDs of scars associated with this entry.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "previous_hash": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "description": "SHA-256 hash of the previous Cooling Ledger entry (or genesis constant)."
+    },
+    "entry_hash": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "description": "SHA-256 hash of this entry (excluding this field)."
+    },
+    "apex_signature": {
+      "type": ["string", "null"],
+      "description": "APEX PRIME signature over the entry.",
+      "minLength": 64
+    },
+    "extra": {
+      "type": "object",
+      "description": "Implementation-specific extensions.",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "ledger_version",
+    "timestamp",
+    "query_hash",
+    "response_hash",
+    "metrics",
+    "verdict",
+    "previous_hash",
+    "entry_hash"
+  ],
+  "additionalProperties": false
+}
+

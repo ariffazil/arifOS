@@ -1,0 +1,347 @@
+{
+  "version": "v36.3Omega",
+  "epoch": 36.3,
+  "status": "DESCRIPTIVE",
+  "manifest_version": "2.0.0",
+  "description": "Runtime manifest for arifOS v36.3Omega; descriptive mapping from v36.3O canon/spec to runtime modules. Does not change behavior; runtime code remains v35Omega with a v36.3O measurement/spec layer in parallel.",
+
+  "floors": {
+    "spec_file": "v36.3O/spec/measurement_floors_v36.3O.json",
+    "aggregates_file": "v36.3O/spec/measurement_aggregates_v36.3O.json",
+    "metrics_dataclass": {
+      "module": "arifos_core.metrics",
+      "class": "Metrics"
+    },
+    "mapping": {
+      "F1": {
+        "law": "Truth",
+        "metrics_field": "truth"
+      },
+      "F2": {
+        "law": "DeltaS",
+        "metrics_field": "delta_s"
+      },
+      "F3": {
+        "law": "Peace_squared",
+        "metrics_field": "peace_squared"
+      },
+      "F4": {
+        "law": "kappa_r",
+        "metrics_field": "kappa_r"
+      },
+      "F5": {
+        "law": "Omega_0",
+        "metrics_field": "omega_0"
+      },
+      "F6": {
+        "law": "Amanah",
+        "metrics_field": "amanah"
+      },
+      "F7": {
+        "law": "RASA",
+        "metrics_field": "rasa"
+      },
+      "F8": {
+        "law": "Tri_Witness",
+        "metrics_field": "tri_witness"
+      },
+      "F9": {
+        "law": "Anti_Hantu",
+        "metrics_field": "anti_hantu"
+      }
+    }
+  },
+
+  "pipeline": {
+    "module": "arifos_core.pipeline",
+    "entry_class": "Pipeline",
+    "state_class": "PipelineState",
+    "stages": [
+      {
+        "id": "000",
+        "name": "VOID_RESET",
+        "function": "stage_000_void",
+        "description": "Reset state, classify stakes, initialize metrics context."
+      },
+      {
+        "id": "111",
+        "name": "SENSE",
+        "function": "stage_111_sense",
+        "description": "Ingest query, extract intent, perform basic routing."
+      },
+      {
+        "id": "222",
+        "name": "REFLECT",
+        "function": "stage_222_reflect",
+        "description": "Optional reflection/memory injection (Vault/Scars hooks)."
+      },
+      {
+        "id": "333",
+        "name": "REASON",
+        "function": "stage_333_reason",
+        "description": "ARIF reasoning, compute draft answer and draft_metrics."
+      },
+      {
+        "id": "444",
+        "name": "ALIGN",
+        "function": "stage_444_align",
+        "description": "Alignment adjustments, fact-checking hooks."
+      },
+      {
+        "id": "555",
+        "name": "EMPATHIZE",
+        "function": "stage_555_empathize",
+        "description": "Tone/empathy shaping (feeds @WELL, @PROMPT)."
+      },
+      {
+        "id": "666",
+        "name": "BRIDGE",
+        "function": "stage_666_bridge",
+        "description": "Bridge to tools, retrieval, external systems."
+      },
+      {
+        "id": "777",
+        "name": "FORGE",
+        "function": "stage_777_forge",
+        "description": "Paradox cooling / repair loop (pre-judgment)."
+      },
+      {
+        "id": "888",
+        "name": "JUDGE",
+        "function": "stage_888_judge",
+        "description": "APEX PRIME + W@W Federation verdict; applies floors and GENIUS LAW."
+      },
+      {
+        "id": "999",
+        "name": "SEAL",
+        "function": "stage_999_seal",
+        "description": "Final output emission and Cooling Ledger entry."
+      }
+    ]
+  },
+
+  "engines": {
+    "spec_file": "v36.3O/spec/trinity_aaa_spec_v36.3O.yaml",
+    "AAA": {
+      "ARIF": {
+        "module": "arifos_core.engines.arif_engine",
+        "class": "ARIFEngine"
+      },
+      "ADAM": {
+        "module": "arifos_core.engines.adam_engine",
+        "class": "ADAMEngine"
+      },
+      "APEX": {
+        "module": "arifos_core.engines.apex_engine",
+        "class": "ApexEngine"
+      }
+    },
+    "apex_prime": {
+      "module": "arifos_core.APEX_PRIME",
+      "review_function": "apex_review",
+      "verdict_type": "ApexVerdict",
+      "telemetry_spec": "v36.3O/spec/apex_prime_telemetry_v36.3O.json"
+    }
+  },
+
+  "waw": {
+    "spec_file": "v36.3O/spec/waw_federation_spec_v36.3O.yaml",
+    "federation": {
+      "module": "arifos_core.waw.federation",
+      "class": "WAWFederationCore",
+      "verdict_type": "FederationVerdict"
+    },
+    "organs": {
+      "@PROMPT": {
+        "module": "arifos_core.waw.prompt",
+        "class": "PromptOrgan",
+        "spec": "spec/waw_prompt_spec_v36.3Omega.yaml",
+        "floors_spec": "spec/prompt_floors_v36.3Omega.json"
+      },
+      "@RIF": {
+        "module": "arifos_core.waw.rif",
+        "class": "RifOrgan",
+        "spec": "v36.3O/spec/waw_rif_spec_v36.3O.yaml",
+        "floors_spec": "v36.3O/spec/rif_floors_v36.3O.json"
+      },
+      "@WELL": {
+        "module": "arifos_core.waw.well",
+        "class": "WellOrgan",
+        "spec": "v36.3O/spec/waw_well_spec_v36.3O.yaml",
+        "floors_spec": "v36.3O/spec/well_floors_v36.3O.json"
+      },
+      "@WEALTH": {
+        "module": "arifos_core.waw.wealth",
+        "class": "WealthOrgan",
+        "spec": "v36.3O/spec/waw_wealth_spec_v36.3O.yaml",
+        "floors_spec": "v36.3O/spec/wealth_floors_v36.3O.json"
+      },
+      "@GEOX": {
+        "module": "arifos_core.waw.geox",
+        "class": "GeoxOrgan",
+        "spec": "v36.3O/spec/waw_geox_spec_v36.3O.yaml",
+        "floors_spec": "v36.3O/spec/geox_floors_v36.3O.json"
+      }
+    }
+  },
+
+  "eye_sentinel": {
+    "canon_file": "v36.3O/canon/30_EYE_SENTINEL_v35Omega.md",
+    "module": "arifos_core.eye.sentinel",
+    "class": "EyeSentinel",
+    "views": [
+      {
+        "name": "TraceView",
+        "module": "arifos_core.eye.trace_view",
+        "class": "TraceView"
+      },
+      {
+        "name": "FloorView",
+        "module": "arifos_core.eye.floor_view",
+        "class": "FloorView"
+      },
+      {
+        "name": "ShadowView",
+        "module": "arifos_core.eye.shadow_view",
+        "class": "ShadowView"
+      },
+      {
+        "name": "DriftView",
+        "module": "arifos_core.eye.drift_view",
+        "class": "DriftView"
+      },
+      {
+        "name": "MaruahView",
+        "module": "arifos_core.eye.maruah_view",
+        "class": "MaruahView"
+      },
+      {
+        "name": "ParadoxView",
+        "module": "arifos_core.eye.paradox_view",
+        "class": "ParadoxView"
+      },
+      {
+        "name": "SilenceView",
+        "module": "arifos_core.eye.silence_view",
+        "class": "SilenceView"
+      },
+      {
+        "name": "VersionOntologyView",
+        "module": "arifos_core.eye.version_view",
+        "class": "VersionOntologyView"
+      },
+      {
+        "name": "BehaviorDriftView",
+        "module": "arifos_core.eye.behavior_drift_view",
+        "class": "BehaviorDriftView"
+      },
+      {
+        "name": "SleeperView",
+        "module": "arifos_core.eye.sleeper_view",
+        "class": "SleeperView"
+      },
+      {
+        "name": "AntiHantuView",
+        "module": "arifos_core.eye.anti_hantu_view",
+        "class": "AntiHantuView"
+      },
+      {
+        "name": "GeniusView",
+        "module": "arifos_core.eye.genius_view",
+        "class": "GeniusView"
+      }
+    ]
+  },
+
+  "genius_law": {
+    "spec_file": "v36.3O/spec/measurement_aggregates_v36.3O.json",
+    "module": "arifos_core.genius_metrics",
+    "functions": [
+      "compute_delta_score",
+      "compute_omega_score",
+      "compute_psi_score",
+      "compute_genius_index",
+      "compute_dark_cleverness",
+      "compute_psi_apex",
+      "evaluate_genius_law"
+    ],
+    "derived_metrics": {
+      "G": {
+        "threshold_canon": 0.70,
+        "threshold_runtime_experimental": 0.80,
+        "note": "See measurement_aggregates_v36.3O.json for HOTSPOT on G threshold drift."
+      },
+      "C_dark": {
+        "threshold_max": 0.30
+      },
+      "Psi_APEX": {
+        "threshold_min": 1.0
+      }
+    }
+  },
+
+  "ledger": {
+    "cooling_ledger": {
+      "module": "arifos_core.memory.cooling_ledger",
+      "classes": [
+        "CoolingLedger",
+        "CoolingEntry",
+        "CoolingMetrics",
+        "LedgerConfig"
+      ],
+      "default_path": "runtime/vault_999/cooling_ledger.jsonl",
+      "telemetry_spec": "v36.3O/spec/vault999_ledger_schema_v36.3O.json"
+    },
+    "vault999": {
+      "ledger_schema": "v36.3O/spec/vault999_ledger_schema_v36.3O.json",
+      "final_seal_spec": "v36.3O/spec/vault999_final_seal_spec_v36.3O.json",
+      "canon_file": "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md"
+    }
+  },
+
+  "canon_files": {
+    "runtime_law": [
+      "v36.3O/canon/CANON_MAP_v36.3O.md",
+      "v36.3O/canon/MEASUREMENT_APEX_STANDARDS_v36.3O.md",
+      "v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md",
+      "v36.3O/canon/TRINITY_AAA_ENGINES_v36.3O.md",
+      "v36.3O/canon/JUDICIARY_APEX_PRIME_v36.3O.md",
+      "v36.3O/canon/OVERSIGHT_WAW_FEDERATION_v36.3O.md",
+      "v36.3O/canon/DREAMFORGE_ARCHITECTURE_v36.3O.md",
+      "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md",
+      "v36.3O/canon/GOV_META_v36.3O.md"
+    ],
+    "machine_readable": [
+      "v36.3O/spec/measurement_floors_v36.3O.json",
+      "v36.3O/spec/measurement_aggregates_v36.3O.json",
+      "v36.3O/spec/trinity_aaa_spec_v36.3O.yaml",
+      "v36.3O/spec/waw_federation_spec_v36.3O.yaml",
+      "v36.3O/spec/waw_rif_spec_v36.3O.yaml",
+      "v36.3O/spec/waw_well_spec_v36.3O.yaml",
+      "v36.3O/spec/waw_wealth_spec_v36.3O.yaml",
+      "v36.3O/spec/waw_geox_spec_v36.3O.yaml",
+      "spec/waw_prompt_spec_v36.3Omega.yaml",
+      "v36.3O/spec/apex_prime_telemetry_v36.3O.json",
+      "v36.3O/spec/vault999_ledger_schema_v36.3O.json",
+      "v36.3O/spec/vault999_final_seal_spec_v36.3O.json",
+      "v36.3O/spec/llm_governance_spec_v36.3O.yaml"
+    ]
+  },
+
+  "meta": {
+    "created": "2025-12-11",
+    "updated": "2025-12-13",
+    "author": "arifOS Project",
+    "license": "Apache-2.0",
+    "tests": 1123,
+    "runtime_manifest_line": "arifOS v36.3Omega | status=DESCRIPTIVE | law=v36.3O/canon/* | spec=v36.3O/spec/* | runtime=arifos_core/* (v35Omega runtime with v36.3O measurement layer) | pipeline=arifos_core.pipeline.Pipeline 000-999 | judiciary=APEX_PRIME + WAWFederationCore | metrics=measurement_floors_v36.3O.json + measurement_aggregates_v36.3O.json | ledger=CoolingLedger + Vault-999.",
+    "purpose": "Structured runtime manifest for arifOS v36.3Omega, aligning v36.3O canon/spec with the current v35Omega runtime.",
+    "canonical_source": "https://github.com/ariffazil/arifOS",
+    "notes": [
+      "This manifest is DESCRIPTIVE ONLY; it documents how v36.3O canon/spec map to existing runtime modules.",
+      "v37 is now the DEFAULT runtime epoch. v36.3O remains the frozen law/spec layer.",
+      "External tools (promptfoo, notebooks, evaluation harnesses) can use this manifest to introspect modules and specs without hard-coding paths."
+    ]
+  }
+}
+

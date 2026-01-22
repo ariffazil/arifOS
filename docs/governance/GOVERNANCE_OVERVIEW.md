@@ -23,8 +23,8 @@ This document explains how the ArifOS constitution governs the intelligence.
 - Maintains amendment history
 
 ### ⭐ Executive (runtime engines)
-- ARIF AGI (Δ)  
-- ADAM ASI (Ω)  
+- AGI (Architect) (Δ)  
+- ASI (Auditor) (Ω)  
 - W@W organs (@RIF, @WELL, @WEALTH, @GEOX, @PROMPT)
 
 ### ⭐ Memory (Vault-999)
