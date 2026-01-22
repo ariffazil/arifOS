@@ -33,6 +33,9 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
+# Session persistence for 999-000 loop
+from arifos.mcp.session_ledger import inject_memory, seal_memory
+
 logger = logging.getLogger(__name__)
 
 
@@ -50,6 +53,8 @@ class InitResult:
     entropy_omega: float
     reason: str = ""
     floors_checked: List[str] = field(default_factory=list)
+    # Memory injection from previous session
+    previous_context: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -147,6 +152,17 @@ async def mcp_000_init(
     floors_checked = []
 
     try:
+        # =====================================================================
+        # MEMORY INJECTION: Read previous session from VAULT999
+        # =====================================================================
+        try:
+            previous_context = inject_memory()
+            prev_session = previous_context.get('previous_session') or {}
+            logger.info(f"000_init: Injected memory from previous session: {prev_session.get('session_id', 'NONE')[:8] if prev_session.get('session_id') else 'FIRST_SESSION'}")
+        except Exception as mem_err:
+            logger.warning(f"000_init: Memory injection failed: {mem_err}")
+            previous_context = {"is_first_session": True, "error": str(mem_err)}
+
         # F12: Injection Defense (92% block rate target)
         injection_risk = _detect_injection(query)
         floors_checked.append("F12_InjectionDefense")
@@ -202,7 +218,8 @@ async def mcp_000_init(
             injection_risk=injection_risk,
             entropy_omega=omega_0,
             reason="System initialized - Constitutional Mode Active",
-            floors_checked=floors_checked
+            floors_checked=floors_checked,
+            previous_context=previous_context
         ).__dict__
 
     except Exception as e:
@@ -1140,6 +1157,41 @@ async def mcp_999_vault(
                 memory_location = "L3_TEMPA"
             else:
                 memory_location = "L0_VOID"
+
+            # =================================================================
+            # PERSIST TO LEDGER: Write session to VAULT999
+            # =================================================================
+            telemetry = {
+                "verdict": verdict,
+                "merkle_root": merkle_root,
+                "audit_hash": audit_hash,
+                "memory_location": memory_location,
+                "floors_checked": floors_checked,
+                "p_truth": (apex_result or {}).get("consensus_score", 0),
+                "TW": (apex_result or {}).get("consensus_score", 0),
+                "dS": (agi_result or {}).get("entropy_delta", 0),
+                "peace2": (asi_result or {}).get("peace_squared", 0),
+                "kappa_r": (asi_result or {}).get("kappa_r", 0),
+                "omega_0": (init_result or {}).get("entropy_omega", 0.04)
+            }
+
+            # Extract key insights from apex synthesis
+            synthesis = (apex_result or {}).get("synthesis", "")
+            key_insights = [synthesis[:200]] if synthesis else []
+
+            # Seal to ledger (writes to both JSON and VAULT999/BBB_LEDGER)
+            ledger_result = seal_memory(
+                session_id=session_id,
+                verdict=verdict,
+                init_result=init_result or {},
+                genius_result=agi_result or {},
+                act_result=asi_result or {},
+                judge_result=apex_result or {},
+                telemetry=telemetry,
+                context_summary=f"Session sealed with verdict {verdict}. {synthesis[:100]}",
+                key_insights=key_insights
+            )
+            logger.info(f"999_vault: Session sealed to ledger: {ledger_result.get('entry_hash', 'N/A')[:16]}")
 
             return VaultResult(
                 status="SEAL",
