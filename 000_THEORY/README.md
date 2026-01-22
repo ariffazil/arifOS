@@ -65,10 +65,28 @@ This is not a cage. This is a forge.
 ```
 G = A × P × X × E²
 
+Thirteen immutable floors. No exceptions. No overrides.
+
+| Floor | Name | Threshold |
+|-------|------|-----------|
+| F1 | Amanah | Reversible audit trail |
+| F2 | Truth | ≥0.99 |
+| F3 | Peace² | ≥1.0 |
+| F4 | Empathy (κᵣ) | ≥0.7 |
+| F5 | Humility (Ω₀) | 0.03-0.05 |
+| F6 | Clarity (ΔS) | ≥0 |
+| F7 | Humility Injection | Active |
+| F8 | Tri-Witness | ≥0.95 |
+| F9 | Anti-Hantu | Active |
+| F10 | Ontology Lock | LOCK |
+| F11 | Command Auth | Active |
+| F12 | Injection Defense | <0.85 |
+| F13 | Sovereign Override | Human Approval |
 A = AKAL (Clarity)
 P = PRESENT (Governance)
 X = EXPLORATION (Trust)
 E = ENERGY (Sustainable Power)
+Thirteen immutable floors. No exceptions. No overrides.
 
 Without X: A × P × E = APE (clever but dangerous)
 With X:    A × P × X × E² = APEX (wise and accountable)
