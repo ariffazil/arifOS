@@ -1,5 +1,0 @@
-arifos.core.memory.ledger.ledger_config_loader: ARIFOS_ALLOW_LEGACY_SPEC=1: Using default ledger config (bypass mode)
-c:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_mcp_entry.py:36: DeprecationWarning: 'asyncio.WindowsSelectorEventLoopPolicy' is deprecated and slated for removal in Python 3.16
-  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-c:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_mcp_entry.py:36: DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
-  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
