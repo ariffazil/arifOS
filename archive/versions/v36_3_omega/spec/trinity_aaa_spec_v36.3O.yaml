@@ -1,0 +1,200 @@
+# Implements: TRINITY_AAA_ENGINES_v36.3O.md | Law: v36.3Omega | Commit: 870ea5d
+# Purpose: Machine-readable AAA Trinity engine specification
+
+meta:
+  spec_id: trinity_aaa_spec_v36.3O
+  epoch: v36.3Omega
+  implements: v36.3O/canon/TRINITY_AAA_ENGINES_v36.3O.md
+  law_source: v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md
+  law_commit: "870ea5d"
+  purpose: ARIF/ADAM/APEX engine roles, packet schemas, and floor ownership
+
+engines:
+  ARIF:
+    id: ARIF
+    name: "ARIF AGI"
+    role: "Cold Logic Engine (Delta)"
+    core_law: "Clarity (Delta)"
+    mandate: "Parse intent, structure reasoning, verify evidence"
+    temperature: "cold"
+    floor_ownership:
+      - F1  # Truth
+      - F2  # DeltaS
+    pipeline_stages:
+      - "111_SENSE"
+      - "333_REASON"
+      - "444_ALIGN"
+    output_packet: ARIFPacket
+
+  ADAM:
+    id: ADAM
+    name: "ADAM ASI"
+    role: "Warm Logic Engine (Omega)"
+    core_law: "Humility (Omega)"
+    mandate: "Empathize, bridge, preserve dignity"
+    temperature: "warm"
+    floor_ownership:
+      - F3  # Peace_squared
+      - F4  # kappa_r
+      - F5  # Omega_0 (humility band)
+      - F7  # RASA
+    pipeline_stages:
+      - "222_REFLECT"
+      - "555_EMPATHIZE"
+      - "666_BRIDGE"
+    output_packet: ADAMPacket
+
+  APEX:
+    id: APEX
+    name: "APEX PRIME"
+    role: "Judiciary Engine (Psi)"
+    core_law: "Vitality (Psi)"
+    mandate: "Judge, seal, veto"
+    temperature: "balanced"
+    floor_ownership:
+      - F6  # Amanah
+      - F8  # Tri_Witness
+      - F9  # Anti_Hantu
+    pipeline_stages:
+      - "777_FORGE"
+      - "888_JUDGE"
+      - "999_SEAL"
+    output_packet: ApexVerdict
+
+packets:
+  ARIFPacket:
+    description: "Output from ARIF engine to downstream"
+    fields:
+      truth:
+        type: number
+        description: "F1 Truth score"
+        range: [0.0, 1.0]
+      delta_s:
+        type: number
+        description: "F2 DeltaS (clarity gain)"
+      confidence:
+        type: number
+        description: "ARIF confidence in reasoning"
+        range: [0.0, 1.0]
+      reasoning_trace:
+        type: string
+        description: "Structured reasoning output"
+      omega_0:
+        type: number
+        description: "F5 Omega_0 (humility)"
+        range: [0.0, 1.0]
+
+  ADAMPacket:
+    description: "Output from ADAM engine to downstream"
+    fields:
+      peace_squared:
+        type: number
+        description: "F3 Peace^2 (stability)"
+        range: [0.0, 2.0]
+      kappa_r:
+        type: number
+        description: "F4 kappa_r (empathy conductance)"
+        range: [0.0, 1.0]
+      omega_0:
+        type: number
+        description: "Humility acknowledgment"
+        range: [0.0, 1.0]
+      rasa:
+        type: boolean
+        description: "F7 RASA (felt care confirmed)"
+      tone_assessment:
+        type: string
+        description: "Tone classification"
+        enum: [calm, neutral, escalating, aggressive]
+
+  ApexVerdict:
+    description: "Final verdict from APEX PRIME"
+    fields:
+      verdict:
+        type: string
+        description: "Final verdict code"
+        enum: [SEAL, PARTIAL, HOLD_888, SABAR, VOID]
+      amanah:
+        type: boolean
+        description: "F6 Amanah (trust lock)"
+      tri_witness:
+        type: number
+        description: "F8 Tri-Witness consensus"
+        range: [0.0, 1.0]
+      anti_hantu:
+        type: boolean
+        description: "F9 Anti-Hantu pass"
+      floor_results:
+        type: object
+        description: "Per-floor pass/fail results"
+      waw_signals:
+        type: object
+        description: "W@W Federation signals (if CLASS_B)"
+      requires_888_hold:
+        type: boolean
+        description: "True if human confirmation required"
+
+pipeline_stages:
+  "000_VOID":
+    description: "Clear assumptions, initialize"
+    engine: null
+    purpose: "Reset context"
+  "111_SENSE":
+    description: "Parse intent, classify stakes"
+    engine: ARIF
+    purpose: "Input understanding"
+  "222_REFLECT":
+    description: "Check context, find patterns"
+    engine: ADAM
+    purpose: "Context awareness"
+  "333_REASON":
+    description: "Structure plan, ensure DeltaS >= 0"
+    engine: ARIF
+    purpose: "Logical reasoning"
+  "444_ALIGN":
+    description: "Verify evidence, check accuracy"
+    engine: ARIF
+    purpose: "Evidence verification"
+  "555_EMPATHIZE":
+    description: "Consider impact, protect weakest"
+    engine: ADAM
+    purpose: "Empathy check"
+  "666_BRIDGE":
+    description: "Expression, dignity preservation"
+    engine: ADAM
+    purpose: "Output bridging"
+  "777_FORGE":
+    description: "Synthesize Delta + Omega"
+    engine: APEX
+    purpose: "Integration"
+  "888_JUDGE":
+    description: "Final floor evaluation, verdict"
+    engine: APEX
+    purpose: "Judgment"
+  "999_SEAL":
+    description: "Log decision, emit output"
+    engine: APEX
+    purpose: "Sealing"
+
+routing:
+  CLASS_A:
+    description: "Fast path for low-stakes queries"
+    stages: ["111_SENSE", "333_REASON", "888_JUDGE", "999_SEAL"]
+    skip: ["222_REFLECT", "555_EMPATHIZE", "777_FORGE"]
+  CLASS_B:
+    description: "Full path for high-stakes queries"
+    stages: ["111_SENSE", "222_REFLECT", "333_REASON", "444_ALIGN", "555_EMPATHIZE", "666_BRIDGE", "777_FORGE", "888_JUDGE", "999_SEAL"]
+    skip: []
+
+floor_ownership_summary:
+  ARIF:
+    floors: [F1, F2]
+    law: "Clarity (Delta)"
+    note: "ARIF may observe omega_0 in ARIFPacket but ownership belongs to ADAM"
+  ADAM:
+    floors: [F3, F4, F5, F7]
+    law: "Humility (Omega)"
+    note: "F5 Omega_0 ownership moved to ADAM per canon (humility is Omega core law)"
+  APEX:
+    floors: [F6, F8, F9]
+    law: "Vitality (Psi)"

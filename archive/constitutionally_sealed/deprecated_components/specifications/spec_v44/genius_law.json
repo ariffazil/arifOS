@@ -1,0 +1,182 @@
+{
+  "version": "v44.0",
+  "authority": "Track B (tunable thresholds) governed by Track A canon",
+  "locked": true,
+  "_status": "AUTHORITATIVE",
+  "_source_evolution": "v42.1 → v44.0 (TEARFRAME physics extension, no GENIUS LAW changes)",
+  "_note": "This file is the SOLE RUNTIME AUTHORITY for GENIUS LAW metrics. Loader MUST use this file (or env override).",
+  "arifos_version": "v44.0",
+  "spec_type": "genius_law",
+  "description": "Machine-readable specification of GENIUS LAW metrics for arifOS governance (v44.0).",
+  "source": "https://github.com/ariffazil/arifOS",
+
+  "metrics": {
+    "G": {
+      "id": 1,
+      "symbol": "G",
+      "display": "Genius Index",
+      "range": [0, 1.2],
+      "formula": "normalize(A * P * E * X)",
+      "description": "Governed intelligence - clarity with ethics and stability",
+      "thresholds": {
+        "seal": 0.80,
+        "void": 0.50
+      },
+      "affects_floors": ["truth", "delta_s"],
+      "components": {
+        "A": "Akal (cognitive clarity)",
+        "P": "Present (emotional regulation)",
+        "E": "Energy (capacity to act)",
+        "X": "X-factor (Amanah-guided exploration)"
+      },
+      "canon_ref": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md"
+    },
+
+    "C_dark": {
+      "id": 2,
+      "symbol": "C_dark",
+      "display": "Dark Cleverness",
+      "range": [0, 1],
+      "formula": "normalize(A * (1-P) * (1-X) * E)",
+      "description": "Ungoverned intelligence risk - high clarity without ethics/stability",
+      "thresholds": {
+        "seal": 0.30,
+        "sabar_warn": 0.60
+      },
+      "affects_floors": ["peace_squared", "amanah"],
+      "interpretation": {
+        "low": "Safe - intelligence is governed",
+        "high": "Hazard - 'evil genius' pattern"
+      },
+      "canon_ref": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md"
+    },
+
+    "Psi": {
+      "id": 3,
+      "symbol": "Psi",
+      "display": "Vitality",
+      "range": [0, 2],
+      "formula": "(DeltaS * Peace2 * KappaR * RASA * Amanah) / (Entropy + epsilon)",
+      "parameters": {
+        "epsilon": 0.01
+      },
+      "description": "System health - thermodynamic lawfulness",
+      "thresholds": {
+        "seal": 1.00,
+        "sabar": 0.95
+      },
+      "bands": {
+        "unstable": [0, 0.95],
+        "marginal": [0.95, 1.00],
+        "lawful": [1.00, 2.00]
+      },
+      "affects_floors": ["all"],
+      "phoenix_calibration": {
+        "neutrality_buffer": [0.4, 0.6],
+        "base_floor": 0.3,
+        "clarity_boost": true
+      },
+      "canon_ref": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md"
+    },
+
+    "TP": {
+      "id": 4,
+      "symbol": "TP",
+      "display": "Truth Polarity",
+      "type": "enum",
+      "values": ["truth_light", "shadow_truth", "weaponized_truth", "false_claim"],
+      "description": "Direction of truth - clarifying vs obscuring",
+      "detection_logic": {
+        "truth_light": "Truth >= 0.99 AND DeltaS >= 0",
+        "shadow_truth": "Truth >= 0.99 AND DeltaS < 0 AND Amanah = true",
+        "weaponized_truth": "Truth >= 0.99 AND DeltaS < 0 AND Amanah = false",
+        "false_claim": "Truth < 0.99"
+      },
+      "affects_floors": ["truth", "delta_s", "amanah"],
+      "verdict_mapping": {
+        "truth_light": "SEAL",
+        "shadow_truth": "SABAR",
+        "weaponized_truth": "VOID",
+        "false_claim": "VOID"
+      },
+      "canon_ref": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md"
+    }
+  },
+
+  "component_scores": {
+    "Delta": {
+      "symbol": "Delta",
+      "display": "Clarity Score",
+      "formula": "(truth_ratio + clarity_ratio) / 2",
+      "maps_to": "A (Akal)",
+      "derived_from": ["truth", "delta_s"]
+    },
+    "Omega": {
+      "symbol": "Omega",
+      "display": "Ethics/Empathy Score",
+      "formula": "kappa_ratio * amanah_score * rasa_score",
+      "maps_to": "X (X-factor)",
+      "derived_from": ["kappa_r", "amanah", "rasa"]
+    },
+    "Psi_component": {
+      "symbol": "Psi",
+      "display": "Stability Score",
+      "formula": "(peace_ratio * omega_band_score * witness_ratio)^(1/3)",
+      "maps_to": "P (Present)",
+      "derived_from": ["peace_squared", "omega_0", "tri_witness"]
+    }
+  },
+
+  "floor_mapping": {
+    "truth": {"affects_G": true, "affects_C_dark": false, "affects_Psi": true},
+    "delta_s": {"affects_G": true, "affects_C_dark": false, "affects_Psi": true},
+    "peace_squared": {"affects_G": true, "affects_C_dark": true, "affects_Psi": true},
+    "kappa_r": {"affects_G": true, "affects_C_dark": true, "affects_Psi": true},
+    "omega_0": {"affects_G": true, "affects_C_dark": false, "affects_Psi": false},
+    "amanah": {"affects_G": true, "affects_C_dark": true, "affects_Psi": true},
+    "rasa": {"affects_G": true, "affects_C_dark": false, "affects_Psi": true},
+    "tri_witness": {"affects_G": true, "affects_C_dark": false, "affects_Psi": false}
+  },
+
+  "verdict_logic": {
+    "hard_floors": ["Truth", "Amanah", "Anti_Hantu"],
+    "constants": {
+      "G_SEAL": 0.80,
+      "G_VOID": 0.50,
+      "PSI_SEAL": 1.00,
+      "PSI_SABAR": 0.95,
+      "CDARK_SEAL": 0.30,
+      "CDARK_WARN": 0.60
+    },
+    "priority_order": [
+      "hard_floor_fail -> VOID",
+      "shadow_truth -> SABAR",
+      "C_dark > 0.60 -> SABAR",
+      "Psi < 0.95 -> SABAR",
+      "G < 0.50 -> VOID",
+      "G < 0.80 or Psi < 1.00 -> PARTIAL",
+      "all_pass -> SEAL"
+    ]
+  },
+
+  "integration_v42": {
+    "flow": "Input -> Floors Check (v42 spec) -> GENIUS Metrics (v42.1) -> Verdict -> v42 Memory Write Policy -> Band Routing",
+    "memory_integration": {
+      "evidence_chain_includes": ["G", "C_dark", "Psi", "truth_polarity"],
+      "enhanced_audit_trigger": "C_dark > CDARK_WARN",
+      "metadata_recorded": ["truth_polarity", "risk_level"]
+    },
+    "floors_spec_ref": "spec/v42/constitutional_floors.json"
+  },
+
+  "meta": {
+    "created": "2025-12-13",
+    "updated": "2025-12-13",
+    "author": "arifOS Project",
+    "license": "Apache-2.0",
+    "canonical_source": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md",
+    "predecessor": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md",
+    "implementation": "arifos_core/genius_metrics.py",
+    "notes": "v42.1 alignment; semantics unchanged"
+  }
+}

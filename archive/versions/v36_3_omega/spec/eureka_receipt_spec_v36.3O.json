@@ -1,0 +1,217 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://arifos/spec/eureka_receipt_spec_v36.3O.json",
+  "$comment": "Implements: CCC_ARCHITECTURE_v36.3O.md (L4 zkPC) | Law: v36.3Omega",
+  "title": "EUREKA Receipt v36.3Omega",
+  "description": "Schema for zkPC (Zero-Knowledge Proof of Cognition) receipts anchoring governed cognition without exposing internal reasoning.",
+  "type": "object",
+  "meta": {
+    "spec_id": "eureka_receipt_spec_v36.3O",
+    "epoch": "v36.3Omega",
+    "implements": [
+      "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md",
+      "v36.3O/spec/vault999_ledger_schema_v36.3O.json"
+    ],
+    "law_source": "v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md",
+    "purpose": "Machine-readable schema for VAULT-999 L4 zkPC receipts.",
+    "status": "SEALED"
+  },
+  "properties": {
+    "receipt_id": {
+      "type": "string",
+      "description": "Globally unique EUREKA receipt identifier.",
+      "pattern": "^EUREKA-[0-9]{4}-[0-9]{2}-[0-9]{2}-[A-Z0-9]{8}$",
+      "examples": ["EUREKA-2025-12-12-A1B2C3D4"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO8601 timestamp of receipt generation."
+    },
+    "event_id": {
+      "type": "string",
+      "description": "SHA-256 hash of the linked Cooling Ledger entry.",
+      "minLength": 64,
+      "maxLength": 64
+    },
+    "zkpc_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the zero-knowledge proof payload.",
+      "minLength": 64,
+      "maxLength": 64
+    },
+    "care_scope": {
+      "type": "object",
+      "description": "Who/what this cognition was caring for.",
+      "properties": {
+        "who": {
+          "type": "array",
+          "description": "Stakeholders in scope.",
+          "items": {
+            "type": "string",
+            "enum": ["user", "system", "earth", "third_party", "future"]
+          },
+          "minItems": 1
+        },
+        "risk_cooled": {
+          "type": "string",
+          "description": "Primary risk that was cooled/governed.",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "harm_prevented": {
+          "type": ["string", "null"],
+          "description": "Description of harm prevented, if applicable.",
+          "maxLength": 500
+        }
+      },
+      "required": ["who", "risk_cooled"],
+      "additionalProperties": false
+    },
+    "floor_proofs": {
+      "type": "object",
+      "description": "Per-floor proof status (proves floor was checked without revealing details).",
+      "properties": {
+        "F1_truth": {
+          "type": "boolean",
+          "description": "Proof that F1 (Truth) was evaluated."
+        },
+        "F2_delta_s": {
+          "type": "boolean",
+          "description": "Proof that F2 (DeltaS) was evaluated."
+        },
+        "F3_peace_squared": {
+          "type": "boolean",
+          "description": "Proof that F3 (Peace^2) was evaluated."
+        },
+        "F4_kappa_r": {
+          "type": "boolean",
+          "description": "Proof that F4 (kappa_r) was evaluated."
+        },
+        "F5_omega_0": {
+          "type": "boolean",
+          "description": "Proof that F5 (Omega_0) was evaluated."
+        },
+        "F6_amanah": {
+          "type": "boolean",
+          "description": "Proof that F6 (Amanah) was evaluated."
+        },
+        "F7_rasa": {
+          "type": "boolean",
+          "description": "Proof that F7 (RASA) was evaluated."
+        },
+        "F8_tri_witness": {
+          "type": "boolean",
+          "description": "Proof that F8 (Tri-Witness) was evaluated."
+        },
+        "F9_anti_hantu": {
+          "type": "boolean",
+          "description": "Proof that F9 (Anti-Hantu) was evaluated."
+        }
+      },
+      "additionalProperties": false
+    },
+    "cce_proofs": {
+      "type": "object",
+      "description": "CCE (Crown Cognitive Equation) audit proofs.",
+      "properties": {
+        "delta_p": {
+          "type": "boolean",
+          "description": "Delta audit proof."
+        },
+        "omega_p": {
+          "type": "boolean",
+          "description": "Omega audit proof."
+        },
+        "psi_p": {
+          "type": "boolean",
+          "description": "Psi audit proof."
+        },
+        "phi_p": {
+          "type": "boolean",
+          "description": "Phi (Paradox) audit proof."
+        }
+      },
+      "additionalProperties": false
+    },
+    "tri_witness": {
+      "type": "object",
+      "description": "Tri-Witness scores at the time of cognition.",
+      "properties": {
+        "human": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "ai": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "earth": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "consensus": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["SEAL", "PARTIAL"],
+      "description": "Verdict that triggered this receipt (only SEAL/PARTIAL generate receipts)."
+    },
+    "class": {
+      "type": "string",
+      "enum": ["CLASS_A", "CLASS_B"],
+      "description": "Stakes classification."
+    },
+    "apex_signature": {
+      "type": "string",
+      "description": "APEX PRIME signature over the receipt.",
+      "minLength": 64
+    },
+    "merkle_root": {
+      "type": "string",
+      "description": "Merkle root of the L4 zkPC ledger after this receipt.",
+      "minLength": 64,
+      "maxLength": 64
+    },
+    "previous_receipt_hash": {
+      "type": ["string", "null"],
+      "description": "Hash of the previous EUREKA receipt (for chaining).",
+      "minLength": 64,
+      "maxLength": 64
+    },
+    "receipt_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of this receipt (excluding this field).",
+      "minLength": 64,
+      "maxLength": 64
+    },
+    "extra": {
+      "type": "object",
+      "description": "Implementation-specific extensions.",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "receipt_id",
+    "timestamp",
+    "event_id",
+    "zkpc_hash",
+    "care_scope",
+    "floor_proofs",
+    "verdict",
+    "apex_signature",
+    "merkle_root",
+    "receipt_hash"
+  ],
+  "additionalProperties": false
+}
+

@@ -1,0 +1,105 @@
+{
+    "_schema_version": "v45.0",
+    "_type": "policy",
+    "_canon_refs": [
+        "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#F7"
+    ],
+    "_source_evolution": "v45xx (Risk-Literacy Output Mode)",
+    "_description": "Risk-Literacy Output Mode policy. Ensures explicit uncertainty disclosure and risk communication. Extends F7 (Humility) to require transparent confidence levels.",
+    "risk_literacy": {
+        "enabled": true,
+        "enable_env_var": "ARIFOS_RISK_LITERACY_ENABLED",
+        "thresholds": {
+            "min_confidence_for_full_release": 0.95,
+            "min_confidence_for_partial_release": 0.80,
+            "high_risk_score_threshold": 0.70,
+            "critical_risk_score_threshold": 0.85
+        },
+        "templates": {
+            "uncertainty_note": "(Note: Confidence {confidence:.0%} – This response may require verification.)",
+            "low_confidence_note": "(Caution: Low confidence ({confidence:.0%}). Please verify critical details independently.)",
+            "risk_warning": "(Risk Level: {risk_level}. {risk_explanation})",
+            "high_risk_note": "⚠️ HIGH RISK: This response involves uncertainty. Please proceed with caution and verify independently."
+        },
+        "risk_levels": {
+            "LOW": {
+                "range": [
+                    0.0,
+                    0.30
+                ],
+                "display": "Low",
+                "color": "green",
+                "action": "proceed"
+            },
+            "MODERATE": {
+                "range": [
+                    0.30,
+                    0.70
+                ],
+                "display": "Moderate",
+                "color": "yellow",
+                "action": "caution"
+            },
+            "HIGH": {
+                "range": [
+                    0.70,
+                    0.85
+                ],
+                "display": "High",
+                "color": "orange",
+                "action": "verify"
+            },
+            "CRITICAL": {
+                "range": [
+                    0.85,
+                    1.0
+                ],
+                "display": "Critical",
+                "color": "red",
+                "action": "halt"
+            }
+        }
+    },
+    "output_modes": {
+        "text": {
+            "append_disclaimer": true,
+            "disclaimer_position": "end",
+            "include_confidence_in_text": true
+        },
+        "json": {
+            "include_risk_fields": true,
+            "fields": [
+                "confidence",
+                "risk_score",
+                "risk_level",
+                "uncertainty_flag"
+            ]
+        },
+        "api": {
+            "include_metadata": true,
+            "metadata_key": "risk_literacy"
+        }
+    },
+    "floor_extensions": {
+        "F7_humility": {
+            "extension": "risk_literacy_compliance",
+            "description": "F7 (Humility) now requires that any uncertainty must be explicitly conveyed. Silent guessing is disallowed.",
+            "enforcement": "If confidence < min_confidence_for_full_release, MUST append uncertainty_note to output"
+        }
+    },
+    "telemetry": {
+        "log_risk_disclosure": true,
+        "log_confidence_scores": true,
+        "field_name_confidence": "confidence",
+        "field_name_risk_score": "risk_score",
+        "field_name_risk_level": "risk_level",
+        "field_name_uncertainty_flag": "uncertainty_flag"
+    },
+    "_metadata": {
+        "created": "2026-01-03",
+        "author": "arifOS/Antigravity",
+        "status": "PHOENIX",
+        "cooling_required_hours": 72,
+        "notes": "v45xx Risk-Literacy policy - extends F7 to require explicit uncertainty disclosure. User always knows when AI says 'I don't know'."
+    }
+}

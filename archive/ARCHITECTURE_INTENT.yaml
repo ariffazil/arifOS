@@ -1,0 +1,109 @@
+# ARCHITECTURE_INTENT.yaml
+# Purpose: Document the intentional separation of L1/L2/L3 layers
+# Status: SEALED - Constitutional architecture reference
+# Version: v45.0
+# Date: 2026-01-06
+
+layers:
+  L1_CANON:
+    path: L1_THEORY/canon/
+    purpose: "Constitutional philosophy (WHY)"
+    audience: "Humans, governance bodies"
+    mutability: "Slow (Phoenix-72 amendment process)"
+    authority: "Supreme law - all other layers derive from this"
+    examples:
+      - "000_CONSTITUTIONAL_CORE_v45.md - The ONE canonical truth"
+      - "010_CONSTITUTIONAL_FLOORS_F1F9_v45.md - Floor philosophy"
+      - "010_PIPELINE_000TO999_v45.md - Pipeline rationale"
+
+  L2_SPEC:
+    path:
+      - "spec/v45/"
+      - "L2_GOVERNANCE/"
+    purpose: "Machine-readable thresholds (WHAT)"
+    audience: "LLM prompts, config systems, portable governance"
+    mutability: "Per-release (versioned, SHA-256 verified)"
+    authority: "Operational specs - derived from L1, enforced by L3"
+    examples:
+      - "spec/v45/constitutional_floors.json - Floor thresholds"
+      - "L2_GOVERNANCE/universal/base_governance_v45.yaml - Portable prompts"
+      - "L2_GOVERNANCE/core/genius_law.yaml - GENIUS LAW specs"
+
+  L3_CODE:
+    path: arifos_core/
+    purpose: "Runtime enforcement (HOW)"
+    audience: "Python/Rust/Go executors, runtime systems"
+    mutability: "Controlled via PR + L2 audit + test coverage"
+    authority: "Implementation - must prove compliance with L2 and L1"
+    examples:
+      - "arifos_core/system/apex_prime.py - Verdict authority (SOLE)"
+      - "arifos_core/enforcement/metrics.py - Floor measurements"
+      - "arifos_core/enforcement/genius_metrics.py - GENIUS LAW runtime"
+
+separation_law:
+  principle: "L1→L2→L3 uni-directional; never reverse"
+  rationale: "Prevents code from silently changing constitutional law"
+  enforcement: "Track A (Canon) > Track B (Spec) > Track C (Code)"
+
+verification:
+  L3_to_L2: "Code must prove it implements L2 specs (via tests)"
+  L2_to_L1: "Specs must justify alignment with L1 canon (via references)"
+  audit_trail: "All changes flow through the right gates (Trinity Git Governance)"
+
+anti_patterns:
+  forbidden:
+    - "Merging L1/L2/L3 into single file (loses traceability)"
+    - "Code defining thresholds without L2 spec (bypasses governance)"
+    - "Spec contradicting canon without Phoenix-72 amendment"
+
+  allowed:
+    - "L1 references in L2 (derivation is explicit)"
+    - "L2 references in L3 (implementation is traceable)"
+    - "Cross-layer audits (verification of alignment)"
+
+example_flow:
+  scenario: "Change F2 Truth threshold from 0.99 to 0.95"
+  correct_path:
+    - step: 1
+      layer: L1
+      action: "Propose amendment to 010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
+      gate: "Phoenix-72 (72h cooling + Tri-Witness)"
+    - step: 2
+      layer: L2
+      action: "Update spec/v45/constitutional_floors.json"
+      gate: "SHA-256 manifest regeneration + human approval"
+    - step: 3
+      layer: L3
+      action: "Update arifos_core/enforcement/metrics.py"
+      gate: "Test suite + Trinity QC + /gitseal"
+
+  incorrect_path:
+    - step: 1
+      layer: L3
+      action: "Directly change TRUTH_THRESHOLD = 0.95 in metrics.py"
+      violation: "Bypasses L1 and L2 governance"
+      verdict: "VOID (F1 Amanah breach)"
+
+maintenance:
+  when_L1_changes:
+    - "Update L2 specs to reflect new thresholds/philosophy"
+    - "Update L3 code to implement new specs"
+    - "Regenerate SHA-256 manifests"
+    - "Run full test suite"
+
+  when_L2_changes:
+    - "Verify alignment with L1 canon (reference check)"
+    - "Update L3 code to implement new specs"
+    - "Run affected tests"
+
+  when_L3_changes:
+    - "Verify implementation matches L2 specs (test coverage)"
+    - "No L1 or L2 changes required (unless bug found)"
+
+governance_invariants:
+  - "L1 is immutable at runtime (only Phoenix-72 can amend)"
+  - "L2 is versioned and SHA-256 verified (tamper-evident)"
+  - "L3 is tested and audited (must prove L2 compliance)"
+  - "Separation enforces accountability (trace bugs to source layer)"
+
+# DITEMPA BUKAN DIBERI — Forged, not given; truth must cool before it rules.

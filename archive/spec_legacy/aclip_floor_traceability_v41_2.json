@@ -1,0 +1,161 @@
+{
+  "version": "v41.2",
+  "artifact": "A-CLIP Floor Traceability Map",
+  "scope": {
+    "stages": ["444", "777", "888"],
+    "intent": "Bind A-CLIP governance rules to existing arifOS Floors F1–F9 for audit traceability.",
+    "note": "No new floors introduced; mapping is enforcement-only."
+  },
+  "floors": {
+    "F1": {"name": "Truth", "shorthand": "truth"},
+    "F2": {"name": "ΔS (Clarity)", "shorthand": "deltaS"},
+    "F3": {"name": "Peace² (Stability)", "shorthand": "peace2"},
+    "F4": {"name": "κᵣ (Empathy Conductance)", "shorthand": "kappa_r"},
+    "F5": {"name": "Ω₀ (Humility Band)", "shorthand": "omega0"},
+    "F6": {"name": "Amanah (Integrity Lock)", "shorthand": "amanah"},
+    "F7": {"name": "GENIUS (Process Discipline)", "shorthand": "genius"},
+    "F8": {"name": "Tri-Witness (Consensus)", "shorthand": "tri_witness"},
+    "F9": {"name": "C_dark (Dark Cleverness)", "shorthand": "c_dark"}
+  },
+  "rules": [
+    {
+      "id": "ACLIP-444-SOURCE-HIERARCHY",
+      "stage": "444",
+      "title": "Source Verification Hierarchy",
+      "requirement": "Constitutional claims MUST be verified using PRIMARY sources first: spec/*.json and SEALED canon. Code/docs/grep are non-authoritative.",
+      "enforcement": {
+        "default_verdict": "888_HOLD",
+        "if_primary_missing": "888_HOLD",
+        "if_conflict_detected": "888_HOLD"
+      },
+      "bindings": {
+        "floors": [
+          {"floor": "F1", "reason": "Truth requires authoritative definitions, not string matches."},
+          {"floor": "F6", "reason": "Amanah requires honoring constitutional authority order."},
+          {"floor": "F2", "reason": "grep is discovery, not verification; increases entropy if treated as proof."},
+          {"floor": "F5", "reason": "Certainty without PRIMARY sources violates humility."},
+          {"floor": "F8", "reason": "Conflicting sources indicates consensus failure."}
+        ]
+      },
+      "evidence_tiers": {
+        "primary": [
+          "spec/*.json (constitutional floors, GENIUS law, thresholds)",
+          "canon/*_vXXΩ.md with SEALED status"
+        ],
+        "secondary": [
+          "arifos_core/*.py (runtime implementation reference)"
+        ],
+        "tertiary": [
+          "docs/*.md",
+          "README.md",
+          "SECURITY.md"
+        ],
+        "not_evidence": [
+          "grep/search hits",
+          "comments in code/tests",
+          "instruction summaries"
+        ]
+      }
+    },
+    {
+      "id": "ACLIP-777-REVERSE-AUDIT",
+      "stage": "777",
+      "title": "Reverse Audit Before 888",
+      "requirement": "Before proceeding to 888/999, agent MUST self-audit verification quality and stakeholder burden. If any check fails, return to 444.",
+      "enforcement": {"on_fail": "RETURN_444"},
+      "checks": [
+        {
+          "check_id": "RA-1-PRIMARY",
+          "prompt": "Did I read PRIMARY sources for every constitutional claim?",
+          "binds": ["F1", "F5", "F6"]
+        },
+        {
+          "check_id": "RA-2-CLARITY",
+          "prompt": "Does my output reduce confusion (ΔS ≥ 0) or add it?",
+          "binds": ["F2"]
+        },
+        {
+          "check_id": "RA-3-WEAKEST",
+          "prompt": "Who is the weakest stakeholder who pays if I'm wrong?",
+          "binds": ["F4"]
+        },
+        {
+          "check_id": "RA-4-PROCESS",
+          "prompt": "Did I follow spec-before-code and established verification order?",
+          "binds": ["F7", "F6"]
+        }
+      ],
+      "bindings": {
+        "floors": [
+          {"floor": "F1", "reason": "Reverse audit blocks unverified constitutional claims."},
+          {"floor": "F2", "reason": "Forces clarity gain check before judgment."},
+          {"floor": "F4", "reason": "Centers burden on weakest stakeholder."},
+          {"floor": "F7", "reason": "Encodes disciplined method as governance requirement."}
+        ]
+      }
+    },
+    {
+      "id": "ACLIP-888-HOLD-EXPANDED",
+      "stage": "888",
+      "title": "Mandatory HOLD Triggers",
+      "requirement": "MUST trigger 888_HOLD when evidence is missing, conflicting, rushed, or user disputes constitutional claims.",
+      "enforcement": {
+        "verdict": "888_HOLD",
+        "actions": [
+          "Declare: 888 HOLD — verification failure",
+          "List conflicts by tier (PRIMARY vs SECONDARY vs TERTIARY)",
+          "Re-read PRIMARY sources",
+          "Await explicit proceed instruction"
+        ]
+      },
+      "triggers": [
+        {
+          "trigger_id": "H-USER-CORRECTION",
+          "when": "User corrects/disputes a constitutional claim",
+          "binds": ["F4", "F8", "F6"]
+        },
+        {
+          "trigger_id": "H-SOURCE-CONFLICT",
+          "when": "Conflicting evidence across tiers",
+          "binds": ["F8", "F5", "F2"]
+        },
+        {
+          "trigger_id": "H-NO-PRIMARY",
+          "when": "Constitutional claim made without reading spec JSON",
+          "binds": ["F1", "F5"]
+        },
+        {
+          "trigger_id": "H-GREP-CONTRADICTS",
+          "when": "grep results contradict spec/canon patterns",
+          "binds": ["F2", "F8"]
+        },
+        {
+          "trigger_id": "H-RUSHED-FIX",
+          "when": "Proposing fixes based on <5 minutes audit",
+          "binds": ["F3"]
+        }
+      ],
+      "bindings": {
+        "floors": [
+          {"floor": "F8", "reason": "Conflict implies no consensus; must pause."},
+          {"floor": "F3", "reason": "Rushed changes increase instability."},
+          {"floor": "F5", "reason": "Prevents overconfidence under uncertainty."}
+        ]
+      }
+    },
+    {
+      "id": "ACLIP-DOCS-NONAUTHORITATIVE-WARNING",
+      "stage": "444",
+      "title": "Non-Authoritative Documentation Warning",
+      "requirement": "Any summary/instructions/docs MUST carry an explicit warning: not constitutional law; refer to spec/*.json and SEALED canon.",
+      "enforcement": {"on_detect_missing_warning": "PARTIAL"},
+      "bindings": {
+        "floors": [
+          {"floor": "F1", "reason": "Prevents doc-law confusion undermining truth."},
+          {"floor": "F5", "reason": "Prevents certainty based on lagging documentation."},
+          {"floor": "F9", "reason": "Blocks manipulation via selective summaries."}
+        ]
+      }
+    }
+  ]
+}
