@@ -1,5 +1,5 @@
 """
-arifOS MCP Module (v50.5.1)
+arifOS MCP Module (v50.5.23)
 5-Tool Trinity Constitutional Framework
 
 Tools:
@@ -8,6 +8,10 @@ Tools:
   asi_act     → Heart (EVIDENCE → EMPATHY → ACT)
   apex_judge  → Soul (EUREKA → JUDGE → PROOF)
   999_vault   → Seal (Merkle + zkPC + Immutable Log)
+
+Bridge:
+  MCPCoreBridge → Connects MCP tools to Core engines
+  ToolRegistry  → External tool link registry
 
 Mnemonic: "Init the Genius, Act with Heart, Judge at Apex, seal in Vault."
 
@@ -18,7 +22,7 @@ Usage:
 DITEMPA BUKAN DIBERI
 """
 
-__version__ = "50.5.1"
+__version__ = "50.5.23"
 
 # Lazy imports to avoid circular dependencies
 def __getattr__(name):
@@ -34,6 +38,10 @@ def __getattr__(name):
     if name == "create_sse_app":
         from arifos.mcp.sse import create_sse_app
         return create_sse_app
+
+    if name in ("MCPCoreBridge", "ToolRegistry", "ToolLink", "get_bridge"):
+        from arifos.mcp.bridge import MCPCoreBridge, ToolRegistry, ToolLink, get_bridge
+        return locals()[name]
 
     raise AttributeError(f"module 'arifos.mcp' has no attribute '{name}'")
 
@@ -53,4 +61,10 @@ __all__ = [
     "mcp_asi_act",
     "mcp_apex_judge",
     "mcp_999_vault",
+
+    # Bridge (v50.5.23)
+    "MCPCoreBridge",
+    "ToolRegistry",
+    "ToolLink",
+    "get_bridge",
 ]
