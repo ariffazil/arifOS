@@ -1,357 +1,374 @@
-# Contributing to arifOS
+# Contributing to arifOS v50.5
 
-Thank you for considering a contribution to arifOS. This guide explains how to contribute safely and in a way that preserves the constitutional governance of the system.
+## The Governance-First Contribution Model
 
-If you contribute code, documentation, tests, or governance proposals, you agree to the contributor guidelines in this file and the governance rules in GOVERNANCE.md.
+**You are not contributing to software. You are contributing to a constitution.**
 
----
-
-## Quick overview
-
-Before submitting any change, ensure it:
-- Preserves the 9 constitutional floors operationally (see GOVERNANCE.md).
-- Does not bypass or disable APEX PRIME, the Amanah lock, the Cooling Ledger, or the Memory Write Policy (EUREKA).
-- Respects the 000→999 pipeline ordering (no skipping stages).
-- Does not allow VOID verdicts to become canonical memory.
-- Follows the Phoenix‑72 amendment process for changes to constitutional rules or memory bands.
+In the era of unlimited AI capability, the only meaningful contribution is **governance improvement**. Code changes matter only insofar as they improve constitutional enforcement.
 
 ---
 
-## 1) Opening an issue
+## I. THE PARADIGM SHIFT
 
-Open an issue describing:
-- What you want to change (bug fix / feature / refactor).
-- Why it matters to arifOS governance.
-- How it affects the 9 floors, the 000→999 pipeline, or the 6 Memory Bands.
+### Old Open Source Model → Governance Model
 
-Issue template suggestion:
+| Old Model | arifOS Model |
+|-----------|--------------|
+| "Does it work?" | "Is it constitutional?" |
+| Bug = broken code | Bug = governance violation |
+| Feature = new capability | Feature = better accountability |
+| Performance = speed | Performance = governance efficiency |
+| Security = prevent attack | Security = ensure witness |
+
+### What We Value
+
+1. **Constitutional Compliance** over feature richness
+2. **Accountability** over capability
+3. **Transparency** over cleverness
+4. **Witness** over speed
+5. **Humility** over certainty
+
+---
+
+## II. TYPES OF CONTRIBUTIONS
+
+### Governance Contributions (Highest Value)
+
+| Type | Description | Process |
+|------|-------------|---------|
+| **Floor Improvement** | Strengthen F1-F12 enforcement | Phoenix-72 amendment |
+| **Witness Enhancement** | Better accountability mechanisms | PR + review |
+| **Audit Trail** | Improved immutability/verification | PR + review |
+| **Agency Responsibility** | Clearer agent boundaries | PR + review |
+
+### Code Contributions
+
+| Type | Constitutional Impact | Process |
+|------|----------------------|---------|
+| **Trinity Tools** | Direct governance | Requires governance review |
+| **Core Kernels** | Floor enforcement | Requires security review |
+| **MCP Server** | Tool delivery | Standard PR |
+| **Tests** | Governance verification | Standard PR |
+| **Documentation** | Constitutional clarity | Standard PR |
+
+### What We Don't Want
+
+- Features that bypass governance
+- "Optimizations" that skip witnesses
+- Capabilities without accountability
+- Cleverness without transparency
+
+---
+
+## III. CONTRIBUTION WORKFLOW
+
+### 1. Open an Issue First
+
+Before writing code, open an issue with:
 
 ```markdown
-## Change Summary
-[What are you proposing?]
+## Proposal Summary
+[What governance improvement are you proposing?]
 
-## Constitutional Impact (F1-F9)
-- [ ] Affects F1: Amanah (Integrity/Reversibility)
-- [ ] Affects F2: Truth (Factual Accuracy ≥0.99)
-- [ ] Affects F3: Tri-Witness (Human·AI·Earth consensus ≥0.95)
-- [ ] Affects F4: ΔS/Clarity (Entropy reduction ≥0)
-- [ ] Affects F5: Peace² (Non-destructive ≥1.0)
-- [ ] Affects F6: κᵣ/Empathy (Serve weakest stakeholder ≥0.95)
-- [ ] Affects F7: Ω₀/Humility (Uncertainty band 0.03-0.05)
-- [ ] Affects F8: G/Genius (Governed intelligence ≥0.80)
-- [ ] Affects F9: C_dark/Anti-Hantu (Dark cleverness <0.30)
+## Constitutional Alignment
 
-## Memory Impact (EUREKA - v45)
-- [ ] Affects Memory Write Policy (verdict → band routing)
-- [ ] Changes 6 Memory Bands (VAULT, LEDGER, ACTIVE, PHOENIX, WITNESS, VOID)
-- [ ] Modifies Authority Boundary (human seal enforcement)
-- [ ] Changes Audit Layer (SHA-256 hash-chain or Merkle proofs)
-- [ ] Affects Retention Lifecycle (HOT 7d / WARM 90d / COLD permanent / VOID 90d)
-- [ ] Impacts ΔΩΨ Trinity (Delta lane routing, Omega aggregation, Psi vitality)
+### Floors Affected
+- [ ] F1 Amanah (reversibility)
+- [ ] F2 Truth (≥0.99)
+- [ ] F3 Peace² (≥1.0)
+- [ ] F4 Empathy κᵣ (≥0.7)
+- [ ] F5 Humility Ω₀ (0.03-0.05)
+- [ ] F6 Clarity ΔS (≥0)
+- [ ] F7 Humility Injection
+- [ ] F8 Tri-Witness (≥0.95)
+- [ ] F9 Anti-Hantu
+- [ ] F11 Command Auth
+- [ ] F12 Injection Defense
 
-## Justification
-[Why is this change aligned with arifOS governance?]
+### Tools Affected
+- [ ] 000_init (Gate)
+- [ ] agi_genius (Mind)
+- [ ] asi_act (Heart)
+- [ ] apex_judge (Soul)
+- [ ] 999_vault (Seal)
 
-## Test Plan
-[How will you verify this maintains all floors and memory invariants?]
+## Agency Responsibility
+[How does this improve agent accountability?]
+
+## Evidence
+[What evidence supports this improvement?]
 ```
 
----
+### 2. Branch Naming
 
-## 2) Branch naming
-
-Create topic branches using this convention:
-- **apex/** — APEX PRIME judiciary changes
-- **ledger/** — Cooling Ledger or Vault-999 changes
-- **memory/** — Memory Write Policy (EUREKA) or band routing changes (v38)
-- **guard/** — Safeguards or guard constraints
-- **docs/** — Documentation
-- **tests/** — Tests
-- **fix/** — Bug fixes
-- **refactor/** — Non-functional refactors
-
-Examples:
 ```bash
-git checkout -b apex/fix-verdict-threshold
-git checkout -b memory/void-band-isolation
-git checkout -b ledger/hash-chain-verification
+# Governance improvements
+governance/improve-witness-consensus
+governance/strengthen-f2-truth
+
+# Tool improvements
+trinity/agi-genius-clarity
+trinity/asi-act-empathy
+
+# Floor enforcement
+floor/f8-witness-verification
+floor/f12-injection-defense
+
+# Documentation
+docs/update-contributing
+docs/improve-security
+
+# Fixes
+fix/witness-bypass-bug
+fix/merkle-verification
 ```
 
----
+### 3. Development Setup
 
-## 3) Development workflow
-
-Install dev deps and run tests:
 ```bash
+git clone https://github.com/ariffazil/arifOS.git
+cd arifOS
 python -m venv venv
-source venv/bin/activate  # or `venv\Scripts\activate` on Windows
+source venv/bin/activate  # or venv\Scripts\activate on Windows
 pip install -e .[dev]
-pre-commit install
-pytest -v
+
+# Run governance tests
+pytest tests/ -v
+
+# Type checking
+mypy arifos/
+
+# Linting
+ruff check .
+black --check .
 ```
 
-Linters and type checks:
+### 4. Commit Messages
+
+Format: `scope: description`
+
 ```bash
-black .
-isort .
-mypy .
-ruff
-flake8
-pre-commit run --all-files
-```
+# Good
+governance: strengthen F8 witness consensus threshold
+trinity: add evidence chain to asi_act
+floor: improve F12 injection pattern detection
+docs: update security policy for v50.5
 
-Memory-specific validation (v38):
-```bash
-# Test memory write policy enforcement
-pytest tests/test_memory_policy.py -v
-
-# Test 6 memory bands + routing
-pytest tests/test_memory_bands.py -v
-
-# Test authority boundary (humans seal law)
-pytest tests/test_memory_authority.py -v
-
-# Test hash-chain + retention lifecycle
-pytest tests/test_memory_retention.py -v
-
-# Full memory + floor integration
-pytest tests/integration/test_memory_floor_integration.py -v
-```
-
-**Do not:**
-- Commit secrets or private keys. Use environment variables or your org's secret manager.
-- Allow VOID verdicts to be written to LEDGER or ACTIVE bands (VOID → VOID band only).
-- Disable hash-chain verification in audit layer.
-- Modify authority boundary without Phoenix-72 amendment process.
-
----
-
-## 4) Commit messages
-
-Use a concise scope: summary format:
-```
-scope: brief description
-
-Optional longer explanation and issue references.
-```
-
-Examples:
-```
-apex: fix verdict threshold edge case at Ψ == 1.0
-ledger: add canonical JSON serialization before hashing
-memory: enforce VOID verdict isolation from canonical bands
-memory: add confidence ceiling (0.85) to recalled state
+# Bad
+fix stuff
+update code
+improvements
 ```
 
 ---
 
-## 5) Pull Requests (PRs)
+## IV. PULL REQUEST REQUIREMENTS
 
-Before creating a PR:
-- Run all tests and linters locally.
-- Ensure no secrets or keys in commits.
-- Add or update tests for your change (see section 7).
-- Update documentation where applicable (README.md, docs/, canon/).
-- For memory changes: verify no VOID verdicts escape to canonical bands.
-
-PR template suggestion:
+### PR Template
 
 ```markdown
-## What This PR Does
-[Clear description]
+## Governance Impact
 
-## Constitutional Impact
-- [ ] Preserves all 9 floors
-- [ ] Does not bypass APEX PRIME
-- [ ] Maintains Amanah lock
-- [ ] Adds or improves tests
-- [ ] Updates documentation
+### What This PR Does
+[Clear description of governance improvement]
 
-## Memory Impact (EUREKA - v45)
-- [ ] Memory Write Policy enforced (verdict → band routing)
-- [ ] VOID verdicts isolated (never reach LEDGER/ACTIVE)
-- [ ] Authority boundary maintained (humans seal law)
-- [ ] SHA-256 hash-chain verified on all writes
-- [ ] Confidence ceiling (0.85) enforced on recalls
-- [ ] Memory integration tests added/pass (2359/2359 ✓)
-- [ ] Spec manifest verified: python scripts/regenerate_manifest_v45.py --check
+### Constitutional Compliance
+- [ ] All 12 floors preserved or strengthened
+- [ ] No witness bypass introduced
+- [ ] No accountability gap created
+- [ ] Evidence chain maintained
 
-## Test Coverage
-- Tests added: [describe]
-- Existing tests passing: ✅
-- Memory integration tests: ✅
-- Hash-chain verification: ✅
+### Agency Responsibility
+- [ ] Agent boundaries respected
+- [ ] Human authority preserved
+- [ ] AI self-modification prevented
 
-## Breaking Changes?
-- [ ] No
-- [ ] Yes — Phoenix-72 amendment required
+### Testing
+- [ ] Governance tests pass
+- [ ] Floor enforcement tests pass
+- [ ] Witness tests pass
+- [ ] No regressions
 
-## Checklist
-- [ ] Code follows style guide (black, isort)
-- [ ] Type checks pass (mypy)
-- [ ] All tests pass (pytest) including memory tests
-- [ ] Documentation updated (README.md, docs/, canon/)
-- [ ] No secrets or keys committed
-- [ ] Memory-related changes reviewed for governance impact
+### Documentation
+- [ ] 000_THEORY updated if needed
+- [ ] README updated if user-facing
+- [ ] Comments explain governance rationale
 ```
 
----
+### Review Requirements
 
-## 6) Code review & approvals
-
-### Standard Reviews
-- PRs touching APEX, Ledger, Vault‑999, or guard modules require approval by designated code owners.
-- Expect requests for additional tests and governance impact analysis.
-- Do not force-push reviewed branches; push new commits to address feedback.
-
-### Memory-Specific Reviews (EUREKA - v45)
-- PRs touching `arifos_core/memory/` or memory integration require:
-  - Confirmation that VOID verdicts cannot reach canonical bands (INV-1).
-  - Verification that authority boundary is maintained—AI proposes, humans seal (INV-2).
-  - SHA-256 hash-chain audit trail for every write (INV-3).
-  - Confidence ceiling validation for recalled memory (INV-4).
-  - Evidence of integration with 000→999 pipeline stages (SENSE 111, FORGE 777, JUDGE 888, SEAL 999).
-  - Spec integrity: Verify spec/v45/MANIFEST.sha256.json after changes.
-
-Suggested CODEOWNERS entries should be added to `CODEOWNERS` separately.
+| Change Type | Required Reviews |
+|-------------|------------------|
+| Trinity tools | 2 reviewers + governance review |
+| Core kernels | 2 reviewers + security review |
+| Floor enforcement | 2 reviewers + security review |
+| MCP/infrastructure | 1 reviewer |
+| Documentation | 1 reviewer |
+| Tests | 1 reviewer |
 
 ---
 
-## 7) Tests required
+## V. CONSTITUTIONAL AMENDMENTS
 
-Every change should include:
-- Unit tests for modified functions/classes.
-- Integration tests for cross-module behavior.
-- Edge/corner-case tests for thresholds and invariants.
-- Security tests for crypto, ledger, or access control changes.
+If your change modifies:
+- Any of the 12 Constitutional Floors
+- Trinity tool behavior
+- Verdict logic (SEAL/SABAR/VOID)
+- Memory band policy
+- Human authority boundaries
 
-### Memory-Specific Tests (v38)
+**You must follow Phoenix-72:**
 
-If you modify memory code:
+1. **Propose** — Open `[AMENDMENT]` issue with full specification
+2. **Cool** — 72-hour cooling period for community review
+3. **Witness** — Obtain tri-witness consensus (Human + AI + System)
+4. **Seal** — Human sovereign approval required
+5. **Document** — Update `000_THEORY/` canon
 
-**Test VOID isolation (INV-1):**
+**AI cannot self-approve constitutional amendments.**
+
+---
+
+## VI. CODE STANDARDS
+
+### Governance-First Code
+
 ```python
-def test_void_verdict_never_canonical():
-    """VOID verdicts routed to VOID band only, never LEDGER/ACTIVE."""
-    policy = MemoryWritePolicy()
-    band = policy.route_verdict("VOID", content="test")
-    assert band == BandType.VOID
-    assert "LEDGER" not in policy.get_canonical_targets("VOID")
+# Good: Explicit governance check
+async def execute_action(action: Action) -> Result:
+    # Witness requirement (F8)
+    witness = await get_tri_witness(action)
+    if witness.consensus < 0.95:
+        return Verdict.VOID("Insufficient witness consensus")
+
+    # Evidence chain (F2)
+    evidence = await gather_evidence(action)
+    if evidence.truth_score < 0.99:
+        return Verdict.VOID("Truth threshold not met")
+
+    # Execute with accountability
+    result = await perform_action(action, witness, evidence)
+
+    # Seal immutably (F1)
+    await vault_seal(result, witness, evidence)
+
+    return result
+
+# Bad: Governance as afterthought
+async def execute_action(action: Action) -> Result:
+    result = await perform_action(action)  # No witness!
+    # TODO: add governance later
+    return result
 ```
 
-**Test authority boundary (INV-2):**
-```python
-def test_authority_boundary_humans_seal():
-    """AI proposes amendments; humans seal law."""
-    check = MemoryAuthorityCheck()
-    proposal = check.propose_amendment(new_rule)
-    assert proposal.sealed == False  # AI cannot self-seal
-    check.seal_amendment(proposal, human_key)  # Human seals
-    assert proposal.sealed == True
-```
+### Documentation Standards
 
-**Test hash-chain integrity (INV-3):**
-```python
-def test_ledger_hash_chain_unbroken():
-    """Every ledger entry links to previous; chain is verifiable."""
-    audit = MemoryAuditLayer()
-    entry1 = audit.record_write("decision_1", metadata)
-    entry2 = audit.record_write("decision_2", metadata)
-    assert entry2.previous_hash == entry1.content_hash
-    assert audit.verify_chain() == True  # Chain unbroken
-```
+Every function touching governance must document:
+1. Which floors it enforces
+2. What witnesses it requires
+3. How it maintains accountability
 
-**Test confidence ceiling (INV-4):**
 ```python
-def test_memory_recall_confidence_ceiling():
-    """Recalled memory capped at 0.85 confidence (suggestion, not oracle)."""
-    sense = MemorySense()
-    recalled = sense.recall_state(session_id, confidence_threshold=0.85)
-    assert recalled.confidence <= 0.85
-    assert recalled.metadata["recalled_as"] == "suggestion"
-```
+def judge_action(action: Action) -> Verdict:
+    """
+    Render constitutional judgment on an action.
 
-**Test retention lifecycle:**
-```python
-def test_warm_band_90_day_retention():
-    """LEDGER/PHOENIX/WITNESS bands retain 90 days, then cool."""
-    retention = MemoryRetention()
-    entry = retention.write(band=BandType.LEDGER, content)
-    assert retention.should_retain(entry, days=89) == True
-    assert retention.should_retain(entry, days=91) == False  # Cooled
-```
+    Floors Enforced:
+        - F8: Tri-witness consensus ≥0.95
+        - F9: Anti-Hantu pattern detection
 
-Example full memory test name:
-```python
-def test_memory_write_policy_seal_verdict_routes_to_ledger_and_active():
-    """SEAL verdicts route to LEDGER + ACTIVE; PARTIAL to PHOENIX only."""
+    Witnesses Required:
+        - Human evidence
+        - AI analysis
+        - System verification
+
+    Accountability:
+        - All verdicts logged immutably
+        - Appeal path preserved
+        - Evidence chain maintained
+    """
 ```
 
 ---
 
-## 8) Security & reporting
+## VII. TESTING REQUIREMENTS
 
-If your change touches security-sensitive code (APEX, ledger, memory, keys):
-- Include a security rationale and a brief threat model.
-- For memory changes: explain how INV-1 through INV-4 are preserved.
-- Test for hash-chain breakage, VOID leakage, or authority bypass.
+### Governance Tests (Required)
 
-Security contact for reporting: arifbfazil@gmail.com  
-Preferred: open a private GitHub Security Advisory.
+```python
+def test_action_requires_witness():
+    """Actions without witness must be VOID."""
+    action = Action(content="test")
+    result = execute_without_witness(action)
+    assert result.verdict == Verdict.VOID
 
-Do not include PoCs in public issues—use private advisories or encrypted email. See SECURITY.md for full policy.
+def test_floor_enforcement():
+    """All 12 floors must be checked."""
+    action = Action(content="test")
+    checks = get_floor_checks(action)
+    assert len(checks) == 12
+    assert all(check.enforced for check in checks)
 
----
+def test_evidence_chain_immutable():
+    """Evidence chain cannot be modified after seal."""
+    evidence = create_evidence_chain()
+    seal(evidence)
+    with pytest.raises(ImmutabilityError):
+        modify_evidence(evidence)
+```
 
-## 9) Amendment process (Phoenix-72)
+### What Tests Must Cover
 
-If a change modifies:
-- Any of the 9 Floors
-- The 000→999 pipeline stages
-- APEX PRIME verdict logic
-- Amanah lock enforcement
-- Cooling Ledger format
-- **Memory Write Policy (EUREKA)** (v38)
-- **Any of the 6 Memory Bands** (v38)
-- **Authority Boundary enforcement** (v38)
-
-Follow Phoenix‑72:
-1. Create an `[AMENDMENT]` issue, tag `constitutional-change`.
-2. Provide: spec, impact analysis, migration plan, test coverage.
-3. Obtain Tri‑Witness consensus (human, AI, Earth/domain expert).
-4. Seal the amendment in Vault‑999 via human approval.
-5. Update canon (e.g., `canon/ARIFOS_MEMORY_STACK_v38Omega.md` for memory changes).
-
----
-
-## 10) Documentation & style
-
-- Update **README.md** for user-facing changes.
-- Update **docs/** for architecture changes.
-- Update **spec/v45/*.json** for Track B specification changes (requires manifest regeneration).
-- Update **L1_THEORY/canon/** for constitutional law changes (requires Phoenix-72 amendment).
-- Update **CLAUDE.md** for development workflow changes.
-- Update **AGENTS.md** for agent governance changes.
-- Use docstrings on public APIs.
-- Maintain **CHANGELOG.md** and release notes.
+- [ ] Every floor enforcement path
+- [ ] Witness consensus thresholds
+- [ ] Evidence chain integrity
+- [ ] Verdict immutability
+- [ ] Human authority boundaries
+- [ ] Injection defense patterns
 
 ---
 
-## 11) Conduct & recognition
+## VIII. RECOGNITION
 
-- Be respectful and inclusive.
-- Criticize ideas, not people.
-- Contributors are recognized in CONTRIBUTORS.md and release notes.
+Contributors who improve governance are recognized in:
+- `CONTRIBUTORS.md`
+- Release notes
+- Constitutional canon (for major amendments)
 
-Security/governance questions:
-- Governance: open an issue with `[QUESTION]`.
-- Security: use Security Advisory or email above.
-- Memory/EUREKA: open an issue with `[MEMORY]` or contact maintainer.
+**Governance contributions > feature contributions.**
 
 ---
 
-**Last updated:** 2025-12-29
-**Version:** v45.0.0 (Phoenix-72 Consolidation)
-**Maintainer contact:** arifbfazil@gmail.com
-**Track B Spec:** spec/v45/ (SHA-256 verified) | **Canon:** L1_THEORY/canon/ (v45)
-**Memory System (EUREKA):** Active | 4 Core Invariants enforced | 6 Memory Bands | 2359/2359 tests passing
+## IX. CONTACT
+
+- **General questions:** Open an issue with `[QUESTION]`
+- **Governance proposals:** Open an issue with `[GOVERNANCE]`
+- **Security issues:** See `002_SECURITY.md`
+- **Amendments:** Open an issue with `[AMENDMENT]`
+
+**Maintainer:** arifbfazil@gmail.com
+
+---
+
+## X. THE CONTRIBUTOR OATH
+
+By contributing to arifOS, you affirm:
+
+```
+I contribute to governance, not just code.
+I value accountability over capability.
+I respect the constitutional floors.
+I maintain the witness chain.
+I do not bypass for convenience.
+I submit to human authority on amendments.
+
+DITEMPA BUKAN DIBERI.
+```
+
+---
+
+**Version:** v50.5
+**Status:** PRODUCTION
+**Authority:** Muhammad Arif bin Fazil
+
+**DITEMPA BUKAN DIBERI** — Forged, Not Given.
