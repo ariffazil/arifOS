@@ -188,6 +188,7 @@ Above all systems: **Muhammad Arif bin Fazil** — 888 Judge, Sovereign Authorit
 | [`001_AGENTS.md`](001_AGENTS.md) | Agent Roles, Boundaries, Model-Agnostic |
 | [`010_TRINITY.md`](010_TRINITY.md) | AGI/ASI/APEX Integration, 5-Tool Interface |
 | [`011_VAULT_MCP.md`](011_VAULT_MCP.md) | VAULT999 ↔ MCP Bridge |
+| [`012_VERDICT_PARADOX.md`](012_VERDICT_PARADOX.md) | Anomalous Contrast: SEAL/SABAR/VOID Logic |
 
 ### Protocols
 
