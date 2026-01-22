@@ -1,0 +1,70 @@
+name: Skill Drift Detection
+
+on:
+  pull_request:
+    paths:
+      - '.agent/workflows/*.md'
+      - '.claude/skills/**'
+      - '.codex/skills/**'
+
+jobs:
+  check-drift:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Install only required dependencies (no full package install needed)
+          echo "✅ Dependencies installed"
+
+      - name: Check for skill drift
+        run: |
+          echo "🔍 Checking for drift between MASTER (.agent/workflows/) and DERIVED (.claude/.codex) skills..."
+
+          # Check if drift detection script exists
+          if [ -f "scripts/check_skill_drift.py" ]; then
+            python scripts/check_skill_drift.py
+          else
+            echo "⚠️ WARNING: scripts/check_skill_drift.py not found"
+            echo "Performing basic drift detection..."
+
+            # Basic check: Ensure .agent/workflows/ files have corresponding derived skills
+            for master_file in .agent/workflows/*.md; do
+              if [ -f "$master_file" ]; then
+                filename=$(basename "$master_file" .md)
+                echo "Checking sync for: $filename"
+
+                # Check if corresponding .claude skill exists
+                if [ ! -d ".claude/skills/${filename}" ]; then
+                  echo "❌ Missing .claude/skills/${filename}/"
+                  exit 1
+                fi
+
+                # Check if corresponding .codex skill exists (if applicable)
+                # Note: Not all .agent workflows may have .codex equivalents
+                echo "✅ Basic structure check passed for $filename"
+              fi
+            done
+
+            echo "✅ Basic drift detection passed"
+          fi
+
+      - name: Report results
+        if: always()
+        run: |
+          echo ""
+          echo "📊 Drift Detection Summary:"
+          echo "  - Master workflows: .agent/workflows/"
+          echo "  - Derived (Claude): .claude/skills/"
+          echo "  - Derived (Codex): .codex/skills/"
+          echo ""
+          echo "For full drift detection, ensure scripts/check_skill_drift.py is implemented."

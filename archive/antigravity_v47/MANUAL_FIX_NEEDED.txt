@@ -1,0 +1,7 @@
+# Update L4_MCP/server.py import manually
+# Line 19 needs to change from:
+# from arifos_ledger.sqlite_store import SQLiteLedgerStore
+# to:
+# from arifos_core.memory.sqlite_ledger_store import SQLiteLedgerStore
+
+# Please manually update this file due to encoding issues

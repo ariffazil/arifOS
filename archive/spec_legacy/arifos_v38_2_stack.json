@@ -1,0 +1,182 @@
+{
+  "version": "v38.2.0",
+  "arifos_version": "38.2",
+  "stack_type": "arifos_v38_2_stack_manifest",
+  "status": "SEALED",
+  "description": "Aggregated stack manifest for arifOS v38.2 (pipeline, floors, GENIUS LAW, memory stack, cooling ledger, time governance, runtime manifest, prompt governance).",
+  "source": "https://github.com/ariffazil/arifOS",
+
+  "components": {
+    "pipeline": {
+      "id": "pipeline_v38Omega",
+      "spec_type": "pipeline",
+      "version": "v38.0.0",
+      "spec_ref": "spec/pipeline_v38Omega.yaml",
+      "canon_ref": "canon/03_PIPELINE_v38Omega.md",
+      "code_refs": [
+        "arifos_core/pipeline.py",
+        "arifos_core/integration/memory_sense.py",
+        "arifos_core/integration/memory_judge.py",
+        "arifos_core/integration/memory_scars.py",
+        "arifos_core/integration/memory_seal.py",
+        "arifos_core/stages/stage_000_amanah.py",
+        "arifos_core/stages/stage_555_empathy.py"
+      ],
+      "notes": [
+        "Implements 000-999 metabolic pipeline with Class A/B routing and integration points for memory, W@W organs, and @EYE Sentinel.",
+        "Stage wiring, gates, and routing thresholds are defined in spec/pipeline_v38Omega.yaml and enforced by arifos_core/pipeline.py."
+      ]
+    },
+
+    "floors": {
+      "id": "constitutional_floors_v38Omega",
+      "spec_type": "constitutional_floors",
+      "version": "v38.0.0",
+      "spec_ref": "spec/constitutional_floors_v38Omega.json",
+      "canon_ref": "canon/01_CONSTITUTIONAL_FLOORS_v38Omega.md",
+      "code_refs": [
+        "arifos_core/metrics.py",
+        "arifos_core/APEX_PRIME.py",
+        "arifos_core/eye/floor_view.py",
+        "arifos_core/floor_detectors/amanah_risk_detectors.py",
+        "arifos_core/eye/anti_hantu_view.py"
+      ],
+      "notes": [
+        "Defines the 9 constitutional floors (Truth, Clarity, Tri-Witness, Peace^2, Humility, Empathy, Amanah, RASA, Anti-Hantu) and their thresholds.",
+        "APEX PRIME enforces floor checks at stage 888_JUDGE using metrics from arifos_core/metrics.py."
+      ]
+    },
+
+    "genius_law": {
+      "id": "genius_law_v38Omega",
+      "spec_type": "genius_law",
+      "version": "v38.0.0",
+      "spec_ref": "spec/genius_law_v38Omega.json",
+      "canon_ref": "canon/02_GENIUS_LAW_v38Omega.md",
+      "code_refs": [
+        "arifos_core/genius_metrics.py",
+        "arifos_core/APEX_PRIME.py"
+      ],
+      "notes": [
+        "Defines GENIUS LAW metrics (G, C_dark, Psi), their formulas, and thresholds.",
+        "APEX PRIME uses GENIUS LAW in conjunction with floors to issue SEAL/PARTIAL/VOID/SABAR/SUNSET verdicts."
+      ]
+    },
+
+    "memory_stack": {
+      "id": "memory_stack_v38",
+      "spec_type": "memory_stack",
+      "version": "v38.0.0",
+      "spec_refs": [
+        "archive/versions/v36_3_omega/v36.3O/spec/memory_context_spec_v36.3O.json",
+        "spec/pipeline_v38Omega.yaml",
+        "spec/cooling_ledger_phoenix_v38Omega.json",
+        "spec/arifos_v38_2.yaml"
+      ],
+      "canon_ref": "canon/07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md",
+      "code_refs": [
+        "arifos_core/memory/bands.py",
+        "arifos_core/memory/policy.py",
+        "arifos_core/memory/authority.py",
+        "arifos_core/memory/audit.py",
+        "arifos_core/memory/retention.py",
+        "arifos_core/integration/memory_sense.py",
+        "arifos_core/integration/memory_judge.py",
+        "arifos_core/integration/memory_scars.py",
+        "arifos_core/integration/memory_seal.py",
+        "arifos_core/kernel.py"
+      ],
+      "notes": [
+        "Implements the six-band memory architecture (VAULT, LEDGER, ACTIVE, PHOENIX, WITNESS, VOID) with EUREKA v38 invariants.",
+        "Verdict-to-band routing (SEAL, SABAR, PARTIAL, VOID, 888_HOLD, SUNSET) is defined across pipeline_v38Omega.yaml and cooling_ledger_phoenix_v38Omega.json and enforced by MemoryBandRouter and MemoryWritePolicy.",
+        "Time-governed entropy rot (SABAR_TIMEOUT, PHOENIX_LIMIT) is specified in spec/arifos_v38_2.yaml and enforced by arifos_core/kernel.py."
+      ]
+    },
+
+    "cooling_ledger": {
+      "id": "cooling_ledger_v38Omega",
+      "spec_type": "cooling_ledger_phoenix",
+      "version": "v38.0.0",
+      "spec_refs": [
+        "spec/cooling_ledger.schema.json",
+        "spec/cooling_ledger_v36.schema.json",
+        "spec/cooling_ledger_phoenix_v38Omega.json"
+      ],
+      "canon_ref": "canon/05_COOLING_LEDGER_PHOENIX_v38Omega.md",
+      "code_refs": [
+        "arifos_core/memory/cooling_ledger.py",
+        "arifos_core/ledger_hashing.py",
+        "arifos_core/merkle.py",
+        "scripts/analyze_governance.py",
+        "scripts/verify_ledger_chain.py",
+        "scripts/show_merkle_proof.py",
+        "scripts/propose_canon_from_receipt.py",
+        "scripts/seal_proposed_canon.py",
+        "scripts/compute_merkle_root.py",
+        "scripts/build_ledger_hashes.py"
+      ],
+      "notes": [
+        "Defines the Cooling Ledger JSON schema, hash-chain and Merkle proof mechanisms, and Phoenix-72 amendment lifecycle.",
+        "All pipeline verdicts at 999_SEAL are logged as append-only entries in cooling_ledger/L1_cooling_ledger.jsonl with SHA3-256 hash-chain integrity."
+      ]
+    },
+
+    "time_governor": {
+      "id": "arifos_v38_2_hardening",
+      "spec_type": "constitutional_hardening",
+      "version": "v38.2.0",
+      "spec_ref": "spec/arifos_v38_2.yaml",
+      "canon_refs": [
+        "canon/00_ARIFOS_MASTER_v38Omega.md",
+        "canon/000_ARIFOS_CANON_v35Omega.md",
+        "canon/05_COOLING_LEDGER_PHOENIX_v38Omega.md",
+        "canon/07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md"
+      ],
+      "code_refs": [
+        "arifos_core/kernel.py",
+        "arifos_core/memory/policy.py"
+      ],
+      "notes": [
+        "Introduces SUNSET verdict and time-governed schedulers SABAR_TIMEOUT (SABAR -> PARTIAL) and PHOENIX_LIMIT (PARTIAL -> VOID).",
+        "Encodes TIME-1 invariant: time is a constitutional force and entropy rot is automatic.",
+        "check_entropy_rot() and route_memory() apply decay before routing verdicts to memory bands."
+      ]
+    },
+
+    "runtime_manifest": {
+      "id": "arifos_runtime_manifest_v35Omega",
+      "spec_type": "runtime_manifest",
+      "version": "v35Omega",
+      "spec_ref": "spec/arifos_runtime_manifest_v35Omega.json",
+      "code_refs": [
+        "arifos_core/runtime_manifest.py"
+      ],
+      "notes": [
+        "Defines runtime manifest structure for arifOS, including floors, integrations, and platform metadata.",
+        "v38.2 reuses the manifest pattern; capabilities are extended by additional specs rather than a new manifest format."
+      ]
+    },
+
+    "prompt_governance": {
+      "id": "waw_prompt_floors_v38Omega",
+      "spec_type": "prompt_floors",
+      "version": "v38.0.0",
+      "spec_refs": [
+        "spec/waw_prompt_floors_v38Omega.json",
+        "spec/prompt_floors_v36.3Omega.json",
+        "spec/waw_prompt_spec_v36.3Omega.yaml"
+      ],
+      "canon_ref": "canon/04_WAW_PROMPT_FLOORS_v38Omega.md",
+      "code_refs": [
+        "arifos_core/waw/prompt.py",
+        "arifos_core/waw/federation.py"
+      ],
+      "notes": [
+        "Defines W@W prompt governance floors and @PROMPT behaviour for constitutional prompt shaping.",
+        "Prompt governance integrates at pipeline stages 555 and 666 and logs outcomes through the same Cooling Ledger and memory stack."
+      ]
+    }
+  }
+}
+
+

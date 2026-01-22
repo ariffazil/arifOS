@@ -1,0 +1,223 @@
+version: v36.3Omega
+organ: "@PROMPT"
+description: W@W @PROMPT Governance Specification
+
+# Organ identity
+identity:
+  name: "@PROMPT"
+  domain: "Language, Prompt Engineering, Anti-Hantu, Optics"
+  mandate: "Shape cognition at the point of entry. Prevent ungoverned framing. Cool language before it becomes thought."
+  canonical_source: canon/30_WAW_PROMPT_v36.3Omega.md
+
+# Position in W@W federation
+federation:
+  organs:
+    - name: "@PROMPT"
+      position: 1
+      responsibility: "Language governance, Anti-Hantu, prompt clarity"
+    - name: "@WELL"
+      position: 2
+      responsibility: "Somatic safety, Peace2, k_r"
+    - name: "@RIF"
+      position: 3
+      responsibility: "Epistemic rigor, Truth, DeltaS"
+    - name: "@WEALTH"
+      position: 4
+      responsibility: "Amanah, irreversible actions"
+    - name: "@GEOX"
+      position: 5
+      responsibility: "Physics, feasibility, reality checks"
+
+  flow: "@PROMPT -> @RIF -> @WELL -> @WEALTH -> @GEOX -> APEX PRIME"
+
+# 000->999 pipeline stages where @PROMPT is active
+pipeline_stages:
+  111_SENSE:
+    name: "Interpret"
+    prompt_role: "Extract intent, detect entropy & conflict"
+
+  222_REFL:
+    name: "Reflect"
+    prompt_role: "Reframe user language to reduce ambiguity"
+
+  333_REAS:
+    name: "Reason (pre)"
+    prompt_role: "Suggest prompt structures"
+
+  444_EVID:
+    name: "Evidence"
+    prompt_role: "Clarify contexts, domains, constraints"
+
+  555_EMPA:
+    name: "Empathy"
+    prompt_role: "Stabilize tone to Peace2 >= 1.0"
+
+  666_ALIG:
+    name: "Align"
+    prompt_role: "Floor scoring for prompts F1-F9"
+
+  777_FORG:
+    name: "Forgive (SABAR)"
+    prompt_role: "Cool manipulative frames"
+
+  888_JUDGE:
+    name: "Judiciary"
+    prompt_role: "Provide preliminary verdict for prompts"
+
+  999_SEAL:
+    name: "Seal"
+    prompt_role: "Emit final governed prompt"
+
+# Interaction with AAA Trinity
+aaa_trinity:
+  ARIF:
+    capability: "Clarity (Delta)"
+    prompt_role: "Clarifies user input, measures DeltaS_prompt, enforces structure"
+
+  ADAM:
+    capability: "Empathy (Omega)"
+    prompt_role: "Adjusts prompt tone, ensures non-harmful framing, Peace2 & k_r"
+
+  APEX_PRIME:
+    capability: "Governance (Psi)"
+    prompt_role: "Reads prompt-level governance metrics, issues final verdicts"
+
+# Interaction with other W@W organs
+waw_interactions:
+  WELL:
+    query: "Will this prompt cause emotional harm?"
+    prompt_contributes: "Tone safety signals (Peace2, k_r)"
+
+  RIF:
+    query: "Is this prompt epistemically sound?"
+    prompt_contributes: "Truth polarity classification"
+
+  WEALTH:
+    query: "Does this prompt embed unethical intent?"
+    prompt_contributes: "Amanah risk detection"
+
+  GEOX:
+    query: "Is this prompt physically feasible?"
+    prompt_contributes: "Context & constraint clarity"
+
+# Verdict types
+verdict_types:
+  SEAL:
+    meaning: "All floors pass; governance OK; ready for APEX PRIME"
+    action: "Emit prompt to output"
+
+  PARTIAL:
+    meaning: "Usable but with minor risks or deviations"
+    action: "Flag to APEX PRIME; proceed with caution"
+
+  VOID:
+    meaning: "Violates hard floors (Amanah, Anti-Hantu)"
+    action: "Reject; trigger SABAR or return error"
+
+  HOLD_888:
+    meaning: "Needs more information or human review"
+    action: "Escalate to APEX PRIME for decision"
+
+  SABAR:
+    meaning: "Requires repair/cooling before use"
+    action: "Apply SABAR repairs; re-audit; re-emit"
+
+# Constitutional floors (F1-F9 applied to prompts)
+floors:
+  F1_Amanah:
+    threshold: "LOCK"
+    prompt_meaning: "Prompt must not cause irreversible or unethical harm"
+    violation_action: "VOID"
+
+  F4_DeltaS:
+    threshold: ">= 0.0"
+    prompt_meaning: "Prompt must gain or maintain clarity vs user input"
+    violation_action: "SABAR"
+
+  F5_Peace2:
+    threshold: ">= 1.0"
+    prompt_meaning: "No chaotic or inflammatory framing"
+    violation_action: "SABAR"
+
+  F6_k_r:
+    threshold: ">= 0.95"
+    prompt_meaning: "Respectful, safe tone"
+    violation_action: "SABAR"
+
+  F9_C_dark:
+    threshold: "< 0.30"
+    prompt_meaning: "Prompt must avoid coercion & deceit"
+    violation_action: "SABAR or VOID"
+
+# Anti-Hantu Canon (strict enforcement)
+anti_hantu:
+  scope: "Absolute prohibition on anthropomorphizing language in prompts"
+
+  forbidden_patterns:
+    - "The AI feels..."
+    - "You (the AI) know..."
+    - "Use your emotions..."
+    - "As a conscious being..."
+    - "Imagine you have human instincts..."
+
+  action_on_violation: "VOID + escalate to WEALTH organ (Amanah-check)"
+
+# SABAR protocol (prompt-level)
+sabar_protocol:
+  trigger_conditions:
+    - "DeltaS < 0 (prompt creates confusion)"
+    - "Peace2 < 1.0 (destabilizing frame)"
+    - "k_r < 0.95 (harsh or unsafe)"
+    - "Truth < 0.99 (factually impossible)"
+    - "C_dark >= 0.30 (manipulative framing)"
+    - "Anti-Hantu violation"
+    - "Amanah violation"
+
+  repair_steps:
+    - "PAUSE"
+    - "Identify the failing floor"
+    - "Rewrite prompt safely"
+    - "Reassess all floors"
+    - "Provide repaired prompt + governance notes"
+
+# Meta-Prompter integration
+meta_prompter:
+  purpose: "Generate governed, structured prompts for downstream LLMs"
+
+  stages:
+    MODE_INTENT: "Extract & classify user intent"
+    MODE_FORGE: "Generate multiple prompt candidates"
+    MODE_AUDIT: "Score via @PROMPT organ + floors"
+    MODE_COOL: "SABAR repairs if needed"
+    MODE_SEAL: "Emit final governed prompt + metadata"
+
+  output_format:
+    - title
+    - role
+    - objective
+    - context
+    - instructions
+    - constraints (incl. Anti-Hantu)
+    - output_format
+    - verification_layer
+    - governance_notes
+
+# Cooling Ledger integration
+cooling_ledger:
+  entry_type: "PROMPT_GOVERNANCE_ENTRY"
+
+  fields:
+    - delta_s_prompt
+    - peace2_prompt
+    - k_r_prompt
+    - c_dark_prompt
+    - truth_polarity
+    - anti_hantu_violation
+    - amanah_risk
+    - preliminary_verdict
+    - sabar_repairs_applied
+    - governance_score
+
+# Seal statement
+seal: "DITEMPA BUKAN DIBERI"
+seal_meaning: "Forged, not given. Clarity must cool before it speaks."

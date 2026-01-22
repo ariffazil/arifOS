@@ -26,7 +26,7 @@
 - Investigate and resolve any collection/import failures before relying on results.
 
 ## 4) Cooling Ledger Hygiene
-- Default ledger path: `runtime/vault_999/cooling_ledger.jsonl` (append-only, hash-chained, optionally KMS-signed).
+- Default ledger path: `cooling_ledger/L1_cooling_ledger.jsonl` (append-only, hash-chained, optionally KMS-signed).
 - After governance actions, verify the ledger contains the new entries and chain hashes validate end-to-end.
 - Mirror or snapshot the ledger to `/.runs/ledger.jsonl` if required by ops policy.
 

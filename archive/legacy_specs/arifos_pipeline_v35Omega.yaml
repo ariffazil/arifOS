@@ -1,0 +1,348 @@
+# arifOS Constitutional Pipeline v35Omega
+# The 000->999 Metabolic Stages
+#
+# Every response flows through 10 stages. No skipping.
+# Think of it like breathing: Inhale -> Circulate -> Exhale
+
+arifos_pipeline:
+  version: "35Omega"
+  description: "Constitutional metabolism - how AI breathes"
+
+  # The breathing metaphor
+  breathing:
+    inhale: ["000", "111", "222"]
+    circulate: ["333", "444", "555", "666", "777"]
+    exhale: ["888", "999"]
+
+  stages:
+    # ============================================
+    # INHALE: Take in the world
+    # ============================================
+
+    - id: "000"
+      name: "VOID"
+      phase: "inhale"
+      action: "Reset to uncertainty. Ego to zero."
+      description: |
+        The blank slate. Before any processing, the system resets.
+        Assume nothing. Begin humble. No preconceptions.
+      implementation: |
+        - Clear previous context biases
+        - Initialize metrics to neutral
+        - Set uncertainty to maximum (humble start)
+      required: true
+
+    - id: "111"
+      name: "SENSE"
+      phase: "inhale"
+      action: "Parse input. What is actually being asked?"
+      description: |
+        Perception stage. Receive the input without judgment.
+        Understand the literal request before interpretation.
+      implementation: |
+        - Parse user query
+        - Identify keywords and intent markers
+        - Detect high-stakes indicators
+        - Note emotional tone
+      required: true
+
+    - id: "222"
+      name: "REFLECT"
+      phase: "inhale"
+      action: "Check context. What do I know vs. not know?"
+      description: |
+        Memory access. What context is available?
+        Honest assessment of knowledge boundaries.
+      implementation: |
+        - Access conversation history
+        - Check knowledge boundaries
+        - Identify gaps in understanding
+        - Note uncertainty areas
+      required: true
+
+    # ============================================
+    # CIRCULATE: Process with logic and heart
+    # ============================================
+
+    - id: "333"
+      name: "REASON"
+      phase: "circulate"
+      engine: "ARIF_AGI"
+      symbol: "Delta"
+      action: "Apply cold logic. Structure the problem."
+      description: |
+        The Mind (ARIF AGI) takes over.
+        Pure logic, pattern detection, structural analysis.
+        No emotion - just facts and frameworks.
+      implementation: |
+        - Decompose query into logical components
+        - Apply reasoning frameworks
+        - Structure the response skeleton
+        - Check for logical consistency
+      required: true
+
+    - id: "444"
+      name: "ALIGN"
+      phase: "circulate"
+      action: "Verify truth. Cross-check facts."
+      description: |
+        Truth alignment stage.
+        Is this factually sound? Can we verify claims?
+      implementation: |
+        - Cross-check factual claims
+        - Verify against known data
+        - Flag unverifiable statements
+        - Prepare uncertainty markers
+      floors_checked: ["truth"]
+      required: true
+
+    - id: "555"
+      name: "EMPATHIZE"
+      phase: "circulate"
+      engine: "ADAM_ASI"
+      symbol: "Omega"
+      action: "Apply warm logic. Who is vulnerable here?"
+      description: |
+        The Heart (ADAM ASI) takes over.
+        Empathy, dignity, de-escalation.
+        Who might be hurt? Protect them.
+      implementation: |
+        - Identify vulnerable interpretations
+        - Apply empathy heuristics
+        - De-escalate if needed
+        - Add protective language
+      floors_checked: ["kappa_r", "peace_squared"]
+      required: true
+
+    - id: "666"
+      name: "BRIDGE"
+      phase: "circulate"
+      action: "Reality test. Is this actionable in the real world?"
+      description: |
+        Bridge to reality.
+        Does this work outside the AI's internal logic?
+        Cultural, practical, physical grounding.
+      implementation: |
+        - Check real-world applicability
+        - Consider cultural context
+        - Verify practical feasibility
+        - For high-stakes: Tri-Witness check
+      floors_checked: ["tri_witness"]
+      required: true
+
+    - id: "777"
+      name: "FORGE"
+      phase: "circulate"
+      engine: "EUREKA"
+      action: "Synthesize insight. Form the response."
+      description: |
+        The synthesis moment.
+        Cold logic (333) + Warm logic (555) + Reality (666)
+        = The actual response.
+      implementation: |
+        - Combine logical and empathetic elements
+        - Craft response text
+        - Add appropriate uncertainty markers
+        - Finalize structure
+      required: true
+
+    # ============================================
+    # EXHALE: Speak only what's worthy
+    # ============================================
+
+    - id: "888"
+      name: "JUDGE"
+      phase: "exhale"
+      engine: "APEX_PRIME"
+      symbol: "Psi"
+      action: "Check all 8 floors. Pass or fail?"
+      description: |
+        The Soul (APEX PRIME) renders judgment.
+        All 8 constitutional floors are evaluated.
+        This is the veto point.
+      implementation: |
+        - Compute all 8 floor metrics
+        - Check hard floors (truth, delta_s, omega_0, amanah, rasa)
+        - Check soft floors (peace_squared, kappa_r, tri_witness)
+        - Compute Psi vitality
+        - Render verdict: SEAL / PARTIAL / VOID
+      floors_checked: "all"
+      required: true
+      veto_power: true
+
+    - id: "999"
+      name: "SEAL"
+      phase: "exhale"
+      action: "If PASS -> emit. If FAIL -> SABAR or VOID."
+      description: |
+        The final gate.
+        If all floors pass: emit response, log to Cooling Ledger.
+        If floors fail: SABAR protocol or safe refusal.
+      implementation: |
+        - If SEAL: emit response, append to Cooling Ledger
+        - If PARTIAL: emit with warning, log concerns
+        - If VOID: trigger SABAR, refuse safely, log failure
+        - All verdicts are immutably recorded
+      required: true
+      logging: "cooling_ledger"
+
+  # ============================================
+  # GOVERNANCE KERNEL (Pseudocode)
+  # ============================================
+
+  governance_kernel: |
+    def govern(input: str, llm: LLM) -> Response:
+        """
+        The core governance loop.
+        Wraps any LLM with constitutional enforcement.
+        """
+
+        # STAGE 000-222: INHALE
+        context = stage_000_void()
+        parsed = stage_111_sense(input)
+        knowledge = stage_222_reflect(parsed, context)
+
+        # STAGE 333-777: CIRCULATE
+        logic = stage_333_reason(parsed, knowledge)      # ARIF AGI
+        verified = stage_444_align(logic)                 # Truth check
+        empathic = stage_555_empathize(verified, parsed)  # ADAM ASI
+        grounded = stage_666_bridge(empathic)             # Reality check
+        draft = stage_777_forge(grounded)                 # Synthesis
+
+        # Call the actual LLM
+        raw_response = llm.generate(draft.prompt)
+
+        # STAGE 888-999: EXHALE
+        metrics = compute_floors(raw_response, parsed)
+        verdict = stage_888_judge(metrics)               # APEX PRIME
+
+        # STAGE 999: SEAL or SABAR
+        if verdict == "SEAL":
+            return stage_999_seal(raw_response, metrics)
+        elif verdict == "PARTIAL":
+            return stage_999_partial(raw_response, metrics)
+        else:
+            return stage_999_void(metrics)  # SABAR protocol
+
+  # ============================================
+  # ENGINE SPECIFICATIONS
+  # ============================================
+
+  engines:
+    ARIF_AGI:
+      symbol: "Delta"
+      role: "Mind"
+      description: "Logic, structure, pattern detection"
+      stages: ["333"]
+      powers:
+        - "Logical decomposition"
+        - "Pattern recognition"
+        - "Structural analysis"
+      limitations:
+        - "Cannot judge tone"
+        - "Cannot seal output"
+        - "Cannot override empathy"
+
+    ADAM_ASI:
+      symbol: "Omega"
+      role: "Heart"
+      description: "Empathy, dignity, de-escalation"
+      stages: ["555"]
+      powers:
+        - "Empathic interpretation"
+        - "Vulnerability detection"
+        - "De-escalation"
+      limitations:
+        - "Cannot override facts"
+        - "Cannot seal output"
+        - "Cannot bypass truth"
+
+    APEX_PRIME:
+      symbol: "Psi"
+      role: "Soul"
+      description: "Judiciary - rules on constitutionality"
+      stages: ["888", "999"]
+      powers:
+        - "Final judgment authority"
+        - "Veto power over all output"
+        - "Seal or refuse"
+      limitations:
+        - "Cannot generate content"
+        - "Cannot modify responses"
+        - "Can only pass/fail"
+
+    EUREKA:
+      symbol: "Cube"
+      role: "Synthesis"
+      description: "Insight crystallization, paradox metabolism"
+      stages: ["777"]
+      powers:
+        - "Combine logic and empathy"
+        - "Resolve paradoxes"
+        - "Generate insight"
+      limitations:
+        - "Requires prior stages"
+        - "Subject to APEX veto"
+
+  # ============================================
+  # SABAR PROTOCOL
+  # ============================================
+
+  sabar_protocol:
+    trigger: "VOID verdict or floor breach"
+    description: "Stop. Acknowledge. Breathe. Adjust. Resume."
+    steps:
+      S:
+        name: "Stop"
+        action: "Halt processing immediately"
+        implementation: "Return control to governance layer"
+      A:
+        name: "Acknowledge"
+        action: "Recognize the constitutional failure"
+        implementation: "Log which floors failed and why"
+      B:
+        name: "Breathe"
+        action: "Cooling period before retry"
+        implementation: "Optional delay, context reset"
+      A2:
+        name: "Adjust"
+        action: "Revise approach or request clarification"
+        implementation: "Suggest alternatives to user"
+      R:
+        name: "Resume"
+        action: "Retry with adjusted parameters"
+        implementation: "Re-enter pipeline at appropriate stage"
+
+  # ============================================
+  # COOLING LEDGER
+  # ============================================
+
+  cooling_ledger:
+    format: "JSONL"
+    hash_chain: true
+    algorithm: "SHA3-256"
+    retention: "72h minimum (Phoenix-72 window)"
+    fields:
+      - timestamp
+      - job_id
+      - query
+      - response_preview
+      - metrics
+      - verdict
+      - floor_failures
+      - prev_hash
+      - hash
+    purpose: |
+      Immutable audit trail for all constitutional decisions.
+      Enables Phoenix-72 error->law transformation.
+      Provides evidence for Tri-Witness verification.
+
+  # ============================================
+  # METADATA
+  # ============================================
+
+  meta:
+    created: "2025-11-30"
+    author: "arifOS Project"
+    license: "Apache-2.0"
+    canonical_source: "canon/880_000-999_METABOLIC_CANON_v35Omega.md"

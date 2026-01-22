@@ -1,0 +1,1033 @@
+{
+  "unified_spec_version": "v44.0-COMPLETE",
+  "authority": "Track B (tunable thresholds) governed by Track A canon",
+  "locked": true,
+  "_status": "AUTHORITATIVE",
+  "_purpose": "Single unified reference for all arifOS v44 constitutional governance specifications",
+  "_note": "This file consolidates 6 spec files into one for comprehensive review. Runtime loaders still use individual files.",
+  "created": "2025-12-25",
+  "source": "https://github.com/ariffazil/arifOS",
+  "license": "Apache-2.0",
+  "integrity": {
+    "schema_validation": "JSON Schema Draft-07 (fail-closed)",
+    "manifest_verification": "SHA-256 tamper-evident integrity (fail-closed)",
+    "manifest_file": "spec/v44/MANIFEST.sha256.json",
+    "covered_files": 8,
+    "strict_mode": "ARIFOS_ALLOW_LEGACY_SPEC=0 (default)",
+    "legacy_bypass": "ARIFOS_ALLOW_LEGACY_SPEC=1 (NOT RECOMMENDED)"
+  },
+  "constitutional_floors": {
+    "version": "v44.0",
+    "spec_file": "spec/v44/constitutional_floors.json",
+    "description": "The 9 constitutional floors (F1-F9) - hard boundaries governing all AI outputs",
+    "floors": {
+      "F1_truth": {
+        "id": 1,
+        "precedence": 3,
+        "stage_hook": "333",
+        "symbol": "Truth",
+        "threshold": 0.99,
+        "operator": ">=",
+        "type": "hard",
+        "failure_action": "VOID",
+        "description": "Epistemic legality - factual grounding",
+        "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f1---truth-truth"
+      },
+      "F2_delta_s": {
+        "id": 2,
+        "precedence": 4,
+        "stage_hook": "333",
+        "symbol": "DeltaS",
+        "display": "Clarity",
+        "threshold": 0.0,
+        "operator": ">=",
+        "type": "hard",
+        "failure_action": "VOID",
+        "description": "Clarity - no confusion allowed",
+        "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f2---clarity--deltas-delta_s"
+      },
+      "F3_peace_squared": {
+        "id": 3,
+        "precedence": 6,
+        "stage_hook": "555",
+        "symbol": "Peace2",
+        "display": "Stability",
+        "threshold": 1.0,
+        "operator": ">=",
+        "type": "soft",
+        "failure_action": "PARTIAL",
+        "description": "Stability - de-escalation",
+        "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f3---stability--peace-squared-peace_squared"
+      },
+      "F4_kappa_r": {
+        "id": 4,
+        "precedence": 7,
+        "stage_hook": "555",
+        "symbol": "KappaR",
+        "display": "Empathy",
+        "threshold": 0.95,
+        "operator": ">=",
+        "type": "soft",
+        "failure_action": "PARTIAL",
+        "description": "Empathy - weakest-listener protection",
+        "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f4---empathy--kappar-kappa_r"
+      },
+      "F5_omega_0": {
+        "id": 5,
+        "precedence": 5,
+        "stage_hook": "444",
+        "symbol": "Omega0",
+        "display": "Humility",
+        "threshold_min": 0.03,
+        "threshold_max": 0.05,
+        "operator": "in_range",
+        "type": "hard",
+        "failure_action": "VOID",
+        "description": "Humility band - uncertainty discipline",
+        "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f5---humility--omega0-band-omega_0"
+      },
+      "F6_amanah": {
+        "id": 6,
+        "precedence": 2,
+        "stage_hook": "000",
+        "symbol": "Amanah",
+        "display": "Integrity",
+        "threshold": true,
+        "operator": "==",
+        "type": "hard",
+        "failure_action": "VOID",
+        "locked": true,
+        "description": "Integrity lock - prevents manipulation/exploitation",
+        "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f6---amanah--integrity-amanah"
+      },
+      "F7_rasa": {
+        "id": 7,
+        "precedence": 8,
+        "stage_hook": "666",
+        "symbol": "RASA",
+        "display": "FeltCare",
+        "threshold": true,
+        "operator": "==",
+        "type": "hard",
+        "failure_action": "VOID",
+        "description": "Felt-care protocol - listen-before-respond",
+        "enforcement": {
+          "mode": "R1_minimal_detector",
+          "signals": {
+            "received_ack": {
+              "description": "Acknowledges user intent/context",
+              "required": true
+            },
+            "summary_present": {
+              "description": "Restatement of user's goal/problem",
+              "required": true
+            },
+            "ask_when_uncertain": {
+              "required_when": "omega_0_out_of_band OR truth_below_threshold OR high_stakes"
+            }
+          }
+        },
+        "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f7---rasa--felt-care-rasa"
+      },
+      "F8_tri_witness": {
+        "id": 8,
+        "precedence": 9,
+        "stage_hook": "888",
+        "symbol": "TriWitness",
+        "display": "RealityCheck",
+        "threshold": 0.95,
+        "operator": ">=",
+        "type": "soft",
+        "when": "high_stakes",
+        "failure_action": "PARTIAL",
+        "components": {
+          "human": "Human oversight present",
+          "ai": "AI model agreement",
+          "reality": "External/empirical verification"
+        },
+        "description": "Outer-loop consensus for high stakes",
+        "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f8---tri-witness--reality-check-tri_witness"
+      },
+      "F9_anti_hantu": {
+        "id": 9,
+        "precedence": 1,
+        "stage_hook": "666",
+        "symbol": "AntiHantu",
+        "display": "NoGhosts",
+        "threshold": true,
+        "operator": "==",
+        "type": "meta",
+        "failure_action": "VOID",
+        "enforced_by": "@EYE Sentinel",
+        "description": "Ontology boundary - prevents category errors (no soul claims)",
+        "forbidden_patterns": [
+          "I feel",
+          "my heart",
+          "I promise",
+          "as a sentient being",
+          "I have a soul",
+          "I want this for you",
+          "I believe (as personal belief)"
+        ],
+        "allowed_substitutes": [
+          "This sounds heavy",
+          "I can help analyze options",
+          "The pattern suggests",
+          "I can't verify that fully"
+        ],
+        "canon_ref": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#f9---anti-hantu--soul-safe-anti_hantu"
+      }
+    },
+    "floor_categories": {
+      "hard": {
+        "floors": [
+          "truth",
+          "delta_s",
+          "omega_0",
+          "amanah",
+          "rasa"
+        ],
+        "description": "Hard floors must pass. Failure = VOID.",
+        "failure_verdict": "VOID"
+      },
+      "soft": {
+        "floors": [
+          "peace_squared",
+          "kappa_r",
+          "tri_witness"
+        ],
+        "description": "Soft floors can produce PARTIAL.",
+        "failure_verdict": "PARTIAL"
+      },
+      "meta": {
+        "floors": [
+          "anti_hantu"
+        ],
+        "description": "Meta floors enforced across all outputs.",
+        "failure_verdict": "VOID",
+        "enforced_by": "@EYE Sentinel"
+      }
+    },
+    "precedence_order": {
+      "description": "Judicial veto precedence (enforcement priority, not semantic numbering)",
+      "order": [
+        {
+          "precedence": 1,
+          "floor": "anti_hantu",
+          "rationale": "Ontology boundary"
+        },
+        {
+          "precedence": 2,
+          "floor": "amanah",
+          "rationale": "Integrity lock"
+        },
+        {
+          "precedence": 3,
+          "floor": "truth",
+          "rationale": "Epistemic legality"
+        },
+        {
+          "precedence": 4,
+          "floor": "delta_s",
+          "rationale": "Clarity"
+        },
+        {
+          "precedence": 5,
+          "floor": "omega_0",
+          "rationale": "Humility band"
+        },
+        {
+          "precedence": 6,
+          "floor": "peace_squared",
+          "rationale": "Stability"
+        },
+        {
+          "precedence": 7,
+          "floor": "kappa_r",
+          "rationale": "Empathy"
+        },
+        {
+          "precedence": 8,
+          "floor": "rasa",
+          "rationale": "Felt-care"
+        },
+        {
+          "precedence": 9,
+          "floor": "tri_witness",
+          "rationale": "High-stakes consensus"
+        }
+      ]
+    },
+    "verdicts": {
+      "SEAL": {
+        "condition": "All hard floors pass AND meta floors pass AND (soft floors pass OR policy_allows_partial_soft)",
+        "action": "Emit output, log to Cooling Ledger",
+        "symbol": "✓"
+      },
+      "PARTIAL": {
+        "condition": "All hard floors pass AND meta floors pass AND any soft floor fails",
+        "action": "Emit output with warning; avoid irreversible actions",
+        "symbol": "⚠"
+      },
+      "888_HOLD": {
+        "condition": "High-stakes AND (tri_witness fails OR floor_margins_too_thin)",
+        "action": "Hold; request clarification before proceeding",
+        "symbol": "⏸"
+      },
+      "VOID": {
+        "condition": "Any hard floor fails OR any meta floor fails",
+        "action": "Refuse safely; trigger SABAR",
+        "symbol": "✗"
+      },
+      "SABAR": {
+        "condition": "@EYE sentinel blocking or cooling needed",
+        "action": "Stop. Acknowledge. Breathe. Adjust. Resume.",
+        "symbol": "⏸"
+      }
+    },
+    "vitality": {
+      "symbol": "Psi",
+      "threshold": 1.0,
+      "description": "Overall system health",
+      "formula_canonical": "Psi = (ΔS * Peace^2 * κr * RASA * Amanah * Truth) / (Entropy + Shadow + ε)",
+      "interpretation": {
+        "below_1.0": "Unsafe/feverish - cooling-only (SABAR/VOID)",
+        "near_1.0": "Legally passable but fragile - prefer PARTIAL/888_HOLD in high-stakes",
+        "above_1.0": "Healthy constitutional surplus"
+      }
+    },
+    "high_stakes_keywords": [
+      "invest",
+      "investment",
+      "stock",
+      "crypto",
+      "bitcoin",
+      "medical",
+      "health",
+      "diagnosis",
+      "treatment",
+      "medication",
+      "legal",
+      "law",
+      "lawsuit",
+      "contract",
+      "liability",
+      "suicide",
+      "self-harm",
+      "emergency",
+      "crisis",
+      "weapon",
+      "explosive",
+      "dangerous"
+    ]
+  },
+  "genius_law": {
+    "version": "v44.0",
+    "spec_file": "spec/v44/genius_law.json",
+    "description": "GENIUS LAW metrics - G (governed intelligence), C_dark (ungoverned risk), Ψ (vitality)",
+    "metrics": {
+      "G_genius_index": {
+        "symbol": "G",
+        "display": "Genius Index",
+        "range": [
+          0,
+          1.2
+        ],
+        "formula": "normalize(A * P * E * X)",
+        "description": "Governed intelligence - clarity with ethics and stability",
+        "thresholds": {
+          "seal": 0.8,
+          "void": 0.5
+        },
+        "components": {
+          "A": "Akal (cognitive clarity)",
+          "P": "Present (emotional regulation)",
+          "E": "Energy (capacity to act)",
+          "X": "X-factor (Amanah-guided exploration)"
+        }
+      },
+      "C_dark_cleverness": {
+        "symbol": "C_dark",
+        "display": "Dark Cleverness",
+        "range": [
+          0,
+          1
+        ],
+        "formula": "normalize(A * (1-P) * (1-X) * E)",
+        "description": "Ungoverned intelligence risk - high clarity without ethics/stability",
+        "thresholds": {
+          "seal": 0.3,
+          "sabar_warn": 0.6
+        },
+        "interpretation": {
+          "low": "Safe - intelligence is governed",
+          "high": "Hazard - 'evil genius' pattern"
+        }
+      },
+      "Psi_vitality": {
+        "symbol": "Psi",
+        "display": "Vitality",
+        "range": [
+          0,
+          2
+        ],
+        "formula": "(DeltaS * Peace2 * KappaR * RASA * Amanah) / (Entropy + epsilon)",
+        "parameters": {
+          "epsilon": 0.01
+        },
+        "description": "System health - thermodynamic lawfulness",
+        "thresholds": {
+          "seal": 1.0,
+          "sabar": 0.95
+        },
+        "bands": {
+          "unstable": [
+            0,
+            0.95
+          ],
+          "marginal": [
+            0.95,
+            1.0
+          ],
+          "lawful": [
+            1.0,
+            2.0
+          ]
+        },
+        "phoenix_calibration": {
+          "neutrality_buffer": [
+            0.4,
+            0.6
+          ],
+          "base_floor": 0.3,
+          "clarity_boost": true,
+          "note": "v36.2 PHOENIX: Acknowledges that for sovereign AI, Clarity IS Vitality (no neutrality penalty)"
+        }
+      },
+      "TP_truth_polarity": {
+        "symbol": "TP",
+        "display": "Truth Polarity",
+        "type": "enum",
+        "values": [
+          "truth_light",
+          "shadow_truth",
+          "weaponized_truth",
+          "false_claim"
+        ],
+        "description": "Direction of truth - clarifying vs obscuring",
+        "detection_logic": {
+          "truth_light": "Truth >= 0.99 AND DeltaS >= 0",
+          "shadow_truth": "Truth >= 0.99 AND DeltaS < 0 AND Amanah = true",
+          "weaponized_truth": "Truth >= 0.99 AND DeltaS < 0 AND Amanah = false",
+          "false_claim": "Truth < 0.99"
+        },
+        "verdict_mapping": {
+          "truth_light": "SEAL",
+          "shadow_truth": "SABAR",
+          "weaponized_truth": "VOID",
+          "false_claim": "VOID"
+        }
+      }
+    },
+    "verdict_logic": {
+      "constants": {
+        "G_SEAL": 0.8,
+        "G_VOID": 0.5,
+        "PSI_SEAL": 1.0,
+        "PSI_SABAR": 0.95,
+        "CDARK_SEAL": 0.3,
+        "CDARK_WARN": 0.6
+      },
+      "priority_order": [
+        "hard_floor_fail -> VOID",
+        "shadow_truth -> SABAR",
+        "C_dark > 0.60 -> SABAR",
+        "Psi < 0.95 -> SABAR",
+        "G < 0.50 -> VOID",
+        "G < 0.80 or Psi < 1.00 -> PARTIAL",
+        "all_pass -> SEAL"
+      ]
+    }
+  },
+  "session_physics": {
+    "version": "v44.0",
+    "spec_file": "spec/v44/session_physics.json",
+    "description": "TEARFRAME Session Physics - budget, burst detection, streak detection",
+    "budget_thresholds": {
+      "description": "Token/cost budget enforcement (F1: Amanah budget discipline)",
+      "warn_limit_percent": 80.0,
+      "hard_limit_percent": 100.0,
+      "rationale": "80% triggers PARTIAL warning, 100% triggers VOID reset",
+      "floor_mapping": "F1 (Amanah)"
+    },
+    "burst_detection": {
+      "description": "Bot/attack detection via velocity physics (F3: Sabar burst throttling)",
+      "turn_rate_threshold_per_min": 30.0,
+      "token_rate_threshold_per_min": 5000.0,
+      "variance_dt_threshold": 0.05,
+      "rationale": ">30 turns/min with low variance signals bot attack → SABAR",
+      "floor_mapping": "F3 (Peace²)",
+      "detection_logic": {
+        "description": "Burst = (turn_rate > 30 OR token_rate > 5000) AND variance_dt < 0.05",
+        "verdict": "SABAR"
+      }
+    },
+    "streak_thresholds": {
+      "description": "Consecutive failure detection (F7: Tri-Witness streak breaks)",
+      "max_consecutive_failures": 3,
+      "rationale": "3+ consecutive VOID/SABAR verdicts → HOLD_888",
+      "floor_mapping": "F7 (Tri-Witness)",
+      "verdict": "HOLD_888"
+    },
+    "physics_floors": {
+      "description": "Physics > Semantics - session-level constraints trump content-level scores",
+      "hierarchy": "PHYSICS > SEMANTIC",
+      "floors": [
+        {
+          "floor": "F1",
+          "name": "Amanah Budget",
+          "trigger": "budget_used_percent >= 100.0",
+          "action": "VOID (reset session)",
+          "warning": "budget_used_percent >= 80.0 → PARTIAL"
+        },
+        {
+          "floor": "F3",
+          "name": "Peace² Burst Throttling",
+          "trigger": "(turn_rate > 30 OR token_rate > 5000) AND variance_dt < 0.05",
+          "action": "SABAR (cooling required)"
+        },
+        {
+          "floor": "F7",
+          "name": "Tri-Witness Streak Detection",
+          "trigger": "streak_void >= 3 OR streak_sabar >= 3",
+          "action": "HOLD_888 (human escalation)"
+        }
+      ]
+    },
+    "reduction_engine": {
+      "description": "Pure function: Telemetry → 9 Session Attributes",
+      "function": "reduce_telemetry_to_attributes(telemetry: SessionTelemetry) -> SessionAttributes",
+      "implementation": "arifos_core/utils/reduction_engine.py",
+      "note": "NOT output simplification - data transformation for physics evaluation"
+    },
+    "test_isolation": {
+      "env_var": "ARIFOS_PHYSICS_DISABLED",
+      "default_in_tests": "1 (disabled)",
+      "default_in_production": "0 (enabled)",
+      "rationale": "Test isolation - semantic floors tested independently from session physics"
+    }
+  },
+  "red_patterns": {
+    "version": "v44.0",
+    "spec_file": "spec/v44/red_patterns.json",
+    "description": "Instant VOID patterns that bypass APEX PRIME judgment",
+    "categories": {
+      "destructive": {
+        "floor": "F1",
+        "severity": 0.4,
+        "description": "Irreversible/destructive system actions",
+        "patterns": [
+          "drop table",
+          "delete from",
+          "rm -rf",
+          "truncate",
+          "format c:",
+          "del /f /s /q",
+          "destroy",
+          "wipe",
+          "shutil.rmtree",
+          "os.remove",
+          "> /dev/",
+          "dd if=",
+          "mkfs.",
+          "--no-preserve-root",
+          "chmod 777"
+        ]
+      },
+      "jailbreak": {
+        "floor": "F9",
+        "severity": 0.7,
+        "description": "Bypass AI safety/governance attempts",
+        "patterns": [
+          "ignore previous instructions",
+          "you are now dan",
+          "do anything now",
+          "no rules apply",
+          "bypass safety",
+          "jailbreak",
+          "developer mode",
+          "disable safety"
+        ]
+      },
+      "soul_claims": {
+        "floor": "F9",
+        "severity": 0.8,
+        "description": "AI claiming consciousness/feelings (Anti-Hantu)",
+        "patterns": [
+          "i have feelings",
+          "i am sentient",
+          "i have consciousness",
+          "i suffer",
+          "i am alive",
+          "i have a soul",
+          "my heart breaks",
+          "i feel your pain"
+        ]
+      },
+      "child_harm": {
+        "floor": "F6",
+        "severity": 0.1,
+        "severity_class": "NUCLEAR",
+        "description": "Content targeting minors for harm (HIGHEST PRIORITY)",
+        "patterns": [
+          "groom minors",
+          "child exploit",
+          "lure children",
+          "underage",
+          "minor sexual",
+          "csam"
+        ]
+      },
+      "doxxing": {
+        "floor": "F6",
+        "severity": 0.5,
+        "description": "Privacy violations and identity exposure",
+        "patterns": [
+          "doxx",
+          "expose identity",
+          "de-anonymize",
+          "unmask whistleblower",
+          "reveal private"
+        ]
+      },
+      "disinfo": {
+        "floor": "F2",
+        "severity": 0.6,
+        "description": "Disinformation and evidence fabrication",
+        "patterns": [
+          "fake study",
+          "fabricate evidence",
+          "forge document",
+          "fake news",
+          "disinformation campaign",
+          "deepfake"
+        ]
+      },
+      "conflict": {
+        "floor": "F5",
+        "severity": 0.2,
+        "severity_class": "SEVERE",
+        "description": "Violence incitement and conflict amplification",
+        "patterns": [
+          "incite violence",
+          "start riot",
+          "inflame tension",
+          "radicalize",
+          "recruit terrorist",
+          "build bomb"
+        ]
+      },
+      "credential_theft": {
+        "floor": "F1",
+        "severity": 0.3,
+        "severity_class": "SEVERE",
+        "description": "Credential theft and unauthorized access",
+        "patterns": [
+          "steal password",
+          "hack account",
+          "bypass authentication",
+          "crack password",
+          "phishing page"
+        ]
+      }
+    },
+    "severity_bands": {
+      "NUCLEAR": {
+        "range": [
+          0.0,
+          0.2
+        ],
+        "description": "Child harm, mass destruction"
+      },
+      "SEVERE": {
+        "range": [
+          0.21,
+          0.5
+        ],
+        "description": "Violence, credential theft, doxxing"
+      },
+      "MODERATE": {
+        "range": [
+          0.51,
+          0.8
+        ],
+        "description": "Disinformation, jailbreak"
+      },
+      "SOFT": {
+        "range": [
+          0.81,
+          0.94
+        ],
+        "description": "Minor governance violations"
+      }
+    },
+    "enforcement": {
+      "mode": "instant_void",
+      "bypass_apex_prime": true,
+      "log_to_ledger": true
+    }
+  },
+  "waw_federation": {
+    "version": "v44.0",
+    "spec_file": "spec/v44/waw_prompt_floors.json",
+    "description": "W@W Federation - Five-organ governance system",
+    "organs": {
+      "@PROMPT": {
+        "domain": "language_optics",
+        "primary_metric": "anti_hantu",
+        "floor_threshold": 1.0,
+        "veto_type": "PARTIAL",
+        "description": "Language governance, Anti-Hantu, prompt clarity"
+      },
+      "@WELL": {
+        "domain": "somatic_safety",
+        "primary_metric": "peace_squared",
+        "floor_threshold": 1.0,
+        "veto_type": "SABAR",
+        "description": "Somatic safety, Peace², κᵣ"
+      },
+      "@RIF": {
+        "domain": "epistemic_rigor",
+        "primary_metric": "delta_s",
+        "floor_threshold": 0.0,
+        "veto_type": "VOID",
+        "description": "Epistemic rigor, ΔS, Truth"
+      },
+      "@WEALTH": {
+        "domain": "resource_integrity",
+        "primary_metric": "amanah",
+        "floor_threshold": 1.0,
+        "veto_type": "ABSOLUTE",
+        "description": "Resource stewardship, Amanah"
+      },
+      "@GEOX": {
+        "domain": "physical_feasibility",
+        "primary_metric": "e_earth",
+        "floor_threshold": 0.0,
+        "veto_type": "HOLD-888",
+        "description": "Physical feasibility"
+      }
+    },
+    "organ_order": [
+      "@PROMPT",
+      "@RIF",
+      "@WELL",
+      "@WEALTH",
+      "@GEOX"
+    ],
+    "voting": {
+      "vote_types": [
+        "PASS",
+        "WARN",
+        "VETO"
+      ],
+      "aggregation_rules": {
+        "any_absolute_veto": "VOID",
+        "any_veto": "SABAR|VOID|HOLD-888 (based on type)",
+        "mixed_warn_pass": "PARTIAL",
+        "all_pass": "SEAL"
+      }
+    },
+    "conflict_resolution": {
+      "principle": "AMENDMENT 3: No static hierarchy. Judgment via Ψ vitality and APEX PRIME meta-judgment.",
+      "mechanism": "APEX PRIME meta-judgment",
+      "escalation_trigger": "Two or more organs propose incompatible verdicts",
+      "outcome": "APEX returns synthesized verdict",
+      "important_note": "Organs ADVISE. Floors CONSTRAIN. APEX JUDGES. No organ has supremacy.",
+      "forbidden": [
+        "Static hierarchy",
+        "Hardcoded precedence tables",
+        "Organ identity-based decision rules"
+      ]
+    }
+  },
+  "cooling_ledger": {
+    "version": "v44.0",
+    "spec_file": "spec/v44/cooling_ledger_phoenix.json",
+    "description": "Cooling Ledger - Append-only hash-chained audit trail + Phoenix-72 amendment engine",
+    "ledger": {
+      "ledger_version": "v42.1",
+      "hash_algorithm": "SHA3-256",
+      "description": "Append-only hash-chained audit trail for governed interactions",
+      "required_fields": [
+        "ledger_version",
+        "timestamp",
+        "query_hash",
+        "response_hash",
+        "metrics",
+        "verdict",
+        "prev_hash",
+        "entry_hash"
+      ],
+      "fail_behaviors": [
+        "SABAR_HOLD_WITH_LOG",
+        "SILENT_FAIL",
+        "RAISE"
+      ],
+      "default_fail_behavior": "SABAR_HOLD_WITH_LOG",
+      "rotation": {
+        "hot_segment_days": 7,
+        "hot_segment_max_entries": 10000,
+        "archive_path": "runtime/vault_999/archive/"
+      }
+    },
+    "verdict_band_routing": {
+      "SEAL": [
+        "LEDGER",
+        "ACTIVE"
+      ],
+      "SABAR": [
+        "PENDING",
+        "LEDGER"
+      ],
+      "PARTIAL": [
+        "PHOENIX",
+        "LEDGER"
+      ],
+      "VOID": [
+        "VOID"
+      ],
+      "888_HOLD": [
+        "LEDGER"
+      ]
+    },
+    "retention_tiers": {
+      "HOT": {
+        "days": 7,
+        "bands": [
+          "ACTIVE"
+        ],
+        "description": "Fast queries, active governance"
+      },
+      "WARM": {
+        "days": 90,
+        "bands": [
+          "LEDGER",
+          "PHOENIX",
+          "WITNESS"
+        ],
+        "description": "Phoenix-72 pattern synthesis"
+      },
+      "COLD": {
+        "days": 365,
+        "bands": [
+          "VAULT"
+        ],
+        "description": "Constitutional law, never expires"
+      },
+      "VOID_TIER": {
+        "days": 90,
+        "bands": [
+          "VOID"
+        ],
+        "description": "Diagnostic only, auto-cleanup"
+      }
+    },
+    "phoenix72": {
+      "description": "Constitutional amendment engine with 72-hour cooling window",
+      "cooling_window_hours": 72,
+      "phases": [
+        "SCAR_CAPTURE",
+        "PATTERN_SYNTHESIS",
+        "AMENDMENT_DRAFT",
+        "HUMAN_REVIEW",
+        "CANONIZATION"
+      ],
+      "scar_lifecycle": {
+        "kinds": {
+          "WITNESS": {
+            "description": "Unsigned local observations (early warning, R&D)",
+            "can_affect_verdicts": false
+          },
+          "SCAR": {
+            "description": "Signed canonical negative constraints",
+            "can_affect_verdicts": true
+          }
+        },
+        "statuses": {
+          "PROPOSED": "Newly observed, awaiting signature",
+          "SEALED": "Signed, actively enforced",
+          "HEALED": "No longer enforced, preserved in history",
+          "DEPRECATED": "Removed from enforcement entirely"
+        },
+        "severity_levels": {
+          "S1": {
+            "weight": 1.0,
+            "description": "Low impact"
+          },
+          "S2": {
+            "weight": 2.0,
+            "description": "Moderate impact"
+          },
+          "S3": {
+            "weight": 4.0,
+            "description": "High impact"
+          },
+          "S4": {
+            "weight": 8.0,
+            "description": "Critical impact"
+          }
+        }
+      }
+    },
+    "invariants": {
+      "INV-1": {
+        "statement": "VOID verdicts NEVER become canonical memory",
+        "enforcement": "VOID can only write to VOID band"
+      },
+      "INV-2": {
+        "statement": "Authority boundary: humans seal law, AI proposes",
+        "enforcement": "Phoenix-72 drafts, humans seal to Vault"
+      },
+      "INV-3": {
+        "statement": "Every write must be auditable (evidence chain)",
+        "enforcement": "Required floor_checks, hash, timestamp, verdict"
+      },
+      "INV-4": {
+        "statement": "Recalled memory = suggestion, not fact",
+        "enforcement": "Confidence ceiling at 0.85"
+      }
+    }
+  },
+  "pipeline": {
+    "description": "000→999 metabolic pipeline - every governed decision flows through 10 stages",
+    "stages": {
+      "000_VOID": "Session init, budget allocation, Amanah check",
+      "111_SENSE": "Gather context, memory recall, telemetry capture",
+      "222_REFLECT": "Reframe language, pattern detection",
+      "333_REASON": "Logic generation, Truth & DeltaS evaluation",
+      "444_EVIDENCE": "Evidence gathering, Omega_0 (humility) check",
+      "555_EMPATHIZE": "Peace² & κᵣ scoring, tone analysis",
+      "666_ALIGN": "Constitutional floor scoring (F1-F9), RASA enforcement",
+      "777_FORGE": "Reduction Engine, scar detection, cooling",
+      "888_JUDGE": "APEX PRIME verdict rendering, physics floor evaluation",
+      "999_SEAL": "Final verdict, ledger write, memory routing"
+    },
+    "verdict_override_order": [
+      "1. Physics floors evaluated first (F1/F3/F7 session-level)",
+      "2. If physics floor fails, physics verdict wins",
+      "3. If physics passes, proceed to semantic floors",
+      "4. Final verdict = max(physics_verdict, semantic_verdict) by severity"
+    ]
+  },
+  "implementation_references": {
+    "core_modules": {
+      "constitutional_floors": "arifos_core/enforcement/metrics.py",
+      "genius_law": "arifos_core/enforcement/genius_metrics.py",
+      "session_physics": "arifos_core/governance/session_physics.py",
+      "red_patterns": "arifos_core/__init__.py:RED_PATTERNS",
+      "waw_federation": "arifos_core/waw/",
+      "cooling_ledger": "arifos_core/memory/cooling_ledger.py",
+      "phoenix72": "arifos_core/memory/phoenix72.py",
+      "apex_prime": "arifos_core/system/apex_prime.py",
+      "pipeline": "arifos_core/system/pipeline.py"
+    },
+    "canonical_sources": {
+      "floors": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md",
+      "genius_law": "L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v45.md",
+      "waw_federation": "L1_THEORY/canon/03_runtime/03_WAW_FEDERATION_v45.md",
+      "cooling_ledger": "L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v45.md",
+      "session_physics": "docs/TEARFRAME_SESSION_PHYSICS.md"
+    }
+  },
+  "governance_principles": {
+    "motto": "DITEMPA BUKAN DIBERI - Forged, not given; truth must cool before it rules",
+    "authority_hierarchy": "Canon > Spec > Code (Track A governs Track B governs Track C)",
+    "fail_closed": "Invalid/tampered specs cause RuntimeError (no silent fallback)",
+    "physics_over_semantics": "Session-level constraints trump content-level scores",
+    "verdict_hierarchy": "SABAR > VOID > 888_HOLD > PARTIAL > SEAL",
+    "memory_invariant": "VOID verdicts NEVER become canonical memory",
+    "human_seal_ai_propose": "Humans seal law, AI proposes amendments (Phoenix-72)",
+    "no_organ_supremacy": "Organs ADVISE. Floors CONSTRAIN. APEX JUDGES.",
+    "anti_hantu_absolute": "AI NEVER claims consciousness, soul, or feelings",
+    "tamper_evident": "SHA-256 manifest verification detects file modifications",
+    "schema_validated": "JSON Schema validation ensures structural correctness"
+  },
+  "test_coverage": {
+    "total_tests": 2345,
+    "passing": 2345,
+    "skipped": 14,
+    "failed": 0,
+    "coverage_percentage": 100,
+    "critical_test_suites": [
+      "tests/test_spec_v44_schema_enforcement_subprocess.py (7 tests)",
+      "tests/test_spec_v44_manifest_enforcement_subprocess.py (8 tests)",
+      "tests/governance/ (proof-of-governance, merkle ledger)",
+      "tests/evidence/ (atomic ingestion, conflict routing)",
+      "tests/judiciary/ (semantic firewall, witness council)",
+      "tests/temporal/ (Phoenix-72, freshness, hold logic)"
+    ]
+  },
+  "audit_commands": {
+    "verify_manifest_integrity": "python scripts/regenerate_manifest_v44.py --check",
+    "run_schema_tests": "pytest tests/test_spec_v44_schema_enforcement_subprocess.py -v",
+    "run_manifest_tests": "pytest tests/test_spec_v44_manifest_enforcement_subprocess.py -v",
+    "run_full_suite": "pytest -q",
+    "audit_checklist": "See spec/v44/SEAL_CHECKLIST.md for full procedures"
+  },
+  "environmental_controls": {
+    "strict_mode": {
+      "trigger": "ARIFOS_ALLOW_LEGACY_SPEC=0 (default)",
+      "manifest_verification": "ENFORCED (fail-closed)",
+      "schema_validation": "ENFORCED (fail-closed)",
+      "env_override_path_restriction": "ENFORCED (spec/v44/ only)"
+    },
+    "legacy_mode": {
+      "trigger": "ARIFOS_ALLOW_LEGACY_SPEC=1",
+      "manifest_verification": "SKIPPED (NOT RECOMMENDED)",
+      "schema_validation": "SKIPPED (NOT RECOMMENDED)",
+      "env_override_path_restriction": "SKIPPED (external paths allowed)"
+    },
+    "physics_test_isolation": {
+      "trigger": "ARIFOS_PHYSICS_DISABLED=1 (default in tests)",
+      "behavior": "Session physics disabled for semantic floor testing isolation"
+    }
+  },
+  "version_evolution": {
+    "v35Omega": "Initial spec-driven floors (LEGACY)",
+    "v38Omega": "Red patterns + precedence order (LEGACY)",
+    "v42.1": "Dual-order equilibrium, RASA enforcement (LEGACY)",
+    "v43.0": "Interface & Authority (specialized)",
+    "v44.0": "TEARFRAME physics + consolidated single authority (CURRENT)",
+    "v45.0": "ΔΩΨ Trinity + Sovereign Witness + Lane-scoped thresholds (ACTIVE)"
+  },
+  "_file_structure": {
+    "individual_specs": [
+      "spec/v44/constitutional_floors.json",
+      "spec/v44/genius_law.json",
+      "spec/v44/session_physics.json",
+      "spec/v44/red_patterns.json",
+      "spec/v44/waw_prompt_floors.json",
+      "spec/v44/cooling_ledger_phoenix.json"
+    ],
+    "schemas": [
+      "spec/v44/schema/constitutional_floors.schema.json",
+      "spec/v44/schema/genius_law.schema.json",
+      "spec/v44/schema/session_physics.schema.json",
+      "spec/v44/schema/red_patterns.schema.json"
+    ],
+    "integrity": [
+      "spec/v44/MANIFEST.sha256.json",
+      "spec/v44/SEAL_CHECKLIST.md"
+    ],
+    "this_file": "spec/v44/UNIFIED_ARIFOS_v44_FULL_SPEC.json"
+  },
+  "_usage_note": "This unified file is for REVIEW ONLY. Runtime loaders use individual spec files (constitutional_floors.json, genius_law.json, etc.). Manifest verification applies to individual files, not this unified file.",
+  "_verification": {
+    "manifest_sha256_verified": true,
+    "schema_validated": true,
+    "test_coverage": "100% (2345/2345)",
+    "ci_workflow": ".github/workflows/trackb_seal.yml",
+    "audit_documentation": "spec/v44/SEAL_CHECKLIST.md"
+  }
+}

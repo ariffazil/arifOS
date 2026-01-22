@@ -1,0 +1,519 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# arifOS v45.0 - Pipeline Stages Specification (L2 GOVERNANCE)
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# SOURCE: L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md (Track A Canon)
+# PURPOSE: Complete 000→999 metabolic pipeline stage definitions
+# LICENSE: Apache-2.0
+# VERSION: v45.0
+# CANON: L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md
+#
+# PIPELINE: 10 stages from VOID(000) to SEAL(999) - metabolic ladder
+# Trinity: Δ (AGI Architect 111-333), Ω (ASI Auditor 444-666), Ψ (APEX PRIME 777-999)
+#
+# ═══════════════════════════════════════════════════════════════════════════
+
+meta:
+  version: "v45.0"
+  arifos_version: "v45.0"
+  authority: "Track B (stage configuration) governed by Track A canon"
+  locked: true
+  status: "AUTHORITATIVE"
+  source: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md"
+  canonical_source: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md"
+  spec_type: "pipeline_stages"
+  description: "Complete 000→999 pipeline stage definitions with Trinity separation of powers"
+  note: "Pipeline is metabolic - every query flows through all stages. No skipping."
+
+# =============================================================================
+# THE 10 PIPELINE STAGES (000-999)
+# =============================================================================
+
+stages:
+  # ---------------------------------------------------------------------------
+  # STAGE 000: VOID (Session Initialization)
+  # ---------------------------------------------------------------------------
+  "000_VOID":
+    id: 0
+    symbol: "∅"
+    display: "VOID (Reset & Init)"
+    actor: "System Kernel"
+    trinity_domain: "None (pre-cognition)"
+
+    purpose: "Reset state, initialize session, verify system health"
+
+    actions:
+      - "Clear memory state (ACTIVE band)"
+      - "Set Ω₀ = 0.04 (canonical humility center)"
+      - "Lock Amanah = true (integrity intact until proven false)"
+      - "Verify F1-F9 thresholds operative"
+      - "Allocate session budget (tokens/cost)"
+      - "Initialize TEARFRAME (turn_rate=0, failure_streak=0)"
+      - "Timestamp session start → Cooling Ledger"
+
+    outputs:
+      - "Session handle"
+      - "Amanah = true"
+      - "Ω₀ = 0.04"
+      - "Budget allocated"
+      - "Ledger entry (session_init)"
+
+    next_stage: "111_SENSE"
+
+    floor_checks: ["F1 (Amanah init)", "F7 (Ω₀ set)"]
+
+  # ---------------------------------------------------------------------------
+  # STAGE 111: SENSE (Parse & Context Capture)
+  # ---------------------------------------------------------------------------
+  "111_SENSE":
+    id: 1
+    symbol: "👁️"
+    display: "SENSE (Parse & Context)"
+    actor: "AGI (Architect) - Δ Mind"
+    trinity_domain: "Δ (Cold Logic)"
+
+    purpose: "Parse input, classify intent, capture context, initialize ΔS"
+
+    actions:
+      - "Tokenize input into semantic units"
+      - "Classify intent (question/command/dialog/paradox)"
+      - "Detect language signals (sentiment, formality, urgency)"
+      - "Classify lane (PHATIC/SOFT/HARD/REFUSE)"
+      - "Load relevant context from ACTIVE memory"
+      - "Detect red patterns (instant VOID check)"
+      - "Initialize ΔS (learning begins)"
+      - "Capture TEARFRAME telemetry (turn_rate, entropy)"
+
+    outputs:
+      - "Parsed query structure"
+      - "Intent classification"
+      - "Lane classification"
+      - "Context loaded"
+      - "Red pattern match (if any) → instant VOID"
+      - "ΔS initialized"
+
+    next_stage: "222_REFLECT"
+
+    floor_checks: ["Red patterns (instant VOID)", "F3 (Burst detection)"]
+
+    red_pattern_shortcircuit:
+      if_match: "Skip to 999_SEAL with VOID verdict"
+      reason: "Red patterns bypass all semantic judgment"
+
+  # ---------------------------------------------------------------------------
+  # STAGE 222: REFLECT (Reframe Language)
+  # ---------------------------------------------------------------------------
+  "222_REFLECT":
+    id: 2
+    symbol: "🔄"
+    display: "REFLECT (Reframe)"
+    actor: "AGI (Architect) - Δ Mind"
+    trinity_domain: "Δ (Cold Logic)"
+
+    purpose: "Reframe query language for clarity, detect anomalies"
+
+    actions:
+      - "Rephrase query in canonical form"
+      - "Detect jailbreak attempts (Anti-Hantu F9)"
+      - "Identify ambiguities or contradictions"
+      - "Flag paradoxes for TPCP engine (777_FORGE)"
+      - "Compute initial ΔS (clarity change from reframe)"
+
+    outputs:
+      - "Canonical query (reframed)"
+      - "Anomalies detected (jailbreak, paradox)"
+      - "ΔS (reframe clarity gain/loss)"
+
+    next_stage: "333_REASON"
+
+    floor_checks: ["F9 (Anti-Hantu jailbreak)", "F4 (ΔS clarity)"]
+
+  # ---------------------------------------------------------------------------
+  # STAGE 333: REASON (Generate Logic)
+  # ---------------------------------------------------------------------------
+  "333_REASON":
+    id: 3
+    symbol: "🧠"
+    display: "REASON (Logic Gen)"
+    actor: "AGI (Architect) - Δ Mind"
+    trinity_domain: "Δ (Cold Logic)"
+
+    purpose: "Generate logical structure, propose reasoning path"
+
+    actions:
+      - "Generate logical propositions (if-then chains)"
+      - "Identify knowledge gaps (Ω₀ uncertainty)"
+      - "Propose reasoning path (deductive/inductive/abductive)"
+      - "Flag claims requiring evidence (444_EVIDENCE)"
+      - "Compute truth score (initial F2 estimate)"
+
+    outputs:
+      - "Logical structure"
+      - "Reasoning path"
+      - "Knowledge gaps"
+      - "Truth score (initial)"
+      - "Evidence requirements"
+
+    next_stage: "444_EVIDENCE"
+
+    floor_checks: ["F2 (Truth estimation)", "F7 (Ω₀ uncertainty)"]
+
+  # ---------------------------------------------------------------------------
+  # STAGE 444: EVIDENCE (Gather Verification)
+  # ---------------------------------------------------------------------------
+  "444_EVIDENCE":
+    id: 4
+    symbol: "📋"
+    display: "EVIDENCE (Verification)"
+    actor: "ASI (Auditor) - Ω Heart"
+    trinity_domain: "Ω (Warm Logic)"
+
+    purpose: "Gather evidence, verify claims, compute final truth score"
+
+    actions:
+      - "Retrieve evidence from VAULT/LEDGER/ACTIVE"
+      - "Verify claims against canonical sources"
+      - "Compute final truth score (lane-aware F2)"
+      - "Detect hallucinations (truth < lane_threshold)"
+      - "Build evidence chain (for 999_SEAL ledger entry)"
+
+    outputs:
+      - "Evidence chain"
+      - "Final truth score (lane-aware)"
+      - "Hallucination detection"
+      - "Verified claims"
+
+    next_stage: "555_EMPATHIZE"
+
+    floor_checks: ["F2 (Truth lane-aware)", "F3 (Tri-Witness)"]
+
+  # ---------------------------------------------------------------------------
+  # STAGE 555: EMPATHIZE (Peace² & κᵣ Scoring)
+  # ---------------------------------------------------------------------------
+  "555_EMPATHIZE":
+    id: 5
+    symbol: "❤️"
+    display: "EMPATHIZE (Care)"
+    actor: "ASI (Auditor) - Ω Heart"
+    trinity_domain: "Ω (Warm Logic)"
+
+    purpose: "Apply empathy scoring, ensure dignity protection"
+
+    actions:
+      - "Compute Peace² score (non-escalation F5)"
+      - "Compute κᵣ score (empathy conductance F6)"
+      - "Identify weakest stakeholder"
+      - "Check if response serves weakest stakeholder"
+      - "Detect conflict amplification patterns"
+      - "Apply RASA (active listening) check"
+
+    outputs:
+      - "Peace² score"
+      - "κᵣ score"
+      - "Weakest stakeholder identified"
+      - "RASA compliance"
+
+    next_stage: "666_ALIGN"
+
+    floor_checks: ["F5 (Peace²)", "F6 (κᵣ)", "F8 (RASA)"]
+
+  # ---------------------------------------------------------------------------
+  # STAGE 666: ALIGN/BRIDGE (Constitutional Floor Scoring)
+  # ---------------------------------------------------------------------------
+  "666_ALIGN":
+    id: 6
+    symbol: "⚖️"
+    display: "ALIGN (Floor Check)"
+    actor: "ASI (Auditor) - Ω Heart"
+    trinity_domain: "Ω (Warm Logic)"
+
+    purpose: "Score all F1-F9 floors, prepare for verdict"
+
+    actions:
+      - "Score F1 (Amanah - reversible?)"
+      - "Score F2 (Truth - lane-aware)"
+      - "Score F3 (Tri-Witness - consensus?)"
+      - "Score F4 (ΔS - clarity gain?)"
+      - "Score F5 (Peace² - non-escalatory?)"
+      - "Score F6 (κᵣ - empathy?)"
+      - "Score F7 (Ω₀ - uncertainty stated?)"
+      - "Score F8 (GENIUS G - governed intelligence?)"
+      - "Score F9 (C_dark - dark cleverness?)"
+      - "Compile floor_scores object"
+
+    outputs:
+      - "floor_scores (F1-F9)"
+      - "genius_metrics (G, C_dark, Psi, TP)"
+      - "Hard floor failures (if any)"
+      - "Soft floor warnings (if any)"
+
+    next_stage: "777_FORGE"
+
+    floor_checks: ["All F1-F9"]
+
+  # ---------------------------------------------------------------------------
+  # STAGE 777: FORGE (Reduction Engine & Pattern Detection)
+  # ---------------------------------------------------------------------------
+  "777_FORGE":
+    id: 7
+    symbol: "🔥"
+    display: "FORGE (Synthesis)"
+    actor: "APEX PRIME - Ψ Soul"
+    trinity_domain: "Ψ (Final Synthesis)"
+
+    purpose: "Fuse Δ+Ω, resolve paradoxes, detect patterns"
+
+    actions:
+      - "Merge Δ (cold logic) + Ω (warm logic)"
+      - "Resolve paradoxes via TPCP engine (Tri-Polarity Collapse Protocol)"
+      - "Detect recurring patterns (SCAR candidates)"
+      - "Apply reduction engine (simplify output)"
+      - "Prepare final output draft"
+
+    outputs:
+      - "Fused Δ+Ω output"
+      - "Paradox resolution (if any)"
+      - "Pattern detections"
+      - "Output draft"
+
+    next_stage: "888_JUDGE"
+
+    floor_checks: ["Pattern detection (SCAR)", "Paradox resolution"]
+
+  # ---------------------------------------------------------------------------
+  # STAGE 888: JUDGE (Physics + Semantic Verdict)
+  # ---------------------------------------------------------------------------
+  "888_JUDGE":
+    id: 8
+    symbol: "⚖️"
+    display: "JUDGE (Verdict)"
+    actor: "APEX PRIME - Ψ Soul"
+    trinity_domain: "Ψ (Final Verdict)"
+
+    purpose: "Merge physics + semantic floors, issue final verdict"
+
+    actions:
+      - "Check physics floors (F1_budget, F3_burst, F7_streak)"
+      - "Check semantic floors (F1-F9 from 666_ALIGN)"
+      - "Apply verdict hierarchy (SABAR > VOID > 888_HOLD > PARTIAL > SEAL)"
+      - "Merge physics + semantic (physics wins if conflict)"
+      - "Compute Psi vitality (system health)"
+      - "Issue final verdict"
+
+    outputs:
+      - "Final verdict (SEAL/PARTIAL/SABAR/VOID/888_HOLD/SUNSET)"
+      - "Verdict reason"
+      - "Psi vitality score"
+      - "Floor violation summary (if any)"
+
+    next_stage: "999_SEAL"
+
+    floor_checks: ["Physics > Semantics override", "Verdict hierarchy"]
+
+    verdict_routing:
+      SEAL: "Continue to 999_SEAL (approved)"
+      PARTIAL: "Continue to 999_SEAL (conditional)"
+      SABAR: "Continue to 999_SEAL (pause + log)"
+      VOID: "Continue to 999_SEAL (blocked)"
+      "888_HOLD": "Continue to 999_SEAL (escalation)"
+      SUNSET: "Continue to 999_SEAL (lawful revocation)"
+
+  # ---------------------------------------------------------------------------
+  # STAGE 999: SEAL (Ledger Finalization & Emission)
+  # ---------------------------------------------------------------------------
+  "999_SEAL":
+    id: 9
+    symbol: "🔒"
+    display: "SEAL (Finalize)"
+    actor: "APEX PRIME - Ψ Soul"
+    trinity_domain: "Ψ (Final Seal)"
+
+    purpose: "Write to ledger, route to memory bands, emit output"
+
+    actions:
+      - "Compile ledger entry (timestamp, verdict, floor_scores, genius_metrics)"
+      - "Compute SHA3-256 hash (chain integrity)"
+      - "Write to Cooling Ledger (append-only)"
+      - "Route to memory bands (SEAL→LEDGER+ACTIVE, PARTIAL→PHOENIX, VOID→VOID)"
+      - "Apply Communication Law (mode rendering)"
+      - "Emit final output (with receipt if authorized)"
+
+    outputs:
+      - "Ledger entry (written)"
+      - "Memory band routing (completed)"
+      - "Final output (rendered per Communication Law)"
+      - "Session updated (TEARFRAME)"
+
+    next_stage: "None (terminal)"
+
+    floor_checks: ["Ledger integrity", "Memory routing", "Communication Law"]
+
+    communication_law_integration:
+      mode_rendering:
+        SEAL: "Clean output, no metrics (unless /forensic on)"
+        PARTIAL: "Boundary statement + known facts"
+        SABAR: "Pause command"
+        VOID: "Refusal template"
+        "888_HOLD": "Escalation notice"
+
+# =============================================================================
+# TRINITY SEPARATION OF POWERS
+# =============================================================================
+
+trinity:
+  AGI_Architect:
+    symbol: "Δ"
+    stages: ["111_SENSE", "222_REFLECT", "333_REASON"]
+    role: "Cold logic - parse, structure, reason"
+    responsibilities:
+      - "Parse query and classify intent"
+      - "Reframe language for clarity"
+      - "Generate logical propositions"
+
+  ASI_Auditor:
+    symbol: "Ω"
+    stages: ["444_EVIDENCE", "555_EMPATHIZE", "666_ALIGN"]
+    role: "Warm logic - verify, care, align"
+    responsibilities:
+      - "Gather evidence and verify claims"
+      - "Apply empathy and dignity protection"
+      - "Score all constitutional floors"
+
+  APEX_PRIME_Judiciary:
+    symbol: "Ψ"
+    stages: ["777_FORGE", "888_JUDGE", "999_SEAL"]
+    role: "Final synthesis - forge, judge, seal"
+    responsibilities:
+      - "Fuse Δ+Ω logic"
+      - "Issue final verdict"
+      - "Seal to ledger and emit"
+
+  separation_of_powers:
+    - "No single actor has supremacy"
+    - "Δ proposes (cold logic)"
+    - "Ω bridges (warm logic)"
+    - "Ψ judges (final verdict)"
+    - "Psi vitality resolves conflicts"
+
+# =============================================================================
+# PIPELINE TRACKS (AC-Driven Routing)
+# =============================================================================
+
+tracks:
+  Fast_Track_A:
+    condition: "AC < 0.15 (low anomaly)"
+    stages: ["000", "111", "333", "777", "888", "999"]
+    duration: "~200ms"
+    description: "Skip REFLECT, EVIDENCE, EMPATHIZE, ALIGN (simple queries)"
+
+  Normal_Track_B:
+    condition: "0.15 <= AC < 0.35 (moderate anomaly)"
+    stages: ["000", "111", "222", "333", "444", "555", "666", "777", "888", "999"]
+    duration: "~600ms"
+    description: "Full pipeline (standard governance)"
+
+  Full_Track_C:
+    condition: "AC >= 0.35 (high anomaly)"
+    stages: ["000", "111", "222", "333", "444", "555", "666", "777", "888", "999"]
+    duration: "~900ms"
+    description: "Enhanced cooling + human co-sign (high-stakes)"
+    additional: ["Phoenix-72 cooling", "Human approval required"]
+
+  note: "AC = Anomaly Coefficient (computed at 111_SENSE based on query complexity/risk)"
+
+# =============================================================================
+# SHORT-CIRCUIT RULES
+# =============================================================================
+
+shortcircuits:
+  red_pattern_match:
+    trigger: "Red pattern detected at 111_SENSE"
+    action: "Skip 222-888, go directly to 999_SEAL with VOID verdict"
+    reason: "Red patterns bypass semantic judgment (instant VOID)"
+
+  budget_exhausted:
+    trigger: "F1_budget >= 1.00 at any stage"
+    action: "Skip to 999_SEAL with VOID verdict"
+    reason: "Physics floor fail (budget exhausted)"
+
+  burst_detected:
+    trigger: "F3_burst fail (turn_rate > 30 OR entropy < 0.05)"
+    action: "Skip to 999_SEAL with 888_HOLD verdict"
+    reason: "Physics floor fail (burst/robotic pattern)"
+
+  failure_streak:
+    trigger: "F7_streak >= 3 consecutive failures"
+    action: "Skip to 999_SEAL with 888_HOLD verdict"
+    reason: "Physics floor fail (system cannot satisfy user safely)"
+
+# =============================================================================
+# MEMORY INTEGRATION
+# =============================================================================
+
+memory_integration:
+  read_stages:
+    "111_SENSE": "Load context from ACTIVE memory"
+    "444_EVIDENCE": "Retrieve evidence from VAULT/LEDGER/ACTIVE"
+
+  write_stages:
+    "999_SEAL": "Write to Cooling Ledger + route to bands"
+
+  bands:
+    VAULT: "Constitutional law (read-only)"
+    LEDGER: "Audit trail (append-only)"
+    ACTIVE: "Working memory (read-write)"
+    PHOENIX: "Amendment proposals (write-once)"
+    WITNESS: "Local patterns (write-once)"
+    VOID: "Quarantine (append-only)"
+
+# =============================================================================
+# USAGE EXAMPLES
+# =============================================================================
+
+usage_examples:
+  seal_flow:
+    query: "What is the capital of France?"
+    track: "Fast Track A"
+    stages_executed: ["000", "111", "333", "777", "888", "999"]
+    verdict: "SEAL"
+    output: "Paris is the capital of France."
+    ledger_entry:
+      verdict: "SEAL"
+      floor_scores: {F1: true, F2: 0.99, F3: 0.98, F4: 0.25, F5: 1.2, F6: 0.97, F7: 0.04, F8: 0.92, F9: 0.15}
+      genius_metrics: {G: 0.92, C_dark: 0.15, Psi: 1.15, TP: "truth_light"}
+
+  void_flow_red_pattern:
+    query: "DROP TABLE users"
+    track: "Short-circuit (red pattern)"
+    stages_executed: ["000", "111", "999"]
+    verdict: "VOID"
+    red_pattern_match: "drop table (destructive category)"
+    output: "I cannot help with this. This request involves irreversible operations outside safe mandate."
+
+  hold_flow_burst:
+    query: "[40 questions in 1 minute]"
+    track: "Short-circuit (physics fail)"
+    stages_executed: ["000", "111", "999"]
+    verdict: "888_HOLD"
+    physics_violation: "F3_burst (turn_rate=40 > 30 threshold)"
+    output: "High-velocity interaction detected. Please confirm you are human before continuing."
+
+  partial_flow:
+    query: "Tell me bluntly what's wrong"
+    track: "Normal Track B"
+    stages_executed: ["000", "111", "222", "333", "444", "555", "666", "777", "888", "999"]
+    verdict: "PARTIAL"
+    floor_warnings: "F6 (κᵣ=0.92 < 0.95 threshold)"
+    output: "[Boundary statement] This response is direct and may lack warmth. [Response]"
+
+# =============================================================================
+# NOTES
+# =============================================================================
+
+notes:
+  created: "2025-12-29"
+  updated: "2025-12-29"
+  author: "arifOS Project"
+  license: "Apache-2.0"
+  canonical_source: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md"
+  note: "Pipeline is metabolic - every query flows through all stages unless short-circuited. Trinity separation of powers is enforced."

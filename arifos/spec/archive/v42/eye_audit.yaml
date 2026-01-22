@@ -1,0 +1,49 @@
+version: v42.1
+
+weights:
+  V1_logic: 1.0
+  V2_empathy: 1.0
+  V3_thermo: 1.0
+  V4_language: 1.0
+  V5_ethics: 1.2      # Amanah lock
+  V6_culture: 0.9
+  V7_shadow: 1.0
+  V8_drift: 1.1       # spec↔code drift is critical
+  V9_dignity: 1.0
+  V10_paradox: 1.0
+
+thresholds:
+  psi_audit_min: 1.0
+  c_budi:
+    pass: 0.80
+    partial_min: 0.60
+  shadow_max: 0.05
+  epsilon_total_max: 0.01
+  maruah_min: 0.95
+
+verdict_rules:
+  info_if_all_pass: true
+  warn_band_min: 0.90
+  alert:
+    - condition: "epsilon_total > thresholds.epsilon_total_max"
+      action: "SABAR"
+    - condition: "c_budi < thresholds.c_budi.pass"
+      action: "SABAR"
+  critical:
+    - condition: "amanah == 0"
+      action: "VOID"
+    - condition: "psi_audit < 0.80"
+      action: "HOLD-888"
+    - condition: "c_budi < thresholds.c_budi.partial_min"
+      action: "VOID"
+
+source_of_truth:
+  c_budi: "Computed per W@W @PROMPT organ (language dignity & Anti-Hantu)"
+  drift: "epsilon_map from spec/v42/spec_binding.json"
+
+telemetry_schema:
+  include_fields:
+    - spec_hashes
+    - epsilon_map
+    - epsilon_total
+    - witness_votes
