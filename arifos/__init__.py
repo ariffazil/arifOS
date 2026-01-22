@@ -1,10 +1,17 @@
 """
-arifOS v49 Canonical Package
-Single Body Runtime
+arifOS v50.5.1 Constitutional Kernel
+5-Tool Trinity Framework
 
-NOTE: During single-body consolidation, heavy imports (core, protocol) are wrapped
-in try/except to allow lightweight subpackages (orchestrator, utils) to work
-independently without requiring full spec file infrastructure.
+Modules:
+  arifos.mcp       - MCP Server (Trinity 5-tool)
+  arifos.core      - AGI/ASI/APEX kernels
+  arifos.protocol  - Protocol handlers
+
+Usage:
+  python -m arifos.mcp              # Trinity stdio (5 tools)
+  python -m arifos.mcp trinity-sse  # Trinity SSE for Railway
+
+DITEMPA BUKAN DIBERI
 """
 
 # Core enforcement and system components (requires spec files)

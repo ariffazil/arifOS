@@ -1,16 +1,14 @@
 """
-arifOS SSE Web Adapter (v50.5.0)
+arifOS SSE Web Adapter (v50.5.1)
 Cloud Bridge for MCP Protocol via Server-Sent Events
 
-Supports both:
-- Unified 16-tool server (unified_server.py)
-- Trinity 5-tool server (trinity_server.py)
+5-Tool Trinity Constitutional Framework
 
 DITEMPA BUKAN DIBERI
 """
 import logging
 import os
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict
 
 import uvicorn
 from fastapi import FastAPI, Request
@@ -29,7 +27,7 @@ def create_sse_app(
     tools: Dict[str, Callable],
     tool_descriptions: Dict[str, Dict[str, Any]],
     server_name: str = "arifOS-MCP",
-    version: str = "v50.5.0"
+    version: str = "v50.5.1"
 ) -> FastAPI:
     """
     Create a FastAPI app with MCP SSE endpoints.
@@ -148,53 +146,20 @@ def create_sse_app(
     return app
 
 
-# =============================================================================
-# LEGACY: Default unified server SSE (16 tools)
-# =============================================================================
-
-# Only create default app when imported directly (not via create_sse_app)
-_default_app: Optional[FastAPI] = None
-
-def _get_default_app() -> FastAPI:
-    """Lazy-load the default unified server app."""
-    global _default_app
-    if _default_app is None:
-        try:
-            from arifos.core.mcp.unified_server import TOOLS, TOOL_DESCRIPTIONS
-            _default_app = create_sse_app(
-                tools=TOOLS,
-                tool_descriptions=TOOL_DESCRIPTIONS,
-                server_name="arifOS-Unified",
-                version="v50.5.0"
-            )
-            logger.info(f"✅ Default SSE app created with {len(TOOLS)} tools")
-        except ImportError as e:
-            logger.error(f"❌ Failed to import unified_server: {e}")
-            # Create minimal fallback app
-            _default_app = FastAPI(title="arifOS (Degraded)")
-
-            @_default_app.get("/health")
-            async def degraded_health():
-                return {"status": "degraded", "error": "unified_server import failed"}
-
-            @_default_app.get("/")
-            async def degraded_root():
-                return {"status": "degraded", "error": "unified_server import failed"}
-
-    return _default_app
-
-
-# For backward compatibility: expose app at module level
-app = property(lambda self: _get_default_app())
-
-
 def main():
-    """Run the default unified server via SSE."""
-    port = int(os.environ.get("PORT", os.environ.get("AAA_MCP_PORT", 8000)))
-    logger.info(f"Starting arifOS SSE Server v50.5.0 on port {port}...")
+    """Run the Trinity server via SSE (default entry point)."""
+    from arifos.mcp.trinity_server import TOOLS, TOOL_DESCRIPTIONS
 
-    fastapi_app = _get_default_app()
-    uvicorn.run(fastapi_app, host="0.0.0.0", port=port, log_level="info")
+    port = int(os.environ.get("PORT", os.environ.get("AAA_MCP_PORT", 8000)))
+    logger.info(f"Starting arifOS Trinity SSE Server v50.5.1 on port {port}...")
+
+    app = create_sse_app(
+        tools=TOOLS,
+        tool_descriptions=TOOL_DESCRIPTIONS,
+        server_name="arifOS-Trinity",
+        version="v50.5.1"
+    )
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
 
 
 if __name__ == "__main__":

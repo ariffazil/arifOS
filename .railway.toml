@@ -4,7 +4,7 @@
 [deploy]
   # Trinity SSE: 5-tool Constitutional Framework
   # Tools: 000_init, agi_genius, asi_act, apex_judge, 999_vault
-  startCommand = "python -m arifos.core.mcp trinity-sse"
+  startCommand = "python -m arifos.mcp trinity-sse"
   healthcheckPath = "/health"
   healthcheckTimeout = 300
   restartPolicyType = "ON_FAILURE"
