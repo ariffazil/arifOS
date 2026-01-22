@@ -2,7 +2,9 @@
   builder = "NIXPACKS"
 
 [deploy]
-  startCommand = "python arifos/core/mcp/unified_server.py"
+  # Use SSE mode for cloud/HTTP deployment (Railway)
+  # stdio mode is for local Claude Desktop
+  startCommand = "python -m arifos.core.mcp sse"
   healthcheckPath = "/health"
   healthcheckTimeout = 30
   sleepApplication = false
@@ -11,3 +13,5 @@
   VAULT_PATH = "/vault"
   ARIFOS_CONSTITUTIONAL_MODE = "AAA"
   ARIFOS_DEBUG = "false"
+  AAA_MCP_PORT = "8000"
+  AAA_MCP_TRANSPORT = "sse"
