@@ -1,0 +1,6 @@
+mcp.arif-fazil.com {
+    reverse_proxy localhost:8000
+    log {
+        output stdout
+    }
+}

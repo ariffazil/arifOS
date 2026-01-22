@@ -1,0 +1,7 @@
+{
+    "allowed_tools": [
+        "google_search",
+        "github_read_issue",
+        "github_list_repos"
+    ]
+}

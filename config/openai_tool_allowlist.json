@@ -1,0 +1,19 @@
+{
+    "allowed_tools": {
+        "github_get_repo_content": {
+            "composio_slug": "GITHUB_GET_REPOSITORY_CONTENT",
+            "description": "Get the contents of a file or directory in a GitHub repository.",
+            "risk_class": "READ_ONLY"
+        },
+        "github_create_issue": {
+            "composio_slug": "GITHUB_CREATE_ISSUE",
+            "description": "Create a new issue in a GitHub repository.",
+            "risk_class": "WRITE_REVERSIBLE"
+        },
+        "google_search": {
+            "composio_slug": "GOOGLE_SEARCH",
+            "description": "Perform a Google search.",
+            "risk_class": "READ_ONLY"
+        }
+    }
+}
