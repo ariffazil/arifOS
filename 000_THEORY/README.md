@@ -69,6 +69,7 @@ A = AKAL (Clarity)
 P = PRESENT (Governance)
 X = EXPLORATION (Trust)
 E = ENERGY (Sustainable Power)
+Thirteen immutable floors. No exceptions. No overrides.
 
 Without X: A × P × E = APE (clever but dangerous)
 With X:    A × P × X × E² = APEX (wise and accountable)
