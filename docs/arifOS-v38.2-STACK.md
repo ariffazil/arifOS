@@ -24,7 +24,7 @@ This ADR documents the **v38.2 runtime stack** as it exists today, based on the 
 - **Cage vs Beast:** arifOS is a **governance kernel** that wraps any LLM; the LLM is external (“Beast”), accessed via adapters (`arifos_core/llm_interface.py`, `arifos_core/adapters/*`, `integrations/sealion/*`). Core floors and judiciary do not depend on any specific provider.
 - **Physics-first floors:** 9 constitutional floors (Truth, Clarity, Tri-Witness, Peace², Humility, Empathy, Amanah, RASA, Anti-Hantu) are enforced by `arifos_core/APEX_PRIME.py` and `arifos_core/metrics.py` per `spec/constitutional_floors_v38Omega.json`.
 - **GENIUS LAW:** Verdicts must respect G, C_dark, and Ψ thresholds as defined in `arifos_core/genius_metrics.py` and `spec/genius_law_v38Omega.json`.
-- **Memory invariants:** v38 EUREKA memory stack (6 bands + 4 invariants) governs what becomes canonical (`arifos_core/memory/bands.py`, `arifos_core/memory/policy.py`, `canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md`).
+- **Memory invariants:** v38 EUREKA memory stack (6 bands + 4 invariants) governs what becomes canonical (`arifos_core/memory/bands.py`, `arifos_core/memory/policy.py`, `canon/07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md`).
 - **Cooling Ledger:** All governance decisions are logged to an **append-only, hash-chained ledger** (`cooling_ledger/L1_cooling_ledger.jsonl`) per `spec/cooling_ledger.schema.json` and `spec/cooling_ledger_phoenix_v38Omega.json`.
 - **Time as governor (v38.2):** Entropy rot and SUNSET routing are enforced via `arifos_core/kernel.py` and `spec/arifos_v38_2.yaml`; SABAR/PARTIAL cannot drift indefinitely.
 
@@ -99,7 +99,7 @@ This ADR **does not introduce new concepts**; it only locks in the stack decisio
 
 ### 4.1 Six Bands & Invariants
 
-Per spec_archive Doc 4 and `canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md`, v38.2 adopts:
+Per spec_archive Doc 4 and `canon/07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md`, v38.2 adopts:
 
 - **Bands:** VAULT, LEDGER, ACTIVE, PHOENIX, WITNESS, VOID (hot/warm/cold/void tiers).
 - **Verdict → Band routing:**
@@ -214,4 +214,5 @@ Per spec_archive Doc 7 (Phase-4 Integration Status), the following are **explici
 - **Which Ledger?** The Cooling Ledger (`L1_cooling_ledger.jsonl` + hash-chain + Merkle proofs + CLI tools) is the canonical external audit trail for all verdicts.
 
 This ADR is a **read-only consolidation** of the v38.2 stack decisions already implemented and tested. Any future “Universal Cage” work (L7/L9, APIs, MCP, Safe-FS, vector backends) must build on these decisions without weakening floors, memory invariants, or ledger guarantees.
+
 

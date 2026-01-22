@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: arifos-mcp
+    env: docker
+    region: singapore # or ohio/oregon/frankfurt
+    plan: free # starts free, can upgrade
+    buildCommand: docker build -t arifos .
+    startCommand: python scripts/arifos_sse_server.py
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: CONSTITUTIONAL_MODE
+        value: "production"
+    healthCheckPath: /health

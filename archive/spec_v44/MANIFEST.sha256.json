@@ -1,0 +1,16 @@
+{
+  "version": "v44.0",
+  "created_at": "2025-12-25T07:26:30.601458Z",
+  "algorithm": "SHA-256",
+  "description": "Cryptographic manifest for Track B v44 specifications (tamper-evident integrity)",
+  "files": {
+    "spec/v44/constitutional_floors.json": "3f0894faffb84fbad1c84018dd7273c43a5c6633bc0b4ec63f3a773a9d23846a",
+    "spec/v44/genius_law.json": "b1b697f418c7bff14020a50dd2b44c8fdef67cf98c78d7ca8d53b84f52992133",
+    "spec/v44/session_physics.json": "a5b0babf0d16c8021d934b6fbd551251ed5d81ec18746c77b6f4adda094ae84f",
+    "spec/v44/red_patterns.json": "56318d307fdac873f90c3155cb63cee5c5519422126e1265686488a009d40fe4",
+    "spec/v44/schema/constitutional_floors.schema.json": "e79ce809c0124e7421ab3895433078aedcacad27327385562e85e150e3f11d37",
+    "spec/v44/schema/genius_law.schema.json": "b2376388611f40f33f2b7ebdcf0351726c39a03f96c4344f9e9e9fec38242d1a",
+    "spec/v44/schema/session_physics.schema.json": "cf1605835961304897494eaeb539350c62f3b6216b6283e38b334d879a18cb3d",
+    "spec/v44/schema/red_patterns.schema.json": "adb6b6cf246f29d18e22c8cdedfd8a79bf19bcfa95d5f882c6bb479c060c5d06"
+  }
+}

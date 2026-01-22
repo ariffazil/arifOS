@@ -10,7 +10,7 @@
     "epoch": "v36.3Omega",
     "implements": [
       "v36.3O/canon/SCARS_PHOENIX_HEALING_v36.3O.md",
-      "v36.3O/canon/VAULT999_ARCHITECTURE_v36.3O.md"
+      "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md"
     ],
     "law_source": "v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md",
     "purpose": "Machine-readable representation of scars (negative constraints) and their metadata.",
@@ -221,3 +221,4 @@
     "required": ["signature"]
   }
 }
+

@@ -102,7 +102,7 @@ File Contents
 
 Below are the contents of each file in the arifos_clip subfolder.
 
-FILE: arifos_clip/AGENTS.md
+FILE: arifos_clip/PIPELINE_AGENTS.md
 # A CLIP Agents & Roles
 
 A CLIP employs multiple cognitive "agents" or perspectives to examine a problem thoroughly. Each intermediate stage (111–666) can be thought of as a distinct role or mindset:

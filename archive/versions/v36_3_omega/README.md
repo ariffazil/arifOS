@@ -13,7 +13,7 @@ v36.3O/
 │   ├── 50_OVERSIGHT/
 │   ├── 60_DREAMFORGE/
 │   ├── 70_PARADOX/
-│   ├── 80_VAULT999/
+│   ├── 80_CCC/
 │   └── 90_GOV/
 ├── spec/           # JSON schemas, YAML specs
 ├── core/           # Core runtime modules
@@ -42,3 +42,4 @@ Canon files use normalized names:
 ---
 
 **Version:** v36.3Ω | **Status:** Structure Only | **Runtime Changes:** None
+

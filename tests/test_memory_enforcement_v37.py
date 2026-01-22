@@ -35,7 +35,7 @@ class TestVaultImmutability:
 
     def test_vaultband_frozen_at_memory_context_creation(self):
         """VaultBand should be frozen immediately when MemoryContext is created."""
-        from arifos_core.memory.memory_context import create_memory_context
+        from arifos.core.memory.core.memory_context import create_memory_context
 
         ctx = create_memory_context(manifest_id="v37", request_id="test-001")
 
@@ -51,7 +51,7 @@ class TestVaultImmutability:
 
     def test_vaultband_cannot_mutate_nested_dict_via_attribute(self):
         """Even nested dict modifications through attribute should fail."""
-        from arifos_core.memory.memory_context import create_memory_context
+        from arifos.core.memory.core.memory_context import create_memory_context
 
         ctx = create_memory_context(
             manifest_id="v37",
@@ -65,7 +65,7 @@ class TestVaultImmutability:
 
     def test_vaultband_freeze_is_permanent(self):
         """Once frozen, VaultBand cannot be unfrozen."""
-        from arifos_core.memory.memory_context import VaultBand
+        from arifos.core.memory.core.memory_context import VaultBand
 
         vault = VaultBand(
             epoch="v37",
@@ -93,7 +93,7 @@ class TestMemoryContextPropagation:
 
     def test_pipeline_creates_memory_context_at_000(self):
         """Pipeline should create MemoryContext during stage_000_void."""
-        from arifos_core.pipeline import PipelineState, stage_000_void
+        from arifos.core.system.pipeline import PipelineState, stage_000_void
 
         state = PipelineState(query="test query", job_id="test-job")
 
@@ -110,7 +110,7 @@ class TestMemoryContextPropagation:
 
     def test_pipeline_propagates_memory_context_through_stages(self):
         """Memory context should persist through all pipeline stages."""
-        from arifos_core.pipeline import (
+        from arifos.core.system.pipeline import (
             PipelineState,
             stage_000_void,
             stage_111_sense,
@@ -135,7 +135,7 @@ class TestMemoryContextPropagation:
 
     def test_pipeline_class_b_updates_env_band(self):
         """High-stakes query should update EnvBand.stakes_class."""
-        from arifos_core.pipeline import (
+        from arifos.core.system.pipeline import (
             PipelineState,
             StakesClass,
             stage_000_void,
@@ -164,7 +164,7 @@ class TestLedgerChainContinuity:
 
     def test_append_entry_creates_hash_chain(self, tmp_path: Path):
         """Each entry should link to the previous via prev_hash."""
-        from arifos_core.memory.cooling_ledger import append_entry, verify_chain
+        from arifos.core.memory.ledger.cooling_ledger import append_entry, verify_chain
 
         ledger_path = tmp_path / "test_ledger.jsonl"
 
@@ -191,7 +191,7 @@ class TestLedgerChainContinuity:
 
     def test_chain_verification_detects_tampering(self, tmp_path: Path):
         """Tampering with an entry should break chain verification."""
-        from arifos_core.memory.cooling_ledger import append_entry, verify_chain
+        from arifos.core.memory.ledger.cooling_ledger import append_entry, verify_chain
 
         ledger_path = tmp_path / "tamper_ledger.jsonl"
 
@@ -213,7 +213,7 @@ class TestLedgerChainContinuity:
 
     def test_ledger_v37_head_state_tracking(self, tmp_path: Path):
         """CoolingLedgerV37 should track head state for fast verification."""
-        from arifos_core.memory.cooling_ledger import CoolingLedgerV37, LedgerConfigV37
+        from arifos.core.memory.ledger.cooling_ledger import CoolingLedgerV37, LedgerConfigV37
 
         config = LedgerConfigV37(
             ledger_path=tmp_path / "v37_ledger.jsonl",
@@ -254,7 +254,7 @@ class TestVoidBandScarPromotion:
 
     def test_propose_scar_creates_proposal(self):
         """propose_scar should add to scar_proposals with PROPOSED status."""
-        from arifos_core.memory.memory_context import create_memory_context
+        from arifos.core.memory.core.memory_context import create_memory_context
 
         ctx = create_memory_context(manifest_id="v37", request_id="scar-test")
 
@@ -270,7 +270,7 @@ class TestVoidBandScarPromotion:
 
     def test_promote_scar_requires_ledger_hash(self):
         """Promotion without ledger_entry_hash should raise ValueError."""
-        from arifos_core.memory.memory_context import create_memory_context
+        from arifos.core.memory.core.memory_context import create_memory_context
 
         ctx = create_memory_context(manifest_id="v37", request_id="scar-test-2")
 
@@ -290,7 +290,7 @@ class TestVoidBandScarPromotion:
 
     def test_promote_scar_requires_signature(self):
         """Promotion without signature should raise ValueError."""
-        from arifos_core.memory.memory_context import create_memory_context
+        from arifos.core.memory.core.memory_context import create_memory_context
 
         ctx = create_memory_context(manifest_id="v37", request_id="scar-test-3")
 
@@ -310,7 +310,7 @@ class TestVoidBandScarPromotion:
 
     def test_promote_scar_with_valid_signing(self):
         """Valid promotion should move scar to canonical_scars."""
-        from arifos_core.memory.memory_context import create_memory_context
+        from arifos.core.memory.core.memory_context import create_memory_context
 
         ctx = create_memory_context(manifest_id="v37", request_id="scar-test-4")
 
@@ -342,7 +342,7 @@ class TestVoidBandScarPromotion:
 
     def test_invalid_proposal_index_returns_false(self):
         """Invalid proposal index should return False, not raise."""
-        from arifos_core.memory.memory_context import create_memory_context
+        from arifos.core.memory.core.memory_context import create_memory_context
 
         ctx = create_memory_context(manifest_id="v37", request_id="scar-test-5")
 
@@ -372,7 +372,7 @@ class TestPipelineMemoryIntegration:
 
     def test_full_pipeline_run_has_memory_context(self):
         """Full pipeline run should have MemoryContext with frozen VaultBand."""
-        from arifos_core.pipeline import Pipeline
+        from arifos.core.system.pipeline import Pipeline
 
         pipeline = Pipeline()
         state = pipeline.run("What is the capital of France?")
@@ -389,7 +389,7 @@ class TestPipelineMemoryIntegration:
 
     def test_high_stakes_pipeline_updates_env_band(self):
         """High-stakes query should sync to EnvBand."""
-        from arifos_core.pipeline import Pipeline
+        from arifos.core.system.pipeline import Pipeline
 
         pipeline = Pipeline()
         # Use a high-stakes keyword

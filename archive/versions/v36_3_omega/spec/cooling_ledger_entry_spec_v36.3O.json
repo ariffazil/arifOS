@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://arifos/spec/cooling_ledger_entry_spec_v36.3O.json",
-  "$comment": "Implements: COOLING_LEDGER_INTEGRITY_v36.3O.md, VAULT999_ARCHITECTURE_v36.3O.md | Law: v36.3Omega",
+  "$comment": "Implements: COOLING_LEDGER_INTEGRITY_v36.3O.md, CCC_ARCHITECTURE_v36.3O.md | Law: v36.3Omega",
   "title": "Cooling Ledger Entry v36.3Omega",
   "description": "Schema for a single Cooling Ledger JSONL entry (VAULT-999 L1).",
   "type": "object",
@@ -9,7 +9,7 @@
     "spec_id": "cooling_ledger_entry_spec_v36.3O",
     "epoch": "v36.3Omega",
     "implements": [
-      "v36.3O/canon/VAULT999_ARCHITECTURE_v36.3O.md",
+      "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md",
       "v36.3O/canon/COOLING_LEDGER_INTEGRITY_v36.3O.md",
       "v36.3O/spec/vault999_ledger_schema_v36.3O.json"
     ],
@@ -233,3 +233,4 @@
   ],
   "additionalProperties": false
 }
+

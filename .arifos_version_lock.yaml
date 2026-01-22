@@ -1,0 +1,23 @@
+# arifOS v50.0.0 - Constitutional Version Lock Entry Point
+# Authority: 888 Judge | Canonical Reference
+#
+# This file serves as a constitutional anchor to the canonical version state.
+# The canonical version lock is maintained in 999_TEMPA/canon/ per constitutional law.
+#
+# Constitutional Chain: 888 Judge > 999_TEMPA/canon/ > Runtime State
+#
+# DITEMPA BUKAN DIBERI - Constitutional state is forged, not assumed.
+
+canonical_reference: "999_TEMPA/canon/arifos_version_lock.yaml"
+constitutional_status: "ANCHORED"
+authority_chain: "888 Judge > 999_TEMPA/canon/ > Runtime Reference"
+v50_rename: "L1_THEORY → 999_TEMPA (forged state, not theory)"
+
+# Constitutional Note:
+# - This entry point maintains separation between canonical state (CCC) and runtime references (BBB)
+# - All constitutional versioning authority resides in 999_TEMPA/canon/
+# - 999_TEMPA = FORGED/SEALED canonical state (DITEMPA - forged, not given)
+# - Runtime systems reference this anchor for constitutional compliance
+
+# For canonical constitutional state:
+# see 999_TEMPA/canon/arifos_version_lock.yaml

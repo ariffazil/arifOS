@@ -227,8 +227,8 @@ def authority_boundary_check(self, proposed_write):
 ```python
 # From retention.py
 BAND_TIER_MAP = {
-    BandName.VAULT: RetentionTier.COLD,    # Permanent
-    BandName.LEDGER: RetentionTier.WARM,   # 90 days
+    BandName.CCC: RetentionTier.COLD,    # Permanent
+    BandName.BBB: RetentionTier.WARM,   # 90 days
     BandName.ACTIVE: RetentionTier.HOT,    # 7 days
     BandName.PHOENIX: RetentionTier.WARM,  # 90 days
     BandName.WITNESS: RetentionTier.WARM,  # 90 days
@@ -363,4 +363,5 @@ Cross-session memory recall capped at 0.85 confidence. Recalled data is SUGGESTI
 ---
 
 **Version:** v38.0 | **Last Updated:** 2025-12-13
+
 
