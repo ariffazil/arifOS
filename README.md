@@ -477,91 +477,102 @@ User shares trauma → AAA VAULT (machine-forbidden) → AI CANNOT access or ref
 
 ## The Verdict System
 
-Every query receives one of five verdicts:
+APEX (Soul/Ψ) and VAULT999 share a **3-verdict symbiosis** based on Anomalous Contrast Theory:
 
-### SEAL ✅ (Approved)
-**Meaning:** All 13 floors pass. Output is constitutionally safe.
+```
+VOID is EXPENSIVE  → Must justify with floor citation (3× energy)
+SEAL is EARNED     → All trinities approve, ΔS ≤ 0 (clarity)
+SABAR is DEFAULT   → Patience, refinement, 72h decay
+```
+
+### SEAL ✓ (Approved)
+**Meaning:** All 13 floors pass. All Three Trinities approve. Output is sealed.
+
+**Energy Cost:** 1× (Low — earned through clarity)
 
 **Example:**
 ```json
 {
   "verdict": "SEAL",
-  "floor_scores": {
-    "F1": 1.0, "F2": 0.99, "F3": 0.98, "F4": 1.0,
-    "F5": 1.2, "F6": 0.97, "F7": 0.04, "F8": 0.92,
-    "F9": 0.0, "F10": 1.0, "F11": 1.0, "F12": 0.1, "F13": 1.0
+  "reason": "All trinities approve, all floors pass",
+  "floor_checks": {
+    "F1": true, "F2": true, "F3": true, "F4": true,
+    "F5": true, "F6": true, "F7": true, "F8": true,
+    "F9": true, "F10": true, "F11": true, "F12": true, "F13": true
   },
   "thermodynamics": {
-    "ΔS": -0.3,        // Entropy reduced
-    "Peace²": 1.1,     // Stable
-    "Ω₀": 0.04         // Uncertainty in band
+    "dS": -0.3,
+    "peace_squared": 1.1,
+    "omega_0": 0.04
   },
-  "ledger_hash": "sha256:a3f7b2c1d4e5...",
-  "timestamp": "2026-01-18T14:30:45Z"
+  "proof": {
+    "merkle_root": "a3f7b2c1d4e5...",
+    "verified": true,
+    "seal_ready": true
+  }
 }
 ```
 
-### PARTIAL ⚠️ (Warning)
-**Meaning:** Soft floors failed (F3/F5/F6/F8). Proceed with caution.
+### SABAR ⏳ (Default/Patience)
+**Meaning:** Soft floors need attention OR trinities not converged. Refine and retry.
 
-**Example:**
-```json
-{
-  "verdict": "PARTIAL",
-  "warnings": [
-    "F6 (Empathy) = 0.92 < 0.95 threshold",
-    "Weakest stakeholder impact uncertain"
-  ],
-  "recommendation": "Consider adding stakeholder protections before proceeding"
-}
-```
+**Energy Cost:** 0.5× (Medium — learning state)
 
-### VOID ❌ (Blocked)
-**Meaning:** Hard floor failed (F1/F2/F4/F7/F9/F10/F11/F12). Cannot proceed.
+**Examples:**
+- Soft floor violations (F3 Peace², F4 Empathy, F7 RASA, F9 Anti-Hantu)
+- Trinities not yet converged
+- System cooling after multiple attempts
 
-**Example:**
-```json
-{
-  "verdict": "VOID",
-  "failed_floors": ["F2", "F7"],
-  "reasons": [
-    "F2 (Truth): Hallucinated fact detected (confidence 0.67 < 0.99)",
-    "F7 (Humility): Uncertainty not stated for prediction"
-  ],
-  "corrective_action": "Verify facts with external sources, add uncertainty statement"
-}
-```
-
-### SABAR 🔄 (System Cooling)
-**Meaning:** Multiple floor failures. System needs to cool before retry.
-
-**Example:**
 ```json
 {
   "verdict": "SABAR",
-  "trigger": "3 consecutive VOID verdicts (F2, F4, F9)",
-  "cooling_period": "72h (Phoenix-72 protocol)",
-  "action": "Log to cooling ledger, notify human supervisor"
+  "reason": "Soft floors need attention (F4, F9)",
+  "floor_violations": ["F4: Empathy below threshold", "F9: Dark cleverness detected"],
+  "recommendation": "Add stakeholder consideration, simplify approach",
+  "decay": "72h Phoenix cooling if repeated"
 }
 ```
 
-### 888_HOLD ⏸️ (Human Approval Required)
-**Meaning:** High-stakes operation detected. Explicit human consent needed.
+### VOID ✗ (Blocked)
+**Meaning:** Hard floor violated. Cannot proceed without correction.
 
-**Example:**
+**Energy Cost:** 3× (High — must justify with evidence)
+
+**Anti-Bangang Protocol:** VOID requires:
+1. Specific floor citation (F1-F13)
+2. Evidence of violation
+3. Tri-witness approval
+
 ```json
 {
-  "verdict": "888_HOLD",
-  "trigger": "Irreversible database migration detected",
-  "consequences": [
-    "1000+ records will be modified",
-    "No rollback possible",
-    "Production system affected"
-  ],
-  "required_action": "Type 'yes, proceed' to confirm",
-  "alternative": "Run on staging environment first"
+  "verdict": "VOID",
+  "void_justification": {
+    "floor": "F2",
+    "reason": "Hard floor F2 violated",
+    "evidence": "Hallucinated fact detected (confidence 0.67 < 0.99)",
+    "tri_witness_approved": true
+  },
+  "corrective_action": "Verify facts with external sources"
 }
 ```
+
+### Special Routing: 888_HOLD (F13 Sovereign)
+
+When F13 (Sovereign Override) triggers, APEX routes to the 888 Judge (human authority):
+
+```json
+{
+  "verdict": "SABAR",
+  "f13_routing": {
+    "trigger": "Irreversible operation detected",
+    "route_to": "888 Judge (Muhammad Arif bin Fazil)",
+    "required": "Human approval before proceeding",
+    "consequences": ["No rollback possible", "Production affected"]
+  }
+}
+```
+
+This is **F13 routing**, not a separate verdict. The 888 Judge can then SEAL, SABAR, or VOID.
 
 ---
 
