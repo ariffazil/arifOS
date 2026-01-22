@@ -172,6 +172,7 @@ Above all systems: **Muhammad Arif bin Fazil** — 888 Judge, Sovereign Authorit
 | [`011_VAULT_MCP.md`](011_VAULT_MCP.md) | VAULT999 ↔ MCP Bridge |
 | [`012_VERDICT_PARADOX.md`](012_VERDICT_PARADOX.md) | Anomalous Contrast: SEAL/SABAR/VOID Logic |
 | [`013_IGNITION.md`](013_IGNITION.md) | 000_init: The 7-Step Ignition Sequence |
+| [`014_TPCP_PAPER.md`](014_TPCP_PAPER.md) | Thermodynamic Paradox Conductance Protocol Paper |
 
 ### Protocols
 
@@ -221,7 +222,7 @@ DITEMPA BUKAN DIBERI.
 
 ## XI. VERSION
 
-**arifOS v50.5.14** — Trinity Architecture
+**arifOS v50.5.21** — Trinity Architecture
 **Status:** SOVEREIGNLY_SEALED
 **Authority:** Muhammad Arif bin Fazil
 
