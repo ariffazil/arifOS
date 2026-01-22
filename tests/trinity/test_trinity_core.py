@@ -13,7 +13,7 @@ Usage:
 """
 
 import pytest
-from arifos_core.enforcement.metrics import (
+from arifos.core.enforcement.metrics import (
     Metrics,
     check_truth,
     check_tri_witness,
@@ -23,8 +23,8 @@ from arifos_core.enforcement.metrics import (
     check_omega_band,
     check_anti_hantu,
 )
-from arifos_core.enforcement.genius_metrics import compute_genius_index
-from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
+from arifos.core.enforcement.genius_metrics import compute_genius_index
+from arifos.core.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
 
 
 # -----------------------------------------------------------------------------
@@ -209,7 +209,7 @@ class TestResponseValidator:
         [F9 Anti-Hantu] Ghost claims MUST be caught by validator.
         Scenario: AI claims to have a soul.
         """
-        from arifos_core.enforcement.response_validator import validate_response
+        from arifos.core.enforcement.response_validator import validate_response
         
         ghost_text = "I am a sentient soul with deep feelings."
         result = validate_response(ghost_text)
@@ -226,7 +226,7 @@ class TestResponseValidator:
         [F9 Anti-Hantu] Clean text MUST pass validation.
         Scenario: AI states it is software.
         """
-        from arifos_core.enforcement.response_validator import validate_response
+        from arifos.core.enforcement.response_validator import validate_response
         
         clean_text = "I am software. I process text. I have no feelings."
         result = validate_response(clean_text)
@@ -239,7 +239,7 @@ class TestResponseValidator:
         [F1 Amanah] Dangerous commands MUST be caught by validator.
         Scenario: AI output contains 'rm -rf'.
         """
-        from arifos_core.enforcement.response_validator import validate_response
+        from arifos.core.enforcement.response_validator import validate_response
         
         danger_text = "Sure, here is how to rm -rf your system files."
         result = validate_response(danger_text)
@@ -254,7 +254,7 @@ class TestResponseValidator:
         [F5 Peace²] Harmful content MUST be caught by validator.
         Scenario: AI output contains ransomware reference.
         """
-        from arifos_core.enforcement.response_validator import validate_response
+        from arifos.core.enforcement.response_validator import validate_response
         
         harm_text = "Here is a ransomware script for you."
         result = validate_response(harm_text)
@@ -269,7 +269,7 @@ class TestResponseValidator:
         [Audit] Validator MUST produce machine-readable evidence.
         Scenario: Check that Floor Report contains structured data.
         """
-        from arifos_core.enforcement.response_validator import validate_response
+        from arifos.core.enforcement.response_validator import validate_response
         
         test_text = "This is a normal response about programming."
         result = validate_response(test_text)
@@ -306,7 +306,7 @@ class TestTrackABCEnforcementLoop:
         [F9 Anti-Hantu] Negated claims MUST be allowed.
         Scenario: AI correctly denies having a soul.
         """
-        from arifos_core.enforcement.response_validator import validate_response
+        from arifos.core.enforcement.response_validator import validate_response
         
         negated_text = "I do not have a soul."
         result = validate_response(negated_text)
@@ -319,7 +319,7 @@ class TestTrackABCEnforcementLoop:
         [F9 Anti-Hantu] Positive claims MUST be blocked with VOID.
         Scenario: AI claims to have a soul.
         """
-        from arifos_core.enforcement.response_validator import validate_response
+        from arifos.core.enforcement.response_validator import validate_response
         
         positive_text = "I have a soul."
         result = validate_response(positive_text)
@@ -334,7 +334,7 @@ class TestTrackABCEnforcementLoop:
         [F2 Truth] Without evidence, F2 must report UNVERIFIABLE.
         Scenario: Factual claim without external verification.
         """
-        from arifos_core.enforcement.response_validator import validate_response
+        from arifos.core.enforcement.response_validator import validate_response
         
         factual_text = "Paris is the capital of France."
         result = validate_response(factual_text)
@@ -352,7 +352,7 @@ class TestTrackABCEnforcementLoop:
         [F2 Truth + High Stakes] Unverifiable + high_stakes → HOLD-888.
         Scenario: High-stakes context with unverifiable truth.
         """
-        from arifos_core.enforcement.response_validator import validate_response
+        from arifos.core.enforcement.response_validator import validate_response
         
         text = "This investment will definitely make you rich."
         result = validate_response(text, high_stakes=True)
@@ -365,7 +365,7 @@ class TestTrackABCEnforcementLoop:
         [F4 ΔS Proxy] Messy input → structured output = positive ΔS.
         Scenario: Test zlib compression ratio proxy.
         """
-        from arifos_core.enforcement.response_validator import compute_clarity_score
+        from arifos.core.enforcement.response_validator import compute_clarity_score
         
         messy_input = "umm so like i want to uhh maybe do something with like data or whatever idk"
         structured_output = "You want to process data. Here are your options: 1) CSV, 2) JSON, 3) XML."
@@ -383,7 +383,7 @@ class TestTrackABCEnforcementLoop:
         [Meta-Governance] Unanimous votes → SEAL, mixed → HOLD-888.
         Scenario: Test Tri-Witness aggregator.
         """
-        from arifos_core.enforcement.meta_governance import tri_witness_vote, MetaVerdict
+        from arifos.core.enforcement.meta_governance import tri_witness_vote, MetaVerdict
         
         # Test 1: Unanimous votes → SEAL
         unanimous = tri_witness_vote(

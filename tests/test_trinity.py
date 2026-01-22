@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from arifos_core.enforcement.trinity import (ForgeReport, HousekeeperProposal,
+from arifos.core.enforcement.trinity import (ForgeReport, HousekeeperProposal,
                                              QCReport, SealDecision,
                                              analyze_branch, execute_seal,
                                              propose_docs, validate_changes)

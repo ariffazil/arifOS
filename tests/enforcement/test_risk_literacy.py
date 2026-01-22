@@ -18,7 +18,7 @@ import pytest
 # Set Risk-Literacy enabled for tests
 os.environ["ARIFOS_RISK_LITERACY_ENABLED"] = "1"
 
-from arifos_core.enforcement.risk_literacy import (
+from arifos.core.enforcement.risk_literacy import (
     RiskLiteracyResult, analyze_for_risk_literacy,
     calculate_confidence_from_metrics, calculate_risk_score,
     enhance_verdict_with_risk_literacy, format_output_with_risk_literacy,
@@ -277,7 +277,7 @@ class TestApexVerdictFields:
 
     def test_apex_verdict_has_fields(self):
         """ApexVerdict should have confidence, risk_score, etc."""
-        from arifos_core.system.apex_prime import ApexVerdict, Verdict
+        from arifos.core.system.apex_prime import ApexVerdict, Verdict
 
         verdict = ApexVerdict(
             verdict=Verdict.SEAL,
@@ -294,7 +294,7 @@ class TestApexVerdictFields:
 
     def test_to_dict_includes_risk_fields(self):
         """to_dict should include risk literacy fields."""
-        from arifos_core.system.apex_prime import ApexVerdict, Verdict
+        from arifos.core.system.apex_prime import ApexVerdict, Verdict
 
         verdict = ApexVerdict(
             verdict=Verdict.PARTIAL,

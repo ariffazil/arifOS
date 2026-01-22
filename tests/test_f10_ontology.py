@@ -13,7 +13,7 @@ Tests:
 
 import pytest
 
-from arifos_core.guards.ontology_guard import (
+from arifos.core.guards.ontology_guard import (
     OntologyGuard,
     OntologyRisk,
     detect_literalism,

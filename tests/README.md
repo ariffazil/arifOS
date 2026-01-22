@@ -87,6 +87,30 @@ tests/
 - `test_spec_loader_unified.py` — Spec loading logic
 - `test_runtime_manifest.py` — Manifest integrity
 
+### Evaluation Harness Tests
+**Directory:** `tests/eval/` (RE-EXPORT LAYER)
+**Canonical Source:** `arifos_eval/` (top-level package)
+**Purpose:** Constitutional compliance measurement and benchmarking
+
+**Important:** `tests/eval/` re-exports from canonical `arifos_eval/` package. Always import from `arifos_eval`:
+
+```python
+# Correct (canonical source)
+from arifos_eval.apex import ApexMeasurement
+
+# Legacy (deprecated but works)
+from tests.eval.apex import ApexMeasurement
+```
+
+**What's evaluated:**
+- **APEX metrics:** Genius (G), Dark Cleverness (C_dark), Vitality (Ψ)
+- **Floor compliance:** F1-F12 threshold validation
+- **Track A/B/C benchmarks:** F9 Anti-Hantu accuracy, F6 empathy split, meta-select consistency
+
+**See:**
+- Canonical docs: [`arifos_eval/README.md`](../arifos_eval/README.md)
+- Test integration: [`tests/eval/README.md`](eval/README.md)
+
 ---
 
 ## 🚀 Running Tests

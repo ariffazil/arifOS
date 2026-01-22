@@ -1,6 +1,6 @@
 """Tests for MCP Tool 666: ALIGN - ABSOLUTE VETO GATES"""
 import pytest
-from arifos_core.mcp.tools.mcp_666_align import (
+from arifos.core.mcp.tools.mcp_666_align import (
     mcp_666_align, mcp_666_align_sync,
     detect_f1_violation, detect_f8_violation, detect_f9_violation
 )

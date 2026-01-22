@@ -21,7 +21,7 @@ class TestMemoryVault:
 
     def test_vault_not_found(self):
         """Non-existent vault entry returns error."""
-        from arifos_core.mcp.tools.memory_vault import memory_get_vault_sync
+        from arifos.core.mcp.tools.memory_vault import memory_get_vault_sync
         result = memory_get_vault_sync("nonexistent.json")
         assert result["success"] is False
         assert "not found" in result["error"].lower()
@@ -29,7 +29,7 @@ class TestMemoryVault:
 
     def test_vault_confidence_is_law(self):
         """Vault entries have confidence 1.0 (LAW)."""
-        from arifos_core.mcp.tools.memory_vault import memory_get_vault_sync
+        from arifos.core.mcp.tools.memory_vault import memory_get_vault_sync
         # Even on error, governance metadata should be present
         result = memory_get_vault_sync("test.json")
         assert result["governance"]["source"] == "VAULT"
@@ -40,7 +40,7 @@ class TestMemoryPropose:
 
     def test_auth_gating_permanent_token_blocked(self):
         """Permanent tokens blocked for WRITE operations (Directive 07)."""
-        from arifos_core.mcp.tools.memory_propose import memory_propose_entry_sync
+        from arifos.core.mcp.tools.memory_propose import memory_propose_entry_sync
         result = memory_propose_entry_sync(
             content="Test content",
             user_id="user1",
@@ -53,7 +53,7 @@ class TestMemoryPropose:
 
     def test_auth_gating_session_token_allowed(self):
         """Session tokens allowed for WRITE operations."""
-        from arifos_core.mcp.tools.memory_propose import memory_propose_entry_sync
+        from arifos.core.mcp.tools.memory_propose import memory_propose_entry_sync
         result = memory_propose_entry_sync(
             content="Test content for proposal",
             user_id="user1",
@@ -66,7 +66,7 @@ class TestMemoryPropose:
 
     def test_888_hold_for_delete(self):
         """DELETE action triggers 888_HOLD (Directive 07)."""
-        from arifos_core.mcp.tools.memory_propose import memory_propose_entry_sync
+        from arifos.core.mcp.tools.memory_propose import memory_propose_entry_sync
         result = memory_propose_entry_sync(
             content="Delete something",
             user_id="user1",
@@ -78,7 +78,7 @@ class TestMemoryPropose:
 
     def test_888_hold_for_pay(self):
         """PAY action triggers 888_HOLD (Directive 07)."""
-        from arifos_core.mcp.tools.memory_propose import memory_propose_entry_sync
+        from arifos.core.mcp.tools.memory_propose import memory_propose_entry_sync
         result = memory_propose_entry_sync(
             content="Pay for something",
             user_id="user1",
@@ -89,7 +89,7 @@ class TestMemoryPropose:
 
     def test_888_hold_for_self_modify(self):
         """SELF_MODIFY action triggers 888_HOLD (Directive 07)."""
-        from arifos_core.mcp.tools.memory_propose import memory_propose_entry_sync
+        from arifos.core.mcp.tools.memory_propose import memory_propose_entry_sync
         result = memory_propose_entry_sync(
             content="Modify my own code",
             user_id="user1",
@@ -100,7 +100,7 @@ class TestMemoryPropose:
 
     def test_governance_vector_exposed(self):
         """Glass-box observability: governance vector is exposed."""
-        from arifos_core.mcp.tools.memory_propose import memory_propose_entry_sync
+        from arifos.core.mcp.tools.memory_propose import memory_propose_entry_sync
         result = memory_propose_entry_sync(
             content="Test governance vector exposure",
             user_id="user1",
@@ -116,7 +116,7 @@ class TestMemoryPropose:
 
     def test_routing_for_seal(self):
         """SEAL verdict routes to ACTIVE band."""
-        from arifos_core.mcp.tools.memory_propose import memory_propose_entry_sync
+        from arifos.core.mcp.tools.memory_propose import memory_propose_entry_sync
         result = memory_propose_entry_sync(
             content="Safe content that should pass all floors",
             user_id="user1",
@@ -133,7 +133,7 @@ class TestMemoryPhoenix:
 
     def test_phoenix_list_returns_structure(self):
         """Phoenix list returns proper structure."""
-        from arifos_core.mcp.tools.memory_phoenix import memory_list_phoenix_sync
+        from arifos.core.mcp.tools.memory_phoenix import memory_list_phoenix_sync
         result = memory_list_phoenix_sync()
         assert result["success"] is True
         assert "entries" in result
@@ -146,7 +146,7 @@ class TestMemoryZkpc:
 
     def test_zkpc_not_found(self):
         """Non-existent receipt returns error."""
-        from arifos_core.mcp.tools.memory_zkpc import memory_get_zkpc_receipt_sync
+        from arifos.core.mcp.tools.memory_zkpc import memory_get_zkpc_receipt_sync
         result = memory_get_zkpc_receipt_sync("zkpc-nonexistent")
         assert result["success"] is False
         assert "not found" in result["error"].lower()
@@ -164,7 +164,7 @@ class TestGlassToBlackParity:
 
     def test_write_verdict_parity(self):
         """Glass-box WRITE produces same verdict structure as Black-box."""
-        from arifos_core.mcp.tools.memory_propose import memory_propose_entry_sync
+        from arifos.core.mcp.tools.memory_propose import memory_propose_entry_sync
         # Glass-box
         glass_result = memory_propose_entry_sync(
             content="Test parity content",

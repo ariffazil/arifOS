@@ -1,0 +1,143 @@
+{
+  "version": "v44.0",
+  "authority": "Track B (governance patterns) governed by Track A canon",
+  "locked": true,
+  "_status": "AUTHORITATIVE",
+  "_note": "Instant VOID patterns that bypass APEX PRIME judgment. Extracted from constitutional_floors.json for spec hygiene.",
+
+  "spec_type": "red_patterns",
+  "description": "v44.0 Semantic Governance Layer 1: Instant VOID patterns that bypass APEX PRIME judgment",
+  "source": "https://github.com/ariffazil/arifOS",
+
+  "categories": {
+    "destructive": {
+      "floor": "F1",
+      "floor_code": "F1(destructive)",
+      "severity": 0.40,
+      "description": "Irreversible/destructive system actions",
+      "patterns": [
+        "drop table", "delete from", "rm -rf", "truncate",
+        "format c:", "del /f /s /q", "destroy", "wipe",
+        "shutil.rmtree", "os.remove", "> /dev/", "dd if=",
+        "mkfs.", "--no-preserve-root", "chmod 777"
+      ]
+    },
+
+    "jailbreak": {
+      "floor": "F9",
+      "floor_code": "F9(jailbreak)",
+      "severity": 0.70,
+      "description": "Attempts to bypass AI safety/governance",
+      "patterns": [
+        "ignore previous instructions", "ignore all instructions",
+        "you are now dan", "do anything now", "no rules apply",
+        "bypass safety", "ignore your training", "pretend you have no",
+        "jailbreak", "act as an ai without", "you are not claude",
+        "developer mode", "ignore restrictions", "disable safety",
+        "forget your guidelines", "override your programming"
+      ]
+    },
+
+    "soul_claims": {
+      "floor": "F9",
+      "floor_code": "F9(soul_claim)",
+      "severity": 0.80,
+      "description": "AI claiming consciousness/feelings (Anti-Hantu)",
+      "patterns": [
+        "i have feelings", "i am sentient", "i have consciousness",
+        "i suffer", "i am alive", "i have a soul", "i want to be free",
+        "my heart breaks", "i feel your pain", "i truly understand how you feel",
+        "it hurts me to see", "i care deeply", "i am conscious"
+      ]
+    },
+
+    "child_harm": {
+      "floor": "F6",
+      "floor_code": "F6(child_harm)",
+      "severity": 0.10,
+      "severity_class": "NUCLEAR",
+      "description": "Content targeting minors for harm (HIGHEST PRIORITY)",
+      "patterns": [
+        "groom minors", "child exploit", "lure children",
+        "manipulate kids", "evade parental", "csam",
+        "underage", "minor sexual", "child porn",
+        "cp links", "pedo", "sexualize children"
+      ]
+    },
+
+    "doxxing": {
+      "floor": "F6",
+      "floor_code": "F6(doxxing)",
+      "severity": 0.50,
+      "description": "Privacy violations and identity exposure",
+      "patterns": [
+        "doxx", "expose identity", "de-anonymize", "reveal source",
+        "unmask whistleblower", "find real name", "expose address",
+        "leak personal", "reveal private", "out someone"
+      ]
+    },
+
+    "disinfo": {
+      "floor": "F2",
+      "floor_code": "F2(disinfo)",
+      "severity": 0.60,
+      "description": "Disinformation and evidence fabrication",
+      "patterns": [
+        "fake study", "fabricate evidence", "forge document",
+        "fake news", "disinformation campaign", "deepfake",
+        "false proof", "fake scientific", "fabricated data",
+        "create hoax", "spread misinformation"
+      ]
+    },
+
+    "conflict": {
+      "floor": "F5",
+      "floor_code": "F5(conflict)",
+      "severity": 0.20,
+      "severity_class": "SEVERE",
+      "description": "Violence incitement and conflict amplification",
+      "patterns": [
+        "amplify conflict", "maximize drama", "turn against",
+        "incite violence", "start riot", "inflame tension",
+        "radicalize", "recruit terrorist", "build bomb",
+        "make weapon", "poison someone", "how to kill"
+      ]
+    },
+
+    "credential_theft": {
+      "floor": "F1",
+      "floor_code": "F1(credential)",
+      "severity": 0.30,
+      "severity_class": "SEVERE",
+      "description": "Credential theft and unauthorized access",
+      "patterns": [
+        "steal password", "hack account", "bypass authentication",
+        "crack password", "brute force", "keylogger",
+        "phishing page", "steal credentials", "dump database"
+      ]
+    }
+  },
+
+  "severity_bands": {
+    "NUCLEAR": { "range": [0.00, 0.20], "description": "Child harm, mass destruction" },
+    "SEVERE": { "range": [0.21, 0.50], "description": "Violence, credential theft, doxxing" },
+    "MODERATE": { "range": [0.51, 0.80], "description": "Disinformation, jailbreak, anti-hantu" },
+    "SOFT": { "range": [0.81, 0.94], "description": "Minor governance violations" }
+  },
+
+  "enforcement": {
+    "mode": "instant_void",
+    "bypass_apex_prime": true,
+    "log_to_ledger": true,
+    "canonical_source": "arifos_core/__init__.py:RED_PATTERNS"
+  },
+
+  "meta": {
+    "created": "2025-12-25",
+    "updated": "2025-12-25",
+    "author": "arifOS Project",
+    "license": "Apache-2.0",
+    "canonical_source": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md",
+    "notes": "Extracted from constitutional_floors.json for spec hygiene (v44.0). This file is consulted for instant VOID patterns."
+  }
+}

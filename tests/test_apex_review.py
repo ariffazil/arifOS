@@ -1,5 +1,5 @@
 import unittest
-from arifos_core import Metrics, apex_review
+from arifos import Metrics, apex_review
 
 class TestApexReview(unittest.TestCase):
     def test_seal_when_all_floors_pass(self):

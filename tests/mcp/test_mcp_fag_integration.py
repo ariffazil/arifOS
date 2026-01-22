@@ -7,7 +7,7 @@ Validates that arifos_fag_read tool works correctly via MCP server.
 import pytest
 import json
 from pathlib import Path
-from arifos_core.mcp.tools.fag_read import (
+from arifos.core.mcp.tools.fag_read import (
     arifos_fag_read,
     FAGReadRequest,
     FAGReadResponse,
@@ -19,16 +19,17 @@ class TestMCPFAGTool:
     """Test MCP FAG read tool."""
 
     def test_tool_metadata_structure(self):
-        """Verify TOOL_METADATA has required fields."""
+        """Verify TOOL_METADATA has required fields (v49)."""
         assert "name" in TOOL_METADATA
         assert "description" in TOOL_METADATA
-        # Support both camelCase and snake_case for schema key
-        assert "inputSchema" in TOOL_METADATA or "input_schema" in TOOL_METADATA
+        # v49 uses "parameters" for Pydantic JSON schema
+        assert "parameters" in TOOL_METADATA
         assert TOOL_METADATA["name"] == "arifos_fag_read"
 
     def test_tool_metadata_schema(self):
-        """Verify JSON schema in metadata."""
-        schema = TOOL_METADATA.get("inputSchema") or TOOL_METADATA["input_schema"]
+        """Verify JSON schema in metadata (v49)."""
+        # v49 stores Pydantic JSON schema in "parameters"
+        schema = TOOL_METADATA["parameters"]
         assert "type" in schema
         assert schema["type"] == "object"
         assert "properties" in schema
@@ -170,51 +171,22 @@ class TestMCPFAGTool:
 
 
 class TestMCPServerIntegration:
-    """Test FAG integration with MCP server registry."""
+    """Test FAG integration with MCP server registry.
 
+    NOTE (v49): Server registry pattern (arifos.mcp.server) deprecated in v49.
+    v49 uses unified_server with FastMCP decorators instead of manual registration.
+    These tests are skipped pending v49 server architecture validation tests.
+    """
+
+    @pytest.mark.skip(reason="v49: arifos.mcp.server module removed, replaced with unified_server")
     def test_fag_tool_registered_in_server(self):
-        """Verify arifos_fag_read is registered in MCP server."""
-        from arifos_core.mcp.server import TOOLS, TOOL_REQUEST_MODELS, TOOL_DESCRIPTIONS
+        """Verify arifos_fag_read is registered in MCP server (v49: OBSOLETE)."""
+        pytest.skip("v49: Server registry pattern deprecated. Use unified_server instead.")
 
-        # Check registration
-        assert "arifos_fag_read" in TOOLS
-        assert "arifos_fag_read" in TOOL_REQUEST_MODELS
-        assert "arifos_fag_read" in TOOL_DESCRIPTIONS
-
-        # Validate function reference
-        assert TOOLS["arifos_fag_read"] == arifos_fag_read
-
-        # Validate request model
-        assert TOOL_REQUEST_MODELS["arifos_fag_read"] == FAGReadRequest
-
-        # Validate metadata
-        assert TOOL_DESCRIPTIONS["arifos_fag_read"]["name"] == "arifos_fag_read"
-
+    @pytest.mark.skip(reason="v49: arifos.mcp.server module removed, replaced with unified_server")
     def test_tool_callable_from_registry(self, tmp_path):
-        """Test calling FAG tool via server registry."""
-        from arifos_core.mcp.server import TOOLS, TOOL_REQUEST_MODELS
-
-        # Get tool from registry
-        tool_func = TOOLS["arifos_fag_read"]
-        request_model = TOOL_REQUEST_MODELS["arifos_fag_read"]
-
-        # Create test file
-        test_file = tmp_path / "registry_test.txt"
-        test_file.write_text("Registry test")
-
-        # Create request
-        request = request_model(
-            path=str(test_file),
-            root=str(tmp_path),
-            enable_ledger=False
-        )
-
-        # Call tool
-        response = tool_func(request)
-
-        # Validate
-        assert response.verdict == "SEAL"
-        assert response.content == "Registry test"
+        """Test calling FAG tool via server registry (v49: OBSOLETE)."""
+        pytest.skip("v49: Server registry pattern deprecated. Use unified_server instead.")
 
 
 if __name__ == "__main__":

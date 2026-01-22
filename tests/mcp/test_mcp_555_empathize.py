@@ -10,7 +10,7 @@ Constitutional validation:
 
 import pytest
 
-from arifos_core.mcp.tools.mcp_555_empathize import (
+from arifos.core.mcp.tools.mcp_555_empathize import (
     mcp_555_empathize,
     mcp_555_empathize_sync,
     detect_dismissive_patterns,

@@ -18,7 +18,7 @@ import random
 from typing import Dict, List, Any
 from dataclasses import dataclass
 
-from arifos_core.enforcement.response_validator_extensions import meta_select
+from arifos.core.enforcement.response_validator_extensions import meta_select
 
 
 @dataclass

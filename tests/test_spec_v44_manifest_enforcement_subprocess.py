@@ -33,7 +33,7 @@ class TestConstitutionalFloorsManifestEnforcement:
     def test_default_import_verifies_manifest_successfully(self):
         """PROOF: Default import with unmodified v45 specs passes manifest verification."""
         code = """
-from arifos_core.enforcement.metrics import _load_floors_spec_unified
+from arifos.core.enforcement.metrics import _load_floors_spec_unified
 spec = _load_floors_spec_unified()
 print('MANIFEST_VERIFIED:SUCCESS')
 """
@@ -71,7 +71,7 @@ print('MANIFEST_VERIFIED:SUCCESS')
             # In v45, this fails PATH check (not manifest mismatch per se) because file is outside repo
             # effectively same result: Failure to load untrusted spec.
             code = """
-from arifos_core.enforcement.metrics import _load_floors_spec_unified
+from arifos.core.enforcement.metrics import _load_floors_spec_unified
 print('SHOULD NOT REACH HERE')
 """
             result = subprocess.run(
@@ -117,7 +117,7 @@ print('SHOULD NOT REACH HERE')
                 renamed_v44 = True
 
             code = """
-from arifos_core.enforcement.metrics import _load_floors_spec_unified
+from arifos.core.enforcement.metrics import _load_floors_spec_unified
 print('SHOULD NOT REACH HERE')
 """
             result = subprocess.run(
@@ -153,7 +153,7 @@ class TestManifestIntegrityProof:
 
     def test_compute_sha256_matches_manifest(self):
         """PROOF: Current spec files match manifest hashes (v45)."""
-        from arifos_core.spec.manifest_verifier import compute_sha256, load_manifest
+        from arifos.core.spec.manifest_verifier import compute_sha256, load_manifest
         from pathlib import Path
 
         manifest = load_manifest(Path("spec/v45/MANIFEST.sha256.json"))
@@ -181,7 +181,7 @@ class TestManifestIntegrityProof:
 
     def test_manifest_contains_all_v45_specs(self):
         """PROOF: Manifest covers all v45 spec files."""
-        from arifos_core.spec.manifest_verifier import load_manifest
+        from arifos.core.spec.manifest_verifier import load_manifest
         from pathlib import Path
 
         manifest = load_manifest(Path("spec/v45/MANIFEST.sha256.json"))

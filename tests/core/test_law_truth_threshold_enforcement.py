@@ -10,8 +10,12 @@ Ensure NO path can produce verdict=SEAL when truth < 0.99
 """
 
 import pytest
-from arifos_core.system.apex_prime import apex_review, TRUTH_MIN, TRUTH_THRESHOLD, TRUTH_BLOCK_MIN, Verdict
-from arifos_core.enforcement.metrics import Metrics, TRUTH_THRESHOLD as METRICS_TRUTH_THRESHOLD
+from arifos.core.system.apex_prime import apex_review, Verdict
+from arifos.core.enforcement.metrics import Metrics, TRUTH_THRESHOLD, TRUTH_BLOCK_MIN
+
+# Constitutional threshold constants (F2 Truth floor)
+TRUTH_MIN = TRUTH_THRESHOLD  # 0.99 from spec/v44/constitutional_floors.json
+METRICS_TRUTH_THRESHOLD = TRUTH_THRESHOLD  # Alias for backward compatibility
 
 
 class TestTruthThresholdEnforcement:

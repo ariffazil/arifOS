@@ -11,7 +11,7 @@ from typing import Any, Dict, Tuple
 
 import pytest
 
-from arifos_core.memory.ledger.cooling_ledger import append_entry, verify_chain
+from arifos.core.memory.ledger.cooling_ledger import append_entry, verify_chain
 
 
 def _hash_entry(entry: Dict[str, Any]) -> str:

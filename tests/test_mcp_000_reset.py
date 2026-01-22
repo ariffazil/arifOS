@@ -12,7 +12,7 @@ Constitutional validation:
 import pytest
 from datetime import datetime
 
-from arifos_core.mcp.tools.mcp_000_reset import mcp_000_reset, mcp_000_reset_sync
+from arifos.core.mcp.tools.mcp_000_reset import mcp_000_reset, mcp_000_reset_sync
 
 
 # =============================================================================

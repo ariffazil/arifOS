@@ -2,7 +2,7 @@
 tests/test_vector_adapter.py — basic tests for L3 witness adapter.
 """
 
-from arifos_core.memory.l7.vector_adapter import VectorAdapter, WitnessHit
+from arifos.core.memory.l7.vector_adapter import VectorAdapter, WitnessHit
 
 
 class DummyBackend:

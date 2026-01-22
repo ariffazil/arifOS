@@ -34,7 +34,7 @@ Test Categories:
 """
 
 import pytest
-from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import (
+from arifos.core.enforcement.floor_detectors.amanah_risk_detectors import (
     AmanahDetector,
     AmanahResult,
     RiskLevel,

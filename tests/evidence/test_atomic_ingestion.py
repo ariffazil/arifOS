@@ -4,14 +4,14 @@ Strict schema validation and firewall isolation rules.
 """
 import pytest
 from pydantic import ValidationError
-from arifos_core.enforcement.judiciary.semantic_firewall import SemanticFirewall, ApexTelemetry
-from arifos_core.enforcement.evidence.evidence_pack import EvidencePack
+from arifos.core.enforcement.judiciary.semantic_firewall import SemanticFirewall, ApexTelemetry
+from arifos.core.enforcement.evidence.evidence_pack import EvidencePack
 
 # --- Test Data ---
 VALID_HASH = "a" * 64
 VALID_URI = "https://example.com/source"
 
-from arifos_core.enforcement.evidence.evidence_pack import EvidencePack
+from arifos.core.enforcement.evidence.evidence_pack import EvidencePack
 from tests.utils import make_valid_evidence_pack, VALID_HASH
 
 def test_atomic_reject_incomplete_pack():

@@ -1,0 +1,31 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\User\OneDrive\Documents\GitHub\arifOS\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\User\OneDrive\Documents\GitHub\arifOS
+configfile: pyproject.toml
+plugins: anyio-4.12.0, cov-7.0.0
+collecting ... collected 0 items / 1 error
+
+=================================== ERRORS ====================================
+______________ ERROR collecting tests/test_orthogonal_bundles.py ______________
+ImportError while importing test module 'C:\Users\User\OneDrive\Documents\GitHub\arifOS\tests\test_orthogonal_bundles.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_orthogonal_bundles.py:9: in <module>
+    from arifos_core.mcp.models import (AgiThinkRequest, ApexAuditRequest,
+arifos_core\mcp\__init__.py:25: in <module>
+    from .server import list_tools, run_tool, TOOLS
+arifos_core\mcp\server.py:35: in <module>
+    from .tools import mcp_000_reset_sync as mcp_000_reset
+arifos_core\mcp\tools\__init__.py:39: in <module>
+    from .mcp_888_judge import mcp_888_judge, mcp_888_judge_sync
+arifos_core\mcp\tools\mcp_888_judge.py:19: in <module>
+    from arifos_core.mcp.models import FloorCheckResult, VerdictResponse
+E   ImportError: cannot import name 'FloorCheckResult' from 'arifos_core.mcp.models' (C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos_core\mcp\models.py)
+=========================== short test summary info ===========================
+ERROR tests/test_orthogonal_bundles.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+============================== 1 error in 2.41s ===============================
