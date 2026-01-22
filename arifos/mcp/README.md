@@ -1,6 +1,6 @@
 # AAA MCP — Constitutional AI Governance Protocol
 
-**Version:** v50.5.23
+**Version:** v50.5.24
 **Authority:** arifOS Constitutional Framework
 **Status:** PRODUCTION
 
@@ -319,11 +319,45 @@ arifos/mcp/
 ### Core Engine Integration
 
 ```
-MCP Tools → Bridge → Core Engines
+MCP Tools → Bridge → Kernel → Core Engines
 
-mcp_agi_genius → AGIEngine.execute()
-mcp_asi_act    → ASIEngine.execute()
-mcp_apex_judge → APEXEngine.execute()
+mcp_agi_genius → Kernel.agi  → AGIEngine.execute()
+mcp_asi_act    → Kernel.asi  → ASIEngine.execute()
+mcp_apex_judge → Kernel.apex → APEXEngine.execute()
+```
+
+### Kernel Orchestrator (v50.5.24)
+
+The Kernel ties all engines together:
+
+```python
+from arifos.core.kernel import Kernel, execute_pipeline
+
+# Full pipeline execution
+result = execute_pipeline(
+    query="Write a fibonacci function",
+    context={"user_level": "intermediate"},
+    user_id="developer_123"
+)
+
+print(result.verdict)      # SEAL, SABAR, or VOID
+print(result.proof_hash)   # Merkle proof
+print(result.floors_passed)  # ['F1', 'F2', ...]
+```
+
+**Metabolic Pipeline (111-888):**
+```
+000 INIT     → Gate (Ignition + Authority)
+111 SENSE    → AGI Δ (Context awareness)
+222 REFLECT  → AGI Δ (Self-reflection)
+333 ATLAS    → AGI Δ (Knowledge synthesis)
+444 EVIDENCE → ASI Ω (Truth grounding)
+555 EMPATHIZE → ASI Ω (Stakeholder care)
+666 ALIGN    → ASI Ω (Ethical alignment)
+777 FORGE    → EUREKA (AGI + ASI → APEX)
+888 JUDGE    → APEX Ψ (Final verdict)
+889 PROOF    → APEX Ψ (Cryptographic proof)
+999 SEAL     → Vault (Merkle + Persistence)
 ```
 
 ---
