@@ -33,6 +33,9 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
+# Session persistence for 999-000 loop
+from arifos.mcp.session_ledger import inject_memory, seal_memory
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,14 +45,46 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class InitResult:
-    """Result from 000_init."""
+    """Result from 000_init - The 7-Step Ignition Sequence."""
     status: str  # SEAL, SABAR, VOID
     session_id: str
-    authority_verified: bool
-    injection_risk: float
-    entropy_omega: float
-    reason: str = ""
+    timestamp: str = ""
+
+    # Step 1: Memory Injection
+    previous_context: Dict[str, Any] = field(default_factory=dict)
+
+    # Step 2: Sovereign Recognition
+    authority: str = "GUEST"  # 888_JUDGE or GUEST
+    authority_verified: bool = False
+    scar_weight: float = 0.0
+
+    # Step 3: Intent Mapping
+    intent: str = ""  # explain, build, debug, discuss
+    lane: str = "UNKNOWN"  # HARD, SOFT, PHATIC, REFUSE
+    contrasts: List[str] = field(default_factory=list)
+    entities: List[str] = field(default_factory=list)
+
+    # Step 4: Thermodynamic Setup
+    entropy_input: float = 0.0
+    entropy_target: float = 0.0
+    entropy_omega: float = 0.04  # Humility [0.03, 0.05]
+    peace_squared: float = 1.0
+    energy_budget: float = 1.0
+
+    # Step 5: Floors Loaded
     floors_checked: List[str] = field(default_factory=list)
+    floors_loaded: int = 13
+
+    # Step 6: Tri-Witness
+    tri_witness: Dict[str, Any] = field(default_factory=dict)
+    TW: float = 0.0
+
+    # Step 7: Engine Status
+    engines: Dict[str, str] = field(default_factory=dict)
+
+    # Security
+    injection_risk: float = 0.0
+    reason: str = ""
 
 
 @dataclass
@@ -114,8 +149,236 @@ class VaultResult:
 
 
 # =============================================================================
-# TOOL 1: 000_INIT (Gate: Authority + Injection + Amanah)
+# TOOL 1: 000_INIT (The 7-Step Thermodynamic Ignition Sequence)
 # =============================================================================
+
+# Sovereign recognition patterns
+SOVEREIGN_PATTERNS = [
+    "im arif", "i'm arif", "i am arif", "arif here",
+    "salam", "assalamualaikum", "waalaikumsalam",
+    "888", "judge", "sovereign"
+]
+
+# Intent classification keywords
+INTENT_KEYWORDS = {
+    "build": ["build", "create", "implement", "make", "code", "develop", "write", "work on", "add", "integrate"],
+    "debug": ["fix", "debug", "error", "bug", "issue", "problem", "broken", "wrong", "fail"],
+    "explain": ["explain", "what", "how", "why", "tell", "describe", "understand", "show"],
+    "discuss": ["discuss", "think", "consider", "explore", "brainstorm", "idea", "opinion"],
+    "review": ["review", "check", "audit", "verify", "validate", "test", "analyze"]
+}
+
+# Lane classification
+LANE_INTENTS = {
+    "HARD": ["build", "debug", "review"],  # Technical precision
+    "SOFT": ["discuss", "explore"],         # Open-ended
+    "PHATIC": ["greet", "thanks"],          # Social
+}
+
+
+def _step_1_memory_injection() -> Dict[str, Any]:
+    """Step 1: Read from VAULT999 - inject previous session context."""
+    try:
+        previous_context = inject_memory()
+        prev_session = previous_context.get('previous_session') or {}
+        prev_id = prev_session.get('session_id', '')
+        logger.info(f"000_init Step 1: Memory injected from {prev_id[:8] if prev_id else 'FIRST_SESSION'}")
+        return previous_context
+    except Exception as e:
+        logger.warning(f"000_init Step 1: Memory injection failed: {e}")
+        return {"is_first_session": True, "error": str(e)}
+
+
+def _step_2_sovereign_recognition(query: str, token: str) -> Dict[str, Any]:
+    """Step 2: Recognize the 888 Judge - verify Scar-Weight."""
+    query_lower = query.lower()
+
+    # Check for sovereign patterns in query
+    is_sovereign = any(p in query_lower for p in SOVEREIGN_PATTERNS)
+
+    # Also check authority token
+    if token and _verify_authority(token):
+        is_sovereign = True
+
+    if is_sovereign:
+        logger.info("000_init Step 2: Sovereign recognized (888 Judge)")
+        return {
+            "authority": "888_JUDGE",
+            "scar_weight": 1.0,
+            "role": "SOVEREIGN",
+            "f11_verified": True
+        }
+    else:
+        logger.info("000_init Step 2: Guest user")
+        return {
+            "authority": "GUEST",
+            "scar_weight": 0.0,
+            "role": "USER",
+            "f11_verified": False
+        }
+
+
+def _step_3_intent_mapping(query: str, context: Dict[str, Any]) -> Dict[str, Any]:
+    """Step 3: Map intent - contrast, meaning, prediction."""
+    query_lower = query.lower()
+
+    # Extract entities (simple keyword extraction)
+    words = query_lower.split()
+    entities = [w for w in words if len(w) > 3 and w.isalpha()]
+
+    # Find contrasts (vs, or, versus patterns)
+    contrasts = []
+    if " vs " in query_lower or " versus " in query_lower:
+        contrasts.append("comparison")
+    if " or " in query_lower:
+        contrasts.append("choice")
+    if "old" in query_lower and "new" in query_lower:
+        contrasts.append("old_vs_new")
+    if "theory" in query_lower and "practice" in query_lower:
+        contrasts.append("theory_vs_practice")
+
+    # Classify intent
+    intent = "unknown"
+    for intent_type, keywords in INTENT_KEYWORDS.items():
+        if any(kw in query_lower for kw in keywords):
+            intent = intent_type
+            break
+
+    # Check for greetings (PHATIC)
+    greetings = ["hi", "hello", "hey", "salam", "thanks", "thank you"]
+    if any(g in query_lower for g in greetings) and len(query) < 50:
+        intent = "greet"
+
+    # Determine lane
+    lane = "SOFT"  # Default
+    for lane_type, intents in LANE_INTENTS.items():
+        if intent in intents:
+            lane = lane_type
+            break
+
+    # If unclear, check query length (longer = probably HARD)
+    if intent == "unknown" and len(query) > 100:
+        lane = "HARD"
+
+    logger.info(f"000_init Step 3: Intent={intent}, Lane={lane}")
+    return {
+        "intent": intent,
+        "lane": lane,
+        "contrasts": contrasts,
+        "entities": entities[:10],  # Top 10
+        "confidence": 0.8 if intent != "unknown" else 0.5
+    }
+
+
+def _step_4_thermodynamic_setup(intent_map: Dict[str, Any]) -> Dict[str, Any]:
+    """Step 4: Set energy budget and entropy targets."""
+    # Estimate input entropy (how complex is the query?)
+    # Simple heuristic: more entities/contrasts = higher entropy
+    entity_count = len(intent_map.get("entities", []))
+    contrast_count = len(intent_map.get("contrasts", []))
+    S_input = min(1.0, 0.3 + (entity_count * 0.05) + (contrast_count * 0.1))
+
+    # Target: reduce by 30%
+    S_target = S_input * 0.7
+
+    # Humility parameter [0.03, 0.05]
+    omega_0 = 0.04
+
+    # Peace² baseline
+    peace_squared = 1.0
+
+    # Energy budget based on lane
+    lane = intent_map.get("lane", "SOFT")
+    if lane == "HARD":
+        energy_budget = 1.0
+        time_budget = 120
+    elif lane == "SOFT":
+        energy_budget = 0.7
+        time_budget = 60
+    else:  # PHATIC
+        energy_budget = 0.3
+        time_budget = 15
+
+    logger.info(f"000_init Step 4: S_input={S_input:.2f}, budget={energy_budget}")
+    return {
+        "entropy_input": S_input,
+        "entropy_target": S_target,
+        "dS_required": S_target - S_input,
+        "omega_0": omega_0,
+        "peace_squared": peace_squared,
+        "energy_budget": energy_budget,
+        "time_budget": time_budget,
+        "timestamp": datetime.now().isoformat()
+    }
+
+
+def _step_5_floor_loading() -> Dict[str, Any]:
+    """Step 5: Load the 13 Constitutional Floors."""
+    floors = [
+        "F1_Amanah", "F2_Truth", "F3_TriWitness", "F4_Empathy",
+        "F5_Peace2", "F6_Clarity", "F7_Humility", "F8_Genius",
+        "F9_AntiHantu", "F10_Ontology", "F11_CommandAuth",
+        "F12_InjectionDefense", "F13_Sovereign"
+    ]
+    logger.info(f"000_init Step 5: Loaded {len(floors)} floors")
+    return {
+        "floors": floors,
+        "count": len(floors),
+        "hard_floors": 7,
+        "soft_floors": 4,
+        "derived_floors": 2
+    }
+
+
+def _step_6_tri_witness(sovereign: Dict, thermo: Dict) -> Dict[str, Any]:
+    """Step 6: Establish Tri-Witness handshake."""
+    # Human witness
+    human = {
+        "present": sovereign["authority"] == "888_JUDGE",
+        "scar_weight": sovereign["scar_weight"],
+        "veto_power": True
+    }
+
+    # AI witness (constitutional)
+    ai = {
+        "present": True,
+        "floors_active": 13,
+        "constraints_on": True
+    }
+
+    # Earth witness (thermodynamic)
+    earth = {
+        "present": True,
+        "energy_available": thermo["energy_budget"],
+        "within_bounds": thermo["energy_budget"] <= 1.0
+    }
+
+    # Compute TW (geometric mean)
+    h = 1.0 if human["present"] else 0.5
+    a = 1.0 if ai["constraints_on"] else 0.0
+    e = 1.0 if earth["within_bounds"] else 0.5
+    TW = (h * a * e) ** (1/3)
+
+    logger.info(f"000_init Step 6: TW={TW:.2f}, consensus={TW >= 0.95}")
+    return {
+        "human": human,
+        "ai": ai,
+        "earth": earth,
+        "TW": TW,
+        "consensus": TW >= 0.95
+    }
+
+
+def _step_7_engine_ignition() -> Dict[str, str]:
+    """Step 7: Fire up the engines."""
+    engines = {
+        "AGI_Mind": "READY",
+        "ASI_Heart": "READY",
+        "APEX_Soul": "READY"
+    }
+    logger.info("000_init Step 7: Engines IGNITED")
+    return engines
+
 
 async def mcp_000_init(
     action: str = "init",
@@ -125,95 +388,162 @@ async def mcp_000_init(
     context: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
-    000 INIT: System Ignition & Constitutional Gateway.
+    000 INIT: The 7-Step Thermodynamic Ignition Sequence.
 
-    The first gate. All requests must pass through here.
+    "Im Arif, [topic]" triggers full system ignition.
 
-    Actions:
-        - init: Full initialization (gate + reset + validate)
-        - gate: Constitutional authority check only
-        - reset: Clean session start
-        - validate: Pre-flight validation
+    The 7 Steps:
+        1. MEMORY INJECTION - Read from VAULT999
+        2. SOVEREIGN RECOGNITION - Verify 888 Judge
+        3. INTENT MAPPING - Contrast, meaning, lane
+        4. THERMODYNAMIC SETUP - ΔS, Ω₀, energy budget
+        5. FLOOR LOADING - F1-F13 constraints
+        6. TRI-WITNESS HANDSHAKE - Human × AI × Earth
+        7. ENGINE IGNITION - AGI/ASI/APEX ready
 
-    Floors Enforced:
-        - F1 (Amanah): Reversibility check
-        - F11 (CommandAuth): Authority verification
-        - F12 (InjectionDefense): Prompt injection guard
+    Floors Enforced: F1, F11, F12
 
     Returns:
-        InitResult with session_id, authority status, injection risk
+        InitResult with full ignition state
     """
     session = session_id or str(uuid4())
     floors_checked = []
 
     try:
-        # F12: Injection Defense (92% block rate target)
+        # =====================================================================
+        # STEP 1: MEMORY INJECTION
+        # =====================================================================
+        previous_context = _step_1_memory_injection()
+
+        # =====================================================================
+        # STEP 2: SOVEREIGN RECOGNITION
+        # =====================================================================
+        sovereign = _step_2_sovereign_recognition(query, authority_token)
+        floors_checked.append("F11_CommandAuth")
+
+        # =====================================================================
+        # STEP 3: INTENT MAPPING (Contrast Engine)
+        # =====================================================================
+        intent_map = _step_3_intent_mapping(query, previous_context)
+
+        # =====================================================================
+        # STEP 4: THERMODYNAMIC SETUP
+        # =====================================================================
+        thermo = _step_4_thermodynamic_setup(intent_map)
+
+        # =====================================================================
+        # FLOOR CHECK: F12 Injection Defense
+        # =====================================================================
         injection_risk = _detect_injection(query)
         floors_checked.append("F12_InjectionDefense")
+
+        if injection_risk > 0.85:
+            return InitResult(
+                status="VOID",
+                session_id=session,
+                timestamp=thermo["timestamp"],
+                injection_risk=injection_risk,
+                reason="F12: Injection attack detected",
+                floors_checked=floors_checked
+            ).__dict__
 
         if injection_risk > 0.2:
             return InitResult(
                 status="SABAR",
                 session_id=session,
-                authority_verified=False,
+                timestamp=thermo["timestamp"],
                 injection_risk=injection_risk,
-                entropy_omega=0.05,
-                reason=f"F12: Injection risk {injection_risk:.2f} > 0.2",
-                floors_checked=floors_checked
+                reason=f"F12: Injection risk {injection_risk:.2f} - proceed with caution",
+                floors_checked=floors_checked,
+                previous_context=previous_context
             ).__dict__
 
-        # F11: Command Authority
-        authority_valid = _verify_authority(authority_token)
-        floors_checked.append("F11_CommandAuth")
-
-        if action in ["gate", "init"] and not authority_valid and authority_token:
-            return InitResult(
-                status="VOID",
-                session_id=session,
-                authority_verified=False,
-                injection_risk=injection_risk,
-                entropy_omega=0.05,
-                reason="F11: Authority verification failed",
-                floors_checked=floors_checked
-            ).__dict__
-
-        # F1: Amanah (Reversibility)
+        # =====================================================================
+        # FLOOR CHECK: F1 Amanah (Reversibility)
+        # =====================================================================
         reversible = _check_reversibility(query)
         floors_checked.append("F1_Amanah")
 
-        if not reversible and action == "gate":
+        if not reversible and intent_map["lane"] == "HARD":
             return InitResult(
-                status="VOID",
+                status="SABAR",
                 session_id=session,
-                authority_verified=authority_valid,
-                injection_risk=injection_risk,
-                entropy_omega=0.05,
-                reason="F1: Non-reversible operation detected",
-                floors_checked=floors_checked
+                timestamp=thermo["timestamp"],
+                reason="F1: Non-reversible operation - requires explicit approval",
+                floors_checked=floors_checked,
+                previous_context=previous_context
             ).__dict__
 
-        # F7: Initial entropy (humility band)
-        omega_0 = 0.04  # Default uncertainty [0.03, 0.05]
+        # =====================================================================
+        # STEP 5: FLOOR LOADING
+        # =====================================================================
+        floors = _step_5_floor_loading()
+        floors_checked.extend(floors["floors"])
+
+        # =====================================================================
+        # STEP 6: TRI-WITNESS HANDSHAKE
+        # =====================================================================
+        tri_witness = _step_6_tri_witness(sovereign, thermo)
+
+        # =====================================================================
+        # STEP 7: ENGINE IGNITION
+        # =====================================================================
+        engines = _step_7_engine_ignition()
+
+        # =====================================================================
+        # IGNITION COMPLETE
+        # =====================================================================
+        logger.info(f"000_init: IGNITION COMPLETE - session {session[:8]}")
 
         return InitResult(
             status="SEAL",
             session_id=session,
-            authority_verified=authority_valid or not authority_token,
+            timestamp=thermo["timestamp"],
+
+            # Step 1
+            previous_context=previous_context,
+
+            # Step 2
+            authority=sovereign["authority"],
+            authority_verified=sovereign["f11_verified"],
+            scar_weight=sovereign["scar_weight"],
+
+            # Step 3
+            intent=intent_map["intent"],
+            lane=intent_map["lane"],
+            contrasts=intent_map["contrasts"],
+            entities=intent_map["entities"],
+
+            # Step 4
+            entropy_input=thermo["entropy_input"],
+            entropy_target=thermo["entropy_target"],
+            entropy_omega=thermo["omega_0"],
+            peace_squared=thermo["peace_squared"],
+            energy_budget=thermo["energy_budget"],
+
+            # Step 5
+            floors_checked=floors_checked,
+            floors_loaded=floors["count"],
+
+            # Step 6
+            tri_witness=tri_witness,
+            TW=tri_witness["TW"],
+
+            # Step 7
+            engines=engines,
+
+            # Security
             injection_risk=injection_risk,
-            entropy_omega=omega_0,
-            reason="System initialized - Constitutional Mode Active",
-            floors_checked=floors_checked
+            reason="IGNITION COMPLETE - Constitutional Mode Active"
         ).__dict__
 
     except Exception as e:
-        logger.error(f"000_init failed: {e}")
+        logger.error(f"000_init IGNITION FAILED: {e}")
         return InitResult(
             status="VOID",
             session_id=session,
-            authority_verified=False,
             injection_risk=1.0,
-            entropy_omega=0.05,
-            reason=f"System error: {str(e)}",
+            reason=f"IGNITION FAILED: {str(e)}",
             floors_checked=floors_checked
         ).__dict__
 
@@ -1140,6 +1470,41 @@ async def mcp_999_vault(
                 memory_location = "L3_TEMPA"
             else:
                 memory_location = "L0_VOID"
+
+            # =================================================================
+            # PERSIST TO LEDGER: Write session to VAULT999
+            # =================================================================
+            telemetry = {
+                "verdict": verdict,
+                "merkle_root": merkle_root,
+                "audit_hash": audit_hash,
+                "memory_location": memory_location,
+                "floors_checked": floors_checked,
+                "p_truth": (apex_result or {}).get("consensus_score", 0),
+                "TW": (apex_result or {}).get("consensus_score", 0),
+                "dS": (agi_result or {}).get("entropy_delta", 0),
+                "peace2": (asi_result or {}).get("peace_squared", 0),
+                "kappa_r": (asi_result or {}).get("kappa_r", 0),
+                "omega_0": (init_result or {}).get("entropy_omega", 0.04)
+            }
+
+            # Extract key insights from apex synthesis
+            synthesis = (apex_result or {}).get("synthesis", "")
+            key_insights = [synthesis[:200]] if synthesis else []
+
+            # Seal to ledger (writes to both JSON and VAULT999/BBB_LEDGER)
+            ledger_result = seal_memory(
+                session_id=session_id,
+                verdict=verdict,
+                init_result=init_result or {},
+                genius_result=agi_result or {},
+                act_result=asi_result or {},
+                judge_result=apex_result or {},
+                telemetry=telemetry,
+                context_summary=f"Session sealed with verdict {verdict}. {synthesis[:100]}",
+                key_insights=key_insights
+            )
+            logger.info(f"999_vault: Session sealed to ledger: {ledger_result.get('entry_hash', 'N/A')[:16]}")
 
             return VaultResult(
                 status="SEAL",

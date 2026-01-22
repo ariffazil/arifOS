@@ -5,7 +5,7 @@
 ---
 
 ```yaml
-version: "v50.5.17"
+version: "v50.5.22"
 status: CANONICAL
 doctrine: "Theory of Anomalous Contrast"
 verdicts: [SEAL, SABAR, VOID]
@@ -130,29 +130,48 @@ VOID: ΔS >> 0 (entropy explosion, harmful)
 ### Convergence Required
 
 ```python
+# Verdict enum: SEAL, SABAR, VOID (three-state)
+class Verdict(Enum):
+    SEAL = "SEAL"    # All trinities approve
+    SABAR = "SABAR"  # Default, needs refinement
+    VOID = "VOID"    # Rejected with justification
+
+
+def wants_to_void(*trinities: Verdict) -> bool:
+    """Check if any trinity explicitly requests VOID."""
+    return any(t == Verdict.VOID for t in trinities)
+
+
+def all_trinities_approve(*trinities: Verdict) -> bool:
+    """SEAL requires unanimous SEAL across all trinities."""
+    return all(t == Verdict.SEAL for t in trinities)
+
+
 def apex_verdict(task: Task) -> Verdict:
     """
-    All three trinities must converge for SEAL.
-    Any single VOID triggers VOID.
-    Otherwise SABAR.
+    Trinities are three-state checks (SEAL / SABAR / VOID).
+    - Any explicit VOID *with valid justification* → VOID
+    - All SEAL → SEAL
+    - Otherwise → SABAR (refine and retry)
     """
-    trinity_1 = check_structural(task)   # Physics × Math × Symbol
-    trinity_2 = check_governance(task)   # Human × AI × Earth
-    trinity_3 = check_constraint(task)   # Time × Energy × Space
+    structural = check_structural(task)   # Physics × Math × Symbol
+    governance = check_governance(task)   # Human × AI × Earth
+    constraint = check_constraint(task)   # Time × Energy × Space
 
-    # VOID requires justification from at least one trinity
-    if any(t == VOID for t in [trinity_1, trinity_2, trinity_3]):
-        # But VOID must be EXPENSIVE - require explanation
-        if not has_void_justification(task):
-            return SABAR  # Cannot VOID without reason
-        return VOID
+    # VOID requires explicit trinity VOID *and* valid justification
+    if wants_to_void(structural, governance, constraint):
+        justification = generate_void_justification(task)
+        if not valid_justification(justification):
+            # Cannot VOID without reason → SABAR instead
+            return Verdict.SABAR
+        return Verdict.VOID
 
     # SEAL requires ALL trinities to approve
-    if all(t == SEAL for t in [trinity_1, trinity_2, trinity_3]):
-        return SEAL
+    if all_trinities_approve(structural, governance, constraint):
+        return Verdict.SEAL
 
     # Default: SABAR (patience, refine, retry)
-    return SABAR
+    return Verdict.SABAR
 ```
 
 ---
@@ -422,6 +441,8 @@ class ThermodynamicSignature:
         """Clarity per energy unit."""
         if self.dS >= 0:
             return 0  # No clarity gained
+        if self.total_energy <= 0:
+            return 0  # Avoid division by zero
         return abs(self.dS) / self.total_energy
 ```
 
@@ -505,7 +526,7 @@ DITEMPA BUKAN DIBERI.
 
 ---
 
-**Version:** v50.5.17
+**Version:** v50.5.22
 **Status:** CANONICAL
 **Authority:** Muhammad Arif bin Fazil
 
