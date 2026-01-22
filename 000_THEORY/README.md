@@ -51,7 +51,7 @@ Plus the **Gate** (`000_init`) and **Seal** (`999_vault`) that bound all operati
 
 ### The Floors — Constitutional Law
 
-Twelve immutable floors. No exceptions. No overrides.
+Thirteen immutable floors. No exceptions. No overrides.
 
 | Floor | Name | Threshold |
 |-------|------|-----------|
@@ -64,8 +64,10 @@ Twelve immutable floors. No exceptions. No overrides.
 | F7 | Humility Injection | Active |
 | F8 | Tri-Witness | ≥0.95 |
 | F9 | Anti-Hantu | Active |
+| F10 | Ontology Lock | LOCK |
 | F11 | Command Auth | Active |
 | F12 | Injection Defense | <0.85 |
+| F13 | Sovereign Override | Human Approval |
 
 ---
 
