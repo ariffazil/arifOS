@@ -1,9 +1,9 @@
 {
-  "$comment": "Implements: VAULT999_ARCHITECTURE_v36.3O.md | Law: v36.3Omega | Commit: 870ea5d",
+  "$comment": "Implements: CCC_ARCHITECTURE_v36.3O.md | Law: v36.3Omega | Commit: 870ea5d",
   "meta": {
     "spec_id": "vault999_ledger_schema_v36.3O",
     "epoch": "v36.3Omega",
-    "implements": "v36.3O/canon/VAULT999_ARCHITECTURE_v36.3O.md",
+    "implements": "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md",
     "law_source": "v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md",
     "law_commit": "870ea5d",
     "purpose": "L0-L4 layer schemas for VAULT-999 constitutional memory",
@@ -363,3 +363,4 @@
     "Any content not sealed by APEX PRIME"
   ]
 }
+

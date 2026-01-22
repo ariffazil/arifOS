@@ -189,7 +189,7 @@ The following v37 components are now bound to the mainline runtime path:
 
 | Component | Module | Canon Reference |
 |-----------|--------|-----------------|
-| **VAULT-999** | `arifos_core.memory.vault_manager` | `VAULT999_ARCHITECTURE_v36.3O.md` |
+| **VAULT-999** | `arifos_core.memory.vault_manager` | `CCC_ARCHITECTURE_v36.3O.md` |
 | **Memory Stack** | `arifos_core.memory.memory_context` | `ARIFOS_MEMORY_STACK_v36.3O.md` |
 | **Cooling Ledger** | `arifos_core.memory.cooling_ledger` | `COOLING_LEDGER_INTEGRITY_v36.3O.md` |
 | **Phoenix-72** | `arifos_core.memory.phoenix72_controller` | `VAULT_999_AMENDMENTS_v36.3O.md` |
@@ -315,3 +315,4 @@ These define the physics interpretation, paradox law, gradient law, and persona 
 *This bridge file summarizes binding canon for operational use. For authoritative governance law, consult the source MD/PDF files.*
 
 **DITEMPA BUKAN DIBERI** - Forged, not given; truth must cool before it rules.
+

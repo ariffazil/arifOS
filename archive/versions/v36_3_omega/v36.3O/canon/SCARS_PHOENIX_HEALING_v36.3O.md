@@ -11,7 +11,7 @@
 | File | Location | Status |
 |------|----------|--------|
 | **SCARS_PHOENIX_HEALING_v36.3O.md** | `v36.3O/canon/` | **BINDING** |
-| VAULT999_ARCHITECTURE_v36.3O.md | `v36.3O/canon/` | L2/L3 context |
+| CCC_ARCHITECTURE_v36.3O.md | `v36.3O/canon/` | L2/L3 context |
 | VAULT_999_AMENDMENTS_v36.3O.md | `v36.3O/canon/` | Amendment integration |
 | spec/scar_record_spec_v36.3O.json | `v36.3O/spec/` | Machine-readable schema |
 
@@ -286,3 +286,4 @@ Scars can trigger Phoenix-72 amendments:
 **Last Verified:** 2025-12-12
 
 *This canon governs scar record schemas and indices, Phoenix-72 integration, and healing/deprecation workflows across arifOS releases.*
+

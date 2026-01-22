@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://arifos/spec/eureka_receipt_spec_v36.3O.json",
-  "$comment": "Implements: VAULT999_ARCHITECTURE_v36.3O.md (L4 zkPC) | Law: v36.3Omega",
+  "$comment": "Implements: CCC_ARCHITECTURE_v36.3O.md (L4 zkPC) | Law: v36.3Omega",
   "title": "EUREKA Receipt v36.3Omega",
   "description": "Schema for zkPC (Zero-Knowledge Proof of Cognition) receipts anchoring governed cognition without exposing internal reasoning.",
   "type": "object",
@@ -9,7 +9,7 @@
     "spec_id": "eureka_receipt_spec_v36.3O",
     "epoch": "v36.3Omega",
     "implements": [
-      "v36.3O/canon/VAULT999_ARCHITECTURE_v36.3O.md",
+      "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md",
       "v36.3O/spec/vault999_ledger_schema_v36.3O.json"
     ],
     "law_source": "v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md",
@@ -214,3 +214,4 @@
   ],
   "additionalProperties": false
 }
+

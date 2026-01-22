@@ -20,7 +20,7 @@ import pytest
 from typing import Tuple, Optional
 
 # Import semantic governance functions
-from arifos_core import (
+from arifos import (
     evaluate_session,
     check_red_patterns,
     compute_metrics_from_task,

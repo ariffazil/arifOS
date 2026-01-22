@@ -10,7 +10,7 @@
     "epoch": "v36.3Omega",
     "implements": [
       "v36.3O/canon/VAULT_999_AMENDMENTS_v36.3O.md",
-      "v36.3O/canon/VAULT999_ARCHITECTURE_v36.3O.md"
+      "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md"
     ],
     "law_source": "v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md",
     "purpose": "Machine-readable amendment record for Vault-999 floors and related parameters.",
@@ -204,3 +204,4 @@
   ],
   "additionalProperties": false
 }
+

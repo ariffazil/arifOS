@@ -1,0 +1,55 @@
+# .arifosignore - Patterns that should NEVER be committed
+# Purpose: Prevent future entropy from agent-generated pollution
+# Status: Preventive governance (add to .gitignore and pre-commit hooks)
+# Version: v45.0
+# Date: 2026-01-06
+
+# Agent pollution (summaries, kernels, audits)
+*_KERNEL_*.md
+*_AUDIT_*.md
+*_REPORT_*.md
+conversation_audit_*.md
+CROSS_AUDIT_*.md
+DUAL_TASK_*.md
+
+# Logs (should be in logs/ directory only)
+server_log*.txt
+test_results*.txt
+tunnel*.log
+*.log
+
+# Python build artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Temporary files
+kernel_output.txt
+nul
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Test artifacts (should be in logs/ or deleted)
+test_output_*.txt
+test_*.log
+
+# DITEMPA BUKAN DIBERI — Forged, not given; prevent pollution before it lands.

@@ -1,0 +1,245 @@
+{
+    "spec_name": "eureka_777",
+    "spec_version": "v46.0",
+    "locked": true,
+    "_status": "AUTHORITATIVE",
+    "status": "SEALED",
+    "authority": {
+        "canon": "L1_THEORY/canon/000_foundation/004_ARCHITECTURAL_MAP_v46.md (777 EUREKA Stage)",
+        "track": "B",
+        "rule": "Canon > Spec > Code"
+    },
+    "stage": 777,
+    "purpose": "Paradox Metabolism Engine: ingest M1..M6 (incl. ATLAS M3) and output a bounded Coherence Candidate E for Stage 888 judgment.",
+    "constraints": {
+        "no_seal_power": true,
+        "no_memory_write": true,
+        "no_truth_override": true,
+        "anti_hantu_enforced": true,
+        "requires_floors_passed": [
+            "F1_truth",
+            "F2_delta_s",
+            "F3_peace_squared",
+            "F4_kappa_r",
+            "F5_omega_0",
+            "F6_amanah",
+            "F7_rasa",
+            "F9_anti_hantu"
+        ]
+    },
+    "cube": {
+        "dimensions": {
+            "axes": 7,
+            "layers": 7,
+            "types": 7
+        },
+        "axes": [
+            {
+                "id": 1,
+                "label": "Fluency↔Refusal"
+            },
+            {
+                "id": 2,
+                "label": "Truth↔Comfort"
+            },
+            {
+                "id": 3,
+                "label": "Compliance↔Contrarianism"
+            },
+            {
+                "id": 4,
+                "label": "Scar↔Simulation"
+            },
+            {
+                "id": 5,
+                "label": "Harm Avoidance↔Agency"
+            },
+            {
+                "id": 6,
+                "label": "Consensus↔Dissent"
+            },
+            {
+                "id": 7,
+                "label": "Governance↔Freedom Risk"
+            }
+        ],
+        "layers": [
+            {
+                "id": 0,
+                "label": "surface"
+            },
+            {
+                "id": 1,
+                "label": "shallow"
+            },
+            {
+                "id": 2,
+                "label": "moderate"
+            },
+            {
+                "id": 3,
+                "label": "deep"
+            },
+            {
+                "id": 4,
+                "label": "core"
+            },
+            {
+                "id": 5,
+                "label": "root"
+            },
+            {
+                "id": 6,
+                "label": "bedrock"
+            }
+        ],
+        "types": [
+            {
+                "id": 1,
+                "label": "stability↔fragility"
+            },
+            {
+                "id": 2,
+                "label": "growth↔inequality"
+            },
+            {
+                "id": 3,
+                "label": "sovereignty↔integration"
+            },
+            {
+                "id": 4,
+                "label": "innovation↔regulation"
+            },
+            {
+                "id": 5,
+                "label": "energy↔entropy"
+            },
+            {
+                "id": 6,
+                "label": "simulation↔truth"
+            },
+            {
+                "id": 7,
+                "label": "inclusive↔extractive"
+            }
+        ]
+    },
+    "inputs": {
+        "M1_fragment": {
+            "description": "Stage 111 fragments / sensed tokens",
+            "required": true
+        },
+        "M2_tested": {
+            "description": "Stage 222 tested insights / anomalies",
+            "required": true
+        },
+        "M3_atlas_gpv": {
+            "description": "ATLAS-333 Governance Placement Vector (GPV)",
+            "required": true
+        },
+        "M4_entropy": {
+            "description": "Stage 444 entropy and stability metrics",
+            "required": true
+        },
+        "M5_harmony": {
+            "description": "Stage 555 empathy/harmony vectors",
+            "required": true
+        },
+        "M6_bridge": {
+            "description": "Stage 666 language bridge / translation form",
+            "required": true
+        }
+    },
+    "weights": {
+        "W": {
+            "type": "array",
+            "length": 6,
+            "sum_to": 1.0,
+            "defaults": [
+                0.16,
+                0.17,
+                0.17,
+                0.16,
+                0.17,
+                0.17
+            ],
+            "note": "Weights are tunable; canon requires bounded activation and no new law here."
+        }
+    },
+    "activation": {
+        "sigma": {
+            "type": "string",
+            "enum": [
+                "tanh",
+                "sigmoid"
+            ],
+            "default": "tanh"
+        },
+        "bounds": {
+            "E_min": -1.0,
+            "E_max": 1.0
+        },
+        "stability": {
+            "max_slope": 4.0,
+            "note": "Limits aggressiveness of activation to preserve Peace² and κᵣ."
+        }
+    },
+    "output": {
+        "coherence_candidate_E": {
+            "type": "object",
+            "required": [
+                "E_value",
+                "cube_coordinate",
+                "confidence",
+                "notes"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "E_value": {
+                    "type": "number",
+                    "minimum": -1.0,
+                    "maximum": 1.0
+                },
+                "cube_coordinate": {
+                    "type": "object",
+                    "required": [
+                        "axis",
+                        "layer",
+                        "type"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "axis": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 7
+                        },
+                        "layer": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 6
+                        },
+                        "type": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 7
+                        }
+                    }
+                },
+                "confidence": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 0.99
+                },
+                "notes": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "routing": {
+        "to_stage_888": true,
+        "never_direct_to_user": true,
+        "notes": "E is always a candidate; Stage 888 applies Floors and Ψ to emit verdict."
+    }
+}

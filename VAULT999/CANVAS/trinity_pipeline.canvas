@@ -1,0 +1,126 @@
+{
+  "nodes": [
+    {
+      "id": "stage-000",
+      "type": "text",
+      "text": "# 000 VOID\n∅ Session Reset",
+      "x": 0,
+      "y": 0,
+      "width": 200,
+      "height": 100,
+      "color": "1"
+    },
+    {
+      "id": "stage-111",
+      "type": "text",
+      "text": "# 111 SENSE\n👁️ Pattern Recognition",
+      "x": 300,
+      "y": 0,
+      "width": 200,
+      "height": 100,
+      "color": "4"
+    },
+    {
+      "id": "stage-222",
+      "type": "text",
+      "text": "# 222 REFLECT\n🔮 Memory Access",
+      "x": 600,
+      "y": 0,
+      "width": 200,
+      "height": 100,
+      "color": "4"
+    },
+    {
+      "id": "stage-333",
+      "type": "text",
+      "text": "# 333 ATLAS\n🗺️ Meta-Cognition",
+      "x": 900,
+      "y": 0,
+      "width": 200,
+      "height": 100,
+      "color": "4"
+    },
+    {
+      "id": "stage-444",
+      "type": "text",
+      "text": "# 444 ALIGN\n⚖️ Value Check",
+      "x": 0,
+      "y": 200,
+      "width": 200,
+      "height": 100,
+      "color": "3"
+    },
+    {
+      "id": "stage-555",
+      "type": "text",
+      "text": "# 555 EMPATHY\n❤️ Stakeholder Model",
+      "x": 300,
+      "y": 200,
+      "width": 200,
+      "height": 100,
+      "color": "3"
+    },
+    {
+      "id": "stage-666",
+      "type": "text",
+      "text": "# 666 BRIDGE\n🌉 Neuro-Symbolic",
+      "x": 600,
+      "y": 200,
+      "width": 200,
+      "height": 100,
+      "color": "3"
+    },
+    {
+      "id": "stage-777",
+      "type": "text",
+      "text": "# 777 EUREKA\n💡 Discovery",
+      "x": 900,
+      "y": 200,
+      "width": 200,
+      "height": 100,
+      "color": "5"
+    },
+    {
+      "id": "stage-888",
+      "type": "text",
+      "text": "# 888 JUDGE\n⚖️ APEX Verdict",
+      "x": 450,
+      "y": 400,
+      "width": 200,
+      "height": 120,
+      "color": "6"
+    },
+    {
+      "id": "stage-999",
+      "type": "text",
+      "text": "# 999 VAULT\n🔒 Immutable Storage",
+      "x": 450,
+      "y": 600,
+      "width": 200,
+      "height": 100,
+      "color": "1"
+    },
+    {
+      "id": "legend",
+      "type": "text",
+      "text": "## Legend\n🟢 AGI (Δ) - Architect\n🔵 ASI (Ω) - Guardian\n🟣 APEX (Ψ) - Judge\n⬜ HARD Lane (Mandatory)",
+      "x": 1200,
+      "y": 0,
+      "width": 220,
+      "height": 150,
+      "color": "0"
+    }
+  ],
+  "edges": [
+    { "id": "e-000-111", "fromNode": "stage-000", "toNode": "stage-111", "fromSide": "right", "toSide": "left" },
+    { "id": "e-111-222", "fromNode": "stage-111", "toNode": "stage-222", "fromSide": "right", "toSide": "left" },
+    { "id": "e-222-333", "fromNode": "stage-222", "toNode": "stage-333", "fromSide": "right", "toSide": "left" },
+    { "id": "e-333-444", "fromNode": "stage-333", "toNode": "stage-444", "fromSide": "bottom", "toSide": "top" },
+    { "id": "e-444-555", "fromNode": "stage-444", "toNode": "stage-555", "fromSide": "right", "toSide": "left" },
+    { "id": "e-555-666", "fromNode": "stage-555", "toNode": "stage-666", "fromSide": "right", "toSide": "left" },
+    { "id": "e-666-777", "fromNode": "stage-666", "toNode": "stage-777", "fromSide": "right", "toSide": "left" },
+    { "id": "e-777-888", "fromNode": "stage-777", "toNode": "stage-888", "fromSide": "bottom", "toSide": "top" },
+    { "id": "e-888-999", "fromNode": "stage-888", "toNode": "stage-999", "fromSide": "bottom", "toSide": "top" },
+    { "id": "e-999-000", "fromNode": "stage-999", "toNode": "stage-000", "fromSide": "left", "toSide": "bottom", "label": "Loop" }
+  ]
+}
