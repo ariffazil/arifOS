@@ -1,0 +1,14 @@
+[build]
+builder = "nixpacks"
+buildCommand = "pip install -e ."
+
+[deploy]
+startCommand = "python -m arifos.mcp trinity-sse"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+
+[environments.production]
+PORT = 8000
+AAA_MCP_PORT = 8000
+PYTHONUNBUFFERED = "1"
