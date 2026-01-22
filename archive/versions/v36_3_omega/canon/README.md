@@ -22,7 +22,7 @@ This directory contains the **Law Layer** (Track A) of arifOS v36.3Omega:
 | **50_OVERSIGHT** | `50_OVERSIGHT/` | W@W Federation five organs |
 | **60_DREAMFORGE** | `60_DREAMFORGE/` | Dream Forge architecture blueprint |
 | **70_PARADOX** | `70_PARADOX/` | 777 Cube paradox canon |
-| **80_VAULT999** | `80_VAULT999/` | Vault-999 complete specification |
+| **80_CCC** | `80_CCC/` | Vault-999 complete specification |
 | **90_GOV** | `90_GOV/` | Essential canon files index, unified research |
 
 ## Bridge Files
@@ -37,7 +37,7 @@ Bridge files in this directory summarize zone canons:
 | `OVERSIGHT_WAW_FEDERATION_v36.3O.md` | 50_OVERSIGHT | Five organs, veto hierarchy |
 | `DREAMFORGE_ARCHITECTURE_v36.3O.md` | 60_DREAMFORGE | O-TASK cadence, lab mode |
 | `PARADOX_777_CUBE_v36.3O.md` | 70_PARADOX | Cube geometry, Crown Equation |
-| `VAULT999_ARCHITECTURE_v36.3O.md` | 80_VAULT999 | L0-L4 layers, hash chain |
+| `CCC_ARCHITECTURE_v36.3O.md` | 80_CCC | L0-L4 layers, hash chain |
 | `GOV_META_v36.3O.md` | 90_GOV | Genesis, Anti-Hantu, SABAR |
 | `MEASUREMENT_APEX_STANDARDS_v36.3O.md` | (cross-zone) | F1-F9 measurement methods |
 | `CANON_MAP_v36.3O.md` | (index) | Single source of truth mapping |
@@ -52,7 +52,7 @@ Additional v36.3O canon files in the legacy `canon/` directory:
 | `canon/00_META/051_METABOLIZER_LOOP_LLM_INTEGRATION_v36.3Omega.md` | META | LLM governance placement |
 | `canon/01_PHYSICS/060_PARADOX_ENGINE_PHYSICS_v36.3Omega.md` | PHYSICS | Paradox cooling physics |
 | `canon/06_PARADOX/061_DREAM_FORGE_PROTOCOL_v36.3Omega.md` | PARADOX | O-TASK protocol canon |
-| `canon/07_VAULT999/062_VAULT999_FINAL_SEAL_PROTOCOL_v36.3Omega.md` | VAULT999 | Final Seal requirements |
+| `canon/07_CCC/062_CCC_FINAL_SEAL_PROTOCOL_v36.3Omega.md` | CCC | Final Seal requirements |
 
 ## Key Constructs
 
@@ -78,3 +78,4 @@ Additional v36.3O canon files in the legacy `canon/` directory:
 ---
 
 **DITEMPA BUKAN DIBERI** — Forged, not given.
+

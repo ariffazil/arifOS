@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "arifOS v45 – Handshake Packet Schema",
+  "type": "object",
+  "description": "Schema for the AAA Orchestrator handshake packet, exposing Trinity engine outputs, witness fields, and verdict data for audit.",
+  "properties": {
+    "arif_delta": {
+      "type": "object",
+      "description": "Outputs from ARIF (Δ engine)",
+      "properties": {
+        "unknowns": {
+          "type": "array",
+          "description": "List of unresolved queries or ambiguities identified by ARIF",
+          "items": { "type": "string" }
+        }
+      },
+      "required": [ "unknowns" ]
+    },
+    "adam_omega": {
+      "type": "object",
+      "description": "Outputs from ADAM (Ω engine)",
+      "properties": {
+        "peace2_risk": {
+          "type": "number",
+          "description": "Stability risk indicator (0.0 = no risk, 1.0 = maximum conflict risk)",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [ "peace2_risk" ]
+    },
+    "apex_psi": {
+      "type": "object",
+      "description": "Outputs from APEX Prime (Ψ engine)",
+      "properties": {
+        "verdict": {
+          "type": "string",
+          "description": "Final orchestrator verdict code",
+          "enum": [ "SEAL", "SABAR", "PARTIAL", "VOID", "HOLD" ]
+        },
+        "shadow_score": {
+          "type": "number",
+          "description": "Composite Shadow Capacitor score (hidden bias/drift metric)",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [ "verdict", "shadow_score" ]
+    },
+    "witness_outputs": {
+      "type": "object",
+      "description": "Outputs from W@W Federation witnesses and @EYE sentinel",
+      "properties": {
+        "@WELL": {
+          "type": "object",
+          "properties": { "notes": { "type": "string" } },
+          "required": [ "notes" ]
+        },
+        "@RIF": {
+          "type": "object",
+          "properties": { "notes": { "type": "string" } },
+          "required": [ "notes" ]
+        },
+        "@WEALTH": {
+          "type": "object",
+          "properties": { "notes": { "type": "string" } },
+          "required": [ "notes" ]
+        },
+        "@GEOX": {
+          "type": "object",
+          "properties": { "notes": { "type": "string" } },
+          "required": [ "notes" ]
+        },
+        "@PROMPT": {
+          "type": "object",
+          "properties": { "notes": { "type": "string" } },
+          "required": [ "notes" ]
+        },
+        "@EYE": {
+          "type": "object",
+          "properties": { "notes": { "type": "string" } },
+          "required": [ "notes" ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [ "@WELL", "@RIF", "@WEALTH", "@GEOX", "@PROMPT", "@EYE" ]
+    },
+    "sovereign_query": {
+      "type": "string",
+      "description": "Sovereign Query trigger code (requires human override)",
+      "enum": [ "REALITY_GAP", "PARADOX_LOCK", "SHADOW_RESET", "WITNESS_ABSENT" ]
+    }
+  },
+  "required": [ "arif_delta", "adam_omega", "apex_psi", "witness_outputs" ]
+}

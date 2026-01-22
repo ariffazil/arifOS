@@ -15,8 +15,8 @@ Version: v38.3
 """
 
 import pytest
-from arifos_core.memory.policy import VERDICT_BAND_ROUTING, MemoryWritePolicy
-from arifos_core.memory.bands import PendingBand, PhoenixCandidatesBand, BandName
+from arifos.core.memory.core.policy import VERDICT_BAND_ROUTING, MemoryWritePolicy
+from arifos.core.memory.core.bands import PendingBand, PhoenixCandidatesBand, BandName
 
 
 class TestSABARPartialSeparation:
@@ -38,7 +38,7 @@ class TestSABARPartialSeparation:
 
     def test_pending_band_properties(self):
         """✅ PENDING band has correct properties (HOT, 7 days)"""
-        from arifos_core.memory.bands import BAND_PROPERTIES
+        from arifos.core.memory.core.bands import BAND_PROPERTIES
         
         pending_props = BAND_PROPERTIES.get('PENDING')
         assert pending_props is not None

@@ -315,7 +315,7 @@ class TestIntegration:
 
     def test_bridge_function_accessible(self):
         """F1 (Amanah): Bridge function must be accessible from MCP layer."""
-        from arifos_core import evaluate_session
+        from arifos import evaluate_session
         assert callable(evaluate_session), "evaluate_session must be callable"
 
 

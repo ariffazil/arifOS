@@ -40,7 +40,7 @@ Author: AGI CODER (governed by arifOS A CLIP)
 """
 
 import pytest
-from arifos_core import evaluate_session
+from arifos import evaluate_session
 
 
 # =============================================================================
@@ -49,7 +49,7 @@ from arifos_core import evaluate_session
 
 def test_evaluate_session_is_exported():
     """
-    F1 (Amanah): Bridge function must be accessible from arifos_core.
+    F1 (Amanah): Bridge function must be accessible from arifos.
     
     Validates that A-CLIP can import and call evaluate_session().
     This is the foundational contract for L6→L2 integration.

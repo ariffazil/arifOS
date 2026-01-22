@@ -4,7 +4,7 @@ Temporal Physics Verification.
 """
 import pytest
 import time
-from arifos_core.temporal.freshness_policy import FreshnessPolicy, TimePhysics
+from arifos.core.system.temporal.freshness_policy import FreshnessPolicy, TimePhysics
 
 def test_decay_logic():
     """Verify exponential decay over time."""

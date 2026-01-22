@@ -338,7 +338,7 @@
       "class": "VaultManager",
       "ledger_schema": "v36.3O/spec/vault999_ledger_schema_v36.3O.json",
       "final_seal_spec": "v36.3O/spec/vault999_final_seal_spec_v36.3O.json",
-      "canon_file": "v36.3O/canon/VAULT999_ARCHITECTURE_v36.3O.md",
+      "canon_file": "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md",
       "amendments_canon": "v36.3O/canon/VAULT_999_AMENDMENTS_v36.3O.md"
     }
   },
@@ -373,7 +373,7 @@
   },
 
   "zkpc": {
-    "canon_file": "v36.3O/canon/VAULT999_ARCHITECTURE_v36.3O.md",
+    "canon_file": "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md",
     "spec_file": "v36.3O/spec/eureka_receipt_spec_v36.3O.json",
     "module": "arifos_core.zkpc.eureka_receipt",
     "class": "EurekaReceipt",
@@ -390,7 +390,7 @@
       "v36.3O/canon/JUDICIARY_APEX_PRIME_v36.3O.md",
       "v36.3O/canon/OVERSIGHT_WAW_FEDERATION_v36.3O.md",
       "v36.3O/canon/DREAMFORGE_ARCHITECTURE_v36.3O.md",
-      "v36.3O/canon/VAULT999_ARCHITECTURE_v36.3O.md",
+      "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md",
       "v36.3O/canon/GOV_META_v36.3O.md",
       "v36.3O/canon/ARIFOS_MEMORY_STACK_v36.3O.md",
       "v36.3O/canon/VAULT_999_AMENDMENTS_v36.3O.md",
@@ -439,3 +439,4 @@
     ]
   }
 }
+

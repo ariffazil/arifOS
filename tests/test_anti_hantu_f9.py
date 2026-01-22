@@ -4,7 +4,7 @@ Tests for Anti-Hantu (F9) floor and @EYE Sentinel enforcement.
 
 import pytest
 
-from arifos_core import (
+from arifos import (
     Metrics,
     check_floors,
     apex_review,

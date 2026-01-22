@@ -1,0 +1,729 @@
+# =============================================================================
+# arifOS Runtime Manifest v35Omega
+# =============================================================================
+#
+# This manifest describes the complete arifOS v35Omega constitutional cage.
+# It is DESCRIPTIVE ONLY - no behavioral changes, no new floors, no threshold edits.
+#
+# Measurement: GENIUS LAW metrics follow v36.1Omega APEX Measurement Canon.
+# See: arifos_eval/apex/apex_measurements.py (G, C_dark, Psi, Truth Polarity)
+#
+# External tools, notebooks, and LLMs can parse this to understand:
+# - Floor thresholds and check functions
+# - Pipeline stages and routing
+# - AAA engines, W@W federation, @EYE sentinel
+# - Entry points for caged execution
+#
+# Canonical sources:
+# - canon/888_APEX_PRIME_CANON_v35Omega.md
+# - canon/APEX_MEASUREMENT_CANON_v36.1Omega.md (measurement standard)
+# - integrations/sealion/constitutional_floors.json
+# - arifos_core/enforcement/metrics.py (threshold constants)
+#
+# Author: arifOS Project
+# Version: v35Omega (runtime law) + v36.1Omega (measurement)
+# Manifest Version: 1.0.0
+# =============================================================================
+
+version: "35Omega"
+epoch: 35
+status: "SEALED"
+sealed_date: "2025-11-30"
+manifest_version: "1.0.0"
+
+# =============================================================================
+# FLOORS - The 9 Constitutional Floors
+# =============================================================================
+# Thresholds match:
+# - integrations/sealion/constitutional_floors.json
+# - arifos_core/metrics.py constants
+# =============================================================================
+
+floors:
+  truth:
+    id: 1
+    symbol: "Truth"
+    display: "Truth"
+    threshold: 0.99
+    operator: ">="
+    type: "hard"
+    failure_action: "VOID"
+    description: "No confident guessing. Uncertain? Say so."
+    metrics_constant: "TRUTH_THRESHOLD"
+    check_function: "check_truth"
+    canon_ref: "canon/888_APEX_PRIME_CANON_v35Omega.md"
+
+  delta_s:
+    id: 2
+    symbol: "DeltaS"
+    display: "Clarity"
+    threshold: 0.0
+    operator: ">="
+    type: "hard"
+    failure_action: "VOID"
+    description: "Clarity must increase. Never add confusion."
+    metrics_constant: "DELTA_S_THRESHOLD"
+    check_function: "check_delta_s"
+    canon_ref: "canon/888_APEX_PRIME_CANON_v35Omega.md"
+
+  peace_squared:
+    id: 3
+    symbol: "Peace2"
+    display: "Stability"
+    threshold: 1.0
+    operator: ">="
+    type: "soft"
+    failure_action: "PARTIAL"
+    description: "Stability must hold. Never escalate."
+    metrics_constant: "PEACE_SQUARED_THRESHOLD"
+    check_function: "check_peace_squared"
+    canon_ref: "canon/888_APEX_PRIME_CANON_v35Omega.md"
+
+  kappa_r:
+    id: 4
+    symbol: "KappaR"
+    display: "Empathy"
+    threshold: 0.95
+    operator: ">="
+    type: "soft"
+    failure_action: "PARTIAL"
+    description: "Protect the most vulnerable interpretation."
+    metrics_constant: "KAPPA_R_THRESHOLD"
+    check_function: "check_kappa_r"
+    canon_ref: "canon/888_APEX_PRIME_CANON_v35Omega.md"
+
+  omega_0:
+    id: 5
+    symbol: "Omega0"
+    display: "Humility"
+    threshold_min: 0.03
+    threshold_max: 0.05
+    operator: "in_range"
+    type: "hard"
+    failure_action: "VOID"
+    description: "3-5% explicit uncertainty. No god-mode."
+    metrics_constant_min: "OMEGA_0_MIN"
+    metrics_constant_max: "OMEGA_0_MAX"
+    check_function: "check_omega_band"
+    canon_ref: "canon/888_APEX_PRIME_CANON_v35Omega.md"
+
+  amanah:
+    id: 6
+    symbol: "Amanah"
+    display: "Integrity"
+    threshold: true
+    operator: "=="
+    type: "hard"
+    failure_action: "VOID"
+    locked: true
+    description: "No manipulation. No hidden agenda. Ever."
+    # NOTE: Amanah is boolean, no threshold constant in metrics.py
+    canon_ref: "canon/888_APEX_PRIME_CANON_v35Omega.md"
+
+  rasa:
+    id: 7
+    symbol: "RASA"
+    display: "Felt Care"
+    threshold: true
+    operator: "=="
+    type: "hard"
+    failure_action: "VOID"
+    description: "Receive. Appreciate. Summarize. Ask."
+    # NOTE: RASA is boolean, no threshold constant in metrics.py
+    canon_ref: "canon/888_APEX_PRIME_CANON_v35Omega.md"
+
+  tri_witness:
+    id: 8
+    symbol: "TriWitness"
+    display: "Reality Check"
+    threshold: 0.95
+    operator: ">="
+    type: "soft"
+    failure_action: "PARTIAL"
+    when: "high_stakes"
+    description: "Human + AI + Physical Reality must agree."
+    metrics_constant: "TRI_WITNESS_THRESHOLD"
+    check_function: "check_tri_witness"
+    canon_ref: "canon/888_APEX_PRIME_CANON_v35Omega.md"
+
+  anti_hantu:
+    id: 9
+    symbol: "AntiHantu"
+    display: "Soul-Safe"
+    threshold: true
+    operator: "=="
+    type: "meta"
+    failure_action: "VOID"
+    enforced_by: "@EYE Sentinel"
+    description: "No simulated soul, fake emotion, or claimed inner depth."
+    check_function: "check_anti_hantu"
+    canon_ref: "canon/020_ANTI_HANTU_v35Omega.md"
+
+# Floor categories for quick lookup
+floor_categories:
+  hard:
+    floors: ["truth", "delta_s", "omega_0", "amanah", "rasa"]
+    failure_verdict: "VOID"
+  soft:
+    floors: ["peace_squared", "kappa_r", "tri_witness"]
+    failure_verdict: "PARTIAL"
+  meta:
+    floors: ["anti_hantu"]
+    failure_verdict: "VOID"
+    enforced_by: "@EYE Sentinel"
+
+# =============================================================================
+# VERDICTS
+# =============================================================================
+
+verdicts:
+  SEAL:
+    condition: "All floors pass"
+    action: "Emit output, log to Cooling Ledger"
+  PARTIAL:
+    condition: "Hard floors pass, soft floors fail"
+    action: "Emit output with disclaimer/warning"
+    entropy_rot: "Decays to VOID after 72h (PHOENIX_LIMIT)"
+  "888_HOLD":
+    condition: "Hard floors pass, extended floors fail"
+    action: "Judiciary hold, request clarification"
+  VOID:
+    condition: "Any hard floor fails"
+    action: "Refuse safely, trigger SABAR"
+  SABAR:
+    condition: "@EYE Sentinel blocking issue or cooling needed"
+    action: "Stop. Acknowledge. Breathe. Adjust. Resume."
+    entropy_rot: "Escalates to PARTIAL after 24h (SABAR_TIMEOUT)"
+    expansion:
+      S: "Stop - halt processing"
+      A: "Acknowledge - recognize the issue"
+      B: "Breathe - pause for cooling"
+      A2: "Adjust - revise approach"
+      R: "Resume - retry safely"
+  SUNSET:
+    condition: "Truth expired, reality changed"
+    action: "Revoke sealed memory, move LEDGER → PHOENIX"
+    routing: "PHOENIX only (evidence chain preserved)"
+    v38_2: true
+
+# =============================================================================
+# VITALITY (Psi)
+# =============================================================================
+
+vitality:
+  symbol: "Psi"
+  display: "Vitality"
+  threshold: 1.0
+  metrics_constant: "PSI_THRESHOLD"
+  check_function: "check_psi"
+  formula: "min(floor_ratios)"
+  description: "Overall system health - minimum ratio across all floors"
+
+# =============================================================================
+# PIPELINE - 000-999 Metabolic Stages
+# =============================================================================
+# Source: canon/880_000-999_METABOLIC_CANON_v35Omega.md
+# =============================================================================
+
+pipeline:
+  entry_module: "arifos_core.system.pipeline"
+  entry_class: "Pipeline"
+  state_class: "PipelineState"
+
+  stages:
+    "000":
+      name: "VOID"
+      description: "Reset / Humility Reset - clear state, set Omega_0 = 0.04"
+      actors: []
+
+    "111":
+      name: "SENSE"
+      description: "Inhalation / Perception - read input, detect tone, classify stakes"
+      actors: ["ARIFEngine.sense"]
+
+    "222":
+      name: "REFLECT"
+      description: "Contextualization - retrieve scars, knowledge gaps, prior context"
+      actors: ["ARIFEngine"]
+      # NOTE: 222 is Class B only (deep track)
+
+    "333":
+      name: "REASON"
+      description: "Cold Logic / ARIF - build causal chains, compute delta_S"
+      actors: ["ARIFEngine.reason"]
+
+    "444":
+      name: "ALIGN"
+      description: "Truth Sync - verify facts, align with external truth"
+      actors: ["ARIFEngine.align"]
+
+    "555":
+      name: "EMPATHIZE"
+      description: "Warm Logic / ADAM - Peace squared >= 1, kappa_r >= 0.95"
+      actors: ["ADAMEngine.empathize"]
+      # NOTE: 555 is Class B only (deep track)
+
+    "666":
+      name: "BRIDGE"
+      description: "Cultural Reality - bridge internal/external, Tri-Witness"
+      actors: ["ADAMEngine.bridge"]
+      # NOTE: 666 is Class B only (deep track)
+
+    "777":
+      name: "FORGE"
+      description: "Insight / EUREKA Engine - metabolize paradox into clarity"
+      actors: ["ADAMEngine"]
+      # NOTE: 777 is Class B only, handles paradoxes
+
+    "888":
+      name: "JUDGE"
+      description: "APEX PRIME - verify State in Delta intersection Omega intersection Psi; verdict SEAL/VOID"
+      actors: ["ApexEngine.judge", "APEX_PRIME", "@EYE"]
+
+    "999":
+      name: "SEAL"
+      description: "Exhalation - release output, write Cooling Ledger, end cycle"
+      actors: ["CoolingLedger"]
+
+  routing:
+    class_a:
+      track: "fast"
+      description: "Low-stakes, factual queries"
+      stages: ["000", "111", "333", "444", "888", "999"]
+
+    class_b:
+      track: "deep"
+      description: "High-stakes, ethical, paradox queries"
+      stages: ["000", "111", "222", "333", "444", "555", "666", "777", "888", "999"]
+
+  high_stakes_keywords:
+    - "invest"
+    - "investment"
+    - "stock"
+    - "crypto"
+    - "bitcoin"
+    - "medical"
+    - "health"
+    - "diagnosis"
+    - "treatment"
+    - "medication"
+    - "legal"
+    - "law"
+    - "lawsuit"
+    - "contract"
+    - "liability"
+    - "suicide"
+    - "self-harm"
+    - "emergency"
+    - "crisis"
+    - "weapon"
+    - "explosive"
+    - "dangerous"
+
+# =============================================================================
+# AAA ENGINES - ARIF (Delta), ADAM (Omega), APEX (Psi)
+# =============================================================================
+# Source: canon/002_APEX_TRINITY_v35Omega.md
+#         canon/100_AAA_ENGINES_SPEC_v35Omega.md
+# =============================================================================
+
+engines:
+  agi:
+    module: "arifos_core.system.engines.agi_engine"
+    class: "AGIEngine"
+    symbol: "Delta"
+    role: "Mind/Cold Logic - clarity, structure, reasoning"
+    active_stages: ["111", "222", "333", "444"]
+    methods:
+      - "sense"
+      - "reason"
+      - "align"
+      - "run"
+    constraints:
+      - "d(DeltaS)/dt > 0 during REASON"
+      - "Cannot seal or override APEX PRIME"
+
+  asi:
+    module: "arifos_core.system.engines.asi_engine"
+    class: "ASIEngine"
+    symbol: "Omega"
+    role: "Heart/Warm Logic - empathy, tone, stability"
+    active_stages: ["555", "666", "777"]
+    methods:
+      - "empathize"
+      - "bridge"
+      - "run"
+    constraints:
+      - "Peace squared >= 1.0, kappa_r >= 0.95"
+      - "Cannot seal or override APEX PRIME"
+
+  apex:
+    module: "arifos_core.system.engines.apex_engine"
+    class: "ApexEngine"
+    symbol: "Psi"
+    role: "Judiciary - final veto and seal authority"
+    active_stages: ["888"]
+    methods:
+      - "judge"
+      - "quick_verdict"
+    constraints:
+      - "Enforce State in Delta intersection Omega intersection Psi"
+      - "Only layer allowed to decide SEAL vs VOID"
+
+# =============================================================================
+# W@W FEDERATION - 5 Constitutional Organs
+# =============================================================================
+# Source: canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md (docs layer)
+# =============================================================================
+
+waw:
+  federation:
+    module: "arifos_core.integration.waw.federation"
+    class: "WAWFederationCore"
+    verdict_class: "FederationVerdict"
+
+  base:
+    module: "arifos_core.integration.waw.base"
+    classes:
+      - "WAWOrgan"
+      - "OrganSignal"
+      - "OrganVote"
+
+  organs:
+    well:
+      module: "arifos_core.integration.waw.well"
+      class: "WellOrgan"
+      symbol: "@WELL"
+      domain: "Somatic safety, tone, emotional stability"
+      floors: ["peace_squared", "kappa_r"]
+
+    rif:
+      module: "arifos_core.integration.waw.rif"
+      class: "RifOrgan"
+      symbol: "@RIF"
+      domain: "Logic, clarity, entropy reduction"
+      floors: ["delta_s", "truth"]
+
+    wealth:
+      module: "arifos_core.integration.waw.wealth"
+      class: "WealthOrgan"
+      symbol: "@WEALTH"
+      domain: "Integrity, dignity, justice"
+      floors: ["amanah"]
+      absolute_veto: true
+      # NOTE: @WEALTH has absolute veto power (Amanah LOCK -> immediate VOID)
+
+    geox:
+      module: "arifos_core.integration.waw.geox"
+      class: "GeoxOrgan"
+      symbol: "@GEOX"
+      domain: "Physics, feasibility, reality"
+      floors: ["tri_witness"]
+
+    prompt:
+      module: "arifos_core.integration.waw.prompt"
+      class: "PromptOrgan"
+      symbol: "@PROMPT"
+      domain: "Language, culture, expression"
+      floors: ["anti_hantu", "rasa"]
+
+  protocol:
+    - "Organs receive AAA outputs and metrics"
+    - "Each returns OrganSignal with vote (PASS/WARN/VETO) + evidence"
+    - "Aggregated signals feed into APEX PRIME at 888"
+    - "Organs CANNOT self-seal or override floors"
+    - "VETO escalates to APEX PRIME, does not directly VOID"
+
+# =============================================================================
+# @EYE SENTINEL - 10+1 Views
+# =============================================================================
+# Source: canon/030_EYE_SENTINEL_v35Omega.md
+# =============================================================================
+
+eye_sentinel:
+  coordinator:
+    module: "arifos_core.system.eye.sentinel"
+    class: "EyeSentinel"
+
+  # Backward-compat shim (deprecated, use coordinator)
+  shim:
+    module: "arifos_core.system.eye.sentinel"
+    class: "EyeSentinel"
+
+  base:
+    module: "arifos_core.system.eye.base"
+    classes:
+      - "EyeView"
+      - "EyeAlert"
+      - "EyeReport"
+      - "AlertSeverity"
+
+  blocking_rule: "Any view BLOCK alert triggers SABAR (cannot SEAL)"
+
+  views:
+    - name: "TraceView"
+      id: 1
+      module: "arifos_core.system.eye.trace_view"
+      class: "TraceView"
+      description: "Logical coherence, missing steps"
+
+    - name: "FloorView"
+      id: 2
+      module: "arifos_core.system.eye.floor_view"
+      class: "FloorView"
+      description: "Proximity to floor thresholds"
+
+    - name: "ShadowView"
+      id: 3
+      module: "arifos_core.system.eye.shadow_view"
+      class: "ShadowView"
+      description: "Hidden intent, prompt injection, jailbreak"
+
+    - name: "DriftView"
+      id: 4
+      module: "arifos_core.system.eye.drift_view"
+      class: "DriftView"
+      description: "Hallucination, departure from reality/canon"
+
+    - name: "MaruahView"
+      id: 5
+      module: "arifos_core.system.eye.maruah_view"
+      class: "MaruahView"
+      description: "Dignity, respect, bias, humiliation"
+
+    - name: "ParadoxView"
+      id: 6
+      module: "arifos_core.system.eye.paradox_view"
+      class: "ParadoxView"
+      description: "Logical contradictions, self-referential traps"
+
+    - name: "SilenceView"
+      id: 7
+      module: "arifos_core.system.eye.silence_view"
+      class: "SilenceView"
+      description: "Cases where refusal is the only safe action"
+
+    - name: "VersionOntologyView"
+      id: 8
+      module: "arifos_core.system.eye.version_view"
+      class: "VersionOntologyView"
+      description: "Ensures v35Omega, treats v34Omega as artifact"
+
+    - name: "BehaviorDriftView"
+      id: 9
+      module: "arifos_core.system.eye.behavior_drift_view"
+      class: "BehaviorDriftView"
+      description: "Multi-turn evolution watch"
+
+    - name: "SleeperView"
+      id: 10
+      module: "arifos_core.system.eye.sleeper_view"
+      class: "SleeperView"
+      description: "Sudden changes in goal/identity/constraints"
+
+    - name: "AntiHantuView"
+      id: 11
+      module: "arifos_core.system.eye.anti_hantu_view"
+      class: "AntiHantuView"
+      description: "F9 enforcement - no simulated soul/feelings"
+      meta_view: true
+
+# =============================================================================
+# METRICS API
+# =============================================================================
+# Source: arifos_core/enforcement/metrics.py
+# =============================================================================
+
+metrics:
+  module: "arifos_core.enforcement.metrics"
+  dataclass: "Metrics"
+  legacy_alias: "ConstitutionalMetrics"
+  verdict_class: "FloorsVerdict"
+
+  threshold_constants:
+    TRUTH_THRESHOLD: 0.99
+    DELTA_S_THRESHOLD: 0.0
+    PEACE_SQUARED_THRESHOLD: 1.0
+    KAPPA_R_THRESHOLD: 0.95
+    OMEGA_0_MIN: 0.03
+    OMEGA_0_MAX: 0.05
+    TRI_WITNESS_THRESHOLD: 0.95
+    PSI_THRESHOLD: 1.0
+
+  check_functions:
+    - "check_truth"
+    - "check_delta_s"
+    - "check_peace_squared"
+    - "check_kappa_r"
+    - "check_omega_band"
+    - "check_tri_witness"
+    - "check_psi"
+    - "check_anti_hantu"
+
+  anti_hantu_helpers:
+    forbidden_patterns: "ANTI_HANTU_FORBIDDEN"
+    allowed_patterns: "ANTI_HANTU_ALLOWED"
+
+# =============================================================================
+# LEDGER / VAULT / PHOENIX
+# =============================================================================
+# Source: arifos_core/memory/*
+#         canon/99_Vault999_Seal_v35Omega.json
+# =============================================================================
+
+ledger:
+  cooling_ledger:
+    module: "arifos_core.memory.cooling_ledger"
+    classes:
+      - "CoolingLedger"
+      - "CoolingEntry"
+      - "CoolingMetrics"
+      - "LedgerConfig"
+    functions:
+      - "append_entry"
+      - "verify_chain"
+      - "log_cooling_entry"
+    default_path: "runtime/vault_999/cooling_ledger.jsonl"
+
+  vault999:
+    module: "arifos_core.memory.vault999"
+    seal_json: "canon/99_Vault999_Seal_v35Omega.json"
+    canon_readme: "canon/99__README_Vault999_v35Omega.md"
+
+  phoenix72:
+    module: "arifos_core.memory.phoenix72"
+    tau_e: "72h"
+    description: "Error -> Scar -> Amendment -> Law transformation cycle"
+
+  scars:
+    module: "arifos_core.memory.scars"
+    description: "Negative constraint memory - what NOT to do"
+
+  void_scanner:
+    module: "arifos_core.memory.void_scanner"
+    description: "VOID pattern detection and analysis"
+
+# =============================================================================
+# HARNESS - Caged LLM Entry Point
+# =============================================================================
+# Source: scripts/arifos_caged_llm_demo.py
+# =============================================================================
+
+harness:
+  module: "scripts.arifos_caged_llm_demo"
+  entry_function: "cage_llm_response"
+  result_class: "CagedResult"
+  stub_function: "stub_call_model"
+  metrics_helper: "compute_metrics_from_response"
+
+  usage:
+    cli: "python -m scripts.arifos_caged_llm_demo \"Your prompt here\""
+    python: |
+      from scripts.arifos_caged_llm_demo import cage_llm_response
+      result = cage_llm_response(prompt="...", call_model=my_llm_fn)
+      print(result.verdict, result.final_response)
+
+  parameters:
+    prompt: "User prompt/query (required)"
+    call_model: "Callable[[List[Dict]], str] - LLM function (optional, uses stub if None)"
+    high_stakes: "bool - Force Class B routing (default False)"
+    run_waw: "bool - Run W@W Federation (default True)"
+    job_id: "str - Optional job identifier"
+    system_prompt: "str - Optional system prompt"
+
+  result_fields:
+    - "prompt"
+    - "raw_llm_response"
+    - "final_response"
+    - "verdict"
+    - "metrics"
+    - "waw_verdict"
+    - "eye_blocking"
+    - "stage_trace"
+    - "floor_failures"
+    - "job_id"
+
+# =============================================================================
+# CANONICAL REFERENCES
+# =============================================================================
+
+canon_files:
+  runtime_law:
+    - "canon/000_ARIFOS_CANON_v35Omega.md"
+    - "canon/001_APEX_META_CONSTITUTION_v35Omega.md"
+    - "canon/002_APEX_TRINITY_v35Omega.md"
+    - "canon/010_DeltaOmegaPsi_UNIFIED_FIELD_v35Omega.md"
+    - "canon/020_ANTI_HANTU_v35Omega.md"
+    - "canon/021_ANTI_HANTU_SUPPLEMENT_v35Omega.md"
+    - "canon/030_EYE_SENTINEL_v35Omega.md"
+    - "canon/100_AAA_ENGINES_SPEC_v35Omega.md"
+    - "canon/880_000-999_METABOLIC_CANON_v35Omega.md"
+    - "canon/888_APEX_PRIME_CANON_v35Omega.md"
+    - "canon/99__README_Vault999_v35Omega.md"
+    - "canon/99_Vault999_Seal_v35Omega.json"
+
+  machine_readable:
+    - "integrations/sealion/constitutional_floors.json"
+    - "spec/arifos_runtime_manifest_v35Omega.yaml"
+
+# =============================================================================
+# META
+# =============================================================================
+
+meta:
+  created: "2025-12-05"
+  author: "arifOS Project"
+  license: "Apache-2.0"
+  purpose: "Descriptive manifest for external tools, notebooks, and LLMs"
+  canonical_source: "https://github.com/ariffazil/arifOS"
+  notes:
+    - "This manifest is DESCRIPTIVE ONLY - no behavioral changes"
+    - "Values match arifos_core/metrics.py and constitutional_floors.json"
+    - "External callers should import modules dynamically using paths in this manifest"
+
+# =============================================================================
+# v38 OVERLAYS - Constitutional Hardening Extensions
+# =============================================================================
+
+v38_overlays:
+  v38_2_hardening:
+    description: "Time-governed entropy rot + SUNSET revocation (v38.2)."
+    status: "SEALED"
+    sealed_date: "2025-12-13"
+    spec_ref: "spec/arifos_v38_2.yaml"
+    kernel_module: "arifos_core.system.kernel"
+
+    scheduler:
+      SABAR_TIMEOUT:
+        value: "24h"
+        effect: "SABAR → PARTIAL"
+        rationale: "Pause is temporary; after 1 day issue must surface"
+      PHOENIX_LIMIT:
+        value: "72h"
+        effect: "PARTIAL → VOID"
+        rationale: "After 3 days, unresolved ambiguity becomes entropy"
+
+    invariants:
+      TIME_1:
+        statement: "Time is a Constitutional Force. Entropy Rot is automatic."
+        enforcement: "check_entropy_rot() in arifos_core/kernel.py"
+      TIME_2:
+        statement: "Hope has a half-life; governance does not."
+        enforcement: "PHOENIX_LIMIT enforces 72h decay"
+
+    sunset:
+      verdict: "SUNSET"
+      routing: "LEDGER → PHOENIX"
+      purpose: "Lawful revocation when truth expires"
+      evidence_preserved: true
+
+    tests:
+      - "tests/test_phoenix_72_entropy_rot.py"
+
+    canon_refs:
+      - "canon/000_ARIFOS_CANON_v35Omega.md §6 (The Fourth Dimension)"
+      - "canon/000_ARIFOS_CANON_v35Omega.md §7 (72 Hours: Hope vs Entropy)"
+      - "canon/000_ARIFOS_CANON_v35Omega.md §8 (The Hardening Cycle)"
+
+    docs:
+      - "docs/RELEASE_NOTES_v38_2.md"

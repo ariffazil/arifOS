@@ -12,11 +12,11 @@ See: docs/AAA_ENGINES_FACADE_PLAN_v35Omega.md Section 7
 """
 
 import pytest
-from arifos_core.engines import AGIEngine, ASIEngine, ApexEngine
-from arifos_core.engines.agi_engine import AGIPacket
-from arifos_core.engines.asi_engine import ASIPacket
-from arifos_core.engines.apex_engine import ApexJudgment
-from arifos_core.metrics import Metrics
+from arifos.core.system.engines import AGIEngine, ASIEngine, ApexEngine
+from arifos.core.system.engines.agi_engine import AGIPacket
+from arifos.core.system.engines.asi_engine import ASIPacket
+from arifos.core.system.engines.apex_engine import ApexJudgment
+from arifos.core.enforcement.metrics import Metrics
 
 
 # =============================================================================
@@ -28,22 +28,22 @@ class TestEngineImports:
 
     def test_import_agi_engine(self):
         """AGIEngine can be imported from engines package."""
-        from arifos_core.engines import AGIEngine
+        from arifos.core.system.engines import AGIEngine
         assert AGIEngine is not None
 
     def test_import_asi_engine(self):
         """ASIEngine can be imported from engines package."""
-        from arifos_core.engines import ASIEngine
+        from arifos.core.system.engines import ASIEngine
         assert ASIEngine is not None
 
     def test_import_apex_engine(self):
         """ApexEngine can be imported from engines package."""
-        from arifos_core.engines import ApexEngine
+        from arifos.core.system.engines import ApexEngine
         assert ApexEngine is not None
 
     def test_import_all_engines(self):
         """All three engines can be imported together."""
-        from arifos_core.engines import AGIEngine, ASIEngine, ApexEngine
+        from arifos.core.system.engines import AGIEngine, ASIEngine, ApexEngine
         agi = AGIEngine()
         asi = ASIEngine()
         apex = ApexEngine()
@@ -441,7 +441,7 @@ class TestApexEngine:
         # v42: verdict is ApexVerdict object, supports string comparison via __eq__
         assert verdict == "SEAL"
         # Test the actual type is ApexVerdict (v42 API)
-        from arifos_core import ApexVerdict
+        from arifos import ApexVerdict
         assert isinstance(verdict, ApexVerdict)
 
 

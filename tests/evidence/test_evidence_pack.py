@@ -4,7 +4,7 @@ Verify schema validation and hash determinism.
 """
 import pytest
 from pydantic import ValidationError
-from arifos_core.evidence.evidence_pack import EvidencePack, EvidenceSource
+from arifos.core.enforcement.evidence.evidence_pack import EvidencePack, EvidenceSource
 from tests.utils import make_valid_evidence_pack, VALID_HASH
 
 def test_evidence_pack_hash_determinism():

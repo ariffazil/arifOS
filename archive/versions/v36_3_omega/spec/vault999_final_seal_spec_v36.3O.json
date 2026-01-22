@@ -1,11 +1,11 @@
 {
-  "$comment": "Implements: VAULT999_ARCHITECTURE_v36.3O.md, PHOENIX72_PROTOCOL_v36.3O.md | Law: v36.3Omega | Commit: 870ea5d",
+  "$comment": "Implements: CCC_ARCHITECTURE_v36.3O.md, PHOENIX72_PROTOCOL_v36.3O.md | Law: v36.3Omega | Commit: 870ea5d",
   "meta": {
     "spec_id": "vault999_final_seal_spec_v36.3O",
     "epoch": "v36.3Omega",
     "implements": [
-      "v36.3O/canon/VAULT999_ARCHITECTURE_v36.3O.md",
-      "canon/07_VAULT999/062_VAULT999_FINAL_SEAL_PROTOCOL_v36.3Omega.md",
+      "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md",
+      "canon/07_CCC/062_CCC_FINAL_SEAL_PROTOCOL_v36.3Omega.md",
       "v36.3O/canon/GOV_META_v36.3O.md",
       "v36.3O/canon/MEASUREMENT_APEX_STANDARDS_v36.3O.md"
     ],
@@ -209,3 +209,4 @@
     "i6": "Merkle root must be updated atomically with L1 write"
   }
 }
+

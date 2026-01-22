@@ -10,7 +10,7 @@
 |  Version:     v38.0                                                         |
 |  Status:      ACTIVE                                                        |
 |  Purpose:     Validate Memory Write Policy Engine (EUREKA) correctness     |
-|  Canon Ref:   canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md           |
+|  Canon Ref:   canon/07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md           |
 +=============================================================================+
 ```
 
@@ -389,7 +389,7 @@ With memory integration tests complete, arifOS v38 is ready for Phase 2:
 
 ## 12. References
 
-- **Canon:** `canon/07_VAULT999/ARIFOS_MEMORY_STACK_v38Omega.md`
+- **Canon:** `canon/07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md`
 - **Docs:** `docs/MEMORY_WRITE_POLICY.md`, `docs/MEMORY_ARCHITECTURE.md`
 - **Code:** `arifos_core/memory/*.py`, `arifos_core/integration/*.py`
 - **Existing Tests:** `tests/integration/test_memory_floor_integration.py`
@@ -399,3 +399,4 @@ With memory integration tests complete, arifOS v38 is ready for Phase 2:
 **Version:** v38.0 | **Status:** COMPLETE | **Total Tests:** 132+ | **Pass Rate:** 100%
 
 **DITEMPA BUKAN DIBERI — Forged, not given. Memory is governance, not storage.**
+

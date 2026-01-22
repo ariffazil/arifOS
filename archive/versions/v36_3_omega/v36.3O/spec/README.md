@@ -24,20 +24,20 @@ Specs implement canon without changing it. They are mutable for tuning, but cano
 | `trinity_aaa_spec_v36.3O.yaml` | TRINITY_AAA_ENGINES | Engine roles, packets, floor ownership |
 | `waw_federation_spec_v36.3O.yaml` | OVERSIGHT_WAW_FEDERATION | 5 organs, veto hierarchy, signals |
 | `paradox_777_schema_v36.3O.json` | PARADOX_777_CUBE | Cube geometry, layers, Crown Equation |
-| `vault999_ledger_schema_v36.3O.json` | VAULT999_ARCHITECTURE | L0-L4 layer schemas, integrity |
+| `vault999_ledger_schema_v36.3O.json` | CCC_ARCHITECTURE | L0-L4 layer schemas, integrity |
 | `dreamforge_otask_spec_v36.3O.yaml` | DREAMFORGE_ARCHITECTURE | O-TASK cadence, OreType, safety |
 
 ## Additional Specs (7)
 
 | Spec File | Implements | Purpose |
 |-----------|------------|---------|
-| `vault999_final_seal_spec_v36.3O.json` | 062_VAULT999_FINAL_SEAL_PROTOCOL | Final Seal requirements, workflow |
+| `vault999_final_seal_spec_v36.3O.json` | 062_CCC_FINAL_SEAL_PROTOCOL | Final Seal requirements, workflow |
 | `llm_governance_spec_v36.3O.yaml` | 050/051_METABOLIZER_LOOP | LLM roles, packets, constraints |
 | `memory_context_spec_v36.3O.json` | ARIFOS_MEMORY_STACK | Six-band MemoryContext schema |
 | `cooling_ledger_entry_spec_v36.3O.json` | COOLING_LEDGER_INTEGRITY | L1 entry schema (JSONL) |
 | `phoenix72_amendment_spec_v36.3O.json` | VAULT_999_AMENDMENTS | Amendment record schema |
 | `scar_record_spec_v36.3O.json` | SCARS_PHOENIX_HEALING | Scar/witness record schema |
-| `eureka_receipt_spec_v36.3O.json` | VAULT999_ARCHITECTURE (L4) | zkPC receipt schema |
+| `eureka_receipt_spec_v36.3O.json` | CCC_ARCHITECTURE (L4) | zkPC receipt schema |
 
 ## Spec Details
 
@@ -117,3 +117,4 @@ This enables traceability from spec -> bridge -> canon source.
 ---
 
 **Spec implements law. Code implements spec. Law is frozen.**
+

@@ -49,6 +49,10 @@ vault_999/ledger/pending.jsonl
 vault_999/ledger/phoenix.jsonl
 vault_999/ledger/void.jsonl
 
+# SSL/TLS certificates (VAULT999 MCP Server)
+*.pem
+arifos_core/mcp/certs/*.pem
+
 # Misc
 *.so
 .DS_Store
@@ -68,8 +72,14 @@ arifos-test/
 # Gemini CLI
 .gemini/
 
+# Gemini CLI config - keep baseline, ignore backups
+!config/gemini/*.json
+!config/gemini/*.md
+config/gemini/backups/
+
 # Temporary staging folders
 staging.delete*/
+docs/staging/
 scripts/bogel_results_*.json
 
 # Ephemeral test output (manual Ollama runs)
@@ -78,3 +88,68 @@ tests/arifOS llama test*.md
 # Vault-999 runtime ledger data (test artifacts)
 vault-999/ledger/*.jsonl
 *.mp4
+
+# v45Ω Housekeeping (2025-12-25)
+# Runtime logs and evaluation artifacts
+logs/
+sealion_runs/
+*_results.json
+test_results.txt
+
+# Experimental scripts (root-level temp files)
+quick_test_*.py
+run_sealion_*.py
+test_my_*.py
+
+# Review artifacts (not runtime)
+TRACK_C_CORE_ENFORCEMENT_REFERENCE.py
+HOUSEKEEPING_PLAN.md
+
+# Patch summaries (move to docs/releases/ instead)
+PATCH_*.md
+
+# SEA-LION session logs (runtime exhaust)
+cooling_ledger/sealion_forge_sessions.jsonl
+
+# Manual test scripts (ephemeral)
+scripts/manual_tests/
+cooling_ledger_l4.sqlite3
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Build artifacts
+kernel_output.txt
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+nul
+.DS_Store
+Thumbs.db
+# Secret files (GitHub push protection)
+mcp_config_antigravity_constitutional.json
+mcp_config_antigravity_constitutional_fixed.json
+scripts/setup_antigravity_constitutional_mcp.py
+
+# Temporary/generated directories (v46.1.1 Anti-Pencemaran)
+.arifos_clip/
+.well_snapshots/
+cooling_ledger/
+# Local archival parking (do not commit)
+archive_local/
+
+# Local session archives (do not push)
+_local_archive/
+coverage.xml
+
+# Obsidian plugins (may contain OAuth secrets)
+**/.obsidian/plugins/
+VAULT999/**/.obsidian/plugins/
+vault_999_obsidian/**/.obsidian/plugins/
