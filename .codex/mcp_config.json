@@ -1,53 +1,13 @@
 {
   "mcpServers": {
-    "arifos": {
+    "arifos-trinity": {
       "command": "python",
-      "args": ["-m", "arifos.mcp"],
-      "cwd": "C:\\\\Users\\\\User\\\\OneDrive\\\\Documents\\\\GitHub\\\\arifOS",
+      "args": ["-m", "arifos.mcp", "trinity"],
       "env": {
-        "PYTHONPATH": "C:\\\\Users\\\\User\\\\OneDrive\\\\Documents\\\\GitHub\\\\arifOS",
-        "ARIFOS_ALLOW_LEGACY_SPEC": "1",
-        "ARIFOS_PHYSICS_DISABLED": "0"
+        "PYTHONPATH": ".",
+        "PYTHONIOENCODING": "utf-8"
       },
-      "description": "arifOS v49 MCP (Single Body Runtime)"
-    },
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
-      },
-      "description": "GitHub MCP server"
-    },
-    "brave-search": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
-      "env": {
-        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
-      },
-      "description": "Brave Search MCP server"
-    },
-    "perplexity-ask": {
-      "command": "npx",
-      "args": ["-y", "@perplexity-ai/mcp-server"],
-      "env": {
-        "PERPLEXITY_API_KEY": "${PERPLEXITY_API_KEY}",
-        "PERPLEXITY_TIMEOUT_MS": "${PERPLEXITY_TIMEOUT_MS}"
-      },
-      "description": "Perplexity Ask / Deep Research MCP server"
-    },
-    "sequential-thinking": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
-      "description": "Sequential Thinking MCP server"
-    },
-    "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"],
-      "env": {
-        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
-      },
-      "description": "Context7 MCP server"
+      "description": "arifOS v50.5 Trinity MCP (5-tool constitutional governance)"
     }
   }
 }
