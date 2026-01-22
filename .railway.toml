@@ -2,16 +2,24 @@
   builder = "NIXPACKS"
 
 [deploy]
-  # Use SSE mode for cloud/HTTP deployment (Railway)
-  # stdio mode is for local Claude Desktop
-  startCommand = "python -m arifos.core.mcp sse"
+  # Trinity SSE: 5-tool Constitutional Framework
+  # Tools: 000_init, agi_genius, asi_act, apex_judge, 999_vault
+  startCommand = "python -m arifos.core.mcp trinity-sse"
   healthcheckPath = "/health"
-  healthcheckTimeout = 30
-  sleepApplication = false
+  healthcheckTimeout = 300
+  restartPolicyType = "ON_FAILURE"
+  restartPolicyMaxRetries = 3
 
 [env]
+  # Server config
+  PORT = "8000"
+  AAA_MCP_PORT = "8000"
+  AAA_MCP_TRANSPORT = "sse"
+
+  # arifOS config
   VAULT_PATH = "/vault"
   ARIFOS_CONSTITUTIONAL_MODE = "AAA"
   ARIFOS_DEBUG = "false"
-  AAA_MCP_PORT = "8000"
-  AAA_MCP_TRANSPORT = "sse"
+
+  # Python
+  PYTHONUNBUFFERED = "1"

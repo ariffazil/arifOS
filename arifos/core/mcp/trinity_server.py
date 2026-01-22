@@ -416,12 +416,30 @@ async def main_stdio():
 
 def main_sse():
     """Run Trinity server with SSE transport."""
+    import os
     import uvicorn
     from arifos.core.mcp.sse import create_sse_app
 
+    port = int(os.environ.get("PORT", os.environ.get("AAA_MCP_PORT", 8000)))
+
+    logger.info("=" * 60)
+    logger.info("arifOS Trinity SSE Server v50.5.0")
+    logger.info("5-Tool Constitutional Framework")
+    logger.info("=" * 60)
+    logger.info(f"Tools: {list(TOOLS.keys())}")
+    logger.info(f"Port: {port}")
+    logger.info(f"Health: http://0.0.0.0:{port}/health")
+    logger.info(f"Docs: http://0.0.0.0:{port}/docs")
+    logger.info("=" * 60)
+
     # Create SSE app with Trinity tools
-    app = create_sse_app(TOOLS, TOOL_DESCRIPTIONS, "arifOS-Trinity-v50.5.0")
-    uvicorn.run(app, host="0.0.0.0", port=int(__import__("os").environ.get("AAA_MCP_PORT", 8000)))
+    app = create_sse_app(
+        tools=TOOLS,
+        tool_descriptions=TOOL_DESCRIPTIONS,
+        server_name="arifOS-Trinity",
+        version="v50.5.0"
+    )
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
 
 
 def print_stats():
