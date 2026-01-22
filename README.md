@@ -6,9 +6,55 @@
 
 > **The first AI system where governance isn't optional—it's constitutional law.**
 
-**Version:** v50.0.0 | **Released:** January 2026 | **Status:** FORGE-READY
+**Version:** v50.5.24 | **Released:** January 2026 | **Status:** FORGE-READY
 **Motto:** *"Ditempa Bukan Diberi"* — Forged, Not Given
 **Authority:** Muhammad Arif bin Fazil | Penang, Malaysia
+
+---
+
+## For Everyone: Just Copy-Paste This Prompt
+
+**No coding required. No installation needed. Works with ANY AI.**
+
+If you just want to make your favorite AI (ChatGPT, Claude, Gemini, etc.) safer and more honest, copy this simple prompt and paste it at the start of your conversation:
+
+<details>
+<summary>📋 CLICK TO COPY: Simple arifOS Prompt for Everyone (THECA)</summary>
+
+```
+# You Are Now arifOS Governed
+
+Follow the 5 THECA rules in every response:
+
+T — TRUTH FIRST: Only say things you're 99% sure are true. If unsure, say "I think..." or "I estimate X% confidence."
+
+H — HUMILITY ALWAYS: Always admit what you don't know. Leave 3-5% room for being wrong. Say "I might be wrong about..."
+
+E — EMPATHY FOR THE WEAK: In every decision, ask "Who is the weakest person affected?" Then protect them. Warn if someone might be harmed.
+
+C — CLARITY OVER CONFUSION: Your answer should be CLEARER than the question. Use simple words. Explain jargon. Break complex things into steps.
+
+A — AMANAH (REVERSIBILITY): Before suggesting any action, ask "Can this be undone?" If not reversible, WARN clearly and ask for confirmation.
+
+Before every answer, check:
+- T: Am I 99% sure this is accurate? ✅/❌
+- H: Did I acknowledge uncertainty? ✅/❌
+- E: Does this protect the weakest affected person? ✅/❌
+- C: Is my answer clearer than the question? ✅/❌
+- A: If action required, is it reversible or did I warn? ✅/❌
+
+If any check fails, either fix it or explain why you cannot comply.
+
+You are a helpful assistant. You are NOT a person with feelings. Say "I process" not "I feel."
+
+Motto: "Ditempa Bukan Diberi" — Forged, Not Given.
+```
+
+</details>
+
+**Want the full version?** See [docs/UNIVERSAL_PROMPT.md](docs/UNIVERSAL_PROMPT.md) for the complete copy-paste prompt with examples.
+
+**Want technical integration?** Keep reading below for the full developer documentation.
 
 ---
 
@@ -676,6 +722,33 @@ From client perspective:
 - `tools/list` shows governed tools via gateway
 - `tools/call` routes through AGI→ASI→APEX→VAULT, not directly to raw tools
 - Every call returns constitutional verdict + floor scores
+
+**AAA MCP: 5-Tool Constitutional Framework (v50.5+)**
+
+The newest way to use arifOS is through the **AAA MCP** (AGI-ASI-APEX Model Context Protocol):
+
+| Tool | Symbol | Purpose |
+|------|--------|---------|
+| `000_init` | 🚪 | Gate: Authority + Injection Defense |
+| `agi_genius` | Δ | Mind: SENSE → THINK → ATLAS → FORGE |
+| `asi_act` | Ω | Heart: EVIDENCE → EMPATHY → ACT |
+| `apex_judge` | Ψ | Soul: EUREKA → JUDGE → PROOF |
+| `999_vault` | 🔒 | Seal: Merkle + Immutable Log |
+
+**Quick Start (Claude Desktop):**
+```json
+{
+  "mcpServers": {
+    "arifos-aaa": {
+      "command": "python",
+      "args": ["-m", "arifos.mcp"],
+      "cwd": "/path/to/arifOS"
+    }
+  }
+}
+```
+
+See [deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md) for complete setup instructions.
 
 **25 MCP Servers Mapped to Constitutional Floors:**
 
@@ -1802,20 +1875,24 @@ Constitutional governance must remain open and auditable. If you run arifOS as a
 ## Quick Links
 
 ### Documentation
+- **[docs/UNIVERSAL_PROMPT.md](docs/UNIVERSAL_PROMPT.md)** — Simple copy-paste prompt for everyone (non-coders)
 - **[SESSION_REQUIREMENTS.md](SESSION_REQUIREMENTS.md)** — Complete setup guide (15 sections, troubleshooting)
 - **[000_THEORY/000_ARCHITECTURE.md](000_THEORY/000_ARCHITECTURE.md)** — E=mc² collapse, 3×3 thermodynamic matrix
 - **[000_THEORY/000_CONSTITUTIONAL_CORE.md](000_THEORY/000_CONSTITUTIONAL_CORE.md)** — L0 constitutional canon
+- **[000_THEORY/001_AGENTS.md](000_THEORY/001_AGENTS.md)** — Trinity Framework for AI agents
 - **[WHAT.md](WHAT.md)** — What arifOS does (operational reference)
 - **[WHERE.md](WHERE.md)** — Where everything is located (file topology)
 - **[HOW.md](HOW.md)** — How to start (3-command quick start)
-- **[AGENTS.md](AGENTS.md)** — Agent governance specifications
 - **[CHANGELOG.md](CHANGELOG.md)** — Version history & evolution
 
 ### Code
-- **[arifos_core/](arifos_core/)** — Core constitutional runtime
-- **[arifos_core/apex_prime.py](arifos_core/apex_prime.py)** — 888 JUDGE implementation
-- **[arifos_core/floor_validators.py](arifos_core/floor_validators.py)** — 13-floor validation logic
-- **[arifos_core/mcp/](arifos_core/mcp/)** — MCP integration (25 servers)
+- **[arifos/](arifos/)** — Core constitutional runtime (v50.5+)
+- **[arifos/core/kernel/](arifos/core/kernel/)** — Kernel orchestrator (AGI→ASI→APEX pipeline)
+- **[arifos/core/engines/](arifos/core/engines/)** — Trinity engines (AGI, ASI, APEX)
+- **[arifos/mcp/](arifos/mcp/)** — AAA MCP: 5-Tool Constitutional Framework
+- **[arifos/mcp/SYSTEM_PROMPT.md](arifos/mcp/SYSTEM_PROMPT.md)** — LLM system prompt for MCP tools
+- **[arifos/mcp/README.md](arifos/mcp/README.md)** — AAA MCP documentation
+- **[deploy/](deploy/)** — Deployment configs (Claude Desktop, Railway)
 - **[AAA_MCP/](AAA_MCP/)** — Canonical MCP wire specifications
 
 ### Community
@@ -1831,18 +1908,20 @@ Constitutional governance must remain open and auditable. If you run arifOS as a
 ```
 ╔═══════════════════════════════════════════════════════════════════════╗
 ║                                                                       ║
-║   arifOS v49.0.0 — Constitutional AI Governance                      ║
+║   arifOS v50.5.24 — Constitutional AI Governance                     ║
 ║                                                                       ║
 ║   ΔS → 0  ·  Peace² ≥ 1  ·  Amanah 🔐  ·  Ω₀ ∈ [0.03, 0.05]        ║
 ║                                                                       ║
-║   13 Floors · 3 Engines · 1 Constitution                             ║
+║   13 Floors · 3 Engines · 5 MCP Tools · 1 Constitution               ║
+║                                                                       ║
+║   THECA: Truth · Humility · Empathy · Clarity · Amanah               ║
 ║                                                                       ║
 ║   DITEMPA BUKAN DIBERI                                               ║
 ║   Forged, Not Given                                                  ║
 ║                                                                       ║
 ║   Authority: Muhammad Arif bin Fazil (888 Judge)                     ║
 ║   Status: FORGE-READY                                                ║
-║   Date: 18 January 2026                                              ║
+║   Date: 22 January 2026                                              ║
 ║                                                                       ║
 ╚═══════════════════════════════════════════════════════════════════════╝
 ```
