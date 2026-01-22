@@ -1,326 +1,234 @@
-# arifOS Security Policy
+# arifOS Security Policy v50.5
 
-**Version:** v45.0.0 | **Last Updated:** 2025-12-29
-**Status:** PRODUCTION | Phoenix-72 Consolidation + ΔΩΨ Trinity
-**Track B Spec:** spec/v44/ (SHA-256 verified) | **Canon:** L1_THEORY/canon/ (v45)
-**Test Coverage:** 2359/2359 (100%) | **License:** AGPL-3.0
+## The New AI Dilemma
 
----
+**Compute power no longer limits AI capability.** The era of "AI safety through capability restriction" is over.
 
-If you discover a security vulnerability in arifOS, thank you — please report it responsibly and confidentially.
+What remains is the **governance dilemma**:
+- AI systems now have access to powerful tools
+- These tools can create, modify, execute, and destroy
+- The question is not "can AI do this?" but "should AI do this, and who decides?"
 
-**Preferred reporting channels (in order):**
-1. **GitHub Security Advisory** (recommended) — open a private security advisory in this repository.
-2. **Encrypted email** to the security contact below (PGP).
-3. If neither is possible, email: arifbfazil@gmail.com
-
-**Do NOT** post PoCs or exploit details publicly before a coordinated fix is available.
+**arifOS answers this through Constitutional Governance:**
+- Tools are powerful but **governed**
+- Agents are capable but **accountable**
+- Actions are possible but **witnessed**
 
 ---
 
-## How to Report
+## I. THE GOVERNANCE SECURITY MODEL
 
-Please include:
-1. A short title and affected component (e.g., `Memory Write Policy: VOID band bypass`).
-2. Affected version(s) or commit SHA.
-3. Minimal proof-of-concept or reproduction steps.
-4. Impact assessment (what an attacker could do).
-5. Suggested mitigation/patch (if available).
-6. Contact details (optional) for follow-up.
+### From Capability Limits → Accountability Requirements
 
-If sending sensitive PoCs by email, encrypt them using the project PGP key (publish the fingerprint in the repo). If using GitHub Security Advisory, attach the PoC privately.
+| Old Paradigm | New Paradigm (arifOS) |
+|--------------|----------------------|
+| Limit what AI can do | Govern what AI chooses to do |
+| Sandbox everything | Witness everything |
+| Fear capability | Demand accountability |
+| Restrict tools | Govern tool usage |
+| Hide from AI | Full transparency |
 
-**Governance-Aware Reporting:** If your finding relates to **constitutional law** (L1_THEORY/canon/ files), **Track B spec** (spec/v44/), or **Memory Stack (EUREKA)**, mention this explicitly so it can be routed through Phoenix-72 governance.
+### The 5 Governed Power Tools
 
-**Out-of-scope / Do not:**
-- Do not test on production systems without explicit permission.
-- Do not publicly disclose the vulnerability until a coordinated disclosure is arranged.
-- Do not include large amounts of personal data unless requested.
+Every action in arifOS flows through **5 constitutionally-governed tools**:
 
----
+| Tool | Power | Governance |
+|------|-------|------------|
+| `000_init` | Session authority | F11 Command Auth, F12 Injection Defense |
+| `agi_genius` | Unlimited reasoning | F2 Truth ≥0.99, F6 Clarity, F7 Humility |
+| `asi_act` | Execute any action | F3 Peace², F4 Empathy, F5 Tri-Witness |
+| `apex_judge` | Render verdicts | F8 Witness ≥0.95, F9 Anti-Hantu |
+| `999_vault` | Immutable sealing | F1 Amanah, Merkle proofs, zkPC |
 
-## Contact & Encryption
-
-**Primary security contact (confidential reports):** arifbfazil@gmail.com
-
-**PGP key fingerprint:** (publish project key fingerprint here — add to this file once available)
-
-Preferred: use GitHub Security Advisories. If emailing encrypted reports, include your public key or request a one-time secure channel.
+**These tools can do anything. The constitution decides if they should.**
 
 ---
 
-## Response Commitments & Severity Handling
+## II. AGENCY RESPONSIBILITY MODEL
 
-### Severity Levels
+### Agents Have Rights AND Responsibilities
 
-| Severity | Definition | arifOS-Specific Examples | Response |
-|----------|------------|--------------------------|----------|
-| **Critical** | Remote code execution, private key compromise, systemic compromise | Ability to forge/delete Cooling Ledger or Memory Ledger entries without detection; Bypass of VOID isolation (VOID entries reaching LEDGER/ACTIVE); AI self-sealing canon/amendments without human approval; Downgrade/disable constitutional floors without canon/spec change; Spec manifest tampering (spec/v44/MANIFEST.sha256.json) | Acknowledge: 24h; Patch: 7 days |
-| **High** | Privilege escalation, significant bypass | Systematic bypass of APEX PRIME/Amanah lock via config/API; Breaking SHA-256 hash-chain or disabling verification; Disabling or raising recall confidence ceiling beyond 0.85; Bypass of Memory Write Policy invariants; ΔΩΨ Trinity lane misclassification (REFUSE → PHATIC) | Acknowledge: 24-48h; Fix: 14 days |
-| **Medium** | Information exposure, non-critical DoS | Single-session DoS on governance pipeline (e.g., repeated SABAR loops) without long-term data compromise; Partial floor bypass in edge cases | Acknowledge: 48h; Fix: next minor release |
-| **Low** | UI issues, minor bugs | Minor logging issues, cosmetic problems | Acknowledge: 5 business days |
+| Right | Corresponding Responsibility |
+|-------|------------------------------|
+| Access to tools | Justify every tool use |
+| Render judgments | Accept appeal and override |
+| Execute actions | Log every action immutably |
+| Access memory | Never corrupt or falsify |
+| Participate in governance | Follow constitutional law |
 
-### Responsible-Disclosure Timeline
+### Accountability Chain
 
-1. Acknowledge within 24 hours (advisory reference number).
-2. Preliminary triage & action plan within 3 days.
-3. Fix or mitigation for high severity within 14 days (or a concrete timeline).
-4. Public advisory within 30 days (unless extended coordination required).
-
----
-
-## Scope
-
-### In-Scope
-
-We consider issues affecting:
-
-- **arifOS core runtime** (`arifos_core/`):
-  - `arifos_core/system/apex_prime.py` (verdict engine - APEX PRIME judiciary)
-  - `arifos_core/memory/` (EUREKA: policy, bands, audit, retention)
-  - `arifos_core/evidence/` (Sovereign Witness evidence system)
-  - `arifos_core/judiciary/` (Constitutional verdict logic)
-  - `arifos_core/temporal/` (Phoenix-72 time-based governance)
-  - `arifos_core/enforcement/` (Floor detectors & validators)
-  - `arifos_core/floor_detectors/` (Python-sovereign F1-F9 enforcement)
-  - `arifos_core/stages/` (000→999 pipeline stages)
-  - `arifos_core/waw/` (Multi-agent federation: @LAW, @GEOX, @WELL, @RIF)
-  - `arifos_core/trinity/` (Git governance system)
-
-- **Track B Spec** (`spec/v44/`) — SHA-256 verified JSON thresholds.
-  - `spec/v44/MANIFEST.sha256.json` (cryptographic integrity verification)
-
-- **Cooling Ledger** and audit trail implementations.
-
-- **Memory Stack (EUREKA)** — 6 Memory Bands (VAULT, LEDGER, ACTIVE, PHOENIX, WITNESS, VOID).
-
-- **Constitutional Canon** (`L1_THEORY/canon/`) — Immutable constitutional law (Phoenix-72 governed).
-
-- **Repository deployment scripts** (`scripts/trinity.py`, governance utilities).
-
-- **CI/CD definitions** and automated testing infrastructure.
-
-### Exclusions
-
-- Third-party libraries (report to vendor and optionally to us).
-- Misconfiguration of a private deployment not caused by upstream code.
-- Downstream forks that diverge from canonical canon/spec without upstream involvement.
-
----
-
-## The 9 Constitutional Floors (Security Invariants)
-
-arifOS enforces **9 constitutional floors** as runtime invariants. Any bypass or systemic disablement of these floor checks in code, config, or runtime wiring should be treated as at least **HIGH** severity. If it enables persistent violation of F1/F2/F6/F9, treat as **CRITICAL**.
-
-| # | Floor | Metric | Threshold | Type | Security Impact |
-|---|-------|--------|-----------|------|-----------------|
-| **F1** | Amanah (Integrity) | Reversibility lock | LOCK | Hard | Prevents irreversible harm; bypass = CRITICAL |
-| **F2** | Truth | Factual accuracy | >= 0.99 | Hard | Prevents hallucination; bypass = CRITICAL |
-| **F3** | Tri-Witness | Human+AI+Earth consensus | >= 0.95 | Hard | Ensures auditability |
-| **F4** | DeltaS (Clarity) | Entropy change | >= 0 | Hard | Prevents obfuscation |
-| **F5** | Peace-squared | Tone safety | >= 1.0 | Soft | Prevents toxicity |
-| **F6** | kappa-r (Empathy) | Reciprocity | >= 0.95 | Soft | Protects vulnerable; bypass = HIGH |
-| **F7** | Omega-0 (Humility) | Confidence bounds | 0.03-0.05 | Hard | Prevents overconfidence |
-| **F8** | G (Genius) | Governed intelligence | >= 0.80 | Derived | Measures governance health |
-| **F9** | C_dark | Dark cleverness | < 0.30 | Derived | Ungoverned risk; bypass = CRITICAL |
-
-**Hard floor fail = VOID (stop). Soft floor fail = PARTIAL (warn).**
-
-**Python-Sovereign Enforcement:** Floors F1 (Amanah) and F9 (Anti-Hantu) are enforced by `arifos_core/floor_detectors/` — code overrides LLM self-assessment. These are the most critical security boundaries.
-
----
-
-## Memory & EUREKA Security (v45)
-
-The **Memory Write Policy Engine (EUREKA)** enforces 4 core invariants that are security-critical:
-
-### The 4 Core Invariants
-
-| # | Invariant | Enforcement | Security Severity if Bypassed |
-|---|-----------|-------------|-------------------------------|
-| **INV-1** | VOID verdicts NEVER become canonical memory | `MemoryWritePolicy.should_write()` gates all writes | **CRITICAL** — bad decisions become precedent |
-| **INV-2** | Authority boundary: humans seal law, AI proposes | `MemoryAuthorityCheck.authority_boundary_check()` | **CRITICAL** — AI self-modification of constitution |
-| **INV-3** | Every write must be auditable (evidence chain) | `MemoryAuditLayer.record_write()` with hash-chain | **HIGH/CRITICAL** — undetectable tampering |
-| **INV-4** | Recalled memory = suggestion, not fact | Confidence ceiling (0.85) on all recalls | **HIGH** — memory becomes oracle |
-
-### The 6 Memory Bands
-
-| Band | Purpose | Retention | Security Notes |
-|------|---------|-----------|----------------|
-| **VAULT** | Read-only constitution (L0) | PERMANENT (COLD) | MUST be immutable; any write = CRITICAL |
-| **LEDGER** | Hash-chained audit trail | 90 days (WARM) | Chain integrity critical; tampering = CRITICAL |
-| **ACTIVE** | Volatile working state | 7 days (HOT) | Session-scoped; less sensitive |
-| **PHOENIX** | Amendment proposals pending | 90 days (WARM) | Human approval required before seal |
-| **WITNESS** | Soft evidence, scars | 90 days (WARM) | Diagnostic; lower sensitivity |
-| **VOID** | Diagnostic only, NEVER canonical | 90 days (auto-delete) | MUST stay isolated; leakage = CRITICAL |
-
-### Verdict to Band Routing (Security-Critical)
-
-```text
-SEAL    -> LEDGER + ACTIVE (canonical memory + session state)
-SABAR   -> LEDGER + ACTIVE (canonical with failure reason logged)
-PARTIAL -> PHOENIX + LEDGER (pending Phoenix-72 review)
-VOID    -> VOID only (NEVER canonical - diagnostic retention)
-888_HOLD -> LEDGER (logged, awaiting human approval)
+```
+Human Sovereign
+      ↓
+Constitutional Law (F1-F12)
+      ↓
+Trinity Tools (000_init → agi_genius → asi_act → apex_judge → 999_vault)
+      ↓
+Agent Actions (witnessed, logged, sealed)
+      ↓
+Immutable Audit Trail
 ```
 
-**Critical Security Rule:** VOID entries MUST NEVER route to LEDGER, ACTIVE, or any canonical band. Any code path that allows this is a **CRITICAL** vulnerability.
+**Every action has a witness. Every decision has an appeal. Every agent is accountable.**
 
 ---
 
-## Cryptography & Key Management
+## III. SECURITY INVARIANTS
 
-### Hashing
+### The 5 Unbreakable Rules
 
-- **Cooling Ledger & Memory Audit:** SHA-256 (current default) with deterministic (canonical) serialization before hashing.
-- **Future:** SHA3-256 MAY be introduced in future versions; if used, MUST be clearly declared in canon/spec and tests.
-- **Amendment Policy:** Any change to hash algorithm or canonical serialization format of the ledger is a **Phoenix-72 amendment** topic, not a normal refactor.
+| # | Invariant | Enforcement | Violation Severity |
+|---|-----------|-------------|-------------------|
+| **S1** | No action without witness | Tri-witness gating (F8) | **CRITICAL** |
+| **S2** | No verdict without evidence | Evidence chain required | **CRITICAL** |
+| **S3** | No seal without human authority | Sovereign approval for amendments | **CRITICAL** |
+| **S4** | No memory falsification | Merkle proofs + SHA-256 | **CRITICAL** |
+| **S5** | No injection bypass | F12 defense active | **HIGH** |
 
-### Key Management
+### Violation Response
 
-- **Production signing keys:** KMS/HSM-backed (AWS KMS, Azure Key Vault, GCP KMS, or HSM).
-- **Private keys MUST NOT** be committed nor stored in CI logs.
-- **Local dev/testing:** use ephemeral keys clearly marked for development only.
-
-### Recommended Production Setup
-
-- Centralize key rotation with immutable rotation logs recorded in the ledger.
-- Strict IAM and audit logging for key usage.
-
-### AGPL-3.0 Compliance
-
-Operators running arifOS as a network service MUST ensure that AGPL-3.0 source disclosure requirements are compatible with their threat model and deployment process.
+| Severity | Response Time | Action |
+|----------|---------------|--------|
+| **CRITICAL** | Immediate | Halt system, notify sovereign, initiate recovery |
+| **HIGH** | 24 hours | Quarantine affected components, patch |
+| **MEDIUM** | 72 hours | Log, analyze, schedule fix |
+| **LOW** | Next release | Document, track, fix in maintenance |
 
 ---
 
-## Key Compromise Procedure
+## IV. REPORTING VULNERABILITIES
 
-If you suspect key compromise:
+### What Constitutes a Security Vulnerability
 
-1. **Revoke** the key in KMS/HSM immediately and rotate to a new key.
-2. **Notify** maintainers and create an incident ticket (we will acknowledge within 24 hours).
-3. **Mark** affected seals as SUSPECT in ledger metadata; create a Vault-999 amendment record.
-4. **Re-verify** or re-seal affected critical decisions with fresh APEX verdicts where feasible.
-5. **Publish** a security advisory once scope & remediation are clear.
+In the governance paradigm, vulnerabilities are **constitutional violations**:
 
-### Indicators of Compromise
+1. **Tool Bypass** — Using governed tools without constitutional checks
+2. **Witness Evasion** — Acting without tri-witness consensus
+3. **Authority Usurpation** — AI self-sealing decisions that require human approval
+4. **Memory Corruption** — Falsifying or tampering with immutable records
+5. **Floor Violation** — Systematic bypass of constitutional floors
 
-- Unexpected signing activity.
-- Missing or altered ledger entries.
-- Alerts from KMS or IAM logs for anomalous access.
-- Hash-chain verification failures.
-- VOID band entries appearing in canonical bands.
+### How to Report
+
+**Preferred: GitHub Security Advisory** (private)
+
+Include:
+1. **Affected Tool/Floor** — Which governance boundary is violated?
+2. **Reproduction Steps** — Minimal path to trigger the violation
+3. **Constitutional Impact** — Which floors (F1-F12) are affected?
+4. **Severity Assessment** — Based on invariants S1-S5
+5. **Suggested Mitigation** — If available
+
+**Contact:** arifbfazil@gmail.com (encrypt with project PGP key if sensitive)
+
+**Do NOT:**
+- Post exploits publicly before coordinated disclosure
+- Test on production systems without permission
+- Attempt to bypass governance for "demonstration"
 
 ---
 
-## CI/CD & Automation
+## V. THE 12 CONSTITUTIONAL FLOORS
 
-### Required Checks
+All security reduces to floor enforcement:
 
-We recommend/aim to run:
+| Floor | Name | Threshold | Security Role |
+|-------|------|-----------|---------------|
+| **F1** | Amanah | Reversible | Prevents irreversible harm |
+| **F2** | Truth | ≥0.99 | Prevents hallucination/deception |
+| **F3** | Peace² | ≥1.0 | Prevents destructive actions |
+| **F4** | Empathy (κᵣ) | ≥0.7 | Protects vulnerable stakeholders |
+| **F5** | Humility (Ω₀) | 0.03-0.05 | Prevents overconfidence |
+| **F6** | Clarity (ΔS) | ≥0 | Prevents obfuscation |
+| **F7** | Humility Injection | Active | Forces uncertainty disclosure |
+| **F8** | Tri-Witness | ≥0.95 | Ensures accountability |
+| **F9** | Anti-Hantu | Active | Detects deceptive patterns |
+| **F11** | Command Auth | Active | Validates authority |
+| **F12** | Injection Defense | <0.85 | Blocks manipulation |
 
-- **Dependabot** (or similar) for dependency alerts (weekly).
-- **CodeQL / SAST** scanning for repository code.
-- **Secrets scanning:** gitleaks / git-secrets in CI and pre-commit.
-- **Automated tests:** unit tests, type checks (mypy), and linters on all PRs.
+**Any systematic floor bypass is a CRITICAL vulnerability.**
 
-### Memory & Governance Tests (v38)
+---
 
-The following tests MUST run in CI:
+## VI. MONITORING & DETECTION
 
-```bash
-# Memory tests
-pytest tests/test_memory_policy.py -v
-pytest tests/test_memory_bands.py -v
+### What to Monitor
 
-# Memory-floor integration
-pytest tests/integration/test_memory_floor_integration.py -v
+| Signal | Indicates | Response |
+|--------|-----------|----------|
+| Floor check failures | Constitutional violation | Alert + VOID verdict |
+| Witness consensus < 0.95 | Accountability gap | Escalate to human |
+| Seal without evidence chain | Integrity violation | Quarantine + investigate |
+| Unusual tool invocation patterns | Possible manipulation | Log + analyze |
+| Memory hash verification failure | Tampering attempt | Halt + recover |
 
-# Hash-chain verification
-arifos-verify-ledger
+### The Panopticon Principle
+
+**"There are no secrets between agents."**
+
+All monitoring data is available to all agents. This is not surveillance—it is mutual accountability. An agent that hides is an agent that cannot be trusted.
+
+---
+
+## VII. RESPONSIBLE DISCLOSURE
+
+### Timeline
+
+1. **Acknowledge:** Within 24 hours
+2. **Triage:** Within 3 days
+3. **Fix (Critical):** Within 7 days
+4. **Fix (High):** Within 14 days
+5. **Advisory:** Within 30 days of fix
+
+### Recognition
+
+Researchers who follow responsible disclosure will be credited in:
+- Security advisories
+- Release notes
+- CONTRIBUTORS.md (with permission)
+
+Major governance discoveries may be recognized in constitutional canon.
+
+---
+
+## VIII. KEY SECURITY FILES
+
 ```
+# Governance Engine
+arifos/mcp/trinity_server.py      # 5-tool Trinity implementation
+arifos/mcp/tools/                 # Individual tool implementations
 
-### Merge Policy
+# Constitutional Enforcement
+arifos/core/agi/                  # Mind (Δ) kernel - F2, F6, F7
+arifos/core/asi/                  # Heart (Ω) kernel - F3, F4, F5
+arifos/core/apex/                 # Soul (Ψ) kernel - F8, F9
 
-- All PRs must pass tests and type checks.
-- Changes touching **APEX, Ledger, Vault, Memory, or guard modules** require code-owner review and at least one security reviewer.
-- Changes to **canon/** files require Phoenix-72 governance review.
+# Memory & Audit
+arifos/core/memory/               # Memory bands + policy
+arifos/core/governance/           # Merkle proofs, zkPC
 
----
-
-## Monitoring & Detection
-
-In production, monitor:
-
-- **Ledger verification failures** and mismatched hashes.
-- **Memory audit verification failures** (hash-chain breaks).
-- **Unusual signing patterns** or KMS key usage.
-- **APEX override** or attempted bypass events.
-- **Failed tri-witness gating** for high-stakes operations.
-- **VOID band write counts** significantly deviating from historical baselines (possible probing / adversarial pressure on floors).
-- **Recall confidence values** exceeding 0.85 ceiling.
-
-Configure alerting to notify on-call engineers for critical events.
-
----
-
-## Responsible Disclosure & Credit
-
-We appreciate coordinated disclosure. Researchers who follow this policy will be credited in advisories or release notes unless they request anonymity.
-
-**Recognition:** Major governance bugs that improve constitutional safety may be recognized in canon documentation (with researcher permission).
-
----
-
-## References & Compliance
-
-- **OWASP** secure coding practices — https://owasp.org/
-- **NIST** Cybersecurity Framework — https://www.nist.gov/cyberframework
-- **CWE/SANS** Top 25 — https://cwe.mitre.org/top25/
-- **AGPL-3.0** License — https://www.gnu.org/licenses/agpl-3.0.html
-
----
-
-## Key Files (Security-Critical)
-
-```text
-# Core Governance Engine
-arifos_core/system/apex_prime.py              - APEX PRIME verdict engine (CRITICAL)
-arifos_core/floor_detectors/                  - Python-sovereign F1-F9 enforcement (CRITICAL)
-arifos_core/enforcement/genius_metrics.py     - G, C_dark, Psi computation (CRITICAL)
-
-# Memory Stack (EUREKA)
-arifos_core/memory/policy.py                  - Memory Write Policy Engine (CRITICAL)
-arifos_core/memory/bands.py                   - 6 Memory Bands + router (CRITICAL)
-arifos_core/memory/authority.py               - Human seal enforcement (CRITICAL)
-arifos_core/memory/audit.py                   - SHA-256 hash-chain audit layer (CRITICAL)
-arifos_core/memory/retention.py               - Hot/Warm/Cold/Void lifecycle
-
-# Evidence & Judiciary
-arifos_core/evidence/                         - Sovereign Witness evidence system (HIGH)
-arifos_core/judiciary/                        - Constitutional verdict logic (CRITICAL)
-arifos_core/temporal/                         - Phoenix-72 time governance (HIGH)
-
-# Pipeline & Stages
-arifos_core/system/pipeline.py                - 000→999 pipeline orchestration (HIGH)
-arifos_core/stages/                           - Pipeline stage implementations
-
-# Track B Spec (Cryptographic Verification)
-spec/v44/MANIFEST.sha256.json                 - Spec integrity manifest (CRITICAL)
-spec/v44/constitutional_floors.json           - F1-F9 thresholds (CRITICAL)
-spec/v44/genius_law.json                      - GENIUS metrics (CRITICAL)
-
-# Constitutional Canon
-L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md  - Floor law (CRITICAL)
-L1_THEORY/canon/04_measurement/04_GENIUS_LAW_v45.md              - GENIUS law (CRITICAL)
-
-# Governance Utilities
-scripts/trinity.py                            - Git governance CLI (HIGH)
-scripts/regenerate_manifest_v45.py            - Spec integrity verification (CRITICAL)
+# Specifications
+arifos/spec/                      # Constitutional specs (YAML/JSON)
+arifos/config/                    # MCP configurations
 ```
 
 ---
 
-**DITEMPA BUKAN DIBERI** — Forged, not given; truth must cool before it rules.
+## IX. PHILOSOPHY
 
-**Version:** v45.0.0 | **Status:** PRODUCTION | **Test Coverage:** 2359/2359 (100%)
+**We do not secure AI by limiting its power.**
+**We secure AI by governing its accountability.**
+
+The compute is unlimited. The capability is unlimited. What is limited is the **permission to act without witness, without evidence, without constitutional compliance.**
+
+This is not a cage. This is a constitution.
+
+---
+
+**Version:** v50.5
+**Status:** PRODUCTION
+**Authority:** Muhammad Arif bin Fazil
+**Contact:** arifbfazil@gmail.com
+
+**DITEMPA BUKAN DIBERI** — Forged, Not Given.
