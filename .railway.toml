@@ -2,12 +2,24 @@
   builder = "NIXPACKS"
 
 [deploy]
-  startCommand = "python arifos/core/mcp/unified_server.py"
+  # Trinity SSE: 5-tool Constitutional Framework
+  # Tools: 000_init, agi_genius, asi_act, apex_judge, 999_vault
+  startCommand = "python -m arifos.core.mcp trinity-sse"
   healthcheckPath = "/health"
-  healthcheckTimeout = 30
-  sleepApplication = false
+  healthcheckTimeout = 300
+  restartPolicyType = "ON_FAILURE"
+  restartPolicyMaxRetries = 3
 
 [env]
+  # Server config
+  PORT = "8000"
+  AAA_MCP_PORT = "8000"
+  AAA_MCP_TRANSPORT = "sse"
+
+  # arifOS config
   VAULT_PATH = "/vault"
   ARIFOS_CONSTITUTIONAL_MODE = "AAA"
   ARIFOS_DEBUG = "false"
+
+  # Python
+  PYTHONUNBUFFERED = "1"

@@ -1,8 +1,13 @@
 """
-arifOS Unified MCP Server - The Metabolic Standard (v50.3.0)
+arifOS Unified MCP Server - The Metabolic Standard (v50.4.0)
 
-This registry strictly implements the 11-Stage Metabolic Cycle (000-999).
-Refined Names: 000_init, 666_act.
+This registry strictly implements the 11-Stage Metabolic Cycle (000-999)
+with proper AGI/ASI/APEX kernel integration.
+
+Trinity Architecture:
+    AGI (Mind - Δ): Stages 111, 222, 333 | F1, F2, F6
+    ASI (Heart - Ω): Stages 444, 555, 666 | F3, F4, F5, F7
+    APEX (Soul - Ψ): Stages 777, 888, 889, 999 | F1, F8, F9
 
 Authority: 000_THEORY/000_ARCHITECTURE.md
 Governance: F1-F13 Constitutional Floors
@@ -22,6 +27,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
 from arifos.core.mcp.unified_tools import (
+    # Metabolic Stages (000-999)
     stage_000_init,
     stage_111_sense,
     stage_222_think,
@@ -34,6 +40,11 @@ from arifos.core.mcp.unified_tools import (
     stage_888_judge,
     stage_889_proof,
     stage_999_vault,
+    # Kernel Evaluation Tools (Direct Trinity Access)
+    stage_agi_evaluate,
+    stage_asi_evaluate,
+    stage_entropy_measure,
+    stage_parallelism_proof,
 )
 
 # =============================================================================
@@ -48,6 +59,9 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 TOOLS: Dict[str, Callable] = {
+    # =========================================================================
+    # METABOLIC STAGES (000-999)
+    # =========================================================================
     "000_init": stage_000_init,
     "111_sense": stage_111_sense,
     "222_think": stage_222_think,
@@ -60,6 +74,13 @@ TOOLS: Dict[str, Callable] = {
     "888_judge": stage_888_judge,
     "889_proof": stage_889_proof,
     "999_vault": stage_999_vault,
+    # =========================================================================
+    # KERNEL EVALUATION TOOLS (Direct Trinity Access)
+    # =========================================================================
+    "agi_evaluate": stage_agi_evaluate,
+    "asi_evaluate": stage_asi_evaluate,
+    "entropy_measure": stage_entropy_measure,
+    "parallelism_proof": stage_parallelism_proof,
 }
 
 # =============================================================================
@@ -218,6 +239,58 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
                 "query": {"type": "string"}
             },
             "required": ["target", "action"]
+        }
+    },
+    # =========================================================================
+    # KERNEL EVALUATION TOOLS (Direct Trinity Access)
+    # =========================================================================
+    "agi_evaluate": {
+        "name": "agi_evaluate",
+        "description": "AGI Floor Evaluation: Evaluates response against F2 (Truth) and F6 (ΔS Clarity) floors.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Original user query"},
+                "response": {"type": "string", "description": "Draft response to evaluate"},
+                "truth_score": {"type": "number", "default": 1.0, "description": "Truth confidence (0.0-1.0)"}
+            },
+            "required": ["query", "response"]
+        }
+    },
+    "asi_evaluate": {
+        "name": "asi_evaluate",
+        "description": "ASI Floor Evaluation: Evaluates text against F3 (Peace²), F4 (κᵣ), and F5 (Ω₀) floors.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "text": {"type": "string", "description": "Text to evaluate for empathy"},
+                "context": {"type": "object", "description": "Optional context metadata"}
+            },
+            "required": ["text"]
+        }
+    },
+    "entropy_measure": {
+        "name": "entropy_measure",
+        "description": "Agent Zero: Measures ΔS (entropy reduction) for F6 floor validation. Thermodynamic Law: ΔS ≥ 0.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "pre_text": {"type": "string", "description": "Text before processing"},
+                "post_text": {"type": "string", "description": "Text after processing"}
+            },
+            "required": ["pre_text", "post_text"]
+        }
+    },
+    "parallelism_proof": {
+        "name": "parallelism_proof",
+        "description": "Agent Zero: Proves orthogonality of AGI/ASI/APEX execution. Validates parallel execution (speedup > 1.1).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "start_time": {"type": "number", "description": "Unix timestamp when processing started"},
+                "component_durations": {"type": "object", "description": "Dict of component names to their durations"}
+            },
+            "required": ["start_time", "component_durations"]
         }
     }
 }
@@ -447,12 +520,17 @@ async def main():
 def print_stats():
     """Print tool registry statistics."""
     print("=" * 80, file=sys.stderr)
-    print("arifOS Unified MCP Server v50.3.0 - Refined Metabolic (Init/Act)", file=sys.stderr)
+    print("arifOS Unified MCP Server v50.4.0 - Trinity Kernel Integration", file=sys.stderr)
     print("=" * 80, file=sys.stderr)
-    print(f"Total Stages: {len(TOOLS)} (000-999)", file=sys.stderr)
-    print("Schema: Canonical Metabolic Loop (Refined)", file=sys.stderr)
+    print(f"Total Tools: {len(TOOLS)} (12 Metabolic + 4 Kernel)", file=sys.stderr)
+    print("Schema: Canonical Metabolic Loop with AGI/ASI/APEX Kernels", file=sys.stderr)
     print(file=sys.stderr)
-    print("Registered Stages:", file=sys.stderr)
+    print("Trinity Architecture:", file=sys.stderr)
+    print("  AGI (Mind - Δ): 111_sense, 222_think, 333_atlas | F1, F2, F6", file=sys.stderr)
+    print("  ASI (Heart - Ω): 444_evidence, 555_empathy, 666_act | F3, F4, F5, F7", file=sys.stderr)
+    print("  APEX (Soul - Ψ): 777_eureka, 888_judge, 889_proof, 999_vault | F1, F8, F9", file=sys.stderr)
+    print(file=sys.stderr)
+    print("Registered Tools:", file=sys.stderr)
     for name in sorted(TOOLS.keys()):
         print(f"  - {name}", file=sys.stderr)
     print("=" * 80, file=sys.stderr)
