@@ -1,4 +1,4 @@
-# ArifOS Physics Codex (v33Ω Canon)
+# ArifOS Physics Codex (v35Ω Canon)
 
 **Status:** Canonical · Sealed · Immutable
 **Chapters:** 1-6 (TAC, TEARFRAME, APEX PRIME, TPCP, @EYE, Meta-State)
@@ -102,14 +102,14 @@ TAC sends clarity vector → APEX PRIME for equilibrium check (Ψ-check).
 
 #### 4. TAC in ArifOS Architecture
 
-**4.1 TAC is the Δ-engine of ARIF AGI**
+**4.1 TAC is the Δ-engine of AGI (Architect)**
 
-ARIF AGI works with TAC as its core:
+AGI (Architect) works with TAC as its core:
 - detect anomaly
 - run contrastive reasoning
 - map contradictions into structure
 - produce clarity
-- hand to Heart (ADAM ASI) for Peace²
+- hand to Heart (ASI (Auditor)) for Peace²
 
 **4.2 TAC feeds TEARFRAME's humility**
 
@@ -319,9 +319,9 @@ This ensures ΔS↑ and Peace²↑.
 
 #### 4. TEARFRAME in ArifOS Architecture
 
-**4.1 TEARFRAME = The Ω-engine of ADAM ASI**
+**4.1 TEARFRAME = The Ω-engine of ASI (Auditor)**
 
-ADAM ASI (Heart Engine) operates via TEARFRAME.
+ASI (Auditor) (Heart Engine) operates via TEARFRAME.
 
 Roles:
 - protect weakest listener
@@ -1425,7 +1425,7 @@ You can test if it's active (floor checks, ledger entries, latency overhead).
 
 ## End of Physics Codex
 
-**ArifOS v33Ω — Complete Constitutional Physics**
+**ArifOS v35Ω — Complete Constitutional Physics**
 
 All 6 chapters canonical, sealed, immutable.
 
@@ -1436,7 +1436,7 @@ All 6 chapters canonical, sealed, immutable.
 # 🧩 EUREKA-CEILING-7: The Physics of Intelligence (v1.0)
 **Designation:** Fundamental Physical Constants of arifOS
 **Source:** David Shapiro Synthesis × APEX THEORY
-**Epoch:** 33Ω (Post-Clarification)
+**Epoch:** 35Ω (Judiciary Lock)
 **Status:** CANONICAL · IMMUTABLE
 
 ---
@@ -1523,4 +1523,4 @@ Before intelligence, there is Chaos. The universe tends toward disorder.
 
 **Author:** Muhammad Arif bin Fazil  
 **License:** Apache 2.0  
-**Status:** Basecamp Lock (2025-11-16)
+**Status:** Judiciary Lock v35Ω (2025-12-02)

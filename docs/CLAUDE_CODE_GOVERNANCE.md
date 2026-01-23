@@ -600,8 +600,8 @@ class CodeCoolingEntry(CoolingEntry):
 
 ### 8.1 Multi-Agent Governance
 
-- ARIF AGI: Generates code changes (Δ/Mind)
-- ADAM ASI: Reviews for empathy/humility (Ω/Heart)
+- AGI (Architect): Generates code changes (Δ/Mind)
+- ASI (Auditor): Reviews for empathy/humility (Ω/Heart)
 - APEX PRIME: Final constitutional verdict (Ψ/Soul)
 
 ### 8.2 Test-Driven Governance

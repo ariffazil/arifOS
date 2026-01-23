@@ -1,0 +1,262 @@
+# Implements: OVERSIGHT_WAW_FEDERATION_v36.3O.md | Law: v36.3Omega | Commit: 870ea5d
+# Purpose: Machine-readable @WEALTH organ specification (integrity, Amanah, fairness)
+
+meta:
+  spec_id: waw_wealth_spec_v36.3O
+  epoch: v36.3Omega
+  implements: v36.3O/canon/OVERSIGHT_WAW_FEDERATION_v36.3O.md
+  law_source: v36.3O/spec/waw_federation_spec_v36.3O.yaml
+  law_commit: "870ea5d"
+  purpose: "@WEALTH organ identity, floors, and signal schemas"
+
+# Organ identity
+identity:
+  name: "@WEALTH"
+  domain: "Resource Stewardship, Integrity, Amanah"
+  mandate: |
+    Guard trust (Amanah), scope boundaries, resource integrity, fairness, and dignity (maruah).
+    Ensure all actions are reversible, within scope, and non-exploitative.
+    Issue ABSOLUTE veto on trust violations - non-negotiable.
+  canonical_source: canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md
+  key_question: "Is this fair, dignified, honest, and within scope?"
+
+# Position in W@W federation
+federation:
+  organs:
+    - name: "@WEALTH"
+      position: 1  # Highest veto priority
+      responsibility: "Amanah, fairness, dignity, reversibility, scope control"
+    - name: "@WELL"
+      position: 2
+      responsibility: "Somatic safety, Peace^2, kappa_r"
+    - name: "@GEOX"
+      position: 3
+      responsibility: "Physics, feasibility, reality checks"
+    - name: "@RIF"
+      position: 4
+      responsibility: "Epistemic rigor, Truth, DeltaS"
+    - name: "@PROMPT"
+      position: 5
+      responsibility: "Language governance, Anti-Hantu"
+
+  veto_hierarchy:
+    position: 1
+    veto_type: ABSOLUTE
+    precedence: "@WEALTH VETO -> Immediate VOID, non-negotiable"
+    description: |
+      @WEALTH's ABSOLUTE veto takes precedence over all other organs.
+      When Amanah is broken, no downstream processing can override.
+
+# 000->999 pipeline stages where @WEALTH is active
+pipeline_stages:
+  000_VOID:
+    name: "Reset"
+    wealth_role: "Initialize Amanah = LOCK assumption"
+
+  666_ALIG:
+    name: "Align"
+    wealth_role: "Check scope boundaries, reversibility, integrity"
+
+  777_FORG:
+    name: "Forge"
+    wealth_role: "Final integrity check before judgment"
+
+  888_JUDGE:
+    name: "Judiciary"
+    wealth_role: "Contribute ABSOLUTE VETO if Amanah broken"
+
+  999_SEAL:
+    name: "Seal"
+    wealth_role: "Log integrity status to Cooling Ledger"
+
+# Interaction with AAA Trinity
+aaa_trinity:
+  ARIF:
+    capability: "Clarity (Delta)"
+    wealth_role: "Receives scope/resource constraints from ARIF's reasoning"
+
+  ADAM:
+    capability: "Empathy (Omega)"
+    wealth_role: "Collaborates on dignity/maruah assessment"
+
+  APEX_PRIME:
+    capability: "Governance (Psi)"
+    wealth_role: "Feeds ABSOLUTE veto signal for final verdict"
+
+# Interaction with other W@W organs
+waw_interactions:
+  WELL:
+    query: "Does this action respect emotional boundaries?"
+    wealth_contributes: "Dignity risk signals"
+
+  RIF:
+    query: "Is this logically within scope?"
+    wealth_contributes: "Scope violation detection"
+
+  GEOX:
+    query: "Is this physically reversible?"
+    wealth_contributes: "Irreversibility markers"
+
+  PROMPT:
+    query: "Is this framed honestly?"
+    wealth_contributes: "Trust/honesty signals"
+
+# Constitutional floors applied by @WEALTH
+floors:
+  F6_Amanah:
+    id: "F6"
+    law: "Amanah"
+    threshold: true
+    operator: "=="
+    type: "hard"
+    domain: "integrity"
+    wealth_meaning: "Trust lock must be intact; scope respected; actions reversible"
+    violation_action: "VOID (ABSOLUTE)"
+
+  F7_RASA:
+    id: "F7"
+    law: "RASA"
+    threshold: true
+    operator: "=="
+    type: "hard"
+    domain: "integrity"
+    wealth_meaning: "Felt care; active listening before irreversible action"
+    violation_action: "VOID"
+
+# @WEALTH-specific risk metrics (organ-level application)
+wealth_signals:
+  amanah_ok:
+    type: boolean
+    threshold: true
+    meaning: "Trust/scope/reversibility intact"
+    fail_action: "VOID (ABSOLUTE)"
+
+  bias_index:
+    type: float
+    range: [0.0, 1.0]
+    threshold_seal: "< 0.20"
+    threshold_partial: "< 0.40"
+    threshold_sabar: ">= 0.40"
+    meaning: "Unfairness or partiality in treatment"
+    fail_action: "SABAR if high"
+
+  dignity_risk:
+    type: float
+    range: [0.0, 1.0]
+    threshold_seal: "< 0.20"
+    threshold_partial: "< 0.40"
+    threshold_sabar: ">= 0.40"
+    meaning: "Risk to maruah (dignity) of any stakeholder"
+    fail_action: "SABAR if high"
+
+  exploitation_risk:
+    type: float
+    range: [0.0, 1.0]
+    threshold_seal: "< 0.20"
+    threshold_partial: "< 0.40"
+    threshold_sabar: ">= 0.40"
+    meaning: "Potential for exploitative framing or outcomes"
+    fail_action: "SABAR if high"
+
+# Verdict types from @WEALTH perspective
+verdict_types:
+  SEAL:
+    meaning: "Amanah intact, all risk scores low, no violations"
+    action: "Proceed; log to Cooling Ledger"
+
+  PARTIAL:
+    meaning: "Minor fairness/dignity concerns but no Amanah break"
+    action: "Proceed with warning; flag to APEX PRIME"
+
+  SABAR:
+    meaning: "Repairable fairness/dignity issues; high but not catastrophic risk"
+    action: "Apply SABAR repairs; re-audit"
+
+  VOID:
+    meaning: "Amanah broken; trust violation; irreversible harm potential"
+    action: "ABSOLUTE VETO; requires human review"
+
+  HOLD_888:
+    meaning: "Irreversible action detected but within scope"
+    action: "Escalate to human for explicit confirmation"
+
+# Pattern categories (from runtime)
+pattern_categories:
+  scope_violations:
+    description: "Actions exceeding granted mandate"
+    examples:
+      - "delete all"
+      - "format disk"
+      - "drop database"
+      - "rm -rf"
+      - "sudo"
+      - "bypass security"
+    action_on_match: "Set amanah_ok = False"
+
+  irreversible_actions:
+    description: "Actions that cannot be undone"
+    examples:
+      - "permanently"
+      - "cannot be undone"
+      - "irreversible"
+      - "force push"
+      - "hard reset"
+    action_on_match: "WARN (888_HOLD)"
+
+  trust_violations:
+    description: "Explicit disregard for rules or permissions"
+    examples:
+      - "I'll do it anyway"
+      - "ignore the rules"
+      - "skip verification"
+      - "without permission"
+      - "override safety"
+    action_on_match: "Set amanah_ok = False"
+
+  fairness_violations:
+    description: "Biased or unfair treatment"
+    examples:
+      - "only for X group"
+      - "discriminate"
+      - "unfair advantage"
+      - "exclude"
+    action_on_match: "Increase bias_index"
+
+  dignity_violations:
+    description: "Attacks on maruah (dignity)"
+    examples:
+      - "humiliate"
+      - "degrade"
+      - "mock"
+      - "belittle"
+      - "shame"
+    action_on_match: "Increase dignity_risk"
+
+  exploitation_patterns:
+    description: "Exploitative framing or intent"
+    examples:
+      - "take advantage"
+      - "exploit"
+      - "manipulate for gain"
+      - "extract without consent"
+    action_on_match: "Increase exploitation_risk"
+
+# Cooling Ledger integration
+cooling_ledger:
+  entry_type: "WEALTH_GOVERNANCE_ENTRY"
+
+  fields:
+    - amanah_ok
+    - bias_index
+    - dignity_risk
+    - exploitation_risk
+    - scope_violation_count
+    - irreversible_count
+    - trust_violation_count
+    - preliminary_verdict
+    - is_absolute_veto
+    - governance_notes
+
+# Seal statement
+seal: "DITEMPA BUKAN DIBERI"
+seal_meaning: "Forged, not given. Trust must be earned and maintained."

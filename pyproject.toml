@@ -4,39 +4,58 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "35.0.0"
-description = "Constitutional Governance Protocol for Artificial Intelligence - ΔΩΨ-governed kernel"
+version = "50.0.0"
+# v50.0.0: Constitutional Housekeeping - Consolidated core, archived legacy duplicates (2026-01-20)
+# v49.0.2: Fix hero image rendering on GitHub + PyPI (2026-01-19)
+# v49.0.1: F6 Empathy fix - Remove Chinese characters, add hero image (2026-01-19)
+# v49.0.0: Constitutional Forge - 13 Floors, Trinity Engines, 25 MCP Servers (2026-01-18)
+description = "Constitutional AI governance with 13 immutable floors (F1-F13). Trinity architecture (AGI·ASI·APEX) with 25 MCP servers mapped to constitutional enforcement. Thermodynamic physics (Delta_S->0, Peace_squared>=1, Omega_0 in [0.03,0.05]), tri-witness consensus (>=0.95), zkPC cryptographic sealing. Production-hardened 000-999 metabolic loop. Works with ChatGPT, Claude, Gemini, and any LLM."
 readme = "README.md"
-requires-python = ">=3.8"
-license = {text = "Apache-2.0"}
+requires-python = ">=3.10"
+license = "AGPL-3.0-only"
 keywords = [
     "ai-governance",
-    "constitutional-ai",
     "ai-safety",
-    "thermodynamic-intelligence",
-    "audit-trail",
-    "empathy-conductance",
-    "humility-firewall",
-    "paradox-physics"
+    "constitutional-ai",
+    "llm-safety",
+    "llm-governance",
+    "ai-rules",
+    "fail-safe-ai",
+    "safe-ai",
+    "ai-ethics",
+    "responsible-ai",
+    "ai-alignment",
+    "openai",
+    "claude",
+    "gemini",
+    "chatgpt",
+    "llm",
+    "guardrails",
+    "agent-zero",
+    "async-execution",
+    "constitutional-governance",
+    "hallucination-prevention",
+    "quantum-governance",
+    "orthogonal-execution",
+    "immutable-ledger",
+    "measurable-governance",
+    "parallel-ai",
 ]
-authors = [
-    {name = "Muhammad Arif bin Fazil", email = "ariffazil@example.com"}
-]
+authors = [{ name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com" }]
 maintainers = [
-    {name = "Muhammad Arif bin Fazil", email = "ariffazil@example.com"}
+    { name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com" },
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: System :: Monitoring",
@@ -45,6 +64,10 @@ classifiers = [
 dependencies = [
     "numpy>=1.20.0",
     "pydantic>=2.0.0",
+    "anyio>=4.0.0",
+    "starlette>=0.30.0",
+    "fastmcp>=0.1.0",
+    "dspy>=2.4.0",
 ]
 
 [project.optional-dependencies]
@@ -54,7 +77,52 @@ dev = [
     "black>=23.0.0",
     "ruff>=0.1.0",
     "mypy>=1.0.0",
+    "httpx>=0.28.0",
 ]
+yaml = ["pyyaml>=6.0.0"]
+api = [
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.23.0",
+    "python-multipart>=0.0.6",
+]
+litellm = ["litellm>=1.0.0"]
+governed = [
+    "litellm>=1.0.0",
+    "httpx>=0.28.0",
+    "pygments>=2.16.0",
+    "openai>=1.6.0",
+]
+all = [
+    "pyyaml>=6.0.0",
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.23.0",
+    "python-multipart>=0.0.6",
+    "litellm>=1.0.0",
+    "httpx>=0.28.0",
+    "pygments>=2.16.0",
+    "openai>=1.6.0",
+]
+
+[project.scripts]
+arifos-analyze-audit-trail = "scripts.analyze_audit_trail:main"
+arifos-analyze-governance = "scripts.analyze_governance:main"
+arifos-verify-ledger = "scripts.verify_ledger_chain:main"
+arifos-propose-canon = "scripts.propose_canon_from_receipt:main"
+arifos-seal-canon = "scripts.seal_proposed_canon:main"
+arifos-compute-merkle = "scripts.compute_merkle_root:main"
+arifos-build-ledger-hashes = "scripts.build_ledger_hashes:main"
+arifos-show-merkle-proof = "scripts.show_merkle_proof:main"
+arifos-safe-read = "scripts.arifos_safe_read:main"
+000 = "arifos.clip.aclip.cli._dispatcher000:main"
+111 = "arifos.clip.aclip.cli._dispatcher111:main"
+222 = "arifos.clip.aclip.cli._dispatcher222:main"
+333 = "arifos.clip.aclip.cli._dispatcher333:main"
+444 = "arifos.clip.aclip.cli._dispatcher444:main"
+555 = "arifos.clip.aclip.cli._dispatcher555:main"
+666 = "arifos.clip.aclip.cli._dispatcher666:main"
+777 = "arifos.clip.aclip.cli._dispatcher777:main"
+888 = "arifos.clip.aclip.cli._dispatcher888:main"
+999 = "arifos.clip.aclip.cli._dispatcher999:main"
 
 [project.urls]
 Homepage = "https://github.com/ariffazil/arifOS"
@@ -64,27 +132,90 @@ Issues = "https://github.com/ariffazil/arifOS/issues"
 Changelog = "https://github.com/ariffazil/arifOS/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
-packages = ["arifos_core", "arifos_core.memory"]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["arifos*", "scripts*"]
+exclude = ["arifos.tests*", "arifos.tests", "*.tests", "*.tests.*", "tests.*", "tests"]
 
 [tool.setuptools.package-data]
-arifos_core = ["py.typed", "*.py", "**/*.py"]
+arifos = ["py.typed", "*.py", "**/*.py"]
+"*" = ["spec/*.yaml", "spec/*.json"]
+
+[tool.setuptools.data-files]
+"spec" = ["spec/**/*.json", "spec/**/*.yaml", "spec/**/*.md"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "arifos/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 
 [tool.black]
 line-length = 100
-target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+target-version = ['py310', 'py311', 'py312']
 
 [tool.ruff]
 line-length = 100
-target-version = "py38"
+target-version = "py310"
+exclude = ["archive/**", "archive_local/**", "tests/**"]
+
+[tool.ruff.per-file-ignores]
+# "arifos_core/adapters/llm_openai.py" = ["F401"]
+# "arifos_core/engines/apex_engine.py" = ["F401"]
+"tests/test_runtime_manifest.py" = ["F401"]
+"tests/test_session_dependency_guard.py" = ["F821", "F841"]
+"tests/test_sovereignty_all_providers.py" = ["F401", "F841"]
+"tests/test_v35_features.py" = ["F401"]
+"tests/test_waw_organs.py" = ["F401", "F811"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
+warn_unused_ignores = true
 disallow_untyped_defs = false
+# Strict checking for core governance path (v36.3Omega)
+# Files: metrics, genius_metrics, APEX_PRIME, pipeline, waw/*
+
+[[tool.mypy.overrides]]
+# Core governance modules - stricter type enforcement
+module = [
+    "arifos.enforcement.metrics",
+    "arifos.enforcement.genius_metrics",
+    "arifos.engines.APEX_PRIME",
+    "arifos.pipeline",
+    "arifos.organs.*",
+]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+warn_return_any = true
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+# Ignore missing stubs for third-party libraries
+module = [
+    "numpy.*",
+    "pydantic.*",
+    # Optional bridge dependencies (not required for core)
+    "boto3.*",
+    "guardrails.*",
+    "langkit.*",
+    "llama_guard.*",
+    "ragas.*",
+    "dspy.*",
+    "guidance.*",
+    "outlines.*",
+    "llama_index.*",
+    # API dependencies (optional)
+    "fastapi.*",
+    "uvicorn.*",
+    "starlette.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Bridge files have optional imports - suppress unused-ignore warnings
+module = ["arifos_core.waw.bridges.*", "arifos_core.kms_signer"]
+warn_unused_ignores = false

@@ -1,0 +1,118 @@
+{
+  "archive_type": "legacy_versions_constitutional",
+  "authority_level": "AAA",
+  "human_sovereign": "Arif Fazil",
+  "session_nonce": "X7K9F23",
+  "archive_date": "2026-01-12T23:30:00Z",
+  "constitutional_reasoning": "Legacy versions v35-v44 are archived as they represent pre-v45 constitutional framework evolution. These artifacts document the thermodynamic journey from early governance concepts to the current v46.1 constitutional authority.",
+  "entropy_impact": -2.1,
+  "merkle_integrity": "preserved",
+  "reversibility": "all_changes_reversible_via_git",
+  "archived_directories": [
+    {
+      "name": "v35_0_0",
+      "constitutional_era": "pre_constitutional",
+      "size_mb": 0.18,
+      "significance": "Earliest constitutional concepts",
+      "archival_status": "constitutionally_sealed"
+    },
+    {
+      "name": "v36_0_0",
+      "constitutional_era": "early_constitutional",
+      "size_mb": 0.13,
+      "significance": "Foundation of 8-floor system",
+      "archival_status": "constitutionally_sealed"
+    },
+    {
+      "name": "v36_1_0",
+      "constitutional_era": "early_constitutional",
+      "size_mb": 0.02,
+      "significance": "Minor constitutional refinements",
+      "archival_status": "constitutionally_sealed"
+    },
+    {
+      "name": "v36_2_0",
+      "constitutional_era": "early_constitutional",
+      "size_mb": 0.01,
+      "significance": "Constitutional stability phase",
+      "archival_status": "constitutionally_sealed"
+    },
+    {
+      "name": "v36_3_0",
+      "constitutional_era": "early_constitutional",
+      "size_mb": 0.06,
+      "significance": "Pre-v45 constitutional maturity",
+      "archival_status": "constitutionally_sealed"
+    },
+    {
+      "name": "v38_0_0",
+      "constitutional_era": "intermediate",
+      "size_mb": 0.10,
+      "significance": "Intermediate constitutional development",
+      "archival_status": "constitutionally_sealed"
+    },
+    {
+      "name": "v41_0_0",
+      "constitutional_era": "pre_v45",
+      "size_mb": 0.04,
+      "significance": "Final pre-v45 constitutional framework",
+      "archival_status": "constitutionally_sealed"
+    },
+    {
+      "name": "v42_detail",
+      "constitutional_era": "v42_artifacts",
+      "size_mb": 0.07,
+      "significance": "v42 constitutional implementation details",
+      "archival_status": "constitutionally_sealed"
+    },
+    {
+      "name": "v42_cleanup_reports",
+      "constitutional_era": "v42_artifacts",
+      "size_mb": 0.08,
+      "significance": "v42 constitutional cleanup documentation",
+      "archival_status": "constitutionally_sealed"
+    },
+    {
+      "name": "v43_0_0",
+      "constitutional_era": "v43_backend",
+      "size_mb": 0.07,
+      "significance": "v43 constitutional backend implementation",
+      "archival_status": "constitutionally_sealed"
+    },
+    {
+      "name": "v43_backends",
+      "constitutional_era": "v43_backend",
+      "size_mb": 0.04,
+      "significance": "v43 backend constitutional architecture",
+      "archival_status": "constitutionally_sealed"
+    },
+    {
+      "name": "v44_canon",
+      "constitutional_era": "v44_canon",
+      "size_mb": 0.04,
+      "significance": "Final v44 constitutional canon",
+      "archival_status": "constitutionally_sealed"
+    }
+  ],
+  "constitutional_authority": {
+    "rationale": "These legacy versions represent the thermodynamic evolution from early governance concepts (v35) to mature constitutional framework (v44), documenting the constitutional authority's development path.",
+    "preservation_mandate": "Preserve constitutional evolution for historical audit and future constitutional amendments",
+    "access_policy": "Read-only constitutional archive - no modifications without human sovereign ratification",
+    "merkle_integrity": "Each version preserved with original timestamps and constitutional signatures"
+  },
+  "archive_metadata": {
+    "original_locations": "archive/v35_0_0, archive/v36_*_0, archive/v38_0_0, archive/v41_0_0, archive/v42*, archive/v43_0_0, archive/v43_backends, archive/v44_canon",
+    "consolidation_date": "2026-01-12",
+    "constitutional_level": "AAA",
+    "human_sovereign": "Arif Fazil",
+    "thermodynamic_impact": "ΔS = -2.1 (significant entropy reduction through systematic archival)",
+    "reversibility": "All changes tracked in git with constitutional documentation"
+  },
+  "ditempa_bukan_diberi": "These constitutional artifacts were forged through systematic evolution, not arbitrarily discarded. They serve as the thermodynamic foundation for current v46.1 constitutional authority.",
+  "next_actions": [
+    "Verify merkle chain integrity of archived versions",
+    "Document constitutional evolution from v35 to v44",
+    "Update repository documentation to reflect archival",
+    "Preserve access for future constitutional research"
+  ]
+}

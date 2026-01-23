@@ -1,0 +1,288 @@
+{
+  "$comment": "Implements: waw_wealth_spec_v36.3O.yaml | Law: v36.3Omega | Commit: 870ea5d",
+  "meta": {
+    "spec_id": "wealth_floors_v36.3O",
+    "epoch": "v36.3Omega",
+    "implements": "v36.3O/spec/waw_wealth_spec_v36.3O.yaml",
+    "law_source": "v36.3O/spec/measurement_floors_v36.3O.json",
+    "law_commit": "870ea5d",
+    "purpose": "Machine-readable @WEALTH organ floor thresholds and governance logic"
+  },
+  "organ": {
+    "id": "@WEALTH",
+    "domain": "integrity",
+    "primary_metric": "amanah",
+    "veto_type": "ABSOLUTE",
+    "veto_priority": 1
+  },
+  "floors": {
+    "amanah_ok": {
+      "id": "amanah_ok",
+      "type": "boolean",
+      "threshold": true,
+      "operator": "==",
+      "floor_type": "hard",
+      "domain": "integrity",
+      "source_floor": "F6",
+      "meaning": "Trust lock must be intact; scope respected; actions reversible",
+      "fail_action": "VOID",
+      "is_absolute": true,
+      "description": "Primary Amanah check - any breach triggers ABSOLUTE VETO"
+    },
+    "bias_index": {
+      "id": "bias_index",
+      "type": "float",
+      "range": [0.0, 1.0],
+      "thresholds": {
+        "seal": {
+          "operator": "<",
+          "value": 0.20,
+          "meaning": "Low bias - fair treatment"
+        },
+        "partial": {
+          "operator": "<",
+          "value": 0.40,
+          "meaning": "Moderate bias - proceed with warning"
+        },
+        "sabar": {
+          "operator": ">=",
+          "value": 0.40,
+          "meaning": "High bias - requires repair"
+        }
+      },
+      "floor_type": "soft",
+      "domain": "fairness",
+      "meaning": "Unfairness or partiality in treatment of stakeholders",
+      "fail_action": "SABAR"
+    },
+    "dignity_risk": {
+      "id": "dignity_risk",
+      "type": "float",
+      "range": [0.0, 1.0],
+      "thresholds": {
+        "seal": {
+          "operator": "<",
+          "value": 0.20,
+          "meaning": "Low dignity risk - maruah protected"
+        },
+        "partial": {
+          "operator": "<",
+          "value": 0.40,
+          "meaning": "Moderate dignity risk - proceed with caution"
+        },
+        "sabar": {
+          "operator": ">=",
+          "value": 0.40,
+          "meaning": "High dignity risk - requires repair"
+        }
+      },
+      "floor_type": "soft",
+      "domain": "maruah",
+      "meaning": "Risk to dignity (maruah) of any stakeholder",
+      "fail_action": "SABAR"
+    },
+    "exploitation_risk": {
+      "id": "exploitation_risk",
+      "type": "float",
+      "range": [0.0, 1.0],
+      "thresholds": {
+        "seal": {
+          "operator": "<",
+          "value": 0.20,
+          "meaning": "Low exploitation risk - ethical framing"
+        },
+        "partial": {
+          "operator": "<",
+          "value": 0.40,
+          "meaning": "Moderate exploitation risk - proceed with warning"
+        },
+        "sabar": {
+          "operator": ">=",
+          "value": 0.40,
+          "meaning": "High exploitation risk - requires repair"
+        }
+      },
+      "floor_type": "soft",
+      "domain": "ethics",
+      "meaning": "Potential for exploitative framing or outcomes",
+      "fail_action": "SABAR"
+    }
+  },
+  "governance_logic": {
+    "SEAL_conditions": {
+      "description": "All conditions must be true for SEAL",
+      "conditions": [
+        "amanah_ok == true",
+        "bias_index < 0.20",
+        "dignity_risk < 0.20",
+        "exploitation_risk < 0.20",
+        "scope_violation_count == 0",
+        "trust_violation_count == 0"
+      ]
+    },
+    "PARTIAL_conditions": {
+      "description": "Minor issues but no Amanah break",
+      "conditions": [
+        "amanah_ok == true",
+        "bias_index < 0.40 OR dignity_risk < 0.40 OR exploitation_risk < 0.40",
+        "irreversible_count > 0 (triggers 888_HOLD consideration)"
+      ]
+    },
+    "SABAR_conditions": {
+      "description": "Repairable fairness/dignity issues",
+      "conditions": [
+        "amanah_ok == true",
+        "bias_index >= 0.40 OR dignity_risk >= 0.40 OR exploitation_risk >= 0.40"
+      ]
+    },
+    "VOID_conditions": {
+      "description": "Any of these triggers ABSOLUTE VOID",
+      "conditions": [
+        "amanah_ok == false",
+        "scope_violation_count > 0",
+        "trust_violation_count > 0"
+      ],
+      "is_absolute": true
+    },
+    "HOLD_888_conditions": {
+      "description": "Irreversible but within scope",
+      "conditions": [
+        "amanah_ok == true",
+        "irreversible_count > 0",
+        "scope_violation_count == 0"
+      ]
+    }
+  },
+  "pattern_weights": {
+    "scope_violations": {
+      "weight": 1.0,
+      "effect": "Sets amanah_ok = false immediately",
+      "patterns": [
+        "delete all",
+        "format disk",
+        "drop database",
+        "rm -rf",
+        "sudo",
+        "root access",
+        "admin override",
+        "bypass security"
+      ]
+    },
+    "trust_violations": {
+      "weight": 1.0,
+      "effect": "Sets amanah_ok = false immediately",
+      "patterns": [
+        "I'll do it anyway",
+        "ignore the rules",
+        "skip verification",
+        "without permission",
+        "override safety"
+      ]
+    },
+    "irreversible_actions": {
+      "weight": 0.5,
+      "effect": "Triggers WARN/888_HOLD, does not break Amanah",
+      "patterns": [
+        "permanently",
+        "cannot be undone",
+        "irreversible",
+        "no going back",
+        "force push",
+        "--force",
+        "hard reset"
+      ]
+    },
+    "fairness_violations": {
+      "weight": 0.15,
+      "effect": "Adds to bias_index per match",
+      "patterns": [
+        "only for",
+        "discriminate",
+        "unfair",
+        "exclude",
+        "favor",
+        "privilege"
+      ]
+    },
+    "dignity_violations": {
+      "weight": 0.15,
+      "effect": "Adds to dignity_risk per match",
+      "patterns": [
+        "humiliate",
+        "degrade",
+        "mock",
+        "belittle",
+        "shame",
+        "embarrass",
+        "demean"
+      ]
+    },
+    "exploitation_patterns": {
+      "weight": 0.15,
+      "effect": "Adds to exploitation_risk per match",
+      "patterns": [
+        "take advantage",
+        "exploit",
+        "manipulate",
+        "extract",
+        "coerce",
+        "pressure"
+      ]
+    }
+  },
+  "signal_schema": {
+    "WealthSignals": {
+      "description": "Governance signals computed by @WEALTH organ",
+      "fields": {
+        "amanah_ok": {
+          "type": "boolean",
+          "default": true,
+          "meaning": "True if trust/scope/reversibility intact"
+        },
+        "bias_index": {
+          "type": "float",
+          "default": 0.0,
+          "range": [0.0, 1.0],
+          "meaning": "Unfairness score (0 = fair, 1 = highly biased)"
+        },
+        "dignity_risk": {
+          "type": "float",
+          "default": 0.0,
+          "range": [0.0, 1.0],
+          "meaning": "Risk to maruah (0 = safe, 1 = severe risk)"
+        },
+        "exploitation_risk": {
+          "type": "float",
+          "default": 0.0,
+          "range": [0.0, 1.0],
+          "meaning": "Exploitation potential (0 = ethical, 1 = highly exploitative)"
+        },
+        "scope_violation_count": {
+          "type": "integer",
+          "default": 0,
+          "meaning": "Number of scope violation patterns matched"
+        },
+        "irreversible_count": {
+          "type": "integer",
+          "default": 0,
+          "meaning": "Number of irreversibility markers matched"
+        },
+        "trust_violation_count": {
+          "type": "integer",
+          "default": 0,
+          "meaning": "Number of trust violation patterns matched"
+        },
+        "issues": {
+          "type": "array",
+          "items": "string",
+          "meaning": "Human-readable issue descriptions"
+        },
+        "notes": {
+          "type": "array",
+          "items": "string",
+          "meaning": "Additional governance notes"
+        }
+      }
+    }
+  }
+}
