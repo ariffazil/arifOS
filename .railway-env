@@ -2,8 +2,11 @@
 # Copy these to Railway dashboard environment variables
 
 # Constitutional Governance Settings
-ARIFOS_ALLOW_LEGACY_SPEC=1
-ARIFOS_PHYSICS_DISABLED=1
+# NOTE: The following flags can weaken runtime safeguards if misused.
+# In production, keep legacy spec disabled and physics enabled (value 0).
+# Only set these to 1 in tightly controlled testing environments.
+# ARIFOS_ALLOW_LEGACY_SPEC=0      # 1 = enable legacy spec (testing only)
+# ARIFOS_PHYSICS_DISABLED=0       # 1 = disable physics (testing only)
 ARIFOS_CONSTITUTIONAL_MODE=AAA
 ARIFOS_HUMAN_SOVEREIGN=Arif
 
