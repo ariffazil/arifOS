@@ -29,8 +29,6 @@ from ..enforcement.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR,
 # Import type safety utilities
 from ..foundation.safe_types import safe_float
 
-# Import existing tri-witness check
-
 
 # Spec path relative to repo root
 # Path: arifos_core/apex/floor_checks.py → parents[2] = repo root
@@ -69,7 +67,7 @@ RED_PATTERNS = load_red_patterns()
 
 @dataclass
 class F1AmanahResult:
-    """F6 Amanah floor check result."""
+    """F1 Amanah floor check result."""
     passed: bool
     score: float
     details: str
