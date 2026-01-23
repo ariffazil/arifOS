@@ -223,7 +223,7 @@ message = ACLIPMessage(
 - **Κ Validator**: Session initialization and final sealing
 
 ### Canonical References
-1. **This Document**: `000_THEORY/007_aclip.md` - Protocol specification
+1. **This Document**: `000_THEORY/007_ACLIP.md` - Protocol specification
 2. **Implementation**: `arifos/protocol/` - Source code
 3. **Agent Adapters**: Individual agent `.md` files - Integration guides
 
