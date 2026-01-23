@@ -6,9 +6,9 @@ import pytest
 import time
 import uuid
 import json
-from arifos_core.apex.governance.proof_of_governance import ProofOfGovernance, SealReceipt
-from arifos_core.enforcement.judiciary.witness_council import ConsensusResult, Verdict
-from arifos_core.enforcement.evidence.evidence_pack import EvidencePack
+from arifos.core.apex.governance.proof_of_governance import ProofOfGovernance, SealReceipt
+from arifos.core.enforcement.judiciary.witness_council import ConsensusResult, Verdict
+from arifos.core.enforcement.evidence.evidence_pack import EvidencePack
 
 VALID_HASH = "a" * 64
 

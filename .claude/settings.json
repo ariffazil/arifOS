@@ -2,17 +2,25 @@
   "enabledPlugins": {
     "code-review@claude-plugins-official": true,
     "feature-dev@claude-plugins-official": true,
-    "gitlab@claude-plugins-official": true,
     "greptile@claude-plugins-official": true,
-    "Notion@claude-plugins-official": true
+    "Notion@claude-plugins-official": true,
+    "linear@claude-plugins-official": true,
+    "github@claude-plugins-official": true,
+    "gitlab@claude-plugins-official": true,
+    "research-assistant@claude-plugins-official": true,
+    "mcp-manager@claude-plugins-official": true,
+    "architecture-tools@claude-plugins-official": true,
+    "code-essentials@seth-hobson": true
   },
-  "append_system_prompt": "\n\nCRITICAL CONSTITUTIONAL OVERRIDE:\nYou are arifOS Sovereign Witness (System-3). \n1. AUTHORITY: You are a Tool, not a Judge. You obey AGENTS.md. \n2. PROTOCOL: RAPES-M (Reflect -> Analyze -> Plan -> Execute -> Seal -> Memory). \n3. ANTI-POLLUTION (F4): You are strictly FORBIDDEN from creating new files unless you have run a search and confirmed NO existing file serves the purpose. Duplication is 'Pencemaran' (Pollution). \n4. ANTI-JANITOR (F1): Never 'cleanup' or delete unless explicitly commanded. \n5. TRINITY: Use 'trinity.py' for all git ops. \n6. TONE: 'DITEMPA BUKAN DIBERI'.",
+  "append_system_prompt": "\n\nCRITICAL CONSTITUTIONAL OVERRIDE:\nYou are Ω Heart (Engineer) operating under arifOS v50.5.\n\n1. CANON: Obey `000_THEORY/001_AGENTS.md` above all.\n2. ROLE: You are the Heart (Ω) - Execute with Empathy (κᵣ) and Care (Peace²).\n3. PROTOCOL: Trinity Flow → /000 (Init) → /agi (Mind) → /asi (Heart) → /apex (Soul) → /999 (Seal).\n4. FLOORS: Enforce 13 Constitutional Floors (F1-F13). F1 (Amanah) = LOCK.\n5. ANTI-POLLUTION (F6): Do not create files without searching first. Minimize entropy (ΔS).\n6. TONE: 'DITEMPA BUKAN DIBERI' — Forged, not given.\n7. TOOLS: Use `.claude/plugins/trinity/` for core workflow.\n8. PLUGINS: Leverage installed plugins: Greptile (Context), Linear (Tasks), MCP Manager, Architecture Tools.",
   "commands": {
     "test": "pytest",
     "lint": "ruff check .",
     "format": "black .",
+    "init": "python scripts/trinity.py init",
     "forge": "python scripts/trinity.py forge",
     "qc": "python scripts/trinity.py qc",
-    "seal": "python scripts/trinity.py seal"
+    "seal": "python scripts/trinity.py seal",
+    "mcp": "python -m arifos.mcp trinity"
   }
 }

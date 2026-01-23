@@ -21,14 +21,14 @@ from pathlib import Path
 import pytest
 
 # Import metrics constants for comparison
-from arifos_core.enforcement.metrics import (DELTA_S_THRESHOLD,
+from arifos.core.enforcement.metrics import (DELTA_S_THRESHOLD,
                                              KAPPA_R_THRESHOLD, OMEGA_0_MAX,
                                              OMEGA_0_MIN,
                                              PEACE_SQUARED_THRESHOLD,
                                              PSI_THRESHOLD,
                                              TRI_WITNESS_THRESHOLD,
                                              TRUTH_THRESHOLD)
-from arifos_core.system.runtime_manifest import (DEFAULT_MANIFEST_PATH,
+from arifos.core.system.runtime_manifest import (DEFAULT_MANIFEST_PATH,
                                                  DEFAULT_MANIFEST_PATH_JSON,
                                                  DEFAULT_MANIFEST_PATH_YAML,
                                                  HAS_YAML,
@@ -525,7 +525,7 @@ class TestV37DefaultEpoch:
         """
         import os
 
-        from arifos_core.system.runtime_manifest import (DEFAULT_EPOCH,
+        from arifos.core.system.runtime_manifest import (DEFAULT_EPOCH,
                                                          EPOCH_ENV_VAR,
                                                          get_active_epoch,
                                                          is_legacy_epoch,
@@ -564,7 +564,7 @@ class TestV37DefaultEpoch:
         """v35 should be selectable via ARIFOS_RUNTIME_EPOCH for legacy testing."""
         import os
 
-        from arifos_core.system.runtime_manifest import (EPOCH_ENV_VAR,
+        from arifos.core.system.runtime_manifest import (EPOCH_ENV_VAR,
                                                          get_active_epoch,
                                                          is_legacy_epoch,
                                                          is_v37_epoch)
@@ -588,7 +588,7 @@ class TestV37DefaultEpoch:
         """v36.3 should be selectable via ARIFOS_RUNTIME_EPOCH for legacy testing."""
         import os
 
-        from arifos_core.system.runtime_manifest import (EPOCH_ENV_VAR,
+        from arifos.core.system.runtime_manifest import (EPOCH_ENV_VAR,
                                                          get_active_epoch,
                                                          is_legacy_epoch,
                                                          is_v37_epoch)
@@ -612,7 +612,7 @@ class TestV37DefaultEpoch:
         """When env unset, load_runtime_manifest should load v37 manifest."""
         import os
 
-        from arifos_core.system.runtime_manifest import (EPOCH_ENV_VAR,
+        from arifos.core.system.runtime_manifest import (EPOCH_ENV_VAR,
                                                          load_runtime_manifest)
 
         original_value = os.environ.get(EPOCH_ENV_VAR)
@@ -638,7 +638,7 @@ class TestV37DefaultEpoch:
 
     def test_legacy_epochs_set_contains_v35_and_others(self):
         """LEGACY_EPOCHS should contain v35, v36.3, v37, v44."""
-        from arifos_core.system.runtime_manifest import LEGACY_EPOCHS
+        from arifos.core.system.runtime_manifest import LEGACY_EPOCHS
 
         assert "v35" in LEGACY_EPOCHS
         assert "v36.3" in LEGACY_EPOCHS

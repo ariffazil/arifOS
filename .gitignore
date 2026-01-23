@@ -72,6 +72,11 @@ arifos-test/
 # Gemini CLI
 .gemini/
 
+# Gemini CLI config - keep baseline, ignore backups
+!config/gemini/*.json
+!config/gemini/*.md
+config/gemini/backups/
+
 # Temporary staging folders
 staging.delete*/
 docs/staging/
@@ -128,3 +133,23 @@ logs/
 nul
 .DS_Store
 Thumbs.db
+# Secret files (GitHub push protection)
+mcp_config_antigravity_constitutional.json
+mcp_config_antigravity_constitutional_fixed.json
+scripts/setup_antigravity_constitutional_mcp.py
+
+# Temporary/generated directories (v46.1.1 Anti-Pencemaran)
+.arifos_clip/
+.well_snapshots/
+cooling_ledger/
+# Local archival parking (do not commit)
+archive_local/
+
+# Local session archives (do not push)
+_local_archive/
+coverage.xml
+
+# Obsidian plugins (may contain OAuth secrets)
+**/.obsidian/plugins/
+VAULT999/**/.obsidian/plugins/
+vault_999_obsidian/**/.obsidian/plugins/

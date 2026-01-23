@@ -1,9 +1,0 @@
-# Log files from RAW vs GOVERNED demo
-# These are session-specific and should not be committed
-*.jsonl
-*.json
-*.log
-*.txt
-
-# Keep the directory in git
-!.gitignore

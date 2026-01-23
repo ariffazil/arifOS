@@ -4,7 +4,7 @@ Shared utilities for v45 tests.
 import time
 import uuid
 import hashlib
-from arifos_core.enforcement.evidence.evidence_pack import EvidencePack
+from arifos.core.enforcement.evidence.evidence_pack import EvidencePack
 
 VALID_HASH = "a" * 64
 

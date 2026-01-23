@@ -1,27 +1,38 @@
-# arifOS Codex Skills Registry
+# Codex Workflows
 
-This directory contains Codex-specific skill wrappers for arifOS workflows.
+**Role:** Ψ Soul (Auditor)
+**Platform:** OpenAI Codex CLI
 
-## Available Skills
+---
 
-| Skill | Trigger | Canonical Source | Description |
-| :--- | :--- | :--- | :--- |
-| `arifos-workflow-000` | `/000` | `.agent/workflows/000.md` | Initialize session context & version status |
-| `arifos-workflow-gitforge` | `/gitforge` | `.agent/workflows/gitforge.md` | Analyze branch entropy & hot zones |
-| `arifos-workflow-fag` | `/fag` | `.agent/workflows/fag.md` | Activate Full Autonomy Governance |
+## Core Workflows
 
-## Global Prerequisites (Always On)
+| Workflow | Trigger | Function |
+|----------|---------|----------|
+| `000_init.md` | `/000` | Session ignition |
+| `apex_judge.md` | `/apex` | Constitutional judgment |
+| `999_vault.md` | `/999` | Seal and commit |
 
-These skills are available globally and do not require repo-specific wrappers:
+---
 
-*   `arifos-constitution`: 9-Floor Constitutional Governance
-*   `arifos-fag-safe-read`: Governed file I/O with receipts
-*   `arifos-trinity-git-governance`: Git QC/Seal workflow
-*   `arifos-aclip-runner`: Full 000→999 ACLIP Pipeline
+## Auditor-Specific
 
-## Skill Structure
+| Workflow | Trigger | Function |
+|----------|---------|----------|
+| `audit_work.md` | `/audit` | Review agent work |
+| `validate_floors.md` | `/validate` | Check F1-F13 |
 
-Each skill directory contains a `SKILL.md` with:
-- `name`: Skill identifier
-- `description`: When to trigger this skill
-- Procedure steps pointing to the canonical workflow source
+---
+
+## Usage
+
+```bash
+codex /000       # Initialize
+codex /audit     # Review work
+codex /apex      # Issue verdict
+codex /999       # Seal
+```
+
+---
+
+**DITEMPA BUKAN DIBERI**
