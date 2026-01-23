@@ -68,7 +68,7 @@ cat .agent/EUREKA_NEXT_SESSION.md 2>/dev/null
 | F6 | Clarity | ≤0 |
 | F7 | Humility | [0.03, 0.05] |
 | F8 | Genius | ≥0.80 |
-| F9 | Anti-Hantu | Count=0 |
+| F9 | Anti-Hantu | ≤0.30 |
 | F10-F13 | Hypervisor | LOCK |
 
 ---
