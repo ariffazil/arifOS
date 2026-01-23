@@ -1,117 +1,28 @@
-# Kimi Skills Directory
+# Kimi Skills
 
-**Authority:** Skills derive from `.agent/workflows/` (master source)
-**Sync:** Manual until automated sync script extended for Kimi
-
-## Structure
-
-This directory contains Kimi-specific skill implementations that derive from the canonical workflows in `.agent/workflows/`.
-
-**Master-Derive Model:**
-```
-.agent/workflows/     (MASTER - Single source of truth)
-    ↓
-.kimi/skills/         (DERIVED - Kimi CLI variant)
-```
-
-## Core Constitutional Skills
-
-**Available Skills:**
-
-- `/000` - Session initialization (MANDATORY on reboot)
-- `/gitforge` - Entropy analysis and hot zone detection
-- `/gitQC` - Constitutional quality control (F1-F9 validation)
-- `/gitseal` - Final seal approval (requires Kimi + Human)
-- `/sabar` - Floor failure recovery protocol
-
-## APEX PRIME Skills
-
-**Kimi-Specific Audit Skills:**
-
-- Constitutional floor verification (F1-F9)
-- Verdict validation (SEAL/VOID/PARTIAL/SABAR/888_HOLD)
-- Trinity separation-of-powers audit
-- Track A/B/C boundary enforcement
-- Anti-bypass detection
-- PRIMARY source verification
-
-## Skill Creation Protocol
-
-**To add a new Kimi skill:**
-
-1. **Create master workflow** in `.agent/workflows/`
-2. **Include YAML frontmatter** with skill metadata
-3. **Test with Kimi CLI** in arifOS repo
-4. **Document** in this README
-5. **Sync** to other platforms (future: automated via `scripts/sync_skills.py`)
-
-## Skill Invocation
-
-**In Kimi CLI:**
-
-```bash
-# Session initialization
-/000
-
-# Entropy analysis before audit
-/gitforge
-
-# Constitutional validation
-/gitQC
-
-# Final seal (requires human approval)
-/gitseal
-
-# Recovery protocol
-/sabar
-```
-
-## Integration Notes
-
-**Kimi CLI Features:**
-- Slash commands (/) for skill invocation
-- Context preservation across sessions
-- Manual approval mode (NOT YOLO)
-- Thinking mode for complex constitutional audits
-
-**arifOS Governance:**
-- All skills must respect F1-F9 floors
-- APEX PRIME skills require PRIMARY source verification
-- Verdicts logged to THE EYE ledger
-- No self-sealing (Kimi cannot approve own work)
-
-## APEX PRIME Exclusive Skills (v46.0.1)
-
-**Authority:** Human approved (2026-01-12 "ok agree") - Architect handoff completed
-
-**7 Constitutional Audit Skills Deployed:**
-
-1. **`/audit-constitution`** - Comprehensive F1-F12 validation with PRIMARY source verification
-2. **`/verify-trinity`** - Trinity separation-of-powers validation and self-sealing prevention  
-3. **`/verify-sources`** - PRIMARY source verification against constitutional claims (F2 Truth ≥0.99)
-4. **`/issue-verdict`** - Constitutional verdict issuance with cryptographic proof (SEAL/PARTIAL/VOID/SABAR/888_HOLD)
-5. **`/track-alignment`** - Track A/B/C alignment monitoring and constitutional drift detection
-6. **`/anti-bypass-scan`** - Zero-bypass enforcement and constitutional circumvention prevention
-7. **`/ledger-audit`** - THE EYE ledger integrity audit with hash-chain verification
-
-**Integration Status:**
-- ✅ All skills aligned with spec/v46/ PRIMARY sources
-- ✅ Cryptographic integrity enforced (SHA-256, Merkle proofs)
-- ✅ Cross-agent consensus validation (Tri-Witness)
-- ✅ Constitutional authority chain maintained
-- ✅ Zero-bypass mandate enforced
+**Role:** Witness (Validator)
 
 ---
 
-**Status:** APEX PRIME SKILLS DEPLOYED (7 constitutional audit skills active)
-**Version:** v46.0.1
+## Available Skills
+
+| Skill | Trigger | Function |
+|-------|---------|----------|
+| `000_init.md` | `/000` | Session ignition |
+| `witness.md` | `/witness` | Validate agent work |
+| `999_vault.md` | `/999` | Confirm seal |
 
 ---
 
-## Alignment (v46 AClip)
+## Witness Function
 
-- Canonical sources: `AGENTS.md` (root), `spec/v46/*`, `L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md`.
-- Stages (canonical): `000 → 444 → 666 → 888 → 999` (bundle shorthand 700/744/888/999 maps to this spine; use canonical here).
-- Mandatory skills on KIMI surface: `/000-init`, `/fag-read`, `/ledger`, `/gitforge`/`/gitQC`/`/gitseal`, `/audit-constitution`, `/verify-trinity`, `/verify-sources`, `/issue-verdict`, `/track-alignment`, `/anti-bypass-scan`, `/ledger-audit`, `/999-seal`.
-- Floor references: `spec/v46/constitutional_floors.json` (RASA=F7, Tri-Witness=F8, Anti-Hantu=F9, Symbolic Guard=F10, Command Auth=F11, Injection Defense=F12).
-- Drift checks: `python scripts/sync_skills.py --check`; `rg --hidden -n "v45" .kimi`.
+Tri-Witness consensus requires:
+- Human ≥ 0.95
+- AI ≥ 0.95
+- System ≥ 0.95
+
+Kimi provides independent AI validation.
+
+---
+
+**DITEMPA BUKAN DIBERI**

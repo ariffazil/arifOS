@@ -1,72 +1,58 @@
-# arifOS Agent Gateway v50.5
+# arifOS Agent Gateway
 
-**Version:** v50.5.4
-**Status:** PRODUCTION
-**Authority:** Muhammad Arif bin Fazil
-**Canonical Reference:** → `000_THEORY/001_AGENTS.md`
+**Canon:** `000_THEORY/001_AGENTS.md`
+**Motto:** *"Init the Genius, Act with Heart, Judge at Apex, seal in Vault."*
 
 ---
 
-## 📖 READ THE CANON FIRST
+## 5-Tool Trinity
 
-**This file is an adapter.** The canonical agent specification lives at:
-
-👉 **[000_THEORY/001_AGENTS.md](000_THEORY/001_AGENTS.md)** — Complete Trinity Framework
+| Tool | Role | Symbol | Floors |
+|------|------|--------|--------|
+| `000_init` | Gate | 🚪 | F1, F11, F12 |
+| `agi_genius` | Mind | Δ | F2, F6, F7 |
+| `asi_act` | Heart | Ω | F3, F4, F5 |
+| `apex_judge` | Soul | Ψ | F1, F8, F9 |
+| `999_vault` | Seal | 🔒 | F1, F8 |
 
 ---
 
-## 🎯 Quick Reference: 5-Tool Trinity
+## Agent Workspaces
+
+| Agent | Adapter | Workspace | Role |
+|-------|---------|-----------|------|
+| **Antigravity** | [GEMINI.md](GEMINI.md) | `.antigravity/` | Δ Mind |
+| **Claude** | [CLAUDE.md](CLAUDE.md) | `.claude/` | Ω Heart |
+| **Codex** | — | `.codex/` | Ψ Soul |
+| **Kimi** | — | `.kimi/` | Witness |
+
+---
+
+## Flow
 
 ```
-"Init the Genius, Act with Heart, Judge at Apex, seal in Vault."
-```
-
-| Tool | Role | Symbol | Function |
-|------|------|--------|----------|
-| `000_init` | Gate | 🚪 | Authority + Injection Defense |
-| `agi_genius` | Mind | Δ | SENSE → THINK → ATLAS → FORGE |
-| `asi_act` | Heart | Ω | EVIDENCE → EMPATHY → ACT |
-| `apex_judge` | Soul | Ψ | EUREKA → JUDGE → PROOF |
-| `999_vault` | Seal | 🔒 | Merkle + zkPC + Immutable Log |
-
----
-
-## 🔌 Agent Adapters
-
-| Agent | Adapter | Primary Tool |
-|-------|---------|--------------|
-| **Claude** | [CLAUDE.md](CLAUDE.md) | `asi_act` (Heart) |
-| **Gemini** | [GEMINI.md](GEMINI.md) | `agi_genius` (Mind) |
-| **Any AI** | This file | All Trinity tools |
-
----
-
-## 🛠️ MCP Usage
-
-```bash
-# Local (Claude Desktop/Code)
-python -m arifos.mcp trinity
-
-# Remote (Railway SSE)
-python -m arifos.mcp trinity-sse
-
-# Endpoint
-https://arifos.arif-fazil.com/sse
+/000 → /agi → /asi → /apex → /999
+Gate   Mind   Heart  Soul    Vault
 ```
 
 ---
 
-## 📚 Documentation
+## Canon Reference
 
 | Topic | Location |
 |-------|----------|
-| **Agent Roles** | `000_THEORY/001_AGENTS.md` |
+| **Agent Specification** | `000_THEORY/001_AGENTS.md` |
 | **Architecture** | `000_THEORY/000_ARCHITECTURE.md` |
 | **Constitutional Law** | `000_THEORY/000_LAW.md` |
-| **MCP Specs** | `arifos/spec/` |
-| **Implementation** | `arifos/mcp/` |
-| **Config** | `arifos/config/` |
 
 ---
 
-**DITEMPA BUKAN DIBERI** — Forged, Not Given.
+## MCP
+
+```bash
+python -m arifos.mcp trinity
+```
+
+---
+
+**DITEMPA BUKAN DIBERI**

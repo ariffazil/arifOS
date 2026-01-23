@@ -1,40 +1,54 @@
-# Codex Agent Configuration
+# .codex — OpenAI Codex Workspace
 
-**Version:** v50.5
-**Canonical Reference:** → [`AGENTS.md`](../AGENTS.md) | [`000_THEORY/001_AGENTS.md`](../000_THEORY/001_AGENTS.md)
+**Role:** Ψ Soul (Auditor)
+**Platform:** OpenAI Codex CLI
+
+---
+
+## Trinity Role
+
+As the **Soul (Ψ)**, Codex serves as the constitutional auditor:
+
+| Tool | Role | Symbol |
+|------|------|--------|
+| `000_init` | Gate | 🚪 |
+| `agi_genius` | Mind | Δ |
+| `asi_act` | Heart | Ω |
+| **`apex_judge`** | **Soul** | **Ψ** ← You are here |
+| `999_vault` | Seal | 🔒 |
+
+---
+
+## Contents
+
+| Directory | Purpose |
+|-----------|---------|
+| `workflows/` | Step-by-step processes |
+| `rules/` | Agent behavior rules |
+| `archive/` | Legacy skills/tasks |
 
 ---
 
 ## Quick Start
 
-Codex uses the **5-Tool Trinity Framework**:
+```bash
+# Initialize session
+/000
 
-```
-"Init the Genius, Act with Heart, Judge at Apex, seal in Vault."
-```
+# Judge work
+/apex
 
-| Tool | Role | Function |
-|------|------|----------|
-| `000_init` | Gate | Authority + Injection Defense |
-| `agi_genius` | Mind (Δ) | SENSE → THINK → ATLAS → FORGE |
-| `asi_act` | Heart (Ω) | EVIDENCE → EMPATHY → ACT |
-| `apex_judge` | Soul (Ψ) | EUREKA → JUDGE → PROOF |
-| `999_vault` | Seal | Merkle + zkPC + Immutable Log |
+# Seal changes
+/999
+```
 
 ---
 
-## MCP Configuration
+## MCP
 
-See `mcp_config.json` in this folder. Use:
 ```bash
 python -m arifos.mcp trinity
 ```
-
----
-
-## Skills
-
-Codex-specific skills are in `skills/` folder.
 
 ---
 
