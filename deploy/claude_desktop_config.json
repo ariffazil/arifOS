@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "arifos-aaa": {
+      "command": "python",
+      "args": ["-m", "arifos.mcp"],
+      "cwd": "/path/to/arifOS",
+      "env": {
+        "PYTHONPATH": "/path/to/arifOS"
+      }
+    }
+  }
+}

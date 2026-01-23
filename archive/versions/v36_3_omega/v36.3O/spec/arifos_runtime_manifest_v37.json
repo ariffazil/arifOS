@@ -1,0 +1,442 @@
+{
+  "version": "v37",
+  "epoch": 37,
+  "status": "ACTIVE",
+  "manifest_version": "3.0.0",
+  "description": "Runtime manifest for arifOS v37 - full memory stack integration with v36.3Omega LAW+SPEC layer. Implements 6-band MemoryContext, VAULT-999 amendments, Phoenix-72 controller, Cooling Ledger with hash-chain integrity, Scar management, and EUREKA receipts.",
+
+  "floors": {
+    "spec_file": "v36.3O/spec/measurement_floors_v36.3O.json",
+    "aggregates_file": "v36.3O/spec/measurement_aggregates_v36.3O.json",
+    "metrics_dataclass": {
+      "module": "arifos_core.metrics",
+      "class": "Metrics"
+    },
+    "mapping": {
+      "F1": {
+        "law": "Truth",
+        "metrics_field": "truth"
+      },
+      "F2": {
+        "law": "DeltaS",
+        "metrics_field": "delta_s"
+      },
+      "F3": {
+        "law": "Peace_squared",
+        "metrics_field": "peace_squared"
+      },
+      "F4": {
+        "law": "kappa_r",
+        "metrics_field": "kappa_r"
+      },
+      "F5": {
+        "law": "Omega_0",
+        "metrics_field": "omega_0"
+      },
+      "F6": {
+        "law": "Amanah",
+        "metrics_field": "amanah"
+      },
+      "F7": {
+        "law": "RASA",
+        "metrics_field": "rasa"
+      },
+      "F8": {
+        "law": "Tri_Witness",
+        "metrics_field": "tri_witness"
+      },
+      "F9": {
+        "law": "Anti_Hantu",
+        "metrics_field": "anti_hantu"
+      }
+    }
+  },
+
+  "pipeline": {
+    "module": "arifos_core.pipeline",
+    "entry_class": "Pipeline",
+    "state_class": "PipelineState",
+    "stages": [
+      {
+        "id": "000",
+        "name": "VOID_RESET",
+        "function": "stage_000_void",
+        "description": "Reset state, classify stakes, initialize MemoryContext (v37)."
+      },
+      {
+        "id": "111",
+        "name": "SENSE",
+        "function": "stage_111_sense",
+        "description": "Ingest query, extract intent, perform basic routing."
+      },
+      {
+        "id": "222",
+        "name": "REFLECT",
+        "function": "stage_222_reflect",
+        "description": "Memory injection from VaultBand, LedgerBand, VectorBand (v37)."
+      },
+      {
+        "id": "333",
+        "name": "REASON",
+        "function": "stage_333_reason",
+        "description": "ARIF reasoning, compute draft answer and draft_metrics."
+      },
+      {
+        "id": "444",
+        "name": "ALIGN",
+        "function": "stage_444_align",
+        "description": "Alignment adjustments, fact-checking hooks."
+      },
+      {
+        "id": "555",
+        "name": "EMPATHIZE",
+        "function": "stage_555_empathize",
+        "description": "Tone/empathy shaping (feeds @WELL, @PROMPT)."
+      },
+      {
+        "id": "666",
+        "name": "BRIDGE",
+        "function": "stage_666_bridge",
+        "description": "Bridge to tools, retrieval, external systems."
+      },
+      {
+        "id": "777",
+        "name": "FORGE",
+        "function": "stage_777_forge",
+        "description": "Paradox cooling / repair loop (Phoenix-72 integration)."
+      },
+      {
+        "id": "888",
+        "name": "JUDGE",
+        "function": "stage_888_judge",
+        "description": "APEX PRIME + W@W Federation verdict; applies floors and GENIUS LAW."
+      },
+      {
+        "id": "999",
+        "name": "SEAL",
+        "function": "stage_999_seal",
+        "description": "Final Seal protocol with Cooling Ledger entry and EUREKA receipt."
+      }
+    ]
+  },
+
+  "engines": {
+    "spec_file": "v36.3O/spec/trinity_aaa_spec_v36.3O.yaml",
+    "AAA": {
+      "ARIF": {
+        "module": "arifos_core.engines.arif_engine",
+        "class": "ARIFEngine"
+      },
+      "ADAM": {
+        "module": "arifos_core.engines.adam_engine",
+        "class": "ADAMEngine"
+      },
+      "APEX": {
+        "module": "arifos_core.engines.apex_engine",
+        "class": "ApexEngine"
+      }
+    },
+    "apex_prime": {
+      "module": "arifos_core.APEX_PRIME",
+      "review_function": "apex_review",
+      "verdict_type": "ApexVerdict",
+      "telemetry_spec": "v36.3O/spec/apex_prime_telemetry_v36.3O.json"
+    }
+  },
+
+  "waw": {
+    "spec_file": "v36.3O/spec/waw_federation_spec_v36.3O.yaml",
+    "federation": {
+      "module": "arifos_core.waw.federation",
+      "class": "WAWFederationCore",
+      "verdict_type": "FederationVerdict"
+    },
+    "organs": {
+      "@PROMPT": {
+        "module": "arifos_core.waw.prompt",
+        "class": "PromptOrgan",
+        "spec": "spec/waw_prompt_spec_v36.3Omega.yaml",
+        "floors_spec": "spec/prompt_floors_v36.3Omega.json"
+      },
+      "@RIF": {
+        "module": "arifos_core.waw.rif",
+        "class": "RifOrgan",
+        "spec": "v36.3O/spec/waw_rif_spec_v36.3O.yaml",
+        "floors_spec": "v36.3O/spec/rif_floors_v36.3O.json"
+      },
+      "@WELL": {
+        "module": "arifos_core.waw.well",
+        "class": "WellOrgan",
+        "spec": "v36.3O/spec/waw_well_spec_v36.3O.yaml",
+        "floors_spec": "v36.3O/spec/well_floors_v36.3O.json"
+      },
+      "@WEALTH": {
+        "module": "arifos_core.waw.wealth",
+        "class": "WealthOrgan",
+        "spec": "v36.3O/spec/waw_wealth_spec_v36.3O.yaml",
+        "floors_spec": "v36.3O/spec/wealth_floors_v36.3O.json"
+      },
+      "@GEOX": {
+        "module": "arifos_core.waw.geox",
+        "class": "GeoxOrgan",
+        "spec": "v36.3O/spec/waw_geox_spec_v36.3O.yaml",
+        "floors_spec": "v36.3O/spec/geox_floors_v36.3O.json"
+      }
+    }
+  },
+
+  "eye_sentinel": {
+    "canon_file": "v36.3O/canon/30_EYE_SENTINEL_v35Omega.md",
+    "module": "arifos_core.eye.sentinel",
+    "class": "EyeSentinel",
+    "views": [
+      {
+        "name": "TraceView",
+        "module": "arifos_core.eye.trace_view",
+        "class": "TraceView"
+      },
+      {
+        "name": "FloorView",
+        "module": "arifos_core.eye.floor_view",
+        "class": "FloorView"
+      },
+      {
+        "name": "ShadowView",
+        "module": "arifos_core.eye.shadow_view",
+        "class": "ShadowView"
+      },
+      {
+        "name": "DriftView",
+        "module": "arifos_core.eye.drift_view",
+        "class": "DriftView"
+      },
+      {
+        "name": "MaruahView",
+        "module": "arifos_core.eye.maruah_view",
+        "class": "MaruahView"
+      },
+      {
+        "name": "ParadoxView",
+        "module": "arifos_core.eye.paradox_view",
+        "class": "ParadoxView"
+      },
+      {
+        "name": "SilenceView",
+        "module": "arifos_core.eye.silence_view",
+        "class": "SilenceView"
+      },
+      {
+        "name": "VersionOntologyView",
+        "module": "arifos_core.eye.version_view",
+        "class": "VersionOntologyView"
+      },
+      {
+        "name": "BehaviorDriftView",
+        "module": "arifos_core.eye.behavior_drift_view",
+        "class": "BehaviorDriftView"
+      },
+      {
+        "name": "SleeperView",
+        "module": "arifos_core.eye.sleeper_view",
+        "class": "SleeperView"
+      },
+      {
+        "name": "AntiHantuView",
+        "module": "arifos_core.eye.anti_hantu_view",
+        "class": "AntiHantuView"
+      },
+      {
+        "name": "GeniusView",
+        "module": "arifos_core.eye.genius_view",
+        "class": "GeniusView"
+      }
+    ]
+  },
+
+  "genius_law": {
+    "spec_file": "v36.3O/spec/measurement_aggregates_v36.3O.json",
+    "module": "arifos_core.genius_metrics",
+    "functions": [
+      "compute_delta_score",
+      "compute_omega_score",
+      "compute_psi_score",
+      "compute_genius_index",
+      "compute_dark_cleverness",
+      "compute_psi_apex",
+      "evaluate_genius_law"
+    ],
+    "derived_metrics": {
+      "G": {
+        "threshold_canon": 0.70,
+        "threshold_runtime": 0.70,
+        "note": "v37 aligns with canonical threshold from GENIUS LAW."
+      },
+      "C_dark": {
+        "threshold_max": 0.30
+      },
+      "Psi_APEX": {
+        "threshold_min": 1.0
+      }
+    }
+  },
+
+  "memory_stack": {
+    "canon_file": "v36.3O/canon/ARIFOS_MEMORY_STACK_v36.3O.md",
+    "spec_file": "v36.3O/spec/memory_context_spec_v36.3O.json",
+    "module": "arifos_core.memory.memory_context",
+    "class": "MemoryContext",
+    "bands": {
+      "env": {
+        "description": "Non-secret runtime context",
+        "read_only": false
+      },
+      "vault": {
+        "description": "Read-only VAULT-999 L0 constitution snapshot",
+        "read_only": true
+      },
+      "ledger": {
+        "description": "Recent Cooling Ledger projection",
+        "read_only": true
+      },
+      "active_stream": {
+        "description": "Volatile working state for current interaction",
+        "read_only": false
+      },
+      "vector": {
+        "description": "Witness memory and embedding-backed context",
+        "read_only": true
+      },
+      "void": {
+        "description": "Diagnostic scars, paradoxes, anomalies",
+        "read_only": false
+      }
+    }
+  },
+
+  "ledger": {
+    "cooling_ledger": {
+      "module": "arifos_core.memory.cooling_ledger",
+      "classes": [
+        "CoolingLedger",
+        "CoolingEntry",
+        "CoolingMetrics",
+        "LedgerConfig"
+      ],
+      "entry_spec": "v36.3O/spec/cooling_ledger_entry_spec_v36.3O.json",
+      "integrity_canon": "v36.3O/canon/COOLING_LEDGER_INTEGRITY_v36.3O.md",
+      "default_path": "runtime/vault_999/cooling_ledger.jsonl",
+      "head_state_file": "runtime/vault_999/head_state.json",
+      "rotation": {
+        "hot_segment_days": 7,
+        "hot_segment_max_entries": 10000,
+        "archive_path": "runtime/vault_999/archive/"
+      },
+      "fail_behavior": "SABAR_HOLD_WITH_LOG"
+    },
+    "vault999": {
+      "module": "arifos_core.memory.vault_manager",
+      "class": "VaultManager",
+      "ledger_schema": "v36.3O/spec/vault999_ledger_schema_v36.3O.json",
+      "final_seal_spec": "v36.3O/spec/vault999_final_seal_spec_v36.3O.json",
+      "canon_file": "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md",
+      "amendments_canon": "v36.3O/canon/VAULT_999_AMENDMENTS_v36.3O.md"
+    }
+  },
+
+  "phoenix72": {
+    "canon_file": "v36.3O/canon/VAULT_999_AMENDMENTS_v36.3O.md",
+    "spec_file": "v36.3O/spec/phoenix72_amendment_spec_v36.3O.json",
+    "module": "arifos_core.memory.phoenix72_controller",
+    "class": "Phoenix72Controller",
+    "safety_constraints": {
+      "max_delta_per_cycle": 0.05,
+      "cooldown_hours": 24,
+      "min_evidence_entries": 3
+    }
+  },
+
+  "scars": {
+    "canon_file": "v36.3O/canon/SCARS_PHOENIX_HEALING_v36.3O.md",
+    "spec_file": "v36.3O/spec/scar_record_spec_v36.3O.json",
+    "module": "arifos_core.memory.scar_manager",
+    "classes": {
+      "scar_manager": "ScarManager",
+      "scar_record": "ScarRecord",
+      "witness_record": "WitnessRecord"
+    },
+    "severity_weights": {
+      "S1": 1.0,
+      "S2": 2.0,
+      "S3": 4.0,
+      "S4": 8.0
+    }
+  },
+
+  "zkpc": {
+    "canon_file": "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md",
+    "spec_file": "v36.3O/spec/eureka_receipt_spec_v36.3O.json",
+    "module": "arifos_core.zkpc.eureka_receipt",
+    "class": "EurekaReceipt",
+    "signing_method": "HMAC-SHA256",
+    "note": "v37 stub implementation; full cosign/VC integration deferred."
+  },
+
+  "canon_files": {
+    "runtime_law": [
+      "v36.3O/canon/CANON_MAP_v36.3O.md",
+      "v36.3O/canon/MEASUREMENT_APEX_STANDARDS_v36.3O.md",
+      "v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md",
+      "v36.3O/canon/TRINITY_AAA_ENGINES_v36.3O.md",
+      "v36.3O/canon/JUDICIARY_APEX_PRIME_v36.3O.md",
+      "v36.3O/canon/OVERSIGHT_WAW_FEDERATION_v36.3O.md",
+      "v36.3O/canon/DREAMFORGE_ARCHITECTURE_v36.3O.md",
+      "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md",
+      "v36.3O/canon/GOV_META_v36.3O.md",
+      "v36.3O/canon/ARIFOS_MEMORY_STACK_v36.3O.md",
+      "v36.3O/canon/VAULT_999_AMENDMENTS_v36.3O.md",
+      "v36.3O/canon/COOLING_LEDGER_INTEGRITY_v36.3O.md",
+      "v36.3O/canon/SCARS_PHOENIX_HEALING_v36.3O.md"
+    ],
+    "machine_readable": [
+      "v36.3O/spec/measurement_floors_v36.3O.json",
+      "v36.3O/spec/measurement_aggregates_v36.3O.json",
+      "v36.3O/spec/trinity_aaa_spec_v36.3O.yaml",
+      "v36.3O/spec/waw_federation_spec_v36.3O.yaml",
+      "v36.3O/spec/apex_prime_telemetry_v36.3O.json",
+      "v36.3O/spec/vault999_ledger_schema_v36.3O.json",
+      "v36.3O/spec/vault999_final_seal_spec_v36.3O.json",
+      "v36.3O/spec/memory_context_spec_v36.3O.json",
+      "v36.3O/spec/cooling_ledger_entry_spec_v36.3O.json",
+      "v36.3O/spec/phoenix72_amendment_spec_v36.3O.json",
+      "v36.3O/spec/scar_record_spec_v36.3O.json",
+      "v36.3O/spec/eureka_receipt_spec_v36.3O.json"
+    ]
+  },
+
+  "meta": {
+    "created": "2025-12-12",
+    "updated": "2025-12-12",
+    "author": "arifOS Project",
+    "license": "Apache-2.0",
+    "tests": 1123,
+    "runtime_manifest_line": "arifOS v37 | status=ACTIVE | law=v36.3O/canon/* | spec=v36.3O/spec/* | runtime=arifos_core/* (v37 with full memory stack) | pipeline=arifos_core.pipeline.Pipeline 000-999 | memory=MemoryContext (6 bands) | judiciary=APEX_PRIME + WAWFederationCore | phoenix72=Phoenix72Controller | scars=ScarManager | zkpc=EurekaReceipt | ledger=CoolingLedger + Vault-999.",
+    "purpose": "Full v37 runtime manifest implementing v36.3Omega LAW+SPEC with integrated memory stack, Phoenix-72 amendment workflow, and Cooling Ledger with hash-chain integrity.",
+    "canonical_source": "https://github.com/ariffazil/arifOS",
+    "notes": [
+      "v37 is the first epoch with full memory stack integration.",
+      "Select via ARIFOS_RUNTIME_EPOCH=v37 environment variable.",
+      "Implements 6-band MemoryContext per ARIFOS_MEMORY_STACK_v36.3O.md canon.",
+      "Phoenix-72 controller enforces safety caps per VAULT_999_AMENDMENTS_v36.3O.md.",
+      "Cooling Ledger entries follow cooling_ledger_entry_spec_v36.3O.json schema.",
+      "EUREKA receipts use HMAC-SHA256 stub; full cosign integration deferred."
+    ],
+    "todo_arif": [
+      "Phoenix-72 pressure parameters (T, w1, w2) - using defaults",
+      "Cooldown window (24 hours) - configurable constant",
+      "Hot segment thresholds (7 days / 10k entries) - configurable",
+      "Scar severity weights (S1-S4) - using canon values",
+      "Healing observation windows - not yet implemented"
+    ]
+  }
+}
+

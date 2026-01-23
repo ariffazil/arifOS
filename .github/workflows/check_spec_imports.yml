@@ -1,0 +1,52 @@
+name: Spec Import Enforcement
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  check-imports:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Check for local spec copies
+        run: |
+          echo "🔍 Checking for local copies of spec files outside authorized locations..."
+
+          # Fail if constitutional_floors.json found outside spec/v45 or archive/
+          if find . -name "constitutional_floors.json" | grep -v "spec/v45\|archive" | grep -q .; then
+            echo "❌ ERROR: Local spec copies detected!"
+            echo ""
+            echo "Found constitutional_floors.json in unauthorized locations:"
+            find . -name "constitutional_floors.json" | grep -v "spec/v45\|archive"
+            echo ""
+            echo "POLICY: Constitutional specs must ONLY exist in:"
+            echo "  - spec/v45/ (authoritative)"
+            echo "  - archive/ (historical versions)"
+            echo ""
+            echo "Use imports instead: from arifos_core.spec import load_constitutional_floors"
+            exit 1
+          fi
+
+          # Fail if genius_law.json found outside spec/v45 or archive/
+          if find . -name "genius_law.json" | grep -v "spec/v45\|archive" | grep -q .; then
+            echo "❌ ERROR: Local spec copies detected!"
+            echo ""
+            echo "Found genius_law.json in unauthorized locations:"
+            find . -name "genius_law.json" | grep -v "spec/v45\|archive"
+            echo ""
+            echo "POLICY: GENIUS law specs must ONLY exist in:"
+            echo "  - spec/v45/ (authoritative)"
+            echo "  - archive/ (historical versions)"
+            echo ""
+            echo "Use imports instead: from arifos_core.spec import load_genius_law"
+            exit 1
+          fi
+
+          echo "✅ No unauthorized spec copies found"
+          echo "✅ Spec integrity maintained"

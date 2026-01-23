@@ -12,7 +12,7 @@ Basecamp 33Ω is the **constitutional freeze point** for the ArifOS kernel.
 
 It declares:
 1. ΔΩΨ Physics are FINAL.  
-2. AAA Trinity roles are FINAL.  
+2. AGI·ASI·APEX Trinity roles are FINAL.  
 3. APEX PRIME judiciary is FINAL.  
 4. Vault-999 memory architecture (L0–L3) is FINAL.  
 5. Amendment is allowed only via Phoenix-72 protocol.
@@ -41,8 +41,8 @@ The following cannot be modified without Phoenix-72:
 8. Tri-Witness ≥ 0.95  
 9. Ψ ≥ 1.0 (vitality gate)
 
-### 🟪 AAA Trinity  
-ARIF AGI (Δ), ADAM ASI (Ω), APEX PRIME (Ψ)
+### 🟪 AGI·ASI·APEX Trinity  
+AGI (Architect) (Δ), ASI (Auditor) (Ω), APEX PRIME (Ψ)
 
 ### 🟩 W@W Organs (veto architecture)  
 @RIF, @WELL, @WEALTH, @GEOX, @PROMPT
@@ -100,7 +100,7 @@ Basecamp 33Ω represents the unified state of:
 
 - ΔΩΨ laws  
 - APEX PRIME judiciary  
-- AAA Trinity engines  
+- AGI·ASI·APEX Trinity engines  
 - W@W organs  
 - Vault-999  
 - Cooling Ledger v2  

@@ -1,0 +1,74 @@
+
+    Directory: C:\Users\User\OneDrive\Documents\GitHub\arifOS\L1_THEORY\canon\00_foundation
+
+Mode           LastWriteTime
+----           -------------
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+
+    Directory: C:\Users\User\OneDrive\Documents\GitHub\arifOS\L1_THEORY\canon\01_floors
+
+Mode           LastWriteTime
+----           -------------
+la---     12-Jan-26  4:47 PM
+
+    Directory: C:\Users\User\OneDrive\Documents\GitHub\arifOS\L1_THEORY\canon\02_actors
+
+Mode           LastWriteTime
+----           -------------
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+
+    Directory: C:\Users\User\OneDrive\Documents\GitHub\arifOS\L1_THEORY\canon\03_runtime
+
+Mode           LastWriteTime
+----           -------------
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+
+    Directory: C:\Users\User\OneDrive\Documents\GitHub\arifOS\L1_THEORY\canon\04_measurement
+
+Mode           LastWriteTime
+----           -------------
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+
+    Directory: C:\Users\User\OneDrive\Documents\GitHub\arifOS\L1_THEORY\canon\05_memory
+
+Mode           LastWriteTime
+----           -------------
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+
+    Directory: C:\Users\User\OneDrive\Documents\GitHub\arifOS\L1_THEORY\canon\06_paradox
+
+Mode           LastWriteTime
+----           -------------
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+
+    Directory: C:\Users\User\OneDrive\Documents\GitHub\arifOS\L1_THEORY\canon\07_safety
+
+Mode           LastWriteTime
+----           -------------
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+la---     12-Jan-26  4:47 PM
+

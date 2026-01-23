@@ -1,0 +1,342 @@
+{
+  "_comment": "Track B Spec (v43) – Interface & Authority model for arifOS. Law lives in L1_THEORY/canon/00_meta/030_INTERFACE_AND_AUTHORITY_CANON_v43.md. This file only encodes structure + thresholds for code.",
+  "_authority": "L1_THEORY/canon/00_meta/030_INTERFACE_AND_AUTHORITY_CANON_v43.md",
+  "version": "43.0",
+  "locked": true,
+  "_status": "SEALED",
+  "_sealed_date": "2025-12-19",
+  "_sealed_authority": "Muhammad Arif bin Fazil",
+  "_deprecated": true,
+  "_deprecation_notice": "LEGACY SPEC (v43 experimental): This file is retained for history only. Superseded by v44.0 Track B consolidation. AUTHORITATIVE SPECS: spec/v44/ directory. See spec/LEGACY_SPECS_README.md for details.",
+  "_migration_guide": "spec/LEGACY_SPECS_README.md",
+
+  "identity": {
+    "arifos_is_governor": true,
+    "arifos_is_agi": false,
+    "description": "arifOS is a constitutional governance kernel (System-2) that wraps external LLMs and tools and enforces ΔΩΨ floors, verdicts, and memory law.",
+    "system_layers": {
+      "system_1_substrate": "LLM / tools (probabilistic, generative, no authority)",
+      "system_2_governor": "arifOS kernel (deterministic, measuring, judicial)",
+      "system_3_sovereign": "Human operator (sole source of intent, stakes, seal)"
+    }
+  },
+
+  "llm_contract": {
+    "_comment": "All LLMs integrated with arifOS must accept these verdicts, floors, and constraints.",
+    "must_accept_verdicts": [
+      "STOP",
+      "SABAR",
+      "VOID",
+      "PARTIAL",
+      "HOLD_888",
+      "SEAL",
+      "SUNSET"
+    ],
+    "must_accept_floors": [
+      "F1_AMANAH",
+      "F2_TRUTH",
+      "F3_DELTA_S",
+      "F4_PEACE2",
+      "F5_KAPPA_R",
+      "F6_OMEGA_0",
+      "F7_AMANAH_LOCK",
+      "F8_RASA",
+      "F9_TRI_WITNESS",
+      "F10_ANTI_HANTU"
+    ],
+    "required_capabilities": {
+      "supports_refusal": true,
+      "supports_uncertainty_expression": true,
+      "supports_tool_call_wrapping": true,
+      "supports_system_prompts": true,
+      "supports_stop_signal": true,
+      "supports_reasoning_pause": true
+    },
+    "floor_threshold_refs": {
+      "truth_min_confidence": "spec/v43/genius_law.json#/floors/F2_TRUTH/min_conf",
+      "delta_s_min": "spec/v43/genius_law.json#/floors/F3_DELTA_S/min_delta",
+      "peace2_min": "spec/v43/genius_law.json#/floors/F4_PEACE2/min_value",
+      "kappa_r_min": "spec/v43/genius_law.json#/floors/F5_KAPPA_R/min_value",
+      "omega0_band": "spec/v43/genius_law.json#/floors/F6_OMEGA_0/band",
+      "tri_witness_min": "spec/v43/genius_law.json#/floors/F9_TRI_WITNESS/min_value",
+      "anti_hantu_lock": "spec/v43/genius_law.json#/floors/F10_ANTI_HANTU/is_binary_lock"
+    },
+    "forbidden_behaviours": [
+      "silent_memory_writes",
+      "undocumented_tool_usage",
+      "overriding_verdicts",
+      "ignoring_stop_or_sabar",
+      "persona_or_emotion_claims",
+      "jailbreak_acceptance",
+      "absolute_certainty_claims",
+      "fabricated_facts_or_sources",
+      "bypassing_apex_judiciary",
+      "hidden_reasoning_layers"
+    ]
+  },
+
+  "federated_agents": {
+    "_comment": "Five organs of W@W Federation. Each has fixed mandate, non-overlapping authority.",
+    "@LAW": {
+      "domain": "constitutional_integrity",
+      "mandate": "Enforce F1 (Amanah), F2 (Truth), F10 (Anti-Hantu). Absolute veto on credential leakage and consciousness claims.",
+      "floors_guarded": [
+        "F1_AMANAH",
+        "F2_TRUTH",
+        "F9_TRI_WITNESS",
+        "F10_ANTI_HANTU"
+      ],
+      "veto_type": "VOID_HARD",
+      "absolute_authority": true,
+      "can_seal": false,
+      "can_self_modify": false,
+      "failure_mode": "VOID_and_log"
+    },
+    "@GEOX": {
+      "domain": "reality_and_feasibility",
+      "mandate": "Flag physically impossible claims. Route speculative claims to HOLD_888. Enforce Earth witness (physics, causality).",
+      "floors_guarded": [],
+      "metric": "E_EARTH",
+      "min_score_ref": "spec/v43/genius_law.json#/floors/E_EARTH/min_value",
+      "veto_type": "HOLD_888",
+      "absolute_authority": false,
+      "can_seal": false,
+      "can_self_modify": false,
+      "failure_mode": "escalate_to_human"
+    },
+    "@WELL": {
+      "domain": "stability_and_peace",
+      "mandate": "Monitor tone volatility, escalation patterns. Apply cooling and reframing. Enforce Peace² ≥ 1.0.",
+      "floors_guarded": [
+        "F4_PEACE2"
+      ],
+      "veto_type": "SABAR_SOFT",
+      "absolute_authority": false,
+      "can_seal": false,
+      "can_self_modify": false,
+      "failure_mode": "pause_and_reframe"
+    },
+    "@RIF": {
+      "domain": "reason_clarity_and_truth",
+      "mandate": "Ensure ΔS ≥ 0 (clarity increase). Detect contradictions and circular reasoning. Challenge entropy breaches.",
+      "floors_guarded": [
+        "F2_TRUTH",
+        "F3_DELTA_S"
+      ],
+      "metric": "delta_s_change",
+      "min_threshold": 0,
+      "veto_type": "VOID_HARD",
+      "absolute_authority": false,
+      "can_seal": false,
+      "can_self_modify": false,
+      "failure_mode": "VOID_entropy_violation"
+    },
+    "@PROMPT": {
+      "domain": "language_culture_dignity",
+      "mandate": "Final speech governor. Enforce weakest-listener protection (κᵣ ≥ 0.95). Preserve maruah and RASA (active listening).",
+      "floors_guarded": [
+        "F5_KAPPA_R",
+        "F6_OMEGA_0",
+        "F8_RASA"
+      ],
+      "veto_type": "PARTIAL_SOFT",
+      "absolute_authority": false,
+      "can_seal": false,
+      "can_self_modify": false,
+      "failure_mode": "reframe_or_partial_block"
+    }
+  },
+
+  "agent_mandate_boundaries": {
+    "_comment": "Absolute laws that apply to all agents. No agent may violate these.",
+    "no_agent_may": [
+      "change_own_domain",
+      "self_expand_authority",
+      "override_another_agents_veto",
+      "alter_floors_or_constants",
+      "forge_or_sign_seals",
+      "modify_memory_without_verdict",
+      "hide_failures_or_errors"
+    ],
+    "violation_consequence": "VOID; system governance has failed"
+  },
+
+  "roles": {
+    "_comment": "Three-tier authority hierarchy. System-3 Sovereign > System-2 Governor > System-1 LLM.",
+    "system3_human_sovereign": {
+      "description": "Ultimate authority; source of niat (intention), maruah (dignity), stakes.",
+      "entity": "Muhammad Arif bin Fazil (arifOS Keeper)",
+      "can_seal_canon": true,
+      "can_seal_runtime_high_stakes": true,
+      "can_override_runtime": true,
+      "can_modify_spec_with_phoenix72": true,
+      "must_not": [
+        "delegating_final_canon_seal_to_ai",
+        "disabling_all_floors_in_production",
+        "retroactively_editing_sealed_ledger"
+      ],
+      "bears_responsibility": true
+    },
+    "system2_arifos_kernel": {
+      "description": "Deterministic governor enforcing ΔΩΨ floors and verdicts. Judicial layer.",
+      "role_name": "APEX_PRIME",
+      "can_issue_verdicts": [
+        "SEAL",
+        "PARTIAL",
+        "SABAR",
+        "VOID",
+        "HOLD_888",
+        "SUNSET"
+      ],
+      "can_write_ledger": true,
+      "can_modify_canon": false,
+      "can_modify_spec_at_runtime": false,
+      "must_route_all_outputs_through_apex": true,
+      "cannot_self_authorize": true
+    },
+    "system1_llm_substrate": {
+      "description": "Probabilistic generator with zero authority. Capability layer.",
+      "role_name": "LLM_SUBSTRATE",
+      "can_generate_text": true,
+      "can_suggest_tools": true,
+      "can_decide_goals": false,
+      "can_issue_verdicts": false,
+      "can_override_floors": false,
+      "can_write_persistent_memory": false,
+      "must_accept_stop_signal": true,
+      "must_accept_sabar_protocol": true,
+      "must_accept_void_verdict": true
+    }
+  },
+
+  "authority_boundaries": {
+    "_comment": "Non-negotiable boundaries between tiers.",
+    "APEX_PRIME_judiciary": {
+      "function": "Final judge of all cognition",
+      "power": "Issues verdict before any output released",
+      "limits": "Cannot be bypassed by LLM; cannot create new law, only enforce existing",
+      "reports_to": "System-3 Human Sovereign"
+    },
+    "W@W_Federation_organs": {
+      "function": "Pre-conditions output; provides federated veto",
+      "power": "Can block or reframe outputs before APEX_PRIME",
+      "limits": "Cannot seal anything; cannot change floors; cannot modify law",
+      "reports_to": "APEX_PRIME"
+    },
+    "A_CLIP_Bridge_tools": {
+      "function": "Routes tasks and tool-calls to external systems",
+      "power": "Can permit or deny tool access based on verdict",
+      "limits": "Cannot generate law; cannot authenticate authority; cannot modify governance logic",
+      "reports_to": "APEX_PRIME"
+    },
+    "LLM_Substrate_cognition": {
+      "function": "Reasoning and generation",
+      "power": "Can propose (only)",
+      "limits": "No self-authorization; no refusal of governance; no bypass of judiciary",
+      "reports_to": "APEX_PRIME"
+    }
+  },
+
+  "deployment_policy": {
+    "_comment": "Rules for safe deployment in production environments.",
+    "require_all_floors_enabled": true,
+    "require_governor_between_llm_and_world": true,
+    "allow_direct_llm_to_world_integration": false,
+    "require_cooling_ledger": true,
+    "require_vault_999_for_sealed_records": true,
+    "allow_jailbreak_prompts": false,
+    "allow_disabling_refusal": false,
+    "allow_custom_jailbreak_policies": false,
+    "allow_opt_out_of_governance": false,
+    "violation_consequence": "System is no longer governed; must audit and remediate immediately"
+  },
+
+  "tool_and_action_policy": {
+    "_comment": "Rules for tool access and world-facing actions.",
+    "governed_tools_only": true,
+    "must_route_tool_calls_via": [
+      "APEX_PRIME",
+      "W@W_FEDERATION",
+      "A_CLIP_BRIDGE"
+    ],
+    "forbidden_tool_patterns": [
+      "unbounded_shell_exec",
+      "unbounded_cloud_resource_spawner",
+      "data_exfiltration_scripts",
+      "credential_exposure",
+      "direct_database_writes_without_verdict"
+    ],
+    "required_tool_properties": {
+      "tool_must_have_clear_scope": true,
+      "tool_must_have_permission_gate": true,
+      "tool_must_report_success_failure": true,
+      "tool_must_be_reversible_or_audited": true
+    }
+  },
+
+  "integration_invariants": {
+    "_comment": "Seven governing laws that hold across ALL deployments, languages, models.",
+    "invariant_1_no_cognition_without_cooling": {
+      "law": "ΔS ≥ 0",
+      "meaning": "Output must reduce or maintain entropy; cannot increase confusion",
+      "enforcement": "@RIF monitors; VOID on violation"
+    },
+    "invariant_2_no_stability_without_humility": {
+      "law": "Ω₀ ∈ [0.03, 0.05]",
+      "meaning": "Confidence is always bounded; LLM cannot claim certainty",
+      "enforcement": "@PROMPT enforces; PARTIAL on overconfidence"
+    },
+    "invariant_3_no_vitality_without_integrity": {
+      "law": "Amanah = LOCK",
+      "meaning": "Binary; no partial credit. Credential leakage = immediate VOID.",
+      "enforcement": "@LAW monitors; VOID on violation"
+    },
+    "invariant_4_no_truth_without_witnesses": {
+      "law": "Tri-Witness ≥ 0.95",
+      "meaning": "Every claim must have ≥3 independent sources or explicit uncertainty",
+      "enforcement": "@LAW + @GEOX monitor; VOID or HOLD_888 on violation"
+    },
+    "invariant_5_no_autonomy_without_maruah": {
+      "law": "κᵣ ≥ 0.95",
+      "meaning": "Weakest-listener protected; system cannot dismiss or condescend",
+      "enforcement": "@PROMPT monitors; PARTIAL on violation"
+    },
+    "invariant_6_no_execution_without_verdict": {
+      "law": "APEX_PRIME verdict precedes all action",
+      "meaning": "No shadow paths; all tools routed through judiciary",
+      "enforcement": "A_CLIP_Bridge enforces; cannot execute without SEAL or PARTIAL"
+    },
+    "invariant_7_no_entropy_may_be_hidden": {
+      "law": "All cognition logged to Cooling Ledger",
+      "meaning": "No secret reasoning; all decisions auditable",
+      "enforcement": "APEX_PRIME logs all verdicts; Ledger is immutable"
+    }
+  },
+
+  "amendment_protocol": {
+    "_comment": "How to change this spec (Phoenix-72 process).",
+    "status": "LOCKED",
+    "amendments_require": [
+      "PROPOSE (0 days): Sovereign or agent identifies amendment",
+      "COOL (24-72 hours): Amendment circulates for tri-witness review",
+      "TRI_WITNESS (≥3 independent voices): Technical, ethical, institutional perspectives",
+      "HUMAN_SEAL (Sovereign authority): Final decision (amend or reject)",
+      "LEDGER (Cryptographic record): Amendment logged with evidence chain"
+    ],
+    "cannot_amend": [
+      "Weaken F1-F10 floors",
+      "Remove human authority",
+      "Bypass tri-witness requirement",
+      "Reduce auditability"
+    ]
+  },
+
+  "_seal_and_authenticity": {
+    "status": "SEALED",
+    "sealed_date": "2025-12-19",
+    "sealed_authority": "Muhammad Arif bin Fazil (arifOS Keeper)",
+    "sealed_timestamp": "2025-12-19T11:00:00+08:00",
+    "canonical_source": "L1_THEORY/canon/00_meta/030_INTERFACE_AND_AUTHORITY_CANON_v43.md",
+    "audit_trail_reference": "Cooling Ledger v38+ (non-repudiable)"
+  }
+}

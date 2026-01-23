@@ -1,0 +1,44 @@
+{
+  "session_id": "b632bae2-0038-43d7-af6c-a78dc19bac17",
+  "timestamp": "2026-01-22T13:13:44.726480Z",
+  "verdict": "SEAL",
+  "init_result": {
+    "status": "VOID",
+    "session_id": "b632bae2-0038-43d7-af6c-a78dc19bac17",
+    "authority_verified": false,
+    "injection_risk": 1.0,
+    "entropy_omega": 0.05,
+    "reason": "System error: 'NoneType' object has no attribute 'get'",
+    "floors_checked": [],
+    "previous_context": {}
+  },
+  "genius_result": {},
+  "act_result": {},
+  "judge_result": {
+    "synthesis": "Test session",
+    "consensus_score": 0.96
+  },
+  "telemetry": {
+    "verdict": "SEAL",
+    "merkle_root": "3220f14c0ec8e8d8b717ba0c8a919a260555c15983111b27f653925ea3eeec08",
+    "audit_hash": "f9067e7c685271c094cf653f9a8b22ce8e1ac1fc5548beeff996a66829e9255c",
+    "memory_location": "L5_CANON",
+    "floors_checked": [
+      "F1_Amanah",
+      "F8_TriWitness"
+    ],
+    "p_truth": 0.96,
+    "TW": 0.96,
+    "dS": 0,
+    "peace2": 0,
+    "kappa_r": 0,
+    "omega_0": 0.05
+  },
+  "prev_hash": "GENESIS",
+  "merkle_root": "38b3b98bc2d80e70ab5e774023fd1e08f9fcfb83dbd6087bbbe518a910e17390",
+  "entry_hash": "4f6f23859ceb5c4f1953c8d927fa1624f8f9d73ad90dd2c370aa3b8124725848",
+  "context_summary": "Session sealed with verdict SEAL. Test session",
+  "key_insights": [
+    "Test session"
+  ]
+}

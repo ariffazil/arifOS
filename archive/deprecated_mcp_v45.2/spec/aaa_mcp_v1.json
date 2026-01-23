@@ -1,0 +1,55 @@
+{
+    "protocol": "AAA",
+    "version": "1.0.0",
+    "name": "Adaptive Anything Architecture",
+    "motto": "DITEMPA BUKAN DIBERI",
+    "description": "Universal protocol specification for governed AI agent tools.",
+    "layers": [
+        {
+            "name": "Tool Interface Contracts",
+            "requirement": "Strict JSON Schema validation for all inputs/outputs."
+        },
+        {
+            "name": "Agent Capability & Attestation",
+            "requirement": "SHA256 signed manifests declaring tools and constraints (Gap 4)."
+        },
+        {
+            "name": "Host Governance & Constraint",
+            "requirement": "Real-time physics monitoring (TEARFRAME) and policy injection."
+        },
+        {
+            "name": "Execution & Audit",
+            "requirement": "Deterministic loop with immutable Merkle-tree logging."
+        },
+        {
+            "name": "Fallback & Recovery",
+            "requirement": "Floor-specific recovery matrix (Gap 5)."
+        }
+    ],
+    "thresholds": {
+        "psi_apex": 1.0,
+        "tri_witness": 0.95,
+        "truth_score": 0.99,
+        "delta_s": 0.0,
+        "k_r_empathy": 0.80,
+        "omega_0_humility": [
+            0.03,
+            0.05
+        ]
+    },
+    "verdicts": {
+        "SEAL": "Score >= Threshold, all floors pass.",
+        "PARTIAL": "Score >= 0.75, non-critical floor warning.",
+        "SABAR": "Ambiguity or rate limit detected, pause for 72h cooling.",
+        "VOID": "Hard floor breach (F1/F5/F9) or Amanah fail.",
+        "HOLD_888": "Human intervention required for high-stakes consensus (Gap 6)."
+    },
+    "tools_exposed": [
+        "vtempa_reflection",
+        "vtempa_planning",
+        "vtempa_action",
+        "vtempa_execution",
+        "vtempa_self_correction",
+        "vtempa_memory"
+    ]
+}
