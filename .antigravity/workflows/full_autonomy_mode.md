@@ -33,7 +33,7 @@ This workflow activates Full Autonomy Governance mode for the arifOS AGI coder, 
 **Full Autonomy ≠ Unlimited Freedom**
 
 Full Autonomy means the agent operates with maximum independence **WITHIN** the governance boundaries defined by:
-- L1_THEORY canon (immutable laws via Phoenix-72 amendment system)
+- 000_THEORY canon (immutable laws via Phoenix-72 amendment system)
 - spec/v45/ (Track B thresholds with SHA-256 manifest verification)
 - L2_GOVERNANCE protocols (SABAR, fail-closed patterns)
 - AGENTS.md federation rules
