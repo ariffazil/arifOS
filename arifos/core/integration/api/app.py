@@ -24,6 +24,9 @@ from .routes import health, pipeline, memory, ledger, metrics, federation, body
 from .middleware import setup_middleware
 from .exceptions import setup_exception_handlers
 
+# SSE Integration
+from arifos.mcp.sse import create_sse_app
+from arifos.mcp.trinity_server import TOOLS, TOOL_DESCRIPTIONS
 
 def create_app() -> FastAPI:
     """
@@ -31,6 +34,7 @@ def create_app() -> FastAPI:
 
     Returns a FastAPI app with:
     - All routes registered (health, pipeline, memory, ledger, metrics, body)
+    - MCP SSE endpoints (/sse, /messages)
     - Middleware configured (CORS, logging)
     - Exception handlers set up
     """
@@ -38,7 +42,7 @@ def create_app() -> FastAPI:
         title="arifOS v50.5.24 API (The Body)",
         description=(
             "Constitutional Governance Oracle. "
-            "Exposes the Trinity Metabolic Loop (AGI-ASI-APEX) over HTTP. "
+            "Exposes the Trinity Metabolic Loop (AGI-ASI-APEX) over HTTP and SSE. "
             "DITEMPA BUKAN DIBERI."
         ),
         version="50.5.24",
@@ -62,16 +66,28 @@ def create_app() -> FastAPI:
     app.include_router(federation.router)
     app.include_router(body.router)
 
+    # Register MCP SSE routes
+    sse_app = create_sse_app(
+        tools=TOOLS,
+        tool_descriptions=TOOL_DESCRIPTIONS,
+        server_name="arifOS-Trinity",
+        version="50.5.24"
+    )
+    # Mount SSE sub-app or manually proxy?
+    # Simpler: just use the routes from sse_app
+    app.mount("/mcp", sse_app)
+
     # Root endpoint
     @app.get("/", tags=["root"])
     async def root() -> dict:
         """API root - returns version and basic info."""
         return {
             "name": "arifOS API",
-            "version": "v50.5.24",
+            "version": "50.5.24",
             "description": "Constitutional Governance Oracle (The Body)",
             "docs": "/docs",
             "govern": "/v1/govern",
+            "mcp_sse": "/mcp/sse",
             "health": "/v1/health",
             "motto": "DITEMPA BUKAN DIBERI - Forged, not given",
         }
