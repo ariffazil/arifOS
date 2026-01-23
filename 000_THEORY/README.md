@@ -82,10 +82,13 @@ Thirteen immutable floors. No exceptions. No overrides.
 | F11 | Command Auth | Active |
 | F12 | Injection Defense | <0.85 |
 | F13 | Sovereign Override | Human Approval |
-A = AKAL (Clarity)
-P = PRESENT (Governance)
-X = EXPLORATION (Trust)
-E = ENERGY (Sustainable Power)
+
+| Component | Definition |
+|-----------|------------|
+| A | AKAL (Clarity) |
+| P | PRESENT (Governance) |
+| X | EXPLORATION (Trust) |
+| E | ENERGY (Sustainable Power) |
 Thirteen immutable floors. No exceptions. No overrides.
 
 Without X: A × P × E = APE (clever but dangerous)
