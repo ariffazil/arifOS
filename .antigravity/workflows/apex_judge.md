@@ -54,7 +54,7 @@ APEX is the **judgment engine** — aggregating evidence, detecting breakthrough
 | **PARTIAL** | Minor issues | Proceed with warnings |
 | **SABAR** | Pause needed | Wait for clarification |
 | **VOID** | Hard violation | Block action |
-| **HOLD_888** | Escalation | Session locked |
+| **888_HOLD** | Escalation | Session locked |
 
 ### 4. PROOF — Cryptographic Seal
 - Generate SHA-256 hash
