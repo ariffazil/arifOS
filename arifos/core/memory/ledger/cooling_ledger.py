@@ -135,10 +135,10 @@ def _compute_hash(entry: Dict[str, Any]) -> str:
     """
     Compute SHA3-256 hash of an entry for chain integrity.
 
-    Excludes the 'hash', 'kms_signature', and 'kms_key_id' fields from the computation.
+    Excludes the 'hash', 'entry_hash', 'kms_signature', 'apex_signature', and 'kms_key_id' fields from the computation.
     Uses canonical JSON representation.
     """
-    excluded_fields = {"hash", "kms_signature", "kms_key_id"}
+    excluded_fields = {"hash", "entry_hash", "kms_signature", "apex_signature", "kms_key_id"}
     data = {k: v for k, v in entry.items() if k not in excluded_fields}
     canonical = json.dumps(data, sort_keys=True, separators=(",", ":"))
     return hashlib.sha3_256(canonical.encode("utf-8")).hexdigest()
@@ -169,7 +169,7 @@ def append_entry(
                 if last_line:
                     try:
                         last_entry = json.loads(last_line)
-                        prev_hash = last_entry.get("hash")
+                        prev_hash = last_entry.get("hash") or last_entry.get("entry_hash")
                     except json.JSONDecodeError:
                         pass
 
@@ -216,7 +216,7 @@ def verify_chain(path: Union[Path, str]) -> Tuple[bool, str]:
         return False, "First entry should have prev_hash=null"
 
     for i, entry in enumerate(entries):
-        stored_hash = entry.get("hash")
+        stored_hash = entry.get("hash") or entry.get("entry_hash")
         if not stored_hash:
             return False, f"Entry {i} missing hash field"
 
@@ -228,7 +228,7 @@ def verify_chain(path: Union[Path, str]) -> Tuple[bool, str]:
             )
 
         if i > 0:
-            expected_prev_hash = entries[i - 1].get("hash")
+            expected_prev_hash = entries[i - 1].get("hash") or entries[i - 1].get("entry_hash")
             actual_prev_hash = entry.get("prev_hash")
             if actual_prev_hash != expected_prev_hash:
                 return (

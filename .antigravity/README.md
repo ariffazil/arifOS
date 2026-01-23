@@ -27,6 +27,7 @@
 |-----------|---------|
 | `rules/` | Agent behavior (2 files) |
 | `workflows/` | Step-by-step processes (9 files) |
+| `antigravitybrain/` | **Working Memory** (Drafts & scratchpads) |
 
 ---
 
