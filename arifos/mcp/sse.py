@@ -170,11 +170,28 @@ def create_sse_app(
                 "/metrics": "Prometheus metrics",
                 "/metrics/json": "Metrics as JSON",
                 "/sse": "MCP SSE connection",
+                "/mcp": "MCP SSE connection (ChatGPT compatible)",
                 "/messages": "MCP message handler",
                 "/docs": "API documentation"
             },
             "constitutional_framework": "DITEMPA BUKAN DIBERI"
         }
+
+    # ==========================================================================
+    # CHATGPT DEVELOPER MODE COMPATIBILITY
+    # ChatGPT expects /mcp endpoint for MCP server discovery
+    # ==========================================================================
+
+    @app.get("/mcp")
+    async def handle_mcp_sse(request: Request):
+        """MCP SSE Endpoint - ChatGPT Developer Mode compatible."""
+        async with sse.connect_sse(request.scope, request.receive, request._send) as streams:
+            await mcp_server.run(streams[0], streams[1], mcp_server.create_initialization_options())
+
+    @app.post("/mcp")
+    async def handle_mcp_messages(request: Request):
+        """MCP Message endpoint - ChatGPT Developer Mode compatible."""
+        return await sse.handle_post_message(request.scope, request.receive, request._send)
 
     return app
 
