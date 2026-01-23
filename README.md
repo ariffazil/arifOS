@@ -6,7 +6,7 @@
 
 > **"Intelligence without governance is fire without a forge."**
 
-**Version:** v50.5.24 | **Status:** Live on Railway
+**Version:** v50.5.25 | **Status:** Live on Railway
 **Motto:** *"Ditempa Bukan Diberi"* — Forged, Not Given
 **Authority:** Muhammad Arif bin Fazil | Penang, Malaysia
 
@@ -58,7 +58,7 @@ curl https://arifos-production.up.railway.app/health
   "status": "healthy",
   "tools": 5,
   "tool_names": ["000_init", "agi_genius", "asi_act", "apex_judge", "999_vault"],
-  "version": "v50.5.24"
+  "version": "v50.5.25"
 }
 ```
 

@@ -1,7 +1,7 @@
 """
 arifOS API Application - FastAPI app factory.
 
-This module provides the FastAPI application for the arifOS v38.2 API.
+This module provides the FastAPI application for the arifOS v50.5.25 API.
 All endpoints are stateless, fail-open, and read-only or append-only.
 
 Usage:
@@ -18,7 +18,7 @@ Usage:
 
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 
 from .routes import health, pipeline, memory, ledger, metrics, federation, body
 from .middleware import setup_middleware
@@ -27,6 +27,11 @@ from .exceptions import setup_exception_handlers
 # SSE Integration
 from arifos.mcp.sse import create_sse_app
 from arifos.mcp.trinity_server import TOOLS, TOOL_DESCRIPTIONS
+
+# MCP Server for direct endpoint
+from mcp.server import Server
+from mcp.server.sse import SseServerTransport
+import mcp.types
 
 def create_app() -> FastAPI:
     """
@@ -39,13 +44,13 @@ def create_app() -> FastAPI:
     - Exception handlers set up
     """
     app = FastAPI(
-        title="arifOS v50.5.24 API (The Body)",
+        title="arifOS v50.5.25 API (The Body)",
         description=(
             "Constitutional Governance Oracle. "
             "Exposes the Trinity Metabolic Loop (AGI-ASI-APEX) over HTTP and SSE. "
             "DITEMPA BUKAN DIBERI."
         ),
-        version="50.5.24",
+        version="50.5.25",
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
@@ -66,16 +71,60 @@ def create_app() -> FastAPI:
     app.include_router(federation.router)
     app.include_router(body.router)
 
-    # Register MCP SSE routes
+    # Register MCP SSE routes (sub-app for /sse and /messages endpoints)
     sse_app = create_sse_app(
         tools=TOOLS,
         tool_descriptions=TOOL_DESCRIPTIONS,
         server_name="arifOS-Trinity",
-        version="50.5.24"
+        version="50.5.25"
     )
-    # Mount SSE sub-app or manually proxy?
-    # Simpler: just use the routes from sse_app
-    app.mount("/mcp", sse_app)
+
+    # ==========================================================================
+    # CHATGPT DEVELOPER MODE: Direct /mcp endpoint
+    # ChatGPT expects /mcp to be the SSE endpoint directly, not /mcp/sse
+    # ==========================================================================
+    mcp_server = Server("arifOS-Trinity-MCP")
+
+    @mcp_server.list_tools()
+    async def list_mcp_tools():
+        tools_list = []
+        for name in TOOLS:
+            desc = TOOL_DESCRIPTIONS.get(name, {})
+            tools_list.append(
+                mcp.types.Tool(
+                    name=name,
+                    description=desc.get("description", f"Tool {name}"),
+                    inputSchema=desc.get("inputSchema", {"type": "object", "properties": {}})
+                )
+            )
+        return tools_list
+
+    @mcp_server.call_tool()
+    async def call_mcp_tool(name: str, arguments: dict):
+        import inspect
+        tool = TOOLS.get(name)
+        if not tool:
+            raise ValueError(f"Unknown tool: {name}")
+        if inspect.iscoroutinefunction(tool):
+            return await tool(**arguments)
+        return tool(**arguments)
+
+    # SSE Transport for /mcp endpoint
+    mcp_sse = SseServerTransport("/mcp")
+
+    @app.get("/mcp")
+    async def handle_mcp_get(request: Request):
+        """MCP SSE Endpoint - ChatGPT Developer Mode compatible."""
+        async with mcp_sse.connect_sse(request.scope, request.receive, request._send) as streams:
+            await mcp_server.run(streams[0], streams[1], mcp_server.create_initialization_options())
+
+    @app.post("/mcp")
+    async def handle_mcp_post(request: Request):
+        """MCP Message Endpoint - ChatGPT Developer Mode compatible."""
+        return await mcp_sse.handle_post_message(request.scope, request.receive, request._send)
+
+    # Also mount the SSE sub-app at /sse for Claude Desktop compatibility
+    app.mount("/sse", sse_app)
 
     # Root endpoint
     @app.get("/", tags=["root"])
@@ -83,12 +132,14 @@ def create_app() -> FastAPI:
         """API root - returns version and basic info."""
         return {
             "name": "arifOS API",
-            "version": "50.5.24",
+            "version": "50.5.25",
             "description": "Constitutional Governance Oracle (The Body)",
             "docs": "/docs",
             "govern": "/v1/govern",
-            "mcp_sse": "/mcp/sse",
+            "mcp_chatgpt": "/mcp",
+            "mcp_claude": "/sse",
             "health": "/v1/health",
+            "tools": list(TOOLS.keys()),
             "motto": "DITEMPA BUKAN DIBERI - Forged, not given",
         }
 
