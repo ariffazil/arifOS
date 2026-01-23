@@ -296,6 +296,82 @@ class TestHelperFunctions:
         assert len(result["entry_hash"]) == 64
 
 
+class TestEdgeCases:
+    """Tests for edge cases and error handling."""
+
+    @pytest.fixture
+    def temp_ledger(self, tmp_path):
+        """Create a ledger with temporary paths."""
+        with patch.object(SessionLedger, '__init__', lambda self: None):
+            ledger = SessionLedger()
+            ledger.session_path = tmp_path / "sessions"
+            ledger.bbb_path = tmp_path / "bbb"
+            ledger.session_path.mkdir(parents=True)
+            ledger.bbb_path.mkdir(parents=True)
+            ledger._current_session = None
+            ledger._chain_head = None
+            ledger._lock = threading.Lock()
+            ledger._lock_file_path = ledger.session_path / ".ledger.lock"
+            return ledger
+
+    def test_get_last_session_missing_file(self, temp_ledger):
+        """get_last_session returns None when file doesn't exist."""
+        # Set a chain head but don't create the file
+        temp_ledger._chain_head = "abc123def456"
+
+        result = temp_ledger.get_last_session()
+
+        assert result is None
+
+    def test_merkle_empty_items(self, temp_ledger):
+        """_compute_merkle handles empty items."""
+        result = temp_ledger._compute_merkle([])
+
+        assert len(result) == 64  # SHA256 hex length
+        # Should be hash of "EMPTY"
+        import hashlib
+        expected = hashlib.sha256(b"EMPTY").hexdigest()
+        assert result == expected
+
+    def test_merkle_odd_items(self, temp_ledger):
+        """_compute_merkle handles odd number of items."""
+        items = [{"a": 1}, {"b": 2}, {"c": 3}]  # 3 items - odd
+
+        result = temp_ledger._compute_merkle(items)
+
+        assert len(result) == 64  # Valid SHA256 hash
+
+    def test_merkle_single_item(self, temp_ledger):
+        """_compute_merkle handles single item."""
+        items = [{"single": "item"}]
+
+        result = temp_ledger._compute_merkle(items)
+
+        assert len(result) == 64
+
+    def test_merkle_deterministic(self, temp_ledger):
+        """_compute_merkle produces deterministic results."""
+        items = [{"a": 1}, {"b": 2}]
+
+        result1 = temp_ledger._compute_merkle(items)
+        result2 = temp_ledger._compute_merkle(items)
+
+        assert result1 == result2
+
+    def test_seal_session_generates_hash(self, temp_ledger):
+        """seal_session generates entry hash."""
+        entry = temp_ledger.seal_session(
+            session_id="hash-test",
+            verdict="SEAL",
+            init_result={},
+            genius_result={},
+            act_result={},
+            judge_result={},
+            telemetry={}
+        )
+        assert len(entry.entry_hash) == 64  # SHA256 hex
+
+
 class TestVerdictHandling:
     """Tests for different verdict types."""
 
