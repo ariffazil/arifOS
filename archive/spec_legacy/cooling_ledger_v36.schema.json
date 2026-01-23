@@ -1,0 +1,184 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CoolingLedgerEntry_v36Omega",
+  "description": "Schema for arifOS Cooling Ledger entries (v36Ω design, docs-only).",
+  "type": "object",
+  "properties": {
+    "ledger_version": {
+      "type": "string",
+      "description": "Schema version (v36Ω design)",
+      "const": "v36Omega"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of the verdict"
+    },
+    "query_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the input query/prompt"
+    },
+    "response_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the sealed response"
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Thermodynamic and governance metrics at verdict time",
+      "properties": {
+        "truth": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "F1: Factual integrity (>= 0.99 for SEAL)"
+        },
+        "delta_s": {
+          "type": "number",
+          "description": "F2: Clarity gain (>= 0 for SEAL)"
+        },
+        "truth_polarity": {
+          "type": "string",
+          "enum": [
+            "truth_light",
+            "shadow_truth",
+            "weaponized_truth",
+            "false_claim"
+          ],
+          "description": "Truth Polarity classification"
+        },
+        "peace2": {
+          "type": "number",
+          "description": "Peace squared (>= 1.0 for SEAL)"
+        },
+        "peace3": {
+          "type": "number",
+          "description": "Peace cubed (individual x social x planetary stability)"
+        },
+        "kappa_r": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Empathy conductance (>= 0.95 for SEAL)"
+        },
+        "omega0": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Humility band (0.03–0.05 for SEAL)"
+        },
+        "amanah": {
+          "type": "string",
+          "enum": ["LOCK", "BROKEN"],
+          "description": "Integrity lock (LOCK for SEAL)"
+        },
+        "rasa": {
+          "type": "boolean",
+          "description": "Felt care protocol (true for SEAL)"
+        },
+        "psi_vitality": {
+          "type": "number",
+          "description": "System vitality Ψ (>= 1.0 for SEAL)"
+        },
+        "echo_debt": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Unresolved thermodynamic debt carried forward"
+        }
+      },
+      "required": ["truth", "delta_s", "peace2", "kappa_r", "omega0", "amanah", "rasa"]
+    },
+    "tri_witness": {
+      "type": "object",
+      "description": "Tri-Witness breakdown and consensus",
+      "properties": {
+        "human": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "ai": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "earth": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "consensus": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "cce_audits": {
+      "type": "object",
+      "description": "CCE audits including Truth Polarity",
+      "properties": {
+        "delta_p": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "WARN"]
+        },
+        "omega_p": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "WARN"]
+        },
+        "psi_p": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "WARN"]
+        },
+        "phi_p": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "WARN"]
+        },
+        "truth_polarity": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "WARN"]
+        }
+      }
+    },
+    "risk_signals": {
+      "type": "object",
+      "description": "Risk indicators derived from metrics and audits",
+      "properties": {
+        "shadow_truth": {
+          "type": "boolean"
+        },
+        "drift_index": {
+          "type": "number"
+        },
+        "fragility": {
+          "type": "number"
+        },
+        "hallucination": {
+          "type": "boolean"
+        },
+        "anti_hantu_pass": {
+          "type": "boolean"
+        }
+      }
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["SEAL", "PARTIAL", "888_HOLD", "VOID", "SABAR"],
+      "description": "APEX PRIME verdict"
+    },
+    "phoenix_cycle_id": {
+      "type": ["string", "null"],
+      "description": "Phoenix-72 cycle id if under review"
+    },
+    "previous_hash": {
+      "type": "string",
+      "description": "Hash of previous entry in the chain"
+    },
+    "entry_hash": {
+      "type": "string",
+      "description": "Hash of this entry"
+    }
+  },
+  "required": ["ledger_version", "timestamp", "metrics", "verdict"],
+  "additionalProperties": true
+}
+

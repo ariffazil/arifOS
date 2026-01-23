@@ -1,0 +1,8 @@
+{
+  "version": "v46.0.0",
+  "files": {
+    "arifos_core/spec/manifest_verifier.py": "d452e043088bdfaef7197107b680a2a22efb16b74211b8102993c7a3f13250fa",
+    "arifos_core/spec/schema_validator.py": "9495ead359ef4ed8d9505c3009b3d4694859121a36edfd90eff4f29dc089f650",
+    "arifos_core/spec/__init__.py": "9a4941f3a6b60ed2d1ca297a4c08ee45d299d811ebd038b9234482a71ff1e8f3"
+  }
+}

@@ -1,0 +1,4 @@
+version: v42.1
+notes: |
+  Placeholder measurement spec for v42.1 runtime binding.
+  All numeric thresholds remain in canon-driven specs (genius_law.json, constitutional_floors.json).

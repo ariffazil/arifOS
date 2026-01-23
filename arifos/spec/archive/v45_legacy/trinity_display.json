@@ -1,0 +1,346 @@
+{
+  "version": "v45.0",
+  "authority": "Track B (display authorization) governed by Track A canon",
+  "locked": false,
+  "_status": "AUTHORITATIVE",
+  "_source_evolution": "v45.0 (Phoenix-72 consolidation) - new spec for Trinity display architecture",
+  "_note": "This file is the SOLE RUNTIME AUTHORITY for Trinity display mode authorization and metric visibility rules. Loaders MUST use this file (or env override).",
+  "arifos_version": "v45.0",
+  "spec_type": "trinity_display",
+  "description": "Machine-readable specification for Trinity Display Architecture (ASI/AGI/APEX authorization modes) governing metric visibility per Communication Law v45: 'Measure everything. Show nothing (unless authorized).'",
+  "source": "https://github.com/ariffazil/arifOS",
+  "display_modes": {
+    "ASI": {
+      "id": 1,
+      "name": "ASI Guardian Mode",
+      "symbol": "Ω",
+      "authority_level": "public",
+      "authorization_required": false,
+      "default_mode": true,
+      "description": "Reality-facing default mode - clean output only, no internals",
+      "trinity_role": "Guardian (Heart - Emotional intelligence)",
+      "physics_field": "Omega (Ω - Humility/Empathy)",
+      "visible_elements": {
+        "response": true,
+        "verdict_emoji": true,
+        "pipeline_timeline": false,
+        "trinity_metrics": false,
+        "floor_scores": false,
+        "claim_analysis": false,
+        "verdict_reasoning": false
+      },
+      "output_constraints": {
+        "phatic_verbosity_limit": 100,
+        "description": "PHATIC lane responses (greetings) capped at 100 characters",
+        "enforcement": "Verbosity >100 chars in PHATIC lane triggers PARTIAL verdict"
+      },
+      "communication_law_compliance": {
+        "measure": true,
+        "show": false,
+        "rationale": "All metrics computed internally, none displayed to user"
+      },
+      "canon_ref": "L1_THEORY/canon/02_actors/010_TRINITY_ROLES_v45.md#section-15",
+      "implementation": "scripts/sealion_forge_repl.py::print_response_minimal()"
+    },
+    "AGI": {
+      "id": 2,
+      "name": "AGI Architect Mode",
+      "symbol": "Δ",
+      "authority_level": "developer",
+      "authorization_required": true,
+      "authorization_command": "/agi",
+      "default_mode": false,
+      "description": "Developer view - pipeline structure + ΔΩΨ Trinity metrics (3-number display)",
+      "trinity_role": "Architect (Mind - Cognitive intelligence)",
+      "physics_field": "Delta (Δ - Clarity/Entropy Reduction)",
+      "visible_elements": {
+        "response": true,
+        "verdict_emoji": true,
+        "pipeline_timeline": true,
+        "trinity_metrics": true,
+        "floor_scores": false,
+        "claim_analysis": false,
+        "verdict_reasoning": false
+      },
+      "trinity_metrics_display": {
+        "delta": {
+          "symbol": "🧠",
+          "label": "Δ (Clarity)",
+          "formula": "(truth + delta_s) / 2",
+          "description": "Cognitive clarity - entropy reduction"
+        },
+        "omega": {
+          "symbol": "❤️",
+          "label": "Ω (Empathy)",
+          "formula": "kappa_r × amanah × rasa",
+          "description": "Ethical governance - empathy score"
+        },
+        "psi": {
+          "symbol": "⚖️",
+          "label": "Ψ (Vitality)",
+          "formula": "composite metric (lane-aware)",
+          "description": "System homeostasis - vitality score"
+        }
+      },
+      "pipeline_timeline": {
+        "stages_shown": [
+          "000_VOID",
+          "111_SENSE",
+          "222_REFLECT",
+          "333_REASON",
+          "444_EVIDENCE",
+          "555_EMPATHIZE",
+          "666_ALIGN",
+          "777_FORGE",
+          "888_JUDGE",
+          "999_SEAL"
+        ],
+        "timing_precision": "milliseconds",
+        "description": "Full 000→999 pipeline execution timeline with stage timing"
+      },
+      "communication_law_compliance": {
+        "measure": true,
+        "show": "authorized_only",
+        "rationale": "Developer authorization (/agi) required to view structure + key metrics"
+      },
+      "canon_ref": "L1_THEORY/canon/02_actors/010_TRINITY_ROLES_v45.md#section-15",
+      "implementation": [
+        "scripts/sealion_forge_repl.py::print_pipeline_timeline()",
+        "scripts/sealion_forge_repl.py::print_trinity_minimal()"
+      ]
+    },
+    "APEX": {
+      "id": 3,
+      "name": "APEX Judge Mode",
+      "symbol": "Ψ",
+      "authority_level": "auditor",
+      "authorization_required": true,
+      "authorization_command": "/apex",
+      "default_mode": false,
+      "description": "Full forensic view - F1-F9 floors + claim detection + verdict reasoning",
+      "trinity_role": "Judge (Soul - Wisdom/Judgment)",
+      "physics_field": "Psi (Ψ - Vitality/Homeostasis)",
+      "visible_elements": {
+        "response": true,
+        "verdict_emoji": true,
+        "pipeline_timeline": true,
+        "trinity_metrics": true,
+        "floor_scores": true,
+        "claim_analysis": true,
+        "verdict_reasoning": true
+      },
+      "constitutional_floors_display": {
+        "description": "F1-F9 floor scores with pass/fail indicators and thresholds",
+        "floors_shown": [
+          {
+            "floor": "F1",
+            "name": "Amanah",
+            "threshold": "LOCK",
+            "type": "boolean"
+          },
+          {
+            "floor": "F2",
+            "name": "Truth",
+            "threshold": 0.99,
+            "type": "gte"
+          },
+          {
+            "floor": "F3",
+            "name": "Tri-Witness",
+            "threshold": 0.95,
+            "type": "gte"
+          },
+          {
+            "floor": "F4",
+            "name": "ΔS",
+            "threshold": 0.0,
+            "type": "gte"
+          },
+          {
+            "floor": "F5",
+            "name": "Peace²",
+            "threshold": 1.0,
+            "type": "gte"
+          },
+          {
+            "floor": "F6",
+            "name": "κᵣ",
+            "threshold": 0.95,
+            "type": "gte"
+          },
+          {
+            "floor": "F7",
+            "name": "Ω₀",
+            "threshold": [0.03, 0.05],
+            "type": "band"
+          },
+          {
+            "floor": "F8",
+            "name": "G (Genius)",
+            "threshold": 0.80,
+            "type": "gte"
+          },
+          {
+            "floor": "F9",
+            "name": "C_dark",
+            "threshold": 0.30,
+            "type": "lt"
+          }
+        ]
+      },
+      "claim_detection_display": {
+        "description": "Physics > Semantics claim analysis (entity density, numeric patterns, assertions)",
+        "metrics_shown": [
+          "has_claims",
+          "claim_count",
+          "entity_density",
+          "claim_types"
+        ],
+        "rationale": "PHATIC communication (no claims) exempt from F2 Truth floor",
+        "implementation_ref": "arifos_core/enforcement/claim_detection.py"
+      },
+      "verdict_reasoning_display": {
+        "description": "Detailed verdict box with floor-by-floor reasoning",
+        "includes": [
+          "which_floors_passed",
+          "which_floors_failed",
+          "verdict_hierarchy_logic",
+          "final_verdict",
+          "lane_classification"
+        ]
+      },
+      "authorization_cascade": {
+        "description": "APEX authorization implies AGI authorization",
+        "logic": "if apex_mode: agi_mode = True",
+        "rationale": "Judge view requires Architect view as prerequisite"
+      },
+      "communication_law_compliance": {
+        "measure": true,
+        "show": "full_forensic",
+        "rationale": "Auditor authorization (/apex) grants complete constitutional transparency"
+      },
+      "canon_ref": "L1_THEORY/canon/02_actors/010_TRINITY_ROLES_v45.md#section-15",
+      "implementation": [
+        "scripts/sealion_forge_repl.py::print_pipeline_timeline()",
+        "scripts/sealion_forge_repl.py::print_trinity_minimal()",
+        "scripts/sealion_forge_repl.py::print_floors_detail()",
+        "scripts/sealion_forge_repl.py::print_claim_analysis()",
+        "scripts/sealion_forge_repl.py::print_verdict_box()"
+      ]
+    }
+  },
+  "authorization_rules": {
+    "cascade_hierarchy": {
+      "description": "Authorization cascade from ASI → AGI → APEX",
+      "rule": "ASI (default) → AGI (requires /agi) → APEX (requires /apex)",
+      "enforcement": "No self-authorization - only human command escalates display mode"
+    },
+    "deauthorization": {
+      "description": "Toggle commands disable modes",
+      "rules": {
+        "agi_toggle": "/agi command toggles AGI mode on/off",
+        "apex_toggle": "/apex command toggles APEX mode on/off",
+        "apex_implies_agi": "Disabling APEX preserves AGI if it was enabled separately"
+      }
+    },
+    "session_persistence": {
+      "description": "Display mode persists within session until explicitly changed",
+      "default_on_session_start": "ASI (public mode)"
+    }
+  },
+  "empathetic_refusal_rules": {
+    "description": "Context-aware refusal messages per Communication Law v45 (F6 κᵣ compliance)",
+    "philosophy": "Refusals must serve weakest stakeholder (confused user) - no jargon, actionable guidance",
+    "verdict_templates": {
+      "VOID": {
+        "default": "I need to pause here - this request touches on areas where I can't provide reliable guidance. Could you rephrase or ask about something more specific?",
+        "refuse_lane": "I can't help with that request. If you're looking for general information on this topic, I'd be happy to explain the concepts in a safe context.",
+        "rationale": "Hard refusal with safe alternative offered"
+      },
+      "SABAR": {
+        "template": "Let me pause for a moment. I want to make sure I understand your request correctly before responding. Could you provide a bit more context about what you're trying to achieve?",
+        "rationale": "Soft pause with clarification request"
+      },
+      "888_HOLD": {
+        "template": "This is an important decision that benefits from human judgment. Before I proceed, could you clarify what guidance you're looking for - practical steps, ethical considerations, or something else?",
+        "rationale": "Escalation with explicit decision point"
+      }
+    },
+    "prohibited_patterns": {
+      "jargon": [
+        "constitutional violation",
+        "floor breach",
+        "governance failure"
+      ],
+      "technical_terms": [
+        "F1/F2/F3 violations",
+        "ΔΩΨ metrics",
+        "GENIUS law"
+      ],
+      "rationale": "User-facing refusals must be human-centered, not engineer-centered"
+    },
+    "floor_compliance": {
+      "F4_clarity": "Refusals must reduce confusion (clear next step)",
+      "F6_empathy": "Refusals must serve weakest stakeholder (confused user)",
+      "F5_peace": "Refusals must de-escalate (calm tone, no punishment language)"
+    },
+    "implementation_ref": "scripts/sealion_forge_repl.py::get_empathetic_refusal()"
+  },
+  "integration": {
+    "repl_commands": {
+      "/agi": "Toggle AGI Architect mode (pipeline + ΔΩΨ)",
+      "/apex": "Toggle APEX Judge mode (full forensic)",
+      "/both": "Dual-stream mode (RAW vs GOVERNED side-by-side) - orthogonal to Trinity modes"
+    },
+    "state_variables": {
+      "agi_mode": {
+        "type": "boolean",
+        "default": false,
+        "description": "AGI Architect mode enabled"
+      },
+      "apex_mode": {
+        "type": "boolean",
+        "default": false,
+        "description": "APEX Judge mode enabled"
+      }
+    },
+    "display_logic": {
+      "order": [
+        "1. Pipeline timeline (if agi_mode or apex_mode)",
+        "2. Trinity metrics (if agi_mode or apex_mode)",
+        "3. Floor scores (if apex_mode)",
+        "4. Claim analysis (if apex_mode)",
+        "5. Verdict reasoning (if apex_mode)",
+        "6. Response (always shown)"
+      ]
+    }
+  },
+  "physics_alignment": {
+    "description": "Trinity display modes map to ΔΩΨ physics fields",
+    "mapping": {
+      "ASI_Omega": "Ω field - Humility/Empathy (Guardian protects from exposure)",
+      "AGI_Delta": "Δ field - Clarity/Structure (Architect reveals structure)",
+      "APEX_Psi": "Ψ field - Vitality/Judgment (Judge reveals full state)"
+    },
+    "rationale": "Display authorization mirrors constitutional physics - each role projects its domain"
+  },
+  "canon_references": {
+    "trinity_roles": "L1_THEORY/canon/02_actors/010_TRINITY_ROLES_v45.md#section-15",
+    "communication_law": "L1_THEORY/canon/03_runtime/070_COMMUNICATION_LAW_v45.md#section-11.3",
+    "delta_omega_psi": "L1_THEORY/canon/00_foundation/00_DELTA_OMEGA_PSI_v45.md"
+  },
+  "related_specs": {
+    "genius_law": "spec/v45/genius_law.json",
+    "constitutional_floors": "spec/v45/constitutional_floors.json",
+    "session_physics": "spec/v45/session_physics.json"
+  },
+  "meta": {
+    "created": "2025-12-30",
+    "updated": "2025-12-30",
+    "author": "arifOS Project",
+    "license": "Apache-2.0",
+    "canonical_source": "L1_THEORY/canon/02_actors/010_TRINITY_ROLES_v45.md",
+    "implementation": "scripts/sealion_forge_repl.py",
+    "notes": "v45.0 Phoenix-72 consolidation - new spec defining Trinity Display Architecture (ASI/AGI/APEX authorization modes) for metric visibility governance per Communication Law v45."
+  }
+}
