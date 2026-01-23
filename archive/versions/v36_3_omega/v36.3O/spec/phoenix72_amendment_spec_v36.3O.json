@@ -1,0 +1,207 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://arifos/spec/phoenix72_amendment_spec_v36.3O.json",
+  "$comment": "Implements: VAULT_999_AMENDMENTS_v36.3O.md | Law: v36.3Omega",
+  "title": "Phoenix-72 Amendment v36.3Omega",
+  "description": "Schema for Phoenix-72 amendment records modifying Vault-999 constitutional parameters.",
+  "type": "object",
+  "meta": {
+    "spec_id": "phoenix72_amendment_spec_v36.3O",
+    "epoch": "v36.3Omega",
+    "implements": [
+      "v36.3O/canon/VAULT_999_AMENDMENTS_v36.3O.md",
+      "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md"
+    ],
+    "law_source": "v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md",
+    "purpose": "Machine-readable amendment record for Vault-999 floors and related parameters.",
+    "status": "SEALED"
+  },
+  "properties": {
+    "amendment_id": {
+      "type": "string",
+      "description": "Globally unique amendment identifier.",
+      "pattern": "^AMND-[A-Z0-9_]+-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{3}$",
+      "examples": ["AMND-F1-2025-12-12-001", "AMND-OMEGA_BAND-2025-12-12-002"]
+    },
+    "target": {
+      "type": "object",
+      "description": "Target of this amendment.",
+      "properties": {
+        "floor_id": {
+          "type": ["string", "null"],
+          "description": "Floor identifier (e.g., F1, F2). Null if targeting non-floor parameter.",
+          "pattern": "^F[1-9]$"
+        },
+        "field": {
+          "type": "string",
+          "description": "Field within the floor or constitution (e.g., 'threshold', 'band_min').",
+          "minLength": 1
+        },
+        "path": {
+          "type": ["string", "null"],
+          "description": "Optional JSON pointer to the affected field (e.g., '/deltaOmegaPsi/omega_band/min')."
+        }
+      },
+      "required": ["field"],
+      "additionalProperties": false
+    },
+    "delta": {
+      "description": "Proposed change value (numeric delta or structured change).",
+      "oneOf": [
+        { "type": "number" },
+        { "type": "object", "additionalProperties": true },
+        { "type": "string" }
+      ]
+    },
+    "old_value": {
+      "description": "Previous value before amendment.",
+      "oneOf": [
+        { "type": "number" },
+        { "type": "string" },
+        { "type": "boolean" },
+        { "type": "object", "additionalProperties": true },
+        { "type": "null" }
+      ]
+    },
+    "new_value": {
+      "description": "New value after amendment.",
+      "oneOf": [
+        { "type": "number" },
+        { "type": "string" },
+        { "type": "boolean" },
+        { "type": "object", "additionalProperties": true }
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "description": "Human-readable justification for the amendment.",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "proposed_by": {
+      "type": "string",
+      "description": "Agent proposing the amendment.",
+      "enum": ["PHOENIX-72", "HUMAN", "W@W_WEALTH", "W@W_WELL", "APEX_PRIME"],
+      "minLength": 1
+    },
+    "pressure": {
+      "type": ["number", "null"],
+      "description": "Pressure metric P(F) that triggered this proposal.",
+      "minimum": 0
+    },
+    "severity_weight": {
+      "type": ["number", "null"],
+      "description": "Aggregate severity weight from related scars.",
+      "minimum": 0
+    },
+    "evidence": {
+      "type": "object",
+      "description": "Evidence supporting the amendment. At least one ledger_hash is REQUIRED.",
+      "properties": {
+        "ledger_hashes": {
+          "type": "array",
+          "description": "SHA-256 hashes of Cooling Ledger entries supporting this amendment.",
+          "items": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64
+          },
+          "minItems": 1
+        },
+        "scar_ids": {
+          "type": "array",
+          "description": "IDs of scars supporting this amendment.",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "notes": {
+          "type": ["string", "null"],
+          "description": "Optional additional notes.",
+          "maxLength": 4000
+        }
+      },
+      "required": ["ledger_hashes"],
+      "additionalProperties": false
+    },
+    "safety_constraints": {
+      "type": "object",
+      "description": "Safety constraint validation results.",
+      "properties": {
+        "delta_within_cap": {
+          "type": "boolean",
+          "description": "True if |delta| <= 0.05 (or equivalent cap)."
+        },
+        "cooldown_respected": {
+          "type": "boolean",
+          "description": "True if cooldown window has elapsed since last amendment to this floor."
+        },
+        "protected_floor_check": {
+          "type": ["string", "null"],
+          "description": "Result of Amanah/Anti-Hantu protection check.",
+          "enum": ["PASS", "OVERRIDE_REQUIRED", null]
+        }
+      },
+      "additionalProperties": false
+    },
+    "validity_period": {
+      "type": "object",
+      "description": "Time window during which this amendment may be sealed.",
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "Null means indefinite validity."
+        }
+      },
+      "required": ["start"],
+      "additionalProperties": false
+    },
+    "timestamp_proposed": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Time the amendment was proposed."
+    },
+    "timestamp_sealed": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Time the amendment was sealed, if applicable."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["PROPOSED", "UNDER_REVIEW", "SEALED", "REVOKED", "EXPIRED"],
+      "description": "Current lifecycle state of this amendment."
+    },
+    "signature": {
+      "type": ["string", "null"],
+      "description": "Cryptographic signature for the amendment record. Required for SEALED status.",
+      "minLength": 64
+    },
+    "signed_by": {
+      "type": ["string", "null"],
+      "description": "Identity or key label that produced the signature."
+    },
+    "extra": {
+      "type": "object",
+      "description": "Implementation-specific extensions.",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "amendment_id",
+    "target",
+    "delta",
+    "reason",
+    "proposed_by",
+    "evidence",
+    "timestamp_proposed",
+    "status"
+  ],
+  "additionalProperties": false
+}
+

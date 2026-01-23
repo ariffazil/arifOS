@@ -1,0 +1,278 @@
+{
+  "version": "v44.0",
+  "authority": "Track B (tunable thresholds) governed by Track A canon",
+  "locked": true,
+  "_status": "AUTHORITATIVE",
+  "_source_evolution": "v42.1 → v44.0 (TEARFRAME physics extension, no ledger changes)",
+  "_note": "This file is the SOLE RUNTIME AUTHORITY for Cooling Ledger config. Loader MUST use this file (or env override).",
+  "arifos_version": "v44.0",
+  "spec_type": "cooling_ledger_phoenix",
+  "description": "Machine-readable specification for Cooling Ledger and Phoenix-72 Amendment Engine (v44.0).",
+  "source": "https://github.com/ariffazil/arifOS",
+
+  "cooling_ledger": {
+    "description": "Append-only hash-chained audit trail for governed interactions",
+    "ledger_version": "v42.1",
+    "hash_algorithm": "SHA3-256",
+    "entry_schema": {
+      "required_fields": [
+        "ledger_version",
+        "timestamp",
+        "query_hash",
+        "response_hash",
+        "metrics",
+        "verdict",
+        "prev_hash",
+        "entry_hash"
+      ],
+      "optional_fields": [
+        "class",
+        "floor_warnings",
+        "phoenix_cycle_id",
+        "eureka_receipt_id",
+        "scar_ids",
+        "tri_witness_detail",
+        "truth_polarity",
+        "cce_audits"
+      ]
+    },
+    "head_state_schema": {
+      "last_entry_hash": "string|null",
+      "entry_count": "integer",
+      "last_timestamp": "string|null",
+      "epoch": "string"
+    },
+    "fail_behaviors": ["SABAR_HOLD_WITH_LOG", "SILENT_FAIL", "RAISE"],
+    "default_fail_behavior": "SABAR_HOLD_WITH_LOG",
+    "rotation": {
+      "hot_segment_days": 7,
+      "hot_segment_max_entries": 10000,
+      "archive_path": "runtime/vault_999/archive/"
+    },
+    "canon_ref": "L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v42.md"
+  },
+
+  "verdict_band_routing": {
+    "SEAL": ["LEDGER", "ACTIVE"],
+    "SABAR": ["PENDING", "LEDGER"],
+    "SABAR_EXTENDED": ["PENDING", "LEDGER"],
+    "PARTIAL": ["PHOENIX", "LEDGER"],
+    "VOID": ["VOID"],
+    "888_HOLD": ["LEDGER"]
+  },
+
+  "retention_tiers": {
+    "HOT": {
+      "days": 7,
+      "bands": ["ACTIVE"],
+      "description": "Fast queries, active governance"
+    },
+    "WARM": {
+      "days": 90,
+      "bands": ["LEDGER", "PHOENIX", "WITNESS"],
+      "description": "Phoenix-72 pattern synthesis"
+    },
+    "COLD": {
+      "days": 365,
+      "bands": ["VAULT"],
+      "description": "Constitutional law, never expires"
+    },
+    "VOID_TIER": {
+      "days": 90,
+      "bands": ["VOID"],
+      "description": "Diagnostic only, auto-cleanup"
+    }
+  },
+
+  "retention_constants": {
+    "RETENTION_HOT_DAYS": 7,
+    "RETENTION_WARM_DAYS": 90,
+    "RETENTION_COLD_DAYS": 365,
+    "RETENTION_VOID_DAYS": 90
+  },
+
+  "phoenix72": {
+    "description": "Constitutional amendment engine with 72-hour cooling window",
+    "cooling_window_hours": 72,
+    "phases": [
+      "SCAR_CAPTURE",
+      "PATTERN_SYNTHESIS",
+      "AMENDMENT_DRAFT",
+      "HUMAN_REVIEW",
+      "CANONIZATION"
+    ],
+    "amendment_schema": {
+      "id": "string",
+      "applied_at": "string",
+      "reason": "string",
+      "tri_witness": "number",
+      "delta_s_gain": "number",
+      "peace2": "number",
+      "changes": "object",
+      "evidence": "array"
+    },
+    "scar_schema": {
+      "timestamp": "number",
+      "floor_failures": "array",
+      "reason": "string",
+      "ledger_ref": "object"
+    },
+    "canon_ref": "L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v42.md"
+  },
+
+  "scar_lifecycle": {
+    "kinds": {
+      "WITNESS": {
+        "description": "Unsigned local observations (early warning, R&D)",
+        "can_affect_verdicts": false
+      },
+      "SCAR": {
+        "description": "Signed canonical negative constraints",
+        "can_affect_verdicts": true
+      }
+    },
+    "statuses": {
+      "PROPOSED": {
+        "description": "Newly observed, awaiting signature",
+        "transitions_to": ["SEALED"]
+      },
+      "SEALED": {
+        "description": "Signed, actively enforced",
+        "transitions_to": ["HEALED", "DEPRECATED"]
+      },
+      "HEALED": {
+        "description": "No longer enforced, preserved in history",
+        "transitions_to": []
+      },
+      "DEPRECATED": {
+        "description": "Removed from enforcement entirely",
+        "transitions_to": []
+      }
+    },
+    "severity_levels": {
+      "S1": {
+        "weight": 1.0,
+        "description": "Low impact"
+      },
+      "S2": {
+        "weight": 2.0,
+        "description": "Moderate impact"
+      },
+      "S3": {
+        "weight": 4.0,
+        "description": "High impact"
+      },
+      "S4": {
+        "weight": 8.0,
+        "description": "Critical impact"
+      }
+    },
+    "scar_record_schema": {
+      "required_fields": [
+        "scar_id",
+        "pattern_text",
+        "pattern_hash",
+        "severity",
+        "floors",
+        "epochs",
+        "evidence",
+        "phoenix_proposal_ids",
+        "status",
+        "signature",
+        "created_at",
+        "created_by"
+      ],
+      "optional_fields": [
+        "sealed_by",
+        "updated_at",
+        "embedding",
+        "metadata"
+      ]
+    },
+    "witness_record_schema": {
+      "required_fields": [
+        "witness_id",
+        "pattern_text",
+        "pattern_hash",
+        "severity",
+        "floors",
+        "created_at",
+        "created_by"
+      ],
+      "optional_fields": [
+        "embedding",
+        "metadata"
+      ]
+    },
+    "canon_ref": "L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v42.md"
+  },
+
+  "invariants": {
+    "INV-1": {
+      "statement": "VOID verdicts NEVER become canonical memory",
+      "enforcement": "VOID can only write to VOID band"
+    },
+    "INV-2": {
+      "statement": "Authority boundary: humans seal law, AI proposes",
+      "enforcement": "Phoenix-72 drafts, humans seal to Vault"
+    },
+    "INV-3": {
+      "statement": "Every write must be auditable (evidence chain)",
+      "enforcement": "Required floor_checks, hash, timestamp, verdict"
+    },
+    "INV-4": {
+      "statement": "Recalled memory = suggestion, not fact",
+      "enforcement": "Confidence ceiling at 0.85"
+    }
+  },
+
+  "integration": {
+    "pipeline_stages": {
+      "111_SENSE": {
+        "module": "memory_sense.py",
+        "purpose": "Cross-session memory recall"
+      },
+      "777_FORGE": {
+        "module": "memory_scars.py",
+        "purpose": "Scar/pattern detection"
+      },
+      "888_JUDGE": {
+        "module": "memory_judge.py",
+        "purpose": "Write policy enforcement"
+      },
+      "999_SEAL": {
+        "module": "memory_seal.py",
+        "purpose": "Ledger finalization"
+      }
+    },
+    "flow": "111_SENSE → 777_FORGE → 888_JUDGE → 999_SEAL"
+  },
+
+  "file_references": {
+    "core_modules": [
+      "arifos_core/memory/cooling_ledger.py",
+      "arifos_core/memory/phoenix72.py",
+      "arifos_core/memory/scar_manager.py",
+      "arifos_core/memory/scars.py",
+      "arifos_core/memory/policy.py"
+    ],
+    "related_specs": [
+      "spec/v42/constitutional_floors.json",
+      "spec/v42/genius_law.json"
+    ],
+    "related_canon": [
+      "L1_THEORY/canon/05_memory/05_EUREKA_MEMORY_v42.md",
+      "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v42.md"
+    ]
+  },
+
+  "meta": {
+    "created": "2025-12-13",
+    "updated": "2025-12-13",
+    "author": "arifOS Project",
+    "license": "Apache-2.0",
+    "canonical_source": "L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v42.md",
+    "implementation": "arifos_core/memory/",
+    "notes": "v42.1 alignment of Cooling Ledger and Phoenix-72"
+  }
+}

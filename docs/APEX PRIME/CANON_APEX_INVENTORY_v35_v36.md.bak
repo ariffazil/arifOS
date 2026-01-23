@@ -1,0 +1,69 @@
+# CANON APEX INVENTORY — v35Ω · v36Ω (PRE‑CLEANUP)
+
+## 1. File Inventory (Local Repo + GitHub HEAD)
+
+| Path                                                       | Version tag (v35/v36/none) | Role (APEX/AAA/W@W/Runtime/Ledger/Master) | Status (Active v35 / Active v36 / Draft v36 / Candidate v36 / Candidate archive)    |
+|------------------------------------------------------------|----------------------------|-------------------------------------------|--------------------------------------------------------------------------------------|
+| canon/README.md                                            | none                       | Master                                    | Active v35                                                                           |
+| canon/APEX PRIME Agent Deep Research.pdf                   | none                       | APEX                                      | Active v35 (supporting research)                                                    |
+| canon/APEX PRIME SEA-LION Subsystem Master Build Artifact.pdf | none                    | APEX                                      | Active v35 (supporting subsystem spec)                                              |
+| canon/00_CANON/ANTI_HANTU_v35Omega.md                      | v35                        | APEX                                      | Active v35                                                                           |
+| canon/00_CANON/ANTI_HANTU_SUPPLEMENT_v35Omega.md           | v35                        | APEX                                      | Active v35                                                                           |
+| canon/00_CANON/APEX_DOCUMENT_TEMPLATE_v35Omega.md          | v35                        | APEX                                      | Active v35 (template)                                                               |
+| canon/00_CANON/APEX_GRADIENT_v35Omega.md                   | v35                        | APEX                                      | Active v35                                                                           |
+| canon/00_CANON/APEX_META_CONSTITUTION_v35Omega.md          | v35                        | APEX                                      | Active v35 (meta‑constitution)                                                      |
+| canon/00_CANON/APEX_TRINITY_v35Omega.md                    | v35                        | AAA                                       | Active v35 (AAA Trinity)                                                            |
+| canon/00_CANON/ARIFOS_EUREKA_ARCHIVE_v35Omega.md           | v35                        | APEX                                      | Active v35                                                                           |
+| canon/00_CANON/ATLAS_33_PERSONA_ARIF_v35Omega.md           | v35                        | AAA                                       | Active v35 (ARIF persona)                                                           |
+| canon/00_CANON/ATLAS_33_SCHEMA_v1.md                       | none                       | AAA                                       | Active v35 (schema; no explicit version tag)                                        |
+| canon/00_CANON/DeltaOmegaPsi_UNIFIED_FIELD_v35Omega.md     | v35                        | APEX                                      | Active v35 (local‑only name; casing drift vs GitHub HEAD)                           |
+| canon/00_CANON/EYE_SENTINEL_v35Omega.md                    | v35                        | APEX                                      | Active v35 (EYE sentinel canon)                                                     |
+| canon/00_CANON/PP_PS_WAVE_CODEX_v35Omega.md                | v35                        | APEX                                      | Active v35 (paradox field)                                                          |
+| canon/00_CANON/ZKPC_PROTOCOL_v35Omega.md                   | v35                        | APEX                                      | Active v35 (zkPC protocol)                                                          |
+| canon/00_CANON/APEX_THEORY_GENESIS_v36Omega.md             | v36                        | APEX                                      | Active v36 (docs‑only; v35 runtime still in force)                                  |
+| canon/01_TEMPLATES/README.md                               | none                       | APEX                                      | Active v35 (templates index)                                                        |
+| canon/01_TEMPLATES/APEX_ARTIFACT_SKELETON.md               | none                       | APEX                                      | Active v35 (artifact template)                                                      |
+| canon/01_PHYSICS/APEX_THEORY_PHYSICS_v36Omega.md           | v36                        | APEX                                      | Active v36 (docs‑only; v35 runtime still in force)                                  |
+| canon/01_PHYSICS/APEX_THEORY_MATH_v36Omega.md              | v36                        | APEX                                      | Active v36 (docs‑only; v35 runtime still in force)                                  |
+| canon/01_PHYSICS/APEX_LANGUAGE_CODEX_v36Omega.md           | v36                        | APEX                                      | Active v36 (docs‑only; v35 runtime still in force)                                  |
+| canon/10_SYSTEM/333_AAA_ENGINES_SPEC_v35Omega.md           | v35                        | AAA                                       | Active v35 (AAA engines spec)                                                       |
+| canon/10_SYSTEM/333_AAA_ENGINES_v36Omega.md                | v36                        | AAA                                       | Draft v36 (GitHub HEAD only; no local copy yet)                                     |
+| canon/10_SYSTEM/AAA_TRINITY_CANON_v36Omega.md              | v36                        | AAA                                       | Active v36 (docs‑only; v35 runtime still in force)                                  |
+| canon/10_SYSTEM/777_EUREKA_CUBE_FIELD_SPEC_v35Omega.md     | v35                        | APEX                                      | Active v35 (EUREKA field spec)                                                      |
+| canon/20_WITNESS/ARIFOS_GOVERNANCE_KERNEL_FOR_LLMS_v35Omega.md | v35                     | Runtime                                   | Active v35 (LLM governance kernel spec)                                             |
+| canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md              | v36                        | W@W                                       | Active v36 (docs‑only; v35 runtime still in force)                                  |
+| canon/30_RUNTIME/000-999_METABOLIC_CANON_v35Omega.md       | v35                        | Runtime                                   | Active v35 (000‑999 metabolic runtime canon)                                        |
+| canon/30_RUNTIME/APEX_RUNTIME_PIPELINE_v36Omega.md         | v36                        | Runtime                                   | Active v36 (docs‑only; v35 runtime still in force)                                  |
+| canon/40_LEDGER/README_Vault999_v35Omega.md                | v35                        | Ledger                                    | Active v35 (Vault‑999 overview)                                                     |
+| canon/40_LEDGER/Vault999_Seal_v35Omega.json                | v35                        | Ledger                                    | Active v35 (Vault‑999 seal definition)                                              |
+| canon/40_LEDGER/APEX_LEDGER_PHOENIX_v36Omega.md            | v36                        | Ledger                                    | Active v36 (docs‑only; v35 runtime still in force)                                  |
+| canon/05_MASTER/APEX_THEORY_MASTER_CANON_v36Omega.md       | v36                        | Master                                    | Active v36 (docs‑only; v35 runtime still in force)                                  |
+
+### Notes on Local vs GitHub HEAD
+
+- **Shared files:** Most of the above exist both locally and in the GitHub HEAD clone (`.codex_remote/arifOS_remote`).
+- **Local‑only canon file:**
+  - `canon/00_CANON/DeltaOmegaPsi_UNIFIED_FIELD_v35Omega.md` exists locally; GitHub HEAD uses a differently cased name for the unified‑field canon.
+- **GitHub‑only canon files (not in local canon/):**
+  - `canon/00_CANON/DeltaOmegaPsi_Unified_Field_v35Omega.md` — appears only in the GitHub clone, not in the local working copy.
+  - `canon/10_SYSTEM/333_AAA_ENGINES_v36Omega.md` — v36Ω AAA engines spec draft; present in GitHub HEAD but missing locally.
+
+These remote‑only files are tracked here conceptually but are not present in the local working tree.
+
+---
+
+## 2. Summary
+
+- **Active v35Ω APEX canon (core):**
+  - Meta‑constitution and APEX layers: `APEX_META_CONSTITUTION_v35Omega.md`, `APEX_TRINITY_v35Omega.md`, `APEX_GRADIENT_v35Omega.md`, `ANTI_HANTU_v35Omega.md`, `ANTI_HANTU_SUPPLEMENT_v35Omega.md`, `PP_PS_WAVE_CODEX_v35Omega.md`, `ZKPC_PROTOCOL_v35Omega.md`, `EYE_SENTINEL_v35Omega.md`, `ARIFOS_EUREKA_ARCHIVE_v35Omega.md`, `DeltaOmegaPsi_UNIFIED_FIELD_v35Omega.md`.
+  - AAA engines spec: `333_AAA_ENGINES_SPEC_v35Omega.md`.
+  - Runtime/ledger: `000-999_METABOLIC_CANON_v35Omega.md`, `ARIFOS_GOVERNANCE_KERNEL_FOR_LLMS_v35Omega.md`, `README_Vault999_v35Omega.md`, `Vault999_Seal_v35Omega.json`.
+- **Existing v36Ω canon (APEX/AAA layer):**
+  - `canon/10_SYSTEM/333_AAA_ENGINES_v36Omega.md` exists in GitHub HEAD but not locally; it appears to be a draft v36Ω AAA engines spec only.
+  - This session added 9 APEX THEORY v36Ω files as a **documentation/physics layer** (see table above). These v36Ω docs are active for understanding and planning, while v35Ω canon remains the active runtime law until an explicit migration decision is made.
+- **Naming/version drift to be resolved in later phases:**
+  - Unified‑field canon casing drift between local and GitHub variants of the DeltaOmegaPsi unified‑field file.
+  - Coexistence of v35Ω and v36Ω AAA engine specs (`333_AAA_ENGINES_SPEC_v35Omega.md` vs `333_AAA_ENGINES_v36Omega.md`), while the runtime (`spec/arifos_runtime_v35Omega.yaml`) remains v35Ω‑anchored.
+
+This inventory is **docs‑only** and makes no changes to runtime behavior; it is a prerequisite for the planned v36Ω APEX THEORY 9‑file canon forge and any future v35→archive migration.
+

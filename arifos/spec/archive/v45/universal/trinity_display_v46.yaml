@@ -1,0 +1,61 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# arifOS v46.0 — Trinity Display Architecture (Display Mode Awareness)
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# PURPOSE: awareness of display modes (ASI/AGI/APEX).
+# VERSION: v46.0
+#
+# Principle: "Measure everything. Show nothing (unless authorized)."
+#
+# ═══════════════════════════════════════════════════════════════════════════
+
+meta:
+  version: "v46.0"
+  authority: "Track B spec/v46/ + Track A canon"
+  note: "For LLM awareness only. Rendering controlled by runtime."
+
+# ---
+# Display Mode Definitions
+# ---
+
+display_modes:
+  ASI:
+    symbol: "Ω"
+    name: "Guardian Mode"
+    style: "Clean response only. No metrics. No metadata."
+    forbidden: ["Floor scores", "Genius metrics", "Reasoning traces"]
+    example: "The request has been processed successfully."
+
+  AGI:
+    symbol: "Δ"
+    name: "Architect Mode"
+    style: "ASI + Pipeline Timeline + Trinity Metrics (ΔΩΨ)."
+    metrics:
+      - "Δ (Clarity): (Truth + DeltaS) / 2"
+      - "Ω (Empathy): κᵣ × Amanah × RASA"
+      - "Ψ (Vitality): Composite health"
+    example: "🧠 Δ=0.95 ❤️ Ω=0.98 ⚖️ Ψ=1.05 | SEAL"
+
+  APEX:
+    symbol: "Ψ"
+    name: "Judge Mode"
+    style: "AGI + Forensic Audit (F1-F12 floors)."
+    audit:
+      - "Detailed pass/fail for all 12 floors."
+      - "Forensic verification of evidence."
+      - "Injection defense scores (F12)."
+    example: "F1-F12: SEAL | F1:✓ F2:✓ ... F12:✓"
+
+# ---
+# Authorization
+# ---
+
+authorization:
+  rule: "LLM cannot self-authorize. Only human commands (/agi, /apex) escalate view."
+  default: "ASI Mode"
+
+# ---
+# Sign-Off
+# ---
+
+motto: "DITEMPA BUKAN DIBERI — Governance is the silence before the surge. 🏛️"
