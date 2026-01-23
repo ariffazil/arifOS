@@ -1,6 +1,6 @@
 # arifOS Infrastructure & Architecture Reference
 
-**Version:** v50.5.4 (Production Sovereign)
+**Version:** v50.5.25 (Production Sovereign)
 **Authority:** Muhammad Arif bin Fazil
 **Last Updated:** January 23, 2026
 
@@ -121,9 +121,14 @@ Before any action is taken, the **Metabolizer** (`arifos.core.metabolizer`) chec
 
 ---
 
-## 5. Changelog & Current Status (v50.5.24)
+## 5. Changelog & Current Status (v50.5.25)
 
-### v50.5.24 (Current - Jan 2026)
+### v50.5.25 (Current - Jan 2026)
+*   **Feature**: **ChatGPT Developer Mode**. Direct `/mcp` endpoint for ChatGPT MCP integration.
+*   **Fix**: **Railway $PORT expansion**. Wrapped startCommand in `sh -c` for proper env var handling.
+*   **Housekeeping**: Test consolidation to `tests/legacy/`, removed duplicate `arifos/eval/`.
+
+### v50.5.24 (Jan 2026)
 *   **Feature**: **Body API (v39)**. Standardized FastAPI/HTTP interface (`/v1/govern`).
 *   **Feature**: **Loop Detection**. `Metabolizer` now detects and prevents infinite metabolic loops (e.g. 111→222→111).
 *   **Feature**: **Trinity Consolidation**. Merged complex toolsets into the "5-Tool" standard.
@@ -140,8 +145,96 @@ Before any action is taken, the **Metabolizer** (`arifos.core.metabolizer`) chec
 
 ---
 
+---
+
+## 6. Session Quickstart (Step-by-Step)
+
+### Starting a Dev Session
+
+```bash
+# 1. Open terminal, go to project
+cd C:\Users\User\arifOS
+
+# 2. Get latest code
+git pull origin main
+
+# 3. Check status
+git status
+```
+
+### Running Locally (Before Deploying)
+
+```bash
+# Start local server
+uvicorn arifos.core.integration.api.app:app --reload --port 8000
+
+# Open in browser
+# http://localhost:8000/docs   <- API documentation
+# http://localhost:8000/health <- Health check
+# http://localhost:8000/mcp    <- MCP endpoint (ChatGPT)
+```
+
+### Making & Deploying Changes
+
+```bash
+# After editing code:
+git add <files>
+git commit -m "Description"
+git push origin main          # This triggers Railway auto-deploy
+```
+
+### Railway (Cloud Deployment)
+
+**Live URL:** https://arifos-production.up.railway.app/
+
+**How it works:**
+1. You push to GitHub (`git push origin main`)
+2. Railway detects the push automatically
+3. Railway rebuilds and redeploys (1-3 minutes)
+4. Check status at: https://railway.app/dashboard
+
+**Key Railway Files:**
+| File | Purpose |
+|------|---------|
+| `railway.toml` | Start command, health checks |
+| `Dockerfile` | Container build instructions |
+| `pyproject.toml` | Python dependencies |
+
+### Verifying Deployment
+
+```bash
+# Quick health check
+curl https://arifos-production.up.railway.app/health
+
+# Or open in browser:
+# /docs   - API documentation
+# /mcp    - ChatGPT MCP endpoint
+# /sse    - Claude Desktop MCP endpoint
+```
+
+### Common Issues & Fixes
+
+| Problem | Cause | Fix |
+|---------|-------|-----|
+| `$PORT not valid integer` | Railway env var not expanded | Wrap command in `sh -c '...'` in railway.toml |
+| Import error on deploy | Missing dependency | Add to `pyproject.toml` dependencies |
+| Health check timeout | `/health` not responding | Check app starts correctly locally first |
+| 404 on endpoint | Route not registered | Check `app.py` includes the router |
+
+### Quick Reference
+
+| Task | Command |
+|------|---------|
+| Run locally | `uvicorn arifos.core.integration.api.app:app --reload` |
+| Push changes | `git add . && git commit -m "msg" && git push` |
+| Check Railway | https://railway.app/dashboard |
+| Check live API | https://arifos-production.up.railway.app/docs |
+| Check MCP | https://arifos-production.up.railway.app/mcp |
+
+---
+
 **For Developers:**
 *   **Start Here**: `python -m arifos.mcp trinity` (Runs the server)
 *   **Debug**: Check `metabolizer.py` for pipeline logic.
 *   **Config**: See `constitutional_constants.py` for floor thresholds.
-*   **Body API**: Run `python -m arifos.api.server` and visit `http://localhost:8000/docs`.
+*   **Body API**: Run `uvicorn arifos.core.integration.api.app:app --reload` and visit `http://localhost:8000/docs`.
