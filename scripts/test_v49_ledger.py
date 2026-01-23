@@ -28,7 +28,7 @@ from arifos.ledger.v49_config import (
     V49_HASH_CHAIN_PATH,
     V49_HEAD_STATE_PATH
 )
-from arifos.memory.ledger.cooling_ledger import verify_chain
+from arifos.core.memory.ledger.cooling_ledger import verify_chain
 
 
 def test_ledger_initialization():

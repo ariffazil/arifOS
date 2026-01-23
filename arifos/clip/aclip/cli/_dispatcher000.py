@@ -2,7 +2,7 @@
 import sys
 import argparse
 # Import session management
-from arifos_clip.aclip.core import session as session_core
+from arifos.clip.aclip.core import session as session_core
 # We will dynamically load the stage module by file path because module name is numeric
 from importlib import util
 

@@ -6,7 +6,7 @@ This file is the translation layer between arifOS core and aCLIP.
 All logic is delegated to constants.py (source of truth).
 """
 
-from arifos_clip.aclip.bridge.constants import (  # Verdict labels; Exit codes; Mappings; Helper functions
+from arifos.clip.aclip.bridge.constants import (  # Verdict labels; Exit codes; Mappings; Helper functions
     EXIT_CODE_TO_VERDICT,
     EXIT_ERROR,
     EXIT_FLAG,

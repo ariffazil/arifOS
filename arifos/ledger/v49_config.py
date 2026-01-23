@@ -24,7 +24,7 @@ def get_v49_ledger_config():
     Returns:
         LedgerConfigV37: Configured for v49 vault_999 structure
     """
-    from arifos.memory.ledger.cooling_ledger import LedgerConfigV37
+    from arifos.core.memory.ledger.cooling_ledger import LedgerConfigV37
 
     return LedgerConfigV37(
         ledger_path=V49_LEDGER_PATH,
@@ -49,7 +49,7 @@ def init_v49_ledger():
     Returns:
         CoolingLedgerV37: Initialized ledger instance
     """
-    from arifos.memory.ledger.cooling_ledger import CoolingLedgerV37
+    from arifos.core.memory.ledger.cooling_ledger import CoolingLedgerV37
 
     config = get_v49_ledger_config()
 

@@ -26,6 +26,7 @@ As the **Soul (Ψ)**, Codex serves as the constitutional auditor:
 | `workflows/` | Step-by-step processes |
 | `rules/` | Agent behavior rules |
 | `archive/` | Legacy skills/tasks |
+| `codexbrain/` | **Working Memory** (Drafts & scratchpads) |
 
 ---
 

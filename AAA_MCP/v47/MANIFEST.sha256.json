@@ -1,0 +1,8 @@
+{
+  "version": "v50.0.0",
+  "files": {
+    "arifos/core/spec/manifest_verifier.py": "dc35e7ec4e5fa0f56aa8d4a73c924aee499192c272e8009835f53351b1645a8f",
+    "arifos/core/spec/schema_validator.py": "e4929acd89f315b7b274902427865ab407893b8e78ce9274088b8f7dd15ece74",
+    "arifos/core/spec/__init__.py": "d8e674db5bad01a648e8361d8eedc94c866c50ef46d7e202e9d2b8cc3668f0d2"
+  }
+}

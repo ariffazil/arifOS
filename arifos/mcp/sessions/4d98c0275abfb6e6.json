@@ -1,0 +1,28 @@
+{
+  "session_id": "prod_test_001",
+  "timestamp": "2026-01-23T09:03:01.270704Z",
+  "verdict": "SEAL",
+  "init_result": {
+    "status": "SEAL"
+  },
+  "genius_result": {
+    "truth_score": 0.97
+  },
+  "act_result": {
+    "peace_squared": 1.0
+  },
+  "judge_result": {
+    "verdict": "SEAL",
+    "synthesis": "Test"
+  },
+  "telemetry": {
+    "TW": 0.98
+  },
+  "prev_hash": "fe692fb894b954f92f6b883e0cce93ad2d6c5aaaf143900a8acbe9fce6bbf03d",
+  "merkle_root": "70ceef1b38bff15d23e48f59c99c11ace42a4ad1aa95432d4bcd0b70dfe2ac68",
+  "entry_hash": "4d98c0275abfb6e6c3d4e6b76c9e59a46f18484dd68f0012cfeaac4528439c8f",
+  "context_summary": "Production test",
+  "key_insights": [
+    "Test insight"
+  ]
+}
