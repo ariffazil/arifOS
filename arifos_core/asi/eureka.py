@@ -69,8 +69,8 @@ class EUREKA_777:
                 - truth_score: float (optional, for magnitude-aware scoring)
                 - delta_s_score: float (optional)
             asi_assessment: ASI kernel output with keys:
-                - peace_passed: bool (F5 Peace² check)
-                - empathy_passed: bool (F6 κᵣ check)
+                - peace_passed: bool (F3 Peace² check)
+                - empathy_passed: bool (F4 κᵣ check)
                 - peace_score: float (optional, for magnitude-aware scoring)
                 - empathy_score: float (optional)
             context: Optional context for synthesis
