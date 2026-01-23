@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ariffazil/arifOS/spec/v44/schema/session_physics.schema.json",
+  "title": "Session Physics v44 Specification Schema",
+  "description": "JSON Schema for validating v44.0 TEARFRAME session physics specification",
+  "type": "object",
+
+  "required": [
+    "version",
+    "authority",
+    "locked",
+    "_status",
+    "arifos_version",
+    "spec_type",
+    "description",
+    "source",
+    "budget_thresholds",
+    "burst_detection",
+    "streak_thresholds",
+    "meta"
+  ],
+
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^v44\\.0$",
+      "description": "Must be v44.0"
+    },
+    "authority": {
+      "type": "string",
+      "const": "Track B (tunable thresholds) governed by Track A canon"
+    },
+    "locked": {
+      "type": "boolean",
+      "const": true
+    },
+    "_status": {
+      "type": "string",
+      "enum": ["AUTHORITATIVE", "DEPRECATED", "EXPERIMENTAL"]
+    },
+    "arifos_version": {
+      "type": "string",
+      "pattern": "^v44\\.0$"
+    },
+    "spec_type": {
+      "type": "string",
+      "const": "session_physics"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10
+    },
+    "source": {
+      "type": "string",
+      "format": "uri"
+    },
+
+    "budget_thresholds": {
+      "type": "object",
+      "required": ["warn_limit_percent", "hard_limit_percent", "description"],
+      "properties": {
+        "description": { "type": "string" },
+        "warn_limit_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+        "hard_limit_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+        "rationale": { "type": "string" },
+        "floor_mapping": { "type": "string" },
+        "canon_ref": { "type": "string" }
+      }
+    },
+
+    "burst_detection": {
+      "type": "object",
+      "required": ["turn_rate_threshold_per_min", "token_rate_threshold_per_min", "variance_dt_threshold", "description"],
+      "properties": {
+        "description": { "type": "string" },
+        "turn_rate_threshold_per_min": { "type": "number", "minimum": 0 },
+        "token_rate_threshold_per_min": { "type": "number", "minimum": 0 },
+        "variance_dt_threshold": { "type": "number", "minimum": 0, "maximum": 1 },
+        "rationale": { "type": "string" },
+        "floor_mapping": { "type": "string" },
+        "detection_logic": { "type": "object" },
+        "canon_ref": { "type": "string" }
+      }
+    },
+
+    "streak_thresholds": {
+      "type": "object",
+      "required": ["max_consecutive_failures", "description"],
+      "properties": {
+        "description": { "type": "string" },
+        "max_consecutive_failures": { "type": "integer", "minimum": 1 },
+        "rationale": { "type": "string" },
+        "floor_mapping": { "type": "string" },
+        "verdict": { "type": "string", "enum": ["VOID", "PARTIAL", "SABAR", "HOLD_888"] },
+        "canon_ref": { "type": "string" }
+      }
+    },
+
+    "session_attributes": { "type": "object" },
+    "physics_floors": { "type": "object" },
+    "reduction_engine": { "type": "object" },
+    "test_isolation": { "type": "object" },
+    "integration": { "type": "object" },
+    "file_references": { "type": "object" },
+
+    "meta": {
+      "type": "object",
+      "required": ["created", "author", "license"],
+      "properties": {
+        "created": { "type": "string" },
+        "updated": { "type": "string" },
+        "author": { "type": "string" },
+        "license": { "type": "string" },
+        "canonical_source": { "type": "string" },
+        "implementation": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+
+    "_note": { "type": "string" }
+  },
+
+  "additionalProperties": false
+}

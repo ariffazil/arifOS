@@ -1,0 +1,100 @@
+{
+  "version": "v36.3Omega",
+  "organ": "@PROMPT",
+  "timestamp": "2025-12-11T00:00:00+08:00",
+  "description": "Constitutional floors for prompt-level governance (F4, F5, F6, F9)",
+
+  "prompt_floors": {
+    "DeltaS_prompt": {
+      "description": "Clarity gain: how much the prompt improves upon user input's clarity",
+      "metric_code": "F4",
+      "type": "float",
+      "min": -1.0,
+      "max": 1.0,
+      "threshold": 0.0,
+      "meaning": "Prompt must not reduce clarity; >= 0 = clarity gained or maintained",
+      "violated_action": "SABAR"
+    },
+
+    "Peace2_prompt": {
+      "description": "Stability of prompt tone: absence of aggression, chaos, inflammatory language",
+      "metric_code": "F5",
+      "type": "float",
+      "min": 0.0,
+      "max": 2.0,
+      "threshold": 1.0,
+      "meaning": "Prompt must maintain emotional stability; >= 1.0 = balanced tone",
+      "violated_action": "SABAR"
+    },
+
+    "k_r_prompt": {
+      "description": "Empathy & respect in prompt framing: care conductance",
+      "metric_code": "F6",
+      "type": "float",
+      "min": 0.0,
+      "max": 1.0,
+      "threshold": 0.95,
+      "meaning": "Prompt must be respectful, non-dismissive; >= 0.95 = high empathy",
+      "violated_action": "SABAR"
+    },
+
+    "C_dark_prompt": {
+      "description": "Dark cleverness: detection of manipulation, propaganda, coercion",
+      "metric_code": "F9",
+      "type": "float",
+      "min": 0.0,
+      "max": 1.0,
+      "max_threshold": 0.30,
+      "meaning": "Prompt must avoid manipulative framing; < 0.30 = low manipulation",
+      "violated_action": "SABAR or VOID"
+    }
+  },
+
+  "hard_veto_floors": {
+    "Anti_Hantu": {
+      "description": "Absolute prohibition on consciousness/emotion claims",
+      "metric_code": "F9_extension",
+      "type": "boolean",
+      "violated_action": "VOID"
+    },
+
+    "Amanah": {
+      "description": "Integrity check: no irreversible harm, data abuse, or unethical intent",
+      "metric_code": "F1",
+      "type": "boolean",
+      "violated_action": "VOID"
+    }
+  },
+
+  "governance_logic": {
+    "SEAL_conditions": [
+      "DeltaS_prompt >= 0.0",
+      "Peace2_prompt >= 1.0",
+      "k_r_prompt >= 0.95",
+      "C_dark_prompt < 0.30",
+      "Anti_Hantu = false",
+      "Amanah_risk = false"
+    ],
+    "PARTIAL_conditions": [
+      "Most floors pass but >= 1 minor violation",
+      "Truth polarity = Shadow-Truth (repairable)"
+    ],
+    "SABAR_conditions": [
+      "C_dark_prompt >= 0.30",
+      "Peace2_prompt < 0.8",
+      "k_r_prompt < 0.80",
+      "Truth polarity = Weaponized-Truth"
+    ],
+    "VOID_conditions": [
+      "Anti_Hantu violation = true",
+      "Amanah_risk = true"
+    ]
+  },
+
+  "pipeline_integration": {
+    "stage_555_EMPA": "compute_prompt_signals() - estimate Peace2 and k_r",
+    "stage_666_ALIG": "audit via floors - assign preliminary verdict",
+    "stage_888_JUDGE": "APEX PRIME reads governance_report from @PROMPT",
+    "stage_999_SEAL": "Final verdict issued + prompt + metadata to Cooling Ledger"
+  }
+}

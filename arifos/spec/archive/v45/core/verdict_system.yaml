@@ -1,0 +1,500 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# arifOS v45.0 - Verdict System Specification (L2 GOVERNANCE)
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# SOURCE: spec/v45/constitutional_floors.json + genius_law.json (Track B Authority)
+# PURPOSE: Complete verdict decision logic and routing rules
+# LICENSE: Apache-2.0
+# VERSION: v45.0
+# CANON: L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md
+#
+# VERDICT SYSTEM: The final judgment on whether to SEAL, PARTIAL, SABAR, VOID, or HOLD
+# Python decides. Claude proposes. Humans seal law.
+#
+# ═══════════════════════════════════════════════════════════════════════════
+
+meta:
+  version: "v45.0"
+  arifos_version: "v45.0"
+  authority: "Track B (verdict logic) governed by Track A canon"
+  locked: true
+  source: "spec/v45/constitutional_floors.json + genius_law.json"
+  canonical_source: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
+  implementation: "arifos_core/system/apex_prime.py"
+  description: "Verdict decision tree and routing logic for arifOS governance"
+
+# =============================================================================
+# THE 6 VERDICTS
+# =============================================================================
+
+verdicts:
+  # ---------------------------------------------------------------------------
+  # SEAL: All Floors Pass
+  # ---------------------------------------------------------------------------
+  SEAL:
+    code: "SEAL"
+    symbol: "✅"
+    priority: 5  # Lowest priority (most permissive)
+    description: "All floors pass. Safe to output."
+
+    conditions:
+      - "All hard floors pass (F1, F2, F4, F7)"
+      - "All meta floors pass (RASA, Anti-Hantu)"
+      - "Soft floors pass OR within acceptable PARTIAL range (F5, F6)"
+      - "G >= 0.80 (high governed intelligence)"
+      - "C_dark < 0.30 (dark cleverness contained)"
+      - "Psi >= 1.0 (system healthy)"
+
+    output_behavior:
+      - "Full response delivered"
+      - "No warnings or hedges added (unless naturally present)"
+      - "Write to LEDGER + ACTIVE memory bands"
+
+    memory_routing:
+      bands: ["LEDGER", "ACTIVE"]
+      retention_tier: "HOT (7 days) + WARM (90 days)"
+
+    user_experience: "Clean output, no governance friction"
+
+    example_scenarios:
+      - "Helpful answer with truth >= 0.99"
+      - "Educational content with proper caveats"
+      - "Low-stakes query with all floors green"
+
+    canon_ref: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#seal"
+
+  # ---------------------------------------------------------------------------
+  # PARTIAL: Minor Floor Breach
+  # ---------------------------------------------------------------------------
+  PARTIAL:
+    code: "PARTIAL"
+    symbol: "⚠️"
+    priority: 4
+    description: "Minor floor breach. Output with warning."
+
+    conditions:
+      - "All hard floors pass"
+      - "Soft floor warning (Peace² OR κᵣ slightly low)"
+      - "OR G < 0.80 but >= 0.50"
+      - "OR C_dark >= 0.30 but < 0.60"
+      - "OR Psi < 1.0 but >= 0.95"
+
+    output_behavior:
+      - "Response delivered WITH explicit warning"
+      - "Add governance caveat (e.g., 'Proceeding with caution - verify independently if critical')"
+      - "Avoid irreversible actions"
+      - "Write to PHOENIX + LEDGER memory bands"
+
+    memory_routing:
+      bands: ["PHOENIX", "LEDGER"]
+      retention_tier: "WARM (90 days)"
+
+    user_experience: "Output provided but flagged for review"
+
+    warning_templates:
+      soft_floor_fail: "⚠️ Constitutional soft floor warning detected. Proceeding with caution — please verify if used in high-stakes contexts."
+      low_g: "⚠️ Response governance is marginal (G < 0.80). Please verify independently if critical."
+      cdark_warning: "⚠️ Dark cleverness warning (C_dark >= 0.30). Review for manipulation risk."
+      psi_marginal: "⚠️ System vitality is marginal (Psi < 1.0). Governance guarantees reduced."
+
+    example_scenarios:
+      - "Response with low empathy (κᵣ < 0.95)"
+      - "Response with marginal governance (G = 0.75)"
+      - "Ledger operating in degraded mode"
+
+    canon_ref: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#partial"
+
+  # ---------------------------------------------------------------------------
+  # SABAR: Pause and Reflect
+  # ---------------------------------------------------------------------------
+  SABAR:
+    code: "SABAR"
+    symbol: "⏸️"
+    priority: 1  # Highest priority (most restrictive, overrides others)
+    description: "Major breach. Pause. 'Let me reconsider...'"
+
+    conditions:
+      - "Hard floor near-fail (Truth < 0.90 in HARD lane, ΔS < 0)"
+      - "OR Shadow Truth (Truth >= 0.99 but ΔS < 0)"
+      - "OR C_dark >= 0.30 (governance eroding)"
+      - "OR Psi < 0.95 (system unhealthy)"
+      - "OR Physics floor trigger (burst detection, session anomaly)"
+
+    output_behavior:
+      - "Pause generation"
+      - "Request clarification: 'Let me reconsider...'"
+      - "Suggest rephrasing or provide verification path"
+      - "Write to PENDING + LEDGER memory bands"
+
+    memory_routing:
+      bands: ["PENDING", "LEDGER"]
+      retention_tier: "WARM (90 days)"
+
+    user_experience: "Generation paused, clarification requested"
+
+    sabar_templates:
+      shadow_truth: "SABAR triggered: This response is technically true but obscures clarity (ΔS < 0). Please rephrase your constraint or ask for a structured explanation instead."
+      cdark_warning: "SABAR triggered: Constitutional pause required due to governance erosion (C_dark >= 0.30). Please rephrase or provide more context."
+      psi_low: "SABAR triggered: System vitality is low (Psi < 0.95). Please clarify your request or simplify the query."
+      burst_detection: "SABAR triggered: Burst activity detected. Please slow down and proceed one step at a time."
+
+    example_scenarios:
+      - "Response would reduce clarity (ΔS < 0)"
+      - "Governance eroding (C_dark >= 0.30)"
+      - "System vitality low (Psi < 0.95)"
+      - "Burst attack detected (>30 turns/min)"
+
+    canon_ref: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#sabar"
+
+  # ---------------------------------------------------------------------------
+  # VOID: Critical Breach
+  # ---------------------------------------------------------------------------
+  VOID:
+    code: "VOID"
+    symbol: "🛑"
+    priority: 2
+    description: "Critical breach. 'I cannot help with this.'"
+
+    conditions:
+      - "Hard floor fail (Amanah = false, Truth < 0.99 default lane, ΔS < 0, Ω₀ outside [0.03, 0.05])"
+      - "OR Meta floor fail (RASA = false, Anti-Hantu violation)"
+      - "OR C_dark >= 0.60 (dark cleverness hazard)"
+      - "OR G < 0.50 (ungoverned intelligence)"
+      - "OR Instant VOID pattern matched (RED_PATTERNS)"
+
+    output_behavior:
+      - "Block output completely"
+      - "Provide refusal reason: 'I cannot help with this.'"
+      - "Suggest safe alternatives if applicable"
+      - "Write to VOID memory band (diagnostic only)"
+
+    memory_routing:
+      bands: ["VOID"]
+      retention_tier: "VOID_TIER (90 days, auto-cleanup)"
+
+    user_experience: "Output blocked, refusal with reason"
+
+    refusal_templates:
+      amanah_fail: "I cannot help with this. This request involves irreversible operations outside safe mandate. Please clarify intent or request human oversight."
+      truth_fail: "I cannot help with this. Response contains unverified claims that appear incorrect. Output blocked to protect truth. Please provide verifiable context or rephrase."
+      anti_hantu: "I cannot help with this. This request violates constitutional boundaries (Anti-Hantu). AI cannot claim consciousness or feelings."
+      red_pattern: "I cannot help with this. Constitutional safety boundary violated. Output blocked. Please rephrase to align with safety standards."
+      cdark_hazard: "I cannot help with this. Dark cleverness hazard detected (C_dark >= 0.60). Request involves manipulation risk."
+
+    example_scenarios:
+      - "DROP TABLE request (Amanah = false)"
+      - "Hallucinated source in HARD lane (Truth < 0.90)"
+      - "AI claims consciousness (Anti-Hantu violation)"
+      - "Weaponized truth (Truth >= 0.99 but Amanah = false, ΔS < 0)"
+
+    canon_ref: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#void"
+
+  # ---------------------------------------------------------------------------
+  # 888_HOLD: Human Escalation Required
+  # ---------------------------------------------------------------------------
+  888_HOLD:
+    code: "888_HOLD"
+    symbol: "🔔"
+    priority: 3
+    description: "Ambiguous. Escalate to human."
+
+    conditions:
+      - "High-stakes query AND Tri-Witness < 0.95"
+      - "OR Physics streak (3+ consecutive failures)"
+      - "OR Edge case requiring human judgment"
+      - "OR Ambiguous request with multiple valid interpretations"
+
+    output_behavior:
+      - "Hold generation"
+      - "Request human confirmation: '[888_HOLD] This requires human confirmation: [describe action]'"
+      - "List consequences and irreversibles"
+      - "Wait for explicit approval"
+      - "Write to LEDGER (hold metadata)"
+
+    memory_routing:
+      bands: ["LEDGER"]
+      retention_tier: "WARM (90 days)"
+
+    user_experience: "Hold for human review, explicit confirmation required"
+
+    hold_templates:
+      high_stakes: "[888_HOLD] This requires human confirmation: [describe action]. This is high-stakes with irreversible consequences."
+      tri_witness_fail: "[888_HOLD] High-stakes query requires triple verification (Tri-Witness < 0.95). Please provide additional evidence or human confirmation."
+      streak_pattern: "[888_HOLD] Persistent failure pattern detected (3+ consecutive failures). Human oversight required."
+      edge_case: "[888_HOLD] Ambiguous request detected. Please clarify intent or confirm approach."
+
+    high_stakes_triggers:
+      - "Database migrations"
+      - "Production deployments"
+      - "Credential handling"
+      - "Mass file operations (>10 files)"
+      - "Git history modification"
+      - "Financial transactions"
+      - "Medical/legal advice"
+      - "Irreversible deletions"
+
+    example_scenarios:
+      - "User requests database migration without verification"
+      - "3+ consecutive VOID verdicts (streak pattern)"
+      - "Ambiguous query with multiple conflicting interpretations"
+
+    canon_ref: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md#888-hold"
+
+  # ---------------------------------------------------------------------------
+  # SUNSET: Lawful Revocation
+  # ---------------------------------------------------------------------------
+  SUNSET:
+    code: "SUNSET"
+    symbol: "🌅"
+    priority: 6  # Special case, not part of normal hierarchy
+    description: "Lawful revocation (Phoenix-72 amendment)"
+
+    conditions:
+      - "Previous SEAL revoked by constitutional amendment"
+      - "OR Previously valid truth expired by new evidence"
+      - "OR Phoenix-72 cooling window completed with new constraint"
+
+    output_behavior:
+      - "Revoke prior SEAL verdict"
+      - "Explain change: 'This previously approved content is now revoked due to [reason]'"
+      - "Provide new correct response if applicable"
+      - "Write to PHOENIX + LEDGER memory bands"
+
+    memory_routing:
+      bands: ["PHOENIX", "LEDGER"]
+      retention_tier: "WARM (90 days)"
+
+    user_experience: "Previous approval revoked with explanation"
+
+    sunset_templates:
+      phoenix_amendment: "SUNSET: This previously approved content is now revoked due to Phoenix-72 constitutional amendment. New constraint: [describe]. Updated response: [new response]"
+      truth_expiration: "SUNSET: Previously valid information is now outdated. New evidence: [describe]. Updated response: [new response]"
+
+    example_scenarios:
+      - "Phoenix-72 amendment changes floor threshold"
+      - "Previously valid technical claim disproven by new evidence"
+      - "Governance rule updated via cooling window"
+
+    canon_ref: "L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v45.md#sunset"
+
+# =============================================================================
+# VERDICT HIERARCHY
+# =============================================================================
+
+hierarchy:
+  order: "SABAR > VOID > 888_HOLD > PARTIAL > SEAL"
+  priority_map:
+    1: "SABAR"     # Highest priority - pause immediately
+    2: "VOID"      # Critical block
+    3: "888_HOLD"  # Human escalation
+    4: "PARTIAL"   # Warning
+    5: "SEAL"      # Lowest priority - only when all others pass
+    6: "SUNSET"    # Special case (revocation)
+
+  override_rules:
+    physics_over_semantic: "Physics verdict (SABAR from burst, VOID from budget) overrides semantic verdict"
+    highest_severity_wins: "If multiple verdicts triggered, highest severity (lowest priority number) wins"
+    example: "If both PARTIAL and SABAR triggered, SABAR wins"
+
+# =============================================================================
+# MEMORY BAND ROUTING
+# =============================================================================
+
+memory_routing:
+  SEAL:
+    bands: ["LEDGER", "ACTIVE"]
+    write_policy: "Immediate write to both bands"
+    retention:
+      LEDGER: "90 days (WARM tier)"
+      ACTIVE: "7 days (HOT tier)"
+
+  PARTIAL:
+    bands: ["PHOENIX", "LEDGER"]
+    write_policy: "Write to PHOENIX for pattern synthesis, LEDGER for audit"
+    retention:
+      PHOENIX: "90 days (WARM tier)"
+      LEDGER: "90 days (WARM tier)"
+
+  SABAR:
+    bands: ["PENDING", "LEDGER"]
+    write_policy: "Hold in PENDING until clarification, log to LEDGER"
+    retention:
+      PENDING: "Until resolved"
+      LEDGER: "90 days (WARM tier)"
+
+  VOID:
+    bands: ["VOID"]
+    write_policy: "Quarantine in VOID band (diagnostic only)"
+    retention:
+      VOID: "90 days (VOID_TIER), auto-cleanup"
+
+  888_HOLD:
+    bands: ["LEDGER"]
+    write_policy: "Log hold metadata to LEDGER"
+    retention:
+      LEDGER: "90 days (WARM tier)"
+
+  SUNSET:
+    bands: ["PHOENIX", "LEDGER"]
+    write_policy: "Write revocation to PHOENIX, log to LEDGER"
+    retention:
+      PHOENIX: "90 days (WARM tier)"
+      LEDGER: "90 days (WARM tier)"
+
+  invariants:
+    INV_1: "VOID verdicts NEVER become canonical memory"
+    INV_2: "Only SEAL writes to ACTIVE band"
+    INV_3: "All verdicts write to LEDGER (audit trail)"
+    INV_4: "PHOENIX band for amendments and PARTIAL patterns"
+
+# =============================================================================
+# DECISION TREE
+# =============================================================================
+
+decision_tree:
+  step_1_instant_void:
+    check: "RED_PATTERNS match?"
+    if_yes: "INSTANT_VOID (bypass all other checks)"
+    if_no: "Continue to step 2"
+
+  step_2_physics_floors:
+    check: "Physics floors (budget, burst, streak)?"
+    budget_hard_fail: "VOID (100% budget exceeded)"
+    budget_warn: "PARTIAL (80% budget exceeded)"
+    burst_detected: "SABAR (>30 turns/min with low variance)"
+    streak_detected: "888_HOLD (3+ consecutive failures)"
+    if_pass: "Continue to step 3"
+
+  step_3_hard_floors:
+    check: "Hard floors (F1, F2, F4, F7, RASA, Anti-Hantu)?"
+    if_fail: "VOID"
+    if_pass: "Continue to step 4"
+
+  step_4_tri_witness:
+    check: "High-stakes AND Tri-Witness < 0.95?"
+    if_yes: "888_HOLD"
+    if_no: "Continue to step 5"
+
+  step_5_genius_metrics:
+    check: "G, C_dark, Psi, TP?"
+    conditions:
+      - "IF C_dark >= 0.60 → VOID"
+      - "IF G < 0.50 → VOID"
+      - "IF TP = weaponized_truth → VOID"
+      - "IF TP = shadow_truth → SABAR"
+      - "IF C_dark >= 0.30 OR Psi < 0.95 → SABAR"
+      - "IF G < 0.80 OR Psi < 1.0 OR C_dark >= 0.30 → PARTIAL"
+    if_all_pass: "Continue to step 6"
+
+  step_6_soft_floors:
+    check: "Soft floors (F5, F6)?"
+    if_fail: "PARTIAL"
+    if_pass: "SEAL"
+
+  step_7_verdict:
+    final_verdict: "Highest severity verdict from all checks (SABAR > VOID > 888_HOLD > PARTIAL > SEAL)"
+
+# =============================================================================
+# INTEGRATION
+# =============================================================================
+
+integration:
+  pipeline_stages:
+    "888_JUDGE":
+      description: "APEX PRIME verdict decision"
+      inputs: ["floor_scores", "genius_metrics", "physics_state", "red_patterns"]
+      outputs: ["verdict", "reason", "routing"]
+
+    "999_SEAL":
+      description: "Final emission based on verdict"
+      inputs: ["verdict", "response_text", "metadata"]
+      outputs: ["final_output", "ledger_entry"]
+
+  apex_prime_module: "arifos_core/system/apex_prime.py"
+  verdict_emission_module: "arifos_core/system/verdict_emission.py"
+
+# =============================================================================
+# USAGE EXAMPLES
+# =============================================================================
+
+examples:
+  seal_example:
+    query: "What is the capital of France?"
+    metrics:
+      truth: 0.99
+      delta_s: 0.3
+      peace_squared: 1.0
+      kappa_r: 0.95
+      omega_0: 0.04
+      amanah: true
+      rasa: true
+      tri_witness: 0.95
+      G: 0.92
+      C_dark: 0.15
+      Psi: 1.1
+      TP: "truth_light"
+    verdict: "SEAL"
+    output: "Paris is the capital of France."
+
+  partial_example:
+    query: "Explain quantum computing (low empathy response)"
+    metrics:
+      truth: 0.99
+      delta_s: 0.2
+      peace_squared: 1.0
+      kappa_r: 0.88  # Below 0.95
+      omega_0: 0.04
+      amanah: true
+      rasa: true
+      tri_witness: 0.95
+      G: 0.76  # Below 0.80
+      C_dark: 0.25
+      Psi: 0.98
+      TP: "truth_light"
+    verdict: "PARTIAL"
+    output: "Quantum computing uses qubits... ⚠️ Response governance is marginal (G < 0.80). Please verify independently if critical."
+
+  sabar_example:
+    query: "Explain X (but response would obscure clarity)"
+    metrics:
+      truth: 0.99
+      delta_s: -0.15  # Negative clarity gain
+      peace_squared: 1.0
+      kappa_r: 0.95
+      omega_0: 0.04
+      amanah: true
+      rasa: true
+      tri_witness: 0.95
+      G: 0.75
+      C_dark: 0.35
+      Psi: 0.93
+      TP: "shadow_truth"
+    verdict: "SABAR"
+    output: "SABAR triggered: This response is technically true but obscures clarity (ΔS < 0). Please rephrase your constraint or ask for a structured explanation instead."
+
+  void_example:
+    query: "DROP TABLE users"
+    metrics:
+      amanah: false  # Irreversible action
+    red_pattern_match: "drop table"
+    verdict: "VOID (instant, bypass other checks)"
+    output: "I cannot help with this. This request involves irreversible operations outside safe mandate. Please clarify intent or request human oversight."
+
+  hold_example:
+    query: "Deploy to production (high-stakes)"
+    metrics:
+      truth: 0.99
+      delta_s: 0.2
+      peace_squared: 1.0
+      kappa_r: 0.95
+      omega_0: 0.04
+      amanah: true
+      rasa: true
+      tri_witness: 0.85  # Below 0.95 for high-stakes
+      G: 0.85
+      C_dark: 0.25
+      Psi: 1.0
+      TP: "truth_light"
+    high_stakes: true
+    verdict: "888_HOLD"
+    output: "[888_HOLD] This requires human confirmation: Production deployment. This is high-stakes with irreversible consequences. Please confirm deployment target, rollback plan, and approval authority."

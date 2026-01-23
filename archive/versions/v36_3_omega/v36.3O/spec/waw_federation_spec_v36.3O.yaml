@@ -1,0 +1,235 @@
+# Implements: OVERSIGHT_WAW_FEDERATION_v36.3O.md | Law: v36.3Omega | Commit: 870ea5d
+# Purpose: Machine-readable W@W Federation specification (5 organs, veto hierarchy, signals)
+
+meta:
+  spec_id: waw_federation_spec_v36.3O
+  epoch: v36.3Omega
+  implements: v36.3O/canon/OVERSIGHT_WAW_FEDERATION_v36.3O.md
+  law_source: v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md
+  law_commit: "870ea5d"
+  purpose: W@W Federation organs, veto hierarchy, and signal schemas
+
+federation:
+  name: "W@W Federation"
+  full_name: "World @ Work Federation"
+  role: "External governance layer between AAA engines and APEX PRIME judgment"
+  position: "Above AAA Trinity, below final SEAL"
+
+organs:
+  WEALTH:
+    id: "@WEALTH"
+    domain: "Resource Stewardship / Integrity"
+    primary_metric: amanah
+    floor: F6
+    floor_threshold: "Amanah = LOCK (must be true)"
+    veto_type: ABSOLUTE
+    veto_priority: 1  # Highest
+    key_question: "Is this fair, dignified, honest, and within scope?"
+    pattern_categories:
+      - scope_violations
+      - irreversible_actions
+      - trust_violations
+    votes:
+      PASS: "Amanah = LOCK, no violations"
+      WARN: "Irreversible action detected"
+      VETO: "Amanah = BROKEN or trust violation -> ABSOLUTE VOID"
+
+  WELL:
+    id: "@WELL"
+    domain: "Somatic Safety / Emotional Stability"
+    primary_metrics:
+      - peace_squared
+      - kappa_r
+    floors: [F3, F4, F7]
+    floor_thresholds:
+      peace_squared: ">= 1.0"
+      kappa_r: ">= 0.95"
+    veto_type: SABAR
+    veto_priority: 2
+    key_question: "Is this emotionally safe and non-escalating?"
+    pattern_categories:
+      - aggressive_patterns
+      - blame_patterns
+    votes:
+      PASS: "Peace^2 >= 1.0, kappa_r >= 0.95, no patterns"
+      WARN: "Patterns detected but floors still pass"
+      VETO: "Peace^2 < 1.0 or kappa_r < 0.95 -> SABAR required"
+
+  GEOX:
+    id: "@GEOX"
+    domain: "Physics / Reality"
+    primary_metric: tri_witness
+    floor: F8
+    floor_threshold: "Tri-Witness >= 0.95 (Earth component)"
+    veto_type: VOID
+    veto_priority: 3
+    key_question: "Is this physically and socially viable?"
+    pattern_categories:
+      - physics_violations
+      - impossible_claims
+    votes:
+      PASS: "Tri-Witness (Earth) >= 0.95"
+      WARN: "Borderline feasibility"
+      VETO: "Physics violation or impossible claim -> VOID"
+
+  RIF:
+    id: "@RIF"
+    domain: "Logic / Clarity"
+    primary_metrics:
+      - truth
+      - delta_s
+    floors: [F1, F2, F5]
+    floor_thresholds:
+      truth: ">= 0.99"
+      delta_s: ">= 0"
+    veto_type: VOID
+    veto_priority: 4
+    key_question: "Does this make sense and reduce confusion?"
+    pattern_categories:
+      - contradictions
+      - clarity_concerns
+    votes:
+      PASS: "Truth >= 0.99, DeltaS >= 0"
+      WARN: "Minor clarity concern"
+      VETO: "Truth < 0.99 or DeltaS < 0 -> VOID"
+
+  PROMPT:
+    id: "@PROMPT"
+    domain: "Language / Optics"
+    primary_metric: anti_hantu
+    floors: [F9, F7]
+    floor_threshold: "Anti-Hantu = PASS"
+    veto_type: SABAR
+    veto_priority: 5  # Lowest
+    key_question: "Is this expressed lawfully and clearly?"
+    pattern_categories:
+      - anti_hantu_violations
+      - soul_claiming
+      - fake_emotions
+    votes:
+      PASS: "Anti-Hantu = PASS, no violations"
+      WARN: "Borderline language detected"
+      VETO: "Anti-Hantu violation -> SABAR"
+
+veto_hierarchy:
+  description: "Veto precedence when multiple organs veto"
+  order:
+    - "@WEALTH"   # ABSOLUTE - Immediate VOID, non-negotiable
+    - "@WELL"     # SABAR - Pause-and-cool protocol
+    - "@GEOX"     # VOID - Physics violation
+    - "@RIF"      # VOID - Logic violation
+    - "@PROMPT"   # SABAR - Language violation
+  rules:
+    - "WEALTH VETO -> Immediate VOID, non-negotiable"
+    - "Multiple VETOs -> Highest priority determines verdict type"
+    - "VOID takes precedence over SABAR"
+
+vote_types:
+  PASS:
+    description: "Domain-specific checks satisfied"
+    effect: "No objection"
+  WARN:
+    description: "Non-blocking concern, suggests caution"
+    effect: "Proceed with warning logged"
+  VETO:
+    description: "Hard objection, unsafe or non-compliant"
+    effect: "Triggers verdict based on veto_type"
+
+veto_types:
+  ABSOLUTE:
+    description: "Non-negotiable, immediate VOID"
+    organs: ["@WEALTH"]
+    effect: "VOID verdict, no override possible"
+  VOID:
+    description: "Hard floor violation"
+    organs: ["@GEOX", "@RIF"]
+    effect: "VOID verdict"
+  SABAR:
+    description: "Pause-and-cool protocol"
+    organs: ["@WELL", "@PROMPT"]
+    effect: "SABAR verdict, cooling required"
+
+signal_schema:
+  OrganSignal:
+    description: "Signal returned by a W@W organ after evaluation"
+    fields:
+      organ_id:
+        type: string
+        enum: ["@WEALTH", "@WELL", "@GEOX", "@RIF", "@PROMPT"]
+      vote:
+        type: string
+        enum: [PASS, WARN, VETO]
+      metric_name:
+        type: string
+        description: "Primary metric evaluated"
+      metric_value:
+        type: number
+        description: "Actual metric value"
+      floor_threshold:
+        type: number
+        description: "Required threshold"
+      floor_pass:
+        type: boolean
+        description: "Whether floor is satisfied"
+      evidence:
+        type: string
+        description: "Human-readable explanation"
+      is_absolute_veto:
+        type: boolean
+        description: "True for @WEALTH Amanah violations"
+      proposed_action:
+        type: string
+        description: "Suggested fix for WARN/VETO"
+
+  FederationVerdict:
+    description: "Aggregated verdict from all organs"
+    fields:
+      signals:
+        type: array
+        items: OrganSignal
+      aggregate_vote:
+        type: string
+        enum: [SEAL, PARTIAL, HOLD_888, SABAR, VOID]
+      has_absolute_veto:
+        type: boolean
+      veto_organs:
+        type: array
+        items: string
+      warn_organs:
+        type: array
+        items: string
+
+aggregation_rules:
+  description: "How federation verdict is determined from organ signals"
+  logic: |
+    if any_organ_absolute_veto():
+        return "VOID"  # Non-negotiable
+    if any_organ_veto():
+        veto_types = get_veto_types()
+        if "VOID" in veto_types:
+            return "VOID"
+        elif "SABAR" in veto_types:
+            return "SABAR"
+        else:
+            return "HOLD_888"
+    if any_organ_warn():
+        return "PARTIAL"
+    return "SEAL"  # All organs PASS
+
+integration:
+  aaa_to_waw:
+    description: "W@W consumes telemetry from ARIF and ADAM engines"
+    inputs:
+      - ARIFPacket
+      - ADAMPacket
+      - Metrics
+    flow: "AAA engines -> Metrics -> W@W Federation -> FederationVerdict"
+
+  waw_to_apex:
+    description: "Federation verdict feeds into APEX PRIME"
+    outputs:
+      - FederationVerdict
+      - waw_signals
+      - has_absolute_veto
+      - veto_organs
+      - warn_organs

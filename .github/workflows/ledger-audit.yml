@@ -1,9 +1,24 @@
 name: Scheduled Ledger Audit
 
+# DISABLED: Requires KMS-signed production ledger (Level 3.5+)
+# Re-enable when:
+# 1. Production ledger with KMS signatures exists
+# 2. compute_hash is exported from arifos_core.memory.cooling_ledger
+# 3. Artifact upload workflow is configured
+#
+# To test manually: python scripts/verify_ledger_kms.py runtime/cooling_ledger.jsonl --no-verify
+
 on:
+  # Temporarily disabled - uncomment to re-enable
+  # workflow_dispatch:
+  # schedule:
+  #   - cron: '0 5 * * 0'  # weekly on Sunday 05:00 UTC
   workflow_dispatch:
-  schedule:
-    - cron: '0 5 * * 0'  # weekly on Sunday 05:00 UTC
+    inputs:
+      dry_run:
+        description: 'Dry run (skip actual verification)'
+        required: false
+        default: 'true'
 
 jobs:
   download-and-verify:

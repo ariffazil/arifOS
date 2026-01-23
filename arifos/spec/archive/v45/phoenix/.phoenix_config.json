@@ -1,0 +1,7 @@
+{
+  "threshold_mode": "warn",
+  "entropy_mode": "strict",
+  "target_violation_max": 50,
+  "deadline": "2026-01-15",
+  "_note": "Phoenix-72 Guardrail configuration. threshold_mode: 'warn' reports violations without blocking, 'strict' blocks on violations. Target is to reduce violations below target_violation_max before deadline."
+}

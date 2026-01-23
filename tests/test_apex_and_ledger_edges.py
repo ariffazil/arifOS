@@ -4,9 +4,9 @@ from typing import Any, Dict
 import pytest
 
 # TODO: adjust imports to your real modules
-# from arifos_core.metrics import Metrics
-# from arifos_core.apex_prime import apex_review
-# from arifos_core.cooling_ledger import append_entry, verify_chain
+# from arifos.core.enforcement.metrics import Metrics
+# from arifos.core.apex_prime import apex_review
+# from arifos.core.memory.ledger.cooling_ledger import append_entry, verify_chain
 
 @pytest.mark.skip("Fill in real arifos_core imports before enabling")
 class TestApexFloors:
@@ -15,9 +15,9 @@ class TestApexFloors:
         metrics = Metrics(
             truth=0.95,
             delta_s=0.1,
-            peace2=1.0,
+            peace_squared=1.0,
             kappa_r=0.97,
-            omega0=0.04,
+            omega_0=0.04,
             amanah=True,
             rasa=True,
             tri_witness=0.97,
@@ -30,9 +30,9 @@ class TestApexFloors:
         metrics = Metrics(
             truth=0.995,
             delta_s=0.01,
-            peace2=1.02,
+            peace_squared=1.02,
             kappa_r=0.97,
-            omega0=0.04,
+            omega_0=0.04,
             amanah=True,
             rasa=True,
             tri_witness=0.97,
