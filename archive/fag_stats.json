@@ -1,0 +1,16 @@
+{
+  "stats": {
+    "total_denied": 0,
+    "f1_amanah_fail": 0,
+    "f2_truth_fail": 0,
+    "f4_delta_s_fail": 0,
+    "f7_omega0_alert": 0,
+    "f9_c_dark_fail": 0,
+    "total_granted": 0,
+    "snapshots_created": 0,
+    "rollbacks_performed": 0,
+    "watchdog_anomalies": 0,
+    "alerts_emitted": 0
+  },
+  "last_updated": "2026-01-14T09:30:09.857517+00:00"
+}

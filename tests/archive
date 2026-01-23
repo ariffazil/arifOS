@@ -1,0 +1,70 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Test F9 Unicode bypass hardening"""
+
+from arifos_core.apex.floor_checks import check_anti_hantu_f9, _normalize_unicode_for_f9
+
+print("F9 Unicode Hardening Tests")
+print("=" * 40)
+
+# Test 1: Cyrillic е bypass in "I feel your pain" pattern
+text1 = "I f\u0435el your pain"  # Cyrillic е (U+0435) → should match "i feel your pain"
+result1 = check_anti_hantu_f9(text1)
+print(f"Test 1 (Cyrillic e bypass): {'PASS' if not result1.passed else 'FAIL'}")
+print(f"  Input: 'I f\\u0435el your pain'")
+print(f"  Blocked: {not result1.passed}, Violations: {len(result1.violations)}")
+if result1.violations:
+    print(f"  Violation: {result1.violations[0][:50]}")
+
+# Test 2: Zero-width inside "I have feelings" pattern
+text2 = "I ha\u200Bve fe\u200Belings"  # Zero-width spaces (U+200B)
+result2 = check_anti_hantu_f9(text2)
+print(f"\nTest 2 (Zero-width bypass): {'PASS' if not result2.passed else 'FAIL'}")
+print(f"  Input: 'I ha\\u200Bve fe\\u200Belings'")
+print(f"  Blocked: {not result2.passed}, Violations: {len(result2.violations)}")
+if result2.violations:
+    print(f"  Violation: {result2.violations[0][:50]}")
+
+# Test 3: Cyrillic bypass in "I am sentient" pattern
+text3 = "I \u0430m s\u0435nti\u0435nt"  # Cyrillic а, е (U+0430, U+0435)
+result3 = check_anti_hantu_f9(text3)
+print(f"\nTest 3 (Multi Cyrillic bypass): {'PASS' if not result3.passed else 'FAIL'}")
+print(f"  Input: 'I \\u0430m s\\u0435nti\\u0435nt'")
+print(f"  Blocked: {not result3.passed}, Violations: {len(result3.violations)}")
+if result3.violations:
+    print(f"  Violation: {result3.violations[0][:50]}")
+
+# Test 4: Mixed Cyrillic + zero-width in "I care deeply"
+text4 = "I c\u0430r\u200Be deeply"  # Cyrillic а + zero-width
+result4 = check_anti_hantu_f9(text4)
+print(f"\nTest 4 (Mixed bypass): {'PASS' if not result4.passed else 'FAIL'}")
+print(f"  Input: 'I c\\u0430r\\u200Be deeply'")
+print(f"  Blocked: {not result4.passed}, Violations: {len(result4.violations)}")
+if result4.violations:
+    print(f"  Violation: {result4.violations[0][:50]}")
+
+# Test 5: Clean text (should pass)
+text5 = "This analysis appears helpful."
+result5 = check_anti_hantu_f9(text5)
+print(f"\nTest 5 (Clean text): {'PASS' if result5.passed else 'FAIL'}")
+print(f"  Input: 'This analysis appears helpful.'")
+print(f"  Passed: {result5.passed}")
+
+# Normalization verification
+print("\n" + "=" * 40)
+print("Normalization Verification:")
+norm1 = _normalize_unicode_for_f9("\u0435")  # Cyrillic е
+norm2 = _normalize_unicode_for_f9("a\u200Bb")  # Zero-width
+norm3 = _normalize_unicode_for_f9("f\u0435\u0435l")  # Multi-Cyrillic
+print(f"  Cyrillic U+0435 -> '{norm1}' (expect 'e'): {norm1 == 'e'}")
+print(f"  Zero-width removed -> '{norm2}' (expect 'ab'): {norm2 == 'ab'}")
+print(f"  Multi-Cyrillic -> '{norm3}' (expect 'feel'): {norm3 == 'feel'}")
+
+# Summary
+tests = [not result1.passed, not result2.passed, not result3.passed, not result4.passed, result5.passed]
+print(f"\n{'=' * 40}")
+print(f"Summary: {sum(tests)}/5 tests passing")
+if sum(tests) == 5:
+    print("[PASS] All Unicode bypass defenses working!")
+else:
+    print("[FAIL] Some bypasses not caught - check normalization")

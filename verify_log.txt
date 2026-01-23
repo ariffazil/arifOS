@@ -1,0 +1,43 @@
+Traceback (most recent call last):
+  File "C:\Users\User\arifOS\scripts\verify_000.py", line 11, in <module>
+    module = importlib.import_module("arifos.core.000_void.stage")
+  File "C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1398, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1314, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1398, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1314, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1398, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 762, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\User\arifOS\arifos\core\__init__.py", line 40, in <module>
+    from .enforcement.metrics import ConstitutionalMetrics, FloorsVerdict, Metrics
+  File "C:\Users\User\arifOS\arifos\core\enforcement\__init__.py", line 14, in <module>
+    from .metrics import Metrics, FloorsVerdict, ConstitutionalMetrics
+  File "C:\Users\User\arifOS\arifos\core\enforcement\metrics.py", line 338, in <module>
+    _FLOORS_SPEC = _load_floors_spec_unified()
+  File "C:\Users\User\arifOS\arifos\core\enforcement\metrics.py", line 291, in _load_floors_spec_unified
+    raise RuntimeError(
+    ...<9 lines>...
+    )
+RuntimeError: TRACK B AUTHORITY FAILURE: Constitutional floors spec not found.
+
+Searched locations (in priority order):
+  1. AAA_MCP/v46/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors)
+  2. AAA_MCP/v46/000_foundation/constitutional_floors.json (v46 fallback)
+  3. AAA_MCP/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors)
+
+Resolution:
+1. Ensure AAA_MCP/v46/constitutional_floors.json exists and is valid
+2. Or set ARIFOS_FLOORS_SPEC env var to explicit path
+3. Verify MANIFEST.sha256.json integrity if using strict mode
+
+

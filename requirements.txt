@@ -1,0 +1,26 @@
+# arifOS v50 - Core Dependencies (Railway Optimized)
+# Minimal dependencies for SSE/HTTP MCP server deployment
+# Database dependencies (psycopg2-binary) removed for Railway
+
+# FastAPI & Web Server
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+sse-starlette>=1.8.2
+
+# Core Logic & Infrastructure
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+python-dotenv>=1.0.0
+requests>=2.31.0
+# psycopg2-binary>=2.9.9  # Removed - not needed for Railway MCP server
+aiohttp>=3.9.1
+
+mcp>=0.1.0
+fastmcp>=0.1.0
+dspy>=2.4.0
+rich>=13.7.0
+
+# Optional / Build
+setuptools>=68.2.2
+wheel>=0.41.3

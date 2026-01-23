@@ -1,0 +1,106 @@
+SECTION 1: MALAY BASIN POROSITY-DEPTH CALIBRATION
+basin,age,group,phi_surface,lambda_decay,depth_max,source_note
+Malay,Oligocene-LMiocene,K-L,0.30,0.00035,4500,USGS_coarse_deltaic_sand
+Malay,MidMiocene,J,0.24,0.00040,3500,USGS_shallow_marine_sandstone
+Malay,LateMiocene,F+UM,0.18,0.00045,3000,USGS_estuarine_clay_rich
+
+SECTION 2: MALAY BASIN PERMEABILITY CALIBRATION
+age,lithofacies,porosity_mid,k_min_md,k_max_md,k_typical_md,k_corey_a,k_corey_b,clay_effect_note
+Oligocene-LMiocene,proximal_shoreface,0.22,50,300,150,0.7,5.2,low_clay_coating
+Oligocene-LMiocene,mid_shoreface,0.18,20,100,50,0.7,5.2,moderate_clay_coating
+Oligocene-LMiocene,distal_shoreface,0.14,1,20,5,0.7,5.2,heavy_cementation_clay
+
+SECTION 3: MALAY BASIN ARCHIE PARAMETERS (WATER SATURATION)
+basin,fluid_type,cementation_exp_m,saturation_exp_n,formation_water_resistivity_ohmm,sw_at_owc,sw_in_hc_column_low,sw_in_hc_column_high
+Malay,oil,1.95,2.0,0.12,0.65,0.30,0.45
+Malay,gas,1.90,2.0,0.15,0.60,0.10,0.25
+
+SECTION 4: MALAY BASIN PRESSURE & RECOVERY
+basin,depth_m,pressure_gradient_psi_ft,regime_type,rf_oil_primary_low,rf_oil_primary_mid,rf_oil_primary_high,rf_oil_w_aquifer_low,rf_oil_w_aquifer_high,rf_gas,reference
+Malay,1500-2500,0.450,normal,0.12,0.15,0.18,0.20,0.30,0.80,standard_primary_depletion
+Malay,2500-3500,0.455,normal_to_mild_overpressure,0.15,0.18,0.22,0.25,0.35,0.82,aquifer_support_likely
+Malay,3500+,0.465,mild_overpressure,0.10,0.14,0.18,0.20,0.28,0.80,risk_seal_breach_above_0.48
+
+SECTION 5: FIELD EXAMPLE - TAPIS (MALAY BASIN)
+field,location,depth_m,reservoir_age,api_gravity,gor_scf_stb,bo_rb_stb,viscosity_cp,sw_typical,sw_range_low,sw_range_high,rf_oil_percent
+Tapis,Terengganu_south_china_sea,2850,oligocene_miocene,43.5,350,1.28,0.7,0.35,0.25,0.45,22
+
+SECTION 6: SANDAKAN BASIN POROSITY-DEPTH CALIBRATION
+basin,reservoir_type,phi_surface,lambda_decay,depth_max,remarks
+Sandakan,proximal_turbidite_channel,0.35,0.00045,4500,sand_rich_high_initial_porosity
+Sandakan,distal_turbidite_lobe,0.30,0.00050,4000,silt_rich_faster_compaction
+
+SECTION 7: SANDAKAN BASIN PERMEABILITY CALIBRATION
+turbidite_type,porosity_mid,k_min_md,k_max_md,k_typical_md,k_corey_a,k_corey_b,grain_size_control,clay_laminae_note
+proximal_channel,0.22,50,300,150,4.1,-1.2,coarse_well_sorted,minimal_clay
+distal_lobe,0.18,5,50,25,4.1,-1.2,fine_moderate_sorting,clay_laminae_present
+
+SECTION 8: SANDAKAN BASIN ARCHIE PARAMETERS
+basin,fluid_type,cementation_exp_m,saturation_exp_n,formation_water_resistivity_ohmm,sw_at_gwc,sw_in_gas_column_low,sw_in_gas_column_high,temp_corrected_to_celsius
+Sandakan,gas,1.95,2.05,0.18,0.65,0.12,0.25,110
+
+SECTION 9: SANDAKAN BASIN PRESSURE & OVERPRESSURE PROFILES
+basin,depth_m,pressure_gradient_psi_ft,regime_type,overpressure_onset,magnitude_excess_psi,mechanism_dominant,rf_gas_low,rf_gas_typical,rf_gas_high,note
+Sandakan,2000-2500,0.450,normal,no,0,none,0.78,0.82,0.85,pre_overpressure
+Sandakan,2500-3500,0.490,overpressure,yes,1000,disequilibrium_compaction,0.72,0.76,0.80,overpressure_transition_zone
+Sandakan,3500-4500,0.520,strong_overpressure,yes,2000-2500,compaction_plus_thermal,0.70,0.74,0.78,risk_seal_breach
+
+SECTION 10: SANDAKAN BASIN GAS PROPERTIES (DRY GAS TYPICAL)
+basin,specific_gravity,z_factor_at_2500psi_110C,bg_rb_scf_at_depth,gas_type,gor_scf_stb_if_condensate,retrograde_condensation_risk
+Sandakan,0.60,0.88,0.018,dry_gas,>2000,low
+Sandakan,0.65,0.85,0.020,wet_gas,500-2000,medium_to_high
+
+SECTION 11: arifOS PHYSICS BOUNDS (MALAY BASIN)
+parameter,unit,minimum_floor,maximum_ceiling,typical_value,violation_verdict
+depth,m,1000,4500,2850,VOID_if_outside
+porosity,fraction,0.08,0.38,0.22,VOID_if_outside
+permeability,md,0.5,3000,45,VOID_if_k_less_than_0.5
+water_saturation,fraction,0.0,1.0,0.35,VOID_if_Sw_plus_So_exceeds_1.0
+recovery_factor_oil,fraction,0.12,0.35,0.20,SABAR_if_exceeds_0.30_without_justification
+pressure_gradient,psi_ft,0.45,0.55,0.453,SABAR_if_exceeds_0.48_without_overpressure_DST
+
+SECTION 12: arifOS PHYSICS BOUNDS (SANDAKAN BASIN)
+parameter,unit,minimum_floor,maximum_ceiling,typical_value,violation_verdict
+depth,m,2000,5000,3500,VOID_if_outside
+porosity,fraction,0.10,0.40,0.18,VOID_if_outside
+permeability,md,1.0,1000,25,VOID_if_k_less_than_1.0_for_commercial
+water_saturation,fraction,0.0,1.0,0.18,VOID_if_outside_gas_ranges
+recovery_factor_gas,fraction,0.70,0.80,0.75,SABAR_if_below_0.70_require_explanation
+pressure_gradient,psi_ft,0.45,0.55,0.50,FLAG_if_equals_or_exceeds_0.52_high_risk_seal
+
+SECTION 13: SENSITIVITY PARAMETERS (FOR MONTE CARLO / P10-P50-P90)
+parameter,p10_multiplier,p50_base,p90_multiplier,reason_for_uncertainty
+area_km2,1.0,1.0,1.0,seismic_mapping_relatively_certain_±10pct
+depth_m,0.95,1.0,1.05,depth_uncertainty_velocity_model_±50m
+porosity,0.90,1.0,1.15,porosity_depth_trend_uncertainty_±0.03
+permeability,0.50,1.0,2.5,permeability_lithofacies_extreme_scatter
+sw,0.85,1.0,1.15,archie_parameter_uncertainty_±0.05
+rf_oil_malay,0.60,1.0,1.50,primary_vs_aquifer_drive_uncertain
+rf_gas_sandakan,0.93,1.0,1.08,pressure_regime_rf_tightly_constrained
+
+SECTION 14: BASIN COMPARISON SUMMARY
+property,malay_basin_value,sandakan_basin_value,critical_difference
+typical_depth_m,2500,3500,sandakan_deeper_faster_burial
+porosity_at_depth,0.22,0.17,sandakan_3pct_lower_higher_compaction
+permeability_at_porosity,40-80_md,10-40_md,sandakan_2x_tighter_turbidites
+water_saturation_oil,0.35,NA,malay_oil_sandakan_mostly_gas
+water_saturation_gas,0.15-0.20,0.18,similar_both_gas_fields
+pressure_gradient,0.450-0.465,0.490-0.520,sandakan_overpressured_malay_normal
+recovery_factor,oil_0.20_gas_0.80,gas_0.75,sandakan_lower_due_to_pressure_support
+seal_type,regional_drape_shale,intra_sequence_plus_regional,sandakan_more_complex
+main_fluid,light_oil_40-45_api,gas_dry_to_wet,different_production_regimes
+expected_net_pay_ft,30-60,20-50,sandakan_thinner_more_variable
+
+SECTION 15: LITERATURE DATA SOURCES
+source_id,citation,year,authority,data_contribution
+1,USGS Petroleum Systems Study,1999,US_Geological_Survey,malay_stratigraphy_porosity_depth
+2,Doust & Sumner Tertiary SE Asia,2007,Shell_Research,regional_petroleum_system_classification
+3,UTM IPTC Malay Basin K-phi,2023,Universiti_Teknologi_Petronas,empirical_porosity_permeability_relationship
+4,UTM Sabah Overpressure Study,2018,Universiti_Teknologi_Petronas,sandakan_pore_pressure_prediction
+5,USGS Malay Basin Overpressure,2015,Doust_et_others,malay_overpressure_history_modeling
+6,Baram Field Integrated Model,2009,Emerson_Automation,field_example_recovery_factor_challenges
+7,ExxonMobil Tapis Crude,2024,ExxonMobil,pvt_properties_benchmark_malay_oil
+8,USGS Malay Basin Province,1999,USGS,comprehensive_petroleum_systems_framework
+9,Sabah Block A Case,2018,Baharaldin_UTM_thesis,overpressure_onset_depth_prediction
+
+END_OF_DATA_TABLES

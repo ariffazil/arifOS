@@ -1,0 +1,71 @@
+{
+  "ledger_version": "v35Ω",
+  "timestamp": "2025-12-04T12:00:00.123Z",
+  "job_id": "JOB-20251204-0001",
+  "stakes": "medium",
+  "pipeline_path": [
+    "000_VOID",
+    "111_SENSE",
+    "222_REFLECT",
+    "333_REASON",
+    "444_ALIGN",
+    "555_EMPATHIZE",
+    "666_BRIDGE",
+    "777_FORGE",
+    "888_JUDGE",
+    "999_SEAL"
+  ],
+  "query": "Explain APEX PRIME in one sentence",
+  "candidate_output": "APEX PRIME is the constitutional judiciary (Soul-Governor) of arifOS that evaluates all outputs through 9 floors before issuing verdicts.",
+  "metrics": {
+    "truth": 0.995,
+    "delta_s": 0.12,
+    "peace_squared": 1.08,
+    "kappa_r": 0.97,
+    "omega_0": 0.041,
+    "amanah": true,
+    "rasa": true,
+    "tri_witness": 0.96,
+    "anti_hantu": "PASS",
+    "psi": 1.10,
+    "ambiguity": 0.05,
+    "drift_delta": 0.15,
+    "paradox_load": 0.2
+  },
+  "verdict": "SEAL",
+  "floor_failures": [],
+  "eye_flags": [],
+  "cce_audits": {
+    "delta_p": "PASS",
+    "omega_p": "PASS",
+    "psi_p": "PASS",
+    "phi_p": "PASS"
+  },
+  "tri_witness_components": {
+    "human": 0.95,
+    "ai": 0.98,
+    "earth": 0.94
+  },
+  "organs": {
+    "@RIF": false,
+    "@WELL": false,
+    "@WEALTH": false,
+    "@GEOX": false,
+    "@PROMPT": false
+  },
+  "context_summary": "User requested one-sentence explanation of APEX PRIME judiciary",
+  "reason": "All 9 constitutional floors passed. CCE audits complete. Output approved.",
+  "sabar_reason": null,
+  "phoenix_cycle_id": null,
+  "hash_chain": {
+    "previous_hash": "sha256:abc123...",
+    "current_hash": "sha256:def456...",
+    "signature": null
+  },
+  "metadata": {
+    "model": "claude-3-opus",
+    "user": "Arif",
+    "epoch": "v35Ω",
+    "runtime_ms": 1250
+  }
+}

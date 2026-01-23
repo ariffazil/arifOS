@@ -6,7 +6,7 @@
 ΔΩΨ Physics
    │
    ▼
-AAA Trinity (ARIF · ADAM · APEX PRIME)
+AGI·ASI·APEX Trinity (ARIF · ADAM · APEX PRIME)
    │
    ▼
 W@W Federation (@RIF · @WELL · @WEALTH · @GEOX · @PROMPT)
