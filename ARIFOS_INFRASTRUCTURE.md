@@ -121,9 +121,11 @@ Before any action is taken, the **Metabolizer** (`arifos.core.metabolizer`) chec
 
 ---
 
-## 5. Changelog & Current Status (v50.5)
+## 5. Changelog & Current Status (v50.5.24)
 
-### v50.5 (Current - Jan 2026)
+### v50.5.24 (Current - Jan 2026)
+*   **Feature**: **Body API (v39)**. Standardized FastAPI/HTTP interface (`/v1/govern`).
+*   **Feature**: **Loop Detection**. `Metabolizer` now detects and prevents infinite metabolic loops (e.g. 111→222→111).
 *   **Feature**: **Trinity Consolidation**. Merged complex toolsets into the "5-Tool" standard.
 *   **Fix**: **Metabolizer Execution**. `metabolizer.py` now dynamically imports and *executes* stage logic, rather than just tracking state.
 *   **Infra**: Added `trinity-sse` support for remote MCP access.
@@ -142,3 +144,4 @@ Before any action is taken, the **Metabolizer** (`arifos.core.metabolizer`) chec
 *   **Start Here**: `python -m arifos.mcp trinity` (Runs the server)
 *   **Debug**: Check `metabolizer.py` for pipeline logic.
 *   **Config**: See `constitutional_constants.py` for floor thresholds.
+*   **Body API**: Run `python -m arifos.api.server` and visit `http://localhost:8000/docs`.
