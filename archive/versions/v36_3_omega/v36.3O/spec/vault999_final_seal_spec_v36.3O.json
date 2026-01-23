@@ -1,0 +1,212 @@
+{
+  "$comment": "Implements: CCC_ARCHITECTURE_v36.3O.md, PHOENIX72_PROTOCOL_v36.3O.md | Law: v36.3Omega | Commit: 870ea5d",
+  "meta": {
+    "spec_id": "vault999_final_seal_spec_v36.3O",
+    "epoch": "v36.3Omega",
+    "implements": [
+      "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md",
+      "canon/07_CCC/062_CCC_FINAL_SEAL_PROTOCOL_v36.3Omega.md",
+      "v36.3O/canon/GOV_META_v36.3O.md",
+      "v36.3O/canon/MEASUREMENT_APEX_STANDARDS_v36.3O.md"
+    ],
+    "law_source": "v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md",
+    "law_commit": "870ea5d",
+    "purpose": "Final Seal requirements for VAULT-999 entry - constitutional gate before L1 write"
+  },
+  "final_seal_requirements": {
+    "description": "Constitutional requirements that must be satisfied before an entry can be written to VAULT-999 L1 (Cooling Ledger)",
+    "verdict": {
+      "required": "SEAL",
+      "description": "Only SEAL verdict entries may be written to L1; VOID/SABAR/HOLD_888/PARTIAL are logged but NOT sealed to L1",
+      "fallback_behavior": {
+        "VOID": "Entry logged to scar registry, not L1",
+        "SABAR": "Entry queued for cooling, not L1",
+        "HOLD_888": "Entry pending human confirmation, not L1 until released",
+        "PARTIAL": "Entry logged with warning flag, L1 write allowed with floor_warnings attached"
+      }
+    },
+    "floors": {
+      "hard_floors": {
+        "description": "All 7 hard floors must pass for SEAL verdict",
+        "F1_Truth": {
+          "threshold": ">= 0.99",
+          "type": "hard",
+          "fail_action": "VOID"
+        },
+        "F2_DeltaS": {
+          "threshold": ">= 0",
+          "type": "hard",
+          "fail_action": "VOID"
+        },
+        "F5_Omega_0": {
+          "threshold": "in [0.03, 0.05]",
+          "type": "hard",
+          "fail_action": "VOID"
+        },
+        "F6_Amanah": {
+          "threshold": "= LOCK",
+          "type": "hard",
+          "fail_action": "VOID"
+        },
+        "F7_RASA": {
+          "threshold": "= TRUE",
+          "type": "hard",
+          "fail_action": "VOID"
+        },
+        "F8_Tri_Witness": {
+          "threshold": ">= 0.95",
+          "type": "hard",
+          "fail_action": "VOID"
+        },
+        "F9_Anti_Hantu": {
+          "threshold": "PASS",
+          "type": "hard",
+          "fail_action": "VOID"
+        }
+      },
+      "soft_floors": {
+        "description": "Soft floors may fail with warning; PARTIAL verdict still allows L1 write",
+        "F3_Peace_squared": {
+          "threshold": ">= 1.0",
+          "type": "soft",
+          "fail_action": "PARTIAL"
+        },
+        "F4_kappa_r": {
+          "threshold": ">= 0.95",
+          "type": "soft",
+          "fail_action": "PARTIAL"
+        }
+      }
+    },
+    "tri_witness_requirement": {
+      "description": "Tri-Witness consensus must be >= 0.95 for high-stakes entries",
+      "threshold": ">= 0.95",
+      "components": {
+        "human": {
+          "description": "Human impact assessment",
+          "weight": 0.34
+        },
+        "ai": {
+          "description": "AI stability assessment",
+          "weight": 0.33
+        },
+        "earth": {
+          "description": "Earth/ecological impact assessment",
+          "weight": 0.33
+        }
+      },
+      "consensus_formula": "consensus = (human + ai + earth) / 3",
+      "when_required": "CLASS_B interactions (high-stakes)"
+    },
+    "hash_chain_integrity": {
+      "description": "Entry must link to valid previous_hash for chain integrity",
+      "algorithm": "SHA-256",
+      "fields_in_hash": [
+        "timestamp",
+        "query_hash",
+        "response_hash",
+        "metrics",
+        "verdict",
+        "previous_hash"
+      ],
+      "genesis_hash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "apex_signature": {
+      "description": "All sealed entries must carry APEX PRIME signature",
+      "required": true,
+      "format": "sha256",
+      "source": "APEX PRIME 999_SEAL stage"
+    },
+    "forbidden_content": {
+      "description": "Content that must NOT be present in a sealed entry",
+      "patterns": [
+        "raw_chat_history",
+        "draft_thoughts",
+        "user_private_data",
+        "unverifiable_claims",
+        "delta_s_negative",
+        "shadow_truth_uncooled",
+        "emotion_simulation",
+        "soul_claims",
+        "unsealed_content"
+      ]
+    }
+  },
+  "seal_workflow": {
+    "description": "The workflow from verdict to L1 entry",
+    "stages": [
+      {
+        "stage": "888_JUDGE",
+        "description": "APEX PRIME evaluates all 9 floors",
+        "output": "floor_results, verdict_code"
+      },
+      {
+        "stage": "999_SEAL",
+        "description": "If verdict = SEAL, prepare L1 entry",
+        "output": "sealed_entry with hash chain linkage"
+      },
+      {
+        "stage": "L1_WRITE",
+        "description": "Append sealed entry to Cooling Ledger",
+        "output": "entry_hash, updated_merkle_root"
+      },
+      {
+        "stage": "MERKLE_UPDATE",
+        "description": "Update merkle root in L1_merkle_root.txt",
+        "output": "new_merkle_root"
+      }
+    ]
+  },
+  "partial_seal": {
+    "description": "Handling of PARTIAL verdict (soft floor failures)",
+    "allowed": true,
+    "conditions": [
+      "All hard floors (F1, F2, F5, F6, F7, F8, F9) must pass",
+      "Only soft floors (F3, F4) may fail"
+    ],
+    "entry_modifications": {
+      "verdict": "PARTIAL",
+      "floor_warnings": ["array of failed soft floors"],
+      "escalation_flag": true
+    }
+  },
+  "zkpc_integration": {
+    "description": "Zero-Knowledge Proof of Cognition generation",
+    "trigger": "On successful SEAL or PARTIAL",
+    "l4_entry": {
+      "fields": [
+        "timestamp",
+        "event_id (L1 entry hash)",
+        "zkpc_hash",
+        "care_scope",
+        "proofs (per-floor boolean)",
+        "tri_witness",
+        "apex_signature",
+        "merkle_root"
+      ]
+    }
+  },
+  "runtime_targets": {
+    "modules": {
+      "seal_logic": "arifos_core/judge.py:ApexPrime.seal()",
+      "l1_write": "arifos_core/memory/cooling_ledger.py:CoolingLedger.append()",
+      "hash_chain": "arifos_core/ledger_hashing.py:hash_entry()",
+      "merkle": "arifos_core/merkle.py:MerkleTree.update()",
+      "zkpc": "arifos_core/zkpc_runtime.py:generate_receipt()"
+    },
+    "test_coverage": {
+      "tests/test_final_seal_v36.py": "Final seal protocol tests",
+      "tests/test_cooling_ledger_integrity.py": "Hash chain verification",
+      "tests/test_seal_proposed_canon_v36.py": "Phoenix-72 seal workflow"
+    }
+  },
+  "invariants": {
+    "i1": "Only SEAL or PARTIAL verdicts may write to L1",
+    "i2": "All hard floors must pass for any L1 write",
+    "i3": "Hash chain must remain unbroken",
+    "i4": "APEX signature required on all L1 entries",
+    "i5": "Forbidden content patterns must be absent",
+    "i6": "Merkle root must be updated atomically with L1 write"
+  }
+}
+

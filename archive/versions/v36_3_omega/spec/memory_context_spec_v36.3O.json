@@ -1,0 +1,287 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://arifos/spec/memory_context_spec_v36.3O.json",
+  "$comment": "Implements: ARIFOS_MEMORY_STACK_v36.3O.md | Law: v36.3Omega",
+  "title": "MemoryContext v36.3Omega",
+  "description": "Master structure of MemoryContext with six bands: env, vault, ledger, active_stream, vector, void.",
+  "type": "object",
+  "meta": {
+    "spec_id": "memory_context_spec_v36.3O",
+    "epoch": "v36.3Omega",
+    "implements": [
+      "v36.3O/canon/ARIFOS_MEMORY_STACK_v36.3O.md",
+      "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md"
+    ],
+    "law_source": "v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md",
+    "purpose": "Machine-readable schema for MemoryContext and its six bands.",
+    "status": "SEALED"
+  },
+  "properties": {
+    "context_id": {
+      "type": "string",
+      "description": "Opaque identifier for this MemoryContext instance.",
+      "minLength": 1
+    },
+    "epoch": {
+      "type": "string",
+      "description": "Epoch label (e.g., v36.3Omega).",
+      "minLength": 1
+    },
+    "env": {
+      "description": "EnvBand - ambient, non-secret runtime context.",
+      "$ref": "#/definitions/EnvBand"
+    },
+    "vault": {
+      "description": "VaultBand - read-only snapshot of VAULT-999 constitution.",
+      "$ref": "#/definitions/VaultBand"
+    },
+    "ledger": {
+      "description": "LedgerBand - recent Cooling Ledger projection.",
+      "$ref": "#/definitions/LedgerBand"
+    },
+    "active_stream": {
+      "description": "ActiveStreamBand - volatile working state for current interaction.",
+      "$ref": "#/definitions/ActiveStreamBand"
+    },
+    "vector": {
+      "description": "VectorBand - witness memory and embedding-backed context.",
+      "$ref": "#/definitions/VectorBand"
+    },
+    "void": {
+      "description": "VoidBand - diagnostic scars, paradoxes, anomalies.",
+      "$ref": "#/definitions/VoidBand"
+    }
+  },
+  "required": [
+    "context_id",
+    "epoch",
+    "env",
+    "vault",
+    "ledger",
+    "active_stream"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "EnvBand": {
+      "type": "object",
+      "description": "Non-secret runtime context for interpreting the interaction. Invariant: Must not contain user secrets, long-term identifiers, or raw chat history.",
+      "properties": {
+        "runtime_manifest_id": {
+          "type": "string",
+          "description": "Identifier of the runtime manifest used for this interaction.",
+          "minLength": 1
+        },
+        "session_id": {
+          "type": ["string", "null"],
+          "description": "Session identifier (may be rotated frequently)."
+        },
+        "request_id": {
+          "type": "string",
+          "description": "Per-request identifier.",
+          "minLength": 1
+        },
+        "stakes_class": {
+          "type": "string",
+          "description": "Classification of stakes for this interaction.",
+          "enum": ["CLASS_A", "CLASS_B"]
+        },
+        "locale": {
+          "type": ["string", "null"],
+          "description": "Locale / language code (e.g., en-US)."
+        },
+        "extra": {
+          "type": "object",
+          "description": "Implementation-specific context fields.",
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "runtime_manifest_id",
+        "request_id"
+      ],
+      "additionalProperties": false
+    },
+    "VaultBand": {
+      "type": "object",
+      "description": "Read-only snapshot of VAULT-999 L0 constitution. Invariant: No other band may override or shadow Vault Band fields.",
+      "properties": {
+        "epoch": {
+          "type": "string",
+          "description": "Epoch of the loaded constitution.",
+          "minLength": 1
+        },
+        "constitutional_floors": {
+          "type": "object",
+          "description": "Frozen F1-F9 floor configuration.",
+          "additionalProperties": true
+        },
+        "deltaOmegaPsi": {
+          "type": "object",
+          "description": "Physics parameters from PHYSICS canon.",
+          "additionalProperties": true
+        },
+        "aaa_trinity": {
+          "type": "object",
+          "description": "ARIF / ADAM / APEX PRIME definitions.",
+          "additionalProperties": true
+        },
+        "version_hash": {
+          "type": "string",
+          "description": "SHA-256 hash of the constitutional state.",
+          "minLength": 64,
+          "maxLength": 64
+        },
+        "amendment_history_ref": {
+          "type": ["string", "null"],
+          "description": "Pointer or identifier for Phoenix-72 amendment history."
+        }
+      },
+      "required": [
+        "epoch",
+        "constitutional_floors",
+        "version_hash"
+      ],
+      "additionalProperties": false
+    },
+    "LedgerBand": {
+      "type": "object",
+      "description": "Projection of recent Cooling Ledger entries. Invariant: Append-only projection; must not re-order or edit entries.",
+      "properties": {
+        "entries": {
+          "type": "array",
+          "description": "Recent high-stakes ledger entries.",
+          "items": {
+            "type": "object",
+            "description": "Cooling ledger entry (shape aligned with cooling_ledger_entry_spec_v36.3O.json).",
+            "additionalProperties": true
+          }
+        },
+        "window_hours": {
+          "type": ["number", "null"],
+          "description": "Time window covered by these entries."
+        },
+        "head_hash": {
+          "type": ["string", "null"],
+          "description": "Hash of the most recent entry in this projection."
+        }
+      },
+      "required": [
+        "entries"
+      ],
+      "additionalProperties": false
+    },
+    "ActiveStreamBand": {
+      "type": "object",
+      "description": "Volatile working state for current interaction. Invariant: Not a source of law or long-term evidence.",
+      "properties": {
+        "messages": {
+          "type": "array",
+          "description": "Sequence of messages or steps in the current interaction.",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "governance_state": {
+          "type": "object",
+          "description": "Current floor checks, W@W votes, and partial verdicts.",
+          "additionalProperties": true
+        },
+        "tools_invoked": {
+          "type": "array",
+          "description": "List of tools (and parameters) invoked during this interaction.",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "VectorBand": {
+      "type": "object",
+      "description": "Witness memory backed by vector indices. Invariant: Content must be traceable to L1 evidence or external sources with provenance.",
+      "properties": {
+        "indices": {
+          "type": "array",
+          "description": "Vector indices available to this context.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "index_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "type": "string",
+                "description": "Type of index (e.g., 'scar', 'witness', 'docs').",
+                "enum": ["scar", "witness", "docs", "policy", "other"]
+              },
+              "dimension": {
+                "type": ["integer", "null"],
+                "minimum": 1,
+                "description": "Embedding dimension."
+              },
+              "metadata": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "index_id"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "VoidBand": {
+      "type": "object",
+      "description": "Diagnostics, anomalies, and scar proposals. Invariant: Entries must be signed when promoted, anchored to ledger events, never silently discarded.",
+      "properties": {
+        "scar_proposals": {
+          "type": "array",
+          "description": "Scar proposals surfaced during this interaction or window.",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "canonical_scars": {
+          "type": "array",
+          "description": "Canonical scars relevant to this context (subset of global index).",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "paradox_hotspots": {
+          "type": "array",
+          "description": "Detected paradox or conflict locations.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "hotspot_id": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "detected_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  }
+}
+

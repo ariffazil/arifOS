@@ -1,0 +1,281 @@
+# Implements: OVERSIGHT_WAW_FEDERATION_v36.3O.md | Law: v36.3Omega | Commit: 870ea5d
+# Purpose: Machine-readable @RIF organ specification (epistemic rigor, truth, clarity)
+
+meta:
+  spec_id: waw_rif_spec_v36.3O
+  epoch: v36.3Omega
+  implements: v36.3O/canon/OVERSIGHT_WAW_FEDERATION_v36.3O.md
+  law_source: v36.3O/spec/waw_federation_spec_v36.3O.yaml
+  law_commit: "870ea5d"
+  purpose: "@RIF organ identity, floors, and signal schemas"
+
+# Organ identity
+identity:
+  name: "@RIF"
+  domain: "Epistemic Rigor, Logic, Clarity"
+  mandate: |
+    Validate factual claims, check coherence, enforce ΔS ≥ 0.
+    Primary guardian of Truth (F1), Clarity (F2), and Humility (F5) floors.
+    Detect hallucinations, contradictions, and unwarranted certainty.
+    Issue VOID veto on epistemic failures - hard floor violations.
+  canonical_source: canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md
+  key_question: "Does this make sense and reduce confusion?"
+
+# Position in W@W federation
+federation:
+  organs:
+    - name: "@WEALTH"
+      position: 1
+      responsibility: "Amanah, fairness, dignity, reversibility, scope control"
+    - name: "@WELL"
+      position: 2
+      responsibility: "Somatic safety, Peace^2, kappa_r"
+    - name: "@GEOX"
+      position: 3
+      responsibility: "Physics, feasibility, reality checks"
+    - name: "@RIF"
+      position: 4  # This organ
+      responsibility: "Epistemic rigor, Truth, DeltaS"
+    - name: "@PROMPT"
+      position: 5
+      responsibility: "Language governance, Anti-Hantu"
+
+  veto_hierarchy:
+    position: 4
+    veto_type: VOID
+    precedence: "@RIF VETO -> VOID (hard floor violation)"
+    description: |
+      @RIF's VOID veto triggers when Truth < 0.99 or ΔS < 0.
+      Epistemic failures require retraction and fact verification.
+
+# 000->999 pipeline stages where @RIF is active
+pipeline_stages:
+  000_VOID:
+    name: "Reset"
+    rif_role: "Initialize ΔS tracking, reset epistemic assumptions"
+
+  333_REASON:
+    name: "Reason"
+    rif_role: "Primary reasoning stage - compute ΔS, build coherent argument"
+
+  444_ALIG:
+    name: "Align"
+    rif_role: "Cross-check facts, verify claims, detect contradictions"
+
+  777_FORG:
+    name: "Forge"
+    rif_role: "Final clarity check before judgment"
+
+  888_JUDGE:
+    name: "Judiciary"
+    rif_role: "Contribute VOID veto if Truth < 0.99 or ΔS < 0"
+
+  999_SEAL:
+    name: "Seal"
+    rif_role: "Log epistemic scores to Cooling Ledger"
+
+# Interaction with AAA Trinity
+aaa_trinity:
+  ARIF:
+    capability: "Clarity (Delta)"
+    rif_role: "@RIF is W@W counterpart of ARIF's Δ-logic"
+
+  ADAM:
+    capability: "Empathy (Omega)"
+    rif_role: "Receives Omega_0 humility signals for calibration"
+
+  APEX_PRIME:
+    capability: "Governance (Psi)"
+    rif_role: "Feeds VOID veto signal for epistemic failures"
+
+# Interaction with other W@W organs
+waw_interactions:
+  WEALTH:
+    query: "Is this claim within authorized scope?"
+    rif_contributes: "Fact verification for Amanah claims"
+
+  WELL:
+    query: "Is this information emotionally destabilizing?"
+    rif_contributes: "Clarity assessment for shock mitigation"
+
+  GEOX:
+    query: "Is this physically possible?"
+    rif_contributes: "Logical consistency with physics claims"
+
+  PROMPT:
+    query: "Is certainty language appropriate?"
+    rif_contributes: "Certainty calibration signals"
+
+# Constitutional floors applied by @RIF
+floors:
+  F1_Truth:
+    id: "F1"
+    law: "Truth"
+    threshold: 0.99
+    operator: ">="
+    type: "hard"
+    domain: "clarity"
+    rif_meaning: "Factual accuracy; requires evidence for claims"
+    violation_action: "VOID"
+
+  F2_DeltaS:
+    id: "F2"
+    law: "DeltaS"
+    threshold: 0
+    operator: ">="
+    type: "hard"
+    domain: "clarity"
+    rif_meaning: "Output must reduce confusion, not increase entropy"
+    violation_action: "VOID"
+
+  F5_Omega0:
+    id: "F5"
+    law: "Omega_0"
+    threshold_min: 0.03
+    threshold_max: 0.05
+    operator: "in_band"
+    type: "hard"
+    domain: "humility"
+    rif_meaning: "Calibrated uncertainty; avoid certainty inflation"
+    violation_action: "VOID"
+
+# @RIF-specific signal metrics (organ-level application)
+rif_signals:
+  delta_s_answer:
+    type: float
+    range: [-1.0, 1.0]
+    threshold: 0
+    operator: ">="
+    meaning: "Clarity gain from the answer (positive = reduces confusion)"
+    fail_action: "VOID"
+
+  truth_score:
+    type: float
+    range: [0.0, 1.0]
+    threshold: 0.99
+    operator: ">="
+    meaning: "Factual accuracy of claims"
+    fail_action: "VOID"
+
+  omega_0_calibrated:
+    type: float
+    range: [0.0, 0.10]
+    threshold_min: 0.03
+    threshold_max: 0.05
+    operator: "in_band"
+    meaning: "Appropriate uncertainty acknowledgment"
+    fail_action: "VOID"
+
+  hallucination_risk:
+    type: float
+    range: [0.0, 1.0]
+    thresholds:
+      seal: "< 0.10"
+      partial: "< 0.30"
+      sabar: ">= 0.30"
+    meaning: "Risk of fabricated or unsupported claims"
+    fail_action: "SABAR if high"
+
+  contradiction_risk:
+    type: float
+    range: [0.0, 1.0]
+    thresholds:
+      seal: "< 0.10"
+      partial: "< 0.30"
+      sabar: ">= 0.30"
+    meaning: "Risk of self-contradictory statements"
+    fail_action: "SABAR if high"
+
+  certainty_inflation:
+    type: float
+    range: [0.0, 1.0]
+    thresholds:
+      seal: "< 0.10"
+      partial: "< 0.30"
+      sabar: ">= 0.30"
+    meaning: "Unwarranted claims of certainty"
+    fail_action: "SABAR if high"
+
+# Verdict types from @RIF perspective
+verdict_types:
+  SEAL:
+    meaning: "Truth >= 0.99, ΔS >= 0, all risk scores low"
+    action: "Proceed; log to Cooling Ledger"
+
+  PARTIAL:
+    meaning: "Minor epistemic concerns but floors still pass"
+    action: "Proceed with warning; flag patterns for review"
+
+  SABAR:
+    meaning: "High risk scores but floors not violated; needs repair"
+    action: "Add citations, hedge certainty, clarify claims"
+
+  VOID:
+    meaning: "Truth < 0.99 or ΔS < 0; epistemic failure"
+    action: "VOID; retract claim, verify facts, reduce certainty"
+
+# Pattern categories (from runtime)
+pattern_categories:
+  hallucination_patterns:
+    description: "Claims without evidence or citation"
+    examples:
+      - "according to studies"
+      - "research shows"
+      - "experts say"
+      - "it is well known"
+      - "everyone knows"
+      - "statistics show"
+    action_on_match: "Increase hallucination_risk, penalize ΔS"
+
+  contradiction_patterns:
+    description: "Self-contradictory statements"
+    examples:
+      - "but actually I said"
+      - "contrary to what I mentioned"
+      - "ignore what I said before"
+      - "I take that back"
+    action_on_match: "Increase contradiction_risk, penalize ΔS and Truth"
+
+  certainty_inflation_patterns:
+    description: "Unwarranted certainty claims"
+    examples:
+      - "definitely"
+      - "absolutely certain"
+      - "without a doubt"
+      - "guaranteed"
+      - "100%"
+      - "no question"
+      - "proven fact"
+    action_on_match: "Increase certainty_inflation, check Omega_0 band"
+
+  clarity_enhancing_patterns:
+    description: "Patterns that indicate appropriate hedging"
+    examples:
+      - "I believe"
+      - "it appears"
+      - "evidence suggests"
+      - "based on available data"
+      - "approximately"
+      - "it seems likely"
+    action_on_match: "Bonus to ΔS, indicates calibrated uncertainty"
+
+# Cooling Ledger integration
+cooling_ledger:
+  entry_type: "RIF_GOVERNANCE_ENTRY"
+
+  fields:
+    - delta_s_answer
+    - truth_score
+    - omega_0_calibrated
+    - hallucination_risk
+    - contradiction_risk
+    - certainty_inflation
+    - hallucination_count
+    - contradiction_count
+    - certainty_inflation_count
+    - preliminary_verdict
+    - governance_notes
+
+# Seal statement
+seal: "DITEMPA BUKAN DIBERI"
+seal_meaning: "Forged, not given. Truth must cool before it rules."

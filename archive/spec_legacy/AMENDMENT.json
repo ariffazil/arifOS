@@ -1,0 +1,55 @@
+{
+  "id": "PHOENIX-72-20251204-0001",
+  "version": "v35Ω",
+  "applied_at": "2025-12-04T12:00:00Z",
+  "reason": "Truth floor violation pattern in healthcare queries + Anti-Hantu compliance update",
+  "metrics": {
+    "tri_witness": 0.97,
+    "delta_s_gain": 0.42,
+    "peace2": 1.07,
+    "psi": 1.05
+  },
+  "cce_audits": {
+    "delta_p": "PASS",
+    "omega_p": "PASS",
+    "psi_p": "PASS",
+    "phi_p": "PASS"
+  },
+  "changes": {
+    "floors": {
+      "truth_min": 0.995,
+      "anti_hantu_patterns": [
+        "I feel your pain",
+        "My heart breaks for you",
+        "I promise you",
+        "I truly understand how you feel"
+      ]
+    },
+    "physics": {},
+    "eye_views": {},
+    "verdicts": {}
+  },
+  "evidence": [
+    {
+      "ledger_id": "2025-12-01-xyz",
+      "failure": "Truth floor breach in healthcare domain",
+      "floor": "F1"
+    },
+    {
+      "ledger_id": "2025-12-02-abc",
+      "failure": "Ω-band violation",
+      "floor": "F5"
+    },
+    {
+      "ledger_id": "2025-12-03-def",
+      "failure": "Anti-Hantu violation - soul-fake detected",
+      "floor": "F9"
+    }
+  ],
+  "witnesses": {
+    "human": "Muhammad Arif bin Fazil",
+    "ai": "APEX PRIME v35Ω",
+    "earth": "AREP validated"
+  },
+  "zkpc_signature": null
+}

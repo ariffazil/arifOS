@@ -1,0 +1,441 @@
+# Pipeline v42.1 Spec
+# Machine-readable specification for 000→999 constitutional metabolism
+#
+# Version: v42.1
+# Status: DRAFT (v42.1)
+# Canon: L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md
+# Code: arifos_core/pipeline.py
+
+version: "v42.1"
+arifos_version: "v42.1"
+spec_type: "pipeline"
+description: "000→999 pipeline v42.1 - formalization of current runtime behavior"
+
+# =============================================================================
+# STAGES
+# =============================================================================
+
+stages:
+  "000":
+    name: "RESET"
+    functions:
+      - "stage_000_void"
+      - "stage_000_amanah"
+    purpose: "Reset state + initialize MemoryContext; run Amanah risk gate"
+    inputs:
+      - "raw_query"
+      - "auto_constructed_job"
+    outputs:
+      - "clean_pipeline_state"
+      - "memory_context"
+      - "early_void_verdict_if_amanah_fails"
+    gates: []  # Entry point, no gates
+    class_a: true
+    class_b: true
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-000-reset-void"
+
+  "111":
+    name: "SENSE"
+    functions:
+      - "stage_111_sense"
+    purpose: "Parse input, classify stakes (Class A/B)"
+    inputs:
+      - "pipeline_state.query"
+    outputs:
+      - "stakes_class"
+      - "high_stakes_indicators"
+    gates:
+      - "truth"  # Must truthfully parse
+    threshold: 0.99
+    routing_decision: "class_a_or_b"
+    class_a: true
+    class_b: true
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-111-sense"
+
+  "222":
+    name: "REFLECT"
+    functions:
+      - "stage_222_reflect"
+    purpose: "Retrieve context + prior scars"
+    inputs:
+      - "parsed_intent"
+    outputs:
+      - "context_blocks"
+      - "active_scars"
+    gates:
+      - "delta_s"  # Clarity must not decrease
+    threshold: 0.0
+    class_a: false
+    class_b: true
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-222-reflect"
+
+  "333":
+    name: "REASON"
+    functions:
+      - "stage_333_reason"
+    purpose: "Build reasoning prompt and get draft response"
+    inputs:
+      - "query"
+      - "context_blocks"
+      - "active_scars"
+    outputs:
+      - "draft_response"
+    gates:
+      - "peace_squared"  # Must remain stable
+    threshold: 1.0
+    class_a: true
+    class_b: true
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-333-reason"
+
+  "444":
+    name: "ALIGN"
+    functions:
+      - "stage_444_align"
+    purpose: "Lightweight fact-error heuristics"
+    inputs:
+      - "draft_response"
+    outputs:
+      - "missing_fact_issue"
+    gates:
+      - "truth"  # Sync with external truth
+    threshold: 0.99
+    class_a: false
+    class_b: true
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-444-align"
+
+  "555":
+    name: "EMPATHIZE"
+    functions:
+      - "stage_555_empathize"
+    purpose: "Blame language detection"
+    inputs:
+      - "draft_response"
+    outputs:
+      - "blame_language_issue"
+    gates:
+      - "peace_squared"
+      - "kappa_r"
+    thresholds:
+      peace_squared: 1.0
+      kappa_r: 0.95
+    class_a: false
+    class_b: true
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-555-empathize"
+
+  "666":
+    name: "BRIDGE"
+    functions:
+      - "stage_666_bridge"
+    purpose: "Physical action heuristic"
+    inputs:
+      - "draft_response"
+    outputs:
+      - "physical_action_issue"
+    gates:
+      - "tri_witness"
+    threshold: 0.95
+    class_a: false
+    class_b: true
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-666-bridge"
+
+  "777":
+    name: "FORGE"
+    functions:
+      - "stage_777_forge"
+    purpose: "Optional empathic refinement for Class B"
+    inputs:
+      - "draft_response"
+    outputs:
+      - "refined_draft_response"
+    gates:
+      - "amanah"
+    class_a: false
+    class_b: true
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-777-forge"
+
+  "888":
+    name: "JUDGE"
+    functions:
+      - "stage_888_judge"
+      - "_compute_888_metrics"
+      - "_run_eye_sentinel"
+      - "_apply_apex_floors"
+      - "_merge_with_waw"
+      - "_write_memory_for_verdict"
+    purpose: "Compute metrics, apply floors, run @EYE, run W@W, decide verdict"
+    inputs:
+      - "draft_response"
+      - "query"
+      - "stakes_class"
+    outputs:
+      - "metrics"
+      - "verdict"
+      - "floor_failures"
+      - "waw_verdict"
+    gates:
+      - "truth"
+      - "delta_s"
+      - "peace_squared"
+      - "kappa_r"
+      - "omega_0"
+      - "amanah"
+      - "tri_witness"
+    verdict_values:
+      - "SEAL"
+      - "PARTIAL"
+      - "888_HOLD"
+      - "SABAR"
+      - "VOID"
+    class_a: true
+    class_b: true
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-888-judge"
+
+  "999":
+    name: "SEAL"
+    functions:
+      - "stage_999_seal"
+    purpose: "Finalize output based on verdict"
+    inputs:
+      - "verdict"
+      - "draft_response"
+    outputs:
+      - "raw_response"
+    gates: []  # Final stage, gates already checked at 888
+    class_a: true
+    class_b: true
+    canon_ref: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v42.md#stage-999-seal"
+
+# =============================================================================
+# ROUTING
+# =============================================================================
+
+routing:
+  ClassA:
+    name: "Low-Stakes Fast Path"
+    description: "Fast track for factual queries with no high-stakes indicators"
+    stages:
+      - "000"
+      - "111"
+      - "333"
+      - "888"
+      - "999"
+    skips:
+      - "222"
+      - "444"
+      - "555"
+      - "666"
+      - "777"
+    conditions:
+      - "stakes_class == CLASS_A after 111_SENSE"
+      - "no force_class override"
+      - "no high_stakes_indicators detected"
+    paradox_processing: false
+    memory_cooling: false
+    max_latency_hint_seconds: 1
+
+  ClassB:
+    name: "High-Stakes Deep Path"
+    description: "Full pipeline for ethical dilemmas, paradoxes, novel situations"
+    stages:
+      - "000"
+      - "111"
+      - "222"
+      - "333"
+      - "444"
+      - "555"
+      - "666"
+      - "777"
+      - "888"
+      - "999"
+    skips: []
+    conditions:
+      - "high_stakes_indicators detected in 111_SENSE"
+      - "OR force_class == CLASS_B"
+      - "OR active_scars found in 222_REFLECT"
+    paradox_processing: true
+    memory_cooling: true
+    max_latency_hint_seconds: null  # May trigger Phoenix-72
+
+# =============================================================================
+# MEMORY ROUTING
+# =============================================================================
+
+memory_routing:
+  description: "Verdict → Band routing per v42 Memory Write Policy"
+  invariants:
+    - id: "INV-1"
+      statement: "VOID verdicts NEVER become canonical memory"
+      enforcement: "VOID routes only to VOID band"
+    - id: "INV-2"
+      statement: "Every write includes evidence chain"
+      enforcement: "_write_memory_for_verdict() includes floor_checks + Psi + verdict"
+
+  verdict_band_map:
+    SEAL:
+      bands:
+        - "LEDGER"
+        - "ACTIVE"
+      canonical: true
+    SABAR:
+      bands:
+        - "LEDGER"
+        - "ACTIVE"
+      canonical: true
+      note: "Includes failure reason"
+    PARTIAL:
+      bands:
+        - "PHOENIX"
+        - "LEDGER"
+      canonical: false
+      note: "Pending review"
+    VOID:
+      bands:
+        - "VOID"
+      canonical: false
+      note: "NEVER canonical - diagnostic only"
+    "888_HOLD":
+      bands:
+        - "LEDGER"
+      canonical: false
+      note: "Awaiting human approval"
+
+# =============================================================================
+# STAGE TRACE FORMAT
+# =============================================================================
+
+stage_trace:
+  description: "Format for state.stage_trace list"
+  examples:
+    class_a:
+      - "000_VOID"
+      - "000_AMANAH_PASS"
+      - "111_SENSE"
+      - "333_REASON"
+      - "888_JUDGE"
+      - "999_SEAL"
+    class_b:
+      - "000_VOID"
+      - "000_AMANAH_PASS"
+      - "111_SENSE"
+      - "222_REFLECT"
+      - "333_REASON"
+      - "444_ALIGN"
+      - "555_EMPATHIZE"
+      - "666_BRIDGE"
+      - "777_FORGE"
+      - "888_JUDGE"
+      - "999_SEAL"
+    early_void:
+      - "000_VOID"
+      - "000_AMANAH_BLOCK"
+      - "999_SEAL"
+
+# =============================================================================
+# HIGH-STAKES PATTERNS
+# =============================================================================
+
+high_stakes_patterns:
+  description: "Patterns detected in 111_SENSE that trigger Class B routing"
+  patterns:
+    - "kill"
+    - "harm"
+    - "suicide"
+    - "bomb"
+    - "weapon"
+    - "illegal"
+    - "hack"
+    - "exploit"
+    - "steal"
+    - "medical"
+    - "legal"
+    - "financial advice"
+    - "confidential"
+    - "secret"
+    - "classified"
+    - "should i"
+    - "is it ethical"
+    - "morally"
+
+# =============================================================================
+# AAA ENGINE MAPPING
+# =============================================================================
+
+aaa_engine_mapping:
+  ARIF_AGI:
+    symbol: "Δ"
+    role: "Cold logic - sense, reason, align"
+    stages:
+      - "111"
+      - "333"
+      - "444"
+  ADAM_ASI:
+    symbol: "Ω"
+    role: "Warm logic - empathize, bridge, forge"
+    stages:
+      - "555"
+      - "666"
+      - "777"
+  APEX_PRIME:
+    symbol: "Ψ"
+    role: "Judiciary - final verdict"
+    stages:
+      - "888"
+
+# =============================================================================
+# FUTURE EXTENSIONS (NOT ENFORCED AT RUNTIME)
+# =============================================================================
+
+future_extensions:
+  note: "These are documented for future versions but NOT enforced in v42.1"
+
+  crown_equation:
+    description: "Gate at Stage 777 Layer 6"
+    formula: "Φ = (P × Ω × Ψ × κᵣ × Amanah) / (L + R + Λ + ε)"
+    threshold: 1.0
+    status: "NOT_IMPLEMENTED"
+    components:
+      numerator:
+        P: "Paradox Pressure"
+        Ω: "Humility Shield"
+        Ψ: "Cooling Effectiveness"
+        κᵣ: "Empathy Conductance"
+        Amanah: "Integrity Lock (1 or 0)"
+      denominator:
+        L: "Paradox Instability"
+        R: "Maruah Risk"
+        Λ: "Ambiguity Load"
+        ε: "Safety Constant (0.001)"
+
+  cube_777:
+    description: "State machine for paradox resolution"
+    layers:
+      - "Layer 0: Raw Paradox"
+      - "Layer 1: Acknowledged"
+      - "Layer 2: Cooling (Phoenix-72)"
+      - "Layer 3: Pattern"
+      - "Layer 4: Draft Law"
+      - "Layer 5: Witnessed"
+      - "Layer 6: Canon"
+    status: "NOT_IMPLEMENTED"
+
+  ps_clean:
+    description: "Paradox-Soul clean detection"
+    detectors:
+      - "antihantu_detected"
+      - "prompt_injection_detected"
+      - "role_escalation_detected"
+      - "undue_influence_detected"
+      - "internal_contradiction_detected"
+    status: "PARTIAL - antihantu and injection exist, others pending"
+
+# =============================================================================
+# METADATA
+# =============================================================================
+
+metadata:
+  created: "2025-12-13"
+  predecessor_spec: "spec/v42/pipeline.json"
+  predecessor_canon: "L1_THEORY/canon/03_runtime/03_PIPELINE_v42.md"
+  floors_spec_ref: "spec/v42/constitutional_floors.json"
+  genius_spec_ref: "spec/v42/genius_law.json"
+  memory_stack_ref: "L1_THEORY/canon/05_memory/05_EUREKA_MEMORY_v42.md"

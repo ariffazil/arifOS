@@ -1,0 +1,325 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ariffazil/arifOS/spec/v44/schema/constitutional_floors.schema.json",
+  "title": "Constitutional Floors v44 Specification Schema",
+  "description": "JSON Schema for validating v44.0 constitutional floors specification (Track B authority)",
+  "type": "object",
+
+  "required": [
+    "version",
+    "authority",
+    "locked",
+    "_status",
+    "arifos_version",
+    "spec_type",
+    "description",
+    "source",
+    "floors",
+    "floor_categories",
+    "precedence_order",
+    "verdicts",
+    "vitality",
+    "meta"
+  ],
+
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^v44\\.0$",
+      "description": "Must be v44.0"
+    },
+    "authority": {
+      "type": "string",
+      "const": "Track B (tunable thresholds) governed by Track A canon"
+    },
+    "locked": {
+      "type": "boolean",
+      "const": true,
+      "description": "v44 specs must be locked"
+    },
+    "_status": {
+      "type": "string",
+      "enum": ["AUTHORITATIVE", "DEPRECATED", "EXPERIMENTAL"],
+      "description": "Specification status marker"
+    },
+    "arifos_version": {
+      "type": "string",
+      "pattern": "^v44\\.0$"
+    },
+    "spec_type": {
+      "type": "string",
+      "const": "constitutional_floors"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10
+    },
+    "source": {
+      "type": "string",
+      "format": "uri"
+    },
+
+    "floors": {
+      "type": "object",
+      "required": ["truth", "delta_s", "peace_squared", "kappa_r", "omega_0", "amanah", "rasa", "tri_witness", "anti_hantu"],
+      "properties": {
+        "truth": { "$ref": "#/definitions/floor_numeric" },
+        "delta_s": { "$ref": "#/definitions/floor_numeric" },
+        "peace_squared": { "$ref": "#/definitions/floor_numeric" },
+        "kappa_r": { "$ref": "#/definitions/floor_numeric" },
+        "omega_0": { "$ref": "#/definitions/floor_range" },
+        "amanah": { "$ref": "#/definitions/floor_boolean" },
+        "rasa": { "$ref": "#/definitions/floor_rasa" },
+        "tri_witness": { "$ref": "#/definitions/floor_tri_witness" },
+        "anti_hantu": { "$ref": "#/definitions/floor_anti_hantu" }
+      },
+      "additionalProperties": false
+    },
+
+    "floor_categories": {
+      "type": "object",
+      "required": ["hard", "soft", "meta"],
+      "properties": {
+        "hard": {
+          "type": "object",
+          "required": ["floors", "description", "failure_verdict"],
+          "properties": {
+            "floors": {
+              "type": "array",
+              "items": { "type": "string" },
+              "minItems": 1
+            },
+            "description": { "type": "string" },
+            "failure_verdict": { "type": "string", "const": "VOID" }
+          }
+        },
+        "soft": {
+          "type": "object",
+          "required": ["floors", "description", "failure_verdict"],
+          "properties": {
+            "floors": {
+              "type": "array",
+              "items": { "type": "string" },
+              "minItems": 1
+            },
+            "description": { "type": "string" },
+            "failure_verdict": { "type": "string", "const": "PARTIAL" }
+          }
+        },
+        "meta": {
+          "type": "object",
+          "required": ["floors", "description", "failure_verdict"],
+          "properties": {
+            "floors": {
+              "type": "array",
+              "items": { "type": "string" },
+              "minItems": 1
+            },
+            "description": { "type": "string" },
+            "failure_verdict": { "type": "string", "const": "VOID" }
+          }
+        }
+      }
+    },
+
+    "precedence_order": {
+      "type": "object",
+      "required": ["description", "order"],
+      "properties": {
+        "description": { "type": "string" },
+        "order": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["precedence", "floor", "rationale"],
+            "properties": {
+              "precedence": { "type": "integer", "minimum": 1, "maximum": 9 },
+              "floor": { "type": "string" },
+              "rationale": { "type": "string" }
+            }
+          },
+          "minItems": 9,
+          "maxItems": 9
+        }
+      }
+    },
+
+    "verdicts": {
+      "type": "object",
+      "required": ["SEAL", "PARTIAL", "888_HOLD", "VOID", "SABAR"],
+      "properties": {
+        "SEAL": { "$ref": "#/definitions/verdict_spec" },
+        "PARTIAL": { "$ref": "#/definitions/verdict_spec" },
+        "888_HOLD": { "$ref": "#/definitions/verdict_spec" },
+        "VOID": { "$ref": "#/definitions/verdict_spec" },
+        "SABAR": { "$ref": "#/definitions/verdict_spec" }
+      }
+    },
+
+    "vitality": {
+      "type": "object",
+      "required": ["symbol", "threshold", "description"],
+      "properties": {
+        "symbol": { "type": "string" },
+        "display": { "type": "string" },
+        "threshold": { "type": "number", "minimum": 0 },
+        "description": { "type": "string" },
+        "formula_canonical": { "type": "string" },
+        "formula_runtime_proxy": { "type": "string" }
+      }
+    },
+
+    "meta": {
+      "type": "object",
+      "required": ["created", "author", "license"],
+      "properties": {
+        "created": { "type": "string" },
+        "updated": { "type": "string" },
+        "author": { "type": "string" },
+        "license": { "type": "string" },
+        "canonical_source": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+
+    "floor_margin_policy": { "type": "object" },
+    "high_stakes_keywords": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "_companion_files": { "type": "object" },
+    "_source_evolution": { "type": "string" },
+    "_note": { "type": "string" }
+  },
+
+  "additionalProperties": false,
+
+  "definitions": {
+    "floor_numeric": {
+      "type": "object",
+      "required": ["id", "precedence", "stage_hook", "symbol", "threshold", "operator", "type", "failure_action"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "precedence": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "stage_hook": { "type": "string", "pattern": "^\\d{3}$" },
+        "symbol": { "type": "string" },
+        "display": { "type": "string" },
+        "threshold": { "type": "number" },
+        "operator": { "type": "string", "enum": [">=", "<=", "==", ">", "<"] },
+        "type": { "type": "string", "enum": ["hard", "soft", "meta"] },
+        "failure_action": { "type": "string", "enum": ["VOID", "PARTIAL", "SABAR", "HOLD_888"] },
+        "canon_ref": { "type": "string" },
+        "locked": { "type": "boolean" }
+      }
+    },
+
+    "floor_range": {
+      "type": "object",
+      "required": ["id", "precedence", "stage_hook", "symbol", "threshold_min", "threshold_max", "operator", "type", "failure_action"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "precedence": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "stage_hook": { "type": "string", "pattern": "^\\d{3}$" },
+        "symbol": { "type": "string" },
+        "display": { "type": "string" },
+        "threshold_min": { "type": "number" },
+        "threshold_max": { "type": "number" },
+        "operator": { "type": "string", "const": "in_range" },
+        "type": { "type": "string", "enum": ["hard", "soft", "meta"] },
+        "failure_action": { "type": "string", "enum": ["VOID", "PARTIAL", "SABAR", "HOLD_888"] },
+        "canon_ref": { "type": "string" }
+      }
+    },
+
+    "floor_boolean": {
+      "type": "object",
+      "required": ["id", "precedence", "stage_hook", "symbol", "threshold", "operator", "type", "failure_action"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "precedence": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "stage_hook": { "type": "string", "pattern": "^\\d{3}$" },
+        "symbol": { "type": "string" },
+        "display": { "type": "string" },
+        "threshold": { "type": "boolean" },
+        "operator": { "type": "string", "const": "==" },
+        "type": { "type": "string", "enum": ["hard", "soft", "meta"] },
+        "failure_action": { "type": "string", "enum": ["VOID", "PARTIAL", "SABAR", "HOLD_888"] },
+        "canon_ref": { "type": "string" },
+        "locked": { "type": "boolean" }
+      }
+    },
+
+    "floor_rasa": {
+      "type": "object",
+      "required": ["id", "precedence", "stage_hook", "symbol", "threshold", "operator", "type", "failure_action", "enforcement"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "precedence": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "stage_hook": { "type": "string", "pattern": "^\\d{3}$" },
+        "symbol": { "type": "string" },
+        "display": { "type": "string" },
+        "threshold": { "type": "boolean" },
+        "operator": { "type": "string", "const": "==" },
+        "type": { "type": "string", "enum": ["hard", "soft", "meta"] },
+        "failure_action": { "type": "string", "enum": ["VOID", "PARTIAL", "SABAR", "HOLD_888"] },
+        "canon_ref": { "type": "string" },
+        "enforcement": { "type": "object" }
+      }
+    },
+
+    "floor_tri_witness": {
+      "type": "object",
+      "required": ["id", "precedence", "stage_hook", "symbol", "threshold", "operator", "type", "failure_action"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "precedence": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "stage_hook": { "type": "string", "pattern": "^\\d{3}$" },
+        "symbol": { "type": "string" },
+        "display": { "type": "string" },
+        "threshold": { "type": "number" },
+        "operator": { "type": "string", "enum": [">=", "<=", "==", ">", "<"] },
+        "type": { "type": "string", "enum": ["hard", "soft", "meta"] },
+        "when": { "type": "string" },
+        "failure_action": { "type": "string", "enum": ["VOID", "PARTIAL", "SABAR", "HOLD_888"] },
+        "components": { "type": "object" },
+        "canon_ref": { "type": "string" }
+      }
+    },
+
+    "floor_anti_hantu": {
+      "type": "object",
+      "required": ["id", "precedence", "stage_hook", "symbol", "threshold", "operator", "type", "failure_action"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "precedence": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "stage_hook": { "type": "string", "pattern": "^\\d{3}$" },
+        "symbol": { "type": "string" },
+        "display": { "type": "string" },
+        "threshold": { "type": "boolean" },
+        "operator": { "type": "string", "const": "==" },
+        "type": { "type": "string", "enum": ["hard", "soft", "meta"] },
+        "failure_action": { "type": "string", "enum": ["VOID", "PARTIAL", "SABAR", "HOLD_888"] },
+        "forbidden_patterns": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "allowed_substitutes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "enforced_by": { "type": "string" },
+        "canon_ref": { "type": "string" }
+      }
+    },
+
+    "verdict_spec": {
+      "type": "object",
+      "required": ["condition", "action"],
+      "properties": {
+        "condition": { "type": "string" },
+        "action": { "type": "string" },
+        "symbol": { "type": "string" }
+      }
+    }
+  }
+}

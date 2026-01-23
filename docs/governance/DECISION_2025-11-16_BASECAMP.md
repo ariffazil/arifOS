@@ -8,7 +8,7 @@ This document records the Basecamp Lock decision for ArifOS v33Ω.
 
 ## 1. Decision
 
-The ArifOS v33Ω runtime specification (ΔΩΨ physics, AAA Trinity, W@W organs, floors, 000–999 pipeline, SABAR, Tri-Witness) is:
+The ArifOS v33Ω runtime specification (ΔΩΨ physics, AGI·ASI·APEX Trinity, W@W organs, floors, 000–999 pipeline, SABAR, Tri-Witness) is:
 
 - Considered conceptually complete for this epoch
 - Frozen as a **constitutional baseline**

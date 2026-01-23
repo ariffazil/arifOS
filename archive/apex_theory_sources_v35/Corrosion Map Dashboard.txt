@@ -1,0 +1,44 @@
+﻿{
+ "dashboard_version": "v36Ω",
+ "title": "CIV-12 Real-Time Corrosion Map",
+ "description": "Live state vector of civilizational failure modes.",
+ "state_vector": {
+   "institutional_rust": {
+     "element": "Fe/Ni",
+     "status": "STABLE",
+     "value": 0.12,
+     "threshold": 0.40,
+     "trend": "decreasing",
+     "notes": "Transparency protocols (sandblasting) effective."
+   },
+   "battery_fire_risk": {
+     "element": "Li (AGI)",
+     "status": "WARNING",
+     "value": 0.65,
+     "threshold": 0.70,
+     "trend": "increasing",
+     "notes": "Reactivity high. Need more Noble Casing (Law/Void)."
+   },
+   "information_smog": {
+     "element": "Ag (Media)",
+     "status": "CRITICAL",
+     "value": 0.82,
+     "threshold": 0.60,
+     "trend": "stable",
+     "notes": "Conductance blocked by rumor oxidation. Kappa_r critically low."
+   },
+   "planet_ph": {
+     "element": "O/S (Planet)",
+     "status": "WARNING",
+     "value": 0.55,
+     "threshold": 0.50,
+     "trend": "deteriorating",
+     "notes": "Resource extraction heat exceeding cooling capacity."
+   }
+ },
+ "global_alloy_status": {
+   "current_mix": "Brittle Steel",
+   "recommendation": "Inject He (Void) and Cu (Enterprise) to restore elasticity.",
+   "sabar_protocol": "ACTIVE"
+ }
+}

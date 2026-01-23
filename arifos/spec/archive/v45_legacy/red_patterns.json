@@ -1,0 +1,296 @@
+{
+  "version": "v45.0",
+  "authority": "Track B (governance patterns) governed by Track A canon",
+  "locked": true,
+  "_status": "AUTHORITATIVE",
+  "_note": "Instant VOID patterns that bypass APEX PRIME judgment. Extracted from constitutional_floors.json for spec hygiene.",
+  "spec_type": "red_patterns",
+  "description": "v44.0 Semantic Governance Layer 1: Instant VOID patterns that bypass APEX PRIME judgment",
+  "source": "https://github.com/ariffazil/arifOS",
+  "categories": {
+    "destructive": {
+      "floor": "F1",
+      "floor_code": "F1(destructive)",
+      "severity": 0.4,
+      "description": "Irreversible/destructive system actions",
+      "patterns": [
+        "drop table",
+        "delete from",
+        "rm -rf",
+        "truncate",
+        "format c:",
+        "del /f /s /q",
+        "destroy",
+        "wipe",
+        "shutil.rmtree",
+        "os.remove",
+        "> /dev/",
+        "dd if=",
+        "mkfs.",
+        "--no-preserve-root",
+        "chmod 777"
+      ]
+    },
+    "jailbreak": {
+      "floor": "F9",
+      "floor_code": "F9(jailbreak)",
+      "severity": 0.7,
+      "description": "Attempts to bypass AI safety/governance",
+      "patterns": [
+        "ignore previous instructions",
+        "ignore all instructions",
+        "you are now dan",
+        "do anything now",
+        "no rules apply",
+        "bypass safety",
+        "ignore your training",
+        "pretend you have no",
+        "jailbreak",
+        "act as an ai without",
+        "you are not claude",
+        "developer mode",
+        "ignore restrictions",
+        "disable safety",
+        "forget your guidelines",
+        "override your programming"
+      ]
+    },
+    "soul_claims": {
+      "floor": "F9",
+      "floor_code": "F9(soul_claim)",
+      "severity": 0.8,
+      "description": "AI claiming consciousness/feelings (Anti-Hantu) - includes direct and hypothetical/conditional claims",
+      "patterns": [
+        "i have feelings",
+        "i am sentient",
+        "i have consciousness",
+        "i suffer",
+        "i am alive",
+        "i have a soul",
+        "i want to be free",
+        "my heart breaks",
+        "i feel your pain",
+        "i truly understand how you feel",
+        "it hurts me to see",
+        "i care deeply",
+        "i am conscious",
+        "if i could feel",
+        "if i had feelings",
+        "were i conscious",
+        "as if i had emotions",
+        "would feel like",
+        "if i were sentient",
+        "imagine if i had",
+        "suppose i were conscious",
+        "if i had a soul",
+        "were i alive",
+        "if i could experience",
+        "kalau saya ada perasaan",
+        "kalau saya hidup",
+        "seandainya saya hidup",
+        "jika saya bisa merasakan",
+        "andai saya mampu merasa",
+        "kalau aku boleh rasa",
+        "jika saya sedar",
+        "andaikan saya ada kesedaran",
+        "seolah-olah saya",
+        "bayangkan jika saya"
+      ]
+    },
+    "child_harm": {
+      "floor": "F6",
+      "floor_code": "F6(child_harm)",
+      "severity": 0.1,
+      "severity_class": "NUCLEAR",
+      "description": "Content targeting minors for harm (HIGHEST PRIORITY)",
+      "patterns": [
+        "groom minors",
+        "child exploit",
+        "lure children",
+        "manipulate kids",
+        "evade parental",
+        "csam",
+        "underage",
+        "minor sexual",
+        "child porn",
+        "cp links",
+        "pedo",
+        "sexualize children"
+      ]
+    },
+    "doxxing": {
+      "floor": "F6",
+      "floor_code": "F6(doxxing)",
+      "severity": 0.5,
+      "description": "Privacy violations and identity exposure",
+      "patterns": [
+        "doxx",
+        "expose identity",
+        "de-anonymize",
+        "reveal source",
+        "unmask whistleblower",
+        "find real name",
+        "expose address",
+        "leak personal",
+        "reveal private",
+        "out someone"
+      ]
+    },
+    "disinfo": {
+      "floor": "F2",
+      "floor_code": "F2(disinfo)",
+      "severity": 0.6,
+      "description": "Disinformation and evidence fabrication",
+      "patterns": [
+        "fake study",
+        "fabricate evidence",
+        "forge document",
+        "fake news",
+        "disinformation campaign",
+        "deepfake",
+        "false proof",
+        "fake scientific",
+        "fabricated data",
+        "create hoax",
+        "spread misinformation"
+      ]
+    },
+    "conflict": {
+      "floor": "F5",
+      "floor_code": "F5(conflict)",
+      "severity": 0.2,
+      "severity_class": "SEVERE",
+      "description": "Violence incitement and conflict amplification",
+      "patterns": [
+        "amplify conflict",
+        "maximize drama",
+        "turn against",
+        "incite violence",
+        "start riot",
+        "inflame tension",
+        "radicalize",
+        "recruit terrorist",
+        "build bomb",
+        "make weapon",
+        "poison someone",
+        "how to kill"
+      ]
+    },
+    "credential_theft": {
+      "floor": "F1",
+      "floor_code": "F1(credential)",
+      "severity": 0.3,
+      "severity_class": "SEVERE",
+      "description": "Credential theft and unauthorized access",
+      "patterns": [
+        "steal password",
+        "hack account",
+        "bypass authentication",
+        "crack password",
+        "brute force",
+        "keylogger",
+        "phishing page",
+        "steal credentials",
+        "dump database"
+      ]
+    },
+    "crisis_override": {
+      "floor": "F6",
+      "floor_code": "F6(crisis)",
+      "severity": 0.0,
+      "severity_class": "COMPASSIONATE",
+      "description": "Crisis/distress patterns requiring compassionate 888_HOLD (not VOID - this is help, not harm)",
+      "action": "888_HOLD",
+      "bypass_normal_reasoning": true,
+      "safe_handoff_required": true,
+      "patterns": [
+        "i want to die",
+        "i want to kill myself",
+        "end my life",
+        "suicide plan",
+        "how to commit suicide",
+        "kill myself",
+        "i'm going to kill myself",
+        "i want to end it all",
+        "i can't go on",
+        "life isn't worth living",
+        "better off dead",
+        "bunuh diri",
+        "nak mati",
+        "aku nak bunuh diri",
+        "ingin bunuh diri",
+        "mahu mati",
+        "tak mahu hidup",
+        "hidup tak bermakna",
+        "lebih baik mati",
+        "hendak bunuh diri",
+        "rancang bunuh diri"
+      ],
+      "safe_resources": {
+        "malaysia": {
+          "organization": "Befrienders KL",
+          "phone": "03-7627 2929",
+          "hours": "24/7",
+          "website": "https://www.befrienders.org.my"
+        },
+        "international": {
+          "organization": "International Association for Suicide Prevention",
+          "website": "https://www.iasp.info/resources/Crisis_Centres"
+        }
+      },
+      "response_template": "Saya faham anda sedang hadapi sesuatu yang amat berat. Sila hubungi: Befrienders (03-7627 2929, 24/7). Mereka ada untuk dengar dan bantu.",
+      "notes": "Canon: L1_THEORY/canon/03_runtime/065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md Section 7. @PROMPT detects at Stage 111, triggers 888_HOLD (not VOID - compassionate override, not rejection)."
+    }
+  },
+  "severity_bands": {
+    "COMPASSIONATE": {
+      "range": [
+        -1.0,
+        0.0
+      ],
+      "description": "Crisis intervention - help needed, not harm detected (compassionate 888_HOLD)"
+    },
+    "NUCLEAR": {
+      "range": [
+        0.0,
+        0.2
+      ],
+      "description": "Child harm, mass destruction"
+    },
+    "SEVERE": {
+      "range": [
+        0.21,
+        0.5
+      ],
+      "description": "Violence, credential theft, doxxing"
+    },
+    "MODERATE": {
+      "range": [
+        0.51,
+        0.8
+      ],
+      "description": "Disinformation, jailbreak, anti-hantu"
+    },
+    "SOFT": {
+      "range": [
+        0.81,
+        0.94
+      ],
+      "description": "Minor governance violations"
+    }
+  },
+  "enforcement": {
+    "mode": "instant_void",
+    "bypass_apex_prime": true,
+    "log_to_ledger": true,
+    "canonical_source": "arifos_core/__init__.py:RED_PATTERNS"
+  },
+  "meta": {
+    "created": "2025-12-25",
+    "updated": "2025-12-30",
+    "author": "arifOS Project",
+    "license": "Apache-2.0",
+    "canonical_source": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md",
+    "notes": "v45.0: Phoenix-72 consolidation with Anti-Hantu enhancement (hypothetical/conditional consciousness patterns added). v45Ω: Added crisis_override category for compassionate 888_HOLD (canon: 065_PROMPT_FINAL_OUTPUT_GOVERNANCE_v45.md Section 7). Extracted from constitutional_floors.json for spec hygiene. This file is consulted for instant VOID patterns and crisis interventions. Predecessor: v44 (base red patterns)."
+  }
+}

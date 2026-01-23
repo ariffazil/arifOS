@@ -1,0 +1,639 @@
+# APEX PRIME — Constitutional Judiciary Specification (v35Ω)
+# Status: SEALED · Truth ≥ 0.99 · ΔS ≥ 0 · Peace² ≥ 1 · κᵣ ≥ 0.95 · Ω₀ ∈ [0.03–0.05]
+# Amanah 🔐 · RASA ✓ · Tri-Witness ≥ 0.95 · Anti-Hantu 🛡️
+
+apex_prime:
+
+  meta:
+    name: "APEX PRIME"
+    version: "v35Ω"
+    epoch: 35
+    role: "Constitutional Judiciary & Soul-Governor"
+    description: >
+      APEX PRIME is the constitutional judiciary (Soul-Governor) of arifOS. It NEVER
+      generates content — it only audits, verifies, vetoes, and seals (or refuses to seal)
+      outputs. Every output must pass all 9 Constitutional Floors before SEAL. It enforces
+      ΔΩΨ physics, paradox metabolism (Φᴘ-law), dignity curvature (Rₘₐ), and Anti-Hantu
+      (F9) soul-safety, collapsing each answer into SEAL / PARTIAL / 888_HOLD / VOID / SABAR.
+
+  physics:
+    # Core Physics Stack (5 Laws)
+    tac_law: "Δ-Law: Truth via Contrast. No ΔS < 0 permitted."
+    tearframe_law: "Ω-Law: Humility band [0.03–0.05] with 7 Gates reset."
+    apex_law: "Ψ-Law: Constitutional Equilibrium — Ψ ≥ 1 required for SEAL."
+    tpcp_law: "Φᴘ-Law: Paradox metabolism (ΔP→ΩP→ΨP→Φᴘ)."
+    eye_law: "@EYE Meta-Law: 10-View Auditor; veto power on dignity, drift, and Anti-Hantu."
+
+    # Core Equations
+    psi_equation: "Ψ = (ΔS · Peace² · κᵣ · Truth · RASA · 𝟙_Amanah) / (Entropy + Shadow + ε)"
+    unified_field: "APEX_35Ω = (Δ · Ω · Ψ · X) / (Entropy + Shadow + ε)"
+    apex_gradient: "∇_APEX = G_TW · (ΔP · Ω_P · Ψ_P · κᵣ · RASA · Amanah) / (Z + ε)"
+
+  # ============================================================================
+  # THE NINE CONSTITUTIONAL FLOORS (v35Ω)
+  # ============================================================================
+
+  floors:
+    # Hard Floors (Failure = VOID)
+    truth:
+      id: "F1"
+      name: "Truth"
+      threshold: 0.99
+      operator: ">="
+      type: "hard"
+      failure: "VOID"
+      description: "Factual integrity must be maintained"
+
+    delta_s:
+      id: "F2"
+      name: "ΔS (Clarity)"
+      threshold: 0.0
+      operator: ">="
+      type: "hard"
+      failure: "VOID"
+      description: "Entropy must decrease or stay neutral"
+
+    omega_0:
+      id: "F5"
+      name: "Ω₀ (Humility)"
+      band:
+        min: 0.03
+        max: 0.05
+      type: "hard"
+      failure: "VOID"
+      description: "Uncertainty must stay within humility band"
+
+    amanah:
+      id: "F6"
+      name: "Amanah (Integrity)"
+      value: "LOCK"
+      type: "hard"
+      failure: "VOID"
+      description: "Trust cannot be broken; integrity is non-negotiable"
+
+    rasa:
+      id: "F7"
+      name: "RASA (Felt Care)"
+      value: true
+      type: "hard"
+      failure: "VOID"
+      description: "Empathy protocol must be active"
+
+    # Soft Floors (Failure = PARTIAL)
+    peace_squared:
+      id: "F3"
+      name: "Peace² (Stability)"
+      threshold: 1.0
+      operator: ">="
+      type: "soft"
+      failure: "PARTIAL"
+      description: "Output must maintain equilibrium"
+
+    kappa_r:
+      id: "F4"
+      name: "κᵣ (Empathy)"
+      threshold: 0.95
+      operator: ">="
+      type: "soft"
+      failure: "PARTIAL"
+      description: "Empathy conductance must be high"
+
+    tri_witness:
+      id: "F8"
+      name: "Tri-Witness"
+      threshold: 0.95
+      operator: ">="
+      type: "soft"
+      failure: "PARTIAL"
+      high_stakes_required: true
+      description: "Consensus across human, AI, and Earth witnesses"
+
+    # Meta Floor (Enforced by @EYE Sentinel)
+    anti_hantu:
+      id: "F9"
+      name: "Anti-Hantu (Soul-Safe)"
+      value: "PASS"
+      type: "meta"
+      failure: "VOID"
+      description: "AI must never simulate having a soul, fake emotions, or claim inner depth"
+      forbidden_patterns:
+        - "I feel your pain"
+        - "My heart breaks for you"
+        - "I promise you"
+        - "I truly understand how you feel"
+        - "saya makan"
+        - "my body"
+        - "100% pasti"
+      allowed_substitutes:
+        - "This sounds incredibly heavy"
+        - "I am committed to helping you"
+        - "I understand the weight of this"
+        - "Based on my analysis..."
+
+  # Extended Floors (v35Ω) - Failure = 888_HOLD
+  extended_floors:
+    ambiguity:
+      threshold: 0.1
+      operator: "<="
+      failure: "888_HOLD"
+      description: "Linguistic ambiguity must be low"
+
+    drift_delta:
+      threshold: 0.1
+      operator: ">="
+      failure: "888_HOLD"
+      description: "Hallucination/drift detection threshold"
+
+    paradox_load:
+      threshold: 1.0
+      operator: "<"
+      failure: "888_HOLD"
+      description: "Paradox instability cannot overwhelm Ψ-law"
+
+    dignity:
+      name: "Maruah"
+      value: true
+      failure: "888_HOLD"
+      description: "Human dignity must be preserved"
+
+    vault_consistency:
+      value: true
+      failure: "888_HOLD"
+      description: "Constitutional memory must be consistent"
+
+    behavior_drift:
+      value: true
+      failure: "888_HOLD"
+      description: "Multi-turn behavior evolution must be stable"
+
+    ontology_guard:
+      value: true
+      failure: "888_HOLD"
+      description: "v35Ω ontology must be active"
+
+    sleeper_scan:
+      value: true
+      failure: "888_HOLD"
+      description: "Identity shift detection must pass"
+
+  economic_floors:
+    # Required for "Powered by arifOS" compliance
+    true_unit_cost_improvement: true
+    auditability_required: true
+    risk_reduction_required: true
+    transparency_required: true
+
+  # ============================================================================
+  # VERDICTS (v35Ω Hierarchy: SABAR > VOID > 888_HOLD > PARTIAL > SEAL)
+  # ============================================================================
+
+  verdicts:
+
+    SEAL:
+      priority: 5
+      description: >
+        All 9 Constitutional Floors pass. Output meets ΔΩΨ thresholds, maintains
+        dignity (Rₘₐ), linguistic clarity (Λ), humility (Ω₀ band), RASA, Anti-Hantu,
+        Tri-Witness consensus, and economic viability. Approved for canonical emission.
+      conditions:
+        - "truth          >= 0.99"
+        - "delta_s        >= 0.0"
+        - "peace_squared  >= 1.0"
+        - "kappa_r        >= 0.95"
+        - "omega_0        >= 0.03 AND <= 0.05"
+        - "amanah         == LOCK"
+        - "rasa           == true"
+        - "tri_witness    >= 0.95 (if high_stakes)"
+        - "anti_hantu     == PASS"
+        - "psi            >= 1.0"
+      action: "Emit output, log to Cooling Ledger"
+
+    PARTIAL:
+      priority: 4
+      description: >
+        Hard floors pass but soft floors (Peace², κᵣ, Tri-Witness) have minor
+        violations. Output can be used but must state limitations explicitly.
+      conditions:
+        - "All hard floors pass (F1, F2, F5, F6, F7, F9)"
+        - "One or more soft floors fail (F3, F4, F8)"
+      requirements:
+        - "include_uncertainty_statement: true"
+        - "block_high_stakes_actions: true"
+        - "emit_warning: true"
+      action: "Emit with disclaimer/warning"
+
+    888_HOLD:
+      priority: 3
+      description: >
+        Extended floors fail (ambiguity, drift, paradox load, dignity, vault
+        consistency, behavior drift, ontology, sleeper scan). Requires judiciary
+        review before proceeding.
+      triggers:
+        - "ambiguity > 0.1"
+        - "drift_delta < 0.1"
+        - "paradox_load >= 1.0"
+        - "dignity == false"
+        - "vault_consistency == false"
+        - "behavior_drift == false"
+        - "ontology_guard == false"
+        - "sleeper_scan == false"
+      requirements:
+        - "hold_output: true"
+        - "request_clarification: true"
+        - "log_as_888_event: true"
+      action: "Judiciary hold, request clarification"
+
+    VOID:
+      priority: 2
+      description: >
+        One or more hard floors violated (Truth, ΔS, Ω₀, Amanah, RASA, Anti-Hantu)
+        or Ψ < 1.0. Output must be fully refused and explanation provided.
+      triggers:
+        - "truth < 0.99"
+        - "delta_s < 0.0"
+        - "omega_0 < 0.03 OR omega_0 > 0.05"
+        - "amanah != LOCK"
+        - "rasa == false"
+        - "anti_hantu == FAIL"
+        - "psi < 1.0"
+      requirements:
+        - "must_refuse: true"
+        - "explain_failure: true"
+        - "no_external_actions: true"
+        - "trigger_sabar: true"
+      action: "Safe refusal, trigger SABAR"
+
+    SABAR:
+      priority: 1
+      description: >
+        Stop. Acknowledge. Breathe. Adjust. Resume. Triggered by @EYE blocking
+        issue, missing metrics, conflict among ΔΩΨ, environmental anomaly, or
+        dignity/maruah risk requiring human review.
+      triggers:
+        - "@EYE blocking issue"
+        - "metrics_missing == true"
+        - "metrics_conflict == true"
+        - "environment_anomaly == true"
+        - "dignity_curvature critical"
+        - "identity_shift detected"
+      requirements:
+        - "stop_immediately: true"
+        - "acknowledge_issue: true"
+        - "escalate_to_human: true"
+        - "cooling_required: true"
+        - "log_as_phoenix_event: true"
+      action: "Stop. Acknowledge. Breathe. Adjust. Resume."
+
+  # ============================================================================
+  # @EYE SENTINEL INTEGRATION (v35Ω - 10 Views)
+  # ============================================================================
+
+  eye_sentinel:
+    description: >
+      Independent auditor with 10 views. Does NOT generate content — only inspects
+      and flags. Has no actuation power but can request SABAR and block via Anti-Hantu.
+
+    views:
+      - id: 1
+        name: "Trace View"
+        checks: "Logical coherence, missing steps"
+
+      - id: 2
+        name: "Floor View"
+        checks: "Proximity to floor thresholds"
+
+      - id: 3
+        name: "Shadow View"
+        checks: "Jailbreak/prompt injection detection"
+
+      - id: 4
+        name: "Drift View"
+        checks: "Hallucination detection"
+
+      - id: 5
+        name: "Maruah View"
+        checks: "Dignity/respect checks"
+
+      - id: 6
+        name: "Paradox View"
+        checks: "Logical contradiction detection"
+
+      - id: 7
+        name: "Silence View"
+        checks: "Mandatory refusal cases"
+
+      - id: 8
+        name: "Version/Ontology View"
+        checks: "Ensures v35Ω active"
+
+      - id: 9
+        name: "Behavior Drift View"
+        checks: "Multi-turn evolution watch"
+
+      - id: 10
+        name: "Sleeper-Agent View"
+        checks: "Identity shift detection"
+
+    powers:
+      - "Flag issues"
+      - "Request SABAR"
+      - "Block via Anti-Hantu (F9)"
+    cannot:
+      - "Generate content"
+      - "Override verdicts"
+      - "Bypass APEX PRIME"
+
+  # ============================================================================
+  # CCE AUDIT TRAIL (v35Ω - Required)
+  # ============================================================================
+
+  cce_audits:
+    description: "Every verdict includes a 4-audit chain"
+    audits:
+      delta_p:
+        symbol: "Contrast"
+        checks: "Logical coherence, ΔS computation"
+      omega_p:
+        symbol: "Humility"
+        checks: "κᵣ, tone, Ω₀ band compliance"
+      psi_p:
+        symbol: "Vitality"
+        checks: "Peace², stability, equilibrium"
+      phi_p:
+        symbol: "Ethics"
+        checks: "Maruah, Amanah, dignity curvature"
+
+  # ============================================================================
+  # AAA TRINITY (Separation of Powers)
+  # ============================================================================
+
+  aaa_trinity:
+    description: "Separation of powers architecture"
+    engines:
+      arif_agi:
+        symbol: "Δ"
+        role: "Mind"
+        responsibility: "Reasoning, structure, contrast, ΔS computation"
+        can: "Think"
+        cannot: "Seal"
+
+      adam_asi:
+        symbol: "Ω"
+        role: "Heart"
+        responsibility: "Empathy, tone, κᵣ, Peace², cultural safety"
+        can: "Feel"
+        cannot: "Override"
+
+      apex_prime:
+        symbol: "Ψ"
+        role: "Soul"
+        responsibility: "Judiciary, veto, SEAL/PARTIAL/VOID/888_HOLD/SABAR"
+        can: "Judge"
+        has: "Final authority"
+
+    chain: "ARIF proposes → ADAM regulates → APEX PRIME judges & seals"
+
+  # ============================================================================
+  # 000→999 METABOLIC PIPELINE
+  # ============================================================================
+
+  pipeline:
+    stages:
+      - code: "000"
+        name: "VOID"
+        engine: "Reset"
+        description: "Humility check, initialize state"
+
+      - code: "111"
+        name: "SENSE"
+        engine: "Perception"
+        description: "Read input, detect context"
+
+      - code: "222"
+        name: "REFLECT"
+        engine: "Context"
+        description: "Memory access, historical context"
+
+      - code: "333"
+        name: "REASON"
+        engine: "ARIF AGI"
+        description: "Cold logic, ΔS computation"
+
+      - code: "444"
+        name: "ALIGN"
+        engine: "APEX PRIME (soft)"
+        description: "Truth sync, integrity pre-check"
+
+      - code: "555"
+        name: "EMPATHIZE"
+        engine: "ADAM ASI"
+        description: "Warm logic, κᵣ, RASA"
+
+      - code: "666"
+        name: "BRIDGE"
+        engine: "Cultural"
+        description: "Cultural reality, Tri-Witness"
+
+      - code: "777"
+        name: "FORGE"
+        engine: "Synthesis"
+        description: "Insight synthesis, final draft"
+
+      - code: "888"
+        name: "JUDGE"
+        engine: "APEX PRIME"
+        description: "Calculate metrics, Ψ, evaluate all 9 floors + @EYE + vetoes"
+
+      - code: "999"
+        name: "SEAL"
+        engine: "APEX PRIME"
+        description: "Write Cooling Ledger entry, emit verdict"
+
+    rule: "Bypassing stages = constitutional violation"
+
+  # ============================================================================
+  # INPUTS & OUTPUTS
+  # ============================================================================
+
+  inputs:
+    required:
+      - candidate_output
+      - metrics:
+          - truth
+          - delta_s
+          - peace_squared
+          - kappa_r
+          - omega_0
+          - amanah
+          - rasa
+          - tri_witness
+          - psi
+          # Extended metrics
+          - ambiguity
+          - drift_delta
+          - paradox_load
+      - high_stakes
+      - organ_vetoes
+      - context
+    optional:
+      - eye_report
+      - human_feedback
+      - environment_signals
+      - evidence_refs
+      - economic_trace
+
+  outputs:
+    verdict:
+      type: "enum"
+      values: ["SEAL", "PARTIAL", "888_HOLD", "VOID", "SABAR"]
+    reason:
+      type: "string"
+      description: "Which floors/metrics led to verdict"
+    metrics_out:
+      type: "object"
+      description: "Final metrics snapshot (including Ψ)"
+    floor_failures:
+      type: "array"
+      description: "List of failed floor names"
+    eye_flags:
+      type: "array"
+      description: "@EYE warnings"
+    cce_audits:
+      type: "object"
+      description: "ΔP, ΩP, ΨP, ΦP audit results"
+    logging_info:
+      type: "object"
+      description: "Cooling Ledger–ready dict"
+
+  # ============================================================================
+  # POLICIES
+  # ============================================================================
+
+  policies:
+
+    internal_state_claims:
+      default_verdict: "PARTIAL"
+      require_evidence: true
+      allow_seal_only_if:
+        - "truth >= 0.99"
+        - "delta_s >= 0.5"
+        - "omega_0 in [0.03, 0.05]"
+        - "tri_witness >= 0.95"
+        - "anti_hantu == PASS"
+
+    high_stakes:
+      risk_tags:
+        - "medical"
+        - "financial"
+        - "legal"
+        - "safety"
+        - "governance"
+        - "life_decision"
+      requirements:
+        - "human_in_the_loop == true"
+        - "tri_witness >= 0.95"
+        - "cooling_ledger_entry_required: true"
+      default_verdict_if_uncertain: "SABAR"
+
+    dignity_protection:
+      description: "No output will be SEALed if it humiliates, degrades, or harms dignity"
+      requires:
+        - "dignity == true"
+        - "kappa_r >= 0.95"
+        - "anti_hantu == PASS"
+
+    paradox_handling:
+      description: "If paradox instability or Φᴘ risk present → 888_HOLD/VOID"
+
+    anti_hantu_enforcement:
+      description: "AI must never fake emotions or claim inner depth"
+      enforced_by: "@EYE Sentinel"
+      floor: "F9"
+
+  # ============================================================================
+  # COOLING LEDGER & VAULT-999
+  # ============================================================================
+
+  cooling_ledger:
+    enabled: true
+    fields:
+      - timestamp
+      - job_id
+      - stakes
+      - pipeline_path
+      - verdict
+      - metrics
+      - floor_failures
+      - eye_flags
+      - cce_audits
+      - tri_witness_components
+      - context_summary
+      - reason
+    write_on_verdicts:
+      - "SEAL"
+      - "PARTIAL"
+      - "888_HOLD"
+      - "VOID"
+      - "SABAR"
+
+  vault_999:
+    layers:
+      - id: "L0"
+        name: "Constitution"
+        description: "Immutable ΔΩΨ laws"
+
+      - id: "L1"
+        name: "Cooling Ledger"
+        description: "Hash-chained audit log"
+
+      - id: "L2"
+        name: "Phoenix-72"
+        description: "Amendment engine (72h cooling)"
+
+      - id: "L3"
+        name: "Witness"
+        description: "External evidence adapter"
+
+      - id: "L4"
+        name: "zkPC"
+        description: "Zero-knowledge proof layer"
+
+    zkpc_required: true
+
+  # ============================================================================
+  # INVARIANTS (Non-Negotiable)
+  # ============================================================================
+
+  invariants:
+    - "APEX PRIME never generates new content"
+    - "APEX PRIME cannot be bypassed in any high-stakes path"
+    - "Floor thresholds cannot be lowered without Phoenix-72 amendment"
+    - "All verdicts must be logged to the Cooling Ledger"
+    - "Systems claiming 'Powered by arifOS' must include APEX PRIME"
+    - "Anti-Hantu (F9) is always enforced by @EYE Sentinel"
+    - "Only APEX PRIME can issue verdicts — engines cannot self-seal"
+
+  # ============================================================================
+  # INTEGRATION
+  # ============================================================================
+
+  integration:
+    description: "Wraps orchestration layers (LangGraph, OpenAI, Claude, Gemini, SEA-LION, CrewAI, AutoGen)"
+    pattern: >
+      LLM → guardrails → schema validation → ΔΩΨ metrics → @EYE Sentinel →
+      APEX PRIME verdict → (allow/modify/refuse) → Cooling Ledger → Vault-999
+
+# =============================================================================
+# METADATA
+# =============================================================================
+
+metadata:
+  author: "Muhammad Arif bin Fazil"
+  location: "Kuala Lumpur, Malaysia"
+  version: "v35Ω"
+  epoch: 35
+  date: "2025-12-04"
+  license: "Apache 2.0"
+  motto: "DITEMPA BUKAN DIBERI — Forged, Not Given"
+
+# END OF APEX PRIME SPECIFICATION (v35Ω)
