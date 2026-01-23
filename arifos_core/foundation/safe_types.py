@@ -18,7 +18,7 @@ Usage:
 DITEMPA BUKAN DIBERI - Type safety forged into the foundation
 """
 
-from typing import Any, Union
+from typing import Any
 import logging
 
 logger = logging.getLogger(__name__)
