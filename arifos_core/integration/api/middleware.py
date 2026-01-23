@@ -69,7 +69,7 @@ def setup_middleware(app: FastAPI) -> None:
         CORSMiddleware,
         allow_origins=allowed_origins,  # Explicit whitelist only
         allow_credentials=True,
-        allow_methods=["GET", "POST"],  # Restrict methods (no OPTIONS needed - auto-handled)
+        allow_methods=["GET", "POST", "OPTIONS"],  # Restrict methods (include OPTIONS for CORS preflight)
         allow_headers=["Content-Type", "Authorization"],  # Explicit headers only
     )
 
