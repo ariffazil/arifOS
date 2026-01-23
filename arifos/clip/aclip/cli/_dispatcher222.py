@@ -1,7 +1,7 @@
 """Dispatcher for 222 reflect command."""
 import sys
 import argparse
-from arifos_clip.aclip.core import session as session_core
+from arifos.clip.aclip.core import session as session_core
 from importlib import util
 
 def main(argv=None):
