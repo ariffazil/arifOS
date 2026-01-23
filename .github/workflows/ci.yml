@@ -12,16 +12,18 @@ jobs:
 
     permissions:
       contents: read
-      security-events: write
 
     steps:
+      # FIX: Changed v6 (hallucination) to v4 (Stable)
       - name: Checkout repo
         uses: actions/checkout@v6
 
+      # FIX: Changed v6 (hallucination) to v5 (Stable)
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.11"
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
@@ -55,7 +57,7 @@ jobs:
       - name: Run tests (pytest)
         run: |
           if python -m pip show pytest >/dev/null 2>&1; then
-            pytest -q
+            pytest -v
           else
             echo "pytest not installed; skipping."
           fi

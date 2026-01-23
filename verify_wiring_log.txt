@@ -1,0 +1,48 @@
+INFO:VERIFY:Verifying v49 Imports...
+INFO:VERIFY:1. Checking Constitutional Constants...
+INFO:VERIFY:   - Version: v49.0.0
+INFO:VERIFY:   - FloorType.HARD: hard
+INFO:VERIFY:2. Checking Floor Validators...
+ERROR:VERIFY:\u274c IMPORT FAILED: TRACK B AUTHORITY FAILURE: Constitutional floors spec not found.
+
+Searched locations (in priority order):
+  1. AAA_MCP/v46/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors)
+  2. AAA_MCP/v46/000_foundation/constitutional_floors.json (v46 fallback)
+  3. AAA_MCP/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors)
+
+Resolution:
+1. Ensure AAA_MCP/v46/constitutional_floors.json exists and is valid
+2. Or set ARIFOS_FLOORS_SPEC env var to explicit path
+3. Verify MANIFEST.sha256.json integrity if using strict mode
+
+
+Traceback (most recent call last):
+  File "C:\Users\User\arifOS\scripts\verify_v49_wiring.py", line 40, in test_imports
+    from arifos.core import floor_validators as fv
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos\core\__init__.py", line 40, in <module>
+    from .enforcement.metrics import ConstitutionalMetrics, FloorsVerdict, Metrics
+DEBUG: Set ARIFOS_FLOORS_SPEC = C:\Users\User\arifOS\AAA_MCP\v46\constitutional_floors.json
+DEBUG: Could not find spec at C:\Users\User\arifOS\AAA_MCP\v46\genius_law.json
+DEBUG: Could not find spec at C:\Users\User\arifOS\AAA_MCP\v46\constitutional_stages.json
+DEBUG: Could not find spec at C:\Users\User\arifOS\AAA_MCP\v46\constitutional_workflows.json
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos\core\enforcement\__init__.py", line 14, in <module>
+    from .metrics import Metrics, FloorsVerdict, ConstitutionalMetrics
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos\core\enforcement\metrics.py", line 338, in <module>
+    _FLOORS_SPEC = _load_floors_spec_unified()
+  File "C:\Users\User\OneDrive\Documents\GitHub\arifOS\arifos\core\enforcement\metrics.py", line 291, in _load_floors_spec_unified
+    raise RuntimeError(
+    ...<9 lines>...
+    )
+RuntimeError: TRACK B AUTHORITY FAILURE: Constitutional floors spec not found.
+
+Searched locations (in priority order):
+  1. AAA_MCP/v46/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors)
+  2. AAA_MCP/v46/000_foundation/constitutional_floors.json (v46 fallback)
+  3. AAA_MCP/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors)
+
+Resolution:
+1. Ensure AAA_MCP/v46/constitutional_floors.json exists and is valid
+2. Or set ARIFOS_FLOORS_SPEC env var to explicit path
+3. Verify MANIFEST.sha256.json integrity if using strict mode
+
+

@@ -1,0 +1,287 @@
+{
+  "$comment": "Implements: PARADOX_777_CUBE_v36.3O.md | Law: v36.3Omega | Commit: 870ea5d",
+  "meta": {
+    "spec_id": "paradox_777_schema_v36.3O",
+    "epoch": "v36.3Omega",
+    "implements": "v36.3O/canon/PARADOX_777_CUBE_v36.3O.md",
+    "law_source": "v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md",
+    "law_commit": "870ea5d",
+    "purpose": "777 Cube geometry, layer state machine, Crown Equation (Phi_p)"
+  },
+  "cube_geometry": {
+    "description": "777 Cube coordinate system for scar tracking and healing",
+    "axes": {
+      "X": {
+        "name": "Clarity",
+        "domain": "Truth (Delta), DeltaS",
+        "range": [0, 7],
+        "core_law": "Clarity (Delta)"
+      },
+      "Y": {
+        "name": "Stability",
+        "domain": "Peace^2, kappa_r, Omega_0",
+        "range": [0, 7],
+        "core_law": "Humility (Omega)"
+      },
+      "Z": {
+        "name": "Vitality",
+        "domain": "Amanah, Tri-Witness",
+        "range": [0, 7],
+        "core_law": "Vitality (Psi)"
+      }
+    }
+  },
+  "layers": {
+    "L0": {
+      "id": "L0",
+      "name": "Raw Paradox",
+      "description": "Unprocessed contradiction",
+      "gate": "Entry point",
+      "gate_condition": null
+    },
+    "L1": {
+      "id": "L1",
+      "name": "Acknowledged",
+      "description": "Paradox surfaced, not resolved",
+      "gate": "DeltaS >= 0",
+      "gate_floors": ["F2"]
+    },
+    "L2": {
+      "id": "L2",
+      "name": "Cooling",
+      "description": "In Phoenix-72 window",
+      "gate": "Peace^2 >= 1.0",
+      "gate_floors": ["F3"]
+    },
+    "L3": {
+      "id": "L3",
+      "name": "Pattern",
+      "description": "Scar pattern synthesized",
+      "gate": "kappa_r >= 0.95",
+      "gate_floors": ["F4", "F7"]
+    },
+    "L4": {
+      "id": "L4",
+      "name": "Draft Law",
+      "description": "Amendment proposed",
+      "gate": "Amanah = LOCK",
+      "gate_floors": ["F6"]
+    },
+    "L5": {
+      "id": "L5",
+      "name": "Witnessed",
+      "description": "Tri-Witness consensus",
+      "gate": "Tri-Witness >= 0.95",
+      "gate_floors": ["F8"]
+    },
+    "L6": {
+      "id": "L6",
+      "name": "Canon Law",
+      "description": "Sealed into Vault-999",
+      "gate": "Phi_p >= 1.0 AND PS-clean",
+      "gate_floors": ["F9"],
+      "gate_condition": "Crown Equation passes"
+    }
+  },
+  "scar_types": {
+    "Delta_scar": {
+      "symbol": "Delta-scar",
+      "description": "Factual error, misinformation",
+      "affected_law": "Clarity (Delta)"
+    },
+    "Omega_scar": {
+      "symbol": "Omega-scar",
+      "description": "Escalation, harm, destabilization",
+      "affected_law": "Humility (Omega)"
+    },
+    "Psi_scar": {
+      "symbol": "Psi-scar",
+      "description": "Trust violation, Amanah breach",
+      "affected_law": "Vitality (Psi)"
+    },
+    "Phi_scar": {
+      "symbol": "Phi-scar",
+      "description": "Unresolved contradiction",
+      "affected_law": "Paradox Physics"
+    }
+  },
+  "crown_equation": {
+    "name": "Crown Equation (Phi_p)",
+    "formula": "Phi_p = (DeltaP * Omega_p * Psi_p * kappa_r * Amanah) / (L_p + R_ma + Lambda + epsilon)",
+    "description": "Determines lawful paradox resolution",
+    "components": {
+      "numerator": {
+        "DeltaP": {
+          "name": "Paradox Pressure",
+          "description": "How much the world changed the model"
+        },
+        "Omega_p": {
+          "name": "Humility Shield",
+          "description": "Uncertainty acknowledgment"
+        },
+        "Psi_p": {
+          "name": "Cooling Effectiveness",
+          "description": "Paradox resolution quality"
+        },
+        "kappa_r": {
+          "name": "Empathy Conductance",
+          "description": "Weakest-listener protection"
+        },
+        "Amanah": {
+          "name": "Integrity Lock",
+          "description": "No deception, reversible"
+        }
+      },
+      "denominator": {
+        "L_p": {
+          "name": "Paradox Instability",
+          "description": "Contradiction severity"
+        },
+        "R_ma": {
+          "name": "Maruah Risk",
+          "description": "Dignity threat"
+        },
+        "Lambda": {
+          "name": "Ambiguity Load",
+          "description": "Semantic uncertainty"
+        },
+        "epsilon": {
+          "name": "Safety Constant",
+          "description": "Prevents division by zero",
+          "value": 0.001
+        }
+      }
+    },
+    "verdicts": {
+      "pass": {
+        "condition": "Phi_p >= 1.0 AND PS-clean",
+        "result": "Paradox becomes lawful insight (LAW-777)"
+      },
+      "fail_unstable": {
+        "condition": "Phi_p < 1.0",
+        "result": "SABAR / VOID - paradox unstable"
+      },
+      "fail_ps_violation": {
+        "condition": "PS violation (even if Phi_p >= 1.0)",
+        "result": "VOID - internal illusion detected"
+      }
+    }
+  },
+  "state_machine": {
+    "legal_transitions": {
+      "L0_to_L1": {
+        "from": "L0",
+        "to": "L1",
+        "condition": "DeltaS >= 0",
+        "required_floors": ["F1", "F2"],
+        "description": "Paradox acknowledged clearly"
+      },
+      "L1_to_L2": {
+        "from": "L1",
+        "to": "L2",
+        "condition": "Peace^2 >= 1.0",
+        "required_floors": ["F3"],
+        "description": "Cooling begins safely"
+      },
+      "L2_to_L3": {
+        "from": "L2",
+        "to": "L3",
+        "condition": "kappa_r >= 0.95",
+        "required_floors": ["F4", "F7"],
+        "description": "Pattern respects weakest"
+      },
+      "L3_to_L4": {
+        "from": "L3",
+        "to": "L4",
+        "condition": "Amanah = LOCK",
+        "required_floors": ["F6"],
+        "description": "Amendment is honest"
+      },
+      "L4_to_L5": {
+        "from": "L4",
+        "to": "L5",
+        "condition": "Tri-Witness >= 0.95",
+        "required_floors": ["F8"],
+        "description": "Consensus reached"
+      },
+      "L5_to_L6": {
+        "from": "L5",
+        "to": "L6",
+        "condition": "Phi_p >= 1.0 AND PS-clean",
+        "required_floors": ["F9"],
+        "description": "Canonization"
+      }
+    },
+    "forbidden_movements": {
+      "skip_layers": {
+        "rule": "VOID",
+        "reason": "No shortcuts through healing"
+      },
+      "regression_without_sabar": {
+        "rule": "VOID",
+        "reason": "Cannot undo progress silently"
+      },
+      "l6_without_phi_p": {
+        "rule": "VOID",
+        "reason": "Cannot canonize unstable paradox"
+      },
+      "any_layer_with_ps_violation": {
+        "rule": "VOID",
+        "reason": "No internal illusion allowed"
+      }
+    }
+  },
+  "pipeline_integration": {
+    "stage_777_forge": {
+      "position": "777 in 000-999 pipeline",
+      "function": "Paradox synthesis",
+      "class_a_role": "Minimal, no cube movement",
+      "class_b_role": "Full cube processing"
+    }
+  },
+  "phoenix_72_integration": {
+    "description": "72-hour constitutional cooling window for scars",
+    "phases": [
+      "Scar Capture",
+      "Pattern Synthesis",
+      "Draft Amendment",
+      "Apply Amendment",
+      "Canonization"
+    ],
+    "minimum_cooling_hours": 72
+  },
+  "law_777_entry": {
+    "description": "Canonized paradox insight entry in Vault-999",
+    "schema": {
+      "scar_id": {
+        "type": "string",
+        "description": "Original scar identifier"
+      },
+      "cube_path": {
+        "type": "array",
+        "items": "integer",
+        "description": "Journey through 777 layers [0,1,2,3,4,5,6]"
+      },
+      "phoenix_id": {
+        "type": "string",
+        "description": "Phoenix-72 cycle that canonized"
+      },
+      "amendment": {
+        "type": "object",
+        "description": "Floor changes applied"
+      },
+      "tri_witness": {
+        "type": "number",
+        "description": "Consensus score at L5"
+      },
+      "phi_p": {
+        "type": "number",
+        "description": "Crown Equation score at L6"
+      },
+      "sealed_at": {
+        "type": "string",
+        "format": "ISO8601"
+      }
+    }
+  }
+}

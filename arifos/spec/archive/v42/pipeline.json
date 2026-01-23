@@ -1,0 +1,6 @@
+{
+  "version": "v42.1",
+  "notes": "Placeholder pipeline spec for v42.1 runtime binding; detailed dials to be defined.",
+  "cooldown_budget": 1,
+  "retry_budget": 0
+}
