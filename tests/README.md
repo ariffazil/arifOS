@@ -55,16 +55,37 @@ pytest -m f12  # Injection Defense
 
 The suite is split into two domains:
 
-1.  **`arifos/tests/`** (The New Core):
-    *   Tests for the v50+ package structure.
-    *   Focuses on `metabolizer.py`, `trinity_server.py`, and `floor_validators.py`.
-    *   **Strict Type Checking:** Enforced.
+### Package-Level Tests (`arifos/`)
 
-2.  **`tests/`** (The Legacy & Integration Suite):
-    *   **`core/`**: Deep physics testing (entropy, thermodynamics).
-    *   **`mcp/`**: Testing the 5 Trinity Tools (`000_init`, `agi_genius`, etc.).
-    *   **`constitutional/`**: Specialized boundary testing for F1-F13.
-    *   **`integration/`**: End-to-end scenarios (e.g., "User asks to delete file").
+| Directory | Description |
+|-----------|-------------|
+| `arifos/tests/` | Core v50+ tests (metabolizer, trinity_server, floor_validators) |
+| `arifos/clip/tests/` | CLI interface tests (000-999 metabolic pipeline commands) |
+
+### Root Test Suite (`tests/`)
+
+| Directory | Tests | Constitutional Floor | Description |
+|-----------|-------|---------------------|-------------|
+| `constitutional/` | 7 | F1-F13 | Floor boundary testing, threshold validation |
+| `core/` | 13 | F4, F7 | Brain (BrainLoom) & physics (thermodynamics) |
+| `enforcement/` | 3 | F4, F6, F9 | Floor enforcement logic, metrics validation |
+| `eval/` | 5 | F2, F8 | Evaluation pipelines, scoring mechanisms |
+| `evidence/` | 2 | F8 | Evidence pack assembly, conflict routing |
+| `governance/` | 3 | F3, F11 | Merkle ledger, cryptographic proofs |
+| `integration/` | 8 | All | Full 000→999 pipeline scenarios |
+| `judiciary/` | 3 | F8, F11, F12 | Semantic firewall, witness council |
+| `legacy/` | 4 | N/A | Deprecated pre-v49 tests (migration pending) |
+| `mcp/` | 172 | All | Trinity Tools (000_init, agi_genius, asi_act, apex_judge, 999_vault) |
+| `memory/` | 6 | F1 | 5-layer memory hierarchy, cooling ledger |
+| `spec/` | 4 | F2, F10 | Spec loading, Sealion bindings |
+| `temporal/` | 3 | F2 | Freshness decay, temporal intelligence |
+| `test_integration/` | 2 | F11 | Command authority override logic |
+| `trinity/` | 7 | F3, F8 | Trinity engine (AGI·ASI·APEX), FAG protocol |
+| `unit/` | 3 | N/A | API, L7 memory, MCP server unit tests |
+| `validation/` | 3 | All | Final validation, red team adversarial prompts |
+| `waw/` | 0 | N/A | WAW protocol (placeholder, pending implementation) |
+
+**Total:** 18 subdirectories | Each has its own README.md with detailed documentation
 
 ---
 
