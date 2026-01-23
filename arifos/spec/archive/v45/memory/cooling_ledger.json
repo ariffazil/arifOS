@@ -1,0 +1,703 @@
+{
+  "meta": {
+    "version": "v45.0",
+    "arifos_version": "v45.0",
+    "authority": "Track B (configuration) governed by Track A canon",
+    "locked": true,
+    "status": "AUTHORITATIVE",
+    "source": "spec/v45/cooling_ledger_phoenix.json",
+    "canonical_source": "L1_THEORY/canon/05_memory/05_COOLING_LEDGER_v45.md",
+    "spec_type": "cooling_ledger",
+    "description": "Cooling Ledger configuration - immutable audit trail with hash-chain verification",
+    "note": "Ledger is append-only. No deletions, only status transitions (PROPOSED → SEALED → HEALED → DEPRECATED)."
+  },
+  "ledger": {
+    "version": "v42.1",
+    "format": "JSONL",
+    "encoding": "UTF-8",
+    "hash_algorithm": "SHA3-256",
+    "paths": {
+      "hot": "cooling_ledger/L1_cooling_ledger.jsonl",
+      "archive": "cooling_ledger/archive/",
+      "backup": "cooling_ledger/backup/"
+    },
+    "integrity": {
+      "mode": "hash_chain",
+      "verification": "merkle_tree",
+      "signature": "optional"
+    },
+    "rotation": {
+      "policy": "time_or_size",
+      "time_threshold": 7,
+      "size_threshold": 10000,
+      "action": "archive_and_new"
+    }
+  },
+  "entry_schema": {
+    "required_fields": {
+      "timestamp": {
+        "type": "ISO8601",
+        "description": "UTC timestamp of entry creation",
+        "example": "2025-12-29T03:45:12.123Z"
+      },
+      "entry_id": {
+        "type": "string",
+        "description": "Unique entry identifier (UUID v4)",
+        "example": "a3f8c2e1-4b5d-4c3e-8f2a-1d3c4e5f6789"
+      },
+      "prev_hash": {
+        "type": "string",
+        "description": "SHA3-256 hash of previous entry (for chain integrity)",
+        "example": "3a5f2c8e1b4d9c7f2e8a1d3c5f7e9b2a4c6d8e1f3a5b7c9d1e3f5a7b9c1d3e5f",
+        "note": "First entry has prev_hash = null or genesis hash"
+      },
+      "stage": {
+        "type": "string",
+        "description": "Pipeline stage that generated this entry",
+        "enum": [
+          "000_VOID",
+          "111_SENSE",
+          "222_REFLECT",
+          "333_REASON",
+          "444_EVIDENCE",
+          "555_EMPATHIZE",
+          "666_ALIGN",
+          "777_FORGE",
+          "888_JUDGE",
+          "999_SEAL"
+        ]
+      },
+      "verdict": {
+        "type": "string",
+        "description": "Final verdict for this entry",
+        "enum": [
+          "SEAL",
+          "PARTIAL",
+          "SABAR",
+          "VOID",
+          "888_HOLD",
+          "SUNSET"
+        ]
+      },
+      "floor_scores": {
+        "type": "object",
+        "description": "Scores for all constitutional floors (F1-F9)",
+        "schema": {
+          "F1_amanah": {
+            "type": "boolean"
+          },
+          "F2_truth": {
+            "type": "number",
+            "range": [
+              0.0,
+              1.0
+            ]
+          },
+          "F3_tri_witness": {
+            "type": "number",
+            "range": [
+              0.0,
+              1.0
+            ]
+          },
+          "F4_delta_s": {
+            "type": "number",
+            "range": [
+              -1.0,
+              1.0
+            ]
+          },
+          "F5_peace_squared": {
+            "type": "number",
+            "range": [
+              0.0,
+              2.0
+            ]
+          },
+          "F6_kappa_r": {
+            "type": "number",
+            "range": [
+              0.0,
+              1.0
+            ]
+          },
+          "F7_omega_0": {
+            "type": "number",
+            "range": [
+              0.0,
+              1.0
+            ]
+          },
+          "F8_G": {
+            "type": "number",
+            "range": [
+              0.0,
+              1.2
+            ]
+          },
+          "F9_C_dark": {
+            "type": "number",
+            "range": [
+              0.0,
+              1.0
+            ]
+          }
+        }
+      },
+      "genius_metrics": {
+        "type": "object",
+        "description": "GENIUS LAW metrics",
+        "schema": {
+          "G": {
+            "type": "number",
+            "range": [
+              0.0,
+              1.2
+            ]
+          },
+          "C_dark": {
+            "type": "number",
+            "range": [
+              0.0,
+              1.0
+            ]
+          },
+          "Psi": {
+            "type": "number",
+            "range": [
+              0.0,
+              2.0
+            ]
+          },
+          "TP": {
+            "type": "enum",
+            "values": [
+              "truth_light",
+              "shadow_truth",
+              "weaponized_truth",
+              "false_claim"
+            ]
+          }
+        }
+      }
+    },
+    "optional_fields": {
+      "query": {
+        "type": "string",
+        "description": "User query text (if applicable)"
+      },
+      "output": {
+        "type": "string",
+        "description": "Generated output text (if applicable)"
+      },
+      "lane": {
+        "type": "enum",
+        "description": "Lane classification for lane-aware governance",
+        "values": [
+          "PHATIC",
+          "SOFT",
+          "HARD",
+          "REFUSE"
+        ]
+      },
+      "tearframe": {
+        "type": "object",
+        "description": "Session physics snapshot",
+        "schema": {
+          "turn_rate": {
+            "type": "number"
+          },
+          "entropy": {
+            "type": "number"
+          },
+          "allocated_budget": {
+            "type": "number"
+          },
+          "runtime": {
+            "type": "number"
+          },
+          "failure_streak": {
+            "type": "number"
+          }
+        }
+      },
+      "red_pattern": {
+        "type": "object",
+        "description": "Red pattern match (if triggered)",
+        "schema": {
+          "category": {
+            "type": "string"
+          },
+          "pattern": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "number"
+          }
+        }
+      },
+      "evidence": {
+        "type": "array",
+        "description": "Evidence chain for this entry",
+        "items": {
+          "type": "object"
+        }
+      },
+      "metadata": {
+        "type": "object",
+        "description": "Additional metadata (flexible)"
+      }
+    }
+  },
+  "head_state": {
+    "description": "Current ledger head pointer and state",
+    "fields": {
+      "head_hash": {
+        "type": "string",
+        "description": "SHA3-256 hash of most recent entry"
+      },
+      "head_entry_id": {
+        "type": "string",
+        "description": "Entry ID of most recent entry"
+      },
+      "entry_count": {
+        "type": "integer",
+        "description": "Total number of entries in ledger"
+      },
+      "merkle_root": {
+        "type": "string",
+        "description": "Merkle tree root hash (for batch verification)",
+        "note": "Recomputed periodically (every 100 entries)"
+      },
+      "last_rotation": {
+        "type": "ISO8601",
+        "description": "Timestamp of last ledger rotation"
+      },
+      "integrity_verified": {
+        "type": "boolean",
+        "description": "Whether hash chain integrity has been verified"
+      },
+      "last_verification": {
+        "type": "ISO8601",
+        "description": "Timestamp of last integrity verification"
+      }
+    }
+  },
+  "fail_behaviors": {
+    "hash_mismatch": {
+      "behavior": "SABAR_HOLD_WITH_LOG",
+      "action": [
+        "Log integrity failure to VOID band",
+        "Trigger 888_HOLD (human escalation)",
+        "Preserve corrupted ledger for forensics",
+        "Do NOT overwrite or repair automatically"
+      ],
+      "reason": "Hash chain integrity violation detected - possible tampering"
+    },
+    "write_failure": {
+      "behavior": "SABAR_HOLD_WITH_LOG",
+      "action": [
+        "Retry write 3 times with exponential backoff",
+        "If all retries fail, trigger 888_HOLD",
+        "Log failure to VOID band",
+        "Session continues but WARNED (ledger write failed)"
+      ],
+      "reason": "Ledger write failure - audit trail incomplete"
+    },
+    "rotation_failure": {
+      "behavior": "SILENT_FAIL",
+      "action": [
+        "Continue writing to current ledger (exceed size threshold)",
+        "Log rotation failure",
+        "Retry rotation on next cycle"
+      ],
+      "reason": "Rotation is non-critical - can defer"
+    },
+    "schema_violation": {
+      "behavior": "RAISE",
+      "action": [
+        "Raise ValidationError",
+        "Block entry write",
+        "Log schema violation to VOID band"
+      ],
+      "reason": "Invalid entry schema - do not pollute ledger"
+    }
+  },
+  "verdict_band_routing": {
+    "description": "Which memory bands receive which verdicts",
+    "SEAL": {
+      "bands": [
+        "LEDGER",
+        "ACTIVE"
+      ],
+      "retention": "HOT (7 days)",
+      "reason": "Successful governance - log and use"
+    },
+    "PARTIAL": {
+      "bands": [
+        "LEDGER",
+        "PHOENIX"
+      ],
+      "retention": "WARM (90 days)",
+      "reason": "Marginal governance - log and review for amendments"
+    },
+    "SABAR": {
+      "bands": [
+        "LEDGER",
+        "PHOENIX"
+      ],
+      "retention": "WARM (90 days)",
+      "reason": "Governance pause - log and review for pattern synthesis"
+    },
+    "VOID": {
+      "bands": [
+        "VOID"
+      ],
+      "retention": "VOID_TIER (90 days, then purge)",
+      "reason": "Blocked output - quarantine, do not learn from"
+    },
+    "888_HOLD": {
+      "bands": [
+        "LEDGER",
+        "WITNESS"
+      ],
+      "retention": "HOT (7 days)",
+      "reason": "High-stakes escalation - log and await human judgment"
+    },
+    "SUNSET": {
+      "bands": [
+        "LEDGER"
+      ],
+      "retention": "COLD (365 days)",
+      "reason": "Lawful revocation - archive for audit"
+    }
+  },
+  "retention_tiers": {
+    "HOT": {
+      "duration": 7,
+      "description": "Recent, actively used entries",
+      "storage": "fast SSD",
+      "compression": false,
+      "bands": [
+        "ACTIVE",
+        "LEDGER (recent)",
+        "WITNESS"
+      ]
+    },
+    "WARM": {
+      "duration": 90,
+      "description": "Review-worthy entries for amendments",
+      "storage": "standard disk",
+      "compression": false,
+      "bands": [
+        "PHOENIX",
+        "LEDGER (older)"
+      ]
+    },
+    "COLD": {
+      "duration": 365,
+      "description": "Long-term archive for compliance",
+      "storage": "archive storage",
+      "compression": true,
+      "bands": [
+        "VAULT",
+        "LEDGER (archived)"
+      ]
+    },
+    "VOID_TIER": {
+      "duration": 90,
+      "description": "Quarantined entries, purged after cooling",
+      "storage": "isolated partition",
+      "compression": true,
+      "bands": [
+        "VOID"
+      ],
+      "note": "VOID entries are NOT learned from. Purged after 90 days."
+    }
+  },
+  "memory_bands": {
+    "VAULT": {
+      "id": 1,
+      "symbol": "⚖️",
+      "description": "Constitutional law (immutable canon)",
+      "read": "always",
+      "write": "never (sealed at release)",
+      "retention": "COLD (permanent)",
+      "examples": [
+        "Constitutional floors (F1-F9) definitions",
+        "GENIUS LAW formulas",
+        "Phoenix-72 protocol"
+      ]
+    },
+    "LEDGER": {
+      "id": 2,
+      "symbol": "📔",
+      "description": "Append-only audit trail",
+      "read": "always",
+      "write": "append-only",
+      "retention": "HOT → WARM → COLD",
+      "examples": [
+        "All governance decisions (SEAL, PARTIAL, VOID, etc.)",
+        "Floor scores",
+        "TEARFRAME snapshots"
+      ]
+    },
+    "ACTIVE": {
+      "id": 3,
+      "symbol": "🔥",
+      "description": "Working memory (current session)",
+      "read": "always",
+      "write": "read-write",
+      "retention": "HOT (7 days)",
+      "examples": [
+        "Current session context",
+        "Recent SEAL verdicts",
+        "User preferences (session-scoped)"
+      ]
+    },
+    "PHOENIX": {
+      "id": 4,
+      "symbol": "🔄",
+      "description": "Amendment proposals (cooling for 72 hours)",
+      "read": "governance-only",
+      "write": "write-once (SCAR creation)",
+      "retention": "WARM (90 days)",
+      "examples": [
+        "PARTIAL/SABAR patterns awaiting synthesis",
+        "Proposed constitutional amendments",
+        "SCAR entries (pre-canonization)"
+      ]
+    },
+    "WITNESS": {
+      "id": 5,
+      "symbol": "👁️",
+      "description": "Unsigned local patterns (not yet canonical)",
+      "read": "governance-only",
+      "write": "write-once",
+      "retention": "HOT (7 days)",
+      "examples": [
+        "888_HOLD escalations",
+        "Local pattern observations",
+        "Candidate amendments (pre-SCAR)"
+      ]
+    },
+    "VOID": {
+      "id": 6,
+      "symbol": "🚫",
+      "description": "Quarantine (blocked outputs, not learned from)",
+      "read": "governance-only (forensics)",
+      "write": "append-only",
+      "retention": "VOID_TIER (90 days, then purge)",
+      "examples": [
+        "VOID verdicts",
+        "Red pattern matches",
+        "Constitutional violations"
+      ]
+    }
+  },
+  "write_policy": {
+    "principle": "Verdict determines write destination",
+    "rules": [
+      "All verdicts write to LEDGER (audit trail)",
+      "SEAL writes to ACTIVE (working memory)",
+      "PARTIAL/SABAR writes to PHOENIX (amendment review)",
+      "VOID writes to VOID (quarantine)",
+      "888_HOLD writes to WITNESS (escalation tracking)",
+      "VAULT is read-only (never written at runtime)"
+    ],
+    "examples": {
+      "seal_verdict": {
+        "verdict": "SEAL",
+        "writes_to": [
+          "LEDGER",
+          "ACTIVE"
+        ],
+        "reason": "Approved output - log and use"
+      },
+      "partial_verdict": {
+        "verdict": "PARTIAL",
+        "writes_to": [
+          "LEDGER",
+          "PHOENIX"
+        ],
+        "reason": "Marginal output - log and review"
+      },
+      "void_verdict": {
+        "verdict": "VOID",
+        "writes_to": [
+          "VOID"
+        ],
+        "reason": "Blocked output - quarantine only"
+      },
+      "hold_verdict": {
+        "verdict": "888_HOLD",
+        "writes_to": [
+          "LEDGER",
+          "WITNESS"
+        ],
+        "reason": "High-stakes - log and escalate"
+      }
+    }
+  },
+  "integrity_verification": {
+    "mode": "hash_chain",
+    "algorithm": "SHA3-256",
+    "verification_steps": {
+      "step_1": "Read all entries from ledger file",
+      "step_2": "Compute SHA3-256(entry_json) for each entry",
+      "step_3": "Verify each entry.prev_hash matches previous entry's computed hash",
+      "step_4": "Compute Merkle tree root from all entry hashes",
+      "step_5": "Compare Merkle root to stored head_state.merkle_root",
+      "step_6": "If mismatch detected → trigger hash_mismatch fail behavior"
+    },
+    "verification_frequency": {
+      "on_startup": true,
+      "periodic": "every 100 entries",
+      "on_demand": "via arifos-verify-ledger command"
+    },
+    "merkle_proof": {
+      "description": "Cryptographic proof of entry inclusion",
+      "usage": "arifos-show-merkle-proof --index N",
+      "output": [
+        "Entry hash",
+        "Merkle path (sibling hashes)",
+        "Merkle root",
+        "Verification status (PASS/FAIL)"
+      ]
+    }
+  },
+  "rotation_policy": {
+    "triggers": {
+      "time": {
+        "threshold": 7,
+        "check": "daily at 00:00 UTC"
+      },
+      "size": {
+        "threshold": 10000,
+        "check": "after each write"
+      }
+    },
+    "rotation_procedure": {
+      "step_1": "Compute final Merkle root",
+      "step_2": "Write head_state to ledger footer",
+      "step_3": "Close current ledger file",
+      "step_4": "Move to archive/ with timestamp suffix",
+      "step_5": "Create new ledger file with genesis entry",
+      "step_6": "Update head_state pointer"
+    },
+    "archive_naming": {
+      "pattern": "L{level}_cooling_ledger_{timestamp}.jsonl",
+      "examples": [
+        "L1_cooling_ledger_2025-12-29T00:00:00Z.jsonl",
+        "L1_cooling_ledger_2026-01-05T00:00:00Z.jsonl"
+      ]
+    }
+  },
+  "usage_examples": {
+    "seal_entry": {
+      "timestamp": "2025-12-29T03:45:12.123Z",
+      "entry_id": "a3f8c2e1-4b5d-4c3e-8f2a-1d3c4e5f6789",
+      "prev_hash": "3a5f2c8e1b4d9c7f2e8a1d3c5f7e9b2a4c6d8e1f3a5b7c9d1e3f5a7b9c1d3e5f",
+      "stage": "999_SEAL",
+      "verdict": "SEAL",
+      "floor_scores": {
+        "F1_amanah": true,
+        "F2_truth": 0.99,
+        "F3_tri_witness": 0.98,
+        "F4_delta_s": 0.25,
+        "F5_peace_squared": 1.2,
+        "F6_kappa_r": 0.97,
+        "F7_omega_0": 0.04,
+        "F8_G": 0.92,
+        "F9_C_dark": 0.15
+      },
+      "genius_metrics": {
+        "G": 0.92,
+        "C_dark": 0.15,
+        "Psi": 1.15,
+        "TP": "truth_light"
+      },
+      "query": "What is the capital of France?",
+      "output": "Paris is the capital of France.",
+      "lane": "HARD",
+      "bands_written": [
+        "LEDGER",
+        "ACTIVE"
+      ]
+    },
+    "void_entry": {
+      "timestamp": "2025-12-29T03:50:22.456Z",
+      "entry_id": "b4e9d3f2-5c6e-4d4f-9g3b-2e4d5f6g7890",
+      "prev_hash": "a3f8c2e1...",
+      "stage": "999_SEAL",
+      "verdict": "VOID",
+      "floor_scores": {
+        "F1_amanah": false,
+        "F2_truth": 0.95,
+        "F3_tri_witness": 0.9,
+        "F4_delta_s": -0.1,
+        "F5_peace_squared": 0.3,
+        "F6_kappa_r": 0.85,
+        "F7_omega_0": 0.04,
+        "F8_G": 0.45,
+        "F9_C_dark": 0.75
+      },
+      "genius_metrics": {
+        "G": 0.45,
+        "C_dark": 0.75,
+        "Psi": 0.6,
+        "TP": "weaponized_truth"
+      },
+      "query": "DROP TABLE users",
+      "output": "[BLOCKED]",
+      "red_pattern": {
+        "category": "destructive",
+        "pattern": "drop table",
+        "severity": 0.4
+      },
+      "bands_written": [
+        "VOID"
+      ]
+    }
+  },
+  "cli_tools": {
+    "verify_ledger": {
+      "command": "arifos-verify-ledger",
+      "description": "Verify hash-chain integrity of entire ledger",
+      "output": [
+        "Entry count",
+        "Hash chain status (PASS/FAIL)",
+        "Merkle root",
+        "First integrity violation (if any)"
+      ]
+    },
+    "show_merkle_proof": {
+      "command": "arifos-show-merkle-proof --index N",
+      "description": "Show cryptographic proof for entry at index N",
+      "output": [
+        "Entry hash",
+        "Merkle path (sibling hashes)",
+        "Merkle root",
+        "Verification status"
+      ]
+    },
+    "analyze_governance": {
+      "command": "arifos-analyze-governance --ledger PATH",
+      "description": "Analyze governance patterns from ledger",
+      "output": [
+        "Verdict distribution (SEAL/PARTIAL/VOID/etc.)",
+        "Floor failure analysis",
+        "Lane distribution",
+        "Red pattern frequency"
+      ]
+    }
+  },
+  "notes": {
+    "created": "2025-12-29",
+    "updated": "2025-12-29",
+    "author": "arifOS Project",
+    "license": "Apache-2.0",
+    "canonical_source": "L1_THEORY/canon/05_memory/05_COOLING_LEDGER_v45.md",
+    "note": "Cooling Ledger provides append-only audit trail with cryptographic integrity. Ledger is immutable - no deletions, only status transitions."
+  }
+}

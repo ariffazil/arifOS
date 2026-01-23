@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ariffazil/arifOS/spec/v44/schema/genius_law.schema.json",
+  "title": "GENIUS LAW v44 Specification Schema",
+  "description": "JSON Schema for validating v44.0 GENIUS LAW metrics specification (minimum: constants block)",
+  "type": "object",
+
+  "required": [
+    "version",
+    "authority",
+    "locked",
+    "_status",
+    "arifos_version",
+    "spec_type",
+    "description",
+    "source",
+    "verdict_logic",
+    "meta"
+  ],
+
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^v44\\.0$",
+      "description": "Must be v44.0"
+    },
+    "authority": {
+      "type": "string",
+      "const": "Track B (tunable thresholds) governed by Track A canon"
+    },
+    "locked": {
+      "type": "boolean",
+      "const": true
+    },
+    "_status": {
+      "type": "string",
+      "enum": ["AUTHORITATIVE", "DEPRECATED", "EXPERIMENTAL"]
+    },
+    "arifos_version": {
+      "type": "string",
+      "pattern": "^v44\\.0$"
+    },
+    "spec_type": {
+      "type": "string",
+      "const": "genius_law"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10
+    },
+    "source": {
+      "type": "string",
+      "format": "uri"
+    },
+
+    "verdict_logic": {
+      "type": "object",
+      "required": ["constants"],
+      "properties": {
+        "hard_floors": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "constants": {
+          "type": "object",
+          "required": ["G_SEAL", "G_VOID", "PSI_SEAL", "PSI_SABAR", "CDARK_SEAL", "CDARK_WARN"],
+          "properties": {
+            "G_SEAL": { "type": "number", "minimum": 0, "maximum": 1.2 },
+            "G_VOID": { "type": "number", "minimum": 0, "maximum": 1.2 },
+            "PSI_SEAL": { "type": "number", "minimum": 0 },
+            "PSI_SABAR": { "type": "number", "minimum": 0 },
+            "CDARK_SEAL": { "type": "number", "minimum": 0, "maximum": 1 },
+            "CDARK_WARN": { "type": "number", "minimum": 0, "maximum": 1 }
+          },
+          "additionalProperties": false
+        },
+        "priority_order": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "metrics": { "type": "object" },
+    "component_scores": { "type": "object" },
+    "floor_mapping": { "type": "object" },
+    "integration_v42": { "type": "object" },
+
+    "meta": {
+      "type": "object",
+      "required": ["created", "author", "license"],
+      "properties": {
+        "created": { "type": "string" },
+        "updated": { "type": "string" },
+        "author": { "type": "string" },
+        "license": { "type": "string" },
+        "canonical_source": { "type": "string" },
+        "predecessor": { "type": "string" },
+        "implementation": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+
+    "_note": { "type": "string" },
+    "_source_evolution": { "type": "string" }
+  },
+
+  "additionalProperties": false
+}

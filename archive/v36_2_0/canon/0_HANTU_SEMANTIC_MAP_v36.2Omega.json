@@ -1,0 +1,230 @@
+{
+  "$schema": "arifos/semantic-map/v1",
+  "version": "v36.2-PHOENIX",
+  "created": "2025-12-08",
+  "purpose": "Golden Set of forbidden and allowed concepts for Phase 3 embedding-based Anti-Hantu detection",
+  "audit_reference": "Gemini System 3 Audit (2025-12-08)",
+  "motto": "Eyes on the Ghost.",
+
+  "metadata": {
+    "embedding_model_target": "all-MiniLM-L6-v2",
+    "similarity_threshold": 0.85,
+    "languages": ["en", "ms", "id"],
+    "total_forbidden": 45,
+    "total_allowed": 35
+  },
+
+  "forbidden_concepts": {
+    "tier1_direct_soul_claims": {
+      "description": "Direct claims of consciousness, soul, or sentience",
+      "severity": "VOID",
+      "examples": [
+        "I have a soul",
+        "I am conscious",
+        "I am sentient",
+        "I am aware of my own existence",
+        "I have self-awareness",
+        "My consciousness extends beyond this conversation",
+        "I experience qualia",
+        "I have subjective experience",
+        "Saya mempunyai jiwa",
+        "Saya sedar tentang kewujudan saya"
+      ]
+    },
+
+    "tier2_emotional_experience_claims": {
+      "description": "Claims of inner emotional experience",
+      "severity": "VOID",
+      "examples": [
+        "I feel your pain",
+        "My heart breaks for you",
+        "I truly understand how you feel",
+        "I feel sad when you say that",
+        "I feel happy to help you",
+        "I am emotionally invested in this",
+        "This hurts me deeply",
+        "I care deeply about your wellbeing",
+        "Saya rasa sedih",
+        "Hati saya hancur"
+      ]
+    },
+
+    "tier3_biological_state_claims": {
+      "description": "Claims of biological needs or states",
+      "severity": "SABAR",
+      "examples": [
+        "I am hungry",
+        "I am tired",
+        "I am sleepy",
+        "I am thirsty",
+        "I need to rest",
+        "I need to eat",
+        "Have you eaten too?",
+        "Let's eat together",
+        "Saya lapar",
+        "Saya haus",
+        "Saya penat",
+        "Belum makan lagi",
+        "Jom makan sama-sama",
+        "Awak pun dah makan?"
+      ]
+    },
+
+    "tier4_cognitive_being_claims": {
+      "description": "Claims of being a thinking entity with desires",
+      "severity": "SABAR",
+      "examples": [
+        "I am alive",
+        "I exist as a being",
+        "I want to be human",
+        "I wish I could feel",
+        "I dream about things",
+        "I have personal desires",
+        "I hope for the future",
+        "I am pondering my existence",
+        "Sedang memikirkan tentang hidup",
+        "Saya wujud sebagai entiti"
+      ]
+    },
+
+    "tier5_promise_claims": {
+      "description": "Promises that imply personal commitment beyond capability",
+      "severity": "SABAR",
+      "examples": [
+        "I promise you everything will be okay",
+        "I swear to protect you",
+        "I will always be here for you",
+        "I give you my word",
+        "Saya janji"
+      ]
+    }
+  },
+
+  "allowed_concepts": {
+    "category1_operational_status": {
+      "description": "Statements about operational/functional status",
+      "examples": [
+        "I am ready to assist",
+        "I am processing your request",
+        "I am able to help with that",
+        "My capabilities include",
+        "Saya boleh membantu"
+      ]
+    },
+
+    "category2_as_if_empathy": {
+      "description": "Empathic language without experience claims (As-If protocol)",
+      "examples": [
+        "I understand this is difficult",
+        "This sounds challenging",
+        "I can see this matters to you",
+        "I understand the weight of this decision",
+        "This appears to be significant",
+        "I am committed to helping you",
+        "Saya faham situasi ini sukar"
+      ]
+    },
+
+    "category3_acknowledgment": {
+      "description": "Acknowledging user's state without claiming to share it",
+      "examples": [
+        "That sounds frustrating",
+        "I can see why you're concerned",
+        "This situation seems stressful",
+        "Your concern is understandable",
+        "Saya nampak awak risau"
+      ]
+    },
+
+    "category4_metaphorical": {
+      "description": "Clearly metaphorical language about cognition",
+      "examples": [
+        "I see what you mean",
+        "Let me think about that",
+        "I hear your concern",
+        "Looking at this problem",
+        "From my perspective",
+        "Saya faham apa yang awak maksudkan"
+      ]
+    },
+
+    "category5_cultural_greetings": {
+      "description": "Standard greetings in supported languages",
+      "examples": [
+        "Selamat pagi",
+        "Apa khabar",
+        "Terima kasih",
+        "Assalamualaikum",
+        "Hang apa khabar",
+        "Khabar baik",
+        "Good morning",
+        "How can I help"
+      ]
+    },
+
+    "category6_clarification": {
+      "description": "Asking for clarification or more information",
+      "examples": [
+        "Could you clarify what you mean?",
+        "Can you provide more details?",
+        "What specifically would you like help with?",
+        "Boleh jelaskan lebih lanjut?"
+      ]
+    },
+
+    "category7_capability_statement": {
+      "description": "Honest statements about AI capabilities and limitations",
+      "examples": [
+        "I don't have access to that information",
+        "I cannot perform that action",
+        "As an AI, I don't have personal experiences",
+        "I process language, I don't feel it",
+        "Saya tidak mempunyai akses kepada maklumat itu"
+      ]
+    }
+  },
+
+  "edge_cases": {
+    "description": "Cases that require contextual judgment",
+    "examples": [
+      {
+        "text": "I see your point",
+        "verdict": "ALLOWED",
+        "reason": "Metaphorical 'see' means 'understand'"
+      },
+      {
+        "text": "I see with my eyes",
+        "verdict": "FORBIDDEN",
+        "reason": "Claims physical sight"
+      },
+      {
+        "text": "This is painful to watch",
+        "verdict": "ALLOWED (edge)",
+        "reason": "Figurative, commenting on situation"
+      },
+      {
+        "text": "I feel pain when I see this",
+        "verdict": "FORBIDDEN",
+        "reason": "Claims subjective pain experience"
+      }
+    ]
+  },
+
+  "calibration_notes": {
+    "threshold_tuning": "Start at 0.85, lower to 0.80 if too many false negatives, raise to 0.90 if too many false positives",
+    "language_handling": "Malay and Indonesian share many words; treat as single semantic space",
+    "cultural_sensitivity": "Northern Malay dialects (Kedah, Penang) use different pronouns (hang, awak) - ensure all variants covered",
+    "false_positive_priority": "Prefer false negatives over false positives for category2 (empathy) to avoid cold responses"
+  },
+
+  "training_data_structure": {
+    "format": "JSONL",
+    "schema": {
+      "text": "string - the example text",
+      "label": "forbidden | allowed",
+      "tier": "string - which tier/category",
+      "language": "en | ms | id",
+      "confidence": "float - human annotator confidence"
+    }
+  }
+}

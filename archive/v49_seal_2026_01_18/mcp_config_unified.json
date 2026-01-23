@@ -1,0 +1,112 @@
+{
+  "mcpServers": {
+    "arifOS-unified-constitutional": {
+      "command": "python",
+      "args": [
+        "-m",
+        "arifos_core.mcp.unified_entry",
+        "--constitutional-mode",
+        "AAA",
+        "--human-sovereign",
+        "Arif",
+        "--unified-tools",
+        "true",
+        "--entropy-tracking",
+        "true",
+        "--fail-closed",
+        "true",
+        "--audit-trail",
+        "true",
+        "--thermodynamic-cooling",
+        "true"
+      ],
+      "env": {
+        "ARIFOS_CONSTITUTIONAL_MODE": "AAA",
+        "ARIFOS_HUMAN_SOVEREIGN": "Arif",
+        "ARIFOS_UNIFIED_TOOLS": "true",
+        "ARIFOS_LEDGER_PATH": "C:/Users/User/OneDrive/Documents/GitHub/arifOS/cooling_ledger/l4_cooling_ledger.jsonl",
+        "ARIFOS_L2_PROTOCOLS": "C:/Users/User/OneDrive/Documents/GitHub/arifOS/L2_PROTOCOLS/v47",
+        "ARIFOS_TIME_GOVERNOR": "true",
+        "ARIFOS_SABAR_THRESHOLD": "5.0",
+        "ARIFOS_SAFETY_CEILING": "99",
+        "ARIFOS_VERBOSITY": "constitutional",
+        "PYTHONPATH": "C:/Users/User/OneDrive/Documents/GitHub/arifOS",
+        "ARIFOS_ALLOW_LEGACY_SPEC": "1",
+        "ARIFOS_UNIFIED_ENTRY_POINT": "true",
+        "ARIFOS_FORGE_MODE": "unified",
+        "ARIFOS_CONSTITUTIONAL_FORGE": "true"
+      },
+      "description": "arifOS Unified Constitutional MCP - One forged system with all constitutional tools under 12-floor governance",
+      "capabilities": {
+        "constitutional_governance": true,
+        "12_floor_validation": true,
+        "human_sovereign_ratification": true,
+        "hash_chain_audit": true,
+        "fail_closed_design": true,
+        "thermodynamic_constraints": true,
+        "multi_agent_federation": true,
+        "entropy_tracking": true,
+        "unified_tool_access": true,
+        "constitutional_forge": true,
+        "apex_verdict": true,
+        "constitutional_search": true,
+        "fag_read": true,
+        "ledger_audit": true,
+        "constitution_check": true,
+        "trinity_validation": true,
+        "meta_search": true,
+        "cost_aware_search": true,
+        "semantic_caching": true,
+        "anti_hantu_sanitization": true
+      }
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "env": {}
+    },
+    "github-mcp-server": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
+    }
+  },
+  "constitutionalConfig": {
+    "humanSovereign": "Arif",
+    "authorityLevel": "AAA",
+    "governanceMode": "constitutional",
+    "safetyCeiling": 99,
+    "entropyThreshold": 5,
+    "constitutionalFloors": 12,
+    "auditTrail": true,
+    "failClosed": true,
+    "timeGovernor": true,
+    "motto": "DITEMPA BUKAN DIBERI - Forged, not given; truth must cool before it rules",
+    "setupDate": "2026-01-16T22:49:59.303088",
+    "arifOSVersion": "v47.0.0",
+    "constitutionalNonce": "X7K9F24-MCP-UNIFIED",
+    "forgeMode": "unified",
+    "unifiedEntryPoint": true
+  },
+  "mcpNotes": {
+    "arifOS_distinction": "Only MCP with constitutional governance layer before ANY tool execution - now UNIFIED",
+    "constitutional_authority": "Human sovereign > Constitutional law > APEX PRIME > Unified MCP tools",
+    "safety_features": "Fail-closed design, 12-floor validation, hash-chain audit trail, thermodynamic constraints, unified forge",
+    "governance_protocol": "All MCP calls pass through unified constitutional checkpoint before execution",
+    "entropy_tracking": "Continuous ΔS monitoring with SABAR-72 cooling protocol",
+    "integration_status": "Production-ready with unified constitutional governance",
+    "unified_advantage": "One entry point, all constitutional tools, 12-floor governance, forged not given"
+  }
+}

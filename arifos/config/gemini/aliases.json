@@ -1,0 +1,22 @@
+{
+  "aliases": {
+    "init": "@/000",
+    "sense": "@/111",
+    "think": "@/222",
+    "reason": "@/333",
+    "align": "@/444",
+    "feel": "@/555",
+    "bridge": "@/666",
+    "forge": "@/777",
+    "judge": "@/888",
+    "seal": "@/999",
+    "witness": "@/witness query",
+    "test": "!pytest tests/",
+    "lint": "!ruff check .",
+    "format": "!black .",
+    "check": "!python scripts/check_track_alignment_v49.py",
+    "status": "!git status",
+    "diff": "!git diff",
+    "log": "!git log --oneline -10"
+  }
+}

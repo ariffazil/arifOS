@@ -1,0 +1,11 @@
+# arifOS MCP Server Dependencies
+# For VAULT999 MCP Server and other MCP tools
+
+# MCP SDK (required)
+fastmcp>=0.1.0
+
+# Data validation
+pydantic>=2.0
+
+# Existing dependencies (if any)
+# Add any other MCP-related dependencies here

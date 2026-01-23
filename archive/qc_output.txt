@@ -1,0 +1,3 @@
+\u274c Error: 'charmap' codec can't encode character '\U0001f50d' in position 0: character maps to <undefined>
+
+============================================================

@@ -1,0 +1,21 @@
+{
+  "version": "35.1.0",
+  "epoch": "35Ω",
+  "physics": {
+    "delta_S_min": 0.0,
+    "peace_squared_min": 1.0,
+    "omega_band": {
+      "min": 0.03,
+      "max": 0.05
+    }
+  },
+  "floors": {
+    "truth_min": 0.99,
+    "kappa_r_min": 0.95,
+    "tri_witness_min": 0.95,
+    "rasa_required": true,
+    "amanah_lock": true
+  },
+  "laws": [],
+  "amendments": []
+}

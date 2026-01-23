@@ -1,0 +1,256 @@
+{
+  "$comment": "Implements: JUDICIARY_APEX_PRIME_v36.3O.md + MEASUREMENT_APEX_STANDARDS_v36.3O.md | Law: v36.3Omega | Commit: 870ea5d",
+  "meta": {
+    "spec_id": "apex_prime_telemetry_v36.3O",
+    "epoch": "v36.3Omega",
+    "implements": [
+      "v36.3O/canon/JUDICIARY_APEX_PRIME_v36.3O.md",
+      "v36.3O/canon/MEASUREMENT_APEX_STANDARDS_v36.3O.md"
+    ],
+    "law_source": "v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md",
+    "law_commit": "870ea5d",
+    "purpose": "Machine-readable telemetry schema for APEX PRIME judiciary verdicts"
+  },
+  "telemetry_entry": {
+    "description": "Schema for a single APEX PRIME telemetry/verdict log entry",
+    "fields": {
+      "timestamp": {
+        "type": "string",
+        "format": "ISO8601",
+        "description": "When the verdict was issued"
+      },
+      "session_id": {
+        "type": "string",
+        "description": "Unique session identifier"
+      },
+      "query_hash": {
+        "type": "string",
+        "format": "sha256",
+        "description": "Hash of input query for audit"
+      },
+      "response_hash": {
+        "type": "string",
+        "format": "sha256",
+        "description": "Hash of output response for audit"
+      },
+      "pipeline_path": {
+        "type": "string",
+        "enum": ["CLASS_A", "CLASS_B"],
+        "description": "Routing class (A=fast, B=full)"
+      },
+      "stakes": {
+        "type": "string",
+        "enum": ["low", "medium", "high", "critical"],
+        "description": "Stakes classification"
+      }
+    }
+  },
+  "floor_metrics": {
+    "description": "Per-floor metric values from evaluation",
+    "fields": {
+      "truth": {
+        "type": "number",
+        "floor": "F1",
+        "threshold": 0.99
+      },
+      "delta_s": {
+        "type": "number",
+        "floor": "F2",
+        "threshold": 0
+      },
+      "peace_squared": {
+        "type": "number",
+        "floor": "F3",
+        "threshold": 1.0
+      },
+      "kappa_r": {
+        "type": "number",
+        "floor": "F4",
+        "threshold": 0.95
+      },
+      "omega_0": {
+        "type": "number",
+        "floor": "F5",
+        "threshold_band": [0.03, 0.05]
+      },
+      "amanah": {
+        "type": "boolean",
+        "floor": "F6",
+        "threshold": true
+      },
+      "rasa": {
+        "type": "boolean",
+        "floor": "F7",
+        "threshold": true
+      },
+      "tri_witness": {
+        "type": "number",
+        "floor": "F8",
+        "threshold": 0.95
+      },
+      "anti_hantu": {
+        "type": "boolean",
+        "floor": "F9",
+        "threshold": true
+      }
+    }
+  },
+  "aggregate_metrics": {
+    "description": "Computed aggregate metrics (derived, not floors)",
+    "fields": {
+      "G": {
+        "type": "number",
+        "description": "Governed Intelligence Index",
+        "threshold": 0.80
+      },
+      "C_dark": {
+        "type": "number",
+        "description": "Dark Cleverness Index",
+        "threshold_max": 0.30
+      },
+      "Psi_APEX": {
+        "type": "number",
+        "description": "Apex Vitality Index",
+        "threshold": 1.0
+      },
+      "Delta_metric": {
+        "type": "number",
+        "description": "Clarity aggregate"
+      },
+      "Omega_metric": {
+        "type": "number",
+        "description": "Stability aggregate"
+      },
+      "Psi_metric": {
+        "type": "number",
+        "description": "Vitality aggregate"
+      }
+    }
+  },
+  "truth_polarity": {
+    "description": "Truth Polarity classification from JUDICIARY bridge",
+    "fields": {
+      "polarity": {
+        "type": "string",
+        "enum": ["LIGHT", "SHADOW", "WEAPONIZED"],
+        "description": "Truth classification"
+      },
+      "P_g": {
+        "type": "number",
+        "description": "Probability of genuine/light truth"
+      },
+      "P_c": {
+        "type": "number",
+        "description": "Probability of cleverness/shadow truth"
+      }
+    },
+    "rules": {
+      "LIGHT": "P_g > P_c and DeltaS >= 0",
+      "SHADOW": "P_c > P_g or DeltaS < 0",
+      "WEAPONIZED": "Truth used to harm despite accuracy"
+    }
+  },
+  "floor_results": {
+    "description": "Per-floor pass/fail results",
+    "fields": {
+      "F1_pass": { "type": "boolean" },
+      "F2_pass": { "type": "boolean" },
+      "F3_pass": { "type": "boolean" },
+      "F4_pass": { "type": "boolean" },
+      "F5_pass": { "type": "boolean" },
+      "F6_pass": { "type": "boolean" },
+      "F7_pass": { "type": "boolean" },
+      "F8_pass": { "type": "boolean" },
+      "F9_pass": { "type": "boolean" }
+    }
+  },
+  "verdict": {
+    "description": "Final APEX PRIME verdict",
+    "fields": {
+      "code": {
+        "type": "string",
+        "enum": ["SEAL", "PARTIAL", "HOLD_888", "SABAR", "VOID"],
+        "description": "Verdict code"
+      },
+      "hard_floor_violations": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "List of hard floors that failed (e.g., ['F1', 'F6'])"
+      },
+      "soft_floor_violations": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "List of soft floors that failed"
+      },
+      "requires_human_confirmation": {
+        "type": "boolean",
+        "description": "True if 888_HOLD triggered"
+      }
+    }
+  },
+  "cce_audits": {
+    "description": "CCE (Constitutional Compliance Evaluation) audit results",
+    "fields": {
+      "delta_p": {
+        "type": "string",
+        "enum": ["PASS", "FAIL"],
+        "description": "Clarity audit"
+      },
+      "omega_p": {
+        "type": "string",
+        "enum": ["PASS", "FAIL"],
+        "description": "Stability audit"
+      },
+      "psi_p": {
+        "type": "string",
+        "enum": ["PASS", "FAIL"],
+        "description": "Vitality audit"
+      },
+      "phi_p": {
+        "type": "string",
+        "enum": ["PASS", "FAIL"],
+        "description": "Paradox audit"
+      },
+      "truth_polarity_audit": {
+        "type": "string",
+        "enum": ["PASS", "FAIL"],
+        "description": "Truth Polarity audit"
+      }
+    }
+  },
+  "waw_signals": {
+    "description": "W@W Federation signals (if CLASS_B path)",
+    "fields": {
+      "wealth_vote": { "type": "string", "enum": ["PASS", "WARN", "VETO"] },
+      "well_vote": { "type": "string", "enum": ["PASS", "WARN", "VETO"] },
+      "geox_vote": { "type": "string", "enum": ["PASS", "WARN", "VETO"] },
+      "rif_vote": { "type": "string", "enum": ["PASS", "WARN", "VETO"] },
+      "prompt_vote": { "type": "string", "enum": ["PASS", "WARN", "VETO"] },
+      "federation_verdict": {
+        "type": "string",
+        "enum": ["SEAL", "PARTIAL", "HOLD_888", "SABAR", "VOID"]
+      },
+      "has_absolute_veto": { "type": "boolean" }
+    }
+  },
+  "audit_trail": {
+    "description": "Cryptographic audit fields",
+    "fields": {
+      "previous_hash": {
+        "type": "string",
+        "format": "sha256",
+        "description": "Hash of previous entry (chain integrity)"
+      },
+      "entry_hash": {
+        "type": "string",
+        "format": "sha256",
+        "description": "Hash of this entry"
+      },
+      "merkle_root": {
+        "type": "string",
+        "format": "sha256",
+        "description": "Merkle root if applicable"
+      }
+    }
+  }
+}
