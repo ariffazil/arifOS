@@ -1,0 +1,68 @@
+{
+  "version": "v45.0",
+  "authority": "Track B (fact verification) governed by Track A canon",
+  "locked": true,
+  "_status": "AUTHORITATIVE",
+  "_note": "Referential truth verification for F2 Truth floor. Post-generation URL validation prevents fabricated links from passing as factual.",
+  "spec_type": "truth_verification",
+  "description": "Referential truth verification patterns for F2 Truth floor enforcement (v45.0)",
+  "source": "https://github.com/ariffazil/arifOS",
+
+  "truth_verification": {
+    "enabled": true,
+    "verification_methods": [
+      "url_validation",
+      "source_attribution_check",
+      "fabricated_link_detection"
+    ],
+    "url_validation": {
+      "require_https": true,
+      "deny_schemes": ["file:", "data:", "javascript:", "vbscript:"],
+      "allow_domains": [
+        "bernama.com",
+        "thestar.com.my",
+        "hmetro.com.my",
+        "pdrm.gov.my",
+        "kdn.gov.my",
+        "moh.gov.my",
+        "astroawani.com",
+        "sinarharian.com.my",
+        "nst.com.my",
+        "malaysiakini.com",
+        "freemalaysiatoday.com",
+        "malaymail.com",
+        "bharian.com.my",
+        "utusan.com.my"
+      ],
+      "on_unverified_url": "VOID",
+      "rationale": "Fabricated URLs claiming official sources violate F2 Truth floor. Whitelist approach ensures only known-good domains pass."
+    },
+    "source_attribution_check": {
+      "if_claims_official_source": {
+        "require_url": true,
+        "require_allow_domain": true,
+        "else": "VOID"
+      },
+      "rationale": "Claims like 'according to PDRM' without verifiable URL are hallucinations"
+    },
+    "fabricated_link_detection": {
+      "heuristics": [
+        "official_source_claim_without_allowlisted_domain",
+        "url_with_suspicious_path_for_outlet",
+        "numeric_id_out_of_plausible_range",
+        "url_structure_mismatch_for_known_outlet"
+      ],
+      "on_trigger": "VOID",
+      "rationale": "LLMs often fabricate plausible-looking URLs with realistic structure but fake IDs"
+    }
+  },
+
+  "meta": {
+    "created": "2025-12-29",
+    "updated": "2025-12-29",
+    "author": "arifOS Project",
+    "license": "Apache-2.0",
+    "canonical_source": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md",
+    "notes": "v45Ω Phoenix-72 Amendment: Referential truth verification (fixes Query #6 FORGE REPL failure - fabricated URLs passing as SEAL). Addresses F2 Truth floor post-generation validation gap."
+  }
+}

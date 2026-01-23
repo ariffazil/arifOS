@@ -1,0 +1,61 @@
+{
+  "session_id": "c848e643-12f1-4783-81c1-853a5d4ebced",
+  "timestamp": "2026-01-22T13:14:20.452957Z",
+  "verdict": "SEAL",
+  "init_result": {
+    "status": "SEAL",
+    "session_id": "c848e643-12f1-4783-81c1-853a5d4ebced",
+    "authority_verified": true,
+    "injection_risk": 0.0,
+    "entropy_omega": 0.04,
+    "reason": "System initialized - Constitutional Mode Active",
+    "floors_checked": [
+      "F12_InjectionDefense",
+      "F11_CommandAuth",
+      "F1_Amanah"
+    ],
+    "previous_context": {
+      "is_first_session": false,
+      "previous_session": {
+        "session_id": "b632bae2-0038-43d7-af6c-a78dc19bac17",
+        "timestamp": "2026-01-22T13:13:44.726480Z",
+        "verdict": "SEAL",
+        "entry_hash": "4f6f23859ceb5c4f1953c8d927fa1624f8f9d73ad90dd2c370aa3b8124725848"
+      },
+      "context_summary": "Session sealed with verdict SEAL. Test session",
+      "key_insights": [
+        "Test session"
+      ],
+      "chain_length": 1
+    }
+  },
+  "genius_result": {},
+  "act_result": {},
+  "judge_result": {
+    "synthesis": "Hello world test completed",
+    "consensus_score": 0.98
+  },
+  "telemetry": {
+    "verdict": "SEAL",
+    "merkle_root": "62a9d84339593a079a12250fba37e8c038f8cf4520724b89d720d44c11d0bf2d",
+    "audit_hash": "feefcd7e47f0fd16faf7860a3ac154f15766dd0107ec725873a5056cb2f77846",
+    "memory_location": "L5_CANON",
+    "floors_checked": [
+      "F1_Amanah",
+      "F8_TriWitness"
+    ],
+    "p_truth": 0.98,
+    "TW": 0.98,
+    "dS": 0,
+    "peace2": 0,
+    "kappa_r": 0,
+    "omega_0": 0.04
+  },
+  "prev_hash": "4f6f23859ceb5c4f1953c8d927fa1624f8f9d73ad90dd2c370aa3b8124725848",
+  "merkle_root": "1f3959eb0c006b4728faf3c98ef4c5df56e08f03d40a8b1b14547beda41e0068",
+  "entry_hash": "25cfc1681c4523c6a10dc11e69b656017b7fa1ebd77d69b3b82c395782e70267",
+  "context_summary": "Session sealed with verdict SEAL. Hello world test completed",
+  "key_insights": [
+    "Hello world test completed"
+  ]
+}

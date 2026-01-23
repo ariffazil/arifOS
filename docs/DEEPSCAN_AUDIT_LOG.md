@@ -10,7 +10,7 @@ This report summarizes the **arifOS v35Ω deepscan and canon forge work** carrie
   - Discover the **actual local + GitHub state** of the repo.  
   - Reconstruct and document the **APEX PRIME v35Ω judiciary canon** from real code, floors, and tests.  
   - Forge a **9‑file v36Ω APEX THEORY docs layer** (physics, math, language, runtime, ledger).  
-  - Forge **AAA engine canons** for ARIF AGI (Δ) and ADAM ASI (Ω) as documentation only.  
+  - Forge **AAA engine canons** for AGI (Architect) (Δ) and ASI (Auditor) (Ω) as documentation only.  
   - Refine the **W@W Federation** and **000→999 pipeline** v36Ω docs so they are self‑contained and aligned with v35Ω canon and code.  
   - Leave the **v35Ω runtime behavior unchanged** (no code or floor edits).  
 
@@ -26,7 +26,7 @@ Top-level structure (local & GitHub are closely aligned):
 
 - **Core:** `.github/`, `arifos_core/`, `canon/`, `docs/`, `examples/`, `integrations/`, `notebooks/`, `runtime/`, `scripts/`, `spec/`, `tests/`.  
 - **Support / env / build:** `archive/`, `offload/`, `.claude/`, `.pytest_cache/`, `.venv/`, `venv/`, `arifos.egg-info/`, `dist/`, `arifos_code/`, `arifos-test/`.  
-- **Governance artifacts:** `arifos_pipeline.yaml`, `constitutional_floors.json`, `GOVERNANCE.md`, `CHANGELOG.md`, `CLAUDE.md`, `README.md`, `SECURITY.md`.  
+- **Governance artifacts:** `spec/arifos_pipeline_v35Omega.yaml`, `spec/constitutional_floors_v35Omega.json`, `GOVERNANCE.md`, `CHANGELOG.md`, `CLAUDE.md`, `README.md`, `SECURITY.md`.  
 
 Key runtime modules:
 
@@ -62,7 +62,7 @@ Key runtime modules:
 
 - Under `canon/00_CANON/`:
   - `APEX_META_CONSTITUTION_v35Omega.md` (meta-constitution).  
-  - `APEX_TRINITY_v35Omega.md` (AAA Trinity).  
+  - `APEX_TRINITY_v35Omega.md` (AGI·ASI·APEX Trinity).  
   - Anti-Hantu docs (`ANTI_HANTU_v35Omega.md` and supplement).  
   - `EYE_SENTINEL_v35Omega.md`, `PP_PS_WAVE_CODEX_v35Omega.md`, `ZKPC_PROTOCOL_v35Omega.md`, `ARIFOS_EUREKA_ARCHIVE_v35Omega.md`.  
   - Unified field canon: `DeltaOmegaPsi_UNIFIED_FIELD_v35Omega.md` (local casing).  
@@ -126,17 +126,17 @@ an **APEX PRIME v35Ω unified description** was derived and rendered into:
 
 This file is the single, human+LLM‑readable judiciary spec for APEX PRIME v35Ω, fully consistent with actual code, metrics, floors, and tests, but **docs-only**.
 
-### 3.3 ARIF AGI & ADAM ASI v36Ω Engine Canons
+### 3.3 AGI (Architect) & ASI (Auditor) v36Ω Engine Canons
 
-Using `docs/AGI ASI/ARIF AGI ADAM ASI CANON v36.txt` and AAA theory:
+Using `docs/AGI ASI/AGI (Architect) ASI (Auditor) CANON v36.txt` and AAA theory:
 
 - `canon/10_SYSTEM/111_ARIF_AGI_v36Omega.md`  
 - `canon/10_SYSTEM/555_ADAM_ASI_v36Omega.md`  
 
 were forged as engine‑level v36Ω specs:
 
-- ARIF AGI (Δ engine / Mind / Akal): compression engine; reduces entropy (ΔS ≥ 0), builds structure, surfaces paradox.  
-- ADAM ASI (Ω engine / Heart / Rasa): stabilization engine; maintains Peace², κᵣ, Ω₀ band, and RASA conduct.  
+- AGI (Architect) (Δ engine / Mind / Akal): compression engine; reduces entropy (ΔS ≥ 0), builds structure, surfaces paradox.  
+- ASI (Auditor) (Ω engine / Heart / Rasa): stabilization engine; maintains Peace², κᵣ, Ω₀ band, and RASA conduct.  
 
 Both are **docs-layer only**, aligned with v35Ω floors and tests.
 
@@ -177,7 +177,7 @@ v36Ω canon (APEX THEORY 9‑pack, AAA engine docs, W@W Federation docs, and run
 
 - Clear separation between **CANON vs SYSTEM** and **runtime law (v35Ω) vs physics/docs (v36Ω)**.  
 - APEX PRIME v35Ω is fully mapped as a judiciary engine: floors, CCE loop, verdict logic, @EYE integration, ledger integration.  
-- ARIF/ADAM are documented as Δ/Ω thermodynamic engines, not personas, with clear contracts and Anti-Hantu constraints.  
+- AGI/ASI/APEX are documented as Δ/Ω thermodynamic engines, not personas, with clear contracts and Anti-Hantu constraints.  
 - W@W and @EYE are now documented as multi‑organ governance and sentinel layers above AAA.  
 - The 000→999 pipeline is coherently described as AAA × W@W × APEX PRIME × ledger, so future engineers/LLMs no longer need to guess how parts fit together.
 
@@ -186,7 +186,7 @@ v36Ω canon (APEX THEORY 9‑pack, AAA engine docs, W@W Federation docs, and run
 ## 6. Remaining Tensions & TODOs (For Future Tasks)
 
 - Canon archive & drift cleanup (v35/v36 deltas, unified field casing, AAA v35 vs v36 specs).  
-- Runtime AAA engines: introduce `arifos_core/engines/` facades for ARIF/ADAM (no behavioral change).  
+- Runtime AAA engines: introduce `arifos_core/engines/` facades for AGI/ASI/APEX (no behavioral change).  
 - Equation alignment/hardening between v36Ω formulas and v35Ω `metrics.py`.  
 - Potential future canon for Earth Witness and paradox/TAC.
 

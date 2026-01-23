@@ -1,0 +1,226 @@
+# arifOS v38.3 Constitutional Hardening Spec
+# Role: Time as Governor, not variable
+#
+# Version: v38.3.0
+# Status: SEALED (law for v38.3)
+# Canon: canon/00_ARIFOS_MASTER_v38Omega.md, canon/000_ARIFOS_CANON_v35Omega.md
+# Code (reference only): arifos_core/kernel.py, arifos_core/memory/policy.py
+#
+# Purpose:
+#   - Introduce SUNSET verdict for lawful revocation of previously sealed memory
+#   - Define time-governed scheduler for SABAR/PARTIAL decay
+#   - Encode Time as a constitutional force (Entropy Rot is automatic)
+#   - v38.3 AMENDMENTS:
+#     * AMENDMENT 1: Time immutability + state branching (SABAR_EXTENDED)
+#     * AMENDMENT 2: SABAR/PARTIAL semantic separation (PENDING band)
+#     * AMENDMENT 3: W@W conflict resolution via APEX PRIME
+
+version: "v38.3.0"
+arifos_version: "38.3"
+spec_type: "constitutional_hardening"
+description: "v38.3 Hardening Cycle: SUNSET verdict, Phoenix-72 time limits, Entropy Rot, and 3 constitutional paradox fixes."
+
+# =============================================================================
+# VERDICTS
+# =============================================================================
+
+verdicts:
+  description: "Extended verdict set for v38.3, including SUNSET and SABAR_EXTENDED."
+  values:
+    - "SEAL"
+    - "PARTIAL"
+    - "888_HOLD"
+    - "SABAR"
+    - "SABAR_EXTENDED"  # v38.3 AMENDMENT 1: Branched continuation of decayed SABAR
+    - "VOID"
+    - "SUNSET"
+  notes:
+    - "SUNSET does not invent a new fact; it acknowledges that facts can change."
+    - "SUNSET is applied only to previously sealed decisions with a valid evidence chain."
+    - "SABAR_EXTENDED (v38.3): Branched continuation of a decayed SABAR verdict. Creates new ledger entry linked to parent via parent_hash. This is NOT reversal—history is preserved, time moves forward only."
+
+verdict_routing:
+  description: "High-level routing semantics; detailed band mappings remain in pipeline_v38Omega.yaml."
+  bands_ref: "spec/pipeline_v38Omega.yaml#verdict_band_map"
+  SABAR_EXTENDED:
+    from_band: "PENDING"  # v38.3: SABAR now routes to PENDING, not LEDGER+ACTIVE
+    to_band: ["PENDING", "LEDGER"]  # v38.3 AMENDMENT 2: Same routing as SABAR
+    canonical_after: true  # Same as SABAR (logged to LEDGER)
+    description: >
+      v38.3 AMENDMENT 1: Branched continuation of decayed SABAR verdict.
+      Creates NEW ledger entry with parent_hash linkage.
+      Original decayed entry remains UNCHANGED (time immutability).
+      This is NOT reversal—history is preserved, only branching is allowed.
+  SUNSET:
+    from_band: "LEDGER"
+    to_band: "PHOENIX"
+    canonical_after: false
+    description: >
+      Revocation pulse: un-seal a previously canonical memory from LEDGER and return it to PHOENIX
+      for re-trial under updated facts, keeping the original evidence chain intact.
+
+# =============================================================================
+# SCHEDULER (TIME AS GOVERNOR)
+# =============================================================================
+
+scheduler:
+  description: "Time-governed entropy management for unresolved verdicts."
+
+  sabar_timeout:
+    value: "24h"
+    name: "SABAR_TIMEOUT"
+    effect: "SABAR -> PARTIAL"
+    rule: "If verdict == SABAR and age > 24h, escalate to PARTIAL."
+    rationale: >
+      SABAR is a pause to repair floors, not a permanent limbo. After one day of inaction,
+      the system must surface the issue as PARTIAL so it can be actively resolved or revoked.
+
+  phoenix_limit:
+    value: "72h"
+    name: "PHOENIX_LIMIT"
+    effect: "PARTIAL -> VOID"
+    rule: "If verdict == PARTIAL and age > 72h, decay to VOID (entropy dump)."
+    rationale: >
+      Phoenix-72 defines the maximum hope window for an unratified decision. After 72 hours,
+      unattended ambiguity becomes entropy. The system must dump it to VOID and stop treating
+      it as a live candidate for canon.
+
+  transitions:
+    - from: "SABAR"
+      to: "PARTIAL"
+      condition: "age > 24h"
+      description: "Scheduler pulse escalates SABAR stalemates to PARTIAL after 24 hours."
+    - from: "PARTIAL"
+      to: "VOID"
+      condition: "age > 72h"
+      description: "Phoenix-72 boundary: unresolved PARTIAL decisions decay to VOID after 72 hours."
+
+# =============================================================================
+# TIME IMMUTABILITY & BRANCHING (v38.3 AMENDMENT 1)
+# =============================================================================
+
+time_governance:
+  description: "v38.3 AMENDMENT 1: Time as immutable constitutional force. No reversal, only branching."
+  
+  decay_rules:
+    - "SABAR → PARTIAL after 24h (automatic)"
+    - "PARTIAL → VOID after 72h (automatic)"
+    - "Decayed states are immutable (cannot be restored or modified)"
+    - "All ledger entries are append-only (no deletion or editing)"
+  
+  branching_rules:
+    - "Human can spawn SABAR_EXTENDED from decayed SABAR"
+    - "Creates new ledger entry with parent_hash linkage"
+    - "Original decay remains visible in audit trail"
+    - "Branching is NOT reversal (history preserved)"
+    - "Only humans can branch (human_override=True required)"
+  
+  immutability_principle:
+    statement: "Time moves forward only. Ledger entries are immutable."
+    enforcement:
+      - "No 'restore' or 'undo' functions allowed"
+      - "spawn_sabar_extended() creates NEW entry, doesn't modify old"
+      - "parent_hash field links child to parent for audit trail"
+      - "Git reversibility satisfies F1 Amanah (repo level), not entry level"
+
+# =============================================================================
+# MEMORY BANDS (v38.3 AMENDMENT 2)
+# =============================================================================
+
+memory_bands:
+  PENDING:
+    type: "epistemic_queue"
+    retention: "HOT (7 days)"
+    purpose: "Temporary SABAR verdicts awaiting context/retry"
+    routing: ["SABAR", "SABAR_EXTENDED"]  # v38.3: Both SABAR types go to PENDING
+    behaviors:
+      - "Auto-retry when new context arrives"
+      - "Time-decay to PARTIAL if no resolution in 24h"
+      - "Does NOT trigger Phoenix-72 by default"
+      - "Human can manually escalate to PHOENIX if needed"
+    notes: >
+      v38.3 AMENDMENT 2: PENDING band separates SABAR (epistemic pause, need more context)
+      from PARTIAL (constitutional mismatch, need law change). This prevents Phoenix-72 spam
+      for routine SABAR pauses that just need more time or data.
+  
+  PHOENIX:
+    type: "amendment_queue"
+    retention: "WARM (90 days)"
+    purpose: "PARTIAL verdicts proposing constitutional amendments"
+    routing: ["PARTIAL", "SUNSET"]
+    behaviors:
+      - "Triggers Phoenix-72 pressure computation"
+      - "Requires human seal to become canonical (move to VAULT)"
+      - "Time-decay to VOID after 72h if unresolved"
+      - "Does NOT auto-retry (needs human judgment)"
+    notes: >
+      v38.3 AMENDMENT 2: PHOENIX is for law mismatches, not epistemic pauses.
+      PARTIAL verdicts indicate the action doesn't fit current floors—requires amendment.
+      This is fundamentally different from SABAR (need more context) which routes to PENDING.
+
+# =============================================================================
+# INVARIANTS
+# =============================================================================
+
+invariants:
+  - id: "TIME-1"
+    statement: "Time is a Constitutional Force. Entropy Rot is automatic."
+    implications:
+      - "No SABAR verdict may persist indefinitely; it must either be repaired or escalated."
+      - "No PARTIAL verdict may drift forever; after Phoenix-72 (72h) it must resolve or decay."
+      - "SUNSET provides a lawful path to revoke previously sealed truths when external reality changes."
+      - "v38.3: Ledger entries are immutable. Branching creates new entries, doesn't modify old."
+    enforcement_ref:
+      - "arifos_core/kernel.py::check_entropy_rot"
+      - "arifos_core/kernel.py::route_memory"
+      - "arifos_core/memory/policy.py::spawn_sabar_extended"
+
+  - id: "TIME-2"
+    statement: "Hope has a half-life; governance does not."
+    implications:
+      - "PHOENIX band is a hopeful staging area, not permanent storage."
+      - "LEDGER remains append-only, but SUNSET marks where earlier seals are no longer canonical."
+      - "VOID remains diagnostic only; entropy is dumped, not forgotten."
+      - "v38.3: PENDING band is epistemic queue (hope for context), PHOENIX is law queue (hope for amendment)."
+
+  - id: "SABAR-PARTIAL-1"
+    statement: "SABAR ≠ PARTIAL. Different failure modes require different recovery paths."
+    implications:
+      - "SABAR: Epistemic pause. Need more time/context. Routes to PENDING."
+      - "PARTIAL: Constitutional mismatch. Action doesn't fit floors. Routes to PHOENIX."
+      - "SABAR does NOT trigger Phoenix-72 pressure by default (can be escalated manually)."
+      - "PARTIAL DOES trigger Phoenix-72 pressure (requires human seal to become canonical)."
+    enforcement_ref:
+      - "arifos_core/memory/policy.py::VERDICT_BAND_ROUTING"
+      - "arifos_core/memory/bands.py::PendingBand"
+      - "arifos_core/memory/bands.py::PhoenixCandidatesBand"
+  
+  - id: "WAW-APEX-1"
+    statement: "No organ supremacy. Conflicts escalate to APEX PRIME meta-judgment."
+    implications:
+      - "Static hierarchy is FORBIDDEN (no '@WEALTH always wins' rules)."
+      - "When W@W organs propose conflicting verdicts, escalation to APEX PRIME is MANDATORY."
+      - "Judgment uses Ψ vitality + floor metrics, not organ identity."
+      - "Organs ADVISE, Floors CONSTRAIN, APEX JUDGES."
+    enforcement_ref:
+      - "arifos_core/waw/federation.py::resolve_organ_conflict"
+      - "arifos_core/APEX_PRIME.py::apex_prime_judge"
+
+# =============================================================================
+# REFERENCES
+# =============================================================================
+
+references:
+  canon:
+    - "canon/00_ARIFOS_MASTER_v38Omega.md"
+    - "canon/05_COOLING_LEDGER_PHOENIX_v38Omega.md"
+    - "canon/07_CCC/ARIFOS_MEMORY_STACK_v38Omega.md"
+    - "canon/000_ARIFOS_CANON_v35Omega.md"
+  spec:
+    - "spec/pipeline_v38Omega.yaml"
+    - "spec/cooling_ledger_phoenix_v38Omega.json"
+  code:
+    - "arifos_core/kernel.py"
+    - "arifos_core/memory/policy.py"
+
+

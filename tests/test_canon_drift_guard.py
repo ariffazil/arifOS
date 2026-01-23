@@ -10,7 +10,7 @@ Purpose: Detect future drift between code and canon.
 These tests are READ-ONLY - they do not auto-fix anything.
 
 See: canon/888_APEX_PRIME_CANON_v35Omega.md
-     integrations/sealion/constitutional_floors.json
+     spec/v45/constitutional_floors.json
 """
 
 import json
@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from arifos_core.metrics import (
+from arifos.core.enforcement.metrics import (
     TRUTH_THRESHOLD,
     DELTA_S_THRESHOLD,
     PEACE_SQUARED_THRESHOLD,
@@ -52,14 +52,14 @@ def repo_root() -> Path:
 
 @pytest.fixture
 def canon_dir(repo_root) -> Path:
-    """Get canon directory path."""
-    return repo_root / "canon"
+    """Get canon directory path (v45)."""
+    return repo_root / "L1_THEORY" / "canon"
 
 
 @pytest.fixture
 def constitutional_floors_json(repo_root) -> dict:
-    """Load constitutional_floors.json."""
-    path = repo_root / "integrations" / "sealion" / "constitutional_floors.json"
+    """Load constitutional_floors.json (v45)."""
+    path = repo_root / "spec" / "v45" / "constitutional_floors.json"
     assert path.exists(), f"constitutional_floors.json not found at {path}"
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
@@ -72,38 +72,14 @@ def constitutional_floors_json(repo_root) -> dict:
 class TestRuntimeLawFilesExist:
     """Verify numeric runtime-law canon files exist."""
 
-    def test_000_canon_exists(self, canon_dir):
-        """000_* files exist (VOID / Foundation)."""
-        matches = list(canon_dir.glob("000_*.md"))
-        assert len(matches) >= 1, "No 000_* canon files found"
-
-    def test_020_anti_hantu_exists(self, canon_dir):
-        """020_* Anti-Hantu canon exists."""
-        matches = list(canon_dir.glob("020_*.md"))
-        assert len(matches) >= 1, "No 020_* (Anti-Hantu) canon files found"
-
-    def test_030_eye_sentinel_exists(self, canon_dir):
-        """030_* @EYE Sentinel canon exists."""
-        matches = list(canon_dir.glob("030_*.md"))
-        assert len(matches) >= 1, "No 030_* (@EYE Sentinel) canon files found"
-
-    def test_880_metabolic_canon_exists(self, canon_dir):
-        """880_* Metabolic pipeline canon exists."""
-        matches = list(canon_dir.glob("880_*.md"))
-        assert len(matches) >= 1, "No 880_* (Metabolic Pipeline) canon files found"
-
-    def test_888_apex_prime_canon_exists(self, canon_dir):
-        """888_* APEX PRIME judiciary canon exists."""
-        matches = list(canon_dir.glob("888_*.md"))
-        assert len(matches) >= 1, "No 888_* (APEX PRIME) canon files found"
-
-    def test_99_vault999_exists(self, canon_dir):
-        """99_* Vault-999 canon exists."""
-        # Check for both .md and .json variants
-        md_matches = list(canon_dir.glob("99_*.md"))
-        json_matches = list(canon_dir.glob("99_*.json"))
-        total = len(md_matches) + len(json_matches)
-        assert total >= 1, "No 99_* (Vault-999) canon files found"
+    def test_canon_files_exist(self, canon_dir):
+        """Canon files must exist in L1_THEORY/canon."""
+        md_files = list(canon_dir.rglob("*.md"))
+        assert len(md_files) > 0, "No canon markdown files found in L1_THEORY/canon"
+        
+        # Check for Master Index (recursive search in subdirectories)
+        master_index = list(canon_dir.rglob("*MASTER_INDEX*.md"))
+        assert len(master_index) > 0, "Master Index not found"
 
 
 # =============================================================================

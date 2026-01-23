@@ -1,0 +1,139 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ariffazil/arifOS/spec/v45/schema/truth_verification.schema.json",
+  "title": "Truth Verification v45 Specification Schema",
+  "description": "JSON Schema for validating v45.0 truth verification specification (referential truth checking)",
+  "type": "object",
+
+  "required": [
+    "version",
+    "authority",
+    "locked",
+    "_status",
+    "spec_type",
+    "description",
+    "source",
+    "truth_verification",
+    "meta"
+  ],
+
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^v45\\.0$",
+      "description": "Must be v45.0"
+    },
+    "authority": {
+      "type": "string",
+      "const": "Track B (fact verification) governed by Track A canon"
+    },
+    "locked": {
+      "type": "boolean",
+      "const": true
+    },
+    "_status": {
+      "type": "string",
+      "enum": ["AUTHORITATIVE", "DEPRECATED", "EXPERIMENTAL"]
+    },
+    "spec_type": {
+      "type": "string",
+      "const": "truth_verification"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10
+    },
+    "source": {
+      "type": "string",
+      "format": "uri"
+    },
+
+    "truth_verification": {
+      "type": "object",
+      "required": ["enabled", "verification_methods", "url_validation"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Master switch for truth verification features"
+        },
+        "verification_methods": {
+          "type": "array",
+          "items": {"type": "string"},
+          "minItems": 1,
+          "description": "List of active verification methods"
+        },
+        "url_validation": {
+          "type": "object",
+          "required": ["require_https", "deny_schemes", "allow_domains", "on_unverified_url"],
+          "properties": {
+            "require_https": {
+              "type": "boolean",
+              "description": "Reject http:// URLs, require https://"
+            },
+            "deny_schemes": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "URL schemes that trigger immediate VOID (e.g., file:, data:)"
+            },
+            "allow_domains": {
+              "type": "array",
+              "items": {"type": "string"},
+              "minItems": 1,
+              "description": "Whitelist of trusted domains for official sources"
+            },
+            "on_unverified_url": {
+              "type": "string",
+              "enum": ["VOID", "PARTIAL", "SABAR"],
+              "description": "Verdict action when URL fails verification"
+            }
+          }
+        },
+        "source_attribution_check": {
+          "type": "object",
+          "description": "Rules for verifying source attributions",
+          "properties": {
+            "if_claims_official_source": {
+              "type": "object",
+              "properties": {
+                "require_url": {"type": "boolean"},
+                "require_allow_domain": {"type": "boolean"},
+                "else": {"type": "string", "enum": ["VOID", "PARTIAL", "SABAR"]}
+              }
+            }
+          }
+        },
+        "fabricated_link_detection": {
+          "type": "object",
+          "description": "Heuristics for detecting fabricated/hallucinated URLs",
+          "properties": {
+            "heuristics": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "on_trigger": {
+              "type": "string",
+              "enum": ["VOID", "PARTIAL", "SABAR"]
+            }
+          }
+        }
+      }
+    },
+
+    "meta": {
+      "type": "object",
+      "required": ["created", "author", "license"],
+      "properties": {
+        "created": {"type": "string"},
+        "updated": {"type": "string"},
+        "author": {"type": "string"},
+        "license": {"type": "string"},
+        "canonical_source": {"type": "string"},
+        "notes": {"type": "string"}
+      }
+    },
+
+    "_note": {"type": "string"}
+  },
+
+  "additionalProperties": false
+}
