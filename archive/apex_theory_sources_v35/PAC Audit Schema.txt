@@ -1,0 +1,84 @@
+﻿{
+ "$schema": "http://json-schema.org/draft-07/schema#",
+ "$id": "https://arifos.dev/schema/pac_v36omega.json",
+ "title": "Periodic Audit Card (PAC) Schema v36Ω",
+ "description": "Diagnostic schema for measuring civilizational thermodynamics and alloy health.",
+ "type": "object",
+ "required": [
+   "audit_id",
+   "timestamp",
+   "target_zone",
+   "chemistry",
+   "floors"
+ ],
+ "properties": {
+   "audit_id": {
+     "type": "string",
+     "description": "Unique identifier for this audit (e.g., PAC-2025-12-06-MY)"
+   },
+   "timestamp": {
+     "type": "string",
+     "format": "date-time"
+   },
+   "target_zone": {
+     "type": "string",
+     "description": "The civilization/entity being audited"
+   },
+   "chemistry": {
+     "type": "object",
+     "required": ["reactivity_index", "bond_strength", "conductance_kappa", "void_percent", "eco_ox_risk"],
+     "properties": {
+       "reactivity_index": {
+         "type": "number",
+         "minimum": 0,
+         "maximum": 1,
+         "description": "E1: Measure of volatile energy (Li/Na). >0.8 is Explosion Risk."
+       },
+       "bond_strength": {
+         "type": "number",
+         "minimum": 0,
+         "maximum": 1,
+         "description": "E2: Measure of institutional cohesion (Fe/Ni)."
+       },
+       "conductance_kappa": {
+         "type": "number",
+         "minimum": 0,
+         "maximum": 1,
+         "description": "κᵣ: Measure of trust transmission. <0.7 is Rust Risk."
+       },
+       "void_percent": {
+         "type": "number",
+         "minimum": 0,
+         "maximum": 1,
+         "description": "He: Percentage of scheduled rest/cooling. <0.1 is Burnout Risk."
+       },
+       "eco_ox_risk": {
+         "type": "number",
+         "minimum": 0,
+         "maximum": 1,
+         "description": "O₂: Planetary oxidation risk. >0.6 is Critical."
+       }
+     }
+   },
+   "alloy_type": {
+     "type": "string",
+     "enum": ["Civic Steel", "Innovation Brass", "Recovery Spring", "Corroded Scrap", "Molten Slag"],
+     "description": "Classification of the current societal alloy."
+   },
+   "floors": {
+     "type": "object",
+     "properties": {
+       "truth_floor": { "type": "number", "minimum": 0, "maximum": 1 },
+       "peace_squared": { "type": "number", "minimum": 0 },
+       "delta_s": { "type": "number" }
+     }
+   },
+   "failure_mode_flags": {
+     "type": "array",
+     "items": {
+       "type": "string",
+       "enum": ["Alkali_Overshoot", "Inert_Suffocation", "Catalyst_Poisoning", "Planetary_Oxidation", "None"]
+     }
+   }
+ }
+}

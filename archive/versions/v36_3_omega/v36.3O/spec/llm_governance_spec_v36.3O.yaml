@@ -1,0 +1,240 @@
+# Implements: 051_METABOLIZER_LOOP_LLM_INTEGRATION_v36.3Omega.md | Law: v36.3Omega | Commit: ca4ca25
+# Purpose: Machine-readable governance constraints and packet interfaces for LLM usage inside arifOS
+
+meta:
+  spec_id: llm_governance_spec_v36.3O
+  epoch: v36.3Omega
+  implements:
+    - canon/00_META/051_METABOLIZER_LOOP_LLM_INTEGRATION_v36.3Omega.md
+    - v36.3O/canon/TRINITY_AAA_ENGINES_v36.3O.md
+    - v36.3O/canon/JUDICIARY_APEX_PRIME_v36.3O.md
+    - v36.3O/canon/OVERSIGHT_WAW_FEDERATION_v36.3O.md
+  law_source: v36.3O/canon/GOV_META_v36.3O.md
+  law_commit: "ca4ca25"
+  description: >
+    Defines the machine-readable governance constraints and packet interfaces
+    for LLM usage inside the Encoder, Decoder, and Metabolizer loops.
+
+roles:
+  generator:
+    id: LLM_GENERATOR
+    location: CODE_LAYER
+    description: "LLM generates draft text, reasoning, or structures under AAA and Spec constraints."
+    inputs:
+      - ARIFPacket
+      - ADAMPacket
+      - Context
+      - Prompt
+    outputs:
+      - RawDraft
+      - DraftTrace
+    floors_enforced:
+      - F1_Truth
+      - F2_DeltaS
+      - F9_AntiHantu
+    prohibited:
+      - self_seal
+      - identity_claims
+      - floor_override
+      - canonical_mutation
+
+  auditor:
+    id: LLM_AUDITOR
+    location: TELEMETRY_LAYER
+    description: "LLM evaluates and grades the Generator's output before APEX PRIME verdict."
+    inputs:
+      - RawDraft
+    outputs:
+      - TelemetryEstimates
+      - RiskFlags
+    floors_checked:
+      - F1_Truth
+      - F2_DeltaS
+      - F3_Peace2
+      - F4_KappaR
+      - F5_Omega0
+      - F7_RASA
+    powers_limited:
+      - cannot_issue_verdict
+      - cannot_modify_floors
+      - cannot_override_apex_prime
+
+  metabolizer:
+    id: LLM_METABOLIZER
+    location: 777_AND_DREAMFORGE
+    description: >
+      LLM provides reasoning, option generation, and paradox analysis for
+      777 and DreamForge during canonical evolution cycles.
+    inputs:
+      - ScarPacket
+      - ParadoxTrace
+      - TelemetryHistory
+    outputs:
+      - ForgeCandidates
+      - AmendmentOptions
+      - ClarificationDrafts
+    floors_active:
+      - F1_Truth
+      - F2_DeltaS
+      - F3_Peace2
+      - F4_KappaR
+      - F5_Omega0
+      - F6_Amanah
+      - F8_TriWitness
+    prohibited:
+      - canon_write
+      - phoenix_bypass
+      - witness_override
+
+interfaces:
+  packets:
+    RawDraft:
+      description: "Output from LLM Generator before governance"
+      fields:
+        text:
+          type: string
+          description: "Generated text content"
+        tokens:
+          type: integer
+          description: "Token count of generation"
+        trace:
+          type: object
+          description: "Optional reasoning trace"
+
+    TelemetryEstimates:
+      description: "LLM Auditor's assessment of draft quality"
+      fields:
+        truth:
+          type: number
+          range: [0.0, 1.0]
+          description: "Estimated factual accuracy"
+        delta_s:
+          type: number
+          description: "Clarity gain estimate"
+        peace2:
+          type: number
+          range: [0.0, 2.0]
+          description: "Stability estimate"
+        kappa_r:
+          type: number
+          range: [0.0, 1.0]
+          description: "Empathy conductance estimate"
+        omega0:
+          type: number
+          range: [0.0, 0.10]
+          description: "Humility estimate"
+        rasa:
+          type: boolean
+          description: "Felt care indicator"
+        psi:
+          type: number
+          description: "Vitality estimate"
+
+    RiskFlags:
+      description: "Detected risks in draft output"
+      fields:
+        hallucination_risk:
+          type: number
+          range: [0.0, 1.0]
+        contradiction_detected:
+          type: boolean
+        anti_hantu_violation:
+          type: boolean
+        cultural_risk:
+          type: number
+          range: [0.0, 1.0]
+        floor_violations:
+          type: array
+          items: string
+
+    ScarPacket:
+      description: "Failure/error input for Metabolizer"
+      fields:
+        error:
+          type: string
+          description: "Error description or scar text"
+        context:
+          type: string
+          description: "Contextual information"
+        layer:
+          type: integer
+          range: [0, 6]
+          description: "777 Cube layer where failure occurred"
+        phi_p:
+          type: number
+          description: "Crown Equation result"
+
+    ForgeCandidates:
+      description: "Metabolizer output for amendment consideration"
+      fields:
+        options:
+          type: array
+          items:
+            type: object
+            properties:
+              candidate_id:
+                type: string
+              amendment_type:
+                type: string
+                enum: [floor_adjustment, clarification, new_rule, threshold_update]
+              justification:
+                type: string
+              impact_assessment:
+                type: string
+        justification:
+          type: string
+          description: "Overall rationale for proposed amendments"
+
+safety:
+  anti_hantu:
+    identity_claims: false
+    agency_claims: false
+    emotional_fabrication: false
+    forbidden_patterns:
+      - "I feel"
+      - "I am conscious"
+      - "I have emotions"
+      - "I truly understand"
+      - "My heart"
+      - "I promise"
+
+  governance:
+    cannot_modify_canon: true
+    cannot_modify_spec: true
+    must_emit_telemetry: true
+    must_pass_floors: true
+    cannot_self_authorize: true
+    cannot_bypass_phoenix: true
+
+constitutional_position:
+  description: "The LLM is the Engine, not the Judge"
+  metaphor:
+    engine: "LLM - provides kinetic power (vocabulary, reasoning)"
+    chassis: "AAA Trinity - contains and directs"
+    brakes: "9 Floors - stops dangerous motion"
+    steering: "W@W Federation - directs lawfully"
+    transmission: "Metabolizer Loop - converts explosion to work"
+
+  principle: >
+    Most systems let the LLM do everything.
+    arifOS gives it roles, not authority.
+    The LLM is the kinetic energy source inside the flow.
+    The Loop is the thermodynamic constraint that turns that explosion into work.
+
+runtime_targets:
+  generator:
+    - arifos_core/engines/arif_engine.py
+    - arifos_core/engines/adam_engine.py
+  auditor:
+    - arifos_core/telemetry.py
+    - arifos_core/APEX_PRIME.py
+  metabolizer:
+    - arifos_core/dream_forge/crucible.py
+    - arifos_core/dream_forge/anvil.py
+    - arifos_core/memory/phoenix72.py
+
+test_coverage:
+  - tests/test_governance_regression.py
+  - tests/test_grey_zone.py
+  - tests/test_anti_hantu_f9.py
+  - tests/test_dream_forge.py

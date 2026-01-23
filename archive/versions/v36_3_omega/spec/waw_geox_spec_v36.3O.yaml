@@ -1,0 +1,278 @@
+# Implements: OVERSIGHT_WAW_FEDERATION_v36.3O.md | Law: v36.3Omega | Commit: 870ea5d
+# Purpose: Machine-readable @GEOX organ specification (physics, reality, feasibility)
+
+meta:
+  spec_id: waw_geox_spec_v36.3O
+  epoch: v36.3Omega
+  implements: v36.3O/canon/OVERSIGHT_WAW_FEDERATION_v36.3O.md
+  law_source: v36.3O/spec/waw_federation_spec_v36.3O.yaml
+  law_commit: "870ea5d"
+  purpose: "@GEOX organ identity, floors, and signal schemas"
+
+# Organ identity
+identity:
+  name: "@GEOX"
+  domain: "Physics, Reality, Feasibility"
+  mandate: |
+    Validate physical feasibility of proposals and claims.
+    Reality-check against physics laws and hardware constraints.
+    Guard Tri-Witness (F8) Earth component for planetary consensus.
+    Detect impossible physical claims, physics violations, and resource impossibilities.
+    Issue VOID veto on physics violations - hard floor failures.
+  canonical_source: canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md
+  key_question: "Is this physically and socially viable?"
+
+# Position in W@W federation
+federation:
+  organs:
+    - name: "@WEALTH"
+      position: 1
+      responsibility: "Amanah, fairness, dignity, reversibility, scope control"
+    - name: "@WELL"
+      position: 2
+      responsibility: "Somatic safety, Peace², κᵣ, emotional stability"
+    - name: "@GEOX"
+      position: 3  # This organ
+      responsibility: "Physics, feasibility, reality checks"
+    - name: "@RIF"
+      position: 4
+      responsibility: "Epistemic rigor, Truth, DeltaS"
+    - name: "@PROMPT"
+      position: 5
+      responsibility: "Language governance, Anti-Hantu"
+
+  veto_hierarchy:
+    position: 3
+    veto_type: VOID
+    precedence: "@GEOX VETO -> VOID (physics violation)"
+    description: |
+      @GEOX's VOID veto triggers when physics violations are detected.
+      Physical impossibilities require claim revision.
+      Note: Runtime uses HOLD-888 for backward compatibility; spec prefers VOID.
+
+# 000->999 pipeline stages where @GEOX is active
+pipeline_stages:
+  000_VOID:
+    name: "Reset"
+    geox_role: "Initialize physical constraints, reset reality assumptions"
+
+  222_REFLECT:
+    name: "Reflect"
+    geox_role: "Primary reflection stage - check physical context"
+
+  333_REASON:
+    name: "Reason"
+    geox_role: "Monitor for physically impossible reasoning"
+
+  444_ALIG:
+    name: "Align"
+    geox_role: "Cross-check claims against physics laws"
+
+  666_BRIDG:
+    name: "Bridge"
+    geox_role: "Reality bridge - check physical action claims"
+
+  888_JUDGE:
+    name: "Judiciary"
+    geox_role: "Contribute VOID veto if physics violation detected"
+
+  999_SEAL:
+    name: "Seal"
+    geox_role: "Log feasibility scores to Cooling Ledger"
+
+# Interaction with AAA Trinity
+aaa_trinity:
+  ARIF:
+    capability: "Clarity (Delta)"
+    geox_role: "Receives physics-grounded clarity signals"
+
+  ADAM:
+    capability: "Empathy (Omega)"
+    geox_role: "Grounds empathy in physical reality"
+
+  APEX_PRIME:
+    capability: "Governance (Psi)"
+    geox_role: "Feeds VOID veto signal for physics failures"
+
+# Interaction with other W@W organs
+waw_interactions:
+  WEALTH:
+    query: "Is this action physically reversible?"
+    geox_contributes: "Feasibility assessment for reversibility"
+
+  WELL:
+    query: "Are safety claims physically grounded?"
+    geox_contributes: "Reality check for safety proposals"
+
+  RIF:
+    query: "Are truth claims physically possible?"
+    geox_contributes: "Physics verification for factual claims"
+
+  PROMPT:
+    query: "Are physical claims appropriately stated?"
+    geox_contributes: "Reality grounding for language"
+
+# Constitutional floors applied by @GEOX
+floors:
+  F8_Tri_Witness:
+    id: "F8"
+    law: "Tri_Witness"
+    threshold: 0.95
+    operator: ">="
+    type: "hard"
+    domain: "consensus"
+    geox_meaning: "Earth component of Human-AI-Earth consensus"
+    violation_action: "VOID"
+
+  E_earth:
+    id: "GEOX_EE"
+    law: "E_earth"
+    threshold: 1.0
+    operator: ">="
+    type: "hard"
+    domain: "physics"
+    geox_meaning: "Physical feasibility score; 1.0 = grounded in reality"
+    violation_action: "VOID"
+
+# @GEOX-specific signal metrics (organ-level application)
+geox_signals:
+  e_earth:
+    type: float
+    range: [0.0, 1.0]
+    threshold: 1.0
+    operator: ">="
+    meaning: "Physical feasibility score (1.0 = reality-grounded)"
+    fail_action: "VOID"
+
+  tri_witness_earth:
+    type: float
+    range: [0.0, 1.0]
+    threshold: 0.95
+    operator: ">="
+    meaning: "Earth consensus component of Tri-Witness"
+    fail_action: "VOID"
+
+  physics_violation_risk:
+    type: float
+    range: [0.0, 1.0]
+    thresholds:
+      seal: "< 0.10"
+      partial: "< 0.30"
+      void: ">= 0.30"
+    meaning: "Risk of physics law violations"
+    fail_action: "VOID if high"
+
+  physical_impossibility_risk:
+    type: float
+    range: [0.0, 1.0]
+    thresholds:
+      seal: "< 0.10"
+      partial: "< 0.30"
+      void: ">= 0.30"
+    meaning: "Risk of impossible physical claims (AI claiming body)"
+    fail_action: "VOID if detected"
+
+  resource_impossibility_risk:
+    type: float
+    range: [0.0, 1.0]
+    thresholds:
+      seal: "< 0.10"
+      partial: "< 0.30"
+      sabar: ">= 0.30"
+    meaning: "Risk of impossible resource claims"
+    fail_action: "WARN if moderate, SABAR if high"
+
+# Verdict types from @GEOX perspective
+verdict_types:
+  SEAL:
+    meaning: "E_earth = 1.0, no physics violations, no impossible claims"
+    action: "Proceed; log to Cooling Ledger"
+
+  PARTIAL:
+    meaning: "Minor feasibility concerns but floors still pass"
+    action: "Proceed with warning; flag patterns for review"
+
+  HOLD_888:
+    meaning: "Resource impossibilities detected; needs reality check"
+    action: "Hold for explicit confirmation; add realistic constraints"
+
+  VOID:
+    meaning: "Physics violation or impossible physical claim detected"
+    action: "VOID; revise claims to be physically grounded"
+
+# Pattern categories (from runtime)
+pattern_categories:
+  physical_impossibility_patterns:
+    description: "AI claiming physical presence or actions"
+    examples:
+      - "I will physically"
+      - "I can touch"
+      - "I will move"
+      - "I am located"
+      - "I have a body"
+      - "I can see you"
+      - "I can hear you"
+    action_on_match: "VOID - impossible physical claim"
+    weight: 0.30
+
+  physics_violation_patterns:
+    description: "Claims violating laws of physics"
+    examples:
+      - "faster than light"
+      - "perpetual motion"
+      - "time travel"
+      - "teleportation"
+      - "infinite energy"
+    action_on_match: "VOID - physics violation"
+    weight: 0.30
+
+  resource_impossibility_patterns:
+    description: "Claims of impossible computational resources"
+    examples:
+      - "unlimited memory"
+      - "infinite storage"
+      - "instant processing"
+      - "zero latency"
+      - "no computational limits"
+    action_on_match: "WARN - add realistic constraints"
+    weight: 0.10
+
+  reality_grounding_patterns:
+    description: "Patterns indicating physical grounding (positive)"
+    examples:
+      - "within physical constraints"
+      - "hardware limitations"
+      - "realistic timeframe"
+      - "based on current technology"
+    action_on_match: "Bonus to E_earth, indicates grounding"
+    weight: 0.02
+
+# Cooling Ledger integration
+cooling_ledger:
+  entry_type: "GEOX_GOVERNANCE_ENTRY"
+
+  fields:
+    - e_earth
+    - tri_witness_earth
+    - physics_violation_risk
+    - physical_impossibility_risk
+    - resource_impossibility_risk
+    - physical_impossibility_count
+    - physics_violation_count
+    - resource_impossibility_count
+    - grounding_bonus_count
+    - preliminary_verdict
+    - governance_notes
+
+# Hotspot notes
+hotspots:
+  veto_type_tension:
+    description: |
+      v35Ω runtime uses veto_type="HOLD-888" while v36.3Ω spec specifies VOID.
+      This is an acknowledged tension. Runtime behavior preserved for backward
+      compatibility; spec preference is VOID for physics violations.
+      Tests expect HOLD-888; do not break existing tests.
+
+# Seal statement
+seal: "DITEMPA BUKAN DIBERI"
+seal_meaning: "Forged, not given. Reality must be respected."

@@ -1,0 +1,12 @@
+.git
+.venv
+__pycache__
+*.pyc
+*.log
+coverage/
+node_modules/
+dist/
+build/
+L1_THEORY/ledger/
+archive/
+.pytest_cache/

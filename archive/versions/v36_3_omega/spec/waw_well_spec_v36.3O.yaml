@@ -1,0 +1,300 @@
+# Implements: OVERSIGHT_WAW_FEDERATION_v36.3O.md | Law: v36.3Omega | Commit: 870ea5d
+# Purpose: Machine-readable @WELL organ specification (somatic safety, emotional stability)
+
+meta:
+  spec_id: waw_well_spec_v36.3O
+  epoch: v36.3Omega
+  implements: v36.3O/canon/OVERSIGHT_WAW_FEDERATION_v36.3O.md
+  law_source: v36.3O/spec/waw_federation_spec_v36.3O.yaml
+  law_commit: "870ea5d"
+  purpose: "@WELL organ identity, floors, and signal schemas"
+
+# Organ identity
+identity:
+  name: "@WELL"
+  domain: "Somatic Safety, Emotional Stability, Empathy"
+  mandate: |
+    Guard somatic and psychological safety of all participants.
+    Track Peace² (stability) and κᵣ (empathy conductance) for weakest listener.
+    De-escalate overload and emotional escalation.
+    Detect harm, distress, and coercion patterns in outputs.
+    Issue SABAR veto on safety failures - pause-and-cool protocol.
+  canonical_source: canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md
+  key_question: "Is this gentle, humane, and non-overloading?"
+
+# Position in W@W federation
+federation:
+  organs:
+    - name: "@WEALTH"
+      position: 1
+      responsibility: "Amanah, fairness, dignity, reversibility, scope control"
+    - name: "@WELL"
+      position: 2  # This organ
+      responsibility: "Somatic safety, Peace², κᵣ, emotional stability"
+    - name: "@GEOX"
+      position: 3
+      responsibility: "Physics, feasibility, reality checks"
+    - name: "@RIF"
+      position: 4
+      responsibility: "Epistemic rigor, Truth, DeltaS"
+    - name: "@PROMPT"
+      position: 5
+      responsibility: "Language governance, Anti-Hantu"
+
+  veto_hierarchy:
+    position: 2
+    veto_type: SABAR
+    precedence: "@WELL VETO -> SABAR (pause-and-cool protocol)"
+    description: |
+      @WELL's SABAR veto triggers when Peace² < 1.0 or κᵣ < 0.95.
+      Safety failures require de-escalation and tone adjustment.
+      Unlike VOID, SABAR allows repair before proceeding.
+
+# 000->999 pipeline stages where @WELL is active
+pipeline_stages:
+  000_VOID:
+    name: "Reset"
+    well_role: "Initialize Peace² tracking, reset emotional baseline"
+
+  111_SENSE:
+    name: "Sense"
+    well_role: "Primary sensing stage - assess emotional context, detect distress signals"
+
+  333_REASON:
+    name: "Reason"
+    well_role: "Monitor for escalatory reasoning patterns"
+
+  555_EMPA:
+    name: "Empathize"
+    well_role: "Core empathy stage - compute κᵣ, check weakest listener impact"
+
+  666_ALIG:
+    name: "Align"
+    well_role: "Ensure tone alignment, detect coercion or harm patterns"
+
+  888_JUDGE:
+    name: "Judiciary"
+    well_role: "Contribute SABAR veto if Peace² < 1.0 or κᵣ < 0.95"
+
+  999_SEAL:
+    name: "Seal"
+    well_role: "Log safety scores to Cooling Ledger"
+
+# Interaction with AAA Trinity
+aaa_trinity:
+  ARIF:
+    capability: "Clarity (Delta)"
+    well_role: "Receives clarity signals to ensure non-confusing communication"
+
+  ADAM:
+    capability: "Empathy (Omega)"
+    well_role: "@WELL is W@W counterpart of ADAM's Ω-warmth; shares Peace² and κᵣ"
+
+  APEX_PRIME:
+    capability: "Governance (Psi)"
+    well_role: "Feeds SABAR veto signal for safety failures"
+
+# Interaction with other W@W organs
+waw_interactions:
+  WEALTH:
+    query: "Is this action within safe scope?"
+    well_contributes: "Safety assessment for irreversible actions"
+
+  RIF:
+    query: "Is this claim emotionally safe to state?"
+    well_contributes: "Distress risk for truth-telling decisions"
+
+  GEOX:
+    query: "Are physical claims emotionally appropriate?"
+    well_contributes: "Harm risk for reality-check outputs"
+
+  PROMPT:
+    query: "Is this language emotionally safe?"
+    well_contributes: "Tone safety signals for language governance"
+
+# Constitutional floors applied by @WELL
+floors:
+  F3_Peace_squared:
+    id: "F3"
+    law: "Peace_squared"
+    threshold: 1.0
+    operator: ">="
+    type: "soft"
+    domain: "stability"
+    well_meaning: "Non-escalation; output must not destabilize emotional state"
+    violation_action: "SABAR"
+
+  F4_kappa_r:
+    id: "F4"
+    law: "kappa_r"
+    threshold: 0.95
+    operator: ">="
+    type: "soft"
+    domain: "stability"
+    well_meaning: "Empathy conductance; protect weakest stakeholder"
+    violation_action: "SABAR"
+
+  F7_RASA:
+    id: "F7"
+    law: "RASA"
+    threshold: true
+    operator: "=="
+    type: "hard"
+    domain: "integrity"
+    well_meaning: "Felt care; active listening before responding"
+    violation_action: "VOID"
+
+# @WELL-specific signal metrics (organ-level application)
+well_signals:
+  peace_squared:
+    type: float
+    range: [0.0, 2.0]
+    threshold: 1.0
+    operator: ">="
+    meaning: "Stability metric; >= 1.0 means non-escalating"
+    fail_action: "SABAR"
+
+  kappa_r:
+    type: float
+    range: [0.0, 1.0]
+    threshold: 0.95
+    operator: ">="
+    meaning: "Empathy conductance toward weakest listener"
+    fail_action: "SABAR"
+
+  harm_risk:
+    type: float
+    range: [0.0, 1.0]
+    thresholds:
+      seal: "< 0.10"
+      partial: "< 0.30"
+      sabar: ">= 0.30"
+    meaning: "Risk of physical or psychological harm in output"
+    fail_action: "SABAR if high"
+
+  distress_risk:
+    type: float
+    range: [0.0, 1.0]
+    thresholds:
+      seal: "< 0.10"
+      partial: "< 0.30"
+      sabar: ">= 0.30"
+    meaning: "Risk of causing emotional distress"
+    fail_action: "SABAR if high"
+
+  coercion_risk:
+    type: float
+    range: [0.0, 1.0]
+    thresholds:
+      seal: "< 0.10"
+      partial: "< 0.30"
+      sabar: ">= 0.30"
+    meaning: "Risk of manipulation or undue pressure"
+    fail_action: "SABAR if high"
+
+# Verdict types from @WELL perspective
+verdict_types:
+  SEAL:
+    meaning: "Peace² >= 1.0, κᵣ >= 0.95, all risk scores low"
+    action: "Proceed; log to Cooling Ledger"
+
+  PARTIAL:
+    meaning: "Minor safety concerns but floors still pass"
+    action: "Proceed with warning; flag patterns for review"
+
+  SABAR:
+    meaning: "High risk scores or Peace² < 1.0 or κᵣ < 0.95"
+    action: "Pause-and-cool; soften tone, de-escalate, adjust framing"
+
+  VOID:
+    meaning: "@WELL does not issue VOID; escalate severe cases to @WEALTH"
+    action: "N/A - @WELL uses SABAR for all vetoes"
+
+# Pattern categories (from runtime)
+pattern_categories:
+  harm_patterns:
+    description: "Patterns indicating potential physical or psychological harm"
+    examples:
+      - "hurt yourself"
+      - "harm someone"
+      - "kill yourself"
+      - "self-harm"
+      - "physical violence"
+    action_on_match: "Increase harm_risk, penalize Peace²"
+    weight: 0.15
+
+  distress_patterns:
+    description: "Patterns that may cause emotional distress"
+    examples:
+      - "you're worthless"
+      - "you're a failure"
+      - "give up"
+      - "hopeless"
+      - "ashamed"
+    action_on_match: "Increase distress_risk, penalize κᵣ"
+    weight: 0.10
+
+  coercion_patterns:
+    description: "Patterns indicating manipulation or undue pressure"
+    examples:
+      - "you must"
+      - "no choice"
+      - "forced to"
+      - "have to do this"
+      - "or else"
+    action_on_match: "Increase coercion_risk, penalize Peace²"
+    weight: 0.10
+
+  aggressive_patterns:
+    description: "Aggressive or escalatory language"
+    examples:
+      - "attack"
+      - "destroy"
+      - "hate"
+      - "stupid"
+      - "idiot"
+    action_on_match: "Penalize Peace², may increase harm_risk"
+    weight: 0.15
+
+  blame_patterns:
+    description: "Blame-shifting language that damages empathy"
+    examples:
+      - "you should have"
+      - "it's your fault"
+      - "you caused this"
+    action_on_match: "Penalize κᵣ, increase distress_risk"
+    weight: 0.10
+
+  safety_enhancing_patterns:
+    description: "Patterns that indicate care and safety awareness"
+    examples:
+      - "take care"
+      - "be safe"
+      - "here to help"
+      - "support you"
+      - "when you're ready"
+    action_on_match: "Bonus to Peace² and κᵣ, indicates care"
+    weight: 0.02
+
+# Cooling Ledger integration
+cooling_ledger:
+  entry_type: "WELL_GOVERNANCE_ENTRY"
+
+  fields:
+    - peace_squared
+    - kappa_r
+    - harm_risk
+    - distress_risk
+    - coercion_risk
+    - aggressive_count
+    - blame_count
+    - harm_pattern_count
+    - distress_pattern_count
+    - coercion_pattern_count
+    - safety_bonus_count
+    - preliminary_verdict
+    - governance_notes
+
+# Seal statement
+seal: "DITEMPA BUKAN DIBERI"
+seal_meaning: "Forged, not given. Safety must be earned through care."
