@@ -402,7 +402,7 @@ graph.add_edge("555_EMPATHIZE", "222_REFLECT", condition=lambda x: x["peace_sq"]
 
 **Why arifOS Relates**:
 
-- **Model-agnostic ARIF/ADAM**: arifOS works with any LLM provider
+- **Model-agnostic AGI/ASI/APEX**: arifOS works with any LLM provider
 - **Central governance point**: Add retry logic, cost limits, floor checks in one place
 
 **AGI Building Connection**:

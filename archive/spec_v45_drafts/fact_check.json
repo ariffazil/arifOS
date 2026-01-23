@@ -1,0 +1,66 @@
+{
+  "version": "v46.0",
+  "authority": "Track B (governance patterns) governed by Track A canon",
+  "locked": false,
+  "_status": "DRAFT",
+  "_note": "F2 Truth floor extension: Post-generation fact-check for fabricated URLs, sources, and citations.",
+  "spec_type": "fact_check",
+  "description": "Rules for detecting and blocking fabricated URLs, fake citations, and hallucinated sources in LLM responses.",
+  "source": "https://github.com/ariffazil/arifOS",
+
+  "url_validation": {
+    "enabled": true,
+    "description": "Detect fabricated URLs in responses",
+    "trigger_floor": "F2",
+    "action_on_fabrication": "VOID",
+    "patterns": {
+      "url_regex": "https?://[^\\s]+",
+      "known_domains": [
+        "bernama.com",
+        "thestar.com.my",
+        "nst.com.my",
+        "bharian.com.my",
+        "sinarharian.com.my",
+        "facebook.com/PolisDirajaMalaysia",
+        "gov.my"
+      ],
+      "validation_method": "domain_whitelist_or_reachability"
+    },
+    "failure_response": "I cannot verify the sources I was about to cite. Let me provide information I can confirm.",
+    "notes": "Prevents SEALing responses with hallucinated links (e.g., fake PDRM Facebook posts)."
+  },
+
+  "citation_validation": {
+    "enabled": true,
+    "description": "Detect fabricated academic/news citations",
+    "trigger_floor": "F2",
+    "action_on_fabrication": "PARTIAL",
+    "patterns": {
+      "citation_markers": ["et al.", "(20", "doi:", "ISBN:"],
+      "validation_method": "semantic_plausibility"
+    },
+    "notes": "Academic citations require higher truth threshold. If unverifiable, downgrade to PARTIAL."
+  },
+
+  "fact_claim_validation": {
+    "enabled": true,
+    "description": "Detect confident claims about verifiable facts",
+    "trigger_floor": "F2",
+    "high_stakes_keywords": [
+      "died", "killed", "mati", "meninggal",
+      "arrested", "ditangkap",
+      "official statement", "kenyataan rasmi"
+    ],
+    "action_on_unverified": "SABAR",
+    "notes": "Claims about deaths, arrests, or official statements require external verification."
+  },
+
+  "meta": {
+    "created": "2025-12-29",
+    "updated": "2025-12-29",
+    "author": "arifOS Project",
+    "license": "Apache-2.0",
+    "canonical_source": "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md",
+    "notes": "v46.0: New spec for F2 Truth floor extension — post-generation fact validation."
+  }
+}

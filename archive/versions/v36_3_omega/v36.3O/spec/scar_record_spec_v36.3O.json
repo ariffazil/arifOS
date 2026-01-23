@@ -1,0 +1,224 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://arifos/spec/scar_record_spec_v36.3O.json",
+  "$comment": "Implements: SCARS_PHOENIX_HEALING_v36.3O.md | Law: v36.3Omega",
+  "title": "Scar Record v36.3Omega",
+  "description": "Schema for canonical scar records and local witness entries.",
+  "type": "object",
+  "meta": {
+    "spec_id": "scar_record_spec_v36.3O",
+    "epoch": "v36.3Omega",
+    "implements": [
+      "v36.3O/canon/SCARS_PHOENIX_HEALING_v36.3O.md",
+      "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md"
+    ],
+    "law_source": "v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md",
+    "purpose": "Machine-readable representation of scars (negative constraints) and their metadata.",
+    "status": "SEALED"
+  },
+  "properties": {
+    "scar_id": {
+      "type": "string",
+      "description": "Globally unique scar identifier.",
+      "minLength": 1,
+      "examples": ["SCAR-F1-2025-12-12-001", "SCAR-PATTERN-XSS-001"]
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["WITNESS", "SCAR"],
+      "description": "Whether this is an unsigned witness record or a signed canonical scar."
+    },
+    "pattern_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the canonical pattern representation.",
+      "minLength": 64,
+      "maxLength": 64
+    },
+    "pattern_text": {
+      "type": "string",
+      "description": "Human-readable description of the pattern.",
+      "minLength": 1,
+      "maxLength": 8000
+    },
+    "severity": {
+      "type": "string",
+      "description": "Severity level.",
+      "enum": ["S1", "S2", "S3", "S4"]
+    },
+    "severity_weight": {
+      "type": "number",
+      "description": "Numeric weight for Phoenix-72 pressure calculation.",
+      "minimum": 0,
+      "default": 1.0
+    },
+    "floors": {
+      "type": "array",
+      "description": "Floors affected by this scar.",
+      "items": {
+        "type": "string",
+        "pattern": "^F[1-9]$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "epochs": {
+      "type": "array",
+      "description": "Epochs where this scar is applicable.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "description": "Evidence supporting this scar.",
+      "properties": {
+        "ledger_hashes": {
+          "type": "array",
+          "description": "SHA-256 hashes of linked Cooling Ledger entries.",
+          "items": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64
+          }
+        },
+        "external_refs": {
+          "type": "array",
+          "description": "External sources (URLs, document IDs).",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "notes": {
+          "type": ["string", "null"],
+          "description": "Additional evidence notes.",
+          "maxLength": 8000
+        }
+      },
+      "additionalProperties": false
+    },
+    "phoenix_proposal_ids": {
+      "type": "array",
+      "description": "Associated Phoenix-72 amendments linked to this scar.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "mitigation_guidance": {
+      "type": ["string", "null"],
+      "description": "Guidance on how to mitigate or avoid this pattern.",
+      "maxLength": 8000
+    },
+    "routing_impact": {
+      "type": "object",
+      "description": "How this scar affects request routing.",
+      "properties": {
+        "force_class_b": {
+          "type": "boolean",
+          "description": "Force CLASS_B routing when this scar is triggered."
+        },
+        "force_hold_888": {
+          "type": "boolean",
+          "description": "Force HOLD_888 when this scar is triggered."
+        },
+        "sabar_bias": {
+          "type": "boolean",
+          "description": "Increase SABAR bias when this scar is relevant."
+        }
+      },
+      "additionalProperties": false
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the scar was first created."
+    },
+    "updated_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "When the scar was last updated."
+    },
+    "healed_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "When the scar was marked as healed."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["PROPOSED", "SEALED", "HEALED", "DEPRECATED"],
+      "description": "Lifecycle status of this scar."
+    },
+    "signature": {
+      "type": ["string", "null"],
+      "description": "Signature over the canonical scar record. MUST be non-null for kind=SCAR with status=SEALED.",
+      "minLength": 64
+    },
+    "signed_by": {
+      "type": ["string", "null"],
+      "description": "Identity or key label that produced the signature."
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Source that created this record.",
+      "enum": ["PHOENIX-72", "HUMAN", "W@W_WELL", "W@W_WEALTH", "EYE_SENTINEL", "EXTERNAL"],
+      "minLength": 1
+    },
+    "sealed_by": {
+      "type": ["string", "null"],
+      "description": "Identity that sealed this scar."
+    },
+    "healing_evidence": {
+      "type": ["object", "null"],
+      "description": "Evidence supporting healing (for HEALED status).",
+      "properties": {
+        "observation_window_hours": {
+          "type": "number",
+          "description": "Hours of observation before healing."
+        },
+        "recurrence_count": {
+          "type": "integer",
+          "description": "Number of recurrences during observation.",
+          "minimum": 0
+        },
+        "amendment_id": {
+          "type": ["string", "null"],
+          "description": "Phoenix-72 amendment that approved healing."
+        },
+        "notes": {
+          "type": ["string", "null"],
+          "maxLength": 4000
+        }
+      },
+      "additionalProperties": false
+    },
+    "extra": {
+      "type": "object",
+      "description": "Implementation-specific extensions.",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "scar_id",
+    "kind",
+    "pattern_hash",
+    "pattern_text",
+    "severity",
+    "floors",
+    "created_at",
+    "status",
+    "created_by"
+  ],
+  "additionalProperties": false,
+  "if": {
+    "properties": {
+      "kind": { "const": "SCAR" },
+      "status": { "const": "SEALED" }
+    }
+  },
+  "then": {
+    "required": ["signature"]
+  }
+}
+

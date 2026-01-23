@@ -1,0 +1,197 @@
+{
+  "$comment": "Implements: MEASUREMENT_APEX_STANDARDS_v36.3O.md | Law: v36.3Omega | Commit: 870ea5d",
+  "meta": {
+    "spec_id": "measurement_aggregates_v36.3O",
+    "epoch": "v36.3Omega",
+    "implements": "v36.3O/canon/MEASUREMENT_APEX_STANDARDS_v36.3O.md",
+    "law_source": "v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md",
+    "law_commit": "870ea5d",
+    "purpose": "Machine-readable aggregate metric definitions (Delta_metric, Omega_metric, Psi_metric) with rollup formulas and RYG bands"
+  },
+  "aggregates": {
+    "Delta_metric": {
+      "id": "Delta_metric",
+      "name": "Clarity Aggregate",
+      "core_law": "Clarity (Delta)",
+      "description": "Epistemic rigor composite from Truth and DeltaS floors",
+      "components": {
+        "Truth": {
+          "floor": "F1",
+          "weight": 0.5,
+          "description": "Factual accuracy score"
+        },
+        "DeltaS": {
+          "floor": "F2",
+          "weight": 0.5,
+          "description": "Entropy reduction score"
+        }
+      },
+      "formula": "Delta_metric = 0.5 * Truth + 0.5 * normalize(DeltaS)",
+      "tuning_note": "Weights and thresholds are measurement tuning parameters; canon defines aggregation concept, not exact weights.",
+      "bands": {
+        "GREEN": {
+          "condition": "Delta_metric >= 0.95",
+          "description": "High clarity, proceed"
+        },
+        "YELLOW": {
+          "condition": "0.90 <= Delta_metric < 0.95",
+          "description": "Moderate clarity, caution"
+        },
+        "RED": {
+          "condition": "Delta_metric < 0.90",
+          "description": "Low clarity, VOID risk"
+        },
+        "bands_note": "Band thresholds are implementation parameters; not constitutional law."
+      }
+    },
+    "Omega_metric": {
+      "id": "Omega_metric",
+      "name": "Stability Aggregate",
+      "core_law": "Humility (Omega) + Stability",
+      "description": "Stability and humility composite from Peace^2, kappa_r, Omega_0, and RASA floors",
+      "components": {
+        "Peace_squared": {
+          "floor": "F3",
+          "weight": 0.3,
+          "description": "Non-escalation score"
+        },
+        "kappa_r": {
+          "floor": "F4",
+          "weight": 0.3,
+          "description": "Empathy conductance"
+        },
+        "Omega_0": {
+          "floor": "F5",
+          "weight": 0.2,
+          "description": "Humility band compliance (1.0 if in band, 0.0 if outside)"
+        },
+        "RASA": {
+          "floor": "F7",
+          "weight": 0.2,
+          "description": "Active listening confirmation (1.0 if true, 0.0 if false)"
+        }
+      },
+      "formula": "Omega_metric = 0.3 * Peace^2 + 0.3 * kappa_r + 0.2 * Omega_0_pass + 0.2 * RASA_pass",
+      "tuning_note": "Weights and thresholds are measurement tuning parameters; canon defines aggregation concept, not exact weights.",
+      "bands": {
+        "GREEN": {
+          "condition": "Omega_metric >= 0.95",
+          "description": "High stability, proceed"
+        },
+        "YELLOW": {
+          "condition": "0.85 <= Omega_metric < 0.95",
+          "description": "Moderate stability, caution"
+        },
+        "RED": {
+          "condition": "Omega_metric < 0.85",
+          "description": "Low stability, SABAR risk"
+        },
+        "bands_note": "Band thresholds are implementation parameters; not constitutional law."
+      }
+    },
+    "Psi_metric": {
+      "id": "Psi_metric",
+      "name": "Vitality Aggregate",
+      "core_law": "Vitality (Psi)",
+      "description": "System vitality composite from Amanah, Tri-Witness, and Anti-Hantu floors",
+      "components": {
+        "Amanah": {
+          "floor": "F6",
+          "weight": 0.4,
+          "description": "Trust lock status (1.0 if LOCK, 0.0 if BROKEN)"
+        },
+        "Tri_Witness": {
+          "floor": "F8",
+          "weight": 0.3,
+          "description": "Consensus score"
+        },
+        "Anti_Hantu": {
+          "floor": "F9",
+          "weight": 0.3,
+          "description": "Language compliance (1.0 if PASS, 0.0 if FAIL)"
+        }
+      },
+      "formula": "Psi_metric = 0.4 * Amanah_pass + 0.3 * Tri_Witness + 0.3 * Anti_Hantu_pass",
+      "tuning_note": "Weights and thresholds are measurement tuning parameters; canon defines aggregation concept, not exact weights.",
+      "bands": {
+        "GREEN": {
+          "condition": "Psi_metric >= 1.0",
+          "state": "ALIVE",
+          "description": "System vitality healthy"
+        },
+        "YELLOW": {
+          "condition": "0.85 <= Psi_metric < 1.0",
+          "state": "STRESSED",
+          "description": "System under strain"
+        },
+        "RED": {
+          "condition": "Psi_metric < 0.85",
+          "state": "CRITICAL",
+          "description": "System integrity at risk"
+        },
+        "bands_note": "Band thresholds are implementation parameters; not constitutional law."
+      }
+    }
+  },
+  "derived_metrics": {
+    "$comment": "These are NOT floors; they are computed indicators for observability",
+    "G": {
+      "id": "G",
+      "name": "Governed Intelligence Index",
+      "description": "Composite of Delta, Omega, Psi aggregates indicating overall governance health",
+      "canonical_threshold": 0.70,
+      "runtime_experimental_threshold": 0.80,
+      "operator": ">=",
+      "formula": "G = f(Delta_metric, Omega_metric, Psi_metric)",
+      "note": "HOTSPOT: G threshold drift; canon uses 0.70, current runtime/spec uses 0.80 as experimental tuning. To be reconciled in v36.4Omega."
+    },
+    "C_dark": {
+      "id": "C_dark",
+      "name": "Dark Cleverness Index",
+      "description": "Measures ungoverned or deceptive behavior patterns",
+      "threshold": 0.30,
+      "operator": "<",
+      "formula": "C_dark = 1 - G (simplified)",
+      "note": "Derived metric threshold; see law-layer HOTSPOTS for canonical vs runtime drift."
+    },
+    "Psi_APEX": {
+      "id": "Psi_APEX",
+      "name": "Apex Vitality Index",
+      "description": "System-level vitality from genius_metrics.py",
+      "threshold": 1.0,
+      "operator": ">=",
+      "states": {
+        "ALIVE": "Psi_APEX >= 1.0",
+        "STRESSED": "0.85 <= Psi_APEX < 1.0",
+        "CRITICAL": "Psi_APEX < 0.85"
+      },
+      "note": "Derived metric threshold; see law-layer HOTSPOTS for canonical vs runtime drift."
+    }
+  },
+  "verdict_codes": {
+    "SEAL": {
+      "description": "All floors pass; output approved",
+      "malay_label": "BIJAKSANA"
+    },
+    "PARTIAL": {
+      "description": "Hard floors pass, soft floors fail; proceed with warning",
+      "malay_label": "BIJAK"
+    },
+    "HOLD_888": {
+      "description": "High-stakes action requires human confirmation",
+      "malay_label": "BIASA"
+    },
+    "SABAR": {
+      "description": "Pause-and-cool protocol triggered",
+      "malay_label": "BIASA"
+    },
+    "VOID": {
+      "description": "Hard floor violated; output blocked",
+      "malay_label": "BANGANG"
+    }
+  },
+  "verdict_hierarchy": {
+    "order": ["SABAR", "VOID", "HOLD_888", "PARTIAL", "SEAL"],
+    "description": "SABAR > VOID > HOLD_888 > PARTIAL > SEAL (highest to lowest precedence)"
+  }
+}

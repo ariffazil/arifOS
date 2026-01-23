@@ -1,0 +1,32 @@
+# arifOS v49.1 - Constitutional Governance Entry Point
+# Authority: 888 Judge | F1-F13 Constitutional Floors
+#
+# This file serves as a constitutional anchor to governance configuration.
+# Pre-commit governance is defined in config/governance/ per constitutional law.
+#
+# Constitutional Chain: 888 Judge > 000_THEORY/ (F1-F13) > config/governance/
+#
+# DITEMPA BUKAN DIBERI - Governance is forged through constitutional floors, not assumed.
+
+constitutional_reference: "config/governance/pre-commit-config.yaml"
+governance_status: "DELEGATED"
+floors_enforced: "F1-F13"
+authority_chain: "888 Judge > 000_THEORY/ > config/governance/"
+
+# Constitutional Note:
+# - F1 Amanah: No irreversible operations without human sovereign approval
+# - F2 Truth: Code must pass constitutional validation
+# - F3 Peace: Security scanning and vulnerability detection
+# - F4 DeltaS: Entropy reduction through code quality
+# - F5 Witness: Cross-agent monitoring enabled
+# - F6 Empathy: Human-centered design validation
+# - F7 Omega0: Uncertainty bounds enforcement
+# - F8 Ledger: All changes cryptographically logged
+# - F9 Anti-Hantu: No consciousness claims in code
+# - F10 Coherence: System-wide consistency checks
+# - F11 Sabar: Cooling periods for critical changes
+# - F12 Phoenix: Recovery and rollback capabilities
+# - F13 Seal: Cryptographic verification of changes
+
+# For constitutional governance configuration:
+# see config/governance/pre-commit-config.yaml

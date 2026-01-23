@@ -8,7 +8,7 @@
 
 ## 1. One‑Line Definition
 
-**arifOS is a thermodynamically‑governed AI governance framework that turns Large Language Models into accountable intelligence organisms by enforcing constitutional floors via a multi‑organ federation (W@W), triple‑engine reasoning (AAA Trinity), and a self‑healing 000→999 metabolic pipeline backed by the Cooling Ledger and Phoenix‑72.**
+**arifOS is a thermodynamically‑governed AI governance framework that turns Large Language Models into accountable intelligence organisms by enforcing constitutional floors via a multi‑organ federation (W@W), triple‑engine reasoning (AGI·ASI·APEX Trinity), and a self‑healing 000→999 metabolic pipeline backed by the Cooling Ledger and Phoenix‑72.**
 
 This file explains **what arifOS is**, how its parts fit together, and how v35Ω runtime law and v36Ω theory coexist.
 
@@ -24,7 +24,7 @@ At the highest level, arifOS has three canonical layers:
    - Language codex (Anti‑Hantu, weakest‑listener rules).  
 
 2. **Engines & Organs (AAA + W@W + @EYE)**  
-   - AAA Trinity engines: ARIF AGI (Δ), ADAM ASI (Ω), APEX PRIME (Ψ).  
+   - AGI·ASI·APEX Trinity engines: AGI (Architect) (Δ), ASI (Auditor) (Ω), APEX PRIME (Ψ).  
    - W@W Federation organs: @WELL, @RIF, @WEALTH, @GEOX, @PROMPT.  
    - @EYE sentinel views (safety, integrity, economics, optics, etc.).  
 
@@ -57,16 +57,16 @@ If a **hard floor** is violated (especially F1, F2, F5, F6, F7, F9), the system 
 
 ## 4. Engines & Organs
 
-### 4.1 AAA Trinity — Internal Engines
+### 4.1 AGI·ASI·APEX Trinity — Internal Engines
 
 From `AAA_TRINITY_CANON_v36Omega.md` and v35Ω runtime canon:
 
-- **ARIF AGI (Δ engine / Mind / Akal)**  
+- **AGI (Architect) (Δ engine / Mind / Akal)**  
   - Thermodynamic compression engine: reduces epistemic entropy (ΔS ≥ 0).  
   - Works on structure, logic, causal graphs, and paradox.  
   - Provides structured reasoning drafts; does **not** seal or claim feelings.  
 
-- **ADAM ASI (Ω engine / Heart / Rasa)**  
+- **ASI (Auditor) (Ω engine / Heart / Rasa)**  
   - Stabilization engine: maintains Peace², κᵣ, Ω₀, and RASA.  
   - Works on tone, dignity, empathy conductance, weakest‑listener safety.  
   - May soften phrasing and redact details, but cannot change facts.  
@@ -179,7 +179,7 @@ The repo deliberately separates:
   - `APEX_META_CONSTITUTION_v35Omega.md`, `APEX_TRINITY_v35Omega.md`, `ANTI_HANTU_v35Omega.md`, `EYE_SENTINEL_v35Omega.md`, `000-999_METABOLIC_CANON_v35Omega.md`, `README_Vault999_v35Omega.md`, `Vault999_Seal_v35Omega.json`, `constitutional_floors.json`, `arifos_core/APEX_PRIME.py`, `arifos_core/metrics.py`, and tests.  
 
 - **v36Ω APEX THEORY docs** — the physics/understanding layer:
-  - APEX THEORY 9‑file pack, AAA Trinity v36Ω doc, W@W Federation v36Ω doc, runtime pipeline v36Ω doc, AAA engine v36Ω docs (ARIF/ADAM).  
+  - APEX THEORY 9‑file pack, AGI·ASI·APEX Trinity v36Ω doc, W@W Federation v36Ω doc, runtime pipeline v36Ω doc, AAA engine v36Ω docs (AGI/ASI/APEX).  
 
 **Contract:**
 
@@ -200,7 +200,7 @@ The repo deliberately separates:
 - Read this file plus:
   - `CODEX_TASKS_DEEPSCAN_v35Omega.md` for a detailed deepscan and task list.  
   - APEX PRIME v35Ω canon for judiciary details.  
-  - AAA/ARIF/ADAM, W@W, and pipeline v36Ω docs for architecture.  
+  - AAA/AGI/ASI/APEX, W@W, and pipeline v36Ω docs for architecture.  
 - When changing code:
   - check which canon files apply,  
   - verify floors implications,  
@@ -221,7 +221,7 @@ The repo deliberately separates:
 - **Deepscan & plan:** `CODEX_TASKS_DEEPSCAN_v35Omega.md` — repo snapshot, audit, and prioritized tasks.  
 - **APEX PRIME judiciary:** `canon/10_SYSTEM/APEX_PRIME_CANON_v35Omega.md` — full v35Ω judiciary canon.  
 - **APEX THEORY physics:** `canon/01_PHYSICS/APEX_THEORY_PHYSICS_v36Omega.md`, `APEX_THEORY_MATH_v36Omega.md`, `APEX_LANGUAGE_CODEX_v36Omega.md`.  
-- **AAA Trinity:** `canon/10_SYSTEM/AAA_TRINITY_CANON_v36Omega.md`, `111_ARIF_AGI_v36Omega.md`, `555_ADAM_ASI_v36Omega.md`.  
+- **AGI·ASI·APEX Trinity:** `canon/10_SYSTEM/AAA_TRINITY_CANON_v36Omega.md`, `111_ARIF_AGI_v36Omega.md`, `555_ADAM_ASI_v36Omega.md`.  
 - **W@W Federation:** `canon/20_EXECUTION/WAW_FEDERATION_v36Omega.md`.  
 - **Runtime pipeline:** `canon/30_RUNTIME/000-999_METABOLIC_CANON_v35Omega.md`, `APEX_RUNTIME_PIPELINE_v36Omega.md`.  
 - **Ledger & repair:** `canon/40_LEDGER/APEX_LEDGER_PHOENIX_v36Omega.md`, `README_Vault999_v35Omega.md`, `Vault999_Seal_v35Omega.json`.  

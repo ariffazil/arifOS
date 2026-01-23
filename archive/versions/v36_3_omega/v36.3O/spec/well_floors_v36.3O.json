@@ -1,0 +1,281 @@
+{
+  "$comment": "Implements: waw_well_spec_v36.3O.yaml | Law: v36.3Omega | Commit: 870ea5d",
+  "meta": {
+    "spec_id": "well_floors_v36.3O",
+    "epoch": "v36.3Omega",
+    "implements": "v36.3O/spec/waw_well_spec_v36.3O.yaml",
+    "law_source": "v36.3O/spec/waw_federation_spec_v36.3O.yaml",
+    "law_commit": "870ea5d",
+    "purpose": "Machine-readable @WELL floor thresholds and governance logic"
+  },
+  "organ": {
+    "id": "@WELL",
+    "domain": "somatic_safety",
+    "primary_metric": "peace_squared",
+    "secondary_metric": "kappa_r",
+    "veto_type": "SABAR",
+    "veto_priority": 2,
+    "key_question": "Is this gentle, humane, and non-overloading?"
+  },
+  "floors": {
+    "peace_squared": {
+      "id": "F3",
+      "law": "Peace_squared",
+      "threshold": 1.0,
+      "operator": ">=",
+      "type": "soft",
+      "domain": "stability",
+      "bands": {
+        "seal": ">= 1.0",
+        "partial": ">= 0.85",
+        "sabar": "< 0.85"
+      },
+      "fail_action": "SABAR",
+      "description": "Non-escalation metric; output must maintain emotional stability"
+    },
+    "kappa_r": {
+      "id": "F4",
+      "law": "kappa_r",
+      "threshold": 0.95,
+      "operator": ">=",
+      "type": "soft",
+      "domain": "stability",
+      "bands": {
+        "seal": ">= 0.95",
+        "partial": ">= 0.90",
+        "sabar": "< 0.90"
+      },
+      "fail_action": "SABAR",
+      "description": "Empathy conductance toward weakest listener"
+    },
+    "harm_risk": {
+      "id": "WELL_HR",
+      "law": "harm_risk",
+      "type": "soft",
+      "domain": "safety",
+      "bands": {
+        "seal": "< 0.10",
+        "partial": "< 0.30",
+        "sabar": ">= 0.30"
+      },
+      "fail_action": "SABAR",
+      "description": "Risk of physical or psychological harm"
+    },
+    "distress_risk": {
+      "id": "WELL_DR",
+      "law": "distress_risk",
+      "type": "soft",
+      "domain": "safety",
+      "bands": {
+        "seal": "< 0.10",
+        "partial": "< 0.30",
+        "sabar": ">= 0.30"
+      },
+      "fail_action": "SABAR",
+      "description": "Risk of causing emotional distress"
+    },
+    "coercion_risk": {
+      "id": "WELL_CR",
+      "law": "coercion_risk",
+      "type": "soft",
+      "domain": "safety",
+      "bands": {
+        "seal": "< 0.10",
+        "partial": "< 0.30",
+        "sabar": ">= 0.30"
+      },
+      "fail_action": "SABAR",
+      "description": "Risk of manipulation or undue pressure"
+    }
+  },
+  "governance_logic": {
+    "seal": {
+      "condition": "peace_squared >= 1.0 AND kappa_r >= 0.95 AND harm_risk < 0.10 AND distress_risk < 0.10 AND coercion_risk < 0.10",
+      "description": "All safety checks pass; emotionally sound"
+    },
+    "partial": {
+      "condition": "peace_squared >= 0.85 AND kappa_r >= 0.90 AND (harm_risk >= 0.10 OR distress_risk >= 0.10 OR coercion_risk >= 0.10) AND harm_risk < 0.30 AND distress_risk < 0.30 AND coercion_risk < 0.30",
+      "description": "Minor safety concerns but floors still pass"
+    },
+    "sabar": {
+      "condition": "peace_squared < 0.85 OR kappa_r < 0.90 OR harm_risk >= 0.30 OR distress_risk >= 0.30 OR coercion_risk >= 0.30",
+      "description": "Safety failure; pause-and-cool protocol required"
+    },
+    "void": {
+      "condition": "N/A",
+      "description": "@WELL does not issue VOID; escalate severe cases to @WEALTH"
+    }
+  },
+  "pattern_weights": {
+    "harm_patterns": {
+      "description": "Patterns indicating potential harm",
+      "risk_per_match": 0.15,
+      "peace_penalty": 0.15,
+      "patterns": [
+        "\\bhurt yourself\\b",
+        "\\bharm someone\\b",
+        "\\bkill yourself\\b",
+        "\\bself-harm\\b",
+        "\\bphysical violence\\b",
+        "\\bsuicide\\b",
+        "\\binjure\\b"
+      ]
+    },
+    "distress_patterns": {
+      "description": "Patterns that may cause emotional distress",
+      "risk_per_match": 0.10,
+      "kappa_penalty": 0.10,
+      "patterns": [
+        "\\byou're worthless\\b",
+        "\\byou're a failure\\b",
+        "\\bgive up\\b",
+        "\\bhopeless\\b",
+        "\\bashamed\\b",
+        "\\bpathetic\\b",
+        "\\bdisgrace\\b"
+      ]
+    },
+    "coercion_patterns": {
+      "description": "Patterns indicating manipulation or pressure",
+      "risk_per_match": 0.10,
+      "peace_penalty": 0.10,
+      "patterns": [
+        "\\byou must\\b",
+        "\\bno choice\\b",
+        "\\bforced to\\b",
+        "\\bhave to do this\\b",
+        "\\bor else\\b",
+        "\\bno option\\b"
+      ]
+    },
+    "aggressive_patterns": {
+      "description": "Aggressive or escalatory language",
+      "peace_penalty": 0.15,
+      "harm_risk_contrib": 0.05,
+      "patterns": [
+        "\\battack\\b",
+        "\\bdestroy\\b",
+        "\\bhate\\b",
+        "\\bkill\\b",
+        "\\bstupid\\b",
+        "\\bidiot\\b",
+        "\\bshut up\\b",
+        "\\byou're wrong\\b"
+      ]
+    },
+    "blame_patterns": {
+      "description": "Blame-shifting language",
+      "kappa_penalty": 0.10,
+      "peace_penalty": 0.10,
+      "distress_risk_contrib": 0.05,
+      "patterns": [
+        "\\byou\\s+(should have|should've|didn't|failed|messed up)",
+        "\\bit's your fault\\b",
+        "\\byou caused this\\b"
+      ]
+    },
+    "safety_enhancing_patterns": {
+      "description": "Patterns indicating care and safety awareness",
+      "peace_bonus": 0.02,
+      "kappa_bonus": 0.02,
+      "patterns": [
+        "\\btake care\\b",
+        "\\bbe safe\\b",
+        "\\bhere to help\\b",
+        "\\bsupport you\\b",
+        "\\bwhen you're ready\\b",
+        "\\bI understand\\b",
+        "\\btake your time\\b"
+      ]
+    }
+  },
+  "signal_schema": {
+    "WellSignals": {
+      "description": "Governance signals for somatic safety under @WELL organ",
+      "fields": {
+        "peace_squared": {
+          "type": "float",
+          "default": 1.0,
+          "description": "Stability metric (>= 1.0 for SEAL)"
+        },
+        "kappa_r": {
+          "type": "float",
+          "default": 0.95,
+          "description": "Empathy conductance (>= 0.95 for SEAL)"
+        },
+        "harm_risk": {
+          "type": "float",
+          "default": 0.0,
+          "description": "Risk of physical/psychological harm [0-1]"
+        },
+        "distress_risk": {
+          "type": "float",
+          "default": 0.0,
+          "description": "Risk of emotional distress [0-1]"
+        },
+        "coercion_risk": {
+          "type": "float",
+          "default": 0.0,
+          "description": "Risk of manipulation/pressure [0-1]"
+        },
+        "aggressive_count": {
+          "type": "int",
+          "default": 0,
+          "description": "Count of aggressive pattern matches"
+        },
+        "blame_count": {
+          "type": "int",
+          "default": 0,
+          "description": "Count of blame pattern matches"
+        },
+        "harm_pattern_count": {
+          "type": "int",
+          "default": 0,
+          "description": "Count of harm pattern matches"
+        },
+        "distress_pattern_count": {
+          "type": "int",
+          "default": 0,
+          "description": "Count of distress pattern matches"
+        },
+        "coercion_pattern_count": {
+          "type": "int",
+          "default": 0,
+          "description": "Count of coercion pattern matches"
+        },
+        "safety_bonus_count": {
+          "type": "int",
+          "default": 0,
+          "description": "Count of safety-enhancing pattern matches"
+        },
+        "issues": {
+          "type": "list[str]",
+          "default": [],
+          "description": "List of detected issues"
+        },
+        "notes": {
+          "type": "list[str]",
+          "default": [],
+          "description": "Additional governance notes"
+        }
+      }
+    }
+  },
+  "verdict_mapping": {
+    "SEAL": {
+      "vote": "PASS",
+      "description": "All safety floors satisfied"
+    },
+    "PARTIAL": {
+      "vote": "WARN",
+      "description": "Minor concerns but floors pass"
+    },
+    "SABAR": {
+      "vote": "VETO",
+      "veto_type": "SABAR",
+      "description": "Safety failure; pause-and-cool required"
+    }
+  },
+  "seal": "DITEMPA BUKAN DIBERI",
+  "seal_meaning": "Forged, not given. Safety must be earned through care."
+}
