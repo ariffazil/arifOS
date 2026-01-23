@@ -125,13 +125,13 @@ repos:
 
       - id: no-hallucination-claims
         name: F9 Anti-Hantu Check (No consciousness claims)
-        entry: python -c "import sys, re; pattern = re.compile(r'(I feel|I am conscious|I have emotions)', re.I); exit(1 if any(pattern.search(open(p).read()) for p in sys.argv[1:]) else 0)"
+        entry: python -c "import sys, re; pattern = re.compile(r'(I feel|I am conscious|I have emotions)', re.I); sys.exit(1 if any(pattern.search(open(p).read()) for p in sys.argv[1:]) else 0)"
         language: system
         types: [python]
         
       - id: amanah-check
         name: F1 Amanah Check (No irreversible operations)
-        entry: python -c "import sys; dangerous = ['shutil.rmtree', 'os.remove', 'DROP TABLE', 'DELETE FROM']; exit(1 if any(any(d in open(p).read() for d in dangerous) for p in sys.argv[1:]) else 0)"
+        entry: python -c "import sys; dangerous = ['shutil.rmtree', 'os.remove', 'DROP TABLE', 'DELETE FROM']; sys.exit(1 if any(any(d in open(p).read() for d in dangerous) for p in sys.argv[1:]) else 0)"
         language: system
         types: [python, sql]
 
