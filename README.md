@@ -145,19 +145,26 @@ The system is powered by three parallel engines that must agree:
 
 ## Installation & Quick Start
 
-### 1. Developer Setup (Python Source)
+### 1. Developer Setup (Direct Install)
 
-Recommended for contributors and researchers.
+Recommended for immediate use of the latest forged version.
 
 ```bash
-# Clone repository
+# Install directly from the Sovereign Source (GitHub)
+pip install git+https://github.com/ariffazil/arifOS.git
+
+# Or install from local source build
 git clone https://github.com/ariffazil/arifOS.git
 cd arifOS
+pip install .
+```
 
-# Auto-Bootstrap (Sets up venv, installs dependencies)
-python setup/bootstrap/bootstrap.py --full
+### 2. Verify the Constitution (Runs 13 Floor Tests)
 
-# Verify the Constitution (Runs 13 Floor Tests)
+After installation, verify that your local environment is constitutionally sound:
+
+```bash
+python -c "from arifos.core.floor_validators import validate_all_floors; print('✓ arifOS v50.5.24 Logic Ready')"
 python setup/verification/verify_setup.py
 ```
 
