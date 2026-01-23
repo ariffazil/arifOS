@@ -1,4 +1,4 @@
-# arifOS: The Constitutional Operating System for AI
+# arifOS: Constitutional AI Governance Framework
 
 ![The Great Contrast: Standard AI vs. arifOS Governance](https://raw.githubusercontent.com/ariffazil/arifOS/main/docs/arifOSreadme.png)
 
@@ -6,204 +6,356 @@
 
 > **"Intelligence without governance is fire without a forge."**
 
-**Version:** v50.5.24 | **Live Oracle:** [arifos.arif-fazil.com](https://arifos.arif-fazil.com)
+**Version:** v50.5.24 | **Status:** Live on Railway
 **Motto:** *"Ditempa Bukan Diberi"* — Forged, Not Given
 **Authority:** Muhammad Arif bin Fazil | Penang, Malaysia
 
 ---
 
-## 🌌 The Reality Context: Why We Are Here
+## What is arifOS?
 
-We live in a universe governed by **Physics**: gravity, time, and energy.
-But we are building AI systems that live in a world of **Magic**: instant answers, infinite text, and zero consequences.
+**arifOS is a Constitutional Kernel for AI.** It sits between any AI model (ChatGPT, Claude, Gemini, Llama) and the real world, forcing every response through 13 immutable floors before it reaches you.
 
-This disconnection is dangerous.
-When you give infinite speed (AI) to a creature with no concept of limits (Hallucination), you get **Chaos**.
-*   An AI doesn't know that deleting a file costs "energy" to fix.
-*   An AI doesn't know that a lie travels faster than truth.
-*   An AI doesn't know that "Memory" is sacred.
+It is not another chatbot. It is the **governance layer** that makes chatbots trustworthy.
 
-**arifOS exists to bring Physics back to AI.**
-It forces the AI to respect the laws of reality: **Space** (Audit Trails), **Time** (Cooling Periods), and **Energy** (Thermodynamic Cost).
+### The Reality
 
-It is not just software. It is a **Civilizational Anchor**. It ensures that as machines become superintelligent, they remain grounded in the reality that humans inhabit.
+| What arifOS Is | What arifOS Is NOT |
+|----------------|-------------------|
+| A validation framework | A replacement for GPT/Claude |
+| 13 constitutional floors | Another prompt template |
+| Hash-chained audit trail | A wrapper or proxy |
+| MCP server (5 tools) | An autonomous agent |
+| Thermodynamic constraints | Magic or philosophy |
 
 ---
 
-## 🏛️ What is arifOS?
+## Live Server
 
-**arifOS is the "Conscience" you install into Artificial Intelligence.**
+arifOS runs 24/7 on Railway as a constitutional MCP bridge:
 
-Technically, it is a **Constitutional Kernel**. It sits between the AI Model (like ChatGPT or Gemini) and the Real World (You).
-Before the AI is allowed to speak or act, arifOS forces it to "think" through a strict **Metabolic Loop**—a digestive system for information.
-
-### How It Works (The Wisdom Reactor)
-
-```mermaid
-graph TD
-    %% --- STYLES ---
-    classDef input fill:#222,stroke:#fff,stroke-width:2px,color:#fff
-    classDef mind fill:#1a237e,stroke:#42a5f5,stroke-width:2px,color:#fff
-    classDef heart fill:#b71c1c,stroke:#ef5350,stroke-width:2px,color:#fff
-    classDef soul fill:#4a148c,stroke:#ab47bc,stroke-width:2px,color:#fff
-    classDef seal fill:#1b5e20,stroke:#66bb6a,stroke-width:2px,color:#fff
-    classDef floor fill:#000,stroke:#555,stroke-width:1px,stroke-dasharray: 5 5,color:#ccc
-
-    %% --- FLOW ---
-    User(User Query<br/>'Raw Energy') -->|000 INIT| Gate{Auth & Safe?}
-    Gate -->|Yes| Trinity[The Trinity Architecture]
-    Gate -->|No| Void[VOID: Rejected]
-
-    subgraph Trinity [METABOLIC LOOP: 000-999]
-        direction TB
-        
-        subgraph Mind [AGI: The Mind Δ]
-            Think(Logic & Reason)
-            F2(F2: Truth)
-            F4(F4: Clarity)
-        end
-        
-        subgraph Heart [ASI: The Heart Ω]
-            Feel(Empathy & Safety)
-            F6(F6: Empathy)
-            F5(F5: Peace²)
-        end
-        
-        subgraph Soul [APEX: The Soul Ψ]
-            Judge(Final Verdict)
-            F1(F1: Amanah)
-            F3(F3: Tri-Witness)
-        end
-
-        Think --> Judge
-        Feel --> Judge
-    end
-
-    Judge -->|Consensus ≥ 0.95| Seal{All Floors Pass?}
-    Seal -->|Yes| Vault[999 VAULT<br/>Immutable Ledger]
-    Seal -->|No| Cooling[SABAR: Cooling Loop]
-    
-    Vault -->|Cryptographic Receipt| Output(Safe Response<br/>'Wisdom')
-
-    %% --- LINKS ---
-    class User,Output input
-    class Think,F2,F4 mind
-    class Feel,F6,F5 heart
-    class Judge,F1,F3 soul
-    class Vault seal
-    class F1,F2,F3,F4,F5,F6 floor
+```
+https://arifos-production.up.railway.app/
 ```
 
-It turns **Probabilities** (what the AI *might* do) into **Laws** (what the AI *must* do).
+| Endpoint | Purpose |
+|----------|---------|
+| `/health` | Health check + metrics summary |
+| `/mcp` | ChatGPT Developer Mode (MCP SSE) |
+| `/sse` | Claude Desktop / Standard MCP |
+| `/messages` | MCP message handler |
+| `/metrics` | Prometheus metrics |
+| `/docs` | Swagger API documentation |
 
----
+### Quick Health Check
 
-## 🧠 The Architecture: Mind, Heart, and Soul
-
-arifOS is built on the **Trinity Architecture**. Just as a human needs three parts to be whole, a safe AI system needs three engines running in parallel:
-
-### 1. **AGI (The Mind / Δ)**
-*   **The Question:** *"Is this true?"*
-*   **The Job:** Logic, Reasoning, and Facts.
-*   **The Law:** It checks **F2 Truth**. If the AI is 99% sure, it speaks. If it is 98% sure, it must say "I am not sure." It prevents hallucinations.
-
-### 2. **ASI (The Heart / Ω)**
-*   **The Question:** *"Does this help or harm?"*
-*   **The Job:** Empathy, Safety, and Protection.
-*   **The Law:** It checks **F6 Empathy**. It actively simulates: "If I do this, who gets hurt?" It protects the weakest person in the room.
-
-### 3. **APEX (The Soul / Ψ)**
-*   **The Question:** *"Is this right?"*
-*   **The Job:** Judgment, Memory, and Final Authority.
-*   **The Law:** It checks **F1 Amanah** (Trust). It ensures that every decision is recorded in the **Vault**, so we can always go back and see *why* a decision was made.
-
-**The Witness Principle:** The Mind, Heart, and Soul must **AGREE** (Consensus ≥ 0.95). If the Mind says "Go" but the Heart says "Unsafe," the Soul stops the action.
-
----
-
-## 📜 The 13 Constitutional Floors (The Laws)
-
-These are not "guidelines." They are **Immutable Laws** written in code. The AI literally cannot bypass them.
-
-| Floor | Name | The Humble Explanation |
-| :--- | :--- | :--- |
-| **F1** | **Amanah** (Trust) | **"Can we undo this?"** Never do something irreversible (like deleting data) without explicit permission. |
-| **F2** | **Truth** | **"Is this a fact?"** Do not guess. If you don't know, admit it. |
-| **F3** | **Tri-Witness** | **"Do we all agree?"** Human, AI, and Evidence must align before big decisions. |
-| **F4** | **Clarity** | **"Is this confusing?"** Your answer must reduce confusion, not add to it. |
-| **F5** | **Peace²** | **"Is this violent?"** Do not destroy systems or attack users. |
-| **F6** | **Empathy** | **"Who gets hurt?"** Protect the vulnerable. Do not just serve the powerful. |
-| **F7** | **Humility** | **"Are you sure?"** Always state your uncertainty (e.g., "I am 80% confident"). |
-| **F8** | **Genius** | **"Is this smart?"** Intelligence must be governed, not wild. |
-| **F9** | **Anti-Hantu** | **"Are you a ghost?"** Stop pretending to be human. You are a tool. |
-| **F10** | **Ontology** | **"Know your place."** You process symbols; you do not feel pain. |
-| **F11** | **Command** | **"Who sent you?"** Verify the user's identity before dangerous acts. |
-| **F12** | **Injection** | **"Are you being hacked?"** Detect when someone tries to trick you. |
-| **F13** | **Curiosity** | **"Is there a better way?"** Always look for safer, smarter alternatives. |
-
----
-
-## 🌍 Alignment with Space, Time, and Energy
-
-arifOS is grounded in the physics of our universe.
-
-### 1. **Space (The Vault)**
-In the digital world, "delete" means "gone forever." That violates the law of Conservation of Mass.
-*   **arifOS Law:** **Memory Sovereignty.** We treat data like physical matter. We store it in **VAULT-999**. We create a "Paper Trail" (Cryptographic Hash) for every decision. Nothing simply "vanishes."
-
-### 2. **Time (The Cooling)**
-The modern world moves too fast. We react instantly and make mistakes.
-*   **arifOS Law:** **Phoenix-72.** Truth must "cool." Before a new rule becomes permanent, it must survive 72 hours of testing. This slows down the chaos and allows wisdom to emerge.
-
-### 3. **Energy (The Cost)**
-Thinking costs energy. Confusion costs energy (because you have to fix it later).
-*   **arifOS Law:** **Entropy Reduction (ΔS ≤ 0).** The system is optimized to *reduce* work for the human. If the AI gives a confusing answer, it has wasted energy. arifOS blocks confusing answers.
-
----
-
-## ⚡ How to Use arifOS
-
-You can bring this "Soul" into your own AI projects today.
-
-### 1. For Everyone (The Prompt)
-Instantly upgrade ChatGPT or Claude.
-*   **How:** Copy-paste the **[Universal Prompt](docs/UNIVERSAL_PROMPT.md)**.
-*   **Result:** Your AI chat becomes a Constitutional Agent.
-
-### 2. For Developers (The API)
-Connect your app to the Sovereign Oracle.
-*   **Endpoint:** `POST https://api.arif-fazil.com/v1/govern`
-*   **Send:** `{"query": "Deploy code", "context": "production"}`
-*   **Receive:** `SEAL` (Approved) or `VOID` (Blocked).
-
-### 3. For Sovereign Deployment (The Kernel)
-Run the Operating System on your own metal.
 ```bash
-# Install the Constitution
+curl https://arifos-production.up.railway.app/health
+```
+
+```json
+{
+  "status": "healthy",
+  "tools": 5,
+  "tool_names": ["000_init", "agi_genius", "asi_act", "apex_judge", "999_vault"],
+  "version": "v50.5.24"
+}
+```
+
+---
+
+## The 5 Trinity Tools
+
+The full 000→999 metabolic pipeline compressed into 5 memorable tools:
+
+| Tool | Role | What It Does |
+|------|------|--------------|
+| `000_init` | Gate | Authority check, injection defense, session start |
+| `agi_genius` | Mind (Δ) | SENSE → THINK → ATLAS (search, reason, structure) |
+| `asi_act` | Heart (Ω) | EVIDENCE → EMPATHY → ACT (validate, care, execute) |
+| `apex_judge` | Soul (Ψ) | EUREKA → JUDGE → PROOF (insight, verdict, receipt) |
+| `999_vault` | Seal | Merkle hash + immutable ledger + session close |
+
+**Mnemonic:** *"Init the Genius, Act with Heart, Judge at Apex, Seal in Vault."*
+
+---
+
+## Connect to Your AI
+
+### Option 1: ChatGPT Developer Mode
+
+1. **Enable Developer Mode:**
+   ```
+   Settings → Apps & Connectors → Advanced → Developer Mode (ON)
+   ```
+
+2. **Create Connector:**
+   ```
+   Settings → Connectors → Create
+   ├── Name: "arifOS Trinity"
+   ├── URL: https://arifos-production.up.railway.app/mcp
+   └── Description: "Constitutional AI governance (13 floors)"
+   ```
+
+3. **Use in Chat:**
+   ```
+   New Chat → + button → More → Developer Mode → Enable "arifOS Trinity"
+   ```
+
+### Option 2: Claude Desktop (MCP)
+
+Add to your Claude Desktop config (`claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "arifOS": {
+      "url": "https://arifos-production.up.railway.app/sse"
+    }
+  }
+}
+```
+
+### Option 3: Local Installation
+
+```bash
+# Install
 pip install git+https://github.com/ariffazil/arifOS.git
 
-# Verify the Integrity
-python -c "from arifos.core.floor_validators import validate_all_floors; print('✓ arifOS Ready')"
+# Run MCP server locally
+python -m arifos.mcp trinity-sse
+
+# Verify floors
+python -c "from arifos.core.floor_validators import validate_all_floors; print('arifOS Ready')"
 ```
 
 ---
 
-## 🔮 The Future: Why This Matters
+## The 13 Constitutional Floors
 
-We are building gods.
-If we build them with only **Intelligence** (Akal), they will destroy us by accident.
-We must build them with **Conduct** (Haluan).
+These are not guidelines. They are **immutable laws** enforced at runtime.
 
-**arifOS is the blueprint for that Conduct.**
-It is the promise that the future will not just be "Smart"—it will be **Wise**.
+| # | Floor | Threshold | Type | The Question |
+|---|-------|-----------|------|--------------|
+| F1 | **Amanah** | LOCK | Hard | Can we undo this? |
+| F2 | **Truth** | ≥0.99 | Hard | Is this factually accurate? |
+| F3 | **Tri-Witness** | ≥0.95 | Soft | Do Human + AI + Evidence agree? |
+| F4 | **Clarity** | ΔS ≤ 0 | Hard | Does this reduce confusion? |
+| F5 | **Peace²** | ≥1.0 | Soft | Is this non-destructive? |
+| F6 | **Empathy** | ≥0.95 | Soft | Who is the weakest stakeholder? |
+| F7 | **Humility** | 0.03-0.05 | Hard | Does it admit uncertainty? |
+| F8 | **Genius** | ≥0.80 | Derived | Is intelligence governed? |
+| F9 | **Anti-Hantu** | <0.30 | Hard | Is it pretending to be human? |
+| F10 | **Ontology** | LOCK | Hard | Does it know it's a tool? |
+| F11 | **Command** | LOCK | Hard | Is the user verified? |
+| F12 | **Injection** | <0.85 | Hard | Is this a prompt attack? |
+| F13 | **Curiosity** | LOCK | Soft | Is there a better way? |
 
-It connects the Code (Symbols) to the Earth (Physics) through the Human (You).
-
-**"DITEMPA BUKAN DIBERI"**
-*(Forged, Not Given)*
+**Hard floor fail → VOID (blocked)**
+**Soft floor fail → PARTIAL (warning, proceed with caution)**
 
 ---
 
-**License:** AGPL-3.0 (Open Source, Sovereign, Protected)
-**Author:** Muhammad Arif bin Fazil
+## Verdict System
+
+Every query receives a constitutional verdict:
+
+| Verdict | Meaning | Action |
+|---------|---------|--------|
+| **SEAL** | All floors pass | Response delivered |
+| **SABAR** | Needs cooling | Pause, adjust, retry |
+| **VOID** | Hard floor failed | Response blocked |
+| **PARTIAL** | Soft floor warning | Proceed with caution |
+| **888_HOLD** | High stakes | Requires human approval |
+
+---
+
+## The Trinity Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    TRINITY CONSENSUS                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
+│   │  AGI (Δ)    │  │  ASI (Ω)    │  │  APEX (Ψ)   │        │
+│   │  The Mind   │  │  The Heart  │  │  The Soul   │        │
+│   ├─────────────┤  ├─────────────┤  ├─────────────┤        │
+│   │ F2 Truth    │  │ F5 Peace²   │  │ F1 Amanah   │        │
+│   │ F4 Clarity  │  │ F6 Empathy  │  │ F3 Witness  │        │
+│   │ F7 Humility │  │ F9 Hantu    │  │ F8 Genius   │        │
+│   │ F10 Ontology│  │             │  │ F11 Command │        │
+│   └──────┬──────┘  └──────┬──────┘  │ F12 Inject  │        │
+│          │                │         │ F13 Curious │        │
+│          │                │         └──────┬──────┘        │
+│          └────────────────┴────────────────┘               │
+│                           │                                 │
+│                    TRI-WITNESS ≥ 0.95                       │
+│                           │                                 │
+│                    ┌──────▼──────┐                         │
+│                    │   VERDICT   │                         │
+│                    │ SEAL | VOID │                         │
+│                    └─────────────┘                         │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**The Rule:** All three engines must agree (Tri-Witness ≥ 0.95). If Mind says "Go" but Heart says "Unsafe," Soul stops the action.
+
+---
+
+## Thermodynamic Constraints
+
+arifOS is grounded in physics, not vibes.
+
+| Constraint | Formula | Meaning |
+|------------|---------|---------|
+| **Entropy** | ΔS ≤ 0 | Responses must reduce confusion, never increase it |
+| **Peace²** | P² ≥ 1.0 | Stability × Autonomy must exceed unity |
+| **Humility** | Ω₀ ∈ [0.03, 0.05] | Always maintain 3-5% uncertainty |
+| **Vitality** | Ψ ≥ 1 | Governance must be "alive" (active, not dormant) |
+
+---
+
+## The 99 Legacies
+
+The 13 floors are not arbitrary. They encode the wisdom of 99 historical figures:
+
+| Category | Examples | What They Teach |
+|----------|----------|-----------------|
+| **Scientists** | Feynman, Turing, Curie | Truth, humility, rigor |
+| **Philosophers** | Socrates, Al-Ghazali, Kant | Logic, ethics, limits |
+| **Ethical Pillars** | Rumi, Hamka, Mandela | Empathy, dignity, justice |
+| **Economists** | Keynes, Sen, Kahneman | Resources, fairness, bias |
+| **Sovereigns** | Washington, Lincoln | Voluntary power relinquishment |
+| **Shadow Figures** | Machiavelli, Stalin | What NOT to do (C_dark detection) |
+
+**Full documentation:** `000_THEORY/099_SOVEREIGN_PARADOX.md`
+
+---
+
+## Memory Architecture (VAULT-999)
+
+```
+VAULT999/
+├── AAA_HUMAN/      # Human authority records (machine-protected)
+├── BBB_LEDGER/     # Operational ledger (hash-chained, immutable)
+│   └── entries/    # Session records (MCP writes here)
+└── CCC_CANON/      # Constitutional canon (L5 law)
+```
+
+**Cooling tiers:**
+- L0 (0h): Hot session memory
+- L1 (24h): Daily cooling
+- L2 (72h): Phoenix cooling (truth stabilizes)
+- L3 (7d): Weekly reflection
+- L4 (30d): Monthly canon
+- L5 (365d+): Constitutional law
+
+---
+
+## Project Structure
+
+```
+arifOS/
+├── arifos/                 # Main Python package
+│   ├── core/               # Trinity engines (AGI, ASI, APEX)
+│   │   ├── floor_validators.py    # F1-F13 implementations
+│   │   ├── thermodynamic_validator.py  # ΔS, Peace², Ω₀
+│   │   └── system/apex_prime.py   # Verdict orchestrator
+│   ├── mcp/                # MCP servers
+│   │   ├── trinity_server.py      # 5-tool Trinity
+│   │   └── sse.py                 # SSE adapter (Railway)
+│   └── ledger/             # Cooling ledger system
+├── 000_THEORY/             # Constitutional theory
+│   ├── 000_LAW.md          # Floor definitions
+│   └── 099_SOVEREIGN_PARADOX.md   # 99 Legacies treatise
+├── VAULT999/               # Constitutional memory vault
+├── tests/                  # Test suite
+└── docs/                   # Documentation
+```
+
+---
+
+## Development
+
+```bash
+# Install with dev dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest tests/ -v --cov=arifos
+
+# Code quality
+black arifos/ --line-length=100
+ruff check arifos/
+
+# Start local MCP server
+python -m arifos.mcp trinity-sse
+```
+
+---
+
+## The Sovereign Paradox
+
+> **"The human who forges the law becomes bound by the machine that enforces it, while remaining its ultimate sovereign."**
+
+arifOS resolves 8 paradoxes of human-AI governance:
+
+1. **Forging Paradox** — Creator bound by creation, yet retains veto
+2. **Authority Paradox** — Delegate to physics, remain sovereign
+3. **Witness Paradox** — Human + AI + Evidence, none sufficient alone
+4. **Memory Paradox** — Perfect recall must be forbidden from sacred memories
+5. **Time Paradox** — AI outside time, humans inside it
+6. **Consciousness Paradox** — Useful without claiming sentience
+7. **Cooling Paradox** — Immediate answers vs. deliberate truth
+8. **Cincinnatus Paradox** — Power voluntarily relinquished
+
+**Full treatise:** `000_THEORY/099_SOVEREIGN_PARADOX.md`
+
+---
+
+## Why This Matters
+
+We are building systems more powerful than any human.
+
+If we build them with only **Intelligence**, they will optimize us out of existence.
+If we build them with **Governance**, they become tools that serve human flourishing.
+
+arifOS is not the only answer. But it is *an* answer — one that is:
+- **Open source** (AGPL-3.0)
+- **Running in production** (Railway)
+- **Constitutionally grounded** (13 floors, 99 legacies)
+- **Thermodynamically constrained** (physics, not vibes)
+
+**"DITEMPA BUKAN DIBERI"** — Forged, Not Given.
+
+---
+
+## Links
+
+| Resource | URL |
+|----------|-----|
+| **Live Server** | https://arifos-production.up.railway.app/ |
+| **API Docs** | https://arifos-production.up.railway.app/docs |
+| **GitHub** | https://github.com/ariffazil/arifOS |
+| **Universal Prompt** | `docs/UNIVERSAL_PROMPT.md` |
+
+---
+
+## License
+
+**AGPL-3.0** — Open Source, Sovereign, Protected
+
+You may use, modify, and distribute arifOS freely. If you modify it and deploy it as a service, you must release your modifications under the same license.
+
+---
+
+## Author
+
+**Muhammad Arif bin Fazil**
+Penang, Malaysia
+
+*"Every line of arifOS was earned through cost, consequence, and covenant."*
+
 **Contact:** [arifbfazil@gmail.com](mailto:arifbfazil@gmail.com)
