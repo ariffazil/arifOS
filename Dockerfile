@@ -32,5 +32,5 @@ ENV PORT=8000
 # Expose the Body API port
 EXPOSE 8000
 
-# Run the Body API server (shell form for $PORT expansion)
-CMD uvicorn arifos.core.integration.api.app:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1
+# Run the Body API server (exec form with sh -c for $PORT expansion)
+CMD ["sh", "-c", "uvicorn arifos.core.integration.api.app:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]
