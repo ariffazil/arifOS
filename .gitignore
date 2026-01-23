@@ -154,3 +154,11 @@ coverage.xml
 **/.obsidian/plugins/
 VAULT999/**/.obsidian/plugins/
 vault_999_obsidian/**/.obsidian/plugins/
+
+# v50.5 Runtime Chaos Reduction
+arifos/mcp/sessions/*
+!arifos/mcp/sessions/.gitkeep
+VAULT999/BBB_LEDGER/entries/*
+cov_report.txt
+coverage_report.txt
+Dockerfile.bak
