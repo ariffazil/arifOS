@@ -69,6 +69,9 @@ dependencies = [
     "starlette>=0.30.0",
     "fastmcp>=0.1.0",
     "dspy>=2.4.0",
+    "fastapi>=0.104.1",
+    "uvicorn[standard]>=0.24.0",
+    "sse-starlette>=1.8.2",
 ]
 
 [project.optional-dependencies]
@@ -114,6 +117,7 @@ arifos-compute-merkle = "scripts.compute_merkle_root:main"
 arifos-build-ledger-hashes = "scripts.build_ledger_hashes:main"
 arifos-show-merkle-proof = "scripts.show_merkle_proof:main"
 arifos-safe-read = "scripts.arifos_safe_read:main"
+arifos-api = "arifos.api.server:run_server"
 000 = "arifos.clip.aclip.cli._dispatcher000:main"
 111 = "arifos.clip.aclip.cli._dispatcher111:main"
 222 = "arifos.clip.aclip.cli._dispatcher222:main"

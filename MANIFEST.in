@@ -1,1 +1,5 @@
 recursive-include spec *.json *.yaml *.md
+recursive-include arifos *.py *.json *.yaml *.md
+include requirements.txt
+include Dockerfile
+
