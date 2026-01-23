@@ -3,7 +3,7 @@ builder = "nixpacks"
 buildCommand = "pip install -e ."
 
 [deploy]
-startCommand = "uvicorn arifos.core.integration.api.app:app --host 0.0.0.0 --port $PORT --workers 1"
+startCommand = "sh -c 'uvicorn arifos.core.integration.api.app:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1'"
 healthcheckPath = "/health"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"
