@@ -1,0 +1,22 @@
+{
+  "version": "v45.1",
+  "created_at": "2026-01-04T05:15:02.821095Z",
+  "algorithm": "SHA-256",
+  "description": "Cryptographic manifest for Track B v45.1 specifications + Track A Unified Core (tamper-evident integrity)",
+  "files": {
+    "L1_THEORY/canon/000_CONSTITUTIONAL_CORE_v45.md": "fc36e79ba3c7e7250f77feb3c2ba7972645e08682239d4984ab8727df6e06a80",
+    "spec/v45/constitutional_floors.json": "efcacdf2c63e70de4ffd9d3a6aa9fe072dc05ed21a34a53d348c23c163ff0853",
+    "spec/v45/cooling_ledger_phoenix.json": "bc0c3d435776f60ec615b591b246db9d6b561ee8c00d4a0cfdc9261a5593ffb0",
+    "spec/v45/genius_law.json": "63901c1b502c2d9990ba542c24d69cef7485ba637f633793ff627799156f87bf",
+    "spec/v45/red_patterns.json": "8809fe3fd3994127128161562b28a270d73d62f0afab41009cea581c5687d65e",
+    "spec/v45/session_physics.json": "0fb30820e63fa751c68cae88e41f9383de073005045ed7f7067ccc829f9a6fbe",
+    "spec/v45/trinity_display.json": "b4f7265b39d88675f5f0099ead7246337f47849aacb1e56791b89694af9233ba",
+    "spec/v45/truth_verification.json": "2b3e7ae193e0fe78201d0ec81c247a66c4accbefd936390a75b7256442a7bde8",
+    "spec/v45/waw_prompt_floors.json": "4096896bcda1854d54c6a946d4b901e9319b5423f89640e7baf96af89bbdb7ac",
+    "spec/v45/schema/constitutional_floors.schema.json": "2d8fc9bd38e9f6fa698ce9756b5f62f00ce712f5a1d42030cb8ef5cc46f07301",
+    "spec/v45/schema/genius_law.schema.json": "bdf2544c76da1888421cc8bfa5d41044a9b81cc024aefc3538a88097b7709ef2",
+    "spec/v45/schema/session_physics.schema.json": "431e68b7166cf594a96a63fabc93db97e5da85686c3d0f561b6ceabfa69b9d35",
+    "spec/v45/schema/red_patterns.schema.json": "1cbd0771c2cdbc1d687966f9899caa695aebf34ab062bd5453cf491f3039e1d8",
+    "spec/v45/schema/truth_verification.schema.json": "dbacf7ea97916dd30b3accb1e19e866f7814536469813116517e447ea2fb04cf"
+  }
+}

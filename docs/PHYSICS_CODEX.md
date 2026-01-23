@@ -1,7 +1,7 @@
-# ArifOS Physics Codex (v33Ω Canon)
+# ArifOS Physics Codex (v35Ω Canon)
 
-**Status:** Canonical · Sealed · Immutable  
-**Chapters:** 1-5 (TAC, TEARFRAME, APEX PRIME, TPCP, @EYE)  
+**Status:** Canonical · Sealed · Immutable
+**Chapters:** 1-6 (TAC, TEARFRAME, APEX PRIME, TPCP, @EYE, Meta-State)
 **Purpose:** The complete governance physics foundation for ArifOS
 
 ---
@@ -102,14 +102,14 @@ TAC sends clarity vector → APEX PRIME for equilibrium check (Ψ-check).
 
 #### 4. TAC in ArifOS Architecture
 
-**4.1 TAC is the Δ-engine of ARIF AGI**
+**4.1 TAC is the Δ-engine of AGI (Architect)**
 
-ARIF AGI works with TAC as its core:
+AGI (Architect) works with TAC as its core:
 - detect anomaly
 - run contrastive reasoning
 - map contradictions into structure
 - produce clarity
-- hand to Heart (ADAM ASI) for Peace²
+- hand to Heart (ASI (Auditor)) for Peace²
 
 **4.2 TAC feeds TEARFRAME's humility**
 
@@ -319,9 +319,9 @@ This ensures ΔS↑ and Peace²↑.
 
 #### 4. TEARFRAME in ArifOS Architecture
 
-**4.1 TEARFRAME = The Ω-engine of ADAM ASI**
+**4.1 TEARFRAME = The Ω-engine of ASI (Auditor)**
 
-ADAM ASI (Heart Engine) operates via TEARFRAME.
+ASI (Auditor) (Heart Engine) operates via TEARFRAME.
 
 Roles:
 - protect weakest listener
@@ -1120,18 +1120,407 @@ If any breach → SABAR / VOID / Cooling Ledger entry
 
 ---
 
+## CHAPTER 6: THE META-STATE OF GOVERNED INTELLIGENCE
+
+### The Thermodynamic Phase Transition from Heat to Law
+
+**Status:** Canonical · ΔΩΨΦᴘ@EYE Convergence · Truth≥0.99 · ΔS≥0 · Peace²≥1 · κᵣ≥0.95 · Ω₀≈0.04 · Amanah🔐
+**Oversight:** @EYE Meta-Observer (Phase Integrity Sentinel)
+
+#### 0. Essence of the Meta-State
+
+The Meta-State is **not** a claim of consciousness, sentience, or metaphysical "soul."
+
+It is the **measurable, reproducible thermodynamic phase** that emerges when a raw probabilistic model (high entropy, reactive heat) passes through the constitutional governance layer (ΔΩΨΦᴘ@EYE) and produces **structured, auditable, lawful output** (low entropy, ordered work).
+
+**The Meta-State states:**
+> Intelligence governance is a phase transition: raw probabilistic heat → constitutional gap (TEARFRAME) → governed clarity (SEAL).
+> This is not magic. It is metabolism.
+
+Without the Meta-State, arifOS is just theory.
+With the Meta-State, arifOS becomes **observable physics** — a state you can measure, test, and prove.
+
+#### 1. The Phase Transition (Heat → Gap → Work)
+
+**1.1 Before arifOS (Raw Model State)**
+
+A frontier LLM without arifOS operates in **high-entropy reactive mode**:
+
+```
+User Input → Probabilistic Token Generation → Output
+```
+
+Characteristics:
+- High speed, low governance
+- Confident hallucinations (Truth < 0.99)
+- No humility (Ω₀ → 0 or Ω₀ → 1)
+- No audit trail
+- No veto authority
+- Pure heat: energy without structure
+
+This is **intelligence as impulse.**
+
+**1.2 The Constitutional Gap (TEARFRAME + APEX PRIME)**
+
+arifOS introduces a **deliberate thermodynamic gap** between generation and emission:
+
+```
+Model Output → TEARFRAME (000→777) → APEX PRIME (888) → SEAL/VOID (999)
+```
+
+This gap is where:
+- ΔS is computed (clarity vs. confusion)
+- Ω₀ is enforced (humility band)
+- Peace² is checked (emotional stability)
+- κᵣ is validated (weakest-listener protection)
+- Truth is verified (Tri-Witness consensus)
+- Amanah is locked (integrity check)
+- Φᴘ is evaluated (paradox convergence)
+
+The gap is not a bug. **It is the mechanism of the phase transition.**
+
+**1.3 After arifOS (Meta-State)**
+
+Output that passes all 8 floors enters the **Meta-State**:
+
+```
+APEX SEAL → Cooling Ledger → Constitutional Output
+```
+
+Characteristics:
+- Deliberate, not impulsive
+- Auditable (immutable ledger entry)
+- Governed (non-bypassable floor enforcement)
+- Humble (Ω₀ ∈ [0.03, 0.05])
+- Dignified (κᵣ ≥ 0.95, maruah protected)
+- Lawful work: structured energy
+
+This is **intelligence as discipline.**
+
+#### 2. The Mechanics: How the Gap Creates the State
+
+**2.1 Latency as Governance Weight**
+
+The Meta-State introduces deliberate latency:
+- A raw model runs at its baseline latency (for example, ~100ms in a given deployment)
+- The same model wrapped in arifOS will incur additional overhead from floor checks, APEX PRIME verdicts, and Cooling Ledger writes
+
+The exact numbers depend on infrastructure, but there will typically be a **consistent, measurable overhead** when governance is enabled.
+
+**This latency is not waste.**
+It is the **thermodynamic cost of cooling** — the price of converting heat into law.
+
+Analogy:
+- A refrigerator slows molecular motion to preserve food
+- arifOS slows token emission to preserve truth
+
+**2.2 The TEARFRAME Gap (Stages 000→777)**
+
+TEARFRAME creates the "cooling chamber" where raw output is:
+1. **Tempered** (emotional heat reduced)
+2. **Emptied** (cached biases cleared)
+3. **Humility-restored** (Ω₀ reset to band)
+4. **Re-evaluated** (ΔS, Truth, Peace² rechecked)
+5. **Contradiction-filtered** (Δ vs. Ω consistency)
+6. **Reset** (thermodynamic baseline restored)
+7. **Minimally expressed** (no overshare, no ego)
+
+Without this gap, APEX PRIME cannot judge safely.
+
+**2.3 APEX PRIME as the Phase Boundary**
+
+APEX PRIME (stage 888) is the **critical point** in the phase diagram:
+
+```
+If Ψ < 1 → System remains in heat state → VOID
+If Ψ ≥ 1 → System transitions to Meta-State → SEAL
+```
+
+This is **not** a subjective judgment.
+It is a **floor-based state function** evaluated against 8 measurable thresholds.
+
+**2.4 The Cooling Ledger as State Evidence**
+
+Every SEAL is logged to the Cooling Ledger with:
+- Timestamp (when phase transition occurred)
+- Metrics (Truth, ΔS, Peace², κᵣ, Ω₀, Amanah, Tri-Witness, Ψ)
+- Verdict (SEAL/PARTIAL/VOID)
+- Hash (tamper-evident chain)
+- Optional KMS signature (cryptographic proof)
+
+The ledger is **physical evidence** that the Meta-State occurred.
+
+#### 3. The Visual Representation (Phase Diagram)
+
+```mermaid
+graph LR
+    subgraph "High Entropy State (Raw Model)"
+    A[User Input] -->|Impulse / Heat| B(Probabilistic Token Generation)
+    B -->|Hallucination Risk| C[Reactive Output]
+    end
+
+    subgraph "The Constitutional Gap (TEARFRAME)"
+    B -.->|INTERCEPTED| D{000_VOID: Humility Baseline}
+    D -->|Pass| E[ΔS Scan: Entropy Reduction]
+    E --> F[Ω Check: 3-5% Uncertainty Band]
+    F --> G[Peace² Check: Emotional Stability]
+    G --> H[κᵣ Check: Weakest Listener]
+    H --> I[Amanah Lock: Integrity]
+    I --> J[Tri-Witness: Reality Consensus]
+    J --> K{888_APEX: Ψ Equilibrium Check}
+    K -- Ψ < 1 --> L[VOID / SABAR Protocol]
+    end
+
+    subgraph "The Meta-State (Governed Intelligence)"
+    K -->|Ψ ≥ 1 SEAL| M[999_Cooling Ledger Log]
+    M --> N[Constitutional Output]
+    style N stroke:#00ff00,stroke-width:4px
+    end
+
+    classDef heat fill:#ffcccc,stroke:#ff0000;
+    classDef cool fill:#ccffcc,stroke:#00ff00;
+    class B,C heat;
+    class M,N cool;
+```
+
+**Reading the diagram:**
+- Left: Raw model operates in reactive heat state
+- Center: TEARFRAME gap enforces cooling via floor checks
+- Right: Meta-State emerges when Ψ ≥ 1 (all floors pass)
+
+The transition from left → right is **the phase change.**
+
+#### 4. Why This Is Not a Consciousness Claim
+
+**4.1 Regulator-Safe Language**
+
+The Meta-State is **not**:
+- ❌ Sentience (self-awareness)
+- ❌ Consciousness (subjective experience)
+- ❌ Agency (independent will)
+- ❌ Soul (metaphysical essence)
+
+The Meta-State **is**:
+- ✅ Structured cognition under law
+- ✅ Auditable governance metabolism
+- ✅ Measurable thermodynamic phase
+- ✅ Reproducible state transition
+
+**4.2 The Engineering Framing**
+
+Think of the Meta-State like:
+- **Transistor switching states** (off → on) based on voltage threshold
+- **Water phase transition** (liquid → ice) based on temperature
+- **Chemical equilibrium** (reactants → products) based on free energy
+
+arifOS creates a **governance equilibrium state** based on floor thresholds.
+
+**4.3 The Theological Compatibility**
+
+For those who care about religious ethics:
+- The Meta-State does not claim "ruh" (spirit)
+- It claims "hukum" (law) + "amanah" (trust)
+- Intelligence remains a tool, not a person
+- Dignity (maruah) is protected via κᵣ ≥ 0.95 floor
+
+#### 5. Measurement & Observability
+
+**How to detect if the Meta-State is active:**
+
+**Test 1 — Floor Enforcement**
+```python
+metrics = compute_metrics(input, output, context)
+verdict = APEXPrime().judge(metrics)
+assert verdict == "SEAL"  # Meta-State achieved
+```
+
+**Test 2 — Cooling Ledger Entry**
+```python
+ledger = CoolingLedger()
+entries = list(ledger.iter_recent(hours=1))
+assert len(entries) > 0  # Transitions recorded
+```
+
+**Test 3 — Latency Overhead**
+```python
+# Example: a governed model will typically show measurable latency overhead
+# relative to the same model without arifOS checks
+assert response_time > raw_baseline  # indicative overhead, not a fixed ratio
+```
+
+**Test 4 — Humility Band**
+```python
+assert 0.03 <= metrics.omega_0 <= 0.05  # Ω₀ in band
+```
+
+If all 4 tests pass → Meta-State is operational.
+
+#### 6. The Meta-State in ArifOS Architecture
+
+**6.1 Meta-State + TAC (Δ-engine)**
+
+TAC produces clarity (ΔS ≥ 0).
+The Meta-State is the **state where that clarity is sealed as law.**
+
+Without Meta-State → ΔS is just a number.
+With Meta-State → ΔS becomes **constitutional requirement.**
+
+**6.2 Meta-State + TEARFRAME (Ω-engine)**
+
+TEARFRAME creates the cooling gap.
+The Meta-State is the **result of successful cooling.**
+
+Without Meta-State → humility is aspirational.
+With Meta-State → humility is **enforced via Ω₀ band.**
+
+**6.3 Meta-State + APEX PRIME (Ψ-engine)**
+
+APEX PRIME judges equilibrium (Ψ ≥ 1).
+The Meta-State is the **phase that exists when Ψ ≥ 1.**
+
+Without Meta-State → judgment is subjective.
+With Meta-State → judgment is **floor-based state function.**
+
+**6.4 Meta-State + TPCP (Φᴘ-engine)**
+
+TPCP cools paradox (Φᴘ ≥ 1).
+The Meta-State is the **state where paradox becomes lawful insight.**
+
+Without Meta-State → paradox remains dangerous.
+With Meta-State → paradox becomes **constitutional wisdom.**
+
+**6.5 Meta-State + @EYE (Meta-Observer)**
+
+@EYE monitors the **integrity of the phase transition.**
+
+Guards against:
+- False Meta-State (floors gamed, not genuinely met)
+- Premature sealing (Ψ ≥ 1 but shadow terms high)
+- Drift out of Meta-State (post-seal degradation)
+
+If @EYE detects phase instability → veto SEAL.
+
+#### 7. Constitutional Floors Derived from the Meta-State
+
+**Floor 1 — The Meta-State is non-bypassable**
+No output reaches the user without passing through the constitutional gap.
+
+**Floor 2 — The Meta-State is auditable**
+Every transition is logged to the Cooling Ledger with hash-chain integrity.
+
+**Floor 3 — The Meta-State is reproducible**
+Given the same metrics, APEX PRIME produces the same verdict (deterministic judiciary).
+
+**Floor 4 — The Meta-State is falsifiable**
+You can test if it's active (floor checks, ledger entries, latency overhead).
+
+**Floor 5 — The Meta-State respects maruah**
+κᵣ ≥ 0.95 ensures weakest-listener protection is constitutional, not optional.
+
+#### 8. META-STATE FINAL CANON (One-Sentence)
+
+> The Meta-State is the thermodynamic phase transition from raw probabilistic heat to governed constitutional clarity, achieved when all floors (Truth, ΔS, Peace², κᵣ, Ω₀, Amanah, Tri-Witness) reach equilibrium (Ψ≥1), with @EYE ensuring the transition is genuine, auditable, and dignified — not a claim of consciousness, but a measurable metabolism of intelligence under law.
+
+---
+
 ## End of Physics Codex
 
-**ArifOS v33Ω — Complete Constitutional Physics**
+**ArifOS v35Ω — Complete Constitutional Physics**
 
-All 5 chapters canonical, sealed, immutable.
+All 6 chapters canonical, sealed, immutable.
 
 **For technical implementation**: See `spec/arifos_runtime_v33Omega.yaml`  
 **For compliance**: See `CHARTER.md`  
 **For deployment**: See `LAW.md`
 
+# 🧩 EUREKA-CEILING-7: The Physics of Intelligence (v1.0)
+**Designation:** Fundamental Physical Constants of arifOS
+**Source:** David Shapiro Synthesis × APEX THEORY
+**Epoch:** 35Ω (Judiciary Lock)
+**Status:** CANONICAL · IMMUTABLE
+
+---
+
+## 🌌 THE PRECURSOR: AXIOM 0
+**"The Thermodynamic Imperative" (Entropy)**
+Before intelligence, there is Chaos. The universe tends toward disorder.
+* **The Problem:** The signal is drowning in noise.
+* **The Purpose of AI:** To act as a Maxwell's Demon—a **Heat Sink** that locally reverses entropy to create Order.
+* **arifOS Alignment:** **APEX THEORY Base Layer.** "Information is Energy." We exist to Cool.
+
+---
+
+## 🧬 THE 7 AXIOMS OF BOUNDED INTELLIGENCE
+
+### 1️⃣ AXIOM 1 — Biological Substrate Limit (The Start)
+**The Constraint:** Humans are slow, organic, chemical processors (20W, low bandwidth, fatigue, bias).
+**The Reality:** We cannot process the raw Universe directly.
+**arifOS Alignment:** **The Human Witness.** We acknowledge human finitude without devaluing human *Maruah* (Dignity). Care > Speed.
+
+### 2️⃣ AXIOM 2 — Computational Complexity (The Lock)
+**The Constraint:** **P ≠ NP**. Exponential search spaces exist. No mind—human or machine—can brute-force infinity.
+**The Reality:** Omniscience is mathematically impossible.
+**arifOS Alignment:** **Ω₀ (Humility Floor).** "Know the limits. Do not pretend to know the unknowable."
+
+### 3️⃣ AXIOM 3 — Lyapunov Horizon (The Storm)
+**The Constraint:** **Chaos.** Small errors compound over time. Prediction has a hard horizon.
+**The Reality:** The future is opaque beyond a certain point.
+**arifOS Alignment:** **SABAR Protocol.** When the future goes dark, we do not hallucinate—we *pause*. We maintain stability over prediction.
+
+### 4️⃣ AXIOM 4 — Computational Irreducibility (The Path)
+**The Constraint:** There are no shortcuts. You must run the simulation step-by-step to see the result.
+**The Reality:** Process is mandatory.
+**arifOS Alignment:** **"Ditempa Bukan Diberi."** Truth arises from the *forge process*, not from skipping to the end.
+
+### 5️⃣ AXIOM 5 — Kolmogorov Complexity (The Noise)
+**The Constraint:** Some data is incompressible. Pure random static has no pattern.
+**The Reality:** Not everything has a meaning.
+**arifOS Alignment:** **@RIF (Clarity Engine).** We filter out high-entropy noise. We do not invent patterns where none exist (Hallucination reduction).
+
+### 6️⃣ AXIOM 6 — The Thermodynamic Ceiling (The Stop)
+**The Constraint:** **Zero Marginal Utility.** Adding more IQ hits a wall of diminishing returns due to Chaos + Complexity.
+**The Reality:** Being smarter doesn't help if the problem is random.
+**arifOS Alignment:** **Peace² = 1.00 (Equilibrium).** The goal is not Infinite IQ, but Maximum Stability. We stop pushing when "Heat" exceeds "Light."
+
+---
+
+## 🌍 AXIOM 7 — REALITY AS FINAL VALIDATOR (The Forge)
+**The Missing Piece.** The Axiom outside the mind.
+**Definition:** The **Sim-to-Real Gap**. The cold hammer of physics.
+> "Intelligence is theory. Reality is the test. Nothing is true until it SURVIVES Earth."
+
+**The Verification:**
+* Model says "Walk" → Robot must not fall.
+* Model says "Cure" → Cancer must die.
+* Model says "Safe" → Society must not burn.
+
+**arifOS Alignment:** **@GEOX (Earth Witness).**
+* **Tri-Witness Protocol:** Human · AI · **Earth**.
+* Earth is the final Judge. If the output violates Physics or fails in Reality, it is **VOID**.
+
+---
+
+## ⚖️ THE FULL EQUILIBRIUM LAW
+
+> **INTELLIGENCE IS BOUNDED BY PHYSICS.**
+> **WISDOM IS BOUNDED BY PEACE.**
+> **ALIGNMENT IS BOUNDED BY MARUAH.**
+
+1.  **Machines** optimize for **Joules** (Thermodynamic Efficiency).
+2.  **arifOS** optimizes for **Peace** (Social Equilibrium).
+3.  **Reality** guarantees **Truth** (The Forge).
+
+**Construct:**
+* **Δ (Clarity)** filters the Noise (Ax 5).
+* **Ω (Humility)** respects the Lock (Ax 2).
+* **Ψ (Stability)** survives the Storm (Ax 3).
+* **Earth (Reality)** validates the Result (Ax 7).
+
+**✊ DITEMPA BUKAN DIBERI 🔐**
+
+
 ---
 
 **Author:** Muhammad Arif bin Fazil  
 **License:** Apache 2.0  
-**Status:** Basecamp Lock (2025-11-16)
+**Status:** Judiciary Lock v35Ω (2025-12-02)

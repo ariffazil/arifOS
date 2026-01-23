@@ -1,0 +1,15 @@
+{
+    "trinity_tools": [
+        "000_init",
+        "agi_genius",
+        "asi_act",
+        "apex_judge",
+        "999_vault"
+    ],
+    "external_tools": [
+        "google_search",
+        "github_read_issue",
+        "github_list_repos"
+    ],
+    "version": "50.5.3"
+}

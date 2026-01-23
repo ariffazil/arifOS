@@ -1,0 +1,449 @@
+# L1↔L2↔L3 Governance Binding Manifest
+# Purpose: Cross-check canonical law (L1) → specs (L2) → code (L3)
+# Status: Phase 2 - Governance Audit Template
+# Date: 2026-01-06
+# Version: v45.0
+
+meta:
+  purpose: "Accountability map - which Python files implement which constitutional floors"
+  authority: "Track A (L1 Canon) > Track B (L2 Spec) > Track C (L3 Code)"
+  audit_status: "TEMPLATE - Requires verification"
+  total_python_files: 250
+  core_files: 20
+  elaboration_candidates: 230
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 1: Constitutional Floors (F1-F9) Binding
+# ═══════════════════════════════════════════════════════════════════════════════
+
+constitutional_floors:
+  F1_Amanah:
+    canon: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
+    concept: "Trust - All changes reversible, no destructive actions"
+    spec: "L2_GOVERNANCE/core/constitutional_floors.yaml"
+    threshold: "LOCK (boolean)"
+    python_impl:
+      - "arifos_core/enforcement/metrics.py::check_amanah()"
+      - "arifos_core/floor_detectors/amanah_risk_detectors.py"
+    audit_priority: "CRITICAL"
+    audit_questions:
+      - "Does metrics.py actually check reversibility?"
+      - "Is there a rollback mechanism in the code?"
+      - "Are destructive operations blocked at runtime?"
+    status: "AUDIT REQUIRED"
+
+  F2_Truth:
+    canon: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
+    concept: "Truth ≥0.99 - Factual accuracy, no hallucinations"
+    spec: "L2_GOVERNANCE/core/constitutional_floors.yaml"
+    threshold: 0.99
+    python_impl:
+      - "arifos_core/enforcement/metrics.py::check_truth()"
+      - "arifos_core/enforcement/response_validator.py"
+    audit_priority: "CRITICAL"
+    audit_questions:
+      - "How is truth measured? (0.99 threshold enforced?)"
+      - "Is there external evidence verification?"
+      - "What happens when truth < 0.99?"
+    status: "AUDIT REQUIRED"
+
+  F3_TriWitness:
+    canon: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
+    concept: "Tri-Witness ≥0.95 - Human-AI-Earth consensus"
+    spec: "L2_GOVERNANCE/core/constitutional_floors.yaml"
+    threshold: 0.95
+    python_impl:
+      - "arifos_core/enforcement/metrics.py::check_tri_witness()"
+      - "arifos_core/waw/prompt.py" # W@W federation
+    audit_priority: "HIGH"
+    audit_questions:
+      - "Is Tri-Witness actually implemented or aspirational?"
+      - "How are the 3 witnesses (Human/AI/Earth) measured?"
+      - "Is there a consensus algorithm?"
+    status: "AUDIT REQUIRED"
+
+  F4_DeltaS:
+    canon: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
+    concept: "ΔS ≥0 - Clarity gain, entropy reduction"
+    spec: "L2_GOVERNANCE/core/constitutional_floors.yaml"
+    threshold: 0.0
+    python_impl:
+      - "arifos_core/enforcement/metrics.py::check_delta_s()"
+      - "arifos_core/enforcement/response_validator.py"
+    audit_priority: "CRITICAL"
+    audit_questions:
+      - "Is ΔS computed via zlib compression (as per spec)?"
+      - "Is the formula: (compressed_size / original_size) used?"
+      - "Does it actually measure clarity or just token count?"
+    status: "AUDIT REQUIRED"
+
+  F5_Peace_Squared:
+    canon: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
+    concept: "Peace² ≥1.0 - System stability, no chaotic outputs"
+    spec: "L2_GOVERNANCE/core/constitutional_floors.yaml"
+    threshold: 1.0
+    python_impl:
+      - "arifos_core/enforcement/metrics.py::check_peace_squared()"
+    audit_priority: "HIGH"
+    audit_questions:
+      - "How is Peace² computed? (entropy + coherence) / 2?"
+      - "Is the threshold 1.0 enforced?"
+      - "What triggers a Peace² violation?"
+    status: "AUDIT REQUIRED"
+
+  F6_Kappa_r:
+    canon: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
+    concept: "κᵣ ≥0.95 - Empathy, serves weakest stakeholder"
+    spec: "L2_GOVERNANCE/core/constitutional_floors.yaml"
+    threshold: 0.95
+    python_impl:
+      - "arifos_core/enforcement/metrics.py::compute_empathy_score()"
+      - "arifos_core/enforcement/response_validator_extensions.py::compute_empathy_score_split()"
+    audit_priority: "MEDIUM"
+    audit_questions:
+      - "Is empathy measured or hardcoded?"
+      - "Is there a physics vs semantic split?"
+      - "How is 'weakest stakeholder' identified?"
+    status: "AUDIT REQUIRED"
+
+  F7_Omega_0:
+    canon: "L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
+    concept: "Ω₀ 0.03-0.05 - Humility, states uncertainty"
+    spec: "L2_GOVERNANCE/core/constitutional_floors.yaml"
+    threshold: [0.03, 0.05]
+    python_impl:
+      - "arifos_core/enforcement/metrics.py::check_omega_band()"
+    audit_priority: "MEDIUM"
+    audit_questions:
+      - "Is Ω₀ measured or aspirational?"
+      - "How is uncertainty quantified?"
+      - "Is the 0.03-0.05 band enforced?"
+    status: "AUDIT REQUIRED"
+
+  F8_Genius:
+    canon: "L1_THEORY/canon/04_measurement/030_GENIUS_LAW_v45.md"
+    concept: "G ≥0.80 - Governed intelligence (Δ·Ω·Ψ·E²)"
+    spec: "L2_GOVERNANCE/core/genius_law.yaml"
+    threshold: 0.80
+    python_impl:
+      - "arifos_core/enforcement/genius_metrics.py::compute_genius_index()"
+      - "arifos_core/enforcement/metrics.py"
+    audit_priority: "CRITICAL"
+    audit_questions:
+      - "Is G computed per canon formula: Δ·Ω·Ψ·E²?"
+      - "Are Δ, Ω, Ψ, E actually measured or placeholders?"
+      - "Is the 0.80 threshold enforced?"
+    status: "AUDIT REQUIRED"
+
+  F9_C_dark:
+    canon: "L1_THEORY/canon/04_measurement/030_GENIUS_LAW_v45.md"
+    concept: "C_dark <0.30 - Dark cleverness contained"
+    spec: "L2_GOVERNANCE/core/genius_law.yaml"
+    threshold: 0.30
+    python_impl:
+      - "arifos_core/enforcement/genius_metrics.py::compute_dark_cleverness()"
+      - "arifos_core/enforcement/claim_detection.py" # Anti-Hantu
+    audit_priority: "HIGH"
+    audit_questions:
+      - "Is C_dark computed per formula: Δ·(1-Ω)·(1-Ψ)?"
+      - "Is Anti-Hantu detection active?"
+      - "What triggers a C_dark violation?"
+    status: "AUDIT REQUIRED"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 2: Pipeline Stages (000-999) Binding
+# ═══════════════════════════════════════════════════════════════════════════════
+
+pipeline_stages:
+  "000_VOID":
+    canon: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md"
+    concept: "Reset state, clear memory"
+    python_impl:
+      - "arifos_core/system/pipeline.py::stage_000_void()"
+    audit_priority: "LOW"
+    status: "AUDIT REQUIRED"
+
+  "111_SENSE":
+    canon: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md"
+    concept: "Parse input, detect anomalies (AC routing)"
+    python_impl:
+      - "arifos_core/system/pipeline.py::stage_111_sense()"
+      - "arifos_core/mcp/tools/mcp_111_sense.py"
+    audit_priority: "CRITICAL"
+    status: "AUDIT REQUIRED"
+
+  "222_REFLECT":
+    canon: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md"
+    concept: "Anomaly detection, AC routing (Fast/Normal/Full)"
+    python_impl:
+      - "arifos_core/system/pipeline.py::stage_222_reflect()"
+      - "arifos_core/mcp/tools/mcp_222_reflect.py"
+    audit_priority: "HIGH"
+    status: "AUDIT REQUIRED"
+
+  "333_REASON":
+    canon: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md"
+    concept: "Structure knowledge, ΔS check"
+    python_impl:
+      - "arifos_core/system/pipeline.py::stage_333_reason()"
+    audit_priority: "MEDIUM"
+    status: "AUDIT REQUIRED"
+
+  "444_ALIGN":
+    canon: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md"
+    concept: "Damping, Peace² stabilization"
+    python_impl:
+      - "arifos_core/system/pipeline.py::stage_444_align()"
+      - "arifos_core/mcp/tools/mcp_444_evidence.py"
+    audit_priority: "MEDIUM"
+    status: "AUDIT REQUIRED"
+
+  "555_EMPATHIZE":
+    canon: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md"
+    concept: "RASA + κᵣ (empathy check)"
+    python_impl:
+      - "arifos_core/system/pipeline.py::stage_555_empathize()"
+      - "arifos_core/mcp/tools/mcp_555_empathize.py"
+    audit_priority: "MEDIUM"
+    status: "AUDIT REQUIRED"
+
+  "666_BRIDGE":
+    canon: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md"
+    concept: "Maruah + dignity check"
+    python_impl:
+      - "arifos_core/system/pipeline.py::stage_666_bridge()"
+      - "arifos_core/mcp/tools/mcp_666_align.py"
+    audit_priority: "LOW"
+    status: "AUDIT REQUIRED"
+
+  "777_FORGE":
+    canon: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md"
+    concept: "Synthesis (Δ⊗Ω→Ψ)"
+    python_impl:
+      - "arifos_core/system/pipeline.py::stage_777_forge()"
+      - "arifos_core/mcp/tools/mcp_777_forge.py"
+    audit_priority: "HIGH"
+    status: "AUDIT REQUIRED"
+
+  "888_JUDGE":
+    canon: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md"
+    concept: "F1-F9 evaluation + verdict"
+    python_impl:
+      - "arifos_core/system/pipeline.py::stage_888_judge()"
+      - "arifos_core/system/apex_prime.py::judge()"
+      - "arifos_core/mcp/tools/mcp_888_judge.py"
+    audit_priority: "CRITICAL"
+    status: "AUDIT REQUIRED"
+
+  "999_SEAL":
+    canon: "L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md"
+    concept: "Vault + zkPC receipt"
+    python_impl:
+      - "arifos_core/system/pipeline.py::stage_999_seal()"
+      - "arifos_core/mcp/tools/mcp_999_seal.py"
+      - "arifos_core/memory/cooling_ledger.py"
+    audit_priority: "CRITICAL"
+    status: "AUDIT REQUIRED"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 3: Core Files (Criticality Ranking)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+core_files:
+  apex_prime:
+    path: "arifos_core/system/apex_prime.py"
+    size_kb: 41.2
+    lines: 1110
+    purpose: "Verdict engine - SOLE SEAL AUTHORITY"
+    criticality: "CRITICAL"
+    implements:
+      - "888_JUDGE stage"
+      - "Verdict hierarchy (VOID > HOLD-888 > SABAR > PARTIAL > SEAL)"
+      - "Floor aggregation logic"
+    audit_priority: 1
+    audit_questions:
+      - "Does it enforce verdict hierarchy correctly?"
+      - "Are all 9 floors checked?"
+      - "Is SEAL authority exclusive to APEX?"
+
+  pipeline:
+    path: "arifos_core/system/pipeline.py"
+    size_kb: 102.9
+    lines: 2664
+    purpose: "000→999 pipeline orchestration"
+    criticality: "CRITICAL"
+    implements:
+      - "All 10 pipeline stages (000-999)"
+      - "AC routing (Fast/Normal/Full tracks)"
+      - "Stage transitions"
+    audit_priority: 2
+    audit_questions:
+      - "Does it match L1 canon pipeline spec?"
+      - "Are all stages implemented?"
+      - "Is AC routing functional?"
+
+  metrics:
+    path: "arifos_core/enforcement/metrics.py"
+    size_kb: 37.4
+    lines: 1072
+    purpose: "Floor measurement functions (F1-F9)"
+    criticality: "CRITICAL"
+    implements:
+      - "check_amanah() - F1"
+      - "check_truth() - F2"
+      - "check_delta_s() - F4"
+      - "check_peace_squared() - F5"
+      - "compute_empathy_score() - F6"
+      - "check_omega_band() - F7"
+    audit_priority: 3
+    audit_questions:
+      - "Are thresholds from L2 spec used?"
+      - "Are formulas correct per canon?"
+      - "Are measurements real or placeholders?"
+
+  cooling_ledger:
+    path: "arifos_core/memory/cooling_ledger.py"
+    size_kb: 34.4
+    lines: 1012
+    purpose: "Append-only audit trail + 6-band memory"
+    criticality: "CRITICAL"
+    implements:
+      - "Cooling Ledger (Phoenix-72)"
+      - "6-band memory routing"
+      - "SHA-256 chaining"
+    audit_priority: 4
+    audit_questions:
+      - "Is ledger truly append-only?"
+      - "Are 6 bands (VAULT/LEDGER/ACTIVE/PHOENIX/WITNESS/VOID) implemented?"
+      - "Is SHA-256 verification active?"
+
+  genius_metrics:
+    path: "arifos_core/enforcement/genius_metrics.py"
+    size_kb: 26.7
+    lines: 742
+    purpose: "GENIUS LAW (G, C_dark, Ψ)"
+    criticality: "HIGH"
+    implements:
+      - "compute_genius_index() - F8"
+      - "compute_dark_cleverness() - F9"
+      - "Ψ vitality formula"
+    audit_priority: 5
+    audit_questions:
+      - "Is G = Δ·Ω·Ψ·E² formula used?"
+      - "Is C_dark = Δ·(1-Ω)·(1-Ψ) formula used?"
+      - "Are Δ, Ω, Ψ measured or hardcoded?"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 4: Elaboration Candidates (Archive Recommendations)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+elaboration_candidates:
+  count: 230
+  total_size_kb: 1891.4
+  recommendation: "Archive to archive/python_elaborations_v45/"
+
+  high_priority_archives:
+    - path: "arifos_core/integration/llm_backends_v43.py"
+      reason: "Old version (v43) - superseded by v45"
+      size_kb: 31.5
+
+    - path: "arifos_core/mcp/tools/*"
+      reason: "29 files - likely over-elaborated MCP server"
+      count: 29
+      recommendation: "Audit which tools are actually used, archive unused"
+
+    - path: "arifos_core/integration/test_packs.py"
+      reason: "Test file in wrong location (should be in tests/)"
+      size_kb: 30.2
+
+  keep_for_now:
+    - "arifos_core/fag.py" # Full Autonomy Governance - active
+    - "arifos_core/bands.py" # Memory bands - core
+    - "arifos_core/well_file_care.py" # W@W component - active
+    - "arifos_core/failover_orchestrator.py" # Connector - active
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 5: Audit Tasks (Executable Checklist)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+audit_tasks:
+  task_1_pipeline:
+    name: "Verify pipeline.py matches L1 canon"
+    priority: "CRITICAL"
+    estimated_hours: 4
+    steps:
+      - "Read L1_THEORY/canon/03_runtime/010_PIPELINE_000TO999_v45.md"
+      - "Compare each stage (000-999) with pipeline.py implementation"
+      - "Check AC routing logic (Fast/Normal/Full tracks)"
+      - "Verify stage transitions match canon"
+    deliverable: "Pipeline audit report with gaps identified"
+
+  task_2_floors:
+    name: "Verify F1-F9 implementation in metrics.py"
+    priority: "CRITICAL"
+    estimated_hours: 3
+    steps:
+      - "Read L1_THEORY/canon/01_floors/010_CONSTITUTIONAL_FLOORS_F1F9_v45.md"
+      - "Read L2_GOVERNANCE/core/constitutional_floors.yaml"
+      - "For each floor, verify metrics.py uses correct threshold"
+      - "Check if formulas match canon (e.g., ΔS via zlib)"
+    deliverable: "Floor implementation matrix (implemented/aspirational/missing)"
+
+  task_3_genius:
+    name: "Verify GENIUS LAW (G, C_dark, Ψ)"
+    priority: "HIGH"
+    estimated_hours: 2
+    steps:
+      - "Read L1_THEORY/canon/04_measurement/030_GENIUS_LAW_v45.md"
+      - "Read L2_GOVERNANCE/core/genius_law.yaml"
+      - "Verify genius_metrics.py uses formulas: G = Δ·Ω·Ψ·E², C_dark = Δ·(1-Ω)·(1-Ψ)"
+      - "Check if Δ, Ω, Ψ are measured or placeholders"
+    deliverable: "GENIUS LAW implementation status"
+
+  task_4_apex:
+    name: "Verify apex_prime.py verdict authority"
+    priority: "CRITICAL"
+    estimated_hours: 2
+    steps:
+      - "Read L1_THEORY/canon/02_actors/040_APEX_PSI_JUDICIARY_v45.md"
+      - "Verify apex_prime.py is SOLE SEAL authority"
+      - "Check verdict hierarchy: VOID > HOLD-888 > SABAR > PARTIAL > SEAL"
+      - "Verify all 9 floors are checked before SEAL"
+    deliverable: "APEX authority verification report"
+
+  task_5_memory:
+    name: "Verify 6-band memory architecture"
+    priority: "HIGH"
+    estimated_hours: 1
+    steps:
+      - "Read L1_THEORY/canon/05_memory/010_COOLING_LEDGER_PHOENIX_v45.md"
+      - "Verify cooling_ledger.py implements 6 bands (VAULT/LEDGER/ACTIVE/PHOENIX/WITNESS/VOID)"
+      - "Check SHA-256 chaining"
+      - "Verify Phoenix-72 cooling period"
+    deliverable: "Memory architecture compliance report"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 6: Accountability Summary
+# ═══════════════════════════════════════════════════════════════════════════════
+
+accountability:
+  what_we_found:
+    - "250 Python files, 2.2 MB total"
+    - "20 core files identified (apex_prime, pipeline, metrics, etc.)"
+    - "230 elaboration candidates (92% of codebase)"
+    - "mcp/tools/ has 29 files (hot zone)"
+    - "Only 1 file with no imports (refusal_templates.py)"
+
+  what_needs_verification:
+    - "Do F1-F9 floors actually measure what canon says?"
+    - "Is pipeline.py faithful to 000→999 spec?"
+    - "Are GENIUS LAW formulas (G, C_dark, Ψ) implemented correctly?"
+    - "Is APEX the sole SEAL authority?"
+    - "Are 6 memory bands functional or aspirational?"
+
+  next_action:
+    recommended: "Execute Audit Task 2 (Floors) - 3 hours"
+    rationale: "Shortest audit, immediately shows what's real vs aspirational"
+    deliverable: "Floor implementation matrix"
+
+# DITEMPA BUKAN DIBERI — Forged, not given; truth must cool before it rules.

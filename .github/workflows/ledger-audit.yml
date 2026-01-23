@@ -1,9 +1,24 @@
 name: Scheduled Ledger Audit
 
+# DISABLED: Requires KMS-signed production ledger (Level 3.5+)
+# Re-enable when:
+# 1. Production ledger with KMS signatures exists
+# 2. compute_hash is exported from arifos_core.memory.cooling_ledger
+# 3. Artifact upload workflow is configured
+#
+# To test manually: python scripts/verify_ledger_kms.py runtime/cooling_ledger.jsonl --no-verify
+
 on:
+  # Temporarily disabled - uncomment to re-enable
+  # workflow_dispatch:
+  # schedule:
+  #   - cron: '0 5 * * 0'  # weekly on Sunday 05:00 UTC
   workflow_dispatch:
-  schedule:
-    - cron: '0 5 * * 0'  # weekly on Sunday 05:00 UTC
+    inputs:
+      dry_run:
+        description: 'Dry run (skip actual verification)'
+        required: false
+        default: 'true'
 
 jobs:
   download-and-verify:
@@ -12,17 +27,17 @@ jobs:
       LEDGER_ARTIFACT_NAME: ledger-snapshot
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download ledger snapshot artifact
         # This assumes a prior job in another workflow has uploaded artifact named 'ledger-snapshot'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: ${{ env.LEDGER_ARTIFACT_NAME }}
           path: ./artifacts
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -45,7 +60,7 @@ jobs:
 
       - name: Create issue on failure
         if: failure() || steps.verify.outcome == 'failure'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

@@ -1,0 +1,57 @@
+# Track A/B Alignment Fixes Required
+# Critical: Stage-Hundreds Numbering Schema
+
+## DISCOVERED ISSUE
+All Track B canon_ref fields incorrectly use 0XX numbering.
+Track A canon uses stage-hundreds (3XX, 4XX, 5XX, 6XX, 7XX, 8XX).
+
+## CORRECTIONS NEEDED
+
+### 333_atlas/agi_core.json:
+- Line ~24: "040_TRUTH_F1_v46.md" → "340_TRUTH_F1_v46.md"
+- Line ~55: "050_CLARITY_F2_v46.md" → "350_CLARITY_F2_v46.md"
+
+### 444_align/peace_floor.json:
+- Line ~25: "020_PEACE_F3_v46.md" → "420_PEACE_F3_v46.md"
+
+### 555_empathize/empathy_floor.json:
+- Line ~28: "020_EMPATHY_F4_v46.md" → "520_EMPATHY_F4_v46.md"
+
+### 666_bridge/humility_floor.json:
+- Line ~26: "010_HUMILITY_F5_v46.md" → "610_HUMILITY_F5_v46.md"
+
+### 777_eureka/rasa_floor.json:
+- Line ~25: "060_RASA_F7_v46.md" → "760_RASA_F7_v46.md"
+
+### 888_compass/compass_core.json:
+- Line ~26: "030_AMANAH_F6_v46.md" → "830_AMANAH_F6_v46.md"
+- Line ~47: "040_TRI_WITNESS_F8_v46.md" → "840_TRI_WITNESS_F8_v46.md"
+- Line ~79: "050_ANTI_HANTU_F9_v46.md" → "850_ANTI_HANTU_F9_v46.md"
+
+### 000_foundation/hypervisor.json:
+- Line ~24: "060_SYMBOLIC_GUARD_F10_v46.md" → "860_SYMBOLIC_GUARD_F10_v46.md"
+- Line ~50: "070_COMMAND_AUTH_F11_v46.md" → "870_COMMAND_AUTH_F11_v46.md"
+- Line ~71: "080_INJECTION_DEFENSE_F12_v46.md" → "880_INJECTION_DEFENSE_F12_v46.md"
+
+### governance/aaa_trinity.json:
+- Line ~9: "090_AAA_TRINITY_v46.md" → "890_AAA_TRINITY_v46.md"
+
+### governance/waw_federation.json:
+- Line ~9: "095_WAW_FEDERATION_v46.md" → "895_WAW_FEDERATION_v46.md"
+
+## ROOT CAUSE
+Engineer (Claude) hallucinated canonical numbering based on "intuitive" 0XX sequence.
+Did not read canon directory listings before creating Track B specs.
+Violated F2 Truth via fabrication of non-existent file paths.
+
+## STATUS
+- ✅ Vault references fixed (Phoenix-72: 030→040, ZKPC/Cooling: v46→v45)
+- ✅ Pipeline stages fixed (non-existent→v45 ref)
+- ⏳ Floor references: ALL PENDING CORRECTION
+- ⏳ Governance references: PENDING CORRECTION
+
+## CONSTITUTIONAL IMPACT
+F2 Truth: VIOLATION (fabricated paths)
+F6 Amanah: VIOLATION (claimed PRIMARY alignment without verification)
+
+Verdict: VOID (Track B must be corrected before SEAL)
