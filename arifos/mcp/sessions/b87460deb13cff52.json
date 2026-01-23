@@ -1,0 +1,30 @@
+{
+  "session_id": "void_should_not_store",
+  "timestamp": "2026-01-23T09:05:02.654356Z",
+  "verdict": "VOID",
+  "init_result": {},
+  "genius_result": {},
+  "act_result": {},
+  "judge_result": {},
+  "telemetry": {
+    "verdict": "VOID",
+    "merkle_root": "3d83d56e5722e6fb6b4a185026feea145ef8ed33e8b55fefc6d91eeb2dae5042",
+    "audit_hash": "d8526c059197b9712591d37ca20d2428c391066e0d4b823eb824b30a7b3877e1",
+    "memory_location": "L0_VOID",
+    "floors_checked": [
+      "F1_Amanah",
+      "F8_TriWitness"
+    ],
+    "p_truth": 0,
+    "TW": 0,
+    "dS": 0,
+    "peace2": 0,
+    "kappa_r": 0,
+    "omega_0": 0.04
+  },
+  "prev_hash": "befac8feec0aaf30ef4688c7d21717ab54a787eed43dcda64214d793ec4a9376",
+  "merkle_root": "3d83d56e5722e6fb6b4a185026feea145ef8ed33e8b55fefc6d91eeb2dae5042",
+  "entry_hash": "b87460deb13cff5221e8e8211d8a7f3f6622d17c780dfec93d22d4c0d0464b5e",
+  "context_summary": "Session sealed with verdict VOID. ",
+  "key_insights": []
+}

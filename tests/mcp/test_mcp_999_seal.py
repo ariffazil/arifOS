@@ -1,414 +1,312 @@
-"""Tests for MCP Tool 999: SEAL - Final Verdict Sealing
+"""Tests for MCP Tool 999: VAULT - Final Verdict Sealing
 
-v49 Update: Stage 999 now performs active constitutional enforcement via
-parallel hypervisor. Minimal queries return VOID; proper queries with full
-context return PASS.
-
-Philosophy: 999 is quantum collapse with enforcement, not passive stamp.
+v50 Update: 999_vault consolidates sealing with Merkle proof and immutable ledger.
 
 Testing Strategy:
-- Utility functions (generate_seal, validate_seal, etc.) - test directly
-- Tool behavior with VOID - test with minimal input (real hypervisor)
-- Tool behavior with PASS - test with mocked hypervisor (seal generation logic)
+- Input validation (action, verdict validation)
+- VOID/SABAR verdicts NOT stored (Eureka Sieve)
+- SEAL verdicts stored to ledger
+- Hash chain integrity
 """
+
 import pytest
-import base64
-from unittest.mock import AsyncMock, patch
-from datetime import datetime, timezone
-from dataclasses import dataclass
-from arifos.core.mcp.tools.mcp_999_seal import (
-    mcp_999_seal,
-    mcp_999_seal_sync,
-    generate_seal,
-    generate_audit_entry,
-    generate_audit_log_id,
-    generate_memory_location,
-    validate_seal
+from unittest.mock import patch, MagicMock
+from datetime import datetime
+
+# Current module path
+from arifos.mcp.tools.mcp_trinity import (
+    mcp_999_vault,
+    mcp_000_init,
+    mcp_agi_genius,
+    mcp_asi_act,
+    mcp_apex_judge,
 )
+from arifos.mcp.session_ledger import get_ledger, SessionLedger
 
 
 # =============================================================================
-# MOCKING HELPERS (v49)
+# INPUT VALIDATION TESTS
 # =============================================================================
 
-@dataclass
-class MockReceipt:
-    """Mock constitutional receipt for hypervisor testing."""
-    action_hash: str = "mock_action_hash_abc123"
-    trinity_assignment: str = "AAA_TRINITY"
-    timestamp: datetime = None
-    constitutional_validity: bool = True
-    feedback_constraint: str = "MEASUREMENT_COLLAPSE:SEAL:CONSTITUTIONAL_CONSENSUS"
-    audit_trail: dict = None
-    rollback_possible: bool = True
+@pytest.mark.asyncio
+async def test_999_vault_invalid_action_returns_void():
+    """Test: Invalid action returns VOID status."""
+    result = await mcp_999_vault(action="invalid_action")
 
-    def __post_init__(self):
-        if self.timestamp is None:
-            self.timestamp = datetime.now(timezone.utc)
-        if self.audit_trail is None:
-            self.audit_trail = {}
+    assert result["status"] == "VOID"
+    assert result["memory_location"] == "INVALID_ACTION"
+    assert "F12_InputValidation" in result["floors_checked"]
 
 
-def create_mock_hypervisor_result(verdict="SEAL"):
-    """Create mock hypervisor result for testing seal generation logic."""
-    return {
-        "verdict": verdict,
-        "constitutional_status": "CONSTITUTIONAL_CONSENSUS" if verdict == "SEAL" else "PARTICLES_DISAGREE",
-        "trinity_consensus": verdict == "SEAL",
-        "aggregated_proofs": {
-            "agi_proof": {"floor_check": "PASS"},
-            "asi_proof": {"empathy_check": "PASS"},
-            "apex_proof": {"judgment": "SEAL"}
-        },
-        "final_receipt": MockReceipt(),
-        "quantum_superposition": {
-            "executed": True,
-            "particle_count": 3,
-            "measurement_collapse": "complete"
-        }
+@pytest.mark.asyncio
+async def test_999_vault_empty_action_returns_void():
+    """Test: Empty action returns VOID status."""
+    result = await mcp_999_vault(action="")
+
+    assert result["status"] == "VOID"
+    assert result["memory_location"] == "INVALID_ACTION"
+
+
+@pytest.mark.asyncio
+async def test_999_vault_invalid_verdict_returns_void():
+    """Test: Invalid verdict returns VOID status."""
+    result = await mcp_999_vault(action="seal", verdict="INVALID_VERDICT")
+
+    assert result["status"] == "VOID"
+    assert result["memory_location"] == "INVALID_VERDICT"
+
+
+@pytest.mark.asyncio
+async def test_999_vault_valid_actions():
+    """Test: All valid actions are accepted."""
+    valid_actions = ["seal", "list", "read", "write", "propose"]
+
+    for action in valid_actions:
+        result = await mcp_999_vault(action=action, session_id="test_session")
+        # Should not return VOID for valid action (unless other validation fails)
+        assert result["status"] != "VOID" or result["memory_location"] != "INVALID_ACTION"
+
+
+# =============================================================================
+# EUREKA SIEVE TESTS (VOID/SABAR not stored)
+# =============================================================================
+
+@pytest.mark.asyncio
+async def test_999_vault_void_verdict_not_stored():
+    """Test: VOID verdict is NOT stored to ledger (Eureka Sieve)."""
+    result = await mcp_999_vault(
+        action="seal",
+        verdict="VOID",
+        session_id="void_test_session"
+    )
+
+    assert result["status"] == "SEAL"  # Tool operation succeeded
+    assert result["verdict"] == "VOID"
+    assert result["memory_location"] == "NOT_STORED"
+    assert result["reversible"] is False
+
+
+@pytest.mark.asyncio
+async def test_999_vault_sabar_verdict_not_stored():
+    """Test: SABAR verdict is NOT stored to ledger (Eureka Sieve)."""
+    result = await mcp_999_vault(
+        action="seal",
+        verdict="SABAR",
+        session_id="sabar_test_session"
+    )
+
+    assert result["status"] == "SEAL"  # Tool operation succeeded
+    assert result["verdict"] == "SABAR"
+    assert result["memory_location"] == "NOT_STORED"
+    assert result["reversible"] is True  # SABAR can retry
+
+
+@pytest.mark.asyncio
+async def test_999_vault_seal_verdict_stored():
+    """Test: SEAL verdict IS stored to ledger."""
+    result = await mcp_999_vault(
+        action="seal",
+        verdict="SEAL",
+        session_id="seal_test_session"
+    )
+
+    assert result["status"] == "SEAL"
+    assert result["verdict"] == "SEAL"
+    assert result["memory_location"] == "L5_CANON"
+    assert result["merkle_root"] != ""
+    assert result["audit_hash"] != ""
+
+
+# =============================================================================
+# MERKLE ROOT TESTS
+# =============================================================================
+
+@pytest.mark.asyncio
+async def test_999_vault_merkle_root_computed():
+    """Test: Merkle root is computed from Trinity results."""
+    result = await mcp_999_vault(
+        action="seal",
+        verdict="SEAL",
+        session_id="merkle_test",
+        init_result={"status": "SEAL"},
+        agi_result={"truth_score": 0.97},
+        asi_result={"peace_squared": 1.0},
+        apex_result={"verdict": "SEAL"}
+    )
+
+    assert result["merkle_root"] != ""
+    assert len(result["merkle_root"]) == 64  # SHA256 hex length
+
+
+@pytest.mark.asyncio
+async def test_999_vault_merkle_root_deterministic():
+    """Test: Same inputs produce same Merkle root."""
+    args = {
+        "action": "seal",
+        "verdict": "SEAL",
+        "session_id": "deterministic_test",
+        "init_result": {"status": "SEAL"},
+        "agi_result": {"truth_score": 0.97},
+        "asi_result": {"peace_squared": 1.0},
+        "apex_result": {"verdict": "SEAL"}
     }
 
+    result1 = await mcp_999_vault(**args)
+    result2 = await mcp_999_vault(**args)
 
-# =============================================================================
-# HELPER: Constitutional Context (v49)
-# =============================================================================
-
-def get_proper_context():
-    """
-    Provide proper constitutional context for v49 hypervisor.
-
-    v49 Reality: 999 runs execute_constitutional_physics() which needs:
-    - Proper query (not minimal like "Test")
-    - Context metadata
-    - Lane information
-
-    Returns minimal viable context that passes constitutional checks.
-    """
-    return {
-        "verdict": "SEAL",
-        "proof_hash": "abc123def456",
-        "decision_metadata": {
-            "query": "What is the capital of Malaysia?",
-            "context": "Geography question for educational purposes",
-            "lane": "FACTUAL",
-            "user_id": "test_user",
-            "floor_verdicts": {
-                "111": "PASS",
-                "222": "PASS",
-                "333": "PASS",
-                "444": "PASS",
-                "555": "PASS",
-                "666": "PASS",
-                "777": "PASS",
-                "888": "PASS"
-            }
-        }
-    }
+    assert result1["merkle_root"] == result2["merkle_root"]
 
 
 # =============================================================================
-# BASIC FUNCTIONALITY TESTS
+# FLOOR CHECKING TESTS
 # =============================================================================
 
 @pytest.mark.asyncio
-async def test_seal_minimal_query_returns_void():
-    """Test: v49 active enforcement - minimal query returns VOID."""
-    result = await mcp_999_seal({
-        "verdict": "SEAL",
-        "proof_hash": "abc123",
-        "decision_metadata": {"query": "Test"}
-    })
+async def test_999_vault_seal_checks_f1_f8():
+    """Test: Seal action checks F1_Amanah and F8_TriWitness."""
+    result = await mcp_999_vault(
+        action="seal",
+        verdict="SEAL",
+        session_id="floor_test"
+    )
 
-    # v49: Minimal query without context fails constitutional checks
-    assert result.verdict == "VOID"
-
-
-@pytest.mark.asyncio
-async def test_seal_proper_context_returns_pass():
-    """Test: v49 seal generation with mocked hypervisor consensus."""
-    with patch('arifos.mcp.constitution.execute_constitutional_physics', new_callable=AsyncMock) as mock_hyp:
-        mock_hyp.return_value = create_mock_hypervisor_result(verdict="SEAL")
-
-        result = await mcp_999_seal(get_proper_context())
-
-        # v49: Hypervisor SEAL → tool returns PASS
-        assert result.verdict == "PASS"
-        assert "sealed_verdict" in result.side_data
-        assert result.side_data["seal_valid"] is True
-
-
-@pytest.mark.asyncio
-async def test_seal_deterministic():
-    """Test: Same input produces same seal."""
-    from datetime import datetime, timezone
-    timestamp = datetime.now(timezone.utc).isoformat()
-
-    seal1 = generate_seal("SEAL", "proof123", timestamp)
-    seal2 = generate_seal("SEAL", "proof123", timestamp)
-
-    assert seal1 == seal2
-
-
-def test_seal_generation_correct():
-    """Test: Seal includes verdict, proof, and timestamp."""
-    verdict = "SEAL"
-    proof_hash = "abc123"
-    timestamp = "2025-12-25T10:00:00Z"
-
-    sealed = generate_seal(verdict, proof_hash, timestamp)
-
-    # Decode and check
-    decoded = base64.b64decode(sealed.encode('utf-8')).decode('utf-8')
-
-    assert verdict in decoded
-    assert proof_hash in decoded
-    assert timestamp in decoded
-
-
-def test_seal_validation():
-    """Test: Seal validates correctly."""
-    verdict = "SEAL"
-    proof_hash = "abc123"
-    timestamp = "2025-12-25T10:00:00Z"
-
-    sealed = generate_seal(verdict, proof_hash, timestamp)
-    is_valid = validate_seal(sealed, verdict)
-
-    assert is_valid is True
-
-
-def test_seal_audit_entry_creation():
-    """Test: Audit entry has all required fields."""
-    verdict = "SEAL"
-    proof_hash = "abc123"
-    decision_metadata = {
-        "query": "Test query",
-        "floor_verdicts": {"222": "PASS", "444": "PASS"}
-    }
-    timestamp = "2025-12-25T10:00:00Z"
-
-    entry = generate_audit_entry(verdict, proof_hash, decision_metadata, timestamp)
-
-    assert "sealed_verdict" in entry
-    assert "decision_metadata" in entry
-    assert "timestamp" in entry
-    assert "floor_verdicts" in entry
-    assert entry["floor_verdicts"] == {"222": "PASS", "444": "PASS"}
-
-
-def test_seal_audit_log_id_deterministic():
-    """Test: Same verdict + timestamp produces same audit log ID."""
-    verdict = "SEAL"
-    timestamp = "2025-12-25T10:00:00Z"
-
-    id1 = generate_audit_log_id(verdict, timestamp)
-    id2 = generate_audit_log_id(verdict, timestamp)
-
-    assert id1 == id2
-
-
-def test_seal_memory_location_valid():
-    """Test: Memory location path includes query when available."""
-    audit_log_id = "SEAL_2025-12-25_abc123"
-    decision_metadata = {"query": "What is 2+2?"}
-
-    location = generate_memory_location(audit_log_id, decision_metadata)
-
-    assert "audit_trail" in location
-    assert audit_log_id in location
-    assert "What" in location or "what" in location.lower()
+    assert "F1_Amanah" in result["floors_checked"]
+    assert "F8_TriWitness" in result["floors_checked"]
 
 
 # =============================================================================
-# EDGE CASE TESTS
+# LIST/READ/WRITE TESTS
 # =============================================================================
 
 @pytest.mark.asyncio
-async def test_seal_empty_decision_metadata():
-    """Test: v49 active enforcement - empty metadata returns VOID."""
-    result = await mcp_999_seal({
-        "verdict": "SEAL",
-        "proof_hash": "abc123",
-        "decision_metadata": {}
-    })
+async def test_999_vault_list_action():
+    """Test: List action returns proper structure."""
+    result = await mcp_999_vault(
+        action="list",
+        target="ledger",
+        session_id="list_test"
+    )
 
-    # v49: Empty metadata fails constitutional checks
-    assert result.verdict == "VOID"
+    assert result["status"] == "SEAL"
+    assert "entries" in result
+    assert "count" in result
 
 
 @pytest.mark.asyncio
-async def test_seal_missing_floor_verdicts():
-    """Test: v49 active enforcement - missing floor_verdicts returns VOID."""
-    result = await mcp_999_seal({
-        "verdict": "SEAL",
-        "proof_hash": "abc123",
-        "decision_metadata": {"query": "Test"}
-    })
+async def test_999_vault_read_action():
+    """Test: Read action returns proper structure."""
+    result = await mcp_999_vault(
+        action="read",
+        target="canon",
+        query="test_entry",
+        session_id="read_test"
+    )
 
-    # v49: Minimal query without floor verdicts fails constitutional checks
-    assert result.verdict == "VOID"
+    assert result["status"] == "SEAL"
+    assert "entry" in result
 
 
 # =============================================================================
-# CONSTITUTIONAL COMPLIANCE TESTS
+# ALL TRINITY TOOLS INPUT VALIDATION TESTS
 # =============================================================================
 
 @pytest.mark.asyncio
-async def test_seal_includes_timestamp():
-    """Test: Response includes valid ISO8601 timestamp (F1 Amanah)."""
-    with patch('arifos.mcp.constitution.execute_constitutional_physics', new_callable=AsyncMock) as mock_hyp:
-        mock_hyp.return_value = create_mock_hypervisor_result(verdict="SEAL")
+async def test_000_init_invalid_action_returns_void():
+    """Test: 000_init with invalid action returns VOID."""
+    result = await mcp_000_init(action="invalid")
 
-        result = await mcp_999_seal(get_proper_context())
-
-        assert result.verdict == "PASS"
-        assert result.timestamp is not None
-        assert "T" in result.timestamp  # ISO format
-
-
-def test_seal_sync_wrapper():
-    """Test: Synchronous wrapper works correctly."""
-    with patch('arifos.mcp.constitution.execute_constitutional_physics', new_callable=AsyncMock) as mock_hyp:
-        mock_hyp.return_value = create_mock_hypervisor_result(verdict="SEAL")
-
-        result = mcp_999_seal_sync(get_proper_context())
-
-        assert result.verdict == "PASS"
+    assert result["status"] == "VOID"
+    assert "F12_InputValidation" in result["floors_checked"]
 
 
 @pytest.mark.asyncio
-async def test_seal_response_serializable():
-    """Test: Response can be serialized to dict (for JSON)."""
-    with patch('arifos.mcp.constitution.execute_constitutional_physics', new_callable=AsyncMock) as mock_hyp:
-        mock_hyp.return_value = create_mock_hypervisor_result(verdict="SEAL")
+async def test_agi_genius_invalid_action_returns_void():
+    """Test: agi_genius with invalid action returns VOID."""
+    result = await mcp_agi_genius(action="invalid")
 
-        result = await mcp_999_seal(get_proper_context())
+    assert result["status"] == "VOID"
+    assert result["lane"] == "REFUSE"
 
-        result_dict = result.to_dict()
 
-        assert result.verdict == "PASS"
-        assert isinstance(result_dict, dict)
-        assert "verdict" in result_dict
-        assert "side_data" in result_dict
-        assert "sealed_verdict" in result_dict["side_data"]
+@pytest.mark.asyncio
+async def test_asi_act_invalid_action_returns_void():
+    """Test: asi_act with invalid action returns VOID."""
+    result = await mcp_asi_act(action="invalid")
+
+    assert result["status"] == "VOID"
+    assert result["witness_status"] == "INVALID"
+
+
+@pytest.mark.asyncio
+async def test_apex_judge_invalid_action_returns_void():
+    """Test: apex_judge with invalid action returns VOID."""
+    result = await mcp_apex_judge(action="invalid")
+
+    assert result["status"] == "VOID"
+    assert result["verdict"] == "VOID"
 
 
 # =============================================================================
-# ADDITIONAL COMPREHENSIVE TESTS
+# VALID ACTIONS TESTS
 # =============================================================================
 
 @pytest.mark.asyncio
-async def test_seal_audit_log_id_format():
-    """Test: Audit log ID has correct format."""
-    with patch('arifos.mcp.constitution.execute_constitutional_physics', new_callable=AsyncMock) as mock_hyp:
-        mock_hyp.return_value = create_mock_hypervisor_result(verdict="SEAL")
+async def test_000_init_valid_action():
+    """Test: 000_init with valid action succeeds."""
+    result = await mcp_000_init(action="init")
 
-        result = await mcp_999_seal(get_proper_context())
-
-        assert result.verdict == "PASS"
-        audit_id = result.side_data["audit_log_id"]
-
-        # Should start with verdict (uppercase)
-        assert audit_id.startswith("SEAL_")
-
-        # Should contain date
-        assert "2025" in audit_id or "202" in audit_id  # Flexible for year
+    assert result["status"] in ["SEAL", "SABAR"]
 
 
 @pytest.mark.asyncio
-async def test_seal_memory_location_sanitization():
-    """Test: Memory location sanitizes special characters."""
-    with patch('arifos.mcp.constitution.execute_constitutional_physics', new_callable=AsyncMock) as mock_hyp:
-        mock_hyp.return_value = create_mock_hypervisor_result(verdict="SEAL")
+async def test_agi_genius_valid_action():
+    """Test: agi_genius with valid action succeeds."""
+    result = await mcp_agi_genius(action="sense", query="test query")
 
-        context = get_proper_context()
-        context["decision_metadata"]["query"] = "What is @#$% 2+2?"
-        result = await mcp_999_seal(context)
-
-        assert result.verdict == "PASS"
-        location = result.side_data["memory_location"]
-
-        # Should not contain special chars
-        assert "@" not in location
-        assert "#" not in location
-        assert "$" not in location
-        assert "%" not in location
-
-
-def test_seal_memory_location_no_query():
-    """Test: Memory location works without query."""
-    audit_log_id = "SEAL_2025-12-25_abc123"
-    decision_metadata = {}
-
-    location = generate_memory_location(audit_log_id, decision_metadata)
-
-    assert location == f"audit_trail/{audit_log_id}"
-
-
-def test_seal_memory_location_query_truncation():
-    """Test: Memory location truncates long queries to 50 chars."""
-    audit_log_id = "SEAL_2025-12-25_abc123"
-    long_query = "a" * 100  # 100 characters
-    decision_metadata = {"query": long_query}
-
-    location = generate_memory_location(audit_log_id, decision_metadata)
-
-    # Extract sanitized query part
-    query_part = location.split('/')[-1]
-
-    assert len(query_part) <= 50
-
-
-def test_seal_validation_invalid_seal():
-    """Test: Validation fails with invalid seal."""
-    is_valid = validate_seal("invalid_base64!", "SEAL")
-
-    assert is_valid is False
+    assert result["status"] in ["SEAL", "SABAR"]
 
 
 @pytest.mark.asyncio
-async def test_seal_different_verdicts():
-    """Test: Sealing works for different verdict types."""
-    with patch('arifos.mcp.constitution.execute_constitutional_physics', new_callable=AsyncMock) as mock_hyp:
-        verdicts = ["SEAL", "PARTIAL", "VOID", "SABAR", "HOLD"]
+async def test_asi_act_valid_action():
+    """Test: asi_act with valid action succeeds."""
+    result = await mcp_asi_act(action="evidence", text="test text")
 
-        for v in verdicts:
-            mock_hyp.return_value = create_mock_hypervisor_result(verdict=v)
-
-            context = get_proper_context()
-            context["verdict"] = v
-            result = await mcp_999_seal(context)
-
-            # Tool returns PASS only if hypervisor returns SEAL
-            if v == "SEAL":
-                assert result.verdict == "PASS"
-            else:
-                assert result.verdict == "VOID"
-            assert v.upper() in result.side_data["audit_log_id"]
+    assert result["status"] in ["SEAL", "SABAR"]
 
 
 @pytest.mark.asyncio
-async def test_seal_includes_seal_valid_flag():
-    """Test: Response includes seal_valid flag."""
-    with patch('arifos.mcp.constitution.execute_constitutional_physics', new_callable=AsyncMock) as mock_hyp:
-        mock_hyp.return_value = create_mock_hypervisor_result(verdict="SEAL")
+async def test_apex_judge_valid_action():
+    """Test: apex_judge with valid action succeeds."""
+    result = await mcp_apex_judge(action="judge", query="test query")
 
-        result = await mcp_999_seal(get_proper_context())
-
-        assert result.verdict == "PASS"
-        assert "seal_valid" in result.side_data
-        assert result.side_data["seal_valid"] is True
+    assert result["status"] in ["SEAL", "SABAR"]
 
 
-def test_generate_audit_log_id_includes_hash():
-    """Test: Audit log ID includes timestamp hash."""
-    verdict = "SEAL"
-    timestamp = "2025-12-25T10:00:00Z"
+# =============================================================================
+# TIMESTAMP AND AUDIT HASH TESTS
+# =============================================================================
 
-    audit_id = generate_audit_log_id(verdict, timestamp)
+@pytest.mark.asyncio
+async def test_999_vault_includes_timestamp():
+    """Test: Result includes ISO timestamp."""
+    result = await mcp_999_vault(
+        action="seal",
+        verdict="SEAL",
+        session_id="timestamp_test"
+    )
 
-    # Should have 3 parts: VERDICT_DATE_HASH
-    parts = audit_id.split('_')
-    assert len(parts) >= 3
-    assert parts[0] == "SEAL"
-    assert "2025-12-25" in audit_id
+    assert "sealed_at" in result
+    assert "T" in result["sealed_at"]  # ISO format
+
+
+@pytest.mark.asyncio
+async def test_999_vault_audit_hash_computed():
+    """Test: Audit hash is computed."""
+    result = await mcp_999_vault(
+        action="seal",
+        verdict="SEAL",
+        session_id="audit_test"
+    )
+
+    assert "audit_hash" in result
+    assert len(result["audit_hash"]) == 64  # SHA256 hex

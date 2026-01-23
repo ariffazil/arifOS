@@ -1,0 +1,18 @@
+# arifOS Burn-In Monitor
+# 72-hour constitutional validation
+# DITEMPA BUKAN DIBERI
+
+FROM python:3.12-slim
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir httpx aiofiles
+
+COPY deploy/burn_in_monitor.py ./
+
+RUN useradd -m -u 1000 monitor && \
+    mkdir -p /app/reports && \
+    chown -R monitor:monitor /app
+USER monitor
+
+CMD ["python", "burn_in_monitor.py"]

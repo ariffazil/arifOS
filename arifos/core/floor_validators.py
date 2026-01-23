@@ -295,10 +295,38 @@ validate_f3_triwitness = validate_f3_tri_witness
 def validate_f4_clarity(query: str, context: Dict[str, Any]) -> Dict[str, Any]:
     """
     F4 Clarity: Does this reduce confusion (ΔS ≤ 0)?
+    
+    Also checks for LOOP DETECTION (Repetition).
+    Repetitive loops are infinite entropy waste (ΔS > 0).
 
     Threshold: ≤0.0 (HARD floor)
     Engine: AGI (Stage 222)
     """
+    response_text = context.get("response", "")
+    
+    # 1. Loop Detection
+    if response_text:
+        # Detect immediate repetition of phrases (>10 chars, repeated 3+ times)
+        # e.g., "I am processing. I am processing. I am processing."
+        
+        # Simple sliding window check
+        words = response_text.split()
+        if len(words) > 10:
+            # Check 3-gram repetition
+            grams = [" ".join(words[i:i+3]) for i in range(len(words)-2)]
+            from collections import Counter
+            counts = Counter(grams)
+            most_common = counts.most_common(1)
+            
+            if most_common and most_common[0][1] >= 3:
+                # Loop detected!
+                return {
+                    "pass": False,
+                    "delta_s": 1.0, # Maximum confusion/waste
+                    "reason": f"Loop detected: Phrase '{most_common[0][0]}' repeated {most_common[0][1]} times"
+                }
+
+    # 2. Entropy Calculation
     # Simple entropy proxy: query complexity vs expected clarity gain
     query_entropy = len(query.split()) * 0.1  # Higher word count = higher entropy
     clarity_gain = 1.0 if "?" in query else 0.5  # Questions reduce entropy more

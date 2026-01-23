@@ -1,0 +1,117 @@
+# arifOS Staging Deployment
+# 72-hour burn-in configuration
+# DITEMPA BUKAN DIBERI
+
+version: '3.8'
+
+services:
+  # ==========================================================================
+  # TRINITY MCP SERVER
+  # ==========================================================================
+  trinity:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      args:
+        VERSION: "50.5.16"
+        BUILD_DATE: "${BUILD_DATE:-2026-01-23}"
+    container_name: arifos-trinity-staging
+    ports:
+      - "8000:8000"
+    environment:
+      - ARIFOS_ENV=staging
+      - ARIFOS_LOG_LEVEL=INFO
+      - ARIFOS_RATE_LIMIT_ENABLED=true
+      - ARIFOS_METRICS_ENABLED=true
+      - ARIFOS_BURN_IN_MODE=true
+    volumes:
+      - trinity-sessions:/app/arifos/mcp/sessions
+      - trinity-vault:/app/VAULT999
+      - trinity-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # ==========================================================================
+  # BURN-IN MONITOR
+  # ==========================================================================
+  burn-in-monitor:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.monitor
+    container_name: arifos-burn-in-monitor
+    depends_on:
+      trinity:
+        condition: service_healthy
+    environment:
+      - TRINITY_URL=http://trinity:8000
+      - BURN_IN_HOURS=72
+      - CHECK_INTERVAL_SECONDS=60
+      - ALERT_WEBHOOK=${ALERT_WEBHOOK:-}
+    volumes:
+      - burn-in-reports:/app/reports
+    restart: unless-stopped
+
+  # ==========================================================================
+  # PROMETHEUS (Metrics Collection)
+  # ==========================================================================
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: arifos-prometheus-staging
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'
+    restart: unless-stopped
+
+  # ==========================================================================
+  # GRAFANA (Metrics Dashboard)
+  # ==========================================================================
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: arifos-grafana-staging
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-arifos-staging}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  trinity-sessions:
+  trinity-vault:
+  trinity-logs:
+  burn-in-reports:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  default:
+    name: arifos-staging-network

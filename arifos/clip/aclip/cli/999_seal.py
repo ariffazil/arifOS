@@ -3,21 +3,9 @@ from datetime import datetime
 import json
 import os
 import sys
-from arifos_clip.aclip.bridge import arifos_client
-from arifos_clip.aclip.bridge import authority
-from arifos_clip.aclip.bridge import verdicts
-
-# Exit codes (canonical)
-EXIT_PASS = 0
-EXIT_PARTIAL = 20
-"""CLI stage 999 - seal."""
-from datetime import datetime
-import json
-import os
-import sys
-from arifos_clip.aclip.bridge import arifos_client
-from arifos_clip.aclip.bridge import authority
-from arifos_clip.aclip.bridge import verdicts
+from arifos.clip.aclip.bridge import arifos_client
+from arifos.clip.aclip.bridge import authority
+from arifos.clip.aclip.bridge import verdicts
 
 # Exit codes (canonical)
 EXIT_PASS = 0

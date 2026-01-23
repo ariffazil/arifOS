@@ -1,0 +1,33 @@
+{
+  "data": {
+    "final_verdict": "PARTIAL",
+    "consensus_score": 0.7841666666666667,
+    "constitutional_compliance": 0.7727777777777778,
+    "trinity_contributions": [
+      {
+        "engine": "agi_delta",
+        "decision": "PARTIAL",
+        "confidence": 0.575,
+        "constitutional_compliance": 0.575
+      },
+      {
+        "engine": "asi_omega",
+        "decision": "SEAL",
+        "confidence": 0.9933333333333333,
+        "constitutional_compliance": 0.9933333333333333
+      },
+      {
+        "engine": "apex_psi",
+        "decision": "PARTIAL",
+        "confidence": 0.7841666666666667,
+        "constitutional_compliance": 0.75
+      }
+    ],
+    "timestamp": "2026-01-23T17:03:56.016363",
+    "constitutional_authority": "Muhammad Arif bin Fazil"
+  },
+  "vault_hash": "b11683827fcb8417b0e4356a0525e50b76d7c130a301356d0b6c9813582bcc83",
+  "constitutional_authority": "Muhammad Arif bin Fazil",
+  "sealed_at": "2026-01-23T17:03:56.016726",
+  "constitutional_status": "SOVEREIGNLY_SEALED"
+}

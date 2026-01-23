@@ -119,7 +119,10 @@ class ConstitutionalEntropyEngine:
         )
         
         # F1 Amanah: Persist to VAULT-999 for reversibility
-        self._persist_to_vault(measurement, uncertainty)
+        vault_hash = self._persist_to_vault(measurement, uncertainty)
+        
+        # Add vault hash to measurement for external access
+        measurement.vault_hash = vault_hash
         
         # Constitutional compliance check
         if measurement.is_constitutional():
@@ -190,7 +193,10 @@ class ConstitutionalEntropyEngine:
         )
         
         # Persist architectural measurement
-        self._persist_architectural_measurement(measurement, module_path)
+        vault_hash = self._persist_architectural_measurement(measurement, module_path)
+        
+        # Add vault hash to measurement for external access
+        measurement.vault_hash = vault_hash
         
         return measurement
     
@@ -477,7 +483,7 @@ class ConstitutionalEntropyEngine:
         
         return min(variance * 0.1, 0.03)  # Scale and cap
     
-    def _persist_to_vault(self, measurement: EntropyMeasurement, uncertainty: float) -> None:
+    def _persist_to_vault(self, measurement: EntropyMeasurement, uncertainty: float) -> str:
         """F1 Amanah: Persist measurement to VAULT-999 for reversibility"""
         try:
             # Generate constitutional hash
@@ -497,11 +503,14 @@ class ConstitutionalEntropyEngine:
             
             print(f"[VAULT] Entropy measurement sealed: {measurement_hash[:16]}...")
             
+            return measurement_hash
+            
         except Exception as e:
             print(f"[ERROR] Failed to persist to VAULT-999: {e}")
             # Non-blocking for constitutional continuity
+            return "ERROR_PERSISTENCE_FAILED"
     
-    def _persist_architectural_measurement(self, measurement: EntropyMeasurement, module_path: Path) -> None:
+    def _persist_architectural_measurement(self, measurement: EntropyMeasurement, module_path: Path) -> str:
         """Persist architectural measurement with module context"""
         try:
             architectural_data = measurement.to_dict()
@@ -520,8 +529,11 @@ class ConstitutionalEntropyEngine:
             
             print(f"[VAULT] Architectural measurement sealed: {measurement_hash[:16]}...")
             
+            return measurement_hash
+            
         except Exception as e:
             print(f"[ERROR] Failed to persist architectural measurement: {e}")
+            return "ERROR_ARCHITECTURAL_PERSISTENCE_FAILED"
 
 def main():
     """Constitutional entropy engine demonstration"""

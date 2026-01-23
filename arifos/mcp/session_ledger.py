@@ -18,10 +18,30 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import sys
+import threading
+import logging
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+# Cross-platform file locking
+if sys.platform == 'win32':
+    import msvcrt
+    def _lock_file(f):
+        msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+    def _unlock_file(f):
+        msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+else:
+    import fcntl
+    def _lock_file(f):
+        fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+    def _unlock_file(f):
+        fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+
+logger = logging.getLogger(__name__)
 
 # =============================================================================
 # PATHS
@@ -83,14 +103,50 @@ class SessionLedger:
 
     Machine storage: JSON in arifos/mcp/sessions/
     Human storage: Markdown in VAULT999/BBB_LEDGER/entries/
+
+    Thread Safety:
+    - Uses threading.Lock for in-process synchronization
+    - Uses file-based locking for cross-process safety
     """
+
+    # Class-level lock for thread safety
+    _class_lock = threading.Lock()
 
     def __init__(self):
         self.session_path = SESSION_PATH
         self.bbb_path = BBB_LEDGER_PATH
         self._current_session: Optional[SessionEntry] = None
         self._chain_head: Optional[str] = None
+        self._lock = threading.Lock()
+        self._lock_file_path = self.session_path / ".ledger.lock"
         self._load_chain_head()
+
+    @contextmanager
+    def _acquire_lock(self):
+        """
+        Acquire both thread lock and file lock for safe concurrent access.
+
+        Uses:
+        - threading.Lock for in-process synchronization
+        - File-based lock for cross-process safety
+        """
+        with self._lock:
+            # Ensure lock file exists
+            self._lock_file_path.touch(exist_ok=True)
+
+            try:
+                with open(self._lock_file_path, 'r+') as lock_file:
+                    try:
+                        _lock_file(lock_file)
+                        yield
+                    finally:
+                        try:
+                            _unlock_file(lock_file)
+                        except Exception:
+                            pass  # Ignore unlock errors
+            except Exception as e:
+                logger.warning(f"File lock failed, proceeding with thread lock only: {e}")
+                yield
 
     def _load_chain_head(self):
         """Load the latest entry hash from chain."""
@@ -194,41 +250,46 @@ class SessionLedger:
 
         Returns:
             The sealed SessionEntry
+
+        Thread Safety:
+            This method acquires both thread and file locks before
+            modifying the ledger to prevent race conditions.
         """
-        # Create entry
-        entry = SessionEntry(
-            session_id=session_id,
-            timestamp=datetime.utcnow().isoformat() + "Z",
-            verdict=verdict,
-            init_result=init_result,
-            genius_result=genius_result,
-            act_result=act_result,
-            judge_result=judge_result,
-            telemetry=telemetry,
-            prev_hash=self._chain_head or "GENESIS",
-            context_summary=context_summary or self._generate_summary(judge_result),
-            key_insights=key_insights or []
-        )
+        with self._acquire_lock():
+            # Create entry
+            entry = SessionEntry(
+                session_id=session_id,
+                timestamp=datetime.utcnow().isoformat() + "Z",
+                verdict=verdict,
+                init_result=init_result,
+                genius_result=genius_result,
+                act_result=act_result,
+                judge_result=judge_result,
+                telemetry=telemetry,
+                prev_hash=self._chain_head or "GENESIS",
+                context_summary=context_summary or self._generate_summary(judge_result),
+                key_insights=key_insights or []
+            )
 
-        # Compute hashes
-        entry.entry_hash = entry.compute_hash()
-        entry.merkle_root = self._compute_merkle([
-            entry.init_result,
-            entry.genius_result,
-            entry.act_result,
-            entry.judge_result
-        ])
+            # Compute hashes
+            entry.entry_hash = entry.compute_hash()
+            entry.merkle_root = self._compute_merkle([
+                entry.init_result,
+                entry.genius_result,
+                entry.act_result,
+                entry.judge_result
+            ])
 
-        # Write to machine storage (JSON)
-        self._write_json(entry)
+            # Write to machine storage (JSON)
+            self._write_json(entry)
 
-        # Write to human storage (Markdown in VAULT999)
-        self._write_markdown(entry)
+            # Write to human storage (Markdown in VAULT999)
+            self._write_markdown(entry)
 
-        # Update chain head
-        self._save_chain_head(entry.entry_hash)
+            # Update chain head
+            self._save_chain_head(entry.entry_hash)
 
-        return entry
+            return entry
 
     def _write_json(self, entry: SessionEntry):
         """Write entry to JSON file."""
