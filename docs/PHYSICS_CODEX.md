@@ -102,14 +102,14 @@ TAC sends clarity vector → APEX PRIME for equilibrium check (Ψ-check).
 
 #### 4. TAC in ArifOS Architecture
 
-**4.1 TAC is the Δ-engine of ARIF AGI**
+**4.1 TAC is the Δ-engine of AGI (Architect)**
 
-ARIF AGI works with TAC as its core:
+AGI (Architect) works with TAC as its core:
 - detect anomaly
 - run contrastive reasoning
 - map contradictions into structure
 - produce clarity
-- hand to Heart (ADAM ASI) for Peace²
+- hand to Heart (ASI (Auditor)) for Peace²
 
 **4.2 TAC feeds TEARFRAME's humility**
 
@@ -319,9 +319,9 @@ This ensures ΔS↑ and Peace²↑.
 
 #### 4. TEARFRAME in ArifOS Architecture
 
-**4.1 TEARFRAME = The Ω-engine of ADAM ASI**
+**4.1 TEARFRAME = The Ω-engine of ASI (Auditor)**
 
-ADAM ASI (Heart Engine) operates via TEARFRAME.
+ASI (Auditor) (Heart Engine) operates via TEARFRAME.
 
 Roles:
 - protect weakest listener

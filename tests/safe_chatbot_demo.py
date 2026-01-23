@@ -5,7 +5,7 @@ Corrected version of Grok's example using actual arifOS API
 This demonstrates how to wrap ANY LLM output with constitutional governance.
 """
 
-from arifos_core import Metrics, apex_review
+from arifos import Metrics, apex_review
 
 
 def govern_llm_response(user_input: str, llm_output: str) -> tuple[str, str]:

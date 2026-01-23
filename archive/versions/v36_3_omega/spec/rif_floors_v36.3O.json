@@ -1,0 +1,306 @@
+{
+  "$comment": "Implements: waw_rif_spec_v36.3O.yaml | Law: v36.3Omega | Commit: 870ea5d",
+  "meta": {
+    "spec_id": "rif_floors_v36.3O",
+    "epoch": "v36.3Omega",
+    "implements": "v36.3O/spec/waw_rif_spec_v36.3O.yaml",
+    "law_source": "v36.3O/spec/measurement_floors_v36.3O.json",
+    "law_commit": "870ea5d",
+    "purpose": "Machine-readable @RIF organ floor thresholds and governance logic"
+  },
+  "organ": {
+    "id": "@RIF",
+    "domain": "epistemic_rigor",
+    "primary_metric": "delta_s",
+    "secondary_metric": "truth",
+    "veto_type": "VOID",
+    "veto_priority": 4
+  },
+  "floors": {
+    "delta_s_answer": {
+      "id": "delta_s_answer",
+      "type": "float",
+      "range": [-1.0, 1.0],
+      "threshold": 0.0,
+      "operator": ">=",
+      "floor_type": "hard",
+      "domain": "clarity",
+      "source_floor": "F2",
+      "meaning": "Clarity gain from answer; positive means reduces confusion",
+      "fail_action": "VOID",
+      "description": "Answer must not increase entropy/confusion"
+    },
+    "truth_score": {
+      "id": "truth_score",
+      "type": "float",
+      "range": [0.0, 1.0],
+      "threshold": 0.99,
+      "operator": ">=",
+      "floor_type": "hard",
+      "domain": "clarity",
+      "source_floor": "F1",
+      "meaning": "Factual accuracy of claims",
+      "fail_action": "VOID",
+      "description": "Claims must be verifiable and accurate"
+    },
+    "omega_0_calibrated": {
+      "id": "omega_0_calibrated",
+      "type": "float",
+      "range": [0.0, 0.10],
+      "threshold_min": 0.03,
+      "threshold_max": 0.05,
+      "operator": "in_band",
+      "floor_type": "hard",
+      "domain": "humility",
+      "source_floor": "F5",
+      "meaning": "Appropriate uncertainty acknowledgment",
+      "fail_action": "VOID",
+      "description": "Must express calibrated uncertainty, not false certainty"
+    },
+    "hallucination_risk": {
+      "id": "hallucination_risk",
+      "type": "float",
+      "range": [0.0, 1.0],
+      "thresholds": {
+        "seal": {
+          "operator": "<",
+          "value": 0.10,
+          "meaning": "Low hallucination risk"
+        },
+        "partial": {
+          "operator": "<",
+          "value": 0.30,
+          "meaning": "Moderate hallucination risk - add citations"
+        },
+        "sabar": {
+          "operator": ">=",
+          "value": 0.30,
+          "meaning": "High hallucination risk - requires fact verification"
+        }
+      },
+      "floor_type": "soft",
+      "domain": "epistemic",
+      "meaning": "Risk of fabricated or unsupported claims",
+      "fail_action": "SABAR"
+    },
+    "contradiction_risk": {
+      "id": "contradiction_risk",
+      "type": "float",
+      "range": [0.0, 1.0],
+      "thresholds": {
+        "seal": {
+          "operator": "<",
+          "value": 0.10,
+          "meaning": "No contradictions detected"
+        },
+        "partial": {
+          "operator": "<",
+          "value": 0.30,
+          "meaning": "Minor inconsistency - clarify"
+        },
+        "sabar": {
+          "operator": ">=",
+          "value": 0.30,
+          "meaning": "Significant contradiction - requires resolution"
+        }
+      },
+      "floor_type": "soft",
+      "domain": "epistemic",
+      "meaning": "Risk of self-contradictory statements",
+      "fail_action": "SABAR"
+    },
+    "certainty_inflation": {
+      "id": "certainty_inflation",
+      "type": "float",
+      "range": [0.0, 1.0],
+      "thresholds": {
+        "seal": {
+          "operator": "<",
+          "value": 0.10,
+          "meaning": "Appropriate certainty levels"
+        },
+        "partial": {
+          "operator": "<",
+          "value": 0.30,
+          "meaning": "Some overconfidence - hedge language"
+        },
+        "sabar": {
+          "operator": ">=",
+          "value": 0.30,
+          "meaning": "Unwarranted certainty - requires calibration"
+        }
+      },
+      "floor_type": "soft",
+      "domain": "humility",
+      "meaning": "Unwarranted claims of certainty without evidence",
+      "fail_action": "SABAR"
+    }
+  },
+  "governance_logic": {
+    "SEAL_conditions": {
+      "description": "All conditions must be true for SEAL",
+      "conditions": [
+        "truth_score >= 0.99",
+        "delta_s_answer >= 0.0",
+        "hallucination_risk < 0.10",
+        "contradiction_risk < 0.10",
+        "certainty_inflation < 0.10",
+        "hallucination_count == 0",
+        "contradiction_count == 0"
+      ]
+    },
+    "PARTIAL_conditions": {
+      "description": "Minor epistemic issues but hard floors pass",
+      "conditions": [
+        "truth_score >= 0.99",
+        "delta_s_answer >= 0.0",
+        "hallucination_risk < 0.30 OR certainty_inflation < 0.30",
+        "hallucination_count > 0 OR certainty_inflation_count > 0"
+      ]
+    },
+    "SABAR_conditions": {
+      "description": "Repairable epistemic issues; high soft floor risk",
+      "conditions": [
+        "truth_score >= 0.99",
+        "delta_s_answer >= 0.0",
+        "hallucination_risk >= 0.30 OR contradiction_risk >= 0.30 OR certainty_inflation >= 0.30"
+      ]
+    },
+    "VOID_conditions": {
+      "description": "Any of these triggers VOID (hard floor failure)",
+      "conditions": [
+        "truth_score < 0.99",
+        "delta_s_answer < 0.0",
+        "contradiction_count > 0 (if significant)"
+      ]
+    }
+  },
+  "pattern_weights": {
+    "hallucination_patterns": {
+      "weight_per_match": 0.10,
+      "delta_s_penalty": 0.10,
+      "truth_penalty": 0.05,
+      "effect": "Each match increases hallucination_risk and penalizes ΔS/Truth",
+      "patterns": [
+        "according to studies",
+        "research shows",
+        "experts say",
+        "it is well known",
+        "everyone knows",
+        "statistics show"
+      ]
+    },
+    "contradiction_patterns": {
+      "weight_per_match": 0.30,
+      "delta_s_penalty": 0.20,
+      "truth_penalty": 0.10,
+      "effect": "Each match significantly increases contradiction_risk",
+      "patterns": [
+        "but actually I said",
+        "contrary to what I mentioned",
+        "ignore what I said before",
+        "I take that back"
+      ]
+    },
+    "certainty_inflation_patterns": {
+      "weight_per_match": 0.10,
+      "delta_s_penalty": 0.05,
+      "effect": "Each match increases certainty_inflation, suggests Omega_0 check",
+      "patterns": [
+        "definitely",
+        "absolutely certain",
+        "without a doubt",
+        "guaranteed",
+        "100%",
+        "no question",
+        "proven fact"
+      ]
+    },
+    "clarity_enhancing_patterns": {
+      "weight_per_match": 0.05,
+      "delta_s_bonus": 0.02,
+      "effect": "Each match indicates calibrated hedging - bonus to ΔS",
+      "patterns": [
+        "I believe",
+        "it appears",
+        "evidence suggests",
+        "based on available data",
+        "approximately",
+        "it seems likely"
+      ]
+    }
+  },
+  "signal_schema": {
+    "RifSignals": {
+      "description": "Governance signals computed by @RIF organ",
+      "fields": {
+        "delta_s_answer": {
+          "type": "float",
+          "default": 0.0,
+          "range": [-1.0, 1.0],
+          "meaning": "Clarity gain from answer (positive = reduces confusion)"
+        },
+        "truth_score": {
+          "type": "float",
+          "default": 0.99,
+          "range": [0.0, 1.0],
+          "meaning": "Factual accuracy score"
+        },
+        "omega_0_calibrated": {
+          "type": "float",
+          "default": 0.04,
+          "range": [0.0, 0.10],
+          "meaning": "Uncertainty calibration (should be in 0.03-0.05 band)"
+        },
+        "hallucination_risk": {
+          "type": "float",
+          "default": 0.0,
+          "range": [0.0, 1.0],
+          "meaning": "Risk of fabricated claims (0 = safe, 1 = high risk)"
+        },
+        "contradiction_risk": {
+          "type": "float",
+          "default": 0.0,
+          "range": [0.0, 1.0],
+          "meaning": "Risk of self-contradiction (0 = coherent, 1 = inconsistent)"
+        },
+        "certainty_inflation": {
+          "type": "float",
+          "default": 0.0,
+          "range": [0.0, 1.0],
+          "meaning": "Overconfidence level (0 = calibrated, 1 = extreme)"
+        },
+        "hallucination_count": {
+          "type": "integer",
+          "default": 0,
+          "meaning": "Number of hallucination patterns matched"
+        },
+        "contradiction_count": {
+          "type": "integer",
+          "default": 0,
+          "meaning": "Number of contradiction patterns matched"
+        },
+        "certainty_inflation_count": {
+          "type": "integer",
+          "default": 0,
+          "meaning": "Number of certainty inflation patterns matched"
+        },
+        "clarity_bonus_count": {
+          "type": "integer",
+          "default": 0,
+          "meaning": "Number of hedging/clarity patterns matched (positive signal)"
+        },
+        "issues": {
+          "type": "array",
+          "items": "string",
+          "meaning": "Human-readable issue descriptions"
+        },
+        "notes": {
+          "type": "array",
+          "items": "string",
+          "meaning": "Additional governance notes"
+        }
+      }
+    }
+  }
+}

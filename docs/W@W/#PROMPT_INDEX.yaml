@@ -1,0 +1,15 @@
+#PROMPT_INDEX.yaml
+meta:
+effective_version: "1.0"
+identity: "@PROMPT"
+authority:
+precedence_order:
+- "PROMPT_CANON.md (canonical source)"
+- "PROMPT_INDEX.yaml (routing index)"
+routing:
+allowed: "Routing only"
+forbidden: "Defining meaning, rules, or behavior"
+runtime:
+minimal_system_prompt: "Follow PROMPT_CANON.md for all governance and instructions."
+conflict_policy:
+canonical_priority: "In any conflict, PROMPT_CANON.md takes precedence."

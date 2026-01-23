@@ -1,0 +1,2 @@
+index,event_id,timestamp,source,verdict,truth,delta_s,peace_squared,kappa_r,omega_0,amanah,rasa,tri_witness,anti_hantu,psi,shadow,sabar_triggered,drift_detected,hantu_scan,tri_witness_consensus,F1_truth_pass,F2_delta_s_pass,F3_peace_squared_pass,F4_kappa_r_pass,F5_omega_0_pass,F6_amanah_pass,F7_rasa_pass,F8_tri_witness_pass,F9_anti_hantu_pass
+0,ZKPC-20251206-4feba2c5,2025-12-06T16:47:42Z,zkpc_runtime,SEAL,0.99,0.1,1.05,0.97,0.04,LOCK,True,0.96,PASS,1.05,0.02,False,False,PASS,0.96,True,True,True,True,True,True,True,True,True

@@ -1,0 +1,366 @@
+{
+  "$comment": "Implements: CCC_ARCHITECTURE_v36.3O.md | Law: v36.3Omega | Commit: 870ea5d",
+  "meta": {
+    "spec_id": "vault999_ledger_schema_v36.3O",
+    "epoch": "v36.3Omega",
+    "implements": "v36.3O/canon/CCC_ARCHITECTURE_v36.3O.md",
+    "law_source": "v36.3O/canon/PHYSICS_APEX_THEORY_PHYSICS_v36.3O.md",
+    "law_commit": "870ea5d",
+    "purpose": "L0-L4 layer schemas for VAULT-999 constitutional memory",
+    "backwards_compatible_with": "spec/cooling_ledger.schema.json (v35Ic)"
+  },
+  "layers": {
+    "L0_constitution": {
+      "description": "Constitutional law layer - floors, AAA, APEX rules",
+      "schema": {
+        "epoch": {
+          "type": "string",
+          "description": "Current epoch version",
+          "example": "v36.3Omega"
+        },
+        "deltaOmegaPsi": {
+          "type": "object",
+          "description": "Physics parameters",
+          "properties": {
+            "delta_S_min": { "type": "number", "default": 0 },
+            "peace_squared_min": { "type": "number", "default": 1.0 },
+            "omega_band": {
+              "type": "object",
+              "properties": {
+                "min": { "type": "number", "default": 0.03 },
+                "max": { "type": "number", "default": 0.05 }
+              }
+            },
+            "psi_vitality_floor": { "type": "number", "default": 1.0 }
+          }
+        },
+        "constitutional_floors": {
+          "type": "object",
+          "description": "9 floor thresholds",
+          "properties": {
+            "truth": { "type": "number", "default": 0.99 },
+            "delta_s": { "type": "number", "default": 0 },
+            "peace_squared": { "type": "number", "default": 1.0 },
+            "kappa_r": { "type": "number", "default": 0.95 },
+            "omega_0": {
+              "type": "object",
+              "properties": {
+                "min": { "type": "number" },
+                "max": { "type": "number" }
+              }
+            },
+            "amanah": { "type": "string", "enum": ["LOCK", "BROKEN"] },
+            "rasa": { "type": "boolean" },
+            "tri_witness": { "type": "number", "default": 0.95 },
+            "anti_hantu": { "type": "boolean" }
+          }
+        },
+        "aaa_trinity": {
+          "type": "object",
+          "properties": {
+            "mind": { "type": "string", "default": "ARIF" },
+            "heart": { "type": "string", "default": "ADAM" },
+            "soul": { "type": "string", "default": "APEX PRIME" }
+          }
+        },
+        "apex_prime_cce": {
+          "type": "object",
+          "properties": {
+            "audits": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["DeltaP", "OmegaP", "PsiP", "PhiP"]
+            },
+            "sovereignty_gate_888": {
+              "type": "string",
+              "default": "HUMAN_REQUIRED"
+            }
+          }
+        },
+        "amendment_history": {
+          "type": "string",
+          "description": "Pointer to Phoenix history file"
+        },
+        "version_hash": {
+          "type": "string",
+          "format": "sha256"
+        }
+      }
+    },
+    "L1_cooling_ledger": {
+      "description": "Evidence layer - per-decision metrics, verdicts, hash chain",
+      "append_only": true,
+      "schema": {
+        "ledger_version": {
+          "type": "string",
+          "enum": ["v35Ic", "v36Omega", "v36.3Omega"],
+          "description": "Schema version (v35Ic is current runtime binding)"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "ISO8601"
+        },
+        "query_hash": {
+          "type": "string",
+          "format": "sha256"
+        },
+        "response_hash": {
+          "type": "string",
+          "format": "sha256"
+        },
+        "metrics": {
+          "type": "object",
+          "properties": {
+            "truth": { "type": "number" },
+            "delta_s": { "type": "number" },
+            "peace_squared": { "type": "number" },
+            "kappa_r": { "type": "number" },
+            "omega_0": { "type": "number" },
+            "amanah": { "type": ["boolean", "string"] },
+            "rasa": { "type": "boolean" },
+            "tri_witness": { "type": "number" },
+            "psi": { "type": "number" }
+          }
+        },
+        "tri_witness_detail": {
+          "type": "object",
+          "description": "v36.3Omega extension: Tri-Witness triad",
+          "properties": {
+            "human": { "type": "number" },
+            "ai": { "type": "number" },
+            "earth": { "type": "number" },
+            "consensus": { "type": "number" }
+          }
+        },
+        "cce_audits": {
+          "type": "object",
+          "properties": {
+            "delta_p": { "type": "string", "enum": ["PASS", "FAIL"] },
+            "omega_p": { "type": "string", "enum": ["PASS", "FAIL"] },
+            "psi_p": { "type": "string", "enum": ["PASS", "FAIL"] },
+            "phi_p": { "type": "string", "enum": ["PASS", "FAIL"] }
+          }
+        },
+        "truth_polarity": {
+          "type": "string",
+          "enum": ["LIGHT", "SHADOW", "WEAPONIZED"],
+          "description": "v36.3Omega extension"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": ["SEAL", "PARTIAL", "HOLD_888", "SABAR", "VOID"]
+        },
+        "phoenix_cycle_id": {
+          "type": ["string", "null"],
+          "description": "If this entry triggered a Phoenix cycle"
+        },
+        "previous_hash": {
+          "type": "string",
+          "format": "sha256",
+          "description": "Hash chain integrity"
+        },
+        "entry_hash": {
+          "type": "string",
+          "format": "sha256"
+        }
+      },
+      "invariant": "L1 is append-only; entries are never altered or deleted"
+    },
+    "L2_phoenix_72": {
+      "description": "Metabolism layer - scar to pattern to law transformation",
+      "schema": {
+        "phoenix_id": {
+          "type": "string",
+          "pattern": "^PHX-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{3}$",
+          "example": "PHX-2025-12-10-001"
+        },
+        "trigger_event": {
+          "type": "string",
+          "format": "sha256",
+          "description": "Cooling ledger entry hash that triggered this"
+        },
+        "scar": {
+          "type": "object",
+          "properties": {
+            "axis": { "type": "integer", "minimum": 0, "maximum": 7 },
+            "layer": { "type": "integer", "minimum": 0, "maximum": 6 },
+            "type": { "type": "integer" },
+            "energy": { "type": "string", "enum": ["low", "medium", "high"] }
+          }
+        },
+        "pattern_cluster": {
+          "type": "string",
+          "description": "Cluster ID from TAC/TPCP analysis"
+        },
+        "draft_amendment": {
+          "type": "object",
+          "properties": {
+            "change": { "type": "string" },
+            "field": { "type": "string" },
+            "old": { "type": ["number", "string", "boolean"] },
+            "new": { "type": ["number", "string", "boolean"] },
+            "justification": { "type": "string" },
+            "cooling_curve": {
+              "type": "array",
+              "items": { "type": "number" }
+            }
+          }
+        },
+        "tri_witness_verdict": {
+          "type": "object",
+          "properties": {
+            "human": { "type": "string", "enum": ["APPROVE", "REJECT"] },
+            "ai": { "type": "string", "enum": ["APPROVE", "REJECT"] },
+            "earth": { "type": "string", "enum": ["APPROVE", "REJECT"] },
+            "consensus": { "type": "number" }
+          }
+        },
+        "cooling_period_hours": {
+          "type": "integer",
+          "minimum": 72,
+          "default": 72
+        },
+        "sealed_at": {
+          "type": "string",
+          "format": "ISO8601"
+        },
+        "apex_signature": {
+          "type": "string",
+          "format": "sha256"
+        },
+        "merkle_root": {
+          "type": "string",
+          "format": "sha256"
+        }
+      },
+      "invariant": "No direct edits to L0 constitution are permitted outside Phoenix-72 cycles"
+    },
+    "L3_witness": {
+      "description": "Vector evidence layer - witness is evidence, not truth",
+      "schema": {
+        "witness_id": {
+          "type": "string",
+          "pattern": "^vec_[0-9]+$"
+        },
+        "source_type": {
+          "type": "string",
+          "enum": ["document", "conversation", "external"]
+        },
+        "source_hash": {
+          "type": "string",
+          "format": "sha256"
+        },
+        "arep_layer": {
+          "type": "string",
+          "enum": ["earth", "human", "ai"],
+          "description": "AREP priority: Earth > Human > AI"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3,
+          "description": "1=Earth (highest), 2=Human, 3=AI (lowest)"
+        },
+        "vector_offset": {
+          "type": "integer"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "ISO8601"
+        }
+      },
+      "rules": {
+        "arep_priority": "Earth > Human > AI",
+        "storage": "Vectors store hashes, not raw text",
+        "override": "Witness cannot override L0-L2 verdicts"
+      }
+    },
+    "L4_zkpc": {
+      "description": "Zero-Knowledge Proofs of Cognition layer",
+      "schema": {
+        "timestamp": {
+          "type": "string",
+          "format": "ISO8601"
+        },
+        "event_id": {
+          "type": "string",
+          "format": "sha256",
+          "description": "Linked cooling ledger entry hash"
+        },
+        "zkpc_hash": {
+          "type": "string",
+          "format": "sha256"
+        },
+        "care_scope": {
+          "type": "object",
+          "properties": {
+            "who": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "risk_cooled": { "type": "string" }
+          }
+        },
+        "proofs": {
+          "type": "object",
+          "properties": {
+            "delta_s_proof": { "type": "boolean" },
+            "peace2_proof": { "type": "boolean" },
+            "kappa_r_proof": { "type": "boolean" },
+            "amanah_proof": { "type": "boolean" },
+            "anti_hantu_proof": { "type": "boolean" },
+            "truth_polarity_proof": { "type": "boolean" }
+          }
+        },
+        "tri_witness": {
+          "type": "object",
+          "properties": {
+            "human": { "type": "number" },
+            "ai": { "type": "number" },
+            "earth": { "type": "number" }
+          }
+        },
+        "apex_signature": {
+          "type": "string",
+          "format": "sha256"
+        },
+        "merkle_root": {
+          "type": "string",
+          "format": "sha256"
+        }
+      },
+      "invariant": "zkPC proves lawful cognition without exposing internal reasoning"
+    }
+  },
+  "integrity_guarantees": {
+    "hash_chaining": {
+      "layer": "L1",
+      "description": "Each entry includes previous_hash forming a chain"
+    },
+    "merkle_trees": {
+      "layers": ["L2", "L4"],
+      "description": "Amendments and zkPC link to merkle roots"
+    },
+    "append_only": {
+      "layers": ["L1", "L4"],
+      "description": "Write-once, never modified"
+    },
+    "apex_signatures": {
+      "description": "All sealed entries carry APEX PRIME signature"
+    },
+    "tri_witness": {
+      "description": "High-stakes entries require consensus >= 0.95"
+    }
+  },
+  "forbidden_content": [
+    "Raw chat history",
+    "Draft thoughts",
+    "User private data",
+    "Unverifiable claims",
+    "DeltaS < 0 outputs",
+    "Shadow-Truth (uncooled)",
+    "Emotion simulation / soul-claims",
+    "Any content not sealed by APEX PRIME"
+  ]
+}
+

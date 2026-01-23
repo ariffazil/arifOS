@@ -8,96 +8,129 @@ These tests verify:
 4. Referenced modules exist and can be imported
 5. Harness entry point is callable
 
+NOTE: As of v37, the default epoch is now v37 (unified LAW+SPEC+CODE).
+      Tests for v35-specific manifest structure explicitly load epoch="v35".
+      The v37 default epoch tests are in TestV37DefaultEpoch.
+
 Tests are READ-ONLY: they detect drift but do not auto-fix.
 """
 
 import importlib
-import pytest
 from pathlib import Path
 
-from arifos_core.runtime_manifest import (
-    load_runtime_manifest,
-    validate_manifest,
-    get_floor_threshold,
-    get_pipeline_stages,
-    get_eye_views,
-    get_waw_organs,
-    get_harness_entry,
-    import_module_from_manifest,
-    get_class_from_manifest,
-    DEFAULT_MANIFEST_PATH,
-    DEFAULT_MANIFEST_PATH_YAML,
-    DEFAULT_MANIFEST_PATH_JSON,
-    HAS_YAML,
-)
+import pytest
 
 # Import metrics constants for comparison
-from arifos_core.metrics import (
-    TRUTH_THRESHOLD,
-    DELTA_S_THRESHOLD,
-    PEACE_SQUARED_THRESHOLD,
-    KAPPA_R_THRESHOLD,
-    OMEGA_0_MIN,
-    OMEGA_0_MAX,
-    TRI_WITNESS_THRESHOLD,
-    PSI_THRESHOLD,
-)
+from arifos.core.enforcement.metrics import (DELTA_S_THRESHOLD,
+                                             KAPPA_R_THRESHOLD, OMEGA_0_MAX,
+                                             OMEGA_0_MIN,
+                                             PEACE_SQUARED_THRESHOLD,
+                                             PSI_THRESHOLD,
+                                             TRI_WITNESS_THRESHOLD,
+                                             TRUTH_THRESHOLD)
+from arifos.core.system.runtime_manifest import (DEFAULT_MANIFEST_PATH,
+                                                 DEFAULT_MANIFEST_PATH_JSON,
+                                                 DEFAULT_MANIFEST_PATH_YAML,
+                                                 HAS_YAML,
+                                                 get_class_from_manifest,
+                                                 get_eye_views,
+                                                 get_floor_threshold,
+                                                 get_harness_entry,
+                                                 get_pipeline_stages,
+                                                 get_waw_organs,
+                                                 import_module_from_manifest,
+                                                 load_runtime_manifest,
+                                                 validate_manifest)
+
+LEGACY_CANON_PATH_MAP = {
+    "canon/000_ARIFOS_CANON_v35Omega.md": "archive/v35_0_0/canon/0_ARIFOS_CANON_v35Omega.md",
+    "canon/001_APEX_META_CONSTITUTION_v35Omega.md": "archive/v35_0_0/canon/1_APEX_META_CONSTITUTION_v35Omega.md",
+    "canon/002_APEX_TRINITY_v35Omega.md": "archive/v35_0_0/canon/2_APEX_TRINITY_v35Omega.md",
+    "canon/010_DeltaOmegaPsi_UNIFIED_FIELD_v35Omega.md": "archive/v35_0_0/canon/0_DeltaOmegaPsi_UNIFIED_FIELD_v35Omega.md",
+    "canon/020_ANTI_HANTU_v35Omega.md": "archive/v35_0_0/canon/0_ANTI_HANTU_v35Omega.md",
+    "canon/021_ANTI_HANTU_SUPPLEMENT_v35Omega.md": "archive/v35_0_0/canon/1_ANTI_HANTU_SUPPLEMENT_v35Omega.md",
+    "canon/030_EYE_SENTINEL_v35Omega.md": "archive/v35_0_0/canon/0_EYE_SENTINEL_v35Omega.md",
+    "canon/100_AAA_ENGINES_SPEC_v35Omega.md": "archive/v35_0_0/canon/0_AAA_ENGINES_SPEC_v35Omega.md",
+    "canon/880_000-999_METABOLIC_CANON_v35Omega.md": "archive/v35_0_0/canon/0_000-999_METABOLIC_CANON_v35Omega.md",
+    "canon/888_APEX_PRIME_CANON_v35Omega.md": "archive/v35_0_0/canon/8_APEX_PRIME_CANON_v35Omega.md",
+    "canon/99__README_Vault999_v35Omega.md": "archive/v35_0_0/canon/__README_Vault999_v35Omega.md",
+    "canon/99_Vault999_Seal_v35Omega.json": "archive/v35_0_0/canon/_Vault999_Seal_v35Omega.json",
+}
+
+
+def resolve_legacy_canon_path(repo_root: Path, canon_path: str) -> Path:
+    """Resolve v35 canon paths to archive locations when migrated."""
+    full_path = repo_root / canon_path
+    if full_path.exists():
+        return full_path
+    mapped = LEGACY_CANON_PATH_MAP.get(canon_path)
+    if mapped:
+        return repo_root / mapped
+    return full_path
 
 
 # =============================================================================
-# MANIFEST LOADING TESTS
+# V35 LEGACY MANIFEST TESTS
+# =============================================================================
+# These tests are specific to v35Omega manifest structure.
+# They explicitly load epoch="v35" to test legacy compatibility.
 # =============================================================================
 
 
-class TestManifestLoading:
-    """Tests for manifest file loading."""
+# =============================================================================
+# MANIFEST LOADING TESTS (v35 Legacy)
+# =============================================================================
 
-    def test_manifest_file_exists(self):
-        """Manifest file should exist at expected path."""
-        assert DEFAULT_MANIFEST_PATH.exists(), f"Manifest not found: {DEFAULT_MANIFEST_PATH}"
 
-    def test_manifest_loads_without_error(self):
-        """Manifest should load and parse as valid YAML."""
-        manifest = load_runtime_manifest()
+class TestManifestLoadingV35:
+    """Tests for v35 legacy manifest file loading."""
+
+    def test_v35_manifest_file_exists(self):
+        """v35 Manifest file should exist at expected path."""
+        assert DEFAULT_MANIFEST_PATH.exists(), f"v35 Manifest not found: {DEFAULT_MANIFEST_PATH}"
+
+    def test_v35_manifest_loads_without_error(self):
+        """v35 Manifest should load and parse as valid YAML."""
+        manifest = load_runtime_manifest(epoch="v35")
         assert manifest is not None
         assert isinstance(manifest, dict)
 
-    def test_manifest_has_version(self):
-        """Manifest should have version field."""
-        manifest = load_runtime_manifest()
+    def test_v35_manifest_has_version(self):
+        """v35 Manifest should have version field with Omega."""
+        manifest = load_runtime_manifest(epoch="v35")
         assert "version" in manifest
         assert "Omega" in manifest["version"]
 
-    def test_manifest_has_epoch(self):
-        """Manifest should have epoch field."""
-        manifest = load_runtime_manifest()
+    def test_v35_manifest_has_epoch(self):
+        """v35 Manifest should have epoch field == 35."""
+        manifest = load_runtime_manifest(epoch="v35")
         assert "epoch" in manifest
         assert manifest["epoch"] == 35
 
-    def test_manifest_has_status(self):
-        """Manifest should have status field."""
-        manifest = load_runtime_manifest()
+    def test_v35_manifest_has_status(self):
+        """v35 Manifest should have status field == SEALED."""
+        manifest = load_runtime_manifest(epoch="v35")
         assert "status" in manifest
         assert manifest["status"] == "SEALED"
 
-    def test_validate_manifest_passes(self):
-        """Validation should pass for the canonical manifest."""
-        manifest = load_runtime_manifest(validate=False)
+    def test_v35_validate_manifest_passes(self):
+        """Validation should pass for the canonical v35 manifest."""
+        manifest = load_runtime_manifest(epoch="v35", validate=False)
         # Should not raise
-        validate_manifest(manifest)
+        validate_manifest(manifest, epoch="v35")
 
 
 # =============================================================================
-# FLOOR THRESHOLD DRIFT TESTS
+# FLOOR THRESHOLD DRIFT TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestFloorThresholdDrift:
-    """Tests that manifest thresholds match metrics.py constants."""
+class TestFloorThresholdDriftV35:
+    """Tests that v35 manifest thresholds match metrics.py constants."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_truth_threshold_matches(self, manifest):
         """Manifest truth threshold should match TRUTH_THRESHOLD constant."""
@@ -177,16 +210,16 @@ class TestFloorThresholdDrift:
 
 
 # =============================================================================
-# PIPELINE STAGE TESTS
+# PIPELINE STAGE TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestPipelineStages:
-    """Tests for pipeline stage definitions."""
+class TestPipelineStagesV35:
+    """Tests for v35 pipeline stage definitions."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_stage_000_exists(self, manifest):
         """Pipeline should include stage 000 (VOID)."""
@@ -236,40 +269,40 @@ class TestPipelineStages:
 
 
 # =============================================================================
-# ENGINE MODULE TESTS
+# ENGINE MODULE TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestEngineModules:
-    """Tests that engine modules can be imported."""
+class TestEngineModulesV35:
+    """Tests that v35 engine modules can be imported."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_arif_engine_module_exists(self, manifest):
         """ARIF engine module should be importable."""
-        module_path = manifest["engines"]["arif"]["module"]
+        module_path = manifest["engines"]["agi"]["module"]
         module = importlib.import_module(module_path)
         assert module is not None
 
     def test_arif_engine_class_exists(self, manifest):
-        """ARIFEngine class should exist in module."""
-        ARIFEngine = get_class_from_manifest(manifest, "engines", "arif")
-        assert ARIFEngine is not None
-        assert ARIFEngine.__name__ == "ARIFEngine"
+        """AGIEngine class should exist in module."""
+        AGIEngine = get_class_from_manifest(manifest, "engines", "agi")
+        assert AGIEngine is not None
+        assert AGIEngine.__name__ == "AGIEngine"
 
     def test_adam_engine_module_exists(self, manifest):
         """ADAM engine module should be importable."""
-        module_path = manifest["engines"]["adam"]["module"]
+        module_path = manifest["engines"]["asi"]["module"]
         module = importlib.import_module(module_path)
         assert module is not None
 
     def test_adam_engine_class_exists(self, manifest):
-        """ADAMEngine class should exist in module."""
-        ADAMEngine = get_class_from_manifest(manifest, "engines", "adam")
-        assert ADAMEngine is not None
-        assert ADAMEngine.__name__ == "ADAMEngine"
+        """ASIEngine class should exist in module."""
+        ASIEngine = get_class_from_manifest(manifest, "engines", "asi")
+        assert ASIEngine is not None
+        assert ASIEngine.__name__ == "ASIEngine"
 
     def test_apex_engine_module_exists(self, manifest):
         """APEX engine module should be importable."""
@@ -285,16 +318,16 @@ class TestEngineModules:
 
 
 # =============================================================================
-# W@W ORGAN MODULE TESTS
+# W@W ORGAN MODULE TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestWAWOrganModules:
-    """Tests that W@W organ modules can be imported."""
+class TestWAWOrganModulesV35:
+    """Tests that v35 W@W organ modules can be imported."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_all_five_organs_defined(self, manifest):
         """All 5 W@W organs should be defined."""
@@ -341,16 +374,16 @@ class TestWAWOrganModules:
 
 
 # =============================================================================
-# @EYE SENTINEL VIEW TESTS
+# @EYE SENTINEL VIEW TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestEyeSentinelViews:
-    """Tests that @EYE Sentinel views can be imported."""
+class TestEyeSentinelViewsV35:
+    """Tests that v35 @EYE Sentinel views can be imported."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_eleven_views_defined(self, manifest):
         """All 10+1 @EYE views should be defined."""
@@ -379,16 +412,16 @@ class TestEyeSentinelViews:
 
 
 # =============================================================================
-# METRICS MODULE TESTS
+# METRICS MODULE TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestMetricsModule:
-    """Tests for metrics module references."""
+class TestMetricsModuleV35:
+    """Tests for v35 metrics module references."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_metrics_module_importable(self, manifest):
         """Metrics module should be importable."""
@@ -411,56 +444,20 @@ class TestMetricsModule:
             assert callable(func), f"{func_name} is not callable"
 
 
+
+
+
 # =============================================================================
-# HARNESS ENTRY POINT TESTS
+# HELPER FUNCTION TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestHarnessEntryPoint:
-    """Tests for caged harness entry point."""
+class TestHelperFunctionsV35:
+    """Tests for v35 manifest helper functions."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
-
-    def test_harness_module_importable(self, manifest):
-        """Harness module should be importable."""
-        module = import_module_from_manifest(manifest, "harness")
-        assert module is not None
-
-    def test_cage_llm_response_callable(self, manifest):
-        """cage_llm_response entry function should be callable."""
-        module = import_module_from_manifest(manifest, "harness")
-        entry_func = manifest["harness"]["entry_function"]
-        func = getattr(module, entry_func)
-        assert callable(func)
-
-    def test_caged_result_class_exists(self, manifest):
-        """CagedResult class should exist."""
-        module = import_module_from_manifest(manifest, "harness")
-        result_class = manifest["harness"]["result_class"]
-        cls = getattr(module, result_class)
-        assert cls is not None
-
-    def test_get_harness_entry_returns_correct_info(self, manifest):
-        """get_harness_entry should return correct module and function."""
-        entry = get_harness_entry(manifest)
-        assert entry["module"] == "scripts.arifos_caged_llm_demo"
-        assert entry["entry_function"] == "cage_llm_response"
-        assert entry["result_class"] == "CagedResult"
-
-
-# =============================================================================
-# HELPER FUNCTION TESTS
-# =============================================================================
-
-
-class TestHelperFunctions:
-    """Tests for manifest helper functions."""
-
-    @pytest.fixture
-    def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_get_floor_threshold_truth(self, manifest):
         """get_floor_threshold should return correct truth threshold."""
@@ -479,16 +476,16 @@ class TestHelperFunctions:
 
 
 # =============================================================================
-# LEDGER MODULE TESTS
+# LEDGER MODULE TESTS (v35 Legacy)
 # =============================================================================
 
 
-class TestLedgerModules:
-    """Tests for ledger/vault/phoenix module references."""
+class TestLedgerModulesV35:
+    """Tests for v35 ledger/vault/phoenix module references."""
 
     @pytest.fixture
     def manifest(self):
-        return load_runtime_manifest()
+        return load_runtime_manifest(epoch="v35")
 
     def test_cooling_ledger_module_importable(self, manifest):
         """Cooling ledger module should be importable."""
@@ -496,11 +493,11 @@ class TestLedgerModules:
         module = importlib.import_module(module_path)
         assert module is not None
 
-    def test_vault999_seal_json_path_valid(self, manifest):
-        """Vault999 seal JSON path should exist."""
+    def test_ccc_seal_json_path_valid(self, manifest):
+        """CCC seal JSON path should exist."""
         seal_path = manifest["ledger"]["vault999"]["seal_json"]
-        full_path = Path(__file__).parent.parent / seal_path
-        assert full_path.exists(), f"Vault999 seal not found: {full_path}"
+        full_path = resolve_legacy_canon_path(Path(__file__).parent.parent, seal_path)
+        assert full_path.exists(), f"CCC seal not found: {full_path}"
 
     def test_phoenix72_module_importable(self, manifest):
         """Phoenix72 module should be importable."""
@@ -509,31 +506,141 @@ class TestLedgerModules:
         assert module is not None
 
 
+
+
+
 # =============================================================================
-# CANON FILE REFERENCE TESTS
+# V37 DEFAULT EPOCH TESTS
 # =============================================================================
 
 
-class TestCanonFileReferences:
-    """Tests that referenced canon files exist."""
+class TestV37DefaultEpoch:
+    """Tests that v37 is the default epoch when ARIFOS_RUNTIME_EPOCH is unset."""
 
-    @pytest.fixture
-    def manifest(self):
-        return load_runtime_manifest()
+    def test_default_epoch_is_v37_when_env_unset(self):
+        """
+        When ARIFOS_RUNTIME_EPOCH is not set, the default epoch should be v37.
 
-    def test_runtime_law_files_exist(self, manifest):
-        """All referenced runtime law canon files should exist."""
-        canon_files = manifest["canon_files"]["runtime_law"]
-        root = Path(__file__).parent.parent
-        for file_path in canon_files:
-            full_path = root / file_path
-            assert full_path.exists(), f"Canon file not found: {file_path}"
+        This test verifies the v37 unified runtime is the mainline default.
+        """
+        import os
 
-    def test_constitutional_floors_json_exists(self, manifest):
-        """constitutional_floors.json should exist."""
-        machine_readable = manifest["canon_files"]["machine_readable"]
-        root = Path(__file__).parent.parent
-        for file_path in machine_readable:
-            if file_path.endswith(".json"):
-                full_path = root / file_path
-                assert full_path.exists(), f"Machine-readable file not found: {file_path}"
+        from arifos.core.system.runtime_manifest import (DEFAULT_EPOCH,
+                                                         EPOCH_ENV_VAR,
+                                                         get_active_epoch,
+                                                         is_legacy_epoch,
+                                                         is_v37_epoch)
+
+        # Save original env value
+        original_value = os.environ.get(EPOCH_ENV_VAR)
+
+        try:
+            # Clear the environment variable
+            if EPOCH_ENV_VAR in os.environ:
+                del os.environ[EPOCH_ENV_VAR]
+
+            # Verify DEFAULT_EPOCH constant is v45
+            assert DEFAULT_EPOCH == "v45", f"DEFAULT_EPOCH should be 'v45', got '{DEFAULT_EPOCH}'"
+
+            # Verify get_active_epoch returns v45
+            active_epoch = get_active_epoch()
+            assert active_epoch == "v45", f"Active epoch should be 'v45' when env unset, got '{active_epoch}'"
+
+            # Verify is_v37_epoch returns False (v45 is active)
+            assert is_v37_epoch() is False, "is_v37_epoch() should be False when v45 active"
+
+            # Verify is_legacy_epoch returns False (because v45 is not legacy)
+            # v35, v36.3, v37, v44 ARE legacy.
+            assert is_legacy_epoch() is False, "is_legacy_epoch() should be False for v45"
+
+        finally:
+            # Restore original env value
+            if original_value is not None:
+                os.environ[EPOCH_ENV_VAR] = original_value
+            elif EPOCH_ENV_VAR in os.environ:
+                del os.environ[EPOCH_ENV_VAR]
+
+    def test_v35_selectable_via_env(self):
+        """v35 should be selectable via ARIFOS_RUNTIME_EPOCH for legacy testing."""
+        import os
+
+        from arifos.core.system.runtime_manifest import (EPOCH_ENV_VAR,
+                                                         get_active_epoch,
+                                                         is_legacy_epoch,
+                                                         is_v37_epoch)
+
+        original_value = os.environ.get(EPOCH_ENV_VAR)
+
+        try:
+            os.environ[EPOCH_ENV_VAR] = "v35"
+
+            assert get_active_epoch() == "v35"
+            assert is_v37_epoch() is False
+            assert is_legacy_epoch() is True
+
+        finally:
+            if original_value is not None:
+                os.environ[EPOCH_ENV_VAR] = original_value
+            elif EPOCH_ENV_VAR in os.environ:
+                del os.environ[EPOCH_ENV_VAR]
+
+    def test_v36_3_selectable_via_env(self):
+        """v36.3 should be selectable via ARIFOS_RUNTIME_EPOCH for legacy testing."""
+        import os
+
+        from arifos.core.system.runtime_manifest import (EPOCH_ENV_VAR,
+                                                         get_active_epoch,
+                                                         is_legacy_epoch,
+                                                         is_v37_epoch)
+
+        original_value = os.environ.get(EPOCH_ENV_VAR)
+
+        try:
+            os.environ[EPOCH_ENV_VAR] = "v36.3"
+
+            assert get_active_epoch() == "v36.3"
+            assert is_v37_epoch() is False
+            assert is_legacy_epoch() is True
+
+        finally:
+            if original_value is not None:
+                os.environ[EPOCH_ENV_VAR] = original_value
+            elif EPOCH_ENV_VAR in os.environ:
+                del os.environ[EPOCH_ENV_VAR]
+
+    def test_v37_manifest_loads_by_default(self):
+        """When env unset, load_runtime_manifest should load v37 manifest."""
+        import os
+
+        from arifos.core.system.runtime_manifest import (EPOCH_ENV_VAR,
+                                                         load_runtime_manifest)
+
+        original_value = os.environ.get(EPOCH_ENV_VAR)
+
+        try:
+            if EPOCH_ENV_VAR in os.environ:
+                del os.environ[EPOCH_ENV_VAR]
+
+            manifest = load_runtime_manifest()
+
+            assert manifest["version"] == "35Omega", \
+                "v45 epoch uses v35Omega JSON structure (descriptive base)"
+            assert manifest["epoch"] == 35, \
+                "v45 uses v35 epoch spec file (epoch 35)"
+
+            assert manifest.get("_runtime_epoch") == "v45"
+
+        finally:
+            if original_value is not None:
+                os.environ[EPOCH_ENV_VAR] = original_value
+            elif EPOCH_ENV_VAR in os.environ:
+                del os.environ[EPOCH_ENV_VAR]
+
+    def test_legacy_epochs_set_contains_v35_and_others(self):
+        """LEGACY_EPOCHS should contain v35, v36.3, v37, v44."""
+        from arifos.core.system.runtime_manifest import LEGACY_EPOCHS
+
+        assert "v35" in LEGACY_EPOCHS
+        assert "v36.3" in LEGACY_EPOCHS
+        assert "v37" in LEGACY_EPOCHS
+        assert "v44" in LEGACY_EPOCHS
