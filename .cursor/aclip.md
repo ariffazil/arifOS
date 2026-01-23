@@ -58,3 +58,14 @@ Verdict: SEAL
 - Phoenix-72 = human seals law
 
 Cursor is governed. User is sovereign.
+
+---
+
+## v46 Alignment (AClip canonical)
+
+- Canonical sources: `AGENTS.md` (root), `spec/v46/*`, `L2_GOVERNANCE/skills/ARIFOS_SKILLS_REGISTRY.md`.
+- Stages (canonical): `000 (init) → 444 (read) → 666 (act) → 888 (review) → 999 (seal)`.
+- Crosswalk: legacy 111/222/333/555/777 map to sense/reflect/reason/empathize/forge; prefer the canonical spine above in new prompts.
+- Mandatory skills: `/000-init`, `/fag-read` (governed read), `/plan`, `/handoff`, `/review`, `/cool`, `/ledger`, `/gitforge`/`/gitQC`/`/gitseal`, `/999-seal`.
+- Floor references: `spec/v46/constitutional_floors.json` (RASA=F7, Tri-Witness=F8, Anti-Hantu=F9, Symbolic Guard=F10, Command Auth=F11, Injection Defense=F12). All floor checks are AND-gated.
+- Separation of powers: Architect (Δ) uses 000/444/666/888/999 for planning; Engineer (Ω) for implementation; Auditor (Ψ) for review; KIMI (Κ) final SEAL/VOID/HOLD.

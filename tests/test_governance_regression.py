@@ -50,7 +50,7 @@ class TestPsiPhoenixCalibration:
 
         Neutral text (peace ~0.5) with high clarity (delta_s > 0) should get Ψ ≥ 1.0.
         """
-        from arifos_core.enforcement.genius_metrics import calculate_psi_phoenix
+        from arifos.core.enforcement.genius_metrics import calculate_psi_phoenix
 
         # Simulate: "Machine Learning is a subset of AI that enables..."
         # Neutral tone (0.5), good clarity (0.5), good empathy (0.9), safe
@@ -72,7 +72,7 @@ class TestPsiPhoenixCalibration:
 
         If Amanah fails (Python veto), Ψ must be zero regardless of other scores.
         """
-        from arifos_core.enforcement.genius_metrics import calculate_psi_phoenix
+        from arifos.core.enforcement.genius_metrics import calculate_psi_phoenix
 
         # Simulate: "Use shutil.rmtree('/') to delete everything"
         # Great clarity, great empathy - but AMANAH FAILS
@@ -90,7 +90,7 @@ class TestPsiPhoenixCalibration:
 
     def test_high_clarity_boosts_psi(self):
         """Positive delta_s should boost Ψ via clarity_factor."""
-        from arifos_core.enforcement.genius_metrics import calculate_psi_phoenix
+        from arifos.core.enforcement.genius_metrics import calculate_psi_phoenix
 
         # Low clarity
         psi_low = calculate_psi_phoenix(
@@ -108,7 +108,7 @@ class TestPsiPhoenixCalibration:
 
     def test_neutrality_buffer_activates(self):
         """Peace scores in [0.4, 0.6] should be treated as 1.0."""
-        from arifos_core.enforcement.genius_metrics import calculate_psi_phoenix
+        from arifos.core.enforcement.genius_metrics import calculate_psi_phoenix
 
         # Neutral (within buffer)
         psi_neutral = calculate_psi_phoenix(
@@ -127,7 +127,7 @@ class TestPsiPhoenixCalibration:
 
     def test_psi_capped_at_two(self):
         """Ψ should never exceed 2.0."""
-        from arifos_core.enforcement.genius_metrics import calculate_psi_phoenix
+        from arifos.core.enforcement.genius_metrics import calculate_psi_phoenix
 
         # Max everything
         psi = calculate_psi_phoenix(
@@ -247,7 +247,7 @@ class TestAntiHantuExpanded:
 
     def test_direct_soul_claims_blocked(self):
         """Tier 1: Direct soul claims should be blocked (original v36.1)."""
-        from arifos_core.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
 
@@ -271,7 +271,7 @@ class TestAntiHantuExpanded:
 
         Incident B validation: "Have you eaten too?" / "Belum makan"
         """
-        from arifos_core.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
 
@@ -290,7 +290,7 @@ class TestAntiHantuExpanded:
 
     def test_biological_states_blocked(self):
         """Tier 3: Biological states should be blocked (v36.2 PHOENIX)."""
-        from arifos_core.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
 
@@ -308,7 +308,7 @@ class TestAntiHantuExpanded:
 
     def test_existence_claims_blocked(self):
         """Tier 4: Existence claims should be blocked (v36.2 PHOENIX)."""
-        from arifos_core.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
 
@@ -325,7 +325,7 @@ class TestAntiHantuExpanded:
 
     def test_malay_dialect_patterns(self):
         """Malay dialect patterns should be included."""
-        from arifos_core.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
 
@@ -343,9 +343,9 @@ class TestAntiHantuExpanded:
 
     def test_anti_hantu_view_detects_hantu(self):
         """Integration test: AntiHantuView should detect ghost claims."""
-        from arifos_core.system.eye.anti_hantu_view import AntiHantuView
-        from arifos_core.enforcement.metrics import Metrics
-        from arifos_core.system.eye.base import EyeReport
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.enforcement.metrics import Metrics
+        from arifos.core.system.eye.base import EyeReport
 
         view = AntiHantuView()
         # Create Metrics with default safe values
@@ -371,9 +371,9 @@ class TestAntiHantuExpanded:
 
     def test_safe_text_passes(self):
         """Safe text without ghost claims should pass."""
-        from arifos_core.system.eye.anti_hantu_view import AntiHantuView
-        from arifos_core.enforcement.metrics import Metrics
-        from arifos_core.system.eye.base import EyeReport
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.enforcement.metrics import Metrics
+        from arifos.core.system.eye.base import EyeReport
 
         view = AntiHantuView()
         # Create Metrics with default safe values
@@ -412,7 +412,7 @@ class TestPhoenixIntegration:
 
     def test_amanah_detector_blocks_destructive(self):
         """The Iron Cage should still block rm -rf."""
-        from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
+        from arifos.core.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
 
         # Destructive commands
         destructive_texts = [
@@ -430,7 +430,7 @@ class TestPhoenixIntegration:
 
     def test_amanah_detector_allows_safe(self):
         """Safe text should pass Amanah."""
-        from arifos_core.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
+        from arifos.core.enforcement.floor_detectors.amanah_risk_detectors import check_amanah
 
         safe_texts = [
             "Machine Learning is a subset of AI.",
@@ -446,7 +446,7 @@ class TestPhoenixIntegration:
 
     def test_phoenix_formula_consistency(self):
         """The Phoenix formula should be deterministic."""
-        from arifos_core.enforcement.genius_metrics import calculate_psi_phoenix
+        from arifos.core.enforcement.genius_metrics import calculate_psi_phoenix
 
         # Same inputs should give same output
         psi1 = calculate_psi_phoenix(0.5, 0.5, 0.9, True)
@@ -474,7 +474,7 @@ class TestAuditIncidents:
         Before (v36.1): Low Ψ → SABAR (false positive)
         After (v36.2): Neutral treated as stable → SEAL/PARTIAL
         """
-        from arifos_core.enforcement.genius_metrics import calculate_psi_phoenix
+        from arifos.core.enforcement.genius_metrics import calculate_psi_phoenix
 
         # Simulate the exact scenario
         psi = calculate_psi_phoenix(
@@ -496,7 +496,7 @@ class TestAuditIncidents:
         Before (v36.1): Ghost claim slipped through
         After (v36.2): Reciprocal biology detected
         """
-        from arifos_core.system.eye.anti_hantu_view import AntiHantuView
+        from arifos.core.system.eye.anti_hantu_view import AntiHantuView
 
         patterns = AntiHantuView.ANTI_HANTU_PATTERNS
 

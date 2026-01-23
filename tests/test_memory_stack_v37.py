@@ -84,7 +84,7 @@ class TestMemoryContext:
 
     def test_create_memory_context(self):
         """Should create a valid MemoryContext with all bands."""
-        from arifos_core.memory.memory_context import create_memory_context
+        from arifos.core.memory.core.memory_context import create_memory_context
 
         ctx = create_memory_context(manifest_id="v37", request_id="test-request")
 
@@ -97,7 +97,7 @@ class TestMemoryContext:
 
     def test_env_band_operations(self):
         """ENV band should support extra dict operations."""
-        from arifos_core.memory.memory_context import EnvBand
+        from arifos.core.memory.core.memory_context import EnvBand
 
         env = EnvBand(
             runtime_manifest_id="v37",
@@ -112,7 +112,7 @@ class TestMemoryContext:
 
     def test_vault_band_is_frozen(self, sample_constitution: Path):
         """VaultBand should be read-only after freeze."""
-        from arifos_core.memory.memory_context import VaultBand
+        from arifos.core.memory.core.memory_context import VaultBand
 
         vault = VaultBand(
             epoch="v37",
@@ -127,7 +127,7 @@ class TestMemoryContext:
 
     def test_active_stream_band_operations(self):
         """ActiveStreamBand should support message operations."""
-        from arifos_core.memory.memory_context import ActiveStreamBand
+        from arifos.core.memory.core.memory_context import ActiveStreamBand
 
         stream = ActiveStreamBand()
         stream.messages.append({"role": "user", "content": "hello"})
@@ -140,7 +140,7 @@ class TestMemoryContext:
 
     def test_validate_memory_context(self):
         """validate_memory_context should detect invalid contexts."""
-        from arifos_core.memory.memory_context import (
+        from arifos.core.memory.core.memory_context import (
             MemoryContext,
             EnvBand,
             VaultBand,
@@ -186,7 +186,7 @@ class TestScarManager:
 
     def test_observe_pattern_creates_witness(self, temp_runtime_dir: Path):
         """observe_pattern should create an unsigned witness."""
-        from arifos_core.memory.scar_manager import ScarManager, ScarManagerConfig
+        from arifos.core.memory.scars.scar_manager import ScarManager, ScarManagerConfig
 
         config = ScarManagerConfig(
             witness_index_path=temp_runtime_dir / "witnesses.jsonl",
@@ -208,7 +208,7 @@ class TestScarManager:
 
     def test_seal_scar_requires_signature(self, temp_runtime_dir: Path):
         """seal_scar should require a signature."""
-        from arifos_core.memory.scar_manager import ScarManager, ScarManagerConfig
+        from arifos.core.memory.scars.scar_manager import ScarManager, ScarManagerConfig
 
         config = ScarManagerConfig(
             witness_index_path=temp_runtime_dir / "witnesses.jsonl",
@@ -243,7 +243,7 @@ class TestScarManager:
 
     def test_compute_floor_pressure(self, temp_runtime_dir: Path):
         """compute_floor_pressure should sum severity weights."""
-        from arifos_core.memory.scar_manager import (
+        from arifos.core.memory.scars.scar_manager import (
             ScarManager,
             ScarManagerConfig,
             SEVERITY_WEIGHTS,
@@ -273,7 +273,7 @@ class TestScarManager:
 
     def test_heal_scar(self, temp_runtime_dir: Path):
         """heal_scar should mark scar as HEALED."""
-        from arifos_core.memory.scar_manager import ScarManager, ScarManagerConfig
+        from arifos.core.memory.scars.scar_manager import ScarManager, ScarManagerConfig
 
         config = ScarManagerConfig(
             witness_index_path=temp_runtime_dir / "witnesses.jsonl",
@@ -311,7 +311,7 @@ class TestCoolingLedgerV37:
 
     def test_append_v37_creates_hash_chain(self, temp_runtime_dir: Path):
         """append_v37 should create proper hash chain."""
-        from arifos_core.memory.cooling_ledger import CoolingLedgerV37, LedgerConfigV37
+        from arifos.core.memory.ledger.cooling_ledger import CoolingLedgerV37, LedgerConfigV37
 
         config = LedgerConfigV37(
             ledger_path=temp_runtime_dir / "cooling_ledger.jsonl",
@@ -336,7 +336,7 @@ class TestCoolingLedgerV37:
 
     def test_verify_chain_quick(self, temp_runtime_dir: Path):
         """verify_chain_quick should validate head state."""
-        from arifos_core.memory.cooling_ledger import CoolingLedgerV37, LedgerConfigV37
+        from arifos.core.memory.ledger.cooling_ledger import CoolingLedgerV37, LedgerConfigV37
 
         config = LedgerConfigV37(
             ledger_path=temp_runtime_dir / "cooling_ledger.jsonl",
@@ -354,7 +354,7 @@ class TestCoolingLedgerV37:
 
     def test_fail_behavior_returns_result(self, temp_runtime_dir: Path):
         """append_v37 should return failure result, not raise."""
-        from arifos_core.memory.cooling_ledger import CoolingLedgerV37, LedgerConfigV37
+        from arifos.core.memory.ledger.cooling_ledger import CoolingLedgerV37, LedgerConfigV37
 
         # Use a read-only path to simulate IO error
         config = LedgerConfigV37(
@@ -380,7 +380,7 @@ class TestEurekaReceiptManager:
 
     def test_generate_receipt_for_seal(self, temp_runtime_dir: Path):
         """Should generate receipt for SEAL verdict."""
-        from arifos_core.memory.eureka_receipt import (
+        from arifos.core.memory.eureka.eureka_receipt import (
             EurekaReceiptManager,
             EurekaConfig,
             CareScope,
@@ -411,7 +411,7 @@ class TestEurekaReceiptManager:
 
     def test_no_receipt_for_void(self, temp_runtime_dir: Path):
         """Should not generate receipt for VOID verdict."""
-        from arifos_core.memory.eureka_receipt import generate_eureka_receipt
+        from arifos.core.memory.eureka.eureka_receipt import generate_eureka_receipt
 
         # VOID should not generate receipt
         success, receipt, error = generate_eureka_receipt(
@@ -424,7 +424,7 @@ class TestEurekaReceiptManager:
 
     def test_receipt_chain_integrity(self, temp_runtime_dir: Path):
         """Receipts should chain properly via previous_receipt_hash."""
-        from arifos_core.memory.eureka_receipt import (
+        from arifos.core.memory.eureka.eureka_receipt import (
             EurekaReceiptManager,
             EurekaConfig,
             CareScope,
@@ -463,7 +463,7 @@ class TestEurekaReceiptManager:
 
     def test_verify_receipt(self, temp_runtime_dir: Path):
         """verify_receipt should validate hash and signature."""
-        from arifos_core.memory.eureka_receipt import (
+        from arifos.core.memory.eureka.eureka_receipt import (
             EurekaReceiptManager,
             EurekaConfig,
             CareScope,
@@ -500,14 +500,14 @@ class TestPhoenix72Controller:
     @pytest.fixture
     def phoenix_setup(self, temp_runtime_dir: Path, sample_constitution: Path):
         """Set up Phoenix-72 controller with dependencies."""
-        from arifos_core.memory.scar_manager import ScarManager, ScarManagerConfig
-        from arifos_core.memory.vault_manager import (
+        from arifos.core.memory.scars.scar_manager import ScarManager, ScarManagerConfig
+        from arifos.core.memory.vault.vault_manager import (
             VaultManager,
             VaultManagerConfig,
             SafetyConstraints,
         )
-        from arifos_core.memory.cooling_ledger import CoolingLedgerV37, LedgerConfigV37
-        from arifos_core.memory.phoenix72_controller import (
+        from arifos.core.memory.ledger.cooling_ledger import CoolingLedgerV37, LedgerConfigV37
+        from arifos.core.memory.phoenix.phoenix72_controller import (
             Phoenix72Controller,
             Phoenix72Config,
         )
@@ -655,14 +655,14 @@ class TestPhoenix72Controller:
 
     def test_cooldown_enforcement(self, temp_runtime_dir: Path, sample_constitution: Path):
         """Cooldown window should be enforced."""
-        from arifos_core.memory.scar_manager import ScarManager, ScarManagerConfig
-        from arifos_core.memory.vault_manager import VaultManager, VaultManagerConfig
-        from arifos_core.memory.cooling_ledger import CoolingLedgerV37, LedgerConfigV37
-        from arifos_core.memory.phoenix72_controller import (
+        from arifos.core.memory.scars.scar_manager import ScarManager, ScarManagerConfig
+        from arifos.core.memory.vault.vault_manager import VaultManager, VaultManagerConfig
+        from arifos.core.memory.ledger.cooling_ledger import CoolingLedgerV37, LedgerConfigV37
+        from arifos.core.memory.phoenix.phoenix72_controller import (
             Phoenix72Controller,
             Phoenix72Config,
         )
-        from arifos_core.memory.vault_manager import SafetyConstraints
+        from arifos.core.memory.vault.vault_manager import SafetyConstraints
 
         scar_config = ScarManagerConfig(
             witness_index_path=temp_runtime_dir / "witnesses.jsonl",
@@ -779,9 +779,9 @@ class TestMemoryStackIntegration:
 
     def test_full_governance_flow(self, temp_runtime_dir: Path, sample_constitution: Path):
         """Test full flow: observe -> seal scar -> log ledger -> generate receipt."""
-        from arifos_core.memory.scar_manager import ScarManager, ScarManagerConfig
-        from arifos_core.memory.cooling_ledger import CoolingLedgerV37, LedgerConfigV37
-        from arifos_core.memory.eureka_receipt import (
+        from arifos.core.memory.scars.scar_manager import ScarManager, ScarManagerConfig
+        from arifos.core.memory.ledger.cooling_ledger import CoolingLedgerV37, LedgerConfigV37
+        from arifos.core.memory.eureka.eureka_receipt import (
             EurekaReceiptManager,
             EurekaConfig,
             CareScope,
@@ -873,7 +873,7 @@ class TestRuntimeManifest:
 
     def test_normalize_epoch(self):
         """normalize_epoch should handle various formats."""
-        from arifos_core.system.runtime_manifest import normalize_epoch
+        from arifos.core.system.runtime_manifest import normalize_epoch
         import pytest
 
         assert normalize_epoch("v37") == "v37"
@@ -890,7 +890,7 @@ class TestRuntimeManifest:
 
     def test_is_v37_epoch(self):
         """is_v37_epoch should detect v37."""
-        from arifos_core.system.runtime_manifest import is_v37_epoch, set_active_epoch
+        from arifos.core.system.runtime_manifest import is_v37_epoch, set_active_epoch
 
         # Test with manifest dict
         manifest_v37 = {"_runtime_epoch": "v37"}

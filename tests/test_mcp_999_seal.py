@@ -1,7 +1,7 @@
 """Tests for MCP Tool 999: SEAL - Final Verdict Sealing"""
 import pytest
 import base64
-from arifos_core.mcp.tools.mcp_999_seal import (
+from arifos.core.mcp.tools.mcp_999_seal import (
     mcp_999_seal,
     mcp_999_seal_sync,
     generate_seal,

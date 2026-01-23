@@ -1,0 +1,55 @@
+INFO:VERIFY:Verifying v49 Imports...
+INFO:VERIFY:1. Checking Constitutional Constants...
+INFO:VERIFY:   - Version: v49.0.0
+INFO:VERIFY:   - FloorType.HARD: hard
+INFO:VERIFY:2. Checking Floor Validators...
+WARNING:arifos.core.memory.ledger.ledger_config_loader:ARIFOS_ALLOW_LEGACY_SPEC=1: Using default ledger config (bypass mode)
+ERROR:VERIFY:\u274c IMPORT FAILED: TRACK B AUTHORITY FAILURE: GENIUS LAW spec not found.
+
+Searched locations (in priority order):
+  1. AAA_MCP/v46/genius_law.json (PRIMARY AUTHORITY - v46.0)
+  2. AAA_MCP/v45/genius_law.json (v45 runtime compatibility)
+  3. AAA_MCP/archive/v45/genius_law.json (ARCHIVE - if ARIFOS_ALLOW_LEGACY_SPEC=1)
+
+Resolution:
+1. Ensure AAA_MCP/v46/genius_law.json exists and is valid OR
+2. Set ARIFOS_GENIUS_SPEC env var to explicit path
+3. Verify MANIFEST.sha256.json integrity if using strict mode
+
+Note: spec/v45/ and spec/v44/ are no longer supported. Use AAA_MCP/ structure.
+For migration guide, see: AAA_MCP/MIGRATION_SPEC_TO_L2_v46.md
+Traceback (most recent call last):
+  File "C:\Users\User\arifOS\scripts\verify_v49_wiring.py", line 40, in test_imports
+    from arifos.core import floor_validators as fv
+  File "C:\Users\User\arifOS\arifos\core\__init__.py", line 92, in <module>
+    from .enforcement.genius_metrics import (
+    ...<5 lines>...
+    )
+  File "C:\Users\User\arifOS\arifos\core\enforcement\__init__.py", line 15, in <module>
+    from .genius_metrics import (
+    ...<5 lines>...
+    )
+  File "C:\Users\User\arifOS\arifos\core\enforcement\genius_metrics.py", line 234, in <module>
+    _GENIUS_SPEC = _load_genius_spec()
+  File "C:\Users\User\arifOS\arifos\core\enforcement\genius_metrics.py", line 218, in _load_genius_spec
+    raise RuntimeError(
+    ...<11 lines>...
+    )
+RuntimeError: TRACK B AUTHORITY FAILURE: GENIUS LAW spec not found.
+
+Searched locations (in priority order):
+  1. AAA_MCP/v46/genius_law.json (PRIMARY AUTHORITY - v46.0)
+  2. AAA_MCP/v45/genius_law.json (v45 runtime compatibility)
+  3. AAA_MCP/archive/v45/genius_law.json (ARCHIVE - if ARIFOS_ALLOW_LEGACY_SPEC=1)
+
+Resolution:
+1. Ensure AAA_MCP/v46/genius_law.json exists and is valid OR
+2. Set ARIFOS_GENIUS_SPEC env var to explicit path
+3. Verify MANIFEST.sha256.json integrity if using strict mode
+
+Note: spec/v45/ and spec/v44/ are no longer supported. Use AAA_MCP/ structure.
+For migration guide, see: AAA_MCP/MIGRATION_SPEC_TO_L2_v46.md
+DEBUG: Set ARIFOS_FLOORS_SPEC = C:\Users\User\arifOS\AAA_MCP\v46\constitutional_floors.json
+DEBUG: Could not find spec at C:\Users\User\arifOS\AAA_MCP\v46\genius_law.json
+DEBUG: Could not find spec at C:\Users\User\arifOS\AAA_MCP\v46\constitutional_stages.json
+DEBUG: Could not find spec at C:\Users\User\arifOS\AAA_MCP\v46\constitutional_workflows.json
