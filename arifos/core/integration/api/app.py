@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
-from .routes import health, pipeline, memory, ledger, metrics, federation
+from .routes import health, pipeline, memory, ledger, metrics, federation, body
 from .middleware import setup_middleware
 from .exceptions import setup_exception_handlers
 
@@ -30,19 +30,18 @@ def create_app() -> FastAPI:
     Create and configure the FastAPI application.
 
     Returns a FastAPI app with:
-    - All routes registered (health, pipeline, memory, ledger, metrics)
+    - All routes registered (health, pipeline, memory, ledger, metrics, body)
     - Middleware configured (CORS, logging)
     - Exception handlers set up
     """
     app = FastAPI(
-        title="arifOS v41.3 API",
+        title="arifOS v50.5.24 API (The Body)",
         description=(
-            "Constitutional Governance API for AI. "
-            "Wraps the governed pipeline with 9 constitutional floors, "
-            "L7 Federation Router (multi-endpoint SEA-LION), "
-            "L7 memory (Mem0 + Qdrant), and cooling ledger access."
+            "Constitutional Governance Oracle. "
+            "Exposes the Trinity Metabolic Loop (AGI-ASI-APEX) over HTTP. "
+            "DITEMPA BUKAN DIBERI."
         ),
-        version="0.2.0",
+        version="50.5.24",
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
@@ -61,6 +60,7 @@ def create_app() -> FastAPI:
     app.include_router(ledger.router)
     app.include_router(metrics.router)
     app.include_router(federation.router)
+    app.include_router(body.router)
 
     # Root endpoint
     @app.get("/", tags=["root"])
@@ -68,11 +68,11 @@ def create_app() -> FastAPI:
         """API root - returns version and basic info."""
         return {
             "name": "arifOS API",
-            "version": "v41.3Omega",
-            "description": "Constitutional Governance API for AI",
+            "version": "v50.5.24",
+            "description": "Constitutional Governance Oracle (The Body)",
             "docs": "/docs",
-            "health": "/health",
-            "federation": "/federation/status",
+            "govern": "/v1/govern",
+            "health": "/v1/health",
             "motto": "DITEMPA BUKAN DIBERI - Forged, not given",
         }
 
