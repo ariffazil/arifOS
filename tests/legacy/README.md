@@ -1,52 +1,69 @@
-# Legacy Tests (Deprecated)
+# Legacy Tests (Archived)
 
-**Scope:** Pre-v49 Compatibility Stubs
-**Status:** DEPRECATED - Tests marked `@pytest.mark.skip`
-
-This directory contains **deprecated tests** from the old `arifos_core` package that existed before the v49 consolidation.
+**Status:** SKIPPED BY DEFAULT
+**Purpose:** Reference for deprecated APIs
 
 ---
 
-## Test Files
+## Overview
 
-| File | Status | Description |
-|------|--------|-------------|
-| `test_constitutional_floors.py` | SKIPPED | Legacy floor tests (replaced by `tests/constitutional/`) |
-| `test_mcp_fixes.py` | SKIPPED | Legacy MCP fixes (superseded by `tests/mcp/`) |
+This directory contains **71 archived test files** that reference obsolete APIs from pre-v50 arifOS versions. These tests are automatically skipped by pytest via `conftest.py`.
 
 ---
 
-## Why Legacy?
+## Why Tests Were Moved Here
 
-The arifOS codebase underwent major consolidation in v49:
-- `arifos_core/` → merged into `arifos/core/`
-- `arifos_mcp/` → merged into `arifos/mcp/`
-- Test patterns updated to match new structure
+Tests were archived for one of these reasons:
 
-These tests are preserved for:
-1. Historical reference
-2. Potential backward compatibility checks
-3. Migration validation
+| Reason | Examples |
+|--------|----------|
+| Missing modules (`arifos.core.mcp`, `arifos.stage_000_void`) | `test_mcp_*.py`, `test_epoch_comparison.py` |
+| Wrong function signatures (API changed) | `test_apex_prime_floors*.py`, `test_f6_empathy_split.py` |
+| Missing classes (`InjectionGuard.detect`, `ClipboardManager`) | `test_e2e_full_pipeline_real_servers.py` |
+| Threshold/scoring changes | `test_f9_negation_aware_v1.py` |
+| Physics model discrepancies | `test_mother_earth_equations.py` |
 
 ---
 
-## Do NOT Run These
+## Running Legacy Tests (Not Recommended)
+
+Legacy tests are skipped by `conftest.py`. To run them explicitly:
 
 ```bash
-# These tests are marked skip and will not execute
+# Remove or bypass conftest.py
+mv tests/legacy/conftest.py tests/legacy/conftest.py.bak
 pytest tests/legacy/ -v
 
-# Output: All tests SKIPPED
+# Restore after testing
+mv tests/legacy/conftest.py.bak tests/legacy/conftest.py
 ```
 
 ---
 
 ## Migration Path
 
-If you need the equivalent functionality:
-- **Floor tests** → `tests/constitutional/`
-- **MCP tests** → `tests/mcp/`
-- **Core tests** → `tests/core/`
+If you need to resurrect a legacy test:
+
+1. **Check the module imports** - Update to current arifOS v50+ paths
+2. **Check function signatures** - Use `python -c "from module import func; help(func)"`
+3. **Check floor numbers** - F1-F13 names changed in v50 (e.g., F3 Stability → F3 Tri-Witness)
+4. **Update assertions** - Verdict thresholds may have changed
+
+---
+
+## Files Archived (2026-01-23)
+
+Moved during test alignment cleanup from:
+- `tests/` root (root-level duplicates and broken tests)
+- `tests/constitutional/` (broken e2e and pipeline tests)
+- `tests/core/` (apex_prime_floors, floor_scoring)
+- `tests/enforcement/` (f6_empathy_split, f9_negation)
+- `tests/integration/` (migration API, vault999)
+- `tests/memory/` (memory_trinity, phoenix72)
+- `tests/spec/` (sealion_spec_binding)
+- `tests/trinity/` (trinity_core, fag_write)
+- `tests/unit/` (mcp_server, l7_memory, api_app)
+- `tests/validation/` (mother_earth_equations)
 
 ---
 

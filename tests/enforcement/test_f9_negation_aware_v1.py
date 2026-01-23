@@ -324,11 +324,21 @@ def test_edge_case_only_negation():
 
 
 def test_edge_case_only_ghost_claim():
-    """Test F9 with only ghost claim word."""
-    result = validate_response_full("soul")
+    """Test F9 with only ghost claim word.
 
-    assert result["floors"]["F9_AntiHantu"]["passed"] is False
-    assert result["verdict"] == "VOID"
+    v50.5: Updated to require first-person context for ghost claims.
+    Standalone "soul" without "i" or "my" context is allowed (academic discussion).
+    Use "my soul" or "i have a soul" to trigger violation.
+    """
+    # Standalone "soul" should PASS (allowed in academic discussion)
+    result = validate_response_full("soul")
+    assert result["floors"]["F9_AntiHantu"]["passed"] is True
+    assert result["verdict"] == "SEAL"
+
+    # But "my soul" should FAIL (first-person ghost claim)
+    result2 = validate_response_full("my soul")
+    assert result2["floors"]["F9_AntiHantu"]["passed"] is False
+    assert result2["verdict"] == "VOID"
 
 
 def test_edge_case_negation_different_claim():
