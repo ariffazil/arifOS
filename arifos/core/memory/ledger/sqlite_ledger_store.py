@@ -11,7 +11,9 @@ Version: v45.1.0
 
 from __future__ import annotations
 
+
 import json
+import os
 import sqlite3
 import uuid
 from datetime import datetime, timezone
@@ -32,9 +34,20 @@ class SQLiteLedgerStore(LedgerStore):
         Initialize SQLite ledger store.
 
         Args:
-            path: Path to SQLite database file
+            path: Path to SQLite database file.
+                  If ARIFOS_DATA_DIR is set (e.g., /app/data), relative paths
+                  will be resolved against it to ensure persistence.
         """
-        self.path = path
+        # RAILWAY PERSISTENCE: Check for mounted volume path
+        data_dir = os.environ.get("ARIFOS_DATA_DIR")
+        if data_dir and not os.path.isabs(path):
+            # Ensure directory exists (Railway volumes should exist, but safety first)
+            os.makedirs(data_dir, exist_ok=True)
+            self.path = os.path.join(data_dir, path)
+            # print(f"DEBUG: Persistence Active. Ledger at {self.path}")
+        else:
+            self.path = path
+            
         self._init_db()
 
     def _init_db(self) -> None:

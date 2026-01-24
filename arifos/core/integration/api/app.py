@@ -62,6 +62,48 @@ def create_app() -> FastAPI:
     # Setup exception handlers
     setup_exception_handlers(app)
 
+    # ==========================================================================
+    # SECURITY: API KEY AUTHENTICATION
+    # ==========================================================================
+    import os
+    from fastapi.responses import JSONResponse
+
+    @app.middleware("http")
+    async def security_middleware(request: Request, call_next):
+        """
+        Global security middleware to enforce ARIFOS_API_KEY.
+        Skips public routes (health, docs).
+        """
+        expected_key = os.environ.get("ARIFOS_API_KEY")
+        if not expected_key:
+            # Unsecured mode (warn in logs in real app, but for now just pass)
+            return await call_next(request)
+
+        # Allow public paths
+        path = request.url.path
+        if (
+            path == "/" or 
+            path.startswith("/docs") or 
+            path.startswith("/redoc") or 
+            path.startswith("/openapi.json") or 
+            "/health" in path
+        ):
+            return await call_next(request)
+            
+        # Check Header
+        client_key = request.headers.get("X-API-Key")
+        # Check Query (useful for SSE/Browser)
+        if not client_key:
+            client_key = request.query_params.get("api_key")
+            
+        if client_key == expected_key:
+             return await call_next(request)
+             
+        return JSONResponse(
+            status_code=403, 
+            content={"detail": "Access Denied: ARIFOS_API_KEY required"}
+        )
+
     # Register route modules
     app.include_router(health.router)
     app.include_router(pipeline.router)

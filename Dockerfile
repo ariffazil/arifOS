@@ -19,6 +19,7 @@ RUN pip install fastapi uvicorn pydantic mcp sse-starlette
 # Copy codebase
 COPY arifos/ arifos/
 COPY 000_THEORY/ 000_THEORY/
+COPY AAA_MCP/ AAA_MCP/
 COPY setup/ setup/
 
 # Install package in editable mode

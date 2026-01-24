@@ -107,10 +107,8 @@
             }
         },
         "context7": {
-            "url": "https://mcp.context7.com/mcp",
-            "headers": {
-                "CONTEXT7_API_KEY": "ctx7sk-1dd34375-5d0c-4216-86ab-28fcc338047c"
-            }
+            "type": "sse",
+            "url": "https://mcp.context7.com/mcp"
         }
     }
 }

@@ -2,6 +2,13 @@ import logging
 import os
 import sys
 
+
+# Ensure repo root is in sys.path
+script_dir = os.path.dirname(os.path.abspath(__file__))
+repo_root = os.path.dirname(script_dir)
+if repo_root not in sys.path:
+    sys.path.insert(0, repo_root)
+
 # Bypass legacy spec enforcements for v49 transition
 # Must be set BEFORE importing any arifos modules that check manifest
 os.environ["ARIFOS_ALLOW_LEGACY_SPEC"] = "1"
@@ -20,6 +27,14 @@ for env_var, rel_path in specs.items():
     if os.path.exists(abs_path):
         os.environ[env_var] = abs_path
         print(f"DEBUG: Set {env_var} = {abs_path}")
+        # Verify file readability
+        try:
+             with open(abs_path, 'r', encoding='utf-8') as f:
+                 import json
+                 json.load(f)
+             print(f"DEBUG: Verified {env_var} is readable and valid JSON")
+        except Exception as e:
+             print(f"DEBUG: Failed to read {env_var}: {e}")
     else:
         print(f"DEBUG: Could not find spec at {abs_path}")
 

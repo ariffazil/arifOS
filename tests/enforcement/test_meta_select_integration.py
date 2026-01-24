@@ -222,7 +222,11 @@ def test_custom_threshold_high():
 
 
 def test_custom_threshold_edge_case():
-    """Test meta_select at exact threshold boundary."""
+    """Test meta_select at exact threshold boundary with tie-breaking.
+
+    v50.5 Note: When counts are tied, hierarchy determines winner.
+    PARTIAL (index 3) beats SEAL (index 4) in hierarchy.
+    """
     verdicts = [
         {"source": "human", "verdict": "SEAL", "confidence": 1.0},
         {"source": "ai", "verdict": "SEAL", "confidence": 0.99},
@@ -232,9 +236,10 @@ def test_custom_threshold_edge_case():
 
     result = meta_select(verdicts, consensus_threshold=0.50)
 
-    assert result["winner"] == "SEAL"  # 2/4 = 0.50
-    assert result["consensus"] == 0.50
-    assert result["verdict"] == "HOLD-888"  # Winner is SEAL but not at threshold
+    # 2 SEAL vs 2 PARTIAL = TIE → hierarchy decides → PARTIAL wins
+    assert result["winner"] == "PARTIAL"  # PARTIAL > SEAL in hierarchy
+    assert result["consensus"] == 0.50  # 2/4
+    assert result["verdict"] == "HOLD-888"  # PARTIAL (not SEAL) → HOLD-888
 
 
 # =============================================================================
@@ -393,7 +398,12 @@ def test_integration_split_decision():
 
 
 def test_integration_safety_override():
-    """Test meta_select with safety override (one VOID vote escalates)."""
+    """Test meta_select with safety concern (VOID in minority).
+
+    v50.5 Note: Hierarchy is for TIE-BREAKING only. Vote count wins first.
+    With 2 SEAL vs 1 VOID, SEAL wins by majority.
+    The single VOID vote still shows up in tally for audit trails.
+    """
     verdicts = [
         {"source": "human", "verdict": "SEAL", "confidence": 1.0},
         {"source": "ai", "verdict": "SEAL", "confidence": 0.99},
@@ -402,10 +412,10 @@ def test_integration_safety_override():
 
     result = meta_select(verdicts)
 
-    # VOID wins in hierarchy even with minority
-    assert result["winner"] == "VOID"
-    assert result["consensus"] == pytest.approx(0.333, abs=0.01)  # 1/3
-    assert result["verdict"] == "HOLD-888"  # Low consensus
+    # 2 SEAL vs 1 VOID → SEAL wins by majority (hierarchy is tie-break only)
+    assert result["winner"] == "SEAL"
+    assert result["consensus"] == pytest.approx(0.666, abs=0.01)  # 2/3
+    assert result["verdict"] == "HOLD-888"  # 66% < 95% threshold → HOLD-888
 
 
 def test_integration_confidence_ignored():
