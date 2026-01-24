@@ -73,6 +73,9 @@ async def bridge_agi_router(action: str = "full", **kwargs) -> dict:
         elif action == "atlas":
             # Stage 333: TAC Analysis
             return _serialize(await kernel.atlas_tac_analysis(kwargs.get("inputs", [])))
+        elif action == "forge":
+            draft = kwargs.get("draft", kwargs.get("response", query))
+            return _serialize(await kernel.forge(draft, kwargs.get("omega_0", 0.04)))
         elif action == "evaluate":
             return _serialize(kernel.evaluate(query, kwargs.get("response", ""), kwargs.get("truth_score", 1.0)))
         else:
@@ -92,7 +95,7 @@ async def bridge_asi_router(action: str = "full", **kwargs) -> dict:
     
     try:
         if action == "evidence":
-            search_query = kwargs.get("query", text)
+            search_query = kwargs.get("query") or text
             return _serialize(await kernel.gather_evidence(search_query, kwargs.get("rationale", "")))
         elif action in ("empathize", "full", "act"):
             return _serialize(await kernel.empathize(text, ctx))

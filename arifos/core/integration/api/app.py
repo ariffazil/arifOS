@@ -28,7 +28,7 @@ from .exceptions import setup_exception_handlers
 
 # SSE Integration
 from arifos.mcp.sse import create_sse_app
-from arifos.mcp.trinity_server import TOOLS, TOOL_DESCRIPTIONS
+from arifos.mcp.server import TOOL_DESCRIPTIONS, TOOL_ROUTERS as TOOLS
 
 # MCP Server for direct endpoint
 from mcp.server import Server
@@ -136,12 +136,7 @@ def create_app() -> FastAPI:
     app.include_router(body.router)
 
     # Register MCP SSE routes (sub-app for /sse and /messages endpoints)
-    sse_app = create_sse_app(
-        tools=TOOLS,
-        tool_descriptions=TOOL_DESCRIPTIONS,
-        server_name="arifOS-Trinity",
-        version="51.2.0"
-    )
+    sse_app = create_sse_app()
 
     # ==========================================================================
     # CHATGPT DEVELOPER MODE: Direct /mcp endpoint

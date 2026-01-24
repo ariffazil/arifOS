@@ -77,6 +77,23 @@ class AGINeuralCore:
         # Kept as stub for now, focusing on 111-SENSE wiring
         pass
 
+    @staticmethod
+    async def forge(draft: str, omega_0: float = 0.04) -> Dict[str, Any]:
+        """
+        Stage 777: Forge - clarity refinement + humility injection.
+
+        This mirrors the MCP tool's forge semantics while staying minimal.
+        """
+        refined = " ".join(draft.split())
+        if omega_0 > 0.04:
+            refined = f"{refined} (Note: This is an estimate.)"
+        return {
+            "stage": "777_forge",
+            "status": "SEAL",
+            "reasoning": refined,
+            "omega_0": omega_0
+        }
+
     def evaluate(self, query: str, response: str, truth_score: float = 1.0) -> AGIVerdict:
         """
         Evaluate query-response pair for AGI constitutional compliance.
