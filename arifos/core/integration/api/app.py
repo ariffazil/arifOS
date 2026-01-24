@@ -46,13 +46,13 @@ def create_app() -> FastAPI:
     - Exception handlers set up
     """
     app = FastAPI(
-        title="arifOS v51.2.0 API (The Body)",
+        title="arifOS v52.0.0 API (Unified Core)",
         description=(
             "Constitutional Governance Oracle. "
-            "Exposes the Trinity Metabolic Loop (AGI-ASI-APEX) over HTTP and SSE. "
+            "Exposes the Unified Trinity Metabolic Loop (AGI-ASI-APEX) over HTTP and SSE. "
             "DITEMPA BUKAN DIBERI."
         ),
-        version="51.2.0",
+        version="52.0.0",
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
@@ -191,8 +191,8 @@ def create_app() -> FastAPI:
         """API root - returns version and basic info."""
         return {
             "name": "arifOS API",
-            "version": "51.2.0",
-            "description": "Constitutional Governance Oracle (The Body)",
+            "version": "52.0.0",
+            "description": "Constitutional Governance Oracle (Unified Core)",
             "docs": "/docs",
             "govern": "/v1/govern",
             "mcp_chatgpt": "/mcp",

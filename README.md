@@ -309,13 +309,13 @@ arifOS exposes 5 tools via the Model Context Protocol (MCP):
 
 **Mnemonic:** *"Init the Genius, Act with Heart, Judge at Apex, Seal in Vault."*
 
-| Tool | Role | What It Does | Floors Enforced |
-|------|------|--------------|-----------------|
-| `000_init` | Gate | Authority check, injection defense, session start | F1, F11, F12 |
-| `agi_genius` | Mind (Δ) | SENSE → THINK → ATLAS (search, reason, structure) | F2, F4, F7 |
-| `asi_act` | Heart (Ω) | EVIDENCE → EMPATHY → ACT (validate, care, execute) | F5, F6, F9 |
-| `apex_judge` | Soul (Ψ) | EUREKA → JUDGE → PROOF (insight, verdict, receipt) | F1, F3, F8 |
-| `999_vault` | Seal | Merkle hash + immutable ledger + session close | F1, F8 |
+| Tool | Role | What It Does | Checked By |
+|------|------|--------------|------------|
+| `000_init` | Gate | Identity, Injection, Session | ASI |
+| `agi_genius`| Mind (Δ) | SENSE → THINK → ATLAS | AGI |
+| `asi_act` | Heart (Ω) | EVIDENCE → EMPATHY → ACT | ASI |
+| `apex_judge`| Soul (Ψ) | EUREKA → JUDGE → PROOF | APEX |
+| `999_vault` | Seal | Merkle Archival & Closure | APEX |
 
 ---
 

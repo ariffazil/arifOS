@@ -33,11 +33,18 @@ def _serialize(obj: Any) -> Any:
     if obj is None: return None
     if hasattr(obj, "to_dict"): return obj.to_dict()
     if hasattr(obj, "as_dict"): return obj.as_dict()
+    # Handle dataclasses
+    if hasattr(obj, "__dataclass_fields__"):
+        from dataclasses import asdict
+        return asdict(obj)
     if isinstance(obj, (list, tuple)): return [_serialize(x) for x in obj]
     if isinstance(obj, dict): return {k: _serialize(v) for k, v in obj.items()}
     if hasattr(obj, "value") and not isinstance(obj, (int, float, str, bool)):
         return obj.value
     if isinstance(obj, (str, int, float, bool)): return obj
+    # For objects without serialization, convert to dict if possible
+    if hasattr(obj, "__dict__"):
+        return {k: _serialize(v) for k, v in obj.__dict__.items() if not k.startswith("_")}
     return str(obj)
 
 # --- ROUTERS ---
