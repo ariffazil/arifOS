@@ -5,7 +5,7 @@ This module provides a REST API wrapping the governed pipeline, L7 memory,
 and ledger access. All endpoints are stateless, fail-open, and read-only
 or append-only.
 
-Version: v50.5.25
+Version: v51.2.0
 """
 
 from .app import create_app, app

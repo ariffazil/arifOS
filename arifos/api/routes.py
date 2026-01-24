@@ -1,10 +1,18 @@
 import logging
 import time
+import warnings
+from datetime import datetime
 from fastapi import APIRouter, HTTPException, Depends
 from arifos.api.models import GovernRequest, GovernResponse, HealthStatus
 from arifos.core.metabolizer import Metabolizer
 # Assuming authentication dependency will be implemented or mocked for now
 # from arifos.api.deps import verify_authority
+
+warnings.warn(
+    "arifos.api.routes is deprecated. Use arifos.core.integration.api.routes instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 router = APIRouter()
 logger = logging.getLogger("arifos.api")
@@ -110,7 +118,7 @@ async def health():
     """
     return HealthStatus(
         status="active",
-        version="v50.5.25",
+        version="v51.2.0",
         trinity_coherence=0.98, # Mocked telemetry
         floors_active=13
     )

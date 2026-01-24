@@ -1,48 +1,20 @@
+import warnings
 import uvicorn
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from arifos.api.routes import router as api_router
+from arifos.core.integration.api import app as core_app, create_app as core_create_app
 
-def create_app() -> FastAPI:
-    """
-    Create the arifOS Body API application.
-    """
-    app = FastAPI(
-        title="arifOS Body API",
-        description="The Voice and Ears of the Constitutional AI System",
-        version="v50.5.25",
-        docs_url="/docs",
-        redoc_url="/redoc"
-    )
+warnings.warn(
+    "arifos.api.server is deprecated. Use arifos.core.integration.api.app instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
-    # CORS Configuration
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],  # Restrict in production
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
-    # Include Routes
-    app.include_router(api_router, prefix="/v1")
-
-    @app.get("/")
-    async def root():
-        return {
-            "system": "arifOS",
-            "motto": "Ditempa Bukan Diberi",
-            "status": "SOVEREIGN",
-            "docs": "/docs"
-        }
-
-    return app
-
-app = create_app()
+# Backward-compatibility aliases to the canonical API app
+app = core_app
+create_app = core_create_app
 
 def run_server(host: str = "0.0.0.0", port: int = 8000):
-    """Run the Uvicorn server."""
-    uvicorn.run("arifos.api.server:app", host=host, port=port, reload=True)
+    """Run the Uvicorn server (deprecated path)."""
+    uvicorn.run("arifos.core.integration.api.app:app", host=host, port=port, reload=True)
 
 if __name__ == "__main__":
     run_server()

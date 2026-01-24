@@ -1,7 +1,7 @@
 """
 arifOS API Application - FastAPI app factory.
 
-This module provides the FastAPI application for the arifOS v50.5.25 API.
+This module provides the FastAPI application for the arifOS v51.2.0 API.
 All endpoints are stateless, fail-open, and read-only or append-only.
 
 Usage:
@@ -44,13 +44,13 @@ def create_app() -> FastAPI:
     - Exception handlers set up
     """
     app = FastAPI(
-        title="arifOS v50.5.25 API (The Body)",
+        title="arifOS v51.2.0 API (The Body)",
         description=(
             "Constitutional Governance Oracle. "
             "Exposes the Trinity Metabolic Loop (AGI-ASI-APEX) over HTTP and SSE. "
             "DITEMPA BUKAN DIBERI."
         ),
-        version="50.5.25",
+        version="51.2.0",
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
@@ -123,7 +123,7 @@ def create_app() -> FastAPI:
         tools=TOOLS,
         tool_descriptions=TOOL_DESCRIPTIONS,
         server_name="arifOS-Trinity",
-        version="50.5.25"
+        version="51.2.0"
     )
 
     # ==========================================================================
@@ -179,7 +179,7 @@ def create_app() -> FastAPI:
         """API root - returns version and basic info."""
         return {
             "name": "arifOS API",
-            "version": "50.5.25",
+            "version": "51.2.0",
             "description": "Constitutional Governance Oracle (The Body)",
             "docs": "/docs",
             "govern": "/v1/govern",
