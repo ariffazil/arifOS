@@ -24,7 +24,7 @@ import time
 from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
 
-from arifos.core.floors import floor_02_clarity as f2
+from arifos.core.enforcement.clarity_metrics import compute_clarity_delta
 
 logger = logging.getLogger("arifos.core.search_cache")
 
@@ -248,7 +248,7 @@ class ConstitutionalSearchCache:
             # Calculate semantic similarity using F2 clarity
             try:
                 # Use F2's clarity detection for semantic similarity
-                clarity_result = f2.compute_clarity_delta(query, entry.query)
+                clarity_result = compute_clarity_delta(query, entry.query)
                 similarity_score = clarity_result.get("clarity_score", 0.0)
                 
                 # Invert for similarity (higher clarity delta = lower similarity)

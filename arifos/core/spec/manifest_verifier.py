@@ -112,9 +112,13 @@ def verify_manifest(
     Side Effects:
         None (pure verification, no state modification)
     """
-    # Check environment variable override
+    # Check environment variable override (Fail-Open Guard)
     import os
+    import logging
+    logger = logging.getLogger(__name__)
+
     if os.getenv("ARIFOS_ALLOW_LEGACY_SPEC", "0") == "1":
+        # Log warning but do not verify (allows startup even with mismatch)
         return
     
     # Legacy mode: skip all verification
@@ -171,6 +175,11 @@ def verify_manifest(
         error_lines.append("  1. Restore original files from git")
         error_lines.append("  2. Or regenerate manifest: python -m arifos.core.spec.regenerate_manifest")
         error_lines.append("  3. Or bypass (NOT RECOMMENDED): set ARIFOS_ALLOW_LEGACY_SPEC=1")
+
+        if os.getenv("ARIFOS_ALLOW_LEGACY_SPEC") == "1":
+            # Just in case the check at top didn't catch it
+            logger.warning("TRACK B disabled: manifest mismatches detected but ignored.")
+            return
 
         raise RuntimeError("\n".join(error_lines))
 

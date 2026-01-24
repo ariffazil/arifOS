@@ -326,7 +326,7 @@ arifOS exposes 5 tools via the Model Context Protocol (MCP):
 arifOS runs 24/7 on Railway:
 
 ```
-https://arifos-production.up.railway.app/
+https://arifos.arif-fazil.com/
 ```
 
 | Endpoint | Purpose |
@@ -341,7 +341,7 @@ https://arifos-production.up.railway.app/
 ### Quick Health Check
 
 ```bash
-curl https://arifos-production.up.railway.app/health
+curl https://arifos.arif-fazil.com/health
 ```
 
 ```json
@@ -366,7 +366,7 @@ curl https://arifos-production.up.railway.app/health
    ```
    Settings → Connectors → Create
    ├── Name: "arifOS Trinity"
-   ├── URL: https://arifos-production.up.railway.app/mcp
+   ├── URL: https://arifos.arif-fazil.com/mcp
    └── Description: "Constitutional AI governance"
    ```
 
@@ -385,7 +385,7 @@ Add to your Claude Desktop config (`claude_desktop_config.json`):
 {
   "mcpServers": {
     "arifOS": {
-      "url": "https://arifos-production.up.railway.app/sse"
+      "url": "https://arifos.arif-fazil.com/sse"
     }
   }
 }
@@ -405,8 +405,10 @@ pip install arifos
 # Run MCP server locally
 python -m arifos.mcp trinity-sse
 
-# Verify floors
-python -c "from arifos.core.floor_validators import validate_all_floors; print('arifOS Ready')"
+# Check Alignment
+pip install -e .
+uvicorn arifos.core.integration.api.app:app --host 0.0.0.0 --port 8000
+
 ```
 
 ---

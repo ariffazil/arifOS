@@ -185,13 +185,25 @@ git push origin main          # This triggers Railway auto-deploy
 
 ### Railway (Cloud Deployment)
 
-**Live URL:** https://arifos-production.up.railway.app/
+**Live URL:** https://arifos.arif-fazil.com/
 
-**How it works:**
-1. You push to GitHub (`git push origin main`)
-2. Railway detects the push automatically
-3. Railway rebuilds and redeploys (1-3 minutes)
-4. Check status at: https://railway.app/dashboard
+**Production Metadata:**
+- **Project:** `000-arifOS` (ID: `4b9730f3-05e6-46b4-a0f2-0dc3274556f6`)
+- **Environment:** `production` (ID: `705aa5a1-ff3b-4324-baba-77c00b2f03bb`)
+- **Service:** `arifOS` (ID: `d09ff89b-0b04-4216-9f12-02efd9e40092`)
+- **Region:** `us-west2` (California)
+- **Persistence:** Volume `arifos-volume` (ID: `2574df61-cbee-48fb-a917-f8ffd1660460`)
+
+**Deployment Spec (Reversible):**
+- **Source:** GitHub `main` branch (Auto-deploy)
+- **Builder:** Nixpacks
+- **Build Cmd:** `pip install -e .`
+- **Start Cmd:** `sh -c 'uvicorn arifos.core.integration.api.app:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1'`
+- **Health:** `/health` (Timeout: 120s, Retry: 10, Policy: ON_FAILURE)
+- **Scaling:** 1 Replica, No sleep, No zero-downtime overlap.
+
+**Governance Note:**
+Configuration is split between this repo (`railway.toml`, `Dockerfile`) and Railway Dashboard state (Variables, Volume Mounts). Dashboard snapshots are required for full auditability of environment variables.
 
 **Key Railway Files:**
 | File | Purpose |
@@ -204,7 +216,7 @@ git push origin main          # This triggers Railway auto-deploy
 
 ```bash
 # Quick health check
-curl https://arifos-production.up.railway.app/health
+curl https://arifos.arif-fazil.com/health
 
 # Or open in browser:
 # /docs   - API documentation
@@ -228,8 +240,8 @@ curl https://arifos-production.up.railway.app/health
 | Run locally | `uvicorn arifos.core.integration.api.app:app --reload` |
 | Push changes | `git add . && git commit -m "msg" && git push` |
 | Check Railway | https://railway.app/dashboard |
-| Check live API | https://arifos-production.up.railway.app/docs |
-| Check MCP | https://arifos-production.up.railway.app/mcp |
+| Check live API | https://arifos.arif-fazil.com/docs |
+| Check MCP | https://arifos.arif-fazil.com/mcp |
 
 ---
 

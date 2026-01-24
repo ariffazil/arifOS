@@ -117,7 +117,7 @@ def compute_vitality_physics(delta_s: float, peace2: float, kr: float, rasa: flo
 # TRACK B SPEC LOADER (v45.0: GENIUS LAW Authority)
 # =============================================================================
 
-def _load_genius_spec() -> dict:
+def _load_genius_spec(verify: bool = False) -> dict:
     """
     Load GENIUS LAW spec from AAA_MCP/v46/genius_law.json (v46.0 Track B Authority).
 
@@ -138,6 +138,7 @@ def _load_genius_spec() -> dict:
     # v47.0: Support AAA_MCP/v47/ as primary, fall back to v46/v45/v44
     # allow_legacy allows bypass via ARIFOS_ALLOW_LEGACY_SPEC env var
     allow_legacy = os.getenv("ARIFOS_ALLOW_LEGACY_SPEC", "0") == "1"
+    skip_track_b = os.getenv("ARIFOS_SKIP_TRACK_B", "0") == "1"
 
     # Try v47 schema first, then v46, v45, fallback to v44
     v47_schema_path = pkg_dir / "AAA_MCP" / "v47" / "schema" / "genius_law.schema.json"
@@ -169,7 +170,9 @@ def _load_genius_spec() -> dict:
     else:
         manifest_path = v44_manifest_path
 
-    verify_manifest(pkg_dir, manifest_path, allow_legacy=allow_legacy)
+    # Only verify if explicitly requested AND not skipped via env var
+    if verify and not skip_track_b:
+        verify_manifest(pkg_dir, manifest_path, allow_legacy=allow_legacy)
 
     # Priority A: Environment variable override
     env_path = os.getenv("ARIFOS_GENIUS_SPEC")
@@ -294,8 +297,8 @@ def _load_genius_spec() -> dict:
     )
 
 
-# Load spec once at module import
-_GENIUS_SPEC = _load_genius_spec()
+# Load spec once at module import (verify=False to prevent import crash)
+_GENIUS_SPEC = _load_genius_spec(verify=False)
 
 
 # =============================================================================

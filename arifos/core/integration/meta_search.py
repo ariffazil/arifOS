@@ -27,11 +27,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass, field
 
 from ..system.apex_prime import ApexVerdict, Verdict, Metrics
-from arifos.core.floors import floor_01_input_validation as f1
-from arifos.core.floors import floor_02_authentication as f2
-from arifos.core.floors import floor_05_pattern_recognition as f5
-from arifos.core.floors import floor_06_semantic_understanding as f6
-from arifos.core.floors import floor_09_anti_hantu as f9
+from ..enforcement.unified_floors import UnifiedConstitutionalFloors
 from .cost_tracker import CostTracker, BudgetExceededError
 from .search_cache import ConstitutionalSearchCache
 
