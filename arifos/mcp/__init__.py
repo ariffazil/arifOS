@@ -1,6 +1,6 @@
 """
-arifOS MCP Module (v50.5.25)
-5-Tool Trinity Constitutional Framework
+AAA MCP MODULE (v51.0.0)
+Artifact · Authority · Architecture
 
 Tools:
   000_init    → Gate (Authority + Injection + Amanah)
@@ -10,19 +10,19 @@ Tools:
   999_vault   → Seal (Merkle + zkPC + Immutable Log)
 
 Bridge:
-  MCPCoreBridge → Connects MCP tools to Core engines
-  ToolRegistry  → External tool link registry
+  v51_bridge  → Wires MCP to Core Engines (fail-safe)
+  MCPCoreBridge → Legacy bridge (deprecated)
 
 Mnemonic: "Init the Genius, Act with Heart, Judge at Apex, seal in Vault."
 
 Usage:
-  python -m arifos.mcp              # Trinity stdio (default)
-  python -m arifos.mcp trinity-sse  # Trinity SSE for Railway
+  python -m arifos.mcp              # AAA stdio (default)
+  python -m arifos.mcp trinity-sse  # AAA SSE for Railway
 
 DITEMPA BUKAN DIBERI
 """
 
-__version__ = "50.5.25"
+__version__ = "51.0.0"
 
 # Lazy imports to avoid circular dependencies
 def __getattr__(name):

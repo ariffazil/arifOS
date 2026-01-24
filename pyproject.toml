@@ -4,7 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "50.5.26"
+version = "51.0.0"
+# v51.0.0: AAA MCP SERVER - Bridge to Core Engines + Rebrand (2026-01-24)
 # v50.5.26: Quick Wire - MCP tools now read Track B thresholds from metrics.py (2026-01-24)
 # v50.5.25: ChatGPT Developer Mode + README Reality Update (2026-01-23)
 # v50.5.24: Constitutional Seal - Forged README, Calibrated Validators, Tri-Witness Fix (2026-01-23)

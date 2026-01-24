@@ -1,6 +1,6 @@
 """
-arifOS Trinity Compression (v50.5.26)
-5-Tool Constitutional MCP Framework - Now wired to Track B specs
+arifOS AAA MCP Tools (v51.0.0)
+5-Tool Constitutional MCP Framework - Wired to Core Engines via v51 Bridge
 
 The Metabolic Standard compressed to 5 memorable tools:
     000_init    → Gate (Authority + Injection + Amanah)
@@ -47,6 +47,22 @@ from arifos.core.enforcement.metrics import (
     OMEGA_0_MIN,          # 0.03 - F7 humility min
     OMEGA_0_MAX,          # 0.05 - F7 humility max
 )
+
+# v51 Bridge: Wire MCP to Core Engines (fail-safe import)
+try:
+    from arifos.mcp.tools.v51_bridge import (
+        ENGINES_AVAILABLE,
+        bridge_agi_sense,
+        bridge_agi_full,
+        bridge_asi_full,
+        bridge_apex_full,
+    )
+except ImportError:
+    ENGINES_AVAILABLE = False
+    bridge_agi_sense = None
+    bridge_agi_full = None
+    bridge_asi_full = None
+    bridge_apex_full = None
 
 logger = logging.getLogger(__name__)
 
@@ -722,6 +738,18 @@ async def mcp_agi_genius(
         # ACTION: SENSE (111)
         # =====================================================================
         if action == "sense":
+            # v51 Bridge: Try Core Engine first
+            if ENGINES_AVAILABLE and bridge_agi_sense:
+                try:
+                    bridge_result = bridge_agi_sense(input_text, context)
+                    if bridge_result.get("status") not in ("ERROR", "FALLBACK"):
+                        bridge_result["session_id"] = session_id
+                        logger.debug("agi_genius.sense: Using v51 bridge")
+                        return bridge_result
+                except Exception as e:
+                    logger.warning(f"v51 bridge failed, using inline: {e}")
+
+            # Fallback: Inline logic
             lane = _classify_lane(input_text)
             truth_threshold = _get_truth_threshold(lane)
             floors_checked.extend(["F2_Truth", "F6_DeltaS"])
@@ -862,7 +890,18 @@ async def mcp_agi_genius(
         # ACTION: FULL (Complete Pipeline)
         # =====================================================================
         elif action == "full":
-            # Run complete AGI pipeline: sense → think → atlas → forge
+            # v51 Bridge: Try Core Engine first
+            if ENGINES_AVAILABLE and bridge_agi_full:
+                try:
+                    bridge_result = bridge_agi_full(input_text, context)
+                    if bridge_result.get("status") not in ("ERROR", "FALLBACK"):
+                        bridge_result["session_id"] = session_id
+                        logger.debug("agi_genius.full: Using v51 bridge")
+                        return bridge_result
+                except Exception as e:
+                    logger.warning(f"v51 bridge failed, using inline: {e}")
+
+            # Fallback: Run complete AGI pipeline inline: sense → think → atlas → forge
 
             # 111 SENSE
             lane = _classify_lane(input_text)
@@ -1206,6 +1245,18 @@ async def mcp_asi_act(
         # ACTION: FULL (Complete Pipeline)
         # =====================================================================
         elif action == "full":
+            # v51 Bridge: Try Core Engine first
+            if ENGINES_AVAILABLE and bridge_asi_full:
+                try:
+                    bridge_result = bridge_asi_full(agi_result or {}, {"session_id": session_id}, input_text)
+                    if bridge_result.get("status") not in ("ERROR", "FALLBACK"):
+                        bridge_result["session_id"] = session_id
+                        logger.debug("asi_act.full: Using v51 bridge")
+                        return bridge_result
+                except Exception as e:
+                    logger.warning(f"v51 bridge failed, using inline: {e}")
+
+            # Fallback: Inline pipeline
             # 444 EVIDENCE
             grounding = _search_evidence(input_text, sources or [])
 
@@ -1505,6 +1556,18 @@ async def mcp_apex_judge(
         # ACTION: FULL (Complete Pipeline)
         # =====================================================================
         elif action == "full":
+            # v51 Bridge: Try Core Engine first
+            if ENGINES_AVAILABLE and bridge_apex_full:
+                try:
+                    bridge_result = bridge_apex_full(query, response, agi_result, asi_result)
+                    if bridge_result.get("status") not in ("ERROR", "FALLBACK"):
+                        bridge_result["session_id"] = session_id
+                        logger.debug("apex_judge.full: Using v51 bridge")
+                        return bridge_result
+                except Exception as e:
+                    logger.warning(f"v51 bridge failed, using inline: {e}")
+
+            # Fallback: Inline pipeline
             # 777 EUREKA
             agi_passed = (agi_result or {}).get("status") == "SEAL"
             asi_passed = (asi_result or {}).get("status") == "SEAL"

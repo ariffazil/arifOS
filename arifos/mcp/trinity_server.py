@@ -1,6 +1,6 @@
 """
-arifOS Trinity MCP Server (v50.5.25)
-5-Tool Constitutional Framework
+AAA MCP SERVER (v51.0.0) - Constitutional Intelligence
+Artifact · Authority · Architecture
 
 The Metabolic Standard compressed to 5 memorable tools:
     000_init    → Gate (Authority + Injection + Amanah)
@@ -362,8 +362,8 @@ Floors Enforced: F1 (Amanah), F8 (Tri-Witness)""",
 # =============================================================================
 
 def create_trinity_server() -> Server:
-    """Create the 5-tool Trinity MCP server."""
-    server = Server("arifOS-Trinity-v50.5.25")
+    """Create the 5-tool AAA MCP server."""
+    server = Server("AAA-Model-Context-Protocol")
 
     @server.list_tools()
     async def list_tools() -> List[mcp.types.Tool]:
@@ -423,8 +423,8 @@ def main_sse():
     port = int(os.environ.get("PORT", os.environ.get("AAA_MCP_PORT", 8000)))
 
     logger.info("=" * 60)
-    logger.info("arifOS Trinity SSE Server v50.5.25")
-    logger.info("5-Tool Constitutional Framework")
+    logger.info("AAA MCP SERVER (v51) - Constitutional Intelligence")
+    logger.info("Artifact · Authority · Architecture")
     logger.info("=" * 60)
     logger.info(f"Tools: {list(TOOLS.keys())}")
     logger.info(f"Port: {port}")
@@ -432,25 +432,26 @@ def main_sse():
     logger.info(f"Docs: http://0.0.0.0:{port}/docs")
     logger.info("=" * 60)
 
-    # Create SSE app with Trinity tools
+    # Create SSE app with AAA tools
     app = create_sse_app(
         tools=TOOLS,
         tool_descriptions=TOOL_DESCRIPTIONS,
-        server_name="arifOS-Trinity",
-        version="v50.5.25"
+        server_name="AAA-MCP",
+        version="v51.0"
     )
     uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
 
 
 def print_stats():
-    """Print Trinity server statistics."""
+    """Print AAA MCP server statistics."""
     print("=" * 80, file=sys.stderr)
-    print("arifOS Trinity MCP Server v50.5.25 - 5-Tool Constitutional Framework", file=sys.stderr)
+    print("AAA MCP SERVER (v51) - Constitutional Intelligence", file=sys.stderr)
+    print("Artifact · Authority · Architecture", file=sys.stderr)
     print("=" * 80, file=sys.stderr)
     print(file=sys.stderr)
     print("Mnemonic: 'Init the Genius, Act with Heart, Judge at Apex, seal in Vault.'", file=sys.stderr)
     print(file=sys.stderr)
-    print("Trinity Tools (5):", file=sys.stderr)
+    print("AAA Tools (5):", file=sys.stderr)
     print("  000_init    → Gate (Authority + Injection + Amanah)", file=sys.stderr)
     print("  agi_genius  → Mind (SENSE → THINK → ATLAS → FORGE)", file=sys.stderr)
     print("  asi_act     → Heart (EVIDENCE → EMPATHY → ACT)", file=sys.stderr)
