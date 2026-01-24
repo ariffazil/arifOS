@@ -39,6 +39,9 @@ See PHYSICS_CODEX.md (CHAPTER 6) for the full technical statement and diagram.
 # Import base types first (moved to enforcement/)
 from .enforcement.metrics import FloorsVerdict, Metrics, ConstitutionalMetrics
 
+# Re-export floor_validators for backward compatibility (v51.2)
+from . import floor_validators
+
 # Import APEX components (moved to system/)
 from .system.apex_prime import (
     APEX_EPOCH,
