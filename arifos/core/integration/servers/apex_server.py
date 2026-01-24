@@ -27,7 +27,10 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 # Constitutional imports (Phase 8.1: Canonical validators)
-from arifos.core.floor_validators import validate_f3_triwitness, validate_f8_genius
+from arifos.core.enforcement.floor_validators import (
+    validate_f3_triwitness,
+    validate_f8_genius,
+)
 
 # Ledger dual-write import
 from arifos.core.memory.ledger.postgres_ledger import get_ledger

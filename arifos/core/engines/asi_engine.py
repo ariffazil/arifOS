@@ -34,7 +34,7 @@ from enum import Enum
 import time
 import hashlib
 
-from arifos.core.trinity import (
+from arifos.core.system.trinity import (
     Verdict,
     TrinityGovernance,
     ThermodynamicSignature

@@ -21,19 +21,19 @@ class FloorValidationResult:
     reason: str
     floor_type: str  # String for simplicity in shim
 
-from .core.floor_validators import validate_f1_amanah as _v1
-from .core.floor_validators import validate_f2_truth as _v2
-from .core.floor_validators import validate_f3_tri_witness as _v3
-from .core.floor_validators import validate_f4_clarity as _v4
-from .core.floor_validators import validate_f5_peace as _v5
-from .core.floor_validators import validate_f6_empathy as _v6
-from .core.floor_validators import validate_f7_humility as _v7
-from .core.floor_validators import validate_f8_genius as _v8
-from .core.floor_validators import validate_f9_cdark as _v9
-from .core.floor_validators import validate_f10_ontology as _v10
-from .core.floor_validators import validate_f11_command_auth as _v11
-from .core.floor_validators import validate_f12_injection_defense as _v12
-from .core.floor_validators import validate_f13_curiosity as _v13
+from .core.enforcement.floor_validators import validate_f1_amanah as _v1
+from .core.enforcement.floor_validators import validate_f2_truth as _v2
+from .core.enforcement.floor_validators import validate_f3_tri_witness as _v3
+from .core.enforcement.floor_validators import validate_f4_clarity as _v4
+from .core.enforcement.floor_validators import validate_f5_peace as _v5
+from .core.enforcement.floor_validators import validate_f6_empathy as _v6
+from .core.enforcement.floor_validators import validate_f7_humility as _v7
+from .core.enforcement.floor_validators import validate_f8_genius as _v8
+from .core.enforcement.floor_validators import validate_f9_cdark as _v9
+from .core.enforcement.floor_validators import validate_f10_ontology as _v10
+from .core.enforcement.floor_validators import validate_f11_command_auth as _v11
+from .core.enforcement.floor_validators import validate_f12_injection_defense as _v12
+from .core.enforcement.floor_validators import validate_f13_curiosity as _v13
 
 
 def validate_f1_amanah(action: str, is_reversible: bool, has_mandate: bool, requires_approval: bool = False):

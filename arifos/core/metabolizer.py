@@ -21,8 +21,7 @@ DITEMPA BUKAN DIBERI - Pipeline execution forged through systematic implementati
 
 import importlib
 import time
-from dataclasses import dataclass, field
-from datetime import datetime
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 
@@ -79,16 +78,16 @@ class Metabolizer:
 
     # Stage module mappings (v50: wire to actual implementations)
     STAGE_MODULES = {
-        0: "arifos.core.000_void.stage",  # v50.1: Consolidated from root to core
+        0: "arifos.core.000_void.stage",  # v51: Kept at root (move failed)
         111: "arifos.core.111_sense.stage",
         222: "arifos.core.222_reflect.stage",
         333: "arifos.core.333_reason.stage",
-        444: "arifos.core.444_align.stage",  # v50.1: Renamed from evidence
+        444: "arifos.core.444_align.stage",
         555: "arifos.core.555_empathize.stage",
         666: "arifos.core.666_align.stage",
         777: "arifos.core.777_forge.stage",
         888: "arifos.core.888_judge.stage",
-        889: "arifos.core.889_proof.stage",  # NEW v50: Cryptographic proof generation
+        889: "arifos.core.889_proof.stage",
         999: "arifos.core.999_seal.stage",
     }
 

@@ -31,7 +31,7 @@ import time
 import hashlib
 import json
 
-from arifos.core.trinity import (
+from arifos.core.system.trinity import (
     Verdict,
     VerdictEnergy,
     TrinityConstraint,
@@ -363,7 +363,7 @@ class APEXEngine:
     def _build_three_trinities(self, agi_output: Dict[str, Any], asi_output: Dict[str, Any],
                                 eureka: EurekaResult) -> ThreeTrinities:
         """Build Three Trinities evaluation from engine outputs."""
-        from arifos.core.trinity import TrinityStructural, TrinityGovernance, TrinityConstraint
+        from arifos.core.system.trinity import TrinityStructural, TrinityGovernance, TrinityConstraint
 
         # Trinity I: Structural (from AGI)
         agi_trinity = agi_output.get("trinity_structural", {})

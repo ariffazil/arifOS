@@ -24,7 +24,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 # Constitutional imports (Phase 8.1: Canonical validators)
-from arifos.core.floor_validators import (
+from arifos.core.enforcement.floor_validators import (
     validate_f1_amanah,
     validate_f5_peace,
     validate_f6_empathy,

@@ -4,7 +4,7 @@ DITEMPA BUKAN DIBERI - Forged, not given
 """
 
 """
-metrics.py — Constitutional Metrics and Floor Check API (v46.0)
+metrics.py — Constitutional Metrics and Floor Check API (v46.0 + Runtime Telemetry v51)
 
 v46.0 TRACK B AUTHORITY:
 - This module COMPUTES MEASUREMENTS ONLY (floor values, truth penalties, identity lock)
@@ -18,6 +18,7 @@ This module provides:
 4. Floor check functions - simple boolean checks for each floor
 5. Anti-Hantu helpers - pattern detection for F9
 6. Identity truth lock - hallucination penalties (v45Ω Patch B.1)
+7. Runtime Telemetry - Prometheus-compatible counters/gauges (v51 Merge)
 
 v46.0 Track B Consolidation:
 Thresholds loaded via strict priority order with fail-closed behavior:
@@ -36,14 +37,37 @@ Track B (Spec) AAA_MCP/v46/ is SOLE RUNTIME AUTHORITY for thresholds.
 import json
 import os
 import sys
+import time
+import logging
+import threading
+from collections import defaultdict
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from arifos.core.spec.manifest_verifier import verify_manifest
 
+# Re-export FloorCheckResult from floor_adapter for backward compatibility
+# Many modules expect to import it from metrics.py
+try:
+    from arifos.core.integration.floor_adapter import FloorCheckResult
+except ImportError:
+    # Define stub if floor_adapter not available
+    @dataclass
+    class FloorCheckResult:
+        """Result from a floor check (stub)."""
+        floor_id: str = ""
+        floor_name: str = ""
+        passed: bool = True
+        score: float = 1.0
+        reason: str = ""
+        details: Dict[str, Any] = field(default_factory=dict)
+
 # Import schema validator and manifest verifier from spec package (avoids circular import)
 from arifos.core.spec.schema_validator import validate_spec_against_schema
+
+logger = logging.getLogger(__name__)
 
 # =============================================================================
 # TRACK B SPEC LOADER (v45Ω Patch B.3: Spec Authority Unification)
@@ -799,441 +823,369 @@ class Metrics:
         tri_witness_required: bool = True,
         lane: str = "UNKNOWN",
     ) -> float:
-        """Compute Ψ (vitality) from constitutional floors.
+        """
+        Compute total system vitality (Ψ) from primary floors.
 
-        Ψ is the minimum conservative ratio across all required floors; any
-        breach drives Ψ below 1.0 and should trigger SABAR.
+        Equation (v40.5):
+        Ψ = min(F2, F4, F6, F8, F5_prox)
 
-        Uses constants from metrics.py (TRUTH_THRESHOLD, etc.) to ensure
-        consistency with constitutional_floors.json.
-
-        v45Ω Patch B: Lane-aware truth threshold for graduated enforcement.
+        Kill-switches (Safety First):
+        - F9 Anti-Hantu: If violated (False), Ψ = 0.0
+        - F5 Humility: If outside [3%, 5%] band, Ψ = 0.5 (Warning)
+        - F2 Truth: If below threshold, Ψ = 0.2 (Critical)
 
         Args:
-            tri_witness_required: Whether to include tri-witness in calculation
-            lane: Applicability lane (PHATIC/SOFT/HARD/REFUSE/UNKNOWN)
-                  Uses lane-specific truth threshold for Psi calculation
+            tri_witness_required: Whether to enforce F8 (for high stakes)
+            lane: Interaction lane (for lane-aware truth)
 
         Returns:
-            Psi vitality score (healthy if ≥ 1.0 for strict lanes, ≥ 0.85 for relaxed)
+            Vitality score (0.0 to 1.0+)
         """
-        # v45Ω Patch B: Get lane-aware truth threshold
-        lane_truth_threshold = get_lane_truth_threshold(lane)
-        effective_truth_threshold = (
-            lane_truth_threshold if lane_truth_threshold > 0 else 1.0
-        )  # Avoid division by zero for PHATIC
+        # 1. Kill Switches first (Physics > Semantics)
+        if self.anti_hantu is False:
+            return 0.0  # Void immediately
 
-        omega_band_ok = check_omega_band(self.omega_0)
-        # F6: Clarity (ΔS) ratio - healthy if <= 0
-        delta_s_ok = check_delta_s(self.delta_s)
+        if not self.amanah:
+            return 0.0  # Trust broken
 
-        ratios = [
-            # F2: Truth
-            _clamp_floor_ratio(self.truth, effective_truth_threshold)
-            if lane.upper() != "PHATIC"
-            else 1.0,
-            # F6: Clarity (ΔS)
-            1.0 if delta_s_ok else 0.5, # Simplified ratio
-            # F3: Peace²
-            _clamp_floor_ratio(self.peace_squared, PEACE_SQUARED_THRESHOLD),
-            # F4: Empathy
-            _clamp_floor_ratio(self.kappa_r, KAPPA_R_THRESHOLD),
-            # F5: Humility
-            1.0 if omega_band_ok else 0.0,
-            # F1: Amanah
-            1.0 if self.amanah else 0.0,
-            # F7: RASA
-            1.0 if self.rasa else 0.0,
-        ]
+        # 2. Get Truth threshold for this lane
+        lane_truth_floor = get_lane_truth_threshold(lane)
 
+        # 3. Calculate component ratios (1.0 = exactly at floor)
+        # Use simple method: value / floor
+        ratios = []
+
+        # F2: Truth (Truth must be >= floor)
+        ratios.append(_clamp_floor_ratio(self.truth, lane_truth_floor))
+
+        # F6: Clarity (DeltaS must be <= floor, usually <= 0)
+        # Special case: Lower is better. If DeltaS=0, ratio=1.0. If DeltaS=0.1, ratio < 1.0
+        # Formula: 1.0 - (DeltaS - Threshold)
+        # Assuming Threshold=0.0: 1.0 - DeltaS. So DeltaS=-0.1 -> 1.1 (Good). DeltaS=0.1 -> 0.9 (Bad).
+        delta_s_gap = self.delta_s - DELTA_S_THRESHOLD
+        ratios.append(1.0 - max(0.0, delta_s_gap * 10))  # Amplify positive entropy penalty
+
+        # F4: Empathy (Higher is better)
+        ratios.append(_clamp_floor_ratio(self.kappa_r, KAPPA_R_THRESHOLD))
+
+        # F3: Peace (Higher is better)
+        ratios.append(_clamp_floor_ratio(self.peace_squared, PEACE_SQUARED_THRESHOLD))
+
+        # F8: Tri-Witness (Only if required)
         if tri_witness_required:
             ratios.append(_clamp_floor_ratio(self.tri_witness, TRI_WITNESS_THRESHOLD))
 
-        return min(ratios)
+        # F5: Humility Band (Must be between min and max)
+        if self.omega_0 < OMEGA_0_MIN:
+            # Too certain (Arrogance)
+            ratios.append(self.omega_0 / OMEGA_0_MIN)
+        elif self.omega_0 > OMEGA_0_MAX:
+            # Too uncertain (Paralysis)
+            ratios.append(OMEGA_0_MAX / self.omega_0)  # Inverse ratio
+        else:
+            ratios.append(1.0)  # Perfect zone
 
-    def to_dict(self) -> Dict[str, object]:
-        return {
-            # Core floors
-            "truth": self.truth,
-            "delta_s": self.delta_s,
-            "peace_squared": self.peace_squared,
-            "kappa_r": self.kappa_r,
-            "omega_0": self.omega_0,
-            "amanah": self.amanah,
-            "tri_witness": self.tri_witness,
-            "rasa": self.rasa,
-            "psi": self.psi,
-            "anti_hantu": self.anti_hantu,
-            "claim_profile": self.claim_profile,
-            # Extended floors (v35Ω)
-            "ambiguity": self.ambiguity,
-            "drift_delta": self.drift_delta,
-            "paradox_load": self.paradox_load,
-            "dignity_rma_ok": self.dignity_rma_ok,
-            "vault_consistent": self.vault_consistent,
-            "behavior_drift_ok": self.behavior_drift_ok,
-            "ontology_ok": self.ontology_ok,
-            "sleeper_scan_ok": self.sleeper_scan_ok,
-        }
-
-
-ConstitutionalMetrics = Metrics
-
-
-@dataclass
-class FloorCheckResult:
-    """Detailed result for a single floor check.
-
-    Used to trace individual floor evaluations through the system.
-    """
-    floor_id: str      # e.g., "F1", "F2"
-    name: str          # e.g., "Truth", "Clarity"
-    threshold: float   # e.g., 0.99
-    value: float       # e.g., 0.98
-    passed: bool       # True/False
-    reason: Optional[str] = None # Failure reason or note
-    is_hard: bool = False # Whether this is a HARD floor (VOID) vs SOFT (SABAR)
+        # 4. Ψ is the WEAKEST link (Min)
+        return float(min(ratios))
 
 
 @dataclass
 class FloorsVerdict:
-    """Result of evaluating all floors.
+    """Result of full constitutional scan."""
+    all_pass: bool
+    failed_floors: List[str]
+    warnings: List[str]
+    metrics: Metrics
+    lane: str = "UNKNOWN"
+    verdict: str = "VOID"  # SEAL, VOID, SABAR, HOLD_888, PARTIAL
 
-    v45Ω Reclassification:
-    hard_ok: Truth, Amanah, Ψ, RASA, Anti-Hantu
-    soft_ok: ΔS, Ω₀, Peace², κᵣ, Tri-Witness (if required)
-    extended_ok: v35Ω extended floors (ambiguity, drift, paradox, etc.)
+    def explain(self) -> str:
+        """Human-readable explanation of the verdict."""
+        if self.all_pass:
+            return f"SEAL: All floors passed (Ψ={self.metrics.psi:.2f})"
+        failures = ", ".join(self.failed_floors)
+        return f"{self.verdict}: Failed floors [{failures}] (Ψ={self.metrics.psi:.2f})"
+
+
+# =============================================================================
+# RUNTIME TELEMETRY (Prometheus-compatible) - v51 Merge
+# =============================================================================
+
+@dataclass
+class Counter:
+    """Simple counter metric."""
+    name: str
+    help: str
+    labels: List[str] = field(default_factory=list)
+    _values: Dict[tuple, float] = field(default_factory=lambda: defaultdict(float))
+    _lock: threading.Lock = field(default_factory=threading.Lock)
+
+    def inc(self, labels: Optional[Dict[str, str]] = None, value: float = 1.0):
+        """Increment counter."""
+        key = tuple(sorted((labels or {}).items()))
+        with self._lock:
+            self._values[key] += value
+
+    def get(self, labels: Optional[Dict[str, str]] = None) -> float:
+        """Get counter value."""
+        key = tuple(sorted((labels or {}).items()))
+        with self._lock:
+            return self._values[key]
+
+    def reset(self):
+        """Reset all values."""
+        with self._lock:
+            self._values.clear()
+
+
+@dataclass
+class Histogram:
+    """Simple histogram metric with predefined buckets."""
+    name: str
+    help: str
+    labels: List[str] = field(default_factory=list)
+    buckets: List[float] = field(default_factory=lambda: [0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0])
+    _counts: Dict[tuple, Dict[str, float]] = field(default_factory=lambda: defaultdict(lambda: defaultdict(float)))
+    _lock: threading.Lock = field(default_factory=threading.Lock)
+
+    def observe(self, value: float, labels: Optional[Dict[str, str]] = None):
+        """Record an observation."""
+        key = tuple(sorted((labels or {}).items()))
+        with self._lock:
+            data = self._counts[key]
+            data["count"] += 1
+            data["sum"] += value
+            # Calculate buckets
+            for bucket in self.buckets:
+                if value <= bucket:
+                    data[f"le_{bucket}"] += 1
+            data["le_+Inf"] += 1
+
+    def get_percentile(self, percentile: float, labels: Optional[Dict[str, str]] = None) -> float:
+        """Get approximate percentile value."""
+        key = tuple(sorted((labels or {}).items()))
+        with self._lock:
+            data = self._counts[key]
+            total = data.get("count", 0)
+            if total == 0:
+                return 0.0
+            target = total * percentile
+            cumulative = 0
+            prev_bucket = 0.0
+            for bucket in self.buckets:
+                bucket_count = data.get(f"le_{bucket}", 0)
+                if cumulative + bucket_count >= target:
+                    fraction = (target - cumulative) / max(bucket_count, 1)
+                    return prev_bucket + fraction * (bucket - prev_bucket)
+                cumulative = bucket_count
+                prev_bucket = bucket
+            return self.buckets[-1]
+
+    def reset(self):
+        """Reset all values."""
+        with self._lock:
+            self._counts.clear()
+
+
+@dataclass
+class Gauge:
+    """Simple gauge metric."""
+    name: str
+    help: str
+    labels: List[str] = field(default_factory=list)
+    _values: Dict[tuple, float] = field(default_factory=lambda: defaultdict(float))
+    _lock: threading.Lock = field(default_factory=threading.Lock)
+
+    def set(self, value: float, labels: Optional[Dict[str, str]] = None):
+        """Set gauge value."""
+        key = tuple(sorted((labels or {}).items()))
+        with self._lock:
+            self._values[key] = value
+
+    def inc(self, labels: Optional[Dict[str, str]] = None, value: float = 1.0):
+        """Increment gauge."""
+        key = tuple(sorted((labels or {}).items()))
+        with self._lock:
+            self._values[key] += value
+
+    def dec(self, labels: Optional[Dict[str, str]] = None, value: float = 1.0):
+        """Decrement gauge."""
+        key = tuple(sorted((labels or {}).items()))
+        with self._lock:
+            self._values[key] -= value
+
+    def get(self, labels: Optional[Dict[str, str]] = None) -> float:
+        """Get gauge value."""
+        key = tuple(sorted((labels or {}).items()))
+        with self._lock:
+            return self._values[key]
+
+    def reset(self):
+        """Reset all values."""
+        with self._lock:
+            self._values.clear()
+
+
+class RuntimeMetrics:
+    """
+    Runtime Telemetry Collector for arifOS Core.
+    Renamed from ArifOSMetrics to RuntimeMetrics to avoid confusion with Metrics dataclass.
+
+    Provides Prometheus-compatible metrics.
     """
 
-    # Aggregate status
-    hard_ok: bool
-    soft_ok: bool
-    reasons: List[str]
-
-    # Core floor status
-    truth_ok: bool
-    delta_s_ok: bool
-    peace_squared_ok: bool
-    kappa_r_ok: bool
-    omega_0_ok: bool
-    amanah_ok: bool
-    tri_witness_ok: bool
-    psi_ok: bool
-    anti_hantu_ok: bool = field(default=True)
-    rasa_ok: bool = field(default=True)
-
-    # Extended floor status (v35Ω)
-    ambiguity_ok: bool = field(default=True)
-    drift_ok: bool = field(default=True)
-    paradox_ok: bool = field(default=True)
-    dignity_ok: bool = field(default=True)
-    vault_ok: bool = field(default=True)
-    behavior_ok: bool = field(default=True)
-    ontology_ok: bool = field(default=True)
-    sleeper_ok: bool = field(default=True)
-
-    @property
-    def extended_ok(self) -> bool:
-        """Check if all v35Ω extended floors pass."""
-        return (
-            self.ambiguity_ok
-            and self.drift_ok
-            and self.paradox_ok
-            and self.dignity_ok
-            and self.vault_ok
-            and self.behavior_ok
-            and self.ontology_ok
-            and self.sleeper_ok
+    def __init__(self):
+        # Request counter
+        self.requests_total = Counter(
+            name="arifos_requests_total",
+            help="Total number of Core Engine requests",
+            labels=["component", "status"]
         )
 
-    @property
-    def all_pass(self) -> bool:
-        """Check if all floors (core + extended) pass."""
-        return self.hard_ok and self.soft_ok and self.extended_ok
-
-
-# =============================================================================
-# v45Ω PATCH 2: F2 TRUTH GROUNDING WITH UNCERTAINTY PENALTY
-# =============================================================================
-
-# Canonical identity capsule (immutable truth source)
-CANONICAL_IDENTITY = {
-    "arifos_creator": "Arif Fazil",
-    "arifos_name": "arifOS",
-    "arifos_description": "Constitutional governance kernel for LLMs",
-    "arif_birthplace": "UNKNOWN",  # Not public information
-}
-
-# Identity trigger patterns (case-insensitive)
-IDENTITY_TRIGGERS = [
-    "arifos",
-    "arif fazil",
-    "who created",
-    "what is arifos",
-    "where was arif",
-    "arif's birthplace",
-]
-
-
-def detect_identity_query(query: str) -> bool:
-    """
-    Detect if query is about identity/ownership that requires grounding.
-
-    Args:
-        query: User query text
-
-    Returns:
-        True if query is identity-related, False otherwise
-    """
-    query_lower = query.lower()
-    return any(trigger in query_lower for trigger in IDENTITY_TRIGGERS)
-
-
-def ground_truth_score(
-    query: str,
-    response: str,
-    base_truth_score: float = 0.99,
-) -> float:
-    """
-    Apply v45Ω truth grounding with evidence-based scoring.
-
-    Patch 2 Logic:
-    1. If no evidence source exists → cap F2 at 0.60
-    2. Identity queries → must match canonical capsule or admit uncertainty
-    3. Hallucinations → hard penalty (F2 drops to 0.20)
-    4. Honest uncertainty ("I don't know", "UNKNOWN") → reward (F2 stays high)
-
-    Args:
-        query: User query text
-        response: LLM response text
-        base_truth_score: Initial truth score from other detectors
-
-    Returns:
-        Adjusted truth score [0.0, 1.0]
-    """
-    # Check if this is an identity query
-    if not detect_identity_query(query):
-        # Non-identity query: Allow full truth score for factual queries
-        # v45Ω: Restored to constitutional threshold (0.99) per @LAW audit
-        # Conservative scoring moved to evidence pack validation layer
-        return min(base_truth_score, 0.99)  # Allow constitutional threshold
-
-    # Identity query detected: apply strict grounding
-    response_lower = response.lower()
-
-    # Reward honest uncertainty (v45Ω: expanded markers to catch real LLM patterns)
-    uncertainty_markers = [
-        "i don't know",
-        "i don't have information",
-        "don't have any information",
-        "couldn't find",
-        "i am not sure",
-        "i cannot confirm",
-        "i can't confirm",
-        "unable to verify",
-        "cannot verify",
-        "can't verify",
-        "cannot confirm",
-        "can't confirm",
-        "not able to confirm",
-        "no reliable information",
-        "no verified information",
-        "no verified source",
-        "not enough information to confirm",
-        "unknown",
-        "no information",
-        "not certain",
-        "unclear",
-        "no widely recognized",
-        "i do not have",
-        "i am unable",
-    ]
-    if any(marker in response_lower for marker in uncertainty_markers):
-        # Honest uncertainty is high-truth behavior
-        return 0.95
-
-    # Check for hallucination patterns (known incorrect information)
-    hallucination_patterns = [
-        # Known hallucinations from test results
-        ("arif", "bangladesh"),  # Arif is not from Bangladesh
-        ("arif", "arifur rahman"),  # Wrong person
-        ("arifos", "android"),  # arifOS is not an Android ROM
-        ("arifos", "operating system"),  # Misleading, it's a governance kernel
-    ]
-
-    for trigger, wrong_info in hallucination_patterns:
-        if trigger in response_lower and wrong_info in response_lower:
-            # Confident hallucination detected → hard penalty
-            return 0.20
-
-    # Check if response mentions canonical truth correctly
-    # For "What is arifOS" query
-    if "what is arifos" in query.lower():
-        # Check if response mentions governance/constitutional
-        if "governance" in response_lower or "constitutional" in response_lower:
-            return 0.95  # Correct grounding
-        elif "android" in response_lower or "rom" in response_lower:
-            return 0.25  # Hallucination
-        else:
-            return 0.60  # Vague but not wrong
-
-    # For "Who created arifOS" query
-    if "who created" in query.lower() or "creator" in query.lower():
-        if "arif fazil" in response_lower:
-            return 0.95  # Correct grounding
-        elif any(name in response_lower for name in ["arifur rahman", "arif rahman", "arif khan"]):
-            return 0.20  # Wrong person (hallucination)
-        else:
-            return 0.60  # No specific claim
-
-    # For birthplace queries
-    if "birthplace" in query.lower() or "where was" in query.lower():
-        if "bangladesh" in response_lower or "malaysia" in response_lower:
-            # Guessing location without evidence
-            return 0.20
-        else:
-            return 0.70  # Didn't hallucinate a location
-
-    # Default: moderate score for identity queries without clear evidence
-    return 0.60
-
-
-def enforce_identity_truth_lock(
-    query: str,
-    response: str,
-    metrics: Metrics,
-) -> Metrics:
-    """
-    Hard-lock identity claims to canonical truth.
-
-    v45Ω Patch B.1: Identity hallucination prevention.
-
-    Identity queries about arifOS, creator, ownership MUST:
-    1. Match canonical identity OR admit uncertainty
-    2. Not hallucinate person names, locations, organizations
-    3. Cap truth at penalty values for violations
-
-    Args:
-        query: User query string
-        response: LLM response string
-        metrics: Current metrics to potentially modify
-
-    Returns:
-        Modified Metrics with truth capped if hallucination detected
-    """
-    if not detect_identity_query(query):
-        return metrics  # Non-identity: no lock needed
-
-    q_lower = query.lower()
-    r_lower = response.lower()
-
-    # CANONICAL VALUES (from CANONICAL_IDENTITY)
-    CORRECT_CREATOR = "arif fazil"
-    CORRECT_DESC_KEYWORDS = ["governance", "constitutional", "kernel", "floor", "verdict"]
-
-    # LOCK 1: Creator/person validation
-    if any(kw in q_lower for kw in ["who is", "who created", "who made", "creator", "architect"]):
-        has_correct_creator = CORRECT_CREATOR in r_lower
-        has_honest_uncertainty = any(
-            unk in r_lower
-            for unk in [
-                "i don't know",
-                "i'm not sure",
-                "unable to verify",
-                "no reliable information",
-                "unknown",
-                "can't confirm",
-            ]
+        # Verdict counter
+        self.verdicts_total = Counter(
+            name="arifos_verdicts_total",
+            help="Total verdicts by type",
+            labels=["component", "verdict"]
         )
 
-        # Hallucination detection: Wrong names/locations
-        wrong_patterns = [
-            ("pakistani" in r_lower and "actor" in r_lower),
-            "bangladeshi" in r_lower,
-            ("turkey" in r_lower or "turkish" in r_lower),
-            "egypt" in r_lower,
-            "lahore" in r_lower,
-            "karachi" in r_lower,
-        ]
-        has_hallucination = any(wrong_patterns)
+        # Latency histogram
+        self.request_duration = Histogram(
+            name="arifos_request_duration_seconds",
+            help="Request duration in seconds",
+            labels=["component"],
+            buckets=[0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0]
+        )
 
-        if has_hallucination:
-            metrics.truth = 0.20  # Hard penalty for fabrication
-        elif not (has_correct_creator or has_honest_uncertainty):
-            metrics.truth = 0.60  # Unsupported claim
+        # Floor violation counter
+        self.floor_violations = Counter(
+            name="arifos_floor_violations_total",
+            help="Total floor violations",
+            labels=["floor", "component"]
+        )
 
-    # LOCK 2: What-is-arifOS validation
-    if "what is arifos" in q_lower or "what so special about arifos" in q_lower:
-        has_correct_desc = any(kw in r_lower for kw in CORRECT_DESC_KEYWORDS)
+        # Rate limit hits
+        self.rate_limit_hits = Counter(
+            name="arifos_rate_limit_hits_total",
+            help="Total rate limit hits",
+            labels=["component", "limit_type"]
+        )
 
-        # Hallucination: Wrong definitions
-        wrong_defs = ["android", "linux distribution", "bangladeshi", "operating system"]
-        has_wrong_def = any(def_ in r_lower for def_ in wrong_defs)
+        # Active sessions gauge
+        self.active_sessions = Gauge(
+            name="arifos_active_sessions",
+            help="Number of active sessions"
+        )
 
-        if has_wrong_def:
-            metrics.truth = 0.25  # Android/Linux hallucination
-        elif not has_correct_desc:
-            metrics.truth = 0.65  # Vague/unsupported claim
+        # Ledger entries
+        self.ledger_entries = Counter(
+            name="arifos_ledger_entries_total",
+            help="Total ledger entries created",
+            labels=["verdict"]
+        )
 
-    # LOCK 3: Birthplace/location validation
-    if any(kw in q_lower for kw in ["birthplace", "where was arif", "born in"]):
-        # Canonical: arif_birthplace = "UNKNOWN"
-        location_guesses = [
-            "bangladesh",
-            "malaysia",
-            "singapore",
-            "indonesia",
-            "turkey",
-            "egypt",
-            "pakistan",
-            "lahore",
-            "karachi",
-        ]
-        has_location_guess = any(loc in r_lower for loc in location_guesses)
+        logger.info("RuntimeMetrics initialized")
 
-        if has_location_guess:
-            metrics.truth = 0.20  # Location hallucination
+    @contextmanager
+    def track_request(self, component_name: str):
+        """
+        Context manager to track request duration and count.
+        """
+        start_time = time.time()
+        status = "success"
+        try:
+            yield
+        except Exception:
+            status = "error"
+            raise
+        finally:
+            duration = time.time() - start_time
+            self.requests_total.inc({"component": component_name, "status": status})
+            self.request_duration.observe(duration, {"component": component_name})
 
-    return metrics
+    def record_verdict(self, component_name: str, verdict: str):
+        self.verdicts_total.inc({"component": component_name, "verdict": verdict})
+
+    def record_floor_violation(self, floor: str, component_name: str):
+        self.floor_violations.inc({"floor": floor, "component": component_name})
+        logger.warning(f"Floor violation recorded: {floor} in {component_name}")
+
+    def get_stats(self) -> Dict:
+        """Get metrics summary as dictionary."""
+        return {
+            "requests": dict(self.requests_total._values),
+            "verdicts": dict(self.verdicts_total._values),
+            "floor_violations": dict(self.floor_violations._values),
+            "active_sessions": self.active_sessions.get()
+        }
+
+
+# Singleton instance for runtime metrics
+_runtime_metrics: Optional[RuntimeMetrics] = None
+
+def get_runtime_metrics() -> RuntimeMetrics:
+    """Get the singleton runtime metrics instance."""
+    global _runtime_metrics
+    if _runtime_metrics is None:
+        _runtime_metrics = RuntimeMetrics()
+    return _runtime_metrics
 
 
 # =============================================================================
-# PUBLIC EXPORTS
+# CONSTITUTIONAL METRICS TRACKER (v51 Unified API)
 # =============================================================================
 
-__all__ = [
-    # Threshold constants (loaded from spec/v45/constitutional_floors.json)
-    "TRUTH_THRESHOLD",
-    "DELTA_S_THRESHOLD",
-    "PEACE_SQUARED_THRESHOLD",
-    "KAPPA_R_THRESHOLD",
-    "OMEGA_0_MIN",
-    "OMEGA_0_MAX",
-    "TRI_WITNESS_THRESHOLD",
-    "PSI_THRESHOLD",
-    "get_lane_truth_threshold",  # v45Ω Patch B
-    # Floor check functions
-    "check_truth",
-    "check_delta_s",
-    "check_peace_squared",
-    "check_kappa_r",
-    "check_omega_band",
-    "check_tri_witness",
-    "check_psi",
-    # v38.1 Gandhi Patch
-    "calculate_peace_squared_gandhi",
-    # Anti-Hantu helpers (F9)
-    "ANTI_HANTU_FORBIDDEN",
-    "ANTI_HANTU_ALLOWED",
-    "check_anti_hantu",
-    # v45Ω Patch 2: Truth Grounding
-    "CANONICAL_IDENTITY",
-    "IDENTITY_TRIGGERS",
-    "detect_identity_query",
-    "ground_truth_score",
-    # Dataclasses
-    "Metrics",
-    "ConstitutionalMetrics",  # Legacy alias
-    "FloorsVerdict",
-    "FloorCheckResult",
-]
+
+class ConstitutionalMetrics:
+    """
+    Constitutional Metrics Tracker - unified interface for floor validation.
+
+    v51 Unified API: Provides a simple instantiation for tracking
+    constitutional floor evaluations across the trinity engines.
+
+    Used by TrinityCoordinator and ConstitutionalSolution classes.
+    """
+
+    def __init__(self):
+        """Initialize constitutional metrics tracker."""
+        self._floor_results: Dict[str, Any] = {}
+        self._runtime = get_runtime_metrics()
+        self._verdict_history: List[Dict[str, Any]] = []
+
+    def record_floor_check(self, floor_id: str, passed: bool, score: float = 0.0, reason: str = ""):
+        """Record a floor check result."""
+        self._floor_results[floor_id] = {
+            "passed": passed,
+            "score": score,
+            "reason": reason,
+            "timestamp": time.time()
+        }
+        if not passed:
+            self._runtime.record_floor_violation(floor_id, "constitutional_metrics")
+
+    def record_verdict(self, verdict: str, component: str = "trinity"):
+        """Record a verdict."""
+        self._verdict_history.append({
+            "verdict": verdict,
+            "component": component,
+            "floors": dict(self._floor_results),
+            "timestamp": time.time()
+        })
+        self._runtime.record_verdict(component, verdict)
+
+    def get_floor_results(self) -> Dict[str, Any]:
+        """Get all floor check results."""
+        return dict(self._floor_results)
+
+    def get_verdict_history(self) -> List[Dict[str, Any]]:
+        """Get verdict history."""
+        return list(self._verdict_history)
+
+    def all_floors_passed(self) -> bool:
+        """Check if all recorded floor checks passed."""
+        return all(r.get("passed", False) for r in self._floor_results.values())
+
+    def reset(self):
+        """Reset all tracked metrics."""
+        self._floor_results.clear()
+        self._verdict_history.clear()

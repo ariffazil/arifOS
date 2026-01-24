@@ -44,7 +44,7 @@ from arifos.core.engines import (
 )
 
 # Trinity framework
-from arifos.core.trinity import (
+from arifos.core.system.trinity import (
     Verdict,
     ThreeTrinities,
     ThermodynamicSignature,

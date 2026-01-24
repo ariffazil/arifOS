@@ -37,6 +37,7 @@ from AAA_MCP.bridge import (
     bridge_apex_router,
     bridge_vault_router,
 )
+from AAA_MCP.rate_limiter import get_rate_limiter
 
 logger = logging.getLogger(__name__)
 
@@ -273,7 +274,25 @@ def create_aaa_server() -> Server:
         if not router:
             return {"status": "VOID", "error": f"Unknown tool: {name}"}
 
-        action = arguments.get("action", "full")
+        # F11: Rate limit check (Command Authority floor)
+        session_id = arguments.get("session_id", "")
+        rate_limiter = get_rate_limiter()
+        rate_result = rate_limiter.check(name, session_id)
+        if not rate_result.allowed:
+            logger.warning(f"Rate limit exceeded for {name}: {rate_result.reason}")
+            return {
+                "status": "VOID",
+                "reason": rate_result.reason,
+                "rate_limit": {
+                    "exceeded": True,
+                    "limit_type": rate_result.limit_type,
+                    "reset_in_seconds": rate_result.reset_in_seconds
+                },
+                "floors_checked": ["F11_CommandAuth"]
+            }
+
+        # Extract action and remove from arguments to avoid passing twice
+        action = arguments.pop("action", "full")
 
         try:
             result = router(action=action, **arguments)

@@ -1,29 +1,47 @@
 """
-APEX (Ψ Psi) Kernel — The Judge
+arifOS APEX (Soul/Ψ) Module
+v51 Core Reorganization
 
-Role: Constitutional Judge & Law
-Mandate: "Is this LAWFUL?"
-Primary Floors: F6 Amanah (LOCK), F8 Tri-Witness (≥0.95), F9 Anti-Hantu (0 violations)
-Pipeline Stages: 000 VOID, 888 JUDGE, 999 SEAL
-Authority: FINAL VERDICT — sole SEAL power
-
-Part of v46 Trinity Orthogonal AAA Architecture.
-
-CRITICAL: APEX does NOT generate content; it judges.
-Verdict authority resides ONLY in apex_prime.py.
-
-DITEMPA BUKAN DIBERI — Forged, not given; truth must cool before it rules.
+Re-exports APEX components for compatibility.
+The main implementation is in arifos.core.apex.kernel.APEXJudicialCore
 """
 
-# Fixed imports to match actual floor_checks.py exports
-from .floor_checks import (
-    check_amanah_f1,  # Fixed: Was check_amanah_f6
-    check_tri_witness_f8,
-    check_anti_hantu_f9,
-)
+# New v51 kernel
+from arifos.core.apex.kernel import APEXJudicialCore
+
+# Alias for backward compatibility
+APEXKernel = APEXJudicialCore
+
+# Legacy engine (for backward compatibility)
+try:
+    from arifos.core.engines.apex_engine import (
+        APEXEngine,
+        APEXOutput,
+        VoidJustification,
+        ProofPacket,
+        EurekaResult,
+        JudgeResult,
+        ProofResult,
+    )
+except ImportError:
+    APEXEngine = None
+    APEXOutput = None
+    VoidJustification = None
+    ProofPacket = None
+    EurekaResult = None
+    JudgeResult = None
+    ProofResult = None
 
 __all__ = [
-    "check_amanah_f1",  # Fixed: Was check_amanah_f6
-    "check_tri_witness_f8",
-    "check_anti_hantu_f9",
+    # v51 Kernel
+    "APEXJudicialCore",
+    "APEXKernel",
+    # Legacy Engine
+    "APEXEngine",
+    "APEXOutput",
+    "VoidJustification",
+    "ProofPacket",
+    "EurekaResult",
+    "JudgeResult",
+    "ProofResult",
 ]

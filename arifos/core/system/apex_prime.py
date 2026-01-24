@@ -25,7 +25,11 @@ from arifos.core.asi.cooling import CoolingEngine
 from arifos.core.enforcement.metrics import FloorCheckResult, FloorsVerdict, Metrics
 
 # == DEEP LOGIC WIRING ==
-from arifos.core.floor_validators import validate_f1_amanah, validate_f8_genius, validate_f9_cdark
+from arifos.core.enforcement.floor_validators import (
+    validate_f1_amanah,
+    validate_f8_genius,
+    validate_f9_cdark,
+)
 
 # Use mcp_889_proof logic for proof generation to ensure consistency
 # We'll re-implement the hash logic here to match mcp_889_proof without cyclic import of the tool

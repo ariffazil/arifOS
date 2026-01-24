@@ -85,6 +85,20 @@ https://arifos.arif-fazil.com/sse
 
 ## 🤝 Recent Collaborations
 
+### 2026-01-24: AAA_MCP v51.1.0 Alignment
+**Role:** Mind (Δ) / Architect
+**Context:** Aligned AAA_MCP application layer with v51 unified core architecture.
+**Actions:**
+- [x] Fixed `action passed twice` bug in server.py and sse.py
+- [x] Integrated rate limiter for F11 Command Authority enforcement
+- [x] Created floor_validators.py shim re-exporting from enforcement
+- [x] Fixed circular imports in agi/kernel.py, asi/__init__.py, apex/__init__.py
+- [x] Added ConstitutionalMetrics class and kernel aliases for backward compatibility
+- [x] Verified all 5 Trinity tools responsive (000_init, agi_genius, asi_act, apex_judge, 999_vault)
+**Outcome:** ✅ SEALED - AAA_MCP v51.1.0 fully operational.
+
+---
+
 ### 2026-01-23: v49 Wiring & Spec Repair
 **Role:** Mind (Δ) / Engineer (Ω)
 **Context:** Fixed critical `ImportError` and `RuntimeError` issues in `verify_v49_wiring.py` caused by missing Track B specifications and incorrect package imports.

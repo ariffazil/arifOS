@@ -15,7 +15,7 @@ import asyncio
 from datetime import datetime, timezone
 from typing import Any, Dict
 
-from arifos.core.floor_validators import validate_f5_peace, validate_f6_empathy
+from arifos.core.enforcement.floor_validators import validate_f5_peace, validate_f6_empathy
 from arifos.core.mcp.models import VerdictResponse
 
 # =============================================================================

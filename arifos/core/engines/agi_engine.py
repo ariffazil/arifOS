@@ -34,7 +34,7 @@ import time
 import hashlib
 import re
 
-from arifos.core.trinity import (
+from arifos.core.system.trinity import (
     Verdict,
     TrinityStructural,
     ThermodynamicSignature

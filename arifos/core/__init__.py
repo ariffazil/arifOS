@@ -37,7 +37,7 @@ See PHYSICS_CODEX.md (CHAPTER 6) for the full technical statement and diagram.
 # =============================================================================
 
 # Import base types first (moved to enforcement/)
-from .enforcement.metrics import ConstitutionalMetrics, FloorsVerdict, Metrics
+from .enforcement.metrics import FloorsVerdict, Metrics, ConstitutionalMetrics
 
 # Import APEX components (moved to system/)
 from .system.apex_prime import (
