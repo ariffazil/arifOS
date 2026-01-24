@@ -36,6 +36,10 @@ See PHYSICS_CODEX.md (CHAPTER 6) for the full technical statement and diagram.
 # Files moved to concern-based subdirs, re-exported here for compatibility
 # =============================================================================
 
+# APEX Version Constants (Backward Compatibility)
+APEX_VERSION = "v46.3.1Ω"
+APEX_EPOCH = 46
+
 # Import base types first (moved to enforcement/)
 from .enforcement.metrics import FloorsVerdict, Metrics, ConstitutionalMetrics
 from .kernel import get_kernel_manager, KernelManager

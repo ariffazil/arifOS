@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from arifos.core.state.merkle import build_merkle_tree, MerkleTree
+from .merkle import build_merkle_tree, MerkleTree
 
 
 # =============================================================================

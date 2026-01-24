@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 # --- 1. CONSTITUTIONAL CONSTANTS ---
 
+from .emergency_calibration_v45 import get_lane_truth_threshold
+
 # F2: Truth - factual integrity
 TRUTH_THRESHOLD: float = 0.99
 
@@ -56,6 +58,15 @@ class Metrics:
     def __post_init__(self) -> None:
         if self.psi is None:
             self.psi = self.truth * 0.5 + self.kappa_r * 0.5 # Simplified vitality
+
+    def compute_psi(self, lane: str = "SOFT") -> float:
+        """Calculate system vitality index (Ψ)."""
+        # Simplified formula: weighted average of truth and empathy
+        # High stakes (HARD lane) require higher truth
+        truth_weight = 0.7 if lane == "HARD" else 0.5
+        kappa_weight = 1.0 - truth_weight
+        self.psi = self.truth * truth_weight + self.kappa_r * kappa_weight
+        return self.psi
 
 @dataclass
 class FloorsVerdict:

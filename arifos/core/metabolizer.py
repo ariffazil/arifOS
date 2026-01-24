@@ -80,17 +80,17 @@ class Metabolizer:
 
     # Stage module mappings (v50: wire to actual implementations)
     STAGE_MODULES = {
-        0: "arifos.core.metabolism.000_void",
-        111: "arifos.core.metabolism.111_sense",
-        222: "arifos.core.metabolism.222_reflect",
-        333: "arifos.core.metabolism.333_reason",
-        444: "arifos.core.metabolism.444_evidence",
-        555: "arifos.core.metabolism.555_empathize",
-        666: "arifos.core.metabolism.666_align",
-        777: "arifos.core.metabolism.777_forge",
-        888: "arifos.core.metabolism.888_judge",
-        889: "arifos.core.metabolism.889_proof",
-        999: "arifos.core.metabolism.999_vault",
+        0: "arifos.core.stage.stage_000_void",
+        111: "arifos.core.stage.stage_111_sense",
+        222: "arifos.core.stage.stage_222_reflect",
+        333: "arifos.core.stage.stage_333_reason",
+        444: "arifos.core.stage.stage_444_evidence",
+        555: "arifos.core.stage.stage_555_empathize",
+        666: "arifos.core.stage.stage_666_align",
+        777: "arifos.core.stage.stage_777_forge",
+        888: "arifos.core.stage.stage_888_judge",
+        889: "arifos.core.stage.stage_889_proof",
+        999: "arifos.core.stage.stage_999_vault",
     }
 
     # Stage timeout thresholds (milliseconds)
