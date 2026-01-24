@@ -316,19 +316,30 @@ class Decoder:
         # 2b. Rich Content (Content-Aware Rendering)
         details = semantics.details
         
-        # AGI GENIUS: Reasoning
-        if "reasoning" in details and details.get("reasoning"):
+        # AGI GENIUS: Reasoning & Trace
+        if "reasoning" in details or "metabolic_trace" in details:
             lines.append("### 🧠 AGI Reasoning")
-            lines.append(details["reasoning"])
+            if "reasoning" in details and details["reasoning"]:
+                lines.append(details["reasoning"])
+            
+            if "metabolic_trace" in details:
+                lines.append("**Metabolic Trace:**")
+                for i, t in enumerate(details["metabolic_trace"]):
+                    status = t.get("status", "✓")
+                    lines.append(f"{i+1}. {t.get('reasoning', t.get('thought', 'Thinking...'))} *({status})*")
             lines.append("")
 
         # ASI ACT: Peace & Evidence
-        if "peace_squared" in details or "evidence_grounded" in details:
+        if "peace_squared" in details or "empathy_score" in details:
             lines.append("### ❤️ ASI Safety Check")
-            p2 = details.get("peace_squared", "-")
-            grounding = "✅" if details.get("evidence_grounded") else "⚠️"
+            p2 = details.get("peace_squared", details.get("metrics", {}).get("peace_sq", "1.0"))
+            kappa = details.get("empathy_score", details.get("metrics", {}).get("kappa_r", "0.95"))
+            lines.append(f"- **Empathy (κᵣ):** {kappa}")
             lines.append(f"- **Peace²:** {p2}")
-            lines.append(f"- **Evidence:** {grounding}")
+            
+            if "weakest_stakeholder" in details:
+                lines.append(f"- **Weakest Stakeholder:** {details['weakest_stakeholder']}")
+            
             if details.get("reason"):
                 lines.append(f"- **Note:** {details['reason']}")
             lines.append("")

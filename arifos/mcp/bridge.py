@@ -68,61 +68,22 @@ async def bridge_agi_router(action: str = "full", **kwargs) -> dict:
     return _serialize(await kernel.execute(action, kwargs))
 
 async def bridge_asi_router(action: str = "full", **kwargs) -> dict:
-    """Pure bridge: Route action/empathy tasks to ASI Act."""
+    """Pure bridge: Route ethical tasks to ASI Act."""
     if not ENGINES_AVAILABLE:
         return _FALLBACK_RESPONSE
     
     kernel = get_kernel_manager().get_asi()
-    text = kwargs.get("text", kwargs.get("query", ""))
-    ctx = kwargs.get("agi_result", {})
-    
-    try:
-        if action == "evidence":
-            search_query = kwargs.get("query") or text
-            return _serialize(await kernel.gather_evidence(search_query, kwargs.get("rationale", "")))
-        elif action in ("empathize", "full", "act"):
-            return _serialize(await kernel.empathize(text, ctx))
-        elif action in ("bridge", "align"):
-            return _serialize(await kernel.bridge_synthesis(ctx, kwargs.get("empathy_input", {})))
-        else:
-            return _serialize(await kernel.empathize(text, ctx))
-    except Exception as e:
-        logger.error(f"ASI Bridge error: {e}")
-        return {"error": str(e), "status": "ERROR"}
+    # Pure delegation to kernel execute method
+    return _serialize(await kernel.execute(action, kwargs))
 
 async def bridge_apex_router(action: str = "full", **kwargs) -> dict:
-    """Pure bridge: Route judicial/verdict tasks to APEX Judge."""
+    """Pure bridge: Route judicial tasks to APEX Judge."""
     if not ENGINES_AVAILABLE:
         return _FALLBACK_RESPONSE
     
     kernel = get_kernel_manager().get_apex()
-    try:
-        if action in ("full", "judge"):
-            return _serialize(await kernel.judge_quantum_path(
-                kwargs.get("query", ""),
-                kwargs.get("response", ""),
-                kwargs.get("trinity_floors", []),
-                kwargs.get("session_id", "anonymous")
-            ))
-        elif action in ("eureka", "forge"):
-            return _serialize(await kernel.forge_insight(kwargs.get("draft", kwargs.get("response", ""))))
-        elif action == "entropy":
-            return _serialize(await kernel.entropy_profiler.measure_constitutional_cooling(
-                kwargs.get("pre_text", ""), kwargs.get("post_text", "")
-            ))
-        elif action == "parallelism":
-            import time
-            return _serialize(await kernel.parallel_profiler.prove_constitutional_parallelism(
-                kwargs.get("start_time", time.time()), kwargs.get("component_durations", {})
-            ))
-        elif action == "proof":
-            import hashlib
-            return {"hash": hashlib.sha256(str(kwargs.get("data", "")).encode()).hexdigest()[:16], "status": "PROVEN"}
-        else:
-            return _serialize(await kernel.judge_quantum_path(kwargs.get("query", ""), kwargs.get("response", ""), [], "anonymous"))
-    except Exception as e:
-        logger.error(f"APEX Bridge error: {e}")
-        return {"error": str(e), "status": "ERROR"}
+    # Pure delegation to kernel execute method
+    return _serialize(await kernel.execute(action, kwargs))
 
 async def bridge_vault_router(action: str = "seal", **kwargs) -> dict:
     """Pure bridge: Route archival tasks to 999 Vault."""
