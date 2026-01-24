@@ -32,7 +32,6 @@ from arifos.mcp.server import TOOL_DESCRIPTIONS, TOOL_ROUTERS as TOOLS
 
 # MCP Server for direct endpoint
 from mcp.server import Server
-from mcp.server.sse import SseServerTransport
 import mcp.types
 
 def create_app() -> FastAPI:
@@ -168,19 +167,64 @@ def create_app() -> FastAPI:
             return await tool(**arguments)
         return tool(**arguments)
 
-    # SSE Transport for /mcp endpoint
-    mcp_sse = SseServerTransport("/mcp")
+    # ==========================================================================
+    # ChatGPT MCP SSE Endpoint
+    # ==========================================================================
 
     @app.get("/mcp")
-    async def handle_mcp_get(request: Request):
+    async def handle_mcp_sse():
         """MCP SSE Endpoint - ChatGPT Developer Mode compatible."""
-        async with mcp_sse.connect_sse(request.scope, request.receive, request._send) as streams:
-            await mcp_server.run(streams[0], streams[1], mcp_server.create_initialization_options())
+        from starlette.responses import StreamingResponse
+        import asyncio
 
-    @app.post("/mcp")
-    async def handle_mcp_post(request: Request):
+        async def event_stream():
+            # Send initial connection event with message endpoint
+            yield "event: endpoint\ndata: /mcp/messages\n\n"
+
+            # Keep connection alive with heartbeats
+            while True:
+                yield ": heartbeat\n\n"
+                await asyncio.sleep(30)
+
+        return StreamingResponse(
+            event_stream(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            }
+        )
+
+    @app.post("/mcp/messages")
+    async def handle_mcp_messages(request: Request):
         """MCP Message Endpoint - ChatGPT Developer Mode compatible."""
-        return await mcp_sse.handle_post_message(request.scope, request.receive, request._send)
+        from starlette.responses import Response
+
+        # Get raw body
+        body = await request.body()
+
+        # Route to appropriate tool
+        import json
+        try:
+            data = json.loads(body)
+            method = data.get("method", "")
+
+            if method == "tools/list":
+                tools = await list_mcp_tools()
+                result = {"tools": [{"name": t.name, "description": t.description, "inputSchema": t.inputSchema} for t in tools]}
+            elif method == "tools/call":
+                params = data.get("params", {})
+                tool_name = params.get("name", "")
+                arguments = params.get("arguments", {})
+                result = await call_mcp_tool(tool_name, arguments)
+            else:
+                result = {"error": f"Unknown method: {method}"}
+
+            response = {"jsonrpc": "2.0", "id": data.get("id"), "result": result}
+            return Response(content=json.dumps(response), media_type="application/json")
+        except Exception as e:
+            return Response(content=json.dumps({"error": str(e)}), media_type="application/json")
 
     # Also mount the SSE sub-app at /sse for Claude Desktop compatibility
     app.mount("/sse", sse_app)
