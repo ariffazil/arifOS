@@ -37,7 +37,7 @@ from AAA_MCP.bridge import (
     bridge_apex_router,
     bridge_vault_router,
 )
-from AAA_MCP.rate_limiter import get_rate_limiter
+from arifos.core.enforcement.governance.rate_limiter import get_rate_limiter
 
 logger = logging.getLogger(__name__)
 

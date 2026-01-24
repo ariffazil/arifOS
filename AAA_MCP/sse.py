@@ -29,7 +29,7 @@ from AAA_MCP.bridge import (
     bridge_vault_router,
 )
 from AAA_MCP.server import TOOL_DESCRIPTIONS
-from AAA_MCP.rate_limiter import get_rate_limiter
+from arifos.core.enforcement.governance.rate_limiter import get_rate_limiter
 
 
 # =============================================================================
@@ -146,7 +146,7 @@ def create_aaa_sse_app() -> FastAPI:
     @app.get("/health")
     async def handle_health():
         """Health Check Endpoint - Railway requires this."""
-        from AAA_MCP.rate_limiter import get_rate_limiter
+        from arifos.core.enforcement.governance.rate_limiter import get_rate_limiter
 
         rate_limiter = get_rate_limiter()
 

@@ -1,5 +1,5 @@
 """
-AAA MCP Rate Limiter (v51.0.0)
+arifOS Rate Limiter (v51.0.0)
 Constitutional Rate Limiting for MCP Tools
 
 Implements:
@@ -127,7 +127,7 @@ class RateLimiter:
         self._cleanup_interval = 300  # 5 minutes
         self._last_cleanup = time.time()
 
-        logger.info(f"AAA RateLimiter initialized (enabled={self.enabled})")
+        logger.info(f"arifOS RateLimiter initialized (enabled={self.enabled})")
 
     def check(self, tool_name: str, session_id: str = "") -> RateLimitResult:
         """
@@ -232,7 +232,7 @@ class RateLimiter:
                 if now - bucket.last_refill > stale_threshold:
                     del self._session_buckets[tool_name][session_id]
 
-        logger.debug("AAA Rate limiter cleanup completed")
+        logger.debug("Rate limiter cleanup completed")
 
     def get_stats(self) -> Dict:
         """Get rate limiter statistics."""
