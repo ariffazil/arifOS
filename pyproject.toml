@@ -4,7 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "51.0.0"
+version = "52.0.0"
+# v52.0.0: Unified Core SEAL - Merged AAA_MCP into Brain, Pure Bridge (2026-01-24)
 # v51.0.0: AAA MCP SERVER - Bridge to Core Engines + Rebrand (2026-01-24)
 # v50.5.26: Quick Wire - MCP tools now read Track B thresholds from metrics.py (2026-01-24)
 # v50.5.25: ChatGPT Developer Mode + README Reality Update (2026-01-23)
@@ -73,6 +74,7 @@ dependencies = [
     "fastapi>=0.104.1",
     "uvicorn[standard]>=0.24.0",
     "sse-starlette>=1.8.2",
+    "mcp>=1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -91,10 +93,6 @@ api = [
     "python-multipart>=0.0.6",
 ]
 litellm = ["litellm>=1.0.0"]
-mcp = [
-    "mcp>=1.0.0",
-    "sse-starlette>=1.8.2",
-]
 governed = [
     "litellm>=1.0.0",
     "httpx>=0.28.0",
@@ -110,13 +108,14 @@ all = [
     "httpx>=0.28.0",
     "pygments>=2.16.0",
     "openai>=1.6.0",
+    "mcp>=1.0.0",
 ]
 
 [project.scripts]
-# MCP Server Commands (Primary)
-arifos-mcp = "arifos.mcp.sse:main"
-arifos-mcp-sse = "arifos.mcp.trinity_server:main_sse"
-arifos-mcp-stdio = "arifos.mcp.trinity_server:main_stdio"
+# MCP Server Commands (Primary v52)
+arifos-mcp = "arifos.mcp.__main__:main"
+arifos-mcp-sse = "arifos.mcp.sse:main"
+arifos-mcp-stdio = "arifos.mcp.server:main_stdio"
 
 # Governance Analysis
 arifos-analyze-audit-trail = "scripts.analyze_audit_trail:main"

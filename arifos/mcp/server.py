@@ -30,12 +30,12 @@ from arifos.mcp.bridge import (
 from arifos.core.enforcement.governance.rate_limiter import get_rate_limiter
 from arifos.mcp.mode_selector import get_mcp_mode, MCPMode
 from arifos.mcp.constitutional_metrics import record_verdict
-from arifos.core.system.orchestrator.presenter import AAAPresenter
+from arifos.core.system.orchestrator.presenter import AAAMetabolizer
 
 logger = logging.getLogger(__name__)
 
 # Initialize Presenter
-presenter = AAAPresenter()
+presenter = AAAMetabolizer()
 
 # =============================================================================
 # TOOL DESCRIPTIONS
@@ -162,14 +162,10 @@ def create_mcp_server(mode: Optional[MCPMode] = None) -> Server:
             action = arguments.pop("action", "full")
             result = await router(action=action, **arguments)
             
-            # Record metrics
-            duration = time.time() - start
-            record_verdict(
-                tool=name,
-                verdict=result.get("verdict", "UNKNOWN"),
-                duration=duration,
-                mode=mode.value
-            )
+            # Record metrics (Prometheus - Phase 1)
+            duration_ms = (time.time() - start) * 1000
+            record_stage_metrics(name, duration_ms)
+            record_verdict_metrics(result.get("verdict", "UNKNOWN"))
             
             # Metabolize Result using Presenter (Human-Optimized Output)
             formatted_text = presenter.process(result)

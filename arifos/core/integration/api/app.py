@@ -19,6 +19,8 @@ Usage:
 from __future__ import annotations
 
 from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from .routes import health, pipeline, memory, ledger, metrics, federation, body
 from .middleware import setup_middleware
@@ -63,11 +65,26 @@ def create_app() -> FastAPI:
     setup_exception_handlers(app)
 
     # ==========================================================================
-    # SECURITY: API KEY AUTHENTICATION
+    # SOVEREIGN DASHBOARD (Phase 2)
     # ==========================================================================
     import os
-    from fastapi.responses import JSONResponse
+    static_path = os.path.join(os.path.dirname(__file__), "static")
+    app.mount("/dashboard/static", StaticFiles(directory=static_path), name="static")
 
+    @app.get("/dashboard", response_class=HTMLResponse)
+    async def get_dashboard():
+        """Serve the Sovereign Dashboard."""
+        index_file = os.path.join(static_path, "index.html")
+        with open(index_file, "r") as f:
+            html_content = f.read()
+            # Rewrite links to use the mounted /dashboard/static path
+            html_content = html_content.replace('href="styles.css"', 'href="/dashboard/static/styles.css"')
+            html_content = html_content.replace('src="app.js"', 'src="/dashboard/static/app.js"')
+            return html_content
+
+    # ==========================================================================
+    # SECURITY: API KEY AUTHENTICATION
+    # ==========================================================================
     @app.middleware("http")
     async def security_middleware(request: Request, call_next):
         """
