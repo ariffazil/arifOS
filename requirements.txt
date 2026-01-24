@@ -21,6 +21,10 @@ fastmcp>=0.1.0
 dspy>=2.4.0
 rich>=13.7.0
 
+# Universal Gateway Support
+fastmcp>=0.1.0
+sse-starlette>=1.8.2
+
 # Optional / Build
 setuptools>=68.2.2
 wheel>=0.41.3
