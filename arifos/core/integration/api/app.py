@@ -79,15 +79,20 @@ def create_app() -> FastAPI:
             # Unsecured mode (warn in logs in real app, but for now just pass)
             return await call_next(request)
 
-        # Allow public paths
+        # Allow public paths (health, docs, liveness probes)
         path = request.url.path
-        if (
-            path == "/" or 
-            path.startswith("/docs") or 
-            path.startswith("/redoc") or 
-            path.startswith("/openapi.json") or 
-            "/health" in path
-        ):
+        public_paths = (
+            path == "/" or
+            path == "/health" or
+            path == "/ready" or
+            path == "/live" or
+            path == "/v1/health" or
+            path.startswith("/docs") or
+            path.startswith("/redoc") or
+            path.startswith("/openapi.json") or
+            "/health" in path  # Catch-all for any health-related path
+        )
+        if public_paths:
             return await call_next(request)
             
         # Check Header
