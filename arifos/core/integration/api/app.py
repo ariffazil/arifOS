@@ -134,29 +134,18 @@ def create_app() -> FastAPI:
     app.include_router(federation.router)
     app.include_router(body.router)
 
-    # Register MCP SSE routes (sub-app for /sse and /messages endpoints)
-    sse_app = create_sse_app()
-
     # ==========================================================================
-    # CHATGPT DEVELOPER MODE: Unified /mcp endpoint
-    # USES SHARED LOGIC FROM sse_app (Metabolizer + Bridge + Cores)
+    # MCP SSE CONFIGURATION (v52.1.1 Flat Architecture)
     # ==========================================================================
-    mcp_server = sse_app.state.mcp_server
-    mcp_sse = sse_app.state.sse_transport
+    
+    # 1. Standard /sse mount (for Claude Desktop)
+    # Both Stream and Messages share the root: /sse/
+    app.mount("/sse", create_sse_app(messages_endpoint="/sse"))
 
-    @app.get("/mcp")
-    async def handle_mcp_get(request: Request):
-        """MCP SSE Endpoint - ChatGPT Developer Mode compatible."""
-        async with mcp_sse.connect_sse(request.scope, request.receive, request._send) as streams:
-            await mcp_server.run(streams[0], streams[1], mcp_server.create_initialization_options())
+    # 2. ChatGPT /mcp mount (for Developer Mode)
+    # Both Stream and Messages share the root: /mcp/
+    app.mount("/mcp", create_sse_app(messages_endpoint="/mcp"))
 
-    @app.post("/mcp")
-    async def handle_mcp_post(request: Request):
-        """MCP Message Endpoint - ChatGPT Developer Mode compatible."""
-        return await mcp_sse.handle_post_message(request.scope, request.receive, request._send)
-
-    # Also mount the SSE sub-app at /sse for Claude Desktop compatibility
-    app.mount("/sse", sse_app)
 
     # Root endpoint
     @app.get("/", tags=["root"])

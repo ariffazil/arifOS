@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 # Initialize Presenter
 presenter = AAAMetabolizer()
 
-def create_sse_app(mode: Optional[MCPMode] = None) -> FastAPI:
+def create_sse_app(mode: Optional[MCPMode] = None, messages_endpoint: str = "/messages") -> FastAPI:
     """Create FastAPI app with MCP SSE endpoints."""
     if mode is None:
         mode = get_mcp_mode()
@@ -115,15 +115,21 @@ def create_sse_app(mode: Optional[MCPMode] = None) -> FastAPI:
         allow_headers=["*"],
     )
 
-    sse = SseServerTransport("/messages")
+    sse = SseServerTransport(messages_endpoint)
 
-    @app.get("/sse")
+    @app.get("/")
     async def handle_sse(request: Request):
+        """MCP SSE Stream Endpoint."""
         async with sse.connect_sse(request.scope, request.receive, request._send) as streams:
-            await mcp_server.run(streams[0], streams[1], mcp_server.create_initialization_options())
+            await mcp_server.run(
+                streams[0], 
+                streams[1], 
+                mcp_server.create_initialization_options()
+            )
 
-    @app.post("/messages")
+    @app.post("/")
     async def handle_messages(request: Request):
+        """MCP Message (POST) Endpoint - Same as GET root."""
         return await sse.handle_post_message(request.scope, request.receive, request._send)
 
     @app.get("/health")
