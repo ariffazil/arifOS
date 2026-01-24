@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="23" failures="0" skipped="0" tests="23" time="2.858" timestamp="2026-01-24T15:47:32.913960+08:00" hostname="ARIFFAZIL"><testcase classname="" name="tests.governance.test_merkle_ledger" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\governance\test_merkle_ledger.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\governance\test_merkle_ledger.py:6: in &lt;module&gt;
+    from arifos.core.apex.governance.merkle_ledger import MerkleLedger
+arifos\core\apex\governance\__init__.py:18: in &lt;module&gt;
+    from .fag import FAG, FAGReadResult, SecurityAlert
+arifos\core\apex\governance\fag.py:83: in &lt;module&gt;
+    from .ledger import log_cooling_entry
+arifos\core\apex\governance\ledger.py:30: in &lt;module&gt;
+    from arifos.core.state.ledger import *
+E   ModuleNotFoundError: No module named 'arifos.core.state'</error></testcase><testcase classname="" name="tests.governance.test_signatures" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\governance\test_signatures.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\governance\test_signatures.py:6: in &lt;module&gt;
+    from arifos.core.apex.governance.sovereign_signature import SovereignSigner, SignatureVerifier, HAS_NACL
+arifos\core\apex\governance\__init__.py:18: in &lt;module&gt;
+    from .fag import FAG, FAGReadResult, SecurityAlert
+arifos\core\apex\governance\fag.py:83: in &lt;module&gt;
+    from .ledger import log_cooling_entry
+arifos\core\apex\governance\ledger.py:30: in &lt;module&gt;
+    from arifos.core.state.ledger import *
+E   ModuleNotFoundError: No module named 'arifos.core.state'</error></testcase><testcase classname="" name="tests.memory.test_ledger_cryptography" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\memory\test_ledger_cryptography.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\memory\test_ledger_cryptography.py:30: in &lt;module&gt;
+    from arifos.core.apex.governance.ledger_cryptography import (
+arifos\core\apex\governance\__init__.py:18: in &lt;module&gt;
+    from .fag import FAG, FAGReadResult, SecurityAlert
+arifos\core\apex\governance\fag.py:83: in &lt;module&gt;
+    from .ledger import log_cooling_entry
+arifos\core\apex\governance\ledger.py:30: in &lt;module&gt;
+    from arifos.core.state.ledger import *
+E   ModuleNotFoundError: No module named 'arifos.core.state'</error></testcase><testcase classname="" name="tests.test_budi_quick" time="0.000"><error message="collection failure">tests\test_budi_quick.py:54: in &lt;module&gt;
+    apex_result = apex_review(
+arifos\core\system\apex_prime.py:535: in apex_review
+    return prime.judge_output(prompt, response, agi_results, asi_results, user_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+arifos\core\system\apex_prime.py:187: in judge_output
+    apex_results = self._check_apex_floors(response, query, external_floors)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+arifos\core\system\apex_prime.py:272: in _check_apex_floors
+    if f.floor_id == "F2": floor_scores["F2_Truth"] = {"score": f.value, "pass": f.passed}
+                                                                ^^^^^^^
+E   AttributeError: 'FloorCheckResult' object has no attribute 'value'</error></testcase><testcase classname="" name="tests.test_delta_kernel" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\test_delta_kernel.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_delta_kernel.py:15: in &lt;module&gt;
+    from arifos.core.agi.delta_kernel import DeltaKernel, DeltaVerdict, evaluate_agi_floors
+E   ModuleNotFoundError: No module named 'arifos.core.agi.delta_kernel'</error></testcase><testcase classname="" name="tests.test_entropy" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\test_entropy.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_entropy.py:24: in &lt;module&gt;
+    from arifos.core.agi.entropy import (
+E   ModuleNotFoundError: No module named 'arifos.core.agi.entropy'</error></testcase><testcase classname="" name="tests.test_f10_ontology" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\test_f10_ontology.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_f10_ontology.py:16: in &lt;module&gt;
+    from arifos.core.guards.ontology_guard import (
+E   ModuleNotFoundError: No module named 'arifos.core.guards'</error></testcase><testcase classname="" name="tests.test_f11_nonce_auth" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\test_f11_nonce_auth.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_f11_nonce_auth.py:20: in &lt;module&gt;
+    from arifos.core.guards.nonce_manager import (
+E   ModuleNotFoundError: No module named 'arifos.core.guards'</error></testcase><testcase classname="" name="tests.test_f12_injection" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\test_f12_injection.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_f12_injection.py:17: in &lt;module&gt;
+    from arifos.core.guards.injection_guard import (
+E   ModuleNotFoundError: No module named 'arifos.core.guards'</error></testcase><testcase classname="" name="tests.test_fag" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\test_fag.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_fag.py:11: in &lt;module&gt;
+    from arifos.core.apex.governance.fag import FAG, FAGReadResult, fag_read
+arifos\core\apex\governance\__init__.py:18: in &lt;module&gt;
+    from .fag import FAG, FAGReadResult, SecurityAlert
+arifos\core\apex\governance\fag.py:83: in &lt;module&gt;
+    from .ledger import log_cooling_entry
+arifos\core\apex\governance\ledger.py:30: in &lt;module&gt;
+    from arifos.core.state.ledger import *
+E   ModuleNotFoundError: No module named 'arifos.core.state'</error></testcase><testcase classname="" name="tests.test_fag_hardening" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\test_fag_hardening.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_fag_hardening.py:18: in &lt;module&gt;
+    from arifos.core.apex.governance.fag import FAG, SecurityAlert
+arifos\core\apex\governance\__init__.py:18: in &lt;module&gt;
+    from .fag import FAG, FAGReadResult, SecurityAlert
+arifos\core\apex\governance\fag.py:83: in &lt;module&gt;
+    from .ledger import log_cooling_entry
+arifos\core\apex\governance\ledger.py:30: in &lt;module&gt;
+    from arifos.core.state.ledger import *
+E   ModuleNotFoundError: No module named 'arifos.core.state'</error></testcase><testcase classname="" name="tests.test_fag_statistics_audit" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\test_fag_statistics_audit.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_fag_statistics_audit.py:15: in &lt;module&gt;
+    from arifos.core.apex.governance.fag import FAG
+arifos\core\apex\governance\__init__.py:18: in &lt;module&gt;
+    from .fag import FAG, FAGReadResult, SecurityAlert
+arifos\core\apex\governance\fag.py:83: in &lt;module&gt;
+    from .ledger import log_cooling_entry
+arifos\core\apex\governance\ledger.py:30: in &lt;module&gt;
+    from arifos.core.state.ledger import *
+E   ModuleNotFoundError: No module named 'arifos.core.state'</error></testcase><testcase classname="" name="tests.test_fag_v4503_hardening" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\test_fag_v4503_hardening.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_fag_v4503_hardening.py:19: in &lt;module&gt;
+    from arifos.core.apex.governance.fag import (FAG, PROTECTED_PATHS, FAGSnapshot,
+arifos\core\apex\governance\__init__.py:18: in &lt;module&gt;
+    from .fag import FAG, FAGReadResult, SecurityAlert
+arifos\core\apex\governance\fag.py:83: in &lt;module&gt;
+    from .ledger import log_cooling_entry
+arifos\core\apex\governance\ledger.py:30: in &lt;module&gt;
+    from arifos.core.state.ledger import *
+E   ModuleNotFoundError: No module named 'arifos.core.state'</error></testcase><testcase classname="" name="tests.test_ledger_cryptography" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\test_ledger_cryptography.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_ledger_cryptography.py:30: in &lt;module&gt;
+    from arifos.core.apex.governance.ledger_cryptography import (
+arifos\core\apex\governance\__init__.py:18: in &lt;module&gt;
+    from .fag import FAG, FAGReadResult, SecurityAlert
+arifos\core\apex\governance\fag.py:83: in &lt;module&gt;
+    from .ledger import log_cooling_entry
+arifos\core\apex\governance\ledger.py:30: in &lt;module&gt;
+    from arifos.core.state.ledger import *
+E   ModuleNotFoundError: No module named 'arifos.core.state'</error></testcase><testcase classname="" name="tests.test_psi_kernel" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\test_psi_kernel.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_psi_kernel.py:15: in &lt;module&gt;
+    from arifos.core.agi.delta_kernel import DeltaKernel, DeltaVerdict
+E   ModuleNotFoundError: No module named 'arifos.core.agi.delta_kernel'</error></testcase><testcase classname="" name="tests.test_session_dependency_guard" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\test_session_dependency_guard.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_session_dependency_guard.py:11: in &lt;module&gt;
+    from arifos.core.guards.session_dependency import (
+E   ModuleNotFoundError: No module named 'arifos.core.guards'</error></testcase><testcase classname="" name="tests.test_v46_enhancements" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\test_v46_enhancements.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_v46_enhancements.py:14: in &lt;module&gt;
+    from arifos.core.guards.injection_guard import InjectionGuard
+E   ModuleNotFoundError: No module named 'arifos.core.guards'</error></testcase><testcase classname="" name="tests.trinity.test_fag" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\trinity\test_fag.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\trinity\test_fag.py:11: in &lt;module&gt;
+    from arifos.core.apex.governance.fag import FAG, FAGReadResult, fag_read
+arifos\core\apex\governance\__init__.py:18: in &lt;module&gt;
+    from .fag import FAG, FAGReadResult, SecurityAlert
+arifos\core\apex\governance\fag.py:83: in &lt;module&gt;
+    from .ledger import log_cooling_entry
+arifos\core\apex\governance\ledger.py:30: in &lt;module&gt;
+    from arifos.core.state.ledger import *
+E   ModuleNotFoundError: No module named 'arifos.core.state'</error></testcase><testcase classname="" name="tests.trinity.test_fag_hardening" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\trinity\test_fag_hardening.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\trinity\test_fag_hardening.py:18: in &lt;module&gt;
+    from arifos.core.apex.governance.fag import FAG, SecurityAlert
+arifos\core\apex\governance\__init__.py:18: in &lt;module&gt;
+    from .fag import FAG, FAGReadResult, SecurityAlert
+arifos\core\apex\governance\fag.py:83: in &lt;module&gt;
+    from .ledger import log_cooling_entry
+arifos\core\apex\governance\ledger.py:30: in &lt;module&gt;
+    from arifos.core.state.ledger import *
+E   ModuleNotFoundError: No module named 'arifos.core.state'</error></testcase><testcase classname="" name="tests.trinity.test_fag_statistics_audit" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\trinity\test_fag_statistics_audit.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\trinity\test_fag_statistics_audit.py:15: in &lt;module&gt;
+    from arifos.core.apex.governance.fag import FAG
+arifos\core\apex\governance\__init__.py:18: in &lt;module&gt;
+    from .fag import FAG, FAGReadResult, SecurityAlert
+arifos\core\apex\governance\fag.py:83: in &lt;module&gt;
+    from .ledger import log_cooling_entry
+arifos\core\apex\governance\ledger.py:30: in &lt;module&gt;
+    from arifos.core.state.ledger import *
+E   ModuleNotFoundError: No module named 'arifos.core.state'</error></testcase><testcase classname="" name="tests.trinity.test_fag_v4503_hardening" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\tests\trinity\test_fag_v4503_hardening.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\trinity\test_fag_v4503_hardening.py:19: in &lt;module&gt;
+    from arifos.core.apex.governance.fag import (FAG, PROTECTED_PATHS, FAGSnapshot,
+arifos\core\apex\governance\__init__.py:18: in &lt;module&gt;
+    from .fag import FAG, FAGReadResult, SecurityAlert
+arifos\core\apex\governance\fag.py:83: in &lt;module&gt;
+    from .ledger import log_cooling_entry
+arifos\core\apex\governance\ledger.py:30: in &lt;module&gt;
+    from arifos.core.state.ledger import *
+E   ModuleNotFoundError: No module named 'arifos.core.state'</error></testcase><testcase classname="" name="arifos.tests.test_constitutional_constants" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\User\arifOS\arifos\tests\test_constitutional_constants.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+arifos\tests\test_constitutional_constants.py:13: in &lt;module&gt;
+    from arifos.constitutional_constants import (
+E   ImportError: cannot import name 'VERDICTS' from 'arifos.constitutional_constants' (C:\Users\User\arifOS\arifos\constitutional_constants.py)</error></testcase><testcase classname="" name="arifos.tests.test_thermodynamic_validator" time="0.000"><error message="collection failure">..\OneDrive\Documents\GitHub\arifOS\.venv\Lib\site-packages\_pytest\python.py:507: in importtestmodule
+    mod = import_path(
+..\OneDrive\Documents\GitHub\arifOS\.venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+..\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen importlib._bootstrap&gt;:1398: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1371: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1342: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:938: in _load_unlocked
+    ???
+..\OneDrive\Documents\GitHub\arifOS\.venv\Lib\site-packages\_pytest\assertion\rewrite.py:197: in exec_module
+    exec(co, module.__dict__)
+arifos\tests\test_thermodynamic_validator.py:13: in &lt;module&gt;
+    from arifos.thermodynamic_validator import (
+E     File "C:\Users\User\arifOS\arifos\thermodynamic_validator.py", line 14
+E       )
+E       ^
+E   SyntaxError: unmatched ')'</error></testcase></testsuite></testsuites>

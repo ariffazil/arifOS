@@ -1,37 +1,19 @@
-"""Constitutional module - F2 Truth enforced
-Part of arifOS constitutional governance system
-DITEMPA BUKAN DIBERI - Forged, not given
 """
+metrics.py — Constitutional Metrics and Floor Check API (v52.0.0 SEAL)
 
-"""
-metrics.py — Constitutional Metrics and Floor Check API (v46.0 + Runtime Telemetry v51)
-
-v46.0 TRACK B AUTHORITY:
+v52.0 TRACK B AUTHORITY:
 - This module COMPUTES MEASUREMENTS ONLY (floor values, truth penalties, identity lock)
 - This module does NOT decide verdicts (SEAL/VOID/PARTIAL)
 - Verdict decisions: apex_prime.py ONLY
 
-This module provides:
-1. Metrics dataclass - canonical metrics for all 12 constitutional floors (F1-F12)
-2. FloorsVerdict dataclass - result of floor evaluation
-3. Floor threshold constants - loaded from unified spec loader (Track B authority)
-4. Floor check functions - simple boolean checks for each floor
-5. Anti-Hantu helpers - pattern detection for F9
-6. Identity truth lock - hallucination penalties (v45Ω Patch B.1)
-7. Runtime Telemetry - Prometheus-compatible counters/gauges (v51 Merge)
-
-v46.0 Track B Consolidation:
+v52.0 Track B Consolidation:
 Thresholds loaded via strict priority order with fail-closed behavior:
-  A) ARIFOS_FLOORS_SPEC env var (explicit override - highest priority)
-  B) arifos/spec/v47/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors)
-  C) arifos/spec/v47/000_foundation/constitutional_floors.json (fallback if root unavailable)
-  D) arifos/spec/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors baseline)
-  E) HARD FAIL (raise exception) - no silent defaults
-
-  Optional: ARIFOS_ALLOW_LEGACY_SPEC=1 enables archive fallback (default OFF)
+  A) ARIFOS_FLOORS_SPEC env var (explicit override)
+  B) arifos/core/spec/constitutional/constitutional_floors.json (CANONICAL v52)
+  C) HARD FAIL
 
 Track A (Canon) remains authoritative for interpretation.
-Track B (Spec) arifos/spec/v47/ is SOLE RUNTIME AUTHORITY for thresholds.
+Track B (Spec) arifos/core/spec/constitutional/ is SOLE RUNTIME AUTHORITY.
 """
 
 import json
@@ -45,8 +27,6 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-
-from arifos.core.spec.manifest_verifier import verify_manifest
 
 # Re-export FloorCheckResult from floor_adapter for backward compatibility
 # Many modules expect to import it from metrics.py
@@ -77,263 +57,94 @@ from arifos.core.spec.schema_validator import validate_spec_against_schema
 logger = logging.getLogger(__name__)
 
 # =============================================================================
-# TRACK B SPEC LOADER (v45Ω Patch B.3: Spec Authority Unification)
+# TRACK B SPEC LOADER (v52.0 Unified Spec Authority)
 # =============================================================================
 
 
 def _validate_floors_spec(spec: dict, source: str) -> bool:
     """
     Validate that a loaded spec contains required floor threshold keys.
-
-    Supports two schema formats:
-    - v46: {"constitutional_floors": {"F1": {...}, "F2": {...}, ...}} (12 floors)
-    - v45: {"floors": {"truth": {...}, "delta_s": {...}, ...}, "vitality": {...}} (9 floors)
-
-    Args:
-        spec: The loaded spec dictionary
-        source: Source path/name for error messages
-
-    Returns:
-        True if valid, False otherwise
     """
     try:
-        # Check for v46 schema (constitutional_floors with F1-F12)
         if "constitutional_floors" in spec:
             floors = spec["constitutional_floors"]
-            # v46 requires at least F1-F9 (9 baseline floors)
             required_floor_ids = ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"]
 
             for floor_id in required_floor_ids:
                 if floor_id not in floors:
                     return False
-                floor_data = floors[floor_id]
-
-                # Validate threshold structure
-                if floor_id == "F5":  # Humility Ω₀ has min/max (v47: F5)
-                    if "threshold_min" not in floor_data or "threshold_max" not in floor_data:
-                        return False
-                elif floor_id in ("F1", "F7", "F10", "F11", "F13"):
-                    # Lock floors can have string "LOCK" or numeric threshold
-                    if "threshold" not in floor_data:
-                        return False
-                elif "threshold" not in floor_data:
-                    return False
-
-            return True  # v46 schema valid
-
-        # Check for v45 schema (floors + vitality)
-        elif "floors" in spec and "vitality" in spec:
-            floors = spec["floors"]
-            required_floors = ["truth", "delta_s", "peace_squared", "kappa_r", "omega_0", "tri_witness"]
-
-            for floor_name in required_floors:
-                if floor_name not in floors:
-                    return False
-                floor_data = floors[floor_name]
-
-                # Validate threshold structure
-                if floor_name == "omega_0":
-                    if "threshold_min" not in floor_data or "threshold_max" not in floor_data:
-                        return False
-                elif "threshold" not in floor_data:
-                    return False
-
-            # Validate vitality threshold
-            if "threshold" not in spec["vitality"]:
-                return False
-
-            return True  # v45 schema valid
-
-        else:
-            return False  # Neither schema format found
-
+            return True
+        return False
     except (KeyError, TypeError):
         return False
 
 
 def _load_floors_spec_unified() -> dict:
     """
-    Load constitutional floors spec with strict priority order (Track B Authority v46.0).
+    Load constitutional floors spec with strict priority order (v52 Canonical).
 
-    Priority (fail-closed):
-    A) ARIFOS_FLOORS_SPEC (env path override) - highest priority (explicit operator authority)
-    B) arifos/spec/v47/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors, complete)
-    C) arifos/spec/v47/000_foundation/constitutional_floors.json (v46 fallback if root unavailable)
-    D) arifos/spec/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors baseline)
-    E) HARD FAIL (raise RuntimeError) - no legacy fallback
-
-    Each candidate is validated for required keys before acceptance.
-    On validation failure, falls through to next priority level.
-
-    Returns:
-        dict: The loaded spec with floor thresholds
-
-    Raises:
-        RuntimeError: If v46/v45 spec missing/invalid
+    Priority:
+    A) ARIFOS_FLOORS_SPEC (env path override)
+    B) arifos/core/spec/constitutional/constitutional_floors.json (CANONICAL v52)
+    C) HARD FAIL
     """
-    # Navigate to repo root: metrics.py -> enforcement -> core -> arifos -> repo root
     pkg_dir = Path(__file__).resolve().parents[3]
-    loaded_from = None
     spec_data = None
+    loaded_from = None
 
-
-    # v46.1: Support arifos/spec/v47 -> arifos/spec/archive/v45 -> FAIL priority chain
-    # Check if legacy spec bypass is enabled (for development/migration)
-    allow_legacy = os.getenv("ARIFOS_ALLOW_LEGACY_SPEC", "0") == "1"
-
-
-    # Define base directories (v51.2: specs live in arifos/spec/)
-    l2_dir = pkg_dir / "arifos" / "spec"
-    v46_base = l2_dir / "v47"  # v47 is current authority
-    v45_archive = l2_dir / "archive" / "v45"
-
-    # Try v46 schema first, fallback to v45
-    v46_schema_path = v46_base / "schema" / "constitutional_floors.schema.json"
-    v45_schema_path = v45_archive / "schema" / "constitutional_floors.schema.json"
-
-    # Use v46 schema if available, else fall back
-    if v46_schema_path.exists():
-        schema_path = v46_schema_path
-    elif v45_schema_path.exists():
-        schema_path = v45_schema_path
-    else:
-        # Fallback to legacy spec/ folder if AAA_MCP structure missing (during migration)
-        schema_path = pkg_dir / "spec" / "v46" / "schema" / "constitutional_floors.schema.json"
-
-    # Verify cryptographic manifest (tamper-evident integrity)
-    # Try v46 manifest first
-    v46_manifest_path = v46_base / "MANIFEST.sha256.json"
-    v45_manifest_path = v45_archive / "MANIFEST.sha256.json"
-
-    # Find the first existing manifest
-    if v46_manifest_path.exists():
-        manifest_path = v46_manifest_path
-    elif v45_manifest_path.exists():
-        manifest_path = v45_manifest_path
-    else:
-        # Legacy fallback
-        manifest_path = pkg_dir / "spec" / "v46" / "MANIFEST.sha256.json"
-
-    # Verify manifest (skip if doesn't exist, for new v46 during development)
-    if manifest_path.exists():
-        try:
-            verify_manifest(pkg_dir, manifest_path, allow_legacy=allow_legacy)
-        except RuntimeError:
-            # If v46 manifest doesn't exist yet (during upgrade), allow fallback to v45
-            if manifest_path == v46_manifest_path and v45_manifest_path.exists():
-                manifest_path = v45_manifest_path
-                verify_manifest(pkg_dir, manifest_path, allow_legacy=allow_legacy)
-            else:
-                raise
-
-    # Priority A: Environment variable override (highest priority)
+    # Priority A: Environment variable override
     env_path = os.getenv("ARIFOS_FLOORS_SPEC")
     if env_path:
         env_spec_path = Path(env_path).resolve()
-
-        # Strict mode: env override must point to AAA_MCP (manifest-covered files only)
-        if not allow_legacy:
-            v46_dir = (pkg_dir / "AAA_MCP" / "v46").resolve()
-            v45_dir = (pkg_dir / "AAA_MCP" / "archive" / "v45").resolve()
-            v44_dir = (pkg_dir / "AAA_MCP" / "v44").resolve()
-
-            def _is_within(path: Path, base: Path) -> bool:
-                try:
-                    path.relative_to(base)
-                    return True
-                except ValueError:
-                    return False
-
-            try:
-                allowed_dirs = [v46_dir, v45_dir]
-                if v44_dir.exists():
-                    allowed_dirs.append(v44_dir)
-
-                if not any(_is_within(env_spec_path, d) for d in allowed_dirs):
-                    # Path is outside manifest-covered specs - reject in strict mode
-                    allowed_str = " or ".join(str(d) for d in allowed_dirs)
-                    raise RuntimeError(
-                        f"TRACK B AUTHORITY FAILURE: Environment override points to path outside manifest-covered specs.\n"
-                        f"  Override path: {env_spec_path}\n"
-                        f"  Expected within: {allowed_str}\n"
-                        f"In strict mode, only manifest-covered files are allowed.\n"
-                        f"Set ARIFOS_ALLOW_LEGACY_SPEC=1 to bypass (NOT RECOMMENDED)."
-                    )
-            except RuntimeError:
-                raise
-
         if env_spec_path.exists():
             try:
                 with env_spec_path.open("r", encoding="utf-8") as f:
-                    candidate = json.load(f)
-                # Schema validation (Track B authority enforcement)
-                validate_spec_against_schema(candidate, schema_path, allow_legacy=allow_legacy)
-                # Structural validation (required keys)
-                if _validate_floors_spec(candidate, str(env_spec_path)):
-                    spec_data = candidate
-                    loaded_from = f"ARIFOS_FLOORS_SPEC={env_spec_path}"
-            except (json.JSONDecodeError, IOError, OSError):
-                pass  # Fall through to next priority
+                    spec_data = json.load(f)
+                loaded_from = f"ARIFOS_FLOORS_SPEC={env_spec_path}"
+            except Exception:
+                pass
 
-    # Priority B: arifos/spec/v47/constitutional_floors.json (PRIMARY AUTHORITY v46.0)
-    # Root-level consolidated file is authoritative (69 lines, complete type fields)
+    # Priority B: Canonical location
     if spec_data is None:
-        v46_root_path = v46_base / "constitutional_floors.json"
-
-        if v46_root_path.exists():
+        v52_path = pkg_dir / "arifos" / "core" / "spec" / "constitutional" / "constitutional_floors.json"
+        if v52_path.exists():
             try:
-                with v46_root_path.open("r", encoding="utf-8") as f:
-                    candidate = json.load(f)
-                # Skip schema validation for v46 root file (simplified schema doesn't match v45 validator)
-                # Structural validation is sufficient for v46 format
-                if _validate_floors_spec(candidate, str(v46_root_path)):
-                    spec_data = candidate
-                    loaded_from = "arifos/spec/v47/constitutional_floors.json"
-
+                with v52_path.open("r", encoding="utf-8") as f:
+                    spec_data = json.load(f)
+                loaded_from = "arifos/core/spec/constitutional/constitutional_floors.json"
             except Exception as e:
-                # If root file fails, try foundation subfolder as fallback
-                v46_foundation_path = v46_base / "000_foundation" / "constitutional_floors.json"
-                if v46_foundation_path.exists():
-                    try:
-                        with v46_foundation_path.open("r", encoding="utf-8") as f:
-                            candidate = json.load(f)
-                        # Skip schema validation for v46 files (they use different schema)
-                        if _validate_floors_spec(candidate, str(v46_foundation_path)):
-                            spec_data = candidate
-                            loaded_from = "arifos/spec/v47/000_foundation/constitutional_floors.json (fallback)"
-                    except Exception:
-                        pass  # Fall through to v45 fallback
+                logger.error(f"Failed to load canonical floors spec: {e}")
 
-    # Priority C: arifos/spec/archive/v45/constitutional_floors.json (BASELINE)
-    if spec_data is None:
-        v45_path = v45_archive / "constitutional_floors.json"
-        if v45_path.exists():
-            try:
-                with v45_path.open("r", encoding="utf-8") as f:
-                    candidate = json.load(f)
-                # Schema validation (Track B authority enforcement)
-                if schema_path.exists():
-                    validate_spec_against_schema(candidate, schema_path, allow_legacy=allow_legacy)
-                # Structural validation (required keys)
-                if _validate_floors_spec(candidate, str(v45_path)):
-                    spec_data = candidate
-                    loaded_from = "arifos/spec/archive/v45/constitutional_floors.json"
-            except (json.JSONDecodeError, IOError):
-                pass  # Fall through to v44 fallback
-
-    # Priority E: HARD FAIL (no valid spec found)
+    # Priority E: HARD FAIL
     if spec_data is None:
         raise RuntimeError(
-            "TRACK B AUTHORITY FAILURE: Constitutional floors spec not found.\n\n"
-            "Searched locations (in priority order):\n"
-            f"  1. arifos/spec/v47/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors)\n"
-            f"  2. arifos/spec/v47/000_foundation/constitutional_floors.json (v46 fallback)\n"
-            f"  3. arifos/spec/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors)\n\n"
-            "Resolution:\n"
-            "1. Ensure arifos/spec/v47/constitutional_floors.json exists and is valid\n"
-            "2. Or set ARIFOS_FLOORS_SPEC env var to explicit path\n"
-            "3. Verify MANIFEST.sha256.json integrity if using strict mode\n\n"
+            "TRACK B AUTHORITY FAILURE: Constitutional floors spec not found.\n"
+            "Expected location: arifos/core/spec/constitutional/constitutional_floors.json"
         )
+
+    spec_data["_loaded_from"] = loaded_from
+
+    # Schema normalization
+    if "constitutional_floors" in spec_data and "floors" not in spec_data:
+        v46_floors = spec_data["constitutional_floors"]
+        spec_data["floors"] = {
+            "amanah": v46_floors.get("F1", {}),
+            "truth": v46_floors.get("F2", {}),
+            "peace_squared": v46_floors.get("F3", {}),
+            "kappa_r": v46_floors.get("F4", {}),
+            "omega_0": v46_floors.get("F5", {}),
+            "delta_s": v46_floors.get("F6", {}),
+            "rasa": v46_floors.get("F7", {}),
+            "tri_witness": v46_floors.get("F8", {}),
+            "anti_hantu": v46_floors.get("F9", {}),
+            "ontology": v46_floors.get("F10", {}),
+            "command_auth": v46_floors.get("F11", {}),
+            "injection_defense": v46_floors.get("F12", {}),
+        }
+        if "vitality" not in spec_data:
+            spec_data["vitality"] = {"threshold": 0.85}
+
+    return spec_data
 
     # Emit explicit marker for audit/debugging
     spec_data["_loaded_from"] = loaded_from

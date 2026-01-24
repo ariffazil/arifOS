@@ -1,5 +1,5 @@
 """
-arifOS v51.2.0 Constitutional Kernel
+arifOS v52.0.0 Constitutional Kernel
 5-Tool Trinity Framework
 
 Modules:
@@ -15,6 +15,8 @@ Usage:
 
 DITEMPA BUKAN DIBERI
 """
+
+__version__ = "v52.0.0"
 
 # Core enforcement and system components (requires spec files)
 try:

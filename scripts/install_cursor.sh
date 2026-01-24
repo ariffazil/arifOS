@@ -1,9 +1,9 @@
 #!/bin/bash
 # ============================================================================
-# AAA MCP - Cursor Installation Script (macOS/Linux/WSL)
+# arifOS MCP - Cursor Installation Script (macOS/Linux/WSL) v52
 # ============================================================================
 #
-# Installs AAA_MCP as an MCP server for Cursor IDE.
+# Installs arifos.mcp as an MCP server for Cursor IDE.
 #
 # Usage:
 #   ./scripts/install_cursor.sh
@@ -49,7 +49,7 @@ CURSOR_CONFIG_FILE="$CURSOR_CONFIG_DIR/globalStorage/cursor.mcp/mcp.json"
 
 echo ""
 echo -e "${BOLD}============================================================================${RESET}"
-echo -e "${BOLD}AAA MCP - Cursor Installation${RESET}"
+echo -e "${BOLD}arifOS MCP v52 - Cursor Installation${RESET}"
 echo -e "${BOLD}============================================================================${RESET}"
 echo ""
 
@@ -119,13 +119,13 @@ esac
 # Main installation
 echo -e "${YELLOW}Step 1: Verifying arifOS installation...${RESET}"
 
-# Check if AAA_MCP exists
-if [[ ! -f "$ARIFOS_ROOT/AAA_MCP/__main__.py" ]]; then
-    echo -e "${RED}ERROR: AAA_MCP not found at $ARIFOS_ROOT/AAA_MCP${RESET}"
+# Check if arifos.mcp exists
+if [[ ! -f "$ARIFOS_ROOT/arifos/mcp/__main__.py" ]]; then
+    echo -e "${RED}ERROR: arifos.mcp not found at $ARIFOS_ROOT/arifos/mcp${RESET}"
     echo "Please run this script from the arifOS repository root."
     exit 1
 fi
-echo -e "  ${GREEN}[OK]${RESET} AAA_MCP found at $ARIFOS_ROOT/AAA_MCP"
+echo -e "  ${GREEN}[OK]${RESET} arifos.mcp found at $ARIFOS_ROOT/arifos/mcp"
 
 # Check Python
 if ! command -v python3 &> /dev/null; then
@@ -178,13 +178,14 @@ else:
 if 'mcpServers' not in config:
     config['mcpServers'] = {}
 
-# Add/update arifos-trinity
+# Add/update arifos-trinity (v52 path)
 config['mcpServers']['arifos-trinity'] = {
     'command': 'python3',
-    'args': ['-m', 'AAA_MCP'],
+    'args': ['-m', 'arifos.mcp', 'trinity'],
     'cwd': arifos_root,
     'env': {
-        'PYTHONPATH': arifos_root
+        'PYTHONPATH': arifos_root,
+        'ARIFOS_MODE': 'production'
     }
 }
 
@@ -209,9 +210,9 @@ else
 fi
 
 # Test server can start
-echo "  Testing AAA_MCP server..."
-if PYTHONPATH="$ARIFOS_ROOT" python3 -c "from AAA_MCP.server import create_aaa_server; s = create_aaa_server(); print('  Server created')" 2>/dev/null; then
-    echo -e "  ${GREEN}[OK]${RESET} AAA_MCP server initializes correctly"
+echo "  Testing arifos.mcp server..."
+if PYTHONPATH="$ARIFOS_ROOT" python3 -c "from arifos.mcp.server import create_mcp_server; s = create_mcp_server(); print('  Server created')" 2>/dev/null; then
+    echo -e "  ${GREEN}[OK]${RESET} arifos.mcp server initializes correctly"
 else
     echo -e "${YELLOW}WARNING: Server test failed. Check Python environment.${RESET}"
 fi

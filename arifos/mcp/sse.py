@@ -1,95 +1,91 @@
 """
-arifOS SSE Web Adapter (v50.5.25)
+arifOS MCP SSE Adapter (v52.0.0)
 Cloud Bridge for MCP Protocol via Server-Sent Events
 
-5-Tool Trinity Constitutional Framework
+Usage:
+  python -m arifos.mcp trinity-sse
+  uvicorn arifos.mcp.sse:app --host 0.0.0.0 --port $PORT
 
 DITEMPA BUKAN DIBERI
 """
+
+from __future__ import annotations
 import logging
 import os
-from typing import Any, Callable, Dict
+import time
+from typing import Any, Dict, Optional
 
-import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from mcp.server import Server
+from mcp.server.sse import SseServerTransport
 
-# Configure logging early
-logging.basicConfig(level=logging.INFO)
+from arifos.mcp.bridge import ENGINES_AVAILABLE
+from arifos.mcp.server import TOOL_DESCRIPTIONS, TOOL_ROUTERS
+from arifos.core.enforcement.governance.rate_limiter import get_rate_limiter
+from arifos.mcp.mode_selector import get_mcp_mode, MCPMode
+from arifos.mcp.constitutional_metrics import record_verdict, get_seal_rate
+
 logger = logging.getLogger(__name__)
 
-
-# =============================================================================
-# SSE APP FACTORY (Reusable for any tool set)
-# =============================================================================
-
-def create_sse_app(
-    tools: Dict[str, Callable],
-    tool_descriptions: Dict[str, Dict[str, Any]],
-    server_name: str = "arifOS-MCP",
-    version: str = "v50.5.25"
-) -> FastAPI:
-    """
-    Create a FastAPI app with MCP SSE endpoints.
-
-    Args:
-        tools: Dict mapping tool names to callable functions
-        tool_descriptions: Dict with MCP-compliant tool descriptions
-        server_name: Name of the server
-        version: Version string
-
-    Returns:
-        FastAPI app with /sse, /messages, /health endpoints
-    """
-    from mcp.server import Server
-    from mcp.server.sse import SseServerTransport
-    import mcp.types
-
-    tools_count = len(tools)
-
+def create_sse_app(mode: Optional[MCPMode] = None) -> FastAPI:
+    """Create FastAPI app with MCP SSE endpoints."""
+    if mode is None:
+        mode = get_mcp_mode()
+    
+    server_name = f"arifOS-MCP-{mode.value}"
+    version = "v52.0.0"
+    
     # Create MCP Server
     mcp_server = Server(server_name)
 
     @mcp_server.list_tools()
     async def list_tools():
-        tools_list = []
-        for name in tools:
-            desc = tool_descriptions.get(name, {})
-            tools_list.append(
-                mcp.types.Tool(
-                    name=name,
-                    description=desc.get("description", f"Tool {name}"),
-                    inputSchema=desc.get("inputSchema", {"type": "object", "properties": {}})
-                )
-            )
-        return tools_list
+        return [
+            {"name": name, "description": desc["description"], "inputSchema": desc["inputSchema"]}
+            for name, desc in TOOL_DESCRIPTIONS.items()
+        ]
 
     @mcp_server.call_tool()
     async def call_tool(name: str, arguments: Dict[str, Any]):
-        tool = tools.get(name)
-        if not tool:
+        router = TOOL_ROUTERS.get(name)
+        if not router:
             raise ValueError(f"Unknown tool: {name}")
 
+        # F11: Rate Limit Check
+        session_id = arguments.get("session_id", "anonymous")
+        limiter = get_rate_limiter()
+        rate_result = limiter.check(name, session_id)
+        
+        if not rate_result.allowed:
+            return {
+                "status": "VOID",
+                "verdict": "VOID",
+                "reason": rate_result.reason,
+                "violation": rate_result.constitutional_violation
+            }
+
+        start = time.time()
         try:
-            import inspect
-            if inspect.iscoroutinefunction(tool):
-                return await tool(**arguments)
-            else:
-                return tool(**arguments)
+            action = arguments.pop("action", "full")
+            result = await router(action=action, **arguments)
+            
+            # Record metrics
+            duration = time.time() - start
+            record_verdict(
+                tool=name,
+                verdict=result.get("verdict", "UNKNOWN"),
+                duration=duration,
+                mode=mode.value
+            )
+            return result
         except Exception as e:
-            logger.error(f"Error executing tool {name}: {e}")
-            return {"status": "VOID", "error": str(e), "tool": name}
+            logger.error(f"Execution error in {name}: {e}")
+            return {"status": "ERROR", "error": str(e), "tool": name}
 
     # Create FastAPI app
-    app = FastAPI(
-        title=f"{server_name} Cloud Interface",
-        description=f"Constitutional Cloud Bridge. Exposes {tools_count} MCP tools via SSE.",
-        version=version,
-        docs_url="/docs",
-        redoc_url="/redoc"
-    )
+    app = FastAPI(title=server_name, version=version)
 
-    # CORS for remote access
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -97,120 +93,40 @@ def create_sse_app(
         allow_headers=["*"],
     )
 
-    # SSE Transport
     sse = SseServerTransport("/messages")
 
     @app.get("/sse")
     async def handle_sse(request: Request):
-        """SSE Endpoint for MCP Protocol connection."""
         async with sse.connect_sse(request.scope, request.receive, request._send) as streams:
             await mcp_server.run(streams[0], streams[1], mcp_server.create_initialization_options())
 
     @app.post("/messages")
     async def handle_messages(request: Request):
-        """Message endpoint for MCP protocol."""
         return await sse.handle_post_message(request.scope, request.receive, request._send)
 
     @app.get("/health")
     async def handle_health():
-        """Health Check Endpoint - Railway requires this."""
-        from arifos.mcp.metrics import get_metrics
-        from arifos.mcp.rate_limiter import get_rate_limiter
-
-        metrics = get_metrics()
-        rate_limiter = get_rate_limiter()
-
+        seal_rate = get_seal_rate()
         return {
-            "status": "healthy",
-            "mode": "SSE",
-            "server": server_name,
-            "tools": tools_count,
-            "tool_names": list(tools.keys()),
+            "status": "healthy" if seal_rate > 0.75 else "degraded",
+            "mode": mode.value,
+            "seal_rate_1h": seal_rate,
             "version": version,
-            "framework": "arifOS Constitutional Kernel",
-            "doc_url": "/docs",
-            "rate_limiter": rate_limiter.get_stats(),
-            "metrics_summary": {
-                "active_sessions": metrics.active_sessions.get(),
-                "total_requests": sum(metrics.requests_total._values.values()),
-            }
+            "engines_available": ENGINES_AVAILABLE,
+            "timestamp": time.time()
         }
-
-    @app.get("/metrics")
-    async def handle_metrics():
-        """Prometheus-compatible metrics endpoint."""
-        from fastapi.responses import PlainTextResponse
-        from arifos.mcp.metrics import get_metrics
-
-        metrics = get_metrics()
-        return PlainTextResponse(
-            content=metrics.get_prometheus_output(),
-            media_type="text/plain; version=0.0.4"
-        )
-
-    @app.get("/metrics/json")
-    async def handle_metrics_json():
-        """JSON metrics endpoint for debugging."""
-        from arifos.mcp.metrics import get_metrics
-
-        metrics = get_metrics()
-        return metrics.get_stats()
 
     @app.get("/")
     async def handle_root():
-        """Root endpoint with service info."""
         return {
             "service": server_name,
             "version": version,
             "status": "healthy",
-            "tools": tools_count,
-            "tool_names": list(tools.keys()),
-            "endpoints": {
-                "/health": "Health check (Railway)",
-                "/metrics": "Prometheus metrics",
-                "/metrics/json": "Metrics as JSON",
-                "/sse": "MCP SSE connection",
-                "/mcp": "MCP SSE connection (ChatGPT compatible)",
-                "/messages": "MCP message handler",
-                "/docs": "API documentation"
-            },
-            "constitutional_framework": "DITEMPA BUKAN DIBERI"
+            "mode": mode.value,
+            "motto": "DITEMPA BUKAN DIBERI"
         }
-
-    # ==========================================================================
-    # CHATGPT DEVELOPER MODE COMPATIBILITY
-    # ChatGPT expects /mcp endpoint for MCP server discovery
-    # ==========================================================================
-
-    @app.get("/mcp")
-    async def handle_mcp_sse(request: Request):
-        """MCP SSE Endpoint - ChatGPT Developer Mode compatible."""
-        async with sse.connect_sse(request.scope, request.receive, request._send) as streams:
-            await mcp_server.run(streams[0], streams[1], mcp_server.create_initialization_options())
-
-    @app.post("/mcp")
-    async def handle_mcp_messages(request: Request):
-        """MCP Message endpoint - ChatGPT Developer Mode compatible."""
-        return await sse.handle_post_message(request.scope, request.receive, request._send)
 
     return app
 
-
-def main():
-    """Run the Trinity server via SSE (default entry point)."""
-    from arifos.mcp.trinity_server import TOOLS, TOOL_DESCRIPTIONS
-
-    port = int(os.environ.get("PORT", os.environ.get("AAA_MCP_PORT", 8000)))
-    logger.info(f"Starting arifOS Trinity SSE Server v50.5.25 on port {port}...")
-
-    app = create_sse_app(
-        tools=TOOLS,
-        tool_descriptions=TOOL_DESCRIPTIONS,
-        server_name="arifOS-Trinity",
-        version="v50.5.25"
-    )
-    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
-
-
-if __name__ == "__main__":
-    main()
+# Default app instance
+app = create_sse_app()

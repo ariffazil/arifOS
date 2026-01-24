@@ -1,4 +1,4 @@
-# Dockerfile for arifOS Body API (v39/v51)
+# Dockerfile for arifOS Constitutional Kernel (v52.0.0 SEAL)
 
 FROM python:3.11-slim
 
@@ -8,30 +8,33 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
 COPY requirements.txt .
 COPY pyproject.toml .
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install fastapi uvicorn pydantic mcp sse-starlette
+# Ensure MCP and SSE support are installed
+RUN pip install fastapi uvicorn pydantic mcp sse-starlette httpx-sse
 
 # Copy codebase
 COPY arifos/ arifos/
 COPY 000_THEORY/ 000_THEORY/
-COPY AAA_MCP/ AAA_MCP/
+COPY docs/ docs/
 COPY setup/ setup/
 
-# Install package in editable mode
+# Install package
 RUN pip install -e .
 
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV ARIFOS_MODE=production
+ENV ARIFOS_MCP_MODE=bridge
 ENV PORT=8000
 
-# Expose the Body API port
+# Expose port
 EXPOSE 8000
 
-# Run the Body API server (exec form with sh -c for $PORT expansion)
-CMD ["sh", "-c", "uvicorn arifos.core.integration.api.app:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]
+# Run unified MCP SSE server
+CMD ["sh", "-c", "python -m arifos.mcp trinity-sse"]

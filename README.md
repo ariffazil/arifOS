@@ -321,6 +321,34 @@ arifOS exposes 5 tools via the Model Context Protocol (MCP):
 
 # Connect Your AI
 
+## Platform Support Matrix
+
+arifOS AAA_MCP integrates with 8+ platforms via Model Context Protocol (MCP). Choose your AI tool:
+
+| Platform | AI Models | Transport | Priority | SEAL Rate | Setup Guide |
+|----------|-----------|-----------|----------|-----------|-------------|
+| **Claude Desktop** | Claude 3.7/3.5 | stdio | ⭐ Tier 1 | ≥0.82 | [Guide](./docs/platforms/claude_desktop.md) |
+| **Cursor IDE** | GPT-4, Claude | stdio | ⭐ Tier 1 | ≥0.78 | [Guide](./docs/platforms/cursor.md) |
+| **Cline** (VS Code) | GPT-4, Claude, Local | stdio | ⭐⭐ Tier 2 | ≥0.75 | [Guide](./docs/platforms/cline.md) |
+| **Continue.dev** | Llama, Mixtral, Local | stdio | ⭐⭐ Tier 2 | ≥0.65 | [Guide](./docs/platforms/continue_dev.md) |
+| **ChatGPT Dev** | GPT-4 Turbo | HTTP/SSE | ⭐⭐ Tier 2 | ≥0.70 | (Coming soon) |
+| **Ollama** | Llama, Mistral | HTTP/SSE | ⭐⭐⭐ Tier 3 | ≥0.73 | (Coming soon) |
+| **Cody** | Claude, GPT-4 | stdio | ⭐⭐⭐ Tier 3 | TBD | (Researching) |
+| **Kimi** (CLI/Agent) | Moonshot Models | stdio | ⭐⭐ Tier 2 | TBD | [Guide](./docs/platforms/kimi.md) |
+
+**Legend:**
+- ⭐ Tier 1: Fully tested, production-ready, recommended
+- ⭐⭐ Tier 2: Functional, moderate testing, good alternatives  
+- ⭐⭐⭐ Tier 3: Experimental, limited support, community-driven
+
+**Quick Recommendation:**
+- **Best Overall:** Claude Desktop + Claude 3.7 Sonnet (native MCP, highest SEAL rate)
+- **For Developers:** Cursor IDE (AI-native editor + constitutional governance)
+- **For VS Code Users:** Cline (autonomous agents + constitutional validation)
+- **For Privacy:** Ollama (local models + local governance)
+
+---
+
 ## Live Server
 
 arifOS runs 24/7 on Railway:
@@ -377,9 +405,26 @@ curl https://arifos.arif-fazil.com/health
 
 ---
 
+## Troubleshooting
+
+Having issues connecting your AI tool? See: **[docs/platforms/troubleshooting.md](./docs/platforms/troubleshooting.md)**
+
+Common issues covered:
+- MCP tools not appearing in UI
+- Connection timeouts (Railway/local)
+- SEAL rate lower than expected
+- Configuration path errors (Windows/macOS/Linux)
+- Authentication and API key problems
+
+---
+
 ## Option 2: Claude Desktop (MCP)
 
-Add to your Claude Desktop config (`claude_desktop_config.json`):
+**Recommended for:** Best overall experience, highest SEAL rate
+
+See detailed setup guide: **[docs/platforms/claude_desktop.md](./docs/platforms/claude_desktop.md)**
+
+Quick config for Claude Desktop (`claude_desktop_config.json`):
 
 ```json
 {
@@ -391,25 +436,49 @@ Add to your Claude Desktop config (`claude_desktop_config.json`):
 }
 ```
 
+**Windows users:** Run `scripts\install_claude_desktop.bat` for automated setup
+
 ---
 
-## Option 3: Local Installation
+## Option 3: Local Installation & Platform Setup
+
+### Install arifOS Package
 
 ```bash
-# Install
-pip install git+https://github.com/ariffazil/arifOS.git
-
-# Or with pip (PyPI)
-pip install arifos
-
-# Run MCP server locally
-python -m arifos.mcp trinity-sse
-
-# Check Alignment
+# From source (development)
+git clone https://github.com/ariffazil/arifOS.git
+cd arifOS
 pip install -e .
-uvicorn arifos.core.integration.api.app:app --host 0.0.0.0 --port 8000
 
+# Or from PyPI (stable)
+pip install arifos
 ```
+
+### Configure Your AI Platform
+
+**For AI tool integration, see platform-specific guides:**
+
+- **[Claude Desktop](./docs/platforms/claude_desktop.md)** - Best overall support
+- **[Cursor IDE](./docs/platforms/cursor.md)** - AI-powered code editor
+- **[Cline (VS Code)](./docs/platforms/cline.md)** - Autonomous coding agent
+- **Continue.dev** - Coming soon
+- **ChatGPT Dev Mode** - Coming soon  
+- **Ollama (Local Models)** - Coming soon
+
+### Run MCP Server (Advanced)
+
+```bash
+# For Claude Desktop, Cursor, Cline (stdio mode)
+python -m AAA_MCP
+
+# For ChatGPT Actions, remote clients (HTTP/SSE mode)
+python -m AAA_MCP sse --port 8000
+
+# Or with uvicorn (alternative)
+uvicorn arifos.core.integration.api.app:app --host 0.0.0.0 --port 8000
+```
+
+**Note:** Most users should use platform-specific config scripts rather than running the server manually.
 
 ---
 

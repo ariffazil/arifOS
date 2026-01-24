@@ -1,9 +1,9 @@
 @echo off
 REM ============================================================================
-REM AAA MCP - Claude Desktop Installation Script (Windows)
+REM arifOS MCP - Claude Desktop Installation Script (Windows) v52
 REM ============================================================================
 REM
-REM Installs AAA_MCP as an MCP server for Claude Desktop on Windows.
+REM Installs arifos.mcp as an MCP server for Claude Desktop on Windows.
 REM
 REM Usage:
 REM   scripts\install_claude_desktop.bat
@@ -36,7 +36,7 @@ set "CLAUDE_CONFIG_FILE=%CLAUDE_CONFIG_DIR%\claude_desktop_config.json"
 
 echo.
 echo %BOLD%============================================================================%RESET%
-echo %BOLD%AAA MCP - Claude Desktop Installation (Windows)%RESET%
+echo %BOLD%arifOS MCP v52 - Claude Desktop Installation (Windows)%RESET%
 echo %BOLD%============================================================================%RESET%
 echo.
 
@@ -50,13 +50,13 @@ REM Main installation
 :install
 echo %YELLOW%Step 1: Verifying arifOS installation...%RESET%
 
-REM Check if AAA_MCP exists
-if not exist "%ARIFOS_ROOT%\AAA_MCP\__main__.py" (
-    echo %RED%ERROR: AAA_MCP not found at %ARIFOS_ROOT%\AAA_MCP%RESET%
+REM Check if arifos.mcp exists
+if not exist "%ARIFOS_ROOT%\arifos\mcp\__main__.py" (
+    echo %RED%ERROR: arifos.mcp not found at %ARIFOS_ROOT%\arifos\mcp%RESET%
     echo Please run this script from the arifOS repository root.
     exit /b 1
 )
-echo   %GREEN%[OK]%RESET% AAA_MCP found at %ARIFOS_ROOT%\AAA_MCP
+echo   %GREEN%[OK]%RESET% arifos.mcp found at %ARIFOS_ROOT%\arifos\mcp
 
 REM Check Python
 where python >nul 2>&1
@@ -75,10 +75,10 @@ if errorlevel 1 (
 )
 echo   %GREEN%[OK]%RESET% MCP module available
 
-REM Verify AAA_MCP can be imported
-python -c "import AAA_MCP" >nul 2>&1
+REM Verify arifos.mcp can be imported
+python -c "import arifos.mcp" >nul 2>&1
 if errorlevel 1 (
-    echo %YELLOW%WARNING: AAA_MCP not in PYTHONPATH. Will use absolute path.%RESET%
+    echo %YELLOW%WARNING: arifos.mcp not in PYTHONPATH. Will use absolute path.%RESET%
 )
 
 echo.
@@ -89,20 +89,6 @@ if not exist "%CLAUDE_CONFIG_DIR%" (
     mkdir "%CLAUDE_CONFIG_DIR%"
     echo   Created %CLAUDE_CONFIG_DIR%
 )
-
-REM Escape backslashes for JSON
-set "ARIFOS_JSON=%ARIFOS_ROOT:\=\\%"
-
-REM Generate the MCP server config
-set "MCP_CONFIG={"
-set "MCP_CONFIG=%MCP_CONFIG%\"mcpServers\": {"
-set "MCP_CONFIG=%MCP_CONFIG%\"arifos-trinity\": {"
-set "MCP_CONFIG=%MCP_CONFIG%\"command\": \"python\","
-set "MCP_CONFIG=%MCP_CONFIG%\"args\": [\"-m\", \"AAA_MCP\"],"
-set "MCP_CONFIG=%MCP_CONFIG%\"cwd\": \"%ARIFOS_JSON%\","
-set "MCP_CONFIG=%MCP_CONFIG%\"env\": {"
-set "MCP_CONFIG=%MCP_CONFIG%\"PYTHONPATH\": \"%ARIFOS_JSON%\""
-set "MCP_CONFIG=%MCP_CONFIG%}}}}"
 
 REM Check if config exists
 if exist "%CLAUDE_CONFIG_FILE%" (
@@ -119,7 +105,7 @@ if exist "%CLAUDE_CONFIG_FILE%" (
 
 REM Write new config using PowerShell for proper JSON handling
 powershell -Command ^
-    "$config = @{mcpServers = @{'arifos-trinity' = @{command = 'python'; args = @('-m', 'AAA_MCP'); cwd = '%ARIFOS_ROOT%'; env = @{PYTHONPATH = '%ARIFOS_ROOT%'}}}}; " ^
+    "$config = @{mcpServers = @{'arifos-trinity' = @{command = 'python'; args = @('-m', 'arifos.mcp', 'trinity'); cwd = '%ARIFOS_ROOT%'; env = @{PYTHONPATH = '%ARIFOS_ROOT%'; ARIFOS_MODE = 'production'}}}}; " ^
     "if (Test-Path '%CLAUDE_CONFIG_FILE%') { " ^
     "  $existing = Get-Content '%CLAUDE_CONFIG_FILE%' -Raw | ConvertFrom-Json; " ^
     "  if (-not $existing.mcpServers) { $existing | Add-Member -NotePropertyName 'mcpServers' -NotePropertyValue @{} }; " ^
@@ -147,12 +133,12 @@ if errorlevel 1 (
 echo   %GREEN%[OK]%RESET% Config is valid JSON
 
 REM Test that server can start
-echo   Testing AAA_MCP server...
-python -c "from AAA_MCP.server import create_aaa_server; s = create_aaa_server(); print('Server created')" 2>nul
+echo   Testing arifos.mcp server...
+python -c "from arifos.mcp.server import create_mcp_server; s = create_mcp_server(); print('Server created')" 2>nul
 if errorlevel 1 (
     echo %YELLOW%WARNING: Server test failed. Check Python environment.%RESET%
 ) else (
-    echo   %GREEN%[OK]%RESET% AAA_MCP server initializes correctly
+    echo   %GREEN%[OK]%RESET% arifos.mcp server initializes correctly
 )
 
 echo.

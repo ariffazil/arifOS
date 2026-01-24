@@ -1,5 +1,5 @@
 """
-arifOS Pipeline Orchestrator (v49.1)
+arifOS Pipeline Orchestrator (v51.2)
 
 Coordinates 000->999 metabolic loop across 4 servers (VAULT/AGI/ASI/APEX).
 
@@ -8,15 +8,15 @@ Architecture:
 - Manages inter-server communication
 - Enforces verdict propagation (SEAL/PARTIAL/VOID/SABAR)
 - Coordinates Phoenix-72 cooling tiers
-- Supports parallel (quantum) execution mode (v49.1+)
+- Supports parallel (quantum) execution mode
 
 Authority: Delta (Architect)
-Version: v49.1.0
+Version: v51.2.0
 
-BLOCKER 1 Fix (v49.1): Wire route_parallel() into default execution path.
-- Added `parallel_mode` config flag (default: False for backward compatibility)
-- Added `enable_parallel()` and `disable_parallel()` methods
-- Main `route()` method now delegates to `route_parallel()` when enabled
+Stage naming aligned with metabolizer.py canon:
+- 222_REFLECT, 333_REASON, 444_ALIGN, 555_EMPATHIZE, 666_BRIDGE, 777_FORGE
+
+DITEMPA BUKAN DIBERI
 """
 
 import asyncio
@@ -26,8 +26,13 @@ from typing import Any, Dict, Optional
 
 import httpx
 
-# Phase 8.5: Parallel execution support
-from arifos.core.mcp.orthogonal_executor import OrthogonalExecutor
+# Phase 8.5: Parallel execution support (optional)
+try:
+    from arifos.core.system.orchestrator.orthogonal_executor import OrthogonalExecutor
+    PARALLEL_AVAILABLE = True
+except ImportError:
+    OrthogonalExecutor = None
+    PARALLEL_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -163,38 +168,38 @@ class Pipeline:
 
         floor_scores.update(sense_result["floor_scores"])
 
-        # Stage 222: THINK (AGI)
-        think_result = await self.agi_process(query, session_id, "222_THINK", context, floor_scores)
+        # Stage 222: REFLECT (AGI)
+        think_result = await self.agi_process(query, session_id, "222_REFLECT", context, floor_scores)
         if think_result["verdict"] == "VOID":
             return await self.vault_store(session_id, query, think_result)
 
         floor_scores.update(think_result["floor_scores"])
 
-        # Stage 333: ATLAS (AGI)
-        atlas_result = await self.agi_process(query, session_id, "333_ATLAS", context, floor_scores)
+        # Stage 333: REASON (AGI)
+        atlas_result = await self.agi_process(query, session_id, "333_REASON", context, floor_scores)
         floor_scores.update(atlas_result["floor_scores"])
 
-        # Stage 444: EVIDENCE (APEX)
+        # Stage 444: ALIGN (APEX)
         evidence_result = await self.apex_process(
-            query, session_id, "444_EVIDENCE", context, floor_scores,
+            query, session_id, "444_ALIGN", context, floor_scores,
             agi_output={"sense": sense_result, "think": think_result, "atlas": atlas_result}
         )
         floor_scores.update(evidence_result["floor_scores"])
 
-        # Stage 555: EMPATHY (ASI)
-        empathy_result = await self.asi_process(query, session_id, "555_EMPATHY", context, floor_scores)
+        # Stage 555: EMPATHIZE (ASI)
+        empathy_result = await self.asi_process(query, session_id, "555_EMPATHIZE", context, floor_scores)
         if empathy_result["verdict"] == "VOID":
             return await self.vault_store(session_id, query, empathy_result)
 
         floor_scores.update(empathy_result["floor_scores"])
 
-        # Stage 666: ACT (ASI)
-        act_result = await self.asi_process(query, session_id, "666_ACT", context, floor_scores)
+        # Stage 666: BRIDGE (ASI)
+        act_result = await self.asi_process(query, session_id, "666_BRIDGE", context, floor_scores)
         floor_scores.update(act_result["floor_scores"])
 
-        # Stage 777: EUREKA (APEX)
+        # Stage 777: FORGE (APEX)
         eureka_result = await self.apex_process(
-            query, session_id, "777_EUREKA", context, floor_scores
+            query, session_id, "777_FORGE", context, floor_scores
         )
         floor_scores.update(eureka_result["floor_scores"])
 

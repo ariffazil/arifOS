@@ -1,6 +1,6 @@
 """
-arifOS AAA MCP Tools (v51.0.0)
-5-Tool Constitutional MCP Framework - Wired to Core Engines via v51 Bridge
+arifOS AAA MCP Tools (v52.0.0)
+5-Tool Constitutional MCP Framework - Wired to Core Engines via Bridge
 
 The Metabolic Standard compressed to 5 memorable tools:
     000_init    → Gate (Authority + Injection + Amanah)

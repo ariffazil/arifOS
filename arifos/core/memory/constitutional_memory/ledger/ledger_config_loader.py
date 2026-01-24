@@ -1,12 +1,12 @@
 """
-Cooling Ledger Configuration Loader (v46)
+Cooling Ledger Configuration Loader (v52)
 Loads Phoenix-72 config, scar lifecycle, verdict routing.
 
-Track B Authority: AAA_MCP/v46/cooling_ledger_phoenix.json
-Fallback: spec/v45/ then spec/v44/
+Track B Authority: arifos/core/spec/constitutional/cooling_ledger_phoenix.json
+Canonical v52 Implementation
 
 Author: arifOS Project
-Version: v46.1
+Version: v52.0.0
 """
 
 from __future__ import annotations
@@ -29,10 +29,8 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
 
     Priority:
     A) ARIFOS_LEDGER_SPEC env var (absolute path override)
-    B) AAA_MCP/v46/cooling_ledger_phoenix.json (AUTHORITATIVE v46+)
-    C) spec/v45/cooling_ledger_phoenix.json (FALLBACK v45)
-    D) spec/v44/cooling_ledger_phoenix.json (FALLBACK v44)
-    E) HARD FAIL (no v42/v38/v35)
+    B) arifos/core/spec/constitutional/cooling_ledger_phoenix.json (CANONICAL v52)
+    C) HARD FAIL
 
     Returns:
         Dict containing ledger config
@@ -52,7 +50,7 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
             "cooling_ledger": {
                 "hash_algorithm": "SHA3-256",
                 "chain_algorithm": "SHA3-256",
-                "entry_schema_version": "v46.1",
+                "entry_schema_version": "v52.0.0",
                 "rotation": {
                     "hot_segment_days": 7,
                     "hot_segment_max_entries": 10000
@@ -71,7 +69,6 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
         return _LEDGER_CONFIG_SPEC
 
     # Find package root (repo root, not arifos.core/)
-    # ledger_config_loader.py -> ledger/ -> memory/ -> core/ -> arifos/ -> repo root
     pkg_dir = Path(__file__).resolve().parent.parent.parent.parent.parent
     spec_data = None
     spec_path_used = None
@@ -91,99 +88,44 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
                     f"TRACK B AUTHORITY FAILURE: Failed to load ledger config from ARIFOS_LEDGER_SPEC={env_path}: {e}"
                 )
 
-    # Priority B: AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)
+    # Priority B: Canonical location
     if spec_data is None:
-        v47_path = pkg_dir / "AAA_MCP" / "v47" / "cooling_ledger_phoenix.json"
-        if v47_path.exists():
+        v52_path = pkg_dir / "arifos" / "core" / "spec" / "constitutional" / "cooling_ledger_phoenix.json"
+        if v52_path.exists():
             try:
-                with open(v47_path, "r", encoding="utf-8") as f:
+                with open(v52_path, "r", encoding="utf-8") as f:
                     spec_data = json.load(f)
-                spec_path_used = v47_path
-                logger.info(f"Loaded ledger config from v47: {v47_path}")
+                spec_path_used = v52_path
+                logger.info(f"Loaded ledger config from v52 canonical: {v52_path}")
             except Exception as e:
-                raise RuntimeError(f"TRACK B AUTHORITY FAILURE: Failed to parse {v47_path}: {e}")
+                raise RuntimeError(f"TRACK B AUTHORITY FAILURE: Failed to parse {v52_path}: {e}")
 
-    # Priority C: AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)
+    # Fallback to repo-root (if migration still in progress)
     if spec_data is None:
-        v46_path = pkg_dir / "AAA_MCP" / "v46" / "cooling_ledger_phoenix.json"
-        if v46_path.exists():
-            warnings.warn(
-                f"Loading from AAA_MCP/v46/ (v46 fallback). Please migrate to AAA_MCP/v47/.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
+        root_path = pkg_dir / "cooling_ledger_phoenix.json"
+        if root_path.exists():
             try:
-                with open(v46_path, "r", encoding="utf-8") as f:
+                with open(root_path, "r", encoding="utf-8") as f:
                     spec_data = json.load(f)
-                spec_path_used = v46_path
-                logger.warning(f"Loaded ledger config from v46 (FALLBACK): {v46_path}")
+                spec_path_used = root_path
+                logger.warning(f"Loaded ledger config from repo root: {root_path}")
             except Exception as e:
-                raise RuntimeError(f"TRACK B AUTHORITY FAILURE: Failed to parse {v46_path}: {e}")
-
-    # Priority D: spec/v45/cooling_ledger_phoenix.json (DEPRECATED v45)
-    if spec_data is None:
-        v45_path = pkg_dir / "spec" / "v45" / "cooling_ledger_phoenix.json"
-        if v45_path.exists():
-            warnings.warn(
-                f"Loading from spec/v45/ (DEPRECATED in v47+). Please migrate to AAA_MCP/v47/. "
-                f"spec/v45/ fallback will be removed in future versions.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            try:
-                with open(v45_path, "r", encoding="utf-8") as f:
-                    spec_data = json.load(f)
-                spec_path_used = v45_path
-                logger.warning(f"Loaded ledger config from v45 (DEPRECATED): {v45_path}")
-            except Exception as e:
-                raise RuntimeError(f"TRACK B AUTHORITY FAILURE: Failed to parse {v45_path}: {e}")
-
-    # Priority E: spec/v44/cooling_ledger_phoenix.json (DEPRECATED v44)
-    if spec_data is None:
-        v44_path = pkg_dir / "spec" / "v44" / "cooling_ledger_phoenix.json"
-        if v44_path.exists():
-            warnings.warn(
-                f"Loading from spec/v44/ (DEPRECATED). Please migrate to AAA_MCP/v47/. "
-                f"v44 fallback will be removed in future versions.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            try:
-                with open(v44_path, "r", encoding="utf-8") as f:
-                    spec_data = json.load(f)
-                spec_path_used = v44_path
-                logger.warning(f"Loaded ledger config from v44 (DEPRECATED): {v44_path}")
-            except Exception as e:
-                raise RuntimeError(f"TRACK B AUTHORITY FAILURE: Failed to parse {v44_path}: {e}")
+                raise RuntimeError(f"TRACK B AUTHORITY FAILURE: Failed to parse {root_path}: {e}")
 
     # Priority F: HARD FAIL
     if spec_data is None:
         raise RuntimeError(
             "TRACK B AUTHORITY FAILURE: Cooling ledger config not found.\n\n"
             "Searched locations:\n"
-            f"  - AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)\n"
-            f"  - AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)\n"
-            f"  - spec/v45/cooling_ledger_phoenix.json (DEPRECATED v45)\n"
-            f"  - spec/v44/cooling_ledger_phoenix.json (DEPRECATED v44)\n\n"
+            f"  - arifos/core/spec/constitutional/cooling_ledger_phoenix.json (CANONICAL)\n"
+            f"  - cooling_ledger_phoenix.json (ROOT)\n\n"
             "Migration required:\n"
-            "1. Ensure AAA_MCP/v47/cooling_ledger_phoenix.json exists OR\n"
+            "1. Ensure cooling_ledger_phoenix.json exists in canonical location OR\n"
             "2. Set ARIFOS_LEDGER_SPEC=/path/to/cooling_ledger_phoenix.json"
         )
 
     # Schema validation (if schema exists)
-    v47_schema_path = pkg_dir / "AAA_MCP" / "v47" / "schema" / "cooling_ledger_phoenix.schema.json"
-    v46_schema_path = pkg_dir / "AAA_MCP" / "v46" / "schema" / "cooling_ledger_phoenix.schema.json"
-    v45_schema_path = pkg_dir / "spec" / "v45" / "schema" / "cooling_ledger_phoenix.schema.json"
-    v44_schema_path = pkg_dir / "spec" / "v44" / "schema" / "cooling_ledger_phoenix.schema.json"
-
-    if v47_schema_path.exists():
-        schema_path = v47_schema_path
-    elif v46_schema_path.exists():
-        schema_path = v46_schema_path
-    elif v45_schema_path.exists():
-        schema_path = v45_schema_path
-    else:
-        schema_path = v44_schema_path
+    schema_path = pkg_dir / "arifos" / "core" / "spec" / "constitutional" / "schema" / "cooling_ledger_phoenix.schema.json"
 
     if schema_path.exists():
         try:
@@ -220,7 +162,7 @@ def _get_ledger_config() -> Dict[str, Any]:
 LEDGER_CONFIG = _get_ledger_config().get("cooling_ledger", {})
 HASH_ALGORITHM: str = LEDGER_CONFIG.get("hash_algorithm", "SHA3-256")
 CHAIN_ALGORITHM: str = LEDGER_CONFIG.get("chain_algorithm", "SHA3-256")
-ENTRY_SCHEMA_VERSION: str = LEDGER_CONFIG.get("entry_schema_version", "v45.0")
+ENTRY_SCHEMA_VERSION: str = LEDGER_CONFIG.get("entry_schema_version", "v52.0.0")
 
 # Rotation Config
 ROTATION_CONFIG = LEDGER_CONFIG.get("rotation", {})

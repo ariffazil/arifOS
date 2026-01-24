@@ -1,8 +1,8 @@
 # AAA MCP — Constitutional AI Governance Protocol
 
-**Version:** v50.5.24
-**Authority:** arifOS Constitutional Framework
-**Status:** PRODUCTION
+**Version:** v52.0.0-SEAL  
+**Authority:** arifOS Constitutional Framework  
+**Status:** PRODUCTION (Unified with arifos.mcp)
 
 ---
 
@@ -60,9 +60,9 @@ pip install -e .
 
 ```bash
 # Standard I/O mode (for Claude Desktop, VS Code, etc.)
-python -m arifos.mcp
+python -m arifos.mcp trinity
 
-# SSE mode (for web deployments)
+# SSE mode (for Railway/web deployments)
 python -m arifos.mcp trinity-sse
 ```
 
@@ -73,9 +73,9 @@ Add to `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "arifos-aaa": {
+    "arifos-trinity": {
       "command": "python",
-      "args": ["-m", "arifos.mcp"],
+      "args": ["-m", "arifos.mcp", "trinity"],
       "cwd": "/path/to/arifOS"
     }
   }
@@ -326,7 +326,7 @@ mcp_asi_act    → Kernel.asi  → ASIEngine.execute()
 mcp_apex_judge → Kernel.apex → APEXEngine.execute()
 ```
 
-### Kernel Orchestrator (v50.5.24)
+### Kernel Orchestrator (v52.0.0)
 
 The Kernel ties all engines together:
 

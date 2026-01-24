@@ -1,7 +1,7 @@
 import warnings
 
 warnings.warn(
-    "arifos.api is deprecated. Use arifos.core.integration.api for REST or AAA_MCP for MCP.",
+    "arifos.api is deprecated. Use arifos.core.integration.api for REST or arifos.mcp for MCP.",
     DeprecationWarning,
     stacklevel=2,
 )
