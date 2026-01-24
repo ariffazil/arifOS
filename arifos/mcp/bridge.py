@@ -18,28 +18,14 @@ logger = logging.getLogger(__name__)
 
 # --- CORE AVAILABILITY ---
 try:
-    from arifos.core.agi.kernel import AGINeuralCore
-    from arifos.core.asi.kernel import ASIActionCore
-    from arifos.core.apex.kernel import APEXJudicialCore
-    from arifos.core.prompt.router import route_prompt
+    from arifos.core.kernel import get_kernel_manager
     ENGINES_AVAILABLE = True
 except ImportError:
     logger.warning("arifOS Cores unavailable - Bridge in degraded mode")
-    AGINeuralCore = ASIActionCore = APEXJudicialCore = None
-    route_prompt = None
+    get_kernel_manager = None
     ENGINES_AVAILABLE = False
 
 _FALLBACK_RESPONSE = {"status": "VOID", "reason": "arifOS Cores unavailable", "verdict": "VOID"}
-
-# Singletons
-_AGI = _ASI = _APEX = None
-
-def _kernel(cls, cache_name: str):
-    """Get or create kernel singleton."""
-    g = globals()
-    if g[cache_name] is None and ENGINES_AVAILABLE and cls:
-        g[cache_name] = cls()
-    return g[cache_name]
 
 # --- UTILS ---
 def _serialize(obj: Any) -> Any:
@@ -47,7 +33,6 @@ def _serialize(obj: Any) -> Any:
     if obj is None: return None
     if hasattr(obj, "to_dict"): return obj.to_dict()
     if hasattr(obj, "as_dict"): return obj.as_dict()
-    if hasattr(obj, "__dict__"): return {k: _serialize(v) for k, v in obj.__dict__.items() if not k.startswith("_")}
     if isinstance(obj, (list, tuple)): return [_serialize(x) for x in obj]
     if isinstance(obj, dict): return {k: _serialize(v) for k, v in obj.items()}
     if hasattr(obj, "value") and not isinstance(obj, (int, float, str, bool)):
@@ -58,22 +43,20 @@ def _serialize(obj: Any) -> Any:
 # --- ROUTERS ---
 
 async def bridge_init_router(action: str = "init", **kwargs) -> dict:
-    """Pure bridge: Initialize session."""
-    import uuid, time
-    session_id = kwargs.get("session_id") or str(uuid.uuid4())
-    return {
-        "session_id": session_id,
-        "timestamp": time.time(),
-        "engines_available": ENGINES_AVAILABLE,
-        "action": action,
-        "status": "READY"
-    }
+    """Pure bridge: Initialize session via kernel manager."""
+    if not ENGINES_AVAILABLE:
+        return _FALLBACK_RESPONSE
+    
+    manager = get_kernel_manager()
+    result = await manager.init_session(action, kwargs)
+    return _serialize(result)
 
 async def bridge_agi_router(action: str = "full", **kwargs) -> dict:
     """Pure bridge: Route reasoning tasks to AGI Genius."""
-    kernel = _kernel(AGINeuralCore, "_AGI")
-    if not kernel: return _FALLBACK_RESPONSE
+    if not ENGINES_AVAILABLE:
+        return _FALLBACK_RESPONSE
     
+    kernel = get_kernel_manager().get_agi()
     query = kwargs.get("query", "")
     ctx = kwargs.get("context", {})
     
@@ -92,10 +75,6 @@ async def bridge_agi_router(action: str = "full", **kwargs) -> dict:
             return _serialize(await kernel.atlas_tac_analysis(kwargs.get("inputs", [])))
         elif action == "evaluate":
             return _serialize(kernel.evaluate(query, kwargs.get("response", ""), kwargs.get("truth_score", 1.0)))
-        elif action == "forge":
-            # 777 forge is usually APEX but tool exposes it in AGI for synthesis
-            # Default to full or sense if not explicitly in AGI kernel
-            return _serialize(await kernel.sense(query, ctx))
         else:
             return _serialize(await kernel.sense(query, ctx))
     except Exception as e:
@@ -104,9 +83,10 @@ async def bridge_agi_router(action: str = "full", **kwargs) -> dict:
 
 async def bridge_asi_router(action: str = "full", **kwargs) -> dict:
     """Pure bridge: Route action/empathy tasks to ASI Act."""
-    kernel = _kernel(ASIActionCore, "_ASI")
-    if not kernel: return _FALLBACK_RESPONSE
+    if not ENGINES_AVAILABLE:
+        return _FALLBACK_RESPONSE
     
+    kernel = get_kernel_manager().get_asi()
     text = kwargs.get("text", kwargs.get("query", ""))
     ctx = kwargs.get("agi_result", {})
     
@@ -126,9 +106,10 @@ async def bridge_asi_router(action: str = "full", **kwargs) -> dict:
 
 async def bridge_apex_router(action: str = "full", **kwargs) -> dict:
     """Pure bridge: Route judicial/verdict tasks to APEX Judge."""
-    kernel = _kernel(APEXJudicialCore, "_APEX")
-    if not kernel: return _FALLBACK_RESPONSE
+    if not ENGINES_AVAILABLE:
+        return _FALLBACK_RESPONSE
     
+    kernel = get_kernel_manager().get_apex()
     try:
         if action in ("full", "judge"):
             return _serialize(await kernel.judge_quantum_path(
@@ -159,6 +140,9 @@ async def bridge_apex_router(action: str = "full", **kwargs) -> dict:
 
 async def bridge_vault_router(action: str = "seal", **kwargs) -> dict:
     """Pure bridge: Route archival tasks to 999 Vault."""
+    if not ENGINES_AVAILABLE:
+        return _FALLBACK_RESPONSE
+    
     import hashlib, time
     if action == "seal":
         data = {
@@ -173,10 +157,13 @@ async def bridge_vault_router(action: str = "seal", **kwargs) -> dict:
 
 async def bridge_prompt_router(action: str = "route", **kwargs) -> dict:
     """Pure bridge: Route codec/prompt tasks."""
-    if not route_prompt: return _FALLBACK_RESPONSE
+    if not ENGINES_AVAILABLE:
+        return _FALLBACK_RESPONSE
+    
+    router = get_kernel_manager().get_prompt_router()
     user_input = kwargs.get("user_input", "")
     try:
-        return _serialize(await route_prompt(user_input))
+        return _serialize(await router(user_input))
     except Exception as e:
         logger.error(f"Prompt Bridge error: {e}")
         return {"error": str(e), "status": "ERROR"}
