@@ -57,10 +57,11 @@ def create_sse_app(mode: Optional[MCPMode] = None) -> FastAPI:
         ]
 
     @mcp_server.call_tool()
-    async def call_tool(name: str, arguments: Dict[str, Any]):
+    async def call_tool(name: str, arguments: Dict[str, Any]) -> list[mcp.types.TextContent]:
+        import mcp.types
         router = TOOL_ROUTERS.get(name)
         if not router:
-            raise ValueError(f"Unknown tool: {name}")
+            return [mcp.types.TextContent(type="text", text=f"VOID: Unknown tool {name}")]
 
         # F11: Rate Limit Check
         session_id = arguments.get("session_id", "anonymous")
@@ -68,12 +69,10 @@ def create_sse_app(mode: Optional[MCPMode] = None) -> FastAPI:
         rate_result = limiter.check(name, session_id)
         
         if not rate_result.allowed:
-            return {
-                "status": "VOID",
-                "verdict": "VOID",
-                "reason": rate_result.reason,
-                "violation": rate_result.constitutional_violation
-            }
+            return [mcp.types.TextContent(
+                type="text", 
+                text=f"VOID: Rate limit exceeded ({rate_result.reason})"
+            )]
 
         start = time.time()
         try:
@@ -96,10 +95,15 @@ def create_sse_app(mode: Optional[MCPMode] = None) -> FastAPI:
             record_stage_metrics(name, duration_ms)
             record_verdict_metrics(result.get("verdict", "UNKNOWN"))
             
-            return result
+            # Human-Optimized Output via Presenter
+            formatted_text = presenter.process(result)
+            return [mcp.types.TextContent(type="text", text=formatted_text)]
+            
         except Exception as e:
             logger.error(f"Execution error in {name}: {e}")
-            return {"status": "ERROR", "error": str(e), "tool": name}
+            # Abstract error into constitutional VOID response
+            err_data = {"status": "ERROR", "verdict": "VOID", "summary": f"Metabolic failure in {name}", "message": str(e)}
+            return [mcp.types.TextContent(type="text", text=presenter.process(err_data))]
 
     # Create FastAPI app
     app = FastAPI(title=server_name, version=version)
@@ -125,8 +129,10 @@ def create_sse_app(mode: Optional[MCPMode] = None) -> FastAPI:
     @app.get("/health")
     async def handle_health():
         seal_rate = get_seal_rate()
+        # Server is healthy if seal rate > 75% OR if no traffic yet (fresh start)
+        is_healthy = seal_rate > 0.75 or seal_rate == 0.0
         return {
-            "status": "healthy" if seal_rate > 0.75 else "degraded",
+            "status": "healthy" if is_healthy else "degraded",
             "mode": mode.value,
             "seal_rate_1h": seal_rate,
             "version": version,
