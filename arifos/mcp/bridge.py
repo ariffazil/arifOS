@@ -64,32 +64,8 @@ async def bridge_agi_router(action: str = "full", **kwargs) -> dict:
         return _FALLBACK_RESPONSE
     
     kernel = get_kernel_manager().get_agi()
-    query = kwargs.get("query", "")
-    ctx = kwargs.get("context", {})
-    
-    try:
-        if action == "sense":
-            return _serialize(await kernel.sense(query, ctx))
-        elif action in ("think", "reflect"):
-            return _serialize(await kernel.reflect(
-                kwargs.get("thought", query),
-                kwargs.get("thought_number", 1),
-                kwargs.get("total_thoughts", 1),
-                kwargs.get("next_needed", False)
-            ))
-        elif action == "atlas":
-            # Stage 333: TAC Analysis
-            return _serialize(await kernel.atlas_tac_analysis(kwargs.get("inputs", [])))
-        elif action == "forge":
-            draft = kwargs.get("draft", kwargs.get("response", query))
-            return _serialize(await kernel.forge(draft, kwargs.get("omega_0", 0.04)))
-        elif action == "evaluate":
-            return _serialize(kernel.evaluate(query, kwargs.get("response", ""), kwargs.get("truth_score", 1.0)))
-        else:
-            return _serialize(await kernel.sense(query, ctx))
-    except Exception as e:
-        logger.error(f"AGI Bridge error: {e}")
-        return {"error": str(e), "status": "ERROR"}
+    # Pure delegation to kernel execute method
+    return _serialize(await kernel.execute(action, kwargs))
 
 async def bridge_asi_router(action: str = "full", **kwargs) -> dict:
     """Pure bridge: Route action/empathy tasks to ASI Act."""

@@ -100,7 +100,19 @@ We achieved **Architectural Purification** by implementing a Zero-Logic Bridge.
 *   **The Problem:** Previous versions had governance logic scattered between the "Body" (server) and the "Brain" (core). This created version drift and "ghost logic."
 *   **The Eureka:** v52 enforces a strict separation. The server is **blind**—it only wires. All "wisdom" lives in the Core Kernels. This ensures that 100% of the governance is auditable, reproducible, and mathematically sealed in the **VAULT-999**.
 
-**Impact:** We have moved from "AI Safety" (don't do bad things) to **"AI Governance"** (prove you are doing the right things, in the right way, for the right reasons).
+---
+
+# The 000 Ignition Protocol
+
+Every session begins with a **Constitutional Handshake**. When you say *"Im Arif,"* the system executes the following metabolic boot sequence:
+
+1.  **RFC 3339 Anchor:** Injects an immutable UTC timestamp for ledger genesis.
+2.  **7D Context Mapping:** Maps the request across Space, Time, Energy, Math, Symbol, and Witness coordinates.
+3.  **Memory Injection:** Recalls previous session context from the 6-layer VAULT architecture (L0-L5).
+4.  **Orthogonal Ignition:** Fires up the AGI and ASI engines. They must be mathematically independent (**Ω_ortho ≥ 0.95**) to prevent biased judgment.
+5.  **Tri-Witness Handshake:** Establishes consensus between Human (Δ), AI (arifOS), and Earth (Institution) before the first token is emitted.
+
+**Full Spec:** [docs/arifos_000_init_protocol.md](./docs/arifos_000_init_protocol.md)
 
 ---
 

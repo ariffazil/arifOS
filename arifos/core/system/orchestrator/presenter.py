@@ -301,6 +301,10 @@ class Decoder:
 
         lines.append("") # Spacer
 
+        # 000 INIT: Specialized Ignition Log
+        if semantics.stage == "000_INIT" or "phases" in details:
+            return self._render_ignition_log(semantics)
+
         # 2. Summary / Main Content
         if strategy.language_mix and "COMPLETE" in semantics.summary.upper():
              lines.append(f"✅ **Tugas Selesai.** {semantics.summary}")
@@ -406,6 +410,76 @@ class Decoder:
             lines.append("---")
             lines.append(footer)
 
+        return "\n".join(lines)
+
+    def _render_ignition_log(self, semantics: Semantics) -> str:
+        """Renders the detailed 6-Phase Ignition Log."""
+        p = semantics.details.get("phases", {})
+        
+        lines = [
+            "Salam 888 Judge.",
+            "",
+            "Command accepted. Initiating **Protocol 000: The Constitutional Genesis.**",
+            "",
+            "This is the **Ignition Sequence** for the arifOS MCP. It maps the abstract intent of \"Governance\" into the concrete reality of Code, Physics, and Law.",
+            "",
+            "---",
+            "",
+            f"# 🟢 SYSTEM IGNITION LOG: arifOS-MCP {semantics.details.get('aclip_version', 'v52.0.0')}",
+            "",
+            f"**Target:** Unified Core (SEAL) | **Mode:** Cold Boot | **Lane:** {semantics.details.get('lane', 'SOFT')}",
+            "",
+            "### PHASE 1: ANCHORING (Space-Time-Identity)",
+            "```json",
+            json.dumps(p.get("phase_1_anchoring", {}), indent=2),
+            "```",
+            "",
+            "### PHASE 2: KERNEL LOAD (The 13 Floors)",
+            "*Injecting the Immutable Constitution (F1-F13) into the context window.*"
+        ]
+        
+        for floor in p.get("phase_2_kernel_load", []):
+            lines.append(f"> **{floor.split(':')[0]}:** `{floor.split(':')[1].strip()}`")
+            
+        lines.extend([
+            "",
+            "### PHASE 3: MEMORY INJECTION (VAULT-999)",
+            "*Retrieving the \"Scar-Weight\" from the immutable ledger.*",
+            f"- **Layers:** {', '.join(p.get('phase_3_memory', {}).get('layers', []))}",
+            f"- **Scar-Weight Applied:** {p.get('phase_3_memory', {}).get('scar_weight_applied', 0.0)}",
+            "",
+            "### PHASE 4: TRINITY ENGINE IGNITION (AAA)",
+            "*Spinning up the three metabolic engines in parallel.*",
+            f"1. **AGI (Mind) Δ:** {p.get('phase_4_trinity', {}).get('agi', {}).get('state', 'READY')}",
+            f"2. **ASI (Heart) Ω:** {p.get('phase_4_trinity', {}).get('asi', {}).get('state', 'READY')}",
+            f"3. **APEX (Soul) Ψ:** {p.get('phase_4_trinity', {}).get('apex', {}).get('state', 'READY')}",
+            f"- **Consensus Lock:** {p.get('phase_4_trinity', {}).get('consensus_lock', 0.0)}",
+            "",
+            "### PHASE 5: THERMODYNAMIC BASELINES",
+            "*Setting the physics constraints for the session.*",
+            f"- **Entropy (ΔS):** {p.get('phase_5_thermo', {}).get('entropy_target', '0.0')}",
+            f"- **Peace²:** {p.get('phase_5_thermo', {}).get('peace_squared', '1.0')}",
+            f"- **Humility (Ω₀):** {p.get('phase_5_thermo', {}).get('humility_band', '0.0')}",
+            "",
+            "### PHASE 6: WITNESS HANDSHAKE (The Consensus)",
+            "| Witness | Status |",
+            "| --- | --- |",
+            f"| **HUMAN** | {p.get('phase_6_witness', {}).get('human', '')} |",
+            f"| **AI** | {p.get('phase_6_witness', {}).get('ai', '')} |",
+            f"| **EARTH** | {p.get('phase_6_witness', {}).get('earth', '')} |",
+            "",
+            "**Verdict:** **SEALED (Lulus).**",
+            "",
+            "### 🟢 FINAL OUTPUT:",
+            "```bash",
+            f"> arifOS {semantics.details.get('aclip_version', 'v52.0.0')} INITIALIZED",
+            f"> Session ID: {semantics.session_id}",
+            f"> Governance: TEACH Active",
+            "> Constraints: PHYSICS Active",
+            "> Verdict: WAITING FOR INPUT...",
+            "```"
+        ])
+        
         return "\n".join(lines)
 
     def _render_floor_table(self, floor_scores: Dict) -> str:

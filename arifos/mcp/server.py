@@ -45,12 +45,12 @@ presenter = AAAMetabolizer()
 TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
     "000_init": {
         "name": "000_init",
-        "description": "System Ignition & Constitutional Gateway (F1, F11, F12)",
+        "description": "000 INIT: Full Constitutional Ignition & 7D Context Mapping. Triggers F1-F13 metabolic boot sequence.",
         "inputSchema": {
             "type": "object",
             "properties": {
                 "action": {"type": "string", "enum": ["init", "gate", "reset", "validate"], "default": "init"},
-                "query": {"type": "string"},
+                "query": {"type": "string", "description": "Greeting or query to ignite context (e.g. 'Im Arif')"},
                 "session_id": {"type": "string"}
             }
         }

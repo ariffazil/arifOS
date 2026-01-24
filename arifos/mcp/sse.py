@@ -140,6 +140,7 @@ def create_sse_app(mode: Optional[MCPMode] = None) -> FastAPI:
             "timestamp": time.time()
         }
 
+    # Root endpoint
     @app.get("/")
     async def handle_root():
         return {
@@ -149,6 +150,10 @@ def create_sse_app(mode: Optional[MCPMode] = None) -> FastAPI:
             "mode": mode.value,
             "motto": "DITEMPA BUKAN DIBERI"
         }
+
+    # Add references for internal integration
+    app.state.mcp_server = mcp_server
+    app.state.sse_transport = sse
 
     return app
 
