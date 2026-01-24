@@ -36,5 +36,6 @@ ENV PORT=8000
 # Expose port
 EXPOSE 8000
 
-# Run unified MCP SSE server
-CMD ["sh", "-c", "python -m arifos.mcp trinity-sse"]
+# Run unified Body API + MCP SSE server
+
+CMD ["sh", "-c", "uvicorn arifos.core.integration.api.app:app --host 0.0.0.0 --port ${PORT:-8000}"]

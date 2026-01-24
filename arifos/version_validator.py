@@ -56,14 +56,14 @@ class VersionValidator:
         
         # Check MCP server version
         try:
-            from arifos import mcp
+            import arifos.mcp as mcp
             mcp_version = getattr(mcp, "__version__", "unknown")
             if mcp_version != canonical_base:
                 self.errors.append(
                     f"mcp_server version mismatch: {mcp_version} != {canonical_base}"
                 )
-        except ImportError:
-            self.errors.append("mcp_server package not found")
+        except ImportError as e:
+            self.errors.append(f"mcp_server package not found: {e}")
         
         # Check bridge version (if exists)
         bridge_version = self._extract_bridge_version()

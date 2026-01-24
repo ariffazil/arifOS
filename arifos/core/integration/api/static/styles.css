@@ -231,6 +231,14 @@ section {
     text-transform: uppercase;
 }
 
+.context-hint {
+    font-size: 0.5rem;
+    color: #666;
+    text-transform: uppercase;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+}
+
 /* Telemetry Cards */
 .metric-card {
     margin-bottom: 20px;
