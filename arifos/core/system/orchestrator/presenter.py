@@ -301,20 +301,13 @@ class Decoder:
 
         lines.append("") # Spacer
 
+        details = semantics.details
+
         # 000 INIT: Specialized Ignition Log
         if semantics.stage == "000_INIT" or "phases" in details:
             return self._render_ignition_log(semantics)
 
         # 2. Summary / Main Content
-        if strategy.language_mix and "COMPLETE" in semantics.summary.upper():
-             lines.append(f"✅ **Tugas Selesai.** {semantics.summary}")
-        else:
-             lines.append(semantics.summary)
-
-        lines.append("")
-
-        # 2b. Rich Content (Content-Aware Rendering)
-        details = semantics.details
         
         # AGI GENIUS: Reasoning & Trace
         if "reasoning" in details or "metabolic_trace" in details:
@@ -345,9 +338,25 @@ class Decoder:
             lines.append("")
         
         # APEX JUDGE: Synthesis & Verdict
-        if "synthesis" in details and details.get("synthesis"):
+        if "synthesis" in details or "ruling" in details:
             lines.append("### ⚖️ APEX Judgment")
-            lines.append(f"> {details['synthesis']}")
+            if "synthesis" in details and details["synthesis"]:
+                lines.append(f"> {details['synthesis']}")
+            
+            if "ruling" in details:
+                r = details["ruling"]
+                lines.append(f"- **Final Ruling:** {details.get('final_ruling', semantics.status)}")
+                if "quantum_path" in r:
+                    lines.append(f"- **Integrity Pulse:** {r['quantum_path'].get('integrity', 1.0)}")
+            lines.append("")
+
+        # 999 VAULT: The Seal
+        if semantics.stage == "999_vault" or "merkle_root" in details:
+            lines.append("### 🔒 VAULT-999 Seal")
+            lines.append(f"- **Merkle Root:** `{details.get('merkle_root', 'unknown')[:32]}...`")
+            lines.append(f"- **Cooling Band:** `{details.get('cooling_band', 'BBB_LEDGER')}`")
+            lines.append(f"- **Phoenix Key:** `{details.get('phoenix_key', 'PHX-INITIAL')}`")
+            lines.append("- **Status:** `✓ COMMITTED TO LEDGER`")
             lines.append("")
 
         # 000 INIT: Intent

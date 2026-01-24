@@ -86,21 +86,13 @@ async def bridge_apex_router(action: str = "full", **kwargs) -> dict:
     return _serialize(await kernel.execute(action, kwargs))
 
 async def bridge_vault_router(action: str = "seal", **kwargs) -> dict:
-    """Pure bridge: Route archival tasks to 999 Vault."""
+    """Pure bridge: Route archival tasks to VAULT-999."""
     if not ENGINES_AVAILABLE:
         return _FALLBACK_RESPONSE
     
-    import hashlib, time
-    if action == "seal":
-        data = {
-            "timestamp": time.time(),
-            "verdict": kwargs.get("verdict"),
-            "agi": kwargs.get("agi_result"),
-            "asi": kwargs.get("asi_result"),
-            "apex": kwargs.get("apex_result"),
-        }
-        return {"hash": hashlib.sha256(str(data).encode()).hexdigest(), "timestamp": data["timestamp"], "status": "SEALED"}
-    return {"action": action, "status": "OK"}
+    # Vault operations are part of the APEX Judicial Kernel in v52
+    kernel = get_kernel_manager().get_apex()
+    return _serialize(await kernel.execute(action, kwargs))
 
 async def bridge_prompt_router(action: str = "route", **kwargs) -> dict:
     """Pure bridge: Route codec/prompt tasks."""

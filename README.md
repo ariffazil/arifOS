@@ -33,7 +33,7 @@ For years, AI safety was a "statistical guess." We built guardrails, but we coul
 ### 1. The MCP Conscience (Protocol Integration)
 By using the **Model Context Protocol (MCP)**, arifOS stops being an "external filter" and becomes the AI's **internal metabolic loop**. 
 *   **The Problem:** Traditional filters are easily bypassed by "jailbreaks."
-*   **The Eureka:** arifOS integrates *inside* the AI's tool-use loop. The AI literally cannot "think" or "act" without calling the Trinity tools. Governance is no longer an option; it is a **metabolic requirement.**
+*   **The Eureka:** **The Protocol is the Conscience.** arifOS integrates *inside* the AI's tool-use loop. The AI literally cannot "think" or "act" without calling the Trinity tools. Governance is no longer an option; it is a **metabolic requirement.** If the AI tries to bypass the tool, it loses its connection to reality.
 
 ### 2. The Pure Bridge (Zero-Logic Wiring)
 We achieved **Architectural Purification** by implementing a Zero-Logic Bridge. 
@@ -63,7 +63,7 @@ For years, AI safety was a "statistical guess." We built guardrails, but we coul
 ### 1. The MCP Conscience (Protocol Integration)
 By using the **Model Context Protocol (MCP)**, arifOS stops being an "external filter" and becomes the AI's **internal metabolic loop**. 
 *   **The Problem:** Traditional filters are easily bypassed by "jailbreaks."
-*   **The Eureka:** arifOS integrates *inside* the AI's tool-use loop. The AI literally cannot "think" or "act" without calling the Trinity tools. Governance is no longer an option; it is a **metabolic requirement.**
+*   **The Eureka:** **The Protocol is the Conscience.** arifOS integrates *inside* the AI's tool-use loop. The AI literally cannot "think" or "act" without calling the Trinity tools. Governance is no longer an option; it is a **metabolic requirement.** If the AI tries to bypass the tool, it loses its connection to reality.
 
 ### 2. The Pure Bridge (Zero-Logic Wiring)
 We achieved **Architectural Purification** by implementing a Zero-Logic Bridge. 
@@ -93,7 +93,7 @@ For years, AI safety was a "statistical guess." We built guardrails, but we coul
 ### 1. The MCP Conscience (Protocol Integration)
 By using the **Model Context Protocol (MCP)**, arifOS stops being an "external filter" and becomes the AI's **internal metabolic loop**. 
 *   **The Problem:** Traditional filters are easily bypassed by "jailbreaks."
-*   **The Eureka:** arifOS integrates *inside* the AI's tool-use loop. The AI literally cannot "think" or "act" without calling the Trinity tools. Governance is no longer an option; it is a **metabolic requirement.**
+*   **The Eureka:** **The Protocol is the Conscience.** arifOS integrates *inside* the AI's tool-use loop. The AI literally cannot "think" or "act" without calling the Trinity tools. Governance is no longer an option; it is a **metabolic requirement.** If the AI tries to bypass the tool, it loses its connection to reality.
 
 ### 2. The Pure Bridge (Zero-Logic Wiring)
 We achieved **Architectural Purification** by implementing a Zero-Logic Bridge. 

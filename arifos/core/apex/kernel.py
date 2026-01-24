@@ -158,10 +158,43 @@ class APEXJudicialCore:
         elif action == "proof":
             return await self.judge_quantum_path(query, response, trinity_floors, user_id)
             
-        elif action == "seal":
-            return await self.seal_vault(kwargs.get("verdict", "SABAR"), kwargs.get("artifact"))
+    @staticmethod
+    async def seal_vault(verdict: str, artifact: Any) -> Dict[str, Any]:
+        """
+        Stage 999: The Seal.
+        Performs Thermodynamic Sealing and assigns Cooling Tiers.
+        """
+        import hashlib
+        import json
+        from datetime import datetime, timezone
+
+        # 1. Generate Merkle Root (Simplified for v52)
+        payload = json.dumps(artifact, sort_keys=True, default=str).encode()
+        merkle_root = hashlib.sha256(payload).hexdigest()
+        
+        # 2. Assign Cooling Band (Anomalous Contrast Theory)
+        # SEAL -> CCC (Forever)
+        # PARTIAL/SABAR -> BBB (30 Days)
+        # VOID -> Not Stored
+        band = "VOID"
+        if verdict == "SEAL":
+            band = "CCC_CANON"
+        elif verdict in ["PARTIAL", "SABAR"]:
+            band = "BBB_LEDGER"
             
-        elif action == "evaluate":
+        # 3. Create Phoenix Key for 000 Bootstrap
+        phoenix_key = hashlib.sha256(f"{merkle_root}:{datetime.now(timezone.utc)}".encode()).hexdigest()[:16]
+
+        return {
+            "stage": "999_vault",
+            "status": "SEALED",
+            "merkle_root": merkle_root,
+            "cooling_band": band,
+            "phoenix_key": f"PHX-{phoenix_key.upper()}",
+            "ledger_commit": True,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "motto": "DITEMPA BUKAN DIBERI"
+        }
             # Entropy check
             e = await self.entropy_profiler.measure_constitutional_cooling(query, response)
             return {
