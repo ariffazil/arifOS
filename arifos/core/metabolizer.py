@@ -24,6 +24,8 @@ import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
+from arifos.core.enforcement.metrics import record_stage_metrics, record_verdict_metrics
+
 
 class StageSequenceError(Exception):
     """Raised when invalid stage transition is attempted."""
@@ -181,6 +183,9 @@ class Metabolizer:
                         f"Stage {self.current_stage} exceeded timeout: "
                         f"{self.current_stage_metrics.latency_ms:.0f}ms > {timeout_ms}ms"
                     )
+            
+            # Phase 1: Record Stage Metrics
+            record_stage_metrics(self.current_stage, self.current_stage_metrics.latency_ms)
 
         if self.sealed:
             raise StageSequenceError("Pipeline is sealed, no further transitions allowed")
@@ -251,6 +256,9 @@ class Metabolizer:
         self.sealed = True
         self.current_stage = 999
         self.stage_history.append(999)
+
+        # Phase 1: Record Final Verdict Metrics
+        record_verdict_metrics("SEAL" if f2_truth >= 0.99 else "PARTIAL")
 
         return {
             "status": "SEALED",

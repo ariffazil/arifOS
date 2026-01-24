@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>arifOS Sovereign Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="glass-container">
+        <header>
+            <div class="logo">
+                <span class="arif">arif</span><span class="os">OS</span>
+                <span class="status-badge">Sovereign Mode</span>
+            </div>
+            <div class="session-info">
+                <span id="session-id">SID: Initializing...</span>
+                <span id="uptime">Uptime: 0.0h</span>
+            </div>
+        </header>
+
+        <main>
+            <div class="grid-layout">
+                <!-- Left: 13 Floors Matrix -->
+                <section class="floors-panel">
+                    <h3>Constitutional Floors</h3>
+                    <div id="floors-grid" class="floors-grid">
+                        <!-- Filled by JS -->
+                    </div>
+                </section>
+
+                <!-- Center: Thermodynamic Trinity -->
+                <section class="trinity-panel">
+                    <div class="trinity-visual">
+                        <div class="vertex mind" id="v-mind">
+                            <div class="label">MIND (AGI)</div>
+                            <div class="score" id="score-truth">τ: 0.00</div>
+                        </div>
+                        <div class="vertex heart" id="v-heart">
+                            <div class="label">HEART (ASI)</div>
+                            <div class="score" id="score-empathy">κᵣ: 0.00</div>
+                        </div>
+                        <div class="vertex soul" id="v-soul">
+                            <div class="label">SOUL (APEX)</div>
+                            <div class="score" id="score-vitality">Ψ: 0.00</div>
+                        </div>
+                        <div class="central-pulse">
+                            <div class="pulse-inner"></div>
+                            <div class="equilibrium" id="equilibrium-pct">98%</div>
+                            <div class="sub-label">Equilibrium</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Right: Logic Telemetry -->
+                <section class="telemetry-panel">
+                    <h3>Logic Telemetry</h3>
+                    <div class="metric-card">
+                        <div class="metric-label">Entropy Delta (ΔS)</div>
+                        <div class="metric-value" id="val-delta-s">-0.00 bits</div>
+                        <div class="mini-chart" id="chart-s"></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">SEAL Rate</div>
+                        <div class="metric-value seal" id="val-seal-rate">0%</div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer>
+            <div class="ledger-feed">
+                <div class="ledger-label">Immutable Ledger Feed:</div>
+                <div id="ledger-messages" class="messages">
+                    <div class="msg">[LOG] Igniting Trinity Engines...</div>
+                </div>
+            </div>
+        </footer>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
