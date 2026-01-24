@@ -18,11 +18,10 @@ This is the governance UI contract: it standardizes what the system emits.
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional, Dict, Any
 from enum import Enum
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
-from ..enforcement.metrics import Metrics
-from .apex_prime import Verdict, ApexVerdict
+from arifos.core.system.types import Verdict, ApexVerdict, Metrics
 
 
 # =============================================================================

@@ -12,16 +12,28 @@ Contains the central runtime components of arifOS:
 Version: v47.0.0 (+Toroidal Loop)
 """
 
-from .apex_prime import (
-                         APEX_EPOCH,
-                         APEX_VERSION,
-                         APEXPrime,
-                         ApexVerdict,
-                         Verdict,
-                         apex_review,
-                         # apex_verdict,  # TODO: Missing from apex_prime.py - needs implementation
-                         check_floors,
-)
+def get_system_apex():
+    """Lazy import for System APEX symbols."""
+    from .apex_prime import (
+        APEX_VERSION,
+        APEX_EPOCH,
+        APEXPrime,
+        ApexVerdict,
+        Verdict,
+        normalize_verdict_code,
+        check_floors,
+        apex_review
+    )
+    return (
+        APEX_VERSION,
+        APEX_EPOCH,
+        APEXPrime,
+        ApexVerdict,
+        Verdict,
+        normalize_verdict_code,
+        check_floors,
+        apex_review
+    )
 
 # API Registry (v42)
 from .api_registry import (

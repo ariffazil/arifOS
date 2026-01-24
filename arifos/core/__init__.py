@@ -44,15 +44,18 @@ from .kernel import get_kernel_manager, KernelManager
 from . import floor_validators
 
 # Import APEX components (moved to system/)
-from .system.apex_prime import (
-    APEX_EPOCH,
-    APEX_VERSION,
-    APEXPrime,
-    ApexVerdict,  # v42: Dataclass (verdict, pulse, reason, floors)
-    Verdict,  # v42: Enum (SEAL, SABAR, VOID, PARTIAL, HOLD_888, SUNSET)
-    apex_review,  # v42: Returns ApexVerdict (structured)
-    check_floors,
-)
+def get_apex_symbols():
+    """Lazy import for APEX symbols to avoid circularity."""
+    from .system.apex_prime import (
+        APEXPrime,
+        ApexVerdict,
+        Verdict,
+        normalize_verdict_code,
+        check_floors,
+        apex_review
+    )
+    return APEXPrime, ApexVerdict, Verdict, normalize_verdict_code, check_floors, apex_review
+
 
 # Legacy convenience shim (v42): returns the verdict string from apex_review
 def apex_verdict(*args, **kwargs):

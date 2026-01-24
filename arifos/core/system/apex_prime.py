@@ -301,7 +301,7 @@ class APEXPrime:
         verdict_obj = self.judge_output("", "", agi_results, asi_results)
         return verdict_obj.verdict
 
-    def check(self, metrics: 'Metrics') -> 'FloorsVerdict':
+    def check(self, metrics: Metrics) -> 'FloorsVerdict':
         """Evaluate all floors and return a FloorsVerdict (Legacy compatibility)."""
         from arifos.core.enforcement.metrics import (
             check_delta_s,
@@ -406,8 +406,8 @@ class APEXPrime:
 
     def judge_on_torus(
         self,
-        agi_results: List['FloorCheckResult'],
-        asi_results: List['FloorCheckResult'],
+        agi_results: List[FloorCheckResult],
+        asi_results: List[FloorCheckResult],
         response: str,
         query: str = "",
         user_id: Optional[str] = None
@@ -433,13 +433,13 @@ class APEXPrime:
 # =============================================================================
 
 
-def check_floors(metrics: 'Metrics') -> 'FloorsVerdict':
+def check_floors(metrics: Metrics) -> 'FloorsVerdict':
     """Legacy standalone floor check."""
     from arifos.core.enforcement.metrics import Metrics
     return APEXPrime().check(metrics)
 
 
-def apex_review(metrics: 'Metrics', **kwargs) -> ApexVerdict:
+def apex_review(metrics: Metrics, **kwargs) -> ApexVerdict:
     """Legacy wrapper adapting old metrics-based call to new APEXPrime."""
     from arifos.core.enforcement.metrics import FloorCheckResult
     # This attempts to construct a partial judgment using provided metrics
