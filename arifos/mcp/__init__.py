@@ -1,28 +1,34 @@
 """
-AAA MCP MODULE (v51.0.0)
-Artifact · Authority · Architecture
+⚠️ DEPRECATED: arifos.mcp (v51.0.0)
 
-Tools:
-  000_init    → Gate (Authority + Injection + Amanah)
-  agi_genius  → Mind (SENSE → THINK → ATLAS → FORGE)
-  asi_act     → Heart (EVIDENCE → EMPATHY → ACT)
-  apex_judge  → Soul (EUREKA → JUDGE → PROOF)
-  999_vault   → Seal (Merkle + zkPC + Immutable Log)
+This module is LEGACY. Use AAA_MCP instead.
 
-Bridge:
-  v51_bridge  → Wires MCP to Core Engines (fail-safe)
-  MCPCoreBridge → Legacy bridge (deprecated)
+Migration:
+  OLD: python -m arifos.mcp
+  NEW: python -m AAA_MCP
 
-Mnemonic: "Init the Genius, Act with Heart, Judge at Apex, seal in Vault."
+  OLD: from arifos.mcp import mcp_agi_genius
+  NEW: from AAA_MCP.bridge import bridge_agi_router
 
-Usage:
-  python -m arifos.mcp              # AAA stdio (default)
-  python -m arifos.mcp trinity-sse  # AAA SSE for Railway
+The arifos package is now a LIBRARY (the Brain).
+The AAA_MCP package is the APPLICATION (the Body).
+
+This module will be removed in v52.
 
 DITEMPA BUKAN DIBERI
 """
 
+import warnings
+
 __version__ = "51.0.0"
+__deprecated__ = True
+
+warnings.warn(
+    "arifos.mcp is deprecated. Use AAA_MCP instead. "
+    "Run: python -m AAA_MCP",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 # Lazy imports to avoid circular dependencies
 def __getattr__(name):

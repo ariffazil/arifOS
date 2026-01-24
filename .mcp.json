@@ -4,8 +4,7 @@
             "command": "python",
             "args": [
                 "-m",
-                "arifos.mcp",
-                "trinity"
+                "AAA_MCP"
             ],
             "env": {
                 "PYTHONPATH": ".",
