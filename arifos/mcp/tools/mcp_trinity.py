@@ -1,6 +1,6 @@
 """
-arifOS Trinity Compression (v50.5.0)
-5-Tool Constitutional MCP Framework
+arifOS Trinity Compression (v50.5.26)
+5-Tool Constitutional MCP Framework - Now wired to Track B specs
 
 The Metabolic Standard compressed to 5 memorable tools:
     000_init    → Gate (Authority + Injection + Amanah)
@@ -38,6 +38,15 @@ from arifos.mcp.metrics import get_metrics
 
 # Session persistence for 999-000 loop
 from arifos.mcp.session_ledger import inject_memory, seal_memory
+
+# Track B Authority: Import constitutional thresholds (v50.5.26 Quick Wire)
+# These values come from AAA_MCP/v46/constitutional_floors.json via metrics.py
+from arifos.core.enforcement.metrics import (
+    TRUTH_THRESHOLD,      # 0.99 - F2 floor
+    PEACE_SQUARED_THRESHOLD,  # 1.0 - F5 floor
+    OMEGA_0_MIN,          # 0.03 - F7 humility min
+    OMEGA_0_MAX,          # 0.05 - F7 humility max
+)
 
 logger = logging.getLogger(__name__)
 
@@ -133,11 +142,11 @@ class InitResult:
     contrasts: List[str] = field(default_factory=list)
     entities: List[str] = field(default_factory=list)
 
-    # Step 4: Thermodynamic Setup
+    # Step 4: Thermodynamic Setup (wired to Track B via metrics.py)
     entropy_input: float = 0.0
     entropy_target: float = 0.0
-    entropy_omega: float = 0.04  # Humility [0.03, 0.05]
-    peace_squared: float = 1.0
+    entropy_omega: float = (OMEGA_0_MIN + OMEGA_0_MAX) / 2  # Humility midpoint from Track B
+    peace_squared: float = PEACE_SQUARED_THRESHOLD  # From Track B JSON spec
     energy_budget: float = 1.0
 
     # Step 5: Floors Loaded
@@ -351,11 +360,11 @@ def _step_4_thermodynamic_setup(intent_map: Dict[str, Any]) -> Dict[str, Any]:
     # Target: reduce by 30%
     S_target = S_input * 0.7
 
-    # Humility parameter [0.03, 0.05]
-    omega_0 = 0.04
+    # Humility parameter - wired to Track B spec
+    omega_0 = (OMEGA_0_MIN + OMEGA_0_MAX) / 2  # Midpoint [0.03, 0.05]
 
-    # Peace² baseline
-    peace_squared = 1.0
+    # Peace² baseline - wired to Track B spec
+    peace_squared = PEACE_SQUARED_THRESHOLD
 
     # Energy budget based on lane
     lane = intent_map.get("lane", "SOFT")
@@ -1877,9 +1886,9 @@ def _classify_lane(text: str) -> str:
 
 
 def _get_truth_threshold(lane: str) -> float:
-    """Get truth threshold for lane."""
+    """Get truth threshold for lane (wired to Track B spec)."""
     thresholds = {
-        "HARD": 0.99,
+        "HARD": TRUTH_THRESHOLD,  # From Track B JSON spec (0.99)
         "SOFT": 0.80,
         "PHATIC": 0.0,
         "REFUSE": 0.0
