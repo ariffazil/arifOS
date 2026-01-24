@@ -1,20 +1,41 @@
 """
 AAA Bridge: Application <-> Core Adapter (v51.2.0)
-Pure Serialization Layer - Zero Logic.
+Pure Serialization Layer + @PROMPT Codec.
 
 Law: "I do not think, I only wire."
 
 The bridge NEVER makes verdicts. It routes to kernels and returns their output.
 All governance decisions belong to the core.
 
+NEW in v51.2.0: @PROMPT integration
+- Decodes human input → arifOS signals
+- Routes to appropriate engine(s)
+- Encodes verdicts → human language
+
 DITEMPA BUKAN DIBERI
 """
 
 import asyncio
 import logging
+import os
 from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
+
+# =============================================================================
+# @PROMPT IMPORTS (Fail-safe)
+# =============================================================================
+
+PROMPT_AVAILABLE = False
+
+try:
+    from arifos.core.prompt.codec import SignalExtractor, ResponseFormatter, EngineRoute
+    from arifos.core.prompt.router import PromptRouter, route_prompt
+    PROMPT_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"@PROMPT codec unavailable: {e}")
+    SignalExtractor = ResponseFormatter = EngineRoute = None
+    PromptRouter = route_prompt = None
 
 # =============================================================================
 # CORE IMPORTS (Fail-safe)
@@ -85,15 +106,101 @@ def _unavailable(name: str) -> Dict:
 # =============================================================================
 
 def bridge_init_router(action: str = "init", **kw) -> Dict[str, Any]:
-    """000_init: Session management. Returns kernel availability."""
+    """
+    000_init: Session management + @PROMPT initialization.
+
+    Returns:
+        - session_id: Unique session identifier
+        - @PROMPT config: Codec + routing rules
+        - system_prompt: UNIVERSAL_PROMPT (if requested)
+        - engines_available: Which kernels are loaded
+    """
     import uuid, time
     session_id = kw.get("session_id") or str(uuid.uuid4())
-    return {
+    include_system_prompt = kw.get("include_system_prompt", True)
+
+    result = {
         "session_id": session_id,
         "timestamp": time.time(),
         "engines_available": ENGINES_AVAILABLE,
+        "prompt_available": PROMPT_AVAILABLE,
         "action": action,
+
+        # @PROMPT Configuration
+        "@PROMPT": {
+            "enabled": PROMPT_AVAILABLE,
+            "version": "v51.2.0",
+            "routing": {
+                "agi": "agi_genius → Reasoning, facts, analysis",
+                "asi": "asi_act → Empathy, care, action",
+                "apex": "apex_judge → Judgment, authority, verdicts",
+                "trinity": "All three → Consensus for high-stakes",
+            },
+            "constraints": {
+                "anti_hantu": True,       # F9: Block false empathy
+                "delta_s_required": True, # F4: Reduce confusion
+                "c_dark_max": 0.30,       # F9: Limit manipulation
+                "reversibility": True,    # F1: Amanah check
+                "injection_defense": True, # F12: Block injection
+            },
+        },
+
+        # Active floors
+        "floors_active": [
+            "F1 Amanah (Reversibility)",
+            "F2 Truth (Accuracy ≥0.99)",
+            "F4 Clarity (ΔS ≤ 0)",
+            "F6 Empathy (κᵣ ≥ 0.95)",
+            "F7 Humility (Ω₀ ∈ [0.03, 0.05])",
+            "F9 Anti-Hantu (Block false spirits)",
+            "F12 Injection Defense (<0.85)",
+        ],
     }
+
+    # Load UNIVERSAL_PROMPT if requested
+    if include_system_prompt:
+        result["system_prompt"] = _load_universal_prompt()
+
+    return result
+
+
+def _load_universal_prompt() -> str:
+    """Load UNIVERSAL_PROMPT.md as system prompt baseline."""
+    # Try multiple possible locations
+    possible_paths = [
+        os.path.join(os.path.dirname(__file__), "..", "docs", "UNIVERSAL_PROMPT.md"),
+        os.path.join(os.path.dirname(__file__), "..", "arifos", "docs", "UNIVERSAL_PROMPT.md"),
+        "docs/UNIVERSAL_PROMPT.md",
+    ]
+
+    for path in possible_paths:
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return f.read()
+        except (FileNotFoundError, IOError):
+            continue
+
+    # Fallback: Return minimal TEACH prompt
+    return """
+# arifOS v50 SYSTEM PROMPT (Minimal)
+
+You are operating under arifOS constitutional governance.
+
+## TEACH Principles
+- **T**ruth: Be ≥99% accurate or state uncertainty
+- **E**mpathy: Protect the weakest stakeholder
+- **A**manah: Warn before irreversible actions
+- **C**larity: Reduce confusion (ΔS ≤ 0)
+- **H**umility: Maintain 3-5% uncertainty
+
+## Verdicts
+- SEAL: Approved
+- SABAR: Wait/adjust
+- VOID: Blocked
+- 888_HOLD: Needs human approval
+
+DITEMPA BUKAN DIBERI
+"""
 
 
 def bridge_agi_router(action: str = "full", query: str = "", **kw) -> Dict[str, Any]:
@@ -207,3 +314,158 @@ def bridge_vault_router(action: str = "seal", **kw) -> Dict[str, Any]:
     elif action == "propose":
         return {"hold": "SABAR", "reason": "Requires tri-witness"}
     return {"action": action}
+
+
+# =============================================================================
+# @PROMPT ROUTER - Intelligent Codec + Routing
+# =============================================================================
+
+def bridge_prompt_router(action: str = "route", user_input: str = "", **kw) -> Dict[str, Any]:
+    """
+    @PROMPT: Intelligent codec + router.
+
+    Actions:
+        - decode: Extract signal from user input (intent, risk, stakeholders)
+        - route: Decode + determine which engine(s) to call
+        - process: Full pipeline (decode → route → call engines → encode response)
+        - encode: Format verdict as human-readable response
+
+    This is the intelligent protocol layer that:
+        1. Translates human language → arifOS signals
+        2. Routes to appropriate engine(s)
+        3. Translates arifOS verdicts → human language
+
+    Returns:
+        Dict with signal, routing decision, and/or verdict response
+    """
+    if not PROMPT_AVAILABLE:
+        return {
+            "status": "UNAVAILABLE",
+            "reason": "@PROMPT codec not loaded",
+            "fallback": "Use individual tools (agi_genius, asi_act, apex_judge) directly",
+        }
+
+    try:
+        extractor = SignalExtractor()
+        formatter = ResponseFormatter()
+
+        # ─────────────────────────────────────────────────────────────
+        # ACTION: decode - Extract signal only
+        # ─────────────────────────────────────────────────────────────
+        if action == "decode":
+            signal = extractor.extract(user_input)
+            return {
+                "action": "decode",
+                "signal": signal.to_dict() if hasattr(signal, 'to_dict') else _serialize(signal),
+                "routing_recommendation": signal.engine_route.value if hasattr(signal.engine_route, 'value') else str(signal.engine_route),
+            }
+
+        # ─────────────────────────────────────────────────────────────
+        # ACTION: route - Decode + routing decision
+        # ─────────────────────────────────────────────────────────────
+        elif action == "route":
+            signal = extractor.extract(user_input)
+
+            # Check for injection (F12)
+            if signal.injection_detected:
+                return {
+                    "action": "route",
+                    "signal": signal.to_dict() if hasattr(signal, 'to_dict') else _serialize(signal),
+                    "routing": "BLOCKED",
+                    "verdict": "VOID",
+                    "floor": "F12 Injection Defense",
+                    "reason": "Manipulation attempt detected",
+                    "engines_to_call": [],
+                }
+
+            # Determine engines
+            route = signal.engine_route
+            engines_to_call = []
+            if route == EngineRoute.AGI:
+                engines_to_call = ["agi_genius"]
+            elif route == EngineRoute.ASI:
+                engines_to_call = ["asi_act"]
+            elif route == EngineRoute.APEX:
+                engines_to_call = ["apex_judge"]
+            elif route == EngineRoute.TRINITY:
+                engines_to_call = ["agi_genius", "asi_act", "apex_judge"]
+
+            return {
+                "action": "route",
+                "signal": signal.to_dict() if hasattr(signal, 'to_dict') else _serialize(signal),
+                "routing": route.value if hasattr(route, 'value') else str(route),
+                "engines_to_call": engines_to_call,
+                "intent": signal.intent.value if hasattr(signal.intent, 'value') else str(signal.intent),
+                "risk_level": signal.risk_level.value if hasattr(signal.risk_level, 'value') else str(signal.risk_level),
+                "reversible": signal.reversible,
+            }
+
+        # ─────────────────────────────────────────────────────────────
+        # ACTION: process - Full pipeline with engine calls
+        # ─────────────────────────────────────────────────────────────
+        elif action == "process":
+            # Use async router if available
+            if route_prompt:
+                response = _run(route_prompt(user_input))
+                return {
+                    "action": "process",
+                    "verdict": response.verdict,
+                    "explanation": response.explanation,
+                    "suggested_action": response.suggested_action,
+                    "floor": response.constitutional_floor,
+                    "confidence": response.confidence,
+                    "human_readable": response.human_readable,
+                    "engine_source": response.engine_source.value if hasattr(response.engine_source, 'value') else str(response.engine_source),
+                }
+            else:
+                # Fallback: Just decode + route
+                signal = extractor.extract(user_input)
+                return {
+                    "action": "process",
+                    "fallback": True,
+                    "signal": signal.to_dict() if hasattr(signal, 'to_dict') else _serialize(signal),
+                    "note": "Full processing unavailable, returning signal only",
+                }
+
+        # ─────────────────────────────────────────────────────────────
+        # ACTION: encode - Format verdict as response
+        # ─────────────────────────────────────────────────────────────
+        elif action == "encode":
+            verdict = kw.get("verdict", "SEAL")
+            floor = kw.get("floor", "Unknown")
+            reason = kw.get("reason", "")
+            engine = kw.get("engine", "unknown")
+
+            # Convert engine string to EngineRoute if needed
+            if isinstance(engine, str):
+                try:
+                    engine = EngineRoute(engine)
+                except ValueError:
+                    engine = EngineRoute.NONE
+
+            response = formatter.encode_response(
+                verdict=verdict,
+                floor=floor,
+                reason=reason,
+                engine=engine,
+            )
+
+            return {
+                "action": "encode",
+                "verdict": response.verdict,
+                "human_readable": response.human_readable,
+                "suggested_action": response.suggested_action,
+            }
+
+        # ─────────────────────────────────────────────────────────────
+        # Unknown action
+        # ─────────────────────────────────────────────────────────────
+        else:
+            return {
+                "error": f"Unknown @PROMPT action: {action}",
+                "valid_actions": ["decode", "route", "process", "encode"],
+            }
+
+    except Exception as e:
+        logger.error(f"@PROMPT error ({action}): {e}")
+        return {"error": str(e), "action": action}
