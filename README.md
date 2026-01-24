@@ -309,13 +309,13 @@ arifOS exposes 5 tools via the Model Context Protocol (MCP):
 
 **Mnemonic:** *"Init the Genius, Act with Heart, Judge at Apex, Seal in Vault."*
 
-| Tool | Role | What It Does | Floors Enforced |
-|------|------|--------------|-----------------|
-| `000_init` | Gate | Authority check, injection defense, session start | F1, F11, F12 |
-| `agi_genius` | Mind (Δ) | SENSE → THINK → ATLAS (search, reason, structure) | F2, F4, F7 |
-| `asi_act` | Heart (Ω) | EVIDENCE → EMPATHY → ACT (validate, care, execute) | F5, F6, F9 |
-| `apex_judge` | Soul (Ψ) | EUREKA → JUDGE → PROOF (insight, verdict, receipt) | F1, F3, F8 |
-| `999_vault` | Seal | Merkle hash + immutable ledger + session close | F1, F8 |
+| Tool | Role | What It Does | Checked By |
+|------|------|--------------|------------|
+| `000_init` | Gate | Identity, Injection, Session | ASI |
+| `agi_genius`| Mind (Δ) | SENSE → THINK → ATLAS | AGI |
+| `asi_act` | Heart (Ω) | EVIDENCE → EMPATHY → ACT | ASI |
+| `apex_judge`| Soul (Ψ) | EUREKA → JUDGE → PROOF | APEX |
+| `999_vault` | Seal | Merkle Archival & Closure | APEX |
 
 ---
 
@@ -375,9 +375,10 @@ curl https://arifos.arif-fazil.com/health
 ```json
 {
   "status": "healthy",
-  "tools": 5,
-  "tool_names": ["000_init", "agi_genius", "asi_act", "apex_judge", "999_vault"],
-  "version": "v50.5.25"
+  "mode": "bridge",
+  "seal_rate_1h": 0.82,
+  "version": "v52.0.0",
+  "engines_available": true
 }
 ```
 
@@ -1119,25 +1120,25 @@ TEACH is the unified intelligence model:
 
 ---
 
-## What are the 13 floors?
+## The 13 Constitutional Floors
 
-The 13 floors are grouped under TEACH:
+Every output passes through these 13 floors, grouped under the TEACH framework:
 
-| Floor | Name | Grouped Under |
-|-------|------|---------------|
-| F1 | Amanah | A (Amanah) |
-| F2 | Truth | T (Truth) |
-| F3 | Tri-Witness | (System) |
-| F4 | Clarity | C (Clarity) |
-| F5 | Peace² | (Physics) |
-| F6 | Empathy | E (Empathy) |
-| F7 | Humility | H (Humility) |
-| F8 | Genius | (Derived) |
-| F9 | Anti-Hantu | E (Empathy) |
-| F10 | Ontology | T (Truth) |
-| F11 | Command | A (Amanah) |
-| F12 | Injection | (Security) |
-| F13 | Curiosity | (System) |
+| Floor | Name | Engine | Threshold | Type |
+|-------|------|--------|-----------|------|
+| **F1** | Amanah | ASI | Reversible | HARD |
+| **F2** | Truth | AGI | τ ≥ 0.99 | HARD |
+| **F3** | Tri-Witness| APEX | TW ≥ 0.95 | HARD |
+| **F4** | Clarity | AGI | ΔS ≤ 0 | HARD |
+| **F5** | Peace | ASI | P² ≥ 1.0 | SOFT |
+| **F6** | Empathy | ASI | κᵣ ≥ 0.95 | SOFT |
+| **F7** | Humility | AGI | Ω₀ ∈ [0.03, 0.05] | HARD |
+| **F8** | Genius | APEX | G ≥ 0.80 | DERIVED |
+| **F9** | Cdark | ASI | Cdark ≤ 0.30 | DERIVED |
+| **F10** | Ontology | AGI | LOCKED | HARD |
+| **F11** | Command | ASI | AUTHORIZED | HARD |
+| **F12** | Injection | ASI | RISK < 0.85 | HARD |
+| **F13** | Curiosity | AGI | Exploratory | SOFT |
 
 ---
 

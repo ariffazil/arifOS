@@ -23,10 +23,15 @@ from mcp.server.sse import SseServerTransport
 from arifos.mcp.bridge import ENGINES_AVAILABLE
 from arifos.mcp.server import TOOL_DESCRIPTIONS, TOOL_ROUTERS
 from arifos.core.enforcement.governance.rate_limiter import get_rate_limiter
+from arifos.core.enforcement.metrics import record_stage_metrics, record_verdict_metrics
 from arifos.mcp.mode_selector import get_mcp_mode, MCPMode
 from arifos.mcp.constitutional_metrics import record_verdict, get_seal_rate
+from arifos.core.system.orchestrator.presenter import AAAMetabolizer
 
 logger = logging.getLogger(__name__)
+
+# Initialize Presenter
+presenter = AAAMetabolizer()
 
 def create_sse_app(mode: Optional[MCPMode] = None) -> FastAPI:
     """Create FastAPI app with MCP SSE endpoints."""
@@ -77,12 +82,20 @@ def create_sse_app(mode: Optional[MCPMode] = None) -> FastAPI:
             
             # Record metrics
             duration = time.time() - start
+            duration_ms = duration * 1000
+            
+            # 1. MCP Rolling Metrics
             record_verdict(
                 tool=name,
                 verdict=result.get("verdict", "UNKNOWN"),
                 duration=duration,
                 mode=mode.value
             )
+            
+            # 2. Core Prometheus Metrics
+            record_stage_metrics(name, duration_ms)
+            record_verdict_metrics(result.get("verdict", "UNKNOWN"))
+            
             return result
         except Exception as e:
             logger.error(f"Execution error in {name}: {e}")

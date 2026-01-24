@@ -28,7 +28,7 @@ from .exceptions import setup_exception_handlers
 
 # SSE Integration
 from arifos.mcp.sse import create_sse_app
-from arifos.mcp.trinity_server import TOOLS, TOOL_DESCRIPTIONS
+from arifos.mcp.server import TOOL_DESCRIPTIONS, TOOL_ROUTERS as TOOLS
 
 # MCP Server for direct endpoint
 from mcp.server import Server
@@ -46,13 +46,13 @@ def create_app() -> FastAPI:
     - Exception handlers set up
     """
     app = FastAPI(
-        title="arifOS v51.2.0 API (The Body)",
+        title="arifOS v52.0.0 API (Unified Core)",
         description=(
             "Constitutional Governance Oracle. "
-            "Exposes the Trinity Metabolic Loop (AGI-ASI-APEX) over HTTP and SSE. "
+            "Exposes the Unified Trinity Metabolic Loop (AGI-ASI-APEX) over HTTP and SSE. "
             "DITEMPA BUKAN DIBERI."
         ),
-        version="51.2.0",
+        version="52.0.0",
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
@@ -136,12 +136,7 @@ def create_app() -> FastAPI:
     app.include_router(body.router)
 
     # Register MCP SSE routes (sub-app for /sse and /messages endpoints)
-    sse_app = create_sse_app(
-        tools=TOOLS,
-        tool_descriptions=TOOL_DESCRIPTIONS,
-        server_name="arifOS-Trinity",
-        version="51.2.0"
-    )
+    sse_app = create_sse_app()
 
     # ==========================================================================
     # CHATGPT DEVELOPER MODE: Direct /mcp endpoint
@@ -196,8 +191,8 @@ def create_app() -> FastAPI:
         """API root - returns version and basic info."""
         return {
             "name": "arifOS API",
-            "version": "51.2.0",
-            "description": "Constitutional Governance Oracle (The Body)",
+            "version": "52.0.0",
+            "description": "Constitutional Governance Oracle (Unified Core)",
             "docs": "/docs",
             "govern": "/v1/govern",
             "mcp_chatgpt": "/mcp",
