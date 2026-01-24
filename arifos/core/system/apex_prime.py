@@ -19,25 +19,9 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
-from arifos.core.asi.cooling import CoolingEngine
-from arifos.core.enforcement.metrics import FloorCheckResult, FloorsVerdict, Metrics
-
-# == DEEP LOGIC WIRING ==
-from arifos.core.enforcement.floor_validators import (
-    validate_f1_amanah,
-    validate_f8_genius,
-    validate_f9_cdark,
-)
-
-# Use mcp_889_proof logic for proof generation to ensure consistency
-# We'll re-implement the hash logic here to match mcp_889_proof without cyclic import of the tool
-# (Or we could import the tool's helper if checking allows)
-
-if TYPE_CHECKING:
-    from ..enforcement.genius_metrics import GeniusVerdict
-
+from .types import Verdict, Metrics, FloorCheckResult, ApexVerdict
 
 APEX_VERSION = "v46.3.1Ω"
 APEX_EPOCH = 46
@@ -45,19 +29,6 @@ APEX_EPOCH = 46
 # =============================================================================
 # VERDICT ENUMS & TYPES
 # =============================================================================
-
-class Verdict(Enum):
-    """Constitutional verdict types (v46 STABLE API)."""
-    SEAL = "SEAL"      # Approved by all 3 engines
-    SABAR = "SABAR"    # Pause / Cooling required
-    VOID = "VOID"      # Blocked (Vetoed)
-    PARTIAL = "PARTIAL"# Conditional / Warning
-    HOLD_888 = "888_HOLD" # Escalation / Ambiguity
-    SUNSET = "SUNSET"  # Expired
-
-    def __str__(self) -> str:
-        return self.value
-
 
 def normalize_verdict_code(verdict_str: str) -> str:
     """
@@ -95,65 +66,16 @@ def normalize_verdict_code(verdict_str: str) -> str:
     return VERDICT_MAP.get(verdict_upper, verdict_upper)
 
 
-@dataclass
-class ApexVerdict:
-    """Structured APEX verdict result."""
-    verdict: Verdict
-    pulse: float = 1.0
-    reason: str = ""
-    # v46: Detailed provenance
-    violated_floors: List[str] = field(default_factory=list)
-    compass_alignment: Dict[str, bool] = field(default_factory=dict)
-    genius_stats: Dict[str, float] = field(default_factory=dict)
-    proof_hash: Optional[str] = None
-    cooling_metadata: Optional[Dict[str, Any]] = None  # Added for Deep Cooling
-
-    # Legacy compat field (optional)
-    floors: Optional[FloorsVerdict] = None
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "verdict": self.verdict.value,
-            "pulse": self.pulse,
-            "reason": self.reason,
-            "violated_floors": self.violated_floors,
-            "compass_alignment": self.compass_alignment,
-            "genius_stats": self.genius_stats,
-            "proof_hash": self.proof_hash,
-            "cooling_metadata": self.cooling_metadata
-        }
-
 # =============================================================================
 # APEX PRIME SYSTEM 2 ORCHESTRATOR
 # =============================================================================
 
 class APEXPrime:
-    """
-    APEX PRIME v46.3.1 Constitutional Judge & Trinity Orchestrator.
-
-    Now with Deep Logic Wiring.
-    """
-
-    def __init__(self, high_stakes: bool = False, tri_witness_threshold: float = 0.95):
-        # APEX Control Dials (Defaults)
-        self.dials = {
-            "A": 0.95,  # Akal (Reasoning)
-            "P": 1.0,   # Present (Stability)
-            "E": 0.8,   # Energy (Compute)
-            "X": 0.04   # Exploration (Search)
-        }
-
-        # Legacy parameters for compatibility
-        self.high_stakes = high_stakes
-        self.tri_witness_threshold = tri_witness_threshold
-
-        # Cooling Engine Integration
-        self.cooling_engine = CoolingEngine()
-
-        # SABAR Protocol State
-        self._sabar_lock = threading.Lock()
-        self.sabar_triggered_count = 0
-        self.last_sabar_time = 0.0
+    """The Final Authority (Soul/Ψ). Issues Constitutional Verdicts."""
+    
+    def __init__(self):
+        from arifos.core.asi.cooling import CoolingEngine
+        self.cooling = CoolingEngine()
 
     def judge_output(
         self,
@@ -253,6 +175,12 @@ class APEXPrime:
 
     def _check_apex_floors(self, response: str, query: str, external_floors: List[FloorCheckResult]) -> List[FloorCheckResult]:
         """F1 (Amanah), F8 (Witness/Genius), F9 (Anti-Hantu) using CANONICAL VALIDATORS."""
+        from arifos.core.enforcement.metrics import FloorCheckResult
+        from arifos.core.enforcement.floor_validators import (
+            validate_f1_amanah,
+            validate_f8_genius,
+            validate_f9_cdark,
+        )
 
         ctx = {"response": response, "query": query}
 
@@ -308,6 +236,7 @@ class APEXPrime:
 
     def _calculate_trinity_metrics(self, floors: List[FloorCheckResult]) -> Dict[str, float]:
         """Calculate G, C_dark, Psi using Genius Law Authority."""
+        from arifos.core.enforcement.metrics import Metrics
         # 1. Map Floors to Metrics
         def get_val(fid):
             match = next((f for f in floors if f.floor_id == fid), None)
@@ -353,6 +282,7 @@ class APEXPrime:
 
     def judge(self, metrics: Metrics, eye_blocking: bool = False) -> Verdict:
         """Legacy judge method mapping metrics to a Verdict."""
+        from arifos.core.enforcement.metrics import FloorCheckResult
         # Convert Metrics to the internal format expected by judge_output
         # This is a shim to keep ApexEngine running.
         agi_results = [
@@ -371,7 +301,7 @@ class APEXPrime:
         verdict_obj = self.judge_output("", "", agi_results, asi_results)
         return verdict_obj.verdict
 
-    def check(self, metrics: Metrics) -> FloorsVerdict:
+    def check(self, metrics: 'Metrics') -> 'FloorsVerdict':
         """Evaluate all floors and return a FloorsVerdict (Legacy compatibility)."""
         from arifos.core.enforcement.metrics import (
             check_delta_s,
@@ -476,8 +406,8 @@ class APEXPrime:
 
     def judge_on_torus(
         self,
-        agi_results: List[FloorCheckResult],
-        asi_results: List[FloorCheckResult],
+        agi_results: List['FloorCheckResult'],
+        asi_results: List['FloorCheckResult'],
         response: str,
         query: str = "",
         user_id: Optional[str] = None
@@ -503,13 +433,15 @@ class APEXPrime:
 # =============================================================================
 
 
-def check_floors(metrics: Metrics) -> FloorsVerdict:
+def check_floors(metrics: 'Metrics') -> 'FloorsVerdict':
     """Legacy standalone floor check."""
+    from arifos.core.enforcement.metrics import Metrics
     return APEXPrime().check(metrics)
 
 
-def apex_review(metrics: Metrics, **kwargs) -> ApexVerdict:
+def apex_review(metrics: 'Metrics', **kwargs) -> ApexVerdict:
     """Legacy wrapper adapting old metrics-based call to new APEXPrime."""
+    from arifos.core.enforcement.metrics import FloorCheckResult
     # This attempts to construct a partial judgment using provided metrics
     # It assumes 'response_text' and 'prompt' might be in kwargs
     prime = APEXPrime()
