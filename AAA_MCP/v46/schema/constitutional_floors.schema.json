@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifos.dev/schemas/v46/constitutional_floors.schema.json",
+  "title": "Constitutional Floors Schema",
+  "description": "Schema for arifOS constitutional floor definitions (v46)",
+  "type": "object",
+  "required": ["version", "constitutional_floors"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "authority": {
+      "type": "string"
+    },
+    "locked": {
+      "type": "boolean"
+    },
+    "constitutional_floors": {
+      "type": "object",
+      "patternProperties": {
+        "^F[0-9]+$": {
+          "type": "object",
+          "required": ["description", "type"],
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "threshold": {
+              "oneOf": [
+                { "type": "number", "minimum": 0, "maximum": 1 },
+                { "type": "string", "enum": ["LOCK", "888_APPROVAL"] }
+              ]
+            },
+            "threshold_min": { "type": "number" },
+            "threshold_max": { "type": "number" },
+            "description": { "type": "string" },
+            "type": {
+              "type": "string",
+              "enum": ["lock", "probability", "band", "delta", "count", "approval"]
+            },
+            "is_hard": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "vitality": {
+      "type": "object",
+      "properties": {
+        "threshold": { "type": "number" },
+        "description": { "type": "string" }
+      }
+    }
+  }
+}

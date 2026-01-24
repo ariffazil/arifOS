@@ -59,10 +59,17 @@ except ImportError:
         """Result from a floor check (stub)."""
         floor_id: str = ""
         floor_name: str = ""
+        threshold: float = 0.0  # Floor threshold value
+        actual: float = 1.0     # Actual measured value
         passed: bool = True
-        score: float = 1.0
+        is_hard: bool = True    # Hard floors cause VOID, soft floors cause PARTIAL
         reason: str = ""
         details: Dict[str, Any] = field(default_factory=dict)
+
+        @property
+        def score(self) -> float:
+            """Backward compatibility: score maps to actual value."""
+            return self.actual
 
 # Import schema validator and manifest verifier from spec package (avoids circular import)
 from arifos.core.spec.schema_validator import validate_spec_against_schema

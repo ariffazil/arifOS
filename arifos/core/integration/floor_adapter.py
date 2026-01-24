@@ -45,10 +45,17 @@ class FloorCheckResult:
     """Result from a floor check."""
     floor_id: str
     floor_name: str
+    threshold: float  # Floor threshold value
+    actual: float     # Actual measured value
     passed: bool
-    score: float  # 0.0-1.0
+    is_hard: bool = True  # Hard floors cause VOID, soft floors cause PARTIAL
     reason: str = ""
     details: Dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def score(self) -> float:
+        """Backward compatibility: score maps to actual value."""
+        return self.actual
 
 
 @dataclass
@@ -181,8 +188,10 @@ class FloorAdapter:
                 results["F3"] = FloorCheckResult(
                     floor_id="F3",
                     floor_name="Business Logic",
+                    threshold=1.0,
+                    actual=logic_check.get("score", 1.0),
                     passed=logic_check.get("valid", True),
-                    score=logic_check.get("score", 1.0),
+                    is_hard=False,
                     reason=logic_check.get("reason", ""),
                     details=logic_check
                 )
@@ -191,8 +200,10 @@ class FloorAdapter:
                 results["F3"] = FloorCheckResult(
                     floor_id="F3",
                     floor_name="Business Logic",
+                    threshold=1.0,
+                    actual=1.0,
                     passed=True,
-                    score=1.0,
+                    is_hard=False,
                     reason="Floor not implemented (graceful pass)"
                 )
         
@@ -209,8 +220,10 @@ class FloorAdapter:
                 results["F4"] = FloorCheckResult(
                     floor_id="F4",
                     floor_name="Data Persistence",
+                    threshold=1.0,
+                    actual=persist_check.get("score", 1.0),
                     passed=persist_check.get("consistent", True),
-                    score=persist_check.get("score", 1.0),
+                    is_hard=False,
                     reason=persist_check.get("reason", ""),
                     details=persist_check
                 )
@@ -218,8 +231,10 @@ class FloorAdapter:
                 results["F4"] = FloorCheckResult(
                     floor_id="F4",
                     floor_name="Data Persistence",
+                    threshold=1.0,
+                    actual=1.0,
                     passed=True,
-                    score=1.0,
+                    is_hard=False,
                     reason="Floor not implemented (graceful pass)"
                 )
         
@@ -239,8 +254,10 @@ class FloorAdapter:
                 results["F5"] = FloorCheckResult(
                     floor_id="F5",
                     floor_name="Pattern Recognition",
+                    threshold=0.5,
+                    actual=anomaly_score,
                     passed=not anomaly.get("anomaly_detected", False),
-                    score=anomaly_score,
+                    is_hard=False,
                     reason=anomaly.get("description", ""),
                     details=anomaly
                 )
@@ -248,8 +265,10 @@ class FloorAdapter:
                 results["F5"] = FloorCheckResult(
                     floor_id="F5",
                     floor_name="Pattern Recognition",
+                    threshold=0.5,
+                    actual=1.0,
                     passed=True,
-                    score=1.0,
+                    is_hard=False,
                     reason="Floor not implemented (graceful pass)"
                 )
         
@@ -263,8 +282,10 @@ class FloorAdapter:
                 results["F6"] = FloorCheckResult(
                     floor_id="F6",
                     floor_name="Semantic Understanding",
+                    threshold=0.0,
+                    actual=semantic.get("coherence_score", 1.0),
                     passed=semantic.get("coherent", True),
-                    score=semantic.get("coherence_score", 1.0),
+                    is_hard=True,
                     reason=semantic.get("reason", ""),
                     details=semantic
                 )
@@ -272,8 +293,10 @@ class FloorAdapter:
                 results["F6"] = FloorCheckResult(
                     floor_id="F6",
                     floor_name="Semantic Understanding",
+                    threshold=0.0,
+                    actual=1.0,
                     passed=True,
-                    score=1.0,
+                    is_hard=True,
                     reason="Floor not implemented (graceful pass)"
                 )
         

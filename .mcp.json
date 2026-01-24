@@ -1,4 +1,6 @@
 {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$comment": "arifOS v51.1.0 MCP Configuration - AAA_MCP (The Great Decoupling)",
     "mcpServers": {
         "arifos-trinity": {
             "command": "python",
@@ -8,8 +10,17 @@
             ],
             "env": {
                 "PYTHONPATH": ".",
-                "PYTHONIOENCODING": "utf-8"
+                "PYTHONIOENCODING": "utf-8",
+                "ARIFOS_MODE": "production",
+                "ARIFOS_MCP_MODE": "stdio",
+                "ARIFOS_SEAL_RATE_TARGET": "0.85",
+                "ARIFOS_LOG_LEVEL": "INFO"
             }
+        },
+        "arifos-trinity-sse": {
+            "type": "sse",
+            "url": "http://localhost:8000/sse",
+            "$comment": "Start with: python -m AAA_MCP sse --port 8000"
         },
         "sequential-thinking": {
             "command": "cmd",

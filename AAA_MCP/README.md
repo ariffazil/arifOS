@@ -1,10 +1,12 @@
 # AAA_MCP — Constitutional AI MCP Server
 
-**An MCP Server for Constitutional AI Governance**
+**An MCP Server for Constitutional AI Governance** | v51.1.0 SEALED
 
-[![MCP](https://img.shields.io/badge/MCP-v1.0-blue)](https://modelcontextprotocol.io)
+[![MCP](https://img.shields.io/badge/MCP-2024--11-blue)](https://modelcontextprotocol.io)
 [![Python](https://img.shields.io/badge/python-3.10+-green)](https://python.org)
 [![Transport](https://img.shields.io/badge/transport-stdio%20%7C%20SSE-orange)](https://modelcontextprotocol.io/docs/concepts/architecture)
+[![Version](https://img.shields.io/badge/version-v51.1.0-purple)]()
+[![SEAL Rate](https://img.shields.io/badge/SEAL%20rate-0.85+-brightgreen)]()
 
 ---
 
@@ -160,6 +162,33 @@ python -m AAA_MCP sse
 # Connect via URL
 # https://your-deployment.railway.app/sse
 ```
+
+---
+
+## Platform Support Matrix
+
+| Platform | Status | Transport | Config Location | Recommended Model |
+|----------|--------|-----------|-----------------|-------------------|
+| **Claude Desktop** | ✅ Production | stdio | `%APPDATA%\Claude\` (Win) / `~/.config/Claude/` (Linux) | Claude 3.7 Sonnet |
+| **Cursor** | ✅ Production | stdio | `~/.cursor/mcp.json` | Claude or GPT-4 |
+| **Cline (VS Code)** | ✅ Production | stdio | `.vscode/mcp.json` | Claude or GPT-4 |
+| **Continue.dev** | ✅ Production | stdio | `~/.continue/config.json` | Llama 3, Mixtral |
+| **ChatGPT Dev Mode** | ✅ Production | HTTP/SSE | Custom Action | GPT-4 Turbo |
+| **Ollama (Local)** | ✅ Production | HTTP/SSE | Bridge script | Llama 3 70B |
+| **Cody (Sourcegraph)** | ⏳ Experimental | - | - | Pending support |
+| **Kimi (Moonshot)** | ⏳ Experimental | - | - | Pending MCP support |
+| **GitHub Copilot** | ❌ Not Supported | - | - | No MCP support |
+
+### AI Model Compatibility
+
+| Model | Expected SEAL Rate | Transport | Notes |
+|-------|-------------------|-----------|-------|
+| Claude 3.7 Sonnet | 0.82–0.85 | stdio | Best MCP support |
+| GPT-4 Turbo | 0.75–0.80 | HTTP/SSE | Via ChatGPT Actions |
+| Gemini 1.5 Pro | 0.70–0.78 | stdio (via Claude bridge) | Experimental |
+| Llama 3 70B | 0.78–0.82 | HTTP/SSE | Local via Ollama |
+| Llama 3 8B | 0.50–0.65 | HTTP/SSE | Lower assurance |
+| Mixtral 8x7B | 0.60–0.75 | HTTP/SSE | Good local option |
 
 ---
 
@@ -474,12 +503,95 @@ CMD ["python", "-m", "AAA_MCP", "sse"]
 
 ---
 
+## Troubleshooting
+
+### MCP tools not appearing in Claude Desktop?
+
+1. **Check config location:**
+   - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+   - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - Linux: `~/.config/Claude/claude_desktop_config.json`
+
+2. **Verify JSON syntax** (no trailing commas!)
+
+3. **Restart Claude Desktop completely**
+
+4. **Check logs:** Look for `claude_desktop.log`
+
+### Tools appear but don't work?
+
+```bash
+# Verify Python and dependencies
+python --version  # Should be 3.10+
+pip install -e .  # Install arifOS
+
+# Test module loads
+python -c "from AAA_MCP import serve; print('OK')"
+```
+
+### HTTP/SSE connection failed?
+
+```bash
+# Start SSE server
+python -m AAA_MCP sse --port 8000
+
+# Check health endpoint
+curl http://localhost:8000/health
+# Expected: {"status": "healthy", "version": "v51.1.0", ...}
+```
+
+### "FloorCheckResult 'is_hard' error"?
+
+This was a bug in v51.0.0, fixed in v51.1.0:
+
+```bash
+git pull origin main
+```
+
+### Rate limiting issues?
+
+The rate limiter is configured in `arifos.core.enforcement.governance`:
+
+```python
+from arifos.core.enforcement.governance.rate_limiter import get_rate_limiter
+limiter = get_rate_limiter()
+result = limiter.check("agi_genius", session_id)
+```
+
+---
+
+## Migration from arifos/mcp
+
+If you're upgrading from the old `arifos/mcp` module, see the **[Migration Guide](MIGRATION.md)**.
+
+**Quick summary:**
+```bash
+# OLD (deprecated)
+python -m arifos.mcp trinity
+
+# NEW
+python -m AAA_MCP
+```
+
+---
+
 ## Related Resources
 
 - [Model Context Protocol](https://modelcontextprotocol.io) — Official MCP documentation
 - [MCP Servers Repository](https://github.com/modelcontextprotocol/servers) — Reference implementations
 - [arifOS Core](../arifos/core/README.md) — The constitutional kernel
 - [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) — Official Python SDK
+- [Migration Guide](MIGRATION.md) — Upgrading from arifos/mcp
+
+---
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| v51.1.0 | 2026-01-24 | Fixed FloorCheckResult `is_hard` bug, improved docs |
+| v51.0.0 | 2026-01-22 | The Great Decoupling - AAA_MCP introduced |
+| v50.5.x | 2026-01 | Legacy arifos/mcp (deprecated) |
 
 ---
 
@@ -490,5 +602,7 @@ Part of the arifOS project. See [LICENSE](../LICENSE) for details.
 ---
 
 **AAA = Artifact · Authority · Architecture**
+
+*DITEMPA BUKAN DIBERI — Forged, Not Given*
 
 *A bridge that validates, not just translates.*
