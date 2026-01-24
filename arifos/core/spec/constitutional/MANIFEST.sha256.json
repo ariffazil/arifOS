@@ -1,11 +1,10 @@
 {
-  "version": "v46.0.0",
-  "generated": "2026-01-24T00:00:00Z",
+  "version": "v52.0.0",
+  "generated": "2026-01-24T18:30:00Z",
   "algorithm": "sha256",
   "files": {
-    "constitutional_floors.json": "57256661908b44825bf8c5bc86bc7eaecc4439133aa947f9e07c13bddc48ccf4",
-    "schema/constitutional_floors.schema.json": "82feb5432d6d38d3626705ccaedc13de1ad043fc10e5724ad8f4f2c50f1d7712"
+    "constitutional_floors.json": "98da461ed43d29a334226d71c5df649d5f61971e5adcba4f0ca55fb6be0b11d4"
   },
   "seal_status": "SEALED",
-  "authority": "AAA_MCP v51.1.0"
+  "authority": "arifOS v52.0.0"
 }
