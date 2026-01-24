@@ -22,7 +22,7 @@ from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass, field
 from enum import Enum
 
-from arifos_ledger import LedgerStore
+from arifos.ledger import LedgerStore
 
 logger = logging.getLogger("arifos.core.cost_tracker")
 

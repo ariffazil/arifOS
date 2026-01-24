@@ -1,5 +1,5 @@
 """
-arifOS MCP Module (v50.5.23)
+arifOS MCP Module (v50.5.25)
 5-Tool Trinity Constitutional Framework
 
 Tools:
@@ -22,7 +22,7 @@ Usage:
 DITEMPA BUKAN DIBERI
 """
 
-__version__ = "50.5.23"
+__version__ = "50.5.25"
 
 # Lazy imports to avoid circular dependencies
 def __getattr__(name):
@@ -62,7 +62,7 @@ __all__ = [
     "mcp_apex_judge",
     "mcp_999_vault",
 
-    # Bridge (v50.5.23)
+    # Bridge (v50.5.25)
     "MCPCoreBridge",
     "ToolRegistry",
     "ToolLink",

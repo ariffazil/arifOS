@@ -119,7 +119,7 @@ async def health():
     """System Vitality check."""
     return {
         "status": "ALIVE",
-        "version": "v50.5.24",
+        "version": "v50.5.25",
         "motto": "Ditempa Bukan Diberi",
         "engines": ["AGI", "ASI", "APEX"]
     }

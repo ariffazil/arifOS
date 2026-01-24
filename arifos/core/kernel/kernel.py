@@ -1,5 +1,5 @@
 """
-arifOS Kernel Orchestrator (v50.5.24)
+arifOS Kernel Orchestrator (v50.5.25)
 
 The Master Orchestrator that ties AGI, ASI, APEX engines together.
 

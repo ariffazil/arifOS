@@ -11,7 +11,7 @@ version = "50.5.25"
 # v49.0.2: Fix hero image rendering on GitHub + PyPI (2026-01-19)
 # v49.0.1: F6 Empathy fix - Remove Chinese characters, add hero image (2026-01-19)
 # v49.0.0: Constitutional Forge - 13 Floors, Trinity Engines, 25 MCP Servers (2026-01-18)
-description = "Constitutional AI Governance Framework. 13 immutable floors (F1-F13), Trinity architecture (AGI/ASI/APEX), 5-tool MCP server. Works with ChatGPT Developer Mode, Claude Desktop, and any MCP client. Live at https://arifos-production.up.railway.app/"
+description = "Constitutional AI Governance Framework. 13 immutable floors (F1-F13), Trinity architecture (AGI/ASI/APEX), 5-tool MCP server. Works with ChatGPT Developer Mode, Claude Desktop, and any MCP client. Live at https://arifos.arif-fazil.com/"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "AGPL-3.0-only"
@@ -152,8 +152,8 @@ Documentation = "https://github.com/ariffazil/arifOS/blob/main/README.md"
 Repository = "https://github.com/ariffazil/arifOS"
 Issues = "https://github.com/ariffazil/arifOS/issues"
 Changelog = "https://github.com/ariffazil/arifOS/blob/main/CHANGELOG.md"
-"Live Server" = "https://arifos-production.up.railway.app/"
-"API Docs" = "https://arifos-production.up.railway.app/docs"
+"Live Server" = "https://arifos.arif-fazil.com/"
+"API Docs" = "https://arifos.arif-fazil.com/docs"
 
 [tool.setuptools]
 include-package-data = true

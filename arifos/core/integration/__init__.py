@@ -25,10 +25,8 @@ from .floor_adapter import (
 )
 
 from .meta_search import (
-    ConstitutionalMetaSearch,
     SearchResult,
     ConstitutionalSearchError,
-    constitutional_check,
 )
 
 from .cost_tracker import (
@@ -56,10 +54,8 @@ __all__ = [
     "integrate_floors_with_apex",
     
     # Constitutional Meta-Search
-    "ConstitutionalMetaSearch",
     "SearchResult",
     "ConstitutionalSearchError",
-    "constitutional_check",
     
     # Cost Tracker
     "CostTracker",

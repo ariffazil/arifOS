@@ -110,7 +110,7 @@ async def health():
     """
     return HealthStatus(
         status="active",
-        version="v50.5.24",
+        version="v50.5.25",
         trinity_coherence=0.98, # Mocked telemetry
         floors_active=13
     )

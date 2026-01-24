@@ -1,11 +1,11 @@
 """
-arifOS API Package - FastAPI server for v38.2 governance pipeline.
+arifOS API Package - FastAPI server for v50.5 governance pipeline.
 
 This module provides a REST API wrapping the governed pipeline, L7 memory,
 and ledger access. All endpoints are stateless, fail-open, and read-only
 or append-only.
 
-Version: v38.2-alpha
+Version: v50.5.25
 """
 
 from .app import create_app, app

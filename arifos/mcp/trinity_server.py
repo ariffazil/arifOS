@@ -1,5 +1,5 @@
 """
-arifOS Trinity MCP Server (v50.5.24)
+arifOS Trinity MCP Server (v50.5.25)
 5-Tool Constitutional Framework
 
 The Metabolic Standard compressed to 5 memorable tools:
@@ -363,7 +363,7 @@ Floors Enforced: F1 (Amanah), F8 (Tri-Witness)""",
 
 def create_trinity_server() -> Server:
     """Create the 5-tool Trinity MCP server."""
-    server = Server("arifOS-Trinity-v50.5.24")
+    server = Server("arifOS-Trinity-v50.5.25")
 
     @server.list_tools()
     async def list_tools() -> List[mcp.types.Tool]:
@@ -423,7 +423,7 @@ def main_sse():
     port = int(os.environ.get("PORT", os.environ.get("AAA_MCP_PORT", 8000)))
 
     logger.info("=" * 60)
-    logger.info("arifOS Trinity SSE Server v50.5.24")
+    logger.info("arifOS Trinity SSE Server v50.5.25")
     logger.info("5-Tool Constitutional Framework")
     logger.info("=" * 60)
     logger.info(f"Tools: {list(TOOLS.keys())}")
@@ -437,7 +437,7 @@ def main_sse():
         tools=TOOLS,
         tool_descriptions=TOOL_DESCRIPTIONS,
         server_name="arifOS-Trinity",
-        version="v50.5.24"
+        version="v50.5.25"
     )
     uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
 
@@ -445,7 +445,7 @@ def main_sse():
 def print_stats():
     """Print Trinity server statistics."""
     print("=" * 80, file=sys.stderr)
-    print("arifOS Trinity MCP Server v50.5.24 - 5-Tool Constitutional Framework", file=sys.stderr)
+    print("arifOS Trinity MCP Server v50.5.25 - 5-Tool Constitutional Framework", file=sys.stderr)
     print("=" * 80, file=sys.stderr)
     print(file=sys.stderr)
     print("Mnemonic: 'Init the Genius, Act with Heart, Judge at Apex, seal in Vault.'", file=sys.stderr)

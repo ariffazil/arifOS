@@ -1,5 +1,5 @@
 """
-arifOS SSE Web Adapter (v50.5.1)
+arifOS SSE Web Adapter (v50.5.25)
 Cloud Bridge for MCP Protocol via Server-Sent Events
 
 5-Tool Trinity Constitutional Framework
@@ -27,7 +27,7 @@ def create_sse_app(
     tools: Dict[str, Callable],
     tool_descriptions: Dict[str, Dict[str, Any]],
     server_name: str = "arifOS-MCP",
-    version: str = "v50.5.1"
+    version: str = "v50.5.25"
 ) -> FastAPI:
     """
     Create a FastAPI app with MCP SSE endpoints.
@@ -201,13 +201,13 @@ def main():
     from arifos.mcp.trinity_server import TOOLS, TOOL_DESCRIPTIONS
 
     port = int(os.environ.get("PORT", os.environ.get("AAA_MCP_PORT", 8000)))
-    logger.info(f"Starting arifOS Trinity SSE Server v50.5.1 on port {port}...")
+    logger.info(f"Starting arifOS Trinity SSE Server v50.5.25 on port {port}...")
 
     app = create_sse_app(
         tools=TOOLS,
         tool_descriptions=TOOL_DESCRIPTIONS,
         server_name="arifOS-Trinity",
-        version="v50.5.1"
+        version="v50.5.25"
     )
     uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
 

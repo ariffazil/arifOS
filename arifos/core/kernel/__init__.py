@@ -1,5 +1,5 @@
 """
-arifOS Unified Constitutional Kernel (v50.5.24)
+arifOS Unified Constitutional Kernel (v50.5.25)
 
 The True Core - Master Orchestrator for AGI, ASI, APEX engines.
 
@@ -19,7 +19,7 @@ The True Core - Master Orchestrator for AGI, ASI, APEX engines.
 DITEMPA BUKAN DIBERI - Forged, not given.
 """
 
-# Master Kernel Orchestrator (v50.5.24)
+# Master Kernel Orchestrator (v50.5.25)
 from .kernel import (
     Kernel,
     KernelStage,
@@ -98,7 +98,7 @@ class UnifiedConstitutionalKernel:
                 "apex": self.kernel._apex is not None,
             },
             "status": "full_implementation",
-            "version": "50.5.24"
+            "version": "50.5.25"
         }
 
     def run_constitutional_pipeline(self, query: str, response: str, user_id: str = None) -> dict:

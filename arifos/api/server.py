@@ -10,7 +10,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="arifOS Body API",
         description="The Voice and Ears of the Constitutional AI System",
-        version="v50.5.24",
+        version="v50.5.25",
         docs_url="/docs",
         redoc_url="/redoc"
     )
