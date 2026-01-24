@@ -1,25 +1,25 @@
 """
-AAA_MCP Transport Gateway (Component 2)
-=====================================
-Unified Wire for arifOS v49 MCP Architecture.
-Acts as the transport abstraction layer between Clients (Comp 3) and Servers (Comp 1).
+AAA_MCP Transport Gateway (v51.2)
+=================================
+Unified Wire for arifOS MCP Architecture.
+Acts as the transport abstraction layer between Clients and Servers.
 
 Authority: Δ Antigravity
-Epoch: 2026-01-18
+Version: v51.2.0
+
+DITEMPA BUKAN DIBERI
 """
 
 import json
 import logging
 import os
-from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
-import anyio
 from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
 
 # Component 4: Metabolizer
-from arifos.core.orchestrator.metabolizer import AAAMetabolizer
+from arifos.core.system.orchestrator.presenter import AAAMetabolizer
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -155,7 +155,7 @@ class MCPGateway:
         4. Return human-readable output to client
         """
         tool_name = params.get("name")
-        tool_args = params.get("arguments", {})
+        _ = params.get("arguments", {})  # Reserved for future use
         provider = self._get_active_provider()
 
         logger.info(f"Routing tools/call {tool_name} for provider: {provider}")

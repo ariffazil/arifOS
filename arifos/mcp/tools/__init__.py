@@ -1,5 +1,5 @@
 """
-arifOS MCP Tools (v50.5.1)
+arifOS MCP Tools (v52.0.0)
 5-Tool Trinity Constitutional Framework
 
 Tools:

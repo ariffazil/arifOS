@@ -1,18 +1,19 @@
-# AAA MCP Troubleshooting Guide
+# arifOS MCP Troubleshooting Guide (v52)
 
-Common issues and solutions for AAA MCP integration.
+Common issues and solutions for arifOS MCP integration.
 
 ---
 
 ## Quick Diagnostics
 
-Run the compliance test to verify your installation:
+Test the MCP server directly:
 
 ```bash
-python scripts/test_mcp_compliance.py --verbose
+cd /path/to/arifOS
+python -m arifos.mcp trinity
 ```
 
-Expected: 20/20 tests pass.
+Expected: Server starts with "arifOS MCP v52.0.0 starting in auto mode"
 
 ---
 
@@ -35,9 +36,9 @@ Expected: 20/20 tests pass.
    python -c "import json; json.load(open('path/to/config.json'))"
    ```
 
-3. **Check paths use correct separators:**
-   - Windows: Use `\\` or `/` in JSON
-   - Unix: Use `/`
+3. **Check command path:**
+   - v52 uses `python -m arifos.mcp trinity`
+   - NOT the old `python -m AAA_MCP`
 
 4. **Restart the IDE completely** (not just reload)
 
@@ -47,8 +48,8 @@ Expected: 20/20 tests pass.
 
 **Symptoms:**
 ```
-ModuleNotFoundError: No module named 'AAA_MCP'
 ModuleNotFoundError: No module named 'arifos'
+ModuleNotFoundError: No module named 'arifos.mcp'
 ```
 
 **Solutions:**
@@ -144,7 +145,7 @@ pip install -e ".[all]"
 
 ```bash
 cd /path/to/arifOS
-python -m AAA_MCP 2>&1 | head -50
+python -m arifos.mcp trinity 2>&1 | head -50
 ```
 
 **Common Causes:**
@@ -176,7 +177,7 @@ python -m AAA_MCP 2>&1 | head -50
 1. **Check PORT environment variable:**
    ```bash
    export PORT=8000
-   python -m AAA_MCP sse
+   python -m arifos.mcp trinity-sse
    ```
 
 2. **Verify health endpoint:**
@@ -188,51 +189,22 @@ python -m AAA_MCP 2>&1 | head -50
 
 ---
 
-### 8. JSON Schema Validation Errors
-
-**Symptoms:**
-```
-Invalid params: 'action' is a required property
-```
-
-**Solutions:**
-
-1. **Check tool schema:**
-   ```bash
-   python -c "from AAA_MCP.server import TOOL_DESCRIPTIONS; import json; print(json.dumps(TOOL_DESCRIPTIONS['000_init']['inputSchema'], indent=2))"
-   ```
-
-2. **Ensure required params are provided**
-
-3. **Use correct enum values** (e.g., `action` must be one of allowed values)
-
----
-
 ## Diagnostic Commands
 
 ### Test Server Creation
 
 ```bash
-python -c "from AAA_MCP.server import create_aaa_server; s = create_aaa_server(); print('OK')"
+python -c "from arifos.mcp.server import create_mcp_server; s = create_mcp_server(); print('OK')"
 ```
 
 ### Test Tool Routers
 
 ```bash
 python -c "
-from AAA_MCP.bridge import bridge_init_router
-result = bridge_init_router(action='validate')
+from arifos.mcp.bridge import bridge_init_router
+import asyncio
+result = asyncio.run(bridge_init_router(action='validate'))
 print(result)
-"
-```
-
-### Validate Spec Files
-
-```bash
-python -c "
-from arifos.core.enforcement.metrics import load_constitutional_floors_spec
-spec = load_constitutional_floors_spec()
-print(f'Loaded {len(spec.get(\"floors\", {}))} floors')
 "
 ```
 
@@ -246,14 +218,6 @@ result = rl.check('test', 'session1')
 print(f'Allowed: {result.allowed}')
 "
 ```
-
----
-
-## Getting Help
-
-1. **Run compliance test** - provides detailed diagnostics
-2. **Check GitHub issues** - [github.com/arifOS/issues](https://github.com)
-3. **Review logs** - IDE-specific log locations above
 
 ---
 

@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-AAA_MCP Metabolizer (Component 4)
-=================================
-Encoder -> Metabolizer -> Decoder architecture for Human-Optimized Output.
-The "Missing Link" in MCP that translates raw JSON into constitutionally aligned human presentation.
+arifOS Output Presenter (v51.2)
+================================
+Encoder -> Presenter -> Decoder architecture for Human-Optimized Output.
+Translates raw JSON into constitutionally aligned human presentation.
 
 Authority: Δ Antigravity
-Epoch: 2026-01-18
+Version: v51.2.0
 
 Architecture:
 1. ENCODER: Machine JSON → LLM semantics (normalize, fix broken responses)
-2. METABOLIZER: LLM semantics → Presentation strategy (user-aware adaptation)
+2. PRESENTER: LLM semantics → Presentation strategy (user-aware adaptation)
 3. DECODER: Strategy → Human-readable output (tables, badges, text)
 
 Phase 9 Integration:
@@ -18,6 +18,8 @@ Phase 9 Integration:
 - Parses zkPC cryptographic receipts
 - Displays EUREKA sieve memory bands
 - Renders emergency states (SABAR, VOID, 888_HOLD)
+
+DITEMPA BUKAN DIBERI
 """
 
 import json
@@ -101,7 +103,7 @@ class Encoder:
                     result_data = json.loads(text_body)
                 else:
                     result_data = {"message": text_body}
-            except:
+            except Exception:
                 result_data = {"message": text_body}
         elif "result" in raw_output:
              result_data = raw_output["result"]
@@ -229,8 +231,10 @@ class Metabolizer:
     def _detect_profile(self) -> UserProfile:
         # For now, default to EXPERT (Arif)
         env_profile = os.environ.get("ARIFOS_USER_PROFILE", "expert").lower()
-        if env_profile == "exec": return UserProfile.EXEC
-        if env_profile == "novice": return UserProfile.NOVICE
+        if env_profile == "exec":
+            return UserProfile.EXEC
+        if env_profile == "novice":
+            return UserProfile.NOVICE
         return UserProfile.EXPERT
 
     def metabolize(self, semantics: Semantics) -> PresentationStrategy:
@@ -297,13 +301,46 @@ class Decoder:
 
         lines.append("") # Spacer
 
-        # 2. Summary
+        # 2. Summary / Main Content
         if strategy.language_mix and "COMPLETE" in semantics.summary.upper():
              lines.append(f"✅ **Tugas Selesai.** {semantics.summary}")
         else:
              lines.append(semantics.summary)
 
         lines.append("")
+
+        # 2b. Rich Content (Content-Aware Rendering)
+        details = semantics.details
+        
+        # AGI GENIUS: Reasoning
+        if "reasoning" in details and details.get("reasoning"):
+            lines.append("### 🧠 AGI Reasoning")
+            lines.append(details["reasoning"])
+            lines.append("")
+
+        # ASI ACT: Peace & Evidence
+        if "peace_squared" in details or "evidence_grounded" in details:
+            lines.append("### ❤️ ASI Safety Check")
+            p2 = details.get("peace_squared", "-")
+            grounding = "✅" if details.get("evidence_grounded") else "⚠️"
+            lines.append(f"- **Peace²:** {p2}")
+            lines.append(f"- **Evidence:** {grounding}")
+            if details.get("reason"):
+                lines.append(f"- **Note:** {details['reason']}")
+            lines.append("")
+        
+        # APEX JUDGE: Synthesis & Verdict
+        if "synthesis" in details and details.get("synthesis"):
+            lines.append("### ⚖️ APEX Judgment")
+            lines.append(f"> {details['synthesis']}")
+            lines.append("")
+
+        # 000 INIT: Intent
+        if "intent" in details and "lane" in details:
+            lines.append("### 🚪 Session Intent")
+            lines.append(f"- **Intent:** {details['intent']}")
+            lines.append(f"- **Lane:** {details['lane']}")
+            lines.append("")
 
         # 3. Phase 9 Features
         # 3a. Phoenix-72 Cooling
@@ -342,7 +379,7 @@ class Decoder:
                 if isinstance(score, dict) and not score.get("pass", True)
             ]
             if failed_floors or strategy.style == "technical":
-                lines.append(f"**Constitutional Floors:**")
+                lines.append("**Constitutional Floors:**")
                 if failed_floors:
                     lines.append(f"- Failed: {', '.join(failed_floors)}")
                 # For technical mode, show full table

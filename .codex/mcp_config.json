@@ -1,0 +1,46 @@
+{
+  "mcpServers": {
+    "arifos-trinity": {
+      "command": "python",
+      "args": [
+        "-m",
+        "arifos.mcp",
+        "trinity"
+      ],
+      "cwd": "C:\\\\Users\\\\User\\\\arifOS",
+      "env": {
+        "PYTHONPATH": "C:\\\\Users\\\\User\\\\arifOS",
+        "PYTHONIOENCODING": "utf-8",
+        "ARIFOS_MODE": "production",
+        "ARIFOS_MCP_MODE": "stdio",
+        "ARIFOS_SEAL_RATE_TARGET": "0.85",
+        "ARIFOS_LOG_LEVEL": "INFO"
+      }
+    },
+    "sequential-thinking": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    },
+    "perplexity-ask": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@perplexity-ai/mcp-server"
+      ],
+      "env": {
+        "PERPLEXITY_API_KEY": "${PERPLEXITY_API_KEY}"
+      }
+    },
+    "context7": {
+      "type": "sse",
+      "url": "https://mcp.context7.com/mcp"
+    }
+  }
+}

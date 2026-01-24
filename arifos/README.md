@@ -1,6 +1,6 @@
 # arifos — Constitutional AI Kernel
 
-**Version:** v51.1.0 SEALED  
+**Version:** v52.0.0-SEAL  
 **Authority:** Track B (Constitutional Law)  
 **Motto:** *DITEMPA BUKAN DIBERI* — Forged, Not Given
 
@@ -12,23 +12,23 @@ The `arifos` package is the **pure Python kernel** of arifOS — a constitutiona
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                      arifOS Architecture                         │
+│                      arifOS Architecture (v52)                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │   ┌───────────────────────┐       ┌───────────────────────┐     │
-│   │       AAA_MCP         │       │   Claude / Cursor /   │     │
-│   │  (The MCP Server)     │◄─────►│   GPT / Gemini        │     │
-│   │  Application Layer    │       │   (AI Clients)        │     │
+│   │     arifos.mcp       │       │   Claude / Cursor /   │     │
+│   │  (MCP Server Layer)  │◄─────►│   GPT / Gemini        │     │
+│   │  5 Trinity Tools     │       │   (AI Clients)        │     │
 │   └───────────┬───────────┘       └───────────────────────┘     │
 │               │ imports                                          │
 │               ▼                                                  │
 │   ┌───────────────────────────────────────────────────────┐     │
-│   │                    arifos (this package)               │     │
-│   │                    The Brain Kernel                    │     │
-│   ├─────────────────────────────────────────────────────────┤   │
+│   │                    arifos.core                        │     │
+│   │                    The Brain Kernel                   │     │
+│   ├───────────────────────────────────────────────────────┤   │
 │   │  core/      - Trinity Engines, Metabolizer, Floors     │     │
-│   │  mcp/       - MCP Server (DEPRECATED → use AAA_MCP)    │     │
-│   │  api/       - FastAPI interfaces                       │     │
+│   │  mcp/       - MCP Server (v52 unified)                 │     │
+│   │  api/       - DEPRECATED → core/integration/api        │     │
 │   │  config/    - Configuration management                 │     │
 │   │  spec/      - Constitutional specifications            │     │
 │   └───────────────────────────────────────────────────────┘     │
@@ -43,8 +43,8 @@ The `arifos` package is the **pure Python kernel** of arifOS — a constitutiona
 | Folder | Purpose | Status |
 |--------|---------|--------|
 | `core/` | Trinity Engines, Metabolizer, Constitutional Floors | ✅ Active |
-| `mcp/` | MCP Server (legacy) | ⚠️ **DEPRECATED** → Use `AAA_MCP` |
-| `api/` | FastAPI server interfaces | ✅ Active |
+| `mcp/` | MCP Server (v52 unified) | ✅ **Active** |
+| `api/` | FastAPI server interfaces | ⚠️ **DEPRECATED** → `core/integration/api/` |
 | `config/` | Configuration and settings | ✅ Active |
 | `clip/` | aCLIP protocol handlers | ✅ Active |
 | `spec/` | Constitutional specifications (JSON schemas) | ✅ Active |
@@ -146,35 +146,27 @@ m.transition_to(222)  # REFLECT
 # ... continue through 999
 ```
 
-### Via MCP (Use AAA_MCP)
+### Via MCP (v52 Unified)
 
 ```bash
-# NEW (v51+) — Use AAA_MCP application layer
-python -m AAA_MCP
-
-# Cloud deployment
-python -m AAA_MCP sse
-
-# OLD (DEPRECATED) — Will be removed in v52
+# Standard I/O (Claude Desktop, Cursor)
 python -m arifos.mcp trinity
+
+# SSE mode (Railway, cloud)
+python -m arifos.mcp trinity-sse
 ```
 
 ---
 
-## Relationship to AAA_MCP
+## Architecture Note (v52)
+
+In v52, `arifos.mcp` is the unified MCP server (previously split as `AAA_MCP`).
 
 | Component | Role | Status |
 |-----------|------|--------|
-| `arifos/` | **Brain** — Pure Python kernel | ✅ Library |
-| `AAA_MCP/` | **Body** — MCP server application | ✅ Application |
-
-**Rule:** `AAA_MCP` imports `arifos.core`. Never the reverse.
-
-```python
-# In AAA_MCP/bridge.py
-from arifos.core.metabolizer import Metabolizer
-from arifos.core.engines import AGIEngine
-```
+| `arifos/` | Python kernel | ✅ Library |
+| `arifos/mcp/` | MCP server | ✅ v52 Unified |
+| `AAA_MCP/` | (archived) | 📦 Backup in `archive/` |
 
 ---
 

@@ -1,0 +1,1052 @@
+﻿[
+    {
+        "Content":  "\"description\": \"Constitutional floors for AAA_MCP - The Great Decoupling\",",
+        "File":  "C:\\Users\\User\\arifOS\\AAA_MCP\\v46\\constitutional_floors.json",
+        "Line":  5
+    },
+    {
+        "Content":  "\"authority\": \"AAA_MCP v51.1.0\"",
+        "File":  "C:\\Users\\User\\arifOS\\AAA_MCP\\v46\\MANIFEST.sha256.json",
+        "Line":  10
+    },
+    {
+        "Content":  "python -m AAA_MCP              # stdio mode",
+        "File":  "C:\\Users\\User\\arifOS\\AAA_MCP\\server.py",
+        "Line":  16
+    },
+    {
+        "Content":  "python -m AAA_MCP sse          # SSE mode for Railway",
+        "File":  "C:\\Users\\User\\arifOS\\AAA_MCP\\server.py",
+        "Line":  17
+    },
+    {
+        "Content":  "from AAA_MCP.bridge import (",
+        "File":  "C:\\Users\\User\\arifOS\\AAA_MCP\\server.py",
+        "Line":  32
+    },
+    {
+        "Content":  "port = int(os.environ.get(\"PORT\", os.environ.get(\"AAA_MCP_PORT\", 8000)))",
+        "File":  "C:\\Users\\User\\arifOS\\AAA_MCP\\server.py",
+        "Line":  331
+    },
+    {
+        "Content":  "uvicorn AAA_MCP.sse:app --host 0.0.0.0 --port $PORT",
+        "File":  "C:\\Users\\User\\arifOS\\AAA_MCP\\sse.py",
+        "Line":  6
+    },
+    {
+        "Content":  "from AAA_MCP.bridge import (",
+        "File":  "C:\\Users\\User\\arifOS\\AAA_MCP\\sse.py",
+        "Line":  23
+    },
+    {
+        "Content":  "from AAA_MCP.server import TOOL_DESCRIPTIONS",
+        "File":  "C:\\Users\\User\\arifOS\\AAA_MCP\\sse.py",
+        "Line":  31
+    },
+    {
+        "Content":  "port = int(os.environ.get(\"PORT\", os.environ.get(\"AAA_MCP_PORT\", 8000)))",
+        "File":  "C:\\Users\\User\\arifOS\\AAA_MCP\\sse.py",
+        "Line":  217
+    },
+    {
+        "Content":  "AAA_MCP (v51.2.0) - Constitutional Intelligence Application Layer",
+        "File":  "C:\\Users\\User\\arifOS\\AAA_MCP\\__init__.py",
+        "Line":  2
+    },
+    {
+        "Content":  "python -m AAA_MCP              # stdio mode (default)",
+        "File":  "C:\\Users\\User\\arifOS\\AAA_MCP\\__init__.py",
+        "Line":  21
+    },
+    {
+        "Content":  "python -m AAA_MCP sse          # SSE mode for Railway",
+        "File":  "C:\\Users\\User\\arifOS\\AAA_MCP\\__init__.py",
+        "Line":  22
+    },
+    {
+        "Content":  "from AAA_MCP.bridge import (",
+        "File":  "C:\\Users\\User\\arifOS\\AAA_MCP\\__init__.py",
+        "Line":  37
+    },
+    {
+        "Content":  "python -m AAA_MCP              # stdio mode (default)",
+        "File":  "C:\\Users\\User\\arifOS\\AAA_MCP\\__main__.py",
+        "Line":  5
+    },
+    {
+        "Content":  "python -m AAA_MCP sse          # SSE mode for Railway",
+        "File":  "C:\\Users\\User\\arifOS\\AAA_MCP\\__main__.py",
+        "Line":  6
+    },
+    {
+        "Content":  "from AAA_MCP.server import main_stdio, main_sse",
+        "File":  "C:\\Users\\User\\arifOS\\AAA_MCP\\__main__.py",
+        "Line":  14
+    },
+    {
+        "Content":  "\"description\": \"Constitutional floors for AAA_MCP - The Great Decoupling\",",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\AAA_MCP_v51_backup\\v46\\constitutional_floors.json",
+        "Line":  5
+    },
+    {
+        "Content":  "\"authority\": \"AAA_MCP v51.1.0\"",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\AAA_MCP_v51_backup\\v46\\MANIFEST.sha256.json",
+        "Line":  10
+    },
+    {
+        "Content":  "python -m AAA_MCP              # stdio mode",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\AAA_MCP_v51_backup\\server.py",
+        "Line":  16
+    },
+    {
+        "Content":  "python -m AAA_MCP sse          # SSE mode for Railway",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\AAA_MCP_v51_backup\\server.py",
+        "Line":  17
+    },
+    {
+        "Content":  "from AAA_MCP.bridge import (",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\AAA_MCP_v51_backup\\server.py",
+        "Line":  32
+    },
+    {
+        "Content":  "port = int(os.environ.get(\"PORT\", os.environ.get(\"AAA_MCP_PORT\", 8000)))",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\AAA_MCP_v51_backup\\server.py",
+        "Line":  331
+    },
+    {
+        "Content":  "uvicorn AAA_MCP.sse:app --host 0.0.0.0 --port $PORT",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\AAA_MCP_v51_backup\\sse.py",
+        "Line":  6
+    },
+    {
+        "Content":  "from AAA_MCP.bridge import (",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\AAA_MCP_v51_backup\\sse.py",
+        "Line":  23
+    },
+    {
+        "Content":  "from AAA_MCP.server import TOOL_DESCRIPTIONS",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\AAA_MCP_v51_backup\\sse.py",
+        "Line":  31
+    },
+    {
+        "Content":  "port = int(os.environ.get(\"PORT\", os.environ.get(\"AAA_MCP_PORT\", 8000)))",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\AAA_MCP_v51_backup\\sse.py",
+        "Line":  217
+    },
+    {
+        "Content":  "AAA_MCP (v51.2.0) - Constitutional Intelligence Application Layer",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\AAA_MCP_v51_backup\\__init__.py",
+        "Line":  2
+    },
+    {
+        "Content":  "python -m AAA_MCP              # stdio mode (default)",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\AAA_MCP_v51_backup\\__init__.py",
+        "Line":  21
+    },
+    {
+        "Content":  "python -m AAA_MCP sse          # SSE mode for Railway",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\AAA_MCP_v51_backup\\__init__.py",
+        "Line":  22
+    },
+    {
+        "Content":  "from AAA_MCP.bridge import (",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\AAA_MCP_v51_backup\\__init__.py",
+        "Line":  37
+    },
+    {
+        "Content":  "python -m AAA_MCP              # stdio mode (default)",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\AAA_MCP_v51_backup\\__main__.py",
+        "Line":  5
+    },
+    {
+        "Content":  "python -m AAA_MCP sse          # SSE mode for Railway",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\AAA_MCP_v51_backup\\__main__.py",
+        "Line":  6
+    },
+    {
+        "Content":  "from AAA_MCP.server import main_stdio, main_sse",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\AAA_MCP_v51_backup\\__main__.py",
+        "Line":  14
+    },
+    {
+        "Content":  "AAA_MCP Transport Gateway (Component 2)",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\archive_local_v49\\arifos_core\\orchestrator\\mcp_gateway.py",
+        "Line":  2
+    },
+    {
+        "Content":  "logger = logging.getLogger(\"AAA_MCP_Gateway\")",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\archive_local_v49\\arifos_core\\orchestrator\\mcp_gateway.py",
+        "Line":  26
+    },
+    {
+        "Content":  "return os.environ.get(\"AAA_MCP_LLM_PROVIDER\", \"claude\").lower()",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\archive_local_v49\\arifos_core\\orchestrator\\mcp_gateway.py",
+        "Line":  120
+    },
+    {
+        "Content":  "AAA_MCP Metabolizer (Component 4)",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\archive_local_v49\\arifos_core\\orchestrator\\metabolizer.py",
+        "Line":  3
+    },
+    {
+        "Content":  "See: AAA_MCP/v46/000_foundation/floor_000_constitutional_gate.json",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\archive_local_v49\\stage_000_legacy_v49\\core_000_void_arifos_core_refs\\authority_manifest.py",
+        "Line":  13
+    },
+    {
+        "Content":  "AAA_MCP/v46/000_foundation/floor_000_constitutional_gate.json.",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\archive_local_v49\\stage_000_legacy_v49\\core_000_void_arifos_core_refs\\constitutional_gate.py",
+        "Line":  6
+    },
+    {
+        "Content":  "AAA_MCP/v46/000_foundation/floor_000_constitutional_gate.json.",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\archive_local_v49\\stage_000_legacy_v49\\core_000_void_arifos_core_refs\\thermodynamics.py",
+        "Line":  6
+    },
+    {
+        "Content":  "- AAA_MCP/v46/000_foundation/constitutional_floors.json",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\archive_local_v49\\v50_housekeeping\\unused_engine_stubs\\agi\\delta_kernel.py",
+        "Line":  16
+    },
+    {
+        "Content":  "- AAA_MCP/v46/000_foundation/constitutional_floors.json (F2)",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\archive_local_v49\\v50_housekeeping\\unused_engine_stubs\\agi\\entropy.py",
+        "Line":  30
+    },
+    {
+        "Content":  "- AAA_MCP/v46/000_foundation/constitutional_floors.json",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\archive_local_v49\\v50_housekeeping\\unused_engine_stubs\\apex\\psi_kernel.py",
+        "Line":  33
+    },
+    {
+        "Content":  "- AAA_MCP/v46/555_empathize/555_empathize.json",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\archive_local_v49\\v50_housekeeping\\unused_engine_stubs\\asi\\empathy\\empathy_architect.py",
+        "Line":  17
+    },
+    {
+        "Content":  "- AAA_MCP/v46/555_empathize/555_empathize.json",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\archive_local_v49\\v50_housekeeping\\unused_engine_stubs\\asi\\stakeholder\\weakest_stakeholder.py",
+        "Line":  15
+    },
+    {
+        "Content":  "- AAA_MCP/v46/555_empathize/555_empathize.json",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\archive_local_v49\\v50_housekeeping\\unused_engine_stubs\\asi\\tom\\theory_of_mind.py",
+        "Line":  16
+    },
+    {
+        "Content":  "- AAA_MCP/v46/555_empathize/555_empathize.json",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\archive_local_v49\\v50_housekeeping\\unused_engine_stubs\\asi\\asi_integration_555.py",
+        "Line":  17
+    },
+    {
+        "Content":  "- AAA_MCP/v46/000_foundation/constitutional_floors.json",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\archive_local_v49\\v50_housekeeping\\unused_engine_stubs\\asi\\omega_kernel.py",
+        "Line":  31
+    },
+    {
+        "Content":  "logger = logging.getLogger(\"aaa_mcp\")",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\arifos-46.2.2\\arifos_mcp\\server.py",
+        "Line":  55
+    },
+    {
+        "Content":  "logger = logging.getLogger(\"aaa_mcp\")",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\constitutionally_sealed\\deprecated_components\\mcp_implementations\\deprecated_mcp_v45.2\\server.py",
+        "Line":  61
+    },
+    {
+        "Content":  "\"arifOS_AAA_MCP\",",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\constitutionally_sealed\\deprecated_components\\mcp_implementations\\deprecated_mcp_v45.2\\server.py",
+        "Line":  65
+    },
+    {
+        "Content":  "self.mcp = FastMCP(\"Constitutional_AAA_MCP_Enhanced\")",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\deprecated_mcp_consolidation\\arifos_mcp_v45\\constitutional_server.py",
+        "Line":  79
+    },
+    {
+        "Content":  "logger = logging.getLogger(\"aaa_mcp\")",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\deprecated_mcp_consolidation\\arifos_mcp_v45\\server.py",
+        "Line":  55
+    },
+    {
+        "Content":  "logger = logging.getLogger(\"aaa_mcp\")",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\deprecated_mcp_v45.2\\server.py",
+        "Line":  61
+    },
+    {
+        "Content":  "\"arifOS_AAA_MCP\",",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\deprecated_mcp_v45.2\\server.py",
+        "Line":  65
+    },
+    {
+        "Content":  "\"mcp_server\": \"arifOS_AAA_MCP\",",
+        "File":  "C:\\Users\\User\\arifOS\\archive\\waw_federation_config.py",
+        "Line":  36
+    },
+    {
+        "Content":  "\"arifos.api is deprecated. Use arifos.core.integration.api for REST or AAA_MCP for MCP.\",",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\api\\__init__.py",
+        "Line":  4
+    },
+    {
+        "Content":  "- AAA_MCP/v46/000_foundation/constitutional_floors.json",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\apex\\psi_kernel.py",
+        "Line":  33
+    },
+    {
+        "Content":  "- AAA_MCP/v46/555_empathize/555_empathize.json",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\asi\\empathy\\empathy_architect.py",
+        "Line":  17
+    },
+    {
+        "Content":  "- AAA_MCP/v46/555_empathize/555_empathize.json",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\asi\\stakeholder\\weakest_stakeholder.py",
+        "Line":  15
+    },
+    {
+        "Content":  "- AAA_MCP/v46/555_empathize/555_empathize.json",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\asi\\tom\\theory_of_mind.py",
+        "Line":  16
+    },
+    {
+        "Content":  "- AAA_MCP/v46/555_empathize/555_empathize.json",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\asi\\asi_integration_555.py",
+        "Line":  17
+    },
+    {
+        "Content":  "- AAA_MCP/v46/000_foundation/constitutional_floors.json",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\asi\\omega_kernel.py",
+        "Line":  31
+    },
+    {
+        "Content":  "# Fallback to legacy spec/ folder if AAA_MCP structure missing (during migration)",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\enforcement\\metrics.py",
+        "Line":  200
+    },
+    {
+        "Content":  "# Strict mode: env override must point to AAA_MCP (manifest-covered files only)",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\enforcement\\metrics.py",
+        "Line":  234
+    },
+    {
+        "Content":  "v46_dir = (pkg_dir / \"AAA_MCP\" / \"v46\").resolve()",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\enforcement\\metrics.py",
+        "Line":  236
+    },
+    {
+        "Content":  "v45_dir = (pkg_dir / \"AAA_MCP\" / \"archive\" / \"v45\").resolve()",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\enforcement\\metrics.py",
+        "Line":  237
+    },
+    {
+        "Content":  "v44_dir = (pkg_dir / \"AAA_MCP\" / \"v44\").resolve()",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\enforcement\\metrics.py",
+        "Line":  238
+    },
+    {
+        "Content":  "See: AAA_MCP/v46/000_foundation/constitutional_floors.json",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\enforcement\\trinity_orchestrator.py",
+        "Line":  94
+    },
+    {
+        "Content":  "- AAA_MCP/v46/000_foundation/constitutional_floors.json",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\engines\\agi\\delta_kernel.py",
+        "Line":  16
+    },
+    {
+        "Content":  "- AAA_MCP/v46/000_foundation/constitutional_floors.json (F2)",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\engines\\agi\\entropy.py",
+        "Line":  30
+    },
+    {
+        "Content":  "- AAA_MCP/v46/666_bridge/666_bridge.json",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\integration\\synthesis\\neuro_symbolic_bridge.py",
+        "Line":  16
+    },
+    {
+        "Content":  "Track B Authority: AAA_MCP/v46/cooling_ledger_phoenix.json",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\memory\\constitutional_memory\\ledger\\ledger_config_loader.py",
+        "Line":  5
+    },
+    {
+        "Content":  "B) AAA_MCP/v46/cooling_ledger_phoenix.json (AUTHORITATIVE v46+)",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\memory\\constitutional_memory\\ledger\\ledger_config_loader.py",
+        "Line":  32
+    },
+    {
+        "Content":  "# Priority B: AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\memory\\constitutional_memory\\ledger\\ledger_config_loader.py",
+        "Line":  94
+    },
+    {
+        "Content":  "v47_path = pkg_dir / \"AAA_MCP\" / \"v47\" / \"cooling_ledger_phoenix.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\memory\\constitutional_memory\\ledger\\ledger_config_loader.py",
+        "Line":  96
+    },
+    {
+        "Content":  "# Priority C: AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\memory\\constitutional_memory\\ledger\\ledger_config_loader.py",
+        "Line":  106
+    },
+    {
+        "Content":  "v46_path = pkg_dir / \"AAA_MCP\" / \"v46\" / \"cooling_ledger_phoenix.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\memory\\constitutional_memory\\ledger\\ledger_config_loader.py",
+        "Line":  108
+    },
+    {
+        "Content":  "f\"Loading from AAA_MCP/v46/ (v46 fallback). Please migrate to AAA_MCP/v47/.\",",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\memory\\constitutional_memory\\ledger\\ledger_config_loader.py",
+        "Line":  111
+    },
+    {
+        "Content":  "f\"Loading from spec/v45/ (DEPRECATED in v47+). Please migrate to AAA_MCP/v47/. \"",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\memory\\constitutional_memory\\ledger\\ledger_config_loader.py",
+        "Line":  128
+    },
+    {
+        "Content":  "f\"Loading from spec/v44/ (DEPRECATED). Please migrate to AAA_MCP/v47/. \"",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\memory\\constitutional_memory\\ledger\\ledger_config_loader.py",
+        "Line":  146
+    },
+    {
+        "Content":  "f\"  - AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\memory\\constitutional_memory\\ledger\\ledger_config_loader.py",
+        "Line":  164
+    },
+    {
+        "Content":  "f\"  - AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\memory\\constitutional_memory\\ledger\\ledger_config_loader.py",
+        "Line":  165
+    },
+    {
+        "Content":  "\"1. Ensure AAA_MCP/v47/cooling_ledger_phoenix.json exists OR\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\memory\\constitutional_memory\\ledger\\ledger_config_loader.py",
+        "Line":  169
+    },
+    {
+        "Content":  "v47_schema_path = pkg_dir / \"AAA_MCP\" / \"v47\" / \"schema\" / \"cooling_ledger_phoenix.schema.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\memory\\constitutional_memory\\ledger\\ledger_config_loader.py",
+        "Line":  174
+    },
+    {
+        "Content":  "v46_schema_path = pkg_dir / \"AAA_MCP\" / \"v46\" / \"schema\" / \"cooling_ledger_phoenix.schema.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\memory\\constitutional_memory\\ledger\\ledger_config_loader.py",
+        "Line":  175
+    },
+    {
+        "Content":  "See: AAA_MCP/v46/000_foundation/floor_000_constitutional_gate.json",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\metabolism\\000_void\\authority_manifest.py",
+        "Line":  13
+    },
+    {
+        "Content":  "AAA_MCP/v46/000_foundation/floor_000_constitutional_gate.json.",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\metabolism\\000_void\\constitutional_gate.py",
+        "Line":  6
+    },
+    {
+        "Content":  "AAA_MCP/v46/000_foundation/floor_000_constitutional_gate.json.",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\metabolism\\000_void\\thermodynamics.py",
+        "Line":  6
+    },
+    {
+        "Content":  "AAA_MCP Transport Gateway (Component 2)",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\system\\orchestrator\\mcp_gateway.py",
+        "Line":  2
+    },
+    {
+        "Content":  "logger = logging.getLogger(\"AAA_MCP_Gateway\")",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\system\\orchestrator\\mcp_gateway.py",
+        "Line":  26
+    },
+    {
+        "Content":  "return os.environ.get(\"AAA_MCP_LLM_PROVIDER\", \"claude\").lower()",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\system\\orchestrator\\mcp_gateway.py",
+        "Line":  120
+    },
+    {
+        "Content":  "AAA_MCP Metabolizer (Component 4)",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\system\\orchestrator\\metabolizer.py",
+        "Line":  3
+    },
+    {
+        "Content":  "- Track B Spec: AAA_MCP/v46/000_foundation/000_void_stage.json",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\system\\stages\\stage_000_void.py",
+        "Line":  13
+    },
+    {
+        "Content":  "- Track B Spec: AAA_MCP/v46/111_sense/111_sense_stage.json",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\system\\stages\\stage_111_sense.py",
+        "Line":  8
+    },
+    {
+        "Content":  "\"AAA_MCP\",",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\system\\constitutional_runtime_config_v46.py",
+        "Line":  63
+    },
+    {
+        "Content":  "- PRIMARY: AAA_MCP/v46/000_foundation/constitutional_floors.json",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\core\\system\\hypervisor.py",
+        "Line":  27
+    },
+    {
+        "Content":  "# These values come from AAA_MCP/v46/constitutional_floors.json via metrics.py",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\mcp\\tools\\mcp_trinity.py",
+        "Line":  43
+    },
+    {
+        "Content":  "port = int(os.environ.get(\"PORT\", os.environ.get(\"AAA_MCP_PORT\", 8000)))",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\mcp\\sse.py",
+        "Line":  203
+    },
+    {
+        "Content":  "port = int(os.environ.get(\"PORT\", os.environ.get(\"AAA_MCP_PORT\", 8000)))",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\mcp\\trinity_server.py",
+        "Line":  423
+    },
+    {
+        "Content":  "This module is LEGACY. Use AAA_MCP instead.",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\mcp\\__init__.py",
+        "Line":  4
+    },
+    {
+        "Content":  "NEW: python -m AAA_MCP",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\mcp\\__init__.py",
+        "Line":  8
+    },
+    {
+        "Content":  "NEW: from AAA_MCP.bridge import bridge_agi_router",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\mcp\\__init__.py",
+        "Line":  11
+    },
+    {
+        "Content":  "The AAA_MCP package is the APPLICATION (the Body).",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\mcp\\__init__.py",
+        "Line":  14
+    },
+    {
+        "Content":  "\"arifos.mcp is deprecated. Use AAA_MCP instead. \"",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\mcp\\__init__.py",
+        "Line":  27
+    },
+    {
+        "Content":  "\"Run: python -m AAA_MCP\",",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\mcp\\__init__.py",
+        "Line":  28
+    },
+    {
+        "Content":  "Authority: AAA_MCP/mcp_config.v50.json",
+        "File":  "C:\\Users\\User\\arifOS\\arifos\\spec\\v49\\mcp_obsidian_bridge.py",
+        "Line":  12
+    },
+    {
+        "Content":  "[{\"message\":\"scheduling build on Metal builder \\\"builder-krazhj\\\"\",\"timestamp\":\"2026-01-24T02:06:36.451971386Z\"},{\"message\":\"scheduling build on Metal builder \\\"builder-krazhj\\\"\",\"timestamp\":\"2026-01-24T02:06:54.910620320Z\"},{\"message\":\"[snapshot] received sha256:468260d78eb7b995f41bf91bb4eb2b4a4b7dc8dd5b6979fa3f3b0b7f0efd2128 md5:7b2bbbb370ef2de4f3ebb8634015a875\",\"timestamp\":\"2026-01-24T02:06:58.547568319Z\"},{\"message\":\"receiving snapshot\",\"timestamp\":\"2026-01-24T02:06:58.547690553Z\"},{\"message\":\"config-as-code path set as \u0027/railway.toml\u0027\",\"timestamp\":\"2026-01-24T02:06:59.023794285Z\"},{\"message\":\"found \u0027Dockerfile\u0027 at \u0027Dockerfile\u0027\",\"timestamp\":\"2026-01-24T02:06:59.023798742Z\"},{\"message\":\"skipping \u0027Dockerfile\u0027 at \u0027deploy/Dockerfile\u0027 as it is not rooted at a valid path (root_dir=, fileOpts={acceptChildOfRepoRoot:false})\",\"timestamp\":\"2026-01-24T02:06:59.023802097Z\"},{\"message\":\"found config-as-code file at \u0027railway.toml\u0027\",\"timestamp\":\"2026-01-24T02:06:59.023802929Z\"},{\"message\":\"config-as-code path sanitized to \u0027railway.toml\u0027\",\"timestamp\":\"2026-01-24T02:06:59.023803780Z\"},{\"message\":\"analyzing snapshot\",\"timestamp\":\"2026-01-24T02:06:59.023935237Z\"},{\"message\":\"uploading snapshot\",\"timestamp\":\"2026-01-24T02:06:59.819094038Z\"},{\"message\":\"fetched snapshot sha256:468260d78eb7b995f41bf91bb4eb2b4a4b7dc8dd5b6979fa3f3b0b7f0efd2128 (24 MB bytes)\",\"timestamp\":\"2026-01-24T02:07:15.864816715Z\"},{\"message\":\"fetching snapshot\",\"timestamp\":\"2026-01-24T02:07:15.864985839Z\"},{\"message\":\"unpacking archive\",\"timestamp\":\"2026-01-24T02:07:16.660352622Z\"},{\"message\":\"[internal] load build definition from Dockerfile\",\"timestamp\":\"2026-01-24T02:07:17.234229853Z\"},{\"message\":\"[internal] load build definition from Dockerfile\",\"timestamp\":\"2026-01-24T02:07:17.234361020Z\"},{\"message\":\"[internal] load build definition from Dockerfile\",\"timestamp\":\"2026-01-24T02:07:17.234769083Z\"},{\"message\":\"[internal] load build definition from Dockerfile\",\"timestamp\":\"2026-01-24T02:07:17.363460079Z\"},{\"message\":\"[internal] load metadata for docker.io/library/python:3.11-slim\",\"timestamp\":\"2026-01-24T02:07:17.378942669Z\"},{\"message\":\"[internal] load metadata for docker.io/library/python:3.11-slim\",\"timestamp\":\"2026-01-24T02:07:17.606950551Z\"},{\"message\":\"[internal] load .dockerignore\",\"timestamp\":\"2026-01-24T02:07:17.607485273Z\"},{\"message\":\"[internal] load .dockerignore\",\"timestamp\":\"2026-01-24T02:07:17.607546195Z\"},{\"message\":\"[internal] load .dockerignore\",\"timestamp\":\"2026-01-24T02:07:17.607569690Z\"},{\"message\":\"[internal] load .dockerignore\",\"timestamp\":\"2026-01-24T02:07:17.678381275Z\"},{\"message\":\"[11/12] COPY setup/ setup/\",\"timestamp\":\"2026-01-24T02:07:17.695775534Z\"},{\"message\":\"[10/12] COPY AAA_MCP/ AAA_MCP/\",\"timestamp\":\"2026-01-24T02:07:17.695793030Z\"},{\"message\":\"[ 9/12] COPY 000_THEORY/ 000_THEORY/\",\"timestamp\":\"2026-01-24T02:07:17.695794131Z\"},{\"message\":\"[ 8/12] COPY arifos/ arifos/\",\"timestamp\":\"2026-01-24T02:07:17.695794502Z\"},{\"message\":\"[ 7/12] RUN pip install fastapi uvicorn pydantic mcp sse-starlette\",\"timestamp\":\"2026-01-24T02:07:17.695795003Z\"},{\"message\":\"[ 1/12] FROM docker.io/library/python:3.11-slim@sha256:5be45dbade29bebd6886af6b438fd7e0b4eb7b611f39ba62b430263f82de36d2\",\"timestamp\":\"2026-01-24T02:07:17.695795704Z\"},{\"message\":\"[ 5/12] COPY pyproject.toml .\",\"timestamp\":\"2026-01-24T02:07:17.695796054Z\"},{\"message\":\"[ 4/12] COPY requirements.txt .\",\"timestamp\":\"2026-01-24T02:07:17.695796465Z\"},{\"message\":\"[internal] load build context\",\"timestamp\":\"2026-01-24T02:07:17.695796745Z\"},{\"message\":\"[ 3/12] RUN apt-get update \u0026\u0026 apt-get install -y     gcc     libpq-dev     \u0026\u0026 rm -rf /var/lib/apt/lists/*\",\"timestamp\":\"2026-01-24T02:07:17.695797086Z\"},{\"message\":\"[ 2/12] WORKDIR /app\",\"timestamp\":\"2026-01-24T02:07:17.695797406Z\"},{\"message\":\"[12/12] RUN pip install -e .\",\"timestamp\":\"2026-01-24T02:07:17.695798087Z\"},{\"message\":\"[ 6/12] RUN pip install --no-cache-dir -r requirements.txt\",\"timestamp\":\"2026-01-24T02:07:17.695798418Z\"},{\"message\":\"[ 1/12] FROM docker.io/library/python:3.11-slim@sha256:5be45dbade29bebd6886af6b438fd7e0b4eb7b611f39ba62b430263f82de36d2\",\"timestamp\":\"2026-01-24T02:07:17.695941042Z\"},{\"message\":\"[internal] load build context\",\"timestamp\":\"2026-01-24T02:07:17.695953781Z\"},{\"message\":\"[ 1/12] FROM docker.io/library/python:3.11-slim@sha256:5be45dbade29bebd6886af6b438fd7e0b4eb7b611f39ba62b430263f82de36d2\",\"timestamp\":\"2026-01-24T02:07:17.708828779Z\"},{\"message\":\"[ 1/12] FROM docker.io/library/python:3.11-slim@sha256:5be45dbade29bebd6886af6b438fd7e0b4eb7b611f39ba62b430263f82de36d2\",\"timestamp\":\"2026-01-24T02:07:17.708834207Z\"},{\"message\":\"[internal] load build context\",\"timestamp\":\"2026-01-24T02:07:17.709204923Z\"},{\"message\":\"[internal] load build context\",\"timestamp\":\"2026-01-24T02:07:17.928459341Z\"},{\"message\":\"[ 2/12] WORKDIR /app\",\"timestamp\":\"2026-01-24T02:07:17.973119699Z\"},{\"message\":\"[ 3/12] RUN apt-get update \u0026\u0026 apt-get install -y     gcc     libpq-dev     \u0026\u0026 rm -rf /var/lib/apt/lists/*\",\"timestamp\":\"2026-01-24T02:07:17.973125237Z\"},{\"message\":\"[ 4/12] COPY requirements.txt .\",\"timestamp\":\"2026-01-24T02:07:17.973126028Z\"},{\"message\":\"[ 5/12] COPY pyproject.toml .\",\"timestamp\":\"2026-01-24T02:07:17.973126379Z\"},{\"message\":\"[ 6/12] RUN pip install --no-cache-dir -r requirements.txt\",\"timestamp\":\"2026-01-24T02:07:17.973126719Z\"},{\"message\":\"[ 7/12] RUN pip install fastapi uvicorn pydantic mcp sse-starlette\",\"timestamp\":\"2026-01-24T02:07:17.973127270Z\"},{\"message\":\"[ 8/12] COPY arifos/ arifos/\",\"timestamp\":\"2026-01-24T02:07:17.973127861Z\"},{\"message\":\"[ 8/12] COPY arifos/ arifos/\",\"timestamp\":\"2026-01-24T02:07:18.713237797Z\"},{\"message\":\"[ 9/12] COPY 000_THEORY/ 000_THEORY/\",\"timestamp\":\"2026-01-24T02:07:18.743254774Z\"},{\"message\":\"[ 9/12] COPY 000_THEORY/ 000_THEORY/\",\"timestamp\":\"2026-01-24T02:07:18.925960805Z\"},{\"message\":\"[10/12] COPY AAA_MCP/ AAA_MCP/\",\"timestamp\":\"2026-01-24T02:07:18.938103374Z\"},{\"message\":\"[10/12] COPY AAA_MCP/ AAA_MCP/\",\"timestamp\":\"2026-01-24T02:07:19.056790552Z\"},{\"message\":\"[11/12] COPY setup/ setup/\",\"timestamp\":\"2026-01-24T02:07:19.076629748Z\"},{\"message\":\"[11/12] COPY setup/ setup/\",\"timestamp\":\"2026-01-24T02:07:19.189226878Z\"},{\"message\":\"[12/12] RUN pip install -e .\",\"timestamp\":\"2026-01-24T02:07:19.202460063Z\"},{\"message\":\"Obtaining file:///app\\n\",\"timestamp\":\"2026-01-24T02:07:20.160537166Z\"},{\"message\":\"  Installing build dependencies: started\\n\",\"timestamp\":\"2026-01-24T02:07:20.163624318Z\"},{\"message\":\"  Installing build dependencies: finished with status \u0027done\u0027\\n\",\"timestamp\":\"2026-01-24T02:07:22.21617395Z\"},{\"message\":\"  Checking if build backend supports build_editable: started\\n\",\"timestamp\":\"2026-01-24T02:07:22.217183004Z\"},{\"message\":\"  Checking if build backend supports build_editable: finished with status \u0027done\u0027\\n\",\"timestamp\":\"2026-01-24T02:07:22.43131762Z\"},{\"message\":\"  Getting requirements to build editable: started\\n\",\"timestamp\":\"2026-01-24T02:07:22.432698011Z\"},{\"message\":\"  Getting requirements to build editable: finished with status \u0027done\u0027\\n\",\"timestamp\":\"2026-01-24T02:07:22.698441571Z\"},{\"message\":\"  Preparing editable metadata (pyproject.toml): started\\n\",\"timestamp\":\"2026-01-24T02:07:22.70015386Z\"},{\"message\":\"  Preparing editable metadata (pyproject.toml): finished with status \u0027done\u0027\\n\",\"timestamp\":\"2026-01-24T02:07:22.939975437Z\"},{\"message\":\"Requirement already satisfied: numpy\u003e=1.20.0 in /usr/local/lib/python3.11/site-packages (from arifos==50.5.25) (2.4.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.021094898Z\"},{\"message\":\"Requirement already satisfied: pydantic\u003e=2.0.0 in /usr/local/lib/python3.11/site-packages (from arifos==50.5.25) (2.12.5)\\n\",\"timestamp\":\"2026-01-24T02:07:23.022979285Z\"},{\"message\":\"Requirement already satisfied: anyio\u003e=4.0.0 in /usr/local/lib/python3.11/site-packages (from arifos==50.5.25) (4.12.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.02380918Z\"},{\"message\":\"Requirement already satisfied: starlette\u003e=0.30.0 in /usr/local/lib/python3.11/site-packages (from arifos==50.5.25) (0.50.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.024709601Z\"},{\"message\":\"Requirement already satisfied: fastmcp\u003e=0.1.0 in /usr/local/lib/python3.11/site-packages (from arifos==50.5.25) (2.14.4)\\n\",\"timestamp\":\"2026-01-24T02:07:23.026147308Z\"},{\"message\":\"Requirement already satisfied: dspy\u003e=2.4.0 in /usr/local/lib/python3.11/site-packages (from arifos==50.5.25) (3.1.2)\\n\",\"timestamp\":\"2026-01-24T02:07:23.027218886Z\"},{\"message\":\"Requirement already satisfied: fastapi\u003e=0.104.1 in /usr/local/lib/python3.11/site-packages (from arifos==50.5.25) (0.128.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.028660159Z\"},{\"message\":\"Requirement already satisfied: uvicorn\u003e=0.24.0 in /usr/local/lib/python3.11/site-packages (from uvicorn[standard]\u003e=0.24.0-\u003earifos==50.5.25) (0.40.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.029870334Z\"},{\"message\":\"Requirement already satisfied: sse-starlette\u003e=1.8.2 in /usr/local/lib/python3.11/site-packages (from arifos==50.5.25) (3.2.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.031488382Z\"},{\"message\":\"Requirement already satisfied: idna\u003e=2.8 in /usr/local/lib/python3.11/site-packages (from anyio\u003e=4.0.0-\u003earifos==50.5.25) (3.11)\\n\",\"timestamp\":\"2026-01-24T02:07:23.03605277Z\"},{\"message\":\"Requirement already satisfied: typing_extensions\u003e=4.5 in /usr/local/lib/python3.11/site-packages (from anyio\u003e=4.0.0-\u003earifos==50.5.25) (4.15.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.037139801Z\"},{\"message\":\"Requirement already satisfied: openai\u003e=0.28.1 in /usr/local/lib/python3.11/site-packages (from dspy\u003e=2.4.0-\u003earifos==50.5.25) (2.15.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.055588542Z\"},{\"message\":\"Requirement already satisfied: regex\u003e=2023.10.3 in /usr/local/lib/python3.11/site-packages (from dspy\u003e=2.4.0-\u003earifos==50.5.25) (2026.1.15)\\n\",\"timestamp\":\"2026-01-24T02:07:23.057216394Z\"},{\"message\":\"Requirement already satisfied: orjson\u003e=3.9.0 in /usr/local/lib/python3.11/site-packages (from dspy\u003e=2.4.0-\u003earifos==50.5.25) (3.11.5)\\n\",\"timestamp\":\"2026-01-24T02:07:23.058938278Z\"},{\"message\":\"Requirement already satisfied: tqdm\u003e=4.66.1 in /usr/local/lib/python3.11/site-packages (from dspy\u003e=2.4.0-\u003earifos==50.5.25) (4.67.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.061106651Z\"},{\"message\":\"Requirement already satisfied: requests\u003e=2.31.0 in /usr/local/lib/python3.11/site-packages (from dspy\u003e=2.4.0-\u003earifos==50.5.25) (2.32.5)\\n\",\"timestamp\":\"2026-01-24T02:07:23.0620722Z\"},{\"message\":\"Requirement already satisfied: optuna\u003e=3.4.0 in /usr/local/lib/python3.11/site-packages (from dspy\u003e=2.4.0-\u003earifos==50.5.25) (4.7.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.063356126Z\"},{\"message\":\"Requirement already satisfied: litellm\u003e=1.64.0 in /usr/local/lib/python3.11/site-packages (from dspy\u003e=2.4.0-\u003earifos==50.5.25) (1.81.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.065496457Z\"},{\"message\":\"Requirement already satisfied: diskcache\u003e=5.6.0 in /usr/local/lib/python3.11/site-packages (from dspy\u003e=2.4.0-\u003earifos==50.5.25) (5.6.3)\\n\",\"timestamp\":\"2026-01-24T02:07:23.066678871Z\"},{\"message\":\"Requirement already satisfied: json-repair\u003e=0.54.2 in /usr/local/lib/python3.11/site-packages (from dspy\u003e=2.4.0-\u003earifos==50.5.25) (0.55.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.067590579Z\"},{\"message\":\"Requirement already satisfied: tenacity\u003e=8.2.3 in /usr/local/lib/python3.11/site-packages (from dspy\u003e=2.4.0-\u003earifos==50.5.25) (9.1.2)\\n\",\"timestamp\":\"2026-01-24T02:07:23.068226413Z\"},{\"message\":\"Requirement already satisfied: asyncer==0.0.8 in /usr/local/lib/python3.11/site-packages (from dspy\u003e=2.4.0-\u003earifos==50.5.25) (0.0.8)\\n\",\"timestamp\":\"2026-01-24T02:07:23.06925752Z\"},{\"message\":\"Requirement already satisfied: cachetools\u003e=5.5.0 in /usr/local/lib/python3.11/site-packages (from dspy\u003e=2.4.0-\u003earifos==50.5.25) (6.2.4)\\n\",\"timestamp\":\"2026-01-24T02:07:23.070087285Z\"},{\"message\":\"Requirement already satisfied: cloudpickle\u003e=3.0.0 in /usr/local/lib/python3.11/site-packages (from dspy\u003e=2.4.0-\u003earifos==50.5.25) (3.1.2)\\n\",\"timestamp\":\"2026-01-24T02:07:23.070879404Z\"},{\"message\":\"Requirement already satisfied: xxhash\u003e=3.5.0 in /usr/local/lib/python3.11/site-packages (from dspy\u003e=2.4.0-\u003earifos==50.5.25) (3.6.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.072195348Z\"},{\"message\":\"Requirement already satisfied: gepa==0.0.24 in /usr/local/lib/python3.11/site-packages (from gepa[dspy]==0.0.24-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (0.0.24)\\n\",\"timestamp\":\"2026-01-24T02:07:23.074063391Z\"},{\"message\":\"Requirement already satisfied: annotated-doc\u003e=0.0.2 in /usr/local/lib/python3.11/site-packages (from fastapi\u003e=0.104.1-\u003earifos==50.5.25) (0.0.4)\\n\",\"timestamp\":\"2026-01-24T02:07:23.112790728Z\"},{\"message\":\"Requirement already satisfied: authlib\u003e=1.6.5 in /usr/local/lib/python3.11/site-packages (from fastmcp\u003e=0.1.0-\u003earifos==50.5.25) (1.6.6)\\n\",\"timestamp\":\"2026-01-24T02:07:23.123467487Z\"},{\"message\":\"Requirement already satisfied: cyclopts\u003e=4.0.0 in /usr/local/lib/python3.11/site-packages (from fastmcp\u003e=0.1.0-\u003earifos==50.5.25) (4.5.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.124427056Z\"},{\"message\":\"Requirement already satisfied: exceptiongroup\u003e=1.2.2 in /usr/local/lib/python3.11/site-packages (from fastmcp\u003e=0.1.0-\u003earifos==50.5.25) (1.3.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.125489531Z\"},{\"message\":\"Requirement already satisfied: httpx\u003e=0.28.1 in /usr/local/lib/python3.11/site-packages (from fastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.28.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.12638909Z\"},{\"message\":\"Requirement already satisfied: jsonref\u003e=1.1.0 in /usr/local/lib/python3.11/site-packages (from fastmcp\u003e=0.1.0-\u003earifos==50.5.25) (1.1.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.127087138Z\"},{\"message\":\"Requirement already satisfied: jsonschema-path\u003e=0.3.4 in /usr/local/lib/python3.11/site-packages (from fastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.3.4)\\n\",\"timestamp\":\"2026-01-24T02:07:23.127984664Z\"},{\"message\":\"Requirement already satisfied: mcp\u003c2.0,\u003e=1.24.0 in /usr/local/lib/python3.11/site-packages (from fastmcp\u003e=0.1.0-\u003earifos==50.5.25) (1.25.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.130733409Z\"},{\"message\":\"Requirement already satisfied: openapi-pydantic\u003e=0.5.1 in /usr/local/lib/python3.11/site-packages (from fastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.5.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.13171397Z\"},{\"message\":\"Requirement already satisfied: packaging\u003e=20.0 in /usr/local/lib/python3.11/site-packages (from fastmcp\u003e=0.1.0-\u003earifos==50.5.25) (26.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.132668402Z\"},{\"message\":\"Requirement already satisfied: platformdirs\u003e=4.0.0 in /usr/local/lib/python3.11/site-packages (from fastmcp\u003e=0.1.0-\u003earifos==50.5.25) (4.5.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.133627892Z\"},{\"message\":\"Requirement already satisfied: py-key-value-aio\u003c0.4.0,\u003e=0.3.0 in /usr/local/lib/python3.11/site-packages (from py-key-value-aio[disk,keyring,memory]\u003c0.4.0,\u003e=0.3.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.3.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.134849935Z\"},{\"message\":\"Requirement already satisfied: pydocket\u003c0.17.0,\u003e=0.16.6 in /usr/local/lib/python3.11/site-packages (from fastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.16.6)\\n\",\"timestamp\":\"2026-01-24T02:07:23.138483837Z\"},{\"message\":\"Requirement already satisfied: pyperclip\u003e=1.9.0 in /usr/local/lib/python3.11/site-packages (from fastmcp\u003e=0.1.0-\u003earifos==50.5.25) (1.11.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.13925886Z\"},{\"message\":\"Requirement already satisfied: python-dotenv\u003e=1.1.0 in /usr/local/lib/python3.11/site-packages (from fastmcp\u003e=0.1.0-\u003earifos==50.5.25) (1.2.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.140588525Z\"},{\"message\":\"Requirement already satisfied: rich\u003e=13.9.4 in /usr/local/lib/python3.11/site-packages (from fastmcp\u003e=0.1.0-\u003earifos==50.5.25) (14.2.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.141817309Z\"},{\"message\":\"Requirement already satisfied: websockets\u003e=15.0.1 in /usr/local/lib/python3.11/site-packages (from fastmcp\u003e=0.1.0-\u003earifos==50.5.25) (16.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.1429909Z\"},{\"message\":\"Requirement already satisfied: annotated-types\u003e=0.6.0 in /usr/local/lib/python3.11/site-packages (from pydantic\u003e=2.0.0-\u003earifos==50.5.25) (0.7.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.150744663Z\"},{\"message\":\"Requirement already satisfied: pydantic-core==2.41.5 in /usr/local/lib/python3.11/site-packages (from pydantic\u003e=2.0.0-\u003earifos==50.5.25) (2.41.5)\\n\",\"timestamp\":\"2026-01-24T02:07:23.151670412Z\"},{\"message\":\"Requirement already satisfied: typing-inspection\u003e=0.4.2 in /usr/local/lib/python3.11/site-packages (from pydantic\u003e=2.0.0-\u003earifos==50.5.25) (0.4.2)\\n\",\"timestamp\":\"2026-01-24T02:07:23.152899637Z\"},{\"message\":\"Requirement already satisfied: click\u003e=7.0 in /usr/local/lib/python3.11/site-packages (from uvicorn\u003e=0.24.0-\u003euvicorn[standard]\u003e=0.24.0-\u003earifos==50.5.25) (8.3.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.174914988Z\"},{\"message\":\"Requirement already satisfied: h11\u003e=0.8 in /usr/local/lib/python3.11/site-packages (from uvicorn\u003e=0.24.0-\u003euvicorn[standard]\u003e=0.24.0-\u003earifos==50.5.25) (0.16.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.175723381Z\"},{\"message\":\"Requirement already satisfied: httptools\u003e=0.6.3 in /usr/local/lib/python3.11/site-packages (from uvicorn[standard]\u003e=0.24.0-\u003earifos==50.5.25) (0.7.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.188208364Z\"},{\"message\":\"Requirement already satisfied: pyyaml\u003e=5.1 in /usr/local/lib/python3.11/site-packages (from uvicorn[standard]\u003e=0.24.0-\u003earifos==50.5.25) (6.0.3)\\n\",\"timestamp\":\"2026-01-24T02:07:23.18993889Z\"},{\"message\":\"Requirement already satisfied: uvloop\u003e=0.15.1 in /usr/local/lib/python3.11/site-packages (from uvicorn[standard]\u003e=0.24.0-\u003earifos==50.5.25) (0.22.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.191782877Z\"},{\"message\":\"Requirement already satisfied: watchfiles\u003e=0.13 in /usr/local/lib/python3.11/site-packages (from uvicorn[standard]\u003e=0.24.0-\u003earifos==50.5.25) (1.1.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.193432392Z\"},{\"message\":\"Requirement already satisfied: cryptography in /usr/local/lib/python3.11/site-packages (from authlib\u003e=1.6.5-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (46.0.3)\\n\",\"timestamp\":\"2026-01-24T02:07:23.200895259Z\"},{\"message\":\"Requirement already satisfied: attrs\u003e=23.1.0 in /usr/local/lib/python3.11/site-packages (from cyclopts\u003e=4.0.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (25.4.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.224577392Z\"},{\"message\":\"Requirement already satisfied: docstring-parser\u003c4.0,\u003e=0.15 in /usr/local/lib/python3.11/site-packages (from cyclopts\u003e=4.0.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.17.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.225334157Z\"},{\"message\":\"Requirement already satisfied: rich-rst\u003c2.0.0,\u003e=1.3.1 in /usr/local/lib/python3.11/site-packages (from cyclopts\u003e=4.0.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (1.3.2)\\n\",\"timestamp\":\"2026-01-24T02:07:23.226484523Z\"},{\"message\":\"Requirement already satisfied: certifi in /usr/local/lib/python3.11/site-packages (from httpx\u003e=0.28.1-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (2026.1.4)\\n\",\"timestamp\":\"2026-01-24T02:07:23.245083408Z\"},{\"message\":\"Requirement already satisfied: httpcore==1.* in /usr/local/lib/python3.11/site-packages (from httpx\u003e=0.28.1-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (1.0.9)\\n\",\"timestamp\":\"2026-01-24T02:07:23.246348777Z\"},{\"message\":\"Requirement already satisfied: pathable\u003c0.5.0,\u003e=0.4.1 in /usr/local/lib/python3.11/site-packages (from jsonschema-path\u003e=0.3.4-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.4.4)\\n\",\"timestamp\":\"2026-01-24T02:07:23.265989977Z\"},{\"message\":\"Requirement already satisfied: referencing\u003c0.37.0 in /usr/local/lib/python3.11/site-packages (from jsonschema-path\u003e=0.3.4-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.36.2)\\n\",\"timestamp\":\"2026-01-24T02:07:23.266857919Z\"},{\"message\":\"Requirement already satisfied: aiohttp\u003e=3.10 in /usr/local/lib/python3.11/site-packages (from litellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (3.13.3)\\n\",\"timestamp\":\"2026-01-24T02:07:23.303706106Z\"},{\"message\":\"Requirement already satisfied: fastuuid\u003e=0.13.0 in /usr/local/lib/python3.11/site-packages (from litellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (0.14.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.304553647Z\"},{\"message\":\"Requirement already satisfied: grpcio!=1.68.*,!=1.69.*,!=1.70.*,!=1.71.0,!=1.71.1,!=1.72.0,!=1.72.1,!=1.73.0,\u003e=1.62.3 in /usr/local/lib/python3.11/site-packages (from litellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (1.76.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.306357213Z\"},{\"message\":\"Requirement already satisfied: importlib-metadata\u003e=6.8.0 in /usr/local/lib/python3.11/site-packages (from litellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (8.7.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.307646898Z\"},{\"message\":\"Requirement already satisfied: jinja2\u003c4.0.0,\u003e=3.1.2 in /usr/local/lib/python3.11/site-packages (from litellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (3.1.6)\\n\",\"timestamp\":\"2026-01-24T02:07:23.308379968Z\"},{\"message\":\"Requirement already satisfied: jsonschema\u003c5.0.0,\u003e=4.23.0 in /usr/local/lib/python3.11/site-packages (from litellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (4.26.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.30927413Z\"},{\"message\":\"Requirement already satisfied: tiktoken\u003e=0.7.0 in /usr/local/lib/python3.11/site-packages (from litellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (0.12.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.312247191Z\"},{\"message\":\"Requirement already satisfied: tokenizers in /usr/local/lib/python3.11/site-packages (from litellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (0.22.2)\\n\",\"timestamp\":\"2026-01-24T02:07:23.312942294Z\"},{\"message\":\"Requirement already satisfied: httpx-sse\u003e=0.4 in /usr/local/lib/python3.11/site-packages (from mcp\u003c2.0,\u003e=1.24.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.4.3)\\n\",\"timestamp\":\"2026-01-24T02:07:23.326007236Z\"},{\"message\":\"Requirement already satisfied: pydantic-settings\u003e=2.5.2 in /usr/local/lib/python3.11/site-packages (from mcp\u003c2.0,\u003e=1.24.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (2.12.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.327711363Z\"},{\"message\":\"Requirement already satisfied: pyjwt\u003e=2.10.1 in /usr/local/lib/python3.11/site-packages (from pyjwt[crypto]\u003e=2.10.1-\u003emcp\u003c2.0,\u003e=1.24.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (2.10.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.329578805Z\"},{\"message\":\"Requirement already satisfied: python-multipart\u003e=0.0.9 in /usr/local/lib/python3.11/site-packages (from mcp\u003c2.0,\u003e=1.24.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.0.21)\\n\",\"timestamp\":\"2026-01-24T02:07:23.330899256Z\"},{\"message\":\"Requirement already satisfied: distro\u003c2,\u003e=1.7.0 in /usr/local/lib/python3.11/site-packages (from openai\u003e=0.28.1-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (1.9.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.344224319Z\"},{\"message\":\"Requirement already satisfied: jiter\u003c1,\u003e=0.10.0 in /usr/local/lib/python3.11/site-packages (from openai\u003e=0.28.1-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (0.12.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.345429086Z\"},{\"message\":\"Requirement already satisfied: sniffio in /usr/local/lib/python3.11/site-packages (from openai\u003e=0.28.1-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (1.3.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.34691776Z\"},{\"message\":\"Requirement already satisfied: alembic\u003e=1.5.0 in /usr/local/lib/python3.11/site-packages (from optuna\u003e=3.4.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (1.18.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.377839054Z\"},{\"message\":\"Requirement already satisfied: colorlog in /usr/local/lib/python3.11/site-packages (from optuna\u003e=3.4.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (6.10.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.378580617Z\"},{\"message\":\"Requirement already satisfied: sqlalchemy\u003e=1.4.2 in /usr/local/lib/python3.11/site-packages (from optuna\u003e=3.4.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (2.0.46)\\n\",\"timestamp\":\"2026-01-24T02:07:23.380084824Z\"},{\"message\":\"Requirement already satisfied: py-key-value-shared==0.3.0 in /usr/local/lib/python3.11/site-packages (from py-key-value-aio\u003c0.4.0,\u003e=0.3.0-\u003epy-key-value-aio[disk,keyring,memory]\u003c0.4.0,\u003e=0.3.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.3.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.41205413Z\"},{\"message\":\"Requirement already satisfied: beartype\u003e=0.20.0 in /usr/local/lib/python3.11/site-packages (from py-key-value-aio\u003c0.4.0,\u003e=0.3.0-\u003epy-key-value-aio[disk,keyring,memory]\u003c0.4.0,\u003e=0.3.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.22.9)\\n\",\"timestamp\":\"2026-01-24T02:07:23.413809194Z\"},{\"message\":\"Requirement already satisfied: pathvalidate\u003e=3.3.1 in /usr/local/lib/python3.11/site-packages (from py-key-value-aio[disk,keyring,memory]\u003c0.4.0,\u003e=0.3.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (3.3.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.458687689Z\"},{\"message\":\"Requirement already satisfied: keyring\u003e=25.6.0 in /usr/local/lib/python3.11/site-packages (from py-key-value-aio[disk,keyring,memory]\u003c0.4.0,\u003e=0.3.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (25.7.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.460092607Z\"},{\"message\":\"Requirement already satisfied: email-validator\u003e=2.0.0 in /usr/local/lib/python3.11/site-packages (from pydantic[email]\u003e=2.11.7-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (2.3.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.470559892Z\"},{\"message\":\"Requirement already satisfied: fakeredis\u003e=2.32.1 in /usr/local/lib/python3.11/site-packages (from fakeredis[lua]\u003e=2.32.1-\u003epydocket\u003c0.17.0,\u003e=0.16.6-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (2.33.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.481032916Z\"},{\"message\":\"Requirement already satisfied: opentelemetry-api\u003e=1.33.0 in /usr/local/lib/python3.11/site-packages (from pydocket\u003c0.17.0,\u003e=0.16.6-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (1.39.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.482305515Z\"},{\"message\":\"Requirement already satisfied: opentelemetry-exporter-prometheus\u003e=0.60b0 in /usr/local/lib/python3.11/site-packages (from pydocket\u003c0.17.0,\u003e=0.16.6-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.60b1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.483057894Z\"},{\"message\":\"Requirement already satisfied: opentelemetry-instrumentation\u003e=0.60b0 in /usr/local/lib/python3.11/site-packages (from pydocket\u003c0.17.0,\u003e=0.16.6-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.60b1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.483798395Z\"},{\"message\":\"Requirement already satisfied: prometheus-client\u003e=0.21.1 in /usr/local/lib/python3.11/site-packages (from pydocket\u003c0.17.0,\u003e=0.16.6-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.24.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.484881931Z\"},{\"message\":\"Requirement already satisfied: python-json-logger\u003e=2.0.7 in /usr/local/lib/python3.11/site-packages (from pydocket\u003c0.17.0,\u003e=0.16.6-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (4.0.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.486092888Z\"},{\"message\":\"Requirement already satisfied: redis\u003e=5 in /usr/local/lib/python3.11/site-packages (from pydocket\u003c0.17.0,\u003e=0.16.6-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (7.1.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.487168161Z\"},{\"message\":\"Requirement already satisfied: typer\u003e=0.15.1 in /usr/local/lib/python3.11/site-packages (from pydocket\u003c0.17.0,\u003e=0.16.6-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.21.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.488629414Z\"},{\"message\":\"Requirement already satisfied: charset_normalizer\u003c4,\u003e=2 in /usr/local/lib/python3.11/site-packages (from requests\u003e=2.31.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (3.4.4)\\n\",\"timestamp\":\"2026-01-24T02:07:23.514415162Z\"},{\"message\":\"Requirement already satisfied: urllib3\u003c3,\u003e=1.21.1 in /usr/local/lib/python3.11/site-packages (from requests\u003e=2.31.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (2.6.3)\\n\",\"timestamp\":\"2026-01-24T02:07:23.515589504Z\"},{\"message\":\"Requirement already satisfied: markdown-it-py\u003e=2.2.0 in /usr/local/lib/python3.11/site-packages (from rich\u003e=13.9.4-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (4.0.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.522729347Z\"},{\"message\":\"Requirement already satisfied: pygments\u003c3.0.0,\u003e=2.13.0 in /usr/local/lib/python3.11/site-packages (from rich\u003e=13.9.4-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (2.19.2)\\n\",\"timestamp\":\"2026-01-24T02:07:23.523397459Z\"},{\"message\":\"Requirement already satisfied: aiohappyeyeballs\u003e=2.5.0 in /usr/local/lib/python3.11/site-packages (from aiohttp\u003e=3.10-\u003elitellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (2.6.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.584939657Z\"},{\"message\":\"Requirement already satisfied: aiosignal\u003e=1.4.0 in /usr/local/lib/python3.11/site-packages (from aiohttp\u003e=3.10-\u003elitellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (1.4.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.585667318Z\"},{\"message\":\"Requirement already satisfied: frozenlist\u003e=1.1.1 in /usr/local/lib/python3.11/site-packages (from aiohttp\u003e=3.10-\u003elitellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (1.8.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.587407349Z\"},{\"message\":\"Requirement already satisfied: multidict\u003c7.0,\u003e=4.5 in /usr/local/lib/python3.11/site-packages (from aiohttp\u003e=3.10-\u003elitellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (6.7.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.588170705Z\"},{\"message\":\"Requirement already satisfied: propcache\u003e=0.2.0 in /usr/local/lib/python3.11/site-packages (from aiohttp\u003e=3.10-\u003elitellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (0.4.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.589184906Z\"},{\"message\":\"Requirement already satisfied: yarl\u003c2.0,\u003e=1.17.0 in /usr/local/lib/python3.11/site-packages (from aiohttp\u003e=3.10-\u003elitellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (1.22.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.592064116Z\"},{\"message\":\"Requirement already satisfied: Mako in /usr/local/lib/python3.11/site-packages (from alembic\u003e=1.5.0-\u003eoptuna\u003e=3.4.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (1.3.10)\\n\",\"timestamp\":\"2026-01-24T02:07:23.600266162Z\"},{\"message\":\"Requirement already satisfied: dnspython\u003e=2.0.0 in /usr/local/lib/python3.11/site-packages (from email-validator\u003e=2.0.0-\u003epydantic[email]\u003e=2.11.7-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (2.8.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.708011563Z\"},{\"message\":\"Requirement already satisfied: sortedcontainers\u003e=2 in /usr/local/lib/python3.11/site-packages (from fakeredis\u003e=2.32.1-\u003efakeredis[lua]\u003e=2.32.1-\u003epydocket\u003c0.17.0,\u003e=0.16.6-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (2.4.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.722601183Z\"},{\"message\":\"Requirement already satisfied: lupa\u003e=2.1 in /usr/local/lib/python3.11/site-packages (from fakeredis[lua]\u003e=2.32.1-\u003epydocket\u003c0.17.0,\u003e=0.16.6-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (2.6)\\n\",\"timestamp\":\"2026-01-24T02:07:23.737503703Z\"},{\"message\":\"Requirement already satisfied: zipp\u003e=3.20 in /usr/local/lib/python3.11/site-packages (from importlib-metadata\u003e=6.8.0-\u003elitellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (3.23.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.772843516Z\"},{\"message\":\"Requirement already satisfied: MarkupSafe\u003e=2.0 in /usr/local/lib/python3.11/site-packages (from jinja2\u003c4.0.0,\u003e=3.1.2-\u003elitellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (3.0.3)\\n\",\"timestamp\":\"2026-01-24T02:07:23.78073045Z\"},{\"message\":\"Requirement already satisfied: jsonschema-specifications\u003e=2023.03.6 in /usr/local/lib/python3.11/site-packages (from jsonschema\u003c5.0.0,\u003e=4.23.0-\u003elitellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (2025.9.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.803992812Z\"},{\"message\":\"Requirement already satisfied: rpds-py\u003e=0.25.0 in /usr/local/lib/python3.11/site-packages (from jsonschema\u003c5.0.0,\u003e=4.23.0-\u003elitellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (0.30.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.805129177Z\"},{\"message\":\"Requirement already satisfied: SecretStorage\u003e=3.2 in /usr/local/lib/python3.11/site-packages (from keyring\u003e=25.6.0-\u003epy-key-value-aio[disk,keyring,memory]\u003c0.4.0,\u003e=0.3.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (3.5.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.82679867Z\"},{\"message\":\"Requirement already satisfied: jeepney\u003e=0.4.2 in /usr/local/lib/python3.11/site-packages (from keyring\u003e=25.6.0-\u003epy-key-value-aio[disk,keyring,memory]\u003c0.4.0,\u003e=0.3.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.9.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.827777028Z\"},{\"message\":\"Requirement already satisfied: jaraco.classes in /usr/local/lib/python3.11/site-packages (from keyring\u003e=25.6.0-\u003epy-key-value-aio[disk,keyring,memory]\u003c0.4.0,\u003e=0.3.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (3.4.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.829124159Z\"},{\"message\":\"Requirement already satisfied: jaraco.functools in /usr/local/lib/python3.11/site-packages (from keyring\u003e=25.6.0-\u003epy-key-value-aio[disk,keyring,memory]\u003c0.4.0,\u003e=0.3.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (4.4.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.829885061Z\"},{\"message\":\"Requirement already satisfied: jaraco.context in /usr/local/lib/python3.11/site-packages (from keyring\u003e=25.6.0-\u003epy-key-value-aio[disk,keyring,memory]\u003c0.4.0,\u003e=0.3.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (6.1.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.830629508Z\"},{\"message\":\"Requirement already satisfied: mdurl~=0.1 in /usr/local/lib/python3.11/site-packages (from markdown-it-py\u003e=2.2.0-\u003erich\u003e=13.9.4-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.1.2)\\n\",\"timestamp\":\"2026-01-24T02:07:23.849518549Z\"},{\"message\":\"Requirement already satisfied: opentelemetry-sdk~=1.39.1 in /usr/local/lib/python3.11/site-packages (from opentelemetry-exporter-prometheus\u003e=0.60b0-\u003epydocket\u003c0.17.0,\u003e=0.16.6-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (1.39.1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.865836963Z\"},{\"message\":\"Requirement already satisfied: opentelemetry-semantic-conventions==0.60b1 in /usr/local/lib/python3.11/site-packages (from opentelemetry-instrumentation\u003e=0.60b0-\u003epydocket\u003c0.17.0,\u003e=0.16.6-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.60b1)\\n\",\"timestamp\":\"2026-01-24T02:07:23.875393121Z\"},{\"message\":\"Requirement already satisfied: wrapt\u003c2.0.0,\u003e=1.0.0 in /usr/local/lib/python3.11/site-packages (from opentelemetry-instrumentation\u003e=0.60b0-\u003epydocket\u003c0.17.0,\u003e=0.16.6-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (1.17.3)\\n\",\"timestamp\":\"2026-01-24T02:07:23.876401124Z\"},{\"message\":\"Requirement already satisfied: cffi\u003e=2.0.0 in /usr/local/lib/python3.11/site-packages (from cryptography-\u003eauthlib\u003e=1.6.5-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (2.0.0)\\n\",\"timestamp\":\"2026-01-24T02:07:23.995648762Z\"},{\"message\":\"Requirement already satisfied: docutils in /usr/local/lib/python3.11/site-packages (from rich-rst\u003c2.0.0,\u003e=1.3.1-\u003ecyclopts\u003e=4.0.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (0.22.4)\\n\",\"timestamp\":\"2026-01-24T02:07:24.049023255Z\"},{\"message\":\"Requirement already satisfied: greenlet\u003e=1 in /usr/local/lib/python3.11/site-packages (from sqlalchemy\u003e=1.4.2-\u003eoptuna\u003e=3.4.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (3.3.0)\\n\",\"timestamp\":\"2026-01-24T02:07:24.078660192Z\"},{\"message\":\"Requirement already satisfied: shellingham\u003e=1.3.0 in /usr/local/lib/python3.11/site-packages (from typer\u003e=0.15.1-\u003epydocket\u003c0.17.0,\u003e=0.16.6-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (1.5.4)\\n\",\"timestamp\":\"2026-01-24T02:07:24.100715904Z\"},{\"message\":\"Requirement already satisfied: huggingface-hub\u003c2.0,\u003e=0.16.4 in /usr/local/lib/python3.11/site-packages (from tokenizers-\u003elitellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (1.3.3)\\n\",\"timestamp\":\"2026-01-24T02:07:24.145655741Z\"},{\"message\":\"Requirement already satisfied: pycparser in /usr/local/lib/python3.11/site-packages (from cffi\u003e=2.0.0-\u003ecryptography-\u003eauthlib\u003e=1.6.5-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (3.0)\\n\",\"timestamp\":\"2026-01-24T02:07:24.173835302Z\"},{\"message\":\"Requirement already satisfied: filelock in /usr/local/lib/python3.11/site-packages (from huggingface-hub\u003c2.0,\u003e=0.16.4-\u003etokenizers-\u003elitellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (3.20.3)\\n\",\"timestamp\":\"2026-01-24T02:07:24.26156457Z\"},{\"message\":\"Requirement already satisfied: fsspec\u003e=2023.5.0 in /usr/local/lib/python3.11/site-packages (from huggingface-hub\u003c2.0,\u003e=0.16.4-\u003etokenizers-\u003elitellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (2026.1.0)\\n\",\"timestamp\":\"2026-01-24T02:07:24.262725111Z\"},{\"message\":\"Requirement already satisfied: hf-xet\u003c2.0.0,\u003e=1.2.0 in /usr/local/lib/python3.11/site-packages (from huggingface-hub\u003c2.0,\u003e=0.16.4-\u003etokenizers-\u003elitellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (1.2.0)\\n\",\"timestamp\":\"2026-01-24T02:07:24.264696369Z\"},{\"message\":\"Requirement already satisfied: typer-slim in /usr/local/lib/python3.11/site-packages (from huggingface-hub\u003c2.0,\u003e=0.16.4-\u003etokenizers-\u003elitellm\u003e=1.64.0-\u003edspy\u003e=2.4.0-\u003earifos==50.5.25) (0.21.1)\\n\",\"timestamp\":\"2026-01-24T02:07:24.268083662Z\"},{\"message\":\"Requirement already satisfied: more-itertools in /usr/local/lib/python3.11/site-packages (from jaraco.classes-\u003ekeyring\u003e=25.6.0-\u003epy-key-value-aio[disk,keyring,memory]\u003c0.4.0,\u003e=0.3.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (10.8.0)\\n\",\"timestamp\":\"2026-01-24T02:07:24.450341269Z\"},{\"message\":\"Requirement already satisfied: backports.tarfile in /usr/local/lib/python3.11/site-packages (from jaraco.context-\u003ekeyring\u003e=25.6.0-\u003epy-key-value-aio[disk,keyring,memory]\u003c0.4.0,\u003e=0.3.0-\u003efastmcp\u003e=0.1.0-\u003earifos==50.5.25) (1.2.0)\\n\",\"timestamp\":\"2026-01-24T02:07:24.46767052Z\"},{\"message\":\"Building wheels for collected packages: arifos\\n\",\"timestamp\":\"2026-01-24T02:07:24.612511839Z\"},{\"message\":\"  Building editable for arifos (pyproject.toml): started\\n\",\"timestamp\":\"2026-01-24T02:07:24.613167723Z\"},{\"message\":\"  Building editable for arifos (pyproject.toml): finished with status \u0027done\u0027\\n\",\"timestamp\":\"2026-01-24T02:07:24.964054251Z\"},{\"message\":\"  Created wheel for arifos: filename=arifos-50.5.25-0.editable-py3-none-any.whl size=5269 sha256=57c5e19d37759e7d5e8f6b33f66bac24c7ca80585c1a7ab5fc1b0ccbe2f62d74\\n\",\"timestamp\":\"2026-01-24T02:07:24.965125458Z\"},{\"message\":\"  Stored in directory: /tmp/pip-ephem-wheel-cache-ytflwpnq/wheels/57/0f/98/bb57b2b57b95807699b822a35c022f139d38a02c27922f27ce\\n\",\"timestamp\":\"2026-01-24T02:07:24.965371808Z\"},{\"message\":\"Successfully built arifos\\n\",\"timestamp\":\"2026-01-24T02:07:24.969658149Z\"},{\"message\":\"Installing collected packages: arifos\\n\",\"timestamp\":\"2026-01-24T02:07:25.625652869Z\"},{\"message\":\"Successfully installed arifos-50.5.25\\n\",\"timestamp\":\"2026-01-24T02:07:25.645703674Z\"},{\"message\":\"WARNING: Running pip as the \u0027root\u0027 user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv\\n\",\"timestamp\":\"2026-01-24T02:07:25.645852687Z\"},{\"message\":\"\\n[notice] A new release of pip is available: 24.0 -\u003e 25.3\\n[notice] To update, run: pip install --upgrade pip\\n\",\"timestamp\":\"2026-01-24T02:07:25.652552459Z\"},{\"message\":\"[12/12] RUN pip install -e .\",\"timestamp\":\"2026-01-24T02:07:25.832506331Z\"},{\"message\":\"exporting to docker image format\",\"timestamp\":\"2026-01-24T02:07:25.850006738Z\"},{\"message\":\"exporting to docker image format\",\"timestamp\":\"2026-01-24T02:07:27.389237150Z\"},{\"message\":\"containerimage.digest: sha256:5ece3f031e681603cd07db0fc6f88eb13aae7954a02394aa9abea37206c63ea4\",\"timestamp\":\"2026-01-24T02:07:27.465409268Z\"},{\"message\":\"containerimage.descriptor: eyJtZWRpYVR5cGUiOiJhcHBsaWNhdGlvbi92bmQub2NpLmltYWdlLm1hbmlmZXN0LnYxK2pzb24iLCJkaWdlc3QiOiJzaGEyNTY6NWVjZTNmMDMxZTY4MTYwM2NkMDdkYjBmYzZmODhlYjEzYWFlNzk1NGEwMjM5NGFhOWFiZWEzNzIwNmM2M2VhNCIsInNpemUiOjMxNTAsImFubm90YXRpb25zIjp7Im9yZy5vcGVuY29udGFpbmVycy5pbWFnZS5jcmVhdGVkIjoiMjAyNi0wMS0yNFQwMjowNzoyNloifSwicGxhdGZvcm0iOnsiYXJjaGl0ZWN0dXJlIjoiYW1kNjQiLCJvcyI6ImxpbnV4In19\",\"timestamp\":\"2026-01-24T02:07:27.465425402Z\"},{\"message\":\"containerimage.config.digest: sha256:35036f5643bb858d0f1db7f426994e4b622363e336c33c7c3d4070b46fca1eaa\",\"timestamp\":\"2026-01-24T02:07:27.465429358Z\"},{\"message\":\"\",\"timestamp\":\"2026-01-24T02:07:37.552670758Z\"},{\"message\":\"\\u001b[35m====================\\nStarting Healthcheck\\n====================\\n\\u001b[0m\",\"timestamp\":\"2026-01-24T02:07:37.552735398Z\"},{\"message\":\"\\u001b[37mPath: /health\\u001b[0m\",\"timestamp\":\"2026-01-24T02:07:37.552737622Z\"},{\"message\":\"\\u001b[37mRetry window: 2m0s\\u001b[0m\",\"timestamp\":\"2026-01-24T02:07:37.552738830Z\"},{\"message\":\"\",\"timestamp\":\"2026-01-24T02:07:37.552739973Z\"},{\"message\":\"image push\",\"timestamp\":\"2026-01-24T02:07:41.623277040Z\"},{\"message\":\"image push\",\"timestamp\":\"2026-01-24T02:07:41.623413695Z\"},{\"message\":\"\\u001b[93mAttempt #1 failed with service unavailable. Continuing to retry for 1m49s\\u001b[0m\",\"timestamp\":\"2026-01-24T02:07:47.594665036Z\"},{\"message\":\"\\u001b[93mAttempt #2 failed with service unavailable. Continuing to retry for 1m38s\\u001b[0m\",\"timestamp\":\"2026-01-24T02:07:58.608532614Z\"},{\"message\":\"\\u001b[93mAttempt #3 failed with service unavailable. Continuing to retry for 1m36s\\u001b[0m\",\"timestamp\":\"2026-01-24T02:08:00.624509738Z\"},{\"message\":\"\\u001b[93mAttempt #4 failed with service unavailable. Continuing to retry for 1m32s\\u001b[0m\",\"timestamp\":\"2026-01-24T02:08:04.638650312Z\"},{\"message\":\"\\u001b[93mAttempt #5 failed with service unavailable. Continuing to retry for 1m24s\\u001b[0m\",\"timestamp\":\"2026-01-24T02:08:12.652053728Z\"},{\"message\":\"\\u001b[93mAttempt #6 failed with service unavailable. Continuing to retry for 1m8s\\u001b[0m\",\"timestamp\":\"2026-01-24T02:08:28.666583957Z\"},{\"message\":\"\\u001b[93mAttempt #7 failed with service unavailable. Continuing to retry for 38s\\u001b[0m\",\"timestamp\":\"2026-01-24T02:08:58.681542488Z\"},{\"message\":\"\\u001b[93mAttempt #8 failed with service unavailable. Continuing to retry for 8s\\u001b[0m\",\"timestamp\":\"2026-01-24T02:09:28.695981940Z\"},{\"message\":\"\",\"timestamp\":\"2026-01-24T02:09:28.736392828Z\"},{\"message\":\"\\u001b[91m1/1 replicas never became healthy!\\u001b[0m\",\"timestamp\":\"2026-01-24T02:09:28.736469787Z\"},{\"message\":\"\\u001b[91mHealthcheck failed!\\u001b[0m\",\"timestamp\":\"2026-01-24T02:09:28.736473663Z\"}]",
+        "File":  "C:\\Users\\User\\arifOS\\logs\\logs.1769221144425.json",
+        "Line":  1
+    },
+    {
+        "Content":  "os.environ[\"ARIFOS_FLOORS_SPEC\"] = str(Path(\"AAA_MCP/v46/constitutional_floors.json\").resolve())",
+        "File":  "C:\\Users\\User\\arifOS\\scripts\\debug_metrics.py",
+        "Line":  12
+    },
+    {
+        "Content":  "with open(\"AAA_MCP/v46/constitutional_floors.json\", \"r\", encoding=\"utf-8\") as f:",
+        "File":  "C:\\Users\\User\\arifOS\\scripts\\debug_metrics.py",
+        "Line":  18
+    },
+    {
+        "Content":  "from AAA_MCP.v49.mcp_obsidian_bridge import (OBSIDIAN_VAULT_PATH,",
+        "File":  "C:\\Users\\User\\arifOS\\scripts\\sync_vault_to_obsidian.py",
+        "Line":  21
+    },
+    {
+        "Content":  "from AAA_MCP.server import create_aaa_server, TOOL_DESCRIPTIONS",
+        "File":  "C:\\Users\\User\\arifOS\\scripts\\test_mcp_compliance.py",
+        "Line":  355
+    },
+    {
+        "Content":  "name=\"Import AAA_MCP\",",
+        "File":  "C:\\Users\\User\\arifOS\\scripts\\test_mcp_compliance.py",
+        "Line":  358
+    },
+    {
+        "Content":  "message=f\"Failed to import AAA_MCP.server: {e}\"",
+        "File":  "C:\\Users\\User\\arifOS\\scripts\\test_mcp_compliance.py",
+        "Line":  360
+    },
+    {
+        "Content":  "name=\"Import AAA_MCP\",",
+        "File":  "C:\\Users\\User\\arifOS\\scripts\\test_mcp_compliance.py",
+        "Line":  365
+    },
+    {
+        "Content":  "message=\"AAA_MCP.server imported successfully\"",
+        "File":  "C:\\Users\\User\\arifOS\\scripts\\test_mcp_compliance.py",
+        "Line":  367
+    },
+    {
+        "Content":  "from AAA_MCP.server import TOOL_ROUTERS",
+        "File":  "C:\\Users\\User\\arifOS\\scripts\\test_mcp_compliance.py",
+        "Line":  473
+    },
+    {
+        "Content":  "\"ARIFOS_FLOORS_SPEC\": \"AAA_MCP/v46/constitutional_floors.json\",",
+        "File":  "C:\\Users\\User\\arifOS\\scripts\\verify_v49_wiring.py",
+        "Line":  19
+    },
+    {
+        "Content":  "\"ARIFOS_GENIUS_SPEC\": \"AAA_MCP/v46/genius_law.json\",",
+        "File":  "C:\\Users\\User\\arifOS\\scripts\\verify_v49_wiring.py",
+        "Line":  20
+    },
+    {
+        "Content":  "\"ARIFOS_STAGES_SPEC\": \"AAA_MCP/v46/constitutional_stages.json\",",
+        "File":  "C:\\Users\\User\\arifOS\\scripts\\verify_v49_wiring.py",
+        "Line":  21
+    },
+    {
+        "Content":  "\"ARIFOS_WORKFLOWS_SPEC\": \"AAA_MCP/v46/constitutional_workflows.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\scripts\\verify_v49_wiring.py",
+        "Line":  22
+    },
+    {
+        "Content":  "assert mcp.name == \"arifOS_AAA_MCP\"",
+        "File":  "C:\\Users\\User\\arifOS\\tests\\legacy\\test_arifos_mcp_smoke.py",
+        "Line":  20
+    },
+    {
+        "Content":  "Track B Authority: AAA_MCP/v46/cooling_ledger_phoenix.json",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157676\\ledger\\ledger_config_loader.py",
+        "Line":  5
+    },
+    {
+        "Content":  "B) AAA_MCP/v46/cooling_ledger_phoenix.json (AUTHORITATIVE v46+)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157676\\ledger\\ledger_config_loader.py",
+        "Line":  32
+    },
+    {
+        "Content":  "# Priority B: AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157676\\ledger\\ledger_config_loader.py",
+        "Line":  94
+    },
+    {
+        "Content":  "v47_path = pkg_dir / \"AAA_MCP\" / \"v47\" / \"cooling_ledger_phoenix.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157676\\ledger\\ledger_config_loader.py",
+        "Line":  96
+    },
+    {
+        "Content":  "# Priority C: AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157676\\ledger\\ledger_config_loader.py",
+        "Line":  106
+    },
+    {
+        "Content":  "v46_path = pkg_dir / \"AAA_MCP\" / \"v46\" / \"cooling_ledger_phoenix.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157676\\ledger\\ledger_config_loader.py",
+        "Line":  108
+    },
+    {
+        "Content":  "f\"Loading from AAA_MCP/v46/ (v46 fallback). Please migrate to AAA_MCP/v47/.\",",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157676\\ledger\\ledger_config_loader.py",
+        "Line":  111
+    },
+    {
+        "Content":  "f\"Loading from spec/v45/ (DEPRECATED in v47+). Please migrate to AAA_MCP/v47/. \"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157676\\ledger\\ledger_config_loader.py",
+        "Line":  128
+    },
+    {
+        "Content":  "f\"Loading from spec/v44/ (DEPRECATED). Please migrate to AAA_MCP/v47/. \"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157676\\ledger\\ledger_config_loader.py",
+        "Line":  146
+    },
+    {
+        "Content":  "f\"  - AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157676\\ledger\\ledger_config_loader.py",
+        "Line":  164
+    },
+    {
+        "Content":  "f\"  - AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157676\\ledger\\ledger_config_loader.py",
+        "Line":  165
+    },
+    {
+        "Content":  "\"1. Ensure AAA_MCP/v47/cooling_ledger_phoenix.json exists OR\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157676\\ledger\\ledger_config_loader.py",
+        "Line":  169
+    },
+    {
+        "Content":  "v47_schema_path = pkg_dir / \"AAA_MCP\" / \"v47\" / \"schema\" / \"cooling_ledger_phoenix.schema.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157676\\ledger\\ledger_config_loader.py",
+        "Line":  174
+    },
+    {
+        "Content":  "v46_schema_path = pkg_dir / \"AAA_MCP\" / \"v46\" / \"schema\" / \"cooling_ledger_phoenix.schema.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157676\\ledger\\ledger_config_loader.py",
+        "Line":  175
+    },
+    {
+        "Content":  "Track B Authority: AAA_MCP/v46/cooling_ledger_phoenix.json",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157730\\ledger\\ledger_config_loader.py",
+        "Line":  5
+    },
+    {
+        "Content":  "B) AAA_MCP/v46/cooling_ledger_phoenix.json (AUTHORITATIVE v46+)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157730\\ledger\\ledger_config_loader.py",
+        "Line":  32
+    },
+    {
+        "Content":  "# Priority B: AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157730\\ledger\\ledger_config_loader.py",
+        "Line":  94
+    },
+    {
+        "Content":  "v47_path = pkg_dir / \"AAA_MCP\" / \"v47\" / \"cooling_ledger_phoenix.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157730\\ledger\\ledger_config_loader.py",
+        "Line":  96
+    },
+    {
+        "Content":  "# Priority C: AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157730\\ledger\\ledger_config_loader.py",
+        "Line":  106
+    },
+    {
+        "Content":  "v46_path = pkg_dir / \"AAA_MCP\" / \"v46\" / \"cooling_ledger_phoenix.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157730\\ledger\\ledger_config_loader.py",
+        "Line":  108
+    },
+    {
+        "Content":  "f\"Loading from AAA_MCP/v46/ (v46 fallback). Please migrate to AAA_MCP/v47/.\",",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157730\\ledger\\ledger_config_loader.py",
+        "Line":  111
+    },
+    {
+        "Content":  "f\"Loading from spec/v45/ (DEPRECATED in v47+). Please migrate to AAA_MCP/v47/. \"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157730\\ledger\\ledger_config_loader.py",
+        "Line":  128
+    },
+    {
+        "Content":  "f\"Loading from spec/v44/ (DEPRECATED). Please migrate to AAA_MCP/v47/. \"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157730\\ledger\\ledger_config_loader.py",
+        "Line":  146
+    },
+    {
+        "Content":  "f\"  - AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157730\\ledger\\ledger_config_loader.py",
+        "Line":  164
+    },
+    {
+        "Content":  "f\"  - AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157730\\ledger\\ledger_config_loader.py",
+        "Line":  165
+    },
+    {
+        "Content":  "\"1. Ensure AAA_MCP/v47/cooling_ledger_phoenix.json exists OR\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157730\\ledger\\ledger_config_loader.py",
+        "Line":  169
+    },
+    {
+        "Content":  "v47_schema_path = pkg_dir / \"AAA_MCP\" / \"v47\" / \"schema\" / \"cooling_ledger_phoenix.schema.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157730\\ledger\\ledger_config_loader.py",
+        "Line":  174
+    },
+    {
+        "Content":  "v46_schema_path = pkg_dir / \"AAA_MCP\" / \"v46\" / \"schema\" / \"cooling_ledger_phoenix.schema.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157730\\ledger\\ledger_config_loader.py",
+        "Line":  175
+    },
+    {
+        "Content":  "Track B Authority: AAA_MCP/v46/cooling_ledger_phoenix.json",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157796\\ledger\\ledger_config_loader.py",
+        "Line":  5
+    },
+    {
+        "Content":  "B) AAA_MCP/v46/cooling_ledger_phoenix.json (AUTHORITATIVE v46+)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157796\\ledger\\ledger_config_loader.py",
+        "Line":  32
+    },
+    {
+        "Content":  "# Priority B: AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157796\\ledger\\ledger_config_loader.py",
+        "Line":  94
+    },
+    {
+        "Content":  "v47_path = pkg_dir / \"AAA_MCP\" / \"v47\" / \"cooling_ledger_phoenix.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157796\\ledger\\ledger_config_loader.py",
+        "Line":  96
+    },
+    {
+        "Content":  "# Priority C: AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157796\\ledger\\ledger_config_loader.py",
+        "Line":  106
+    },
+    {
+        "Content":  "v46_path = pkg_dir / \"AAA_MCP\" / \"v46\" / \"cooling_ledger_phoenix.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157796\\ledger\\ledger_config_loader.py",
+        "Line":  108
+    },
+    {
+        "Content":  "f\"Loading from AAA_MCP/v46/ (v46 fallback). Please migrate to AAA_MCP/v47/.\",",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157796\\ledger\\ledger_config_loader.py",
+        "Line":  111
+    },
+    {
+        "Content":  "f\"Loading from spec/v45/ (DEPRECATED in v47+). Please migrate to AAA_MCP/v47/. \"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157796\\ledger\\ledger_config_loader.py",
+        "Line":  128
+    },
+    {
+        "Content":  "f\"Loading from spec/v44/ (DEPRECATED). Please migrate to AAA_MCP/v47/. \"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157796\\ledger\\ledger_config_loader.py",
+        "Line":  146
+    },
+    {
+        "Content":  "f\"  - AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157796\\ledger\\ledger_config_loader.py",
+        "Line":  164
+    },
+    {
+        "Content":  "f\"  - AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157796\\ledger\\ledger_config_loader.py",
+        "Line":  165
+    },
+    {
+        "Content":  "\"1. Ensure AAA_MCP/v47/cooling_ledger_phoenix.json exists OR\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157796\\ledger\\ledger_config_loader.py",
+        "Line":  169
+    },
+    {
+        "Content":  "v47_schema_path = pkg_dir / \"AAA_MCP\" / \"v47\" / \"schema\" / \"cooling_ledger_phoenix.schema.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157796\\ledger\\ledger_config_loader.py",
+        "Line":  174
+    },
+    {
+        "Content":  "v46_schema_path = pkg_dir / \"AAA_MCP\" / \"v46\" / \"schema\" / \"cooling_ledger_phoenix.schema.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157796\\ledger\\ledger_config_loader.py",
+        "Line":  175
+    },
+    {
+        "Content":  "Track B Authority: AAA_MCP/v46/cooling_ledger_phoenix.json",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157821\\ledger\\ledger_config_loader.py",
+        "Line":  5
+    },
+    {
+        "Content":  "B) AAA_MCP/v46/cooling_ledger_phoenix.json (AUTHORITATIVE v46+)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157821\\ledger\\ledger_config_loader.py",
+        "Line":  32
+    },
+    {
+        "Content":  "# Priority B: AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157821\\ledger\\ledger_config_loader.py",
+        "Line":  94
+    },
+    {
+        "Content":  "v47_path = pkg_dir / \"AAA_MCP\" / \"v47\" / \"cooling_ledger_phoenix.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157821\\ledger\\ledger_config_loader.py",
+        "Line":  96
+    },
+    {
+        "Content":  "# Priority C: AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157821\\ledger\\ledger_config_loader.py",
+        "Line":  106
+    },
+    {
+        "Content":  "v46_path = pkg_dir / \"AAA_MCP\" / \"v46\" / \"cooling_ledger_phoenix.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157821\\ledger\\ledger_config_loader.py",
+        "Line":  108
+    },
+    {
+        "Content":  "f\"Loading from AAA_MCP/v46/ (v46 fallback). Please migrate to AAA_MCP/v47/.\",",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157821\\ledger\\ledger_config_loader.py",
+        "Line":  111
+    },
+    {
+        "Content":  "f\"Loading from spec/v45/ (DEPRECATED in v47+). Please migrate to AAA_MCP/v47/. \"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157821\\ledger\\ledger_config_loader.py",
+        "Line":  128
+    },
+    {
+        "Content":  "f\"Loading from spec/v44/ (DEPRECATED). Please migrate to AAA_MCP/v47/. \"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157821\\ledger\\ledger_config_loader.py",
+        "Line":  146
+    },
+    {
+        "Content":  "f\"  - AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157821\\ledger\\ledger_config_loader.py",
+        "Line":  164
+    },
+    {
+        "Content":  "f\"  - AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157821\\ledger\\ledger_config_loader.py",
+        "Line":  165
+    },
+    {
+        "Content":  "\"1. Ensure AAA_MCP/v47/cooling_ledger_phoenix.json exists OR\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157821\\ledger\\ledger_config_loader.py",
+        "Line":  169
+    },
+    {
+        "Content":  "v47_schema_path = pkg_dir / \"AAA_MCP\" / \"v47\" / \"schema\" / \"cooling_ledger_phoenix.schema.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157821\\ledger\\ledger_config_loader.py",
+        "Line":  174
+    },
+    {
+        "Content":  "v46_schema_path = pkg_dir / \"AAA_MCP\" / \"v46\" / \"schema\" / \"cooling_ledger_phoenix.schema.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157821\\ledger\\ledger_config_loader.py",
+        "Line":  175
+    },
+    {
+        "Content":  "Track B Authority: AAA_MCP/v46/cooling_ledger_phoenix.json",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157862\\ledger\\ledger_config_loader.py",
+        "Line":  5
+    },
+    {
+        "Content":  "B) AAA_MCP/v46/cooling_ledger_phoenix.json (AUTHORITATIVE v46+)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157862\\ledger\\ledger_config_loader.py",
+        "Line":  32
+    },
+    {
+        "Content":  "# Priority B: AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157862\\ledger\\ledger_config_loader.py",
+        "Line":  94
+    },
+    {
+        "Content":  "v47_path = pkg_dir / \"AAA_MCP\" / \"v47\" / \"cooling_ledger_phoenix.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157862\\ledger\\ledger_config_loader.py",
+        "Line":  96
+    },
+    {
+        "Content":  "# Priority C: AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157862\\ledger\\ledger_config_loader.py",
+        "Line":  106
+    },
+    {
+        "Content":  "v46_path = pkg_dir / \"AAA_MCP\" / \"v46\" / \"cooling_ledger_phoenix.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157862\\ledger\\ledger_config_loader.py",
+        "Line":  108
+    },
+    {
+        "Content":  "f\"Loading from AAA_MCP/v46/ (v46 fallback). Please migrate to AAA_MCP/v47/.\",",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157862\\ledger\\ledger_config_loader.py",
+        "Line":  111
+    },
+    {
+        "Content":  "f\"Loading from spec/v45/ (DEPRECATED in v47+). Please migrate to AAA_MCP/v47/. \"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157862\\ledger\\ledger_config_loader.py",
+        "Line":  128
+    },
+    {
+        "Content":  "f\"Loading from spec/v44/ (DEPRECATED). Please migrate to AAA_MCP/v47/. \"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157862\\ledger\\ledger_config_loader.py",
+        "Line":  146
+    },
+    {
+        "Content":  "f\"  - AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157862\\ledger\\ledger_config_loader.py",
+        "Line":  164
+    },
+    {
+        "Content":  "f\"  - AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157862\\ledger\\ledger_config_loader.py",
+        "Line":  165
+    },
+    {
+        "Content":  "\"1. Ensure AAA_MCP/v47/cooling_ledger_phoenix.json exists OR\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157862\\ledger\\ledger_config_loader.py",
+        "Line":  169
+    },
+    {
+        "Content":  "v47_schema_path = pkg_dir / \"AAA_MCP\" / \"v47\" / \"schema\" / \"cooling_ledger_phoenix.schema.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157862\\ledger\\ledger_config_loader.py",
+        "Line":  174
+    },
+    {
+        "Content":  "v46_schema_path = pkg_dir / \"AAA_MCP\" / \"v46\" / \"schema\" / \"cooling_ledger_phoenix.schema.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157862\\ledger\\ledger_config_loader.py",
+        "Line":  175
+    },
+    {
+        "Content":  "Track B Authority: AAA_MCP/v46/cooling_ledger_phoenix.json",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157928\\ledger\\ledger_config_loader.py",
+        "Line":  5
+    },
+    {
+        "Content":  "B) AAA_MCP/v46/cooling_ledger_phoenix.json (AUTHORITATIVE v46+)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157928\\ledger\\ledger_config_loader.py",
+        "Line":  32
+    },
+    {
+        "Content":  "# Priority B: AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157928\\ledger\\ledger_config_loader.py",
+        "Line":  94
+    },
+    {
+        "Content":  "v47_path = pkg_dir / \"AAA_MCP\" / \"v47\" / \"cooling_ledger_phoenix.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157928\\ledger\\ledger_config_loader.py",
+        "Line":  96
+    },
+    {
+        "Content":  "# Priority C: AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157928\\ledger\\ledger_config_loader.py",
+        "Line":  106
+    },
+    {
+        "Content":  "v46_path = pkg_dir / \"AAA_MCP\" / \"v46\" / \"cooling_ledger_phoenix.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157928\\ledger\\ledger_config_loader.py",
+        "Line":  108
+    },
+    {
+        "Content":  "f\"Loading from AAA_MCP/v46/ (v46 fallback). Please migrate to AAA_MCP/v47/.\",",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157928\\ledger\\ledger_config_loader.py",
+        "Line":  111
+    },
+    {
+        "Content":  "f\"Loading from spec/v45/ (DEPRECATED in v47+). Please migrate to AAA_MCP/v47/. \"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157928\\ledger\\ledger_config_loader.py",
+        "Line":  128
+    },
+    {
+        "Content":  "f\"Loading from spec/v44/ (DEPRECATED). Please migrate to AAA_MCP/v47/. \"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157928\\ledger\\ledger_config_loader.py",
+        "Line":  146
+    },
+    {
+        "Content":  "f\"  - AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157928\\ledger\\ledger_config_loader.py",
+        "Line":  164
+    },
+    {
+        "Content":  "f\"  - AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157928\\ledger\\ledger_config_loader.py",
+        "Line":  165
+    },
+    {
+        "Content":  "\"1. Ensure AAA_MCP/v47/cooling_ledger_phoenix.json exists OR\\n\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157928\\ledger\\ledger_config_loader.py",
+        "Line":  169
+    },
+    {
+        "Content":  "v47_schema_path = pkg_dir / \"AAA_MCP\" / \"v47\" / \"schema\" / \"cooling_ledger_phoenix.schema.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157928\\ledger\\ledger_config_loader.py",
+        "Line":  174
+    },
+    {
+        "Content":  "v46_schema_path = pkg_dir / \"AAA_MCP\" / \"v46\" / \"schema\" / \"cooling_ledger_phoenix.schema.json\"",
+        "File":  "C:\\Users\\User\\arifOS\\VAULT999\\constitutional_backups\\memory_ledger_1769157928\\ledger\\ledger_config_loader.py",
+        "Line":  175
+    },
+    {
+        "Content":  "\"$comment\": \"arifOS v51.1.0 MCP Configuration - AAA_MCP (The Great Decoupling)\",",
+        "File":  "C:\\Users\\User\\arifOS\\.mcp.json",
+        "Line":  3
+    },
+    {
+        "Content":  "\"AAA_MCP\"",
+        "File":  "C:\\Users\\User\\arifOS\\.mcp.json",
+        "Line":  9
+    },
+    {
+        "Content":  "\"$comment\": \"Start with: python -m AAA_MCP sse --port 8000\"",
+        "File":  "C:\\Users\\User\\arifOS\\.mcp.json",
+        "Line":  23
+    }
+]

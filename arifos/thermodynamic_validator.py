@@ -11,4 +11,3 @@ from .core.thermodynamic_validator import (calculate_delta_s,
                                            validate_humility,
                                            validate_peace_squared,
                                            validate_thermodynamics)
-)

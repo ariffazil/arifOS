@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-AAA MCP Protocol Compliance Test Suite (v51.2)
+arifOS MCP Protocol Compliance Test Suite (v52)
 
 Validates MCP protocol compliance per DEPLOYMENT_CHECKLIST.md P1:
   - JSON-RPC 2.0 validation (jsonrpc, id, method, params)
@@ -352,24 +352,24 @@ async def test_server_directly() -> ComplianceReport:
     report = ComplianceReport()
 
     try:
-        from AAA_MCP.server import create_aaa_server, TOOL_DESCRIPTIONS
+        from arifos.mcp.server import create_mcp_server, TOOL_DESCRIPTIONS
     except ImportError as e:
         report.add(TestResult(
-            name="Import AAA_MCP",
+            name="Import arifos.mcp",
             passed=False,
-            message=f"Failed to import AAA_MCP.server: {e}"
+            message=f"Failed to import arifos.mcp.server: {e}"
         ))
         return report
 
     report.add(TestResult(
-        name="Import AAA_MCP",
+        name="Import arifos.mcp",
         passed=True,
-        message="AAA_MCP.server imported successfully"
+        message="arifos.mcp.server imported successfully"
     ))
 
     # Create server (validates server factory works)
     try:
-        _ = create_aaa_server()  # Server created successfully
+        _ = create_mcp_server()  # Server created successfully
     except Exception as e:
         report.add(TestResult(
             name="Create Server",
@@ -470,23 +470,24 @@ async def test_server_directly() -> ComplianceReport:
             ))
 
     # Test 4: Test tool routers directly (bypasses MCP transport)
-    from AAA_MCP.server import TOOL_ROUTERS
+    # Note: v52 routers are async
+    from arifos.mcp.server import TOOL_ROUTERS
 
     for tool_name, router in TOOL_ROUTERS.items():
         try:
-            # Call with minimal required params
+            # Call with minimal required params (await for v52 async routers)
             if tool_name == "000_init":
-                result = router(action="validate")
+                result = await router(action="validate")
             elif tool_name == "agi_genius":
-                result = router(action="sense", query="test query")
+                result = await router(action="sense", query="test query")
             elif tool_name == "asi_act":
-                result = router(action="evidence", query="test query")
+                result = await router(action="evidence", query="test query")
             elif tool_name == "apex_judge":
-                result = router(action="entropy", query="test")
+                result = await router(action="entropy", query="test")
             elif tool_name == "999_vault":
-                result = router(action="list", target="audit")
+                result = await router(action="list", target="audit")
             else:
-                result = router(action="full")
+                result = await router(action="full")
 
             # Verify result is dict with status
             if isinstance(result, dict):

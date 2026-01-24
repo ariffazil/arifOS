@@ -1,0 +1,11 @@
+{
+  "version": "v46.0.0",
+  "generated": "2026-01-24T00:00:00Z",
+  "algorithm": "sha256",
+  "files": {
+    "constitutional_floors.json": "57256661908b44825bf8c5bc86bc7eaecc4439133aa947f9e07c13bddc48ccf4",
+    "schema/constitutional_floors.schema.json": "82feb5432d6d38d3626705ccaedc13de1ad043fc10e5724ad8f4f2c50f1d7712"
+  },
+  "seal_status": "SEALED",
+  "authority": "AAA_MCP v51.1.0"
+}

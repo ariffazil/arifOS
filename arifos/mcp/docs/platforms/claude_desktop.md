@@ -1,6 +1,6 @@
-# Claude Desktop Integration
+# Claude Desktop Integration (v52)
 
-**AAA MCP for Claude Desktop** - Constitutional AI governance via Model Context Protocol.
+**arifOS MCP for Claude Desktop** - Constitutional AI governance via Model Context Protocol.
 
 ---
 
@@ -36,10 +36,11 @@ Add to your `claude_desktop_config.json`:
   "mcpServers": {
     "arifos-trinity": {
       "command": "python",
-      "args": ["-m", "AAA_MCP"],
+      "args": ["-m", "arifos.mcp", "trinity"],
       "cwd": "C:\\path\\to\\arifOS",
       "env": {
-        "PYTHONPATH": "C:\\path\\to\\arifOS"
+        "PYTHONPATH": "C:\\path\\to\\arifOS",
+        "ARIFOS_MODE": "production"
       }
     }
   }
@@ -134,7 +135,7 @@ type "%APPDATA%\Claude\claude_desktop_config.json"
 
 REM Test server manually
 cd C:\path\to\arifOS
-python -m AAA_MCP
+python -m arifos.mcp trinity
 ```
 
 The server should print a banner and wait for MCP commands.
@@ -153,7 +154,7 @@ Or manually remove the `arifos-trinity` entry from `claude_desktop_config.json`.
 
 ## Security Notes
 
-- AAA MCP enforces 13 constitutional floors on all operations
+- arifOS MCP enforces 13 constitutional floors on all operations
 - Rate limiting (F11) prevents API abuse
 - Injection defense (F12) blocks malicious inputs
 - All operations are logged to the cooling ledger
