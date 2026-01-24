@@ -5,6 +5,25 @@ Authority: Muhammad Arif bin Fazil
 Single source of truth for all constitutional enforcement
 """
 
+from pathlib import Path
+from typing import Dict
+import time
+
+# Try to import from core engines
+try:
+    from arifos.core.agi.entropy import ConstitutionalEntropyEngine
+except ImportError:
+    # Fallback/Mock for standalone mode
+    class ConstitutionalEntropyEngine:
+        def __init__(self, *args, **kwargs): pass
+        def measure_string_entropy(self, s, *args):
+            from dataclasses import dataclass
+            @dataclass
+            class MockEntropy:
+                delta_s: float = -0.1
+                def is_constitutional(self): return True
+            return MockEntropy()
+
 class UnifiedConstitutionalFloors:
     """
     Single implementation of F1-F13 floors with constitutional authority

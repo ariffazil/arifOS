@@ -8,7 +8,7 @@
 
 > **"Intelligence without governance is fire without a forge."**
 
-**Version:** v50.5.25 | **Status:** Live on Railway
+**Version:** v52.0.0 | **Status:** Live on Railway (Unified Core SEAL)
 **Motto:** *"Ditempa Bukan Diberi"* — Forged, Not Given
 **Authority:** Muhammad Arif bin Fazil | Penang, Malaysia
 
@@ -323,7 +323,7 @@ arifOS exposes 5 tools via the Model Context Protocol (MCP):
 
 ## Platform Support Matrix
 
-arifOS AAA_MCP integrates with 8+ platforms via Model Context Protocol (MCP). Choose your AI tool:
+arifOS Unified Core integrates with 8+ platforms via Model Context Protocol (MCP). Choose your AI tool:
 
 | Platform | AI Models | Transport | Priority | SEAL Rate | Setup Guide |
 |----------|-----------|-----------|----------|-----------|-------------|
@@ -331,8 +331,8 @@ arifOS AAA_MCP integrates with 8+ platforms via Model Context Protocol (MCP). Ch
 | **Cursor IDE** | GPT-4, Claude | stdio | ⭐ Tier 1 | ≥0.78 | [Guide](./docs/platforms/cursor.md) |
 | **Cline** (VS Code) | GPT-4, Claude, Local | stdio | ⭐⭐ Tier 2 | ≥0.75 | [Guide](./docs/platforms/cline.md) |
 | **Continue.dev** | Llama, Mixtral, Local | stdio | ⭐⭐ Tier 2 | ≥0.65 | [Guide](./docs/platforms/continue_dev.md) |
-| **ChatGPT Dev** | GPT-4 Turbo | HTTP/SSE | ⭐⭐ Tier 2 | ≥0.70 | (Coming soon) |
-| **Ollama** | Llama, Mistral | HTTP/SSE | ⭐⭐⭐ Tier 3 | ≥0.73 | (Coming soon) |
+| **ChatGPT Dev** | GPT-4 Turbo | HTTP/SSE | ⭐⭐ Tier 2 | ≥0.70 | [Guide](./docs/platforms/chatgpt_dev.md) |
+| **Ollama** | Llama, Mistral | HTTP/SSE | ⭐⭐⭐ Tier 3 | ≥0.73 | [Guide](./docs/platforms/ollama.md) |
 | **Cody** | Claude, GPT-4 | stdio | ⭐⭐⭐ Tier 3 | TBD | (Researching) |
 | **Kimi** (CLI/Agent) | Moonshot Models | stdio | ⭐⭐ Tier 2 | TBD | [Guide](./docs/platforms/kimi.md) |
 
@@ -469,13 +469,10 @@ pip install arifos
 
 ```bash
 # For Claude Desktop, Cursor, Cline (stdio mode)
-python -m AAA_MCP
+python -m arifos.mcp trinity
 
 # For ChatGPT Actions, remote clients (HTTP/SSE mode)
-python -m AAA_MCP sse --port 8000
-
-# Or with uvicorn (alternative)
-uvicorn arifos.core.integration.api.app:app --host 0.0.0.0 --port 8000
+python -m arifos.mcp trinity-sse --port 8000
 ```
 
 **Note:** Most users should use platform-specific config scripts rather than running the server manually.
@@ -992,32 +989,23 @@ This creates an immutable, verifiable record of every AI interaction.
 
 ```
 arifOS/
-├── arifos/                      # Main Python package
-│   ├── core/                    # Trinity engines
-│   │   ├── floor_validators.py  # F1-F13 implementations
-│   │   ├── thermodynamic_validator.py
-│   │   └── system/
-│   │       └── apex_prime.py    # Verdict orchestrator
-│   ├── mcp/                     # MCP servers
-│   │   ├── trinity_server.py    # 5-tool Trinity (FastAPI)
-│   │   ├── tools/
-│   │   │   └── mcp_trinity.py   # Tool implementations
-│   │   ├── rate_limiter.py      # Constitutional rate limiting
-│   │   └── metrics.py           # Prometheus metrics
-│   ├── ledger/                  # Cooling ledger system
-│   └── clip/                    # CLI implementation
+├── arifos/                      # Main Python package (The Unified Core)
+│   ├── core/                    # Trinity engines (Brain)
+│   │   ├── agi/                 # Mind Kernel
+│   │   ├── asi/                 # Heart Kernel
+│   │   ├── apex/                # Soul Kernel
+│   │   ├── governance/          # F11 Rate Limiting / Auth
+│   │   └── spec/                # Canonical Floor Definitions (Track B)
+│   ├── mcp/                     # Application Layer (Body)
+│   │   ├── server.py            # stdio transport
+│   │   ├── sse.py               # SSE transport
+│   │   └── bridge.py            # Pure zero-logic wiring
+│   └── protocol/                # aCLIP Implementation
 ├── 000_THEORY/                  # Constitutional theory
-│   ├── 000_LAW.md               # Floor definitions
-│   └── 099_SOVEREIGN_PARADOX.md # 99 Legacies treatise
 ├── VAULT999/                    # Constitutional memory vault
-│   ├── AAA_HUMAN/               # Human authority
-│   ├── BBB_LEDGER/              # Operational ledger
-│   └── CCC_CANON/               # Constitutional canon
 ├── tests/                       # Test suite
-│   ├── constitutional/          # Floor validation tests
-│   └── enforcement/             # Threshold tests
 ├── docs/                        # Documentation
-│   └── UNIVERSAL_PROMPT.md      # Copy-paste system prompt
+├── PROMPT_GUIDE.md              # v52 Metabolic Prompting Guide
 └── README.md                    # This file
 ```
 

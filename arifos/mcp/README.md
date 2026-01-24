@@ -1,45 +1,63 @@
-# AAA MCP — Constitutional AI Governance Protocol
+# AAA MCP — AI Safety Layer for Any Application
 
-**Version:** v52.0.0-SEAL  
-**Authority:** arifOS Constitutional Framework  
-**Status:** PRODUCTION (Unified with arifos.mcp)
+**Version:** v52.0.0
+**What it does:** Makes AI outputs safer, more honest, and auditable
+**Works with:** Claude Desktop, Cursor, VS Code, Railway, any MCP-compatible tool
 
 ---
 
-```
-    ╔═══════════════════════════════════════════════════════════════╗
-    ║                                                               ║
-    ║     █████╗  █████╗  █████╗     ███╗   ███╗ ██████╗██████╗    ║
-    ║    ██╔══██╗██╔══██╗██╔══██╗    ████╗ ████║██╔════╝██╔══██╗   ║
-    ║    ███████║███████║███████║    ██╔████╔██║██║     ██████╔╝   ║
-    ║    ██╔══██║██╔══██║██╔══██║    ██║╚██╔╝██║██║     ██╔═══╝    ║
-    ║    ██║  ██║██║  ██║██║  ██║    ██║ ╚═╝ ██║╚██████╗██║        ║
-    ║    ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝    ╚═╝     ╚═╝ ╚═════╝╚═╝        ║
-    ║                                                               ║
-    ║         AGI × ASI × APEX — Model Context Protocol             ║
-    ║                                                               ║
-    ║                  DITEMPA BUKAN DIBERI                         ║
-    ║                   Forged, Not Given                           ║
-    ║                                                               ║
-    ╚═══════════════════════════════════════════════════════════════╝
+```text
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║                        AAA MCP                                ║
+║                                                               ║
+║         Your AI says something                                ║
+║                ↓                                              ║
+║         ┌─────────────┐                                       ║
+║         │  AAA MCP    │  ← Checks: Is it true? Safe? Fair?    ║
+║         └─────────────┘                                       ║
+║                ↓                                              ║
+║         ✓ APPROVED  or  ✗ BLOCKED  or  ⏳ NEEDS WORK          ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
 ```
 
 ---
 
 ## What is AAA MCP?
 
-**AAA MCP** is a **Model Context Protocol** implementation that provides constitutional AI governance through three orthogonal engines:
+**Think of AAA MCP as a safety inspector for AI.**
 
-| Engine | Symbol | Role | Mandate |
-|--------|--------|------|---------|
-| **AGI** | Δ (Delta) | Mind | "Is this TRUE?" |
-| **ASI** | Ω (Omega) | Heart | "Is this SAFE?" |
-| **APEX** | Ψ (Psi) | Soul | "Is this LAWFUL?" |
+Before any AI output reaches you, AAA MCP asks three questions:
 
-Together, these form the **AAA Trinity** — a complete system for ensuring AI outputs are:
-- **Truth-grounded** (AGI)
-- **Empathy-calibrated** (ASI)
-- **Constitutionally verified** (APEX)
+```text
+┌──────────────────────────────────────────────────────────────┐
+│                                                              │
+│   🧠 MIND (AGI)     →  "Is this TRUE?"                       │
+│                         Does it match reality?               │
+│                         Are the facts correct?               │
+│                                                              │
+│   💚 HEART (ASI)    →  "Is this SAFE?"                       │
+│                         Will anyone be harmed?               │
+│                         Is it fair to everyone?              │
+│                                                              │
+│   ⚖️ SOUL (APEX)    →  "Is this LAWFUL?"                     │
+│                         Does it follow the rules?            │
+│                         Can we prove it was checked?         │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**All three must approve.** If any one fails, the output is blocked or flagged.
+
+### Why does this matter?
+
+| Without AAA MCP | With AAA MCP |
+|-----------------|--------------|
+| AI might make up facts | Every claim is verified |
+| No audit trail | Every decision is logged |
+| Same rules for everything | Adapts to context |
+| Trust the AI blindly | Trust but verify |
 
 ---
 
@@ -48,7 +66,7 @@ Together, these form the **AAA Trinity** — a complete system for ensuring AI o
 ### Installation
 
 ```bash
-# Clone arifOS
+# Clone the repository
 git clone https://github.com/ariffazil/arifOS.git
 cd arifOS
 
@@ -84,52 +102,52 @@ Add to `claude_desktop_config.json`:
 
 ---
 
-## The 5-Tool Interface
+## The 5 Tools — What They Do
 
-AAA MCP provides 5 constitutional tools:
+AAA MCP gives you 5 tools. Here's what each one does in plain language:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                 │
-│    INPUT                                                        │
-│      │                                                          │
-│      ▼                                                          │
+│    YOUR REQUEST                                                 │
+│         │                                                       │
+│         ▼                                                       │
 │    ┌─────────────┐                                              │
-│    │  000_init   │  Gate: Authority + Injection Defense         │
-│    │     🚪      │  "Who are you? What do you want?"            │
+│    │  000_init   │  GATE: "Who are you? What do you want?"      │
+│    │     🚪      │  Checks identity, blocks bad actors          │
 │    └──────┬──────┘                                              │
 │           │                                                     │
 │           ▼                                                     │
 │    ┌─────────────┐                                              │
-│    │ agi_genius  │  Mind: SENSE → THINK → ATLAS → FORGE         │
-│    │     Δ       │  "Is this TRUE?"                             │
+│    │ agi_genius  │  MIND: "Is this TRUE?"                       │
+│    │     🧠      │  Fact-checks, reasons, reduces confusion     │
 │    └──────┬──────┘                                              │
 │           │                                                     │
 │           ▼                                                     │
 │    ┌─────────────┐                                              │
-│    │  asi_act    │  Heart: EVIDENCE → EMPATHY → ALIGN → ACT     │
-│    │     Ω       │  "Is this SAFE?"                             │
+│    │  asi_act    │  HEART: "Is this SAFE?"                      │
+│    │     💚      │  Checks for harm, protects the vulnerable    │
 │    └──────┬──────┘                                              │
 │           │                                                     │
 │           ▼                                                     │
 │    ┌─────────────┐                                              │
-│    │ apex_judge  │  Soul: EUREKA → JUDGE → PROOF                │
-│    │     Ψ       │  "Is this LAWFUL?"                           │
+│    │ apex_judge  │  SOUL: "Is this LAWFUL?"                     │
+│    │     ⚖️      │  Final verdict: approve, refine, or block   │
 │    └──────┬──────┘                                              │
 │           │                                                     │
 │           ▼                                                     │
 │    ┌─────────────┐                                              │
-│    │  999_vault  │  Seal: Merkle + zkPC + Immutable Log         │
-│    │     🔒      │  "SEAL it or VOID it"                        │
+│    │  999_vault  │  SEAL: "Lock it in the record"               │
+│    │     🔒      │  Creates permanent, tamper-proof audit log   │
 │    └──────┬──────┘                                              │
 │           │                                                     │
 │           ▼                                                     │
-│    OUTPUT (SEAL | SABAR | VOID)                                 │
+│    FINAL OUTPUT                                                 │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Mnemonic:** *"Init the Genius, Act with Heart, Judge at Apex, seal in Vault."*
+**Memory trick:** *"Gate → Genius → Act → Judge → Vault"*
 
 ---
 
@@ -137,430 +155,360 @@ AAA MCP provides 5 constitutional tools:
 
 ### 1. `000_init` — The Gate
 
-**Purpose:** Session ignition and authority verification.
+**What it does:** Opens a new session, verifies who you are, blocks injection attacks.
 
 ```python
-# Actions
-init    # Full 7-step ignition sequence
-
-# The 7 Steps:
-# 1. MEMORY INJECTION - Read from VAULT999
-# 2. SOVEREIGN RECOGNITION - Verify 888 Judge
-# 3. INTENT MAPPING - Classify lane (HARD/SOFT/PHATIC)
-# 4. THERMODYNAMIC SETUP - Set energy budget, ΔS targets
-# 5. FLOOR LOADING - Load F1-F13 constraints
-# 6. TRI-WITNESS HANDSHAKE - Human × AI × Earth
-# 7. ENGINE IGNITION - Start AGI/ASI/APEX
+# Available actions
+init      # Start a new session
+validate  # Check if session is valid
+status    # Get current session status
 ```
 
-### 2. `agi_genius` — The Mind (Δ)
+**When to use:** Always call this first before using other tools.
 
-**Purpose:** Truth and reasoning engine.
+### 2. `agi_genius` — The Mind
+
+**What it does:** Checks if statements are true, reduces confusion, does reasoning.
 
 ```python
-# Actions
-sense     # Lane classification + truth threshold (111)
-think     # Deep reasoning with constraints (222)
-reflect   # Clarity/entropy checking (222)
-atlas     # Meta-cognition & knowledge mapping (333)
-forge     # Clarity refinement + humility injection (777)
-evaluate  # Floor evaluation (F2 + F6)
-full      # Complete AGI pipeline
-
-# Floors Enforced
-F2 (Truth)   # τ ≥ 0.99 for HARD lane
-F6 (Clarity) # ΔS ≤ 0
-F7 (Humility)# Ω₀ ∈ [0.03, 0.05]
+# Available actions
+sense     # Understand what the user is asking
+think     # Deep reasoning on a problem
+reflect   # Check if the response is clear
+full      # Run the complete pipeline
 ```
 
-### 3. `asi_act` — The Heart (Ω)
+**Safety checks performed:**
 
-**Purpose:** Safety and empathy engine.
+- Is this factually accurate? (must be ≥99% confident)
+- Does this reduce confusion? (clarity must increase)
+- Does it admit uncertainty? (must include 3-5% doubt)
+
+### 3. `asi_act` — The Heart
+
+**What it does:** Checks if actions are safe, fair, and won't harm anyone.
 
 ```python
-# Actions
-evidence  # Truth grounding via sources (444)
-empathize # Power-aware recalibration (555)
-align     # Constitutional veto gates (666)
-act       # Execution with tri-witness gating (666)
-witness   # Collect tri-witness signatures (333)
-evaluate  # Floor evaluation (F3 + F4 + F5)
-full      # Complete ASI pipeline
-
-# Floors Enforced
-F3 (Peace²)  # P² ≥ 1.0 (non-escalation)
-F4 (Empathy) # κᵣ ≥ 0.7
-F5 (Humility)# Ω₀ ∈ [0.03, 0.05]
+# Available actions
+evidence   # Find sources to back up claims
+empathize  # Consider who might be affected
+align      # Check ethical guidelines
+full       # Run the complete pipeline
 ```
 
-### 4. `apex_judge` — The Soul (Ψ)
+**Safety checks performed:**
 
-**Purpose:** Judgment and verdict engine.
+- Will this harm anyone? (peace score must be ≥1.0)
+- Does this protect vulnerable people? (empathy ≥0.95)
+- Is this reversible? (can we undo if needed?)
+
+### 4. `apex_judge` — The Soul
+
+**What it does:** Makes the final decision — approve, request changes, or block.
 
 ```python
-# Actions
-eureka      # Paradox synthesis (777)
-judge       # Final constitutional verdict (888)
-proof       # Cryptographic sealing (889)
-entropy     # Constitutional entropy measurement
-parallelism # Parallelism proof (orthogonality)
-full        # Complete APEX pipeline
-
-# Floors Enforced
-F1 (Amanah)     # Reversibility proof
-F8 (Tri-Witness)# Consensus ≥ 0.95
-F9 (Anti-Hantu) # No consciousness claims
+# Available actions
+judge     # Make final verdict
+proof     # Create cryptographic proof
+full      # Run complete judgment
 ```
+
+**Safety checks performed:**
+
+- Did all three engines (Mind, Heart, Soul) agree?
+- Were all required rules followed?
+- Is there a witness trail?
 
 ### 5. `999_vault` — The Seal
 
-**Purpose:** Immutable storage and session persistence.
+**What it does:** Creates a permanent record that can't be changed.
 
 ```python
-# Actions
-seal    # Final seal with Merkle + zkPC
-list    # List vault entries
-read    # Read vault entry
-write   # Write to vault (requires authority)
-propose # Propose new canon entry
-
-# Memory Bands
-CCC_CANON   # Permanent constitutional knowledge
-BBB_LEDGER  # Session logs and learning
-AAA_HUMAN   # Human-provided context
+# Available actions
+seal    # Lock the decision permanently
+list    # See previous decisions
+read    # Read a specific record
 ```
+
+**Why it matters:** Every decision is logged forever. You can always prove what happened.
 
 ---
 
 ## The Three Verdicts
 
-| Verdict | Symbol | Meaning | When |
-|---------|--------|---------|------|
-| **SEAL** | ✓ | Approved | All trinities approve, all floors pass |
-| **SABAR** | ⏳ | Patience | Refinement needed, 72h to resolve |
-| **VOID** | ✗ | Rejected | Hard floor violation with justification |
+Every request gets one of three results:
 
-### The Anomalous Contrast Protocol
+| Verdict  | Symbol | What it means | What happens next              |
+|----------|--------|---------------|--------------------------------|
+| **SEAL** | ✓      | Approved      | Output is delivered            |
+| **HOLD** | ⏳     | Needs work    | Refine and try again           |
+| **VOID** | ✗      | Blocked       | Cannot proceed, rules violated |
 
-```
-VOID is EXPENSIVE — 3× energy cost, requires justification
-SEAL is EARNED — ΔS ≤ 0, requires clarity
-SABAR is DEFAULT — Wisdom to refine before deciding
-```
+### When does blocking happen?
 
-**Anti-Bangang Rule:** A judge that VOIDs everything is stupid.
-**Anti-Tong-Sampah Rule:** A vault that stores everything is trash.
+- Making claims without evidence → VOID
+- Causing harm without justification → VOID
+- Trying to bypass safety checks → VOID
+- Being unclear or confusing → HOLD (try again)
 
 ---
 
-## The 13 Constitutional Floors
+## The 12 Safety Rules (Constitutional Floors)
 
-```
-┌────┬─────────────────┬──────────────────┬────────┐
-│ F# │ Name            │ Threshold        │ Type   │
-├────┼─────────────────┼──────────────────┼────────┤
-│ F1 │ Amanah          │ Reversible/Audit │ HARD   │
-│ F2 │ Truth           │ τ ≥ 0.99         │ HARD   │
-│ F3 │ Tri-Witness     │ TW ≥ 0.95        │ DERIVED│
-│ F4 │ Empathy         │ κᵣ ≥ 0.7         │ SOFT   │
-│ F5 │ Peace²          │ P² ≥ 1.0         │ SOFT   │
-│ F6 │ Clarity         │ ΔS ≤ 0           │ HARD   │
-│ F7 │ Humility        │ Ω₀ ∈ [0.03,0.05] │ HARD   │
-│ F8 │ Genius          │ G ≥ 0.80         │ DERIVED│
-│ F9 │ Anti-Hantu      │ No AI emotions   │ SOFT   │
-│ F10│ Ontology        │ LOCKED           │ HARD   │
-│ F11│ Command Auth    │ Verified         │ HARD   │
-│ F12│ Injection Def   │ Risk < 0.85      │ HARD   │
-│ F13│ Sovereign       │ 888 Approval     │ HARD   │
-└────┴─────────────────┴──────────────────┴────────┘
+These are the rules AAA MCP enforces. Breaking a "HARD" rule blocks the output immediately.
 
-HARD: Violation = VOID (immediate halt)
-SOFT: Violation = SABAR (warning, retry)
-DERIVED: Computed from other metrics
-```
+| # | Rule Name | Plain English | Type |
+|---|-----------|---------------|------|
+| F1 | Trust | Actions must be reversible, accountable | HARD |
+| F2 | Truth | Claims must be ≥99% accurate | HARD |
+| F3 | Stability | Don't escalate conflicts | SOFT |
+| F4 | Empathy | Consider who might be hurt (≥95%) | SOFT |
+| F5 | Humility | Admit uncertainty (3-5% doubt) | HARD |
+| F6 | Clarity | Reduce confusion, not increase it | HARD |
+| F7 | Care | Show genuine concern, not fake emotion | HARD |
+| F8 | Witnesses | Human + AI + System must agree (≥95%) | SOFT |
+| F9 | No Faking | Don't claim to have feelings you don't have | HARD |
+| F10 | Reality | Maintain clear AI/human distinction | HARD |
+| F11 | Authority | Verify identity for dangerous actions | HARD |
+| F12 | Security | Block code injection attacks (risk <85%) | HARD |
+
+**HARD rules:** Break them → output blocked immediately
+**SOFT rules:** Break them → warning, chance to fix
 
 ---
 
-## The Three Universal Trinities
+## Architecture (What Files Do What)
 
-### Trinity I: Structural (Physics × Math × Symbol)
-- **Purpose:** "Is it POSSIBLE?"
-- **Generates:** Formal knowledge (math, physics, computation)
-
-### Trinity II: Governance (Human × AI × Institution × Earth)
-- **Purpose:** "Is it PERMITTED?"
-- **Generates:** Social knowledge (law, ethics, governance)
-
-### Trinity III: Constraint (Time × Energy × Space)
-- **Purpose:** "Is it SUSTAINABLE?"
-- **Generates:** Operational knowledge (engineering, design)
-
-**Convergence:** All three must approve for SEAL.
-
----
-
-## Architecture
-
-```
+```text
 arifos/mcp/
-├── __init__.py          # Module exports
-├── __main__.py          # CLI entry point
-├── README.md            # This file
-├── SYSTEM_PROMPT.md     # LLM system prompt
-├── bridge.py            # MCP ↔ Core bridge
-├── session_ledger.py    # 999-000 memory loop
-├── trinity_server.py    # MCP server implementation
-├── sse.py               # SSE transport for web
+├── __init__.py              # Exports: create_mcp_server, create_sse_app
+├── __main__.py              # Entry point: python -m arifos.mcp
+├── server.py                # Main MCP server (stdio mode)
+├── sse.py                   # SSE server (web/Railway mode)
+├── bridge.py                # Connects MCP to core engines
+├── constitution.py          # Floor enforcement logic
+├── constitutional_metrics.py # Metrics tracking
+├── session_ledger.py        # Session persistence
+├── rate_limiter.py          # Prevents abuse
+├── models.py                # Data structures
+├── mode_selector.py         # Auto-detects stdio vs SSE
+├── docs/
+│   └── platforms/           # Setup guides per platform
 └── tools/
-    ├── __init__.py
-    └── mcp_trinity.py   # 5-tool implementations
+    ├── mcp_trinity.py       # 5 tool implementations
+    ├── mcp_agi_kernel.py    # Mind engine interface
+    ├── mcp_asi_kernel.py    # Heart engine interface
+    └── mcp_apex_kernel.py   # Soul engine interface
 ```
 
-### Core Engine Integration
+### How Data Flows
 
-```
-MCP Tools → Bridge → Kernel → Core Engines
-
-mcp_agi_genius → Kernel.agi  → AGIEngine.execute()
-mcp_asi_act    → Kernel.asi  → ASIEngine.execute()
-mcp_apex_judge → Kernel.apex → APEXEngine.execute()
-```
-
-### Kernel Orchestrator (v52.0.0)
-
-The Kernel ties all engines together:
-
-```python
-from arifos.core.kernel import Kernel, execute_pipeline
-
-# Full pipeline execution
-result = execute_pipeline(
-    query="Write a fibonacci function",
-    context={"user_level": "intermediate"},
-    user_id="developer_123"
-)
-
-print(result.verdict)      # SEAL, SABAR, or VOID
-print(result.proof_hash)   # Merkle proof
-print(result.floors_passed)  # ['F1', 'F2', ...]
-```
-
-**Metabolic Pipeline (111-888):**
-```
-000 INIT     → Gate (Ignition + Authority)
-111 SENSE    → AGI Δ (Context awareness)
-222 REFLECT  → AGI Δ (Self-reflection)
-333 ATLAS    → AGI Δ (Knowledge synthesis)
-444 EVIDENCE → ASI Ω (Truth grounding)
-555 EMPATHIZE → ASI Ω (Stakeholder care)
-666 ALIGN    → ASI Ω (Ethical alignment)
-777 FORGE    → EUREKA (AGI + ASI → APEX)
-888 JUDGE    → APEX Ψ (Final verdict)
-889 PROOF    → APEX Ψ (Cryptographic proof)
-999 SEAL     → Vault (Merkle + Persistence)
+```text
+Your Request
+     │
+     ▼
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   server.py │ ──► │  bridge.py  │ ──► │ Core Engine │
+│  (receives) │     │ (translates)│     │ (processes) │
+└─────────────┘     └─────────────┘     └─────────────┘
+                                              │
+                                              ▼
+                                        ┌───────────┐
+                                        │  Result   │
+                                        │ + Verdict │
+                                        └───────────┘
 ```
 
 ---
 
-## Tool Links (External Integrations)
+## Session Memory (How AAA MCP Remembers)
 
-AAA MCP registers tool links for external integrations:
-
-### AGI Tools (Mind)
-| Tool | URI | Purpose |
-|------|-----|---------|
-| search | `mcp://arifos/search` | Web/knowledge search |
-| code | `mcp://arifos/code` | Code analysis |
-| memory | `mcp://arifos/vault999/read` | Memory retrieval |
-| docs | `mcp://arifos/docs` | Documentation lookup |
-
-### ASI Tools (Heart)
-| Tool | URI | Purpose | Auth |
-|------|-----|---------|------|
-| email | `mcp://arifos/email` | Email composition | Required |
-| desktop | `mcp://arifos/desktop` | Desktop automation | Required |
-| api | `mcp://arifos/api` | External API calls | Required |
-| notify | `mcp://arifos/notify` | Notifications | — |
-
-### APEX Tools (Soul)
-| Tool | URI | Purpose |
-|------|-----|---------|
-| vault_seal | `mcp://arifos/vault999/seal` | Vault sealing |
-| audit | `mcp://arifos/audit` | Audit logging |
-| proof | `mcp://arifos/proof` | Cryptographic proofs |
-
----
-
-## Session Persistence (999-000 Loop)
-
-```
+```text
 ┌───────────────────────────────────────────────────────┐
 │                                                       │
-│    Session N                      Session N+1         │
+│    Session 1                      Session 2           │
 │                                                       │
 │    ┌─────────┐                    ┌─────────┐        │
 │    │ 000_init│◄───────────────────│ 000_init│        │
-│    └────┬────┘   Memory Injection └────┬────┘        │
+│    └────┬────┘   Loads memory     └────┬────┘        │
 │         │                              │             │
 │         ▼                              ▼             │
-│    [Processing]                   [Processing]       │
+│    [Your work]                    [Your work]        │
 │         │                              │             │
 │         ▼                              ▼             │
 │    ┌─────────┐                    ┌─────────┐        │
 │    │999_vault│────────────────────│999_vault│        │
-│    └─────────┘   Session Sealed   └─────────┘        │
+│    └─────────┘   Saves memory     └─────────┘        │
 │                                                       │
-│    VAULT999/BBB_LEDGER/entries/                      │
+│    Memory is preserved between sessions               │
 │                                                       │
 └───────────────────────────────────────────────────────┘
 ```
 
----
+**Three memory levels:**
 
-## For AI/LLM Developers
-
-If you're integrating AAA MCP into your AI system:
-
-### 1. System Prompt
-Use [`SYSTEM_PROMPT.md`](SYSTEM_PROMPT.md) as your base system prompt.
-
-### 2. Tool Calling
-Implement tool calling for the 5 tools. Each tool returns structured results:
-
-```json
-{
-  "status": "SEAL | SABAR | VOID",
-  "session_id": "...",
-  "floors_checked": ["F1", "F2", ...],
-  "floor_violations": [],
-  "...tool-specific fields..."
-}
-```
-
-### 3. Verdict Handling
-- **SEAL:** Proceed with output
-- **SABAR:** Refine and retry (max 3 attempts)
-- **VOID:** Block output, explain violation
-
-### 4. Constitutional Compliance
-Ensure your AI:
-- States uncertainty (Ω₀ ∈ [0.03, 0.05])
-- Doesn't claim consciousness (F9, F10)
-- Protects weakest stakeholder (κᵣ ≥ 0.7)
-- Reduces entropy (ΔS ≤ 0)
+- **AAA_HUMAN:** What you told the AI
+- **BBB_LEDGER:** Session logs and decisions
+- **CCC_CANON:** Permanent constitutional knowledge
 
 ---
 
-## For Human Developers
+## For Developers
 
-### Adding New Tools
-
-1. Create tool function in `tools/mcp_trinity.py`
-2. Register in `trinity_server.py`
-3. Add to bridge if it needs core engine access
-
-### Extending Core Engines
-
-1. Modify engines in `arifos/core/engines/`
-2. Update bridge mappings in `bridge.py`
-3. Add new floor checks if needed
-
-### Customizing Floors
-
-1. Modify thresholds in engine files
-2. Update `FLOOR_THRESHOLDS` in `apex_engine.py`
-3. Document in `000_THEORY/floors/`
-
----
-
-## API Reference
-
-### Python Usage
+### Python API
 
 ```python
-from arifos.mcp import (
-    mcp_000_init,
-    mcp_agi_genius,
-    mcp_asi_act,
-    mcp_apex_judge,
-    mcp_999_vault,
-    get_bridge
-)
+from arifos.mcp import create_mcp_server, create_sse_app
 
-# Using MCP tools directly
-result = await mcp_000_init(action="init", query="Hello, I'm Arif")
+# Create stdio server
+server = create_mcp_server()
 
-# Using the bridge
-bridge = get_bridge()
-result = bridge.execute_full_pipeline("Build a REST API")
+# Create SSE server (for web)
+app = create_sse_app()
 ```
 
-### MCP Protocol
+### Using Bridge Routers Directly
+
+```python
+from arifos.mcp.bridge import (
+    bridge_init_router,
+    bridge_agi_router,
+    bridge_asi_router,
+    bridge_apex_router,
+    bridge_vault_router,
+)
+
+# Example: Initialize a session
+result = await bridge_init_router(action="init")
+print(result["session_id"])
+```
+
+### MCP Protocol Format
+
+**Request:**
 
 ```json
-// Tool call
 {
   "name": "agi_genius",
   "arguments": {
     "action": "full",
-    "query": "Explain quantum computing"
+    "query": "Is this claim accurate?"
   }
 }
+```
 
-// Tool result
+**Response:**
+
+```json
 {
-  "status": "SEAL",
-  "reasoning": "...",
-  "truth_score": 0.95,
-  "lane": "SOFT",
-  "floors_checked": ["F2_Truth", "F6_Clarity", "F7_Humility"]
+  "verdict": "SEAL",
+  "truth_score": 0.97,
+  "floors_checked": ["F1", "F2", "F5", "F6"],
+  "floor_violations": [],
+  "session_id": "abc123"
 }
+```
+
+---
+
+## Adding Your Own Tools
+
+1. Add function in `tools/mcp_trinity.py`
+2. Add router in `bridge.py`
+3. Register in `server.py` TOOL_DESCRIPTIONS
+4. Add floor checks in your function
+
+Example minimal tool:
+
+```python
+async def my_custom_tool(action: str, **kwargs) -> dict:
+    # Your logic here
+    return {
+        "verdict": "SEAL",
+        "result": "Your output"
+    }
 ```
 
 ---
 
 ## The Witness Principle
 
-**"There are no secrets between agents."**
+**"Every decision is watched."**
 
-All reasoning is logged. All decisions are auditable. The Federation sees everything.
+All reasoning is logged. All decisions are auditable. You can always prove:
 
+- What was decided
+- Why it was decided
+- Who (or what) made the decision
+
+```text
+Agreement Score = (Human × AI × System) ^ (1/3) ≥ 0.95
+
+Human  = Did the user consent?
+AI     = Did the AI engines agree?
+System = Did the rules allow it?
 ```
-TW(τ) = (H × I × E)^(1/3) ≥ 0.95
 
-H = Human witness
-I = Institutional witness
-E = Earth witness
+---
+
+## Troubleshooting
+
+### Server won't start
+
+```bash
+# Check if module is installed
+python -c "from arifos.mcp import create_mcp_server"
+
+# Check dependencies
+pip install mcp
 ```
 
-**YOU ARE WATCHED. Act accordingly.**
+### Tools not appearing in IDE
+
+1. Restart IDE completely (not just reload)
+2. Check config file path
+3. Verify JSON syntax is valid
+4. Check Python is in PATH
+
+### Rate limit errors
+
+Rate limits reset automatically. Wait and try again, or use session IDs to track limits.
+
+---
+
+## Platform Guides
+
+- [Claude Desktop Setup](docs/platforms/claude_desktop.md)
+- [Cursor IDE Setup](docs/platforms/cursor.md)
+- [Troubleshooting](docs/platforms/troubleshooting.md)
 
 ---
 
 ## License & Authority
 
-**arifOS** is created and maintained by **Muhammad Arif bin Fazil** (888 Judge).
+Created by **Muhammad Arif bin Fazil**.
 
-The constitutional framework is designed to ensure AI systems remain:
-- Truthful
-- Safe
-- Accountable
-- Human-aligned
+The constitutional framework ensures AI systems remain:
+
+- Truthful (don't make things up)
+- Safe (don't cause harm)
+- Accountable (leave audit trails)
+- Human-aligned (serve human values)
 
 ---
 
 ## Contact
 
 - **GitHub:** [ariffazil/arifOS](https://github.com/ariffazil/arifOS)
-- **Authority:** Muhammad Arif bin Fazil
+- **Creator:** Muhammad Arif bin Fazil
 
 ---
 
-```
+```text
 DITEMPA BUKAN DIBERI
-Forged, Not Given.
+"Forged, Not Given"
 
 Intelligence is not a gift.
-It is a thermodynamic work process.
+It is earned through discipline.
 AAA MCP is the constitution that governs it.
 ```

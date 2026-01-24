@@ -41,8 +41,13 @@ def create_sse_app(mode: Optional[MCPMode] = None) -> FastAPI:
 
     @mcp_server.list_tools()
     async def list_tools():
+        import mcp.types
         return [
-            {"name": name, "description": desc["description"], "inputSchema": desc["inputSchema"]}
+            mcp.types.Tool(
+                name=name,
+                description=desc["description"],
+                inputSchema=desc["inputSchema"]
+            )
             for name, desc in TOOL_DESCRIPTIONS.items()
         ]
 

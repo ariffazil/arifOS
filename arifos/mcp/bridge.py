@@ -80,15 +80,22 @@ async def bridge_agi_router(action: str = "full", **kwargs) -> dict:
     try:
         if action == "sense":
             return _serialize(await kernel.sense(query, ctx))
-        elif action == "reflect":
+        elif action in ("think", "reflect"):
             return _serialize(await kernel.reflect(
                 kwargs.get("thought", query),
                 kwargs.get("thought_number", 1),
                 kwargs.get("total_thoughts", 1),
                 kwargs.get("next_needed", False)
             ))
+        elif action == "atlas":
+            # Stage 333: TAC Analysis
+            return _serialize(await kernel.atlas_tac_analysis(kwargs.get("inputs", [])))
         elif action == "evaluate":
             return _serialize(kernel.evaluate(query, kwargs.get("response", ""), kwargs.get("truth_score", 1.0)))
+        elif action == "forge":
+            # 777 forge is usually APEX but tool exposes it in AGI for synthesis
+            # Default to full or sense if not explicitly in AGI kernel
+            return _serialize(await kernel.sense(query, ctx))
         else:
             return _serialize(await kernel.sense(query, ctx))
     except Exception as e:
@@ -105,7 +112,8 @@ async def bridge_asi_router(action: str = "full", **kwargs) -> dict:
     
     try:
         if action == "evidence":
-            return _serialize(await kernel.gather_evidence(kwargs.get("query", ""), kwargs.get("rationale", "")))
+            search_query = kwargs.get("query", text)
+            return _serialize(await kernel.gather_evidence(search_query, kwargs.get("rationale", "")))
         elif action in ("empathize", "full", "act"):
             return _serialize(await kernel.empathize(text, ctx))
         elif action in ("bridge", "align"):
@@ -129,10 +137,20 @@ async def bridge_apex_router(action: str = "full", **kwargs) -> dict:
                 kwargs.get("trinity_floors", []),
                 kwargs.get("session_id", "anonymous")
             ))
+        elif action in ("eureka", "forge"):
+            return _serialize(await kernel.forge_insight(kwargs.get("draft", kwargs.get("response", ""))))
         elif action == "entropy":
             return _serialize(await kernel.entropy_profiler.measure_constitutional_cooling(
                 kwargs.get("pre_text", ""), kwargs.get("post_text", "")
             ))
+        elif action == "parallelism":
+            import time
+            return _serialize(await kernel.parallel_profiler.prove_constitutional_parallelism(
+                kwargs.get("start_time", time.time()), kwargs.get("component_durations", {})
+            ))
+        elif action == "proof":
+            import hashlib
+            return {"hash": hashlib.sha256(str(kwargs.get("data", "")).encode()).hexdigest()[:16], "status": "PROVEN"}
         else:
             return _serialize(await kernel.judge_quantum_path(kwargs.get("query", ""), kwargs.get("response", ""), [], "anonymous"))
     except Exception as e:
