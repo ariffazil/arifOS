@@ -297,7 +297,10 @@ def _load_genius_spec(verify: bool = False) -> dict:
     )
 
 
-# Load spec once at module import (verify=False to prevent import crash)
+# Load spec once at module import
+# NOTE: verify=False skips manifest hash verification only.
+# Import will still fail (RuntimeError) if spec files are completely missing.
+# Set ARIFOS_SKIP_TRACK_B=1 for true fail-open mode.
 _GENIUS_SPEC = _load_genius_spec(verify=False)
 
 

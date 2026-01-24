@@ -119,6 +119,10 @@ def verify_manifest(
 
     if os.getenv("ARIFOS_ALLOW_LEGACY_SPEC", "0") == "1":
         # Log warning but do not verify (allows startup even with mismatch)
+        logger.warning(
+            "TRACK B VERIFICATION BYPASSED: ARIFOS_ALLOW_LEGACY_SPEC=1 is set. "
+            "Manifest hash verification is DISABLED. Spec integrity NOT guaranteed."
+        )
         return
     
     # Legacy mode: skip all verification
