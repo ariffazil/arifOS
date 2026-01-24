@@ -114,6 +114,12 @@ def create_sse_app(
     @app.get("/health")
     async def handle_health():
         """Health Check Endpoint - Railway requires this."""
+        from arifos.mcp.metrics import get_metrics
+        from arifos.mcp.rate_limiter import get_rate_limiter
+
+        metrics = get_metrics()
+        rate_limiter = get_rate_limiter()
+
         return {
             "status": "healthy",
             "mode": "SSE",
@@ -122,8 +128,33 @@ def create_sse_app(
             "tool_names": list(tools.keys()),
             "version": version,
             "framework": "arifOS Constitutional Kernel",
-            "doc_url": "/docs"
+            "doc_url": "/docs",
+            "rate_limiter": rate_limiter.get_stats(),
+            "metrics_summary": {
+                "active_sessions": metrics.active_sessions.get(),
+                "total_requests": sum(metrics.requests_total._values.values()),
+            }
         }
+
+    @app.get("/metrics")
+    async def handle_metrics():
+        """Prometheus-compatible metrics endpoint."""
+        from fastapi.responses import PlainTextResponse
+        from arifos.mcp.metrics import get_metrics
+
+        metrics = get_metrics()
+        return PlainTextResponse(
+            content=metrics.get_prometheus_output(),
+            media_type="text/plain; version=0.0.4"
+        )
+
+    @app.get("/metrics/json")
+    async def handle_metrics_json():
+        """JSON metrics endpoint for debugging."""
+        from arifos.mcp.metrics import get_metrics
+
+        metrics = get_metrics()
+        return metrics.get_stats()
 
     @app.get("/")
     async def handle_root():
@@ -136,12 +167,31 @@ def create_sse_app(
             "tool_names": list(tools.keys()),
             "endpoints": {
                 "/health": "Health check (Railway)",
+                "/metrics": "Prometheus metrics",
+                "/metrics/json": "Metrics as JSON",
                 "/sse": "MCP SSE connection",
+                "/mcp": "MCP SSE connection (ChatGPT compatible)",
                 "/messages": "MCP message handler",
                 "/docs": "API documentation"
             },
             "constitutional_framework": "DITEMPA BUKAN DIBERI"
         }
+
+    # ==========================================================================
+    # CHATGPT DEVELOPER MODE COMPATIBILITY
+    # ChatGPT expects /mcp endpoint for MCP server discovery
+    # ==========================================================================
+
+    @app.get("/mcp")
+    async def handle_mcp_sse(request: Request):
+        """MCP SSE Endpoint - ChatGPT Developer Mode compatible."""
+        async with sse.connect_sse(request.scope, request.receive, request._send) as streams:
+            await mcp_server.run(streams[0], streams[1], mcp_server.create_initialization_options())
+
+    @app.post("/mcp")
+    async def handle_mcp_messages(request: Request):
+        """MCP Message endpoint - ChatGPT Developer Mode compatible."""
+        return await sse.handle_post_message(request.scope, request.receive, request._send)
 
     return app
 

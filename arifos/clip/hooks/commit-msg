@@ -13,7 +13,7 @@ status=$(grep -o '"status": "[^"]*' .arifos_clip/session.json | cut -d'"' -f4)
 if [ "$status" != "SEALED" ]; then
     echo "Commit blocked: session not sealed by A CLIP."
     echo "Hint: seal with an authority token (HMAC) minted via:"
-    echo "  python -c \"from arifos_clip.aclip.bridge.authority import create_token; print(create_token('<SESSION_ID>'))\""
+    echo "  python -c \"from arifos.clip.aclip.bridge.authority import create_token; print(create_token('<SESSION_ID>'))\""
     echo "Then rerun: 999 seal --apply --authority-token <TOKEN>"
     exit 1
 fi

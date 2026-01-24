@@ -1,0 +1,39 @@
+{
+  "version": "v47.0.0",
+  "genius_law": {
+    "G": {
+      "description": "General Intelligence",
+      "formula": "f(compute, memory, coherence)"
+    },
+    "C_dark": {
+      "description": "Dark Complexity",
+      "formula": "f(obfuscation, entropy, manipulation)"
+    },
+    "Psi": {
+      "description": "Psi Vitality",
+      "formula": "G - C_dark"
+    },
+    "Omega0": {
+      "description": "Humility Band",
+      "range": [
+        0.03,
+        0.05
+      ]
+    },
+    "DeltaS": {
+      "description": "Entropy Delta",
+      "threshold": 0
+    },
+    "Kappa_r": {
+      "description": "Empathy Coefficient",
+      "threshold": 0.95
+    }
+  },
+  "measurement_protocols": {
+    "constellation_analysis": "Multi-dimensional pattern recognition",
+    "entropy_calculation": "Shannon entropy with constitutional weighting",
+    "empathy_calibration": "\u03ba\u1d63 coefficient with stakeholder analysis",
+    "humility_band": "\u03a9\u2080 measurement with uncertainty bands"
+  },
+  "authority": "Track B (Measurement Protocols)"
+}

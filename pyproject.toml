@@ -4,12 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "50.0.0"
+version = "50.5.25"
+# v50.5.25: ChatGPT Developer Mode + README Reality Update (2026-01-23)
+# v50.5.24: Constitutional Seal - Forged README, Calibrated Validators, Tri-Witness Fix (2026-01-23)
 # v50.0.0: Constitutional Housekeeping - Consolidated core, archived legacy duplicates (2026-01-20)
 # v49.0.2: Fix hero image rendering on GitHub + PyPI (2026-01-19)
 # v49.0.1: F6 Empathy fix - Remove Chinese characters, add hero image (2026-01-19)
 # v49.0.0: Constitutional Forge - 13 Floors, Trinity Engines, 25 MCP Servers (2026-01-18)
-description = "Constitutional AI governance with 13 immutable floors (F1-F13). Trinity architecture (AGI·ASI·APEX) with 25 MCP servers mapped to constitutional enforcement. Thermodynamic physics (Delta_S->0, Peace_squared>=1, Omega_0 in [0.03,0.05]), tri-witness consensus (>=0.95), zkPC cryptographic sealing. Production-hardened 000-999 metabolic loop. Works with ChatGPT, Claude, Gemini, and any LLM."
+description = "Constitutional AI Governance Framework. 13 immutable floors (F1-F13), Trinity architecture (AGI/ASI/APEX), 5-tool MCP server. Works with ChatGPT Developer Mode, Claude Desktop, and any MCP client. Live at https://arifos-production.up.railway.app/"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "AGPL-3.0-only"
@@ -19,27 +21,25 @@ keywords = [
     "constitutional-ai",
     "llm-safety",
     "llm-governance",
-    "ai-rules",
-    "fail-safe-ai",
-    "safe-ai",
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "chatgpt",
+    "chatgpt-developer-mode",
+    "claude",
+    "claude-desktop",
+    "openai",
+    "gemini",
+    "llm",
+    "guardrails",
     "ai-ethics",
     "responsible-ai",
     "ai-alignment",
-    "openai",
-    "claude",
-    "gemini",
-    "chatgpt",
-    "llm",
-    "guardrails",
-    "agent-zero",
-    "async-execution",
-    "constitutional-governance",
     "hallucination-prevention",
-    "quantum-governance",
-    "orthogonal-execution",
     "immutable-ledger",
-    "measurable-governance",
-    "parallel-ai",
+    "thermodynamic-governance",
+    "tri-witness",
+    "constitutional-floors",
 ]
 authors = [{ name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com" }]
 maintainers = [
@@ -68,6 +68,9 @@ dependencies = [
     "starlette>=0.30.0",
     "fastmcp>=0.1.0",
     "dspy>=2.4.0",
+    "fastapi>=0.104.1",
+    "uvicorn[standard]>=0.24.0",
+    "sse-starlette>=1.8.2",
 ]
 
 [project.optional-dependencies]
@@ -86,6 +89,10 @@ api = [
     "python-multipart>=0.0.6",
 ]
 litellm = ["litellm>=1.0.0"]
+mcp = [
+    "mcp>=1.0.0",
+    "sse-starlette>=1.8.2",
+]
 governed = [
     "litellm>=1.0.0",
     "httpx>=0.28.0",
@@ -104,15 +111,30 @@ all = [
 ]
 
 [project.scripts]
+# MCP Server Commands (Primary)
+arifos-mcp = "arifos.mcp.sse:main"
+arifos-mcp-sse = "arifos.mcp.trinity_server:main_sse"
+arifos-mcp-stdio = "arifos.mcp.trinity_server:main_stdio"
+
+# Governance Analysis
 arifos-analyze-audit-trail = "scripts.analyze_audit_trail:main"
 arifos-analyze-governance = "scripts.analyze_governance:main"
 arifos-verify-ledger = "scripts.verify_ledger_chain:main"
+
+# Canon Management
 arifos-propose-canon = "scripts.propose_canon_from_receipt:main"
 arifos-seal-canon = "scripts.seal_proposed_canon:main"
+
+# Merkle/Cryptographic
 arifos-compute-merkle = "scripts.compute_merkle_root:main"
 arifos-build-ledger-hashes = "scripts.build_ledger_hashes:main"
 arifos-show-merkle-proof = "scripts.show_merkle_proof:main"
+
+# Utilities
 arifos-safe-read = "scripts.arifos_safe_read:main"
+arifos-api = "arifos.api.server:run_server"
+
+# Metabolic Pipeline (000-999)
 000 = "arifos.clip.aclip.cli._dispatcher000:main"
 111 = "arifos.clip.aclip.cli._dispatcher111:main"
 222 = "arifos.clip.aclip.cli._dispatcher222:main"
@@ -130,6 +152,8 @@ Documentation = "https://github.com/ariffazil/arifOS/blob/main/README.md"
 Repository = "https://github.com/ariffazil/arifOS"
 Issues = "https://github.com/ariffazil/arifOS/issues"
 Changelog = "https://github.com/ariffazil/arifOS/blob/main/CHANGELOG.md"
+"Live Server" = "https://arifos-production.up.railway.app/"
+"API Docs" = "https://arifos-production.up.railway.app/docs"
 
 [tool.setuptools]
 include-package-data = true

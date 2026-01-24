@@ -1,304 +1,132 @@
-# arifOS Test Suite
+# arifOS Constitutional Test Suite (v50.5.4)
 
-**Current:** ~110 test files (organized), ~2000+ test cases
-**Coverage:** Core constitutional enforcement, MCP pipeline, Trinity governance, Session physics
-**Organization:** Logical subdirectories by feature area (v46 reorganization)
-
----
-
-## 📂 Test Organization (REORGANIZED 2026-01-10)
-
-Tests are now organized into logical subdirectories:
-
-```
-tests/
-├── core/           # 9 files - APEX, floors, GENIUS LAW
-├── mcp/            # 14 files - 000→999 pipeline stages
-├── trinity/        # 7 files - Trinity governance, FAG
-├── waw/            # 7 files - W@W federation
-├── memory/         # 15 files - Ledger, Phoenix-72
-├── spec/           # Spec enforcement tests
-├── integration/    # Cross-component tests
-├── unit/           # Isolated unit tests
-├── enforcement/    # Floor enforcement tests
-├── governance/     # Governance tests
-├── temporal/       # Time-based tests
-└── [~58 misc]      # Root-level tests (to be categorized)
-```
-
----
-### Core Constitutional Tests
-**Directory:** `tests/` (will be moved to `tests/core/` in future)
-**Purpose:** Validate F1-F9 constitutional floors
-
-| Test Category | Key Files | What It Tests |
-|---------------|-----------|---------------|
-| **APEX Prime** | `test_apex_prime_floors.py`, `test_apex_genius_verdicts.py` | Core verdict logic (SEAL/VOID/SABAR) |
-| **Floor Enforcement** | `test_law_truth_threshold_enforcement.py` | F1-F9 threshold validation |
-| **GENIUS LAW** | `test_genius_metrics.py` | G, C_dark, Ψ calculations |
-| **Session Physics** | `test_session_physics.py`, `test_tearframe_integration.py` | TEARFRAME v44 physics |
-
-### MCP Pipeline Tests
-**Pattern:** `test_mcp_*.py`
-**Purpose:** Validate 000→999 arifOS pipeline stages
-
-| Stage | Test File | What It Tests |
-|-------|-----------|---------------|
-| 000 | `test_mcp_000_reset.py` | Session initialization |
-| 111 | `test_mcp_111_sense.py` | Context sensing |
-| 222 | `test_mcp_222_reflect.py` | Reflection stage |
-| 444 | `test_mcp_444_evidence.py` | Evidence collection |
-| 555 | `test_mcp_555_empathize.py` | Empathy check (F6) |
-| 666 | `test_mcp_666_align.py` | Constitutional alignment |
-| 777 | `test_mcp_777_forge.py` | Action forging |
-| 888 | `test_mcp_888_judge.py` | APEX judgment |
-| 999 | `test_mcp_999_seal.py` | Verdict sealing |
-
-### Trinity & Governance Tests
-**Pattern:** `test_trinity*.py`, `test_fag*.py`
-**Purpose:** Multi-agent coordination, autonomous governance
-
-- `test_trinity.py` — Tri-witness protocol
-- `test_trinity_core.py` — Core Trinity logic
-- `test_fag.py` — Full Autonomy Governance
-- `test_fag_hardening.py` — FAG safety boundaries
-
-### Memory & Ledger Tests
-**Pattern:** `test_cooling_ledger*.py`, `test_ledger*.py`, `test_memory*.py`
-**Purpose:** State persistence, audit trails, Phoenix-72
-
-- `test_cooling_ledger_integrity.py` — Ledger integrity checks
-- `test_ledger_cryptography.py` — Cryptographic verification
-- `test_memory_trinity.py` — Memory band coordination
-
-### W@W Federation Tests
-**Pattern:** `test_waw_*.py`
-**Purpose:** Witness@Work multi-model federation
-
-- `test_waw_organs.py` — Federation organs (LAW, GEOX, WELL, RIF)
-- `test_waw_apex_escalation.py` — Cross-witness escalation
-- `test_waw_*_signals.py` — Individual organ signal tests
-
-### Spec & Configuration Tests
-**Directory:** `tests/spec/`
-**Purpose:** Track B (tunable thresholds) enforcement
-
-- `test_spec_v44_authority.py` — Single runtime authority
-- `test_spec_loader_unified.py` — Spec loading logic
-- `test_runtime_manifest.py` — Manifest integrity
-
-### Evaluation Harness Tests
-**Directory:** `tests/eval/` (RE-EXPORT LAYER)
-**Canonical Source:** `arifos_eval/` (top-level package)
-**Purpose:** Constitutional compliance measurement and benchmarking
-
-**Important:** `tests/eval/` re-exports from canonical `arifos_eval/` package. Always import from `arifos_eval`:
-
-```python
-# Correct (canonical source)
-from arifos_eval.apex import ApexMeasurement
-
-# Legacy (deprecated but works)
-from tests.eval.apex import ApexMeasurement
-```
-
-**What's evaluated:**
-- **APEX metrics:** Genius (G), Dark Cleverness (C_dark), Vitality (Ψ)
-- **Floor compliance:** F1-F12 threshold validation
-- **Track A/B/C benchmarks:** F9 Anti-Hantu accuracy, F6 empathy split, meta-select consistency
-
-**See:**
-- Canonical docs: [`arifos_eval/README.md`](../arifos_eval/README.md)
-- Test integration: [`tests/eval/README.md`](eval/README.md)
+**Authority:** 888 Judge
+**Status:** PRODUCTION
+**Coverage Target:** 100% of `arifos/` (Core Sovereign Runtime)
 
 ---
 
-## 🚀 Running Tests
+## 🧪 Philosophy: Testing as Governance
+
+In arifOS, testing is not just about code correctness; it is about **Constitutional Integrity**.
+We do not just test if a function returns `True`. We test if:
+1.  **F1 Amanah:** The action is reversible and auditable.
+2.  **F2 Truth:** The confidence score meets the ≥0.99 threshold.
+3.  **F4 Clarity:** Entropy (ΔS) decreases after processing.
+4.  **Structure:** The 000-999 Metabolic Loop is respected.
+
+**"Ditempa Bukan Diberi"** — Stability is forged through rigorous testing.
+
+---
+
+## 🚀 Quick Start
 
 ### Run All Tests
 ```bash
 pytest
 ```
 
-### Run Specific Category
+### Run by Category (Markers)
 ```bash
-# Core constitutional
-pytest tests/test_apex*.py tests/test_genius*.py tests/test_law*.py
+# Constitutional Floors (F1-F13)
+pytest -m constitutional
 
-# MCP pipeline
-pytest tests/test_mcp_*.py
+# Core Logic (Metabolizer, Engines)
+pytest -m unit
 
-# Trinity
-pytest tests/test_trinity*.py tests/test_fag*.py
+# Integration (Full Pipeline)
+pytest -m integration
 
-# Memory & Ledger
-pytest tests/test_*ledger*.py tests/test_memory*.py
-
-# W@W Federation
-pytest tests/test_waw_*.py
-
-# Spec enforcement
-pytest tests/spec/
+# Body API (FastAPI)
+pytest -m api
 ```
 
-### Run Specific Floor
+### Run Specific Floor Checks
 ```bash
-# F1 (Amanah/Truth)
-pytest -k "truth or amanah"
-
-# F4 (Clarity/Entropy)
-pytest -k "entropy or delta"
-
-# F6 (Empathy)
-pytest -k "empathy or kappa"
+pytest -m f1   # Amanah
+pytest -m f2   # Truth
+pytest -m f6   # Empathy
+pytest -m f12  # Injection Defense
 ```
 
-### Run with Coverage
+---
+
+## 📂 Test Organization
+
+The suite is split into two domains:
+
+### Package-Level Tests (`arifos/`)
+
+| Directory | Description |
+|-----------|-------------|
+| `arifos/tests/` | Core v50+ tests (metabolizer, trinity_server, floor_validators) |
+| `arifos/clip/tests/` | CLI interface tests (000-999 metabolic pipeline commands) |
+
+### Root Test Suite (`tests/`)
+
+| Directory | Tests | Constitutional Floor | Description |
+|-----------|-------|---------------------|-------------|
+| `constitutional/` | 7 | F1-F13 | Floor boundary testing, threshold validation |
+| `core/` | 13 | F4, F7 | Brain (BrainLoom) & physics (thermodynamics) |
+| `enforcement/` | 3 | F4, F6, F9 | Floor enforcement logic, metrics validation |
+| `eval/` | 5 | F2, F8 | Evaluation pipelines, scoring mechanisms |
+| `evidence/` | 2 | F8 | Evidence pack assembly, conflict routing |
+| `governance/` | 3 | F3, F11 | Merkle ledger, cryptographic proofs |
+| `integration/` | 8 | All | Full 000→999 pipeline scenarios |
+| `judiciary/` | 3 | F8, F11, F12 | Semantic firewall, witness council |
+| `legacy/` | 4 | N/A | Deprecated pre-v49 tests (migration pending) |
+| `mcp/` | 172 | All | Trinity Tools (000_init, agi_genius, asi_act, apex_judge, 999_vault) |
+| `memory/` | 6 | F1 | 5-layer memory hierarchy, cooling ledger |
+| `spec/` | 4 | F2, F10 | Spec loading, Sealion bindings |
+| `temporal/` | 3 | F2 | Freshness decay, temporal intelligence |
+| `test_integration/` | 2 | F11 | Command authority override logic |
+| `trinity/` | 7 | F3, F8 | Trinity engine (AGI·ASI·APEX), FAG protocol |
+| `unit/` | 3 | N/A | API, L7 memory, MCP server unit tests |
+| `validation/` | 3 | All | Final validation, red team adversarial prompts |
+| `waw/` | 0 | N/A | WAW protocol (placeholder, pending implementation) |
+
+**Total:** 18 subdirectories | Each has its own README.md with detailed documentation
+
+---
+
+## ⚙️ Environment & Configuration
+
+Tests run with specific environment variables (set in `conftest.py`):
+
+*   `ARIFOS_PHYSICS_DISABLED=1`: Disables heavy thermodynamic calculations for unit tests to speed up execution.
+*   `ARIFOS_ALLOW_LEGACY_SPEC=1`: Bypasses strict cryptographic manifest checks for test files.
+
+**To run with Full Physics:**
 ```bash
-pytest --cov=arifos_core --cov-report=html
+# Linux/Mac
+ARIFOS_PHYSICS_DISABLED=0 pytest
+
+# Windows (PowerShell)
+$env:ARIFOS_PHYSICS_DISABLED="0"; pytest
 ```
 
 ---
 
-## 🔍 Test Categories Explained
+## 📊 Coverage Goals
 
-### Unit Tests
-**Directory:** `tests/unit/`
-**Scope:** Single function/class in isolation
-**Examples:** `test_api_app.py` (API contracts)
+We track coverage for the **Sovereign Core** (`arifos/`).
 
-### Integration Tests
-**Directory:** `tests/integration/`, `tests/enforcement/`, `tests/governance/`
-**Scope:** Multiple components working together
-**Examples:** `test_pipeline_routing.py` (full pipeline flow)
-
-### Validation Tests
-**Directory:** `tests/validation/`
-**Scope:** End-to-end constitutional compliance
-**Examples:** Real-world scenario validation
-
----
-
-## 📋 Test File Naming Convention
-
-| Pattern | Purpose | Example |
-|---------|---------|---------|
-| `test_*.py` | Standard test | `test_apex_prime_floors.py` |
-| `test_*_mocked.py` | Mock version | `test_apex_prime_floors_mocked.py` |
-| `test_*_integration.py` | Integration test | `test_mcp_integration_phase3.py` |
-| `test_*_v3X.py` | Legacy version | `test_memory_enforcement_v37.py` (archived) |
-
----
-
-## ⏭️ Skipped Tests
-
-Some tests are conditionally skipped based on dependencies:
-
-```python
-@pytest.mark.skipif(not FASTAPI_AVAILABLE, reason="FastAPI not installed")
-@pytest.mark.skipif(not AMANAH_AVAILABLE, reason="AMANAH_DETECTOR not available")
-@pytest.mark.skipif(not APEX_AVAILABLE, reason="ApexMeasurement not available")
-```
-
-**This is expected** — these tests run when optional dependencies are installed.
-
----
-
-## 🏗️ Future Test Organization (Planned)
-
-```
-tests/
-├── README.md (this file)
-├── core/              # apex, floors, genius
-├── mcp/               # test_mcp_*.py
-├── trinity/           # test_trinity*.py, test_fag*.py
-├── waw/               # test_waw_*.py
-├── memory/            # test_*ledger*.py, test_memory*.py
-├── spec/              # Already exists
-├── integration/       # Already exists
-├── unit/              # Already exists
-└── archive/           # Legacy v37, v39 tests
-    ├── v37/
-    └── v39/
-```
-
-**Status:** Planned for future session (high effort)
-
----
-
-## 🧪 Writing New Tests
-
-### Test Template
-```python
-import pytest
-from arifos_core.system.apex_prime import apex_review, Verdict
-
-def test_my_feature():
-    """Test that my feature does X."""
-    # Arrange
-    metrics = {...}
-
-    # Act
-    verdict = apex_review(metrics=metrics)
-
-    # Assert
-    assert verdict.verdict == Verdict.SEAL
-    assert verdict.pulse >= 1.0
-```
-
-### Constitutional Test Template
-```python
-def test_f4_clarity_enforcement():
-    """Verify F4 (ΔS Clarity) threshold enforcement."""
-    # Below threshold → SEAL
-    result = apex_review(metrics={"delta_s": 0.5})
-    assert result.is_approved()
-
-    # Above threshold → SABAR/VOID
-    result = apex_review(metrics={"delta_s": -0.5})
-    assert not result.is_approved()
-```
-
----
-
-## 📚 Related Documentation
-
-- **Constitutional Floors:** `L1_THEORY/canon/00_MASTER_INDEX_v45.md`
-- **APEX Prime:** `docs/APEX_PRIME_API.md`
-- **MCP Pipeline:** `docs/MCP_PIPELINE_GUIDE.md`
-- **Trinity:** `AGENTS.md` Section 1.0
-
----
-
-## 🐛 Debugging Failed Tests
-
-### Common Issues
-
-**Issue:** `ImportError: cannot import name 'X'`
-**Fix:** Check if imports match v46 8-folder structure
-
-**Issue:** `KeyError: 'floor_name'`
-**Fix:** Ensure `spec/v45/constitutional_floors.json` is loaded
-
-**Issue:** `AssertionError: Expected SEAL, got VOID`
-**Fix:** Check metrics meet all F1-F9 thresholds
-
-### Debug Commands
 ```bash
-# Run single test with verbose output
-pytest -vv tests/test_apex_prime_floors.py::test_seal_verdict
-
-# Show print statements
-pytest -s tests/test_my_test.py
-
-# Drop into debugger on failure
-pytest --pdb tests/test_my_test.py
+# Generate HTML report
+pytest --cov=arifos --cov-report=html
 ```
+
+*   **Current Baseline:** 100% for new v50 modules.
+*   **Target:** 70% Global Coverage by Q2 2026.
 
 ---
 
-**Last Updated:** 2026-01-10
-**Test Count:** ~113 files, ~2000+ cases
-**Coverage:** ~85% of arifos_core
+## 🛠️ Debugging
 
-**DITEMPA BUKAN DIBERI** — Tests are forged through rigor, not given.
+If a test fails with **`ConstitutionalViolationError`**:
+1.  The code logic might be correct, but it violated a **Floor**.
+2.  Check the `floor_scores` in the output.
+3.  Did it fail **F2 Truth** (< 0.99)?
+4.  Did it fail **F4 Clarity** (ΔS > 0)?
+
+**Fix the Governance, not just the Code.**

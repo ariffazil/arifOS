@@ -115,19 +115,19 @@ class TrackAlignmentChecker:
         """Verify Track B (Specifications) alignment."""
         print("🔍 Checking Track B (Specifications) alignment...")
 
-        # v49 uses arifos/spec/ for schema validation and manifests
+        # v49 uses arifos/core/spec/ for schema validation and manifests
         required_files = ["manifest_verifier.py", "schema_validator.py"]
         for req_file in required_files:
-            file_path = self.track_b_path / req_file
+            file_path = self.repo_root / "arifos" / "core" / "spec" / req_file
             if not file_path.exists():
                 self.issues.append(AlignmentIssue(
                     track="B",
                     component=f"Spec Component: {req_file}",
                     issue_type="MISSING_FILE",
                     current_state="File not found",
-                    required_state=f"arifos/spec/{req_file}",
+                    required_state=f"arifos/core/spec/{req_file}",
                     severity="CRITICAL",
-                    remediation=f"Ensure arifos/spec contains {req_file}"
+                    remediation=f"Ensure arifos/core/spec contains {req_file}"
                 ))
                 return AlignmentStatus.MISSING
 

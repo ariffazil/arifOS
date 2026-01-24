@@ -1,0 +1,23 @@
+"""
+tests/legacy/conftest.py - Skip all legacy tests
+
+This directory contains archived tests that reference obsolete APIs.
+These tests are preserved for reference but should not be run.
+
+To run legacy tests explicitly: pytest tests/legacy/ --collect-in-virtualenv
+"""
+
+import pytest
+
+
+def pytest_ignore_collect(collection_path, config):
+    """Skip all test collection in this directory."""
+    return True
+
+
+# Alternative: mark all tests as skip
+def pytest_collection_modifyitems(config, items):
+    """Skip all tests in the legacy directory."""
+    for item in items:
+        if "legacy" in str(item.fspath):
+            item.add_marker(pytest.mark.skip(reason="Legacy test - obsolete API"))

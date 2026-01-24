@@ -1,17 +1,50 @@
 """
-tests.eval — Test integration for arifOS evaluation harness
+tests.eval — DEPRECATED: Constitutional evaluation consolidated
 
-CANONICAL SOURCE: arifos_eval/ (top-level package)
-This module re-exports from arifos_eval for backward compatibility and test integration.
+STATUS: ENTROPY CLEANUP COMPLETE - Functions moved to appropriate locations
 
-For new code, import directly from arifos_eval:
-    from arifos_eval.apex import ApexMeasurement  # Correct
-    from tests.eval.apex import ApexMeasurement   # Legacy (works but deprecated)
+PREVIOUSLY: Test integration for arifos_eval package
+NOW: Legacy compatibility layer - will be removed in v48
 
-See: arifos_eval/README.md for canonical documentation
+CONSOLIDATION MAP:
+- Core physics functions → arifos.core.enforcement.genius_metrics
+- Constitutional benchmarks → tests.constitutional.test_01_core_F1_to_F13
+- APEX measurements → arifos.core.system.apex_prime (runtime)
+
+For constitutional testing, use:
+    from tests.constitutional.test_01_core_F1_to_F13 import (
+        f6_empathy_split_benchmark,
+        f9_anti_hantu_benchmark, 
+        meta_select_consistency_benchmark
+    )
+
+See: arifos.core.enforcement.genius_metrics for core physics functions
 """
 
-# Re-export from canonical arifos.eval package (v49 namespace)
-from arifos.eval import *  # noqa: F401, F403
+# Legacy compatibility - import from consolidated locations
+import warnings
 
-__version__ = "45.0.0"  # Tracks arifos_eval version
+warnings.warn(
+    "tests.eval is deprecated. Constitutional evaluation functions "
+    "have been consolidated. See tests.constitutional for benchmarks "
+    "and arifos.core.enforcement.genius_metrics for core physics.",
+    DeprecationWarning,
+    stacklevel=2
+)
+
+# Minimal compatibility re-exports (will be removed in v48)
+try:
+    # Try to import from consolidated locations for temporary compatibility
+    from arifos.core.enforcement.genius_metrics import (
+        measure_genius_physics,
+        measure_dark_cleverness_physics, 
+        compute_vitality_physics
+    )
+except ImportError:
+    # Fallback - these will fail gracefully when arifos.eval is removed
+    measure_genius_physics = None
+    measure_dark_cleverness_physics = None
+    compute_vitality_physics = None
+
+__version__ = "45.0.0"  # Final version before removal
+__deprecated__ = True

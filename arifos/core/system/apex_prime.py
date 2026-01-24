@@ -55,6 +55,42 @@ class Verdict(Enum):
         return self.value
 
 
+def normalize_verdict_code(verdict_str: str) -> str:
+    """
+    Normalize verdict string to canonical form.
+
+    v50.5: Added to support session_telemetry and ledger operations.
+
+    Args:
+        verdict_str: Input verdict string (may be uppercase, lowercase, or mixed)
+
+    Returns:
+        Canonical verdict string matching Verdict enum values
+    """
+    if not verdict_str:
+        return "VOID"
+
+    verdict_upper = verdict_str.upper().strip()
+
+    # Map common variations to canonical form
+    VERDICT_MAP = {
+        "SEAL": "SEAL",
+        "SEALED": "SEAL",
+        "SABAR": "SABAR",
+        "VOID": "VOID",
+        "VOIDED": "VOID",
+        "PARTIAL": "PARTIAL",
+        "888_HOLD": "888_HOLD",
+        "888-HOLD": "888_HOLD",
+        "HOLD_888": "888_HOLD",
+        "HOLD-888": "888_HOLD",
+        "HOLD": "888_HOLD",
+        "SUNSET": "SUNSET",
+    }
+
+    return VERDICT_MAP.get(verdict_upper, verdict_upper)
+
+
 @dataclass
 class ApexVerdict:
     """Structured APEX verdict result."""

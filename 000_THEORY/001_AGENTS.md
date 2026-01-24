@@ -148,4 +148,4 @@ Any AI can perform any role by using the appropriate Trinity tool. The governanc
 | **Implementation** | `arifos/mcp/` | Python code |
 ---
 **DITEMPA BUKAN DIBERI** — Constitutional agents are forged through governance, not given through assumption.
-> **v50.5 Trinity Architecture**: 5 tools, 13 floors, 3 verdicts. Simple enough to remember, powerful enough to govern.
+> **v50.5 Trinity Architecture**: 5 tools, 13 floors, 5 verdicts (SEAL, PARTIAL, SABAR, VOID, 888_HOLD). Simple enough to remember, powerful enough to govern.

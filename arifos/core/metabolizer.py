@@ -41,6 +41,11 @@ class StageTimeoutError(Exception):
     pass
 
 
+class StageLoopError(Exception):
+    """Raised when a stage loop is detected (e.g. 111->222->111)."""
+    pass
+
+
 @dataclass
 class StageMetrics:
     """Performance metrics for a pipeline stage."""
@@ -64,6 +69,7 @@ class Metabolizer:
     Tracks progression through 11 stages (000→999) with:
     - Sequential order enforcement
     - Timeout detection
+    - Loop detection (safeguard against infinite cycles)
     - Performance metrics
     - Error recovery
     """
@@ -100,6 +106,9 @@ class Metabolizer:
         889: 5000,   # PROOF: 5s (NEW v50)
         999: 10000,  # SEAL: 10s
     }
+
+    # Loop detection threshold
+    MAX_STAGE_REPEATS = 3
 
     def __init__(self, enable_timeouts: bool = False, enable_execution: bool = True):
         """
@@ -148,7 +157,7 @@ class Metabolizer:
 
     def transition_to(self, stage: int):
         """
-        Transition to next stage in pipeline with timeout and performance tracking.
+        Transition to next stage in pipeline with timeout, loop detection, and performance tracking.
 
         v50 FIX: Now ACTUALLY EXECUTES stage code by dynamically importing and calling execute_stage().
 
@@ -158,6 +167,7 @@ class Metabolizer:
         Raises:
             StageSequenceError: If stage transition is invalid
             StageTimeoutError: If previous stage exceeded timeout (if enabled)
+            StageLoopError: If a loop is detected
         """
         # Complete metrics for previous stage
         if self.current_stage_metrics:
@@ -180,11 +190,22 @@ class Metabolizer:
         if stage not in self.VALID_STAGES:
             raise StageSequenceError(f"Invalid stage: {stage}. Must be one of {self.VALID_STAGES}")
 
-        # Validate sequential progression
+        # Loop Detection
+        if self.stage_history.count(stage) >= self.MAX_STAGE_REPEATS:
+            raise StageLoopError(
+                f"Loop detected: Stage {stage} has been visited {self.MAX_STAGE_REPEATS} times. "
+                f"History: {self.stage_history}"
+            )
+
+        # Validate sequential progression (Standard Flow)
+        # Note: If we want to allow retries (SABAR), we might relax this in future.
+        # For now, strict metabolism 000->999.
         current_idx = self.VALID_STAGES.index(self.current_stage)
         target_idx = self.VALID_STAGES.index(stage)
 
         if target_idx != current_idx + 1:
+            # Allow rollback/retry only if explicitly handled (e.g. via SABAR logic not yet here)
+            # For strict metabolism, we enforce forward motion.
             raise StageSequenceError(
                 f"Cannot skip stages: current={self.current_stage}, target={stage}. "
                 f"Next valid stage: {self.VALID_STAGES[current_idx + 1]}"

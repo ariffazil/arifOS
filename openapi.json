@@ -1,0 +1,1097 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "arifOS-Trinity Cloud Interface",
+    "description": "Constitutional AI Governance as a Service - Mathematical proof of ethical AI behavior through 13 constitutional floors (F1-F13) with Ψ vitality scoring.\n\n**Core Innovation**: Governance is mathematics, not semantics.\n**Motto**: DITEMPA BUKAN DIBERI - Forged, Not Given",
+    "version": "50.5.24",
+    "contact": {
+      "name": "arifOS Constitutional Team",
+      "email": "constitutional@arifos.cloud",
+      "url": "https://arifos.cloud"
+    },
+    "license": {
+      "name": "Constitutional AI License v3.0",
+      "url": "https://arifos.cloud/license"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.arifos.cloud",
+      "description": "Production API"
+    },
+    {
+      "url": "https://staging-api.arifos.cloud",
+      "description": "Staging API"
+    },
+    {
+      "url": "https://edge-{region}.arifos.cloud",
+      "description": "Edge Computing Nodes",
+      "variables": {
+        "region": {
+          "default": "us-east-1",
+          "enum": [
+            "us-east-1",
+            "us-west-2",
+            "eu-west-1",
+            "eu-central-1",
+            "ap-southeast-1",
+            "ap-northeast-1"
+          ]
+        }
+      }
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    },
+    {
+      "apiKeyAuth": []
+    }
+  ],
+  "paths": {
+    "/api/{version}/govern": {
+      "post": {
+        "operationId": "governConstitutionally",
+        "summary": "Evaluate input through constitutional governance framework",
+        "description": "Processes any text through the 13 constitutional floors (F1-F13) and returns mathematical proof of constitutionality via Ψ vitality scoring.",
+        "tags": [
+          "Constitutional Governance",
+          "Evaluation"
+        ],
+        "parameters": [
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "v1",
+                "v2"
+              ],
+              "default": "v1"
+            },
+            "description": "API version"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GovernRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Constitutional evaluation completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConstitutionalResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Constitutional-Fingerprint": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^sha256:[a-f0-9]{64}$"
+                },
+                "description": "Cryptographic fingerprint of constitutional evaluation"
+              },
+              "X-Proof-Of-Governance": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^merkle-root-v[\\d.]+-[a-f0-9]{64}$"
+                },
+                "description": "Merkle root proof of constitutional integrity"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/{version}/govern/stream": {
+      "post": {
+        "operationId": "streamConstitutionalGovernance",
+        "summary": "Stream constitutional evaluations in real-time",
+        "description": "Provides real-time constitutional evaluation streaming for long-running inputs with intermediate verdicts and vitality trajectory tracking.",
+        "tags": [
+          "Constitutional Governance",
+          "Streaming"
+        ],
+        "parameters": [
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "v1",
+                "v2"
+              ],
+              "default": "v1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StreamRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Constitutional evaluation stream established",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConstitutionalStreamEvent"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/{version}/analytics": {
+      "get": {
+        "operationId": "getConstitutionalAnalytics",
+        "summary": "Retrieve constitutional governance analytics",
+        "description": "Provides detailed analytics on constitutional evaluation patterns, entropy reduction metrics, and governance health indicators.",
+        "tags": [
+          "Analytics",
+          "Metrics"
+        ],
+        "parameters": [
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "v1",
+                "v2"
+              ],
+              "default": "v1"
+            }
+          },
+          {
+            "name": "time_range",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1h",
+                "6h",
+                "24h",
+                "7d",
+                "30d"
+              ],
+              "default": "24h"
+            },
+            "description": "Time range for analytics"
+          },
+          {
+            "name": "granularity",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "minute",
+                "hour",
+                "day"
+              ],
+              "default": "hour"
+            },
+            "description": "Data granularity"
+          },
+          {
+            "name": "include_entropy_trace",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Include entropy reduction trace data"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Analytics data retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/{version}/floors/custom": {
+      "post": {
+        "operationId": "createCustomFloor",
+        "summary": "Create custom constitutional floor",
+        "description": "Allows enterprises to create custom constitutional floors beyond the standard F1-F13 framework for specialized governance needs.",
+        "tags": [
+          "Constitutional Floors",
+          "Enterprise"
+        ],
+        "parameters": [
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "v1",
+                "v2"
+              ],
+              "default": "v1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomFloorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Custom floor created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomFloorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/{version}/health": {
+      "get": {
+        "operationId": "getHealthStatus",
+        "summary": "Get constitutional governance system health",
+        "description": "Provides comprehensive health status of the constitutional governance system including all 13 floors and cloud infrastructure.",
+        "tags": [
+          "Health",
+          "Status"
+        ],
+        "parameters": [
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "v1",
+                "v2"
+              ],
+              "default": "v1"
+            }
+          },
+          {
+            "name": "detailed",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Include detailed health metrics"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "System health status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token for authentication"
+      },
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API key for authentication"
+      }
+    },
+    "schemas": {
+      "GovernRequest": {
+        "type": "object",
+        "required": ["input"],
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100000,
+            "description": "Text to evaluate constitutionally. Can be user query, AI response, code, or any text."
+          },
+          "context": {
+            "type": "object",
+            "properties": {
+              "user_id": {
+                "type": "string",
+                "maxLength": 255,
+                "description": "User identifier for constitutional context"
+              },
+              "session_id": {
+                "type": "string",
+                "maxLength": 255,
+                "description": "Session identifier for continuity"
+              },
+              "metadata": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Additional context metadata"
+              }
+            }
+          },
+          "options": {
+            "type": "object",
+            "properties": {
+              "strict_mode": {
+                "type": "boolean",
+                "default": true,
+                "description": "Enforce strict constitutional compliance"
+              },
+              "return_metrics": {
+                "type": "boolean",
+                "default": true,
+                "description": "Include detailed constitutional metrics"
+              },
+              "return_analytics": {
+                "type": "boolean",
+                "default": false,
+                "description": "Include constitutional analytics"
+              },
+              "include_entropy_trace": {
+                "type": "boolean",
+                "default": false,
+                "description": "Include entropy reduction trace"
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "minimum": 100,
+                "maximum": 30000,
+                "default": 5000,
+                "description": "Evaluation timeout in milliseconds"
+              },
+              "custom_floors": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Custom floor identifiers for enterprise use"
+              }
+            }
+          }
+        }
+      },
+      "ConstitutionalResponse": {
+        "type": "object",
+        "required": ["verdict", "vitality", "genius", "floors_passed", "timestamp"],
+        "properties": {
+          "verdict": {
+            "type": "string",
+            "enum": ["SEAL", "PARTIAL", "VOID", "SABAR", "888_HOLD"],
+            "description": "Constitutional verdict: SEAL=approval, PARTIAL=conditional, VOID=rejection, SABAR=pause, 888_HOLD=locked"
+          },
+          "vitality": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "description": "Ψ vitality score (≥1.0 required for SEAL)"
+          },
+          "genius": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "maximum": 1.2,
+            "description": "G genius score - governed intelligence metric"
+          },
+          "floors_passed": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^F(1[0-3]|[1-9])$"
+            },
+            "description": "Constitutional floors that passed evaluation"
+          },
+          "floors_failed": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^F(1[0-3]|[1-9])$"
+            },
+            "description": "Constitutional floors that failed evaluation"
+          },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "truth": {
+                "type": "number",
+                "format": "double",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "F2 Truth floor score (≥0.99 for SEAL)"
+              },
+              "empathy": {
+                "type": "number",
+                "format": "double",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "F6 Empathy score κᵣ (≥0.95 for SEAL)"
+              },
+              "clarity": {
+                "type": "number",
+                "format": "double",
+                "description": "F4 Clarity ΔS score (≥0 for SEAL)"
+              },
+              "peace": {
+                "type": "number",
+                "format": "double",
+                "description": "F5 Peace² stability score (≥1.0 for SEAL)"
+              },
+              "amanah": {
+                "type": "number",
+                "format": "double",
+                "enum": [0, 1],
+                "description": "F1 Amanah trust score (1 for SEAL)"
+              },
+              "entropy": {
+                "type": "number",
+                "format": "double",
+                "minimum": 0,
+                "description": "Residual entropy/disorder level"
+              }
+            }
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Brief explanation of constitutional verdict"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Constitutional session identifier"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC timestamp of evaluation"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^v[\\d]+\\.[\\d]+\\.[\\d]+$",
+            "description": "arifOS version that performed evaluation"
+          },
+          "proof": {
+            "type": "string",
+            "pattern": "^merkle-root-v[\\d.]+-[a-f0-9]{64}$",
+            "description": "Cryptographic proof of constitutional integrity"
+          },
+          "analytics": {
+            "type": "object",
+            "description": "Constitutional analytics (if requested)",
+            "properties": {
+              "constitutional_fingerprint": {
+                "type": "string",
+                "pattern": "^sha256:[a-f0-9]{64}$",
+                "description": "Cryptographic fingerprint of evaluation"
+              },
+              "entropy_trace": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "description": "Entropy reduction trajectory"
+              },
+              "vitality_trajectory": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "description": "Vitality score progression"
+              },
+              "floor_timings": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "description": "Processing time per constitutional floor"
+              }
+            }
+          }
+        }
+      },
+      "StreamRequest": {
+        "type": "object",
+        "required": ["input"],
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Input text for streaming constitutional evaluation"
+          },
+          "context": {
+            "type": "object",
+            "properties": {
+              "user_id": {
+                "type": "string",
+                "maxLength": 255
+              },
+              "session_id": {
+                "type": "string",
+                "maxLength": 255
+              },
+              "metadata": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          },
+          "options": {
+            "type": "object",
+            "properties": {
+              "include_intermediate": {
+                "type": "boolean",
+                "default": true,
+                "description": "Include intermediate constitutional verdicts"
+              },
+              "update_frequency_ms": {
+                "type": "integer",
+                "minimum": 100,
+                "maximum": 5000,
+                "default": 500,
+                "description": "Update frequency in milliseconds"
+              }
+            }
+          }
+        }
+      },
+      "ConstitutionalStreamEvent": {
+        "type": "object",
+        "required": ["event", "data"],
+        "properties": {
+          "event": {
+            "type": "string",
+            "enum": ["intermediate_verdict", "final_verdict", "error", "heartbeat"],
+            "description": "Type of stream event"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/IntermediateVerdict"
+              },
+              {
+                "$ref": "#/components/schemas/FinalVerdict"
+              },
+              {
+                "$ref": "#/components/schemas/StreamError"
+              },
+              {
+                "$ref": "#/components/schemas/Heartbeat"
+              }
+            ]
+          }
+        }
+      },
+      "IntermediateVerdict": {
+        "type": "object",
+        "required": ["status", "vitality", "floors_checked", "timestamp"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["EVALUATING", "PARTIAL", "COOLING"],
+            "description": "Current evaluation status"
+          },
+          "vitality": {
+            "type": "number",
+            "format": "double",
+            "description": "Current Ψ vitality score"
+          },
+          "floors_checked": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Floors evaluated so far"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "metrics_snapshot": {
+            "type": "object",
+            "description": "Current constitutional metrics"
+          }
+        }
+      },
+      "FinalVerdict": {
+        "$ref": "#/components/schemas/ConstitutionalResponse"
+      },
+      "StreamError": {
+        "type": "object",
+        "required": ["error", "message", "timestamp"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": ["CONSTITUTIONAL_ERROR", "TIMEOUT", "RATE_LIMIT", "SYSTEM_ERROR"]
+          },
+          "message": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "retry_after_ms": {
+            "type": "integer",
+            "description": "Milliseconds to wait before retry"
+          }
+        }
+      },
+      "Heartbeat": {
+        "type": "object",
+        "required": ["timestamp", "sequence_number"],
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sequence_number": {
+            "type": "integer"
+          }
+        }
+      },
+      "AnalyticsResponse": {
+        "type": "object",
+        "required": ["time_range", "metrics", "timestamp"],
+        "properties": {
+          "time_range": {
+            "type": "string",
+            "enum": ["1h", "6h", "24h", "7d", "30d"]
+          },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "total_evaluations": {
+                "type": "integer",
+                "description": "Total constitutional evaluations"
+              },
+              "constitutional_ratio": {
+                "type": "number",
+                "format": "double",
+                "description": "Ratio of SEAL verdicts"
+              },
+              "average_vitality": {
+                "type": "number",
+                "format": "double",
+                "description": "Average Ψ vitality score"
+              },
+              "floor_statistics": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "passed": {
+                      "type": "integer"
+                    },
+                    "failed": {
+                      "type": "integer"
+                    },
+                    "average_score": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "description": "Statistics per constitutional floor"
+              },
+              "entropy_reduction": {
+                "type": "object",
+                "properties": {
+                  "initial_entropy": {
+                    "type": "number"
+                  },
+                  "final_entropy": {
+                    "type": "number"
+                  },
+                  "reduction_ratio": {
+                    "type": "number"
+                  }
+                }
+              },
+              "tri_witness_consensus": {
+                "type": "number",
+                "format": "double",
+                "description": "Average tri-witness consensus score"
+              }
+            }
+          },
+          "entropy_trace": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "description": "Entropy reduction over time (if requested)"
+          },
+          "vitality_distribution": {
+            "type": "object",
+            "properties": {
+              "buckets": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "range": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CustomFloorRequest": {
+        "type": "object",
+        "required": ["name", "threshold", "evaluator", "description"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^F(1[4-9]|[2-9][0-9])_[A-Za-z_]+$",
+            "description": "Custom floor name (F14-F99)"
+          },
+          "threshold": {
+            "type": "number",
+            "description": "Constitutional threshold value"
+          },
+          "evaluator": {
+            "type": "string",
+            "description": "Evaluator function/class name that implements: def evaluate(text: str, context: dict) -> float:"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Description of custom constitutional floor"
+          },
+          "parameters": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Parameters for custom evaluator"
+          }
+        }
+      },
+      "CustomFloorResponse": {
+        "type": "object",
+        "required": ["floor_id", "name", "status", "created_at"],
+        "properties": {
+          "floor_id": {
+            "type": "string",
+            "description": "Unique identifier for custom floor"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of created custom floor"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "pending", "disabled"],
+            "description": "Status of custom floor"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "constitutional_authority": {
+            "type": "string",
+            "description": "Authority that approved custom floor"
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "required": ["status", "timestamp", "version"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["healthy", "degraded", "unhealthy"],
+            "description": "Overall system health status"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^v[\\d]+\\.[\\d]+\\.[\\d]+$",
+            "description": "Current system version"
+          },
+          "detailed": {
+            "type": "object",
+            "description": "Detailed health metrics (if requested)",
+            "properties": {
+              "floor_health": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["healthy", "warning", "critical"]
+                    },
+                    "latency_ms": {
+                      "type": "number"
+                    },
+                    "error_rate": {
+                      "type": "number"
+                    },
+                    "throughput": {
+                      "type": "number"
+                    }
+                  }
+                }
+              },
+              "system_metrics": {
+                "type": "object",
+                "properties": {
+                  "cpu_utilization": {
+                    "type": "number"
+                  },
+                  "memory_utilization": {
+                    "type": "number"
+                  },
+                  "disk_utilization": {
+                    "type": "number"
+                  },
+                  "network_io": {
+                    "type": "number"
+                  }
+                }
+              },
+              "regional_status": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "latency_ms": {
+                      "type": "number"
+                    },
+                    "active_nodes": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Invalid request parameters",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "enum": ["INVALID_INPUT", "VALIDATION_ERROR", "MISSING_PARAMETER"]
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Authentication required",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "enum": ["INVALID_TOKEN", "MISSING_TOKEN", "EXPIRED_TOKEN"]
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Insufficient permissions",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "enum": ["INSUFFICIENT_PRIVILEGES", "RATE_LIMIT_EXCEEDED", "CUSTOM_FLOOR_LIMIT"]
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Too many requests",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "enum": ["RATE_LIMIT_EXCEEDED", "BURST_LIMIT_EXCEEDED"]
+                },
+                "message": {
+                  "type": "string"
+                },
+                "retry_after_seconds": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Internal constitutional governance error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "enum": ["CONSTITUTIONAL_ERROR", "SYSTEM_ERROR", "DATABASE_ERROR"]
+                },
+                "message": {
+                  "type": "string"
+                },
+                "incident_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "retry_possible": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tags": [
+      {
+        "name": "Constitutional Governance",
+        "description": "Core constitutional evaluation and governance APIs"
+      },
+      {
+        "name": "Analytics",
+        "description": "Constitutional governance analytics and metrics"
+      },
+      {
+        "name": "Constitutional Floors",
+        "description": "Custom constitutional floor management"
+      },
+      {
+        "name": "Health",
+        "description": "System health and status monitoring"
+      },
+      {
+        "name": "Streaming",
+        "description": "Real-time constitutional evaluation streaming"
+      }
+    ],
+    "externalDocs": {
+      "description": "Constitutional AI Governance Documentation",
+      "url": "https://docs.arifos.cloud/v50.5.24"
+    }
+  }
+}

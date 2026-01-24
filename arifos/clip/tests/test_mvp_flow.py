@@ -1,6 +1,6 @@
 import os
 import shutil
-from arifos_clip.aclip.cli import _dispatcher000, _dispatcher777, _dispatcher888, _dispatcher999
+from arifos.clip.aclip.cli import _dispatcher000, _dispatcher777, _dispatcher888, _dispatcher999
 
 def cleanup():
     # Remove any existing session artifacts for a clean start

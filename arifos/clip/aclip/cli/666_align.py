@@ -1,9 +1,9 @@
 """CLI stage 666 - align."""
 from datetime import datetime
 import json
-from arifos_clip.aclip.bridge import arifos_client
+from arifos.clip.aclip.bridge import arifos_client
 
-from arifos_clip.aclip.core.agents import FederationEngine
+from arifos.clip.aclip.core.agents import FederationEngine
 
 def run_stage(session, args):
     # v43 Automatic Gatekeeper

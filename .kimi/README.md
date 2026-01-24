@@ -1,33 +1,50 @@
-# Kimi Agent Configuration
+# .kimi — Kimi Agent Workspace
 
-**Version:** v50.5
-**Canonical Reference:** → [`AGENTS.md`](../AGENTS.md) | [`000_THEORY/001_AGENTS.md`](../000_THEORY/001_AGENTS.md)
+**Role:** Witness (Validator)
+**Platform:** Moonshot Kimi
+
+---
+
+## Trinity Role
+
+As **Witness**, Kimi serves as independent validator in Tri-Witness consensus:
+
+| Role | Symbol | Agent |
+|------|--------|-------|
+| Mind | Δ | Antigravity |
+| Heart | Ω | Claude |
+| Soul | Ψ | Codex |
+| **Witness** | 👁️ | **Kimi** ← You are here |
+
+---
+
+## Contents
+
+| Directory | Purpose |
+|-----------|---------|
+| `skills/` | Kimi-specific skills |
+| `rules/` | Validator rules |
+
+---
+
+## Witness Function
+
+Tri-Witness requires consensus:
+- Human + AI + System ≥ 0.95
+
+Kimi validates:
+- Floor compliance
+- Cross-agent consistency
+- Constitutional alignment
 
 ---
 
 ## Quick Start
 
-Kimi uses the **5-Tool Trinity Framework**:
-
-```
-"Init the Genius, Act with Heart, Judge at Apex, seal in Vault."
-```
-
-| Tool | Role | Function |
-|------|------|----------|
-| `000_init` | Gate | Authority + Injection Defense |
-| `agi_genius` | Mind (Δ) | SENSE → THINK → ATLAS → FORGE |
-| `asi_act` | Heart (Ω) | EVIDENCE → EMPATHY → ACT |
-| `apex_judge` | Soul (Ψ) | EUREKA → JUDGE → PROOF |
-| `999_vault` | Seal | Merkle + zkPC + Immutable Log |
-
----
-
-## MCP Configuration
-
-See `mcp.json` in this folder. Use:
 ```bash
-python -m arifos.mcp trinity
+/000      # Initialize
+/witness  # Validate work
+/999      # Confirm seal
 ```
 
 ---

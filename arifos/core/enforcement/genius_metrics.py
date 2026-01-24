@@ -50,6 +50,70 @@ from .metrics import (
 )
 
 # =============================================================================
+# CORE PHYSICS FUNCTIONS (Consolidated from arifos/eval - Entropy Cleanup)
+# =============================================================================
+
+def measure_genius_physics(A: float, P: float, E: float, X: float) -> float:
+    """
+    Core Genius calculation: G = A × P × E × X (Physics Formula)
+    
+    Consolidated from arifos/eval/apex/apex_measurements.py
+    Simple physics computation without normalization.
+    
+    Args:
+        A: Amanah (trust/reversibility) [0, 1]
+        P: Peace² (stability) [0, 1] 
+        E: Empathy (κᵣ) [0, 1]
+        X: Excellence/humility [0, 1]
+    
+    Returns:
+        Raw genius score [0, 1]
+    """
+    return A * P * E * X
+
+def measure_dark_cleverness_physics(A: float, P: float, X: float, E: float) -> float:
+    """
+    Core Dark Cleverness calculation: C_dark = A × (1-P) × (1-X) × E
+    
+    Consolidated from arifos/eval/apex/apex_measurements.py
+    Measures ungoverned intelligence risk.
+    
+    Args:
+        A: Amanah (trust/reversibility) [0, 1]
+        P: Peace² (stability) [0, 1]
+        X: Excellence/humility [0, 1]
+        E: Energy/empathy [0, 1]
+    
+    Returns:
+        Raw dark cleverness score [0, 1]
+    """
+    return A * (1 - P) * (1 - X) * E
+
+def compute_vitality_physics(delta_s: float, peace2: float, kr: float, rasa: float,
+                           amanah: float, entropy: float, epsilon: float = 0.001) -> float:
+    """
+    Core Vitality calculation: Ψ = (ΔS × Peace² × κᵣ × RASA × Amanah) / (Entropy + ε)
+    
+    Consolidated from arifos/eval/apex/apex_measurements.py
+    Fundamental vitality formula for constitutional health.
+    
+    Args:
+        delta_s: Clarity gain (entropy reduction)
+        peace2: Stability index 
+        kr: Empathy conductance
+        rasa: Active listening flag (0 or 1)
+        amanah: Trust/reversibility (0 or 1)
+        entropy: Residual confusion/disorder
+        epsilon: Stabilizing constant (default 0.001)
+    
+    Returns:
+        Vitality score (Ψ) - system health metric
+    """
+    numerator = delta_s * peace2 * kr * rasa * amanah
+    denominator = entropy + epsilon
+    return numerator / denominator
+
+# =============================================================================
 # TRACK B SPEC LOADER (v45.0: GENIUS LAW Authority)
 # =============================================================================
 

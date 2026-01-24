@@ -1,15 +1,17 @@
 """
-arifOS v50.5.1 Constitutional Kernel
+arifOS v50.5.24 Constitutional Kernel
 5-Tool Trinity Framework
 
 Modules:
   arifos.mcp       - MCP Server (Trinity 5-tool)
   arifos.core      - AGI/ASI/APEX kernels
   arifos.protocol  - Protocol handlers
+  arifos.api       - Body API (FastAPI)
 
 Usage:
   python -m arifos.mcp              # Trinity stdio (5 tools)
   python -m arifos.mcp trinity-sse  # Trinity SSE for Railway
+  python -m arifos.api.server       # Body API (HTTP)
 
 DITEMPA BUKAN DIBERI
 """

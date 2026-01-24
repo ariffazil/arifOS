@@ -51,14 +51,26 @@ def setup_middleware(app: FastAPI) -> None:
     - Auth placeholder (TODO: implement real auth)
     """
 
-    # CORS middleware
-    # TODO: Tighten origins in production (replace * with actual frontend domains)
+    # CORS middleware - F1 (Amanah) SECURITY: Strict origin validation
+    # NEVER use ["*"] with allow_credentials=True (security breach)
+    import os
+
+    allowed_origins_str = os.getenv("ARIFOS_CORS_ORIGINS", "http://localhost:3000,http://localhost:8000")
+    allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
+
+    # F1 Amanah check: Prevent wildcard CORS with credentials
+    if "*" in allowed_origins:
+        raise ValueError(
+            "F1 (Amanah) VIOLATION: Cannot use wildcard CORS origins with credentials. "
+            "Set ARIFOS_CORS_ORIGINS env var to explicit domains."
+        )
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # Permissive for dev; tighten later
+        allow_origins=allowed_origins,  # Explicit whitelist only
         allow_credentials=True,
-        allow_methods=["GET", "POST", "OPTIONS"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "OPTIONS"],  # Restrict methods (include OPTIONS for CORS preflight)
+        allow_headers=["Content-Type", "Authorization"],  # Explicit headers only
     )
 
     # Request logging

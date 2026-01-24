@@ -93,7 +93,6 @@ arifOS/
 ├── arifos_clip/           # DEPRECATED (Thin proxy to arifos.protocol)
 └── 000_THEORY/            # CONSTITUTIONAL CANON
     ├── 000_LAW.md
-    ├── 000_LAW.md
     └── 000_ARCHITECTURE.md
 ├── tests/                 # VALIDATION TIER (BBB-V)
     ├── constitutional/    # <--- THE INVARIANTS (15 Forged Tests)

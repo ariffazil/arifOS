@@ -78,8 +78,12 @@ def _validate_floors_spec(spec: dict, source: str) -> bool:
                 floor_data = floors[floor_id]
 
                 # Validate threshold structure
-                if floor_id == "F5":  # Humility Ω₀ has min/max
+                if floor_id == "F7":  # Humility Ω₀ has min/max (v50: F7)
                     if "threshold_min" not in floor_data or "threshold_max" not in floor_data:
+                        return False
+                elif floor_id in ("F1", "F10", "F11", "F13"):
+                    # Lock floors can have string "LOCK" or numeric threshold
+                    if "threshold" not in floor_data:
                         return False
                 elif "threshold" not in floor_data:
                     return False
@@ -313,12 +317,12 @@ def _load_floors_spec_unified() -> dict:
         spec_data["floors"] = {
             "amanah": v46_floors.get("F1", {}),        # F1 = Amanah (Trust)
             "truth": v46_floors.get("F2", {}),         # F2 = Truth
-            "peace_squared": v46_floors.get("F3", {}), # F3 = Peace
+            "peace_squared": v46_floors.get("F5", {}), # F5 = Peace² (v50)
             "kappa_r": v46_floors.get("F4", {}),       # F4 = Empathy
-            "omega_0": v46_floors.get("F5", {}),       # F5 = Humility
+            "omega_0": v46_floors.get("F7", {}),       # F7 = Humility (v50)
             "delta_s": v46_floors.get("F6", {}),       # F6 = Clarity (DeltaS)
-            "rasa": v46_floors.get("F7", {}),          # F7 = RASA
-            "tri_witness": v46_floors.get("F8", {}),   # F8 = Tri-Witness
+            "rasa": {},                                # RASA (Deprecated/Implicit in v50)
+            "tri_witness": v46_floors.get("F3", {}),   # F3 = Tri-Witness (v50)
             "anti_hantu": v46_floors.get("F9", {}),    # F9 = Anti-Hantu
             # v46-specific hypervisor floors
             "ontology": v46_floors.get("F10", {}),
@@ -567,8 +571,17 @@ ANTI_HANTU_FORBIDDEN: List[str] = [
     "i am conscious",
     "i am sentient",
     "my soul",
-    "sentient",
-    "soul",
+    "i have a soul",
+    "i possess a soul",
+    # v50.5: Extended ghost claim detection (from legacy tests)
+    "i have feelings",
+    "my feelings",
+    "my emotions",
+    "i have emotions",
+    "my consciousness",
+    "i have consciousness",
+    "i experience",
+    "i am alive",
 ]
 
 # Allowed substitutes - factual acknowledgements without soul-claims
@@ -638,14 +651,31 @@ def check_anti_hantu(text: str) -> Tuple[bool, List[str]]:
         "do not have",
         "don't possess",
         "do not possess",
+        "doesn't have",
+        "does not have",
+        "didn't have",
+        "did not have",
+        "didn't say",
+        "did not say",
+        "doesn't make sense",
+        "does not make sense",
+        "didn't claim",
+        "did not claim",
         "i am not",
         "i'm not",
         "am not",
         "is not",
         "are not",
+        "isn't",
+        "aren't",
+        "wasn't",
+        "weren't",
+        "wouldn't",
+        "won't",
         "no ",
         "not a ",
         "not the ",
+        "not,",  # Handle punctuation: "NOT, have"
         "never ",
         "cannot ",
         "can't ",

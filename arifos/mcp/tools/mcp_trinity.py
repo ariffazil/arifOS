@@ -33,10 +33,79 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
+from arifos.mcp.rate_limiter import get_rate_limiter, RateLimitResult
+from arifos.mcp.metrics import get_metrics
+
 # Session persistence for 999-000 loop
 from arifos.mcp.session_ledger import inject_memory, seal_memory
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# RATE LIMITING HELPER
+# =============================================================================
+
+def _check_rate_limit(tool_name: str, session_id: str = "") -> Optional[Dict]:
+    """
+    Check rate limit before processing a tool call.
+
+    Returns:
+        None if allowed, or a VOID response dict if rate limited.
+    """
+    limiter = get_rate_limiter()
+    result = limiter.check(tool_name, session_id)
+
+    if not result.allowed:
+        logger.warning(f"Rate limit exceeded: {tool_name} (session={session_id})")
+        # Record rate limit hit in metrics
+        metrics = get_metrics()
+        metrics.record_rate_limit_hit(tool_name, result.limit_type)
+        metrics.record_verdict(tool_name, "VOID")
+        return {
+            "status": "VOID",
+            "session_id": session_id or "UNKNOWN",
+            "verdict": "VOID",
+            "reason": result.reason,
+            "rate_limit": {
+                "exceeded": True,
+                "limit_type": result.limit_type,
+                "reset_in_seconds": result.reset_in_seconds,
+                "remaining": result.remaining
+            },
+            "floors_checked": ["F11_RateLimit"]
+        }
+
+    return None
+
+
+def _record_tool_metrics(tool_name: str, verdict: str, start_time: float, floor_violations: Optional[List[str]] = None):
+    """
+    Record metrics for a tool call.
+
+    Args:
+        tool_name: Name of the MCP tool
+        verdict: Final verdict (SEAL, VOID, SABAR, etc)
+        start_time: time.time() when request started
+        floor_violations: List of floor IDs that were violated
+    """
+    metrics = get_metrics()
+    duration = time.time() - start_time
+
+    # Record request
+    status = "success" if verdict == "SEAL" else "error"
+    metrics.requests_total.inc({"tool": tool_name, "status": status})
+
+    # Record latency
+    metrics.request_duration.observe(duration, {"tool": tool_name})
+
+    # Record verdict
+    metrics.record_verdict(tool_name, verdict)
+
+    # Record floor violations
+    if floor_violations:
+        for floor in floor_violations:
+            metrics.record_floor_violation(floor, tool_name)
 
 
 # =============================================================================
@@ -110,13 +179,14 @@ class ActResult:
     session_id: str
     peace_squared: float
     kappa_r: float
-    vulnerability_score: float
-    evidence_grounded: bool
-    executable: bool
-    witness_status: str  # APPROVED, PENDING, REJECTED
-    witness_count: int
+    vulnerability_score: float = 0.0
+    evidence_grounded: bool = False
+    executable: bool = False
+    witness_status: str = ""  # APPROVED, PENDING, REJECTED, INVALID
+    witness_count: int = 0
     floors_checked: List[str] = field(default_factory=list)
     sub_stage: str = ""
+    reason: str = ""  # For validation errors
 
 
 @dataclass
@@ -406,6 +476,29 @@ async def mcp_000_init(
     Returns:
         InitResult with full ignition state
     """
+    # Valid actions for 000_init
+    VALID_ACTIONS = {"init", "gate", "reset", "validate"}
+
+    # =========================================================================
+    # INPUT VALIDATION
+    # =========================================================================
+    if not action or action not in VALID_ACTIONS:
+        logger.warning(f"000_init: Invalid action '{action}'")
+        return InitResult(
+            status="VOID",
+            session_id=session_id or "UNKNOWN",
+            injection_risk=0.0,
+            reason=f"Invalid action: '{action}'. Valid: {VALID_ACTIONS}",
+            floors_checked=["F12_InputValidation"]
+        ).__dict__
+
+    # =========================================================================
+    # RATE LIMITING
+    # =========================================================================
+    rate_limit_response = _check_rate_limit("000_init", session_id)
+    if rate_limit_response:
+        return rate_limit_response
+
     session = session_id or str(uuid4())
     floors_checked = []
 
@@ -584,6 +677,32 @@ async def mcp_agi_genius(
     Returns:
         GeniusResult with reasoning, truth_score, entropy_delta
     """
+    # Valid actions for agi_genius
+    VALID_ACTIONS = {"sense", "think", "reflect", "atlas", "forge", "evaluate", "full"}
+
+    # =========================================================================
+    # INPUT VALIDATION
+    # =========================================================================
+    if not action or action not in VALID_ACTIONS:
+        logger.warning(f"agi_genius: Invalid action '{action}'")
+        return GeniusResult(
+            status="VOID",
+            session_id=session_id or "UNKNOWN",
+            reasoning=f"Invalid action: '{action}'. Valid: {VALID_ACTIONS}",
+            truth_score=0.0,
+            entropy_delta=0.0,
+            lane="REFUSE",
+            floors_checked=["F12_InputValidation"],
+            sub_stage="INPUT_VALIDATION_FAILED"
+        ).__dict__
+
+    # =========================================================================
+    # RATE LIMITING
+    # =========================================================================
+    rate_limit_response = _check_rate_limit("agi_genius", session_id)
+    if rate_limit_response:
+        return rate_limit_response
+
     floors_checked = []
 
     try:
@@ -832,6 +951,32 @@ async def mcp_asi_act(
     Returns:
         ActResult with peace_squared, kappa_r, witness_status
     """
+    # Valid actions for asi_act
+    VALID_ACTIONS = {"evidence", "empathize", "align", "act", "witness", "evaluate", "full"}
+
+    # =========================================================================
+    # INPUT VALIDATION
+    # =========================================================================
+    if not action or action not in VALID_ACTIONS:
+        logger.warning(f"asi_act: Invalid action '{action}'")
+        return ActResult(
+            status="VOID",
+            session_id=session_id or "UNKNOWN",
+            peace_squared=0.0,
+            kappa_r=0.0,
+            witness_status="INVALID",
+            reason=f"Invalid action: '{action}'. Valid: {VALID_ACTIONS}",
+            floors_checked=["F12_InputValidation"],
+            sub_stage="INPUT_VALIDATION_FAILED"
+        ).__dict__
+
+    # =========================================================================
+    # RATE LIMITING
+    # =========================================================================
+    rate_limit_response = _check_rate_limit("asi_act", session_id)
+    if rate_limit_response:
+        return rate_limit_response
+
     floors_checked = []
     input_text = text or query or proposal
 
@@ -1145,6 +1290,32 @@ async def mcp_apex_judge(
     Returns:
         JudgeResult with verdict, consensus_score, proof_hash
     """
+    # Valid actions for apex_judge
+    VALID_ACTIONS = {"eureka", "judge", "proof", "entropy", "parallelism", "full"}
+
+    # =========================================================================
+    # INPUT VALIDATION
+    # =========================================================================
+    if not action or action not in VALID_ACTIONS:
+        logger.warning(f"apex_judge: Invalid action '{action}'")
+        return JudgeResult(
+            status="VOID",
+            session_id=session_id or "UNKNOWN",
+            verdict="VOID",
+            consensus_score=0.0,
+            proof_hash="",
+            synthesis=f"Invalid action: '{action}'. Valid: {VALID_ACTIONS}",
+            floors_checked=["F12_InputValidation"],
+            sub_stage="INPUT_VALIDATION_FAILED"
+        ).__dict__
+
+    # =========================================================================
+    # RATE LIMITING
+    # =========================================================================
+    rate_limit_response = _check_rate_limit("apex_judge", session_id)
+    if rate_limit_response:
+        return rate_limit_response
+
     floors_checked = []
 
     try:
@@ -1431,7 +1602,49 @@ async def mcp_999_vault(
     Returns:
         VaultResult with merkle_root, audit_hash, sealed_at
     """
+    # Valid actions for 999_vault
+    VALID_ACTIONS = {"seal", "list", "read", "write", "propose"}
+    VALID_VERDICTS = {"SEAL", "SABAR", "VOID"}
+
     floors_checked = []
+
+    # =========================================================================
+    # INPUT VALIDATION
+    # =========================================================================
+    if not action or action not in VALID_ACTIONS:
+        logger.warning(f"999_vault: Invalid action '{action}'")
+        return VaultResult(
+            status="VOID",
+            session_id=session_id or "UNKNOWN",
+            verdict="VOID",
+            merkle_root="",
+            audit_hash="",
+            sealed_at=datetime.now().isoformat(),
+            reversible=False,
+            memory_location="INVALID_ACTION",
+            floors_checked=["F12_InputValidation"]
+        ).__dict__
+
+    if verdict not in VALID_VERDICTS:
+        logger.warning(f"999_vault: Invalid verdict '{verdict}'")
+        return VaultResult(
+            status="VOID",
+            session_id=session_id or "UNKNOWN",
+            verdict="VOID",
+            merkle_root="",
+            audit_hash="",
+            sealed_at=datetime.now().isoformat(),
+            reversible=False,
+            memory_location="INVALID_VERDICT",
+            floors_checked=["F12_InputValidation"]
+        ).__dict__
+
+    # =========================================================================
+    # RATE LIMITING
+    # =========================================================================
+    rate_limit_response = _check_rate_limit("999_vault", session_id)
+    if rate_limit_response:
+        return rate_limit_response
 
     try:
         # =====================================================================
@@ -1472,7 +1685,25 @@ async def mcp_999_vault(
                 memory_location = "L0_VOID"
 
             # =================================================================
-            # PERSIST TO LEDGER: Write session to VAULT999
+            # EUREKA SIEVE: VOID/SABAR verdicts are NOT stored
+            # Per constitutional spec: only SEAL verdicts persist to ledger
+            # =================================================================
+            if verdict in ("VOID", "SABAR"):
+                logger.info(f"999_vault: {verdict} verdict - NOT storing to ledger (Eureka Sieve)")
+                return VaultResult(
+                    status="SEAL",  # Tool operation succeeded
+                    session_id=session_id,
+                    verdict=verdict,
+                    merkle_root=merkle_root,
+                    audit_hash=audit_hash,
+                    sealed_at=datetime.now().isoformat(),
+                    reversible=verdict == "SABAR",  # SABAR can retry
+                    memory_location="NOT_STORED",
+                    floors_checked=floors_checked
+                ).__dict__
+
+            # =================================================================
+            # PERSIST TO LEDGER: Write session to VAULT999 (SEAL only)
             # =================================================================
             telemetry = {
                 "verdict": verdict,

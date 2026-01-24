@@ -1,6 +1,6 @@
 # arifOS Documentation Index
 
-**Constitutional Governance System v47.0.0**
+**Constitutional Governance System v50.5**
 
 ## 🚀 Constitutional Quick Start (3 Files Only)
 **Compressed to functional What/Where/How mapping for entropy reduction:**
@@ -14,8 +14,7 @@ Core system documentation and governance:
 - **[AGENTS.md](AGENTS.md)** - Constitutional agent specifications and governance
 - **[SYSTEM.md](SYSTEM.md)** - System operations and lifecycle management
 - **[SECURITY.md](SECURITY.md)** - Security policy and compliance
-- **[CHANGELOG.md](CHANGELOG.md)** - Version history and release notes
-- **[RELEASE_NOTES_v47.0.md](RELEASE_NOTES_v47.0.md)** - Current release details
+- **[docs/releases/RELEASE_NOTES.md](docs/releases/RELEASE_NOTES.md)** - Version history and release notes
 - **[README.md](README.md)** - Project overview and introduction
 
 ## 🔍 Analysis & Reports
@@ -44,4 +43,4 @@ Documentation follows the L1/L2/L3 constitutional structure:
 This index is maintained as part of the constitutional governance system. For documentation changes, refer to the changelog and follow the Phoenix-72 amendment process.
 
 **Authority**: Muhammad Arif bin Fazil > arifOS Governor  
-**Status**: SEALED under v47.0.0 constitutional governance
+**Status**: SEALED under v50.5 constitutional governance
