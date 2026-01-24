@@ -23,15 +23,15 @@ This module provides:
 v46.0 Track B Consolidation:
 Thresholds loaded via strict priority order with fail-closed behavior:
   A) ARIFOS_FLOORS_SPEC env var (explicit override - highest priority)
-  B) AAA_MCP/v46/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors)
-  C) AAA_MCP/v46/000_foundation/constitutional_floors.json (fallback if root unavailable)
-  D) AAA_MCP/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors baseline)
+  B) arifos/spec/v47/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors)
+  C) arifos/spec/v47/000_foundation/constitutional_floors.json (fallback if root unavailable)
+  D) arifos/spec/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors baseline)
   E) HARD FAIL (raise exception) - no silent defaults
 
   Optional: ARIFOS_ALLOW_LEGACY_SPEC=1 enables archive fallback (default OFF)
 
 Track A (Canon) remains authoritative for interpretation.
-Track B (Spec) AAA_MCP/v46/ is SOLE RUNTIME AUTHORITY for thresholds.
+Track B (Spec) arifos/spec/v47/ is SOLE RUNTIME AUTHORITY for thresholds.
 """
 
 import json
@@ -102,10 +102,10 @@ def _validate_floors_spec(spec: dict, source: str) -> bool:
                 floor_data = floors[floor_id]
 
                 # Validate threshold structure
-                if floor_id == "F7":  # Humility Ω₀ has min/max (v50: F7)
+                if floor_id == "F5":  # Humility Ω₀ has min/max (v47: F5)
                     if "threshold_min" not in floor_data or "threshold_max" not in floor_data:
                         return False
-                elif floor_id in ("F1", "F10", "F11", "F13"):
+                elif floor_id in ("F1", "F7", "F10", "F11", "F13"):
                     # Lock floors can have string "LOCK" or numeric threshold
                     if "threshold" not in floor_data:
                         return False
@@ -150,9 +150,9 @@ def _load_floors_spec_unified() -> dict:
 
     Priority (fail-closed):
     A) ARIFOS_FLOORS_SPEC (env path override) - highest priority (explicit operator authority)
-    B) AAA_MCP/v46/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors, complete)
-    C) AAA_MCP/v46/000_foundation/constitutional_floors.json (v46 fallback if root unavailable)
-    D) AAA_MCP/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors baseline)
+    B) arifos/spec/v47/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors, complete)
+    C) arifos/spec/v47/000_foundation/constitutional_floors.json (v46 fallback if root unavailable)
+    D) arifos/spec/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors baseline)
     E) HARD FAIL (raise RuntimeError) - no legacy fallback
 
     Each candidate is validated for required keys before acceptance.
@@ -170,14 +170,14 @@ def _load_floors_spec_unified() -> dict:
     spec_data = None
 
 
-    # v46.1: Support AAA_MCP/v46 -> AAA_MCP/archive/v45 -> FAIL priority chain
+    # v46.1: Support arifos/spec/v47 -> arifos/spec/archive/v45 -> FAIL priority chain
     # Check if legacy spec bypass is enabled (for development/migration)
     allow_legacy = os.getenv("ARIFOS_ALLOW_LEGACY_SPEC", "0") == "1"
 
 
-    # Define base directories
-    l2_dir = pkg_dir / "AAA_MCP"
-    v46_base = l2_dir / "v46"
+    # Define base directories (v51.2: specs live in arifos/spec/)
+    l2_dir = pkg_dir / "arifos" / "spec"
+    v46_base = l2_dir / "v47"  # v47 is current authority
     v45_archive = l2_dir / "archive" / "v45"
 
     # Try v46 schema first, fallback to v45
@@ -268,7 +268,7 @@ def _load_floors_spec_unified() -> dict:
             except (json.JSONDecodeError, IOError, OSError):
                 pass  # Fall through to next priority
 
-    # Priority B: AAA_MCP/v46/constitutional_floors.json (PRIMARY AUTHORITY v46.0)
+    # Priority B: arifos/spec/v47/constitutional_floors.json (PRIMARY AUTHORITY v46.0)
     # Root-level consolidated file is authoritative (69 lines, complete type fields)
     if spec_data is None:
         v46_root_path = v46_base / "constitutional_floors.json"
@@ -281,7 +281,7 @@ def _load_floors_spec_unified() -> dict:
                 # Structural validation is sufficient for v46 format
                 if _validate_floors_spec(candidate, str(v46_root_path)):
                     spec_data = candidate
-                    loaded_from = "AAA_MCP/v46/constitutional_floors.json"
+                    loaded_from = "arifos/spec/v47/constitutional_floors.json"
 
             except Exception as e:
                 # If root file fails, try foundation subfolder as fallback
@@ -293,11 +293,11 @@ def _load_floors_spec_unified() -> dict:
                         # Skip schema validation for v46 files (they use different schema)
                         if _validate_floors_spec(candidate, str(v46_foundation_path)):
                             spec_data = candidate
-                            loaded_from = "AAA_MCP/v46/000_foundation/constitutional_floors.json (fallback)"
+                            loaded_from = "arifos/spec/v47/000_foundation/constitutional_floors.json (fallback)"
                     except Exception:
                         pass  # Fall through to v45 fallback
 
-    # Priority C: AAA_MCP/archive/v45/constitutional_floors.json (BASELINE)
+    # Priority C: arifos/spec/archive/v45/constitutional_floors.json (BASELINE)
     if spec_data is None:
         v45_path = v45_archive / "constitutional_floors.json"
         if v45_path.exists():
@@ -310,7 +310,7 @@ def _load_floors_spec_unified() -> dict:
                 # Structural validation (required keys)
                 if _validate_floors_spec(candidate, str(v45_path)):
                     spec_data = candidate
-                    loaded_from = "AAA_MCP/archive/v45/constitutional_floors.json"
+                    loaded_from = "arifos/spec/archive/v45/constitutional_floors.json"
             except (json.JSONDecodeError, IOError):
                 pass  # Fall through to v44 fallback
 
@@ -319,11 +319,11 @@ def _load_floors_spec_unified() -> dict:
         raise RuntimeError(
             "TRACK B AUTHORITY FAILURE: Constitutional floors spec not found.\n\n"
             "Searched locations (in priority order):\n"
-            f"  1. AAA_MCP/v46/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors)\n"
-            f"  2. AAA_MCP/v46/000_foundation/constitutional_floors.json (v46 fallback)\n"
-            f"  3. AAA_MCP/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors)\n\n"
+            f"  1. arifos/spec/v47/constitutional_floors.json (PRIMARY AUTHORITY - v46.0, 12 floors)\n"
+            f"  2. arifos/spec/v47/000_foundation/constitutional_floors.json (v46 fallback)\n"
+            f"  3. arifos/spec/archive/v45/constitutional_floors.json (DEPRECATED - 9 floors)\n\n"
             "Resolution:\n"
-            "1. Ensure AAA_MCP/v46/constitutional_floors.json exists and is valid\n"
+            "1. Ensure arifos/spec/v47/constitutional_floors.json exists and is valid\n"
             "2. Or set ARIFOS_FLOORS_SPEC env var to explicit path\n"
             "3. Verify MANIFEST.sha256.json integrity if using strict mode\n\n"
         )
@@ -341,12 +341,12 @@ def _load_floors_spec_unified() -> dict:
         spec_data["floors"] = {
             "amanah": v46_floors.get("F1", {}),        # F1 = Amanah (Trust)
             "truth": v46_floors.get("F2", {}),         # F2 = Truth
-            "peace_squared": v46_floors.get("F5", {}), # F5 = Peace² (v50)
+            "peace_squared": v46_floors.get("F3", {}), # F3 = Stability/Peace (v47)
             "kappa_r": v46_floors.get("F4", {}),       # F4 = Empathy
-            "omega_0": v46_floors.get("F7", {}),       # F7 = Humility (v50)
+            "omega_0": v46_floors.get("F5", {}),       # F5 = Humility (v47)
             "delta_s": v46_floors.get("F6", {}),       # F6 = Clarity (DeltaS)
-            "rasa": {},                                # RASA (Deprecated/Implicit in v50)
-            "tri_witness": v46_floors.get("F3", {}),   # F3 = Tri-Witness (v50)
+            "rasa": v46_floors.get("F7", {}),          # F7 = RASA/FeltCare (v47)
+            "tri_witness": v46_floors.get("F8", {}),   # F8 = Tri-Witness (v47)
             "anti_hantu": v46_floors.get("F9", {}),    # F9 = Anti-Hantu
             # v46-specific hypervisor floors
             "ontology": v46_floors.get("F10", {}),

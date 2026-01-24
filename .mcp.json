@@ -12,15 +12,19 @@
             }
         },
         "sequential-thinking": {
-            "command": "npx",
+            "command": "cmd",
             "args": [
+                "/c",
+                "npx",
                 "-y",
                 "@modelcontextprotocol/server-sequential-thinking"
             ]
         },
         "brave-search": {
-            "command": "npx",
+            "command": "cmd",
             "args": [
+                "/c",
+                "npx",
                 "-y",
                 "@modelcontextprotocol/server-brave-search"
             ],
@@ -29,30 +33,38 @@
             }
         },
         "fetch": {
-            "command": "npx",
+            "command": "cmd",
             "args": [
+                "/c",
+                "npx",
                 "-y",
                 "@modelcontextprotocol/server-fetch"
             ]
         },
         "puppeteer": {
-            "command": "npx",
+            "command": "cmd",
             "args": [
+                "/c",
+                "npx",
                 "-y",
                 "@modelcontextprotocol/server-puppeteer"
             ]
         },
         "filesystem": {
-            "command": "npx",
+            "command": "cmd",
             "args": [
+                "/c",
+                "npx",
                 "-y",
                 "@modelcontextprotocol/server-filesystem",
                 "."
             ]
         },
         "sqlite": {
-            "command": "npx",
+            "command": "cmd",
             "args": [
+                "/c",
+                "npx",
                 "-y",
                 "@modelcontextprotocol/server-sqlite",
                 "--file",
@@ -60,23 +72,29 @@
             ]
         },
         "postgres": {
-            "command": "npx",
+            "command": "cmd",
             "args": [
+                "/c",
+                "npx",
                 "-y",
                 "@modelcontextprotocol/server-postgres",
                 "${POSTGRES_URL}"
             ]
         },
         "memory": {
-            "command": "npx",
+            "command": "cmd",
             "args": [
+                "/c",
+                "npx",
                 "-y",
                 "@modelcontextprotocol/server-memory"
             ]
         },
         "github": {
-            "command": "npx",
+            "command": "cmd",
             "args": [
+                "/c",
+                "npx",
                 "-y",
                 "@modelcontextprotocol/server-github"
             ],
@@ -85,8 +103,10 @@
             }
         },
         "slack": {
-            "command": "npx",
+            "command": "cmd",
             "args": [
+                "/c",
+                "npx",
                 "-y",
                 "@modelcontextprotocol/server-slack"
             ],
@@ -96,8 +116,10 @@
             }
         },
         "sentry": {
-            "command": "npx",
+            "command": "cmd",
             "args": [
+                "/c",
+                "npx",
                 "-y",
                 "@modelcontextprotocol/server-sentry"
             ],

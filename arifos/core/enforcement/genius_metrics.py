@@ -4,7 +4,7 @@ genius_metrics.py — GENIUS LAW Measurement (v46.0 Track B Authority)
 Implements the GENIUS LAW measurement layer for arifOS.
 
 v46.0 Track B Consolidation:
-Thresholds loaded from AAA_MCP/v46/genius_law.json (PRIMARY AUTHORITY).
+Thresholds loaded from arifos/spec/v46/genius_law.json (PRIMARY AUTHORITY).
 Falls back to archive only if ARIFOS_ALLOW_LEGACY_SPEC=1.
 Semantics unchanged from v36.1Omega/v38Omega - threshold source consolidated.
 
@@ -21,7 +21,7 @@ Key formulas (v36.1Omega, unchanged in v46.0):
     Psi = (DeltaS x Peace2 x KappaR x RASA x Amanah) / (Entropy + Shadow + epsilon)
 
 For full measurement spec, see:
-    AAA_MCP/v46/genius_law.json (Track B authority - v46.0)
+    arifos/spec/v46/genius_law.json (Track B authority - v46.0)
     000_THEORY/canon/04_measurement/04_GENIUS_LAW_v42.md (Track A canon)
 """
 
@@ -119,13 +119,13 @@ def compute_vitality_physics(delta_s: float, peace2: float, kr: float, rasa: flo
 
 def _load_genius_spec(verify: bool = False) -> dict:
     """
-    Load GENIUS LAW spec from AAA_MCP/v46/genius_law.json (v46.0 Track B Authority).
+    Load GENIUS LAW spec from arifos/spec/v46/genius_law.json (v46.0 Track B Authority).
 
     Priority (fail-closed):
     A) ARIFOS_GENIUS_SPEC env var (explicit override)
-    B) AAA_MCP/v47/genius_law.json (PRIMARY AUTHORITY - v47.0)
-    C) AAA_MCP/v46/genius_law.json (FALLBACK - v46.0)
-    D) AAA_MCP/archive/v45/genius_law.json (DEPRECATED fallback)
+    B) arifos/spec/v47/genius_law.json (PRIMARY AUTHORITY - v47.0)
+    C) arifos/spec/v46/genius_law.json (FALLBACK - v46.0)
+    D) arifos/spec/archive/v45/genius_law.json (DEPRECATED fallback)
     E) HARD FAIL (no legacy fallback)
 
     Returns:
@@ -135,14 +135,14 @@ def _load_genius_spec(verify: bool = False) -> dict:
         RuntimeError: If v47/v46/v45 spec missing/invalid
     """
     pkg_dir = Path(__file__).resolve().parent.parent.parent.parent  # repo root (arifOS/)
-    # v47.0: Support AAA_MCP/v47/ as primary, fall back to v46/v45/v44
+    # v47.0: Support arifos/spec/v47/ as primary, fall back to v46/v45/v44
     # allow_legacy allows bypass via ARIFOS_ALLOW_LEGACY_SPEC env var
     allow_legacy = os.getenv("ARIFOS_ALLOW_LEGACY_SPEC", "0") == "1"
     skip_track_b = os.getenv("ARIFOS_SKIP_TRACK_B", "0") == "1"
 
     # Try v47 schema first, then v46, v45, fallback to v44
-    v47_schema_path = pkg_dir / "AAA_MCP" / "v47" / "schema" / "genius_law.schema.json"
-    v46_schema_path = pkg_dir / "AAA_MCP" / "v46" / "schema" / "genius_law.schema.json"
+    v47_schema_path = pkg_dir / "arifos" / "spec" / "v47" / "schema" / "genius_law.schema.json"
+    v46_schema_path = pkg_dir / "arifos" / "spec" / "v46" / "schema" / "genius_law.schema.json"
     v45_schema_path = pkg_dir / "spec" / "v45" / "schema" / "genius_law.schema.json"
     v44_schema_path = pkg_dir / "spec" / "v44" / "schema" / "genius_law.schema.json"
 
@@ -156,8 +156,8 @@ def _load_genius_spec(verify: bool = False) -> dict:
         schema_path = v44_schema_path
 
     # Verify cryptographic manifest (tamper-evident integrity for v47/v46/v45/v44 specs)
-    v47_manifest_path = pkg_dir / "AAA_MCP" / "v47" / "MANIFEST.sha256.json"
-    v46_manifest_path = pkg_dir / "AAA_MCP" / "v46" / "MANIFEST.sha256.json"
+    v47_manifest_path = pkg_dir / "arifos" / "spec" / "v47" / "MANIFEST.sha256.json"
+    v46_manifest_path = pkg_dir / "arifos" / "spec" / "v46" / "MANIFEST.sha256.json"
     v45_manifest_path = pkg_dir / "spec" / "v45" / "MANIFEST.sha256.json"
     v44_manifest_path = pkg_dir / "spec" / "v44" / "MANIFEST.sha256.json"
 
@@ -179,14 +179,14 @@ def _load_genius_spec(verify: bool = False) -> dict:
     if env_path and Path(env_path).exists():
         env_spec_path = Path(env_path).resolve()
 
-        # Strict mode: env override must point to AAA_MCP/v47/, AAA_MCP/v46/, spec/v45/, or spec/v44/ (manifest-covered files only)
+        # Strict mode: env override must point to arifos/spec/v47/, arifos/spec/v46/, spec/v45/, or spec/v44/ (manifest-covered files only)
         if not allow_legacy:
-            v47_dir = (pkg_dir / "AAA_MCP" / "v47").resolve()
-            v46_dir = (pkg_dir / "AAA_MCP" / "v46").resolve()
+            v47_dir = (pkg_dir / "arifos" / "spec" / "v47").resolve()
+            v46_dir = (pkg_dir / "arifos" / "spec" / "v46").resolve()
             v45_dir = (pkg_dir / "spec" / "v45").resolve()
             v44_dir = (pkg_dir / "spec" / "v44").resolve()
             try:
-                # Check if within AAA_MCP/v47/, AAA_MCP/v46/, spec/v45/, or spec/v44/
+                # Check if within arifos/spec/v47/, arifos/spec/v46/, spec/v45/, or spec/v44/
                 try:
                     env_spec_path.relative_to(v47_dir)
                 except ValueError:
@@ -200,7 +200,7 @@ def _load_genius_spec(verify: bool = False) -> dict:
             except ValueError:
                 # Path is outside all dirs - reject in strict mode
                 raise RuntimeError(
-                    f"TRACK B AUTHORITY FAILURE: Environment override points to path outside AAA_MCP/v47/, AAA_MCP/v46/, spec/v45/, or spec/v44/.\n"
+                    f"TRACK B AUTHORITY FAILURE: Environment override points to path outside arifos/spec/v47/, arifos/spec/v46/, spec/v45/, or spec/v44/.\n"
                     f"  Override path: {env_spec_path}\n"
                     f"  Expected within: {v47_dir}, {v46_dir}, {v45_dir}, or {v44_dir}\n"
                     f"In strict mode, only manifest-covered files are allowed.\n"
@@ -216,8 +216,8 @@ def _load_genius_spec(verify: bool = False) -> dict:
         except (json.JSONDecodeError, IOError):
             pass
 
-    # Priority B: AAA_MCP/v47/genius_law.json (AUTHORITATIVE v47+)
-    v47_path = pkg_dir / "AAA_MCP" / "v47" / "genius_law.json"
+    # Priority B: arifos/spec/v47/genius_law.json (AUTHORITATIVE v47+)
+    v47_path = pkg_dir / "arifos" / "spec" / "v47" / "genius_law.json"
     if v47_path.exists():
         try:
             with open(v47_path, "r", encoding="utf-8") as f:
@@ -228,8 +228,8 @@ def _load_genius_spec(verify: bool = False) -> dict:
         except (json.JSONDecodeError, IOError):
             pass
 
-    # Priority C: AAA_MCP/v46/genius_law.json (FALLBACK v46)
-    v46_path = pkg_dir / "AAA_MCP" / "v46" / "genius_law.json"
+    # Priority C: arifos/spec/v46/genius_law.json (FALLBACK v46)
+    v46_path = pkg_dir / "arifos" / "spec" / "v46" / "genius_law.json"
     if v46_path.exists():
         try:
             with open(v46_path, "r", encoding="utf-8") as f:
@@ -240,13 +240,13 @@ def _load_genius_spec(verify: bool = False) -> dict:
         except (json.JSONDecodeError, IOError):
             pass
 
-    # Priority D: AAA_MCP/v45/genius_law.json (active v45 runtime compat)
-    v45_active_path = pkg_dir / "AAA_MCP" / "v45" / "genius_law.json"
+    # Priority D: arifos/spec/v45/genius_law.json (active v45 runtime compat)
+    v45_active_path = pkg_dir / "arifos" / "spec" / "v45" / "genius_law.json"
     if v45_active_path.exists():
         import warnings
         warnings.warn(
-            "Loading from AAA_MCP/v45/ (v45 runtime compatibility). "
-            "Please migrate to AAA_MCP/v47/ for full 12-floor support.",
+            "Loading from arifos/spec/v45/ (v45 runtime compatibility). "
+            "Please migrate to arifos/spec/v47/ for full 12-floor support.",
             DeprecationWarning,
             stacklevel=2
         )
@@ -259,14 +259,14 @@ def _load_genius_spec(verify: bool = False) -> dict:
         except (json.JSONDecodeError, IOError):
             pass
 
-    # Priority E: AAA_MCP/archive/v45/genius_law.json (ARCHIVE fallback if legacy enabled)
+    # Priority E: arifos/spec/archive/v45/genius_law.json (ARCHIVE fallback if legacy enabled)
     if allow_legacy:
-        v45_archive_path = pkg_dir / "AAA_MCP" / "archive" / "v45" / "genius_law.json"
+        v45_archive_path = pkg_dir / "arifos" / "spec" / "archive" / "v45" / "genius_law.json"
         if v45_archive_path.exists():
             import warnings
             warnings.warn(
-                "Loading from AAA_MCP/archive/v45/ (DEPRECATED ARCHIVE). "
-                "Please migrate to AAA_MCP/v46/. Archive fallback will be removed.",
+                "Loading from arifos/spec/archive/v45/ (DEPRECATED ARCHIVE). "
+                "Please migrate to arifos/spec/v46/. Archive fallback will be removed.",
                 DeprecationWarning,
                 stacklevel=2
             )
@@ -285,15 +285,15 @@ def _load_genius_spec(verify: bool = False) -> dict:
     raise RuntimeError(
         "TRACK B AUTHORITY FAILURE: GENIUS LAW spec not found.\n\n"
         "Searched locations (in priority order):\n"
-        f"  1. AAA_MCP/v46/genius_law.json (PRIMARY AUTHORITY - v46.0)\n"
-        f"  2. AAA_MCP/v45/genius_law.json (v45 runtime compatibility)\n"
-        f"  3. AAA_MCP/archive/v45/genius_law.json (ARCHIVE - if ARIFOS_ALLOW_LEGACY_SPEC=1)\n\n"
+        f"  1. arifos/spec/v46/genius_law.json (PRIMARY AUTHORITY - v46.0)\n"
+        f"  2. arifos/spec/v45/genius_law.json (v45 runtime compatibility)\n"
+        f"  3. arifos/spec/archive/v45/genius_law.json (ARCHIVE - if ARIFOS_ALLOW_LEGACY_SPEC=1)\n\n"
         "Resolution:\n"
-        "1. Ensure AAA_MCP/v46/genius_law.json exists and is valid OR\n"
+        "1. Ensure arifos/spec/v46/genius_law.json exists and is valid OR\n"
         "2. Set ARIFOS_GENIUS_SPEC env var to explicit path\n"
         "3. Verify MANIFEST.sha256.json integrity if using strict mode\n\n"
-        "Note: spec/v45/ and spec/v44/ are no longer supported. Use AAA_MCP/ structure.\n"
-        "For migration guide, see: AAA_MCP/MIGRATION_SPEC_TO_L2_v46.md"
+        "Note: spec/v45/ and spec/v44/ are no longer supported. Use arifos/spec/ structure.\n"
+        "For migration guide, see: arifos/spec/MIGRATION_SPEC_TO_L2_v46.md"
     )
 
 

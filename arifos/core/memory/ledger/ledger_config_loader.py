@@ -2,7 +2,7 @@
 Cooling Ledger Configuration Loader (v46)
 Loads Phoenix-72 config, scar lifecycle, verdict routing.
 
-Track B Authority: AAA_MCP/v46/cooling_ledger_phoenix.json
+Track B Authority: arifos/spec/v46/cooling_ledger_phoenix.json
 Fallback: spec/v45/ then spec/v44/
 
 Author: arifOS Project
@@ -29,7 +29,7 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
 
     Priority:
     A) ARIFOS_LEDGER_SPEC env var (absolute path override)
-    B) AAA_MCP/v46/cooling_ledger_phoenix.json (AUTHORITATIVE v46+)
+    B) arifos/spec/v46/cooling_ledger_phoenix.json (AUTHORITATIVE v46+)
     C) spec/v45/cooling_ledger_phoenix.json (FALLBACK v45)
     D) spec/v44/cooling_ledger_phoenix.json (FALLBACK v44)
     E) HARD FAIL (no v42/v38/v35)
@@ -91,9 +91,9 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
                     f"TRACK B AUTHORITY FAILURE: Failed to load ledger config from ARIFOS_LEDGER_SPEC={env_path}: {e}"
                 )
 
-    # Priority B: AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)
+    # Priority B: arifos/spec/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)
     if spec_data is None:
-        v47_path = pkg_dir / "AAA_MCP" / "v47" / "cooling_ledger_phoenix.json"
+        v47_path = pkg_dir / "arifos" / "spec" / "v47" / "cooling_ledger_phoenix.json"
         if v47_path.exists():
             try:
                 with open(v47_path, "r", encoding="utf-8") as f:
@@ -103,12 +103,12 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
             except Exception as e:
                 raise RuntimeError(f"TRACK B AUTHORITY FAILURE: Failed to parse {v47_path}: {e}")
 
-    # Priority C: AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)
+    # Priority C: arifos/spec/v46/cooling_ledger_phoenix.json (FALLBACK v46)
     if spec_data is None:
-        v46_path = pkg_dir / "AAA_MCP" / "v46" / "cooling_ledger_phoenix.json"
+        v46_path = pkg_dir / "arifos" / "spec" / "v46" / "cooling_ledger_phoenix.json"
         if v46_path.exists():
             warnings.warn(
-                f"Loading from AAA_MCP/v46/ (v46 fallback). Please migrate to AAA_MCP/v47/.",
+                f"Loading from arifos/spec/v46/ (v46 fallback). Please migrate to arifos/spec/v47/.",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -125,7 +125,7 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
         v45_path = pkg_dir / "spec" / "v45" / "cooling_ledger_phoenix.json"
         if v45_path.exists():
             warnings.warn(
-                f"Loading from spec/v45/ (DEPRECATED in v47+). Please migrate to AAA_MCP/v47/. "
+                f"Loading from spec/v45/ (DEPRECATED in v47+). Please migrate to arifos/spec/v47/. "
                 f"spec/v45/ fallback will be removed in future versions.",
                 DeprecationWarning,
                 stacklevel=2,
@@ -143,7 +143,7 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
         v44_path = pkg_dir / "spec" / "v44" / "cooling_ledger_phoenix.json"
         if v44_path.exists():
             warnings.warn(
-                f"Loading from spec/v44/ (DEPRECATED). Please migrate to AAA_MCP/v47/. "
+                f"Loading from spec/v44/ (DEPRECATED). Please migrate to arifos/spec/v47/. "
                 f"v44 fallback will be removed in future versions.",
                 DeprecationWarning,
                 stacklevel=2,
@@ -161,18 +161,18 @@ def _load_ledger_config_spec() -> Dict[str, Any]:
         raise RuntimeError(
             "TRACK B AUTHORITY FAILURE: Cooling ledger config not found.\n\n"
             "Searched locations:\n"
-            f"  - AAA_MCP/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)\n"
-            f"  - AAA_MCP/v46/cooling_ledger_phoenix.json (FALLBACK v46)\n"
+            f"  - arifos/spec/v47/cooling_ledger_phoenix.json (AUTHORITATIVE v47+)\n"
+            f"  - arifos/spec/v46/cooling_ledger_phoenix.json (FALLBACK v46)\n"
             f"  - spec/v45/cooling_ledger_phoenix.json (DEPRECATED v45)\n"
             f"  - spec/v44/cooling_ledger_phoenix.json (DEPRECATED v44)\n\n"
             "Migration required:\n"
-            "1. Ensure AAA_MCP/v47/cooling_ledger_phoenix.json exists OR\n"
+            "1. Ensure arifos/spec/v47/cooling_ledger_phoenix.json exists OR\n"
             "2. Set ARIFOS_LEDGER_SPEC=/path/to/cooling_ledger_phoenix.json"
         )
 
     # Schema validation (if schema exists)
-    v47_schema_path = pkg_dir / "AAA_MCP" / "v47" / "schema" / "cooling_ledger_phoenix.schema.json"
-    v46_schema_path = pkg_dir / "AAA_MCP" / "v46" / "schema" / "cooling_ledger_phoenix.schema.json"
+    v47_schema_path = pkg_dir / "arifos" / "spec" / "v47" / "schema" / "cooling_ledger_phoenix.schema.json"
+    v46_schema_path = pkg_dir / "arifos" / "spec" / "v46" / "schema" / "cooling_ledger_phoenix.schema.json"
     v45_schema_path = pkg_dir / "spec" / "v45" / "schema" / "cooling_ledger_phoenix.schema.json"
     v44_schema_path = pkg_dir / "spec" / "v44" / "schema" / "cooling_ledger_phoenix.schema.json"
 
