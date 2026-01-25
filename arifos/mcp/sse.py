@@ -74,37 +74,76 @@ async def arifos_trinity_000_init(action: str = "init", query: str = "", session
 
 @mcp.tool()
 async def arifos_trinity_agi_genius(action: str = "sense", query: str = "", session_id: str = "", thought: str = "") -> dict:
-    """AGI GENIUS: The Mind (Δ) - Truth & Reasoning Engine.
+    """AGI GENIUS: The Mind (Δ) - Truth & Reasoning Engine (v52.5.1).
 
-    Consolidates: SENSE + THINK + ATLAS + FORGE
-    Actions: sense, think, reflect, atlas, forge, evaluate, full
+    Enforces: F2 (Truth ≥0.99), F4 (Clarity ΔS≥0), F7 (Humility 3-5%).
+    Pipeline: SENSE → THINK → ATLAS-333 → FORGE
+
+    Actions:
+    - sense: Analyze input, detect intent
+    - think: Apply logical reasoning
+    - atlas: Route via ATLAS-333 lanes
+    - forge: Generate output with citations
+    - full: Complete pipeline
+
+    Lanes (v52.5.1): CRISIS | FACTUAL | CARE | SOCIAL
     """
     return await mcp_agi_genius(action=action, query=query, session_id=session_id, thought=thought)
 
 @mcp.tool()
 async def arifos_trinity_asi_act(action: str = "empathize", text: str = "", session_id: str = "", proposal: str = "") -> dict:
-    """ASI ACT: The Heart (Ω) - Safety & Empathy Engine.
+    """ASI ACT: The Heart (Ω) - Safety & Empathy Engine (v52.5.1).
 
-    Consolidates: EVIDENCE + EMPATHY + ACT + WITNESS
-    Actions: evidence, empathize, align, act, witness, evaluate, full
+    Enforces: F1 (Amanah/Reversibility), F5 (Peace²≥1), F6 (Empathy κᵣ≥0.95).
+    Pipeline: EVIDENCE → EMPATHY → ACT → WITNESS
+
+    Actions:
+    - evidence: Gather supporting data
+    - empathize: Check stakeholder impact
+    - act: Execute with safeguards
+    - witness: Request tri-witness consensus
+    - full: Complete pipeline
+
+    Protects the weakest stakeholder in every decision.
     """
     return await mcp_asi_act(action=action, text=text, session_id=session_id, proposal=proposal)
 
 @mcp.tool()
 async def arifos_trinity_apex_judge(action: str = "judge", query: str = "", session_id: str = "", response: str = "") -> dict:
-    """APEX JUDGE: The Soul (Ψ) - Judgment & Authority Engine.
+    """APEX JUDGE: The Soul (Ψ) - Judgment & Authority Engine (v52.5.1).
 
-    Consolidates: EUREKA + JUDGE + PROOF
-    Actions: eureka, judge, proof, entropy, parallelism, full
+    Final verdict authority. Enforces: F3 (Tri-Witness≥0.95), F8 (Genius), F9 (C_dark<0.30).
+    Pipeline: EUREKA → JUDGE → PROOF
+
+    Actions:
+    - eureka: Synthesize insights
+    - judge: Issue verdict (SEAL/SABAR/VOID/888_HOLD)
+    - proof: Generate cryptographic proof
+    - full: Complete pipeline
+
+    Verdicts:
+    - SEAL: Approved (all floors pass)
+    - SABAR: Wait (needs cooling)
+    - VOID: Rejected (hard floor fail)
+    - 888_HOLD: High-stakes (needs human confirmation)
     """
     return await mcp_apex_judge(action=action, query=query, session_id=session_id, response=response)
 
 @mcp.tool()
 async def arifos_trinity_999_vault(action: str = "seal", session_id: str = "", verdict: str = "SEAL", target: str = "seal") -> dict:
-    """999 VAULT: Immutable Seal & Governance IO.
+    """999 VAULT: Immutable Seal & Governance IO (v52.5.1).
 
-    The final gate - seals all decisions immutably.
-    Actions: seal, list, read, write, propose
+    Final gate - seals decisions with Merkle proofs to VAULT999.
+    Hash-chained audit trail for constitutional compliance.
+
+    Actions:
+    - seal: Commit verdict to ledger
+    - list: View recent seals
+    - read: Retrieve specific seal
+    - write: Store governance data
+    - propose: Draft without committing
+
+    Memory Tiers: L0(hot) → L1(24h) → L2(72h) → L3(7d) → L4(30d) → L5(immutable)
     """
     return await mcp_999_vault(action=action, session_id=session_id, verdict=verdict, target=target)
 
@@ -122,7 +161,9 @@ async def health_check(request):
             "sse": "/sse",
             "messages": "/messages",
             "health": "/health",
-            "dashboard": "/dashboard"
+            "docs": "/docs",
+            "dashboard": "/dashboard",
+            "metrics": "/metrics/json"
         }
     })
 
@@ -167,51 +208,105 @@ async def get_docs(request):
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>arifOS MCP Documentation</title>
         <style>
-            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 2rem; color: #333; }}
+            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; max-width: 900px; margin: 0 auto; padding: 2rem; color: #333; }}
             h1 {{ border-bottom: 2px solid #000; padding-bottom: 0.5rem; }}
             h2 {{ color: #444; margin-top: 2rem; }}
             code {{ background: #f4f4f4; padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.9em; }}
             pre {{ background: #f4f4f4; padding: 1rem; border-radius: 4px; overflow-x: auto; }}
             .tool {{ border: 1px solid #ddd; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; }}
             .tool h3 {{ margin-top: 0; color: #2c3e50; }}
-            .badge {{ display: inline-block; background: #e1f5fe; color: #2c3e50; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8em; font-weight: bold; }}
+            .badge {{ display: inline-block; background: #e1f5fe; color: #0277bd; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8em; font-weight: bold; }}
+            .verdict {{ display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; margin: 0.2rem; }}
+            .seal {{ background: #c8e6c9; color: #2e7d32; }}
+            .sabar {{ background: #fff9c4; color: #f57f17; }}
+            .void {{ background: #ffcdd2; color: #c62828; }}
+            .hold {{ background: #e1bee7; color: #7b1fa2; }}
+            .lane {{ display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; margin: 0.2rem; font-size: 0.85em; }}
+            .crisis {{ background: #ffcdd2; color: #c62828; }}
+            .factual {{ background: #bbdefb; color: #1565c0; }}
+            .care {{ background: #c8e6c9; color: #2e7d32; }}
+            .social {{ background: #fff9c4; color: #f57f17; }}
+            table {{ border-collapse: collapse; width: 100%; margin: 1rem 0; }}
+            th, td {{ border: 1px solid #ddd; padding: 0.5rem; text-align: left; }}
+            th {{ background: #f5f5f5; }}
         </style>
     </head>
     <body>
         <h1>arifOS MCP Server</h1>
         <p><strong>Version:</strong> {VERSION}</p>
         <p><strong>Motto:</strong> {MOTTO}</p>
-        
-        <h2>🔌 Connection Info</h2>
-        <p>This is a Model Context Protocol (MCP) server. Connect compatible clients (Claude Desktop, Cursor, Kimi) using the SSE endpoint:</p>
+        <p>A constitutional AI governance filter. Stops AI from lying, harming, or being overconfident.</p>
+
+        <h2>Connection</h2>
+        <p>Connect MCP-compatible clients (Claude Desktop, Cursor, Kimi) using:</p>
         <pre>https://arifos.arif-fazil.com/sse</pre>
-        
-        <h2>🛠️ Trinity Tools (5)</h2>
+
+        <h2>Trinity Tools (5)</h2>
         <div class="tool">
-            <h3>🚪 000_init <span class="badge">Gate</span></h3>
-            <p><strong>System Ignition & Constitutional Gateway.</strong> The 7-Step Ignition Sequence that prepares arifOS for operation.</p>
+            <h3>000_init <span class="badge">Gate</span></h3>
+            <p><strong>System Ignition & Constitutional Gateway.</strong></p>
+            <p>7-Step Ignition: Memory Injection → Authority Check → ATLAS-333 Routing → Thermodynamic Boot → Floor Activation → Session Creation → Ready Signal</p>
+            <p><code>Actions: init, gate, reset, validate</code></p>
         </div>
         <div class="tool">
-            <h3>Δ agi_genius <span class="badge">Mind</span></h3>
-            <p><strong>Truth & Reasoning Engine.</strong> SENSE → THINK → ATLAS → FORGE. Enforces F2 Truth and F6 Clarity.</p>
+            <h3>agi_genius <span class="badge">Mind (Δ)</span></h3>
+            <p><strong>Truth & Reasoning Engine.</strong> Enforces F2 (Truth ≥0.99), F4 (Clarity), F7 (Humility 3-5%).</p>
+            <p>Pipeline: SENSE → THINK → ATLAS-333 → FORGE</p>
+            <p><code>Actions: sense, think, atlas, forge, full</code></p>
         </div>
         <div class="tool">
-            <h3>Ω asi_act <span class="badge">Heart</span></h3>
-            <p><strong>Safety & Empathy Engine.</strong> EVIDENCE → EMPATHY → ACT. Enforces F3 Peace², F4 Empathy, F5 Safety.</p>
+            <h3>asi_act <span class="badge">Heart (Ω)</span></h3>
+            <p><strong>Safety & Empathy Engine.</strong> Enforces F1 (Amanah), F5 (Peace²≥1), F6 (Empathy κᵣ≥0.95).</p>
+            <p>Pipeline: EVIDENCE → EMPATHY → ACT → WITNESS</p>
+            <p><code>Actions: evidence, empathize, act, witness, full</code></p>
         </div>
         <div class="tool">
-            <h3>Ψ apex_judge <span class="badge">Soul</span></h3>
-            <p><strong>Judgment & Authority Engine.</strong> EUREKA → JUDGE → PROOF. Enforces F1 Amanah, F8 Consensus.</p>
+            <h3>apex_judge <span class="badge">Soul (Ψ)</span></h3>
+            <p><strong>Judgment & Authority Engine.</strong> Enforces F3 (Tri-Witness≥0.95), F8 (Genius), F9 (C_dark&lt;0.30).</p>
+            <p>Pipeline: EUREKA → JUDGE → PROOF</p>
+            <p><code>Actions: eureka, judge, proof, full</code></p>
         </div>
         <div class="tool">
-            <h3>🔒 999_vault <span class="badge">Seal</span></h3>
-            <p><strong>Immutable Seal & Governance IO.</strong> Merkle proofs and Ledger persistence.</p>
+            <h3>999_vault <span class="badge">Seal</span></h3>
+            <p><strong>Immutable Seal & Governance IO.</strong> Merkle proofs, hash-chained audit trail.</p>
+            <p>Memory Tiers: L0 (hot) → L1 (24h) → L2 (72h) → L3 (7d) → L4 (30d) → L5 (immutable)</p>
+            <p><code>Actions: seal, list, read, write, propose</code></p>
         </div>
 
-        <h2>📊 Resources</h2>
+        <h2>ATLAS-333 Lanes (v52.5.1)</h2>
+        <p>Smart routing based on intent classification:</p>
+        <p>
+            <span class="lane crisis">CRISIS</span> Medical/Safety emergencies → Strict thresholds, triggers 888_HOLD<br>
+            <span class="lane factual">FACTUAL</span> Research/Technical → High precision (truth≥0.95)<br>
+            <span class="lane care">CARE</span> Emotional support → Empathy-weighted (κᵣ≥0.95)<br>
+            <span class="lane social">SOCIAL</span> Casual chat → Balanced thresholds
+        </p>
+
+        <h2>Verdicts</h2>
+        <p>
+            <span class="verdict seal">SEAL</span> Approved - all floors pass<br>
+            <span class="verdict sabar">SABAR</span> Wait - needs cooling period<br>
+            <span class="verdict void">VOID</span> Rejected - hard floor failed<br>
+            <span class="verdict hold">888_HOLD</span> High-stakes - needs human confirmation
+        </p>
+
+        <h2>TEACH Framework</h2>
+        <table>
+            <tr><th>Letter</th><th>Principle</th><th>Floor</th><th>Threshold</th></tr>
+            <tr><td><strong>T</strong></td><td>Truth</td><td>F2</td><td>≥0.99</td></tr>
+            <tr><td><strong>E</strong></td><td>Empathy</td><td>F6</td><td>κᵣ≥0.95</td></tr>
+            <tr><td><strong>A</strong></td><td>Amanah</td><td>F1</td><td>Reversible actions only</td></tr>
+            <tr><td><strong>C</strong></td><td>Clarity</td><td>F4</td><td>ΔS≥0</td></tr>
+            <tr><td><strong>H</strong></td><td>Humility</td><td>F7</td><td>3-5% uncertainty</td></tr>
+        </table>
+
+        <h2>Resources</h2>
         <ul>
             <li><a href="/dashboard">Sovereign Dashboard</a> - Live Governance View</li>
             <li><a href="/health">Health Check</a> - System Status</li>
+            <li><a href="/metrics/json">Metrics API</a> - JSON metrics for integrations</li>
+            <li><a href="https://github.com/ariffazil/arifOS">GitHub Repository</a></li>
+            <li><a href="https://pypi.org/project/arifos/">PyPI Package</a></li>
         </ul>
     </body>
     </html>
