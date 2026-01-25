@@ -17,19 +17,27 @@ import uvicorn
 def run_production_monolith():
     """
     Ignite the v52 Constitutional Monolith.
-    
+
     Architecture:
       - Module: arifos.mcp.sse
-      - Transport: SSE (Claude) + HTTP (ChatGPT)
+      - Transport: SSE (MCP protocol)
       - Port: $PORT (default 8000)
       - Bind: 0.0.0.0 (Container)
+
+    Routes:
+      /health   - Railway health check
+      /sse      - SSE event stream (MCP)
+      /messages - Client messages (MCP)
     """
     # Import the Sealed Implementation directly
-    from arifos.mcp.sse import app
-    
+    from arifos.mcp.sse import app, VERSION
+
     port = int(os.getenv("PORT", 8000))
     print(f"🚀 Igniting Constitutional Monolith on port {port}...")
-    
+    print(f"   Version: {VERSION}")
+    print(f"   Routes: /health, /sse, /messages")
+    print(f"   Motto: DITEMPA BUKAN DIBERI")
+
     uvicorn.run(
         app,
         host="0.0.0.0",
