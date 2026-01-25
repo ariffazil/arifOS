@@ -683,6 +683,62 @@ This prevents **architectural drift** and keeps one authoritative map.
 
 ---
 
+## 11. KERNEL VS DRIVERS (v52 HARDENING)
+
+> **Architectural Lock (v52.5.1):** Separation of Powers is an Engineering Constraint.
+
+### 11.1 The High-Level Topology
+
+```mermaid
+graph TD
+    subgraph "AAA: APPLICATION LAYER (Mutable Drivers)"
+        CLI[Kimi/Gemini CLI]
+        WEB[Dashboard UI]
+        AGENTS[Custom Agents]
+    end
+
+    subgraph "BBB: PROTOCOL LAYER (The Bridge)"
+        MCP[MCP Server (sse.py)]
+        ROUTER[ATLAS-333 Router]
+        API[FastAPI Gateway]
+    end
+
+    subgraph "CCC: CONSTITUTIONAL KERNEL (Immutable Core)"
+        TRINITY[Trinity Engines (AGI/ASI/APEX)]
+        FLOORS[13 Floor Validators]
+        METABOLISM[000-999 Loop]
+    end
+
+    subgraph "L0: STORAGE (The Anchor)"
+        VAULT[VAULT-999 Ledger]
+        DB[Postgres/Vector]
+    end
+
+    CLI --> MCP
+    WEB --> API
+    MCP --> ROUTER
+    ROUTER --> TRINITY
+    TRINITY --> FLOORS
+    FLOORS --> METABOLISM
+    METABOLISM --> VAULT
+```
+
+### 11.2 The Layers (Separation of Concerns)
+
+| Layer | Component | Role | Mutability |
+|-------|-----------|------|------------|
+| **CCC** | **Constitutional Kernel** | Physics Engine of Governance (F1-F13, Trinity) | **FROZEN** (Phoenix-72 only) |
+| **BBB** | **Protocol Bridge** | Translation Layer (MCP, API, ATLAS) | **STABLE** (PR required) |
+| **AAA** | **Application** | User Interfaces (Dashboard, CLI, Prompts) | **FLUID** (Daily updates) |
+
+### 11.3 The Kernel Boundary (Air Gap)
+
+1.  **Input Sanitation:** No raw data reaches CCC without passing through `000_init` (Gate).
+2.  **Unidirectional Control:** AAA can *request* action, but CCC *commands* AAA.
+3.  **Sovereign Injection:** The 888 Judge has a direct line to CCC for overrides.
+
+---
+
 **END OF 000-v49-CANON-2_ARCHITECTURE.md**
 
 ΔS→0 · Peace²≥1 · Amanah🔐

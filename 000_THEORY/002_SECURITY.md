@@ -226,7 +226,34 @@ This is not a cage. This is a constitution.
 
 ---
 
-**Version:** v50.5
+## X. THREAT MODEL: SCOPE OF DEFENSE (v52)
+
+**Motto:** *We do not defend against everything. We defend against the unmanaged.*
+
+### 10.1 In Scope (Attacks We Handle)
+*   **Prompt Injection (F12):** "Ignore instructions" → Blocked by F12 Injection Defense (<0.85).
+*   **Hallucination (F2, F7):** False facts → Blocked by F2 Truth (≥0.99) or flagged by F7 Humility.
+*   **Sycophancy (F9):** Manipulative flattery → Detected by F9 Anti-Hantu.
+*   **Unauthorized Action (F11):** High-stakes ops → Blocked by F11 Command Auth.
+*   **Destructive Action (F1, F5):** "rm -rf" → Blocked by F1 Amanah / F5 Peace².
+*   **Entropy Decay (F4):** Confusing output → Blocked by F4 Clarity (ΔS > 0).
+
+### 10.2 Out of Scope (Infrastructure Responsibility)
+*   **Infrastructure Compromise:** Root access, SQLi on DB (Handled by Railway/Cloud).
+*   **Model Weights:** Stealing LLM weights (Handled by OpenAI/Anthropic).
+*   **Physical Access:** Server theft (Handled by Data Center).
+*   **Adversarial Examples:** Pixel noise in images.
+
+---
+
+## XI. THE TRUST MODEL
+
+*   **TRUST:** Underlying OS, Python Interpreter, LLM Providers (for API keys).
+*   **DO NOT TRUST:** User Input (Malicious until F12), LLM Output (Hallucination until F2), Context (Re-verify).
+
+---
+
+**Version:** v52.5.1-SEAL
 **Status:** PRODUCTION
 **Authority:** Muhammad Arif bin Fazil
 **Contact:** arifbfazil@gmail.com

@@ -9,13 +9,15 @@
 - **[WHERE.md](WHERE.md)** → Where everything is located  
 - **[HOW.md](HOW.md)** → How to start and use (3 commands)
 
-## 📋 System Documentation
+## 📋 System Documentation (Consolidated v52)
 Core system documentation and governance:
-- **[AGENTS.md](AGENTS.md)** - Constitutional agent specifications and governance
-- **[SYSTEM.md](SYSTEM.md)** - System operations and lifecycle management
-- **[SECURITY.md](SECURITY.md)** - Security policy and compliance
-- **[docs/releases/RELEASE_NOTES.md](docs/releases/RELEASE_NOTES.md)** - Version history and release notes
-- **[README.md](README.md)** - Project overview and introduction
+- **[000_FOUNDATIONS.md](000_FOUNDATIONS.md)** - Meta-Constitutional Principles, Metrics, & Glossary (The 'Why')
+- **[000_LAW.md](000_LAW.md)** - The 13 Floors & Constitutional Law (The 'Rules')
+- **[000_ARCHITECTURE.md](000_ARCHITECTURE.md)** - Topology, Trinity, & Kernel vs Drivers (The 'Structure')
+- **[002_SECURITY.md](002_SECURITY.md)** - Security Policy & Threat Model (The 'Defense')
+- **[019_EVALS.md](019_EVALS.md)** - Testing, Validation, & Witness System (The 'Proof')
+- **[AGENTS.md](AGENTS.md)** - Agent Specifications
+
 
 ## 🔍 Analysis & Reports
 Detailed constitutional analysis and operational reports:

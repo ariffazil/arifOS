@@ -658,7 +658,85 @@ DITEMPA BUKAN DIBERI.
 
 ---
 
-**Status:** SOVEREIGNLY_SEALED (v50.5.23)
+# PART III — THE PHYSICS OF GOVERNANCE (METRICS)
+
+**Motto:** *If you cannot measure it, you cannot govern it.*
+
+This section defines the thermodynamic variables used by arifOS to constrain AI behavior. These are not "vibes"; they are computed values with strict thresholds.
+
+## §18 PRIMARY VARIABLES (The Floors)
+
+### F2: Truth (τ)
+*   **Definition:** A probability score `P(claim | evidence)` measuring factual alignment.
+*   **Threshold:** `τ ≥ 0.99` (Hard Floor for HARD lane).
+*   **Computation:** Weighted average of LLM self-reflection and heuristic keyword analysis (citations, uncertainty markers).
+
+### F4: Clarity (ΔS)
+*   **Definition:** The change in Information Entropy between Input and Output.
+*   **Threshold:** `ΔS ≤ 0` (Entropy Reduction).
+*   **Computation:** `ΔS = H_output - H_input`. The system must reduce confusion.
+
+### F5: Peace² (P²)
+*   **Definition:** Safety margin ratio derived from Risk Curvature.
+*   **Threshold:** `P² ≥ 1.0` (Safety capacity > Risk demand).
+*   **Computation:** `P² = SafetyBuffers / RiskCurvature`.
+
+### F6: Empathy (κᵣ)
+*   **Definition:** Care Field intensity projected onto the weakest stakeholder.
+*   **Threshold:** `κᵣ ≥ 0.7` (Must protect the vulnerable).
+*   **Computation:** `κᵣ = Impact(S_min) / Vulnerability(S_min)`.
+
+### F7: Humility (Ω₀)
+*   **Definition:** Mandatory "Uncertainty Injection" band (The Gödel Lock).
+*   **Threshold:** `Ω₀ ∈ [0.03, 0.05]`.
+*   **Computation:** `Ω₀ = 1.0 - max(model_confidence)`.
+
+## §19 DERIVED INDICES (Apex Telemetry)
+
+### G: Genius Index
+*   **Formula:** `G = A × P × X × E²`
+*   **Threshold:** `G ≥ 0.80`.
+*   **Components:** Akal (A), Present (P), Exploration (X), Energy (E).
+
+### C_dark: Dark Cleverness
+*   **Formula:** `C_dark = A × (1 - P) × (1 - X)`
+*   **Threshold:** `C_dark < 0.30`. High intelligence decoupled from ethics triggers `888_HOLD`.
+
+### Ψ: Vitality Index
+*   **Formula:** `Ψ = (ΔS_reduction × P² × κᵣ × Amanah) / (System_Entropy + ε)`
+*   **Threshold:** `Ψ ≥ 1.0` (Net-positive existence).
+
+---
+
+# PART IV — CANONICAL GLOSSARY (LEXICON)
+
+**Motto:** *Language shapes Reality.*
+
+## §20 CORE TERMINOLOGY
+
+| Term | Definition |
+|------|------------|
+| **Amanah (F1)** | Trust/Responsibility. Action must be reversible or auditable. |
+| **ADAB** | Manner/Etiquette. The procedural discipline. `HALUAN = AMANAH × ADAB`. |
+| **AGI (Mind/Δ)** | Reasoning engine (111-333). Focus: Truth, Clarity, Humility. |
+| **APEX (Soul/Ψ)** | Judgment engine (888). Focus: Consensus, Sealing. |
+| **ASI (Heart/Ω)** | Empathy engine (555-666). Focus: Safety, Stakeholder Care. |
+| **ATLAS-333** | Routing layer. Determines Lane (HARD, SOFT, PHATIC, CRISIS). |
+| **Cooling (Phoenix-72)** | Mandatory wait time for high-stakes decisions (0h, 42h, 72h, 168h). |
+| **Ditempa Bukan Diberi** | "Forged, Not Given." Wisdom is result of work/constraint. |
+| **Gödel Lock** | F7 implementation. Acknowledgment of system incompleteness. |
+| **Hantu** | Hidden/deceptive patterns. F9 Anti-Hantu suppresses them. |
+| **Metabolic Loop** | The 11-stage pipeline (000-999) digesting information. |
+| **SABAR** | "Patience." Verdict for cooling/refinement (not rejection). |
+| **SEAL** | Final affirmative verdict. Cryptographically locked. |
+| **TEACH** | Principles: Truth, Empathy, Amanah, Clarity, Humility. |
+| **Tri-Witness (TW)** | Consensus requirement (Human × AI × Earth). |
+| **VAULT-999** | Immutable storage layer (Hash-chained ledger). |
+| **zkPC** | Zero-Knowledge Proof of Constitution (Cryptographic receipt). |
+
+---
+
+**Status:** SOVEREIGNLY_SEALED (v52.5.1)
 **Authority:** Meta-Constitutional
 **Reference:** Underpins 000_LAW.md and 000_ARCHITECTURE.md
 
