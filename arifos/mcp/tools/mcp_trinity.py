@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -47,6 +48,9 @@ from arifos.core.enforcement.metrics import (
     OMEGA_0_MIN,          # 0.03 - F7 humility min
     OMEGA_0_MAX,          # 0.05 - F7 humility max
 )
+
+# v52 Lite Mode (Edge Optimization)
+LITE_MODE = os.environ.get("ARIFOS_LITE_MODE", "false").lower() == "true"
 
 # v51 Bridge: Wire MCP to Core Engines (fail-safe import)
 try:
@@ -1961,6 +1965,8 @@ def _get_truth_threshold(lane: str) -> float:
 
 def _measure_entropy(text: str) -> float:
     """Calculate Shannon entropy of text."""
+    if LITE_MODE:
+        return 0.0  # Skip calculation in Lite Mode
     import math
     if not text:
         return 0.0

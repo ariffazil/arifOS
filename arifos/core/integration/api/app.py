@@ -106,6 +106,8 @@ def create_app() -> FastAPI:
             path.startswith("/docs") or
             path.startswith("/redoc") or
             path.startswith("/openapi.json") or
+            path.startswith("/sse") or
+            path.startswith("/mcp") or
             "/health" in path  # Catch-all for any health-related path
         )
         if public_paths:

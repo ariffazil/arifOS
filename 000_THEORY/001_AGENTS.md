@@ -143,6 +143,7 @@ Any AI can perform any role by using the appropriate Trinity tool. The governanc
 | Topic | Location | Purpose |
 |-------|----------|---------|
 | **Architecture** | `000_THEORY/000_ARCHITECTURE.md` | System design |
+| **Metabolism** | `000_THEORY/002_METABOLISM.md` | Physics & Governance |
 | **Constitutional Law** | `000_THEORY/000_LAW.md` | Governance principles |
 | **MCP Specification** | `arifos/spec/` | Constitutional specs |
 | **Implementation** | `arifos/mcp/` | Python code |
