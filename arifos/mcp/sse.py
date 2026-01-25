@@ -51,10 +51,24 @@ mcp = FastMCP(
 
 @mcp.tool()
 async def arifos_trinity_000_init(action: str = "init", query: str = "", session_id: str = None, authority_token: str = "") -> dict:
-    """000 INIT: System Ignition & Constitutional Gateway.
+    """000 INIT: System Ignition & Constitutional Gateway (v52.5.1).
 
-    The 7-Step Ignition Sequence that prepares arifOS for operation.
-    Actions: init, gate, reset, validate
+    The 7-Step Ignition Sequence:
+    1. MEMORY INJECTION - Load context from VAULT999
+    2. SOVEREIGN RECOGNITION - Verify authority
+    3. INTENT MAPPING - Route via ATLAS-333 (CRISIS/FACTUAL/CARE/SOCIAL)
+    4. THERMODYNAMIC BOOT - Initialize entropy tracking
+    5. FLOOR ACTIVATION - Enable constitutional checks
+    6. SESSION CREATION - Generate secure session_id
+    7. READY SIGNAL - Return ignition status
+
+    Actions:
+    - init: Full 7-step ignition (default)
+    - gate: Quick authority check only
+    - reset: Clear session state
+    - validate: Verify session integrity
+
+    Returns: {status, session_id, lane, verdict, floors_active}
     """
     return await mcp_000_init(action=action, query=query, session_id=session_id, authority_token=authority_token)
 
@@ -140,6 +154,69 @@ async def get_dashboard(request):
         html_content = html_content.replace('href="styles.css"', 'href="/dashboard/static/styles.css"')
         html_content = html_content.replace('src="app.js"', 'src="/dashboard/static/app.js"')
         return HTMLResponse(html_content)
+
+# --- DOCS ROUTE ---
+@mcp.custom_route("/docs", methods=["GET"])
+async def get_docs(request):
+    """Serve MCP Documentation."""
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>arifOS MCP Documentation</title>
+        <style>
+            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 2rem; color: #333; }}
+            h1 {{ border-bottom: 2px solid #000; padding-bottom: 0.5rem; }}
+            h2 {{ color: #444; margin-top: 2rem; }}
+            code {{ background: #f4f4f4; padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.9em; }}
+            pre {{ background: #f4f4f4; padding: 1rem; border-radius: 4px; overflow-x: auto; }}
+            .tool {{ border: 1px solid #ddd; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; }}
+            .tool h3 {{ margin-top: 0; color: #2c3e50; }}
+            .badge {{ display: inline-block; background: #e1f5fe; color: #2c3e50; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8em; font-weight: bold; }}
+        </style>
+    </head>
+    <body>
+        <h1>arifOS MCP Server</h1>
+        <p><strong>Version:</strong> {VERSION}</p>
+        <p><strong>Motto:</strong> {MOTTO}</p>
+        
+        <h2>🔌 Connection Info</h2>
+        <p>This is a Model Context Protocol (MCP) server. Connect compatible clients (Claude Desktop, Cursor, Kimi) using the SSE endpoint:</p>
+        <pre>https://arifos.arif-fazil.com/sse</pre>
+        
+        <h2>🛠️ Trinity Tools (5)</h2>
+        <div class="tool">
+            <h3>🚪 000_init <span class="badge">Gate</span></h3>
+            <p><strong>System Ignition & Constitutional Gateway.</strong> The 7-Step Ignition Sequence that prepares arifOS for operation.</p>
+        </div>
+        <div class="tool">
+            <h3>Δ agi_genius <span class="badge">Mind</span></h3>
+            <p><strong>Truth & Reasoning Engine.</strong> SENSE → THINK → ATLAS → FORGE. Enforces F2 Truth and F6 Clarity.</p>
+        </div>
+        <div class="tool">
+            <h3>Ω asi_act <span class="badge">Heart</span></h3>
+            <p><strong>Safety & Empathy Engine.</strong> EVIDENCE → EMPATHY → ACT. Enforces F3 Peace², F4 Empathy, F5 Safety.</p>
+        </div>
+        <div class="tool">
+            <h3>Ψ apex_judge <span class="badge">Soul</span></h3>
+            <p><strong>Judgment & Authority Engine.</strong> EUREKA → JUDGE → PROOF. Enforces F1 Amanah, F8 Consensus.</p>
+        </div>
+        <div class="tool">
+            <h3>🔒 999_vault <span class="badge">Seal</span></h3>
+            <p><strong>Immutable Seal & Governance IO.</strong> Merkle proofs and Ledger persistence.</p>
+        </div>
+
+        <h2>📊 Resources</h2>
+        <ul>
+            <li><a href="/dashboard">Sovereign Dashboard</a> - Live Governance View</li>
+            <li><a href="/health">Health Check</a> - System Status</li>
+        </ul>
+    </body>
+    </html>
+    """
+    return HTMLResponse(html)
 
 
 # --- APP EXPORT ---
