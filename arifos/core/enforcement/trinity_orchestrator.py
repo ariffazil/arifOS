@@ -34,7 +34,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 # Import kernel floor checks (v47 Trinity Orthogonal)
-from arifos.core.agi.floor_checks import check_delta_s_f6, check_truth_f2
+from arifos.core.engines.agi.floor_checks import check_delta_s_f6, check_truth_f2
 from arifos.core.apex.floor_checks import check_amanah_f1, check_anti_hantu_f9, check_tri_witness_f8
 from arifos.core.asi.floor_checks import (
     check_kappa_r_f4,
