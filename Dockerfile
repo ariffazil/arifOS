@@ -25,8 +25,11 @@ RUN uv pip install --system --no-cache fastapi uvicorn pydantic mcp sse-starlett
 
 # Copy codebase
 COPY arifos/ arifos/
+# Fix: Copy 000_THEORY which actually exists, not L1_THEORY
 COPY 000_THEORY/ 000_THEORY/
+# Docs are good to have
 COPY docs/ docs/
+# Setup scripts
 COPY setup/ setup/
 
 # Install package in editable mode
@@ -46,5 +49,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Run Unified MCP SSE server
-# This serves both the Body API and the MCP SSE protocol
 CMD ["uv", "run", "python", "-m", "arifos.mcp.sse"]

@@ -1,197 +1,68 @@
 """
-arifOS MCP SSE Adapter (v52.0.0)
-Cloud Bridge for MCP Protocol via Server-Sent Events
+arifos.mcp.sse (v52.0.0-SEAL)
 
-Usage:
-  python -m arifos.mcp trinity-sse
-  uvicorn arifos.mcp.sse:app --host 0.0.0.0 --port $PORT
+The HTTP/SSE Adaptation layer for the Trinity Monolith.
+This module exposes the unified MCP tools via Starlette/FastAPI/SSE.
+Designed for Railway/Cloud Run deployment.
 
-DITEMPA BUKAN DIBERI
+Port: 8000 (Env: PORT)
+Routes:
+  /sse    - Server-Sent Events endpoint
+  /messages - Client message endpoint
 """
 
-from __future__ import annotations
-import logging
 import os
-import time
-from typing import Any, Dict, Optional
+import uvicorn
+from mcp.server.fastmcp import FastMCP
 
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
-from mcp.server import Server
-from mcp.server.sse import SseServerTransport
+# Initialize the Monolith
+mcp = FastMCP("arifos-trinity", dependencies=["arifos"])
 
-from arifos.mcp.bridge import ENGINES_AVAILABLE
-import mcp.types
-from arifos.core.enforcement.governance.rate_limiter import get_rate_limiter
-from arifos.core.enforcement.metrics import record_stage_metrics, record_verdict_metrics
-from arifos.mcp.mode_selector import get_mcp_mode, MCPMode
-from arifos.mcp.constitutional_metrics import record_verdict, get_seal_rate
-from arifos.core.system.orchestrator.presenter import AAAMetabolizer
+# --- TRINITY TOOLS IMPORT ---
+# Fixed import to point to the actual existing module
+from arifos.mcp.tools.mcp_trinity import (
+    mcp_000_init,
+    mcp_agi_genius,
+    mcp_asi_act,
+    mcp_apex_judge,
+    mcp_999_vault
+)
 
-logger = logging.getLogger(__name__)
+# --- TOOL REGISTRATION ---
 
-# Initialize Presenter
-presenter = AAAMetabolizer()
+@mcp.tool()
+async def arifos_trinity_000_init(action: str, query: str = None, session_id: str = None, authority_token: str = None) -> str:
+    """000 INIT: System Ignition & Constitutional Gateway."""
+    return await mcp_000_init(action=action, query=query, session_id=session_id, authority_token=authority_token)
 
-def create_sse_app(
-    mode: Optional[MCPMode] = None, 
-    messages_endpoint: str = "/messages",
-    tools: Optional[Dict[str, Any]] = None,
-    tool_descriptions: Optional[Dict[str, Dict[str, Any]]] = None,
-    server_name: Optional[str] = None,
-    version: str = "v52.0.0"
-) -> FastAPI:
-    """Create FastAPI app with MCP SSE endpoints."""
-    if mode is None:
-        mode = get_mcp_mode()
-    
-    if server_name is None:
-        server_name = f"arifOS-MCP-{mode.value}"
-    
-    # Resolve Tools & Descriptions (Dependency Injection vs Default)
-    if tool_descriptions is None:
-        from arifos.mcp.server import TOOL_DESCRIPTIONS as DEFAULT_DESCS
-        final_tool_descriptions = DEFAULT_DESCS
-    else:
-        final_tool_descriptions = tool_descriptions
+@mcp.tool()
+async def arifos_trinity_agi_genius(action: str, query: str = None, session_id: str = None, thought: str = None) -> str:
+    """AGI GENIUS: The Mind (Δ) - Truth & Reasoning Engine."""
+    return await mcp_agi_genius(action=action, query=query, session_id=session_id, thought=thought)
 
-    if tools is None:
-        from arifos.mcp.server import TOOL_ROUTERS as DEFAULT_ROUTERS
-        final_routers = DEFAULT_ROUTERS
-    else:
-        final_routers = tools
-    
-    # Create MCP Server
-    mcp_server = Server(server_name)
+@mcp.tool()
+async def arifos_trinity_asi_act(action: str, proposal: str = None, session_id: str = None, sources: list = None) -> str:
+    """ASI ACT: The Heart (Ω) - Safety & Empathy Engine."""
+    return await mcp_asi_act(action=action, proposal=proposal, session_id=session_id, sources=sources)
 
-    @mcp_server.list_tools()
-    async def list_tools():
-        import mcp.types
-        return [
-            mcp.types.Tool(
-                name=name,
-                description=desc.get("description", "No description"),
-                inputSchema=desc.get("inputSchema", {})
-            )
-            for name, desc in final_tool_descriptions.items()
-        ]
+@mcp.tool()
+async def arifos_trinity_apex_judge(action: str, topic: str = None, session_id: str = None, verdict: str = None) -> str:
+    """APEX JUDGE: The Soul (Ψ) - Judgment & Authority Engine."""
+    return await mcp_apex_judge(action=action, session_id=session_id, verdict=verdict)
 
-    @mcp_server.call_tool()
-    async def call_tool(name: str, arguments: Dict[str, Any]) -> list[mcp.types.TextContent]:
-        import mcp.types
-        import inspect
+@mcp.tool()
+async def arifos_trinity_999_vault(action: str, target: str = None, data: str = None, session_id: str = None) -> str:
+    """999 VAULT: Immutable Seal & Governance IO."""
+    return await mcp_999_vault(action=action, target=target, data=data, session_id=session_id)
 
-        router = final_routers.get(name)
-        if not router:
-            return [mcp.types.TextContent(type="text", text=f"VOID: Unknown tool {name}")]
+# --- ENTRYPOINT ---
 
-        # F11: Rate Limit Check
-        session_id = arguments.get("session_id", "anonymous")
-        limiter = get_rate_limiter()
-        rate_result = limiter.check(name, session_id)
-        
-        if not rate_result.allowed:
-            return [mcp.types.TextContent(
-                type="text", 
-                text=f"VOID: Rate limit exceeded ({rate_result.reason})"
-            )]
+def create_sse_app():
+    """Returns the ASGI app for deployment."""
+    return mcp._asgi_app
 
-        start = time.time()
-        try:
-            # Handle Trinity Tools (Callable) vs Bridge Routers (Expects 'action' kwarg)
-            # Trinity tools typically take named arguments directly
-            if "action" in arguments:
-                # Likely V52 Bridge which pops action
-                result = await router(**arguments) if inspect.iscoroutinefunction(router) else router(**arguments)
-            else:
-                # Likely V51 Trinity which expects args as is
-                # But wait, MCP passes args as dict. 
-                # Let's try to pass kwargs directly, router logic handles the rest.
-                result = await router(**arguments) if inspect.iscoroutinefunction(router) else router(**arguments)
-            
-            # Record metrics
-            duration = time.time() - start
-            duration_ms = duration * 1000
-            
-            # 1. MCP Rolling Metrics
-            record_verdict(
-                tool=name,
-                verdict=result.get("verdict", "UNKNOWN") if isinstance(result, dict) else "UNKNOWN",
-                duration=duration,
-                mode=mode.value
-            )
-            
-            # 2. Core Prometheus Metrics
-            record_stage_metrics(name, duration_ms)
-            record_verdict_metrics(result.get("verdict", "UNKNOWN") if isinstance(result, dict) else "UNKNOWN")
-            
-            # Human-Optimized Output via Presenter
-            formatted_text = presenter.process(result)
-            return [mcp.types.TextContent(type="text", text=formatted_text)]
-            
-        except Exception as e:
-            logger.error(f"Execution error in {name}: {e}")
-            # Abstract error into constitutional VOID response
-            err_data = {"status": "ERROR", "verdict": "VOID", "summary": f"Metabolic failure in {name}", "message": str(e)}
-            return [mcp.types.TextContent(type="text", text=presenter.process(err_data))]
-
-    # Create FastAPI app
-    app = FastAPI(title=server_name, version=version)
-
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
-    sse = SseServerTransport(messages_endpoint)
-
-    @app.get("/")
-    async def handle_sse(request: Request):
-        """MCP SSE Stream Endpoint."""
-        async with sse.connect_sse(request.scope, request.receive, request._send) as streams:
-            await mcp_server.run(
-                streams[0], 
-                streams[1], 
-                mcp_server.create_initialization_options()
-            )
-
-    @app.post(messages_endpoint)
-    async def handle_messages(request: Request):
-        """MCP Message (POST) Endpoint - Same as GET root."""
-        return await sse.handle_post_message(request.scope, request.receive, request._send)
-
-    @app.get("/health")
-    async def handle_health():
-        seal_rate = get_seal_rate()
-        # Server is healthy if seal rate > 75% OR if no traffic yet (fresh start)
-        is_healthy = seal_rate > 0.75 or seal_rate == 0.0
-        return {
-            "status": "healthy" if is_healthy else "degraded",
-            "mode": mode.value,
-            "seal_rate_1h": seal_rate,
-            "version": version,
-            "engines_available": ENGINES_AVAILABLE,
-            "timestamp": time.time()
-        }
-
-    # Root endpoint
-    @app.get("/")
-    async def handle_root():
-        return {
-            "service": server_name,
-            "version": version,
-            "status": "healthy",
-            "mode": mode.value,
-            "motto": "DITEMPA BUKAN DIBERI"
-        }
-
-    # Add references for internal integration
-    app.state.mcp_server = mcp_server
-    app.state.sse_transport = sse
-
-    return app
-
-# Default app instance
-app = create_sse_app()
+if __name__ == "__main__":
+    # Local Dev Mode / Docker Entrypoint
+    port = int(os.getenv("PORT", 8000))
+    print(f"Igniting Trinity Monolith (SSE) on port {port}...")
+    mcp.run(host="0.0.0.0", port=port)
