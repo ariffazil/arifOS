@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from arifos.core.agi.kernel import AGINeuralCore
+from arifos.core.engines.agi.kernel import AGINeuralCore
 from arifos.core.asi.kernel import ASIActionCore
 from arifos.core.apex.kernel import APEXJudicialCore
 from arifos.core.memory.vault.vault_manager import VaultManager
