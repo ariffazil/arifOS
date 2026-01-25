@@ -7,6 +7,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v52.5.1] - 2026-01-25 "ATLAS Integration"
+
+**Status:** SEALED (Constitutional Verified)
+**Authority:** Muhammad Arif bin Fazil (888 Judge)
+
+### 🧭 Major Feature: ATLAS-333 Lane Routing
+
+Integrated GPV (Governance Placement Vector) routing into the metabolic pipeline. Every prompt is now classified into one of 4 lanes with lane-specific governance:
+
+| Lane | Purpose | Verdict | Engines Activated |
+|------|---------|---------|-------------------|
+| 🚨 **CRISIS** | Life/safety at stake | 888_HOLD | APEX only (human confirm) |
+| 📊 **FACTUAL** | Facts/logic needed | SEAL | Full Trinity (AGI+ASI+APEX) |
+| 💚 **CARE** | Emotional support | SEAL | Heart-first (ASI+APEX) |
+| 💬 **SOCIAL** | Casual chat | SEAL | Light touch (APEX only) |
+
+### 🌡️ Thermodynamic Tuning (LANE_PROFILES)
+
+Each lane now has dedicated thermodynamic parameters:
+
+```python
+LANE_PROFILES = {
+    "CRISIS":  {"S_factor": 0.5, "omega_0": 0.05, "energy": 1.0, "time_budget": 180},
+    "FACTUAL": {"S_factor": 0.6, "omega_0": 0.03, "energy": 0.9, "time_budget": 90},
+    "CARE":    {"S_factor": 0.7, "omega_0": 0.04, "energy": 0.7, "time_budget": 60},
+    "SOCIAL":  {"S_factor": 0.8, "omega_0": 0.03, "energy": 0.5, "time_budget": 15},
+}
+```
+
+### ⚙️ Selective Engine Activation (LANE_ENGINES)
+
+Engines now activate selectively based on lane requirements:
+
+```python
+LANE_ENGINES = {
+    "CRISIS":  {"AGI_Mind": "IDLE",  "ASI_Heart": "IDLE",  "APEX_Soul": "READY"},
+    "FACTUAL": {"AGI_Mind": "READY", "ASI_Heart": "READY", "APEX_Soul": "READY"},
+    "CARE":    {"AGI_Mind": "IDLE",  "ASI_Heart": "READY", "APEX_Soul": "READY"},
+    "SOCIAL":  {"AGI_Mind": "IDLE",  "ASI_Heart": "IDLE",  "APEX_Soul": "READY"},
+}
+```
+
+### ⏸️ 888_HOLD Verdict
+
+New verdict type for high-stakes situations:
+- **Trigger:** CRISIS lane detection (life, safety, irreversible harm)
+- **Behavior:** Pauses execution, requires explicit human confirmation
+- **Location:** After Step 3 in 000_init flow
+
+### 🛡️ Constitutional Compliance
+
+- **F7 Verified:** All `omega_0` values within constitutional bounds [0.03, 0.05]
+- **Test Coverage:** All 4 lanes tested and passing:
+  - CRISIS → 888_HOLD ✓
+  - FACTUAL → SEAL ✓
+  - CARE → SEAL ✓
+  - SOCIAL → SEAL ✓
+
+### 📁 Files Modified
+
+- `arifos/mcp/tools/mcp_trinity.py` — LANE_PROFILES, LANE_ENGINES, 888_HOLD logic
+- `arifos/mcp/sse.py` — Version bump to v52.5.1-SEAL
+
+---
+
 ## [v52.0.0] - 2026-01-24 "The Unified Core"
 
 **Status:** SEALED (Production Authority)

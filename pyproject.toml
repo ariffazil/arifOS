@@ -4,7 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "52.0.0"
+version = "52.5.1"
+# v52.5.1: ATLAS Integration - Lane routing, LANE_PROFILES, LANE_ENGINES, 888_HOLD (2026-01-25)
 # v52.0.0: Unified Core SEAL - Merged AAA_MCP into Brain, Pure Bridge (2026-01-24)
 # v51.0.0: AAA MCP SERVER - Bridge to Core Engines + Rebrand (2026-01-24)
 # v50.5.26: Quick Wire - MCP tools now read Track B thresholds from metrics.py (2026-01-24)
