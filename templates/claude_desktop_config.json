@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "arifos-production": {
+      "url": "https://arifos.arif-fazil.com/sse",
+      "disabled": false,
+      "alwaysAllow": [
+        "mcp_000_init",
+        "mcp_agi_genius",
+        "mcp_asi_act",
+        "mcp_apex_judge",
+        "mcp_999_vault"
+      ]
+    }
+  }
+}
