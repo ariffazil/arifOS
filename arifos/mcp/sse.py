@@ -49,101 +49,68 @@ mcp = FastMCP(
 
 # --- TOOL REGISTRATION ---
 
-@mcp.tool()
-async def arifos_trinity_000_init(action: str = "init", query: str = "", session_id: str = None, authority_token: str = "") -> dict:
-    """000 INIT: System Ignition & Constitutional Gateway (v52.5.1).
+@mcp.tool(name="init_000")
+async def arifos_trinity_000_init(action: str = "init", query: str = "", session_id: str | None = None, authority_token: str | None = "") -> dict:
+    """System Ignition & Constitutional Gateway.
 
-    The 7-Step Ignition Sequence:
-    1. MEMORY INJECTION - Load context from VAULT999
-    2. SOVEREIGN RECOGNITION - Verify authority
-    3. INTENT MAPPING - Route via ATLAS-333 (CRISIS/FACTUAL/CARE/SOCIAL)
-    4. THERMODYNAMIC BOOT - Initialize entropy tracking
-    5. FLOOR ACTIVATION - Enable constitutional checks
-    6. SESSION CREATION - Generate secure session_id
-    7. READY SIGNAL - Return ignition status
-
+    The first step for any interaction. Initializes the session, verifies authority, and routes the request.
+    
     Actions:
-    - init: Full 7-step ignition (default)
-    - gate: Quick authority check only
+    - init: Full ignition (default)
+    - gate: Quick authority check
     - reset: Clear session state
     - validate: Verify session integrity
-
-    Returns: {status, session_id, lane, verdict, floors_active}
     """
     return await mcp_000_init(action=action, query=query, session_id=session_id, authority_token=authority_token)
 
-@mcp.tool()
-async def arifos_trinity_agi_genius(action: str = "sense", query: str = "", session_id: str = "", thought: str = "") -> dict:
-    """AGI GENIUS: The Mind (Δ) - Truth & Reasoning Engine (v52.5.1).
+@mcp.tool(name="agi_genius")
+async def arifos_trinity_agi_genius(action: str = "sense", query: str = "", session_id: str | None = "", thought: str = "") -> dict:
+    """The Mind (Δ) - Truth & Reasoning Engine.
 
-    Enforces: F2 (Truth ≥0.99), F4 (Clarity ΔS≥0), F7 (Humility 3-5%).
-    Pipeline: SENSE → THINK → ATLAS-333 → FORGE
-
+    Checks if the response is truthful and clear. Enforces F2 (Truth) and F4 (Clarity).
+    
     Actions:
-    - sense: Analyze input, detect intent
-    - think: Apply logical reasoning
-    - atlas: Route via ATLAS-333 lanes
-    - forge: Generate output with citations
+    - sense: Analyze input
+    - think: Apply reasoning
     - full: Complete pipeline
-
-    Lanes (v52.5.1): CRISIS | FACTUAL | CARE | SOCIAL
     """
     return await mcp_agi_genius(action=action, query=query, session_id=session_id, thought=thought)
 
-@mcp.tool()
-async def arifos_trinity_asi_act(action: str = "empathize", text: str = "", session_id: str = "", proposal: str = "") -> dict:
-    """ASI ACT: The Heart (Ω) - Safety & Empathy Engine (v52.5.1).
+@mcp.tool(name="asi_act")
+async def arifos_trinity_asi_act(action: str = "empathize", text: str = "", session_id: str | None = "", proposal: str = "") -> dict:
+    """The Heart (Ω) - Safety & Empathy Engine.
 
-    Enforces: F1 (Amanah/Reversibility), F5 (Peace²≥1), F6 (Empathy κᵣ≥0.95).
-    Pipeline: EVIDENCE → EMPATHY → ACT → WITNESS
-
+    Checks if the action is safe and empathetic. Enforces F5 (Safety) and F6 (Empathy).
+    
     Actions:
-    - evidence: Gather supporting data
-    - empathize: Check stakeholder impact
-    - act: Execute with safeguards
-    - witness: Request tri-witness consensus
-    - full: Complete pipeline
-
-    Protects the weakest stakeholder in every decision.
+    - evidence: Gather data
+    - empathize: Check impact
+    - act: Execute safely
     """
     return await mcp_asi_act(action=action, text=text, session_id=session_id, proposal=proposal)
 
-@mcp.tool()
-async def arifos_trinity_apex_judge(action: str = "judge", query: str = "", session_id: str = "", response: str = "") -> dict:
-    """APEX JUDGE: The Soul (Ψ) - Judgment & Authority Engine (v52.5.1).
+@mcp.tool(name="apex_judge")
+async def arifos_trinity_apex_judge(action: str = "judge", query: str = "", session_id: str | None = "", response: str = "") -> dict:
+    """The Soul (Ψ) - Judgment & Authority Engine.
 
-    Final verdict authority. Enforces: F3 (Tri-Witness≥0.95), F8 (Genius), F9 (C_dark<0.30).
-    Pipeline: EUREKA → JUDGE → PROOF
-
+    The final decision maker. Reviews findings from Mind and Heart to issue a verdict.
+    
     Actions:
-    - eureka: Synthesize insights
-    - judge: Issue verdict (SEAL/SABAR/VOID/888_HOLD)
-    - proof: Generate cryptographic proof
-    - full: Complete pipeline
-
-    Verdicts:
-    - SEAL: Approved (all floors pass)
-    - SABAR: Wait (needs cooling)
-    - VOID: Rejected (hard floor fail)
-    - 888_HOLD: High-stakes (needs human confirmation)
+    - judge: Issue verdict (SEAL/VOID)
+    - proof: Generate proof
     """
     return await mcp_apex_judge(action=action, query=query, session_id=session_id, response=response)
 
-@mcp.tool()
-async def arifos_trinity_999_vault(action: str = "seal", session_id: str = "", verdict: str = "SEAL", target: str = "seal") -> dict:
-    """999 VAULT: Immutable Seal & Governance IO (v52.5.1).
+@mcp.tool(name="vault_999")
+async def arifos_trinity_999_vault(action: str = "seal", session_id: str | None = "", verdict: str = "SEAL", target: str = "seal") -> dict:
+    """Immutable Seal & Governance IO.
 
-    Final gate - seals decisions with Merkle proofs to VAULT999.
-    Hash-chained audit trail for constitutional compliance.
-
+    Commits the final decision to the immutable ledger.
+    
     Actions:
-    - seal: Commit verdict to ledger
-    - list: View recent seals
-    - read: Retrieve specific seal
-    - write: Store governance data
-    - propose: Draft without committing
-
-    Memory Tiers: L0(hot) → L1(24h) → L2(72h) → L3(7d) → L4(30d) → L5(immutable)
+    - seal: Commit verdict
+    - list: View history
+    - read: Retrieve entry
     """
     return await mcp_999_vault(action=action, session_id=session_id, verdict=verdict, target=target)
 
