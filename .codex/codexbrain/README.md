@@ -1,12 +1,8 @@
-# Codex Brain (Ψ)
+# Codex Working Area
 
-This directory (`.codex/codexbrain/`) is the designated **working memory** workspace for Codex (Antigravity Soul/Judge).
+This folder is the default write-safe workspace for Codex sessions.
 
-**Constraint:** All transient working files, scratchpads, draft outputs, and active reasoning states for Codex must be stored here.
-
-## Purpose
-- **Judgement:** Draft verdicts.
-- **Audits:** Temporary audit logs.
-- **State:** Session context.
-
-**DITEMPA BUKAN DIBERI**
+Rules:
+- Only write inside this folder unless the user explicitly approves another path.
+- Keep scratch files here (plans, drafts, notes, temp outputs).
+- Do not commit these files unless the user requests it.
