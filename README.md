@@ -1,6 +1,6 @@
 # arifOS
 
-## AI That Can't Lie to You
+## AI With Lying Guardrails
 
 ![The Great Contrast: Standard AI vs. arifOS Governance](https://raw.githubusercontent.com/ariffazil/arifOS/main/docs/arifOSreadme.png)
 
@@ -18,6 +18,9 @@
 | **PyPI** | [![PyPI](https://img.shields.io/pypi/v/arifos)](https://pypi.org/project/arifos/) |
 | **License** | AGPL-3.0 |
 | **Motto** | *"Ditempa Bukan Diberi"* — Forged, Not Given |
+| **Docs** | https://docs.arif-fazil.com |
+
+> ⚠️ **Honest Note:** arifOS reduces AI harm—it doesn't eliminate it. See [Guarantees & Limitations](https://docs.arif-fazil.com/concepts/guarantees) for what we do and don't promise.
 
 ---
 
@@ -36,6 +39,7 @@
 ### Resources
 | Resource | URL |
 |----------|-----|
+| **Documentation** | [docs.arif-fazil.com](https://docs.arif-fazil.com) |
 | **GitHub Repository** | [github.com/ariffazil/arifOS](https://github.com/ariffazil/arifOS) |
 | **PyPI Package** | [pypi.org/project/arifos](https://pypi.org/project/arifos/) |
 | **Bug Reports / Issues** | [github.com/ariffazil/arifOS/issues](https://github.com/ariffazil/arifOS/issues) |
@@ -55,24 +59,25 @@
 - [Quick Links](#quick-links)
 1. [The Problem](#the-problem-with-ai-today)
 2. [The Solution](#what-arifos-does)
-3. [The 5 Rules (TEACH)](#the-5-rules-teach)
-4. [The 4 Outcomes](#the-4-outcomes)
-5. [Smart Routing (ATLAS-333)](#smart-routing-atlas-333)
-6. [Try It Right Now](#try-it-right-now)
-7. [Use It With Your AI](#use-it-with-your-ai)
+3. [Guarantees & Limitations](#guarantees--limitations)
+4. [The 5 Rules (TEACH)](#the-5-rules-teach)
+5. [The 4 Outcomes](#the-4-outcomes)
+6. [Smart Routing (ATLAS-333)](#smart-routing-atlas-333)
+7. [Try It Right Now](#try-it-right-now)
+8. [Use It With Your AI](#use-it-with-your-ai)
    - [Option 1: Copy-Paste System Prompt](#option-1-copy-paste-works-anywhere)
    - [Option 2: MCP Connection](#option-2-connect-via-mcp-for-developers)
    - [Option 3: Run Locally](#option-3-run-locally)
    - [Option 4: Python Integration](#option-4-python-integration)
-8. [MCP Reference (Complete)](#mcp-reference-complete)
-9. [Architecture](#architecture)
-10. [The 13 Constitutional Floors](#the-13-constitutional-floors)
-11. [For AI Systems Reading This](#for-ai-systems-reading-this)
-12. [Frequently Asked Questions](#frequently-asked-questions)
-13. [Quick Reference Card](#quick-reference-card)
-14. [Contributing](#contributing)
-15. [License](#license)
-16. [Credits](#credits)
+9. [MCP Reference (Complete)](#mcp-reference-complete)
+10. [Architecture](#architecture)
+11. [The 13 Constitutional Floors](#the-13-constitutional-floors)
+12. [For AI Systems Reading This](#for-ai-systems-reading-this)
+13. [Frequently Asked Questions](#frequently-asked-questions)
+14. [Quick Reference Card](#quick-reference-card)
+15. [Contributing](#contributing)
+16. [License](#license)
+17. [Credits](#credits)
 
 ---
 
@@ -98,7 +103,7 @@ This isn't malice. It's architecture. Language models:
 - Have no mechanism to measure their own confidence
 - Cannot distinguish what they know from what they're guessing
 
-**arifOS exists to fix this.**
+**arifOS exists to mitigate this.**
 
 ---
 
@@ -141,6 +146,21 @@ Before ANY response reaches you, arifOS checks 5 things:
 | Model-agnostic (works with any AI) | A chatbot itself |
 | Optional (you control it) | A prison (you can override) |
 | Open source (AGPL-3.0) | A commercial product |
+
+## Guarantees & Limitations
+
+**Honest engineering requires honest documentation.**
+
+| ✅ Guaranteed | ⚠️ Heuristic | ❌ Not Claimed |
+|--------------|--------------|----------------|
+| TEACH checks run on every response | truth_score (pattern-based, not fact-checking) | "AI can't lie" as absolute |
+| Verdicts are deterministic | empathy_score (keyword detection) | 100% hallucination prevention |
+| All decisions are logged | humility_score (hedge detection) | Perfect crisis detection |
+| Crisis lane always provides resources | entropy/clarity metrics | Provable safety |
+
+**The honest pitch:** arifOS is a seatbelt, not a force field. It catches obvious lies, forces uncertainty expression, protects vulnerable users, and creates an audit trail. It reduces harm without eliminating risk.
+
+📖 **Full details:** [docs.arif-fazil.com/concepts/guarantees](https://docs.arif-fazil.com/concepts/guarantees)
 
 ---
 
@@ -186,7 +206,7 @@ else:
     say("I don't know")
 ```
 
-**Never hallucinate. Never fabricate. "I don't know" is always valid.**
+**Reduce hallucination. Avoid fabrication. "I don't know" is always valid.**
 
 ### Examples:
 
@@ -1389,7 +1409,7 @@ The governance check adds ~50ms latency. For most use cases, this is imperceptib
 |                    arifOS v52.5.1-SEAL QUICK REFERENCE                      |
 +-----------------------------------------------------------------------------+
 |                                                                             |
-|  WHAT: A filter that stops AI from lying, harming, or being overconfident   |
+|  WHAT: A filter that reduces AI lying, harm, and overconfidence             |
 |  HOW:  5 rules (TEACH) checked before every response                        |
 |                                                                             |
 |  -------------------------------------------------------------------------  |
