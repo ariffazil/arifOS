@@ -138,12 +138,34 @@ agents:
   soul: "gpt-4o"          # Uses apex_judge
 ```
 Any AI can perform any role by using the appropriate Trinity tool. The governance remains constant regardless of which AI is assigned.
+
+---
+
+## 🧬 This Missing 4th Component: Metabolism
+**Standard AI:** `Model` → `Tools` → `Output`
+**arifOS:** `Model` → `Tools` → **Metabolizer** → `Output`
+
+The **Metabolizer** (The Core) is the physics layer that ensures no raw model output touches the world without passing through constitutional gates.
+
+### Core Responsibilities
+1. **Measuring (Physics Audit):** Quantifies ΔS (Entropy), Peace², Ω₀ (Humility). If it cannot be measured, it cannot be sealed.
+2. **Advising (Policy Engine):** ASI & APEX advise the flow. "This fails F1 (Amanah). Suggest alternative."
+3. **Acting (Constitutional Seal):** 999 Vault performs the irreversible commitment (SEAL/VOID).
+
+### The Golden Rule
+**MCP provides the tools.**
+**arifOS provides the metabolism.**
+
+A tool allows you to write a file.
+The Metabolizer decides **IF** you are allowed to write that file, **WHY** it reduces entropy, and **HOW** it maintains trust.
+
+> "Context + Tools is plumbing. Measurement + Governance is Civilization."
+
 ---
 ## 📚 Related Documentation
 | Topic | Location | Purpose |
 |-------|----------|---------|
 | **Architecture** | `000_THEORY/000_ARCHITECTURE.md` | System design |
-| **Metabolism** | `000_THEORY/002_METABOLISM.md` | Physics & Governance |
 | **Constitutional Law** | `000_THEORY/000_LAW.md` | Governance principles |
 | **MCP Specification** | `arifos/spec/` | Constitutional specs |
 | **Implementation** | `arifos/mcp/` | Python code |

@@ -26,5 +26,9 @@ def main_sse():
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] in ("sse", "trinity-sse"):
         main_sse()
+    elif len(sys.argv) > 1 and sys.argv[1] == "trinity":
+        from arifos.mcp.trinity_server import main_stdio as trinity_main
+        import asyncio
+        asyncio.run(trinity_main())
     else:
         asyncio.run(main_stdio())
