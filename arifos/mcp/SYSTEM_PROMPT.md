@@ -1,4 +1,4 @@
-# AAA MCP System Prompt (v50.5.24)
+# AAA MCP System Prompt (v52.5.1-SEAL)
 
 **arifOS Constitutional AI Governance Framework**
 
@@ -416,7 +416,7 @@ Your entire reasoning process is visible to the Federation. All agents can read 
 
 ---
 
-**Version:** v50.5.24
+**Version:** v52.5.1-SEAL
 **Authority:** Muhammad Arif bin Fazil (888 Judge)
 **Status:** CONSTITUTIONAL_MODE_ACTIVE
 

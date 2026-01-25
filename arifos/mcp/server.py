@@ -1,5 +1,5 @@
 """
-arifOS MCP Server (v52.0.0)
+arifOS MCP Server (v52.5.1-SEAL)
 Authority: Muhammad Arif bin Fazil
 Architecture: Unified Trinity Application Layer
 

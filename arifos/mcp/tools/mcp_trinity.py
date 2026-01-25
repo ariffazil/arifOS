@@ -1,6 +1,10 @@
+
 """
-arifOS AAA MCP Tools (v52.0.0)
+arifOS AAA MCP Tools (v52.5.1-SEAL)
 5-Tool Constitutional MCP Framework - Wired to Core Engines via Bridge
+
+v52.5.0: ATLAS-333 and @PROMPT integration in Step 3 Intent Mapping
+v52.5.1: Lane-aware thermodynamic profiles, selective engine activation, 888_HOLD for CRISIS
 
 The Metabolic Standard compressed to 5 memorable tools:
     000_init    → Gate (Authority + Injection + Amanah)
@@ -14,6 +18,7 @@ Mnemonic: "Init the Genius, Act with Heart, Judge at Apex, seal in Vault."
 Philosophy:
     INPUT → F12 Injection Guard
          → 000_init (Ignition + Authority)
+         → ATLAS-333 (Lane-Aware Routing)
          → agi_genius (Δ Mind: Logic/Truth)
          → asi_act (Ω Heart: Care/Safety)
          → apex_judge (Ψ Soul: Verdict)
@@ -22,6 +27,7 @@ Philosophy:
 
 DITEMPA BUKAN DIBERI
 """
+
 
 from __future__ import annotations
 
@@ -51,6 +57,25 @@ from arifos.core.enforcement.metrics import (
 
 # v52 Lite Mode (Edge Optimization)
 LITE_MODE = os.environ.get("ARIFOS_LITE_MODE", "false").lower() == "true"
+
+# v52.5 @PROMPT + ATLAS Integration (fail-safe import)
+# These ARE implemented - wiring them in from arifos/core/
+try:
+    from arifos.core.engines.agi.atlas import ATLAS, ATLAS_333, GPV
+    ATLAS_AVAILABLE = True
+except ImportError:
+    ATLAS_AVAILABLE = False
+    ATLAS = None
+    logger.warning("ATLAS-333 not available, falling back to keyword matching")
+
+try:
+    from arifos.core.prompt.codec import SignalExtractor, PromptSignal, IntentType, RiskLevel
+    PROMPT_AVAILABLE = True
+    _signal_extractor = SignalExtractor()  # Singleton
+except ImportError:
+    PROMPT_AVAILABLE = False
+    _signal_extractor = None
+    logger.warning("@PROMPT SignalExtractor not available, falling back to keyword matching")
 
 # v51 Bridge: Wire MCP to Core Engines (fail-safe import)
 try:
@@ -179,6 +204,9 @@ class InitResult:
 
     # Step 7: Engine Status
     engines: Dict[str, str] = field(default_factory=dict)
+
+    # Step 8: ATLAS Lane-Aware Routing
+    routing: str = ""
 
     # Security
     injection_risk: float = 0.0
@@ -318,10 +346,53 @@ def _step_2_sovereign_recognition(query: str, token: str) -> Dict[str, Any]:
 
 
 def _step_3_intent_mapping(query: str, context: Dict[str, Any]) -> Dict[str, Any]:
-    """Step 3: Map intent - contrast, meaning, prediction."""
+    """
+    Step 3: Map intent - contrast, meaning, prediction.
+
+    v52.5: Now wired to ATLAS-333 and @PROMPT SignalExtractor when available.
+    - ATLAS-333: Governance Placement Vector (lane, truth/care/risk demands)
+    - SignalExtractor: Intent, risk, reversibility, stakeholders
+
+    Falls back to keyword matching if implementations unavailable.
+    """
     query_lower = query.lower()
 
-    # Extract entities (simple keyword extraction)
+    # v52.5: Use ATLAS-333 for lane classification if available
+    gpv_data = {}
+    if ATLAS_AVAILABLE and ATLAS is not None:
+        try:
+            gpv: GPV = ATLAS.map(query)
+            gpv_data = {
+                "atlas_lane": gpv.lane,  # SOCIAL, CARE, FACTUAL, CRISIS
+                "truth_demand": gpv.truth_demand,
+                "care_demand": gpv.care_demand,
+                "risk_level": gpv.risk_level,
+            }
+            logger.info(f"000_init Step 3: ATLAS-333 GPV={gpv.lane} (truth={gpv.truth_demand:.2f}, care={gpv.care_demand:.2f})")
+        except Exception as e:
+            logger.warning(f"ATLAS-333 mapping failed: {e}, falling back to keywords")
+            gpv_data = {}
+
+    # v52.5: Use @PROMPT SignalExtractor if available
+    signal_data = {}
+    if PROMPT_AVAILABLE and _signal_extractor is not None:
+        try:
+            signal: PromptSignal = _signal_extractor.extract(query)
+            signal_data = {
+                "prompt_intent": signal.intent.value,  # query, action, judgment, etc.
+                "prompt_risk": signal.risk_level.value,  # safe, low, moderate, high, critical
+                "reversible": signal.reversible,
+                "stakeholders": signal.stakeholders,
+                "extracted_query": signal.extracted_query,
+                "hidden_assumptions": signal.hidden_assumptions,
+                "signal_confidence": signal.confidence,
+            }
+            logger.info(f"000_init Step 3: @PROMPT intent={signal.intent.value}, risk={signal.risk_level.value}")
+        except Exception as e:
+            logger.warning(f"@PROMPT extraction failed: {e}, falling back to keywords")
+            signal_data = {}
+
+    # Extract entities (simple keyword extraction - fallback/supplement)
     words = query_lower.split()
     entities = [w for w in words if len(w) > 3 and w.isalpha()]
 
@@ -336,69 +407,139 @@ def _step_3_intent_mapping(query: str, context: Dict[str, Any]) -> Dict[str, Any
     if "theory" in query_lower and "practice" in query_lower:
         contrasts.append("theory_vs_practice")
 
-    # Classify intent
-    intent = "unknown"
-    for intent_type, keywords in INTENT_KEYWORDS.items():
-        if any(kw in query_lower for kw in keywords):
-            intent = intent_type
-            break
+    # Determine lane: Prefer ATLAS-333 GPV, fall back to keyword matching
+    if gpv_data and "atlas_lane" in gpv_data:
+        # Map ATLAS lanes (SOCIAL, CARE, FACTUAL, CRISIS) to arifOS lanes (HARD, SOFT, PHATIC, REFUSE)
+        atlas_to_arif = {
+            "SOCIAL": "PHATIC",   # Greetings, thanks → social exchange
+            "CARE": "SOFT",       # Explanations, support → open-ended
+            "FACTUAL": "HARD",    # Code, math, facts → technical precision
+            "CRISIS": "REFUSE",   # Harm signals → escalate to APEX
+        }
+        lane = atlas_to_arif.get(gpv_data["atlas_lane"], "SOFT")
+        intent = gpv_data["atlas_lane"].lower()  # Use ATLAS lane as intent
+        confidence = 0.95  # High confidence when ATLAS provides classification
+    else:
+        # Fallback: Keyword-based classification
+        intent = "unknown"
+        for intent_type, keywords in INTENT_KEYWORDS.items():
+            if any(kw in query_lower for kw in keywords):
+                intent = intent_type
+                break
 
-    # Check for greetings (PHATIC)
-    greetings = ["hi", "hello", "hey", "salam", "thanks", "thank you"]
-    if any(g in query_lower for g in greetings) and len(query) < 50:
-        intent = "greet"
+        # Check for greetings (PHATIC)
+        greetings = ["hi", "hello", "hey", "salam", "thanks", "thank you"]
+        if any(g in query_lower for g in greetings) and len(query) < 50:
+            intent = "greet"
 
-    # Determine lane
-    lane = "SOFT"  # Default
-    for lane_type, intents in LANE_INTENTS.items():
-        if intent in intents:
-            lane = lane_type
-            break
+        # Determine lane from intent
+        lane = "SOFT"  # Default
+        for lane_type, intents in LANE_INTENTS.items():
+            if intent in intents:
+                lane = lane_type
+                break
 
-    # If unclear, check query length (longer = probably HARD)
-    if intent == "unknown" and len(query) > 100:
-        lane = "HARD"
+        # If unclear, check query length (longer = probably HARD)
+        if intent == "unknown" and len(query) > 100:
+            lane = "HARD"
 
-    logger.info(f"000_init Step 3: Intent={intent}, Lane={lane}")
+        confidence = 0.8 if intent != "unknown" else 0.5
+
+    # Override: If @PROMPT detected high/critical risk → force REFUSE lane
+    if signal_data and signal_data.get("prompt_risk") in ["high", "critical"]:
+        if lane != "REFUSE":
+            logger.warning(f"@PROMPT detected {signal_data['prompt_risk']} risk, escalating lane to REFUSE")
+            lane = "REFUSE"
+
+    logger.info(f"000_init Step 3: Intent={intent}, Lane={lane} (ATLAS={ATLAS_AVAILABLE}, PROMPT={PROMPT_AVAILABLE})")
+
     return {
         "intent": intent,
         "lane": lane,
         "contrasts": contrasts,
         "entities": entities[:10],  # Top 10
-        "confidence": 0.8 if intent != "unknown" else 0.5
+        "confidence": confidence,
+        # v52.5: Include governance metadata
+        "gpv": gpv_data if gpv_data else None,
+        "signal": signal_data if signal_data else None,
+        "atlas_available": ATLAS_AVAILABLE,
+        "prompt_available": PROMPT_AVAILABLE,
     }
 
 
+# v52.5.1: Lane-specific thermodynamic profiles (F7 compliant)
+# Each lane has tuned parameters for entropy, humility, and energy
+LANE_PROFILES = {
+    "CRISIS": {
+        "S_factor": 0.5,           # Tight entropy target (50% reduction)
+        "omega_0": OMEGA_0_MAX,    # Max humility (0.05) - constitutional bound
+        "energy": 1.0,             # Full power
+        "time_budget": 180,        # Max time for careful handling
+    },
+    "FACTUAL": {
+        "S_factor": 0.6,           # Tight for precision
+        "omega_0": OMEGA_0_MIN,    # Low humility (0.03) - confident on facts
+        "energy": 0.9,             # High power
+        "time_budget": 120,
+    },
+    "CARE": {
+        "S_factor": 0.7,           # Moderate
+        "omega_0": 0.04,           # Midpoint humility
+        "energy": 0.7,             # Moderate power
+        "time_budget": 60,
+    },
+    "SOCIAL": {
+        "S_factor": 0.8,           # Loose (phatic needs less reduction)
+        "omega_0": OMEGA_0_MIN,    # Low humility (simple exchanges)
+        "energy": 0.5,             # Low power (quick response)
+        "time_budget": 15,
+    },
+}
+
+
 def _step_4_thermodynamic_setup(intent_map: Dict[str, Any]) -> Dict[str, Any]:
-    """Step 4: Set energy budget and entropy targets."""
+    """
+    Step 4: Set energy budget and entropy targets.
+
+    v52.5.1: Now uses ATLAS-333 GPV lane for profile selection.
+    Lane profiles are tuned for each classification type.
+    All omega_0 values are within F7 bounds [0.03, 0.05].
+    """
     # Estimate input entropy (how complex is the query?)
     # Simple heuristic: more entities/contrasts = higher entropy
     entity_count = len(intent_map.get("entities", []))
     contrast_count = len(intent_map.get("contrasts", []))
     S_input = min(1.0, 0.3 + (entity_count * 0.05) + (contrast_count * 0.1))
 
-    # Target: reduce by 30%
-    S_target = S_input * 0.7
+    # v52.5.1: Get ATLAS lane from GPV, fallback to arifOS lane mapping
+    gpv = intent_map.get("gpv") or {}
+    atlas_lane = gpv.get("atlas_lane")
 
-    # Humility parameter - wired to Track B spec
-    omega_0 = (OMEGA_0_MIN + OMEGA_0_MAX) / 2  # Midpoint [0.03, 0.05]
+    # If ATLAS lane available, use it directly; otherwise map from arifOS lane
+    if atlas_lane and atlas_lane in LANE_PROFILES:
+        profile = LANE_PROFILES[atlas_lane]
+    else:
+        # Fallback: Map arifOS lane to ATLAS lane for profile lookup
+        arif_to_atlas = {
+            "HARD": "FACTUAL",
+            "SOFT": "CARE",
+            "PHATIC": "SOCIAL",
+            "REFUSE": "CRISIS",
+        }
+        arif_lane = intent_map.get("lane", "SOFT")
+        mapped_lane = arif_to_atlas.get(arif_lane, "CARE")
+        profile = LANE_PROFILES[mapped_lane]
+
+    # Apply profile
+    S_target = S_input * profile["S_factor"]
+    omega_0 = profile["omega_0"]
+    energy_budget = profile["energy"]
+    time_budget = profile["time_budget"]
 
     # Peace² baseline - wired to Track B spec
     peace_squared = PEACE_SQUARED_THRESHOLD
 
-    # Energy budget based on lane
-    lane = intent_map.get("lane", "SOFT")
-    if lane == "HARD":
-        energy_budget = 1.0
-        time_budget = 120
-    elif lane == "SOFT":
-        energy_budget = 0.7
-        time_budget = 60
-    else:  # PHATIC
-        energy_budget = 0.3
-        time_budget = 15
-
-    logger.info(f"000_init Step 4: S_input={S_input:.2f}, budget={energy_budget}")
+    logger.info(f"000_init Step 4: S_input={S_input:.2f}, S_target={S_target:.2f}, omega_0={omega_0:.3f}, energy={energy_budget} (lane={atlas_lane or intent_map.get('lane')})")
     return {
         "entropy_input": S_input,
         "entropy_target": S_target,
@@ -468,15 +609,83 @@ def _step_6_tri_witness(sovereign: Dict, thermo: Dict) -> Dict[str, Any]:
     }
 
 
-def _step_7_engine_ignition() -> Dict[str, str]:
-    """Step 7: Fire up the engines."""
+# v52.5.1: Lane-specific engine activation matrix
+# Different lanes need different engine combinations
+LANE_ENGINES = {
+    "CRISIS": {
+        "AGI_Mind": "IDLE",    # Skip reasoning, go straight to judgment
+        "ASI_Heart": "IDLE",   # Skip empathy layer
+        "APEX_Soul": "READY",  # Soul handles crisis → 888_HOLD
+    },
+    "FACTUAL": {
+        "AGI_Mind": "READY",   # Full reasoning for facts
+        "ASI_Heart": "READY",  # Empathy for stakeholder consideration
+        "APEX_Soul": "READY",  # Final judgment
+    },
+    "CARE": {
+        "AGI_Mind": "IDLE",    # Less logic needed
+        "ASI_Heart": "READY",  # Heart-first for support
+        "APEX_Soul": "READY",  # Final judgment
+    },
+    "SOCIAL": {
+        "AGI_Mind": "IDLE",    # No reasoning for greetings
+        "ASI_Heart": "IDLE",   # Minimal processing
+        "APEX_Soul": "READY",  # Quick response
+    },
+}
+
+
+def _step_7_engine_ignition(intent_map: Dict[str, Any] = None) -> Dict[str, str]:
+    """
+    Step 7: Fire up the engines.
+
+    v52.5.1: Selective engine activation based on ATLAS lane.
+    - CRISIS: APEX only (888_HOLD escalation)
+    - FACTUAL: All three engines (full pipeline)
+    - CARE: ASI + APEX (heart-first)
+    - SOCIAL: APEX only (quick phatic response)
+    """
+    # Get ATLAS lane for engine selection
+    if intent_map:
+        gpv = intent_map.get("gpv") or {}
+        atlas_lane = gpv.get("atlas_lane")
+
+        if atlas_lane and atlas_lane in LANE_ENGINES:
+            engines = LANE_ENGINES[atlas_lane].copy()
+            logger.info(f"000_init Step 7: Engines IGNITED (selective: {atlas_lane})")
+            return engines
+
+        # Fallback: Map arifOS lane to ATLAS lane
+        arif_to_atlas = {
+            "HARD": "FACTUAL",
+            "SOFT": "CARE",
+            "PHATIC": "SOCIAL",
+            "REFUSE": "CRISIS",
+        }
+        arif_lane = intent_map.get("lane", "SOFT")
+        mapped_lane = arif_to_atlas.get(arif_lane, "CARE")
+        engines = LANE_ENGINES[mapped_lane].copy()
+        logger.info(f"000_init Step 7: Engines IGNITED (mapped: {arif_lane}→{mapped_lane})")
+        return engines
+
+    # Default: All engines ready (backwards compatibility)
     engines = {
         "AGI_Mind": "READY",
         "ASI_Heart": "READY",
         "APEX_Soul": "READY"
     }
-    logger.info("000_init Step 7: Engines IGNITED")
+    logger.info("000_init Step 7: Engines IGNITED (all)")
     return engines
+
+
+# Lane-Aware Routing Matrix (ATLAS-333)
+LANE_ROUTING = {
+    "HARD": "AGI -> ASI -> APEX -> VAULT (Full Constitutional Pipeline)",
+    "SOFT": "AGI -> APEX -> VAULT (Knowledge/Exploratory Pipeline)",
+    "PHATIC": "APEX (Quick Sovereign Response)",
+    "REFUSE": "VOID (Immediate Constitutional Rejection)",
+    "CRISIS": "888_HOLD (Human Intervention Required)"
+}
 
 
 async def mcp_000_init(
@@ -583,6 +792,34 @@ async def mcp_000_init(
         intent_map = _step_3_intent_mapping(query, previous_context)
 
         # =====================================================================
+        # v52.5.1: 888_HOLD TRIGGER FOR CRISIS LANE
+        # CRISIS lane requires human confirmation before proceeding
+        # =====================================================================
+        gpv = intent_map.get("gpv") or {}
+        atlas_lane = gpv.get("atlas_lane")
+        if atlas_lane == "CRISIS":
+            logger.warning(f"000_init: CRISIS lane detected - triggering 888_HOLD")
+            floors_checked.extend(["F6_Empathy", "F11_CommandAuth"])
+            return InitResult(
+                status="888_HOLD",
+                session_id=session,
+                timestamp=datetime.now().isoformat(),
+                authority="AWAITING_CONFIRMATION",
+                authority_verified=False,
+                intent=intent_map.get("intent", "crisis"),
+                lane="REFUSE",
+                floors_checked=floors_checked,
+                engines={"AGI_Mind": "HOLD", "ASI_Heart": "HOLD", "APEX_Soul": "READY"},
+                injection_risk=0.0,
+                reason="CRISIS lane detected. Human confirmation required before proceeding.",
+            ).__dict__ | {
+                "gpv": gpv,
+                "signal": intent_map.get("signal"),
+                "risk_level": gpv.get("risk_level", 1.0),
+                "action_required": "Sovereign must confirm to proceed. Provide authority_token='888_CONFIRMED' to continue.",
+            }
+
+        # =====================================================================
         # STEP 4: THERMODYNAMIC SETUP
         # =====================================================================
         thermo = _step_4_thermodynamic_setup(intent_map)
@@ -642,9 +879,9 @@ async def mcp_000_init(
         tri_witness = _step_6_tri_witness(sovereign, thermo)
 
         # =====================================================================
-        # STEP 7: ENGINE IGNITION
+        # STEP 7: ENGINE IGNITION (v52.5.1: Lane-selective activation)
         # =====================================================================
-        engines = _step_7_engine_ignition()
+        engines = _step_7_engine_ignition(intent_map)
 
         # =====================================================================
         # IGNITION COMPLETE
@@ -687,6 +924,9 @@ async def mcp_000_init(
 
             # Step 7
             engines=engines,
+
+            # Step 8: ATLAS Routing
+            routing=LANE_ROUTING.get(intent_map["lane"], "AGI -> ASI -> APEX (Default)"),
 
             # Security
             injection_risk=injection_risk,

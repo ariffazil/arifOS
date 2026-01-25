@@ -1,5 +1,5 @@
 """
-arifOS MCP Entry Point (v52.4.1-SEAL)
+arifOS MCP Entry Point (v52.5.1-SEAL)
 Authority: Antigravity (Sovereign Architect)
 Ref: ADR_001_CONSTITUTIONAL_MONOLITH
 

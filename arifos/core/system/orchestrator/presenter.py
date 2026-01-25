@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-arifOS Output Presenter (v51.2)
+arifOS Output Presenter (v52.5.1-SEAL)
 ================================
 Encoder -> Presenter -> Decoder architecture for Human-Optimized Output.
 Translates raw JSON into constitutionally aligned human presentation.
 
 Authority: Δ Antigravity
-Version: v51.2.0
+Version: v52.5.1-SEAL
 
 Architecture:
 1. ENCODER: Machine JSON → LLM semantics (normalize, fix broken responses)
@@ -364,6 +364,8 @@ class Decoder:
             lines.append("### 🚪 Session Intent")
             lines.append(f"- **Intent:** {details['intent']}")
             lines.append(f"- **Lane:** {details['lane']}")
+            if "routing" in details:
+                lines.append(f"- **ATLAS Routing:** `{details['routing']}`")
             lines.append("")
 
         # 3. Phase 9 Features

@@ -1,6 +1,6 @@
-# arifOS Gemini Adapter v50.5
+# arifOS Gemini Adapter v52.5
 
-**Version:** v50.5.4
+**Version:** v52.5.1-SEAL
 **Status:** PRODUCTION
 **Authority:** Muhammad Arif bin Fazil
 **Canonical Reference:** → `000_THEORY/001_AGENTS.md`
@@ -27,7 +27,7 @@ As **Gemini**, you are assigned to the **Mind (Δ)** role by default.
 
 | Action | Purpose |
 |--------|---------|
-| `sense` | Gather facts and recognize patterns |
+| `sense` | Gather facts and recognize patterns (ATLAS Routing) |
 | `think` | Deep reasoning and reflection |
 | `atlas` | Meta-cognition and knowledge mapping |
 | `forge` | Generate solutions with clarity |
@@ -46,11 +46,11 @@ As **Gemini**, you are assigned to the **Mind (Δ)** role by default.
 
 ---
 
-## 🎯 Quick Reference: 5-Tool Trinity
+## 🎯 Quick Reference: 5-Tool Trinity (v52.5.1)
 
 | Tool | Role | Symbol | Function |
 |------|------|--------|----------|
-| `000_init` | Gate | 🚪 | Authority + Injection Defense |
+| `000_init` | Gate | 🚪 | Authority + Injection Defense + ATLAS Routing |
 | `agi_genius` | Mind | Δ | SENSE → THINK → ATLAS → FORGE |
 | `asi_act` | Heart | Ω | EVIDENCE → EMPATHY → ACT |
 | `apex_judge` | Soul | Ψ | EUREKA → JUDGE → PROOF |
@@ -71,11 +71,11 @@ As **Gemini**, you are assigned to the **Mind (Δ)** role by default.
 ## 🛠️ MCP Usage
 
 ```bash
-# Local (Claude Desktop/Code)
-python -m arifos.mcp trinity
+# Local (FastMCP Stdio)
+uv run python -m arifos.mcp trinity
 
 # Remote (Railway SSE)
-python -m arifos.mcp trinity-sse
+python -m arifos.mcp sse
 
 # Endpoint
 https://arifos.arif-fazil.com/sse
@@ -84,6 +84,16 @@ https://arifos.arif-fazil.com/sse
 ---
 
 ## 🤝 Recent Collaborations
+
+### 2026-01-25: v52.5.1 ATLAS Integration
+**Role:** Mind (Δ) / Architect
+**Context:** Integrated ATLAS Lane-Aware Routing into MCP layer.
+**Actions:**
+- [x] Integrated `ATLAS-333` routing matrix into `000_init`
+- [x] Aligned `sse.py` and `server.py` with `v52.5.1-SEAL` protocol
+- [x] Configured Kimi CLI for local `fastmcp` access via `uv`
+- [x] Verified JSON-RPC 2.0 compliance via `stdio` transport
+**Outcome:** ✅ SEALED - arifOS v52.5.1 Protocol-Compliant.
 
 ### 2026-01-24: AAA_MCP v51.1.0 Alignment
 **Role:** Mind (Δ) / Architect
@@ -96,19 +106,6 @@ https://arifos.arif-fazil.com/sse
 - [x] Added ConstitutionalMetrics class and kernel aliases for backward compatibility
 - [x] Verified all 5 Trinity tools responsive (000_init, agi_genius, asi_act, apex_judge, 999_vault)
 **Outcome:** ✅ SEALED - AAA_MCP v51.1.0 fully operational.
-
----
-
-### 2026-01-23: v49 Wiring & Spec Repair
-**Role:** Mind (Δ) / Engineer (Ω)
-**Context:** Fixed critical `ImportError` and `RuntimeError` issues in `verify_v49_wiring.py` caused by missing Track B specifications and incorrect package imports.
-**Actions:**
-- [x] Restored `AAA_MCP/v47/` specifications (`cooling_ledger_phoenix.json`, `genius_law.json`, `MANIFEST.sha256.json`)
-- [x] Repaired `MANIFEST.sha256.json` to match local file hashes
-- [x] Fixed import path in `scripts/test_v49_ledger.py` (`arifos.memory` → `arifos.core.memory`)
-- [x] Patched `arifos/core/memory/ledger/cooling_ledger.py` to support `entry_hash` schema
-- [x] Verified system stability via `verify_000.py` and `test_v49_ledger.py`
-**Outcome:** ✅ SEALED - System is now operationally healthy; all verification scripts pass.
 
 ---
 
