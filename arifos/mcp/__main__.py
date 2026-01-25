@@ -24,8 +24,11 @@ def main_sse():
     uvicorn.run(app, host="0.0.0.0", port=port)
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] in ("sse", "trinity-sse"):
+    if len(sys.argv) > 1 and sys.argv[1] == "sse":
         main_sse()
+    elif len(sys.argv) > 1 and sys.argv[1] == "trinity-sse":
+        from arifos.mcp.trinity_server import main_sse as trinity_sse_main
+        trinity_sse_main()
     elif len(sys.argv) > 1 and sys.argv[1] == "trinity":
         from arifos.mcp.trinity_server import main_stdio as trinity_main
         import asyncio

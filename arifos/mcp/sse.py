@@ -21,7 +21,7 @@ from mcp.server import Server
 from mcp.server.sse import SseServerTransport
 
 from arifos.mcp.bridge import ENGINES_AVAILABLE
-from arifos.mcp.server import TOOL_DESCRIPTIONS, TOOL_ROUTERS
+import mcp.types
 from arifos.core.enforcement.governance.rate_limiter import get_rate_limiter
 from arifos.core.enforcement.metrics import record_stage_metrics, record_verdict_metrics
 from arifos.mcp.mode_selector import get_mcp_mode, MCPMode
@@ -33,13 +33,33 @@ logger = logging.getLogger(__name__)
 # Initialize Presenter
 presenter = AAAMetabolizer()
 
-def create_sse_app(mode: Optional[MCPMode] = None, messages_endpoint: str = "/messages") -> FastAPI:
+def create_sse_app(
+    mode: Optional[MCPMode] = None, 
+    messages_endpoint: str = "/messages",
+    tools: Optional[Dict[str, Any]] = None,
+    tool_descriptions: Optional[Dict[str, Dict[str, Any]]] = None,
+    server_name: Optional[str] = None,
+    version: str = "v52.0.0"
+) -> FastAPI:
     """Create FastAPI app with MCP SSE endpoints."""
     if mode is None:
         mode = get_mcp_mode()
     
-    server_name = f"arifOS-MCP-{mode.value}"
-    version = "v52.0.0"
+    if server_name is None:
+        server_name = f"arifOS-MCP-{mode.value}"
+    
+    # Resolve Tools & Descriptions (Dependency Injection vs Default)
+    if tool_descriptions is None:
+        from arifos.mcp.server import TOOL_DESCRIPTIONS as DEFAULT_DESCS
+        final_tool_descriptions = DEFAULT_DESCS
+    else:
+        final_tool_descriptions = tool_descriptions
+
+    if tools is None:
+        from arifos.mcp.server import TOOL_ROUTERS as DEFAULT_ROUTERS
+        final_routers = DEFAULT_ROUTERS
+    else:
+        final_routers = tools
     
     # Create MCP Server
     mcp_server = Server(server_name)
@@ -50,16 +70,18 @@ def create_sse_app(mode: Optional[MCPMode] = None, messages_endpoint: str = "/me
         return [
             mcp.types.Tool(
                 name=name,
-                description=desc["description"],
-                inputSchema=desc["inputSchema"]
+                description=desc.get("description", "No description"),
+                inputSchema=desc.get("inputSchema", {})
             )
-            for name, desc in TOOL_DESCRIPTIONS.items()
+            for name, desc in final_tool_descriptions.items()
         ]
 
     @mcp_server.call_tool()
     async def call_tool(name: str, arguments: Dict[str, Any]) -> list[mcp.types.TextContent]:
         import mcp.types
-        router = TOOL_ROUTERS.get(name)
+        import inspect
+
+        router = final_routers.get(name)
         if not router:
             return [mcp.types.TextContent(type="text", text=f"VOID: Unknown tool {name}")]
 
@@ -76,8 +98,16 @@ def create_sse_app(mode: Optional[MCPMode] = None, messages_endpoint: str = "/me
 
         start = time.time()
         try:
-            action = arguments.pop("action", "full")
-            result = await router(action=action, **arguments)
+            # Handle Trinity Tools (Callable) vs Bridge Routers (Expects 'action' kwarg)
+            # Trinity tools typically take named arguments directly
+            if "action" in arguments:
+                # Likely V52 Bridge which pops action
+                result = await router(**arguments) if inspect.iscoroutinefunction(router) else router(**arguments)
+            else:
+                # Likely V51 Trinity which expects args as is
+                # But wait, MCP passes args as dict. 
+                # Let's try to pass kwargs directly, router logic handles the rest.
+                result = await router(**arguments) if inspect.iscoroutinefunction(router) else router(**arguments)
             
             # Record metrics
             duration = time.time() - start
@@ -86,14 +116,14 @@ def create_sse_app(mode: Optional[MCPMode] = None, messages_endpoint: str = "/me
             # 1. MCP Rolling Metrics
             record_verdict(
                 tool=name,
-                verdict=result.get("verdict", "UNKNOWN"),
+                verdict=result.get("verdict", "UNKNOWN") if isinstance(result, dict) else "UNKNOWN",
                 duration=duration,
                 mode=mode.value
             )
             
             # 2. Core Prometheus Metrics
             record_stage_metrics(name, duration_ms)
-            record_verdict_metrics(result.get("verdict", "UNKNOWN"))
+            record_verdict_metrics(result.get("verdict", "UNKNOWN") if isinstance(result, dict) else "UNKNOWN")
             
             # Human-Optimized Output via Presenter
             formatted_text = presenter.process(result)

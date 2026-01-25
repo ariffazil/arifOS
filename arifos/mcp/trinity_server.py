@@ -61,6 +61,15 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
 
 The first gate. All requests must pass through here.
 
+MANDATORY WORKFLOW (The Metabolic Standard):
+1. Call `000_init(action="init")` FIRST to start session.
+2. Call `agi_genius(action="full")` to think/reason.
+3. Call `asi_act(action="full")` to check safety/ethics.
+4. Call `apex_judge(action="full")` to get verdict.
+5. Call `999_vault(action="seal")` to commit result.
+
+DO NOT SKIP STEPS. DO NOT INVENT TOOLS.
+
 Actions:
   - init: Full initialization (gate + reset + validate)
   - gate: Constitutional authority check only
