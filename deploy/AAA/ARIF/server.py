@@ -1,67 +1,41 @@
 #!/usr/bin/env python3
 """
 ARIF SERVER (v52.4.0) - The Architect (Nexus)
-Entanglement of Mind (Logic) and Heart (Empathy).
-
-Production-ready deployment unit for Railway.
-
-Responsibility:
-    - agi_genius: Sense -> Think -> Atlas (Mind)
-    - asi_act: Evidence -> Empathy -> Act (Heart)
-
-Architecture:
-    - Transport: SSE (Heavy compute, may hang)
-    - Isolation: Independent from AXIS (crash-safe)
-
-DITEMPA BUKAN DIBERI
+Cognitive Engines (AGI/ASI).
 """
 
 import argparse
 import json
 import logging
+import os
 import sys
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional, List
 
-from fastmcp import FastMCP
-
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+import mcp.types
+from mcp.server import Server
+from mcp.server.sse import SseServerTransport
 
 # =============================================================================
-# JSON STRUCTURED LOGGING
+# LOGGING
 # =============================================================================
 
 class JSONFormatter(logging.Formatter):
-    """JSON log formatter for Railway/structured logging."""
-
     def format(self, record: logging.LogRecord) -> str:
-        log_entry = {
-            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        return json.dumps({
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
-            "logger": record.name,
             "message": record.getMessage(),
             "service": "ARIF",
-            "version": "v52.4.0",
-        }
-        if record.exc_info:
-            log_entry["exception"] = self.formatException(record.exc_info)
-        return json.dumps(log_entry)
+        })
 
-
-def setup_logging() -> logging.Logger:
-    """Configure JSON logging to stdout."""
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(JSONFormatter())
-
-    logger = logging.getLogger("arif")
-    logger.setLevel(logging.INFO)
-    logger.addHandler(handler)
-    logger.propagate = False
-
-    return logger
-
-
-logger = setup_logging()
-
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(JSONFormatter())
+logger = logging.getLogger("arif")
+logger.setLevel(logging.INFO)
+logger.addHandler(handler)
 
 # =============================================================================
 # CORE IMPORTS
@@ -69,140 +43,90 @@ logger = setup_logging()
 
 try:
     from arifos.mcp.tools.mcp_trinity import mcp_agi_genius, mcp_asi_act
-    from arifos.core.enforcement.metrics import OMEGA_0_MIN
     CORE_AVAILABLE = True
-    logger.info("arifos core loaded successfully")
 except ImportError as e:
-    logger.error(f"Failed to import arifos core: {e}")
+    logger.error(f"Core import failed: {e}")
     CORE_AVAILABLE = False
-    OMEGA_0_MIN = 0.03
-
 
 # =============================================================================
-# ARIF MCP SERVER
+# MCP SERVER LOGIC
 # =============================================================================
 
-mcp = FastMCP("ARIF", dependencies=["pydantic"])
+server = Server("ARIF")
 
-
-@mcp.tool()
-async def arif_agi_genius(
-    action: str,
-    query: str = "",
-    session_id: str = "",
-    thought: str = "",
-    draft: str = "",
-    truth_score: float = 1.0,
-    context: Optional[Dict[str, Any]] = None,
-    axioms: Optional[List[str]] = None,
-) -> Dict[str, Any]:
-    """
-    AGI GENIUS: The Mind (Delta).
-
-    Reasoning, logic, and truth evaluation.
-
-    Actions: sense, think, reflect, atlas, forge, evaluate, full
-    """
-    if not CORE_AVAILABLE:
-        return {"status": "VOID", "error": "Core not available"}
-
-    logger.info(f"agi_genius action={action} session={session_id[:8] if session_id else 'none'}")
-
-    try:
-        result = await mcp_agi_genius(
-            action=action,
-            query=query,
-            session_id=session_id,
-            thought=thought,
-            draft=draft,
-            truth_score=truth_score,
-            context=context,
-            axioms=axioms,
+@server.list_tools()
+async def list_tools() -> List[mcp.types.Tool]:
+    return [
+        mcp.types.Tool(
+            name="agi_genius",
+            description="Mind Engine: SENSE → THINK → ATLAS → FORGE",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "action": {"type": "string", "enum": ["sense", "think", "reflect", "atlas", "forge", "evaluate", "full"]},
+                    "query": {"type": "string"},
+                    "session_id": {"type": "string"}
+                },
+                "required": ["action"]
+            }
+        ),
+        mcp.types.Tool(
+            name="asi_act",
+            description="Heart Engine: EVIDENCE → EMPATHY → ACT",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "action": {"type": "string", "enum": ["evidence", "empathize", "align", "act", "witness", "evaluate", "full"]},
+                    "text": {"type": "string"},
+                    "session_id": {"type": "string"}
+                },
+                "required": ["action"]
+            }
         )
-        logger.info(f"agi_genius completed: {result.get('status', 'unknown')}")
-        return result
-    except Exception as e:
-        logger.error(f"agi_genius failed: {e}")
-        return {"status": "VOID", "error": str(e)}
+    ]
 
-
-@mcp.tool()
-async def arif_asi_act(
-    action: str,
-    text: str = "",
-    session_id: str = "",
-    query: str = "",
-    proposal: str = "",
-    stakeholders: Optional[List[str]] = None,
-    agi_result: Optional[Dict[str, Any]] = None,
-    sources: Optional[List[str]] = None,
-    witness_request_id: str = "",
-    approval: bool = False,
-    reason: str = "",
-) -> Dict[str, Any]:
-    """
-    ASI ACT: The Heart (Omega).
-
-    Empathy, safety, and action alignment.
-
-    Actions: evidence, empathize, align, act, witness, evaluate, full
-    """
-    if not CORE_AVAILABLE:
-        return {"status": "VOID", "error": "Core not available"}
-
-    logger.info(f"asi_act action={action} session={session_id[:8] if session_id else 'none'}")
-
-    try:
-        result = await mcp_asi_act(
-            action=action,
-            text=text,
-            session_id=session_id,
-            query=query,
-            proposal=proposal,
-            stakeholders=stakeholders,
-            agi_result=agi_result,
-            sources=sources,
-            witness_request_id=witness_request_id,
-            approval=approval,
-            reason=reason,
-        )
-        logger.info(f"asi_act completed: {result.get('status', 'unknown')}")
-        return result
-    except Exception as e:
-        logger.error(f"asi_act failed: {e}")
-        return {"status": "VOID", "error": str(e)}
-
-
-@mcp.tool()
-def arif_ping() -> Dict[str, Any]:
-    """Health check for ARIF server."""
-    return {
-        "status": "ready" if CORE_AVAILABLE else "degraded",
-        "role": "ARIF",
-        "version": "v52.4.0",
-        "omega_0": OMEGA_0_MIN,
-        "tools": ["arif_agi_genius", "arif_asi_act"],
-        "core_available": CORE_AVAILABLE,
-    }
-
+@server.call_tool()
+async def call_tool(name: str, arguments: Dict[str, Any]) -> List[mcp.types.TextContent]:
+    if name == "agi_genius":
+        result = await mcp_agi_genius(**arguments)
+    elif name == "asi_act":
+        result = await mcp_asi_act(**arguments)
+    else:
+        return [mcp.types.TextContent(type="text", text=f"Unknown tool: {name}")]
+    
+    return [mcp.types.TextContent(type="text", text=json.dumps(result))]
 
 # =============================================================================
-# ENTRYPOINT
+# FASTAPI WRAPPER
 # =============================================================================
 
-def main():
-    parser = argparse.ArgumentParser(description="ARIF MCP Server")
-    parser.add_argument(
-        "--transport",
-        choices=["sse", "stdio"],
-        default="sse",
-        help="Transport mode (default: sse for Railway)"
-    )
-    args = parser.parse_args()
+app = FastAPI(title="ARIF")
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-    logger.info(f"ARIF starting on {args.transport} transport")
-    mcp.run(transport=args.transport)
+sse = SseServerTransport("/messages")
 
+@app.post("/internal/call/{tool_name}")
+async def internal_call(tool_name: str, arguments: Dict[str, Any]):
+    if tool_name == "agi_genius":
+        return await mcp_agi_genius(**arguments)
+    elif tool_name == "asi_act":
+        return await mcp_asi_act(**arguments)
+    raise ValueError(f"Unknown tool {tool_name}")
+
+@app.get("/health")
+async def health():
+    return {"status": "ready", "role": "ARIF", "version": "v52.4.0"}
+
+@app.get("/sse")
+async def handle_sse(request: Request):
+    async with sse.connect_sse(request.scope, request.receive, request._send) as streams:
+        await server.run(streams[0], streams[1], server.create_initialization_options())
+
+@app.post("/messages")
+async def handle_messages(request: Request):
+    return await sse.handle_post_message(request.scope, request.receive, request._send)
 
 if __name__ == "__main__":
-    main()
+    import uvicorn
+    port = int(os.environ.get("PORT", 8002))
+    uvicorn.run(app, host="0.0.0.0", port=port)

@@ -1,19 +1,7 @@
 #!/usr/bin/env python3
 """
 AXIS SERVER (v52.4.0) - Authority & Memory (Spine)
-The "Alpha & Omega" of the AAA Cluster.
-
-Production-ready deployment unit for Railway.
-
-Responsibility:
-    - 000_init: Ignition & Identity (Alpha)
-    - 999_vault: Sealing & Memory (Omega)
-
-Architecture:
-    - Transport: SSE (Railway) or Stdio (Local)
-    - Loop Bootstrap: Detects and recovers orphaned sessions on startup
-
-DITEMPA BUKAN DIBERI
+Production-ready deployment unit using raw MCP Server for maximum control.
 """
 
 import argparse
@@ -23,49 +11,35 @@ import os
 import sys
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
-from fastmcp import FastMCP, Context
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+import mcp.types
+from mcp.server import Server
+from mcp.server.sse import SseServerTransport
 
 # =============================================================================
-# JSON STRUCTURED LOGGING
+# LOGGING
 # =============================================================================
 
 class JSONFormatter(logging.Formatter):
-    """JSON log formatter for Railway/structured logging."""
-
     def format(self, record: logging.LogRecord) -> str:
-        log_entry = {
-            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        return json.dumps({
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
-            "logger": record.name,
             "message": record.getMessage(),
             "service": "AXIS",
-            "version": "v52.4.0",
-        }
-        if record.exc_info:
-            log_entry["exception"] = self.formatException(record.exc_info)
-        return json.dumps(log_entry)
+        })
 
-
-def setup_logging() -> logging.Logger:
-    """Configure JSON logging to stdout."""
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(JSONFormatter())
-
-    logger = logging.getLogger("axis")
-    logger.setLevel(logging.INFO)
-    logger.addHandler(handler)
-    logger.propagate = False
-
-    return logger
-
-
-logger = setup_logging()
-
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(JSONFormatter())
+logger = logging.getLogger("axis")
+logger.setLevel(logging.INFO)
+logger.addHandler(handler)
 
 # =============================================================================
-# CORE IMPORTS (arifos package must be installed)
+# CORE IMPORTS
 # =============================================================================
 
 try:
@@ -79,198 +53,92 @@ try:
     )
     CORE_AVAILABLE = True
 except ImportError as e:
-    logger.error(f"Failed to import arifos core: {e}")
+    logger.error(f"Core import failed: {e}")
     CORE_AVAILABLE = False
     OMEGA_0_MIN = 0.03
 
-
 # =============================================================================
-# AXIS MCP SERVER
-# =============================================================================
-
-mcp = FastMCP("AXIS", dependencies=["pydantic"])
-
-# In-memory token tracking
-_active_tokens: Dict[str, str] = {}
-
-
-def _recover_orphans() -> int:
-    """Recover orphaned sessions from previous runs (Loop Bootstrap)."""
-    if not CORE_AVAILABLE:
-        return 0
-
-    try:
-        orphans = get_orphaned_sessions(timeout_minutes=30)
-        recovered = 0
-
-        for orphan in orphans:
-            try:
-                result = recover_orphaned_session(orphan)
-                if result.get("sealed"):
-                    recovered += 1
-                    logger.info(f"Recovered orphan session: {orphan.get('session_id', '?')[:8]}")
-            except Exception as e:
-                logger.error(f"Failed to recover orphan: {e}")
-
-        return recovered
-    except Exception as e:
-        logger.warning(f"Orphan recovery scan failed: {e}")
-        return 0
-
-
-@mcp.tool()
-async def axis_000_init(
-    ctx: Context,
-    action: str = "init",
-    query: str = "",
-    session_id: Optional[str] = None,
-    authority_token: Optional[str] = None
-) -> Dict[str, Any]:
-    """
-    000 INIT: Universal Ignition Protocol.
-
-    Starts a new session with Loop Bootstrap crash recovery.
-    """
-    if not CORE_AVAILABLE:
-        return {"status": "VOID", "error": "Core not available"}
-
-    # Loop Bootstrap: Recover orphans first
-    recovered = _recover_orphans()
-    if recovered > 0:
-        logger.info(f"Loop Bootstrap: Recovered {recovered} session(s)")
-
-    # Execute 000_init
-    result = await mcp_000_init(
-        action=action,
-        query=query,
-        session_id=session_id,
-        authority_token=authority_token
-    )
-
-    # Track successful session
-    if result.get("status") == "SEAL":
-        token = str(uuid.uuid4())
-        new_session_id = result.get("session_id", "")
-
-        result["session_token"] = token
-        result["loop_bootstrap"] = True
-
-        _active_tokens[new_session_id] = token
-
-        try:
-            open_session(
-                session_id=new_session_id,
-                token=token,
-                pid=os.getpid(),
-                authority=result.get("authority", "GUEST")
-            )
-            logger.info(f"Session opened: {new_session_id[:8]}")
-        except Exception as e:
-            logger.warning(f"Failed to track session: {e}")
-
-    return result
-
-
-@mcp.tool()
-async def axis_999_vault(
-    ctx: Context,
-    action: str,
-    verdict: Optional[str] = None,
-    session_id: Optional[str] = None,
-    target: str = "seal",
-    data: Optional[Dict[str, Any]] = None,
-    session_token: Optional[str] = None,
-    init_result: Optional[Dict[str, Any]] = None,
-    agi_result: Optional[Dict[str, Any]] = None,
-    asi_result: Optional[Dict[str, Any]] = None,
-    apex_result: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
-    """
-    999 VAULT: Immutable Seal.
-
-    Seals the session and closes the loop.
-    """
-    if not CORE_AVAILABLE:
-        return {"status": "VOID", "error": "Core not available"}
-
-    # Optional strict token validation
-    if os.environ.get("ARIFOS_STRICT_TOKEN", "").lower() == "true":
-        if session_token and session_id:
-            expected = _active_tokens.get(session_id)
-            if expected and session_token != expected:
-                logger.warning(f"Token mismatch: {session_id[:8]}")
-                return {"status": "VOID", "error": "Invalid session token"}
-
-    # Execute seal
-    result = await mcp_999_vault(
-        action=action,
-        verdict=verdict,
-        session_id=session_id,
-        target=target,
-        data=data,
-        init_result=init_result,
-        agi_result=agi_result,
-        asi_result=asi_result,
-        apex_result=apex_result,
-    )
-
-    # Close session tracking
-    if result.get("status") == "SEAL" and session_id:
-        _active_tokens.pop(session_id, None)
-        try:
-            close_session(session_id)
-            logger.info(f"Session sealed: {session_id[:8]}")
-        except Exception as e:
-            logger.warning(f"Failed to close session: {e}")
-
-    return result
-
-
-@mcp.tool()
-def axis_ping() -> Dict[str, Any]:
-    """Health check for AXIS server."""
-    orphan_count = -1
-    try:
-        if CORE_AVAILABLE:
-            orphan_count = len(get_orphaned_sessions(timeout_minutes=30))
-    except Exception:
-        pass
-
-    return {
-        "status": "ready" if CORE_AVAILABLE else "degraded",
-        "role": "AXIS",
-        "version": "v52.4.0",
-        "omega_0": OMEGA_0_MIN,
-        "tools": ["axis_000_init", "axis_999_vault"],
-        "active_sessions": len(_active_tokens),
-        "orphaned_sessions": orphan_count,
-        "loop_bootstrap": True,
-        "core_available": CORE_AVAILABLE,
-    }
-
-
-# =============================================================================
-# ENTRYPOINT
+# MCP SERVER LOGIC
 # =============================================================================
 
-def main():
-    parser = argparse.ArgumentParser(description="AXIS MCP Server")
-    parser.add_argument(
-        "--transport",
-        choices=["sse", "stdio"],
-        default="sse",
-        help="Transport mode (default: sse for Railway)"
-    )
-    args = parser.parse_args()
+server = Server("AXIS")
 
-    # Recover orphans at startup
-    recovered = _recover_orphans()
-    if recovered > 0:
-        logger.info(f"Startup recovery: {recovered} session(s)")
+@server.list_tools()
+async def list_tools() -> List[mcp.types.Tool]:
+    return [
+        mcp.types.Tool(
+            name="init_000",
+            description="000 INIT: Universal Ignition Protocol.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "action": {"type": "string", "enum": ["init", "gate", "reset", "validate"], "default": "init"},
+                    "query": {"type": "string"},
+                    "session_id": {"type": "string"},
+                    "authority_token": {"type": "string"}
+                }
+            }
+        ),
+        mcp.types.Tool(
+            name="vault_999",
+            description="999 VAULT: Immutable Seal.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "action": {"type": "string", "enum": ["seal", "list", "read", "write", "propose"]},
+                    "verdict": {"type": "string", "enum": ["SEAL", "SABAR", "VOID"]},
+                    "session_id": {"type": "string"},
+                    "target": {"type": "string", "default": "seal"},
+                    "data": {"type": "object"}
+                },
+                "required": ["action"]
+            }
+        )
+    ]
 
-    logger.info(f"AXIS starting on {args.transport} transport")
-    mcp.run(transport=args.transport)
+@server.call_tool()
+async def call_tool(name: str, arguments: Dict[str, Any]) -> List[mcp.types.TextContent]:
+    if name == "init_000":
+        result = await mcp_000_init(**arguments)
+    elif name == "vault_999":
+        result = await mcp_999_vault(**arguments)
+    else:
+        return [mcp.types.TextContent(type="text", text=f"Unknown tool: {name}")]
+    
+    return [mcp.types.TextContent(type="text", text=json.dumps(result))]
 
+# =============================================================================
+# FASTAPI WRAPPER
+# =============================================================================
+
+app = FastAPI(title="AXIS")
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+sse = SseServerTransport("/messages")
+
+@app.post("/internal/call/{tool_name}")
+async def internal_call(tool_name: str, arguments: Dict[str, Any]):
+    """Internal REST endpoint for the Gateway."""
+    if tool_name == "init_000":
+        return await mcp_000_init(**arguments)
+    elif tool_name == "vault_999":
+        return await mcp_999_vault(**arguments)
+    raise ValueError(f"Unknown tool {tool_name}")
+
+@app.get("/health")
+async def health():
+    return {"status": "ready", "role": "AXIS", "version": "v52.4.0"}
+
+@app.get("/sse")
+async def handle_sse(request: Request):
+    async with sse.connect_sse(request.scope, request.receive, request._send) as streams:
+        await server.run(streams[0], streams[1], server.create_initialization_options())
+
+@app.post("/messages")
+async def handle_messages(request: Request):
+    return await sse.handle_post_message(request.scope, request.receive, request._send)
 
 if __name__ == "__main__":
-    main()
+    import uvicorn
+    port = int(os.environ.get("PORT", 8001))
+    uvicorn.run(app, host="0.0.0.0", port=port)
