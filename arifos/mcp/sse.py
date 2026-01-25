@@ -15,8 +15,6 @@ DITEMPA BUKAN DIBERI
 """
 
 import os
-from starlette.applications import Starlette
-from starlette.routing import Route, Mount
 from starlette.responses import JSONResponse
 from mcp.server.fastmcp import FastMCP
 
@@ -31,7 +29,7 @@ from arifos.mcp.tools.mcp_trinity import (
 )
 
 # --- VERSION ---
-VERSION = "v52.4.2-SEAL"
+VERSION = "v52.4.3-SEAL"
 MOTTO = "DITEMPA BUKAN DIBERI"
 
 # Initialize the Monolith
@@ -86,6 +84,8 @@ async def arifos_trinity_999_vault(action: str = "seal", session_id: str = "", v
 
 
 # --- HEALTH CHECK ---
+# Add health check directly via FastMCP custom_route before getting SSE app
+@mcp.custom_route("/health", methods=["GET"])
 async def health_check(request):
     """Railway/Cloud health check endpoint."""
     return JSONResponse({
@@ -101,16 +101,8 @@ async def health_check(request):
 
 
 # --- APP EXPORT ---
-# Get the proper Starlette SSE app from FastMCP
-_sse_app = mcp.sse_app()
-
-# Create main app with health check + SSE routes
-app = Starlette(
-    routes=[
-        Route("/health", health_check, methods=["GET"]),
-        Mount("/", app=_sse_app),  # Mount SSE app at root (provides /sse and /messages)
-    ]
-)
+# Get the SSE app directly from FastMCP (includes /sse, /messages, and /health)
+app = mcp.sse_app()
 
 
 # --- ENTRYPOINT ---
