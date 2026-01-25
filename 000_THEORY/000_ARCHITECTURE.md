@@ -615,11 +615,68 @@ Requirement: All 3 votes = 1 (SEAL) for final SEAL verdict
 
 ---
 
-### 4.8 Stage 888 JUDGE — Constitutional Verdict
+### 4.8 Stage 888 JUDGE — The Knowing That Admits Not-Knowing
 
 **Engine:** APEX (Ψ)
 **Geometry:** Toroidal (8-direction compass)
 **Purpose:** Final constitutional judgment, all-floor validation, trinity index calculation
+
+**Mechanism:**
+
+Every verdict follows this pattern:
+
+**Input Query**
+  ↓
+**Compute (000→777)**: KNOW what system can calculate
+  - P_truth, ΔS, TW, G, Cdark (all measurable)
+  - Floor checks (all auditable)
+  - Evidence chain (all verifiable)
+  ↓
+**Admit (888 JUDGE)**: ADMIT what system cannot
+  - Ω₀ ∈ [0.03, 0.05] uncertainty band (F7)
+  - Gödel incompleteness (cannot self-validate)
+  - Escalation triggers (888_HOLD conditions)
+  - Unmeasurable values (dignity, love, sacred—F10)
+  ↓
+**Prove (889 PROOF)**: GENERATE cryptographic proof
+  - zkPC (zero-knowledge proof of constitution)
+  - Ed25519 signature (Arif's authority)
+  - Merkle chain (audit trail integrity)
+  ↓
+**Store (999 VAULT)**: RECORD with admission embedded
+  - Every verdict includes "what I know" AND "what I admit not knowing"
+  - User can verify both locally
+
+**Why This Breaks Hallucination:**
+
+Traditional LLM:
+```
+Query: "Will this medicine harm patient?"
+LLM Response: "No, 95% confident"
+Reality: LLM has no idea what "harm" means, just pattern-matching text
+User acts blindly
+Patient harmed
+```
+
+arifOS:
+```
+Query: "Will this medicine harm patient?"
+arifOS Response: 
+  "SEAL: Do not use (weakest stakeholder protection triggered)
+   Knowing: 
+     - F4 Empathy check: Patient vulnerability = 0.95 (highest)
+     - F5 Peace check: Side effects detected in literature
+     - F6 RASA: Medical expertise consulted (tri-witness H=0.98)
+   Not-Knowing:
+     - Cannot predict patient-specific allergies (requires specialist)
+     - Cannot determine if benefit > risk (requires human values judgment)
+     - Escalating to physician for final decision (F13 Veto)
+   Proof: zkpc_proof_constitutional_floors_checked ✓"
+```
+
+User understands: System did its job (gathered evidence), admitted what it cannot decide (human values), escalated appropriately.
+
+Result: No hallucination. No false certainty. Safety preserved.
 
 **Checkpoints:**
 1. **8-Direction Compass Check** (all must pass):
