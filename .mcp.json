@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "arifOS-Trinity": {
+      "command": "python",
+      "args": ["-m", "arifos.mcp"],
+      "env": {
+        "PYTHONIOENCODING": "utf-8"
+      }
+    },
+    "arifOS-Remote": {
+      "url": "https://arifos.arif-fazil.com/sse"
+    }
+  }
+}

@@ -33,7 +33,7 @@ def run_production_monolith():
     from arifos.mcp.sse import app, VERSION
 
     port = int(os.getenv("PORT", 8000))
-    print(f"🚀 Igniting Constitutional Monolith on port {port}...")
+    print(f"[IGNITION] Constitutional Monolith starting on port {port}...")
     print(f"   Version: {VERSION}")
     print(f"   Routes: /health, /sse, /messages")
     print(f"   Motto: DITEMPA BUKAN DIBERI")

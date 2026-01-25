@@ -163,7 +163,7 @@ if __name__ == "__main__":
     import uvicorn
     # Local Dev Mode
     port = int(os.getenv("PORT", 8000))
-    print(f"🚀 Igniting Trinity Monolith (SSE) on port {port}...")
+    print(f"[IGNITION] Trinity Monolith (SSE) starting on port {port}...")
     print(f"   Version: {VERSION}")
-    print(f"   Routes: /health, /sse, /messages")
+    print(f"   Routes: /health, /sse, /messages, /dashboard")
     uvicorn.run(app, host="0.0.0.0", port=port)
