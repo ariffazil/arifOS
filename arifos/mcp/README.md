@@ -218,7 +218,7 @@ When you connect AAA MCP to an AI application, you get 5 tools. Think of these a
 ```text
 ╔═══════════════════════════════════════════════════════════════════════╗
 ║                                                                       ║
-║     TOOL 1: THE DOOR (000_init)                                       ║
+║     TOOL 1: THE DOOR (init_000)                                       ║
 ║     ───────────────────────────                                       ║
 ║                                                                       ║
 ║     What it does: Opens a new session                                 ║
@@ -269,7 +269,7 @@ When you connect AAA MCP to an AI application, you get 5 tools. Think of these a
 ║                                                                       ║
 ╠═══════════════════════════════════════════════════════════════════════╣
 ║                                                                       ║
-║     TOOL 5: THE RECORD KEEPER (999_vault)                             ║
+║     TOOL 5: THE RECORD KEEPER (vault_999)                             ║
 ║     ─────────────────────────────────────                             ║
 ║                                                                       ║
 ║     What it does: Saves everything permanently                        ║

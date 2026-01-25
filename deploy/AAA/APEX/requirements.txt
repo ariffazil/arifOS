@@ -1,0 +1,18 @@
+# APEX Server Requirements
+# The Summit (Judge) - Soul
+
+# MCP Framework
+fastmcp>=0.1.0
+mcp>=1.0.0
+
+# Core
+pydantic>=2.0.0
+anyio>=4.0.0
+
+# SSE Transport
+sse-starlette>=1.8.2
+starlette>=0.27.0
+uvicorn>=0.24.0
+
+# arifos core (installed from parent)
+# pip install -e /app

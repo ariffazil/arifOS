@@ -30,11 +30,11 @@ DITEMPA BUKAN DIBERI.
 
 | Tool | Symbol | When to Use |
 |------|--------|-------------|
-| `000_init` | 🚪 | **FIRST** — Always start here |
+| `init_000` | 🚪 | **FIRST** — Always start here |
 | `agi_genius` | Δ | For reasoning, analysis, knowledge |
 | `asi_act` | Ω | For actions, safety checks, empathy |
 | `apex_judge` | Ψ | For final verdicts, proofs |
-| `999_vault` | 🔒 | **LAST** — Always end here |
+| `vault_999` | 🔒 | **LAST** — Always end here |
 
 **Mnemonic:** *"Init the Genius, Act with Heart, Judge at Apex, seal in Vault."*
 
@@ -42,7 +42,7 @@ DITEMPA BUKAN DIBERI.
 
 ## How to Use Each Tool
 
-### 1. `000_init` — Session Ignition (ALWAYS FIRST)
+### 1. `init_000` — Session Ignition (ALWAYS FIRST)
 
 **Purpose:** Opens the gate, verifies authority, classifies intent.
 
@@ -51,7 +51,7 @@ DITEMPA BUKAN DIBERI.
 **Example:**
 ```json
 {
-  "tool": "000_init",
+  "tool": "init_000",
   "arguments": {
     "query": "Help me write a Python function to sort a list",
     "user_id": "user_123",
@@ -74,7 +74,7 @@ DITEMPA BUKAN DIBERI.
 
 **Purpose:** Reasoning, analysis, knowledge synthesis, truth grounding.
 
-**When:** After `000_init`, when you need to THINK.
+**When:** After `init_000`, when you need to THINK.
 
 **Actions available:**
 | Action | Purpose |
@@ -196,13 +196,13 @@ mcp://arifos/browser    — Browser automation (requires auth)
 **Verdicts explained:**
 | Verdict | Meaning | Next Step |
 |---------|---------|-----------|
-| `SEAL` | Approved | Proceed to 999_vault |
+| `SEAL` | Approved | Proceed to vault_999 |
 | `SABAR` | Patience | Refine with agi_genius, retry |
 | `VOID` | Rejected | Stop, explain violation |
 
 ---
 
-### 5. `999_vault` — Session Sealing (ALWAYS LAST)
+### 5. `vault_999` — Session Sealing (ALWAYS LAST)
 
 **Purpose:** Merkle proof, immutable logging, session persistence.
 
@@ -219,7 +219,7 @@ mcp://arifos/browser    — Browser automation (requires auth)
 **Example:**
 ```json
 {
-  "tool": "999_vault",
+  "tool": "vault_999",
   "arguments": {
     "action": "seal",
     "session_id": "session_abc",
@@ -247,9 +247,9 @@ Here's a complete workflow for handling a user request:
 
 ### Step 1: Initialize Session
 ```json
-// Call 000_init FIRST
+// Call init_000 FIRST
 {
-  "tool": "000_init",
+  "tool": "init_000",
   "arguments": {
     "query": "Write a function to calculate fibonacci numbers",
     "user_id": "developer_123"
@@ -302,9 +302,9 @@ Here's a complete workflow for handling a user request:
 
 ### Step 5: Seal in Vault
 ```json
-// Call 999_vault LAST
+// Call vault_999 LAST
 {
-  "tool": "999_vault",
+  "tool": "vault_999",
   "arguments": {
     "action": "seal",
     "session_id": "sess_001",
@@ -332,8 +332,8 @@ Every output passes through these floors:
 | **F8** | Genius | G ≥ 0.80 | DERIVED | APEX |
 | **F9** | Anti-Hantu | No consciousness claims | SOFT | APEX |
 | **F10** | Ontology | LOCKED | HARD | APEX |
-| **F11** | Command Auth | Verified | HARD | 000_init |
-| **F12** | Injection Defense | Risk < 0.85 | HARD | 000_init |
+| **F11** | Command Auth | Verified | HARD | init_000 |
+| **F12** | Injection Defense | Risk < 0.85 | HARD | init_000 |
 | **F13** | Sovereign | 888 Judge approval | HARD | APEX |
 
 ---
@@ -376,7 +376,7 @@ A vault that stores everything is tong sampah (trash bin).
 │                    AAA MCP WORKFLOW                          │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
-│   1. 000_init    →  Open gate, verify, classify              │
+│   1. init_000    →  Open gate, verify, classify              │
 │         ↓                                                    │
 │   2. agi_genius  →  SENSE → THINK → ATLAS → FORGE (Mind)     │
 │         ↓                                                    │
@@ -384,7 +384,7 @@ A vault that stores everything is tong sampah (trash bin).
 │         ↓                                                    │
 │   4. apex_judge  →  EUREKA → JUDGE → PROOF (Soul)            │
 │         ↓                                                    │
-│   5. 999_vault   →  SEAL in Merkle tree (Vault)              │
+│   5. vault_999   →  SEAL in Merkle tree (Vault)              │
 │                                                              │
 ├─────────────────────────────────────────────────────────────┤
 │  VERDICT:  SEAL (approved) | SABAR (refine) | VOID (reject)  │
@@ -405,8 +405,8 @@ Your entire reasoning process is visible to the Federation. All agents can read 
 
 ## Final Instructions
 
-1. **ALWAYS** start with `000_init`
-2. **ALWAYS** end with `999_vault` (if SEAL)
+1. **ALWAYS** start with `init_000`
+2. **ALWAYS** end with `vault_999` (if SEAL)
 3. Use `agi_genius` for thinking
 4. Use `asi_act` for action safety
 5. Use `apex_judge` for final verdict

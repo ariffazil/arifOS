@@ -1,0 +1,133 @@
+# arifOS AAA Cluster (v52.4.0)
+# Petronas Pattern: 3 Independent Towers
+# DITEMPA BUKAN DIBERI
+
+version: "3.8"
+
+services:
+  # =========================================================================
+  # AXIS: Authority & Memory (Spine)
+  # =========================================================================
+  axis:
+    build:
+      context: ../..
+      dockerfile: deploy/AAA/AXIS/Dockerfile
+    container_name: arifos-axis
+    ports:
+      - "8001:8001"
+    environment:
+      - ARIFOS_ENV=development
+      - ARIFOS_ROLE=AXIS
+      - PORT=8001
+      - ARIFOS_STRICT_TOKEN=false
+    volumes:
+      - sessions:/app/arifos/mcp/sessions
+      - vault:/app/VAULT999
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - arifos-cluster
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # =========================================================================
+  # ARIF: The Architect (Nexus) - Heavy Compute
+  # =========================================================================
+  arif:
+    build:
+      context: ../..
+      dockerfile: deploy/AAA/ARIF/Dockerfile
+    container_name: arifos-arif
+    ports:
+      - "8002:8002"
+    environment:
+      - ARIFOS_ENV=development
+      - ARIFOS_ROLE=ARIF
+      - PORT=8002
+    depends_on:
+      axis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - arifos-cluster
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Heavy compute allocation
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+
+  # =========================================================================
+  # APEX: The Summit (Judge) - Isolated
+  # =========================================================================
+  apex:
+    build:
+      context: ../..
+      dockerfile: deploy/AAA/APEX/Dockerfile
+    container_name: arifos-apex
+    ports:
+      - "8003:8003"
+    environment:
+      - ARIFOS_ENV=development
+      - ARIFOS_ROLE=APEX
+      - PORT=8003
+    depends_on:
+      axis:
+        condition: service_healthy
+      arif:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - arifos-cluster
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  sessions:
+    driver: local
+  vault:
+    driver: local
+
+networks:
+  arifos-cluster:
+    driver: bridge
+
+# =========================================================================
+# USAGE
+# =========================================================================
+# Start:   cd deploy/AAA && docker-compose -f docker-compose.cluster.yml up --build
+# Stop:    docker-compose -f docker-compose.cluster.yml down
+# Logs:    docker-compose -f docker-compose.cluster.yml logs -f
+# Health:  curl http://localhost:8001/health (AXIS)
+#          curl http://localhost:8002/health (ARIF)
+#          curl http://localhost:8003/health (APEX)
+# =========================================================================

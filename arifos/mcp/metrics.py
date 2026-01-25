@@ -344,7 +344,7 @@ class ArifOSMetrics:
             "active_sessions": self.active_sessions.get(),
             "p99_latency": {
                 tool: self.request_duration.get_percentile(0.99, {"tool": tool})
-                for tool in ["000_init", "agi_genius", "asi_act", "apex_judge", "999_vault"]
+                for tool in ["init_000", "agi_genius", "asi_act", "apex_judge", "vault_999"]
             }
         }
 

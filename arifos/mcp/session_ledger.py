@@ -373,6 +373,207 @@ omega_0: {entry.telemetry.get('omega_0', 'N/A')}
 
 
 # =============================================================================
+# OPEN SESSION TRACKING (Loop Bootstrap)
+# =============================================================================
+
+OPEN_SESSIONS_FILE = SESSION_PATH / "open_sessions.json"
+
+
+@dataclass
+class OpenSession:
+    """An in-progress session (not yet sealed)."""
+    session_id: str
+    token: str
+    pid: int
+    started_at: str
+    authority: str = "GUEST"
+
+
+def _load_open_sessions() -> Dict[str, Dict]:
+    """Load open sessions from disk."""
+    if not OPEN_SESSIONS_FILE.exists():
+        return {}
+    try:
+        return json.loads(OPEN_SESSIONS_FILE.read_text())
+    except (json.JSONDecodeError, OSError) as e:
+        logger.warning(f"Failed to load open_sessions.json: {e}")
+        return {}
+
+
+def _save_open_sessions(sessions: Dict[str, Dict]) -> None:
+    """Save open sessions to disk."""
+    try:
+        OPEN_SESSIONS_FILE.write_text(json.dumps(sessions, indent=2))
+    except OSError as e:
+        logger.error(f"Failed to save open_sessions.json: {e}")
+
+
+def open_session(session_id: str, token: str, pid: int, authority: str = "GUEST") -> None:
+    """
+    Record a session as 'in progress' (called by 000_init).
+
+    This enables Loop Bootstrap: if the process crashes before 999_vault,
+    the next startup can detect and recover the orphaned session.
+
+    Args:
+        session_id: The session ID from 000_init
+        token: The session token issued by AXIS
+        pid: Process ID (for detecting crashed processes)
+        authority: Authority level (888_JUDGE or GUEST)
+    """
+    sessions = _load_open_sessions()
+    sessions[session_id] = {
+        "session_id": session_id,
+        "token": token,
+        "pid": pid,
+        "started_at": datetime.utcnow().isoformat() + "Z",
+        "authority": authority
+    }
+    _save_open_sessions(sessions)
+    logger.info(f"Session opened: {session_id[:8]} (pid={pid})")
+
+
+def close_session(session_id: str) -> bool:
+    """
+    Mark a session as sealed (called by 999_vault).
+
+    Removes the session from open_sessions.json after successful sealing.
+
+    Args:
+        session_id: The session ID to close
+
+    Returns:
+        True if session was found and closed, False otherwise
+    """
+    sessions = _load_open_sessions()
+    if session_id in sessions:
+        del sessions[session_id]
+        _save_open_sessions(sessions)
+        logger.info(f"Session closed: {session_id[:8]}")
+        return True
+    else:
+        logger.warning(f"Session not found in open_sessions: {session_id[:8]}")
+        return False
+
+
+def get_orphaned_sessions(timeout_minutes: int = 30) -> List[Dict[str, Any]]:
+    """
+    Find sessions that started but never sealed (Loop Bootstrap).
+
+    A session is considered orphaned if:
+    1. It's been open longer than timeout_minutes
+    2. OR the process ID no longer exists (crashed)
+
+    Args:
+        timeout_minutes: How long before a session is considered orphaned
+
+    Returns:
+        List of orphaned session dicts
+    """
+    sessions = _load_open_sessions()
+    orphans = []
+    now = datetime.utcnow()
+
+    for session_id, session_data in sessions.items():
+        is_orphaned = False
+        reason = ""
+
+        # Check 1: Process still running?
+        pid = session_data.get("pid", 0)
+        if pid and not _pid_exists(pid):
+            is_orphaned = True
+            reason = f"Process {pid} no longer running"
+
+        # Check 2: Timeout exceeded?
+        if not is_orphaned:
+            started_at = session_data.get("started_at", "")
+            if started_at:
+                try:
+                    start_time = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
+                    age_minutes = (now - start_time.replace(tzinfo=None)).total_seconds() / 60
+                    if age_minutes > timeout_minutes:
+                        is_orphaned = True
+                        reason = f"Session open for {age_minutes:.1f} minutes (timeout={timeout_minutes})"
+                except (ValueError, TypeError):
+                    pass
+
+        if is_orphaned:
+            orphans.append({
+                **session_data,
+                "orphan_reason": reason
+            })
+            logger.warning(f"Orphaned session detected: {session_id[:8]} - {reason}")
+
+    return orphans
+
+
+def _pid_exists(pid: int) -> bool:
+    """Check if a process ID exists (cross-platform)."""
+    if sys.platform == 'win32':
+        try:
+            import ctypes
+            kernel32 = ctypes.windll.kernel32
+            PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+            handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+            if handle:
+                kernel32.CloseHandle(handle)
+                return True
+            return False
+        except Exception:
+            return False
+    else:
+        try:
+            os.kill(pid, 0)
+            return True
+        except (OSError, ProcessLookupError):
+            return False
+
+
+def recover_orphaned_session(session_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Auto-seal an orphaned session with SABAR verdict.
+
+    Called during Loop Bootstrap to recover work from crashed sessions.
+
+    Args:
+        session_data: The orphaned session dict from get_orphaned_sessions()
+
+    Returns:
+        Seal result dict
+    """
+    session_id = session_data.get("session_id", "UNKNOWN")
+    reason = session_data.get("orphan_reason", "Unknown crash")
+
+    # Create minimal telemetry for recovered session
+    telemetry = {
+        "verdict": "SABAR",
+        "recovery": True,
+        "orphan_reason": reason,
+        "original_started_at": session_data.get("started_at", ""),
+        "recovered_at": datetime.utcnow().isoformat() + "Z"
+    }
+
+    # Seal with SABAR (recoverable, needs attention)
+    result = seal_memory(
+        session_id=session_id,
+        verdict="SABAR",
+        init_result={"recovered": True, "original_session": session_data},
+        genius_result={},
+        act_result={},
+        judge_result={"synthesis": f"Session recovered after crash: {reason}"},
+        telemetry=telemetry,
+        context_summary=f"RECOVERED SESSION: {reason}. Original session started at {session_data.get('started_at', 'unknown')}.",
+        key_insights=["Session was recovered via Loop Bootstrap", f"Reason: {reason}"]
+    )
+
+    # Remove from open sessions
+    close_session(session_id)
+
+    logger.info(f"Orphaned session recovered: {session_id[:8]} → SABAR")
+    return result
+
+
+# =============================================================================
 # SINGLETON
 # =============================================================================
 

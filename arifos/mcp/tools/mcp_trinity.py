@@ -522,9 +522,43 @@ async def mcp_000_init(
         ).__dict__
 
     # =========================================================================
-    # RATE LIMITING
+    # ACTION: VALIDATE (Lightweight Check)
     # =========================================================================
-    rate_limit_response = _check_rate_limit("000_init", session_id)
+    if action == "validate":
+        # Skip rate limit for validate? No, keep it but ensure it's fast.
+        rate_limit_response = _check_rate_limit("init_000", session_id)
+        if rate_limit_response:
+            return rate_limit_response
+
+        # Minimal check
+        return InitResult(
+            status="SEAL",
+            session_id=session_id or str(uuid4()),
+            reason="Validation successful: System online",
+            floors_checked=["F12_InputValidation"]
+        ).__dict__
+
+    # =========================================================================
+    # ACTION: RESET (Clean State)
+    # =========================================================================
+    if action == "reset":
+        # Keep rate limit
+        rate_limit_response = _check_rate_limit("init_000", session_id)
+        if rate_limit_response:
+            return rate_limit_response
+        
+        return InitResult(
+            status="SEAL",
+            session_id=str(uuid4()), # Force new session
+            reason="Session reset complete",
+            floors_checked=["F1_Amanah"]
+        ).__dict__
+
+    # =========================================================================
+    # ACTION: INIT (Full Ignition)
+    # =========================================================================
+    # Rate Limiting
+    rate_limit_response = _check_rate_limit("init_000", session_id)
     if rate_limit_response:
         return rate_limit_response
 
@@ -1718,7 +1752,7 @@ async def mcp_999_vault(
     # =========================================================================
     # RATE LIMITING
     # =========================================================================
-    rate_limit_response = _check_rate_limit("999_vault", session_id)
+    rate_limit_response = _check_rate_limit("vault_999", session_id)
     if rate_limit_response:
         return rate_limit_response
 

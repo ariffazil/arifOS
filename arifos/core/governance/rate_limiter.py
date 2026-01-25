@@ -54,11 +54,11 @@ class ConstitutionalRateLimiter:
     
     def __init__(self, config: Optional[Dict] = None):
         self.config = config or {
-            "000_init": {"per_session": 30, "global": 300, "burst": 5},
+            "init_000": {"per_session": 30, "global": 300, "burst": 5},
             "agi_genius": {"per_session": 60, "global": 600, "burst": 10},
             "asi_act": {"per_session": 60, "global": 600, "burst": 10},
             "apex_judge": {"per_session": 60, "global": 600, "burst": 10},
-            "999_vault": {"per_session": 30, "global": 300, "burst": 5},
+            "vault_999": {"per_session": 30, "global": 300, "burst": 5},
         }
         
         self._session_buckets: Dict[str, Dict[str, TokenBucket]] = {}

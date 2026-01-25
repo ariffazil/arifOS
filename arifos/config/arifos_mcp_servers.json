@@ -25,7 +25,7 @@
                 "transport": "stdio",
                 "mnemonic": "Init the Genius, Act with Heart, Judge at Apex, seal in Vault.",
                 "tools": {
-                    "000_init": {
+                    "init_000": {
                         "role": "Gate",
                         "description": "Authority + Injection + Amanah",
                         "floors": ["F1", "F11", "F12"]
@@ -45,7 +45,7 @@
                         "description": "EUREKA → JUDGE → PROOF",
                         "floors": ["F1", "F8", "F9"]
                     },
-                    "999_vault": {
+                    "vault_999": {
                         "role": "Seal",
                         "description": "Merkle + zkPC + Immutable Log",
                         "floors": ["F1", "F8"]

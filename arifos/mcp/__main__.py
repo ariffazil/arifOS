@@ -1,9 +1,11 @@
 """
-arifOS MCP Entry Point (v52.0.0)
+arifOS MCP Entry Point (v52.4.0)
 
 Usage:
-  python -m arifos.mcp              # stdio mode (default)
-  python -m arifos.mcp trinity-sse  # SSE mode for Railway
+  python -m arifos.mcp              # AAA Gateway (Stdio) - Default
+  python -m arifos.mcp sse          # AAA Gateway (SSE)
+  python -m arifos.mcp trinity      # Legacy Monolith (Stdio)
+  python -m arifos.mcp trinity-sse  # Legacy Monolith (SSE)
 
 DITEMPA BUKAN DIBERI
 """
@@ -11,27 +13,43 @@ DITEMPA BUKAN DIBERI
 import asyncio
 import sys
 import logging
+import os
 
-from arifos.mcp.server import main_stdio
-from arifos.mcp.sse import create_sse_app
+# Legacy Imports (Lazy load in future optimization, but needed for specific routes)
+from arifos.mcp.server import main_stdio as legacy_stdio
+from arifos.mcp.sse import create_sse_app as legacy_create_sse_app
 
-def main_sse():
-    """Run SSE server."""
+def run_legacy_sse():
+    """Run Legacy Monolith SSE server."""
     import uvicorn
-    import os
     port = int(os.environ.get("PORT", 8000))
-    app = create_sse_app()
+    app = legacy_create_sse_app()
     uvicorn.run(app, host="0.0.0.0", port=port)
 
+def run_gateway_sse():
+    """Run AAA Gateway SSE server."""
+    from arifos.mcp.gateway import mcp
+    # Gateway (FastMCP) handles its own uvicorn run internally via .run(transport="sse")
+    # But usually .run() is blocking.
+    mcp.run(transport="sse")
+
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "sse":
-        main_sse()
-    elif len(sys.argv) > 1 and sys.argv[1] == "trinity-sse":
-        from arifos.mcp.trinity_server import main_sse as trinity_sse_main
-        trinity_sse_main()
-    elif len(sys.argv) > 1 and sys.argv[1] == "trinity":
-        from arifos.mcp.trinity_server import main_stdio as trinity_main
-        import asyncio
-        asyncio.run(trinity_main())
+    arg = sys.argv[1] if len(sys.argv) > 1 else "default"
+
+    if arg == "sse":
+        # New AAA Gateway SSE
+        run_gateway_sse()
+    
+    elif arg == "trinity-sse":
+        # Legacy Monolith SSE (Backward Compatibility)
+        run_legacy_sse()
+        
+    elif arg == "trinity":
+        # Legacy Monolith Stdio
+        asyncio.run(legacy_stdio())
+        
     else:
-        asyncio.run(main_stdio())
+        # Default: AAA Gateway Stdio
+        # This handles 'python -m arifos.mcp' without args
+        from arifos.mcp.gateway import mcp
+        mcp.run(transport="stdio")

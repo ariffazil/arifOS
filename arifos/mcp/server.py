@@ -43,8 +43,8 @@ presenter = AAAMetabolizer()
 # =============================================================================
 
 TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
-    "000_init": {
-        "name": "000_init",
+    "init_000": {
+        "name": "init_000",
         "description": "000 INIT: Full Constitutional Ignition & 7D Context Mapping. Triggers F1-F13 metabolic boot sequence.",
         "inputSchema": {
             "type": "object",
@@ -95,8 +95,8 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["action"]
         }
     },
-    "999_vault": {
-        "name": "999_vault",
+    "vault_999": {
+        "name": "vault_999",
         "description": "Immutable Seal & Governance IO (F1, F8)",
         "inputSchema": {
             "type": "object",
@@ -111,11 +111,11 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
 }
 
 TOOL_ROUTERS = {
-    "000_init": bridge_init_router,
+    "init_000": bridge_init_router,
     "agi_genius": bridge_agi_router,
     "asi_act": bridge_asi_router,
     "apex_judge": bridge_apex_router,
-    "999_vault": bridge_vault_router,
+    "vault_999": bridge_vault_router,
 }
 
 # =============================================================================

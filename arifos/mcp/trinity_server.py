@@ -3,11 +3,11 @@ AAA MCP SERVER (v51.0.0) - Constitutional Intelligence
 Artifact · Authority · Architecture
 
 The Metabolic Standard compressed to 5 memorable tools:
-    000_init    → Gate (Authority + Injection + Amanah)
+    init_000    → Gate (Authority + Injection + Amanah)
     agi_genius  → Mind (SENSE → THINK → ATLAS)
     asi_act     → Heart (EVIDENCE → EMPATHY → ACT)
     apex_judge  → Soul (EUREKA → JUDGE → PROOF)
-    999_vault   → Seal (PROOF + Immutable Log)
+    vault_999   → Seal (PROOF + Immutable Log)
 
 Mnemonic: "Init the Genius, Act with Heart, Judge at Apex, seal in Vault."
 
@@ -43,11 +43,11 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 TOOLS: Dict[str, Callable] = {
-    "000_init": mcp_000_init,
+    "init_000": mcp_000_init,
     "agi_genius": mcp_agi_genius,
     "asi_act": mcp_asi_act,
     "apex_judge": mcp_apex_judge,
-    "999_vault": mcp_999_vault,
+    "vault_999": mcp_999_vault,
 }
 
 # =============================================================================
@@ -55,18 +55,18 @@ TOOLS: Dict[str, Callable] = {
 # =============================================================================
 
 TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
-    "000_init": {
-        "name": "000_init",
+    "init_000": {
+        "name": "init_000",
         "description": """000 INIT: System Ignition & Constitutional Gateway.
 
 The first gate. All requests must pass through here.
 
 MANDATORY WORKFLOW (The Metabolic Standard):
-1. Call `000_init(action="init")` FIRST to start session.
+1. Call `init_000(action="init")` FIRST to start session.
 2. Call `agi_genius(action="full")` to think/reason.
 3. Call `asi_act(action="full")` to check safety/ethics.
 4. Call `apex_judge(action="full")` to get verdict.
-5. Call `999_vault(action="seal")` to commit result.
+5. Call `vault_999(action="seal")` to commit result.
 
 DO NOT SKIP STEPS. DO NOT INVENT TOOLS.
 
@@ -136,7 +136,7 @@ Floors Enforced: F2 (Truth ≥0.99), F6 (ΔS ≥0), F7 (Humility)""",
                 },
                 "session_id": {
                     "type": "string",
-                    "description": "Session ID from 000_init"
+                    "description": "Session ID from init_000"
                 },
                 "thought": {
                     "type": "string",
@@ -193,7 +193,7 @@ Floors Enforced: F3 (Peace² ≥1.0), F4 (κᵣ ≥0.7), F5 (Ω₀ ∈ [0.03,0.0
                 },
                 "session_id": {
                     "type": "string",
-                    "description": "Session ID from 000_init"
+                    "description": "Session ID from init_000"
                 },
                 "query": {
                     "type": "string",
@@ -268,7 +268,7 @@ Verdicts: SEAL (approved), SABAR (retry), VOID (rejected)""",
                 },
                 "session_id": {
                     "type": "string",
-                    "description": "Session ID from 000_init"
+                    "description": "Session ID from init_000"
                 },
                 "agi_result": {
                     "type": "object",
@@ -291,8 +291,8 @@ Verdicts: SEAL (approved), SABAR (retry), VOID (rejected)""",
             "required": ["action"]
         }
     },
-    "999_vault": {
-        "name": "999_vault",
+    "vault_999": {
+        "name": "vault_999",
         "description": """999 VAULT: Immutable Seal & Governance IO.
 
 The final gate. Seals all decisions immutably.
@@ -324,7 +324,7 @@ Floors Enforced: F1 (Amanah), F8 (Tri-Witness)""",
                 },
                 "session_id": {
                     "type": "string",
-                    "description": "Session ID from 000_init"
+                    "description": "Session ID from init_000"
                 },
                 "verdict": {
                     "type": "string",
@@ -333,7 +333,7 @@ Floors Enforced: F1 (Amanah), F8 (Tri-Witness)""",
                 },
                 "init_result": {
                     "type": "object",
-                    "description": "Result from 000_init"
+                    "description": "Result from init_000"
                 },
                 "agi_result": {
                     "type": "object",
@@ -461,18 +461,18 @@ def print_stats():
     print("Mnemonic: 'Init the Genius, Act with Heart, Judge at Apex, seal in Vault.'", file=sys.stderr)
     print(file=sys.stderr)
     print("AAA Tools (5):", file=sys.stderr)
-    print("  000_init    → Gate (Authority + Injection + Amanah)", file=sys.stderr)
+    print("  init_000    → Gate (Authority + Injection + Amanah)", file=sys.stderr)
     print("  agi_genius  → Mind (SENSE → THINK → ATLAS → FORGE)", file=sys.stderr)
     print("  asi_act     → Heart (EVIDENCE → EMPATHY → ACT)", file=sys.stderr)
     print("  apex_judge  → Soul (EUREKA → JUDGE → PROOF)", file=sys.stderr)
-    print("  999_vault   → Seal (Merkle + zkPC + Immutable Log)", file=sys.stderr)
+    print("  vault_999   → Seal (Merkle + zkPC + Immutable Log)", file=sys.stderr)
     print(file=sys.stderr)
     print("Constitutional Floors:", file=sys.stderr)
-    print("  000_init:    F1, F11, F12", file=sys.stderr)
+    print("  init_000:    F1, F11, F12", file=sys.stderr)
     print("  agi_genius:  F2, F6, F7", file=sys.stderr)
     print("  asi_act:     F3, F4, F5, F9, F11, F12", file=sys.stderr)
     print("  apex_judge:  F1, F7, F8, F9", file=sys.stderr)
-    print("  999_vault:   F1, F8", file=sys.stderr)
+    print("  vault_999:   F1, F8", file=sys.stderr)
     print(file=sys.stderr)
     print("Verdicts: SEAL (approved) | SABAR (retry) | VOID (rejected)", file=sys.stderr)
     print("=" * 80, file=sys.stderr)

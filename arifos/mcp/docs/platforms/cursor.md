@@ -62,11 +62,11 @@ Close and reopen Cursor to load the new MCP server.
 
 | Tool | Description | Key Floors |
 |------|-------------|------------|
-| `000_init` | Constitutional gateway - all requests start here | F1, F11, F12 |
+| `init_000` | Constitutional gateway - all requests start here | F1, F11, F12 |
 | `agi_genius` | Truth & reasoning engine (AGI Mind) | F2, F4, F7 |
 | `asi_act` | Safety & empathy engine (ASI Heart) | F3, F5, F6 |
 | `apex_judge` | Final judgment & sealing (APEX Soul) | F1, F8, F9 |
-| `999_vault` | Immutable audit trail | F1, F8 |
+| `vault_999` | Immutable audit trail | F1, F8 |
 
 ---
 
@@ -75,7 +75,7 @@ Close and reopen Cursor to load the new MCP server.
 ### Via Chat
 
 Ask Cursor's AI:
-> "Use the 000_init tool to validate the system"
+> "Use the init_000 tool to validate the system"
 
 ### Via Command Palette
 

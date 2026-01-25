@@ -157,7 +157,7 @@ def create_sse_app(
                 mcp_server.create_initialization_options()
             )
 
-    @app.post("/")
+    @app.post(messages_endpoint)
     async def handle_messages(request: Request):
         """MCP Message (POST) Endpoint - Same as GET root."""
         return await sse.handle_post_message(request.scope, request.receive, request._send)

@@ -35,11 +35,11 @@ RATE_LIMIT_ENABLED = os.environ.get("ARIFOS_RATE_LIMIT_ENABLED", "true").lower()
 
 # Default limits (per minute)
 DEFAULT_LIMITS = {
-    "000_init": {"per_session": 30, "global": 300, "burst": 5},
+    "init_000": {"per_session": 30, "global": 300, "burst": 5},
     "agi_genius": {"per_session": 60, "global": 600, "burst": 10},
     "asi_act": {"per_session": 60, "global": 600, "burst": 10},
     "apex_judge": {"per_session": 60, "global": 600, "burst": 10},
-    "999_vault": {"per_session": 30, "global": 300, "burst": 5},
+    "vault_999": {"per_session": 30, "global": 300, "burst": 5},
 }
 
 # Global fallback
