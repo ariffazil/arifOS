@@ -5,45 +5,58 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "arifos"
 version = "52.5.1"
-# v52.5.1: ATLAS Integration - Lane routing, LANE_PROFILES, LANE_ENGINES, 888_HOLD (2026-01-25)
+# v52.5.1-SEAL: ATLAS-333 Integration + Zero-Context README (2026-01-25)
+#   - ATLAS-333 smart lane routing (CRISIS/FACTUAL/CARE/SOCIAL)
+#   - 888_HOLD verdict for high-stakes human confirmation
+#   - Lane-aware thermodynamic profiles (LANE_PROFILES, LANE_ENGINES)
+#   - Complete README rewrite for zero-context readers
+#   - Mermaid diagrams for visual documentation
 # v52.0.0: Unified Core SEAL - Merged AAA_MCP into Brain, Pure Bridge (2026-01-24)
 # v51.0.0: AAA MCP SERVER - Bridge to Core Engines + Rebrand (2026-01-24)
-# v50.5.26: Quick Wire - MCP tools now read Track B thresholds from metrics.py (2026-01-24)
-# v50.5.25: ChatGPT Developer Mode + README Reality Update (2026-01-23)
-# v50.5.24: Constitutional Seal - Forged README, Calibrated Validators, Tri-Witness Fix (2026-01-23)
-# v50.0.0: Constitutional Housekeeping - Consolidated core, archived legacy duplicates (2026-01-20)
-# v49.0.2: Fix hero image rendering on GitHub + PyPI (2026-01-19)
-# v49.0.1: F6 Empathy fix - Remove Chinese characters, add hero image (2026-01-19)
+# v50.0.0: Constitutional Housekeeping - Consolidated core (2026-01-20)
 # v49.0.0: Constitutional Forge - 13 Floors, Trinity Engines, 25 MCP Servers (2026-01-18)
-description = "Constitutional AI Governance Framework. 13 immutable floors (F1-F13), Trinity architecture (AGI/ASI/APEX), 5-tool MCP server. Works with ChatGPT Developer Mode, Claude Desktop, and any MCP client. Live at https://arifos.arif-fazil.com/"
+description = "A filter that stops AI from lying, harming, or being overconfident. 5 rules (TEACH), 4 verdicts (SEAL/SABAR/VOID/888_HOLD), smart routing (CRISIS/FACTUAL/CARE/SOCIAL). Works with any AI - copy system prompt or connect via MCP. Live at https://arifos.arif-fazil.com/"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "AGPL-3.0-only"
 keywords = [
+    # Core Concepts
     "ai-governance",
     "ai-safety",
     "constitutional-ai",
-    "llm-safety",
-    "llm-governance",
+    "ai-filter",
+    "ai-guardrails",
+    # TEACH Framework
+    "truth-detection",
+    "empathy",
+    "reversibility",
+    "clarity",
+    "humility",
+    # v52.5 Features
+    "atlas-333",
+    "smart-routing",
+    "888-hold",
+    "crisis-detection",
+    # Architecture
+    "trinity-architecture",
+    "agi-asi-apex",
+    "tri-witness",
+    # MCP Integration
     "mcp",
     "mcp-server",
     "model-context-protocol",
+    # Platforms
     "chatgpt",
-    "chatgpt-developer-mode",
     "claude",
     "claude-desktop",
-    "openai",
+    "cursor-ide",
     "gemini",
     "llm",
-    "guardrails",
-    "ai-ethics",
-    "responsible-ai",
-    "ai-alignment",
+    # Technical
     "hallucination-prevention",
     "immutable-ledger",
+    "merkle-audit",
     "thermodynamic-governance",
-    "tri-witness",
-    "constitutional-floors",
 ]
 authors = [{ name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com" }]
 maintainers = [
@@ -53,16 +66,19 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: System :: Monitoring",
+    "Topic :: Security",
+    "Typing :: Typed",
 ]
 
 dependencies = [
@@ -155,7 +171,8 @@ Repository = "https://github.com/ariffazil/arifOS"
 Issues = "https://github.com/ariffazil/arifOS/issues"
 Changelog = "https://github.com/ariffazil/arifOS/blob/main/CHANGELOG.md"
 "Live Server" = "https://arifos.arif-fazil.com/"
-"API Docs" = "https://arifos.arif-fazil.com/docs"
+"Health Check" = "https://arifos.arif-fazil.com/health"
+"MCP Endpoint" = "https://arifos.arif-fazil.com/sse"
 
 [tool.setuptools]
 include-package-data = true

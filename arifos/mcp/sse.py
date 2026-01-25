@@ -22,7 +22,7 @@ from arifos.mcp.constitutional_metrics import get_seal_rate
 
 # --- STATIC ASSETS ---
 # Path to dashboard static files: arifos/core/integration/api/static
-STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "core", "integration", "api", "static")
+STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "core", "integration", "api", "static")
 
 # --- TRINITY TOOLS IMPORT ---
 # We import from mcp_trinity.py which contains the canonical 5-tool implementation
