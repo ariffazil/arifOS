@@ -14,6 +14,7 @@ const config: Config = {
   // Production URL - Cloudflare Pages
   url: 'https://docs.arif-fazil.com',
   baseUrl: '/',
+  trailingSlash: false,
 
   // GitHub config
   organizationName: 'ariffazil',
