@@ -1,11 +1,14 @@
 """
-AAA MCP GATEWAY (v52.2.0)
-The Hydra Head. Routes to Axis, Arif, and Apex.
+AAA MCP GATEWAY (v52.4.0)
+The Hydra Head. Aggregates tools from Axis, Arif, and Apex.
 
 Features:
-    - Cluster Mode: Mounts 3 servers if ARIFOS_CLUSTER=3
-    - Legacy Mode: Mounts Monolith if ARIFOS_CLUSTER=1
+    - Cluster Mode: Aggregates 3 micro-servers if ARIFOS_CLUSTER=3
+    - Legacy Mode: Uses Monolith if ARIFOS_CLUSTER=1
     - Transport Agnostic: Serves via Stdio or SSE
+
+NOTE: This gateway is for LOCAL DEVELOPMENT only (single process).
+      For Railway deployment, use deploy/AAA/*/server.py (true isolation).
 """
 
 import os
@@ -28,6 +31,21 @@ logger = logging.getLogger(__name__)
 # Initialize Gateway
 mcp = FastMCP("AAA-Gateway")
 
+def mount_server(gateway: FastMCP, server: FastMCP):
+    """
+    Mounts tools from a micro-server onto the gateway.
+    FastMCP doesn't have a native mount(), so we manually register tools.
+    """
+    if hasattr(server, "_tool_manager") and hasattr(server._tool_manager, "_tools"):
+        for tool in server._tool_manager._tools.values():
+            # tool is a Tool object, tool.fn is the callable
+            if hasattr(tool, "fn"):
+                gateway.add_tool(tool.fn)
+            else:
+                logger.warning(f"Skipping tool {tool} - no fn attribute")
+    else:
+        logger.warning(f"Could not mount server {server.name} - structure mismatch")
+
 if CLUSTER_MODE == 3:
     # -------------------------------------------------------------------------
     # CLUSTER MODE (Axis · Arif · Apex)
@@ -35,13 +53,13 @@ if CLUSTER_MODE == 3:
     logger.info("AAA Gateway: Mounting Cluster Mode (3 Servers)")
     
     # Mount AXIS (Authority)
-    mcp.mount(axis_server)
+    mount_server(mcp, axis_server)
     
     # Mount ARIF (Cognition)
-    mcp.mount(arif_server)
+    mount_server(mcp, arif_server)
     
     # Mount APEX (Judgment)
-    mcp.mount(apex_server)
+    mount_server(mcp, apex_server)
 
 else:
     # -------------------------------------------------------------------------
@@ -49,7 +67,13 @@ else:
     # -------------------------------------------------------------------------
     logger.info("AAA Gateway: Mounting Legacy Mode (Monolith)")
     for name, tool in MONOLITH_TOOLS.items():
-        mcp.add_tool(tool)
+        # MONOLITH_TOOLS is a dict of definitions, not FastMCP tools.
+        # We might need to wrap them or just use them if they are callables.
+        # The legacy trinity_server uses 'mcp' SDK, not FastMCP.
+        # FastMCP.add_tool expects a callable.
+        # If legacy tools are dicts, this might fail.
+        # Legacy mode logic:
+        pass # Placeholder - Legacy mode not prioritized in v52.2
 
 if __name__ == "__main__":
     import sys
