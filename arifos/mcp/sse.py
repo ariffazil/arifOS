@@ -34,6 +34,43 @@ from arifos.mcp.tools.mcp_trinity import (
     mcp_999_vault,
 )
 
+# --- LOOP BOOTSTRAP IMPORTS ---
+import logging
+import uuid
+from typing import Dict
+from arifos.mcp.session_ledger import (
+    open_session,
+    close_session,
+    get_orphaned_sessions,
+    recover_orphaned_session,
+)
+
+logger = logging.getLogger(__name__)
+
+# Track active tokens for validation (in-memory, per-process)
+_active_tokens: Dict[str, str] = {}  # session_id -> token
+
+def _recover_orphans() -> int:
+    """
+    Recover any orphaned sessions from previous runs.
+    Called at startup and init to ensure crashed sessions are sealed.
+    """
+    try:
+        orphans = get_orphaned_sessions(timeout_minutes=30)
+        recovered = 0
+        for orphan in orphans:
+            try:
+                result = recover_orphaned_session(orphan)
+                if result.get("sealed"):
+                    recovered += 1
+                    logger.info(f"Loop Bootstrap: Recovered session {orphan.get('session_id', 'UNKNOWN')[:8]}")
+            except Exception as e:
+                logger.error(f"Failed to recover orphan {orphan.get('session_id', 'UNKNOWN')[:8]}: {e}")
+        return recovered
+    except Exception as e:
+        logger.warning(f"Loop Bootstrap recovery check failed: {e}")
+        return 0
+
 # --- VERSION ---
 VERSION = "v52.5.1-SEAL"
 MOTTO = "DITEMPA BUKAN DIBERI"
@@ -54,6 +91,7 @@ async def arifos_trinity_000_init(action: str = "init", query: str = "", session
     """System Ignition & Constitutional Gateway.
 
     The first step for any interaction. Initializes the session, verifies authority, and routes the request.
+    Includes Loop Bootstrap for crash recovery.
     
     Actions:
     - init: Full ignition (default)
@@ -61,7 +99,37 @@ async def arifos_trinity_000_init(action: str = "init", query: str = "", session
     - reset: Clear session state
     - validate: Verify session integrity
     """
-    return await mcp_000_init(action=action, query=query, session_id=session_id, authority_token=authority_token)
+    # 1. Loop Bootstrap Recovery
+    try:
+        recovered = _recover_orphans()
+        if recovered > 0:
+            logger.info(f"Loop Bootstrap: Recovered {recovered} orphaned session(s)")
+    except Exception as e:
+        logger.warning(f"Loop Bootstrap recovery failed (continuing): {e}")
+
+    # 2. Execute Init
+    result = await mcp_000_init(action=action, query=query, session_id=session_id, authority_token=authority_token)
+
+    # 3. Track Open Session
+    if result.get("status") == "SEAL":
+        token = str(uuid.uuid4())
+        result["session_token"] = token
+        result["loop_bootstrap"] = True
+        
+        new_session_id = result.get("session_id", "")
+        if new_session_id:
+            _active_tokens[new_session_id] = token
+            try:
+                open_session(
+                    session_id=new_session_id,
+                    token=token,
+                    pid=os.getpid(),
+                    authority=result.get("authority", "GUEST")
+                )
+            except Exception as e:
+                logger.warning(f"Failed to track open session: {e}")
+
+    return result
 
 @mcp.tool(name="agi_genius")
 async def arifos_trinity_agi_genius(action: str = "sense", query: str = "", session_id: str | None = "", thought: str = "") -> dict:
@@ -106,13 +174,25 @@ async def arifos_trinity_999_vault(action: str = "seal", session_id: str | None 
     """Immutable Seal & Governance IO.
 
     Commits the final decision to the immutable ledger.
+    Closes the session loop upon successful seal.
     
     Actions:
     - seal: Commit verdict
     - list: View history
     - read: Retrieve entry
     """
-    return await mcp_999_vault(action=action, session_id=session_id, verdict=verdict, target=target)
+    # 1. Execute Seal
+    result = await mcp_999_vault(action=action, session_id=session_id, verdict=verdict, target=target)
+
+    # 2. Close Session Loop
+    if result.get("status") == "SEAL" and session_id:
+        _active_tokens.pop(session_id, None)
+        try:
+            close_session(session_id)
+        except Exception as e:
+            logger.warning(f"Failed to close session tracking: {e}")
+
+    return result
 
 
 # --- HEALTH CHECK ---
@@ -303,6 +383,12 @@ if __name__ == "__main__":
     # Local Dev Mode
     port = int(os.getenv("PORT", 8000))
     print(f"[IGNITION] Trinity Monolith (SSE) starting on port {port}...")
+    
+    # Run initial recovery
+    recovered = _recover_orphans()
+    if recovered > 0:
+        print(f"[BOOTSTRAP] Recovered {recovered} orphaned session(s)")
+        
     print(f"   Version: {VERSION}")
     print(f"   Routes: /health, /sse, /messages, /dashboard")
     uvicorn.run(app, host="0.0.0.0", port=port)

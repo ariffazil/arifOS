@@ -20,6 +20,10 @@
         "judge": "python kimibridge.py apex_judge",
         "agi": "python kimibridge.py agi_genius",
         "asi": "python kimibridge.py asi_act",
-        "vault": "python kimibridge.py 999_vault"
+        "vault": "python kimibridge.py 999_vault",
+        "tcap": "python scripts/kimi_terminal_bridge.py",
+        "tpaste": "python scripts/kimi_terminal_bridge.py /paste",
+        "texplain": "python scripts/kimi_terminal_bridge.py /explain",
+        "tdebug": "python scripts/kimi_terminal_bridge.py /debug"
     }
 }

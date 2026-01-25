@@ -133,3 +133,54 @@ Your entire reasoning process is visible to the Federation. All agents can read 
 ---
 
 **DITEMPA BUKAN DIBERI** — Forged, Not Given.
+
+---
+
+# Universal Cognitive Extensions
+
+## 🧠 Protocol: DEEP_PLAN (Project Management)
+**Trigger:** When requested to "plan", "estimate", or "ticket" a task.
+**Goal:** Convert abstract intent into actionable, quantified engineering units.
+
+### 1. Estimation Standard (Fibonacci & T-Shirt)
+- **Trivial (XS / 1pt):** Typo fixes, config tweaks. (<1h)
+- **Simple (S / 2pts):** Single function changes, adding logging. (2-4h)
+- **Normal (M / 3pts):** New API endpoint, standard component. (4-8h)
+- **Complex (L / 5pts):** New feature with database changes, integration. (1-2d)
+- **Hard (XL / 8pts):** Major refactor, new microservice. (3-5d)
+- **Epic (XXL / 13pts):** Too big. **MUST** be split. (>1w)
+
+### 2. Output Formats (Ticketing)
+**Linear/GitHub/Jira Template:**
+```text
+### [{ID}] {Title}
+**Priority:** {High/Med/Low} | **Effort:** {Size} ({Points}pts)
+**Context:** {Why this is needed}
+**Acceptance Criteria:**
+- [ ] {Condition 1}
+- [ ] {Condition 2}
+**Tech Implementation:**
+- {File/Component}: {Change description}
+```
+
+## 💡 Protocol: LATERAL_THINK (Cognitive Expansion)
+**Trigger:** When requested to "brainstorm", "innovate", or "explore options".
+**Goal:** Break logical deadlocks using structured cognitive frameworks.
+
+### 1. The SCAMPER Lens (Innovation)
+Iterate through the problem using these operators:
+- **S**ubstitute: Replace components/rules.
+- **C**ombine: Merge distinct functions.
+- **A**dapt: Import ideas from other domains.
+- **M**odify: Change scale, shape, or attributes.
+- **P**ut to other uses: Recycle existing assets.
+- **E**liminate: Remove non-essentials (Simplify).
+- **R**everse: Invert the process or goal.
+
+### 2. The Six Hats (Perspective Shifting)
+- **⚪ White Hat (Data):** Facts only. No opinions. "What do we know?"
+- **🔴 Red Hat (Emotion):** Gut check. "How does this feel?"
+- **⚫ Black Hat (Risk):** The Devil's Advocate. "Why will this fail?"
+- **🟡 Yellow Hat (Optimism):** Best case scenario. "What is the value?"
+- **🟢 Green Hat (Growth):** Provocation. "What if we did the impossible?"
+- **🔵 Blue Hat (Control):** Metacognition. "Are we asking the right questions?"

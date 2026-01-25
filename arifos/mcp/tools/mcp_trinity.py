@@ -303,6 +303,125 @@ LANE_INTENTS = {
 }
 
 
+def _step_0_root_key_ignition(session_id: str) -> Dict[str, Any]:
+    """
+    Step 0: ROOT KEY IGNITION - Establish cryptographic foundation.
+    
+    v52.5.1+: This step ensures every session is cryptographically
+    linked to the root key through session key derivation.
+    
+    Constitutional Enforcements:
+        - F1 Amanah: Root key authority establishes reversibility
+        - F8 Tri-Witness: Session keys derived from root key
+        - F12 Injection Defense: Root key guards against unauthorized sessions
+    
+    Returns:
+        {
+            "root_key_ready": bool,
+            "session_key": str (hex),
+            "genesis_exists": bool,
+            "constitutional_status": str
+        }
+    """
+    try:
+        from arifos.core.memory.root_key_accessor import (
+            get_root_key_info,
+            derive_session_key,
+            ROOT_KEY_READY
+        )
+        from arifos.core.memory.root_key_accessor import verify_genesis_block
+        from pathlib import Path
+        
+        result = {
+            "root_key_ready": ROOT_KEY_READY,
+            "session_key": None,
+            "genesis_exists": False,
+            "constitutional_status": "PENDING"
+        }
+        
+        # Check if root key exists
+        if not ROOT_KEY_READY:
+            logger.warning("000_init Step 0: Root key not ready")
+            logger.warning("  Run: python scripts/generate_rootkey.py")
+            logger.warning("  Then: python scripts/create_genesis_block.py")
+            result["constitutional_status"] = "ROOT_KEY_MISSING"
+            return result
+        
+        # Get root key info (non-sensitive)
+        root_info = get_root_key_info()
+        if root_info:
+            logger.info(f"000_init Step 0: Root key loaded (generated: {root_info['generated_at'][:10]})")
+            logger.info(f"  Authority: {root_info['generated_by']}")
+        
+        # Verify genesis block exists
+        genesis_path = Path("VAULT999/CCC_CANON/genesis.json")
+        if genesis_path.exists():
+            logger.info("000_init Step 0: Genesis block found")
+            result["genesis_exists"] = True
+            
+            # Optional: Verify genesis signature
+            try:
+                import json
+                genesis = json.loads(genesis_path.read_text())
+                is_valid = verify_genesis_block(genesis)
+                if is_valid:
+                    logger.info("  Genesis signature: VERIFIED")
+                    result["constitutional_status"] = "VERIFIED"
+                else:
+                    logger.error("  Genesis signature: INVALID")
+                    result["constitutional_status"] = "GENESIS_INVALID"
+            except Exception as e:
+                logger.warning(f"  Could not verify genesis: {e}")
+                result["constitutional_status"] = "GENESIS_UNVERIFIED"
+        else:
+            logger.warning("000_init Step 0: Genesis block not found")
+            logger.warning("  Run: python scripts/create_genesis_block.py")
+            result["constitutional_status"] = "GENESIS_MISSING"
+        
+        # Derive session key
+        session_key = derive_session_key(session_id)
+        if session_key:
+            logger.info(f"000_init Step 0: Session key derived ({len(session_key)} chars)")
+            result["session_key"] = session_key
+            
+            # Session key derivation is the critical link:
+            # It proves the session is cryptographically authorized
+            # by the root key without exposing the root key itself
+        else:
+            logger.warning("000_init Step 0: Could not derive session key")
+            result["constitutional_status"] = "SESSION_KEY_DERIVATION_FAILED"
+        
+        # Overall assessment
+        if result["root_key_ready"] and result["session_key"] and result["genesis_exists"]:
+            logger.info("000_init Step 0: ROOT KEY IGNITION - COMPLETE ✓")
+            result["constitutional_status"] = "SEALED"
+        else:
+            logger.warning("000_init Step 0: ROOT KEY IGNITION - INCOMPLETE")
+        
+        # Update metrics (if available)
+        try:
+            from arifos.mcp.functional_metrics import record_constitutional_telemetry
+            record_constitutional_telemetry(
+                "000_init_root_key", {"status": result["constitutional_status"]}
+            )
+        except:
+            pass  # Metrics optional
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"000_init Step 0: Root key ignition failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "root_key_ready": False,
+            "session_key": None,
+            "genesis_exists": False,
+            "constitutional_status": "ERROR",
+            "error": str(e)
+        }
+
+
 def _step_1_memory_injection() -> Dict[str, Any]:
     """Step 1: Read from VAULT999 - inject previous session context."""
     try:
@@ -396,6 +515,17 @@ def _step_3_intent_mapping(query: str, context: Dict[str, Any]) -> Dict[str, Any
     words = query_lower.split()
     entities = [w for w in words if len(w) > 3 and w.isalpha()]
 
+    # v52.5.1+: Root Key Identity Recognition - "arif" is the constitutional authority
+    # If query mentions "arif", we're in constitutional mode (HARD lane)
+    # If not, we're in guest mode (SOFT lane) with reduced enforcement
+    constitutional_mode = "arif" in query_lower
+    if constitutional_mode:
+        logger.info("000_init Step 3: Constitutional authority recognized (arif identity)")
+        logger.info("  Mode: HARD (full constitutional enforcement)")
+    else:
+        logger.info("000_init Step 3: Guest mode (no constitutional authority)")
+        logger.info("  Mode: SOFT (reduced enforcement, no critical operations)")
+
     # Find contrasts (vs, or, versus patterns)
     contrasts = []
     if " vs " in query_lower or " versus " in query_lower:
@@ -442,6 +572,18 @@ def _step_3_intent_mapping(query: str, context: Dict[str, Any]) -> Dict[str, Any
         # If unclear, check query length (longer = probably HARD)
         if intent == "unknown" and len(query) > 100:
             lane = "HARD"
+
+        # v52.5.1+: Override lane based on constitutional authority (arif identity)
+        # If "arif" mentioned → HARD lane (full constitutional enforcement)
+        # If not mentioned → SOFT lane (guest mode, reduced enforcement)
+        if constitutional_mode:
+            lane = "HARD"
+            logger.info(f"000_init Step 3: Lane overridden to HARD (constitutional authority)")
+        else:
+            # Guest mode: Force SOFT unless already REFUSE from risk detection
+            if lane != "REFUSE":
+                lane = "SOFT"
+                logger.info(f"000_init Step 3: Lane set to SOFT (guest mode)")
 
         confidence = 0.8 if intent != "unknown" else 0.5
 
@@ -775,6 +917,13 @@ async def mcp_000_init(
     floors_checked = []
 
     try:
+        # =====================================================================
+        # STEP 0: ROOT KEY IGNITION (Constitutional Foundation)
+        # =====================================================================
+        # v52.5.1+: Root key provides cryptographic authority for all sessions
+        root_key_status = _step_0_root_key_ignition(session)
+        floors_checked.append("F1_Amanah")
+        
         # =====================================================================
         # STEP 1: MEMORY INJECTION
         # =====================================================================

@@ -1,9 +1,25 @@
 # Caddyfile for arifos-gateway
 
+# MCP endpoint
 mcp.arif-fazil.com {
     reverse_proxy localhost:8000
 
     # Optional: Add basic security headers
+    header {
+        Strict-Transport-Security "max-age=31536000;"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+    }
+
+    log {
+        output stdout
+    }
+}
+
+# Dashboard & Docs
+arifos.arif-fazil.com {
+    reverse_proxy localhost:8000
+    
     header {
         Strict-Transport-Security "max-age=31536000;"
         X-Content-Type-Options "nosniff"

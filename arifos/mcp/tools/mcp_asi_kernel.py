@@ -111,7 +111,7 @@ async def mcp_asi_empathy(
                 "stage": "555_empathy",
                 "action": "score",
                 "status": "success",
-                "kappa_r": result.get("vulnerability_score", 0.0),
+                "kappa_r": result.get("empathy_score", 0.0),
                 "peace_squared": 1.0 - result.get("vulnerability_score", 0.0),
             }
         elif action == "stakeholders":
@@ -225,19 +225,21 @@ async def mcp_asi_evaluate(
 
         # Extract metrics
         vulnerability = result.get("vulnerability_score", 0.0)
+        peace_squared = result.get("peace_squared", 1.0)
+        kappa_r = result.get("kappa_r", 0.0)
         omega_verdict = result.get("omega_verdict", "UNKNOWN")
 
         # Floor checks
-        f3_passed = vulnerability < 0.7  # Peace² threshold
-        f4_passed = vulnerability < 0.8  # κᵣ threshold
+        f3_passed = peace_squared >= 1.0  # F3 Peace² threshold
+        f4_passed = kappa_r >= 0.7  # F4 κᵣ threshold
         f5_passed = True  # Ω₀ always passes for text analysis
 
         passed = f3_passed and f4_passed and f5_passed
         failures = []
         if not f3_passed:
-            failures.append(f"F3 Peace² violation: vulnerability {vulnerability:.2f} >= 0.7")
+            failures.append(f"F3 Peace² violation: {peace_squared:.2f} < 1.0")
         if not f4_passed:
-            failures.append(f"F4 κᵣ violation: vulnerability {vulnerability:.2f} >= 0.8")
+            failures.append(f"F4 κᵣ violation: {kappa_r:.2f} < 0.7")
 
         return {
             "stage": "asi_evaluate",

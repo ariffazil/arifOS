@@ -40,10 +40,10 @@ async def mcp_agi_sense(
         return {
             "stage": "111_sense",
             "status": "success",
-            "gpv": result.get("meta", {}),
-            "lane": result.get("meta", {}).get("lane", "FACTUAL"),
-            "truth_demand": result.get("meta", {}).get("truth_demand", 0.99),
-            "care_demand": result.get("meta", {}).get("care_demand", 0.5),
+            "gpv": result.get("gpv", {}),
+            "lane": result.get("gpv", {}).get("lane", "FACTUAL"),
+            "truth_demand": result.get("gpv", {}).get("truth_demand", 0.99),
+            "care_demand": result.get("gpv", {}).get("care_demand", 0.5),
         }
     except Exception as e:
         logger.error(f"AGI Sense failed: {e}")

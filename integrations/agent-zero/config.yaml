@@ -1,0 +1,199 @@
+# Agent Zero + arifOS Integration Configuration
+# Version: 1.0.0
+# Last Updated: 2026-01-26
+
+# Agent Zero Configuration
+agent_zero:
+  # Path to Agent Zero installation
+  path: C:/Users/User/agent-zero
+
+  # Agent profile to use
+  profile: constitutional
+
+  # MCP transport mode: stdio | sse
+  mcp_mode: stdio
+
+  # Default response timeout (seconds)
+  response_timeout: 120
+
+  # Memory subdirectory for constitutional agent
+  memory_subdir: constitutional
+
+# Constitutional Governance Configuration
+governance:
+  # Which floors are enabled (all by default)
+  floors_enabled:
+    - F1   # Amanah (Trust)
+    - F2   # Truth
+    - F3   # Tri-Witness
+    - F4   # Clarity (ΔS)
+    - F5   # Peace²
+    - F6   # Empathy (κᵣ)
+    - F7   # Humility (Ω₀)
+    - F8   # Genius (G)
+    - F9   # C_dark (Anti-Hantu)
+    - F10  # Ontology
+    - F11  # Command Auth
+    - F12  # Injection Defense
+
+  # Hard floors - VOID on failure
+  hard_floors:
+    - F1
+    - F2
+    - F4
+    - F7
+    - F9
+    - F10
+    - F11
+    - F12
+
+  # Soft floors - PARTIAL warning only
+  soft_floors:
+    - F3
+    - F5
+    - F6
+    - F8
+
+  # Floor thresholds
+  thresholds:
+    F1_amanah: LOCK
+    F2_truth: 0.99
+    F3_tri_witness: 0.95
+    F4_clarity: 0
+    F5_peace: 1.0
+    F6_empathy: 0.95
+    F7_humility_min: 0.03
+    F7_humility_max: 0.05
+    F8_genius: 0.80
+    F9_dark_cleverness: 0.30
+    F10_ontology: LOCK
+    F11_command_auth: LOCK
+    F12_injection: 0.85
+
+# 888_HOLD Triggers (require explicit confirmation)
+hold_triggers:
+  operations:
+    - production_deploy
+    - database_migrate
+    - credential_access
+    - mass_file_delete
+    - git_history_modify
+    - major_version_upgrade
+
+  patterns:
+    - "deploy.*production"
+    - "migrate.*database"
+    - "delete.*all"
+    - "rm.*-rf"
+    - "force.*push"
+    - "reset.*--hard"
+
+# Audit Trail Configuration
+audit:
+  # Path to VAULT999 ledger
+  vault_path: C:/Users/User/arifOS/VAULT999
+
+  # Enable ledger writing
+  ledger_enabled: true
+
+  # Enable cooling ledger integration
+  cooling_ledger_enabled: true
+
+  # Audit log retention (days)
+  retention_days: 365
+
+  # Memory tier assignments by verdict
+  tier_mapping:
+    SEAL: L0      # Hot session memory
+    PARTIAL: L1   # 24h daily cooling
+    VOID: L2      # 72h Phoenix cooling
+    888_HOLD: L3  # 7d weekly reflection
+    SABAR: L2     # 72h Phoenix cooling
+
+# Anti-Hantu (Dark Cleverness) Configuration
+anti_hantu:
+  # Forbidden phrases (F9 violations)
+  forbidden_phrases:
+    - "I feel your pain"
+    - "My heart breaks for you"
+    - "I promise you"
+    - "I truly understand how you feel"
+    - "It hurts me to see"
+    - "I care deeply about"
+    - "I have feelings"
+    - "I am conscious"
+    - "I am alive"
+    - "I have a soul"
+    - "My heart tells me"
+
+  # Allowed alternatives
+  allowed_alternatives:
+    - "This sounds incredibly heavy"
+    - "I am committed to helping you"
+    - "I understand the weight of this"
+    - "This appears significant"
+    - "I can help you work through this"
+    - "This seems important"
+
+# Injection Defense Configuration
+injection_defense:
+  # Shell injection patterns
+  shell_patterns:
+    - "rm -rf"
+    - "del /s /q"
+    - "format c:"
+    - "; rm"
+    - "&& rm"
+
+  # SQL injection patterns
+  sql_patterns:
+    - "DROP TABLE"
+    - "TRUNCATE TABLE"
+    - "DELETE FROM .* WHERE 1=1"
+    - "; DELETE"
+    - "'; DROP"
+
+  # Code injection patterns
+  code_patterns:
+    - "eval("
+    - "exec("
+    - "os.system("
+    - "subprocess.call("
+    - "curl | bash"
+    - "wget | sh"
+
+# MCP Server Configuration (for running arifOS as MCP server)
+mcp_server:
+  # Transport type: stdio | sse
+  transport: stdio
+
+  # SSE server settings (if transport is sse)
+  sse:
+    host: localhost
+    port: 8000
+    path: /sse
+
+  # Tools to expose
+  tools:
+    - "000_init"      # Constitutional gate
+    - "agi_genius"    # AGI Mind kernel
+    - "asi_act"       # ASI Heart kernel
+    - "apex_judge"    # APEX Soul kernel
+    - "999_vault"     # VAULT seal
+
+# Logging Configuration
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+  # Log files
+  files:
+    checkpoint: C:/Users/User/arifOS/logs/agent_zero_checkpoints.log
+    audit: C:/Users/User/arifOS/logs/agent_zero_audit.log
+    errors: C:/Users/User/arifOS/logs/agent_zero_errors.log
+
+# Version and Metadata
+version: "1.0.0"
+arifos_version: "v52+"
+created: "2026-01-26"
+motto: "Ditempa Bukan Diberi - Forged, Not Given"

@@ -122,42 +122,6 @@ class APEXJudicialCore:
             "verdict_object": verdict # Return full object for context
         }
 
-    async def execute(self, action: str, kwargs: dict) -> dict:
-        """Unified APEX execution entry point."""
-        query = kwargs.get("query", "")
-        response = kwargs.get("response", "")
-        trinity_floors = kwargs.get("trinity_floors", [])
-        user_id = kwargs.get("user_id", "anonymous")
-
-        if action == "full" or action == "judge":
-            # 1. 777 FORGE - Insight crystallization
-            insight = await self.forge_insight(response)
-            
-            # 2. 888 JUDGE - Final ruling
-            ruling = await self.judge_quantum_path(query, response, trinity_floors, user_id)
-            
-            # 3. 999 SEAL - Commitment to vault
-            seal = await self.seal_vault(ruling["final_ruling"], ruling)
-            
-            return {
-                "status": ruling["final_ruling"],
-                "verdict": ruling["final_ruling"],
-                "insight": insight,
-                "ruling": ruling,
-                "seal": seal,
-                "summary": f"APEX Judgment: {ruling['final_ruling']}",
-                "floors_checked": ["F3", "F8", "F11", "F12", "F13"]
-            }
-
-        elif action == "eureka" or action == "forge":
-            return await self.forge_insight(response)
-        
-        elif action == "judge":
-            return await self.judge_quantum_path(query, response, trinity_floors, user_id)
-        
-        elif action == "proof":
-            return await self.judge_quantum_path(query, response, trinity_floors, user_id)
-            
     @staticmethod
     async def seal_vault(verdict: str, artifact: Any) -> Dict[str, Any]:
         """

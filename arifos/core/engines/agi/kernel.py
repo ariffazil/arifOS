@@ -93,17 +93,20 @@ class AGINeuralCore:
             # 1. 111 SENSE - Initial Understanding
             sense_result = self._engine.sense(query, context)
             
-            # 2. 222 THINK - Sequential Reasoning (using MCP framework style)
+            # 2. 222 THINK - 6-Hats Multi-Perspective Reasoning
             thoughts = []
-            reasoning_steps = [
-                "Analyzing query semantics and intent.",
-                f"Mapping entities and contrasts for: {query[:30]}...",
-                "Evaluating truth demands and risk levels.",
-                "Synthesizing metabolic plan."
+            hats = [
+                ('WHITE', f"Facts verified for: {query[:30]}..."),
+                ('RED', "Emotional/Intuitive assessment"),
+                ('BLACK', "Risk and failure mode analysis"),
+                ('YELLOW', "Optimistic potential and value"),
+                ('GREEN', "SCAMPER innovation and alternatives"),
+                ('BLUE', "Meta-cognition and process control")
             ]
             
-            for i, step in enumerate(reasoning_steps):
-                thought_res = await self.reflect(step, i+1, len(reasoning_steps), i < len(reasoning_steps)-1)
+            for i, (hat, desc) in enumerate(hats):
+                step_content = f"[{hat}] {desc}"
+                thought_res = await self.reflect(step_content, i+1, len(hats), i < len(hats)-1)
                 thoughts.append(thought_res)
             
             # 3. 333 ATLAS - Context Mapping
@@ -156,8 +159,8 @@ class AGINeuralCore:
         response_entropy = len(response.split()) / max(len(query.split()), 1)
         f4_delta_s = response_entropy - 1.0 
 
-        if f4_delta_s < 0:
-            failures.append(f"F6 ΔS {f4_delta_s:.2f} < 0 (information loss)")
+        if f4_delta_s > 0:
+            failures.append(f"F6 ΔS {f4_delta_s:.2f} > 0 (entropy increase)")
 
         passed = len(failures) == 0
         reason = "AGI evaluation passed" if passed else f"AGI evaluation failed: {'; '.join(failures)}"
