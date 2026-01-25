@@ -29,11 +29,17 @@ from arifos.mcp.tools.mcp_trinity import (
 )
 
 # --- VERSION ---
-VERSION = "v52.4.3-SEAL"
+VERSION = "v52.4.4-SEAL"
 MOTTO = "DITEMPA BUKAN DIBERI"
 
 # Initialize the Monolith
-mcp = FastMCP("arifos-trinity", dependencies=["arifos"])
+# host="0.0.0.0" allows connections from any host (required for Railway/Cloud)
+mcp = FastMCP(
+    "arifos-trinity",
+    dependencies=["arifos"],
+    host="0.0.0.0",
+    port=int(os.getenv("PORT", 8000)),
+)
 
 # --- TOOL REGISTRATION ---
 
