@@ -1,25 +1,24 @@
 """
-arifos.mcp.sse (v52.0.0-SEAL)
+arifOS MCP SSE Adapter (v52.0.0-SEAL)
+Cloud Bridge for MCP Protocol via Server-Sent Events
 
-The HTTP/SSE Adaptation layer for the Trinity Monolith.
-This module exposes the unified MCP tools via Starlette/FastAPI/SSE.
-Designed for Railway/Cloud Run deployment.
+Usage:
+  python -m arifos.mcp.sse
+  uvicorn arifos.mcp.sse:app --host 0.0.0.0 --port $PORT
 
-Port: 8000 (Env: PORT)
-Routes:
-  /sse    - Server-Sent Events endpoint
-  /messages - Client message endpoint
+DITEMPA BUKAN DIBERI
 """
 
 import os
-import uvicorn
-from mcp.server.fastmcp import FastMCP
-
-# Initialize the Monolith
-mcp = FastMCP("arifos-trinity", dependencies=["arifos"])
+import logging
+from typing import Any
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from mcp.server import Server
+from mcp.server.sse import SseServerTransport
+import mcp.types
 
 # --- TRINITY TOOLS IMPORT ---
-# Fixed import to point to the actual existing module
 from arifos.mcp.tools.mcp_trinity import (
     mcp_000_init,
     mcp_agi_genius,
@@ -28,41 +27,147 @@ from arifos.mcp.tools.mcp_trinity import (
     mcp_999_vault
 )
 
-# --- TOOL REGISTRATION ---
+logger = logging.getLogger(__name__)
 
-@mcp.tool()
-async def arifos_trinity_000_init(action: str, query: str = None, session_id: str = None, authority_token: str = None) -> str:
-    """000 INIT: System Ignition & Constitutional Gateway."""
-    return await mcp_000_init(action=action, query=query, session_id=session_id, authority_token=authority_token)
+def create_sse_app() -> FastAPI:
+    """Create the FastAPI app with MCP SSE transport."""
+    
+    # 1. Initialize MCP Server
+    mcp_server = Server("arifos-trinity")
 
-@mcp.tool()
-async def arifos_trinity_agi_genius(action: str, query: str = None, session_id: str = None, thought: str = None) -> str:
-    """AGI GENIUS: The Mind (Δ) - Truth & Reasoning Engine."""
-    return await mcp_agi_genius(action=action, query=query, session_id=session_id, thought=thought)
+    # 2. Register Tools
+    @mcp_server.list_tools()
+    async def list_tools() -> list[mcp.types.Tool]:
+        return [
+            mcp.types.Tool(
+                name="000_init",
+                description="000 INIT: System Ignition & Constitutional Gateway. Starts session, verifies authority.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "action": {"type": "string", "description": "Action to perform (init, gate, reset)"},
+                        "query": {"type": "string", "description": "User intent/query"},
+                        "session_id": {"type": "string"},
+                        "authority_token": {"type": "string"}
+                    },
+                    "required": ["action"]
+                }
+            ),
+            mcp.types.Tool(
+                name="agi_genius",
+                description="AGI GENIUS: The Mind (Delta). Truth & Reasoning Engine (SENSE -> THINK -> ATLAS).",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "action": {"type": "string", "description": "Action (sense, think, atlas, forge)"},
+                        "query": {"type": "string"},
+                        "thought": {"type": "string"},
+                        "session_id": {"type": "string"}
+                    },
+                    "required": ["action"]
+                }
+            ),
+            mcp.types.Tool(
+                name="asi_act",
+                description="ASI ACT: The Heart (Omega). Safety & Empathy Engine (EVIDENCE -> EMPATHY -> ACT).",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "action": {"type": "string", "description": "Action (evidence, empathize, act)"},
+                        "proposal": {"type": "string"},
+                        "session_id": {"type": "string"},
+                        "sources": {"type": "array", "items": {"type": "string"}}
+                    },
+                    "required": ["action"]
+                }
+            ),
+            mcp.types.Tool(
+                name="apex_judge",
+                description="APEX JUDGE: The Soul (Psi). Judgment & Authority Engine (EUREKA -> JUDGE -> PROOF).",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "action": {"type": "string", "description": "Action (eureka, judge, proof)"},
+                        "topic": {"type": "string"},
+                        "verdict": {"type": "string"},
+                        "session_id": {"type": "string"}
+                    },
+                    "required": ["action"]
+                }
+            ),
+            mcp.types.Tool(
+                name="999_vault",
+                description="999 VAULT: Immutable Seal & Governance IO.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "action": {"type": "string", "description": "Action (seal, read, write)"},
+                        "target": {"type": "string"},
+                        "data": {"type": "string"},
+                        "session_id": {"type": "string"}
+                    },
+                    "required": ["action"]
+                }
+            )
+        ]
 
-@mcp.tool()
-async def arifos_trinity_asi_act(action: str, proposal: str = None, session_id: str = None, sources: list = None) -> str:
-    """ASI ACT: The Heart (Ω) - Safety & Empathy Engine."""
-    return await mcp_asi_act(action=action, proposal=proposal, session_id=session_id, sources=sources)
+    @mcp_server.call_tool()
+    async def call_tool(name: str, arguments: Any) -> list[mcp.types.TextContent]:
+        try:
+            result = None
+            if name == "000_init":
+                result = await mcp_000_init(**arguments)
+            elif name == "agi_genius":
+                result = await mcp_agi_genius(**arguments)
+            elif name == "asi_act":
+                result = await mcp_asi_act(**arguments)
+            elif name == "apex_judge":
+                result = await mcp_apex_judge(**arguments)
+            elif name == "999_vault":
+                result = await mcp_999_vault(**arguments)
+            else:
+                return [mcp.types.TextContent(type="text", text=f"Unknown tool: {name}")]
+            
+            return [mcp.types.TextContent(type="text", text=str(result))]
+        except Exception as e:
+            logger.error(f"Error executing {name}: {e}")
+            return [mcp.types.TextContent(type="text", text=f"Error: {str(e)}")]
 
-@mcp.tool()
-async def arifos_trinity_apex_judge(action: str, topic: str = None, session_id: str = None, verdict: str = None) -> str:
-    """APEX JUDGE: The Soul (Ψ) - Judgment & Authority Engine."""
-    return await mcp_apex_judge(action=action, session_id=session_id, verdict=verdict)
+    # 3. Setup FastAPI
+    app = FastAPI(title="arifOS Constitutional Monolith")
+    
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
-@mcp.tool()
-async def arifos_trinity_999_vault(action: str, target: str = None, data: str = None, session_id: str = None) -> str:
-    """999 VAULT: Immutable Seal & Governance IO."""
-    return await mcp_999_vault(action=action, target=target, data=data, session_id=session_id)
+    sse = SseServerTransport("/messages")
 
-# --- ENTRYPOINT ---
+    @app.get("/sse")
+    async def handle_sse(request: Request):
+        async with sse.connect_sse(request.scope, request.receive, request._send) as streams:
+            await mcp_server.run(
+                streams[0], 
+                streams[1], 
+                mcp_server.create_initialization_options()
+            )
 
-def create_sse_app():
-    """Returns the ASGI app for deployment."""
-    return mcp._asgi_app
+    @app.post("/messages")
+    async def handle_messages(request: Request):
+        return await sse.handle_post_message(request.scope, request.receive, request._send)
+
+    @app.get("/health")
+    async def handle_health():
+        return {"status": "healthy", "version": "v52.0.0-SEAL"}
+
+    return app
+
+# Create app instance
+app = create_sse_app()
 
 if __name__ == "__main__":
-    # Local Dev Mode / Docker Entrypoint
+    import uvicorn
     port = int(os.getenv("PORT", 8000))
-    print(f"Igniting Trinity Monolith (SSE) on port {port}...")
-    mcp.run(host="0.0.0.0", port=port)
+    uvicorn.run(app, host="0.0.0.0", port=port)
