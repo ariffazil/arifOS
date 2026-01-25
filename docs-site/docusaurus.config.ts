@@ -20,9 +20,7 @@ const config: Config = {
   projectName: 'arifOS',
 
   onBrokenLinks: 'throw',
-  markdown: {
-    onBrokenMarkdownLinks: 'warn',
-  },
+  onBrokenMarkdownLinks: 'warn',
 
   i18n: {
     defaultLocale: 'en',
