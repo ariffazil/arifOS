@@ -37,6 +37,7 @@ const sidebars: SidebarsConfig = {
         'concepts/verdicts',
         'concepts/atlas-333',
         'concepts/trinity',
+        'concepts/guarantees',
       ],
     },
     {
