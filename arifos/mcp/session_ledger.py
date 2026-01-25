@@ -1,5 +1,5 @@
 """
-arifOS Session Ledger (v50.5.17)
+arifOS Session Ledger (v52.4.0)
 Memory Bridge: MCP ↔ VAULT999
 
 The 999-000 Loop:
@@ -23,7 +23,7 @@ import threading
 import logging
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -259,7 +259,7 @@ class SessionLedger:
             # Create entry
             entry = SessionEntry(
                 session_id=session_id,
-                timestamp=datetime.utcnow().isoformat() + "Z",
+                timestamp=datetime.now(timezone.utc).isoformat() + "Z",
                 verdict=verdict,
                 init_result=init_result,
                 genius_result=genius_result,
@@ -426,7 +426,7 @@ def open_session(session_id: str, token: str, pid: int, authority: str = "GUEST"
         "session_id": session_id,
         "token": token,
         "pid": pid,
-        "started_at": datetime.utcnow().isoformat() + "Z",
+        "started_at": datetime.now(timezone.utc).isoformat() + "Z",
         "authority": authority
     }
     _save_open_sessions(sessions)
@@ -472,7 +472,7 @@ def get_orphaned_sessions(timeout_minutes: int = 30) -> List[Dict[str, Any]]:
     """
     sessions = _load_open_sessions()
     orphans = []
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     for session_id, session_data in sessions.items():
         is_orphaned = False
@@ -550,7 +550,7 @@ def recover_orphaned_session(session_data: Dict[str, Any]) -> Dict[str, Any]:
         "recovery": True,
         "orphan_reason": reason,
         "original_started_at": session_data.get("started_at", ""),
-        "recovered_at": datetime.utcnow().isoformat() + "Z"
+        "recovered_at": datetime.now(timezone.utc).isoformat() + "Z"
     }
 
     # Seal with SABAR (recoverable, needs attention)
