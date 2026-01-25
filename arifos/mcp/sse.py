@@ -37,7 +37,7 @@ from arifos.mcp.tools.mcp_trinity import (
 # --- LOOP BOOTSTRAP IMPORTS ---
 import logging
 import uuid
-from typing import Dict
+from typing import Dict, List, Any, Optional
 from arifos.mcp.session_ledger import (
     open_session,
     close_session,
@@ -87,17 +87,29 @@ mcp = FastMCP(
 # --- TOOL REGISTRATION ---
 
 @mcp.tool(name="init_000")
-async def arifos_trinity_000_init(action: str = "init", query: str = "", session_id: str | None = None, authority_token: str | None = "") -> dict:
+async def arifos_trinity_000_init(
+    action: str = "init",
+    query: str = "",
+    session_id: str | None = None,
+    authority_token: str | None = "",
+    context: Dict[str, Any] | None = None
+) -> dict:
     """System Ignition & Constitutional Gateway.
 
-    The first step for any interaction. Initializes the session, verifies authority, and routes the request.
-    Includes Loop Bootstrap for crash recovery.
+    The Alpha of the system. Initializes the session, verifies authority, and routes the request.
     
     Actions:
-    - init: Full ignition (default)
-    - gate: Quick authority check
-    - reset: Clear session state
-    - validate: Verify session integrity
+    - `init` (default): Full ignition. Requires `query`.
+    - `gate`: Quick authority check. Requires `authority_token`.
+    - `reset`: Clear session state.
+    - `validate`: Verify session integrity.
+
+    Args:
+        action: The operation to perform (init, gate, reset, validate).
+        query: The initial user query or greeting (Required for `init`).
+        session_id: Existing session ID (optional).
+        authority_token: Token for sovereign recognition (optional).
+        context: Additional context to inject (optional).
     """
     # 1. Loop Bootstrap Recovery
     try:
@@ -108,7 +120,13 @@ async def arifos_trinity_000_init(action: str = "init", query: str = "", session
         logger.warning(f"Loop Bootstrap recovery failed (continuing): {e}")
 
     # 2. Execute Init
-    result = await mcp_000_init(action=action, query=query, session_id=session_id, authority_token=authority_token)
+    result = await mcp_000_init(
+        action=action,
+        query=query,
+        session_id=session_id,
+        authority_token=authority_token,
+        context=context
+    )
 
     # 3. Track Open Session
     if result.get("status") == "SEAL":
@@ -132,57 +150,198 @@ async def arifos_trinity_000_init(action: str = "init", query: str = "", session
     return result
 
 @mcp.tool(name="agi_genius")
-async def arifos_trinity_agi_genius(action: str = "sense", query: str = "", session_id: str | None = "", thought: str = "") -> dict:
+async def arifos_trinity_agi_genius(
+    action: str = "sense",
+    query: str = "",
+    session_id: str | None = "",
+    thought: str = "",
+    draft: str = "",
+    truth_score: float = 1.0,
+    context: Dict[str, Any] | None = None,
+    axioms: List[str] | None = None
+) -> dict:
     """The Mind (Δ) - Truth & Reasoning Engine.
 
-    Checks if the response is truthful and clear. Enforces F2 (Truth) and F4 (Clarity).
+    The cognitive engine responsible for logic, truth verification (F2), and clarity (F6).
     
     Actions:
-    - sense: Analyze input
-    - think: Apply reasoning
-    - full: Complete pipeline
+    - `sense`: Gather facts & classify intent. Requires `query`.
+    - `think`: Deep reasoning (6-Hats). Requires `query` (or `thought`).
+    - `reflect`: Entropy check (F6). Requires `query` + `draft`.
+    - `atlas`: Meta-cognition mapping. Requires `query`.
+    - `forge`: Solution generation & Eureka. Requires `query` (as task).
+    - `evaluate`: Floor audit (F2, F6). Requires `query` + `draft` + `truth_score`.
+    - `full`: Complete pipeline (Sense->Think->Atlas->Forge).
+
+    Args:
+        action: The cognitive operation to perform.
+        query: The input text, question, or task description.
+        session_id: The session ID from init_000.
+        thought: Internal reasoning text (for 'think' or 'reflect').
+        draft: The generated response candidate (for 'evaluate' or 'reflect').
+        truth_score: Estimated factual accuracy (0.0-1.0) for F2 check.
+        context: Previous context or memory injection.
+        axioms: List of foundational truths for ATLAS mapping.
     """
-    return await mcp_agi_genius(action=action, query=query, session_id=session_id, thought=thought)
+    return await mcp_agi_genius(
+        action=action,
+        query=query,
+        session_id=session_id,
+        thought=thought,
+        draft=draft,
+        truth_score=truth_score,
+        context=context,
+        axioms=axioms
+    )
 
 @mcp.tool(name="asi_act")
-async def arifos_trinity_asi_act(action: str = "empathize", text: str = "", session_id: str | None = "", proposal: str = "") -> dict:
+async def arifos_trinity_asi_act(
+    action: str = "empathize",
+    text: str = "",
+    session_id: str | None = None,
+    proposal: str = "",
+    query: str = "",
+    stakeholders: List[str] | None = None,
+    sources: List[str] | None = None,
+    agi_result: Dict[str, Any] | None = None,
+    witness_request_id: str = "",
+    approval: bool = False
+) -> dict:
     """The Heart (Ω) - Safety & Empathy Engine.
 
-    Checks if the action is safe and empathetic. Enforces F5 (Safety) and F6 (Empathy).
+    The ethical engine responsible for safety (F5), empathy (F4), and action alignment.
     
     Actions:
-    - evidence: Gather data
-    - empathize: Check impact
-    - act: Execute safely
+    - `evidence`: Ground truth in sources. Requires `query` + `sources`.
+    - `empathize`: Model stakeholder impact. Requires `text` + `stakeholders`.
+    - `align`: Check constitutional compliance. Requires `text` + `agi_result`.
+    - `act`: Execute verified action. Requires `proposal` + `witness_request_id`.
+    - `witness`: Collect tri-witness signatures. Requires `witness_request_id` + `approval`.
+    - `evaluate`: Floor audit (F3, F4, F5). Requires `text`.
+
+    Args:
+        action: The ethical operation to perform.
+        text: The content to analyze for empathy/safety.
+        session_id: The session ID.
+        proposal: The proposed action description (for 'act').
+        query: The search query for evidence gathering.
+        stakeholders: List of affected parties (e.g. ["user", "environment"]).
+        sources: List of trusted sources for evidence.
+        agi_result: The output from agi_genius (for 'align' check).
+        witness_request_id: ID for multi-signature verification.
+        approval: Boolean approval for witness signature.
     """
-    return await mcp_asi_act(action=action, text=text, session_id=session_id, proposal=proposal)
+    return await mcp_asi_act(
+        action=action,
+        text=text,
+        session_id=session_id,
+        proposal=proposal,
+        query=query,
+        stakeholders=stakeholders,
+        sources=sources,
+        agi_result=agi_result,
+        witness_request_id=witness_request_id,
+        approval=approval
+    )
 
 @mcp.tool(name="apex_judge")
-async def arifos_trinity_apex_judge(action: str = "judge", query: str = "", session_id: str | None = "", response: str = "") -> dict:
+async def arifos_trinity_apex_judge(
+    action: str = "judge",
+    query: str = "",
+    session_id: str | None = None,
+    response: str = "",
+    verdict: str = "SEAL",
+    data: str = "",
+    agi_result: Dict[str, Any] | None = None,
+    asi_result: Dict[str, Any] | None = None,
+    agi_floors: List[Dict] | None = None,
+    asi_floors: List[Dict] | None = None
+) -> dict:
     """The Soul (Ψ) - Judgment & Authority Engine.
 
-    The final decision maker. Reviews findings from Mind and Heart to issue a verdict.
+    The final decision maker. Synthesizes Truth (AGI) and Care (ASI) into a Verdict (F8).
     
     Actions:
-    - judge: Issue verdict (SEAL/VOID)
-    - proof: Generate proof
+    - `eureka`: Synthesize insights & resolve paradoxes. Requires `query` + `agi_result` + `asi_result`.
+    - `judge`: Issue final constitutional verdict (SEAL/VOID). Requires `query` + `response`.
+    - `proof`: Generate cryptographic seal (F1). Requires `data` + `verdict`.
+    - `entropy`: Measure constitutional cooling (Agent Zero).
+    - `full`: Complete pipeline (Eureka->Judge->Proof).
+
+    Args:
+        action: The judicial operation to perform.
+        query: The original user query.
+        session_id: The session ID.
+        response: The candidate response to be judged.
+        verdict: Proposed verdict (SEAL, SABAR, VOID).
+        data: Raw data content for hashing/sealing.
+        agi_result: Output from agi_genius (Truth signal).
+        asi_result: Output from asi_act (Care signal).
+        agi_floors: Specific floor metrics from AGI.
+        asi_floors: Specific floor metrics from ASI.
     """
-    return await mcp_apex_judge(action=action, query=query, session_id=session_id, response=response)
+    return await mcp_apex_judge(
+        action=action,
+        query=query,
+        session_id=session_id,
+        response=response,
+        verdict=verdict,
+        data=data,
+        agi_result=agi_result,
+        asi_result=asi_result,
+        agi_floors=agi_floors,
+        asi_floors=asi_floors
+    )
 
 @mcp.tool(name="vault_999")
-async def arifos_trinity_999_vault(action: str = "seal", session_id: str | None = "", verdict: str = "SEAL", target: str = "seal") -> dict:
+async def arifos_trinity_999_vault(
+    action: str = "seal",
+    session_id: str | None = None,
+    verdict: str = "SEAL",
+    target: str = "seal",
+    query: str = "",
+    data: Dict[str, Any] | None = None,
+    init_result: Dict[str, Any] | None = None,
+    agi_result: Dict[str, Any] | None = None,
+    asi_result: Dict[str, Any] | None = None,
+    apex_result: Dict[str, Any] | None = None
+) -> dict:
     """Immutable Seal & Governance IO.
 
-    Commits the final decision to the immutable ledger.
-    Closes the session loop upon successful seal.
+    The Final Gate. Commits the decision to the immutable ledger and closes the loop.
     
     Actions:
-    - seal: Commit verdict
-    - list: View history
-    - read: Retrieve entry
+    - `seal`: Commit verdict + artifacts. Requires `verdict`.
+    - `list`: View ledger history.
+    - `read`: Retrieve specific entry. Requires `query` (as ID/path).
+    - `write`: Low-level write (requires authority).
+    - `propose`: Suggest canon update.
+
+    Args:
+        action: The vault operation to perform.
+        session_id: The session ID to close.
+        verdict: The final decision (SEAL/VOID) to log.
+        target: The storage target (seal, ledger, canon).
+        query: ID or path for read operations.
+        data: Arbitrary data payload to store.
+        init_result: Telemetry from 000_init.
+        agi_result: Telemetry from agi_genius.
+        asi_result: Telemetry from asi_act.
+        apex_result: Telemetry from apex_judge.
     """
     # 1. Execute Seal
-    result = await mcp_999_vault(action=action, session_id=session_id, verdict=verdict, target=target)
+    result = await mcp_999_vault(
+        action=action,
+        session_id=session_id,
+        verdict=verdict,
+        target=target,
+        query=query,
+        data=data,
+        init_result=init_result,
+        agi_result=agi_result,
+        asi_result=asi_result,
+        apex_result=apex_result
+    )
 
     # 2. Close Session Loop
     if result.get("status") == "SEAL" and session_id:
