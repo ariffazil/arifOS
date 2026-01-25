@@ -255,7 +255,7 @@ class VaultResult:
 SOVEREIGN_PATTERNS = [
     "im arif", "i'm arif", "i am arif", "arif here",
     "salam", "assalamualaikum", "waalaikumsalam",
-    "888", "judge", "sovereign"
+    "888", "judge", "sovereign", "ditempa bukan diberi"
 ]
 
 # Intent classification keywords
@@ -1682,7 +1682,8 @@ async def mcp_999_vault(
     apex_result: Optional[Dict[str, Any]] = None,
     target: str = "seal",
     query: str = "",
-    data: Optional[Dict[str, Any]] = None
+    data: Optional[Dict[str, Any]] = None,
+    seal_phrase: str = ""
 ) -> Dict[str, Any]:
     """
     999 VAULT: Immutable Seal & Governance IO.
@@ -1705,6 +1706,10 @@ async def mcp_999_vault(
         - phoenix: Resurrectable memory
         - audit: Audit trail
 
+    Seal Phrase:
+        Required for seal action: "DITEMPA BUKAN DIBERI"
+        The sovereign's authorization to forge the final seal.
+
     Floors Enforced:
         - F1 (Amanah): Reversibility proof
         - F8 (Tri-Witness): Consensus record
@@ -1715,6 +1720,7 @@ async def mcp_999_vault(
     # Valid actions for 999_vault
     VALID_ACTIONS = {"seal", "list", "read", "write", "propose"}
     VALID_VERDICTS = {"SEAL", "SABAR", "VOID"}
+    SEAL_PHRASE = "ditempa bukan diberi"  # The sovereign's seal authorization
 
     floors_checked = []
 
@@ -1761,7 +1767,28 @@ async def mcp_999_vault(
         # ACTION: SEAL
         # =====================================================================
         if action == "seal" or target == "seal":
-            floors_checked.extend(["F1_Amanah", "F8_TriWitness"])
+            # ─────────────────────────────────────────────────────────────────
+            # SEAL PHRASE VALIDATION: "DITEMPA BUKAN DIBERI"
+            # The sovereign's authorization to forge the final seal
+            # ─────────────────────────────────────────────────────────────────
+            if not seal_phrase or seal_phrase.lower().strip() != SEAL_PHRASE:
+                logger.warning(f"999_vault: Seal phrase missing or invalid")
+                return VaultResult(
+                    status="SABAR",
+                    session_id=session_id or "UNKNOWN",
+                    verdict="PENDING",
+                    merkle_root="",
+                    audit_hash="",
+                    sealed_at=datetime.now().isoformat(),
+                    reversible=True,
+                    memory_location="AWAITING_SEAL_PHRASE",
+                    floors_checked=["F11_CommandAuth"]
+                ).__dict__ | {
+                    "reason": "Seal phrase required: 'DITEMPA BUKAN DIBERI'",
+                    "hint": "Provide seal_phrase='DITEMPA BUKAN DIBERI' to authorize the seal"
+                }
+
+            floors_checked.extend(["F1_Amanah", "F8_TriWitness", "F11_SealPhrase"])
 
             # Compute Merkle root from all results
             components = [
