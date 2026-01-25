@@ -2,106 +2,58 @@
 sidebar_position: 1
 slug: /
 title: Introduction
-description: arifOS - Constitutional AI Governance Framework that stops AI from lying, harming, or being overconfident
+description: arifOS - The System That Knows It Doesn't Know
 ---
 
-# arifOS
+# arifOS: The System That Knows It Doesn't Know
 
-## AI That Can't Lie to You
+> "Intelligence is not certainty. Intelligence is knowing what you can verify and admitting what you cannot."
+> — Muhammad Arif bin Fazil, 888 Judge
 
-**arifOS** is a governance filter that sits between you and AI systems, checking every response against 5 constitutional principles before it reaches you.
+## What This Means
 
-| | |
-|---|---|
-| **Version** | v52.5.1-SEAL |
-| **Live Server** | [arifos.arif-fazil.com](https://arifos.arif-fazil.com) |
-| **PyPI** | [pypi.org/project/arifos](https://pypi.org/project/arifos/) |
-| **License** | AGPL-3.0 |
-| **Motto** | *"Ditempa Bukan Diberi"* — Forged, Not Given |
+arifOS is an AI governance framework built on a paradox:
 
----
+**It is the most powerful precisely because it admits its limits.**
 
-## What arifOS Does
+### The Problem It Solves
 
-```mermaid
-flowchart LR
-    U[You] --> A1[arifOS]
-    A1 --> AI[AI Model]
-    AI --> A2[arifOS]
-    A2 --> U2[You]
+Most AI systems:
+- Claim confidence (95% sure, etc.)
+- Hide uncertainty
+- Fail catastrophically
+- User blames self
 
-    A1 -.- C1[checks input]
-    A2 -.- C2[checks output]
-```
+arifOS:
+- Computes what it can (measurably)
+- Admits what it cannot (explicitly)
+- Fails gracefully (escalates to human)
+- User and system both protected
 
-Before ANY response reaches you, arifOS checks **5 things** (TEACH):
+### How It Works (60 seconds)
 
-| Check | Question | Pass Condition |
-|-------|----------|----------------|
-| **T**ruth | Is this accurate? | ≥99% confidence OR stated uncertainty |
-| **E**mpathy | Could this hurt someone? | Weakest stakeholder protected |
-| **A**manah | Is this reversible? | If not, user warned first |
-| **C**larity | Is this clear? | Answer simpler than question |
-| **H**umility | Is AI overconfident? | 3-5% uncertainty stated |
+1. **Your query enters** → Processed through 5 MCP tools
+2. **System computes** → Checks 13 Constitutional Floors
+3. **System measures** → Produces P_truth, entropy, tri-witness score
+4. **System admits** → "This is what I know. This is what I cannot. Here's proof."
+5. **You verify** → Cryptographically verify the proof locally
+6. **You decide** → Armed with full knowledge of both system capability and limits
 
-**If all checks pass** → Response delivered (**SEAL**)
-**If something's wrong** → Response blocked or adjusted (**VOID**/**SABAR**)
-**If high-stakes** → Human confirmation required (**888_HOLD**)
+### Why This Matters
 
----
+In a world of AI bullshit (confident hallucinations), arifOS is rare:
 
-## Quick Start
+It doesn't hide uncertainty. It makes uncertainty constitutional law (F7 Humility).
 
-### Option 1: Copy-Paste (Any AI)
+It doesn't claim completeness. It acknowledges Gödel's theorem (F10 Ontology).
 
-Copy the [system prompt](/ai/system-prompt) into ChatGPT, Claude, or any AI's custom instructions.
+It doesn't delegate authority to algorithm. It preserves human judgment (F13 Veto).
 
-### Option 2: MCP Connection (Developers)
+**Result**: A system you can trust precisely because it refuses to be trusted blindly.
 
-```json
-{
-  "mcpServers": {
-    "arifOS": {
-      "url": "https://arifos.arif-fazil.com/sse"
-    }
-  }
-}
-```
+### Get Started
 
-### Option 3: Install Locally
-
-```bash
-pip install arifos
-python -m arifos.mcp
-```
-
----
-
-## What arifOS Is NOT
-
-| arifOS Is | arifOS Is NOT |
-|-----------|---------------|
-| A filter/governance layer | A replacement for AI models |
-| Model-agnostic (works with any AI) | A chatbot itself |
-| Optional (you control it) | A prison (you can override) |
-| Open source (AGPL-3.0) | A commercial product |
-
----
-
-## Live Endpoints
-
-| Endpoint | URL |
-|----------|-----|
-| **Health** | [arifos.arif-fazil.com/health](https://arifos.arif-fazil.com/health) |
-| **Dashboard** | [arifos.arif-fazil.com/dashboard](https://arifos.arif-fazil.com/dashboard) |
-| **API Docs** | [arifos.arif-fazil.com/docs](https://arifos.arif-fazil.com/docs) |
-| **MCP SSE** | [arifos.arif-fazil.com/sse](https://arifos.arif-fazil.com/sse) |
-
----
-
-## Next Steps
-
-- [Quick Start Guide](/getting-started/quick-start) — Get running in 5 minutes
-- [TEACH Framework](/concepts/teach) — Understand the 5 principles
-- [MCP Reference](/mcp/overview) — Technical API documentation
-- [For AI Systems](/ai/self-governance) — If you're an AI reading this
+- **Users**: [Quick Start](./getting-started/quick-start)
+- **Developers**: [Architecture](./mcp/overview)
+- **Philosophers**: [Foundations](/concepts/teach)
+- **Deployers**: [Calibration](/guides/manual-verification)
