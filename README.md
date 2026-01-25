@@ -1,6 +1,6 @@
 # arifOS
 
-## AI With Lying Guardrails
+## The Knowing That Admits Not-Knowing
 
 ![The Great Contrast: Standard AI vs. arifOS Governance](https://raw.githubusercontent.com/ariffazil/arifOS/main/docs/arifOSreadme.png)
 
