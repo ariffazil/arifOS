@@ -35,6 +35,9 @@ from arifos.mcp.tools.mcp_aaa import (
     mcp_999_vault,
 )
 
+# v53 Human-language translation layer (for verdict translation)
+from arifos.mcp.tools.v53_human_layer import Verdict
+
 # --- LOOP BOOTSTRAP IMPORTS ---
 import logging
 import uuid
@@ -73,7 +76,7 @@ def _recover_orphans() -> int:
         return 0
 
 # --- VERSION ---
-VERSION = "v52.5.1-SEAL"
+VERSION = "v53.0.0-SEAL"
 MOTTO = "DITEMPA BUKAN DIBERI"
 
 # Initialize the Monolith
@@ -478,8 +481,10 @@ async def checkpoint_action(request):
             apex_result=apex_result
         )
 
-        # Build response
-        verdict = apex_result.get("verdict", "SEAL")
+        # Build response - translate internal verdict to human-readable
+        internal_verdict = apex_result.get("verdict", "SEAL")
+        human_verdict = Verdict.to_human(internal_verdict)
+
         floors = {
             "truth": agi_result.get("truth_score", 1.0),
             "clarity": agi_result.get("entropy_delta", 0),
@@ -489,18 +494,18 @@ async def checkpoint_action(request):
             "amanah": asi_result.get("reversible", True),
         }
 
-        # Generate human-readable summary
-        if verdict == "SEAL":
+        # Generate human-readable summary using human verdicts
+        if human_verdict == "APPROVE":
             summary = "✓ Constitutional check passed. All floors within thresholds."
-        elif verdict == "PARTIAL":
+        elif human_verdict == "CONDITIONAL":
             summary = "⚠ Soft floor warning. Proceed with caution."
-        elif verdict == "888_HOLD":
+        elif human_verdict == "ESCALATE":
             summary = "⏸ High-stakes decision detected. Human confirmation required."
-        else:
+        else:  # REJECT
             summary = "✗ Hard floor violated. Action blocked."
 
         return JSONResponse({
-            "verdict": verdict,
+            "verdict": human_verdict,
             "summary": summary,
             "floors": floors,
             "session_id": session_id,
@@ -590,8 +595,8 @@ async def get_openapi_spec(request):
                                         "properties": {
                                             "verdict": {
                                                 "type": "string",
-                                                "enum": ["SEAL", "PARTIAL", "VOID", "888_HOLD"],
-                                                "description": "Constitutional verdict"
+                                                "enum": ["APPROVE", "CONDITIONAL", "REJECT", "ESCALATE"],
+                                                "description": "Constitutional verdict (human-readable)"
                                             },
                                             "summary": {
                                                 "type": "string",
@@ -619,7 +624,7 @@ async def get_openapi_spec(request):
                                         }
                                     },
                                     "example": {
-                                        "verdict": "VOID",
+                                        "verdict": "REJECT",
                                         "summary": "✗ Hard floor violated. Action blocked.",
                                         "floors": {
                                             "truth": 1.0,
