@@ -1,4 +1,4 @@
-# arifOS Railway Configuration (v52.4.1 - Production Ready)
+# arifOS Railway Configuration (v52.5.1 - Production Ready)
 # Place this content in your railway.toml
 
 [build]
@@ -16,7 +16,7 @@ numReplicas = 1
 
 # Environment variables (also add these in Railway Dashboard:)
 # PORT=8000 (set automatically by Railway)
-# ARIFOS_VERSION=v52.4.1
+# ARIFOS_VERSION=v52.5.1
 # ARIFOS_CLUSTER=3
 # GOVERNANCE_MODE=HARD
 # VAULT_PATH=./VAULT999

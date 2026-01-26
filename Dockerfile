@@ -1,4 +1,4 @@
-# Dockerfile for arifOS Constitutional Monolith (v52.0.0-SEAL)
+# Dockerfile for arifOS Constitutional Monolith (v52.5.1-SEAL)
 # Single solid container for MCP SSE + Body API
 
 FROM python:3.11-slim

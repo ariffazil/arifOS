@@ -410,51 +410,64 @@ async def get_landing(request):
         <title>arifOS - Constitutional AI Governance</title>
         <meta name="description" content="A filter that stops AI from lying, harming, or being overconfident. 5 rules, 4 verdicts, works with any AI.">
         <style>
-            :root {{ --primary: #1a1a2e; --accent: #e94560; --bg: #fafafa; --card: #ffffff; --text: #333; --muted: #666; }}
+            /* arifOS Trinity Dark Theme */
+            :root {{
+                --bg: #050505; --panel: #111111; --card: #1a1a1a; --border: #333333;
+                --text: #ffffff; --text-dim: #a1a1aa; --muted: #71717a;
+                --agi-blue: #3b82f6; --asi-red: #ef4444; --apex-yellow: #eab308;
+                --seal: #22c55e; --void: #ef4444; --hold: #a855f7;
+            }}
             * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: var(--text); background: var(--bg); }}
+            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: var(--text); background: var(--bg); min-height: 100vh; }}
             .container {{ max-width: 900px; margin: 0 auto; padding: 2rem; }}
-            header {{ text-align: center; padding: 3rem 0; border-bottom: 3px solid var(--primary); margin-bottom: 2rem; }}
-            h1 {{ font-size: 3rem; color: var(--primary); margin-bottom: 0.5rem; }}
-            .motto {{ font-style: italic; color: var(--accent); font-size: 1.2rem; margin-bottom: 1rem; }}
-            .tagline {{ font-size: 1.1rem; color: var(--muted); max-width: 600px; margin: 0 auto; }}
-            .version {{ display: inline-block; background: var(--primary); color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; margin-top: 1rem; }}
-            .hero {{ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 2rem; border-radius: 12px; margin: 2rem 0; text-align: center; }}
-            .hero h2 {{ margin-bottom: 1rem; }}
-            .hero code {{ background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 6px; font-size: 1.1rem; display: inline-block; }}
+            header {{ text-align: center; padding: 3rem 0; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }}
+            h1 {{ font-size: 3rem; color: var(--text); margin-bottom: 0.5rem; }}
+            h1 span {{ color: var(--agi-blue); }}
+            .motto {{ font-style: italic; color: var(--apex-yellow); font-size: 1.2rem; margin-bottom: 1rem; }}
+            .tagline {{ font-size: 1.1rem; color: var(--text-dim); max-width: 600px; margin: 0 auto; }}
+            .version {{ display: inline-block; background: var(--panel); color: var(--agi-blue); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; margin-top: 1rem; border: 1px solid var(--agi-blue); }}
+            .hero {{ background: var(--panel); border: 1px solid var(--agi-blue); color: white; padding: 2rem; border-radius: 12px; margin: 2rem 0; text-align: center; }}
+            .hero h2 {{ margin-bottom: 1rem; color: var(--text); }}
+            .hero p {{ color: var(--text-dim); }}
+            .hero code {{ background: var(--card); padding: 0.5rem 1rem; border-radius: 6px; font-size: 1.1rem; display: inline-block; color: var(--agi-blue); border: 1px solid var(--border); }}
             .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 2rem 0; }}
-            .card {{ background: var(--card); border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.5rem; transition: transform 0.2s, box-shadow 0.2s; }}
-            .card:hover {{ transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }}
-            .card h3 {{ color: var(--primary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }}
-            .card p {{ color: var(--muted); font-size: 0.95rem; }}
+            .card {{ background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; }}
+            .card:hover {{ transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); border-color: var(--agi-blue); }}
+            .card h3 {{ color: var(--text); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }}
+            .card p {{ color: var(--text-dim); font-size: 0.95rem; }}
             .emoji {{ font-size: 1.5rem; }}
-            .teach {{ background: var(--card); border: 2px solid var(--accent); border-radius: 12px; padding: 1.5rem; margin: 2rem 0; }}
-            .teach h2 {{ color: var(--accent); margin-bottom: 1rem; }}
+            .teach {{ background: var(--panel); border: 2px solid var(--asi-red); border-radius: 12px; padding: 1.5rem; margin: 2rem 0; }}
+            .teach h2 {{ color: var(--asi-red); margin-bottom: 1rem; }}
             .teach-grid {{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; text-align: center; }}
             .teach-item {{ padding: 1rem 0.5rem; }}
-            .teach-letter {{ font-size: 2rem; font-weight: bold; color: var(--primary); }}
-            .teach-word {{ font-size: 0.85rem; color: var(--muted); }}
+            .teach-letter {{ font-size: 2rem; font-weight: bold; color: var(--agi-blue); }}
+            .teach-word {{ font-size: 0.85rem; color: var(--text-dim); }}
+            .teach-word small {{ color: var(--muted); }}
             .links {{ display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; margin: 2rem 0; }}
             .links a {{ display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 500; transition: all 0.2s; }}
-            .links a.primary {{ background: var(--primary); color: white; }}
-            .links a.primary:hover {{ background: #2d2d4a; }}
-            .links a.secondary {{ background: white; color: var(--primary); border: 2px solid var(--primary); }}
-            .links a.secondary:hover {{ background: var(--primary); color: white; }}
-            footer {{ text-align: center; padding: 2rem 0; border-top: 1px solid #e0e0e0; margin-top: 3rem; color: var(--muted); }}
-            footer a {{ color: var(--accent); text-decoration: none; }}
+            .links a.primary {{ background: var(--agi-blue); color: white; }}
+            .links a.primary:hover {{ background: #2563eb; }}
+            .links a.dashboard {{ background: var(--apex-yellow); color: #000; }}
+            .links a.dashboard:hover {{ background: #ca8a04; }}
+            .links a.secondary {{ background: var(--card); color: var(--text-dim); border: 1px solid var(--border); }}
+            .links a.secondary:hover {{ border-color: var(--agi-blue); color: var(--agi-blue); }}
+            footer {{ text-align: center; padding: 2rem 0; border-top: 1px solid var(--border); margin-top: 3rem; color: var(--muted); }}
+            footer a {{ color: var(--apex-yellow); text-decoration: none; }}
+            footer a:hover {{ color: var(--agi-blue); }}
+            h2 {{ color: var(--text); }}
             .verdicts {{ display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin: 1rem 0; }}
             .verdict {{ padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: bold; font-size: 0.9rem; }}
-            .seal {{ background: #c8e6c9; color: #2e7d32; }}
-            .sabar {{ background: #fff9c4; color: #f57f17; }}
-            .void {{ background: #ffcdd2; color: #c62828; }}
-            .hold {{ background: #e1bee7; color: #7b1fa2; }}
+            .seal {{ background: rgba(34,197,94,0.15); color: var(--seal); border: 1px solid var(--seal); }}
+            .sabar {{ background: rgba(234,179,8,0.15); color: var(--apex-yellow); border: 1px solid var(--apex-yellow); }}
+            .void {{ background: rgba(239,68,68,0.15); color: var(--void); border: 1px solid var(--void); }}
+            .hold {{ background: rgba(168,85,247,0.15); color: var(--hold); border: 1px solid var(--hold); }}
             @media (max-width: 600px) {{ .teach-grid {{ grid-template-columns: repeat(3, 1fr); }} h1 {{ font-size: 2rem; }} }}
         </style>
     </head>
     <body>
         <div class="container">
             <header>
-                <h1>arifOS</h1>
+                <h1>arif<span>OS</span></h1>
                 <p class="motto">"DITEMPA BUKAN DIBERI" — Forged, Not Given</p>
                 <p class="tagline">A constitutional AI governance filter that stops AI from lying, harming, or being overconfident.</p>
                 <span class="version">{VERSION}</span>
@@ -508,7 +521,7 @@ async def get_landing(request):
 
             <div class="links">
                 <a href="/docs" class="primary">📖 API Documentation</a>
-                <a href="/dashboard" class="primary">📊 Live Dashboard</a>
+                <a href="/dashboard" class="dashboard">📊 Live Dashboard</a>
                 <a href="/health" class="secondary">💚 Health Check</a>
                 <a href="https://arifos.pages.dev/" class="secondary">📚 Full Docs</a>
             </div>
