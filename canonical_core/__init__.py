@@ -1,25 +1,71 @@
 """
-arifOS Constitutional Core (Canonical Implementation)
+arifOS Canonical Core - The Single Source of Truth
 
-This is the ONE source of truth for constitutional governance.
-All other implementations are deprecated.
+DITEMPA BUKAN DIBERI - Forged, Not Given
 
-Rule: If it's not imported from here, it doesn't exist.
+This module contains the ONE canonical implementation of each constitutional concept.
+All other code MUST import from here. Duplicates are forbidden.
 
-DITEMPA BUKAN DIBERI.
+Architecture:
+    canonical_core/
+    ├── stage_000/     # Foundation Initialization (F10-F12, Amanah)
+    ├── stage_111/     # SENSE (future)
+    ├── stage_222/     # THINK (future)
+    └── ...
+
+Version: v52.5.2-CANONICAL
+Authority: Muhammad Arif bin Fazil
+Sealed: 2026-01-26
 """
 
-__version__ = "2.0.0-canonical"
-__status__ = "SOVEREIGNLY_SEALED"
-
-# Core exports
-from .stage_000 import Stage000Gate, Stage000Result
-from .floors import F1_Amanah, F12_InjectionDefense, F10_OntologyGate
+from .stage_000 import (
+    # Core class
+    Stage000VOID,
+    stage_000_void,
+    # Verdict enum
+    VerdictType,
+    # Result dataclasses
+    SessionInitResult,
+    SessionMetadata,
+    TelemetryPacket,
+    HypervisorGateResult,
+    AmanahGateResult,
+    ScarEchoCheck,
+    ZKPCCommitment,
+    # Amanah subsystem
+    AmanahSignals,
+    compute_amanah_score,
+    # Injection defense subsystem
+    InjectionDefense,
+    # Constants
+    OMEGA_0_MIN,
+    OMEGA_0_MAX,
+    OMEGA_0_DEFAULT,
+    AMANAH_THRESHOLD,
+    INJECTION_THRESHOLD,
+)
 
 __all__ = [
-    "Stage000Gate",
-    "Stage000Result", 
-    "F1_Amanah",
-    "F12_InjectionDefense",
-    "F10_OntologyGate",
+    "Stage000VOID",
+    "stage_000_void",
+    "VerdictType",
+    "SessionInitResult",
+    "SessionMetadata",
+    "TelemetryPacket",
+    "HypervisorGateResult",
+    "AmanahGateResult",
+    "ScarEchoCheck",
+    "ZKPCCommitment",
+    "AmanahSignals",
+    "compute_amanah_score",
+    "InjectionDefense",
+    "OMEGA_0_MIN",
+    "OMEGA_0_MAX",
+    "OMEGA_0_DEFAULT",
+    "AMANAH_THRESHOLD",
+    "INJECTION_THRESHOLD",
 ]
+
+__version__ = "v52.5.2-CANONICAL"
+__author__ = "Muhammad Arif bin Fazil"
+__motto__ = "DITEMPA BUKAN DIBERI"
