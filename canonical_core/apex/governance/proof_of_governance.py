@@ -12,9 +12,9 @@ import json
 import uuid
 import time
 
-from arifos.core.enforcement.judiciary.witness_council import ConsensusResult, Verdict
-from arifos.core.state.merkle_ledger import MerkleLedger, MerkleEntry
-from arifos.core.apex.governance.sovereign_signature import SovereignSigner, SignatureVerifier
+from canonical_core.enforcement.judiciary.witness_council import ConsensusResult, Verdict
+from canonical_core.state.merkle_ledger import MerkleLedger, MerkleEntry
+from canonical_core.apex.governance.sovereign_signature import SovereignSigner, SignatureVerifier
 
 
 class SealReceipt(BaseModel):

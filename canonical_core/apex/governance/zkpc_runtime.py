@@ -26,7 +26,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 from pathlib import Path
 
-from arifos.core.state.ledger_hashing import (
+from canonical_core.state.ledger_hashing import (
     compute_entry_hash,
     dump_jsonl,
     load_jsonl,
@@ -34,7 +34,7 @@ from arifos.core.state.ledger_hashing import (
     PREVIOUS_HASH_FIELD,
     GENESIS_PREVIOUS_HASH,
 )
-from arifos.core.state.merkle import build_merkle_tree
+from canonical_core.state.merkle import build_merkle_tree
 
 
 # Paths (v47.1 Consolidated Structure)

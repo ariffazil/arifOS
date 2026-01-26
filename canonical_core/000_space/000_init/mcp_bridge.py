@@ -29,13 +29,13 @@ try:
     from arifos.mcp.rate_limiter import get_rate_limiter
     from arifos.mcp.metrics import get_metrics
     from arifos.mcp.session_ledger import inject_memory
-    from arifos.core.enforcement.metrics import (
+    from canonical_core.enforcement.metrics import (
         TRUTH_THRESHOLD,
         PEACE_SQUARED_THRESHOLD,
         OMEGA_0_MIN,
         OMEGA_0_MAX,
     )
-    from arifos.core.engines.agi.atlas import ATLAS, ATLAS_333, GPV
+    from canonical_core.engines.agi.atlas import ATLAS, ATLAS_333, GPV
     ATLAS_AVAILABLE = True
 except ImportError:
     ATLAS_AVAILABLE = False
@@ -47,7 +47,7 @@ except ImportError:
     OMEGA_0_MAX = 0.05
 
 try:
-    from arifos.core.prompt.codec import SignalExtractor, PromptSignal
+    from canonical_core.prompt.codec import SignalExtractor, PromptSignal
     PROMPT_AVAILABLE = True
     _signal_extractor = SignalExtractor()
 except ImportError:

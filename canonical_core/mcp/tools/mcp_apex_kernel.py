@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional
 import logging
 import time
 
-from arifos.core.apex.kernel import (
+from canonical_core.apex.kernel import (
     APEXJudicialCore,
     ConstitutionalEntropyProfiler,
     ConstitutionalParallelismProfiler,

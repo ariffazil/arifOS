@@ -6,7 +6,7 @@ This shim will be removed in v47.2 (72 hours after v47.1 release).
 
 Update your imports:
   OLD: from arifos.core.apex.governance.merkle_ledger import MerkleLedger
-  NEW: from arifos.core.state.merkle_ledger import MerkleLedger
+  NEW: from canonical_core.state.merkle_ledger import MerkleLedger
 
 Constitutional Mapping:
 - Old Location: apex/governance/ (mixed concerns)
@@ -16,12 +16,12 @@ Constitutional Mapping:
 import warnings
 
 warnings.warn(
-    "arifos.core.apex.governance.merkle_ledger is deprecated. "
-    "Use arifos.core.state.merkle_ledger instead. "
+    "canonical_core.apex.governance.merkle_ledger is deprecated. "
+    "Use canonical_core.state.merkle_ledger instead. "
     "This shim will be removed in v47.2 (72 hours after v47.1).",
     DeprecationWarning,
     stacklevel=2
 )
 
 # Re-export everything from new location
-from arifos.core.state.merkle_ledger import *
+from canonical_core.state.merkle_ledger import *

@@ -11,8 +11,8 @@ DITEMPA BUKAN DIBERI
 from typing import Any, Dict, List, Optional
 import logging
 
-from arifos.core.engines.agi.kernel import AGINeuralCore, AGIVerdict
-from arifos.core.engines.agi.atlas import ATLAS
+from canonical_core.engines.agi.kernel import AGINeuralCore, AGIVerdict
+from canonical_core.engines.agi.atlas import ATLAS
 
 logger = logging.getLogger(__name__)
 

@@ -40,14 +40,14 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-from arifos.mcp.rate_limiter import get_rate_limiter, RateLimitResult
-from arifos.mcp.metrics import get_metrics
+from canonical_core.mcp.rate_limiter import get_rate_limiter, RateLimitResult
+from canonical_core.mcp.metrics import get_metrics
 
 # Session persistence for 999-000 loop
-from arifos.mcp.session_ledger import inject_memory, seal_memory
+from canonical_core.mcp.session_ledger import inject_memory, seal_memory
 
 # Session bundle store for inter-stage context passing
-from arifos.mcp.constitutional_metrics import (
+from canonical_core.mcp.constitutional_metrics import (
     store_stage_result,
     get_stage_result,
     get_session_bundle,
@@ -56,7 +56,7 @@ from arifos.mcp.constitutional_metrics import (
 
 # Track B Authority: Import constitutional thresholds (v50.5.26 Quick Wire)
 # These values come from AAA_MCP/v46/constitutional_floors.json via metrics.py
-from arifos.core.enforcement.metrics import (
+from canonical_core.enforcement.metrics import (
     TRUTH_THRESHOLD,      # 0.99 - F2 floor
     PEACE_SQUARED_THRESHOLD,  # 1.0 - F5 floor
     OMEGA_0_MIN,          # 0.03 - F7 humility min
@@ -70,9 +70,9 @@ LITE_MODE = os.environ.get("ARIFOS_LITE_MODE", "false").lower() == "true"
 logger = logging.getLogger(__name__)
 
 # v52.5 @PROMPT + ATLAS Integration (fail-safe import)
-# These ARE implemented - wiring them in from arifos/core/
+# These ARE implemented - wiring them in from canonical_core/
 try:
-    from arifos.core.engines.agi.atlas import ATLAS, ATLAS_333, GPV
+    from canonical_core.engines.agi.atlas import ATLAS, ATLAS_333, GPV
     ATLAS_AVAILABLE = True
 except ImportError:
     ATLAS_AVAILABLE = False
@@ -80,7 +80,7 @@ except ImportError:
     logger.warning("ATLAS-333 not available, falling back to keyword matching")
 
 try:
-    from arifos.core.prompt.codec import SignalExtractor, PromptSignal, IntentType, RiskLevel
+    from canonical_core.prompt.codec import SignalExtractor, PromptSignal, IntentType, RiskLevel
     PROMPT_AVAILABLE = True
     _signal_extractor = SignalExtractor()  # Singleton
 except ImportError:
@@ -333,12 +333,12 @@ def _step_0_root_key_ignition(session_id: str) -> Dict[str, Any]:
         }
     """
     try:
-        from arifos.core.memory.root_key_accessor import (
+        from canonical_core.memory.root_key_accessor import (
             get_root_key_info,
             derive_session_key,
             get_root_key_status  # Lazy getter
         )
-        from arifos.core.memory.root_key_accessor import verify_genesis_block
+        from canonical_core.memory.root_key_accessor import verify_genesis_block
         from pathlib import Path
         
         result = {
@@ -1845,7 +1845,7 @@ async def mcp_apex_judge(
         # =====================================================================
         if action in {"eureka", "judge", "proof", "full"}:
             try:
-                from arifos.core.apex.kernel import APEXJudicialCore
+                from canonical_core.apex.kernel import APEXJudicialCore
 
                 # If caller didn't pass bundles, pull from session store.
                 if not agi_result and session_id:
@@ -2250,7 +2250,7 @@ async def mcp_999_vault(
         # =====================================================================
         if action in {"list", "read"}:
             try:
-                from arifos.core.apex.kernel import APEXJudicialCore
+                from canonical_core.apex.kernel import APEXJudicialCore
 
                 core_apex = APEXJudicialCore()
                 return await core_apex.execute(
@@ -2315,7 +2315,7 @@ async def mcp_999_vault(
             # v52.1: Prefer Core APEX Room sealing (889 PROOF + 999 SEAL)
             # =================================================================
             try:
-                from arifos.core.apex.kernel import APEXJudicialCore
+                from canonical_core.apex.kernel import APEXJudicialCore
 
                 if session_id and not agi_result:
                     agi_result = get_stage_result(session_id, "agi") or agi_result

@@ -19,7 +19,7 @@ from .fag import FAG, FAGReadResult, SecurityAlert
 from .ledger import log_cooling_entry
 
 # v47: Backward compatibility - Import state modules from new location
-from arifos.core.state import (
+from canonical_core.state import (
     ledger_cryptography,
     ledger_hashing,
     merkle,
@@ -55,8 +55,8 @@ def __getattr__(name):
     state_modules = ["ledger_cryptography", "ledger_hashing", "merkle", "merkle_ledger"]
     if name in state_modules:
         warnings.warn(
-            f"Importing {name} from arifos.core.apex.governance is deprecated. "
-            f"Use 'from arifos.core.state import {name}' instead. "
+            f"Importing {name} from canonical_core.apex.governance is deprecated. "
+            f"Use 'from canonical_core.state import {name}' instead. "
             "This compatibility shim will be removed in v48.",
             DeprecationWarning,
             stacklevel=2

@@ -9,7 +9,7 @@ Hardening:
 - Energy Budget Check
 """
 from typing import Dict, Any
-from arifos.core.engines.apex_engine import APEXEngine
+from canonical_core.engines.apex_engine import APEXEngine
 
 APEX = APEXEngine()
 

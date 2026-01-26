@@ -20,18 +20,18 @@ import mcp.types
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
-from arifos.mcp.bridge import (
+from canonical_core.mcp.bridge import (
     bridge_init_router,
     bridge_agi_router,
     bridge_asi_router,
     bridge_apex_router,
     bridge_vault_router,
 )
-from arifos.core.enforcement.governance.rate_limiter import get_rate_limiter
-from arifos.mcp.mode_selector import get_mcp_mode, MCPMode
-from arifos.mcp.constitutional_metrics import record_verdict
-from arifos.core.enforcement.metrics import record_stage_metrics, record_verdict_metrics
-from arifos.core.system.orchestrator.presenter import AAAMetabolizer
+from canonical_core.enforcement.governance.rate_limiter import get_rate_limiter
+from canonical_core.mcp.mode_selector import get_mcp_mode, MCPMode
+from canonical_core.mcp.constitutional_metrics import record_verdict
+from canonical_core.enforcement.metrics import record_stage_metrics, record_verdict_metrics
+from canonical_core.system.orchestrator.presenter import AAAMetabolizer
 
 logger = logging.getLogger(__name__)
 

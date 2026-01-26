@@ -7,14 +7,14 @@ The main implementation is in arifos.core.apex.kernel.APEXJudicialCore
 """
 
 # New v51 kernel
-from arifos.core.apex.kernel import APEXJudicialCore
+from canonical_core.apex.kernel import APEXJudicialCore
 
 # Alias for backward compatibility
 APEXKernel = APEXJudicialCore
 
 # Legacy engine (for backward compatibility)
 try:
-    from arifos.core.engines.apex_engine import (
+    from canonical_core.engines.apex_engine import (
         APEXEngine,
         APEXOutput,
         VoidJustification,
