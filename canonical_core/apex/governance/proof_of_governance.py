@@ -13,7 +13,7 @@ import uuid
 import time
 
 from canonical_core.enforcement.judiciary.witness_council import ConsensusResult, Verdict
-from canonical_core.state.merkle_ledger import MerkleLedger, MerkleEntry
+from canonical_core.state.merkle_ledger import MerkleLedger
 from canonical_core.apex.governance.sovereign_signature import SovereignSigner, SignatureVerifier
 
 
