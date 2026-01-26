@@ -25,8 +25,8 @@ import time
 logger = logging.getLogger(__name__)
 
 # Stage imports
-from canonical_core.agi_room import stage_111_sense, stage_222_think, stage_333_reason
-from canonical_core.asi_room import stage_555_empathy
+from canonical_core.agi_room import execute_stage_111, execute_stage_222, execute_stage_333
+from canonical_core.asi_room import execute_empathy_stage, execute_align_stage
 from canonical_core import stage_444, stage_555, stage_666
 from canonical_core import stage_777_forge, stage_888_judge, stage_889_proof
 from canonical_core.apex_prime import APEXPrime
@@ -199,15 +199,15 @@ class Pipeline:
         """
         logger.info("[AGI] Stage 111: SENSE")
         # Stage 111: SENSE
-        sense_result = stage_111_sense.execute(query, context)
+        sense_result = execute_stage_111(query, context or {})
         
         logger.info("[AGI] Stage 222: THINK")
         # Stage 222: THINK
-        think_result = stage_222_think.execute(sense_result)
+        think_result = execute_stage_222(sense_result, query)
         
         logger.info("[AGI] Stage 333: REASON")
         # Stage 333: REASON
-        reason_result = stage_333_reason.execute(think_result)
+        reason_result = execute_stage_333(think_result, query)
         
         return {
             "stage": "333_REASON",
@@ -233,11 +233,11 @@ class Pipeline:
         """
         logger.info("[ASI] Stage 555: EMPATHY")
         # Stage 555: EMPATHY
-        empathy_result = stage_555_empathy.execute(query, context)
+        empathy_result = execute_empathy_stage(query, session_id, context or {})
         
         logger.info("[ASI] Stage 666: ALIGN")
-        # Stage 666: ALIGN
-        align_result = stage_666.execute(empathy_result, session_id)
+        # Stage 666: ALIGN  
+        align_result = execute_align_stage(empathy_result, session_id)
         
         return {
             "stage": "666_ALIGN",
