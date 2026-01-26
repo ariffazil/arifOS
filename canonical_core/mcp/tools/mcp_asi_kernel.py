@@ -11,7 +11,7 @@ DITEMPA BUKAN DIBERI
 from typing import Any, Dict, Optional
 import logging
 
-from arifos.core.asi.kernel import ASIActionCore
+from canonical_core.asi.kernel import ASIActionCore
 
 logger = logging.getLogger(__name__)
 

@@ -1,12 +1,12 @@
 """
-DEPRECATED: This module has moved to arifos.core.state.ledger_hashing
+DEPRECATED: This module has moved to canonical_core.state.ledger_hashing
 
 Ledger hashing functionality is now part of the state layer.
 This shim will be removed in v47.2 (72 hours after v47.1 release).
 
 Update your imports:
-  OLD: from arifos.core.apex.governance.ledger_hashing import sha256_hex
-  NEW: from arifos.core.state.ledger_hashing import sha256_hex
+  OLD: from canonical_core.apex.governance.ledger_hashing import sha256_hex
+  NEW: from canonical_core.state.ledger_hashing import sha256_hex
 
 Constitutional Mapping:
 - Old Location: apex/governance/ (mixed concerns)
@@ -16,12 +16,12 @@ Constitutional Mapping:
 import warnings
 
 warnings.warn(
-    "arifos.core.apex.governance.ledger_hashing is deprecated. "
-    "Use arifos.core.state.ledger_hashing instead. "
+    "canonical_core.apex.governance.ledger_hashing is deprecated. "
+    "Use canonical_core.state.ledger_hashing instead. "
     "This shim will be removed in v47.2 (72 hours after v47.1).",
     DeprecationWarning,
     stacklevel=2
 )
 
 # Re-export everything from new location
-from arifos.core.state.ledger_hashing import *
+from canonical_core.state.ledger_hashing import *

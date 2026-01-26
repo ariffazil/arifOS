@@ -17,11 +17,11 @@ from typing import Any, Dict, Optional
 logger = logging.getLogger(__name__)
 
 # Mid-session context passing (AGI → ASI → APEX → VAULT)
-from arifos.mcp.constitutional_metrics import store_stage_result
+from canonical_core.mcp.constitutional_metrics import store_stage_result
 
 # --- CORE AVAILABILITY ---
 try:
-    from arifos.core.kernel import get_kernel_manager
+    from canonical_core.kernel import get_kernel_manager
     ENGINES_AVAILABLE = True
 except ImportError:
     logger.warning("arifOS Cores unavailable - Bridge in degraded mode")

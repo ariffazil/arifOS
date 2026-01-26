@@ -1,12 +1,12 @@
 """
-DEPRECATED: This module has moved to arifos.core.state.merkle
+DEPRECATED: This module has moved to canonical_core.state.merkle
 
 Merkle tree functionality is now part of the state layer.
 This shim will be removed in v47.2 (72 hours after v47.1 release).
 
 Update your imports:
-  OLD: from arifos.core.apex.governance.merkle import MerkleTree
-  NEW: from arifos.core.state.merkle import MerkleTree
+  OLD: from canonical_core.apex.governance.merkle import MerkleTree
+  NEW: from canonical_core.state.merkle import MerkleTree
 
 Constitutional Mapping:
 - Old Location: apex/governance/ (mixed concerns)
@@ -16,12 +16,12 @@ Constitutional Mapping:
 import warnings
 
 warnings.warn(
-    "arifos.core.apex.governance.merkle is deprecated. "
-    "Use arifos.core.state.merkle instead. "
+    "canonical_core.apex.governance.merkle is deprecated. "
+    "Use canonical_core.state.merkle instead. "
     "This shim will be removed in v47.2 (72 hours after v47.1).",
     DeprecationWarning,
     stacklevel=2
 )
 
 # Re-export everything from new location
-from arifos.core.state.merkle import *
+from canonical_core.state.merkle import *

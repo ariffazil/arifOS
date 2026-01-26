@@ -8,9 +8,9 @@ Hardening:
 - Coherence Verification
 """
 from typing import Dict, Any
-from arifos.core.engines.apex_engine import APEXEngine
+from canonical_core.apex_prime import APEXPrime
 
-APEX = APEXEngine()
+APEX = APEXPrime()
 
 def execute_stage(context: Dict[str, Any]) -> Dict[str, Any]:
     context["stage"] = "777"

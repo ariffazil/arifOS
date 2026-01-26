@@ -20,11 +20,11 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 # Import Amanah detector
-from arifos.core.enforcement.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR, RiskLevel
+from canonical_core.enforcement.floor_detectors.amanah_risk_detectors import AMANAH_DETECTOR, RiskLevel
 
 # Import existing tri-witness check
 # Import existing tri-witness check
-from arifos.core.enforcement.metrics import check_tri_witness
+from canonical_core.enforcement.metrics import check_tri_witness
 
 # Import existing tri-witness check
 

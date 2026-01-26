@@ -13,12 +13,12 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from arifos.core.spec.manifest_verifier import verify_manifest
+from canonical_core.spec.manifest_verifier import verify_manifest
 
 # Import schema validator and manifest verifier from spec package (avoids circular import)
-from arifos.core.spec.schema_validator import validate_spec_against_schema
-from arifos.core.system.apex_prime import Verdict
-from arifos.core.utils.reduction_engine import SessionAttributes
+from canonical_core.spec.schema_validator import validate_spec_against_schema
+from canonical_core.system.apex_prime import Verdict
+from canonical_core.utils.reduction_engine import SessionAttributes
 
 # =============================================================================
 # TRACK B SPEC LOADER (v45.0: Session Physics Authority)

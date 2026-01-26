@@ -23,12 +23,12 @@ import math
 from dataclasses import asdict
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-from arifos.core.enforcement.floor_validators import (
+from canonical_core.enforcement import (
     validate_f10_ontology,
     validate_f12_injection_defense,
     validate_f13_curiosity,
 )
-from arifos.core.enforcement.metrics import (
+from canonical_core.constants import (
     DELTA_S_THRESHOLD,
     KAPPA_R_THRESHOLD,
     OMEGA_0_MAX,

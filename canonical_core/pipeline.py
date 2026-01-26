@@ -16,8 +16,9 @@ DITEMPA BUKAN DIBERI
 
 from __future__ import annotations
 from typing import Dict, Any, Optional
-import logging
 import asyncio
+import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -91,8 +92,10 @@ class MetabolicLoop:
             context: Optional context dictionary
             
         Returns:
-            Pipeline result with verdict, response, and floor scores
+            Pipeline result with verdict, response, floor scores, and latency
         """
+        start_time = time.perf_counter()
+        
         try:
             logger.info(f"METABOLIC LOOP START: {session_id[:8]}... query='{query[:50]}'")
             
@@ -145,7 +148,17 @@ class MetabolicLoop:
             # Stage 999: SEAL (handled by vault/)
             # Ledger sealing happens in background
             
-            logger.info(f"METABOLIC LOOP COMPLETE: verdict={verdict.verdict} (ready to loop back to 000)")
+            # Calculate latency
+            latency_ms = (time.perf_counter() - start_time) * 1000
+            
+            logger.info(f"METABOLIC LOOP COMPLETE: verdict={verdict.verdict} latency={latency_ms:.1f}ms (ready to loop back to 000)")
+            
+            # Constitutional requirement: Target <50ms, warn if exceeded
+            if latency_ms > 50:
+                logger.warning(
+                    f"Metabolic loop latency {latency_ms:.1f}ms exceeds 50ms target "
+                    f"(constitutional efficiency requirement)"
+                )
             
             return {
                 "session_id": session_id,
@@ -153,6 +166,8 @@ class MetabolicLoop:
                 "response": forge_result.get("response", ""),
                 "floor_scores": verdict.floor_scores if hasattr(verdict, "floor_scores") else {},
                 "proof_hash": proof.get("merkle_root", ""),
+                "latency_ms": latency_ms,
+                "trinity_parallel": True,  # Flag indicating parallel execution
                 "status": "COMPLETE"
             }
             

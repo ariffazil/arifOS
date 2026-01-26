@@ -22,10 +22,9 @@ from typing import Any, Dict, List, Optional
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-from arifos.core.system.apex_prime import APEXPrime
-from arifos.core.system.types import Verdict
-from arifos.mcp.constitutional_metrics import get_stage_result, store_stage_result
-from arifos.mcp.session_ledger import seal_memory
+from canonical_core.system.apex_prime import APEXPrime
+from canonical_core.mcp.constitutional_metrics import get_stage_result, store_stage_result
+from canonical_core.mcp.session_ledger import seal_memory
 
 
 @dataclass
@@ -179,14 +178,14 @@ class APEXJudicialCore:
         lane: str,
     ) -> Dict[str, Any]:
         """Stage 888: full floor validation with p(truth)."""
-        from arifos.core.enforcement.floor_validators import validate_f4_clarity
+        from canonical_core.enforcement.floor_validators import validate_f4_clarity
 
         votes = self._extract_votes(agi_result, asi_result)
         tri_witness = sum(votes.values()) / 3.0
 
         # Build minimal floor bundles for APEXPrime (F1-F9 family).
         # We keep these conservative: if signal missing, it does not auto-fail.
-        from arifos.core.system.types import FloorCheckResult, Metrics
+        from canonical_core.system.types import FloorCheckResult, Metrics
 
         truth_score = float(votes["mind"])
         kappa_r = float(votes["heart"])
@@ -346,7 +345,7 @@ class APEXJudicialCore:
 
     @staticmethod
     def _sessions_dir() -> Path:
-        from arifos.mcp.session_ledger import SESSION_PATH
+        from canonical_core.mcp.session_ledger import SESSION_PATH
 
         return SESSION_PATH
 

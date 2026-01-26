@@ -101,8 +101,8 @@ class PsiKernel:
         5. Return: PsiVerdict with final judgment
 
     Example:
-        from arifos.core.agi.delta_kernel import DeltaKernel
-        from arifos.core.asi.omega_kernel import OmegaKernel
+        from canonical_core.agi.delta_kernel import DeltaKernel
+        from canonical_core.asi.omega_kernel import OmegaKernel
 
         delta = DeltaKernel().evaluate(...)
         omega = OmegaKernel().evaluate(...)
