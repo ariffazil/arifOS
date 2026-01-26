@@ -526,7 +526,7 @@ async def get_openapi_spec(request):
     Import this URL directly into ChatGPT's GPT Builder.
     """
     spec = {
-        "openapi": "3.0.0",
+        "openapi": "3.1.0",
         "info": {
             "title": "arifOS Constitutional AI Governance",
             "description": "Constitutional AI governance filter. Validates AI outputs against 13 floors: Truth, Empathy, Amanah (reversibility), Clarity, and Humility. Returns SEAL (approved), PARTIAL (warning), VOID (blocked), or 888_HOLD (human required).",
