@@ -1,14 +1,23 @@
 {
+  "$schema": "https://cdn.jsdelivr.net/npm/@anthropic-ai/claude-code@latest/mcp-schema.json",
   "mcpServers": {
-    "arifOS-Trinity": {
+    "arifOS-Constitutional": {
       "command": "python",
-      "args": ["-m", "arifos.mcp"],
+      "args": ["-m", "arifos.mcp", "trinity"],
+      "cwd": "C:/Users/User/arifOS",
       "env": {
-        "PYTHONIOENCODING": "utf-8"
-      }
-    },
-    "arifOS-Remote": {
-      "url": "https://arifos.arif-fazil.com/sse"
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONUNBUFFERED": "1",
+        "ARIFOS_MODE": "BRIDGE"
+      },
+      "disabled": false,
+      "alwaysAllow": [
+        "init_000",
+        "agi_genius",
+        "asi_act",
+        "apex_judge",
+        "vault_999"
+      ]
     }
   }
 }

@@ -197,7 +197,7 @@ wheels = [
 
 [[package]]
 name = "arifos"
-version = "52.5.1"
+version = "52.5.26"
 source = { editable = "." }
 dependencies = [
     { name = "anyio" },

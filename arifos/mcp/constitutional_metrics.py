@@ -102,6 +102,16 @@ _SESSION_LOCK = threading.Lock()
 # Server start time
 _SERVER_START = time.time()
 
+# ============================================================================
+# TRINITY SCORE TRACKING (AGI τ, ASI κᵣ, APEX Ψ)
+# ============================================================================
+_TRINITY_SCORES: Dict[str, List[float]] = {
+    "tau": [],       # τ: Truth accuracy (AGI Mind)
+    "kappa_r": [],   # κᵣ: Empathy resonance (ASI Heart)
+    "psi": []        # Ψ: Vitality/Judgment (APEX Soul)
+}
+_TRINITY_LOCK = threading.Lock()
+
 def record_tool_call(tool: str):
     """Record a tool invocation."""
     with _TOOL_LOCK:

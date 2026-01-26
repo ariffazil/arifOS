@@ -277,46 +277,63 @@ def bridge_asi_full(agi_output: Dict, user_context: Optional[Dict] = None,
 # APEX ADAPTERS (Soul/Ψ)
 # =============================================================================
 
-def bridge_apex_judge(query: str, response: str, agi_result: Optional[Dict] = None,
-                      asi_result: Optional[Dict] = None) -> Dict[str, Any]:
+def bridge_apex_judge(agi_output: Dict, asi_output: Dict) -> Dict[str, Any]:
     """
     Execute APEX JUDGE via Core Engine.
+
+    Runs the full APEX pipeline: EUREKA → JUDGE → PROOF
+
+    Args:
+        agi_output: Output from AGI engine (sense/think/atlas/forge)
+        asi_output: Output from ASI engine (evidence/empathy/align)
+
+    Returns:
+        APEXOutput with verdict, genius index, and cryptographic proof
     """
     if not ENGINES_AVAILABLE:
         return {"status": "FALLBACK", "reason": "Core engines unavailable"}
 
     try:
         apex = get_apex()
-        # APEX engine API may vary - adapt as needed
-        if hasattr(apex, 'judge'):
-            result = apex.judge(query, response, agi_result, asi_result)
-            return _serialize(result)
-        return {"status": "FALLBACK", "reason": "APEX judge method not implemented"}
+        # Execute full APEX pipeline: EUREKA → JUDGE → PROOF
+        output = apex.execute(agi_output, asi_output)
+        return _serialize(output)
     except Exception as e:
         logger.error(f"bridge_apex_judge failed: {e}")
         return {"status": "ERROR", "error": str(e), "source": "v51_bridge"}
 
 
-def bridge_apex_full(query: str, response: str, agi_result: Optional[Dict] = None,
-                     asi_result: Optional[Dict] = None,
+def bridge_apex_full(agi_output: Dict, asi_output: Dict,
                      zk_proof: Optional[str] = None) -> Dict[str, Any]:
     """
     Execute Full APEX Pipeline via Core Engine.
-    Supports zk_proof verification.
+
+    EUREKA → JUDGE → PROOF
+
+    Args:
+        agi_output: Complete AGI output (from bridge_agi_full)
+        asi_output: Complete ASI output (from bridge_asi_full)
+        zk_proof: Optional zero-knowledge proof for verification
+
+    Returns:
+        APEXOutput with:
+        - verdict: SEAL/SABAR/VOID
+        - genius_index: G = A × P × X × E²
+        - merkle_root: Cryptographic proof
+        - audit_hash: Full audit trail hash
     """
     if not ENGINES_AVAILABLE:
         return {"status": "FALLBACK", "reason": "Core engines unavailable"}
 
     try:
-        # TODO: Verify zk_proof
+        # TODO: Verify zk_proof for F3/F13 integrity
         if zk_proof:
             logger.info(f"v51_bridge: zk_proof received: {zk_proof[:16]}...")
-            
+
         apex = get_apex()
-        if hasattr(apex, 'execute'):
-            output = apex.execute(query, response, agi_result, asi_result)
-            return _serialize(output)
-        return {"status": "FALLBACK", "reason": "APEX execute method not implemented"}
+        # Execute: EUREKA → JUDGE → PROOF
+        output = apex.execute(agi_output, asi_output)
+        return _serialize(output)
     except Exception as e:
         logger.error(f"bridge_apex_full failed: {e}")
         return {"status": "ERROR", "error": str(e), "source": "v51_bridge"}

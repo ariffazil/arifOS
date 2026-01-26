@@ -1981,19 +1981,23 @@ async def mcp_apex_judge(
             ).__dict__
 
         # =====================================================================
-        # ACTION: FULL (Complete Pipeline)
+        # ACTION: FULL (Complete Pipeline: EUREKA → JUDGE → PROOF)
         # =====================================================================
         elif action == "full":
-            # v51 Bridge: Try Core Engine first
+            # v51 Bridge: Execute via Core APEX Engine
             if ENGINES_AVAILABLE and bridge_apex_full:
                 try:
-                    bridge_result = bridge_apex_full(query, response, agi_result, asi_result)
+                    # Pass AGI/ASI outputs to APEX for final judgment
+                    bridge_result = bridge_apex_full(
+                        agi_output=agi_result or {},
+                        asi_output=asi_result or {}
+                    )
                     if bridge_result.get("status") not in ("ERROR", "FALLBACK"):
                         bridge_result["session_id"] = session_id
-                        logger.debug("apex_judge.full: Using v51 bridge")
+                        logger.debug("apex_judge.full: Using v51 bridge (Core APEX Engine)")
                         return bridge_result
                 except Exception as e:
-                    logger.warning(f"v51 bridge failed, using inline: {e}")
+                    logger.warning(f"v51 bridge failed, using inline fallback: {e}")
 
             # Fallback: Inline pipeline
             # 777 EUREKA
