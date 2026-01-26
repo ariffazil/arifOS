@@ -5,6 +5,8 @@
 
 This guide shows how to create a Custom GPT that uses arifOS for constitutional AI governance.
 
+> **🚀 Live Example:** [AGI BUILDER - Real Intelligence](https://chatgpt.com/g/g-68fd42bc18c481918f4e33093ad66b4a-agi-builder-real-intelligence) — A constitutionally-governed GPT powered by arifOS.
+
 ---
 
 ## Why Use arifOS with ChatGPT?
@@ -356,6 +358,7 @@ Expected: 888_HOLD (requires explicit confirmation)
 
 | Resource | URL |
 |----------|-----|
+| **Live GPT Example** | https://chatgpt.com/g/g-68fd42bc18c481918f4e33093ad66b4a-agi-builder-real-intelligence |
 | **OpenAPI Spec** | https://arifos.arif-fazil.com/openapi.json |
 | **Health Check** | https://arifos.arif-fazil.com/health |
 | **Live Dashboard** | https://arifos.arif-fazil.com/dashboard |
