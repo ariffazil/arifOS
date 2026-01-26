@@ -23,7 +23,6 @@ from typing import Any, Dict, List, Optional
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from canonical_core.system.apex_prime import APEXPrime
-from canonical_core.system.types import Verdict
 from canonical_core.mcp.constitutional_metrics import get_stage_result, store_stage_result
 from canonical_core.mcp.session_ledger import seal_memory
 
