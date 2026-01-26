@@ -14,6 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Pure Bridge**: Server is "blind" (zero logic) — all wisdom lives in Core Kernels
 - **MCP Conscience**: Protocol is the conscience; AI cannot act without Trinity tools
 - **Live Server**: https://arifos.arif-fazil.com/ (Railway deployment)
+- **Monitoring**: https://arifos.arif-fazil.com/dashboard (Live Telemetry)
 
 ---
 
@@ -282,6 +283,7 @@ Constitutional claims MUST be verified against PRIMARY sources:
 | `DeltaKernel` | `arifos/core/engines/agi/delta_kernel.py` | AGI Mind engine |
 | `OmegaKernel` | `arifos/core/engines/asi/omega_kernel.py` | ASI Heart engine |
 | `PsiKernel` | `arifos/core/apex/psi_kernel.py` | APEX Soul engine |
+| `LiveMetricsService` | `arifos/core/integration/api/services/live_metrics_service.py` | Ledger telemetry |
 | `TrinityOrchestrator` | `arifos/core/enforcement/trinity_orchestrator.py` | Tri-Witness consensus |
 
 ### MCP Entry Points
@@ -327,6 +329,6 @@ This project is governed by `.claude/CLAUDE.md` (global instructions) which defi
 
 ---
 
-**Version:** v52.0.0
+**Version:** v52.5.1-SEAL
 **Last Updated:** January 2026
 **Motto:** *"Ditempa Bukan Diberi"* — Forged, Not Given

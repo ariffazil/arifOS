@@ -12,6 +12,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Status:** SEALED (Constitutional Verified)
 **Authority:** Muhammad Arif bin Fazil (888 Judge)
 
+### 📊 Major Addition: Live Monitoring Dashboard (Serena-style)
+
+Deployed a high-contrast dark mode monitoring dashboard at `/dashboard` for real-time system observability:
+- **Live Telemetry:** Dashboard polls `/metrics/json` every 2 seconds for fresh data.
+- **Trinity Colors Aligned:** Corrected brand colors — Blue (Mind/AGI), Red (Heart/ASI), Yellow (Soul/APEX).
+- **Execution Tracking:** Shows last 20 tool calls with verdict, latency, and duration.
+- **Constitutional LEDs:** 13-floor status grid reflecting live governance health.
+- **Trinity Scores:** Real-time τ (Truth), κᵣ (Empathy), and Ψ (Vitality) streaming from the ledger.
+
+### 🧠 Live Metrics Service (LiveMetricsService)
+
+Implemented `arifos/core/integration/api/services/live_metrics_service.py`:
+- **Ledger-Backed:** Computes stats directly from `VAULT999/BBB_LEDGER/cooling_ledger.jsonl`.
+- **Transparency:** Added `calibration_mode` flag to distinguish between real ledger data and synthetic fallbacks (F1 Amanah compliance).
+- **Performance:** 30-second TTL caching for sub-2ms response times on warm hits.
+
 ### 🧭 Major Feature: ATLAS-333 Lane Routing
 
 Integrated GPV (Governance Placement Vector) routing into the metabolic pipeline. Every prompt is now classified into one of 4 lanes with lane-specific governance:
