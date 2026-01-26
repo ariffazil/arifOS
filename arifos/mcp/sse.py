@@ -18,7 +18,7 @@ import os
 from starlette.responses import JSONResponse, HTMLResponse, FileResponse
 from starlette.staticfiles import StaticFiles
 from mcp.server.fastmcp import FastMCP
-from arifos.mcp.constitutional_metrics import get_seal_rate
+from arifos.mcp.constitutional_metrics import get_seal_rate, get_full_metrics, record_session_activity
 
 # --- STATIC ASSETS ---
 # Path to dashboard static files: arifos/core/integration/api/static
@@ -373,19 +373,14 @@ async def health_check(request):
         }
     })
 
-# --- METRICS ENDPOINT (For Dashboard) ---
+# --- METRICS ENDPOINT (For Dashboard - like Serena's) ---
 @mcp.custom_route("/metrics/json", methods=["GET"])
 async def get_metrics_json(request):
-    """Get live metrics for dashboard polling."""
-    return JSONResponse({
-        "status": "active",
-        "seal_rate": get_seal_rate(),
-        "void_rate": 1.0 - get_seal_rate() if get_seal_rate() > 0 else 0.0,
-        "active_sessions": 1,
-        "entropy_delta": -0.042,
-        "truth_score": {"p50": 0.99, "p95": 0.995, "p99": 1.0},
-        "empathy_score": 0.98
-    })
+    """
+    Get live metrics for dashboard polling.
+    Returns tool usage, verdict distribution, sessions, and recent executions.
+    """
+    return JSONResponse(get_full_metrics())
 
 # --- DASHBOARD ROUTE ---
 @mcp.custom_route("/dashboard", methods=["GET"])

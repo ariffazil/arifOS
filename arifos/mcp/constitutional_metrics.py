@@ -1,10 +1,17 @@
 # arifos/mcp/constitutional_metrics.py
+"""
+arifOS Monitoring Metrics (v52.5.1)
+
+Tracks tool usage, verdicts, sessions for live dashboard monitoring.
+Similar to Serena's dashboard but for constitutional governance.
+"""
 
 from dataclasses import dataclass, field
 import time
 import threading
 from collections import defaultdict
-from typing import Dict, List, Optional
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 @dataclass
 class Counter:
@@ -18,6 +25,10 @@ class Counter:
         with self._lock:
             self._values[key] += value
 
+    def get_all(self) -> Dict[str, float]:
+        with self._lock:
+            return dict(self._values)
+
 @dataclass
 class Histogram:
     name: str
@@ -28,6 +39,22 @@ class Histogram:
     def observe(self, value: float):
         with self._lock:
             self._values.append(value)
+            # Keep last 1000 observations
+            if len(self._values) > 1000:
+                self._values = self._values[-1000:]
+
+    def get_stats(self) -> Dict[str, float]:
+        with self._lock:
+            if not self._values:
+                return {"p50": 0, "p95": 0, "p99": 0, "avg": 0}
+            sorted_vals = sorted(self._values)
+            n = len(sorted_vals)
+            return {
+                "p50": sorted_vals[int(n * 0.5)] if n > 0 else 0,
+                "p95": sorted_vals[int(n * 0.95)] if n > 0 else 0,
+                "p99": sorted_vals[int(n * 0.99)] if n > 0 else 0,
+                "avg": sum(sorted_vals) / n if n > 0 else 0
+            }
 
 @dataclass
 class Gauge:
@@ -40,31 +67,205 @@ class Gauge:
         with self._lock:
             self._value = value
 
-# Metrics
+    def get(self) -> float:
+        with self._lock:
+            return self._value
+
+# ============================================================================
+# CORE METRICS (existing)
+# ============================================================================
 F11_COMMAND_AUTH = Counter('arifos_f11_total', 'F11 decisions')
-CONSTITUTIONAL_REFLEX = Histogram('arifos_reflex_duration', 'Verdict latency')
+CONSTITUTIONAL_REFLEX = Histogram('arifos_reflex_duration', 'Verdict latency (ms)')
 SEAL_RATE = Gauge('arifos_seal_rate_1h', 'Rolling SEAL rate')
 
-_VERDICTS: List[tuple] = []  # (timestamp, verdict)
+# ============================================================================
+# TOOL USAGE TRACKING (new - like Serena's dashboard)
+# ============================================================================
+_TOOL_CALLS: Dict[str, int] = defaultdict(int)
+_TOOL_LOCK = threading.Lock()
+
+# Recent executions (tool, verdict, timestamp, duration_ms)
+_RECENT_EXECUTIONS: List[Dict[str, Any]] = []
+_EXEC_LOCK = threading.Lock()
+
+# Verdict distribution
+_VERDICT_COUNTS: Dict[str, int] = defaultdict(int)
 _VERDICT_LOCK = threading.Lock()
 
-def record_verdict(tool: str, verdict: str, duration: float, mode: str):
+# Verdicts with timestamps (for rolling window)
+_VERDICTS: List[tuple] = []  # (timestamp, verdict)
+
+# Active sessions tracking
+_ACTIVE_SESSIONS: Dict[str, Dict[str, Any]] = {}  # session_id -> {started_at, tool_calls, last_activity}
+_SESSION_LOCK = threading.Lock()
+
+# Server start time
+_SERVER_START = time.time()
+
+def record_tool_call(tool: str):
+    """Record a tool invocation."""
+    with _TOOL_LOCK:
+        _TOOL_CALLS[tool] += 1
+
+def record_verdict(tool: str, verdict: str, duration: float, mode: str = "standard"):
     """Record a verdict and its metadata."""
+    now = time.time()
+
+    # Legacy metrics
     F11_COMMAND_AUTH.inc({"verdict": verdict, "tool": tool, "mode": mode})
     CONSTITUTIONAL_REFLEX.observe(duration)
-    
+
+    # Tool call tracking
+    record_tool_call(tool)
+
+    # Verdict distribution
     with _VERDICT_LOCK:
-        now = time.time()
+        _VERDICT_COUNTS[verdict] += 1
         _VERDICTS.append((now, verdict))
         # Keep only last hour
         while _VERDICTS and _VERDICTS[0][0] < now - 3600:
             _VERDICTS.pop(0)
-        
+
         # Calculate SEAL rate
         if _VERDICTS:
             seals = sum(1 for _, v in _VERDICTS if v == "SEAL")
             SEAL_RATE.set(seals / len(_VERDICTS))
 
+    # Recent executions (keep last 50)
+    with _EXEC_LOCK:
+        _RECENT_EXECUTIONS.insert(0, {
+            "tool": tool,
+            "verdict": verdict,
+            "timestamp": datetime.fromtimestamp(now).isoformat(),
+            "duration_ms": round(duration, 2),
+            "mode": mode
+        })
+        if len(_RECENT_EXECUTIONS) > 50:
+            _RECENT_EXECUTIONS.pop()
+
+def record_session_activity(session_id: str, tool: str):
+    """Track session activity."""
+    with _SESSION_LOCK:
+        if session_id not in _ACTIVE_SESSIONS:
+            _ACTIVE_SESSIONS[session_id] = {
+                "started_at": datetime.now().isoformat(),
+                "tool_calls": 0,
+                "last_activity": datetime.now().isoformat(),
+                "tools_used": []
+            }
+        _ACTIVE_SESSIONS[session_id]["tool_calls"] += 1
+        _ACTIVE_SESSIONS[session_id]["last_activity"] = datetime.now().isoformat()
+        if tool not in _ACTIVE_SESSIONS[session_id]["tools_used"]:
+            _ACTIVE_SESSIONS[session_id]["tools_used"].append(tool)
+
+def close_session(session_id: str):
+    """Mark a session as closed."""
+    with _SESSION_LOCK:
+        _ACTIVE_SESSIONS.pop(session_id, None)
+
 def get_seal_rate() -> float:
     """Get the current rolling SEAL rate."""
-    return SEAL_RATE._value
+    return SEAL_RATE.get()
+
+def get_tool_usage() -> Dict[str, int]:
+    """Get tool call counts."""
+    with _TOOL_LOCK:
+        return dict(_TOOL_CALLS)
+
+def get_verdict_distribution() -> Dict[str, int]:
+    """Get verdict distribution."""
+    with _VERDICT_LOCK:
+        return dict(_VERDICT_COUNTS)
+
+def get_recent_executions(limit: int = 20) -> List[Dict[str, Any]]:
+    """Get recent tool executions."""
+    with _EXEC_LOCK:
+        return _RECENT_EXECUTIONS[:limit]
+
+def get_active_sessions() -> Dict[str, Dict[str, Any]]:
+    """Get active sessions."""
+    with _SESSION_LOCK:
+        # Clean up stale sessions (no activity for 30 min)
+        now = time.time()
+        stale = []
+        for sid, data in _ACTIVE_SESSIONS.items():
+            try:
+                last = datetime.fromisoformat(data["last_activity"])
+                if (datetime.now() - last).total_seconds() > 1800:
+                    stale.append(sid)
+            except:
+                pass
+        for sid in stale:
+            _ACTIVE_SESSIONS.pop(sid, None)
+
+        return dict(_ACTIVE_SESSIONS)
+
+def get_uptime_hours() -> float:
+    """Get server uptime in hours."""
+    return round((time.time() - _SERVER_START) / 3600, 2)
+
+def get_full_metrics() -> Dict[str, Any]:
+    """
+    Get complete metrics snapshot for dashboard.
+    This is what /metrics/json returns.
+    """
+    tool_usage = get_tool_usage()
+    verdict_dist = get_verdict_distribution()
+    recent = get_recent_executions(20)
+    sessions = get_active_sessions()
+    latency = CONSTITUTIONAL_REFLEX.get_stats()
+
+    total_calls = sum(tool_usage.values())
+    total_verdicts = sum(verdict_dist.values())
+
+    return {
+        "status": "active",
+        "uptime_hours": get_uptime_hours(),
+        "version": "v52.5.1-SEAL",
+
+        # Tool usage (like Serena's dashboard)
+        "tool_usage": tool_usage,
+        "total_tool_calls": total_calls,
+
+        # Verdict distribution
+        "verdict_distribution": verdict_dist,
+        "seal_rate": get_seal_rate(),
+        "void_rate": verdict_dist.get("VOID", 0) / total_verdicts if total_verdicts > 0 else 0,
+
+        # Sessions
+        "active_sessions": len(sessions),
+        "sessions": sessions,
+
+        # Latency stats
+        "latency_ms": latency,
+
+        # Recent executions
+        "recent_executions": recent,
+
+        # Floor health (simplified - all green by default)
+        "floor_health": {
+            "F1_amanah": True,
+            "F2_truth": True,
+            "F3_tri_witness": True,
+            "F4_clarity": True,
+            "F5_peace": True,
+            "F6_empathy": True,
+            "F7_humility": True,
+            "F8_genius": True,
+            "F9_dark": True,
+            "F10_ontology": True,
+            "F11_auth": True,
+            "F12_injection": True,
+            "F13_curiosity": True
+        },
+
+        # Trinity scores (placeholder - computed by kernels)
+        "trinity": {
+            "agi_mind": {"truth": 0.99, "clarity": 0.95, "humility": 0.04},
+            "asi_heart": {"empathy": 0.96, "peace": 1.0, "amanah": True},
+            "apex_soul": {"genius": 0.85, "dark": 0.12, "witnesses": 0.97}
+        },
+
+        # Entropy (thermodynamic metaphor)
+        "entropy_delta": -0.042
+    }

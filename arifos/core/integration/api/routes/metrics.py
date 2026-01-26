@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Response
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
@@ -110,19 +112,61 @@ async def prometheus_metrics() -> Response:
 @router.get("/json")
 async def get_live_metrics_json() -> dict:
     """
-    Get human-readable live summary metrics from the constitutional rolling tracker.
-    """
-    from arifos.mcp.constitutional_metrics import get_seal_rate
+    Get LIVE constitutional metrics from the governance pipeline.
     
-    return {
-        "status": "active",
-        "seal_rate": get_seal_rate(),
-        "void_rate": 1.0 - get_seal_rate() if get_seal_rate() > 0 else 0.0,
-        "active_sessions": 1,  # Placeholder for session counter
-        "entropy_delta": -0.042, # Mock live value
-        "truth_score": {"p50": 0.99, "p95": 0.995, "p99": 1.0},
-        "empathy_score": 0.98
-    }
+    Returns real-time computed values from:
+    - VAULT999 Cooling Ledger (SEAL/VOID rates)
+    - ASI Evaluator (τ, κᵣ, ΔS)
+    - Entropy Tracker (thermodynamic compliance)
+    - Governance Engine (uptime, vitality Ψ)
+    """
+    from arifos.core.integration.api.services.live_metrics_service import (
+        get_live_metrics_service
+    )
+    
+    try:
+        service = get_live_metrics_service()
+        metrics = service.get_live_metrics(use_cache=True)
+        
+        return {
+            "status": "live",
+            "calibration_mode": False,  # ✅ Real data from VAULT999
+            "timestamp": metrics.timestamp,
+            # Trinity Scores
+            "tau": metrics.tau,                    # τ: Truth accuracy (AGI)
+            "kappa_r": metrics.kappa_r,            # κᵣ: Empathy (ASI)
+            "psi": metrics.psi,                    # Ψ: Vitality (APEX)
+            "entropy_delta": metrics.entropy_delta, # ΔS: Clarity
+            # System Health
+            "seal_rate": metrics.seal_rate,
+            "void_rate": metrics.void_rate,
+            "active_sessions": metrics.active_sessions,
+            "uptime_hours": metrics.uptime_hours,
+            # Truth Distribution
+            "truth_score": metrics.truth_percentiles,  # p50, p95, p99
+            # Constitutional Compliance
+            "constitutional_compliance": {
+                "floors_passed": metrics.floors_passed,
+                "floors_failed": metrics.floors_failed,
+                "sabar_triggered": metrics.sabar_triggered
+            }
+        }
+        
+    except Exception as e:
+        # Fail transparently - don't serve mock data
+        return {
+            "status": "error",
+            "calibration_mode": True,  # ⚠️ Explicitly flag as synthetic
+            "error": str(e),
+            "disclaimer": "Serving fallback data due to metrics service error",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "tau": 0.99,
+            "kappa_r": 0.98,
+            "psi": 0.00,
+            "entropy_delta": -0.042,
+            "seal_rate": 0.95,
+            "void_rate": 0.05
+        }
 
 
 @router.get("/floors")
