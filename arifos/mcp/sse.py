@@ -1014,17 +1014,31 @@ def create_sse_app():
     """Returns the ASGI app for deployment."""
     return app
 
-if __name__ == "__main__":
+
+def main():
+    """
+    Main entry point for aaa-mcp-sse command.
+
+    Used by:
+      - pyproject.toml: aaa-mcp-sse = "arifos.mcp.sse:main"
+      - railway.toml: startCommand = "aaa-mcp-sse"
+    """
     import uvicorn
-    # Local Dev Mode
+
     port = int(os.getenv("PORT", 8000))
-    print(f"[IGNITION] Trinity Monolith (SSE) starting on port {port}...")
-    
+    print(f"[IGNITION] AAA Monolith (SSE) starting on port {port}...")
+
     # Run initial recovery
     recovered = _recover_orphans()
     if recovered > 0:
         print(f"[BOOTSTRAP] Recovered {recovered} orphaned session(s)")
-        
+
     print(f"   Version: {VERSION}")
-    print(f"   Routes: /health, /sse, /messages, /dashboard")
+    print(f"   Routes: /health, /sse, /messages, /dashboard, /docs")
+    print(f"   Motto: DITEMPA BUKAN DIBERI")
+
     uvicorn.run(app, host="0.0.0.0", port=port)
+
+
+if __name__ == "__main__":
+    main()

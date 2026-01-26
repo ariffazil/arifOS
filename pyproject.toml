@@ -3,8 +3,14 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "arifos"
-version = "52.5.26"
+name = "aaa-mcp"
+version = "53.0.0"
+# v53.0.0-AAA: Rebrand MCP server as AAA MCP
+#   - Rename commands: arifos-mcp → aaa-mcp
+#   - Package name: aaa-mcp (PyPI)
+#   - Backward compatibility: arifos-mcp* aliases maintained
+#   - Clear separation: AAA MCP = gateway, arifos = constitutional kernel
+# v52.5.26-LIVE: Dashboard Metrics Integration & Constitutional Governance
 # v52.5.26-LIVE: Dashboard Metrics Integration & Constitutional Governance (2026-01-26)
 #   - LiveMetricsService: Real-time constitutional metrics from VAULT999 ledger
 #   - Live τ (truth), κᵣ (empathy), Ψ (vitality), ΔS (clarity) computation
@@ -22,7 +28,7 @@ version = "52.5.26"
 # v51.0.0: AAA MCP SERVER - Bridge to Core Engines + Rebrand (2026-01-24)
 # v50.0.0: Constitutional Housekeeping - Consolidated core (2026-01-20)
 # v49.0.0: Constitutional Forge - 13 Floors, Trinity Engines, 25 MCP Servers (2026-01-18)
-description = "The constitutional AI safety filter. Prevents lies with 13 enforceable floors (F1-F13), TEACH principles, and live thermodynamic governance. Built on the Trinity architecture (AGI/ASI/APEX) with immutable VAULT999 ledger. MCP-compatible. Live metrics dashboard. AGPL-3.0. Available at https://arifos.arif-fazil.com/"
+description = "AAA MCP - The constitutional AI safety gateway. Prevents lies with 13 enforceable floors (F1-F13), TEACH principles, and live thermodynamic governance. Built on the Trinity architecture (AGI/ASI/APEX) with immutable VAULT999 ledger. MCP-compatible. Live metrics dashboard. AGPL-3.0. Available at https://aaa-mcp.arif-fazil.com/"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "AGPL-3.0-only"
@@ -135,7 +141,12 @@ all = [
 ]
 
 [project.scripts]
-# MCP Server Commands (Primary v52)
+# AAA MCP Server Commands (Primary v53)
+aaa-mcp = "arifos.mcp.__main__:main"
+aaa-mcp-sse = "arifos.mcp.sse:main"
+aaa-mcp-stdio = "arifos.mcp.server:main_stdio"
+
+# Backward Compatibility Aliases (Deprecated, will be removed in v54)
 arifos-mcp = "arifos.mcp.__main__:main"
 arifos-mcp-sse = "arifos.mcp.sse:main"
 arifos-mcp-stdio = "arifos.mcp.server:main_stdio"
@@ -176,9 +187,10 @@ Documentation = "https://github.com/ariffazil/arifOS/blob/main/README.md"
 Repository = "https://github.com/ariffazil/arifOS"
 Issues = "https://github.com/ariffazil/arifOS/issues"
 Changelog = "https://github.com/ariffazil/arifOS/blob/main/CHANGELOG.md"
-"Live Server" = "https://arifos.arif-fazil.com/"
-"Health Check" = "https://arifos.arif-fazil.com/health"
-"MCP Endpoint" = "https://arifos.arif-fazil.com/sse"
+"Live Server" = "https://aaa-mcp.arif-fazil.com/"
+"Health Check" = "https://aaa-mcp.arif-fazil.com/health"
+"MCP Endpoint" = "https://aaa-mcp.arif-fazil.com/sse"
+"Legacy Server" = "https://arifos.arif-fazil.com/"
 
 [tool.setuptools]
 include-package-data = true

@@ -18,15 +18,15 @@ import os
 from starlette.responses import JSONResponse, HTMLResponse, FileResponse
 from starlette.staticfiles import StaticFiles
 from mcp.server.fastmcp import FastMCP
-from arifos.mcp.constitutional_metrics import get_seal_rate, get_full_metrics, record_session_activity
+from codebase.mcp.constitutional_metrics import get_seal_rate, get_full_metrics, record_session_activity
 
 # --- STATIC ASSETS ---
 # Path to dashboard static files: arifos/core/integration/api/static
 STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "core", "integration", "api", "static")
 
-# --- TRINITY TOOLS IMPORT ---
-# We import from mcp_trinity.py which contains the canonical 5-tool implementation
-from arifos.mcp.tools.mcp_trinity import (
+# --- AAA TOOLS IMPORT ---
+# We import from mcp_aaa.py which contains the canonical 5-tool implementation
+from arifos.mcp.tools.mcp_aaa import (
     mcp_000_init,
     mcp_agi_genius,
     mcp_asi_act,
@@ -38,6 +38,10 @@ from arifos.mcp.tools.mcp_trinity import (
 import logging
 import uuid
 from typing import Dict, List, Any, Optional
+from dataclasses import asdict
+from arifos.mcp.tools.mcp_tools_v53 import (
+    authorize, reason, evaluate, decide, seal
+)
 from arifos.mcp.session_ledger import (
     open_session,
     close_session,
@@ -354,6 +358,80 @@ async def arifos_trinity_999_vault(
     return result
 
 
+# =============================================================================
+# v53 HUMAN LANGUAGE TOOLS
+# =============================================================================
+
+@mcp.tool(name="authorize")
+async def v53_authorize(
+    query: str,
+    user_token: str | None = None,
+    session_id: str | None = None
+) -> dict:
+    """Verify user identity, check rate limits, detect prompt injection. Call this FIRST."""
+    result = await authorize(query=query, user_token=user_token, session_id=session_id)
+    return asdict(result)
+
+@mcp.tool(name="reason")
+async def v53_reason(
+    query: str,
+    context: Dict[str, Any] | None = None,
+    style: str = "standard",
+    session_id: str = ""
+) -> dict:
+    """Perform logical analysis and chain-of-thought reasoning."""
+    result = await reason(query=query, context=context, style=style, session_id=session_id)
+    return asdict(result)
+
+@mcp.tool(name="evaluate")
+async def v53_evaluate(
+    reasoning: str,
+    query: str,
+    session_id: str = ""
+) -> dict:
+    """Check reasoning for harm, bias, and fairness issues."""
+    result = await evaluate(reasoning=reasoning, query=query, session_id=session_id)
+    return asdict(result)
+
+@mcp.tool(name="decide")
+async def v53_decide(
+    query: str,
+    reasoning: str,
+    safety_evaluation: Dict[str, Any],
+    authority_check: Dict[str, Any],
+    session_id: str = "",
+    urgency: str = "normal"
+) -> dict:
+    """Synthesize final verdict (Logic + Safety + Authority)."""
+    result = await decide(
+        query=query,
+        reasoning=reasoning,
+        safety_evaluation=safety_evaluation,
+        authority_check=authority_check,
+        session_id=session_id,
+        urgency=urgency
+    )
+    return asdict(result)
+
+@mcp.tool(name="seal")
+async def v53_seal(
+    session_id: str,
+    verdict: str,
+    query: str,
+    response: str,
+    decision_data: Dict[str, Any],
+    metadata: Dict[str, Any] | None = None
+) -> dict:
+    """Record decision immutably in ledger."""
+    result = await seal(
+        session_id=session_id,
+        verdict=verdict,
+        query=query,
+        response=response,
+        decision_data=decision_data,
+        metadata=metadata
+    )
+    return asdict(result)
 # --- HEALTH CHECK ---
 # Add health check directly via FastMCP custom_route before getting SSE app
 @mcp.custom_route("/health", methods=["GET"])
