@@ -1,5 +1,5 @@
 """
-arifos.mcp.sse (v52.5.1-SEAL)
+arifos.mcp.sse (v53.0.0-SEAL) [LEGACY - see arifos/mcp/sse.py]
 
 The HTTP/SSE Adaptation layer for the Trinity Monolith.
 This module exposes the unified MCP tools via Starlette SSE transport.
