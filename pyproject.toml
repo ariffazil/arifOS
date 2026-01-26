@@ -143,6 +143,9 @@ all = [
 
 [project.scripts]
 # AAA MCP Server Commands (Primary v53)
+codebase-mcp = "codebase.mcp.server:main"
+codebase-mcp-stdio = "codebase.mcp.server:main_stdio"
+codebase-mcp-sse = "codebase.mcp.sse:main"
 aaa-mcp = "arifos.mcp.__main__:main"
 aaa-mcp-sse = "arifos.mcp.sse:main"
 aaa-mcp-stdio = "arifos.mcp.server:main_stdio"
@@ -197,7 +200,7 @@ Changelog = "https://github.com/ariffazil/arifOS/blob/main/CHANGELOG.md"
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["arifos*", "scripts*"]
+include = ["arifos*", "scripts*", "codebase*"]
 exclude = ["arifos.tests*", "arifos.tests", "*.tests", "*.tests.*", "tests.*", "tests"]
 
 [tool.setuptools.package-data]

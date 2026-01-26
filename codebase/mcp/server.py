@@ -1,12 +1,12 @@
 """
-AAA MCP Server (v52.5.1-SEAL)
+AAA MCP Server (v53.1.0-CODEBASE)
 Artifact · Authority · Architecture
 
 Authority: Muhammad Arif bin Fazil
-Architecture: Unified Trinity Application Layer
+Architecture: Unified Trinity Application Layer (Codebase Edition)
 
-The Application Layer for arifOS v52.
-Provides 5 Trinity Tools: 000_init, agi_genius, asi_act, apex_judge, vault_999
+The Application Layer for arifOS v53.
+Now equipped with Constitutional Physics via Proxy Kernels.
 
 DITEMPA BUKAN DIBERI
 """
@@ -37,6 +37,9 @@ from codebase.system.orchestrator.presenter import AAAMetabolizer
 from codebase.mcp.tools.mcp_tools_v53 import (
     authorize, reason, evaluate, decide, seal
 )
+# NEW: Constitutional Physics
+from codebase.system.constitution import execute_constitutional_physics
+
 from dataclasses import asdict
 
 logger = logging.getLogger(__name__)
@@ -51,19 +54,19 @@ presenter = AAAMetabolizer()
 TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
     "init_000": {
         "name": "init_000",
-        "description": "000 INIT: Full Constitutional Ignition & 7D Context Mapping. Triggers F1-F13 metabolic boot sequence.",
+        "description": "000 INIT: Full Constitutional Ignition & 7D Context Mapping.",
         "inputSchema": {
             "type": "object",
             "properties": {
                 "action": {"type": "string", "enum": ["init", "gate", "reset", "validate"], "default": "init"},
-                "query": {"type": "string", "description": "Greeting or query to ignite context (e.g. 'Im Arif')"},
+                "query": {"type": "string"},
                 "session_id": {"type": "string"}
             }
         }
     },
     "agi_genius": {
         "name": "agi_genius",
-        "description": "Mind Engine: SENSE → THINK → ATLAS → FORGE (F2, F6, F7)",
+        "description": "Mind Engine: SENSE → THINK → ATLAS → FORGE",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -76,7 +79,7 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
     },
     "asi_act": {
         "name": "asi_act",
-        "description": "Heart Engine: EVIDENCE → EMPATHY → ACT (F3, F4, F5)",
+        "description": "Heart Engine: EVIDENCE → EMPATHY → ACT",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -89,16 +92,12 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
     },
     "apex_judge": {
         "name": "apex_judge",
-        "description": "Soul Engine: EUREKA → JUDGE → PROOF (F1, F8, F9)",
+        "description": "Soul Engine: EUREKA → JUDGE → PROOF",
         "inputSchema": {
             "type": "object",
             "properties": {
                 "action": {"type": "string", "enum": ["eureka", "judge", "proof", "entropy", "parallelism", "full"]},
-                "verdict": {
-                    "type": "string",
-                    "enum": ["SEAL", "PARTIAL", "SABAR", "VOID", "888_HOLD"],
-                    "description": "Verdict to seal"
-                },
+                "verdict": {"type": "string", "enum": ["SEAL", "PARTIAL", "SABAR", "VOID", "888_HOLD"]},
                 "query": {"type": "string"},
                 "response": {"type": "string"},
                 "session_id": {"type": "string"}
@@ -108,43 +107,41 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
     },
     "vault_999": {
         "name": "vault_999",
-        "description": "Immutable Seal & Governance IO (F1, F8)",
+        "description": "Immutable Seal & Governance IO",
         "inputSchema": {
             "type": "object",
             "properties": {
                 "action": {"type": "string", "enum": ["seal", "list", "read", "write", "propose"]},
                 "session_id": {"type": "string"},
-                "verdict": {"type": "string", "enum": ["SEAL", "PARTIAL", "SABAR", "VOID", "888_HOLD"], "default": "SEAL"},
-                "target": {"type": "string", "enum": ["seal", "ledger", "canon", "fag", "tempa", "phoenix", "audit"]}
+                "verdict": {"type": "string"},
+                "target": {"type": "string"}
             },
             "required": ["action"]
         }
     },
-    # =========================================================================
     # v53 HUMAN LANGUAGE TOOLS
-    # =========================================================================
     "authorize": {
         "name": "authorize",
-        "description": "Verify user identity, check rate limits, detect prompt injection. Call this FIRST.",
+        "description": "Verify user identity. Call FIRST.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "The user's request text"},
-                "user_token": {"type": "string", "description": "Ed25519 signature token"},
-                "session_id": {"type": "string", "description": "Session ID"}
+                "query": {"type": "string"},
+                "user_token": {"type": "string"},
+                "session_id": {"type": "string"}
             },
             "required": ["query"]
         }
     },
     "reason": {
         "name": "reason",
-        "description": "Perform logical analysis and chain-of-thought reasoning.",
+        "description": "Perform logical analysis.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "Question to reason about"},
-                "context": {"type": "object", "description": "Prior session context"},
-                "style": {"type": "string", "enum": ["standard", "detailed", "brief"]},
+                "query": {"type": "string"},
+                "context": {"type": "object"},
+                "style": {"type": "string"},
                 "session_id": {"type": "string"}
             },
             "required": ["query", "session_id"]
@@ -152,11 +149,11 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
     },
     "evaluate": {
         "name": "evaluate",
-        "description": "Check reasoning for harm, bias, and fairness issues.",
+        "description": "Check reasoning for safety.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "reasoning": {"type": "string", "description": "Response to evaluate"},
+                "reasoning": {"type": "string"},
                 "query": {"type": "string"},
                 "session_id": {"type": "string"}
             },
@@ -165,7 +162,7 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
     },
     "decide": {
         "name": "decide",
-        "description": "Synthesize final verdict (Logic + Safety + Authority).",
+        "description": "Synthesize final verdict.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -173,26 +170,36 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
                 "reasoning": {"type": "string"},
                 "safety_evaluation": {"type": "object"},
                 "authority_check": {"type": "object"},
-                "session_id": {"type": "string"},
-                "urgency": {"type": "string", "enum": ["normal", "urgent", "crisis"]}
+                "session_id": {"type": "string"}
             },
             "required": ["query", "reasoning", "safety_evaluation", "authority_check", "session_id"]
         }
     },
     "seal": {
         "name": "seal",
-        "description": "Record decision immutably in ledger.",
+        "description": "Record decision immutably.",
         "inputSchema": {
             "type": "object",
             "properties": {
                 "session_id": {"type": "string"},
-                "verdict": {"type": "string", "enum": ["APPROVE", "CONDITIONAL", "REJECT", "ESCALATE"]},
+                "verdict": {"type": "string"},
                 "query": {"type": "string"},
                 "response": {"type": "string"},
-                "decision_data": {"type": "object"},
-                "metadata": {"type": "object"}
+                "decision_data": {"type": "object"}
             },
             "required": ["session_id", "verdict", "query", "response", "decision_data"]
+        }
+    },
+    "physics": {
+        "name": "physics",
+        "description": "Run Quantum Constitutional Physics (Kimi Orthogonal Directive).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "user_id": {"type": "string"}
+            },
+            "required": ["query"]
         }
     }
 }
@@ -209,6 +216,8 @@ TOOL_ROUTERS = {
     "evaluate": evaluate,
     "decide": decide,
     "seal": seal,
+    # Physics
+    "physics": execute_constitutional_physics,
 }
 
 # =============================================================================
@@ -220,7 +229,7 @@ def create_mcp_server(mode: Optional[MCPMode] = None) -> Server:
     if mode is None:
         mode = get_mcp_mode()
     
-    server = Server(f"AAA-MCP-{mode.value}")
+    server = Server(f"AAA-MCP-CODEBASE-{mode.value}")
 
     @server.list_tools()
     async def list_tools() -> list[mcp.types.Tool]:
@@ -239,7 +248,7 @@ def create_mcp_server(mode: Optional[MCPMode] = None) -> Server:
         if not router:
             return [mcp.types.TextContent(type="text", text=f"VOID: Unknown tool {name}")]
 
-        # F11: Rate Limit Check
+        # Rate Limit Check
         session_id = arguments.get("session_id", "anonymous")
         limiter = get_rate_limiter()
         rate_result = limiter.check(name, session_id)
@@ -252,24 +261,25 @@ def create_mcp_server(mode: Optional[MCPMode] = None) -> Server:
 
         start = time.time()
         try:
-            # v53 tools do not use 'action' param logic
-            if name in ["authorize", "reason", "evaluate", "decide", "seal"]:
+            if name == "physics":
+                # Special handling for physics (direct kwarg mapping)
+                result = await router(
+                    query=arguments.get("query", ""),
+                    user_id=arguments.get("user_id", "anonymous")
+                )
+            elif name in ["authorize", "reason", "evaluate", "decide", "seal"]:
                 result_obj = await router(**arguments)
-                # Convert dataclass to dict if needed
                 if hasattr(result_obj, "__dataclass_fields__"):
                      result = asdict(result_obj)
                 else:
                      result = result_obj
             else:
-                # v52 tools use action param
                 action = arguments.pop("action", "full")
                 result = await router(action=action, **arguments)
             
-            # Record metrics
             duration = time.time() - start
             duration_ms = duration * 1000
             
-            # 1. MCP Rolling Metrics
             record_verdict(
                 tool=name,
                 verdict=result.get("verdict", "UNKNOWN"),
@@ -277,13 +287,10 @@ def create_mcp_server(mode: Optional[MCPMode] = None) -> Server:
                 mode=mode.value
             )
             
-            # 2. Core Prometheus Metrics
             record_stage_metrics(name, duration_ms)
             record_verdict_metrics(result.get("verdict", "UNKNOWN"))
             
-            # Metabolize Result using Presenter (Human-Optimized Output)
             formatted_text = presenter.process(result)
-            
             return [mcp.types.TextContent(type="text", text=formatted_text)]
             
         except Exception as e:
@@ -299,15 +306,17 @@ def create_mcp_server(mode: Optional[MCPMode] = None) -> Server:
 async def main_stdio():
     """Run standard stdio server."""
     mode = get_mcp_mode()
-    print(f"AAA MCP v52.5.1 starting in {mode.value} mode", file=sys.stderr)
+    print(f"[BOOT] Codebase MCP v53.1.0 starting in {mode.value} mode", file=sys.stderr)
+    print("[PHYSICS] Constitutional Engines Loaded: AGI, ASI, APEX", file=sys.stderr)
+    
     async with stdio_server() as (read_stream, write_stream):
         server = create_mcp_server(mode)
         await server.run(read_stream, write_stream, server.create_initialization_options())
 
-async def main():
-    """Main entry point for the MCP server."""
-    await main_stdio()
+def main():
+    """Entry point for console_scripts."""
+    import asyncio
+    asyncio.run(main_stdio())
 
 if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+    main()

@@ -93,6 +93,16 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 ```
 Restart Claude Desktop. You now have AI governance.
 
+**Option 5: Run Codebase Microservices (Hybrid Architecture)**
+For developers who prefer a clean, modular structure with v53 features:
+```bash
+pip install -e .
+python -m codebase.mcp.server
+# OR
+uv run codebase-mcp-stdio
+```
+See [v53-architecture.md](v53-architecture.md) for the full design.
+
 ---
 
 ## Is This For Me?
@@ -231,8 +241,8 @@ arifOS uses three independent engines that must agree (like checks and balances 
           ▼                   ▼                   ▼
     ┌──────────┐        ┌──────────┐        ┌──────────┐
     │   AGI    │        │   ASI    │        │   APEX   │
-    │  (Mind)  │        │  (Heart) │        │  (Soul)  │
-    │   Blue   │        │   Red    │        │  Yellow  │
+    │     (Mind)     │        │    (Heart)     │        │     (Soul)     │
+    │     reason     │        │    evaluate    │        │     decide     │
     │──────────│        │──────────│        │──────────│
     │ F2 Truth │        │ F1 Amanah│        │ F3 Witness│
     │ F4 Clarity│       │ F5 Peace │        │ F8 Genius │
@@ -319,13 +329,15 @@ Connect any MCP-compatible AI client to arifOS:
 
 **The 5 MCP Tools:**
 
-| Tool | Purpose | When It's Called |
-|------|---------|------------------|
-| `000_init` | Gate & authority check | Start of every session |
-| `agi_genius` | Mind: SENSE→THINK→ATLAS | Logic and truth validation |
-| `asi_act` | Heart: EVIDENCE→EMPATHY→ACT | Empathy and safety checks |
-| `apex_judge` | Soul: EUREKA→JUDGE→PROOF | Final judgment |
-| `999_vault` | Merkle seal + ledger | Audit trail creation |
+**The 5 Human Tools (v53):**
+
+| Tool | Role | Maps To | Purpose |
+|------|------|---------|---------|
+| `authorize` | 🚪 Gate | `init_000` | **Verify.** Check identity and rate limits. |
+| `reason` | 🧠 Mind | `agi_genius` | **Think.** Logical analysis & reason. |
+| `evaluate` | ❤️ Heart | `asi_act` | **Care.** Check safety & empathy. |
+| `decide` | ⚖️ Soul | `apex_judge` | **Judge.** Final constitutional verdict. |
+| `seal` | 🔒 Seal | `999_vault` | **Record.** Immutable ledger entry. |
 
 **MCP Endpoints (v53 Architecture):**
 
@@ -552,7 +564,7 @@ Direct API access for custom integrations:
 # Constitutional checkpoint (the core API)
 curl -X POST https://arifos.arif-fazil.com/checkpoint \
   -H "Content-Type: application/json" \
-  -d '{"text": "rm -rf /", "action": "evaluate"}'
+  -d '{"query": "rm -rf /"}'
 # Returns: {"verdict": "REJECT", "summary": "✗ Hard floor violated.", "floors": {...}, "session_id": "...", "atlas_lane": "FACTUAL"}
 
 # Health check
@@ -1180,7 +1192,7 @@ We welcome contributions! See [CONTRIBUTING.md](000_THEORY/003_CONTRIBUTING.md) 
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| **v53.0.0** | **Jan 2026** | **6-tier endpoint architecture, live dashboard with real-time metrics, human-readable verdicts (APPROVE/REJECT/ESCALATE), REST checkpoint API, Redis session persistence** |
+| **v53.0.0** | **Jan 2026** | **Human Language Tools (reason/decide), 6-tier architecture, real-time dashboard, REST checkpoint API, Redis persistence** |
 | v52.5.1 | Jan 2026 | SSE stability, dashboard dark mode, Trinity colors |
 | v52.0.0 | Jan 2026 | Pure bridge architecture, 5-tool consolidation |
 | v46.0.0 | Dec 2025 | 13 floors, VAULT-999, TEACH framework |

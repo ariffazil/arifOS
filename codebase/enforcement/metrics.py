@@ -13,6 +13,9 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 from prometheus_client import Counter, Histogram, Gauge
 
+# Import safe metric registration utilities
+from codebase.system.metrics_utils import safe_counter, safe_histogram, safe_gauge
+
 logger = logging.getLogger(__name__)
 
 # --- 1. CONSTITUTIONAL CONSTANTS ---
@@ -126,26 +129,27 @@ class FloorCheckResult:
 
 # --- 3. PROMETHEUS INSTRUMENTATION ---
 
-VERDICTS_TOTAL = Counter(
+# Use safe registration to prevent duplication with legacy architecture
+VERDICTS_TOTAL = safe_counter(
     "arifos_verdicts_total",
     "Total constitutional verdicts issued",
     ["verdict"]
 )
 
-FLOOR_VIOLATIONS_TOTAL = Counter(
+FLOOR_VIOLATIONS_TOTAL = safe_counter(
     "arifos_floor_violations_total",
     "Constitutional floor violations tracked by ID",
     ["floor"]
 )
 
-RESPONSE_TIME_MS = Histogram(
+RESPONSE_TIME_MS = safe_histogram(
     "arifos_response_time_ms",
     "Response time per pipeline stage in milliseconds",
     ["stage"],
     buckets=(10, 50, 100, 200, 500, 1000, 2000, 5000)
 )
 
-SEAL_RATE = Gauge(
+SEAL_RATE = safe_gauge(
     "arifos_seal_rate",
     "Rolling SEAL rate (success rate of constitutional audits)"
 )

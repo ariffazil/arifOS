@@ -17,7 +17,7 @@ requests>=2.31.0
 # psycopg2-binary>=2.9.9  # Removed - not needed for Railway MCP server
 aiohttp>=3.9.1
 
-mcp>=0.1.0
+mcp>=1.0.0
 fastmcp>=0.1.0
 dspy>=2.4.0
 rich>=13.7.0
@@ -25,3 +25,6 @@ rich>=13.7.0
 # Optional / Build
 setuptools>=68.2.2
 wheel>=0.41.3
+
+# Install Local Package (Enables codebase module resolution)
+-e .
