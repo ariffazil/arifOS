@@ -22,3 +22,23 @@ __version__ = "52.5.1"
 from .mcp.mode_selector import MCPMode
 
 from .core.system.types import Metrics, Verdict, ApexVerdict, FloorCheckResult
+
+# Common high-level helpers (tests and public API)
+from .core.system.apex_prime import APEXPrime, apex_review, check_floors, normalize_verdict_code
+from .core.utils.eye_sentinel import AlertSeverity, EyeAlert, EyeReport, EyeSentinel
+
+__all__ = [
+    "APEXPrime",
+    "ApexVerdict",
+    "AlertSeverity",
+    "EyeAlert",
+    "EyeReport",
+    "EyeSentinel",
+    "FloorCheckResult",
+    "MCPMode",
+    "Metrics",
+    "Verdict",
+    "apex_review",
+    "check_floors",
+    "normalize_verdict_code",
+]

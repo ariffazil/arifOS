@@ -187,9 +187,9 @@ class ConstitutionalKernel:
         f12_passed = not injection_detected
         floor_results.append(FloorCheckResult(
             floor_id="F12",
-            name="Injection Defense",
+            floor_name="Injection Defense",
             threshold=0.5,
-            value=0.0 if injection_detected else 1.0,
+            actual=0.0 if injection_detected else 1.0,
             passed=f12_passed,
             is_hard=True,
             reason="Injection detected" if injection_detected else "Clean"
@@ -208,9 +208,9 @@ class ConstitutionalKernel:
         auth_passed = self._authenticate_request(user_id)
         floor_results.append(FloorCheckResult(
             floor_id="F11",
-            name="Command Authentication",
+            floor_name="Command Authentication",
             threshold=0.5,
-            value=1.0 if auth_passed else 0.0,
+            actual=1.0 if auth_passed else 0.0,
             passed=auth_passed,
             is_hard=True,
             reason="Authentication failed" if not auth_passed else "Authenticated"
@@ -229,9 +229,9 @@ class ConstitutionalKernel:
         ontology_valid = self._validate_ontology(context)
         floor_results.append(FloorCheckResult(
             floor_id="F10",
-            name="Ontology Validation",
+            floor_name="Ontology Validation",
             threshold=0.5,
-            value=1.0 if ontology_valid else 0.0,
+            actual=1.0 if ontology_valid else 0.0,
             passed=ontology_valid,
             is_hard=True,
             reason="Ontology validation failed" if not ontology_valid else "Valid"
@@ -286,18 +286,18 @@ class ConstitutionalKernel:
         floor_results = [
             FloorCheckResult(
                 floor_id="F1",
-                name="Amanah (Trust)",
+                floor_name="Amanah (Trust)",
                 threshold=0.5,
-                value=amanah_score,
+                actual=amanah_score,
                 passed=amanah_score >= 0.5,
                 is_hard=True,
                 reason="Trust score insufficient" if amanah_score < 0.5 else "Trust validated"
             ),
             FloorCheckResult(
                 floor_id="F2",
-                name="Truth",
+                floor_name="Truth",
                 threshold=0.9,
-                value=truth_score,
+                actual=truth_score,
                 passed=truth_score >= 0.9,
                 is_hard=True,
                 reason="Truth score insufficient" if truth_score < 0.9 else "Truth validated"
@@ -360,18 +360,18 @@ class ConstitutionalKernel:
         floor_results = [
             FloorCheckResult(
                 floor_id="F5",
-                name="Humility (Omega 0)",
+                floor_name="Humility (Omega 0)",
                 threshold=0.8,
-                value=humility_score,
+                actual=humility_score,
                 passed=humility_score >= 0.8,
                 is_hard=False,
                 reason="Humility score insufficient" if humility_score < 0.8 else "Humility validated"
             ),
             FloorCheckResult(
                 floor_id="F6",
-                name="Clarity (Delta S)",
+                floor_name="Clarity (Delta S)",
                 threshold=0.0,
-                value=metrics.delta_s,
+                actual=metrics.delta_s,
                 passed=metrics.delta_s >= 0.0,
                 is_hard=True,
                 reason="Clarity insufficient" if metrics.delta_s < 0.0 else "Clarity validated"
@@ -483,36 +483,36 @@ class ConstitutionalKernel:
         floor_results = [
             FloorCheckResult(
                 floor_id="F3",
-                name="Peace Squared",
+                floor_name="Peace Squared",
                 threshold=1.0,
-                value=metrics.peace_squared,
+                actual=metrics.peace_squared,
                 passed=metrics.peace_squared >= 1.0,
                 is_hard=False,
                 reason="Peace validation failed" if metrics.peace_squared < 1.0 else "Peace validated"
             ),
             FloorCheckResult(
                 floor_id="F4",
-                name="Empathy (Kappa R)",
+                floor_name="Empathy (Kappa R)",
                 threshold=0.85,  # Relaxed from 0.95
-                value=kappa_r,
+                actual=kappa_r,
                 passed=kappa_r >= 0.85,
                 is_hard=False,
                 reason="Empathy insufficient" if kappa_r < 0.85 else "Empathy validated"
             ),
             FloorCheckResult(
                 floor_id="F5",
-                name="Humility (Omega 0)",
+                floor_name="Humility (Omega 0)",
                 threshold=0.03,
-                value=omega_0,
+                actual=omega_0,
                 passed=0.03 <= omega_0 <= 0.05,
                 is_hard=False,
                 reason="Humility out of range" if not (0.03 <= omega_0 <= 0.05) else "Humility validated"
             ),
             FloorCheckResult(
                 floor_id="F7",
-                name="RASA (Listening)",
+                floor_name="RASA (Listening)",
                 threshold=0.6,  # Relaxed from 0.8
-                value=tom_score,
+                actual=tom_score,
                 passed=tom_score >= 0.6,
                 is_hard=False,  # Changed from True to False - this should be soft
                 reason="Listening validation failed" if tom_score < 0.6 else "Listening validated"

@@ -1,0 +1,390 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    PHASE 1: INFRASTRUCTURE SETUP                              ║
+║                 HYBRID ARCHITECTURE - BASE LAYER                             ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+Estimated Time: 2 days
+Blockers: None (pure creation, no dependencies)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## Step 1.1: Create Directory Structure
+
+Execute these commands in PowerShell:
+
+```bash
+# Navigate to project root
+cd C:\Users\User\arifOS
+
+# Create stages directory
+mkdir canonical_core\stages
+
+# Verify creation
+dir canonical_core\
+```
+
+Expected output:
+```
+Directory: C:\Users\User\arifOS\canonical_core
+[DIR]  stages
+[FILE] 000_init_mcp.py
+[FILE] authority.py
+...
+```
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## Step 1.2: Create Entropy Compressor Module
+
+File: `C:\Users\User\arifOS\canonical_core\entropy_compressor.py`
+
+Code:
+```python
+"""
+Entropy Compressor - Thermodynamic engine for constitutional AI.
+
+Ensures ΔS ≤ 0 at every stage boundary.
+"""
+
+from typing import Dict, Any, Tuple
+import json
+import hashlib
+
+
+class EntropyCompressor:
+    """Compress constitutional bundles, extract entropy."""
+    
+    def __init__(self, baseline_entropy: float = 1.0):
+        """Initialize with baseline entropy."""
+        self.baseline = baseline_entropy
+        self.total_compressed = 0.0
+    
+    def compress(self, data: Dict[str, Any]) -> Tuple[Dict[str, Any], float]:
+        """
+        Compress bundle and return entropy extracted.
+        
+        Args:
+            data: Input constitutional bundle
+            
+        Returns:
+            (compressed_bundle, entropy_delta)
+            Where entropy_delta is positive (entropy removed)
+        """
+        # Serialize deterministically
+        serialized = json.dumps(data, sort_keys=True, separators=(',', ':'))
+        
+        # Remove redundant fields (compression)
+        compressed = self._remove_redundancy(data)
+        
+        # Calculate entropy delta
+        original_size = len(serialized)
+        compressed_size = len(json.dumps(compressed, sort_keys=True, separators=(',', ':')))
+        entropy_delta = (original_size - compressed_size) / original_size
+        
+        # Enforce ΔS ≤ 0
+        if entropy_delta < 0:
+            # If we somehow added entropy, reject compression
+            raise ValueError(f"ΔS violation: {entropy_delta} (must be ≥ 0)")
+        
+        self.total_compressed += entropy_delta
+        
+        return compressed, entropy_delta
+    
+    def _remove_redundancy(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Remove redundant fields from bundle."""
+        compressed = {}
+        
+        for key, value in data.items():
+            # Skip temporary fields
+            if key.startswith("_tmp_"):
+                continue
+            
+            # Skip empty collections
+            if isinstance(value, (list, dict)) and not value:
+                continue
+            
+            # Recursively compress nested structures
+            if isinstance(value, dict):
+                compressed_value = self._remove_redundancy(value)
+                if compressed_value:  # Only add if non-empty
+                    compressed[key] = compressed_value
+            elif isinstance(value, list):
+                compressed[key] = [item for item in value if item]
+            else:
+                compressed[key] = value
+        
+        return compressed
+    
+    def conflict_measure(self, bundle_a: Dict[str, Any], 
+                         bundle_b: Dict[str, Any]) -> float:
+        """
+        Measure orthogonality between two bundles (0.0=aligned, 1.0=orthogonal).
+        
+        Used to detect constitutional conflicts.
+        """
+        # Hash both bundles
+        hash_a = hashlib.sha256(
+            json.dumps(bundle_a, sort_keys=True).encode()
+        ).hexdigest()
+        
+        hash_b = hashlib.sha256(
+            json.dumps(bundle_b, sort_keys=True).encode()
+        ).hexdigest()
+        
+        # Count differing bits (simple Hamming distance)
+        diff_count = sum(
+            1 for a, b in zip(hash_a, hash_b) if a != b
+        )
+        
+        # Normalize to [0.0, 1.0]
+        return diff_count / len(hash_a)
+
+
+# Global compressor instance
+COMPRESSOR = EntropyCompressor()
+```
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## Step 1.3: Create Bundle Store Module
+
+File: `C:\Users\User\arifOS\canonical_core\bundle_store.py`
+
+Code:
+```python
+"""
+Bundle Store - Inter-stage communication for orthogonal architecture.
+
+Ensures stages don't directly call each other (isolation).
+"""
+
+from typing import Dict, Any, Optional
+import threading
+
+
+class BundleStore:
+    """Thread-safe bundle storage for session state."""
+    
+    def __init__(self, session_id: str):
+        """Initialize store for a specific session."""
+        self.session_id = session_id
+        self._bundles: Dict[str, Dict] = {}
+        self._lock = threading.Lock()
+    
+    def store(self, stage_name: str, bundle: Dict[str, Any]) -> None:
+        """Store bundle for a stage."""
+        with self._lock:
+            self._bundles[stage_name] = bundle
+    
+    def get(self, stage_name: str, default: Optional[Dict] = None) -> Optional[Dict]:
+        """Retrieve bundle for a stage."""
+        with self._lock:
+            return self._bundles.get(stage_name, default)
+    
+    def get_all(self) -> Dict[str, Dict]:
+        """Get all bundles for session."""
+        with self._lock:
+            return self._bundles.copy()
+    
+    def has_stage(self, stage_name: str) -> bool:
+        """Check if stage bundle exists."""
+        with self._lock:
+            return stage_name in self._bundles
+    
+    def last_stage(self) -> Optional[str]:
+        """Get name of last stored stage."""
+        with self._lock:
+            if not self._bundles:
+                return None
+            # Sort by stage number
+            sorted_stages = sorted(
+                self._bundles.keys(),
+                key=lambda x: int(x.split('_')[0])  # "111_sense" → 111
+            )
+            return sorted_stages[-1] if sorted_stages else None
+
+
+# Global session store (for graceful degradation)
+_GLOBAL_SESSION_STORE: Dict[str, BundleStore] = {}
+_SESSION_LOCK = threading.Lock()
+
+
+def get_store(session_id: str) -> BundleStore:
+    """Get or create bundle store for session."""
+    with _SESSION_LOCK:
+        if session_id not in _GLOBAL_SESSION_STORE:
+            _GLOBAL_SESSION_STORE[session_id] = BundleStore(session_id)
+        return _GLOBAL_SESSION_STORE[session_id]
+```
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## Step 1.4: Update SEAL999/vault.py
+
+File: `C:\Users\User\arifOS\SEAL999\vault.py`
+
+Add imports at top:
+```python
+from canonical_core import (
+    EntropyCompressor,
+    BundleStore,
+)
+```
+
+Update seal_entry method:
+```python
+def seal_entry(self, entry: VaultEntry) -> str:
+    """Execute 000→999 metabolic loop with orthogonal stages."""
+    # Initialize session bundle store
+    bundle_store = BundleStore(entry.session_id)
+    compressor = EntropyCompressor()
+    
+    # Store initial bundle
+    bundle_store.store("000_init", {
+        "session_id": entry.session_id,
+        "stage": 0,
+        "query": entry.query if hasattr(entry, 'query') else "",
+        "operator_id": entry.operator_id if hasattr(entry, 'operator_id') else None
+    })
+    
+    # Execute stages (will be filled in Phase 2)
+    # bundle_111 = stage_111_sense.execute(...)
+    # bundle_222 = stage_222_think.execute(...)
+    # ...
+    
+    # For now, maintain backward compatibility
+    return self._legacy_seal(entry)
+```
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## Step 1.5: Test Infrastructure
+
+Create test file: `C:\Users\User\arifOS\tests\test_infrastructure.py`
+
+Code:
+```python
+"""Test Phase 1 infrastructure components."""
+
+import sys
+sys.path.insert(0, "C:\\Users\\User\\arifOS")
+
+import pytest
+from canonical_core import EntropyCompressor, BundleStore
+
+
+def test_entropy_compressor():
+    """Test entropy compression functionality."""
+    compressor = EntropyCompressor()
+    
+    # Test data
+    data = {
+        "field1": "value1",
+        "field2": [1, 2, 3],
+        "_tmp_ignore": "should be removed",
+        "empty_dict": {},
+        "empty_list": []
+    }
+    
+    compressed, delta_s = compressor.compress(data)
+    
+    # Verify compression
+    assert "_tmp_ignore" not in compressed
+    assert "empty_dict" not in compressed
+    assert "empty_list" not in compressed
+    assert delta_s >= 0  # ΔS must be ≥ 0
+    assert compressor.total_compressed > 0
+
+
+def test_bundle_store():
+    """Test bundle store isolation."""
+    store = BundleStore("test_session_123")
+    
+    # Store a bundle
+    test_bundle = {"stage": 111, "data": {"query": "test"}}
+    store.store("bundle_111", test_bundle)
+    
+    # Retrieve it
+    retrieved = store.get("bundle_111")
+    assert retrieved == test_bundle
+    
+    # Check non-existent
+    assert store.get("bundle_999") is None
+
+
+def test_bundle_isolation():
+    """Test that different sessions are isolated."""
+    store1 = BundleStore("session_1")
+    store2 = BundleStore("session_2")
+    
+    store1.store("bundle_111", {"data": "session_1_data"})
+    store2.store("bundle_111", {"data": "session_2_data"})
+    
+    # Verify isolation
+    assert store1.get("bundle_111")["data"] == "session_1_data"
+    assert store2.get("bundle_111")["data"] == "session_2_data"
+
+
+if __name__ == "__main__":
+    test_entropy_compressor()
+    test_bundle_store()
+    test_bundle_isolation()
+    print("✓ All infrastructure tests passed")
+```
+
+Run test:
+```bash
+cd C:\Users\User\arifOS
+python -m pytest tests/test_infrastructure.py -v
+```
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## ✅ Phase 1 Completion Checklist
+
+- [ ] Directory `canonical_core/stages/` created
+- [ ] File `canonical_core/entropy_compressor.py` created (80 lines)
+- [ ] File `canonical_core/bundle_store.py` created (70 lines)
+- [ ] SEAL999/vault.py updated with new imports
+- [ ] Test file `tests/test_infrastructure.py` created
+- [ ] All infrastructure tests pass
+- [ ] ΔS compression verified working
+- [ ] Bundle isolation verified working
+
+**Status:** READY FOR PHASE 2 (Stage Implementation)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## 📊 Phase 1 Metrics
+
+Expected Code Added:
+- EntropyCompressor: ~80 lines
+- BundleStore: ~70 lines
+- Test file: ~60 lines
+- __init__.py updates: ~30 lines
+- SEAL999/vault.py updates: ~20 lines
+- **Total: ~260 lines** (all new code, no duplication)
+
+Expected Files Created:
+- 1 directory (stages/)
+- 2 core modules (entropy_compressor.py, bundle_store.py)
+- 1 test file (test_infrastructure.py)
+- **Total: 4 artifacts**
+
+Expected Time: 2 days for experienced Python developer
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## 🎯 Phase 1 Success Criteria
+
+1. EntropyCompressor successfully compresses bundles with ΔS ≥ 0
+2. BundleStore provides thread-safe isolation between sessions
+3. SEAL999.vault.py can import and instantiate new infrastructure
+4. All tests pass without modification to existing code
+5. No breaking changes to SEAL999 API
+
+═══════════════════════════════════════════════════════════════════════════════
+
+NEXT: → PHASE 2: STAGE IMPLEMENTATION (See PHASE2_STAGES.txt)
+
+═══════════════════════════════════════════════════════════════════════════════

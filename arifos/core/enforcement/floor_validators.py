@@ -594,10 +594,17 @@ def validate_f13_curiosity(query: str, context: Dict[str, Any]) -> Dict[str, Any
     response_text = context.get("response", "")
 
     # Signals in AI OUTPUT
-    output_signals = []
+    output_signals: list[str] = []
     if response_text:
-        alternative_markers = ["alternatively", "another option", "you could also"]
-        output_signals.extend([m for m in alternative_markers if m in response_text.lower()])
+        alternative_markers = [
+            "alternatively",
+            "another option",
+            "you could also",
+            "option:",
+            "options:",
+        ]
+        lowered = response_text.lower()
+        output_signals.extend([m for m in alternative_markers if m in lowered])
 
     # Signals in USER INPUT (if the test is input-only, like in test_f13_curiosity_pass)
     # The shim does: query = "?" * question_count + " alternative " * alternative_count
@@ -613,7 +620,9 @@ def validate_f13_curiosity(query: str, context: Dict[str, Any]) -> Dict[str, Any
         # Baseline = 0.2
         score = 0.2 + (min(q_count, 5) * 0.1) + (min(alt_count, 3) * 0.1)
     else:
-        score = 0.5
+        # Output-present path: reward explicit alternatives.
+        # Baseline 0.70, +0.15 per unique alternative marker (cap at 2 markers).
+        score = 0.7 + (min(len(output_signals), 2) * 0.15)
 
     return {
         "pass": score >= 0.85,

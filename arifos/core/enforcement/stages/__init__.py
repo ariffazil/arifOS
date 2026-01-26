@@ -14,11 +14,13 @@ Author: arifOS Project
 Version: v38.0
 """
 
-from .stage_000_amanah import (
+# Stage 000 Amanah now uses canonical_core (The Great Purge)
+from canonical_core.stage_000 import (
     compute_amanah_score,
-    stage_000_amanah,
     AmanahSignals,
 )
+# Backward compatibility alias
+stage_000_amanah = None  # Deprecated, use Stage000VOID.execute() instead
 from .stage_555_empathy import (
     compute_kappa_r,
     stage_555_empathy,

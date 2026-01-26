@@ -1,10 +1,14 @@
 """
-vault999.py — VAULT-999 constitutional memory organ (L0) for arifOS v35Ω.
+vault999.py - VAULT-999 constitutional memory organ (L0) for arifOS v35+.
+
+NOTE: This is the CONSTITUTION LOADER, distinct from SEAL999 (the sealing algorithm).
+- SEAL999 = Sealing algorithm (Stage 999 of metabolic pipeline)
+- This file = Constitution.json loader (L0 memory band accessor)
 
 Responsibilities:
 - Load and expose constitution (laws, floors, physics)
 - Provide read-only access to floors and laws at runtime
-- Coordinate safe updates via Phoenix-72 (scar → law)
+- Coordinate safe updates via Phoenix-72 (scar -> law)
 
 Specification:
 - See spec/VAULT_999.md for full semantics.
@@ -14,6 +18,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -32,9 +37,17 @@ class VaultInitializationError(Exception):
     """Raised when the Vault cannot be initialized or loaded."""
 
 
+def amendment_timestamp() -> str:
+    """Return ISO-8601 timestamp for amendments."""
+    return datetime.now(timezone.utc).isoformat()
+
+
 class Vault999:
     """
-    VAULT-999 — L0 Constitutional Memory.
+    VAULT-999 - L0 Constitutional Memory.
+
+    This is the CONSTITUTION LOADER - it reads and writes constitution.json.
+    Not to be confused with SEAL999 which is the sealing algorithm.
 
     Pattern:
         vault = Vault999(VaultConfig())
@@ -68,7 +81,7 @@ class Vault999:
             # Initialize with a minimal constitution structure
             self._constitution = {
                 "version": "35.1.0",
-                "epoch": "35Ω",
+                "epoch": "35+",
                 "physics": {
                     "delta_S_min": 0.0,
                     "peace_squared_min": 1.0,
@@ -201,10 +214,3 @@ class Vault999:
         amendments = self._constitution.setdefault("amendments", [])
         amendments.append(amend)
         self._save()
-
-
-def amendment_timestamp() -> str:
-    """Return ISO-8601 timestamp for amendments."""
-    from datetime import datetime, timezone
-
-    return datetime.now(timezone.utc).isoformat()
