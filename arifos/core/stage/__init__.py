@@ -6,7 +6,8 @@ Orthogonal Metabolic Loop (Hardened 11-File Structure)
 Exports the 11 key stages for the Metabolizer to drive the loop.
 """
 
-from .stage_000_void import execute_stage as void_000
+# Stage 000 now uses canonical module
+from arifos.core.stage_000 import execute_stage as void_000
 from .stage_111_sense import execute_stage as sense_111
 from .stage_222_reflect import execute_stage as reflect_222
 from .stage_333_reason import execute_stage as reason_333
