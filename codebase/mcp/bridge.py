@@ -66,12 +66,26 @@ async def bridge_init_router(action: str = "init", **kwargs) -> dict:
     return serialized
 
 async def bridge_agi_router(action: str = "full", **kwargs) -> dict:
-    """Pure bridge: Route reasoning tasks to AGI Genius."""
+    """Pure bridge: Route reasoning tasks to AGI Genius.
+    Adapts Contrast Actions: predict, measure -> think, evaluate
+    """
     if not ENGINES_AVAILABLE:
         return _FALLBACK_RESPONSE
     
     kernel = get_kernel_manager().get_agi()
-    # Pure delegation to kernel execute method
+    
+    # --- CONTRAST ADAPTERS ---
+    if action in ["predict", "physics"]:
+        # Transform "predict"/"physics" -> "think" (Reasoning/Modelling)
+        kwargs["thought"] = f"Reasoning Mode ({action}): Model reality for '{kwargs.get('query','')}'"
+        action = "think"
+    elif action in ["measure", "math"]:
+        # Transform "measure"/"math" -> "evaluate" (Quantification)
+        action = "evaluate"
+    elif action == "language":
+        # Transform "language" -> "forge" (Projection/Execution)
+        action = "forge"
+        
     serialized = _serialize(await kernel.execute(action, kwargs))
     session_id = kwargs.get("session_id") or (serialized or {}).get("session_id") if isinstance(serialized, dict) else None
     if session_id and isinstance(serialized, dict):
@@ -79,12 +93,29 @@ async def bridge_agi_router(action: str = "full", **kwargs) -> dict:
     return serialized
 
 async def bridge_asi_router(action: str = "full", **kwargs) -> dict:
-    """Pure bridge: Route ethical tasks to ASI Act."""
+    """Pure bridge: Route ethical tasks to ASI Act.
+    Adapts Contrast Actions: harmonize, measure -> align, evaluate
+    Adapts Triad Actions: physics, math, language
+    """
     if not ENGINES_AVAILABLE:
         return _FALLBACK_RESPONSE
     
     kernel = get_kernel_manager().get_asi()
-    # Pure delegation to kernel execute method
+    
+    # --- CONTRAST ADAPTERS ---
+    if action == "harmonize":
+        action = "align"
+        kwargs["proposal"] = "Harmonization: Seek win-win resolution."
+    elif action == "physics":
+        # Physics -> Empathize (Modelling Emotional Reality)
+        action = "empathize"
+    elif action in ["measure", "math"]:
+        # Math -> Evaluate (Scoring Peace/Empathy)
+        action = "evaluate"
+    elif action == "language":
+        # Language -> Act (Execution)
+        action = "act"
+
     serialized = _serialize(await kernel.execute(action, kwargs))
     session_id = kwargs.get("session_id") or (serialized or {}).get("session_id") if isinstance(serialized, dict) else None
     if session_id and isinstance(serialized, dict):
@@ -92,12 +123,28 @@ async def bridge_asi_router(action: str = "full", **kwargs) -> dict:
     return serialized
 
 async def bridge_apex_router(action: str = "full", **kwargs) -> dict:
-    """Pure bridge: Route judicial tasks to APEX Judge."""
+    """Pure bridge: Route judicial tasks to APEX Judge.
+    Adapts Contrast Actions: redeem, measure -> eureka, entropy
+    Adapts Triad Actions: physics, math, language
+    """
     if not ENGINES_AVAILABLE:
         return _FALLBACK_RESPONSE
     
     kernel = get_kernel_manager().get_apex()
-    # Pure delegation to kernel execute method
+    
+    # --- CONTRAST ADAPTERS ---
+    if action == "redeem":
+        action = "eureka"
+    elif action == "physics":
+        # Physics -> Judge (Reasoning about Law/Reality)
+        action = "judge"
+    elif action in ["measure", "math"]:
+        # Math -> Entropy (Scoring Confidence)
+        action = "entropy"
+    elif action == "language":
+        # Language -> Judge (Verdict Projection)
+        action = "judge"
+
     serialized = _serialize(await kernel.execute(action, kwargs))
     session_id = kwargs.get("session_id") or (serialized or {}).get("session_id") if isinstance(serialized, dict) else None
     if session_id and isinstance(serialized, dict):

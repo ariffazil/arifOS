@@ -70,7 +70,7 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {"type": "string", "enum": ["sense", "think", "reflect", "atlas", "forge", "evaluate", "full"]},
+                "action": {"type": "string", "enum": ["sense", "think", "reflect", "atlas", "forge", "evaluate", "full", "predict", "measure", "physics", "math", "language"]},
                 "query": {"type": "string"},
                 "session_id": {"type": "string"}
             },
@@ -83,7 +83,7 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {"type": "string", "enum": ["evidence", "empathize", "align", "act", "witness", "evaluate", "full"]},
+                "action": {"type": "string", "enum": ["evidence", "empathize", "align", "act", "witness", "evaluate", "full", "harmonize", "measure", "physics", "math", "language"]},
                 "text": {"type": "string"},
                 "session_id": {"type": "string"}
             },
@@ -96,7 +96,7 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {"type": "string", "enum": ["eureka", "judge", "proof", "entropy", "parallelism", "full"]},
+                "action": {"type": "string", "enum": ["eureka", "judge", "proof", "entropy", "parallelism", "full", "redeem", "measure", "physics", "math", "language"]},
                 "verdict": {"type": "string", "enum": ["SEAL", "PARTIAL", "SABAR", "VOID", "888_HOLD"]},
                 "query": {"type": "string"},
                 "response": {"type": "string"},
