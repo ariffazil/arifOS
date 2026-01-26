@@ -233,4 +233,23 @@ __all__ = [
     # Legacy wrappers
     "check_red_patterns",
     "compute_metrics_from_task",
+    # v52.5.1 Codebase Bridge - canonical types also available here
+    "codebase",
 ]
+
+# =============================================================================
+# v52.5.1 CODEBASE BRIDGE
+# The codebase package is the canonical reference implementation.
+# Use lazy import to avoid Prometheus metrics collision.
+# =============================================================================
+
+def get_codebase():
+    """Lazy import of codebase to avoid metrics collision."""
+    try:
+        import codebase as _codebase
+        return _codebase
+    except ImportError:
+        return None
+
+# For backward compatibility, expose as property-like access
+codebase = None  # Use get_codebase() for actual access
