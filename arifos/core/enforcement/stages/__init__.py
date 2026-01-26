@@ -14,8 +14,8 @@ Author: arifOS Project
 Version: v38.0
 """
 
-# Stage 000 Amanah now uses canonical module
-from arifos.core.stage_000 import (
+# Stage 000 Amanah now uses canonical_core (The Great Purge)
+from canonical_core.stage_000 import (
     compute_amanah_score,
     AmanahSignals,
 )
