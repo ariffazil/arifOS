@@ -78,6 +78,40 @@ class FloorsVerdict:
     lane: str = "UNKNOWN"
     verdict: str = "VOID"
 
+    @property
+    def reasons(self) -> List[str]:
+        """Return all failure/warning reasons (backward-compatible alias)."""
+        return [*self.failed_floors, *self.warnings]
+
+    @property
+    def anti_hantu_ok(self) -> bool:
+        """Convenience: whether Anti-Hantu is satisfied."""
+        return bool(getattr(self.metrics, "anti_hantu", True))
+
+    @property
+    def hard_ok(self) -> bool:
+        """Convenience: whether hard floors are satisfied.
+
+        This is a compatibility shim for older tests that expect `hard_ok` on FloorsVerdict.
+        """
+        hard_floor_ids = {
+            "F1",
+            "F2",
+            "F5",
+            "F6",
+            "F7",
+            "F8",
+            "F9",
+            "F10",
+            "F11",
+            "F12",
+        }
+        for item in self.failed_floors:
+            floor_id = item.split("(", 1)[0].strip()
+            if floor_id in hard_floor_ids:
+                return False
+        return True
+
 @dataclass
 class FloorCheckResult:
     """Individual floor evaluation result."""

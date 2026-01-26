@@ -46,6 +46,14 @@ from arifos.mcp.metrics import get_metrics
 # Session persistence for 999-000 loop
 from arifos.mcp.session_ledger import inject_memory, seal_memory
 
+# Session bundle store for inter-stage context passing
+from arifos.mcp.constitutional_metrics import (
+    store_stage_result,
+    get_stage_result,
+    get_session_bundle,
+    clear_session_bundle,
+)
+
 # Track B Authority: Import constitutional thresholds (v50.5.26 Quick Wire)
 # These values come from AAA_MCP/v46/constitutional_floors.json via metrics.py
 from arifos.core.enforcement.metrics import (
@@ -1038,7 +1046,7 @@ async def mcp_000_init(
         # =====================================================================
         logger.info(f"000_init: IGNITION COMPLETE - session {session[:8]}")
 
-        return InitResult(
+        result = InitResult(
             status="SEAL",
             session_id=session,
             timestamp=thermo["timestamp"],
@@ -1082,16 +1090,20 @@ async def mcp_000_init(
             injection_risk=injection_risk,
             reason="IGNITION COMPLETE - Constitutional Mode Active"
         ).__dict__
+        store_stage_result(session, "init", result)
+        return result
 
     except Exception as e:
         logger.error(f"000_init IGNITION FAILED: {e}")
-        return InitResult(
+        result = InitResult(
             status="VOID",
             session_id=session,
             injection_risk=1.0,
             reason=f"IGNITION FAILED: {str(e)}",
             floors_checked=floors_checked
         ).__dict__
+        store_stage_result(session, "init", result)
+        return result
 
 
 # =============================================================================
@@ -1325,6 +1337,8 @@ async def mcp_agi_genius(
                     if bridge_result.get("status") not in ("ERROR", "FALLBACK"):
                         bridge_result["session_id"] = session_id
                         logger.debug("agi_genius.full: Using v51 bridge")
+                        # Store result for inter-stage context passing
+                        store_stage_result(session_id, "agi", bridge_result)
                         return bridge_result
                 except Exception as e:
                     logger.warning(f"v51 bridge failed, using inline: {e}")
@@ -1356,7 +1370,7 @@ async def mcp_agi_genius(
 
             floors_checked.extend(["F2_Truth", "F6_DeltaS", "F7_Humility"])
 
-            return GeniusResult(
+            result = GeniusResult(
                 status="SEAL",
                 session_id=session_id,
                 reasoning=refined,
@@ -1368,6 +1382,11 @@ async def mcp_agi_genius(
                 floors_checked=floors_checked,
                 sub_stage="FULL_PIPELINE"
             ).__dict__
+
+            # Store result for inter-stage context passing
+            store_stage_result(session_id, "agi", result)
+
+            return result
 
         else:
             return {"status": "VOID", "reason": f"Unknown action: {action}"}
@@ -1673,6 +1692,13 @@ async def mcp_asi_act(
         # ACTION: FULL (Complete Pipeline)
         # =====================================================================
         elif action == "full":
+            # Retrieve AGI result from bundle if not provided
+            if not agi_result and session_id:
+                stored_agi = get_stage_result(session_id, "agi")
+                if stored_agi:
+                    agi_result = stored_agi
+                    logger.debug(f"asi_act.full: Retrieved AGI result from bundle (session: {session_id[:8]})")
+
             # v51 Bridge: Try Core Engine first
             if ENGINES_AVAILABLE and bridge_asi_full:
                 try:
@@ -1680,6 +1706,8 @@ async def mcp_asi_act(
                     if bridge_result.get("status") not in ("ERROR", "FALLBACK"):
                         bridge_result["session_id"] = session_id
                         logger.debug("asi_act.full: Using v51 bridge")
+                        # Store result for inter-stage context passing
+                        store_stage_result(session_id, "asi", bridge_result)
                         return bridge_result
                 except Exception as e:
                     logger.warning(f"v51 bridge failed, using inline: {e}")
@@ -1708,7 +1736,7 @@ async def mcp_asi_act(
             else:
                 status = "SEAL"
 
-            return ActResult(
+            result = ActResult(
                 status=status,
                 session_id=session_id,
                 peace_squared=empathy.get("peace_squared", 1.0),
@@ -1721,6 +1749,11 @@ async def mcp_asi_act(
                 floors_checked=floors_checked,
                 sub_stage="FULL_PIPELINE"
             ).__dict__
+
+            # Store result for inter-stage context passing
+            store_stage_result(session_id, "asi", result)
+
+            return result
 
         else:
             return {"status": "VOID", "reason": f"Unknown action: {action}"}
@@ -1807,6 +1840,41 @@ async def mcp_apex_judge(
     floors_checked = []
 
     try:
+        # =====================================================================
+        # v52.1: Prefer Core APEX Room (777→999) implementation
+        # =====================================================================
+        if action in {"eureka", "judge", "proof", "full"}:
+            try:
+                from arifos.core.apex.kernel import APEXJudicialCore
+
+                # If caller didn't pass bundles, pull from session store.
+                if not agi_result and session_id:
+                    agi_result = get_stage_result(session_id, "agi")
+                if not asi_result and session_id:
+                    asi_result = get_stage_result(session_id, "asi")
+
+                init_result = get_stage_result(session_id, "init") if session_id else None
+                lane = (init_result or {}).get("lane", "SOFT")
+                user_id = (init_result or {}).get("authority", "anonymous")
+
+                core_apex = APEXJudicialCore()
+                core_result = await core_apex.execute(
+                    action,
+                    {
+                        "session_id": session_id,
+                        "query": query,
+                        "response": response,
+                        "agi_result": agi_result,
+                        "asi_result": asi_result,
+                        "lane": lane,
+                        "user_id": user_id,
+                    },
+                )
+                if isinstance(core_result, dict) and core_result.get("status") not in ("ERROR",):
+                    return core_result
+            except Exception as e:
+                logger.warning(f"Core APEX room failed, falling back to inline APEX: {e}")
+
         # =====================================================================
         # ACTION: EUREKA (777)
         # =====================================================================
@@ -1984,6 +2052,19 @@ async def mcp_apex_judge(
         # ACTION: FULL (Complete Pipeline: EUREKA → JUDGE → PROOF)
         # =====================================================================
         elif action == "full":
+            # Retrieve AGI/ASI results from bundle if not provided
+            if not agi_result and session_id:
+                stored_agi = get_stage_result(session_id, "agi")
+                if stored_agi:
+                    agi_result = stored_agi
+                    logger.debug(f"apex_judge.full: Retrieved AGI result from bundle (session: {session_id[:8]})")
+
+            if not asi_result and session_id:
+                stored_asi = get_stage_result(session_id, "asi")
+                if stored_asi:
+                    asi_result = stored_asi
+                    logger.debug(f"apex_judge.full: Retrieved ASI result from bundle (session: {session_id[:8]})")
+
             # v51 Bridge: Execute via Core APEX Engine
             if ENGINES_AVAILABLE and bridge_apex_full:
                 try:
@@ -1995,6 +2076,8 @@ async def mcp_apex_judge(
                     if bridge_result.get("status") not in ("ERROR", "FALLBACK"):
                         bridge_result["session_id"] = session_id
                         logger.debug("apex_judge.full: Using v51 bridge (Core APEX Engine)")
+                        # Store APEX result for 999_vault sealing
+                        store_stage_result(session_id, "apex", bridge_result)
                         return bridge_result
                 except Exception as e:
                     logger.warning(f"v51 bridge failed, using inline fallback: {e}")
@@ -2030,7 +2113,7 @@ async def mcp_apex_judge(
                 "F1_Amanah", "F7_Humility", "F8_TriWitness", "F9_AntiHantu"
             ])
 
-            return JudgeResult(
+            result = JudgeResult(
                 status=final_verdict,
                 session_id=session_id,
                 verdict=final_verdict,
@@ -2046,6 +2129,11 @@ async def mcp_apex_judge(
                 floors_checked=floors_checked,
                 sub_stage="FULL_PIPELINE"
             ).__dict__
+
+            # Store APEX result for 999_vault sealing
+            store_stage_result(session_id, "apex", result)
+
+            return result
 
         else:
             return {"status": "VOID", "reason": f"Unknown action: {action}"}
@@ -2158,9 +2246,50 @@ async def mcp_999_vault(
 
     try:
         # =====================================================================
+        # v52.1: Prefer Core APEX Room VAULT implementation for list/read
+        # =====================================================================
+        if action in {"list", "read"}:
+            try:
+                from arifos.core.apex.kernel import APEXJudicialCore
+
+                core_apex = APEXJudicialCore()
+                return await core_apex.execute(
+                    action,
+                    {
+                        "session_id": session_id,
+                        "query": query,
+                        "data": data,
+                    },
+                )
+            except Exception as e:
+                logger.warning(f"Core VAULT list/read failed, falling back to legacy: {e}")
+
+        # =====================================================================
         # ACTION: SEAL
         # =====================================================================
         if action == "seal" or target == "seal":
+            # ─────────────────────────────────────────────────────────────────
+            # RETRIEVE STAGE RESULTS FROM BUNDLE IF NOT PROVIDED
+            # ─────────────────────────────────────────────────────────────────
+            if session_id:
+                if not agi_result:
+                    stored_agi = get_stage_result(session_id, "agi")
+                    if stored_agi:
+                        agi_result = stored_agi
+                        logger.debug(f"999_vault.seal: Retrieved AGI result from bundle")
+
+                if not asi_result:
+                    stored_asi = get_stage_result(session_id, "asi")
+                    if stored_asi:
+                        asi_result = stored_asi
+                        logger.debug(f"999_vault.seal: Retrieved ASI result from bundle")
+
+                if not apex_result:
+                    stored_apex = get_stage_result(session_id, "apex")
+                    if stored_apex:
+                        apex_result = stored_apex
+                        logger.debug(f"999_vault.seal: Retrieved APEX result from bundle")
+
             # ─────────────────────────────────────────────────────────────────
             # SEAL PHRASE VALIDATION: "DITEMPA BUKAN DIBERI"
             # The sovereign's authorization to forge the final seal
@@ -2181,6 +2310,40 @@ async def mcp_999_vault(
                     "reason": "Seal phrase required: 'DITEMPA BUKAN DIBERI'",
                     "hint": "Provide seal_phrase='DITEMPA BUKAN DIBERI' to authorize the seal"
                 }
+
+            # =================================================================
+            # v52.1: Prefer Core APEX Room sealing (889 PROOF + 999 SEAL)
+            # =================================================================
+            try:
+                from arifos.core.apex.kernel import APEXJudicialCore
+
+                if session_id and not agi_result:
+                    agi_result = get_stage_result(session_id, "agi") or agi_result
+                if session_id and not asi_result:
+                    asi_result = get_stage_result(session_id, "asi") or asi_result
+                if session_id and not apex_result:
+                    apex_result = get_stage_result(session_id, "apex") or apex_result
+                init_stored = get_stage_result(session_id, "init") if session_id else None
+
+                core_apex = APEXJudicialCore()
+                core_result = await core_apex.execute(
+                    "seal",
+                    {
+                        "session_id": session_id,
+                        "query": query,
+                        "response": "",
+                        "lane": (init_stored or {}).get("lane", "SOFT"),
+                        "user_id": (init_stored or {}).get("authority", "anonymous"),
+                        "init_result": init_result or init_stored,
+                        "agi_result": agi_result,
+                        "asi_result": asi_result,
+                        "verdict_struct": apex_result,
+                    },
+                )
+                if isinstance(core_result, dict) and core_result.get("status") not in ("ERROR",):
+                    return core_result
+            except Exception as e:
+                logger.warning(f"Core VAULT seal failed, falling back to legacy: {e}")
 
             floors_checked.extend(["F1_Amanah", "F8_TriWitness", "F11_SealPhrase"])
 
@@ -2267,6 +2430,11 @@ async def mcp_999_vault(
                 key_insights=key_insights
             )
             logger.info(f"999_vault: Session sealed to ledger: {ledger_result.get('entry_hash', 'N/A')[:16]}")
+
+            # Cleanup session bundle after sealing
+            if session_id:
+                clear_session_bundle(session_id)
+                logger.debug(f"999_vault.seal: Cleaned up session bundle (session: {session_id[:8]})")
 
             return VaultResult(
                 status="SEAL",

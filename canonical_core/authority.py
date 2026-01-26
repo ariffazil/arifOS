@@ -30,12 +30,13 @@ class AuthorityVerifier:
         """Initialize authority checker."""
         self.nonce_cache = {}
     
-    def verify(self, session_id: str, operator_id: Optional[str] = None) -> AuthorityCheck:
+    def verify(self, session_id: str, command: str = "", operator_id: Optional[str] = None) -> AuthorityCheck:
         """
         Verify operator authority (F11).
         
         Args:
             session_id: Session identifier
+            command: The command/input being executed
             operator_id: Optional operator identity
             
         Returns:
@@ -61,6 +62,6 @@ class AuthorityVerifier:
             requires_override=False
         )
     
-    def check(self, session_id: str, operator_id: Optional[str] = None) -> AuthorityCheck:
+    def check(self, session_id: str, command: str = "", operator_id: Optional[str] = None) -> AuthorityCheck:
         """Alias for verify() to match expected interface."""
-        return self.verify(session_id, operator_id)
+        return self.verify(session_id, command, operator_id)

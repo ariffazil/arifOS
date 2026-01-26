@@ -99,6 +99,105 @@ _VERDICTS: List[tuple] = []  # (timestamp, verdict)
 _ACTIVE_SESSIONS: Dict[str, Dict[str, Any]] = {}  # session_id -> {started_at, tool_calls, last_activity}
 _SESSION_LOCK = threading.Lock()
 
+# =============================================================================
+# SESSION BUNDLE STORE (Mid-Session Context Passing)
+# =============================================================================
+# Stores stage results indexed by session_id for inter-stage communication
+# This enables: agi_genius → store → asi_act retrieves → store → apex_judge retrieves
+_SESSION_BUNDLES: Dict[str, Dict[str, Any]] = {}  # session_id -> {agi_result, asi_result, apex_result}
+_BUNDLE_LOCK = threading.Lock()
+
+
+def store_stage_result(session_id: str, stage: str, result: Dict[str, Any]) -> None:
+    """
+    Store a stage result for later retrieval by subsequent stages.
+
+    Args:
+        session_id: The session identifier
+        stage: One of "agi", "asi", "apex", "init"
+        result: The stage output to store
+    """
+    if not session_id:
+        return  # No session, can't store
+
+    with _BUNDLE_LOCK:
+        if session_id not in _SESSION_BUNDLES:
+            _SESSION_BUNDLES[session_id] = {
+                "created_at": time.time(),
+                "agi_result": None,
+                "asi_result": None,
+                "apex_result": None,
+                "init_result": None
+            }
+
+        key = f"{stage}_result"
+        if key in _SESSION_BUNDLES[session_id]:
+            _SESSION_BUNDLES[session_id][key] = result
+            _SESSION_BUNDLES[session_id]["last_updated"] = time.time()
+
+
+def get_stage_result(session_id: str, stage: str) -> Optional[Dict[str, Any]]:
+    """
+    Retrieve a stored stage result.
+
+    Args:
+        session_id: The session identifier
+        stage: One of "agi", "asi", "apex", "init"
+
+    Returns:
+        The stored result or None if not found
+    """
+    if not session_id:
+        return None
+
+    with _BUNDLE_LOCK:
+        if session_id not in _SESSION_BUNDLES:
+            return None
+
+        key = f"{stage}_result"
+        return _SESSION_BUNDLES[session_id].get(key)
+
+
+def get_session_bundle(session_id: str) -> Dict[str, Any]:
+    """
+    Get all stored stage results for a session.
+
+    Args:
+        session_id: The session identifier
+
+    Returns:
+        Dictionary with all stage results
+    """
+    with _BUNDLE_LOCK:
+        return _SESSION_BUNDLES.get(session_id, {}).copy()
+
+
+def clear_session_bundle(session_id: str) -> None:
+    """
+    Clear all stored results for a session (call on 999_vault seal).
+    """
+    with _BUNDLE_LOCK:
+        _SESSION_BUNDLES.pop(session_id, None)
+
+
+def cleanup_stale_bundles(max_age_seconds: int = 1800) -> int:
+    """
+    Remove bundles older than max_age_seconds (default 30 min).
+
+    Returns:
+        Number of bundles cleaned up
+    """
+    now = time.time()
+    with _BUNDLE_LOCK:
+        stale = [
+            sid for sid, data in _SESSION_BUNDLES.items()
+            if now - data.get("created_at", now) > max_age_seconds
+        ]
+        for sid in stale:
+            del _SESSION_BUNDLES[sid]
+        return len(stale)
+
+
 # Server start time
 _SERVER_START = time.time()
 

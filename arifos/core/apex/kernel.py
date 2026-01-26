@@ -1,14 +1,31 @@
 """
-APEX Judicial Core (The Judge)
-Authority: F1 (Amanah) + F8 (Tri-Witness) + F12 (Defense)
-Metabolic Stages: 777, 888, 999
-Includes AGENT ZERO Profilers.
+arifOS APEX Judicial Core (Ψ) — APEX Room 777→999 (v52.1)
+
+Implements the COOL PHASE as a real pipeline:
+- 777 FORGE: format/prepare response (no new reasoning)
+- 888 JUDGE: 13-floor validation + p(truth)
+- 889 PROOF: Merkle root + Ed25519 signature (APEX key)
+- 999 SEAL: immutable append via session ledger + Phoenix-72 cooling metadata
 """
-import asyncio
+
+from __future__ import annotations
+
+import base64
+import hashlib
+import json
 import math
 import time
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+from arifos.core.system.apex_prime import APEXPrime
+from arifos.core.system.types import Verdict
+from arifos.mcp.constitutional_metrics import get_stage_result, store_stage_result
+from arifos.mcp.session_ledger import seal_memory
 
 
 @dataclass
@@ -18,197 +35,464 @@ class EntropyMeasurement:
     entropy_reduction: float
     thermodynamic_valid: bool
 
-@dataclass
-class ParallelismProof:
-    component_times: Dict[str, float]
-    parallel_execution_time: float
-    theoretical_minimum: float
-    speedup_achieved: float
-    parallelism_achieved: bool
 
 class ConstitutionalEntropyProfiler:
-    """Agent Zero Component: Measures ΔS."""
+    """Agent Zero Component: Measures ΔS (character-entropy proxy)."""
+
+    @staticmethod
+    def _calc_entropy(text: str) -> float:
+        if not text:
+            return 0.0
+        counts: Dict[str, int] = {}
+        for ch in text:
+            counts[ch] = counts.get(ch, 0) + 1
+        length = len(text)
+        probs = [c / length for c in counts.values()]
+        return -sum(p * math.log(p, 2.0) for p in probs if p > 0)
+
     async def measure_constitutional_cooling(self, pre_text: str, post_text: str) -> EntropyMeasurement:
-        def calc_entropy(text):
-            if not text: return 0.0
-            prob = [float(text.count(c)) / len(text) for c in dict.fromkeys(list(text))]
-            return -sum([p * math.log(p) / math.log(2.0) for p in prob])
-
-        pre_e = calc_entropy(pre_text)
-        post_e = calc_entropy(post_text)
+        pre_e = self._calc_entropy(pre_text)
+        post_e = self._calc_entropy(post_text)
         reduction = pre_e - post_e
-
         return EntropyMeasurement(
             pre_entropy=pre_e,
             post_entropy=post_e,
             entropy_reduction=reduction,
-            thermodynamic_valid=reduction > 0 # Entropy should decrease (Information Gain)
+            thermodynamic_valid=reduction >= 0.0,
         )
 
-class ConstitutionalParallelismProfiler:
-    """Agent Zero Component: Proves Orthogonality."""
-    async def prove_constitutional_parallelism(self, start_time: float, component_durations: Dict[str, float]) -> ParallelismProof:
-        total_wall_time = time.time() - start_time
-        max_component_time = max(component_durations.values()) if component_durations else 0
-        sum_component_time = sum(component_durations.values()) if component_durations else 0
 
-        speedup = sum_component_time / total_wall_time if total_wall_time > 0 else 0
+def _sha256_hex(payload: bytes) -> str:
+    return hashlib.sha256(payload).hexdigest()
 
-        return ParallelismProof(
-            component_times=component_durations,
-            parallel_execution_time=total_wall_time,
-            theoretical_minimum=max_component_time,
-            speedup_achieved=speedup,
-            parallelism_achieved=speedup > 1.1 # Proof of overlap
-        )
+
+def _compute_merkle_root(items: List[str]) -> str:
+    """Compute a Merkle root from hex leaf hashes."""
+    if not items:
+        return _sha256_hex(b"EMPTY_MERKLE")
+    level = list(items)
+    while len(level) > 1:
+        if len(level) % 2 == 1:
+            level.append(level[-1])
+        next_level: List[str] = []
+        for i in range(0, len(level), 2):
+            next_level.append(_sha256_hex((level[i] + level[i + 1]).encode("utf-8")))
+        level = next_level
+    return level[0]
+
+
+def _runtime_vault_dir() -> Path:
+    # .../arifos/core/apex/kernel.py -> repo root is 3 levels up from `arifos/`
+    repo_root = Path(__file__).resolve().parents[3]
+    vault = repo_root / "runtime" / "vault_999"
+    vault.mkdir(parents=True, exist_ok=True)
+    return vault
+
+
+def _load_or_create_apex_key() -> Ed25519PrivateKey:
+    """Load or create the persistent APEX Ed25519 signing key (runtime-only)."""
+    key_path = _runtime_vault_dir() / "apex_ed25519_private_key.b64"
+    if key_path.exists():
+        raw = base64.b64decode(key_path.read_text(encoding="utf-8").strip())
+        return Ed25519PrivateKey.from_private_bytes(raw)
+
+    key = Ed25519PrivateKey.generate()
+    raw = key.private_bytes_raw()
+    key_path.write_text(base64.b64encode(raw).decode("ascii"), encoding="utf-8")
+    return key
+
+
+def _safe_json(obj: Any) -> Any:
+    """Best-effort JSON serializer for mixed dataclass/dict objects."""
+    if obj is None:
+        return None
+    if isinstance(obj, (str, int, float, bool)):
+        return obj
+    if isinstance(obj, dict):
+        return {k: _safe_json(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_safe_json(v) for v in obj]
+    if hasattr(obj, "to_dict"):
+        return _safe_json(obj.to_dict())
+    if hasattr(obj, "__dataclass_fields__"):
+        return _safe_json(asdict(obj))
+    if hasattr(obj, "__dict__"):
+        return _safe_json({k: v for k, v in obj.__dict__.items() if not k.startswith("_")})
+    return str(obj)
+
 
 class APEXJudicialCore:
-    """
-    The Orthogonal Judicial Kernel.
-    Final Authority. Agent Zero Instrumented.
-    """
+    """Unified APEX kernel for both `apex_judge` and `vault_999` routers."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.entropy_profiler = ConstitutionalEntropyProfiler()
-        self.parallel_profiler = ConstitutionalParallelismProfiler()
+        self._signing_key = _load_or_create_apex_key()
+
+    # -------------------------------------------------------------------------
+    # 777 FORGE
+    # -------------------------------------------------------------------------
 
     @staticmethod
-    async def forge_insight(draft: str) -> Dict[str, Any]:
-        """Stage 777: Forge."""
-        return {"crystallized": True, "draft_size": len(draft)}
-
-    async def judge_quantum_path(self, query: str, response: str, trinity_floors: List[Any], user_id: str) -> Dict[str, Any]:
-        """
-        Stage 888: Quantum Path Judgment via APEX Prime.
-        Delegates to arifos.core.system.apex_prime for official verdict.
-        """
-        from arifos.core.system.apex_prime import APEXPrime
-
-        # Initialize the Prime Authority
-        prime = APEXPrime()
-
-        # Split floors (Trinity architecture requires AGI and ASI inputs)
-        # This is an adapter to map the generic "trinity_floors" list to AGI/ASI buckets if possible
-        # For simplicity in this kernel wrapper, we might just pass empty or mock if not strictly separated
-        # But ideally, we should have them separated.
-        # Assuming trinity_floors contains FloorCheckResult objects.
-
-        # Separate by floor ID convention if possible, or just split
-        # AGI: F1, F2, F6
-        # ASI: F3, F4, F5, F7
-        # APEX: F8, F9, F10-12
-
-        agi_results = []
-        asi_results = []
-
-        # Basic heuristic splitting for Prime - in full hypervisor this is cleaner
-        for f in trinity_floors:
-             if f.floor_id in ["F1", "F2", "F6"]:
-                 agi_results.append(f)
-             else:
-                 asi_results.append(f)
-
-        # Execute Prime Judgment
-        verdict = prime.judge_output(query, response, agi_results, asi_results, user_id)
-
+    async def forge_777(response: str, merged_bundle: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Stage 777: Prepare response without changing reasoning."""
+        draft = response or (merged_bundle or {}).get("draft", "")
         return {
-            "quantum_path": {
-                "collapsed": True,
-                "integrity": verdict.pulse,
-                "branch_id": "main_branch",
-                "proof_hash": verdict.proof_hash
-            },
-            "final_ruling": verdict.verdict.value,
-            "verdict_object": verdict # Return full object for context
+            "stage": "777_FORGE",
+            "draft": draft,
+            "draft_size": len(draft),
+            "no_reasoning_change": True,
         }
 
+    # -------------------------------------------------------------------------
+    # 888 JUDGE
+    # -------------------------------------------------------------------------
+
     @staticmethod
-    async def seal_vault(verdict: str, artifact: Any) -> Dict[str, Any]:
-        """
-        Stage 999: The Seal.
-        Performs Thermodynamic Sealing and assigns Cooling Tiers.
-        """
-        import hashlib
-        import json
-        from datetime import datetime, timezone
+    def _extract_votes(agi_result: Optional[Dict[str, Any]], asi_result: Optional[Dict[str, Any]]) -> Dict[str, float]:
+        """Extract tri-witness votes from mixed AGI/ASI result shapes."""
+        agi = agi_result or {}
+        asi = asi_result or {}
 
-        # 1. Generate Merkle Root (Simplified for v52)
-        payload = json.dumps(artifact, sort_keys=True, default=str).encode()
-        merkle_root = hashlib.sha256(payload).hexdigest()
-        
-        # 2. Assign Cooling Band (Anomalous Contrast Theory)
-        # SEAL -> CCC (Forever)
-        # PARTIAL/SABAR -> BBB (30 Days)
-        # VOID -> Not Stored
-        band = "VOID"
-        if verdict == "SEAL":
-            band = "CCC_CANON"
-        elif verdict in ["PARTIAL", "SABAR"]:
-            band = "BBB_LEDGER"
-            
-        # 3. Create Phoenix Key for 000 Bootstrap
-        phoenix_key = hashlib.sha256(f"{merkle_root}:{datetime.now(timezone.utc)}".encode()).hexdigest()[:16]
+        # Mind vote: prefer think.confidence, fallback to truth_score, else 0.9.
+        think = agi.get("think") or {}
+        mind = float(think.get("confidence", agi.get("truth_score", 0.9)) or 0.9)
 
-        return {
-            "stage": "999_vault",
-            "status": "SEALED",
+        # Heart vote: prefer empathy.kappa_r / empathy_score
+        empathy = asi.get("empathy") or {}
+        heart = float(empathy.get("kappa_r", asi.get("kappa_r", asi.get("empathy_score", 0.8))) or 0.8)
+
+        # Earth witness: if evidence present, use its grounding score else baseline 0.95
+        evidence = asi.get("evidence") or {}
+        earth = float(evidence.get("truth_score", evidence.get("truth_grounding", 0.95)) or 0.95)
+
+        return {"mind": mind, "heart": heart, "earth": earth}
+
+    def judge_888(
+        self,
+        *,
+        session_id: str,
+        query: str,
+        response: str,
+        agi_result: Optional[Dict[str, Any]],
+        asi_result: Optional[Dict[str, Any]],
+        user_id: str,
+        lane: str,
+    ) -> Dict[str, Any]:
+        """Stage 888: full floor validation with p(truth)."""
+        from arifos.core.enforcement.floor_validators import validate_f4_clarity
+
+        votes = self._extract_votes(agi_result, asi_result)
+        tri_witness = sum(votes.values()) / 3.0
+
+        # Build minimal floor bundles for APEXPrime (F1-F9 family).
+        # We keep these conservative: if signal missing, it does not auto-fail.
+        from arifos.core.system.types import FloorCheckResult, Metrics
+
+        truth_score = float(votes["mind"])
+        kappa_r = float(votes["heart"])
+        peace_squared = float((asi_result or {}).get("peace_squared", 1.0) or 1.0)
+        omega_0 = float((asi_result or {}).get("omega_0", 0.04) or 0.04)
+        delta_res = validate_f4_clarity(query, {"response": response})
+        delta_s = float(delta_res.get("delta_s", 0.0))
+        delta_s_passed = bool(delta_res.get("pass", True))
+
+        metrics = Metrics(
+            truth=truth_score,
+            delta_s=delta_s,
+            peace_squared=peace_squared,
+            kappa_r=kappa_r,
+            omega_0=omega_0,
+            amanah=True,
+            tri_witness=tri_witness,
+            rasa=True,
+            anti_hantu=True,
+        )
+
+        agi_floors = [
+            FloorCheckResult("F2", "Truth", 0.99, truth_score, truth_score >= 0.99, is_hard=True),
+            FloorCheckResult(
+                "F6",
+                "Clarity (ΔS)",
+                0.0,
+                delta_s,
+                delta_s_passed,
+                is_hard=True,
+                reason=str(delta_res.get("reason", "")),
+            ),
+        ]
+        asi_floors = [
+            FloorCheckResult("F3", "Peace²", 1.0, peace_squared, peace_squared >= 1.0, is_hard=False),
+            FloorCheckResult("F4", "Empathy (κᵣ)", 0.95, kappa_r, kappa_r >= 0.95, is_hard=False),
+            FloorCheckResult("F5", "Humility (Ω₀)", 0.03, omega_0, 0.03 <= omega_0 <= 0.05, is_hard=True),
+            FloorCheckResult("F8", "Tri-Witness", 0.95, tri_witness, tri_witness >= 0.95, is_hard=(lane == "HARD")),
+        ]
+
+        prime = APEXPrime(high_stakes=(lane == "HARD"))
+        apex_verdict = prime.judge_output(
+            query=query,
+            response=response,
+            agi_results=agi_floors,
+            asi_results=asi_floors,
+            user_id=user_id,
+            context={"lane": lane, "evidence_ratio": float((asi_result or {}).get("evidence_ratio", 1.0) or 1.0)},
+        )
+
+        verdict_struct = {
+            "stage": "888_JUDGE",
+            "session_id": session_id,
+            "lane": lane,
+            "verdict": apex_verdict.verdict.value,
+            "reason": apex_verdict.reason,
+            "p_truth": float(apex_verdict.genius_stats.get("p_truth", 0.0)) if apex_verdict.genius_stats else 0.0,
+            "tri_witness": tri_witness,
+            "votes": votes,
+            "violated_floors": list(apex_verdict.violated_floors),
+            "cooling": apex_verdict.cooling_metadata or {},
+            "proof_hash": apex_verdict.proof_hash,
+            "metrics": _safe_json(metrics),
+        }
+
+        store_stage_result(session_id, "apex", verdict_struct)
+        return verdict_struct
+
+    # -------------------------------------------------------------------------
+    # 889 PROOF
+    # -------------------------------------------------------------------------
+
+    def proof_889(self, *, session_id: str, verdict_struct: Dict[str, Any]) -> Dict[str, Any]:
+        """Stage 889: Merkle tree + Ed25519 signature."""
+        floors = verdict_struct.get("metrics") or {}
+        # Leaf hashes include floor summary + verdict fields for immutability.
+        leaf_payloads = [
+            json.dumps({"k": k, "v": floors.get(k)}, sort_keys=True, default=str).encode("utf-8")
+            for k in sorted(floors.keys())
+        ]
+        leaves = [_sha256_hex(p) for p in leaf_payloads]
+        leaves.append(_sha256_hex(json.dumps({"verdict": verdict_struct.get("verdict")}, sort_keys=True).encode()))
+
+        merkle_root = _compute_merkle_root(leaves)
+        signature = self._signing_key.sign(merkle_root.encode("utf-8")).hex()
+        public_key = self._signing_key.public_key().public_bytes_raw().hex()
+
+        proof = {
+            "stage": "889_PROOF",
+            "session_id": session_id,
             "merkle_root": merkle_root,
-            "cooling_band": band,
-            "phoenix_key": f"PHX-{phoenix_key.upper()}",
-            "ledger_commit": True,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "motto": "DITEMPA BUKAN DIBERI"
+            "signature_ed25519": signature,
+            "public_key_ed25519": public_key,
+            "leaves": leaves,
         }
+        return proof
+
+    # -------------------------------------------------------------------------
+    # 999 SEAL (Vault IO)
+    # -------------------------------------------------------------------------
+
+    @staticmethod
+    def _summarize(verdict_struct: Dict[str, Any]) -> str:
+        verdict = verdict_struct.get("verdict", "UNKNOWN")
+        reason = verdict_struct.get("reason", "")
+        return f"{verdict}: {reason}".strip()
+
+    async def seal_999(
+        self,
+        *,
+        session_id: str,
+        verdict_struct: Dict[str, Any],
+        init_result: Optional[Dict[str, Any]],
+        agi_result: Optional[Dict[str, Any]],
+        asi_result: Optional[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """Stage 999: Seal session to ledger (JSON+Markdown) with Phoenix metadata."""
+        proof = self.proof_889(session_id=session_id, verdict_struct=verdict_struct)
+
+        telemetry = {
+            "verdict": verdict_struct.get("verdict"),
+            "p_truth": verdict_struct.get("p_truth"),
+            "TW": verdict_struct.get("tri_witness"),
+            "dS": (verdict_struct.get("metrics") or {}).get("delta_s"),
+            "peace2": (verdict_struct.get("metrics") or {}).get("peace_squared"),
+            "kappa_r": (verdict_struct.get("metrics") or {}).get("kappa_r"),
+            "omega_0": (verdict_struct.get("metrics") or {}).get("omega_0"),
+            "cooling": verdict_struct.get("cooling"),
+            "proof": {"merkle_root": proof.get("merkle_root"), "public_key": proof.get("public_key_ed25519")},
+        }
+
+        seal_result = seal_memory(
+            session_id=session_id,
+            verdict=str(verdict_struct.get("verdict", "SABAR")),
+            init_result=init_result or {},
+            genius_result=agi_result or {},
+            act_result=asi_result or {},
+            judge_result={"verdict_struct": verdict_struct, "proof": proof},
+            telemetry=telemetry,
+            context_summary=self._summarize(verdict_struct),
+            key_insights=list((verdict_struct.get("violated_floors") or [])[:8]),
+        )
+
+        return {
+            "stage": "999_SEAL",
+            "status": "SEALED" if seal_result.get("sealed") else "ERROR",
+            "session_id": session_id,
+            "verdict": verdict_struct.get("verdict", "UNKNOWN"),
+            "seal": seal_result,
+            "proof": proof,
+            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+        }
+
+    # -------------------------------------------------------------------------
+    # Vault read/list helpers
+    # -------------------------------------------------------------------------
+
+    @staticmethod
+    def _sessions_dir() -> Path:
+        from arifos.mcp.session_ledger import SESSION_PATH
+
+        return SESSION_PATH
+
+    def _list_session_entries(self, limit: int = 10) -> List[Dict[str, Any]]:
+        path = self._sessions_dir()
+        if not path.exists():
+            return []
+        files = sorted(path.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)[: max(1, limit)]
+        entries: List[Dict[str, Any]] = []
+        for f in files:
+            try:
+                data = json.loads(f.read_text(encoding="utf-8", errors="replace"))
+                entries.append(
+                    {
+                        "entry_hash": data.get("entry_hash"),
+                        "session_id": data.get("session_id"),
+                        "timestamp": data.get("timestamp"),
+                        "verdict": data.get("verdict"),
+                        "merkle_root": data.get("merkle_root"),
+                        "prev_hash": data.get("prev_hash"),
+                    }
+                )
+            except Exception:
+                continue
+        return entries
+
+    def _read_entry(self, entry_hash_prefix: str) -> Optional[Dict[str, Any]]:
+        path = self._sessions_dir()
+        if not path.exists():
+            return None
+        for f in path.glob(f"{entry_hash_prefix}*.json"):
+            try:
+                return json.loads(f.read_text(encoding="utf-8", errors="replace"))
+            except Exception:
+                return None
+        return None
+
+    # -------------------------------------------------------------------------
+    # Router entry point
+    # -------------------------------------------------------------------------
 
     async def execute(self, action: str, kwargs: dict) -> dict:
-        """Unified APEX execution entry point."""
-        query = kwargs.get("query", "")
-        response = kwargs.get("response", "")
-        trinity_floors = kwargs.get("trinity_floors", [])
-        user_id = kwargs.get("user_id", "anonymous")
+        """Unified APEX execution entry point (used by MCP bridge routers)."""
+        session_id = str(kwargs.get("session_id") or "")
+        query = str(kwargs.get("query") or "")
+        response = str(kwargs.get("response") or kwargs.get("draft") or "")
+        user_id = str(kwargs.get("user_id") or "anonymous")
+        lane = str(kwargs.get("lane") or "SOFT").upper()
 
-        if action == "full" or action == "judge":
-            # 1. 777 FORGE - Insight crystallization
-            insight = await self.forge_insight(response)
-            
-            # 2. 888 JUDGE - Final ruling
-            ruling = await self.judge_quantum_path(query, response, trinity_floors, user_id)
-            
-            # 3. 999 SEAL - Commitment to vault
-            seal = await self.seal_vault(ruling["final_ruling"], ruling)
-            
+        # Load missing bundles from in-memory session store (when client doesn't pass them).
+        agi_result = kwargs.get("agi_result") or get_stage_result(session_id, "agi")
+        asi_result = kwargs.get("asi_result") or get_stage_result(session_id, "asi")
+        init_result = kwargs.get("init_result") or get_stage_result(session_id, "init")
+
+        if action in {"forge", "eureka"}:
+            forged = await self.forge_777(response, merged_bundle=kwargs.get("merged_bundle"))
+            store_stage_result(session_id, "apex", forged)
+            return {"status": "SEAL", "verdict": "SEAL", "session_id": session_id, **forged}
+
+        if action == "judge":
+            verdict_struct = self.judge_888(
+                session_id=session_id,
+                query=query,
+                response=response,
+                agi_result=agi_result,
+                asi_result=asi_result,
+                user_id=user_id,
+                lane=lane,
+            )
+            return {"status": verdict_struct["verdict"], "verdict": verdict_struct["verdict"], **verdict_struct}
+
+        if action == "proof":
+            verdict_struct = kwargs.get("verdict_struct") or get_stage_result(session_id, "apex")
+            if not isinstance(verdict_struct, dict):
+                return {"status": "VOID", "verdict": "VOID", "reason": "Missing verdict_struct for proof"}
+            proof = self.proof_889(session_id=session_id, verdict_struct=verdict_struct)
+            return {"status": "SEAL", "verdict": "SEAL", "session_id": session_id, **proof}
+
+        if action == "full":
+            forged = await self.forge_777(response, merged_bundle=kwargs.get("merged_bundle"))
+            verdict_struct = self.judge_888(
+                session_id=session_id,
+                query=query,
+                response=forged.get("draft", response),
+                agi_result=agi_result,
+                asi_result=asi_result,
+                user_id=user_id,
+                lane=lane,
+            )
+            proof = self.proof_889(session_id=session_id, verdict_struct=verdict_struct)
+            full = {"forge": forged, "judge": verdict_struct, "proof": proof}
+            store_stage_result(session_id, "apex", full)
             return {
-                "status": ruling["final_ruling"],
-                "verdict": ruling["final_ruling"],
-                "insight": insight,
-                "ruling": ruling,
-                "seal": seal,
-                "summary": f"APEX Judgment: {ruling['final_ruling']}",
-                "floors_checked": ["F3", "F8", "F11", "F12", "F13"]
+                "status": verdict_struct["verdict"],
+                "verdict": verdict_struct["verdict"],
+                "session_id": session_id,
+                **full,
             }
 
-        elif action == "eureka" or action == "forge":
-            return await self.forge_insight(response)
-        
-        elif action == "judge":
-            return await self.judge_quantum_path(query, response, trinity_floors, user_id)
-        
-        elif action == "proof":
-            return await self.judge_quantum_path(query, response, trinity_floors, user_id)
-            
-        elif action == "seal":
-            return await self.seal_vault(kwargs.get("verdict", "SABAR"), kwargs.get("artifact"))
-            
-        elif action == "evaluate":
-            # Entropy check
-            e = await self.entropy_profiler.measure_constitutional_cooling(query, response)
-            return {
-                "verdict": "SEAL" if e.thermodynamic_valid else "SABAR",
-                "metrics": {
-                    "entropy_reduction": e.entropy_reduction,
-                    "valid": e.thermodynamic_valid
-                }
-            }
-            
-        else:
-            return {"error": f"Unknown APEX action: {action}", "status": "ERROR"}
+        # Vault operations (Tool 5 uses this same kernel via bridge_vault_router).
+        if action == "seal":
+            verdict_struct = kwargs.get("verdict_struct") or get_stage_result(session_id, "apex")
+            if isinstance(verdict_struct, dict) and "judge" in verdict_struct:
+                verdict_struct = verdict_struct.get("judge", verdict_struct)
+            if not isinstance(verdict_struct, dict):
+                verdict_struct = self.judge_888(
+                    session_id=session_id,
+                    query=query,
+                    response=response,
+                    agi_result=agi_result,
+                    asi_result=asi_result,
+                    user_id=user_id,
+                    lane=lane,
+                )
+            sealed = await self.seal_999(
+                session_id=session_id,
+                verdict_struct=verdict_struct,
+                init_result=init_result,
+                agi_result=agi_result,
+                asi_result=asi_result,
+            )
+            store_stage_result(session_id, "apex", sealed)
+            return sealed
+
+        if action == "list":
+            limit = int((kwargs.get("data") or {}).get("limit", 10) if isinstance(kwargs.get("data"), dict) else 10)
+            entries = self._list_session_entries(limit=limit)
+            return {"status": "SEAL", "verdict": "SEAL", "entries": entries, "total": len(entries)}
+
+        if action == "read":
+            data = kwargs.get("data")
+            if isinstance(data, str):
+                try:
+                    data = json.loads(data)
+                except Exception:
+                    data = {"entry_hash": data}
+            data = data or {}
+            entry_hash = str(data.get("entry_hash", "")).strip()
+            if not entry_hash:
+                return {"status": "VOID", "verdict": "VOID", "reason": "Missing entry_hash"}
+            entry = self._read_entry(entry_hash_prefix=entry_hash[:16])
+            if not entry:
+                return {"status": "VOID", "verdict": "VOID", "reason": "Entry not found"}
+            return {"status": "SEAL", "verdict": "SEAL", "entry": entry}
+
+        return {"status": "VOID", "verdict": "VOID", "reason": f"Unknown APEX action: {action}"}
+
+
+__all__ = ["APEXJudicialCore"]

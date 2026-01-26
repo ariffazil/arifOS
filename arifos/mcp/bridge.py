@@ -16,6 +16,9 @@ from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
+# Mid-session context passing (AGI → ASI → APEX → VAULT)
+from arifos.mcp.constitutional_metrics import store_stage_result
+
 # --- CORE AVAILABILITY ---
 try:
     from arifos.core.kernel import get_kernel_manager
@@ -56,7 +59,11 @@ async def bridge_init_router(action: str = "init", **kwargs) -> dict:
     
     manager = get_kernel_manager()
     result = await manager.init_session(action, kwargs)
-    return _serialize(result)
+    serialized = _serialize(result)
+    session_id = (serialized or {}).get("session_id") if isinstance(serialized, dict) else None
+    if session_id:
+        store_stage_result(str(session_id), "init", serialized)
+    return serialized
 
 async def bridge_agi_router(action: str = "full", **kwargs) -> dict:
     """Pure bridge: Route reasoning tasks to AGI Genius."""
@@ -65,7 +72,11 @@ async def bridge_agi_router(action: str = "full", **kwargs) -> dict:
     
     kernel = get_kernel_manager().get_agi()
     # Pure delegation to kernel execute method
-    return _serialize(await kernel.execute(action, kwargs))
+    serialized = _serialize(await kernel.execute(action, kwargs))
+    session_id = kwargs.get("session_id") or (serialized or {}).get("session_id") if isinstance(serialized, dict) else None
+    if session_id and isinstance(serialized, dict):
+        store_stage_result(str(session_id), "agi", serialized)
+    return serialized
 
 async def bridge_asi_router(action: str = "full", **kwargs) -> dict:
     """Pure bridge: Route ethical tasks to ASI Act."""
@@ -74,7 +85,11 @@ async def bridge_asi_router(action: str = "full", **kwargs) -> dict:
     
     kernel = get_kernel_manager().get_asi()
     # Pure delegation to kernel execute method
-    return _serialize(await kernel.execute(action, kwargs))
+    serialized = _serialize(await kernel.execute(action, kwargs))
+    session_id = kwargs.get("session_id") or (serialized or {}).get("session_id") if isinstance(serialized, dict) else None
+    if session_id and isinstance(serialized, dict):
+        store_stage_result(str(session_id), "asi", serialized)
+    return serialized
 
 async def bridge_apex_router(action: str = "full", **kwargs) -> dict:
     """Pure bridge: Route judicial tasks to APEX Judge."""
@@ -83,7 +98,11 @@ async def bridge_apex_router(action: str = "full", **kwargs) -> dict:
     
     kernel = get_kernel_manager().get_apex()
     # Pure delegation to kernel execute method
-    return _serialize(await kernel.execute(action, kwargs))
+    serialized = _serialize(await kernel.execute(action, kwargs))
+    session_id = kwargs.get("session_id") or (serialized or {}).get("session_id") if isinstance(serialized, dict) else None
+    if session_id and isinstance(serialized, dict):
+        store_stage_result(str(session_id), "apex", serialized)
+    return serialized
 
 async def bridge_vault_router(action: str = "seal", **kwargs) -> dict:
     """Pure bridge: Route archival tasks to VAULT-999."""
@@ -92,7 +111,11 @@ async def bridge_vault_router(action: str = "seal", **kwargs) -> dict:
     
     # Vault operations are part of the APEX Judicial Kernel in v52
     kernel = get_kernel_manager().get_apex()
-    return _serialize(await kernel.execute(action, kwargs))
+    serialized = _serialize(await kernel.execute(action, kwargs))
+    session_id = kwargs.get("session_id") or (serialized or {}).get("session_id") if isinstance(serialized, dict) else None
+    if session_id and isinstance(serialized, dict):
+        store_stage_result(str(session_id), "apex", serialized)
+    return serialized
 
 async def bridge_prompt_router(action: str = "route", **kwargs) -> dict:
     """Pure bridge: Route codec/prompt tasks."""
