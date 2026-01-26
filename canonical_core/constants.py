@@ -9,7 +9,7 @@ DITEMPA BUKAN DIBERI
 
 # Floor Thresholds (Canonical)
 TRUTH_THRESHOLD = 0.99          # F2: Minimum truth confidence
-DELTA_S_THRESHOLD = 0.0         # F6: Maximum entropy increase (ΔS ≤ 0)
+DELTA_S_THRESHOLD = 0.0         # F4: Clarity / entropy change (ΔS ≥ 0)
 PEACE_SQUARED_THRESHOLD = 1.0   # F5: Minimum Peace² score
 KAPPA_R_THRESHOLD = 0.70        # F4: Minimum empathy/care score (was 0.95 in old system)
 OMEGA_0_MIN = 0.03              # F7: Minimum uncertainty (3%)
