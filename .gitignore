@@ -43,6 +43,10 @@ venv/
 runtime/vault_999/
 cooling_ledger.jsonl
 
+# VAULT999 runtime files (keep structure, ignore runtime data)
+VAULT999/cooling_ledger.json
+VAULT999/constitutional_vault.json
+
 # Ledger runtime exhaust (v42: do not version control)
 vault_999/ledger/*.jsonl
 vault_999/ledger/pending.jsonl

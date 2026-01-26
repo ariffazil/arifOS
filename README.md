@@ -67,7 +67,18 @@ curl https://arifos.arif-fazil.com/health
 ```
 Expected: `{"status": "healthy", "version": "52.5.1", "floors": 13}`
 
-**Option 3: Add to Claude Desktop** (1 minute)
+**Option 3: Deploy to Railway** (5 minutes)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/arifos)
+
+```bash
+# Or deploy via CLI
+railway login
+cd arifOS
+railway up
+```
+See [Railway Deployment Guide](docs/RAILWAY_DEPLOYMENT_FINAL.md) for details.
+
+**Option 4: Add to Claude Desktop** (1 minute)
 
 Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 ```json
