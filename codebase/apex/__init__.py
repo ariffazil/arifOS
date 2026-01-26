@@ -1,9 +1,9 @@
 """
-canonical_core APEX (Soul/Ψ) Module
-v52 Canonical Core
+codebase APEX (Soul/Ψ) Module
+v52 Constitutional AI Core
 
-Re-exports APEX components for canonical_core.
-The main implementation is in canonical_core.apex.kernel.APEXJudicialCore
+Re-exports APEX components for codebase.
+The main implementation is in codebase.apex.kernel.APEXJudicialCore
 """
 
 # v52 canonical kernel

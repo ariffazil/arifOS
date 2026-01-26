@@ -1,7 +1,7 @@
 """
-canonical_core/enforcement.py — Constitutional Floor Validators
+codebase/enforcement.py — Constitutional Floor Validators
 
-Simplified floor validators for canonical_core.
+Simplified floor validators for codebase.
 These are lightweight implementations without external dependencies.
 
 DITEMPA BUKAN DIBERI

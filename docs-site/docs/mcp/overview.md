@@ -1,18 +1,18 @@
 ---
 sidebar_position: 1
-title: MCP Overview
-description: Model Context Protocol integration with arifOS
+title: AAA MCP Overview
+description: AAA Model Context Protocol integration with arifOS
 ---
 
-# MCP Overview
+# AAA MCP Overview
 
-arifOS exposes its governance capabilities through **MCP (Model Context Protocol)**.
+arifOS exposes its governance capabilities through the **AAA MCP Server** (Artifact · Authority · Architecture).
 
 ## What is MCP?
 
 MCP is a standard for AI tools to connect to external services. Think of it like **USB for AI** — a universal plug that works with any compatible client.
 
-## arifOS MCP Server
+## AAA MCP Server
 
 | Property | Value |
 |----------|-------|

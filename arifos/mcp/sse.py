@@ -1,5 +1,5 @@
 """
-arifos.mcp.sse (v52.5.1-SEAL)
+arifos.mcp.sse (v53.0.0-SEAL)
 
 The HTTP/SSE Adaptation layer for the AAA Monolith (AGI ∩ ASI ∩ APEX).
 This module exposes the unified MCP tools via Starlette SSE transport.
@@ -639,7 +639,7 @@ async def get_openapi_spec(request):
                                         "session_id": "abc123",
                                         "ledger_hash": "0x...",
                                         "atlas_lane": "FACTUAL",
-                                        "version": "v52.5.1-SEAL"
+                                        "version": "v53.0.0-SEAL"
                                     }
                                 }
                             }
@@ -1203,7 +1203,7 @@ async def get_docs(request):
             <p><code>Actions: seal, list, read, write, propose</code></p>
         </div>
 
-        <h2>ATLAS-333 Lanes (v52.5.1)</h2>
+        <h2>ATLAS-333 Lanes (v53.0.0)</h2>
         <p>Smart routing based on intent classification:</p>
         <p>
             <span class="lane crisis">CRISIS</span> Medical/Safety emergencies → Strict thresholds, triggers 888_HOLD<br>

@@ -1,6 +1,6 @@
 # arifos/mcp/constitutional_metrics.py
 """
-arifOS Monitoring Metrics (v53.0.0)
+arifOS Monitoring Metrics (v52.5.1)
 
 Tracks tool usage, verdicts, sessions for live dashboard monitoring.
 Similar to Serena's dashboard but for constitutional governance.
@@ -330,7 +330,7 @@ def get_full_metrics() -> Dict[str, Any]:
     return {
         "status": "active",
         "uptime_hours": get_uptime_hours(),
-        "version": "v53.0.0-SEAL",
+        "version": "v52.5.1-SEAL",
 
         # Tool usage (like Serena's dashboard)
         "tool_usage": tool_usage,

@@ -1,8 +1,8 @@
 """
-canonical_core/__init__.py — Canonical Core Exports (v52.5.1-SEAL)
+codebase/__init__.py — Constitutional AI Core Exports (v52.5.1-SEAL)
 Authority: Muhammad Arif bin Fazil
 
-This is the root export module for canonical_core.
+This is the root export module for codebase.
 All commonly used modules are re-exported here for clean imports.
 
 Architecture: Trinity Parallel Metabolic Loop
@@ -35,7 +35,7 @@ from codebase.stages import stage_889_proof
 # =============================================================================
 # TYPE DEFINITIONS (verified exports from types.py)
 # =============================================================================
-from codebase.types import (
+from codebase.system.types import (
     Verdict,
     Metrics,
     FloorCheckResult,

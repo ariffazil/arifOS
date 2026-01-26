@@ -661,7 +661,7 @@ COPY . .
 
 # Start both app and agent
 CMD datadog-agent start & \
-    python -m uvicorn arifos_core.integration.api.main:app --host 0.0.0.0 --port $PORT
+    python -m arifos.mcp sse --host 0.0.0.0 --port $PORT
 EOF
 
 # 4. In Railway:

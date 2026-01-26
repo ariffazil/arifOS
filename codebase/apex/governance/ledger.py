@@ -1,5 +1,5 @@
 """
-DEPRECATED: This module has moved to canonical_core.state.ledger
+DEPRECATED: This module has moved to codebase.state.ledger
 
 State management has been extracted from governance to its own layer.
 This shim will be removed in v47.2 (72 hours after v47.1 release).
@@ -19,8 +19,8 @@ Constitutional Mapping:
 import warnings
 
 warnings.warn(
-    "canonical_core.apex.governance.ledger is deprecated. "
-    "Use canonical_core.state.ledger instead. "
+    "codebase.apex.governance.ledger is deprecated. "
+    "Use codebase.state.ledger instead. "
     "This shim will be removed in v47.2 (72 hours after v47.1).",
     DeprecationWarning,
     stacklevel=2

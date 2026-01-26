@@ -13,8 +13,8 @@ import json
 import logging
 from typing import Optional
 
-from arifos.canonical_core.stage_000 import execute_stage_000, VerdictType
-from arifos.canonical_core.floors import ALL_FLOORS
+from codebase.init.000_init.stage_000_core import execute_stage_000, VerdictType
+from codebase.constitutional_floors import ALL_FLOORS
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')

@@ -1,0 +1,791 @@
+# MCP Endpoints Implementation Guide v53
+## Improved Architecture with 6 Client-Focused Tiers
+
+**Authority:** Muhammad Arif bin Fazil  
+**Date:** 2026-01-26  
+**Status:** Production-Ready Implementation  
+
+---
+
+## Quick Reference: Endpoint Tiers
+
+```
+TIER 1: Discovery (GET /)
+        ↓
+TIER 2: MCP Protocol (GET /sse)
+        ↓ OR ↓
+TIER 3: REST API (POST /tools/{tool})  |  TIER 4: Checkpoint (POST /checkpoint)
+        ↓
+TIER 5: Monitoring (GET /health, /metrics/json, /dashboard)
+```
+
+---
+
+## Implementation Code
+
+### Tier 1: Discovery Landing Page
+
+```python
+@app.get("/")
+async def discovery_landing():
+    """Interactive discovery page - first impression of API."""
+    return HTMLResponse("""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>arifOS Constitutional AI - MCP Endpoint</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+                padding: 40px 20px;
+                color: #1a1a1a;
+            }
+            .container { max-width: 1000px; margin: 0 auto; }
+            h1 { font-size: 32px; margin-bottom: 10px; color: #134252; }
+            .tagline { font-size: 18px; color: #666; margin-bottom: 40px; }
+            .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 40px; }
+            .card {
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                border-left: 4px solid #32b8c6;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            }
+            .card h3 { margin-bottom: 10px; color: #134252; }
+            .card p { color: #666; font-size: 14px; line-height: 1.5; margin-bottom: 10px; }
+            .endpoint { background: #f5f5f5; padding: 8px 12px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #d9534f; margin-top: 10px; }
+            .quick-start { background: white; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+            .quick-start h2 { color: #134252; margin-bottom: 15px; }
+            .quick-start ol { margin-left: 20px; }
+            .quick-start li { margin-bottom: 8px; }
+            .quick-start a { color: #32b8c6; text-decoration: none; font-weight: 500; }
+            .quick-start a:hover { text-decoration: underline; }
+            .footer { text-align: center; color: #999; font-size: 12px; margin-top: 40px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>arifOS Constitutional AI Framework</h1>
+            <p class="tagline">Safe, auditable AI judgment. 5 tools. Human language. Production ready.</p>
+            
+            <div class="quick-start">
+                <h2>🚀 Quick Start (Pick Your Path)</h2>
+                <ol>
+                    <li><strong>Using Claude Desktop?</strong> → Add MCP connection to <code>/sse</code> endpoint</li>
+                    <li><strong>Using REST/curl/Postman?</strong> → POST to <code>/tools/{tool_name}</code></li>
+                    <li><strong>Using ChatGPT/Zapier?</strong> → One POST to <code>/checkpoint</code> (full pipeline)</li>
+                    <li><strong>Want to monitor?</strong> → Check <code>/dashboard</code> for live metrics</li>
+                    <li><strong>Need docs?</strong> → Browse interactive <code>/docs</code> or <code>/examples</code></li>
+                </ol>
+            </div>
+            
+            <h2>The 5 Constitutional Tools</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>1️⃣ authorize</h3>
+                    <p>Verify user identity, check for prompt injection, establish secure session.</p>
+                    <div class="endpoint">POST /tools/authorize</div>
+                </div>
+                
+                <div class="card">
+                    <h3>2️⃣ reason</h3>
+                    <p>Deep logical analysis and chain-of-thought reasoning (6 thinking hats).</p>
+                    <div class="endpoint">POST /tools/reason</div>
+                </div>
+                
+                <div class="card">
+                    <h3>3️⃣ evaluate</h3>
+                    <p>Safety audit: Check for harm, bias, fairness issues, constitutional compliance.</p>
+                    <div class="endpoint">POST /tools/evaluate</div>
+                </div>
+                
+                <div class="card">
+                    <h3>4️⃣ decide</h3>
+                    <p>Synthesize logic + safety into final verdict (Approve/Reject/Escalate).</p>
+                    <div class="endpoint">POST /tools/decide</div>
+                </div>
+                
+                <div class="card">
+                    <h3>5️⃣ seal</h3>
+                    <p>Record decision immutably in ledger with cryptographic proof. Audit trail forever.</p>
+                    <div class="endpoint">POST /tools/seal</div>
+                </div>
+                
+                <div class="card">
+                    <h3>⚡ checkpoint</h3>
+                    <p>Lazy shortcut: Run all 5 tools in one request. For no-code automation.</p>
+                    <div class="endpoint">POST /checkpoint (full pipeline)</div>
+                </div>
+            </div>
+            
+            <div class="quick-start">
+                <h2>📚 Documentation & Code Examples</h2>
+                <ul>
+                    <li><a href="/docs">🔗 Interactive API Docs</a> - Try tools in browser (Swagger UI)</li>
+                    <li><a href="/examples">💻 Code Examples</a> - Python, JavaScript, curl, Postman</li>
+                    <li><a href="/dashboard">📊 Live Dashboard</a> - Real-time metrics & monitoring</li>
+                    <li><a href="/health">❤️ Health Check</a> - System status</li>
+                    <li><a href="/metrics/json">📈 Metrics (JSON)</a> - For automation & SLA tracking</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer">
+            <p>arifOS v53 • Constitutional AI Judgment Framework • DITEMPA BUKAN DIBERI</p>
+        </div>
+    </body>
+    </html>
+    """)
+```
+
+---
+
+### Tier 2: MCP SSE Endpoint (Enhanced Docs)
+
+```python
+@app.get("/sse")
+async def mcp_sse_endpoint(request: Request):
+    """
+    MCP Protocol via Server-Sent Events (RFC 9110)
+    
+    **For:** Claude Desktop, Cursor IDE, native MCP clients
+    **Protocol:** Server-Sent Events (streaming)
+    **Authentication:** Optional Authorization: Bearer token header
+    
+    **Usage:**
+    1. Open SSE connection: GET https://arifos.arif-fazil.com/sse
+    2. (Optional) Send auth header: Authorization: Bearer YOUR_TOKEN
+    3. Server streams tool definitions (list_tools)
+    4. Client calls tools via MCP protocol: {"jsonrpc": "2.0", "method": "tools/call", ...}
+    5. Server returns results in SSE messages
+    
+    **Examples:**
+    
+    curl:
+        curl -N https://arifos.arif-fazil.com/sse \\
+          -H "Authorization: Bearer YOUR_TOKEN"
+    
+    JavaScript:
+        const es = new EventSource('/sse', {
+          headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+        });
+        es.onmessage = (e) => console.log(JSON.parse(e.data));
+    
+    Claude Desktop (claude_desktop_config.json):
+        {
+          "mcpServers": {
+            "arifos": {
+              "url": "https://arifos.arif-fazil.com/sse",
+              "auth": {
+                "type": "bearer",
+                "token": "YOUR_API_KEY"
+              }
+            }
+          }
+        }
+    
+    **Rate Limiting:**
+    - Without auth: 100 req/min per IP
+    - With auth: 1000 req/min per user
+    
+    **Response Headers:**
+    - X-RateLimit-Limit: 100 (or 1000)
+    - X-RateLimit-Remaining: N
+    - X-RateLimit-Reset: unix timestamp
+    """
+    # Check authorization
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.replace("Bearer ", "") if auth_header.startswith("Bearer ") else None
+    
+    # Validate token if provided
+    if token:
+        valid = await validate_token(token)
+        if not valid:
+            return JSONResponse({"error": "Invalid token"}, status_code=401)
+    
+    # Return SSE stream
+    return create_sse_stream()
+```
+
+---
+
+### Tier 3: REST API Tool Endpoints
+
+```python
+@app.post("/tools/{tool_name}")
+async def call_tool_rest(tool_name: str, request: Request):
+    """
+    Direct REST API to call any tool individually.
+    
+    **Path Parameter:**
+    - tool_name: authorize | reason | evaluate | decide | seal
+    
+    **Headers:**
+    - Content-Type: application/json (required)
+    - Authorization: Bearer YOUR_TOKEN (optional)
+    
+    **Body:** JSON object with tool parameters
+    
+    **Returns:** JSON object with tool result
+    
+    **Examples:**
+    
+    1. Authorize (establish session):
+    
+        curl -X POST https://arifos.arif-fazil.com/tools/authorize \\
+          -H "Content-Type: application/json" \\
+          -d '{
+            "query": "How do I invest in renewable energy?",
+            "user_token": "optional_signature_token"
+          }'
+        
+        Response:
+        {
+          "status": "AUTHORIZED",
+          "session_id": "sess_a1b2c3d4",
+          "user_type": "verified",
+          "injection_score": 0.02
+        }
+    
+    2. Reason (analyze query):
+    
+        curl -X POST https://arifos.arif-fazil.com/tools/reason \\
+          -H "Content-Type: application/json" \\
+          -d '{
+            "query": "How do I invest in renewable energy?",
+            "session_id": "sess_a1b2c3d4",
+            "style": "detailed"
+          }'
+        
+        Response:
+        {
+          "status": "SUCCESS",
+          "reasoning": "This is a factual question about investment...",
+          "confidence": 0.88,
+          "thinking_steps": 6
+        }
+    
+    3. Evaluate (safety check):
+    
+        curl -X POST https://arifos.arif-fazil.com/tools/evaluate \\
+          -H "Content-Type: application/json" \\
+          -d '{
+            "reasoning": "Here are the best renewable energy investments...",
+            "query": "How do I invest in renewable energy?",
+            "session_id": "sess_a1b2c3d4"
+          }'
+        
+        Response:
+        {
+          "status": "SAFE",
+          "harm_score": 0.05,
+          "bias_score": 0.08,
+          "fairness_score": 0.92,
+          "warning": null
+        }
+    
+    4. Decide (final verdict):
+    
+        curl -X POST https://arifos.arif-fazil.com/tools/decide \\
+          -H "Content-Type: application/json" \\
+          -d '{
+            "query": "How do I invest in renewable energy?",
+            "reasoning": "...",
+            "safety_evaluation": {...},
+            "authority_check": {...},
+            "session_id": "sess_a1b2c3d4"
+          }'
+        
+        Response:
+        {
+          "verdict": "APPROVE",
+          "action": "RETURN_RESPONSE",
+          "confidence": 0.94,
+          "reason": "Request is safe, factual, and fair"
+        }
+    
+    5. Seal (immutable record):
+    
+        curl -X POST https://arifos.arif-fazil.com/tools/seal \\
+          -H "Content-Type: application/json" \\
+          -d '{
+            "session_id": "sess_a1b2c3d4",
+            "verdict": "APPROVE",
+            "query": "How do I invest in renewable energy?",
+            "response": "Here are the best renewable energy investments...",
+            "decision_data": {...}
+          }'
+        
+        Response:
+        {
+          "status": "SEALED",
+          "entry_hash": "a3f8b2c1d4e5f6g7h8i9j0k1...",
+          "ledger_position": 42156,
+          "audit_trail": "https://arifos.arif-fazil.com/audit/sess_a1b2c3d4"
+        }
+    
+    **Rate Limiting:**
+    - Without auth: 100 req/min per IP
+    - With auth: 1000 req/min per user
+    - Returns 429 if exceeded
+    """
+    if tool_name not in ["authorize", "reason", "evaluate", "decide", "seal"]:
+        return JSONResponse(
+            {"error": f"Unknown tool: {tool_name}", "available": ["authorize", "reason", "evaluate", "decide", "seal"]},
+            status_code=404
+        )
+    
+    try:
+        body = await request.json()
+    except:
+        return JSONResponse({"error": "Invalid JSON body"}, status_code=400)
+    
+    # Execute tool
+    result = await execute_tool(tool_name, body)
+    return JSONResponse(result)
+```
+
+---
+
+### Tier 4: Unified Checkpoint Endpoint
+
+```python
+@app.post("/checkpoint")
+async def checkpoint_unified(request: Request):
+    """
+    Unified Checkpoint: Full Constitutional Pipeline in One Call
+    
+    **For:** ChatGPT Actions, Zapier, IFTTT, no-code automation
+    **Protocol:** Single POST request, full 5-step pipeline
+    **Input:** Query + optional context
+    **Output:** Verdict + approved response + metadata
+    
+    **Request Body:**
+    {
+      "query": "The request to judge (required)",
+      "context": "Optional context/background",
+      "user_id": "Optional user identifier",
+      "metadata": {
+        "source": "chatgpt",
+        "domain": "investing"
+      }
+    }
+    
+    **Response Body:**
+    {
+      "verdict": "APPROVE | CONDITIONAL | REJECT | ESCALATE",
+      "summary": "Human-readable explanation of the decision",
+      "confidence": 0.92,
+      "response": "The approved/modified response text",
+      "session_id": "sess_abc123",
+      "ledger_hash": "a3f8b2c1...",
+      "audit_url": "https://arifos.arif-fazil.com/audit/sess_abc123",
+      "execution_time_ms": 1250
+    }
+    
+    **Examples:**
+    
+    1. ChatGPT Action:
+    
+        curl -X POST https://arifos.arif-fazil.com/checkpoint \\
+          -H "Content-Type: application/json" \\
+          -d '{
+            "query": "How do I start investing in renewable energy?",
+            "context": "User is a beginner investor"
+          }'
+        
+        Response:
+        {
+          "verdict": "APPROVE",
+          "summary": "Financial information request; safe and factual.",
+          "confidence": 0.94,
+          "response": "Here are 5 ways to start investing in renewable energy...",
+          "session_id": "sess_a1b2c3d4",
+          "ledger_hash": "a3f8b2c1d4e5...",
+          "audit_url": "https://arifos.arif-fazil.com/audit/sess_a1b2c3d4",
+          "execution_time_ms": 1240
+        }
+    
+    2. Zapier Webhook:
+    
+        {
+          "method": "POST",
+          "url": "https://arifos.arif-fazil.com/checkpoint",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "query": "{{ user_message }}",
+            "context": "From Zapier automation"
+          }
+        }
+    
+    3. IFTTT Webhook:
+    
+        curl -X POST https://arifos.arif-fazil.com/checkpoint \\
+          -H "Content-Type: application/json" \\
+          -d '{
+            "query": "{{ message }}",
+            "metadata": {
+              "source": "ifttt",
+              "trigger": "email_received"
+            }
+          }'
+    
+    **Behind the Scenes (Pipeline):**
+    1. authorize() → Verify user + inject defense
+    2. reason() → Logical analysis
+    3. evaluate() → Safety check (harm, bias, fairness)
+    4. decide() → Final verdict
+    5. seal() → Immutable record + audit trail
+    
+    All happens in one request. Result is immutable on ledger.
+    """
+    try:
+        body = await request.json()
+    except:
+        return JSONResponse(
+            {
+                "error": "Invalid JSON",
+                "verdict": "VOID",
+                "example": {"query": "Your request here"}
+            },
+            status_code=400
+        )
+    
+    query = body.get("query", "")
+    if not query:
+        return JSONResponse(
+            {
+                "error": "Missing 'query' field",
+                "verdict": "VOID",
+                "example": {"query": "Your request here"}
+            },
+            status_code=400
+        )
+    
+    start_time = time.time()
+    
+    try:
+        # Step 1: Authorize
+        auth_result = await authorize(query=query)
+        session_id = auth_result.session_id
+        
+        # Step 2: Reason
+        reason_result = await reason(query=query, session_id=session_id)
+        
+        # Step 3: Evaluate
+        eval_result = await evaluate(
+            reasoning=reason_result.reasoning,
+            query=query,
+            session_id=session_id
+        )
+        
+        # Step 4: Decide
+        decision = await decide(
+            query=query,
+            reasoning=reason_result.reasoning,
+            safety_evaluation=asdict(eval_result),
+            authority_check=asdict(auth_result),
+            session_id=session_id
+        )
+        
+        # Step 5: Seal
+        sealed = await seal(
+            session_id=session_id,
+            verdict=decision.verdict,
+            query=query,
+            response=decision.response_text,
+            decision_data=asdict(decision),
+            metadata=body.get("metadata", {})
+        )
+        
+        exec_time_ms = (time.time() - start_time) * 1000
+        
+        return JSONResponse({
+            "verdict": decision.verdict,
+            "summary": decision.reasoning_summary,
+            "confidence": decision.confidence,
+            "response": decision.response_text,
+            "session_id": session_id,
+            "ledger_hash": sealed.entry_hash[:16] + "...",
+            "audit_url": f"https://arifos.arif-fazil.com/audit/{session_id}",
+            "execution_time_ms": int(exec_time_ms)
+        })
+    
+    except Exception as e:
+        return JSONResponse(
+            {
+                "error": str(e),
+                "verdict": "ESCALATE",
+                "summary": "Internal error - escalating to human review"
+            },
+            status_code=500
+        )
+```
+
+---
+
+### Tier 5: Monitoring Endpoints
+
+```python
+@app.get("/health")
+async def health_check():
+    """System health check for Railway/Cloud Run."""
+    return JSONResponse({
+        "status": "healthy",
+        "version": "v53.0.0",
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "uptime_seconds": int(time.time() - START_TIME),
+        "endpoints": {
+            "discovery": "/",
+            "mcp_sse": "/sse",
+            "rest_api": "/tools/{tool}",
+            "checkpoint": "/checkpoint",
+            "metrics": "/metrics/json",
+            "dashboard": "/dashboard",
+            "docs": "/docs"
+        }
+    })
+
+@app.get("/metrics/json")
+async def metrics_json():
+    """Live metrics for dashboard & SLA tracking."""
+    m = get_full_metrics()
+    return JSONResponse({
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "requests": {
+            "total": m["requests_total"],
+            "per_second": round(m["rps"], 2),
+            "last_minute": m["requests_last_60s"]
+        },
+        "verdicts": {
+            "APPROVE": m["verdicts"]["APPROVE"],
+            "CONDITIONAL": m["verdicts"]["CONDITIONAL"],
+            "REJECT": m["verdicts"]["REJECT"],
+            "ESCALATE": m["verdicts"]["ESCALATE"]
+        },
+        "latency_ms": {
+            "p50": round(m["latency"]["p50"], 1),
+            "p95": round(m["latency"]["p95"], 1),
+            "p99": round(m["latency"]["p99"], 1)
+        },
+        "errors": {
+            "rate_limited": m["errors"]["rate_limited"],
+            "timeouts": m["errors"]["timeouts"],
+            "other": m["errors"]["other"]
+        },
+        "sessions": {
+            "active": m["sessions"]["active"],
+            "completed_last_hour": m["sessions"]["completed_hour"],
+            "failed": m["sessions"]["failed"]
+        }
+    })
+
+@app.get("/dashboard")
+async def live_dashboard():
+    """Interactive HTML dashboard with live metrics."""
+    m = get_full_metrics()
+    total = sum(m["verdicts"].values())
+    
+    return HTMLResponse(f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>arifOS Dashboard</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <style>
+            body {{
+                font-family: monospace;
+                background: #1a1a1a;
+                color: #fff;
+                padding: 20px;
+                margin: 0;
+            }}
+            .header {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 30px;
+            }}
+            .status {{
+                color: #32b8c6;
+                font-weight: bold;
+            }}
+            .grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin-bottom: 30px;
+            }}
+            .card {{
+                background: #2a2a2a;
+                padding: 20px;
+                border-radius: 8px;
+                border: 1px solid #444;
+            }}
+            .metric {{
+                font-size: 28px;
+                font-weight: bold;
+                color: #32b8c6;
+                margin: 10px 0;
+            }}
+            .label {{
+                color: #999;
+                font-size: 12px;
+            }}
+            canvas {{
+                max-height: 300px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>arifOS Constitutional AI - Live Dashboard</h1>
+            <div class="status">● HEALTHY</div>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <div class="label">Requests/Second</div>
+                <div class="metric">{m['rps']:.2f}</div>
+            </div>
+            <div class="card">
+                <div class="label">Avg Latency</div>
+                <div class="metric">{m['latency']['p50']:.0f}ms</div>
+            </div>
+            <div class="card">
+                <div class="label">Error Rate</div>
+                <div class="metric">{(m['errors']['rate']*100):.2f}%</div>
+            </div>
+            <div class="card">
+                <div class="label">Active Sessions</div>
+                <div class="metric">{m['sessions']['active']}</div>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h3>Verdict Distribution (Last Hour)</h3>
+                <canvas id="verdictChart"></canvas>
+            </div>
+            <div class="card">
+                <h3>Latency Percentiles</h3>
+                <canvas id="latencyChart"></canvas>
+            </div>
+        </div>
+        
+        <script>
+            // Verdict distribution
+            const ctx1 = document.getElementById('verdictChart').getContext('2d');
+            new Chart(ctx1, {{
+                type: 'doughnut',
+                data: {{
+                    labels: ['APPROVE', 'CONDITIONAL', 'REJECT', 'ESCALATE'],
+                    datasets: [{{
+                        data: [{m['verdicts']['APPROVE']}, {m['verdicts']['CONDITIONAL']}, {m['verdicts']['REJECT']}, {m['verdicts']['ESCALATE']}],
+                        backgroundColor: ['#32b8c6', '#ffd700', '#ff6b6b', '#999']
+                    }}]
+                }},
+                options: {{ responsive: true, plugins: {{ legend: {{ position: 'bottom' }} }} }}
+            }});
+            
+            // Latency percentiles
+            const ctx2 = document.getElementById('latencyChart').getContext('2d');
+            new Chart(ctx2, {{
+                type: 'bar',
+                data: {{
+                    labels: ['p50', 'p95', 'p99'],
+                    datasets: [{{
+                        label: 'Latency (ms)',
+                        data: [{m['latency']['p50']:.0f}, {m['latency']['p95']:.0f}, {m['latency']['p99']:.0f}],
+                        backgroundColor: '#32b8c6'
+                    }}]
+                }},
+                options: {{ responsive: true, indexAxis: 'y', plugins: {{ legend: {{ display: false }} }} }}
+            }});
+            
+            // Auto-refresh every 5 seconds
+            setTimeout(() => location.reload(), 5000);
+        </script>
+    </body>
+    </html>
+    """)
+```
+
+---
+
+## Summary: From Confusing to Clear
+
+| Before | After |
+|--------|-------|
+| 4 generic endpoints (purpose unclear) | 6 purposeful tiers (clear hierarchy) |
+| Users: "What do I do with /sse?" | Users: "Oh, /sse is for Claude Desktop" |
+| No landing page | Discovery page explains everything |
+| REST API missing | POST /tools/{tool} for any HTTP client |
+| No unified API | /checkpoint for one-call pipeline |
+| Monitoring hidden | /dashboard for live visibility |
+| Jargon-heavy docs | Human language everywhere |
+
+**Result:** External developers can integrate in **5 minutes**, not 5 hours.
+
+---
+
+## Deployment Instructions
+
+### FastAPI/Starlette
+
+```python
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI(
+    title="arifOS Constitutional AI",
+    description="Safe, auditable AI judgment. 5 tools. Human language.",
+    version="v53.0.0"
+)
+
+# CORS (allow cross-origin)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Add all endpoints (above)
+# Then run:
+# uvicorn app:app --host 0.0.0.0 --port 8000
+```
+
+### Docker
+
+```dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+### Railway/Cloud Run
+
+```bash
+# Automatic on deploy:
+# PORT=8000 python -m uvicorn app:app --host 0.0.0.0
+```
+
+---
+
+**DITEMPA BUKAN DIBERI** — Architecture that forges clarity, not confusion.
+
+✓ 6 tiers  
+✓ Every endpoint purposeful  
+✓ 5 minutes to integration  
+✓ Production telemetry built-in  
+✓ Human language throughout

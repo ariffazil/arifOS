@@ -9,7 +9,7 @@ Hardening:
 - Energy Budget Check
 """
 from typing import Dict, Any
-from codebase.apex_prime import APEXPrime
+from codebase.system.apex_prime import APEXPrime
 
 APEX = APEXPrime()
 

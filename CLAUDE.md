@@ -329,6 +329,6 @@ This project is governed by `.claude/CLAUDE.md` (global instructions) which defi
 
 ---
 
-**Version:** v52.5.1-SEAL
+**Version:** v53.0.0-SEAL
 **Last Updated:** January 2026
 **Motto:** *"Ditempa Bukan Diberi"* — Forged, Not Given

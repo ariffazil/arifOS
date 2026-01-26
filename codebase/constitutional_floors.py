@@ -1,5 +1,5 @@
 """
-canonical_core/constitutional_floors.py — The 13 Constitutional Floors
+codebase/constitutional_floors.py — The 13 Constitutional Floors
 
 CANONICAL IMPLEMENTATION (v52.5.2)
 Based on: 000_THEORY/000_LAW.md

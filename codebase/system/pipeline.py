@@ -27,7 +27,7 @@ from codebase.agi_room import stage_111_sense, stage_222_think, stage_333_reason
 from codebase.asi_room import stage_555_empathy
 from codebase import stage_444, stage_555, stage_666
 from codebase import stage_777_forge, stage_888_judge, stage_889_proof
-from codebase.apex_prime import APEXPrime
+from codebase.system.apex_prime import APEXPrime
 from codebase.types import Verdict
 
 # Foundation imports

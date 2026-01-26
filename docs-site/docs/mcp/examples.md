@@ -1,12 +1,12 @@
 ---
 sidebar_position: 4
 title: Examples
-description: Complete request/response examples for arifOS MCP
+description: Complete request/response examples for AAA MCP
 ---
 
-# MCP Examples
+# AAA MCP Examples
 
-Complete request/response examples for the arifOS MCP server.
+Complete request/response examples for the AAA MCP server.
 
 ## Full Governance Flow
 

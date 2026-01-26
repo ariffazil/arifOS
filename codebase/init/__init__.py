@@ -1,17 +1,14 @@
 """
-Rooms - Parallel Execution Engines (Trinity Architecture)
+codebase.init — Initialization Package
 
-AGI Room: HOT PHASE (111-333) - Reasoning
-ASI Room: WARM PHASE (555-666) - Empathy/Safety
-APEX Room: COLD PHASE (777-999) - Judgment/Sealing
+Stage 000 VOID: System Ignition and Constitutional Gate
 """
 
-from .asi_room import ASIRoom, get_asi_room, purge_asi_room, list_active_asi_rooms, ASI_FLOORS
+from .000_init import execute_stage_000, VerdictType, Stage000VOID, ignite_system
 
 __all__ = [
-    "ASIRoom",
-    "get_asi_room",
-    "purge_asi_room",
-    "list_active_asi_rooms",
-    "ASI_FLOORS",
+    "execute_stage_000",
+    "VerdictType", 
+    "Stage000VOID",
+    "ignite_system"
 ]

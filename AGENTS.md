@@ -2,8 +2,29 @@
 
 **Canon:** `000_THEORY/001_AGENTS.md`  
 **Motto:** *"Init the Genius, Act with Heart, Judge at Apex, seal in Vault."*  
-**Status:** v50.5.25 SEALED (Production Ready)  
-**Live URL:** https://arifos-production.up.railway.app/
+**Status:** v53.0.0-AAA (Production Ready)  
+**Live URL:** https://aaa-mcp.arif-fazil.com/  
+**Legacy URL:** https://arifos-production.up.railway.app/
+
+---
+
+## ⚠️ Rebranding Notice (v53.0.0)
+
+**AAA MCP** is the new name for the MCP server component. The arifOS constitutional kernel remains unchanged.
+
+**What's changed:**
+- Commands: `arifos-mcp` → `aaa-mcp`
+- Package: `pip install arifos` → `pip install aaa-mcp`
+- Domain: `arifos-production.up.railway.app` → `aaa-mcp.arif-fazil.com`
+
+**What's unchanged:**
+- The arifOS constitutional kernel (F1-F13, TEACH, VAULT999)
+- All API endpoints and functionality
+- MCP protocol compatibility
+
+**Backward compatibility:** Old commands still work as aliases (until v54.0.0)
+
+---
 
 ---
 
@@ -13,7 +34,7 @@ arifOS implements a constitutional AI governance framework through **5 coordinat
 
 | Tool | Role | Symbol | Floors Enforced | MCP Command |
 |------|------|--------|-----------------|-------------|
-| `000_init` | Gate | 🚪 | F1, F11, F12 | `python -m arifos.mcp` |
+| `000_init` | Gate | 🚪 | F1, F11, F12 | `aaa-mcp` |
 | `agi_genius` | Mind | Δ | F2, F4, F6, F7, F13 | `agi_genius` tool |
 | `asi_act` | Heart | Ω | F3, F4, F5 | `asi_act` tool |
 | `apex_judge` | Soul | Ψ | F1, F8, F9 | `apex_judge` tool |
@@ -159,22 +180,28 @@ bandit -c pyproject.toml -r arifos/
 detect-secrets scan
 ```
 
-### MCP Server
+### AAA MCP Server
 
 ```bash
-# Start Trinity MCP server via stdio (for Claude Desktop, local)
-python -m arifos.mcp trinity
+# Start AAA MCP server via stdio (for Claude Desktop, local)
+aaa-mcp           # Default stdio transport
 
-# Start Trinity MCP server via SSE (for Railway, cloud)
-python -m arifos.mcp trinity-sse
-python -m arifos.mcp                       # Default: trinity mode
+# Start AAA MCP server via SSE (for Railway, cloud)
+aaa-mcp-sse       # SSE transport for cloud deployment
 
 # Health check (when running)
 curl http://localhost:8000/health
-curl https://arifos-production.up.railway.app/health
+curl https://aaa-mcp.arif-fazil.com/health
 
 # API documentation (when running)
 open http://localhost:8000/docs
+open https://aaa-mcp.arif-fazil.com/docs
+```
+
+**Legacy commands (still work until v54.0.0):**
+```bash
+python -m arifos.mcp          # Equivalent to aaa-mcp
+python -m arifos.mcp sse      # Equivalent to aaa-mcp-sse
 ```
 
 ### Body API Server (FastAPI)

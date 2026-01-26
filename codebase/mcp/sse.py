@@ -1034,6 +1034,33 @@ async def get_docs(request):
             <p><code>Actions: seal, list, read, write, propose</code></p>
         </div>
 
+        <h2>Human Language Tools (v53)</h2>
+        <div class="tool">
+            <h3>authorize <span class="badge">Gate</span></h3>
+            <p><strong>Verification Engine.</strong> Verifies user identity, token, & injection risks.</p>
+            <p><code>Call FIRST. Wraps 000_init.</code></p>
+        </div>
+        <div class="tool">
+            <h3>reason <span class="badge">Mind</span></h3>
+            <p><strong>Logic Engine.</strong> Logical analysis & chain-of-thought.</p>
+            <p><code>Wraps agi_genius.</code></p>
+        </div>
+        <div class="tool">
+            <h3>evaluate <span class="badge">Heart</span></h3>
+            <p><strong>Safety Engine.</strong> Checks harm, bias, fairness.</p>
+            <p><code>Wraps asi_act.</code></p>
+        </div>
+        <div class="tool">
+            <h3>decide <span class="badge">Soul</span></h3>
+            <p><strong>Verdict Engine.</strong> Synthesizes final constitutional verdict.</p>
+            <p><code>Wraps apex_judge.</code></p>
+        </div>
+        <div class="tool">
+            <h3>seal <span class="badge">Seal</span></h3>
+            <p><strong>Ledger Engine.</strong> Immutable recording.</p>
+            <p><code>Wraps 999_vault.</code></p>
+        </div>
+
         <h2>ATLAS-333 Lanes (v52.5.1)</h2>
         <p>Smart routing based on intent classification:</p>
         <p>

@@ -1,5 +1,5 @@
 """
-canonical_core/constants.py — Constitutional Floor Thresholds
+codebase/constants.py — Constitutional Floor Thresholds
 
 This module provides the canonical threshold values for constitutional floors.
 Source: 000_THEORY/000_LAW.md and constitutional_floors.py

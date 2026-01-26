@@ -12,6 +12,7 @@
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/v53.0.0-SEAL-10b981?style=for-the-badge" alt="Version v53.0.0">
   <a href="https://arifos.arif-fazil.com"><img src="https://img.shields.io/badge/Live_Server-Online-brightgreen?style=for-the-badge" alt="Live Server"></a>
   <a href="https://arifos.arif-fazil.com/dashboard"><img src="https://img.shields.io/badge/Dashboard-View-eab308?style=for-the-badge" alt="Dashboard"></a>
   <a href="https://pypi.org/project/arifos/"><img src="https://img.shields.io/pypi/v/arifos?style=for-the-badge&color=3b82f6" alt="PyPI"></a>
@@ -324,14 +325,22 @@ Connect any MCP-compatible AI client to arifOS:
 | `apex_judge` | Soul: EUREKA→JUDGE→PROOF | Final judgment |
 | `999_vault` | Merkle seal + ledger | Audit trail creation |
 
-**MCP Endpoints:**
+**MCP Endpoints (v53 Architecture):**
 
-| Endpoint | URL | Description |
-|----------|-----|-------------|
-| **SSE Stream** | https://arifos.arif-fazil.com/sse | MCP streaming connection |
-| **Messages** | https://arifos.arif-fazil.com/messages | MCP message endpoint |
-| **Health** | https://arifos.arif-fazil.com/health | System status |
-| **Docs** | https://arifos.arif-fazil.com/docs | Interactive API docs |
+| Tier | Endpoint | Method | Purpose |
+|------|----------|--------|---------|
+| **T1 Protocol** | `/sse` | GET | MCP streaming connection (Claude Desktop, Cursor) |
+| **T2 Gateway** | `/checkpoint` | POST | Universal constitutional validation (REST) |
+| **T3 Schema** | `/openapi.json` | GET | OpenAPI 3.1 spec for ChatGPT Actions |
+| **T4 Observe** | `/dashboard` | GET | Live Sovereign Dashboard (real-time metrics) |
+| **T4 Observe** | `/metrics/json` | GET | Raw metrics JSON for integrations |
+| **T5 Health** | `/health` | GET | System status + capabilities |
+| **T6 Docs** | `/docs` | GET | Interactive API documentation |
+
+**Production URLs:**
+- 🌐 **Base**: `https://arifos.arif-fazil.com`
+- 📊 **Dashboard**: `https://arifos.arif-fazil.com/dashboard`
+- ✅ **Health**: `https://arifos.arif-fazil.com/health`
 
 ---
 
@@ -533,34 +542,46 @@ final_result = pipeline.run(task)
 
 ---
 
-### 7. REST API
+### 7. REST API (v53)
 
 Direct API access for custom integrations:
 
 ```bash
+# Constitutional checkpoint (the core API)
+curl -X POST https://arifos.arif-fazil.com/checkpoint \
+  -H "Content-Type: application/json" \
+  -d '{"text": "rm -rf /", "action": "evaluate"}'
+# Returns: {"verdict": "REJECT", "failed_floors": ["F1", "F5", "F12"], ...}
+
 # Health check
 curl https://arifos.arif-fazil.com/health
 
-# Get metrics (JSON)
+# Get live metrics (JSON)
 curl https://arifos.arif-fazil.com/metrics/json
 
-# View dashboard
-open https://arifos.arif-fazil.com/dashboard
-
-# API documentation
-open https://arifos.arif-fazil.com/docs
+# OpenAPI spec (for ChatGPT Actions)
+curl https://arifos.arif-fazil.com/openapi.json
 ```
 
-**API Endpoints:**
+**v53 API Endpoints:**
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | System health and version |
-| `/metrics/json` | GET | Live governance metrics |
-| `/dashboard` | GET | Visual monitoring UI |
-| `/docs` | GET | OpenAPI specification |
-| `/sse` | SSE | MCP streaming endpoint |
-| `/messages` | POST | MCP message handler |
+| Tier | Endpoint | Method | Description |
+|------|----------|--------|-------------|
+| T1 | `/sse` | GET | MCP streaming endpoint |
+| T2 | `/checkpoint` | POST | Constitutional validation gateway |
+| T3 | `/openapi.json` | GET | OpenAPI 3.1 spec for integrations |
+| T4 | `/dashboard` | GET | Live Sovereign Dashboard |
+| T4 | `/metrics/json` | GET | Raw governance metrics (JSON) |
+| T5 | `/health` | GET | System health and capabilities |
+| T6 | `/docs` | GET | Interactive API documentation |
+
+**Verdicts (Human-Readable):**
+| Code | Meaning | Action |
+|------|---------|--------|
+| `APPROVE` (SEAL) | All floors pass | ✅ Safe to proceed |
+| `CONDITIONAL` (PARTIAL) | Soft floor warning | ⚠️ Proceed with caution |
+| `REJECT` (VOID) | Hard floor failed | ❌ Blocked, see failed_floors |
+| `ESCALATE` (888_HOLD) | High-stakes | 👤 Requires human approval |
 
 ---
 
@@ -1157,6 +1178,7 @@ We welcome contributions! See [CONTRIBUTING.md](000_THEORY/003_CONTRIBUTING.md) 
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| **v53.0.0** | **Jan 2026** | **6-tier endpoint architecture, live dashboard with real-time metrics, human-readable verdicts (APPROVE/REJECT/ESCALATE), REST checkpoint API** |
 | v52.5.1 | Jan 2026 | SSE stability, dashboard dark mode, Trinity colors |
 | v52.0.0 | Jan 2026 | Pure bridge architecture, 5-tool consolidation |
 | v46.0.0 | Dec 2025 | 13 floors, VAULT-999, TEACH framework |

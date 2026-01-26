@@ -14,6 +14,10 @@ description: How to connect to arifOS MCP server
 | **Messages** | `https://arifos.arif-fazil.com/messages` |
 | **Health** | `https://arifos.arif-fazil.com/health` |
 | **Transport** | Server-Sent Events (SSE) |
+| **Docs** | `https://arifos.arif-fazil.com/docs` |
+| **Dashboard** | `https://arifos.arif-fazil.com/dashboard` |
+| **Metrics** | `https://arifos.arif-fazil.com/metrics/json` |
+| **Checkpoint** | `https://arifos.arif-fazil.com/checkpoint` |
 
 ## Claude Desktop
 
@@ -76,10 +80,11 @@ Create `.cursor/mcp.json` in your project:
 pip install arifos
 
 # Run SSE server
+# Run SSE server (Production)
 python -m arifos.mcp sse
 
-# Or run stdio server (for local clients)
-python -m arifos.mcp
+# Run Stdio server (Local Development)
+python -m arifos.mcp trinity
 ```
 
 ### Local Config
@@ -99,7 +104,9 @@ python -m arifos.mcp
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `8000` | Server port |
-| `HOST` | `0.0.0.0` | Bind address |
+| `ARIFOS_ENV` | `dev` | Environment mode (dev/production) |
+| `ARIFOS_VAULT_PATH` | `VAULT999` | Constitutional config path |
+| `ARIFOS_LEDGER_PATH` | `VAULT999/BBB_LEDGER` | Cooling ledger path |
 
 ## Health Check
 
@@ -120,7 +127,8 @@ Expected response:
     "health": "/health",
     "docs": "/docs",
     "dashboard": "/dashboard",
-    "metrics": "/metrics/json"
+    "metrics": "/metrics/json",
+    "checkpoint": "/checkpoint"
   }
 }
 ```
