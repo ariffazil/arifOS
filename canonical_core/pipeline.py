@@ -1,17 +1,15 @@
 """
-Unified Pipeline Orchestrator (v52.5.1-SEAL)
+Metabolic Loop Orchestrator (v52.5.1-SEAL)
 Authority: Muhammad Arif bin Fazil
 
-Complete 000 → 999 Metabolic Loop
-Wires all 10 stages together for constitutional AI governance.
+Complete 000 → 999 Metabolic Loop with Trinity Parallel Architecture
+Not a pipeline - a quantum metabolic cycle like cellular respiration.
 
 Trinity Parallel Architecture:
-    000 → (AGI || ASI) → 444 → 777 → 888 → 889 → 999
-    
-    AGI Parallel: 111 → 222 → 333 → DELTA_BUNDLE
-    ASI Parallel: 555 → 666 → OMEGA_BUNDLE
-    
-    444 TRINITY_SYNC: Convergence point for independent engines
+- AGI (111→222→333) and ASI (555→666) execute in PARALLEL (quantum superposition)
+- Both collapse at 444 TRINITY_SYNC (measurement/convergence)
+- APEX handles cold phase (777→888→889→999) sequentially (cooling)
+- 999 feeds back to 000 (metabolic loop completes)
 
 DITEMPA BUKAN DIBERI
 """
@@ -25,8 +23,8 @@ import time
 logger = logging.getLogger(__name__)
 
 # Stage imports
-from canonical_core.agi_room import execute_stage_111, execute_stage_222, execute_stage_333
-from canonical_core.asi_room import execute_empathy_stage, execute_align_stage
+from canonical_core.agi_room import stage_111_sense, stage_222_think, stage_333_reason
+from canonical_core.asi_room import stage_555_empathy
 from canonical_core import stage_444, stage_555, stage_666
 from canonical_core import stage_777_forge, stage_888_judge, stage_889_proof
 from canonical_core.apex_prime import APEXPrime
@@ -37,26 +35,47 @@ from canonical_core.bundle_store import store_bundle, get_bundle
 from canonical_core.state import SessionState
 
 
-class Pipeline:
+class MetabolicLoop:
     """
-    Complete 000-999 Constitutional Pipeline.
+    Complete 000-999 Constitutional Metabolic Loop with Trinity Parallel Architecture.
     
-    Stages:
-        000: INIT       (Authority + Injection Defense)
-        111: SENSE      (AGI - Evidence collection)
-        222: THINK      (AGI - Hypothesis generation)
-        333: REASON     (AGI - Logic inference)
-        444: TRINITY    (APEX - Tri-witness convergence)
-        555: EMPATHY    (ASI - Stakeholder analysis)
-        666: ALIGN      (ASI - Constitutional fit)
-        777: FORGE      (APEX - Output synthesis)
-        888: JUDGE      (APEX - Final verdict)
-        889: PROOF      (APEX - Cryptographic sealing)
-        999: SEAL       (VAULT - Immutable storage)
+    Like cellular respiration, not a linear pipeline - quantum metabolic cycle:
+    
+    Metabolic Cycle:
+        000: INIT       (APEX - Authority + Injection Defense) ← Entry point
+                                                                ↑ Loop back
+        PARALLEL HOT PHASE (Quantum Superposition):             │
+        ┌─ 111: SENSE  (AGI Δ - Evidence collection)            │
+        │  222: THINK  (AGI Δ - Hypothesis generation)           │
+        │  333: REASON (AGI Δ - Logic inference) → DELTA_BUNDLE  │
+        │                                                         │
+        └─ 555: EMPATHY (ASI Ω - Stakeholder analysis)           │
+           666: ALIGN   (ASI Ω - Constitutional fit) → OMEGA_BUNDLE
+        
+        444: TRINITY    (APEX Ψ - Quantum collapse/convergence) ← DELTA ∩ OMEGA
+        
+        APEX COLD PHASE (Cooling/Crystallization):
+        777: FORGE      (APEX Ψ - Output synthesis)
+        888: JUDGE      (APEX Ψ - Final verdict)
+        889: PROOF      (APEX Ψ - Cryptographic sealing)
+        999: SEAL       (VAULT - Immutable storage) ──────────────┘
+        
+    Quantum Metaphor:
+        - AGI || ASI = Superposition (both exist simultaneously)
+        - 444 TRINITY_SYNC = Wave function collapse (measurement)
+        - Both paths exist until observed at convergence point
+        - F3 Tri-Witness = Heisenberg uncertainty (independent until measured)
+        
+    Why Parallel (Quantum)?
+        - F3 Tri-Witness requires INDEPENDENT judgments (superposition)
+        - Sequential = Observer effect (ASI sees AGI, collapses too early)
+        - Parallel = Both waves exist until 444 measurement
+        - Latency: ~40.7ms (entanglement overhead, but constitutionally correct)
     """
     
     def __init__(self):
         self.apex = APEXPrime()
+        self._loop = None
     
     async def execute_async(
         self,
@@ -65,11 +84,7 @@ class Pipeline:
         context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        Execute complete 000-999 pipeline with parallel AGI||ASI execution.
-        
-        Trinity Parallel Architecture:
-            AGI and ASI run independently to ensure F3 Tri-Witness honesty.
-            Both engines see the query first, without bias from each other.
+        Execute complete 000-999 metabolic loop with Trinity Parallel architecture.
         
         Args:
             session_id: Unique session identifier
@@ -82,40 +97,33 @@ class Pipeline:
         start_time = time.perf_counter()
         
         try:
-            logger.info(f"Pipeline START: {session_id[:8]}... query='{query[:50]}'")
+            logger.info(f"METABOLIC LOOP START: {session_id[:8]}... query='{query[:50]}'")
             
             # Stage 000: INIT (handled by 000_space/)
-            # Assumed already executed by MCP layer
+            # Assumed already executed by MCP layer (loop entry point)
             
-            # TRINITY PARALLEL: Run AGI and ASI independently
-            logger.info("Launching Trinity Parallel: AGI || ASI")
-            
-            # Create parallel tasks for AGI (111→222→333) and ASI (555→666)
-            agi_task = asyncio.create_task(
-                self._execute_agi_async(session_id, query, context)
-            )
-            asi_task = asyncio.create_task(
+            # QUANTUM SUPERPOSITION: AGI || ASI (Trinity Parallel Architecture)
+            logger.info("SUPERPOSITION: AGI (111-333) || ASI (555-666) running in parallel")
+            delta_bundle, omega_bundle = await asyncio.gather(
+                self._execute_agi_async(session_id, query, context),
                 self._execute_asi_async(session_id, query, context)
             )
             
-            # Wait for both engines to complete independently
-            delta_bundle, omega_bundle = await asyncio.gather(agi_task, asi_task)
-            
-            # Store bundles for auditing
+            # Store bundles
             store_bundle(session_id, "delta", delta_bundle)
             store_bundle(session_id, "omega", omega_bundle)
             
-            # Stage 444: TRINITY_SYNC (Convergence Point)
-            logger.info("Stage 444: Trinity synchronization")
-            
+            # Stage 444: TRINITY_SYNC (Wave Function Collapse)
+            logger.info("Stage 444: Trinity synchronization (quantum collapse)")
             trinity_result = stage_444.execute(
                 delta_bundle=delta_bundle,
                 omega_bundle=omega_bundle,
                 session_id=session_id
             )
             
+            # APEX COLD PHASE (Cooling/Crystallization - Sequential is OK here)
             # Stage 777: FORGE
-            logger.info("Stage 777: Forging output")
+            logger.info("Stage 777: Forging output (cooling phase)")
             forge_result = stage_777_forge.execute(
                 trinity_bundle=trinity_result,
                 session_id=session_id
@@ -143,12 +151,12 @@ class Pipeline:
             # Calculate latency
             latency_ms = (time.perf_counter() - start_time) * 1000
             
-            logger.info(f"Pipeline COMPLETE: verdict={verdict.verdict} latency={latency_ms:.1f}ms")
+            logger.info(f"METABOLIC LOOP COMPLETE: verdict={verdict.verdict} latency={latency_ms:.1f}ms (ready to loop back to 000)")
             
             # Constitutional requirement: Target <50ms, warn if exceeded
             if latency_ms > 50:
                 logger.warning(
-                    f"Pipeline latency {latency_ms:.1f}ms exceeds 50ms target "
+                    f"Metabolic loop latency {latency_ms:.1f}ms exceeds 50ms target "
                     f"(constitutional efficiency requirement)"
                 )
             
@@ -164,7 +172,7 @@ class Pipeline:
             }
             
         except Exception as e:
-            logger.error(f"Pipeline FAILED: {e}", exc_info=True)
+            logger.error(f"METABOLIC LOOP FAILED: {e}", exc_info=True)
             return {
                 "session_id": session_id,
                 "verdict": "VOID",
@@ -180,11 +188,27 @@ class Pipeline:
         context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        Synchronous wrapper for execute_async.
+        Synchronous wrapper for async metabolic loop execution.
         
-        For backward compatibility with synchronous callers.
+        Args:
+            session_id: Unique session identifier
+            query: User query/input
+            context: Optional context dictionary
+            
+        Returns:
+            Pipeline result with verdict, response, and floor scores
         """
-        return asyncio.run(self.execute_async(session_id, query, context))
+        # Get or create event loop
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        
+        # Run async metabolic loop
+        return loop.run_until_complete(
+            self.execute_async(session_id, query, context)
+        )
     
     async def _execute_agi_async(
         self,
@@ -193,22 +217,21 @@ class Pipeline:
         context: Optional[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """
-        Execute AGI stages (111 → 222 → 333) in parallel with ASI.
+        Execute AGI quantum branch: 111 → 222 → 333 → DELTA_BUNDLE.
         
-        Returns DELTA_BUNDLE with AGI reasoning and vote.
+        This is the "HOT PHASE" - AGI Mind (Δ) existing in superposition.
+        Independent until 444 collapse/measurement.
         """
-        logger.info("[AGI] Stage 111: SENSE")
         # Stage 111: SENSE
-        sense_result = execute_stage_111(query, context or {})
+        sense_result = stage_111_sense.execute(query, context)
         
-        logger.info("[AGI] Stage 222: THINK")
         # Stage 222: THINK
-        think_result = execute_stage_222(sense_result, query)
+        think_result = stage_222_think.execute(sense_result)
         
-        logger.info("[AGI] Stage 333: REASON")
         # Stage 333: REASON
-        reason_result = execute_stage_333(think_result, query)
+        reason_result = stage_333_reason.execute(think_result)
         
+        # Return as DeltaBundle format (will be enhanced when stages return real bundles)
         return {
             "stage": "333_REASON",
             "reasoning": reason_result,
@@ -227,18 +250,18 @@ class Pipeline:
         context: Optional[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """
-        Execute ASI stages (555 → 666) in parallel with AGI.
+        Execute ASI quantum branch: 555 → 666 → OMEGA_BUNDLE.
         
-        Returns OMEGA_BUNDLE with ASI safety check and vote.
+        This is the "WARM PHASE" - ASI Heart (Ω) existing in superposition.
+        Independent until 444 collapse/measurement.
         """
-        logger.info("[ASI] Stage 555: EMPATHY")
         # Stage 555: EMPATHY
-        empathy_result = execute_empathy_stage(query, session_id, context or {})
+        empathy_result = stage_555_empathy.execute(query, context)
         
-        logger.info("[ASI] Stage 666: ALIGN")
-        # Stage 666: ALIGN  
-        align_result = execute_align_stage(empathy_result, session_id)
+        # Stage 666: ALIGN
+        align_result = stage_666.execute(empathy_result, session_id)
         
+        # Return as OmegaBundle format (will be enhanced when stages return real bundles)
         return {
             "stage": "666_ALIGN",
             "empathy": empathy_result,
@@ -253,27 +276,33 @@ class Pipeline:
 
 
 # Singleton instance
-_pipeline = None
+_metabolic_loop = None
 
-def get_pipeline() -> Pipeline:
-    """Get singleton pipeline instance."""
-    global _pipeline
-    if _pipeline is None:
-        _pipeline = Pipeline()
-    return _pipeline
+def get_metabolic_loop() -> MetabolicLoop:
+    """Get singleton metabolic loop instance."""
+    global _metabolic_loop
+    if _metabolic_loop is None:
+        _metabolic_loop = MetabolicLoop()
+    return _metabolic_loop
 
+# Backward compatibility aliases
+Pipeline = MetabolicLoop
+get_pipeline = get_metabolic_loop
 
-def execute_pipeline(
+def execute_metabolic_loop(
     session_id: str,
     query: str,
     context: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
-    Convenience function to execute pipeline.
+    Convenience function to execute metabolic loop.
     
     Usage:
-        result = execute_pipeline("sess_001", "What is truth?")
+        result = execute_metabolic_loop("sess_001", "What is truth?")
         print(result["verdict"])  # SEAL, VOID, SABAR, etc.
     """
-    pipeline = get_pipeline()
-    return pipeline.execute(session_id, query, context)
+    loop = get_metabolic_loop()
+    return loop.execute(session_id, query, context)
+
+# Backward compatibility alias
+execute_pipeline = execute_metabolic_loop

@@ -1,12 +1,12 @@
 """
-arifOS APEX (Soul/Ψ) Module
-v51 Core Reorganization
+canonical_core APEX (Soul/Ψ) Module
+v52 Canonical Core
 
-Re-exports APEX components for compatibility.
-The main implementation is in arifos.core.apex.kernel.APEXJudicialCore
+Re-exports APEX components for canonical_core.
+The main implementation is in canonical_core.apex.kernel.APEXJudicialCore
 """
 
-# New v51 kernel
+# v52 canonical kernel
 from canonical_core.apex.kernel import APEXJudicialCore
 
 # Alias for backward compatibility
@@ -14,7 +14,7 @@ APEXKernel = APEXJudicialCore
 
 # Legacy engine (for backward compatibility)
 try:
-    from canonical_core.engines.apex_engine import (
+    from arifos.core.engines.apex_engine import (
         APEXEngine,
         APEXOutput,
         VoidJustification,
