@@ -1845,7 +1845,7 @@ async def mcp_apex_judge(
         # =====================================================================
         if action in {"eureka", "judge", "proof", "full"}:
             try:
-                from arifos.core.apex.kernel import APEXJudicialCore
+                from canonical_core.apex.kernel import APEXJudicialCore
 
                 # If caller didn't pass bundles, pull from session store.
                 if not agi_result and session_id:
@@ -2250,7 +2250,7 @@ async def mcp_999_vault(
         # =====================================================================
         if action in {"list", "read"}:
             try:
-                from arifos.core.apex.kernel import APEXJudicialCore
+                from canonical_core.apex.kernel import APEXJudicialCore
 
                 core_apex = APEXJudicialCore()
                 return await core_apex.execute(
@@ -2315,7 +2315,7 @@ async def mcp_999_vault(
             # v52.1: Prefer Core APEX Room sealing (889 PROOF + 999 SEAL)
             # =================================================================
             try:
-                from arifos.core.apex.kernel import APEXJudicialCore
+                from canonical_core.apex.kernel import APEXJudicialCore
 
                 if session_id and not agi_result:
                     agi_result = get_stage_result(session_id, "agi") or agi_result
