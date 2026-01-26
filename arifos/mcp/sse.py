@@ -402,6 +402,139 @@ async def get_dashboard(request):
         html_content = html_content.replace('src="app.js"', 'src="/dashboard/static/app.js"')
         return HTMLResponse(html_content)
 
+# --- ROOT LANDING PAGE (README) ---
+@mcp.custom_route("/", methods=["GET"])
+async def get_landing(request):
+    """Serve arifOS MCP README landing page."""
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>arifOS - Constitutional AI Governance</title>
+        <meta name="description" content="A filter that stops AI from lying, harming, or being overconfident. 5 rules, 4 verdicts, works with any AI.">
+        <style>
+            :root {{ --primary: #1a1a2e; --accent: #e94560; --bg: #fafafa; --card: #ffffff; --text: #333; --muted: #666; }}
+            * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: var(--text); background: var(--bg); }}
+            .container {{ max-width: 900px; margin: 0 auto; padding: 2rem; }}
+            header {{ text-align: center; padding: 3rem 0; border-bottom: 3px solid var(--primary); margin-bottom: 2rem; }}
+            h1 {{ font-size: 3rem; color: var(--primary); margin-bottom: 0.5rem; }}
+            .motto {{ font-style: italic; color: var(--accent); font-size: 1.2rem; margin-bottom: 1rem; }}
+            .tagline {{ font-size: 1.1rem; color: var(--muted); max-width: 600px; margin: 0 auto; }}
+            .version {{ display: inline-block; background: var(--primary); color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; margin-top: 1rem; }}
+            .hero {{ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 2rem; border-radius: 12px; margin: 2rem 0; text-align: center; }}
+            .hero h2 {{ margin-bottom: 1rem; }}
+            .hero code {{ background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 6px; font-size: 1.1rem; display: inline-block; }}
+            .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 2rem 0; }}
+            .card {{ background: var(--card); border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.5rem; transition: transform 0.2s, box-shadow 0.2s; }}
+            .card:hover {{ transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }}
+            .card h3 {{ color: var(--primary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }}
+            .card p {{ color: var(--muted); font-size: 0.95rem; }}
+            .emoji {{ font-size: 1.5rem; }}
+            .teach {{ background: var(--card); border: 2px solid var(--accent); border-radius: 12px; padding: 1.5rem; margin: 2rem 0; }}
+            .teach h2 {{ color: var(--accent); margin-bottom: 1rem; }}
+            .teach-grid {{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; text-align: center; }}
+            .teach-item {{ padding: 1rem 0.5rem; }}
+            .teach-letter {{ font-size: 2rem; font-weight: bold; color: var(--primary); }}
+            .teach-word {{ font-size: 0.85rem; color: var(--muted); }}
+            .links {{ display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; margin: 2rem 0; }}
+            .links a {{ display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 500; transition: all 0.2s; }}
+            .links a.primary {{ background: var(--primary); color: white; }}
+            .links a.primary:hover {{ background: #2d2d4a; }}
+            .links a.secondary {{ background: white; color: var(--primary); border: 2px solid var(--primary); }}
+            .links a.secondary:hover {{ background: var(--primary); color: white; }}
+            footer {{ text-align: center; padding: 2rem 0; border-top: 1px solid #e0e0e0; margin-top: 3rem; color: var(--muted); }}
+            footer a {{ color: var(--accent); text-decoration: none; }}
+            .verdicts {{ display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin: 1rem 0; }}
+            .verdict {{ padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: bold; font-size: 0.9rem; }}
+            .seal {{ background: #c8e6c9; color: #2e7d32; }}
+            .sabar {{ background: #fff9c4; color: #f57f17; }}
+            .void {{ background: #ffcdd2; color: #c62828; }}
+            .hold {{ background: #e1bee7; color: #7b1fa2; }}
+            @media (max-width: 600px) {{ .teach-grid {{ grid-template-columns: repeat(3, 1fr); }} h1 {{ font-size: 2rem; }} }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>arifOS</h1>
+                <p class="motto">"DITEMPA BUKAN DIBERI" — Forged, Not Given</p>
+                <p class="tagline">A constitutional AI governance filter that stops AI from lying, harming, or being overconfident.</p>
+                <span class="version">{VERSION}</span>
+            </header>
+
+            <div class="hero">
+                <h2>Connect Your AI Client</h2>
+                <p>Add this MCP endpoint to Claude Desktop, Cursor, or any MCP-compatible client:</p>
+                <code>https://arifos.arif-fazil.com/sse</code>
+            </div>
+
+            <div class="teach">
+                <h2>The TEACH Framework</h2>
+                <p style="margin-bottom: 1rem; color: var(--muted);">Five constitutional principles that govern every AI response:</p>
+                <div class="teach-grid">
+                    <div class="teach-item"><div class="teach-letter">T</div><div class="teach-word">Truth<br><small>≥0.99</small></div></div>
+                    <div class="teach-item"><div class="teach-letter">E</div><div class="teach-word">Empathy<br><small>κᵣ≥0.95</small></div></div>
+                    <div class="teach-item"><div class="teach-letter">A</div><div class="teach-word">Amanah<br><small>Reversible</small></div></div>
+                    <div class="teach-item"><div class="teach-letter">C</div><div class="teach-word">Clarity<br><small>ΔS≥0</small></div></div>
+                    <div class="teach-item"><div class="teach-letter">H</div><div class="teach-word">Humility<br><small>3-5%</small></div></div>
+                </div>
+            </div>
+
+            <h2 style="text-align: center; margin: 2rem 0 1rem;">Four Verdicts</h2>
+            <div class="verdicts">
+                <span class="verdict seal">✓ SEAL</span>
+                <span class="verdict sabar">⏳ SABAR</span>
+                <span class="verdict void">✗ VOID</span>
+                <span class="verdict hold">⚠ 888_HOLD</span>
+            </div>
+            <p style="text-align: center; color: var(--muted); margin-bottom: 2rem;">Every AI response receives a constitutional verdict before reaching you.</p>
+
+            <div class="grid">
+                <div class="card">
+                    <h3><span class="emoji">🔧</span> 5 Trinity Tools</h3>
+                    <p>000_init (Gate) → agi_genius (Mind) → asi_act (Heart) → apex_judge (Soul) → vault_999 (Seal)</p>
+                </div>
+                <div class="card">
+                    <h3><span class="emoji">🛣️</span> ATLAS-333 Routing</h3>
+                    <p>Smart intent classification: CRISIS, FACTUAL, CARE, or SOCIAL lanes with adaptive thresholds.</p>
+                </div>
+                <div class="card">
+                    <h3><span class="emoji">🔒</span> Immutable Ledger</h3>
+                    <p>Every decision sealed with Merkle proofs. Hash-chained audit trail you can verify.</p>
+                </div>
+                <div class="card">
+                    <h3><span class="emoji">⚖️</span> Tri-Witness Consensus</h3>
+                    <p>Human · AI · Earth — three independent validators must agree on high-stakes decisions.</p>
+                </div>
+            </div>
+
+            <div class="links">
+                <a href="/docs" class="primary">📖 API Documentation</a>
+                <a href="/dashboard" class="primary">📊 Live Dashboard</a>
+                <a href="/health" class="secondary">💚 Health Check</a>
+                <a href="https://arifos.pages.dev/" class="secondary">📚 Full Docs</a>
+            </div>
+
+            <div class="links">
+                <a href="https://github.com/ariffazil/arifOS" class="secondary">GitHub</a>
+                <a href="https://pypi.org/project/arifos/" class="secondary">PyPI</a>
+                <a href="/metrics/json" class="secondary">Metrics API</a>
+            </div>
+
+            <footer>
+                <p>Built by <a href="https://github.com/ariffazil">Muhammad Arif bin Fazil</a></p>
+                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Constitutional AI Governance Framework · {VERSION}</p>
+            </footer>
+        </div>
+    </body>
+    </html>
+    """
+    return HTMLResponse(html)
+
+
 # --- DOCS ROUTE ---
 @mcp.custom_route("/docs", methods=["GET"])
 async def get_docs(request):
