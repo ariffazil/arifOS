@@ -5,7 +5,7 @@ Ref: ADR_001_CONSTITUTIONAL_MONOLITH
 
 Usage:
   python -m arifos.mcp sse          # Production Monolith (SSE/HTTP)
-  python -m arifos.mcp trinity      # Legacy Local (Stdio)
+  python -m arifos.mcp aaa          # Legacy Local (Stdio)
 
 DITEMPA BUKAN DIBERI
 """
@@ -58,8 +58,8 @@ if __name__ == "__main__":
     if arg in ["sse", "production"]:
         run_production_monolith()
     
-    # LEGACY PATHS
-    elif arg == "trinity":
+    # LEGACY PATHS (aaa or trinity for backward compatibility)
+    elif arg in ["aaa", "trinity"]:
         run_legacy_stdio()
         
     # DEFAULT (Fallback to Production for Container Safety)

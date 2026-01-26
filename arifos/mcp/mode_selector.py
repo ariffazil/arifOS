@@ -49,5 +49,5 @@ def select_implementation(mode: MCPMode) -> Dict[str, Any]:
     
     else:  # STANDALONE or AUTO (with no cores)
         # Development: Inline logic, no core dependency
-        from arifos.mcp.tools import mcp_trinity
-        return mcp_trinity.get_tools()
+        from arifos.mcp.tools import mcp_aaa
+        return mcp_aaa.get_tools()

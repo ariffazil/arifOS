@@ -1,7 +1,7 @@
 """
 arifos.mcp.sse (v52.5.1-SEAL)
 
-The HTTP/SSE Adaptation layer for the Trinity Monolith.
+The HTTP/SSE Adaptation layer for the AAA Monolith (AGI ∩ ASI ∩ APEX).
 This module exposes the unified MCP tools via Starlette SSE transport.
 Designed for Railway/Cloud Run deployment.
 
@@ -24,9 +24,9 @@ from arifos.mcp.constitutional_metrics import get_seal_rate, get_full_metrics, r
 # Path to dashboard static files: arifos/core/integration/api/static
 STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "core", "integration", "api", "static")
 
-# --- TRINITY TOOLS IMPORT ---
-# We import from mcp_trinity.py which contains the canonical 5-tool implementation
-from arifos.mcp.tools.mcp_trinity import (
+# --- AAA TOOLS IMPORT ---
+# We import from mcp_aaa.py which contains the canonical 5-tool implementation
+from arifos.mcp.tools.mcp_aaa import (
     mcp_000_init,
     mcp_agi_genius,
     mcp_asi_act,

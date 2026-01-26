@@ -1,7 +1,7 @@
 """
-arifOS MCP Server (v52.0.0-SEAL)
+arifOS MCP Server (v52.5.1-SEAL)
 Authority: Muhammad Arif bin Fazil
-Principle: Unified Trinity Interface (F1-F13)
+Principle: Unified AAA Interface (AGI ∩ ASI ∩ APEX, F1-F13)
 
 Modules:
   arifos.mcp.server    - MCP Standard Server (stdio)
@@ -10,8 +10,8 @@ Modules:
   arifos.mcp.tools     - Tool implementations
 
 Usage:
-  python -m arifos.mcp trinity      # Standard Trinity tools
-  python -m arifos.mcp trinity-sse  # SSE Server for Railway
+  python -m arifos.mcp          # Standard AAA tools (stdio)
+  python -m arifos.mcp sse      # SSE Server for Railway
 
 DITEMPA BUKAN DIBERI
 """

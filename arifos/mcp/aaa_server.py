@@ -28,7 +28,7 @@ import mcp.types
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
-from arifos.mcp.tools.mcp_trinity import (
+from arifos.mcp.tools.mcp_aaa import (
     mcp_000_init,
     mcp_agi_genius,
     mcp_asi_act,
@@ -39,7 +39,7 @@ from arifos.mcp.tools.mcp_trinity import (
 logger = logging.getLogger(__name__)
 
 # =============================================================================
-# 5 TRINITY TOOLS
+# 5 AAA TOOLS (AGI ∩ ASI ∩ APEX)
 # =============================================================================
 
 TOOLS: Dict[str, Callable] = {

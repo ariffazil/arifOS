@@ -21,7 +21,7 @@ from fastmcp import FastMCP
 import logging
 
 # Core Imports
-from arifos.mcp.tools.mcp_trinity import mcp_apex_judge
+from arifos.mcp.tools.mcp_aaa import mcp_apex_judge
 from arifos.core.enforcement.metrics import OMEGA_0_MIN
 
 logger = logging.getLogger(__name__)
@@ -95,7 +95,7 @@ def apex_ping() -> Dict[str, Any]:
     # Verify core tool is importable
     tool_available = True
     try:
-        from arifos.mcp.tools.mcp_trinity import mcp_apex_judge
+        from arifos.mcp.tools.mcp_aaa import mcp_apex_judge
     except ImportError:
         tool_available = False
 

@@ -27,7 +27,7 @@ import uuid
 import logging
 
 # Core Imports
-from arifos.mcp.tools.mcp_trinity import mcp_000_init, mcp_999_vault
+from arifos.mcp.tools.mcp_aaa import mcp_000_init, mcp_999_vault
 from arifos.core.enforcement.metrics import OMEGA_0_MIN
 
 # Loop Bootstrap: Session tracking for crash recovery

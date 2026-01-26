@@ -1,6 +1,6 @@
 """
-arifOS MCP Tools (v52.0.0)
-5-Tool Trinity Constitutional Framework
+arifOS MCP Tools (v52.5.1)
+5-Tool AAA Constitutional Framework (AGI ∩ ASI ∩ APEX)
 
 Tools:
   mcp_000_init    → Gate (Authority + Injection + Amanah)
@@ -17,7 +17,7 @@ Kernel Tools:
 DITEMPA BUKAN DIBERI
 """
 
-from .mcp_trinity import (
+from .mcp_aaa import (
     mcp_000_init,
     mcp_agi_genius,
     mcp_asi_act,
@@ -26,7 +26,7 @@ from .mcp_trinity import (
 )
 
 __all__ = [
-    # 5 Trinity Tools
+    # 5 AAA Tools
     "mcp_000_init",
     "mcp_agi_genius",
     "mcp_asi_act",

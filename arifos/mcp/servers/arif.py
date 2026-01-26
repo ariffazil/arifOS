@@ -21,7 +21,7 @@ from fastmcp import FastMCP
 import logging
 
 # Core Imports
-from arifos.mcp.tools.mcp_trinity import mcp_agi_genius, mcp_asi_act
+from arifos.mcp.tools.mcp_aaa import mcp_agi_genius, mcp_asi_act
 from arifos.core.enforcement.metrics import OMEGA_0_MIN
 
 logger = logging.getLogger(__name__)
@@ -153,7 +153,7 @@ def arif_ping() -> Dict[str, Any]:
     # Verify core tools are importable
     tools_available = True
     try:
-        from arifos.mcp.tools.mcp_trinity import mcp_agi_genius, mcp_asi_act
+        from arifos.mcp.tools.mcp_aaa import mcp_agi_genius, mcp_asi_act
     except ImportError:
         tools_available = False
 

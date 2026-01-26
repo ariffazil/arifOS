@@ -11,7 +11,7 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 
-from arifos.mcp.tools.mcp_trinity import (
+from arifos.mcp.tools.mcp_aaa import (
     mcp_000_init,
     mcp_agi_genius,
     mcp_asi_act,

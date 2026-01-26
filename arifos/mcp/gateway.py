@@ -21,7 +21,7 @@ from arifos.mcp.servers.arif import mcp as arif_server
 from arifos.mcp.servers.apex import mcp as apex_server
 
 # Import Legacy Monolith
-from arifos.mcp.trinity_server import TOOLS as MONOLITH_TOOLS
+from arifos.mcp.aaa_server import TOOLS as MONOLITH_TOOLS
 
 # Environment Configuration
 CLUSTER_MODE = int(os.environ.get("ARIFOS_CLUSTER", "3"))
