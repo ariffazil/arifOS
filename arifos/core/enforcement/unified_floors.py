@@ -11,7 +11,7 @@ import time
 
 # Try to import from core engines
 try:
-    from arifos.core.agi.entropy import ConstitutionalEntropyEngine
+    from arifos.core.engines.agi.entropy import ConstitutionalEntropyEngine
 except ImportError:
     # Fallback/Mock for standalone mode
     class ConstitutionalEntropyEngine:
