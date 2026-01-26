@@ -160,3 +160,39 @@ def purge_store(session_id: str) -> None:
     with _SESSION_LOCK:
         if session_id in _SESSION_STORES:
             del _SESSION_STORES[session_id]
+
+
+def store_bundle(session_id: str, bundle_type: str, bundle_data: Dict[str, Any]) -> None:
+    """
+    Store a bundle for the session.
+    
+    Args:
+        session_id: Session identifier
+        bundle_type: "delta" or "omega"
+        bundle_data: Bundle data dictionary
+    """
+    store = get_store(session_id)
+    if bundle_type == "delta":
+        store.delta = bundle_data
+    elif bundle_type == "omega":
+        store.omega = bundle_data
+
+
+def get_bundle(session_id: str, bundle_type: str) -> Optional[Dict[str, Any]]:
+    """
+    Get a bundle from the session store.
+    
+    Args:
+        session_id: Session identifier
+        bundle_type: "delta" or "omega"
+        
+    Returns:
+        Bundle data or None if not found
+    """
+    store = get_store(session_id)
+    if bundle_type == "delta":
+        return store.delta
+    elif bundle_type == "omega":
+        return store.omega
+    return None
+

@@ -9,9 +9,9 @@ Hardening:
 - Energy Budget Check
 """
 from typing import Dict, Any
-from canonical_core.engines.apex_engine import APEXEngine
+from canonical_core.apex_prime import APEXPrime
 
-APEX = APEXEngine()
+APEX = APEXPrime()
 
 def check_f13_sovereign_requirement(context: Dict[str, Any]) -> bool:
     """Check if action requires Sovereign Approval (F13)."""

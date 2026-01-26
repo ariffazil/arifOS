@@ -8,9 +8,9 @@ Hardening:
 - Cryptographic Seal
 """
 from typing import Dict, Any
-from canonical_core.engines.apex_engine import APEXEngine
+from canonical_core.apex_prime import APEXPrime
 
-APEX = APEXEngine()
+APEX = APEXPrime()
 
 def execute_stage(context: Dict[str, Any]) -> Dict[str, Any]:
     context["stage"] = "889"
