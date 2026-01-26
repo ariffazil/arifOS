@@ -80,7 +80,7 @@ except ImportError:
     logger.warning("ATLAS-333 not available, falling back to keyword matching")
 
 try:
-    from canonical_core.prompt.codec import SignalExtractor, PromptSignal, IntentType, RiskLevel
+    from canonical_core.prompt.codec import SignalExtractor, PromptSignal
     PROMPT_AVAILABLE = True
     _signal_extractor = SignalExtractor()  # Singleton
 except ImportError:
