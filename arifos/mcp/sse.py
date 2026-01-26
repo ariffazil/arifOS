@@ -369,7 +369,9 @@ async def health_check(request):
             "health": "/health",
             "docs": "/docs",
             "dashboard": "/dashboard",
-            "metrics": "/metrics/json"
+            "metrics": "/metrics/json",
+            "checkpoint": "/checkpoint",
+            "openapi": "/openapi.json"
         }
     })
 
@@ -381,6 +383,332 @@ async def get_metrics_json(request):
     Returns tool usage, verdict distribution, sessions, and recent executions.
     """
     return JSONResponse(get_full_metrics())
+
+
+# --- CHECKPOINT ENDPOINT (For ChatGPT Custom GPT Actions) ---
+@mcp.custom_route("/checkpoint", methods=["POST"])
+async def checkpoint_action(request):
+    """
+    Constitutional checkpoint for ChatGPT Actions.
+
+    This is the core REST endpoint that wraps the Trinity pipeline:
+    000_init → agi_genius → asi_act → apex_judge → 999_vault
+
+    Input JSON:
+    {
+        "query": "The text or action to validate",
+        "context": "Optional context about the situation",
+        "stakeholders": ["user", "environment"]  // Optional
+    }
+
+    Returns:
+    {
+        "verdict": "SEAL" | "PARTIAL" | "VOID" | "888_HOLD",
+        "summary": "Human-readable explanation",
+        "floors": { ... floor scores ... },
+        "session_id": "uuid",
+        "ledger_hash": "merkle proof"
+    }
+    """
+    import json
+
+    try:
+        body = await request.json()
+    except json.JSONDecodeError:
+        return JSONResponse({
+            "error": "Invalid JSON body",
+            "verdict": "VOID",
+            "summary": "Request must be valid JSON with 'query' field"
+        }, status_code=400)
+
+    query = body.get("query", "")
+    context = body.get("context", "")
+    stakeholders = body.get("stakeholders", ["user"])
+
+    if not query:
+        return JSONResponse({
+            "error": "Missing 'query' field",
+            "verdict": "VOID",
+            "summary": "The 'query' field is required"
+        }, status_code=400)
+
+    try:
+        # Step 1: Initialize session (000_init)
+        init_result = await mcp_000_init(
+            action="init",
+            query=query,
+            context={"source": "chatgpt_action", "context": context}
+        )
+        session_id = init_result.get("session_id", "")
+
+        # Step 2: AGI Genius - Truth & Reasoning (agi_genius)
+        agi_result = await mcp_agi_genius(
+            action="full",
+            query=query,
+            session_id=session_id,
+            context={"stakeholders": stakeholders}
+        )
+
+        # Step 3: ASI Act - Safety & Empathy (asi_act)
+        asi_result = await mcp_asi_act(
+            action="empathize",
+            text=query,
+            session_id=session_id,
+            stakeholders=stakeholders
+        )
+
+        # Step 4: APEX Judge - Final Verdict (apex_judge)
+        apex_result = await mcp_apex_judge(
+            action="judge",
+            query=query,
+            session_id=session_id,
+            response=query,
+            agi_result=agi_result,
+            asi_result=asi_result
+        )
+
+        # Step 5: Seal to Vault (999_vault)
+        vault_result = await mcp_999_vault(
+            action="seal",
+            session_id=session_id,
+            verdict=apex_result.get("verdict", "SEAL"),
+            init_result=init_result,
+            agi_result=agi_result,
+            asi_result=asi_result,
+            apex_result=apex_result
+        )
+
+        # Build response
+        verdict = apex_result.get("verdict", "SEAL")
+        floors = {
+            "truth": agi_result.get("truth_score", 1.0),
+            "clarity": agi_result.get("entropy_delta", 0),
+            "humility": agi_result.get("humility", 0.04),
+            "empathy": asi_result.get("empathy_score", 1.0),
+            "peace": asi_result.get("peace_squared", 1.0),
+            "amanah": asi_result.get("reversible", True),
+        }
+
+        # Generate human-readable summary
+        if verdict == "SEAL":
+            summary = "✓ Constitutional check passed. All floors within thresholds."
+        elif verdict == "PARTIAL":
+            summary = "⚠ Soft floor warning. Proceed with caution."
+        elif verdict == "888_HOLD":
+            summary = "⏸ High-stakes decision detected. Human confirmation required."
+        else:
+            summary = "✗ Hard floor violated. Action blocked."
+
+        return JSONResponse({
+            "verdict": verdict,
+            "summary": summary,
+            "floors": floors,
+            "session_id": session_id,
+            "ledger_hash": vault_result.get("merkle_root", ""),
+            "atlas_lane": init_result.get("lane", "SOCIAL"),
+            "version": VERSION
+        })
+
+    except Exception as e:
+        logger.error(f"Checkpoint error: {e}")
+        return JSONResponse({
+            "error": str(e),
+            "verdict": "VOID",
+            "summary": f"Internal error during constitutional check: {str(e)}"
+        }, status_code=500)
+
+
+# --- OPENAPI SPEC ENDPOINT (For ChatGPT Custom GPT Import) ---
+@mcp.custom_route("/openapi.json", methods=["GET"])
+async def get_openapi_spec(request):
+    """
+    Serve OpenAPI 3.0 specification for ChatGPT Custom GPT Actions.
+    Import this URL directly into ChatGPT's GPT Builder.
+    """
+    spec = {
+        "openapi": "3.0.0",
+        "info": {
+            "title": "arifOS Constitutional AI Governance",
+            "description": "Constitutional AI governance filter. Validates AI outputs against 13 floors: Truth, Empathy, Amanah (reversibility), Clarity, and Humility. Returns SEAL (approved), PARTIAL (warning), VOID (blocked), or 888_HOLD (human required).",
+            "version": VERSION,
+            "contact": {
+                "name": "Muhammad Arif bin Fazil",
+                "url": "https://github.com/ariffazil/arifOS"
+            }
+        },
+        "servers": [
+            {
+                "url": "https://arifos.arif-fazil.com",
+                "description": "Production arifOS MCP Server"
+            }
+        ],
+        "paths": {
+            "/checkpoint": {
+                "post": {
+                    "operationId": "constitutionalCheckpoint",
+                    "summary": "Run constitutional validation on text or action",
+                    "description": "Validates input against 13 constitutional floors (TEACH framework: Truth≥0.99, Empathy≥0.95, Amanah=reversible, Clarity≥0, Humility=3-5%). Returns a verdict and floor scores.",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": ["query"],
+                                    "properties": {
+                                        "query": {
+                                            "type": "string",
+                                            "description": "The text, statement, or proposed action to validate constitutionally"
+                                        },
+                                        "context": {
+                                            "type": "string",
+                                            "description": "Optional context about the situation or conversation"
+                                        },
+                                        "stakeholders": {
+                                            "type": "array",
+                                            "items": {"type": "string"},
+                                            "description": "List of affected parties (e.g., ['user', 'environment', 'children'])",
+                                            "default": ["user"]
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "query": "Delete all user data without backup",
+                                    "context": "User requested database cleanup",
+                                    "stakeholders": ["user", "company"]
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "200": {
+                            "description": "Constitutional validation result",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "verdict": {
+                                                "type": "string",
+                                                "enum": ["SEAL", "PARTIAL", "VOID", "888_HOLD"],
+                                                "description": "Constitutional verdict"
+                                            },
+                                            "summary": {
+                                                "type": "string",
+                                                "description": "Human-readable explanation of the verdict"
+                                            },
+                                            "floors": {
+                                                "type": "object",
+                                                "description": "Individual floor scores",
+                                                "properties": {
+                                                    "truth": {"type": "number"},
+                                                    "empathy": {"type": "number"},
+                                                    "amanah": {"type": "boolean"},
+                                                    "clarity": {"type": "number"},
+                                                    "humility": {"type": "number"},
+                                                    "peace": {"type": "number"}
+                                                }
+                                            },
+                                            "session_id": {"type": "string"},
+                                            "ledger_hash": {"type": "string"},
+                                            "atlas_lane": {
+                                                "type": "string",
+                                                "enum": ["CRISIS", "FACTUAL", "CARE", "SOCIAL"]
+                                            },
+                                            "version": {"type": "string"}
+                                        }
+                                    },
+                                    "example": {
+                                        "verdict": "VOID",
+                                        "summary": "✗ Hard floor violated. Action blocked.",
+                                        "floors": {
+                                            "truth": 1.0,
+                                            "empathy": 0.3,
+                                            "amanah": False,
+                                            "clarity": 0.5,
+                                            "humility": 0.04,
+                                            "peace": 0.2
+                                        },
+                                        "session_id": "abc123",
+                                        "ledger_hash": "0x...",
+                                        "atlas_lane": "FACTUAL",
+                                        "version": "v52.5.1-SEAL"
+                                    }
+                                }
+                            }
+                        },
+                        "400": {
+                            "description": "Invalid request",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "error": {"type": "string"},
+                                            "verdict": {"type": "string"},
+                                            "summary": {"type": "string"}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "/health": {
+                "get": {
+                    "operationId": "healthCheck",
+                    "summary": "Check system health and version",
+                    "description": "Returns current system status, version, and available endpoints",
+                    "responses": {
+                        "200": {
+                            "description": "System health status",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "status": {"type": "string"},
+                                            "version": {"type": "string"},
+                                            "motto": {"type": "string"},
+                                            "endpoints": {"type": "object"}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "/metrics/json": {
+                "get": {
+                    "operationId": "getMetrics",
+                    "summary": "Get live governance metrics",
+                    "description": "Returns tool usage statistics, verdict distribution, active sessions, and recent executions",
+                    "responses": {
+                        "200": {
+                            "description": "Live metrics data",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "seal_rate": {"type": "number"},
+                                            "total_sessions": {"type": "integer"},
+                                            "tool_usage": {"type": "object"},
+                                            "verdict_distribution": {"type": "object"},
+                                            "recent_executions": {"type": "array"}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return JSONResponse(spec)
 
 # --- DASHBOARD ROUTE ---
 @mcp.custom_route("/dashboard", methods=["GET"])
@@ -519,10 +847,17 @@ async def get_landing(request):
                 </div>
             </div>
 
+            <div class="hero" style="border-color: var(--asi-red); margin-top: 2rem;">
+                <h2 style="color: var(--asi-red);">🤖 ChatGPT Integration</h2>
+                <p>Build a Custom GPT with arifOS governance. Import the OpenAPI spec:</p>
+                <code>https://arifos.arif-fazil.com/openapi.json</code>
+                <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--muted);">Or call the REST endpoint directly: <code style="font-size: 0.85rem;">POST /checkpoint</code></p>
+            </div>
+
             <div class="links">
                 <a href="/docs" class="primary">📖 API Documentation</a>
                 <a href="/dashboard" class="dashboard">📊 Live Dashboard</a>
-                <a href="/health" class="secondary">💚 Health Check</a>
+                <a href="/openapi.json" class="secondary">📋 OpenAPI Spec</a>
                 <a href="https://arifos.pages.dev/" class="secondary">📚 Full Docs</a>
             </div>
 
@@ -530,6 +865,7 @@ async def get_landing(request):
                 <a href="https://github.com/ariffazil/arifOS" class="secondary">GitHub</a>
                 <a href="https://pypi.org/project/arifos/" class="secondary">PyPI</a>
                 <a href="/metrics/json" class="secondary">Metrics API</a>
+                <a href="/health" class="secondary">💚 Health</a>
             </div>
 
             <footer>
