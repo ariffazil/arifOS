@@ -37,7 +37,7 @@ from canonical_core.floors import (
 from canonical_core.authority import AuthorityVerifier, AuthorityCheck
 
 if TYPE_CHECKING:
-    from arifos.core.utils.runtime_types import Job
+    from canonical_core.utils.runtime_types import Job
 
 # =============================================================================
 # CONSTANTS FROM SPEC (Track B: 000_void_stage.json)
