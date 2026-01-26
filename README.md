@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/v53.0.0-SEAL-10b981?style=for-the-badge" alt="Version v53.0.0">
+  <img src="https://img.shields.io/badge/v53.0.0--SEAL-Redis_Ready-10b981?style=for-the-badge" alt="Version v53.0.0-SEAL">
   <a href="https://arifos.arif-fazil.com"><img src="https://img.shields.io/badge/Live_Server-Online-brightgreen?style=for-the-badge" alt="Live Server"></a>
   <a href="https://arifos.arif-fazil.com/dashboard"><img src="https://img.shields.io/badge/Dashboard-View-eab308?style=for-the-badge" alt="Dashboard"></a>
   <a href="https://pypi.org/project/arifos/"><img src="https://img.shields.io/pypi/v/arifos?style=for-the-badge&color=3b82f6" alt="PyPI"></a>
@@ -66,7 +66,7 @@ https://arifos.arif-fazil.com/dashboard
 ```bash
 curl https://arifos.arif-fazil.com/health
 ```
-Expected: `{"status": "healthy", "version": "52.5.1", "floors": 13}`
+Expected: `{"status": "healthy", "version": "v53.0.0-SEAL", "redis": {"status": "healthy"}, "active_sessions": 0}`
 
 **Option 3: Deploy to Railway** (5 minutes)
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/arifos)
@@ -287,12 +287,14 @@ Every AI output is validated against these rules:
 
 ### The Four Verdicts
 
-| Verdict | Symbol | Meaning | Action |
-|---------|--------|---------|--------|
-| **SEAL** | ✓ | All floors pass | Proceed with output |
-| **PARTIAL** | ⚠️ | Soft floor warning | Proceed with caution |
-| **VOID** | ✗ | Hard floor failed | Block output, explain why |
-| **888_HOLD** | ⏸️ | High-stakes decision | Require human confirmation |
+| Internal | Human-Readable | Symbol | Meaning | Action |
+|----------|----------------|--------|---------|--------|
+| **SEAL** | APPROVE | ✓ | All floors pass | Proceed with output |
+| **PARTIAL** | CONDITIONAL | ⚠️ | Soft floor warning | Proceed with caution |
+| **VOID** | REJECT | ✗ | Hard floor failed | Block output, explain why |
+| **888_HOLD** | ESCALATE | ⏸️ | High-stakes decision | Require human confirmation |
+
+> **Note:** The REST API (`/checkpoint`) returns human-readable verdicts (APPROVE, REJECT, etc.). MCP tools use internal names (SEAL, VOID, etc.).
 
 ---
 
@@ -551,7 +553,7 @@ Direct API access for custom integrations:
 curl -X POST https://arifos.arif-fazil.com/checkpoint \
   -H "Content-Type: application/json" \
   -d '{"text": "rm -rf /", "action": "evaluate"}'
-# Returns: {"verdict": "REJECT", "failed_floors": ["F1", "F5", "F12"], ...}
+# Returns: {"verdict": "REJECT", "summary": "✗ Hard floor violated.", "floors": {...}, "session_id": "...", "atlas_lane": "FACTUAL"}
 
 # Health check
 curl https://arifos.arif-fazil.com/health
@@ -1178,7 +1180,7 @@ We welcome contributions! See [CONTRIBUTING.md](000_THEORY/003_CONTRIBUTING.md) 
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| **v53.0.0** | **Jan 2026** | **6-tier endpoint architecture, live dashboard with real-time metrics, human-readable verdicts (APPROVE/REJECT/ESCALATE), REST checkpoint API** |
+| **v53.0.0** | **Jan 2026** | **6-tier endpoint architecture, live dashboard with real-time metrics, human-readable verdicts (APPROVE/REJECT/ESCALATE), REST checkpoint API, Redis session persistence** |
 | v52.5.1 | Jan 2026 | SSE stability, dashboard dark mode, Trinity colors |
 | v52.0.0 | Jan 2026 | Pure bridge architecture, 5-tool consolidation |
 | v46.0.0 | Dec 2025 | 13 floors, VAULT-999, TEACH framework |
