@@ -72,7 +72,7 @@ logger = logging.getLogger(__name__)
 # v52.5 @PROMPT + ATLAS Integration (fail-safe import)
 # These ARE implemented - wiring them in from canonical_core/
 try:
-    from canonical_core.engines.agi.atlas import ATLAS, ATLAS_333, GPV
+    from canonical_core.engines.agi.atlas import ATLAS, GPV
     ATLAS_AVAILABLE = True
 except ImportError:
     ATLAS_AVAILABLE = False
