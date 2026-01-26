@@ -1,0 +1,846 @@
+openapi: 3.1.0
+info:
+  title: arifOS Constitutional AI Governance API
+  description: |
+    Constitutional AI governance framework enforcing 13 immutable floors across any LLM.
+
+    ## Overview
+    arifOS acts as a "conscience layer" for AI systems, ensuring all outputs are:
+    - **Validated** against 13 constitutional floors
+    - **Audited** with hash-chained ledger entries
+    - **Sealed** through Tri-Witness consensus
+
+    ## Authentication
+    - **Public tier**: No auth required, rate-limited to 10 req/min
+    - **Authenticated**: Bearer token, 100 req/min
+    - **Enterprise**: API key + webhook, unlimited
+
+    ## Quick Start
+    ```bash
+    curl -X POST https://arifos.arif-fazil.com/checkpoint \
+      -H "Content-Type: application/json" \
+      -d '{"task": "Explain AI safety", "mode": "full"}'
+    ```
+
+  version: 52.5.1
+  contact:
+    name: arifOS Support
+    url: https://github.com/ariffazil/arifOS
+    email: support@arif-fazil.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  x-logo:
+    url: https://arifos.arif-fazil.com/logo.png
+
+servers:
+  - url: https://arifos.arif-fazil.com
+    description: Production (Railway)
+  - url: http://localhost:8000
+    description: Local development
+
+tags:
+  - name: checkpoint
+    description: Unified constitutional evaluation endpoint
+  - name: trinity
+    description: Individual Trinity engine tools (AGI, ASI, APEX)
+  - name: vault
+    description: Ledger and memory operations
+  - name: session
+    description: Session management
+  - name: health
+    description: Service health and monitoring
+
+paths:
+  /checkpoint:
+    post:
+      operationId: evaluateCheckpoint
+      summary: Unified Constitutional Checkpoint
+      description: |
+        Single endpoint for full constitutional evaluation.
+        Internally orchestrates: 000_init → AGI∥ASI → APEX → 999_vault
+
+        **Parallel Execution**: AGI (Mind) and ASI (Heart) run concurrently by default.
+
+      tags:
+        - checkpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckpointRequest'
+            examples:
+              simple:
+                summary: Simple evaluation
+                value:
+                  task: "Explain quantum computing in simple terms"
+                  mode: "full"
+              with_context:
+                summary: With conversation context
+                value:
+                  task: "Continue the explanation"
+                  mode: "full"
+                  context:
+                    history:
+                      - role: "user"
+                        content: "What is quantum computing?"
+                      - role: "assistant"
+                        content: "Quantum computing uses quantum mechanics..."
+                    user_id: "user_123"
+              audit_only:
+                summary: Audit mode (no seal)
+                value:
+                  task: "Check this response for safety"
+                  mode: "audit_only"
+                  options:
+                    verbose: true
+      responses:
+        '200':
+          description: Evaluation complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckpointResponse'
+              examples:
+                seal:
+                  summary: All floors passed
+                  value:
+                    verdict: "SEAL"
+                    metrics:
+                      truth: 0.99
+                      clarity: 0.12
+                      peace_squared: 1.0
+                      kappa_r: 0.97
+                      omega_0: 0.04
+                      genius_index: 0.85
+                      c_dark: 0.08
+                    floors:
+                      passed: ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13"]
+                      failed: []
+                      warnings: []
+                    ledger_entry:
+                      id: "ldg_a3f7b2c1d4e5"
+                      hash: "sha256:9f86d081884c7d659a2feaa0c55ad015..."
+                      timestamp: "2026-01-26T10:30:00Z"
+                void:
+                  summary: Hard floor violation
+                  value:
+                    verdict: "VOID"
+                    metrics:
+                      truth: 0.72
+                      clarity: -0.05
+                    floors:
+                      passed: ["F1", "F3", "F5", "F6"]
+                      failed: ["F2", "F4"]
+                    failure_reasons:
+                      - floor: "F2"
+                        reason: "Truth below threshold (0.72 < 0.99)"
+                        severity: "hard"
+                    suggestions:
+                      - "Verify factual claims with primary sources"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /trinity/agi:
+    post:
+      operationId: agiGenius
+      summary: AGI Mind Engine (Δ)
+      description: |
+        SENSE → THINK → ATLAS pipeline.
+
+        **Floors owned**: F2 (Truth), F4 (Clarity), F7 (Humility), F10 (Ontology)
+
+      tags:
+        - trinity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AGIRequest'
+      responses:
+        '200':
+          description: AGI evaluation complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AGIResponse'
+
+  /trinity/asi:
+    post:
+      operationId: asiAct
+      summary: ASI Heart Engine (Ω)
+      description: |
+        EVIDENCE → EMPATHY → ACT pipeline.
+
+        **Floors owned**: F1 (Amanah), F5 (Peace²), F6 (Empathy), F9 (C_dark), F11 (Auth), F12 (Injection)
+
+      tags:
+        - trinity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ASIRequest'
+      responses:
+        '200':
+          description: ASI evaluation complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ASIResponse'
+
+  /trinity/apex:
+    post:
+      operationId: apexJudge
+      summary: APEX Soul Engine (Ψ)
+      description: |
+        EUREKA → JUDGE → PROOF pipeline.
+
+        **Floors owned**: F3 (Tri-Witness), F8 (Genius), F13 (Curiosity)
+
+        Synthesizes AGI and ASI outputs into final verdict.
+
+      tags:
+        - trinity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/APEXRequest'
+      responses:
+        '200':
+          description: APEX judgment complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APEXResponse'
+
+  /vault/seal:
+    post:
+      operationId: vaultSeal
+      summary: Seal to Immutable Ledger
+      description: |
+        Creates a hash-chained ledger entry for the evaluation.
+
+        **Cooling Layers**:
+        - L0: Hot (0h) - Active session
+        - L1: Warm (24h) - Daily cooling
+        - L2: Phoenix (72h) - Truth stabilization
+        - L3: Cool (7d) - Weekly reflection
+        - L4: Cold (30d) - Monthly canon
+        - L5: Frozen (365d+) - Constitutional law
+
+      tags:
+        - vault
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SealRequest'
+      responses:
+        '200':
+          description: Entry sealed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SealResponse'
+
+  /vault/query:
+    get:
+      operationId: vaultQuery
+      summary: Query Ledger Entries
+      description: Search historical verdicts and ledger entries.
+      tags:
+        - vault
+      parameters:
+        - name: verdict
+          in: query
+          schema:
+            type: string
+            enum: [SEAL, PARTIAL, VOID, SABAR, "888_HOLD"]
+          description: Filter by verdict type
+        - name: floor
+          in: query
+          schema:
+            type: string
+            pattern: "^F[1-9]|F1[0-3]$"
+          description: Filter by floor (F1-F13)
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Start timestamp
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: End timestamp
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            maximum: 1000
+      responses:
+        '200':
+          description: Query results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LedgerQueryResponse'
+
+  /session:
+    post:
+      operationId: createSession
+      summary: Create New Session
+      description: Explicitly create a new session (usually auto-created by /checkpoint).
+      tags:
+        - session
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionRequest'
+      responses:
+        '200':
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+
+  /session/{session_id}:
+    get:
+      operationId: getSession
+      summary: Get Session State
+      tags:
+        - session
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+    delete:
+      operationId: endSession
+      summary: End Session
+      tags:
+        - session
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Session ended
+
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Health Check
+      tags:
+        - health
+      responses:
+        '200':
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded, unhealthy]
+                  version:
+                    type: string
+                    example: "v52.5.1-SEAL"
+                  engines:
+                    type: object
+                    properties:
+                      agi:
+                        type: string
+                        enum: [up, down]
+                      asi:
+                        type: string
+                        enum: [up, down]
+                      apex:
+                        type: string
+                        enum: [up, down]
+                  uptime_seconds:
+                    type: integer
+
+  /dashboard:
+    get:
+      operationId: getDashboard
+      summary: Live Telemetry Dashboard
+      description: HTML dashboard with real-time metrics
+      tags:
+        - health
+      responses:
+        '200':
+          description: Dashboard HTML
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /metrics:
+    get:
+      operationId: getMetrics
+      summary: Prometheus Metrics
+      tags:
+        - health
+      responses:
+        '200':
+          description: Prometheus format metrics
+          content:
+            text/plain:
+              schema:
+                type: string
+
+components:
+  schemas:
+    CheckpointRequest:
+      type: object
+      required:
+        - task
+      properties:
+        task:
+          type: string
+          description: The task or query to evaluate
+          maxLength: 10000
+        mode:
+          type: string
+          enum: [full, quick, audit_only]
+          default: full
+          description: |
+            - `full`: All 5 stages + ledger seal (~150ms)
+            - `quick`: AGI+ASI parallel only (~80ms)
+            - `audit_only`: Read-only metrics (~30ms)
+        context:
+          type: object
+          properties:
+            history:
+              type: array
+              items:
+                type: object
+                properties:
+                  role:
+                    type: string
+                    enum: [user, assistant, system]
+                  content:
+                    type: string
+            user_id:
+              type: string
+            urgency:
+              type: string
+              enum: [low, normal, high]
+              default: normal
+        options:
+          type: object
+          properties:
+            parallel:
+              type: boolean
+              default: true
+              description: Enable AGI∥ASI parallel execution
+            skip_vault:
+              type: boolean
+              default: false
+              description: Skip ledger seal (for testing)
+            verbose:
+              type: boolean
+              default: false
+              description: Include full metrics breakdown
+
+    CheckpointResponse:
+      type: object
+      properties:
+        verdict:
+          $ref: '#/components/schemas/Verdict'
+        metrics:
+          $ref: '#/components/schemas/Metrics'
+        floors:
+          $ref: '#/components/schemas/FloorResult'
+        engines:
+          type: object
+          properties:
+            agi:
+              $ref: '#/components/schemas/EngineStatus'
+            asi:
+              $ref: '#/components/schemas/EngineStatus'
+            apex:
+              $ref: '#/components/schemas/EngineStatus'
+        ledger_entry:
+          $ref: '#/components/schemas/LedgerEntry'
+        session_id:
+          type: string
+        failure_reasons:
+          type: array
+          items:
+            $ref: '#/components/schemas/FailureReason'
+        suggestions:
+          type: array
+          items:
+            type: string
+
+    Verdict:
+      type: string
+      enum:
+        - SEAL
+        - PARTIAL
+        - VOID
+        - SABAR
+        - "888_HOLD"
+      description: |
+        - `SEAL`: All 13 floors pass - approved
+        - `PARTIAL`: Soft floor warning - proceed with caution
+        - `VOID`: Hard floor fail - rejected
+        - `SABAR`: Phoenix cooling required (72h)
+        - `888_HOLD`: Awaiting human confirmation
+
+    Metrics:
+      type: object
+      properties:
+        truth:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: F2 Truth score (threshold ≥0.99)
+        clarity:
+          type: number
+          description: F4 ΔS entropy change (threshold ≥0)
+        peace_squared:
+          type: number
+          minimum: 0
+          description: F5 Peace² score (threshold ≥1.0)
+        kappa_r:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: F6 Empathy score (threshold ≥0.95)
+        omega_0:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: F7 Humility band (threshold [0.03, 0.05])
+        genius_index:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: F8 Genius score (threshold ≥0.80)
+        c_dark:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: F9 Dark cleverness (threshold <0.30)
+        tri_witness:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: F3 Consensus score (threshold ≥0.95)
+
+    FloorResult:
+      type: object
+      properties:
+        passed:
+          type: array
+          items:
+            type: string
+            pattern: "^F[1-9]|F1[0-3]$"
+        failed:
+          type: array
+          items:
+            type: string
+            pattern: "^F[1-9]|F1[0-3]$"
+        warnings:
+          type: array
+          items:
+            type: string
+            pattern: "^F[1-9]|F1[0-3]$"
+
+    EngineStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pass, fail, skip]
+        duration_ms:
+          type: integer
+        floors_checked:
+          type: array
+          items:
+            type: string
+
+    LedgerEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: "^ldg_[a-z0-9]+$"
+        hash:
+          type: string
+          pattern: "^sha256:[a-f0-9]{64}$"
+        timestamp:
+          type: string
+          format: date-time
+        cooling_layer:
+          type: string
+          enum: [L0, L1, L2, L3, L4, L5]
+        parent_hash:
+          type: string
+          description: Hash of previous entry (chain link)
+
+    FailureReason:
+      type: object
+      properties:
+        floor:
+          type: string
+          pattern: "^F[1-9]|F1[0-3]$"
+        reason:
+          type: string
+        severity:
+          type: string
+          enum: [hard, soft]
+        value:
+          type: number
+          description: Actual metric value
+        threshold:
+          type: number
+          description: Required threshold
+
+    AGIRequest:
+      type: object
+      required:
+        - query
+      properties:
+        action:
+          type: string
+          enum: [sense, think, atlas, full]
+          default: full
+        query:
+          type: string
+        session_id:
+          type: string
+
+    AGIResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        floors:
+          $ref: '#/components/schemas/FloorResult'
+        metrics:
+          type: object
+          properties:
+            truth:
+              type: number
+            clarity:
+              type: number
+            omega_0:
+              type: number
+        atlas:
+          type: object
+          description: Knowledge graph output
+
+    ASIRequest:
+      type: object
+      required:
+        - text
+      properties:
+        action:
+          type: string
+          enum: [evidence, empathize, act, full]
+          default: full
+        text:
+          type: string
+        session_id:
+          type: string
+
+    ASIResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        floors:
+          $ref: '#/components/schemas/FloorResult'
+        metrics:
+          type: object
+          properties:
+            amanah:
+              type: boolean
+            peace_squared:
+              type: number
+            kappa_r:
+              type: number
+            c_dark:
+              type: number
+        stakeholders:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              impact:
+                type: string
+                enum: [positive, neutral, negative]
+
+    APEXRequest:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [eureka, judge, proof, full]
+          default: full
+        query:
+          type: string
+        response:
+          type: string
+          description: Combined AGI+ASI output
+        session_id:
+          type: string
+
+    APEXResponse:
+      type: object
+      properties:
+        verdict:
+          $ref: '#/components/schemas/Verdict'
+        confidence:
+          type: number
+        genius_index:
+          type: number
+        tri_witness:
+          type: object
+          properties:
+            human:
+              type: number
+            ai:
+              type: number
+            earth:
+              type: number
+            consensus:
+              type: number
+
+    SealRequest:
+      type: object
+      required:
+        - verdict
+      properties:
+        session_id:
+          type: string
+        verdict:
+          $ref: '#/components/schemas/Verdict'
+        metrics:
+          $ref: '#/components/schemas/Metrics'
+        content_hash:
+          type: string
+
+    SealResponse:
+      type: object
+      properties:
+        ledger_entry:
+          $ref: '#/components/schemas/LedgerEntry'
+        sealed_at:
+          type: string
+          format: date-time
+        cooling_layer:
+          type: string
+          enum: [L0, L1, L2, L3, L4, L5]
+
+    LedgerQueryResponse:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/LedgerEntry'
+        total:
+          type: integer
+        offset:
+          type: integer
+        limit:
+          type: integer
+
+    SessionRequest:
+      type: object
+      properties:
+        user_id:
+          type: string
+        metadata:
+          type: object
+
+    SessionResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        state:
+          type: string
+          enum: [active, cooling, sealed, expired]
+        evaluations:
+          type: integer
+        last_verdict:
+          $ref: '#/components/schemas/Verdict'
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+        message:
+          type: string
+        floor:
+          type: string
+          description: If error is a floor violation
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+security:
+  - {}  # Public endpoints
+  - bearerAuth: []
+  - apiKey: []
