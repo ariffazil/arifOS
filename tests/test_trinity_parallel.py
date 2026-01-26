@@ -18,7 +18,7 @@ import time
 from unittest.mock import Mock, patch, MagicMock
 
 # Import canonical_core modules
-from canonical_core.bundles import (
+from codebase.bundles import (
     DeltaBundle,
     OmegaBundle,
     MergedBundle,
@@ -316,7 +316,7 @@ class TestPipelineParallelExecution:
     @pytest.mark.asyncio
     async def test_parallel_execution_timing(self):
         """Test that parallel execution is faster than sequential would be."""
-        from canonical_core.pipeline import Pipeline
+        from codebase.pipeline import Pipeline
         
         # Mock the stage execution functions to have artificial delays
         async def mock_agi_chain(session_id, query, context):

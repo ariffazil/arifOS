@@ -6,9 +6,9 @@ import sys
 import pytest
 sys.path.insert(0, "C:\\Users\\User\\arifOS")
 
-from canonical_core.entropy_compressor import EntropyCompressor
-from canonical_core.asi_room.asi_engine import ASIRoom, get_asi_room, purge_asi_room
-from canonical_core.bundle_store import OmegaBundle
+from codebase.entropy_compressor import EntropyCompressor
+from codebase.asi_room.asi_engine import ASIRoom, get_asi_room, purge_asi_room
+from codebase.bundle_store import OmegaBundle
 
 
 def test_asi_engine_initialization():
@@ -61,13 +61,13 @@ def test_asi_isolation_violation():
     compressor = EntropyCompressor()
     
     # Create AGI bundle first (simulate AGI completion)
-    from canonical_core.asi_room.agi_engine import get_agi_room
+    from codebase.asi_room.agi_engine import get_agi_room
     agi_room = get_agi_room(session_id)
     agi_room.run()  # This stores delta bundle
     
     # Now ASI room attempt should fail if it tries to access AGI
     # (Test bundle store enforcement, not room itself)
-    from canonical_core.bundle_store import get_store
+    from codebase.bundle_store import get_store
     store = get_store(session_id)
     
     # ASI storing after AGI is okay (rooms are independent)

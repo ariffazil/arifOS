@@ -1,1 +1,0 @@
-"""canonical_core module"""

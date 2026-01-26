@@ -15,7 +15,7 @@ Version: v38.0
 """
 
 # Stage 000 Amanah now uses canonical_core (The Great Purge)
-from canonical_core.stage_000 import (
+from codebase.stage_000 import (
     compute_amanah_score,
     AmanahSignals,
 )
