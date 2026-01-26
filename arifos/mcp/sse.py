@@ -49,10 +49,10 @@ from arifos.mcp.session_ledger import (
     recover_orphaned_session,
 )
 
-logger = logging.getLogger(__name__)
+# Redis integration for persistent sessions
+from arifos.mcp import redis_client
 
-# Track active tokens for validation (in-memory, per-process)
-_active_tokens: Dict[str, str] = {}  # session_id -> token
+logger = logging.getLogger(__name__)
 
 def _recover_orphans() -> int:
     """
@@ -135,7 +135,7 @@ async def arifos_trinity_000_init(
         
         new_session_id = result.get("session_id", "")
         if new_session_id:
-            _active_tokens[new_session_id] = token
+            redis_client.save_token(new_session_id, token)
             try:
                 open_session(
                     session_id=new_session_id,
@@ -349,7 +349,7 @@ async def arifos_trinity_999_vault(
 
     # 2. Close Session Loop
     if result.get("status") == "SEAL" and session_id:
-        _active_tokens.pop(session_id, None)
+        redis_client.delete_token(session_id)
         try:
             close_session(session_id)
         except Exception as e:
@@ -367,6 +367,8 @@ async def health_check(request):
         "status": "healthy",
         "version": VERSION,
         "motto": MOTTO,
+        "redis": redis_client.health(),
+        "active_sessions": redis_client.count_tokens(),
         "endpoints": {
             "sse": "/sse",
             "messages": "/messages",
@@ -718,169 +720,409 @@ async def get_openapi_spec(request):
 # --- DASHBOARD ROUTE ---
 @mcp.custom_route("/dashboard", methods=["GET"])
 async def get_dashboard(request):
-    """Serve Sovereign Dashboard HTML."""
-    index_file = os.path.join(STATIC_DIR, "index.html")
-    if not os.path.exists(index_file):
-        return HTMLResponse("Dashboard not found", status_code=404)
-        
-    with open(index_file, "r") as f:
-        html_content = f.read()
-        # Rewrite links to use the mounted /dashboard/static path
-        html_content = html_content.replace('href="styles.css"', 'href="/dashboard/static/styles.css"')
-        html_content = html_content.replace('src="app.js"', 'src="/dashboard/static/app.js"')
-        return HTMLResponse(html_content)
+    """Serve Live Sovereign Dashboard with real-time metrics polling."""
+    m = get_full_metrics()
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>arifOS Live Dashboard</title>
+    <style>
+        :root {{ --bg: #0a0a0a; --panel: #111; --card: #1a1a1a; --border: #333; --text: #fff; --dim: #a1a1aa; --muted: #71717a; --agi: #3b82f6; --asi: #ef4444; --apex: #eab308; --seal: #22c55e; --void: #ef4444; --hold: #a855f7; --partial: #f59e0b; }}
+        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace; background: var(--bg); color: var(--text); min-height: 100vh; }}
+        .header {{ background: var(--panel); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }}
+        .header h1 {{ font-size: 1.5rem; }} .header h1 span {{ color: var(--agi); }}
+        .status {{ display: flex; align-items: center; gap: 1rem; }}
+        .status-dot {{ width: 12px; height: 12px; border-radius: 50%; background: var(--seal); animation: pulse 2s infinite; }}
+        @keyframes pulse {{ 0%, 100% {{ opacity: 1; }} 50% {{ opacity: 0.5; }} }}
+        .uptime {{ color: var(--dim); font-size: 0.85rem; }}
+        .container {{ max-width: 1400px; margin: 0 auto; padding: 1.5rem; }}
+        .metrics-grid {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }}
+        .metric-card {{ background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }}
+        .metric-card.highlight {{ border-color: var(--agi); }}
+        .metric-label {{ color: var(--dim); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }}
+        .metric-value {{ font-size: 2rem; font-weight: bold; color: var(--text); }}
+        .metric-value.seal {{ color: var(--seal); }}
+        .metric-subtext {{ color: var(--muted); font-size: 0.75rem; margin-top: 0.25rem; }}
+        .main-grid {{ display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }}
+        .card {{ background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }}
+        .card h3 {{ color: var(--dim); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }}
+        .verdict-bar {{ display: flex; height: 24px; border-radius: 6px; overflow: hidden; margin-bottom: 1rem; }}
+        .verdict-segment {{ transition: width 0.5s ease; }}
+        .verdict-segment.seal {{ background: var(--seal); }} .verdict-segment.partial {{ background: var(--partial); }} .verdict-segment.void {{ background: var(--void); }} .verdict-segment.hold {{ background: var(--hold); }}
+        .verdict-legend {{ display: flex; gap: 1.5rem; flex-wrap: wrap; }}
+        .legend-item {{ display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }}
+        .legend-dot {{ width: 10px; height: 10px; border-radius: 50%; }}
+        .floor-grid {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }}
+        .floor {{ padding: 0.75rem; border-radius: 8px; text-align: center; font-size: 0.75rem; }}
+        .floor.ok {{ background: rgba(34,197,94,0.15); color: var(--seal); border: 1px solid rgba(34,197,94,0.3); }}
+        .floor.fail {{ background: rgba(239,68,68,0.15); color: var(--void); border: 1px solid rgba(239,68,68,0.3); }}
+        .floor-name {{ font-weight: bold; }}
+        .tool-row {{ display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }}
+        .tool-row:last-child {{ border-bottom: none; }}
+        .tool-name {{ display: flex; align-items: center; gap: 0.5rem; }}
+        .tool-badge {{ padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }}
+        .tool-badge.gate {{ background: rgba(59,130,246,0.15); color: var(--agi); }}
+        .tool-badge.mind {{ background: rgba(59,130,246,0.15); color: var(--agi); }}
+        .tool-badge.heart {{ background: rgba(239,68,68,0.15); color: var(--asi); }}
+        .tool-badge.soul {{ background: rgba(234,179,8,0.15); color: var(--apex); }}
+        .tool-badge.seal {{ background: rgba(34,197,94,0.15); color: var(--seal); }}
+        .tool-count {{ font-weight: bold; font-size: 1.1rem; }}
+        .activity-list {{ max-height: 300px; overflow-y: auto; }}
+        .activity-item {{ display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }}
+        .activity-item:last-child {{ border-bottom: none; }}
+        .activity-tool {{ color: var(--dim); }}
+        .activity-verdict {{ padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }}
+        .activity-verdict.SEAL {{ background: rgba(34,197,94,0.15); color: var(--seal); }}
+        .activity-verdict.VOID {{ background: rgba(239,68,68,0.15); color: var(--void); }}
+        .activity-verdict.PARTIAL {{ background: rgba(245,158,11,0.15); color: var(--partial); }}
+        .activity-time {{ color: var(--muted); font-size: 0.75rem; }}
+        .alerts {{ margin-bottom: 1.5rem; }}
+        .alert {{ background: rgba(239,68,68,0.1); border: 1px solid var(--void); border-radius: 8px; padding: 1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 1rem; }}
+        .alert.warning {{ background: rgba(245,158,11,0.1); border-color: var(--partial); }}
+        .alert.info {{ background: rgba(59,130,246,0.1); border-color: var(--agi); }}
+        .alert-icon {{ font-size: 1.5rem; }}
+        .alert-content h4 {{ margin-bottom: 0.25rem; }}
+        .alert-content p {{ color: var(--dim); font-size: 0.85rem; }}
+        .trinity-grid {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }}
+        .trinity-gauge {{ text-align: center; }}
+        .trinity-label {{ font-size: 0.75rem; color: var(--dim); margin-bottom: 0.5rem; }}
+        .trinity-value {{ font-size: 1.5rem; font-weight: bold; }}
+        .trinity-value.agi {{ color: var(--agi); }} .trinity-value.asi {{ color: var(--asi); }} .trinity-value.apex {{ color: var(--apex); }}
+        .latency-grid {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; text-align: center; }}
+        .latency-item {{ padding: 0.75rem; background: var(--panel); border-radius: 6px; }}
+        .latency-label {{ font-size: 0.7rem; color: var(--muted); }}
+        .latency-value {{ font-size: 1.25rem; font-weight: bold; margin-top: 0.25rem; }}
+        .footer {{ text-align: center; padding: 1.5rem; color: var(--muted); font-size: 0.85rem; }}
+        .footer a {{ color: var(--apex); text-decoration: none; }}
+        @media (max-width: 1024px) {{ .metrics-grid {{ grid-template-columns: repeat(2, 1fr); }} .main-grid {{ grid-template-columns: 1fr; }} }}
+        @media (max-width: 600px) {{ .metrics-grid {{ grid-template-columns: 1fr; }} .floor-grid {{ grid-template-columns: repeat(3, 1fr); }} }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>arif<span>OS</span> Live Dashboard</h1>
+        <div class="status">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">HEALTHY</span>
+            <span class="uptime">Uptime: <span id="uptime">{m.get('uptime_hours', 0):.1f}h</span></span>
+        </div>
+    </div>
+    <div class="container">
+        <div class="alerts" id="alerts"></div>
+        <div class="metrics-grid">
+            <div class="metric-card highlight">
+                <div class="metric-label">SEAL Rate (1h)</div>
+                <div class="metric-value seal" id="sealRate">{m.get('seal_rate', 0)*100:.1f}%</div>
+                <div class="metric-subtext">Constitutional approval rate</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Total Tool Calls</div>
+                <div class="metric-value" id="totalSessions">{m.get('total_tool_calls', 0)}</div>
+                <div class="metric-subtext">Invocations processed</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Active Sessions</div>
+                <div class="metric-value" id="activeSessions">{m.get('active_sessions', 0)}</div>
+                <div class="metric-subtext">Currently processing</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Avg Latency</div>
+                <div class="metric-value" id="avgLatency">{m.get('latency_ms', {{}}).get('avg', 0):.0f}ms</div>
+                <div class="metric-subtext">Response time</div>
+            </div>
+        </div>
+        <div class="main-grid">
+            <div>
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <h3>⚖️ Verdict Distribution</h3>
+                    <div class="verdict-bar" id="verdictBar"><div class="verdict-segment seal" style="width:100%"></div></div>
+                    <div class="verdict-legend">
+                        <div class="legend-item"><div class="legend-dot" style="background:var(--seal)"></div> SEAL <span id="sealCount">0</span></div>
+                        <div class="legend-item"><div class="legend-dot" style="background:var(--partial)"></div> PARTIAL <span id="partialCount">0</span></div>
+                        <div class="legend-item"><div class="legend-dot" style="background:var(--void)"></div> VOID <span id="voidCount">0</span></div>
+                        <div class="legend-item"><div class="legend-dot" style="background:var(--hold)"></div> 888_HOLD <span id="holdCount">0</span></div>
+                    </div>
+                </div>
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <h3>🏛️ Constitutional Floor Health</h3>
+                    <div class="floor-grid" id="floorGrid"></div>
+                </div>
+                <div class="card">
+                    <h3>⚡ Response Latency</h3>
+                    <div class="latency-grid">
+                        <div class="latency-item"><div class="latency-label">P50</div><div class="latency-value" id="p50">0ms</div></div>
+                        <div class="latency-item"><div class="latency-label">P95</div><div class="latency-value" id="p95">0ms</div></div>
+                        <div class="latency-item"><div class="latency-label">P99</div><div class="latency-value" id="p99">0ms</div></div>
+                        <div class="latency-item"><div class="latency-label">AVG</div><div class="latency-value" id="avg">0ms</div></div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <h3>🔧 Tool Usage</h3>
+                    <div id="toolUsage"></div>
+                </div>
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <h3>🔺 Trinity Scores</h3>
+                    <div class="trinity-grid">
+                        <div class="trinity-gauge"><div class="trinity-label">AGI Mind (τ)</div><div class="trinity-value agi" id="agiScore">0.99</div></div>
+                        <div class="trinity-gauge"><div class="trinity-label">ASI Heart (κᵣ)</div><div class="trinity-value asi" id="asiScore">0.96</div></div>
+                        <div class="trinity-gauge"><div class="trinity-label">APEX Soul (Ψ)</div><div class="trinity-value apex" id="apexScore">0.85</div></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>📜 Recent Activity</h3>
+                    <div class="activity-list" id="activityList"><div class="activity-item"><span class="activity-tool">Waiting for data...</span></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer"><a href="/">← Back to arifOS</a> · Last updated: <span id="lastUpdate">-</span> · Auto-refresh: 5s</div>
+    <script>
+        async function updateDashboard() {{
+            try {{
+                const res = await fetch('/metrics/json');
+                const m = await res.json();
+                document.getElementById('uptime').textContent = m.uptime_hours.toFixed(1) + 'h';
+                document.getElementById('statusText').textContent = m.status === 'active' ? 'HEALTHY' : 'DEGRADED';
+                document.getElementById('statusDot').style.background = m.status === 'active' ? 'var(--seal)' : 'var(--void)';
+                document.getElementById('sealRate').textContent = (m.seal_rate * 100).toFixed(1) + '%';
+                document.getElementById('totalSessions').textContent = m.total_tool_calls || 0;
+                document.getElementById('activeSessions').textContent = m.active_sessions || 0;
+                document.getElementById('avgLatency').textContent = (m.latency_ms?.avg || 0).toFixed(0) + 'ms';
+                const vd = m.verdict_distribution || {{}};
+                const total = Object.values(vd).reduce((a, b) => a + b, 0) || 1;
+                document.getElementById('verdictBar').innerHTML = `<div class="verdict-segment seal" style="width:${{((vd.SEAL||0)/total*100).toFixed(1)}}%"></div><div class="verdict-segment partial" style="width:${{((vd.PARTIAL||0)/total*100).toFixed(1)}}%"></div><div class="verdict-segment void" style="width:${{((vd.VOID||0)/total*100).toFixed(1)}}%"></div><div class="verdict-segment hold" style="width:${{(((vd['888_HOLD']||0)+(vd.SABAR||0))/total*100).toFixed(1)}}%"></div>`;
+                document.getElementById('sealCount').textContent = vd.SEAL || 0;
+                document.getElementById('partialCount').textContent = vd.PARTIAL || 0;
+                document.getElementById('voidCount').textContent = vd.VOID || 0;
+                document.getElementById('holdCount').textContent = (vd['888_HOLD'] || 0) + (vd.SABAR || 0);
+                document.getElementById('p50').textContent = (m.latency_ms?.p50 || 0).toFixed(0) + 'ms';
+                document.getElementById('p95').textContent = (m.latency_ms?.p95 || 0).toFixed(0) + 'ms';
+                document.getElementById('p99').textContent = (m.latency_ms?.p99 || 0).toFixed(0) + 'ms';
+                document.getElementById('avg').textContent = (m.latency_ms?.avg || 0).toFixed(0) + 'ms';
+                const tu = m.tool_usage || {{}};
+                const toolMap = {{'init_000': ['GATE', 'gate'], 'agi_genius': ['MIND', 'mind'], 'asi_act': ['HEART', 'heart'], 'apex_judge': ['SOUL', 'soul'], 'vault_999': ['SEAL', 'seal']}};
+                let toolHtml = '';
+                for (const [tool, [label, cls]] of Object.entries(toolMap)) toolHtml += `<div class="tool-row"><div class="tool-name"><span class="tool-badge ${{cls}}">${{label}}</span> ${{tool}}</div><div class="tool-count">${{tu[tool] || 0}}</div></div>`;
+                document.getElementById('toolUsage').innerHTML = toolHtml;
+                document.getElementById('agiScore').textContent = (m.trinity?.agi_mind?.truth || 0.99).toFixed(2);
+                document.getElementById('asiScore').textContent = (m.trinity?.asi_heart?.empathy || 0.96).toFixed(2);
+                document.getElementById('apexScore').textContent = (m.trinity?.apex_soul?.genius || 0.85).toFixed(2);
+                const fh = m.floor_health || {{}};
+                const floors = [['F1','Amanah','F1_amanah'],['F2','Truth','F2_truth'],['F3','Witness','F3_tri_witness'],['F4','Clarity','F4_clarity'],['F5','Peace','F5_peace'],['F6','Empathy','F6_empathy'],['F7','Humility','F7_humility'],['F8','Genius','F8_genius'],['F9','Dark','F9_dark'],['F10','Ontology','F10_ontology'],['F11','Auth','F11_auth'],['F12','Injection','F12_injection']];
+                let floorHtml = '';
+                for (const [n, name, key] of floors) floorHtml += `<div class="floor ${{fh[key] !== false ? 'ok' : 'fail'}}"><div class="floor-name">${{n}}</div>${{name}}</div>`;
+                document.getElementById('floorGrid').innerHTML = floorHtml;
+                const recent = m.recent_executions || [];
+                if (recent.length > 0) {{
+                    let actHtml = '';
+                    for (const r of recent.slice(0, 10)) {{
+                        const time = r.timestamp ? new Date(r.timestamp).toLocaleTimeString() : '-';
+                        actHtml += `<div class="activity-item"><span class="activity-tool">${{r.tool || 'unknown'}}</span><span class="activity-verdict ${{r.verdict || 'SEAL'}}">${{r.verdict || 'SEAL'}}</span><span class="activity-time">${{time}}</span></div>`;
+                    }}
+                    document.getElementById('activityList').innerHTML = actHtml;
+                }}
+                let alertHtml = '';
+                if (m.void_rate > 0.1) alertHtml += `<div class="alert"><span class="alert-icon">🚨</span><div class="alert-content"><h4>High VOID Rate</h4><p>VOID rate is ${{(m.void_rate * 100).toFixed(1)}}%. Review recent rejections.</p></div></div>`;
+                if (m.latency_ms?.p99 > 5000) alertHtml += `<div class="alert warning"><span class="alert-icon">⚠️</span><div class="alert-content"><h4>High Latency</h4><p>P99 latency is ${{m.latency_ms.p99.toFixed(0)}}ms.</p></div></div>`;
+                if ((vd['888_HOLD'] || 0) > 0) alertHtml += `<div class="alert info"><span class="alert-icon">⏸️</span><div class="alert-content"><h4>Pending Human Review</h4><p>${{vd['888_HOLD']}} decisions awaiting confirmation.</p></div></div>`;
+                document.getElementById('alerts').innerHTML = alertHtml;
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            }} catch (e) {{
+                document.getElementById('statusText').textContent = 'ERROR';
+                document.getElementById('statusDot').style.background = 'var(--void)';
+            }}
+        }}
+        updateDashboard();
+        setInterval(updateDashboard, 5000);
+    </script>
+</body>
+</html>"""
+    return HTMLResponse(html)
 
 # --- ROOT LANDING PAGE (README) ---
 @mcp.custom_route("/", methods=["GET"])
 async def get_landing(request):
-    """Serve arifOS MCP README landing page."""
-    html = f"""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>arifOS - Constitutional AI Governance</title>
-        <meta name="description" content="A filter that stops AI from lying, harming, or being overconfident. 5 rules, 4 verdicts, works with any AI.">
-        <style>
-            /* arifOS Trinity Dark Theme */
-            :root {{
-                --bg: #050505; --panel: #111111; --card: #1a1a1a; --border: #333333;
-                --text: #ffffff; --text-dim: #a1a1aa; --muted: #71717a;
-                --agi-blue: #3b82f6; --asi-red: #ef4444; --apex-yellow: #eab308;
-                --seal: #22c55e; --void: #ef4444; --hold: #a855f7;
-            }}
-            * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: var(--text); background: var(--bg); min-height: 100vh; }}
-            .container {{ max-width: 900px; margin: 0 auto; padding: 2rem; }}
-            header {{ text-align: center; padding: 3rem 0; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }}
-            h1 {{ font-size: 3rem; color: var(--text); margin-bottom: 0.5rem; }}
-            h1 span {{ color: var(--agi-blue); }}
-            .motto {{ font-style: italic; color: var(--apex-yellow); font-size: 1.2rem; margin-bottom: 1rem; }}
-            .tagline {{ font-size: 1.1rem; color: var(--text-dim); max-width: 600px; margin: 0 auto; }}
-            .version {{ display: inline-block; background: var(--panel); color: var(--agi-blue); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; margin-top: 1rem; border: 1px solid var(--agi-blue); }}
-            .hero {{ background: var(--panel); border: 1px solid var(--agi-blue); color: white; padding: 2rem; border-radius: 12px; margin: 2rem 0; text-align: center; }}
-            .hero h2 {{ margin-bottom: 1rem; color: var(--text); }}
-            .hero p {{ color: var(--text-dim); }}
-            .hero code {{ background: var(--card); padding: 0.5rem 1rem; border-radius: 6px; font-size: 1.1rem; display: inline-block; color: var(--agi-blue); border: 1px solid var(--border); }}
-            .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 2rem 0; }}
-            .card {{ background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; }}
-            .card:hover {{ transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); border-color: var(--agi-blue); }}
-            .card h3 {{ color: var(--text); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }}
-            .card p {{ color: var(--text-dim); font-size: 0.95rem; }}
-            .emoji {{ font-size: 1.5rem; }}
-            .teach {{ background: var(--panel); border: 2px solid var(--asi-red); border-radius: 12px; padding: 1.5rem; margin: 2rem 0; }}
-            .teach h2 {{ color: var(--asi-red); margin-bottom: 1rem; }}
-            .teach-grid {{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; text-align: center; }}
-            .teach-item {{ padding: 1rem 0.5rem; }}
-            .teach-letter {{ font-size: 2rem; font-weight: bold; color: var(--agi-blue); }}
-            .teach-word {{ font-size: 0.85rem; color: var(--text-dim); }}
-            .teach-word small {{ color: var(--muted); }}
-            .links {{ display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; margin: 2rem 0; }}
-            .links a {{ display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 500; transition: all 0.2s; }}
-            .links a.primary {{ background: var(--agi-blue); color: white; }}
-            .links a.primary:hover {{ background: #2563eb; }}
-            .links a.dashboard {{ background: var(--apex-yellow); color: #000; }}
-            .links a.dashboard:hover {{ background: #ca8a04; }}
-            .links a.secondary {{ background: var(--card); color: var(--text-dim); border: 1px solid var(--border); }}
-            .links a.secondary:hover {{ border-color: var(--agi-blue); color: var(--agi-blue); }}
-            footer {{ text-align: center; padding: 2rem 0; border-top: 1px solid var(--border); margin-top: 3rem; color: var(--muted); }}
-            footer a {{ color: var(--apex-yellow); text-decoration: none; }}
-            footer a:hover {{ color: var(--agi-blue); }}
-            h2 {{ color: var(--text); }}
-            .verdicts {{ display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin: 1rem 0; }}
-            .verdict {{ padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: bold; font-size: 0.9rem; }}
-            .seal {{ background: rgba(34,197,94,0.15); color: var(--seal); border: 1px solid var(--seal); }}
-            .sabar {{ background: rgba(234,179,8,0.15); color: var(--apex-yellow); border: 1px solid var(--apex-yellow); }}
-            .void {{ background: rgba(239,68,68,0.15); color: var(--void); border: 1px solid var(--void); }}
-            .hold {{ background: rgba(168,85,247,0.15); color: var(--hold); border: 1px solid var(--hold); }}
-            @media (max-width: 600px) {{ .teach-grid {{ grid-template-columns: repeat(3, 1fr); }} h1 {{ font-size: 2rem; }} }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <header>
-                <h1>arif<span>OS</span></h1>
-                <p class="motto">"DITEMPA BUKAN DIBERI" — Forged, Not Given</p>
-                <p class="tagline">A constitutional AI governance filter that stops AI from lying, harming, or being overconfident.</p>
-                <span class="version">{VERSION}</span>
-            </header>
+    """Serve arifOS MCP v53 landing page with client-specific quick starts."""
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>arifOS - Constitutional AI Governance</title>
+    <meta name="description" content="A filter that stops AI from lying, harming, or being overconfident. 5 rules, 4 verdicts, works with any AI.">
+    <style>
+        :root {{ --bg: #050505; --panel: #111; --card: #1a1a1a; --border: #333; --text: #fff; --dim: #a1a1aa; --muted: #71717a; --agi: #3b82f6; --asi: #ef4444; --apex: #eab308; --seal: #22c55e; --void: #ef4444; --hold: #a855f7; }}
+        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: var(--text); background: var(--bg); min-height: 100vh; }}
+        .container {{ max-width: 1000px; margin: 0 auto; padding: 2rem; }}
+        header {{ text-align: center; padding: 2.5rem 0; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }}
+        h1 {{ font-size: 3rem; margin-bottom: 0.5rem; }} h1 span {{ color: var(--agi); }}
+        .motto {{ font-style: italic; color: var(--apex); font-size: 1.1rem; margin-bottom: 0.75rem; }}
+        .tagline {{ color: var(--dim); max-width: 600px; margin: 0 auto; }}
+        .version {{ display: inline-block; background: var(--panel); color: var(--agi); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; margin-top: 1rem; border: 1px solid var(--agi); }}
+        h2 {{ color: var(--text); margin: 2rem 0 1rem; text-align: center; }}
+        .quickstart {{ background: linear-gradient(135deg, var(--panel) 0%, var(--card) 100%); border: 2px solid var(--agi); border-radius: 16px; padding: 2rem; margin: 2rem 0; }}
+        .quickstart h2 {{ margin-top: 0; color: var(--agi); }}
+        .quickstart-grid {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.5rem; }}
+        .qs-card {{ background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; text-align: center; transition: all 0.2s; cursor: pointer; text-decoration: none; color: var(--text); }}
+        .qs-card:hover {{ border-color: var(--agi); transform: translateY(-2px); }}
+        .qs-icon {{ font-size: 2rem; margin-bottom: 0.5rem; }}
+        .qs-title {{ font-weight: bold; margin-bottom: 0.25rem; }}
+        .qs-desc {{ font-size: 0.8rem; color: var(--dim); margin-bottom: 0.75rem; }}
+        .qs-code {{ background: var(--card); padding: 0.4rem 0.6rem; border-radius: 4px; font-size: 0.75rem; color: var(--agi); font-family: monospace; word-break: break-all; }}
+        .endpoints {{ background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin: 2rem 0; }}
+        .endpoints h3 {{ color: var(--dim); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }}
+        .endpoint-table {{ width: 100%; border-collapse: collapse; }}
+        .endpoint-table th, .endpoint-table td {{ padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }}
+        .endpoint-table th {{ color: var(--muted); font-size: 0.75rem; text-transform: uppercase; }}
+        .endpoint-table td:first-child {{ font-weight: bold; }}
+        .endpoint-table code {{ background: var(--card); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.85rem; }}
+        .method {{ display: inline-block; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.7rem; font-weight: bold; margin-right: 0.5rem; }}
+        .method.get {{ background: rgba(34,197,94,0.15); color: var(--seal); }}
+        .method.post {{ background: rgba(59,130,246,0.15); color: var(--agi); }}
+        .teach {{ background: var(--panel); border: 2px solid var(--asi); border-radius: 12px; padding: 1.5rem; margin: 2rem 0; }}
+        .teach h2 {{ color: var(--asi); margin: 0 0 1rem 0; text-align: left; }}
+        .teach-grid {{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; text-align: center; }}
+        .teach-item {{ padding: 0.75rem 0.25rem; }}
+        .teach-letter {{ font-size: 1.75rem; font-weight: bold; color: var(--agi); }}
+        .teach-word {{ font-size: 0.8rem; color: var(--dim); }}
+        .teach-word small {{ color: var(--muted); }}
+        .verdicts {{ display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin: 1rem 0; }}
+        .verdict {{ padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: bold; font-size: 0.85rem; }}
+        .verdict.seal {{ background: rgba(34,197,94,0.15); color: var(--seal); border: 1px solid var(--seal); }}
+        .verdict.partial {{ background: rgba(234,179,8,0.15); color: var(--apex); border: 1px solid var(--apex); }}
+        .verdict.void {{ background: rgba(239,68,68,0.15); color: var(--void); border: 1px solid var(--void); }}
+        .verdict.hold {{ background: rgba(168,85,247,0.15); color: var(--hold); border: 1px solid var(--hold); }}
+        .grid {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 2rem 0; }}
+        .card {{ background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; transition: all 0.2s; }}
+        .card:hover {{ border-color: var(--agi); }}
+        .card h3 {{ color: var(--text); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1rem; }}
+        .card p {{ color: var(--dim); font-size: 0.9rem; }}
+        .links {{ display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin: 2rem 0; }}
+        .links a {{ display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.25rem; border-radius: 8px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; }}
+        .links a.primary {{ background: var(--agi); color: white; }}
+        .links a.primary:hover {{ background: #2563eb; }}
+        .links a.dashboard {{ background: var(--apex); color: #000; }}
+        .links a.dashboard:hover {{ background: #ca8a04; }}
+        .links a.secondary {{ background: var(--card); color: var(--dim); border: 1px solid var(--border); }}
+        .links a.secondary:hover {{ border-color: var(--agi); color: var(--agi); }}
+        footer {{ text-align: center; padding: 2rem 0; border-top: 1px solid var(--border); margin-top: 2rem; color: var(--muted); font-size: 0.85rem; }}
+        footer a {{ color: var(--apex); text-decoration: none; }}
+        @media (max-width: 768px) {{ .quickstart-grid {{ grid-template-columns: 1fr; }} .teach-grid {{ grid-template-columns: repeat(3, 1fr); }} .grid {{ grid-template-columns: 1fr; }} h1 {{ font-size: 2rem; }} }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>arif<span>OS</span></h1>
+            <p class="motto">"DITEMPA BUKAN DIBERI" — Forged, Not Given</p>
+            <p class="tagline">Constitutional AI governance that stops AI from lying, harming, or being overconfident.</p>
+            <span class="version">{VERSION}</span>
+        </header>
 
-            <div class="hero">
-                <h2>Connect Your AI Client</h2>
-                <p>Add this MCP endpoint to Claude Desktop, Cursor, or any MCP-compatible client:</p>
-                <code>https://arifos.arif-fazil.com/sse</code>
+        <div class="quickstart">
+            <h2>🚀 Quick Start — Choose Your Client</h2>
+            <div class="quickstart-grid">
+                <a href="/docs#mcp" class="qs-card">
+                    <div class="qs-icon">🖥️</div>
+                    <div class="qs-title">MCP Clients</div>
+                    <div class="qs-desc">Claude Desktop, Cursor, Kimi</div>
+                    <div class="qs-code">/sse</div>
+                </a>
+                <a href="/openapi.json" class="qs-card">
+                    <div class="qs-icon">🤖</div>
+                    <div class="qs-title">ChatGPT / GPT Builder</div>
+                    <div class="qs-desc">Import OpenAPI spec</div>
+                    <div class="qs-code">/openapi.json</div>
+                </a>
+                <a href="/docs#rest" class="qs-card">
+                    <div class="qs-icon">⚡</div>
+                    <div class="qs-title">REST / Postman / curl</div>
+                    <div class="qs-desc">Direct HTTP calls</div>
+                    <div class="qs-code">POST /checkpoint</div>
+                </a>
             </div>
-
-            <div class="teach">
-                <h2>The TEACH Framework</h2>
-                <p style="margin-bottom: 1rem; color: var(--muted);">Five constitutional principles that govern every AI response:</p>
-                <div class="teach-grid">
-                    <div class="teach-item"><div class="teach-letter">T</div><div class="teach-word">Truth<br><small>≥0.99</small></div></div>
-                    <div class="teach-item"><div class="teach-letter">E</div><div class="teach-word">Empathy<br><small>κᵣ≥0.95</small></div></div>
-                    <div class="teach-item"><div class="teach-letter">A</div><div class="teach-word">Amanah<br><small>Reversible</small></div></div>
-                    <div class="teach-item"><div class="teach-letter">C</div><div class="teach-word">Clarity<br><small>ΔS≥0</small></div></div>
-                    <div class="teach-item"><div class="teach-letter">H</div><div class="teach-word">Humility<br><small>3-5%</small></div></div>
-                </div>
-            </div>
-
-            <h2 style="text-align: center; margin: 2rem 0 1rem;">Four Verdicts</h2>
-            <div class="verdicts">
-                <span class="verdict seal">✓ SEAL</span>
-                <span class="verdict sabar">⏳ SABAR</span>
-                <span class="verdict void">✗ VOID</span>
-                <span class="verdict hold">⚠ 888_HOLD</span>
-            </div>
-            <p style="text-align: center; color: var(--muted); margin-bottom: 2rem;">Every AI response receives a constitutional verdict before reaching you.</p>
-
-            <div class="grid">
-                <div class="card">
-                    <h3><span class="emoji">🔧</span> 5 Trinity Tools</h3>
-                    <p>000_init (Gate) → agi_genius (Mind) → asi_act (Heart) → apex_judge (Soul) → vault_999 (Seal)</p>
-                </div>
-                <div class="card">
-                    <h3><span class="emoji">🛣️</span> ATLAS-333 Routing</h3>
-                    <p>Smart intent classification: CRISIS, FACTUAL, CARE, or SOCIAL lanes with adaptive thresholds.</p>
-                </div>
-                <div class="card">
-                    <h3><span class="emoji">🔒</span> Immutable Ledger</h3>
-                    <p>Every decision sealed with Merkle proofs. Hash-chained audit trail you can verify.</p>
-                </div>
-                <div class="card">
-                    <h3><span class="emoji">⚖️</span> Tri-Witness Consensus</h3>
-                    <p>Human · AI · Earth — three independent validators must agree on high-stakes decisions.</p>
-                </div>
-            </div>
-
-            <div class="hero" style="border-color: var(--asi-red); margin-top: 2rem;">
-                <h2 style="color: var(--asi-red);">🤖 ChatGPT Integration</h2>
-                <p>Build a Custom GPT with arifOS governance. Import the OpenAPI spec:</p>
-                <code>https://arifos.arif-fazil.com/openapi.json</code>
-                <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--muted);">Or call the REST endpoint directly: <code style="font-size: 0.85rem;">POST /checkpoint</code></p>
-            </div>
-
-            <div class="links">
-                <a href="/docs" class="primary">📖 API Documentation</a>
-                <a href="/dashboard" class="dashboard">📊 Live Dashboard</a>
-                <a href="/openapi.json" class="secondary">📋 OpenAPI Spec</a>
-                <a href="https://arifos.pages.dev/" class="secondary">📚 Full Docs</a>
-            </div>
-
-            <div class="links">
-                <a href="https://github.com/ariffazil/arifOS" class="secondary">GitHub</a>
-                <a href="https://pypi.org/project/arifos/" class="secondary">PyPI</a>
-                <a href="/metrics/json" class="secondary">Metrics API</a>
-                <a href="/health" class="secondary">💚 Health</a>
-            </div>
-
-            <footer>
-                <p>Built by <a href="https://github.com/ariffazil">Muhammad Arif bin Fazil</a></p>
-                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Constitutional AI Governance Framework · {VERSION}</p>
-            </footer>
         </div>
-    </body>
-    </html>
-    """
+
+        <div class="endpoints">
+            <h3>📡 Endpoint Reference</h3>
+            <table class="endpoint-table">
+                <tr><th>Endpoint</th><th>URL</th><th>Purpose</th></tr>
+                <tr><td><span class="method get">GET</span>/sse</td><td><code>https://arifos.arif-fazil.com/sse</code></td><td>MCP streaming (Claude, Cursor)</td></tr>
+                <tr><td><span class="method post">POST</span>/checkpoint</td><td><code>https://arifos.arif-fazil.com/checkpoint</code></td><td>Full constitutional validation</td></tr>
+                <tr><td><span class="method get">GET</span>/openapi.json</td><td><code>https://arifos.arif-fazil.com/openapi.json</code></td><td>ChatGPT GPT Builder import</td></tr>
+                <tr><td><span class="method get">GET</span>/dashboard</td><td><code>https://arifos.arif-fazil.com/dashboard</code></td><td>Live monitoring</td></tr>
+                <tr><td><span class="method get">GET</span>/metrics/json</td><td><code>https://arifos.arif-fazil.com/metrics/json</code></td><td>Machine-readable metrics</td></tr>
+                <tr><td><span class="method get">GET</span>/health</td><td><code>https://arifos.arif-fazil.com/health</code></td><td>System status</td></tr>
+                <tr><td><span class="method get">GET</span>/docs</td><td><code>https://arifos.arif-fazil.com/docs</code></td><td>API documentation</td></tr>
+            </table>
+        </div>
+
+        <div class="teach">
+            <h2>The TEACH Framework</h2>
+            <div class="teach-grid">
+                <div class="teach-item"><div class="teach-letter">T</div><div class="teach-word">Truth<br><small>≥0.99</small></div></div>
+                <div class="teach-item"><div class="teach-letter">E</div><div class="teach-word">Empathy<br><small>κᵣ≥0.95</small></div></div>
+                <div class="teach-item"><div class="teach-letter">A</div><div class="teach-word">Amanah<br><small>Reversible</small></div></div>
+                <div class="teach-item"><div class="teach-letter">C</div><div class="teach-word">Clarity<br><small>ΔS≥0</small></div></div>
+                <div class="teach-item"><div class="teach-letter">H</div><div class="teach-word">Humility<br><small>3-5%</small></div></div>
+            </div>
+        </div>
+
+        <h2>Four Verdicts</h2>
+        <div class="verdicts">
+            <span class="verdict seal">✓ APPROVE</span>
+            <span class="verdict partial">⚠ CONDITIONAL</span>
+            <span class="verdict void">✗ REJECT</span>
+            <span class="verdict hold">⏸ ESCALATE</span>
+        </div>
+        <p style="text-align: center; color: var(--muted); margin-bottom: 2rem; font-size: 0.9rem;">Every AI response receives a constitutional verdict before reaching you.</p>
+
+        <div class="grid">
+            <div class="card">
+                <h3>🔧 5 Trinity Tools</h3>
+                <p>init_000 (Gate) → agi_genius (Mind) → asi_act (Heart) → apex_judge (Soul) → vault_999 (Seal)</p>
+            </div>
+            <div class="card">
+                <h3>🛣️ ATLAS-333 Routing</h3>
+                <p>Smart intent classification: CRISIS, FACTUAL, CARE, or SOCIAL lanes with adaptive thresholds.</p>
+            </div>
+            <div class="card">
+                <h3>🔒 Immutable Ledger</h3>
+                <p>Every decision sealed with Merkle proofs. Hash-chained audit trail you can verify.</p>
+            </div>
+            <div class="card">
+                <h3>⚖️ Tri-Witness Consensus</h3>
+                <p>Human · AI · Earth — three validators must agree on high-stakes decisions.</p>
+            </div>
+        </div>
+
+        <div class="links">
+            <a href="/docs" class="primary">📖 API Docs</a>
+            <a href="/dashboard" class="dashboard">📊 Live Dashboard</a>
+            <a href="/openapi.json" class="secondary">📋 OpenAPI</a>
+            <a href="https://arifos.pages.dev/" class="secondary">📚 Full Docs</a>
+        </div>
+        <div class="links">
+            <a href="https://github.com/ariffazil/arifOS" class="secondary">GitHub</a>
+            <a href="https://pypi.org/project/arifos/" class="secondary">PyPI</a>
+            <a href="/metrics/json" class="secondary">Metrics</a>
+            <a href="/health" class="secondary">💚 Health</a>
+        </div>
+
+        <footer>
+            <p>Built by <a href="https://github.com/ariffazil">Muhammad Arif bin Fazil</a></p>
+            <p style="margin-top: 0.5rem;">Constitutional AI Governance · {VERSION}</p>
+        </footer>
+    </div>
+</body>
+</html>"""
     return HTMLResponse(html)
 
 
