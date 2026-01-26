@@ -17,7 +17,8 @@ from .stage_666_align import execute_stage as align_666
 from .stage_777_forge import execute_stage as forge_777
 from .stage_888_judge import execute_stage as judge_888
 from .stage_889_proof import execute_stage as proof_889
-from .stage_999_vault import execute_stage as vault_999
+# Stage 999 now uses VAULT999 (The Great Purge)
+from VAULT999.stage_999 import execute_stage as vault_999
 
 __all__ = [
     "void_000",
