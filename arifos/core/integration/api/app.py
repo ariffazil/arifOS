@@ -32,7 +32,6 @@ from arifos.mcp.server import TOOL_DESCRIPTIONS, TOOL_ROUTERS as TOOLS
 
 # MCP Server for direct endpoint
 from mcp.server import Server
-from mcp.server.sse import SseServerTransport
 import mcp.types
 
 def create_app() -> FastAPI:
@@ -107,6 +106,8 @@ def create_app() -> FastAPI:
             path.startswith("/docs") or
             path.startswith("/redoc") or
             path.startswith("/openapi.json") or
+            path.startswith("/sse") or
+            path.startswith("/mcp") or
             "/health" in path  # Catch-all for any health-related path
         )
         if public_paths:
@@ -135,55 +136,18 @@ def create_app() -> FastAPI:
     app.include_router(federation.router)
     app.include_router(body.router)
 
-    # Register MCP SSE routes (sub-app for /sse and /messages endpoints)
-    sse_app = create_sse_app()
-
     # ==========================================================================
-    # CHATGPT DEVELOPER MODE: Direct /mcp endpoint
-    # ChatGPT expects /mcp to be the SSE endpoint directly, not /mcp/sse
+    # MCP SSE CONFIGURATION (v52.1.1 Flat Architecture)
     # ==========================================================================
-    mcp_server = Server("arifOS-Trinity-MCP")
+    
+    # 1. Standard /sse mount (for Claude Desktop)
+    # Both Stream and Messages share the root: /sse/
+    app.mount("/sse", create_sse_app(messages_endpoint="/sse"))
 
-    @mcp_server.list_tools()
-    async def list_mcp_tools():
-        tools_list = []
-        for name in TOOLS:
-            desc = TOOL_DESCRIPTIONS.get(name, {})
-            tools_list.append(
-                mcp.types.Tool(
-                    name=name,
-                    description=desc.get("description", f"Tool {name}"),
-                    inputSchema=desc.get("inputSchema", {"type": "object", "properties": {}})
-                )
-            )
-        return tools_list
+    # 2. ChatGPT /mcp mount (for Developer Mode)
+    # Both Stream and Messages share the root: /mcp/
+    app.mount("/mcp", create_sse_app(messages_endpoint="/mcp"))
 
-    @mcp_server.call_tool()
-    async def call_mcp_tool(name: str, arguments: dict):
-        import inspect
-        tool = TOOLS.get(name)
-        if not tool:
-            raise ValueError(f"Unknown tool: {name}")
-        if inspect.iscoroutinefunction(tool):
-            return await tool(**arguments)
-        return tool(**arguments)
-
-    # SSE Transport for /mcp endpoint
-    mcp_sse = SseServerTransport("/mcp")
-
-    @app.get("/mcp")
-    async def handle_mcp_get(request: Request):
-        """MCP SSE Endpoint - ChatGPT Developer Mode compatible."""
-        async with mcp_sse.connect_sse(request.scope, request.receive, request._send) as streams:
-            await mcp_server.run(streams[0], streams[1], mcp_server.create_initialization_options())
-
-    @app.post("/mcp")
-    async def handle_mcp_post(request: Request):
-        """MCP Message Endpoint - ChatGPT Developer Mode compatible."""
-        return await mcp_sse.handle_post_message(request.scope, request.receive, request._send)
-
-    # Also mount the SSE sub-app at /sse for Claude Desktop compatibility
-    app.mount("/sse", sse_app)
 
     # Root endpoint
     @app.get("/", tags=["root"])

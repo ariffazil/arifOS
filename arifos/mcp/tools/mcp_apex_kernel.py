@@ -49,7 +49,9 @@ async def mcp_apex_eureka(
     """
     try:
         kernel = APEXJudicialCore()
-        result = await kernel.forge_insight(query)
+        # Use draft from AGI reasoning if available, otherwise query
+        draft = agi_output.get("reasoning", query) if agi_output else query
+        result = await kernel.forge_insight(draft)
 
         # Determine paradox type
         agi_passed = agi_output.get("passed", True) if agi_output else True

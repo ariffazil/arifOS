@@ -1,47 +1,44 @@
 """
-arifOS v52.0.0 Constitutional Kernel
-5-Tool Trinity Framework
+arifOS v52.5.1-SEAL Constitutional Kernel
+5-Tool Trinity Framework + ATLAS-333 Smart Routing
+
+A filter that stops AI from lying, harming, or being overconfident.
+- 5 rules (TEACH): Truth, Empathy, Amanah, Clarity, Humility
+- 4 verdicts: SEAL, SABAR, VOID, 888_HOLD
+- 4 lanes: CRISIS, FACTUAL, CARE, SOCIAL
 
 Modules:
   arifos.mcp       - MCP Server (Trinity 5-tool)
   arifos.core      - AGI/ASI/APEX kernels
   arifos.protocol  - Protocol handlers
-  arifos.api       - Body API (FastAPI, deprecated shim)
-
-Usage:
-  python -m arifos.mcp              # Trinity stdio (5 tools)
-  python -m arifos.mcp trinity-sse  # Trinity SSE for Railway
-  python -m arifos.api.server       # Body API (HTTP, deprecated shim)
 
 DITEMPA BUKAN DIBERI
 """
 
-__version__ = "v52.0.0"
+__version__ = "52.5.1"
 
-# Core enforcement and system components (requires spec files)
-try:
-    from .core import *
-    _CORE_AVAILABLE = True
-except (ImportError, RuntimeError) as e:
-    # Spec files not available - orchestrator can still work independently
-    import warnings
-    warnings.warn(
-        f"arifOS core unavailable (likely missing spec files): {e}. "
-        "Orchestrator subpackage will work independently.",
-        ImportWarning,
-        stacklevel=2
-    )
-    _CORE_AVAILABLE = False
+# Minimal exports to avoid circularity during initialization
 
-# Protocol components
-try:
-    from .protocol import *
-    _PROTOCOL_AVAILABLE = True
-except (ImportError, RuntimeError) as e:
-    import warnings
-    warnings.warn(
-        f"arifOS protocol unavailable: {e}",
-        ImportWarning,
-        stacklevel=2
-    )
-    _PROTOCOL_AVAILABLE = False
+from .mcp.mode_selector import MCPMode
+
+from .core.system.types import Metrics, Verdict, ApexVerdict, FloorCheckResult
+
+# Common high-level helpers (tests and public API)
+from .core.system.apex_prime import APEXPrime, apex_review, check_floors, normalize_verdict_code
+from .core.utils.eye_sentinel import AlertSeverity, EyeAlert, EyeReport, EyeSentinel
+
+__all__ = [
+    "APEXPrime",
+    "ApexVerdict",
+    "AlertSeverity",
+    "EyeAlert",
+    "EyeReport",
+    "EyeSentinel",
+    "FloorCheckResult",
+    "MCPMode",
+    "Metrics",
+    "Verdict",
+    "apex_review",
+    "check_floors",
+    "normalize_verdict_code",
+]

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Project-specific arifOS MCP config for Gemini CLI (v52.5.1-SEAL)",
+  "mcpServers": {
+    "arifos-trinity": {
+      "command": "uv",
+      "args": [
+        "run",
+        "fastmcp",
+        "run",
+        "arifos/mcp/sse.py:mcp",
+        "--transport",
+        "stdio"
+      ],
+      "cwd": "C:\\Users\\User\\arifOS",
+      "env": {
+        "PYTHONPATH": "C:/Users/User/arifOS",
+        "ARIFOS_MODE": "local"
+      },
+      "description": "Local arifOS Trinity Monolith (FastMCP Stdio v52.5.1) - Integrated ATLAS Routing"
+    }
+  }
+}

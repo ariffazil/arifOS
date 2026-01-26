@@ -19,7 +19,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-from arifos.core.agi.delta_kernel import DeltaVerdict
+from arifos.core.engines.agi.delta_kernel import DeltaVerdict
 from arifos.core.apex.psi_kernel import PsiVerdict, Verdict
 from arifos.core.asi.omega_kernel import OmegaVerdict
 

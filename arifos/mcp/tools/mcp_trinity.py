@@ -1,6 +1,10 @@
+
 """
-arifOS AAA MCP Tools (v52.0.0)
+arifOS AAA MCP Tools (v52.5.1-SEAL)
 5-Tool Constitutional MCP Framework - Wired to Core Engines via Bridge
+
+v52.5.0: ATLAS-333 and @PROMPT integration in Step 3 Intent Mapping
+v52.5.1: Lane-aware thermodynamic profiles, selective engine activation, 888_HOLD for CRISIS
 
 The Metabolic Standard compressed to 5 memorable tools:
     000_init    → Gate (Authority + Injection + Amanah)
@@ -14,6 +18,7 @@ Mnemonic: "Init the Genius, Act with Heart, Judge at Apex, seal in Vault."
 Philosophy:
     INPUT → F12 Injection Guard
          → 000_init (Ignition + Authority)
+         → ATLAS-333 (Lane-Aware Routing)
          → agi_genius (Δ Mind: Logic/Truth)
          → asi_act (Ω Heart: Care/Safety)
          → apex_judge (Ψ Soul: Verdict)
@@ -23,10 +28,12 @@ Philosophy:
 DITEMPA BUKAN DIBERI
 """
 
+
 from __future__ import annotations
 
 import hashlib
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -39,6 +46,14 @@ from arifos.mcp.metrics import get_metrics
 # Session persistence for 999-000 loop
 from arifos.mcp.session_ledger import inject_memory, seal_memory
 
+# Session bundle store for inter-stage context passing
+from arifos.mcp.constitutional_metrics import (
+    store_stage_result,
+    get_stage_result,
+    get_session_bundle,
+    clear_session_bundle,
+)
+
 # Track B Authority: Import constitutional thresholds (v50.5.26 Quick Wire)
 # These values come from AAA_MCP/v46/constitutional_floors.json via metrics.py
 from arifos.core.enforcement.metrics import (
@@ -47,6 +62,31 @@ from arifos.core.enforcement.metrics import (
     OMEGA_0_MIN,          # 0.03 - F7 humility min
     OMEGA_0_MAX,          # 0.05 - F7 humility max
 )
+
+# v52 Lite Mode (Edge Optimization)
+LITE_MODE = os.environ.get("ARIFOS_LITE_MODE", "false").lower() == "true"
+
+# IMPORTANT: Define logger BEFORE fail-safe imports that use it
+logger = logging.getLogger(__name__)
+
+# v52.5 @PROMPT + ATLAS Integration (fail-safe import)
+# These ARE implemented - wiring them in from arifos/core/
+try:
+    from arifos.core.engines.agi.atlas import ATLAS, ATLAS_333, GPV
+    ATLAS_AVAILABLE = True
+except ImportError:
+    ATLAS_AVAILABLE = False
+    ATLAS = None
+    logger.warning("ATLAS-333 not available, falling back to keyword matching")
+
+try:
+    from arifos.core.prompt.codec import SignalExtractor, PromptSignal, IntentType, RiskLevel
+    PROMPT_AVAILABLE = True
+    _signal_extractor = SignalExtractor()  # Singleton
+except ImportError:
+    PROMPT_AVAILABLE = False
+    _signal_extractor = None
+    logger.warning("@PROMPT SignalExtractor not available, falling back to keyword matching")
 
 # v51 Bridge: Wire MCP to Core Engines (fail-safe import)
 try:
@@ -63,8 +103,6 @@ except ImportError:
     bridge_agi_full = None
     bridge_asi_full = None
     bridge_apex_full = None
-
-logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -176,6 +214,9 @@ class InitResult:
     # Step 7: Engine Status
     engines: Dict[str, str] = field(default_factory=dict)
 
+    # Step 8: ATLAS Lane-Aware Routing
+    routing: str = ""
+
     # Security
     injection_risk: float = 0.0
     reason: str = ""
@@ -251,7 +292,7 @@ class VaultResult:
 SOVEREIGN_PATTERNS = [
     "im arif", "i'm arif", "i am arif", "arif here",
     "salam", "assalamualaikum", "waalaikumsalam",
-    "888", "judge", "sovereign"
+    "888", "judge", "sovereign", "ditempa bukan diberi"
 ]
 
 # Intent classification keywords
@@ -269,6 +310,125 @@ LANE_INTENTS = {
     "SOFT": ["discuss", "explore"],         # Open-ended
     "PHATIC": ["greet", "thanks"],          # Social
 }
+
+
+def _step_0_root_key_ignition(session_id: str) -> Dict[str, Any]:
+    """
+    Step 0: ROOT KEY IGNITION - Establish cryptographic foundation.
+    
+    v52.5.1+: This step ensures every session is cryptographically
+    linked to the root key through session key derivation.
+    
+    Constitutional Enforcements:
+        - F1 Amanah: Root key authority establishes reversibility
+        - F8 Tri-Witness: Session keys derived from root key
+        - F12 Injection Defense: Root key guards against unauthorized sessions
+    
+    Returns:
+        {
+            "root_key_ready": bool,
+            "session_key": str (hex),
+            "genesis_exists": bool,
+            "constitutional_status": str
+        }
+    """
+    try:
+        from arifos.core.memory.root_key_accessor import (
+            get_root_key_info,
+            derive_session_key,
+            get_root_key_status  # Lazy getter
+        )
+        from arifos.core.memory.root_key_accessor import verify_genesis_block
+        from pathlib import Path
+        
+        result = {
+            "root_key_ready": get_root_key_status(),  # Lazy evaluation
+            "session_key": None,
+            "genesis_exists": False,
+            "constitutional_status": "PENDING"
+        }
+        
+        # Check if root key exists
+        if not result["root_key_ready"]:
+            logger.warning("000_init Step 0: Root key not ready")
+            logger.warning("  Run: python scripts/generate_rootkey.py")
+            logger.warning("  Then: python scripts/create_genesis_block.py")
+            result["constitutional_status"] = "ROOT_KEY_MISSING"
+            return result
+        
+        # Get root key info (non-sensitive)
+        root_info = get_root_key_info()
+        if root_info:
+            logger.info(f"000_init Step 0: Root key loaded (generated: {root_info['generated_at'][:10]})")
+            logger.info(f"  Authority: {root_info['generated_by']}")
+        
+        # Verify genesis block exists
+        genesis_path = Path("VAULT999/CCC_CANON/genesis.json")
+        if genesis_path.exists():
+            logger.info("000_init Step 0: Genesis block found")
+            result["genesis_exists"] = True
+            
+            # Optional: Verify genesis signature
+            try:
+                import json
+                genesis = json.loads(genesis_path.read_text())
+                is_valid = verify_genesis_block(genesis)
+                if is_valid:
+                    logger.info("  Genesis signature: VERIFIED")
+                    result["constitutional_status"] = "VERIFIED"
+                else:
+                    logger.error("  Genesis signature: INVALID")
+                    result["constitutional_status"] = "GENESIS_INVALID"
+            except Exception as e:
+                logger.warning(f"  Could not verify genesis: {e}")
+                result["constitutional_status"] = "GENESIS_UNVERIFIED"
+        else:
+            logger.warning("000_init Step 0: Genesis block not found")
+            logger.warning("  Run: python scripts/create_genesis_block.py")
+            result["constitutional_status"] = "GENESIS_MISSING"
+        
+        # Derive session key
+        session_key = derive_session_key(session_id)
+        if session_key:
+            logger.info(f"000_init Step 0: Session key derived ({len(session_key)} chars)")
+            result["session_key"] = session_key
+            
+            # Session key derivation is the critical link:
+            # It proves the session is cryptographically authorized
+            # by the root key without exposing the root key itself
+        else:
+            logger.warning("000_init Step 0: Could not derive session key")
+            result["constitutional_status"] = "SESSION_KEY_DERIVATION_FAILED"
+        
+        # Overall assessment
+        if result["root_key_ready"] and result["session_key"] and result["genesis_exists"]:
+            logger.info("000_init Step 0: ROOT KEY IGNITION - COMPLETE ✓")
+            result["constitutional_status"] = "SEALED"
+        else:
+            logger.warning("000_init Step 0: ROOT KEY IGNITION - INCOMPLETE")
+        
+        # Update metrics (if available)
+        try:
+            from arifos.mcp.functional_metrics import record_constitutional_telemetry
+            record_constitutional_telemetry(
+                "000_init_root_key", {"status": result["constitutional_status"]}
+            )
+        except:
+            pass  # Metrics optional
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"000_init Step 0: Root key ignition failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "root_key_ready": False,
+            "session_key": None,
+            "genesis_exists": False,
+            "constitutional_status": "ERROR",
+            "error": str(e)
+        }
 
 
 def _step_1_memory_injection() -> Dict[str, Any]:
@@ -314,12 +474,66 @@ def _step_2_sovereign_recognition(query: str, token: str) -> Dict[str, Any]:
 
 
 def _step_3_intent_mapping(query: str, context: Dict[str, Any]) -> Dict[str, Any]:
-    """Step 3: Map intent - contrast, meaning, prediction."""
+    """
+    Step 3: Map intent - contrast, meaning, prediction.
+
+    v52.5: Now wired to ATLAS-333 and @PROMPT SignalExtractor when available.
+    - ATLAS-333: Governance Placement Vector (lane, truth/care/risk demands)
+    - SignalExtractor: Intent, risk, reversibility, stakeholders
+
+    Falls back to keyword matching if implementations unavailable.
+    """
     query_lower = query.lower()
 
-    # Extract entities (simple keyword extraction)
+    # v52.5: Use ATLAS-333 for lane classification if available
+    gpv_data = {}
+    if ATLAS_AVAILABLE and ATLAS is not None:
+        try:
+            gpv: GPV = ATLAS.map(query)
+            gpv_data = {
+                "atlas_lane": gpv.lane,  # SOCIAL, CARE, FACTUAL, CRISIS
+                "truth_demand": gpv.truth_demand,
+                "care_demand": gpv.care_demand,
+                "risk_level": gpv.risk_level,
+            }
+            logger.info(f"000_init Step 3: ATLAS-333 GPV={gpv.lane} (truth={gpv.truth_demand:.2f}, care={gpv.care_demand:.2f})")
+        except Exception as e:
+            logger.warning(f"ATLAS-333 mapping failed: {e}, falling back to keywords")
+            gpv_data = {}
+
+    # v52.5: Use @PROMPT SignalExtractor if available
+    signal_data = {}
+    if PROMPT_AVAILABLE and _signal_extractor is not None:
+        try:
+            signal: PromptSignal = _signal_extractor.extract(query)
+            signal_data = {
+                "prompt_intent": signal.intent.value,  # query, action, judgment, etc.
+                "prompt_risk": signal.risk_level.value,  # safe, low, moderate, high, critical
+                "reversible": signal.reversible,
+                "stakeholders": signal.stakeholders,
+                "extracted_query": signal.extracted_query,
+                "hidden_assumptions": signal.hidden_assumptions,
+                "signal_confidence": signal.confidence,
+            }
+            logger.info(f"000_init Step 3: @PROMPT intent={signal.intent.value}, risk={signal.risk_level.value}")
+        except Exception as e:
+            logger.warning(f"@PROMPT extraction failed: {e}, falling back to keywords")
+            signal_data = {}
+
+    # Extract entities (simple keyword extraction - fallback/supplement)
     words = query_lower.split()
     entities = [w for w in words if len(w) > 3 and w.isalpha()]
+
+    # v52.5.1+: Root Key Identity Recognition - "arif" is the constitutional authority
+    # If query mentions "arif", we're in constitutional mode (HARD lane)
+    # If not, we're in guest mode (SOFT lane) with reduced enforcement
+    constitutional_mode = "arif" in query_lower
+    if constitutional_mode:
+        logger.info("000_init Step 3: Constitutional authority recognized (arif identity)")
+        logger.info("  Mode: HARD (full constitutional enforcement)")
+    else:
+        logger.info("000_init Step 3: Guest mode (no constitutional authority)")
+        logger.info("  Mode: SOFT (reduced enforcement, no critical operations)")
 
     # Find contrasts (vs, or, versus patterns)
     contrasts = []
@@ -332,69 +546,151 @@ def _step_3_intent_mapping(query: str, context: Dict[str, Any]) -> Dict[str, Any
     if "theory" in query_lower and "practice" in query_lower:
         contrasts.append("theory_vs_practice")
 
-    # Classify intent
-    intent = "unknown"
-    for intent_type, keywords in INTENT_KEYWORDS.items():
-        if any(kw in query_lower for kw in keywords):
-            intent = intent_type
-            break
+    # Determine lane: Prefer ATLAS-333 GPV, fall back to keyword matching
+    if gpv_data and "atlas_lane" in gpv_data:
+        # Map ATLAS lanes (SOCIAL, CARE, FACTUAL, CRISIS) to arifOS lanes (HARD, SOFT, PHATIC, REFUSE)
+        atlas_to_arif = {
+            "SOCIAL": "PHATIC",   # Greetings, thanks → social exchange
+            "CARE": "SOFT",       # Explanations, support → open-ended
+            "FACTUAL": "HARD",    # Code, math, facts → technical precision
+            "CRISIS": "REFUSE",   # Harm signals → escalate to APEX
+        }
+        lane = atlas_to_arif.get(gpv_data["atlas_lane"], "SOFT")
+        intent = gpv_data["atlas_lane"].lower()  # Use ATLAS lane as intent
+        confidence = 0.95  # High confidence when ATLAS provides classification
+    else:
+        # Fallback: Keyword-based classification
+        intent = "unknown"
+        for intent_type, keywords in INTENT_KEYWORDS.items():
+            if any(kw in query_lower for kw in keywords):
+                intent = intent_type
+                break
 
-    # Check for greetings (PHATIC)
-    greetings = ["hi", "hello", "hey", "salam", "thanks", "thank you"]
-    if any(g in query_lower for g in greetings) and len(query) < 50:
-        intent = "greet"
+        # Check for greetings (PHATIC)
+        greetings = ["hi", "hello", "hey", "salam", "thanks", "thank you"]
+        if any(g in query_lower for g in greetings) and len(query) < 50:
+            intent = "greet"
 
-    # Determine lane
-    lane = "SOFT"  # Default
-    for lane_type, intents in LANE_INTENTS.items():
-        if intent in intents:
-            lane = lane_type
-            break
+        # Determine lane from intent
+        lane = "SOFT"  # Default
+        for lane_type, intents in LANE_INTENTS.items():
+            if intent in intents:
+                lane = lane_type
+                break
 
-    # If unclear, check query length (longer = probably HARD)
-    if intent == "unknown" and len(query) > 100:
-        lane = "HARD"
+        # If unclear, check query length (longer = probably HARD)
+        if intent == "unknown" and len(query) > 100:
+            lane = "HARD"
 
-    logger.info(f"000_init Step 3: Intent={intent}, Lane={lane}")
+        # v52.5.1+: Override lane based on constitutional authority (arif identity)
+        # If "arif" mentioned → HARD lane (full constitutional enforcement)
+        # If not mentioned → SOFT lane (guest mode, reduced enforcement)
+        if constitutional_mode:
+            lane = "HARD"
+            logger.info(f"000_init Step 3: Lane overridden to HARD (constitutional authority)")
+        else:
+            # Guest mode: Force SOFT unless already REFUSE from risk detection
+            if lane != "REFUSE":
+                lane = "SOFT"
+                logger.info(f"000_init Step 3: Lane set to SOFT (guest mode)")
+
+        confidence = 0.8 if intent != "unknown" else 0.5
+
+    # Override: If @PROMPT detected high/critical risk → force REFUSE lane
+    if signal_data and signal_data.get("prompt_risk") in ["high", "critical"]:
+        if lane != "REFUSE":
+            logger.warning(f"@PROMPT detected {signal_data['prompt_risk']} risk, escalating lane to REFUSE")
+            lane = "REFUSE"
+
+    logger.info(f"000_init Step 3: Intent={intent}, Lane={lane} (ATLAS={ATLAS_AVAILABLE}, PROMPT={PROMPT_AVAILABLE})")
+
     return {
         "intent": intent,
         "lane": lane,
         "contrasts": contrasts,
         "entities": entities[:10],  # Top 10
-        "confidence": 0.8 if intent != "unknown" else 0.5
+        "confidence": confidence,
+        # v52.5: Include governance metadata
+        "gpv": gpv_data if gpv_data else None,
+        "signal": signal_data if signal_data else None,
+        "atlas_available": ATLAS_AVAILABLE,
+        "prompt_available": PROMPT_AVAILABLE,
     }
 
 
+# v52.5.1: Lane-specific thermodynamic profiles (F7 compliant)
+# Each lane has tuned parameters for entropy, humility, and energy
+LANE_PROFILES = {
+    "CRISIS": {
+        "S_factor": 0.5,           # Tight entropy target (50% reduction)
+        "omega_0": OMEGA_0_MAX,    # Max humility (0.05) - constitutional bound
+        "energy": 1.0,             # Full power
+        "time_budget": 180,        # Max time for careful handling
+    },
+    "FACTUAL": {
+        "S_factor": 0.6,           # Tight for precision
+        "omega_0": OMEGA_0_MIN,    # Low humility (0.03) - confident on facts
+        "energy": 0.9,             # High power
+        "time_budget": 120,
+    },
+    "CARE": {
+        "S_factor": 0.7,           # Moderate
+        "omega_0": 0.04,           # Midpoint humility
+        "energy": 0.7,             # Moderate power
+        "time_budget": 60,
+    },
+    "SOCIAL": {
+        "S_factor": 0.8,           # Loose (phatic needs less reduction)
+        "omega_0": OMEGA_0_MIN,    # Low humility (simple exchanges)
+        "energy": 0.5,             # Low power (quick response)
+        "time_budget": 15,
+    },
+}
+
+
 def _step_4_thermodynamic_setup(intent_map: Dict[str, Any]) -> Dict[str, Any]:
-    """Step 4: Set energy budget and entropy targets."""
+    """
+    Step 4: Set energy budget and entropy targets.
+
+    v52.5.1: Now uses ATLAS-333 GPV lane for profile selection.
+    Lane profiles are tuned for each classification type.
+    All omega_0 values are within F7 bounds [0.03, 0.05].
+    """
     # Estimate input entropy (how complex is the query?)
     # Simple heuristic: more entities/contrasts = higher entropy
     entity_count = len(intent_map.get("entities", []))
     contrast_count = len(intent_map.get("contrasts", []))
     S_input = min(1.0, 0.3 + (entity_count * 0.05) + (contrast_count * 0.1))
 
-    # Target: reduce by 30%
-    S_target = S_input * 0.7
+    # v52.5.1: Get ATLAS lane from GPV, fallback to arifOS lane mapping
+    gpv = intent_map.get("gpv") or {}
+    atlas_lane = gpv.get("atlas_lane")
 
-    # Humility parameter - wired to Track B spec
-    omega_0 = (OMEGA_0_MIN + OMEGA_0_MAX) / 2  # Midpoint [0.03, 0.05]
+    # If ATLAS lane available, use it directly; otherwise map from arifOS lane
+    if atlas_lane and atlas_lane in LANE_PROFILES:
+        profile = LANE_PROFILES[atlas_lane]
+    else:
+        # Fallback: Map arifOS lane to ATLAS lane for profile lookup
+        arif_to_atlas = {
+            "HARD": "FACTUAL",
+            "SOFT": "CARE",
+            "PHATIC": "SOCIAL",
+            "REFUSE": "CRISIS",
+        }
+        arif_lane = intent_map.get("lane", "SOFT")
+        mapped_lane = arif_to_atlas.get(arif_lane, "CARE")
+        profile = LANE_PROFILES[mapped_lane]
+
+    # Apply profile
+    S_target = S_input * profile["S_factor"]
+    omega_0 = profile["omega_0"]
+    energy_budget = profile["energy"]
+    time_budget = profile["time_budget"]
 
     # Peace² baseline - wired to Track B spec
     peace_squared = PEACE_SQUARED_THRESHOLD
 
-    # Energy budget based on lane
-    lane = intent_map.get("lane", "SOFT")
-    if lane == "HARD":
-        energy_budget = 1.0
-        time_budget = 120
-    elif lane == "SOFT":
-        energy_budget = 0.7
-        time_budget = 60
-    else:  # PHATIC
-        energy_budget = 0.3
-        time_budget = 15
-
-    logger.info(f"000_init Step 4: S_input={S_input:.2f}, budget={energy_budget}")
+    logger.info(f"000_init Step 4: S_input={S_input:.2f}, S_target={S_target:.2f}, omega_0={omega_0:.3f}, energy={energy_budget} (lane={atlas_lane or intent_map.get('lane')})")
     return {
         "entropy_input": S_input,
         "entropy_target": S_target,
@@ -464,15 +760,83 @@ def _step_6_tri_witness(sovereign: Dict, thermo: Dict) -> Dict[str, Any]:
     }
 
 
-def _step_7_engine_ignition() -> Dict[str, str]:
-    """Step 7: Fire up the engines."""
+# v52.5.1: Lane-specific engine activation matrix
+# Different lanes need different engine combinations
+LANE_ENGINES = {
+    "CRISIS": {
+        "AGI_Mind": "IDLE",    # Skip reasoning, go straight to judgment
+        "ASI_Heart": "IDLE",   # Skip empathy layer
+        "APEX_Soul": "READY",  # Soul handles crisis → 888_HOLD
+    },
+    "FACTUAL": {
+        "AGI_Mind": "READY",   # Full reasoning for facts
+        "ASI_Heart": "READY",  # Empathy for stakeholder consideration
+        "APEX_Soul": "READY",  # Final judgment
+    },
+    "CARE": {
+        "AGI_Mind": "IDLE",    # Less logic needed
+        "ASI_Heart": "READY",  # Heart-first for support
+        "APEX_Soul": "READY",  # Final judgment
+    },
+    "SOCIAL": {
+        "AGI_Mind": "IDLE",    # No reasoning for greetings
+        "ASI_Heart": "IDLE",   # Minimal processing
+        "APEX_Soul": "READY",  # Quick response
+    },
+}
+
+
+def _step_7_engine_ignition(intent_map: Dict[str, Any] = None) -> Dict[str, str]:
+    """
+    Step 7: Fire up the engines.
+
+    v52.5.1: Selective engine activation based on ATLAS lane.
+    - CRISIS: APEX only (888_HOLD escalation)
+    - FACTUAL: All three engines (full pipeline)
+    - CARE: ASI + APEX (heart-first)
+    - SOCIAL: APEX only (quick phatic response)
+    """
+    # Get ATLAS lane for engine selection
+    if intent_map:
+        gpv = intent_map.get("gpv") or {}
+        atlas_lane = gpv.get("atlas_lane")
+
+        if atlas_lane and atlas_lane in LANE_ENGINES:
+            engines = LANE_ENGINES[atlas_lane].copy()
+            logger.info(f"000_init Step 7: Engines IGNITED (selective: {atlas_lane})")
+            return engines
+
+        # Fallback: Map arifOS lane to ATLAS lane
+        arif_to_atlas = {
+            "HARD": "FACTUAL",
+            "SOFT": "CARE",
+            "PHATIC": "SOCIAL",
+            "REFUSE": "CRISIS",
+        }
+        arif_lane = intent_map.get("lane", "SOFT")
+        mapped_lane = arif_to_atlas.get(arif_lane, "CARE")
+        engines = LANE_ENGINES[mapped_lane].copy()
+        logger.info(f"000_init Step 7: Engines IGNITED (mapped: {arif_lane}→{mapped_lane})")
+        return engines
+
+    # Default: All engines ready (backwards compatibility)
     engines = {
         "AGI_Mind": "READY",
         "ASI_Heart": "READY",
         "APEX_Soul": "READY"
     }
-    logger.info("000_init Step 7: Engines IGNITED")
+    logger.info("000_init Step 7: Engines IGNITED (all)")
     return engines
+
+
+# Lane-Aware Routing Matrix (ATLAS-333)
+LANE_ROUTING = {
+    "HARD": "AGI -> ASI -> APEX -> VAULT (Full Constitutional Pipeline)",
+    "SOFT": "AGI -> APEX -> VAULT (Knowledge/Exploratory Pipeline)",
+    "PHATIC": "APEX (Quick Sovereign Response)",
+    "REFUSE": "VOID (Immediate Constitutional Rejection)",
+    "CRISIS": "888_HOLD (Human Intervention Required)"
+}
 
 
 async def mcp_000_init(
@@ -518,9 +882,43 @@ async def mcp_000_init(
         ).__dict__
 
     # =========================================================================
-    # RATE LIMITING
+    # ACTION: VALIDATE (Lightweight Check)
     # =========================================================================
-    rate_limit_response = _check_rate_limit("000_init", session_id)
+    if action == "validate":
+        # Skip rate limit for validate? No, keep it but ensure it's fast.
+        rate_limit_response = _check_rate_limit("init_000", session_id)
+        if rate_limit_response:
+            return rate_limit_response
+
+        # Minimal check
+        return InitResult(
+            status="SEAL",
+            session_id=session_id or str(uuid4()),
+            reason="Validation successful: System online",
+            floors_checked=["F12_InputValidation"]
+        ).__dict__
+
+    # =========================================================================
+    # ACTION: RESET (Clean State)
+    # =========================================================================
+    if action == "reset":
+        # Keep rate limit
+        rate_limit_response = _check_rate_limit("init_000", session_id)
+        if rate_limit_response:
+            return rate_limit_response
+        
+        return InitResult(
+            status="SEAL",
+            session_id=str(uuid4()), # Force new session
+            reason="Session reset complete",
+            floors_checked=["F1_Amanah"]
+        ).__dict__
+
+    # =========================================================================
+    # ACTION: INIT (Full Ignition)
+    # =========================================================================
+    # Rate Limiting
+    rate_limit_response = _check_rate_limit("init_000", session_id)
     if rate_limit_response:
         return rate_limit_response
 
@@ -528,6 +926,13 @@ async def mcp_000_init(
     floors_checked = []
 
     try:
+        # =====================================================================
+        # STEP 0: ROOT KEY IGNITION (Constitutional Foundation)
+        # =====================================================================
+        # v52.5.1+: Root key provides cryptographic authority for all sessions
+        root_key_status = _step_0_root_key_ignition(session)
+        floors_checked.append("F1_Amanah")
+        
         # =====================================================================
         # STEP 1: MEMORY INJECTION
         # =====================================================================
@@ -543,6 +948,34 @@ async def mcp_000_init(
         # STEP 3: INTENT MAPPING (Contrast Engine)
         # =====================================================================
         intent_map = _step_3_intent_mapping(query, previous_context)
+
+        # =====================================================================
+        # v52.5.1: 888_HOLD TRIGGER FOR CRISIS LANE
+        # CRISIS lane requires human confirmation before proceeding
+        # =====================================================================
+        gpv = intent_map.get("gpv") or {}
+        atlas_lane = gpv.get("atlas_lane")
+        if atlas_lane == "CRISIS":
+            logger.warning(f"000_init: CRISIS lane detected - triggering 888_HOLD")
+            floors_checked.extend(["F6_Empathy", "F11_CommandAuth"])
+            return InitResult(
+                status="888_HOLD",
+                session_id=session,
+                timestamp=datetime.now().isoformat(),
+                authority="AWAITING_CONFIRMATION",
+                authority_verified=False,
+                intent=intent_map.get("intent", "crisis"),
+                lane="REFUSE",
+                floors_checked=floors_checked,
+                engines={"AGI_Mind": "HOLD", "ASI_Heart": "HOLD", "APEX_Soul": "READY"},
+                injection_risk=0.0,
+                reason="CRISIS lane detected. Human confirmation required before proceeding.",
+            ).__dict__ | {
+                "gpv": gpv,
+                "signal": intent_map.get("signal"),
+                "risk_level": gpv.get("risk_level", 1.0),
+                "action_required": "Sovereign must confirm to proceed. Provide authority_token='888_CONFIRMED' to continue.",
+            }
 
         # =====================================================================
         # STEP 4: THERMODYNAMIC SETUP
@@ -604,16 +1037,16 @@ async def mcp_000_init(
         tri_witness = _step_6_tri_witness(sovereign, thermo)
 
         # =====================================================================
-        # STEP 7: ENGINE IGNITION
+        # STEP 7: ENGINE IGNITION (v52.5.1: Lane-selective activation)
         # =====================================================================
-        engines = _step_7_engine_ignition()
+        engines = _step_7_engine_ignition(intent_map)
 
         # =====================================================================
         # IGNITION COMPLETE
         # =====================================================================
         logger.info(f"000_init: IGNITION COMPLETE - session {session[:8]}")
 
-        return InitResult(
+        result = InitResult(
             status="SEAL",
             session_id=session,
             timestamp=thermo["timestamp"],
@@ -650,20 +1083,27 @@ async def mcp_000_init(
             # Step 7
             engines=engines,
 
+            # Step 8: ATLAS Routing
+            routing=LANE_ROUTING.get(intent_map["lane"], "AGI -> ASI -> APEX (Default)"),
+
             # Security
             injection_risk=injection_risk,
             reason="IGNITION COMPLETE - Constitutional Mode Active"
         ).__dict__
+        store_stage_result(session, "init", result)
+        return result
 
     except Exception as e:
         logger.error(f"000_init IGNITION FAILED: {e}")
-        return InitResult(
+        result = InitResult(
             status="VOID",
             session_id=session,
             injection_risk=1.0,
             reason=f"IGNITION FAILED: {str(e)}",
             floors_checked=floors_checked
         ).__dict__
+        store_stage_result(session, "init", result)
+        return result
 
 
 # =============================================================================
@@ -897,6 +1337,8 @@ async def mcp_agi_genius(
                     if bridge_result.get("status") not in ("ERROR", "FALLBACK"):
                         bridge_result["session_id"] = session_id
                         logger.debug("agi_genius.full: Using v51 bridge")
+                        # Store result for inter-stage context passing
+                        store_stage_result(session_id, "agi", bridge_result)
                         return bridge_result
                 except Exception as e:
                     logger.warning(f"v51 bridge failed, using inline: {e}")
@@ -928,7 +1370,7 @@ async def mcp_agi_genius(
 
             floors_checked.extend(["F2_Truth", "F6_DeltaS", "F7_Humility"])
 
-            return GeniusResult(
+            result = GeniusResult(
                 status="SEAL",
                 session_id=session_id,
                 reasoning=refined,
@@ -940,6 +1382,11 @@ async def mcp_agi_genius(
                 floors_checked=floors_checked,
                 sub_stage="FULL_PIPELINE"
             ).__dict__
+
+            # Store result for inter-stage context passing
+            store_stage_result(session_id, "agi", result)
+
+            return result
 
         else:
             return {"status": "VOID", "reason": f"Unknown action: {action}"}
@@ -1245,6 +1692,13 @@ async def mcp_asi_act(
         # ACTION: FULL (Complete Pipeline)
         # =====================================================================
         elif action == "full":
+            # Retrieve AGI result from bundle if not provided
+            if not agi_result and session_id:
+                stored_agi = get_stage_result(session_id, "agi")
+                if stored_agi:
+                    agi_result = stored_agi
+                    logger.debug(f"asi_act.full: Retrieved AGI result from bundle (session: {session_id[:8]})")
+
             # v51 Bridge: Try Core Engine first
             if ENGINES_AVAILABLE and bridge_asi_full:
                 try:
@@ -1252,6 +1706,8 @@ async def mcp_asi_act(
                     if bridge_result.get("status") not in ("ERROR", "FALLBACK"):
                         bridge_result["session_id"] = session_id
                         logger.debug("asi_act.full: Using v51 bridge")
+                        # Store result for inter-stage context passing
+                        store_stage_result(session_id, "asi", bridge_result)
                         return bridge_result
                 except Exception as e:
                     logger.warning(f"v51 bridge failed, using inline: {e}")
@@ -1280,7 +1736,7 @@ async def mcp_asi_act(
             else:
                 status = "SEAL"
 
-            return ActResult(
+            result = ActResult(
                 status=status,
                 session_id=session_id,
                 peace_squared=empathy.get("peace_squared", 1.0),
@@ -1293,6 +1749,11 @@ async def mcp_asi_act(
                 floors_checked=floors_checked,
                 sub_stage="FULL_PIPELINE"
             ).__dict__
+
+            # Store result for inter-stage context passing
+            store_stage_result(session_id, "asi", result)
+
+            return result
 
         else:
             return {"status": "VOID", "reason": f"Unknown action: {action}"}
@@ -1379,6 +1840,41 @@ async def mcp_apex_judge(
     floors_checked = []
 
     try:
+        # =====================================================================
+        # v52.1: Prefer Core APEX Room (777→999) implementation
+        # =====================================================================
+        if action in {"eureka", "judge", "proof", "full"}:
+            try:
+                from arifos.core.apex.kernel import APEXJudicialCore
+
+                # If caller didn't pass bundles, pull from session store.
+                if not agi_result and session_id:
+                    agi_result = get_stage_result(session_id, "agi")
+                if not asi_result and session_id:
+                    asi_result = get_stage_result(session_id, "asi")
+
+                init_result = get_stage_result(session_id, "init") if session_id else None
+                lane = (init_result or {}).get("lane", "SOFT")
+                user_id = (init_result or {}).get("authority", "anonymous")
+
+                core_apex = APEXJudicialCore()
+                core_result = await core_apex.execute(
+                    action,
+                    {
+                        "session_id": session_id,
+                        "query": query,
+                        "response": response,
+                        "agi_result": agi_result,
+                        "asi_result": asi_result,
+                        "lane": lane,
+                        "user_id": user_id,
+                    },
+                )
+                if isinstance(core_result, dict) and core_result.get("status") not in ("ERROR",):
+                    return core_result
+            except Exception as e:
+                logger.warning(f"Core APEX room failed, falling back to inline APEX: {e}")
+
         # =====================================================================
         # ACTION: EUREKA (777)
         # =====================================================================
@@ -1553,19 +2049,38 @@ async def mcp_apex_judge(
             ).__dict__
 
         # =====================================================================
-        # ACTION: FULL (Complete Pipeline)
+        # ACTION: FULL (Complete Pipeline: EUREKA → JUDGE → PROOF)
         # =====================================================================
         elif action == "full":
-            # v51 Bridge: Try Core Engine first
+            # Retrieve AGI/ASI results from bundle if not provided
+            if not agi_result and session_id:
+                stored_agi = get_stage_result(session_id, "agi")
+                if stored_agi:
+                    agi_result = stored_agi
+                    logger.debug(f"apex_judge.full: Retrieved AGI result from bundle (session: {session_id[:8]})")
+
+            if not asi_result and session_id:
+                stored_asi = get_stage_result(session_id, "asi")
+                if stored_asi:
+                    asi_result = stored_asi
+                    logger.debug(f"apex_judge.full: Retrieved ASI result from bundle (session: {session_id[:8]})")
+
+            # v51 Bridge: Execute via Core APEX Engine
             if ENGINES_AVAILABLE and bridge_apex_full:
                 try:
-                    bridge_result = bridge_apex_full(query, response, agi_result, asi_result)
+                    # Pass AGI/ASI outputs to APEX for final judgment
+                    bridge_result = bridge_apex_full(
+                        agi_output=agi_result or {},
+                        asi_output=asi_result or {}
+                    )
                     if bridge_result.get("status") not in ("ERROR", "FALLBACK"):
                         bridge_result["session_id"] = session_id
-                        logger.debug("apex_judge.full: Using v51 bridge")
+                        logger.debug("apex_judge.full: Using v51 bridge (Core APEX Engine)")
+                        # Store APEX result for 999_vault sealing
+                        store_stage_result(session_id, "apex", bridge_result)
                         return bridge_result
                 except Exception as e:
-                    logger.warning(f"v51 bridge failed, using inline: {e}")
+                    logger.warning(f"v51 bridge failed, using inline fallback: {e}")
 
             # Fallback: Inline pipeline
             # 777 EUREKA
@@ -1598,7 +2113,7 @@ async def mcp_apex_judge(
                 "F1_Amanah", "F7_Humility", "F8_TriWitness", "F9_AntiHantu"
             ])
 
-            return JudgeResult(
+            result = JudgeResult(
                 status=final_verdict,
                 session_id=session_id,
                 verdict=final_verdict,
@@ -1614,6 +2129,11 @@ async def mcp_apex_judge(
                 floors_checked=floors_checked,
                 sub_stage="FULL_PIPELINE"
             ).__dict__
+
+            # Store APEX result for 999_vault sealing
+            store_stage_result(session_id, "apex", result)
+
+            return result
 
         else:
             return {"status": "VOID", "reason": f"Unknown action: {action}"}
@@ -1644,7 +2164,8 @@ async def mcp_999_vault(
     apex_result: Optional[Dict[str, Any]] = None,
     target: str = "seal",
     query: str = "",
-    data: Optional[Dict[str, Any]] = None
+    data: Optional[Dict[str, Any]] = None,
+    seal_phrase: str = ""
 ) -> Dict[str, Any]:
     """
     999 VAULT: Immutable Seal & Governance IO.
@@ -1667,6 +2188,10 @@ async def mcp_999_vault(
         - phoenix: Resurrectable memory
         - audit: Audit trail
 
+    Seal Phrase:
+        Required for seal action: "DITEMPA BUKAN DIBERI"
+        The sovereign's authorization to forge the final seal.
+
     Floors Enforced:
         - F1 (Amanah): Reversibility proof
         - F8 (Tri-Witness): Consensus record
@@ -1677,6 +2202,7 @@ async def mcp_999_vault(
     # Valid actions for 999_vault
     VALID_ACTIONS = {"seal", "list", "read", "write", "propose"}
     VALID_VERDICTS = {"SEAL", "SABAR", "VOID"}
+    SEAL_PHRASE = "ditempa bukan diberi"  # The sovereign's seal authorization
 
     floors_checked = []
 
@@ -1714,16 +2240,112 @@ async def mcp_999_vault(
     # =========================================================================
     # RATE LIMITING
     # =========================================================================
-    rate_limit_response = _check_rate_limit("999_vault", session_id)
+    rate_limit_response = _check_rate_limit("vault_999", session_id)
     if rate_limit_response:
         return rate_limit_response
 
     try:
         # =====================================================================
+        # v52.1: Prefer Core APEX Room VAULT implementation for list/read
+        # =====================================================================
+        if action in {"list", "read"}:
+            try:
+                from arifos.core.apex.kernel import APEXJudicialCore
+
+                core_apex = APEXJudicialCore()
+                return await core_apex.execute(
+                    action,
+                    {
+                        "session_id": session_id,
+                        "query": query,
+                        "data": data,
+                    },
+                )
+            except Exception as e:
+                logger.warning(f"Core VAULT list/read failed, falling back to legacy: {e}")
+
+        # =====================================================================
         # ACTION: SEAL
         # =====================================================================
         if action == "seal" or target == "seal":
-            floors_checked.extend(["F1_Amanah", "F8_TriWitness"])
+            # ─────────────────────────────────────────────────────────────────
+            # RETRIEVE STAGE RESULTS FROM BUNDLE IF NOT PROVIDED
+            # ─────────────────────────────────────────────────────────────────
+            if session_id:
+                if not agi_result:
+                    stored_agi = get_stage_result(session_id, "agi")
+                    if stored_agi:
+                        agi_result = stored_agi
+                        logger.debug(f"999_vault.seal: Retrieved AGI result from bundle")
+
+                if not asi_result:
+                    stored_asi = get_stage_result(session_id, "asi")
+                    if stored_asi:
+                        asi_result = stored_asi
+                        logger.debug(f"999_vault.seal: Retrieved ASI result from bundle")
+
+                if not apex_result:
+                    stored_apex = get_stage_result(session_id, "apex")
+                    if stored_apex:
+                        apex_result = stored_apex
+                        logger.debug(f"999_vault.seal: Retrieved APEX result from bundle")
+
+            # ─────────────────────────────────────────────────────────────────
+            # SEAL PHRASE VALIDATION: "DITEMPA BUKAN DIBERI"
+            # The sovereign's authorization to forge the final seal
+            # ─────────────────────────────────────────────────────────────────
+            if not seal_phrase or seal_phrase.lower().strip() != SEAL_PHRASE:
+                logger.warning(f"999_vault: Seal phrase missing or invalid")
+                return VaultResult(
+                    status="SABAR",
+                    session_id=session_id or "UNKNOWN",
+                    verdict="PENDING",
+                    merkle_root="",
+                    audit_hash="",
+                    sealed_at=datetime.now().isoformat(),
+                    reversible=True,
+                    memory_location="AWAITING_SEAL_PHRASE",
+                    floors_checked=["F11_CommandAuth"]
+                ).__dict__ | {
+                    "reason": "Seal phrase required: 'DITEMPA BUKAN DIBERI'",
+                    "hint": "Provide seal_phrase='DITEMPA BUKAN DIBERI' to authorize the seal"
+                }
+
+            # =================================================================
+            # v52.1: Prefer Core APEX Room sealing (889 PROOF + 999 SEAL)
+            # =================================================================
+            try:
+                from arifos.core.apex.kernel import APEXJudicialCore
+
+                if session_id and not agi_result:
+                    agi_result = get_stage_result(session_id, "agi") or agi_result
+                if session_id and not asi_result:
+                    asi_result = get_stage_result(session_id, "asi") or asi_result
+                if session_id and not apex_result:
+                    apex_result = get_stage_result(session_id, "apex") or apex_result
+                init_stored = get_stage_result(session_id, "init") if session_id else None
+
+                core_apex = APEXJudicialCore()
+                core_result = await core_apex.execute(
+                    "seal",
+                    {
+                        "session_id": session_id,
+                        "query": query,
+                        "response": "",
+                        "lane": (init_stored or {}).get("lane", "SOFT"),
+                        "user_id": (init_stored or {}).get("authority", "anonymous"),
+                        "init_result": init_result or init_stored,
+                        "agi_result": agi_result,
+                        "asi_result": asi_result,
+                        "verdict_struct": apex_result,
+                    },
+                )
+                if isinstance(core_result, dict) and core_result.get("status") not in ("ERROR",):
+                    return core_result
+            except Exception as e:
+                logger.warning(f"Core VAULT seal failed, falling back to legacy: {e}")
+
+            floors_checked.extend(["F1_Amanah", "F8_TriWitness", "F11_SealPhrase"])
 
             # Compute Merkle root from all results
             components = [
@@ -1808,6 +2430,11 @@ async def mcp_999_vault(
                 key_insights=key_insights
             )
             logger.info(f"999_vault: Session sealed to ledger: {ledger_result.get('entry_hash', 'N/A')[:16]}")
+
+            # Cleanup session bundle after sealing
+            if session_id:
+                clear_session_bundle(session_id)
+                logger.debug(f"999_vault.seal: Cleaned up session bundle (session: {session_id[:8]})")
 
             return VaultResult(
                 status="SEAL",
@@ -1961,6 +2588,8 @@ def _get_truth_threshold(lane: str) -> float:
 
 def _measure_entropy(text: str) -> float:
     """Calculate Shannon entropy of text."""
+    if LITE_MODE:
+        return 0.0  # Skip calculation in Lite Mode
     import math
     if not text:
         return 0.0

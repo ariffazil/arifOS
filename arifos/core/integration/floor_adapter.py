@@ -37,7 +37,7 @@ Nonce: X7K9F24
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional, Tuple
 
-from arifos.core.system.apex_prime import ApexVerdict, Verdict, Metrics
+from arifos.core.system.types import Verdict, ApexVerdict, Metrics
 
 
 @dataclass

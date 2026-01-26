@@ -1,10 +1,10 @@
 {
     "trinity_tools": [
-        "000_init",
+        "init_000",
         "agi_genius",
         "asi_act",
         "apex_judge",
-        "999_vault"
+        "vault_999"
     ],
     "external_tools": [
         "google_search",

@@ -26,7 +26,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union
 
 # Import Kernels (Renamed concepts for clarity)
-from arifos.core.agi.kernel import AGINeuralCore
+from arifos.core.engines.agi.kernel import AGINeuralCore
 from arifos.core.apex.kernel import APEXJudicialCore
 from arifos.core.asi.kernel import ASIActionCore
 from arifos.core.enforcement.metrics import FloorsVerdict, Metrics

@@ -21,7 +21,7 @@
         "constitutionalMode": "AAA"
     },
     "trinityTools": {
-        "tools": ["000_init", "agi_genius", "asi_act", "apex_judge", "999_vault"],
+        "tools": ["init_000", "agi_genius", "asi_act", "apex_judge", "vault_999"],
         "mnemonic": "Init the Genius, Act with Heart, Judge at Apex, seal in Vault."
     }
 }

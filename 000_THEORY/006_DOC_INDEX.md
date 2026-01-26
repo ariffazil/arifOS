@@ -1,46 +1,26 @@
-# arifOS Documentation Index
+# arifOS Documentation Index (v52.5.2)
 
-**Constitutional Governance System v50.5**
+**Constitutional Governance System**
 
-## 🚀 Constitutional Quick Start (3 Files Only)
-**Compressed to functional What/Where/How mapping for entropy reduction:**
+## 🏛️ Constitutional Canon
+These files are the single source of truth for the system.
 
-- **[WHAT.md](WHAT.md)** → What arifOS does constitutionally
-- **[WHERE.md](WHERE.md)** → Where everything is located  
-- **[HOW.md](HOW.md)** → How to start and use (3 commands)
+- **[000_FOUNDATIONS.md](000_FOUNDATIONS.md)**
+  *The "Why". Meta-Constitutional Principles, Metrics (The Physics), and Glossary (The Language).*
+- **[000_LAW.md](000_LAW.md)**
+  *The "Rules". The 13 Constitutional Floors, TEACH principles, and Verdict logic.*
+- **[000_ARCHITECTURE.md](000_ARCHITECTURE.md)**
+  *The "Structure". System Topology, Trinity Engines, Repository Layout, and Protocols.*
+- **[002_SECURITY.md](002_SECURITY.md)**
+  *The "Defense". Threat Model, Security Policy, and Trust boundaries.*
+- **[019_EVALS.md](019_EVALS.md)**
+  *The "Proof". Testing framework, Validation strategy, and historical Witness context.*
 
-## 📋 System Documentation
-Core system documentation and governance:
-- **[AGENTS.md](AGENTS.md)** - Constitutional agent specifications and governance
-- **[SYSTEM.md](SYSTEM.md)** - System operations and lifecycle management
-- **[SECURITY.md](SECURITY.md)** - Security policy and compliance
-- **[docs/releases/RELEASE_NOTES.md](docs/releases/RELEASE_NOTES.md)** - Version history and release notes
-- **[README.md](README.md)** - Project overview and introduction
-
-## 🔍 Analysis & Reports
-Detailed constitutional analysis and operational reports:
-- **[docs/analysis/](docs/analysis/)** - Constitutional entropy analysis and unification reports
-- **[reports/](reports/)** - Operational completion reports (MCP forging, agent enhancements)
-
-## 🧪 Testing Documentation
-Testing strategies and failure analysis:
-- **[docs/testing/](docs/testing/)** - Test unification plans and import failure analysis
-
-## 📚 Additional Resources
-- **Docker**: [DOCKER_GUIDE.md](DOCKER_GUIDE.md) - Complete Docker setup
-- **Contributing**: [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
-- **License**: [LICENSE](LICENSE) - MIT license
+## 📋 Supplementary
+- **[AGENTS.md](AGENTS.md)** - Model-agnostic agent guidelines.
+- **[README.md](README.md)** - High-level project overview.
 
 ---
 
-## 🏛️ Constitutional Hierarchy
-Documentation follows the L1/L2/L3 constitutional structure:
-- **L1 Canon**: Foundational principles in `L1_THEORY/canon/`
-- **L2 Protocols**: Operational specifications in `L2_PROTOCOLS/`
-- **L3 Implementation**: Code documentation in source files
-
-## 🔄 Documentation Updates
-This index is maintained as part of the constitutional governance system. For documentation changes, refer to the changelog and follow the Phoenix-72 amendment process.
-
-**Authority**: Muhammad Arif bin Fazil > arifOS Governor  
-**Status**: SEALED under v50.5 constitutional governance
+**Status:** SEALED (v52.5.2)
+**Authority:** Muhammad Arif bin Fazil

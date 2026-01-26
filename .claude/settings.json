@@ -4,7 +4,6 @@
     "feature-dev@claude-plugins-official": true,
     "greptile@claude-plugins-official": true,
     "Notion@claude-plugins-official": true,
-    "linear@claude-plugins-official": true,
     "github@claude-plugins-official": true,
     "gitlab@claude-plugins-official": true,
     "research-assistant@claude-plugins-official": true,

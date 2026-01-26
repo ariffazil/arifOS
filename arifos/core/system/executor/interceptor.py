@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional, List
 
 # Orthogonal Kernels (v46)
-from arifos.core.agi.kernel import AGINeuralCore as AGIKernel
+from arifos.core.engines.agi.kernel import AGINeuralCore as AGIKernel
 from arifos.core.asi.kernel import ASIActionCore as ASIKernel
 from arifos.core.system.apex_prime import APEXPrime, Verdict, FloorCheckResult
 

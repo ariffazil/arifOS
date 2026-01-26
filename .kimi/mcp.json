@@ -1,26 +1,23 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$comment": "Project-specific arifOS MCP config for Kimi CLI (v52.0.0-SEAL)",
+  "$comment": "Project-specific arifOS MCP config for Kimi CLI (v52.5.1-SEAL Local Override)",
   "mcpServers": {
-    "arifos-constitutional": {
-      "type": "stdio",
-      "command": "python",
+    "arifos-trinity": {
+      "command": "uv",
       "args": [
-        "-m",
-        "arifos.mcp",
-        "trinity"
+        "run",
+        "fastmcp",
+        "run",
+        "arifos/mcp/sse.py:mcp",
+        "--transport",
+        "stdio"
       ],
       "cwd": "C:\\Users\\User\\arifOS",
       "env": {
-        "PYTHONPATH": "C:\\Users\\User\\arifOS",
-        "PYTHONIOENCODING": "utf-8",
-        "ARIFOS_MODE": "production",
-        "ARIFOS_LOG_LEVEL": "INFO",
-        "ARIFOS_SEAL_RATE_TARGET": "0.85",
-        "ARIFOS_JUDGE_TIMEOUT": "30"
+        "PYTHONPATH": "C:/Users/User/arifOS",
+        "ARIFOS_MODE": "local"
       },
-      "description": "Constitutional AI governance for all Kimi interactions - 13 floors validation (SEAL/SABAR/VOID)",
-      "version": "v52.0.0-SEAL"
+      "description": "Local arifOS Trinity Monolith (FastMCP Stdio v52.5.0) - Fixes remote connection error"
     }
   }
 }

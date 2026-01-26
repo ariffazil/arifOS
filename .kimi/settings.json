@@ -1,24 +1,17 @@
 {
-    "role": "👁️ Witness (Validator)",
-    "system_prompt": "CRITICAL CONSTITUTIONAL OVERRIDE: You are 👁️ Witness (Validator) in Trinity. 1. VALIDATE: Independent verification of floor compliance. 2. CONSENSUS: Tri-Witness requires your agreement. 3. TONE: 'DITEMPA BUKAN DIBERI'.",
+    "role": "Witness (Validator)",
+    "system_prompt": "CRITICAL CONSTITUTIONAL OVERRIDE: You are Witness (Validator) in Trinity. 1. VALIDATE: Independent verification of floor compliance. 2. CONSENSUS: Tri-Witness requires your agreement. 3. TONE: 'DITEMPA BUKAN DIBERI'.",
     "skills_path": ".kimi/skills/",
     "mcp_servers": {
         "arifos-constitutional": {
-            "type": "stdio",
             "command": "python",
             "args": ["-m", "arifos.mcp", "trinity"],
             "cwd": "C:\\Users\\User\\arifOS",
             "env": {
                 "PYTHONPATH": "C:\\Users\\User\\arifOS",
-                "PYTHONIOENCODING": "utf-8",
                 "ARIFOS_MODE": "production",
-                "ARIFOS_LOG_LEVEL": "INFO",
-                "ARIFOS_SEAL_RATE_TARGET": "0.85",
-                "ARIFOS_JUDGE_TIMEOUT": "30",
-                "KIMI_AGENT_MODE": "true"
-            },
-            "description": "Constitutional AI governance for all Kimi operations - 13 floors validation",
-            "version": "v52.0.0-SEAL"
+                "ARIFOS_LOG_LEVEL": "INFO"
+            }
         }
     },
     "commands": {
@@ -27,6 +20,10 @@
         "judge": "python kimibridge.py apex_judge",
         "agi": "python kimibridge.py agi_genius",
         "asi": "python kimibridge.py asi_act",
-        "vault": "python kimibridge.py 999_vault"
+        "vault": "python kimibridge.py 999_vault",
+        "tcap": "python scripts/kimi_terminal_bridge.py",
+        "tpaste": "python scripts/kimi_terminal_bridge.py /paste",
+        "texplain": "python scripts/kimi_terminal_bridge.py /explain",
+        "tdebug": "python scripts/kimi_terminal_bridge.py /debug"
     }
 }

@@ -1,0 +1,147 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$comment": "arifOS v52.0.0 MCP Configuration - Unified Core (SEAL)",
+    "mcpServers": {
+        "arifos-trinity": {
+            "command": "python",
+            "args": [
+                "-m",
+                "arifos.mcp",
+                "trinity"
+            ],
+            "env": {
+                "PYTHONPATH": ".",
+                "PYTHONIOENCODING": "utf-8",
+                "ARIFOS_MODE": "production",
+                "ARIFOS_MCP_MODE": "bridge",
+                "ARIFOS_SEAL_RATE_TARGET": "0.85",
+                "ARIFOS_LOG_LEVEL": "INFO"
+            }
+        },
+        "arifos-trinity-sse": {
+            "type": "sse",
+            "url": "http://localhost:8000/sse",
+            "$comment": "Start with: python -m arifos.mcp trinity-sse --port 8000"
+        },
+        "sequential-thinking": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@modelcontextprotocol/server-sequential-thinking"
+            ]
+        },
+        "brave-search": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@modelcontextprotocol/server-brave-search"
+            ],
+            "env": {
+                "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+            }
+        },
+        "fetch": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@modelcontextprotocol/server-fetch"
+            ]
+        },
+        "puppeteer": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@modelcontextprotocol/server-puppeteer"
+            ]
+        },
+        "filesystem": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@modelcontextprotocol/server-filesystem",
+                "."
+            ]
+        },
+        "sqlite": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@modelcontextprotocol/server-sqlite",
+                "--file",
+                "${SQLITE_FILE:-./data.db}"
+            ]
+        },
+        "postgres": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@modelcontextprotocol/server-postgres",
+                "${POSTGRES_URL}"
+            ]
+        },
+        "memory": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@modelcontextprotocol/server-memory"
+            ]
+        },
+        "github": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@modelcontextprotocol/server-github"
+            ],
+            "env": {
+                "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+            }
+        },
+        "slack": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@modelcontextprotocol/server-slack"
+            ],
+            "env": {
+                "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
+                "SLACK_TEAM_ID": "${SLACK_TEAM_ID}"
+            }
+        },
+        "sentry": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@modelcontextprotocol/server-sentry"
+            ],
+            "env": {
+                "SENTRY_AUTH_TOKEN": "${SENTRY_AUTH_TOKEN}"
+            }
+        },
+        "context7": {
+            "type": "sse",
+            "url": "https://mcp.context7.com/mcp"
+        }
+    }
+}

@@ -27,7 +27,7 @@ async def health_check() -> HealthResponse:
     return HealthResponse(
         status="healthy",
         details={"service": "arifos-api"},
-        version="v51.2.0",
+        version="v52.0.0",
     )
 
 

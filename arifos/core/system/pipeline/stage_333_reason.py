@@ -12,7 +12,7 @@ If Delta fails → accumulate failures, continue to Omega (soft floor handling)
 DITEMPA BUKAN DIBERI - Forged v46.1
 """
 
-from arifos.core.agi.delta_kernel import DeltaKernel
+from arifos.core.engines.agi.delta_kernel import DeltaKernel
 
 from .context import PipelineContext
 

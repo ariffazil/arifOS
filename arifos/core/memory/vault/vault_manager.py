@@ -1,10 +1,14 @@
 """
-vault_manager.py — VAULT-999 Manager for arifOS v37
+vault_manager.py - VAULT-999 Manager for arifOS v37+
 
 Enhanced VAULT-999 management with amendment workflow integration per:
 - archive/versions/v36_3_omega/v36.3O/canon/VAULT999_ARCHITECTURE_v36.3O.md
 - archive/versions/v36_3_omega/v36.3O/canon/VAULT_999_AMENDMENTS_v36.3O.md
 - archive/versions/v36_3_omega/v36.3O/spec/phoenix72_amendment_spec_v36.3O.json
+
+NOTE: This manages the CONSTITUTION DATA, distinct from SEAL999 (sealing algorithm).
+- VaultManager = Constitution management + Phoenix-72 amendments
+- SEAL999 = Sealing algorithm for Stage 999 of metabolic pipeline
 
 Responsibilities:
 - Load and expose constitution (L0)
@@ -13,7 +17,7 @@ Responsibilities:
 - Maintain amendment history with signatures
 
 Author: arifOS Project
-Version: v37
+Version: v37+
 """
 
 from __future__ import annotations
@@ -42,8 +46,8 @@ AmendmentStatus = Literal["PROPOSED", "UNDER_REVIEW", "SEALED", "REVOKED", "EXPI
 @dataclass
 class SafetyConstraints:
     """Safety constraints for Phoenix-72 amendments."""
-    max_delta: float = 0.05  # |ΔF| ≤ 0.05 per cycle (TODO(Arif): confirm)
-    cooldown_hours: int = 24  # TODO(Arif): confirm cooldown window
+    max_delta: float = 0.05  # |ΔF| <= 0.05 per cycle
+    cooldown_hours: int = 24  # Cooldown window between amendments
     min_evidence_entries: int = 3
 
     def to_dict(self) -> Dict[str, Any]:
@@ -169,11 +173,11 @@ class VaultManagerConfig:
 
 class VaultManager:
     """
-    Enhanced VAULT-999 manager for v37 with Phoenix-72 amendment workflow.
+    Enhanced VAULT-999 manager for v37+ with Phoenix-72 amendment workflow.
 
     Extends the base Vault999 with:
     - Structured amendment records per phoenix72_amendment_spec_v36.3O.json
-    - Safety constraint enforcement (|ΔF| ≤ 0.05)
+    - Safety constraint enforcement (|ΔF| <= 0.05)
     - Amendment history with signatures
     - Cooldown window tracking
 
@@ -326,7 +330,7 @@ class VaultManager:
         except (ValueError, TypeError):
             delta_value = 1.0 if new_value != old_value else 0.0
 
-        # Safety constraint: |ΔF| ≤ max_delta
+        # Safety constraint: |ΔF| <= max_delta
         if delta_value > self.config.safety_constraints.max_delta:
             errors.append(
                 f"Delta {delta_value:.4f} exceeds safety cap "

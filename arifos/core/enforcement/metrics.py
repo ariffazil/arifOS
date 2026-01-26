@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 # --- 1. CONSTITUTIONAL CONSTANTS ---
 
+from .emergency_calibration_v45 import get_lane_truth_threshold
+
 # F2: Truth - factual integrity
 TRUTH_THRESHOLD: float = 0.99
 
@@ -57,6 +59,15 @@ class Metrics:
         if self.psi is None:
             self.psi = self.truth * 0.5 + self.kappa_r * 0.5 # Simplified vitality
 
+    def compute_psi(self, lane: str = "SOFT") -> float:
+        """Calculate system vitality index (Ψ)."""
+        # Simplified formula: weighted average of truth and empathy
+        # High stakes (HARD lane) require higher truth
+        truth_weight = 0.7 if lane == "HARD" else 0.5
+        kappa_weight = 1.0 - truth_weight
+        self.psi = self.truth * truth_weight + self.kappa_r * kappa_weight
+        return self.psi
+
 @dataclass
 class FloorsVerdict:
     """Result of full constitutional scan."""
@@ -66,6 +77,40 @@ class FloorsVerdict:
     metrics: Metrics
     lane: str = "UNKNOWN"
     verdict: str = "VOID"
+
+    @property
+    def reasons(self) -> List[str]:
+        """Return all failure/warning reasons (backward-compatible alias)."""
+        return [*self.failed_floors, *self.warnings]
+
+    @property
+    def anti_hantu_ok(self) -> bool:
+        """Convenience: whether Anti-Hantu is satisfied."""
+        return bool(getattr(self.metrics, "anti_hantu", True))
+
+    @property
+    def hard_ok(self) -> bool:
+        """Convenience: whether hard floors are satisfied.
+
+        This is a compatibility shim for older tests that expect `hard_ok` on FloorsVerdict.
+        """
+        hard_floor_ids = {
+            "F1",
+            "F2",
+            "F5",
+            "F6",
+            "F7",
+            "F8",
+            "F9",
+            "F10",
+            "F11",
+            "F12",
+        }
+        for item in self.failed_floors:
+            floor_id = item.split("(", 1)[0].strip()
+            if floor_id in hard_floor_ids:
+                return False
+        return True
 
 @dataclass
 class FloorCheckResult:

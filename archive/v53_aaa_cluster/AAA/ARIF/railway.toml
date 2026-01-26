@@ -1,0 +1,17 @@
+# ARIF Railway Configuration
+# The Architect (Nexus) - Mind & Heart
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "deploy/AAA/ARIF/Dockerfile"
+
+[deploy]
+numReplicas = 1
+healthcheckPath = "/health"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
+
+[deploy.env]
+ARIFOS_ENV = "production"
+ARIFOS_ROLE = "ARIF"
+PORT = "8002"

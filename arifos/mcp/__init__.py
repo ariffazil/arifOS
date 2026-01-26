@@ -18,10 +18,17 @@ DITEMPA BUKAN DIBERI
 
 __version__ = "v52.0.0"
 
+def create_mcp_server(*args, **kwargs):
+    from .server import create_mcp_server as _create
+    return _create(*args, **kwargs)
 
+def create_sse_app(*args, **kwargs):
+    from .sse import create_sse_app as _create
+    return _create(*args, **kwargs)
 
-from arifos.mcp.server import create_mcp_server
+def get_mcp_mode(*args, **kwargs):
+    from .mode_selector import get_mcp_mode as _get
+    return _get(*args, **kwargs)
 
-from arifos.mcp.sse import create_sse_app
-
-from arifos.mcp.mode_selector import get_mcp_mode, MCPMode
+# Re-export MCPMode
+from .mode_selector import MCPMode

@@ -1,0 +1,36 @@
+COOLING TIER STORAGE FIXED
+==========================
+
+CHANGES:
+✓ Updated VaultConfig.base_path: ./SEAL999 -> ./VAULT999
+✓ Moved cooling tier directories to VAULT999/
+✓ SEAL999/ now pure code (no runtime data)
+✓ VAULT999/ now contains all operational storage
+
+LOCATION:
+---------
+Before: C:\Users\User\arifOS\SEAL999\L0_HOT ... L5_ETERNAL
+After:  C:\Users\User\arifOS\VAULT999\L0_HOT ... L5_ETERNAL
+
+Files:
+  SEAL999/state.py (updated base_path)
+  VAULT999/L0_HOT/ (moved from SEAL999)
+  VAULT999/L1_DAILY/ (moved from SEAL999)
+  VAULT999/L2_PHOENIX/ (moved from SEAL999)
+  VAULT999/L3_WEEKLY/ (moved from SEAL999)
+  VAULT999/L4_MONTHLY/ (moved from SEAL999)
+  VAULT999/L5_ETERNAL/ (moved from SEAL999)
+
+VERIFICATION:
+------------
+✓ All 6 cooling tier directories present in VAULT999/
+✓ No cooling tier directories in SEAL999/
+✓ SEAL999: Pure code
+✓ VAULT999: Code + operational data
+
+IMPACT:
+-------
+SEAL999 operations will now write cooling data to VAULT999/
+instead of SEAL999/. This maintains clean separation:
+- SEAL999/: Code only
+- VAULT999/: Operational data + code

@@ -1,0 +1,27 @@
+# AXIS Railway Configuration
+# Authority & Memory (Spine)
+#
+# CRITICAL: Loop Bootstrap requires persistent storage!
+# Configure Railway Volume via CLI or Dashboard:
+#   railway volume create sessions
+#   railway volume attach sessions /app/arifos/mcp/sessions
+#
+# Without this, crash recovery will NOT work.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "deploy/AAA/AXIS/Dockerfile"
+
+[deploy]
+numReplicas = 1
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+
+[deploy.env]
+ARIFOS_ENV = "production"
+ARIFOS_ROLE = "AXIS"
+PORT = "8001"
+
+# Railway Volume Configuration (requires CLI/Dashboard setup)
+# See: https://docs.railway.app/guides/volumes

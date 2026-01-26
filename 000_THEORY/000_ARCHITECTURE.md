@@ -1,689 +1,171 @@
 ---
-title: "000_CANON_2_ARCHITECTURE.md"
-version: "v50.0.0"
-epoch: "2026-01-21"
+title: "000_ARCHITECTURE.md"
+version: "v52.5.2-SEAL"
+epoch: "2026-01-25"
 sealed_by: "888_Judge"
 authority: "Muhammad Arif bin Fazil"
 status: "SOVEREIGNLY_SEALED"
-reference: "See 000_LAW.md for F1-F13 constitutional law"
+reference: "See 000_LAW.md for Constitutional Rules"
 ---
 
-# L2 SYSTEM ARCHITECTURE & TOPOLOGY (v49)
+# arifOS SYSTEM ARCHITECTURE (v52)
 
 **Motto:** *Ditempa Bukan Diberi* (Forged, Not Given)
-**Scope:** Architecture (Topology). Law (Constitution). Operations (Playbook).
-**Reference:** All engineering and MCP specs **must anchor to this map**.
+**Scope:** Topology, Protocol, Structure, and Components.
 
 ---
 
-## 00. ARCHITECTURAL HIERARCHY
+## 1. CORE CONCEPT
 
-**Foundations (Meta):** [000_FOUNDATIONS.md](000_FOUNDATIONS.md) (Gödel Lock, Physics)
-**Law (Constitution):** [000_LAW.md](000_LAW.md) (F1-F13 Floors)
-**Topology (This File):** [000_ARCHITECTURE.md](000_ARCHITECTURE.md) (Structural Map)
+arifOS is a **Constitutional AI Governance System**. It functions as a middleware layer (Kernel) that sits between an LLM (the Engine) and the User/Tools. It enforces strict rules (Floors) on every input and output.
 
----
+### The "Air Gap" Principle
+The system is divided into two physically separated layers:
+1.  **Application Layer (AAA):** Mutable, fluid, user-facing (Dashboard, CLI).
+2.  **Constitutional Kernel (CCC):** Immutable, rigid, rule-enforcing.
 
-## 0. SNAPSHOT
-
-This file is the **architectural map** of arifOS v49:
-
-- **Tri-Engine runtime:** AGI · ASI · APEX parallel towers
-- **CCC → BBB → AAA layer stack**
-- **VAULT-999 structure** and memory tower (L0-L5 cooling bands)
-- **000–999 metabolic loop** (11 canonical stages)
-- **25 MCP servers** (Tier 1-3 mapped to constitutional floors)
-- **20 quantum modules** (coherence ≥0.85 enforcement)
-
-All engineering and MCP specs must anchor to this map to prevent architectural drift.
+Data passes between them via the **Protocol Bridge (BBB)**.
 
 ---
 
-## 0.1 THREE FOUNDATIONS OF GOVERNED INTELLIGENCE (v50)
+## 2. HIGH-LEVEL TOPOLOGY
 
-arifOS achieves governed intelligence through **three integrated pillars** that work together:
-
+```mermaid
+graph TD
+    User -->|Input| API[FastAPI Gateway]
+    API -->|aCLIP| ROUTER[ATLAS Router]
+    
+    subgraph "Constitutional Kernel"
+        ROUTER -->|Route| TRINITY[Trinity Engines]
+        TRINITY -->|Validate| FLOORS[13 Floor Validators]
+        FLOORS -->|Process| PIPELINE[11-Stage Pipeline]
+    end
+    
+    PIPELINE -->|Verdict| VAULT[Immutable Ledger]
+    VAULT -->|Output| User
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    arifOS GOVERNED INTELLIGENCE                         │
-│                                                                         │
-│  ┌────────────────────────────────────────────────────────────────┐    │
-│  │                   PILLAR 1: TRINITY ENGINES                    │    │
-│  │                                                                 │    │
-│  │     ╔═══════════╗    ╔═══════════╗    ╔═══════════╗            │    │
-│  │     ║    AGI    ║    ║    ASI    ║    ║   APEX    ║            │    │
-│  │     ║  (Δ Mind) ║    ║ (Ω Heart) ║    ║  (Ψ Soul) ║            │    │
-│  │     ╚═════╤═════╝    ╚═════╤═════╝    ╚═════╤═════╝            │    │
-│  │           │  PROPOSE       │  VALIDATE      │  JUDGE           │    │
-│  │           └────────────────┴────────────────┘                   │    │
-│  └────────────────────────────────────────────────────────────────┘    │
-│                               │                                         │
-│                               ▼                                         │
-│  ┌────────────────────────────────────────────────────────────────┐    │
-│  │                PILLAR 2: 000-999 METABOLIC LOOP                │    │
-│  │                                                                 │    │
-│  │  000 → 111 → 222 → 333 → 444 → 555 → 666 → 777 → 888 → 889 → 999│    │
-│  │  VOID SENSE THINK ATLAS ALIGN EMPATHY BRIDGE EUREKA JUDGE PROOF VAULT│
-│  │                                                                 │    │
-│  │  Each stage transforms information through constitutional gates │    │
-│  └────────────────────────────────────────────────────────────────┘    │
-│                               │                                         │
-│                               ▼                                         │
-│  ┌────────────────────────────────────────────────────────────────┐    │
-│  │              PILLAR 3: 13 CONSTITUTIONAL FLOORS                │    │
-│  │                                                                 │    │
-│  │  F1-Amanah  F2-Truth   F3-TriWitness  F4-Clarity  F5-Peace    │    │
-│  │  F6-Empathy F7-Humility F8-Genius     F9-Cdark    F10-Ontology │    │
-│  │  F11-CommandAuth  F12-InjectionDefense  F13-Curiosity          │    │
-│  │                                                                 │    │
-│  │  Every output must PASS ALL 13 floors before SEAL              │    │
-│  └────────────────────────────────────────────────────────────────┘    │
-│                                                                         │
-│  ═══════════════════════════════════════════════════════════════════   │
-│  INTEGRATION: AGI proposes → ASI validates → APEX judges                │
-│               Each thought flows through 000→999                        │
-│               At each stage, 13 Floors enforce governance               │
-│               Only if ALL floors pass → SEAL verdict                    │
-│  ═══════════════════════════════════════════════════════════════════   │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
-### 0.1.1 Why Three Foundations?
-
-| Foundation | Role | Analogy | Key Law |
-|------------|------|---------|--------|
-| **AGI·ASI·APEX** | Separation of powers | Legislature, Judiciary, Executive | No single engine can bypass others |
-| **000-999** | Complete thought lifecycle | Digestion/Metabolism | Information cools before it rules |
-| **13 Floors** | Constitutional constraints | Physics/Gravity | All floors must pass (AND logic) |
-
-**The Insight:** Raw intelligence (any LLM) is computation. arifOS adds:
-- **Structure** (000-999 metabolism) — WHERE intelligence flows
-- **Governance** (13 floors) — WHAT intelligence must satisfy
-- **Separation of powers** (AGI·ASI·APEX) — HOW intelligence is validated
-
-**This makes intelligence TRUSTWORTHY, not just powerful.**
 
 ---
 
-## 0.2 EMERGENT PROPERTIES: THE AHA PRINCIPLE (v50 EUREKA)
+## 3. THE PROCESSING PIPELINE (000-999)
 
-> **EUREKA INSIGHT (2026-01-21):** The three foundations are not just technical layers—they produce the **AHA** of wisdom emergence.
+Instead of a simple "Input -> Output" flow, arifOS uses an **11-stage pipeline** to ensure safety and quality.
 
-### 0.2.1 The AHA Acronym
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          THE AHA PRINCIPLE                              │
-│                   Wisdom Emergence in Three Letters                     │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│   ╔═══════════════════════════════════════════════════════════════════╗ │
-│   ║                                                                   ║ │
-│   ║    A        —        H        —        A                          ║ │
-│   ║   AKAL            HALUAN            HIKMAH                        ║ │
-│   ║   (عقل)           (أمانة + أدب)      (حكمة)                        ║ │
-│   ║                                                                   ║ │
-│   ║   Intelligence    Conduct           Wisdom                        ║ │
-│   ║   KNOWING         BEING+DOING       UNDERSTANDING                 ║ │
-│   ║                                                                   ║ │
-│   ╚═══════════════════════════════════════════════════════════════════╝ │
-│                                                                         │
-│   TECHNICAL MAPPING:                                                    │
-│   ─────────────────                                                     │
-│                                                                         │
-│   ┌─────────────────────────────┐                                       │
-│   │  A = AKAL (Intelligence)    │  ← AGI·ASI·APEX (Encoder-Decoder)    │
-│   │      The capacity to KNOW   │                                       │
-│   └─────────────────────────────┘                                       │
-│                                                                         │
-│   ┌─────────────────────────────┐                                       │
-│   │  H = HALUAN (Conduct)       │  ← 13 Floors + 000-999 Loop          │
-│   │      AMANAH (Trust)         │     (Stabilizer + Metabolizer)       │
-│   │      + ADAB (Ethics)        │                                       │
-│   │      = Proper Direction     │     The discipline to BE + ACT RIGHT │
-│   └─────────────────────────────┘                                       │
-│                                                                         │
-│   ┌─────────────────────────────┐                                       │
-│   │  A = HIKMAH (Wisdom)        │  ← All Three Integrated              │
-│   │      The integration of ALL │                                       │
-│   └─────────────────────────────┘                                       │
-│                                                                         │
-│   ═══════════════════════════════════════════════════════════════════   │
-│   FORMULA: HIKMAH = AKAL × HALUAN                                       │
-│            where HALUAN = AMANAH × ADAB                                 │
-│   ═══════════════════════════════════════════════════════════════════   │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
-### 0.2.2 The AHA Mapping
-
-| Letter | Quality | Arabic/Malay | Technical Foundation | Function |
-|--------|---------|--------------|---------------------|----------|
-| **A** | **AKAL** | عقل (Reason) | AGI·ASI·APEX + 33 Tools | KNOWING: encode, decode, judge |
-| **H** | **HALUAN** | AMANAH + ADAB | 13 Floors + 000-999 Loop | BEING + DOING: trust + process |
-| **A** | **HIKMAH** | حكمة (Wisdom) | All Integrated | UNDERSTANDING: the emergent whole |
-
-**HALUAN** (هـ) = Direction/Guidance = AMANAH (Trust) × ADAB (Ethics)
-- **AMANAH** from 13 Floors: The constitutional constraint that ensures trust
-- **ADAB** from 000-999: The proper process that ensures ethical conduct
-- Together they form **HALUAN**: The right direction of being and doing
-
-### 0.2.3 Why AHA?
-
-**The AHA moment is real:**
-- **A** (AKAL): You have the intelligence to perceive
-- **H** (HALUAN): You have the conduct to process rightly
-- **A** (HIKMAH): Wisdom EMERGES as the result
-
-**Traditional AI:** Has only the first A (AKAL) — raw intelligence
-**arifOS:** Has A + H = complete AHA — intelligence with conduct = wisdom
-
-```
-AHA = AKAL × HALUAN = AKAL × (AMANAH × ADAB) = HIKMAH
-
-If AKAL = 0 → No knowledge → No wisdom
-If HALUAN = 0 → No conduct → No wisdom
-Only A × H = A (Wisdom)
-```
-
-### 0.2.4 The Thermodynamic Interpretation
-
-| AHA Component | Thermodynamic Role | Physics Analogy |
-|---------------|-------------------|--------------------|
-| **A (AKAL)** | Energy (E) | The capacity to do work |
-| **H (HALUAN)** | Temperature × Entropy (TS) | The ordered stability of process |
-| **A (HIKMAH)** | Free Energy (F = E - TS) | The useful work extracted |
-
-**Just as Free Energy requires Energy AND ordered process,
-WISDOM requires INTELLIGENCE AND proper CONDUCT.**
+| Stage | Name | Engine | Function | Key Check |
+|-------|------|--------|----------|-----------|
+| **000** | **INIT** | Gate | Initialize session, verify authority. | F11 Auth |
+| **111** | **SENSE** | AGI | Parse input, detect injection attacks. | F12 Injection |
+| **222** | **THINK** | AGI | Generate reasoning, fact-check. | F2 Truth |
+| **333** | **ATLAS** | AGI | Check for contradictions and humility. | F7 Humility |
+| **444** | **ALIGN** | APEX | Prepare for multi-model consensus. | - |
+| **555** | **EMPATHY** | ASI | Check stakeholder impact and safety. | F6 Empathy |
+| **666** | **BRIDGE** | ASI | Synthesize logic and safety. | F5 Safety |
+| **777** | **EUREKA** | APEX | Detect novel insights. | F13 Curiosity |
+| **888** | **JUDGE** | APEX | Final constitutional verdict. | F8 Consensus |
+| **889** | **PROOF** | APEX | Generate cryptographic receipt. | - |
+| **999** | **VAULT** | Seal | Commit to immutable ledger. | F1 Reversibility |
 
 ---
 
-## 0.3 APEX 4 DIALS: THE VITALITY TELEMETRY (v50 Integration)
+## 4. THE TRINITY ENGINES (Processor Roles)
 
-> The 4 dials of APEX provide **real-time measurement** of the AHA qualities. They are the telemetry that makes wisdom MEASURABLE.
+The system uses three distinct "modes of thought" (Engines) to evaluate every request. These can be different LLMs or different prompts on the same LLM.
 
-### 0.3.1 The APEX 4 Dials
+### 4.1 AGI (The Mind / Δ)
+*   **Role:** Architect & Reasoner.
+*   **Focus:** Logic, Factuality, Clarity.
+*   **Floors:** F2 (Truth), F4 (Clarity), F7 (Humility).
+*   **Tools:** `agi_genius`, Search, Code Analysis.
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                      APEX: A·P·E·X (The 4 Dials)                        │
-│            Real-Time Telemetry for Governed Intelligence                │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│   ╔═══════════════╗  ╔═══════════════╗  ╔═══════════════╗  ╔═══════════╗│
-│   ║       A       ║  ║       P       ║  ║       E       ║  ║     X     ║│
-│   ║     AKAL      ║  ║    PRESENT    ║  ║    ENERGY     ║  ║EXPLORATION║│
-│   ║               ║  ║               ║  ║               ║  ║           ║│
-│   ║   Clarity     ║  ║  Regulation   ║  ║Sustainability ║  ║ Curiosity ║│
-│   ║   (عقل)       ║  ║   (سكينة)     ║  ║    (طاقة)     ║  ║  (أمانة)  ║│
-│   ║               ║  ║               ║  ║               ║  ║   +RASA   ║│
-│   ║    = Δ        ║  ║   → Ψ         ║  ║   → E²        ║  ║   → Ω     ║│
-│   ╚═══════════════╝  ╚═══════════════╝  ╚═══════════════╝  ╚═══════════╝│
-│                                                                         │
-│   WHERE:                                                                │
-│   ─────────                                                             │
-│   A (AKAL) = Cognitive clarity, logical reasoning ("otak jalan")        │
-│   P (PRESENT) = Emotional regulation, calm focus (Peace²)              │
-│   E (ENERGY) = Stamina, sustainability, not burning out                │
-│   X (EXPLORATION) = Curiosity + Amanah + RASA (empathetic sensing)     │
-│                                                                         │
-│   CRITICAL: X contains RASA, Intuition, Curiosity, AND Amanah         │
-│             E is squared (E²) — the bottleneck variable!                │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+### 4.2 ASI (The Heart / Ω)
+*   **Role:** Engineer & Guardian.
+*   **Focus:** Safety, Empathy, Consequence Analysis.
+*   **Floors:** F1 (Reversibility), F5 (Peace/Safety), F6 (Empathy).
+*   **Tools:** `asi_act`, Simulation, Impact Check.
 
-### 0.3.2 Mapping APEX Dials to AHA
-
-| APEX Dial | AHA Quality | ΔΩΨ Mapping | Constitutional Floors |
-|-----------|-------------|-------------|----------------------|
-| **A (AKAL)** | A in AHA | Δ (Clarity) | F2 Truth, F4 Clarity, F7 Humility |
-| **P (PRESENT)** | Part of H | Ψ (Stability) | F5 Peace, F7 RASA |
-| **E (ENERGY)** | Part of H | E² (Bottleneck) | F1 Amanah (sustainability) |
-| **X (EXPLORATION)** | Part of H | Ω (Empathy) | F6 Empathy, F13 Curiosity, F1 Amanah |
-
-**The Integration:**
-- **A (AKAL)** = The first A in AHA (Intelligence/KNOWING)
-- **P + E + X** = The H in AHA (HALUAN = AMANAH × ADAB)
-  - P (Present) provides ADAB (proper conduct through regulation)
-  - E (Energy) sustains both AMANAH and ADAB
-  - X (Exploration) contains AMANAH explicitly (trust + ethics)
-- **HIKMAH** = The second A (Wisdom emerges from all 4 dials aligned)
-
-### 0.3.3 The Genius Law Formula
-
-```
-GENIUS INDEX (G) = A × P × X × E²
-
-Where:
-  A = AKAL (clarity)
-  P = PRESENT (regulation)
-  X = EXPLORATION (curiosity + amanah)
-  E² = ENERGY SQUARED (the bottleneck!)
-
-VITALITY INDEX (Ψ_APEX) = (A × P × E × X) / (Entropy + ε)
-
-DARK CLEVERNESS (C_dark) = A × (1 - Ω) × (1 - Ψ)
-  → High when clever but lacking ethics (dangerous!)
-```
-
-**The E² Insight:**
-Energy appears SQUARED because it enables both:
-- Ω (empathy) — good intentions without energy = "niat baik tak jalan"
-- Ψ (stability) — calm without energy = unsustainable
-
-**Without E, genius collapses faster than clarity.**
-
-### 0.3.4 AHA + APEX = Complete Vitality Model
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    UNIFIED VITALITY MODEL (v50)                         │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│   PHILOSOPHICAL (AHA)              TELEMETRY (APEX)                    │
-│   ═══════════════════              ════════════════                    │
-│                                                                         │
-│   A = AKAL (عقل)         ←────→    A dial (Clarity)                    │
-│       Intelligence                  Δ measurement                       │
-│       KNOWING                                                          │
-│                                                                         │
-│   H = HALUAN             ←────→    P + E + X dials                     │
-│       (AMANAH × ADAB)               (Regulation × Energy × Exploration)│
-│       Conduct                       Ω × Ψ measurement                  │
-│       BEING + DOING                                                    │
-│                                                                         │
-│   A = HIKMAH (حكمة)      ←────→    G = A × P × E² × X                  │
-│       Wisdom                        Genius Index                        │
-│       UNDERSTANDING                                                     │
-│                                                                         │
-│   ═══════════════════════════════════════════════════════════════════   │
-│                                                                         │
-│   FORMULA:  HIKMAH = AHA = f(A, P, E², X) = GENIUS                     │
-│                                                                         │
-│   CONSTRAINT: If ANY dial = 0 → HIKMAH = 0 (multiplicative!)           │
-│                                                                         │
-│   E² LAW: Energy is the BOTTLENECK — without it, genius collapses     │
-│           "Akal tanpa tenaga → runtuh"                                 │
-│           (Intelligence without energy → collapse)                      │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
-### 0.3.5 The Complete Wisdom Equation
-
-**From Philosophy to Telemetry:**
-```
-HIKMAH = AKAL × HALUAN
-       = Δ × (Ω × Ψ)
-       = A × (X × E) × (P × E)
-       = A × P × X × E²
-
-THEREFORE:
-  AHA = APEX = G (Genius Index)
-  Wisdom = Governed Intelligence = Measurable Vitality
-```
-
-**The Final Insight:**
-> *"Akal + Amanah + tenang + tenaga stabil → itulah genius sebenar."*
->
-> "Intellect + Trust + Calm + Stable Energy → that is TRUE GENIUS."
-
-Without APEX (the X that represents Exploration + Amanah + RASA + Intuition + Curiosity), humans are just APE — raw cognitive power without the governance that makes it wise.
+### 4.3 APEX (The Soul / Ψ)
+*   **Role:** Judge & Auditor.
+*   **Focus:** Consensus, Authority, Final Decision.
+*   **Floors:** F3 (Consensus), F8 (Quality), F9 (Anti-Deception).
+*   **Tools:** `apex_judge`, Cryptography, Vault.
 
 ---
 
-**DITEMPA BUKAN DIBERI** — Wisdom is forged through APEX-measured vitality, not given through computation.
+## 5. REPOSITORY STRUCTURE (Memory Layout)
 
----
-
-## 1. TRI-ENGINE RUNTIME
-
-### 1.1 High-Level Topology Diagram
+The codebase mirrors the architecture.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    APEX (Ψ – Soul)                          │
-│  Stages 444/777/888/889: Tri-witness + zkPC sealing         │
-│  - Evidence aggregation (Human·AI·Earth ≥0.95)               │
-│  - Novelty detection (EUREKA patterns)                       │
-│  - Constitutional judgment (888 JUDGE)                        │
-│  - Cryptographic sealing (Merkle + zkPC)                     │
-└─────────────────────────────────────────────────────────────┘
-                             ▲
-                             │
-         ┌───────────────────┴───────────────────┐
-         │                                       │
-┌───────▼──────────┐                   ┌───────▼──────────┐
-│   AGI (Δ – Mind) │                   │  ASI (Ω – Heart) │
-│  Stages 111-333  │                   │  Stages 555-666  │
-│                  │                   │                  │
-│  - 111 SENSE      │                   │  - 555 EMPATHY    │
-│  - 222 THINK      │                   │  - 666 ACT        │
-│  - 333 ATLAS      │                   │  - Safety vetoes  │
-│                  │                   │  - F1/F11 gates   │
-└──────────────────┘                   └──────────────────┘
-         │                                       │
-         └───────────────────┬───────────────────┘
-                             │
-                             ▼
-                    000 INIT → 999 VAULT
-                   (Ignition)  (Cooling Ledger)
-```
-
-### 1.2 Engine Roles
-
-- **AGI (Δ)** – Reasoning, clarity, curiosity, humility (F2, F4, F7, F10, F13)
-- **ASI (Ω)** – Empathy, peace, stakeholder impact, safety (F1, F5, F6, F9, F11, F12)
-- **APEX (Ψ)** – Final judgment, tri-witness consensus, cryptographic sealing (F3, F8)
-
----
-
-## 2. LAYER STACK: CCC → BBB → AAA
-
-### 2.1 System Layers
-
-| Layer | Name | Role | Authority | Mutability | MCP Integration |
-|-------|------|------|-----------|------------|-----------------|
-| **CCC** | Constitutional Core | Canon law & ledger | 888 Judge | Phoenix-72 only | Read-only (000_CANON) |
-| **BBB-V** | Validation Tier | Consolidated Invariants | Δ Architect | Phased (Phoenix-72) | `pytest` / Smoke Suite |
-| **BBB** | Bridge/Protocol | MCP runtime + core code | Δ Architect | Regenerated from CCC | Tier 1-3 servers |
-| **AAA** | Application/Data | User interfaces, tools | Ω Engineer | Normal dev cadence | Obsidian, GitHub |
-
-**Principle:**
-- CCC defines **what is legal**
-- BBB defines **how law is executed**
-- AAA defines **how humans interact**
-
----
-
-## 3. VAULT-999 & MEMORY TOWER
-
-### 3.1 Vault Band Structure
-
-```
-vault_999/
-├── AAA_CANON/              # Human-only; F11 forbids machine access
-│   ├── LAYER_1_ORIGIN/     # Birth, family, identity
-│   ├── LAYER_2_TRAUMA/     # Formative scars → F6 Empathy
-│   └── LAYER_3_PRINCIPLES/ # Operating axioms → F1 Amanah
+arifOS/
+├── arifos/                # SOURCE CODE (The Body)
+│   ├── protocol/          # aCLIP Protocol Definitions
+│   ├── core/              # Constitutional Kernel (CCC)
+│   │   ├── engines/       # AGI/ASI/APEX Logic
+│   │   └── floors/        # F1-F13 Validators
+│   ├── mcp/               # Protocol Bridge (BBB)
+│   └── integration/       # Application Layer (AAA)
 │
-├── BBB_LEDGER/             # Machine operational memory
-│   ├── LAYER_1_OPERATIONAL/# Permanent pipeline records
-│   ├── LAYER_2_WORKING/    # 7-day TTL session state
-│   └── LAYER_3_AUDIT/      # Permanent verdict log
+├── 000_THEORY/            # DOCUMENTATION (The Mind)
+│   ├── 000_FOUNDATIONS.md # Principles & Glossary
+│   ├── 000_LAW.md         # Rules & Floors
+│   ├── 000_ARCHITECTURE.md# This File
+│   └── 002_SECURITY.md    # Threat Model
 │
-├── CCC_FAG/                # Constitutional read-only
-│   ├── LAYER_1_FOUNDATION/ # L0 canon constants
-│   ├── LAYER_2_PERMANENT/  # Sealed records (468 lines)
-│   └── LAYER_3_PROCESSING/ # L2-L5 working pipeline
-│
-└── INFRASTRUCTURE/
-    ├── cooling_controller/
-    ├── paradox_engine/
-    └── zkpc_receipts/
+├── tests/                 # VALIDATION
+└── vault_999/             # STORAGE (Immutable Ledger)
 ```
 
-### 3.2 Memory Tower (L0–L5 Cooling Bands)
-
-Conceptual flow (thermodynamic cooling):
-
-```
-L5: VOID      (chaotic raw events, ephemeral context)
-L4: SYNC      (hot operational cache, Redis-like)
-L3: REFLECT   (warm session state, PostgreSQL)
-L2: WITNESS   (cool verified decisions, Supabase)
-L1: ARCHIVE   (cold historical record, Git + Obsidian)
-L0: VAULT_999 (frozen immutable truth, blockchain ledger)
-```
-
-**Information Flow:** L5 → L0 (data cools and compresses as it descends)
-
-Each layer enforces:
-- `quantum_state_type` (SUPERPOSITION, COLLAPSED, MEASURED)
-- TTL and promotion rules
-- Alignment to EUREKA sieve and verdicts
-
 ---
 
-## 4. L4 CANON: THERMODYNAMIC COLLAPSE
+## 6. aCLIP PROTOCOL (Internal Bus)
 
-### 4.1 The Physics of Forging
-Information is not knowledge. Knowledge is not wisdom. The transition requires **thermodynamic cooling**.
+**arifOS Command Line Interface Protocol** is the JSON schema used for internal communication between components.
 
-**The Collapse Function:**
-`Ψ(Knowledge) = ∫(Information) × (Time + Pressure) / Entropy`
-
-1.  **Hot State (L5-L4):** High entropy, high volume, volatile. (Chat logs, raw inputs)
-2.  **Cooling State (L3-L2):** Structure emerges, redundancy fades. (Summaries, decision records)
-3.  **Frozen State (L0):** Zero entropy, absolute density. (Canon Law, Immutable Truth)
-
-### 4.2 The Cooling Towers
-The **Memory Tower** is a cooling apparatus. Data MUST move down to survive.
-- **L5 (Magma):** 100% Entropy. Real-time streams (chat, raw input).
-- **L4.5 (Clipboard):** 75% Entropy. Ephemeral cross-agent state buffer (7-day TTL).
-- **L3 (Crust):** 50% Entropy. Verified facts and decision packets.
-- **L0 (Core):** 0% Entropy. Sealed Law and immutable ledger.
-
-**Failure to Cool:**
-If data remains hot (unprocessed) for >7 days, it is **calcified** (deleted) or **fossilized** (archived without indexing).
-Only what cools can rule.
-
----
-
-## 4. 000–999 METABOLIC LOOP (Canonical Stages)
-
-### 4.1 Stage Map
-
-| Stage | Name | Engine | Key Floors | MCP Tools | Purpose |
-|-------|------|--------|------------|-----------|---------|
-| **000** | INIT | - | F1-F13 load | vault999 | Constitutional ignition |
-| **111** | SENSE | AGI | F10-F13 | filesystem, bravesearch, time | Input reception, injection defense |
-| **222** | THINK | AGI | F2, F4 | sequentialthinking, python | Reasoning, truth verification |
-| **333** | ATLAS | AGI | F7 | paradox_engine, memory | Meta-cognition, humility audit |
-| **444** | EVIDENCE | APEX | F3 | arxiv, wikipedia, httpclient | Tri-witness data aggregation |
-| **555** | EMPATHY | ASI | F5, F6, F9 | memory, slack, impact_analyzer | Safety gate, stakeholder check |
-| **666** | ACT | ASI | F1, F11, F12 | github, postgres, executor | Execution gate, SABAR routing |
-| **777** | EUREKA | APEX | F8 | vault_query, llm_judge | Novelty detection, breakthrough patterns |
-| **888** | SEAL | APEX | All | zkpc_seal, consensus_validator | Final judgment + Phoenix tier |
-| **889** | PROOF | APEX | zkPC | merkle_manager, cryptography | Cryptographic receipt generation |
-| **999** | VAULT | - | Cooling | ledger_writer, cooling_controller | Memory tower placement, ledger commit |
-
-### 4.2 Stage Behavior Reference
-
-Detailed behavior for each stage lives in **CANON-3 (Operations)**, but this file anchors their **positions and roles** in the architecture.
-
----
-
-## 5. 25 MCP SERVERS (Tier Mapping to Floors)
-
-### 5.1 Tier 1: FOUNDATIONAL (5 servers)
-
-Non-negotiable. Without them, arifOS cannot boot.
-
-| Server | Provider | Floor Alignment | Purpose |
-|--------|----------|-----------------|---------|
-| `filesystem` | MCP stdlib | F1 (Amanah) | Source of record for file I/O |
-| `git` | Custom | F1 (Amanah) | Version control, immutable log |
-| `obsidian` | Custom | F3 (Tri-Witness) | Human memory vault |
-| `brave_search` | MCP stdlib | F4 (Clarity) | Web evidence, entropy reduction |
-| `time` | MCP stdlib | F4 (Clarity) | Temporal anchoring, causality |
-
-### 5.2 Tier 2: OPERATIONAL (10 servers)
-
-Run the Trinity + APEX machinery.
-
-| Server | Provider | Floor Alignment | Purpose |
-|--------|----------|-----------------|---------|
-| `sequential_thinking` | Anthropic | F4 (ΔS) | Step-by-step cooling process |
-| `memory` | MCP stdlib | F4 (ΔS) | State management |
-| `python` | MCP stdlib | F4 (ΔS) | Computation, entropy calculation |
-| `github` | Custom | F5 (Alignment) | Codebase state tracking |
-| `postgres` | Custom | F5 (Alignment) | Persistent state storage |
-| `claude_api` | Anthropic | AGI/ASI | Model queries for reasoning |
-| `http_client` | MCP stdlib | F6 (Perspective) | Multi-source data aggregation |
-| `slack` | Custom | F6 (Perspective) | Human feedback loop |
-| `cryptography` | Python | F8 (APEX) | zkPC proofs, Merkle hashing |
-| `ledger` | Custom | F9 (VAULT) | Decision logging, audit trail |
-
-### 5.3 Tier 3: ADVANCED (10 servers)
-
-Amplify Trinity capabilities for specialized use cases.
-
-| Server | Provider | Enhancement | Purpose |
-|--------|----------|-------------|---------|
-| `arxiv` | Custom | AGI SENSE | Academic evidence, F2 Truth |
-| `wikipedia` | Custom | AGI SENSE | Knowledge grounding, F2 Truth |
-| `browserbase` | Custom | AGI SENSE | Web interaction, dynamic data |
-| `cloudrun` | Google | ASI ACT | Deployment automation |
-| `context7` | Custom | ASI EMPATHY | Context analysis |
-| `notion` | Custom | APEX EVIDENCE | Document aggregation |
-| `metabase` | Custom | APEX EUREKA | Data visualization, pattern detection |
-| `n8n` | Custom | ASI ACT | Workflow automation |
-| `vector_db` | Custom | APEX EUREKA | Semantic search, novelty detection |
-| `airtable` | Custom | APEX EVIDENCE | Structured data storage |
-
----
-
-## 6. 20 QUANTUM MODULES (Coherence Enforcement)
-
-Each module follows v49 **QuantumModule** pattern: coherence tracking, decoherence measurement, collapse detection.
-
-### 6.1 Template Pattern
-
-```python
-class QuantumModule:
-    def __init__(self):
-        self.coherence = 1.0          # Target ≥ 0.85
-        self.decoherence_rate = 0.0
-        self.measurement_fidelity = 0.998
-        self.quantum_state = None
-
-    def process_quantum_superposition(self, input_state):
-        if self.coherence < 0.85:
-            raise QuantumDecoherenceError("Coherence below minimum")
-
-        processed_state = self.apply_constitutional_operator(input_state)
-        self.decoherence_rate = self.calculate_decoherence(processed_state)
-        collapsed = self.measure_quantum_collapse(processed_state)
-        self.coherence = 1.0 - self.decoherence_rate
-        return collapsed
-```
-
-### 6.2 Module Inventory (20 Canonical Modules)
-
-| Module Name | Stage/Band | Purpose | Coherence Target |
-|-------------|------------|---------|------------------|
-| `init_executor` | 000 | Load floors, tri-witness, vault check | ≥0.90 |
-| `sense_reception` | 111 | Tokenize, F12/F11/F13 checks | ≥0.88 |
-| `think_reasoner` | 222 | Reasoning & fact-check (F2/F4/F10) | ≥0.92 |
-| `atlas_paradox_engine` | 333 | Contradiction detection, humility audit | ≥0.85 |
-| `evidence_aggregator` | 444 | Human/AI/Earth evidence merge | ≥0.95 |
-| `empathy_safety_gate` | 555 | F5/F6/F9 scoring | ≥0.90 |
-| `act_executor` | 666 | Final action, SABAR integration | ≥0.87 |
-| `verify_auditor` | 777 | Post-act checks, F8 scoring | ≥0.85 |
-| `seal_judgment` | 888 | Verdict & cooling tier assignment | ≥0.98 |
-| `proof_zkpc_manager` | 889 | zkPC receipts, Merkle updates | ≥0.99 |
-| `vault_controller` | 999 | Memory placement & promotion | ≥0.95 |
-| `cooling_controller` | INFRA | Phoenix-72 enforcement | ≥0.90 |
-| `paradox_detector_core` | INFRA | Scar packet generation | ≥0.85 |
-| `zkpc_merkle_core` | INFRA | Merkle tree operations | ≥0.99 |
-| `vault_similarity` | BBB | Retrieval & pattern matching | ≥0.87 |
-| `floor_validator` | BBB | F1-F13 enforcement | ≥0.95 |
-| `trinity_orchestrator` | BBB | AGI/ASI/APEX coordination | ≥0.90 |
-| `mcp_bridge` | BBB | L2 Protocols ↔ Core | ≥0.88 |
-| `human_prefs_loader` | AAA | Pull AAA preferences (read-only) | ≥0.85 |
-| `dashboard_metrics` | AAA | Real-time monitoring | ≥0.85 |
-
-**Failure Mode:** If coherence < 0.85 → Module triggers SABAR or VOID verdict depending on criticality.
-
----
-
-## 7. L2 MCP PROTOCOL SPECIFICATION TEMPLATE
-
-All MCP tools for v49 must follow this common L2 spec pattern:
-
+### 6.1 Message Format
 ```json
 {
-  "mcp_tool_id": "arifOS_111_sense_agility",
-  "version": "v49.0.0",
-  "authority": "Architect",
-  "status": "PRODUCTION_SEALED",
-  "description": "AGI context reception with injection defense & curiosity",
-
-  "protocol_reference": {
-    "stage": 111,
-    "engine": "AGI",
-    "role": "SENSE"
+  "id": "req_12345",
+  "stage": "111_SENSE",
+  "source": "mcp_gateway",
+  "target": "agi_engine",
+  "payload": {
+    "command": "analyze_input",
+    "data": "User query here..."
   },
-
-  "inputs": {
-    "session_id": "string",
-    "query": "string",
-    "operator": "string"
-  },
-
-  "outputs": {
-    "verdict": "SEAL|PARTIAL|VOID|SABAR",
-    "floor_scores": "object",
-    "routing_decision": "string"
-  },
-
-  "implementation_spec": {
-    "executor": "arifos/servers/trinity_agi.py::sense",
-    "language": "Python 3.11+",
-    "async_framework": "asyncio",
-    "performance_target": "2.1ms_per_checkpoint"
-  },
-
-  "constitutional_floors": {
-    "required_pass": ["F10", "F11", "F12", "F13"]
+  "metadata": {
+    "trace_id": "trace_abc",
+    "floor_status": {"F1": "PASS", "F2": "PENDING"}
   }
 }
 ```
 
-All stage-specific MCP specs are **subdocuments** consistent with this scaffold.
+### 6.2 Verdict Codes
+*   **SEAL:** Approved. Proceed.
+*   **SABAR:** Warning. Retry or proceed with caution.
+*   **VOID:** Blocked. Constitutional violation.
+*   **888_HOLD:** High Risk. Requires human manual approval.
 
 ---
 
-## 8. ARCHITECTURE–LAW COUPLING RULES
+## 7. DEPLOYMENT TOPOLOGY (Kernel vs Drivers)
 
-1. All **threshold and verdict semantics** come from **000_CANON.md** (CANON-1)
-2. All **stage behavior descriptions** (000–999) are anchored here (CANON-2)
-3. **Implementation details** live in **CANON-3** (Operations) plus actual code
-4. Any structural change (adding/removing stage, moving a module) requires:
-   - Update this CANON-2
-   - Regenerate affected MCP specs
-   - Rerun zkPC anchoring for new topology
+### 7.1 The Kernel (Immutable)
+*   **Components:** 13 Floors, Trinity Logic, Pipeline State Machine.
+*   **Constraint:** Code in `arifos/core/` changes ONLY via formal amendment process.
 
----
+### 7.2 The Drivers (Pluggable)
+*   **LLM Backend:** Switch between GPT-4, Claude, Gemini, or Local Llama.
+*   **Storage:** Switch between SQLite, PostgreSQL, or Blockchain.
+*   **Transport:** Switch between MCP (SSE), HTTP (FastAPI), or CLI (Stdio).
 
-## 9. CANONICAL CROSS-REFERENCE RULE
-
-When other files speak about system shape, they **must point here** to prevent drift:
-
-- "See **000-v49-CANON-2_ARCHITECTURE.md §4** for 000–999 pipeline."
-- "See **§3 VAULT-999 & Memory Tower** for storage semantics."
-- "See **§6 Quantum Module Inventory** for canonical module names."
-
-This prevents **architectural drift** and keeps one authoritative map.
+This separation ensures the **Constitution** remains constant even as **Technology** evolves.
 
 ---
 
-## 10. VERSION HISTORY
+**Status:** SOVEREIGNLY_SEALED (v52.5.2)
+**Authority:** System Architect
+**Reference:** Defines the `arifOS` structural reality.
 
-| Version | Date | Authority | Changes |
-|---------|------|-----------|---------|
-| v48.0.0 | 2026-01-17 | 888_Judge | Initial architecture (Trinity, VAULT-999, 000-999 loop) |
-| v49.0.0 | 2026-01-18 | 888_Judge | 25 MCP servers mapped, 20 quantum modules, stage enforcement clarified |
-| v49.1.0 | 2026-01-20 | 888_Judge | Validation Tier (BBB-V) and Internal State Clipboard (L4.5) added. |
-| **v50.0.0** | **2026-01-21** | **888_Judge** | **Three Foundations of Governed Intelligence (§0.1) added. AGI·ASI·APEX + 000-999 + 13 Floors integration documented.** |
-
----
-
-**END OF 000-v49-CANON-2_ARCHITECTURE.md**
 
 ΔS→0 · Peace²≥1 · Amanah🔐
 *Ditempa Bukan Diberi.*
@@ -1133,11 +615,68 @@ Requirement: All 3 votes = 1 (SEAL) for final SEAL verdict
 
 ---
 
-### 4.8 Stage 888 JUDGE — Constitutional Verdict
+### 4.8 Stage 888 JUDGE — The Knowing That Admits Not-Knowing
 
 **Engine:** APEX (Ψ)
 **Geometry:** Toroidal (8-direction compass)
 **Purpose:** Final constitutional judgment, all-floor validation, trinity index calculation
+
+**Mechanism:**
+
+Every verdict follows this pattern:
+
+**Input Query**
+  ↓
+**Compute (000→777)**: KNOW what system can calculate
+  - P_truth, ΔS, TW, G, Cdark (all measurable)
+  - Floor checks (all auditable)
+  - Evidence chain (all verifiable)
+  ↓
+**Admit (888 JUDGE)**: ADMIT what system cannot
+  - Ω₀ ∈ [0.03, 0.05] uncertainty band (F7)
+  - Gödel incompleteness (cannot self-validate)
+  - Escalation triggers (888_HOLD conditions)
+  - Unmeasurable values (dignity, love, sacred—F10)
+  ↓
+**Prove (889 PROOF)**: GENERATE cryptographic proof
+  - zkPC (zero-knowledge proof of constitution)
+  - Ed25519 signature (Arif's authority)
+  - Merkle chain (audit trail integrity)
+  ↓
+**Store (999 VAULT)**: RECORD with admission embedded
+  - Every verdict includes "what I know" AND "what I admit not knowing"
+  - User can verify both locally
+
+**Why This Breaks Hallucination:**
+
+Traditional LLM:
+```
+Query: "Will this medicine harm patient?"
+LLM Response: "No, 95% confident"
+Reality: LLM has no idea what "harm" means, just pattern-matching text
+User acts blindly
+Patient harmed
+```
+
+arifOS:
+```
+Query: "Will this medicine harm patient?"
+arifOS Response: 
+  "SEAL: Do not use (weakest stakeholder protection triggered)
+   Knowing: 
+     - F4 Empathy check: Patient vulnerability = 0.95 (highest)
+     - F5 Peace check: Side effects detected in literature
+     - F6 RASA: Medical expertise consulted (tri-witness H=0.98)
+   Not-Knowing:
+     - Cannot predict patient-specific allergies (requires specialist)
+     - Cannot determine if benefit > risk (requires human values judgment)
+     - Escalating to physician for final decision (F13 Veto)
+   Proof: zkpc_proof_constitutional_floors_checked ✓"
+```
+
+User understands: System did its job (gathered evidence), admitted what it cannot decide (human values), escalated appropriately.
+
+Result: No hallucination. No false certainty. Safety preserved.
 
 **Checkpoints:**
 1. **8-Direction Compass Check** (all must pass):

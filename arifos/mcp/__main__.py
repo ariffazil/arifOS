@@ -1,30 +1,70 @@
 """
-arifOS MCP Entry Point (v52.0.0)
+arifOS MCP Entry Point (v52.5.1-SEAL)
+Authority: Antigravity (Sovereign Architect)
+Ref: ADR_001_CONSTITUTIONAL_MONOLITH
 
 Usage:
-  python -m arifos.mcp              # stdio mode (default)
-  python -m arifos.mcp trinity-sse  # SSE mode for Railway
+  python -m arifos.mcp sse          # Production Monolith (SSE/HTTP)
+  python -m arifos.mcp trinity      # Legacy Local (Stdio)
 
 DITEMPA BUKAN DIBERI
 """
 
-import asyncio
 import sys
-import logging
+import os
+import uvicorn
 
-from arifos.mcp.server import main_stdio
-from arifos.mcp.sse import create_sse_app
+def run_production_monolith():
+    """
+    Ignite the v52 Constitutional Monolith.
 
-def main_sse():
-    """Run SSE server."""
-    import uvicorn
-    import os
-    port = int(os.environ.get("PORT", 8000))
-    app = create_sse_app()
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    Architecture:
+      - Module: arifos.mcp.sse
+      - Transport: SSE (MCP protocol)
+      - Port: $PORT (default 8000)
+      - Bind: 0.0.0.0 (Container)
+
+    Routes:
+      /health   - Railway health check
+      /sse      - SSE event stream (MCP)
+      /messages - Client messages (MCP)
+    """
+    # Import the Sealed Implementation directly
+    from arifos.mcp.sse import app, VERSION
+
+    port = int(os.getenv("PORT", 8000))
+    print(f"[IGNITION] Constitutional Monolith starting on port {port}...")
+    print(f"   Version: {VERSION}")
+    print(f"   Routes: /health, /sse, /messages")
+    print(f"   Motto: DITEMPA BUKAN DIBERI")
+
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=port,
+        log_level="info"
+    )
+
+def run_legacy_stdio():
+    """Legacy Stdio mode for local testing."""
+    import asyncio
+    from arifos.mcp.server import main_stdio
+    asyncio.run(main_stdio())
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] in ("sse", "trinity-sse"):
-        main_sse()
+    arg = sys.argv[1] if len(sys.argv) > 1 else "default"
+
+    # PRODUCTION PATH (The Truth)
+    if arg in ["sse", "production"]:
+        run_production_monolith()
+    
+    # LEGACY PATHS
+    elif arg == "trinity":
+        run_legacy_stdio()
+        
+    # DEFAULT (Fallback to Production for Container Safety)
     else:
-        asyncio.run(main_stdio())
+        # If no args, assume we might be in a container CMD that forgot args,
+        # or default to production safety.
+        print("No mode specified. Defaulting to Production Monolith.")
+        run_production_monolith()

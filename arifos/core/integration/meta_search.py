@@ -23,10 +23,11 @@ Nonce: X7K9F24
 import functools
 import logging
 import time
-from typing import Any, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
-from ..system.apex_prime import ApexVerdict, Verdict, Metrics
+from arifos.core.enforcement.floor_validators import validate_f2_truth
+from arifos.core.system.types import Verdict, ApexVerdict, Metrics
 from ..enforcement.unified_floors import UnifiedConstitutionalFloors
 from .cost_tracker import CostTracker, BudgetExceededError
 from .search_cache import ConstitutionalSearchCache

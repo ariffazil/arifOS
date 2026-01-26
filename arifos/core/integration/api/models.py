@@ -20,7 +20,7 @@ class HealthResponse(BaseModel):
 
     status: Literal["healthy", "degraded", "unhealthy"] = "healthy"
     details: Dict[str, Any] = Field(default_factory=dict)
-    version: str = "v51.2.0"
+    version: str = "v52.0.0"
 
 
 class ReadyResponse(BaseModel):
