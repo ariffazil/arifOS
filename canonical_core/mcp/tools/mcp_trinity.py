@@ -40,7 +40,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-from canonical_core.mcp.rate_limiter import get_rate_limiter, RateLimitResult
+from canonical_core.mcp.rate_limiter import get_rate_limiter
 from canonical_core.mcp.metrics import get_metrics
 
 # Session persistence for 999-000 loop
