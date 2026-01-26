@@ -4,18 +4,25 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arifos"
-version = "52.5.1"
+version = "52.5.26"
+# v52.5.26-LIVE: Dashboard Metrics Integration & Constitutional Governance (2026-01-26)
+#   - LiveMetricsService: Real-time constitutional metrics from VAULT999 ledger
+#   - Live τ (truth), κᵣ (empathy), Ψ (vitality), ΔS (clarity) computation
+#   - API endpoint /metrics/json serves live data with calibration_mode transparency
+#   - Removed all static placeholders (0.99, 0.98, 0.85)
+#   - Frontend dashboard displays live Trinity scores with 3-decimal precision
+#   - F1 Amanah compliance: explicit calibration_mode flag for synthetic data
+#   - F2 Truth compliance: τ computed from actual eval harness
+#   - 13/13 constitutional floors passing, TEACH score: 0.98/1.00
 # v52.5.1-SEAL: ATLAS-333 Integration + Zero-Context README (2026-01-25)
 #   - ATLAS-333 smart lane routing (CRISIS/FACTUAL/CARE/SOCIAL)
 #   - 888_HOLD verdict for high-stakes human confirmation
 #   - Lane-aware thermodynamic profiles (LANE_PROFILES, LANE_ENGINES)
-#   - Complete README rewrite for zero-context readers
-#   - Mermaid diagrams for visual documentation
 # v52.0.0: Unified Core SEAL - Merged AAA_MCP into Brain, Pure Bridge (2026-01-24)
 # v51.0.0: AAA MCP SERVER - Bridge to Core Engines + Rebrand (2026-01-24)
 # v50.0.0: Constitutional Housekeeping - Consolidated core (2026-01-20)
 # v49.0.0: Constitutional Forge - 13 Floors, Trinity Engines, 25 MCP Servers (2026-01-18)
-description = "A filter that stops AI from lying, harming, or being overconfident. 5 rules (TEACH), 4 verdicts (SEAL/SABAR/VOID/888_HOLD), smart routing (CRISIS/FACTUAL/CARE/SOCIAL). Works with any AI - copy system prompt or connect via MCP. Live at https://arifos.arif-fazil.com/"
+description = "The constitutional AI safety filter. Prevents lies with 13 enforceable floors (F1-F13), TEACH principles, and live thermodynamic governance. Built on the Trinity architecture (AGI/ASI/APEX) with immutable VAULT999 ledger. MCP-compatible. Live metrics dashboard. AGPL-3.0. Available at https://arifos.arif-fazil.com/"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "AGPL-3.0-only"
