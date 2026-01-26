@@ -58,6 +58,9 @@ from arifos.core.enforcement.metrics import (
 # v52 Lite Mode (Edge Optimization)
 LITE_MODE = os.environ.get("ARIFOS_LITE_MODE", "false").lower() == "true"
 
+# IMPORTANT: Define logger BEFORE fail-safe imports that use it
+logger = logging.getLogger(__name__)
+
 # v52.5 @PROMPT + ATLAS Integration (fail-safe import)
 # These ARE implemented - wiring them in from arifos/core/
 try:
@@ -92,8 +95,6 @@ except ImportError:
     bridge_agi_full = None
     bridge_asi_full = None
     bridge_apex_full = None
-
-logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -327,20 +328,20 @@ def _step_0_root_key_ignition(session_id: str) -> Dict[str, Any]:
         from arifos.core.memory.root_key_accessor import (
             get_root_key_info,
             derive_session_key,
-            ROOT_KEY_READY
+            get_root_key_status  # Lazy getter
         )
         from arifos.core.memory.root_key_accessor import verify_genesis_block
         from pathlib import Path
         
         result = {
-            "root_key_ready": ROOT_KEY_READY,
+            "root_key_ready": get_root_key_status(),  # Lazy evaluation
             "session_key": None,
             "genesis_exists": False,
             "constitutional_status": "PENDING"
         }
         
         # Check if root key exists
-        if not ROOT_KEY_READY:
+        if not result["root_key_ready"]:
             logger.warning("000_init Step 0: Root key not ready")
             logger.warning("  Run: python scripts/generate_rootkey.py")
             logger.warning("  Then: python scripts/create_genesis_block.py")

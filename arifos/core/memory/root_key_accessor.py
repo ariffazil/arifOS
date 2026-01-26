@@ -316,8 +316,15 @@ def _check_root_key_status():
         logger.error(f"Root key status check failed: {e}")
         return False
 
-# Perform status check on import
-ROOT_KEY_READY = _check_root_key_status()
+# Lazy initialization - defer entropy increase until first use
+_ROOT_KEY_STATUS = None
+
+def get_root_key_status() -> bool:
+    """Lazy getter - defers entropy increase until first use."""
+    global _ROOT_KEY_STATUS
+    if _ROOT_KEY_STATUS is None:
+        _ROOT_KEY_STATUS = _check_root_key_status()
+    return _ROOT_KEY_STATUS
 
 __all__ = [
     'RootKeyError',
@@ -328,5 +335,5 @@ __all__ = [
     'create_genesis_block',
     'verify_genesis_block',
     'derive_ledger_entry_hash',
-    'ROOT_KEY_READY'
+    'get_root_key_status'  # Lazy getter - replaced ROOT_KEY_READY
 ]
