@@ -3,8 +3,7 @@
 **Canon:** `000_THEORY/001_AGENTS.md`  
 **Motto:** *"Init the Genius, Act with Heart, Judge at Apex, seal in Vault."*  
 **Status:** v53.0.0-AAA (Production Ready)  
-**Live URL:** https://aaa-mcp.arif-fazil.com/  
-**Legacy URL:** https://arifos-production.up.railway.app/
+**Live URL:** https://arifos.arif-fazil.com/
 
 ---
 
@@ -15,7 +14,7 @@
 **What's changed:**
 - Commands: `arifos-mcp` → `aaa-mcp`
 - Package: `pip install arifos` → `pip install aaa-mcp`
-- Domain: `arifos-production.up.railway.app` → `aaa-mcp.arif-fazil.com`
+- Domain: `arifos-production.up.railway.app` → `arifos.arif-fazil.com`
 
 **What's unchanged:**
 - The arifOS constitutional kernel (F1-F13, TEACH, VAULT999)
@@ -191,11 +190,11 @@ aaa-mcp-sse       # SSE transport for cloud deployment
 
 # Health check (when running)
 curl http://localhost:8000/health
-curl https://aaa-mcp.arif-fazil.com/health
+curl https://arifos.arif-fazil.com/health
 
 # API documentation (when running)
 open http://localhost:8000/docs
-open https://aaa-mcp.arif-fazil.com/docs
+open https://arifos.arif-fazil.com/docs
 ```
 
 **Legacy commands (still work until v54.0.0):**
