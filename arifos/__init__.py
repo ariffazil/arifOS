@@ -1,5 +1,5 @@
 """
-arifOS v52.5.1-SEAL Constitutional Kernel
+arifOS v53.1.0-SEAL Constitutional Kernel
 5-Tool Trinity Framework + ATLAS-333 Smart Routing
 
 A filter that stops AI from lying, harming, or being overconfident.
@@ -12,33 +12,15 @@ Modules:
   arifos.core      - AGI/ASI/APEX kernels
   arifos.protocol  - Protocol handlers
 
+Note: Heavy imports are done lazily to avoid startup delays.
+Import specific modules when needed:
+  from arifos.core.system.apex_prime import APEXPrime
+  from arifos.core.system.types import Metrics, Verdict
+
 DITEMPA BUKAN DIBERI
 """
 
-__version__ = "52.5.1"
+__version__ = "53.1.0"
 
-# Minimal exports to avoid circularity during initialization
-
-from .mcp.mode_selector import MCPMode
-
-from .core.system.types import Metrics, Verdict, ApexVerdict, FloorCheckResult
-
-# Common high-level helpers (tests and public API)
-from .core.system.apex_prime import APEXPrime, apex_review, check_floors, normalize_verdict_code
-from .core.utils.eye_sentinel import AlertSeverity, EyeAlert, EyeReport, EyeSentinel
-
-__all__ = [
-    "APEXPrime",
-    "ApexVerdict",
-    "AlertSeverity",
-    "EyeAlert",
-    "EyeReport",
-    "EyeSentinel",
-    "FloorCheckResult",
-    "MCPMode",
-    "Metrics",
-    "Verdict",
-    "apex_review",
-    "check_floors",
-    "normalize_verdict_code",
-]
+# Minimal exports - no heavy imports at package level
+__all__ = ["__version__"]

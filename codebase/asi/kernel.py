@@ -1,10 +1,10 @@
 """
-ASI Kernel (Native) for Codebase
-v53.0.0 - Constitutional AI Heart/Ω
-
-Native implementation - exports from kernel_native.py
+ASI Kernel - Re-exports from codebase.engines.asi.kernel
+Self-contained implementation for Railway deployment.
 """
+from codebase.engines.asi.kernel import ASIActionCore, get_asi_core
 
-from codebase.asi.kernel_native import ASIKernelNative, ASIKernel, ASIActionCore
+# Alias for backward compatibility
+ASIKernel = ASIActionCore
 
-__all__ = ["ASIKernelNative", "ASIKernel", "ASIActionCore"]
+__all__ = ["ASIActionCore", "ASIKernel", "get_asi_core"]
