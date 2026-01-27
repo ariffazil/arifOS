@@ -22,7 +22,7 @@ from codebase.mcp.bridge import (
     bridge_vault_router,
 )
 # Import v53 Tools
-from codebase.mcp.tools.mcp_tools_v53 import (
+from codebase.mcp.tools._archive.mcp_tools_v53 import (
     authorize, reason, evaluate, decide, seal
 )
 from codebase.system.constitution import execute_constitutional_physics
@@ -96,10 +96,30 @@ async def health_check(request):
 async def metrics_endpoint(request):
     return JSONResponse(get_full_metrics())
 
+# --- APP EXPORT ---
+# Get the SSE app from FastMCP for uvicorn/Railway deployment
+app = mcp.sse_app()
+
+
 # Entry point
 def main():
-    print(f"[BOOT] Codebase SSE (v53) starting on port {mcp.port}")
-    mcp.run()
+    """
+    Main entry point for codebase-mcp-sse command.
+
+    Used by:
+      - pyproject.toml: codebase-mcp-sse = "codebase.mcp.sse:main"
+      - railway.toml: startCommand = "codebase-mcp-sse"
+    """
+    import uvicorn
+
+    port = int(os.getenv("PORT", 8000))
+    print(f"[BOOT] Codebase SSE (v53.1.0) starting on port {port}...")
+    print(f"   Version: {VERSION}")
+    print(f"   Routes: /health, /sse, /messages, /metrics/json")
+    print(f"   Host: 0.0.0.0 (Railway-compatible)")
+
+    uvicorn.run(app, host="0.0.0.0", port=port)
+
 
 
 def create_sse_app(tools: Dict[str, Any] = None):
