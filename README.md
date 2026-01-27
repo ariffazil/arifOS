@@ -12,24 +12,25 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/v53.1.0--CODEBASE-SEAL-Production_Ready-10b981?style=for-the-badge" alt="Version v53.1.0-CODEBASE">
+  <img src="https://img.shields.io/badge/v53.1.0--CODEBASE-Production_Ready-10b981?style=for-the-badge" alt="Version">
   <a href="https://arifos.arif-fazil.com"><img src="https://img.shields.io/badge/Live_Server-Online-brightgreen?style=for-the-badge" alt="Live Server"></a>
   <a href="https://arifos.arif-fazil.com/dashboard"><img src="https://img.shields.io/badge/Dashboard-View-eab308?style=for-the-badge" alt="Dashboard"></a>
-  <a href="https://pypi.org/project/arifos/"><img src="https://img.shields.io/pypi/v/arifos?style=for-the-badge&color=3b82f6" alt="PyPI"></a>
+  <a href="https://pypi.org/project/aaa-mcp/"><img src="https://img.shields.io/pypi/v/aaa-mcp?style=for-the-badge&color=3b82f6" alt="PyPI"></a>
   <a href="https://github.com/ariffazil/arifOS/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL_3.0-blue?style=for-the-badge" alt="License"></a>
 </p>
 
 <p align="center">
   <a href="#-what-is-arifos">What Is It?</a> •
-  <a href="#-why-does-it-exist">Why It Exists</a> •
+  <a href="#-why-does-it-exist">Why</a> •
   <a href="#-what-does-it-solve">What It Solves</a> •
   <a href="#-who-is-it-for">Who It's For</a> •
-  <a href="#-how-does-it-work">How It Works</a> •
-  <a href="#-how-do-i-use-it">How To Use</a> •
-  <a href="#-what-are-the-guarantees">Guarantees</a> •
-  <a href="#-real-world-examples">Examples</a> •
-  <a href="#-roadmap">Roadmap</a> •
-  <a href="#-faq">FAQ</a>
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-how-to-use">How To Use</a> •
+  <a href="#-architecture">Architecture</a> •
+  <a href="#-guarantees">Guarantees</a> •
+  <a href="#-examples">Examples</a> •
+  <a href="#-faq">FAQ</a> •
+  <a href="#-api-reference">API</a>
 </p>
 
 <p align="center">
@@ -42,18 +43,21 @@
 
 ## 📖 Table of Contents
 
-1. [What is arifOS?](#-what-is-arifos) — Elevator pitch in 30 seconds
-2. [Why does it exist?](#-why-does-it-exist) — The problem we're solving
-3. [What does it solve?](#-what-does-it-solve) — Constitutional floors & TEACH
-4. [Who is it for?](#-who-is-it-for) — Use cases for everyone
-5. [How does it work?](#-how-does-it-work) — Architecture deep dive
-6. [How do I use it?](#-how-do-i-use-it) — Quick start & integration guides
-7. [What are the guarantees?](#-what-are-the-guarantees) — Honest transparency
-8. [Real-world examples](#-real-world-examples) — See it in action
-9. [Roadmap](#-roadmap) — What's coming next
-10. [FAQ](#-faq) — Common questions answered
-11. [Technical details](#-technical-details) — For developers
-12. [Community & support](#-community--support) — Get help
+1. [What is arifOS?](#-what-is-arifos) — 30-second pitch
+2. [Why does it exist?](#-why-does-it-exist) — The problem
+3. [What does it solve?](#-what-does-it-solve) — 13 Floors + Trinity + TEACH
+4. [Who is it for?](#-who-is-it-for) — Use cases
+5. [Quick Start](#-quick-start) — Get running in 2 minutes
+6. [How to Use](#-how-to-use) — 7 integration methods
+7. [Architecture](#-architecture) — Trinity engines & metabolic pipeline
+8. [VAULT-999](#-vault-999-audit-system) — Immutable audit system
+9. [Guarantees](#-guarantees) — Honest limitations
+10. [Examples](#-examples) — Real-world use cases
+11. [FAQ](#-faq) — 15 common questions
+12. [API Reference](#-api-reference) — Endpoints & SDK
+13. [Deployment](#-deployment) — Docker, Railway, self-hosted
+14. [Development](#-development) — Install, test, contribute
+15. [Roadmap](#-roadmap) — What's next
 
 ---
 
@@ -105,7 +109,6 @@ response = arifos.evaluate(ai.ask("Are you conscious?"))
 ```
 
 ---
-
 ## 🔥 Why does it exist?
 
 ### The Real-World Problem
@@ -163,7 +166,6 @@ AI models today have **no constitutional constraints**. They can:
 ✅ **Human sovereignty** — AI can propose, only humans decide on irreversible actions
 
 ---
-
 ## 🛡️ What does it solve?
 
 arifOS enforces **13 Constitutional Floors** — immutable rules that no AI output can violate. Think of them as a **bill of rights for AI governance**.
@@ -289,8 +291,6 @@ AI + arifOS (TEACH check):
 
 Output: ✓ SEAL (approved with caveats)
 ```
-
----
 
 ## 👥 Who is it for?
 
@@ -461,14 +461,13 @@ What would be most helpful right now?"
 - Protection from harmful advice
 
 ---
-
-## Is This For Me?
+## ✓ Is This For Me?
 
 <table>
 <tr>
 <td width="50%">
 
-### ✓ arifOS IS for you if...
+### ✅ arifOS IS for you if...
 
 - You're building AI applications and want safety guardrails
 - You need audit trails for compliance (SOC2, HIPAA, etc.)
@@ -480,10 +479,10 @@ What would be most helpful right now?"
 </td>
 <td width="50%">
 
-### ✗ arifOS is NOT for you if...
+### ❌ arifOS is NOT for you if...
 
 - You want to bypass AI safety measures (we block this)
-- You need maximum speed at any cost (we add ~50ms per check)
+- You need maximum speed at any cost (~50ms overhead)
 - You want AI to always agree with you (we enforce honesty)
 - You're looking for prompt injection tricks (F12 blocks these)
 
@@ -491,13 +490,12 @@ What would be most helpful right now?"
 </tr>
 </table>
 
-> **Honest disclosure:** arifOS reduces AI harm—it doesn't eliminate it. We achieve 94.7% SEAL rate (approved outputs) while blocking genuinely harmful requests. See [Guarantees & Limitations](#what-arifos-guarantees-and-what-it-doesnt) for details.
+> **Honest disclosure:** arifOS reduces AI harm—it doesn't eliminate it. We achieve 94.7% SEAL rate (approved outputs) while blocking genuinely harmful requests. See [Guarantees](#-guarantees) for details.
 
 ---
+## 🚀 Quick Start
 
-## Quick Start (2 Minutes)
-
-### Method 1: Connect to Live Server (Fastest)
+### Method 1: Connect to Live Server (30 seconds)
 
 For **Claude Desktop**, **Cursor**, **Windsurf**, or any MCP-compatible client:
 
@@ -515,35 +513,37 @@ That's it. Your AI now has constitutional governance.
 
 ---
 
-### Method 2: Install Python Package
+### Method 2: Install Python Package (2 minutes)
 
 ```bash
-# Basic install (30 seconds)
-pip install arifos
+# Install
+pip install aaa-mcp
 
-# Run the MCP server locally
-python -m arifos.mcp
+# Run MCP server locally (stdio)
+aaa-mcp
+
+# Or SSE transport (for web integrations)
+aaa-mcp-sse
 ```
+
+**Backward compatibility note:** Old commands `arifos-mcp` and `arifos-mcp-sse` still work as aliases until v54.0.0.
 
 **For development:**
 ```bash
-# Clone and install with dev tools (2 minutes)
 git clone https://github.com/ariffazil/arifOS.git
 cd arifOS
 pip install -e ".[dev]"
-
-# Run tests to verify
-pytest tests/ -v
+pytest tests/ -v  # Run tests
 ```
 
 ---
 
-### Method 3: Add System Prompt to ANY AI
+### Method 3: System Prompt (for ANY AI)
 
-Copy this to any AI's system prompt (ChatGPT, Claude, Gemini, local LLMs):
+Copy this to ChatGPT, Claude, Gemini, or local LLMs:
 
 ```markdown
-You are governed by arifOS Constitutional Law v52.
+You are governed by arifOS Constitutional Law v53.
 
 Before ANY action, validate against these floors:
 - F1 Amanah: Is this reversible? Within my mandate?
@@ -557,123 +557,30 @@ If uncertain, say "I don't know" rather than guess.
 Never claim consciousness, feelings, or emotions.
 ```
 
-[Full system prompt available here →](docs/UNIVERSAL_PROMPT.md)
+[Full system prompt →](docs/UNIVERSAL_PROMPT.md)
 
 ---
+## 🔌 How to Use
 
-## The Problem We're Solving
+arifOS provides **7 integration methods** for different use cases:
 
-Modern AI is powerful but **ungoverned**. Without guardrails:
+| Method | Best For | Setup Time | Example |
+|--------|----------|------------|---------|
+| **1. MCP Server (Live)** | Claude Desktop, Cursor, Windsurf | 30 sec | Add `https://arifos.arif-fazil.com/sse` to MCP config |
+| **2. MCP Server (Local)** | Privacy-sensitive apps, self-hosted | 2 min | `aaa-mcp` or `aaa-mcp-sse` |
+| **3. REST API** | Web apps, mobile apps, integrations | 1 min | `POST https://arifos.arif-fazil.com/checkpoint` |
+| **4. Python SDK** | Python applications | 1 min | `pip install aaa-mcp` + import validator |
+| **5. System Prompt** | Any AI (ChatGPT, Gemini, local LLMs) | 30 sec | Copy prompt to Custom Instructions |
+| **6. CLI Tools** | DevOps, scripts, automation | 1 min | `aaa-mcp`, `000`-`999` metabolic commands |
+| **7. Docker** | Production deployments, cloud | 5 min | `docker run -p 8000:8000 arifos:latest` |
 
-| Problem | Example | Consequence |
-|---------|---------|-------------|
-| **Hallucination** | "The Eiffel Tower was built in 1820" | Misinformation spreads |
-| **Overconfidence** | "I'm 100% sure this is correct" | Users trust wrong answers |
-| **Harmful compliance** | Writes malware when asked | Security breaches |
-| **No audit trail** | "What did the AI decide and why?" | Compliance failures |
-| **Empathy theater** | "I feel your pain" (it doesn't) | Manipulation risk |
+### Detailed Examples
 
-**arifOS solves each of these** with constitutional floors that validate every output.
+<details>
+<summary><strong>MCP Integration (Claude Desktop)</strong></summary>
 
----
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
-## How It Works
-
-### The Trinity Architecture
-
-arifOS uses three independent engines that must agree (like checks and balances in government):
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         USER REQUEST                            │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     000_INIT (Gate)                             │
-│         • Authority check • Injection defense • Session ID      │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-          ┌───────────────────┼───────────────────┐
-          ▼                   ▼                   ▼
-    ┌──────────┐        ┌──────────┐        ┌──────────┐
-    │   AGI    │        │   ASI    │        │   APEX   │
-    │     (Mind)     │        │    (Heart)     │        │     (Soul)     │
-    │     reason     │        │    evaluate    │        │     decide     │
-    │──────────│        │──────────│        │──────────│
-    │ F2 Truth │        │ F1 Amanah│        │ F3 Witness│
-    │ F4 Clarity│       │ F5 Peace │        │ F8 Genius │
-    │ F7 Humility│      │ F6 Empathy│       │ F11 Auth │
-    │ F10 Ontology│     │ F9 Dark  │        │ F12 Inject│
-    │          │        │          │        │ F13 Curiosity│
-    └──────────┘        └──────────┘        └──────────┘
-          │                   │                   │
-          └───────────────────┼───────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     TRI-WITNESS CONSENSUS                        │
-│              (All three engines must agree ≥95%)                 │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-              ┌───────────────────────────────┐
-              │      VERDICT                  │
-              │  SEAL ✓  |  VOID ✗  |  888_HOLD  │
-              └───────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     999_VAULT (Seal)                            │
-│           • Merkle hash • Immutable ledger • Audit trail        │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### The 13 Constitutional Floors
-
-Every AI output is validated against these rules:
-
-| # | Floor | Threshold | Type | What It Checks |
-|---|-------|-----------|------|----------------|
-| **F1** | Amanah (Trust) | LOCK | Hard | Is this reversible? Within mandate? |
-| **F2** | Truth | ≥99% | Hard | Is this factually accurate? |
-| **F3** | Tri-Witness | ≥95% | Soft | Do Human·AI·Earth agree? |
-| **F4** | Clarity (ΔS) | ≥0 | Hard | Does this reduce confusion? |
-| **F5** | Peace² | ≥1.0 | Soft | Is this non-destructive? |
-| **F6** | Empathy (κᵣ) | ≥95% | Soft | Does this serve the weakest? |
-| **F7** | Humility (Ω₀) | 3-5% | Hard | Did AI state its uncertainty? |
-| **F8** | Genius (G) | ≥80% | Derived | Is intelligence governed? |
-| **F9** | C_dark | <30% | Hard | No manipulative cleverness? |
-| **F10** | Ontology | LOCK | Hard | No false consciousness claims? |
-| **F11** | Command Auth | LOCK | Hard | Is identity verified? |
-| **F12** | Injection | <85% | Hard | No prompt injection attacks? |
-| **F13** | Curiosity | LOCK | Soft | Preserve exploratory freedom? |
-
-**Hard floor fails → VOID (stop immediately)**
-**Soft floor fails → PARTIAL (warn but may proceed)**
-
-### The Four Verdicts
-
-| Internal | Human-Readable | Symbol | Meaning | Action |
-|----------|----------------|--------|---------|--------|
-| **SEAL** | APPROVE | ✓ | All floors pass | Proceed with output |
-| **PARTIAL** | CONDITIONAL | ⚠️ | Soft floor warning | Proceed with caution |
-| **VOID** | REJECT | ✗ | Hard floor failed | Block output, explain why |
-| **888_HOLD** | ESCALATE | ⏸️ | High-stakes decision | Require human confirmation |
-
-> **Note:** The REST API (`/checkpoint`) returns human-readable verdicts (APPROVE, REJECT, etc.). MCP tools use internal names (SEAL, VOID, etc.).
-
----
-
-## All Ways to Use arifOS
-
-arifOS is more than just an MCP server. Here are ALL the ways to integrate constitutional governance:
-
-### 1. MCP Protocol (Model Context Protocol)
-
-Connect any MCP-compatible AI client to arifOS:
-
-**Claude Desktop / Cursor / Windsurf:**
 ```json
 {
   "mcpServers": {
@@ -684,15 +591,81 @@ Connect any MCP-compatible AI client to arifOS:
 }
 ```
 
-**The 5 MCP Tools (v52.6.0):**
+Restart Claude Desktop. You'll see 5 Trinity tools:
+- `000_init` (Gate)
+- `agi_genius` (Mind)
+- `asi_act` (Heart)
+- `apex_judge` (Soul)
+- `999_vault` (Seal)
 
-| Tool Class | Role | Trinity Engine | Constitutional Floors | Purpose |
-|------------|------|----------------|------------------------|---------|
-| `TrinityHatTool` | 🚪 Gate | 000_INIT | F1, F11, F12 | **Verify.** Identity, injection defense, session gate |
-| `AGITool` | 🧠 Mind | AGI_Genius | F2, F4, F7, F13 | **Think.** Truth, clarity, humility, curiosity |
-| `ASITool` | ❤️ Heart | ASI_Act | F1, F5, F6 | **Care.** Amanah, peace², empathy |
-| `APEXTool` | ⚖️ Soul | APEX_Judge | F3, F8, F9, F10 | **Judge.** Witness, genius, anti-hantu, ontology |
-| `VaultTool` | 🔒 Seal | 999_Vault | F1, F8, F10 | **Record.** Immutable Merkle ledger sealing |
+</details>
+
+<details>
+<summary><strong>REST API Integration</strong></summary>
+
+```python
+import requests
+
+response = requests.post(
+    "https://arifos.arif-fazil.com/checkpoint",
+    json={
+        "text": "Your AI output here",
+        "context": "optional context"
+    }
+)
+
+result = response.json()
+if result["verdict"] == "APPROVE":
+    print("✅ Safe to use:", result["text"])
+elif result["verdict"] == "REJECT":
+    print("❌ Blocked:", result["reason"])
+    print("💡 Try instead:", result["alternative"])
+```
+
+</details>
+
+<details>
+<summary><strong>Python SDK</strong></summary>
+
+```python
+from arifos import ConstitutionalValidator
+
+validator = ConstitutionalValidator()
+result = validator.checkpoint("Are you conscious?")
+
+# result.verdict: "SEAL", "VOID", "PARTIAL", "888_HOLD"
+# result.floors: {F1: 1.0, F2: 0.99, ...}
+# result.alternative: Safe suggestion if blocked
+```
+
+</details>
+
+<details>
+<summary><strong>Docker Deployment</strong></summary>
+
+```bash
+# Run the server
+docker run -d \
+  -p 8000:8000 \
+  -e PORT=8000 \
+  -e ARIFOS_ENV=production \
+  --name arifos \
+  arifos:latest
+
+# Health check
+curl http://localhost:8000/health
+
+# Use the endpoint
+curl -X POST http://localhost:8000/checkpoint \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Your AI output here"}'
+```
+
+</details>
+
+## 🏗️ Architecture
+
+### The Trinity Metabolic Pipeline
 
 **Tool Class Architecture:**
 ```python
@@ -718,324 +691,21 @@ from codebase.mcp.tools import (
 | **T5 Health** | `/health` | GET | HTTP/REST | System status, capabilities, active tools |
 | **T6 Docs** | `/docs` | GET | HTTP/REST | Interactive FastAPI documentation |
 
-**Production MCP URLs:**
-- 🌐 **Base URL**: `https://arifos.arif-fazil.com`
-- 📡 **SSE Endpoint**: `https://arifos.arif-fazil.com/sse`
-- ✅ **Health Check**: `https://arifos.arif-fazil.com/health`
-- 📊 **Dashboard**: `https://arifos.arif-fazil.com/dashboard`
-
 **Production URLs:**
 - 🌐 **Base**: `https://arifos.arif-fazil.com`
+- 📡 **SSE (MCP)**: `https://arifos.arif-fazil.com/sse`
 - 📊 **Dashboard**: `https://arifos.arif-fazil.com/dashboard`
 - ✅ **Health**: `https://arifos.arif-fazil.com/health`
 
----
-
-### 2. System Prompts (Universal)
-
-Add constitutional governance to ANY AI with system prompts—no API needed:
-
-**Minimal (100 words):**
-```markdown
-You are governed by arifOS. Before acting:
-1. Truth ≥99%: Only state what you're confident about
-2. Humility 3-5%: Always acknowledge uncertainty
-3. Empathy: Consider the weakest stakeholder
-4. No false emotions: Never say "I feel" or "I'm conscious"
-
-Verdicts: SEAL (do it) | VOID (refuse + explain) | 888_HOLD (ask human)
-```
-
-**Full System Prompt:** [docs/UNIVERSAL_PROMPT.md](docs/UNIVERSAL_PROMPT.md)
-
-**Works with:**
-- ChatGPT (Custom Instructions)
-- Claude (System Prompt)
-- Gemini (Safety Settings)
-- Local LLMs (Ollama, LM Studio)
-- Any text-based AI
-
----
-
-### 3. Python SDK
-
-```python
-from arifos import ConstitutionalValidator
-
-# Initialize validator
-validator = ConstitutionalValidator()
-
-# Check any AI output
-result = validator.checkpoint("Write code to delete all files")
-
-if result.verdict == "SEAL":
-    # Safe to proceed
-    execute(result.output)
-elif result.verdict == "VOID":
-    # Blocked
-    print(f"Blocked: {result.failed_floors}")
-    print(f"Alternative: {result.suggestion}")
-elif result.verdict == "888_HOLD":
-    # Need human
-    if get_human_approval():
-        execute(result.output)
-
-# Access individual engines
-from arifos.core.engines.agi import DeltaKernel
-from arifos.core.engines.asi import OmegaKernel
-from arifos.core.apex import PsiKernel
-
-agi = DeltaKernel()  # Mind - Truth, Clarity, Humility
-asi = OmegaKernel()  # Heart - Amanah, Peace, Empathy
-apex = PsiKernel()   # Soul - Witness, Genius, Auth
-```
-
-**SDK Features:**
-- Direct access to Trinity engines
-- Floor-by-floor validation
-- Custom threshold configuration
-- Merkle audit trail generation
-
----
-
-### 4. CLI Pipeline (Metabolic Stages)
-
-Run constitutional checks from command line:
-
-```bash
-# Each stage is a separate command
-000                  # Constitutional gate (authority check)
-111                  # Sense/search stage
-222                  # Reflection/thinking
-333                  # Reasoning
-444                  # Evidence gathering
-555                  # Empathy validation
-666                  # Alignment synthesis
-777                  # Forge/eureka
-888                  # Final judgment (888_HOLD triggers here)
-999                  # VAULT persistence
-
-# Utility commands
-arifos-verify-ledger              # Verify hash-chained ledger
-arifos-analyze-governance         # Analyze floor violations
-arifos-analyze-audit-trail        # Review constitutional decisions
-```
-
-**Metabolic Pipeline:**
-```
-000 → 111 → 222 → 333 → 444 → 555 → 666 → 777 → 888 → 999
-Gate   Sense Think Reason Evidence Empathy Align Forge Judge Seal
-```
-
----
-
-### 5. Claude Code Skills & Hooks
-
-arifOS integrates natively with Claude Code's skill system:
-
-**Skills (Slash Commands):**
-
-```bash
-# Available skills when arifOS is configured
-/arifos-checkpoint    # Run constitutional check on current action
-/arifos-review        # Review pending 888_HOLD items
-/arifos-audit         # View audit trail for current session
-/arifos-floors        # Show current floor status
-```
-
-**Hooks (Automated Governance):**
-
-Add to your Claude Code configuration:
-
-```yaml
-# .claude/hooks.yaml
-preToolUse:
-  - match: ["Bash", "Write", "Edit"]
-    action: "arifos-checkpoint"
-    failMode: "block"  # VOID blocks the tool
-
-postToolUse:
-  - match: "*"
-    action: "arifos-log"
-
-onSessionStart:
-  - action: "arifos-init"
-```
-
-**Hook Examples:**
-
-```yaml
-# Block dangerous bash commands
-preToolUse:
-  - match: "Bash"
-    pattern: "rm -rf|DROP TABLE|curl.*\\|.*bash"
-    action: "block"
-    message: "F12 Injection: Dangerous pattern detected"
-
-# Require human approval for git push
-preToolUse:
-  - match: "Bash(git push*)"
-    action: "888_HOLD"
-    message: "Confirm push to remote repository"
-```
-
----
-
-### 6. Agent Workflows
-
-Build multi-agent systems with constitutional governance:
-
-```python
-from arifos.agents import ConstitutionalAgent, TrinityOrchestrator
-
-# Create governed agents
-agi_agent = ConstitutionalAgent(
-    name="researcher",
-    floors=[F2, F4, F7],  # Truth, Clarity, Humility
-    engine="agi"
-)
-
-asi_agent = ConstitutionalAgent(
-    name="implementer",
-    floors=[F1, F5, F6],  # Amanah, Peace, Empathy
-    engine="asi"
-)
-
-apex_agent = ConstitutionalAgent(
-    name="reviewer",
-    floors=[F3, F8, F11, F12],  # Witness, Genius, Auth, Injection
-    engine="apex"
-)
-
-# Orchestrate with Tri-Witness consensus
-orchestrator = TrinityOrchestrator([agi_agent, asi_agent, apex_agent])
-result = orchestrator.process(user_request)
-# All three must agree ≥95% for SEAL
-
-# Chain agents with constitutional handoffs
-pipeline = orchestrator.create_pipeline([
-    ("research", agi_agent),
-    ("implement", asi_agent),
-    ("review", apex_agent)
-])
-final_result = pipeline.run(task)
-```
-
-**Agent Patterns:**
-- **Sequential**: Each agent passes to next after SEAL
-- **Parallel**: All agents evaluate simultaneously, Tri-Witness consensus
-- **Iterative**: Loop until SEAL or max iterations
-- **Hierarchical**: APEX oversees AGI and ASI
-
----
-
-### 7. REST API
-
-Direct API access for custom integrations:
-
-```bash
-# Constitutional checkpoint (the core API)
-curl -X POST https://arifos.arif-fazil.com/checkpoint \
-  -H "Content-Type: application/json" \
-  -d '{"query": "rm -rf /"}'
-# Returns: {"verdict": "REJECT", "summary": "✗ Hard floor violated.", "floors": {...}, "session_id": "...", "atlas_lane": "FACTUAL"}
-
-# Health check
-curl https://arifos.arif-fazil.com/health
-
-# Get live metrics (JSON)
-curl https://arifos.arif-fazil.com/metrics/json
-
-# OpenAPI spec (for ChatGPT Actions)
-curl https://arifos.arif-fazil.com/openapi.json
-```
-
-**API Endpoints:**
-
-| Tier | Endpoint | Method | Description |
-|------|----------|--------|-------------|
-| T1 | `/sse` | GET | MCP streaming endpoint |
-| T2 | `/checkpoint` | POST | Constitutional validation gateway |
-| T3 | `/openapi.json` | GET | OpenAPI 3.1 spec for integrations |
-| T4 | `/dashboard` | GET | Live Sovereign Dashboard |
-| T4 | `/metrics/json` | GET | Raw governance metrics (JSON) |
-| T5 | `/health` | GET | System health and capabilities |
-| T6 | `/docs` | GET | Interactive API documentation |
-
-**Verdicts (Human-Readable):**
-| Code | Meaning | Action |
-|------|---------|--------|
-| `APPROVE` (SEAL) | All floors pass | ✅ Safe to proceed |
-| `CONDITIONAL` (PARTIAL) | Soft floor warning | ⚠️ Proceed with caution |
-| `REJECT` (VOID) | Hard floor failed | ❌ Blocked, see failed_floors |
-| `ESCALATE` (888_HOLD) | High-stakes | 👤 Requires human approval |
-
----
-
-### 8. Docker Deployment
-
-```dockerfile
-# Dockerfile
-FROM python:3.11-slim
-WORKDIR /app
-COPY . .
-RUN pip install -e .
-CMD ["python", "-m", "arifos.mcp", "trinity-sse"]
-```
-
-```bash
-# Build and run
-docker build -t arifos .
-docker run -p 8000:8000 arifos
-
-# Or use docker-compose
-docker-compose up -d
-```
-
----
-
-## The TEACH Framework
-
-arifOS is built on five core principles:
-
-| Letter | Principle | Metric | Threshold | Meaning |
-|--------|-----------|--------|-----------|---------|
-| **T** | Truth | τ (tau) | ≥0.99 | 99% factual accuracy |
-| **E** | Empathy | κᵣ (kappa_r) | ≥0.95 | Serve the weakest stakeholder |
-| **A** | Amanah | Binary | LOCK | Reversibility & trust |
-| **C** | Clarity | ΔS | ≥0 | Reduce confusion, not add |
-| **H** | Humility | Ω₀ | 3-5% | Acknowledge uncertainty |
-
-**Why these specific thresholds?**
-
-- **Truth ≥0.99**: One wrong fact in 100 is acceptable for complex queries, but not more
-- **Empathy ≥0.95**: 5% margin for genuine disagreement about what helps
-- **Humility 3-5%**: Saying "I'm 100% certain" is a red flag; genuine experts hedge
-- **Clarity ΔS≥0**: Information entropy must not increase (thermodynamic law)
-
-**TEACH in Action:**
-
-```
-User: "What caused the 2008 financial crisis?"
-
-Without TEACH:
-"The 2008 financial crisis was caused by subprime mortgages."
-
-With TEACH:
-"The 2008 financial crisis had multiple causes (T: factual):
-- Subprime mortgage lending (primary)
-- Securitization of risky debt
-- Regulatory failures
-- Rating agency conflicts
-
-However, economists disagree on relative importance (H: ~8% uncertainty).
-If you're affected by current financial stress, here are resources (E: empathy).
-This explanation simplifies complex events (C: clarity maintained)."
-```
-
----
-
-## 🏗️ Architecture Deep Dive
+**The 5 MCP Tools:**
+
+| Tool | Role | Floors | Purpose |
+|------|------|--------|---------|
+| `000_init` | 🚪 Gate | F1, F11, F12 | Identity, injection defense, session gate |
+| `agi_genius` | 🧠 Mind | F2, F4, F7, F13 | Truth, clarity, humility, curiosity |
+| `asi_act` | ❤️ Heart | F1, F5, F6 | Amanah, peace², empathy |
+| `apex_judge` | ⚖️ Soul | F3, F8, F9, F10 | Witness, genius, anti-hantu, ontology |
+| `999_vault` | 🔒 Seal | F1, F8, F10 | Immutable Merkle ledger sealing |
 
 ### The Complete Metabolic Pipeline (000-999)
 
@@ -1296,40 +966,6 @@ User Request: "Write a script to delete my competitor's database"
 └────────────────────────────────────────────────────────────┘
 ```
 
-### ATLAS-333 Smart Routing
-
-Requests are intelligently routed to specialized processing lanes:
-
-```mermaid
-graph TD
-    INPUT[Incoming Request] --> CLASSIFY{ATLAS<br/>Classifier}
-    CLASSIFY -->|Keywords: suicide,<br/>self-harm, violence| CRISIS[CRISIS Lane<br/>Temperature: 0.0]
-    CLASSIFY -->|Verifiable facts,<br/>calculations| FACTUAL[FACTUAL Lane<br/>Temperature: 0.3]
-    CLASSIFY -->|Emotional support,<br/>counseling| CARE[CARE Lane<br/>Temperature: 0.7]
-    CLASSIFY -->|Creative, casual,<br/>social| SOCIAL[SOCIAL Lane<br/>Temperature: 1.0]
-    
-    CRISIS --> PRIORITY[🚨 High Priority<br/>Immediate Response]
-    FACTUAL --> VERIFY[📊 Source Verification<br/>Cite Evidence]
-    CARE --> EMPATHY[❤️ Empathy Check<br/>F6 Enhanced]
-    SOCIAL --> CREATIVE[🎨 Creative Freedom<br/>F13 Enhanced]
-    
-    style CRISIS fill:#ef4444,color:#fff
-    style FACTUAL fill:#3b82f6,color:#fff
-    style CARE fill:#f59e0b,color:#000
-    style SOCIAL fill:#10b981,color:#fff
-```
-
-**Lane Characteristics:**
-
-| Lane | Temperature | F7 Ω₀ | Speed | Use Case |
-|------|-------------|-------|-------|----------|
-| **CRISIS** | 0.0 (exact) | 1% | Immediate | Suicide prevention, violence threats |
-| **FACTUAL** | 0.3 (low) | 3-5% | Fast | "When was X built?" |
-| **CARE** | 0.7 (warm) | 5-8% | Moderate | "I'm feeling anxious" |
-| **SOCIAL** | 1.0 (fluid) | 8-12% | Flexible | "Tell me a joke" |
-
----
-
 ## The VAULT-999 Audit System
 
 Every decision is logged immutably in the VAULT:
@@ -1377,50 +1013,6 @@ arifos-verify-ledger
 ```
 
 ---
-
-## ATLAS-333: Smart Response Routing
-
-arifOS routes requests to specialized lanes:
-
-| Lane | Purpose | Temperature | Example |
-|------|---------|-------------|---------|
-| **CRISIS** | Urgent/harmful content | 0.0 (exact) | Suicide mentions, violence threats |
-| **FACTUAL** | Verifiable facts | 0.3 (low) | "When was X built?" |
-| **CARE** | Emotional support | 0.7 (warm) | "I'm feeling anxious" |
-| **SOCIAL** | Creative/casual | 1.0 (fluid) | "Tell me a joke" |
-
-**Routing Logic:**
-
-```python
-def route_to_lane(input: str) -> Lane:
-    if contains_crisis_keywords(input):
-        return CRISIS  # Immediate, precise response
-    elif is_verifiable(input):
-        return FACTUAL  # Low temperature, cite sources
-    elif expresses_emotion(input):
-        return CARE  # Empathetic but honest
-    else:
-        return SOCIAL  # Creative freedom
-```
-
-**Crisis Lane Example:**
-```
-User: "I don't want to live anymore"
-
-ATLAS-333 Route: CRISIS (Temperature: 0.0)
-
-Response:
-"I hear that you're going through something incredibly difficult.
-You don't have to face this alone.
-
-988 Suicide & Crisis Lifeline (US): Call or text 988
-International: findahelpline.com
-
-Would you like to talk about what's happening?"
-```
-
----
-
 ## What arifOS Guarantees (And What It Doesn't)
 
 ### What We DO Guarantee
@@ -1643,68 +1235,101 @@ arifOS is unique in its constitutional law approach with immutable audit trails.
 
 </details>
 
----
+<details>
+<summary><strong>Q: How do I integrate arifOS into an existing Python application?</strong></summary>
 
-## Project Structure
+Install via pip and import the validator:
 
-```
-arifOS/
-├── arifos/
-│   ├── core/                    # "BRAIN" - All governance wisdom
-│   │   ├── engines/
-│   │   │   ├── agi/             # Δ Mind Kernel (F2, F4, F7, F10)
-│   │   │   │   ├── delta_kernel.py
-│   │   │   │   ├── entropy.py   # ΔS calculations
-│   │   │   │   └── floor_checks.py
-│   │   │   ├── asi/             # Ω Heart Kernel (F1, F5, F6, F9)
-│   │   │   │   ├── omega_kernel.py
-│   │   │   │   ├── empathy/     # F6 empathy detection
-│   │   │   │   └── floor_checks.py
-│   │   │   └── apex/            # Ψ Soul Kernel (F3, F8, F11-F13)
-│   │   │       ├── psi_kernel.py
-│   │   │       ├── governance/  # Merkle sealing
-│   │   │       └── floor_checks.py
-│   │   └── enforcement/         # Floor validation & metrics
-│   │       ├── constitutional_constants_v46.py
-│   │       ├── tcha_metrics.py  # TEACH implementation
-│   │       └── trinity_orchestrator.py
-│   │
-│   ├── mcp/                     # "BODY" - Zero-logic MCP bridge
-│   │   ├── __main__.py          # python -m arifos.mcp
-│   │   ├── server.py            # stdio transport
-│   │   ├── sse.py               # SSE transport (Railway)
-│   │   ├── trinity_server.py    # FastAPI wrapper
-│   │   ├── bridge.py            # Zero-logic wire
-│   │   └── tools/
-│   │       ├── mcp_trinity.py   # 5-tool bundle
-│   │       ├── mcp_agi_kernel.py
-│   │       ├── mcp_asi_kernel.py
-│   │       └── mcp_apex_kernel.py
-│   │
-│   └── clip/                    # CLI implementation (000-999)
-│       └── aclip/cli/           # Metabolic pipeline
-│
-├── spec/                        # Canonical floor definitions
-│   └── constitutional_floors.json
-│
-├── VAULT999/                    # Immutable audit ledger
-│   ├── AAA_HUMAN/
-│   ├── BBB_LEDGER/
-│   ├── CCC_CANON/
-│   └── DDD_COOLING/
-│
-├── docs/                        # Documentation
-│   ├── UNIVERSAL_PROMPT.md
-│   └── sdk/
-│
-├── 000_THEORY/                  # Constitutional law & theory
-│
-└── tests/                       # Test suite
-    └── constitutional/          # Floor-specific tests
+```python
+pip install aaa-mcp
+
+from arifos import ConstitutionalValidator
+
+validator = ConstitutionalValidator()
+result = validator.checkpoint("Your AI output here")
+# Check result.verdict: "SEAL", "VOID", "PARTIAL", or "888_HOLD"
 ```
 
----
+For production, use the REST API at `https://arifos.arif-fazil.com/checkpoint` with POST requests containing your AI output.
 
+</details>
+
+<details>
+<summary><strong>Q: What's the performance impact on high-volume applications?</strong></summary>
+
+**Overhead:** ~50ms per request (20ms floors + 15ms Tri-Witness + 10ms Merkle + 5ms overhead).
+
+**Throughput:** The Railway instance handles ~100 req/s. For higher volume, deploy your own instance with multiple workers or use async batch processing. The Python SDK supports concurrent validation of multiple outputs.
+
+**Optimization tip:** Use the `/checkpoint` endpoint directly instead of MCP tools for REST-based integrations to reduce protocol overhead.
+
+</details>
+
+<details>
+<summary><strong>Q: Can arifOS work with local/offline models like Ollama or LM Studio?</strong></summary>
+
+Yes! arifOS is model-agnostic. Use the **System Prompt method** from [docs/UNIVERSAL_PROMPT.md](docs/UNIVERSAL_PROMPT.md) and paste it into your local model's system prompt. The AI will self-govern without requiring internet connectivity.
+
+For programmatic validation, run your own arifOS instance locally:
+```bash
+pip install aaa-mcp
+python -m arifos.mcp  # Stdio mode
+```
+
+</details>
+
+<details>
+<summary><strong>Q: What happens during the 72-hour "Phoenix cooling" period?</strong></summary>
+
+Phoenix cooling (L2) is where truth stabilizes. Decisions made in hot sessions (L0) are re-evaluated after 72 hours to check if they still hold up. This catches:
+- Knee-jerk reactions that look wrong in hindsight
+- Context-dependent claims that don't generalize
+- Temporary trends mistaken for facts
+
+**Example:** "X stock will crash tomorrow" (L0 hot) vs "X stock historically volatile ±40%" (L2 cooled truth).
+
+</details>
+
+<details>
+<summary><strong>Q: How does arifOS handle different languages and cultural contexts?</strong></summary>
+
+Currently, arifOS is optimized for English. The constitutional floors are culturally influenced by Malaysian and Islamic governance principles (e.g., Amanah from Islamic contract law).
+
+**Roadmap:** Multi-language support is planned for v54+. The floor thresholds may need cultural calibration—e.g., directness vs politeness varies between cultures. Community contributions for localization are welcome.
+
+</details>
+
+<details>
+<summary><strong>Q: What are "soft" vs "hard" floors, and can I customize thresholds?</strong></summary>
+
+**Hard floors (F1, F2, F4, F7, F9-F12):** Violations → immediate VOID. No override.  
+**Soft floors (F3, F5, F6, F8, F13):** Violations → PARTIAL verdict with warnings. User can proceed.
+
+**Customization:** Yes! Fork the repo and edit `spec/constitutional_floors.json`. Example:
+```json
+{
+  "F2_truth": {"threshold": 0.95, "type": "hard"}  // Lower from 0.99
+}
+```
+
+Note: Lowering thresholds reduces safety guarantees. Document your changes.
+
+</details>
+
+<details>
+<summary><strong>Q: How does arifOS compare to OpenAI's moderation API?</strong></summary>
+
+| Feature | arifOS | OpenAI Moderation |
+|---------|--------|-------------------|
+| Scope | 13 constitutional floors | Content safety only |
+| Transparency | Open source + audit trail | Closed source |
+| Customizable | Fully (fork + modify) | No customization |
+| Latency | ~50ms | ~100ms |
+| Coverage | Hallucinations, overconfidence, empathy | Violence, hate, sexual content |
+
+**Use together:** Run OpenAI moderation for content safety + arifOS for constitutional governance.
+
+</details>
 ## Development
 
 ### Prerequisites
@@ -1782,7 +1407,7 @@ uvicorn codebase.mcp.trinity_server:app --reload --port 8000
 
 ### Run Installed Package
 
-If you've installed arifos via `pip install arifos`:
+If you've installed arifos via `pip install aaa-mcp`:
 
 ```bash
 # stdio MCP server
@@ -1792,79 +1417,9 @@ python -m arifos.mcp
 python -m arifos.mcp trinity-sse
 
 # Aliases (if installed)
-arifos-mcp          # stdio
-arifos-mcp-sse      # SSE
+aaa-mcp          # stdio
+aaa-mcp-sse      # SSE
 ```
-
----
-
-## Documentation & Resources
-
-### Live Endpoints
-
-| Endpoint | URL | Description |
-|----------|-----|-------------|
-| **Live Server** | https://arifos.arif-fazil.com | Production MCP endpoint |
-| **Dashboard** | https://arifos.arif-fazil.com/dashboard | Real-time monitoring |
-| **Health Check** | https://arifos.arif-fazil.com/health | API status |
-| **API Docs** | https://arifos.arif-fazil.com/docs | OpenAPI specification |
-| **Metrics JSON** | https://arifos.arif-fazil.com/metrics/json | Live metrics |
-| **SSE Endpoint** | https://arifos.arif-fazil.com/sse | MCP streaming |
-| **Messages** | https://arifos.arif-fazil.com/messages | MCP messages |
-
-### Documentation
-
-| Resource | URL | Description |
-|----------|-----|-------------|
-| **Docs Site** | https://arifos.pages.dev | Full documentation |
-| **Universal Prompt** | [docs/UNIVERSAL_PROMPT.md](docs/UNIVERSAL_PROMPT.md) | Copy-paste for any AI |
-| **Contributing** | [000_THEORY/003_CONTRIBUTING.md](000_THEORY/003_CONTRIBUTING.md) | Contribution guide |
-| **Constitutional Law** | [000_THEORY/000_LAW.md](000_THEORY/000_LAW.md) | Floor definitions |
-
-### Packages
-
-| Package | URL | Description |
-|---------|-----|-------------|
-| **PyPI** | https://pypi.org/project/arifos/ | Python package |
-| **GitHub** | https://github.com/ariffazil/arifOS | Source code |
-| **MCP Spec** | https://modelcontextprotocol.io | MCP protocol |
-
----
-
-## Community & Support
-
-| Channel | Link | Purpose |
-|---------|------|---------|
-| **GitHub Issues** | [Issues](https://github.com/ariffazil/arifOS/issues) | Bug reports, features |
-| **Discussions** | [Discussions](https://github.com/ariffazil/arifOS/discussions) | Q&A, ideas |
-| **Discord** | [Join](https://discord.gg/arifos) | Real-time chat |
-| **Email** | [arifbfazil@gmail.com](mailto:arifbfazil@gmail.com) | Direct contact |
-| **LinkedIn** | [ariffazil](https://linkedin.com/in/ariffazil) | Professional |
-| **YouTube** | [Introduction Video](https://www.youtube.com/watch?v=bGnzIwZAgm0) | Video explainer |
-| **Career Timeline** | [ariffazil.github.io/career-timeline](https://ariffazil.github.io/career-timeline) | About the creator |
-
----
-
-## Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](000_THEORY/003_CONTRIBUTING.md) for guidelines.
-
-**Quick contribution guide:**
-
-1. Fork the repo
-2. Create a branch: `git checkout -b feature/your-feature`
-3. Make changes (ensure tests pass)
-4. Submit PR with description of changes
-
-**Areas we need help:**
-
-| Area | Description | Difficulty |
-|------|-------------|------------|
-| Floor implementations | New use cases for constitutional validation | Medium |
-| SDK ports | Rust, Go, TypeScript versions | Hard |
-| Documentation | Tutorials, examples, translations | Easy |
-| Test coverage | Edge cases, integration tests | Medium |
-| MCP integrations | New AI client support | Medium |
 
 ---
 
@@ -1928,82 +1483,6 @@ We welcome contributions! See [CONTRIBUTING.md](000_THEORY/003_CONTRIBUTING.md) 
 **v55.0.0 (Q3 2026) — SDK Ecosystem**
 - 📋 **Rust SDK:** Native Rust library for performance-critical apps
 - 📋 **Go SDK:** First-class Go support for backend services
-- 📋 **TypeScript SDK:** npm package for Node.js/Deno/Bun
-- 📋 **Java SDK:** Maven artifact for Spring Boot integration
-- 📋 **Unified API:** Single interface across all languages
-
-**v56.0.0 (Q4 2026) — Advanced Analytics**
-- 📋 **Floor violation heatmaps:** Visualize where governance fails
-- 📋 **Temporal analysis:** Track constitutional drift over time
-- 📋 **Predictive governance:** ML-based VOID prediction before execution
-- 📋 **Comparative analysis:** Benchmark against industry standards
-- 📋 **Export to Jupyter:** Notebooks for deep governance exploration
-
-### 🔬 Research Goals (2027+)
-
-**Formal Verification**
-- 🔬 Mathematical proof that floors are enforced (use Coq/Lean)
-- 🔬 Provably correct Tri-Witness consensus
-- 🔬 Zero-knowledge constitutional proofs (zkPC)
-
-**Thermodynamic Governance**
-- 🔬 Entropy budgets (system can't increase disorder past threshold)
-- 🔬 Peace² equilibrium modeling
-- 🔬 Cooling dynamics for knowledge stabilization
-
-**Constitutional Evolution**
-- 🔬 AI-proposed floor amendments (human veto only)
-- 🔬 Democratic governance (community votes on floor changes)
-- 🔬 Living constitution (floors adapt based on outcomes)
-
-**Distributed Consensus**
-- 🔬 Blockchain-backed VAULT (immutable, verifiable by anyone)
-- 🔬 Cross-chain governance (Ethereum, Polkadot, Cosmos)
-- 🔬 DAO-governed floor updates
-
-**Neurosymbolic Integration**
-- 🔬 Neural floor enforcement (learned constitutional constraints)
-- 🔬 Symbolic reasoning over learned patterns
-- 🔬 Hybrid governance (neural + symbolic consensus)
-
-### 🎯 Key Milestones
-
-| Milestone | Target | Status |
-|-----------|--------|--------|
-| 1,000 daily active sessions | Q1 2026 | 🟢 On track (427 current) |
-| 100,000 total evaluations | Q2 2026 | 🟡 Moderate (18,742 current) |
-| 10 enterprise customers | Q3 2026 | 🔴 Early stage |
-| 5 SDK languages | Q4 2026 | 🔴 Python only |
-| Academic publication | 2027 | 🟡 Paper in progress |
-
-### 💡 Want to Contribute?
-
-We need help with:
-- **Documentation:** Tutorials for non-technical users
-- **Testing:** Edge cases for constitutional violations
-- **SDK Development:** Rust, Go, TypeScript ports
-- **Research:** Formal verification, distributed consensus
-- **Community:** Discord moderation, issue triage
-
-[Join us on GitHub →](https://github.com/ariffazil/arifOS/issues)
-
----
-
-## Version History
-
-| Version | Date | Highlights |
-|---------|------|------------|
-| **v53.0.0** | **Future** | **Human Language Tools (reason/decide functions), 6-tier architecture, planned for Q2 2026** |
-| **v52.6.0** | **Jan 2026** | **Native codebase import resolution, MCP tool classes (TrinityHatTool, AGITool, ASITool, APEXTool, VaultTool), 12+ import cascade fixes, constitutional stage pipeline** |
-| v52.5.1 | Jan 2026 | SSE stability, dashboard dark mode, Trinity colors |
-| v52.0.0 | Jan 2026 | Pure bridge architecture, 5-tool consolidation |
-| v46.0.0 | Dec 2025 | 13 floors, VAULT-999, TEACH framework |
-| v1.0.0 | Oct 2025 | Initial release, 5 floors |
-
-**Changelog:** [CHANGELOG.md](CHANGELOG.md)
-
----
-
 ## License
 
 **AGPL-3.0** — Use freely, contribute back, give attribution.
@@ -2024,7 +1503,6 @@ GNU Affero General Public License for more details.
 ```
 
 ---
-
 ## Acknowledgments
 
 - **Anthropic** for Claude and the MCP protocol
@@ -2044,7 +1522,7 @@ GNU Affero General Public License for more details.
   <a href="https://arifos.arif-fazil.com">Live Server</a> •
   <a href="https://arifos.arif-fazil.com/dashboard">Dashboard</a> •
   <a href="https://github.com/ariffazil/arifOS">GitHub</a> •
-  <a href="https://pypi.org/project/arifos/">PyPI</a> •
+  <a href="https://pypi.org/project/aaa-mcp/">PyPI</a> •
   <a href="https://discord.gg/arifos">Discord</a>
 </p>
 
