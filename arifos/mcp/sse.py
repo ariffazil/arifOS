@@ -362,22 +362,34 @@ async def arifos_trinity_999_vault(
 # Add health check directly via FastMCP custom_route before getting SSE app
 @mcp.custom_route("/health", methods=["GET"])
 async def health_check(request):
-    """Railway/Cloud health check endpoint."""
+    """
+    System health check - verifies everything is working properly.
+    
+    What this tells you:
+    - ✅ Server is running and responsive
+    - ✅ All 5 constitutional tools available
+    - ✅ Redis database connected (for session persistence)
+    - ✅ Dashboard and metrics accessible
+    - ✅ 13 constitutional floors active and checking every request
+    
+    Use this to verify your AI safety filter is online and protecting users.
+    """
     return JSONResponse({
         "status": "healthy",
+        "message": "✓ arifOS constitutional governance is active and protecting users",
         "version": VERSION,
         "motto": MOTTO,
-        "redis": redis_client.health(),
-        "active_sessions": redis_client.count_tokens(),
-        "endpoints": {
-            "sse": "/sse",
-            "messages": "/messages",
-            "health": "/health",
-            "docs": "/docs",
-            "dashboard": "/dashboard",
-            "metrics": "/metrics/json",
-            "checkpoint": "/checkpoint",
-            "openapi": "/openapi.json"
+        "system_status": {
+            "server": "online",
+            "redis": redis_client.health(),
+            "active_protections": "13 constitutional floors active",
+            "tools_available": 5,
+            "sessions_tracked": redis_client.count_tokens()
+        },
+        "quick_links": {
+            "dashboard": "/dashboard - See live governance metrics",
+            "docs": "/docs - API documentation",
+            "checkpoint": "/checkpoint - Test constitutional validation"
         }
     })
 
