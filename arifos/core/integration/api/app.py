@@ -152,18 +152,23 @@ def create_app() -> FastAPI:
     # Root endpoint
     @app.get("/", tags=["root"])
     async def root() -> dict:
-        """API root - returns version and basic info."""
+        """
+        Welcome to arifOS - Your AI's Constitutional Guardian
+        
+        This is the safety filter that makes AI honest, accountable, and trustworthy.
+        Every AI response gets checked against 13 constitutional rules before delivery.
+        """
         return {
-            "name": "arifOS API",
-            "version": "52.0.0",
-            "description": "Constitutional Governance Oracle (Unified Core)",
-            "docs": "/docs",
-            "govern": "/v1/govern",
-            "mcp_chatgpt": "/mcp",
-            "mcp_claude": "/sse",
-            "health": "/v1/health",
-            "tools": list(TOOLS.keys()),
-            "motto": "DITEMPA BUKAN DIBERI - Forged, not given",
+            "welcome": "Welcome to arifOS - Constitutional AI Governance",
+            "what_is_this": "arifOS acts as a safety seatbelt for AI. It checks every AI response against 13 constitutional rules to prevent harm, hallucination, and overconfidence.",
+            "how_it_works": "Like a three-engine airplane with backup systems, arifOS uses three independent engines (Mind, Heart, Soul) that must agree before allowing AI output.",
+            "who_needs_this": "Anyone building AI applications that need audit trails, safety guardrails, and constitutional enforcement - from startups to enterprises.",
+            "get_started_in_30_seconds": "Connect your AI client (Claude, Cursor, etc.) to https://arifos.arif-fazil.com/sse - that's it.",
+            "see_dashboard": "https://arifos.arif-fazil.com/dashboard",
+            "read_docs": "/docs",
+            "check_health": "/health",
+            "current_version": "52.0.0",
+            "motto": "DITEMPA BUKAN DIBERI - Constitutional intelligence is forged, not given",
         }
 
     return app
