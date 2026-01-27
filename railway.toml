@@ -1,0 +1,16 @@
+[build]
+builder = "docker"
+
+[deploy]
+startCommand = "codebase-mcp-sse"
+healthcheckPath = "/health"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
+numReplicas = 1
+
+[deploy.env]
+    ARIFOS_ENV = "production"
+    ARIFOS_VERSION = "v53.0.0-CODEBASE"
+    ARIFOS_LOG_LEVEL = "INFO"
+ARIFOS_CLUSTER = "3"
+PORT = "8000"
