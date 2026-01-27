@@ -47,8 +47,8 @@ from codebase.bundles import (
     ReasoningTree,
     AGIFloorScores,
 )
-from .stage_111_sense import SenseOutput, ParsedFact
-from .stage_222_think import ThinkOutput
+from .sense import SenseOutput, ParsedFact
+from .think import ThinkOutput
 
 
 # =============================================================================

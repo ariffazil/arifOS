@@ -20,6 +20,19 @@ MCP is a standard for AI tools to connect to external services. Think of it like
 | **Transport** | SSE (Server-Sent Events) |
 | **Live Endpoint** | `https://arifos.arif-fazil.com/sse` |
 | **Local Default** | `http://localhost:8000/sse` |
+| **Version** | v53.0.0-SEAL |
+
+## v53 Endpoint Architecture (6-Tier)
+
+| Tier | Endpoint | Method | Purpose |
+|------|----------|--------|---------|
+| **T1 Protocol** | `/sse` | GET | MCP streaming connection |
+| **T2 Gateway** | `/checkpoint` | POST | Universal constitutional validation |
+| **T3 Schema** | `/openapi.json` | GET | OpenAPI 3.1 spec for ChatGPT Actions |
+| **T4 Observe** | `/dashboard` | GET | Live Sovereign Dashboard |
+| **T4 Observe** | `/metrics/json` | GET | Raw metrics JSON |
+| **T5 Health** | `/health` | GET | System status + capabilities |
+| **T6 Docs** | `/docs` | GET | Interactive API documentation |
 
 ## The 5 Trinity Tools
 

@@ -43,6 +43,20 @@ presenter = AAAMetabolizer()
 # =============================================================================
 
 TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
+    "trinity_hat_loop": {
+        "name": "trinity_hat_loop",
+        "description": "6th Tool: 3-Loop Chaos → Canon Compressor (Red/Yellow/Blue). Trinity Hat thinking with entropy-gated loops.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "minLength": 1, "description": "Raw input query"},
+                "session_id": {"type": "string"},
+                "max_loops": {"type": "integer", "minimum": 1, "maximum": 5, "default": 3, "description": "Max hat loops (default: 3)"},
+                "target_delta_s": {"type": "number", "default": -0.3, "description": "Target entropy reduction"}
+            },
+            "required": ["query"]
+        }
+    },
     "init_000": {
         "name": "init_000",
         "description": "000 INIT: Full Constitutional Ignition & 7D Context Mapping. Triggers F1-F13 metabolic boot sequence.",
@@ -61,7 +75,7 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {"type": "string", "enum": ["sense", "think", "reflect", "atlas", "forge", "evaluate", "full"]},
+                "action": {"type": "string", "enum": ["sense", "think", "reflect", "atlas", "forge", "evaluate", "full", "metrics"]}
                 "query": {"type": "string"},
                 "session_id": {"type": "string"}
             },
@@ -111,8 +125,9 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
 }
 
 TOOL_ROUTERS = {
+    "trinity_hat_loop": bridge_trinity_hat_router,
     "init_000": bridge_init_router,
-    "agi_genius": bridge_agi_router,
+    "agi_genius": bridge_agi_action_router,  # Updated to handle "metrics" action
     "asi_act": bridge_asi_router,
     "apex_judge": bridge_apex_router,
     "vault_999": bridge_vault_router,

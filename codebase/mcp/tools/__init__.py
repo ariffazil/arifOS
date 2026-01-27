@@ -1,76 +1,29 @@
 """
-MCP Tools v53 - Human Language Constitutional AI Framework
-Codebase Integration Layer
+MCP Tools - Constitutional AI Governance (v52.6.0)
+Location: codebase/mcp/tools/
 
-Exports both human-language tools (v53) and internal aliases (v52):
+This module provides MCP tool definitions that expose the upgraded AGI capabilities.
 
-Human Names (v53):       Internal Names (v52):
-  authorize        <->     init_000
-  reason           <->     agi_genius
-  evaluate         <->     asi_act
-  decide           <->     apex_judge
-  seal             <->     vault_999
+Tools:
+- trinity_hat_loop: 3-Loop Chaos → Canon Compressor
+- agi_genius: Mind Engine with metrics/evidence/parallel actions
+- asi_act: Heart Engine with empathy and ethics
+- apex_judge: Soul Engine with judgment and sealing
+- vault_999: Immutable governance ledger
 
-Both names call the same function - semantic interchangeability
-for governance across any LLM.
-
-DITEMPA BUKAN DIBERI
+All tools enforce constitutional floors (F1-F13) and integrate with codebase upgrades.
 """
 
-from .mcp_tools_v53 import (
-    # Data classes
-    AuthorizeResult,
-    ReasonResult,
-    EvaluateResult,
-    DecideResult,
-    SealResult,
-    Verdict,
-    # v53 Human-language tools
-    authorize,
-    reason,
-    evaluate,
-    decide,
-    seal,
-    # v52 Internal aliases (same functions)
-    init_000,
-    agi_genius,
-    asi_act,
-    apex_judge,
-    vault_999,
-)
-
-from .integration_claude_api import (
-    TOOL_DEFINITIONS,
-    execute_tool,
-    get_tool_definitions,
-    ConstitutionalAIAssistant,
-    run_constitutional_pipeline,
-)
+from .trinity_hat import TrinityHatTool
+from .agi_tool import AGITool
+from .asi_tool import ASITool
+from .apex_tool import APEXTool
+from .vault_tool import VaultTool
 
 __all__ = [
-    # Data classes
-    "AuthorizeResult",
-    "ReasonResult",
-    "EvaluateResult",
-    "DecideResult",
-    "SealResult",
-    "Verdict",
-    # v53 Human-language tools (preferred)
-    "authorize",
-    "reason",
-    "evaluate",
-    "decide",
-    "seal",
-    # v52 Internal aliases (backward compatible)
-    "init_000",
-    "agi_genius",
-    "asi_act",
-    "apex_judge",
-    "vault_999",
-    # Claude API integration
-    "TOOL_DEFINITIONS",
-    "execute_tool",
-    "get_tool_definitions",
-    "ConstitutionalAIAssistant",
-    "run_constitutional_pipeline",
+    "TrinityHatTool",
+    "AGITool", 
+    "ASITool",
+    "APEXTool",
+    "VaultTool"
 ]

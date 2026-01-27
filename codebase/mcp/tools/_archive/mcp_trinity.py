@@ -12,8 +12,9 @@ The Metabolic Standard compressed to 5 memorable tools:
     asi_act     → Heart (EVIDENCE → EMPATHY → ACT)
     apex_judge  → Soul (EUREKA → JUDGE → PROOF)
     999_vault   → Seal (PROOF + Immutable Log)
+    444_sync    → Bridge (Merge Δ + Ω Bundles)
 
-Mnemonic: "Init the Genius, Act with Heart, Judge at Apex, seal in Vault."
+Mnemonic: "Init the Genius, Act with Heart, Sync the Bridge, Judge at Apex, Seal in Vault."
 
 Philosophy:
     INPUT → F12 Injection Guard
@@ -21,6 +22,7 @@ Philosophy:
          → ATLAS-333 (Lane-Aware Routing)
          → agi_genius (Δ Mind: Logic/Truth)
          → asi_act (Ω Heart: Care/Safety)
+         → 444_sync (Bridging Δ + Ω)
          → apex_judge (Ψ Soul: Verdict)
          → 999_vault (Immutable Seal)
          → OUTPUT (SEAL | SABAR | VOID)
@@ -2710,6 +2712,72 @@ def _compute_merkle_root(leaves: List[str]) -> str:
 
 
 # =============================================================================
+# TOOL X: 444_SYNC (The Bridge)
+# =============================================================================
+
+async def mcp_trinity_sync(
+    action: str = "sync",
+    delta_bundle: Optional[Dict[str, Any]] = None,
+    omega_bundle: Optional[Dict[str, Any]] = None,
+    session_id: str = "default"
+) -> Dict[str, Any]:
+    """
+    444 SYNC: The Bridge between Mind (Δ) and Heart (Ω).
+    
+    Merges the sealed DeltaBundle (AGI) and OmegaBundle (ASI) into a
+    MergedBundle. Enforces the Trinity Dissent Law (consensus scoring).
+    
+    Args:
+        action: "sync" (default)
+        delta_bundle: Sealed output from AGI Genius
+        omega_bundle: Sealed output from ASI Act
+        session_id: Session identifier
+        
+    Returns:
+        Merged result with consensus score and pre-verdict
+    """
+    start_time = time.time()
+    
+    # Rate limit check
+    rl_result = _check_rate_limit("444_sync", session_id)
+    if rl_result: 
+        return rl_result
+
+    try:
+        from codebase.stages.stage_444 import stage_444_sync
+        from codebase.state import SessionState
+        
+        # 1. Reconstruct minimal state for sync
+        state = SessionState(session_id=session_id)
+        state.delta_bundle = delta_bundle or {}
+        state.omega_bundle = omega_bundle or {}
+        
+        # 2. Execute Sync logic
+        verdict, new_state = stage_444_sync.execute(state)
+        
+        # 3. Extract Floor Scores from synced intent
+        floor_scores = new_state.floor_scores
+        
+        # 4. Record Metrics
+        _record_tool_metrics("444_sync", "SEAL", start_time)
+        
+        return {
+            "stage": "444_sync",
+            "status": "SEAL",
+            "session_id": session_id,
+            "consensus_score": floor_scores.get("F3_TriWitness", 0.0),
+            "pre_verdict": verdict,
+            "merged": True,
+            "floors_checked": ["F3_TriWitness"]
+        }
+        
+    except Exception as e:
+        logger.error(f"444_sync failed: {e}")
+        _record_tool_metrics("444_sync", "ERROR", start_time)
+        return {"stage": "444_sync", "status": "error", "error": str(e)}
+
+
+# =============================================================================
 # EXPORTS
 # =============================================================================
 
@@ -2720,10 +2788,11 @@ __all__ = [
     "ActResult",
     "JudgeResult",
     "VaultResult",
-    # 5 Trinity Tools
+    # 5 Trinity Tools + Bridge
     "mcp_000_init",
     "mcp_agi_genius",
     "mcp_asi_act",
+    "mcp_trinity_sync",
     "mcp_apex_judge",
     "mcp_999_vault",
 ]

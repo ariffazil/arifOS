@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/v53.0.0-SEAL-10b981?style=for-the-badge" alt="Version v53.0.0">
+  <img src="https://img.shields.io/badge/v52.6.0--CODEBASE-SEAL-redis_Ready-10b981?style=for-the-badge" alt="Version v52.6.0-CODEBASE">
   <a href="https://arifos.arif-fazil.com"><img src="https://img.shields.io/badge/Live_Server-Online-brightgreen?style=for-the-badge" alt="Live Server"></a>
   <a href="https://arifos.arif-fazil.com/dashboard"><img src="https://img.shields.io/badge/Dashboard-View-eab308?style=for-the-badge" alt="Dashboard"></a>
   <a href="https://pypi.org/project/arifos/"><img src="https://img.shields.io/pypi/v/arifos?style=for-the-badge&color=3b82f6" alt="PyPI"></a>
@@ -66,7 +66,7 @@ https://arifos.arif-fazil.com/dashboard
 ```bash
 curl https://arifos.arif-fazil.com/health
 ```
-Expected: `{"status": "healthy", "version": "52.5.1", "floors": 13}`
+Expected: `{"status": "healthy", "version": "v52.6.0-SEAL", "redis": {"status": "healthy"}, "active_sessions": 0}`
 
 **Option 3: Deploy to Railway** (5 minutes)
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/arifos)
@@ -92,6 +92,18 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 }
 ```
 Restart Claude Desktop. You now have AI governance.
+
+**Option 5: Run Codebase Microservices (Native v52.6.0)**
+For developers who prefer a clean, modular structure with native v52.6.0 architecture:
+```bash
+pip install -e .
+python -m codebase.mcp          # stdio transport (Claude Desktop)
+python -m codebase.mcp sse      # SSE transport (Railway/Cloud)
+
+# For development with auto-reload:
+uvicorn codebase.mcp.trinity_server:app --reload --port 8000
+```
+See [CODEBASE_REORGANIZATION.md](CODEBASE_REORGANIZATION.md) for implementation details.
 
 ---
 
@@ -231,8 +243,8 @@ arifOS uses three independent engines that must agree (like checks and balances 
           ▼                   ▼                   ▼
     ┌──────────┐        ┌──────────┐        ┌──────────┐
     │   AGI    │        │   ASI    │        │   APEX   │
-    │  (Mind)  │        │  (Heart) │        │  (Soul)  │
-    │   Blue   │        │   Red    │        │  Yellow  │
+    │     (Mind)     │        │    (Heart)     │        │     (Soul)     │
+    │     reason     │        │    evaluate    │        │     decide     │
     │──────────│        │──────────│        │──────────│
     │ F2 Truth │        │ F1 Amanah│        │ F3 Witness│
     │ F4 Clarity│       │ F5 Peace │        │ F8 Genius │
@@ -287,12 +299,14 @@ Every AI output is validated against these rules:
 
 ### The Four Verdicts
 
-| Verdict | Symbol | Meaning | Action |
-|---------|--------|---------|--------|
-| **SEAL** | ✓ | All floors pass | Proceed with output |
-| **PARTIAL** | ⚠️ | Soft floor warning | Proceed with caution |
-| **VOID** | ✗ | Hard floor failed | Block output, explain why |
-| **888_HOLD** | ⏸️ | High-stakes decision | Require human confirmation |
+| Internal | Human-Readable | Symbol | Meaning | Action |
+|----------|----------------|--------|---------|--------|
+| **SEAL** | APPROVE | ✓ | All floors pass | Proceed with output |
+| **PARTIAL** | CONDITIONAL | ⚠️ | Soft floor warning | Proceed with caution |
+| **VOID** | REJECT | ✗ | Hard floor failed | Block output, explain why |
+| **888_HOLD** | ESCALATE | ⏸️ | High-stakes decision | Require human confirmation |
+
+> **Note:** The REST API (`/checkpoint`) returns human-readable verdicts (APPROVE, REJECT, etc.). MCP tools use internal names (SEAL, VOID, etc.).
 
 ---
 
@@ -315,27 +329,45 @@ Connect any MCP-compatible AI client to arifOS:
 }
 ```
 
-**The 5 MCP Tools:**
+**The 5 MCP Tools (v52.6.0):**
 
-| Tool | Purpose | When It's Called |
-|------|---------|------------------|
-| `000_init` | Gate & authority check | Start of every session |
-| `agi_genius` | Mind: SENSE→THINK→ATLAS | Logic and truth validation |
-| `asi_act` | Heart: EVIDENCE→EMPATHY→ACT | Empathy and safety checks |
-| `apex_judge` | Soul: EUREKA→JUDGE→PROOF | Final judgment |
-| `999_vault` | Merkle seal + ledger | Audit trail creation |
+| Tool Class | Role | Trinity Engine | Constitutional Floors | Purpose |
+|------------|------|----------------|------------------------|---------|
+| `TrinityHatTool` | 🚪 Gate | 000_INIT | F1, F11, F12 | **Verify.** Identity, injection defense, session gate |
+| `AGITool` | 🧠 Mind | AGI_Genius | F2, F4, F7, F13 | **Think.** Truth, clarity, humility, curiosity |
+| `ASITool` | ❤️ Heart | ASI_Act | F1, F5, F6 | **Care.** Amanah, peace², empathy |
+| `APEXTool` | ⚖️ Soul | APEX_Judge | F3, F8, F9, F10 | **Judge.** Witness, genius, anti-hantu, ontology |
+| `VaultTool` | 🔒 Seal | 999_Vault | F1, F8, F10 | **Record.** Immutable Merkle ledger sealing |
 
-**MCP Endpoints (v53 Architecture):**
+**Tool Class Architecture:**
+```python
+# v52.6.0 Tool Classes (codebase/mcp/tools/)
+from codebase.mcp.tools import (
+    TrinityHatTool,  # Gate - F1 Amanah, F11 Auth, F12 Injection
+    AGITool,         # Mind - F2 Truth, F4 Clarity, F7 Humility, F13 Curiosity
+    ASITool,         # Heart - F1 Amanah, F5 Peace², F6 Empathy
+    APEXTool,        # Soul - F3 Witness, F8 Genius, F9 Anti-Hantu, F10 Ontology
+    VaultTool        # Seal - F1 Audit, F8 Consensus, F10 Ontology Lock
+)
+```
 
-| Tier | Endpoint | Method | Purpose |
-|------|----------|--------|---------|
-| **T1 Protocol** | `/sse` | GET | MCP streaming connection (Claude Desktop, Cursor) |
-| **T2 Gateway** | `/checkpoint` | POST | Universal constitutional validation (REST) |
-| **T3 Schema** | `/openapi.json` | GET | OpenAPI 3.1 spec for ChatGPT Actions |
-| **T4 Observe** | `/dashboard` | GET | Live Sovereign Dashboard (real-time metrics) |
-| **T4 Observe** | `/metrics/json` | GET | Raw metrics JSON for integrations |
-| **T5 Health** | `/health` | GET | System status + capabilities |
-| **T6 Docs** | `/docs` | GET | Interactive API documentation |
+**MCP Endpoints (v52.6.0 Architecture):**
+
+| Tier | Endpoint | Method | Transport | Purpose |
+|------|----------|--------|-----------|---------|
+| **T1 Protocol** | `/sse` | GET | SSE | MCP streaming connection (Claude Desktop, Cursor) |
+| **T2 Gateway** | `/checkpoint` | POST | HTTP/REST | Universal constitutional validation gateway |
+| **T3 Schema** | `/openapi.json` | GET | HTTP/REST | OpenAPI 3.1 spec for ChatGPT Actions |
+| **T4 Observe** | `/dashboard` | GET | HTTP/REST | Live Sovereign Dashboard (constitutional metrics) |
+| **T4 Observe** | `/metrics/json` | GET | HTTP/REST | Raw metrics JSON for external integrations |
+| **T5 Health** | `/health` | GET | HTTP/REST | System status, capabilities, active tools |
+| **T6 Docs** | `/docs` | GET | HTTP/REST | Interactive FastAPI documentation |
+
+**Production MCP URLs:**
+- 🌐 **Base URL**: `https://arifos.arif-fazil.com`
+- 📡 **SSE Endpoint**: `https://arifos.arif-fazil.com/sse`
+- ✅ **Health Check**: `https://arifos.arif-fazil.com/health`
+- 📊 **Dashboard**: `https://arifos.arif-fazil.com/dashboard`
 
 **Production URLs:**
 - 🌐 **Base**: `https://arifos.arif-fazil.com`
@@ -542,7 +574,7 @@ final_result = pipeline.run(task)
 
 ---
 
-### 7. REST API (v53)
+### 7. REST API
 
 Direct API access for custom integrations:
 
@@ -550,8 +582,8 @@ Direct API access for custom integrations:
 # Constitutional checkpoint (the core API)
 curl -X POST https://arifos.arif-fazil.com/checkpoint \
   -H "Content-Type: application/json" \
-  -d '{"text": "rm -rf /", "action": "evaluate"}'
-# Returns: {"verdict": "REJECT", "failed_floors": ["F1", "F5", "F12"], ...}
+  -d '{"query": "rm -rf /"}'
+# Returns: {"verdict": "REJECT", "summary": "✗ Hard floor violated.", "floors": {...}, "session_id": "...", "atlas_lane": "FACTUAL"}
 
 # Health check
 curl https://arifos.arif-fazil.com/health
@@ -563,7 +595,7 @@ curl https://arifos.arif-fazil.com/metrics/json
 curl https://arifos.arif-fazil.com/openapi.json
 ```
 
-**v53 API Endpoints:**
+**API Endpoints:**
 
 | Tier | Endpoint | Method | Description |
 |------|----------|--------|-------------|
@@ -1085,19 +1117,31 @@ ruff check arifos/
 mypy arifos/core --strict
 ```
 
-### Run Local Server
+### Run Local Server (Development)
 
 ```bash
 # stdio MCP server (for Claude Desktop, Cursor)
-python -m arifos.mcp
+python -m codebase.mcp
 
 # SSE server (for Railway, web clients)
+python -m codebase.mcp sse
+
+# FastAPI with auto-reload (development)
+uvicorn codebase.mcp.trinity_server:app --reload --port 8000
+```
+
+### Run Installed Package
+
+If you've installed arifos via `pip install arifos`:
+
+```bash
+# stdio MCP server
+python -m arifos.mcp
+
+# SSE server
 python -m arifos.mcp trinity-sse
 
-# FastAPI with hot reload (development)
-uvicorn arifos.mcp.trinity_server:app --reload --port 8000
-
-# Alias commands (if installed)
+# Aliases (if installed)
 arifos-mcp          # stdio
 arifos-mcp-sse      # SSE
 ```
@@ -1178,7 +1222,8 @@ We welcome contributions! See [CONTRIBUTING.md](000_THEORY/003_CONTRIBUTING.md) 
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| **v53.0.0** | **Jan 2026** | **6-tier endpoint architecture, live dashboard with real-time metrics, human-readable verdicts (APPROVE/REJECT/ESCALATE), REST checkpoint API** |
+| **v53.0.0** | **Future** | **Human Language Tools (reason/decide functions), 6-tier architecture, planned for Q2 2026** |
+| **v52.6.0** | **Jan 2026** | **Native codebase import resolution, MCP tool classes (TrinityHatTool, AGITool, ASITool, APEXTool, VaultTool), 12+ import cascade fixes, constitutional stage pipeline** |
 | v52.5.1 | Jan 2026 | SSE stability, dashboard dark mode, Trinity colors |
 | v52.0.0 | Jan 2026 | Pure bridge architecture, 5-tool consolidation |
 | v46.0.0 | Dec 2025 | 13 floors, VAULT-999, TEACH framework |

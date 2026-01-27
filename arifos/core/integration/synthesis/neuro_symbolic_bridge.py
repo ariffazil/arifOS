@@ -24,9 +24,12 @@ DITEMPA BUKAN DIBERI - Forged v46.1
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 
 class ConflictType(str, Enum):
@@ -226,13 +229,15 @@ class NeuroSymbolicBridge:
         Layer 1: Input Reception - Validate bundles.
 
         Checks:
-        - bundle_333 structure valid
-        - bundle_555 structure valid
+        - bundle_333 structure valid (can be empty for pure empathy scenarios)
+        - bundle_555 structure valid (required)
         - Constitutional compliance (F1-F10 floor checks passed)
         """
-        # Simplified validation (real implementation would be more thorough)
-        if not bundle_333:
-            raise ValueError("bundle_333 is empty")
+        # Allow empty bundle_333 for pure empathy scenarios (ASI-only evaluations)
+        if bundle_333 is None:
+            raise ValueError("bundle_333 cannot be None")
+        
+        # bundle_555 is required for ASI processing
         if not bundle_555:
             raise ValueError("bundle_555 is empty")
 
@@ -352,6 +357,11 @@ class NeuroSymbolicBridge:
         """
         # Simplified integration (real implementation would be LLM-based)
         delta_content = bundle_333.get("draft", "")
+        
+        # Log warning if no AGI content (pure empathy mode)
+        if not delta_content:
+            logger.warning("No Delta content provided - pure empathy synthesis mode")
+            
         omega_framing = self._generate_omega_framing(bundle_555)
 
         # Apply framing: acknowledgement → content → resources

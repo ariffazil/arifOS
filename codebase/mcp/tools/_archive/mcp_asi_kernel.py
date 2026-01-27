@@ -260,10 +260,92 @@ async def mcp_asi_evaluate(
         return {"stage": "asi_evaluate", "status": "error", "error": str(e)}
 
 
+
+# =============================================================================
+# v53 ADVANCED CAPABILITIES (A1-A3)
+# =============================================================================
+
+async def mcp_asi_stakeholder_reasoning(
+    query: str,
+    agi_context: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """
+    A1: Semantic Stakeholder Reasoning (v53).
+    Infinite-depth graph analysis for identifying implicit/hidden stakeholders.
+    """
+    try:
+        from codebase.engines.asi.asi_engine import ASIRoom
+        # Direct component access pattern for v53
+        # In a real kernel, we would get the singleton room
+        room = ASIRoom("asi_kernel_v53") 
+        result = await room.run_semantic_stakeholder_reasoning(query, agi_context)
+        return {
+            "stage": "asi_a1_stakeholder",
+            "status": "success",
+            "data": result
+        }
+    except Exception as e:
+        logger.error(f"A1 Stakeholder failed: {e}")
+        return {"stage": "asi_a1_stakeholder", "status": "error", "error": str(e)}
+
+
+async def mcp_asi_impact_diffusion(
+    query: str,
+    stakeholder_graph: Dict[str, Any],
+    agi_reasoning: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """
+    A2: Impact Diffusion Peace² (v53).
+    Network propagation simulation for benefit/harm cascading.
+    """
+    try:
+        from codebase.engines.asi.asi_engine import ASIRoom
+        room = ASIRoom("asi_kernel_v53")
+        result = await room.run_impact_diffusion(query, stakeholder_graph, agi_reasoning)
+        return {
+            "stage": "asi_a2_diffusion",
+            "status": "success",
+            "data": result
+        }
+    except Exception as e:
+        logger.error(f"A2 Diffusion failed: {e}")
+        return {"stage": "asi_a2_diffusion", "status": "error", "error": str(e)}
+
+
+async def mcp_asi_constitutional_audit(
+    query: str,
+    hardening_result: Dict[str, Any],
+    empathy_result: Dict[str, Any],
+    alignment_result: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    A3: Constitutional Audit Sink (v53).
+    Semantic reasoning for floors + immutable ledger hash chain.
+    """
+    try:
+        from codebase.engines.asi.asi_engine import ASIRoom
+        room = ASIRoom("asi_kernel_v53")
+        result = await room.run_constitutional_audit(
+            query, hardening_result, empathy_result, alignment_result
+        )
+        return {
+            "stage": "asi_a3_audit",
+            "status": "success",
+            "data": result
+        }
+    except Exception as e:
+        logger.error(f"A3 Audit failed: {e}")
+        return {"stage": "asi_a3_audit", "status": "error", "error": str(e)}
+
+
 # Export all ASI MCP tools
 __all__ = [
     "mcp_asi_evidence",
     "mcp_asi_empathy",
     "mcp_asi_bridge",
     "mcp_asi_evaluate",
+    # v53 Advanced
+    "mcp_asi_stakeholder_reasoning",
+    "mcp_asi_impact_diffusion",
+    "mcp_asi_constitutional_audit",
 ]

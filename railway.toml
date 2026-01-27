@@ -2,15 +2,15 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "aaa-mcp-sse"
+startCommand = "codebase-mcp-sse"
 healthcheckPath = "/health"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"
 numReplicas = 1
 
 [deploy.env]
-    ARIFOS_ENV = "production"
-    ARIFOS_VERSION = "v52.5.1"
-    ARIFOS_LOG_LEVEL = "INFO"
+ARIFOS_ENV = "production"
+ARIFOS_VERSION = "v53.1.0-CODEBASE"
+ARIFOS_LOG_LEVEL = "INFO"
 ARIFOS_CLUSTER = "3"
 PORT = "8000"
