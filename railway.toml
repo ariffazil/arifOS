@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "pip install -e . && python -m codebase.mcp sse"
+startCommand = "pip install -e . && python standalone_sse_server.py"
 healthcheckPath = "/health"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"

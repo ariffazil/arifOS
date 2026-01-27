@@ -25,6 +25,7 @@ RUN uv pip install --system --no-cache fastapi uvicorn pydantic mcp sse-starlett
 
 # Copy codebase
 COPY arifos/ arifos/
+COPY codebase/ codebase/
 # Fix: Copy 000_THEORY which actually exists, not L1_THEORY
 COPY 000_THEORY/ 000_THEORY/
 # Docs are good to have
@@ -48,5 +49,8 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Run Unified MCP SSE server
-CMD ["uv", "run", "python", "-m", "arifos.mcp.sse"]
+# Copy standalone server (zero dependencies on arifos/codebase imports)
+COPY standalone_sse_server.py .
+
+# Run Standalone MCP SSE server (guaranteed to work)
+CMD ["python", "standalone_sse_server.py"]
