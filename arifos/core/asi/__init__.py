@@ -1,27 +1,17 @@
 """
-arifOS ASI (Heart/Ω) Module
-v51 Core Reorganization
+ASI (Heart/Ω) - The Empathizer
 
-Re-exports ASI components for compatibility.
-The main implementation is in arifos.core.asi.kernel.ASIActionCore
+Unified namespace for arifOS Heart engine.
+
+Modules:
+    engine.py       - ASI engine core logic
+    eval.py         - ASI floor validation
+    server.py       - ASI MCP server
+    integration/    - ASI-specific integrations
 """
 
-# New v51 kernel
-from arifos.core.asi.kernel import ASIActionCore
+from .engine import ASIEngine
+from .eval import validate_asi_output
+from .server import ASIServer
 
-# Alias for backward compatibility
-ASIKernel = ASIActionCore
-
-# Cooling engine (used by apex_prime)
-try:
-    from arifos.core.asi.cooling import CoolingEngine
-except ImportError:
-    CoolingEngine = None
-
-__all__ = [
-    # v51 Kernel
-    "ASIActionCore",
-    "ASIKernel",
-    # Cooling
-    "CoolingEngine",
-]
+__all__ = ["ASIEngine", "validate_asi_output", "ASIServer"]

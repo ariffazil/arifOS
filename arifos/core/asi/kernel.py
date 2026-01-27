@@ -93,6 +93,11 @@ class ASIActionCore:
                 "reason": "Missing 555 Empathy Bundle"
             }
 
+        # Allow empty logic_input for pure empathy scenarios
+        if not logic_input:
+            logger.info("Empty logic_input provided - ASI empathy-only synthesis mode")
+            logic_input = {"draft": "", "truth_score": 0.0, "structure": {}}
+
         bridge_bundle = self._bridge.synthesize(logic_input, bundle_555)
 
         return {

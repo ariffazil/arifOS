@@ -22,6 +22,24 @@ __author__ = "Muhammad Arif bin Fazil"
 __motto__ = "DITEMPA BUKAN DIBERI"
 
 # =============================================================================
+# TRINITY ENGINES (Unified - 1 AGI 1 ASI 1 APEX) - v52.6.0
+# =============================================================================
+# AGI Entry Point (new v52.6.0 architecture)
+from codebase.agi import AGIRoom, execute_agi_room
+from codebase.agi import AGINeuralCore
+from codebase.agi import ThermodynamicDashboard, get_dashboard
+from codebase.agi import ParallelHypothesisMatrix
+from codebase.agi import EvidenceKernel, get_evidence_kernel
+
+# ASI Entry Point
+from codebase.asi import ASIRoom
+from codebase.asi import ASIKernel
+
+# APEX Entry Point (Renamed for clarity)
+from codebase.apex import APEXJudicialCore
+from codebase.apex import PsiKernel
+
+# =============================================================================
 # STAGE MODULES (444-889)
 # Re-export from stages/ subdirectory for clean imports
 # =============================================================================
@@ -54,26 +72,47 @@ from codebase.exceptions import (
 )
 
 # =============================================================================
-# PUBLIC API (__all__)
+# PUBLIC API (__all__) - v52.6.0
 # =============================================================================
 __all__ = [
     # Metadata
     "__version__",
     "__author__",
     "__motto__",
-    # Stages
+    
+    # AGI v52.6.0 (Governed Intelligence)
+    "AGIRoom",
+    "execute_agi_room",
+    "AGINeuralCore",
+    "ThermodynamicDashboard",
+    "get_dashboard",
+    "ParallelHypothesisMatrix",
+    "EvidenceKernel",
+    "get_evidence_kernel",
+    
+    # ASI (Heart)
+    "ASIRoom",
+    "ASIKernel",
+    
+    # APEX (Soul)
+    "APEXJudicialCore",
+    "PsiKernel",
+    
+    # Stages (444-889)
     "stage_444",
     "stage_555",
     "stage_666",
     "stage_777_forge",
     "stage_888_judge",
     "stage_889_proof",
-    # Types
+    
+    # Types (Constitutional)
     "Verdict",
     "Metrics",
     "FloorCheckResult",
     "ApexVerdict",
-    # Exceptions
+    
+    # Exceptions (Enforcement)
     "ConstitutionalError",
     "InjectionAttemptError",
     "AuthorityViolationError",

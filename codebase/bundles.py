@@ -94,6 +94,7 @@ class DeltaBundle:
     - Confidence interval with Omega_0 uncertainty
     - Floor scores for F2, F4, F7, F13
     - Entropy delta (thermodynamic measure)
+    - Dashboard metrics (real-time constitutional tracking)
     """
     # Session metadata
     session_id: str
@@ -124,6 +125,9 @@ class DeltaBundle:
     # Independent vote (before seeing ASI)
     vote: EngineVote = EngineVote.UNCERTAIN
     vote_reason: str = ""
+
+    # Real-time dashboard metrics (v52.6.0)
+    dashboard: Optional[Dict[str, Any]] = None  # Thermodynamic tracking
 
     # Integrity
     bundle_hash: str = ""
@@ -171,6 +175,7 @@ class DeltaBundle:
             "floor_scores": self.floor_scores.to_dict(),
             "vote": self.vote.value,
             "vote_reason": self.vote_reason,
+            "dashboard": self.dashboard,  # Thermodynamic metrics (v52.6.0)
             "bundle_hash": self.bundle_hash,
         }
 

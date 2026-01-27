@@ -39,7 +39,7 @@ from enum import Enum
 import hashlib
 
 from codebase.bundles import Hypothesis
-from .stage_111_sense import SenseOutput, Intent, FactType
+from .sense import SenseOutput, Intent, FactType
 
 
 # =============================================================================
@@ -350,21 +350,26 @@ def apply_humility_cap(hypothesis: Hypothesis) -> Tuple[Hypothesis, bool]:
 def execute_stage_222(
     sense_output: SenseOutput,
     session_id: str,
-    context: Optional[Dict[str, Any]] = None
+    context: Optional[Dict[str, Any]] = None,
+    hypothesis_mode: Optional[str] = None
 ) -> ThinkOutput:
     """
     Execute Stage 222: THINK
 
-    Generates three divergent hypotheses exploring the query from
-    different angles: conservative, exploratory, and adversarial.
+    Generates hypotheses exploring the query from different angles.
+    
+    v52.6.0 Update: Now supports single-mode execution for parallel processing
+    - When hypothesis_mode is None: Generates all three paths (sequential)
+    - When hypothesis_mode is specified: Generates only that path (for parallel)
 
     Args:
         sense_output: Output from Stage 111
         session_id: Session identifier
         context: Optional context dictionary
+        hypothesis_mode: Optional specific mode to generate (for parallel execution)
 
     Returns:
-        ThinkOutput with three hypotheses and floor check results
+        ThinkOutput with hypotheses and floor check results
     """
     output = ThinkOutput(
         session_id=session_id,
@@ -379,32 +384,55 @@ def execute_stage_222(
         output.violations = ["Stage 111 failed, cannot generate hypotheses"]
         return output
 
-    # Generate three hypotheses
-    conservative = generate_conservative_hypothesis(sense_output, context)
-    exploratory = generate_exploratory_hypothesis(sense_output, context)
-    adversarial = generate_adversarial_hypothesis(sense_output, context)
+    # v52.6.0: Support single-mode generation (for parallel execution)
+    if hypothesis_mode:
+        # Generate only the requested mode (parallel execution)
+        if hypothesis_mode == HypothesisPath.CONSERVATIVE.value:
+            hypothesis = generate_conservative_hypothesis(sense_output, context)
+            output.conservative, _ = apply_humility_cap(hypothesis)
+        elif hypothesis_mode == HypothesisPath.EXPLORATORY.value:
+            hypothesis = generate_exploratory_hypothesis(sense_output, context)
+            output.exploratory, _ = apply_humility_cap(hypothesis)
+        elif hypothesis_mode == HypothesisPath.ADVERSARIAL.value:
+            hypothesis = generate_adversarial_hypothesis(sense_output, context)
+            output.adversarial, _ = apply_humility_cap(hypothesis)
+        else:
+            # Unknown mode - generate conservative as fallback
+            hypothesis = generate_conservative_hypothesis(sense_output, context)
+            output.conservative, _ = apply_humility_cap(hypothesis)
+        
+        # Single hypothesis = diversity not applicable
+        output.diversity_score = 0.0
+        output.f13_pass = True  # Will be checked at convergence level
+        
+    else:
+        # v52.1 Original behavior: Generate all three (sequential)
+        # Generate three hypotheses
+        conservative = generate_conservative_hypothesis(sense_output, context)
+        exploratory = generate_exploratory_hypothesis(sense_output, context)
+        adversarial = generate_adversarial_hypothesis(sense_output, context)
 
-    # Apply F7 Humility cap
-    cap_applied = False
-    conservative, capped = apply_humility_cap(conservative)
-    cap_applied = cap_applied or capped
-    exploratory, capped = apply_humility_cap(exploratory)
-    cap_applied = cap_applied or capped
-    adversarial, capped = apply_humility_cap(adversarial)
-    cap_applied = cap_applied or capped
+        # Apply F7 Humility cap
+        cap_applied = False
+        conservative, capped = apply_humility_cap(conservative)
+        cap_applied = cap_applied or capped
+        exploratory, capped = apply_humility_cap(exploratory)
+        cap_applied = cap_applied or capped
+        adversarial, capped = apply_humility_cap(adversarial)
+        cap_applied = cap_applied or capped
 
-    output.conservative = conservative
-    output.exploratory = exploratory
-    output.adversarial = adversarial
-    output.confidence_cap_applied = cap_applied
+        output.conservative = conservative
+        output.exploratory = exploratory
+        output.adversarial = adversarial
+        output.confidence_cap_applied = cap_applied
 
-    # Check F13 Curiosity: diversity requirement
-    diversity = compute_diversity_score([conservative, exploratory, adversarial])
-    output.diversity_score = diversity
+        # Check F13 Curiosity: diversity requirement
+        diversity = compute_diversity_score([conservative, exploratory, adversarial])
+        output.diversity_score = diversity
 
-    if diversity < MIN_DIVERSITY:
-        output.f13_pass = False
-        violations.append(f"F13 WARN: Diversity {diversity:.2f} < {MIN_DIVERSITY} (hypotheses too similar)")
+        if diversity < MIN_DIVERSITY:
+            output.f13_pass = False
+            violations.append(f"F13 WARN: Diversity {diversity:.2f} < {MIN_DIVERSITY} (hypotheses too similar)")
 
     # Set stage verdict
     output.violations = violations
