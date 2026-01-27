@@ -9,8 +9,8 @@ restartPolicyType = "ON_FAILURE"
 numReplicas = 1
 
 [deploy.env]
-    ARIFOS_ENV = "production"
-    ARIFOS_VERSION = "v53.0.0-CODEBASE"
-    ARIFOS_LOG_LEVEL = "INFO"
+ARIFOS_ENV = "production"
+ARIFOS_VERSION = "v53.1.0-CODEBASE"
+ARIFOS_LOG_LEVEL = "INFO"
 ARIFOS_CLUSTER = "3"
 PORT = "8000"
