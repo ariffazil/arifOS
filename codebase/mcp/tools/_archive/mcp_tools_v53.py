@@ -387,8 +387,10 @@ async def reason(
 ) -> ReasonResult:
     """
     Perform logical analysis, chain-of-thought reasoning.
-
-    Constitutional Floors: F2 (Truth), F4 (Clarity), F7 (Humility)
+    
+    Features:
+      - Live Evidence Injection (v52.6.0): Injects detailed ASEAN-biased search results.
+      - Constitutional Floors: F2 (Truth), F4 (Clarity), F7 (Humility)
 
     Args:
         query: Question or task to reason about
@@ -746,6 +748,81 @@ vault_999 = seal
 
 
 # ============================================================================
+# v53 ADVANCED CAPABILITIES (ASI Heart Engine)
+# ============================================================================
+
+async def semantic_stakeholder_reasoning(
+    query: str,
+    session_id: str,
+    agi_context: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """
+    A1: Semantic reasoning about stakeholders.
+    Identifies explicit/implicit/hidden stakeholders via infinite-depth graph.
+    
+    Args:
+        query: User query
+        session_id: Session identifier
+        agi_context: Context from AGI Mind
+        
+    Returns:
+        Dict with stakeholder graph and κᵣ scores
+    """
+    # In production, this routes to bridge_asi_stakeholder_router
+    return {
+        "status": "MOCK_ROUTING", 
+        "message": "Use bridge_asi_stakeholder_router for execution"
+    }
+
+async def impact_diffusion_peace_squared(
+    query: str,
+    stakeholder_graph: Dict[str, Any],
+    agi_reasoning: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """
+    A2: Impact diffusion model for F5 Peace².
+    Simulates benefit/harm propagation through stakeholder network.
+    
+    Args:
+        query: User query
+        stakeholder_graph: Graph from A1
+        agi_reasoning: Reasoning from AGI
+        
+    Returns:
+        Dict with diffusion simulation and Peace² score
+    """
+    return {
+        "status": "MOCK_ROUTING",
+        "message": "Use bridge_asi_diffusion_router for execution"
+    }
+
+async def constitutional_audit_sink(
+    query: str,
+    session_id: str,
+    hardening_result: Dict[str, Any],
+    empathy_result: Dict[str, Any],
+    alignment_result: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    A3: Constitutional audit sink.
+    Provides semantic reasoning for floors + immutable ledger.
+    
+    Args:
+        query: User query
+        session_id: Session identifier
+        hardening_result: Output from hardening
+        empathy_result: Output from empathy
+        alignment_result: Output from alignment
+        
+    Returns:
+        Dict with audit trail and hash chain
+    """
+    return {
+        "status": "MOCK_ROUTING",
+        "message": "Use bridge_asi_audit_router for execution"
+    }
+
+# ============================================================================
 # EXPORTS
 # ============================================================================
 
@@ -763,6 +840,10 @@ __all__ = [
     "evaluate",
     "decide",
     "seal",
+    # v53 Advanced Capabilities
+    "semantic_stakeholder_reasoning",
+    "impact_diffusion_peace_squared",
+    "constitutional_audit_sink",
     # v52 Internal aliases
     "init_000",
     "agi_genius",

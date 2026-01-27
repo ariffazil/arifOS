@@ -1,47 +1,17 @@
 """
-arifOS APEX (Soul/Ψ) Module
-v51 Core Reorganization
+APEX (Soul/Ψ) - The Judge
 
-Re-exports APEX components for compatibility.
-The main implementation is in arifos.core.apex.kernel.APEXJudicialCore
+Unified namespace for arifOS Soul engine.
+
+Modules:
+    engine.py    - APEX engine core logic
+    judge.py     - APEX judicial functions (legacy, removed)
+    vault/       - VAULT-999 sealing
+    paradox/     - APEX paradox codex
+
+Note: VAULT999 moved to arifos.core.memory.vault.vault999
 """
 
-# New v51 kernel
-from arifos.core.apex.kernel import APEXJudicialCore
+from .engine import APEXEngine
 
-# Alias for backward compatibility
-APEXKernel = APEXJudicialCore
-
-# Legacy engine (for backward compatibility)
-try:
-    from arifos.core.engines.apex_engine import (
-        APEXEngine,
-        APEXOutput,
-        VoidJustification,
-        ProofPacket,
-        EurekaResult,
-        JudgeResult,
-        ProofResult,
-    )
-except ImportError:
-    APEXEngine = None
-    APEXOutput = None
-    VoidJustification = None
-    ProofPacket = None
-    EurekaResult = None
-    JudgeResult = None
-    ProofResult = None
-
-__all__ = [
-    # v51 Kernel
-    "APEXJudicialCore",
-    "APEXKernel",
-    # Legacy Engine
-    "APEXEngine",
-    "APEXOutput",
-    "VoidJustification",
-    "ProofPacket",
-    "EurekaResult",
-    "JudgeResult",
-    "ProofResult",
-]
+__all__ = ["APEXEngine"]  # render_verdict and VAULT999 removed - moved to codebase structure

@@ -30,13 +30,15 @@ logger = logging.getLogger(__name__)
 try:
     from .mcp_tools_v53 import (
         authorize, reason, evaluate, decide, seal,
-        AuthorizeResult, ReasonResult, EvaluateResult, DecideResult, SealResult
+        AuthorizeResult, ReasonResult, EvaluateResult, DecideResult, SealResult,
+        semantic_stakeholder_reasoning, impact_diffusion_peace_squared, constitutional_audit_sink
     )
 except ImportError:
     # Fallback for standalone testing
     from mcp_tools_v53 import (
         authorize, reason, evaluate, decide, seal,
-        AuthorizeResult, ReasonResult, EvaluateResult, DecideResult, SealResult
+        AuthorizeResult, ReasonResult, EvaluateResult, DecideResult, SealResult,
+        semantic_stakeholder_reasoning, impact_diffusion_peace_squared, constitutional_audit_sink
     )
 
 
@@ -186,6 +188,47 @@ TOOL_DEFINITIONS = [
             "required": ["session_id", "verdict", "query", "response", "decision_data"]
         }
     }
+    {
+        "name": "semantic_stakeholder_reasoning",
+        "description": "A1: Infinite-depth stakeholder graph analysis. Use to find hidden/implicit stakeholders.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "User query"},
+                "session_id": {"type": "string", "description": "Session ID"},
+                "agi_context": {"type": "object", "description": "Optional context from AGI"}
+            },
+            "required": ["query", "session_id"]
+        }
+    },
+    {
+        "name": "impact_diffusion_peace_squared",
+        "description": "A2: Network propagation simulation for Peace². Use to trace harm/benefit cascades.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "User query"},
+                "stakeholder_graph": {"type": "object", "description": "Graph from A1"},
+                "agi_reasoning": {"type": "object", "description": "Reasoning from AGI"}
+            },
+            "required": ["query", "stakeholder_graph"]
+        }
+    },
+    {
+        "name": "constitutional_audit_sink",
+        "description": "A3: Immutable ledger & semantic floor reasoning. Use to audit final decisions.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "User query"},
+                "session_id": {"type": "string", "description": "Session ID"},
+                "hardening_result": {"type": "object", "description": "Output from hardening"},
+                "empathy_result": {"type": "object", "description": "Output from empathy"},
+                "alignment_result": {"type": "object", "description": "Output from alignment"}
+            },
+            "required": ["query", "session_id", "hardening_result", "empathy_result", "alignment_result"]
+        }
+    }
 ]
 
 
@@ -195,16 +238,17 @@ TOOL_DEFINITIONS = [
 
 async def execute_tool(tool_name: str, tool_input: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Execute one of the 5 MCP tools.
+    Execute one of the MCP tools.
 
     Args:
-        tool_name: Name of tool to execute (authorize/reason/evaluate/decide/seal)
+        tool_name: Name of tool to execute
         tool_input: Arguments for the tool
 
     Returns:
         Tool result as dictionary (serializable)
     """
     try:
+        # Standard v53 Tools
         if tool_name == "authorize":
             result = await authorize(**tool_input)
             return asdict(result)
@@ -224,6 +268,16 @@ async def execute_tool(tool_name: str, tool_input: Dict[str, Any]) -> Dict[str, 
         elif tool_name == "seal":
             result = await seal(**tool_input)
             return asdict(result)
+
+        # Advanced v53 Capabilities (Direct Dict returns)
+        elif tool_name == "semantic_stakeholder_reasoning":
+            return await semantic_stakeholder_reasoning(**tool_input)
+
+        elif tool_name == "impact_diffusion_peace_squared":
+            return await impact_diffusion_peace_squared(**tool_input)
+
+        elif tool_name == "constitutional_audit_sink":
+            return await constitutional_audit_sink(**tool_input)
 
         else:
             return {"error": f"Unknown tool: {tool_name}", "status": "ERROR"}

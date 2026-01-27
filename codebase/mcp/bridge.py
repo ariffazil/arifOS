@@ -122,6 +122,20 @@ async def bridge_asi_router(action: str = "full", **kwargs) -> dict:
         store_stage_result(str(session_id), "asi", serialized)
     return serialized
 
+# --- v53 ASI COMPONENT ROUTERS ---
+async def bridge_asi_stakeholder_router(**kwargs) -> dict:
+    """Route A1 Semantic Stakeholder Reasoning."""
+    return await bridge_asi_router(action="semantic_stakeholder_reasoning", **kwargs)
+
+async def bridge_asi_diffusion_router(**kwargs) -> dict:
+    """Route A2 Impact Diffusion."""
+    return await bridge_asi_router(action="impact_diffusion_peace_squared", **kwargs)
+
+async def bridge_asi_audit_router(**kwargs) -> dict:
+    """Route A3 Constitutional Audit."""
+    return await bridge_asi_router(action="constitutional_audit_sink", **kwargs)
+
+
 async def bridge_apex_router(action: str = "full", **kwargs) -> dict:
     """Pure bridge: Route judicial tasks to APEX Judge.
     Adapts Contrast Actions: redeem, measure -> eureka, entropy

@@ -1,47 +1,22 @@
 """
-codebase APEX (Soul/Ψ) Module
-v52 Constitutional AI Core
+APEX (Soul/Ψ) - The Judge
 
-Re-exports APEX components for codebase.
-The main implementation is in codebase.apex.kernel.APEXJudicialCore
+Unified namespace for arifOS Soul engine.
+
+Modules:
+    kernel.py           - APEX judicial kernel (APEXJudicialCore)
+    psi_kernel.py       - APEX PSI kernel (PsiKernel)
+    governance/         - VAULT-999 governance
+        ledger.py       - Hash-chained ledger
+        merkle.py       - Merkle tree sealing
+        proof_of_governance.py  # Proof system
+    judicial/           # Judicial functions
+    contracts/          # APEX contracts
+
+Note: APEXEngine removed - use APEXJudicialCore from .kernel instead
 """
 
-# v52 canonical kernel
-from codebase.apex.kernel import APEXJudicialCore
+from .kernel import APEXJudicialCore
+from .psi_kernel import PsiKernel
 
-# Alias for backward compatibility
-APEXKernel = APEXJudicialCore
-
-# Legacy engine (for backward compatibility)
-try:
-    from arifos.core.engines.apex_engine import (
-        APEXEngine,
-        APEXOutput,
-        VoidJustification,
-        ProofPacket,
-        EurekaResult,
-        JudgeResult,
-        ProofResult,
-    )
-except ImportError:
-    APEXEngine = None
-    APEXOutput = None
-    VoidJustification = None
-    ProofPacket = None
-    EurekaResult = None
-    JudgeResult = None
-    ProofResult = None
-
-__all__ = [
-    # v51 Kernel
-    "APEXJudicialCore",
-    "APEXKernel",
-    # Legacy Engine
-    "APEXEngine",
-    "APEXOutput",
-    "VoidJustification",
-    "ProofPacket",
-    "EurekaResult",
-    "JudgeResult",
-    "ProofResult",
-]
+__all__ = ["APEXJudicialCore", "PsiKernel"]  # APEXEngine and APEXKernel removed - classes don't exist

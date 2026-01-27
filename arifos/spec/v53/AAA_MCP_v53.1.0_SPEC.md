@@ -25,21 +25,29 @@ All engines (AGI/ASI/APEX) now implement the **Physics-Math-Language** triad.
 
 ### 3.1 AGI Genius (The Mind)
 **Endpoint:** `agi_genius`
+**Core Capability:** **Live Evidence Injection** (v52.6.0)
+> *Injects real-time ASEAN-biased search results into Stage 111 SENSE.*
 **Actions:**
-*   `sense` (Input Classification)
+*   `sense` (Input Classification + Live Evidence)
 *   `think` (Deep Reasoning)
 *   `predict` / `physics` (Modeling Reality)
-*   `measure` / `math` (Truth Scoring)
+*   `measure` / `math` (Truth Scoring + Evidence Confidence)
 *   `forge` / `language` (Response Generation)
 
 ### 3.2 ASI Act (The Heart)
 **Endpoint:** `asi_act`
+**Core Upgrade:** **v53.3 Heart Engine (A1-A3)**
+> *Semantic reasoning, impact diffusion, and constitutional auditing.*
 **Actions:**
 *   `evidence` (Fact Checking)
 *   `empathize` / `physics` (Emotional Modeling)
 *   `measure` / `math` (Empathy/Peace Scoring)
 *   `act` / `language` (Safe Execution)
 *   `harmonize` (Conflict Resolution)
+**v53 Advanced Capabilities:**
+*   `semantic_stakeholder_reasoning` (**A1**): Infinite-depth stakeholder graph analysis.
+*   `impact_diffusion_peace_squared` (**A2**): Network propagation modeling for Peace².
+*   `constitutional_audit_sink` (**A3**): Immutable ledger & semantic floor reasoning.
 
 ### 3.3 APEX Judge (The Soul)
 **Endpoint:** `apex_judge`

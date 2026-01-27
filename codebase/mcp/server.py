@@ -28,6 +28,10 @@ from codebase.mcp.bridge import (
     bridge_asi_router,
     bridge_apex_router,
     bridge_vault_router,
+    # v53 ASI Routers
+    bridge_asi_stakeholder_router,
+    bridge_asi_diffusion_router,
+    bridge_asi_audit_router
 )
 from codebase.enforcement.governance.rate_limiter import get_rate_limiter
 from codebase.mcp.mode_selector import get_mcp_mode, MCPMode
@@ -88,6 +92,48 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
                 "session_id": {"type": "string"}
             },
             "required": ["action"]
+        }
+    },
+    # ASI v53 Tools
+    "semantic_stakeholder_reasoning": {
+        "name": "semantic_stakeholder_reasoning",
+        "description": "A1: Semantic reasoning about stakeholders. Identifies implicit/hidden stakeholders.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "session_id": {"type": "string"},
+                "agi_context": {"type": "object"}
+            },
+            "required": ["query", "session_id"]
+        }
+    },
+    "impact_diffusion_peace_squared": {
+        "name": "impact_diffusion_peace_squared",
+        "description": "A2: Impact diffusion model for F5 Peace². Simulates benefit/harm propagation.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "stakeholder_graph": {"type": "object"},
+                "agi_reasoning": {"type": "object"}
+            },
+            "required": ["query", "stakeholder_graph"]
+        }
+    },
+    "constitutional_audit_sink": {
+        "name": "constitutional_audit_sink",
+        "description": "A3: Constitutional audit sink. Provides semantic reasoning for floors + immutable ledger.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "session_id": {"type": "string"},
+                "hardening_result": {"type": "object"},
+                "empathy_result": {"type": "object"},
+                "alignment_result": {"type": "object"}
+            },
+            "required": ["query", "session_id", "hardening_result", "empathy_result", "alignment_result"]
         }
     },
     "apex_judge": {
@@ -216,6 +262,10 @@ TOOL_ROUTERS = {
     "evaluate": evaluate,
     "decide": decide,
     "seal": seal,
+    # ASI Components
+    "semantic_stakeholder_reasoning": bridge_asi_stakeholder_router,
+    "impact_diffusion_peace_squared": bridge_asi_diffusion_router,
+    "constitutional_audit_sink": bridge_asi_audit_router,
     # Physics
     "physics": execute_constitutional_physics,
 }

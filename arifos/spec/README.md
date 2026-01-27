@@ -22,7 +22,9 @@
 
 L2_GOVERNANCE provides **simplified, user-facing prompts** derived from the authoritative sources above. These are intentionally condensed for copy-paste into ChatGPT, Claude, Cursor, etc.
 
-**Maintenance:** When `spec/v45/` or `L1_THEORY/canon/` change, these prompts should be manually updated to reflect changes.
+**Maintenance:** When `spec/v53/` or `codebase/` change, these prompts should be manually updated to reflect changes.
+
+[**👉 LATEST SPECIFICATION (v53.1.0)**](../spec/v53/AAA_MCP_v53.1.0_SPEC.md)
 
 ---
 

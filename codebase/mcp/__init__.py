@@ -1,69 +1,56 @@
 """
-codebase MCP Server Package (v53.0.0-SEAL)
+codebase MCP Server Package (v52.6.0-SEAL UPDATED)
 
 Model Context Protocol implementation for arifOS constitutional AI governance.
 
 Entry points:
-- python -m arifos.mcp         # stdio transport (Claude Desktop)
-- python -m arifos.mcp sse     # SSE transport (Railway/Cloud)
+- aaa-mcp         # stdio transport (Claude Desktop)
+- aaa-mcp sse     # SSE transport (Railway/Cloud)
 
-Tool names (interchangeable):
-  v53 Human:     v52 Internal:
-  authorize  <-> init_000
-  reason     <-> agi_genius
-  evaluate   <-> asi_act
-  decide     <-> apex_judge
-  seal       <-> vault_999
+Tool Classes (v52.6.0 Architecture):
+- TrinityHatTool: 6th tool - 3-Loop compressor
+- AGITool: Mind engine with metrics/parallel/evidence
+- ASITool: Heart engine with empathy and ethics  
+- APEXTool: Soul engine with judgment
+- VaultTool: Immutable ledger sealing
 
 DITEMPA BUKAN DIBERI
 """
 
-__version__ = "v53.0.0-SEAL"
+__version__ = "v52.6.0-SEAL"
 
-# v53 Human-language tools (preferred)
+# Tool classes - import what actually exists
 from codebase.mcp.tools import (
-    authorize,
-    reason,
-    evaluate,
-    decide,
-    seal,
-    # v52 internal aliases
-    init_000,
-    agi_genius,
-    asi_act,
-    apex_judge,
-    vault_999,
-    # Data classes
-    AuthorizeResult,
-    ReasonResult,
-    EvaluateResult,
-    DecideResult,
-    SealResult,
-    Verdict,
-    # Claude API integration
-    run_constitutional_pipeline,
+    TrinityHatTool,
+    AGITool,
+    ASITool,
+    APEXTool,
+    VaultTool,
 )
 
+# v52.6.0 compatibility - expose tool instances if needed
+# But don't import functions that don't exist
+
+try:
+    # Bridge imports - these may not exist yet
+    from codebase.mcp.bridge import (
+        bridge_trinity_hat_router,
+        bridge_agi_router,
+        bridge_asi_router,
+        bridge_apex_router,
+        bridge_vault_router,
+    )
+    _bridge_available = True
+except ImportError:
+    _bridge_available = False
+
 __all__ = [
-    # v53 Human-language tools
-    "authorize",
-    "reason",
-    "evaluate",
-    "decide",
-    "seal",
-    # v52 Internal aliases
-    "init_000",
-    "agi_genius",
-    "asi_act",
-    "apex_judge",
-    "vault_999",
-    # Data classes
-    "AuthorizeResult",
-    "ReasonResult",
-    "EvaluateResult",
-    "DecideResult",
-    "SealResult",
-    "Verdict",
-    # Pipeline
-    "run_constitutional_pipeline",
+    # Tool classes
+    "TrinityHatTool",
+    "AGITool",
+    "ASITool", 
+    "APEXTool",
+    "VaultTool",
+    # Version
+    "__version__",
 ]

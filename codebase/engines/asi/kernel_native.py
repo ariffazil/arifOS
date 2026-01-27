@@ -9,7 +9,7 @@ import asyncio
 import logging
 from typing import Dict, Any, Optional, List
 
-from codebase.asi_room.asi_engine import ASIRoom
+from codebase.engines.asi.asi_engine import ASIRoom
 from codebase.bundles import OmegaBundle, EngineVote
 
 logger = logging.getLogger(__name__)
@@ -259,6 +259,31 @@ class ASIKernelNative:
                 "native_execution": True
             }
         
+        # --- v53 Component Dispatch ---
+        elif action == "semantic_stakeholder_reasoning":
+            room = await self._get_or_create_room(session_id)
+            return await room.run_semantic_stakeholder_reasoning(
+                query=kwargs.get("query", ""),
+                agi_context=kwargs.get("agi_context")
+            )
+
+        elif action == "impact_diffusion_peace_squared":
+            room = await self._get_or_create_room(session_id)
+            return await room.run_impact_diffusion(
+                query=kwargs.get("query", ""),
+                stakeholder_graph=kwargs.get("stakeholder_graph", {}),
+                agi_reasoning=kwargs.get("agi_reasoning")
+            )
+
+        elif action == "constitutional_audit_sink":
+            room = await self._get_or_create_room(session_id)
+            return await room.run_constitutional_audit(
+                query=kwargs.get("query", ""),
+                hardening=kwargs.get("hardening_result", {}),
+                empathy=kwargs.get("empathy_result", {}),
+                alignment=kwargs.get("alignment_result", {})
+            )
+
         else:
             return {
                 "error": f"Unknown ASI action: {action}",

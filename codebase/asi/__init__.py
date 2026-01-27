@@ -1,27 +1,20 @@
 """
-codebase.asi — ASI (Heart) Engine Package
+ASI (Heart/Ω) - The Empathizer
 
-Native implementation of the ASI (Ω) constitutional engine
+Unified namespace for arifOS Heart engine.
 
-Architecture: v53 Native (no proxy to arifos/core)
-Execution Model: Async wrapper over sync ASIRoom
+Modules:
+    engine.py           - ASI engine core logic (ASIRoom)
+    kernel.py           - ASI kernel proxy
+    kernel_native.py    - Native ASI kernel (ASIKernelNative alias ASIKernel)
+    empathy/            - Empathy scoring
+        stage.py        - Stage 555: EMPATHY
+    integration/        - ASI integrations
+        async_wrapper.py - Async wrapper
 """
 
-__version__ = "53.0.0-NATIVE"
-__migrated__ = True
-__proxy_mode__ = False
-__execution_model__ = "async_wrapper"
+from .engine import ASIRoom
+from .kernel_native import ASIKernel, ASIKernelNative, ASIActionCore
+from .kernel import ASIActionCore as ASIKernelActionCore
 
-# Export async-wrapped native kernel for MCP compatibility
-from .async_wrapper import ASIActionCore, AsyncASIKernelNative
-
-__all__ = ["ASIActionCore", "AsyncASIKernelNative"]
-
-# Migration metadata
-MIGRATION_STATUS = {
-    "phase": "native_v53",
-    "proxy_removed": True,
-    "native_implementation": True,
-    "architecture": "codebase_native",
-    "constitutional_physics_location": "codebase/engines/asi/"
-}
+__all__ = ["ASIRoom", "ASIKernel", "ASIKernelNative", "ASIActionCore", "ASIKernelActionCore"]  # ASIEngine renamed to ASIRoom for consistency
