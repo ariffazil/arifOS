@@ -168,6 +168,18 @@ class ConstitutionalContext:
 
 
 @dataclass
+class ConstitutionalReceipt:
+    particle_id: str
+    trinity_assignment: str
+    timestamp: datetime
+    action_hash: str
+    constitutional_validity: bool
+    feedback_constraint: str
+    audit_trail: Dict[str, Any]
+    rollback_possible: bool
+
+
+@dataclass
 class StateVector:
     verdict: str
     result: Any
@@ -179,18 +191,6 @@ class StateVector:
         if not self.measurement_ready:
             return "VOID"
         return self.verdict
-
-
-@dataclass
-class ConstitutionalReceipt:
-    particle_id: str
-    trinity_assignment: str
-    timestamp: datetime
-    action_hash: str
-    constitutional_validity: bool
-    feedback_constraint: str
-    audit_trail: Dict[str, Any]
-    rollback_possible: bool
 
 
 # =============================================================================

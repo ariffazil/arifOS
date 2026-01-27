@@ -6,7 +6,7 @@ Floors: F6 (Empathy κᵣ≥0.95), F1, F5, F9, F11 (ALIGN)
 """
 
 import threading
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from codebase.entropy_compressor import EntropyCompressor
 from codebase.bundle_store import BundleStore, OmegaBundle, Stakeholder
 
