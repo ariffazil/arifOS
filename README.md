@@ -79,6 +79,42 @@ arifOS follows a thermodynamic lifecycle:
 
 ---
 
+## 📋 THE RECORD: Scattered Output vs. Auditable Evidence
+
+Institutions require **provable, copy-paste friendly records** of every AI decision. arifOS automatically formats all terminal output for immediate audit and compliance reporting.
+
+| Problem (Traditional) | Solution (arifOS) |
+|:---|:---|
+| **Broken formatting** — Special characters break markdown | **Clean boxes** — Unicode borders, one-click selection |
+| **Selection hell** — Line wrapping makes copy-paste hard | **Auto-formatted** — Structured for human readability |
+| **No audit trail** — Output lost after scroll | **Immutable capture** — Every response logged with hash |
+| **Inconsistent logs** — Different formats per tool | **Standardized output** — Same format across all 6 tools |
+
+**Automatic Formatting:**
+
+```
+┌─────────────────────────────────────────┐
+│  VERDICT: SEAL                          │
+│  Query: "What is 2+2?"                  │
+│  Confidence: 99.9%                      │
+│  Floors: F2✓ F4✓ F7✓                   │
+└─────────────────────────────────────────┘
+```
+
+**For Compliance Teams:**
+- Every terminal output is **Merkle-sealed** in VAULT999
+- Copy-paste ready for **SOC2, HIPAA, GDPR** audits
+- **Line-numbered** execution traces available
+- **Zero context loss** — weakest listener can understand
+
+**Copy-Paste Workflow:**
+1. Run any command → arifOS formats output automatically
+2. Triple-click to select entire box → Ctrl+C
+3. Paste into Slack, GitHub, JIRA, or compliance docs
+4. Output includes **session hash** for traceability
+
+---
+
 ## 🚀 QUICK START (2 Minutes)
 
 ### 1. Connect to Live Server (HTTP Clients)
@@ -172,6 +208,7 @@ Visit `http://localhost:8000/dashboard` to see [SERENA] in action.
   <a href="#-is-this-for-me">Is This For Me?</a> •
   <a href="#-the-problem-were-solving">The Problem</a> •
   <a href="#-how-it-works">How It Works</a> •
+  <a href="#-the-record-scattered-output-vs-auditable-evidence">Audit Trail</a> •
   <a href="#-all-ways-to-use-arifos">All Ways To Use</a> •
   <a href="#-documentation">Docs</a>
 </p>
