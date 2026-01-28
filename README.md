@@ -12,9 +12,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/v53.2.1-SEAL-32b8c6?style=for-the-badge" alt="Version v53.2.1">
-  <a href="https://arifos.arif-fazil.com"><img src="https://img.shields.io/badge/Live_Server-Online-50fa7b?style=for-the-badge" alt="Live Server"></a>
-  <a href="https://arifos.arif-fazil.com/dashboard"><img src="https://img.shields.io/badge/Serena_Monitor-Active-FF79C6?style=for-the-badge" alt="Dashboard"></a>
+  <img src="https://img.shields.io/badge/v53.2.6-SEAL-32b8c6?style=for-the-badge" alt="Version v53.2.6">
+  <a href="https://arif-fazil.com/"><img src="https://img.shields.io/badge/Portfolio-Online-50fa7b?style=for-the-badge" alt="Portfolio"></a>
+  <a href="https://arif-fazil.com/dashboard"><img src="https://img.shields.io/badge/Serena_Monitor-Active-FF79C6?style=for-the-badge" alt="Dashboard"></a>
 </p>
 
 ---
@@ -23,14 +23,14 @@
 
 The transition from v52 to v53 marks the move from **Simulated Consensus** to **Provable Isolation**.
 
-| Feature | Legacy v52 (Proxy) | Native v53 (Isolated) |
+| Feature | Legacy v52 (Proxy) | Native v53+ (Isolated) |
 | :--- | :--- | :--- |
-| **Architecture** | Fragmented `arifos/core` proxies | Clean, isolated `codebase/` engines |
+| **Architecture** | Fragmented `arifos/` module (archived) | Clean `codebase/` canonical module |
 | **Logic** | Monolithic sync loops | Parallel AGI/ASI "Hot" execution |
 | **Transport** | SSE (`/sse` + `/messages`) | Streamable HTTP (`/mcp`) — MCP 2024-11-05+ |
 | **Latency** | ~150ms overhead | <40ms overhead (Native C-optimized) |
 | **Sealing** | Simulated ledger writes | Immutable Merkle-tree vault sealing |
-| **Tools** | 5 tools | 6 tools (+ Trinity Loop) |
+| **Tools** | 5 tools | 9 tools (Unified Suite) |
 
 ---
 
@@ -46,6 +46,9 @@ arifOS v53 introduces the **Human Language Bridge**, translating complex constit
 | **Decide** | `apex_judge` | Final judicial verdict: Approve or Reject (Ψ). |
 | **Seal** | `vault_999` | Records the session immutably in the ledger (Log). |
 | **Full Pipeline** | `trinity_loop` | Complete AGI→ASI→APEX→VAULT cycle in one call. |
+| **Search Docs**   | `context_docs` | Technical documentation search (Context7). |
+| **Reality Check** | `reality_check`| Fact-checking and news via Brave Search. |
+| **Prompt Codec**  | `prompt_codec` | Intent routing and prompt encoding/decoding. |
 
 ---
 
@@ -57,7 +60,7 @@ While arifOS operates as an invisible safety layer by default, the **Serena Moni
 *   **Serena Dashboard**: High-contrast real-time telemetry at `/dashboard`.
 
 > [!TIP]
-> View live system health and decision verdicts at [arifos.arif-fazil.com/dashboard](https://arifos.arif-fazil.com/dashboard)
+> View live system health and decision verdicts at [arif-fazil.com/dashboard](https://arif-fazil.com/dashboard)
 
 ---
 
@@ -120,7 +123,7 @@ Institutions require **provable, copy-paste friendly records** of every AI decis
 ### 1. Connect to Live Server (HTTP Clients)
 For **ChatGPT Developer Mode**, **OpenAI Codex**, or any MCP HTTP client — connect to:
 ```
-https://arifos.arif-fazil.com/mcp
+https://arif-fazil.com/mcp
 ```
 
 ### 2. Connect via stdio (CLI Clients)
@@ -194,9 +197,9 @@ Visit `http://localhost:8000/dashboard` to see [SERENA] in action.
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/v53.2.1--CODEBASE-SEAL-redis_Ready-10b981?style=for-the-badge" alt="Version v53.2.1-CODEBASE">
-  <a href="https://arifos.arif-fazil.com"><img src="https://img.shields.io/badge/Live_Server-Online-brightgreen?style=for-the-badge" alt="Live Server"></a>
-  <a href="https://arifos.arif-fazil.com/dashboard"><img src="https://img.shields.io/badge/Dashboard-View-eab308?style=for-the-badge" alt="Dashboard"></a>
+  <img src="https://img.shields.io/badge/v53.2.6--CODEBASE-SEAL-redis_Ready-10b981?style=for-the-badge" alt="Version v53.2.6-CODEBASE">
+  <a href="https://arif-fazil.com/"><img src="https://img.shields.io/badge/Portfolio-Online-brightgreen?style=for-the-badge" alt="Portfolio"></a>
+  <a href="https://arif-fazil.com/dashboard"><img src="https://img.shields.io/badge/Dashboard-View-eab308?style=for-the-badge" alt="Dashboard"></a>
   <a href="https://pypi.org/project/arifos/"><img src="https://img.shields.io/pypi/v/arifos?style=for-the-badge&color=3b82f6" alt="PyPI"></a>
   <a href="https://github.com/ariffazil/arifOS/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL_3.0-blue?style=for-the-badge" alt="License"></a>
   <a href="https://railway.com/deploy/fLehIk?referralCode=_F5ZGa"><img src="https://railway.com/button.svg" alt="Deploy on Railway"></a>
@@ -243,14 +246,14 @@ AI + arifOS: ✗ VOID | F1 Amanah violated (outside safe mandate)
 
 **Option 1: Live Dashboard** (see it working)
 ```
-https://arifos.arif-fazil.com/dashboard
+https://arif-fazil.com/dashboard
 ```
 
 **Option 2: Health Check** (API is alive?)
 ```bash
-curl https://arifos.arif-fazil.com/health
+curl https://arif-fazil.com/health
 ```
-Expected: `{"status": "healthy", "version": "v53.2.0-CODEBASE", "mode": "CODEBASE", "transport": "streamable-http", "tools": 6, "architecture": "v53.2.0-simplified"}`
+Expected: `{"status": "healthy", "version": "v53.2.6-CODEBASE", "mode": "CODEBASE", "transport": "streamable-http", "tools": 6, "architecture": "v53.2.6-universal"}`
 
 **Option 3: Deploy to Railway** (5 minutes)
 
@@ -280,7 +283,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 ```
 Restart Claude Desktop. You now have AI governance.
 
-**Option 5: Run Locally (Native v53.2.1)**
+**Option 5: Run Locally (Native v53.2.6)**
 ```bash
 pip install -e .
 python -m codebase.mcp          # stdio transport (Claude Desktop, Kimi, Gemini CLI)
@@ -289,6 +292,24 @@ python -m codebase.mcp http     # Streamable HTTP transport (Railway/Cloud)
 # For development with auto-reload:
 uvicorn codebase.mcp.trinity_server:app --reload --port 8000
 ```
+
+---
+
+## 🌐 Website Structure
+
+The single Railway deployment serves 3 distinct pages:
+
+| Page | URL | Content |
+|------|-----|---------|
+| **Portfolio** | [`arif-fazil.com/`](https://arif-fazil.com/) | Muhammad Arif Fazil — AI Governance Architect |
+| **Framework** | [`arif-fazil.com/arifos`](https://arif-fazil.com/arifos) | arifOS Trinity (ΔΩΨ) — Constitutional AI |
+| **MCP Tools** | [`arif-fazil.com/aaa`](https://arif-fazil.com/aaa) | AAA MCP Server — Tool Documentation |
+
+**API Endpoints:**
+- `/mcp` — MCP Protocol endpoint (ChatGPT, Codex, etc.)
+- `/health` — Health check
+- `/dashboard` — Live metrics dashboard
+- `/metrics/json` — Raw telemetry API
 
 ---
 
@@ -522,7 +543,7 @@ https://arifos.arif-fazil.com/mcp
 }
 ```
 
-**The 6 MCP Tools (v53.2.1):**
+**The 9 MCP Tools (v53.2.6):**
 
 | Tool | Role | Engine | Constitutional Floors | Purpose |
 |------|------|--------|------------------------|---------|
@@ -532,6 +553,9 @@ https://arifos.arif-fazil.com/mcp
 | `apex_judge` | ⚖️ Soul | APEX (Ψ) | F3, F8, F11, F12 | **Decide.** Witness, genius, auth, injection |
 | `vault_999` | 🔒 Seal | VAULT | F1, F8, F10 | **Seal.** Immutable Merkle ledger sealing |
 | `trinity_loop` | 🔄 Pipeline | ALL | F1–F13 | **Full Cycle.** AGI→ASI→APEX→VAULT in one call |
+| `context_docs` | 📚 Docs | Context7 | F11, F7 | **Search Docs.** Technical documentation search |
+| `reality_check` | 🌍 Reality | Brave | F7, F3 | **Reality Check.** Grounding & news search |
+| `prompt_codec` | 🔠 Codec | Codec | F11, F12 | **Prompt Codec.** Intent routing & encoding |
 
 **MCP Endpoints (v53.2.1 Architecture):**
 
@@ -543,7 +567,7 @@ https://arifos.arif-fazil.com/mcp
 | **T3 Health** | `/health` | GET | System status, version, tool count |
 | **T4 Discovery** | `/` | GET | Interactive landing page |
 
-> **Note:** Legacy SSE endpoints (`/sse`, `/messages`) and FastAPI endpoints (`/docs`, `/openapi.json`, `/checkpoint`) are no longer available in v53.2.1. All MCP communication goes through `/mcp`.
+> **Note:** Legacy SSE endpoints (`/sse`, `/messages`) and FastAPI endpoints (`/docs`, `/openapi.json`, `/checkpoint`) are no longer available in v53.2.6. All MCP communication goes through `/mcp`.
 
 **Production URLs:**
 - 🌐 **MCP Endpoint**: `https://arifos.arif-fazil.com/mcp`
