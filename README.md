@@ -40,13 +40,13 @@ arifOS v53 introduces the **Human Language Bridge**, translating complex constit
 ### 🛠️ THE 7-CORE MANAGED SUITE (v53.2.7)
 | Tool | Human Mapping | MCP Primitive | Function |
 | :--- | :--- | :--- | :--- |
-| **INIT** | **Authorize** | `Resource` | Session init, authority check, budget. |
-| **AGI**  | **Reason** | `Tool` | Deep logic, logic, knowledge atlas. |
-| **ASI**  | **Evaluate** | `Tool` | Safety, bias, empathy audit. |
-| **APEX** | **Decide** | `Tool` | Judicial consensus and final verdict. |
-| **VAULT**| **Seal** | `Resource` | Immutable ledger and audit trail. |
-| **TRINITY**| **Pipeline** | `Tool+Resource` | Full metabolic cycle: AGI→ASI→APEX→VAULT. |
-| **REALITY**| **Ground** | `Resource` | Fact-checking via external sources (Brave). |
+| **_init_** | **Initialize** | `Resource` | Session init, authority check, budget. |
+| **_agi_**  | **Reason** | `Tool` | Deep logic, logic, knowledge atlas. |
+| **_asi_**  | **Evaluate** | `Tool` | Safety, bias, empathy audit. |
+| **_apex_** | **Judge** | `Tool` | Judicial consensus and final verdict. |
+| **_vault_**| **Seal** | `Resource` | Immutable ledger and audit trail. |
+| **_trinity_**| **Orchestrate** | `Tool+Resource` | Full metabolic cycle: AGI→ASI→APEX→VAULT. |
+| **_reality_**| **Ground** | `Resource` | Fact-checking via external sources (Brave). |
 
 ---
 
@@ -543,17 +543,17 @@ https://arifos.arif-fazil.com/mcp
 
 **The 7-Core MCP Suite (v53.2.7):**
 
-| Tool | Role | Engine | Primitives | Purpose |
-|------|------|--------|------------|---------|
-| `INIT` | 🚪 Gate | 000_INIT | Resource | **Authorize.** Session init, authority check, budget. |
-| `AGI`  | 🧠 Mind | AGI (Δ) | Tool | **Reason.** Deep logic, pattern recognition. |
-| `ASI`  | ❤️ Heart | ASI (Ω) | Tool | **Evaluate.** Safety, bias, and empathy audit. |
-| `APEX` | ⚖️ Soul | APEX (Ψ) | Tool | **Decide.** Judicial consensus and final verdict. |
-| `VAULT`| 🔒 Seal | VAULT | Resource | **Seal.** Immutable Merkle ledger audit trail. |
-| `TRINITY`| 🔄 Loop | ALL | Tool+Resource | **Full Cycle.** Complete AGI→ASI→APEX metabolic loop. |
-| `REALITY`| 🌍 Reality | Brave | Resource | **Ground.** Reality grounding via external sources. |
+| Tool | Action | Role | Engine | Primitives | Purpose |
+|------|--------|------|--------|------------|---------|
+| `_init_` | Initialize | 🚪 Gate | 000_INIT | Resource | **Authorize.** Session init, authority check, budget. |
+| `_agi_`  | Reason | 🧠 Mind | AGI (Δ) | Tool | **Analyze.** Deep logic, pattern recognition. |
+| `_asi_`  | Audit | ❤️ Heart | ASI (Ω) | Tool | **Evaluate.** Safety, bias, and empathy audit. |
+| `_apex_` | Judge | ⚖️ Soul | APEX (Ψ) | Tool | **Decide.** Judicial consensus and final verdict. |
+| `_vault_`| Seal | 🔒 Seal | VAULT | Resource | **Record.** Immutable Merkle ledger audit trail. |
+| `_trinity_`| Orchestrate | 🔄 Loop | ALL | Tool+Resource | **Full Cycle.** Complete AGI→ASI→APEX→VAULT metabolic loop. |
+| `_reality_`| Ground | 🌍 Reality | Brave | Resource | **Verify.** Reality grounding via external sources. |
 
-**MCP Endpoints (v53.2.1 Architecture):**
+**MCP Endpoints (v53.2.7 Architecture):**
 
 | Tier | Endpoint | Method | Purpose |
 |------|----------|--------|---------|
@@ -667,11 +667,13 @@ python -m codebase.mcp sse
 ```
 
 **MCP Tools (for Claude Desktop, Cursor):**
-- `TrinityHatTool` → Gate (000_INIT)
-- `AGITool` → Mind (AGI_Genius)
-- `ASITool` → Heart (ASI_Act)
-- `APEXTool` → Soul (APEX_Judge)
-- `VaultTool` → Seal (999_Vault)
+- `_init_` → Gate (000_INIT) — Initialize
+- `_agi_` → Mind (AGI_Genius) — Reason  
+- `_asi_` → Heart (ASI_Act) — Audit
+- `_apex_` → Soul (APEX_Judge) — Judge
+- `_vault_` → Seal (999_Vault) — Seal
+- `_trinity_` → Loop (All Engines) — Orchestrate
+- `_reality_` → Reality (Brave) — Ground
 
 ---
 

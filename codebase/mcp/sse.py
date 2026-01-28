@@ -1,5 +1,5 @@
 """
-codebase.mcp.sse (v53.2.1-CODEBASE)
+codebase.mcp.sse (v53.2.7-CODEBASE-AAA7)
 The HTTP Transport for the Codebase MCP Server.
 Deployable on Railway, Render, Fly.io, or any Docker host.
 
@@ -61,12 +61,12 @@ mcp = FastMCP(
 # --- TOOL 1: INIT ---
 # MCP Resource: Session setup, authority check, budget allocation
 
-@mcp.tool(name="INIT", description=(
-    "INIT: Session initialization, authority verification, and budget allocation. "
+@mcp.tool(name="_init_", description=(
+    "_init_: Session initialization, authority verification, and budget allocation. "
     "Fail-closed access control and resource management. "
     "MCP Resource primitive for governance grounding."
 ))
-@rate_limited("INIT")
+@rate_limited("_init_")
 async def tool_init(
     action: str = "init",
     query: str = "",
@@ -81,12 +81,12 @@ async def tool_init(
 # --- TOOL 2: AGI ---
 # MCP Tool: Deep reasoning, pattern recognition
 
-@mcp.tool(name="AGI", description=(
-    "AGI: Deep reasoning and pattern recognition (Mind Engine). "
+@mcp.tool(name="_agi_", description=(
+    "_agi_: Deep reasoning and pattern recognition (Mind Engine). "
     "F2 Truth, F4 Clarity, F7 Humility enforcement. "
     "MCP Tool primitive for analytical processing."
 ))
-@rate_limited("AGI")
+@rate_limited("_agi_")
 async def tool_agi(
     action: str = "sense",
     query: str = "",
@@ -101,15 +101,15 @@ async def tool_agi(
         action=action, query=query, session_id=session_id, **kwargs
     )
 
-# --- TOOL 3: ASI ---
+# --- TOOL 3: _asi_ ---
 # MCP Tool: Safety, bias, empathy audit
 
-@mcp.tool(name="ASI", description=(
-    "ASI: Safety, bias, and empathy audit (Heart Engine). "
+@mcp.tool(name="_asi_", description=(
+    "_asi_: Audit - Safety, bias, and empathy evaluation (Heart Engine). "
     "F1 Amanah, F5 Peace, F6 Empathy enforcement. "
     "MCP Tool primitive for ethical validation."
 ))
-@rate_limited("ASI")
+@rate_limited("_asi_")
 async def tool_asi(
     action: str = "empathize",
     text: str = "",
@@ -130,16 +130,16 @@ async def tool_asi(
         action=action, text=text, query=query, session_id=session_id, **kwargs
     )
 
-# --- TOOL 4: APEX ---
+# --- TOOL 4: _apex_ ---
 # MCP Tool: Judicial consensus and verdict
 
-@mcp.tool(name="APEX", description=(
-    "APEX: Judicial consensus and verdict (Soul Engine). "
+@mcp.tool(name="_apex_", description=(
+    "_apex_: Judge - Judicial consensus and verdict (Soul Engine). "
     "F3 Consensus, F8 Tri-Witness, F9 Anti-Hantu, F10 Ontology. "
     "Verdicts: SEAL, SABAR, VOID, PARTIAL, 888_HOLD. "
     "MCP Tool primitive for final judgment."
 ))
-@rate_limited("APEX")
+@rate_limited("_apex_")
 async def tool_apex(
     action: str = "judge",
     query: str = "",
@@ -162,16 +162,16 @@ async def tool_apex(
         session_id=session_id, **kwargs
     )
 
-# --- TOOL 5: VAULT ---
+# --- TOOL 5: _vault_ ---
 # MCP Resource: Immutable ledger for audit trail
 
-@mcp.tool(name="VAULT", description=(
-    "VAULT: Immutable ledger for audit trail and governance artifacts. "
+@mcp.tool(name="_vault_", description=(
+    "_vault_: Seal - Immutable ledger for audit trail and governance artifacts. "
     "F1 Amanah (audit), F8 Quality (tri-witness). "
     "Merkle-tree sealed, cryptographically immutable. "
     "MCP Resource primitive for provenance."
 ))
-@rate_limited("VAULT")
+@rate_limited("_vault_")
 async def tool_vault(
     action: str = "seal",
     session_id: str = "",
@@ -195,11 +195,11 @@ async def tool_vault(
         action=action, session_id=session_id, verdict=verdict, **kwargs
     )
 
-# --- TOOL 6: TRINITY ---
+# --- TOOL 6: _trinity_ ---
 # MCP Tool + Resource: Full metabolic loop
 
-@mcp.tool(name="TRINITY", description=(
-    "TRINITY: Complete metabolic loop AGI→ASI→APEX→VAULT in one call. "
+@mcp.tool(name="_trinity_", description=(
+    "_trinity_: Orchestrate - Complete metabolic cycle AGI→ASI→APEX→VAULT. "
     "Full constitutional governance cycle with all 13 floors. "
     "Combines Tool (processing) + Resource (audit) primitives."
 ))
@@ -213,10 +213,10 @@ async def tool_trinity_loop(
         session_id=session_id or None,
     )
 
-# --- TOOL 7: REALITY ---
+# --- TOOL 7: _reality_ ---
 
-@mcp.tool(name="REALITY", description=(
-    "REALITY: Fact-checking via external sources (Brave Search). "
+@mcp.tool(name="_reality_", description=(
+    "_reality_: Ground - Fact-checking via external sources (Brave Search). "
     "F7 (Humility) explicit disclosure of external data. "
     "MCP Resource primitive for reality grounding."
 ))
@@ -578,46 +578,46 @@ async def aaa_mcp_page(request):
             
             <div class="tools">
                 <div class="tool">
-                    <h3>🚪 INIT</h3>
-                    <p>Session initialization, authority verification, and budget allocation. Fail-closed access control.</p>
+                    <h3>🚪 _init_</h3>
+                    <p>Initialize - Session bootstrap, authority verification, budget allocation.</p>
                     <span class="tag">Resource</span>
                     <span class="tag">F1 F11 F12</span>
                 </div>
                 <div class="tool">
-                    <h3>🧠 AGI</h3>
-                    <p>Deep reasoning and pattern recognition (Mind Engine). F2 Truth, F4 Clarity, F7 Humility.</p>
+                    <h3>🧠 _agi_</h3>
+                    <p>Reason - Deep logical analysis and pattern recognition (Mind Engine).</p>
                     <span class="tag">Tool</span>
-                    <span class="tag">Δ Mind</span>
+                    <span class="tag">F2 F4 F7</span>
                 </div>
                 <div class="tool heart">
-                    <h3>❤️ ASI</h3>
-                    <p>Safety, bias, and empathy audit (Heart Engine). F1 Amanah, F5 Peace, F6 Empathy.</p>
+                    <h3>❤️ _asi_</h3>
+                    <p>Audit - Safety, bias, and empathy evaluation (Heart Engine).</p>
                     <span class="tag">Tool</span>
-                    <span class="tag">Ω Heart</span>
+                    <span class="tag">F1 F5 F6</span>
                 </div>
                 <div class="tool soul">
-                    <h3>⚖️ APEX</h3>
-                    <p>Judicial consensus and verdict (Soul Engine). SEAL, SABAR, VOID, PARTIAL, 888_HOLD.</p>
+                    <h3>⚖️ _apex_</h3>
+                    <p>Judge - Judicial consensus and verdict (Soul Engine).</p>
                     <span class="tag">Tool</span>
-                    <span class="tag">Ψ Soul</span>
+                    <span class="tag">F3 F8 F9 F10</span>
                 </div>
                 <div class="tool soul">
-                    <h3>🔒 VAULT</h3>
-                    <p>Immutable ledger for audit trail and governance artifacts. Merkle-tree sealed.</p>
+                    <h3>🔒 _vault_</h3>
+                    <p>Seal - Immutable cryptographic ledger for audit trail.</p>
                     <span class="tag">Resource</span>
                     <span class="tag">F1 F8</span>
                 </div>
                 <div class="tool">
-                    <h3>🔄 TRINITY</h3>
-                    <p>Complete metabolic loop AGI→ASI→APEX→VAULT in one call. All 13 floors enforced.</p>
+                    <h3>🔄 _trinity_</h3>
+                    <p>Orchestrate - Full metabolic cycle AGI→ASI→APEX→VAULT.</p>
                     <span class="tag">Tool+Resource</span>
-                    <span class="tag">Full Pipeline</span>
+                    <span class="tag">All Floors</span>
                 </div>
                 <div class="tool blue">
-                    <h3>🌍 REALITY</h3>
-                    <p>Fact-checking via external sources (Brave Search). F7 Humility disclosure.</p>
+                    <h3>🌍 _reality_</h3>
+                    <p>Ground - External fact-checking via Brave Search.</p>
                     <span class="tag">Resource</span>
-                    <span class="tag">External Data</span>
+                    <span class="tag">F7 Humility</span>
                     <span class="tag">Context7</span>
                 </div>
                 <div class="tool yellow">
