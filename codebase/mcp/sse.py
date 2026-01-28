@@ -38,7 +38,7 @@ from codebase.mcp.bridge import (
     bridge_trinity_loop_router,
 )
 from codebase.mcp.constitutional_metrics import get_full_metrics
-from codebase.mcp.rate_limiter import get_rate_limiter, rate_limited
+from codebase.mcp.rate_limiter import rate_limited
 
 logger = logging.getLogger(__name__)
 
@@ -229,52 +229,214 @@ async def metrics_endpoint(request):
 
 @mcp.custom_route("/", methods=["GET"])
 async def discovery_landing(request):
-    """Interactive discovery page - first impression of API."""
+    """Interactive Discovery Hub - Unified Landing Page & Documentation."""
     from starlette.responses import HTMLResponse
+    m = get_full_metrics()
+    uptime = m.get('uptime_hours', 0.0)
+    version = m.get('version', VERSION)
+    
     return HTMLResponse(f"""
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>arifOS v53 | Constitutional AI</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>arifOS Hub | Unified AI Governance</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
         <style>
-            :root {{ --primary: #32b8c6; --bg: #0a0e14; --card: #151c26; --text: #e0e6ed; }}
-            body {{ font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 40px; margin: 0; }}
-            .container {{ max-width: 900px; margin: 0 auto; }}
-            h1 {{ color: var(--primary); font-size: 2.5rem; margin-bottom: 0.5rem; }}
-            .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 2rem; }}
-            .card {{ background: var(--card); padding: 20px; border-radius: 12px; border-left: 4px solid var(--primary); font-size: 0.9rem; }}
-            .card h3 {{ color: var(--primary); margin-top: 0; }}
-            .btn {{ display: inline-block; background: var(--primary); color: var(--bg); padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; margin-top: 1rem; cursor: pointer; }}
-            .btn:hover {{ opacity: 0.9; }}
-            code {{ background: #1a232e; padding: 2px 6px; border-radius: 4px; color: #ff79c6; }}
+            :root {{
+                --primary: #32b8c6;
+                --bg: #05070a;
+                --card: rgba(13, 17, 23, 0.8);
+                --card-border: rgba(50, 184, 198, 0.2);
+                --text: #e6edf3;
+                --text-dim: #8b949e;
+                --accent-green: #50fa7b;
+                --accent-pink: #ff79c6;
+                --accent-yellow: #f1fa8c;
+            }}
+            * {{ box-sizing: border-box; transition: all 0.2s ease-in-out; }}
+            body {{
+                font-family: 'Inter', sans-serif;
+                background-color: var(--bg);
+                background-image: 
+                    radial-gradient(circle at 10% 10%, rgba(50, 184, 198, 0.1) 0%, transparent 30%),
+                    radial-gradient(circle at 90% 90%, rgba(255, 121, 198, 0.05) 0%, transparent 30%);
+                color: var(--text);
+                margin: 0;
+                line-height: 1.6;
+                overflow-x: hidden;
+            }}
+            .container {{ max-width: 1000px; margin: 0 auto; padding: 40px 20px; }}
+            
+            /* Glassmorphism Header */
+            header {{
+                text-align: center;
+                padding: 60px 20px;
+                background: rgba(255, 255, 255, 0.02);
+                backdrop-filter: blur(20px);
+                border-radius: 24px;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                margin-bottom: 40px;
+                position: relative;
+            }}
+            .avatar {{
+                width: 110px; height: 110px;
+                background: linear-gradient(135deg, var(--primary), #1e293b);
+                border-radius: 50%;
+                margin: 0 auto 25px;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 2.5rem; font-weight: 800; color: #fff;
+                box-shadow: 0 0 40px rgba(50, 184, 198, 0.4);
+                border: 2px solid var(--primary);
+            }}
+            h1 {{ font-size: 3rem; margin: 0; font-weight: 800; letter-spacing: -1px; }}
+            .tagline {{ color: var(--primary); font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; margin-top: 5px; }}
+            .bio {{ color: var(--text-dim); margin-top: 20px; font-size: 1.1rem; max-width: 600px; margin-left: auto; margin-right: auto; }}
+
+            /* Status Bar */
+            .status-bar {{
+                display: flex; gap: 20px; justify-content: center; margin-top: 30px;
+            }}
+            .status-item {{ font-size: 0.8rem; display: flex; align-items: center; gap: 8px; color: var(--text-dim); }}
+            .dot {{ width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); }}
+
+            /* Technical Grid */
+            .section-label {{ font-size: 0.8rem; text-transform: uppercase; letter-spacing: 3px; color: var(--primary); margin-bottom: 20px; display: block; }}
+            .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 40px; }}
+            .card {{
+                background: var(--card);
+                padding: 30px;
+                border-radius: 20px;
+                border: 1px solid var(--card-border);
+                position: relative;
+                overflow: hidden;
+            }}
+            .card:hover {{ border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }}
+            .card h3 {{ margin: 0 0 15px 0; font-size: 1.25rem; color: #fff; display: flex; align-items: center; gap: 12px; }}
+            .card p {{ margin: 0; font-size: 0.95rem; color: var(--text-dim); }}
+            
+            /* Protocol Stack Badges */
+            .stack {{ display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }}
+            .badge {{
+                background: rgba(50, 184, 198, 0.1);
+                padding: 5px 12px;
+                border-radius: 6px;
+                font-size: 0.75rem;
+                font-family: 'JetBrains Mono', monospace;
+                color: var(--primary);
+                border: 1px solid rgba(50, 184, 198, 0.2);
+            }}
+
+            /* Connection Guide */
+            .connection-box {{
+                background: #0d1117;
+                padding: 25px;
+                border-radius: 16px;
+                border: 1px solid var(--accent-pink);
+                margin-top: 20px;
+            }}
+            code {{ font-family: 'JetBrains Mono', monospace; color: var(--accent-pink); font-size: 0.9rem; }}
+            .copy-row {{ display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 10px 15px; border-radius: 8px; margin-top: 10px; }}
+            .copy-btn {{ background: var(--primary); color: var(--bg); border: none; padding: 5px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.7rem; }}
+            .copy-btn:active {{ transform: scale(0.95); }}
+
+            /* Footer */
+            footer {{ text-align: center; margin-top: 80px; padding-top: 40px; border-top: 1px solid rgba(255,255,255,0.05); }}
+            .nav-links {{ display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; }}
+            .nav-link {{ color: var(--text-dim); text-decoration: none; font-size: 0.9rem; font-weight: 500; }}
+            .nav-link:hover {{ color: var(--primary); }}
+
+            @media (max-width: 600px) {{
+                h1 {{ font-size: 2rem; }}
+                .status-bar {{ flex-direction: column; align-items: center; gap: 10px; }}
+            }}
         </style>
     </head>
     <body>
         <div class="container">
-            <h1>arifOS v53</h1>
-            <p>Constitutional AI Framework — <i>Ditempa Bukan Diberi</i></p>
+            <header>
+                <div class="avatar">AF</div>
+                <h1>arifOS v53</h1>
+                <div class="tagline">"DITEMPA BUKAN DIBERI" — Forged, Not Given</div>
+                <p class="bio">The world's first metabolic AI governor. Bridging cold logic (Mind), warm empathy (Heart), and constitutional soul (APEX).</p>
+                <div class="status-bar">
+                    <div class="status-item"><span class="dot"></span> STATUS: ONLINE</div>
+                    <div class="status-item">VERSION: {version}</div>
+                    <div class="status-item">ARCHITECTURE: TRINITY</div>
+                </div>
+            </header>
+
+            <span class="section-label">01 // The Trinity Engines</span>
             <div class="grid">
                 <div class="card">
-                    <h3>🚀 Quick Start</h3>
-                    <p>Connect to <code>/mcp</code> using any standard client (ChatGPT, Codex, Zapier).</p>
-                    <a href="/dashboard" class="btn">View Live Dashboard</a>
+                    <h3>🧠 AGI Mind</h3>
+                    <p>Delta Engine (Δ): Chain-of-thought logic and knowledge mapping. Enforces Truth (F2) and Humility (F7).</p>
+                    <div class="stack">
+                        <span class="badge">SENSE</span>
+                        <span class="badge">THINK</span>
+                        <span class="badge">REASON</span>
+                    </div>
                 </div>
                 <div class="card">
-                    <h3>📜 Native Logic</h3>
-                    <p>Version: {VERSION}</p>
-                    <p>Mode: NATIVE v53 (Isolated Engines)</p>
-                    <a href="/metrics/json" class="btn">Raw Metrics JSON</a>
+                    <h3>❤️ ASI Heart</h3>
+                    <p>Omega Engine (Ω): Safety audit and stakeholder empathy. Enforces Amanah (F1) and Empathy (F6).</p>
+                    <div class="stack">
+                        <span class="badge">EVIDENCE</span>
+                        <span class="badge">EMPATHY</span>
+                        <span class="badge">ACT</span>
+                    </div>
                 </div>
                 <div class="card">
-                    <h3>🚪 Authorization</h3>
-                    <p>Identity verification & injection defense (000/F11/F12).</p>
-                </div>
-                <div class="card">
-                    <h3>🧠 Trinity Loop</h3>
-                    <p>Unified AGI→ASI→APEX metabolic cycle.</p>
+                    <h3>⚖️ APEX Soul</h3>
+                    <p>Psi Engine (Ψ): Final metabolic judgment. Enforces Tri-Witness Consensus (F3) and Signing.</p>
+                    <div class="stack">
+                        <span class="badge">EUREKA</span>
+                        <span class="badge">DECIDE</span>
+                        <span class="badge">PROOF</span>
+                    </div>
                 </div>
             </div>
+
+            <span class="section-label">02 // Universal Access Hub</span>
+            <div class="card" style="border-color: var(--accent-pink);">
+                <h3>🚀 Connect Anything</h3>
+                <p>Use your arifOS instance as a standard Model Context Protocol (MCP) server. Works with Claude, Cursor, and ChatGPT.</p>
+                
+                <div class="connection-box">
+                    <div class="label" style="font-size: 0.7rem; text-transform: uppercase; color: var(--accent-pink); margin-bottom: 8px;">MCP ENDPOINT URL</div>
+                    <div class="copy-row">
+                        <code>https://arif-fazil.com/mcp</code>
+                        <button class="copy-btn" onclick="navigator.clipboard.writeText('https://arif-fazil.com/mcp')">COPY</button>
+                    </div>
+                </div>
+
+                <div class="grid" style="margin-top: 30px; grid-template-columns: 1fr 1fr;">
+                    <a href="/dashboard" style="text-decoration:none">
+                        <div class="card" style="padding: 20px; background: rgba(255,255,255,0.03);">
+                            <h3>📊 Live Monitor</h3>
+                            <p>Real-time telemetry and decision stream.</p>
+                        </div>
+                    </a>
+                    <a href="/metrics/json" style="text-decoration:none">
+                        <div class="card" style="padding: 20px; background: rgba(255,255,255,0.03);">
+                            <h3>📈 Metrics Hub</h3>
+                            <p>Raw constitutional performance JSON.</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <footer>
+                <div class="nav-links">
+                    <a href="https://github.com/ariffazil/arifOS" class="nav-link">GITHUB</a>
+                    <a href="/health" class="nav-link">HEALTH</a>
+                    <a href="https://arif-fazil.com" class="nav-link">WEBSITE</a>
+                </div>
+                <p style="color:var(--text-dim)">&copy; 2026 Governor Arif Fazil. All Floors Active.</p>
+            </footer>
         </div>
     </body>
     </html>
@@ -282,42 +444,60 @@ async def discovery_landing(request):
 
 @mcp.custom_route("/dashboard", methods=["GET"])
 async def live_dashboard(request):
-    """Serena-style monitoring dashboard."""
+    """Serena-style monitoring dashboard (Fix v53.2.1)."""
     from starlette.responses import HTMLResponse
-    import json
     m = get_full_metrics()
+    
+    # Correcting metrics access to prevent 500 error
+    active_count = m.get('active_sessions', 0)
+    verdicts_total = m.get('total_verdicts', 0)
+    rps = m.get('rps', 0.0)
+    
     return HTMLResponse(f"""
     <!DOCTYPE html>
     <html>
     <head>
         <title>arifOS Monitor | Serena</title>
+        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <style>
             :root {{ --primary: #32b8c6; --danger: #ff5555; --bg: #05070a; --card: #0c1117; }}
             body {{ background: var(--bg); color: #fff; font-family: 'JetBrains Mono', monospace; padding: 20px; }}
-            h1 {{ border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 30px; letter-spacing: 2px; }}
-            .stat-grid {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }}
-            .stat-card {{ background: var(--card); padding: 15px; border: 1px solid #333; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }}
-            .label {{ color: #888; font-size: 10px; text-transform: uppercase; }}
-            .metric {{ font-size: 28px; color: var(--primary); font-weight: bold; margin-top: 5px; }}
-            .chart-container {{ background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #333; margin-top: 20px; }}
+            h1 {{ border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 30px; letter-spacing: 2px; font-weight: 700; }}
+            .stat-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }}
+            .stat-card {{ background: var(--card); padding: 20px; border: 1px solid #333; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }}
+            .label {{ color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }}
+            .metric {{ font-size: 32px; color: var(--primary); font-weight: bold; margin-top: 8px; }}
+            .chart-container {{ background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid #333; margin-top: 20px; }}
         </style>
     </head>
     <body>
         <h1>[SERENA] CONSTITUTIONAL_MONITOR_v53</h1>
         <div class="stat-grid">
-            <div class="stat-card"><div class="label">RPS (Rate/Sec)</div><div class="metric">{m.get('rps', 0.0):.2f}</div></div>
-            <div class="stat-card"><div class="label">Active Sessions</div><div class="metric">{m.get('sessions', {{}}).get('active', 0)}</div></div>
-            <div class="stat-card"><div class="label">Total Verdicts</div><div class="metric">{m.get('verdicts_total', 0)}</div></div>
-            <div class="stat-card"><div class="label">System Status</div><div class="metric" style="color:#50fa7b">ONLINE</div></div>
+            <div class="stat-card">
+                <div class="label">RPS (Rate/Sec)</div>
+                <div class="metric">{rps:.2f}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Active Sessions</div>
+                <div class="metric">{active_count}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Total Verdicts</div>
+                <div class="metric">{verdicts_total}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">System Status</div>
+                <div class="metric" style="color:#50fa7b">ONLINE</div>
+            </div>
         </div>
         <div class="chart-container">
             <h3 style="margin-top:0; color:var(--primary)">Live Decision Stream</h3>
             <canvas id="liveChart" height="100"></canvas>
         </div>
         <script>
-            // Simple auto-reload for metrics
-            setTimeout(() => location.reload(), 3000);
+            // Simple auto-refresh to keep metrics live
+            setTimeout(() => location.reload(), 5000);
         </script>
     </body>
     </html>
