@@ -1,13 +1,20 @@
 """
-arifos/core/stage_000.py — CANONICAL Stage 000 VOID Implementation (v52.5.2)
+arifos/core/stage_000.py — REFERENCE Stage 000 VOID Implementation (v52.5.2)
 
-THE GREAT PURGE: This file consolidates all Stage 000 implementations into ONE canonical module.
+REFERENCE ONLY — Canonical MCP init_000 is at:
+    codebase.init.000_init.init_000.mcp_000_init()
+
+This file contains the Stage000VOID class (8-step protocol with F1/F10/F11/F12,
+Scar Echo, ZKPC). It is used for standalone/CLI invocation, NOT for MCP.
+MCP servers use codebase.init.mcp_000_init() instead.
+
 Consolidated from multiple legacy sources.
 
 Authority:
 - Track A Canon: 000_THEORY/000_LAW.md
 - Track B Spec: arifos/spec/v47/000_foundation/000_void_stage.json
-- Track C Code: THIS FILE (canonical)
+- Track C Code: codebase/init/000_init/init_000.py (MCP canonical)
+- Track C Code: THIS FILE (standalone/CLI reference)
 
 Version: v52.5.2
 Author: arifOS Project

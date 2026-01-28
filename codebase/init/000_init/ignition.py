@@ -13,8 +13,13 @@ import json
 import logging
 from typing import Optional
 
-from codebase.init.000_init.stage_000_core import execute_stage_000, VerdictType
-from codebase.constitutional_floors import ALL_FLOORS
+# Use relative imports (we're inside the 000_init package)
+from .stage_000_core import execute_stage_000, VerdictType
+
+try:
+    from codebase.constitutional_floors import ALL_FLOORS
+except ImportError:
+    ALL_FLOORS = {}  # Graceful fallback
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
