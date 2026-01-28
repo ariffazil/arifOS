@@ -18,6 +18,21 @@
         "apex_judge",
         "vault_999"
       ]
+    },
+    "arifOS-Utils": {
+      "command": "python",
+      "args": ["-m", "arifos.mcp.mcp_utils_server"],
+      "cwd": "C:/Users/User/arifOS",
+      "env": {
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONUNBUFFERED": "1"
+      },
+      "disabled": false,
+      "alwaysAllow": [
+        "fetch_url",
+        "shell",
+        "grep_search"
+      ]
     }
   }
 }

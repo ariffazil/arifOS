@@ -116,6 +116,7 @@ dev = [
     "ruff>=0.1.0",
     "mypy>=1.0.0",
     "httpx>=0.28.0",
+    "beautifulsoup4>=4.12.0",
 ]
 yaml = ["pyyaml>=6.0.0"]
 api = [
@@ -172,6 +173,9 @@ arifos-show-merkle-proof = "scripts.show_merkle_proof:main"
 
 # Utilities
 arifos-safe-read = "scripts.arifos_safe_read:main"
+
+# MCP Utils Server (fetch_url, shell, grep_search)
+aaa-mcp-utils = "arifos.mcp.mcp_utils_server:main"
 arifos-api = "arifos.api.server:run_server"
 
 # Metabolic Pipeline (000-999)
