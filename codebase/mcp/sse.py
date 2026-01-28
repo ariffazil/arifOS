@@ -42,7 +42,7 @@ from codebase.mcp.rate_limiter import rate_limited
 
 logger = logging.getLogger(__name__)
 
-VERSION = "v53.2.1-CODEBASE"
+VERSION = "v53.2.6-CODEBASE"
 
 # =============================================================================
 # FASTMCP SERVER (6-Tool Architecture)
