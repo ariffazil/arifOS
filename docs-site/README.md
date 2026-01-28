@@ -1,41 +1,75 @@
-# Website
+# arifOS Pages Redirect
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+This folder contains the Cloudflare Pages redirect setup for `arifos.pages.dev`.
 
-## Installation
+## Purpose
 
-```bash
-yarn
-```
+Redirect all traffic from `arifos.pages.dev` → `https://arif-fazil.com/arifos`
 
-## Local Development
+This consolidates all arifOS web presence to the single Railway deployment.
 
-```bash
-yarn start
-```
+## Files
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+| File | Purpose |
+|------|---------|
+| `_redirects` | Cloudflare Pages redirect rules (301 permanent) |
+| `index.html` | Fallback HTML with meta refresh for browsers |
 
-## Build
+## Deployment Instructions
 
-```bash
-yarn build
-```
-
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
-
-## Deployment
-
-Using SSH:
+### Option A: Deploy via Wrangler CLI (Recommended)
 
 ```bash
-USE_SSH=true yarn deploy
+# Install Wrangler if not already installed
+npm install -g wrangler
+
+# Login to Cloudflare
+wrangler login
+
+# Deploy the redirect
+wrangler pages deploy . --project-name=arifos
 ```
 
-Not using SSH:
+### Option B: Deploy via Git Integration
+
+1. Push this `docs-site/` folder to a GitHub repo
+2. Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → Pages
+3. Create new project → Connect to GitHub
+4. Select the repo with this folder
+5. Build settings:
+   - Build command: (leave empty)
+   - Build output: `/`
+6. Deploy
+
+### Option C: Direct Upload
+
+1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → Pages
+2. Select `arifos` project
+3. Create deployment → Upload assets
+4. Select both `_redirects` and `index.html`
+5. Deploy
+
+## Redirect Behavior
+
+```
+arifos.pages.dev/           → 301 → https://arif-fazil.com/arifos
+arifos.pages.dev/docs       → 301 → https://arif-fazil.com/arifos
+arifos.pages.dev/anything   → 301 → https://arif-fazil.com/arifos
+```
+
+All paths redirect to the main arifOS framework page.
+
+## Verification
+
+After deployment, test:
 
 ```bash
-GIT_USER=<Your GitHub username> yarn deploy
+curl -I https://arifos.pages.dev/
+# Should show: HTTP/2 301 + Location: https://arif-fazil.com/arifos
 ```
 
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+## Notes
+
+- 301 redirect is SEO-friendly (search engines will update their index)
+- The `index.html` provides a fallback for browsers that don't follow redirects
+- No need to maintain content here anymore - everything is on Railway!
