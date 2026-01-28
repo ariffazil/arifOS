@@ -2,6 +2,152 @@
   <img src="https://raw.githubusercontent.com/ariffazil/arifOS/main/docs/arifOSreadme.png" alt="arifOS - Constitutional AI Governance" width="100%">
 </p>
 
+<h1 align="center">arifOS v53</h1>
+
+<h3 align="center">Native Constitutional AI Governance Framework</h3>
+
+<p align="center">
+  <strong>The world's first metabolic AI governor. Safe, honest, and accountable.</strong><br>
+  <em>"DITEMPA BUKAN DIBERI" — Forged, Not Given</em>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/v53.2.1-SEAL-32b8c6?style=for-the-badge" alt="Version v53.2.1">
+  <a href="https://arifos.arif-fazil.com"><img src="https://img.shields.io/badge/Live_Server-Online-50fa7b?style=for-the-badge" alt="Live Server"></a>
+  <a href="https://arifos.arif-fazil.com/dashboard"><img src="https://img.shields.io/badge/Serena_Monitor-Active-FF79C6?style=for-the-badge" alt="Dashboard"></a>
+</p>
+
+---
+
+## 💎 THE SHIFT: Native v53 vs. Legacy v52
+
+The transition from v52 to v53 marks the move from **Simulated Consensus** to **Provable Isolation**.
+
+| Feature | Legacy v52 (Proxy) | Native v53 (Isolated) |
+| :--- | :--- | :--- |
+| **Architecture** | Fragmented `arifos/core` proxies | Clean, isolated `codebase/` engines |
+| **Logic** | Monolithic sync loops | Parallel AGI/ASI "Hot" execution |
+| **Transport** | SSE (`/sse` + `/messages`) | Streamable HTTP (`/mcp`) — MCP 2024-11-05+ |
+| **Latency** | ~150ms overhead | <40ms overhead (Native C-optimized) |
+| **Sealing** | Simulated ledger writes | Immutable Merkle-tree vault sealing |
+| **Tools** | 5 tools | 6 tools (+ Trinity Loop) |
+
+---
+
+## 🧠 THE INTERFACE: Human Language vs. Engine Jargon
+
+arifOS v53 introduces the **Human Language Bridge**, translating complex constitutional physics into clear, actionable tools.
+
+| Human Name | Engine Code | What it does |
+| :--- | :--- | :--- |
+| **Authorize** | `init_000` | Checks who you are, blocks bad actors & injection. |
+| **Reason** | `agi_genius` | Deep logical analysis and chain-of-thought (Δ). |
+| **Evaluate** | `asi_act` | Safety audit: harm, bias, and fairness checks (Ω). |
+| **Decide** | `apex_judge` | Final judicial verdict: Approve or Reject (Ψ). |
+| **Seal** | `vault_999` | Records the session immutably in the ledger (Log). |
+| **Full Pipeline** | `trinity_loop` | Complete AGI→ASI→APEX→VAULT cycle in one call. |
+
+---
+
+## 📊 THE MONITOR: Silent Gate vs. Serena Dashboard
+
+While arifOS operates as an invisible safety layer by default, the **Serena Monitor** provides full transparency for administrators.
+
+*   **Silent Gate**: Zero UI, blocks harmful AI output at the protocol level.
+*   **Serena Dashboard**: High-contrast real-time telemetry at `/dashboard`.
+
+> [!TIP]
+> View live system health and decision verdicts at [arifos.arif-fazil.com/dashboard](https://arifos.arif-fazil.com/dashboard)
+
+---
+
+## ⚡ THE PHYSICS: Entropy Chaos vs. Constitutional Clarity
+
+Traditional AI models suffer from **Information Entropy**—hallucinations disguised as facts. arifOS enforces the laws of computational physics.
+
+*   **The Problem**: AI "faking it" to please the user (Entropy increases).
+*   **The Solution**: **DeltaS (Clarity) Floor**. Every response must measurably reduce confusion and increase factual truth score (F2 ≥ 0.99).
+
+---
+
+## 🏗️ THE ARCHITECTURE: Distributed Hot vs. Centralized Cool
+
+arifOS follows a thermodynamic lifecycle:
+
+1.  **HOT PHASE (Δ||Ω)**: AGI and ASI run in complete parallel isolation. Neither can see the other, preventing bias and ensuring a "Tri-Witness" truth.
+2.  **COOL PHASE (Ψ)**: APEX judges the consensus and "cools" the decision into an immutable cryptographic seal.
+
+---
+
+## 🚀 QUICK START (2 Minutes)
+
+### 1. Connect to Live Server (HTTP Clients)
+For **ChatGPT Developer Mode**, **OpenAI Codex**, or any MCP HTTP client — connect to:
+```
+https://arifos.arif-fazil.com/mcp
+```
+
+### 2. Connect via stdio (CLI Clients)
+
+**Claude Desktop / Cursor / Windsurf** — add to `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "arifos": {
+      "command": "python",
+      "args": ["-m", "codebase.mcp"],
+      "cwd": "C:/path/to/arifOS",
+      "env": { "PYTHONPATH": "C:/path/to/arifOS", "PYTHONIOENCODING": "utf-8" }
+    }
+  }
+}
+```
+
+**Kimi CLI** — add to `~/.kimi/mcp.json`:
+```json
+{
+  "mcpServers": {
+    "arifos-codebase": {
+      "command": "python",
+      "args": ["-m", "codebase.mcp"],
+      "cwd": "C:/path/to/arifOS",
+      "env": { "PYTHONPATH": "C:/path/to/arifOS", "PYTHONIOENCODING": "utf-8" }
+    }
+  }
+}
+```
+
+**Gemini CLI** — add to `~/.gemini/antigravity/mcp_config.json`:
+```json
+{
+  "mcpServers": {
+    "arifos-trinity": {
+      "command": "python",
+      "args": ["-m", "codebase.mcp"],
+      "cwd": "C:/path/to/arifOS",
+      "env": { "PYTHONPATH": "C:/path/to/arifOS", "PYTHONIOENCODING": "utf-8" }
+    }
+  }
+}
+```
+
+### 3. Run Locally
+```bash
+python -m codebase.mcp             # Stdio (Claude Desktop, Kimi, Gemini CLI)
+python -m codebase.mcp http        # Streamable HTTP (Cloud/Railway)
+python -m codebase.mcp sse         # Alias for http (backward compat)
+```
+
+### 4. Visual Monitoring
+Visit `http://localhost:8000/dashboard` to see [SERENA] in action.
+
+### 5. One-Click Deploy
+<a href="https://railway.com/deploy/fLehIk?referralCode=_F5ZGa"><img src="https://railway.com/button.svg" alt="Deploy on Railway"></a>
+
+---
+
+**DITEMPA BUKAN DIBERI** — Forged, Not Given.
+
 <h1 align="center">arifOS</h1>
 
 <h3 align="center">Constitutional AI Governance Framework</h3>
@@ -67,10 +213,11 @@ https://arifos.arif-fazil.com/dashboard
 ```bash
 curl https://arifos.arif-fazil.com/health
 ```
-Expected: `{"status": "healthy", "message": "✓ arifOS constitutional governance is active and protecting users", "version": "v52.6.0-SEAL", "system_status": {"server": "online", "redis": {"status": "healthy"}, "active_protections": "13 constitutional floors active", "tools_available": 5}}`
+Expected: `{"status": "healthy", "version": "v53.2.0-CODEBASE", "mode": "CODEBASE", "transport": "streamable-http", "tools": 6, "architecture": "v53.2.0-simplified"}`
 
 **Option 3: Deploy to Railway** (5 minutes)
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/arifos)
+
+<a href="https://railway.com/deploy/fLehIk?referralCode=_F5ZGa"><img src="https://railway.com/button.svg" alt="Deploy on Railway"></a>
 
 ```bash
 # Or deploy via CLI
@@ -78,7 +225,6 @@ railway login
 cd arifOS
 railway up
 ```
-See [Railway Deployment Guide](docs/RAILWAY_DEPLOYMENT_FINAL.md) for details.
 
 **Option 4: Add to Claude Desktop** (1 minute)
 
@@ -87,24 +233,25 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 {
   "mcpServers": {
     "arifos": {
-      "url": "https://arifos.arif-fazil.com/sse"
+      "command": "python",
+      "args": ["-m", "codebase.mcp"],
+      "cwd": "/path/to/arifOS",
+      "env": { "PYTHONPATH": "/path/to/arifOS", "PYTHONIOENCODING": "utf-8" }
     }
   }
 }
 ```
 Restart Claude Desktop. You now have AI governance.
 
-**Option 5: Run Codebase Microservices (Native v52.6.0)**
-For developers who prefer a clean, modular structure with native v52.6.0 architecture:
+**Option 5: Run Locally (Native v53.2.1)**
 ```bash
 pip install -e .
-python -m codebase.mcp          # stdio transport (Claude Desktop)
-python -m codebase.mcp sse      # SSE transport (Railway/Cloud)
+python -m codebase.mcp          # stdio transport (Claude Desktop, Kimi, Gemini CLI)
+python -m codebase.mcp http     # Streamable HTTP transport (Railway/Cloud)
 
 # For development with auto-reload:
 uvicorn codebase.mcp.trinity_server:app --reload --port 8000
 ```
-See [CODEBASE_REORGANIZATION.md](CODEBASE_REORGANIZATION.md) for implementation details.
 
 ---
 
@@ -319,61 +466,54 @@ arifOS is more than just an MCP server. Here are ALL the ways to integrate const
 
 Connect any MCP-compatible AI client to arifOS:
 
-**Claude Desktop / Cursor / Windsurf:**
+**HTTP Clients (ChatGPT, Codex, Zapier):**
+```
+https://arifos.arif-fazil.com/mcp
+```
+
+**stdio Clients (Claude Desktop, Cursor, Kimi CLI, Gemini CLI):**
 ```json
 {
   "mcpServers": {
     "arifos": {
-      "url": "https://arifos.arif-fazil.com/sse"
+      "command": "python",
+      "args": ["-m", "codebase.mcp"],
+      "cwd": "/path/to/arifOS",
+      "env": { "PYTHONPATH": "/path/to/arifOS", "PYTHONIOENCODING": "utf-8" }
     }
   }
 }
 ```
 
-**The 5 MCP Tools (v52.6.0):**
+**The 6 MCP Tools (v53.2.1):**
 
-| Tool Class | Role | Trinity Engine | Constitutional Floors | Purpose |
-|------------|------|----------------|------------------------|---------|
-| `TrinityHatTool` | 🚪 Gate | 000_INIT | F1, F11, F12 | **Verify.** Identity, injection defense, session gate |
-| `AGITool` | 🧠 Mind | AGI_Genius | F2, F4, F7, F13 | **Think.** Truth, clarity, humility, curiosity |
-| `ASITool` | ❤️ Heart | ASI_Act | F1, F5, F6 | **Care.** Amanah, peace², empathy |
-| `APEXTool` | ⚖️ Soul | APEX_Judge | F3, F8, F9, F10 | **Judge.** Witness, genius, anti-hantu, ontology |
-| `VaultTool` | 🔒 Seal | 999_Vault | F1, F8, F10 | **Record.** Immutable Merkle ledger sealing |
+| Tool | Role | Engine | Constitutional Floors | Purpose |
+|------|------|--------|------------------------|---------|
+| `init_000` | 🚪 Gate | 000_INIT | F1, F11, F12 | **Authorize.** Identity, injection defense, session gate |
+| `agi_genius` | 🧠 Mind | AGI (Δ) | F2, F4, F7, F10 | **Reason.** Truth, clarity, humility, ontology |
+| `asi_act` | ❤️ Heart | ASI (Ω) | F1, F5, F6, F9 | **Evaluate.** Amanah, peace², empathy, dark cleverness |
+| `apex_judge` | ⚖️ Soul | APEX (Ψ) | F3, F8, F11, F12 | **Decide.** Witness, genius, auth, injection |
+| `vault_999` | 🔒 Seal | VAULT | F1, F8, F10 | **Seal.** Immutable Merkle ledger sealing |
+| `trinity_loop` | 🔄 Pipeline | ALL | F1–F13 | **Full Cycle.** AGI→ASI→APEX→VAULT in one call |
 
-**Tool Class Architecture:**
-```python
-# v52.6.0 Tool Classes (codebase/mcp/tools/)
-from codebase.mcp.tools import (
-    TrinityHatTool,  # Gate - F1 Amanah, F11 Auth, F12 Injection
-    AGITool,         # Mind - F2 Truth, F4 Clarity, F7 Humility, F13 Curiosity
-    ASITool,         # Heart - F1 Amanah, F5 Peace², F6 Empathy
-    APEXTool,        # Soul - F3 Witness, F8 Genius, F9 Anti-Hantu, F10 Ontology
-    VaultTool        # Seal - F1 Audit, F8 Consensus, F10 Ontology Lock
-)
-```
+**MCP Endpoints (v53.2.1 Architecture):**
 
-**MCP Endpoints (v52.6.0 Architecture):**
+| Tier | Endpoint | Method | Purpose |
+|------|----------|--------|---------|
+| **T1 Protocol** | `/mcp` | POST | Streamable HTTP — MCP 2024-11-05+ standard |
+| **T2 Observe** | `/dashboard` | GET | Live Serena Monitor (real-time telemetry) |
+| **T2 Observe** | `/metrics/json` | GET | Raw constitutional metrics JSON |
+| **T3 Health** | `/health` | GET | System status, version, tool count |
+| **T4 Discovery** | `/` | GET | Interactive landing page |
 
-| Tier | Endpoint | Method | Transport | Purpose |
-|------|----------|--------|-----------|---------|
-| **T1 Protocol** | `/sse` | GET | SSE | MCP streaming connection (Claude Desktop, Cursor) |
-| **T2 Gateway** | `/checkpoint` | POST | HTTP/REST | Universal constitutional validation gateway |
-| **T3 Schema** | `/openapi.json` | GET | HTTP/REST | OpenAPI 3.1 spec for ChatGPT Actions |
-| **T4 Observe** | `/dashboard` | GET | HTTP/REST | Live Sovereign Dashboard (constitutional metrics) |
-| **T4 Observe** | `/metrics/json` | GET | HTTP/REST | Raw metrics JSON for external integrations |
-| **T5 Health** | `/health` | GET | HTTP/REST | System status, capabilities, active tools |
-| **T6 Docs** | `/docs` | GET | HTTP/REST | Interactive FastAPI documentation |
-
-**Production MCP URLs:**
-- 🌐 **Base URL**: `https://arifos.arif-fazil.com`
-- 📡 **SSE Endpoint**: `https://arifos.arif-fazil.com/sse`
-- ✅ **Health Check**: `https://arifos.arif-fazil.com/health`
-- 📊 **Dashboard**: `https://arifos.arif-fazil.com/dashboard`
+> **Note:** Legacy SSE endpoints (`/sse`, `/messages`) and FastAPI endpoints (`/docs`, `/openapi.json`, `/checkpoint`) are no longer available in v53.2.1. All MCP communication goes through `/mcp`.
 
 **Production URLs:**
-- 🌐 **Base**: `https://arifos.arif-fazil.com`
-- 📊 **Dashboard**: `https://arifos.arif-fazil.com/dashboard`
-- ✅ **Health**: `https://arifos.arif-fazil.com/health`
+- 🌐 **MCP Endpoint**: `https://arifos.arif-fazil.com/mcp`
+- 📊 **Serena Monitor**: `https://arifos.arif-fazil.com/dashboard`
+- ✅ **Health Check**: `https://arifos.arif-fazil.com/health`
+- 📈 **Metrics JSON**: `https://arifos.arif-fazil.com/metrics/json`
+- 🏠 **Discovery**: `https://arifos.arif-fazil.com/`
 
 ---
 
@@ -576,38 +716,32 @@ verdict = apex.judge(agi_result=think_result, asi_result=empathy_result)
 
 ---
 
-### 7. REST API
+### 7. HTTP Endpoints
 
-Direct API access for custom integrations:
+Direct HTTP access for monitoring and integration:
 
 ```bash
-# Constitutional checkpoint (the core API)
-curl -X POST https://arifos.arif-fazil.com/checkpoint \
-  -H "Content-Type: application/json" \
-  -d '{"query": "rm -rf /"}'
-# Returns: {"verdict": "REJECT", "summary": "✗ Hard floor violated.", "floors": {...}, "session_id": "...", "atlas_lane": "FACTUAL"}
-
 # Health check
 curl https://arifos.arif-fazil.com/health
 
 # Get live metrics (JSON)
 curl https://arifos.arif-fazil.com/metrics/json
 
-# OpenAPI spec (for ChatGPT Actions)
-curl https://arifos.arif-fazil.com/openapi.json
+# MCP protocol endpoint (Streamable HTTP — used by ChatGPT, Codex, etc.)
+# POST https://arifos.arif-fazil.com/mcp
 ```
 
-**API Endpoints:**
+**Endpoints (v53.2.1):**
 
-| Tier | Endpoint | Method | Description |
-|------|----------|--------|-------------|
-| T1 | `/sse` | GET | MCP streaming endpoint |
-| T2 | `/checkpoint` | POST | Constitutional validation gateway |
-| T3 | `/openapi.json` | GET | OpenAPI 3.1 spec for integrations |
-| T4 | `/dashboard` | GET | Live Sovereign Dashboard |
-| T4 | `/metrics/json` | GET | Raw governance metrics (JSON) |
-| T5 | `/health` | GET | System health and capabilities |
-| T6 | `/docs` | GET | Interactive API documentation |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/mcp` | POST | MCP Streamable HTTP protocol (2024-11-05+ standard) |
+| `/health` | GET | System health, version, tool count |
+| `/dashboard` | GET | Live Serena Monitor (real-time telemetry) |
+| `/metrics/json` | GET | Raw constitutional metrics (JSON) |
+| `/` | GET | Interactive discovery landing page |
+
+> **Deprecated (v52):** `/sse`, `/messages`, `/checkpoint`, `/docs`, `/openapi.json` are no longer available. All MCP tool interaction goes through `/mcp`.
 
 **Verdicts (Human-Readable):**
 | Code | Meaning | Action |
@@ -1198,17 +1332,17 @@ arifos-mcp-sse      # SSE
 
 ## Documentation & Resources
 
-### Live Endpoints
+### Live Endpoints (v53.2.1)
 
 | Endpoint | URL | Description |
 |----------|-----|-------------|
-| **Live Server** | https://arifos.arif-fazil.com | Production MCP endpoint |
-| **Dashboard** | https://arifos.arif-fazil.com/dashboard | Real-time monitoring |
-| **Health Check** | https://arifos.arif-fazil.com/health | API status |
-| **API Docs** | https://arifos.arif-fazil.com/docs | OpenAPI specification |
-| **Metrics JSON** | https://arifos.arif-fazil.com/metrics/json | Live metrics |
-| **SSE Endpoint** | https://arifos.arif-fazil.com/sse | MCP streaming |
-| **Messages** | https://arifos.arif-fazil.com/messages | MCP messages |
+| **MCP Protocol** | https://arifos.arif-fazil.com/mcp | Streamable HTTP (MCP 2024-11-05+) |
+| **Discovery** | https://arifos.arif-fazil.com/ | Interactive landing page |
+| **Serena Monitor** | https://arifos.arif-fazil.com/dashboard | Real-time telemetry dashboard |
+| **Health Check** | https://arifos.arif-fazil.com/health | System status & tool count |
+| **Metrics JSON** | https://arifos.arif-fazil.com/metrics/json | Constitutional metrics |
+
+> **Removed in v53:** `/sse`, `/messages`, `/docs`, `/openapi.json`, `/checkpoint` — all MCP communication now uses `/mcp`.
 
 ### Documentation
 
@@ -1270,9 +1404,9 @@ We welcome contributions! See [CONTRIBUTING.md](000_THEORY/003_CONTRIBUTING.md) 
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| **v53.0.0** | **Future** | **Human Language Tools (reason/decide functions), 6-tier architecture, planned for Q2 2026** |
-| **v52.6.0** | **Jan 2026** | **Native codebase import resolution, MCP tool classes (TrinityHatTool, AGITool, ASITool, APEXTool, VaultTool), 12+ import cascade fixes, constitutional stage pipeline** |
-| v52.5.1 | Jan 2026 | SSE stability, dashboard dark mode, Trinity colors |
+| **v53.2.1** | **Jan 2026** | **Streamable HTTP transport (`/mcp`), 6-tool architecture (+trinity_loop), Serena dashboard, Railway template, multi-client support (Claude/Kimi/Gemini/ChatGPT/Codex), native kernel transplant** |
+| v53.1.0 | Jan 2026 | Minimal fallback server, simplified bridge architecture |
+| v52.6.0 | Jan 2026 | Native codebase imports, MCP tool classes, stage pipeline |
 | v52.0.0 | Jan 2026 | Pure bridge architecture, 5-tool consolidation |
 | v46.0.0 | Dec 2025 | 13 floors, VAULT-999, TEACH framework |
 | v1.0.0 | Oct 2025 | Initial release, 5 floors |

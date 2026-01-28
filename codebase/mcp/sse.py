@@ -221,6 +221,102 @@ async def metrics_endpoint(request):
     """Constitutional telemetry metrics."""
     return JSONResponse(get_full_metrics())
 
+@mcp.custom_route("/", methods=["GET"])
+async def discovery_landing(request):
+    """Interactive discovery page - first impression of API."""
+    from starlette.responses import HTMLResponse
+    return HTMLResponse(f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>arifOS v53 | Constitutional AI</title>
+        <style>
+            :root {{ --primary: #32b8c6; --bg: #0a0e14; --card: #151c26; --text: #e0e6ed; }}
+            body {{ font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 40px; margin: 0; }}
+            .container {{ max-width: 900px; margin: 0 auto; }}
+            h1 {{ color: var(--primary); font-size: 2.5rem; margin-bottom: 0.5rem; }}
+            .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 2rem; }}
+            .card {{ background: var(--card); padding: 20px; border-radius: 12px; border-left: 4px solid var(--primary); font-size: 0.9rem; }}
+            .card h3 {{ color: var(--primary); margin-top: 0; }}
+            .btn {{ display: inline-block; background: var(--primary); color: var(--bg); padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; margin-top: 1rem; cursor: pointer; }}
+            .btn:hover {{ opacity: 0.9; }}
+            code {{ background: #1a232e; padding: 2px 6px; border-radius: 4px; color: #ff79c6; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>arifOS v53</h1>
+            <p>Constitutional AI Framework — <i>Ditempa Bukan Diberi</i></p>
+            <div class="grid">
+                <div class="card">
+                    <h3>🚀 Quick Start</h3>
+                    <p>Connect to <code>/mcp</code> using any standard client (ChatGPT, Codex, Zapier).</p>
+                    <a href="/dashboard" class="btn">View Live Dashboard</a>
+                </div>
+                <div class="card">
+                    <h3>📜 Native Logic</h3>
+                    <p>Version: {VERSION}</p>
+                    <p>Mode: NATIVE v53 (Isolated Engines)</p>
+                    <a href="/metrics/json" class="btn">Raw Metrics JSON</a>
+                </div>
+                <div class="card">
+                    <h3>🚪 Authorization</h3>
+                    <p>Identity verification & injection defense (000/F11/F12).</p>
+                </div>
+                <div class="card">
+                    <h3>🧠 Trinity Loop</h3>
+                    <p>Unified AGI→ASI→APEX metabolic cycle.</p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """)
+
+@mcp.custom_route("/dashboard", methods=["GET"])
+async def live_dashboard(request):
+    """Serena-style monitoring dashboard."""
+    from starlette.responses import HTMLResponse
+    import json
+    m = get_full_metrics()
+    return HTMLResponse(f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>arifOS Monitor | Serena</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <style>
+            :root {{ --primary: #32b8c6; --danger: #ff5555; --bg: #05070a; --card: #0c1117; }}
+            body {{ background: var(--bg); color: #fff; font-family: 'JetBrains Mono', monospace; padding: 20px; }}
+            h1 {{ border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 30px; letter-spacing: 2px; }}
+            .stat-grid {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }}
+            .stat-card {{ background: var(--card); padding: 15px; border: 1px solid #333; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }}
+            .label {{ color: #888; font-size: 10px; text-transform: uppercase; }}
+            .metric {{ font-size: 28px; color: var(--primary); font-weight: bold; margin-top: 5px; }}
+            .chart-container {{ background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #333; margin-top: 20px; }}
+        </style>
+    </head>
+    <body>
+        <h1>[SERENA] CONSTITUTIONAL_MONITOR_v53</h1>
+        <div class="stat-grid">
+            <div class="stat-card"><div class="label">RPS (Rate/Sec)</div><div class="metric">{m.get('rps', 0.0):.2f}</div></div>
+            <div class="stat-card"><div class="label">Active Sessions</div><div class="metric">{m.get('sessions', {{}}).get('active', 0)}</div></div>
+            <div class="stat-card"><div class="label">Total Verdicts</div><div class="metric">{m.get('verdicts_total', 0)}</div></div>
+            <div class="stat-card"><div class="label">System Status</div><div class="metric" style="color:#50fa7b">ONLINE</div></div>
+        </div>
+        <div class="chart-container">
+            <h3 style="margin-top:0; color:var(--primary)">Live Decision Stream</h3>
+            <canvas id="liveChart" height="100"></canvas>
+        </div>
+        <script>
+            // Simple auto-reload for metrics
+            setTimeout(() => location.reload(), 3000);
+        </script>
+    </body>
+    </html>
+    """)
+
 # =============================================================================
 # APP EXPORT — Streamable HTTP (with legacy SSE fallback)
 # =============================================================================
