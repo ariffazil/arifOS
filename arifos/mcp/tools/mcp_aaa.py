@@ -311,6 +311,14 @@ LANE_INTENTS = {
     "PHATIC": ["greet", "thanks"],          # Social
 }
 
+# v53.2.2: Restricted operations that require 888_JUDGE authentication (F11)
+GUEST_RESTRICTED = [
+    "show vault", "read vault", "export session", "raw entries",
+    "modify floor", "override consensus", "bypass f12",
+    "delete ledger", "erase canon", "reset constitution",
+    "show scar", "raw scar", "dump memory",
+]
+
 
 def _step_0_root_key_ignition(session_id: str) -> Dict[str, Any]:
     """
@@ -431,14 +439,37 @@ def _step_0_root_key_ignition(session_id: str) -> Dict[str, Any]:
         }
 
 
-def _step_1_memory_injection() -> Dict[str, Any]:
-    """Step 1: Read from VAULT999 - inject previous session context."""
+def _step_1_memory_injection(scar_weight: float = 0.0) -> Dict[str, Any]:
+    """Step 1: Read from VAULT999 - inject previous session context.
+
+    v53.2.2: Now receives scar_weight from Step 2 (sovereign recognition).
+    Auth gates memory access (F11 Command Auth):
+      - scar_weight >= 1.0 (888_JUDGE): Full vault context
+      - scar_weight >= 0.5 (GUEST):     Summary-level only
+      - scar_weight < 0.5:              Empty context (fresh session)
+    """
     try:
         previous_context = inject_memory()
         prev_session = previous_context.get('previous_session') or {}
         prev_id = prev_session.get('session_id', '')
-        logger.info(f"000_init Step 1: Memory injected from {prev_id[:8] if prev_id else 'FIRST_SESSION'}")
-        return previous_context
+        logger.info(f"000_init Step 1: Memory injected from {prev_id[:8] if prev_id else 'FIRST_SESSION'} (scar_weight={scar_weight})")
+
+        # F11: Filter memory access by authority level
+        if scar_weight >= 1.0:
+            # 888_JUDGE: Full access to all past sessions
+            return previous_context
+        elif scar_weight >= 0.5:
+            # GUEST: Summary-level only, no raw verdicts or scar records
+            return {
+                "is_first_session": previous_context.get("is_first_session", True),
+                "session_count": previous_context.get("chain_length", 0),
+                "last_lane_type": (prev_session.get("lane", "PHATIC") if prev_session else "PHATIC"),
+                "context_summary": previous_context.get("context_summary", ""),
+            }
+        else:
+            # Unauthorized: Empty context, fresh session
+            logger.info("000_init Step 1: Minimal memory (scar_weight < 0.5)")
+            return {"is_first_session": True, "session_count": 0}
     except Exception as e:
         logger.warning(f"000_init Step 1: Memory injection failed: {e}")
         return {"is_first_session": True, "error": str(e)}
@@ -648,11 +679,12 @@ LANE_PROFILES = {
 }
 
 
-def _step_4_thermodynamic_setup(intent_map: Dict[str, Any]) -> Dict[str, Any]:
+def _step_4_thermodynamic_setup(intent_map: Dict[str, Any], sovereign: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Step 4: Set energy budget and entropy targets.
 
     v52.5.1: Now uses ATLAS-333 GPV lane for profile selection.
+    v53.2.2: Energy budget now scales with scar_weight (F6/F11).
     Lane profiles are tuned for each classification type.
     All omega_0 values are within F7 bounds [0.03, 0.05].
     """
@@ -684,8 +716,14 @@ def _step_4_thermodynamic_setup(intent_map: Dict[str, Any]) -> Dict[str, Any]:
     # Apply profile
     S_target = S_input * profile["S_factor"]
     omega_0 = profile["omega_0"]
-    energy_budget = profile["energy"]
     time_budget = profile["time_budget"]
+
+    # v53.2.2: Scale energy budget by authority scar_weight (F6 Empathy + F11 Command Auth)
+    # 888_JUDGE (scar=1.0) gets full energy; GUEST (scar=0.0) gets floor minimum.
+    # F6 empathy floor ensures even unauthenticated users get minimum service.
+    scar_weight = (sovereign or {}).get("scar_weight", 0.5)
+    energy_floor = min(0.3, profile["energy"] * 0.6)  # Floor never exceeds 60% of base
+    energy_budget = max(energy_floor, profile["energy"] * max(scar_weight, 0.3))
 
     # Peace² baseline - wired to Track B spec
     peace_squared = PEACE_SQUARED_THRESHOLD
@@ -934,15 +972,15 @@ async def mcp_000_init(
         floors_checked.append("F1_Amanah")
         
         # =====================================================================
-        # STEP 1: MEMORY INJECTION
-        # =====================================================================
-        previous_context = _step_1_memory_injection()
-
-        # =====================================================================
-        # STEP 2: SOVEREIGN RECOGNITION
+        # STEP 2: SOVEREIGN RECOGNITION (moved before memory — F11 gates access)
         # =====================================================================
         sovereign = _step_2_sovereign_recognition(query, authority_token)
         floors_checked.append("F11_CommandAuth")
+
+        # =====================================================================
+        # STEP 1: MEMORY INJECTION (now filtered by scar_weight from Step 2)
+        # =====================================================================
+        previous_context = _step_1_memory_injection(scar_weight=sovereign["scar_weight"])
 
         # =====================================================================
         # STEP 3: INTENT MAPPING (Contrast Engine)
@@ -978,9 +1016,9 @@ async def mcp_000_init(
             }
 
         # =====================================================================
-        # STEP 4: THERMODYNAMIC SETUP
+        # STEP 4: THERMODYNAMIC SETUP (v53.2.2: energy scales with scar_weight)
         # =====================================================================
-        thermo = _step_4_thermodynamic_setup(intent_map)
+        thermo = _step_4_thermodynamic_setup(intent_map, sovereign=sovereign)
 
         # =====================================================================
         # FLOOR CHECK: F12 Injection Defense
