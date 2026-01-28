@@ -72,6 +72,7 @@ async def tool_init(
     query: str = "",
     session_id: str = "",
     user_token: str = "",
+    **kwargs,
 ) -> dict:
     """Initialize constitutional session or verify identity."""
     return await bridge_init_router(
@@ -92,6 +93,7 @@ async def tool_agi(
     query: str = "",
     session_id: str = "",
     context: dict = None,
+    **kwargs,
 ) -> dict:
     """Route reasoning tasks to AGI Mind Kernel."""
     kwargs = {}
@@ -117,6 +119,7 @@ async def tool_asi(
     session_id: str = "",
     reasoning: str = "",
     agi_context: dict = None,
+    **kwargs,
 ) -> dict:
     """Route ethical tasks to ASI Heart Kernel."""
     kwargs = {}
@@ -148,6 +151,7 @@ async def tool_apex(
     reasoning: str = "",
     safety_evaluation: dict = None,
     authority_check: dict = None,
+    **kwargs,
 ) -> dict:
     """Route judicial tasks to APEX Soul Kernel."""
     kwargs = {}
@@ -180,6 +184,7 @@ async def tool_vault(
     query: str = "",
     response: str = "",
     decision_data: dict = None,
+    **kwargs,
 ) -> dict:
     """Route archival tasks to VAULT-999."""
     kwargs = {}
@@ -206,6 +211,7 @@ async def tool_vault(
 async def tool_trinity_loop(
     query: str,
     session_id: str = "",
+    **kwargs,
 ) -> dict:
     """Run complete Trinity constitutional governance pipeline."""
     return await bridge_trinity_loop_router(
@@ -223,6 +229,7 @@ async def tool_trinity_loop(
 async def tool_reality(
     query: str,
     session_id: str = "",
+    **kwargs,
 ) -> dict:
     """Reality grounding and factual verification."""
     return await bridge_reality_check_router(
