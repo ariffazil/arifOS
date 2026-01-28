@@ -1,0 +1,10 @@
+{
+  "version": "v52.0.0",
+  "generated": "2026-01-24T18:30:00Z",
+  "algorithm": "sha256",
+  "files": {
+    "constitutional_floors.json": "98da461ed43d29a334226d71c5df649d5f61971e5adcba4f0ca55fb6be0b11d4"
+  },
+  "seal_status": "SEALED",
+  "authority": "arifOS v52.0.0"
+}

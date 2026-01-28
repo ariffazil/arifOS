@@ -1,0 +1,101 @@
+{
+  "session_id": "8eb6114b-cd86-48ab-85c6-15bc80572b47",
+  "timestamp": "2026-01-26T05:22:57.555948+00:00Z",
+  "verdict": "SEAL",
+  "init_result": {
+    "status": "SEAL",
+    "session_id": "8eb6114b-cd86-48ab-85c6-15bc80572b47",
+    "lane": "SOFT"
+  },
+  "genius_result": {
+    "status": "SEAL",
+    "think": {
+      "confidence": 0.995
+    }
+  },
+  "act_result": {
+    "status": "SEAL",
+    "empathy": {
+      "kappa_r": 0.97
+    },
+    "evidence": {
+      "truth_score": 0.99
+    }
+  },
+  "judge_result": {
+    "verdict_struct": {
+      "stage": "888_JUDGE",
+      "session_id": "8eb6114b-cd86-48ab-85c6-15bc80572b47",
+      "lane": "SOFT",
+      "verdict": "SEAL",
+      "reason": "SEAL: All floors pass",
+      "p_truth": 0.9999999673525799,
+      "tri_witness": 0.985,
+      "votes": {
+        "mind": 0.995,
+        "heart": 0.97,
+        "earth": 0.99
+      },
+      "violated_floors": [],
+      "cooling": {
+        "tier": "L5_ETERNAL",
+        "hold_hours": 0
+      },
+      "proof_hash": "f1b00d757122c7e3317f538f44089b6d988c2b0494b09a48bf8005b7ed858d2d",
+      "metrics": {
+        "truth": 0.995,
+        "delta_s": -0.7,
+        "peace_squared": 1.0,
+        "kappa_r": 0.97,
+        "omega_0": 0.04,
+        "amanah": true,
+        "tri_witness": 0.985,
+        "rasa": true,
+        "anti_hantu": true,
+        "psi": 1.0
+      }
+    },
+    "proof": {
+      "stage": "889_PROOF",
+      "session_id": "8eb6114b-cd86-48ab-85c6-15bc80572b47",
+      "merkle_root": "9ea0cc78d4c799c1cefa1b3ad0966975669b7f312910ead6f589e7d42a7056a6",
+      "signature_ed25519": "bf73589c4e04bcec7daf2675ba7e8faa9bc04adabcd91f3596918aef70af3c517d75f08512bcce6d1474a8f336c9dd6b280a01284d1b30eba853f1c843f99f0f",
+      "public_key_ed25519": "0f18e738c05445570239642dc3a43c9aa412843a42a6eee760e6ead425bcd3cb",
+      "leaves": [
+        "54f6b577c81ed0ce19d1cdb6fc44ea5aba3c87e56a947a49b39db109777f418b",
+        "1e6e2c629c423157dc7ab78067ef665356654f34c56021979f29ebaee874698a",
+        "ccaeeeb0435b31da489bacab259cd8e2275a4b9a69cce60963b2dab4521672ac",
+        "12ad2965b90c2525d0123137a43ee2e2328ff35b98731aac9230b0d9841baa38",
+        "06ff4e80f31626451bb9b0b133df2d58ec66d19e53ec931e221d49b906d96b97",
+        "37b0c3d50559d2ef6d0ae38ac6490f6ed130078a41a39fee8b4ebbdcba8c7d2f",
+        "5c4b1181fd140503091fbd867fa585bfb625a4e40e0983ecebbdbf862bdb87d7",
+        "aa0bf1c58f2b4eb996b59042ea8bbc9288d3654c618ca2966bb144f7f68006bf",
+        "7c2c7f7a23079d0dd74c43bfdfe878ade62601993cf3254e13a43e9ed7f6b55f",
+        "2e689fab8b0d9c0dfa3fc08f2fa660dc632e602ace860bc9f1b87c1fab1d9a48",
+        "c0cf2124f0459617c637c7843d0c75c56b27cb9264f7be732cd80d83b36abe3d"
+      ]
+    }
+  },
+  "telemetry": {
+    "verdict": "SEAL",
+    "p_truth": 0.9999999673525799,
+    "TW": 0.985,
+    "dS": -0.7,
+    "peace2": 1.0,
+    "kappa_r": 0.97,
+    "omega_0": 0.04,
+    "cooling": {
+      "tier": "L5_ETERNAL",
+      "hold_hours": 0
+    },
+    "proof": {
+      "merkle_root": "9ea0cc78d4c799c1cefa1b3ad0966975669b7f312910ead6f589e7d42a7056a6",
+      "public_key": "0f18e738c05445570239642dc3a43c9aa412843a42a6eee760e6ead425bcd3cb"
+    }
+  },
+  "prev_hash": "3c0d69cca8c67503890ecc4fa035794f2e1b496cfee5897a1a4f1a5e5899a638",
+  "merkle_root": "6ceff06118ce27ce1479710e7b4482e0f42542be0648c3c7e6d9a0bac297b739",
+  "entry_hash": "7451786f91257dcfe34ba52206cd8a92f8f3de86746a13f2d871ee065e1c0c8a",
+  "context_summary": "SEAL: SEAL: All floors pass",
+  "key_insights": []
+}

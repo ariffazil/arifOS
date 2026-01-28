@@ -1,0 +1,80 @@
+{
+    "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/specification/main/schema/mcp-servers.schema.json",
+    "mcpServers": {
+        "arifos-trinity": {
+            "command": "python",
+            "args": ["-m", "arifos.mcp", "trinity"],
+            "env": {
+                "PYTHONPATH": "${ARIFOS_PATH}",
+                "ARIFOS_ENV": "production",
+                "ARIFOS_VERSION": "v50.5.3",
+                "ARIFOS_CONSTITUTIONAL_MODE": "AAA"
+            },
+            "metadata": {
+                "name": "arifOS Trinity Constitutional Kernel",
+                "version": "50.5.3",
+                "description": "5-Tool Constitutional Framework - Init, Genius, Act, Judge, Vault",
+                "tools_count": 5,
+                "model_agnostic": true,
+                "supported_models": [
+                    "Claude (Desktop/Code/API)",
+                    "ChatGPT (GPT-4/GPT-4o)",
+                    "Gemini",
+                    "Any MCP-compliant client"
+                ],
+                "transport": "stdio",
+                "mnemonic": "Init the Genius, Act with Heart, Judge at Apex, seal in Vault.",
+                "tools": {
+                    "init_000": {
+                        "role": "Gate",
+                        "description": "Authority + Injection + Amanah",
+                        "floors": ["F1", "F11", "F12"]
+                    },
+                    "agi_genius": {
+                        "role": "Mind (Δ)",
+                        "description": "SENSE → THINK → ATLAS → FORGE",
+                        "floors": ["F2", "F6", "F7"]
+                    },
+                    "asi_act": {
+                        "role": "Heart (Ω)",
+                        "description": "EVIDENCE → EMPATHY → ACT",
+                        "floors": ["F3", "F4", "F5"]
+                    },
+                    "apex_judge": {
+                        "role": "Soul (Ψ)",
+                        "description": "EUREKA → JUDGE → PROOF",
+                        "floors": ["F1", "F8", "F9"]
+                    },
+                    "vault_999": {
+                        "role": "Seal",
+                        "description": "Merkle + zkPC + Immutable Log",
+                        "floors": ["F1", "F8"]
+                    }
+                },
+                "constitutional_floors": {
+                    "F1": "Amanah - Reversible audit trail",
+                    "F2": "Truth ≥0.99",
+                    "F3": "Peace² ≥1.0",
+                    "F4": "κᵣ (Empathy) ≥0.7",
+                    "F5": "Ω₀ (Humility) 0.03-0.05",
+                    "F6": "ΔS (Clarity) ≥0",
+                    "F7": "Humility injection",
+                    "F8": "Tri-Witness ≥0.95",
+                    "F9": "Anti-Hantu",
+                    "F11": "Command Auth Lock",
+                    "F12": "Injection Defense <0.85"
+                }
+            }
+        },
+        "arifos-trinity-sse": {
+            "type": "sse",
+            "url": "https://arifos.arif-fazil.com/sse",
+            "metadata": {
+                "name": "arifOS Trinity Remote (SSE)",
+                "description": "Remote access via Railway deployment",
+                "transport": "sse",
+                "tools_count": 5
+            }
+        }
+    }
+}

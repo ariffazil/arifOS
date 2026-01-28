@@ -24,10 +24,8 @@ COPY pyproject.toml .
 RUN uv pip install --system --no-cache -r requirements.txt
 RUN uv pip install --system --no-cache fastapi uvicorn pydantic mcp sse-starlette httpx-sse
 
-# Copy codebase (NEW: v53 canonical module)
+# Copy codebase (v53+ canonical module)
 COPY codebase/ codebase/
-# Copy arifos (for backward compatibility / bridge imports)
-COPY arifos/ arifos/
 # Fix: Copy 000_THEORY which actually exists, not L1_THEORY
 COPY 000_THEORY/ 000_THEORY/
 # Docs are good to have

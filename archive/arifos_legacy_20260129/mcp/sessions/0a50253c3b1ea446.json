@@ -1,0 +1,164 @@
+{
+  "session_id": "test-session-001",
+  "timestamp": "2026-01-25T09:12:32.643460+00:00Z",
+  "verdict": "SEAL",
+  "init_result": {
+    "status": "SEAL",
+    "session_id": "test-session-001",
+    "timestamp": "2026-01-25T17:12:32.634357",
+    "previous_context": {
+      "is_first_session": false,
+      "previous_session": {
+        "session_id": "ff563362-6fd1-43ef-8b68-56bb367af04e",
+        "timestamp": "2026-01-25T09:12:32.621147+00:00Z",
+        "verdict": "SABAR",
+        "entry_hash": "61aa4f9cf30a210ee4c835422ab8ca16da6d697a19f2626d04182481e25e4a39"
+      },
+      "context_summary": "RECOVERED SESSION: Process 4392 no longer running. Original session started at 2026-01-25T08:23:07.000675Z.",
+      "key_insights": [
+        "Session was recovered via Loop Bootstrap",
+        "Reason: Process 4392 no longer running"
+      ],
+      "chain_length": 850
+    },
+    "authority": "GUEST",
+    "authority_verified": false,
+    "scar_weight": 0.0,
+    "intent": "review",
+    "lane": "HARD",
+    "contrasts": [],
+    "entities": [
+      "commissioning",
+      "test"
+    ],
+    "entropy_input": 0.4,
+    "entropy_target": 0.27999999999999997,
+    "entropy_omega": 0.04,
+    "peace_squared": 1.0,
+    "energy_budget": 1.0,
+    "floors_checked": [
+      "F11_CommandAuth",
+      "F12_InjectionDefense",
+      "F1_Amanah",
+      "F1_Amanah",
+      "F2_Truth",
+      "F3_TriWitness",
+      "F4_Empathy",
+      "F5_Peace2",
+      "F6_Clarity",
+      "F7_Humility",
+      "F8_Genius",
+      "F9_AntiHantu",
+      "F10_Ontology",
+      "F11_CommandAuth",
+      "F12_InjectionDefense",
+      "F13_Sovereign"
+    ],
+    "floors_loaded": 13,
+    "tri_witness": {
+      "human": {
+        "present": false,
+        "scar_weight": 0.0,
+        "veto_power": true
+      },
+      "ai": {
+        "present": true,
+        "floors_active": 13,
+        "constraints_on": true
+      },
+      "earth": {
+        "present": true,
+        "energy_available": 1.0,
+        "within_bounds": true
+      },
+      "TW": 0.7937005259840998,
+      "consensus": false
+    },
+    "TW": 0.7937005259840998,
+    "engines": {
+      "AGI_Mind": "READY",
+      "ASI_Heart": "READY",
+      "APEX_Soul": "READY"
+    },
+    "injection_risk": 0.0,
+    "reason": "IGNITION COMPLETE - Constitutional Mode Active",
+    "session_token": "e38a5eeb-fa02-4aeb-85c3-8355fcb702a8",
+    "loop_bootstrap": true
+  },
+  "genius_result": {
+    "status": "SEAL",
+    "reasoning": "Lane classified: PHATIC",
+    "truth_score": 0.3,
+    "entropy_delta": 0.0,
+    "lane": "PHATIC",
+    "semantic_map": {
+      "lane": "PHATIC",
+      "intent": "greet",
+      "entities": [
+        "World"
+      ],
+      "contrasts": [
+        "hello w \u2194 ld"
+      ],
+      "truth_demand": 0.3,
+      "care_demand": 0.9,
+      "risk_level": 0.3
+    },
+    "floors_checked": [
+      "F12_Injection",
+      "F2_Truth"
+    ],
+    "floor_F12_risk": 0.0,
+    "sub_stage": "111_SENSE",
+    "source": "v51_bridge",
+    "session_id": "test-session-001"
+  },
+  "act_result": {},
+  "judge_result": {
+    "status": "SABAR",
+    "session_id": "test-session-001",
+    "verdict": "SABAR",
+    "synthesis": "Consensus: 0.88",
+    "tri_witness_votes": [
+      0.9,
+      0.8,
+      0.95
+    ],
+    "consensus_score": 0.8833333333333333,
+    "genius_metrics": {
+      "G": 0.9,
+      "C_dark": 0.19999999999999996,
+      "Psi": 0.95
+    },
+    "proof_hash": "",
+    "floors_checked": [
+      "F1_Amanah",
+      "F8_TriWitness",
+      "F9_AntiHantu"
+    ],
+    "sub_stage": "888_JUDGE"
+  },
+  "telemetry": {
+    "verdict": "SEAL",
+    "merkle_root": "3cb3c5c6c6c73bc11332da8464e30f632c7cd81c50a46ca72340822670855881",
+    "audit_hash": "9d5d21b0128404be50c466dba40af11dc93f6787f74bcb047f0f2b35d2ffe050",
+    "memory_location": "L5_CANON",
+    "floors_checked": [
+      "F1_Amanah",
+      "F8_TriWitness"
+    ],
+    "p_truth": 0.8833333333333333,
+    "TW": 0.8833333333333333,
+    "dS": 0.0,
+    "peace2": 0,
+    "kappa_r": 0,
+    "omega_0": 0.04
+  },
+  "prev_hash": "61aa4f9cf30a210ee4c835422ab8ca16da6d697a19f2626d04182481e25e4a39",
+  "merkle_root": "9d285b75b28b554f1aabe556e65bd8b33d7402cd2817beaf9a3bace0fe20b7ed",
+  "entry_hash": "0a50253c3b1ea44695a35779a8475c5047d0b94acca5d8f0fe03406e1cee91af",
+  "context_summary": "Session sealed with verdict SEAL. Consensus: 0.88",
+  "key_insights": [
+    "Consensus: 0.88"
+  ]
+}

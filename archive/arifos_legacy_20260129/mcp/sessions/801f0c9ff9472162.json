@@ -1,0 +1,72 @@
+{
+  "session_id": "d82802c7-824b-44fb-8d86-13384a1eb828",
+  "timestamp": "2026-01-26T05:24:52.147068+00:00Z",
+  "verdict": "SEAL",
+  "init_result": {},
+  "genius_result": {
+    "status": "SEAL",
+    "think": {
+      "confidence": 0.995
+    }
+  },
+  "act_result": {
+    "status": "SEAL",
+    "empathy": {
+      "kappa_r": 0.97
+    },
+    "evidence": {
+      "truth_score": 0.99
+    }
+  },
+  "judge_result": {
+    "verdict_struct": {
+      "verdict": "SEAL",
+      "p_truth": 0.999,
+      "tri_witness": 0.97,
+      "reason": "ok",
+      "metrics": {
+        "truth": 0.995,
+        "delta_s": -0.9,
+        "peace_squared": 1.0,
+        "kappa_r": 0.97,
+        "omega_0": 0.04,
+        "tri_witness": 0.97
+      }
+    },
+    "proof": {
+      "stage": "889_PROOF",
+      "session_id": "d82802c7-824b-44fb-8d86-13384a1eb828",
+      "merkle_root": "dfa905bad0b5cd4d5507b957f3cb4491776152effe729a43c60de977d0edca27",
+      "signature_ed25519": "90df9f31409c309d36ff806794cee801a3ccd17abfbd53c868905b301a1b928a8d7374333c9e449359c98e3e715627bf31278da090f2fef56ba2471957444704",
+      "public_key_ed25519": "0f18e738c05445570239642dc3a43c9aa412843a42a6eee760e6ead425bcd3cb",
+      "leaves": [
+        "df15d237c36c1cde11f3c6cf321d9e03a67c43402ec76d54596d6cad213d31d8",
+        "12ad2965b90c2525d0123137a43ee2e2328ff35b98731aac9230b0d9841baa38",
+        "06ff4e80f31626451bb9b0b133df2d58ec66d19e53ec931e221d49b906d96b97",
+        "37b0c3d50559d2ef6d0ae38ac6490f6ed130078a41a39fee8b4ebbdcba8c7d2f",
+        "32546387ba76260965f33b6c01d14495c986007ac61909f460c4d872e8e5b446",
+        "2e689fab8b0d9c0dfa3fc08f2fa660dc632e602ace860bc9f1b87c1fab1d9a48",
+        "c0cf2124f0459617c637c7843d0c75c56b27cb9264f7be732cd80d83b36abe3d"
+      ]
+    }
+  },
+  "telemetry": {
+    "verdict": "SEAL",
+    "p_truth": 0.999,
+    "TW": 0.97,
+    "dS": -0.9,
+    "peace2": 1.0,
+    "kappa_r": 0.97,
+    "omega_0": 0.04,
+    "cooling": null,
+    "proof": {
+      "merkle_root": "dfa905bad0b5cd4d5507b957f3cb4491776152effe729a43c60de977d0edca27",
+      "public_key": "0f18e738c05445570239642dc3a43c9aa412843a42a6eee760e6ead425bcd3cb"
+    }
+  },
+  "prev_hash": "7451786f91257dcfe34ba52206cd8a92f8f3de86746a13f2d871ee065e1c0c8a",
+  "merkle_root": "f415747a1831fc26a56d57ba7390e13efdbaf5f341c43604fb1acd1271fe6fa1",
+  "entry_hash": "801f0c9ff94721627a0f8747352d7a24c1558b7a61ab52efc51a9742c8b083f6",
+  "context_summary": "SEAL: ok",
+  "key_insights": []
+}
