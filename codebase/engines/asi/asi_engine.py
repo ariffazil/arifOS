@@ -6,10 +6,12 @@ Floors: F6 (Empathy κᵣ≥0.95), F1, F5, F9, F11 (ALIGN)
 """
 
 import threading
+import logging
 from typing import Dict, Any, List, Optional
 from codebase.entropy_compressor import EntropyCompressor
 from codebase.bundle_store import BundleStore, OmegaBundle, Stakeholder
 
+logger = logging.getLogger(__name__)
 
 ASI_FLOORS = {
     "F6_Empathy": "κᵣ ≥ 0.95",
@@ -18,8 +20,6 @@ ASI_FLOORS = {
     "F9_AntiHantu": "Consciousness < 0.30",
     "F11_Command": "Identity Verified"
 }
-
-
 
 from codebase.engines.asi.asi_components import (
     SemanticStakeholderReasoner,
@@ -64,39 +64,39 @@ class ASIRoom:
         if self._started:
             raise RuntimeError("ASI room already executing (can't rerun)")
         
+        logger.info(f"[ASI-ROOM] Starting metabolic loop for {self.session_id}")
         self._started = True
         
-        # A1: Semantic Stakeholder Reasoning
-        reasoning = await self.stakeholder_reasoner.reason_stakeholders(query, self.session_id)
-        stakeholders_data = reasoning["direct_stakeholders"] # simplified for bundle compat
+        # 1. 555_EMPATHY - Stakeholder Reasoning
+        empathy_result = await self.stakeholder_reasoner.reason_stakeholders(query, self.session_id)
         
-        # self.delta_facts = self._sense_facts(query) # Legacy sense
+        # 2. 666_ALIGN - Impact Diffusion (Peace²)
+        peace_score = await self.diffusion_model.compute_peace_squared(query, empathy_result)
         
-        # Stage 555: Empathy identification (Enhanced with A1 graph)
-        # For now, we adapt the legacy method to use A1 output
-        # stakeholders = self._identify_stakeholders_from_reasoning(reasoning)
-        
-        # Original pipeline continues...
-        # [Legacy implementation logic would go here, adapted to use new components]
-        # For this translation, I'll return a placeholder OmegaBundle populated by the new components
-        
-        omega_666 = OmegaBundle(
+        # 3. 444_AUDIT - Constitutional Audit
+        audit = await self.audit_sink.audit_asi_floors(
+            query=query,
             session_id=self.session_id,
-            stakeholders=[], # populate
-            weakest_stakeholder="User",
-            empathy_kappa=reasoning["kappa_r_cascade"],
-            safety_constraints=[],
-            floor_scores={"F6_Empathy": reasoning["kappa_r_cascade"]},
-            vote="SEAL",
+            empathy_result=empathy_result
+        )
+        
+        # 4. Package as OmegaBundle
+        omega = OmegaBundle(
+            session_id=self.session_id,
+            stakeholders=[Stakeholder(**s) for s in empathy_result["direct_stakeholders"]],
+            weakest_stakeholder=empathy_result["direct_stakeholders"][-1]["id"] if empathy_result["direct_stakeholders"] else "User",
+            empathy_kappa=empathy_result["kappa_r_cascade"],
+            safety_constraints=["F5_PEACE", "F6_EMPATHY"],
+            floor_scores={k: v["score"] for k, v in audit["floor_audits"].items()},
+            vote=audit["overall_verdict"],
             reversible=True,
             authority_verified=True
         )
         
-        self.bundle_store.store_omega(omega_666)
+        self.bundle_store.store_omega(omega)
         self._completed = True
         
-        return omega_666
-
+        return omega
 
 
 # ==================== GLOBAL REGISTRY ====================
@@ -109,7 +109,6 @@ def get_asi_room(session_id: str) -> ASIRoom:
     """Get or create ASI room for session."""
     with _ASI_LOCK:
         if session_id not in _ASI_ROOMS:
-            # Create placeholder
             _ASI_ROOMS[session_id] = ASIRoom(session_id)
         return _ASI_ROOMS[session_id]
 
@@ -125,3 +124,35 @@ def list_active_asi_rooms() -> List[str]:
     """List all active ASI room session IDs."""
     with _ASI_LOCK:
         return list(_ASI_ROOMS.keys())
+
+# ==================== TESTS ====================
+
+def test_asi_engine_initialization():
+    """Test ASI room metadata."""
+    session_id = "test_001"
+    room = ASIRoom(session_id)
+    assert room.session_id == session_id
+
+async def test_asi_engine_run():
+    """Test ASI room executes stages 555-666."""
+    session_id = "test_002"
+    room = ASIRoom(session_id)
+    omega = await room.run("Test query for empathy")
+    
+    assert isinstance(omega, OmegaBundle)
+    assert len(omega.stakeholders) > 0
+    assert omega.empathy_kappa > 0.0
+    assert omega.vote.value in ["SEAL", "VOID"]
+
+async def run_tests():
+    test_asi_engine_initialization()
+    await test_asi_engine_run()
+    print(f"Active rooms: {list_active_asi_rooms()}")
+    purge_asi_room("test_001")
+    purge_asi_room("test_002")
+    print("✅ All ASI Engine tests PASSED")
+
+if __name__ == "__main__":
+    import asyncio
+    logging.basicConfig(level=logging.INFO)
+    asyncio.run(run_tests())
