@@ -11,6 +11,7 @@ Exports:
 - mcp_trinity_loop -> Full Pipeline (AGI→ASI→APEX)
 - mcp_context_docs -> Documentation (Context7)
 - mcp_reality_check -> Reality Grounding (Brave Search)
+- mcp_prompt_codec -> Prompt Codec (Route/Encode/Decode)
 
 DITEMPA BUKAN DIBERI - Forged, Not Given
 """
@@ -24,7 +25,8 @@ from codebase.kernel import mcp_000_init, get_kernel_manager
 from codebase.mcp.bridge import (
     bridge_trinity_loop_router,
     bridge_context_docs_router,
-    bridge_reality_check_router
+    bridge_reality_check_router,
+    bridge_prompt_router
 )
 
 logger = logging.getLogger(__name__)
@@ -44,6 +46,7 @@ __all__ = [
     "mcp_trinity_loop",
     "mcp_context_docs",
     "mcp_reality_check",
+    "mcp_prompt_codec",
 ]
 
 
@@ -366,3 +369,23 @@ async def mcp_reality_check(
     except Exception as e:
         logger.error(f"[REALITY_CHECK] Error: {e}")
         return {"status": "ERROR", "error": str(e), "session_id": session_id}
+
+
+# ============================================================================
+# TOOL 9: PROMPT_CODEC (Intent Routing)
+# ============================================================================
+
+async def mcp_prompt_codec(
+    action: str = "route",
+    user_input: str = "",
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Prompt Codec: Encode/Decode arifOS prompts and route intents.
+    Actions: route (select lane), encode (constitutionalize), decode (deconstruct).
+    """
+    try:
+        return await bridge_prompt_router(action=action, user_input=user_input, **kwargs)
+    except Exception as e:
+        logger.error(f"[PROMPT_CODEC] Error: {e}")
+        return {"status": "ERROR", "error": str(e)}

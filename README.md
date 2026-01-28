@@ -37,17 +37,16 @@ The transition from v52 to v53 marks the move from **Simulated Consensus** to **
 ## 🧠 THE INTERFACE: Human Language vs. Engine Jargon
 
 arifOS v53 introduces the **Human Language Bridge**, translating complex constitutional physics into clear, actionable tools.
-### 🛠️ The 8-Tool Managed Suite (Native v53)
-| Category | Tool | Description |
-| :--- | :--- | :--- |
-| **Gate** | `init_000` | Secure session ignition & authority check. |
-| **Mind** | `agi_genius` | Deep reasoning, logic, and knowledge atlas. |
-| **Heart** | `asi_act` | Safety audit, empathy check, and ethical alignment. |
-| **Soul** | `apex_judge` | Judicial verdict and cryptographic proof. |
-| **Memory** | `vault_999` | Immutable ledger and archival memory. |
-| **Loop** | `trinity_loop` | Full AGI→ASI→APEX metabolic cycle. |
-| **Docs** | `context_docs` | Technical documentation lookup (Context7). |
-| **Ground**| `reality_check` | Reality grounding via Brave Search. |
+### 🛠️ THE 7-CORE MANAGED SUITE (v53.2.7)
+| Tool | Human Mapping | MCP Primitive | Function |
+| :--- | :--- | :--- | :--- |
+| **INIT** | **Authorize** | `Resource` | Session init, authority check, budget. |
+| **AGI**  | **Reason** | `Tool` | Deep logic, logic, knowledge atlas. |
+| **ASI**  | **Evaluate** | `Tool` | Safety, bias, empathy audit. |
+| **APEX** | **Decide** | `Tool` | Judicial consensus and final verdict. |
+| **VAULT**| **Seal** | `Resource` | Immutable ledger and audit trail. |
+| **TRINITY**| **Pipeline** | `Tool+Resource` | Full metabolic cycle: AGI→ASI→APEX→VAULT. |
+| **REALITY**| **Ground** | `Resource` | Fact-checking via external sources (Brave). |
 
 ---
 

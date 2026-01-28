@@ -26,7 +26,9 @@ import logging
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
-# Import Codebase Routers (Bridge) — v53.2.0 Simplified 6-Tool Architecture
+from starlette.responses import JSONResponse
+# Import Codebase Routers (Bridge) — v53.2.7 AAA 7-Core Architecture
+# INIT, AGI, ASI, APEX, VAULT, TRINITY, REALITY
 from codebase.mcp.bridge import (
     bridge_init_router,
     bridge_agi_router,
@@ -34,19 +36,17 @@ from codebase.mcp.bridge import (
     bridge_apex_router,
     bridge_vault_router,
     bridge_trinity_loop_router,
-    bridge_context_docs_router,
     bridge_reality_check_router,
-    bridge_prompt_router,
 )
 from codebase.mcp.constitutional_metrics import get_full_metrics
 from codebase.mcp.rate_limiter import rate_limited
 
 logger = logging.getLogger(__name__)
 
-VERSION = "v53.2.6-CODEBASE"
+VERSION = "v53.2.7-CODEBASE-AAA7"
 
 # =============================================================================
-# FASTMCP SERVER (6-Tool Architecture)
+# FASTMCP SERVER (7-Core Tool Architecture)
 # =============================================================================
 
 mcp = FastMCP(
@@ -58,14 +58,15 @@ mcp = FastMCP(
     json_response=True,
 )
 
-# --- TOOL 1: init_000 ---
+# --- TOOL 1: INIT ---
+# MCP Resource: Session setup, authority check, budget allocation
 
-@mcp.tool(name="init_000", description=(
-    "000 INIT: Constitutional Ignition, Identity Verification & Session Management. "
-    "Actions: init (start session), gate (checkpoint), reset (clear session), "
-    "validate (verify state), authorize (verify identity)."
+@mcp.tool(name="INIT", description=(
+    "INIT: Session initialization, authority verification, and budget allocation. "
+    "Fail-closed access control and resource management. "
+    "MCP Resource primitive for governance grounding."
 ))
-@rate_limited("init_000")
+@rate_limited("INIT")
 async def tool_init(
     action: str = "init",
     query: str = "",
@@ -77,15 +78,15 @@ async def tool_init(
         action=action, query=query, session_id=session_id, user_token=user_token
     )
 
-# --- TOOL 2: agi_genius ---
+# --- TOOL 2: AGI ---
+# MCP Tool: Deep reasoning, pattern recognition
 
-@mcp.tool(name="agi_genius", description=(
-    "AGI Mind Engine (F2,F4,F7,F10): SENSE → THINK → REASON → FORGE. "
-    "Actions: sense (perceive), think (deliberate), reflect (introspect), "
-    "reason (logical analysis), atlas (knowledge mapping), forge (create), "
-    "full (complete pipeline), physics (quantum constitutional)."
+@mcp.tool(name="AGI", description=(
+    "AGI: Deep reasoning and pattern recognition (Mind Engine). "
+    "F2 Truth, F4 Clarity, F7 Humility enforcement. "
+    "MCP Tool primitive for analytical processing."
 ))
-@rate_limited("agi_genius")
+@rate_limited("AGI")
 async def tool_agi(
     action: str = "sense",
     query: str = "",
@@ -100,16 +101,15 @@ async def tool_agi(
         action=action, query=query, session_id=session_id, **kwargs
     )
 
-# --- TOOL 3: asi_act ---
+# --- TOOL 3: ASI ---
+# MCP Tool: Safety, bias, empathy audit
 
-@mcp.tool(name="asi_act", description=(
-    "ASI Heart Engine (F1,F5,F6,F9): EVIDENCE → EMPATHY → EVALUATE → ACT. "
-    "Actions: evidence (gather facts), empathize (stakeholder analysis), "
-    "evaluate (safety check), act (execute), witness (observe), "
-    "stakeholder (semantic reasoning), diffusion (impact propagation), "
-    "audit (constitutional audit), full (complete pipeline)."
+@mcp.tool(name="ASI", description=(
+    "ASI: Safety, bias, and empathy audit (Heart Engine). "
+    "F1 Amanah, F5 Peace, F6 Empathy enforcement. "
+    "MCP Tool primitive for ethical validation."
 ))
-@rate_limited("asi_act")
+@rate_limited("ASI")
 async def tool_asi(
     action: str = "empathize",
     text: str = "",
@@ -130,14 +130,16 @@ async def tool_asi(
         action=action, text=text, query=query, session_id=session_id, **kwargs
     )
 
-# --- TOOL 4: apex_judge ---
+# --- TOOL 4: APEX ---
+# MCP Tool: Judicial consensus and verdict
 
-@mcp.tool(name="apex_judge", description=(
-    "APEX Soul Engine (F3,F8,F11,F12,F13): EUREKA → DECIDE → PROOF. "
-    "Actions: eureka (insight), judge (evaluate), decide (synthesize verdict), "
-    "proof (generate evidence), entropy (measure), full (complete pipeline)."
+@mcp.tool(name="APEX", description=(
+    "APEX: Judicial consensus and verdict (Soul Engine). "
+    "F3 Consensus, F8 Tri-Witness, F9 Anti-Hantu, F10 Ontology. "
+    "Verdicts: SEAL, SABAR, VOID, PARTIAL, 888_HOLD. "
+    "MCP Tool primitive for final judgment."
 ))
-@rate_limited("apex_judge")
+@rate_limited("APEX")
 async def tool_apex(
     action: str = "judge",
     query: str = "",
@@ -160,14 +162,16 @@ async def tool_apex(
         session_id=session_id, **kwargs
     )
 
-# --- TOOL 5: vault_999 ---
+# --- TOOL 5: VAULT ---
+# MCP Resource: Immutable ledger for audit trail
 
-@mcp.tool(name="vault_999", description=(
-    "VAULT-999 Immutable Memory (F1,F8): Seal decisions, read/write governance "
-    "artifacts. Actions: seal (immutable record), list (enumerate artifacts), "
-    "read (retrieve), write (store), propose (suggest canon)."
+@mcp.tool(name="VAULT", description=(
+    "VAULT: Immutable ledger for audit trail and governance artifacts. "
+    "F1 Amanah (audit), F8 Quality (tri-witness). "
+    "Merkle-tree sealed, cryptographically immutable. "
+    "MCP Resource primitive for provenance."
 ))
-@rate_limited("vault_999")
+@rate_limited("VAULT")
 async def tool_vault(
     action: str = "seal",
     session_id: str = "",
@@ -191,56 +195,38 @@ async def tool_vault(
         action=action, session_id=session_id, verdict=verdict, **kwargs
     )
 
-# --- TOOL 6: trinity_loop ---
+# --- TOOL 6: TRINITY ---
+# MCP Tool + Resource: Full metabolic loop
 
+@mcp.tool(name="TRINITY", description=(
+    "TRINITY: Complete metabolic loop AGI→ASI→APEX→VAULT in one call. "
+    "Full constitutional governance cycle with all 13 floors. "
+    "Combines Tool (processing) + Resource (audit) primitives."
+))
+async def tool_trinity_loop(
+    query: str,
+    session_id: str = "",
+) -> dict:
+    """Run complete Trinity constitutional governance pipeline."""
     return await bridge_trinity_loop_router(
         query=query,
         session_id=session_id or None,
     )
 
-# --- TOOL 7: context_docs ---
+# --- TOOL 7: REALITY ---
 
-@mcp.tool(name="context_docs", description=(
-    "Context Docs: Query technical documentation (Context7). "
-    "F11 Scope-Gated Documentation Access."
+@mcp.tool(name="REALITY", description=(
+    "REALITY: Fact-checking via external sources (Brave Search). "
+    "F7 (Humility) explicit disclosure of external data. "
+    "MCP Resource primitive for reality grounding."
 ))
-async def tool_context_docs(
-    query: str,
-    session_id: str = "",
-) -> dict:
-    """Query technical documentation."""
-    return await bridge_context_docs_router(
-        query=query, session_id=session_id
-    )
-
-# --- TOOL 8: reality_check ---
-
-@mcp.tool(name="reality_check", description=(
-    "Reality Check: General reality grounding via Brave Search. "
-    "F7 (Humility) explicit disclosure of external data."
-))
-async def tool_reality_check(
+async def tool_reality(
     query: str,
     session_id: str = "",
 ) -> dict:
     """Reality grounding and factual verification."""
     return await bridge_reality_check_router(
         query=query, session_id=session_id
-    )
-
-# --- TOOL 9: prompt_codec ---
-
-@mcp.tool(name="prompt_codec", description=(
-    "Prompt Codec: Encode/Decode arifOS prompts and route intents. "
-    "Actions: route (select lane), encode (constitutionalize), decode (deconstruct)."
-))
-async def tool_prompt_codec(
-    action: str = "route",
-    user_input: str = "",
-) -> dict:
-    """Encode/decode intents and prompts."""
-    return await bridge_prompt_router(
-        action=action, user_input=user_input
     )
 
 # =============================================================================
@@ -255,8 +241,8 @@ async def health_check(request):
         "version": VERSION,
         "mode": "CODEBASE",
         "transport": "streamable-http",
-        "tools": 9,
-        "architecture": "v53.2.6-universal",
+        "tools": 7,
+        "architecture": "AAA-7CORE-v53.2.7",
     })
 
 @mcp.custom_route("/metrics/json", methods=["GET"])
@@ -410,7 +396,7 @@ async def arifos_framework_page(request):
                 <div class="tagline">DITEMPA BUKAN DIBERI</div>
                 <p class="bio">The Supreme Constitutional AI Framework. Absolute truth through metabolic isolation of Mind, Heart, and Soul.</p>
                 <div class="meta-strip">
-                    <div class="meta-item"><span class="status-dot"></span> SYSTEM_LIVE</div>
+                    <div class="meta-item"><span class="status-dot"></span> AAA-7CORE</div>
                     <div class="meta-item">KERNEL: {version}</div>
                     <div class="meta-item">MODE: TRINITY_PRIMARY</div>
                 </div>
@@ -592,40 +578,53 @@ async def aaa_mcp_page(request):
             
             <div class="tools">
                 <div class="tool">
-                    <h3>🚪 init_000</h3>
-                    <p>Constitutional Ignition, Identity Verification & Session Management. F1, F11, F12 enforcement.</p>
-                    <span class="tag">000 INIT</span>
-                    <span class="tag">Gate</span>
+                    <h3>🚪 INIT</h3>
+                    <p>Session initialization, authority verification, and budget allocation. Fail-closed access control.</p>
+                    <span class="tag">Resource</span>
+                    <span class="tag">F1 F11 F12</span>
                 </div>
                 <div class="tool">
-                    <h3>🧠 agi_genius</h3>
-                    <p>AGI Mind Engine — SENSE → THINK → REASON → FORGE. F2 Truth, F4 Clarity, F7 Humility.</p>
+                    <h3>🧠 AGI</h3>
+                    <p>Deep reasoning and pattern recognition (Mind Engine). F2 Truth, F4 Clarity, F7 Humility.</p>
+                    <span class="tag">Tool</span>
                     <span class="tag">Δ Mind</span>
-                    <span class="tag">F2 F4 F7</span>
                 </div>
                 <div class="tool heart">
-                    <h3>❤️ asi_act</h3>
-                    <p>ASI Heart Engine — EVIDENCE → EMPATHY → EVALUATE → ACT. F1 Amanah, F5 Peace, F6 Empathy.</p>
+                    <h3>❤️ ASI</h3>
+                    <p>Safety, bias, and empathy audit (Heart Engine). F1 Amanah, F5 Peace, F6 Empathy.</p>
+                    <span class="tag">Tool</span>
                     <span class="tag">Ω Heart</span>
-                    <span class="tag">F1 F5 F6</span>
                 </div>
                 <div class="tool soul">
-                    <h3>⚖️ apex_judge</h3>
-                    <p>APEX Soul Engine — EUREKA → DECIDE → PROOF. F3 Consensus, F8 Tri-Witness, F9 Anti-Hantu.</p>
+                    <h3>⚖️ APEX</h3>
+                    <p>Judicial consensus and verdict (Soul Engine). SEAL, SABAR, VOID, PARTIAL, 888_HOLD.</p>
+                    <span class="tag">Tool</span>
                     <span class="tag">Ψ Soul</span>
-                    <span class="tag">F3 F8 F9</span>
                 </div>
                 <div class="tool soul">
-                    <h3>🔒 vault_999</h3>
-                    <p>VAULT-999 Immutable Memory — SEAL, LEDGER, CANON. F1 Audit, F8 Quality, F10 Ontology.</p>
-                    <span class="tag">999 Vault</span>
-                    <span class="tag">Immutable</span>
+                    <h3>🔒 VAULT</h3>
+                    <p>Immutable ledger for audit trail and governance artifacts. Merkle-tree sealed.</p>
+                    <span class="tag">Resource</span>
+                    <span class="tag">F1 F8</span>
                 </div>
                 <div class="tool">
-                    <h3>🔄 trinity_loop</h3>
-                    <p>Complete AGI→ASI→APEX→VAULT metabolic pipeline in one call.</p>
+                    <h3>🔄 TRINITY</h3>
+                    <p>Complete metabolic loop AGI→ASI→APEX→VAULT in one call. All 13 floors enforced.</p>
+                    <span class="tag">Tool+Resource</span>
                     <span class="tag">Full Pipeline</span>
-                    <span class="tag">000→999</span>
+                </div>
+                <div class="tool blue">
+                    <h3>🌍 REALITY</h3>
+                    <p>Fact-checking via external sources (Brave Search). F7 Humility disclosure.</p>
+                    <span class="tag">Resource</span>
+                    <span class="tag">External Data</span>
+                    <span class="tag">Context7</span>
+                </div>
+                <div class="tool yellow">
+                    <h3>🌍 reality_check</h3>
+                    <p>Reality Check: General reality grounding via Brave Search. F7 (Humility) Disclosure.</p>
+                    <span class="tag">Reality</span>
+                    <span class="tag">Brave</span>
                 </div>
             </div>
             
@@ -640,7 +639,7 @@ async def aaa_mcp_page(request):
 
 @mcp.custom_route("/dashboard", methods=["GET"])
 async def live_dashboard(request):
-    """Trinity Monitor v53 (Primary Palette)."""
+    """Trinity Monitor v53.2.7 — AAA 7-Core Architecture."""
     from starlette.responses import HTMLResponse
     m = get_full_metrics()
     
@@ -726,7 +725,7 @@ def main():
     port = int(os.getenv("PORT", 8000))
     print(f"[BOOT] AAA MCP Server {VERSION}")
     print(f"   Transport: {_transport_mode}")
-    print("   Tools: 9 (init_000, agi_mind, asi_heart, apex_soul, vault_999, trinity_loop, context_docs, reality_check, prompt_codec)")
+    print("   Tools: 8 (init_000, agi_mind, asi_heart, apex_soul, vault_999, trinity_loop, context_docs, reality_check)")
     print("   Endpoints: /mcp (protocol), /health (liveness), /metrics/json (telemetry)")
     print(f"   Host: 0.0.0.0:{port}")
     print("   Compatible: ChatGPT Dev Mode, Codex, any MCP HTTP client")

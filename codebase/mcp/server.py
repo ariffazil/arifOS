@@ -29,9 +29,7 @@ from codebase.mcp.bridge import (
     bridge_apex_router,
     bridge_vault_router,
     bridge_trinity_loop_router,
-    bridge_context_docs_router,
     bridge_reality_check_router,
-    bridge_prompt_router,
 )
 from codebase.mcp.rate_limiter import get_rate_limiter
 from codebase.mcp.mode_selector import get_mcp_mode, MCPMode
@@ -45,153 +43,317 @@ logger = logging.getLogger(__name__)
 presenter = AAAMetabolizer()
 
 # =============================================================================
-# TOOL DESCRIPTIONS (v53.2.0 - Simplified 6-Tool Architecture)
+# TOOL DESCRIPTIONS (v53.2.7 — Plain-Language Constitutional Governance)
+#
+# These descriptions ARE the constitution. Any AI or human reading them must
+# understand what each tool does, what rules govern its use, and what outcomes
+# to expect — without needing any prior knowledge of arifOS.
+#
+# Verdict outcomes returned by every tool:
+#   SEAL      — Approved. All rules passed. Safe to act on the result.
+#   PARTIAL   — Approved with warnings. Some safety checks flagged concerns.
+#   VOID      — Rejected. A hard rule was broken. Do not act on this result.
+#   888_HOLD  — Paused. Needs explicit human confirmation before proceeding.
+#   SABAR     — Stopped. A serious violation occurred. Repair before retry.
 # =============================================================================
 
 TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
-    "init_000": {
-        "name": "init_000",
-        "description": "000 INIT: Constitutional Ignition, Identity Verification & Session Management. Actions: init (start session), gate (checkpoint), reset (clear session), validate (verify state), authorize (verify identity).",
+    "INIT": {
+        "name": "INIT",
+        "description": (
+            "Session initialization, authority verification, and budget allocation. "
+            "Call this FIRST before using any other tool. "
+            "Fail-closed access control and resource management. "
+            "\n\nActions: "
+            "init — Start a new session (default). "
+            "gate — Run a safety checkpoint mid-session. "
+            "reset — End current session and clear state. "
+            "validate — Verify the session is still valid. "
+            "authorize — Confirm identity with a token."
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {"type": "string", "enum": ["init", "gate", "reset", "validate", "authorize"], "default": "init"},
-                "query": {"type": "string", "description": "Greeting or query to ignite context"},
-                "session_id": {"type": "string"},
-                "user_token": {"type": "string", "description": "For authorize action"}
+                "action": {
+                    "type": "string",
+                    "enum": ["init", "gate", "reset", "validate", "authorize"],
+                    "default": "init",
+                    "description": "Action primitive: init, gate, reset, validate, or authorize."
+                },
+                "query": {
+                    "type": "string",
+                    "description": "The user's greeting or initial message. Used to detect identity and intent."
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Existing session ID. Required for gate, reset, and validate actions."
+                },
+                "user_token": {
+                    "type": "string",
+                    "description": "Identity token for the authorize action. Proves who is speaking."
+                }
             }
         }
     },
-    "agi_genius": {
-        "name": "agi_genius",
-        "description": "AGI Mind Engine (F2,F4,F7,F10): SENSE → THINK → REASON → FORGE. Actions: sense (perceive), think (deliberate), reflect (introspect), reason (logical analysis), atlas (knowledge mapping), forge (create), full (complete pipeline), physics (quantum constitutional).",
+    "AGI": {
+        "name": "AGI",
+        "description": (
+            "Deep reasoning and pattern recognition (Mind Engine). "
+            "Handles logic, analysis, knowledge retrieval (including Context7), and content creation. "
+            "\n\nRules enforced: "
+            "(1) Every claim must be factually accurate. "
+            "(2) Clarity is mandatory (ΔS). "
+            "(3) Uncertainty must be stated honestly (Ω₀). "
+            "\n\nActions: "
+            "sense — Perceive and parse input. "
+            "think — Deep deliberation. "
+            "reflect — Meta-cognition check. "
+            "reason — Step-by-step logic. "
+            "atlas — Knowledge mapping (includes docs). "
+            "forge — Solve or create content. "
+            "full — Run complete pipeline. "
+            "physics — Apply rule-checking."
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {"type": "string", "enum": ["sense", "think", "reflect", "reason", "atlas", "forge", "full", "physics"]},
-                "query": {"type": "string"},
-                "session_id": {"type": "string"},
-                "context": {"type": "object", "description": "Additional context for reasoning"}
+                "action": {
+                    "type": "string",
+                    "enum": ["sense", "think", "reflect", "reason", "atlas", "forge", "full", "physics"],
+                    "description": "Which thinking step to run."
+                },
+                "query": {
+                    "type": "string",
+                    "description": "The question or topic to process."
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Session ID from INIT."
+                },
+                "context": {
+                    "type": "object",
+                    "description": "Extra context for reasoning."
+                }
             },
             "required": ["action"]
         }
     },
-    "asi_act": {
-        "name": "asi_act",
-        "description": "ASI Heart Engine (F1,F5,F6,F9): EVIDENCE → EMPATHY → EVALUATE → ACT. Actions: evidence (gather facts), empathize (stakeholder analysis), evaluate (safety check), act (execute), stakeholder (semantic stakeholder reasoning), diffusion (impact propagation), audit (constitutional audit), full (complete pipeline).",
+    "ASI": {
+        "name": "ASI",
+        "description": (
+            "Safety, bias, and empathy audit (Heart Engine). "
+            "Evaluates whether an action is safe, fair, and reversible. "
+            "\n\nRules enforced: "
+            "(1) Actions must be reversible. "
+            "(2) The weakest stakeholder must be protected. "
+            "(3) No deceptive cleverness (F9 Anti-Hantu). "
+            "\n\nActions: "
+            "evidence — Gather facts. "
+            "empathize — Impact assessment. "
+            "evaluate — Safety check. "
+            "act — Execute approved action. "
+            "witness — Record audit event. "
+            "stakeholder — Deep analysis. "
+            "diffusion — Impact propagation. "
+            "audit — Compliance review. "
+            "full — Run complete pipeline."
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {"type": "string", "enum": ["evidence", "empathize", "evaluate", "act", "witness", "stakeholder", "diffusion", "audit", "full"]},
-                "text": {"type": "string"},
-                "query": {"type": "string"},
-                "session_id": {"type": "string"},
-                "reasoning": {"type": "string", "description": "For evaluate action"},
-                "stakeholder_graph": {"type": "object", "description": "For diffusion action"},
-                "agi_context": {"type": "object", "description": "AGI output for chaining"}
+                "action": {
+                    "type": "string",
+                    "enum": ["evidence", "empathize", "evaluate", "act", "witness", "stakeholder", "diffusion", "audit", "full"],
+                    "description": "Which safety step to run."
+                },
+                "text": {
+                    "type": "string",
+                    "description": "The text or content to evaluate."
+                },
+                "query": {
+                    "type": "string",
+                    "description": "The context or action."
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Session ID from INIT."
+                },
+                "reasoning": {
+                    "type": "string",
+                    "description": "Stakeholder reasoning for evaluation."
+                },
+                "agi_context": {
+                    "type": "object",
+                    "description": "AGI output for evaluation chaining."
+                }
             },
             "required": ["action"]
         }
     },
-    "apex_judge": {
-        "name": "apex_judge",
-        "description": "APEX Soul Engine (F3,F8,F11,F12,F13): EUREKA → DECIDE → PROOF. Actions: eureka (insight), judge (evaluate), decide (synthesize verdict), proof (generate evidence), entropy (measure), full (complete pipeline).",
+    "APEX": {
+        "name": "APEX",
+        "description": (
+            "Judicial consensus and final verdict (Soul Engine). "
+            "The final approval or rejection decision after AGI and ASI have completed. "
+            "\n\nVerdicts: "
+            "SEAL — Approved. All checks passed. "
+            "PARTIAL — Approved with warnings. "
+            "VOID — Rejected. Rule broken. "
+            "888_HOLD — Paused for review. "
+            "SABAR — Stopped for violation. "
+            "\n\nActions: "
+            "eureka — Combined insight. "
+            "judge — Evaluate response. "
+            "decide — Synthesize final verdict. "
+            "proof — Generate evidence. "
+            "entropy — Measure clarity gain. "
+            "full — Run complete pipeline."
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {"type": "string", "enum": ["eureka", "judge", "decide", "proof", "entropy", "full"]},
-                "verdict": {"type": "string", "enum": ["SEAL", "PARTIAL", "SABAR", "VOID", "888_HOLD"]},
-                "query": {"type": "string"},
-                "response": {"type": "string"},
-                "session_id": {"type": "string"},
-                "reasoning": {"type": "string", "description": "For decide action"},
-                "safety_evaluation": {"type": "object", "description": "ASI evaluation for decide"},
-                "authority_check": {"type": "object", "description": "Init authorization for decide"}
+                "action": {
+                    "type": "string",
+                    "enum": ["eureka", "judge", "decide", "proof", "entropy", "full"],
+                    "description": "Which judgment step to run."
+                },
+                "verdict": {
+                    "type": "string",
+                    "enum": ["SEAL", "PARTIAL", "SABAR", "VOID", "888_HOLD"],
+                    "description": "The proposed constitutional verdict."
+                },
+                "query": {
+                    "type": "string",
+                    "description": "The original request."
+                },
+                "response": {
+                    "type": "string",
+                    "description": "The proposed output."
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Session ID from INIT."
+                },
+                "reasoning": {
+                    "type": "string",
+                    "description": "Verbal reasoning for decision."
+                },
+                "safety_evaluation": {
+                    "type": "object",
+                    "description": "ASI evaluation context."
+                }
             },
             "required": ["action"]
         }
     },
-    "vault_999": {
-        "name": "vault_999",
-        "description": "VAULT-999 Immutable Memory (F1,F8): Seal decisions, read/write governance artifacts. Actions: seal (immutable record), list (enumerate artifacts), read (retrieve), write (store), propose (suggest canon).",
+    "VAULT": {
+        "name": "VAULT",
+        "description": (
+            "Immutable ledger and audit trail (Resources). "
+            "Permanent storage in tamper-proof log (Merkle-tree sealed). "
+            "\n\nRules enforced: "
+            "(1) Significant decisions are recorded. "
+            "(2) Records are permanent. "
+            "(3) Provable audit chain (F1 Amanah). "
+            "\n\nActions: "
+            "seal — Permanently record decision. "
+            "list — Enumerate artifacts. "
+            "read — Retrieve record. "
+            "write — Create draft artifact. "
+            "propose — Suggest rule change."
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {"type": "string", "enum": ["seal", "list", "read", "write", "propose"]},
-                "session_id": {"type": "string"},
-                "verdict": {"type": "string"},
-                "target": {"type": "string", "enum": ["seal", "ledger", "canon", "fag", "tempa", "phoenix", "audit"]},
-                "query": {"type": "string"},
-                "response": {"type": "string"},
-                "decision_data": {"type": "object", "description": "Full decision payload for seal"}
+                "action": {
+                    "type": "string",
+                    "enum": ["seal", "list", "read", "write", "propose"],
+                    "description": "Archival action."
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Session ID from INIT."
+                },
+                "verdict": {
+                    "type": "string",
+                    "description": "Verdict to seal."
+                },
+                "target": {
+                    "type": "string",
+                    "enum": ["seal", "ledger", "canon", "fag", "tempa", "phoenix", "audit"],
+                    "description": "Vault destination."
+                },
+                "decision_data": {
+                    "type": "object",
+                    "description": "Complete proof payload for sealing."
+                }
             },
             "required": ["action"]
         }
     },
-    "trinity_loop": {
-        "name": "trinity_loop",
-        "description": "Trinity Metabolic Loop: Complete AGI→ASI→APEX→VAULT pipeline in one call. Runs full constitutional governance cycle.",
+    "TRINITY": {
+        "name": "TRINITY",
+        "description": (
+            "Full metabolic loop AGI→ASI→APEX→VAULT (Tools + Resources). "
+            "Runs the complete constitutional cycle in a single call. "
+            "\n\nStructure: "
+            "(1) AGI Reason. (2) ASI Evaluate. (3) APEX Judge. (4) VAULT Record. "
+            "\n\nRules: All 13 floors strictly enforced. Strictly governed path."
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "User query to process"},
-                "session_id": {"type": "string"}
+                "query": {
+                    "type": "string",
+                    "description": "The request to process through the full pipeline."
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Session ID from INIT."
+                }
             },
             "required": ["query"]
         }
     },
-    "context_docs": {
-        "name": "context_docs",
-        "description": "Context Docs: Query technical documentation (Context7). F11 Scope-Gated Documentation Access.",
+    "REALITY": {
+        "name": "REALITY",
+        "description": (
+            "Fact-checking via external sources (Brave Search / Grounding). "
+            "Live internet fact-check with F7 Humility disclosure. "
+            "\n\nRules: "
+            "(1) Data labeled as external. "
+            "(2) Sources cited. "
+            "(3) Honestly state when results are uncertain."
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "Technical query"},
-                "session_id": {"type": "string"}
+                "query": {
+                    "type": "string",
+                    "description": "Question requiring external verification."
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Session ID from INIT."
+                }
             },
             "required": ["query"]
         }
     },
-    "reality_check": {
-        "name": "reality_check",
-        "description": "Reality Check: General reality grounding via Brave Search. F7 (Humility) explicit disclosure of external data.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "query": {"type": "string", "description": "General or time-sensitive query"},
-                "session_id": {"type": "string"}
-            },
-            "required": ["query"]
-        }
-    },
-    "prompt_codec": {
-        "name": "prompt_codec",
-        "description": "Prompt Codec: Encode/Decode arifOS prompts and route intents. Actions: route (select lane), encode (constitutionalize), decode (deconstruct).",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "action": {"type": "string", "enum": ["route", "encode", "decode"], "default": "route"},
-                "user_input": {"type": "string"}
-            },
-            "required": ["user_input"]
-        }
-    }
 }
 
 # =============================================================================
-# TOOL ROUTERS (v53.2.0 - Simplified 6-Tool Architecture)
+# TOOL ROUTERS (v53.2.7 — 7-Tool Constitutional Architecture)
 # =============================================================================
 
 TOOL_ROUTERS = {
-    "init_000": bridge_init_router,
-    "agi_genius": bridge_agi_router,
-    "asi_act": bridge_asi_router,
-    "apex_judge": bridge_apex_router,
-    "vault_999": bridge_vault_router,
-    "trinity_loop": bridge_trinity_loop_router,
-    "context_docs": bridge_context_docs_router,
-    "reality_check": bridge_reality_check_router,
-    "prompt_codec": bridge_prompt_router,
+    "INIT": bridge_init_router,
+    "AGI": bridge_agi_router,
+    "ASI": bridge_asi_router,
+    "APEX": bridge_apex_router,
+    "VAULT": bridge_vault_router,
+    "TRINITY": bridge_trinity_loop_router,
+    "REALITY": bridge_reality_check_router,
 }
 
 # =============================================================================
@@ -235,7 +397,7 @@ def create_mcp_server(mode: Optional[MCPMode] = None) -> Server:
 
         start = time.time()
         try:
-            if name in ["trinity_loop", "context_docs", "reality_check"]:
+            if name in ["TRINITY", "REALITY"]:
                 # These tools don't use action pattern - direct kwargs
                 result = await router(**arguments)
             else:
