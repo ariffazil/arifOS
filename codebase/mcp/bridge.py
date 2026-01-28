@@ -12,12 +12,16 @@ and the arifOS cores (AGI/ASI/APEX).
 from __future__ import annotations
 import logging
 import asyncio
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
 # Mid-session context passing (AGI → ASI → APEX → VAULT)
-from codebase.mcp.constitutional_metrics import store_stage_result
+from codebase.mcp.constitutional_metrics import store_stage_result, get_stage_result
+from codebase.mcp.tools.trinity_validator import validate_trinity_request
+from codebase.mcp.tools import context_scope, reality_grounding
+from codebase.mcp.external_gateways.context7_client import Context7Client
+from codebase.mcp.external_gateways.brave_client import BraveSearchClient
 
 # --- CORE AVAILABILITY ---
 try:
@@ -178,6 +182,80 @@ async def bridge_vault_router(action: str = "seal", **kwargs) -> dict:
         store_stage_result(str(session_id), "apex", serialized)
     return serialized
 
+# --- EXTERNAL GATEWAY ROUTING ---
+
+class BridgeRouter:
+    """Manages routing between MCP tools and external reality gateways."""
+    
+    def __init__(self, context7_key: Optional[str] = None, brave_key: Optional[str] = None):
+        import os
+        self.context7 = Context7Client(context7_key or os.environ.get("CONTEXT7_API_KEY"))
+        self.brave = BraveSearchClient(brave_key or os.environ.get("BRAVE_API_KEY"))
+    
+    async def route_context_docs(
+        self,
+        query: str,
+        session_id: Optional[str] = None,
+        **kwargs
+    ) -> dict:
+        """Route technical documentation queries to Context7."""
+        # Get authority from init stage
+        init_result = get_stage_result(session_id, "init") if session_id else {}
+        scar_weight = init_result.get("scar_weight", 0.0)
+        
+        allowed_paths, includes_secrets = context_scope.validate_context_scope(query, scar_weight)
+        
+        result = await self.context7.search(query, allowed_paths, scar_weight)
+        return _serialize(result)
+    
+    async def route_reality_check(
+        self,
+        query: str,
+        session_id: Optional[str] = None,
+        **kwargs
+    ) -> dict:
+        """Route reality-grounding queries to Brave Search."""
+        # Get authority and intent from init stage
+        init_result = get_stage_result(session_id, "init") if session_id else {}
+        lane = init_result.get("lane", "SOFT")
+        intent = init_result.get("intent", "explain")
+        scar_weight = init_result.get("scar_weight", 0.0)
+        
+        should_check, reason = reality_grounding.should_reality_check(
+            query, lane, intent, scar_weight
+        )
+        
+        if should_check is False:
+            return {
+                "status": "SEAL",
+                "verdict": "SEAL",
+                "source": "local_memory",
+                "reason": reason,
+                "note": "Query handled by internal models/knowledge."
+            }
+        
+        # Call Brave (True or None default to True for proactive grounding)
+        result = await self.brave.search(query, intent, scar_weight)
+        return _serialize(result)
+
+# Singleton Bridge instance for external gateways
+_ROUTER = None
+
+def get_bridge_router():
+    global _ROUTER
+    if not _ROUTER:
+        _ROUTER = BridgeRouter()
+    return _ROUTER
+
+async def bridge_context_docs_router(**kwargs) -> dict:
+    """Gateway for context_docs tool."""
+    return await get_bridge_router().route_context_docs(**kwargs)
+
+async def bridge_reality_check_router(**kwargs) -> dict:
+    """Gateway for reality_check tool."""
+    return await get_bridge_router().route_reality_check(**kwargs)
+
+
 async def bridge_prompt_router(action: str = "route", **kwargs) -> dict:
     """Pure bridge: Route codec/prompt tasks."""
     if not ENGINES_AVAILABLE:
@@ -215,6 +293,23 @@ async def bridge_trinity_loop_router(query: str, session_id: Optional[str] = Non
     if not session_id:
         init_result = await bridge_init_router(action="init", query=query)
         session_id = init_result.get("session_id", f"trinity_{int(time.time())}")
+    else:
+        init_result = get_stage_result(session_id, "init") or {}
+
+    # NEW: Phase B Gating (v53.2.2)
+    lane = init_result.get("lane", "SOFT")
+    scar_weight = init_result.get("scar_weight", 0.0)
+    
+    allowed, reason = validate_trinity_request(query, lane, scar_weight)
+    if not allowed:
+        return {
+            "verdict": "VOID" if lane != "CRISIS" else "888_HOLD",
+            "status": "VOID" if lane != "CRISIS" else "888_HOLD",
+            "reason": f"Validation Gate: {reason}",
+            "session_id": session_id,
+            "lane": lane,
+            "scar_weight": scar_weight
+        }
 
     loop_results = []
 

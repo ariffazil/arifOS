@@ -8,6 +8,9 @@ Exports:
 - mcp_asi_act     -> Heart (EVIDENCE → EMPATHY → ACT)
 - mcp_apex_judge  -> Soul (EUREKA → JUDGE → PROOF)
 - mcp_999_vault   -> Seal (PROOF + Immutable Log)
+- mcp_trinity_loop -> Full Pipeline (AGI→ASI→APEX)
+- mcp_context_docs -> Documentation (Context7)
+- mcp_reality_check -> Reality Grounding (Brave Search)
 
 DITEMPA BUKAN DIBERI - Forged, Not Given
 """
@@ -18,6 +21,11 @@ import logging
 from typing import Any, Dict, Optional
 
 from codebase.kernel import mcp_000_init, get_kernel_manager
+from codebase.mcp.bridge import (
+    bridge_trinity_loop_router,
+    bridge_context_docs_router,
+    bridge_reality_check_router
+)
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +41,9 @@ __all__ = [
     "mcp_asi_act",
     "mcp_apex_judge",
     "mcp_999_vault",
+    "mcp_trinity_loop",
+    "mcp_context_docs",
+    "mcp_reality_check",
 ]
 
 
@@ -295,3 +306,63 @@ async def mcp_999_vault(
             "session_id": session_id,
             "error": str(e)
         }
+
+
+# ============================================================================
+# TOOL 6: TRINITY_LOOP (Full Cycle)
+# ============================================================================
+
+async def mcp_trinity_loop(
+    query: str = "",
+    session_id: Optional[str] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Trinity Loop: Complete AGI→ASI→APEX pipeline in one call.
+    Runs full constitutional governance cycle.
+    """
+    try:
+        return await bridge_trinity_loop_router(query=query, session_id=session_id, **kwargs)
+    except Exception as e:
+        logger.error(f"[TRINITY_LOOP] Error: {e}")
+        return {"status": "ERROR", "error": str(e), "session_id": session_id}
+
+
+# ============================================================================
+# TOOL 7: CONTEXT_DOCS (Technical Knowledge)
+# ============================================================================
+
+async def mcp_context_docs(
+    query: str = "",
+    session_id: Optional[str] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Context Docs: Query technical documentation (Context7).
+    F11 Scope-Gated Documentation Access.
+    """
+    try:
+        return await bridge_context_docs_router(query=query, session_id=session_id, **kwargs)
+    except Exception as e:
+        logger.error(f"[CONTEXT_DOCS] Error: {e}")
+        return {"status": "ERROR", "error": str(e), "session_id": session_id}
+
+
+# ============================================================================
+# TOOL 8: REALITY_CHECK (General Knowledge)
+# ============================================================================
+
+async def mcp_reality_check(
+    query: str = "",
+    session_id: Optional[str] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Reality Check: General reality grounding via Brave Search.
+    F7 (Humility) explicit disclosure of external data.
+    """
+    try:
+        return await bridge_reality_check_router(query=query, session_id=session_id, **kwargs)
+    except Exception as e:
+        logger.error(f"[REALITY_CHECK] Error: {e}")
+        return {"status": "ERROR", "error": str(e), "session_id": session_id}

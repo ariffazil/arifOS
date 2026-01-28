@@ -29,6 +29,9 @@ from codebase.mcp.bridge import (
     bridge_apex_router,
     bridge_vault_router,
     bridge_trinity_loop_router,
+    bridge_context_docs_router,
+    bridge_reality_check_router,
+    bridge_prompt_router,
 )
 from codebase.mcp.rate_limiter import get_rate_limiter
 from codebase.mcp.mode_selector import get_mcp_mode, MCPMode
@@ -136,6 +139,42 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             },
             "required": ["query"]
         }
+    },
+    "context_docs": {
+        "name": "context_docs",
+        "description": "Context Docs: Query technical documentation (Context7). F11 Scope-Gated Documentation Access.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Technical query"},
+                "session_id": {"type": "string"}
+            },
+            "required": ["query"]
+        }
+    },
+    "reality_check": {
+        "name": "reality_check",
+        "description": "Reality Check: General reality grounding via Brave Search. F7 (Humility) explicit disclosure of external data.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "General or time-sensitive query"},
+                "session_id": {"type": "string"}
+            },
+            "required": ["query"]
+        }
+    },
+    "prompt_codec": {
+        "name": "prompt_codec",
+        "description": "Prompt Codec: Encode/Decode arifOS prompts and route intents. Actions: route (select lane), encode (constitutionalize), decode (deconstruct).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "action": {"type": "string", "enum": ["route", "encode", "decode"], "default": "route"},
+                "user_input": {"type": "string"}
+            },
+            "required": ["user_input"]
+        }
     }
 }
 
@@ -150,6 +189,9 @@ TOOL_ROUTERS = {
     "apex_judge": bridge_apex_router,
     "vault_999": bridge_vault_router,
     "trinity_loop": bridge_trinity_loop_router,
+    "context_docs": bridge_context_docs_router,
+    "reality_check": bridge_reality_check_router,
+    "prompt_codec": bridge_prompt_router,
 }
 
 # =============================================================================
@@ -193,8 +235,8 @@ def create_mcp_server(mode: Optional[MCPMode] = None) -> Server:
 
         start = time.time()
         try:
-            if name == "trinity_loop":
-                # Trinity loop doesn't use action pattern - direct kwargs
+            if name in ["trinity_loop", "context_docs", "reality_check"]:
+                # These tools don't use action pattern - direct kwargs
                 result = await router(**arguments)
             else:
                 # Standard tools use action pattern

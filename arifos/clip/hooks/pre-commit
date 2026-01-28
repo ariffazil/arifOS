@@ -1,9 +1,0 @@
-#!/bin/sh
-# Pre-commit hook: prevent committing if there's an unresolved HOLD.
-
-if [ -d ".arifos_clip/holds" ] && [ "$(ls -A .arifos_clip/holds)" ]; then
-    echo "Commit blocked: unresolved A CLIP HOLD exists."
-    exit 1
-fi
-
-exit 0
