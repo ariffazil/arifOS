@@ -23,32 +23,31 @@
 
 The transition from v52 to v53 marks the move from **Simulated Consensus** to **Provable Isolation**.
 
-| Feature | Legacy v52 (Proxy) | Native v53+ (Isolated) |
+| Feature | Legacy v52 (Proxy) | Native v53.2.7+ (AAA-7Core) |
 | :--- | :--- | :--- |
 | **Architecture** | Fragmented `arifos/` module (archived) | Clean `codebase/` canonical module |
 | **Logic** | Monolithic sync loops | Parallel AGI/ASI "Hot" execution |
 | **Transport** | SSE (`/sse` + `/messages`) | Streamable HTTP (`/mcp`) — MCP 2024-11-05+ |
 | **Latency** | ~150ms overhead | <40ms overhead (Native C-optimized) |
 | **Sealing** | Simulated ledger writes | Immutable Merkle-tree vault sealing |
-| **Tools** | 5 tools | 9 tools (Unified Suite) |
+| **Tools** | 5 tools | **7 Core Tools** (AAA Architecture) |
 
 ---
 
 ## 🧠 THE INTERFACE: Human Language vs. Engine Jargon
 
 arifOS v53 introduces the **Human Language Bridge**, translating complex constitutional physics into clear, actionable tools.
-
-| Human Name | Engine Code | What it does |
+### 🛠️ The 8-Tool Managed Suite (Native v53)
+| Category | Tool | Description |
 | :--- | :--- | :--- |
-| **Authorize** | `init_000` | Checks who you are, blocks bad actors & injection. |
-| **Reason** | `agi_genius` | Deep logical analysis and chain-of-thought (Δ). |
-| **Evaluate** | `asi_act` | Safety audit: harm, bias, and fairness checks (Ω). |
-| **Decide** | `apex_judge` | Final judicial verdict: Approve or Reject (Ψ). |
-| **Seal** | `vault_999` | Records the session immutably in the ledger (Log). |
-| **Full Pipeline** | `trinity_loop` | Complete AGI→ASI→APEX→VAULT cycle in one call. |
-| **Search Docs**   | `context_docs` | Technical documentation search (Context7). |
-| **Reality Check** | `reality_check`| Fact-checking and news via Brave Search. |
-| **Prompt Codec**  | `prompt_codec` | Intent routing and prompt encoding/decoding. |
+| **Gate** | `init_000` | Secure session ignition & authority check. |
+| **Mind** | `agi_genius` | Deep reasoning, logic, and knowledge atlas. |
+| **Heart** | `asi_act` | Safety audit, empathy check, and ethical alignment. |
+| **Soul** | `apex_judge` | Judicial verdict and cryptographic proof. |
+| **Memory** | `vault_999` | Immutable ledger and archival memory. |
+| **Loop** | `trinity_loop` | Full AGI→ASI→APEX metabolic cycle. |
+| **Docs** | `context_docs` | Technical documentation lookup (Context7). |
+| **Ground**| `reality_check` | Reality grounding via Brave Search. |
 
 ---
 
@@ -253,7 +252,7 @@ https://arif-fazil.com/dashboard
 ```bash
 curl https://arif-fazil.com/health
 ```
-Expected: `{"status": "healthy", "version": "v53.2.6-CODEBASE", "mode": "CODEBASE", "transport": "streamable-http", "tools": 6, "architecture": "v53.2.6-universal"}`
+Expected: `{"status": "healthy", "version": "v53.2.6-CODEBASE", "mode": "CODEBASE", "transport": "streamable-http", "tools": 8, "architecture": "v53.2.6-universal"}`
 
 **Option 3: Deploy to Railway** (5 minutes)
 
@@ -303,13 +302,13 @@ The single Railway deployment serves 3 distinct pages:
 |------|-----|---------|
 | **Portfolio** | [`arif-fazil.com/`](https://arif-fazil.com/) | Muhammad Arif Fazil — AI Governance Architect |
 | **Framework** | [`arif-fazil.com/arifos`](https://arif-fazil.com/arifos) | arifOS Trinity (ΔΩΨ) — Constitutional AI |
-| **MCP Tools** | [`arif-fazil.com/aaa`](https://arif-fazil.com/aaa) | AAA MCP Server — Tool Documentation |
+| **MCP Tools** | [`arif-fazil.com/aaa`](https://arif-fazil.com/aaa) | AAA 7-Core MCP Server |
 
 **API Endpoints:**
-- `/mcp` — MCP Protocol endpoint (ChatGPT, Codex, etc.)
-- `/health` — Health check
-- `/dashboard` — Live metrics dashboard
-- `/metrics/json` — Raw telemetry API
+- `/mcp` — MCP Protocol endpoint (7 Core Tools)
+- `/health` — Health check (returns AAA-7CORE architecture)
+- `/dashboard` — Live Trinity Monitor
+- `/metrics/json` — Raw constitutional telemetry
 
 ---
 
