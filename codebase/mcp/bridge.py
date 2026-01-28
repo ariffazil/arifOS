@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 from codebase.mcp.constitutional_metrics import store_stage_result, get_stage_result
 from codebase.mcp.tools.trinity_validator import validate_trinity_request
 from codebase.mcp.tools import context_scope, reality_grounding
-from codebase.mcp.external_gateways.context7_client import Context7Client
 from codebase.mcp.external_gateways.brave_client import BraveSearchClient
 
 # --- CORE AVAILABILITY ---
@@ -187,26 +186,9 @@ async def bridge_vault_router(action: str = "seal", **kwargs) -> dict:
 class BridgeRouter:
     """Manages routing between MCP tools and external reality gateways."""
     
-    def __init__(self, context7_key: Optional[str] = None, brave_key: Optional[str] = None):
+    def __init__(self, brave_key: Optional[str] = None):
         import os
-        self.context7 = Context7Client(context7_key or os.environ.get("CONTEXT7_API_KEY"))
         self.brave = BraveSearchClient(brave_key or os.environ.get("BRAVE_API_KEY"))
-    
-    async def route_context_docs(
-        self,
-        query: str,
-        session_id: Optional[str] = None,
-        **kwargs
-    ) -> dict:
-        """Route technical documentation queries to Context7."""
-        # Get authority from init stage
-        init_result = get_stage_result(session_id, "init") if session_id else {}
-        scar_weight = init_result.get("scar_weight", 0.0)
-        
-        allowed_paths, includes_secrets = context_scope.validate_context_scope(query, scar_weight)
-        
-        result = await self.context7.search(query, allowed_paths, scar_weight)
-        return _serialize(result)
     
     async def route_reality_check(
         self,
@@ -247,27 +229,9 @@ def get_bridge_router():
         _ROUTER = BridgeRouter()
     return _ROUTER
 
-async def bridge_context_docs_router(**kwargs) -> dict:
-    """Gateway for context_docs tool."""
-    return await get_bridge_router().route_context_docs(**kwargs)
-
 async def bridge_reality_check_router(**kwargs) -> dict:
     """Gateway for reality_check tool."""
     return await get_bridge_router().route_reality_check(**kwargs)
-
-
-async def bridge_prompt_router(action: str = "route", **kwargs) -> dict:
-    """Pure bridge: Route codec/prompt tasks."""
-    if not ENGINES_AVAILABLE:
-        return _FALLBACK_RESPONSE
-
-    router = get_kernel_manager().get_prompt_router()
-    user_input = kwargs.get("user_input", "")
-    try:
-        return _serialize(await router(user_input))
-    except Exception as e:
-        logger.error(f"Prompt Bridge error: {e}")
-        return {"error": str(e), "status": "ERROR"}
 
 
 async def bridge_trinity_loop_router(query: str, session_id: Optional[str] = None, **kwargs) -> dict:

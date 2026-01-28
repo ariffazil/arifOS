@@ -4,13 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aaa-mcp"
-version = "53.2.1"
-# v53.0.0-AAA: Rebrand MCP server as AAA MCP
-#   - Rename commands: arifos-mcp → aaa-mcp
-#   - Package name: aaa-mcp (PyPI)
-#   - Backward compatibility: arifos-mcp* aliases maintained
-#   - Clear separation: AAA MCP = gateway, arifos = constitutional kernel
-# v52.5.26-LIVE: Dashboard Metrics Integration & Constitutional Governance
+version = "53.2.7"
+# v53.2.7-CODEBASE-AAA7: 7-Core Tool Consolidation (INIT, AGI, ASI, APEX, VAULT, TRINITY, REALITY)
+#   - Internalized prompt_codec and context_docs.
+#   - Standardized CAPS naming for all tools.
+#   - Unified stdio and SSE architectures.
 # v52.5.26-LIVE: Dashboard Metrics Integration & Constitutional Governance (2026-01-26)
 #   - LiveMetricsService: Real-time constitutional metrics from VAULT999 ledger
 #   - Live τ (truth), κᵣ (empathy), Ψ (vitality), ΔS (clarity) computation

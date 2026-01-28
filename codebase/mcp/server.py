@@ -58,12 +58,19 @@ presenter = AAAMetabolizer()
 # =============================================================================
 
 TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
-    "INIT": {
-        "name": "INIT",
+    "init_000": {
+        "name": "init_000",
         "description": (
-            "Session initialization, authority verification, and budget allocation. "
+            "Session startup, identity check, and budget allocation. "
             "Call this FIRST before using any other tool. "
-            "Fail-closed access control and resource management. "
+            "It creates a governed session, verifies who is speaking, "
+            "checks for prompt injection attacks, sets access level, and allocates computational budget. "
+            "\n\nRules enforced: "
+            "(1) Identity must be verified — unknown users get limited access. "
+            "(2) Prompt injection patterns are blocked — attempts to override instructions are rejected. "
+            "(3) Every session gets a unique ID for audit tracking. "
+            "(4) Dangerous or irreversible requests are flagged before they can proceed. "
+            "(5) Computational budget is assigned based on authority level. "
             "\n\nActions: "
             "init — Start a new session (default). "
             "gate — Run a safety checkpoint mid-session. "

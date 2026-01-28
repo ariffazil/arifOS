@@ -251,7 +251,7 @@ https://arif-fazil.com/dashboard
 ```bash
 curl https://arif-fazil.com/health
 ```
-Expected: `{"status": "healthy", "version": "v53.2.6-CODEBASE", "mode": "CODEBASE", "transport": "streamable-http", "tools": 8, "architecture": "v53.2.6-universal"}`
+Expected: `{"status": "healthy", "version": "v53.2.7-CODEBASE-AAA7", "mode": "CODEBASE", "transport": "streamable-http", "tools": 7, "architecture": "AAA-7CORE-v53.2.7"}`
 
 **Option 3: Deploy to Railway** (5 minutes)
 
@@ -541,19 +541,17 @@ https://arifos.arif-fazil.com/mcp
 }
 ```
 
-**The 9 MCP Tools (v53.2.6):**
+**The 7-Core MCP Suite (v53.2.7):**
 
-| Tool | Role | Engine | Constitutional Floors | Purpose |
-|------|------|--------|------------------------|---------|
-| `init_000` | 🚪 Gate | 000_INIT | F1, F11, F12 | **Authorize.** Identity, injection defense, session gate |
-| `agi_genius` | 🧠 Mind | AGI (Δ) | F2, F4, F7, F10 | **Reason.** Truth, clarity, humility, ontology |
-| `asi_act` | ❤️ Heart | ASI (Ω) | F1, F5, F6, F9 | **Evaluate.** Amanah, peace², empathy, dark cleverness |
-| `apex_judge` | ⚖️ Soul | APEX (Ψ) | F3, F8, F11, F12 | **Decide.** Witness, genius, auth, injection |
-| `vault_999` | 🔒 Seal | VAULT | F1, F8, F10 | **Seal.** Immutable Merkle ledger sealing |
-| `trinity_loop` | 🔄 Pipeline | ALL | F1–F13 | **Full Cycle.** AGI→ASI→APEX→VAULT in one call |
-| `context_docs` | 📚 Docs | Context7 | F11, F7 | **Search Docs.** Technical documentation search |
-| `reality_check` | 🌍 Reality | Brave | F7, F3 | **Reality Check.** Grounding & news search |
-| `prompt_codec` | 🔠 Codec | Codec | F11, F12 | **Prompt Codec.** Intent routing & encoding |
+| Tool | Role | Engine | Primitives | Purpose |
+|------|------|--------|------------|---------|
+| `INIT` | 🚪 Gate | 000_INIT | Resource | **Authorize.** Session init, authority check, budget. |
+| `AGI`  | 🧠 Mind | AGI (Δ) | Tool | **Reason.** Deep logic, pattern recognition. |
+| `ASI`  | ❤️ Heart | ASI (Ω) | Tool | **Evaluate.** Safety, bias, and empathy audit. |
+| `APEX` | ⚖️ Soul | APEX (Ψ) | Tool | **Decide.** Judicial consensus and final verdict. |
+| `VAULT`| 🔒 Seal | VAULT | Resource | **Seal.** Immutable Merkle ledger audit trail. |
+| `TRINITY`| 🔄 Loop | ALL | Tool+Resource | **Full Cycle.** Complete AGI→ASI→APEX metabolic loop. |
+| `REALITY`| 🌍 Reality | Brave | Resource | **Ground.** Reality grounding via external sources. |
 
 **MCP Endpoints (v53.2.1 Architecture):**
 
