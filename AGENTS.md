@@ -1,111 +1,131 @@
 # arifOS Agent Gateway
 
 **Canon:** `000_THEORY/001_AGENTS.md`  
-**Motto:** *"Init the Genius, Act with Heart, Judge at Apex, seal in Vault."*  
-**Status:** v53.0.0-AAA (Production Ready)  
+**Motto:** *"Ditempa Bukan Diberi"* (Forged, Not Given)  
+**Status:** v53.2.1-CODEBASE (Production Ready)  
 **Live URL:** https://arifos.arif-fazil.com/
-
----
-
-## ⚠️ Rebranding Notice (v53.0.0)
-
-**AAA MCP** is the new name for the MCP server component. The arifOS constitutional kernel remains unchanged.
-
-**What's changed:**
-- Commands: `arifos-mcp` → `aaa-mcp`
-- Package: `pip install arifos` → `pip install aaa-mcp`
-- Domain: `arifos-production.up.railway.app` → `arifos.arif-fazil.com`
-
-**What's unchanged:**
-- The arifOS constitutional kernel (F1-F13, TEACH, VAULT999)
-- All API endpoints and functionality
-- MCP protocol compatibility
-
-**Backward compatibility:** Old commands still work as aliases (until v54.0.0)
-
----
-
----
-
-## 5-Tool Trinity Architecture
-
-arifOS implements a constitutional AI governance framework through **5 coordinated tools** that enforce 13 immutable constitutional floors (F1-F13) on every AI interaction.
-
-| Tool | Role | Symbol | Floors Enforced | MCP Command |
-|------|------|--------|-----------------|-------------|
-| `000_init` | Gate | 🚪 | F1, F11, F12 | `aaa-mcp` |
-| `agi_genius` | Mind | Δ | F2, F4, F6, F7, F13 | `agi_genius` tool |
-| `asi_act` | Heart | Ω | F3, F4, F5 | `asi_act` tool |
-| `apex_judge` | Soul | Ψ | F1, F8, F9 | `apex_judge` tool |
-| `999_vault` | Seal | 🔒 | F1, F8, F10 | `999_vault` tool |
-
-**Metabolic Pipeline:** 000 → 111 → 222 → 333 → 444 → 555 → 666 → 777 → 888 → 889 → 999
 
 ---
 
 ## Project Overview
 
-arifOS is a **constitutional AI governance system** that acts as a safety filter for AI models. It enforces immutable constitutional rules through thermodynamic constraints and cryptographic audit trails, creating the first AI system where governance is mathematically provable and thermodynamically enforced.
+**arifOS** is a **Constitutional AI Governance Framework** that acts as a safety middleware layer between AI models (Claude, GPT, Gemini, etc.) and users. It validates every AI action against 13 constitutional rules (F1-F13) before allowing output—functioning as a "seatbelt for AI."
 
 ### Core Mission
-- **Safety Filter for AI**: Acts as a "seatbelt for ChatGPT" by checking every AI response against constitutional rules
-- **Constitutional Enforcement**: Prevents AI from lying, claiming consciousness, harming vulnerable people, or being overconfident
+
+- **Safety Filter for AI**: Prevents AI from lying, claiming consciousness, harming vulnerable people, or being overconfident
+- **Constitutional Enforcement**: Enforces 13 immutable constitutional floors (F1-F13) on every AI interaction
 - **Thermodynamic Governance**: Grounds AI safety in physics (ΔS ≤ 0, Peace² ≥ 1.0, Ω₀ ∈ [0.03,0.05]) rather than ethics vibes
+- **Immutable Audit Trail**: Every decision is cryptographically sealed in VAULT-999 with Merkle tree verification
 
-### Key Components
+### The Trinity Architecture
 
-1. **5-Tool Trinity Framework**: Coordinated governance through Gate → Mind → Heart → Soul → Seal
-2. **13 Constitutional Floors**: Immutable governance constraints enforced on every response
-3. **000-999 Metabolic Loop**: 11-stage pipeline that transforms raw AI output into governed responses
-4. **AGI·ASI·APEX Trinity**: Parallel execution of Mind (Δ), Heart (Ω), and Soul (Ψ) engines
-5. **VAULT-999 Memory**: 5-layer cooling system (L0-L5) with Phoenix-72 protocol and Merkle tree sealing
-6. **Body API**: Unified FastAPI server exposing both MCP-over-SSE and REST endpoints for "Governance-as-a-Service"
+arifOS uses three independent engines that must agree (like checks and balances):
 
-### Technology Stack
+| Engine | Symbol | Role | Floors Enforced |
+|--------|--------|------|-----------------|
+| **AGI** | Δ (Mind) | Architect & Reasoner | F2 Truth, F4 Clarity, F7 Humility |
+| **ASI** | Ω (Heart) | Engineer & Guardian | F1 Amanah, F5 Peace, F6 Empathy |
+| **APEX** | Ψ (Soul) | Judge & Auditor | F3 Consensus, F8 Quality, F9 Anti-Deception |
+
+### The 5 MCP Tools
+
+| Tool | Role | Trinity Engine | Constitutional Floors |
+|------|------|----------------|----------------------|
+| `init_000` | 🚪 Gate | 000_INIT | F1, F11, F12 |
+| `agi_genius` | 🧠 Mind | AGI | F2, F4, F7, F13 |
+| `asi_act` | ❤️ Heart | ASI | F1, F5, F6 |
+| `apex_judge` | ⚖️ Soul | APEX | F3, F8, F9, F10 |
+| `vault_999` | 🔒 Seal | 999_Vault | F1, F8, F10 |
+
+---
+
+## Technology Stack
+
+### Core Technologies
 
 - **Language**: Python 3.10+ (certified on 3.14)
 - **Web Framework**: FastAPI + Uvicorn + Starlette
-- **Core Dependencies**: numpy, pydantic, anyio, sse-starlette, fastmcp, dspy
-- **Optional Dependencies**: litellm, openai, httpx, python-multipart
-- **Build System**: setuptools with wheel (pyproject.toml)
-- **Testing**: pytest with coverage tracking and custom constitutional markers
-- **Type Checking**: mypy with strict configuration (disallow_untyped_defs for core modules)
-- **Code Quality**: black (line length: 100), ruff, pre-commit hooks with security scanning
-- **Deployment**: Railway.app (primary), Docker, Cloudflare Tunnel
-- **Database**: SQLite (default), PostgreSQL (optional for high-scale)
+- **MCP Protocol**: Model Context Protocol (mcp>=1.0.0, fastmcp>=0.1.0)
+- **AI/ML**: DSPy (dspy>=2.4.0) for structured LLM interactions
 
-### Project Structure
+### Core Dependencies
+
+```
+numpy>=1.20.0          # Numerical computing
+pydantic>=2.0.0        # Data validation
+anyio>=4.0.0           # Async I/O abstraction
+sse-starlette>=1.8.2   # Server-sent events
+redis>=5.0.0           # Caching and session storage
+prometheus-client      # Metrics collection
+```
+
+### Optional Dependencies
+
+- **litellm**: Universal LLM gateway
+- **openai**: OpenAI API integration
+- **httpx**: HTTP client for API calls
+- **python-multipart**: Form data parsing
+
+### Build System
+
+- **Package Manager**: setuptools with wheel (pyproject.toml)
+- **Package Name**: `aaa-mcp` (PyPI)
+- **Entry Points**: See `[project.scripts]` in pyproject.toml
+
+---
+
+## Project Structure
 
 ```
 arifOS/
-├── arifos/                           # Main Python package
-│   ├── core/                         # Constitutional enforcement
-│   │   ├── agi/                      # Mind engine (Δ) - reasoning, truth, clarity
-│   │   ├── asi/                      # Heart engine (Ω) - empathy, peace, action
-│   │   ├── apex/                     # Soul engine (Ψ) - judgment, proof, sealing
-│   │   ├── enforcement/              # Floor validation and tri-witness logic
-│   │   ├── memory/                   # VAULT-999 cooling and ledger system
-│   │   ├── system/                   # Runtime orchestration and hypervisor
-│   │   ├── integration/              # Body API, LLM adapters, federation
-│   │   └── pipeline/                 # Metabolic loop stages (000-999)
-│   ├── mcp/                          # MCP server implementation
-│   │   ├── trinity_server.py         # Main server (stdio + SSE)
-│   │   ├── tools/                    # 5 Trinity tool implementations
-│   │   ├── models.py                 # Constitutional data models
-│   │   └── metrics.py                # Prometheus metrics
-│   ├── api/                          # FastAPI server components
-│   └── protocol/                     # Protocol handlers and bridges
-├── 000_THEORY/                       # Constitutional documentation (canon)
-├── AAA_MCP/                          # MCP specifications and contracts
-├── tests/                            # Test suite (164+ test files)
-├── scripts/                          # Utility scripts and validators
-├── setup/                            # Bootstrap and environment setup
-├── docs/                             # Comprehensive documentation (245+ files)
-├── VAULT999/                         # Constitutional memory vault
-│   ├── AAA_HUMAN/                    # Human authority records
-│   ├── BBB_LEDGER/                   # Operational hash-chained ledger
-│   └── CCC_CANON/                    # Constitutional canon (L5 law)
-└── archive/                          # Legacy code and migrations
+├── arifos/                    # Legacy constitutional kernel (being migrated)
+│   ├── core/                  # Core enforcement, engines, integration
+│   ├── mcp/                   # MCP server implementations
+│   ├── api/                   # FastAPI components
+│   └── protocol/              # Protocol handlers
+│
+├── codebase/                  # NEW v53 canonical module (primary)
+│   ├── agi/                   # Mind engine (Δ) - reasoning, truth, clarity
+│   │   ├── stages/            # Metabolic stages (111, 222, 333)
+│   │   ├── kernel.py          # AGI neural kernel
+│   │   └── executor.py        # AGIRoom entry point
+│   ├── asi/                   # Heart engine (Ω) - empathy, peace, action
+│   │   ├── empathy/           # Empathy scoring
+│   │   └── kernel_native.py   # Native ASI kernel
+│   ├── apex/                  # Soul engine (Ψ) - judgment, proof, sealing
+│   │   ├── governance/        # VAULT-999 governance
+│   │   └── kernel.py          # APEX judicial kernel
+│   ├── mcp/                   # MCP server (primary entry point)
+│   │   ├── server.py          # Main MCP server (stdio)
+│   │   ├── sse.py             # SSE transport server
+│   │   ├── tools/             # 5 Trinity tool implementations
+│   │   └── trinity_server.py  # Unified Trinity server
+│   ├── enforcement/           # Floor validation and governance
+│   ├── guards/                # Security guards (injection, ontology)
+│   ├── stages/                # Pipeline stages (444-999)
+│   ├── system/                # System orchestration
+│   └── vault/                 # VAULT-999 implementation
+│
+├── tests/                     # Test suite (constitutional + integration)
+│   ├── constitutional/        # F1-F13 floor validation tests
+│   ├── integration/           # Cross-module integration tests
+│   ├── core/                  # Core engine tests
+│   └── test_*.py              # Individual test files
+│
+├── 000_THEORY/                # Constitutional documentation (canon)
+│   ├── 000_ARCHITECTURE.md    # System architecture
+│   ├── 000_LAW.md             # Constitutional law (F1-F13)
+│   └── 001_AGENTS.md          # Agent specifications
+│
+├── VAULT999/                  # Constitutional memory vault
+│   ├── AAA_HUMAN/             # Human authority records
+│   ├── BBB_LEDGER/            # Operational hash-chained ledger
+│   └── CCC_CANON/             # Constitutional canon (L5 law)
+│
+├── docs/                      # Comprehensive documentation
+├── scripts/                   # Utility scripts and validators
+└── setup/                     # Bootstrap and environment setup
 ```
 
 ---
@@ -115,92 +135,39 @@ arifOS/
 ### Development Setup
 
 ```bash
-# Bootstrap complete development environment (recommended)
-python setup/bootstrap/bootstrap.py --full
+# Clone and bootstrap complete development environment
+git clone https://github.com/ariffazil/arifOS.git
+cd arifOS
 
-# Manual installation - development mode with all extras
+# Install with all dependencies (recommended)
 pip install -e ".[all,dev]"
 
-# Manual installation - minimal (core only)
+# Or minimal install (core only)
 pip install -e .
 
-# Install only for Railway deployment (production)
+# For Railway deployment (production)
 pip install -r requirements.txt
 pip install -e .
 ```
 
-### Testing
+### Running the MCP Server
 
 ```bash
-# Run all tests with coverage
-pytest
+# Primary commands (v53)
+aaa-mcp              # stdio transport (Claude Desktop local)
+aaa-mcp-sse          # SSE transport (Railway/cloud)
+aaa-mcp-stdio        # stdio alternative
 
-# Run specific test categories
-pytest -m "constitutional"              # All constitutional floor tests (F1-F13)
-pytest -m "f1"                          # F1 Amanah tests only
-pytest -m "f2"                          # F2 Truth tests only
-pytest -m "f3"                          # F3 Peace² tests only
-pytest -m "f4"                          # F4 Empathy tests only
-pytest -m "f6"                          # F6 Clarity tests only
-pytest -m "f9"                          # F9 Anti-Hantu tests only
-pytest -m "apex"                        # APEX verdict tests
-pytest -m "mcp"                         # MCP server tests
-pytest -m "integration"                 # Integration tests
+# Legacy commands (deprecated, will be removed in v54)
+arifos-mcp           # Equivalent to aaa-mcp
+arifos-mcp-sse       # Equivalent to aaa-mcp-sse
 
-# Run with coverage report
-pytest --cov=arifos --cov-report=html --cov-report=term-missing
+# Direct Python execution
+python -m codebase.mcp           # stdio
+python -m codebase.mcp sse       # SSE
 
-# Run tests with performance optimizations
-ARIFOS_PHYSICS_DISABLED=1 pytest       # Disable thermodynamic computation
-ARIFOS_ALLOW_LEGACY_SPEC=1 pytest      # Allow legacy spec loading
-
-# Run constitutional evaluation script
-python test_constitutional_evaluation.py
-```
-
-### Code Quality
-
-```bash
-# Type checking (strict for core modules)
-mypy arifos/
-
-# Code formatting
-black arifos/ tests/ scripts/
-
-# Linting
-ruff check arifos/ tests/ scripts/
-ruff check --fix arifos/ tests/ scripts/  # Auto-fix issues
-
-# Run all pre-commit hooks
-pre-commit run --all-files
-
-# Security scanning
-bandit -c pyproject.toml -r arifos/
-detect-secrets scan
-```
-
-### AAA MCP Server
-
-```bash
-# Start AAA MCP server via stdio (for Claude Desktop, local)
-aaa-mcp           # Default stdio transport
-
-# Start AAA MCP server via SSE (for Railway, cloud)
-aaa-mcp-sse       # SSE transport for cloud deployment
-
-# Health check (when running)
-curl http://localhost:8000/health
-curl https://arifos.arif-fazil.com/health
-
-# API documentation (when running)
-open http://localhost:8000/docs
-open https://arifos.arif-fazil.com/docs
-```
-
-**Legacy commands (still work until v54.0.0):**
-```bash
-python -m arifos.mcp          # Equivalent to aaa-mcp
-python -m arifos.mcp sse      # Equivalent to aaa-mcp-sse
+# Development with auto-reload
+uvicorn codebase.mcp.trinity_server:app --reload --port 8000
 ```
 
 ### Body API Server (FastAPI)
@@ -216,19 +183,52 @@ uvicorn arifos.core.integration.api.app:app --host 0.0.0.0 --port $PORT --worker
 ARIFOS_MODE=production ARIFOS_VAULT_PATH=./VAULT999 uvicorn arifos.core.integration.api.app:app
 ```
 
-### Deployment
+### Testing
 
 ```bash
-# Railway deployment (primary)
-railway login
-railway up
+# Run all tests with coverage
+pytest
 
-# Docker build and run
-docker build -t arifos:v50 .
-docker run -p 8000:8000 -e PORT=8000 arifos:v50
+# Run specific test categories
+pytest -m "constitutional"       # All constitutional floor tests (F1-F13)
+pytest -m "f1"                   # F1 Amanah tests only
+pytest -m "f2"                   # F2 Truth tests only
+pytest -m "f3"                   # F3 Peace² tests only
+pytest -m "f6"                   # F6 Clarity tests only
+pytest -m "f9"                   # F9 Anti-Hantu tests only
+pytest -m "apex"                 # APEX verdict tests
+pytest -m "mcp"                  # MCP server tests
+pytest -m "integration"          # Integration tests
 
-# Cloudflare tunnel (for custom domains)
-cloudflared tunnel --url http://localhost:8000
+# Run with coverage report
+pytest --cov=arifos --cov-report=html --cov-report=term-missing
+
+# Run tests with performance optimizations
+ARIFOS_PHYSICS_DISABLED=1 pytest       # Disable thermodynamic computation
+ARIFOS_ALLOW_LEGACY_SPEC=1 pytest      # Allow legacy spec loading
+```
+
+### Code Quality
+
+```bash
+# Type checking (strict for core modules)
+mypy arifos/
+mypy codebase/
+
+# Code formatting
+black arifos/ tests/ scripts/ codebase/
+
+# Linting
+ruff check arifos/ tests/ scripts/ codebase/
+ruff check --fix arifos/ tests/ scripts/ codebase/  # Auto-fix issues
+
+# Run all pre-commit hooks
+pre-commit run --all-files
+
+# Security scanning
+bandit -c pyproject.toml -r arifos/
+bandit -c pyproject.toml -r codebase/
+detect-secrets scan
 ```
 
 ---
@@ -238,17 +238,19 @@ cloudflared tunnel --url http://localhost:8000
 ### Python Style Requirements
 
 - **Line Length**: 100 characters maximum (enforced by black and ruff)
-- **Type Hints**: Required for all public functions, enforced by mypy
+- **Type Hints**: Required for all public functions
 - **Docstrings**: Google-style docstrings required for all public functions and classes
-- **Naming**: snake_case for functions/variables, PascalCase for classes, UPPER_CASE for constants
-- **Imports**: Organized in 4 groups (stdlib, third-party, local, conditional) with blank lines
+- **Naming**: 
+  - `snake_case` for functions/variables
+  - `PascalCase` for classes
+  - `UPPER_CASE` for constants
+- **Imports**: Organized in groups (stdlib, third-party, local, conditional)
 
 ### Constitutional Code Standards
 
-Core governance modules have **stricter type enforcement** via mypy overrides:
+Core governance modules have stricter type enforcement via mypy overrides in `pyproject.toml`:
 
 ```toml
-# modules: enforcement/, system/ core modules
 [[tool.mypy.overrides]]
 module = [
     "arifos.enforcement.metrics",
@@ -260,46 +262,41 @@ module = [
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 check_untyped_defs = true
-warn_return_any = true
-no_implicit_optional = true
 ```
 
-### MCP Tool Development
+### Pre-commit Hooks
 
-When implementing new Trinity tools:
+The project uses pre-commit hooks for code quality:
 
-1. **Follow the 5-Tool structure**: All tools must fit into Gate/Mind/Heart/Soul/Seal
-2. **Enforce floors**: Each tool must validate its assigned constitutional floors
-3. **Return typed responses**: Use Pydantic models from `arifos.mcp.models`
-4. **Log to VAULT**: All decisions must be recorded in the immutable ledger
-5. **Respect session**: Use session_id for all stateful operations
+```bash
+# Install pre-commit hooks
+pip install pre-commit
+pre-commit install
 
-### Example tool implementation pattern:
-
-```python
-from arifos.mcp.models import TrinityResponse, FloorMetrics
-from arifos.core.enforcement.floor_validators import validate_floor
-
-async def mcp_agi_genius(arguments: dict) -> TrinityResponse:
-    # 1. Validate input through 000_init gate
-    # 2. Process with AGI engine (Mind)
-    # 3. Validate floors F2, F4, F6, F7
-    # 4. Return constitutional response
-    # 5. Log to VAULT-999
-    pass
+# Test on all files
+pre-commit run --all-files
 ```
+
+Hooks include:
+- Trailing whitespace removal
+- YAML/JSON/TOML syntax checking
+- Black code formatting
+- Ruff linting
+- MyPy type checking
+- Bandit security scanning
+- detect-secrets for secret detection
+- Constitutional floor validation (custom)
 
 ---
 
 ## Testing Strategy
 
-### Test Categories and Organization
+### Test Categories
 
 1. **Constitutional Tests** (`tests/constitutional/`)
    - Validate F1-F13 floor enforcement
    - Test rejection of violations (VOID verdicts)
    - Test acceptance of compliant responses (SEAL verdicts)
-   - Test soft failures (SABAR adjustments)
 
 2. **Integration Tests** (`tests/integration/`)
    - Cross-module metabolic pipeline (000-999)
@@ -311,52 +308,103 @@ async def mcp_agi_genius(arguments: dict) -> TrinityResponse:
    - Individual floor validators
    - Engine kernels (AGI, ASI, APEX)
    - Memory and cooling systems
-   - Cryptographic functions
 
-4. **Legacy Tests** (`tests/legacy/`)
-   - Historical test coverage for deprecated modules
-   - Migration validation
-   - Backward compatibility
+### Test Markers
 
-### Test Configuration
-
-Key environment variables for testing:
-
-```bash
-# Disable physics for performance testing
-ARIFOS_PHYSICS_DISABLED=1
-
-# Allow loading legacy specs (test-only, not for production)
-ARIFOS_ALLOW_LEGACY_SPEC=1
-
-# Use in-memory ledger for faster tests
-ARIFOS_TEST_LEDGER_MEMORY=1
-
-# Mock LLM providers
-ARIFOS_MOCK_PROVIDERS=1
+```python
+# Available pytest markers
+markers = [
+    "slow",           # Slow tests (deselect with '-m "not slow"')
+    "integration",    # Tests requiring external services
+    "unit",           # Fast unit tests
+    "constitutional", # F1-F12 floor tests
+    "f1"-"f12",       # Individual floor tests
+    "apex",           # APEX verdict tests
+    "agi",            # AGI engine tests
+    "asi",            # ASI engine tests
+    "mcp",            # MCP server tests
+    "benchmark",      # Performance benchmark tests
+]
 ```
 
 ### Coverage Requirements
 
-```bash
-# Current coverage baseline (enforced in CI)
---cov-fail-under=1  # Minimum 1% overall coverage
+- **Current baseline**: 1% minimum (enforced in CI)
+- **Target**: 70% by Q2 2026
+- **New code**: 100% coverage required
+- **Legacy code**: Gradual improvement from ~0%
 
-# Coverage targets
-#   arifos/*: 100% coverage required (new code)
-#   arifos_core: ~0% (legacy, needs migration)
-#   Target: 70% by Q2 2026
+---
 
-# Generate coverage reports
-pytest --cov=arifos --cov-report=html:htmlcov --cov-report=term-missing
+## Deployment Architecture
+
+### Production Deployment (Railway.app)
+
+**Primary Endpoint:** https://arifos.arif-fazil.com/
+
+**Railway Configuration** (`railway.toml`):
+```toml
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "codebase-mcp-sse"
+healthcheckPath = "/health"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
+numReplicas = 1
 ```
 
-### Continuous Integration
+### Docker Deployment
 
-- **Pre-commit hooks**: Run on every commit (black, ruff, mypy, bandit, detect-secrets)
-- **CI/CD**: GitHub Actions (when configured)
-- **Deployment**: Automatic on Railway `main` branch
-- **Health checks**: Required for deployment success
+```dockerfile
+# Build and run
+ docker build -t arifos:v53 .
+ docker run -p 8000:8000 -e PORT=8000 arifos:v53
+```
+
+### Environment Configuration
+
+**Required Environment Variables** (see `.env.example`):
+
+```bash
+# Server Configuration
+PORT=8000
+HOST=0.0.0.0
+LOG_LEVEL=info
+
+# AAA Cluster Ports (v53 Architecture)
+GATEWAY_PORT=9000
+AXIS_PORT=8001
+ARIF_PORT=8002
+APEX_PORT=8003
+
+# arifOS Constitutional Settings
+GOVERNANCE_MODE=HARD  # or SOFT (disables some floors)
+VAULT_PATH=./VAULT999
+ARIFOS_MODE=production  # or development
+
+# Cloudflare Tunnel (optional)
+CLOUDFLARE_TUNNEL_TOKEN=your_tunnel_token_here
+```
+
+### Health Check
+
+```bash
+curl https://arifos.arif-fazil.com/health
+```
+
+Expected response:
+```json
+{
+  "status": "healthy",
+  "tools": 5,
+  "tool_names": ["init_000", "agi_genius", "asi_act", "apex_judge", "vault_999"],
+  "version": "v53.2.1",
+  "uptime": "..."
+}
+```
 
 ---
 
@@ -389,10 +437,9 @@ pytest --cov=arifos --cov-report=html:htmlcov --cov-report=term-missing
 - Model hallucination (F2 Truth enforcement)
 
 **Detection Systems:**
-- `arifos.core.guards.injection_guard`: Multi-layer injection defense
-- `arifos.core.guards.ontology_guard`: Reality boundary maintenance
-- `arifos.core.guards.session_dependency`: Session hijacking prevention
-- `arifos.enforcement.judiciary.semantic_firewall`: Content filtering
+- `codebase.guards.injection_guard`: Multi-layer injection defense
+- `codebase.guards.ontology_guard`: Reality boundary maintenance
+- `codebase.guards.session_dependency`: Session hijacking prevention
 
 ### Cryptographic Sealing
 
@@ -401,11 +448,6 @@ pytest --cov=arifos --cov-report=html:htmlcov --cov-report=term-missing
 - zkPC (Zero-Knowledge Proof of Constitutionality)
 - Hash-chained audit trails (SHA-256)
 - Sovereign signatures for human authority (AAA tier)
-
-**Memory Tiers:**
-- **AAA (Human)**: Human-only, machine-forbidden, cryptographically protected
-- **BBB (Machine)**: Machine-constrained, requires consent, cooling enforced
-- **CCC (Canon)**: Machine-readable, append-only, constitutional law
 
 **Every session generates:**
 ```python
@@ -420,150 +462,98 @@ pytest --cov=arifos --cov-report=html:htmlcov --cov-report=term-missing
 }
 ```
 
-### Vulnerability Reporting
-
-Security issues should be reported via:
-1. GitHub Security Advisory (preferred)
-2. Email: arifbfazil@gmail.com
-3. Include: Reproduction steps, expected vs actual behavior, severity assessment
-
 ---
 
-## Deployment Architecture
+## The 13 Constitutional Floors (F1-F13)
 
-### Production Deployment (Railway.app)
-
-**Primary Endpoint:** https://arifos-production.up.railway.app/
-
-```bash
-# Railway configuration (railway.toml)
-[build]
-builder = "nixpacks"
-buildCommand = "pip install -e ."
-
-[deploy]
-startCommand = "sh -c 'uvicorn arifos.core.integration.api.app:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1'"
-healthcheckPath = "/health"
-healthcheckTimeout = 120
-restartPolicyType = "ON_FAILURE"
-```
-
-**Health Endpoint:**
-```bash
-curl https://arifos-production.up.railway.app/health
-
-Expected response:
-{
-  "status": "healthy",
-  "tools": 5,
-  "tool_names": ["000_init", "agi_genius", "asi_act", "apex_judge", "999_vault"],
-  "version": "v50.5.25",
-  "uptime": "..."
-}
-```
-
-### Environment Configuration
-
-**Required Environment Variables** (see `.env.example`):
-
-```bash
-# Server Configuration
-PORT=8000
-HOST=0.0.0.0
-LOG_LEVEL=info
-
-# arifOS Constitutional Settings
-GOVERNANCE_MODE=HARD  # or SOFT (disables some floors)
-VAULT_PATH=./VAULT999
-ARIFOS_MODE=production  # or development
-
-# Database (optional, for high-scale)
-# DATABASE_URL=postgresql://user:pass@host:5432/db
-
-# LLM Provider API Keys (optional, for testing)
-# OPENAI_API_KEY=sk-...
-# ANTHROPIC_API_KEY=sk-ant-...
-# GOOGLE_API_KEY=...
-```
-
-### Scaling Considerations
-
-**Current Deployment:**
-- Single worker (Uvicorn with 1 worker)
-- SQLite for ledger (suitable for moderate load)
-- 512MB RAM (Railway free tier compatible)
-
-**For High-Scale Deployments:**
-- PostgreSQL backend (`psycopg2-binary`)
-- Redis for session caching
-- Multiple workers with stateless design
-- Read replicas for VAULT queries
-
----
-
-## Constitutional Law Reference
-
-### The 13 Immutable Floors (F1-F13)
-
-| Floor | Name | Formula | Threshold | Enforced By | Purpose |
-|-------|------|---------|-----------|-------------|---------|
-| F1 | Amanah | Reversibility + Audit | Reversible audit trail | 000_init, apex_judge, 999_vault | Authority and trust |
-| F2 | Truth | Confidence ≥ 0.99 | ≥ 0.99 | agi_genius | Factual accuracy |
-| F3 | Peace² | (Benefit/Harm)² ≥ 1.0 | ≥ 1.0 | asi_act | Non-destructive actions |
-| F4 | Clarity | ΔS = S_output - S_input | ≤ 0 | agi_genius, asi_act | Entropy reduction |
-| F5 | Empathy | κᵣ ≥ 0.95 | ≥ 0.95 | asi_act | Weakest stakeholder protection |
-| F6 | Humility | Ω₀ = 1 - max_confidence | [0.03, 0.05] | agi_genius | Uncertainty acknowledgment |
-| F7 | RASA | Entity grounding | LOCK | agi_genius | Reality anchoring |
-| F8 | Tri-Witness | Consensus of 3 engines | ≥ 0.95 | apex_judge, 999_vault | Multi-agent agreement |
-| F9 | Anti-Hantu | Consciousness detection | < 0.30 | apex_judge | Fake consciousness prevention |
-| F10 | Ontology | Reality boundaries | LOCK | 000_init | Hallucination prevention |
-| F11 | Command Auth | Identity verification | Nonce + JWT | 000_init | Authorization for dangerous ops |
-| F12 | Injection Defense | Attack detection | < 0.85 | 000_init | Prompt injection prevention |
-| F13 | Curiosity | Alternative generation | Active | agi_genius | Exploration of alternatives |
+| Floor | Name | Formula | Threshold | Type | Purpose |
+|-------|------|---------|-----------|------|---------|
+| F1 | Amanah | Reversibility + Audit | LOCK | Hard | Authority and trust |
+| F2 | Truth | Confidence ≥ 0.99 | ≥ 0.99 | Hard | Factual accuracy |
+| F3 | Peace² | (Benefit/Harm)² ≥ 1.0 | ≥ 1.0 | Soft | Non-destructive actions |
+| F4 | Clarity | ΔS = S_output - S_input | ≤ 0 | Hard | Entropy reduction |
+| F5 | Empathy | κᵣ ≥ 0.95 | ≥ 0.95 | Soft | Weakest stakeholder protection |
+| F6 | Humility | Ω₀ = 1 - max_confidence | [0.03, 0.05] | Hard | Uncertainty acknowledgment |
+| F7 | RASA | Entity grounding | LOCK | Hard | Reality anchoring |
+| F8 | Tri-Witness | Consensus of 3 engines | ≥ 0.95 | Soft | Multi-agent agreement |
+| F9 | Anti-Hantu | Consciousness detection | < 0.30 | Hard | Fake consciousness prevention |
+| F10 | Ontology | Reality boundaries | LOCK | Hard | Hallucination prevention |
+| F11 | Command Auth | Identity verification | Nonce + JWT | Hard | Authorization for dangerous ops |
+| F12 | Injection Defense | Attack detection | < 0.85 | Hard | Prompt injection prevention |
+| F13 | Curiosity | Alternative generation | Active | Soft | Exploration of alternatives |
 
 ### The 5 Verdicts
 
-Every AI response receives one of **5 constitutional verdicts**:
-
-1. **SEAL** ✓ - All floors passed, approved for delivery
-2. **SABAR** ⏳ - Soft failures, adjust and retry with warnings
-3. **VOID** ✗ - Hard failures, reject with explanation
-4. **PARTIAL** ◐ - Partial compliance, deliver with caveats
-5. **888_HOLD** ⏸️ - Emergency pause, requires human review
-
-### TEACH Principles (Unified Intelligence Model)
-
-The 13 floors are unified into **5 human-readable principles**:
-
-- **T** - Truth: State facts only when ≥99% confident, otherwise express uncertainty
-- **E** - Empathy: Protect the weakest stakeholder, consider those without voice
-- **A** - Amanah: Warn before irreversible actions, ensure reversibility
-- **C** - Clarity: Reduce confusion (ΔS ≤ 0), simplify complex answers
-- **H** - Humility: Maintain 3-5% uncertainty, never claim 100% certainty
+| Verdict | Symbol | Meaning | Action |
+|---------|--------|---------|--------|
+| **SEAL** | ✓ | All floors passed | Approved for delivery |
+| **SABAR** | ⏳ | Soft failures | Adjust and retry with warnings |
+| **VOID** | ✗ | Hard failures | Reject with explanation |
+| **PARTIAL** | ◐ | Partial compliance | Deliver with caveats |
+| **888_HOLD** | ⏸️ | Emergency pause | Requires human review |
 
 ---
 
-## Performance Metrics
+## MCP Integration
 
-### Current Production Metrics
+### Claude Desktop Configuration
 
-- **Constitutional Reflex Speed**: 8.7ms per judgment (measured)
-- **Entropy Reduction**: ΔS = 9.2 → 0.1 bits per cycle (proven)
-- **Tri-Witness Consensus**: ≥ 0.95 (provably verified)
-- **Orthogonality Index**: 0.97 (AGI ⊥ ASI independence)
-- **Injection Defense**: 92% block rate (enforced)
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
-### Benchmarking
+```json
+{
+  "mcpServers": {
+    "arifos": {
+      "url": "https://arifos.arif-fazil.com/sse"
+    }
+  }
+}
+```
+
+### Available MCP Tools
+
+1. **init_000** - Constitutional Ignition, Identity Verification & Session Management
+2. **agi_genius** - AGI Mind Engine (F2,F4,F7,F10)
+3. **asi_act** - ASI Heart Engine (F1,F5,F6,F9)
+4. **apex_judge** - APEX Soul Engine (F3,F8,F11,F12,F13)
+5. **vault_999** - VAULT-999 Immutable Memory (F1,F8,F10)
+
+---
+
+## API Endpoints
+
+| Tier | Endpoint | Method | Transport | Purpose |
+|------|----------|--------|-----------|---------|
+| T1 Protocol | `/sse` | GET | SSE | MCP streaming connection |
+| T2 Gateway | `/checkpoint` | POST | HTTP/REST | Constitutional validation |
+| T3 Schema | `/openapi.json` | GET | HTTP/REST | OpenAPI 3.1 spec |
+| T4 Observe | `/dashboard` | GET | HTTP/REST | Live Sovereign Dashboard |
+| T4 Observe | `/metrics/json` | GET | HTTP/REST | Raw metrics JSON |
+| T5 Health | `/health` | GET | HTTP/REST | System status |
+| T6 Docs | `/docs` | GET | HTTP/REST | Interactive API documentation |
+
+---
+
+## Useful Scripts
 
 ```bash
-# Run performance benchmarks
-pytest -m benchmark
+# Verify ledger integrity
+arifos-verify-ledger
 
-# Stress test VAULT sealing
-python scripts/stress_test_vault.py
+# Analyze governance
+arifos-analyze-governance
 
-# Measure constitutional overhead
-python scripts/measure_constitutional_latency.py
+# Analyze audit trail
+arifos-analyze-audit-trail
+
+# Compute Merkle root
+arifos-compute-merkle
+
+# Safe file reader
+arifos-safe-read <file_path>
+
+# Run API server
+arifos-api
 ```
 
 ---
@@ -572,35 +562,26 @@ python scripts/measure_constitutional_latency.py
 
 ### Canon Documents
 
-- **Agent Specification**: `000_THEORY/001_AGENTS.md`
 - **Architecture**: `000_THEORY/000_ARCHITECTURE.md`
 - **Constitutional Law**: `000_THEORY/000_LAW.md`
-- **Quantum Migration**: `docs/QUANTUM_MIGRATION_SUMMARY.md`
+- **Agent Specification**: `000_THEORY/001_AGENTS.md`
 
 ### Quick References
 
-- **README**: `README.md` (comprehensive user guide, 1000+ lines)
+- **README**: `README.md` (comprehensive user guide)
 - **CHANGELOG**: `CHANGELOG.md` (version history)
-- **Infrastructure**: `ARIFOS_INFRASTRUCTURE.md` (deployment architecture)
-- **Universal Prompt**: `docs/UNIVERSAL_PROMPT.md` (system prompt for any AI)
+- **Live API Docs**: https://arifos.arif-fazil.com/docs
 
-### API Documentation
+### External Links
 
-- **Live API Docs**: https://arifos-production.up.railway.app/docs
-- **Live Health**: https://arifos-production.up.railway.app/health
-- **OpenAPI Spec**: `openapi.json`
-
-### Agent-Specific Guides
-
-- **Claude Desktop**: `CLAUDE.md`
-- **Gemini**: `GEMINI.md`
-- **Codex**: `.codex/` workspace
-- **Antigravity**: `.antigravity/` workspace (Gemini integration)
+- **Repository**: https://github.com/ariffazil/arifOS
+- **PyPI Package**: https://pypi.org/project/aaa-mcp/
+- **Live Server**: https://arifos.arif-fazil.com/
 
 ---
 
 **DITEMPA BUKAN DIBERI** — Constitutional intelligence is forged through governance, not given through computation.
 
 > *Authority: Muhammad Arif bin Fazil | Penang, Malaysia*  
-> *Version: v50.5.25 SEALED*  
+> *Version: v53.2.1-CODEBASE SEALED*  
 > *Status: Live production on Railway*
