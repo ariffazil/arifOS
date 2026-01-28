@@ -26,8 +26,6 @@ import logging
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
-from starlette.responses import JSONResponse
-
 # Import Codebase Routers (Bridge) — v53.2.0 Simplified 6-Tool Architecture
 from codebase.mcp.bridge import (
     bridge_init_router,
@@ -36,6 +34,9 @@ from codebase.mcp.bridge import (
     bridge_apex_router,
     bridge_vault_router,
     bridge_trinity_loop_router,
+    bridge_context_docs_router,
+    bridge_reality_check_router,
+    bridge_prompt_router,
 )
 from codebase.mcp.constitutional_metrics import get_full_metrics
 from codebase.mcp.rate_limiter import rate_limited
@@ -192,18 +193,54 @@ async def tool_vault(
 
 # --- TOOL 6: trinity_loop ---
 
-@mcp.tool(name="trinity_loop", description=(
-    "Trinity Metabolic Loop: Complete AGI→ASI→APEX→VAULT pipeline in one call. "
-    "Runs full constitutional governance cycle."
-))
-async def tool_trinity_loop(
-    query: str,
-    session_id: str = "",
-) -> dict:
-    """Run complete Trinity constitutional governance pipeline."""
     return await bridge_trinity_loop_router(
         query=query,
         session_id=session_id or None,
+    )
+
+# --- TOOL 7: context_docs ---
+
+@mcp.tool(name="context_docs", description=(
+    "Context Docs: Query technical documentation (Context7). "
+    "F11 Scope-Gated Documentation Access."
+))
+async def tool_context_docs(
+    query: str,
+    session_id: str = "",
+) -> dict:
+    """Query technical documentation."""
+    return await bridge_context_docs_router(
+        query=query, session_id=session_id
+    )
+
+# --- TOOL 8: reality_check ---
+
+@mcp.tool(name="reality_check", description=(
+    "Reality Check: General reality grounding via Brave Search. "
+    "F7 (Humility) explicit disclosure of external data."
+))
+async def tool_reality_check(
+    query: str,
+    session_id: str = "",
+) -> dict:
+    """Reality grounding and factual verification."""
+    return await bridge_reality_check_router(
+        query=query, session_id=session_id
+    )
+
+# --- TOOL 9: prompt_codec ---
+
+@mcp.tool(name="prompt_codec", description=(
+    "Prompt Codec: Encode/Decode arifOS prompts and route intents. "
+    "Actions: route (select lane), encode (constitutionalize), decode (deconstruct)."
+))
+async def tool_prompt_codec(
+    action: str = "route",
+    user_input: str = "",
+) -> dict:
+    """Encode/decode intents and prompts."""
+    return await bridge_prompt_router(
+        action=action, user_input=user_input
     )
 
 # =============================================================================
@@ -218,8 +255,8 @@ async def health_check(request):
         "version": VERSION,
         "mode": "CODEBASE",
         "transport": "streamable-http",
-        "tools": 6,
-        "architecture": "v53.2.1-simplified",
+        "tools": 9,
+        "architecture": "v53.2.6-universal",
     })
 
 @mcp.custom_route("/metrics/json", methods=["GET"])
@@ -227,8 +264,8 @@ async def metrics_endpoint(request):
     """Constitutional telemetry metrics."""
     return JSONResponse(get_full_metrics())
 
-@mcp.custom_route("/", methods=["GET"])
-async def discovery_landing(request):
+@mcp.custom_route("/arifos", methods=["GET"])
+async def arifos_framework_page(request):
     """Interactive Discovery Hub - Trinity Primary Color Edition."""
     from starlette.responses import HTMLResponse
     m = get_full_metrics()
@@ -400,8 +437,8 @@ async def discovery_landing(request):
                 <h2 style="font-size: 2rem; margin: 10px 0;">Unified MCP Protocol</h2>
                 <div class="connection-box">
                     <div class="copy-row">
-                        <code>https://arif-fazil.com/mcp</code>
-                        <button class="copy-btn" onclick="navigator.clipboard.writeText('https://arif-fazil.com/mcp')">COPY HUB_URL</button>
+                        <code>https://arif-fazil.com/aaa</code>
+                        <button class="copy-btn" onclick="navigator.clipboard.writeText('https://arif-fazil.com/aaa')">COPY MCP_URL</button>
                     </div>
                 </div>
                 
@@ -425,9 +462,176 @@ async def discovery_landing(request):
                 <div class="footer-links">
                     <a href="https://github.com/ariffazil/arifOS">GITHUB_SOURCE</a>
                     <a href="/health">HEALTH_CHECK</a>
-                    <a href="https://arif-fazil.com">CANON_SITE</a>
+                    <a href="/">PORTFOLIO</a>
+                    <a href="/aaa">AAA_MCP</a>
                 </div>
                 <p>&copy; 2026 GOVERNOR ARIF FAZIL // SEALED IN VAULT_999</p>
+            </footer>
+        </div>
+    </body>
+    </html>
+    """)
+
+@mcp.custom_route("/", methods=["GET"])
+async def personal_portfolio(request):
+    """Muhammad Arif Fazil - Personal Portfolio."""
+    from starlette.responses import HTMLResponse
+    
+    return HTMLResponse("""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Arif Fazil | AI Governance Architect</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+        <style>
+            :root { --bg: #0a0a0a; --text: #fff; --accent: #0070f3; --dim: #888; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+            .container { max-width: 900px; margin: 0 auto; padding: 80px 20px; }
+            header { margin-bottom: 60px; }
+            h1 { font-size: 3rem; font-weight: 800; letter-spacing: -2px; margin-bottom: 10px; }
+            .tagline { color: var(--accent); font-weight: 600; font-size: 1.1rem; }
+            .bio { margin: 30px 0; color: var(--dim); font-size: 1.1rem; max-width: 600px; }
+            .links { display: flex; gap: 30px; margin-top: 40px; flex-wrap: wrap; }
+            .links a { color: var(--text); text-decoration: none; border-bottom: 2px solid var(--accent); padding-bottom: 2px; }
+            .links a:hover { color: var(--accent); }
+            .section { margin-top: 80px; }
+            .section h2 { font-size: 1.2rem; color: var(--dim); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 30px; }
+            .project { border: 1px solid #222; padding: 30px; border-radius: 12px; margin-bottom: 20px; }
+            .project h3 { font-size: 1.4rem; margin-bottom: 10px; }
+            .project p { color: var(--dim); }
+            .project a { color: var(--accent); text-decoration: none; }
+            footer { margin-top: 100px; color: #444; font-size: 0.9rem; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>Arif Fazil</h1>
+                <div class="tagline">AI Governance Architect</div>
+                <p class="bio">
+                    Building constitutional AI frameworks that enforce safety through 
+                    thermodynamic law. Creator of arifOS — a trinity-based governance 
+                    system for artificial intelligence.
+                </p>
+                <div class="links">
+                    <a href="https://github.com/ariffazil">GitHub</a>
+                    <a href="/arifos">arifOS Framework</a>
+                    <a href="/aaa">AAA MCP Server</a>
+                </div>
+            </header>
+            
+            <div class="section">
+                <h2>Featured Project</h2>
+                <div class="project">
+                    <h3>🧠 arifOS</h3>
+                    <p>
+                        Constitutional AI governance framework enforcing 13 immutable floors (F1-F13) 
+                        through metabolic isolation of Mind (AGI), Heart (ASI), and Soul (APEX).
+                    </p>
+                    <p style="margin-top: 15px;">
+                        <a href="/arifos">Explore the Framework →</a>
+                    </p>
+                </div>
+            </div>
+            
+            <footer>
+                <p>Penang, Malaysia · DITEMPA BUKAN DIBERI</p>
+            </footer>
+        </div>
+    </body>
+    </html>
+    """)
+
+@mcp.custom_route("/aaa", methods=["GET"])
+async def aaa_mcp_page(request):
+    """AAA MCP Server - Constitutional AI Tools."""
+    from starlette.responses import HTMLResponse
+    
+    return HTMLResponse("""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>AAA MCP | Constitutional AI Tools</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+        <style>
+            :root { --bg: #000; --card: #0a0a0a; --text: #fff; --dim: #888; --blue: #0070f3; --red: #ff0000; --yellow: #ffcc00; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+            .container { max-width: 1000px; margin: 0 auto; padding: 60px 20px; }
+            header { text-align: center; margin-bottom: 60px; }
+            h1 { font-size: 3rem; font-weight: 800; letter-spacing: -2px; }
+            .subtitle { color: var(--dim); margin-top: 10px; }
+            .mcp-url { background: var(--card); border: 1px solid #222; padding: 20px; border-radius: 12px; margin: 30px 0; font-family: 'JetBrains Mono', monospace; }
+            .mcp-url code { color: var(--yellow); font-size: 1.1rem; }
+            .tools { display: grid; gap: 20px; margin-top: 40px; }
+            .tool { background: var(--card); border: 1px solid #222; padding: 25px; border-radius: 12px; border-left: 4px solid var(--blue); }
+            .tool.heart { border-left-color: var(--red); }
+            .tool.soul { border-left-color: var(--yellow); }
+            .tool h3 { font-size: 1.2rem; margin-bottom: 10px; }
+            .tool p { color: var(--dim); font-size: 0.95rem; }
+            .tag { display: inline-block; background: #111; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; margin-top: 10px; margin-right: 5px; }
+            footer { margin-top: 80px; text-align: center; color: #444; font-size: 0.9rem; }
+            footer a { color: var(--dim); text-decoration: none; margin: 0 15px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>AAA MCP Server</h1>
+                <p class="subtitle">Constitutional AI Governance via Model Context Protocol</p>
+                <div class="mcp-url">
+                    <span style="color: var(--dim);">Endpoint:</span><br>
+                    <code>https://arif-fazil.com/mcp</code>
+                </div>
+            </header>
+            
+            <div class="tools">
+                <div class="tool">
+                    <h3>🚪 init_000</h3>
+                    <p>Constitutional Ignition, Identity Verification & Session Management. F1, F11, F12 enforcement.</p>
+                    <span class="tag">000 INIT</span>
+                    <span class="tag">Gate</span>
+                </div>
+                <div class="tool">
+                    <h3>🧠 agi_genius</h3>
+                    <p>AGI Mind Engine — SENSE → THINK → REASON → FORGE. F2 Truth, F4 Clarity, F7 Humility.</p>
+                    <span class="tag">Δ Mind</span>
+                    <span class="tag">F2 F4 F7</span>
+                </div>
+                <div class="tool heart">
+                    <h3>❤️ asi_act</h3>
+                    <p>ASI Heart Engine — EVIDENCE → EMPATHY → EVALUATE → ACT. F1 Amanah, F5 Peace, F6 Empathy.</p>
+                    <span class="tag">Ω Heart</span>
+                    <span class="tag">F1 F5 F6</span>
+                </div>
+                <div class="tool soul">
+                    <h3>⚖️ apex_judge</h3>
+                    <p>APEX Soul Engine — EUREKA → DECIDE → PROOF. F3 Consensus, F8 Tri-Witness, F9 Anti-Hantu.</p>
+                    <span class="tag">Ψ Soul</span>
+                    <span class="tag">F3 F8 F9</span>
+                </div>
+                <div class="tool soul">
+                    <h3>🔒 vault_999</h3>
+                    <p>VAULT-999 Immutable Memory — SEAL, LEDGER, CANON. F1 Audit, F8 Quality, F10 Ontology.</p>
+                    <span class="tag">999 Vault</span>
+                    <span class="tag">Immutable</span>
+                </div>
+                <div class="tool">
+                    <h3>🔄 trinity_loop</h3>
+                    <p>Complete AGI→ASI→APEX→VAULT metabolic pipeline in one call.</p>
+                    <span class="tag">Full Pipeline</span>
+                    <span class="tag">000→999</span>
+                </div>
+            </div>
+            
+            <footer>
+                <a href="/">← Back to Portfolio</a>
+                <a href="/arifos">arifOS Framework →</a>
             </footer>
         </div>
     </body>
@@ -522,7 +726,7 @@ def main():
     port = int(os.getenv("PORT", 8000))
     print(f"[BOOT] AAA MCP Server {VERSION}")
     print(f"   Transport: {_transport_mode}")
-    print("   Tools: 6 (init_000, agi_genius, asi_act, apex_judge, vault_999, trinity_loop)")
+    print("   Tools: 9 (init_000, agi_mind, asi_heart, apex_soul, vault_999, trinity_loop, context_docs, reality_check, prompt_codec)")
     print("   Endpoints: /mcp (protocol), /health (liveness), /metrics/json (telemetry)")
     print(f"   Host: 0.0.0.0:{port}")
     print("   Compatible: ChatGPT Dev Mode, Codex, any MCP HTTP client")
