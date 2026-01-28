@@ -28,23 +28,13 @@ from codebase.mcp.bridge import (
     bridge_asi_router,
     bridge_apex_router,
     bridge_vault_router,
-    # v53 ASI Routers
-    bridge_asi_stakeholder_router,
-    bridge_asi_diffusion_router,
-    bridge_asi_audit_router
+    bridge_trinity_loop_router,
 )
 from codebase.enforcement.governance.rate_limiter import get_rate_limiter
 from codebase.mcp.mode_selector import get_mcp_mode, MCPMode
 from codebase.mcp.constitutional_metrics import record_verdict
 from codebase.enforcement.metrics import record_stage_metrics, record_verdict_metrics
 from codebase.system.orchestrator.presenter import AAAMetabolizer
-from codebase.mcp.tools.mcp_tools_v53 import (
-    authorize, reason, evaluate, decide, seal
-)
-# NEW: Constitutional Physics
-from codebase.system.constitution import execute_constitutional_physics
-
-from dataclasses import asdict
 
 logger = logging.getLogger(__name__)
 
@@ -52,203 +42,106 @@ logger = logging.getLogger(__name__)
 presenter = AAAMetabolizer()
 
 # =============================================================================
-# TOOL DESCRIPTIONS
+# TOOL DESCRIPTIONS (v53.2.0 - Simplified 6-Tool Architecture)
 # =============================================================================
 
 TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
     "init_000": {
         "name": "init_000",
-        "description": "000 INIT: Full Constitutional Ignition & 7D Context Mapping.",
+        "description": "000 INIT: Constitutional Ignition, Identity Verification & Session Management. Actions: init (start session), gate (checkpoint), reset (clear session), validate (verify state), authorize (verify identity).",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {"type": "string", "enum": ["init", "gate", "reset", "validate"], "default": "init"},
-                "query": {"type": "string"},
-                "session_id": {"type": "string"}
+                "action": {"type": "string", "enum": ["init", "gate", "reset", "validate", "authorize"], "default": "init"},
+                "query": {"type": "string", "description": "Greeting or query to ignite context"},
+                "session_id": {"type": "string"},
+                "user_token": {"type": "string", "description": "For authorize action"}
             }
         }
     },
     "agi_genius": {
         "name": "agi_genius",
-        "description": "Mind Engine: SENSE → THINK → ATLAS → FORGE",
+        "description": "AGI Mind Engine (F2,F4,F7,F10): SENSE → THINK → REASON → FORGE. Actions: sense (perceive), think (deliberate), reflect (introspect), reason (logical analysis), atlas (knowledge mapping), forge (create), full (complete pipeline), physics (quantum constitutional).",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {"type": "string", "enum": ["sense", "think", "reflect", "atlas", "forge", "evaluate", "full", "predict", "measure", "physics", "math", "language"]},
+                "action": {"type": "string", "enum": ["sense", "think", "reflect", "reason", "atlas", "forge", "full", "physics"]},
                 "query": {"type": "string"},
-                "session_id": {"type": "string"}
+                "session_id": {"type": "string"},
+                "context": {"type": "object", "description": "Additional context for reasoning"}
             },
             "required": ["action"]
         }
     },
     "asi_act": {
         "name": "asi_act",
-        "description": "Heart Engine: EVIDENCE → EMPATHY → ACT",
+        "description": "ASI Heart Engine (F1,F5,F6,F9): EVIDENCE → EMPATHY → EVALUATE → ACT. Actions: evidence (gather facts), empathize (stakeholder analysis), evaluate (safety check), act (execute), stakeholder (semantic stakeholder reasoning), diffusion (impact propagation), audit (constitutional audit), full (complete pipeline).",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {"type": "string", "enum": ["evidence", "empathize", "align", "act", "witness", "evaluate", "full", "harmonize", "measure", "physics", "math", "language"]},
+                "action": {"type": "string", "enum": ["evidence", "empathize", "evaluate", "act", "witness", "stakeholder", "diffusion", "audit", "full"]},
                 "text": {"type": "string"},
-                "session_id": {"type": "string"}
+                "query": {"type": "string"},
+                "session_id": {"type": "string"},
+                "reasoning": {"type": "string", "description": "For evaluate action"},
+                "stakeholder_graph": {"type": "object", "description": "For diffusion action"},
+                "agi_context": {"type": "object", "description": "AGI output for chaining"}
             },
             "required": ["action"]
         }
     },
-    # ASI v53 Tools
-    "semantic_stakeholder_reasoning": {
-        "name": "semantic_stakeholder_reasoning",
-        "description": "A1: Semantic reasoning about stakeholders. Identifies implicit/hidden stakeholders.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "query": {"type": "string"},
-                "session_id": {"type": "string"},
-                "agi_context": {"type": "object"}
-            },
-            "required": ["query", "session_id"]
-        }
-    },
-    "impact_diffusion_peace_squared": {
-        "name": "impact_diffusion_peace_squared",
-        "description": "A2: Impact diffusion model for F5 Peace². Simulates benefit/harm propagation.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "query": {"type": "string"},
-                "stakeholder_graph": {"type": "object"},
-                "agi_reasoning": {"type": "object"}
-            },
-            "required": ["query", "stakeholder_graph"]
-        }
-    },
-    "constitutional_audit_sink": {
-        "name": "constitutional_audit_sink",
-        "description": "A3: Constitutional audit sink. Provides semantic reasoning for floors + immutable ledger.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "query": {"type": "string"},
-                "session_id": {"type": "string"},
-                "hardening_result": {"type": "object"},
-                "empathy_result": {"type": "object"},
-                "alignment_result": {"type": "object"}
-            },
-            "required": ["query", "session_id", "hardening_result", "empathy_result", "alignment_result"]
-        }
-    },
     "apex_judge": {
         "name": "apex_judge",
-        "description": "Soul Engine: EUREKA → JUDGE → PROOF",
+        "description": "APEX Soul Engine (F3,F8,F11,F12,F13): EUREKA → DECIDE → PROOF. Actions: eureka (insight), judge (evaluate), decide (synthesize verdict), proof (generate evidence), entropy (measure), full (complete pipeline).",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {"type": "string", "enum": ["eureka", "judge", "proof", "entropy", "parallelism", "full", "redeem", "measure", "physics", "math", "language"]},
+                "action": {"type": "string", "enum": ["eureka", "judge", "decide", "proof", "entropy", "full"]},
                 "verdict": {"type": "string", "enum": ["SEAL", "PARTIAL", "SABAR", "VOID", "888_HOLD"]},
                 "query": {"type": "string"},
                 "response": {"type": "string"},
-                "session_id": {"type": "string"}
+                "session_id": {"type": "string"},
+                "reasoning": {"type": "string", "description": "For decide action"},
+                "safety_evaluation": {"type": "object", "description": "ASI evaluation for decide"},
+                "authority_check": {"type": "object", "description": "Init authorization for decide"}
             },
             "required": ["action"]
         }
     },
     "vault_999": {
         "name": "vault_999",
-        "description": "Immutable Seal & Governance IO",
+        "description": "VAULT-999 Immutable Memory (F1,F8): Seal decisions, read/write governance artifacts. Actions: seal (immutable record), list (enumerate artifacts), read (retrieve), write (store), propose (suggest canon).",
         "inputSchema": {
             "type": "object",
             "properties": {
                 "action": {"type": "string", "enum": ["seal", "list", "read", "write", "propose"]},
                 "session_id": {"type": "string"},
                 "verdict": {"type": "string"},
-                "target": {"type": "string"}
+                "target": {"type": "string", "enum": ["seal", "ledger", "canon", "fag", "tempa", "phoenix", "audit"]},
+                "query": {"type": "string"},
+                "response": {"type": "string"},
+                "decision_data": {"type": "object", "description": "Full decision payload for seal"}
             },
             "required": ["action"]
         }
     },
-    # v53 HUMAN LANGUAGE TOOLS
-    "authorize": {
-        "name": "authorize",
-        "description": "Verify user identity. Call FIRST.",
+    "trinity_loop": {
+        "name": "trinity_loop",
+        "description": "Trinity Metabolic Loop: Complete AGI→ASI→APEX→VAULT pipeline in one call. Runs full constitutional governance cycle.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "query": {"type": "string"},
-                "user_token": {"type": "string"},
+                "query": {"type": "string", "description": "User query to process"},
                 "session_id": {"type": "string"}
-            },
-            "required": ["query"]
-        }
-    },
-    "reason": {
-        "name": "reason",
-        "description": "Perform logical analysis.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "query": {"type": "string"},
-                "context": {"type": "object"},
-                "style": {"type": "string"},
-                "session_id": {"type": "string"}
-            },
-            "required": ["query", "session_id"]
-        }
-    },
-    "evaluate": {
-        "name": "evaluate",
-        "description": "Check reasoning for safety.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "reasoning": {"type": "string"},
-                "query": {"type": "string"},
-                "session_id": {"type": "string"}
-            },
-            "required": ["reasoning", "query", "session_id"]
-        }
-    },
-    "decide": {
-        "name": "decide",
-        "description": "Synthesize final verdict.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "query": {"type": "string"},
-                "reasoning": {"type": "string"},
-                "safety_evaluation": {"type": "object"},
-                "authority_check": {"type": "object"},
-                "session_id": {"type": "string"}
-            },
-            "required": ["query", "reasoning", "safety_evaluation", "authority_check", "session_id"]
-        }
-    },
-    "seal": {
-        "name": "seal",
-        "description": "Record decision immutably.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "session_id": {"type": "string"},
-                "verdict": {"type": "string"},
-                "query": {"type": "string"},
-                "response": {"type": "string"},
-                "decision_data": {"type": "object"}
-            },
-            "required": ["session_id", "verdict", "query", "response", "decision_data"]
-        }
-    },
-    "physics": {
-        "name": "physics",
-        "description": "Run Quantum Constitutional Physics (Kimi Orthogonal Directive).",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "query": {"type": "string"},
-                "user_id": {"type": "string"}
             },
             "required": ["query"]
         }
     }
 }
+
+# =============================================================================
+# TOOL ROUTERS (v53.2.0 - Simplified 6-Tool Architecture)
+# =============================================================================
 
 TOOL_ROUTERS = {
     "init_000": bridge_init_router,
@@ -256,18 +149,7 @@ TOOL_ROUTERS = {
     "asi_act": bridge_asi_router,
     "apex_judge": bridge_apex_router,
     "vault_999": bridge_vault_router,
-    # v53 Routers
-    "authorize": authorize,
-    "reason": reason,
-    "evaluate": evaluate,
-    "decide": decide,
-    "seal": seal,
-    # ASI Components
-    "semantic_stakeholder_reasoning": bridge_asi_stakeholder_router,
-    "impact_diffusion_peace_squared": bridge_asi_diffusion_router,
-    "constitutional_audit_sink": bridge_asi_audit_router,
-    # Physics
-    "physics": execute_constitutional_physics,
+    "trinity_loop": bridge_trinity_loop_router,
 }
 
 # =============================================================================
@@ -311,19 +193,11 @@ def create_mcp_server(mode: Optional[MCPMode] = None) -> Server:
 
         start = time.time()
         try:
-            if name == "physics":
-                # Special handling for physics (direct kwarg mapping)
-                result = await router(
-                    query=arguments.get("query", ""),
-                    user_id=arguments.get("user_id", "anonymous")
-                )
-            elif name in ["authorize", "reason", "evaluate", "decide", "seal"]:
-                result_obj = await router(**arguments)
-                if hasattr(result_obj, "__dataclass_fields__"):
-                     result = asdict(result_obj)
-                else:
-                     result = result_obj
+            if name == "trinity_loop":
+                # Trinity loop doesn't use action pattern - direct kwargs
+                result = await router(**arguments)
             else:
+                # Standard tools use action pattern
                 action = arguments.pop("action", "full")
                 result = await router(action=action, **arguments)
             

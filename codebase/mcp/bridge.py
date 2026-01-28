@@ -182,7 +182,7 @@ async def bridge_prompt_router(action: str = "route", **kwargs) -> dict:
     """Pure bridge: Route codec/prompt tasks."""
     if not ENGINES_AVAILABLE:
         return _FALLBACK_RESPONSE
-    
+
     router = get_kernel_manager().get_prompt_router()
     user_input = kwargs.get("user_input", "")
     try:
@@ -190,3 +190,105 @@ async def bridge_prompt_router(action: str = "route", **kwargs) -> dict:
     except Exception as e:
         logger.error(f"Prompt Bridge error: {e}")
         return {"error": str(e), "status": "ERROR"}
+
+
+async def bridge_trinity_loop_router(query: str, session_id: Optional[str] = None, **kwargs) -> dict:
+    """
+    Trinity Metabolic Loop: Complete AGI→ASI→APEX pipeline.
+
+    Runs the full constitutional governance cycle:
+    1. Init (if no session_id)
+    2. AGI Genius: sense → think → reason
+    3. ASI Act: evidence → empathize → evaluate
+    4. APEX Judge: eureka → decide → proof
+    5. Vault Seal
+
+    Returns unified result with verdict.
+    """
+    if not ENGINES_AVAILABLE:
+        return _FALLBACK_RESPONSE
+
+    import time
+    start_time = time.time()
+
+    # Step 1: Initialize session if needed
+    if not session_id:
+        init_result = await bridge_init_router(action="init", query=query)
+        session_id = init_result.get("session_id", f"trinity_{int(time.time())}")
+
+    loop_results = []
+
+    # Step 2: AGI Genius Pipeline
+    agi_result = await bridge_agi_router(
+        action="full",
+        query=query,
+        session_id=session_id
+    )
+    loop_results.append({"stage": "agi", "result": agi_result})
+
+    if isinstance(agi_result, dict) and agi_result.get("verdict") == "VOID":
+        return {
+            "verdict": "VOID",
+            "reason": f"AGI veto: {agi_result.get('reason', 'Unknown')}",
+            "session_id": session_id,
+            "stages": loop_results
+        }
+
+    # Step 3: ASI Act Pipeline
+    asi_result = await bridge_asi_router(
+        action="full",
+        text=agi_result.get("reasoning", str(agi_result)),
+        query=query,
+        session_id=session_id,
+        agi_context=agi_result
+    )
+    loop_results.append({"stage": "asi", "result": asi_result})
+
+    if isinstance(asi_result, dict) and asi_result.get("verdict") == "VOID":
+        return {
+            "verdict": "VOID",
+            "reason": f"ASI veto: {asi_result.get('reason', 'Ethical violation')}",
+            "session_id": session_id,
+            "stages": loop_results
+        }
+
+    # Step 4: APEX Judge Pipeline
+    apex_result = await bridge_apex_router(
+        action="full",
+        query=query,
+        response=str(agi_result),
+        session_id=session_id,
+        reasoning=agi_result.get("reasoning", ""),
+        safety_evaluation=asi_result
+    )
+    loop_results.append({"stage": "apex", "result": apex_result})
+
+    final_verdict = apex_result.get("verdict", "SEAL") if isinstance(apex_result, dict) else "SEAL"
+
+    # Step 5: Vault Seal (only if SEAL verdict)
+    if final_verdict == "SEAL":
+        vault_result = await bridge_vault_router(
+            action="seal",
+            session_id=session_id,
+            verdict=final_verdict,
+            query=query,
+            response=str(apex_result),
+            decision_data={
+                "agi": agi_result,
+                "asi": asi_result,
+                "apex": apex_result
+            }
+        )
+        loop_results.append({"stage": "vault", "result": vault_result})
+
+    duration = time.time() - start_time
+
+    return {
+        "verdict": final_verdict,
+        "session_id": session_id,
+        "query": query,
+        "reasoning": apex_result.get("reasoning", "") if isinstance(apex_result, dict) else str(apex_result),
+        "stages": loop_results,
+        "duration_ms": duration * 1000,
+        "loops_completed": len(loop_results)
+    }

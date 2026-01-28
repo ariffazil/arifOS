@@ -22,10 +22,11 @@ from mcp.server.stdio import stdio_server
 
 from arifos.mcp.bridge import (
     bridge_init_router,
-    bridge_agi_router,
+    bridge_agi_action_router,
     bridge_asi_router,
     bridge_apex_router,
     bridge_vault_router,
+    bridge_trinity_hat_router,
 )
 from arifos.core.enforcement.governance.rate_limiter import get_rate_limiter
 from arifos.mcp.mode_selector import get_mcp_mode, MCPMode
@@ -75,7 +76,7 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {"type": "string", "enum": ["sense", "think", "reflect", "atlas", "forge", "evaluate", "full", "metrics"]}
+                "action": {"type": "string", "enum": ["sense", "think", "reflect", "atlas", "forge", "evaluate", "full", "metrics"]},
                 "query": {"type": "string"},
                 "session_id": {"type": "string"}
             },
