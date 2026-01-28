@@ -241,9 +241,9 @@ uvicorn codebase.mcp.trinity_server:app --reload --port 8000
 }
 ```
 
-**ChatGPT / Codex (HTTP):**
+**ChatGPT / Codex (SSE):**
 ```
-https://arif-fazil.com/mcp
+https://arifos.arif-fazil.com/sse
 ```
 
 ---
@@ -259,7 +259,8 @@ Single Railway deployment serves 3 distinct pages:
 | **MCP Tools** | [arif-fazil.com/aaa](https://arif-fazil.com/aaa) | AAA 7-Core MCP Server Documentation |
 
 **API Endpoints:**
-- `/mcp` — MCP Protocol endpoint (Streamable HTTP)
+- `/sse` — **Standard MCP** (Connection URL for Clients)
+- `/mcp` — Streamable HTTP (Stateless Agents)
 - `/health` — Health check
 - `/dashboard` — Live Trinity Monitor
 - `/metrics/json` — Raw constitutional telemetry
@@ -274,7 +275,7 @@ Single Railway deployment serves 3 distinct pages:
 | :--- | :--- | :--- |
 | **Module** | `arifos/` (archived) | `codebase/` (canonical) |
 | **Execution** | Monolithic sync | Parallel AGI/ASI "Hot" execution |
-| **Transport** | SSE (`/sse`) | Streamable HTTP (`/mcp`) — MCP 2024-11-05+ |
+| **Transport** | SSE (`/sse`) | **Dual-Stack:** SSE (`/sse`) + HTTP (`/mcp`) |
 | **Latency** | ~150ms | <40ms (Native C-optimized) |
 | **Sealing** | Simulated ledger | Immutable Merkle-tree vault |
 | **Tools** | 5 tools | **7 Core Tools** (`_action_` naming) |

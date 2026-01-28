@@ -1,4 +1,4 @@
-# Dockerfile for arifOS Constitutional Monolith (v53.1.0-CODEBASE)
+# Dockerfile for arifOS Constitutional Monolith (v53.2.7-CODEBASE-AAA7)
 # Single solid container for MCP SSE + Body API
 # Railway-compatible: Uses codebase-mcp-sse entry point
 

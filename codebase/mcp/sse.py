@@ -423,8 +423,8 @@ async def arifos_framework_page(request):
                 <h2 style="font-size: 2rem; margin: 10px 0;">Unified MCP Protocol</h2>
                 <div class="connection-box">
                     <div class="copy-row">
-                        <code>https://arif-fazil.com/aaa</code>
-                        <button class="copy-btn" onclick="navigator.clipboard.writeText('https://arif-fazil.com/aaa')">COPY MCP_URL</button>
+                        <code>https://arif-fazil.com/mcp</code>
+                        <button class="copy-btn" onclick="navigator.clipboard.writeText('https://arif-fazil.com/mcp')">COPY MCP_URL</button>
                     </div>
                 </div>
                 
@@ -615,16 +615,9 @@ async def aaa_mcp_page(request):
                 </div>
                 <div class="tool blue">
                     <h3>🌍 _reality_</h3>
-                    <p>Ground - External fact-checking via Brave Search.</p>
+                    <p>Ground - Fact-checking via external sources (Brave Search).</p>
                     <span class="tag">Resource</span>
                     <span class="tag">F7 Humility</span>
-                    <span class="tag">Context7</span>
-                </div>
-                <div class="tool yellow">
-                    <h3>🌍 reality_check</h3>
-                    <p>Reality Check: General reality grounding via Brave Search. F7 (Humility) Disclosure.</p>
-                    <span class="tag">Reality</span>
-                    <span class="tag">Brave</span>
                 </div>
             </div>
             
@@ -725,7 +718,7 @@ def main():
     port = int(os.getenv("PORT", 8000))
     print(f"[BOOT] AAA MCP Server {VERSION}")
     print(f"   Transport: {_transport_mode}")
-    print("   Tools: 8 (init_000, agi_mind, asi_heart, apex_soul, vault_999, trinity_loop, context_docs, reality_check)")
+    print("   Tools: 7 (_init_, _agi_, _asi_, _apex_, _vault_, _trinity_, _reality_)")
     print("   Endpoints: /mcp (protocol), /health (liveness), /metrics/json (telemetry)")
     print(f"   Host: 0.0.0.0:{port}")
     print("   Compatible: ChatGPT Dev Mode, Codex, any MCP HTTP client")
