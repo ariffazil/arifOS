@@ -31,23 +31,23 @@ def get_mcp_mode() -> MCPMode:
 def select_implementation(mode: MCPMode) -> Dict[str, Any]:
     """
     Select MCP tool implementations based on mode.
-    
+
     Returns:
         Dict mapping tool names to implementation functions
     """
-    # Lazy imports to reduce startup time
-    if mode == MCPMode.BRIDGE:
-        # Production: Pure bridge to cores
-        try:
-            from arifos.mcp.tools import v51_bridge
-            return v51_bridge.get_tools()
-        except ImportError as e:
-            # Cores not available, fall back to standalone
-            import warnings
-            warnings.warn(f"Bridge mode requested but cores unavailable: {e}")
-            return select_implementation(MCPMode.STANDALONE)
-    
-    else:  # STANDALONE or AUTO (with no cores)
-        # Development: Inline logic, no core dependency
-        from arifos.mcp.tools import mcp_aaa
-        return mcp_aaa.get_tools()
+    # All modes now use native codebase implementations
+    from codebase.mcp.tools.mcp_trinity import (
+        mcp_000_init,
+        mcp_agi_genius,
+        mcp_asi_act,
+        mcp_apex_judge,
+        mcp_999_vault,
+    )
+
+    return {
+        "init_000": mcp_000_init,
+        "agi_genius": mcp_agi_genius,
+        "asi_act": mcp_asi_act,
+        "apex_judge": mcp_apex_judge,
+        "vault_999": mcp_999_vault,
+    }

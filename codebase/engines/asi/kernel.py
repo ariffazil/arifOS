@@ -1,5 +1,7 @@
 """
-ASI Kernel Proxy for Codebase
-Delegates to the monolithic arifOS Core implementation.
+ASI Kernel for Codebase (Native)
+v53.0.0 - Re-exports from codebase.asi.kernel
 """
-from arifos.core.asi.kernel import ASIActionCore
+from codebase.asi.kernel import ASIActionCore, ASIKernelNative, ASIKernel
+
+__all__ = ["ASIActionCore", "ASIKernelNative", "ASIKernel"]

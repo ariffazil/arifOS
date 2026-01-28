@@ -1,5 +1,7 @@
 """
-AGI Kernel Proxy for Codebase
-Delegates to the monolithic arifOS Core implementation.
+AGI Kernel for Codebase (Native)
+v53.0.0 - Re-exports from codebase.agi.kernel
 """
-from arifos.core.engines.agi.kernel import AGINeuralCore
+from codebase.agi.kernel import AGINeuralCore, AGIKernel
+
+__all__ = ["AGINeuralCore", "AGIKernel"]

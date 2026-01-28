@@ -1,6 +1,0 @@
-:8080 {
-    reverse_proxy localhost:8000
-    log {
-        output stdout
-    }
-}

@@ -28,7 +28,7 @@ import mcp.types
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
-from arifos.mcp.tools.mcp_trinity import (
+from codebase.mcp.tools.mcp_trinity import (
     mcp_000_init,
     mcp_agi_genius,
     mcp_asi_act,
@@ -427,7 +427,7 @@ def main_sse():
     """Run Trinity server with SSE transport."""
     import os
     import uvicorn
-    from arifos.mcp.sse import create_sse_app
+    from codebase.mcp.sse import create_sse_app
 
     port = int(os.environ.get("PORT", os.environ.get("AAA_MCP_PORT", 8000)))
 

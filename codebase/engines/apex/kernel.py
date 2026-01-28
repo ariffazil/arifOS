@@ -1,5 +1,7 @@
 """
-APEX Kernel Proxy for Codebase
-Delegates to the monolithic arifOS Core implementation.
+APEX Kernel for Codebase (Native)
+v53.0.0 - Re-exports from codebase.apex.kernel
 """
-from arifos.core.apex.kernel import APEXJudicialCore
+from codebase.apex.kernel import APEXJudicialCore
+
+__all__ = ["APEXJudicialCore"]
