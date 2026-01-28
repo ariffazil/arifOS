@@ -1,5 +1,6 @@
 [build]
-builder = "docker"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 startCommand = "codebase-mcp-sse"
@@ -9,8 +10,8 @@ restartPolicyType = "ON_FAILURE"
 numReplicas = 1
 
 [deploy.env]
-    ARIFOS_ENV = "production"
-    ARIFOS_VERSION = "v53.0.0-CODEBASE"
-    ARIFOS_LOG_LEVEL = "INFO"
+ARIFOS_ENV = "production"
+ARIFOS_VERSION = "v53.2.1-CODEBASE"
+ARIFOS_LOG_LEVEL = "INFO"
 ARIFOS_CLUSTER = "3"
 PORT = "8000"
