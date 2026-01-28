@@ -243,7 +243,7 @@ uvicorn codebase.mcp.trinity_server:app --reload --port 8000
 
 **ChatGPT / Codex (SSE):**
 ```
-https://arifos.arif-fazil.com/sse
+                    <code>https://arif-fazil.com/mcp</code>
 ```
 
 ---
@@ -259,8 +259,8 @@ Single Railway deployment serves 3 distinct pages:
 | **MCP Tools** | [arif-fazil.com/aaa](https://arif-fazil.com/aaa) | AAA 7-Core MCP Server Documentation |
 
 **API Endpoints:**
-- `/sse` — **Standard MCP** (Connection URL for Clients)
-- `/mcp` — Streamable HTTP (Stateless Agents)
+- `/mcp` — Streamable HTTP (Primary Protocol)
+- `/sse` — Legacy SSE transport (Fallback)
 - `/health` — Health check
 - `/dashboard` — Live Trinity Monitor
 - `/metrics/json` — Raw constitutional telemetry
