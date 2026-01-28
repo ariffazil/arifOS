@@ -9,7 +9,8 @@ import threading
 import logging
 from typing import Dict, Any, List, Optional
 from codebase.entropy_compressor import EntropyCompressor
-from codebase.bundle_store import BundleStore, OmegaBundle, Stakeholder
+from codebase.bundle_store import BundleStore
+from codebase.bundles import OmegaBundle, Stakeholder
 
 logger = logging.getLogger(__name__)
 

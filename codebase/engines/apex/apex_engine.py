@@ -8,7 +8,8 @@ Floors: F3 (Tri-Witness ≥0.95), F8 (Genius Index ≥0.80)
 import threading
 import logging
 from typing import Dict, Any, List, Optional
-from codebase.bundle_store import BundleStore, DeltaBundle, OmegaBundle, MergedBundle
+from codebase.bundle_store import BundleStore
+from codebase.bundles import DeltaBundle, OmegaBundle, MergedBundle
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +115,8 @@ def test_apex_engine_initialization():
 async def test_apex_trinity_sync():
     """Test Stage 444 Trinity Sync."""
     session_id = "test_apex_002"
-    from codebase.bundle_store import get_store, DeltaBundle, OmegaBundle, EngineVote, AGIFloorScores
+    from codebase.bundle_store import get_store, DeltaBundle, OmegaBundle
+    from codebase.bundles import EngineVote, AGIFloorScores
     
     # 1. Setup bundles in store
     store = get_store(session_id)

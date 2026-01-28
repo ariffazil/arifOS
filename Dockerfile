@@ -49,7 +49,7 @@ EXPOSE 8000
 
 # Health check (matches railway.toml healthcheckPath)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
 
 # Run Codebase MCP SSE server (matches railway.toml startCommand)
 # Uses the entry point defined in pyproject.toml: codebase-mcp-sse = "codebase.mcp.sse:main"

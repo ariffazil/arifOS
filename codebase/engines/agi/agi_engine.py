@@ -8,7 +8,8 @@ Floors: F2 (Truth ≥0.99), F4 (ΔS≤0), F7 (Ω₀ ∈ [0.03,0.05])
 import threading
 import logging
 from typing import Dict, Any, List, Optional
-from codebase.bundle_store import BundleStore, DeltaBundle, AGIFloorScores, ReasoningTree
+from codebase.bundle_store import BundleStore, DeltaBundle
+from codebase.bundles import AGIFloorScores, ReasoningTree
 
 logger = logging.getLogger(__name__)
 
