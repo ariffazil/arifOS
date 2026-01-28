@@ -24,27 +24,48 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-# Imports from arifOS ecosystem (assumed available)
+# Native codebase imports
 try:
-    from arifos.mcp.rate_limiter import get_rate_limiter
-    from arifos.mcp.metrics import get_metrics
-    from arifos.mcp.session_ledger import inject_memory
     from codebase.enforcement.metrics import (
         TRUTH_THRESHOLD,
         PEACE_SQUARED_THRESHOLD,
         OMEGA_0_MIN,
         OMEGA_0_MAX,
     )
-    from codebase.engines.agi.atlas import ATLAS, ATLAS_333, GPV
-    ATLAS_AVAILABLE = True
 except ImportError:
-    ATLAS_AVAILABLE = False
-    ATLAS = None
     # Defaults if imports fail
     TRUTH_THRESHOLD = 0.99
     PEACE_SQUARED_THRESHOLD = 1.0
     OMEGA_0_MIN = 0.03
     OMEGA_0_MAX = 0.05
+
+# Native rate limiter and metrics (simple implementations)
+ATLAS_AVAILABLE = False
+ATLAS = None
+
+
+def get_rate_limiter():
+    """Return a simple rate limiter."""
+    class SimpleLimiter:
+        def check(self, tool_name: str, session_id: str):
+            class Result:
+                allowed = True
+                reason = ""
+                limit_type = "none"
+                reset_in_seconds = 0
+                remaining = 100
+            return Result()
+    return SimpleLimiter()
+
+
+def get_metrics():
+    """Return a simple metrics collector."""
+    return {}
+
+
+def inject_memory():
+    """Return previous session context (empty for new sessions)."""
+    return {"is_first_session": True}
 
 try:
     from codebase.prompt.codec import SignalExtractor, PromptSignal

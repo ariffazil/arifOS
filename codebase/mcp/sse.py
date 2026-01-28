@@ -101,5 +101,22 @@ def main():
     print(f"[BOOT] Codebase SSE (v53) starting on port {mcp.port}")
     mcp.run()
 
+
+def create_sse_app(tools: Dict[str, Any] = None):
+    """
+    Create SSE app for compatibility with trinity_server.py.
+
+    Returns the FastMCP server's Starlette app.
+
+    Args:
+        tools: Optional dict of tools (for compatibility, ignored - uses built-in tools)
+
+    Returns:
+        Starlette application instance
+    """
+    # Return the FastMCP server's internal app
+    return mcp._app if hasattr(mcp, '_app') else mcp
+
+
 if __name__ == "__main__":
     main()
