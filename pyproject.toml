@@ -144,51 +144,53 @@ all = [
 ]
 
 [project.scripts]
-# AAA MCP Server Commands (Primary v53)
-codebase-mcp = "codebase.mcp.server:main"
+# AAA MCP Server Commands (Primary v53) - using codebase
+aaa-mcp = "codebase.mcp.__main__:main"
+aaa-mcp-sse = "codebase.mcp.sse:main"
+aaa-mcp-stdio = "codebase.mcp.server:main_stdio"
+
+# Codebase MCP Server Commands (Alternative naming)
+codebase-mcp = "codebase.mcp.__main__:main"
 codebase-mcp-stdio = "codebase.mcp.server:main_stdio"
 codebase-mcp-sse = "codebase.mcp.sse:main"
-aaa-mcp = "arifos.mcp.__main__:main"
-aaa-mcp-sse = "arifos.mcp.sse:main"
-aaa-mcp-stdio = "arifos.mcp.server:main_stdio"
 
-# Backward Compatibility Aliases (Deprecated, will be removed in v54)
-arifos-mcp = "arifos.mcp.__main__:main"
-arifos-mcp-sse = "arifos.mcp.sse:main"
-arifos-mcp-stdio = "arifos.mcp.server:main_stdio"
+# Legacy arifos commands (DEPRECATED - will be removed in v54)
+# arifos-mcp = "arifos.mcp.__main__:main"
+# arifos-mcp-sse = "arifos.mcp.sse:main"
+# arifos-mcp-stdio = "arifos.mcp.server:main_stdio"
 
-# Governance Analysis
-arifos-analyze-audit-trail = "scripts.analyze_audit_trail:main"
-arifos-analyze-governance = "scripts.analyze_governance:main"
-arifos-verify-ledger = "scripts.verify_ledger_chain:main"
+# Governance Analysis (LEGACY - scripts may not exist)
+# arifos-analyze-audit-trail = "scripts.analyze_audit_trail:main"
+# arifos-analyze-governance = "scripts.analyze_governance:main"
+# arifos-verify-ledger = "scripts.verify_ledger_chain:main"
 
-# Canon Management
-arifos-propose-canon = "scripts.propose_canon_from_receipt:main"
-arifos-seal-canon = "scripts.seal_proposed_canon:main"
+# Canon Management (LEGACY - scripts may not exist)
+# arifos-propose-canon = "scripts.propose_canon_from_receipt:main"
+# arifos-seal-canon = "scripts.seal_proposed_canon:main"
 
-# Merkle/Cryptographic
-arifos-compute-merkle = "scripts.compute_merkle_root:main"
-arifos-build-ledger-hashes = "scripts.build_ledger_hashes:main"
-arifos-show-merkle-proof = "scripts.show_merkle_proof:main"
+# Merkle/Cryptographic (LEGACY - scripts may not exist)
+# arifos-compute-merkle = "scripts.compute_merkle_root:main"
+# arifos-build-ledger-hashes = "scripts.build_ledger_hashes:main"
+# arifos-show-merkle-proof = "scripts.show_merkle_proof:main"
 
-# Utilities
-arifos-safe-read = "scripts.arifos_safe_read:main"
+# Utilities (LEGACY)
+# arifos-safe-read = "scripts.arifos_safe_read:main"
 
-# MCP Utils Server (fetch_url, shell, grep_search)
-aaa-mcp-utils = "arifos.mcp.mcp_utils_server:main"
-arifos-api = "arifos.api.server:run_server"
+# MCP Utils Server (LEGACY - uses arifos.mcp)
+# aaa-mcp-utils = "arifos.mcp.mcp_utils_server:main"
+# arifos-api = "arifos.api.server:run_server"
 
-# Metabolic Pipeline (000-999)
-000 = "arifos.clip.aclip.cli._dispatcher000:main"
-111 = "arifos.clip.aclip.cli._dispatcher111:main"
-222 = "arifos.clip.aclip.cli._dispatcher222:main"
-333 = "arifos.clip.aclip.cli._dispatcher333:main"
-444 = "arifos.clip.aclip.cli._dispatcher444:main"
-555 = "arifos.clip.aclip.cli._dispatcher555:main"
-666 = "arifos.clip.aclip.cli._dispatcher666:main"
-777 = "arifos.clip.aclip.cli._dispatcher777:main"
-888 = "arifos.clip.aclip.cli._dispatcher888:main"
-999 = "arifos.clip.aclip.cli._dispatcher999:main"
+# Metabolic Pipeline (LEGACY - uses arifos.clip)
+# 000 = "arifos.clip.aclip.cli._dispatcher000:main"
+# 111 = "arifos.clip.aclip.cli._dispatcher111:main"
+# 222 = "arifos.clip.aclip.cli._dispatcher222:main"
+# 333 = "arifos.clip.aclip.cli._dispatcher333:main"
+# 444 = "arifos.clip.aclip.cli._dispatcher444:main"
+# 555 = "arifos.clip.aclip.cli._dispatcher555:main"
+# 666 = "arifos.clip.aclip.cli._dispatcher666:main"
+# 777 = "arifos.clip.aclip.cli._dispatcher777:main"
+# 888 = "arifos.clip.aclip.cli._dispatcher888:main"
+# 999 = "arifos.clip.aclip.cli._dispatcher999:main"
 
 [project.urls]
 Homepage = "https://github.com/ariffazil/arifOS"
