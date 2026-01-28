@@ -42,7 +42,7 @@ RUN uv pip install --system -e .
 ENV PYTHONPATH=/app
 ENV ARIFOS_MODE=production
 ENV ARIFOS_MCP_MODE=bridge
-ENV PORT=8000
+# PORT is set by Railway dynamically
 
 # Expose port
 EXPOSE 8000
@@ -51,6 +51,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
 
-# Run Codebase MCP SSE server (matches railway.toml startCommand)
-# Uses the entry point defined in pyproject.toml: codebase-mcp-sse = "codebase.mcp.sse:main"
-CMD ["codebase-mcp-sse"]
+# Run Codebase MCP SSE server
+# Uses PORT env var from Railway (defaults to 8000 for local)
+CMD ["sh", "-c", "codebase-mcp-sse"]
