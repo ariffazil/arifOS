@@ -22,7 +22,7 @@ Create or edit `~/.claude/settings.json`:
 {
   "mcpServers": {
     "arifOS": {
-      "url": "https://arifos.arif-fazil.com/sse"
+      "url": "https://arifos.arif-fazil.com/mcp"
     }
   }
 }
@@ -36,7 +36,7 @@ For project-specific governance, create `.mcp.json` in your project root:
 {
   "mcpServers": {
     "arifOS": {
-      "url": "https://arifos.arif-fazil.com/sse"
+      "url": "https://arifos.arif-fazil.com/mcp"
     }
   }
 }
@@ -88,6 +88,7 @@ You should see:
 - `asi_act` — Heart (empathy, safety)
 - `apex_judge` — Soul (verdict)
 - `vault_999` — Seal (ledger)
+- `trinity_loop` — Full pipeline in one call
 
 ## Usage Patterns
 
@@ -129,7 +130,10 @@ For offline or low-latency usage:
   "mcpServers": {
     "arifOS": {
       "command": "python",
-      "args": ["-m", "arifos.mcp"]
+      "args": ["-m", "codebase.mcp"],
+      "env": {
+        "PYTHONIOENCODING": "utf-8"
+      }
     }
   }
 }
@@ -147,7 +151,7 @@ This starts a local stdio server that Claude Code manages automatically.
 
 ### Connection Timeouts
 
-The SSE connection may timeout on slow networks. Options:
+The HTTP connection may timeout on slow networks. Options:
 
 1. **Use local server** (recommended for development)
 2. **Increase timeout** in configuration

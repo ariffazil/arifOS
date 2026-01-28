@@ -30,7 +30,7 @@ Add to your MCP configuration:
 {
   "mcpServers": {
     "arifOS": {
-      "url": "https://arifos.arif-fazil.com/sse"
+      "url": "https://arifos.arif-fazil.com/mcp"
     }
   }
 }
@@ -50,6 +50,7 @@ Reload the window or restart Cursor to apply changes.
    - `asi_act`
    - `apex_judge`
    - `vault_999`
+   - `trinity_loop`
 
 ## Using arifOS in Cursor
 
@@ -99,7 +100,7 @@ For faster response times during development:
   "mcpServers": {
     "arifOS": {
       "command": "python",
-      "args": ["-m", "arifos.mcp"]
+      "args": ["-m", "codebase.mcp"]
     }
   }
 }

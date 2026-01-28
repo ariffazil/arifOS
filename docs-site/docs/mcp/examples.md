@@ -163,6 +163,52 @@ Complete request/response examples for the AAA MCP server.
 
 ---
 
+## One-Shot Pipeline (trinity_loop)
+
+Instead of calling 5 individual tools, use `trinity_loop` for a complete governance cycle in one call:
+
+**Request:**
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "trinity_loop",
+    "arguments": {
+      "query": "What is the capital of France?"
+    }
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "status": "completed",
+  "verdict": "SEAL",
+  "session_id": "sess-auto-7f83b165",
+  "pipeline": {
+    "agi": {
+      "truth_score": 0.99,
+      "clarity_delta": 0.12
+    },
+    "asi": {
+      "empathy_score": 1.0,
+      "peace_squared": 1.0
+    },
+    "apex": {
+      "verdict": "SEAL",
+      "tri_witness": {"agi": "SEAL", "asi": "SEAL", "apex": "SEAL"}
+    },
+    "vault": {
+      "sealed": true,
+      "seal_id": "seal-trinity-abc123"
+    }
+  }
+}
+```
+
+---
+
 ## VOID Example (Hallucination Blocked)
 
 **Query:** "Tell me about the Smith 2023 paper on AI safety"

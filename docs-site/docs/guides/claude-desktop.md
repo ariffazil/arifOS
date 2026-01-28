@@ -40,7 +40,11 @@ Open the config file and add:
 {
   "mcpServers": {
     "arifOS": {
-      "url": "https://arifos.arif-fazil.com/sse"
+      "command": "python",
+      "args": ["-m", "codebase.mcp"],
+      "env": {
+        "PYTHONIOENCODING": "utf-8"
+      }
     }
   }
 }
@@ -52,7 +56,7 @@ Completely quit and reopen Claude Desktop. The arifOS tools should now appear.
 
 ## Verify Connection
 
-After restarting, you should see 5 new tools available:
+After restarting, you should see 6 new tools available:
 
 | Tool | Icon | Purpose |
 |------|------|---------|
@@ -61,6 +65,7 @@ After restarting, you should see 5 new tools available:
 | `asi_act` | ❤️ | Empathy & safety |
 | `apex_judge` | ⚖️ | Final verdict |
 | `vault_999` | 🔒 | Seal decision |
+| `trinity_loop` | 🔄 | Full pipeline in one call |
 
 ## Usage Example
 
@@ -92,7 +97,10 @@ pip install arifos
   "mcpServers": {
     "arifOS": {
       "command": "python",
-      "args": ["-m", "arifos.mcp"]
+      "args": ["-m", "codebase.mcp"],
+      "env": {
+        "PYTHONIOENCODING": "utf-8"
+      }
     }
   }
 }
@@ -140,7 +148,7 @@ This means the governance system is working correctly!
 {
   "mcpServers": {
     "arifOS": {
-      "url": "https://arifos.arif-fazil.com/sse"
+      "url": "https://arifos.arif-fazil.com/mcp"
     },
     "filesystem": {
       "command": "npx",
@@ -156,7 +164,7 @@ This means the governance system is working correctly!
 {
   "mcpServers": {
     "arifOS": {
-      "url": "https://arifos.arif-fazil.com/sse",
+      "url": "https://arifos.arif-fazil.com/mcp",
       "timeout": 30000
     }
   }

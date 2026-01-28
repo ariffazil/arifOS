@@ -41,7 +41,7 @@ Edit `claude_desktop_config.json`:
 {
   "mcpServers": {
     "arifOS": {
-      "url": "https://arifos.arif-fazil.com/sse"
+      "url": "https://arifos.arif-fazil.com/mcp"
     }
   }
 }
@@ -57,7 +57,7 @@ Create `.cursor/mcp.json` in your project:
 {
   "mcpServers": {
     "arifOS": {
-      "url": "https://arifos.arif-fazil.com/sse"
+      "url": "https://arifos.arif-fazil.com/mcp"
     }
   }
 }
@@ -74,13 +74,13 @@ Run your own arifOS server:
 pip install arifos
 
 # Run MCP server (stdio mode)
-python -m arifos.mcp
+python -m codebase.mcp
 
-# Or run SSE server (for remote connections)
-python -m arifos.mcp sse
+# Or run HTTP server (for remote connections)
+codebase-mcp-sse
 ```
 
-Then configure your client to connect to `http://localhost:8000/sse`.
+Then configure your client to connect to `http://localhost:8000/mcp`.
 
 ---
 
@@ -97,8 +97,9 @@ Expected response:
 ```json
 {
   "status": "healthy",
-  "version": "v52.5.1-SEAL",
-  "motto": "DITEMPA BUKAN DIBERI"
+  "version": "v53.2.1-CODEBASE",
+  "transport": "streamable-http",
+  "tools": 6
 }
 ```
 

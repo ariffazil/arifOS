@@ -36,14 +36,14 @@ MCP (Model Context Protocol) is a standard for AI tools to connect to external s
 
 Yes:
 ```bash
-pip install arifos
-python -m arifos.mcp
+pip install -e .
+python -m codebase.mcp
 ```
 
-### What's the difference between SSE and stdio?
+### What's the difference between stdio and HTTP?
 
-- **stdio** — For local clients (Claude Desktop, Cursor) connecting to a local arifOS
-- **SSE** — For remote clients connecting over the internet
+- **stdio** — For local clients (Claude Desktop, Kimi CLI, Gemini CLI, Cursor) connecting to a local arifOS subprocess
+- **HTTP (Streamable HTTP)** — For remote clients (ChatGPT, Codex) connecting to `https://arifos.arif-fazil.com/mcp`
 
 ### How does ATLAS-333 detect intent?
 
@@ -73,10 +73,9 @@ In the self-hosted version, yes. The floor thresholds are defined in `spec/const
 
 ### Does arifOS work with ChatGPT?
 
-Yes, but not via MCP. Instead:
-1. Copy the [system prompt](/ai/system-prompt)
-2. Paste into ChatGPT's Custom Instructions
-3. The AI will self-govern using TEACH
+**Yes, via MCP!** ChatGPT Developer Mode supports MCP connections. Connect to `https://arifos.arif-fazil.com/mcp` using Streamable HTTP transport. See the [ChatGPT setup guide](/guides/chatgpt).
+
+Alternatively, copy the [system prompt](/ai/system-prompt) into ChatGPT's Custom Instructions for self-governance using TEACH.
 
 ### Can AI systems read these docs and self-govern?
 
@@ -119,7 +118,7 @@ arifOS is inspired by Constitutional AI (Anthropic), but extends it with:
 
 ### Connection refused to localhost
 
-1. Is the server running? `python -m arifos.mcp sse`
+1. Is the server running? `codebase-mcp-sse`
 2. Check port: default is 8000
 3. Check firewall settings
 

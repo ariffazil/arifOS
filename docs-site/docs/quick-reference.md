@@ -8,7 +8,7 @@ description: One-page cheat sheet for arifOS
 
 ```
 +-----------------------------------------------------------------------------+
-|                    arifOS v52.5.1-SEAL QUICK REFERENCE                      |
+|                    arifOS v53.2.1-CODEBASE QUICK REFERENCE                   |
 +-----------------------------------------------------------------------------+
 |                                                                             |
 |  WHAT: A filter that stops AI from lying, harming, or being overconfident   |
@@ -41,23 +41,24 @@ description: One-page cheat sheet for arifOS
 |                                                                             |
 |  -------------------------------------------------------------------------  |
 |                                                                             |
-|  THE 5 MCP TOOLS:                                                           |
-|    init_000   -> Gate (7-step ignition)                                     |
-|    agi_genius -> Mind (truth, clarity, humility)                            |
-|    asi_act    -> Heart (empathy, safety, reversibility)                     |
-|    apex_judge -> Soul (verdict, consensus)                                  |
-|    vault_999  -> Seal (immutable ledger)                                    |
+|  THE 6 MCP TOOLS:                                                           |
+|    init_000    -> Gate (7-step ignition)                                    |
+|    agi_genius  -> Mind (truth, clarity, humility)                           |
+|    asi_act     -> Heart (empathy, safety, reversibility)                    |
+|    apex_judge  -> Soul (verdict, consensus)                                 |
+|    vault_999   -> Seal (immutable ledger)                                   |
+|    trinity_loop-> Full pipeline in one call                                 |
 |                                                                             |
 |  -------------------------------------------------------------------------  |
 |                                                                             |
 |  CONNECT:                                                                   |
 |    Health:  https://arifos.arif-fazil.com/health                            |
 |    Docs:    https://docs.arif-fazil.com                                     |
-|    MCP:     https://arifos.arif-fazil.com/sse                               |
+|    MCP:     https://arifos.arif-fazil.com/mcp                               |
 |                                                                             |
 |  INSTALL:                                                                   |
-|    pip install arifos                                                       |
-|    python -m arifos.mcp                                                     |
+|    pip install -e .                                                          |
+|    python -m codebase.mcp                                                     |
 |                                                                             |
 |  -------------------------------------------------------------------------  |
 |                                                                             |
@@ -84,7 +85,7 @@ description: One-page cheat sheet for arifOS
 {
   "mcpServers": {
     "arifOS": {
-      "url": "https://arifos.arif-fazil.com/sse"
+      "url": "https://arifos.arif-fazil.com/mcp"
     }
   }
 }
