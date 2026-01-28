@@ -616,9 +616,14 @@ def _step_3_intent_mapping(query: str, context: Dict[str, Any]) -> Dict[str, Any
         # v52.5.1+: Override lane based on constitutional authority (arif identity)
         # If "arif" mentioned → HARD lane (full constitutional enforcement)
         # If not mentioned → SOFT lane (guest mode, reduced enforcement)
+        # v53.2.2: SOFT_DENIED for GUEST requesting restricted operations (F11)
         if constitutional_mode:
             lane = "HARD"
             logger.info(f"000_init Step 3: Lane overridden to HARD (constitutional authority)")
+        elif any(restricted in query_lower for restricted in GUEST_RESTRICTED):
+            # Guest requesting restricted operation → SOFT_DENIED
+            lane = "SOFT_DENIED"
+            logger.warning(f"000_init Step 3: SOFT_DENIED — GUEST requesting restricted operation")
         else:
             # Guest mode: Force SOFT unless already REFUSE from risk detection
             if lane != "REFUSE":
@@ -706,6 +711,7 @@ def _step_4_thermodynamic_setup(intent_map: Dict[str, Any], sovereign: Optional[
         arif_to_atlas = {
             "HARD": "FACTUAL",
             "SOFT": "CARE",
+            "SOFT_DENIED": "SOCIAL",  # v53.2.2: Denied guests get minimal profile
             "PHATIC": "SOCIAL",
             "REFUSE": "CRISIS",
         }
@@ -848,6 +854,7 @@ def _step_7_engine_ignition(intent_map: Dict[str, Any] = None) -> Dict[str, str]
         arif_to_atlas = {
             "HARD": "FACTUAL",
             "SOFT": "CARE",
+            "SOFT_DENIED": "SOCIAL",  # v53.2.2: Denied guests get APEX only
             "PHATIC": "SOCIAL",
             "REFUSE": "CRISIS",
         }
@@ -1014,6 +1021,27 @@ async def mcp_000_init(
                 "risk_level": gpv.get("risk_level", 1.0),
                 "action_required": "Sovereign must confirm to proceed. Provide authority_token='888_CONFIRMED' to continue.",
             }
+
+        # =====================================================================
+        # v53.2.2: SOFT_DENIED — GUEST requesting restricted operation (F11)
+        # =====================================================================
+        if intent_map.get("lane") == "SOFT_DENIED":
+            logger.warning(f"000_init: SOFT_DENIED — GUEST requesting restricted operation")
+            floors_checked.append("F11_CommandAuth")
+            return InitResult(
+                status="PARTIAL",
+                session_id=session,
+                timestamp=datetime.now().isoformat(),
+                authority=sovereign["authority"],
+                authority_verified=sovereign["f11_verified"],
+                scar_weight=sovereign["scar_weight"],
+                intent=intent_map.get("intent", "unknown"),
+                lane="SOFT_DENIED",
+                floors_checked=floors_checked,
+                engines={"AGI_Mind": "IDLE", "ASI_Heart": "IDLE", "APEX_Soul": "READY"},
+                injection_risk=0.0,
+                reason="F11: This operation requires 888_JUDGE authentication. Sign in with: 'Salam, I'm Arif'",
+            ).__dict__
 
         # =====================================================================
         # STEP 4: THERMODYNAMIC SETUP (v53.2.2: energy scales with scar_weight)

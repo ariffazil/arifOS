@@ -48,9 +48,27 @@ class KernelManager:
     async def init_session(self, action: str, kwargs: dict) -> dict:
         """
         000 INIT: The full Metabolic Ignition Sequence.
+
+        v53.2.2: Delegates to mcp_000_init for full 7-step constitutional flow.
+        Falls back to inline stub if mcp_aaa is unavailable.
         """
+        try:
+            from arifos.mcp.tools.mcp_aaa import mcp_000_init
+            return await mcp_000_init(
+                action=action,
+                query=kwargs.get("query", "IGNITION_PING"),
+                authority_token=kwargs.get("authority_token", ""),
+                session_id=kwargs.get("session_id"),
+                context=kwargs.get("context"),
+            )
+        except ImportError:
+            logger.warning("mcp_aaa unavailable — using inline init stub")
+        except Exception as e:
+            logger.error(f"mcp_000_init failed: {e} — falling back to inline stub")
+
+        # Fallback: inline stub (original v52 behavior)
         import uuid, datetime
-        
+
         now = datetime.datetime.now(datetime.timezone.utc)
         timestamp_rfc = now.isoformat()
         session_id = kwargs.get("session_id") or str(uuid.uuid4())
@@ -62,7 +80,7 @@ class KernelManager:
             "session_id": session_id,
             "stage": "000_INIT",
             "verdict": "SEAL",
-            "summary": "System IGNITED. Constitutional Mode Active.",
+            "summary": "System IGNITED. Constitutional Mode Active. (FALLBACK STUB)",
             "lane": lane,
             "phases": {
                 "phase_1_anchoring": {
