@@ -30,7 +30,7 @@ from codebase.mcp.bridge import (
     bridge_vault_router,
     bridge_trinity_loop_router,
 )
-from codebase.enforcement.governance.rate_limiter import get_rate_limiter
+from codebase.mcp.rate_limiter import get_rate_limiter
 from codebase.mcp.mode_selector import get_mcp_mode, MCPMode
 from codebase.mcp.constitutional_metrics import record_verdict
 from codebase.enforcement.metrics import record_stage_metrics, record_verdict_metrics

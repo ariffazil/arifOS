@@ -1,5 +1,5 @@
 """
-codebase.mcp.sse (v53.2.0-CODEBASE)
+codebase.mcp.sse (v53.2.1-CODEBASE)
 The HTTP Transport for the Codebase MCP Server.
 Deployable on Railway, Render, Fly.io, or any Docker host.
 
@@ -38,10 +38,11 @@ from codebase.mcp.bridge import (
     bridge_trinity_loop_router,
 )
 from codebase.mcp.constitutional_metrics import get_full_metrics
+from codebase.mcp.rate_limiter import get_rate_limiter, rate_limited
 
 logger = logging.getLogger(__name__)
 
-VERSION = "v53.2.0-CODEBASE"
+VERSION = "v53.2.1-CODEBASE"
 
 # =============================================================================
 # FASTMCP SERVER (6-Tool Architecture)
@@ -63,6 +64,7 @@ mcp = FastMCP(
     "Actions: init (start session), gate (checkpoint), reset (clear session), "
     "validate (verify state), authorize (verify identity)."
 ))
+@rate_limited("init_000")
 async def tool_init(
     action: str = "init",
     query: str = "",
@@ -82,6 +84,7 @@ async def tool_init(
     "reason (logical analysis), atlas (knowledge mapping), forge (create), "
     "full (complete pipeline), physics (quantum constitutional)."
 ))
+@rate_limited("agi_genius")
 async def tool_agi(
     action: str = "sense",
     query: str = "",
@@ -105,6 +108,7 @@ async def tool_agi(
     "stakeholder (semantic reasoning), diffusion (impact propagation), "
     "audit (constitutional audit), full (complete pipeline)."
 ))
+@rate_limited("asi_act")
 async def tool_asi(
     action: str = "empathize",
     text: str = "",
@@ -132,6 +136,7 @@ async def tool_asi(
     "Actions: eureka (insight), judge (evaluate), decide (synthesize verdict), "
     "proof (generate evidence), entropy (measure), full (complete pipeline)."
 ))
+@rate_limited("apex_judge")
 async def tool_apex(
     action: str = "judge",
     query: str = "",
@@ -161,6 +166,7 @@ async def tool_apex(
     "artifacts. Actions: seal (immutable record), list (enumerate artifacts), "
     "read (retrieve), write (store), propose (suggest canon)."
 ))
+@rate_limited("vault_999")
 async def tool_vault(
     action: str = "seal",
     session_id: str = "",
@@ -213,7 +219,7 @@ async def health_check(request):
         "mode": "CODEBASE",
         "transport": "streamable-http",
         "tools": 6,
-        "architecture": "v53.2.0-simplified",
+        "architecture": "v53.2.1-simplified",
     })
 
 @mcp.custom_route("/metrics/json", methods=["GET"])
