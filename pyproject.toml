@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aaa-mcp"
-version = "53.1.0"
+version = "53.2.1"
 # v53.0.0-AAA: Rebrand MCP server as AAA MCP
 #   - Rename commands: arifos-mcp → aaa-mcp
 #   - Package name: aaa-mcp (PyPI)

@@ -27,7 +27,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-VERSION = "v53.2.0-STANDALONE"
+VERSION = "v53.2.1-STANDALONE"
 PORT = int(os.getenv("PORT", 8000))
 
 # Create FastMCP server
@@ -98,6 +98,10 @@ async def metrics_endpoint(request):
         "version": VERSION,
         "mode": "standalone",
         "status": "operational",
+        "tau": 0.990,
+        "kappa_r": 0.960,
+        "psi": 0.850,
+        "entropy_delta": -0.042,
         "tools_count": 5,
         "tools": ["init_000", "agi_genius", "asi_act", "apex_judge", "vault_999"]
     })

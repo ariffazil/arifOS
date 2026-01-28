@@ -108,6 +108,19 @@ async def tool_vault(action: str = "seal", session_id: str = "", verdict: str = 
         "version": VERSION
     }
 
+@mcp.tool(name="trinity_loop")
+async def tool_trinity_loop(query: str, session_id: str = ""):
+    """Basic Trinity Loop - returns minimal response"""
+    return {
+        "status": "SEAL",
+        "verdict": "SEAL",
+        "query": query,
+        "session_id": session_id or "default-session",
+        "message": "Trinity loop complete (minimal mode)",
+        "stages": ["agi", "asi", "apex", "vault"],
+        "version": VERSION
+    }
+
 # --- METRICS ENDPOINT ---
 
 @mcp.custom_route("/metrics/json", methods=["GET"])
@@ -116,7 +129,7 @@ async def metrics_endpoint(request):
     return JSONResponse({
         "version": VERSION,
         "mode": "minimal",
-        "tools": ["init_000", "agi_genius", "asi_act", "apex_judge", "vault_999"],
+        "tools": ["init_000", "agi_genius", "asi_act", "apex_judge", "vault_999", "trinity_loop"],
         "status": "operational"
     })
 

@@ -12,11 +12,12 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/v52.6.0--CODEBASE-SEAL-redis_Ready-10b981?style=for-the-badge" alt="Version v52.6.0-CODEBASE">
+  <img src="https://img.shields.io/badge/v53.2.1--CODEBASE-SEAL-redis_Ready-10b981?style=for-the-badge" alt="Version v53.2.1-CODEBASE">
   <a href="https://arifos.arif-fazil.com"><img src="https://img.shields.io/badge/Live_Server-Online-brightgreen?style=for-the-badge" alt="Live Server"></a>
   <a href="https://arifos.arif-fazil.com/dashboard"><img src="https://img.shields.io/badge/Dashboard-View-eab308?style=for-the-badge" alt="Dashboard"></a>
   <a href="https://pypi.org/project/arifos/"><img src="https://img.shields.io/pypi/v/arifos?style=for-the-badge&color=3b82f6" alt="PyPI"></a>
   <a href="https://github.com/ariffazil/arifOS/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL_3.0-blue?style=for-the-badge" alt="License"></a>
+  <a href="https://railway.com/deploy/fLehIk?referralCode=_F5ZGa"><img src="https://railway.com/button.svg" alt="Deploy on Railway"></a>
 </p>
 
 <p align="center">
