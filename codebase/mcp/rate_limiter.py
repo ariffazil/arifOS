@@ -32,13 +32,15 @@ logger = logging.getLogger(__name__)
 # Environment-based configuration
 RATE_LIMIT_ENABLED = os.environ.get("ARIFOS_RATE_LIMIT_ENABLED", "true").lower() == "true"
 
-# Default limits (per minute)
+# Default limits (per minute) — keys MUST match TOOL_DESCRIPTIONS in server.py
 DEFAULT_LIMITS = {
-    "init_000": {"per_session": 30, "global": 300, "burst": 5},
-    "agi_genius": {"per_session": 60, "global": 600, "burst": 10},
-    "asi_act": {"per_session": 60, "global": 600, "burst": 10},
-    "apex_judge": {"per_session": 60, "global": 600, "burst": 10},
-    "vault_999": {"per_session": 30, "global": 300, "burst": 5},
+    "_init_":      {"per_session": 30, "global": 300, "burst": 5},
+    "_agi_":       {"per_session": 60, "global": 600, "burst": 10},
+    "_asi_":       {"per_session": 60, "global": 600, "burst": 10},
+    "_apex_":      {"per_session": 60, "global": 600, "burst": 10},
+    "_vault_":     {"per_session": 30, "global": 300, "burst": 5},
+    "_trinity_":   {"per_session": 20, "global": 200, "burst": 3},
+    "_reality_":   {"per_session": 30, "global": 300, "burst": 5},
 }
 
 # Global fallback
@@ -103,7 +105,7 @@ class RateLimiter:
 
     Usage:
         limiter = get_rate_limiter()
-        result = limiter.check("agi_genius", session_id="abc123")
+        result = limiter.check("_agi_", session_id="abc123")
         if not result.allowed:
             return {"status": "VOID", "reason": result.reason}
     """
@@ -269,7 +271,7 @@ def rate_limited(tool_name: str):
     Decorator to apply rate limiting to a tool function.
 
     Usage:
-        @rate_limited("agi_genius")
+        @rate_limited("_agi_")
         async def mcp_agi_genius(action: str, ...):
             ...
     """

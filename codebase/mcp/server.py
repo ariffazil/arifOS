@@ -1,5 +1,5 @@
 """
-AAA MCP Server (v53.1.0-CODEBASE)
+AAA MCP Server (v53.2.7-CODEBASE-AAA7)
 Artifact · Authority · Architecture
 
 Authority: Muhammad Arif bin Fazil
@@ -58,8 +58,8 @@ presenter = AAAMetabolizer()
 # =============================================================================
 
 TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
-    "init_000": {
-        "name": "init_000",
+    "_init_": {
+        "name": "_init_",
         "description": (
             "Session startup, identity check, and budget allocation. "
             "Call this FIRST before using any other tool. "
@@ -102,8 +102,8 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             }
         }
     },
-    "AGI": {
-        "name": "AGI",
+    "_agi_": {
+        "name": "_agi_",
         "description": (
             "Deep reasoning and pattern recognition (Mind Engine). "
             "Handles logic, analysis, knowledge retrieval (including Context7), and content creation. "
@@ -135,7 +135,7 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
                 },
                 "session_id": {
                     "type": "string",
-                    "description": "Session ID from INIT."
+                    "description": "Session ID from _init_."
                 },
                 "context": {
                     "type": "object",
@@ -145,8 +145,8 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["action"]
         }
     },
-    "ASI": {
-        "name": "ASI",
+    "_asi_": {
+        "name": "_asi_",
         "description": (
             "Safety, bias, and empathy audit (Heart Engine). "
             "Evaluates whether an action is safe, fair, and reversible. "
@@ -183,7 +183,7 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
                 },
                 "session_id": {
                     "type": "string",
-                    "description": "Session ID from INIT."
+                    "description": "Session ID from _init_."
                 },
                 "reasoning": {
                     "type": "string",
@@ -197,8 +197,8 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["action"]
         }
     },
-    "APEX": {
-        "name": "APEX",
+    "_apex_": {
+        "name": "_apex_",
         "description": (
             "Judicial consensus and final verdict (Soul Engine). "
             "The final approval or rejection decision after AGI and ASI have completed. "
@@ -239,7 +239,7 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
                 },
                 "session_id": {
                     "type": "string",
-                    "description": "Session ID from INIT."
+                    "description": "Session ID from _init_."
                 },
                 "reasoning": {
                     "type": "string",
@@ -253,8 +253,8 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["action"]
         }
     },
-    "VAULT": {
-        "name": "VAULT",
+    "_vault_": {
+        "name": "_vault_",
         "description": (
             "Immutable ledger and audit trail (Resources). "
             "Permanent storage in tamper-proof log (Merkle-tree sealed). "
@@ -279,7 +279,7 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
                 },
                 "session_id": {
                     "type": "string",
-                    "description": "Session ID from INIT."
+                    "description": "Session ID from _init_."
                 },
                 "verdict": {
                     "type": "string",
@@ -298,8 +298,8 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
             "required": ["action"]
         }
     },
-    "TRINITY": {
-        "name": "TRINITY",
+    "_trinity_": {
+        "name": "_trinity_",
         "description": (
             "Full metabolic loop AGI→ASI→APEX→VAULT (Tools + Resources). "
             "Runs the complete constitutional cycle in a single call. "
@@ -316,14 +316,14 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
                 },
                 "session_id": {
                     "type": "string",
-                    "description": "Session ID from INIT."
+                    "description": "Session ID from _init_."
                 }
             },
             "required": ["query"]
         }
     },
-    "REALITY": {
-        "name": "REALITY",
+    "_reality_": {
+        "name": "_reality_",
         "description": (
             "Fact-checking via external sources (Brave Search / Grounding). "
             "Live internet fact-check with F7 Humility disclosure. "
@@ -341,7 +341,7 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
                 },
                 "session_id": {
                     "type": "string",
-                    "description": "Session ID from INIT."
+                    "description": "Session ID from _init_."
                 }
             },
             "required": ["query"]
@@ -354,13 +354,13 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
 # =============================================================================
 
 TOOL_ROUTERS = {
-    "INIT": bridge_init_router,
-    "AGI": bridge_agi_router,
-    "ASI": bridge_asi_router,
-    "APEX": bridge_apex_router,
-    "VAULT": bridge_vault_router,
-    "TRINITY": bridge_trinity_loop_router,
-    "REALITY": bridge_reality_check_router,
+    "_init_": bridge_init_router,
+    "_agi_": bridge_agi_router,
+    "_asi_": bridge_asi_router,
+    "_apex_": bridge_apex_router,
+    "_vault_": bridge_vault_router,
+    "_trinity_": bridge_trinity_loop_router,
+    "_reality_": bridge_reality_check_router,
 }
 
 # =============================================================================
@@ -404,7 +404,7 @@ def create_mcp_server(mode: Optional[MCPMode] = None) -> Server:
 
         start = time.time()
         try:
-            if name in ["TRINITY", "REALITY"]:
+            if name in ["_trinity_", "_reality_"]:
                 # These tools don't use action pattern - direct kwargs
                 result = await router(**arguments)
             else:

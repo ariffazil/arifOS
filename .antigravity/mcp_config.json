@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$comment": "Project-specific AAA MCP config for Gemini CLI (v53.2.7-CODEBASE-AAA7)",
+  "$comment": "AAA MCP Configuration for Antigravity IDE (v53.2.7-CODEBASE-AAA7)",
   "mcpServers": {
     "aaa-mcp": {
       "command": "python",
@@ -15,7 +15,7 @@
         "PYTHONIOENCODING": "utf-8",
         "PYTHONUNBUFFERED": "1"
       },
-      "description": "AAA MCP (v53.2.7) - 7-Core Constitutional Governance (INIT, AGI, ASI, APEX, VAULT, TRINITY, REALITY)",
+      "description": "AAA MCP (v53.2.7) - 7-Core Constitutional Governance",
       "alwaysAllow": [
         "_init_",
         "_agi_",

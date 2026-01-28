@@ -54,13 +54,13 @@ def verify_tools():
         from codebase.mcp.server import TOOL_DESCRIPTIONS
         
         expected_tools = [
-            "init_000",
-            "agi_genius",
-            "asi_act",
-            "apex_judge",
-            "vault_999",
-            "trinity_loop",
-            "reality_check"
+            "_init_",
+            "_agi_",
+            "_asi_",
+            "_apex_",
+            "_vault_",
+            "_trinity_",
+            "_reality_"
         ]
         
         missing = [t for t in expected_tools if t not in TOOL_DESCRIPTIONS]

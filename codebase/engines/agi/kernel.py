@@ -70,3 +70,9 @@ class AGINeuralCore:
 
 # Backward Compatibility
 AGIKernel = AGINeuralCore
+
+def get_agi_core() -> AGINeuralCore:
+    """Get the singleton instance of the AGI Neural Core."""
+    return AGINeuralCore()
+
+__all__ = ["AGINeuralCore", "AGIKernel", "get_agi_core"]

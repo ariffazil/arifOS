@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "arifos-aaa": {
+      "name": "AAA MCP by arifOS",
+      "description": "Constitutional AI Governance - 7-Core Tools (v53.2.7)",
+      "url": "https://arif-fazil.com/mcp",
+      "transport": "streamable-http",
+      "capabilities": {
+        "tools": {
+          "_init_": "Initialize session, authority check, budget allocation",
+          "_agi_": "Reason - Deep logical analysis (Mind Engine)",
+          "_asi_": "Audit - Safety, bias, empathy evaluation (Heart Engine)",
+          "_apex_": "Judge - Judicial consensus and verdict (Soul Engine)",
+          "_vault_": "Seal - Immutable cryptographic ledger",
+          "_trinity_": "Orchestrate - Full metabolic cycle",
+          "_reality_": "Ground - External fact-checking (Brave Search)"
+        }
+      },
+      "constitutionalFloors": ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13"],
+      "version": "v53.2.7-CODEBASE-AAA7"
+    }
+  }
+}
