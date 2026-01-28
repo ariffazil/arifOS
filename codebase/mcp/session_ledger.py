@@ -7,7 +7,7 @@ The 999-000 Loop:
     000_init OPENS session → reads from ledger
 
 Storage:
-    Machine: arifos/mcp/sessions/*.json (transient)
+    Machine: codebase/mcp/sessions/*.json (transient)
     Human:   VAULT999/BBB_LEDGER/entries/*.md (permanent)
 
 DITEMPA BUKAN DIBERI
@@ -47,7 +47,7 @@ logger = logging.getLogger(__name__)
 # PATHS
 # =============================================================================
 
-# Root of arifOS (go up from arifos/mcp/ → arifos/ → arifOS/)
+# Root of arifOS (go up from codebase/mcp/ → codebase/ → arifOS/)
 ARIFOS_ROOT = Path(__file__).parent.parent.parent
 VAULT999_PATH = ARIFOS_ROOT / "VAULT999"
 BBB_LEDGER_PATH = VAULT999_PATH / "BBB_LEDGER" / "entries"

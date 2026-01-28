@@ -1,0 +1,36 @@
+{
+  "session_id": "ff563362-6fd1-43ef-8b68-56bb367af04e",
+  "timestamp": "2026-01-25T09:12:32.621147+00:00Z",
+  "verdict": "SABAR",
+  "init_result": {
+    "recovered": true,
+    "original_session": {
+      "session_id": "ff563362-6fd1-43ef-8b68-56bb367af04e",
+      "token": "99502957-a186-4435-a2f2-cc7508bf6d39",
+      "pid": 4392,
+      "started_at": "2026-01-25T08:23:07.000675Z",
+      "authority": "GUEST",
+      "orphan_reason": "Process 4392 no longer running"
+    }
+  },
+  "genius_result": {},
+  "act_result": {},
+  "judge_result": {
+    "synthesis": "Session recovered after crash: Process 4392 no longer running"
+  },
+  "telemetry": {
+    "verdict": "SABAR",
+    "recovery": true,
+    "orphan_reason": "Process 4392 no longer running",
+    "original_started_at": "2026-01-25T08:23:07.000675Z",
+    "recovered_at": "2026-01-25T09:12:32.612225+00:00Z"
+  },
+  "prev_hash": "acfbd859c700b1186897c9314b027171ed165036ebcb05e557c26b03e6b00d1f",
+  "merkle_root": "5c6060f270e03670f25c41b6ba4bd4234d49cd70cf0f67e128c3da899e78fdd4",
+  "entry_hash": "61aa4f9cf30a210ee4c835422ab8ca16da6d697a19f2626d04182481e25e4a39",
+  "context_summary": "RECOVERED SESSION: Process 4392 no longer running. Original session started at 2026-01-25T08:23:07.000675Z.",
+  "key_insights": [
+    "Session was recovered via Loop Bootstrap",
+    "Reason: Process 4392 no longer running"
+  ]
+}

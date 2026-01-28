@@ -1,0 +1,30 @@
+{
+  "session_id": "audit_test",
+  "timestamp": "2026-01-23T12:10:30.372410Z",
+  "verdict": "SEAL",
+  "init_result": {},
+  "genius_result": {},
+  "act_result": {},
+  "judge_result": {},
+  "telemetry": {
+    "verdict": "SEAL",
+    "merkle_root": "3d83d56e5722e6fb6b4a185026feea145ef8ed33e8b55fefc6d91eeb2dae5042",
+    "audit_hash": "fb5df7ab4412f47139062c580711cb2c8f5a39e91ec7e870f5f14327f025c408",
+    "memory_location": "L5_CANON",
+    "floors_checked": [
+      "F1_Amanah",
+      "F8_TriWitness"
+    ],
+    "p_truth": 0,
+    "TW": 0,
+    "dS": 0,
+    "peace2": 0,
+    "kappa_r": 0,
+    "omega_0": 0.04
+  },
+  "prev_hash": "6c45e47e82f8b317c3e23fa65d6cc550bed354ac6527d4493ed205e7e695b411",
+  "merkle_root": "3d83d56e5722e6fb6b4a185026feea145ef8ed33e8b55fefc6d91eeb2dae5042",
+  "entry_hash": "9b009a485c596b45645315b84b4ef09173223a97e5d469bc3e49a583fb208101",
+  "context_summary": "Session sealed with verdict SEAL. ",
+  "key_insights": []
+}

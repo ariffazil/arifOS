@@ -71,7 +71,8 @@ if ($WhatIf) {
 } else {
     try {
         $verification = python -c "
-from arifos.ledger.v49_config import init_v49_ledger
+from codebase.vault.ledger import init_ledger
+ledger = init_ledger()
 ledger = init_v49_ledger()
 print(f'ENTRIES:{ledger.get_head_state().entry_count}')
 print(f'VALID:{ledger.verify_chain_quick()}')

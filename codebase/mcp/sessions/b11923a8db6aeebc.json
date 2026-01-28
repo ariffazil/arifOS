@@ -1,0 +1,17 @@
+{
+  "session_id": "seal-test-1769169802.15632",
+  "timestamp": "2026-01-23T12:03:22.157016Z",
+  "verdict": "SEAL",
+  "init_result": {
+    "test": true
+  },
+  "genius_result": {},
+  "act_result": {},
+  "judge_result": {},
+  "telemetry": {},
+  "prev_hash": "ce251c7f4da117aeeb4151fd43c5d3cbbd53da13f5e39231a61181740bf5de58",
+  "merkle_root": "b1705047e3c8b9f884204a5f90b9121208d138c9cdc587024a1dc6dc7e8a3dc0",
+  "entry_hash": "b11923a8db6aeebcf5460a4545709b06e2fb27c8b4a982f0d6aecb975f4e0b7b",
+  "context_summary": "Previous session ended with UNKNOWN. ",
+  "key_insights": []
+}
