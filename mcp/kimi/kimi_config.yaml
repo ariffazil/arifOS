@@ -1,0 +1,79 @@
+# Kimi MCP Configuration for arifOS
+# Model: Moonshot AI (Kimi)
+# Protocol: MCP 2025-06-18
+
+name: arifOS-Constitutional-AI
+version: v54.0
+description: AAA Framework for Kimi - Constitutional AI Governance
+
+# Kimi-specific settings
+model_settings:
+  model: kimi-latest
+  temperature: 0.7
+  max_tokens: 4096
+  top_p: 0.95
+  
+# Constitutional constraints (enforced)
+constitutional:
+  enabled: true
+  version: v54.0
+  floors:
+    - F1_Amanah
+    - F2_Truth
+    - F4_Clarity
+    - F5_Justice
+    - F6_Peace
+    - F7_Humility
+    - F11_Consent
+    - F12_Hardening
+    - F13_Trinity
+  paradoxes: 9
+  equilibrium_threshold: 0.85
+  humility_band: [0.03, 0.05]
+
+# MCP Server configuration
+mcp_servers:
+  arifos:
+    command: python
+    args: ["../server.py"]
+    env:
+      ARIFOS_MODE: "kimi"
+      ARIFOS_VERBOSITY: "detailed"
+    
+# Tool permissions for Kimi
+tool_permissions:
+  _init_:
+    auto_invoke: true
+    require_confirmation: false
+  _agi_:
+    auto_invoke: false
+    require_confirmation: false
+  _asi_:
+    auto_invoke: false
+    require_confirmation: true
+  _apex_:
+    auto_invoke: false
+    require_confirmation: true
+  _vault_:
+    auto_invoke: true
+    require_confirmation: false
+  _trinity_:
+    auto_invoke: false
+    require_confirmation: false
+  _reality_:
+    auto_invoke: false
+    require_confirmation: false
+
+# Response formatting for Kimi
+response_format:
+  include_verdict: true
+  include_trinity_score: true
+  include_paradox_breakdown: true
+  include_constitutional_notes: true
+  
+# Special handling for Kimi
+kimi_specific:
+  long_context_optimization: true
+  chinese_language_support: true
+  streaming_verdicts: true
+  show_thinking_process: true

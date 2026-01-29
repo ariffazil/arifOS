@@ -1,0 +1,64 @@
+{
+  "name": "arifOS Constitutional AI",
+  "version": "v54.0",
+  "description": "AAA Framework: AGI (Mind) + ASI (Heart) + APEX (Soul)",
+  "protocol_version": "2025-06-18",
+  "transport": {
+    "type": "stdio",
+    "command": "python",
+    "args": ["server.py"]
+  },
+  "tools": [
+    {
+      "name": "_init_",
+      "category": "gate",
+      "required_first": true,
+      "description": "Session initialization and security gate"
+    },
+    {
+      "name": "_agi_",
+      "category": "mind",
+      "description": "Mind engine - reasoning and logic"
+    },
+    {
+      "name": "_asi_",
+      "category": "heart",
+      "description": "Heart engine - safety and ethics"
+    },
+    {
+      "name": "_apex_",
+      "category": "soul",
+      "description": "Soul engine - judgment and verdicts"
+    },
+    {
+      "name": "_vault_",
+      "category": "seal",
+      "description": "Immutable ledger - permanent records"
+    },
+    {
+      "name": "_trinity_",
+      "category": "pipeline",
+      "recommended": true,
+      "description": "Full pipeline: AGI→ASI→APEX→VAULT"
+    },
+    {
+      "name": "_reality_",
+      "category": "verify",
+      "description": "External fact-checking"
+    }
+  ],
+  "constitutional_floors": [
+    "F1_Amanah",
+    "F2_Truth",
+    "F4_Clarity",
+    "F5_Justice",
+    "F6_Peace",
+    "F7_Humility",
+    "F11_Consent",
+    "F12_Hardening"
+  ],
+  "paradoxes": 9,
+  "equilibrium_threshold": 0.85,
+  "humility_band": [0.03, 0.05],
+  "max_entropy_delta": 0.0
+}

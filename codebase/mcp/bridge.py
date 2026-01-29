@@ -484,37 +484,43 @@ async def bridge_trinity_loop_router(
                 "stages": loop_results,
             }
 
-        # Step 3b: 333 FORGE — Paradox Resolution (v53.4.0)
-        # Resolve 6 paradoxes between AGI Mind (Δ) and ASI Heart (Ω)
+        # Step 3b: 333 FORGE — Paradox Resolution (v53.5.0 — TrinitySyncHardened)
+        # Uses synthesize_paradox (geometric mean) and compute_trinity_score
         try:
-            from codebase.agi.trinity_sync import PARADOXES
-            import math
+            from codebase.agi.trinity_sync_hardened import synthesize_paradox, compute_trinity_score
 
-            paradox_scores = {}
             agi_confidence = agi_result.get("truth_score", 0.9) if isinstance(agi_result, dict) else 0.9
-            asi_empathy = asi_result.get("empathy_kappa", 0.9) if isinstance(asi_result, dict) else 0.9
+            asi_empathy = asi_result.get("empathy_kappa", asi_result.get("empathy_kappa_r", 0.9)) if isinstance(asi_result, dict) else 0.9
             asi_peace = asi_result.get("peace_squared", 1.0) if isinstance(asi_result, dict) else 1.0
 
-            for name, paradox in PARADOXES.items():
-                agi_val = agi_confidence
-                asi_val = asi_empathy if "care" in name or "emotion" in name or "openness" in name else asi_peace
-                paradox_scores[name] = paradox.resolve(agi_val, asi_val)
+            # 6 canonical paradoxes (geometric synthesis)
+            paradox_scores = {
+                "truth_care": synthesize_paradox(agi_confidence, asi_empathy),
+                "clarity_peace": synthesize_paradox(1.0 - abs(agi_result.get("entropy_delta", 0.0)) if isinstance(agi_result, dict) else 0.9, asi_peace),
+                "knowledge_wisdom": synthesize_paradox(agi_confidence, asi_empathy),
+                "speed_safety": synthesize_paradox(0.9, asi_peace),
+                "emotion_logic": synthesize_paradox(agi_confidence, asi_empathy),
+                "openness_guard": synthesize_paradox(0.9, asi_empathy),
+            }
 
+            trinity_score = compute_trinity_score(list(paradox_scores.values()), method="geometric")
             min_paradox = min(paradox_scores.values()) if paradox_scores else 0.9
 
             loop_results.append({
                 "stage": "333_forge",
                 "result": {
                     "paradox_scores": paradox_scores,
+                    "trinity_score": trinity_score,
                     "min_paradox_score": min_paradox,
                     "synthesis": "SEAL" if min_paradox >= 0.85 else "PARTIAL" if min_paradox >= 0.70 else "VOID",
+                    "_source": "TrinitySyncHardened",
                 },
             })
 
             if min_paradox < 0.70:
                 return {
                     "verdict": "VOID",
-                    "reason": f"333 FORGE: Paradox resolution failed (min={min_paradox:.3f})",
+                    "reason": f"333 FORGE: Paradox resolution failed (min={min_paradox:.3f}, trinity={trinity_score:.3f})",
                     "session_id": session_id,
                     "stages": loop_results,
                     "paradox_scores": paradox_scores,
