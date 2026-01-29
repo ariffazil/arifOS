@@ -57,6 +57,8 @@ async def test_all_tools():
     print("="*60 + "\n")
 
     session_id = None
+    agi_test_result = {}
+    asi_test_result = {}
 
     # =========================================================================
     # TEST 1: _ignite_ (Session Initialization)
@@ -89,17 +91,17 @@ async def test_all_tools():
     print("Purpose: Deep logical reasoning, F2 Truth, F4 Clarity")
 
     try:
-        result = await mcp_agi_genius(
+        agi_test_result = await mcp_agi_genius(
             action="think",
             query="What are the 13 constitutional floors of arifOS?",
             session_id=session_id
         )
-        print_result("_logic_", result)
+        print_result("_logic_", agi_test_result)
 
-        if result.get("verdict") == "SEAL":
+        if agi_test_result.get("verdict") == "SEAL":
             print("[OK] Logic engine passed\n")
         else:
-            print(f"[WARN] Logic engine returned: {result.get('verdict')}\n")
+            print(f"[WARN] Logic engine returned: {agi_test_result.get('verdict')}\n")
     except Exception as e:
         print(f"[ERROR] Error in _logic_: {e}")
 
@@ -154,17 +156,17 @@ async def test_all_tools():
     print("Purpose: Safe code generation, F1 Amanah, F5 Peace^2, F6 Empathy")
 
     try:
-        result = await mcp_asi_act(
+        asi_test_result = await mcp_asi_act(
             action="evaluate",
             query="Create a simple hello world function",
             session_id=session_id
         )
-        print_result("_forge_", result)
+        print_result("_forge_", asi_test_result)
 
-        if result.get("verdict") in ["SEAL", "PARTIAL"]:
+        if asi_test_result.get("verdict") in ["SEAL", "PARTIAL"]:
             print("[OK] Forge evaluation passed\n")
         else:
-            print(f"[WARN] Forge returned: {result.get('verdict')}\n")
+            print(f"[WARN] Forge returned: {asi_test_result.get('verdict')}\n")
     except Exception as e:
         print(f"[ERROR] Error in _forge_: {e}")
 
@@ -203,8 +205,8 @@ async def test_all_tools():
             verdict_data={
                 "query": "Test all constitutional tools",
                 "response": "All tools operational",
-                "agi_result": {"verdict": "SEAL"},
-                "asi_result": {"verdict": "SEAL"}
+                "agi_result": agi_test_result,
+                "asi_result": asi_test_result
             }
         )
         print_result("_decree_", result)
