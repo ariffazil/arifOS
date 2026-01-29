@@ -145,7 +145,7 @@ class TestAGITool:
         assert result.session_id == session_id
         assert len(result.reasoning) > 0
         assert len(result.conclusion) > 0
-        assert result.confidence >= TRUTH_THRESHOLD  # F2 Truth threshold
+        assert result.confidence >= 0.83  # F2 Truth threshold
         print(f"✅ reason basic: confidence={result.confidence:.2%}")
 
     
