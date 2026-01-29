@@ -1,20 +1,50 @@
 """
-ASI (Heart/Ω) - The Empathizer
+arifOS ASI Module - v53.4.0 HARDENED
 
-Unified namespace for arifOS Heart engine.
+Unified Heart Engine with 3-Trinity Architecture:
+- Trinity I (Self): Empathy Flow (κᵣ), Bias Mirror, Reversibility (F1)
+- Trinity II (System): Power-Care (Peace²), Accountability Loop, Consent (F11)
+- Trinity III (Society): Stakeholder Protection, Thermodynamic Justice, Ecology
 
-Modules:
-    engine.py           - ASI engine core logic (ASIRoom)
-    kernel.py           - ASI kernel proxy
-    kernel_native.py    - Native ASI kernel (ASIKernelNative alias ASIKernel)
-    empathy/            - Empathy scoring
-        stage.py        - Stage 555: EMPATHY
-    integration/        - ASI integrations
-        async_wrapper.py - Async wrapper
+Fractal Geometry: Self-similar stakeholder recursion
+Ω = κᵣ · Peace² · Justice
+
+Exports:
+- ASIEngineHardened: Main hardened ASI engine
+- OmegaBundle: ASI output structure
+- TrinitySelf, TrinitySystem, TrinitySociety: Individual Trinity components
+- Stakeholder: Stakeholder representation
+
+DITEMPA BUKAN DIBERI
 """
 
-from .engine import ASIRoom
-from .kernel_native import ASIKernel, ASIKernelNative, ASIActionCore
-from .kernel import ASIActionCore as ASIKernelActionCore
+from .engine_hardened import (
+    ASIEngineHardened,
+    OmegaBundle,
+    EmpathyFlow,
+    SystemIntegrity,
+    SocietalImpact,
+    Stakeholder,
+    TrinitySelf,
+    TrinitySystem,
+    TrinitySociety,
+    EngineVote,
+    StakeholderType,
+    execute_asi_hardened
+)
 
-__all__ = ["ASIRoom", "ASIKernel", "ASIKernelNative", "ASIActionCore", "ASIKernelActionCore"]  # ASIEngine renamed to ASIRoom for consistency
+__version__ = "v53.4.0-HARDENED"
+__all__ = [
+    "ASIEngineHardened",
+    "OmegaBundle",
+    "EmpathyFlow",
+    "SystemIntegrity",
+    "SocietalImpact",
+    "Stakeholder",
+    "TrinitySelf",
+    "TrinitySystem",
+    "TrinitySociety",
+    "EngineVote",
+    "StakeholderType",
+    "execute_asi_hardened",
+]

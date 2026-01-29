@@ -1,35 +1,103 @@
 """
-AGI (Mind/Δ) - The Thinker
+AGI (Mind/Δ) - Unified Neural Engine
 
-Unified namespace for arifOS Mind engine.
+v53.4.0 - Hardened v52 + v53 + Critical Gaps P1-P3
 
-Modules:
-    executor.py     - AGI execution logic (AGIRoom entry point)
-    kernel.py       - AGI neural kernel
-    hardening.py    - AGI hardening protocols
-    metrics.py      - Thermodynamic dashboard (v52.6.0)
-    parallel.py     - Parallel hypothesis matrix (v52.6.0)
-    evidence.py     - Live evidence injection (v52.6.0)
-    stages/         - Metabolic stages (111, 222, 333)
-        sense.py    - Stage 111: SENSE
-        think.py    - Stage 222: THINK
-        reason.py   - Stage 333: REASON
+One Engine: engine.py (AGIEngine)
+One Kernel: kernel.py (AGINeuralCore)
+
+Stages:
+    111 SENSE  → Parse facts, detect intent, hierarchical encoding (F12, F10)
+    222 THINK  → Generate hypotheses with precision weighting (F2, F13)
+    333 FORGE  → Converge, active inference, action selection (F7, F4)
+
+Supporting Modules:
+    hardening.py    - Constitutional safety (F9, F12)
+    metrics.py      - Thermodynamic dashboard (Ω₀, ΔS)
+    parallel.py     - Concurrent hypothesis matrix
+    evidence.py     - Live fact injection
+    precision.py    - v53.4.0 Kalman-style precision weighting (Gap P1)
+    hierarchy.py    - v53.4.0 5-level cortical encoding (Gap P2)
+    action.py       - v53.4.0 EFE minimization action selection (Gap P3)
+    trinity_sync.py - 333 AGI↔ASI convergence with 6 paradoxes
+    stages/         - Legacy stage executors
+    agi_components.py - v53 NeuralSenseEngine, DeepThinkEngine, CognitiveForge
+
+DITEMPA BUKAN DIBERI - Forged, Not Given
 """
 
-# v52.6.0: Main entry point is AGIRoom
-from .executor import AGIRoom, execute_agi_room
-from .kernel import AGINeuralCore
+# Unified Engine (v52+v53+v54) — CANONICAL PIPELINE
+from .engine import AGIEngine, AGIResult, execute_agi, get_agi_engine, cleanup_expired_sessions
+
+# Unified Kernel (MCP interface)
+from .kernel import AGINeuralCore, get_agi_core
+
+# Backward compat alias
+AGIKernel = AGINeuralCore
+
+# Supporting modules (direct access if needed)
+from .hardening import run_pre_checks, run_post_checks, HardeningResult, RiskLevel
 from .metrics import ThermodynamicDashboard, get_dashboard
-from .parallel import ParallelHypothesisMatrix
-from .evidence import EvidenceKernel, get_evidence_kernel
+
+# v53.4.0: Critical Gap modules (now wired into engine.py pipeline)
+from .precision import PrecisionEstimate, PrecisionWeighter, estimate_precision, update_belief_with_precision, cosine_similarity
+from .hierarchy import HierarchyLevel, HierarchicalBelief, HierarchicalEncoder, encode_hierarchically, get_cumulative_delta_s
+from .action import ActionType, ActionPolicy, BeliefState, ExpectedFreeEnergyCalculator, MotorOutput, compute_action_policy, execute_action
+
+# v53.4.0: Trinity Sync (333 AGI↔ASI convergence)
+from .trinity_sync import TrinitySync, ConvergenceResult, trinity_sync, PARADOXES
+
+# v53.4.0: Hardened engine (standalone, not in live pipeline)
+from .engine_hardened import AGIEngineHardened, execute_agi_hardened
+
+__version__ = "v53.4.0-HARDENED"
 
 __all__ = [
-    "AGIRoom",
-    "execute_agi_room",
+    # Main exports (canonical pipeline)
+    "AGIEngine",
+    "AGIResult",
+    "execute_agi",
+    "get_agi_engine",
+    "cleanup_expired_sessions",
     "AGINeuralCore",
+    "AGIKernel",
+    "get_agi_core",
+    # Hardening
+    "run_pre_checks",
+    "run_post_checks",
+    "HardeningResult",
+    "RiskLevel",
+    # Metrics
     "ThermodynamicDashboard",
     "get_dashboard",
-    "ParallelHypothesisMatrix",
-    "EvidenceKernel",
-    "get_evidence_kernel"
+    # v53.4.0: Precision (Gap P1)
+    "PrecisionEstimate",
+    "PrecisionWeighter",
+    "estimate_precision",
+    "update_belief_with_precision",
+    "cosine_similarity",
+    # v53.4.0: Hierarchy (Gap P2)
+    "HierarchyLevel",
+    "HierarchicalBelief",
+    "HierarchicalEncoder",
+    "encode_hierarchically",
+    "get_cumulative_delta_s",
+    # v53.4.0: Active Inference (Gap P3)
+    "ActionType",
+    "ActionPolicy",
+    "BeliefState",
+    "ExpectedFreeEnergyCalculator",
+    "MotorOutput",
+    "compute_action_policy",
+    "execute_action",
+    # v53.4.0: Trinity Sync
+    "TrinitySync",
+    "ConvergenceResult",
+    "trinity_sync",
+    "PARADOXES",
+    # v53.4.0: Hardened engine (standalone)
+    "AGIEngineHardened",
+    "execute_agi_hardened",
+    # Version
+    "__version__",
 ]

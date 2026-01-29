@@ -1,13 +1,18 @@
 """
-CANONICAL BUNDLE SCHEMAS - ARIF Loop v52.1
+CANONICAL BUNDLE SCHEMAS - ARIF Loop v53.4.0
 
 Defines the thermodynamically-isolated data contracts between engines:
-- DELTA_BUNDLE: AGI output (Mind/Reflect)
+- DELTA_BUNDLE: AGI output (Mind/Reflect) — now with precision, hierarchy, action
 - OMEGA_BUNDLE: ASI output (Heart/Refract)
 - MERGED_BUNDLE: APEX sync point (444)
 
 The "thermodynamic wall" between bundles ensures F3 Tri-Witness honesty:
 AGI and ASI cannot see each other's reasoning until 444 TRINITY_SYNC.
+
+v53.4.0 additions:
+- Precision weighting (π = 1/σ², Kalman gain)
+- Hierarchical encoding (5-level cortical hierarchy)
+- Active inference (EFE minimization for action selection)
 
 DITEMPA BUKAN DIBERI - Forged, Not Given
 """
@@ -129,6 +134,21 @@ class DeltaBundle:
     # Real-time dashboard metrics (v52.6.0)
     dashboard: Optional[Dict[str, Any]] = None  # Thermodynamic tracking
 
+    # v53.4.0: Precision weighting (Gap P1)
+    precision_pi: float = 0.0          # π = 1/σ² (likelihood precision)
+    precision_prior: float = 0.0       # π_P (prior precision)
+    kalman_gain: float = 0.0           # K = π_L / (π_P + π_L)
+
+    # v53.4.0: Hierarchical encoding (Gap P2)
+    hierarchy_levels: Optional[Dict[str, Any]] = None  # 5-level encoding results
+    cumulative_delta_s: float = 0.0    # Cumulative ΔS across hierarchy levels
+
+    # v53.4.0: Active inference (Gap P3)
+    free_energy: float = 0.0           # F = ΔS + Ω₀·π⁻¹
+    action_type: str = ""              # Selected action (SEAL/VOID/SABAR/INVESTIGATE/AMPLIFY/DEFER)
+    epistemic_value: float = 0.0       # Information gain from action
+    pragmatic_value: float = 0.0       # Goal achievement from action
+
     # Integrity
     bundle_hash: str = ""
 
@@ -176,6 +196,18 @@ class DeltaBundle:
             "vote": self.vote.value,
             "vote_reason": self.vote_reason,
             "dashboard": self.dashboard,  # Thermodynamic metrics (v52.6.0)
+            # v53.4.0: Precision, hierarchy, action
+            "precision": {
+                "pi_likelihood": self.precision_pi,
+                "pi_prior": self.precision_prior,
+                "kalman_gain": self.kalman_gain,
+            },
+            "hierarchy": self.hierarchy_levels,
+            "cumulative_delta_s": self.cumulative_delta_s,
+            "free_energy": self.free_energy,
+            "action_type": self.action_type,
+            "epistemic_value": self.epistemic_value,
+            "pragmatic_value": self.pragmatic_value,
             "bundle_hash": self.bundle_hash,
         }
 

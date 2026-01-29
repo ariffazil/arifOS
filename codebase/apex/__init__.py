@@ -1,22 +1,78 @@
 """
-APEX (Soul/Ψ) - The Judge
+arifOS APEX Module - The Soul Engine (Tools + Resources)
 
-Unified namespace for arifOS Soul engine.
+v54.0: 9-PARADOX CONSTITUTIONAL MATRIX
 
-Modules:
-    kernel.py           - APEX judicial kernel (APEXJudicialCore)
-    psi_kernel.py       - APEX PSI kernel (PsiKernel)
-    governance/         - VAULT-999 governance
-        ledger.py       - Hash-chained ledger
-        merkle.py       - Merkle tree sealing
-        proof_of_governance.py  # Proof system
-    judicial/           # Judicial functions
-    contracts/          # APEX contracts
+Architecture:
+- Trinity Alpha: Core Virtues (Truth·Care, Clarity·Peace, Humility·Justice)
+- Trinity Beta: Implementation (Precision·Rev, Hierarchy·Consent, Agency·Protection)
+- Trinity Gamma: Temporal/Meta (Urgency·Sustain, Certainty·Doubt, Unity·Diversity)
 
-Note: APEXEngine removed - use APEXJudicialCore from .kernel instead
+Equilibrium Point:
+E* = argmin_E [(GM(E) - 0.85)² + σ(E)²]
+
+Where:
+- GM(E) = geometric mean of 9 paradox scores
+- σ(E) = standard deviation
+
+Verdicts:
+- EQUILIBRIUM: All conditions met (GM≥0.85, σ≤0.10, all≥0.70)
+- SEAL: High score but not perfect equilibrium
+- VOID: Constitutional breach
+- SABAR: Unbalanced
+- 888_HOLD: Needs human review
+
+Exports:
+- TrinityNine: Main 9-paradox synchronization engine
+- EquilibriumFinder: Finds equilibrium points
+- PerturbationAnalyzer: Tests resilience
+
+DITEMPA BUKAN DIBERI
 """
 
-from .kernel import APEXJudicialCore
-from .psi_kernel import PsiKernel
+from .trinity_nine import (
+    TrinityNine,
+    NineFoldBundle,
+    NineParadox,
+    EquilibriumState,
+    EquilibriumSolver,
+    TrinityTier,
+    create_nine_paradoxes,
+    trinity_nine_sync,
+    check_equilibrium,
+    EQUILIBRIUM_THRESHOLD,
+    BALANCE_TOLERANCE,
+    MIN_PARADOX_SCORE
+)
 
-__all__ = ["APEXJudicialCore", "PsiKernel"]  # APEXEngine and APEXKernel removed - classes don't exist
+from .equilibrium_finder import (
+    EquilibriumFinder,
+    EquilibriumPoint,
+    PerturbationAnalyzer,
+    demonstrate_equilibrium
+)
+
+__version__ = "v54.0-9PARADOX"
+__all__ = [
+    # Trinity Nine
+    "TrinityNine",
+    "NineFoldBundle",
+    "NineParadox",
+    "EquilibriumState",
+    "EquilibriumSolver",
+    "TrinityTier",
+    "create_nine_paradoxes",
+    "trinity_nine_sync",
+    "check_equilibrium",
+    
+    # Equilibrium
+    "EquilibriumFinder",
+    "EquilibriumPoint",
+    "PerturbationAnalyzer",
+    "demonstrate_equilibrium",
+    
+    # Constants
+    "EQUILIBRIUM_THRESHOLD",
+    "BALANCE_TOLERANCE",
+    "MIN_PARADOX_SCORE",
+]

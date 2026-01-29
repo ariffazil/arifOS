@@ -1,0 +1,192 @@
+================================================================================
+                    ARIFOS CODEBASE STRUCTURE - v54.0
+================================================================================
+
+ARCHITECTURE: Hardened AGI + ASI → 9-Paradox APEX
+
+================================================================================
+                         ACTIVE CODE (Hardened Only)
+================================================================================
+
+codebase/
+│
+├── agi/                          [6 files, 59 KB] - Hardened AGI
+│   ├── __init__.py               # Clean exports
+│   ├── action.py                 # ⭐ Active Inference (Gap 3 fix)
+│   ├── engine_hardened.py        # ⭐ Unified v53.4.0
+│   ├── hierarchy.py              # ⭐ 5-level cortex (Gap 2 fix)
+│   ├── precision.py              # ⭐ Kalman weighting (Gap 1 fix)
+│   └── trinity_sync_hardened.py  # ⭐ 6-paradox sync
+│
+├── asi/                          [2 files, 20 KB] - Hardened ASI
+│   ├── __init__.py               # Clean exports
+│   └── engine_hardened.py        # ⭐ 3-Trinity v53.4.0
+│
+├── apex/                         [10 files, 112 KB] - 9-Paradox APEX
+│   ├── __init__.py               # 9-paradox exports
+│   ├── trinity_nine.py           # ⭐ 9-paradox engine
+│   ├── equilibrium_finder.py     # ⭐ Nash equilibrium solver
+│   ├── demo_nine_paradox.py      # Interactive demo
+│   ├── NINE_PARADOX_ARCHITECTURE.md    # Full docs
+│   ├── 9PARADOX_SUMMARY.md       # Executive summary
+│   ├── 9PARADOX_VISUAL.txt       # ASCII diagram
+│   └── (contracts/, governance/, judicial/)
+│
+├── tests/                        [2 files] - Test Suite
+│   ├── test_hardened_v53.py      # 3-gap fix tests
+│   └── test_nine_paradox.py      # 9-paradox tests
+│
+├── archive/                      [13+ files, 145 KB] - Legacy
+│   ├── ARCHIVE_MANIFEST.md       # Archive documentation
+│   ├── agi/                      # Old AGI (pre-hardened)
+│   │   ├── engine.py             # OLD - v52+v53 unified
+│   │   ├── agi_components.py     # OLD - component modules
+│   │   ├── evidence.py           # OLD - evidence gathering
+│   │   ├── hardening.py          # OLD - basic hardening
+│   │   ├── kernel.py             # OLD - MCP interface
+│   │   ├── metrics.py            # OLD - metrics
+│   │   ├── parallel.py           # OLD - parallel execution
+│   │   ├── trinity_sync.py       # OLD - 6-paradox
+│   │   └── stages/               # OLD - stage modules
+│   │
+│   └── asi/                      # Old ASI (pre-hardened)
+│       ├── engine.py             # OLD - ASI engine
+│       ├── asi_components_v2.py  # OLD - components
+│       ├── async_wrapper.py      # OLD - async utils
+│       ├── kernel.py             # OLD - MCP interface
+│       ├── empathy/              # OLD - empathy modules
+│       └── integration/          # OLD - integration code
+│
+├── HOUSEKEEPING_v54.0.md         # This housekeeping log
+├── ALIGNMENT_v53.4.0.md          # AGI+ASI alignment docs
+└── STRUCTURE_v54.0.txt           # This file
+
+================================================================================
+                            FILE COUNT SUMMARY
+================================================================================
+
+Component        Active    Archive    Total     Reduction
+──────────────────────────────────────────────────────────
+AGI              6         8+         14        57% saved
+ASI              2         4+         6         67% saved
+APEX             10        0          10        N/A (new)
+Tests            2         0          2         N/A
+Docs             4         1          5         N/A
+──────────────────────────────────────────────────────────
+TOTAL            24        13+        37+       35% active
+
+================================================================================
+                          IMPORT QUICK REFERENCE
+================================================================================
+
+✅ CORRECT (Hardened):
+──────────────────────────────────────────────────────────────────────────────
+from codebase.agi import AGIEngineHardened, execute_agi_hardened
+from codebase.agi import estimate_precision, encode_hierarchically
+from codebase.agi import compute_action_policy, TrinitySyncHardened
+
+from codebase.asi import ASIEngineHardened, execute_asi_hardened
+from codebase.asi import TrinitySelf, TrinitySystem, TrinitySociety
+
+from codebase.apex import TrinityNine, trinity_nine_sync
+from codebase.apex import EquilibriumFinder, PerturbationAnalyzer
+
+❌ REMOVED (Will Fail):
+──────────────────────────────────────────────────────────────────────────────
+from codebase.agi import AGIEngine              # OLD - REMOVED
+from codebase.agi import trinity_sync           # OLD - REMOVED
+from codebase.agi import evidence               # OLD - REMOVED
+from codebase.asi import ASIEngine              # OLD - REMOVED
+
+================================================================================
+                          VERDICT HIERARCHY
+================================================================================
+
+                    ┌─────────────────────┐
+                    │   CONSTITUTIONAL    │
+                    │     DECISION        │
+                    └──────────┬──────────┘
+                               │
+        ┌──────────────────────┼──────────────────────┐
+        │                      │                      │
+        ▼                      ▼                      ▼
+┌───────────────┐      ┌───────────────┐      ┌───────────────┐
+│  EQUILIBRIUM  │      │     SEAL      │      │     VOID      │
+│    (v54)      │      │               │      │               │
+│               │      │   GM ≥ 0.85   │      │   Breach      │
+│  GM ≥ 0.85    │      │   σ ≤ 0.15    │      │   min < 0.5   │
+│  σ ≤ 0.10     │      │               │      │               │
+│  All ≥ 0.70   │      │               │      │               │
+└───────────────┘      └───────┬───────┘      └───────────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              ▼                ▼                ▼
+        ┌──────────┐    ┌──────────┐    ┌────────────┐
+        │  SABAR   │    │888_HOLD  │    │  PARTIAL   │
+        │          │    │          │    │            │
+        │Unbalanced│    │ Human    │    │ w/ warnings│
+        │  σ > 0.2 │    │ review   │    │            │
+        └──────────┘    └──────────┘    └────────────┘
+
+================================================================================
+                           CRITICAL GAPS FIXED
+================================================================================
+
+Gap 1: PRECISION WEIGHTING
+─────────────────────────────────────────────────────────────────────────────
+OLD: confidence = 0.8  # Equal weight
+NEW: weight = π_L / (π_P + π_L)  # Kalman gain
+     π = 1/σ² (inverse variance)
+FILE: codebase/agi/precision.py
+
+Gap 2: HIERARCHICAL ABSTRACTION
+─────────────────────────────────────────────────────────────────────────────
+OLD: Flat 3-stage pipeline
+NEW: 5-level cortex encoding
+     Phonetic → Lexical → Syntactic → Categorical → Conceptual
+FILE: codebase/agi/hierarchy.py
+
+Gap 3: ACTIVE INFERENCE
+─────────────────────────────────────────────────────────────────────────────
+OLD: Passive observer
+NEW: EFE minimization for action selection
+     G(π) = Expected surprise + ambiguity
+FILE: codebase/agi/action.py
+
+================================================================================
+                              9-PARADOX MATRIX
+================================================================================
+
+                    Care       Peace      Justice
+                  (Empathy)  (System)   (Society)
+                 ┌─────────┬─────────┬─────────┐
+Truth (AGI)      │   [1]   │   [2]   │   [3]   │  Trinity Alpha
+                 │Truth·   │Clarity· │Humility·│  (Core)
+                 │ Care    │ Peace   │ Justice │
+                 ├─────────┼─────────┼─────────┤
+Clarity (AGI)    │   [4]   │   [5]   │   [6]   │  Trinity Beta
+                 │Precisi- │Hierar-  │Agency·  │  (Implementation)
+                 │on·Rev   │chy·Con  │Protect │
+                 ├─────────┼─────────┼─────────┤
+Humility (AGI)   │   [7]   │   [8]   │   [9]   │  Trinity Gamma
+                 │Urgency· │Certain- │ Unity·  │  (Temporal)
+                 │Sustainab│ty·Doubt │Diversity│
+                 └─────────┴─────────┴─────────┘
+
+================================================================================
+                             VERSION HISTORY
+================================================================================
+
+Version     Status      Location              Key Feature
+─────────────────────────────────────────────────────────────────────────────
+v52.x       ARCHIVED    archive/agi/          Basic AGI
+v53.0-3     ARCHIVED    archive/agi/          ASI integration
+v53.4.0     ACTIVE      agi/, asi/            Hardened (3 gaps fixed)
+v54.0       ACTIVE      apex/                 9-paradox + equilibrium
+
+================================================================================
+
+                        DITEMPA BUKAN DIBERI
+                   Forged, Hardened, Archived, Clean.
+
+================================================================================
