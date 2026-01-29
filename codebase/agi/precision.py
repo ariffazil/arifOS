@@ -121,25 +121,25 @@ class PrecisionWeighter:
         Full precision estimation from evidence metadata.
         """
         # Component variances
-        σ²_source = self.estimate_source_variance(sources)
-        σ²_temporal = self.estimate_temporal_variance(timestamps)
-        σ²_semantic = self.estimate_semantic_variance(embeddings) if embeddings else 0.3
-        
+        var_source = self.estimate_source_variance(sources)
+        var_temporal = self.estimate_temporal_variance(timestamps)
+        var_semantic = self.estimate_semantic_variance(embeddings) if embeddings else 0.3
+
         # Total variance (sum of independent variances)
-        σ²_total = σ²_source + σ²_temporal + σ²_semantic
-        
-        # Precision = inverse variance
-        π_L = 1.0 / (σ²_total + 0.01)  # ε regularization
-        
+        var_total = var_source + var_temporal + var_semantic
+
+        # Precision = inverse variance (pi = 1/sigma^2)
+        pi_L = 1.0 / (var_total + 0.01)  # epsilon regularization
+
         # Default prior precision (can be updated from hypothesis)
-        π_P = 1.0  # Neutral prior
-        
+        pi_P = 1.0  # Neutral prior
+
         # Kalman gain
-        K = π_L / (π_P + π_L)
-        
+        K = pi_L / (pi_P + pi_L)
+
         return PrecisionEstimate(
-            pi_likelihood=π_L,
-            pi_prior=π_P,
+            pi_likelihood=pi_L,
+            pi_prior=pi_P,
             kalman_gain=K
         )
     

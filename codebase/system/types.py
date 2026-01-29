@@ -1,5 +1,5 @@
 """
-arifOS Constitutional Types (v52.0.0)
+arifOS Constitutional Types (v53.0.0)
 Shared types to prevent circular dependencies.
 """
 
@@ -9,13 +9,13 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 class Verdict(Enum):
-    """Constitutional verdict types."""
-    SEAL = "SEAL"      
-    SABAR = "SABAR"    
-    VOID = "VOID"      
-    PARTIAL = "PARTIAL"
-    HOLD_888 = "888_HOLD" 
-    SUNSET = "SUNSET"  
+    """
+    The Trinity of Constitutional Verdicts.
+    Simplified v53.0 Architecture.
+    """
+    SEAL = "SEAL"      # Approved / Proceed (includes conditional pass)
+    SABAR = "SABAR"    # Paused / Wait / Blocked (includes holds & hypervisor)
+    VOID = "VOID"      # Rejected / Stop (hard constitutional failure)
 
     def __str__(self) -> str:
         return self.value
@@ -57,10 +57,12 @@ class ApexVerdict:
     genius_stats: Dict[str, float] = field(default_factory=dict)
     proof_hash: Optional[str] = None
     cooling_metadata: Optional[Dict[str, Any]] = None
+    sub_verdict: Optional[str] = None  # Nuance (e.g. "CONDITIONAL", "PHOENIX_HOLD")
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "verdict": self.verdict.value,
+            "sub_verdict": self.sub_verdict,
             "pulse": self.pulse,
             "reason": self.reason,
             "violated_floors": self.violated_floors,

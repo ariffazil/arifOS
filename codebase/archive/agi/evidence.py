@@ -24,12 +24,50 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
 import re
+import math
 
-from codebase.agi.stages import SenseOutput
-from codebase.agi.stages.sense import ParsedFact, FactType
+from codebase.agi.stages.sense import SenseOutput, ParsedFact, FactType
+
+
+def estimate_precision(confidence: float) -> float:
+    """
+    Estimate epistemic precision (inverse variance) from confidence.
+    
+    Formula: π = 1 / (1 - confidence)^2
+    
+    Examples:
+    - Confidence 0.5 (random) -> π = 4
+    - Confidence 0.9 (reliable) -> π = 100
+    - Confidence 0.99 (certain) -> π = 10000
+    """
+    # Cap confidence to prevent division by zero
+    c = max(0.01, min(confidence, 0.999))
+    variance = (1.0 - c) ** 2
+    return 1.0 / variance
+
+
+def compute_precision_weighted_update(
+    prior_conf: float, 
+    evidence_conf: float, 
+    prediction_error: float
+) -> float:
+    """
+    Update belief using precision weighting (Bayesian/FEP style).
+    
+    New = Prior + (π_evidence / (π_prior + π_evidence)) * Error
+    """
+    pi_p = estimate_precision(prior_conf)
+    pi_l = estimate_precision(evidence_conf)
+    
+    # Kalman gain / Precision weight
+    weight = pi_l / (pi_p + pi_l)
+    
+    # Update
+    update = weight * prediction_error
+    return prior_conf + update
 
 
 @dataclass
@@ -39,7 +77,12 @@ class EvidenceBundle:
     source: str  # "web", "arxiv", "news", "peer_review"
     facts: List[ParsedFact]
     confidence: float  # Overall confidence of this bundle
+    precision: float = field(init=False)  # PRECISION: Inverse variance (v53)
     retrieved_at: datetime = field(default_factory=datetime.utcnow)
+    
+    def __post_init__(self):
+        """Calculate precision from confidence on initialization"""
+        self.precision = estimate_precision(self.confidence)
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -47,6 +90,7 @@ class EvidenceBundle:
             "source": self.source,
             "fact_count": len(self.facts),
             "confidence": round(self.confidence, 4),
+            "precision": round(self.precision, 4),
             "retrieved_at": self.retrieved_at.isoformat()
         }
 
