@@ -47,7 +47,7 @@ from codebase.mcp import redis_client
 
 logger = logging.getLogger(__name__)
 
-VERSION = "v53.2.7-CODEBASE-AAA7"
+VERSION = "v53.2.8-CODEBASE-AAA7"
 
 # =============================================================================
 # FASTMCP SERVER (7-Core Tool Architecture)

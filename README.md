@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/v53.2.7--AAA7-Production-10b981?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/v53.2.8--AAA7-Production-10b981?style=for-the-badge" alt="Version">
   <a href="https://arif-fazil.com/dashboard"><img src="https://img.shields.io/badge/Live_Demo-Try_Now-FF79C6?style=for-the-badge" alt="Demo"></a>
   <a href="https://github.com/ariffazil/arifOS"><img src="https://img.shields.io/github/stars/ariffazil/arifOS?style=for-the-badge&color=32b8c6" alt="Stars"></a>
   <a href="https://pypi.org/project/aaa-mcp/"><img src="https://img.shields.io/pypi/v/aaa-mcp?style=for-the-badge&color=3b82f6" alt="PyPI"></a>
@@ -935,7 +935,8 @@ We welcome contributions! See [CONTRIBUTING.md](000_THEORY/003_CONTRIBUTING.md) 
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| **v53.2.7** | **Jan 2026** | **AAA-7Core architecture, `_action_` thermodynamic naming, arif-fazil.com consolidation** |
+| **v53.2.8** | **Jan 2026** | **ChatGPT MCP compatibility: unified bundle schemas, relaxed transport, AGI as Thinking Aid** |
+| v53.2.7 | Jan 2026 | AAA-7Core architecture, `_action_` thermodynamic naming, arif-fazil.com consolidation |
 | v53.2.1 | Jan 2026 | Streamable HTTP, 6-tool architecture, Railway template |
 | v52.6.0 | Jan 2026 | Native codebase imports, MCP tool classes |
 | v52.0.0 | Jan 2026 | Unified Core SEAL — Merged AAA_MCP into Brain, Pure Bridge |
