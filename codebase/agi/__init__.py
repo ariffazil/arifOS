@@ -1,103 +1,72 @@
 """
-AGI (Mind/Δ) - Unified Neural Engine
+AGI (Mind/Δ) — v53.5.0 WIRED
 
-v53.4.0 - Hardened v52 + v53 + Critical Gaps P1-P3
+Live Engine: engine_hardened.py (AGIEngineHardened)
+Stages: 111 SENSE → 222 THINK → 333 FORGE
 
-One Engine: engine.py (AGIEngine)
-One Kernel: kernel.py (AGINeuralCore)
-
-Stages:
-    111 SENSE  → Parse facts, detect intent, hierarchical encoding (F12, F10)
-    222 THINK  → Generate hypotheses with precision weighting (F2, F13)
-    333 FORGE  → Converge, active inference, action selection (F7, F4)
-
-Supporting Modules:
-    hardening.py    - Constitutional safety (F9, F12)
-    metrics.py      - Thermodynamic dashboard (Ω₀, ΔS)
-    parallel.py     - Concurrent hypothesis matrix
-    evidence.py     - Live fact injection
-    precision.py    - v53.4.0 Kalman-style precision weighting (Gap P1)
-    hierarchy.py    - v53.4.0 5-level cortical encoding (Gap P2)
-    action.py       - v53.4.0 EFE minimization action selection (Gap P3)
-    trinity_sync.py - 333 AGI↔ASI convergence with 6 paradoxes
-    stages/         - Legacy stage executors
-    agi_components.py - v53 NeuralSenseEngine, DeepThinkEngine, CognitiveForge
+Modules:
+    precision.py            - Kalman-style precision weighting (P1)
+    hierarchy.py            - 5-level cortical encoding (P2)
+    action.py               - EFE minimization action selection (P3)
+    trinity_sync.py         - 333 AGI↔ASI 6-paradox convergence
+    trinity_sync_hardened.py - Hardened sync with geometric synthesis
+    engine_hardened.py      - Full hardened pipeline (LIVE)
 
 DITEMPA BUKAN DIBERI - Forged, Not Given
 """
 
-# Unified Engine (v52+v53+v54) — CANONICAL PIPELINE
-from .engine import AGIEngine, AGIResult, execute_agi, get_agi_engine, cleanup_expired_sessions
+import logging as _logging
+_agi_init_logger = _logging.getLogger("codebase.agi")
 
-# Unified Kernel (MCP interface)
-from .kernel import AGINeuralCore, get_agi_core
+# v53.5.0: Hardened engine (NOW LIVE — wired into kernel.py)
+from .engine_hardened import AGIEngineHardened, execute_agi_hardened
 
-# Backward compat alias
-AGIKernel = AGINeuralCore
-
-# Supporting modules (direct access if needed)
-from .hardening import run_pre_checks, run_post_checks, HardeningResult, RiskLevel
-from .metrics import ThermodynamicDashboard, get_dashboard
-
-# v53.4.0: Critical Gap modules (now wired into engine.py pipeline)
+# v53.4.0: Gap modules (wired into engine_hardened pipeline)
 from .precision import PrecisionEstimate, PrecisionWeighter, estimate_precision, update_belief_with_precision, cosine_similarity
 from .hierarchy import HierarchyLevel, HierarchicalBelief, HierarchicalEncoder, encode_hierarchically, get_cumulative_delta_s
 from .action import ActionType, ActionPolicy, BeliefState, ExpectedFreeEnergyCalculator, MotorOutput, compute_action_policy, execute_action
 
-# v53.4.0: Trinity Sync (333 AGI↔ASI convergence)
+# v53.4.0: Trinity Sync (333 convergence)
 from .trinity_sync import TrinitySync, ConvergenceResult, trinity_sync, PARADOXES
+from .trinity_sync_hardened import TrinitySyncHardened, synthesize_paradox, compute_trinity_score
 
-# v53.4.0: Hardened engine (standalone, not in live pipeline)
-from .engine_hardened import AGIEngineHardened, execute_agi_hardened
+# Legacy engine + kernel (safe import — may depend on archived modules)
+try:
+    from .engine import AGIEngine, AGIResult, execute_agi, get_agi_engine, cleanup_expired_sessions
+except ImportError as _e:
+    _agi_init_logger.warning(f"Legacy AGIEngine unavailable (archived deps): {_e}")
+    AGIEngine = AGIResult = execute_agi = get_agi_engine = cleanup_expired_sessions = None
 
-__version__ = "v53.4.0-HARDENED"
+try:
+    from .kernel import AGINeuralCore as _LegacyAGINeuralCore, get_agi_core
+except ImportError as _e:
+    _agi_init_logger.warning(f"Legacy AGINeuralCore unavailable: {_e}")
+    _LegacyAGINeuralCore = get_agi_core = None
+
+# Backward compat alias
+AGIKernel = _LegacyAGINeuralCore
+
+__version__ = "v53.5.0-WIRED"
 
 __all__ = [
-    # Main exports (canonical pipeline)
-    "AGIEngine",
-    "AGIResult",
-    "execute_agi",
-    "get_agi_engine",
-    "cleanup_expired_sessions",
-    "AGINeuralCore",
-    "AGIKernel",
-    "get_agi_core",
-    # Hardening
-    "run_pre_checks",
-    "run_post_checks",
-    "HardeningResult",
-    "RiskLevel",
-    # Metrics
-    "ThermodynamicDashboard",
-    "get_dashboard",
-    # v53.4.0: Precision (Gap P1)
-    "PrecisionEstimate",
-    "PrecisionWeighter",
-    "estimate_precision",
-    "update_belief_with_precision",
-    "cosine_similarity",
-    # v53.4.0: Hierarchy (Gap P2)
-    "HierarchyLevel",
-    "HierarchicalBelief",
-    "HierarchicalEncoder",
-    "encode_hierarchically",
-    "get_cumulative_delta_s",
-    # v53.4.0: Active Inference (Gap P3)
-    "ActionType",
-    "ActionPolicy",
-    "BeliefState",
-    "ExpectedFreeEnergyCalculator",
-    "MotorOutput",
-    "compute_action_policy",
-    "execute_action",
-    # v53.4.0: Trinity Sync
-    "TrinitySync",
-    "ConvergenceResult",
-    "trinity_sync",
-    "PARADOXES",
-    # v53.4.0: Hardened engine (standalone)
+    # Live engine
     "AGIEngineHardened",
     "execute_agi_hardened",
-    # Version
+    # Precision (P1)
+    "PrecisionEstimate", "PrecisionWeighter", "estimate_precision",
+    "update_belief_with_precision", "cosine_similarity",
+    # Hierarchy (P2)
+    "HierarchyLevel", "HierarchicalBelief", "HierarchicalEncoder",
+    "encode_hierarchically", "get_cumulative_delta_s",
+    # Active Inference (P3)
+    "ActionType", "ActionPolicy", "BeliefState",
+    "ExpectedFreeEnergyCalculator", "MotorOutput",
+    "compute_action_policy", "execute_action",
+    # Trinity Sync
+    "TrinitySync", "ConvergenceResult", "trinity_sync", "PARADOXES",
+    "TrinitySyncHardened", "synthesize_paradox", "compute_trinity_score",
+    # Legacy (may be None)
+    "AGIEngine", "AGIResult", "execute_agi", "get_agi_engine",
+    "cleanup_expired_sessions", "AGIKernel", "get_agi_core",
     "__version__",
 ]

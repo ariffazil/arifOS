@@ -23,8 +23,23 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 from codebase.bundles import DeltaBundle, OmegaBundle, EngineVote, MergedBundle
-from codebase.agi.engine import execute_agi
-from codebase.asi.engine import execute_asi
+
+# Lazy imports — legacy engines may be unavailable (archived deps)
+def _get_execute_agi():
+    try:
+        from codebase.agi.engine import execute_agi
+        return execute_agi
+    except ImportError:
+        from codebase.agi.engine_hardened import execute_agi_hardened
+        return execute_agi_hardened
+
+def _get_execute_asi():
+    try:
+        from codebase.asi.engine import execute_asi
+        return execute_asi
+    except ImportError:
+        from codebase.asi.engine_hardened import execute_asi_hardened
+        return execute_asi_hardened
 
 
 # =============================================================================
@@ -175,8 +190,8 @@ class TrinitySync:
         # AGI and ASI run simultaneously but CANNOT see each other
         # This preserves the integrity of both perspectives
         
-        agi_task = execute_agi(query, self.session_id, agi_context)
-        asi_task = execute_asi(query, self.session_id, asi_context)
+        agi_task = _get_execute_agi()(query, self.session_id, agi_context)
+        asi_task = _get_execute_asi()(query, self.session_id, asi_context)
         
         # Wait for both to complete
         delta_bundle, omega_bundle = await asyncio.gather(

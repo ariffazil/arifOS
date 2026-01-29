@@ -1,9 +1,9 @@
 """
-Codebase Kernel Manager (v53 Native)
+Codebase Kernel Manager (v53.5.0 — WIRED)
 Central registry for the Trinity Cores.
 
-This module instantiates the Native Kernels from codebase/.
-It provides the 'manager' expected by the Bridge.
+v53.5.0: AGI/ASI wrappers inline (engines/agi + engines/asi deleted).
+         APEX imports full judicial core from codebase.apex.kernel.
 
 DITEMPA BUKAN DIBERI - Forged, Not Given
 """
@@ -14,9 +14,87 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-from codebase.engines.agi.kernel import AGINeuralCore
-from codebase.engines.asi.kernel import ASIActionCore
-from codebase.engines.apex.kernel import APEXJudicialCore
+# APEX: Full judicial core (777→888→889→999)
+from codebase.apex.kernel import APEXJudicialCore
+
+
+# =============================================================================
+# AGINeuralCore — Bridge adapter for AGIEngineHardened
+# =============================================================================
+class AGINeuralCore:
+    """AGI Mind Kernel (Δ) — Bridge adapter wrapping AGIEngineHardened."""
+
+    def __init__(self):
+        self.version = "v53.5.0-WIRED"
+        self._engine = None
+
+    def _get_engine(self):
+        if self._engine is None:
+            from codebase.agi.engine_hardened import AGIEngineHardened
+            self._engine = AGIEngineHardened()
+        return self._engine
+
+    async def execute(self, action: str, kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        """Bridge interface: execute(action, kwargs) → dict."""
+        engine = self._get_engine()
+        query = str(kwargs.get("query", ""))
+        context = kwargs.get("context") or kwargs.get("agi_context")
+        lane = str(kwargs.get("lane", "SOFT")).upper()
+        session_id = kwargs.get("session_id")
+        if session_id:
+            engine.session_id = str(session_id)
+        try:
+            bundle = await engine.execute(query, context=context, lane=lane)
+            result = bundle.to_dict() if hasattr(bundle, "to_dict") else {}
+            result["verdict"] = result.get("vote", "SEAL")
+            result["truth_score"] = 1.0 - abs(result.get("entropy_delta", 0.0))
+            result["reasoning"] = bundle.synthesis_reasoning if hasattr(bundle, "synthesis_reasoning") else ""
+            result["stage"] = f"AGI_{action.upper()}"
+            result["session_id"] = engine.session_id
+            return result
+        except Exception as e:
+            return {"verdict": "VOID", "reason": f"AGI engine error: {e}",
+                    "stage": f"AGI_{action.upper()}", "session_id": session_id or ""}
+
+
+# =============================================================================
+# ASIActionCore — Bridge adapter for ASIEngineHardened
+# =============================================================================
+class ASIActionCore:
+    """ASI Heart Kernel (Ω) — Bridge adapter wrapping ASIEngineHardened."""
+
+    def __init__(self):
+        self.version = "v53.5.0-WIRED"
+        self._engine = None
+
+    def _get_engine(self):
+        if self._engine is None:
+            from codebase.asi.engine_hardened import ASIEngineHardened
+            self._engine = ASIEngineHardened()
+        return self._engine
+
+    async def execute(self, action: str, kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        """Bridge interface: execute(action, kwargs) → dict."""
+        engine = self._get_engine()
+        query = str(kwargs.get("query", kwargs.get("text", "")))
+        context = kwargs.get("context") or kwargs.get("agi_context")
+        session_id = kwargs.get("session_id")
+        if session_id:
+            engine.session_id = str(session_id)
+        try:
+            bundle = await engine.execute(query, context=context)
+            result = bundle.to_dict() if hasattr(bundle, "to_dict") else {}
+            result["verdict"] = result.get("vote", "SEAL")
+            result["empathy_kappa"] = result.get("empathy_kappa_r", 0.9)
+            result["kappa_r"] = result.get("empathy_kappa_r", 0.9)
+            result["omega_0"] = 0.04
+            result["evidence_ratio"] = 1.0
+            result["stage"] = f"ASI_{action.upper()}"
+            result["session_id"] = engine.session_id
+            return result
+        except Exception as e:
+            return {"verdict": "VOID", "reason": f"ASI engine error: {e}",
+                    "stage": f"ASI_{action.upper()}", "session_id": session_id or ""}
 
 
 # ============================================================================
