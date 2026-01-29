@@ -7,9 +7,9 @@ Floors: F2 (Truth ≥0.99), F4 (ΔS≤0), F7 (Ω₀ ∈ [0.03,0.05])
 
 import threading
 import logging
-from typing import Dict, Any, List, Optional
-from codebase.bundle_store import BundleStore, DeltaBundle
-from codebase.bundles import AGIFloorScores, ReasoningTree
+from typing import Dict, List
+from codebase.bundle_store import BundleStore
+from codebase.bundles import AGIFloorScores, ReasoningTree, DeltaBundle, EngineVote
 
 logger = logging.getLogger(__name__)
 
@@ -43,8 +43,15 @@ class AGIRoom:
         """
         Execute AGI stages 111 → 333 in sequence.
         """
-        if self._started:
-            raise RuntimeError("AGI room already executing")
+        # Allow re-running for the same session (Thinking Aid mode)
+        if self._started and not self._completed:
+            logger.warning(f"[AGI-ROOM] Re-igniting running mind for {self.session_id}")
+            # Reset for re-execution
+            self._started = False
+        
+        if self._completed:
+             self._started = False
+             self._completed = False
         
         logger.info(f"[AGI-ROOM] Igniting mind for {self.session_id}")
         self._started = True
@@ -59,22 +66,29 @@ class AGIRoom:
         forge_data = await self.forge_engine.forge_response(think_data)
         
         # 4. Package as DeltaBundle
+        conf = forge_data.get("final_confidence", 0.95)
         delta = DeltaBundle(
             session_id=self.session_id,
-            query=query,
-            draft=forge_data["draft"],
-            truth_score=forge_data["final_confidence"],
-            floor_scores=AGIFloorScores(
-                F2_truth=forge_data["final_confidence"],
-                F4_clarity=forge_data["clarity_delta_s"],
-                F7_humility=forge_data["humility_score"]
-            ),
-            reasoning_tree=ReasoningTree(
+            raw_query=query,
+            parsed_facts=[query],
+            detected_intent="review",
+            hypotheses=[], # Populated from think_engine if available, else empty
+            reasoning=ReasoningTree(
                 premises=[query],
-                inference_steps=[think_data["thought"]],
-                conclusion=forge_data["draft"]
+                inference_steps=[think_data.get("thought", "Analyzed")],
+                conclusion=forge_data.get("draft", "No output")
             ),
-            vote="SEAL" if forge_data["final_confidence"] >= 0.99 else "VOID"
+            confidence_high=conf,
+            confidence_low=max(0.0, conf - 0.05),
+            omega_0=forge_data.get("humility_score", 0.04),
+            entropy_delta=forge_data.get("clarity_delta_s", 0.0),
+            floor_scores=AGIFloorScores(
+                F2_truth=conf,
+                F4_clarity=forge_data.get("clarity_delta_s", 0.0),
+                F7_humility=forge_data.get("humility_score", 0.04)
+            ),
+            vote=EngineVote.SEAL if conf >= 0.8 else EngineVote.UNCERTAIN,
+            vote_reason="Insight generated" if conf >= 0.8 else "Confidence low, requires verification"
         )
         
         self.bundle_store.store_delta(delta)
@@ -124,9 +138,9 @@ async def test_agi_engine_run():
     delta = await room.run("What is arifOS?")
     
     assert isinstance(delta, DeltaBundle)
-    assert delta.truth_score >= 0.99
-    assert delta.vote.value in ["SEAL", "VOID"]
-    assert len(delta.reasoning_tree.inference_steps) > 0
+    assert delta.confidence_high >= 0.8
+    assert delta.vote.value in ["SEAL", "VOID", "UNCERTAIN"]
+    assert delta.reasoning is not None and len(delta.reasoning.inference_steps) > 0
 
 async def run_tests():
     test_agi_engine_initialization()

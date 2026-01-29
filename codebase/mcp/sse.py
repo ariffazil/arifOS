@@ -100,7 +100,9 @@ async def tool_agi(
     **kwargs,
 ) -> dict:
     """Route reasoning tasks to AGI Mind Kernel."""
-    kwargs = {}
+    # Allow loose input from ChatGPT
+    if not query and "text" in kwargs:
+         query = kwargs.pop("text")
     if context:
         kwargs["context"] = context
     return await bridge_agi_router(
@@ -126,7 +128,10 @@ async def tool_asi(
     **kwargs,
 ) -> dict:
     """Route ethical tasks to ASI Heart Kernel."""
-    kwargs = {}
+    # Allow loose input from ChatGPT
+    if not query and "text" in kwargs:
+         query = kwargs.pop("text")
+         if not text: text = query
     if reasoning:
         kwargs["reasoning"] = reasoning
     if agi_context:
@@ -158,7 +163,9 @@ async def tool_apex(
     **kwargs,
 ) -> dict:
     """Route judicial tasks to APEX Soul Kernel."""
-    kwargs = {}
+    # Allow loose input from ChatGPT
+    if not query and "text" in kwargs:
+         query = kwargs.pop("text")
     if reasoning:
         kwargs["reasoning"] = reasoning
     if safety_evaluation:
@@ -191,7 +198,9 @@ async def tool_vault(
     **kwargs,
 ) -> dict:
     """Route archival tasks to VAULT-999."""
-    kwargs = {}
+    # Allow loose input
+    if not query and "text" in kwargs:
+         query = kwargs.pop("text")
     if target:
         kwargs["target"] = target
     if query:

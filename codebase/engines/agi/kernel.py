@@ -12,7 +12,7 @@ import logging
 from typing import Any, Dict, Optional
 
 from codebase.engines.agi.agi_engine import get_agi_room
-from codebase.bundle_store import DeltaBundle
+from codebase.bundles import DeltaBundle
 
 logger = logging.getLogger(__name__)
 
@@ -38,11 +38,13 @@ class AGINeuralCore:
         
         return {
             "stage": "111_sense",
-            "status": delta.vote.value,
+            "status": "complete",
+            "insight": delta.reasoning.conclusion if delta.reasoning else "Analysis complete.",
+            "rationale": delta.vote_reason,
             "query": query,
-            "truth_score": delta.truth_score,
-            "delta_s": delta.floor_scores.F4_clarity if delta.floor_scores else 0.0,
-            "verdict": delta.vote.value,
+            "truth_score": delta.confidence_high,
+            "clarity_delta": delta.floor_scores.F4_clarity if delta.floor_scores else 0.0,
+            "verdict": delta.vote.value if hasattr(delta.vote, 'value') else str(delta.vote),
             "_bundle": delta # For 222/333
         }
 

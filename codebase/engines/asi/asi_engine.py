@@ -62,6 +62,11 @@ class ASIRoom:
         """
         Execute ASI stages 555 → 666 in sequence (v53 Enhanced).
         """
+        # Allow re-running for the same session (idempotent for testing)
+        if self._completed:
+            self._started = False
+            self._completed = False
+        
         if self._started:
             raise RuntimeError("ASI room already executing (can't rerun)")
         
@@ -82,15 +87,47 @@ class ASIRoom:
         )
         
         # 4. Package as OmegaBundle
+        # Map component fields to Stakeholder schema
+        stakeholder_objects = []
+        for s in empathy_result["direct_stakeholders"]:
+            stakeholder_objects.append(Stakeholder(
+                name=s.get("entity", "Unknown"),
+                role=s.get("impact", "user"),
+                vulnerability_score=s.get("vulnerability", 0.5),
+                potential_harm="direct" if s.get("impact") == "direct" else "indirect",
+                voice_weight=s.get("confidence", 1.0)
+            ))
+        
+        # weakest_stakeholder should be a Stakeholder object (the most vulnerable one)
+        weakest_stakeholder = None
+        if stakeholder_objects:
+            # Find the stakeholder with highest vulnerability
+            weakest_stakeholder = max(stakeholder_objects, key=lambda s: s.vulnerability_score)
+        
+        from codebase.bundles import EngineVote, ASIFloorScores
+        verdict_str = audit["overall_verdict"]
+        vote = EngineVote.SEAL if verdict_str == "SEAL" else EngineVote.VOID
+        
+        # Convert floor_scores to ASIFloorScores object
+        floor_audits = audit["floor_audits"]
+        floor_scores = ASIFloorScores(
+            F1_amanah=floor_audits.get("F1_Amanah", {}).get("score", 1.0),
+            F5_peace=floor_audits.get("F5_Peace", {}).get("score", 1.0),
+            F6_empathy=floor_audits.get("F6_Empathy", {}).get("score", 0.95),
+            F9_anti_hantu=floor_audits.get("F9_AntiHantu", {}).get("score", 1.0),
+            F11_authority=1.0,
+            F12_injection=0.0
+        )
+        
         omega = OmegaBundle(
             session_id=self.session_id,
-            stakeholders=[Stakeholder(**s) for s in empathy_result["direct_stakeholders"]],
-            weakest_stakeholder=empathy_result["direct_stakeholders"][-1]["id"] if empathy_result["direct_stakeholders"] else "User",
-            empathy_kappa=empathy_result["kappa_r_cascade"],
+            stakeholders=stakeholder_objects,
+            weakest_stakeholder=weakest_stakeholder,
+            empathy_kappa_r=empathy_result["kappa_r_cascade"],
             safety_constraints=["F5_PEACE", "F6_EMPATHY"],
-            floor_scores={k: v["score"] for k, v in audit["floor_audits"].items()},
-            vote=audit["overall_verdict"],
-            reversible=True,
+            floor_scores=floor_scores,
+            vote=vote,
+            is_reversible=True,
             authority_verified=True
         )
         

@@ -36,12 +36,15 @@ class ASIActionCore:
         room = get_asi_room(session_id)
         omega = await room.run(text)
         
+        vote_str = omega.vote.value if hasattr(omega.vote, 'value') else str(omega.vote)
         return {
             "stage": "555_empathize",
-            "status": omega.vote.value,
-            "empathy_score": omega.empathy_kappa,
+            "status": vote_str,
+            "verdict": vote_str,
+            "empathy_kappa": omega.empathy_kappa_r,
             "weakest_stakeholder": omega.weakest_stakeholder,
-            "omega_verdict": omega.vote.value,
+            "omega_verdict": vote_str,
+            "stakeholders": [s.name for s in omega.stakeholders],
             "_bundle": omega # For 666
         }
 
@@ -50,10 +53,12 @@ class ASIActionCore:
         # In native v53, alignment is part of the ASIRoom execution.
         # This method provides compatibility for the kernel interface.
         omega = empathy_input.get("_bundle")
+        vote_str = omega.vote.value if omega and hasattr(omega.vote, 'value') else (str(omega.vote) if omega else "UNCERTAIN")
         
         return {
             "stage": "666_bridge",
-            "status": omega.vote.value if omega else "UNCERTAIN",
+            "status": vote_str,
+            "verdict": vote_str,
             "synthesis_draft": "Action aligned with heart constraints.",
             "conflicts_resolved": 0
         }

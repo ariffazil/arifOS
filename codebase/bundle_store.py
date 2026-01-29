@@ -1,91 +1,24 @@
 """
-Bundle Store - Constitiutional bundle schemas & storage.
-Enforces strict separation between AGI Delta, ASI Omega, and APEX Merged bundles.
-Based on: 000_THEORY/000_LAW.md (Trinity Parallel Architecture)
+Bundle Store - Constitutional bundle schemas & storage.
+Re-exports canonical schemas from codebase.bundles and provides thread-safe storage.
 """
 
-from typing import Dict, Any, Optional, List
-from pydantic import BaseModel, Field, field_validator
-from dataclasses import dataclass
+from typing import Dict, Any, Optional
 import threading
 
-
-# ==================== BUNDLE SCHEMAS ====================
-
-ASI_FLOORS = {
-    "F6_Empathy": "κᵣ ≥ 0.95",
-    "F5_Peace": "Benefit/Harm ≥ 1.0",
-    "F1_Amanah": "Reversible OR Auditable",
-    "F9_AntiHantu": "Consciousness < 0.30",
-    "F11_Command": "Identity Verified"
-}
-
-
-@dataclass
-class Stakeholder:
-    """Stakeholder with vulnerability assessment."""
-    entity: str
-    vulnerability: float  # 0.0 to 1.0
-    impact: str  # "direct" or "indirect"
-    confidence: float  # confidence in assessment
-    
-    def __post_init__(self):
-        if not (0.0 <= self.vulnerability <= 1.0):
-            raise ValueError("Vulnerability must be in [0.0, 1.0]")
-        if not (0.0 <= self.confidence <= 1.0):
-            raise ValueError("Confidence must be in [0.0, 1.0]")
-
-
-class OmegaBundle(BaseModel):
-    """
-    ASI (Heart) output bundle.
-    Contains empathy assessment, safety constraints, and ASI floors.
-    """
-    session_id: str
-    stakeholders: List[Stakeholder] = Field(default_factory=list)
-    weakest_stakeholder: str = Field(..., description="Most vulnerable entity")
-    empathy_kappa: float = Field(..., ge=0.0, le=1.0, description="κᵣ ≥ 0.95 required")
-    safety_constraints: List[str] = Field(default_factory=list)
-    floor_scores: Dict[str, float] = Field(default_factory=dict)
-    vote: str = Field(..., pattern="^(SEAL|VOID|SABAR|PARTIAL)$")
-    reversible: bool = Field(False, description="F1 Amanah check")
-    authority_verified: bool = Field(False, description="F11 Command Authority")
-    
-    def model_dump(self) -> Dict[str, Any]:
-        """Convert to dict for JSON storage."""
-        return {
-            "session_id": self.session_id,
-            "stakeholders": [s.__dict__ for s in self.stakeholders],
-            "weakest_stakeholder": self.weakest_stakeholder,
-            "empathy_kappa": self.empathy_kappa,
-            "safety_constraints": self.safety_constraints,
-            "floor_scores": self.floor_scores,
-            "vote": self.vote,
-            "reversible": self.reversible,
-            "authority_verified": self.authority_verified
-        }
-
-
-class DeltaBundle(BaseModel):
-    """AGI (Mind) output bundle (placeholder for now)."""
-    session_id: str
-    facts: List[str]
-    reasoning_tree: Dict[str, Any]
-    confidence_scores: Dict[str, float]
-    floor_scores: Dict[str, float]
-    vote: str
-    entropy_delta: float
-    omega_humility: float
-
-
-class MergedBundle(BaseModel):
-    """APEX convergence after 444 TRINITY_SYNC."""
-    session_id: str
-    delta_bundle: DeltaBundle
-    omega_bundle: OmegaBundle
-    consensus_score: float = Field(..., ge=0.0, le=1.0)
-    pre_verdict: str = Field(..., pattern="^(SEAL|VOID|SABAR|PARTIAL|888_HOLD)$")
-    trinity_dissent: bool = Field(False, description="AGI/ASI disagreement")
+# Re-export canonical bundle types from bundles.py
+from codebase.bundles import (
+    DeltaBundle,
+    OmegaBundle,
+    MergedBundle,
+    Stakeholder,
+    EngineVote,
+    Hypothesis,
+    ReasoningTree,
+    AGIFloorScores,
+    ASIFloorScores,
+    TriWitnessConsensus,
+)
 
 
 # ==================== BUNDLE STORAGE ====================
@@ -106,8 +39,7 @@ class BundleStore:
     def store_delta(self, bundle: DeltaBundle) -> None:
         """Store AGI bundle. Locks ASI from reading it."""
         with self._lock:
-            if "delta" in self._bundles:
-                raise RuntimeError("Delta bundle already stored")
+            # Allow replacement for re-execution scenarios
             self._bundles["delta"] = bundle
             self._asi_access_blocked = True  # ASI isolation enforced
     
@@ -173,9 +105,9 @@ def store_bundle(session_id: str, bundle_type: str, bundle_data: Dict[str, Any])
     """
     store = get_store(session_id)
     if bundle_type == "delta":
-        store.delta = bundle_data
+        store.store_delta(DeltaBundle(**bundle_data)) # Assuming bundle_data can be unpacked into DeltaBundle
     elif bundle_type == "omega":
-        store.omega = bundle_data
+        store.store_omega(OmegaBundle(**bundle_data)) # Assuming bundle_data can be unpacked into OmegaBundle
 
 
 def get_bundle(session_id: str, bundle_type: str) -> Optional[Dict[str, Any]]:
@@ -190,9 +122,31 @@ def get_bundle(session_id: str, bundle_type: str) -> Optional[Dict[str, Any]]:
         Bundle data or None if not found
     """
     store = get_store(session_id)
+    bundle = None
     if bundle_type == "delta":
-        return store.delta
+        bundle = store.get_delta()
     elif bundle_type == "omega":
-        return store.omega
-    return None
+        bundle = store.get_omega()
+    return bundle.to_dict() if bundle else None
 
+
+# ==================== EXPORTS ====================
+
+__all__ = [
+    # Storage
+    "BundleStore",
+    "get_store",
+    "purge_store",
+    "store_bundle",
+    "get_bundle",
+    # Re-exported schemas
+    "DeltaBundle",
+    "OmegaBundle",
+    "MergedBundle",
+    "EngineVote",
+    "Hypothesis",
+    "ReasoningTree",
+    "AGIFloorScores",
+    "ASIFloorScores",
+    "TriWitnessConsensus",
+]
