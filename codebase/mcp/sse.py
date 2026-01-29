@@ -24,6 +24,9 @@ Port: $PORT (default 8000)
 import os
 import logging
 from typing import Any
+import httpx
+from starlette.requests import Request
+from starlette.responses import StreamingResponse
 
 from mcp.server.fastmcp import FastMCP
 from starlette.responses import JSONResponse
@@ -256,6 +259,42 @@ async def health_check(request):
 async def metrics_endpoint(request):
     """Constitutional telemetry metrics."""
     return JSONResponse(get_full_metrics())
+
+@mcp.custom_route("/docs/{path:path}", methods=["GET", "POST", "HEAD", "OPTIONS"])
+async def docs_proxy(request: Request, path: str):
+    """
+    Reverse Proxy for arifOS Documentation.
+    Integrates arifosdocs.arif-fazil.com seamlessly into the main domain.
+    """
+    target_url = f"https://arifosdocs.arif-fazil.com/{path}"
+    if request.url.query:
+        target_url += f"?{request.url.query}"
+
+    async with httpx.AsyncClient() as client:
+        # Filter headers to prevent conflicts (e.g., host header)
+        proxy_headers = {
+            k: v for k, v in request.headers.items() 
+            if k.lower() not in ("host", "content-length")
+        }
+        
+        try:
+            proxy_req = client.build_request(
+                request.method,
+                target_url,
+                headers=proxy_headers,
+                content=request.stream()
+            )
+            response = await client.send(proxy_req, stream=True)
+            
+            return StreamingResponse(
+                response.aiter_raw(),
+                status_code=response.status_code,
+                headers=dict(response.headers),
+                background=None
+            )
+        except Exception as e:
+            logger.error(f"Docs Proxy Error: {e}")
+            return JSONResponse({"error": "Documentation Gateway Unavailable"}, status_code=502)
 
 @mcp.custom_route("/arifos", methods=["GET"])
 async def arifos_framework_page(request):
@@ -535,6 +574,9 @@ async def personal_portfolio(request):
                 border-radius: 16px; 
                 border: 1px solid var(--border);
                 transition: transform 0.2s;
+                text-decoration: none;
+                color: inherit;
+                display: block;
             }
             .card:hover { transform: translateY(-5px); border-color: var(--accent); }
             .card h3 { font-size: 1.3rem; margin-bottom: 10px; }
@@ -560,7 +602,7 @@ async def personal_portfolio(request):
                 <div class="links">
                     <a href="/arifos" class="primary">Explore Framework</a>
                     <a href="/aaa">Connect Agents (API)</a>
-                    <a href="https://github.com/ariffazil/arifOS" target="_blank">GitHub Source</a>
+                    <a href="/docs" target="_blank">The Canon (Docs)</a>
                 </div>
             </header>
             
@@ -594,6 +636,20 @@ async def personal_portfolio(request):
                             <span class="floor">VAULT-999</span>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Knowledge & Research</h2>
+                <div class="grid">
+                    <a href="/docs" class="card">
+                        <h3>📚 The Canon</h3>
+                        <p>Full technical documentation, API references, and constitutional law.</p>
+                    </a>
+                    <a href="https://github.com/ariffazil/arifOS" target="_blank" class="card">
+                        <h3>🧬 Source Code</h3>
+                        <p>Inspect the kernel. Verify the floors. AGPL-3.0 Open Source.</p>
+                    </a>
                 </div>
             </div>
             
