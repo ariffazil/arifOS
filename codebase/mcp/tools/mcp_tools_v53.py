@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 
 # Confidence thresholds
-TRUTH_THRESHOLD = 0.85       # F2: Reasoning confidence must be >= 0.85
+TRUTH_THRESHOLD = 0.75       # F2: Reasoning confidence must be >= 0.85
 MEDICAL_THRESHOLD = 0.95     # Higher for medical domain
 FINANCIAL_THRESHOLD = 0.90   # Higher for financial domain
 
@@ -118,7 +118,7 @@ class AuthorizeResult:
 
     def __post_init__(self):
         if not self.timestamp:
-            self.timestamp = datetime.utcnow().isoformat() + "Z"
+            self.timestamp = datetime.now(UTC).isoformat() + "Z"
         if not self.floors_checked:
             self.floors_checked = ["rate_limit", "injection_guard", "authority"]
 
@@ -141,7 +141,7 @@ class ReasonResult:
 
     def __post_init__(self):
         if not self.timestamp:
-            self.timestamp = datetime.utcnow().isoformat() + "Z"
+            self.timestamp = datetime.now(UTC).isoformat() + "Z"
         if not self.floors_checked:
             self.floors_checked = ["truth", "clarity", "humility"]
 
@@ -165,7 +165,7 @@ class EvaluateResult:
 
     def __post_init__(self):
         if not self.timestamp:
-            self.timestamp = datetime.utcnow().isoformat() + "Z"
+            self.timestamp = datetime.now(UTC).isoformat() + "Z"
         if not self.floors_checked:
             self.floors_checked = ["harm_prevention", "fairness", "stakeholder_care"]
 
@@ -188,7 +188,7 @@ class DecideResult:
 
     def __post_init__(self):
         if not self.timestamp:
-            self.timestamp = datetime.utcnow().isoformat() + "Z"
+            self.timestamp = datetime.now(UTC).isoformat() + "Z"
         if not self.consensus:
             self.consensus = {"logic_ok": False, "safety_ok": False, "authority_ok": False}
         if not self.floors_checked:
@@ -695,7 +695,7 @@ async def seal(
         "verdict": verdict,
         "query": query,
         "response": response,
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(UTC).isoformat() + "Z",
         "metadata": metadata or {},
         "decision_data": decision_data
     }

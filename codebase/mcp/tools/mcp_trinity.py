@@ -1,19 +1,27 @@
 """
-MCP Trinity Tools (Native v53.0.0)
-5 Core Tools for Constitutional AI Governance
+MCP Trinity Tools (v53.2.9)
+7 Core Tools for Constitutional AI Governance
 
-Exports:
-- mcp_000_init    -> Gate (Authority + Injection + Amanah)
-- mcp_agi_genius  -> Mind (SENSE → THINK → ATLAS)
-- mcp_asi_act     -> Heart (EVIDENCE → EMPATHY → ACT)
-- mcp_apex_judge  -> Soul (EUREKA → JUDGE → PROOF)
-- mcp_999_vault   -> Seal (PROOF + Immutable Log)
-- mcp_trinity_loop -> Full Pipeline (AGI→ASI→APEX)
-- mcp_context_docs -> Documentation (Context7)
-- mcp_reality_check -> Reality Grounding (Brave Search)
-- mcp_prompt_codec -> Prompt Codec (Route/Encode/Decode)
+Primary Tools (v53.2.9 Naming Convention):
+- _ignite_     -> Gate (000: Authority + Injection)
+- _logic_      -> Mind (111-333: SENSE → THINK → REASON)
+- _senses_     -> Reality (External grounding via Brave Search)
+- _atlas_      -> Mapping (Knowledge topology & Context7)
+- _forge_      -> Builder (444-777: EVIDENCE → EMPATHY → ACT → EUREKA)
+- _audit_      -> Scanner (Pre-seal constitutional compliance)
+- _decree_     -> Seal (888-999: JUDGE → PROOF → VAULT)
+
+Legacy Aliases (Backward Compatible):
+- mcp_000_init    -> _ignite_
+- mcp_agi_genius  -> _logic_
+- mcp_reality_check -> _senses_
+- mcp_context_docs -> _atlas_
+- mcp_asi_act + mcp_apex_judge -> _forge_
+- [NEW]           -> _audit_
+- mcp_999_vault   -> _decree_
 
 DITEMPA BUKAN DIBERI - Forged, Not Given
+v53.2.9: Consolidated to 7 canonical tools with backward compatibility
 """
 
 from __future__ import annotations

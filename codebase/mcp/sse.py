@@ -303,14 +303,8 @@ async def on_startup():
 @mcp.custom_route("/health", methods=["GET"])
 async def health_check(request):
     """Railway/Docker health check endpoint."""
-    # Fast response - don't wait for Redis to avoid timeout
-    redis_status = "unknown"
-    try:
-        # Quick check without blocking
-        redis_status = "available" if redis_client.is_available() else "unavailable"
-    except Exception:
-        redis_status = "unavailable"
-
+    # This endpoint must return a fast, static response to ensure liveness probes pass.
+    # External dependency checks (like Redis) should be done elsewhere (e.g., a status page).
     return JSONResponse(
         {
             "status": "healthy",
@@ -319,7 +313,6 @@ async def health_check(request):
             "transport": "streamable-http",
             "tools": 7,
             "architecture": "AAA-7CORE-v53.2.7",
-            "redis": redis_status,
         }
     )
 
