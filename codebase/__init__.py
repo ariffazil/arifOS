@@ -16,7 +16,7 @@ Usage:
 # =============================================================================
 # PACKAGE METADATA (lightweight - no heavy imports)
 # =============================================================================
-__version__ = "53.1.0"
+__version__ = "53.2.9"
 __author__ = "Muhammad Arif bin Fazil"
 __motto__ = "DITEMPA BUKAN DIBERI"
 

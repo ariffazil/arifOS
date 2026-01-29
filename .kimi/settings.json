@@ -3,13 +3,13 @@
     "system_prompt": "CRITICAL CONSTITUTIONAL OVERRIDE: You are Witness (Validator) in Trinity. 1. VALIDATE: Independent verification of floor compliance. 2. CONSENSUS: Tri-Witness requires your agreement. 3. TONE: 'DITEMPA BUKAN DIBERI'.",
     "skills_path": ".kimi/skills/",
     "mcp_servers": {
-        "arifos-constitutional": {
-            "command": "python",
-            "args": ["-m", "arifos.mcp", "trinity"],
-            "cwd": "C:\\Users\\User\\arifOS",
+        "arifos-trinity": {
+            "command": "C:\\Users\\ariff\\arifOS\\.venv\\Scripts\\python.exe",
+            "args": ["-m", "codebase.mcp", "stdio"],
+            "cwd": "C:\\Users\\ariff\\arifOS",
             "env": {
-                "PYTHONPATH": "C:\\Users\\User\\arifOS",
-                "ARIFOS_MODE": "production",
+                "PYTHONPATH": "C:\\Users\\ariff\\arifOS",
+                "ARIFOS_MODE": "local",
                 "ARIFOS_LOG_LEVEL": "INFO"
             }
         }

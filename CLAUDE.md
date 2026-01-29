@@ -6,15 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**arifOS** is a Constitutional AI Governance Framework (v52+) that enforces 13 immutable constitutional floors across any LLM. It acts as a governance metabolizer sitting between AI models and users, ensuring all outputs are validated, audited, and sealed through constitutional law.
+**arifOS** is a Constitutional AI Governance Framework (v53.2.9) that enforces 13 immutable constitutional floors across any LLM. It acts as a governance metabolizer sitting between AI models and users, ensuring all outputs are validated, audited, and sealed through constitutional law.
 
 **Motto:** *"Ditempa Bukan Diberi"* — Forged, Not Given
 
-**v52 Key Architecture:**
+**v53.2.9 Key Architecture:**
 - **Pure Bridge**: Server is "blind" (zero logic) — all wisdom lives in Core Kernels
 - **MCP Conscience**: Protocol is the conscience; AI cannot act without Trinity tools
-- **Live Server**: https://arifos.arif-fazil.com/ (Railway deployment)
-- **Monitoring**: https://arifos.arif-fazil.com/dashboard (Live Telemetry)
+- **Production Hardening**: BridgeError categorization, session maintenance, circuit breaker
+- **Live Server**: https://arif-fazil.com/ (Railway deployment)
+- **Monitoring**: https://arif-fazil.com/dashboard (Live Telemetry)
 
 ---
 
@@ -28,16 +29,16 @@ pip install -e .                    # Basic install
 pip install -e ".[dev]"             # With dev tools
 
 # Run all tests with coverage
-pytest tests/ -v --cov=arifos --cov-report=html
+pytest tests/ -v --cov=codebase --cov-report=html
 
 # Run constitutional floor tests
 pytest tests/constitutional/ -m constitutional
 pytest -m f1                        # F1 Amanah tests only
 
 # Code quality
-black arifos/ --line-length=100
-ruff check arifos/
-mypy arifos/core --strict
+black codebase/ --line-length=100
+ruff check codebase/
+mypy codebase/ --strict
 
 # Single test file
 pytest tests/constitutional/test_04_VAULT_ledger_integrity.py -v
@@ -47,17 +48,18 @@ pytest tests/constitutional/test_04_VAULT_ledger_integrity.py -v
 
 ```bash
 # Trinity MCP Server (stdio mode - for Claude Desktop, Cursor)
-python -m arifos.mcp
+python -m codebase.mcp
 
 # Trinity SSE Server (streaming - for Railway, ChatGPT Dev Mode)
-python -m arifos.mcp trinity-sse
+python -m codebase.mcp trinity-sse
 
 # FastAPI Server (local development)
-uvicorn arifos.mcp.trinity_server:app --reload --port 8000
+uvicorn codebase.mcp.trinity_server:app --reload --port 8000
 
-# Alternative entry points
-arifos-mcp                          # Alias for python -m arifos.mcp
-arifos-mcp-sse                      # SSE transport
+# Primary entry points (recommended)
+aaa-mcp                             # Primary: python -m codebase.mcp
+aaa-mcp-sse                         # SSE transport
+codebase-mcp                        # Alternative alias
 ```
 
 ### Metabolic Pipeline (CLI)
@@ -75,65 +77,49 @@ arifos-mcp-sse                      # SSE transport
 888                                 # Final judgment
 999                                 # VAULT persistence
 
-# Utility commands
-arifos-verify-ledger                # Verify hash-chained ledger
-arifos-analyze-governance           # Analyze floor violations
-arifos-analyze-audit-trail          # Review constitutional decisions
+# Utility commands (legacy - may not be available)
+# arifos-verify-ledger              # Verify hash-chained ledger
+# arifos-analyze-governance         # Analyze floor violations
+# arifos-analyze-audit-trail        # Review constitutional decisions
 ```
 
 ---
 
 ## Project Structure
 
-### v52 Architecture (Brain/Body Separation)
+### v53.2.9 Architecture (Brain/Body Separation)
 
 ```
-arifos/
-├── core/                           # "BRAIN" - All governance wisdom
-│   ├── engines/
-│   │   ├── agi/                    # Δ Mind Kernel (F2, F4, F7, F10)
-│   │   │   ├── delta_kernel.py     # Core AGI logic
-│   │   │   ├── entropy.py          # ΔS entropy calculations
-│   │   │   └── floor_checks.py     # AGI floor enforcement
-│   │   ├── asi/                    # Ω Heart Kernel (F1, F5, F6, F9)
-│   │   │   ├── omega_kernel.py     # Core ASI logic
-│   │   │   ├── empathy/            # F6 empathy detection
-│   │   │   └── floor_checks.py     # ASI floor enforcement
-│   │   └── apex/                   # Ψ Soul Kernel (F3, F8, F11, F12, F13)
-│   │       ├── psi_kernel.py       # Core APEX logic
-│   │       ├── governance/         # Merkle sealing, ledger crypto
-│   │       └── floor_checks.py     # APEX floor enforcement
-│   └── enforcement/                # Floor validation & metrics
-│       ├── constitutional_constants_v46.py
-│       ├── tcha_metrics.py         # TEACH metrics implementation
-│       └── trinity_orchestrator.py # Tri-Witness consensus
-│
+codebase/                           # "CORE" - All governance implementation
 ├── mcp/                            # "BODY" - Pure zero-logic wiring
-│   ├── __main__.py                 # Entry point: python -m arifos.mcp
+│   ├── __main__.py                 # Entry point: python -m codebase.mcp
 │   ├── server.py                   # stdio MCP server
 │   ├── sse.py                      # SSE transport (Railway)
 │   ├── trinity_server.py           # FastAPI wrapper
-│   ├── bridge.py                   # Zero-logic wire to kernels
-│   └── tools/
-│       ├── mcp_trinity.py          # 5-tool Trinity bundle
-│       ├── mcp_agi_kernel.py       # agi_genius tool
-│       ├── mcp_asi_kernel.py       # asi_act tool
-│       └── mcp_apex_kernel.py      # apex_judge tool
+│   ├── bridge.py                   # Zero-logic router + BridgeError
+│   ├── maintenance.py              # Session auto-recovery loop
+│   └── tools/                      # 7-tool Trinity bundle
+│       └── mcp_trinity.py          # _init_, _agi_, _asi_, _apex_, _vault_, _trinity_, _reality_
 │
-├── clip/                           # CLI implementation (000-999)
-│   └── aclip/cli/                  # Metabolic pipeline stages
-│
-└── constitutional_constants.py     # Floor thresholds
+├── agi/                            # Δ Mind Kernel (F2, F4, F7, F10)
+├── asi/                            # Ω Heart Kernel (F1, F5, F6, F9)
+├── apex/                           # Ψ Soul Kernel (F3, F8, F11, F12, F13)
+├── vault/                          # VAULT-999 sealing
+├── engines/                        # Core Trinity engines
+├── enforcement/                    # Floor validation & metrics
+├── prompt/                         # Codec layer (signal extraction, routing)
+└── kernel.py                       # Kernel manager (AGI/ASI/APEX orchestration)
 
 000_THEORY/                         # Constitutional law & theory
 VAULT999/                           # Immutable memory vault (L0-L5)
-tests/                              # Test suite (markers: f1-f12)
+tests/                              # Test suite (markers: f1-f13)
+spec/                               # Canonical floor definitions
 ```
 
 ### Key Directories
 
-- **`arifos/core/`** — All governance logic lives here (kernels, enforcement)
-- **`arifos/mcp/`** — MCP servers are "blind" bridges; no governance logic
+- **`codebase/`** — All governance implementation (kernels, MCP, enforcement)
+- **`codebase/mcp/`** — MCP servers are "blind" bridges with error handling
 - **`spec/`** — Canonical floor definitions (`constitutional_floors.json`)
 - **`VAULT999/`** — Hash-chained ledger (AAA_HUMAN, BBB_LEDGER, CCC_CANON)
 
@@ -141,27 +127,29 @@ tests/                              # Test suite (markers: f1-f12)
 
 ## Architecture Patterns
 
-### 1. The 5-Tool Trinity (MCP Interface)
+### 1. The 7-Tool Trinity (MCP Interface)
 
-v52 consolidates to 5 canonical MCP tools:
+v53.2.9 implements 7 canonical MCP tools:
 
 | Tool | Role | What It Does |
 |------|------|--------------|
-| `000_init` | Gate | Authority check, injection defense, session creation |
-| `agi_genius` | Mind (Δ) | SENSE → THINK → ATLAS (F2, F4, F7, F10) |
-| `asi_act` | Heart (Ω) | EVIDENCE → EMPATHY → ACT (F1, F5, F6, F9) |
-| `apex_judge` | Soul (Ψ) | EUREKA → JUDGE → PROOF (F3, F8, F11, F12, F13) |
-| `999_vault` | Seal | Merkle sealing + immutable ledger |
+| `_init_` | Gate | Authority check, injection defense, session creation |
+| `_agi_` | Mind (Δ) | SENSE → THINK → ATLAS (F2, F4, F7, F10) |
+| `_asi_` | Heart (Ω) | EVIDENCE → EMPATHY → ACT (F1, F5, F6, F9) |
+| `_apex_` | Soul (Ψ) | EUREKA → JUDGE → PROOF (F3, F8, F11, F12, F13) |
+| `_vault_` | Seal | Merkle sealing + immutable ledger |
+| `_trinity_` | Orchestrator | Full metabolic cycle (all engines) |
+| `_reality_` | Fact-Checker | External search with Brave API (circuit breaker protected) |
 
-**Flow:** `000_init` → `agi_genius` → `asi_act` → `apex_judge` → `999_vault`
+**Flow:** `_init_` → `_agi_` → `_asi_` → `_apex_` → `_vault_`
 
 ### 2. Trinity Engine Consensus
 
 Three independent engines must agree (Tri-Witness ≥ 0.95):
 
-- **AGI (Δ Mind):** Logic, truth, clarity — `arifos/core/engines/agi/`
-- **ASI (Ω Heart):** Empathy, care, peace — `arifos/core/engines/asi/`
-- **APEX (Ψ Soul):** Final judgment & sealing — `arifos/core/apex/`
+- **AGI (Δ Mind):** Logic, truth, clarity — `codebase/agi/`, `codebase/engines/agi/`
+- **ASI (Ω Heart):** Empathy, care, peace — `codebase/asi/`, `codebase/engines/asi/`
+- **APEX (Ψ Soul):** Final judgment & sealing — `codebase/apex/`, `codebase/engines/apex/`
 
 ### 3. Constitutional Floors (F1-F13)
 
@@ -267,7 +255,7 @@ Constitutional claims MUST be verified against PRIMARY sources:
 | Tier | Source | Authority |
 |------|--------|-----------|
 | PRIMARY | `spec/*.json`, SEALED canon | Required for constitutional claims |
-| SECONDARY | `arifos/core/*.py` | Implementation reference |
+| SECONDARY | `codebase/*.py` | Implementation reference |
 | TERTIARY | `docs/*.md`, README | Informational (may lag) |
 
 **NOT evidence:** grep results, code comments, this file
@@ -280,21 +268,22 @@ Constitutional claims MUST be verified against PRIMARY sources:
 
 | Class | Location | Purpose |
 |-------|----------|---------|
-| `DeltaKernel` | `arifos/core/engines/agi/delta_kernel.py` | AGI Mind engine |
-| `OmegaKernel` | `arifos/core/engines/asi/omega_kernel.py` | ASI Heart engine |
-| `PsiKernel` | `arifos/core/apex/psi_kernel.py` | APEX Soul engine |
-| `LiveMetricsService` | `arifos/core/integration/api/services/live_metrics_service.py` | Ledger telemetry |
-| `TrinityOrchestrator` | `arifos/core/enforcement/trinity_orchestrator.py` | Tri-Witness consensus |
+| `AGINeuralCore` | `codebase/engines/agi/` | AGI Mind engine |
+| `ASIActionCore` | `codebase/engines/asi/` | ASI Heart engine |
+| `APEXJudicialCore` | `codebase/engines/apex/` | APEX Soul engine |
+| `KernelManager` | `codebase/kernel.py` | Kernel orchestration |
+| `BridgeRouter` | `codebase/mcp/bridge.py` | MCP routing with error handling |
 
 ### MCP Entry Points
 
 | Module | Purpose |
 |--------|---------|
-| `arifos.mcp.__main__` | CLI entry: `python -m arifos.mcp` |
-| `arifos.mcp.server` | stdio MCP transport |
-| `arifos.mcp.sse` | SSE transport (Railway) |
-| `arifos.mcp.trinity_server` | FastAPI wrapper |
-| `arifos.mcp.tools.mcp_trinity` | 5-tool bundle definition |
+| `codebase.mcp.__main__` | CLI entry: `python -m codebase.mcp` |
+| `codebase.mcp.server` | stdio MCP transport |
+| `codebase.mcp.sse` | SSE transport (Railway) |
+| `codebase.mcp.trinity_server` | FastAPI wrapper |
+| `codebase.mcp.tools.mcp_trinity` | 7-tool bundle definition |
+| `codebase.mcp.maintenance` | Session auto-recovery |
 
 ---
 
@@ -329,6 +318,18 @@ This project is governed by `.claude/CLAUDE.md` (global instructions) which defi
 
 ---
 
-**Version:** v53.0.0-SEAL
+**Version:** v53.2.9-SEAL
 **Last Updated:** January 2026
 **Motto:** *"Ditempa Bukan Diberi"* — Forged, Not Given
+
+---
+
+## Implementation Highlights (v53.2.9)
+
+**Production Hardening:**
+- ✅ BridgeError categorization (FATAL/TRANSIENT/SECURITY) — `codebase/mcp/bridge.py:40-56`
+- ✅ Session maintenance loop (auto-recovery every 5 min) — `codebase/mcp/maintenance.py:13-48`
+- ✅ Circuit breaker for external APIs (3 failures → 5 min timeout) — `codebase/mcp/bridge.py:300-337`
+- ✅ Integration test suite — `tests/mcp/test_maintenance_and_errors.py`
+
+**Deployment Status:** 97% Production-Ready (F1, F2, F4, F5, F11 enforced)

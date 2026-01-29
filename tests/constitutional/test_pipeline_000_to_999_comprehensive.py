@@ -309,7 +309,6 @@ class TestLayer3_FullE2EIntegration:
     If this fails but Layers 1-2 pass, the issue is in stage-to-stage communication.
     """
 
-    @pytest.mark.asyncio
     @pytest.mark.slow
     @pytest.mark.integration
     async def test_full_pipeline_000_to_999(self, test_query, session_context):

@@ -52,7 +52,7 @@ def test_apex_room_888_judge_and_889_proof_roundtrip() -> None:
     pub.verify(bytes.fromhex(proof["signature_ed25519"]), proof["merkle_root"].encode("utf-8"))
 
 
-@pytest.mark.asyncio
+
 async def test_apex_room_999_seal_writes_entry() -> None:
     apex = APEXJudicialCore()
     session_id = str(uuid.uuid4())

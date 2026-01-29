@@ -72,21 +72,28 @@ def enable_physics_for_apex_theory():
         os.environ["ARIFOS_PHYSICS_DISABLED"] = "1"
 
 
-# Skip legacy tests that still reference arifos_core (removed in v49 single-body)
-def pytest_ignore_collect(path, config):
+# Skip legacy tests that still reference arifos (the old package name before v52)
+def pytest_ignore_collect(collection_path, config):
     """
-    Temporarily disabled. The original logic was too broad and skipped
-    necessary source files in the arifos package, causing import errors.
+    Skips collecting tests from files that still import the legacy `arifos` package.
+    This is necessary after the migration to the `codebase` package structure.
     """
+    if collection_path.suffix != ".py":
+        return False
+    
+    # Ignore anything in a 'legacy' or 'archive' directory explicitly
+    path_str = str(collection_path)
+    if "tests/legacy" in path_str or "tests\\legacy" in path_str or \
+       "tests/archive" in path_str or "tests\\archive" in path_str:
+        return True
+
+    try:
+        # A simple text check is much faster than AST parsing
+        text = collection_path.read_text(encoding="utf-8", errors="ignore")
+        if "from arifos" in text or "import arifos" in text:
+            return True
+    except Exception:
+        # If we can't read the file, let pytest handle the error
+        return False
+    
     return False
-    # candidate = Path(path)
-    # if candidate.suffix != ".py":
-    #     return False
-    # # Skip legacy suite by default
-    # if "tests\\legacy" in str(candidate) or "tests/legacy" in str(candidate):
-    #     return True
-    # try:
-    #     text = candidate.read_text(encoding="utf-8", errors="ignore")
-    # except Exception:
-    #     return False
-    # return "arifos_core" in text

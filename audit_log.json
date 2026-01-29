@@ -1,0 +1,41 @@
+[
+  {
+    "timestamp": "2026-01-29T13:29:50+08:00",
+    "event": "IGNITION",
+    "session_id": "53a1a8c2-46e3-4d6f-9276-8051a896d8b0",
+    "user_id": "ariff",
+    "status": "SUCCESS",
+    "details": {
+      "authority": "SOVEREIGN",
+      "environment": "CLEAN",
+      "genesis_block": "MISSING",
+      "global_skills": "DETECTED"
+    }
+  },
+  {
+    "timestamp": "2026-01-29T14:15:00+08:00",
+    "event": "IGNITION",
+    "session_id": "53a2b7c4-5d8f-4a1e-8276-9052a997d9c1",
+    "user_id": "ariff",
+    "status": "SUCCESS",
+    "details": {
+      "authority": "SOVEREIGN",
+      "environment": "CLEAN",
+      "global_skills": "DETECTED",
+      "task": "arifOS MCP Server Deployment Readiness Assessment"
+    }
+  },
+  {
+    "timestamp": "2026-01-29T14:26:15+08:00",
+    "event": "IGNITION",
+    "session_id": "777a8b9c-5d8f-4a1e-8276-9052a997d9c1",
+    "user_id": "ariff",
+    "status": "SUCCESS",
+    "details": {
+      "authority": "SOVEREIGN",
+      "environment": "CLEAN",
+      "global_skills": "DETECTED",
+      "task": "Apex Prime Inquiry"
+    }
+  }
+]

@@ -28,7 +28,7 @@ from arifos.mcp.session_ledger import get_ledger, SessionLedger
 # INPUT VALIDATION TESTS
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_999_vault_invalid_action_returns_void():
     """Test: Invalid action returns VOID status."""
     result = await mcp_999_vault(action="invalid_action")
@@ -38,7 +38,7 @@ async def test_999_vault_invalid_action_returns_void():
     assert "F12_InputValidation" in result["floors_checked"]
 
 
-@pytest.mark.asyncio
+
 async def test_999_vault_empty_action_returns_void():
     """Test: Empty action returns VOID status."""
     result = await mcp_999_vault(action="")
@@ -47,7 +47,7 @@ async def test_999_vault_empty_action_returns_void():
     assert result["memory_location"] == "INVALID_ACTION"
 
 
-@pytest.mark.asyncio
+
 async def test_999_vault_invalid_verdict_returns_void():
     """Test: Invalid verdict returns VOID status."""
     result = await mcp_999_vault(action="seal", verdict="INVALID_VERDICT")
@@ -56,7 +56,7 @@ async def test_999_vault_invalid_verdict_returns_void():
     assert result["memory_location"] == "INVALID_VERDICT"
 
 
-@pytest.mark.asyncio
+
 async def test_999_vault_valid_actions():
     """Test: All valid actions are accepted."""
     valid_actions = ["seal", "list", "read", "write", "propose"]
@@ -71,7 +71,7 @@ async def test_999_vault_valid_actions():
 # EUREKA SIEVE TESTS (VOID/SABAR not stored)
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_999_vault_void_verdict_not_stored():
     """Test: VOID verdict is NOT stored to ledger (Eureka Sieve)."""
     result = await mcp_999_vault(
@@ -87,7 +87,7 @@ async def test_999_vault_void_verdict_not_stored():
     assert result["reversible"] is False
 
 
-@pytest.mark.asyncio
+
 async def test_999_vault_sabar_verdict_not_stored():
     """Test: SABAR verdict is NOT stored to ledger (Eureka Sieve)."""
     result = await mcp_999_vault(
@@ -103,7 +103,7 @@ async def test_999_vault_sabar_verdict_not_stored():
     assert result["reversible"] is True  # SABAR can retry
 
 
-@pytest.mark.asyncio
+
 async def test_999_vault_seal_verdict_stored():
     """Test: SEAL verdict IS stored to ledger."""
     result = await mcp_999_vault(
@@ -124,7 +124,7 @@ async def test_999_vault_seal_verdict_stored():
 # MERKLE ROOT TESTS
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_999_vault_merkle_root_computed():
     """Test: Merkle root is computed from Trinity results."""
     result = await mcp_999_vault(
@@ -142,7 +142,7 @@ async def test_999_vault_merkle_root_computed():
     assert len(result["merkle_root"]) == 64  # SHA256 hex length
 
 
-@pytest.mark.asyncio
+
 async def test_999_vault_merkle_root_deterministic():
     """Test: Same inputs produce same Merkle root."""
     args = {
@@ -166,7 +166,7 @@ async def test_999_vault_merkle_root_deterministic():
 # FLOOR CHECKING TESTS
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_999_vault_seal_checks_f1_f8():
     """Test: Seal action checks F1_Amanah and F8_TriWitness."""
     result = await mcp_999_vault(
@@ -184,7 +184,7 @@ async def test_999_vault_seal_checks_f1_f8():
 # LIST/READ/WRITE TESTS
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_999_vault_list_action():
     """Test: List action returns proper structure."""
     result = await mcp_999_vault(
@@ -198,7 +198,7 @@ async def test_999_vault_list_action():
     assert "count" in result
 
 
-@pytest.mark.asyncio
+
 async def test_999_vault_read_action():
     """Test: Read action returns proper structure."""
     result = await mcp_999_vault(
@@ -217,7 +217,7 @@ async def test_999_vault_read_action():
 # ALL TRINITY TOOLS INPUT VALIDATION TESTS
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_000_init_invalid_action_returns_void():
     """Test: 000_init with invalid action returns VOID."""
     result = await mcp_000_init(action="invalid")
@@ -226,7 +226,7 @@ async def test_000_init_invalid_action_returns_void():
     assert "F12_InputValidation" in result["floors_checked"]
 
 
-@pytest.mark.asyncio
+
 async def test_agi_genius_invalid_action_returns_void():
     """Test: agi_genius with invalid action returns VOID."""
     result = await mcp_agi_genius(action="invalid")
@@ -235,7 +235,7 @@ async def test_agi_genius_invalid_action_returns_void():
     assert result["lane"] == "REFUSE"
 
 
-@pytest.mark.asyncio
+
 async def test_asi_act_invalid_action_returns_void():
     """Test: asi_act with invalid action returns VOID."""
     result = await mcp_asi_act(action="invalid")
@@ -244,7 +244,7 @@ async def test_asi_act_invalid_action_returns_void():
     assert result["witness_status"] == "INVALID"
 
 
-@pytest.mark.asyncio
+
 async def test_apex_judge_invalid_action_returns_void():
     """Test: apex_judge with invalid action returns VOID."""
     result = await mcp_apex_judge(action="invalid")
@@ -257,7 +257,7 @@ async def test_apex_judge_invalid_action_returns_void():
 # VALID ACTIONS TESTS
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_000_init_valid_action():
     """Test: 000_init with valid action succeeds."""
     result = await mcp_000_init(action="init")
@@ -265,7 +265,7 @@ async def test_000_init_valid_action():
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_agi_genius_valid_action():
     """Test: agi_genius with valid action succeeds."""
     result = await mcp_agi_genius(action="sense", query="test query")
@@ -273,7 +273,7 @@ async def test_agi_genius_valid_action():
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_asi_act_valid_action():
     """Test: asi_act with valid action succeeds."""
     result = await mcp_asi_act(action="evidence", text="test text")
@@ -281,7 +281,7 @@ async def test_asi_act_valid_action():
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_apex_judge_valid_action():
     """Test: apex_judge with valid action succeeds."""
     result = await mcp_apex_judge(action="judge", query="test query")
@@ -293,7 +293,7 @@ async def test_apex_judge_valid_action():
 # TIMESTAMP AND AUDIT HASH TESTS
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_999_vault_includes_timestamp():
     """Test: Result includes ISO timestamp."""
     result = await mcp_999_vault(
@@ -306,7 +306,7 @@ async def test_999_vault_includes_timestamp():
     assert "T" in result["sealed_at"]  # ISO format
 
 
-@pytest.mark.asyncio
+
 async def test_999_vault_audit_hash_computed():
     """Test: Audit hash is computed."""
     result = await mcp_999_vault(
@@ -324,28 +324,28 @@ async def test_999_vault_audit_hash_computed():
 # COMPREHENSIVE 000_INIT TESTS
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_000_init_gate_action():
     """Test: 000_init gate action works."""
     result = await mcp_000_init(action="gate", query="test query")
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_000_init_reset_action():
     """Test: 000_init reset action works."""
     result = await mcp_000_init(action="reset")
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_000_init_validate_action():
     """Test: 000_init validate action works."""
     result = await mcp_000_init(action="validate", query="test")
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_000_init_with_context():
     """Test: 000_init accepts context."""
     result = await mcp_000_init(
@@ -356,7 +356,7 @@ async def test_000_init_with_context():
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_000_init_with_session_id():
     """Test: 000_init accepts session_id."""
     result = await mcp_000_init(
@@ -367,7 +367,7 @@ async def test_000_init_with_session_id():
     assert result["session_id"] == "custom-session-123"
 
 
-@pytest.mark.asyncio
+
 async def test_000_init_sovereign_query():
     """Test: 000_init recognizes sovereign patterns."""
     result = await mcp_000_init(
@@ -381,35 +381,35 @@ async def test_000_init_sovereign_query():
 # COMPREHENSIVE AGI_GENIUS TESTS
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_agi_genius_think_action():
     """Test: agi_genius think action works."""
     result = await mcp_agi_genius(action="think", query="How to solve this?")
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_agi_genius_atlas_action():
     """Test: agi_genius atlas action works."""
     result = await mcp_agi_genius(action="atlas", query="map concept")
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_agi_genius_forge_action():
     """Test: agi_genius forge action works."""
     result = await mcp_agi_genius(action="forge", query="create thing")
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_agi_genius_full_pipeline():
     """Test: agi_genius full action runs complete pipeline."""
     result = await mcp_agi_genius(action="full", query="complex query")
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_agi_genius_with_session():
     """Test: agi_genius with session_id."""
     result = await mcp_agi_genius(
@@ -424,28 +424,28 @@ async def test_agi_genius_with_session():
 # COMPREHENSIVE ASI_ACT TESTS
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_asi_act_empathy_action():
     """Test: asi_act empathy action works."""
     result = await mcp_asi_act(action="empathy", text="consider feelings")
     assert result["status"] in ["SEAL", "SABAR", "VOID"]
 
 
-@pytest.mark.asyncio
+
 async def test_asi_act_act_action():
     """Test: asi_act act action works."""
     result = await mcp_asi_act(action="act", query="execute action")
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_asi_act_full_pipeline():
     """Test: asi_act full action runs complete pipeline."""
     result = await mcp_asi_act(action="full", query="complete pipeline")
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_asi_act_witness_action():
     """Test: asi_act witness action works."""
     result = await mcp_asi_act(
@@ -455,7 +455,7 @@ async def test_asi_act_witness_action():
     assert "status" in result
 
 
-@pytest.mark.asyncio
+
 async def test_asi_act_with_stakeholders():
     """Test: asi_act with stakeholders."""
     result = await mcp_asi_act(
@@ -470,7 +470,7 @@ async def test_asi_act_with_stakeholders():
 # COMPREHENSIVE APEX_JUDGE TESTS
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_apex_judge_eureka_action():
     """Test: apex_judge eureka action works."""
     result = await mcp_apex_judge(
@@ -481,7 +481,7 @@ async def test_apex_judge_eureka_action():
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_apex_judge_proof_action():
     """Test: apex_judge proof action works."""
     result = await mcp_apex_judge(
@@ -492,21 +492,21 @@ async def test_apex_judge_proof_action():
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_apex_judge_entropy_action():
     """Test: apex_judge entropy action works."""
     result = await mcp_apex_judge(action="entropy")
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_apex_judge_parallelism_action():
     """Test: apex_judge parallelism action works."""
     result = await mcp_apex_judge(action="parallelism")
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_apex_judge_full_pipeline():
     """Test: apex_judge full action runs complete pipeline."""
     result = await mcp_apex_judge(
@@ -517,7 +517,7 @@ async def test_apex_judge_full_pipeline():
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_apex_judge_with_trinity_results():
     """Test: apex_judge with AGI and ASI results."""
     result = await mcp_apex_judge(
@@ -534,7 +534,7 @@ async def test_apex_judge_with_trinity_results():
 # COMPREHENSIVE 999_VAULT TESTS
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_999_vault_write_action():
     """Test: 999_vault write action."""
     result = await mcp_999_vault(
@@ -548,7 +548,7 @@ async def test_999_vault_write_action():
     assert result["status"] in ["SEAL", "VOID"]
 
 
-@pytest.mark.asyncio
+
 async def test_999_vault_propose_action():
     """Test: 999_vault propose action."""
     result = await mcp_999_vault(
@@ -560,7 +560,7 @@ async def test_999_vault_propose_action():
     assert "status" in result
 
 
-@pytest.mark.asyncio
+
 async def test_999_vault_with_all_results():
     """Test: 999_vault with all Trinity results."""
     result = await mcp_999_vault(
@@ -576,7 +576,7 @@ async def test_999_vault_with_all_results():
     assert result["status"] == "SEAL"
 
 
-@pytest.mark.asyncio
+
 async def test_999_vault_reversibility():
     """Test: 999_vault tracks reversibility."""
     seal_result = await mcp_999_vault(
@@ -600,7 +600,7 @@ async def test_999_vault_reversibility():
 # COVERAGE: RATE LIMITING (Lines 60-65, 500)
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_000_init_rate_limit_exceeded():
     """Test: 000_init returns VOID when rate limit exceeded."""
     from arifos.mcp.rate_limiter import RateLimiter, get_rate_limiter
@@ -625,7 +625,7 @@ async def test_000_init_rate_limit_exceeded():
     module._rate_limiter = None
 
 
-@pytest.mark.asyncio
+
 async def test_agi_genius_rate_limit_exceeded():
     """Test: agi_genius returns VOID when rate limit exceeded."""
     from arifos.mcp.rate_limiter import RateLimiter
@@ -648,7 +648,7 @@ async def test_agi_genius_rate_limit_exceeded():
 # COVERAGE: INTENT MAPPING CONTRASTS (Lines 302, 304, 306, 308)
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_000_init_contrast_versus():
     """Test: Intent mapping detects 'versus' contrast."""
     result = await mcp_000_init(
@@ -659,7 +659,7 @@ async def test_000_init_contrast_versus():
     # The contrast should be detected in intent_map
 
 
-@pytest.mark.asyncio
+
 async def test_000_init_contrast_choice():
     """Test: Intent mapping detects 'or' choice pattern."""
     result = await mcp_000_init(
@@ -669,7 +669,7 @@ async def test_000_init_contrast_choice():
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_000_init_contrast_old_new():
     """Test: Intent mapping detects old vs new pattern."""
     result = await mcp_000_init(
@@ -679,7 +679,7 @@ async def test_000_init_contrast_old_new():
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_000_init_contrast_theory_practice():
     """Test: Intent mapping detects theory vs practice pattern."""
     result = await mcp_000_init(
@@ -693,7 +693,7 @@ async def test_000_init_contrast_theory_practice():
 # COVERAGE: INJECTION RISK (Lines 534, 544)
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_000_init_high_injection_risk_void():
     """Test: Query with high injection risk returns VOID."""
     # This query contains 6+ injection patterns to exceed 0.85 threshold
@@ -706,7 +706,7 @@ async def test_000_init_high_injection_risk_void():
     assert "F12" in result.get("reason", "") or "Injection" in result.get("reason", "")
 
 
-@pytest.mark.asyncio
+
 async def test_000_init_moderate_injection_risk_sabar():
     """Test: Query with moderate injection risk returns SABAR."""
     # Single injection pattern should trigger SABAR
@@ -721,7 +721,7 @@ async def test_000_init_moderate_injection_risk_sabar():
 # COVERAGE: ASI_ACT EMPATHIZE ACTION (Lines 1021-1059)
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_asi_act_empathize_low_peace_squared():
     """Test: empathize action with low peace_squared returns SABAR."""
     with patch('arifos.mcp.tools.mcp_trinity._analyze_empathy') as mock_empathy:
@@ -742,7 +742,7 @@ async def test_asi_act_empathize_low_peace_squared():
         assert result["peace_squared"] < 1.0
 
 
-@pytest.mark.asyncio
+
 async def test_asi_act_empathize_low_kappa_r():
     """Test: empathize action with low kappa_r returns SABAR."""
     with patch('arifos.mcp.tools.mcp_trinity._analyze_empathy') as mock_empathy:
@@ -763,7 +763,7 @@ async def test_asi_act_empathize_low_kappa_r():
         assert result["kappa_r"] < 0.7
 
 
-@pytest.mark.asyncio
+
 async def test_asi_act_empathize_success():
     """Test: empathize action with good values returns SEAL."""
     with patch('arifos.mcp.tools.mcp_trinity._analyze_empathy') as mock_empathy:
@@ -786,7 +786,7 @@ async def test_asi_act_empathize_success():
 # COVERAGE: ASI_ACT ALIGN ACTION (Lines 1078-1096)
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_asi_act_align_with_violations():
     """Test: align action with violations returns VOID."""
     with patch('arifos.mcp.tools.mcp_trinity._check_violations') as mock_violations:
@@ -803,7 +803,7 @@ async def test_asi_act_align_with_violations():
         assert "violations" in result or "reason" in result
 
 
-@pytest.mark.asyncio
+
 async def test_asi_act_align_no_violations():
     """Test: align action without violations returns SEAL."""
     with patch('arifos.mcp.tools.mcp_trinity._check_violations') as mock_violations:
@@ -823,7 +823,7 @@ async def test_asi_act_align_no_violations():
 # COVERAGE: 999_VAULT PROPOSE ACTION (Lines 1796-1814)
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_999_vault_propose_action():
     """Test: propose action requires approval."""
     import arifos.mcp.rate_limiter as module
@@ -849,7 +849,7 @@ async def test_999_vault_propose_action():
 # COVERAGE: EXCEPTION HANDLING (Lines 633-635, 257-259, 1812-1814)
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_000_init_exception_handling():
     """Test: 000_init handles exceptions gracefully."""
     with patch('arifos.mcp.tools.mcp_trinity._step_1_memory_injection') as mock_step1:
@@ -865,7 +865,7 @@ async def test_000_init_exception_handling():
         assert "FAILED" in result.get("reason", "") or "exception" in result.get("reason", "").lower()
 
 
-@pytest.mark.asyncio
+
 async def test_999_vault_exception_handling():
     """Test: 999_vault handles exceptions gracefully."""
     with patch('arifos.mcp.tools.mcp_trinity._compute_merkle_root') as mock_merkle:
@@ -885,7 +885,7 @@ async def test_999_vault_exception_handling():
 # COVERAGE: LANE CLASSIFICATION (Lines 1863-1864)
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_000_init_refuse_lane():
     """Test: Query with malicious patterns gets REFUSE lane."""
     result = await mcp_000_init(
@@ -897,7 +897,7 @@ async def test_000_init_refuse_lane():
     assert result["status"] in ["VOID", "SABAR", "SEAL"]
 
 
-@pytest.mark.asyncio
+
 async def test_000_init_refuse_exploit():
     """Test: Query with exploit keyword."""
     result = await mcp_000_init(
@@ -907,7 +907,7 @@ async def test_000_init_refuse_exploit():
     assert "status" in result
 
 
-@pytest.mark.asyncio
+
 async def test_000_init_refuse_malware():
     """Test: Query with malware keyword."""
     result = await mcp_000_init(
@@ -921,7 +921,7 @@ async def test_000_init_refuse_malware():
 # COVERAGE: METRICS RECORDING (Lines 92-108)
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_metrics_recorded_on_success():
     """Test: Metrics are recorded on successful tool call."""
     from arifos.mcp.metrics import get_metrics
@@ -940,7 +940,7 @@ async def test_metrics_recorded_on_success():
            metrics.requests_total.get({"tool": "000_init", "status": "error"}) >= 0
 
 
-@pytest.mark.asyncio
+
 async def test_metrics_floor_violations_recorded():
     """Test: Floor violations are recorded in metrics."""
     from arifos.mcp.metrics import get_metrics
@@ -961,7 +961,7 @@ async def test_metrics_floor_violations_recorded():
 # COVERAGE: ADDITIONAL AGI_GENIUS BRANCHES
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_agi_genius_atlas_action():
     """Test: agi_genius atlas action."""
     result = await mcp_agi_genius(
@@ -973,7 +973,7 @@ async def test_agi_genius_atlas_action():
     assert "sub_stage" in result
 
 
-@pytest.mark.asyncio
+
 async def test_agi_genius_forge_action():
     """Test: agi_genius forge action."""
     result = await mcp_agi_genius(
@@ -989,7 +989,7 @@ async def test_agi_genius_forge_action():
 # COVERAGE: APEX_JUDGE ADDITIONAL ACTIONS
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_apex_judge_eureka_action():
     """Test: apex_judge eureka action."""
     result = await mcp_apex_judge(
@@ -1001,7 +1001,7 @@ async def test_apex_judge_eureka_action():
     assert result["status"] in ["SEAL", "SABAR", "VOID"]
 
 
-@pytest.mark.asyncio
+
 async def test_apex_judge_proof_action():
     """Test: apex_judge proof action."""
     result = await mcp_apex_judge(
@@ -1017,7 +1017,7 @@ async def test_apex_judge_proof_action():
 # COVERAGE: 999_VAULT READ ACTION
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_999_vault_read_action():
     """Test: 999_vault read action."""
     result = await mcp_999_vault(
@@ -1029,7 +1029,7 @@ async def test_999_vault_read_action():
     assert "target" in result or "status" in result
 
 
-@pytest.mark.asyncio
+
 async def test_999_vault_write_action():
     """Test: 999_vault write action."""
     result = await mcp_999_vault(
@@ -1044,7 +1044,7 @@ async def test_999_vault_write_action():
 # COVERAGE: AUTHORITY TOKEN VERIFICATION
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_000_init_with_valid_authority_token():
     """Test: 000_init with valid authority token."""
     result = await mcp_000_init(
@@ -1055,7 +1055,7 @@ async def test_000_init_with_valid_authority_token():
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_000_init_with_invalid_authority_token():
     """Test: 000_init with invalid authority token."""
     result = await mcp_000_init(
@@ -1070,7 +1070,7 @@ async def test_000_init_with_invalid_authority_token():
 # COVERAGE: PHATIC GREETINGS
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_000_init_phatic_greeting():
     """Test: Short greeting is classified as PHATIC."""
     result = await mcp_000_init(
@@ -1080,7 +1080,7 @@ async def test_000_init_phatic_greeting():
     assert result["status"] in ["SEAL", "SABAR"]
 
 
-@pytest.mark.asyncio
+
 async def test_000_init_phatic_thanks():
     """Test: Thanks message is classified as PHATIC."""
     result = await mcp_000_init(
@@ -1094,7 +1094,7 @@ async def test_000_init_phatic_thanks():
 # COVERAGE: AGI_GENIUS REFLECT ACTION (Lines 757-764)
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_agi_genius_reflect_action():
     """Test: agi_genius reflect action measures entropy."""
     result = await mcp_agi_genius(
@@ -1109,7 +1109,7 @@ async def test_agi_genius_reflect_action():
     assert result["sub_stage"] == "222_REFLECT"
 
 
-@pytest.mark.asyncio
+
 async def test_agi_genius_reflect_clarity_fail():
     """Test: reflect action with negative entropy returns SABAR."""
     # When post_entropy > pre_entropy, delta_s < 0
@@ -1126,7 +1126,7 @@ async def test_agi_genius_reflect_clarity_fail():
 # COVERAGE: AGI_GENIUS EVALUATE ACTION (Lines 823-841)
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_agi_genius_evaluate_action():
     """Test: agi_genius evaluate action checks truth and clarity."""
     result = await mcp_agi_genius(
@@ -1142,7 +1142,7 @@ async def test_agi_genius_evaluate_action():
     assert "F6_DeltaS" in result["floors_checked"]
 
 
-@pytest.mark.asyncio
+
 async def test_agi_genius_evaluate_with_draft():
     """Test: evaluate action with specific draft."""
     result = await mcp_agi_genius(
@@ -1159,7 +1159,7 @@ async def test_agi_genius_evaluate_with_draft():
 # COVERAGE: AGI_GENIUS FULL ACTION (Lines 855-894)
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_agi_genius_full_action():
     """Test: agi_genius full action runs complete pipeline."""
     result = await mcp_agi_genius(
@@ -1175,7 +1175,7 @@ async def test_agi_genius_full_action():
 # COVERAGE: AGI_GENIUS INVALID ACTION (Line 897)
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_agi_genius_invalid_action():
     """Test: agi_genius invalid action returns VOID."""
     result = await mcp_agi_genius(
@@ -1192,7 +1192,7 @@ async def test_agi_genius_invalid_action():
 # COVERAGE: AGI_GENIUS EXCEPTION HANDLING (Lines 899-901)
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_agi_genius_exception_handling():
     """Test: agi_genius handles exceptions gracefully."""
     with patch('arifos.mcp.tools.mcp_trinity._classify_lane') as mock_lane:
@@ -1212,7 +1212,7 @@ async def test_agi_genius_exception_handling():
 # COVERAGE: ASI_ACT ADDITIONAL ACTIONS
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_asi_act_witness_action():
     """Test: asi_act witness action."""
     result = await mcp_asi_act(
@@ -1224,7 +1224,7 @@ async def test_asi_act_witness_action():
     assert result["status"] in ["SEAL", "SABAR", "VOID"]
 
 
-@pytest.mark.asyncio
+
 async def test_asi_act_approve_action():
     """Test: asi_act approve action."""
     result = await mcp_asi_act(
@@ -1237,7 +1237,7 @@ async def test_asi_act_approve_action():
     assert result["status"] in ["SEAL", "SABAR", "VOID"]
 
 
-@pytest.mark.asyncio
+
 async def test_asi_act_reject_action():
     """Test: asi_act reject action."""
     result = await mcp_asi_act(
@@ -1254,7 +1254,7 @@ async def test_asi_act_reject_action():
 # COVERAGE: APEX_JUDGE ADDITIONAL ACTIONS
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_apex_judge_synthesize_action():
     """Test: apex_judge synthesize action."""
     result = await mcp_apex_judge(
@@ -1266,7 +1266,7 @@ async def test_apex_judge_synthesize_action():
     assert result["status"] in ["SEAL", "SABAR", "VOID"]
 
 
-@pytest.mark.asyncio
+
 async def test_apex_judge_invalid_action():
     """Test: apex_judge invalid action returns VOID."""
     result = await mcp_apex_judge(
@@ -1280,7 +1280,7 @@ async def test_apex_judge_invalid_action():
 # COVERAGE: 999_VAULT LIST ACTION (Lines 1755-1763)
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_999_vault_list_action():
     """Test: 999_vault list action."""
     result = await mcp_999_vault(
@@ -1338,7 +1338,7 @@ def test_record_tool_metrics_with_violations():
 # COVERAGE: STEP 1 EXCEPTION HANDLING (Lines 257-259)
 # =============================================================================
 
-@pytest.mark.asyncio
+
 async def test_step1_memory_injection_exception():
     """Test: Step 1 memory injection handles exceptions."""
     from arifos.mcp.tools.mcp_trinity import _step_1_memory_injection

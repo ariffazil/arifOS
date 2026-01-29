@@ -314,7 +314,7 @@ class TestRateLimiterIntegration:
 class TestRateLimitedDecorator:
     """Tests for @rate_limited decorator."""
 
-    @pytest.mark.asyncio
+    
     async def test_decorator_allows_request(self):
         """Decorator allows request when under limit."""
         from arifos.mcp.rate_limiter import rate_limited
@@ -334,7 +334,7 @@ class TestRateLimitedDecorator:
         assert result["status"] == "SEAL"
         assert result["value"] == "test_value"
 
-    @pytest.mark.asyncio
+    
     async def test_decorator_blocks_when_exceeded(self):
         """Decorator blocks request when rate limit exceeded."""
         from arifos.mcp.rate_limiter import rate_limited
@@ -359,7 +359,7 @@ class TestRateLimitedDecorator:
         assert "rate_limit" in result2
         assert result2["rate_limit"]["exceeded"] is True
 
-    @pytest.mark.asyncio
+    
     async def test_decorator_extracts_session_id(self):
         """Decorator extracts session_id from kwargs."""
         from arifos.mcp.rate_limiter import rate_limited
@@ -385,7 +385,7 @@ class TestRateLimitedDecorator:
         result = await test_tool(session_id="session_b")
         assert result["status"] == "SEAL"
 
-    @pytest.mark.asyncio
+    
     async def test_decorator_no_session_id(self):
         """Decorator works without session_id kwarg."""
         from arifos.mcp.rate_limiter import rate_limited
