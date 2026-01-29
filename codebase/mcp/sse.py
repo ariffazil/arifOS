@@ -43,6 +43,7 @@ from codebase.mcp.bridge import (
 )
 from codebase.mcp.constitutional_metrics import get_full_metrics
 from codebase.mcp.rate_limiter import rate_limited
+from codebase.mcp import redis_client
 
 logger = logging.getLogger(__name__)
 
@@ -253,6 +254,7 @@ async def health_check(request):
         "transport": "streamable-http",
         "tools": 7,
         "architecture": "AAA-7CORE-v53.2.7",
+        "redis": redis_client.health(),
     })
 
 @mcp.custom_route("/metrics/json", methods=["GET"])
