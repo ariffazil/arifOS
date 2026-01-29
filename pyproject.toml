@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aaa-mcp"
-version = "53.2.8"
+version = "53.2.9"
 # v53.2.8-CODEBASE-AAA7: ChatGPT MCP Compatibility Fix
 #   - Unified DeltaBundle/OmegaBundle to canonical dataclass (bundles.py).
 #   - Relaxed SSE transport: text→query aliasing, kwargs pass-through.
@@ -210,7 +210,14 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 include = ["arifos*", "scripts*", "codebase*"]
-exclude = ["arifos.tests*", "arifos.tests", "*.tests", "*.tests.*", "tests.*", "tests"]
+exclude = [
+    "arifos.tests*",
+    "arifos.tests",
+    "*.tests",
+    "*.tests.*",
+    "tests.*",
+    "tests",
+]
 
 [tool.setuptools.package-data]
 arifos = ["py.typed", "*.py", "**/*.py"]
