@@ -1,4 +1,5 @@
-# AAA MCP Server (v53.2.0-CODEBASE)
+# AAA MCP Server (v53.2.9-CODEBASE)
+
 **Artifact · Authority · Architecture**
 
 > The Metabolic Application Layer for arifOS.  
@@ -8,18 +9,23 @@
 
 The **AAA MCP Server** is the comprehensive interface for arifOS v53.2.0, implementing the **Model Context Protocol (MCP)** to expose 6 constitutional tools. It unifies the metabolic system (Mind, Heart, Soul) into a single server that supports both **MCP Clients** (Claude Desktop, Cursor, Gemini) and **REST API Consumers** (ChatGPT, Webhooks).
 
-### What's New in v53.2.0
+### What's New in v53.2.9
+
 - **6-Tool Architecture**: Added `trinity_loop` for complete pipeline execution
 - **Streamable HTTP Transport**: New MCP protocol 2024-11-05+ support
 - **Constitutional Physics**: Proxy kernels with real entropy calculations
 - **Simplified Bridge**: Cleaner router architecture
+- **Harden Phase (v53.2.9)**:
+    - **Session Maintenance**: Background loop for cleanup/recovery of orphaned sessions.
+    - **Error Categorization**: Structured `BridgeError` (FATAL, TRANSIENT, SECURITY) responses.
+    - **Circuit Breaker**: Failure-aware gating for external Reality Gateways (Brave).
 
 ---
 
 ## 🛠️ The 6 Trinity Tools
 
 | Tool | Symbol | Role | Capability | Floors |
-|------|--------|------|------------|--------|
+| :--- | :--- | :--- | :--- | :--- |
 | **init_000** | 🚪 | **Gate** | Constitutional ignition, identity verification, session management | F1, F11, F12 |
 | **agi_genius** | Δ | **Mind** | **SENSE** → **THINK** → **REASON** → **FORGE** | F2, F4, F7, F10 |
 | **asi_act** | Ω | **Heart** | **EVIDENCE** → **EMPATHY** → **EVALUATE** → **ACT** | F1, F5, F6, F9 |
@@ -30,6 +36,7 @@ The **AAA MCP Server** is the comprehensive interface for arifOS v53.2.0, implem
 ### Tool Actions Detail
 
 #### `init_000` — Constitutional Ignition
+
 ```json
 {
   "action": "init" | "gate" | "reset" | "validate" | "authorize",
@@ -40,6 +47,7 @@ The **AAA MCP Server** is the comprehensive interface for arifOS v53.2.0, implem
 ```
 
 #### `agi_genius` — Mind Engine (Δ)
+
 ```json
 {
   "action": "sense" | "think" | "reflect" | "reason" | "atlas" | "forge" | "full" | "physics",
@@ -50,6 +58,7 @@ The **AAA MCP Server** is the comprehensive interface for arifOS v53.2.0, implem
 ```
 
 #### `asi_act` — Heart Engine (Ω)
+
 ```json
 {
   "action": "evidence" | "empathize" | "evaluate" | "act" | "witness" | "stakeholder" | "diffusion" | "audit" | "full",
@@ -62,6 +71,7 @@ The **AAA MCP Server** is the comprehensive interface for arifOS v53.2.0, implem
 ```
 
 #### `apex_judge` — Soul Engine (Ψ)
+
 ```json
 {
   "action": "eureka" | "judge" | "decide" | "proof" | "entropy" | "full",
@@ -75,6 +85,7 @@ The **AAA MCP Server** is the comprehensive interface for arifOS v53.2.0, implem
 ```
 
 #### `vault_999` — Immutable Memory
+
 ```json
 {
   "action": "seal" | "list" | "read" | "write" | "propose",
@@ -88,6 +99,7 @@ The **AAA MCP Server** is the comprehensive interface for arifOS v53.2.0, implem
 ```
 
 #### `trinity_loop` — Complete Pipeline
+
 ```json
 {
   "query": "User query to process",
@@ -101,6 +113,7 @@ Runs: `init_000` → `agi_genius` → `asi_act` → `apex_judge` → `vault_999`
 ## 🚀 Execution Modes
 
 ### 1. Stdio Transport (Local Development)
+
 For integration with desktop IDEs like Claude Desktop, Cursor, or Kimi CLI.
 
 ```bash
@@ -339,7 +352,7 @@ codebase-mcp      = "codebase.mcp.server:main"      # Current
 
 ---
 
-**Version:** v53.2.0-CODEBASE  
+**Version:** v53.2.9-CODEBASE  
 **Authority:** Muhammad Arif bin Fazil  
 **License:** AGPL-3.0  
 **Live Server:** https://arifos.arif-fazil.com

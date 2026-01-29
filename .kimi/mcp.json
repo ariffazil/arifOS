@@ -3,21 +3,18 @@
   "$comment": "Project-specific arifOS MCP config for Kimi CLI (v52.5.1-SEAL Local Override)",
   "mcpServers": {
     "arifos-trinity": {
-      "command": "uv",
+      "command": "C:\\Users\\ariff\\arifOS\\.venv\\Scripts\\python.exe",
       "args": [
-        "run",
-        "fastmcp",
-        "run",
-        "arifos/mcp/sse.py:mcp",
-        "--transport",
+        "-m",
+        "codebase.mcp",
         "stdio"
       ],
-      "cwd": "C:\\Users\\User\\arifOS",
+      "cwd": "C:\\Users\\ariff\\arifOS",
       "env": {
-        "PYTHONPATH": "C:/Users/User/arifOS",
+        "PYTHONPATH": "C:/Users/ariff/arifOS",
         "ARIFOS_MODE": "local"
       },
-      "description": "Local arifOS Trinity Monolith (FastMCP Stdio v52.5.0) - Fixes remote connection error"
+      "description": "Local arifOS Trinity Monolith (Stdio v53.2.9)"
     }
   }
 }

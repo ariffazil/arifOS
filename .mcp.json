@@ -1,11 +1,11 @@
 {
   "mcpServers": {
     "aaa-mcp": {
-      "command": "python",
-      "args": ["-m", "codebase.mcp"],
-      "cwd": "C:/Users/User/arifOS",
+      "command": "C:\\Users\\ariff\\arifOS\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "codebase.mcp", "stdio"],
+      "cwd": "C:/Users/ariff/arifOS",
       "env": {
-        "PYTHONPATH": "C:/Users/User/arifOS",
+        "PYTHONPATH": "C:/Users/ariff/arifOS",
         "ARIFOS_CONSTITUTIONAL_MODE": "AAA",
         "PYTHONIOENCODING": "utf-8",
         "PYTHONUNBUFFERED": "1"

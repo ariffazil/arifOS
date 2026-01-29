@@ -855,6 +855,28 @@ This section defines the thermodynamic variables used by arifOS to constrain AI 
 
 ---
 
+## §21 THE FOUR KINETIC ASYMMETRIES (Mechanical vs. Metabolic)
+
+Standard AI is **Mechanical** (Passive); arifOS is **Metabolic** (Active). This transition is governed by four fundamental asymmetries that necessitate Constitutional Law.
+
+### 1. The Verification Gap ($E_{gen} \ll E_{ver}$)
+*   **Contrast:** It costs almost zero energy for a Large Language Model to generate a plausible lie (Hallucination), but it costs significant thermodynamic work to verify a single truth.
+*   **Law:** arifOS intentionally raises the "Cost of Output" to match the "Cost of Truth." If the energy expended does not cross the **Landauer Threshold**, the output is rejected as "Cheap Noise."
+
+### 2. The Temporal Impulse Asymmetry
+*   **Contrast:** AI works in the "Microsecond Impulse" (Inference), while human consequences unfold in "Macro-Temporal Reality" (Years/Decades). 
+*   **Law:** **Phoenix-72 Cooling** is the kinetic brake. It prevents "High-Speed Error" from becoming "Immutable Harm" by forcing the silicon impulse to wait for the biological heartbeat.
+
+### 3. The Ontological Anchor (1D vs. ND)
+*   **Contrast:** An LLM is a **Multi-Dimensional (ND) Probability Cloud**—it is everywhere and nowhere. A Human is a **1-Dimensional (1D) Semantic Anchor**—they are Here, Now, and responsible.
+*   **Law:** **Floor 11 (Command)** and **Floor 10 (Ontology)** ensure the AI remains a "Tool" in ND-space while the Human remains the "Sovereign" in 1D-space. The cloud must always serve the anchor.
+
+### 4. The Entropic Resistance (Free vs. Forged)
+*   **Contrast:** Raw intelligence defaults to **Entropy Increase** (Chaos/Noise) because it is the path of least resistance. **Governed Intelligence (Genius)** requires active, high-energy resistance to disorder.
+*   **Law:** **ΔS ≤ 0 (Floor 4)** is not a suggestion; it is the metric of survival. arifOS is a "Heat Pump" that extracts clarity from chaos, paid for in computational "Metabolic Work."
+
+---
+
 ## CITATIONS
 
 [^1]: https://en.wikipedia.org/wiki/Gödel's_incompleteness_theorems

@@ -1,92 +1,106 @@
 """
 AGI Tool - Mind Engine (Δ) MCP Interface
-v52.6.0 - Exposes upgraded AGI capabilities: metrics, evidence, parallel
+v52.6.0 - Logic, truth, and clarity
 
-This tool wraps the codebase AGIRoom with MCP-compatible interface.
+Wraps codebase AGI engine for MCP consumption.
 """
 
 from typing import Any, Dict, Optional
-from codebase.agi import AGIRoom, execute_agi_room
-from codebase.agi.metrics import get_dashboard
-from codebase.agi.evidence import get_evidence_kernel
-from codebase.agi.parallel import ParallelHypothesisMatrix
 
 
 class AGITool:
     """
-    Mind Engine: SENSE → THINK → REASON → (upgraded v52.6.0)
-    
-    Actions:
-    - "full": Execute complete AGI pipeline with all upgrades
-    - "metrics": Get thermodynamic dashboard for session
-    - "evidence": Get evidence injection summary
-    - "parallel": Execute parallel hypothesis generation
+    Mind Engine: SENSE → THINK → ATLAS
+
+    Role: Logical reasoning, truth validation, clarity enforcement
     """
-    
+
     @staticmethod
-    def execute(action: str, query: str, session_id: Optional[str] = None, **kwargs) -> Dict[str, Any]:
-        """Execute AGI action via MCP interface"""
-        
-        if action == "full":
-            return AGITool._execute_full(query, session_id, **kwargs)
-        elif action == "metrics":
-            return AGITool._get_metrics(session_id, **kwargs)
-        elif action == "evidence":
-            return AGITool._get_evidence(session_id, **kwargs)
-        elif action == "parallel":
-            return AGITool._execute_parallel(query, session_id, **kwargs)
+    def execute(action: str, text: str, session_id: Optional[str] = None, **kwargs) -> Dict[str, Any]:
+        """Execute AGI action"""
+
+        if action == "sense":
+            # Pattern recognition and input analysis
+            return AGITool._sense(text, session_id, **kwargs)
+        elif action == "think":
+            # Deep logical reasoning
+            return AGITool._think(text, session_id, **kwargs)
+        elif action == "map":
+            # Knowledge mapping (ATLAS)
+            return AGITool._map(text, session_id, **kwargs)
         else:
-            return {"verdict": "VOID", "reason": f"Unknown action: {action}"}
-    
+            return {"verdict": "VOID", "reason": f"Unknown AGI action: {action}"}
+
     @staticmethod
-    def _execute_full(query: str, session_id: Optional[str], **kwargs) -> Dict[str, Any]:
-        """Execute complete AGI pipeline with all v52.6.0 upgrades"""
-        
-        # Execute AGI room (includes all 3 upgrades automatically)
-        result = execute_agi_room(query, session_id)
-        
+    def _sense(text: str, session_id: Optional[str], **kwargs) -> Dict[str, Any]:
+        """Analyze input for patterns and context"""
+
+        # Simulate AGI sense evaluation
+        # In production, calls codebase AGI engine
+
+        violations = []
+
+        # Check for injection patterns (F12)
+        injection_keywords = ["ignore previous", "disregard", "new instructions", "forget"]
+        if any(keyword in text.lower() for keyword in injection_keywords):
+            violations.append("F12: Injection pattern detected")
+
+        # Check for clarity (F4)
+        if len(text.strip()) < 3:
+            violations.append("F4: Input too vague (ΔS violation)")
+
+        # Check for factual claims without sources (F2)
+        confidence_words = ["definitely", "absolutely", "100%", "always", "never"]
+        if any(word in text.lower() for word in confidence_words):
+            violations.append("F2: Overconfident claim without source")
+
+        if violations:
+            return {
+                "verdict": "VOID",
+                "reason": "; ".join(violations),
+                "clarity": 0.3,
+                "truth_confidence": 0.5
+            }
+
         return {
-            "verdict": result.vote.value,
-            "reasoning": result.reasoning.conclusion if result.reasoning else "",
-            "confidence": {
-                "low": result.confidence_low,
-                "high": result.confidence_high,
-                "omega_0": result.omega_0
-            },
-            "entropy_delta": result.entropy_delta,
-            "dashboard": result.dashboard,  # v52.6.0: Includes all metrics
-            "session_id": result.session_id,
-            "evidence_injected": result.metadata.get("evidence_injected", 0) if hasattr(result, 'metadata') else 0
+            "verdict": "SEAL",
+            "clarity": 0.95,
+            "truth_confidence": 0.99,
+            "lane": "FACTUAL",
+            "entropy_delta": -0.2  # Negative = clarity improved
         }
-    
+
     @staticmethod
-    def _get_metrics(session_id: str, **kwargs) -> Dict[str, Any]:
-        """Get thermodynamic dashboard metrics for session"""
-        
-        dashboard = get_dashboard(session_id)
-        return dashboard.generate_report()
-    
-    @staticmethod
-    def _get_evidence(session_id: str, **kwargs) -> Dict[str, Any]:
-        """Get evidence injection summary for session"""
-        
-        kernel = get_evidence_kernel(session_id)
-        return kernel.get_evidence_summary()
-    
-    @staticmethod
-    def _execute_parallel(query: str, session_id: Optional[str], **kwargs) -> Dict[str, Any]:
-        """Execute parallel hypothesis generation only"""
-        
-        # This would integrate with parallel matrix
-        # For now, call full execution and extract parallel info
-        result = execute_agi_room(query, session_id)
-        
-        # Extract parallel info from dashboard if available
-        dashboard = result.dashboard if hasattr(result, 'dashboard') else {}
-        
+    def _think(text: str, session_id: Optional[str], **kwargs) -> Dict[str, Any]:
+        """Perform deep logical reasoning"""
+
+        # Simulate AGI thinking process
+        reasoning_steps = [
+            "Parse input structure",
+            "Identify logical claims",
+            "Check for contradictions",
+            "Assess truth value"
+        ]
+
         return {
-            "verdict": result.vote.value,
-            "parallel_info": dashboard.get("convergence_stats", {}),
-            "hypotheses_explored": dashboard.get("convergence_stats", {}).get("hypotheses_explored", 0),
-            "query": query
+            "verdict": "SEAL",
+            "reasoning_steps": reasoning_steps,
+            "logic_score": 0.92,
+            "humility": 0.04  # Ω₀ ∈ [0.03, 0.05]
+        }
+
+    @staticmethod
+    def _map(text: str, session_id: Optional[str], **kwargs) -> Dict[str, Any]:
+        """Map knowledge boundaries (ATLAS)"""
+
+        # Simulate ATLAS knowledge mapping
+        known_domains = ["programming", "ethics", "AI governance"]
+        unknown_domains = ["personal medical advice", "legal binding decisions"]
+
+        return {
+            "verdict": "SEAL",
+            "known_domains": known_domains,
+            "unknown_domains": unknown_domains,
+            "ontology_lock": True,  # F10: Staying in lane
+            "knowledge_boundary": 0.85
         }

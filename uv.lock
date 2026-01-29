@@ -7,6 +7,107 @@ resolution-markers = [
 ]
 
 [[package]]
+name = "aaa-mcp"
+version = "53.2.8"
+source = { editable = "." }
+dependencies = [
+    { name = "anyio" },
+    { name = "dspy" },
+    { name = "fastapi" },
+    { name = "fastmcp" },
+    { name = "mcp" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "numpy", version = "2.4.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "prometheus-client" },
+    { name = "pydantic" },
+    { name = "redis" },
+    { name = "sse-starlette" },
+    { name = "starlette" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.optional-dependencies]
+all = [
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "litellm" },
+    { name = "mcp" },
+    { name = "openai" },
+    { name = "pygments" },
+    { name = "python-multipart" },
+    { name = "pyyaml" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+api = [
+    { name = "fastapi" },
+    { name = "python-multipart" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+dev = [
+    { name = "beautifulsoup4" },
+    { name = "black" },
+    { name = "httpx" },
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+]
+governed = [
+    { name = "httpx" },
+    { name = "litellm" },
+    { name = "openai" },
+    { name = "pygments" },
+]
+litellm = [
+    { name = "litellm" },
+]
+yaml = [
+    { name = "pyyaml" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "anyio", specifier = ">=4.0.0" },
+    { name = "beautifulsoup4", marker = "extra == 'dev'", specifier = ">=4.12.0" },
+    { name = "black", marker = "extra == 'dev'", specifier = ">=23.0.0" },
+    { name = "dspy", specifier = ">=2.4.0" },
+    { name = "fastapi", specifier = ">=0.104.1" },
+    { name = "fastapi", marker = "extra == 'all'", specifier = ">=0.100.0" },
+    { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.100.0" },
+    { name = "fastmcp", specifier = ">=0.1.0" },
+    { name = "httpx", marker = "extra == 'all'", specifier = ">=0.28.0" },
+    { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.28.0" },
+    { name = "httpx", marker = "extra == 'governed'", specifier = ">=0.28.0" },
+    { name = "litellm", marker = "extra == 'all'", specifier = ">=1.0.0" },
+    { name = "litellm", marker = "extra == 'governed'", specifier = ">=1.0.0" },
+    { name = "litellm", marker = "extra == 'litellm'", specifier = ">=1.0.0" },
+    { name = "mcp", specifier = ">=1.0.0" },
+    { name = "mcp", marker = "extra == 'all'", specifier = ">=1.0.0" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0.0" },
+    { name = "numpy", specifier = ">=1.20.0" },
+    { name = "openai", marker = "extra == 'all'", specifier = ">=1.6.0" },
+    { name = "openai", marker = "extra == 'governed'", specifier = ">=1.6.0" },
+    { name = "prometheus-client", specifier = ">=0.19.0" },
+    { name = "pydantic", specifier = ">=2.0.0" },
+    { name = "pygments", marker = "extra == 'all'", specifier = ">=2.16.0" },
+    { name = "pygments", marker = "extra == 'governed'", specifier = ">=2.16.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
+    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0.0" },
+    { name = "python-multipart", marker = "extra == 'all'", specifier = ">=0.0.6" },
+    { name = "python-multipart", marker = "extra == 'api'", specifier = ">=0.0.6" },
+    { name = "pyyaml", marker = "extra == 'all'", specifier = ">=6.0.0" },
+    { name = "pyyaml", marker = "extra == 'yaml'", specifier = ">=6.0.0" },
+    { name = "redis", specifier = ">=5.0.0" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
+    { name = "sse-starlette", specifier = ">=1.8.2" },
+    { name = "starlette", specifier = ">=0.30.0" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.24.0" },
+    { name = "uvicorn", extras = ["standard"], marker = "extra == 'all'", specifier = ">=0.23.0" },
+    { name = "uvicorn", extras = ["standard"], marker = "extra == 'api'", specifier = ">=0.23.0" },
+]
+provides-extras = ["dev", "yaml", "api", "litellm", "governed", "all"]
+
+[[package]]
 name = "aiohappyeyeballs"
 version = "2.6.1"
 source = { registry = "https://pypi.org/simple" }
@@ -196,101 +297,6 @@ wheels = [
 ]
 
 [[package]]
-name = "arifos"
-version = "52.5.26"
-source = { editable = "." }
-dependencies = [
-    { name = "anyio" },
-    { name = "dspy" },
-    { name = "fastapi" },
-    { name = "fastmcp" },
-    { name = "mcp" },
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "numpy", version = "2.4.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "pydantic" },
-    { name = "sse-starlette" },
-    { name = "starlette" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-
-[package.optional-dependencies]
-all = [
-    { name = "fastapi" },
-    { name = "httpx" },
-    { name = "litellm" },
-    { name = "mcp" },
-    { name = "openai" },
-    { name = "pygments" },
-    { name = "python-multipart" },
-    { name = "pyyaml" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-api = [
-    { name = "fastapi" },
-    { name = "python-multipart" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-dev = [
-    { name = "black" },
-    { name = "httpx" },
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-]
-governed = [
-    { name = "httpx" },
-    { name = "litellm" },
-    { name = "openai" },
-    { name = "pygments" },
-]
-litellm = [
-    { name = "litellm" },
-]
-yaml = [
-    { name = "pyyaml" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "anyio", specifier = ">=4.0.0" },
-    { name = "black", marker = "extra == 'dev'", specifier = ">=23.0.0" },
-    { name = "dspy", specifier = ">=2.4.0" },
-    { name = "fastapi", specifier = ">=0.104.1" },
-    { name = "fastapi", marker = "extra == 'all'", specifier = ">=0.100.0" },
-    { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.100.0" },
-    { name = "fastmcp", specifier = ">=0.1.0" },
-    { name = "httpx", marker = "extra == 'all'", specifier = ">=0.28.0" },
-    { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.28.0" },
-    { name = "httpx", marker = "extra == 'governed'", specifier = ">=0.28.0" },
-    { name = "litellm", marker = "extra == 'all'", specifier = ">=1.0.0" },
-    { name = "litellm", marker = "extra == 'governed'", specifier = ">=1.0.0" },
-    { name = "litellm", marker = "extra == 'litellm'", specifier = ">=1.0.0" },
-    { name = "mcp", specifier = ">=1.0.0" },
-    { name = "mcp", marker = "extra == 'all'", specifier = ">=1.0.0" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0.0" },
-    { name = "numpy", specifier = ">=1.20.0" },
-    { name = "openai", marker = "extra == 'all'", specifier = ">=1.6.0" },
-    { name = "openai", marker = "extra == 'governed'", specifier = ">=1.6.0" },
-    { name = "pydantic", specifier = ">=2.0.0" },
-    { name = "pygments", marker = "extra == 'all'", specifier = ">=2.16.0" },
-    { name = "pygments", marker = "extra == 'governed'", specifier = ">=2.16.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0.0" },
-    { name = "python-multipart", marker = "extra == 'all'", specifier = ">=0.0.6" },
-    { name = "python-multipart", marker = "extra == 'api'", specifier = ">=0.0.6" },
-    { name = "pyyaml", marker = "extra == 'all'", specifier = ">=6.0.0" },
-    { name = "pyyaml", marker = "extra == 'yaml'", specifier = ">=6.0.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
-    { name = "sse-starlette", specifier = ">=1.8.2" },
-    { name = "starlette", specifier = ">=0.30.0" },
-    { name = "uvicorn", extras = ["standard"], specifier = ">=0.24.0" },
-    { name = "uvicorn", extras = ["standard"], marker = "extra == 'all'", specifier = ">=0.23.0" },
-    { name = "uvicorn", extras = ["standard"], marker = "extra == 'api'", specifier = ">=0.23.0" },
-]
-provides-extras = ["dev", "yaml", "api", "litellm", "governed", "all"]
-
-[[package]]
 name = "async-timeout"
 version = "5.0.1"
 source = { registry = "https://pypi.org/simple" }
@@ -348,6 +354,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/c7/94/1009e248bbfbab11397abca7193bea6626806be9a327d399810d523a07cb/beartype-0.22.9.tar.gz", hash = "sha256:8f82b54aa723a2848a56008d18875f91c1db02c32ef6a62319a002e3e25a975f", size = 1608866, upload-time = "2025-12-13T06:50:30.72Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/71/cc/18245721fa7747065ab478316c7fea7c74777d07f37ae60db2e84f8172e8/beartype-0.22.9-py3-none-any.whl", hash = "sha256:d16c9bbc61ea14637596c5f6fbff2ee99cbe3573e46a716401734ef50c3060c2", size = 1333658, upload-time = "2025-12-13T06:50:28.266Z" },
+]
+
+[[package]]
+name = "beautifulsoup4"
+version = "4.14.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "soupsieve" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c3/b0/1c6a16426d389813b48d95e26898aff79abbde42ad353958ad95cc8c9b21/beautifulsoup4-4.14.3.tar.gz", hash = "sha256:6292b1c5186d356bba669ef9f7f051757099565ad9ada5dd630bd9de5fa7fb86", size = 627737, upload-time = "2025-11-30T15:08:26.084Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1a/39/47f9197bdd44df24d67ac8893641e16f386c984a0619ef2ee4c51fbbc019/beautifulsoup4-4.14.3-py3-none-any.whl", hash = "sha256:0918bfe44902e6ad8d57732ba310582e98da931428d231a5ecb9e7c703a735bb", size = 107721, upload-time = "2025-11-30T15:08:24.087Z" },
 ]
 
 [[package]]
@@ -3504,6 +3523,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/e8/c4/ba2f8066cceb6f23394729afe52f3bf7adec04bf9ed2c820b39e19299111/sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88", size = 30594, upload-time = "2021-05-16T22:03:42.897Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/32/46/9cb0e58b2deb7f82b84065f37f3bffeb12413f947f9388e4cac22c4621ce/sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0", size = 29575, upload-time = "2021-05-16T22:03:41.177Z" },
+]
+
+[[package]]
+name = "soupsieve"
+version = "2.8.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/7b/ae/2d9c981590ed9999a0d91755b47fc74f74de286b0f5cee14c9269041e6c4/soupsieve-2.8.3.tar.gz", hash = "sha256:3267f1eeea4251fb42728b6dfb746edc9acaffc4a45b27e19450b676586e8349", size = 118627, upload-time = "2026-01-20T04:27:02.457Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/46/2c/1462b1d0a634697ae9e55b3cecdcb64788e8b7d63f54d923fcd0bb140aed/soupsieve-2.8.3-py3-none-any.whl", hash = "sha256:ed64f2ba4eebeab06cc4962affce381647455978ffc1e36bb79a545b91f45a95", size = 37016, upload-time = "2026-01-20T04:27:01.012Z" },
 ]
 
 [[package]]

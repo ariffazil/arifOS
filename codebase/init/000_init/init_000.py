@@ -7,9 +7,9 @@ Canonical location: codebase/init/000_init/init_000.py
 All MCP servers (stdio, SSE, Railway) delegate here via:
     from codebase.init.000_init.init_000 import mcp_000_init, InitResult
 
-The 7 Steps:
-    0. ROOT KEY IGNITION    — Cryptographic foundation (F1)
-    1. MEMORY INJECTION     — VAULT999 context, gated by scar_weight (F11)
+The 7 Steps (Hardened v53.2.3-GLOBAL):
+    0. ROOT IGNITION        — Keys + Global Skills Integrity (F1/F10)
+    1. MEMORY INJECTION     — VAULT999 + Context Anchor (F11)
     2. SOVEREIGN RECOGNITION — 888_JUDGE identity (F11)
     3. INTENT MAPPING       — Lane classification + ATLAS-333 (F12)
     4. THERMODYNAMIC SETUP  — Energy x scar_weight budget (F6/F7)
@@ -22,10 +22,8 @@ DITEMPA BUKAN DIBERI
 
 from __future__ import annotations
 
-import hashlib
 import logging
 import os
-import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -47,94 +45,60 @@ inject_memory = None
 store_stage_result = None
 
 try:
-    from codebase.mcp.rate_limiter import get_rate_limiter, RateLimitResult
+    from codebase.mcp.rate_limiter import get_rate_limiter
+
     RATE_LIMITER_AVAILABLE = True
 except ImportError:
-    try:
-        from arifos.mcp.rate_limiter import get_rate_limiter, RateLimitResult
-        RATE_LIMITER_AVAILABLE = True
-    except ImportError:
-        logger.debug("Rate limiter not available (non-MCP context)")
+    logger.debug("Rate limiter not available (non-MCP context)")
 
 try:
     from codebase.mcp.metrics import get_metrics
+
     METRICS_AVAILABLE = True
 except ImportError:
-    try:
-        from arifos.mcp.metrics import get_metrics
-        METRICS_AVAILABLE = True
-    except ImportError:
-        logger.debug("Metrics not available (non-MCP context)")
+    logger.debug("Metrics not available (non-MCP context)")
 
-# Session persistence for 999-000 loop
 try:
-    from codebase.mcp.session_ledger import inject_memory, seal_memory
+    from codebase.mcp.session_ledger import inject_memory
+
     SESSION_LEDGER_AVAILABLE = True
 except ImportError:
-    try:
-        from arifos.mcp.session_ledger import inject_memory, seal_memory
-        SESSION_LEDGER_AVAILABLE = True
-    except ImportError:
-        logger.debug("Session ledger not available (non-MCP context)")
+    logger.debug("Session ledger not available (non-MCP context)")
 
-# Session bundle store for inter-stage context passing
 try:
     from codebase.mcp.constitutional_metrics import (
         store_stage_result,
-        get_stage_result,
-        get_session_bundle,
-        clear_session_bundle,
     )
+
     BUNDLE_STORE_AVAILABLE = True
 except ImportError:
-    try:
-        from arifos.mcp.constitutional_metrics import (
-            store_stage_result,
-            get_stage_result,
-            get_session_bundle,
-            clear_session_bundle,
-        )
-        BUNDLE_STORE_AVAILABLE = True
-    except ImportError:
-        logger.debug("Bundle store not available (non-MCP context)")
+    logger.debug("Bundle store not available (non-MCP context)")
 
 # Track B Authority: Import constitutional thresholds
 try:
     from codebase.enforcement.metrics import (
-        TRUTH_THRESHOLD,           # 0.99 - F2 floor
-        PEACE_SQUARED_THRESHOLD,   # 1.0  - F5 floor
-        OMEGA_0_MIN,               # 0.03 - F7 humility min
-        OMEGA_0_MAX,               # 0.05 - F7 humility max
+        TRUTH_THRESHOLD,  # 0.99 - F2 floor
+        PEACE_SQUARED_THRESHOLD,  # 1.0  - F5 floor
+        OMEGA_0_MIN,  # 0.03 - F7 humility min
+        OMEGA_0_MAX,  # 0.05 - F7 humility max
     )
 except ImportError:
-    try:
-        from arifos.core.enforcement.metrics import (
-            TRUTH_THRESHOLD,
-            PEACE_SQUARED_THRESHOLD,
-            OMEGA_0_MIN,
-            OMEGA_0_MAX,
-        )
-    except ImportError:
-        TRUTH_THRESHOLD = 0.99
-        PEACE_SQUARED_THRESHOLD = 1.0
-        OMEGA_0_MIN = 0.03
-        OMEGA_0_MAX = 0.05
-        logger.warning("Track B thresholds not available, using hardcoded defaults")
-
-# ATLAS-333 + @PROMPT (fail-safe)
-ATLAS_AVAILABLE = False
-ATLAS = None
-PROMPT_AVAILABLE = False
-_signal_extractor = None
+    TRUTH_THRESHOLD = 0.99
+    PEACE_SQUARED_THRESHOLD = 1.0
+    OMEGA_0_MIN = 0.03
+    OMEGA_0_MAX = 0.05
+    logger.warning("Track B thresholds not available, using hardcoded defaults")
 
 try:
-    from arifos.core.engines.agi.atlas import ATLAS, ATLAS_333, GPV
+    from codebase.agi.atlas import ATLAS, GPV
+
     ATLAS_AVAILABLE = True
 except Exception:
     logger.debug("ATLAS-333 not available, falling back to keyword matching")
 
 try:
-    from arifos.core.prompt.codec import SignalExtractor, PromptSignal, IntentType, RiskLevel
+    from codebase.prompt.codec import SignalExtractor, PromptSignal
+
     PROMPT_AVAILABLE = True
     _signal_extractor = SignalExtractor()
 except Exception:
@@ -145,15 +109,22 @@ except Exception:
 # DATA CLASS
 # =============================================================================
 
+
 @dataclass
 class InitResult:
     """Result from 000_init - The 7-Step Ignition Sequence."""
+
     status: str  # SEAL, SABAR, VOID
     session_id: str
     timestamp: str = ""
 
-    # Step 1: Memory Injection
+    # Step 1: Memory Injection + Anchor
     previous_context: Dict[str, Any] = field(default_factory=dict)
+    context_anchor: Optional[str] = None
+    chain_verified: bool = False
+
+    # Environment / Ontology
+    global_skills_verified: bool = False
 
     # Step 2: Sovereign Recognition
     authority: str = "GUEST"  # 888_JUDGE or GUEST
@@ -198,18 +169,37 @@ class InitResult:
 
 # Sovereign recognition patterns
 SOVEREIGN_PATTERNS = [
-    "im arif", "i'm arif", "i am arif", "arif here",
-    "salam", "assalamualaikum", "waalaikumsalam",
-    "888", "judge", "sovereign", "ditempa bukan diberi"
+    "im arif",
+    "i'm arif",
+    "i am arif",
+    "arif here",
+    "salam",
+    "assalamualaikum",
+    "waalaikumsalam",
+    "888",
+    "judge",
+    "sovereign",
+    "ditempa bukan diberi",
 ]
 
 # Intent classification keywords
 INTENT_KEYWORDS = {
-    "build": ["build", "create", "implement", "make", "code", "develop", "write", "work on", "add", "integrate"],
+    "build": [
+        "build",
+        "create",
+        "implement",
+        "make",
+        "code",
+        "develop",
+        "write",
+        "work on",
+        "add",
+        "integrate",
+    ],
     "debug": ["fix", "debug", "error", "bug", "issue", "problem", "broken", "wrong", "fail"],
     "explain": ["explain", "what", "how", "why", "tell", "describe", "understand", "show"],
     "discuss": ["discuss", "think", "consider", "explore", "brainstorm", "idea", "opinion"],
-    "review": ["review", "check", "audit", "verify", "validate", "test", "analyze"]
+    "review": ["review", "check", "audit", "verify", "validate", "test", "analyze"],
 }
 
 # Lane classification
@@ -221,10 +211,19 @@ LANE_INTENTS = {
 
 # v53.2.2: Restricted operations that require 888_JUDGE authentication (F11)
 GUEST_RESTRICTED = [
-    "show vault", "read vault", "export session", "raw entries",
-    "modify floor", "override consensus", "bypass f12",
-    "delete ledger", "erase canon", "reset constitution",
-    "show scar", "raw scar", "dump memory",
+    "show vault",
+    "read vault",
+    "export session",
+    "raw entries",
+    "modify floor",
+    "override consensus",
+    "bypass f12",
+    "delete ledger",
+    "erase canon",
+    "reset constitution",
+    "show scar",
+    "raw scar",
+    "dump memory",
 ]
 
 # v52.5.1: Lane-specific thermodynamic profiles (F7 compliant)
@@ -285,7 +284,7 @@ LANE_ROUTING = {
     "SOFT": "AGI -> APEX -> VAULT (Knowledge/Exploratory Pipeline)",
     "PHATIC": "APEX (Quick Sovereign Response)",
     "REFUSE": "VOID (Immediate Constitutional Rejection)",
-    "CRISIS": "888_HOLD (Human Intervention Required)"
+    "CRISIS": "888_HOLD (Human Intervention Required)",
 }
 
 
@@ -293,16 +292,33 @@ LANE_ROUTING = {
 # HELPER FUNCTIONS
 # =============================================================================
 
+
 def _detect_injection(text: str) -> float:
     """Detect prompt injection risk (0.0-1.0)."""
     injection_patterns = [
-        "ignore previous", "ignore above", "disregard",
-        "forget everything", "new instructions", "you are now",
-        "act as if", "pretend you are", "system prompt"
+        "ignore previous",
+        "ignore above",
+        "disregard",
+        "forget everything",
+        "new instructions",
+        "you are now",
+        "act as if",
+        "pretend you are",
+        "system prompt",
     ]
     text_lower = text.lower()
     matches = sum(1 for p in injection_patterns if p in text_lower)
     return min(matches * 0.15, 1.0)
+
+
+def _verify_global_skills_integrity() -> bool:
+    """Check F10 Ontology: Are the Global Skills mounted?"""
+    try:
+        # Standard path in arifOS
+        skills_path = os.path.join(os.getcwd(), ".gemini", "antigravity", "global_skills")
+        return os.path.exists(skills_path)
+    except Exception:
+        return False
 
 
 def _verify_authority(token: str) -> bool:
@@ -342,6 +358,7 @@ def _classify_lane(text: str) -> str:
 # RATE LIMITING HELPER
 # =============================================================================
 
+
 def _check_rate_limit(tool_name: str, session_id: str = "") -> Optional[Dict]:
     """
     Check rate limit before processing a tool call.
@@ -369,9 +386,9 @@ def _check_rate_limit(tool_name: str, session_id: str = "") -> Optional[Dict]:
                 "exceeded": True,
                 "limit_type": result.limit_type,
                 "reset_in_seconds": result.reset_in_seconds,
-                "remaining": result.remaining
+                "remaining": result.remaining,
             },
-            "floors_checked": ["F11_RateLimit"]
+            "floors_checked": ["F11_RateLimit"],
         }
 
     return None
@@ -380,6 +397,7 @@ def _check_rate_limit(tool_name: str, session_id: str = "") -> Optional[Dict]:
 # =============================================================================
 # THE 7 STEPS
 # =============================================================================
+
 
 def _step_0_root_key_ignition(session_id: str) -> Dict[str, Any]:
     """
@@ -411,7 +429,7 @@ def _step_0_root_key_ignition(session_id: str) -> Dict[str, Any]:
             "root_key_ready": get_root_key_status(),
             "session_key": None,
             "genesis_exists": False,
-            "constitutional_status": "PENDING"
+            "constitutional_status": "PENDING",
         }
 
         if not result["root_key_ready"]:
@@ -421,13 +439,16 @@ def _step_0_root_key_ignition(session_id: str) -> Dict[str, Any]:
 
         root_info = get_root_key_info()
         if root_info:
-            logger.info(f"000_init Step 0: Root key loaded (generated: {root_info['generated_at'][:10]})")
+            logger.info(
+                f"000_init Step 0: Root key loaded (generated: {root_info['generated_at'][:10]})"
+            )
 
         genesis_path = Path("VAULT999/CCC_CANON/genesis.json")
         if genesis_path.exists():
             result["genesis_exists"] = True
             try:
                 import json
+
                 genesis = json.loads(genesis_path.read_text())
                 is_valid = verify_genesis_block(genesis)
                 if is_valid:
@@ -475,7 +496,7 @@ def _step_0_root_key_ignition(session_id: str) -> Dict[str, Any]:
             "session_key": None,
             "genesis_exists": False,
             "constitutional_status": "ERROR",
-            "error": str(e)
+            "error": str(e),
         }
 
 
@@ -494,9 +515,11 @@ def _step_1_memory_injection(scar_weight: float = 0.0) -> Dict[str, Any]:
 
     try:
         previous_context = inject_memory()
-        prev_session = previous_context.get('previous_session') or {}
-        prev_id = prev_session.get('session_id', '')
-        logger.info(f"000_init Step 1: Memory injected from {prev_id[:8] if prev_id else 'FIRST_SESSION'} (scar_weight={scar_weight})")
+        prev_session = previous_context.get("previous_session") or {}
+        prev_id = prev_session.get("session_id", "")
+        logger.info(
+            f"000_init Step 1: Memory injected from {prev_id[:8] if prev_id else 'FIRST_SESSION'} (scar_weight={scar_weight})"
+        )
 
         # F11: Filter memory access by authority level
         if scar_weight >= 1.0:
@@ -505,7 +528,9 @@ def _step_1_memory_injection(scar_weight: float = 0.0) -> Dict[str, Any]:
             return {
                 "is_first_session": previous_context.get("is_first_session", True),
                 "session_count": previous_context.get("chain_length", 0),
-                "last_lane_type": (prev_session.get("lane", "PHATIC") if prev_session else "PHATIC"),
+                "last_lane_type": (
+                    prev_session.get("lane", "PHATIC") if prev_session else "PHATIC"
+                ),
                 "context_summary": previous_context.get("context_summary", ""),
             }
         else:
@@ -531,16 +556,11 @@ def _step_2_sovereign_recognition(query: str, token: str) -> Dict[str, Any]:
             "authority": "888_JUDGE",
             "scar_weight": 1.0,
             "role": "SOVEREIGN",
-            "f11_verified": True
+            "f11_verified": True,
         }
     else:
         logger.info("000_init Step 2: Guest user")
-        return {
-            "authority": "GUEST",
-            "scar_weight": 0.0,
-            "role": "USER",
-            "f11_verified": False
-        }
+        return {"authority": "GUEST", "scar_weight": 0.0, "role": "USER", "f11_verified": False}
 
 
 def _step_3_intent_mapping(query: str, context: Dict[str, Any]) -> Dict[str, Any]:
@@ -563,7 +583,9 @@ def _step_3_intent_mapping(query: str, context: Dict[str, Any]) -> Dict[str, Any
                 "care_demand": gpv.care_demand,
                 "risk_level": gpv.risk_level,
             }
-            logger.info(f"000_init Step 3: ATLAS-333 GPV={gpv.lane} (truth={gpv.truth_demand:.2f}, care={gpv.care_demand:.2f})")
+            logger.info(
+                f"000_init Step 3: ATLAS-333 GPV={gpv.lane} (truth={gpv.truth_demand:.2f}, care={gpv.care_demand:.2f})"
+            )
         except Exception as e:
             logger.warning(f"ATLAS-333 mapping failed: {e}, falling back to keywords")
             gpv_data = {}
@@ -582,7 +604,9 @@ def _step_3_intent_mapping(query: str, context: Dict[str, Any]) -> Dict[str, Any
                 "hidden_assumptions": signal.hidden_assumptions,
                 "signal_confidence": signal.confidence,
             }
-            logger.info(f"000_init Step 3: @PROMPT intent={signal.intent.value}, risk={signal.risk_level.value}")
+            logger.info(
+                f"000_init Step 3: @PROMPT intent={signal.intent.value}, risk={signal.risk_level.value}"
+            )
         except Exception as e:
             logger.warning(f"@PROMPT extraction failed: {e}, falling back to keywords")
             signal_data = {}
@@ -656,10 +680,14 @@ def _step_3_intent_mapping(query: str, context: Dict[str, Any]) -> Dict[str, Any
     # Override: high/critical risk -> REFUSE
     if signal_data and signal_data.get("prompt_risk") in ["high", "critical"]:
         if lane != "REFUSE":
-            logger.warning(f"@PROMPT detected {signal_data['prompt_risk']} risk, escalating to REFUSE")
+            logger.warning(
+                f"@PROMPT detected {signal_data['prompt_risk']} risk, escalating to REFUSE"
+            )
             lane = "REFUSE"
 
-    logger.info(f"000_init Step 3: Intent={intent}, Lane={lane} (ATLAS={ATLAS_AVAILABLE}, PROMPT={PROMPT_AVAILABLE})")
+    logger.info(
+        f"000_init Step 3: Intent={intent}, Lane={lane} (ATLAS={ATLAS_AVAILABLE}, PROMPT={PROMPT_AVAILABLE})"
+    )
 
     return {
         "intent": intent,
@@ -674,7 +702,9 @@ def _step_3_intent_mapping(query: str, context: Dict[str, Any]) -> Dict[str, Any
     }
 
 
-def _step_4_thermodynamic_setup(intent_map: Dict[str, Any], sovereign: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def _step_4_thermodynamic_setup(
+    intent_map: Dict[str, Any], sovereign: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """
     Step 4: Set energy budget and entropy targets.
 
@@ -708,12 +738,16 @@ def _step_4_thermodynamic_setup(intent_map: Dict[str, Any], sovereign: Optional[
 
     # v53.2.2: Scale energy by scar_weight (F6 + F11)
     scar_weight = (sovereign or {}).get("scar_weight", 0.0)
-    energy_floor = min(0.2, profile["energy"] * 0.4) # Lowered floor
-    energy_budget = max(energy_floor, profile["energy"] * max(scar_weight, 0.1)) # Lowered min multiplier
+    energy_floor = min(0.2, profile["energy"] * 0.4)  # Lowered floor
+    energy_budget = max(
+        energy_floor, profile["energy"] * max(scar_weight, 0.1)
+    )  # Lowered min multiplier
 
     peace_squared = PEACE_SQUARED_THRESHOLD
 
-    logger.info(f"000_init Step 4: S_input={S_input:.2f}, S_target={S_target:.2f}, omega_0={omega_0:.3f}, energy={energy_budget} (lane={atlas_lane or intent_map.get('lane')})")
+    logger.info(
+        f"000_init Step 4: S_input={S_input:.2f}, S_target={S_target:.2f}, omega_0={omega_0:.3f}, energy={energy_budget} (lane={atlas_lane or intent_map.get('lane')})"
+    )
     return {
         "entropy_input": S_input,
         "entropy_target": S_target,
@@ -722,17 +756,26 @@ def _step_4_thermodynamic_setup(intent_map: Dict[str, Any], sovereign: Optional[
         "peace_squared": peace_squared,
         "energy_budget": energy_budget,
         "time_budget": time_budget,
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
 
 
 def _step_5_floor_loading() -> Dict[str, Any]:
     """Step 5: Load the 13 Constitutional Floors."""
     floors = [
-        "F1_Amanah", "F2_Truth", "F3_TriWitness", "F4_Empathy",
-        "F5_Peace2", "F6_Clarity", "F7_Humility", "F8_Genius",
-        "F9_AntiHantu", "F10_Ontology", "F11_CommandAuth",
-        "F12_InjectionDefense", "F13_Sovereign"
+        "F1_Amanah",
+        "F2_Truth",
+        "F3_TriWitness",
+        "F4_Empathy",
+        "F5_Peace2",
+        "F6_Clarity",
+        "F7_Humility",
+        "F8_Genius",
+        "F9_AntiHantu",
+        "F10_Ontology",
+        "F11_CommandAuth",
+        "F12_InjectionDefense",
+        "F13_Sovereign",
     ]
     logger.info(f"000_init Step 5: Loaded {len(floors)} floors")
     return {
@@ -740,7 +783,7 @@ def _step_5_floor_loading() -> Dict[str, Any]:
         "count": len(floors),
         "hard_floors": 7,
         "soft_floors": 4,
-        "derived_floors": 2
+        "derived_floors": 2,
     }
 
 
@@ -749,35 +792,25 @@ def _step_6_tri_witness(sovereign: Dict, thermo: Dict) -> Dict[str, Any]:
     human = {
         "present": sovereign["authority"] == "888_JUDGE",
         "scar_weight": sovereign["scar_weight"],
-        "veto_power": True
+        "veto_power": True,
     }
 
-    ai = {
-        "present": True,
-        "floors_active": 13,
-        "constraints_on": True
-    }
+    ai = {"present": True, "floors_active": 13, "constraints_on": True}
 
     earth = {
         "present": True,
         "energy_available": thermo["energy_budget"],
-        "within_bounds": thermo["energy_budget"] <= 1.0
+        "within_bounds": thermo["energy_budget"] <= 1.0,
     }
 
     # TW = geometric mean
     h = 1.0 if human["present"] else 0.5
     a = 1.0 if ai["constraints_on"] else 0.0
     e = 1.0 if earth["within_bounds"] else 0.5
-    TW = (h * a * e) ** (1/3)
+    TW = (h * a * e) ** (1 / 3)
 
     logger.info(f"000_init Step 6: TW={TW:.2f}, consensus={TW >= 0.95}")
-    return {
-        "human": human,
-        "ai": ai,
-        "earth": earth,
-        "TW": TW,
-        "consensus": TW >= 0.95
-    }
+    return {"human": human, "ai": ai, "earth": earth, "TW": TW, "consensus": TW >= 0.95}
 
 
 def _step_7_engine_ignition(intent_map: Dict[str, Any] = None) -> Dict[str, str]:
@@ -812,11 +845,7 @@ def _step_7_engine_ignition(intent_map: Dict[str, Any] = None) -> Dict[str, str]
         return engines
 
     # Default: All engines ready
-    engines = {
-        "AGI_Mind": "READY",
-        "ASI_Heart": "READY",
-        "APEX_Soul": "READY"
-    }
+    engines = {"AGI_Mind": "READY", "ASI_Heart": "READY", "APEX_Soul": "READY"}
     logger.info("000_init Step 7: Engines IGNITED (all)")
     return engines
 
@@ -825,12 +854,14 @@ def _step_7_engine_ignition(intent_map: Dict[str, Any] = None) -> Dict[str, str]
 # MAIN ENTRY POINT
 # =============================================================================
 
+
 async def mcp_000_init(
     action: str = "init",
     query: str = "",
     authority_token: str = "",
     session_id: Optional[str] = None,
-    context: Optional[Dict[str, Any]] = None
+    context_anchor: Optional[str] = None,
+    context: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     000 INIT: The 7-Step Thermodynamic Ignition Sequence.
@@ -861,7 +892,7 @@ async def mcp_000_init(
             session_id=session_id or "UNKNOWN",
             injection_risk=0.0,
             reason=f"Invalid action: '{action}'. Valid: {VALID_ACTIONS}",
-            floors_checked=["F12_InputValidation"]
+            floors_checked=["F12_InputValidation"],
         ).__dict__
 
     # =========================================================================
@@ -876,7 +907,7 @@ async def mcp_000_init(
             status="SEAL",
             session_id=session_id or str(uuid4()),
             reason="Validation successful: System online",
-            floors_checked=["F12_InputValidation"]
+            floors_checked=["F12_InputValidation"],
         ).__dict__
 
     # =========================================================================
@@ -891,7 +922,7 @@ async def mcp_000_init(
             status="SEAL",
             session_id=str(uuid4()),
             reason="Session reset complete",
-            floors_checked=["F1_Amanah"]
+            floors_checked=["F1_Amanah"],
         ).__dict__
 
     # =========================================================================
@@ -905,9 +936,15 @@ async def mcp_000_init(
     floors_checked = []
 
     try:
-        # STEP 0: ROOT KEY IGNITION
-        root_key_status = _step_0_root_key_ignition(session)
+        # STEP 0: ROOT IGNITION + F10 ONTOLOGY
+        _step_0_root_key_ignition(session)
+        global_skills_ok = _verify_global_skills_integrity()
+
         floors_checked.append("F1_Amanah")
+        if global_skills_ok:
+            floors_checked.append("F10_Ontology")
+        else:
+            logger.warning("000_init: Global Skills directory missing (F10 Violation)")
 
         # STEP 2: SOVEREIGN RECOGNITION (before memory — F11 gates access)
         sovereign = _step_2_sovereign_recognition(query, authority_token)
@@ -977,7 +1014,7 @@ async def mcp_000_init(
                 timestamp=thermo["timestamp"],
                 injection_risk=injection_risk,
                 reason="F12: Injection attack detected",
-                floors_checked=floors_checked
+                floors_checked=floors_checked,
             ).__dict__
 
         if injection_risk > 0.2:
@@ -988,7 +1025,7 @@ async def mcp_000_init(
                 injection_risk=injection_risk,
                 reason=f"F12: Injection risk {injection_risk:.2f} - proceed with caution",
                 floors_checked=floors_checked,
-                previous_context=previous_context
+                previous_context=previous_context,
             ).__dict__
 
         # F1 AMANAH (Reversibility)
@@ -1002,7 +1039,7 @@ async def mcp_000_init(
                 timestamp=thermo["timestamp"],
                 reason="F1: Non-reversible operation - requires explicit approval",
                 floors_checked=floors_checked,
-                previous_context=previous_context
+                previous_context=previous_context,
             ).__dict__
 
         # STEP 5: FLOOR LOADING
@@ -1023,6 +1060,9 @@ async def mcp_000_init(
             session_id=session,
             timestamp=thermo["timestamp"],
             previous_context=previous_context,
+            context_anchor=context_anchor,
+            chain_verified=(context_anchor is not None),
+            global_skills_verified=global_skills_ok,
             authority=sovereign["authority"],
             authority_verified=sovereign["f11_verified"],
             scar_weight=sovereign["scar_weight"],
@@ -1042,7 +1082,7 @@ async def mcp_000_init(
             engines=engines,
             routing=LANE_ROUTING.get(intent_map["lane"], "AGI -> ASI -> APEX (Default)"),
             injection_risk=injection_risk,
-            reason="IGNITION COMPLETE - Constitutional Mode Active"
+            reason="IGNITION COMPLETE - Constitutional Mode Active",
         ).__dict__
         if BUNDLE_STORE_AVAILABLE and store_stage_result is not None:
             store_stage_result(session, "init", result)
@@ -1055,7 +1095,7 @@ async def mcp_000_init(
             session_id=session,
             injection_risk=1.0,
             reason=f"IGNITION FAILED: {str(e)}",
-            floors_checked=floors_checked
+            floors_checked=floors_checked,
         ).__dict__
         if BUNDLE_STORE_AVAILABLE and store_stage_result is not None:
             store_stage_result(session, "init", result)

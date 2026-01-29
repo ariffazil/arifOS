@@ -30,6 +30,7 @@ from starlette.responses import StreamingResponse
 
 from mcp.server.fastmcp import FastMCP
 from starlette.responses import JSONResponse
+
 # Import Codebase Routers (Bridge) — v53.2.7 AAA 7-Core Architecture
 # INIT, AGI, ASI, APEX, VAULT, TRINITY, REALITY
 from codebase.mcp.bridge import (
@@ -44,6 +45,7 @@ from codebase.mcp.bridge import (
 from codebase.mcp.constitutional_metrics import get_full_metrics
 from codebase.mcp.rate_limiter import rate_limited
 from codebase.mcp import redis_client
+from codebase.mcp.maintenance import start_maintenance
 
 logger = logging.getLogger(__name__)
 
@@ -65,11 +67,15 @@ mcp = FastMCP(
 # --- TOOL 1: INIT ---
 # MCP Resource: Session setup, authority check, budget allocation
 
-@mcp.tool(name="_init_", description=(
-    "_init_: Session initialization, authority verification, and budget allocation. "
-    "Fail-closed access control and resource management. "
-    "MCP Resource primitive for governance grounding."
-))
+
+@mcp.tool(
+    name="_init_",
+    description=(
+        "_init_: Session initialization, authority verification, and budget allocation. "
+        "Fail-closed access control and resource management. "
+        "MCP Resource primitive for governance grounding."
+    ),
+)
 @rate_limited("_init_")
 async def tool_init(
     action: str = "init",
@@ -83,14 +89,19 @@ async def tool_init(
         action=action, query=query, session_id=session_id, user_token=user_token
     )
 
+
 # --- TOOL 2: AGI ---
 # MCP Tool: Deep reasoning, pattern recognition
 
-@mcp.tool(name="_agi_", description=(
-    "_agi_: Deep reasoning and pattern recognition (Mind Engine). "
-    "F2 Truth, F4 Clarity, F7 Humility enforcement. "
-    "MCP Tool primitive for analytical processing."
-))
+
+@mcp.tool(
+    name="_agi_",
+    description=(
+        "_agi_: Deep reasoning and pattern recognition (Mind Engine). "
+        "F2 Truth, F4 Clarity, F7 Humility enforcement. "
+        "MCP Tool primitive for analytical processing."
+    ),
+)
 @rate_limited("_agi_")
 async def tool_agi(
     action: str = "sense",
@@ -102,21 +113,24 @@ async def tool_agi(
     """Route reasoning tasks to AGI Mind Kernel."""
     # Allow loose input from ChatGPT
     if not query and "text" in kwargs:
-         query = kwargs.pop("text")
+        query = kwargs.pop("text")
     if context:
         kwargs["context"] = context
-    return await bridge_agi_router(
-        action=action, query=query, session_id=session_id, **kwargs
-    )
+    return await bridge_agi_router(action=action, query=query, session_id=session_id, **kwargs)
+
 
 # --- TOOL 3: _asi_ ---
 # MCP Tool: Safety, bias, empathy audit
 
-@mcp.tool(name="_asi_", description=(
-    "_asi_: Audit - Safety, bias, and empathy evaluation (Heart Engine). "
-    "F1 Amanah, F5 Peace, F6 Empathy enforcement. "
-    "MCP Tool primitive for ethical validation."
-))
+
+@mcp.tool(
+    name="_asi_",
+    description=(
+        "_asi_: Audit - Safety, bias, and empathy evaluation (Heart Engine). "
+        "F1 Amanah, F5 Peace, F6 Empathy enforcement. "
+        "MCP Tool primitive for ethical validation."
+    ),
+)
 @rate_limited("_asi_")
 async def tool_asi(
     action: str = "empathize",
@@ -130,8 +144,9 @@ async def tool_asi(
     """Route ethical tasks to ASI Heart Kernel."""
     # Allow loose input from ChatGPT
     if not query and "text" in kwargs:
-         query = kwargs.pop("text")
-         if not text: text = query
+        query = kwargs.pop("text")
+        if not text:
+            text = query
     if reasoning:
         kwargs["reasoning"] = reasoning
     if agi_context:
@@ -142,15 +157,20 @@ async def tool_asi(
         action=action, text=text, query=query, session_id=session_id, **kwargs
     )
 
+
 # --- TOOL 4: _apex_ ---
 # MCP Tool: Judicial consensus and verdict
 
-@mcp.tool(name="_apex_", description=(
-    "_apex_: Judge - Judicial consensus and verdict (Soul Engine). "
-    "F3 Consensus, F8 Tri-Witness, F9 Anti-Hantu, F10 Ontology. "
-    "Verdicts: SEAL, SABAR, VOID, PARTIAL, 888_HOLD. "
-    "MCP Tool primitive for final judgment."
-))
+
+@mcp.tool(
+    name="_apex_",
+    description=(
+        "_apex_: Judge - Judicial consensus and verdict (Soul Engine). "
+        "F3 Consensus, F8 Tri-Witness, F9 Anti-Hantu, F10 Ontology. "
+        "Verdicts: SEAL, SABAR, VOID, PARTIAL, 888_HOLD. "
+        "MCP Tool primitive for final judgment."
+    ),
+)
 @rate_limited("_apex_")
 async def tool_apex(
     action: str = "judge",
@@ -165,7 +185,7 @@ async def tool_apex(
     """Route judicial tasks to APEX Soul Kernel."""
     # Allow loose input from ChatGPT
     if not query and "text" in kwargs:
-         query = kwargs.pop("text")
+        query = kwargs.pop("text")
     if reasoning:
         kwargs["reasoning"] = reasoning
     if safety_evaluation:
@@ -173,19 +193,23 @@ async def tool_apex(
     if authority_check:
         kwargs["authority_check"] = authority_check
     return await bridge_apex_router(
-        action=action, query=query, response=response,
-        session_id=session_id, **kwargs
+        action=action, query=query, response=response, session_id=session_id, **kwargs
     )
+
 
 # --- TOOL 5: _vault_ ---
 # MCP Resource: Immutable ledger for audit trail
 
-@mcp.tool(name="_vault_", description=(
-    "_vault_: Seal - Immutable ledger for audit trail and governance artifacts. "
-    "F1 Amanah (audit), F8 Quality (tri-witness). "
-    "Merkle-tree sealed, cryptographically immutable. "
-    "MCP Resource primitive for provenance."
-))
+
+@mcp.tool(
+    name="_vault_",
+    description=(
+        "_vault_: Seal - Immutable ledger for audit trail and governance artifacts. "
+        "F1 Amanah (audit), F8 Quality (tri-witness). "
+        "Merkle-tree sealed, cryptographically immutable. "
+        "MCP Resource primitive for provenance."
+    ),
+)
 @rate_limited("_vault_")
 async def tool_vault(
     action: str = "seal",
@@ -200,7 +224,7 @@ async def tool_vault(
     """Route archival tasks to VAULT-999."""
     # Allow loose input
     if not query and "text" in kwargs:
-         query = kwargs.pop("text")
+        query = kwargs.pop("text")
     if target:
         kwargs["target"] = target
     if query:
@@ -213,14 +237,19 @@ async def tool_vault(
         action=action, session_id=session_id, verdict=verdict, **kwargs
     )
 
+
 # --- TOOL 6: _trinity_ ---
 # MCP Tool + Resource: Full metabolic loop
 
-@mcp.tool(name="_trinity_", description=(
-    "_trinity_: Orchestrate - Complete metabolic cycle AGI→ASI→APEX→VAULT. "
-    "Full constitutional governance cycle with all 13 floors. "
-    "Combines Tool (processing) + Resource (audit) primitives."
-))
+
+@mcp.tool(
+    name="_trinity_",
+    description=(
+        "_trinity_: Orchestrate - Complete metabolic cycle AGI→ASI→APEX→VAULT. "
+        "Full constitutional governance cycle with all 13 floors. "
+        "Combines Tool (processing) + Resource (audit) primitives."
+    ),
+)
 async def tool_trinity_loop(
     query: str,
     session_id: str = "",
@@ -232,44 +261,61 @@ async def tool_trinity_loop(
         session_id=session_id or None,
     )
 
+
 # --- TOOL 7: _reality_ ---
 
-@mcp.tool(name="_reality_", description=(
-    "_reality_: Ground - Fact-checking via external sources (Brave Search). "
-    "F7 (Humility) explicit disclosure of external data. "
-    "MCP Resource primitive for reality grounding."
-))
+
+@mcp.tool(
+    name="_reality_",
+    description=(
+        "_reality_: Ground - Fact-checking via external sources (Brave Search). "
+        "F7 (Humility) explicit disclosure of external data. "
+        "MCP Resource primitive for reality grounding."
+    ),
+)
 async def tool_reality(
     query: str,
     session_id: str = "",
     **kwargs,
 ) -> dict:
     """Reality grounding and factual verification."""
-    return await bridge_reality_check_router(
-        query=query, session_id=session_id
-    )
+    return await bridge_reality_check_router(query=query, session_id=session_id)
+
+
+# --- MAINTENANCE ---
+@mcp.on_startup
+async def on_startup():
+    """Start background maintenance tasks."""
+    start_maintenance()
+    logger.info("✅ All constitutional maintenance tasks initialized.")
+
 
 # =============================================================================
 # CUSTOM ENDPOINTS
 # =============================================================================
 
+
 @mcp.custom_route("/health", methods=["GET"])
 async def health_check(request):
     """Railway/Docker health check endpoint."""
-    return JSONResponse({
-        "status": "healthy",
-        "version": VERSION,
-        "mode": "CODEBASE",
-        "transport": "streamable-http",
-        "tools": 7,
-        "architecture": "AAA-7CORE-v53.2.7",
-        "redis": redis_client.health(),
-    })
+    return JSONResponse(
+        {
+            "status": "healthy",
+            "version": VERSION,
+            "mode": "CODEBASE",
+            "transport": "streamable-http",
+            "tools": 7,
+            "architecture": "AAA-7CORE-v53.2.7",
+            "redis": redis_client.health(),
+        }
+    )
+
 
 @mcp.custom_route("/metrics/json", methods=["GET"])
 async def metrics_endpoint(request):
     """Constitutional telemetry metrics."""
     return JSONResponse(get_full_metrics())
+
 
 @mcp.custom_route("/docs/{path:path}", methods=["GET", "POST", "HEAD", "OPTIONS"])
 async def docs_proxy(request: Request, path: str):
@@ -284,36 +330,34 @@ async def docs_proxy(request: Request, path: str):
     async with httpx.AsyncClient() as client:
         # Filter headers to prevent conflicts (e.g., host header)
         proxy_headers = {
-            k: v for k, v in request.headers.items() 
-            if k.lower() not in ("host", "content-length")
+            k: v for k, v in request.headers.items() if k.lower() not in ("host", "content-length")
         }
-        
+
         try:
             proxy_req = client.build_request(
-                request.method,
-                target_url,
-                headers=proxy_headers,
-                content=request.stream()
+                request.method, target_url, headers=proxy_headers, content=request.stream()
             )
             response = await client.send(proxy_req, stream=True)
-            
+
             return StreamingResponse(
                 response.aiter_raw(),
                 status_code=response.status_code,
                 headers=dict(response.headers),
-                background=None
+                background=None,
             )
         except Exception as e:
             logger.error(f"Docs Proxy Error: {e}")
             return JSONResponse({"error": "Documentation Gateway Unavailable"}, status_code=502)
 
+
 @mcp.custom_route("/arifos", methods=["GET"])
 async def arifos_framework_page(request):
     """Interactive Discovery Hub - Trinity Primary Color Edition."""
     from starlette.responses import HTMLResponse
+
     m = get_full_metrics()
-    version = m.get('version', VERSION)
-    
+    version = m.get("version", VERSION)
+
     return HTMLResponse(f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -515,11 +559,12 @@ async def arifos_framework_page(request):
     </html>
     """)
 
+
 @mcp.custom_route("/", methods=["GET"])
 async def personal_portfolio(request):
     """Muhammad Arif Fazil - Personal Portfolio."""
     from starlette.responses import HTMLResponse
-    
+
     return HTMLResponse("""
     <!DOCTYPE html>
     <html lang="en">
@@ -672,11 +717,12 @@ async def personal_portfolio(request):
     </html>
     """)
 
+
 @mcp.custom_route("/aaa", methods=["GET"])
 async def aaa_mcp_page(request):
     """AAA MCP Server - Constitutional AI Tools."""
     from starlette.responses import HTMLResponse
-    
+
     return HTMLResponse("""
     <!DOCTYPE html>
     <html lang="en">
@@ -771,16 +817,18 @@ async def aaa_mcp_page(request):
     </html>
     """)
 
+
 @mcp.custom_route("/dashboard", methods=["GET"])
 async def live_dashboard(request):
     """Trinity Monitor v53.2.7 — AAA 7-Core Architecture."""
     from starlette.responses import HTMLResponse
+
     m = get_full_metrics()
-    
-    active_count = m.get('active_sessions', 0)
-    verdicts_total = m.get('total_verdicts', 0)
-    rps = m.get('rps', 0.0)
-    
+
+    active_count = m.get("active_sessions", 0)
+    verdicts_total = m.get("total_verdicts", 0)
+    rps = m.get("rps", 0.0)
+
     return HTMLResponse(f"""
     <!DOCTYPE html>
     <html>
@@ -828,6 +876,7 @@ async def live_dashboard(request):
     </html>
     """)
 
+
 # =============================================================================
 # APP EXPORT — Streamable HTTP (with legacy SSE fallback)
 # =============================================================================
@@ -844,6 +893,7 @@ except AttributeError:
 # =============================================================================
 # ENTRY POINTS
 # =============================================================================
+
 
 def main():
     """

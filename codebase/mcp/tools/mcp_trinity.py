@@ -26,7 +26,7 @@ from codebase.mcp.bridge import (
     bridge_trinity_loop_router,
     bridge_context_docs_router,
     bridge_reality_check_router,
-    bridge_prompt_router
+    bridge_prompt_router,
 )
 
 logger = logging.getLogger(__name__)
@@ -54,12 +54,13 @@ __all__ = [
 # TOOL 2: AGI_GENIUS (Mind)
 # ============================================================================
 
+
 async def mcp_agi_genius(
     action: str = "full",
     query: str = "",
     session_id: Optional[str] = None,
     context: Optional[Dict[str, Any]] = None,
-    **kwargs
+    **kwargs,
 ) -> Dict[str, Any]:
     """
     AGI Genius: Mind Engine (Δ)
@@ -89,28 +90,21 @@ async def mcp_agi_genius(
     try:
         kernel = get_kernel_manager().get_agi()
 
-        result = await kernel.execute(action, {
-            "query": query,
-            "session_id": session_id,
-            "context": context or {},
-            **kwargs
-        })
+        result = await kernel.execute(
+            action, {"query": query, "session_id": session_id, "context": context or {}, **kwargs}
+        )
 
         return result
 
     except Exception as e:
         logger.error(f"[AGI_GENIUS] Error: {e}")
-        return {
-            "status": "VOID",
-            "verdict": "VOID",
-            "session_id": session_id,
-            "error": str(e)
-        }
+        return {"status": "VOID", "verdict": "VOID", "session_id": session_id, "error": str(e)}
 
 
 # ============================================================================
 # TOOL 3: ASI_ACT (Heart)
 # ============================================================================
+
 
 async def mcp_asi_act(
     action: str = "full",
@@ -118,7 +112,7 @@ async def mcp_asi_act(
     query: str = "",
     session_id: Optional[str] = None,
     context: Optional[Dict[str, Any]] = None,
-    **kwargs
+    **kwargs,
 ) -> Dict[str, Any]:
     """
     ASI Act: Heart Engine (Ω)
@@ -151,29 +145,28 @@ async def mcp_asi_act(
         # Support both 'text' and 'query' parameters
         input_text = text or query
 
-        result = await kernel.execute(action, {
-            "text": input_text,
-            "query": input_text,
-            "session_id": session_id,
-            "context": context or {},
-            **kwargs
-        })
+        result = await kernel.execute(
+            action,
+            {
+                "text": input_text,
+                "query": input_text,
+                "session_id": session_id,
+                "context": context or {},
+                **kwargs,
+            },
+        )
 
         return result
 
     except Exception as e:
         logger.error(f"[ASI_ACT] Error: {e}")
-        return {
-            "status": "VOID",
-            "verdict": "VOID",
-            "session_id": session_id,
-            "error": str(e)
-        }
+        return {"status": "VOID", "verdict": "VOID", "session_id": session_id, "error": str(e)}
 
 
 # ============================================================================
 # TOOL 4: APEX_JUDGE (Soul)
 # ============================================================================
+
 
 async def mcp_apex_judge(
     action: str = "full",
@@ -184,7 +177,7 @@ async def mcp_apex_judge(
     lane: str = "SOFT",
     agi_result: Optional[Dict[str, Any]] = None,
     asi_result: Optional[Dict[str, Any]] = None,
-    **kwargs
+    **kwargs,
 ) -> Dict[str, Any]:
     """
     APEX Judge: Soul Engine (Ψ)
@@ -216,33 +209,34 @@ async def mcp_apex_judge(
     try:
         kernel = get_kernel_manager().get_apex()
 
-        result = await kernel.execute(action, {
-            "query": query,
-            "response": response,
-            "draft": response,  # Alias
-            "session_id": session_id,
-            "user_id": user_id,
-            "lane": lane,
-            "agi_result": agi_result,
-            "asi_result": asi_result,
-            **kwargs
-        })
+        result = await kernel.execute(
+            action,
+            {
+                "query": query,
+                "response": response,
+                "draft": response,  # Alias
+                "session_id": session_id,
+                "user_id": user_id,
+                "lane": lane,
+                "agi_result": agi_result,
+                "asi_result": asi_result,
+                **kwargs,
+            },
+        )
 
-        return result
+        if isinstance(result, dict):
+            return result
+        return {"result": str(result), "status": "SEAL"}
 
     except Exception as e:
         logger.error(f"[APEX_JUDGE] Error: {e}")
-        return {
-            "status": "VOID",
-            "verdict": "VOID",
-            "session_id": session_id,
-            "error": str(e)
-        }
+        return {"status": "VOID", "verdict": "VOID", "session_id": session_id, "error": str(e)}
 
 
 # ============================================================================
 # TOOL 5: 999_VAULT (Seal)
 # ============================================================================
+
 
 async def mcp_999_vault(
     action: str = "seal",
@@ -253,7 +247,7 @@ async def mcp_999_vault(
     genius_result: Optional[Dict[str, Any]] = None,
     act_result: Optional[Dict[str, Any]] = None,
     judge_result: Optional[Dict[str, Any]] = None,
-    **kwargs
+    **kwargs,
 ) -> Dict[str, Any]:
     """
     VAULT 999: Immutable Seal
@@ -289,36 +283,33 @@ async def mcp_999_vault(
         if not verdict_struct.get("verdict"):
             verdict_struct["verdict"] = verdict
 
-        result = await kernel.execute(action, {
-            "session_id": session_id,
-            "verdict_struct": verdict_struct,
-            "init_result": init_result,
-            "agi_result": genius_result,
-            "asi_result": act_result,
-            "data": data,
-            **kwargs
-        })
+        result = await kernel.execute(
+            action,
+            {
+                "session_id": session_id,
+                "verdict_struct": verdict_struct,
+                "init_result": init_result,
+                "agi_result": genius_result,
+                "asi_result": act_result,
+                "data": data,
+                **kwargs,
+            },
+        )
 
         return result
 
     except Exception as e:
         logger.error(f"[VAULT_999] Error: {e}")
-        return {
-            "status": "ERROR",
-            "verdict": "VOID",
-            "session_id": session_id,
-            "error": str(e)
-        }
+        return {"status": "ERROR", "verdict": "VOID", "session_id": session_id, "error": str(e)}
 
 
 # ============================================================================
 # TOOL 6: TRINITY_LOOP (Full Cycle)
 # ============================================================================
 
+
 async def mcp_trinity_loop(
-    query: str = "",
-    session_id: Optional[str] = None,
-    **kwargs
+    query: str = "", session_id: Optional[str] = None, **kwargs
 ) -> Dict[str, Any]:
     """
     Trinity Loop: Complete AGI→ASI→APEX pipeline in one call.
@@ -335,10 +326,9 @@ async def mcp_trinity_loop(
 # TOOL 7: CONTEXT_DOCS (Technical Knowledge)
 # ============================================================================
 
+
 async def mcp_context_docs(
-    query: str = "",
-    session_id: Optional[str] = None,
-    **kwargs
+    query: str = "", session_id: Optional[str] = None, **kwargs
 ) -> Dict[str, Any]:
     """
     Context Docs: Query technical documentation (Context7).
@@ -355,10 +345,9 @@ async def mcp_context_docs(
 # TOOL 8: REALITY_CHECK (General Knowledge)
 # ============================================================================
 
+
 async def mcp_reality_check(
-    query: str = "",
-    session_id: Optional[str] = None,
-    **kwargs
+    query: str = "", session_id: Optional[str] = None, **kwargs
 ) -> Dict[str, Any]:
     """
     Reality Check: General reality grounding via Brave Search.
@@ -375,11 +364,8 @@ async def mcp_reality_check(
 # TOOL 9: PROMPT_CODEC (Intent Routing)
 # ============================================================================
 
-async def mcp_prompt_codec(
-    action: str = "route",
-    user_input: str = "",
-    **kwargs
-) -> Dict[str, Any]:
+
+async def mcp_prompt_codec(action: str = "route", user_input: str = "", **kwargs) -> Dict[str, Any]:
     """
     Prompt Codec: Encode/Decode arifOS prompts and route intents.
     Actions: route (select lane), encode (constitutionalize), decode (deconstruct).

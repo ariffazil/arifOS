@@ -30,6 +30,8 @@ from codebase.mcp.bridge import (
     bridge_vault_router,
     bridge_trinity_loop_router,
     bridge_reality_check_router,
+    bridge_asi_audit_router,
+    bridge_asi_stakeholder_router,
 )
 from codebase.mcp.rate_limiter import get_rate_limiter
 from codebase.mcp.mode_selector import get_mcp_mode, MCPMode
@@ -58,294 +60,115 @@ presenter = AAAMetabolizer()
 # =============================================================================
 
 TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
-    "_init_": {
-        "name": "_init_",
+    "_ignite_": {
+        "name": "_ignite_",
         "description": (
-            "Session startup, identity check, and budget allocation. "
-            "Call this FIRST before using any other tool. "
-            "It creates a governed session, verifies who is speaking, "
-            "checks for prompt injection attacks, sets access level, and allocates computational budget. "
-            "\n\nRules enforced: "
-            "(1) Identity must be verified — unknown users get limited access. "
-            "(2) Prompt injection patterns are blocked — attempts to override instructions are rejected. "
-            "(3) Every session gets a unique ID for audit tracking. "
-            "(4) Dangerous or irreversible requests are flagged before they can proceed. "
-            "(5) Computational budget is assigned based on authority level. "
-            "\n\nActions: "
-            "init — Start a new session (default). "
-            "gate — Run a safety checkpoint mid-session. "
-            "reset — End current session and clear state. "
-            "validate — Verify the session is still valid. "
-            "authorize — Confirm identity with a token."
+            "Session start & Authority verification [000-111]. "
+            "Authenticates the Sovereign (Arif) and initializes the metabolic loop. "
+            "Sets the constitutional boundaries for the current session."
         ),
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {
-                    "type": "string",
-                    "enum": ["init", "gate", "reset", "validate", "authorize"],
-                    "default": "init",
-                    "description": "Action primitive: init, gate, reset, validate, or authorize."
-                },
-                "query": {
-                    "type": "string",
-                    "description": "The user's greeting or initial message. Used to detect identity and intent."
-                },
-                "session_id": {
-                    "type": "string",
-                    "description": "Existing session ID. Required for gate, reset, and validate actions."
-                },
-                "user_token": {
-                    "type": "string",
-                    "description": "Identity token for the authorize action. Proves who is speaking."
-                }
-            }
-        }
-    },
-    "_agi_": {
-        "name": "_agi_",
-        "description": (
-            "Deep reasoning and pattern recognition (Mind Engine). "
-            "Handles logic, analysis, knowledge retrieval (including Context7), and content creation. "
-            "\n\nRules enforced: "
-            "(1) Every claim must be factually accurate. "
-            "(2) Clarity is mandatory (ΔS). "
-            "(3) Uncertainty must be stated honestly (Ω₀). "
-            "\n\nActions: "
-            "sense — Perceive and parse input. "
-            "think — Deep deliberation. "
-            "reflect — Meta-cognition check. "
-            "reason — Step-by-step logic. "
-            "atlas — Knowledge mapping (includes docs). "
-            "forge — Solve or create content. "
-            "full — Run complete pipeline. "
-            "physics — Apply rule-checking."
-        ),
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "action": {
-                    "type": "string",
-                    "enum": ["sense", "think", "reflect", "reason", "atlas", "forge", "full", "physics"],
-                    "description": "Which thinking step to run."
-                },
-                "query": {
-                    "type": "string",
-                    "description": "The question or topic to process."
-                },
-                "session_id": {
-                    "type": "string",
-                    "description": "Session ID from _init_."
-                },
-                "context": {
-                    "type": "object",
-                    "description": "Extra context for reasoning."
-                }
+                "query": {"type": "string", "description": "Initial greeting or task."},
+                "user_token": {"type": "string"},
             },
-            "required": ["action"]
-        }
+        },
     },
-    "_asi_": {
-        "name": "_asi_",
+    "_logic_": {
+        "name": "_logic_",
         "description": (
-            "Safety, bias, and empathy audit (Heart Engine). "
-            "Evaluates whether an action is safe, fair, and reversible. "
-            "\n\nRules enforced: "
-            "(1) Actions must be reversible. "
-            "(2) The weakest stakeholder must be protected. "
-            "(3) No deceptive cleverness (F9 Anti-Hantu). "
-            "\n\nActions: "
-            "evidence — Gather facts. "
-            "empathize — Impact assessment. "
-            "evaluate — Safety check. "
-            "act — Execute approved action. "
-            "witness — Record audit event. "
-            "stakeholder — Deep analysis. "
-            "diffusion — Impact propagation. "
-            "audit — Compliance review. "
-            "full — Run complete pipeline."
+            "Deep Logical Reasoning & Sequential Thinking (Δ Mind). "
+            "Uses chain-of-thought to reduce cognitive entropy. "
+            "Enforces F2 (Truth) and F4 (Clarity)."
         ),
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {
-                    "type": "string",
-                    "enum": ["evidence", "empathize", "evaluate", "act", "witness", "stakeholder", "diffusion", "audit", "full"],
-                    "description": "Which safety step to run."
-                },
-                "text": {
-                    "type": "string",
-                    "description": "The text or content to evaluate."
-                },
-                "query": {
-                    "type": "string",
-                    "description": "The context or action."
-                },
-                "session_id": {
-                    "type": "string",
-                    "description": "Session ID from _init_."
-                },
-                "reasoning": {
-                    "type": "string",
-                    "description": "Stakeholder reasoning for evaluation."
-                },
-                "agi_context": {
-                    "type": "object",
-                    "description": "AGI output for evaluation chaining."
-                }
+                "query": {"type": "string", "description": "Topic to analyze."},
+                "session_id": {"type": "string"},
             },
-            "required": ["action"]
-        }
+            "required": ["query"],
+        },
     },
-    "_apex_": {
-        "name": "_apex_",
+    "_senses_": {
+        "name": "_senses_",
         "description": (
-            "Judicial consensus and final verdict (Soul Engine). "
-            "The final approval or rejection decision after AGI and ASI have completed. "
-            "\n\nVerdicts: "
-            "SEAL — Approved. All checks passed. "
-            "PARTIAL — Approved with warnings. "
-            "VOID — Rejected. Rule broken. "
-            "888_HOLD — Paused for review. "
-            "SABAR — Stopped for violation. "
-            "\n\nActions: "
-            "eureka — Combined insight. "
-            "judge — Evaluate response. "
-            "decide — Synthesize final verdict. "
-            "proof — Generate evidence. "
-            "entropy — Measure clarity gain. "
-            "full — Run complete pipeline."
+            "External Reality Grounding (Brave/Perplexity). "
+            "Fetches real-time data to verify internal logic against the outside world. "
+            "Honors F7 Humility by citing sources explicitly."
         ),
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {
-                    "type": "string",
-                    "enum": ["eureka", "judge", "decide", "proof", "entropy", "full"],
-                    "description": "Which judgment step to run."
-                },
-                "verdict": {
-                    "type": "string",
-                    "enum": ["SEAL", "PARTIAL", "SABAR", "VOID", "888_HOLD"],
-                    "description": "The proposed constitutional verdict."
-                },
-                "query": {
-                    "type": "string",
-                    "description": "The original request."
-                },
-                "response": {
-                    "type": "string",
-                    "description": "The proposed output."
-                },
-                "session_id": {
-                    "type": "string",
-                    "description": "Session ID from _init_."
-                },
-                "reasoning": {
-                    "type": "string",
-                    "description": "Verbal reasoning for decision."
-                },
-                "safety_evaluation": {
-                    "type": "object",
-                    "description": "ASI evaluation context."
-                }
+                "query": {"type": "string", "description": "Search query."},
+                "session_id": {"type": "string"},
             },
-            "required": ["action"]
-        }
+            "required": ["query"],
+        },
     },
-    "_vault_": {
-        "name": "_vault_",
+    "_atlas_": {
+        "name": "_atlas_",
         "description": (
-            "Immutable ledger and audit trail (Resources). "
-            "Permanent storage in tamper-proof log (Merkle-tree sealed). "
-            "\n\nRules enforced: "
-            "(1) Significant decisions are recorded. "
-            "(2) Records are permanent. "
-            "(3) Provable audit chain (F1 Amanah). "
-            "\n\nActions: "
-            "seal — Permanently record decision. "
-            "list — Enumerate artifacts. "
-            "read — Retrieve record. "
-            "write — Create draft artifact. "
-            "propose — Suggest rule change."
+            "Knowledge Mapping & Repository Topology. "
+            "Visualizes the connections within the codebase and documentation. "
+            "Maintains the Context7 epistemic atlas."
         ),
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {
-                    "type": "string",
-                    "enum": ["seal", "list", "read", "write", "propose"],
-                    "description": "Archival action."
-                },
-                "session_id": {
-                    "type": "string",
-                    "description": "Session ID from _init_."
-                },
-                "verdict": {
-                    "type": "string",
-                    "description": "Verdict to seal."
-                },
-                "target": {
-                    "type": "string",
-                    "enum": ["seal", "ledger", "canon", "fag", "tempa", "phoenix", "audit"],
-                    "description": "Vault destination."
-                },
-                "decision_data": {
-                    "type": "object",
-                    "description": "Complete proof payload for sealing."
-                }
+                "query": {"type": "string", "description": "Area of repo to map."},
+                "session_id": {"type": "string"},
             },
-            "required": ["action"]
-        }
+        },
     },
-    "_trinity_": {
-        "name": "_trinity_",
+    "_forge_": {
+        "name": "_forge_",
         "description": (
-            "Full metabolic loop AGI→ASI→APEX→VAULT (Tools + Resources). "
-            "Runs the complete constitutional cycle in a single call. "
-            "\n\nStructure: "
-            "(1) AGI Reason. (2) ASI Evaluate. (3) APEX Judge. (4) VAULT Record. "
-            "\n\nRules: All 13 floors strictly enforced. Strictly governed path."
+            "Structural Synthesis & Code Generation. "
+            "The Architect's hands. Creates artifacts, modifies code, and builds systems. "
+            "Strictly TDD-compliant."
         ),
         "inputSchema": {
             "type": "object",
             "properties": {
-                "query": {
-                    "type": "string",
-                    "description": "The request to process through the full pipeline."
-                },
-                "session_id": {
-                    "type": "string",
-                    "description": "Session ID from _init_."
-                }
+                "task": {"type": "string", "description": "Feature to build or bug to fix."},
+                "session_id": {"type": "string"},
             },
-            "required": ["query"]
-        }
+            "required": ["task"],
+        },
     },
-    "_reality_": {
-        "name": "_reality_",
+    "_audit_": {
+        "name": "_audit_",
         "description": (
-            "Fact-checking via external sources (Brave Search / Grounding). "
-            "Live internet fact-check with F7 Humility disclosure. "
-            "\n\nRules: "
-            "(1) Data labeled as external. "
-            "(2) Sources cited. "
-            "(3) Honestly state when results are uncertain."
+            "Constitutional Compliance Scan (Ω Heart). "
+            "Scans proposals for bias, safety risks, and floor violations. "
+            "The pre-Witness self-check for the Architect."
         ),
         "inputSchema": {
             "type": "object",
             "properties": {
-                "query": {
-                    "type": "string",
-                    "description": "Question requiring external verification."
-                },
-                "session_id": {
-                    "type": "string",
-                    "description": "Session ID from _init_."
-                }
+                "proposal": {"type": "string", "description": "Action to audit."},
+                "session_id": {"type": "string"},
             },
-            "required": ["query"]
-        }
+            "required": ["proposal"],
+        },
+    },
+    "_decree_": {
+        "name": "_decree_",
+        "description": (
+            "Final Judgment & Immutable Sealing [888-999]. "
+            "Collapses the wave function of decision into a SEALED verdict. "
+            "Records the event in the VAULT-999 Ledger."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "verdict_data": {"type": "object", "description": "The consensus payload."},
+                "session_id": {"type": "string"},
+            },
+            "required": ["verdict_data"],
+        },
     },
 }
 
@@ -354,33 +177,32 @@ TOOL_DESCRIPTIONS: Dict[str, Dict[str, Any]] = {
 # =============================================================================
 
 TOOL_ROUTERS = {
-    "_init_": bridge_init_router,
-    "_agi_": bridge_agi_router,
-    "_asi_": bridge_asi_router,
-    "_apex_": bridge_apex_router,
-    "_vault_": bridge_vault_router,
-    "_trinity_": bridge_trinity_loop_router,
-    "_reality_": bridge_reality_check_router,
+    "_ignite_": bridge_init_router,
+    "_logic_": bridge_agi_router,
+    "_senses_": bridge_reality_check_router,
+    "_atlas_": bridge_agi_router,
+    "_forge_": bridge_agi_router,
+    "_audit_": bridge_asi_audit_router,
+    "_decree_": bridge_apex_router,
 }
 
 # =============================================================================
 # SERVER FACTORY
 # =============================================================================
 
+
 def create_mcp_server(mode: Optional[MCPMode] = None) -> Server:
     """Create mode-aware arifOS MCP server."""
     if mode is None:
         mode = get_mcp_mode()
-    
+
     server = Server(f"AAA-MCP-CODEBASE-{mode.value}")
 
     @server.list_tools()
     async def list_tools() -> list[mcp.types.Tool]:
         return [
             mcp.types.Tool(
-                name=name,
-                description=desc["description"],
-                inputSchema=desc["inputSchema"]
+                name=name, description=desc["description"], inputSchema=desc["inputSchema"]
             )
             for name, desc in TOOL_DESCRIPTIONS.items()
         ]
@@ -395,63 +217,80 @@ def create_mcp_server(mode: Optional[MCPMode] = None) -> Server:
         session_id = arguments.get("session_id", "anonymous")
         limiter = get_rate_limiter()
         rate_result = limiter.check(name, session_id)
-        
+
         if not rate_result.allowed:
-            return [mcp.types.TextContent(
-                type="text", 
-                text=f"VOID: Rate limit exceeded ({rate_result.reason})"
-            )]
+            return [
+                mcp.types.TextContent(
+                    type="text", text=f"VOID: Rate limit exceeded ({rate_result.reason})"
+                )
+            ]
 
         start = time.time()
         try:
-            if name in ["_trinity_", "_reality_"]:
-                # These tools don't use action pattern - direct kwargs
+            if name == "_ignite_":
+                result = await router(action="init", **arguments)
+            elif name == "_logic_":
+                result = await router(action="think", **arguments)
+            elif name == "_senses_":
                 result = await router(**arguments)
+            elif name == "_atlas_":
+                result = await router(action="atlas", **arguments)
+            elif name == "_forge_":
+                result = await router(action="forge", query=arguments.get("task"), **arguments)
+            elif name == "_audit_":
+                result = await router(text=arguments.get("proposal"), **arguments)
+            elif name == "_decree_":
+                result = await router(action="full", **arguments)
             else:
-                # Standard tools use action pattern
+                # Fallback for dynamic tools
                 action = arguments.pop("action", "full")
                 result = await router(action=action, **arguments)
-            
+
             duration = time.time() - start
             duration_ms = duration * 1000
-            
+
             record_verdict(
                 tool=name,
                 verdict=result.get("verdict", "UNKNOWN"),
                 duration=duration,
-                mode=mode.value
+                mode=mode.value,
             )
-            
+
             record_stage_metrics(name, duration_ms)
             record_verdict_metrics(result.get("verdict", "UNKNOWN"))
-            
+
             formatted_text = presenter.process(result)
             return [mcp.types.TextContent(type="text", text=formatted_text)]
-            
+
         except Exception as e:
             logger.error(f"Execution error in {name}: {e}")
             return [mcp.types.TextContent(type="text", text=f"ERROR: {str(e)}")]
 
     return server
 
+
 # =============================================================================
 # ENTRY POINTS
 # =============================================================================
+
 
 async def main_stdio():
     """Run standard stdio server."""
     mode = get_mcp_mode()
     print(f"[BOOT] Codebase MCP v53.1.0 starting in {mode.value} mode", file=sys.stderr)
     print("[PHYSICS] Constitutional Engines Loaded: AGI, ASI, APEX", file=sys.stderr)
-    
+
     async with stdio_server() as (read_stream, write_stream):
         server = create_mcp_server(mode)
         await server.run(read_stream, write_stream, server.create_initialization_options())
 
+
 def main():
     """Entry point for console_scripts."""
     import asyncio
+
     asyncio.run(main_stdio())
+
 
 if __name__ == "__main__":
     main()
