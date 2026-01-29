@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 7-Tool Integration Test
-Tests all MCP tools in sequence: _ignite_ → _logic_ → _senses_ → _atlas_ → _forge_ → _audit_ → _decree_
+Tests all MCP tools in sequence: _ignite_ -> _logic_ -> _senses_ -> _atlas_ -> _forge_ -> _audit_ -> _decree_
 
 v53.2.9-AAA9
 """
@@ -68,7 +68,7 @@ async def test_all_tools():
         result = await mcp_000_init(
             action="init",
             query="Test all constitutional tools",
-            user_token="arif_sovereign"
+            authority_token="arif_sovereign"
         )
         print_result("_ignite_", result)
 
@@ -85,7 +85,7 @@ async def test_all_tools():
     # =========================================================================
     # TEST 2: _logic_ (Deep Reasoning)
     # =========================================================================
-    print("\n[2/7] Testing _logic_ (AGI Mind - Δ)")
+    print("\n[2/7] Testing _logic_ (AGI Mind - Delta)")
     print("Purpose: Deep logical reasoning, F2 Truth, F4 Clarity")
 
     try:
@@ -120,11 +120,11 @@ async def test_all_tools():
         print_result("_senses_", result)
 
         if result.get("verdict") in ["SEAL", "SABAR"]:
-            print("✅ Senses check completed\n")
+            print("[OK] Senses check completed\n")
         else:
-            print(f"⚠️ Senses returned: {result.get('verdict')}\n")
+            print(f"[WARN] Senses returned: {result.get('verdict')}\n")
     except Exception as e:
-        print(f"⚠️ Senses unavailable (expected if no API key): {e}")
+        print(f"[SKIP] Senses unavailable (expected if no API key): {e}")
 
     # =========================================================================
     # TEST 4: _atlas_ (Knowledge Mapping)
@@ -141,17 +141,17 @@ async def test_all_tools():
         print_result("_atlas_", result)
 
         if result.get("verdict") == "SEAL":
-            print("✅ Atlas mapping passed\n")
+            print("[OK] Atlas mapping passed\n")
         else:
-            print(f"⚠️ Atlas returned: {result.get('verdict')}\n")
+            print(f"[WARN] Atlas returned: {result.get('verdict')}\n")
     except Exception as e:
-        print(f"❌ Error in _atlas_: {e}")
+        print(f"[ERROR] Error in _atlas_: {e}")
 
     # =========================================================================
     # TEST 5: _forge_ (Code Generation)
     # =========================================================================
-    print("\n[5/7] Testing _forge_ (ASI Heart - Ω)")
-    print("Purpose: Safe code generation, F1 Amanah, F5 Peace², F6 Empathy")
+    print("\n[5/7] Testing _forge_ (ASI Heart - Omega)")
+    print("Purpose: Safe code generation, F1 Amanah, F5 Peace^2, F6 Empathy")
 
     try:
         result = await mcp_asi_act(
@@ -162,11 +162,11 @@ async def test_all_tools():
         print_result("_forge_", result)
 
         if result.get("verdict") in ["SEAL", "PARTIAL"]:
-            print("✅ Forge evaluation passed\n")
+            print("[OK] Forge evaluation passed\n")
         else:
-            print(f"⚠️ Forge returned: {result.get('verdict')}\n")
+            print(f"[WARN] Forge returned: {result.get('verdict')}\n")
     except Exception as e:
-        print(f"❌ Error in _forge_: {e}")
+        print(f"[ERROR] Error in _forge_: {e}")
 
     # =========================================================================
     # TEST 6: _audit_ (Compliance Check)
@@ -183,16 +183,16 @@ async def test_all_tools():
         print_result("_audit_", result)
 
         if result.get("verdict") in ["SEAL", "PARTIAL"]:
-            print("✅ Audit scan completed\n")
+            print("[OK] Audit scan completed\n")
         else:
-            print(f"⚠️ Audit returned: {result.get('verdict')}\n")
+            print(f"[WARN] Audit returned: {result.get('verdict')}\n")
     except Exception as e:
-        print(f"❌ Error in _audit_: {e}")
+        print(f"[ERROR] Error in _audit_: {e}")
 
     # =========================================================================
     # TEST 7: _decree_ (Final Judgment)
     # =========================================================================
-    print("\n[7/7] Testing _decree_ (APEX Soul - Ψ)")
+    print("\n[7/7] Testing _decree_ (APEX Soul - Psi)")
     print("Purpose: Final verdict, F3 Tri-Witness, VAULT-999 seal")
 
     try:
@@ -210,35 +210,35 @@ async def test_all_tools():
         print_result("_decree_", result)
 
         if result.get("verdict") == "SEAL":
-            print("✅ Final decree SEALED\n")
+            print("[OK] Final decree SEALED\n")
         else:
-            print(f"⚠️ Decree returned: {result.get('verdict')}\n")
+            print(f"[WARN] Decree returned: {result.get('verdict')}\n")
     except Exception as e:
-        print(f"❌ Error in _decree_: {e}")
+        print(f"[ERROR] Error in _decree_: {e}")
 
     # =========================================================================
     # FINAL SUMMARY
     # =========================================================================
     print("\n" + "="*60)
-    print("🎯 TEST SUMMARY")
+    print("[SUMMARY] TEST RESULTS")
     print("="*60)
     print("Session ID:", session_id)
     print("All 7 constitutional tools tested")
     print("="*60)
     print("\nFloor Coverage:")
-    print("  F1 Amanah       → _forge_, _audit_")
-    print("  F2 Truth        → _logic_, _audit_")
-    print("  F3 Tri-Witness  → _decree_")
-    print("  F4 Clarity      → _logic_")
-    print("  F5 Peace²       → _forge_")
-    print("  F6 Empathy      → _forge_")
-    print("  F7 Humility     → _logic_, _senses_")
-    print("  F8 Genius       → _decree_")
-    print("  F9 Anti-Hantu   → _forge_, _audit_")
-    print("  F10 Ontology    → _logic_, _atlas_")
-    print("  F11 Authority   → _ignite_, _decree_")
-    print("  F12 Injection   → _ignite_, _audit_")
-    print("  F13 Curiosity   → _decree_")
+    print("  F1 Amanah       -> _forge_, _audit_")
+    print("  F2 Truth        -> _logic_, _audit_")
+    print("  F3 Tri-Witness  -> _decree_")
+    print("  F4 Clarity      -> _logic_")
+    print("  F5 Peace^2       -> _forge_")
+    print("  F6 Empathy      -> _forge_")
+    print("  F7 Humility     -> _logic_, _senses_")
+    print("  F8 Genius       -> _decree_")
+    print("  F9 Anti-Hantu   -> _forge_, _audit_")
+    print("  F10 Ontology    -> _logic_, _atlas_")
+    print("  F11 Authority   -> _ignite_, _decree_")
+    print("  F12 Injection   -> _ignite_, _audit_")
+    print("  F13 Curiosity   -> _decree_")
     print("\n[OK] Constitutional governance VERIFIED")
     print("DITEMPA BUKAN DIBERI - Forged, Not Given\n")
 

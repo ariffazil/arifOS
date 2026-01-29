@@ -21,7 +21,7 @@ Host: 0.0.0.0
 Port: $PORT (default 8000)
 """
 
-import os
+import asyncio
 import logging
 from typing import Any
 import httpx
@@ -44,8 +44,7 @@ from codebase.mcp.bridge import (
 )
 from codebase.mcp.constitutional_metrics import get_full_metrics
 from codebase.mcp.rate_limiter import rate_limited
-from codebase.mcp import redis_client
-from codebase.mcp.maintenance import start_maintenance
+from codebase.mcp.maintenance import session_maintenance_loop
 
 logger = logging.getLogger(__name__)
 
@@ -287,9 +286,9 @@ async def tool_reality(
 async def on_startup():
     """Start background maintenance tasks."""
     try:
-        # Start maintenance as a background task (don't await)
-        start_maintenance()
-        logger.info("✅ All constitutional maintenance tasks initialized.")
+        # Create the task directly in the async startup handler
+        asyncio.create_task(session_maintenance_loop())
+        logger.info("✅ Constitutional maintenance loop initialized.")
     except Exception as e:
         # Log but don't fail startup if maintenance fails
         logger.warning(f"⚠️ Maintenance task startup warning: {e}")
