@@ -2,7 +2,7 @@
 
 **Canon:** `000_THEORY/001_AGENTS.md`  
 **Motto:** *"Ditempa Bukan Diberi"* (Forged, Not Given)  
-**Status:** v53.2.8-CODEBASE-AAA7 (Production Ready)  
+**Status:** v53.2.9-CODEBASE-AAA7 (Production Ready)  
 **Package:** `aaa-mcp` on PyPI  
 **Live URL:** https://arif-fazil.com/
 
@@ -147,8 +147,7 @@ arifOS/
 ├── scripts/                        # Utility scripts and validators
 ├── setup/                          # Bootstrap and environment setup
 ├── spec/                           # Canonical floor definitions
-├── pyproject.toml                  # Package: aaa-mcp v53.2.8
-├── pytest.ini                     # Test configuration
+├── pyproject.toml                  # Package: aaa-mcp v53.2.9
 ├── mypy.ini                       # Type checking configuration
 ├── Dockerfile                     # Container build
 └── railway.toml                   # Railway deployment config
@@ -216,7 +215,7 @@ uvicorn codebase.mcp.sse:app --reload --port 8000
 ### Testing
 
 ```bash
-# Run all tests with coverage (as configured in pytest.ini)
+# Run all tests with coverage (as configured in pyproject.toml)
 pytest
 
 # Run specific test categories
@@ -241,7 +240,7 @@ ARIFOS_ALLOW_LEGACY_SPEC=1 pytest      # Allow legacy spec loading
 
 ### Test Markers
 
-Available pytest markers (defined in pytest.ini):
+Available pytest markers (defined in pyproject.toml):
 - `slow` - Slow tests (deselect with '-m "not slow"')
 - `integration` - Tests requiring external services
 - `unit` - Fast unit tests
@@ -370,7 +369,11 @@ Hooks include:
 
 ---
 
-## 7. The 7-Core MCP Tools (v53.2.8)
+## 7. The 7-Core MCP Tools (v53.2.9)
+
+The codebase implements dual naming conventions for the 7-core tools:
+
+### HTTP/SSE Transport (codebase/mcp/sse.py)
 
 | Tool | Action | Engine | Floors Enforced | When to Use |
 |------|--------|--------|-----------------|-------------|
@@ -381,6 +384,18 @@ Hooks include:
 | **`_vault_`** | Seal | Archivist | F1, F8 | Record decision with cryptographic proof for audit. |
 | **`_trinity_`** | Orchestrate | Coordinator | All 13 | Full metabolic cycle: Reason → Audit → Judge → Seal. |
 | **`_reality_`** | Ground | Fact-Checker | F7 | Verify claims with external sources. Disclose uncertainty. |
+
+### STDIO Transport (codebase/mcp/server.py)
+
+| Tool | Action | Engine | Purpose |
+|------|--------|--------|---------|
+| **`_ignite_`** | Session Start | Gatekeeper | Initialize metabolic loop, verify authority [000-111] |
+| **`_logic_`** | Deep Reasoning | Δ Mind | Chain-of-thought analysis. Enforces F2, F4 |
+| **`_senses_`** | Reality Grounding | Fact-Checker | Fetch real-time data. Honors F7 Humility |
+| **`_atlas_`** | Knowledge Mapping | Topology | Visualize codebase connections. Context7 atlas |
+| **`_forge_`** | Code Generation | Architect | Create artifacts, modify code. TDD-compliant |
+| **`_audit_`** | Compliance Scan | Ω Heart | Check bias, safety risks. Pre-Witness self-check |
+| **`_decree_`** | Final Judgment | Ψ Soul | Collapse decision wave function. Record to VAULT-999 [888-999] |
 
 ### Tool Naming Convention
 
@@ -409,7 +424,7 @@ numReplicas = 1
 
 [deploy.env]
 ARIFOS_ENV = "production"
-ARIFOS_VERSION = "v53.2.8-CODEBASE-AAA7"
+ARIFOS_VERSION = "v53.2.9-CODEBASE-AAA7"
 ARIFOS_LOG_LEVEL = "INFO"
 ```
 
@@ -442,7 +457,7 @@ GOVERNANCE_MODE=HARD  # or SOFT (disables some floors)
 VAULT_PATH=./VAULT999
 ARIFOS_MODE=production  # or development
 ARIFOS_ENV=production
-ARIFOS_VERSION=v53.2.8
+ARIFOS_VERSION=v53.2.9
 
 # Cloudflare Tunnel (optional)
 CLOUDFLARE_TUNNEL_TOKEN=your_tunnel_token_here
@@ -471,7 +486,7 @@ Expected response:
   "status": "healthy",
   "tools": 7,
   "tool_names": ["_init_", "_agi_", "_asi_", "_apex_", "_vault_", "_trinity_", "_reality_"],
-  "version": "v53.2.8",
+  "version": "v53.2.9",
   "architecture": "AAA-7CORE",
   "uptime": "..."
 }
@@ -644,19 +659,18 @@ Add to `.mcp.json` in your project root or Kimi config:
 
 | File | Purpose |
 |------|---------|
-| `pyproject.toml` | Package definition, dependencies, tool configs (Black, Ruff) |
-| `pytest.ini` | Test configuration, markers, coverage settings |
+| `pyproject.toml` | Package definition, dependencies, tool configs (Black, Ruff, Pytest) |
 | `mypy.ini` | Type checking configuration (strict mode) |
 | `Dockerfile` | Container build definition |
 | `railway.toml` | Railway deployment configuration |
 | `.pre-commit-config.yaml` | Pre-commit hooks (formatting, linting, security) |
 | `.env.example` | Environment variable template |
-| `VERSION` | Current version (53.2.8) |
+| `VERSION` | Current version (53.2.9) |
 
 ---
 
 **DITEMPA BUKAN DIBERI** — Constitutional intelligence is forged through governance, not given through computation.
 
 > *Authority: Muhammad Arif bin Fazil | Penang, Malaysia*  
-> *Version: v53.2.8-CODEBASE-AAA7 SEALED*  
+> *Version: v53.2.9-CODEBASE-AAA7 SEALED*  
 > *Status: Live production on Railway*
