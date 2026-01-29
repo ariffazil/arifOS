@@ -32,6 +32,7 @@ from codebase.mcp.bridge import (
     bridge_reality_check_router,
     bridge_asi_audit_router,
     bridge_asi_stakeholder_router,
+    bridge_atlas_router,
 )
 from codebase.mcp.rate_limiter import get_rate_limiter
 from codebase.mcp.mode_selector import get_mcp_mode, MCPMode
@@ -180,7 +181,7 @@ TOOL_ROUTERS = {
     "_ignite_": bridge_init_router,
     "_logic_": bridge_agi_router,
     "_senses_": bridge_reality_check_router,
-    "_atlas_": bridge_agi_router,
+    "_atlas_": bridge_atlas_router,
     "_forge_": bridge_agi_router,
     "_audit_": bridge_asi_audit_router,
     "_decree_": bridge_apex_router,
@@ -234,7 +235,7 @@ def create_mcp_server(mode: Optional[MCPMode] = None) -> Server:
             elif name == "_senses_":
                 result = await router(**arguments)
             elif name == "_atlas_":
-                result = await router(action="atlas", **arguments)
+                result = await router(**arguments)
             elif name == "_forge_":
                 result = await router(action="forge", query=arguments.get("task"), **arguments)
             elif name == "_audit_":

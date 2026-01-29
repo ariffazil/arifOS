@@ -56,7 +56,6 @@ VERSION = "v53.2.8-CODEBASE-AAA7"
 
 mcp = FastMCP(
     "AAA-MCP-CODEBASE",
-    dependencies=["arifos"],
     host="0.0.0.0",
     port=int(os.getenv("PORT", 8000)),
     stateless_http=True,
