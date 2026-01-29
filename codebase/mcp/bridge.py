@@ -154,6 +154,28 @@ async def bridge_agi_router(action: str = "full", **kwargs) -> dict:
         return BridgeError(str(e), "ENGINE_FAILURE").to_dict()
 
 
+async def bridge_atlas_router(**kwargs) -> dict:
+    """Pure bridge: Route mapping tasks to Atlas tool."""
+    try:
+        from arifOS_Implementation.2_SKILL.mcp_tool_templates import _atlas_
+        
+        result = await _atlas_(**kwargs)
+        serialized = _serialize(result)
+        
+        session_id = kwargs.get("session_id")
+        if session_id and isinstance(serialized, dict):
+            store_stage_result(str(session_id), "atlas", serialized)
+            
+        return serialized if isinstance(serialized, dict) else {"result": serialized}
+    except Exception as e:
+        logger.error(f"Atlas Router Error: {e}")
+        if isinstance(e, BridgeError):
+            return e.to_dict()
+        return BridgeError(str(e), "ENGINE_FAILURE").to_dict()
+
+
+
+
 async def bridge_asi_router(action: str = "full", **kwargs) -> dict:
     """Pure bridge: Route ethical tasks to ASI Heart Kernel."""
     if not ENGINES_AVAILABLE:
