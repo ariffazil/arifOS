@@ -2,9 +2,6 @@
 Codebase Kernel Manager (v53.5.0 — WIRED)
 Central registry for the Trinity Cores.
 
-This module instantiates the Native Kernels from codebase/.
-It provides the 'manager' expected by the Bridge.
-
 v53.5.0: AGI/ASI wrappers inline (engines/agi + engines/asi deleted).
          APEX imports full judicial core from codebase.apex.kernel.
 
@@ -23,7 +20,6 @@ from codebase.apex.kernel import APEXJudicialCore
 
 # =============================================================================
 # AGINeuralCore — Bridge adapter for AGIEngineHardened
-# Translates execute(action, kwargs) → AGIEngineHardened.execute(query, ctx, lane)
 # =============================================================================
 class AGINeuralCore:
     """AGI Mind Kernel (Δ) — Bridge adapter wrapping AGIEngineHardened."""
@@ -45,32 +41,24 @@ class AGINeuralCore:
         context = kwargs.get("context") or kwargs.get("agi_context")
         lane = str(kwargs.get("lane", "SOFT")).upper()
         session_id = kwargs.get("session_id")
-
         if session_id:
             engine.session_id = str(session_id)
-
         try:
             bundle = await engine.execute(query, context=context, lane=lane)
             result = bundle.to_dict() if hasattr(bundle, "to_dict") else {}
-            # Add bridge-expected keys
             result["verdict"] = result.get("vote", "SEAL")
             result["truth_score"] = 1.0 - abs(result.get("entropy_delta", 0.0))
-            result["reasoning"] = result.get("synthesis_reasoning", bundle.synthesis_reasoning if hasattr(bundle, "synthesis_reasoning") else "")
+            result["reasoning"] = bundle.synthesis_reasoning if hasattr(bundle, "synthesis_reasoning") else ""
             result["stage"] = f"AGI_{action.upper()}"
             result["session_id"] = engine.session_id
             return result
         except Exception as e:
-            return {
-                "verdict": "VOID",
-                "reason": f"AGI engine error: {e}",
-                "stage": f"AGI_{action.upper()}",
-                "session_id": session_id or "",
-            }
+            return {"verdict": "VOID", "reason": f"AGI engine error: {e}",
+                    "stage": f"AGI_{action.upper()}", "session_id": session_id or ""}
 
 
 # =============================================================================
 # ASIActionCore — Bridge adapter for ASIEngineHardened
-# Translates execute(action, kwargs) → ASIEngineHardened.execute(query, ctx)
 # =============================================================================
 class ASIActionCore:
     """ASI Heart Kernel (Ω) — Bridge adapter wrapping ASIEngineHardened."""
@@ -91,29 +79,22 @@ class ASIActionCore:
         query = str(kwargs.get("query", kwargs.get("text", "")))
         context = kwargs.get("context") or kwargs.get("agi_context")
         session_id = kwargs.get("session_id")
-
         if session_id:
             engine.session_id = str(session_id)
-
         try:
             bundle = await engine.execute(query, context=context)
             result = bundle.to_dict() if hasattr(bundle, "to_dict") else {}
-            # Add bridge-expected keys
             result["verdict"] = result.get("vote", "SEAL")
             result["empathy_kappa"] = result.get("empathy_kappa_r", 0.9)
             result["kappa_r"] = result.get("empathy_kappa_r", 0.9)
-            result["omega_0"] = 0.04  # Within humility band
+            result["omega_0"] = 0.04
             result["evidence_ratio"] = 1.0
             result["stage"] = f"ASI_{action.upper()}"
             result["session_id"] = engine.session_id
             return result
         except Exception as e:
-            return {
-                "verdict": "VOID",
-                "reason": f"ASI engine error: {e}",
-                "stage": f"ASI_{action.upper()}",
-                "session_id": session_id or "",
-            }
+            return {"verdict": "VOID", "reason": f"ASI engine error: {e}",
+                    "stage": f"ASI_{action.upper()}", "session_id": session_id or ""}
 
 
 # ============================================================================

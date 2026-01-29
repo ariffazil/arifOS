@@ -263,13 +263,26 @@ class APEXJudicialCore:
                 "consent": 1.0 if (asi_result or {}).get("consent", True) else 0.0,
                 "weakest_protection": float((asi_result or {}).get("weakest_protection", 0.8)),
             }
-            import asyncio
-            nine_fold = asyncio.get_event_loop().run_until_complete(
-                tn.synchronize(agi_delta, asi_omega, optimize=True)
-            ) if not asyncio.get_event_loop().is_running() else None
-            # If event loop is already running (likely), try sync path
-            if nine_fold is None:
-                nine_fold = tn.synchronize.__wrapped__(tn, agi_delta, asi_omega, optimize=True) if hasattr(tn.synchronize, '__wrapped__') else None
+            # TrinityNine.synchronize is async but judge_888 is sync —
+            # use the solver directly for the equilibrium calculation
+            from codebase.apex.trinity_nine import create_nine_paradoxes, EquilibriumSolver
+            import numpy as np
+            paradoxes = create_nine_paradoxes()
+            for key, paradox in paradoxes.items():
+                agi_key = {"truth_care": "F2_truth", "clarity_peace": "F4_clarity", "humility_justice": "F7_humility",
+                           "precision_reversibility": "kalman_gain", "hierarchy_consent": "hierarchy_depth",
+                           "agency_protection": "efe_score", "urgency_sustainability": "efe_score",
+                           "certainty_doubt": "kalman_gain", "unity_diversity": "F2_truth"}.get(key, "F2_truth")
+                asi_key = {"truth_care": "kappa_r", "clarity_peace": "peace_squared", "humility_justice": "justice",
+                           "precision_reversibility": "reversibility", "hierarchy_consent": "consent",
+                           "agency_protection": "weakest_protection", "urgency_sustainability": "justice",
+                           "certainty_doubt": "kappa_r", "unity_diversity": "kappa_r"}.get(key, "kappa_r")
+                agi_val = agi_delta.get(agi_key, 0.5)
+                asi_val = asi_omega.get(asi_key, 0.5)
+                paradox.score = float(np.sqrt(max(0, agi_val) * max(0, asi_val)))
+            solver = EquilibriumSolver()
+            equilibrium = solver.solve(paradoxes)
+            nine_fold = equilibrium  # EquilibriumState with geometric_mean, std_deviation
         except Exception as e:
             _apex_logger.warning(f"TrinityNine sync skipped: {e}")
             nine_fold = None
@@ -277,12 +290,13 @@ class APEXJudicialCore:
         # =================================================================
         # v53.5.0: PsiKernel F8 Genius Validation (NOW LIVE)
         # =================================================================
+        final_verdict = apex_verdict.verdict.value
+        final_reason = apex_verdict.reason
         psi_verdict_data = {}
         try:
-            from codebase.apex.psi_kernel import PsiKernel, Verdict as PsiVerdictEnum
+            from codebase.apex.psi_kernel import PsiKernel
             from dataclasses import dataclass as _dc
 
-            # Build lightweight delta/omega verdict proxies for PsiKernel
             @_dc
             class _DeltaProxy:
                 passed: bool = True
@@ -307,8 +321,7 @@ class APEXJudicialCore:
 
             delta_proxy = _DeltaProxy(
                 passed=truth_score >= 0.99 and delta_s_passed,
-                f1_amanah=True,
-                f2_clarity=delta_s_passed,
+                f1_amanah=True, f2_clarity=delta_s_passed,
             )
             omega_proxy = _OmegaProxy(
                 passed=peace_squared >= 1.0 and kappa_r >= 0.95,
@@ -319,52 +332,32 @@ class APEXJudicialCore:
             )
 
             # F8 Genius: use nine-fold equilibrium GM if available, else tri_witness
-            genius_score = nine_fold.equilibrium.geometric_mean if nine_fold and hasattr(nine_fold, 'equilibrium') else tri_witness
+            genius_score = nine_fold.geometric_mean if nine_fold and hasattr(nine_fold, 'geometric_mean') else tri_witness
 
-            # Hypervisor status from APEXPrime (F10-F13)
             hypervisor_passed = all(
-                f not in apex_verdict.violated_floors
-                for f in ("F10", "F11", "F12")
-            ) if apex_verdict.violated_floors else True
-            hypervisor_failures = [
-                f for f in (apex_verdict.violated_floors or [])
-                if f.startswith("F1") and f not in ("F1",)
-            ]
+                f not in (apex_verdict.violated_floors or []) for f in ("F10", "F11", "F12")
+            )
+            hypervisor_failures = [f for f in (apex_verdict.violated_floors or []) if f in ("F10", "F11", "F12")]
 
             psi = PsiKernel(genius_threshold=0.80)
             psi_result = psi.evaluate(
-                delta_verdict=delta_proxy,
-                omega_verdict=omega_proxy,
-                genius=genius_score,
-                hypervisor_passed=hypervisor_passed,
+                delta_verdict=delta_proxy, omega_verdict=omega_proxy,
+                genius=genius_score, hypervisor_passed=hypervisor_passed,
                 hypervisor_failures=hypervisor_failures,
             )
 
-            # PsiKernel verdict OVERRIDES APEXPrime when stricter
             psi_verdict_val = psi_result.verdict.value if hasattr(psi_result.verdict, 'value') else str(psi_result.verdict)
-            # Verdict severity: SABAR(5) > VOID(4) > HOLD_888(3) > PARTIAL(2) > SEAL(1)
             severity = {"SABAR": 5, "VOID": 4, "888_HOLD": 3, "HOLD_888": 3, "PARTIAL": 2, "SEAL": 1}
-            apex_sev = severity.get(apex_verdict.verdict.value, 0)
-            psi_sev = severity.get(psi_verdict_val, 0)
-
-            if psi_sev > apex_sev:
-                # PsiKernel is stricter — use its verdict
+            if severity.get(psi_verdict_val, 0) > severity.get(final_verdict, 0):
                 final_verdict = psi_verdict_val
                 final_reason = f"PsiKernel override: {psi_result.metadata.get('verdict_reason', psi_verdict_val)} (F8={genius_score:.3f})"
-            else:
-                final_verdict = apex_verdict.verdict.value
-                final_reason = apex_verdict.reason
 
             psi_verdict_data = {
-                "psi_verdict": psi_verdict_val,
-                "psi_f8_genius": genius_score,
-                "psi_passed": psi_result.passed,
-                "psi_overrode": psi_sev > apex_sev,
+                "psi_verdict": psi_verdict_val, "psi_f8_genius": genius_score,
+                "psi_passed": psi_result.passed, "psi_overrode": severity.get(psi_verdict_val, 0) > severity.get(apex_verdict.verdict.value, 0),
             }
         except Exception as e:
             _apex_logger.warning(f"PsiKernel evaluation skipped: {e}")
-            final_verdict = apex_verdict.verdict.value
-            final_reason = apex_verdict.reason
 
         # =================================================================
         # Build final verdict struct
@@ -382,12 +375,10 @@ class APEXJudicialCore:
             "cooling": apex_verdict.cooling_metadata or {},
             "proof_hash": apex_verdict.proof_hash,
             "metrics": _safe_json(metrics),
-            # v53.5.0: New fields
             "psi_kernel": psi_verdict_data,
             "nine_fold": {
-                "equilibrium_gm": nine_fold.equilibrium.geometric_mean if nine_fold and hasattr(nine_fold, 'equilibrium') else None,
-                "equilibrium_std": nine_fold.equilibrium.std_deviation if nine_fold and hasattr(nine_fold, 'equilibrium') else None,
-                "nine_verdict": nine_fold.final_verdict if nine_fold and hasattr(nine_fold, 'final_verdict') else None,
+                "equilibrium_gm": nine_fold.geometric_mean if nine_fold and hasattr(nine_fold, 'geometric_mean') else None,
+                "equilibrium_std": nine_fold.std_deviation if nine_fold and hasattr(nine_fold, 'std_deviation') else None,
             } if nine_fold else {},
         }
 

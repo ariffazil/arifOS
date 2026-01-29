@@ -485,7 +485,6 @@ async def bridge_trinity_loop_router(
             }
 
         # Step 3b: 333 FORGE — Paradox Resolution (v53.5.0 — TrinitySyncHardened)
-        # Uses synthesize_paradox (geometric mean) and compute_trinity_score
         try:
             from codebase.agi.trinity_sync_hardened import synthesize_paradox, compute_trinity_score
 
@@ -493,7 +492,6 @@ async def bridge_trinity_loop_router(
             asi_empathy = asi_result.get("empathy_kappa", asi_result.get("empathy_kappa_r", 0.9)) if isinstance(asi_result, dict) else 0.9
             asi_peace = asi_result.get("peace_squared", 1.0) if isinstance(asi_result, dict) else 1.0
 
-            # 6 canonical paradoxes (geometric synthesis)
             paradox_scores = {
                 "truth_care": synthesize_paradox(agi_confidence, asi_empathy),
                 "clarity_peace": synthesize_paradox(1.0 - abs(agi_result.get("entropy_delta", 0.0)) if isinstance(agi_result, dict) else 0.9, asi_peace),

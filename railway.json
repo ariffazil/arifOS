@@ -1,0 +1,29 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile"
+  },
+  "deploy": {
+    "startCommand": "codebase-mcp-sse",
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 120,
+    "restartPolicyType": "ON_FAILURE",
+    "numReplicas": 1
+  },
+  "services": {
+    "redis": {
+      "image": "redis:7.0-alpine",
+      "port": 6379,
+      "volume": "/data"
+    },
+    "web": {
+      "dependsOn": ["redis"],
+      "env": {
+        "ARIFOS_ENV": "production",
+        "ARIFOS_VERSION": "v53.2.7-CODEBASE-AAA7",
+        "REDIS_URL": "${{ redis.REDIS_URL }}"
+      }
+    }
+  }
+}
