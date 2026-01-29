@@ -706,7 +706,7 @@ class TestIntegration:
         query = "Test query for constitutional compliance"
         
         # F11, F12: authorize
-        auth = await authorize(query=query, user_token="arifos_test_token")
+        auth = await authorize(query=query, user_token="arifos_valid_token_123456789")
         floors_tested["F11"] = auth.user_level == "verified"
         floors_tested["F12"] = auth.injection_risk < 0.15
         
