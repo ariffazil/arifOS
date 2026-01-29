@@ -286,8 +286,13 @@ async def tool_reality(
 @mcp.on_startup
 async def on_startup():
     """Start background maintenance tasks."""
-    start_maintenance()
-    logger.info("✅ All constitutional maintenance tasks initialized.")
+    try:
+        # Start maintenance as a background task (don't await)
+        start_maintenance()
+        logger.info("✅ All constitutional maintenance tasks initialized.")
+    except Exception as e:
+        # Log but don't fail startup if maintenance fails
+        logger.warning(f"⚠️ Maintenance task startup warning: {e}")
 
 
 # =============================================================================
@@ -298,6 +303,14 @@ async def on_startup():
 @mcp.custom_route("/health", methods=["GET"])
 async def health_check(request):
     """Railway/Docker health check endpoint."""
+    # Fast response - don't wait for Redis to avoid timeout
+    redis_status = "unknown"
+    try:
+        # Quick check without blocking
+        redis_status = "available" if redis_client.is_available() else "unavailable"
+    except Exception:
+        redis_status = "unavailable"
+
     return JSONResponse(
         {
             "status": "healthy",
@@ -306,7 +319,7 @@ async def health_check(request):
             "transport": "streamable-http",
             "tools": 7,
             "architecture": "AAA-7CORE-v53.2.7",
-            "redis": redis_client.health(),
+            "redis": redis_status,
         }
     )
 
