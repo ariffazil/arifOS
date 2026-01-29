@@ -156,14 +156,14 @@ Injection Risk = 0.0
 - ✅ README toggle sections (Quick vs CCC)
 - ✅ system_instructions.md (2,062 words - "Global Concise Clarity")
 - ✅ SYSTEM_PROMPT_CCC.md (3,567 words - "Full Canon")
-- ✅ Two-level prompt structure at arifOS_Implementation/1_PROMPT/
+- ✅ Two-level prompt structure at arifOS_Implementation/PROMPT_1/
 
 ### Untracked Files Ready for Next Commit:
 ```
-arifOS_Implementation/1_PROMPT/system_instructions.md
-arifOS_Implementation/1_PROMPT/SYSTEM_PROMPT_CCC.md
-arifOS_Implementation/1_PROMPT/examples/
-arifOS_Implementation/2_SKILL/skill_templates.yaml
+arifOS_Implementation/PROMPT_1/system_instructions.md
+arifOS_Implementation/PROMPT_1/SYSTEM_PROMPT_CCC.md
+arifOS_Implementation/PROMPT_1/examples/
+arifOS_Implementation/SKILL_2/skill_templates.yaml
 GEMINI_CLI_SETUP.md
 gemini.bat
 gemini.ps1
@@ -299,9 +299,9 @@ Status:                    Ready for push
 
 1. **Stage prompt files:**
    ```bash
-   git add arifOS_Implementation/1_PROMPT/system_instructions.md
-   git add arifOS_Implementation/1_PROMPT/SYSTEM_PROMPT_CCC.md
-   git add arifOS_Implementation/1_PROMPT/examples/
+   git add arifOS_Implementation/PROMPT_1/system_instructions.md
+   git add arifOS_Implementation/PROMPT_1/SYSTEM_PROMPT_CCC.md
+   git add arifOS_Implementation/PROMPT_1/examples/
    ```
 
 2. **Create final commit:**

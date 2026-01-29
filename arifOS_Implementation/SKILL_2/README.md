@@ -361,6 +361,6 @@ template: |
 **Level:** SKILL (2/6)
 **Effectiveness:** 50%
 **Status:** TEMPLATE LIBRARY
-**Next Level:** [3_WORKFLOW](../3_WORKFLOW/) for sequencing
+**Next Level:** [WORKFLOW_3](../WORKFLOW_3/) for sequencing
 
 *Ditempa Bukan Diberi.*

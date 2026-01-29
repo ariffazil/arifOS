@@ -18,8 +18,11 @@ from codebase.mcp.tools.mcp_trinity import (
     mcp_agi_genius,
     mcp_asi_act,
     mcp_apex_judge,
+    mcp_reality_check,
+    mcp_context_docs,
 )
 from codebase.kernel import mcp_000_init
+from codebase.mcp.constitutional_metrics import store_stage_result
 
 
 def print_result(tool_name: str, result: Dict[str, Any]):
@@ -97,6 +100,8 @@ async def test_all_tools():
             session_id=session_id
         )
         print_result("_logic_", agi_test_result)
+        if session_id:
+            store_stage_result(session_id, "agi", agi_test_result)
 
         if agi_test_result.get("verdict") == "SEAL":
             print("[OK] Logic engine passed\n")
@@ -114,8 +119,7 @@ async def test_all_tools():
 
     try:
         # Note: This will use circuit breaker if Brave API is unavailable
-        result = await mcp_agi_genius(
-            action="search",
+        result = await mcp_reality_check(
             query="Latest Claude Code MCP features 2026",
             session_id=session_id
         )
@@ -135,8 +139,7 @@ async def test_all_tools():
     print("Purpose: Map codebase structure, F10 Ontology")
 
     try:
-        result = await mcp_agi_genius(
-            action="atlas",
+        result = await mcp_context_docs(
             query="codebase/mcp/",
             session_id=session_id
         )
@@ -157,11 +160,13 @@ async def test_all_tools():
 
     try:
         asi_test_result = await mcp_asi_act(
-            action="evaluate",
+            action="full",
             query="Create a simple hello world function",
             session_id=session_id
         )
         print_result("_forge_", asi_test_result)
+        if session_id:
+            store_stage_result(session_id, "asi", asi_test_result)
 
         if asi_test_result.get("verdict") in ["SEAL", "PARTIAL"]:
             print("[OK] Forge evaluation passed\n")
@@ -178,7 +183,7 @@ async def test_all_tools():
 
     try:
         result = await mcp_asi_act(
-            action="audit",
+            action="act",
             text="def hello(): return 'Hello World'",
             session_id=session_id
         )

@@ -190,34 +190,34 @@ Each level has a dedicated folder with:
 arifOS_Implementation/
 ├── README.md (this file)
 │
-├── 1_PROMPT/
+├── PROMPT_1/
 │   ├── README.md
 │   ├── system_instructions.md
 │   └── examples/
 │
-├── 2_SKILL/
+├── SKILL_2/
 │   ├── README.md
 │   ├── skill_templates.yaml
 │   └── examples/
 │
-├── 3_WORKFLOW/
+├── WORKFLOW_3/
 │   ├── README.md
 │   ├── workflow_specifications.md
 │   └── examples/
 │
-├── 4_TOOL/
+├── TOOL_4/
 │   ├── README.md
 │   ├── mcp_implementation.md
 │   ├── tool_schemas.json
 │   └── examples/
 │
-├── 5_AGENT/
+├── AGENT_5/
 │   ├── README.md
 │   ├── crewai_guide.md
 │   ├── autogen_guide.md
 │   └── examples/
 │
-└── 6_ROLE/
+└── ROLE_6/
     ├── README.md
     ├── trinity_architecture.md
     └── examples/
@@ -298,22 +298,22 @@ This implementation guide is based on:
 ## 🚀 Quick Start by Use Case
 
 ### "I need to prototype quickly"
-→ **Level 1: PROMPT** ([1_PROMPT/](./1_PROMPT/))
+→ **Level 1: PROMPT** ([PROMPT_1/](./PROMPT_1/))
 
 ### "I want reusable commands"
-→ **Level 2: SKILL** ([2_SKILL/](./2_SKILL/))
+→ **Level 2: SKILL** ([SKILL_2/](./SKILL_2/))
 
 ### "I need documented processes"
-→ **Level 3: WORKFLOW** ([3_WORKFLOW/](./3_WORKFLOW/))
+→ **Level 3: WORKFLOW** ([WORKFLOW_3/](./WORKFLOW_3/))
 
 ### "I need production API with enforcement"
-→ **Level 4: TOOL** ([4_TOOL/](./4_TOOL/))
+→ **Level 4: TOOL** ([TOOL_4/](./TOOL_4/))
 
 ### "I need autonomous task execution"
-→ **Level 5: AGENT** ([5_AGENT/](./5_AGENT/))
+→ **Level 5: AGENT** ([AGENT_5/](./AGENT_5/))
 
 ### "I need full constitutional governance"
-→ **Level 6: ROLE** ([6_ROLE/](./6_ROLE/))
+→ **Level 6: ROLE** ([ROLE_6/](./ROLE_6/))
 
 ---
 

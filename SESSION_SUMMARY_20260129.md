@@ -71,7 +71,7 @@ Updated all CLIs to use new 7-tool architecture:
 **Existing Docs (Verified):**
 - ✅ [GEMINI_CLI_SETUP.md](GEMINI_CLI_SETUP.md)
 - ✅ [EXTENSIONS_GUIDE.md](EXTENSIONS_GUIDE.md)
-- ✅ [arifOS_Implementation/1_PROMPT/MCP_7_CORE_TOOLS.md](arifOS_Implementation/1_PROMPT/MCP_7_CORE_TOOLS.md)
+- ✅ [arifOS_Implementation/PROMPT_1/MCP_7_CORE_TOOLS.md](arifOS_Implementation/PROMPT_1/MCP_7_CORE_TOOLS.md)
 
 ---
 
@@ -408,7 +408,7 @@ git push origin main
 - [HOUSEKEEPING_REPORT.md](HOUSEKEEPING_REPORT.md) - Detailed audit findings
 - [GEMINI_CLI_SETUP.md](GEMINI_CLI_SETUP.md) - Gemini CLI configuration guide
 - [EXTENSIONS_GUIDE.md](EXTENSIONS_GUIDE.md) - MCP extensions catalog
-- [arifOS_Implementation/1_PROMPT/MCP_7_CORE_TOOLS.md](arifOS_Implementation/1_PROMPT/MCP_7_CORE_TOOLS.md) - Canonical tool spec
+- [arifOS_Implementation/PROMPT_1/MCP_7_CORE_TOOLS.md](arifOS_Implementation/PROMPT_1/MCP_7_CORE_TOOLS.md) - Canonical tool spec
 - [000_THEORY/000_FOUNDATIONS.md](000_THEORY/000_FOUNDATIONS.md) - Constitutional floor definitions
 
 ---

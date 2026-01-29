@@ -383,7 +383,7 @@ npx -y @modelcontextprotocol/server-memory
 
 - **MCP Protocol Docs:** https://modelcontextprotocol.io/
 - **Claude Code MCP Guide:** https://code.claude.com/docs/en/mcp
-- **arifOS MCP Spec:** [MCP_7_CORE_TOOLS.md](arifOS_Implementation/1_PROMPT/MCP_7_CORE_TOOLS.md)
+- **arifOS MCP Spec:** [MCP_7_CORE_TOOLS.md](arifOS_Implementation/PROMPT_1/MCP_7_CORE_TOOLS.md)
 - **Constitutional Floors:** [000_FOUNDATIONS.md](000_THEORY/000_FOUNDATIONS.md)
 
 ---

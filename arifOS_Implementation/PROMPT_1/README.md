@@ -227,6 +227,6 @@ For EVERY response, structure as:
 **Level:** PROMPT (1/6)
 **Effectiveness:** 30%
 **Status:** REFERENCE ONLY
-**Next Level:** [2_SKILL](../2_SKILL/) for parameterization
+**Next Level:** [SKILL_2](../SKILL_2/) for parameterization
 
 *Ditempa Bukan Diberi.*

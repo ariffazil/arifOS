@@ -35,6 +35,7 @@ from codebase.mcp.bridge import (
     bridge_context_docs_router,
     bridge_reality_check_router,
     bridge_prompt_router,
+    bridge_atlas_router,
 )
 
 logger = logging.getLogger(__name__)
@@ -343,7 +344,7 @@ async def mcp_context_docs(
     F11 Scope-Gated Documentation Access.
     """
     try:
-        return await bridge_context_docs_router(query=query, session_id=session_id, **kwargs)
+        return await bridge_atlas_router(query=query, session_id=session_id, **kwargs)
     except Exception as e:
         logger.error(f"[CONTEXT_DOCS] Error: {e}")
         return {"status": "ERROR", "error": str(e), "session_id": session_id}
