@@ -100,8 +100,8 @@ async def test_all_tools():
             session_id=session_id
         )
         print_result("_logic_", agi_test_result)
-        if session_id:
-            store_stage_result(session_id, "agi", agi_test_result)
+        if session_id and agi_test_result and "bundle" in agi_test_result: # This is a change, agi_test_result is already the dict representation of the DeltaBundle.
+            store_stage_result(session_id, "delta", agi_test_result)
 
         if agi_test_result.get("verdict") == "SEAL":
             print("[OK] Logic engine passed\n")
@@ -165,8 +165,8 @@ async def test_all_tools():
             session_id=session_id
         )
         print_result("_forge_", asi_test_result)
-        if session_id:
-            store_stage_result(session_id, "asi", asi_test_result)
+        if session_id and asi_test_result and "_bundle" in asi_test_result:
+            store_stage_result(session_id, "omega", asi_test_result["_bundle"].to_dict())
 
         if asi_test_result.get("verdict") in ["SEAL", "PARTIAL"]:
             print("[OK] Forge evaluation passed\n")
