@@ -229,7 +229,7 @@ class TestCrashRecovery:
 class TestAXISLoopBootstrap:
     """Tests for AXIS server's Loop Bootstrap integration"""
 
-    @pytest.mark.asyncio
+    
     async def test_axis_000_init_recovers_orphans(self, temp_session_dir, temp_vault_dir, monkeypatch):
         """AXIS 000_init should recover orphaned sessions before starting new one"""
         from arifos.mcp.session_ledger import _save_open_sessions, _load_open_sessions
@@ -279,7 +279,7 @@ class TestAXISLoopBootstrap:
         # Verify new session is tracked
         assert "new-session-123" in remaining
 
-    @pytest.mark.asyncio
+    
     async def test_axis_999_vault_closes_session(self, temp_session_dir, monkeypatch):
         """AXIS 999_vault should close session tracking after seal"""
         from arifos.mcp.session_ledger import open_session, _load_open_sessions

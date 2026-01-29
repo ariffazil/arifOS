@@ -166,3 +166,5 @@ VAULT999/BBB_LEDGER/entries/*
 cov_report.txt
 coverage_report.txt
 Dockerfile.bak
+
+gha-creds-*.json
