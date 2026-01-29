@@ -231,6 +231,13 @@ testpaths = ["tests", "arifos/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+asyncio_mode = "auto"
+markers = [
+    "asyncio",
+    "constitutional",
+    "slow",
+    "integration",
+]
 
 [tool.black]
 line-length = 100

@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 from codebase.mcp.bridge import bridge_init_router, BridgeError
 from codebase.mcp.maintenance import session_maintenance_loop
 
-@pytest.mark.asyncio
+
 async def test_error_categorization():
     """Test that errors are correctly categorized in the bridge."""
     with patch("codebase.mcp.bridge.get_kernel_manager") as mock_manager:
@@ -18,7 +18,7 @@ async def test_error_categorization():
         assert result["error_category"] == "ENGINE_FAILURE"
         assert "Kernel Crash" in result["reason"]
 
-@pytest.mark.asyncio
+
 async def test_maintenance_loop_picks_up_orphans():
     """Test that the maintenance loop picks up orphans and calls recover."""
     with patch("codebase.mcp.maintenance.get_orphaned_sessions") as mock_get_orphans, \
@@ -37,7 +37,7 @@ async def test_maintenance_loop_picks_up_orphans():
         args, _ = mock_recover.call_args
         assert args[0]["session_id"] == "orphan-123"
 
-@pytest.mark.asyncio
+
 async def test_bridge_serialization():
     """Test that bridge serialization handles basic types and dicts."""
     from codebase.mcp.bridge import _serialize
