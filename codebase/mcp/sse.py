@@ -57,7 +57,7 @@ VERSION = "v53.2.8-CODEBASE-AAA7"
 mcp = FastMCP(
     "AAA-MCP-CODEBASE",
     host="0.0.0.0",
-    port=int(os.getenv("PORT", 8000)),
+    port=int(os.getenv("PORT", 8080)),
     stateless_http=True,
     json_response=True,
 )
@@ -910,7 +910,7 @@ def main():
     """
     import uvicorn
 
-    port = int(os.getenv("PORT", 8000))
+    port = int(os.getenv("PORT", 8080))
     print(f"[BOOT] AAA MCP Server {VERSION}")
     print(f"   Transport: {_transport_mode}")
     print("   Tools: 7 (_init_, _agi_, _asi_, _apex_, _vault_, _trinity_, _reality_)")

@@ -157,7 +157,7 @@ async def bridge_agi_router(action: str = "full", **kwargs) -> dict:
 async def bridge_atlas_router(**kwargs) -> dict:
     """Pure bridge: Route mapping tasks to Atlas tool."""
     try:
-        from arifOS_Implementation.2_SKILL.mcp_tool_templates import _atlas_
+        from arifOS_Implementation.SKILL_2.mcp_tool_templates import _atlas_
         
         result = await _atlas_(**kwargs)
         serialized = _serialize(result)
