@@ -8,9 +8,9 @@
         "-m",
         "codebase.mcp"
       ],
-      "cwd": "C:\\Users\\User\\arifOS",
+      "cwd": "C:\\Users\\ariff\\arifOS",
       "env": {
-        "PYTHONPATH": "C:/Users/User/arifOS",
+        "PYTHONPATH": "C:/Users/ariff/arifOS",
         "ARIFOS_CONSTITUTIONAL_MODE": "AAA",
         "PYTHONIOENCODING": "utf-8",
         "PYTHONUNBUFFERED": "1"

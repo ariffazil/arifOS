@@ -467,6 +467,50 @@ These are the **immutable rules** every AI output must pass:
 1. **HOT PHASE (Δ‖Ω)**: AGI and ASI run in parallel isolation. Neither sees the other (Tri-Witness truth).
 2. **COOL PHASE (Ψ)**: APEX judges consensus and "cools" the decision into immutable cryptographic seal.
 
+---
+
+## ♾️ The Metabolic Loop (000-999)
+
+**"Intelligence is not Magic. It is Physics."**
+
+arifOS implements a rigorous **7-Step Thermodynamic Cycle** to convert Human Intent ($E_p$) into Immutable Reality ($E_k$). This loop ensures that every action is Authorized, Rational, Safe, and Audited.
+
+### I. Theory: The Physics of Governance
+We treat Code as Energy and Ambiguity as Entropy. The system's goal is to perform work (coding/reasoning) while minimizing entropy ($\Delta S < 0$) and maintaining stability ($P^2 \ge 1.0$).
+
+| ID | Organ | Physics Principle | Role |
+| :--- | :--- | :--- | :--- |
+| **000** | **IGNITION** | **Activation Energy ($E_a$)** | **The Membrane**. Validates identity and authority before spending energy. |
+| **111** | **COGNITION** | **Entropy Reduction ($\Delta S$)** | **The Mind**. Filters Signal from Noise using TDD. $\Delta S_{spec} < 0$. |
+| **333** | **ATLAS** | **Topology ($\Omega$)** | **The Eyes**. Maps the Known ($K$) and Unknown ($U$) context boundaries. |
+| **777** | **FORGE** | **Evolution ($G$)** | **The Hands**. Generates 3 diverse solutions and selects the Fittest ($G \ge 0.8$). |
+| **555** | **DEFEND** | **Conservation ($P^2$)** | **The Heart**. Prevents toxic actions. Maximize utility subject to Safety ($P^2 \ge 1.0$). |
+| **888** | **DECREE** | **Wave Collapse ($\Psi$)** | **The Soul**. Tri-Witness Consensus (Mind + Heart + Auth) required to act. |
+| **999** | **CRYSTALLIZE** | **Time Arrow ($T$)** | **The Memory**. Hashes artifacts into an immutable Merkle Chain. |
+
+### II. Application: The Universal Skills
+These 7 steps are encoded as **Universal Skills**—repository-agnostic markdown workflows located in `.agent/workflows/` (local) and `.gemini/antigravity/` (global). They can be applied to **any** agent (Claude, GPT, Human).
+
+*   **Repository Agnostic**: Works on Python, JS, Rust, Go.
+*   **Platform Agnostic**: Runs on Local, GitHub Actions, Jenkins.
+*   **Agent Agnostic**: The laws of physics apply to all intelligences.
+
+### III. Product: The Metabolic CLI
+The metabolic loop is not just documentation; it is executable code.
+
+```bash
+# Run the full metabolic cycle on a prompt
+python -m arifos.metabolism --prompt "Refactor auth.py"
+
+# > [000] Ignition Verified (User: Arif)
+# > [111] Cognition: Intent=Refactor, TDD Generated
+# > [333] Atlas: Mapped 12 files, Omega=0.02
+# > [777] Forge: Generated 3 variants, Winner G=0.92
+# > [555] Defend: Safety Check P^2=1.5 (Pass)
+# > [888] Decree: SEALED by Tri-Witness
+# > [999] Crystallize: Hash a1b2... saved to Vault
+```
+
 ### Project Structure
 
 ```

@@ -187,7 +187,7 @@ TOOL_DEFINITIONS = [
             },
             "required": ["session_id", "verdict", "query", "response", "decision_data"]
         }
-    }
+    },
     {
         "name": "semantic_stakeholder_reasoning",
         "description": "A1: Infinite-depth stakeholder graph analysis. Use to find hidden/implicit stakeholders.",
