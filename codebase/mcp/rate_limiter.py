@@ -23,6 +23,8 @@ from typing import Dict, Optional, Tuple
 from collections import defaultdict
 import threading
 
+from codebase.mcp import redis_client
+
 logger = logging.getLogger(__name__)
 
 # =============================================================================
@@ -148,6 +150,36 @@ class RateLimiter:
         session_limit = limits["per_session"]
         global_limit = limits["global"]
 
+        # --- REDIS PERSISTENT RATE LIMITING ---
+        if redis_client.is_available():
+            # Check global limit
+            global_key = f"global:{tool_name}"
+            allowed, remaining = redis_client.check_rate_limit(global_key, global_limit)
+            if not allowed:
+                logger.warning(f"Rate limit: Redis Global limit exceeded for {tool_name}")
+                return RateLimitResult(
+                    allowed=False,
+                    reason=f"Global rate limit exceeded for {tool_name}",
+                    remaining=0,
+                    limit_type="global"
+                )
+            
+            # Check session limit
+            if session_id:
+                session_key = f"session:{tool_name}:{session_id}"
+                allowed, remaining = redis_client.check_rate_limit(session_key, session_limit)
+                if not allowed:
+                    logger.warning(f"Rate limit: Redis Session limit exceeded for {tool_name}/{session_id}")
+                    return RateLimitResult(
+                        allowed=False,
+                        reason=f"Session rate limit exceeded for {tool_name}",
+                        remaining=0,
+                        limit_type="session"
+                    )
+
+            return RateLimitResult(allowed=True, remaining=int(remaining))
+
+        # --- IN-MEMORY FALLBACK ---
         with self._lock:
             # Periodic cleanup
             self._maybe_cleanup()

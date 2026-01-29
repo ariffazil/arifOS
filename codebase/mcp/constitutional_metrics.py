@@ -13,6 +13,8 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from codebase.mcp import redis_client
+
 @dataclass
 class Counter:
     name: str
@@ -111,15 +113,27 @@ _BUNDLE_LOCK = threading.Lock()
 def store_stage_result(session_id: str, stage: str, result: Dict[str, Any]) -> None:
     """
     Store a stage result for later retrieval by subsequent stages.
-
-    Args:
-        session_id: The session identifier
-        stage: One of "agi", "asi", "apex", "init"
-        result: The stage output to store
+    Uses Redis if available for persistent inter-stage context.
     """
     if not session_id:
-        return  # No session, can't store
+        return
 
+    # --- REDIS PERSISTENCE ---
+    if redis_client.is_available():
+        bundle = redis_client.get_bundle(session_id) or {
+            "created_at": time.time(),
+            "agi_result": None,
+            "asi_result": None,
+            "apex_result": None,
+            "init_result": None
+        }
+        key = f"{stage}_result"
+        bundle[key] = result
+        bundle["last_updated"] = time.time()
+        redis_client.save_bundle(session_id, bundle)
+        return
+
+    # --- IN-MEMORY FALLBACK ---
     with _BUNDLE_LOCK:
         if session_id not in _SESSION_BUNDLES:
             _SESSION_BUNDLES[session_id] = {
@@ -139,17 +153,20 @@ def store_stage_result(session_id: str, stage: str, result: Dict[str, Any]) -> N
 def get_stage_result(session_id: str, stage: str) -> Optional[Dict[str, Any]]:
     """
     Retrieve a stored stage result.
-
-    Args:
-        session_id: The session identifier
-        stage: One of "agi", "asi", "apex", "init"
-
-    Returns:
-        The stored result or None if not found
+    Checks Redis first, then falls back to local memory.
     """
     if not session_id:
         return None
 
+    # --- REDIS RETRIEVAL ---
+    if redis_client.is_available():
+        bundle = redis_client.get_bundle(session_id)
+        if bundle:
+            key = f"{stage}_result"
+            return bundle.get(key)
+        return None
+
+    # --- IN-MEMORY FALLBACK ---
     with _BUNDLE_LOCK:
         if session_id not in _SESSION_BUNDLES:
             return None
@@ -219,6 +236,12 @@ def record_tool_call(tool: str):
 def record_verdict(tool: str, verdict: str, duration: float, mode: str = "standard"):
     """Record a verdict and its metadata."""
     now = time.time()
+
+    # --- REDIS PERSISTENT METRICS ---
+    if redis_client.is_available():
+        redis_client.incr_metric(f"calls:{tool}")
+        redis_client.incr_metric(f"verdicts:{verdict}")
+        redis_client.incr_metric("total_calls")
 
     # Legacy metrics
     F11_COMMAND_AUTH.inc({"verdict": verdict, "tool": tool, "mode": mode})
