@@ -282,16 +282,8 @@ async def tool_reality(
 
 
 # --- MAINTENANCE ---
-@mcp.on_startup
-async def on_startup():
-    """Start background maintenance tasks."""
-    try:
-        # Create the task directly in the async startup handler
-        asyncio.create_task(session_maintenance_loop())
-        logger.info("✅ Constitutional maintenance loop initialized.")
-    except Exception as e:
-        # Log but don't fail startup if maintenance fails
-        logger.warning(f"⚠️ Maintenance task startup warning: {e}")
+# Note: FastMCP doesn't support @on_startup decorator
+# Maintenance loop will be started via Starlette app lifecycle event below
 
 
 # =============================================================================
@@ -894,6 +886,17 @@ except AttributeError:
     # Older mcp SDK version — fall back to legacy SSE
     app = mcp.sse_app()
     _transport_mode = "sse-legacy"
+
+
+# Add startup event handler for maintenance loop
+@app.on_event("startup")
+async def startup_event():
+    """Start background maintenance tasks on app startup."""
+    try:
+        asyncio.create_task(session_maintenance_loop())
+        logger.info("✅ Constitutional maintenance loop initialized.")
+    except Exception as e:
+        logger.warning(f"⚠️ Maintenance task startup warning: {e}")
 
 # =============================================================================
 # ENTRY POINTS
