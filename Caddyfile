@@ -1,8 +1,11 @@
 # Caddyfile for arifos-gateway
 
-# MCP endpoint
+# MCP endpoint (streamable HTTP)
 mcp.arif-fazil.com {
-    reverse_proxy localhost:8000
+    reverse_proxy localhost:8000 {
+        # Preserve SSE/streamable HTTP headers
+        flush_interval -1
+    }
 
     # Optional: Add basic security headers
     header {
