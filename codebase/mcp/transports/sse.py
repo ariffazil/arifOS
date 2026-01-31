@@ -14,6 +14,7 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.resources import FunctionResource
 from mcp.server.fastmcp.prompts import Prompt as FastMCPPrompt
 from starlette.responses import JSONResponse, FileResponse, HTMLResponse
+from starlette.staticfiles import StaticFiles
 
 from .base import BaseTransport
 from ..core.tool_registry import ToolRegistry
@@ -32,282 +33,30 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>arifOS — The Constitutional Kernel for AI</title>
+    <title>arifOS - Constitutional AI Governance</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a0a;
-            color: #e6edf3;
-            line-height: 1.6;
-        }
-        
-        .hero {
-            text-align: center;
-            padding: 60px 20px;
-            background: linear-gradient(180deg, #0d1117 0%, #0a0a0a 100%);
-            border-bottom: 1px solid #21262d;
-        }
-        
-        .hero img {
-            max-width: 100%;
-            height: auto;
-            max-height: 400px;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-        }
-        
-        h1 {
-            font-size: 3.5rem;
-            margin: 30px 0 10px;
-            background: linear-gradient(90deg, #58a6ff, #a371f7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .tagline {
-            font-size: 1.3rem;
-            color: #8b949e;
-            margin-bottom: 20px;
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 10px 24px;
-            background: #238636;
-            color: white;
-            border-radius: 24px;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-        
-        .section {
-            margin-bottom: 60px;
-        }
-        
-        .section h2 {
-            font-size: 2rem;
-            color: #58a6ff;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        
-        .visual {
-            text-align: center;
-            margin: 40px 0;
-        }
-        
-        .visual img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-        }
-        
-        .status-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 40px 0;
-        }
-        
-        .status-card {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-        }
-        
-        .status-card h3 {
-            color: #8b949e;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 12px;
-        }
-        
-        .status-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #3fb950;
-        }
-        
-        .endpoints {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            padding: 30px;
-        }
-        
-        .endpoints h3 {
-            color: #58a6ff;
-            margin-bottom: 20px;
-        }
-        
-        .endpoints ul {
-            list-style: none;
-        }
-        
-        .endpoints li {
-            padding: 12px 0;
-            border-bottom: 1px solid #21262d;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .endpoints li:last-child {
-            border-bottom: none;
-        }
-        
-        .endpoints code {
-            background: #0d1117;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-family: 'SF Mono', monospace;
-            font-size: 0.9rem;
-        }
-        
-        .method {
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 700;
-        }
-        
-        .method.get { background: #238636; }
-        .method.post { background: #1f6feb; }
-        
-        .links {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 40px;
-        }
-        
-        .link-btn {
-            padding: 14px 28px;
-            background: #21262d;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            color: #e6edf3;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        
-        .link-btn:hover {
-            background: #30363d;
-            border-color: #58a6ff;
-        }
-        
-        footer {
-            text-align: center;
-            padding: 60px 20px;
-            border-top: 1px solid #21262d;
-            color: #8b949e;
-        }
-        
-        .motto {
-            color: #d29922;
-            font-style: italic;
-            font-size: 1.2rem;
-            margin-top: 16px;
-        }
-        
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+               max-width: 800px; margin: 40px auto; padding: 20px; 
+               background: #0d1117; color: #e6edf3; line-height: 1.6; }
+        h1 { color: #58a6ff; font-size: 2.5rem; }
+        .badge { display: inline-block; background: #238636; color: white; 
+                 padding: 8px 16px; border-radius: 20px; font-weight: 600; }
         a { color: #58a6ff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        ul { line-height: 2; }
+        .motto { color: #d29922; font-style: italic; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <div class="hero">
-        <img src="https://raw.githubusercontent.com/ariffazil/arifOS/main/docs/forged_page_1.png" alt="arifOS: The Constitutional Kernel for AI">
-        <h1>arifOS</h1>
-        <p class="tagline">The Constitutional Kernel for AI</p>
-        <span class="badge">● v55.1 SEALED</span>
-    </div>
-
-    <div class="container">
-        <div class="section">
-            <h2>🏛️ The 9 Constitutional Floors</h2>
-            <div class="visual">
-                <img src="https://raw.githubusercontent.com/ariffazil/arifOS/main/docs/forged_page_6.png" alt="The 9 Constitutional Floors">
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>⚙️ The Metabolic Pipeline</h2>
-            <div class="visual">
-                <img src="https://raw.githubusercontent.com/ariffazil/arifOS/main/docs/forged_page_7.png" alt="The Metabolic Pipeline">
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>📊 System Status</h2>
-            <div class="status-grid">
-                <div class="status-card">
-                    <h3>Version</h3>
-                    <div class="status-value">v55.1</div>
-                </div>
-                <div class="status-card">
-                    <h3>Status</h3>
-                    <div class="status-value">SEALED</div>
-                </div>
-                <div class="status-card">
-                    <h3>Transport</h3>
-                    <div class="status-value">HTTP</div>
-                </div>
-                <div class="status-card">
-                    <h3>Floors</h3>
-                    <div class="status-value">9/9</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="endpoints">
-                <h3>🔗 API Endpoints</h3>
-                <ul>
-                    <li>
-                        <span><code>/health</code></span>
-                        <span class="method get">GET</span>
-                    </li>
-                    <li>
-                        <span><code>/mcp</code> — MCP Protocol</span>
-                        <span class="method post">POST</span>
-                    </li>
-                    <li>
-                        <span><code>/metrics/json</code></span>
-                        <span class="method get">GET</span>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="links">
-            <a href="https://github.com/ariffazil/arifOS" class="link-btn">GitHub</a>
-            <a href="/health" class="link-btn">Health Check</a>
-            <a href="https://pypi.org/project/arifos/" class="link-btn">PyPI</a>
-        </div>
-    </div>
-
-    <footer>
-        <p>Built with constitutional care by Muhammad Arif bin Fazil</p>
-        <p class="motto">DITEMPA BUKAN DIBERI — Forged, Not Given</p>
-    </footer>
+    <h1>arifOS</h1>
+    <p><span class="badge">v55.1 ONLINE</span></p>
+    <p>Constitutional AI Governance System</p>
+    <hr>
+    <ul>
+        <li><a href="/health">Health Check (JSON)</a></li>
+        <li><a href="/metrics/json">Metrics (JSON)</a></li>
+    </ul>
+    <p class="motto">DITEMPA BUKAN DIBERI - Forged, Not Given</p>
 </body>
 </html>"""
 
@@ -349,7 +98,9 @@ class SSETransport(BaseTransport):
         self._register_resources()
         self._register_prompts()
 
-        logger.info(f"Starting Streamable HTTP Transport on {_DEFAULT_HOST}:{_DEFAULT_PORT}")
+        logger.info(
+            f"Starting Streamable HTTP Transport on {_DEFAULT_HOST}:{_DEFAULT_PORT}"
+        )
 
         # Run using uvicorn programmatically
         asgi_app = self.mcp.streamable_http_app()
@@ -391,25 +142,58 @@ class SSETransport(BaseTransport):
 
         @self.mcp.custom_route("/", methods=["GET"])
         async def root(request):
-            """Root endpoint - serve the arifOS dashboard."""
+            """Root endpoint - serve the arifOS website."""
             static_path = os.path.join(os.path.dirname(__file__), "..", "static", "index.html")
             static_path = os.path.abspath(static_path)
-
+            
             if os.path.exists(static_path):
                 return FileResponse(static_path)
-
+            
             return HTMLResponse(content=DASHBOARD_HTML)
 
-        @self.mcp.custom_route("/styles.css", methods=["GET"])
-        async def styles(request):
-            """Serve CSS stylesheet."""
-            css_path = os.path.join(os.path.dirname(__file__), "..", "static", "styles.css")
-            css_path = os.path.abspath(css_path)
+        @self.mcp.custom_route("/assets/{filename}", methods=["GET"])
+        async def assets(request, filename: str):
+            """Serve static assets (JS, CSS)."""
+            static_dir = os.path.join(os.path.dirname(__file__), "..", "static", "assets")
+            static_dir = os.path.abspath(static_dir)
+            file_path = os.path.join(static_dir, filename)
+            
+            if os.path.exists(file_path) and os.path.isfile(file_path):
+                # Determine content type
+                if filename.endswith('.js'):
+                    return FileResponse(file_path, media_type="application/javascript")
+                elif filename.endswith('.css'):
+                    return FileResponse(file_path, media_type="text/css")
+                else:
+                    return FileResponse(file_path)
+            
+            return HTMLResponse(content="Not found", status_code=404)
 
-            if os.path.exists(css_path):
-                return FileResponse(css_path, media_type="text/css")
-
-            return HTMLResponse(content="/* CSS not found */", status_code=404)
+        @self.mcp.custom_route("/{filename}", methods=["GET"])
+        async def static_files(request, filename: str):
+            """Serve static files (images, etc)."""
+            # Skip API routes
+            if filename in ['health', 'metrics', 'mcp', 'sse']:
+                return HTMLResponse(content="Not found", status_code=404)
+            
+            static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
+            static_dir = os.path.abspath(static_dir)
+            file_path = os.path.join(static_dir, filename)
+            
+            if os.path.exists(file_path) and os.path.isfile(file_path):
+                # Determine content type
+                if filename.endswith('.jpg') or filename.endswith('.jpeg'):
+                    return FileResponse(file_path, media_type="image/jpeg")
+                elif filename.endswith('.png'):
+                    return FileResponse(file_path, media_type="image/png")
+                elif filename.endswith('.svg'):
+                    return FileResponse(file_path, media_type="image/svg+xml")
+                elif filename.endswith('.html'):
+                    return FileResponse(file_path, media_type="text/html")
+                else:
+                    return FileResponse(file_path)
+            
+            return HTMLResponse(content="Not found", status_code=404)
 
     def _register_resources(self):
         """Register MCP Resources using FastMCP FunctionResource."""
