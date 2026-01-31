@@ -24,7 +24,7 @@ jobs:
       # Build and Deploy BODY (arif-fazil.com) - Identity & Dashboard
       - name: Build BODY (arif-fazil.com)
         run: |
-          cd ariffazil.com/app
+          cd ariffazil.com/body
           npm ci
           npm run build
           # Copy all image assets to dist
@@ -38,12 +38,12 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: arif-fazil
-          directory: ariffazil.com/app/dist
+          directory: ariffazil.com/body/dist
 
       # Build and Deploy SOUL (apex.arif-fazil.com) - Constitutional Canon
       - name: Build SOUL (apex.arif-fazil.com)
         run: |
-          cd apex.com/app
+          cd ariffazil.com/soul
           npm ci
           npm run build
           # Copy all image assets to dist
@@ -57,7 +57,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: apex-dpf
-          directory: apex.com/app/dist
+          directory: ariffazil.com/soul/dist
 
   # --- Step 2: Deploy MIND (Backend) to Railway ---
   deploy-backend:
