@@ -4,12 +4,15 @@ HTTP transport for remote clients and production deployment.
 
 v55.1: Streamable HTTP (spec 2025-03-26+), stateless mode,
        localhost binding for local dev.
+       Fixed resource/prompt registration to use FastMCP types.
 """
 
 import os
 import logging
 import uvicorn
 from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp.resources import FunctionResource
+from mcp.server.fastmcp.prompts import Prompt as FastMCPPrompt
 from starlette.responses import JSONResponse
 
 from .base import BaseTransport
@@ -57,10 +60,13 @@ class SSETransport(BaseTransport):
             )
             logger.info(f"Registered HTTP tool: {tool_name}")
 
-        # Phase 3: Register MCP Resources
+        # Register MCP Resources and Prompts
         self._register_resources()
+        self._register_prompts()
 
-        logger.info(f"Starting Streamable HTTP Transport on {_DEFAULT_HOST}:{_DEFAULT_PORT}")
+        logger.info(
+            f"Starting Streamable HTTP Transport on {_DEFAULT_HOST}:{_DEFAULT_PORT}"
+        )
 
         # Run using uvicorn programmatically
         config = uvicorn.Config(
@@ -100,28 +106,31 @@ class SSETransport(BaseTransport):
             return JSONResponse(get_full_metrics())
 
     def _register_resources(self):
-        """Register MCP Resources for FastMCP."""
-        # Register static resources
+        """Register MCP Resources using FastMCP FunctionResource."""
         for res_def in self.resource_registry.list_resources():
-            # Use FastMCP's resource decorator pattern
-            self.mcp.add_resource(
-                uri=res_def.uri,
+            # Capture uri in closure to avoid late-binding bug
+            uri = res_def.uri
+            resource = FunctionResource(
+                uri=uri,
                 name=res_def.name,
                 description=res_def.description,
                 mime_type=res_def.mime_type,
-                handler=lambda uri=res_def.uri: self.resource_registry.read_resource(uri),
+                fn=lambda _uri=uri: self.resource_registry.read_resource(_uri),
             )
-            logger.info(f"Registered resource: {res_def.uri}")
-
-        # Register prompts
-        self._register_prompts()
+            self.mcp.add_resource(resource)
+            logger.info(f"Registered resource: {uri}")
 
     def _register_prompts(self):
-        """Register MCP Prompts for FastMCP."""
+        """Register MCP Prompts using FastMCP Prompt type."""
         for prompt_def in self.prompt_registry.list_prompts():
-            self.mcp.add_prompt(
-                name=prompt_def.name,
+            # Capture name in closure
+            pname = prompt_def.name
+            prompt = FastMCPPrompt(
+                name=pname,
                 description=prompt_def.description,
-                handler=lambda name=prompt_def.name: self.prompt_registry.render_prompt(name),
+                fn=lambda _name=pname, **kwargs: self.prompt_registry.render_prompt(
+                    _name, kwargs if kwargs else None
+                ),
             )
-            logger.info(f"Registered prompt: {prompt_def.name}")
+            self.mcp.add_prompt(prompt)
+            logger.info(f"Registered prompt: {pname}")

@@ -32,7 +32,7 @@ from typing import Any, Dict, Optional
 from codebase.kernel import mcp_000_init, get_kernel_manager
 from codebase.mcp.services.rate_limiter import get_rate_limiter
 from codebase.mcp.services.metrics import get_metrics
-from codebase.mcp.services.session_ledger import inject_memory, seal_memory
+from codebase.mcp.session_ledger import inject_memory, seal_memory
 from codebase.mcp.core.bridge import (
     bridge_trinity_loop_router,
     bridge_context_docs_router,

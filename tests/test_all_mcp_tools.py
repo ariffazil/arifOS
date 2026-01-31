@@ -26,7 +26,7 @@ from codebase.mcp.tools.mcp_trinity import (
     mcp_context_docs,
 )
 from codebase.kernel import mcp_000_init
-from codebase.mcp.constitutional_metrics import store_stage_result
+from codebase.mcp.services.constitutional_metrics import store_stage_result
 
 
 def print_result(tool_name: str, result: Dict[str, Any]):

@@ -1,0 +1,94 @@
+{
+  "session_id": "",
+  "timestamp": "2026-01-31T01:46:02.588152+00:00Z",
+  "verdict": "SABAR",
+  "init_result": {},
+  "genius_result": {},
+  "act_result": {},
+  "judge_result": {
+    "verdict_struct": {
+      "stage": "888_JUDGE",
+      "session_id": "",
+      "lane": "SOFT",
+      "verdict": "SABAR",
+      "reason": "SABAR: p(truth)=0.000<0.99",
+      "p_truth": 0.0,
+      "tri_witness": 0.8833333333333333,
+      "votes": {
+        "mind": 0.9,
+        "heart": 0.8,
+        "earth": 0.95
+      },
+      "violated_floors": [],
+      "cooling": {
+        "tier": "L3_WEEKLY",
+        "hold_hours": 168
+      },
+      "proof_hash": "7d36db34e8474c7dc71fe65575c12eab92c393fcf357d0729f7be80b017ba701",
+      "metrics": {
+        "truth": 0.9,
+        "delta_s": 0.0,
+        "peace_squared": 1.0,
+        "kappa_r": 0.8,
+        "omega_0": 0.04,
+        "amanah": true,
+        "tri_witness": 0.8833333333333333,
+        "rasa": true,
+        "anti_hantu": true,
+        "psi": 1.0
+      },
+      "psi_kernel": {
+        "psi_verdict": "PARTIAL",
+        "psi_f8_genius": 0.8833333333333333,
+        "psi_passed": false,
+        "psi_overrode": false
+      },
+      "nine_fold": {
+        "equilibrium_gm": null,
+        "equilibrium_std": 0.6717025770111575
+      }
+    },
+    "proof": {
+      "stage": "889_PROOF",
+      "session_id": "",
+      "merkle_root": "e4562e00b89a1a0f120ab7b933106832d3809169a9b7497691230d7f309d6ced",
+      "signature_ed25519": "62a7017fa2d151220533ba2e320c615bce4233735b15d6bc78f147a4954fc7949d0459f76080fbc46fc2aa98b8c19cbd147f3bae01e97445cab35206828ef202",
+      "public_key_ed25519": "8db4c4fd27ce1f7f19359ee5cabf571e07743e3b6cf464fa5f98583f0cf48cb9",
+      "leaves": [
+        "54f6b577c81ed0ce19d1cdb6fc44ea5aba3c87e56a947a49b39db109777f418b",
+        "1e6e2c629c423157dc7ab78067ef665356654f34c56021979f29ebaee874698a",
+        "7de5065ae21d7ffdc97c83730c9684bd7f5387e0dd05a0308c83721852e234e6",
+        "4f24b41ab111d31943909f2250f3aefbcf0e084b8068780397867cffa279bb39",
+        "06ff4e80f31626451bb9b0b133df2d58ec66d19e53ec931e221d49b906d96b97",
+        "37b0c3d50559d2ef6d0ae38ac6490f6ed130078a41a39fee8b4ebbdcba8c7d2f",
+        "5c4b1181fd140503091fbd867fa585bfb625a4e40e0983ecebbdbf862bdb87d7",
+        "aa0bf1c58f2b4eb996b59042ea8bbc9288d3654c618ca2966bb144f7f68006bf",
+        "c25098a0a5f2f57b782b94fe8bb1e6b6aad72dc6a1b9f3cf7bf1c6f21e23b885",
+        "d204efb1165a26c149866f569aa6f7185e7c9e0783b0110bb38f3e319e0b95a9",
+        "f6222abe68e41ac2e0554e9f6b7cbd74260a80230ac76fad7b5bcd11ab515191"
+      ]
+    }
+  },
+  "telemetry": {
+    "verdict": "SABAR",
+    "p_truth": 0.0,
+    "TW": 0.8833333333333333,
+    "dS": 0.0,
+    "peace2": 1.0,
+    "kappa_r": 0.8,
+    "omega_0": 0.04,
+    "cooling": {
+      "tier": "L3_WEEKLY",
+      "hold_hours": 168
+    },
+    "proof": {
+      "merkle_root": "e4562e00b89a1a0f120ab7b933106832d3809169a9b7497691230d7f309d6ced",
+      "public_key": "8db4c4fd27ce1f7f19359ee5cabf571e07743e3b6cf464fa5f98583f0cf48cb9"
+    }
+  },
+  "prev_hash": "GENESIS",
+  "merkle_root": "388735f2f2c342fa199baecf866626cdf7a90e37f00a4e08c3a2289d73aec752",
+  "entry_hash": "7fa26c904591e0d74b4dcbd0edd72a93c3254f3837987ac0247b6fa3a04f0f53",
+  "context_summary": "SABAR: SABAR: p(truth)=0.000<0.99",
+  "key_insights": []
+}

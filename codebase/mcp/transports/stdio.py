@@ -4,6 +4,7 @@ Standard input/output transport for local clients (Claude Desktop, Cursor).
 
 v55.1: Spec-compliant tool listing with outputSchema, annotations, title.
        Structured JSON output alongside human-readable text.
+       Hardened resource/prompt handlers with error handling.
 """
 
 import json as _json
@@ -61,8 +62,9 @@ class StdioTransport(BaseTransport):
         pass  # Handled internally by mcp server
 
     def _register_handlers(self):
-        """Register tool handlers with the internal MCP server."""
+        """Register tool, resource, and prompt handlers with the internal MCP server."""
 
+        # --- TOOLS ---
         @self.server.list_tools()
         async def handle_list_tools() -> list[mcp.types.Tool]:
             tools = []
@@ -89,53 +91,6 @@ class StdioTransport(BaseTransport):
                     )
                 )
             return tools
-
-        # Phase 3: MCP Resources - Expose floor definitions and VAULT ledger
-        @self.server.list_resources()
-        async def handle_list_resources() -> list[mcp.types.Resource]:
-            resources = []
-            for res_def in self.resource_registry.list_resources():
-                resources.append(
-                    mcp.types.Resource(
-                        uri=res_def.uri,
-                        name=res_def.name,
-                        description=res_def.description,
-                        mimeType=res_def.mime_type,
-                    )
-                )
-            return resources
-
-        @self.server.read_resource()
-        async def handle_read_resource(uri: str) -> str:
-            return self.resource_registry.read_resource(uri)
-
-        # Phase 3: MCP Prompts - Reusable constitutional templates
-        @self.server.list_prompts()
-        async def handle_list_prompts() -> list[mcp.types.Prompt]:
-            prompts = []
-            for prompt_def in self.prompt_registry.list_prompts():
-                args = None
-                if prompt_def.arguments:
-                    args = [
-                        mcp.types.PromptArgument(
-                            name=arg["name"],
-                            description=arg.get("description", ""),
-                            required=arg.get("required", "false") == "true",
-                        )
-                        for arg in prompt_def.arguments
-                    ]
-                prompts.append(
-                    mcp.types.Prompt(
-                        name=prompt_def.name,
-                        description=prompt_def.description,
-                        arguments=args,
-                    )
-                )
-            return prompts
-
-        @self.server.get_prompt()
-        async def handle_get_prompt(name: str, arguments: dict | None = None) -> str:
-            return self.prompt_registry.render_prompt(name, arguments)
 
         @self.server.call_tool()
         async def handle_call_tool(
@@ -171,3 +126,80 @@ class StdioTransport(BaseTransport):
             except Exception as e:
                 logger.error(f"Error executing tool {name}: {e}")
                 return [mcp.types.TextContent(type="text", text=f"ERROR: {str(e)}")]
+
+        # --- RESOURCES ---
+        @self.server.list_resources()
+        async def handle_list_resources() -> list[mcp.types.Resource]:
+            resources = []
+            for res_def in self.resource_registry.list_resources():
+                resources.append(
+                    mcp.types.Resource(
+                        uri=res_def.uri,
+                        name=res_def.name,
+                        description=res_def.description,
+                        mimeType=res_def.mime_type,
+                    )
+                )
+            return resources
+
+        @self.server.read_resource()
+        async def handle_read_resource(uri) -> str:
+            # SDK passes AnyUrl; convert to str for our registry
+            uri_str = str(uri)
+            try:
+                return self.resource_registry.read_resource(uri_str)
+            except ValueError as e:
+                logger.warning(f"Unknown resource URI: {uri_str}")
+                return _json.dumps({"error": str(e), "uri": uri_str})
+            except Exception as e:
+                logger.error(f"Error reading resource {uri_str}: {e}")
+                return _json.dumps({"error": f"Internal error: {str(e)}", "uri": uri_str})
+
+        # --- PROMPTS ---
+        @self.server.list_prompts()
+        async def handle_list_prompts() -> list[mcp.types.Prompt]:
+            prompts = []
+            for prompt_def in self.prompt_registry.list_prompts():
+                args = None
+                if prompt_def.arguments:
+                    args = [
+                        mcp.types.PromptArgument(
+                            name=arg["name"],
+                            description=arg.get("description", ""),
+                            required=arg.get("required", "false") == "true",
+                        )
+                        for arg in prompt_def.arguments
+                    ]
+                prompts.append(
+                    mcp.types.Prompt(
+                        name=prompt_def.name,
+                        description=prompt_def.description,
+                        arguments=args,
+                    )
+                )
+            return prompts
+
+        @self.server.get_prompt()
+        async def handle_get_prompt(name: str, arguments: dict | None = None) -> mcp.types.GetPromptResult:
+            try:
+                text = self.prompt_registry.render_prompt(name, arguments)
+                return mcp.types.GetPromptResult(
+                    description=f"Constitutional prompt: {name}",
+                    messages=[
+                        mcp.types.PromptMessage(
+                            role="user",
+                            content=mcp.types.TextContent(type="text", text=text),
+                        )
+                    ],
+                )
+            except ValueError as e:
+                logger.warning(f"Prompt not found: {name}")
+                return mcp.types.GetPromptResult(
+                    description=f"Error: {str(e)}",
+                    messages=[
+                        mcp.types.PromptMessage(
+                            role="user",
+                            content=mcp.types.TextContent(type="text", text=str(e)),
+                        )
+                    ],
+                )

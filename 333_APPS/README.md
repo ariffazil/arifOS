@@ -1,320 +1,279 @@
-# 333_APPS — The 7-Layer Application Stack
+# 333_APPS — arifOS Application Stack
 
-**arifOS Implementation Architecture | v55.0-SEAL**
-
-> *"From prompt to AGI — the 7 layers of constitutional deployment."*
+> **From Zero-Context Prompt to Constitutional AGI**  
+> **Version:** v55.0-FEDERATION  
+> **Live:** https://arif-fazil.com
 
 ---
 
-## 🏛️ The 7-Layer Architecture
+## 🎯 What is 333_APPS?
+
+**333_APPS** is the **7-layer deployment architecture** for arifOS — a constitutional AI governance system that ensures every AI action is:
+
+- ✅ **Truthful** (τ ≥ 0.99) — Fisher-Rao verified
+- ✅ **Safe** (Peace² ≥ 1.0) — Lyapunov stable
+- ✅ **Accountable** (Tri-Witness W₃ ≥ 0.95) — Human × AI × Earth consensus
+- ✅ **Reversible** (F1 Amanah) — Merkle DAG audit trail
+
+### The Core Innovation
+
+Unlike standard AI systems that optimize only for speed, arifOS enforces **13 constitutional floors** grounded in physics, mathematics, and code:
 
 ```
-╔═══════════════════════════════════════════════════════════════════════════╗
-║ L7_AGI                    ∞ Coverage     Research      Self-Improving     ║
-║ Constitutional            ────────────────────────────────────────────    ║
-║ Self-Improving AGI                       Phase         AGI                ║
-╠═══════════════════════════════════════════════════════════════════════════╣
-║ L6_INSTITUTION           100% Coverage   ⚠️ Partial    Trinity Multi-     ║
-║ Trinity System           ────────────────────────────  Agent System       ║
-╠═══════════════════════════════════════════════════════════════════════════╣
-║ L5_AGENTS                90% Coverage    ⚠️ Partial    Autonomous         ║
-║ Autonomous               ────────────────────────────  Orchestration      ║
-║ Orchestration                                                             ║
-╠═══════════════════════════════════════════════════════════════════════════╣
-║ L4_TOOLS                 80% Coverage    ✅ Complete   MCP Production     ║
-║ Production MCP           ────────────────────────────  Tools              ║
-║                          LIVE at arif-fazil.com                           ║
-╠═══════════════════════════════════════════════════════════════════════════╣
-║ L3_WORKFLOW              70% Coverage    ✅ Complete   Documented         ║
-║ Documented               ────────────────────────────  Sequences          ║
-║ Sequences                                                                 ║
-╠═══════════════════════════════════════════════════════════════════════════╣
-║ L2_SKILLS                50% Coverage    ✅ Complete   Parameterized      ║
-║ Parameterized            ────────────────────────────  Templates          ║
-║ Templates                                                                 ║
-╠═══════════════════════════════════════════════════════════════════════════╣
-║ L1_PROMPT                30% Coverage    ✅ Complete   Zero-Context       ║
-║ Zero-Context             ────────────────────────────  Entry              ║
-║ Entry                                                                     ║
-╚═══════════════════════════════════════════════════════════════════════════╝
+Physics:  Thermodynamics → Quantum Mechanics → Relativity
+Math:     Information Geometry → Category Theory → Measure Theory
+Code:     PBFT Consensus → zk-SNARKs → Merkle DAG CRDTs
 ```
 
 ---
 
-## 📊 Layer Comparison Matrix
+## 🏛️ The 7-Layer Stack
 
-| Layer | Coverage | Cost | Setup | Autonomy | Status |
-|-------|----------|------|-------|----------|--------|
-| **L1_PROMPT** | 30% | $0.00 | 30s | None | ✅ Complete |
-| **L2_SKILLS** | 50% | $0.20-0.50 | 5min | Very Low | ✅ Complete |
-| **L3_WORKFLOW** | 70% | $0.50-1.00 | 1hr | Low | ✅ Complete |
-| **L4_TOOLS** | 80% | $0.10-0.15 | 2hr | Medium | ✅ **LIVE** |
-| **L5_AGENTS** | 90% | $3-7 | 1day | High | ⚠️ **Stubs** (v55.0) |
-| **L6_INSTITUTION** | 100% | $5-10 | 1week | Maximum | ⚠️ **Stubs** (v56.0) |
-| **L7_AGI** | ∞ | Unknown | Unknown | Recursive | 📋 Research |
-
----
-
-## 🗂️ Directory Structure
+Choose your entry point based on complexity needs:
 
 ```
-333_APPS/                          # 7-Layer Application Stack
-├── README.md                      # This file — Root overview
-├── ROADMAP_v55_and_Beyond.md      # Implementation roadmap
-│
-├── L1_PROMPT/                     # ✅ Zero-context entry (30%)
-│   ├── README.md
-│   ├── 000_IGNITE.md
-│   ├── SYSTEM_PROMPT_CCC.md
-│   ├── system_instructions.md
-│   ├── MCP_7_CORE_TOOLS.md
-│   └── examples/                  # Usage examples
-│
-├── L2_SKILLS/                     # ✅ Parameterized templates (50%)
-│   ├── README.md
-│   ├── DEPLOYMENT.md              # Deployment guide
-│   ├── skill_templates.yaml
-│   └── mcp_tool_templates.py
-│
-├── L3_WORKFLOW/                   # ✅ Documented sequences (70%)
-│   ├── README.md
-│   └── .claude/workflows/         # 6 workflow files
-│       ├── 000_SESSION_INIT.md    # Stage 000
-│       ├── 111_INTENT.md          # Stage 111
-│       ├── 333_CONTEXT.md         # Stage 333
-│       ├── 555_SAFETY.md          # Stage 555
-│       ├── 777_IMPLEMENT.md       # Stage 777
-│       └── 888_COMMIT.md          # Stage 888
-│
-├── L4_TOOLS/                      # ✅ Production MCP (80%)
-│   ├── README.md
-│   ├── MANIFEST.md                # Deployment manifest
-│   └── mcp/                       # MCP implementation
-│       ├── server.py              # stdio server
-│       ├── sse.py                 # SSE transport
-│       ├── models.py              # Schemas
-│       ├── bridge.py              # Constitutional bridge
-│       ├── mcp_config.json        # Tool config
-│       ├── HUMAN_GUIDE.md         # Usage guide
-│       └── tools/                 # 7 Canonical Tools
-│           ├── canonical_trinity.py
-│           ├── agi_tool.py
-│           ├── asi_tool.py
-│           ├── apex_tool.py
-│           └── vault_tool.py
-│
-├── L5_AGENTS/                     # ⚠️ 4-Agent stubs (90%)
-│   ├── README.md
-│   └── agents/                    # 4 Constitutional Agents
-│       ├── __init__.py
-│       ├── architect.py           # Δ AGI — Design (111-333)
-│       ├── auditor.py             # 👁 EYE — Verify (444)
-│       ├── engineer.py            # Ω ASI — Build (555-777)
-│       ├── validator.py           # Ψ APEX — Judge (888-999)
-│       └── orchestrator.py        # 4-Agent coordinator
-│
-├── L6_INSTITUTION/                # ⚠️ Institution stubs (100%)
-│   ├── README.md
-│   └── institution/               # 6 orchestrator stubs
-│       ├── __init__.py
-│       ├── constitutional_orchestrator.py
-│       ├── mind_role.py           # Δ Delta
-│       ├── heart_role.py          # Ω Omega
-│       ├── soul_role.py           # Ψ Psi
-│       ├── tri_witness_gate.py    # F3 consensus
-│       └── phoenix_72.py          # Cooling system
-│
-└── L7_AGI/                        # 📋 Research (Future)
-    ├── README.md
-    └── research/                  # Research framework
-        ├── __init__.py
-        ├── CONSTITUTIONAL_LEARNING.md
-        └── SAFETY_FRAMEWORK.md
+╔═══════════════════════════════════════════════════════════════════╗
+║ L7_AGI                    ∞ Coverage      Research Phase          ║
+║ Constitutional AGI                      (Self-Improving AI)       ║
+╠═══════════════════════════════════════════════════════════════════╣
+║ L6_INSTITUTION           100% Coverage    Trinity Multi-Agent     ║
+║ Trinity System                          (Maximum Autonomy)        ║
+╠═══════════════════════════════════════════════════════════════════╣
+║ L5_AGENTS                90% Coverage     4-Agent Federation      ║
+║ Autonomous Agents                       (High Autonomy)           ║
+╠═══════════════════════════════════════════════════════════════════╣
+║ L4_TOOLS                 80% Coverage     Production MCP Server   ║
+║ Constitutional Tools    🟢 LIVE at arif-fazil.com                 ║
+╠═══════════════════════════════════════════════════════════════════╣
+║ L3_WORKFLOW              70% Coverage     Documented Sequences    ║
+║ AI Workflows                          (Team SOPs)                 ║
+╠═══════════════════════════════════════════════════════════════════╣
+║ L2_SKILLS                50% Coverage     Parameterized Templates ║
+║ Reusable Skills                       (Reusable Commands)         ║
+╠═══════════════════════════════════════════════════════════════════╣
+║ L1_PROMPT                30% Coverage     Zero-Context Entry      ║
+║ System Prompts                        (Quick Start)               ║
+╚═══════════════════════════════════════════════════════════════════╝
 ```
 
 ---
 
-## 🔍 Product Deployment Timeline
+## 📊 Layer Selection Guide
 
-### Past Deployments (v50-v54)
+| Your Need | Recommended Layer | Time to Deploy | Cost* | Autonomy |
+|-----------|-------------------|----------------|-------|----------|
+| Quick AI experiment | **L1_PROMPT** | 30 seconds | Free | None |
+| Reusable command | **L2_SKILLS** | 5 minutes | $0.20-0.50 | Very Low |
+| Team standard operating procedure | **L3_WORKFLOW** | 1 hour | $0.50-1.00 | Low |
+| **Production API** | **L4_TOOLS** 🟢 | 2 hours | $0.10-0.15 | Medium |
+| Complex multi-agent automation | **L5_AGENTS** | 1 day | $3-7 | High |
+| Mission-critical governance | **L6_INSTITUTION** | 1 week | $5-10 | Maximum |
+| Research & development | **L7_AGI** | Unknown | Unknown | Recursive |
 
-| Version | Layer | Deployment | Status |
-|---------|-------|------------|--------|
-| v50.0 | L1-L2 | Prototype prompts | ✅ Archived |
-| v51.0 | L2 | Early skill templates | ✅ Archived |
-| v52.0 | L3 | Workflow experiments | ✅ Archived |
-| v53.0 | L4 | MCP server v1 | ✅ Archived |
-| v54.0 | L4 | MCP server v2 | ✅ Stable |
-| v54.1 | L4 | **arif-fazil.com** | 🟢 **LIVE** |
-
-### Present (v54.1-SEAL)
-
-| Component | Location | Status |
-|-----------|----------|--------|
-| MCP Server | `codebase/mcp/` | Production |
-| 7 Canonical Tools | `codebase/mcp/tools/` | Live |
-| SSE Transport | `codebase/mcp/sse.py` | Live |
-| Constitutional Floors | `codebase/enforcement/` | Active |
-| VAULT999 | `codebase/vault/` | Operational |
-
-### Future Roadmap (v55+)
-
-| Version | Target | ETA |
-|---------|--------|-----|
-| v55.0 | L4 Universal + L5 Alpha | Q1 2026 |
-| v56.0 | L5 Production + L6 Alpha | Q2 2026 |
-| v57.0 | L6 Production | Q3 2026 |
-| v58.0 | L6 Enterprise | Q4 2026 |
-| v59.0+ | L7 Research | 2027+ |
+*Cost estimates per 1K requests
 
 ---
 
-## 📋 Status Report: Missing Elements
+## 🚀 Quick Start
 
-### Critical Gaps (Blocking v55.0)
-
-| Layer | Missing Element | Impact | Priority |
-|-------|-----------------|--------|----------|
-| L3 | `.claude/workflows/*.md` (6 files) | Medium completion | P2 |
-| L5 | `agents/*.py` (8 agent implementations) | High — core feature | P0 |
-| L6 | `institution/*.py` (6 orchestrator files) | High — core feature | P0 |
-| L7 | Research framework | Future — not blocking | P3 |
-
-### Detailed Missing Elements
-
-#### L3_WORKFLOW Missing (6 files)
-- `000_SESSION_INIT.md`
-- `111_INTENT.md`
-- `333_CONTEXT.md`
-- `555_SAFETY.md`
-- `777_IMPLEMENT.md`
-- `888_COMMIT.md`
-
-#### L5_AGENTS Missing (8 files)
-- `ignition_agent.py` (000 gate)
-- `cognition_agent.py` (111 parser)
-- `atlas_agent.py` (333 mapper)
-- `defend_agent.py` (555 safety)
-- `evidence_agent.py` (444 fact-check)
-- `forge_agent.py` (777 implementation)
-- `decree_agent.py` (888 judgment)
-- `orchestrator.py` (multi-agent coordinator)
-
-#### L6_INSTITUTION Missing (6 files)
-- `constitutional_orchestrator.py` (main coordinator)
-- `mind_role.py` (Δ logic/truth)
-- `heart_role.py` (Ω safety/empathy)
-- `soul_role.py` (Ψ judgment/synthesis)
-- `tri_witness_gate.py` (consensus calculator)
-- `phoenix_72.py` (cooling system)
-
----
-
-## 🛤️ Roadmap: v55.0 and Beyond
-
-### Phase 1: v55.0 Codebase Unification (Q1 2026)
-
-```
-Week 1-2: Foundation
-├── Remove duplicate files
-├── Create unified modules:
-│   ├── codebase/floors/       # Genius calculator
-│   ├── codebase/crypto/       # RootKey + BandGuard
-│   └── codebase/loop/         # LoopManager
-└── Integrate KIMI AUDIT deliverables
-
-Week 3-4: MCP Universal
-├── Transport abstraction (stdio/sse/http/ws)
-├── Model adapters (Claude, GPT, Gemini, Kimi, Llama)
-├── Client auto-detection
-└── L5 Agents (8 implementations)
+### Option 1: Zero-Context (L1) — 30 seconds
+```bash
+# Copy system prompt, paste to any AI
+# No setup, instant constitutional governance
+cat L1_PROMPT/SYSTEM_PROMPT_CCC.md | pbcopy
 ```
 
-### Phase 2: v56.0 Multi-Agent (Q2 2026)
+### Option 2: Production API (L4) — 2 hours
+```bash
+# Live MCP server with 7 canonical tools
+# Constitutional verification on every request
 
-```
-├── L6 Institution (Trinity system)
-├── 20-agent swarm validation
-├── Agent marketplace framework
-└── Cross-agent memory sharing
-```
+# Install
+pip install aaa-mcp
 
-### Phase 3: v57-v58 Enterprise (Q3-Q4 2026)
+# Run
+aaa-mcp-sse  # HTTP/SSE transport
+# OR
+aaa-mcp-stdio  # For Claude Desktop, Cursor
 
-```
-├── Kubernetes deployment
-├── AWS Lambda support
-├── Enterprise SSO (SAML/OIDC)
-├── RBAC with fine-grained permissions
-├── SOC2/HIPAA/GDPR compliance
-└── Multi-tenant architecture
+# Access
+https://arif-fazil.com/mcp
 ```
 
-### Phase 4: v59+ Constitutional DAO (2027+)
+### Option 3: Multi-Agent (L5) — Coming v55.0
+```python
+# 4-Agent Federation
+from arifos.agents import Architect, Engineer, Auditor, Validator
 
-```
-├── On-chain constitution storage
-├── DAO governance for amendments
-├── Community staking mechanism
-├── L7 AGI research framework
-└── Academic partnerships
+# Deploy constitutional agent swarm
+federation = AgentFederation(
+    architect=Architect(),
+    engineer=Engineer(),
+    auditor=Auditor(),
+    validator=Validator()
+)
+
+# All actions Tri-Witness verified
+result = federation.execute(query, tri_witness_threshold=0.95)
 ```
 
 ---
 
-## 🎯 Deployment Recommendations by Use Case
+## 🔬 The Constitutional Framework
 
-| Use Case | Recommended Layer | Effort | ROI |
-|----------|-------------------|--------|-----|
-| Quick experiment | L1_PROMPT | 30s | Low |
-| Reusable command | L2_SKILLS | 5min | Medium |
-| Team SOP | L3_WORKFLOW | 1hr | High |
-| Production API | L4_TOOLS | 2hr | **Maximum** |
-| Complex automation | L5_AGENTS | 1day | High |
-| Mission-critical | L6_INSTITUTION | 1week | Maximum |
-| Research | L7_AGI | Unknown | Theoretical |
+### The 13 Floors (F1-F13)
+
+Every layer enforces these non-negotiable constraints:
+
+| Floor | Principle | Threshold | Physics Basis |
+|-------|-----------|-----------|---------------|
+| **F1** | Amanah (Trust) | Reversible | Landauer's Principle |
+| **F2** | Truth | τ ≥ 0.99 | Fisher-Rao Metric |
+| **F3** | Tri-Witness | W₃ ≥ 0.95 | Quantum Measurement |
+| **F4** | Clarity | ΔS ≤ 0 | Shannon Entropy |
+| **F5** | Peace | P ≥ 1.0 | Lyapunov Stability |
+| **F6** | Empathy | κᵣ ≥ 0.70 | Cohen's Kappa |
+| **F7** | Humility | Ω₀ ∈ [0.03,0.05] | Uncertainty Band |
+| **F8** | Genius | G ≥ 0.80 | g-Factor/PCA |
+| **F9** | Anti-Hantu | C_dark < 0.30 | zk-SNARK Proof |
+| **F10** | Ontology | LOCK | Set Exclusion |
+| **F11** | Command Auth | Verified | BLS Signatures |
+| **F12** | Injection | I < 0.85 | Adversarial Defense |
+| **F13** | Sovereign | Human = 1.0 | Circuit Breaker |
+
+### The Reality Equation
+
+```
+Reality instantiates when:
+    W₃ = ∛(H × A × E) ≥ 0.95     (Tri-Witness)
+    ∧ G = A × P × X × E² ≥ 0.80  (Genius)
+    ∧ All 13 floors pass
+```
 
 ---
 
-## 🔗 Quick Navigation
+## 📁 Repository Structure
 
-| Layer | README | Status | Action |
-|-------|--------|--------|--------|
-| L1 | [L1_PROMPT/README.md](./L1_PROMPT/README.md) | ✅ Complete | [Use Now](./L1_PROMPT/) |
-| L2 | [L2_SKILLS/README.md](./L2_SKILLS/README.md) | ✅ Complete | [Deploy](./L2_SKILLS/) |
-| L3 | [L3_WORKFLOW/README.md](./L3_WORKFLOW/README.md) | ⚠️ Partial | [Complete](./L3_WORKFLOW/) |
-| L4 | [L4_TOOLS/README.md](./L4_TOOLS/README.md) | 🟢 **LIVE** | [Access](https://arif-fazil.com) |
-| L5 | [L5_AGENTS/README.md](./L5_AGENTS/README.md) | ⚠️ Partial | [Build](./L5_AGENTS/) |
-| L6 | [L6_INSTITUTION/README.md](./L6_INSTITUTION/README.md) | ⚠️ Partial | [Build](./L6_INSTITUTION/) |
-| L7 | [L7_AGI/README.md](./L7_AGI/README.md) | 📋 Planned | [Research](./L7_AGI/) |
+```
+333_APPS/                      # This directory — 7-Layer Stack
+├── L1_PROMPT/                 # Zero-context entry (✅ Ready)
+├── L2_SKILLS/                 # Parameterized templates (✅ Ready)
+├── L3_WORKFLOW/               # Documented sequences (✅ Ready)
+├── L4_TOOLS/                  # Production MCP (🟢 LIVE)
+├── L5_AGENTS/                 # 4-Agent Federation (⚠️ v55.0)
+├── L6_INSTITUTION/            # Trinity System (⚠️ v56.0)
+└── L7_AGI/                    # Constitutional AGI (📋 Research)
+
+000_THEORY/                    # Constitutional Canon (21 files)
+├── 000_LAW.md                 # F1-F13 definitions
+├── 010_TRINITY.md             # AGI/ASI/APEX architecture
+├── 050_AGENT_FEDERATION.md    # 4-Agent reality protocol
+├── 060_CONSTITUTIONAL_REALITY.md  # Physics/math/code grounding
+├── FEDERATION.md              # Reality simulation substrate
+└── ...
+
+codebase/                      # Implementation Code
+├── agi/                       # AGI/Mind (Stages 111-333)
+├── asi/                       # ASI/Heart (Stages 555-666)
+├── apex/                      # APEX/Soul (Stages 888-999)
+├── mcp/                       # MCP Server (L4 — LIVE)
+├── federation/                # Physics/Math/Code (NEW v55)
+└── vault/                     # 999_SEAL implementation
+
+SEAL999/                       # Immutable ledger storage
+VAULT999/                      # Cryptographic audit trail
+```
 
 ---
 
-## 📚 Related Documentation
+## 🌐 Live Services
 
-- [000_THEORY/](../000_THEORY/) — Constitutional theory (21 files)
-- [codebase/](../codebase/) — Implementation code
-- [SEAL999/](../SEAL999/) — Immutable ledger
-- [VAULT999/](../VAULT999/) — Audit trail
+| Service | URL | Status | Layer |
+|---------|-----|--------|-------|
+| MCP Endpoint | https://arif-fazil.com/mcp | 🟢 Live | L4 |
+| Health Check | https://arif-fazil.com/health | 🟢 Live | L4 |
+| API Docs | https://arif-fazil.com/docs | 🟢 Live | L4 |
+
+---
+
+## 📚 Documentation
+
+### For Users
+- **[Getting Started](./L1_PROMPT/README.md)** — Zero-context entry
+- **[Skill Development](./L2_SKILLS/README.md)** — Build reusable templates
+- **[Workflow Design](./L3_WORKFLOW/README.md)** — Team SOPs
+- **[Production Deployment](./L4_TOOLS/README.md)** — Live API
+
+### For Developers
+- **[000_THEORY/](../000_THEORY/)** — Constitutional law & theory
+- **[codebase/](../codebase/)** — Implementation code
+- **[FEDERATION](../000_THEORY/FEDERATION.md)** — Reality protocol specification
+
+### For Researchers
+- **[L7_AGI](./L7_AGI/)** — Self-improving AGI research
+- **[060_CONSTITUTIONAL_REALITY](../000_THEORY/060_CONSTITUTIONAL_REALITY.md)** — Physics/math grounding
+
+---
+
+## 🛡️ Security & Compliance
+
+### Verified By Design
+
+- **Thermodynamic Accounting:** Every operation costs energy (F4)
+- **Cryptographic Proofs:** zk-SNARKs for private verification (F9)
+- **Immutable Audit:** Merkle DAG ledger (F1)
+- **Tri-Witness Consensus:** No single point of failure (F3)
+
+### Compliance Ready
+
+- ✅ **SOC2** — Audit trails native
+- ✅ **GDPR** — Reversible operations (F1)
+- ✅ **HIPAA** — Privacy-preserving proofs (F9)
+
+---
+
+## 🗺️ Roadmap
+
+| Version | Target | ETA | Status |
+|---------|--------|-----|--------|
+| v54.1 | L4 Production | ✅ Live | Complete |
+| v55.0 | L4 Universal + L5 Alpha | Q1 2026 | In Progress |
+| v56.0 | L5 Production + L6 Alpha | Q2 2026 | Planned |
+| v57.0 | L6 Production | Q3 2026 | Planned |
+| v58.0 | L6 Enterprise | Q4 2026 | Planned |
+| v59.0+ | L7 AGI Research | 2027+ | Research |
+
+---
+
+## 🤝 Contributing
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
+
+**Key Principle:** All contributions must pass constitutional verification (F1-F13).
+
+---
+
+## 📜 License
+
+AGPL-3.0-only — See [LICENSE](../LICENSE)
 
 ---
 
 ## 👑 Authority
 
 **Sovereign:** Muhammad Arif bin Fazil  
-**Version:** v55.0-ROADMAP  
-**Epoch:** 55  
-**Creed:** DITEMPA BUKAN DIBERI  
+**Repository:** https://github.com/ariffazil/arifOS  
+**Contact:** arifbfazil@gmail.com
 
 ---
 
 ```
-╔═══════════════════════════════════════════════════════════════════════════╗
-║                                                                           ║
-║                    DITEMPA BUKAN DIBERI                                  ║
-║                   (Forged, Not Given)                                    ║
-║                                                                           ║
-║         Truth must cool before it rules.                                 ║
-║                                                                           ║
-╚═══════════════════════════════════════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════════════════════╗
+║                                                                   ║
+║                    DITEMPA BUKAN DIBERI                          ║
+║                   (Forged, Not Given)                            ║
+║                                                                   ║
+║         Truth must cool before it rules.                         ║
+║                                                                   ║
+╚═══════════════════════════════════════════════════════════════════╝
 ```
