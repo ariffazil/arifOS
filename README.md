@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://arifos.arif-fazil.com">
+  <a href="https://arif-fazil.com">
     <img src="https://img.shields.io/badge/Live_Demo-Try_Now-FF79C6?style=for-the-badge" alt="Demo">
   </a>
   <a href="https://www.youtube.com/watch?v=bGnzIwZAgm0">
@@ -21,6 +21,14 @@
     <img src="https://img.shields.io/badge/PyPI-Install-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="PyPI">
   </a>
 </p>
+
+### 🌐 Live Deployment
+
+| URL | Purpose | Status |
+|-----|---------|--------|
+| **[arif-fazil.com](https://arif-fazil.com)** | 🖥️ Main Dashboard | `ONLINE` |
+| **[apex.arif-fazil.com](https://apex.arif-fazil.com)** | ⚖️ Judgment Engine | `ONLINE` |
+| **[mcp.arif-fazil.com](https://mcp.arif-fazil.com)** | 🔌 MCP Endpoint | `ONLINE` |
 
 ---
 

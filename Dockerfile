@@ -42,15 +42,14 @@ ENV PYTHONPATH=/app
 ENV ARIFOS_MODE=production
 ENV ARIFOS_MCP_MODE=sse
 ENV HOST=0.0.0.0
-# PORT is set by Railway dynamically
+ENV PORT=8080
 
 # Expose port
-EXPOSE 8000
+EXPOSE 8080
 
 # Health check (matches railway.toml healthcheckPath)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
+    CMD curl -f http://localhost:8080/health || exit 1
 
 # Run Codebase MCP streamable HTTP server
-# Uses PORT env var from Railway (defaults to 8000 for local)
-CMD ["sh", "-c", "codebase-mcp-sse"]
+CMD ["codebase-mcp-sse"]

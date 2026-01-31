@@ -8,7 +8,7 @@ arif-fazil.com, www.arif-fazil.com {
 
 # APEX Judgment Engine Dashboard
 apex.arif-fazil.com {
-    reverse_proxy localhost:8000 {
+    reverse_proxy localhost:8080 {
         header_up Host {host}
         header_up X-Real-IP {remote}
         header_up X-Forwarded-For {remote}
@@ -24,7 +24,6 @@ apex.arif-fazil.com {
         X-Frame-Options "DENY"
         X-XSS-Protection "1; mode=block"
         Referrer-Policy "strict-origin-when-cross-origin"
-        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https:; media-src 'self'; object-src 'none'; frame-ancestors 'none';"
     }
 
     # Enable compression
@@ -42,7 +41,7 @@ apex.arif-fazil.com {
 
 # arifOS Main Dashboard & Documentation
 arifos.arif-fazil.com {
-    reverse_proxy localhost:8000 {
+    reverse_proxy localhost:8080 {
         header_up Host {host}
         header_up X-Real-IP {remote}
         header_up X-Forwarded-For {remote}
@@ -71,7 +70,7 @@ arifos.arif-fazil.com {
 
 # MCP Server Endpoint (Streamable HTTP)
 mcp.arif-fazil.com {
-    reverse_proxy localhost:8000 {
+    reverse_proxy localhost:8080 {
         header_up Host {host}
         header_up X-Real-IP {remote}
         header_up X-Forwarded-For {remote}
