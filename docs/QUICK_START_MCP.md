@@ -100,8 +100,8 @@ Proxy:  ✅ Proxied
 {
   "mcpServers": {
     "arifos-cloud": {
-      "url": "https://mcp.arif-fazil.com/sse",
-      "transport": "sse"
+      "url": "https://aaamcp.arif-fazil.com/mcp",
+      "transport": "streamable-http"
     }
   }
 }
@@ -109,7 +109,7 @@ Proxy:  ✅ Proxied
 
 ### 6. Test
 ```bash
-curl https://mcp.arif-fazil.com/health
+curl https://aaamcp.arif-fazil.com/health
 ```
 
 ✅ **Done!** Cloud MCP server running.

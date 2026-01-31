@@ -45,10 +45,10 @@ numReplicas = 1
 
 | URL | Purpose |
 |-----|---------|
-| `https://arif-fazil.com/health` | Health check |
-| `https://arif-fazil.com/mcp` | MCP protocol endpoint |
-| `https://arif-fazil.com/dashboard` | Live telemetry |
-| `https://arif-fazil.com/metrics/json` | JSON metrics |
+| `https://aaamcp.arif-fazil.com/health` | Health check |
+| `https://aaamcp.arif-fazil.com/mcp` | MCP protocol endpoint |
+| `https://aaamcp.arif-fazil.com/dashboard` | Live telemetry |
+| `https://aaamcp.arif-fazil.com/metrics/json` | JSON metrics |
 
 ---
 
@@ -161,7 +161,7 @@ Kimi connects via SSE transport to the deployed server.
 ### Connection
 
 ```
-MCP Endpoint: https://arif-fazil.com/mcp
+MCP Endpoint: https://aaamcp.arif-fazil.com/mcp
 Transport: SSE / Streamable HTTP
 ```
 
@@ -174,7 +174,7 @@ See `mcp/kimi/kimi_config.yaml` for adapter configuration.
 ChatGPT Developer Mode and OpenAI Codex connect via HTTP:
 
 ```
-MCP URL: https://arif-fazil.com/mcp
+MCP URL: https://aaamcp.arif-fazil.com/mcp
 Transport: Streamable HTTP (JSON-RPC 2.0)
 ```
 
@@ -197,7 +197,7 @@ Tools are auto-discovered via `tools/list`.
 All deployments should verify health:
 
 ```bash
-curl https://arif-fazil.com/health
+curl https://aaamcp.arif-fazil.com/health
 # {"status":"healthy","version":"v53.2.8-CODEBASE-AAA7","mode":"CODEBASE","transport":"streamable-http","tools":7}
 ```
 

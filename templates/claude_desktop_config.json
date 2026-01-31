@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "arifos-production": {
-      "url": "https://arifos.arif-fazil.com/sse",
+      "url": "https://aaamcp.arif-fazil.com/mcp",
       "disabled": false,
       "alwaysAllow": [
         "mcp_000_init",
