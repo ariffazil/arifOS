@@ -34,10 +34,20 @@ jobs:
           projectName: apex-dpf
           directory: apex.com/app/dist
 
-      # Deploy MIND (arifos)
-      # Adjust path/command if MIND has a build step
-      # - name: Build & Deploy MIND
-      #   ...
+      # Deploy BODY (arif-fazil.com)
+      - name: Build BODY
+        run: |
+          cd ariffazil.com/app
+          npm install
+          npm run build
+
+      - name: Deploy BODY to Cloudflare
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: arif-fazil
+          directory: ariffazil.com/app/dist
 
   # --- Step 2: Deploy Dynamic Core to Railway ---
   # This only runs if static layers deploy successfully
