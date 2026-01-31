@@ -3,11 +3,13 @@
     "arifos-trinity": {
       "command": "python",
       "args": [
-        "C:\\Users\\ariff\\arifOS\\codebase\\mcp\\server.py"
+        "-m",
+        "codebase.mcp.entrypoints.sse_entry"
       ],
       "env": {
-        "ARIFOS_MODE": "PROD",
-        "ARIFOS_MCP_VER": "v53.2.7-AAA7"
+        "ARIFOS_MODE": "production",
+        "ARIFOS_MCP_MODE": "sse",
+        "ARIFOS_VERSION": "v55.1-CODEBASE-AAA"
       }
     }
   }
