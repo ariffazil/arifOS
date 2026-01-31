@@ -1,0 +1,29 @@
+{
+  "id": "mcp/tools/apex-judge",
+  "title": "apex_judge",
+  "description": "The Soul (Ψ) - Judgment & Authority Engine",
+  "source": "@site/docs/mcp/tools/apex-judge.md",
+  "sourceDirName": "mcp/tools",
+  "slug": "/mcp/tools/apex-judge",
+  "permalink": "/mcp/tools/apex-judge",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/mcp/tools/apex-judge.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4,
+    "title": "apex_judge",
+    "description": "The Soul (Ψ) - Judgment & Authority Engine"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "asi_act",
+    "permalink": "/mcp/tools/asi-act"
+  },
+  "next": {
+    "title": "vault_999",
+    "permalink": "/mcp/tools/vault-999"
+  }
+}

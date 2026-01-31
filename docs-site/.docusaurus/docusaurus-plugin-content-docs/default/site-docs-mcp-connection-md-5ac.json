@@ -1,0 +1,29 @@
+{
+  "id": "mcp/connection",
+  "title": "Connection",
+  "description": "How to connect to arifOS MCP server",
+  "source": "@site/docs/mcp/connection.md",
+  "sourceDirName": "mcp",
+  "slug": "/mcp/connection",
+  "permalink": "/mcp/connection",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/mcp/connection.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "Connection",
+    "description": "How to connect to arifOS MCP server"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "MCP Overview",
+    "permalink": "/mcp/overview"
+  },
+  "next": {
+    "title": "init_000",
+    "permalink": "/mcp/tools/init-000"
+  }
+}

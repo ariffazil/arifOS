@@ -1,0 +1,29 @@
+{
+  "id": "ai/system-prompt",
+  "title": "System Prompt",
+  "description": "Complete system prompt for AI self-governance",
+  "source": "@site/docs/ai/system-prompt.md",
+  "sourceDirName": "ai",
+  "slug": "/ai/system-prompt",
+  "permalink": "/ai/system-prompt",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/ai/system-prompt.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "sidebar_position": 5,
+    "title": "System Prompt",
+    "description": "Complete system prompt for AI self-governance"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Crisis Protocol",
+    "permalink": "/ai/crisis"
+  },
+  "next": {
+    "title": "FAQ",
+    "permalink": "/faq"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "getting-started/first-check",
+  "title": "First Governance Check",
+  "description": "Hands-on tutorial for your first arifOS governance check",
+  "source": "@site/docs/getting-started/first-check.md",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/first-check",
+  "permalink": "/getting-started/first-check",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/getting-started/first-check.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3,
+    "title": "First Governance Check",
+    "description": "Hands-on tutorial for your first arifOS governance check"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Installation",
+    "permalink": "/getting-started/installation"
+  },
+  "next": {
+    "title": "The Problem with AI",
+    "permalink": "/concepts/problem"
+  }
+}

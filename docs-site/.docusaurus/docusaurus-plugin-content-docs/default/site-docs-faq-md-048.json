@@ -1,0 +1,29 @@
+{
+  "id": "faq",
+  "title": "FAQ",
+  "description": "Frequently asked questions about arifOS",
+  "source": "@site/docs/faq.md",
+  "sourceDirName": ".",
+  "slug": "/faq",
+  "permalink": "/faq",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/faq.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 100,
+  "frontMatter": {
+    "sidebar_position": 100,
+    "title": "FAQ",
+    "description": "Frequently asked questions about arifOS"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "System Prompt",
+    "permalink": "/ai/system-prompt"
+  },
+  "next": {
+    "title": "Quick Reference",
+    "permalink": "/quick-reference"
+  }
+}

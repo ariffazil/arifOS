@@ -1,0 +1,29 @@
+{
+  "id": "concepts/teach/truth",
+  "title": "T — Truth",
+  "description": "Floor F2: Be accurate or admit uncertainty",
+  "source": "@site/docs/concepts/teach/truth.md",
+  "sourceDirName": "concepts/teach",
+  "slug": "/concepts/teach/truth",
+  "permalink": "/concepts/teach/truth",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/concepts/teach/truth.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "T — Truth",
+    "description": "Floor F2: Be accurate or admit uncertainty"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "TEACH Framework",
+    "permalink": "/concepts/teach/"
+  },
+  "next": {
+    "title": "E — Empathy",
+    "permalink": "/concepts/teach/empathy"
+  }
+}

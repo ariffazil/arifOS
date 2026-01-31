@@ -1,0 +1,29 @@
+{
+  "id": "guides/claude-desktop",
+  "title": "Claude Desktop",
+  "description": "Connect Claude Desktop to arifOS via MCP",
+  "source": "@site/docs/guides/claude-desktop.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/claude-desktop",
+  "permalink": "/guides/claude-desktop",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/guides/claude-desktop.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "Claude Desktop",
+    "description": "Connect Claude Desktop to arifOS via MCP"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "System Prompt",
+    "permalink": "/guides/system-prompt"
+  },
+  "next": {
+    "title": "Claude Code",
+    "permalink": "/guides/claude-code"
+  }
+}

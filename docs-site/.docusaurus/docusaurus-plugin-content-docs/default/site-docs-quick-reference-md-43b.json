@@ -1,0 +1,25 @@
+{
+  "id": "quick-reference",
+  "title": "Quick Reference",
+  "description": "One-page cheat sheet for arifOS",
+  "source": "@site/docs/quick-reference.md",
+  "sourceDirName": ".",
+  "slug": "/quick-reference",
+  "permalink": "/quick-reference",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/quick-reference.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 101,
+  "frontMatter": {
+    "sidebar_position": 101,
+    "title": "Quick Reference",
+    "description": "One-page cheat sheet for arifOS"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "FAQ",
+    "permalink": "/faq"
+  }
+}

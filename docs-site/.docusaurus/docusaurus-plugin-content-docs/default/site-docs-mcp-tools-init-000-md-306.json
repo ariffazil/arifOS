@@ -1,0 +1,29 @@
+{
+  "id": "mcp/tools/init-000",
+  "title": "init_000",
+  "description": "System Ignition & Constitutional Gateway",
+  "source": "@site/docs/mcp/tools/init-000.md",
+  "sourceDirName": "mcp/tools",
+  "slug": "/mcp/tools/init-000",
+  "permalink": "/mcp/tools/init-000",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/mcp/tools/init-000.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1,
+    "title": "init_000",
+    "description": "System Ignition & Constitutional Gateway"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Connection",
+    "permalink": "/mcp/connection"
+  },
+  "next": {
+    "title": "agi_genius",
+    "permalink": "/mcp/tools/agi-genius"
+  }
+}

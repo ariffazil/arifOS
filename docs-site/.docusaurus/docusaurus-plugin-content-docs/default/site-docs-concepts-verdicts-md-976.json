@@ -1,0 +1,29 @@
+{
+  "id": "concepts/verdicts",
+  "title": "The 4 Verdicts",
+  "description": "SEAL, SABAR, VOID, and 888_HOLD explained",
+  "source": "@site/docs/concepts/verdicts.md",
+  "sourceDirName": "concepts",
+  "slug": "/concepts/verdicts",
+  "permalink": "/concepts/verdicts",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/concepts/verdicts.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3,
+    "title": "The 4 Verdicts",
+    "description": "SEAL, SABAR, VOID, and 888_HOLD explained"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "H — Humility",
+    "permalink": "/concepts/teach/humility"
+  },
+  "next": {
+    "title": "ATLAS-333 Smart Routing",
+    "permalink": "/concepts/atlas-333"
+  }
+}

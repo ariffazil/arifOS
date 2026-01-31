@@ -1,0 +1,29 @@
+{
+  "id": "concepts/teach/amanah",
+  "title": "A — Amanah",
+  "description": "Floor F1: Warn before irreversible actions",
+  "source": "@site/docs/concepts/teach/amanah.md",
+  "sourceDirName": "concepts/teach",
+  "slug": "/concepts/teach/amanah",
+  "permalink": "/concepts/teach/amanah",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/concepts/teach/amanah.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4,
+    "title": "A — Amanah",
+    "description": "Floor F1: Warn before irreversible actions"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "E — Empathy",
+    "permalink": "/concepts/teach/empathy"
+  },
+  "next": {
+    "title": "C — Clarity",
+    "permalink": "/concepts/teach/clarity"
+  }
+}

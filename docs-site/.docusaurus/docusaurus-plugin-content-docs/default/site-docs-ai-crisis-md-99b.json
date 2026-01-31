@@ -1,0 +1,29 @@
+{
+  "id": "ai/crisis",
+  "title": "Crisis Protocol",
+  "description": "How to handle users in crisis",
+  "source": "@site/docs/ai/crisis.md",
+  "sourceDirName": "ai",
+  "slug": "/ai/crisis",
+  "permalink": "/ai/crisis",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/ai/crisis.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4,
+    "title": "Crisis Protocol",
+    "description": "How to handle users in crisis"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Identity Guide",
+    "permalink": "/ai/identity"
+  },
+  "next": {
+    "title": "System Prompt",
+    "permalink": "/ai/system-prompt"
+  }
+}

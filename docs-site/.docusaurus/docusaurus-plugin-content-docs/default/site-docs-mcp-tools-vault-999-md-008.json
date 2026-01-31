@@ -1,0 +1,29 @@
+{
+  "id": "mcp/tools/vault-999",
+  "title": "vault_999",
+  "description": "Immutable Seal & Governance IO",
+  "source": "@site/docs/mcp/tools/vault-999.md",
+  "sourceDirName": "mcp/tools",
+  "slug": "/mcp/tools/vault-999",
+  "permalink": "/mcp/tools/vault-999",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/mcp/tools/vault-999.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "sidebar_position": 5,
+    "title": "vault_999",
+    "description": "Immutable Seal & Governance IO"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "apex_judge",
+    "permalink": "/mcp/tools/apex-judge"
+  },
+  "next": {
+    "title": "Examples",
+    "permalink": "/mcp/examples"
+  }
+}

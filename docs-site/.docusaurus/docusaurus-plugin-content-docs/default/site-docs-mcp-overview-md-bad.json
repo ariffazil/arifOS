@@ -1,0 +1,29 @@
+{
+  "id": "mcp/overview",
+  "title": "MCP Overview",
+  "description": "Model Context Protocol integration with arifOS",
+  "source": "@site/docs/mcp/overview.md",
+  "sourceDirName": "mcp",
+  "slug": "/mcp/overview",
+  "permalink": "/mcp/overview",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/mcp/overview.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1,
+    "title": "MCP Overview",
+    "description": "Model Context Protocol integration with arifOS"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Python",
+    "permalink": "/guides/python"
+  },
+  "next": {
+    "title": "Connection",
+    "permalink": "/mcp/connection"
+  }
+}

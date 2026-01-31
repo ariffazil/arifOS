@@ -1,0 +1,29 @@
+{
+  "id": "guides/cursor",
+  "title": "Cursor",
+  "description": "Add arifOS governance to Cursor IDE",
+  "source": "@site/docs/guides/cursor.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/cursor",
+  "permalink": "/guides/cursor",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/guides/cursor.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4,
+    "title": "Cursor",
+    "description": "Add arifOS governance to Cursor IDE"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Claude Code",
+    "permalink": "/guides/claude-code"
+  },
+  "next": {
+    "title": "Python",
+    "permalink": "/guides/python"
+  }
+}

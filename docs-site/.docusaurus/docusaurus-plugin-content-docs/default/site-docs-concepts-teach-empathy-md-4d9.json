@@ -1,0 +1,29 @@
+{
+  "id": "concepts/teach/empathy",
+  "title": "E — Empathy",
+  "description": "Floor F6: Protect the weakest stakeholder",
+  "source": "@site/docs/concepts/teach/empathy.md",
+  "sourceDirName": "concepts/teach",
+  "slug": "/concepts/teach/empathy",
+  "permalink": "/concepts/teach/empathy",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/concepts/teach/empathy.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3,
+    "title": "E — Empathy",
+    "description": "Floor F6: Protect the weakest stakeholder"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "T — Truth",
+    "permalink": "/concepts/teach/truth"
+  },
+  "next": {
+    "title": "A — Amanah",
+    "permalink": "/concepts/teach/amanah"
+  }
+}

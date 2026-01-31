@@ -1,0 +1,29 @@
+{
+  "id": "concepts/atlas-333",
+  "title": "ATLAS-333 Smart Routing",
+  "description": "Intelligent query routing based on intent detection",
+  "source": "@site/docs/concepts/atlas-333.md",
+  "sourceDirName": "concepts",
+  "slug": "/concepts/atlas-333",
+  "permalink": "/concepts/atlas-333",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/concepts/atlas-333.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4,
+    "title": "ATLAS-333 Smart Routing",
+    "description": "Intelligent query routing based on intent detection"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "The 4 Verdicts",
+    "permalink": "/concepts/verdicts"
+  },
+  "next": {
+    "title": "Trinity Architecture",
+    "permalink": "/concepts/trinity"
+  }
+}

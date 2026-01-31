@@ -1,0 +1,29 @@
+{
+  "id": "guides/system-prompt",
+  "title": "System Prompt",
+  "description": "Copy-paste constitutional AI governance for any model",
+  "source": "@site/docs/guides/system-prompt.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/system-prompt",
+  "permalink": "/guides/system-prompt",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/guides/system-prompt.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1,
+    "title": "System Prompt",
+    "description": "Copy-paste constitutional AI governance for any model"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Trinity Architecture",
+    "permalink": "/concepts/trinity"
+  },
+  "next": {
+    "title": "Claude Desktop",
+    "permalink": "/guides/claude-desktop"
+  }
+}

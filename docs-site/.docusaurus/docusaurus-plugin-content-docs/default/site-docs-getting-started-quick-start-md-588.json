@@ -1,0 +1,29 @@
+{
+  "id": "getting-started/quick-start",
+  "title": "Quick Start",
+  "description": "Get arifOS running in 5 minutes",
+  "source": "@site/docs/getting-started/quick-start.md",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/quick-start",
+  "permalink": "/getting-started/quick-start",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/ariffazil/arifOS/tree/main/docs-site/docs/getting-started/quick-start.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1,
+    "title": "Quick Start",
+    "description": "Get arifOS running in 5 minutes"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Introduction",
+    "permalink": "/"
+  },
+  "next": {
+    "title": "Installation",
+    "permalink": "/getting-started/installation"
+  }
+}
