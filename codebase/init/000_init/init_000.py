@@ -36,6 +36,22 @@ from uuid import uuid4
 
 logger = logging.getLogger("codebase.init.init_000")
 
+# v55.0: Loop Manager for 000↔999 strange loop continuation
+LOOP_MANAGER_AVAILABLE = False
+_loop_manager = None
+_loop_bridge = None
+
+try:
+    from codebase.loop import LoopManager, LoopBridge
+
+    LOOP_MANAGER_AVAILABLE = True
+    _loop_manager = LoopManager()
+    _loop_bridge = LoopBridge(_loop_manager)
+    logger.info("v55.0 LoopManager initialized for 000↔999 cycle")
+except ImportError as e:
+    logger.debug(f"LoopManager not available: {e}")
+
+
 # Rate limiter & metrics — optional (not available outside MCP context)
 RATE_LIMITER_AVAILABLE = False
 METRICS_AVAILABLE = False
@@ -504,28 +520,56 @@ def _step_1_memory_injection(scar_weight: float = 0.0) -> Dict[str, Any]:
     """Step 1: Read from VAULT999 - inject previous session context.
 
     v53.2.2: Now receives scar_weight from Step 2 (sovereign recognition).
+    v55.0: Enhanced with LoopBridge to support 000↔999 strange loop continuation.
+
     Auth gates memory access (F11 Command Auth):
       - scar_weight >= 1.0 (888_JUDGE): Full vault context
       - scar_weight >= 0.5 (GUEST):     Summary-level only
       - scar_weight < 0.5:              Empty context (fresh session)
     """
+
+    # v55.0: Check for loop continuation from previous 999_SEAL
+    loop_context = {}
+    if LOOP_MANAGER_AVAILABLE and _loop_bridge:
+        try:
+            next_init_params = _loop_bridge.get_next_init_params()
+            if next_init_params:
+                loop_context = next_init_params
+                logger.info(
+                    f"000_init Step 1: Loop continuation detected (iteration {loop_context.get('iteration_count', 0)})"
+                )
+        except Exception as e:
+            logger.warning(f"000_init Step 1: Loop context retrieval failed: {e}")
+
     if not SESSION_LEDGER_AVAILABLE or inject_memory is None:
-        logger.debug("000_init Step 1: Session ledger not available, returning empty context")
-        return {"is_first_session": True, "session_count": 0}
+        logger.debug(
+            "000_init Step 1: Session ledger not available, returning loop context or empty"
+        )
+        return loop_context or {"is_first_session": True, "session_count": 0}
 
     try:
         previous_context = inject_memory()
         prev_session = previous_context.get("previous_session") or {}
         prev_id = prev_session.get("session_id", "")
-        logger.info(
-            f"000_init Step 1: Memory injected from {prev_id[:8] if prev_id else 'FIRST_SESSION'} (scar_weight={scar_weight})"
-        )
+
+        # Merge loop context with session ledger context
+        if loop_context:
+            previous_context["loop_continuation"] = True
+            previous_context["previous_merkle_root"] = loop_context.get("previous_merkle_root")
+            previous_context["iteration_count"] = loop_context.get("iteration_count", 0)
+            logger.info(
+                f"000_init Step 1: Memory injected from {prev_id[:8] if prev_id else 'FIRST_SESSION'} + loop (iter={loop_context.get('iteration_count')}, scar_weight={scar_weight})"
+            )
+        else:
+            logger.info(
+                f"000_init Step 1: Memory injected from {prev_id[:8] if prev_id else 'FIRST_SESSION'} (scar_weight={scar_weight})"
+            )
 
         # F11: Filter memory access by authority level
         if scar_weight >= 1.0:
             return previous_context
         elif scar_weight >= 0.5:
-            return {
+            filtered = {
                 "is_first_session": previous_context.get("is_first_session", True),
                 "session_count": previous_context.get("chain_length", 0),
                 "last_lane_type": (
@@ -533,12 +577,26 @@ def _step_1_memory_injection(scar_weight: float = 0.0) -> Dict[str, Any]:
                 ),
                 "context_summary": previous_context.get("context_summary", ""),
             }
+            # Include loop metadata for all auth levels
+            if loop_context:
+                filtered["loop_continuation"] = True
+                filtered["iteration_count"] = loop_context.get("iteration_count", 0)
+            return filtered
         else:
             logger.info("000_init Step 1: Minimal memory (scar_weight < 0.5)")
-            return {"is_first_session": True, "session_count": 0}
+            minimal = {"is_first_session": True, "session_count": 0}
+            # Include loop metadata even for minimal context
+            if loop_context:
+                minimal["loop_continuation"] = True
+                minimal["iteration_count"] = loop_context.get("iteration_count", 0)
+            return minimal
     except Exception as e:
         logger.warning(f"000_init Step 1: Memory injection failed: {e}")
-        return {"is_first_session": True, "error": str(e)}
+        error_context = {"is_first_session": True, "error": str(e)}
+        # Include loop context even on error
+        if loop_context:
+            error_context.update(loop_context)
+        return error_context
 
 
 def _step_2_sovereign_recognition(query: str, token: str) -> Dict[str, Any]:

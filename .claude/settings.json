@@ -21,5 +21,10 @@
     "qc": "python scripts/trinity.py qc",
     "seal": "python scripts/trinity.py seal",
     "mcp": "python -m arifos.mcp trinity"
+  },
+  "permissions": {
+    "allow": [
+      "Write"
+    ]
   }
 }

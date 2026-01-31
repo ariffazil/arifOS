@@ -1,453 +1,167 @@
-# Level 3: WORKFLOW - Documented Sequences
+# L3_WORKFLOW — Documented Sequences
 
-**Effectiveness:** ★★★☆☆☆ (70% Coverage)
-**Complexity:** Low-Medium
-**Cost:** $0.50-1.00 per 1K operations
-**Best For:** Process documentation, SOPs, human-in-loop systems
+**Level 3 | 70% Coverage | Medium Complexity**
 
----
-
-## 🎯 Overview
-
-**WORKFLOW level** documents the complete 000-999 metabolic loop as step-by-step procedures that AI *should* follow. This is what was created in [.claude/workflows/](../../.claude/workflows/).
-
-### Key Characteristics
-
-✓ **Sequential guidance** - Clear order of operations
-✓ **Decision trees** - Conditional logic documented
-✓ **Tool integration** - References actual tools (Glob, Grep, Read, Edit)
-✓ **Human-auditable** - Clear paper trail
-✓ **Self-documenting** - Workflow IS the documentation
-⚠️ **Voluntary compliance** - AI chooses to follow
-✗ **No programmatic enforcement** - Relies on AI discipline
-✗ **No automatic state management** - Manual context passing
+> *"Workflows are skills with state — file persistence across sessions."*
 
 ---
 
-## 📁 Structure
+## 🎯 Purpose
 
-\`\`\`
-.claude/workflows/          (or .agent/workflows/)
-├── README.md              # Workflow system overview
-├── 000_SESSION_INIT.md    # Ignition protocol
-├── 111_INTENT.md          # Intent clarification
-├── 333_CONTEXT.md         # Context mapping
-├── 555_SAFETY.md          # Safety validation
-├── 777_IMPLEMENT.md       # Code synthesis
-└── 888_COMMIT.md          # Git commit protocol
-\`\`\`
+L3_WORKFLOW adds **state persistence** to the parameterized skills from L2. Workflows are documented sequences that can:
+- Save intermediate results to files
+- Resume from checkpoints
+- Maintain context across sessions
+- Follow structured SOPs (Standard Operating Procedures)
+
+This layer is the **team collaboration** layer — enabling shared, repeatable processes.
 
 ---
 
-## 📝 Workflow Template Example
+## 📈 Effectiveness Spectrum
 
-### 333_CONTEXT.md (Abbreviated)
-
-\`\`\`markdown
-# 333_CONTEXT: The Mapping Protocol
-
-**Purpose:** Context discovery, dependency mapping, boundary identification
-**Input:** Parsed intent from 111_INTENT
-**Output:** Context map with uncertainty bounds
-
-## Constitutional Floors
-
-- F7 (Humility): Ω₀ ∈ [0.03, 0.05]
-- F10 (Ontology): Only verified symbols
-- F2 (Truth): All facts verified
-
-## Workflow Steps
-
-### 1. Target Identification
-
-**Tools:** Glob, Grep
-
-\`\`\`bash
-# Find relevant files by pattern
-Glob "**/*{target_keywords}*.{ts,tsx,js,jsx}"
-
-# Search for existing implementations
-Grep "{feature_name}" --output_mode files_with_matches
-\`\`\`
-
-**Output:** List of candidate files
-
-### 2. Dependency Analysis
-
-**Tools:** Read
-
-\`\`\`typescript
-For each candidate file:
-  - Read file (limit=100 lines for large files)
-  - Extract imports
-  - Extract exports
-  - Estimate complexity
-
-Build dependency graph:
-  nodes = files
-  edges = import relationships
-\`\`\`
-
-**Output:** Dependency graph
-
-### 3. Boundary Classification
-
-Categorize every node:
-
-| Category | Definition | Action |
-|----------|------------|--------|
-| Internal | Local files under control | Full access |
-| External | npm packages | API surface only |
-| Missing | Imported but not found | RED FLAG |
-| Unstable | High complexity, TODOs | CAUTION |
-
-### 4. Uncertainty Calculation (F7)
-
-\`\`\`
-Ω₀ = (α × |Unknown| + β × |Unstable|) / (|Known| + |Unknown|)
-
-Target: 0.03 ≤ Ω₀ ≤ 0.05
-\`\`\`
-
-**Constitutional Check:**
-
-\`\`\`
-IF Ω₀ > 0.10:
-  HALT("Map too foggy. Research required.")
-ELIF Ω₀ < 0.03:
-  WARN("Possible overconfidence. Verify edge cases.")
-ELSE:
-  PROCEED
-\`\`\`
-
-### 5. Vocabulary Extraction (F10)
-
-Extract allowed symbols for F10 enforcement:
-
-\`\`\`typescript
-vocabulary = {
-  functions: Set<string>,
-  classes: Set<string>,
-  types: Set<string>,
-  packages: Set<string>
-}
-\`\`\`
-
-**Usage:** 777_IMPLEMENT can ONLY use symbols from this vocabulary
-
-### 6. Output Format
-
-\`\`\`json
-{
-  "context_map": {
-    "files": [...],
-    "dependencies": {...},
-    "boundaries": {
-      "internal": [...],
-      "external": [...],
-      "missing": [...],
-      "unstable": [...]
-    }
-  },
-  "omega_0": 0.042,
-  "vocabulary": {
-    "functions": ["useTheme", "createTheme", ...],
-    "classes": [...],
-    "types": [...]
-  },
-  "floors_validated": ["F7", "F10", "F2"]
-}
-\`\`\`
-
-## Decision Tree
-
-\`\`\`
-┌─────────────────┐
-│ Start Mapping   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐      NO     ┌──────────────────┐
-│ Files found?    ├─────────────>│ HALT: No targets │
-└────────┬────────┘              └──────────────────┘
-         │ YES
-         ▼
-┌─────────────────┐
-│ Build graph     │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Calculate Ω₀    │
-└────────┬────────┘
-         │
-         ▼
-    Ω₀ > 0.10? ───YES──> HALT (Too foggy)
-         │
-         │ NO
-         ▼
-    Ω₀ < 0.03? ───YES──> WARN (Overconfident)
-         │
-         │ NO (0.03-0.05)
-         ▼
-┌─────────────────┐
-│ Extract vocab   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ SEAL & proceed  │
-│ to 777_IMPLEMENT│
-└─────────────────┘
-\`\`\`
-
-## Troubleshooting
-
-**Case 1: Missing Dependencies**
-\`\`\`
-Issue: import './utils' not found
-Action:
-  1. Glob "**/utils.*"
-  2. If still not found, HALT
-  3. User must clarify or provide file
-\`\`\`
-
-**Case 2: Circular Dependencies**
-\`\`\`
-Issue: A imports B imports A
-Analysis: Ω₀ will be high (graph unstable)
-Action: Mark module as "Volatile", recommend refactor
-\`\`\`
+```
+Coverage:  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░ 70%
+Cost:      $0.50-1.00 per 1K operations
+Setup:     1 hour
+Autonomy:  Low (human-guided)
+```
 
 ---
 
-**Next Stage:** [777_IMPLEMENT](./777_IMPLEMENT.md)
-\`\`\`
+## 📁 Files in This Directory
+
+### Current
+| File | Description | Status |
+|------|-------------|--------|
+| `README.md` | This file | ✅ Complete |
+
+### ✅ Now Available
+| File | Description | Status |
+|------|-------------|--------|
+| `.claude/workflows/000_SESSION_INIT.md` | Session initialization (Stage 000) | ✅ Complete |
+| `.claude/workflows/111_INTENT.md` | Intent mapping (Stage 111) | ✅ Complete |
+| `.claude/workflows/333_CONTEXT.md` | Context gathering (Stage 333) | ✅ Complete |
+| `.claude/workflows/555_SAFETY.md` | Safety evaluation (Stage 555) | ✅ Complete |
+| `.claude/workflows/777_IMPLEMENT.md` | Implementation (Stage 777) | ✅ Complete |
+| `.claude/workflows/888_COMMIT.md` | Commit/SEAL (Stage 888) | ✅ Complete |
 
 ---
 
-## 💡 Key Workflow Patterns
+## 🔄 The 6 Canonical Workflows
 
-### Pattern 1: Tool Call Sequences
+Each workflow maps to a stage in the 000-999 metabolic loop:
 
-\`\`\`markdown
-## Step 3: Search for Theme System
+```
+000_SESSION_INIT → 111_INTENT → 333_CONTEXT → 555_SAFETY → 777_IMPLEMENT → 888_COMMIT
+```
 
-**Sequential tool calls:**
+### 000_SESSION_INIT.md
+**Purpose:** Initialize constitutional session  
+**Inputs:** User query, optional context  
+**Outputs:** Session ID, loaded floors, authority verification  
+**State Saved:** `sessions/{session_id}/000_init.json`
 
-1. \`Glob "**/*theme*.{ts,tsx}"\`
-2. \`Grep "createTheme|ThemeProvider" --output_mode files_with_matches\`
-3. For each file: \`Read {file_path}\`
+### 111_INTENT.md
+**Purpose:** Map user intent to constitutional lanes  
+**Inputs:** Natural language query  
+**Outputs:** Intent classification, lane assignment (HARD/SOFT/PHATIC)  
+**State Saved:** `sessions/{session_id}/111_intent.json`
 
-**Parallel tool calls (when possible):**
+### 333_CONTEXT.md
+**Purpose:** Gather relevant context  
+**Inputs:** Intent, codebase structure  
+**Outputs:** Context map, relevant files  
+**State Saved:** `sessions/{session_id}/333_context.json`
 
-\`\`\`python
-# Call these in parallel (independent)
-results = await asyncio.gather(
-    Glob("**/*theme*.ts"),
-    Grep("ThemeProvider", output_mode="files"),
-    Read("package.json")  # Check existing theme libs
-)
-\`\`\`
-\`\`\`
+### 555_SAFETY.md
+**Purpose:** Evaluate safety and empathy  
+**Inputs:** Proposed action  
+**Outputs:** Safety report, weakest stakeholder, empathy score  
+**State Saved:** `sessions/{session_id}/555_safety.json`
 
-### Pattern 2: Constitutional Checkpoints
+### 777_IMPLEMENT.md
+**Purpose:** Execute implementation  
+**Inputs:** Safety-approved plan  
+**Outputs:** Code changes, documentation  
+**State Saved:** `sessions/{session_id}/777_implement.json`
 
-\`\`\`markdown
-## Floor Validation Checkpoint (F2: Truth)
-
-After extracting facts:
-
-\`\`\`
-FOR EACH fact in extracted_facts:
-  IF NOT verify_against_codebase(fact):
-    ASK user for clarification
-    HALT until clarified
-\`\`\`
-
-**Example:**
-\`\`\`
-User: "Update the auth.py file"
-Verification: Glob "**/*auth*.py"
-Result: NOT FOUND
-
-Action:
-  AskUserQuestion({
-    question: "File 'auth.py' not found. Did you mean 'authentication.py'?",
-    options: [
-      {label: "authentication.py", description: "Main auth module"},
-      {label: "auth_utils.py", description: "Auth utility functions"}
-    ]
-  })
-\`\`\`
-\`\`\`
-
-### Pattern 3: Conditional Routing
-
-\`\`\`markdown
-## Routing Decision
-
-\`\`\`python
-def route_next_stage(complexity, intent):
-    if complexity < 3:  # Simple task
-        return "777_IMPLEMENT"  # Skip context mapping
-
-    if intent.action == "EXPLAIN":
-        return "333_CONTEXT"  # Need deep exploration
-
-    if intent.targets.length > 3:  # Many files
-        return "333_CONTEXT"  # Map dependencies first
-
-    return "333_CONTEXT"  # Default: always map
-\`\`\`
-\`\`\`
+### 888_COMMIT.md
+**Purpose:** Final verification and SEAL  
+**Inputs:** Implementation results  
+**Outputs:** SEAL verdict, vault entry, merkle root  
+**State Saved:** `sessions/{session_id}/888_commit.json`
 
 ---
 
-## 📊 Effectiveness Analysis
+## 🛡️ Constitutional Floors Enforced
 
-### Strengths
-
-| Aspect | Score | Notes |
-|--------|-------|-------|
-| **Documentation** | ★★★★★ | Self-documenting process |
-| **Auditability** | ★★★★☆ | Clear paper trail |
-| **Human understanding** | ★★★★★ | Easy to follow |
-| **Tool integration** | ★★★★☆ | References real tools |
-| **Maintenance** | ★★★★☆ | Easy to update |
-
-### Weaknesses
-
-| Aspect | Issue | Impact |
-|--------|-------|--------|
-| **Enforcement** | Voluntary only | AI can skip steps |
-| **State management** | Manual | Context passed by AI memory |
-| **Error handling** | Documented, not enforced | AI must implement |
-| **Consistency** | Varies by AI capability | Claude >> GPT-3.5 |
+| Floor | Enforcement | Mechanism | Status |
+|-------|-------------|-----------|--------|
+| F1 Amanah | ✅ Full | File persistence + audit | **Active** |
+| F2 Truth | ✅ Full | Checkpoint validation | **Active** |
+| F3 Tri-Witness | ⚠️ Partial | Human checkpoint | Available |
+| F4 Clarity | ✅ Full | Documented steps | **Active** |
+| F5 Peace² | ✅ Full | Safety workflow | **Active** |
+| F6 Empathy | ✅ Full | Stakeholder workflow | **Active** |
+| F7 Humility | ✅ Full | Uncertainty tracking | **Active** |
+| F8 Genius | ⚠️ Partial | Score calculation | Available |
+| F9 Anti-Hantu | ✅ Full | Pattern detection | **Active** |
+| F10 Ontology | ✅ Full | Reality checks | **Active** |
+| F11 Command Auth | ✅ Full | Token validation | **Active** |
+| F12 Injection | ✅ Full | Input workflow | **Active** |
+| F13 Sovereign | ✅ Full | Human checkpoints | **Active** |
 
 ---
 
-## 💰 Cost Analysis
+## 🚀 Deployment History
 
-### Per-Operation Breakdown
+### v52.0 — Workflow Experiments (Archived)
+- Basic markdown workflows
+- Manual state management
+- Single-user only
 
-| Workflow | LLM Calls | Avg Tokens | Cost |
-|----------|-----------|------------|------|
-| 000_SESSION_INIT | 0-1 | 200 | $0.004 |
-| 111_INTENT | 1-3 | 1500 | $0.030-0.060 |
-| 333_CONTEXT | 2-5 | 2000 | $0.040-0.100 |
-| 777_IMPLEMENT | 3-8 | 2500 | $0.075-0.200 |
-| 555_SAFETY | 1-2 | 1000 | $0.020-0.040 |
-| 888_COMMIT | 1-2 | 800 | $0.016-0.032 |
+### v53.0 — Standardization (Archived)
+- `.claude/workflows/` structure
+- 3 initial workflows
+- File persistence added
 
-**Total per task:** $0.19 - $0.44
-
-**Why higher than PROMPT/SKILL?**
-- AI reads workflow docs (extra tokens)
-- Tool calls add overhead
-- More interactive (clarifications)
+### v54.1-SEAL — Current
+- 6-workflow architecture defined
+- State management framework
+- ✅ **All 6 workflow files implemented**
 
 ---
 
-## 🔄 Migration Path
+## 📊 Use Cases
 
-### From SKILL → WORKFLOW
-
-**Before (SKILL):**
-\`\`\`
-User calls: /ignition, /cognition, /atlas, /forge, /defend, /decree
-(Manual sequencing, user remembers order)
-\`\`\`
-
-**After (WORKFLOW):**
-\`\`\`
-AI reads: .claude/workflows/README.md
-Follows: 000 → 111 → 333 → 777 → 555 → 888 (documented sequence)
-Enforces: Decision trees, checkpoints, floor validations
-\`\`\`
-
-**Key Improvement:** Process knowledge embedded in documentation
+| Scenario | Workflow | Benefit |
+|----------|----------|---------|
+| Onboard new team member | `000_SESSION_INIT` + `111_INTENT` | Consistent process |
+| Code review | `555_SAFETY` + `777_IMPLEMENT` | Safety-first |
+| Architecture decision | `333_CONTEXT` + `888_COMMIT` | Documented rationale |
+| Incident response | `000_SESSION_INIT` → `888_COMMIT` | Full traceability |
 
 ---
 
-### To TOOL Level
+## 🔗 Next Steps
 
-**Next Evolution:**
-\`\`\`
-Workflow docs → MCP tool implementations
-\`\`\`
+### Immediate (v55.0)
+- [ ] Create `.claude/workflows/` directory
+- [ ] Implement 6 canonical workflow files
+- [ ] Add state persistence layer
+- [ ] Test resume-from-checkpoint
 
-**Example:**
-\`\`\`python
-# From: .claude/workflows/333_CONTEXT.md (documentation)
-# To: mcp_tools/atlas.py (code)
-
-@mcp.tool()
-async def _atlas_(intent: dict, session_id: str):
-    """ENFORCED implementation of 333_CONTEXT workflow"""
-    # ... actual code that MUST execute ...
-\`\`\`
+### Future (v55.1+)
+- [ ] Visual workflow editor
+- [ ] Workflow marketplace
+- [ ] Cross-team sharing
 
 ---
 
-## 📚 Real-World Examples
+## 👑 Authority
 
-**Current Implementations:**
-- [.claude/workflows/](../../.claude/workflows/) - Claude Code adaptation
-- [.agent/workflows/](../../.agent/workflows/) - arifOS global skills
-
-**Usage:**
-- Claude Code reads workflows when handling complex tasks
-- Workflows guide implementation decisions
-- Provides constitutional compliance framework
-
----
-
-## 🎯 Best Practices
-
-### 1. Workflow Writing
-
-✓ **Clear step numbers** - Easy to follow
-✓ **Tool specifications** - Exact commands
-✓ **Decision trees** - Conditional logic visible
-✓ **Examples** - Concrete cases
-✓ **Floor checkpoints** - Constitutional validation
-
-### 2. Maintenance
-
-✓ **Version control** - Track changes
-✓ **Update regularly** - As tools evolve
-✓ **Test with AI** - Verify AI can follow
-✓ **User feedback** - Improve clarity
-
-### 3. Integration
-
-✓ **Reference from prompts** - "See .claude/workflows/"
-✓ **Link workflows** - Cross-references between stages
-✓ **Provide context** - When to use each workflow
-✓ **Document exceptions** - When to skip stages
-
----
-
-## 📈 Adoption Strategy
-
-### Phase 1: Documentation (Current)
-Create workflow docs for team reference
-
-### Phase 2: AI Integration
-Train AI to read and follow workflows
-
-### Phase 3: Validation
-Add checklist validation (AI self-checks)
-
-### Phase 4: Automation
-Migrate to TOOL level (programmatic enforcement)
-
----
-
-**Level:** WORKFLOW (3/6)
-**Effectiveness:** 70%
-**Status:** PRODUCTION (Claude Code)
-**Next Level:** [4_TOOL](../4_TOOL/) for enforcement
-
-*Ditempa Bukan Diberi.* 📋
+**Sovereign:** Muhammad Arif bin Fazil  
+**Version:** v54.1-SEAL  
+**Status:** ⚠️ Partial — Implementation needed  
+**Creed:** DITEMPA BUKAN DIBERI
