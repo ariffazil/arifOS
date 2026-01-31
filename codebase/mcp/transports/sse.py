@@ -13,7 +13,7 @@ import uvicorn
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.resources import FunctionResource
 from mcp.server.fastmcp.prompts import Prompt as FastMCPPrompt
-from starlette.responses import JSONResponse, HTMLResponse
+from starlette.responses import JSONResponse, HTMLResponse, RedirectResponse
 
 from .base import BaseTransport
 from ..core.tool_registry import ToolRegistry
@@ -25,39 +25,6 @@ logger = logging.getLogger(__name__)
 # Security: bind to localhost for local dev, 0.0.0.0 only when HOST env is set
 _DEFAULT_HOST = os.getenv("HOST", "127.0.0.1")
 _DEFAULT_PORT = int(os.getenv("PORT", 8080))
-
-
-# Dashboard HTML as a constant to avoid escape issues
-DASHBOARD_HTML = """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>arifOS - Constitutional AI Governance</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-               max-width: 800px; margin: 40px auto; padding: 20px; 
-               background: #0d1117; color: #e6edf3; line-height: 1.6; }
-        h1 { color: #58a6ff; font-size: 2.5rem; }
-        .badge { display: inline-block; background: #238636; color: white; 
-                 padding: 8px 16px; border-radius: 20px; font-weight: 600; }
-        a { color: #58a6ff; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        ul { line-height: 2; }
-        .motto { color: #d29922; font-style: italic; margin-top: 20px; }
-    </style>
-</head>
-<body>
-    <h1>arifOS</h1>
-    <p><span class="badge">v55.1 ONLINE</span></p>
-    <p>Constitutional AI Governance System</p>
-    <hr>
-    <ul>
-        <li><a href="/health">Health Check (JSON)</a></li>
-        <li><a href="/metrics/json">Metrics (JSON)</a></li>
-    </ul>
-    <p class="motto">DITEMPA BUKAN DIBERI - Forged, Not Given</p>
-</body>
-</html>"""
 
 
 class SSETransport(BaseTransport):
@@ -139,8 +106,8 @@ class SSETransport(BaseTransport):
 
         @self.mcp.custom_route("/", methods=["GET"])
         async def root(request):
-            """Root endpoint - serve the arifOS dashboard."""
-            return HTMLResponse(content=DASHBOARD_HTML)
+            """Root endpoint - redirect to BODY layer (Cloudflare Pages)."""
+            return RedirectResponse(url="https://arif-fazil.com", status_code=307)
 
     def _register_resources(self):
         """Register MCP Resources using FastMCP FunctionResource."""

@@ -18,9 +18,5 @@ REDIS_URL = "${{Redis.REDIS_URL}}"
 HOST = "0.0.0.0"
 PORT = "8080"
 
-# Custom domains - arif-fazil.com is the primary
-[[deploy.domains]]
-host = "arif-fazil.com"
-
-[[deploy.domains]]
-host = "www.arif-fazil.com"
+# Note: arif-fazil.com domain now points to Cloudflare Pages (BODY layer)
+# Railway hosts the MIND layer (API/MCP backend) only
