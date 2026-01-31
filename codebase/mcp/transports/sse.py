@@ -27,6 +27,39 @@ _DEFAULT_HOST = os.getenv("HOST", "127.0.0.1")
 _DEFAULT_PORT = int(os.getenv("PORT", 8080))
 
 
+# Dashboard HTML as a constant to avoid escape issues
+DASHBOARD_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>arifOS - Constitutional AI Governance</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+               max-width: 800px; margin: 40px auto; padding: 20px; 
+               background: #0d1117; color: #e6edf3; line-height: 1.6; }
+        h1 { color: #58a6ff; font-size: 2.5rem; }
+        .badge { display: inline-block; background: #238636; color: white; 
+                 padding: 8px 16px; border-radius: 20px; font-weight: 600; }
+        a { color: #58a6ff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        ul { line-height: 2; }
+        .motto { color: #d29922; font-style: italic; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>arifOS</h1>
+    <p><span class="badge">v55.1 ONLINE</span></p>
+    <p>Constitutional AI Governance System</p>
+    <hr>
+    <ul>
+        <li><a href="/health">Health Check (JSON)</a></li>
+        <li><a href="/metrics/json">Metrics (JSON)</a></li>
+    </ul>
+    <p class="motto">DITEMPA BUKAN DIBERI - Forged, Not Given</p>
+</body>
+</html>"""
+
+
 class SSETransport(BaseTransport):
     """Streamable HTTP Transport implementation using FastMCP."""
 
@@ -116,37 +149,8 @@ class SSETransport(BaseTransport):
             if os.path.exists(static_path):
                 return FileResponse(static_path)
             
-            # Fallback to simple HTML if file not found
-            return HTMLResponse(content="""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>arifOS - Constitutional AI Governance</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-               max-width: 800px; margin: 40px auto; padding: 20px; 
-               background: #0d1117; color: #e6edf3; line-height: 1.6; }
-        h1 { color: #58a6ff; font-size: 2.5rem; }
-        .badge { display: inline-block; background: #238636; color: white; 
-                 padding: 8px 16px; border-radius: 20px; font-weight: 600; }
-        a { color: #58a6ff; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        ul { line-height: 2; }
-        .motto { color: #d29922; font-style: italic; margin-top: 20px; }
-    </style>
-</head>
-<body>
-    <h1>arifOS</h1>
-    <p><span class="badge">v55.1 ONLINE</span></p>
-    <p>Constitutional AI Governance System</p>
-    <hr>
-    <ul>
-        <li><a href="/health">Health Check (JSON)</a></li>
-        <li><a href="/metrics/json">Metrics (JSON)</a></li>
-    </ul>
-    <p class="motto">DITEMPA BUKAN DIBERI — Forged, Not Given</p>
-</body>
-</html>""")
+            # Fallback to constant HTML
+            return HTMLResponse(content=DASHBOARD_HTML)
 
     def _register_resources(self):
         """Register MCP Resources using FastMCP FunctionResource."""
