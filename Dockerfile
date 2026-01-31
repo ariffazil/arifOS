@@ -41,6 +41,7 @@ RUN uv pip install --system -e .
 ENV PYTHONPATH=/app
 ENV ARIFOS_MODE=production
 ENV ARIFOS_MCP_MODE=sse
+ENV HOST=0.0.0.0
 # PORT is set by Railway dynamically
 
 # Expose port
