@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Codex CLI MCP config — arifOS AAA MCP v55.1 (streamable-http)",
+  "mcpServers": {
+    "arifos-trinity": {
+      "command": "python",
+      "args": [
+        "-m",
+        "codebase.mcp.entrypoints.sse_entry"
+      ],
+      "cwd": "C:\\Users\\User\\arifOS",
+      "env": {
+        "PYTHONPATH": "C:/Users/User/arifOS",
+        "ARIFOS_MODE": "production",
+        "ARIFOS_MCP_MODE": "sse",
+        "ARIFOS_VERSION": "v55.1-CODEBASE-AAA",
+        "HOST": "127.0.0.1",
+        "PORT": "8000"
+      },
+      "description": "Local arifOS Trinity MCP (FastMCP streamable HTTP, v55.1)"
+    }
+  }
+}
