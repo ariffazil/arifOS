@@ -34,28 +34,25 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     <meta charset="UTF-8">
     <title>arifOS - Constitutional AI Governance</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-               max-width: 800px; margin: 40px auto; padding: 20px; 
-               background: #0d1117; color: #e6edf3; line-height: 1.6; }
-        h1 { color: #58a6ff; font-size: 2.5rem; }
-        .badge { display: inline-block; background: #238636; color: white; 
-                 padding: 8px 16px; border-radius: 20px; font-weight: 600; }
-        a { color: #58a6ff; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        ul { line-height: 2; }
-        .motto { color: #d29922; font-style: italic; margin-top: 20px; }
+        :root { --bg: #050505; --panel: #111111; --text: #ffffff; --blue: #3b82f6; --yellow: #eab308; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .box { background: var(--panel); border: 1px solid #333; padding: 40px; border-radius: 12px; text-align: center; max-width: 600px; }
+        h1 { color: var(--blue); margin-bottom: 10px; }
+        .motto { color: var(--yellow); font-style: italic; margin-top: 20px; font-weight: bold; }
+        a { color: var(--blue); text-decoration: none; margin: 0 10px; }
     </style>
 </head>
 <body>
-    <h1>arifOS</h1>
-    <p><span class="badge">v55.1 ONLINE</span></p>
-    <p>Constitutional AI Governance System</p>
-    <hr>
-    <ul>
-        <li><a href="/health">Health Check (JSON)</a></li>
-        <li><a href="/metrics/json">Metrics (JSON)</a></li>
-    </ul>
-    <p class="motto">DITEMPA BUKAN DIBERI - Forged, Not Given</p>
+    <div class="box">
+        <h1>🏛️ arifOS</h1>
+        <p>Constitutional AI Governance System</p>
+        <p style="color: #888;">Professional Dashboard Restored (v55.1-AAA)</p>
+        <div style="margin: 20px 0;">
+            <a href="/health">Health</a>
+            <a href="/metrics/json">Metrics</a>
+        </div>
+        <p class="motto">DITEMPA BUKAN DIBERI</p>
+    </div>
 </body>
 </html>"""
 
@@ -97,9 +94,7 @@ class SSETransport(BaseTransport):
         self._register_resources()
         self._register_prompts()
 
-        logger.info(
-            f"Starting Streamable HTTP Transport on {_DEFAULT_HOST}:{_DEFAULT_PORT}"
-        )
+        logger.info(f"Starting Streamable HTTP Transport on {_DEFAULT_HOST}:{_DEFAULT_PORT}")
 
         # Run using uvicorn programmatically
         asgi_app = self.mcp.streamable_http_app()
@@ -145,10 +140,10 @@ class SSETransport(BaseTransport):
             # Try to serve the proper dashboard HTML
             static_path = os.path.join(os.path.dirname(__file__), "..", "static", "index.html")
             static_path = os.path.abspath(static_path)
-            
+
             if os.path.exists(static_path):
                 return FileResponse(static_path)
-            
+
             # Fallback to constant HTML
             return HTMLResponse(content=DASHBOARD_HTML)
 

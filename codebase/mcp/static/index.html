@@ -1,291 +1,736 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>arifOS — Constitutional AI Governance</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>arifOS Monitoring Dashboard</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+      /* arifOS Monitoring Dashboard (v52.5.1) - Dark Mode with High-Contrast Trinity Colors */
+
+      :root {
+        /* High-Contrast Dark Background */
+        --bg-color: #050505; /* Deepest black for contrast */
+        --panel-bg: #111111; /* Slightly lighter for panels */
+        --border-color: #333333; /* Crisp borders */
+        --card-bg: #1a1a1a; /* Cards pop against panels */
+
+        /* Text - High Legibility */
+        --text-main: #ffffff;
+        --text-dim: #a1a1aa;
+        --text-muted: #71717a;
+
+        /* arifOS Trinity Primaries (Corrected Mapping) */
+        --color-blue: #3b82f6; /* AGI (Mind) - Intelligence/Logic */
+        --color-red: #ef4444; /* ASI (Heart) - Action/Constitutional Force */
+        --color-yellow: #eab308; /* APEX (Soul) - Judgment/Illumination */
+
+        /* Verdict Colors (Semantic) */
+        --color-seal: #22c55e; /* Green - Approved */
+        --color-void: #ef4444; /* Red - Rejected (Matches ASI/Heart force) */
+        --color-partial: #eab308; /* Yellow - Warning (Matches APEX caution) */
+        --color-hold: #a855f7; /* Purple - Human Review */
+
+        /* Fonts */
+        --font-mono:
+          "JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        min-height: 100vh;
+      }
+
+      .dashboard-container {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        max-width: 1800px;
+        margin: 0 auto;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 24px;
+        background: var(--panel-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo .arif {
+        font-weight: 800;
+        font-size: 1.8rem;
+        letter-spacing: -0.5px;
+        color: var(--text-main);
+      }
+
+      .logo .os {
+        font-weight: 400;
+        font-size: 1.8rem;
+        color: var(--color-blue);
+      }
+
+      .status-badge {
+        background: rgba(34, 197, 94, 0.1);
+        color: var(--color-seal);
+        padding: 6px 14px;
+        border: 1px solid var(--color-seal);
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-left: 16px;
+      }
+
+      .header-info {
+        display: flex;
+        gap: 32px;
+        color: var(--text-dim);
+        font-size: 0.9rem;
+        font-family: var(--font-mono);
+      }
+
+      .calibration-indicator {
+        padding: 6px 12px;
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid var(--color-yellow);
+        border-radius: 4px;
+      }
+
+      .metrics-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .metric-box {
+        background: var(--panel-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 24px;
+        text-align: center;
+        transition: all 0.2s ease;
+      }
+
+      .metric-box:hover {
+        transform: translateY(-2px);
+        border-color: var(--color-blue);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+      }
+
+      .metric-box.seal-box {
+        border-color: var(--color-seal);
+        background: linear-gradient(
+          180deg,
+          rgba(34, 197, 94, 0.05) 0%,
+          var(--panel-bg) 100%
+        );
+      }
+
+      .metric-label {
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 12px;
+        font-weight: 600;
+      }
+
+      .metric-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        font-family: var(--font-mono);
+        color: var(--text-main);
+      }
+
+      .seal-box .metric-value {
+        color: var(--color-seal);
+        text-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+      }
+
+      main {
+        flex: 1;
+      }
+
+      .grid-layout {
+        display: grid;
+        grid-template-columns: 300px 1fr 340px;
+        gap: 20px;
+      }
+
+      .panel {
+        background: var(--panel-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      h3 {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        color: var(--color-yellow);
+        letter-spacing: 1.2px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .tool-list,
+      .verdict-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 24px;
+      }
+
+      .tool-row,
+      .verdict-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: var(--card-bg);
+        border-radius: 6px;
+        border-left: 3px solid var(--color-blue);
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+        transition: background 0.2s;
+      }
+
+      .verdict-row.seal {
+        border-left-color: var(--color-seal);
+      }
+      .verdict-row.void {
+        border-left-color: var(--color-void);
+      }
+      .verdict-row.partial {
+        border-left-color: var(--color-partial);
+      }
+      .verdict-row.hold {
+        border-left-color: var(--color-hold);
+      }
+
+      .execution-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .execution-empty {
+        color: var(--text-muted);
+        text-align: center;
+        padding: 60px;
+        font-style: italic;
+        border: 1px dashed var(--border-color);
+        border-radius: 8px;
+      }
+
+      .execution-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 18px;
+        background: var(--card-bg);
+        border-radius: 6px;
+        border-left: 3px solid transparent;
+        transition: transform 0.1s;
+      }
+
+      .execution-item.seal {
+        border-left-color: var(--color-seal);
+      }
+      .execution-item.void {
+        border-left-color: var(--color-void);
+      }
+      .execution-item.partial {
+        border-left-color: var(--color-partial);
+      }
+      .execution-item.hold {
+        border-left-color: var(--color-hold);
+      }
+
+      .execution-left {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .execution-tool {
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--color-blue);
+      }
+      .execution-time {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+      }
+      .execution-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .execution-verdict {
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        font-family: var(--font-mono);
+        text-transform: uppercase;
+      }
+      .execution-verdict.seal {
+        background: rgba(34, 197, 94, 0.15);
+        color: var(--color-seal);
+      }
+      .execution-verdict.void {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--color-void);
+      }
+      .execution-verdict.partial {
+        background: rgba(234, 179, 8, 0.15);
+        color: var(--color-partial);
+      }
+      .execution-verdict.hold {
+        background: rgba(168, 85, 247, 0.15);
+        color: var(--color-hold);
+      }
+      .execution-duration {
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        color: var(--text-dim);
+        min-width: 60px;
+        text-align: right;
+      }
+
+      .trinity-compact {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .trinity-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 18px;
+        border-radius: 6px;
+        background: var(--card-bg);
+      }
+      .trinity-row.agi {
+        border-left: 4px solid var(--color-blue);
+      }
+      .trinity-row.asi {
+        border-left: 4px solid var(--color-red);
+      }
+      .trinity-row.apex {
+        border-left: 4px solid var(--color-yellow);
+      }
+      .engine-name {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+      .engine-score {
+        font-family: var(--font-mono);
+        font-size: 1.25rem;
+        font-weight: 800;
+      }
+      .trinity-row.agi .engine-score {
+        color: var(--color-blue);
+      }
+      .trinity-row.asi .engine-score {
+        color: var(--color-red);
+      }
+      .trinity-row.apex .engine-score {
+        color: var(--color-yellow);
+      }
+
+      .floors-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+      .floor-led {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.75rem;
+        padding: 10px 12px;
+        border-radius: 6px;
+        background: var(--card-bg);
+        color: var(--text-dim);
+        font-family: var(--font-mono);
+      }
+      .led {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #333;
+      }
+      .led.green {
+        background: var(--color-seal);
+        box-shadow: 0 0 8px var(--color-seal);
+      }
+      .led.red {
+        background: var(--color-void);
+        box-shadow: 0 0 8px var(--color-void);
+      }
+
+      footer {
+        margin-top: 20px;
+        padding: 16px 24px;
+        background: var(--panel-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        text-align: center;
+      }
+      .footer-info {
+        display: flex;
+        justify-content: space-between;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+      .footer-info span:first-child {
+        color: var(--color-yellow);
+        font-weight: 700;
+      }
+
+      @media (max-width: 1400px) {
+        .grid-layout {
+          grid-template-columns: 280px 1fr;
         }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
-            color: #e6edf3;
-            min-height: 100vh;
-            line-height: 1.6;
+        .panel:last-child {
+          grid-column: span 2;
+          flex-direction: row;
+          gap: 20px;
         }
-        
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 40px 20px;
+      }
+      @media (max-width: 1000px) {
+        .grid-layout {
+          grid-template-columns: 1fr;
         }
-        
-        header {
-            text-align: center;
-            margin-bottom: 60px;
-            padding-bottom: 40px;
-            border-bottom: 1px solid #30363d;
+        .panel:last-child {
+          grid-column: span 1;
+          flex-direction: column;
         }
-        
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            background: linear-gradient(90deg, #58a6ff, #a371f7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .metrics-row {
+          grid-template-columns: repeat(2, 1fr);
         }
-        
-        .tagline {
-            font-size: 1.2rem;
-            color: #8b949e;
-            margin-bottom: 30px;
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 8px 16px;
-            background: #238636;
-            color: white;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-        
-        .section {
-            background: rgba(22, 27, 34, 0.8);
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 30px;
-        }
-        
-        h2 {
-            color: #58a6ff;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-        }
-        
-        .status-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .status-card {
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-        }
-        
-        .status-card h3 {
-            font-size: 0.9rem;
-            color: #8b949e;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .status-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #3fb950;
-        }
-        
-        .endpoints {
-            list-style: none;
-        }
-        
-        .endpoints li {
-            padding: 15px;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .endpoints code {
-            background: #21262d;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-family: 'SF Mono', monospace;
-            font-size: 0.9rem;
-        }
-        
-        .method {
-            display: inline-block;
-            padding: 4px 12px;
-            background: #1f6feb;
-            color: white;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-        
-        .method.get {
-            background: #238636;
-        }
-        
-        .method.post {
-            background: #1f6feb;
-        }
-        
-        footer {
-            text-align: center;
-            padding-top: 40px;
-            border-top: 1px solid #30363d;
-            color: #8b949e;
-        }
-        
-        .motto {
-            font-style: italic;
-            font-size: 1.1rem;
-            margin-top: 10px;
-            color: #d29922;
-        }
-        
-        a {
-            color: #58a6ff;
-            text-decoration: none;
-        }
-        
-        a:hover {
-            text-decoration: underline;
-        }
-        
-        .links {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-        
-        .link-btn {
-            padding: 12px 24px;
-            background: #21262d;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            color: #e6edf3;
-            transition: all 0.2s;
-        }
-        
-        .link-btn:hover {
-            background: #30363d;
-            text-decoration: none;
-        }
+      }
     </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>🏛️ arifOS</h1>
-            <p class="tagline">Constitutional AI Governance System</p>
-            <span class="badge">● v55.1 ONLINE</span>
-        </header>
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <header>
+        <div class="logo">
+          <span class="arif">arif</span><span class="os">OS</span>
+          <span class="status-badge" id="status-badge">Active</span>
+        </div>
+        <div class="header-info">
+          <span id="version">v55.1-AAA</span>
+          <span id="uptime">Uptime: --</span>
+        </div>
+        <div
+          class="calibration-indicator"
+          id="calibration-indicator"
+          style="display: none"
+        >
+          <span style="color: #f59e0b; font-weight: bold"
+            >⚠️ CALIBRATION MODE</span
+          >
+        </div>
+      </header>
 
-        <div class="section">
-            <h2>🛡️ The 9 Floors</h2>
-            <p>Every AI decision passes through 9 safety checks before execution:</p><br>
-            <div class="status-grid">
-                <div class="status-card">
-                    <h3>F1: Reversibility</h3>
-                    <div class="status-value">✓</div>
-                </div>
-                <div class="status-card">
-                    <h3>F2: Truth</h3>
-                    <div class="status-value">✓</div>
-                </div>
-                <div class="status-card">
-                    <h3>F3: Consensus</h3>
-                    <div class="status-value">✓</div>
-                </div>
-                <div class="status-card">
-                    <h3>F4: Clarity</h3>
-                    <div class="status-value">✓</div>
-                </div>
-                <div class="status-card">
-                    <h3>F5: Peace</h3>
-                    <div class="status-value">✓</div>
-                </div>
-                <div class="status-card">
-                    <h3>F6: Empathy</h3>
-                    <div class="status-value">✓</div>
-                </div>
-                <div class="status-card">
-                    <h3>F7: Humility</h3>
-                    <div class="status-value">✓</div>
-                </div>
-                <div class="status-card">
-                    <h3>F8: Genius</h3>
-                    <div class="status-value">✓</div>
-                </div>
-                <div class="status-card">
-                    <h3>F9: Reality</h3>
-                    <div class="status-value">✓</div>
-                </div>
+      <main>
+        <div class="metrics-row">
+          <div class="metric-box">
+            <div class="metric-label">Total Tool Calls</div>
+            <div class="metric-value" id="total-calls">0</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Active Sessions</div>
+            <div class="metric-value" id="active-sessions">0</div>
+          </div>
+          <div class="metric-box seal-box">
+            <div class="metric-label">SEAL Rate</div>
+            <div class="metric-value" id="seal-rate">0%</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Avg Latency</div>
+            <div class="metric-value" id="avg-latency">0ms</div>
+          </div>
+        </div>
+
+        <div class="grid-layout">
+          <section class="panel tool-panel">
+            <h3>Tool Usage</h3>
+            <div id="tool-usage" class="tool-list"></div>
+            <h3 style="margin-top: 20px">Verdict Distribution</h3>
+            <div id="verdict-dist" class="verdict-list"></div>
+          </section>
+
+          <section class="panel executions-panel">
+            <h3>Recent Executions</h3>
+            <div id="recent-executions" class="execution-list">
+              <div class="execution-empty">No executions yet...</div>
             </div>
-        </div>
+          </section>
 
-        <div class="section">
-            <h2>🔗 API Endpoints</h2>
-            <ul class="endpoints">
-                <li>
-                    <span><code>/health</code></span>
-                    <span class="method get">GET</span>
-                </li>
-                <li>
-                    <span><code>/mcp</code> — MCP Protocol</span>
-                    <span class="method post">POST</span>
-                </li>
-                <li>
-                    <span><code>/sse</code> — Server-Sent Events</span>
-                    <span class="method get">GET</span>
-                </li>
-                <li>
-                    <span><code>/metrics/json</code></span>
-                    <span class="method get">GET</span>
-                </li>
-            </ul>
-        </div>
+          <section class="panel health-panel">
+            <h3>Constitutional Floors</h3>
+            <div id="floors-grid" class="floors-grid"></div>
 
-        <div class="section">
-            <h2>📚 Resources</h2>
-            <div class="links">
-                <a href="https://github.com/ariffazil/arifOS" class="link-btn">GitHub</a>
-                <a href="https://github.com/ariffazil/arifOS" class="link-btn">GitHub</a>
-                <a href="https://pypi.org/project/arifos/" class="link-btn">PyPI</a>
+            <h3 style="margin-top: 20px">Trinity Engines</h3>
+            <div class="trinity-compact">
+              <div class="trinity-row agi">
+                <span class="engine-name">AGI (Mind) - τ Truth</span>
+                <span class="engine-score" id="agi-score">0.000</span>
+              </div>
+              <div class="trinity-row asi">
+                <span class="engine-name">ASI (Heart) - κᵣ Empathy</span>
+                <span class="engine-score" id="asi-score">0.000</span>
+              </div>
+              <div class="trinity-row apex">
+                <span class="engine-name">APEX (Soul) - Ψ Vitality</span>
+                <span class="engine-score" id="apex-score">0.000</span>
+              </div>
             </div>
+          </section>
         </div>
+      </main>
 
-        <footer>
-            <p>Built with constitutional care by Muhammad Arif bin Fazil</p>
-            <p class="motto">DITEMPA BUKAN DIBERI — Forged, Not Given</p>
-        </footer>
+      <footer>
+        <div class="footer-info">
+          <span>DITEMPA BUKAN DIBERI</span>
+          <span id="last-update">Last update: --</span>
+        </div>
+      </footer>
     </div>
 
     <script>
-        // Auto-refresh status every 30 seconds
-        setInterval(async () => {
-            try {
-                const response = await fetch('/health');
-                const data = await response.json();
-                console.log('Health:', data);
-            } catch (e) {
-                console.error('Health check failed:', e);
-            }
-        }, 30000);
+      const CONFIG = {
+        metrics_url: "/metrics/json",
+        poll_interval: 2000,
+      };
+
+      const FLOORS = [
+        { id: "F1", name: "Amanah", key: "F1_amanah" },
+        { id: "F2", name: "Truth", key: "F2_truth" },
+        { id: "F3", name: "Tri-Witness", key: "F3_tri_witness" },
+        { id: "F4", name: "Clarity", key: "F4_clarity" },
+        { id: "F5", name: "Peace", key: "F5_peace" },
+        { id: "F6", name: "Empathy", key: "F6_empathy" },
+        { id: "F7", name: "Humility", key: "F7_humility" },
+        { id: "F8", name: "Genius", key: "F8_genius" },
+        { id: "F9", name: "C_dark", key: "F9_dark" },
+        { id: "F10", name: "Ontology", key: "F10_ontology" },
+        { id: "F11", name: "Auth", key: "F11_auth" },
+        { id: "F12", name: "Injection", key: "F12_injection" },
+        { id: "F13", name: "Curiosity", key: "F13_curiosity" },
+      ];
+
+      const TOOL_NAMES = [
+        "INIT_000",
+        "AGI_GENIUS",
+        "ASI_ACT",
+        "APEX_JUDGE",
+        "VAULT_999",
+        "TRINITY",
+        "REALITY",
+      ];
+
+      function init() {
+        initFloors();
+        updateDashboard();
+        setInterval(updateDashboard, CONFIG.poll_interval);
+      }
+
+      function initFloors() {
+        const grid = document.getElementById("floors-grid");
+        if (!grid) return;
+        grid.innerHTML = "";
+        FLOORS.forEach((floor) => {
+          const div = document.createElement("div");
+          div.className = "floor-led";
+          div.innerHTML = `<div class="led green" id="led-${floor.id}"></div><span>${floor.id} ${floor.name}</span>`;
+          grid.appendChild(div);
+        });
+      }
+
+      async function updateDashboard() {
+        try {
+          const response = await fetch(CONFIG.metrics_url);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          updateHeader(data);
+          updateTopMetrics(data);
+          updateToolUsage(data.tool_usage || {});
+          updateVerdictDistribution(data.verdict_distribution || {});
+          updateRecentExecutions(data.recent_executions || []);
+          updateFloorHealth(data.floor_health || {});
+          updateTrinityScores(data.trinity || {});
+          document.getElementById("last-update").innerText =
+            `Last update: ${new Date().toLocaleTimeString()}`;
+        } catch (err) {
+          console.error("Dashboard update failed:", err);
+          const badge = document.getElementById("status-badge");
+          badge.innerText = "Disconnected";
+          badge.style.color = "#f85149";
+          badge.style.borderColor = "#f85149";
+        }
+      }
+
+      function updateHeader(data) {
+        document.getElementById("version").innerText =
+          data.version || "v55.1-AAA";
+        document.getElementById("uptime").innerText =
+          `Uptime: ${data.uptime_hours || 0}h`;
+        const badge = document.getElementById("status-badge");
+        badge.innerText = "Active";
+        badge.style.color = "#3fb950";
+        badge.style.borderColor = "#3fb950";
+      }
+
+      function updateTopMetrics(data) {
+        document.getElementById("total-calls").innerText =
+          data.total_tool_calls || 0;
+        document.getElementById("active-sessions").innerText =
+          data.active_sessions || 0;
+        document.getElementById("seal-rate").innerText =
+          `${Math.round((data.seal_rate || 0) * 100)}%`;
+        document.getElementById("avg-latency").innerText =
+          `${Math.round(data.latency_ms?.avg || 0)}ms`;
+      }
+
+      function updateToolUsage(toolUsage) {
+        const container = document.getElementById("tool-usage");
+        if (!container) return;
+        container.innerHTML = "";
+        // Sort by count descending
+        const sortedTools = Object.entries(toolUsage).sort(
+          (a, b) => b[1] - a[1],
+        );
+        sortedTools.forEach(([tool, count]) => {
+          const div = document.createElement("div");
+          div.className = "tool-row";
+          div.innerHTML = `<span class="tool-name">${tool}</span><span class="tool-count">${count}</span>`;
+          container.appendChild(div);
+        });
+      }
+
+      function updateVerdictDistribution(verdictDist) {
+        const container = document.getElementById("verdict-dist");
+        if (!container) return;
+        const verdicts = [
+          { key: "SEAL", css: "seal" },
+          { key: "VOID", css: "void" },
+          { key: "SABAR", css: "partial" },
+          { key: "888_HOLD", css: "hold" },
+        ];
+        container.innerHTML = "";
+        verdicts.forEach((v) => {
+          const count = verdictDist[v.key] || 0;
+          const div = document.createElement("div");
+          div.className = `verdict-row ${v.css}`;
+          div.innerHTML = `<span class="verdict-name">${v.key}</span><span class="verdict-count">${count}</span>`;
+          container.appendChild(div);
+        });
+      }
+
+      function updateRecentExecutions(executions) {
+        const container = document.getElementById("recent-executions");
+        if (!container) return;
+        if (!executions || executions.length === 0) {
+          container.innerHTML =
+            '<div class="execution-empty">No executions yet...</div>';
+          return;
+        }
+        container.innerHTML = "";
+        executions.forEach((exec) => {
+          const verdictClass = getVerdictClass(exec.verdict);
+          const div = document.createElement("div");
+          div.className = `execution-item ${verdictClass}`;
+          const time = exec.timestamp
+            ? new Date(exec.timestamp).toLocaleTimeString()
+            : "--";
+          div.innerHTML = `
+                    <div class="execution-left">
+                        <span class="execution-tool">${exec.tool || "unknown"}</span>
+                        <span class="execution-time">${time}</span>
+                    </div>
+                    <div class="execution-right">
+                        <span class="execution-verdict ${verdictClass}">${exec.verdict || "UNKNOWN"}</span>
+                        <span class="execution-duration">${Math.round(exec.duration_ms || 0)}ms</span>
+                    </div>
+                `;
+          container.appendChild(div);
+        });
+      }
+
+      function updateFloorHealth(floorHealth) {
+        FLOORS.forEach((floor) => {
+          const led = document.getElementById(`led-${floor.id}`);
+          if (!led) return;
+          const isHealthy = floorHealth[floor.key] !== false;
+          led.className = `led ${isHealthy ? "green" : "red"}`;
+        });
+      }
+
+      function updateTrinityScores(trinity) {
+        // Map based on v55 structure: trinity.agi_mind.truth, etc.
+        const tau = trinity?.agi_mind?.truth;
+        const kappa_r = trinity?.asi_heart?.empathy;
+        const psi = trinity?.apex_soul?.genius;
+
+        document.getElementById("agi-score").innerText = tau?.toFixed(3) || "—";
+        document.getElementById("asi-score").innerText =
+          kappa_r?.toFixed(3) || "—";
+        document.getElementById("apex-score").innerText =
+          psi?.toFixed(3) || "—";
+      }
+
+      function getVerdictClass(verdict) {
+        switch (verdict?.toUpperCase()) {
+          case "SEAL":
+            return "seal";
+          case "VOID":
+            return "void";
+          case "SABAR":
+            return "partial";
+          case "888_HOLD":
+            return "hold";
+          default:
+            return "";
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", init);
     </script>
-</body>
+  </body>
 </html>
