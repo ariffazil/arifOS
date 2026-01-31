@@ -137,15 +137,24 @@ class SSETransport(BaseTransport):
         @self.mcp.custom_route("/", methods=["GET"])
         async def root(request):
             """Root endpoint - serve the arifOS dashboard."""
-            # Try to serve the proper dashboard HTML
             static_path = os.path.join(os.path.dirname(__file__), "..", "static", "index.html")
             static_path = os.path.abspath(static_path)
 
             if os.path.exists(static_path):
                 return FileResponse(static_path)
 
-            # Fallback to constant HTML
             return HTMLResponse(content=DASHBOARD_HTML)
+
+        @self.mcp.custom_route("/styles.css", methods=["GET"])
+        async def styles(request):
+            """Serve CSS stylesheet."""
+            css_path = os.path.join(os.path.dirname(__file__), "..", "static", "styles.css")
+            css_path = os.path.abspath(css_path)
+
+            if os.path.exists(css_path):
+                return FileResponse(css_path, media_type="text/css")
+
+            return HTMLResponse(content="/* CSS not found */", status_code=404)
 
     def _register_resources(self):
         """Register MCP Resources using FastMCP FunctionResource."""
