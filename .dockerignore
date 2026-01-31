@@ -1,0 +1,40 @@
+# Build context exclusions for Railway
+# Keeps build fast by excluding non-runtime files
+
+# Node modules (frontend apps)
+**/node_modules/
+ariffazil.com/
+apex.com/
+docs-site/
+
+# Archive & legacy
+archive/
+archive_local/
+
+# Tests (not needed in production image)
+tests/
+
+# Git & IDE
+.git/
+.github/
+.vscode/
+.cursor/
+
+# Reports & docs (not needed at runtime)
+reports/
+VAULT999/
+333_APPS/
+
+# Build artifacts
+*.egg-info/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+dist/
+build/
+
+# Large files
+*.tar.gz
+*.zip

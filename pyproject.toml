@@ -102,13 +102,13 @@ dependencies = [
     "anyio>=4.0.0",
     "starlette>=0.30.0",
     "fastmcp>=0.1.0",
-    "dspy>=2.4.0",
     "fastapi>=0.104.1",
     "uvicorn[standard]>=0.24.0",
     "sse-starlette>=1.8.2",
     "mcp>=1.0.0",
-    "redis>=5.0.0",
+    "httpx>=0.25.0",
     "prometheus-client>=0.19.0",
+    "rich>=13.7.0",
 ]
 
 [project.optional-dependencies]
