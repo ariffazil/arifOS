@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from codebase.bundles import DeltaBundle, OmegaBundle, EngineVote, MergedBundle
@@ -127,7 +127,7 @@ PARADOXES = {
 class ConvergenceResult:
     """Result of AGI + ASI convergence at 333."""
     session_id: str
-    timestamp: datetime = field(default_factory=lambda: datetime.now(datetime.UTC))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     
     # Input bundles
     delta_bundle: Optional[DeltaBundle] = None

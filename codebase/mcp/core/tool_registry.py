@@ -246,7 +246,7 @@ class ToolRegistry:
                     "properties": {
                         "action": {
                             "type": "string",
-                            "enum": ["eureka", "judge", "decide", "proof", "entropy", "full"],
+                            "enum": ["eureka", "judge", "forge", "proof", "seal", "full"],
                             "default": "full",
                         },
                         "query": {"type": "string"},

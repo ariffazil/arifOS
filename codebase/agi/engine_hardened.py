@@ -23,7 +23,7 @@ import re
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -93,7 +93,7 @@ class DeltaBundle:
     vote: EngineVote
     floor_scores: Dict[str, float] = field(default_factory=dict)
     synthesis_reasoning: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(datetime.UTC))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -301,7 +301,7 @@ class AGIEngineHardened:
         # Precision estimation
         # Sources: assume query has implicit sources
         sources = ["user_input"]
-        timestamps = [datetime.now(datetime.UTC)]
+        timestamps = [datetime.now(timezone.utc)]
         
         precision = estimate_precision(sources, timestamps)
         
