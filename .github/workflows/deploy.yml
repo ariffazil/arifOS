@@ -7,41 +7,31 @@ on:
   workflow_dispatch:
 
 jobs:
-  # --- Step 1: Deploy Static Layers to Cloudflare Pages ---
-  deploy-static:
+  # --- Step 1: Build and Deploy Static Frontend Layers to Cloudflare Pages ---
+  deploy-frontend:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/node-version@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: 'npm'
 
-      # Deploy SOUL (apex.com)
-      - name: Build SOUL
-        run: |
-          cd apex.com/app
-          npm install
-          npm run build
-
-      - name: Deploy SOUL to Cloudflare
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: apex-dpf
-          directory: apex.com/app/dist
-
-      # Deploy BODY (arif-fazil.com)
-      - name: Build BODY
+      # Build and Deploy BODY (arif-fazil.com)
+      - name: Build BODY (arif-fazil.com)
         run: |
           cd ariffazil.com/app
-          npm install
+          npm ci
           npm run build
+          cp ../*.jpg dist/ 2>/dev/null || true
+          cp ../three-judges-geometric.jpg dist/ 2>/dev/null || true
+          cp ../13-floors-geometric.jpg dist/ 2>/dev/null || true
+          ls -la dist/
 
-      - name: Deploy BODY to Cloudflare
+      - name: Deploy BODY to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -49,19 +39,45 @@ jobs:
           projectName: arif-fazil
           directory: ariffazil.com/app/dist
 
-  # --- Step 2: Deploy Dynamic Core to Railway ---
-  # This only runs if static layers deploy successfully
-  deploy-dynamic:
-    needs: deploy-static
+      # Build and Deploy SOUL (apex.arif-fazil.com)
+      - name: Build SOUL (apex.arif-fazil.com)
+        run: |
+          cd apex.com/app
+          npm ci
+          npm run build
+          cp ../public/*.jpg dist/ 2>/dev/null || true
+          ls -la dist/
+
+      - name: Deploy SOUL to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: apex-dpf
+          directory: apex.com/app/dist
+
+  # --- Step 2: Deploy MIND (Backend) to Railway ---
+  deploy-backend:
+    needs: deploy-frontend
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Railway
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Deploy BODY to Railway
-        run: railway up --detach
+      - name: Deploy MIND to Railway
+        run: railway up --service arifos-mind --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Verify Backend Health
+        run: |
+          sleep 10
+          curl -sf https://arifos.arif-fazil.com/health || echo "Health check will be available after DNS propagation"
