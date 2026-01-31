@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arif Fazil | Constitutional AI Architect</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --text: #fff;
+            --accent: #0070f3;
+            --dim: #888;
+            --card-bg: #111;
+            --border: #222;
+            --trinity-blue: #0070f3;
+            --trinity-red: #ff0000;
+            --trinity-yellow: #ffcc00;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        .container { max-width: 900px; margin: 0 auto; padding: 60px 20px; }
+
+        header { margin-bottom: 80px; }
+        .status-pill {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--trinity-red);
+            border: 1px solid var(--trinity-red);
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.2);
+        }
+
+        h1 { font-size: 3.5rem; font-weight: 800; letter-spacing: -2px; margin-bottom: 15px; }
+        .tagline { color: var(--accent); font-weight: 600; font-size: 1.4rem; margin-bottom: 25px; }
+        .bio { color: var(--dim); font-size: 1.15rem; max-width: 650px; margin-bottom: 40px; }
+        .bio strong { color: var(--text); font-weight: 600; }
+
+        .links { display: flex; gap: 20px; flex-wrap: wrap; }
+        .links a {
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .links a.primary { background: var(--accent); color: white; }
+        .links a.primary:hover { background: #005bb5; transform: translateY(-2px); }
+        .links a:not(.primary) { border: 1px solid var(--border); color: var(--text); background: var(--card-bg); }
+        .links a:not(.primary):hover { border-color: var(--dim); transform: translateY(-2px); }
+
+        .section { margin-top: 80px; }
+        .section h2 { font-size: 1.5rem; margin-bottom: 30px; letter-spacing: -1px; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; }
+        .card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            transition: transform 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent); }
+        .card h3 { font-size: 1.3rem; margin-bottom: 10px; }
+        .card p { color: var(--dim); font-size: 0.95rem; }
+
+        .floors-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+        .floor { background: #222; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; color: #ccc; }
+
+        footer { margin-top: 100px; padding-top: 40px; border-top: 1px solid var(--border); color: var(--dim); font-size: 0.9rem; text-align: center; }
+        footer em { color: var(--accent); font-style: normal; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="status-pill">🔴 Trinity Monitor: LIVE (7-Core Active)</div>
+            <h1>Arif Fazil</h1>
+            <div class="tagline">Because intelligence without conscience is just entropy.</div>
+            <p class="bio">
+                Former Geoscientist (PETRONAS) turned AI Architect. <br>
+                Creator of <strong>arifOS</strong> — a constitutional governor that forces AI to "cool" truth through a 72-hour Phoenix cycle before sealing it.
+            </p>
+            <div class="links">
+                <a href="/arifos" class="primary">Explore Framework</a>
+                <a href="/aaa">Connect Agents (API)</a>
+                <a href="/docs" target="_blank">The Canon (Docs)</a>
+            </div>
+        </header>
+
+        <div class="section">
+            <h2>The Trinity Architecture</h2>
+            <div class="grid">
+                <div class="card" style="border-top: 4px solid var(--trinity-blue)">
+                    <h3>🧠 Mind (AGI)</h3>
+                    <p>Enforces logic & truth. Reduces entropy through reasoning.</p>
+                    <div class="floors-list">
+                        <span class="floor">F2 Truth</span>
+                        <span class="floor">F4 Clarity</span>
+                        <span class="floor">F7 Humility</span>
+                    </div>
+                </div>
+                <div class="card" style="border-top: 4px solid var(--trinity-red)">
+                    <h3>❤️ Heart (ASI)</h3>
+                    <p>Guarantees safety & empathy. Protects the weakest stakeholder.</p>
+                    <div class="floors-list">
+                        <span class="floor">F1 Amanah</span>
+                        <span class="floor">F5 Peace</span>
+                        <span class="floor">F6 Empathy</span>
+                    </div>
+                </div>
+                <div class="card" style="border-top: 4px solid var(--trinity-yellow)">
+                    <h3>⚖️ Soul (APEX)</h3>
+                    <p>Delivers final judgment. Seals decisions in the immutable ledger.</p>
+                    <div class="floors-list">
+                        <span class="floor">F3 Consensus</span>
+                        <span class="floor">F8 Verdict</span>
+                        <span class="floor">VAULT-999</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Knowledge & Research</h2>
+            <div class="grid">
+                <a href="/docs" class="card">
+                    <h3>📚 The Canon</h3>
+                    <p>Full technical documentation, API references, and constitutional law.</p>
+                </a>
+                <a href="https://github.com/ariffazil/arifOS" target="_blank" class="card">
+                    <h3>🧬 Source Code</h3>
+                    <p>Inspect the kernel. Verify the floors. AGPL-3.0 Open Source.</p>
+                </a>
+            </div>
+        </div>
+
+        <footer>
+            <p>Penang, Malaysia · <em>DITEMPA BUKAN DIBERI (Forged, Not Given)</em></p>
+        </footer>
+    </div>
+</body>
+</html>
