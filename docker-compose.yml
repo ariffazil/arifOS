@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  arifos:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: arifos-mcp
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - GOVERNANCE_MODE=HARD
+      - ARIFOS_ENV=production
+      - ARIFOS_VERSION=v55.1-CODEBASE-AAA
+      - ARIFOS_LOG_LEVEL=INFO
+      - VAULT_PATH=/data/VAULT999
+    volumes:
+      - ./VAULT999:/data/VAULT999
+      - ./logs:/var/log/arifos
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - arifos-network
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: arifos-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./logs:/var/log/caddy
+    depends_on:
+      arifos:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - arifos-network
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  arifos-network:
+    driver: bridge

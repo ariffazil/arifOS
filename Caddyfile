@@ -1,35 +1,112 @@
-# Caddyfile for arifos-gateway
+# Caddyfile for arifOS v55.1
+# Handles: arif-fazil.com, apex.arif-fazil.com, arifos.arif-fazil.com, mcp.arif-fazil.com
 
-# MCP endpoint (streamable HTTP)
-mcp.arif-fazil.com {
+# Root domain - Redirect to arifos subdomain
+arif-fazil.com, www.arif-fazil.com {
+    redir https://arifos.arif-fazil.com{uri} permanent
+}
+
+# APEX Judgment Engine Dashboard
+apex.arif-fazil.com {
     reverse_proxy localhost:8000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
         # Preserve SSE/streamable HTTP headers
         flush_interval -1
     }
 
-    # Optional: Add basic security headers
+    # Security headers
     header {
-        Strict-Transport-Security "max-age=31536000;"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
         X-Content-Type-Options "nosniff"
         X-Frame-Options "DENY"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https:; media-src 'self'; object-src 'none'; frame-ancestors 'none';"
     }
 
+    # Enable compression
+    encode gzip zstd
+
+    # Logging
     log {
-        output stdout
+        output file /var/log/caddy/apex-access.log {
+            roll_size 10MB
+            roll_keep 5
+        }
+        format json
     }
 }
 
-# Dashboard & Docs
+# arifOS Main Dashboard & Documentation
 arifos.arif-fazil.com {
-    reverse_proxy localhost:8000
-    
-    header {
-        Strict-Transport-Security "max-age=31536000;"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "DENY"
+    reverse_proxy localhost:8000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+        flush_interval -1
     }
 
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    encode gzip zstd
+
     log {
-        output stdout
+        output file /var/log/caddy/arifos-access.log {
+            roll_size 10MB
+            roll_keep 5
+        }
+        format json
+    }
+}
+
+# MCP Server Endpoint (Streamable HTTP)
+mcp.arif-fazil.com {
+    reverse_proxy localhost:8000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+        # Critical for SSE/streamable HTTP
+        flush_interval -1
+        # Longer timeouts for MCP connections
+        transport http {
+            read_timeout 300s
+            write_timeout 300s
+        }
+    }
+
+    # CORS headers for MCP
+    header {
+        Access-Control-Allow-Origin "*"
+        Access-Control-Allow-Methods "GET, POST, OPTIONS"
+        Access-Control-Allow-Headers "Content-Type, MCP-Protocol-Version, Mcp-Session-Id"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+    }
+
+    # Handle preflight requests
+    @options {
+        method OPTIONS
+    }
+    respond @options 204
+
+    encode gzip
+
+    log {
+        output file /var/log/caddy/mcp-access.log {
+            roll_size 10MB
+            roll_keep 10
+        }
+        format json
     }
 }

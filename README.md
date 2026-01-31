@@ -521,9 +521,16 @@ tests/
 
 ## 🌐 Live Demo
 
-**Dashboard:** [arif-fazil.com/dashboard](https://arif-fazil.com/dashboard)
+**🌐 Website URLs:**
 
-**MCP Endpoint:** `https://arif-fazil.com/mcp`
+| URL | Purpose | Status |
+|-----|---------|--------|
+| [arif-fazil.com](https://arif-fazil.com) | Main domain (redirects to arifos) | 🟢 |
+| [apex.arif-fazil.com](https://apex.arif-fazil.com) | APEX Judgment Engine Dashboard | 🟢 |
+| [arifos.arif-fazil.com](https://arifos.arif-fazil.com) | arifOS Main Dashboard | 🟢 |
+| [mcp.arif-fazil.com](https://mcp.arif-fazil.com) | MCP Server Endpoint | 🟢 |
+
+**MCP Endpoint:** `https://mcp.arif-fazil.com`
 
 **PyPI:** `pip install arifos`
 
