@@ -27,6 +27,8 @@ RUN uv pip install --system --no-cache fastapi uvicorn[standard] pydantic mcp ss
 
 # Copy codebase (v55+ canonical module)
 COPY codebase/ codebase/
+# Copy static dashboard files
+COPY codebase/mcp/static/ codebase/mcp/static/
 # Copy constitutional theory bundle
 COPY 000_THEORY/ 000_THEORY/
 # Docs for runtime reference

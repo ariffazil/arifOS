@@ -13,7 +13,7 @@ import uvicorn
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.resources import FunctionResource
 from mcp.server.fastmcp.prompts import Prompt as FastMCPPrompt
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, FileResponse, HTMLResponse
 
 from .base import BaseTransport
 from ..core.tool_registry import ToolRegistry
@@ -88,7 +88,7 @@ class SSETransport(BaseTransport):
         pass  # Handled internally
 
     def _register_routes(self):
-        """Register custom routes (Health, Metrics)."""
+        """Register custom routes (Health, Metrics, Dashboard)."""
 
         @self.mcp.custom_route("/health", methods=["GET"])
         async def health_check(request):
@@ -108,25 +108,45 @@ class SSETransport(BaseTransport):
 
         @self.mcp.custom_route("/", methods=["GET"])
         async def root(request):
-            """Root endpoint for browser checks."""
-            from starlette.responses import HTMLResponse
-            return HTMLResponse(content=\"\"\"
-            <html>
-                <head><title>arifOS MCP Server</title></head>
-                <body style="font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 20px;">
-                    <h1>🛡️ arifOS MCP Server</h1>
-                    <p>Status: <strong>Online</strong></p>
-                    <p>Mode: <strong>Streamable HTTP (SSE)</strong></p>
-                    <hr>
-                    <ul>
-                        <li><a href="/health">Health Check</a></li>
-                        <li><a href="/metrics/json">Live Metrics</a></li>
-                        <li><a href="/sse">SSE Endpoint</a></li>
-                    </ul>
-                    <p><em>Forged, Not Given.</em></p>
-                </body>
-            </html>
-            \"\"\")
+            """Root endpoint - serve the arifOS dashboard."""
+            # Try to serve the proper dashboard HTML
+            static_path = os.path.join(os.path.dirname(__file__), "..", "static", "index.html")
+            static_path = os.path.abspath(static_path)
+            
+            if os.path.exists(static_path):
+                return FileResponse(static_path)
+            
+            # Fallback to simple HTML if file not found
+            return HTMLResponse(content="""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>arifOS - Constitutional AI Governance</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+               max-width: 800px; margin: 40px auto; padding: 20px; 
+               background: #0d1117; color: #e6edf3; line-height: 1.6; }
+        h1 { color: #58a6ff; font-size: 2.5rem; }
+        .badge { display: inline-block; background: #238636; color: white; 
+                 padding: 8px 16px; border-radius: 20px; font-weight: 600; }
+        a { color: #58a6ff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        ul { line-height: 2; }
+        .motto { color: #d29922; font-style: italic; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>arifOS</h1>
+    <p><span class="badge">v55.1 ONLINE</span></p>
+    <p>Constitutional AI Governance System</p>
+    <hr>
+    <ul>
+        <li><a href="/health">Health Check (JSON)</a></li>
+        <li><a href="/metrics/json">Metrics (JSON)</a></li>
+    </ul>
+    <p class="motto">DITEMPA BUKAN DIBERI — Forged, Not Given</p>
+</body>
+</html>""")
 
     def _register_resources(self):
         """Register MCP Resources using FastMCP FunctionResource."""

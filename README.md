@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://arif-fazil.com">
+  <a href="https://arifos.arif-fazil.com">
     <img src="https://img.shields.io/badge/Live_Demo-Try_Now-FF79C6?style=for-the-badge" alt="Demo">
   </a>
   <a href="https://www.youtube.com/watch?v=bGnzIwZAgm0">
@@ -26,9 +26,8 @@
 
 | URL | Purpose | Status |
 |-----|---------|--------|
-| **[arif-fazil.com](https://arif-fazil.com)** | 🖥️ Main Dashboard | `ONLINE` |
+| **[arifos.arif-fazil.com](https://arifos.arif-fazil.com)** | 🖥️ Main Dashboard | `ONLINE` |
 | **[apex.arif-fazil.com](https://apex.arif-fazil.com)** | ⚖️ Judgment Engine | `ONLINE` |
-| **[mcp.arif-fazil.com](https://mcp.arif-fazil.com)** | 🔌 MCP Endpoint | `ONLINE` |
 
 ---
 
