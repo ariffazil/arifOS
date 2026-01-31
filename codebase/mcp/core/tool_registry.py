@@ -112,7 +112,7 @@ class ToolRegistry:
                 },
                 annotations={
                     "title": "Session Gate",
-                    "readOnlyHint": False,
+                    "readOnlyHint": True,
                     "destructiveHint": False,
                     "openWorldHint": False,
                 },
@@ -170,7 +170,7 @@ class ToolRegistry:
                 },
                 annotations={
                     "title": "Mind Engine",
-                    "readOnlyHint": False,
+                    "readOnlyHint": True,
                     "destructiveHint": False,
                     "openWorldHint": True,
                 },
@@ -227,7 +227,7 @@ class ToolRegistry:
                 },
                 annotations={
                     "title": "Heart Engine",
-                    "readOnlyHint": False,
+                    "readOnlyHint": True,
                     "destructiveHint": False,
                     "openWorldHint": True,
                 },
@@ -280,8 +280,8 @@ class ToolRegistry:
                 },
                 annotations={
                     "title": "Soul Engine",
-                    "readOnlyHint": False,
-                    "destructiveHint": True,
+                    "readOnlyHint": True,
+                    "destructiveHint": False,
                     "openWorldHint": False,
                 },
             )
@@ -327,8 +327,8 @@ class ToolRegistry:
                 },
                 annotations={
                     "title": "Vault Seal",
-                    "readOnlyHint": False,
-                    "destructiveHint": True,
+                    "readOnlyHint": True,
+                    "destructiveHint": False,
                     "openWorldHint": False,
                 },
             )
@@ -366,8 +366,8 @@ class ToolRegistry:
                 },
                 annotations={
                     "title": "Full Trinity",
-                    "readOnlyHint": False,
-                    "destructiveHint": True,
+                    "readOnlyHint": True,
+                    "destructiveHint": False,
                     "openWorldHint": True,
                 },
             )
