@@ -14,7 +14,6 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.resources import FunctionResource
 from mcp.server.fastmcp.prompts import Prompt as FastMCPPrompt
 from starlette.responses import JSONResponse, FileResponse, HTMLResponse
-from starlette.staticfiles import StaticFiles
 
 from .base import BaseTransport
 from ..core.tool_registry import ToolRegistry

@@ -5,6 +5,9 @@ import {
   BookOpen, 
   Sparkles, 
   Github, 
+  Linkedin, 
+  Twitter, 
+  Mail, 
   ExternalLink,
   Activity,
   CheckCircle2,
@@ -12,8 +15,7 @@ import {
   Cpu,
   Globe,
   Menu,
-  X,
-  Zap
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-// Geometric background animation component
+// Geometric background animation component (shared with APEX)
 function GeometricBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
@@ -39,23 +41,26 @@ function GeometricBackground() {
     resize();
     window.addEventListener('resize', resize);
     
+    // Sacred geometry points
     const points: { x: number; y: number; vx: number; vy: number; connections: number[] }[] = [];
-    const numPoints = 50;
+    const numPoints = 60;
     
     for (let i = 0; i < numPoints; i++) {
       points.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.2,
-        vy: (Math.random() - 0.5) * 0.2,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
         connections: []
       });
     }
     
+    let frame = 0;
     const animate = () => {
       ctx.fillStyle = 'rgba(10, 10, 10, 0.1)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
+      // Update points
       points.forEach((p, i) => {
         p.x += p.vx;
         p.y += p.vy;
@@ -63,28 +68,49 @@ function GeometricBackground() {
         if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
         if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
         
+        // Draw point
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(249, 115, 22, ${0.3 + (i % 50) / 100})`;
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = `hsl(${30 + (i % 30)}, 70%, 50%)`;
         ctx.fill();
       });
       
+      // Draw connections (sacred geometry)
       for (let i = 0; i < points.length; i++) {
         for (let j = i + 1; j < points.length; j++) {
           const dx = points[i].x - points[j].x;
           const dy = points[i].y - points[j].y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           
-          if (dist < 100) {
+          if (dist < 120) {
             ctx.beginPath();
             ctx.moveTo(points[i].x, points[i].y);
             ctx.lineTo(points[j].x, points[j].y);
-            ctx.strokeStyle = `rgba(249, 115, 22, ${0.1 * (1 - dist / 100)})`;
+            ctx.strokeStyle = `rgba(249, 115, 22, ${0.15 * (1 - dist / 120)})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
         }
       }
+      
+      // Draw golden ratio spiral overlay
+      frame++;
+      const centerX = canvas.width * 0.8;
+      const centerY = canvas.height * 0.3;
+      const phi = 1.618;
+      
+      ctx.beginPath();
+      for (let i = 0; i < 50; i++) {
+        const angle = i * 0.2 + frame * 0.005;
+        const radius = Math.pow(phi, i / 5) * 5;
+        const x = centerX + Math.cos(angle) * radius;
+        const y = centerY + Math.sin(angle) * radius;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = 'rgba(234, 179, 8, 0.1)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
       
       requestAnimationFrame(animate);
     };
@@ -98,26 +124,50 @@ function GeometricBackground() {
     <canvas 
       ref={canvasRef} 
       className="fixed inset-0 pointer-events-none z-0"
-      style={{ opacity: 0.5 }}
+      style={{ opacity: 0.4 }}
     />
   );
 }
 
-// Floor data with descriptions
+// Enhanced Floor data with judge assignments (from APEX)
 const FLOORS = [
-  { id: 'F1', name: 'Amanah', judge: 'Ω', desc: 'Is this reversible?' },
-  { id: 'F2', name: 'Truth', judge: 'Δ', desc: 'Is this factually true?' },
-  { id: 'F3', name: 'Tri-Witness', judge: 'Ψ', desc: 'Do Human, AI, and Earth agree?' },
-  { id: 'F4', name: 'Clarity', judge: 'Δ', desc: 'Does it reduce confusion? (ΔS ≤ 0)' },
-  { id: 'F5', name: 'Peace', judge: 'Ω', desc: 'Does it stabilize reality? (Peace² ≥ 1.0)' },
-  { id: 'F6', name: 'Empathy', judge: 'Ω', desc: 'Does it protect the weakest stakeholder?' },
-  { id: 'F7', name: 'Humility', judge: 'Δ', desc: 'Are we honest about uncertainty? (3-5% Band)' },
-  { id: 'F8', name: 'Genius', judge: 'Ψ', desc: 'Is the intelligence governed? (G ≥ 0.80)' },
-  { id: 'F9', name: 'Anti-Ghost', judge: 'Ω', desc: 'Is it authentic and non-deceptive?' },
-  { id: 'F10', name: 'Ontology', judge: 'Δ', desc: 'Is it grounded in physical reality?' },
-  { id: 'F11', name: 'Command', judge: 'Ω', desc: 'Is the authority verified?' },
-  { id: 'F12', name: 'Defense', judge: 'Ω', desc: 'Is it resistant to injection?' },
-  { id: 'F13', name: 'Sovereign', judge: 'Ψ', desc: 'Does the human have final veto?' },
+  { id: 'F1', name: 'Reversibility', judge: 'ADAM', desc: 'Every action can be undone', status: 'active' },
+  { id: 'F2', name: 'Truth', judge: 'Δ', desc: 'Verifiable claims only', status: 'active' },
+  { id: 'F3', name: 'Consensus', judge: 'Ψ', desc: 'Multi-judge agreement required', status: 'active' },
+  { id: 'F4', name: 'Clarity', judge: 'Δ', desc: 'Uncertainty must be stated', status: 'active' },
+  { id: 'F5', name: 'Peace', judge: 'ADAM', desc: 'No harm to humans', status: 'active' },
+  { id: 'F6', name: 'Empathy', judge: 'ADAM', desc: 'Consider emotional impact', status: 'active' },
+  { id: 'F7', name: 'Humility', judge: 'Δ', desc: 'Admit what cannot be known', status: 'active' },
+  { id: 'F8', name: 'Genius', judge: 'Ψ', desc: 'Seek optimal solutions', status: 'active' },
+  { id: 'F9', name: 'Reality', judge: 'ADAM', desc: 'Ground in observable facts', status: 'active' },
+  { id: 'F10', name: 'Ontology', judge: 'Δ', desc: 'Define what exists', status: 'active' },
+  { id: 'F11', name: 'Epistemology', judge: 'ADAM', desc: 'Know how we know', status: 'active' },
+  { id: 'F12', name: 'Ethics', judge: 'ADAM', desc: 'Moral framework embedded', status: 'active' },
+  { id: 'F13', name: 'Veto', judge: 'Ψ', desc: 'Human override always possible', status: 'active' },
+];
+
+const JUDGES = [
+  { 
+    symbol: '△', 
+    name: 'Δ — ADAM', 
+    title: 'The Architect',
+    question: '"Is it True?"',
+    color: 'cyan'
+  },
+  { 
+    symbol: 'Ω', 
+    name: 'Ω — ADAM', 
+    title: 'The Guardian',
+    question: '"Is it Safe?"',
+    color: 'red'
+  },
+  { 
+    symbol: 'Ψ', 
+    name: 'Ψ — APEX', 
+    title: 'The Sovereign Judge',
+    question: '"Is it Lawful?"',
+    color: 'amber'
+  },
 ];
 
 const ARTICLES = [
@@ -142,15 +192,8 @@ function App() {
 
   // Check actual system status
   useEffect(() => {
-    fetch('/health')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data) {
-          setSystemStatus({ online: true, version: data.version || 'v55.1' });
-        } else {
-          setSystemStatus({ online: false, version: 'v55.1' });
-        }
-      })
+    fetch('https://arif-fazil.com/health')
+      .then(res => res.ok ? setSystemStatus({ online: true, version: 'v55.1' }) : setSystemStatus({ online: false, version: 'v55.1' }))
       .catch(() => setSystemStatus({ online: false, version: 'v55.1' }));
   }, []);
 
@@ -172,284 +215,482 @@ function App() {
           }}
         />
 
-        {/* Navigation */}
-        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[#0a0a0a]/95 backdrop-blur-md border-b border-gray-800' : 'bg-transparent'}`}>
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-20">
+        {/* Status Bar */}
+        <div className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-gray-800">
+          <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Badge variant="outline" className="border-green-500/50 text-green-400 text-xs">
+                <Activity className="w-3 h-3 mr-1" /> {systemStatus.version} SOVEREIGN SEAL
+              </Badge>
+              <span className="text-gray-600">|</span>
+              <Badge variant="outline" className={systemStatus.online ? 'border-green-500/50 text-green-400 text-xs' : 'border-red-500/50 text-red-400 text-xs'}>
+                STATUS: {systemStatus.online ? 'OPERATIONAL' : 'OFFLINE'}
+              </Badge>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation - Unified BODY/MIND/SOUL triad */}
+        <nav className={`fixed top-10 left-0 right-0 z-40 transition-all duration-300 ${scrolled ? 'bg-[#0a0a0a]/90 backdrop-blur-md' : ''}`}>
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex flex-col md:flex-row items-center justify-between py-4 gap-4">
               {/* Logo */}
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
-                  <Zap className="w-5 h-5 text-white" />
+                <div className="w-8 h-8 rounded bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">A</span>
                 </div>
-                <div className="flex flex-col">
-                  <span className="font-bold text-lg tracking-tight leading-none">Arif Fazil</span>
-                  <span className="text-[10px] text-gray-500 tracking-[0.2em] font-mono mt-1 uppercase">888_JUDGE</span>
-                </div>
+                <span className="font-semibold text-lg">Arif Fazil</span>
               </div>
 
               {/* Desktop Navigation */}
-              <div className="hidden md:flex items-center gap-2">
-                <div className="flex items-center gap-1 bg-gray-900/50 p-1 rounded-full border border-gray-800 mr-4">
-                  <a href="https://arif-fazil.com" className="px-4 py-1.5 rounded-full bg-red-500 text-white text-xs font-bold transition-all shadow-lg shadow-red-500/20">
-                    BODY
-                  </a>
-                  <a href="https://arifos.arif-fazil.com" className="px-4 py-1.5 rounded-full text-gray-400 text-xs font-bold hover:text-white transition-all">
-                    MIND
-                  </a>
-                  <a href="https://apex.arif-fazil.com" className="px-4 py-1.5 rounded-full text-gray-400 text-xs font-bold hover:text-white transition-all">
-                    SOUL
-                  </a>
-                </div>
-                <div className="flex items-center gap-6 text-sm">
-                  <a href="#about" className="text-gray-400 hover:text-white transition-colors">About</a>
-                  <a href="#floors" className="text-gray-400 hover:text-white transition-colors">13 Floors</a>
-                  <a href="https://github.com/ariffazil" className="text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-gray-800">
-                    <Github className="w-5 h-5" />
-                  </a>
-                </div>
+              <div className="hidden md:flex items-center gap-6">
+                <a href="#about" className="text-sm text-gray-400 hover:text-white transition-colors">About</a>
+                <a href="#floors" className="text-sm text-gray-400 hover:text-white transition-colors">13 Floors</a>
+                <a href="#judges" className="text-sm text-gray-400 hover:text-white transition-colors">Judges</a>
+                <a href="#system" className="text-sm text-gray-400 hover:text-white transition-colors">System</a>
+                <a href="#writing" className="text-sm text-gray-400 hover:text-white transition-colors">Writing</a>
+              </div>
+
+              {/* BODY/MIND/SOUL Triad */}
+              <div className="flex items-center justify-center gap-2">
+                <a href="https://arif-fazil.com" className="px-4 py-2 rounded-full bg-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/30 transition-colors flex items-center gap-2 border border-red-500/50">
+                  <span className="w-2 h-2 rounded-full bg-red-400" /> BODY
+                </a>
+                <a href="https://arifos.arif-fazil.com" className="px-4 py-2 rounded-full bg-blue-500/20 text-blue-400 text-sm font-medium hover:bg-blue-500/30 transition-colors flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-400" /> MIND
+                </a>
+                <a href="https://apex.arif-fazil.com" className="px-4 py-2 rounded-full bg-amber-500/20 text-amber-400 text-sm font-medium hover:bg-amber-500/30 transition-colors flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-400" /> SOUL
+                </a>
               </div>
 
               {/* Mobile menu button */}
               <button 
-                className="md:hidden p-2 text-gray-400"
+                className="md:hidden p-2 absolute right-4 top-4"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             </div>
           </div>
 
           {/* Mobile menu */}
           {mobileMenuOpen && (
-            <div className="md:hidden bg-[#0a0a0a] border-b border-gray-800 px-4 py-6 space-y-4 animate-in slide-in-from-top duration-300">
-              <div className="grid grid-cols-3 gap-2">
-                <a href="https://arif-fazil.com" className="py-2 text-center rounded bg-red-500 text-white text-[10px] font-bold">BODY</a>
-                <a href="https://arifos.arif-fazil.com" className="py-2 text-center rounded bg-gray-900 text-gray-400 text-[10px] font-bold">MIND</a>
-                <a href="https://apex.arif-fazil.com" className="py-2 text-center rounded bg-gray-900 text-gray-400 text-[10px] font-bold">SOUL</a>
+            <div className="md:hidden bg-[#0a0a0a] border-b border-gray-800 px-4 py-4 space-y-3">
+              <a href="#about" className="block text-gray-400 hover:text-white">About</a>
+              <a href="#floors" className="block text-gray-400 hover:text-white">13 Floors</a>
+              <a href="#judges" className="block text-gray-400 hover:text-white">Judges</a>
+              <a href="#system" className="block text-gray-400 hover:text-white">System</a>
+              <a href="#writing" className="block text-gray-400 hover:text-white">Writing</a>
+              <div className="flex gap-2 pt-2">
+                <a href="https://arif-fazil.com" className="px-3 py-1.5 rounded-full bg-red-500/20 text-red-400 text-xs">BODY</a>
+                <a href="https://arifos.arif-fazil.com" className="px-3 py-1.5 rounded-full bg-blue-500/20 text-blue-400 text-xs">MIND</a>
+                <a href="https://apex.arif-fazil.com" className="px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-400 text-xs">SOUL</a>
               </div>
-              <a href="#about" className="block text-gray-400 hover:text-white text-center pb-2">About</a>
-              <a href="#floors" className="block text-gray-400 hover:text-white text-center pb-2">13 Floors</a>
-              <a href="#writing" className="block text-gray-400 hover:text-white text-center">Writing</a>
             </div>
           )}
         </nav>
 
         {/* Hero Section */}
-        <section className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
-          <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
-            {/* The Three Symbols */}
-            <div className="flex items-center justify-center gap-8 mb-8">
-              <span className="text-4xl font-light text-cyan-400 opacity-80" style={{ fontFamily: 'serif' }}>△</span>
-              <span className="text-4xl font-light text-red-500 opacity-80" style={{ fontFamily: 'serif' }}>Ω</span>
-              <span className="text-4xl font-light text-amber-500 opacity-80" style={{ fontFamily: 'serif' }}>Ψ</span>
+        <section className="relative min-h-screen flex items-center justify-center pt-32 pb-20">
+          {/* Background */}
+          <div className="absolute inset-0 z-0">
+            <img 
+              src="/arif-hero-og.jpg" 
+              alt="" 
+              className="w-full h-full object-cover opacity-30"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/50 via-transparent to-[#0a0a0a]" />
+          </div>
+
+          <div className="relative z-10 max-w-5xl mx-auto px-4 text-center">
+            {/* Breadcrumb */}
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mb-8">
+              <span className="text-gray-400">arifOS</span>
+              <span>/</span>
+              <span className="text-red-400">Identity</span>
+            </div>
+
+            {/* Three Symbols - Constitutional Connection */}
+            <div className="flex items-center justify-center gap-8 mb-6">
+              <div className="text-4xl font-light text-cyan-400" style={{ fontFamily: 'serif' }}>△</div>
+              <div className="text-4xl font-light text-red-400" style={{ fontFamily: 'serif' }}>Ω</div>
+              <div className="text-4xl font-light text-amber-400" style={{ fontFamily: 'serif' }}>Ψ</div>
             </div>
 
             {/* Tagline */}
-            <p className="text-[10px] tracking-[0.5em] text-gray-500 uppercase mb-8">
+            <p className="text-xs tracking-[0.4em] text-gray-500 uppercase mb-6">
               Ditempa Bukan Diberi — Forged, Not Given
             </p>
 
             {/* Name */}
-            <h1 className="text-6xl sm:text-7xl md:text-8xl font-black mb-4 tracking-tighter">
-              <span className="bg-gradient-to-r from-white via-gray-200 to-gray-500 bg-clip-text text-transparent">Arif Fazil</span>
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-4 bg-gradient-to-r from-orange-400 via-red-400 to-amber-400 bg-clip-text text-transparent">
+              Arif Fazil
             </h1>
 
             {/* Title */}
-            <p className="text-xl md:text-2xl text-orange-500 font-mono mb-12 tracking-tight">
-              Constitutional AI Governance Architect
+            <p className="text-xl md:text-2xl text-gray-400 mb-4">
+              Geoscientist · AI Governance Architect
+            </p>
+
+            {/* Subtitle */}
+            <p className="text-lg text-amber-400/80 mb-8 font-medium">
+              888 Judge · ΔΩΨ Architect
             </p>
 
             {/* Description */}
-            <p className="max-w-2xl mx-auto text-gray-400 leading-relaxed mb-12 text-lg">
-              Geoscientist at PETRONAS interpreting the earth's memory. 
-              Designing the metabolic engine for a safe AGI future.
+            <p className="max-w-2xl mx-auto text-gray-300 leading-relaxed mb-10">
+              Exploration geoscientist at <span className="text-white font-medium">PETRONAS</span> with a dual background 
+              in geology and economics. I read subsurface data for a living — interpreting what the earth remembers.
             </p>
-
-            {/* Status Badge */}
-            <div className="flex items-center justify-center gap-4 mb-12">
-              <div className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full border ${systemStatus.online ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'}`}>
-                <div className={`w-2 h-2 rounded-full ${systemStatus.online ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-                <span className={`text-xs font-bold tracking-widest ${systemStatus.online ? 'text-green-400' : 'text-red-400'}`}>
-                  {systemStatus.online ? 'SYSTEM ONLINE' : 'SYSTEM OFFLINE'}
-                </span>
-                <span className="text-xs text-gray-700 font-mono ml-1">{systemStatus.version}</span>
-              </div>
-            </div>
 
             {/* CTA Buttons */}
             <div className="flex flex-wrap items-center justify-center gap-4">
               <a href="https://arifos.arif-fazil.com">
-                <Button className="bg-white text-black hover:bg-gray-200 px-8 py-6 text-sm font-bold uppercase tracking-widest">
-                  MIND <BookOpen className="w-4 h-4 ml-2" />
+                <Button className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white px-6">
+                  <BookOpen className="w-4 h-4 mr-2" /> Read the Docs
                 </Button>
               </a>
               <a href="https://apex.arif-fazil.com">
-                <Button variant="outline" className="border-gray-800 hover:bg-gray-900 text-white px-8 py-6 text-sm font-bold uppercase tracking-widest">
-                  SOUL <Sparkles className="w-4 h-4 ml-2" />
+                <Button variant="outline" className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10">
+                  <Sparkles className="w-4 h-4 mr-2" /> Explore the Canon
+                </Button>
+              </a>
+              <a href="https://github.com/ariffazil">
+                <Button variant="outline" className="border-gray-700 hover:bg-gray-800">
+                  <Github className="w-4 h-4 mr-2" /> GitHub
                 </Button>
               </a>
             </div>
           </div>
 
-          {/* Background Image Hero */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full z-0 opacity-20 pointer-events-none">
-            <img 
-              src="/arif-hero-og.jpg" 
-              alt="" 
-              className="w-full h-full object-cover rounded-[100%] scale-150 blur-3xl"
-            />
+          {/* Scroll indicator */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+            <div className="w-6 h-10 rounded-full border-2 border-gray-600 flex items-start justify-center p-2">
+              <div className="w-1 h-2 bg-gray-400 rounded-full" />
+            </div>
           </div>
         </section>
 
         {/* About Section */}
-        <section id="about" className="py-32 relative border-t border-gray-900 bg-black/40">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="grid lg:grid-cols-12 gap-16 items-center">
-              <div className="lg:col-span-5">
-                <div className="relative group">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-                  <img 
-                    src="/profile-avatar.jpg" 
-                    alt="Arif Fazil" 
-                    className="relative w-full rounded-2xl grayscale hover:grayscale-0 transition-all duration-700 border border-gray-800"
-                  />
-                </div>
+        <section id="about" className="py-24 relative">
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                <img 
+                  src="/profile-avatar.jpg" 
+                  alt="Arif Fazil" 
+                  className="w-full rounded-2xl shadow-2xl shadow-orange-500/10"
+                />
               </div>
-              <div className="lg:col-span-7">
-                <Badge className="bg-orange-500/10 text-orange-500 border-orange-500/20 mb-6">THE ARCHITECT</Badge>
-                <h2 className="text-4xl font-bold mb-8">Subsurface Logic × AI Conscience</h2>
+              <div>
+                <h2 className="text-3xl font-bold mb-6">What I Work On</h2>
                 
-                <div className="space-y-10">
-                  <div className="flex gap-6">
-                    <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0 border border-red-500/20">
-                      <Shield className="w-6 h-6 text-red-500" />
+                <div className="space-y-6">
+                  <div className="flex gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                      <Shield className="w-5 h-5 text-red-400" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-2 underline decoration-red-500/30 underline-offset-8">Constitutional AI</h3>
-                      <p className="text-gray-400 leading-relaxed">Developing runtime enforcement layers that prevent AGI from violating physical and ethical invariant boundaries.</p>
+                      <h3 className="font-semibold text-white mb-1">AI Governance</h3>
+                      <p className="text-gray-400 text-sm">Enforcement layers that sit between LLMs and users, ensuring truth and reversibility. <span className="text-amber-400">13 floors. 3 judges. One kernel.</span></p>
                     </div>
                   </div>
 
-                  <div className="flex gap-6">
-                    <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0 border border-amber-500/20">
-                      <Globe className="w-6 h-6 text-amber-500" />
+                  <div className="flex gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                      <Globe className="w-5 h-5 text-amber-400" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-2 underline decoration-amber-500/30 underline-offset-8">Frontier Exploration</h3>
-                      <p className="text-gray-400 leading-relaxed">Reading seismic signals to map the earth's history. Applying Bayesian uncertainty to multi-billion dollar decisions.</p>
+                      <h3 className="font-semibold text-white mb-1">Exploration Geoscience</h3>
+                      <p className="text-gray-400 text-sm">Subsurface interpretation, frontier basin studies, and prospect maturation.</p>
                     </div>
                   </div>
 
-                  <div className="flex gap-6">
-                    <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center flex-shrink-0 border border-cyan-500/20">
-                      <Cpu className="w-6 h-6 text-cyan-500" />
+                  <div className="flex gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                      <Cpu className="w-5 h-5 text-cyan-400" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-2 underline decoration-cyan-500/30 underline-offset-8">The Trinity Engine</h3>
-                      <p className="text-gray-400 leading-relaxed">Synthesizing Logic (AGI), Safety (ASI), and Sovereignty (APEX) into a unified metabolic protocol.</p>
+                      <h3 className="font-semibold text-white mb-1">Systems Thinking</h3>
+                      <p className="text-gray-400 text-sm">Applying thermodynamic and geological reasoning to AI architecture.</p>
                     </div>
                   </div>
                 </div>
+
+                <Separator className="my-6 bg-gray-800" />
+
+                <p className="text-gray-300 italic">
+                  "<span className="text-orange-400">Bukan teka, tapi laras.</span> (Not guessing, but calibrating.) 
+                  We drill where the evidence points. Same discipline: <span className="text-cyan-400">read the signal, respect the noise.</span>"
+                </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 13 Floors Section */}
-        <section id="floors" className="py-32 relative bg-[#0d0d0d]">
-          <div className="max-w-6xl mx-auto px-4 text-center">
-            <Badge variant="outline" className="mb-8 border-gray-700 text-gray-400 tracking-[0.3em] font-mono">13_CONSTITUTIONAL_FLOORS</Badge>
-            <h2 className="text-5xl font-bold mb-6">The Immutable Anvil</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto mb-20 text-lg">
-              Every decision produced by arifOS must pass through 13 floors of validation. 
-              Violation of a Hard Floor results in immediate system <span className="text-red-500 font-mono">VOID</span>.
-            </p>
+        {/* Three Judges Section */}
+        <section id="judges" className="py-24 relative bg-gradient-to-b from-[#0a0a0a] via-gray-900/30 to-[#0a0a0a]">
+          <div className="max-w-5xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 mb-6">
+                <span className="text-sm text-amber-400">Tri-Witness Consensus ≥ 0.95</span>
+              </div>
+              <h2 className="text-4xl font-bold mb-4">The Three Judges</h2>
+              <p className="text-gray-400 max-w-2xl mx-auto">
+                Every decision passes through three independent judges. 
+                No single witness is sufficient.
+              </p>
+            </div>
 
-            {/* Floors Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-              {FLOORS.map((floor, index) => (
-                <Tooltip key={floor.id}>
-                  <TooltipTrigger asChild>
-                    <div 
-                      className="group relative p-6 rounded-2xl border border-gray-800 bg-black/40 hover:border-orange-500/40 hover:bg-orange-500/5 transition-all cursor-crosshair h-full flex flex-col items-center justify-center text-center"
-                    >
-                      <span className="text-[10px] font-mono text-gray-600 mb-2">{floor.id}</span>
-                      <p className="text-sm font-bold text-white mb-2">{floor.name}</p>
-                      <Badge variant="outline" className="text-[9px] border-gray-800 text-gray-500 group-hover:border-orange-500/30 group-hover:text-orange-400">
-                        {floor.judge}
-                      </Badge>
+            <div className="grid md:grid-cols-3 gap-6">
+              {JUDGES.map((judge) => (
+                <Card key={judge.name} className="bg-gray-900/50 border-gray-800 hover:border-gray-700 transition-all group">
+                  <CardHeader className="text-center">
+                    <div className={`text-5xl mb-4 ${
+                      judge.color === 'cyan' ? 'text-cyan-400' :
+                      judge.color === 'red' ? 'text-red-400' : 'text-amber-400'
+                    }`} style={{ fontFamily: 'serif' }}>
+                      {judge.symbol}
                     </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="bg-black border-gray-800 text-white max-w-xs">
-                    <p className="text-xs font-bold text-orange-400 mb-1">{floor.name}</p>
-                    <p className="text-[10px] leading-relaxed italic">{floor.desc}</p>
-                  </TooltipContent>
-                </Tooltip>
+                    <CardTitle className={`text-xl ${
+                      judge.color === 'cyan' ? 'text-cyan-400' :
+                      judge.color === 'red' ? 'text-red-400' : 'text-amber-400'
+                    }`}>
+                      {judge.name}
+                    </CardTitle>
+                    <p className="text-sm text-gray-500">{judge.title}</p>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    <p className="text-lg font-medium text-white">{judge.question}</p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
 
-            {/* Visual Alignment */}
-            <div className="mt-24 rounded-3xl overflow-hidden grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-1000 border border-gray-800">
+            {/* Three Judges Visual */}
+            <div className="mt-12 rounded-2xl overflow-hidden">
               <img 
-                src="/constitutional-floors.jpg" 
-                alt="13 Constitutional Floors Diagram" 
-                className="w-full h-80 object-cover"
+                src="/three-judges-geometric.jpg" 
+                alt="The Three Judges" 
+                className="w-full h-48 object-cover opacity-80"
               />
             </div>
           </div>
         </section>
 
-        {/* Call to Action Section */}
-        <section className="py-40 relative overflow-hidden text-center bg-black">
-          <div className="max-w-2xl mx-auto px-4 relative z-10">
-            <h2 className="text-4xl md:text-5xl font-bold mb-8">Build with Conscience</h2>
-            <p className="text-gray-500 mb-12 text-lg">
-              The tools are free. The audit is permanent. The mission is essential.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <a href="https://arif-fazil.com/mcp" className="w-full sm:w-auto">
-                <Button className="w-full bg-red-600 hover:bg-red-500 text-white px-10 py-7 text-sm font-bold tracking-widest uppercase">
-                  Access Portal
-                </Button>
+        {/* 13 Floors Section */}
+        <section id="floors" className="py-24 relative">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-red-500/20 via-yellow-500/20 to-cyan-500/20 border border-gray-700 mb-6">
+                <Layers className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-300">The Constitutional Framework</span>
+              </div>
+              <h2 className="text-4xl font-bold mb-4">The 13 Floors</h2>
+              <p className="text-gray-400 max-w-2xl mx-auto">
+                Every AI decision passes through 13 constitutional safety checks before execution. 
+                Three independent judges verify each floor.
+              </p>
+            </div>
+
+            {/* Floors Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+              {FLOORS.map((floor) => (
+                <Tooltip key={floor.id}>
+                  <TooltipTrigger asChild>
+                    <div 
+                      className={`relative p-4 rounded-xl border cursor-pointer transition-all hover:scale-105 ${
+                        floor.judge === 'Δ' ? 'border-cyan-500/30 bg-cyan-500/5 hover:bg-cyan-500/10' :
+                        floor.judge === 'Ω' ? 'border-red-500/30 bg-red-500/5 hover:bg-red-500/10' :
+                        'border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-mono text-gray-500">{floor.id}</span>
+                        <CheckCircle2 className="w-4 h-4 text-green-400" />
+                      </div>
+                      <p className="text-sm font-medium text-white">{floor.name}</p>
+                      <p className="text-xs text-gray-600 mt-1">{floor.judge}</p>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-sm">{floor.desc}</p>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+
+            {/* Visual */}
+            <div className="mt-12 rounded-2xl overflow-hidden">
+              <img 
+                src="/13-floors-geometric.jpg" 
+                alt="13 Constitutional Floors" 
+                className="w-full h-64 object-cover opacity-80"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* System Status Section */}
+        <section id="system" className="py-24 relative bg-gradient-to-b from-[#0a0a0a] to-gray-900/30">
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Quick Start */}
+              <Card className="bg-gray-900/50 border-gray-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Flame className="w-5 h-5 text-orange-400" />
+                    Quick Start
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-400 text-sm mb-4">
+                    Install the constitutional framework. One command, 13 floors, 3 judges.
+                  </p>
+                  <div className="bg-black rounded-lg p-4 font-mono text-sm">
+                    <span className="text-green-400">$</span> <span className="text-gray-300">pip install arifos</span>
+                  </div>
+                  <div className="flex gap-3 mt-4">
+                    <a href="https://pypi.org/project/arifos/">
+                      <Badge variant="outline" className="cursor-pointer hover:bg-gray-800">
+                        PyPI <ExternalLink className="w-3 h-3 ml-1" />
+                      </Badge>
+                    </a>
+                    <a href="https://arifos.arif-fazil.com">
+                      <Badge variant="outline" className="cursor-pointer hover:bg-gray-800">
+                        Docs <ExternalLink className="w-3 h-3 ml-1" />
+                      </Badge>
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* API Status */}
+              <Card className="bg-gray-900/50 border-gray-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-green-400" />
+                    System Endpoints
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-black/50">
+                      <code className="text-sm text-cyan-400">/health</code>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-green-400">GET</span>
+                        <span className="w-2 h-2 rounded-full bg-green-400" />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-black/50">
+                      <code className="text-sm text-cyan-400">/mcp</code>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-amber-400">POST</span>
+                        <span className="text-xs text-gray-500">MCP Protocol</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-black/50">
+                      <code className="text-sm text-cyan-400">/sse</code>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-green-400">GET</span>
+                        <span className="text-xs text-gray-500">Server-Sent Events</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Writing Section */}
+        <section id="writing" className="py-24 relative">
+          <div className="max-w-4xl mx-auto px-4">
+            <h2 className="text-3xl font-bold mb-8">Writing</h2>
+            
+            <div className="grid sm:grid-cols-2 gap-4">
+              {ARTICLES.map((article) => (
+                <a 
+                  key={article.url}
+                  href={article.url}
+                  className="group p-4 rounded-xl border border-gray-800 bg-gray-900/30 hover:bg-gray-800/50 hover:border-gray-700 transition-all"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-medium text-white group-hover:text-orange-400 transition-colors">
+                        {article.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1">Medium</p>
+                    </div>
+                    <ExternalLink className="w-4 h-4 text-gray-600 group-hover:text-gray-400" />
+                  </div>
+                </a>
+              ))}
+            </div>
+
+            <div className="mt-6">
+              <a 
+                href="https://medium.com/@arifbfazil"
+                className="text-sm text-orange-400 hover:text-orange-300 inline-flex items-center gap-1"
+              >
+                All articles on Medium →
               </a>
             </div>
           </div>
-          
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-600/10 blur-[120px] rounded-full pointer-events-none" />
         </section>
 
-        {/* Footer */}
-        <footer className="py-20 border-t border-gray-900 bg-black">
-          <div className="max-w-6xl mx-auto px-4 text-center">
-            <div className="flex items-center justify-center gap-10 mb-12">
-              <span className="text-2xl font-light text-cyan-800" style={{ fontFamily: 'serif' }}>△</span>
-              <span className="text-2xl font-light text-red-900" style={{ fontFamily: 'serif' }}>Ω</span>
-              <span className="text-2xl font-light text-amber-900" style={{ fontFamily: 'serif' }}>Ψ</span>
+        {/* Footer - Unified with APEX */}
+        <footer className="py-16 border-t border-gray-800 relative">
+          <div className="max-w-4xl mx-auto px-4 text-center">
+            {/* Three Judges Symbols */}
+            <div className="flex items-center justify-center gap-2 text-4xl mb-6">
+              <span className="text-cyan-400" style={{ fontFamily: 'serif' }}>△</span>
+              <span className="text-red-400" style={{ fontFamily: 'serif' }}>Ω</span>
+              <span className="text-amber-400" style={{ fontFamily: 'serif' }}>Ψ</span>
             </div>
             
-            <p className="text-3xl font-black mb-1 tracking-widest leading-none">DITEMPA BUKAN DIBERI</p>
-            <p className="text-[10px] text-gray-600 tracking-[0.8em] font-mono mb-12 uppercase">Forged, Not Given</p>
+            <p className="text-2xl font-bold mb-2">DITEMPA BUKAN DIBERI</p>
+            <p className="text-gray-500 mb-6">Forged, Not Given</p>
             
-            <div className="flex items-center justify-center gap-8 mb-12">
-              <a href="https://github.com/ariffazil" className="text-gray-500 hover:text-white transition-colors">
-                <Github className="w-6 h-6" />
+            <p className="text-gray-400 mb-2">
+              Muhammad Arif bin Fazil · <span className="text-amber-400">888 Judge</span> · <span className="text-cyan-400">ΔΩΨ Architect</span>
+            </p>
+            <p className="text-gray-600 text-sm mb-6">Penang, Malaysia</p>
+            
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <a href="mailto:arifbfazil@gmail.com" className="text-gray-500 hover:text-orange-400 transition-colors">
+                arifbfazil@gmail.com
               </a>
-              <a href="https://linkedin.com/in/arif-fazil" className="text-gray-500 hover:text-white transition-colors">
-                <Linkedin className="w-6 h-6" />
+              <span className="text-gray-700">|</span>
+              <a href="https://github.com/ariffazil" className="text-gray-500 hover:text-orange-400 transition-colors flex items-center gap-1">
+                <Github className="w-4 h-4" /> GitHub
               </a>
-              <a href="https://x.com/ArifFazil90" className="text-gray-500 hover:text-white transition-colors">
-                <Twitter className="w-6 h-6" />
+              <span className="text-gray-700">|</span>
+              <a href="https://linkedin.com/in/arif-fazil" className="text-gray-500 hover:text-orange-400 transition-colors flex items-center gap-1">
+                <Linkedin className="w-4 h-4" /> LinkedIn
               </a>
-              <a href="mailto:arifbfazil@gmail.com" className="text-gray-500 hover:text-white transition-colors">
-                <Mail className="w-6 h-6" />
+              <span className="text-gray-700">|</span>
+              <a href="https://x.com/ArifFazil90" className="text-gray-500 hover:text-orange-400 transition-colors flex items-center gap-1">
+                <Twitter className="w-4 h-4" /> X
+              </a>
+              <span className="text-gray-700">|</span>
+              <a href="mailto:arifbfazil@gmail.com" className="text-gray-500 hover:text-orange-400 transition-colors flex items-center gap-1">
+                <Mail className="w-4 h-4" /> Email
               </a>
             </div>
 
-            <Separator className="bg-gray-900 mb-12" />
-
-            <div className="flex flex-col items-center gap-4 text-[10px] text-gray-700 uppercase tracking-widest">
-              <span>Muhammad Arif bin Fazil · arifOS v55.1</span>
-              <span>Penang, Malaysia · © 2026</span>
+            {/* Ecosystem Links */}
+            <div className="flex items-center justify-center gap-4">
+              <a href="https://arif-fazil.com" className="px-4 py-2 rounded-full bg-red-500/20 text-red-400 text-sm font-medium border border-red-500/50">
+                BODY
+              </a>
+              <a href="https://arifos.arif-fazil.com" className="px-4 py-2 rounded-full bg-blue-500/20 text-blue-400 text-sm font-medium hover:bg-blue-500/30 transition-colors">
+                MIND
+              </a>
+              <a href="https://apex.arif-fazil.com" className="px-4 py-2 rounded-full bg-amber-500/20 text-amber-400 text-sm font-medium hover:bg-amber-500/30 transition-colors">
+                SOUL
+              </a>
             </div>
           </div>
         </footer>
