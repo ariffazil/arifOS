@@ -149,8 +149,9 @@ class SSETransport(BaseTransport):
             return HTMLResponse(content=DASHBOARD_HTML)
 
         @self.mcp.custom_route("/assets/{filename}", methods=["GET"])
-        async def assets(request, filename: str):
+        async def assets(request):
             """Serve static assets (JS, CSS)."""
+            filename = request.path_params.get("filename")
             static_dir = os.path.join(os.path.dirname(__file__), "..", "static", "assets")
             static_dir = os.path.abspath(static_dir)
             file_path = os.path.join(static_dir, filename)
@@ -167,16 +168,19 @@ class SSETransport(BaseTransport):
             return HTMLResponse(content="Not found", status_code=404)
 
         @self.mcp.custom_route("/css/{css_file}", methods=["GET"])
-        async def css_assets(request, css_file: str):
+        async def css_assets(request):
             """Serve CSS files from ariffazil.com."""
+            css_file = request.path_params.get("css_file")
+            # Security: prevent directory traversal
+            safe_file = os.path.normpath(css_file).lstrip("/")
+            if ".." in safe_file or safe_file.startswith("."):
+                return HTMLResponse(content="Forbidden", status_code=403)
+
             static_dir = os.path.join(
                 os.path.dirname(__file__), "..", "..", "..", "ariffazil.com", "css"
             )
             static_dir = os.path.abspath(static_dir)
-            file_path = os.path.join(static_dir, css_file)
-
-            if ".." in css_file:
-                return HTMLResponse(content="Forbidden", status_code=403)
+            file_path = os.path.join(static_dir, safe_file)
 
             if os.path.exists(file_path) and os.path.isfile(file_path):
                 return FileResponse(file_path, media_type="text/css")
@@ -184,27 +188,37 @@ class SSETransport(BaseTransport):
             return HTMLResponse(content="Not found", status_code=404)
 
         @self.mcp.custom_route("/img/{img_file}", methods=["GET"])
-        async def img_assets(request, img_file: str):
+        async def img_assets(request):
             """Serve image files from ariffazil.com."""
+            img_file = request.path_params.get("img_file")
+            # Security: prevent directory traversal
+            safe_file = os.path.normpath(img_file).lstrip("/")
+            if ".." in safe_file or safe_file.startswith("."):
+                return HTMLResponse(content="Forbidden", status_code=403)
+
             static_dir = os.path.join(
                 os.path.dirname(__file__), "..", "..", "..", "ariffazil.com", "img"
             )
             static_dir = os.path.abspath(static_dir)
-            file_path = os.path.join(static_dir, img_file)
-
-            if ".." in img_file:
-                return HTMLResponse(content="Forbidden", status_code=403)
+            file_path = os.path.join(static_dir, safe_file)
 
             if os.path.exists(file_path) and os.path.isfile(file_path):
-                if img_file.endswith(".png"):
+                if safe_file.endswith(".png"):
                     return FileResponse(file_path, media_type="image/png")
-                return FileResponse(file_path, media_type="image/jpeg")
+                elif safe_file.endswith(".jpg") or safe_file.endswith(".jpeg"):
+                    return FileResponse(file_path, media_type="image/jpeg")
+                elif safe_file.endswith(".gif"):
+                    return FileResponse(file_path, media_type="image/gif")
+                elif safe_file.endswith(".svg"):
+                    return FileResponse(file_path, media_type="image/svg+xml")
+                return FileResponse(file_path)
 
             return HTMLResponse(content="Not found", status_code=404)
 
         @self.mcp.custom_route("/{filename}", methods=["GET"])
-        async def static_files(request, filename: str):
+        async def static_files(request):
             """Serve static files (images, etc)."""
+            filename = request.path_params.get("filename")
             # Skip API routes
             if filename in ["health", "metrics", "mcp", "sse"]:
                 return HTMLResponse(content="Not found", status_code=404)
@@ -226,49 +240,6 @@ class SSETransport(BaseTransport):
                 else:
                     return FileResponse(file_path)
 
-            return HTMLResponse(content="Not found", status_code=404)
-
-        # Portfolio static file routes - serve from ariffazil.com/
-        @self.mcp.custom_route("/css/{css_file}", methods=["GET"])
-        async def css_files(request, css_file: str):
-            """Serve CSS files from ariffazil.com/css/."""
-            # Security: prevent directory traversal
-            safe_file = os.path.normpath(css_file).lstrip('/')
-            if '..' in safe_file or safe_file.startswith('.'):
-                return HTMLResponse(content="Forbidden", status_code=403)
-            
-            css_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "ariffazil.com", "css")
-            css_dir = os.path.abspath(css_dir)
-            file_path = os.path.join(css_dir, safe_file)
-            
-            if os.path.exists(file_path) and os.path.isfile(file_path):
-                return FileResponse(file_path, media_type="text/css")
-            return HTMLResponse(content="Not found", status_code=404)
-
-        @self.mcp.custom_route("/img/{img_file}", methods=["GET"])
-        async def img_files(request, img_file: str):
-            """Serve image files from ariffazil.com/img/."""
-            # Security: prevent directory traversal
-            safe_file = os.path.normpath(img_file).lstrip('/')
-            if '..' in safe_file or safe_file.startswith('.'):
-                return HTMLResponse(content="Forbidden", status_code=403)
-            
-            img_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "ariffazil.com", "img")
-            img_dir = os.path.abspath(img_dir)
-            file_path = os.path.join(img_dir, safe_file)
-            
-            if os.path.exists(file_path) and os.path.isfile(file_path):
-                # Determine content type
-                if safe_file.endswith('.jpg') or safe_file.endswith('.jpeg'):
-                    return FileResponse(file_path, media_type="image/jpeg")
-                elif safe_file.endswith('.png'):
-                    return FileResponse(file_path, media_type="image/png")
-                elif safe_file.endswith('.gif'):
-                    return FileResponse(file_path, media_type="image/gif")
-                elif safe_file.endswith('.svg'):
-                    return FileResponse(file_path, media_type="image/svg+xml")
-                else:
-                    return FileResponse(file_path)
             return HTMLResponse(content="Not found", status_code=404)
 
     def _register_resources(self):
