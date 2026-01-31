@@ -19,7 +19,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
+          cache: 'npm'
 
       # Build and Deploy BODY (arif-fazil.com) - Identity & Dashboard
       - name: Build BODY (arif-fazil.com)
@@ -27,9 +27,9 @@ jobs:
           cd ariffazil.com/app
           npm ci
           npm run build
-          # Copy image assets from root if they exist
-          cp ../*.jpg dist/ 2>/dev/null || true
-          cp ../*.png dist/ 2>/dev/null || true
+          # Copy all image assets to dist
+          cp public/*.jpg dist/ 2>/dev/null || true
+          cp public/*.png dist/ 2>/dev/null || true
           ls -la dist/
 
       - name: Deploy BODY to Cloudflare Pages
@@ -46,9 +46,9 @@ jobs:
           cd apex.com/app
           npm ci
           npm run build
-          # Copy image assets from root if they exist
-          cp ../*.jpg dist/ 2>/dev/null || true
-          cp ../*.png dist/ 2>/dev/null || true
+          # Copy all image assets to dist
+          cp public/*.jpg dist/ 2>/dev/null || true
+          cp public/*.png dist/ 2>/dev/null || true
           ls -la dist/
 
       - name: Deploy SOUL to Cloudflare Pages
@@ -67,6 +67,11 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
       - name: Setup Railway CLI
         run: npm install -g @railway/cli
