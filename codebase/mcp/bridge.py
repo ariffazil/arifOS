@@ -29,6 +29,8 @@ from codebase.mcp.core.bridge import (
     bridge_prompt_router,
     get_bridge_router,
 )
+from codebase.mcp.core.validators import ConstitutionValidator
+
 
 __all__ = [
     "BridgeError",
@@ -50,4 +52,5 @@ __all__ = [
     "bridge_context_docs_router",
     "bridge_prompt_router",
     "get_bridge_router",
+    "ConstitutionValidator",
 ]

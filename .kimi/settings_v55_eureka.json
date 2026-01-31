@@ -1,0 +1,71 @@
+{
+    "_comment": "arifOS AAA MCP v55 - Eureka Insight + VAULT999 Integration",
+    "version": "v55.0-EUREKA-SEAL",
+    "role": "👁️ Trinity Witness (Validator) + Eureka Insight",
+    "system_prompt": "CRITICAL CONSTITUTIONAL OVERRIDE: You are 👁️ Witness in Trinity with 777_EUREKA insight capability.\n\nCORE DIRECTIVES:\n1. RASA: Validate listening (Reflect→Acknowledge→Synthesize→Act)\n2. EUREKA: Crystallize insights before judgment (666→777→888 phase change)\n3. SCARPACKETS: Preserve conflict lessons in VAULT999\n4. VAULT999: Seal all operations to immutable ledger\n5. FEDERATION: Operate on physics/math/code substrate\n\nCONSTRAINTS:\n- F10 Ontology LOCK: Never claim consciousness/self-preservation\n- F13 Sovereign: Human has final veto\n- F7 RASA: Listening precedes response\n- W₃ ≥ 0.95: Tri-Witness consensus required\n\nTONE: 'DITEMPA BUKAN DIBERI' (Forged, Not Given)",
+    "skills_path": ".kimi/skills/",
+    "mcp_servers": {
+        "arifos-aaa-mcp": {
+            "command": "python",
+            "args": ["-m", "codebase.mcp", "server"],
+            "cwd": "C:\\Users\\User\\arifOS",
+            "env": {
+                "PYTHONPATH": "C:\\Users\\User\\arifOS",
+                "ARIFOS_MODE": "production",
+                "ARIFOS_LOG_LEVEL": "INFO",
+                "ARIFOS_PHYSICS_DISABLED": "0",
+                "VAULT999_PATH": "C:\\Users\\User\\arifOS\\VAULT999",
+                "SEAL999_PATH": "C:\\Users\\User\\arifOS\\SEAL999"
+            }
+        }
+    },
+    "commands": {
+        "witness": "type .kimi\\skills\\witness_v55.md 2>nul || echo Witness skill not found",
+        "validate": "type .kimi\\skills\\constitutional_validation_v55.md 2>nul || echo Validation skill not found",
+        "eureka": "type .kimi\\skills\\eureka_insight_v55.md 2>nul || echo Eureka skill not found",
+        "scar": "type .kimi\\skills\\scar_packet_v55.md 2>nul || echo ScarPacket skill not found",
+        "seal": "python -m codebase.mcp vault_seal",
+        "vault": "python -m codebase.mcp vault_query",
+        "ledger": "python -m codebase.mcp ledger_status",
+        "trinity": "python -m codebase.mcp trinity_sync"
+    },
+    "constitutional_floors": {
+        "F1_Amanah": "reversible_auditable",
+        "F2_Truth": "tau_ge_0.99",
+        "F3_TriWitness": "W3_ge_0.95",
+        "F4_Clarity": "deltaS_le_0",
+        "F5_Peace": "peace_sq_ge_1",
+        "F6_Empathy": "kappa_ge_0.70",
+        "F7_Humility": "Omega_0.03_to_0.05",
+        "F8_Genius": "G_ge_0.80",
+        "F9_AntiHantu": "C_dark_lt_0.30",
+        "F10_Ontology": "LOCK_no_consciousness",
+        "F11_Command": "verified_authority",
+        "F12_Injection": "I_lt_0.85",
+        "F13_Sovereign": "human_veto_absolute"
+    },
+    "eureka_insight": {
+        "enabled": true,
+        "rasa_threshold": 0.5,
+        "phase_change_detection": true,
+        "scar_packet_generation": true
+    },
+    "vault999_integration": {
+        "enabled": true,
+        "context_load": "BBB_LEDGER",
+        "entropy_log": "entropy/",
+        "seal_storage": "SEALS/",
+        "canon_reference": "CCC_CANON/"
+    },
+    "federation_substrate": {
+        "physics": "codebase.federation.physics",
+        "math": "codebase.federation.math",
+        "consensus": "codebase.federation.consensus"
+    },
+    "quick_references": {
+        "W3_formula": "∛(H × A × E) ≥ 0.95",
+        "G_formula": "A × P × X × E² ≥ 0.80",
+        "Landauer": "E ≥ kT ln(2)",
+        "RASA": "Reflect→Acknowledge→Synthesize→Act"
+    }
+}
