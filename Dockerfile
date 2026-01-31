@@ -1,5 +1,5 @@
-# Dockerfile for arifOS Constitutional Monolith (v55.1-CODEBASE-AAA)
-# Streamable HTTP MCP server + health/metrics endpoints
+# Dockerfile for arifOS Constitutional MCP Server (v55.1-CODEBASE-AAA)
+# Streamable HTTP transport + health/metrics endpoints
 # Railway-compatible: uses codebase-mcp-sse entry point (FastMCP)
 
 FROM python:3.12-slim
@@ -9,36 +9,28 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    libpq-dev \
-    git \
+# Install system dependencies (minimal)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Layer 1: Install Python dependencies (cached unless requirements change)
 COPY requirements.txt .
-COPY pyproject.toml .
-# Use uv for faster installs
 RUN uv pip install --system --no-cache -r requirements.txt
-# Explicit runtime deps for FastMCP streamable HTTP
-RUN uv pip install --system --no-cache fastapi uvicorn[standard] pydantic mcp sse-starlette httpx-sse
 
-# Copy codebase (v55+ canonical module)
+# Layer 2: Copy project metadata + source
+COPY pyproject.toml .
 COPY codebase/ codebase/
-# Copy constitutional theory bundle
-COPY 000_THEORY/ 000_THEORY/
-# Docs for runtime reference
-COPY docs/ docs/
-# Setup scripts
-COPY setup/ setup/
 
-# Install package in editable mode (includes both arifos and codebase)
-RUN uv pip install --system -e .
+# Layer 3: Install package (registers entry points like codebase-mcp-sse)
+RUN uv pip install --system --no-deps -e .
+
+# Layer 4: Copy constitutional data (changes less often than code)
+COPY 000_THEORY/ 000_THEORY/
 
 # Set environment variables
 ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
 ENV ARIFOS_MODE=production
 ENV ARIFOS_MCP_MODE=sse
 ENV HOST=0.0.0.0
@@ -48,8 +40,8 @@ ENV PORT=8080
 EXPOSE 8080
 
 # Health check (matches railway.toml healthcheckPath)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD curl -sf http://localhost:8080/health || exit 1
 
-# Run Codebase MCP streamable HTTP server
+# Run Codebase MCP Streamable HTTP server
 CMD ["codebase-mcp-sse"]
