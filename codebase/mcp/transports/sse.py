@@ -13,7 +13,7 @@ import uvicorn
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.resources import FunctionResource
 from mcp.server.fastmcp.prompts import Prompt as FastMCPPrompt
-from starlette.responses import JSONResponse, FileResponse, HTMLResponse
+from starlette.responses import JSONResponse, HTMLResponse
 
 from .base import BaseTransport
 from ..core.tool_registry import ToolRegistry
@@ -139,108 +139,8 @@ class SSETransport(BaseTransport):
 
         @self.mcp.custom_route("/", methods=["GET"])
         async def root(request):
-            """Root endpoint - serve the arifOS website."""
-            static_path = os.path.join(os.path.dirname(__file__), "..", "static", "index.html")
-            static_path = os.path.abspath(static_path)
-
-            if os.path.exists(static_path):
-                return FileResponse(static_path)
-
+            """Root endpoint - serve the arifOS dashboard."""
             return HTMLResponse(content=DASHBOARD_HTML)
-
-        @self.mcp.custom_route("/assets/{filename}", methods=["GET"])
-        async def assets(request):
-            """Serve static assets (JS, CSS)."""
-            filename = request.path_params.get("filename")
-            static_dir = os.path.join(os.path.dirname(__file__), "..", "static", "assets")
-            static_dir = os.path.abspath(static_dir)
-            file_path = os.path.join(static_dir, filename)
-
-            if os.path.exists(file_path) and os.path.isfile(file_path):
-                # Determine content type
-                if filename.endswith(".js"):
-                    return FileResponse(file_path, media_type="application/javascript")
-                elif filename.endswith(".css"):
-                    return FileResponse(file_path, media_type="text/css")
-                else:
-                    return FileResponse(file_path)
-
-            return HTMLResponse(content="Not found", status_code=404)
-
-        @self.mcp.custom_route("/css/{css_file}", methods=["GET"])
-        async def css_assets(request):
-            """Serve CSS files from ariffazil.com."""
-            css_file = request.path_params.get("css_file")
-            # Security: prevent directory traversal
-            safe_file = os.path.normpath(css_file).lstrip("/")
-            if ".." in safe_file or safe_file.startswith("."):
-                return HTMLResponse(content="Forbidden", status_code=403)
-
-            static_dir = os.path.join(
-                os.path.dirname(__file__), "..", "..", "..", "ariffazil.com", "css"
-            )
-            static_dir = os.path.abspath(static_dir)
-            file_path = os.path.join(static_dir, safe_file)
-
-            if os.path.exists(file_path) and os.path.isfile(file_path):
-                return FileResponse(file_path, media_type="text/css")
-
-            return HTMLResponse(content="Not found", status_code=404)
-
-        @self.mcp.custom_route("/img/{img_file}", methods=["GET"])
-        async def img_assets(request):
-            """Serve image files from ariffazil.com."""
-            img_file = request.path_params.get("img_file")
-            # Security: prevent directory traversal
-            safe_file = os.path.normpath(img_file).lstrip("/")
-            if ".." in safe_file or safe_file.startswith("."):
-                return HTMLResponse(content="Forbidden", status_code=403)
-
-            static_dir = os.path.join(
-                os.path.dirname(__file__), "..", "..", "..", "ariffazil.com", "img"
-            )
-            static_dir = os.path.abspath(static_dir)
-            file_path = os.path.join(static_dir, safe_file)
-
-            if os.path.exists(file_path) and os.path.isfile(file_path):
-                if safe_file.endswith(".png"):
-                    return FileResponse(file_path, media_type="image/png")
-                elif safe_file.endswith(".jpg") or safe_file.endswith(".jpeg"):
-                    return FileResponse(file_path, media_type="image/jpeg")
-                elif safe_file.endswith(".gif"):
-                    return FileResponse(file_path, media_type="image/gif")
-                elif safe_file.endswith(".svg"):
-                    return FileResponse(file_path, media_type="image/svg+xml")
-                return FileResponse(file_path)
-
-            return HTMLResponse(content="Not found", status_code=404)
-
-        @self.mcp.custom_route("/{filename}", methods=["GET"])
-        async def static_files(request):
-            """Serve static files (images, etc)."""
-            filename = request.path_params.get("filename")
-            # Skip API routes
-            if filename in ["health", "metrics", "mcp", "sse"]:
-                return HTMLResponse(content="Not found", status_code=404)
-
-            static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
-            static_dir = os.path.abspath(static_dir)
-            file_path = os.path.join(static_dir, filename)
-
-            if os.path.exists(file_path) and os.path.isfile(file_path):
-                # Determine content type
-                if filename.endswith(".jpg") or filename.endswith(".jpeg"):
-                    return FileResponse(file_path, media_type="image/jpeg")
-                elif filename.endswith(".png"):
-                    return FileResponse(file_path, media_type="image/png")
-                elif filename.endswith(".svg"):
-                    return FileResponse(file_path, media_type="image/svg+xml")
-                elif filename.endswith(".html"):
-                    return FileResponse(file_path, media_type="text/html")
-                else:
-                    return FileResponse(file_path)
-
-            return HTMLResponse(content="Not found", status_code=404)
 
     def _register_resources(self):
         """Register MCP Resources using FastMCP FunctionResource."""
