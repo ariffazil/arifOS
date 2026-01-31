@@ -15,21 +15,23 @@ DITEMPA BUKAN DIBERI
 __version__ = "v53.2.0-SEAL"
 
 # Core exports (lightweight)
-from .rate_limiter import (
+from .services.rate_limiter import (
     RateLimiter,
     RateLimitResult,
     get_rate_limiter,
     rate_limited,
     RATE_LIMIT_ENABLED,
 )
-from .immutable_ledger import (
+from .services.immutable_ledger import (
     ImmutableLedger,
     LedgerRecord,
 )
-from .mode_selector import (
-    get_mcp_mode,
-    MCPMode,
-)
+
+# v55 shim: prefer config.modes, fall back to legacy mode_selector
+try:
+    from codebase.mcp.config.modes import get_mcp_mode, MCPMode
+except ImportError:
+    from .mode_selector import get_mcp_mode, MCPMode
 
 # Tool classes should be imported directly when needed:
 #   from codebase.mcp.tools import TrinityHatTool, AGITool, ASITool, APEXTool, VaultTool

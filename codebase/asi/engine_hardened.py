@@ -18,7 +18,7 @@ import asyncio
 import math
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Callable
 
@@ -125,7 +125,7 @@ class OmegaBundle:
     # Floor compliance
     floor_scores: Dict[str, float] = field(default_factory=dict)
     reasoning: str = ""
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     
     def to_dict(self) -> Dict[str, Any]:
         weakest = self.empathy.get_weakest()

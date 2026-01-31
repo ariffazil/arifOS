@@ -51,7 +51,7 @@ class BeliefState:
     """
     states: Dict[str, float]  # state_name -> probability
     entropy: float            # Current uncertainty
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(datetime.UTC))
     
     def get_most_likely(self) -> Tuple[str, float]:
         """Return most likely state and its probability."""
@@ -244,7 +244,7 @@ class MotorOutput:
             "epistemic_value": policy.epistemic_value,
             "pragmatic_value": policy.pragmatic_value,
             "confidence": policy.confidence,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(datetime.UTC).isoformat()
         }
         
         # Execute callbacks

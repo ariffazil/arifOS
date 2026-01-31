@@ -103,18 +103,15 @@
 │           ├── apex_tool.py
 │           └── vault_tool.py
 │
-├── L5_AGENTS/                     # ⚠️ Agent stubs (90%)
+├── L5_AGENTS/                     # ⚠️ 4-Agent stubs (90%)
 │   ├── README.md
-│   └── agents/                    # 8 agent stubs
+│   └── agents/                    # 4 Constitutional Agents
 │       ├── __init__.py
-│       ├── ignition_agent.py      # 000 gate
-│       ├── cognition_agent.py     # 111 parser
-│       ├── atlas_agent.py         # 333 mapper
-│       ├── defend_agent.py        # 555 safety
-│       ├── evidence_agent.py      # 444 fact-check
-│       ├── forge_agent.py         # 777 implementation
-│       ├── decree_agent.py        # 888 judgment
-│       └── orchestrator.py        # Coordinator
+│       ├── architect.py           # Δ AGI — Design (111-333)
+│       ├── auditor.py             # 👁 EYE — Verify (444)
+│       ├── engineer.py            # Ω ASI — Build (555-777)
+│       ├── validator.py           # Ψ APEX — Judge (888-999)
+│       └── orchestrator.py        # 4-Agent coordinator
 │
 ├── L6_INSTITUTION/                # ⚠️ Institution stubs (100%)
 │   ├── README.md

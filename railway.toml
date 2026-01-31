@@ -11,7 +11,8 @@ numReplicas = 1
 
 [deploy.env]
 ARIFOS_ENV = "production"
-ARIFOS_VERSION = "v53.2.7-CODEBASE-AAA7"
+ARIFOS_VERSION = "v55.1-CODEBASE-AAA"
 ARIFOS_LOG_LEVEL = "INFO"
 ARIFOS_CLUSTER = "3"
 REDIS_URL = "${{Redis.REDIS_URL}}"
+HOST = "0.0.0.0"

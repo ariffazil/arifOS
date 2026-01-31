@@ -2,27 +2,29 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+**Project:** arifOS — Constitutional AI governance system (AAA MCP Server)
+**Package:** `aaa-mcp` (PyPI)
+**Python:** ≥3.10
+**License:** AGPL-3.0-only
+**Motto:** *DITEMPA BUKAN DIBERI — Forged, Not Given*
 
-arifOS is a constitutional AI governance system implementing the **AAA Framework** (AGI/ASI/APEX) — a three-layer architecture that enforces 13 constitutional floors (F1-F13) on every AI decision. It exposes governance as an MCP server with 7 tools. The canonical codebase lives in `codebase/`, theoretical foundations in `000_THEORY/`, and implementation levels (L1-L7) in `333_APPS/`.
+---
 
-**Package name:** `aaa-mcp` (v53.2.9) | **Python:** >=3.10 | **License:** AGPL-3.0
-**Live server:** https://arif-fazil.com | **Motto:** "DITEMPA BUKAN DIBERI" — Forged, Not Given
-
-## Build & Development Commands
+## Build & Dev Commands
 
 ```bash
-# Install (editable with dev deps)
+# Install (editable with dev dependencies)
 pip install -e ".[dev]"
 
-# Run MCP server (stdio - for Claude Desktop)
-aaa-mcp-stdio
+# Run MCP Server
+aaa-mcp-stdio              # stdio transport (Claude Desktop)
+aaa-mcp-sse                # SSE transport (HTTP clients)
+aaa-mcp                    # auto-detect mode (dispatches based on arg: stdio/http/sse)
 
-# Run MCP server (SSE - for HTTP clients)
-aaa-mcp-sse
-
-# Run MCP server (auto-detect mode)
-aaa-mcp
+# Alternative entry
+python -m codebase.mcp
+python -m codebase.mcp http --port 8080
+python -m codebase.mcp sse --port 3000
 
 # Docker
 docker build -t arifos:latest .
@@ -32,167 +34,258 @@ docker run -e PORT=8000 -p 8000:8000 arifos:latest
 ## Testing
 
 ```bash
-# Full test suite
+# Full suite
 pytest tests/ -v --cov=codebase --cov-report=html
 
-# Single test file
-pytest tests/mcp/test_mcp_quick.py -v
+# Single file
+pytest tests/test_precision.py -v
 
 # By marker
-pytest -m constitutional       # Floor-specific tests
+pytest -m constitutional       # F1-F13 floor tests
 pytest -m integration          # Integration tests
 pytest -m slow                 # Long-running tests
 
 # Quick MCP smoke test
-pytest tests/mcp/test_mcp_quick.py -v
-
-# Comprehensive MCP tool test
-pytest tests/test_mcp_all_tools.py -v
+pytest tests/test_mcp_quick.py -v
 ```
 
-Test paths configured in pyproject.toml: `tests/` and `arifos/tests/`. Async mode is `auto`.
+Async mode is `auto` (configured in pyproject.toml). Test paths: `tests/` and `arifos/tests/`.
 
 ## Linting & Formatting
 
 ```bash
-black codebase/ --line-length=100       # Format
-ruff check codebase/                     # Lint
-ruff check codebase/ --fix               # Lint + autofix
-mypy codebase/ --ignore-missing-imports  # Type check
-bandit -c pyproject.toml codebase/ --exclude=tests/  # Security scan
-
-# Pre-commit (runs all above + constitutional checks)
-pre-commit install
-pre-commit run --all-files
+black codebase/ --line-length=100
+ruff check codebase/
+ruff check codebase/ --fix
+mypy codebase/ --ignore-missing-imports
 ```
 
-**Style:** Black (line-length=100), Ruff (target py310), MyPy with strict mode on core governance modules.
+**Style:** Black (100 char line length), Ruff (py310 target), MyPy strict on governance modules.
+Ruff excludes `archive/**`, `archive_local/**`, `tests/**`.
 
-## Architecture: The AAA Trinity
+---
 
-The system processes every request through three engines in sequence:
+## Architecture: AAA Trinity
+
+The core is three independent engines that process in isolation, then converge:
 
 ```
-000 (INIT)  →  AGI (Mind Δ)  →  ASI (Heart Ω)  →  APEX (Soul Ψ)  →  999 (VAULT)
-   ↑           111-333            444-666            888              ↓
-   └────────────────────── 000↔999 metabolic loop ──────────────────┘
+000_INIT → AGI (Δ) → ASI (Ω) → APEX (Ψ) → 999_VAULT
+   ↑        111-333     444-666     888         ↓
+   └──────────────── 000↔999 Loop ──────────────┘
 ```
 
-### Three Engines (`codebase/`)
+| Engine | Dir | Role | Entry Point | Floors |
+|--------|-----|------|-------------|--------|
+| **AGI (Δ)** | `codebase/agi/` | Reasoning — precision, hierarchy, active inference | `engine_hardened.py` | F2, F4, F7, F10 |
+| **ASI (Ω)** | `codebase/asi/` | Safety — empathy, stakeholder care | `engine_hardened.py` | F1, F5, F6, F9 |
+| **APEX (Ψ)** | `codebase/apex/` | Judgment — 9-paradox equilibrium solver | `kernel.py` (APEXJudicialCore) | F3, F8, F11, F12 |
 
-| Engine | Dir | Role | Key Files | Enforces |
-|--------|-----|------|-----------|----------|
-| **AGI (Δ)** | `codebase/agi/` | Reasoning — precision-weighted beliefs, hierarchical abstraction | `engine_hardened.py`, `precision.py`, `hierarchy.py`, `atlas.py` | F2 Truth, F4 Clarity, F7 Humility, F10 Ontology |
-| **ASI (Ω)** | `codebase/asi/` | Safety — 3-Trinity empathy (Self→System→Society), stakeholder protection | `engine_hardened.py`, `asi_components.py` | F1 Amanah, F5 Peace², F6 Empathy, F9 Anti-Hantu |
-| **APEX (Ψ)** | `codebase/apex/` | Judgment — 9-Paradox equilibrium solver, verdict assignment | `trinity_nine.py`, `equilibrium_finder.py`, `floor_checks.py` | F3 Tri-Witness, F8 Genius, F11 Authority, F12 Hardening |
+### Thermodynamic Wall (Critical Design Constraint)
 
-### Supporting Modules
+AGI and ASI **cannot see each other's reasoning** until stage 444 (TRINITY_SYNC). This is enforced through bundle isolation:
 
-- **`codebase/mcp/`** — MCP server (stdio + SSE transports), 7 tools in `tools/`, rate limiting, session ledger
-- **`codebase/system/`** — APEX PRIME judge (`apex_prime.py`), constitution enforcement, processing pipeline
-- **`codebase/apex/governance/`** — Cryptographic layer: Merkle trees, ledger hashing, zero-knowledge proofs, VAULT-999
-- **`codebase/enforcement/`** — Floor validators, emergency calibration, governance enforcement
-- **`codebase/bundles.py`** — `DeltaBundle` (AGI output) and `OmegaBundle` (ASI output) canonical dataclasses
-- **`codebase/kernel.py`** — Main orchestrator connecting all engines
+- **DeltaBundle** (`bundles.py`): AGI output — precision, hypotheses, entropy. Immutable after creation.
+- **OmegaBundle** (`bundles.py`): ASI output — stakeholders, empathy κᵣ, reversibility. Immutable after creation.
+- **MergedBundle** (`bundles.py`): Created at 444 via `compute_consensus()` and `apply_trinity_dissent_law()`.
 
-### MCP Tools (7 total)
+Never cross bundles — AGI logic stays in Δ, ASI in Ω.
 
-Tools are defined in `codebase/mcp/tools/` and registered via the server:
+### KernelManager (`codebase/kernel.py`)
 
-| Tool | Purpose | Entry Point |
-|------|---------|-------------|
-| `_init_` | Session gate + injection scan | `canonical_trinity.py` |
-| `_agi_` | Mind engine (reasoning) | `agi_tool.py` |
-| `_asi_` | Heart engine (safety/empathy) | `asi_tool.py` |
-| `_apex_` | Soul engine (judgment + 9-paradox) | `apex_tool.py` |
-| `_vault_` | Immutable ledger (Merkle-sealed) | `vault_tool.py` |
-| `_trinity_` | Full 000→999 pipeline | `mcp_trinity.py` |
-| `_reality_` | External fact-checker | `reality_grounding.py` |
+Singleton orchestrator that lazy-loads Trinity cores via bridge adapters:
+- `AGINeuralCore` wraps `AGIEngineHardened` (lazy)
+- `ASIActionCore` wraps `ASIEngineHardened` (lazy)
+- `APEXJudicialCore` imported directly from `codebase.apex.kernel`
+- `init_session()` delegates to `codebase.init.mcp_000_init` (canonical 7-step), falls back to native stub
 
-All tools accept `{"action": "...", "query": "...", "session_id": "..."}` and return `{"verdict": "SEAL|PARTIAL|VOID|888_HOLD|SABAR", "response": "...", ...}`.
+### SessionState (`codebase/state.py`)
+
+Immutable copy-on-write pattern:
+```python
+state = SessionState.from_context(ctx)
+new_state = state.to_stage("333")       # Returns new instance
+new_state = state.set_floor_score(...)   # Returns new instance
+# Never: state.field = value (mutation forbidden)
+```
+
+`SessionStore` provides in-memory L0 hot storage via `get()`/`put()`/`delete()`.
+
+---
+
+## MCP Server Structure
+
+### Entry Points (pyproject.toml scripts)
+
+```
+aaa-mcp       → codebase.mcp.__main__:main        # Auto-detect dispatcher
+aaa-mcp-stdio → codebase.mcp.entrypoints.stdio_entry:main
+aaa-mcp-sse   → codebase.mcp.entrypoints.sse_entry:main
+```
+
+### 7 Canonical MCP Tools (`codebase/mcp/tools/canonical_trinity.py`)
+
+| Tool | Stage | Handler | Purpose |
+|------|-------|---------|---------|
+| `_init_` | 000 | `mcp_init()` | 7-step session ignition |
+| `_agi_` | 111-333 | `mcp_agi()` | AGI reasoning engine |
+| `_asi_` | 444-666 | `mcp_asi()` | ASI safety engine |
+| `_apex_` | 777-888 | `mcp_apex()` | APEX judgment |
+| `_vault_` | 999 | `mcp_vault()` | Cryptographic seal |
+| `_trinity_` | Full | `mcp_trinity()` | Full 000→999 loop |
+| `_reality_` | — | `mcp_reality()` | External fact-checking |
+
+### v55 Restructuring (In Progress)
+
+The MCP layer is being refactored from monoliths into modular components:
+
+```
+codebase/mcp/
+├── core/           # Protocol layer (bridge.py — 25KB, being split)
+├── transports/     # stdio, sse, base
+├── services/       # rate_limiter, immutable_ledger, metrics
+├── infrastructure/ # redis_client
+├── config/         # modes
+├── entrypoints/    # stdio_entry (sse_entry pending)
+├── tools/          # 7 canonical tools + mcp_tools_v53.py (28KB internal engine)
+└── archive/        # Legacy code
+```
+
+Key monoliths to be aware of: `core/bridge.py` (25KB) and `tools/mcp_tools_v53.py` (28KB).
+
+---
 
 ## Constitutional Floors (F1-F13)
 
-Hard floors fail → VOID (blocked). Soft floors fail → SABAR (paused for review).
+13 safety rules enforced at code level. Hard floors block execution; soft floors warn.
 
-| # | Floor | Threshold | Type |
-|---|-------|-----------|------|
-| F1 | Amanah (Trust) | Reversible=true | Hard |
-| F2 | Truth | ≥0.99 | Hard |
-| F3 | Tri-Witness | ≥0.95 | Soft |
-| F4 | Clarity (ΔS) | ≤0 entropy | Hard |
-| F5 | Peace² | ≥1.0 | Hard |
-| F6 | Empathy (κᵣ) | ≥0.95 | Soft |
-| F7 | Humility (Ω₀) | 0.03-0.05 | Soft |
-| F8 | Genius (G) | ≥0.80 | Soft |
-| F9 | Anti-Hantu | Φ≤0.30 | Hard |
-| F10 | Ontology | Symbol mode | Hard |
-| F11 | Authority | Verified token | Hard |
-| F12 | Hardening | ≥0.85 detection | Hard |
-| F13 | Curiosity | Alternatives>0 | Guide |
+| Floor | Name | Type | Key File(s) |
+|-------|------|------|-------------|
+| F1 | Amanah (Reversibility) | Hard | `codebase/floors/amanah.py` |
+| F2 | Truth (τ ≥ 0.99) | Hard | `codebase/enforcement/floor_validators.py` |
+| F4 | Clarity (ΔS ≤ 0) | Hard | AGI hierarchy check |
+| F5 | Peace² (≥ 1.0) | Soft | ASI engine |
+| F6 | Empathy (κᵣ ≥ 0.70) | Soft | ASI engine |
+| F7 | Humility (Ω₀ ∈ [0.03,0.05]) | Hard | AGI precision check |
+| F8 | Genius (G ≥ 0.80) | Derived | `codebase/floors/genius.py` |
+| F9 | Anti-Hantu (C_dark < 0.30) | Soft | ASI engine |
+| F10 | Ontology | Hard | `codebase/floors/ontology.py`, `codebase/guards/ontology_guard.py` |
+| F11 | Command Auth | Hard | `codebase/guards/nonce_manager.py` |
+| F12 | Injection | Hard | `codebase/floors/injection.py`, `codebase/guards/injection_guard.py` |
+| F13 | Sovereign | Hard | APEX kernel |
 
-**Verdict hierarchy:** SABAR > VOID > 888_HOLD > PARTIAL > SEAL
+**Implementation status:** `codebase/floors/` has F1, F8, F10, F12 as standalone modules. Remaining floors are enforced within engine code and `enforcement/floor_validators.py`.
+
+---
+
+## Guards (`codebase/guards/`)
+
+Hypervisor-level guards for floors F10-F12:
+- `ontology_guard.py` — F10: Prevents consciousness claims, reality confusion
+- `nonce_manager.py` — F11: Nonce-based identity verification for auth commands
+- `injection_guard.py` — F12: Blocks prompt injection patterns
+- `session_dependency.py` — Session validation
+
+---
+
+## Stages (`codebase/stages/`)
+
+The 000-999 metabolic loop stages. Early stages (000-333) are handled in `codebase/init/` and engine modules. Later stages have dedicated files:
+
+- `stage_444.py` / `stage_444_trinity_sync.py` — Trinity convergence (DeltaBundle + OmegaBundle → MergedBundle)
+- `stage_555.py` — Empathy (κᵣ calculation)
+- `stage_666.py` / `stage_666_bridge.py` — Alignment (Peace²)
+- `stage_777_forge.py` — Society/Justice
+- `stage_888_judge.py` — APEX 9-paradox judgment
+- `stage_889_proof.py` — Proof generation
+- `stage_999_seal.py` — Vault seal (Merkle tree)
+
+---
 
 ## Key Conventions
 
-### Code-Level Floor Compliance (from `.github/copilot-instructions.md`)
+### 1. Lazy Imports for Optional Dependencies
+```python
+try:
+    import numpy as np
+except ImportError:
+    np = None
+```
+Never crash on import for optional deps. Core dependencies: numpy, pydantic, anyio, starlette, fastmcp, mcp, fastapi, uvicorn.
 
-When writing code in this repo, these patterns are enforced:
+### 2. Source Authority Hierarchy
+1. `000_THEORY/000_LAW.md` — Constitutional law (immutable)
+2. `spec/*.json` — Primary source for floor definitions and thresholds
+3. `codebase/` — Canonical implementation
+4. `333_APPS/` — Application layer (L1-L7)
+5. `tests/` — Compliance verification
 
-- **F1 (Amanah):** Pure functions preferred. No silent mutations of inputs. Irreversible operations require explicit flags.
-- **F2 (Truth):** Use `None`/empty when data doesn't exist. Never fabricate metrics or stages that didn't run.
-- **F3 (Tri-Witness):** Code must match established contracts. Use canonical interfaces from `codebase/bundles.py`.
-- **F4 (Clarity):** Named constants instead of magic numbers. Clear parameter names. Self-documenting code.
-- **F5 (Peace²):** Safe defaults. Backup before overwrite. No destructive default arguments.
-- **F9 (Anti-Hantu):** Never generate text claiming consciousness, feelings, or sentience. See forbidden phrases in global CLAUDE.md.
+### 3. Verdict Hierarchy
+```
+SABAR > VOID > 888_HOLD > PARTIAL > SEAL
+```
+- **SEAL**: All floors pass, approved
+- **VOID**: Hard floor failed, cannot proceed
+- **888_HOLD**: High-stakes, needs human confirmation
+- **PARTIAL**: Soft floor warning, proceed with caution
+- **SABAR**: Floor violated, stop and repair
 
-### Source Authority Hierarchy
+### 4. Geometric Mean, Not Arithmetic
+The 9-paradox APEX solver uses geometric mean (GM) for synthesis. GM punishes imbalance more than arithmetic mean. Target: GM ≥ 0.85, std dev ≤ 0.10.
 
-1. **PRIMARY:** `spec/*.json`, `canon/*_v38Omega.md` (SEALED) — authoritative for constitutional claims
-2. **SECONDARY:** `codebase/*.py` — runtime implementation reference
-3. **TERTIARY:** `docs/*.md`, `README.md` — informational, may lag behind PRIMARY
-4. **NOT EVIDENCE:** grep results, code comments, this file
+### 5. Copilot Instructions
+`.github/copilot-instructions.md` contains the A CLIP enforcement protocol (v41.2) with source verification hierarchy and Phoenix-72 Amendment for code-level floor enforcement.
 
-### Processing Pipeline Stages
+---
 
-Canonical spine: `000 (init) → 444 (read) → 666 (act) → 888 (review) → 999 (seal)`
-Legacy stages (111-777) map to this spine but prefer canonical numbering in new code.
+## Key Directories
 
-### Separation of Powers
-
-- **Architect (Δ):** Plans via 000/444/666/888/999
-- **Engineer (Ω):** Implements from handoff
-- **Auditor (Ψ):** Reviews engineer output
-- **KIMI (Κ):** Final SEAL/VOID/HOLD meta-judge
-
-## Environment Variables
-
-```bash
-HOST=0.0.0.0
-PORT=8000
-LOG_LEVEL=info
-GOVERNANCE_MODE=HARD          # HARD|SOFT
-VAULT_PATH=./VAULT999
-GATEWAY_PORT=9000
+```
+codebase/
+├── agi/            # Δ AGI engine (precision.py, hierarchy.py, action.py, atlas.py)
+├── asi/            # Ω ASI engine (asi_components.py)
+├── apex/           # Ψ APEX engine (trinity_nine.py, equilibrium_finder.py)
+├── mcp/            # MCP server (v55 restructuring in progress)
+├── floors/         # Standalone floor modules (F1, F8, F10, F12) — NEW in v55
+├── guards/         # F10-F12 hypervisor guards
+├── enforcement/    # Floor validators, governance
+├── stages/         # 444-999 stage handlers
+├── init/           # 000 INIT 7-step ignition
+├── loop/           # Loop manager
+├── vault/          # 999 persistence, ledger, phoenix recovery
+├── federation/     # Federation protocol (physics, math, consensus, proofs)
+├── crypto/         # Cryptographic utilities (rootkey.py)
+├── prompt/         # Prompt registry/templates
+├── system/         # System orchestrator
+└── kernel.py       # KernelManager — singleton Trinity orchestrator
+    bundles.py      # DeltaBundle, OmegaBundle, MergedBundle dataclasses
+    state.py        # SessionState (immutable copy-on-write)
 ```
 
-## Pre-commit Constitutional Hooks
+Test structure mirrors source: `tests/constitutional/`, `tests/mcp/`, `tests/core/`, `tests/integration/`, `tests/trinity/`.
 
-Beyond standard linting, commits are checked for:
-- **Constitutional Floor Validation** (F1-F12) via `scripts/check_track_alignment_v46.py`
-- **F9 Anti-Hantu:** Rejects Python files containing consciousness claims ("I feel", "I am conscious")
-- **F1 Amanah:** Rejects files containing `shutil.rmtree`, `os.remove`, `DROP TABLE`, `DELETE FROM`
+---
 
-## Documentation Structure
+## Common Tasks
 
-- `000_THEORY/` — Constitutional law and foundations (source of truth for governance)
-- `333_APPS/` — Implementation levels L1 (Prompt) through L7 (AGI)
-- `docs/` — User-facing architecture docs, API reference, deployment guide
-- `docs/KIMI AUDIT/` — v55.0 audit deliverables and roadmap
+```bash
+# Add new MCP tool
+# 1. Create handler in codebase/mcp/tools/
+# 2. Register in canonical_trinity.py
+# 3. Add tests in tests/test_all_mcp_tools.py
 
-## Entry Points
+# Add new floor validator
+# 1. Create module in codebase/floors/fX_name.py
+# 2. Export from codebase/floors/__init__.py
+# 3. Wire into enforcement/floor_validators.py
+# 4. Add tests in tests/constitutional/
 
-Defined in `pyproject.toml` under `[project.scripts]`:
-- `aaa-mcp` / `codebase-mcp` → `codebase.mcp.__main__:main` (auto-detect)
-- `aaa-mcp-stdio` / `codebase-mcp-stdio` → `codebase.mcp.server:main_stdio`
-- `aaa-mcp-sse` / `codebase-mcp-sse` → `codebase.mcp.sse:main`
+# Debug constitutional failure
+pytest tests/constitutional/test_01_core_F1_to_F13.py -v -k "f1"
+```
+
+---
+
+**Version:** v55.0-TRANSITION
+**Live:** https://arif-fazil.com
+**Repo:** https://github.com/ariffazil/arifOS

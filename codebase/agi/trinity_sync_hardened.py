@@ -23,7 +23,7 @@ from __future__ import annotations
 import asyncio
 import math
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 # Import hardened engines
@@ -87,7 +87,7 @@ class TrinityBundle:
     
     # Reasoning
     synthesis_reasoning: str = ""
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     
     def to_dict(self) -> Dict[str, Any]:
         return {

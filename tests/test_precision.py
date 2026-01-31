@@ -12,7 +12,7 @@ DITEMPA BUKAN DIBERI
 
 import unittest
 import math
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from codebase.agi.precision import (
     PrecisionEstimate,
@@ -65,7 +65,7 @@ class TestPrecisionWeighter(unittest.TestCase):
         self.assertEqual(var, 0.3)
 
     def test_temporal_variance_recent_consistent(self):
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         ts = [now - timedelta(seconds=i) for i in range(5)]
         var = self.pw.estimate_temporal_variance(ts)
         # Very recent, low scatter → low variance
@@ -87,7 +87,7 @@ class TestPrecisionWeighter(unittest.TestCase):
 
     # -- Full precision estimation --
     def test_estimate_precision_returns_valid(self):
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         pe = self.pw.estimate_precision(
             sources=["wiki", "wiki"],
             timestamps=[now, now - timedelta(seconds=10)],
@@ -121,7 +121,7 @@ class TestConvenienceFunctions(unittest.TestCase):
     """Module-level convenience wrappers."""
 
     def test_estimate_precision_module(self):
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         pe = estimate_precision(
             sources=["a"], timestamps=[now, now - timedelta(seconds=1)]
         )

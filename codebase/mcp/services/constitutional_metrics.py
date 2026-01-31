@@ -13,7 +13,8 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from codebase.mcp import redis_client
+from ..infrastructure import redis_client
+
 
 @dataclass
 class Counter:
@@ -30,6 +31,7 @@ class Counter:
     def get_all(self) -> Dict[str, float]:
         with self._lock:
             return dict(self._values)
+
 
 @dataclass
 class Histogram:
@@ -55,8 +57,9 @@ class Histogram:
                 "p50": sorted_vals[int(n * 0.5)] if n > 0 else 0,
                 "p95": sorted_vals[int(n * 0.95)] if n > 0 else 0,
                 "p99": sorted_vals[int(n * 0.99)] if n > 0 else 0,
-                "avg": sum(sorted_vals) / n if n > 0 else 0
+                "avg": sum(sorted_vals) / n if n > 0 else 0,
             }
+
 
 @dataclass
 class Gauge:
@@ -73,12 +76,13 @@ class Gauge:
         with self._lock:
             return self._value
 
+
 # ============================================================================
 # CORE METRICS (existing)
 # ============================================================================
-F11_COMMAND_AUTH = Counter('arifos_f11_total', 'F11 decisions')
-CONSTITUTIONAL_REFLEX = Histogram('arifos_reflex_duration', 'Verdict latency (ms)')
-SEAL_RATE = Gauge('arifos_seal_rate_1h', 'Rolling SEAL rate')
+F11_COMMAND_AUTH = Counter("arifos_f11_total", "F11 decisions")
+CONSTITUTIONAL_REFLEX = Histogram("arifos_reflex_duration", "Verdict latency (ms)")
+SEAL_RATE = Gauge("arifos_seal_rate_1h", "Rolling SEAL rate")
 
 # ============================================================================
 # TOOL USAGE TRACKING (new - like Serena's dashboard)
@@ -98,7 +102,9 @@ _VERDICT_LOCK = threading.Lock()
 _VERDICTS: List[tuple] = []  # (timestamp, verdict)
 
 # Active sessions tracking
-_ACTIVE_SESSIONS: Dict[str, Dict[str, Any]] = {}  # session_id -> {started_at, tool_calls, last_activity}
+_ACTIVE_SESSIONS: Dict[
+    str, Dict[str, Any]
+] = {}  # session_id -> {started_at, tool_calls, last_activity}
 _SESSION_LOCK = threading.Lock()
 
 # =============================================================================
@@ -106,7 +112,9 @@ _SESSION_LOCK = threading.Lock()
 # =============================================================================
 # Stores stage results indexed by session_id for inter-stage communication
 # This enables: agi_genius → store → asi_act retrieves → store → apex_judge retrieves
-_SESSION_BUNDLES: Dict[str, Dict[str, Any]] = {}  # session_id -> {agi_result, asi_result, apex_result}
+_SESSION_BUNDLES: Dict[
+    str, Dict[str, Any]
+] = {}  # session_id -> {agi_result, asi_result, apex_result}
 _BUNDLE_LOCK = threading.Lock()
 
 
@@ -125,7 +133,7 @@ def store_stage_result(session_id: str, stage: str, result: Dict[str, Any]) -> N
             "agi_result": None,
             "asi_result": None,
             "apex_result": None,
-            "init_result": None
+            "init_result": None,
         }
         key = f"{stage}_result"
         bundle[key] = result
@@ -141,7 +149,7 @@ def store_stage_result(session_id: str, stage: str, result: Dict[str, Any]) -> N
                 "agi_result": None,
                 "asi_result": None,
                 "apex_result": None,
-                "init_result": None
+                "init_result": None,
             }
 
         key = f"{stage}_result"
@@ -207,7 +215,8 @@ def cleanup_stale_bundles(max_age_seconds: int = 1800) -> int:
     now = time.time()
     with _BUNDLE_LOCK:
         stale = [
-            sid for sid, data in _SESSION_BUNDLES.items()
+            sid
+            for sid, data in _SESSION_BUNDLES.items()
             if now - data.get("created_at", now) > max_age_seconds
         ]
         for sid in stale:
@@ -222,16 +231,18 @@ _SERVER_START = time.time()
 # TRINITY SCORE TRACKING (AGI τ, ASI κᵣ, APEX Ψ)
 # ============================================================================
 _TRINITY_SCORES: Dict[str, List[float]] = {
-    "tau": [],       # τ: Truth accuracy (AGI Mind)
-    "kappa_r": [],   # κᵣ: Empathy resonance (ASI Heart)
-    "psi": []        # Ψ: Vitality/Judgment (APEX Soul)
+    "tau": [],  # τ: Truth accuracy (AGI Mind)
+    "kappa_r": [],  # κᵣ: Empathy resonance (ASI Heart)
+    "psi": [],  # Ψ: Vitality/Judgment (APEX Soul)
 }
 _TRINITY_LOCK = threading.Lock()
+
 
 def record_tool_call(tool: str):
     """Record a tool invocation."""
     with _TOOL_LOCK:
         _TOOL_CALLS[tool] += 1
+
 
 def record_verdict(tool: str, verdict: str, duration: float, mode: str = "standard"):
     """Record a verdict and its metadata."""
@@ -265,15 +276,19 @@ def record_verdict(tool: str, verdict: str, duration: float, mode: str = "standa
 
     # Recent executions (keep last 50)
     with _EXEC_LOCK:
-        _RECENT_EXECUTIONS.insert(0, {
-            "tool": tool,
-            "verdict": verdict,
-            "timestamp": datetime.fromtimestamp(now).isoformat(),
-            "duration_ms": round(duration, 2),
-            "mode": mode
-        })
+        _RECENT_EXECUTIONS.insert(
+            0,
+            {
+                "tool": tool,
+                "verdict": verdict,
+                "timestamp": datetime.fromtimestamp(now).isoformat(),
+                "duration_ms": round(duration, 2),
+                "mode": mode,
+            },
+        )
         if len(_RECENT_EXECUTIONS) > 50:
             _RECENT_EXECUTIONS.pop()
+
 
 def record_session_activity(session_id: str, tool: str):
     """Track session activity."""
@@ -283,36 +298,42 @@ def record_session_activity(session_id: str, tool: str):
                 "started_at": datetime.now().isoformat(),
                 "tool_calls": 0,
                 "last_activity": datetime.now().isoformat(),
-                "tools_used": []
+                "tools_used": [],
             }
         _ACTIVE_SESSIONS[session_id]["tool_calls"] += 1
         _ACTIVE_SESSIONS[session_id]["last_activity"] = datetime.now().isoformat()
         if tool not in _ACTIVE_SESSIONS[session_id]["tools_used"]:
             _ACTIVE_SESSIONS[session_id]["tools_used"].append(tool)
 
+
 def close_session(session_id: str):
     """Mark a session as closed."""
     with _SESSION_LOCK:
         _ACTIVE_SESSIONS.pop(session_id, None)
 
+
 def get_seal_rate() -> float:
     """Get the current rolling SEAL rate."""
     return SEAL_RATE.get()
+
 
 def get_tool_usage() -> Dict[str, int]:
     """Get tool call counts."""
     with _TOOL_LOCK:
         return dict(_TOOL_CALLS)
 
+
 def get_verdict_distribution() -> Dict[str, int]:
     """Get verdict distribution."""
     with _VERDICT_LOCK:
         return dict(_VERDICT_COUNTS)
 
+
 def get_recent_executions(limit: int = 20) -> List[Dict[str, Any]]:
     """Get recent tool executions."""
     with _EXEC_LOCK:
         return _RECENT_EXECUTIONS[:limit]
+
 
 def get_active_sessions() -> Dict[str, Dict[str, Any]]:
     """Get active sessions."""
@@ -332,9 +353,11 @@ def get_active_sessions() -> Dict[str, Dict[str, Any]]:
 
         return dict(_ACTIVE_SESSIONS)
 
+
 def get_uptime_hours() -> float:
     """Get server uptime in hours."""
     return round((time.time() - _SERVER_START) / 3600, 2)
+
 
 def get_full_metrics() -> Dict[str, Any]:
     """
@@ -354,26 +377,20 @@ def get_full_metrics() -> Dict[str, Any]:
         "status": "active",
         "uptime_hours": get_uptime_hours(),
         "version": "v52.5.1-SEAL",
-
         # Tool usage (like Serena's dashboard)
         "tool_usage": tool_usage,
         "total_tool_calls": total_calls,
-
         # Verdict distribution
         "verdict_distribution": verdict_dist,
         "seal_rate": get_seal_rate(),
         "void_rate": verdict_dist.get("VOID", 0) / total_verdicts if total_verdicts > 0 else 0,
-
         # Sessions
         "active_sessions": len(sessions),
         "sessions": sessions,
-
         # Latency stats
         "latency_ms": latency,
-
         # Recent executions
         "recent_executions": recent,
-
         # Floor health (simplified - all green by default)
         "floor_health": {
             "F1_amanah": True,
@@ -388,16 +405,14 @@ def get_full_metrics() -> Dict[str, Any]:
             "F10_ontology": True,
             "F11_auth": True,
             "F12_injection": True,
-            "F13_curiosity": True
+            "F13_curiosity": True,
         },
-
         # Trinity scores (placeholder - computed by kernels)
         "trinity": {
             "agi_mind": {"truth": 0.99, "clarity": 0.95, "humility": 0.04},
             "asi_heart": {"empathy": 0.96, "peace": 1.0, "amanah": True},
-            "apex_soul": {"genius": 0.85, "dark": 0.12, "witnesses": 0.97}
+            "apex_soul": {"genius": 0.85, "dark": 0.12, "witnesses": 0.97},
         },
-
         # Entropy (thermodynamic metaphor)
-        "entropy_delta": -0.042
+        "entropy_delta": -0.042,
     }

@@ -23,83 +23,96 @@ Autonomy:  High (agents choose their path)
 
 ---
 
-## 🤖 The 7 Canonical Agents
+## 🤖 The 4 Constitutional Agents
 
 ```
-                         ┌─────────────────┐
-                         │   USER REQUEST  │
-                         │ "Add dark mode" │
-                         └────────┬────────┘
-                                  │
-                                  ▼
-                    ┌─────────────────────────────┐
-                    │        ORCHESTRATOR         │
-                    │  - Plans agent sequence      │
-                    │  - Manages state             │
-                    │  - Enforces constitutional   │
-                    └─────────────┬───────────────┘
-                                  │
-        ┌─────────────────────────┼─────────────────────────┐
-        │                         │                         │
-        ▼                         ▼                         ▼
-┌───────────────┐       ┌───────────────┐       ┌───────────────┐
-│   IGNITION    │       │   COGNITION   │       │     ATLAS     │
-│    AGENT      │       │    AGENT      │       │    AGENT      │
-│               │       │               │       │               │
-│ Role: Gate    │       │ Role: Parser  │       │ Role: Mapper  │
-│ Goal: Verify  │       │ Goal: Clarify │       │ Goal: Map     │
-│ Tools:        │       │ Tools:        │       │ Tools:        │
-│ - Auth check  │       │ - Ask user    │       │ - Glob files  │
-│ - Injection   │       │ - Parse NLP   │       │ - Grep code   │
-│ - Session ID  │       │ - Test specs  │       │ - Build graph │
-│               │       │               │       │               │
-│ Memory: YES   │       │ Memory: YES   │       │ Memory: YES   │
-│ Autonomous:   │       │ Autonomous:   │       │ Autonomous:   │
-│ Medium        │       │ High          │       │ High          │
-└───────────────┘       └───────────────┘       └───────────────┘
-        │                         │                         │
-        └─────────────────────────┼─────────────────────────┘
-                                  │
-                    ┌─────────────┴─────────────┐
-                    │      SHARED MEMORY        │
-                    │  - Session context        │
-                    │  - Intermediate results   │
-                    │  - Floor validation       │
-                    │  - Conversation history   │
-                    └───────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                        USER REQUEST                             │
+└─────────────────────────────┬───────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                        ORCHESTRATOR                             │
+│                    (Coordinates 4 Agents)                       │
+└─────────────────────────────┬───────────────────────────────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        │                     │                     │
+        ▼                     ▼                     ▼
+┌───────────────┐    ┌───────────────┐    ┌───────────────┐
+│  ARCHITECT    │◄──►│   AUDITOR     │    │   ENGINEER    │
+│      (Δ)      │    │      (👁)      │◄──►│      (Ω)      │
+│               │    │               │    │               │
+│ Stage:111-333 │    │ Stage:444     │    │ Stage:555-777 │
+│               │    │               │    │               │
+│ • Design      │    │ • Fact-check  │    │ • Implement   │
+│ • Plan        │    │ • Verify      │    │ • Build       │
+│ • Map         │    │ • Audit       │    │ • Safety      │
+│               │    │               │    │               │
+│ Floors:       │    │ Floors:       │    │ Floors:       │
+│ F2,F4,F7,F10  │    │ F2,F12        │    │ F1,F5,F6,F9   │
+└───────┬───────┘    └───────┬───────┘    └───────┬───────┘
+        │                     │                     │
+        │                     ▼                     │
+        │            ┌───────────────┐              │
+        │            │   AUDITOR     │              │
+        └───────────►│   (Final)     │◄─────────────┘
+                     │               │
+                     │ • Cross-check │
+                     │ • Truth audit │
+                     └───────┬───────┘
+                             │
+                             ▼
+                     ┌───────────────┐
+                     │   VALIDATOR   │
+                     │      (Ψ)      │
+                     │               │
+                     │ Stage:888-999 │
+                     │               │
+                     │ • Judge       │
+                     │ • Verify      │
+                     │ • Seal        │
+                     │               │
+                     │ Floors:       │
+                     │ F3,F8,F11,F13 │
+                     └───────┬───────┘
+                             │
+                             ▼
+                     ┌───────────────┐
+                     │   999_VAULT   │
+                     └───────────────┘
 ```
 
-### Agent Directory (⚠️ TO BE IMPLEMENTED)
+### The 4 Agents
 
-| Agent | Stage | Role | Status |
-|-------|-------|------|--------|
-| `ignition_agent.py` | 000 | Gate/Auth | 🔴 Missing |
-| `cognition_agent.py` | 111 | Parser | 🔴 Missing |
-| `atlas_agent.py` | 333 | Mapper | 🔴 Missing |
-| `defend_agent.py` | 555 | Safety | 🔴 Missing |
-| `evidence_agent.py` | 444 | Fact-check | 🔴 Missing |
-| `forge_agent.py` | 777 | Implementation | 🔴 Missing |
-| `decree_agent.py` | 888 | Judgment | 🔴 Missing |
-| `orchestrator.py` | All | Coordinator | 🔴 Missing |
+| Agent | Symbol | Stage | Role | Floors |
+|-------|--------|-------|------|--------|
+| **ARCHITECT** | Δ | 111-333 | AGI/Mind — Design & Planning | F2, F4, F7, F10, F12 |
+| **AUDITOR** | 👁 | 444 | EYE/Witness — Verification | F2, F12 |
+| **ENGINEER** | Ω | 555-777 | ASI/Heart — Implementation | F1, F5, F6, F9 |
+| **VALIDATOR** | Ψ | 888-999 | APEX/Soul — Judgment | F3, F8, F11, F13 |
 
 ---
 
-## 📂 Planned Implementation
+## 📂 Architecture
 
-**Target Location:** `agents/` (to be created)
+**Location:** `agents/` (stubs created)
 
 ```
 agents/
-├── __init__.py
-├── ignition_agent.py      # 000 gate
-├── cognition_agent.py     # 111 parser
-├── atlas_agent.py         # 333 mapper
-├── defend_agent.py        # 555 safety
-├── evidence_agent.py      # 444 fact-check
-├── forge_agent.py         # 777 implementation
-├── decree_agent.py        # 888 judgment
-├── orchestrator.py        # Multi-agent coordinator
-└── shared_memory.py       # Inter-agent state
+├── __init__.py           # Package exports
+├── architect.py          # Δ AGI — Design (111-333)
+├── auditor.py            # 👁 EYE — Verification (444)
+├── engineer.py           # Ω ASI — Implementation (555-777)
+├── validator.py          # Ψ APEX — Judgment (888-999)
+└── orchestrator.py       # 4-Agent coordinator
+```
+
+**Flow:**
+```
+ARCHITECT (design) → AUDITOR (verify design) →
+ENGINEER (build) → AUDITOR (verify build) →
+VALIDATOR (judge) → SEAL
 ```
 
 ---
@@ -127,13 +140,12 @@ agents/
 ## 🚀 Deployment Timeline
 
 ### v54.1 — Current
-- ⚠️ Architecture defined
-- ⚠️ Agent specifications written
-- 🔴 **No implementations yet**
+- ✅ Architecture defined
+- ✅ 4-Agent stubs created
+- ⚠️ **Implementation pending** (v55.0)
 
 ### v55.0 — Target (Q1 2026)
-- [ ] 8 agent implementations
-- [ ] Shared memory system
+- [ ] 4 agent implementations (from stubs)
 - [ ] Orchestrator with constitutional enforcement
 - [ ] Integration with L4 tools
 

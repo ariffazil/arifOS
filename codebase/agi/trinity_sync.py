@@ -127,7 +127,7 @@ PARADOXES = {
 class ConvergenceResult:
     """Result of AGI + ASI convergence at 333."""
     session_id: str
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(datetime.UTC))
     
     # Input bundles
     delta_bundle: Optional[DeltaBundle] = None

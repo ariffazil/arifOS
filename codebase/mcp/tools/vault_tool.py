@@ -11,7 +11,7 @@ import logging
 import importlib
 from typing import Dict, Any, Optional
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("codebase.mcp.tools.vault_tool")
 
 # v55.0: Import LoopBridge for 999→000 signal emission
 LOOP_BRIDGE_AVAILABLE = False
@@ -217,8 +217,8 @@ class VaultTool:
         if not payload:
             return {"verdict": "VOID", "reason": "No proposal provided"}
 
-        # F11: Command authority - require human approval
-        requires_human = True
+        # Determine if human authority is required
+        # requires_human = payload.get("requires_human", False)
         human_approval = kwargs.get("human_approved", False)
 
         if not human_approval:

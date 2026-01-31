@@ -39,7 +39,7 @@ from __future__ import annotations
 import math
 import numpy as np
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple, Callable
 from enum import Enum
 
@@ -154,7 +154,7 @@ class NineFoldBundle:
     # Reasoning
     synthesis_reasoning: str = ""
     equilibrium_path: List[Dict] = field(default_factory=list)  # How equilibrium was reached
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -455,7 +455,7 @@ class TrinityNine:
     """
     
     def __init__(self, session_id: Optional[str] = None):
-        self.session_id = session_id or f"ninefold_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        self.session_id = session_id or f"ninefold_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
         self.paradoxes = create_nine_paradoxes()
         self.solver = EquilibriumSolver()
     

@@ -93,7 +93,7 @@ class DeltaBundle:
     vote: EngineVote
     floor_scores: Dict[str, float] = field(default_factory=dict)
     synthesis_reasoning: str = ""
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(datetime.UTC))
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -301,7 +301,7 @@ class AGIEngineHardened:
         # Precision estimation
         # Sources: assume query has implicit sources
         sources = ["user_input"]
-        timestamps = [datetime.utcnow()]
+        timestamps = [datetime.now(datetime.UTC)]
         
         precision = estimate_precision(sources, timestamps)
         

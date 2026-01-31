@@ -23,7 +23,7 @@ from typing import Dict, Optional, Tuple
 from collections import defaultdict
 import threading
 
-from codebase.mcp import redis_client
+from ..infrastructure import redis_client
 
 logger = logging.getLogger(__name__)
 
@@ -36,13 +36,13 @@ RATE_LIMIT_ENABLED = os.environ.get("ARIFOS_RATE_LIMIT_ENABLED", "true").lower()
 
 # Default limits (per minute) — keys MUST match TOOL_DESCRIPTIONS in server.py
 DEFAULT_LIMITS = {
-    "_init_":      {"per_session": 30, "global": 300, "burst": 5},
-    "_agi_":       {"per_session": 60, "global": 600, "burst": 10},
-    "_asi_":       {"per_session": 60, "global": 600, "burst": 10},
-    "_apex_":      {"per_session": 60, "global": 600, "burst": 10},
-    "_vault_":     {"per_session": 30, "global": 300, "burst": 5},
-    "_trinity_":   {"per_session": 20, "global": 200, "burst": 3},
-    "_reality_":   {"per_session": 30, "global": 300, "burst": 5},
+    "_init_": {"per_session": 30, "global": 300, "burst": 5},
+    "_agi_": {"per_session": 60, "global": 600, "burst": 10},
+    "_asi_": {"per_session": 60, "global": 600, "burst": 10},
+    "_apex_": {"per_session": 60, "global": 600, "burst": 10},
+    "_vault_": {"per_session": 30, "global": 300, "burst": 5},
+    "_trinity_": {"per_session": 20, "global": 200, "burst": 3},
+    "_reality_": {"per_session": 30, "global": 300, "burst": 5},
 }
 
 # Global fallback
@@ -53,9 +53,11 @@ FALLBACK_LIMIT = {"per_session": 60, "global": 600, "burst": 10}
 # DATA STRUCTURES
 # =============================================================================
 
+
 @dataclass
 class RateLimitResult:
     """Result of a rate limit check."""
+
     allowed: bool
     reason: str = ""
     remaining: int = 0
@@ -66,6 +68,7 @@ class RateLimitResult:
 @dataclass
 class TokenBucket:
     """Token bucket for rate limiting."""
+
     capacity: int
     tokens: float
     refill_rate: float  # tokens per second
@@ -95,6 +98,7 @@ class TokenBucket:
 # =============================================================================
 # RATE LIMITER
 # =============================================================================
+
 
 class RateLimiter:
     """
@@ -161,20 +165,22 @@ class RateLimiter:
                     allowed=False,
                     reason=f"Global rate limit exceeded for {tool_name}",
                     remaining=0,
-                    limit_type="global"
+                    limit_type="global",
                 )
-            
+
             # Check session limit
             if session_id:
                 session_key = f"session:{tool_name}:{session_id}"
                 allowed, remaining = redis_client.check_rate_limit(session_key, session_limit)
                 if not allowed:
-                    logger.warning(f"Rate limit: Redis Session limit exceeded for {tool_name}/{session_id}")
+                    logger.warning(
+                        f"Rate limit: Redis Session limit exceeded for {tool_name}/{session_id}"
+                    )
                     return RateLimitResult(
                         allowed=False,
                         reason=f"Session rate limit exceeded for {tool_name}",
                         remaining=0,
-                        limit_type="session"
+                        limit_type="session",
                     )
 
             return RateLimitResult(allowed=True, remaining=int(remaining))
@@ -194,13 +200,15 @@ class RateLimiter:
             if session_id:
                 session_result = self._check_session(tool_name, session_id, session_limit)
                 if not session_result.allowed:
-                    logger.warning(f"Rate limit: Session limit exceeded for {tool_name}/{session_id}")
+                    logger.warning(
+                        f"Rate limit: Session limit exceeded for {tool_name}/{session_id}"
+                    )
                     return session_result
 
             return RateLimitResult(
                 allowed=True,
                 remaining=int(global_result.remaining),
-                reset_in_seconds=60.0 / (global_limit / 60)  # Approximate
+                reset_in_seconds=60.0 / (global_limit / 60),  # Approximate
             )
 
     def _check_global(self, tool_name: str, limit: int) -> RateLimitResult:
@@ -209,7 +217,7 @@ class RateLimiter:
             self._global_buckets[tool_name] = TokenBucket(
                 capacity=limit,
                 tokens=limit,
-                refill_rate=limit / 60.0  # Refill over 1 minute
+                refill_rate=limit / 60.0,  # Refill over 1 minute
             )
 
         bucket = self._global_buckets[tool_name]
@@ -221,7 +229,7 @@ class RateLimiter:
                 reason=f"Global rate limit exceeded for {tool_name}",
                 remaining=0,
                 reset_in_seconds=1.0 / bucket.refill_rate,
-                limit_type="global"
+                limit_type="global",
             )
 
         return RateLimitResult(allowed=True, remaining=int(remaining))
@@ -230,9 +238,7 @@ class RateLimiter:
         """Check per-session rate limit."""
         if session_id not in self._session_buckets[tool_name]:
             self._session_buckets[tool_name][session_id] = TokenBucket(
-                capacity=limit,
-                tokens=limit,
-                refill_rate=limit / 60.0
+                capacity=limit, tokens=limit, refill_rate=limit / 60.0
             )
 
         bucket = self._session_buckets[tool_name][session_id]
@@ -244,7 +250,7 @@ class RateLimiter:
                 reason=f"Session rate limit exceeded for {tool_name}",
                 remaining=0,
                 reset_in_seconds=1.0 / bucket.refill_rate,
-                limit_type="session"
+                limit_type="session",
             )
 
         return RateLimitResult(allowed=True, remaining=int(remaining))
@@ -275,7 +281,7 @@ class RateLimiter:
                 "tools": list(self.limits.keys()),
                 "global_buckets": len(self._global_buckets),
                 "session_buckets": sum(len(v) for v in self._session_buckets.values()),
-                "limits": self.limits
+                "limits": self.limits,
             }
 
 
@@ -298,6 +304,7 @@ def get_rate_limiter() -> RateLimiter:
 # DECORATOR
 # =============================================================================
 
+
 def rate_limited(tool_name: str):
     """
     Decorator to apply rate limiting to a tool function.
@@ -307,6 +314,7 @@ def rate_limited(tool_name: str):
         async def mcp_agi_genius(action: str, ...):
             ...
     """
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             session_id = kwargs.get("session_id", "")
@@ -320,13 +328,15 @@ def rate_limited(tool_name: str):
                     "rate_limit": {
                         "exceeded": True,
                         "limit_type": result.limit_type,
-                        "reset_in_seconds": result.reset_in_seconds
+                        "reset_in_seconds": result.reset_in_seconds,
                     },
-                    "floors_checked": ["F11_CommandAuth"]
+                    "floors_checked": ["F11_CommandAuth"],
                 }
 
             return await func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 

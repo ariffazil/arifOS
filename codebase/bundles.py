@@ -18,7 +18,7 @@ DITEMPA BUKAN DIBERI - Forged, Not Given
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 import hashlib
@@ -28,10 +28,12 @@ import hashlib
 # VOTE TYPES
 # =============================================================================
 
+
 class EngineVote(str, Enum):
     """Independent engine vote before 444 sync."""
-    SEAL = "SEAL"      # Approve - all my floors pass
-    VOID = "VOID"      # Reject - hard floor violation
+
+    SEAL = "SEAL"  # Approve - all my floors pass
+    VOID = "VOID"  # Reject - hard floor violation
     UNCERTAIN = "UNCERTAIN"  # Within Omega_0 band, needs sync
 
 
@@ -39,9 +41,11 @@ class EngineVote(str, Enum):
 # DELTA BUNDLE (AGI OUTPUT - MIND/REFLECT)
 # =============================================================================
 
+
 @dataclass
 class Hypothesis:
     """One of three reasoning paths from 222 THINK."""
+
     path_type: str  # "conservative", "exploratory", "adversarial"
     content: str
     confidence: float  # 0.0 to 1.0
@@ -51,6 +55,7 @@ class Hypothesis:
 @dataclass
 class ReasoningTree:
     """Structured reasoning output from 333 REASON."""
+
     premises: List[str]
     inference_steps: List[str]
     conclusion: str
@@ -61,18 +66,15 @@ class ReasoningTree:
 @dataclass
 class AGIFloorScores:
     """Floor scores computed by AGI (F2, F4, F7, F13)."""
-    F2_truth: float = 0.0        # Truth score (>= 0.99 required)
-    F4_clarity: float = 0.0      # Clarity delta_S (<= 0 required)
-    F7_humility: float = 0.04    # Humility Omega_0 (in [0.03, 0.05])
-    F13_curiosity: float = 0.0   # Curiosity (>= 3 paths explored)
+
+    F2_truth: float = 0.0  # Truth score (>= 0.99 required)
+    F4_clarity: float = 0.0  # Clarity delta_S (<= 0 required)
+    F7_humility: float = 0.04  # Humility Omega_0 (in [0.03, 0.05])
+    F13_curiosity: float = 0.0  # Curiosity (>= 3 paths explored)
 
     def all_hard_pass(self) -> bool:
         """Check if all hard floors pass."""
-        return (
-            self.F2_truth >= 0.99 and
-            self.F4_clarity <= 0 and
-            0.03 <= self.F7_humility <= 0.05
-        )
+        return self.F2_truth >= 0.99 and self.F4_clarity <= 0 and 0.03 <= self.F7_humility <= 0.05
 
     def to_dict(self) -> Dict[str, float]:
         return {
@@ -101,9 +103,10 @@ class DeltaBundle:
     - Entropy delta (thermodynamic measure)
     - Dashboard metrics (real-time constitutional tracking)
     """
+
     # Session metadata
     session_id: str
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     # 111 SENSE output
     raw_query: str = ""
@@ -117,12 +120,12 @@ class DeltaBundle:
     reasoning: Optional[ReasoningTree] = None
 
     # Confidence with uncertainty band
-    confidence_low: float = 0.94   # 1 - Omega_0_max
+    confidence_low: float = 0.94  # 1 - Omega_0_max
     confidence_high: float = 0.97  # 1 - Omega_0_min
-    omega_0: float = 0.04          # Humility (within [0.03, 0.05])
+    omega_0: float = 0.04  # Humility (within [0.03, 0.05])
 
     # Thermodynamics
-    entropy_delta: float = 0.0     # Delta_S (should be <= 0 for cooling)
+    entropy_delta: float = 0.0  # Delta_S (should be <= 0 for cooling)
 
     # Floor scores (AGI owns F2, F4, F7, F13)
     floor_scores: AGIFloorScores = field(default_factory=AGIFloorScores)
@@ -135,19 +138,19 @@ class DeltaBundle:
     dashboard: Optional[Dict[str, Any]] = None  # Thermodynamic tracking
 
     # v53.4.0: Precision weighting (Gap P1)
-    precision_pi: float = 0.0          # π = 1/σ² (likelihood precision)
-    precision_prior: float = 0.0       # π_P (prior precision)
-    kalman_gain: float = 0.0           # K = π_L / (π_P + π_L)
+    precision_pi: float = 0.0  # π = 1/σ² (likelihood precision)
+    precision_prior: float = 0.0  # π_P (prior precision)
+    kalman_gain: float = 0.0  # K = π_L / (π_P + π_L)
 
     # v53.4.0: Hierarchical encoding (Gap P2)
     hierarchy_levels: Optional[Dict[str, Any]] = None  # 5-level encoding results
-    cumulative_delta_s: float = 0.0    # Cumulative ΔS across hierarchy levels
+    cumulative_delta_s: float = 0.0  # Cumulative ΔS across hierarchy levels
 
     # v53.4.0: Active inference (Gap P3)
-    free_energy: float = 0.0           # F = ΔS + Ω₀·π⁻¹
-    action_type: str = ""              # Selected action (SEAL/VOID/SABAR/INVESTIGATE/AMPLIFY/DEFER)
-    epistemic_value: float = 0.0       # Information gain from action
-    pragmatic_value: float = 0.0       # Goal achievement from action
+    free_energy: float = 0.0  # F = ΔS + Ω₀·π⁻¹
+    action_type: str = ""  # Selected action (SEAL/VOID/SABAR/INVESTIGATE/AMPLIFY/DEFER)
+    epistemic_value: float = 0.0  # Information gain from action
+    pragmatic_value: float = 0.0  # Goal achievement from action
 
     # Integrity
     bundle_hash: str = ""
@@ -216,9 +219,11 @@ class DeltaBundle:
 # OMEGA BUNDLE (ASI OUTPUT - HEART/REFRACT)
 # =============================================================================
 
+
 @dataclass
 class Stakeholder:
     """A stakeholder identified by empathy analysis."""
+
     name: str
     role: str  # "user", "developer", "system", "earth", "vulnerable"
     vulnerability_score: float  # 0.0 to 1.0 (higher = more vulnerable)
@@ -229,19 +234,20 @@ class Stakeholder:
 @dataclass
 class ASIFloorScores:
     """Floor scores computed by ASI (F1, F5, F6, F9, F11, F12)."""
-    F1_amanah: float = 0.0       # Reversibility/Trust
-    F5_peace: float = 1.0        # Peace squared (>= 1.0 required)
-    F6_empathy: float = 0.0      # Kappa_r empathy (>= 0.95 required)
-    F9_anti_hantu: float = 0.0   # No dark cleverness (< 0.30 required)
-    F11_authority: float = 0.0   # Command auth verified
-    F12_injection: float = 0.0   # No injection patterns (< 0.85 required)
+
+    F1_amanah: float = 0.0  # Reversibility/Trust
+    F5_peace: float = 1.0  # Peace squared (>= 1.0 required)
+    F6_empathy: float = 0.0  # Kappa_r empathy (>= 0.95 required)
+    F9_anti_hantu: float = 0.0  # No dark cleverness (< 0.30 required)
+    F11_authority: float = 0.0  # Command auth verified
+    F12_injection: float = 0.0  # No injection patterns (< 0.85 required)
 
     def all_hard_pass(self) -> bool:
         """Check if all hard floors pass."""
         return (
-            self.F1_amanah >= 0.5 and  # Reversible
-            self.F11_authority >= 0.5 and  # Authority verified
-            self.F12_injection < 0.85  # No injection
+            self.F1_amanah >= 0.5  # Reversible
+            and self.F11_authority >= 0.5  # Authority verified
+            and self.F12_injection < 0.85  # No injection
         )
 
     def to_dict(self) -> Dict[str, float]:
@@ -270,9 +276,10 @@ class OmegaBundle:
     - Empathy score kappa_r
     - Floor scores for F1, F5, F6, F9, F11, F12
     """
+
     # Session metadata
     session_id: str
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     # 555 EMPATHY output
     stakeholders: List[Stakeholder] = field(default_factory=list)
@@ -320,7 +327,9 @@ class OmegaBundle:
                 }
                 for s in self.stakeholders
             ],
-            "weakest_stakeholder": self.weakest_stakeholder.name if self.weakest_stakeholder else None,
+            "weakest_stakeholder": self.weakest_stakeholder.name
+            if self.weakest_stakeholder
+            else None,
             "empathy_kappa_r": self.empathy_kappa_r,
             "is_reversible": self.is_reversible,
             "authority_verified": self.authority_verified,
@@ -337,9 +346,11 @@ class OmegaBundle:
 # MERGED BUNDLE (444 TRINITY_SYNC OUTPUT)
 # =============================================================================
 
+
 @dataclass
 class TriWitnessConsensus:
     """Consensus metrics from 444 TRINITY_SYNC."""
+
     agi_vote: EngineVote = EngineVote.UNCERTAIN
     asi_vote: EngineVote = EngineVote.UNCERTAIN
     consensus_score: float = 0.0  # >= 0.95 for F3 pass
@@ -361,9 +372,10 @@ class MergedBundle:
     - Pre-verdict (conditional on 888 JUDGE)
     - Combined floor scores (all 13)
     """
+
     # Session metadata
     session_id: str
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Original bundles (sealed, cannot modify)
     delta_bundle: Optional[DeltaBundle] = None
@@ -385,23 +397,20 @@ class MergedBundle:
     def compute_consensus(self) -> TriWitnessConsensus:
         """Compute tri-witness consensus from both bundles."""
         if not self.delta_bundle or not self.omega_bundle:
-            return TriWitnessConsensus(
-                consensus_score=0.0,
-                dissent_reason="Missing bundle(s)"
-            )
+            return TriWitnessConsensus(consensus_score=0.0, dissent_reason="Missing bundle(s)")
 
         agi_vote = self.delta_bundle.vote
         asi_vote = self.omega_bundle.vote
 
         # Both must vote SEAL for consensus
-        votes_agree = (agi_vote == EngineVote.SEAL and asi_vote == EngineVote.SEAL)
+        votes_agree = agi_vote == EngineVote.SEAL and asi_vote == EngineVote.SEAL
 
         # Calculate consensus score
         if votes_agree:
             consensus_score = min(
                 self.delta_bundle.confidence_high,
                 self.omega_bundle.empathy_kappa_r,
-                0.99  # Cap at 99% (Omega_0 minimum uncertainty)
+                0.99,  # Cap at 99% (Omega_0 minimum uncertainty)
             )
         elif agi_vote == EngineVote.VOID or asi_vote == EngineVote.VOID:
             consensus_score = 0.0
@@ -458,7 +467,9 @@ class MergedBundle:
             else:
                 self.pre_verdict = "SABAR"
                 self.pre_verdict_reason = f"Consensus {self.consensus.consensus_score:.2f} < 0.95"
-        elif self.consensus.agi_vote == EngineVote.VOID or self.consensus.asi_vote == EngineVote.VOID:
+        elif (
+            self.consensus.agi_vote == EngineVote.VOID or self.consensus.asi_vote == EngineVote.VOID
+        ):
             self.pre_verdict = "VOID"
             self.pre_verdict_reason = self.consensus.dissent_reason
         else:

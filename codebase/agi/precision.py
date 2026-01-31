@@ -14,7 +14,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 @dataclass
@@ -74,7 +74,7 @@ class PrecisionWeighter:
         if not timestamps or len(timestamps) < 2:
             return 0.3  # Moderate uncertainty
         
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         ages = [(now - ts).total_seconds() for ts in timestamps]
         
         # Mean age

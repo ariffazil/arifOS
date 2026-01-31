@@ -12,7 +12,7 @@ import hashlib
 import secrets
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional
 from pathlib import Path
 from enum import Enum
@@ -201,7 +201,7 @@ class RootKey:
         rootkey = cls(
             private_key=private_key,
             public_key=public_key,
-            generated_at=datetime.utcnow(),
+            generated_at=datetime.now(timezone.utc),
             generated_by=sovereign_identity,
             entropy_sources=1,
         )
@@ -374,7 +374,7 @@ class BandGuard:
     def audit_access(band: Band, accessor_type: str, action: str) -> Dict:
         """Create audit log entry for band access"""
         return {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "band": band.value,
             "accessor": accessor_type,
             "action": action,

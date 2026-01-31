@@ -14,7 +14,8 @@ from typing import Dict, Any
 from dataclasses import asdict
 
 # Ensure codebase is in path
-sys.path.insert(0, "C:\\Users\\ariff\\arifOS")
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Import MCP tools
 from codebase.mcp.tools.mcp_tools_v53 import (

@@ -1,56 +1,34 @@
 """
 codebase/floors/__init__.py
 Constitutional Floor Modules (F1-F13)
-v55.0: Exports GeniusCalculator and legacy floor placeholders
+v55.0: Exports Canonical Floors and Metrics
 """
 
-from codebase.floors.genius import GeniusCalculator
+# Genius Calculator (Stage 000/111)
+from codebase.floors.genius import GeniusCalculator, GeniusMetrics, Verdict, OntologyLock
 
+# F1: Amanah (Sacred Trust)
+from codebase.floors.amanah import F1_Amanah, AmanahCovenant
 
-# Legacy floor placeholders for backward compatibility
-# TODO v56: replace with real floor modules once migrated
-class F1_Amanah:
-    """F1: Trust/Audit (Reversibility) - Placeholder"""
+# F10: Ontology (Category Lock)
+from codebase.floors.ontology import F10_OntologyGate, OntologyResult
 
-    pass
-
-
-class AmanahCovenant:
-    """Alias shim for legacy imports expecting AmanahCovenant."""
-
-    pass
-
-
-class F10_OntologyGate:
-    """F10: Ontology wall placeholder (legacy import shim)."""
-
-    pass
-
-
-class OntologyResult:
-    """Alias shim for legacy imports expecting OntologyResult."""
-
-    pass
-
-
-class F12_InjectionDefense:
-    """F12: Injection defense placeholder (legacy import shim)."""
-
-    pass
-
-
-class InjectionDefenseResult:
-    """Alias shim for legacy imports expecting InjectionDefenseResult."""
-
-    pass
-
+# F12: Injection Defense
+from codebase.floors.injection import F12_InjectionDefense, InjectionDefenseResult
 
 __all__ = [
+    # Genius
     "GeniusCalculator",
+    "GeniusMetrics",
+    "Verdict",
+    "OntologyLock",
+    # F1
     "F1_Amanah",
     "AmanahCovenant",
+    # F10
     "F10_OntologyGate",
     "OntologyResult",
+    # F12
     "F12_InjectionDefense",
     "InjectionDefenseResult",
 ]

@@ -29,6 +29,35 @@ This directory contains the **Constitutional Canon** of arifOS. These documents 
     *   **Validation:** How we prove it works.
     *   **Testing:** Unit and Integration strategies.
 
+## The Trinity & Federation
+
+6.  **[010_TRINITY.md](010_TRINITY.md)**
+    *   **AGI/ASI/APEX:** The three engines (Mind/Heart/Soul).
+    *   **Stages:** 111-999 metabolic loop.
+    *   **Fusion:** How engines combine.
+
+7.  **[050_AGENT_FEDERATION.md](050_AGENT_FEDERATION.md)** ⭐ **NEW v55.0**
+    *   **The 4 Agents:** ARCHITECT (Δ), ENGINEER (Ω), AUDITOR (👁), VALIDATOR (Ψ).
+    *   **Reality Protocol:** Physics × Math × Code unified substrate.
+    *   **Tri-Witness:** Human × AI × Earth consensus as reality oracle.
+    *   **Federation Stack:** 3×3×3 framework (Thermodynamics/Quantum/Relativity × InfoGeo/Category/Measure × PBFT/zk-SNARKs/MerkleDAG).
+
+8.  **[060_CONSTITUTIONAL_REALITY.md](060_CONSTITUTIONAL_REALITY.md)** ⭐ **NEW v55.0**
+    *   **F1-F13 Grounding:** Complete physics/math/code mapping for all floors.
+    *   **9+2+2 Structure:** 9 Floors + 2 Mirrors + 2 Walls architecture.
+    *   **Reality Equation:** Unified instantiation formula.
+    *   **Governance Audit:** Limits, uncertainties, mitigations.
+
+9.  **[FEDERATION.md](FEDERATION.md)**
+    *   **Physics Simulation:** Thermodynamics, Quantum Mechanics, Relativity.
+    *   **Math Frameworks:** Information Geometry, Category Theory, Measure Theory.
+    *   **Code Primitives:** PBFT, zk-SNARKs, Merkle DAG CRDTs.
+
+9.  **[FEDERATION_MATRIX.md](FEDERATION_MATRIX.md)**
+    *   **Quick Reference:** 3×3 cross-matrix.
+    *   **Floor Mapping:** F1-F13 implementation mapping.
+    *   **Checklist:** Implementation verification.
+
 ---
 
 **Motto:** *Ditempa Bukan Diberi* (Forged, Not Given)

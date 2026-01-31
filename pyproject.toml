@@ -149,13 +149,13 @@ all = [
 [project.scripts]
 # AAA MCP Server Commands (Primary v53) - using codebase
 aaa-mcp = "codebase.mcp.__main__:main"
-aaa-mcp-sse = "codebase.mcp.sse:main"
-aaa-mcp-stdio = "codebase.mcp.server:main_stdio"
+aaa-mcp-sse = "codebase.mcp.entrypoints.sse_entry:main"
+aaa-mcp-stdio = "codebase.mcp.entrypoints.stdio_entry:main"
 
 # Codebase MCP Server Commands (Alternative naming)
 codebase-mcp = "codebase.mcp.__main__:main"
-codebase-mcp-stdio = "codebase.mcp.server:main_stdio"
-codebase-mcp-sse = "codebase.mcp.sse:main"
+codebase-mcp-stdio = "codebase.mcp.entrypoints.stdio_entry:main"
+codebase-mcp-sse = "codebase.mcp.entrypoints.sse_entry:main"
 
 # Legacy arifos commands (DEPRECATED - will be removed in v54)
 # arifos-mcp = "arifos.mcp.__main__:main"

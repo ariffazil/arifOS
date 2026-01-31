@@ -4,7 +4,8 @@
 
 **Location**: `C:\Users\User\arifOS\SEAL999` (ROOT LEVEL, FLAT)
 
-**Status**: SOVEREIGNLY_SEALED
+**Status**: LEGACY (read-only) — canonical live ledger is `VAULT999/`
+**Note**: SEAL999 remains as reference/test harness; production sealing persists to `VAULT999/BBB_LEDGER/entries` via `codebase.mcp.tools.vault_tool`.
 
 ---
 

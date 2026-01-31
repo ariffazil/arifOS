@@ -14,7 +14,7 @@ import logging
 import time
 from typing import Any, Optional
 
-from codebase.mcp.constitutional_metrics import store_stage_result, get_stage_result
+from codebase.mcp.services.constitutional_metrics import store_stage_result, get_stage_result
 from codebase.mcp.tools.trinity_validator import validate_trinity_request
 from codebase.mcp.tools import reality_grounding
 from codebase.mcp.external_gateways.brave_client import BraveSearchClient
@@ -158,22 +158,20 @@ async def bridge_atlas_router(**kwargs) -> dict:
     """Pure bridge: Route mapping tasks to Atlas tool."""
     try:
         from arifOS_Implementation.SKILL_2.mcp_tool_templates import _atlas_
-        
+
         result = await _atlas_(**kwargs)
         serialized = _serialize(result)
-        
+
         session_id = kwargs.get("session_id")
         if session_id and isinstance(serialized, dict):
             store_stage_result(str(session_id), "atlas", serialized)
-            
+
         return serialized if isinstance(serialized, dict) else {"result": serialized}
     except Exception as e:
         logger.error(f"Atlas Router Error: {e}")
         if isinstance(e, BridgeError):
             return e.to_dict()
         return BridgeError(str(e), "ENGINE_FAILURE").to_dict()
-
-
 
 
 async def bridge_asi_router(action: str = "full", **kwargs) -> dict:
@@ -488,13 +486,26 @@ async def bridge_trinity_loop_router(
         try:
             from codebase.agi.trinity_sync_hardened import synthesize_paradox, compute_trinity_score
 
-            agi_confidence = agi_result.get("truth_score", 0.9) if isinstance(agi_result, dict) else 0.9
-            asi_empathy = asi_result.get("empathy_kappa", asi_result.get("empathy_kappa_r", 0.9)) if isinstance(asi_result, dict) else 0.9
-            asi_peace = asi_result.get("peace_squared", 1.0) if isinstance(asi_result, dict) else 1.0
+            agi_confidence = (
+                agi_result.get("truth_score", 0.9) if isinstance(agi_result, dict) else 0.9
+            )
+            asi_empathy = (
+                asi_result.get("empathy_kappa", asi_result.get("empathy_kappa_r", 0.9))
+                if isinstance(asi_result, dict)
+                else 0.9
+            )
+            asi_peace = (
+                asi_result.get("peace_squared", 1.0) if isinstance(asi_result, dict) else 1.0
+            )
 
             paradox_scores = {
                 "truth_care": synthesize_paradox(agi_confidence, asi_empathy),
-                "clarity_peace": synthesize_paradox(1.0 - abs(agi_result.get("entropy_delta", 0.0)) if isinstance(agi_result, dict) else 0.9, asi_peace),
+                "clarity_peace": synthesize_paradox(
+                    1.0 - abs(agi_result.get("entropy_delta", 0.0))
+                    if isinstance(agi_result, dict)
+                    else 0.9,
+                    asi_peace,
+                ),
                 "knowledge_wisdom": synthesize_paradox(agi_confidence, asi_empathy),
                 "speed_safety": synthesize_paradox(0.9, asi_peace),
                 "emotion_logic": synthesize_paradox(agi_confidence, asi_empathy),
@@ -504,16 +515,22 @@ async def bridge_trinity_loop_router(
             trinity_score = compute_trinity_score(list(paradox_scores.values()), method="geometric")
             min_paradox = min(paradox_scores.values()) if paradox_scores else 0.9
 
-            loop_results.append({
-                "stage": "333_forge",
-                "result": {
-                    "paradox_scores": paradox_scores,
-                    "trinity_score": trinity_score,
-                    "min_paradox_score": min_paradox,
-                    "synthesis": "SEAL" if min_paradox >= 0.85 else "PARTIAL" if min_paradox >= 0.70 else "VOID",
-                    "_source": "TrinitySyncHardened",
-                },
-            })
+            loop_results.append(
+                {
+                    "stage": "333_forge",
+                    "result": {
+                        "paradox_scores": paradox_scores,
+                        "trinity_score": trinity_score,
+                        "min_paradox_score": min_paradox,
+                        "synthesis": "SEAL"
+                        if min_paradox >= 0.85
+                        else "PARTIAL"
+                        if min_paradox >= 0.70
+                        else "VOID",
+                        "_source": "TrinitySyncHardened",
+                    },
+                }
+            )
 
             if min_paradox < 0.70:
                 return {

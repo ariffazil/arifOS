@@ -23,7 +23,7 @@ from typing import Any, Dict, List, Optional
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from codebase.system.apex_prime import APEXPrime
-from codebase.mcp.constitutional_metrics import get_stage_result, store_stage_result
+from codebase.mcp.services.constitutional_metrics import get_stage_result, store_stage_result
 from codebase.mcp.session_ledger import seal_memory
 
 # v53.5.0: PsiKernel (Soul) + TrinityNine (9-Paradox) — NOW WIRED

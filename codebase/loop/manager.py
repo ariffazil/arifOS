@@ -9,7 +9,7 @@ Reference: 000_THEORY/003_GODEL_STRANGE_LOOP.md
 from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional, Callable, List
 from enum import Enum, auto
 import hashlib
@@ -123,7 +123,7 @@ class LoopManager:
             # Loop continuation: derive new context from sealed state
             seed = previous_context.derive_seed()
             self.context = LoopContext(
-                session_id=session_id or f"session_{datetime.utcnow().isoformat()}",
+                session_id=session_id or f"session_{datetime.now(timezone.utc).isoformat()}",
                 constitutional_state=previous_context.constitutional_state.copy(),
                 entropy_pool=seed,
                 iteration_count=previous_context.iteration_count + 1,
@@ -132,7 +132,7 @@ class LoopManager:
         else:
             # Fresh start
             self.context = LoopContext(
-                session_id=session_id or f"session_{datetime.utcnow().isoformat()}"
+                session_id=session_id or f"session_{datetime.now(timezone.utc).isoformat()}"
             )
             logger.info("Fresh loop initiated")
 
@@ -233,7 +233,7 @@ class LoopManager:
                 "last_merkle": merkle,
                 "stage_count": len(self.stage_history),
                 "final_genius": self.stage_history[-1].genius_score if self.stage_history else 0.0,
-                "sealed_at": datetime.utcnow().isoformat(),
+                "sealed_at": datetime.now(timezone.utc).isoformat(),
             }
         )
 
