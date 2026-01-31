@@ -69,8 +69,9 @@ class SSETransport(BaseTransport):
         )
 
         # Run using uvicorn programmatically
+        asgi_app = self.mcp.streamable_http_app()
         config = uvicorn.Config(
-            self.mcp._asgi_app,
+            asgi_app,
             host=_DEFAULT_HOST,
             port=_DEFAULT_PORT,
             log_level="info",
