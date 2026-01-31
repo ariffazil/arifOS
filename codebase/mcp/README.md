@@ -133,7 +133,7 @@ aaa-mcp-sse
 # Headers: MCP-Protocol-Version: 2025-11-25
 ```
 
-**Live public endpoint:** `https://arif-fazil.com/mcp`
+**Live public endpoint:** `https://aaamcp.arif-fazil.com/mcp`
 
 ---
 
@@ -380,7 +380,7 @@ mypy codebase/mcp/ --ignore-missing-imports
 curl http://localhost:8000/health
 
 # Production
-curl https://arif-fazil.com/health
+curl https://aaamcp.arif-fazil.com/health
 ```
 
 **Expected response:**

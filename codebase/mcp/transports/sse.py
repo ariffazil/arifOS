@@ -114,7 +114,7 @@ class SSETransport(BaseTransport):
                     "status": "ONLINE",
                     "version": "v55.2-AAA",
                     "message": "DITEMPA BUKAN DIBERI",
-                    "endpoints": {"health": "/health", "metrics": "/metrics/json", "mcp": "/sse"},
+                    "endpoints": {"health": "/health", "metrics": "/metrics/json", "mcp": "/mcp"},
                 }
             )
 

@@ -13,7 +13,7 @@ Integrate arifOS constitutional governance directly into ChatGPT's Developer Mod
 1. **ChatGPT Plus** or **Enterprise** account
 2. **Developer Mode** enabled (Settings → Features → Developer Mode)
 3. Access to arifOS MCP server (choose one):
-   - **Cloud:** `https://arifos.arif-fazil.com` (managed)
+   - **Cloud:** `https://aaamcp.arif-fazil.com` (managed)
    - **Self-hosted:** Docker/Railway deployment (see [Deployment](#deployment) below)
 
 ---
@@ -24,12 +24,12 @@ ChatGPT only supports **HTTP/SSE transport** (not stdio). You need a publicly ac
 
 ### Option A: Use Managed arifOS (Fastest)
 
-**URL:** `https://arifos.arif-fazil.com`
+**URL:** `https://aaamcp.arif-fazil.com`
 
 **Endpoints:**
-- Health: `https://arifos.arif-fazil.com/health`
-- MCP: `https://arifos.arif-fazil.com/mcp` (ChatGPT Actions)
-- SSE: `https://arifos.arif-fazil.com/sse` (Claude Desktop compatible)
+- Health: `https://aaamcp.arif-fazil.com/health`
+- MCP: `https://aaamcp.arif-fazil.com/mcp` (ChatGPT Actions)
+- SSE: `https://aaamcp.arif-fazil.com/sse` (Claude Desktop compatible)
 
 **Pros:**
 - ✅ Zero setup
@@ -44,7 +44,7 @@ ChatGPT only supports **HTTP/SSE transport** (not stdio). You need a publicly ac
 
 **Test the endpoint:**
 ```bash
-curl https://arifos.arif-fazil.com/health
+curl https://aaamcp.arif-fazil.com/health
 ```
 
 Expected response:
@@ -196,7 +196,7 @@ Create `arifos-openapi.json`:
   },
   "servers": [
     {
-      "url": "https://arifos.arif-fazil.com",
+      "url": "https://aaamcp.arif-fazil.com",
       "description": "Production MCP Server"
     }
   ],
@@ -334,7 +334,7 @@ description: |
   Returns SEAL (approved), SABAR (warning), or VOID (blocked) verdict.
   Provides cryptographic audit trails for compliance.
 
-url: https://arifos.arif-fazil.com  # Or your self-hosted URL
+url: https://aaamcp.arif-fazil.com  # Or your self-hosted URL
 
 # OpenAPI Spec
 openapi: |
@@ -381,8 +381,8 @@ Write a Python function to reverse a string
       {
         "name": "constitutional_validation",
         "description": "Validate response against 13 constitutional floors",
-        "url": "https://arifos.arif-fazil.com/messages",
-        "openapi_spec": "https://arifos.arif-fazil.com/openapi.json"
+        "url": "https://aaamcp.arif-fazil.com/messages",
+        "openapi_spec": "https://aaamcp.arif-fazil.com/openapi.json"
       }
     ],
     "conversation_starters": [
@@ -677,7 +677,7 @@ What is the exact population of Malaysia as of today?
 {
   "mcpServers": {
     "arifos": {
-      "url": "https://arifos.arif-fazil.com",
+      "url": "https://aaamcp.arif-fazil.com",
       "env": {
         "ARIFOS_RATE_LIMIT_PER_MINUTE": "50",
         "ARIFOS_RATE_LIMIT_PER_HOUR": "500"
@@ -697,7 +697,7 @@ For stricter governance（e．g．，financial advice）：
 {
   "mcpServers": {
     "arifos": {
-      "url": "https://arifos.arif-fazil.com",
+      "url": "https://aaamcp.arif-fazil.com",
       "env": {
         "ARIFOS_SEAL_RATE_TARGET": "0.90",
         "ARIFOS_DISABLED_FLOORS": ""
@@ -717,7 +717,7 @@ For faster iteration（testing only，NOT production）：
 {
   "mcpServers": {
     "arifos": {
-      "url": "https://arifos.arif-fazil.com",
+      "url": "https://aaamcp.arif-fazil.com",
       "env": {
         "ARIFOS_PHYSICS_DISABLED": "1",        // F4：entropy
         "ARIFOS_DISABLED_FLOORS": "F6,F13"     // Skip humility，curiosity

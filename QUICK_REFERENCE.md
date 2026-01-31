@@ -4,14 +4,14 @@
 Railway deployment failing → Now works with guaranteed health check
 
 ## 🌐 Your Domain
-**https://arifos.arif-fazil.com/** ← Still works! No changes needed.
+**https://aaamcp.arif-fazil.com/** ← Still works! No changes needed.
 
 ## 📦 What Was Created
 `standalone_sse_server.py` - A bulletproof MCP server with zero complex dependencies
 
 ## 🧪 Quick Test (After Deploy)
 ```bash
-curl https://arifos.arif-fazil.com/health
+curl https://aaamcp.arif-fazil.com/health
 ```
 Should return `{"status": "healthy", ...}`
 
@@ -20,7 +20,7 @@ Should return `{"status": "healthy", ...}`
 
 ## 📊 What to Monitor
 1. Railway Dashboard → Should show "Active"
-2. Domain → https://arifos.arif-fazil.com/health
+2. Domain → https://aaamcp.arif-fazil.com/health
 3. Tools → All 5 Trinity tools available
 
 ## 🔄 If Something Goes Wrong

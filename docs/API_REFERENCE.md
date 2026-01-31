@@ -1,6 +1,6 @@
 # API Reference — MCP Tools v53
 
-**Endpoint:** `https://arif-fazil.com/mcp`
+**Endpoint:** `https://aaamcp.arif-fazil.com/mcp`
 **Protocol:** MCP 2024-11-05+ (Streamable HTTP) with SSE fallback
 **Transport:** JSON-RPC 2.0 over stdio (local) or HTTP (deployed)
 

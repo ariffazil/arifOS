@@ -30,7 +30,7 @@ Create or edit your Codex config file:
   "mcpServers": {
     "arifos-aaa": {
       "name": "AAA MCP",
-      "url": "https://arif-fazil.com/mcp",
+      "url": "https://aaamcp.arif-fazil.com/mcp",
       "transport": "streamable-http"
     }
   }
@@ -44,7 +44,7 @@ Create or edit your Codex config file:
 codex mcp list
 
 # Expected output:
-# ✅ arifos-aaa - https://arif-fazil.com/mcp
+# ✅ arifos-aaa - https://aaamcp.arif-fazil.com/mcp
 ```
 
 ### Step 4: Use with Codex
@@ -124,7 +124,7 @@ Every interaction through Codex now has:
 
 ```bash
 # Test endpoint manually
-curl https://arif-fazil.com/health
+curl https://aaamcp.arif-fazil.com/health
 
 # Should return:
 # {"status": "healthy", "tools": 7, "architecture": "AAA-7CORE-v53.2.7"}
@@ -142,7 +142,7 @@ codex mcp tools arifos-aaa
 ```bash
 # Remove and re-add
 codex mcp remove arifos-aaa
-codex mcp add arifos-aaa https://arif-fazil.com/mcp
+codex mcp add arifos-aaa https://aaamcp.arif-fazil.com/mcp
 ```
 
 ---
@@ -162,8 +162,8 @@ codex mcp add arifos-aaa https://arif-fazil.com/mcp
 ## Links
 
 - **Dashboard**: https://arif-fazil.com/dashboard
-- **Health**: https://arif-fazil.com/health
+- **Health**: https://aaamcp.arif-fazil.com/health
 - **GitHub**: https://github.com/ariffazil/arifOS
-- **MCP Endpoint**: https://arif-fazil.com/mcp
+- **MCP Endpoint**: https://aaamcp.arif-fazil.com/mcp
 
 **DITEMPA BUKAN DIBERI** — Your code is now constitutionally governed.

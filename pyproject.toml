@@ -202,8 +202,8 @@ Repository = "https://github.com/ariffazil/arifOS"
 Issues = "https://github.com/ariffazil/arifOS/issues"
 Changelog = "https://github.com/ariffazil/arifOS/blob/main/CHANGELOG.md"
 "Live Server" = "https://arif-fazil.com/"
-"Health Check" = "https://arif-fazil.com/health"
-"MCP Endpoint" = "https://arif-fazil.com/mcp"
+"Health Check" = "https://aaamcp.arif-fazil.com/health"
+"MCP Endpoint" = "https://aaamcp.arif-fazil.com/mcp"
 
 [tool.setuptools]
 include-package-data = true
