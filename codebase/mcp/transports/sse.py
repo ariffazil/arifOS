@@ -13,7 +13,7 @@ import uvicorn
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.resources import FunctionResource
 from mcp.server.fastmcp.prompts import Prompt as FastMCPPrompt
-from starlette.responses import JSONResponse, HTMLResponse, RedirectResponse
+from starlette.responses import JSONResponse
 
 from .base import BaseTransport
 from ..core.tool_registry import ToolRegistry
@@ -106,8 +106,17 @@ class SSETransport(BaseTransport):
 
         @self.mcp.custom_route("/", methods=["GET"])
         async def root(request):
-            """Root endpoint - redirect to BODY layer (Cloudflare Pages)."""
-            return RedirectResponse(url="https://arif-fazil.com", status_code=307)
+            """Root endpoint - serve MIND Layer Engine status."""
+            return JSONResponse(
+                {
+                    "layer": "MIND",
+                    "engine": "arifOS Metabolic Kernel",
+                    "status": "ONLINE",
+                    "version": "v55.2-AAA",
+                    "message": "DITEMPA BUKAN DIBERI",
+                    "endpoints": {"health": "/health", "metrics": "/metrics/json", "mcp": "/sse"},
+                }
+            )
 
     def _register_resources(self):
         """Register MCP Resources using FastMCP FunctionResource."""
