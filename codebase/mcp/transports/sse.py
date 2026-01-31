@@ -106,6 +106,28 @@ class SSETransport(BaseTransport):
         async def metrics_endpoint(request):
             return JSONResponse(get_full_metrics())
 
+        @self.mcp.custom_route("/", methods=["GET"])
+        async def root(request):
+            """Root endpoint for browser checks."""
+            from starlette.responses import HTMLResponse
+            return HTMLResponse(content=\"\"\"
+            <html>
+                <head><title>arifOS MCP Server</title></head>
+                <body style="font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 20px;">
+                    <h1>🛡️ arifOS MCP Server</h1>
+                    <p>Status: <strong>Online</strong></p>
+                    <p>Mode: <strong>Streamable HTTP (SSE)</strong></p>
+                    <hr>
+                    <ul>
+                        <li><a href="/health">Health Check</a></li>
+                        <li><a href="/metrics/json">Live Metrics</a></li>
+                        <li><a href="/sse">SSE Endpoint</a></li>
+                    </ul>
+                    <p><em>Forged, Not Given.</em></p>
+                </body>
+            </html>
+            \"\"\")
+
     def _register_resources(self):
         """Register MCP Resources using FastMCP FunctionResource."""
         for res_def in self.resource_registry.list_resources():
