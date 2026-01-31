@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 45 93% 47%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 0 0% 14%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14%;
+    --input: 0 0% 14%;
+    --ring: 45 93% 47%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+/* Selection */
+::selection {
+  background: rgba(234, 179, 8, 0.3);
+  color: white;
+}
+
+/* Mathematical symbols */
+.math-symbol {
+  font-family: 'Times New Roman', serif;
+  font-style: italic;
+}
+
+/* Geometric animations */
+@keyframes rotate-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(234, 179, 8, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(234, 179, 8, 0.5);
+  }
+}
+
+.animate-rotate-slow {
+  animation: rotate-slow 60s linear infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Sacred geometry grid */
+.sacred-grid {
+  background-image: 
+    linear-gradient(rgba(234, 179, 8, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(234, 179, 8, 0.05) 1px, transparent 1px),
+    linear-gradient(45deg, rgba(234, 179, 8, 0.02) 1px, transparent 1px),
+    linear-gradient(-45deg, rgba(234, 179, 8, 0.02) 1px, transparent 1px);
+  background-size: 50px 50px, 50px 50px, 70.71px 70.71px, 70.71px 70.71px;
+}
+
+/* Code block styling */
+.code-block {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Formula styling */
+.formula {
+  font-family: 'Times New Roman', serif;
+  font-style: italic;
+}
+
+/* Gradient text */
+.gradient-text-apex {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass effect */
+.glass-apex {
+  background: rgba(10, 10, 10, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
