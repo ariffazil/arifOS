@@ -26,7 +26,10 @@ import json
 import logging
 import time
 from dataclasses import dataclass, asdict, field
-from datetime import datetime, UTC
+from datetime import datetime, timezone
+
+# Python 3.10 compat: datetime.UTC was added in 3.11
+UTC = timezone.utc
 from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 

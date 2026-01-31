@@ -25,6 +25,15 @@ class BraveSearchClient:
         """
         Reality check via Brave Search.
         """
+        if not query or not query.strip():
+            logger.warning("Brave Search: empty query, returning fallback")
+            return {
+                "source": "Brave Search",
+                "error": "Empty query — nothing to search",
+                "fallback": "Using cached knowledge",
+                "omega_0_update": 0.08,
+            }
+
         if not self.api_key:
             logger.warning("Brave Search: API Key missing, returning fallback")
             return {

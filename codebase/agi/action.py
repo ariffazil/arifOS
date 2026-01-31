@@ -18,7 +18,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from enum import Enum, auto
-from datetime import datetime
+from datetime import datetime, timezone
 import random
 
 
@@ -51,7 +51,7 @@ class BeliefState:
     """
     states: Dict[str, float]  # state_name -> probability
     entropy: float            # Current uncertainty
-    timestamp: datetime = field(default_factory=lambda: datetime.now(datetime.UTC))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     
     def get_most_likely(self) -> Tuple[str, float]:
         """Return most likely state and its probability."""
@@ -244,7 +244,7 @@ class MotorOutput:
             "epistemic_value": policy.epistemic_value,
             "pragmatic_value": policy.pragmatic_value,
             "confidence": policy.confidence,
-            "timestamp": datetime.now(datetime.UTC).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
         # Execute callbacks
