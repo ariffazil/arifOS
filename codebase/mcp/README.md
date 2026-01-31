@@ -1,8 +1,18 @@
 # AAA MCP Server — Constitutional AI Governance
 
-**Model-Agnostic · Platform-Universal · Constitutionally Hardened**
+**Model-Agnostic · Platform-Universal · Constitutionally Hardened · MCP 2025-11-25 Spec Compliant**
 
-The AAA MCP server exposes arifOS constitutional governance as a [Model Context Protocol](https://modelcontextprotocol.io/) server. Any AI model (Claude, GPT, Gemini, Kimi, Llama) can call the 7 canonical tools through any MCP client (Claude Desktop, Cursor, VS Code, Windsurf) over any transport (stdio, SSE, HTTP).
+The AAA MCP server exposes arifOS constitutional governance as a [Model Context Protocol](https://modelcontextprotocol.io/) server. Any AI model (Claude, GPT, Gemini, Kimi, Llama) can call the 7 canonical tools through any MCP client (Claude Desktop, Cursor, VS Code, Windsurf) over any transport (stdio, Streamable HTTP).
+
+## What's New in v55.1
+
+- **Streamable HTTP Transport** — Replaces legacy SSE with stateless HTTP (MCP spec 2025-03-26+)
+- **MCP Resources** — Expose F1-F13 floor definitions and VAULT ledger as read-only resources
+- **MCP Prompts** — 5 reusable constitutional evaluation templates
+- **Full Spec Compliance** — outputSchema, annotations, title on all tools
+- **69 Integration Tests** — Comprehensive coverage for all three phases
+
+---
 
 ## Quick Start
 
@@ -24,12 +34,12 @@ aaa-mcp
 
 # Explicit transport selection
 aaa-mcp-stdio                    # stdin/stdout (Claude Desktop, Cursor)
-aaa-mcp-sse                      # HTTP/SSE (remote clients, Railway)
+aaa-mcp-sse                      # Streamable HTTP (remote clients, Railway)
 
 # Via Python module
 python -m codebase.mcp            # auto
 python -m codebase.mcp stdio      # explicit stdio
-python -m codebase.mcp sse        # explicit SSE
+python -m codebase.mcp sse        # explicit Streamable HTTP
 
 # Docker (production)
 docker build -t arifos:latest .
@@ -39,7 +49,7 @@ docker run -e PORT=8000 -p 8000:8000 arifos:latest
 ### Environment
 
 ```bash
-HOST=0.0.0.0                     # Bind address (SSE/HTTP)
+HOST=127.0.0.1                   # Bind address (default: 127.0.0.1 for local, set 0.0.0.0 for cloud)
 PORT=8000                        # Server port (SSE/HTTP)
 LOG_LEVEL=info                   # debug|info|warning|error
 GOVERNANCE_MODE=HARD             # HARD (all floors enforced) | SOFT (warnings only)
@@ -114,12 +124,13 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
 ### Remote / HTTP (ChatGPT, Gemini, any client)
 
 ```bash
-# Start SSE server
+# Start Streamable HTTP server
 aaa-mcp-sse
 
 # Connect from any HTTP MCP client
 # Endpoint: http://localhost:8000/mcp
-# Transport: SSE or Streamable HTTP
+# Transport: Streamable HTTP (POST + GET)
+# Headers: MCP-Protocol-Version: 2025-11-25
 ```
 
 **Live public endpoint:** `https://arif-fazil.com/mcp`
@@ -128,7 +139,7 @@ aaa-mcp-sse
 
 ## The 7 Canonical Tools
 
-Every tool enforces constitutional floors and returns a verdict.
+Every tool enforces constitutional floors and returns a verdict. All tools include `outputSchema`, `annotations`, and `title` for MCP spec compliance.
 
 | Tool | Gate | Purpose | Floors Enforced |
 |------|------|---------|-----------------|
@@ -140,35 +151,36 @@ Every tool enforces constitutional floors and returns a verdict.
 | **`_trinity_`** | 000→999 | Full pipeline — runs all engines in sequence | All F1-F13 |
 | **`_reality_`** | External | Fact-checker — external source verification | F7 |
 
-### Tool Input (All tools)
+### Tool Schema (MCP 2025-11-25 Compliant)
 
 ```json
 {
-  "action": "sense | think | reflect | reason | forge | full | physics",
-  "query": "User question or task",
-  "session_id": "uuid-v4 (optional, auto-generated)"
-}
-```
-
-### Tool Output (All tools)
-
-```json
-{
-  "verdict": "SEAL | PARTIAL | VOID | 888_HOLD | SABAR",
-  "response": "The governed response text",
-  "reasoning": "Internal reasoning trace",
-  "floor_results": {
-    "F1_amanah": true,
-    "F2_truth": 0.99
+  "name": "_trinity_",
+  "title": "Full Constitutional Pipeline",
+  "description": "Complete metabolic loop: AGI→ASI→APEX→VAULT",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "query": {"type": "string", "maxLength": 10000},
+      "session_id": {"type": "string"},
+      "auto_seal": {"type": "boolean", "default": true}
+    },
+    "required": ["query"]
   },
-  "vault": {
-    "merkle_hash": "0xabc...",
-    "timestamp": "2026-01-31T12:00:00Z"
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "verdict": {"type": "string", "enum": ["SEAL", "VOID", "SABAR"]},
+      "trinity_score": {"type": "number"},
+      "floor_scores": {"type": "object"}
+    },
+    "required": ["verdict", "trinity_score"]
   },
-  "metadata": {
-    "engine": "agi | asi | apex",
-    "latency_ms": 28,
-    "session_id": "..."
+  "annotations": {
+    "title": "Full Trinity",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "openWorldHint": true
   }
 }
 ```
@@ -185,63 +197,140 @@ Every tool enforces constitutional floors and returns a verdict.
 
 ---
 
-## Architecture (v55.0)
+## MCP Resources (v55.1)
+
+Read-only contextual data exposed as MCP Resources. These provide constitutional context without requiring tool calls.
+
+| Resource URI | Description | Content |
+|--------------|-------------|---------|
+| `config://floors` | All 13 constitutional floors | F1-F13 definitions, thresholds, formulas |
+| `config://verdicts` | Verdict hierarchy | SABAR > VOID > 888_HOLD > PARTIAL > SEAL |
+| `floor://{F1-F13}` | Individual floor | Specific floor definition |
+| `vault://ledger/latest` | Latest VAULT entry | Most recent sealed decision |
+| `vault://ledger/stats` | Ledger statistics | Entry count, last hash, chain integrity |
+
+### Accessing Resources
+
+Resources are automatically available to MCP clients that support them:
+
+```python
+# Client reads floor definition
+floor_f1 = await client.read_resource("floor://F1")
+# Returns: {"id": "F1", "name": "Amanah", "threshold": "Reversible=true", ...}
+
+# Client reads verdict hierarchy
+verdicts = await client.read_resource("config://verdicts")
+# Returns: {"hierarchy": {"SABAR": 5, "VOID": 4, ...}, "descriptions": {...}}
+```
+
+---
+
+## MCP Prompts (v55.1)
+
+Reusable constitutional evaluation templates. These are user-controlled prompts for common governance workflows.
+
+| Prompt | Purpose | Arguments |
+|--------|---------|-----------|
+| `constitutional_eval` | Full F1-F13 evaluation workflow | `query` |
+| `paradox_analysis` | 9-paradox equilibrium analysis | `query` |
+| `trinity_full` | Complete 000-999 metabolic loop walkthrough | `query` |
+| `floor_violation_repair` | SABAR/VOID remediation guide | `floor`, `verdict`, `query` |
+| `constitutional_summary` | Quick F1-F13 reference | (none) |
+
+### Using Prompts
+
+```python
+# Get constitutional evaluation prompt
+prompt = await client.get_prompt("constitutional_eval", {
+    "query": "Should we deploy this feature?"
+})
+# Returns templated prompt with F1-F13 evaluation framework
+
+# Get violation repair guidance
+repair = await client.get_prompt("floor_violation_repair", {
+    "floor": "F7",
+    "verdict": "SABAR",
+    "query": "Original query here"
+})
+```
+
+---
+
+## Architecture (v55.1)
 
 ```
-┌─────────────────────────────────────────────────┐
-│  MCP CLIENT (Claude / GPT / Gemini / Cursor)    │
-└──────────────────────┬──────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  MCP CLIENT (Claude / GPT / Gemini / Cursor)                │
+└──────────────────────┬──────────────────────────────────────┘
                        │ JSON-RPC 2.0
-┌──────────────────────▼──────────────────────────┐
-│  TRANSPORT (stdio / SSE / HTTP)                  │
-│  transports/auto.py → best transport             │
-├─────────────────────────────────────────────────┤
-│  MODEL ADAPTER (normalize request/response)      │
-│  adapters/ → Anthropic / OpenAI / Universal      │
-├─────────────────────────────────────────────────┤
-│  TOOL REGISTRY (7 canonical tools)               │
-│  core/tool_registry.py → single source of truth  │
-├─────────────────────────────────────────────────┤
-│  CONSTITUTION ENFORCER (F1-F13)                  │
-│  constitution/enforcer.py → pre/post validation  │
-├─────────────────────────────────────────────────┤
-│  GOVERNANCE BRIDGE → arifOS Kernels              │
-│  AGI (Δ Mind) → ASI (Ω Heart) → APEX (Ψ Soul)  │
-├─────────────────────────────────────────────────┤
-│  VAULT-999 (Merkle-sealed immutable ledger)      │
-│  sessions/ + metrics/ + integration/vault.py     │
-└─────────────────────────────────────────────────┘
+┌──────────────────────▼──────────────────────────────────────┐
+│  TRANSPORT LAYER                                            │
+│  ├─ StdioTransport  → stdin/stdout (local clients)          │
+│  └─ SSETransport    → Streamable HTTP (production)          │
+│     stateless_http=True, json_response=True                 │
+├─────────────────────────────────────────────────────────────┤
+│  MCP PRIMITIVES                                             │
+│  ├─ Tools (7 canonical)  → model-controlled execution       │
+│  ├─ Resources (17)       → application-driven context       │
+│  └─ Prompts (5)          → user-controlled templates        │
+├─────────────────────────────────────────────────────────────┤
+│  REGISTRIES (Single Source of Truth)                        │
+│  ├─ ToolRegistry      → core/tool_registry.py               │
+│  ├─ ResourceRegistry  → core/resource_registry.py           │
+│  └─ PromptRegistry    → core/prompt_registry.py             │
+├─────────────────────────────────────────────────────────────┤
+│  GOVERNANCE BRIDGE → arifOS Kernels                         │
+│  AGI (Δ Mind) → ASI (Ω Heart) → APEX (Ψ Soul) → VAULT-999   │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Directory Structure
+### Directory Structure (v55.1)
 
 ```
 mcp/
-├── core/              Protocol layer (models, schemas, tool registry)
-├── transports/        Transport implementations (stdio, SSE, HTTP)
-├── adapters/          Model adapters (Anthropic, OpenAI, Google, Universal)
-├── clients/           Client configs (Claude Desktop, Cursor, VS Code)
-├── tools/             7 canonical constitutional tools
-├── constitution/      F1-F13 floor enforcement
-├── sessions/          Session management + pluggable backends
-├── governance/        APEX PRIME judge + bridge to kernels
-├── metrics/           Observability (constitutional + performance)
-├── presenters/        Output formatting (human, JSON, markdown)
-├── infrastructure/    Rate limiting, circuit breaker, health checks
-├── external_gateways/ External integrations (Brave Search, Context7)
-├── integration/       arifOS kernel/loop/vault hooks
-└── config/            Configuration management
+├── core/                   # Protocol layer
+│   ├── tool_registry.py    # 7 canonical tools (SSOT)
+│   ├── resource_registry.py # MCP Resources (F1-F13, VAULT)
+│   └── prompt_registry.py  # MCP Prompts (templates)
+├── transports/             # Transport implementations
+│   ├── base.py            # BaseTransport ABC
+│   ├── stdio.py           # StdioTransport (local)
+│   └── sse.py             # SSETransport (Streamable HTTP)
+├── entrypoints/           # CLI entry points
+│   ├── stdio_entry.py
+│   └── sse_entry.py
+├── adapters/              # Model adapters (Anthropic, OpenAI, Google)
+├── tools/                 # 7 canonical tool handlers
+│   └── canonical_trinity.py
+├── services/              # Rate limiting, metrics, ledger
+├── external_gateways/     # External integrations (Brave Search)
+├── config/                # Configuration management
+└── README.md             # This file
 ```
 
 ### Key Design Principles
 
-1. **Model Agnosticism** — No AI model assumes privileged position. Model-specific quirks isolated in `adapters/`.
-2. **Platform Universality** — Works identically on any MCP client. Client configs generated by `clients/`.
-3. **Transport Pluggability** — `BaseTransport` ABC allows stdio, SSE, HTTP without changing tool logic.
-4. **Constitutional Hardening** — Every tool call passes through `constitution/enforcer.py` (F1-F13).
-5. **Single Tool Registry** — Tools defined once in `core/tool_registry.py`, consumed by all transports.
+1. **MCP Spec Compliance** — Full implementation of 2025-11-25 spec: Tools, Resources, Prompts
+2. **Streamable HTTP** — Stateless transport for production, backward compatible with stdio
+3. **Three Registries** — Tool, Resource, Prompt registries provide single source of truth
+4. **Constitutional Hardening** — Every call passes through F1-F13 floor validation
+5. **Model Agnosticism** — No AI model assumes privileged position
 
-See [AAA_MCP_ARCHITECTURE_v55.md](./AAA_MCP_ARCHITECTURE_v55.md) for full architecture spec, migration map, and interface definitions.
+---
+
+## MCP Spec Compliance
+
+| Feature | Status | Spec Version |
+|---------|--------|--------------|
+| Tools with outputSchema | ✅ | 2025-06-18 |
+| Tool annotations (readOnlyHint, etc.) | ✅ | 2025-11-25 |
+| Tool title | ✅ | 2025-11-25 |
+| Streamable HTTP transport | ✅ | 2025-03-26 |
+| MCP-Protocol-Version header | ✅ | 2025-11-25 |
+| Mcp-Session-Id header | ✅ | 2025-03-26 |
+| Resources | ✅ | 2025-11-25 |
+| Prompts | ✅ | 2025-11-25 |
+| Stateful + Stateless modes | ✅ | 2025-03-26 |
 
 ---
 
@@ -251,7 +340,8 @@ See [AAA_MCP_ARCHITECTURE_v55.md](./AAA_MCP_ARCHITECTURE_v55.md) for full archit
 |----------|-----------|
 | **AI Models** | Claude, GPT-4, Gemini, Kimi K2.5, Llama, SEA-LION, any JSON-RPC |
 | **MCP Clients** | Claude Desktop, Cursor, VS Code, Windsurf, ChatGPT Dev, any MCP client |
-| **Transports** | stdio, SSE, HTTP (Streamable HTTP recommended for production) |
+| **Transports** | stdio, Streamable HTTP (spec 2025-03-26+) |
+| **Spec Versions** | 2024-11-05, 2025-03-26, 2025-06-18, 2025-11-25 |
 | **Platforms** | Linux, macOS, Windows |
 | **Python** | 3.10, 3.11, 3.12, 3.13 |
 | **Session Backends** | Memory, File (JSON), Redis, SQLite |
@@ -261,14 +351,17 @@ See [AAA_MCP_ARCHITECTURE_v55.md](./AAA_MCP_ARCHITECTURE_v55.md) for full archit
 ## Development
 
 ```bash
-# Run MCP tests
-pytest tests/mcp/ -v
+# Run all MCP tests (69 tests)
+pytest tests/test_mcp_v55.py -v
 
-# Quick smoke test
-pytest tests/mcp/test_mcp_quick.py -v
+# Run specific test categories
+pytest tests/test_mcp_v55.py::TestToolRegistry -v
+pytest tests/test_mcp_v55.py::TestResourceRegistry -v
+pytest tests/test_mcp_v55.py::TestPromptRegistry -v
+pytest tests/test_mcp_v55.py::TestFloorValidators -v
 
-# Full tool coverage
-pytest tests/test_mcp_all_tools.py -v --cov=codebase.mcp
+# Legacy tests
+pytest tests/test_all_mcp_tools.py -v
 
 # Lint & format
 ruff check codebase/mcp/
@@ -278,6 +371,8 @@ black codebase/mcp/ --line-length=100
 mypy codebase/mcp/ --ignore-missing-imports
 ```
 
+---
+
 ## Health Check
 
 ```bash
@@ -286,6 +381,17 @@ curl http://localhost:8000/health
 
 # Production
 curl https://arif-fazil.com/health
+```
+
+**Expected response:**
+```json
+{
+  "status": "healthy",
+  "version": "v55.1-AAA",
+  "mode": "CODEBASE",
+  "transport": "streamable-http",
+  "tools": 7
+}
 ```
 
 ---
@@ -310,5 +416,25 @@ curl https://arif-fazil.com/health
 
 ---
 
-**Version:** v55.0 | **License:** AGPL-3.0 | **Author:** Muhammad Arif bin Fazil
+## Migration from v55.0
+
+If you're upgrading from v55.0:
+
+1. **Transport**: SSE transport now uses Streamable HTTP (stateless by default)
+   - Set `stateless_http=True` for horizontal scaling
+   - Set `stateless_http=False` for session-based governance
+
+2. **Resources**: New MCP Resources available
+   - Access floor definitions via `config://floors`
+   - Access VAULT ledger via `vault://ledger/latest`
+
+3. **Prompts**: New MCP Prompts available
+   - Use `constitutional_eval` template for F1-F13 evaluation
+
+4. **Tests**: Run the new comprehensive test suite
+   - `pytest tests/test_mcp_v55.py` (69 tests)
+
+---
+
+**Version:** v55.1 | **License:** AGPL-3.0 | **Author:** Muhammad Arif bin Fazil
 **DITEMPA BUKAN DIBERI** — Forged, Not Given
