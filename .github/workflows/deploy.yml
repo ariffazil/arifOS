@@ -1,0 +1,57 @@
+name: Deploy Trinity Ecosystem
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  # --- Step 1: Deploy Static Layers to Cloudflare Pages ---
+  deploy-static:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/node-version@v4
+        with:
+          node-version: "20"
+
+      # Deploy SOUL (apex.com)
+      - name: Build SOUL
+        run: |
+          cd apex.com/app
+          npm install
+          npm run build
+
+      - name: Deploy SOUL to Cloudflare
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: apex-dpf
+          directory: apex.com/app/dist
+
+      # Deploy MIND (arifos)
+      # Adjust path/command if MIND has a build step
+      # - name: Build & Deploy MIND
+      #   ...
+
+  # --- Step 2: Deploy Dynamic Core to Railway ---
+  # This only runs if static layers deploy successfully
+  deploy-dynamic:
+    needs: deploy-static
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Railway
+        run: npm install -g @railway/cli
+
+      - name: Deploy BODY to Railway
+        run: railway up --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
