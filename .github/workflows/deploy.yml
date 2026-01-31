@@ -7,16 +7,9 @@ on:
   workflow_dispatch:
 
 jobs:
-<<<<<<< HEAD
   # --- Step 1: Build and Deploy Static Frontend Layers to Cloudflare Pages ---
   deploy-frontend:
-=======
-  # --- Step 1: Deploy Static Frontend Layers to Cloudflare Pages ---
-  # BODY (arif-fazil.com) and SOUL (apex.arif-fazil.com) are React apps
-  # deployed to Cloudflare Pages for fast, reliable static hosting
-  deploy-frontend:
     name: Deploy Frontend (Cloudflare Pages)
->>>>>>> 46a57cb9 (888_DECREE: Ecosystem Alignment - Cloudflare Pages Transition)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -26,47 +19,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: 'npm'
+          cache: "npm"
 
-<<<<<<< HEAD
-      # Build and Deploy BODY (arif-fazil.com)
+      # Build and Deploy BODY (arif-fazil.com) - Identity & Dashboard
       - name: Build BODY (arif-fazil.com)
-=======
-      # Deploy SOUL (apex.arif-fazil.com) - Constitutional Canon
-      - name: Build SOUL (apex.com)
-        run: |
-          cd apex.com/app
-          npm ci
-          npm run build
-          # Copy all image assets to dist
-          cp public/*.jpg dist/ 2>/dev/null || true
-          cp public/*.png dist/ 2>/dev/null || true
-
-      - name: Deploy SOUL to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: apex-dpf
-          directory: apex.com/app/dist
-
-      # Deploy BODY (arif-fazil.com) - Identity & Dashboard
-      - name: Build BODY (ariffazil.com)
->>>>>>> 46a57cb9 (888_DECREE: Ecosystem Alignment - Cloudflare Pages Transition)
         run: |
           cd ariffazil.com/app
           npm ci
           npm run build
-<<<<<<< HEAD
+          # Copy image assets from root if they exist
           cp ../*.jpg dist/ 2>/dev/null || true
-          cp ../three-judges-geometric.jpg dist/ 2>/dev/null || true
-          cp ../13-floors-geometric.jpg dist/ 2>/dev/null || true
+          cp ../*.png dist/ 2>/dev/null || true
           ls -la dist/
-=======
-          # Copy all image assets to dist
-          cp public/*.jpg dist/ 2>/dev/null || true
-          cp public/*.png dist/ 2>/dev/null || true
->>>>>>> 46a57cb9 (888_DECREE: Ecosystem Alignment - Cloudflare Pages Transition)
 
       - name: Deploy BODY to Cloudflare Pages
         uses: cloudflare/pages-action@v1
@@ -76,14 +40,15 @@ jobs:
           projectName: arif-fazil
           directory: ariffazil.com/app/dist
 
-<<<<<<< HEAD
-      # Build and Deploy SOUL (apex.arif-fazil.com)
+      # Build and Deploy SOUL (apex.arif-fazil.com) - Constitutional Canon
       - name: Build SOUL (apex.arif-fazil.com)
         run: |
           cd apex.com/app
           npm ci
           npm run build
-          cp ../public/*.jpg dist/ 2>/dev/null || true
+          # Copy image assets from root if they exist
+          cp ../*.jpg dist/ 2>/dev/null || true
+          cp ../*.png dist/ 2>/dev/null || true
           ls -la dist/
 
       - name: Deploy SOUL to Cloudflare Pages
@@ -96,32 +61,17 @@ jobs:
 
   # --- Step 2: Deploy MIND (Backend) to Railway ---
   deploy-backend:
-=======
-  # --- Step 2: Deploy Backend API to Railway ---
-  # MIND layer (FastAPI/MCP) hosts the constitutional tools
-  # This runs only after frontend deployment succeeds
-  deploy-backend:
     name: Deploy Backend (Railway)
->>>>>>> 46a57cb9 (888_DECREE: Ecosystem Alignment - Cloudflare Pages Transition)
     needs: deploy-frontend
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-<<<<<<< HEAD
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-=======
->>>>>>> 46a57cb9 (888_DECREE: Ecosystem Alignment - Cloudflare Pages Transition)
       - name: Setup Railway CLI
         run: npm install -g @railway/cli
 
       - name: Deploy MIND to Railway
-<<<<<<< HEAD
         run: railway up --service arifos-mind --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
@@ -129,11 +79,7 @@ jobs:
       - name: Verify Backend Health
         run: |
           sleep 10
-          curl -sf https://arifos.arif-fazil.com/health || echo "Health check will be available after DNS propagation"
-=======
-        run: railway up --detach
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          curl -sf https://aaamcp.arif-fazil.com/health || echo "Health check will be available after DNS propagation"
 
   # --- Step 3: Verify Trinity Alignment ---
   verify:
@@ -151,20 +97,26 @@ jobs:
           echo "Checking SOUL layer..."
           curl -sf https://apex.arif-fazil.com > /dev/null && echo "✅ SOUL is ONLINE" || echo "⚠️ SOUL check failed"
 
-      - name: Check MIND (Railway Health)
+      - name: Check DOCS (arifos.arif-fazil.com)
+        run: |
+          echo "Checking DOCS layer..."
+          curl -sf https://arifos.arif-fazil.com > /dev/null && echo "✅ DOCS is ONLINE" || echo "⚠️ DOCS check failed"
+
+      - name: Check MIND (aaamcp.arif-fazil.com)
         run: |
           echo "Checking MIND layer..."
-          curl -sf https://arif-fazil.com/health > /dev/null && echo "✅ MIND is ONLINE" || echo "⚠️ MIND check failed"
+          curl -sf https://aaamcp.arif-fazil.com/health > /dev/null && echo "✅ MIND is ONLINE" || echo "⚠️ MIND check failed"
 
       - name: Trinity Alignment Report
         run: |
           echo "========================================"
           echo "  TRINITY ECOSYSTEM ALIGNMENT REPORT"
+          echo "     v55.2 — Metabolic Separation"
           echo "========================================"
-          echo "  BODY:  https://arif-fazil.com"
-          echo "  SOUL:  https://apex.arif-fazil.com"
-          echo "  MIND:  https://arifos.arif-fazil.com"
+          echo "  BODY:  https://arif-fazil.com         (Cloudflare Pages)"
+          echo "  SOUL:  https://apex.arif-fazil.com    (Cloudflare Pages)"
+          echo "  DOCS:  https://arifos.arif-fazil.com  (Cloudflare Pages)"
+          echo "  MIND:  https://aaamcp.arif-fazil.com  (Railway API)"
           echo "========================================"
           echo "  DITEMPA BUKAN DIBERI"
           echo "========================================"
->>>>>>> 46a57cb9 (888_DECREE: Ecosystem Alignment - Cloudflare Pages Transition)
