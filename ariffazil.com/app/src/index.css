@@ -61,22 +61,64 @@
 
 /* Selection */
 ::selection {
-  background: rgba(249, 115, 22, 0.3);
+  background: rgba(234, 179, 8, 0.3);
   color: white;
 }
 
-/* Animations */
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+/* Mathematical symbols */
+.math-symbol {
+  font-family: 'Times New Roman', serif;
+  font-style: italic;
+}
+
+/* Geometric animations */
+@keyframes rotate-slow {
+  from {
+    transform: rotate(0deg);
   }
-  50% {
-    box-shadow: 0 0 40px rgba(249, 115, 22, 0.5);
+  to {
+    transform: rotate(360deg);
   }
 }
 
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(234, 179, 8, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(234, 179, 8, 0.5);
+  }
+}
+
+.animate-rotate-slow {
+  animation: rotate-slow 60s linear infinite;
+}
+
 .animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Sacred geometry grid */
+.sacred-grid {
+  background-image: 
+    linear-gradient(rgba(234, 179, 8, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(234, 179, 8, 0.05) 1px, transparent 1px),
+    linear-gradient(45deg, rgba(234, 179, 8, 0.02) 1px, transparent 1px),
+    linear-gradient(-45deg, rgba(234, 179, 8, 0.02) 1px, transparent 1px);
+  background-size: 50px 50px, 50px 50px, 70.71px 70.71px, 70.71px 70.71px;
+}
+
+/* Code block styling */
+.code-block {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Formula styling */
+.formula {
+  font-family: 'Times New Roman', serif;
+  font-style: italic;
 }
 
 /* Gradient text */
@@ -87,8 +129,21 @@
   background-clip: text;
 }
 
+.gradient-text-apex {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 /* Glass effect */
 .glass {
+  background: rgba(10, 10, 10, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-apex {
   background: rgba(10, 10, 10, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);

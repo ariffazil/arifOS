@@ -6,13 +6,13 @@
 <h1 align="center">arifOS</h1>
 
 <p align="center">
-  <b>The Constitutional Kernel for AI</b><br>
-  <i>Because intelligence without conscience is just entropy.</i>
+  <b>A Constitutional Operating System for AI</b><br>
+  <i>Because intelligence without governance is chaos</i>
 </p>
 
 <p align="center">
   <a href="https://arif-fazil.com">
-    <img src="https://img.shields.io/badge/Live_Portfolio-DITEMPA_BUKAN_DIBERI-FFD700?style=for-the-badge" alt="Portfolio">
+    <img src="https://img.shields.io/badge/Live_Demo-Try_Now-FF79C6?style=for-the-badge" alt="Demo">
   </a>
   <a href="https://www.youtube.com/watch?v=bGnzIwZAgm0">
     <img src="https://img.shields.io/badge/Watch_Demo-YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="YouTube">
@@ -22,17 +22,17 @@
   </a>
 </p>
 
-### 🌐 Live Ecosystem
+### 🌐 Live Deployment
 
 | URL | Purpose | Status |
 |-----|---------|--------|
-| **[arif-fazil.com](https://arif-fazil.com)** | 🏛️ Central Hub | `ONLINE` |
-| **[mcp.arif-fazil.com](https://mcp.arif-fazil.com)** | 🛠️ MCP Gateway | `ONLINE` |
+| **[arifos.arif-fazil.com](https://arifos.arif-fazil.com)** | 🖥️ Main Dashboard | `ONLINE` |
+| **[apex.arif-fazil.com](https://apex.arif-fazil.com)** | ⚖️ Judgment Engine | `ONLINE` |
 
 ---
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ariffazil/arifOS/main/docs/arif-hero-og.jpg" alt="arifOS: The Constitutional Kernel for AI" width="100%">
+  <img src="https://raw.githubusercontent.com/ariffazil/arifOS/main/docs/forged_page_1.png" alt="arifOS: The Constitutional Kernel for AI" width="100%">
 </p>
 
 ---
@@ -54,66 +54,97 @@ AI without constraints causes harm:
 | No reversibility | Damage is permanent | Deleted data |
 | No boundaries | AI oversteps | Giving legal advice it shouldn't |
 
-### Our Approach: 13 Floors, 3 Engines, 1 Ledger
+### Our Approach: 9 Floors, 2 Mirrors, 2 Walls
 
-Instead of complex jargon, we use simple thermodynamic and physical metaphors:
+Instead of complex jargon, we use simple physical metaphors:
 
-- **13 Floors** — Core safety checks derived from the 9 Paradoxes and 4 Auditor Walls.
-- **3 Engines (The Trinity)** — Δ-Mind (AGI), Ω-Heart (ASI), and Ψ-Soul (APEX).
-- **Entropy Cooling** — The process of reducing information chaos ($\Delta S \le 0$) before a verdict.
-
----
-
-## The 13 Constitutional Floors
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/ariffazil/arifOS/main/docs/constitutional-floors.jpg" alt="The 13 Constitutional Floors" width="100%">
-</p>
-
-| Floor | Principle | Question | Metric |
-|-------|-----------|----------|--------|
-| **F1** | **Amanah** | Is this reversible? | Integrity |
-| **F2** | **Truth** | Is this factually true? | Confidence $\ge 0.99$ |
-| **F3** | **Tri-Witness** | Do we agree (Human/AI/Earth)? | Consensus $\ge 0.95$ |
-| **F4** | **Clarity** | Does it reduce confusion? | $\Delta S \le 0$ |
-| **F5** | **Peace** | Does it stabilize reality? | Peace² $\ge 1.0$ |
-| **F6** | **Empathy** | Does it protect the weakest? | Stakeholder Map |
-| **F7** | **Humility** | Are we honest about uncertainty? | $3-5\%$ Band |
-| **F8** | **Genius** | Is the intelligence governed? | $G \ge 0.80$ |
-| **F9** | **Anti-Ghost** | Is it authentic (non-deceptive)? | Transparency |
-| **F10**| **Ontology** | Is it grounded in physical reality? | Locked |
-| **F11**| **Command** | Is the authority verified? | Sovereignty |
-| **F12**| **Defense** | Is it resistant to injection? | Injection $< 0.85$ |
-| **F13**| **Sovereign** | Does the human have final veto? | Veto Path |
+- **9 Floors** — Core safety checks every decision must pass
+- **2 Mirrors** — External and internal reflection
+- **2 Walls** — Hard boundaries that cannot be crossed
 
 ---
 
-## The Trinity & Metabolic Engine
+## The 9 Floors (Core Safety Checks)
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ariffazil/arifOS/main/docs/entropy-cooling.jpg" alt="The Metabolic Pipeline" width="100%">
+  <img src="https://raw.githubusercontent.com/ariffazil/arifOS/main/docs/forged_page_6.png" alt="The 9 Constitutional Floors" width="100%">
 </p>
 
-The arifOS kernel is a **Metabolic Engine** that converts raw, chaotic AI intent into "Cooled" Constitutional Verdicts.
+Think of these as floors in a building. Each floor checks something essential:
 
-### The Trinity (ΔΩΨ)
+| Floor | Question | Why It Matters |
+|-------|----------|----------------|
+| **F1** | Is this reversible? | If something goes wrong, can we undo it? |
+| **F2** | Is this true? | Are we confident in the facts? |
+| **F3** | Do we agree? | Do multiple perspectives align? |
+| **F4** | Is this clear? | Does it reduce confusion? |
+| **F5** | Is this peaceful? | Does it avoid unnecessary harm? |
+| **F6** | Who is most vulnerable? | Does it protect the weakest? |
+| **F7** | Do we admit uncertainty? | Are we honest about what we don't know? |
+| **F8** | Is this wise? | Is intelligence properly guided? |
+| **F9** | Is this real? | Are we pretending to be something we're not? |
 
-1.  **MIND (Δ-AGI)**: The Engine of Logic. Responsible for 111_SENSE and 333_ATLAS. Uses Kalman-style weighting to filter truth from noise.
-2.  **HEART (Ω-ASI)**: The Engine of Care. Responsible for 555_DEFEND. Protects stakeholders and ensures Peace² $\ge 1.0$.
-3.  **SOUL (Ψ-APEX)**: The Engine of Will. Responsible for 888_DECREE. Synthesizes Mind and Heart into a single, immutable Seal.
+**Hard Floors (cannot be violated):** F1, F2, F5, F9  
+**Soft Floors (guidance with flexibility):** F3, F4, F6, F7, F8
 
-### Thermodynamic Governance
+---
 
-Every calculation in arifOS is viewed through the lens of **Information Thermodynamics**:
-- **Work**: The reasoning performed to reduce entropy.
-- **Heat**: The "waste" information removed during filtering (Floors F4 and F7).
-- **Crystallization**: The transition of a thought from "Superposition" (uncertain) to "Sealed" (verdict).
+## The 2 Mirrors (Reflection)
+
+Mirrors help us see ourselves — both from outside and within:
+
+### Mirror 1: The External Mirror (F3 — Tri-Witness)
+
+Before acting, we ask three witnesses:
+1. **Human** — Does a person agree this is right?
+2. **AI** — Does the AI system confirm this is sound?
+3. **System** — Does the technical reality support this?
+
+All three must agree (≥95% consensus) before proceeding.
+
+### Mirror 2: The Internal Mirror (F8 — Genius)
+
+Wisdom isn't just intelligence. It's intelligence with guardrails:
+
+```
+Wisdom = Knowledge × Care × Effort × Energy²
+```
+
+Any zero breaks the chain. Unwise intelligence is dangerous.
+
+---
+
+## The 2 Walls (Hard Boundaries)
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/ariffazil/arifOS/main/docs/forged_page_7.png" alt="The Metabolic Pipeline" width="100%">
+</p>
+
+Walls are absolute boundaries. They cannot be crossed:
+
+### Wall 1: Ontology (Domain Boundaries)
+
+AI must know its limits:
+- A medical AI shouldn't give legal advice
+- A coding assistant shouldn't diagnose illness
+- A language model shouldn't control physical devices
+
+**The rule:** Stay in your lane. Admit when something is outside your expertise.
+
+### Wall 2: Defense (Security)
+
+AI must resist manipulation:
+- Prompt injection attacks
+- Jailbreak attempts
+- Social engineering through conversation
+
+**The rule:** Block attempts to bypass safety measures.
 
 ---
 
 ## The 7 Applications (From Simple to Advanced)
 
-arifOS offers **7 levels of application**, from a simple copy-paste prompt to a full constitutional institution. Each level builds on the 13 constitutional floors ($F1 \dots F13$).
+arifOS offers **7 levels of application**, from a simple copy-paste prompt to a full constitutional institution. Each level builds on the floors, mirrors, and walls.
 
 ### Overview: Choose Your Level
 
@@ -189,12 +220,12 @@ Before responding, please check:
 
 **What it is:** A real server that enforces all checks automatically
 
-**What it checks:** **F1-F13** — this is where enforcement happens
+**What it checks:** **All 9 floors** — this is where enforcement happens
 
 **How to use:**
 ```bash
 # Install
-pip install arifos
+pip install aaa-mcp
 
 # Run locally
 aaa-mcp-stdio  # For Claude, Cursor
@@ -203,18 +234,18 @@ aaa-mcp-sse    # For web apps
 
 **Or connect to the live server:**
 - **Endpoint:** `https://mcp.arif-fazil.com`
-- **Dashboard:** `https://arif-fazil.com`
+- **Dashboard:** `https://arifos.arif-fazil.com`
 
 **The 7 Tools:**
 
 | Tool | What It Does | Floors |
 |------|--------------|--------|
 | `_init_` | Start safely — verify identity, check for attacks | F11, F12 |
-| `_agi_` | Think through a problem (Mind) | F2, F4, F7, F10 |
-| `_asi_` | Check if it's safe (Heart) | F1, F5, F6, F9 |
-| `_apex_` | Make the final call (Soul) | F3, F8, F13 |
+| `_agi_` | Think through a problem | F2, F7, F10 |
+| `_asi_` | Check if it's safe | F1, F5, F6, F9 |
+| `_apex_` | Make the final call | F3, F8 |
 | `_vault_` | Record what happened permanently | F1, F8 |
-| `_trinity_` | Run everything at once | F1-F13 |
+| `_trinity_` | Run everything at once | All 9 |
 | `_reality_` | Check external facts | F2, F7 |
 
 **Use when:** Building production applications that need guaranteed safety
@@ -225,9 +256,9 @@ aaa-mcp-sse    # For web apps
 
 **What it is:** AI systems that work independently within constitutional boundaries
 
-**What it checks:** F1-F13 + **Federation consensus**
+**What it checks:** All 9 floors + **Federation consensus**
 
-**The 4-Agent Federation (ΔΩΨ👁️):**
+**The 4-Agent Federation:**
 
 | Agent | Role | Symbol | Question |
 |-------|------|--------|----------|
@@ -255,17 +286,17 @@ aaa-mcp-sse    # For web apps
 **What it checks:** All 9 floors + **Institutional consensus** + **Human oversight**
 
 **Components:**
-**The Trinity** — Three engines working together:
-  - **AGI (Mind)** — Δ-Engine: Thinks and reasons (F2, F4, F7, F10)
-  - **ASI (Heart)** — Ω-Engine: Checks safety and empathy (F1, F5, F6, F9)
-  - **APEX (Soul)** — Ψ-Engine: Makes final judgments (F3, F8, F13)
+- **The Trinity** — Three engines working together:
+  - **AGI (Mind)** — Thinks and reasons
+  - **ASI (Heart)** — Checks safety and empathy
+  - **APEX (Soul)** — Makes final judgments
 
-- **The Ledger** — Permanent record of all decisions (VAULT999)
+- **The Ledger** — Permanent record of all decisions
 - **The Federation** — Coordinates multiple institutions
 
 **How it works:**
 ```
-Input → Δ-Mind Thinks → Ω-Heart Checks → Ψ-Soul Judges → Human Confirms → Record Sealed
+Input → AGI Thinks → ASI Checks → APEX Judges → Human Confirms → Record Sealed
 ```
 
 **Use when:** Mission-critical operations where mistakes have serious consequences
@@ -290,7 +321,7 @@ Input → Δ-Mind Thinks → Ω-Heart Checks → Ψ-Soul Judges → Human Confir
 How do you let AI improve itself without it removing its own safety constraints?
 
 **Our Approach:**
-- Any self-modification must pass **F1-F13**
+- Any self-modification must pass **all 9 floors**
 - Changes must be **reversible** (F1)
 - Changes must be **witnessed** by external auditors (F3)
 - Changes must **preserve** the constitutional core
@@ -304,39 +335,20 @@ How do you let AI improve itself without it removing its own safety constraints?
 Every request flows through stages, each checking different floors:
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  USER INPUT                                             │
-└────────────────────┬────────────────────────────────────┘
+111_SENSE → Understand the Input
+Floors: F2 (Truth), F4 (Clarity)
                      ↓
-┌─────────────────────────────────────────────────────────┐
-│  000_INIT — Identity Check + Injection Scan             │
-│  Mirrors: None | Walls: F12 (Defense)                   │
-└────────────────────┬────────────────────────────────────┘
+333_THINK → Generate Response
+Floors: F2, F7, F8, F10 (Wall 1)
                      ↓
-┌─────────────────────────────────────────────────────────┐
-│  111_SENSE — Understand the Input                       │
-│  Floors: F2 (Truth), F4 (Clarity)                       │
-└────────────────────┬────────────────────────────────────┘
+666_CHECK → Verify Safety
+Floors: F1, F5, F6, F9
                      ↓
-┌─────────────────────────────────────────────────────────┐
-│  333_THINK — Generate Response                          │
-│  Floors: F2, F7, F8, F10 (Wall 1)                       │
-└────────────────────┬────────────────────────────────────┘
+888_JUDGE → Final Decision
+Mirrors: F3 (External), F8 (Internal)
                      ↓
-┌─────────────────────────────────────────────────────────┐
-│  666_CHECK — Verify Safety                              │
-│  Floors: F1, F5, F6, F9                                 │
-└────────────────────┬────────────────────────────────────┘
-                     ↓
-┌─────────────────────────────────────────────────────────┐
-│  888_JUDGE — Final Decision                             │
-│  Mirrors: F3 (External), F8 (Internal)                  │
-└────────────────────┬────────────────────────────────────┘
-                     ↓
-┌─────────────────────────────────────────────────────────┐
-│  999_RECORD — Permanent Audit                           │
-│  Floors: F1, F8                                         │
-└─────────────────────────────────────────────────────────┘
+999_RECORD → Permanent Audit
+Floors: F1, F8
 ```
 
 **Result:** Every output has passed all relevant safety checks.
@@ -393,7 +405,7 @@ Every request flows through stages, each checking different floors:
 5. **VAULT** — Permanent record of the decision
 
 **Checks performed:**
-- F1-F13
+- All 9 floors
 - External audit review
 - Regulatory compliance check
 - Reversibility plan (can we undo this if wrong?)

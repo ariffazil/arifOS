@@ -98,9 +98,7 @@ class SSETransport(BaseTransport):
         self._register_resources()
         self._register_prompts()
 
-        logger.info(
-            f"Starting Streamable HTTP Transport on {_DEFAULT_HOST}:{_DEFAULT_PORT}"
-        )
+        logger.info(f"Starting Streamable HTTP Transport on {_DEFAULT_HOST}:{_DEFAULT_PORT}")
 
         # Run using uvicorn programmatically
         asgi_app = self.mcp.streamable_http_app()
@@ -145,10 +143,10 @@ class SSETransport(BaseTransport):
             """Root endpoint - serve the arifOS website."""
             static_path = os.path.join(os.path.dirname(__file__), "..", "static", "index.html")
             static_path = os.path.abspath(static_path)
-            
+
             if os.path.exists(static_path):
                 return FileResponse(static_path)
-            
+
             return HTMLResponse(content=DASHBOARD_HTML)
 
         @self.mcp.custom_route("/assets/{filename}", methods=["GET"])
@@ -157,42 +155,78 @@ class SSETransport(BaseTransport):
             static_dir = os.path.join(os.path.dirname(__file__), "..", "static", "assets")
             static_dir = os.path.abspath(static_dir)
             file_path = os.path.join(static_dir, filename)
-            
+
             if os.path.exists(file_path) and os.path.isfile(file_path):
                 # Determine content type
-                if filename.endswith('.js'):
+                if filename.endswith(".js"):
                     return FileResponse(file_path, media_type="application/javascript")
-                elif filename.endswith('.css'):
+                elif filename.endswith(".css"):
                     return FileResponse(file_path, media_type="text/css")
                 else:
                     return FileResponse(file_path)
-            
+
+            return HTMLResponse(content="Not found", status_code=404)
+
+        @self.mcp.custom_route("/css/{css_file}", methods=["GET"])
+        async def css_assets(request, css_file: str):
+            """Serve CSS files from ariffazil.com."""
+            static_dir = os.path.join(
+                os.path.dirname(__file__), "..", "..", "..", "ariffazil.com", "css"
+            )
+            static_dir = os.path.abspath(static_dir)
+            file_path = os.path.join(static_dir, css_file)
+
+            if ".." in css_file:
+                return HTMLResponse(content="Forbidden", status_code=403)
+
+            if os.path.exists(file_path) and os.path.isfile(file_path):
+                return FileResponse(file_path, media_type="text/css")
+
+            return HTMLResponse(content="Not found", status_code=404)
+
+        @self.mcp.custom_route("/img/{img_file}", methods=["GET"])
+        async def img_assets(request, img_file: str):
+            """Serve image files from ariffazil.com."""
+            static_dir = os.path.join(
+                os.path.dirname(__file__), "..", "..", "..", "ariffazil.com", "img"
+            )
+            static_dir = os.path.abspath(static_dir)
+            file_path = os.path.join(static_dir, img_file)
+
+            if ".." in img_file:
+                return HTMLResponse(content="Forbidden", status_code=403)
+
+            if os.path.exists(file_path) and os.path.isfile(file_path):
+                if img_file.endswith(".png"):
+                    return FileResponse(file_path, media_type="image/png")
+                return FileResponse(file_path, media_type="image/jpeg")
+
             return HTMLResponse(content="Not found", status_code=404)
 
         @self.mcp.custom_route("/{filename}", methods=["GET"])
         async def static_files(request, filename: str):
             """Serve static files (images, etc)."""
             # Skip API routes
-            if filename in ['health', 'metrics', 'mcp', 'sse']:
+            if filename in ["health", "metrics", "mcp", "sse"]:
                 return HTMLResponse(content="Not found", status_code=404)
-            
+
             static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
             static_dir = os.path.abspath(static_dir)
             file_path = os.path.join(static_dir, filename)
-            
+
             if os.path.exists(file_path) and os.path.isfile(file_path):
                 # Determine content type
-                if filename.endswith('.jpg') or filename.endswith('.jpeg'):
+                if filename.endswith(".jpg") or filename.endswith(".jpeg"):
                     return FileResponse(file_path, media_type="image/jpeg")
-                elif filename.endswith('.png'):
+                elif filename.endswith(".png"):
                     return FileResponse(file_path, media_type="image/png")
-                elif filename.endswith('.svg'):
+                elif filename.endswith(".svg"):
                     return FileResponse(file_path, media_type="image/svg+xml")
-                elif filename.endswith('.html'):
+                elif filename.endswith(".html"):
                     return FileResponse(file_path, media_type="text/html")
                 else:
                     return FileResponse(file_path)
-            
+
             return HTMLResponse(content="Not found", status_code=404)
 
     def _register_resources(self):
