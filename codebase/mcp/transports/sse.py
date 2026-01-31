@@ -52,12 +52,14 @@ class SSETransport(BaseTransport):
             # Apply constitutionally mandated rate limiting
             handler = rate_limited(tool_name)(tool_def.handler)
 
-            # FastMCP tool registration
-            self.mcp.add_tool(
-                handler,
-                name=tool_def.name,
-                description=tool_def.description,
-            )
+            # FastMCP tool registration with annotations
+            tool_kwargs = {
+                "name": tool_def.name,
+                "description": tool_def.description,
+            }
+            if tool_def.annotations:
+                tool_kwargs["annotations"] = tool_def.annotations
+            self.mcp.add_tool(handler, **tool_kwargs)
             logger.info(f"Registered HTTP tool: {tool_name}")
 
         # Register MCP Resources and Prompts
