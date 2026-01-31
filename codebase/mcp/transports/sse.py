@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 # Security: bind to localhost for local dev, 0.0.0.0 only when HOST env is set
 _DEFAULT_HOST = os.getenv("HOST", "127.0.0.1")
-_DEFAULT_PORT = int(os.getenv("PORT", 8000))
+_DEFAULT_PORT = int(os.getenv("PORT", 8080))
 
 
 class SSETransport(BaseTransport):
