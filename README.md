@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://arifos.arif-fazil.com">
+  <a href="https://arif-fazil.com">
     <img src="https://img.shields.io/badge/Live_Demo-Try_Now-FF79C6?style=for-the-badge" alt="Demo">
   </a>
   <a href="https://www.youtube.com/watch?v=bGnzIwZAgm0">
@@ -459,13 +459,11 @@ docker-compose up -d
 
 ---
 
-## Websites
+## Website
 
-| URL | Purpose |
-|-----|---------|
-| [arifos.arif-fazil.com](https://arifos.arif-fazil.com) | Main dashboard |
-| [apex.arif-fazil.com](https://apex.arif-fazil.com) | Judgment engine |
-| [mcp.arif-fazil.com](https://mcp.arif-fazil.com) | MCP endpoint |
+**Main URL:** [https://arif-fazil.com](https://arif-fazil.com)
+
+The arifOS server runs at the root domain. All constitutional checks happen here.
 
 ---
 
