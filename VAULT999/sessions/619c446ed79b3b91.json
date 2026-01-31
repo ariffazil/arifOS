@@ -1,0 +1,95 @@
+{
+  "session_id": "",
+  "timestamp": "2026-01-31T02:18:58.730433Z",
+  "verdict": "SABAR",
+  "init_result": {},
+  "genius_result": {},
+  "act_result": {},
+  "judge_result": {
+    "verdict_struct": {
+      "stage": "888_JUDGE",
+      "session_id": "",
+      "lane": "SOFT",
+      "verdict": "SABAR",
+      "reason": "SABAR: Hypervisor Block (F13(Curiosity))",
+      "p_truth": 0.0,
+      "tri_witness": 0.8833333333333333,
+      "votes": {
+        "mind": 0.9,
+        "heart": 0.8,
+        "earth": 0.95,
+        "soul": 0.8833333333333333
+      },
+      "violated_floors": [],
+      "cooling": {
+        "tier": "L3_WEEKLY",
+        "hold_hours": 168
+      },
+      "proof_hash": "052cfa40641fe893100868ef4c55bb37a2acb90d9a51c6905a1fa7eab41dc8e8",
+      "metrics": {
+        "truth": 0.9,
+        "delta_s": -0.5,
+        "peace_squared": 1.0,
+        "kappa_r": 0.8,
+        "omega_0": 0.04,
+        "amanah": true,
+        "tri_witness": 0.8833333333333333,
+        "rasa": true,
+        "anti_hantu": true,
+        "psi": 1.0
+      },
+      "psi_kernel": {
+        "psi_verdict": "SABAR",
+        "psi_f8_genius": 0.8833333333333333,
+        "psi_passed": false,
+        "psi_overrode": false
+      },
+      "nine_fold": {
+        "equilibrium_gm": null,
+        "equilibrium_std": 0.6365503044775711
+      }
+    },
+    "proof": {
+      "stage": "889_PROOF",
+      "session_id": "",
+      "merkle_root": "ba6ccd1497dca701d92a4322b91efea6964ba6ef7f96a1b639ad73cd90fc1831",
+      "signature_ed25519": "06c035f0d432137d85116b2da9971c8b8986c233a7675394370f65f2157f88673b5a1b9cf6d18ac95de33c0d0453ac4bfa414bfc8375098d370db4c744127f0c",
+      "public_key_ed25519": "b5eb80daacc65c9fa2229de9601a1b388170237d57b547d113081f8f6d98e854",
+      "leaves": [
+        "54f6b577c81ed0ce19d1cdb6fc44ea5aba3c87e56a947a49b39db109777f418b",
+        "1e6e2c629c423157dc7ab78067ef665356654f34c56021979f29ebaee874698a",
+        "676067a2f245b06dd2954cb279e9b6edd3251ae7fd4ea4cc13d7b710ce6e1e79",
+        "4f24b41ab111d31943909f2250f3aefbcf0e084b8068780397867cffa279bb39",
+        "06ff4e80f31626451bb9b0b133df2d58ec66d19e53ec931e221d49b906d96b97",
+        "37b0c3d50559d2ef6d0ae38ac6490f6ed130078a41a39fee8b4ebbdcba8c7d2f",
+        "5c4b1181fd140503091fbd867fa585bfb625a4e40e0983ecebbdbf862bdb87d7",
+        "aa0bf1c58f2b4eb996b59042ea8bbc9288d3654c618ca2966bb144f7f68006bf",
+        "c25098a0a5f2f57b782b94fe8bb1e6b6aad72dc6a1b9f3cf7bf1c6f21e23b885",
+        "d204efb1165a26c149866f569aa6f7185e7c9e0783b0110bb38f3e319e0b95a9",
+        "f6222abe68e41ac2e0554e9f6b7cbd74260a80230ac76fad7b5bcd11ab515191"
+      ]
+    }
+  },
+  "telemetry": {
+    "verdict": "SABAR",
+    "p_truth": 0.0,
+    "TW": 0.8833333333333333,
+    "dS": -0.5,
+    "peace2": 1.0,
+    "kappa_r": 0.8,
+    "omega_0": 0.04,
+    "cooling": {
+      "tier": "L3_WEEKLY",
+      "hold_hours": 168
+    },
+    "proof": {
+      "merkle_root": "ba6ccd1497dca701d92a4322b91efea6964ba6ef7f96a1b639ad73cd90fc1831",
+      "public_key": "b5eb80daacc65c9fa2229de9601a1b388170237d57b547d113081f8f6d98e854"
+    }
+  },
+  "prev_hash": "619f52086eecd177973339cd97d7b2698c86b6b67b1958f6b562998b0e85ceda",
+  "merkle_root": "a7765baedaf018ae2145f11c5fabb3f38613cc8e11fc4355bc5c4e41f65103d2",
+  "entry_hash": "619c446ed79b3b91e2cfc91a33bc6c06ae8188f324045f15fd8c8cfee261ae42",
+  "context_summary": "SABAR: SABAR: Hypervisor Block (F13(Curiosity))",
+  "key_insights": []
+}

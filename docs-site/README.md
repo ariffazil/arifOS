@@ -1,75 +1,82 @@
-# arifOS Pages Redirect
+# arifOS MIND Documentation
 
-This folder contains the Cloudflare Pages redirect setup for `arifos.pages.dev`.
+**The MIND Layer** — Documentation, API Reference, and MCP Tools for the arifOS Constitutional AI Framework.
 
-## Purpose
+## Architecture Alignment
 
-Redirect all traffic from `arifos.pages.dev` → `https://arif-fazil.com/arifos`
+This site is part of the 3-layer ecosystem:
 
-This consolidates all arifOS web presence to the single Railway deployment.
+| Layer | Domain | Purpose | Design |
+|-------|--------|---------|--------|
+| **BODY** | arif-fazil.com | Identity, personal brand | Dark + Orange gradients |
+| **SOUL** | apex.arif-fazil.com | Theory, canon, philosophy | Dark + Amber gradients |
+| **MIND** | arifos.arif-fazil.com | Documentation, API, tools | Dark + Cyan/Blue gradients |
 
-## Files
+## Features
 
-| File | Purpose |
-|------|---------|
-| `_redirects` | Cloudflare Pages redirect rules (301 permanent) |
-| `index.html` | Fallback HTML with meta refresh for browsers |
+- **13 Floors Visualization** — Interactive display of constitutional safety checks
+- **MCP Tools Reference** — Complete documentation of all 5 MCP tools
+- **API Endpoints** — Live status and endpoint documentation
+- **Code Examples** — Python SDK usage with copy-to-clipboard
+- **Animated Background** — Mesh gradient with geometric patterns
+- **Responsive Design** — Mobile-optimized with dark theme
 
-## Deployment Instructions
+## Technology Stack
 
-### Option A: Deploy via Wrangler CLI (Recommended)
+- React 18 + TypeScript
+- Vite (build tool)
+- Tailwind CSS
+- Lucide React (icons)
 
-```bash
-# Install Wrangler if not already installed
-npm install -g wrangler
-
-# Login to Cloudflare
-wrangler login
-
-# Deploy the redirect
-wrangler pages deploy . --project-name=arifos
-```
-
-### Option B: Deploy via Git Integration
-
-1. Push this `docs-site/` folder to a GitHub repo
-2. Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → Pages
-3. Create new project → Connect to GitHub
-4. Select the repo with this folder
-5. Build settings:
-   - Build command: (leave empty)
-   - Build output: `/`
-6. Deploy
-
-### Option C: Direct Upload
-
-1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → Pages
-2. Select `arifos` project
-3. Create deployment → Upload assets
-4. Select both `_redirects` and `index.html`
-5. Deploy
-
-## Redirect Behavior
-
-```
-arifos.pages.dev/           → 301 → https://arif-fazil.com/arifos
-arifos.pages.dev/docs       → 301 → https://arif-fazil.com/arifos
-arifos.pages.dev/anything   → 301 → https://arif-fazil.com/arifos
-```
-
-All paths redirect to the main arifOS framework page.
-
-## Verification
-
-After deployment, test:
+## Development
 
 ```bash
-curl -I https://arifos.pages.dev/
-# Should show: HTTP/2 301 + Location: https://arif-fazil.com/arifos
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
 ```
 
-## Notes
+## Deployment
 
-- 301 redirect is SEO-friendly (search engines will update their index)
-- The `index.html` provides a fallback for browsers that don't follow redirects
-- No need to maintain content here anymore - everything is on Railway!
+### Railway (Recommended)
+
+```bash
+# From project root
+railway login
+railway link
+railway up --service arifos-docs
+```
+
+### Docker
+
+```bash
+docker build -t arifos-mind .
+docker run -p 8080:80 arifos-mind
+```
+
+## Design System
+
+### Colors
+- Background: `#0a0a0a` (near black)
+- Primary gradient: Cyan → Blue (MIND identity)
+- Floor colors: Red → Orange → Yellow → Cyan → Green
+- Text: Gray scale with white highlights
+
+### Typography
+- Font: System UI stack
+- Mono: JetBrains Mono / Fira Code
+
+### Effects
+- Glass morphism: `backdrop-blur(12px)`
+- Glow: Box shadows with color opacity
+- Mesh gradients: Animated blur circles
+- Geometric grid: CSS pattern overlay
+
+---
+
+**Ditempa Bukan Diberi** — Forged, Not Given

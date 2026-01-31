@@ -1,0 +1,51 @@
+{
+  "5bc54366-2867-4fd0-9437-c3ffc7670ed8": {
+    "session_id": "5bc54366-2867-4fd0-9437-c3ffc7670ed8",
+    "token": "",
+    "pid": 97076,
+    "started_at": "2026-01-31T01:45:15.656668Z",
+    "authority": "888_JUDGE"
+  },
+  "39f005e9-054d-4e06-818d-1c4d23245337": {
+    "session_id": "39f005e9-054d-4e06-818d-1c4d23245337",
+    "token": "",
+    "pid": 97076,
+    "started_at": "2026-01-31T03:07:57.977182Z",
+    "authority": "GUEST"
+  },
+  "9ab46030-7285-43c1-ba1d-bc1c6ea1b5b0": {
+    "session_id": "9ab46030-7285-43c1-ba1d-bc1c6ea1b5b0",
+    "token": "",
+    "pid": 97076,
+    "started_at": "2026-01-31T03:08:07.126565Z",
+    "authority": "GUEST"
+  },
+  "dfb92c96-177c-47b1-8a04-992bc77ef334": {
+    "session_id": "dfb92c96-177c-47b1-8a04-992bc77ef334",
+    "token": "",
+    "pid": 97076,
+    "started_at": "2026-01-31T04:16:59.031743Z",
+    "authority": "888_JUDGE"
+  },
+  "526f4ad8-4370-4a04-9d58-00d1ac349b4d": {
+    "session_id": "526f4ad8-4370-4a04-9d58-00d1ac349b4d",
+    "token": "",
+    "pid": 97076,
+    "started_at": "2026-01-31T04:17:13.500212Z",
+    "authority": "GUEST"
+  },
+  "4bdccb9e-3c8f-4248-88df-8d6191075643": {
+    "session_id": "4bdccb9e-3c8f-4248-88df-8d6191075643",
+    "token": "",
+    "pid": 97076,
+    "started_at": "2026-01-31T04:17:53.815985Z",
+    "authority": "888_JUDGE"
+  },
+  "6066183f-45a0-4928-b58d-c8fc364a4189": {
+    "session_id": "6066183f-45a0-4928-b58d-c8fc364a4189",
+    "token": "",
+    "pid": 97076,
+    "started_at": "2026-01-31T04:18:20.108847Z",
+    "authority": "888_JUDGE"
+  }
+}
