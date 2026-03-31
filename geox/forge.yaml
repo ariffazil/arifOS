@@ -1,0 +1,121 @@
+# forge.yaml — GEOX Prefect Horizon / FastMCP Deployment Configuration
+# DITEMPA BUKAN DIBERI
+# Muhammad Arif bin Fazil | PETRONAS Exploration
+#
+# Deploy: https://horizon.prefect.io
+# Docs: https://gofastmcp.com/deployment/prefect-horizon
+#
+# Usage:
+#   forge deploy geox-earth-witness   # via Forge CLI
+#   Or push to main → auto-deploy on Horizon
+
+version: "1.0"
+name: geox-earth-witness
+display_name: "GEOX — Geological Intelligence Coprocessor"
+description: |
+  GEOX is a governed, agentic geological intelligence coprocessor for arifOS.
+  It translates physical Earth data into auditable geological insights through
+  arifOS's Constitutional MCP kernel. Provides prospect evaluation, structural
+  validation, and physical feasibility checks anchored in reality.
+
+# Deployment target
+platform: prefect-horizon
+runtime: python312
+
+# Repository & build
+repository: https://github.com/ariffazil/GEOX
+branch: main
+entrypoint: geox_mcp_server.py
+
+# Build configuration
+build:
+  python_version: "3.12"
+  package_manager: uv
+  requirements:
+    - pyproject.toml  # auto-detected
+  build_command: |
+    uv pip install --system -e .
+
+# Start command (HTTP transport for Prefect Horizon gateway)
+start_command: python geox_mcp_server.py --http --host 0.0.0.0 --port 8081
+
+# Server settings
+server:
+  transport: http
+  host: 0.0.0.0
+  port: 8081
+  path: /mcp
+  health_check: /health
+
+# MCP configuration
+mcp:
+  protocol_version: "2024-11-05"
+  tools:
+    - name: geox_evaluate_prospect
+      description: Full GEOX geological prospect evaluation pipeline
+    - name: geox_query_memory
+      description: Query the GEOX geological memory store
+    - name: geox_health
+      description: Server health check
+
+# Environment variables (secrets via Horizon UI)
+env:
+  ARIFOS_ENV: production
+  GEOSCIENCE_MODE: governed
+  LOG_LEVEL: info
+
+# Governance / Constitutional Floors
+governance:
+  floors_enforced:
+    - F1_amanah      # Reversibility
+    - F2_truth       # Truth >= 0.99
+    - F4_clarity     # Units + coordinates
+    - F7_humility    # Uncertainty [0.03, 0.15]
+    - F9_anti_hantu  # No hallucinated geology
+    - F11_authority  # Provenance mandatory
+    - F13_sovereign  # Human veto always active
+  risk_gating:
+    low: auto_seal
+    medium: review_required
+    high: human_signoff
+    critical: sovereign_veto
+
+# Tool registry
+tools:
+  earth_model: enabled
+  seismic_vlm: enabled
+  simulator: enabled
+  geo_rag: enabled
+  macrostrat: enabled
+
+# Memory backend
+memory:
+  backend: in_memory  # PostgreSQL / Qdrant for production
+  retention_days: 90
+
+# Monitoring
+observability:
+  prometheus_metrics: true
+  health_endpoint: /health
+  readiness_endpoint: /ready
+
+# Tags
+tags:
+  - geology
+  - mcp
+  - arifos
+  - governed-ai
+  - hydrocarbon
+  - petronas
+  - malaysia
+  - constitutional-ai
+
+# Owner
+owner:
+  name: Muhammad Arif bin Fazil
+  email: ariffazil@gmail.com
+  org: PETRONAS Exploration
+  sovereign: true
+
+# Seal
+seal: DITEMPA BUKAN DIBERI

@@ -1,0 +1,208 @@
+# smithery.yaml — GEOX Smithery MCP Registry Configuration
+# DITEMPA BUKAN DIBERI
+#
+# Smithery is a marketplace for MCP servers
+# Registry: https://smithery.ai
+#
+# Usage:
+#   smithery add geox-earth-witness
+
+name: geox-earth-witness
+version: "0.4.0"
+display_name: "GEOX — Geological Intelligence Coprocessor"
+description: |
+  GEOX is a governed, agentic geological intelligence coprocessor for arifOS.
+  It provides physically-grounded geological prospect evaluation using Large Earth Models,
+  seismic VLM interpretation, basin simulation, and geospatial verification.
+  
+  Key capabilities:
+  - Prospect evaluation with constitutional floor enforcement
+  - Structural validation (fault mechanics, shortening calculations)
+  - Time-depth conversion using Dix equation
+  - Area and line-length balance checking
+  - Mohr-Coulomb failure analysis
+  - Geological RAG over literature
+  
+  Verdict outcomes: SEAL (high confidence), PARTIAL (supported with caveats),
+  SABAR (wait/gather more), VOID (contradictions detected)
+
+category: science
+subcategory: geology
+
+# MCP protocol
+mcp_version: "2024-11-05"
+transport: http
+url: https://geox-{region}.fastmcp.app/mcp
+
+# Installation
+install:
+  method: pip
+  package: arifos-geox
+  source: https://github.com/ariffazil/GEOX
+  python_version: ">=3.10"
+
+# Tools exposed
+tools:
+  - id: geox_evaluate_prospect
+    name: geox_evaluate_prospect
+    description: |
+      Full GEOX geological prospect evaluation pipeline.
+      Evaluates hydrocarbon prospectivity using physical constraints,
+      seismic interpretation, and constitutional governance.
+    input_schema:
+      type: object
+      properties:
+        query:
+          type: string
+          description: Natural-language geological evaluation query
+        prospect_name:
+          type: string
+          description: Name of the geological prospect or feature
+        latitude:
+          type: number
+          description: Prospect latitude in decimal degrees (WGS-84)
+        longitude:
+          type: number
+          description: Prospect longitude in decimal degrees (WGS-84)
+        depth_m:
+          type: number
+          description: Target depth below surface in metres
+        basin:
+          type: string
+          description: Sedimentary basin name
+        play_type:
+          type: string
+          enum: [stratigraphic, structural, combination, carbonate_buildup, deltaic]
+        available_data:
+          type: array
+          items: { type: string }
+          description: Available data types (seismic_2d, seismic_3d, well_logs, core, eo, gravity)
+        risk_tolerance:
+          type: string
+          enum: [low, medium, high]
+        requester_id:
+          type: string
+          description: Unique ID of the requesting user or system
+      required: [query, prospect_name, latitude, longitude, basin, play_type, risk_tolerance, requester_id]
+    output_schema:
+      type: object
+      properties:
+        success: { type: boolean }
+        verdict: { type: string, enum: [SEAL, PARTIAL, SABAR, VOID] }
+        confidence_aggregate: { type: number }
+        human_signoff_required: { type: boolean }
+
+  - id: geox_query_memory
+    name: geox_query_memory
+    description: |
+      Query the GEOX geological memory store for past prospect evaluations.
+      Supports keyword search and basin filtering.
+    input_schema:
+      type: object
+      properties:
+        query: { type: string }
+        basin: { type: string }
+        limit: { type: integer, default: 5 }
+      required: [query]
+
+  - id: geox_health
+    name: geox_health
+    description: |
+      GEOX server health check.
+      Returns server status, tool registry health, memory store entry count, and uptime.
+    input_schema:
+      type: object
+      properties: {}
+
+# Physical validation functions
+physics:
+  mohr_coulomb: true
+  area_balance: true
+  line_length_balance: true
+  dix_conversion: true
+  shorting_calculation: true
+
+# Constitutional governance
+governance:
+  floors:
+    - id: F1
+      name: Amanah
+      description: Reversibility — no irreversible actions without SEAL
+    - id: F2
+      name: Truth
+      description: Truth >= 0.99 — all claims Earth-verified
+    - id: F4
+      name: Clarity
+      description: Units + coordinates required on every GeoQuantity
+    - id: F7
+      name: Humility
+      description: Uncertainty calibrated [0.03, 0.15]
+    - id: F9
+      name: Anti-Hantu
+      description: No hallucinated geology — LEM/sim verification required
+    - id: F11
+      name: Authority
+      description: Provenance mandatory for all quantities
+    - id: F13
+      name: Sovereign
+      description: Human veto hook active at all stages
+
+# Verdict system
+verdicts:
+  SEAL:
+    confidence_min: 0.80
+    action: auto_proceed
+  PARTIAL:
+    confidence_min: 0.50
+    action: proceed_with_caveats
+  SABAR:
+    confidence_min: 0.25
+    action: hold_wait_data
+  VOID:
+    confidence_min: 0.00
+    action: block_stop
+
+# Example usage
+examples:
+  - title: Evaluate Malay Basin Prospect
+    code: |
+      result = await geox_evaluate_prospect(
+          query="Evaluate hydrocarbon prospectivity of Blok Selatan",
+          prospect_name="Blok Selatan",
+          latitude=5.2,
+          longitude=104.8,
+          basin="Malay Basin",
+          play_type="structural",
+          risk_tolerance="medium",
+          requester_id="geo-analyst-001"
+      )
+
+  - title: Check Geological Memory
+    code: |
+      memories = await geox_query_memory(
+          query="deltaic reservoir formation",
+          basin="Malay Basin",
+          limit=5
+      )
+
+# Author info
+author:
+  name: Muhammad Arif bin Fazil
+  email: ariffazil@gmail.com
+  org: PETRONAS Exploration
+  github: https://github.com/ariffazil
+  bio: |
+    12 years PETRONAS Exploration, zero dry wells.
+    Creator of GEOX and arifOS constitutional AI framework.
+
+# License
+license: AGPL-3.0
+
+# Links
+links:
+  github: https://github.com/ariffazil/GEOX
+  documentation: https://github.com/ariffazil/GEOX#readme
+  arifos: https://arifOS.arif-fazil.com
+
+# Seal
+seal: DITEMPA BUKAN DIBERI

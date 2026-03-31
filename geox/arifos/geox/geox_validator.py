@@ -40,6 +40,7 @@ from arifos.geox.geox_tools import BaseTool, GeoToolResult
 # ValidationResult
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class ValidationResult:
     """
@@ -76,6 +77,7 @@ class ValidationResult:
 # ---------------------------------------------------------------------------
 # AggregateVerdict
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class AggregateVerdict:
@@ -194,11 +196,12 @@ def _parse_range(s: str) -> tuple[float, float]:
 # GeoXValidator
 # ---------------------------------------------------------------------------
 
+
 class GeoXValidator:
     """
     Earth → Language contract validator.
     Enforces arifOS Constitutional Floors on all geological intelligence.
-    
+
     Now featuring the 888_JUDGE Adversarial Mode.
     """
 
@@ -206,12 +209,10 @@ class GeoXValidator:
         self.confidence_threshold = confidence_threshold
 
     async def adversarial_review(
-        self, 
-        insight: GeoInsight, 
-        supporting_quantities: list[GeoQuantity]
+        self, insight: GeoInsight, supporting_quantities: list[GeoQuantity]
     ) -> ValidationResult:
         """
-        The 888_JUDGE mode. 
+        The 888_JUDGE mode.
         Instead of looking for support, this specifically looks for PHYSICAL VOID.
         If an insight claims 'net pay 50m' but physical quantities show 'shale presence 1.0',
         this method triggers an immediate CONTRADICTED verdict.
@@ -219,7 +220,7 @@ class GeoXValidator:
         violations = []
         contradicted = False
         explanation = ""
-        
+
         # 1. Floor F4 (Clarity) Check
         if not re.search(r"\d+\s*(m|MPa|degC|fraction|%)", insight.text):
             violations.append("F4")
@@ -234,10 +235,10 @@ class GeoXValidator:
                 if qty.value > 0.8:
                     contradicted = True
                     explanation += f"Contradiction: Physical quantity '{qty.quantity_type}' ({qty.value}) contradicts reservoir claim. "
-            
+
             # Example: Porosity contradiction
             if "porosity" in qty.quantity_type and qty.value < 0.05:
-                 if "reservoir" in insight.text.lower() or "pay" in insight.text.lower():
+                if "reservoir" in insight.text.lower() or "pay" in insight.text.lower():
                     contradicted = True
                     explanation += f"Contradiction: Extreme low porosity ({qty.value}) contradicts reservoir potential. "
 
@@ -248,7 +249,7 @@ class GeoXValidator:
                 score=0.0,
                 evidence=supporting_quantities,
                 explanation=explanation,
-                floor_violations=violations
+                floor_violations=violations,
             )
 
         # Default to supported if no contradictions found and floor check passed
@@ -258,17 +259,8 @@ class GeoXValidator:
             score=1.0 if not violations else 0.5,
             evidence=supporting_quantities,
             explanation="Validated by 888_JUDGE. No physical contradictions detected.",
-            floor_violations=violations
+            floor_violations=violations,
         )
-
-    Converts raw tool outputs and LLM-generated text/insights into
-    floor-compliant validation verdicts. The primary integrity gate
-    between perception/model outputs and final geological conclusions.
-
-    Usage:
-        validator = GeoXValidator()
-        verdict = await validator.validate_batch(insights, tools)
-    """
 
     # Minimum uncertainty for F7 compliance
     F7_UNCERTAINTY_MIN: float = 0.03
@@ -278,9 +270,7 @@ class GeoXValidator:
     SEAL_THRESHOLD: float = 0.80
     PARTIAL_LOWER: float = 0.50
 
-    def extract_predictions(
-        self, text: str, location: CoordinatePoint
-    ) -> list[GeoPrediction]:
+    def extract_predictions(self, text: str, location: CoordinatePoint) -> list[GeoPrediction]:
         """
         Parse LLM output text to extract testable geological claims.
 
@@ -310,7 +300,9 @@ class GeoXValidator:
                     continue
 
                 # Normalise units
-                units = detected_units.strip().replace("°", "deg") if detected_units else default_units
+                units = (
+                    detected_units.strip().replace("°", "deg") if detected_units else default_units
+                )
                 # Convert percent porosity to fraction if needed
                 if quantity_type == "porosity_pct" and (lo > 1.0 or hi > 1.0):
                     lo, hi = lo / 100.0, hi / 100.0
@@ -373,32 +365,34 @@ class GeoXValidator:
 
         for tool in tools:
             try:
-                result: GeoToolResult = await tool.run({
-                    "query": f"verify {pred.target}",
-                    "location": pred.location,
-                    "depth_range_m": (
-                        pred.location.depth_m - 500 if pred.location.depth_m else 1000,
-                        pred.location.depth_m + 500 if pred.location.depth_m else 3000,
-                    ),
-                    "scenario": {
-                        "latitude": pred.location.latitude,
-                        "longitude": pred.location.longitude,
-                        "target_depth_m": pred.location.depth_m or 2500.0,
-                    },
-                    "timesteps_ma": [0.0, 5.0, 10.0],
-                    "bbox": {
-                        "west": pred.location.longitude - 0.5,
-                        "east": pred.location.longitude + 0.5,
-                        "south": pred.location.latitude - 0.5,
-                        "north": pred.location.latitude + 0.5,
-                    },
-                    "bands": ["B04", "B08", "TIR"],
-                    "date_range": ("2023-01-01", "2024-01-01"),
-                    "image_path": f"synthetic_{pred.target}.png",
-                    "interpretation_query": f"Estimate {pred.target}",
-                    "basin": "Malay Basin",
-                    "max_results": 3,
-                })
+                result: GeoToolResult = await tool.run(
+                    {
+                        "query": f"verify {pred.target}",
+                        "location": pred.location,
+                        "depth_range_m": (
+                            pred.location.depth_m - 500 if pred.location.depth_m else 1000,
+                            pred.location.depth_m + 500 if pred.location.depth_m else 3000,
+                        ),
+                        "scenario": {
+                            "latitude": pred.location.latitude,
+                            "longitude": pred.location.longitude,
+                            "target_depth_m": pred.location.depth_m or 2500.0,
+                        },
+                        "timesteps_ma": [0.0, 5.0, 10.0],
+                        "bbox": {
+                            "west": pred.location.longitude - 0.5,
+                            "east": pred.location.longitude + 0.5,
+                            "south": pred.location.latitude - 0.5,
+                            "north": pred.location.latitude + 0.5,
+                        },
+                        "bands": ["B04", "B08", "TIR"],
+                        "date_range": ("2023-01-01", "2024-01-01"),
+                        "image_path": f"synthetic_{pred.target}.png",
+                        "interpretation_query": f"Estimate {pred.target}",
+                        "basin": "Malay Basin",
+                        "max_results": 3,
+                    }
+                )
 
                 if not result.success:
                     continue
@@ -568,6 +562,7 @@ class GeoXValidator:
 
         # Validate each insight (could be parallelised with asyncio.gather)
         import asyncio
+
         results = await asyncio.gather(
             *[self.validate_insight(i, tools) for i in insights],
             return_exceptions=False,
@@ -630,15 +625,29 @@ class GeoXValidator:
         compliance["F1_amanah"] = f1_ok
 
         # F2: Truth — check no absolute certainty claims
-        certainty_phrases = ["100% certain", "definitely contains", "guaranteed to", "absolutely confirmed"]
+        certainty_phrases = [
+            "100% certain",
+            "definitely contains",
+            "guaranteed to",
+            "absolutely confirmed",
+        ]
         f2_ok = not any(phrase in text.lower() for phrase in certainty_phrases)
         compliance["F2_truth"] = f2_ok
 
         # F4: Clarity — at least one unit is mentioned
         unit_patterns = [
-            r"\d+\s*m\b", r"\d+\s*km\b", r"\d+\s*MPa\b", r"\d+\s*psi\b",
-            r"\d+\s*°?C\b", r"\d+\s*m/s\b", r"\d+\s*%\b", r"\d+\s*g/cm",
-            r"\bfraction\b", r"\bdegC\b", r"\bmeters?\b", r"\bmetres?\b",
+            r"\d+\s*m\b",
+            r"\d+\s*km\b",
+            r"\d+\s*MPa\b",
+            r"\d+\s*psi\b",
+            r"\d+\s*°?C\b",
+            r"\d+\s*m/s\b",
+            r"\d+\s*%\b",
+            r"\d+\s*g/cm",
+            r"\bfraction\b",
+            r"\bdegC\b",
+            r"\bmeters?\b",
+            r"\bmetres?\b",
         ]
         f4_ok = any(re.search(p, text, re.IGNORECASE) for p in unit_patterns)
         compliance["F4_clarity"] = f4_ok
@@ -670,6 +679,7 @@ class GeoXValidator:
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _quantity_matches_target(qty: GeoQuantity, target: str) -> bool:
     """

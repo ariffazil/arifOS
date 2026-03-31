@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arifos-geox"
-version = "0.1.0"
-description = "GEOX — Governed, agentic geological intelligence coprocessor for arifOS"
+version = "0.4.0"
+description = "GEOX — Governed, agentic geological intelligence coprocessor for arifOS. DITEMPA BUKAN DIBERI."
 readme = "README.md"
 license = {text = "AGPL-3.0"}
 authors = [
@@ -69,10 +69,9 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/arifos/geox"
-Documentation = "https://huggingface.co/datasets/arifos/geox"
-"Bug Tracker" = "https://github.com/arifos/geox/issues"
-"HuggingFace Hub" = "https://huggingface.co/datasets/arifos/geox"
+Homepage = "https://github.com/ariffazil/GEOX"
+Documentation = "https://github.com/ariffazil/GEOX#readme"
+"Bug Tracker" = "https://github.com/ariffazil/GEOX/issues"
 
 [project.scripts]
 geox = "arifos.geox.cli:main"
