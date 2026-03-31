@@ -12,8 +12,8 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Dict
 
-from arifosmcp.core.shared.atlas import Phi
-from arifosmcp.core.shared.types import (
+from arifos_mcp.core.shared.atlas import Phi
+from arifos_mcp.core.shared.types import (
     AuthorityLevel,
     CodeState,
     GovernanceMetadata,

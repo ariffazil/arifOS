@@ -17,8 +17,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from arifosmcp.core.shared.floor_audit import AuditResult
-from arifosmcp.core.shared.types import FloorScores
+from arifos_mcp.core.shared.floor_audit import AuditResult
+from arifos_mcp.core.shared.types import FloorScores
 
 logger = logging.getLogger(__name__)
 
@@ -203,7 +203,7 @@ def get_thermodynamic_budget_window(
 ) -> tuple[float, float]:
     """Resolve the real thermodynamic budget window, with explicit fallback."""
     try:
-        from arifosmcp.core.physics.thermodynamics_hardened import get_thermodynamic_budget
+        from arifos_mcp.core.physics.thermodynamics_hardened import get_thermodynamic_budget
 
         budget = get_thermodynamic_budget(session_id)
         return float(budget.consumed), float(budget.initial_budget)
@@ -262,7 +262,7 @@ def floors_to_dials(
 
     # Temporal Dampening: P = P_base * Stability_t
     try:
-        from arifosmcp.core.governance_kernel import get_governance_kernel
+        from arifos_mcp.core.governance_kernel import get_governance_kernel
         kernel = get_governance_kernel()
         stability_t = kernel.temporal_stability
     except Exception:

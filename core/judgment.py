@@ -19,9 +19,9 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
-from arifosmcp.core.governance_kernel import get_governance_kernel
-from arifosmcp.core.shared.types import EvidenceRecord, ScoreComponent, ScoreProvenance
-from arifosmcp.core.uncertainty_engine import UncertaintyEngine, calculate_uncertainty
+from arifos_mcp.core.governance_kernel import get_governance_kernel
+from arifos_mcp.core.shared.types import EvidenceRecord, ScoreComponent, ScoreProvenance
+from arifos_mcp.core.uncertainty_engine import UncertaintyEngine, calculate_uncertainty
 
 
 @dataclass
@@ -185,9 +185,9 @@ class JudgmentKernel:
         compute_ms: float = 0.0,
         expected_ms: float = 1.0,
     ) -> CognitionResult:
-        from arifosmcp.core.enforcement.genius import calculate_genius
-        from arifosmcp.core.shared.mottos import get_motto_by_stage
-        from arifosmcp.core.shared.types import FloorScores
+        from arifos_mcp.core.enforcement.genius import calculate_genius
+        from arifos_mcp.core.shared.mottos import get_motto_by_stage
+        from arifos_mcp.core.shared.types import FloorScores
 
         uncertainty_calc = calculate_uncertainty(
             evidence_count=evidence_count,
@@ -219,7 +219,7 @@ class JudgmentKernel:
             f10_ontology=bool(grounding),
         )
 
-        from arifosmcp.core.shared.types import Verdict
+        from arifos_mcp.core.shared.types import Verdict
 
         genius_res = calculate_genius(
             partial_floors,
@@ -295,8 +295,8 @@ class JudgmentKernel:
         reversibility_index: float,
         impact_severity: float,
     ) -> EmpathyResult:
-        from arifosmcp.core.shared.mottos import get_motto_by_stage
-        from arifosmcp.core.shared.types import Verdict
+        from arifos_mcp.core.shared.mottos import get_motto_by_stage
+        from arifos_mcp.core.shared.types import Verdict
 
         peace_squared = (1.0 - impact_severity) ** 2
         empathy_score = min(1.0, 0.6 + (stakeholder_count * 0.08) - (vulnerability_score * 0.2))
@@ -332,9 +332,9 @@ class JudgmentKernel:
         irreversibility_index: float = 0.5,
         tool_class: str = "SPINE",
     ) -> VerdictResult:
-        from arifosmcp.core.enforcement.genius import calculate_genius
-        from arifosmcp.core.shared.mottos import get_motto_by_stage
-        from arifosmcp.core.shared.types import FloorScores, Verdict
+        from arifos_mcp.core.enforcement.genius import calculate_genius
+        from arifos_mcp.core.shared.mottos import get_motto_by_stage
+        from arifos_mcp.core.shared.types import FloorScores, Verdict
 
         kernel = get_governance_kernel(session_id)
         combined_floors = FloorScores(

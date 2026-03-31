@@ -27,7 +27,7 @@ def get_governance_kernel(session_id: str | None = None) -> GovernanceKernel:
 
     if session_id:
         try:
-            from arifosmcp.core.state.session_manager import session_manager
+            from arifos_mcp.core.state.session_manager import session_manager
 
             session_kernel = session_manager.get_kernel(session_id)
             if session_kernel is not None:

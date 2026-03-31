@@ -10,7 +10,7 @@ import uuid
 from collections.abc import Awaitable, Callable
 from typing import Any
 
-from arifosmcp.core.kernel.mcp_transport_kernel import (
+from arifos_mcp.core.kernel.mcp_transport_kernel import (
     build_align_error,
     build_align_output,
     build_anchor_output,

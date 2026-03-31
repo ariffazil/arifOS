@@ -8,8 +8,8 @@ import logging
 from collections.abc import Awaitable, Callable
 from typing import Any
 
-from arifosmcp.core import organs as core_organs
-from arifosmcp.core.shared.physics import Peace2
+from arifos_mcp.core import organs as core_organs
+from arifos_mcp.core.shared.physics import Peace2
 
 logger = logging.getLogger("STAGE_ADAPTER")
 

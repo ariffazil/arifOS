@@ -15,8 +15,8 @@ import time
 from pathlib import Path
 from typing import Any
 
-from arifosmcp.core.governance_kernel import GovernanceKernel
-from arifosmcp.core.shared.types import OutcomeRecord, OutcomeStatus
+from arifos_mcp.core.governance_kernel import GovernanceKernel
+from arifos_mcp.core.shared.types import OutcomeRecord, OutcomeStatus
 
 _DEFAULT_OUTCOMES_PATH = Path(__file__).parents[2] / "VAULT999" / "outcomes.jsonl"
 

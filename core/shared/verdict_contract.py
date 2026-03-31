@@ -39,14 +39,14 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from arifosmcp.core.shared.types import Verdict
+    from arifos_mcp.core.shared.types import Verdict
 
 logger = logging.getLogger(__name__)
 
 
 def _lazy_verdict():
     """Lazy import to avoid circular dependency."""
-    from arifosmcp.core.shared.types import Verdict
+    from arifos_mcp.core.shared.types import Verdict
 
     return Verdict
 
@@ -58,7 +58,7 @@ def _lazy_verdict():
 
 def _build_contracts() -> dict[int, frozenset]:
     """Build stage contracts lazily to avoid import-time circular deps."""
-    from arifosmcp.core.shared.types import Verdict
+    from arifos_mcp.core.shared.types import Verdict
 
     return {
         0: frozenset({Verdict.SEAL, Verdict.SABAR, Verdict.VOID}),
@@ -106,7 +106,7 @@ def _coerce_verdict(raw: str):
     Safely coerce any string to a canonical Verdict.
     Falls back to SABAR for unknown values (never fails the pipeline).
     """
-    from arifosmcp.core.shared.types import Verdict
+    from arifos_mcp.core.shared.types import Verdict
 
     normalized = _LEGACY_STRING_MAP.get(raw, raw.upper() if raw else "SABAR")
     try:
@@ -138,7 +138,7 @@ def normalize_verdict(stage: int, verdict: Any) -> Verdict:
     Returns:
         Canonical Verdict instance.
     """
-    from arifosmcp.core.shared.types import Verdict
+    from arifos_mcp.core.shared.types import Verdict
 
     # Coerce string → Verdict
     if isinstance(verdict, str):

@@ -7,7 +7,7 @@ Maps intent to ActionClass and verifies thermodynamic/sovereign thresholds.
 
 import re
 
-from arifosmcp.core.shared.types import ActionClass
+from arifos_mcp.core.shared.types import ActionClass
 
 # P3 Validated Thresholds
 RISK_THRESHOLDS = {

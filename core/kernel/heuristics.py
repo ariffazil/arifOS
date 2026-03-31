@@ -2,7 +2,7 @@
 # Cheap, reversible heuristics for SystemState (v62 Step 1)
 # Rule: Do not pretend metrics are real until evidence exists (Step 2)
 
-from arifosmcp.core.shared.types import Profile, SystemState
+from arifos_mcp.core.shared.types import Profile, SystemState
 
 # Signal word lists
 ABSOLUTIST = ("definitely", "guaranteed", "always", "never", "100%", "certainly", "absolutely")

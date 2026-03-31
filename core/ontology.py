@@ -7,7 +7,7 @@ This module provides canonical definitions for all concepts in the ArifOS ecosys
 eliminating scattered terminology and providing a single source of truth.
 
 Version: 2026.03.13-FORGED
-Repository: arifosmcp
+Repository: arifos_mcp
 """
 
 from enum import Enum, auto

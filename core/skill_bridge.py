@@ -28,7 +28,7 @@ class SkillBridge:
     def _get_reality_bridge(self):
         """Lazy import RealityBridge to avoid circular deps."""
         if self.reality_bridge is None:
-            from arifosmcp.tools.reality_bridge import RealityBridge
+            from arifos_mcp.tools.reality_bridge import RealityBridge
             self.reality_bridge = RealityBridge()
         return self.reality_bridge
     
@@ -169,7 +169,7 @@ def execute_reality(
     Direct execution through Reality Bridge.
     Used by skills to call real system tools.
     """
-    from arifosmcp.tools.reality_bridge import execute
+    from arifos_mcp.tools.reality_bridge import execute
     return execute(tool, command, params, checkpoint_id)
 
 

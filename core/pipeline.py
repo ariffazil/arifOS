@@ -17,13 +17,13 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from arifosmcp.core.organs import agi, apex, asi, init, vault
-from arifosmcp.core.shared.atlas import QueryType
-from arifosmcp.core.shared.floors import update_floor_status
-from arifosmcp.core.shared.mottos import get_motto_for_stage
-from arifosmcp.core.shared.types import EMD, Verdict
-from arifosmcp.core.shared.verdict_contract import normalize_verdict
-from arifosmcp.core.state.session_manager import session_manager
+from arifos_mcp.core.organs import agi, apex, asi, init, vault
+from arifos_mcp.core.shared.atlas import QueryType
+from arifos_mcp.core.shared.floors import update_floor_status
+from arifos_mcp.core.shared.mottos import get_motto_for_stage
+from arifos_mcp.core.shared.types import EMD, Verdict
+from arifos_mcp.core.shared.verdict_contract import normalize_verdict
+from arifos_mcp.core.state.session_manager import session_manager
 
 
 class ForgeResult(BaseModel):
