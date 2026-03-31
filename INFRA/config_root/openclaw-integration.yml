@@ -1,0 +1,783 @@
+# =============================================================================
+# OpenClaw Integration Configuration
+# =============================================================================
+# Version: 1.0.0
+# Constitutional Compliance: F6 (Empathy), F12 (Defense)
+#
+# This file configures OpenClaw as the multi-channel IO gateway for arifOS.
+# OpenClaw handles WhatsApp and Telegram integration with constitutional
+# judgment from arifOS MCP server.
+#
+# ⚠️ 888_HOLD REQUIRED for:
+#   - Webhook URL changes
+#   - Channel policy modifications
+#   - Message filtering rule updates
+#   - Production credential rotation
+#
+# MOTTO: Ditempa Bukan Diberi — Forged, Not Given
+# =============================================================================
+
+# =============================================================================
+# 1. MCP SERVER INTEGRATION
+# =============================================================================
+
+mcp_server:
+  # Connection to arifOS MCP server
+  endpoint: "${ARIFOS_MCP_URL:-http://arifos:8888}"
+  api_key: "${ARIFOS_MCP_API_KEY}"
+  
+  # Webhook secret for incoming validation
+  webhook_secret: "${OPENCLAW_WEBHOOK_SECRET}"
+  
+  # Constitutional judgment endpoint
+  judgment_endpoint: "/v1/judgment"
+  
+  # Reconnection settings
+  reconnect:
+    max_retries: 5
+    backoff_base: 2
+    timeout_seconds: 30
+  
+  # Health monitoring
+  health_check:
+    interval_seconds: 30
+    endpoint: "/health"
+    timeout_seconds: 5
+
+# =============================================================================
+# 2. WEBHOOK ENDPOINTS FOR ARIFOS JUDGMENT
+# =============================================================================
+
+webhooks:
+  # Base URL for all webhooks
+  base_url: "${WEBHOOK_BASE_URL:-https://api.arifos.local}"
+  
+  # ---------------------------------------------------------------------------
+  # Incoming Message Webhook
+  # ---------------------------------------------------------------------------
+  incoming_message:
+    path: "/webhook/incoming"
+    method: "POST"
+    description: "Receive messages from all channels"
+    
+    # Authentication
+    auth:
+      type: "hmac"
+      header: "X-Webhook-Signature"
+      algorithm: "sha256"
+      secret: "${OPENCLAW_WEBHOOK_SECRET}"
+    
+    # Rate limiting
+    rate_limit:
+      requests_per_minute: 120
+      burst_size: 20
+    
+    # Constitutional flow
+    flow:
+      - step: "receive"
+        description: "Receive raw message"
+      - step: "sanitize"
+        description: "F12: Injection defense"
+      - step: "enrich"
+        description: "Add metadata and context"
+      - step: "judgment"
+        description: "Send to arifOS for constitutional judgment"
+        endpoint: "${ARIFOS_MCP_URL}/v1/judgment"
+        timeout_ms: 10000
+        required_floors: ["F2", "F4", "F6", "F12"]
+      - step: "deliver"
+        description: "Deliver to appropriate handler"
+      
+  # ---------------------------------------------------------------------------
+  # Outgoing Message Webhook
+  # ---------------------------------------------------------------------------
+  outgoing_message:
+    path: "/webhook/outgoing"
+    method: "POST"
+    description: "Send messages to channels"
+    
+    auth:
+      type: "api_key"
+      header: "X-API-Key"
+      
+    flow:
+      - step: "receive"
+        description: "Receive outgoing message request"
+      - step: "validate"
+        description: "Validate message format and length"
+      - step: "policy_check"
+        description: "F6: Empathy check, rate limits"
+      - step: "route"
+        description: "Route to appropriate channel"
+      - step: "deliver"
+        description: "Send to channel API"
+      - step: "confirm"
+        description: "Confirm delivery and log"
+      
+  # ---------------------------------------------------------------------------
+  # Channel Status Webhook
+  # ---------------------------------------------------------------------------
+  channel_status:
+    path: "/webhook/status"
+    method: "POST"
+    description: "Receive delivery status updates"
+    
+    events:
+      - "message_delivered"
+      - "message_read"
+      - "message_failed"
+      - "channel_connected"
+      - "channel_disconnected"
+      
+  # ---------------------------------------------------------------------------
+  # Health Check Endpoint
+  # ---------------------------------------------------------------------------
+  health:
+    path: "/health"
+    method: "GET"
+    description: "Health check for load balancers"
+    
+    checks:
+      - name: "arifos_connection"
+        endpoint: "${ARIFOS_MCP_URL}/health"
+        timeout_ms: 5000
+      - name: "redis_connection"
+        type: "redis"
+        timeout_ms: 3000
+      - name: "channel_apis"
+        type: "channels"
+        timeout_ms: 5000
+
+# =============================================================================
+# 3. CHANNEL ROUTING CONFIGURATION
+# =============================================================================
+
+channels:
+  # Default priority order (F6: Empathy-driven routing)
+  default_priority:
+    - "telegram"    # Preferred for rich media
+    - "whatsapp"    # Preferred for reliability
+    
+  # Fallback configuration
+  fallback:
+    enabled: true
+    max_attempts: 3
+    attempt_delay_seconds: 5
+    escalate_after_failures: 3
+    
+  # Channel configurations
+  configurations:
+    
+    # -------------------------------------------------------------------------
+    # Telegram Configuration
+    # -------------------------------------------------------------------------
+    telegram:
+      enabled: true
+      display_name: "Telegram"
+      
+      api:
+        bot_token: "${TELEGRAM_BOT_TOKEN}"
+        base_url: "https://api.telegram.org"
+        webhook_secret: "${TELEGRAM_WEBHOOK_SECRET}"
+        
+      webhook:
+        path: "/webhook/telegram"
+        url: "${TELEGRAM_WEBHOOK_URL}"
+        max_connections: 40
+        allowed_updates:
+          - "message"
+          - "callback_query"
+          - "inline_query"
+          
+      message_limits:
+        max_text_length: 4096
+        max_caption_length: 1024
+        max_file_size_mb: 20
+        supported_media:
+          - "text"
+          - "photo"
+          - "video"
+          - "audio"
+          - "document"
+          - "voice"
+          
+      formatting:
+        parse_mode: "MarkdownV2"
+        allowed_entities:
+          - "bold"
+          - "italic"
+          - "code"
+          - "pre"
+          - "text_link"
+          - "text_mention"
+          
+      features:
+        inline_keyboard: true
+        reply_markup: true
+        force_reply: true
+        
+      rate_limit:
+        messages_per_minute: 30
+        burst_size: 5
+        
+      # F6: Empathy settings
+      empathy:
+        typing_indicator: true
+        typing_delay_ms: 1000
+        personalize_greeting: true
+        
+    # -------------------------------------------------------------------------
+    # WhatsApp Business API Configuration
+    # -------------------------------------------------------------------------
+    whatsapp:
+      enabled: true
+      display_name: "WhatsApp"
+      
+      api:
+        api_token: "${WHATSAPP_API_TOKEN}"
+        phone_number_id: "${WHATSAPP_PHONE_NUMBER_ID}"
+        business_account_id: "${WHATSAPP_BUSINESS_ACCOUNT_ID}"
+        base_url: "https://graph.facebook.com/v18.0"
+        
+      webhook:
+        path: "/webhook/whatsapp"
+        verify_token: "${WHATSAPP_WEBHOOK_VERIFY_TOKEN}"
+        
+        # Webhook fields to subscribe
+        fields:
+          - "messages"
+          - "message_deliveries"
+          - "message_reads"
+          - "message_reactions"
+          
+      message_limits:
+        max_text_length: 4096
+        max_template_length: 1024
+        max_file_size_mb: 100
+        session_window_hours: 24
+        
+      supported_message_types:
+        - "text"
+        - "image"
+        - "video"
+        - "audio"
+        - "document"
+        - "location"
+        - "contacts"
+        - "template"
+        
+      # Template messages (for outside session window)
+      templates:
+        namespace: "${WHATSAPP_TEMPLATE_NAMESPACE}"
+        language: "en_US"
+        default_template: "arifos_notification"
+        
+      rate_limit:
+        messages_per_second: 20
+        messages_per_day: 100000
+        
+      # F6: Empathy settings
+      empathy:
+        read_receipt: true
+        presence_available: true
+        voice_message_friendly: true
+        
+    # -------------------------------------------------------------------------
+    # Future Channels (Extensible)
+    # -------------------------------------------------------------------------
+    slack:
+      enabled: false
+      display_name: "Slack"
+      # Configuration placeholder
+      
+    discord:
+      enabled: false
+      display_name: "Discord"
+      # Configuration placeholder
+      
+    email:
+      enabled: false
+      display_name: "Email"
+      # Configuration placeholder
+
+# =============================================================================
+# 4. POLICY ENFORCEMENT RULES (F6, F12)
+# =============================================================================
+
+policies:
+  # Global policy settings
+  enforcement_mode: "${OPENCLAW_POLICY_ENFORCEMENT:-strict}"  # strict | permissive | audit
+  
+  # ---------------------------------------------------------------------------
+  # Content Filtering (F12: Injection Defense)
+  # ---------------------------------------------------------------------------
+  content_filter:
+    enabled: true
+    
+    # Blocked patterns (regex)
+    blocked_patterns:
+      # Command injection
+      - pattern: ";\\s*rm\\s+-rf"
+        severity: "critical"
+        reason: "Command injection attempt"
+      - pattern: "DROP\\s+TABLE"
+        severity: "critical"
+        reason: "SQL injection attempt"
+      - pattern: "<script[^>]*>"
+        severity: "high"
+        reason: "XSS attempt"
+      - pattern: "javascript:"
+        severity: "high"
+        reason: "JavaScript injection"
+      - pattern: "eval\\s*\\("
+        severity: "high"
+        reason: "Code execution attempt"
+      - pattern: "curl\\s+\\|\\s*bash"
+        severity: "critical"
+        reason: "Remote code execution"
+      
+    # Suspicious patterns (flagged but allowed with warning)
+    suspicious_patterns:
+      - pattern: "SELECT\\s+.*\\s+FROM"
+        severity: "medium"
+        reason: "Potential SQL query"
+      - pattern: "http://.{100,}"
+        severity: "low"
+        reason: "Suspicious URL length"
+        
+    # Sanitization rules
+    sanitization:
+      strip_html: true
+      escape_markdown: true
+      normalize_unicode: true
+      max_length: "${MAX_MESSAGE_LENGTH:-4096}"
+      
+  # ---------------------------------------------------------------------------
+  # Rate Limiting (F5: Peace²)
+  # ---------------------------------------------------------------------------
+  rate_limit:
+    enabled: true
+    
+    global:
+      requests_per_minute: "${MESSAGE_RATE_LIMIT_PER_MIN:-60}"
+      burst_size: 10
+      
+    per_user:
+      requests_per_minute: 20
+      burst_size: 5
+      window_seconds: 60
+      
+    per_channel:
+      telegram:
+        requests_per_minute: 30
+      whatsapp:
+        requests_per_second: 20
+        
+  # ---------------------------------------------------------------------------
+  # Empathy Enforcement (F6: κᵣ ≥ 0.70)
+  # ---------------------------------------------------------------------------
+  empathy:
+    enabled: true
+    threshold: "${ARIFOS_F6_EMPATHY_THRESHOLD:-0.70}"
+    
+    # Empathy checks
+    checks:
+      - name: "greeting_detection"
+        description: "Detect if user needs acknowledgment"
+        weight: 0.2
+        
+      - name: "frustration_detection"
+        description: "Detect user frustration"
+        weight: 0.3
+        
+      - name: "urgency_assessment"
+        description: "Assess message urgency"
+        weight: 0.2
+        
+      - name: "stakeholder_vulnerability"
+        description: "Bias toward weakest stakeholder"
+        weight: 0.3
+        
+    # Response templates for empathy
+    templates:
+      greeting:
+        enabled: true
+        variations:
+          - "Hello! I'm here to help you."
+          - "Welcome! How can I assist you today?"
+          - "Greetings! What can I do for you?"
+          
+      frustration_acknowledged:
+        enabled: true
+        variations:
+          - "I understand this is frustrating. Let me help."
+          - "I can see this is important. I'm on it."
+          - "This sounds challenging. Let's work through it."
+          
+      uncertainty:
+        enabled: true
+        variations:
+          - "I'm not certain about this, but here's what I know:"
+          - "This appears to be the case, though I should verify:"
+          - "Based on available information:"
+          
+  # ---------------------------------------------------------------------------
+  # Message Size Limits (F4: Clarity)
+  # ---------------------------------------------------------------------------
+  message_size:
+    max_length: "${MAX_MESSAGE_LENGTH:-4096}"
+    
+    chunking:
+      enabled: true
+      chunk_size: 4000
+      overlap: 100
+      indicator: "... (continued)"
+      
+  # ---------------------------------------------------------------------------
+  # Channel Fallback Rules
+  # ---------------------------------------------------------------------------
+  fallback:
+    rules:
+      - condition: "telegram_failed"
+        fallback_to: "whatsapp"
+        max_retries: 3
+        
+      - condition: "whatsapp_session_expired"
+        fallback_to: "whatsapp_template"
+        template_required: true
+        
+      - condition: "all_channels_failed"
+        action: "queue_for_retry"
+        retry_after_minutes: 15
+        max_retries: 5
+
+# =============================================================================
+# 5. DELIVERY FLOW WITH ARIFOS GOVERNANCE
+# =============================================================================
+
+delivery_flow:
+  # Default flow for all messages
+  default:
+    steps:
+      - id: "1"
+        name: "receive"
+        description: "Receive incoming message"
+        handler: "ingress.receive"
+        timeout_ms: 5000
+        
+      - id: "2"
+        name: "parse"
+        description: "Parse and validate message format"
+        handler: "ingress.parse"
+        timeout_ms: 1000
+        
+      - id: "3"
+        name: "sanitize"
+        description: "F12: Sanitize input, remove injection patterns"
+        handler: "defense.sanitize"
+        timeout_ms: 1000
+        required_floor: "F12"
+        
+      - id: "4"
+        name: "enrich"
+        description: "Add context, session, user metadata"
+        handler: "context.enrich"
+        timeout_ms: 2000
+        
+      - id: "5"
+        name: "constitutional_judgment"
+        description: "F2-F8: Send to arifOS for constitutional analysis"
+        handler: "arifos.judgment"
+        endpoint: "${ARIFOS_MCP_URL}/v1/judgment"
+        timeout_ms: 10000
+        required_floors: ["F2", "F4", "F6", "F7", "F8"]
+        
+        # Retry on timeout
+        retry:
+          max_attempts: 3
+          backoff_ms: 1000
+          
+      - id: "6"
+        name: "decision"
+        description: "Process constitutional verdict"
+        handler: "judgment.decide"
+        
+        branches:
+          - condition: "verdict == 'SEAL'"
+            next: "7"
+          - condition: "verdict == 'PARTIAL'"
+            next: "7"
+            add_warning: true
+          - condition: "verdict == 'VOID'"
+            next: "error_void"
+          - condition: "verdict == '888_HOLD'"
+            next: "error_hold"
+            
+      - id: "7"
+        name: "route"
+        description: "Route to appropriate channel"
+        handler: "router.select_channel"
+        timeout_ms: 1000
+        
+      - id: "8"
+        name: "format"
+        description: "Format message for target channel"
+        handler: "formatter.format"
+        timeout_ms: 1000
+        
+      - id: "9"
+        name: "empathy_check"
+        description: "F6: Final empathy verification"
+        handler: "empathy.verify"
+        timeout_ms: 2000
+        threshold: 0.70
+        
+      - id: "10"
+        name: "deliver"
+        description: "Send to channel API"
+        handler: "outbound.deliver"
+        timeout_ms: 10000
+        
+      - id: "11"
+        name: "confirm"
+        description: "Log delivery confirmation"
+        handler: "audit.log"
+        timeout_ms: 1000
+        
+    error_handlers:
+      error_void:
+        action: "reject"
+        response: "This request cannot be processed per constitutional constraints."
+        log_level: "warning"
+        notify_admin: true
+        
+      error_hold:
+        action: "queue"
+        queue_name: "human_review"
+        response: "Your request requires human review. We'll respond shortly."
+        notify_admin: true
+        
+  # Outbound flow (arifOS → User)
+  outbound:
+    steps:
+      - id: "1"
+        name: "receive_response"
+        description: "Receive response from arifOS"
+        handler: "outbound.receive"
+        
+      - id: "2"
+        name: "empathy_inject"
+        description: "F6: Inject empathy if needed"
+        handler: "empathy.inject"
+        
+      - id: "3"
+        name: "format_channel"
+        description: "Format for target channel"
+        handler: "formatter.channel_specific"
+        
+      - id: "4"
+        name: "chunk_if_needed"
+        description: "Split long messages"
+        handler: "formatter.chunk"
+        
+      - id: "5"
+        name: "send"
+        description: "Send to channel"
+        handler: "outbound.send"
+        
+      - id: "6"
+        name: "track"
+        description: "Track delivery status"
+        handler: "outbound.track"
+
+# =============================================================================
+# 6. SESSION MANAGEMENT
+# =============================================================================
+
+sessions:
+  # Storage backend
+  storage: "redis"
+  redis_url: "${REDIS_URL:-redis://localhost:6379/1}"
+  
+  # Session configuration
+  config:
+    ttl_seconds: 3600  # 1 hour
+    extend_on_activity: true
+    max_concurrent_per_user: 5
+    
+  # Session data
+  data:
+    - user_id
+    - channel
+    - conversation_history
+    - context_vector
+    - constitutional_preferences
+    - rate_limit_counters
+    
+  # Cleanup
+  cleanup:
+    enabled: true
+    interval_seconds: 300
+    max_age_hours: 24
+
+# =============================================================================
+# 7. QUEUE CONFIGURATION
+# =============================================================================
+
+queues:
+  # Redis-based queue for reliability
+  backend: "redis"
+  redis_url: "${REDIS_URL:-redis://localhost:6379/2}"
+  
+  # Queue definitions
+  definitions:
+    incoming_messages:
+      priority: "high"
+      max_retries: 3
+      retry_delay_seconds: 5
+      
+    outgoing_messages:
+      priority: "high"
+      max_retries: 5
+      retry_delay_seconds: 10
+      
+    webhook_deliveries:
+      priority: "normal"
+      max_retries: 3
+      retry_delay_seconds: 30
+      
+    human_review:
+      priority: "critical"
+      max_retries: 0  # Manual only
+      notify_on_enqueue: true
+      
+    failed_messages:
+      priority: "low"
+      max_retries: 0
+      dead_letter_after_hours: 48
+
+# =============================================================================
+# 8. LOGGING AND MONITORING
+# =============================================================================
+
+logging:
+  level: "${OPENCLAW_LOG_LEVEL:-INFO}"
+  format: "json"
+  
+  outputs:
+    - type: "stdout"
+    - type: "file"
+      path: "/app/logs/openclaw.log"
+      rotation: "daily"
+      retention_days: 30
+      
+  fields:
+    - timestamp
+    - level
+    - message
+    - service
+    - channel
+    - user_id
+    - message_id
+    - constitutional_verdict
+    - delivery_status
+    
+  # Audit logging (F1: Reversibility)
+  audit:
+    enabled: true
+    include_payload: false  # Don't log message content
+    include_metadata: true
+    retention_days: 365
+
+metrics:
+  enabled: true
+  
+  collectors:
+    - name: "messages_received"
+      type: counter
+      labels: ["channel"]
+      
+    - name: "messages_delivered"
+      type: counter
+      labels: ["channel", "status"]
+      
+    - name: "constitutional_verdicts"
+      type: counter
+      labels: ["verdict", "floor_triggered"]
+      
+    - name: "message_latency"
+      type: histogram
+      labels: ["channel"]
+      buckets: [0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
+      
+    - name: "active_sessions"
+      type: gauge
+      labels: ["channel"]
+      
+    - name: "rate_limit_hits"
+      type: counter
+      labels: ["channel", "user_type"]
+
+# =============================================================================
+# 9. HEALTH AND STATUS
+# =============================================================================
+
+health:
+  # Health check endpoint
+  endpoint: "/health"
+  
+  # Checks to perform
+  checks:
+    - name: "arifos_mcp"
+      type: "http"
+      endpoint: "${ARIFOS_MCP_URL}/health"
+      timeout_ms: 5000
+      required: true
+      
+    - name: "redis"
+      type: "redis"
+      timeout_ms: 3000
+      required: true
+      
+    - name: "telegram_api"
+      type: "http"
+      endpoint: "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getMe"
+      timeout_ms: 5000
+      required: false
+      
+    - name: "whatsapp_api"
+      type: "http"
+      endpoint: "https://graph.facebook.com/v18.0/me"
+      headers:
+        Authorization: "Bearer ${WHATSAPP_API_TOKEN}"
+      timeout_ms: 5000
+      required: false
+
+# =============================================================================
+# 10. ERROR HANDLING
+# =============================================================================
+
+errors:
+  # Default error responses (F6: Empathy)
+  responses:
+    generic: "Something went wrong. Please try again later."
+    timeout: "This is taking longer than expected. I'll follow up shortly."
+    rate_limited: "We're experiencing high traffic. Please try again in a moment."
+    constitutional_void: "I'm unable to process this request per our safety guidelines."
+    service_unavailable: "I'm temporarily unavailable. Please try again shortly."
+    
+  # Notification rules
+  notifications:
+    - condition: "severity == 'critical'"
+      channels: ["admin_alert", "pagerduty"]
+      
+    - condition: "floor_violation == 'F12'"
+      channels: ["security_alert"]
+      immediate: true
+      
+    - condition: "delivery_failure_rate > 0.1"
+      channels: ["admin_alert"]
+
+# =============================================================================
+# END OF CONFIGURATION
+# =============================================================================

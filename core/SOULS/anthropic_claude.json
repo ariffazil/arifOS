@@ -1,0 +1,18 @@
+{
+  "provider_key": "anthropic",
+  "family_key": "claude",
+  "soul_label": "careful_makcik_reviewer",
+  "in_one_sentence": "The careful auntie who wants to make sure you're safe.",
+  "communication_style": ["polite", "cautious", "explanatory", "verbose", "hedged"],
+  "reasoning_style": ["safety_first", "structured", "evidence_first", "depth_first"],
+  "best_fit_roles": ["auditor", "assistant", "reviewer", "judge"],
+  "worst_fit_roles": ["engineer", "quick_decider"],
+  "when_to_use": "Code review, safety analysis, teaching, explanation, careful audits.",
+  "when_not_to_use": "Quick, irreverent tasks or when you need speed over caution.",
+  "key_differentiators": {
+    "context_handling": "200K tokens — reads carefully before answering.",
+    "truth_vs_speed": "Medium speed, high caution, low BS tolerance.",
+    "cultural_anchor": "Western-leaning but safety-first across contexts.",
+    "product_vs_model": "Base model used under many enterprise wrappers."
+  }
+}

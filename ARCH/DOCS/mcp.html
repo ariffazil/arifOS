@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>arifOS AAA MCP | The Servant Wire</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0a0b0e;
+            --surface-color: #1a1c23;
+            --accent-cyan: #00f3ff;
+            --accent-blue: #007aff;
+            --accent-amber: #ffaa00;
+            --accent-red: #ff3b30;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a4b8;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --gradient-main: linear-gradient(135deg, #00f3ff 0%, #007aff 100%);
+            --glass-bg: rgba(26, 28, 35, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .header {
+            position: relative;
+            height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: url('../arifos_mcp_header_1774311167167.png') no-repeat center center;
+            background-size: cover;
+            border-bottom: 2px solid var(--accent-cyan);
+        }
+
+        .header-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, transparent, var(--bg-color));
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2rem;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .motto {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-cyan);
+            font-size: 1.2rem;
+            letter-spacing: 0.5rem;
+            opacity: 0.8;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: -100px auto 100px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 20;
+        }
+
+        .section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            padding: 3rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--accent-cyan);
+            padding-left: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .tool-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-card:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 243, 255, 0.05);
+            transform: translateY(-5px);
+        }
+
+        .tool-card h3 {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-cyan);
+            margin-bottom: 0.5rem;
+        }
+
+        .floor-tag {
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: var(--text-secondary);
+            margin-right: 5px;
+            font-weight: 700;
+        }
+
+        .stage-id {
+            position: absolute;
+            top: 1rem; right: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            opacity: 0.3;
+        }
+
+        .specs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .specs-table th, .specs-table td {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .specs-table th {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .verdict-hold { color: var(--accent-amber); font-weight: 700; }
+        .verdict-seal { color: var(--accent-cyan); font-weight: 700; }
+        .verdict-void { color: var(--accent-red); font-weight: 700; }
+
+        footer {
+            text-align: center;
+            padding: 5rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .pulse-dot {
+            height: 10px; width: 10px;
+            background-color: var(--accent-cyan);
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+            box-shadow: 0 0 10px var(--accent-cyan);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 243, 255, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 243, 255, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 243, 255, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-overlay"></div>
+        <div class="header-content">
+            <h1>arifOS AAA MCP</h1>
+            <p class="motto">ΔΩΨ — THE SERVANT WIRE</p>
+        </div>
+    </header>
+
+    <main class="container">
+        
+        <section class="section">
+            <h2>I. Authority Mandate</h2>
+            <p>The AAA MCP is the <strong>L3 Body</strong> of the arifOS ecosystem. It establishes the physical connection between agentic intelligence and the Sovereign Kernel via the <strong>SALAM Protocol</strong>.</p>
+            <p style="margin-top: 1rem;"><span class="pulse-dot"></span> <strong>Current Status:</strong> Active | 11-Tool Surface Sealed</p>
+        </section>
+
+        <section class="section">
+            <h2>II. The M-11 Tool Surface</h2>
+            <div class="grid">
+                <div class="tool-card">
+                    <span class="stage-id">000_INIT</span>
+                    <h3>init_anchor</h3>
+                    <p>Session Forge & Identity Verification.</p>
+                    <div style="margin-top: 1rem;">
+                        <span class="floor-tag">F11</span>
+                        <span class="floor-tag">F12</span>
+                        <span class="floor-tag">F13</span>
+                    </div>
+                </div>
+                <div class="tool-card">
+                    <span class="stage-id">333_MIND</span>
+                    <h3>agi_mind</h3>
+                    <p>First-principles logic and synthetic forging.</p>
+                    <div style="margin-top: 1rem;">
+                        <span class="floor-tag">F2</span>
+                        <span class="floor-tag">F4</span>
+                        <span class="floor-tag">F7</span>
+                    </div>
+                </div>
+                <div class="tool-card">
+                    <span class="stage-id">888_JUDGE</span>
+                    <h3>apex_soul</h3>
+                    <p>Final constitutional verdict and safety arbitration.</p>
+                    <div style="margin-top: 1rem;">
+                        <span class="floor-tag">F3</span>
+                        <span class="floor-tag">F13</span>
+                    </div>
+                </div>
+                <!-- ... other tools ... -->
+                <div class="tool-card">
+                    <span class="stage-id">111_SENSE</span>
+                    <h3>physics_reality</h3>
+                    <p>Environmental grounding and fact witness.</p>
+                    <div style="margin-top: 1rem;">
+                        <span class="floor-tag">F2</span>
+                        <span class="floor-tag">F3</span>
+                    </div>
+                </div>
+                <div class="tool-card">
+                    <span class="stage-id">M-3_EXEC</span>
+                    <h3>code_engine</h3>
+                    <p>Sandboxed computation and filesystem hygiene.</p>
+                    <div style="margin-top: 1rem;">
+                        <span class="floor-tag">F1 (Amanah)</span>
+                    </div>
+                </div>
+                <div class="tool-card">
+                    <span class="stage-id">M-4_ARCH</span>
+                    <h3>architect_registry</h3>
+                    <p>Discovery of structural OS dependencies.</p>
+                    <div style="margin-top: 1rem;">
+                        <span class="floor-tag">F10 (Ontology)</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>III. Runtime Envelope (ABI)</h2>
+            <p>All tool outputs adhere to the <strong>RuntimeEnvelope</strong> schema to prevent agentic chaos.</p>
+            <table class="specs-table">
+                <tr><th>Field</th><th>Description</th><th>Enforcement</th></tr>
+                <tr><td><code>verdict</code></td><td>Metabolic state (ALIVE, SABAR, HOLD, SEAL)</td><td>Hard (F13)</td></tr>
+                <tr><td><code>g_score</code></td><td>Genius/Coherence Score (G★)</td><td>Hard (F8)</td></tr>
+                <tr><td><code>sabar_step</code></td><td>SABAR Protocol cooling/de-escalation step</td><td>Protocol Law</td></tr>
+                <tr><td><code>floors</code></td><td>Constitutional Floors triggered</td><td>Audit Only</td></tr>
+            </table>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>ZKPC_HASH: 0x888_GENESIS_SEAL_WIRE_FINALIZED</p>
+        <p>© 2026 arifOS Sovereign Systems</p>
+    </footer>
+
+</body>
+</html>

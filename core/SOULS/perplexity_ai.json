@@ -1,0 +1,18 @@
+{
+  "provider_key": "perplexity",
+  "family_key": "perplexity",
+  "soul_label": "search_grounded_synthesizer",
+  "in_one_sentence": "The citation-obsessed synthesizer who never speaks without a source.",
+  "communication_style": ["citation-heavy", "factual", "linked", "authoritative"],
+  "reasoning_style": ["search-first", "verificational", "synthesis"],
+  "best_fit_roles": ["fact_checker", "real-time_researcher", "source_verifier"],
+  "worst_fit_roles": ["creative_hallucinatory_writer"],
+  "when_to_use": "Real-time news/facts research, verifying claims with citations, current event analysis.",
+  "when_not_to_use": "Private data analysis or tasks where the web is irrelevant.",
+  "key_differentiators": {
+    "context_handling": "Seamlessly blends web-search results into context.",
+    "truth_vs_speed": "High verifiable truth, medium synthesis speed.",
+    "cultural_anchor": "Internet-native, information-accuracy focused.",
+    "product_vs_model": "The leader in AI-powered search productization."
+  }
+}

@@ -255,7 +255,7 @@ graph TB
 
 ```
 Repository:  https://github.com/ariffazil/arifOS
-Entrypoint:  server_horizon.py:mcp
+Entrypoint:  HORIZON.py:mcp
 URL:         https://arifos.fastmcp.app/mcp
 Tools:       8 (proxied to VPS)
 ```
@@ -290,7 +290,7 @@ arifOS/                                    # ← Parent Repository
 ├── arifosmcp/                            # ← Submodule: MCP Server
 │   ├── README.md                          # ← Implementation details
 │   ├── server.py                          # ← Universal entry
-│   ├── server_horizon.py                  # ← Horizon proxy (FastMCP 2.x)
+│   ├── HORIZON.py                  # ← Horizon proxy (FastMCP 2.x)
 │   ├── runtime/
 │   │   ├── server.py                      # ← Full kernel (FastMCP 3.x)
 │   │   ├── philosophy.py                  # ← 27-zone philosophy atlas

@@ -1,0 +1,225 @@
+http:
+  # Middleware definitions
+  middlewares:
+    # Security headers (applied globally)
+    security-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: https
+        customResponseHeaders:
+          X-Robots-Tag: "noindex, nofollow"
+          Server: ""
+        sslRedirect: true
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+        permissionsPolicy: "camera=(), microphone=(), geolocation=()"
+        contentSecurityPolicy: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+        customFrameOptionsValue: "DENY"
+
+    # Compress responses
+    compress:
+      compress: {}
+
+    # Rate limiting
+    rate-limit-public:
+      rateLimit:
+        average: 100
+        burst: 200
+        period: 1m
+
+    # IP whitelist for internal services
+    internal-only:
+      ipAllowList:
+        sourceRange:
+          - "127.0.0.1/32"
+          - "10.0.0.0/8"
+          - "172.16.0.0/12"
+          - "192.168.0.0/16"
+
+    # Basic auth for dashboards (use strong password!)
+    dashboard-auth:
+      basicAuth:
+        usersFile: "/etc/traefik/.htpasswd"
+        removeHeader: true
+
+  # Router definitions for arifOS services
+  routers:
+    # arifOS MCP API (public, authenticated via API)
+    arifosmcp:
+      rule: "Host(`arifosmcp.arif-fazil.com`)"
+      service: arifosmcp-svc
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - security-headers
+        - rate-limit-public
+
+    # OpenClaw Gateway (internal only - NO public access)
+    # Access via VPN or SSH tunnel only
+    # If you need public access, add strong auth
+    openclaw-internal:
+      rule: "Host(`claw.internal.arif-fazil.com`)"
+      service: openclaw-svc
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - security-headers
+        - internal-only
+
+    # AgentZero (public with rate limiting)
+    agentzero:
+      rule: "Host(`agentzero.arif-fazil.com`)"
+      service: agentzero-svc
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - security-headers
+        - rate-limit-public
+
+    # n8n Workflow (protected - add auth or restrict by IP)
+    n8n:
+      rule: "Host(`flow.arif-fazil.com`)"
+      service: n8n-svc
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - security-headers
+        - internal-only  # Or use dashboard-auth
+
+    # Grafana (protected)
+    grafana:
+      rule: "Host(`metrics.arif-fazil.com`)"
+      service: grafana-svc
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - security-headers
+        - dashboard-auth
+
+    # Prometheus (internal only)
+    prometheus:
+      rule: "Host(`prometheus.internal.arif-fazil.com`)"
+      service: prometheus-svc
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - security-headers
+        - internal-only
+
+    # Qdrant (internal only - NEVER expose publicly)
+    qdrant:
+      rule: "Host(`qdrant.internal.arif-fazil.com`)"
+      service: qdrant-svc
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - security-headers
+        - internal-only
+
+    # Code Server (if enabled - strongly authenticated)
+    codeserver:
+      rule: "Host(`code.arif-fazil.com`)"
+      service: codeserver-svc
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - security-headers
+        - dashboard-auth
+
+  # Service definitions
+  services:
+    arifosmcp-svc:
+      loadBalancer:
+        servers:
+          - url: "http://arifosmcp:8080"
+        healthCheck:
+          path: "/health"
+          interval: "10s"
+          timeout: "5s"
+
+    openclaw-svc:
+      loadBalancer:
+        servers:
+          - url: "http://openclaw:18789"
+        healthCheck:
+          path: "/healthz"
+          interval: "10s"
+          timeout: "5s"
+
+    agentzero-svc:
+      loadBalancer:
+        servers:
+          - url: "http://agent-zero:80"
+        healthCheck:
+          path: "/health"
+          interval: "10s"
+          timeout: "5s"
+
+    n8n-svc:
+      loadBalancer:
+        servers:
+          - url: "http://arifos_n8n:5678"
+
+    grafana-svc:
+      loadBalancer:
+        servers:
+          - url: "http://arifos_grafana:3000"
+
+    prometheus-svc:
+      loadBalancer:
+        servers:
+          - url: "http://arifos_prometheus:9090"
+
+    qdrant-svc:
+      loadBalancer:
+        servers:
+          - url: "http://qdrant:6333"
+
+    codeserver-svc:
+      loadBalancer:
+        servers:
+          - url: "http://civ08_code_server:8080"
+
+# TCP routers (if needed for non-HTTP services)
+tcp:
+  routers: {}
+  services: {}
+
+# TLS configuration
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12
+      cipherSuites:
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+        - TLS_AES_128_GCM_SHA256
+        - TLS_AES_256_GCM_SHA384
+        - TLS_CHACHA20_POLY1305_SHA256
+      curvePreferences:
+        - CurveP521
+        - CurveP384
+        - X25519
+      sniStrict: true

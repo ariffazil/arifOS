@@ -76,7 +76,7 @@ graph LR
 ```mermaid
 graph TB
     A["server.py<br/>Universal Entry"] --> B{"FastMCP Version?"}
-    B -->|"2.x"| C["server_horizon.py<br/>Proxy Mode<br/>8 tools"]
+    B -->|"2.x"| C["HORIZON.py<br/>Proxy Mode<br/>8 tools"]
     B -->|"3.x"| D["runtime/server.py<br/>Full Kernel<br/>11 tools"]
     
     style A fill:#1a1a2e,color:#fff
@@ -88,7 +88,7 @@ graph TB
 
 | Mode | Tools | Features | Entrypoint |
 |------|-------|----------|------------|
-| **Horizon (Cloud)** | 8 | Proxied to VPS | `server_horizon.py` |
+| **Horizon (Cloud)** | 8 | Proxied to VPS | `HORIZON.py` |
 | **VPS (Sovereign)** | 12 | Full kernel, local Ollama | `runtime/server.py` |
 
 ---
@@ -499,7 +499,7 @@ services:
 arifosmcp/
 ├── README.md                      # ← This file
 ├── server.py                      # Universal entry
-├── server_horizon.py              # Horizon proxy (FastMCP 2.x)
+├── HORIZON.py              # Horizon proxy (FastMCP 2.x)
 ├── pyproject.toml                 # Dependencies
 ├── requirements.txt               # Pip dependencies
 │
@@ -916,7 +916,7 @@ arifOS tools are organized into **5 constitutional bands**:
 
 2. **`physics_reality` field name**: Uses `input` field instead of `query` — historical inconsistency from legacy API.
 
-3. **`check_vital`, `audit_rules`**: Internal lifecycle tools in `server_horizon.py` bootstrap — **NOT callable via MCP**.
+3. **`check_vital`, `audit_rules`**: Internal lifecycle tools in `HORIZON.py` bootstrap — **NOT callable via MCP**.
 
 4. **`agi_mind` nested verdicts**: When `agi_mind` returns `verdict: "SEAL"` at top-level but `coherence.verdict: "SABAR"` inside, the **worst verdict wins** (truth before speed).
 

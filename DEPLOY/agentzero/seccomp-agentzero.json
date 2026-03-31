@@ -1,0 +1,167 @@
+{
+  "defaultAction": "SCMP_ACT_ERRNO",
+  "architectures": ["SCMP_ARCH_X86_64", "SCMP_ARCH_AARCH64"],
+  "syscalls": [
+    {
+      "comment": "Basic file operations",
+      "names": [
+        "read", "write", "open", "openat", "close",
+        "stat", "fstat", "lstat", "statx",
+        "access", "faccessat", "faccessat2",
+        "lseek", "pread64", "pwrite64",
+        "readv", "writev", "preadv", "pwritev"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "Directory operations",
+      "names": [
+        "mkdir", "mkdirat", "rmdir", "unlink", "unlinkat",
+        "rename", "renameat", "renameat2",
+        "chdir", "fchdir", "getcwd",
+        "chown", "fchown", "lchown", "fchownat"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "Process control",
+      "names": [
+        "exit", "exit_group", "wait4", "waitpid", "waitid",
+        "getpid", "getppid", "getpgrp", "getpgid", "getsid",
+        "setpgid", "setsid",
+        "kill", "tkill", "tgkill"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "Memory management",
+      "names": [
+        "brk", "mmap", "munmap", "mprotect", "mremap",
+        "madvise", "mincore", "msync"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "Threading",
+      "names": [
+        "clone", "clone3", "fork", "vfork",
+        "setns", "unshare",
+        "futex", "set_robust_list", "get_robust_list"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "Signals",
+      "names": [
+        "rt_sigaction", "rt_sigprocmask", "rt_sigpending",
+        "rt_sigtimedwait", "rt_sigqueueinfo", "rt_tgsigqueueinfo",
+        "sigaltstack", "signalfd", "signalfd4"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "Time",
+      "names": [
+        "clock_gettime", "clock_getres", "clock_nanosleep",
+        "gettimeofday", "nanosleep", "time", "times"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "User/group info",
+      "names": [
+        "getuid", "getgid", "geteuid", "getegid",
+        "getgroups", "getresuid", "getresgid"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "Polling",
+      "names": [
+        "poll", "ppoll", "select", "pselect6",
+        "epoll_create", "epoll_create1", "epoll_ctl", "epoll_wait", "epoll_pwait"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "Evented I/O",
+      "names": [
+        "eventfd", "eventfd2", "pipe", "pipe2", "tee", "splice"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "Descriptors",
+      "names": [
+        "dup", "dup2", "dup3", "fcntl",
+        "ioctl", "fcntl64"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "Synchronization",
+      "names": [
+        "fsync", "fdatasync", "sync", "syncfs",
+        "sync_file_range"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "Execution",
+      "names": [
+        "execve", "execveat"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "Sockets (for Python multiprocessing)",
+      "names": [
+        "socket", "socketpair", "getsockopt", "setsockopt"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "Prctl",
+      "names": ["prctl"],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "Uname",
+      "names": ["uname", "sethostname"],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "Random",
+      "names": ["getrandom"],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "Umask",
+      "names": ["umask"],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "comment": "BLOCKED: Dangerous network",
+      "names": [
+        "connect", "bind", "listen", "accept", "accept4"
+      ],
+      "action": "SCMP_ACT_ERRNO"
+    },
+    {
+      "comment": "BLOCKED: Module loading",
+      "names": [
+        "init_module", "finit_module", "delete_module"
+      ],
+      "action": "SCMP_ACT_KILL_PROCESS"
+    },
+    {
+      "comment": "BLOCKED: Privilege escalation",
+      "names": [
+        "setuid", "setgid", "setreuid", "setregid",
+        "setgroups", "setresuid", "setresgid",
+        "setfsuid", "setfsgid", "capset"
+      ],
+      "action": "SCMP_ACT_ERRNO"
+    }
+  ]
+}

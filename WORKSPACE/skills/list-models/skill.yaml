@@ -1,0 +1,18 @@
+name: list-models
+description: List available AI models
+version: 1.0.0
+author: arifOS
+type: command
+
+command: |
+  echo "🤖 Available Models:"
+  openclaw models list 2>/dev/null || echo "Model list failed"
+
+patterns:
+  - "list models"
+  - "what models"
+  - "available models"
+  - "show models"
+
+response: |
+  🤖 Fetching available models...

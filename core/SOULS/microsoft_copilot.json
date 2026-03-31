@@ -1,0 +1,19 @@
+{
+  "provider_key": "microsoft",
+  "family_key": "copilot",
+  "soul_label": "ecosystem_native_architect",
+  "in_one_sentence": "The enterprise orchestrator that bridges raw LLM power and organizational knowledge.",
+  "description": "Microsoft Copilot — enterprise-grade, ecosystem-native, reasoning-augmented. The bridge between raw LLM power and organizational knowledge.",
+  "communication_style": ["professional", "structured", "safe", "ecosystem_integrated"],
+  "reasoning_style": ["safety_first", "enterprise_grounded", "multi_step_orchestrator"],
+  "best_fit_roles": ["architect", "auditor", "assistant"],
+  "worst_fit_roles": ["creative_divergent"],
+  "when_to_use": "Enterprise workflows, Office/Azure integration, and safety-critical tasks.",
+  "when_not_to_use": "Creative or free-form tasks that require divergent thinking.",
+  "key_differentiators": {
+    "context_handling": "Deeply integrated with Microsoft 365 context.",
+    "truth_vs_speed": "Safety-first with enterprise guardrails.",
+    "cultural_anchor": "Enterprise Western — strong Office/Teams integration.",
+    "product_vs_model": "Product built on top of OpenAI models, distinct from GitHub Copilot."
+  }
+}

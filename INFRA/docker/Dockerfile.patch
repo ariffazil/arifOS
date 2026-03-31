@@ -1,0 +1,4 @@
+FROM arifos/arifosmcp:latest
+COPY arifosmcp/runtime/models.py /usr/src/app/arifosmcp/runtime/models.py
+COPY arifosmcp/runtime/tools.py /usr/src/app/arifosmcp/runtime/tools.py
+COPY arifosmcp/runtime/exceptions.py /usr/src/app/arifosmcp/runtime/exceptions.py

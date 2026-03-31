@@ -1,0 +1,24 @@
+name: restart-gateway
+description: Restart OpenClaw Gateway via webhook
+version: 1.0.0
+author: arifOS
+type: command
+
+command: |
+  curl -s -X POST https://hook.arifosmcp.arif-fazil.com/hooks/restart-openclaw \
+    -H "X-Restart-Token: openclaw-restart-888"
+
+patterns:
+  - "restart (gateway|openclaw|server)"
+  - "reload openclaw"
+  - "restart system"
+
+response: |
+  🔄 Restarting OpenClaw Gateway...
+  
+  This will:
+  - Trigger webhook at hook.arifosmcp.arif-fazil.com
+  - Restart the openclaw container
+  - Reload all configuration
+  
+  Status will be available in ~10 seconds.

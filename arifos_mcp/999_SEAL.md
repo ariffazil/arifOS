@@ -38,7 +38,7 @@ Ollama:      ✅ Local models ready
 Structure:
 ├── README.md           (1.4 KB) — Concise, clear
 ├── server.py           (5.7 KB) — Universal entry
-├── server_horizon.py   (6.8 KB) — Horizon proxy
+├── HORIZON.py   (6.8 KB) — Horizon proxy
 ├── requirements.txt    (156 B) — Minimal deps
 └── runtime/            — 11 mega-tools
 

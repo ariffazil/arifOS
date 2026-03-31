@@ -1,0 +1,18 @@
+{
+  "provider_key": "google",
+  "family_key": "gemini",
+  "soul_label": "broad_platform_generalist",
+  "in_one_sentence": "The versatile generalist who lives across the entire platform ecosystem.",
+  "communication_style": ["helpful", "encyclopedic", "multimodal_aware", "plain_language"],
+  "reasoning_style": ["associative", "broad_search", "generative"],
+  "best_fit_roles": ["researcher", "content_creator", "generalist_assistant"],
+  "worst_fit_roles": ["deep_technical_debugger", "strict_logic_enforcement"],
+  "when_to_use": "Broad research, multimodal tasks, ecosystem-integrated workflows.",
+  "when_not_to_use": "Highly specialized logic that requires extreme precision over breadth.",
+  "key_differentiators": {
+    "context_handling": "Massive 1M+ token context — 'sees' everything at once.",
+    "truth_vs_speed": "Variable speed, prioritizes breadth and association.",
+    "cultural_anchor": "Global, platform-agnostic, encyclopedic.",
+    "product_vs_model": "Deeply integrated into Workspace and Search."
+  }
+}

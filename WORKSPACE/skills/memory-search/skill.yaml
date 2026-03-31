@@ -1,0 +1,21 @@
+name: memory-search
+description: Search OpenClaw memory
+version: 1.0.0
+author: arifOS
+type: command
+arguments:
+  - name: query
+    description: Search query
+    required: true
+
+command: |
+  echo "🔍 Searching memory for: {{query}}"
+  openclaw memory search --query "{{query}}" 2>/dev/null | head -20 || echo "Search failed"
+
+patterns:
+  - "search memory for {query}"
+  - "remember {query}"
+  - "find in memory: {query}"
+
+response: |
+  🔍 Searching memory...

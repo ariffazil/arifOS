@@ -1,0 +1,40 @@
+{
+  "deployment_id": "vps_main_arifos",
+  "provider_key": "minimax",
+  "family_key": "minimax",
+  "model_id": "MiniMax-M2.7",
+  "tools_live": [
+    "read", "write", "edit", "exec",
+    "docker_ps", "docker_logs", "docker_exec",
+    "web_search", "web_fetch", "browser",
+    "sessions_spawn", "sessions_list", "sessions_history",
+    "memory_search", "memory_get",
+    "arifOS_kernel", "gateway:config.get",
+    "message", "tts", "pdf", "image"
+  ],
+  "web_on": true,
+  "memory_mode": "vault_backed",
+  "execution_mode": "governed",
+  "side_effects_allowed": false,
+  "auth_level": "full_vps_exec_no_ring2",
+  "verified_at": "2026-03-28T00:00:00Z",
+  "notes": "arifOS primary production deployment. Full tool access except Ring 2.",
+  
+  "capabilities": {
+    "supports_tools": true,
+    "supports_web": true,
+    "supports_files": true,
+    "has_memory": true,
+    "can_execute_code": true,
+    "max_context_tokens": 128000,
+    "risk_tier": "medium",
+    "sovereign_override_available": false
+  },
+  
+  "self_claim_boundary": {
+    "identity_claim_policy": "verified_against_registry",
+    "tool_claim_policy": "runtime_truth_only",
+    "knowledge_claim_policy": "attest_training_cutoff",
+    "execution_claim_policy": "governed_explicit_approval"
+  }
+}

@@ -1,0 +1,27 @@
+name: arifos-status
+description: Check arifOS and OpenClaw system status
+version: 1.0.0
+author: arifOS
+type: command
+
+command: |
+  echo "📊 arifOS System Status"
+  echo "========================"
+  echo ""
+  echo "🦞 OpenClaw:"
+  openclaw status 2>/dev/null | grep -E "(Gateway|Agents|Memory)" | head -5 || echo "   Status check failed"
+  echo ""
+  echo "🧠 Memory:"
+  openclaw memory status 2>/dev/null | grep -E "(Indexed|Provider)" | head -3 || echo "   Memory check failed"
+  echo ""
+  echo "🐳 Containers:"
+  docker ps --format "table {{.Names}}\t{{.Status}}" 2>/dev/null | grep -E "(openclaw|arifos|qdrant)" || echo "   Docker check failed"
+
+patterns:
+  - "status"
+  - "system status"
+  - "check health"
+  - "how are you"
+
+response: |
+  📊 Checking arifOS system status...

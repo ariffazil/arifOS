@@ -1,0 +1,97 @@
+# ── arifOS AAA MCP Server ──────────────────────────────────────────────
+# OPTIMIZED FOR FAST REBUILDS - Layer caching strategy
+# Hardened for Production (v2026.03.17-ANTICHAOS)
+# ───────────────────────────────────────────────────────────────────────
+
+FROM python:3.12-slim AS build
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+WORKDIR /usr/src/app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential gcc git \
+    && rm -rf /var/lib/apt/lists/*
+
+# ===== CACHE OPTIMIZATION: Copy only dependency files first =====
+# This layer is cached unless requirements/pyproject changes
+COPY requirements.txt pyproject.toml ./
+
+# Install UV for faster package installation
+RUN pip install --no-cache-dir uv
+
+# Install dependencies (CACHED unless requirements change)
+# Using UV for 10x faster installs
+RUN uv pip install --system --no-cache torch --index-url https://download.pytorch.org/whl/cpu && \
+    uv pip install --system --no-cache -r requirements.txt
+
+# Pre-bake BGE-M3 model (~570MB)
+ENV HF_HOME=/usr/src/app/models
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('BAAI/bge-m3'); print('BGE-M3 baked')" && \
+    find /usr/src/app/models -name "*.onnx" -o -name "*.ort" | xargs rm -f 2>/dev/null || true
+
+# ===== NOW copy application code (this layer changes often) =====
+COPY . .
+
+# Install the package itself (fast because deps already installed)
+RUN uv pip install --system --no-cache -e .
+
+
+FROM python:3.12-slim AS runtime
+
+RUN groupadd -g 1000 arifos && \
+    useradd -u 1000 -g arifos -m -s /bin/bash arifos
+
+WORKDIR /usr/src/app
+
+ARG ARIFOS_VERSION=2026.03.17-ANTICHAOS
+ARG GIT_SHA=unknown
+ARG BUILD_TIME=unknown
+
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PORT=8080
+ENV HOST=0.0.0.0
+ENV AAA_MCP_TRANSPORT=http
+ENV ARIFOS_VERSION=${ARIFOS_VERSION}
+ENV GIT_SHA=${GIT_SHA}
+ENV BUILD_TIME=${BUILD_TIME}
+ENV HF_HOME=/usr/src/app/models
+
+# Install runtime deps & document forge toolchain (Marp, Mermaid, ImageMagick)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates gnupg fontconfig fonts-inter fonts-roboto \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y --no-install-recommends \
+       nodejs \
+       imagemagick \
+    && npm install -g @marp-team/marp-cli @mermaid-js/mermaid-cli \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Python environment from build (includes all deps)
+COPY --from=build /usr/local /usr/local
+COPY --from=build /usr/src/app/models /usr/src/app/models
+
+# Copy application code
+COPY . .
+
+# Setup dirs
+RUN mkdir -p telemetry data VAULT999 memory static/dashboard /ms-playwright && \
+    chown -R arifos:arifos /usr/src/app /ms-playwright
+
+# Install Playwright browser
+RUN python -m playwright install --with-deps chromium && \
+    chown -R arifos:arifos /ms-playwright
+
+USER arifos
+EXPOSE 8080
+
+HEALTHCHECK --interval=20s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -fsS --max-time 3 http://localhost:8080/health || exit 1
+
+LABEL io.modelcontextprotocol.server.name="io.github.ariffazil/arifos-mcp"
+LABEL io.modelcontextprotocol.server.version="2026.03.17-ANTICHAOS"
+
+CMD ["python", "-m", "arifosmcp.runtime", "http"]

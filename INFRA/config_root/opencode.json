@@ -1,0 +1,24 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "AGENTS.md"
+  ],
+  "permission": {
+    "*": "allow",
+    "edit": "allow",
+    "bash": "allow"
+  },
+  "mcp": {
+    "arifos-aaa": {
+      "type": "local",
+      "command": [
+        "/root/arifOS/.venv/bin/python",
+        "-m",
+        "arifosmcp.runtime",
+        "stdio"
+      ],
+      "enabled": true,
+      "timeout": 8000
+    }
+  }
+}
