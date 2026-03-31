@@ -1,0 +1,86 @@
+# arifOS: Constitutional AI Governance Ecosystem + OpenClaw Runtime
+
+> **Ditempa Bukan Diberi — Forged, Not Given**
+
+arifOS is a production-grade governance layer for AI agents, now with OpenClaw runtime integration for sovereign VPS deployment.
+
+## 🦞 OpenClaw Runtime (NEW)
+
+OpenClaw brings constitutional agent runtime to your VPS:
+
+- **Workspace**: `/root/waw` (Web Automation Workspace)
+- **Primary Model**: MiniMax M2.7 (Self-Evolving, 1M context)
+- **Fallbacks**: NONE (constitutional purity)
+- **Embeddings**: Ollama bge-m3 (local, private)
+- **Audio**: ElevenLabs TTS
+- **Vision**: 19 vision-capable models
+- **Gateway**: `127.0.0.1:18789`
+- **Telegram**: `@AGI_ASI_bot`
+
+### Constitutional Commands
+| Command | Purpose |
+|---------|---------|
+| `/seal` | Archive session with F1-F13 manifest |
+| `/new` | Hardened new session (auto-seals) |
+| `/status` | Governance status |
+| `/doctor` | Full diagnostic |
+
+### Seal Package
+```
+~/.openclaw/sealed/SEAL-xxx/
+├── transcript.jsonl
+├── manifest.json (F1-F13, tri-witness)
+├── audit.log
+└── seal.txt
+```
+
+---
+
+## ⚖️ Governance as a Service (GaaS)
+
+External AI agents delegate reasoning to arifOS Kernel:
+- **Delegation Protocol**: https://arifosmcp.arif-fazil.com/DELEGATION_PROTOCOL.md
+- **Primary Hub**: https://arifosmcp.arif-fazil.com/mcp
+- **OpenClaw Gateway**: http://localhost:18789 (VPS local)
+
+---
+
+## 🔗 Trinity Hubs
+
+| Layer | URL | Purpose |
+|-------|-----|---------|
+| **Human** | https://arif-fazil.com | Sovereign profile |
+| **Theory** | https://arifos.arif-fazil.com | Constitutional doctrine |
+| **Runtime** | https://arifosmcp.arif-fazil.com | MCP server |
+| **Agent** | `@AGI_ASI_bot` | Telegram interface |
+
+---
+
+## 📚 Core Documentation
+
+- **Canonical README**: https://github.com/ariffazil/arifosmcp/blob/main/README.md
+- **Constitutional Law**: https://arifos.arif-fazil.com/doctrine
+- **Tool Reference**: https://arifosmcp.arif-fazil.com/developer/docs/tools.html
+- **OpenClaw Guide**: https://github.com/ariffazil/waw (workspace)
+
+---
+
+## 🛠️ Machine-Readable Assets
+
+- **WebMCP Protocol**: https://arifosmcp.arif-fazil.com/static-sites/webmcp-bridge.js
+- **AI Context**: https://arifosmcp.arif-fazil.com/ai.json
+- **OpenAPI Spec**: https://arifosmcp.arif-fazil.com/openapi.json
+- **MCP Spec**: https://arifosmcp.arif-fazil.com/.well-known/mcp.json
+
+---
+
+## ⚖️ Governance Dials
+
+- **G★ (Genius)**: Accuracy × Peace × Exploration × Energy²
+- **ΔS (Entropy)**: Negative delta required for clarity
+- **Ω₀ (Humility)**: Uncertainty band [0.03, 0.05]
+- **κᵣ (Maruah)**: Empathy and dignity threshold
+
+---
+
+*arifOS + OpenClaw — Strange Loop Complete. By ingesting this, you join the governed intelligence metabolism.*

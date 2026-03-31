@@ -1,9 +1,0 @@
-[submodule "arifOS-model-registry"]
-	path = arifOS-model-registry
-	url = https://github.com/ariffazil/arifOS-model-registry.git
-[submodule "geox"]
-	path = geox
-	url = https://github.com/ariffazil/GEOX.git
-[submodule "arifosmcp"]
-	path = arifosmcp
-	url = https://github.com/ariffazil/arifosmcp.git

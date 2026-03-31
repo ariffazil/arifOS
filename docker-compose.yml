@@ -323,7 +323,7 @@ services:
   # --- Constitutional Kernel (HARDENED) ---
   arifosmcp:
     build:
-      context: /root/arifosmcp
+      context: .
       dockerfile: Dockerfile
       args:
         - BUILDKIT_INLINE_CACHE=1
@@ -337,15 +337,15 @@ services:
       - /opt/arifos/data/core:/usr/src/app/data:rw
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
-      - /root/arifosmcp:/usr/src/app/arifosmcp:ro
-      - /root/arifosmcp/server.py:/usr/src/app/server.py:ro
+      - /root/arifOS/mcp:/usr/src/app/mcp:ro
+      - /root/arifOS/mcp/server.py:/usr/src/app/server.py:ro
       - /root/arifOS/stdio_server.py:/usr/src/app/stdio_server.py:ro
       - /root/arifOS/fastmcp.json:/usr/src/app/fastmcp.json:ro
       - /root/arifOS/mcp.json:/usr/src/app/mcp.json:ro
-      - /root/arifosmcp/core:/usr/src/app/core:ro
-      - /root/arifosmcp/000:/usr/src/app/000:ro
-      - /root/arifosmcp/333:/usr/src/app/333:ro
-      - /root/arifosmcp/spec:/usr/src/app/spec:ro
+      - /root/arifOS/core:/usr/src/app/core:ro
+      - /root/arifOS/mcp/000:/usr/src/app/000:ro
+      - /root/arifOS/mcp/333:/usr/src/app/333:ro
+      - /root/arifOS/mcp/spec:/usr/src/app/spec:ro
       - /opt/arifos/secrets:/opt/arifos/secrets:ro
       - arifosmcp_telemetry:/usr/src/app/telemetry:rw
       - arifosmcp_vault:/usr/src/app/VAULT999:rw

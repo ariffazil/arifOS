@@ -22,15 +22,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy project files
 COPY . .
 
-# Note: Submodules are included via COPY . . (build context has submodule files)
-# git submodule update --init --recursive  # REMOVED - not needed, COPY brings files
+# Initialize git submodules (arifOS-model-registry)
+#RUN git submodule update --init --recursive
 
 # Install dependencies in build stage to keep runtime image clean
 RUN python -m pip install --upgrade pip && \
     pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
     if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi && \
-    pip install --no-cache-dir . && \
-    python -c "import lancedb; print(f'lancedb={lancedb.__version__}')"
+    pip install --no-cache-dir .
 
 # Install WebMCP dependencies (F12/F11 constitutional web gateway)
 RUN pip install --no-cache-dir itsdangerous fastapi uvicorn redis python-multipart
@@ -104,4 +103,4 @@ LABEL io.modelcontextprotocol.server.version="2026.03.28-IDENTITY-BINDING"
 LABEL io.modelcontextprotocol.server.description="Constitutional AI governance server with a 10-tool APEX-G core stack plus legacy Phase 2 capability tools."
 
 # Execute consolidated entrypoint
-CMD ["uvicorn", "arifosmcp.runtime.server:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "mcp.runtime.server:app", "--host", "0.0.0.0", "--port", "8080"]
