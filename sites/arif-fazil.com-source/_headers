@@ -1,0 +1,26 @@
+# Security headers
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://aaamcp.arif-fazil.com
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+
+/llms.txt
+  Content-Type: text/plain; charset=utf-8
+  X-Content-Type-Options: nosniff
+
+/llms.json
+  Content-Type: application/json; charset=utf-8
+  X-Content-Type-Options: nosniff
+  Access-Control-Allow-Origin: *
+
+/.well-known/agent.json
+  Content-Type: application/json; charset=utf-8
+  X-Content-Type-Options: nosniff
+  Access-Control-Allow-Origin: *
+
+/.well-known/*
+  Content-Type: application/json; charset=utf-8
+  X-Content-Type-Options: nosniff
