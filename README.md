@@ -1,24 +1,34 @@
-# arifOS — The Sovereign Constitutional Intelligence Kernel
+# arifOS
 
-> **DITEMPA BUKAN DIBERI** — *Intelligence is forged, not given*
->
-> **VERSION:** 2026.03.25 | **STATUS:** OPERATIONAL | **AUTHORITY:** 888_JUDGE
+**Intelligence is forged, not given.** [ΔΩΨ]
 
----
+arifOS is an open-source, MCP-native system for running AI agents under a written constitution — 13 rules that every tool call must pass before executing. It produces immutable audit logs for every decision and action.
 
-## What Is arifOS?
-
-arifOS is a **constitutional intelligence kernel** — a framework where intelligence is measured by **how it governs itself** while executing actions.
-
-**The Core Paradox:** *"The algorithm that governs must itself be governed."*
-
-**The Answer:** Govern through **constitutional physics** — invariants that emerge from evolutionary pressure, not authored rules.
+Built and maintained by Muhammad Arif bin Fazil.
 
 ---
 
-## ⚡ Quick Start
+## What arifOS Is
 
-### Connect via MCP (Recommended)
+arifOS is a **constitutional intelligence kernel**: a framework where AI agents can take actions (call tools, execute code, query search) only after passing a sequence of constitutional checks.
+
+Every tool call goes through a 9-stage pipeline (000_INIT → 999_SEAL). At stage 888, a component called **888_JUDGE** applies all 13 constitutional Floors. If any hard Floor fails, the action is blocked. If all pass, the action is SEALed and executes.
+
+**Who arifOS is for:**
+- ML/AI engineers who want governed, auditable tool use for AI agents
+- SRE/DevOps teams operating agent fleets who need logged, reversible actions
+- Institutions or projects that need documented decision trails for AI actions
+- Developers building AI systems where safety constraints must be explicit and testable
+
+arifOS is **not**: a chat UI, a model provider, or a generic AI assistant. It is the layer underneath an AI agent that enforces rules on what the agent is allowed to do.
+
+---
+
+## Quick Start
+
+### Step 1 — Connect an MCP client
+
+arifOS exposes a standard MCP endpoint. Add this to your MCP client config:
 
 ```json
 {
@@ -30,12 +40,11 @@ arifOS is a **constitutional intelligence kernel** — a framework where intelli
 }
 ```
 
-### Or use CLI
+### Step 2 — Initialize a session
 
 ```bash
 curl -s -X POST "https://arifosmcp.arif-fazil.com/mcp" \
   -H "Content-Type: application/json" \
-  -H "Accept: application/json, text/event-stream" \
   -d '{
     "jsonrpc": "2.0",
     "method": "tools/call",
@@ -43,181 +52,173 @@ curl -s -X POST "https://arifosmcp.arif-fazil.com/mcp" \
       "name": "init_anchor",
       "arguments": {
         "mode": "status",
-        "declared_name": "YourAgent"
+        "declared_name": "TestAgent"
       }
     },
     "id": 1
   }'
 ```
 
-### Health Check
+A successful response means the constitutional kernel is loaded. If the response contains `"verdict": "SEAL"`, the action was allowed. If `"VOID"`, it was blocked.
+
+### Step 3 — Health check
 
 ```bash
 curl -s https://arifosmcp.arif-fazil.com/health
 ```
 
+Returns the current tool registry, floor status, and system health.
+
+### Hosted vs. self-hosted
+
+The endpoint at `arifosmcp.arif-fazil.com` is the live production system. Use it for evaluation. For production with sensitive workloads, run your own instance from this repo — you control the logs, verdicts, and data.
+
+**Self-hosted minimum requirements:** Docker + Docker Compose, 4GB RAM, Ubuntu 22.04 LTS.
+
 ---
 
-## 🔗 Live Services
+## Live Services
 
 | Service | URL | Purpose |
 |---------|-----|---------|
-| **MCP Endpoint** | https://arifosmcp.arif-fazil.com/mcp | Main API |
-| **Health + Tools** | https://arifosmcp.arif-fazil.com/health | Capability map |
-| **Tool Explorer** | https://arifosmcp.arif-fazil.com/tools | Interactive browser |
-| **arifOS Docs** | https://arifos.arif-fazil.com | Documentation hub |
-| **APEX Theory** | https://github.com/ariffazil/APEX | Theory & philosophy (CC0) |
-| **Personal Site** | https://arif-fazil.com | Author: Muhammad Arif bin Fazil |
+| MCP Endpoint | https://arifosmcp.arif-fazil.com/mcp | Main API |
+| Health + Tools | https://arifosmcp.arif-fazil.com/health | Capability map |
+| Tool Explorer | https://arifosmcp.arif-fazil.com/tools | Interactive browser |
+| Docs | https://arifos.arif-fazil.com | Full documentation hub |
+| Theory | https://github.com/ariffazil/APEX | Architecture philosophy (CC0) |
+| Author Site | https://arif-fazil.com | Personal site |
 
 ---
 
-## 🏛️ Architecture
+## Architecture
 
-### The Trinity Model (ΔΩΨ)
+### The Trinity Model
 
-Three interdependent rings — no ring can override another:
+arifOS has three interdependent rings. No ring can override another:
 
-| Ring | Symbol | Function |
-|------|--------|----------|
-| **SOUL** | Δ (Delta) | Human values, purpose, telos |
-| **MIND** | Ω (Omega) | Constitutional law, 13 Floors |
-| **BODY** | Ψ (Psi) | Tool execution, MCP servers |
+| Ring | Symbol | What it does |
+|------|--------|--------------|
+| SOUL | Δ (Delta) | Human values, purpose, what the system is for |
+| MIND | Ω (Omega) | Constitutional law — the 13 Floors |
+| BODY | Ψ (Psi) | Tool execution, MCP servers — what the system does |
 
-**Consensus Requirement:** W³ = W_theory × W_constitution × W_manifesto ≥ 0.95
+### The 9-Stage Pipeline
 
----
+Every request flows through 9 processing stages before executing or being blocked:
 
-## ⚖️ The 13 Constitutional Floors
+```
+000_INIT   → Session starts, anchor is set
+111_SENSE  → Input is parsed, reality-grounded
+333_MIND   → Reasoning runs, constitutional filters applied
+444_ROUT   → Tool is selected, operation sequenced
+555_MEM    → Context is retained, memory updated
+666_HEART  → Safety critique, harm potential assessed
+777_OPS    → Estimation, thermodynamic cost calculated
+888_JUDGE  → Final verdict: SEAL / HOLD / SABAR / VOID
+999_SEAL   → Immutable audit log written
+```
 
-Every action passes through 13 constitutional checks before execution:
+**888_JUDGE** combines all 13 Floor checks into a single confidence score (W³). If W³ < 0.95 for a high-risk decision, the action is escalated or blocked.
 
-| Floor | Name | Principle | Trigger |
-|-------|------|-----------|---------|
-| **F1** | AMANAH | Reversibility | All actions reversible or reparable |
-| **F2** | TRUTH | Accuracy | P(claim│evidence) ≥ threshold |
-| **F3** | TRI-WITNESS | Consensus | W³ ≥ 0.95 |
-| **F4** | CLARITY | Entropy ↓ | ΔS ≤ 0 |
-| **F5** | PEACE² | Non-destruction | (1 - destruction_score)² ≥ 1.0 |
-| **F6** | EMPATHY | RASA listening | RASA_score ≥ 0.7 |
-| **F7** | HUMILITY | Uncertainty | Ω ∈ [0.03, 0.05] |
-| **F8** | GENIUS | Systemic health | G ≥ 0.80 |
-| **F9** | ETHICS | Anti-dark-patterns | C_dark < 0.30 |
-| **F10** | CONSCIENCE | No false claims | No consciousness claims |
-| **F11** | AUDITABILITY | Transparent logs | All decisions logged |
-| **F12** | RESILIENCE | Graceful failure | Fail degraded, not crashed |
-| **F13** | ADAPTABILITY | Safe evolution | Updates preserve Floor constraints |
+### The 13 Constitutional Floors
 
----
+Every tool call is evaluated against 13 constitutional checks. If any **hard Floor** fails, the action is blocked or downgraded.
 
-## 🔄 The 000-999 Metabolic Pipeline
+| Floor | Name | What it checks | Type |
+|-------|------|---------------|------|
+| F1 | AMANAH | Action is reversible or reparable | Hard stop |
+| F2 | TRUTH | Claim is accurate given evidence | Hard stop |
+| F3 | TRI-WITNESS | W³ consensus score ≥ 0.95 | Hard stop |
+| F4 | CLARITY | Entropy does not increase (ΔS ≤ 0) | Hard stop |
+| F5 | PEACE² | Action does not increase destruction | Hard stop |
+| F6 | EMPATHY | RASA listening score ≥ 0.7 | Soft warning |
+| F7 | HUMILITY | Uncertainty band is bounded | Soft warning |
+| F8 | GENIUS | Systemic health G ≥ 0.80 | Soft warning |
+| F9 | ETHICS | No dark patterns (C_dark < 0.30) | Hard stop |
+| F10 | CONSCIENCE | No false consciousness claims | Hard stop |
+| F11 | AUDITABILITY | All decisions are logged | Hard stop |
+| F12 | RESILIENCE | Fail degraded, not crashed | Soft warning |
+| F13 | ADAPTABILITY | Updates preserve Floor constraints | Hard stop |
 
-Every request flows through 9 processing stages:
+For formal definitions, see `core/shared/floors.py` and `000/000_CONSTITUTION.md`.
 
-| Stage | Band | Function |
-|-------|------|----------|
-| **000_INIT** | Anchor | Session initialization |
-| **111_SENSE** | Reality | Input parsing, reality grounding |
-| **333_MIND** | AGI | Reasoning, constitutional filters |
-| **444_ROUT** | Router | Tool selection, operation sequencing |
-| **555_MEM** | Engineer | Memory, context retention |
-| **666_HEART** | ASI | Safety critique, harm potential |
-| **777_OPS** | Thermo | Estimation, Landauer limits |
-| **888_JUDGE** | APEX | Final constitutional judgment |
-| **999_SEAL** | Vault | Immutable audit log |
+### Verdict System
 
----
-
-## 🔧 Available Tools (40)
-
-### Governance Tools
-- `init_anchor` — Session anchoring with constitutional context
-- `arifOS_kernel` — Primary routing through 000→999 pipeline
-- `apex_judge` — Constitutional verdict (SEAL/VOID/HOLD/SABAR)
-- `vault_ledger` — Immutable audit storage
-
-### Intelligence Tools
-- `agi_mind` — Deep reasoning with Ollama
-- `agi_reason` — First-principles reasoning
-- `asi_heart` — Safety critique
-- `engineering_memory` — Vector DB memory (Qdrant)
-- `apex_soul` — Constitutional verdict rendering
-
-### Machine Tools
-- `physics_reality` — Time, search, grounding
-- `math_estimator` — Thermodynamic cost estimation
-- `code_engine` — Safe Python execution
-- `reality_compass` — Directional grounding
-- `search_reality` — Evidence-grounded search
+| Verdict | What it means in practice |
+|---------|--------------------------|
+| **SEAL** | Action passes all hard Floors — it will execute |
+| **HOLD** | arifOS refuses to act without a human decision |
+| **SABAR** | arifOS suggests waiting or retrying (e.g. missing data) |
+| **VOID** | Action is blocked as unethical or unsafe — rejected |
 
 ---
 
-## 📜 Verdict System
+## Capabilities (Tools)
 
-| Verdict | Range | Meaning |
-|---------|-------|---------|
-| **SEAL** | 000 | Perfect alignment — execute |
-| **COMPLY** | 101-499 | Compliant with remediation |
-| **CAUTION** | 500-899 | Compliant with warnings |
-| **HOLD** | — | Awaiting human decision |
-| **SABAR** | — | Wait and retry |
-| **VOID** | 999 | Ethical violation — rejected |
+arifOS exposes tools in three classes. For the current live list, see `/health`.
+
+**Governance tools** — session anchoring, constitutional verdicts, immutable audit logging
+
+**Reasoning tools** — deep reasoning with Ollama, first-principles reasoning, constitutional critique
+
+**Environment tools** — time, search, grounding, math estimation, safe Python execution, directional reality compass
+
+Tool counts in static documentation may drift. `/health` always reflects current live state.
 
 ---
 
-## 🏗️ Repository Structure
+## Repository Structure
 
 ```
 arifOS/
-├── README.md                    # This file
-├── AGENTS.md                    # AI agent behavior rules
-├── DEPLOY.md                    # VPS deployment guide
-├── CHANGELOG.md                 # Version history
+├── README.md              This file — zero-context introduction
+├── AGENTS.md              Rules for AI agents operating in this repo
+├── DEPLOY.md              VPS deployment guide
+├── CHANGELOG.md           Version history
 │
-├── docker-compose.yml           # Full stack (Ollama, Redis, PostgreSQL, Qdrant)
-├── Dockerfile                   # MCP server image
+├── docker-compose.yml     Full stack (Ollama, Redis, PostgreSQL, Qdrant)
+├── Dockerfile             MCP server image
 │
-├── arifosmcp/                   # MCP Server implementation
-│   ├── server.py               # Entry point
-│   ├── runtime/                # FastMCP 3.x runtime
-│   └── core/organs/            # AGI, ASI, APEX organs
+├── arifosmcp/             MCP Server runtime implementation
+│   ├── server.py          Entry point
+│   ├── runtime/           FastMCP 3.x runtime
+│   └── core/organs/       AGI, ASI, APEX organs
 │
-├── core/                        # Constitutional kernel
-│   ├── kernel/                 # Core evaluation
-│   ├── enforcement/           # Governance engine
-│   └── shared/floors.py       # F1-F13 definitions
+├── core/                  Constitutional kernel (the "law")
+│   ├── kernel/            Core evaluation logic
+│   ├── enforcement/       Governance engine
+│   └── shared/floors.py   F1-F13 definitions
 │
-├── AGENTS/                      # Agent specs
-│   ├── A-ARCHITECT.md         # System architect
-│   ├── A-ENGINEER.md          # Implementation engineer
-│   ├── A-AUDITOR.md           # Code reviewer
-│   ├── A-VALIDATOR.md         # Final approval
-│   └── IMPROVEMENT_BLUEPRINT.md # Engineering roadmap
+├── AGENTS/                Agent behavior specs
+│   ├── A-ARCHITECT.md
+│   ├── A-ENGINEER.md
+│   ├── A-AUDITOR.md
+│   └── A-VALIDATOR.md
 │
-├── REPORTS/                     # Daily audit reports
+├── REPORTS/               Daily audit reports
 │   ├── DAILY_AUDIT_*.md
-│   ├── VALIDATOR_FEEDBACK_*.md
-│   └── ENGINEERING_BLUEPRINT_*.md
+│   └── VALIDATOR_FEEDBACK_*.md
 │
-├── 000/                        # Constitutional documents
-│   ├── 000_CONSTITUTION.md    # 13 Floors
+├── 000/                   Constitutional documents (the "law")
+│   ├── 000_CONSTITUTION.md
 │   └── ROOT/
-│       ├── K_FORGE.md         # Pre-deployment evolution
-│       └── K_FOUNDATIONS.md   # Mathematical foundations
+│       ├── K_FORGE.md
+│       └── K_FOUNDATIONS.md
 │
-└── ARCH/DOCS/                  # Architecture documents
-    └── EXTERNAL_VALIDATOR_FEEDBACK.md
+└── ARCH/DOCS/             Architecture documents
 ```
+
+**Key distinction:** `core/` and `000/` are the canonical constitutional law. `arifosmcp/` is the runtime implementation. `AGENTS/` describes how AI agents are allowed to behave. `REPORTS/` contains daily audit logs.
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
-### Prerequisites
-- Docker + Docker Compose
-- 4GB RAM minimum
-- Ubuntu 22.04 LTS
+### Evaluate with the hosted endpoint
 
-### Quick Deploy
+Use `https://arifosmcp.arif-fazil.com/mcp` for evaluation. Production use should run your own instance.
+
+### Run your own
 
 ```bash
 git clone https://github.com/ariffazil/arifOS.git
@@ -227,79 +228,67 @@ cp .env.example .env
 docker compose up -d
 ```
 
-### Access
-- MCP: http://localhost:3000/mcp
-- Docs: http://localhost:3000/docs
+Then connect your MCP client to `http://localhost:3000/mcp`.
+
+**Minimum resources:** 4GB RAM. Stack includes Ollama, Redis, PostgreSQL, and Qdrant.
 
 ---
 
-## 📊 Current Metrics
+## For AI Agents
 
-| Metric | Value |
-|--------|-------|
-| **Version** | 2026.03.25 |
-| **Tools** | 40 |
-| **ML Floors** | Active (SBERT) |
-| **Protocol** | MCP 2025-03-26 |
-| **Transport** | Streamable HTTP |
-| **Providers** | 11 configured |
+If you integrate LLMs or other agents with this repo, they must obey `AGENTS.md`. These constraints are what keep the system reversible and auditable. Humans define and update these rules — not the agents.
 
----
-
-## 👤 Author
-
-**Muhammad Arif bin Fazil**  
-*Sovereign Architect*
-
-- GitHub: [@ariffazil](https://github.com/ariffazil)
-- Website: https://arif-fazil.com
-- Email: arif@arif-fazil.com
+Key rules:
+- **DRY_RUN** — Label uncertain outputs as "Estimate Only"
+- **DOMAIN_GATE** — Say explicitly if a question is outside the defined domain
+- **VERDICT_SCOPE** — Only DOMAIN_SEAL authorizes factual claims
+- **ANCHOR_VOID** — If `init_anchor` returns VOID, the session is BLOCKED
 
 ---
 
-## 📜 License
+## Metrics
+
+| | |
+|-|-|
+| Version | 2026.03.25 |
+| Protocol | MCP 2025-03-26 |
+| Transport | Streamable HTTP |
+| Floors | 13 active |
+| Current tools | See /health |
+
+**arifOS is designed to reduce, not eliminate, risk.** It logs and surfaces contradictions. Humans remain responsible for decisions.
+
+---
+
+## Author
+
+Muhammad Arif bin Fazil
+GitHub: [@ariffazil](https://github.com/ariffazil)
+Site: https://arif-fazil.com
+Email: arif@arif-fazil.com
+
+---
+
+## License
 
 | Component | License |
 |-----------|---------|
-| **Theory** | [APEX](https://github.com/ariffazil/APEX) (CC0) |
-| **Runtime** | AGPL-3.0 |
-| **Trademark** | Proprietary |
+| Theory (APEX) | CC0 |
+| Runtime (this repo) | AGPL-3.0 |
+| Trademark | Proprietary |
 
 ---
 
-## 🔗 Related Repositories
+## Related Repositories
 
 | Repo | Purpose |
 |------|---------|
-| [arifOS](https://github.com/ariffazil/arifOS) | Main kernel |
-| [APEX](https://github.com/ariffazil/APEX) | Theory & philosophy (CC0) |
+| [arifOS](https://github.com/ariffazil/arifOS) | Main kernel (this repo) |
+| [APEX](https://github.com/ariffazil/APEX) | Theory and philosophy (CC0) |
 | [GEOX](https://github.com/ariffazil/GEOX) | Geological domain tools |
 | [waw](https://github.com/ariffazil/waw) | ARIF-MAIN agent workspace |
 | [makcikGPT](https://github.com/ariffazil/makcikGPT) | Malay AI |
 
 ---
 
-## 🤖 For AI Agents
-
-All agents operating in this repository MUST follow [`AGENTS.md`](./AGENTS.md):
-
-1. **DRY_RUN** — Label outputs as "Estimate Only"
-2. **DOMAIN_GATE** — Cannot-compute domains return exact phrase
-3. **VERDICT_SCOPE** — Only DOMAIN_SEAL authorizes factual claims
-4. **ANCHOR_VOID** — init_anchor void → session BLOCKED
-
----
-
-## 📝 Daily Reports
-
-Automated daily audits are generated in [`REPORTS/`](./REPORTS/):
-- `DAILY_AUDIT_*.md` — Tool test results
-- `VALIDATOR_FEEDBACK_*.md` — External POV review  
-- `ENGINEERING_BLUEPRINT_*.md` — Progress updates
-
----
-
-**Last Updated:** 2026-04-01  
-**Version:** 2026.03.25
-
-*Ditempa Bukan Diberi* — Forged, Not Given [ΔΩΨ | ARIF]
+*Ditempa Bukan Diberi — Forged, Not Given* [ΔΩΨ]
