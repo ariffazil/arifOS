@@ -225,6 +225,42 @@ arifOS tools are registered with explicit risk tiers:
 
 ---
 
+## v2.0 Refactor Branch
+
+The `refactor/v2.0-abi` branch contains a multi-phase refactor addressing the audit findings in `ARCH/DOCS/REFACTOR_AUDIT_SPEC_v2.0.md`.
+
+### What's Changed
+
+| Phase | Status | Summary |
+|-------|--------|---------|
+| Phase 1 | ✅ Complete | Canonical ABI schemas, Tool base class, consolidated compat |
+| Phase 2 | ✅ Complete | Single dispatcher, Horizon server consolidation, dead code removal |
+| Phase 3 | ✅ Complete | All 11 tools migrated to Tool base class |
+
+### New Structure
+
+```
+arifos_mcp/
+├── abi/
+│   └── v1_0.py          # Canonical ABI schemas (all 11 tools)
+├── tools/
+│   ├── base.py           # Tool ABC + ToolRegistry
+│   ├── governance/       # init_anchor, arifOS_kernel, apex_judge, vault_ledger
+│   ├── intelligence/     # agi_mind, asi_heart, engineering_memory
+│   ├── reality/         # physics_reality, math_estimator
+│   └── execution/       # code_engine, architect_registry
+└── runtime/
+    └── dispatcher.py     # Single ToolDispatcher
+```
+
+### Key Changes
+- Dual `Verdict` enum fixed → single source of truth in `core/shared/types.py`
+- Three Horizon servers → one canonical `arifos_mcp/server_horizon.py`
+- Orphaned `init_000` + legacy `TOOL_MAP` → removed
+- All tools inherit `Tool` base class with ABI schema validation
+
+---
+
 ## Repository Structure
 
 ```
@@ -317,6 +353,7 @@ Key rules:
 | Floors | 13 active |
 | Current tools | See /health |
 | KernelLoop | Reference implementation in `core/kernel/` |
+| Refactor branch | `refactor/v2.0-abi` — Phase 1-3 complete |
 
 **arifOS is designed to reduce, not eliminate, risk.** It logs and surfaces contradictions. Humans remain responsible for decisions.
 
