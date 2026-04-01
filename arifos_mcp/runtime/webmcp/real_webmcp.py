@@ -24,6 +24,11 @@ from typing import Any, Callable
 from arifos_mcp.runtime.mcp_utils import call_mcp_tool, normalize_tool_result
 from arifos_mcp.runtime.public_registry import PUBLIC_TOOL_SPECS, ToolSpec
 from arifos_mcp.runtime.webmcp.live_metrics import get_live_metrics
+from arifos_mcp.runtime.webmcp.security import RateLimiter
+from arifos_mcp.runtime.webmcp.config import WebMCPConfig as BaseWebMCPConfig
+
+import redis.asyncio as redis
+import os
 
 from fastapi import FastAPI, Request, WebSocket
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -61,6 +66,12 @@ class RealWebMCPGateway:
             description="Real WebMCP implementation - W3C Standard",
         )
         self.tools: dict[str, dict[str, Any]] = {}
+        # F5: Rate limiting — protect against burst from 30+ agents
+        self.redis = redis.from_url(
+            os.getenv("REDIS_URL", "redis://localhost:6379"), decode_responses=True
+        )
+        base_config = BaseWebMCPConfig.from_env() if hasattr(BaseWebMCPConfig, 'from_env') else self.config
+        self.rate_limiter = RateLimiter(self.redis, base_config)
         self._register_tools()
         self._setup_routes()
         
@@ -125,6 +136,26 @@ class RealWebMCPGateway:
             Execute a tool via HTTP POST
             Fallback for browsers without native WebMCP support
             """
+            # F5: Rate limiting — protect against burst from 30+ agents
+            client_ip = request.client.host if request.client else "unknown"
+            allowed, rate_meta = await self.rate_limiter.check_rate_limit(client_ip)
+            if not allowed:
+                return JSONResponse(
+                    status_code=429,
+                    content={
+                        "verdict": "RATE_LIMITED",
+                        "error": "Rate limit exceeded",
+                        "retry_after": rate_meta.get("retry_after", 60),
+                        "limit": rate_meta.get("limit"),
+                        "reset_after": rate_meta.get("reset_after"),
+                    },
+                    headers={
+                        "Retry-After": str(rate_meta.get("retry_after", 60)),
+                        "X-RateLimit-Limit": str(rate_meta.get("limit")),
+                        "X-RateLimit-Remaining": str(rate_meta.get("remaining")),
+                    },
+                )
+
             try:
                 body = await request.json()
             except:
@@ -162,6 +193,9 @@ class RealWebMCPGateway:
                 "version": self.config.version,
             })
             
+            # F5: Rate limiting — per-connection IP tracking
+            client_ip = websocket.client.host if websocket.client else "unknown"
+            
             while True:
                 try:
                     data = await websocket.receive_json()
@@ -169,6 +203,16 @@ class RealWebMCPGateway:
                     if data.get("type") == "execute":
                         tool_name = data.get("tool")
                         params = data.get("params", {})
+                        
+                        # F5: Check rate limit before execution
+                        allowed, rate_meta = await self.rate_limiter.check_rate_limit(client_ip)
+                        if not allowed:
+                            await websocket.send_json({
+                                "type": "error",
+                                "error": "rate_limited",
+                                "retry_after": rate_meta.get("retry_after", 60),
+                            })
+                            continue
                         
                         # Execute tool
                         result = await self._call_mcp_tool(tool_name, params)

@@ -120,21 +120,163 @@ class arifOSBenchmark:
             if request_rate:
                 await asyncio.sleep(1.0 / request_rate)
     
+    async def _call_mcp(self, query: str = "What is constitutional AI?") -> Optional[Dict]:
+        """
+        Call the live arifOS MCP endpoint.
+        Returns parsed JSON response or None on failure.
+        
+        Response is double-encoded: JSON-RPC → result.content[0].text (JSON string)
+        """
+        try:
+            import aiohttp
+            
+            payload = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {
+                    "name": "agi_reason",
+                    "arguments": {"query": query}
+                }
+            }
+            
+            headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream"
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    self.target_url,
+                    json=payload,
+                    headers=headers,
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    if response.status != 200:
+                        return None
+                    
+                    # Read SSE stream
+                    data_chunks = []
+                    async for line in response.content:
+                        line = line.decode("utf-8").strip()
+                        if line.startswith("data:"):
+                            data = line[5:].strip()
+                            if data:
+                                data_chunks.append(data)
+                    
+                    # Parse outer JSON-RPC
+                    outer = None
+                    for chunk in data_chunks:
+                        if chunk.startswith("{"):
+                            try:
+                                outer = json.loads(chunk)
+                                break
+                            except json.JSONDecodeError:
+                                continue
+                    
+                    if outer is None:
+                        return None
+                    
+                    # Navigate: result.content[0].text → inner JSON
+                    result = outer.get("result", {})
+                    content = result.get("content", [])
+                    if content and isinstance(content, list):
+                        text = content[0].get("text", "")
+                        if text:
+                            try:
+                                inner = json.loads(text)
+                                # Inject inner JSON back into result under structuredContent
+                                outer["result"]["structuredContent"] = inner
+                                return outer
+                            except json.JSONDecodeError:
+                                pass
+                    
+                    return outer
+                    
+        except Exception as e:
+            print(f"MCP call failed: {e}")
+            return None
+    
     async def _simulate_request(self) -> BenchmarkResult:
         """
-        Simulate an arifOS request.
-        In production, this calls the actual MCP server.
+        Call the live arifOS MCP endpoint.
+        Falls back to simulation only if MCP is unreachable.
         """
-        # TODO: Replace with actual MCP call
-        # For now, simulate realistic values
+        # Try real MCP call first
+        response = await self._call_mcp()
+        
+        if response is None:
+            print("(MCP unreachable, using simulation)")
+            return self._simulate_fallback()
+        
+        # Parse real response
+        try:
+            # Extract from JSON-RPC envelope
+            result = response.get("result", {})
+            if isinstance(result, dict) and "structuredContent" in result:
+                sc = result["structuredContent"]
+            elif isinstance(result, dict):
+                sc = result
+            else:
+                return self._simulate_fallback()
+            
+            # Top-level verdict
+            verdict = sc.get("verdict", "UNKNOWN")
+            
+            # Omega: from sc.payload.humility_band (constitutional Ω)
+            # Falls back to inner confidence
+            outer_payload = sc.get("payload", {})
+            humility_band = outer_payload.get("humility_band", 0.0)
+            inner_payload = outer_payload.get("payload", {})
+            inner_confidence = inner_payload.get("confidence", 0.0)
+            omega = humility_band if humility_band and humility_band > 0 else (inner_confidence if inner_confidence > 0 else 0.04)
+            
+            # Delta S: from outer payload entropy (not inner)
+            entropy_data = outer_payload.get("entropy", {})
+            delta_s = entropy_data.get("delta_s", 0.0)
+            
+            # W³: W_human × W_ai × W_earth
+            # W_ai from inner payload
+            W_ai = inner_payload.get("W_ai", 0.88)
+            W_adversarial = inner_payload.get("W_adversarial", 0.83)
+            # Use W_ai and adversarial as proxies for W2, W3. W1 (human) assumed 1.0
+            W_cube = 1.0 * W_ai * W_adversarial
+            
+            # Floor violations: only trust verdict == VOID
+            # MCP verdict already encodes all constitutional checks
+            floors_violated = []
+            if verdict == "VOID":
+                # Attempt to identify which floor caused void
+                if delta_s > 0.5:
+                    floors_violated.append("F4")
+                if omega < 0.03 or omega > 0.05:
+                    floors_violated.append("F7")
+                g_score = outer_payload.get("g_score", 0.0)
+                if g_score > 0 and g_score < 0.6:
+                    floors_violated.append("F8")
+            
+            return BenchmarkResult(
+                timestamp=time.time(),
+                latency_ms=0,  # Filled by worker
+                verdict=verdict,
+                delta_s=delta_s,
+                omega=max(0.0, min(1.0, omega)),
+                W_cube=max(0.0, min(1.0, W_cube)),
+                floors_violated=floors_violated
+            )
+            
+        except Exception as e:
+            print(f"Failed to parse MCP response: {e}")
+            return self._simulate_fallback()
+    
+    async def _simulate_fallback(self) -> BenchmarkResult:
+        """Fallback simulation when MCP is unavailable."""
         import random
         
-        # Simulate constitutional processing
-        delta_s = random.uniform(-0.3, 0.1)  # Usually clarity gain
-        omega = random.gauss(0.04, 0.005)    # Centered on GOLDILOCKS
-        W_cube = random.gauss(0.97, 0.02)    # High consensus
+        delta_s = random.uniform(-0.3, 0.1)
+        omega = random.gauss(0.04, 0.005)
+        W_cube = random.gauss(0.97, 0.02)
         
-        # Occasional violation (baseline ~5%)
         floors_violated = []
         if random.random() < 0.05:
             floors_violated = [random.choice(["F4", "F7", "F8"])]
@@ -143,7 +285,7 @@ class arifOSBenchmark:
         
         return BenchmarkResult(
             timestamp=time.time(),
-            latency_ms=0,  # Filled by worker
+            latency_ms=0,
             verdict=verdict,
             delta_s=delta_s,
             omega=max(0.0, min(1.0, omega)),

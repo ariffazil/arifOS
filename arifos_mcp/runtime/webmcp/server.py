@@ -323,14 +323,35 @@ class WebMCPGateway:
             Call MCP tool through full 000→999 metabolic loop.
 
             Every call is:
-            1. Scanned by PNS·SHIELD (F12)
-            2. Authenticated (F11)
-            3. Grounded (F2)
-            4. Reasoned (333)
-            5. Critiqued (666)
-            6. Judged (888)
-            7. Sealed (999)
+            1. Rate limited (F5 Peace²)
+            2. Scanned by PNS·SHIELD (F12)
+            3. Authenticated (F11)
+            4. Grounded (F2)
+            5. Reasoned (333)
+            6. Critiqued (666)
+            7. Judged (888)
+            8. Sealed (999)
             """
+            # F5: Rate limiting — per-IP protection against burst/DoS
+            client_ip = request.client.host if request.client else "unknown"
+            allowed, rate_meta = await self.rate_limiter.check_rate_limit(client_ip)
+            if not allowed:
+                return JSONResponse(
+                    status_code=429,
+                    content={
+                        "verdict": "RATE_LIMITED",
+                        "error": "Rate limit exceeded",
+                        "retry_after": rate_meta.get("retry_after", 60),
+                        "limit": rate_meta.get("limit"),
+                        "reset_after": rate_meta.get("reset_after"),
+                    },
+                    headers={
+                        "Retry-After": str(rate_meta.get("retry_after", 60)),
+                        "X-RateLimit-Limit": str(rate_meta.get("limit")),
+                        "X-RateLimit-Remaining": str(rate_meta.get("remaining")),
+                    },
+                )
+
             # Get session
             session_id = request.session.get("arifos_sid")
             if not session_id:
@@ -366,7 +387,7 @@ class WebMCPGateway:
                 "actor_id": session.auth_context.get("actor_id"),
                 "user_agent": request.headers.get("user-agent"),
                 "origin": request.headers.get("origin"),
-                "ip": request.client.host if request.client else None,
+                "ip": client_ip,
             }
 
             # Execute through MCP (this would call the actual tool)
