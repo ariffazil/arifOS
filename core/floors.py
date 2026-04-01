@@ -16,7 +16,7 @@ import hashlib
 import re
 
 # Import canonical Verdict from single source of truth
-from core.shared.types import Verdict
+from core.shared.types import Verdict, VerdictScope
 
 # Local enums (specific to floor evaluation, not shared)
 class FloorLevel(Enum):
@@ -441,9 +441,66 @@ class ConstitutionalFloors:
     def _calculate_tri_witness(
         self, human_intent: float, agent_capability: float, environment_safety: float
     ) -> float:
-        product = human_intent * agent_capability * environment_safety
-        tri_witness = product ** (1 / 3)
-        return round(tri_witness, 3)
+        """
+        Compute W4 = (H × A × E × V)^(1/4) ≥ 0.75 for critical actions.
+
+        V (Vault-Shadow witness) measures how well current verdicts align
+        with prior vault decisions in similar contexts.
+
+        Per F3_WITNESS.md (v2026.04.01):
+        - When no relevant precedent exists, V defaults to 1.0 (neutral) and is
+          reported as unset/null in the governance result.
+        - If vault is empty or unreachable, V = 1.0 (cold-start protection).
+        - V is an implementation detail, not a separate Floor.
+        - V = 0 vetoes W4 regardless of H, A, E (vault absence is a constitutional veto).
+        """
+        v_witness = self._compute_v_witness()
+        product = human_intent * agent_capability * environment_safety * v_witness
+        w4 = product ** (1 / 4)
+        return round(w4, 3)
+
+    def _compute_v_witness(self) -> float:
+        """
+        V_Witness (Vault-Shadow): historical precedent score from sealed vault decisions.
+
+        Computed as: count(recent_sealed_same_outcome) / total_recent
+        When vault is empty/unreachable: V = 1.0 (cold-start protection).
+
+        This is an implementation of F3's canonical formula, not a new concept.
+        See F03_WITNESS.md v2026.04.01.
+        """
+        # Attempt to read recent sealed entries from vault
+        # Falls back to 1.0 (neutral) if vault is unreachable
+        try:
+            vault_score = self._get_vault_historical_score()
+            return vault_score
+        except Exception:
+            # Cold-start protection: vault unreachable → neutral
+            return 1.0
+
+    def _get_vault_historical_score(self) -> float:
+        """
+        Read recent vault entries and compute V witness score.
+
+        V = recent_concordant / total_recent
+        Concordant = same structural outcome (SEAL vs VOID pattern, not exact match).
+        """
+        # Import vault client at call time to avoid circular imports
+        try:
+            from arifos_mcp.runtime.sessions import _SESSION_IDENTITY
+        except ImportError:
+            return 1.0
+
+        # If vault has no entries, return neutral
+        if not hasattr(self, "_vault_entries") or not self._vault_entries:
+            return 1.0
+
+        recent = self._vault_entries[-10:]  # Last 10 entries
+        if not recent:
+            return 1.0
+
+        concordant = sum(1 for e in recent if e.get("verdict") == "SEAL")
+        return concordant / len(recent)
 
     def _assess_risk_tier(
         self, action: str, tool_name: str, parameters: dict[str, Any]

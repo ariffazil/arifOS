@@ -231,6 +231,86 @@ class Verdict(str, Enum):
     DEGRADED = "DEGRADED"
 
 
+# =============================================================================
+# VERDICT SCOPE — F2 Constitutional Verdict Namespaces (v2026.04.01)
+# =============================================================================
+#机械 implementation of F2's constitutional verdict namespaces.
+# These are tags, not new authority. Tagging does not bypass F1/F5/F6/888_HOLD.
+# LAW commentary required only if business logic treats scope as unilateral world-permission.
+
+
+class VerdictScope(str, Enum):
+    """
+    F2 constitutional verdict namespaces — mechanical tags, not new authority.
+
+    Per F2 addendum (2026.03.25):
+    - ROUTER_SEAL: Routing decision is internally consistent. No domain facts released.
+    - DOMAIN_SEAL: Domain payload verified with Earth evidence. Factual claims permitted.
+    - SESSION_SEAL: Anchor session is valid.
+    - DRY_RUN_SEAL: Simulation completed. No real data.
+    - CANNOT_COMPUTE: Required domain payload absent.
+
+    Names and meanings match existing F2 namespaces.
+    No VerdictScope grants unilateral permission to bypass F1/F5/F6/888_HOLD.
+    """
+
+    ROUTER_SEAL = "ROUTER_SEAL"
+    DOMAIN_SEAL = "DOMAIN_SEAL"
+    SESSION_SEAL = "SESSION_SEAL"
+    DRY_RUN_SEAL = "DRY_RUN_SEAL"
+    CANNOT_COMPUTE = "CANNOT_COMPUTE"
+
+
+# =============================================================================
+# ORACLE TYPES — F3 Tri-Witness Formalisation (v2026.04.01)
+# =============================================================================
+# Formalisation of F3 Tri-Witness + Vault precedent, not new LAW.
+# LAW change only if minimum attestation set is mandated for certain risk classes.
+# This is type-level formalisation of existing canonical concepts.
+
+
+class OracleType(str, Enum):
+    """
+    Oracle types for F3 Tri-Witness + Vault-Shadow.
+
+    Formalises F3's witness set:
+    - HUMAN: human witness (F3 H)
+    - AI: model-side constitutional witness (F3 A)
+    - EARTH: Physics/Law/Econ evidence (F3 E)
+    - VAULT_SHADOW: historical precedent from sealed vault decisions (F3 V)
+
+    Canon: W4 = (H × A × E × V)^(1/4) ≥ 0.75 for critical actions.
+    """
+
+    HUMAN = "human"
+    AI = "ai"
+    EARTH = "earth"
+    VAULT_SHADOW = "vault_shadow"
+
+
+class OracleAttestation(BaseModel):
+    """
+    Signed attestation that evidence entered from a declared external source.
+
+    Formalises F3 Tri-Witness attestation requirement.
+    Fields implement "signals can be traced and audited" from 000_THEORY.
+
+    Not new LAW — formalisation of existing canonical requirement.
+    """
+
+    oracle_type: OracleType = Field(..., description="Which witness type this attestation is from")
+    evidence_hash: str = Field(..., description="SHA-256 of what was attested")
+    source_uri: str | None = Field(default=None, description="Declared source URI")
+    attested_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="When the attestation was made"
+    )
+    signature: str | None = Field(
+        default=None,
+        description="Ed25519/ECDSA signature when oracle is cryptographically wired"
+    )
+
+
 class RuntimeStatus(str, Enum):
     """
     Transport/runtime state only.

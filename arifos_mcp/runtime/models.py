@@ -9,7 +9,7 @@ from arifos_mcp.runtime.fastmcp_version import AuthorizationError, HAS_AUTHORIZA
 from fastmcp.exceptions import FastMCPError, ToolError
 from pydantic import BaseModel, ConfigDict, Field
 
-from core.shared.types import AuthorityLevel, Verdict
+from core.shared.types import AuthorityLevel, Verdict, VerdictScope
 
 
 class DeltaOmegaPsi(BaseModel):
@@ -728,7 +728,10 @@ class RuntimeEnvelope(BaseModel):
     verdict_detail: VerdictDetail | None = Field(
         default=None, description="Structured v1.0 details."
     )
-    status: RuntimeStatus = RuntimeStatus.SUCCESS
+    verdict_scope: "VerdictScope" | None = Field(
+        default=None,
+        description="F2 constitutional verdict scope tag. Routing/domain/session/dry_run/cannot_compute."
+    )
     machine_status: MachineState = MachineState.READY
     machine_issue: MachineIssueLabel | None = None
     intelligence_stage: IntelligenceStage | None = None
