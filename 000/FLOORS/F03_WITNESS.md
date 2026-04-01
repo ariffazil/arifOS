@@ -62,23 +62,33 @@ The canonical formula already includes V (Vault-Shadow witness). This section sp
 
 **V measures how well current verdicts align with prior vault decisions in similar contexts.**
 
+V is a streak-penalised ratio over a fixed recent window:
+
 ```
-V = recent_concordant / total_recent
+N_total  = number of recent entries in the window (default: last 10)
+N_sealed = count of non-VOID, non-HOLD decisions in that window
+S_max    = length of the longest run of identical verdict scopes in that window
+R         = N_sealed / max(1, N_total)               # base ratio
+P         = 1 / (1 + α · (S_max - 1))              # streak penalty, α = 0.15
+V         = R × P
 ```
 
 Where:
-- `recent_concordant` = count of recent vault entries with same structural outcome (SEAL pattern, not exact match)
-- `total_recent` = total recent vault entries (last 10)
-- V = 1.0 when vault is empty or unreachable (cold-start protection)
+- `α = 0.15` (tunable, not LAW — operators may adjust)
+- Streak penalty `P` reduces V when the same verdict repeats consecutively, detecting rubber-stamp patterns
+- `R = 0` when vault is empty → `V = 0` (cold-start protection)
+- V = 1.0 when vault is unreachable (constitutional veto, not neutral)
 
 ### V_Witness Properties
 
 | Condition | V Value | Notes |
 |-----------|---------|-------|
-| Vault empty / unreachable | 1.0 | Cold-start protection — neutral |
-| All recent = SEAL | 1.0 | Full concordant |
-| Mixed outcomes | 0.0–1.0 | Proportional |
-| V = 0 | W4 = 0 | Vault absence is constitutional veto regardless of H, A, E |
+| Vault empty / N_total = 0 | V = 0 | Cold-start veto — constitutional, not neutral |
+| Vault unreachable | V = 0 | Constitutional veto — vault absence blocks W4 regardless of H, A, E |
+| All recent = SEAL, no streaks | V ≈ R (high) | Full concordant base ratio |
+| Mixed outcomes, no streaks | 0 < V < 1 | Proportional to concordant ratio |
+| Long same-verdict streak | V < R | Streak penalty `P` reduces V |
+| W4 | V × H × A × E)^(1/4) | All four witnesses must agree; V = 0 kills W4 |
 
 ### Implementation Details
 
@@ -94,5 +104,15 @@ This note is an **implementation detail**. It completes the mechanical descripti
 - Add a new Floor
 - Override human sovereign authority
 - Mandate minimum attestation sets for SEAL (that is a separate LAW question)
+
+### Tuning Parameters
+
+| Parameter | Value | Tunable? | Notes |
+|-----------|-------|----------|-------|
+| Window size | 10 entries | Yes — not LAW | Adjustable by operator |
+| Streak penalty α | 0.15 | Yes — not LAW | Higher = more sceptical of streaks |
+| Cold-start | V = 0 | No — constitutional | Vault absence is always a veto |
+
+Time decay (Option B) is deferred to a future v-bump as a behaviour change, not a first implementation.
 
 ---
