@@ -38,11 +38,13 @@
 
 ## Kernel & Theory
 
-| Repository | Role | Status |
-|------------|------|--------|
-| **[arifOS](https://github.com/ariffazil/arifOS)** | THE MIND — constitutional kernel | ✅ |
-| **APEX** | Theory (CC0) — foundational documents | ✅ |
-| **arifosmcp** | THE BODY — MCP server implementation | ✅ |
+| Repository | Role | License | Status |
+|------------|------|---------|--------|
+| **[arifOS](https://github.com/ariffazil/arifOS)** | THE MIND — constitutional kernel, MCP server, 40 tools | AGPL-3.0 | ✅ |
+| **[arifOS-canon](https://github.com/ariffazil/arifOS-canon)** | THE WHY — theory, philosophy, math foundations (K_FOUNDATIONS, ATLAS, Gödel Lock, Telos Manifold) | CC0 | ✅ |
+| **arifosmcp** | THE BODY — MCP server implementation | AGPL-3.0 | ✅ |
+
+> **Split (2026-04-01):** Theory moved from arifOS/000/ROOT/, 333/, 000_ARCHITECTURE/ into [arifOS-canon](https://github.com/ariffazil/arifOS-canon) for cleaner separation between the engine (kernel) and the cathedral (theory).
 
 ---
 
