@@ -74,6 +74,43 @@
 
 ---
 
+## 🌍 GEOX SPECIFIC (From Deep Research — April 2026)
+
+### Forge 1 (CRITICAL — Do First)
+- [ ] Verify `pip install -e .` works clean in GEOX
+- [ ] Add GitHub Actions CI: `ruff`, `mypy`, `pytest`
+- [ ] Update `smithery.yaml` with full tool list (follow `usgs-quakes-mcp`)
+- [ ] Test Claude Desktop stdio integration
+
+### Forge 2 (HIGH — Visualization Gap)
+- [ ] **INTEGRATE CIGVIS** — Add to dependencies, implement `SeismicVisualizationTool`
+- [ ] Add MCP tools: `geox_render_inline`, `geox_render_timeslice`, `geox_render_3d`
+- [ ] Implement real `MacrostratTool` with API v2
+- [ ] Add SEG-Y reader (segypy/segyio)
+
+### Forge 3 (MEDIUM — ML Pipeline)
+- [ ] Implement `SeismicMLTool` (fault detection, salt ID, facies)
+- [ ] Design multi-task heads: DHR + RGT + Fault
+- [ ] Avoid OpenVINO (deprecated) — use ONNX/TensorRT
+
+### Forge 4 (MEDIUM — Memory)
+- [ ] Implement `DualMemoryStore` (Discrete + Continuous)
+- [ ] Add LEM bridge with pluggable backends (TerraFM/Prithvi)
+- [ ] Production-harden Qdrant integration
+
+### Integration Matrix Summary
+| Repo | Decision | Use |
+|------|----------|-----|
+| `cigvis` | **ADOPT** | Visualization (HIGHEST PRIORITY) |
+| `usgs-quakes-mcp` | **ADOPT** | MCP packaging |
+| `withseismic-mcp` | **ADOPT** | Server architecture |
+| `earthdata-mcp-server` | **BORROW** | Data discovery patterns |
+| `microsoft/seismic-deeplearning` | **BORROW** | ML pipelines |
+| `lanl/mtl` | **BORROW** | Task taxonomy |
+| `intel/openseismic` | **IGNORE** | Deprecated |
+
+---
+
 **Last SEALed:** 2026.03.27-ARIF  
 **Status:** BODY HARDENED · A-RIF FORGED  
 *"Ditempa bukan diberi"* 🔥

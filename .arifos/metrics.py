@@ -19,7 +19,7 @@ def set_root(root_path):
     ARIFOS_ROOT = root_path
 
 
-TRUTH_HALF_LIFE = 24 * 3600
+TRUTH_HALF_LIFE = 72 * 3600
 DISCOUNT_RATE = 0.10
 
 
@@ -125,10 +125,4 @@ def format_metrics_summary(
     passes: bool,
 ) -> str:
     status = "✅ ACCEPT" if passes else "❌ REJECT"
-    return (
-        f"ΔS={delta_s:+.4f} | "
-        f"Ψ={psi:.3f} | "
-        f"G†={g_dagger:.3f} | "
-        f"NPV={npv:+.4f} | "
-        f"{status}"
-    )
+    return f"ΔS={delta_s:+.4f} | Ψ={psi:.3f} | G†={g_dagger:.3f} | NPV={npv:+.4f} | {status}"

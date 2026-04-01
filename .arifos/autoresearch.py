@@ -26,10 +26,10 @@ ARIFOS_ROOT = Path(__file__).parent.parent
 VAULT999 = ARIFOS_ROOT / "VAULT999"
 
 TIME_BUDGET = 300
-MARGINAL_THRESHOLD = 0.005
-MAX_ITERATIONS = 8
+MARGINAL_THRESHOLD = 0.003
+MAX_ITERATIONS = 12
 CONVEXITY_PENALTY = 0.5
-NOISE_FLOOR = 0.002
+NOISE_FLOOR = 0.001
 
 sys.path.insert(0, str(Path(__file__).parent))
 import metrics
@@ -131,9 +131,7 @@ def run_adam_analysis(arif_output: dict) -> dict:
     input_file = Path(tempfile.mktemp(suffix=".json"))
     with open(input_file, "w") as f:
         json.dump(arif_output, f)
-    call_agent(
-        "adam_agent.py", ["--input", str(input_file), "--output", str(output_file)]
-    )
+    call_agent("adam_agent.py", ["--input", str(input_file), "--output", str(output_file)])
     input_file.unlink()
     if output_file.exists():
         with open(output_file) as f:
@@ -236,9 +234,7 @@ def generate_candidate_paths() -> list:
     ]
 
 
-def run_full_pipeline(
-    path_info: dict, iteration: int, elapsed: float
-) -> ExperimentResult:
+def run_full_pipeline(path_info: dict, iteration: int, elapsed: float) -> ExperimentResult:
     arif_out = run_arif_analysis()
     adam_out = run_adam_analysis(arif_out)
     apex_out = run_apex_verdict(arif_out, adam_out, elapsed)
@@ -287,7 +283,7 @@ def main():
 
     print(f"🚀 Starting autoresearch loop")
     print(f"   Budget: {TIME_BUDGET}s | Max iterations: {MAX_ITERATIONS}")
-    print(f"   Marginal: {MARGINAL_THRESHOLD} | Noise floor: {NOISE_FLOOR}")
+    print(f"   Marginal: {MARGINAL_THRESHOLD} | Noise floor: {NOISE_FLOOR} | Half-life: 72h")
     print("─" * 60)
 
     history = load_history()
@@ -319,9 +315,7 @@ def main():
             f"   {metrics.format_metrics_summary(exp.delta_s, exp.psi, exp.g_dagger, exp.npv, exp.passes)}"
         )
 
-        continue_ok, reason = should_continue(
-            iteration, elapsed, marginal, convexity, history
-        )
+        continue_ok, reason = should_continue(iteration, elapsed, marginal, convexity, history)
 
         if exp.passes and continue_ok:
             save_experiment(exp)
