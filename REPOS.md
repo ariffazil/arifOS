@@ -31,6 +31,8 @@
 | **Gateway** | OpenClaw/MaxClaw | Session management, routing | ✅ |
 | **MCP** | arifosmcp.arif-fazil.com | Tool execution, 40 tools | ✅ |
 | **Bridge** | openclaw-arifos-bridge | Integration layer | ✅ |
+| **State Bus** | [oo0-STATE](https://github.com/ariffazil/oo0-STATE) | Constitutional state layer — ties OpenClaw + OpenCode + AgentZero | ✅ |
+| **Config** | `config/opencode/opencode.json` | Canonical MCP stack | ✅ |
 
 ---
 
@@ -56,7 +58,7 @@
 
 | Repository | Status | Action |
 |------------|--------|--------|
-| **oo0-STATE** | 📋 Unclear | Define boundary — overlap with WaW? |
+| **oo0-STATE** | ✅ Resolved | State bus — NOT WaW — technical infrastructure |
 | **AzwaOS-** | 📋 New | New project — needs placement |
 | **arifOS-vid** | 🗑️ Deprecated | Confirm archive |
 
