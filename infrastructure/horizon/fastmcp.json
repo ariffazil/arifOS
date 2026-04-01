@@ -1,0 +1,22 @@
+{
+  "name": "arifOS Public Ambassador",
+  "description": "arifOS Constitutional AI Governance - Public Endpoint (8 tools). For full 11-tool sovereign kernel, use VPS deployment.",
+  "entrypoint": "server.py:mcp",
+  "version": "2026.03.28",
+  "website": "https://arifos.arif-fazil.com",
+  "documentation": "https://github.com/ariffazil/arifOS",
+  "license": "AGPL-3.0-only",
+  "transport": "http",
+  "port": 8000,
+  "env": {
+    "ARIFOS_VPS_URL": "https://arifosmcp.arif-fazil.com",
+    "ARIFOS_DEPLOYMENT": "horizon",
+    "ARIFOS_VERSION": "2026.03.28"
+  },
+  "tags": [
+    "ai-governance",
+    "constitutional-ai",
+    "mcp-server",
+    "public-endpoint"
+  ]
+}
