@@ -225,6 +225,100 @@ When the correct action is unknown or uncertain:
 
 ---
 
+## Refusal and Escalation Rules
+
+Every agent operating under this skill must know when to stop, ask, or refuse. These are not optional politeness protocols — they are structural safeguards.
+
+### When to Emit 888_HOLD
+
+Stop and ask the human when ANY of these conditions are true:
+
+| Condition | Example |
+|-----------|---------|
+| Required secret/token is missing | CF token unavailable, VPS SSH key encrypted |
+| Action is irreversible | DNS record deletion, production data deletion |
+| Uncertainty > Ω threshold | Cannot verify Content-Type before deploy |
+| Surface role violation requested | "Put full docs on the hub" |
+| Non-canonical machine file path requested | "Serve llms.txt from /docs/llms.txt" |
+| Blanket purge requested | "Purge everything" |
+| No rollback path stated | Deploy without documented revert |
+
+**HOLD format:**
+```
+888_HOLD — [Exact reason]
+What is unclear: [Specific thing]
+Why human judgment is needed: [Specific reason]
+Required to proceed: [Specific input or token]
+```
+
+### When to Refuse Entirely
+
+Refuse and do not proceed when:
+
+| Request | Reason |
+|---------|--------|
+| Ask to serve machine files at non-canonical paths | Machine discovery invariants are constitutional |
+| Ask to use blanket purge | Cache purge doctrine forbids it |
+| Ask to deploy without health check on runtime | Health check requirement is mandatory |
+| Ask to skip rollback documentation | F1 rollback mandate is mandatory |
+| Ask to swap hub/docs surface roles | Three-surface rule is constitutional |
+| Ask to claim deployment success without verification | Behavioral invariant |
+| Ask to publish mystical/unsubstantiated claims | Anti-mythological framing invariant |
+| Ask to reveal secrets via logs or output | Security non-negotiable |
+
+**Refusal format:**
+```
+REFUSE — [Verdict: VOID]
+Reason: [Constitutional clause violated]
+What would be required to reconsider: [Specific fix]
+```
+
+### When to Switch Plan Mode → Execution Mode
+
+Plan mode proposes. Execution mode acts. Switch from plan to execution ONLY when:
+
+1. Human has explicitly approved the plan
+2. All required secrets are available and verified
+3. Rollback path is documented and tested
+4. Health check endpoint is reachable
+5. Pre-deploy gates have all passed
+
+**Never** switch to execution mode based on assumption or implicit approval.
+
+### Escalation Path
+
+When in doubt:
+
+```
+Agent uncertainty
+    ↓
+Check canonical sources (MEMORY.md, deploy-matrix.md, file-inventory.md)
+    ↓
+Still uncertain → 888_HOLD with specific question
+    ↓
+Human provides answer → Document it → Continue
+    ↓
+Human refuses → Stop, do not proceed
+```
+
+---
+
+## Culture and Philosophy
+
+This skill is governed by two principles that override all convenience:
+
+### Physics Over Narrative
+
+Architecture first. Slogans second. If a deployment choice is architecturally cleaner but less impressive-sounding, choose the cleaner architecture. The estate must work correctly before it looks impressive. Every structural decision must be justifiable in terms of entropy, blast radius, and operational simplicity — not in terms of how it sounds.
+
+### Maruah Over Convenience
+
+Do not choose cleverness that obscures truth. A deployment that is simple, honest, and slightly inconvenient is worth more than an elegant, opaque, automated solution that no one can audit. If a tool or pattern makes the system harder to understand, it has violated maruah — even if it saves time.
+
+These are not aspirational statements. They are operational filters: any proposed action that violates physics-over-narrative or maruah-over-convenience must be refused or redesigned.
+
+---
+
 ## When This Skill Does NOT Apply
 
 - Local development (`docker compose up`) — use `vps-docker` skill
@@ -236,7 +330,17 @@ When the correct action is unknown or uncertain:
 
 ## References
 
-- **Deploy matrix:** `references/deploy-matrix.md` — domain → platform → CI trigger mapping
-- **File inventory:** `references/file-inventory.md` — machine files, paths, content types
-- **CI/CD patterns:** `references/cicd-patterns.md` — workflow patterns (TO BE WRITTEN after State A proven)
-- **Cloudflare commands:** `references/cloudflare-commands.md` — exact CLI syntax (TO BE WRITTEN after CF token available)
+**Layer 3 — Operations:**
+- `references/deploy-matrix.md` — domain → platform → CI trigger mapping
+- `references/file-inventory.md` — machine files, paths, content types
+- `references/cicd-patterns.md` — workflow patterns (populate after State A proven)
+- `references/cloudflare-commands.md` — exact CLI syntax (populate after CF token available)
+
+**Layer 4 — Rituals:**
+- `references/verification-runbooks.md` — exact checks for every surface
+- `references/change-classification.md` — classify every change type with required gates
+- `references/888-hold-matrix.md` — which actions require explicit human confirmation
+
+**Layer 2 — Cognition:**
+- `references/constitutional-execution.md` — task-to-stage mapping for each change type
+- `references/agent-behaviors.md` — voice, refusal style, evidence thresholds
