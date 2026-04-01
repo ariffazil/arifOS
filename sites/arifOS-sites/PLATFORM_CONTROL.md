@@ -218,3 +218,14 @@ Smoke test: curl /health on arifOS
 ---
 
 Ditempa bukan Diberi [ΔΩΨ | ARIF-MAIN]
+
+---
+
+## Cloudflare Credentials
+
+| Secret | Value |
+|--------|-------|
+| CLOUDFLARE_ACCOUNT_ID | 22cc94b77b6481d2b054bee7952710e6 |
+| CLOUDFLARE_API_TOKEN | Stored in GitHub Secrets — ariffazil/arifOS |
+| Cloudflare Dashboard | https://dash.cloudflare.com/22cc94b77b6481d2b054bee7952710e6 |
+
