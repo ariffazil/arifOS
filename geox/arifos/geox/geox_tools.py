@@ -46,6 +46,7 @@ from arifos.geox.base_tool import (
 )
 from arifos.geox.tools.macrostrat_tool import MacrostratTool
 from arifos.geox.tools.lem_bridge import LEMBridgeTool
+from arifos.geox.tools.well_log_tool import WellLogTool
 
 
 
@@ -746,4 +747,5 @@ class ToolRegistry:
         registry.register(GeoRAGTool())
         registry.register(MacrostratTool())
         registry.register(LEMBridgeTool())
+        registry.register(WellLogTool())  # Electronic well log analysis
         return registry
