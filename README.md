@@ -66,7 +66,7 @@ curl -s https://arifosmcp.arif-fazil.com/health
 | **Health + Tools** | https://arifosmcp.arif-fazil.com/health | Capability map |
 | **Tool Explorer** | https://arifosmcp.arif-fazil.com/tools | Interactive browser |
 | **arifOS Docs** | https://arifos.arif-fazil.com | Documentation hub |
-| **arifOS-canon** | https://github.com/ariffazil/arifOS-canon | Theory & philosophy (CC0) |
+| **APEX Theory** | https://github.com/ariffazil/APEX | Theory & philosophy (CC0) |
 | **Personal Site** | https://arif-fazil.com | Author: Muhammad Arif bin Fazil |
 
 ---
@@ -261,7 +261,7 @@ docker compose up -d
 
 | Component | License |
 |-----------|---------|
-| **Theory** | [arifOS-canon](https://github.com/ariffazil/arifOS-canon) (CC0) |
+| **Theory** | [APEX](https://github.com/ariffazil/APEX) (CC0) |
 | **Runtime** | AGPL-3.0 |
 | **Trademark** | Proprietary |
 
@@ -272,7 +272,7 @@ docker compose up -d
 | Repo | Purpose |
 |------|---------|
 | [arifOS](https://github.com/ariffazil/arifOS) | Main kernel |
-| [arifOS-canon](https://github.com/ariffazil/arifOS-canon) | Theory & philosophy (CC0) |
+| [APEX](https://github.com/ariffazil/APEX) | Theory & philosophy (CC0) |
 | [GEOX](https://github.com/ariffazil/GEOX) | Geological domain tools |
 | [waw](https://github.com/ariffazil/waw) | ARIF-MAIN agent workspace |
 | [makcikGPT](https://github.com/ariffazil/makcikGPT) | Malay AI |
