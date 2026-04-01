@@ -1,0 +1,3 @@
+[submodule "geox"]
+	path = geox
+	url = https://github.com/ariffazil/GEOX.git
