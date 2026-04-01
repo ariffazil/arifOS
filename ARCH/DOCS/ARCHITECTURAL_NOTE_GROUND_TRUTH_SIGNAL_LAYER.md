@@ -27,6 +27,41 @@ Ground truth in arifOS lives outside the Trinity in the **Witness–Vault–Worl
 
 ---
 
+### 2.1 "Physics Reality is not just a tool" — Clarification
+
+In canon, "reality engineering" already requires every interaction to stay tethered to physics, economics, and law/adat — with explicit "Estimate Only / Cannot Compute" bands when ground is missing.
+
+**Structurally:**
+- 111/333/555/777 are *process lenses*, not ground truth sources
+- The *actual* ground truth path is: **Physics/Law/Econ signals → Tools → Witness → Trinity workflows, bounded by Floors**
+
+Making Physics a mandatory first pass is an **upgrade** of a soft norm into a hard type constraint — consistent with canon, not a contradiction.
+
+### 2.2 "Only 111 is external" — Slightly Too Strong
+
+Canon already treats these as external-ish anchors, even if not cryptographically hardened:
+
+| Anchor | External Institution? | Current Gap |
+|--------|----------------------|-------------|
+| Law/adat/standards overlays (004REALITY, ISO42001) | ✅ Grounded in external institutions | No formal proof they're kept outboard |
+| Human witness & eval labels | ✅ Humans with own legal context | Witness is a separate system but not formally attested |
+| Vault + Rootkey | ✅ Designed to be separable by trust domain | Rootkey not yet implemented |
+
+The gap is not conceptual — canon already pushes these outboard. The gap is: **no formal verification that they are actually kept outboard in any deployment.**
+
+### 2.3 W³ and Floors Are Deliberately Not Truth Oracles
+
+Canon defines W³ and Floors as **constitutional behaviour metrics**, not oracles of reality:
+
+- They answer: *"Is this agent behaving within its law?"*
+- They do **not** guarantee: *"The underlying world claim is true."*
+
+The critique that W³ can converge on a wrong conclusion is **by design**. Canon addresses this through F2 (truth with uncertainty), F7 (explicit uncertainty band), F3 (Tri-Witness including Earth evidence), and external Evals — not by making W³ an oracle.
+
+**Therefore:** W³ is an *internal governance health meter*, not a ground truth layer. The Ground Truth Signal Layer is what W³ measures against — not W³ itself.
+
+---
+
 ## 3. Ground Truth Primitives
 
 These are the atomic external signals the system treats as ground truth:
@@ -139,7 +174,75 @@ earth: 0.90   ← evidence grounding (but computed by the same system)
 
 ---
 
-## 8. The Gap in v2.0 Refactor
+## 8. The Real Structural Gap: Oracle Attestation
+
+The external review identifies the actual load-bearing gap precisely:
+
+**The real structural gap:** Lack of a formally specified, independently attestable oracle layer that:
+
+1. **Witnesses** evidence ingestion (what ground was fed to the system)
+2. **Attests** to the integrity of evidence chains (were signals actually from declared sources?)
+3. **Certifies** that FLOOR inputs and outputs match (provenance chain)
+4. **Logs** the identity of the attester (who vouched for the evidence)
+
+This is not a canon problem — canon already defines this. This is an **implementation gap**: no formal oracle interface, no attestation schema, no third-party verification of whether ground truth signals actually entered the system from declared external sources.
+
+**The specific gap in current code:**
+- `core/shared/types.py` has `FloorScores` but no attestation chain
+- `core/floors.py` has `ConstitutionalFloors.evaluate()` but no oracle witness
+- `arifos_mcp/tools/base.py` has `Tool.check_floors()` but no external evidence bundle required as input
+- No `OracleAttestation` type in `core/shared/types.py`
+
+**What "independently attestable" means:**
+- A notary oracle signs evidence bundles with its own identity key
+- The signature can be verified by any party with the oracle's public key
+- The oracle's trust domain is separate from the Trinity's trust domain
+- No attestation = no ground truth, regardless of what W³ reports
+
+**The minimum viable oracle layer:**
+```python
+class OracleAttestation(BaseModel):
+    """Signed attestation that evidence entered from declared external source."""
+    oracle_id: str              # Who vouched
+    evidence_hash: str          # SHA-256 of what was attested
+    source_uri: str             # Declared source (e.g. "https://weather.api/data")
+    attested_at: datetime      # When
+    signature: str              # Ed25519/ECDSA signature
+    
+class EvidenceBundle(BaseModel):
+    """Ground truth evidence submitted to Witness."""
+    attestation: OracleAttestation
+    claims: list[Claim]
+    uncertainty: float         # F7 uncertainty band
+    evidence_links: list[str]  # Provenance chain
+```
+
+Without this, "external evidence" is self-declared. With this, evidence is **attested by a named oracle with a verifiable signature**.
+
+---
+
+## 8.5 Summary: What This Note Corrects
+
+| Previous Framing | Corrected Framing |
+|----------------|-----------------|
+| "Only 111 is external" | Law/adat, human witness, vault are also external anchors in canon |
+| "W³ is a truth oracle" | W³ is an *internal governance health meter*, not ground truth |
+| "Physics Reality is just a tool" | Physics/Law/Econ → Tools → Witness → Trinity is the actual path |
+| "Add 3 pipeline stages" | Add oracle attestation schema first — it's the prerequisite for the stages |
+
+The next concrete step is not pipeline modification. It is: **define the oracle attestation schema in `core/shared/types.py`**, then wire it as a required input to Witness. Everything else follows from that.
+
+---
+
+## 9. Next Steps
+
+| Step | File | Priority |
+|------|------|----------|
+| Define `OracleAttestation` + `EvidenceBundle` types | `core/shared/types.py` | P0 |
+| Wire evidence bundle as required input to `Tool.check_floors()` | `arifos_mcp/tools/base.py` | P1 |
+| Add `003WITNESS` as pre-reasoning stage | `arifos_mcp/tools/witness.py` | P1 |
+| Add `005EVALS` as pre-judgment gate | `arifos_mcp/tools/eval_gate.py` | P1 |
+| Implement `Rootkey` signing in vault | `arifos_mcp/runtime/vault_*.py` | P2 |
 
 The `refactor/v2.0-abi` branch (Phases 1-3) established:
 - Canonical ABI schemas (`arifos_mcp/abi/v1_0.py`)
