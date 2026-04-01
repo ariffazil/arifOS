@@ -15,19 +15,15 @@ from dataclasses import dataclass, field
 import hashlib
 import re
 
+# Import canonical Verdict from single source of truth
+from core.shared.types import Verdict
 
+# Local enums (specific to floor evaluation, not shared)
 class FloorLevel(Enum):
     HARD = "HARD"
     SOFT = "SOFT"
     DERIVED = "DERIVED"
     VETO = "VETO"
-
-
-class Verdict(Enum):
-    SEAL = "SEAL"  # Approved - proceed
-    VOID = "VOID"  # Rejected - no action
-    HOLD = "HOLD"  # Pending - need clarification
-    SABAR = "SABAR"  # Wait - rate limited
 
 
 class RiskTier(Enum):
