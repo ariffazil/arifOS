@@ -48,6 +48,10 @@ dependencies = [
     "pyyaml>=6.0",
     "python-dateutil>=2.8",
     "numpy>=1.24",
+    "pillow>=10.0",
+    "scipy>=1.11",
+    "scikit-image>=0.22",
+    "matplotlib>=3.7",
 ]
 
 [project.optional-dependencies]
