@@ -336,7 +336,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:18792/health || exit 1"]
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:18792/health\")' || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -371,8 +371,7 @@ services:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /root/arifOS/mcp:/usr/src/app/mcp:ro
-      - /root/arifOS/mcp/server.py:/usr/src/app/server.py:ro
-      - /root/arifOS/stdio_server.py:/usr/src/app/stdio_server.py:ro
+      # NOTE: server mounts removed — using image-built server.py
       - /root/arifOS/fastmcp.json:/usr/src/app/fastmcp.json:ro
       - /root/arifOS/mcp.json:/usr/src/app/mcp.json:ro
       - /root/arifOS/core:/usr/src/app/core:ro
