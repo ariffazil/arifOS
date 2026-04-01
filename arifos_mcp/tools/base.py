@@ -166,7 +166,12 @@ class Tool(ABC):
                 validated.dict() if hasattr(validated, 'dict') else validated
             )
 
-            # 5. Wrap in envelope
+            # 5. If already a RuntimeEnvelope (from legacy delegates), pass through
+            if isinstance(result, RuntimeEnvelope):
+                result.latency_ms = (time.time() - start_time) * 1000
+                return result
+
+            # 6. Wrap dict result in envelope
             return RuntimeEnvelope(
                 tool=self.name,
                 stage=self.stage,
