@@ -6,7 +6,7 @@
     <title>arifOS AAA MCP | The Servant Wire</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wg400;500&family=Outfit:wght@600;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-color: #0a0b0e;
@@ -36,6 +36,71 @@
             overflow-x: hidden;
         }
 
+        /* ── Navigation ── */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(10, 11, 14, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 2rem;
+        }
+
+        nav .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+
+        nav .nav-logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        nav .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        nav .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        nav .nav-links a:hover,
+        nav .nav-links a.active {
+            color: var(--accent-cyan);
+        }
+
+        nav .nav-links .nav-cta {
+            background: var(--gradient-main);
+            color: #000;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+
+        nav .nav-links .nav-cta:hover {
+            opacity: 0.9;
+        }
+
+        /* ── Header ── */
         .header {
             position: relative;
             height: 60vh;
@@ -45,6 +110,7 @@
             background: url('../arifos_mcp_header_1774311167167.png') no-repeat center center;
             background-size: cover;
             border-bottom: 2px solid var(--accent-cyan);
+            margin-top: 60px;
         }
 
         .header-overlay {
@@ -78,6 +144,7 @@
             opacity: 0.8;
         }
 
+        /* ── Layout ── */
         .container {
             max-width: 1200px;
             margin: -100px auto 100px;
@@ -102,6 +169,12 @@
             margin-bottom: 2rem;
             border-left: 4px solid var(--accent-cyan);
             padding-left: 1rem;
+        }
+
+        h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
         }
 
         .grid {
@@ -168,9 +241,141 @@
             text-transform: uppercase;
         }
 
+        /* ── Quick Start ── */
+        .quickstart-step {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            min-width: 48px;
+            height: 48px;
+            background: var(--gradient-main);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #000;
+            flex-shrink: 0;
+        }
+
+        .step-content h3 {
+            margin-bottom: 0.3rem;
+            color: var(--text-primary);
+        }
+
+        .step-content p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .step-content code {
+            background: rgba(0, 243, 255, 0.1);
+            color: var(--accent-cyan);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+        }
+
+        .verdict-badge {
+            display: inline-block;
+            padding: 0.2rem 0.8rem;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .verdict-seal {
+            background: rgba(0, 243, 255, 0.15);
+            color: var(--accent-cyan);
+            border: 1px solid var(--accent-cyan);
+        }
+
+        .verdict-void {
+            background: rgba(255, 59, 48, 0.15);
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+        }
+
+        .verdict-hold {
+            background: rgba(255, 170, 0, 0.15);
+            color: var(--accent-amber);
+            border: 1px solid var(--accent-amber);
+        }
+
+        .verdict-sabar {
+            background: rgba(160, 164, 184, 0.15);
+            color: var(--text-secondary);
+            border: 1px solid var(--text-secondary);
+        }
+
         .verdict-hold { color: var(--accent-amber); font-weight: 700; }
         .verdict-seal { color: var(--accent-cyan); font-weight: 700; }
         .verdict-void { color: var(--accent-red); font-weight: 700; }
+
+        .tool-finder-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .finder-category {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 1.2rem;
+            border-radius: 10px;
+        }
+
+        .finder-category h4 {
+            color: var(--accent-cyan);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .finder-category ul {
+            list-style: none;
+        }
+
+        .finder-category li {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            padding: 0.3rem 0;
+        }
+
+        .finder-category li strong {
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+        }
+
+        .external-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent-cyan);
+            text-decoration: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            margin-top: 1.5rem;
+            padding: 0.6rem 1.2rem;
+            border: 1px solid var(--accent-cyan);
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .external-link:hover {
+            background: rgba(0, 243, 255, 0.1);
+        }
 
         footer {
             text-align: center;
@@ -178,6 +383,28 @@
             color: var(--text-secondary);
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        footer p {
+            margin-top: 1rem;
+            opacity: 0.5;
         }
 
         .pulse-dot {
@@ -195,10 +422,37 @@
             70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 243, 255, 0); }
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 243, 255, 0); }
         }
+
+        /* Responsive nav */
+        @media (max-width: 768px) {
+            nav .nav-links {
+                gap: 1rem;
+            }
+            h1 {
+                font-size: 2.5rem;
+            }
+            .container {
+                margin-top: -60px;
+            }
+        }
     </style>
 </head>
 <body>
 
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-inner">
+            <a href="#" class="nav-logo">arifOS</a>
+            <ul class="nav-links">
+                <li><a href="#quickstart">Quick Start</a></li>
+                <li><a href="#tools">Tools</a></li>
+                <li><a href="#verdicts">Verdicts</a></li>
+                <li><a href="https://github.com/ariffazil/arifOS/blob/main/docs/QUICK_START.md" target="_blank" class="nav-cta">📖 Full Docs</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Header -->
     <header class="header">
         <div class="header-overlay"></div>
         <div class="header-content">
@@ -208,14 +462,112 @@
     </header>
 
     <main class="container">
-        
+
+        <!-- Quick Start -->
+        <section class="section" id="quickstart">
+            <h2>⚡ 5-Minute Quick Start</h2>
+
+            <div class="quickstart-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Connect</h3>
+                    <p>Add to your MCP client config:</p>
+                    <p><code>https://arifosmcp.arif-fazil.com/mcp</code></p>
+                </div>
+            </div>
+
+            <div class="quickstart-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Ask a question</h3>
+                    <p>Try the <code>agi_reason</code> tool — deep reasoning with constitutional checks.</p>
+                    <p>Or use <code>physics_reality</code> for web-grounded facts.</p>
+                </div>
+            </div>
+
+            <div class="quickstart-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Read the verdict</h3>
+                    <p style="margin-bottom: 0.5rem;">Every response includes a constitutional verdict:</p>
+                    <p>
+                        <span class="verdict-badge verdict-seal">SEAL ✅</span>
+                        <span class="verdict-badge verdict-void">VOID ❌</span>
+                        <span class="verdict-badge verdict-hold">888_HOLD ⏸️</span>
+                        <span class="verdict-badge verdict-sabar">SABAR ⏳</span>
+                    </p>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                <a href="https://github.com/ariffazil/arifOS/blob/main/docs/QUICK_START.md" target="_blank" class="external-link">
+                    📖 Read the Full Quick Start Guide →
+                </a>
+            </div>
+        </section>
+
+        <!-- Tool Finder -->
+        <section class="section" id="tools">
+            <h2>🔧 Tool Finder — "I Want To..."</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Find the right tool for what you need to do.</p>
+
+            <div class="tool-finder-grid">
+                <div class="finder-category">
+                    <h4>🔍 Find Truth</h4>
+                    <ul>
+                        <li><strong>physics_reality</strong> — Web search, grounded facts</li>
+                        <li><strong>reality_compass</strong> — Verify a claim is true</li>
+                        <li><strong>math_estimator</strong> — Estimate computational cost</li>
+                    </ul>
+                </div>
+                <div class="finder-category">
+                    <h4>🧠 Think & Reason</h4>
+                    <ul>
+                        <li><strong>agi_mind</strong> — Deep multi-step reasoning</li>
+                        <li><strong>agi_reason</strong> — Logical deduction</li>
+                        <li><strong>agi_reflect</strong> — System self-check</li>
+                        <li><strong>asi_critique</strong> — Adversarial red-team review</li>
+                        <li><strong>asi_simulate</strong> — "What if I do X?"</li>
+                    </ul>
+                </div>
+                <div class="finder-category">
+                    <h4>⚖️ Govern & Record</h4>
+                    <ul>
+                        <li><strong>init_anchor</strong> — Start a governed session</li>
+                        <li><strong>vault_ledger</strong> — Immutable audit record</li>
+                        <li><strong>apex_soul</strong> — "Is this safe?" Final verdict</li>
+                        <li><strong>verify_vault_ledger</strong> — Check for tampering</li>
+                    </ul>
+                </div>
+                <div class="finder-category">
+                    <h4>💾 Remember</h4>
+                    <ul>
+                        <li><strong>engineering_memory</strong> — Store with constitutional tagging</li>
+                    </ul>
+                </div>
+                <div class="finder-category">
+                    <h4>⚙️ Execute</h4>
+                    <ul>
+                        <li><strong>code_engine</strong> — Safe code execution</li>
+                        <li><strong>agentzero_engineer</strong> — Generate new tools</li>
+                    </ul>
+                </div>
+            </div>
+
+            <a href="https://github.com/ariffazil/arifOS/blob/main/docs/TOOL_FINDER.md" target="_blank" class="external-link">
+                🔍 Full Tool Taxonomy →
+            </a>
+        </section>
+
+        <!-- Authority Mandate -->
         <section class="section">
             <h2>I. Authority Mandate</h2>
             <p>The AAA MCP is the <strong>L3 Body</strong> of the arifOS ecosystem. It establishes the physical connection between agentic intelligence and the Sovereign Kernel via the <strong>SALAM Protocol</strong>.</p>
-            <p style="margin-top: 1rem;"><span class="pulse-dot"></span> <strong>Current Status:</strong> Active | 11-Tool Surface Sealed</p>
+            <p style="margin-top: 1rem;"><span class="pulse-dot"></span> <strong>Current Status:</strong> Active | Constitutional AI Governance</p>
         </section>
 
-        <section class="section">
+        <!-- Tool Surface -->
+        <section class="section" id="tools-surface">
             <h2>II. The M-11 Tool Surface</h2>
             <div class="grid">
                 <div class="tool-card">
@@ -247,7 +599,6 @@
                         <span class="floor-tag">F13</span>
                     </div>
                 </div>
-                <!-- ... other tools ... -->
                 <div class="tool-card">
                     <span class="stage-id">111_SENSE</span>
                     <h3>physics_reality</h3>
@@ -262,7 +613,7 @@
                     <h3>code_engine</h3>
                     <p>Sandboxed computation and filesystem hygiene.</p>
                     <div style="margin-top: 1rem;">
-                        <span class="floor-tag">F1 (Amanah)</span>
+                        <span class="floor-tag">F1</span>
                     </div>
                 </div>
                 <div class="tool-card">
@@ -270,29 +621,61 @@
                     <h3>architect_registry</h3>
                     <p>Discovery of structural OS dependencies.</p>
                     <div style="margin-top: 1rem;">
-                        <span class="floor-tag">F10 (Ontology)</span>
+                        <span class="floor-tag">F10</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="section">
-            <h2>III. Runtime Envelope (ABI)</h2>
-            <p>All tool outputs adhere to the <strong>RuntimeEnvelope</strong> schema to prevent agentic chaos.</p>
+        <!-- Verdicts -->
+        <section class="section" id="verdicts">
+            <h2>III. Verdicts — What They Mean</h2>
+            <table class="specs-table">
+                <tr><th>Verdict</th><th>Meaning</th><th>Action</th></tr>
+                <tr>
+                    <td><span class="verdict-badge verdict-seal">SEAL ✅</span></td>
+                    <td>Approved — passed all constitutional floors</td>
+                    <td>Safe to proceed</td>
+                </tr>
+                <tr>
+                    <td><span class="verdict-badge verdict-void">VOID ❌</span></td>
+                    <td>Rejected — violated a constitutional floor</td>
+                    <td>Do not proceed</td>
+                </tr>
+                <tr>
+                    <td><span class="verdict-badge verdict-hold">888_HOLD ⏸️</span></td>
+                    <td>Paused — needs human approval (F13)</td>
+                    <td>Request human confirmation</td>
+                </tr>
+                <tr>
+                    <td><span class="verdict-badge verdict-sabar">SABAR ⏳</span></td>
+                    <td>Waiting — system processing, try again</td>
+                    <td>Retry shortly</td>
+                </tr>
+            </table>
+
+            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Runtime Envelope (ABI)</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">All tool outputs adhere to the <strong>RuntimeEnvelope</strong> schema.</p>
             <table class="specs-table">
                 <tr><th>Field</th><th>Description</th><th>Enforcement</th></tr>
-                <tr><td><code>verdict</code></td><td>Metabolic state (ALIVE, SABAR, HOLD, SEAL)</td><td>Hard (F13)</td></tr>
+                <tr><td><code>verdict</code></td><td>Metabolic state (SEAL, VOID, HOLD, SABAR)</td><td>Hard (F13)</td></tr>
                 <tr><td><code>g_score</code></td><td>Genius/Coherence Score (G★)</td><td>Hard (F8)</td></tr>
-                <tr><td><code>sabar_step</code></td><td>SABAR Protocol cooling/de-escalation step</td><td>Protocol Law</td></tr>
                 <tr><td><code>floors</code></td><td>Constitutional Floors triggered</td><td>Audit Only</td></tr>
+                <tr><td><code>humility_band</code></td><td>Ω (Omega) — confidence calibration</td><td>Hard (F7)</td></tr>
             </table>
         </section>
 
     </main>
 
     <footer>
+        <div class="footer-links">
+            <a href="https://github.com/ariffazil/arifOS/blob/main/docs/QUICK_START.md" target="_blank">📖 Quick Start</a>
+            <a href="https://github.com/ariffazil/arifOS/blob/main/docs/TOOL_FINDER.md" target="_blank">🔧 Tool Finder</a>
+            <a href="https://github.com/ariffazil/arifOS" target="_blank">GitHub</a>
+            <a href="https://arifos.arif-fazil.com" target="_blank">Docs Site</a>
+        </div>
         <p>ZKPC_HASH: 0x888_GENESIS_SEAL_WIRE_FINALIZED</p>
-        <p>© 2026 arifOS Sovereign Systems</p>
+        <p>© 2026 arifOS Sovereign Systems · Ditempa Bukan Diberi</p>
     </footer>
 
 </body>
