@@ -184,6 +184,84 @@ All notable changes to arifOS MCP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.04.01-CLAUDE-LEAK] - Claude Code Leak Analysis + KernelLoop Reference
+
+### 🔍 Claude Code Source Leak Analysis (2026-03-31)
+
+On March 31, 2026, Claude Code's full TypeScript source (~512K lines) was accidentally leaked via an npm source map. This release incorporates the architectural lessons into arifOS.
+
+**What the leak confirmed was right:**
+- QueryEngine pattern — one fat orchestration engine owning all LLM calls, retries, budgets, streaming
+- Permission tiers as first-class policy objects enforced structurally, not in prompts
+- Subagents with restricted tool scopes + summary returns (not raw context dumps)
+- Feature-flagged autonomy — KAIROS/BUDDY behind compile-time flags
+- Layered memory system with explicit long-session management
+
+**What the leak exposed as wrong (arifOS inverts all of these):**
+- Secrecy as safety — anti-distillation bypassed by reading the source → arifOS uses structural constitutional enforcement
+- Undercover Mode = prompt text + regex filters → arifOS has formal policy engine with pre/post hooks
+- Autocompact failure cascade (250K wasted API calls/day) → arifOS has hard-capped `MAX_CONSECUTIVE_FAILURES`
+- No automated tests for core orchestration → arifOS KernelLoop emits structured events for testability
+- Packaging as afterthought (.map leaked twice) → arifOS SDLC hardening: no source maps in distributions
+
+### core/kernel/ — KernelLoop Reference Implementation
+
+**New directory:** `core/kernel/` — reference implementation of a Claude Code-style agent loop
+
+| File | Purpose |
+|------|---------|
+| `kernel_loop_v1.json` | Architecture spec — ToolRegistry, ToolPolicyEngine, standard chains, mode system |
+| `kernel_loop_interface.py` | Python interface — `KernelLoop`, `ToolRegistry`, `ToolPolicyEngine`, `ConstitutionalHooks` |
+| `README.md` | Module index — maps to arifOS Trinity + pipeline |
+
+**Key components:**
+
+```python
+# KernelLoop — owns LLM calls, budgets, tool orchestration
+KernelLoop(model_handle, tool_registry, policy_engine, auditor_handle, config)
+
+# Pre-tool policy firewall (23-point equivalent of Claude Code bashSecurity)
+ToolPolicyEngine.check(tool_name, mode) → PolicyResult
+
+# Mode-based tool allowlists
+# internal: full access | external_open: Tier1+Tier2 | external_undercover: Tier1 only
+
+# Structured events for testability
+TurnStarted | ModelOutput | ToolCall | ToolResult | BudgetExceeded | ConstitutionalViolation
+```
+
+### Tool Tier System Added
+
+| Tier | Name | Audit | Rate Limit | Modes |
+|------|------|-------|------------|-------|
+| Tier 1 | Safe | No | 120/min | All |
+| Tier 2 | Guarded | Yes | 20/min | internal, external_open |
+| Tier 3 | High-Risk | Yes | 5/min | internal only |
+| Tier 4 | Critical | Yes+confirm | 1/min | internal only |
+
+### README Updated
+
+- Added "Architectural Lessons from Claude Code" section
+- Updated repository structure to reflect `core/kernel/` contents
+- Updated version to 2026.04.01
+- Added KernelLoop to Metrics table
+
+### Files Changed
+| File | Change |
+|------|--------|
+| `README.md` | Full rewrite — Claude Code lessons + KernelLoop section |
+| `core/kernel/kernel_loop_v1.json` | NEW — Architecture spec |
+| `core/kernel/kernel_loop_interface.py` | NEW — Python reference implementation |
+| `core/kernel/README.md` | NEW — Module documentation |
+
+### Verdict
+**SEAL — DITEMPA BUKAN DIBERI**
+
+**Timestamp**: 2026-04-01T17:00:00+08:00
+**LEAK-REF**: Claude Code npm source map — 512K lines — 2026-03-31
+
+---
+
 ## [Unreleased]
 
 ### Changed

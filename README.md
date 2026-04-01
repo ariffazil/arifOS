@@ -167,6 +167,64 @@ Tool counts in static documentation may drift. `/health` always reflects current
 
 ---
 
+## Architectural Lessons from Claude Code (2026-03-31)
+
+On March 31, 2026, Claude Code's full TypeScript source (~512K lines) was accidentally leaked via an npm source map. The leak provided an unprecedented view into how a production-grade AI coding agent is structured. arifOS has been updated to incorporate the key lessons.
+
+### What the Leak Confirmed Was Right
+
+The Claude Code architecture validated arifOS's core design choices:
+
+**QueryEngine pattern** — Claude Code uses a ~46K-line `QueryEngine` that owns every LLM call, tool invocation, retry, budget, and streaming. arifOS's `KernelLoop` (`core/kernel/`) implements the same pattern: one central loop that controls routing, budgets, and tool orchestration.
+
+**Permission tiers as first-class policy** — Claude Code's `bashSecurity.ts` has 23 numbered checks before shell execution, enforced structurally in the engine. arifOS's `ToolPolicyEngine` implements the same: risk tiers, permission matrices, and mode-based allowlists — not vibes in a prompt.
+
+**Subagents with restricted scopes** — Claude Code's coordinator pattern spawns child agents with constrained tool sets. arifOS's Trinity (Architect/Auditor/Agent) mirrors this: no single agent layer can override another.
+
+**Feature-flagged autonomy** — Claude Code's KAIROS (background agent), BUDDY (companion), and 40+ feature flags gate unshipped capabilities. arifOS implements this through the 000-999 metabolic pipeline with explicit stage gates.
+
+### What the Leak Exposed as Wrong
+
+The leak also exposed failures that arifOS explicitly inverts:
+
+| Claude Code | arifOS Inversion |
+|-------------|------------------|
+| Secrecy as safety — anti-distillation bypassed by knowing about it | Structural enforcement — truth-power coupling (F2) holds even under adversarial reading |
+| Undercover Mode = prompt text + regex filters | Constitutional Floors = formal policy engine with pre/post hooks |
+| Autocompact failure cascade — 250K wasted API calls/day | Explicit budget ceilings + `MAX_CONSECUTIVE_FAILURES` hard-capped |
+| No automated tests for core orchestration logic | Kernel loop has structured events (`TurnStarted`, `ToolCall`, `BudgetExceeded`) for testability |
+| Packaging as afterthought — .map file leaked twice in a year | SDLC hardening: no source maps in distributions, `npm audit` in CI |
+
+### arifOS KernelLoop Architecture
+
+The `core/kernel/` directory contains the reference implementation:
+
+```
+core/kernel/
+├── kernel_loop_v1.json       Architecture spec (from Claude Code analysis)
+├── kernel_loop_interface.py   Python interface — KernelLoop + ToolPolicyEngine
+└── README.md                  Module documentation
+```
+
+The `KernelLoop` class implements:
+- **Pre-tool policy check** — `ToolPolicyEngine` validates risk tier, concurrent limits, mode allowlists before any execution
+- **Structured event emission** — Every turn emits `TurnStarted`, `ModelOutput`, `ToolCall`, `ToolResult`, `BudgetExceeded`, `ConstitutionalViolation`
+- **Mode system** — `internal` (full access) / `external_open` (discloses AI, no codenames) / `external_undercover` (BUDDY mode, strips AI traces)
+- **Constitutional hooks** — Pre-loop system prompt injection, post-loop regex filters for internal codenames
+
+### Tool Tier System
+
+arifOS tools are registered with explicit risk tiers:
+
+| Tier | Name | Audit Required | Rate Limit | Mode Allowlist |
+|------|------|---------------|------------|----------------|
+| Tier 1 | Safe | No | 120/min | All modes |
+| Tier 2 | Guarded | Yes | 20/min | internal, external_open |
+| Tier 3 | High-Risk | Yes | 5/min | internal only |
+| Tier 4 | Critical | Yes + confirmation | 1/min | internal only |
+
+---
+
 ## Repository Structure
 
 ```
@@ -185,7 +243,10 @@ arifOS/
 │   └── core/organs/       AGI, ASI, APEX organs
 │
 ├── core/                  Constitutional kernel (the "law")
-│   ├── kernel/            Core evaluation logic
+│   ├── kernel/            KernelLoop reference implementation
+│   │   ├── kernel_loop_v1.json
+│   │   ├── kernel_loop_interface.py
+│   │   └── README.md
 │   ├── enforcement/       Governance engine
 │   └── shared/floors.py   F1-F13 definitions
 │
@@ -208,7 +269,7 @@ arifOS/
 └── ARCH/DOCS/             Architecture documents
 ```
 
-**Key distinction:** `core/` and `000/` are the canonical constitutional law. `arifosmcp/` is the runtime implementation. `AGENTS/` describes how AI agents are allowed to behave. `REPORTS/` contains daily audit logs.
+**Key distinction:** `core/` and `000/` are the canonical constitutional law. `arifosmcp/` is the runtime implementation. `AGENTS/` describes how AI agents are allowed to behave. `REPORTS/` contains daily audit logs. `core/kernel/` contains the reference KernelLoop implementation derived from Claude Code leak analysis.
 
 ---
 
@@ -250,11 +311,12 @@ Key rules:
 
 | | |
 |-|-|
-| Version | 2026.03.25 |
+| Version | 2026.04.01 |
 | Protocol | MCP 2025-03-26 |
 | Transport | Streamable HTTP |
 | Floors | 13 active |
 | Current tools | See /health |
+| KernelLoop | Reference implementation in `core/kernel/` |
 
 **arifOS is designed to reduce, not eliminate, risk.** It logs and surfaces contradictions. Humans remain responsible for decisions.
 
