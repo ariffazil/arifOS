@@ -1228,6 +1228,86 @@ async def architect_registry_dispatch_impl(
         return await arifos_read_resource_impl(
             uri=payload.get("uri", "about://arifos"), session_id=session_id
         )
+    # Model Registry modes (F11 Identity grounding)
+    elif mode == "model_catalog":
+        from arifos_mcp.runtime.model_registry_client import get_model_registry_client
+        client = get_model_registry_client()
+        catalog = await client.get_catalog()
+        models = await client.list_models()
+        providers = await client.list_providers()
+        return RuntimeEnvelope(
+            ok=True,
+            tool="architect_registry",
+            session_id=session_id,
+            stage="M-4_ARCH",
+            verdict=Verdict.SEAL,
+            status=RuntimeStatus.SUCCESS,
+            payload={
+                "catalog": catalog,
+                "models_count": len(models),
+                "providers_count": len(providers),
+                "models": models[:20],  # First 20
+                "providers": providers,
+            },
+        )
+    elif mode == "model_profile":
+        from arifos_mcp.runtime.model_registry_client import get_model_registry_client
+        client = get_model_registry_client()
+        model_key = payload.get("model_key", "")
+        profile = await client.get_model_profile(model_key)
+        return RuntimeEnvelope(
+            ok=True,
+            tool="architect_registry",
+            session_id=session_id,
+            stage="M-4_ARCH",
+            verdict=Verdict.SEAL if profile else Verdict.SABAR,
+            status=RuntimeStatus.SUCCESS if profile else RuntimeStatus.ERROR,
+            payload={
+                "model_key": model_key,
+                "profile": profile.__dict__ if profile else None,
+                "found": profile is not None,
+            },
+        )
+    elif mode == "provider_soul":
+        from arifos_mcp.runtime.model_registry_client import get_model_registry_client
+        client = get_model_registry_client()
+        soul_key = payload.get("soul_key", "")
+        soul = await client.get_provider_soul(soul_key)
+        return RuntimeEnvelope(
+            ok=True,
+            tool="architect_registry",
+            session_id=session_id,
+            stage="M-4_ARCH",
+            verdict=Verdict.SEAL if soul else Verdict.SABAR,
+            status=RuntimeStatus.SUCCESS if soul else RuntimeStatus.ERROR,
+            payload={
+                "soul_key": soul_key,
+                "soul": soul.__dict__ if soul else None,
+                "found": soul is not None,
+            },
+        )
+    elif mode == "verify_identity":
+        from arifos_mcp.runtime.model_registry_client import get_model_registry_client
+        client = get_model_registry_client()
+        claimed_identity = payload.get("claimed_identity", "")
+        claimed_provider = payload.get("claimed_provider")
+        result = await client.verify_identity(claimed_identity, claimed_provider)
+        return RuntimeEnvelope(
+            ok=result.verified,
+            tool="architect_registry",
+            session_id=session_id,
+            stage="M-4_ARCH",
+            verdict=Verdict.SEAL if result.verified else Verdict.VOID,
+            status=RuntimeStatus.SUCCESS,
+            payload={
+                "verified": result.verified,
+                "declared": result.declared,
+                "matched_key": result.matched_key,
+                "model": result.model,
+                "mismatch_detected": result.mismatch_detected,
+                "drift_risk": result.drift_risk,
+            },
+        )
     raise ValueError(f"Invalid mode for architect_registry: {mode}")
 
 

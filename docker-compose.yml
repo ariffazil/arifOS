@@ -320,6 +320,39 @@ services:
       redis:
         condition: service_healthy
 
+  # --- Model Registry (Constitutional Identity) ---
+  model_registry:
+    image: python:3.11-slim
+    container_name: model_registry
+    init: true
+    command: >
+      sh -c "pip install fastapi uvicorn pydantic jsonschema -q &&
+             uvicorn main:app --host 0.0.0.0 --port 18792 --workers 1"
+    working_dir: /app
+    volumes:
+      - /root/arifOS-model-registry:/app:ro
+    networks:
+      - arifos_trinity
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:18792/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
   # --- Constitutional Kernel (HARDENED) ---
   arifosmcp:
     build:
@@ -359,7 +392,8 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-arifos_vault}
       REDIS_URL: redis://redis:6379/0
       QDRANT_URL: http://qdrant:6333
-      OLLAMA_URL: http://ollama_engine:11434
+      OLLAMA_URL: http://ollama:11434
+      MODEL_REGISTRY_URL: http://model_registry:18792
       BROWSERLESS_URL: http://headless_browser:3000
       OPENCLAW_URL: http://openclaw:18789
       AGENT_ZERO_URL: http://agent-zero:80
@@ -449,6 +483,8 @@ services:
       qdrant:
         condition: service_started
       ollama:
+        condition: service_started
+      model_registry:
         condition: service_started
 
 

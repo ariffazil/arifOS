@@ -129,8 +129,9 @@ class ConstitutionalMemoryStore:
     Falls back to in-memory dict if Qdrant is unavailable.
     """
     
-    def __init__(self, qdrant_url: str = "qdrant:6333"):
+    def __init__(self, qdrant_url: str = "qdrant:6333", ollama_url: str = "http://ollama:11434"):
         self.qdrant_url = qdrant_url
+        self.ollama_url = ollama_url
         self._qdrant_client = None
         self._qdrant_collection = "arifos_constitutional_memory"
         self._memory_store: dict[str, MemoryRecord] = {}  # Fallback + cache
@@ -154,10 +155,18 @@ class ConstitutionalMemoryStore:
         if self._qdrant_client:
             try:
                 from qdrant_client.models import Distance, VectorParams
-                self._qdrant_client.recreate_collection(
-                    collection_name=f"{self._qdrant_collection}_{project_id}",
-                    vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
-                )
+                collection_name = f"{self._qdrant_collection}_{project_id}"
+                # bge-m3 produces 1024-dim embeddings
+                try:
+                    self._qdrant_client.create_collection(
+                        collection_name=collection_name,
+                        vectors_config=VectorParams(size=1024, distance=Distance.COSINE),
+                    )
+                except Exception as exc:
+                    if "already exists" in str(exc).lower():
+                        logger.info(f"Qdrant collection {collection_name} already exists")
+                    else:
+                        raise
             except Exception as exc:
                 logger.warning(f"Qdrant init failed for project {project_id}: {exc}")
         self._initialized = True
@@ -202,15 +211,25 @@ class ConstitutionalMemoryStore:
         
         return True, record.memory_id, None
     
+    async def _get_embedding(self, text: str) -> list[float]:
+        """Get 1024-dim embedding from Ollama bge-m3."""
+        import httpx
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{self.ollama_url}/api/embeddings",
+                json={"model": "bge-m3:latest", "prompt": text},
+            )
+            response.raise_for_status()
+            data = response.json()
+            embedding = data.get("embedding", [])
+            if len(embedding) != 1024:
+                raise ValueError(f"Expected 1024-dim embedding from bge-m3, got {len(embedding)}")
+            return embedding
+
     async def _store_qdrant(self, record: MemoryRecord, project_id: str):
-        """Store in Qdrant with vector embedding."""
+        """Store in Qdrant with real vector embedding from Ollama bge-m3."""
         try:
-            # Try to get embeddings (placeholder — requires embedding model)
-            # For now, use simple hash as pseudo-vector
-            import struct
-            vector = [float(b) / 255.0 for b in record.content_hash.encode()[:128]]
-            vector += [0.0] * (128 - len(vector))  # Pad to 128
-            
+            vector = await self._get_embedding(record.content)
             collection = f"{self._qdrant_collection}_{project_id}"
             self._qdrant_client.upsert(
                 collection_name=collection,
@@ -252,9 +271,43 @@ class ConstitutionalMemoryStore:
         Returns:
             List of SearchResult sorted by relevance
         """
-        query_hash = hashlib.sha256(query.encode()).hexdigest()
         results: list[SearchResult] = []
-        
+
+        # Primary: Qdrant vector search with real embeddings
+        if self._qdrant_client:
+            try:
+                vector = await self._get_embedding(query)
+                collection = f"{self._qdrant_collection}_{project_id}"
+                search_result = self._qdrant_client.search(
+                    collection_name=collection,
+                    query_vector=vector,
+                    limit=limit * 2,  # Over-fetch for filtering
+                    with_payload=True,
+                )
+                for point in search_result:
+                    payload = point.payload or {}
+                    # Area filter
+                    if area and payload.get("area") != area.value:
+                        continue
+                    # Constitutional tags filter
+                    if constitutional_tags:
+                        tags = payload.get("constitutional_tags", [])
+                        if not any(tag in tags for tag in constitutional_tags):
+                            continue
+                    results.append(SearchResult(
+                        memory_id=payload.get("memory_id", point.id),
+                        content=payload.get("content", "")[:200],
+                        area=payload.get("area", "session"),
+                        score=point.score,
+                        created_at=payload.get("created_at", 0.0),
+                    ))
+                if results:
+                    results.sort(key=lambda r: r.score, reverse=True)
+                    return results[:limit]
+            except Exception as exc:
+                logger.warning(f"Qdrant vector search failed, falling back to in-memory: {exc}")
+
+        # Fallback: in-memory keyword search
         for record in self._memory_store.values():
             if record.project_id != project_id:
                 continue
@@ -264,12 +317,11 @@ class ConstitutionalMemoryStore:
                 if not any(tag in record.constitutional_tags for tag in constitutional_tags):
                     continue
             
-            # Simple score based on content match
             score = sum(1 for word in query.lower().split() if word in record.content.lower()) / max(len(query.split()), 1)
             if score > 0:
                 results.append(SearchResult(
                     memory_id=record.memory_id,
-                    content=record.content[:200],  # Truncate
+                    content=record.content[:200],
                     area=record.area.value,
                     score=min(score, 1.0),
                     created_at=record.created_at,
