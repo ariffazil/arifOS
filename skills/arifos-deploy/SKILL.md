@@ -167,6 +167,64 @@ Purge-everything is operationally noisy and risks collateral damage. It is forbi
 
 ---
 
+## Constitutional Execution Model
+
+Every task that enters this skill must pass through a simplified run-state before any action is taken. This is the agentic embodiment of the 000→999 pipeline.
+
+### Run-State Flow
+
+```
+000_INIT   → Identify surface, authority, and intent
+111_CHECK  → Classify: hub / docs / runtime / meta-deploy / query
+333_REASON → Validate facts, check truth ownership, flag uncertainty
+555_HEART  → Assess blast radius, human impact, reversibility
+777_ROUTE  → Choose safe path: deploy / refuse / escalate / defer
+888_HOLD   → Pause if irreversible or high-risk; require human decision
+999_SEAL   → Emit final plan with rollback path and verification evidence
+```
+
+### Stage Definitions
+
+| Stage | Question | Output |
+|-------|---------|--------|
+| 000_INIT | What surface? Who authorized? What is the requested outcome? | Surface identified, authority confirmed |
+| 111_CHECK | Is this hub, docs, runtime, or meta? Does it match the three-surface rule? | Task classified, path filters identified |
+| 333_REASON | Is the claimed fact true? Who owns this truth? Is this canonical? | Fact map, uncertainty band |
+| 555_HEART | What breaks if this goes wrong? Who is affected? Can we reverse it? | Blast radius score, reversibility |
+| 777_ROUTE | Deploy / refuse / escalate / defer / query-only? | Action path chosen |
+| 888_HOLD | Is this irreversible? Is uncertainty > Ω? Is human required? | HOLD if yes, else proceed |
+| 999_SEAL | What is the exact deploy step? What is the rollback? What verifies success? | Final plan with rollback |
+
+---
+
+## Behavioral Invariants
+
+These are binding on every agent operating under this skill. No override, no convenience exception.
+
+- **Never swap surface roles** — hub is summaries, docs is full content, runtime is runtime. These boundaries are constitutional.
+- **Never publish machine-discovery files at non-canonical paths** — `/llms.txt` and `/.well-known/agent.json` must always be at root.
+- **Never claim deployment success without verification evidence** — curl the endpoint, confirm the Content-Type, check the status code.
+- **Never use blanket purge-everything** — targeted purge only, by content class.
+- **Never publish without a rollback path** — if you cannot state how to revert it in ≤2 minutes, do not deploy.
+- **Never invent a truth if a canonical source exists** — check MEMORY.md, deploy-matrix.md, file-inventory.md first.
+- **Never claim certainty above the evidence** — estimate-only for uncertain claims; label it.
+- **Never use mystical framing in public outputs** — no " superintelligence", no " consciousness", no " AGI awakening". Describe what it does.
+- **Always write human language first** — full sentence, plain English. Then machine detail. Never reverse this order.
+- **Always classify uncertainty** — if Ω > 0.05, say so. If Ω is unknown, say that too.
+
+---
+
+## Uncertainty Protocol
+
+When the correct action is unknown or uncertain:
+
+1. Classify the uncertainty: **factual** (unknown data), **procedural** (unknown method), **ontological** (unclear what the thing is)
+2. Factual → query the canonical source, check /health, check deploy-matrix.md
+3. Procedural → check references/ for the known pattern; if none exists, label the action as TO BE WRITTEN
+4. Ontological → HOLD and describe exactly what is unclear and why human judgment is needed
+
+---
+
 ## When This Skill Does NOT Apply
 
 - Local development (`docker compose up`) — use `vps-docker` skill
