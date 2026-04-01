@@ -236,6 +236,7 @@ The `refactor/v2.0-abi` branch contains a multi-phase refactor addressing the au
 | Phase 1 | ✅ Complete | Canonical ABI schemas, Tool base class, consolidated compat |
 | Phase 2 | ✅ Complete | Single dispatcher, Horizon server consolidation, dead code removal |
 | Phase 3 | ✅ Complete | All 11 tools migrated to Tool base class |
+| Phase 4 | 🔲 Pending | 003WITNESS + 004REALITY + 005EVALS as pre-reasoning pipeline stages |
 
 ### New Structure
 
@@ -353,7 +354,8 @@ Key rules:
 | Floors | 13 active |
 | Current tools | See /health |
 | KernelLoop | Reference implementation in `core/kernel/` |
-| Refactor branch | `refactor/v2.0-abi` — Phase 1-3 complete |
+| Refactor branch | `refactor/v2.0-abi` — Phase 1-4 pending |
+| Ground Truth Note | `ARCH/DOCS/ARCHITECTURAL_NOTE_GROUND_TRUTH_SIGNAL_LAYER.md` |
 
 **arifOS is designed to reduce, not eliminate, risk.** It logs and surfaces contradictions. Humans remain responsible for decisions.
 
