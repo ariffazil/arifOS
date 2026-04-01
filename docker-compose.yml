@@ -363,6 +363,7 @@ services:
     image: arifos/arifosmcp:latest
     container_name: arifosmcp
     init: true
+    command: ["uvicorn", "arifos_mcp.runtime.server:app", "--host", "0.0.0.0", "--port", "8080"]
     env_file:
       - path: .env.docker
         required: false
@@ -371,6 +372,7 @@ services:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /root/arifOS/mcp:/usr/src/app/mcp:ro
+      - /root/arifOS/arifos_mcp:/usr/src/app/arifos_mcp:ro
       # NOTE: server mounts removed — using image-built server.py
       - /root/arifOS/fastmcp.json:/usr/src/app/fastmcp.json:ro
       - /root/arifOS/mcp.json:/usr/src/app/mcp.json:ro
