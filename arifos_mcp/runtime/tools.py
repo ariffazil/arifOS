@@ -104,18 +104,7 @@ from arifos_mcp.runtime.megaTools import (
 )
 from arifos_mcp.memory.shared_memory_mcp import shared_memory_tool
 
-try:
-    # init_000 was purged in sovereign unification
-    init_000_get_deployment = None
-    init_000_get_provider_soul = None
-    init_000_get_session_anchor = None
-    init_000_log_drift_event = None
-except (ImportError, ModuleNotFoundError):
-    # init_000 not available in this environment
-    init_000_get_deployment = None
-    init_000_get_provider_soul = None
-    init_000_get_session_anchor = None
-    init_000_log_drift_event = None
+# init_000 was purged in sovereign unification — dead code removed
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # HELPER FUNCTIONS (kept in tools.py for utilities)
@@ -659,11 +648,6 @@ FINAL_TOOL_IMPLEMENTATIONS: dict[str, Callable[..., Any]] = {
     "code_engine": code_engine,
     "architect_registry": architect_registry,
     "compat_probe": compat_probe,
-    # init_000 tools
-    "init_000_get_deployment": init_000_get_deployment,
-    "init_000_get_provider_soul": init_000_get_provider_soul,
-    "init_000_get_session_anchor": init_000_get_session_anchor,
-    "init_000_log_drift_event": init_000_log_drift_event,
     # multi-agent shared memory
     "shared_memory": shared_memory_tool,
 }
