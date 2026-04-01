@@ -1,0 +1,52 @@
+name: Deploy arifOS Hub to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sites/arif-fazil.com-source/pages/**'
+      - 'sites/arif-fazil.com-source/llms.txt'
+      - 'sites/arif-fazil.com-source/robots.txt'
+      - 'sites/arif-fazil.com-source/sitemap.xml'
+      - 'sites/arif-fazil.com-source/.well-known/**'
+      - 'sites/arif-fazil.com-source/assets/**'
+      - '.github/workflows/deploy-hub.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-hub
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate hub source
+        run: |
+          test -f sites/arif-fazil.com-source/pages/index.html
+          test -f sites/arif-fazil.com-source/assets/style.css
+          test -f sites/arif-fazil.com-source/llms.txt
+          echo "hub source validated"
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'sites/arif-fazil.com-source'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

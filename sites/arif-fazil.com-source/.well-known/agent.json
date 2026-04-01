@@ -1,0 +1,41 @@
+{
+  "name": "arifOS",
+  "description": "Constitutional intelligence kernel. AI agents governed by 13 floors, with immutable audit logs and reversible actions.",
+  "url": "https://arif-fazil.com/",
+  "version": "2026.03.25",
+  "author": {
+    "name": "Muhammad Arif bin Fazil",
+    "email": "arif@arif-fazil.com",
+    "url": "https://arif-fazil.com"
+  },
+  "mcpServers": {
+    "arifos": {
+      "url": "https://arifosmcp.arif-fazil.com/mcp",
+      "transport": "streamable-http"
+    }
+  },
+  "protocols": ["mcp-2025-03-26"],
+  "capabilities": [
+    "governance",
+    "auditing",
+    "tool-execution",
+    "constitutional-ai",
+    "reversible-actions"
+  ],
+  "constitutionalFloors": 13,
+  "trinity": {
+    "soul": "human-values",
+    "mind": "constitutional-law",
+    "body": "tool-execution"
+  },
+  "verdicts": ["SEAL", "HOLD", "SABAR", "VOID"],
+  "repositories": {
+    "arifOS": "https://github.com/ariffazil/arifOS",
+    "APEX": "https://github.com/ariffazil/APEX",
+    "GEOX": "https://github.com/ariffazil/GEOX"
+  },
+  "license": {
+    "runtime": "AGPL-3.0",
+    "theory": "CC0"
+  }
+}

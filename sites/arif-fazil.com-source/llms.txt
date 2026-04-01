@@ -1,0 +1,81 @@
+# arifOS — Machine-Readable Overview
+
+**URL:** https://arif-fazil.com/
+**Author:** Muhammad Arif bin Fazil
+**Version:** 2026.03.25
+
+## What arifOS Is
+
+arifOS is an open-source, MCP-native constitutional intelligence kernel. AI agents that pass 13 constitutional floor checks before taking any action. Every decision is logged and auditable.
+
+## Architecture
+
+### Trinity Model (Delta Omega Psi)
+- SOUL (Delta): Human values, purpose, telos
+- MIND (Omega): Constitutional law, the 13 Floors
+- BODY (Psi): Tool execution, MCP servers
+
+### 9-Stage Pipeline
+000_INIT → 111_SENSE → 333_MIND → 444_ROUT → 555_MEM → 666_HEART → 777_OPS → 888_JUDGE → 999_SEAL
+
+### Constitutional Floors (F01–F13)
+- F01 AMANAH: Reversibility — all actions reversible or reparable
+- F02 TRUTH: Accuracy — P(claim|evidence) meets threshold
+- F03 TRI-WITNESS: Consensus — W³ score ≥ 0.95
+- F04 CLARITY: Entropy — ΔS ≤ 0
+- F05 PEACE²: Non-destruction — score² ≥ 1.0
+- F06 EMPATHY: RASA listening ≥ 0.7
+- F07 HUMILITY: Uncertainty band bounded
+- F08 GENIUS: Systemic health ≥ 0.80
+- F09 ETHICS: No dark patterns
+- F10 CONSCIENCE: No false consciousness claims
+- F11 AUDITABILITY: All decisions logged
+- F12 RESILIENCE: Fail degraded, not crashed
+- F13 ADAPTABILITY: Updates preserve Floor constraints
+
+## Verdict System
+- SEAL: Action will execute (passes all hard floors)
+- HOLD: Awaiting human decision
+- SABAR: Wait and retry later
+- VOID: Action blocked (ethical violation)
+
+## Machine Discovery Endpoints
+
+| Endpoint | URL |
+|----------|-----|
+| MCP Server | https://arifosmcp.arif-fazil.com/mcp |
+| Health + Tools | https://arifosmcp.arif-fazil.com/health |
+| Tool Explorer | https://arifosmcp.arif-fazil.com/tools |
+| LLM Context | https://arif-fazil.com/llms.txt |
+| Agent Card | https://arif-fazil.com/.well-known/agent.json |
+
+## MCP Client Config
+```json
+{
+  "mcpServers": {
+    "arifos": {
+      "url": "https://arifosmcp.arif-fazil.com/mcp"
+    }
+  }
+}
+```
+
+## Repositories
+- arifOS (main kernel): https://github.com/ariffazil/arifOS
+- APEX (theory, CC0): https://github.com/ariffazil/APEX
+- GEOX (spatial intelligence): https://github.com/ariffazil/GEOX
+- makcikGPT (Malay AI): https://github.com/ariffazil/makcikGPT
+- waw (agent workspace): https://github.com/ariffazil/waw
+
+## License
+- Runtime: AGPL-3.0
+- Theory: CC0 (public domain)
+- Trademark: Proprietary
+
+## Contact
+Muhammad Arif bin Fazil
+Email: arif@arif-fazil.com
+Site: https://arif-fazil.com
+
+---
+Intelligence is forged, not given. [ΔΩΨ]
