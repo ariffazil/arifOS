@@ -443,6 +443,54 @@ services:
         condition: service_started
 
 
+  # --- GEOX Earth Physics MCP (Option B Federation) ---
+  geox-mcp:
+    build:
+      context: ./geox
+      dockerfile: Dockerfile
+    image: arifos/geox-mcp:latest
+    container_name: geox-mcp
+    init: true
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+      - ARIFOS_FLOORS_HASH=${ARIFOS_FLOORS_HASH:-}
+      - ARIFOS_GOVERNANCE_URL=http://arifosmcp:8080
+    volumes:
+      - /root/arifOS/geox:/app/geox:ro
+      - geox_data:/app/data:rw
+    ports:
+      - "127.0.0.1:8081:8081"
+    networks:
+      - arifos_trinity
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.geoxmcp.rule=Host(`geox.arif-fazil.com`)"
+      - "traefik.http.routers.geoxmcp.entrypoints=websecure"
+      - "traefik.http.routers.geoxmcp.tls.certresolver=letsencrypt"
+      - "traefik.http.services.geoxmcp.loadbalancer.server.port=8081"
+      - "traefik.http.services.geoxmcp.loadbalancer.healthcheck.path=/health"
+      - "traefik.http.services.geoxmcp.loadbalancer.healthcheck.interval=15s"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --max-time 5 http://localhost:8081/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 2048M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    restart: unless-stopped
+    depends_on:
+      arifosmcp:
+        condition: service_healthy
+
+
   # --- Monitoring Stack ---
   prometheus:
     image: prom/prometheus:latest
@@ -747,4 +795,6 @@ volumes:
   arifos_grafana_datasources:
     driver: local
   arifos_grafana_dashboards:
+    driver: local
+  geox_data:
     driver: local
