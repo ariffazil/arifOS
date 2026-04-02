@@ -13,7 +13,7 @@
     "source": "github"
   },
   "protocolVersion": "2025-11-25",
-  "supportedProtocolVersions": ["2025-11-25", "2025-03-26"],
+  "supportedProtocolVersions": ["2025-11-25", "2025-03-26", "2025-06-18"],
   "authentication": {
     "type": "none",
     "description": "No authentication required. actor_id is used for logging only."
