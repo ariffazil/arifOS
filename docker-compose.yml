@@ -72,7 +72,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-arifos_vault}
       POSTGRES_USER: ${POSTGRES_USER:-arifos_admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ""  # Passwordless - trusted VPS only
     volumes:
       - /opt/arifos/data/postgres:/var/lib/postgresql/data
     ports:
@@ -192,47 +192,6 @@ services:
           memory: 512M
     mem_limit: 3G
     mem_reservation: 512M
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-
-  # --- AgentZero (Reasoning Engine) ---
-  agent-zero:
-    image: agent0ai/agent-zero:latest
-    container_name: agent-zero
-    init: true
-    environment:
-      - HF_TOKEN=${HF_TOKEN}
-      - OPENCLAW_URL=http://openclaw:18789
-      - AGENT_NAME=arifos-agentzero
-    volumes:
-      - /opt/arifos/data/agent_zero:/app/work_dir:rw
-      - /root/arifOS:/mnt/arifos:rw
-      - /opt/arifos/APEX-THEORY:/mnt/apex:rw
-    networks:
-      - arifos_trinity
-    ports:
-      - "127.0.0.1:18001:80"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.agentzero.rule=Host(`agentzero.arifosmcp.arif-fazil.com`)"
-      - "traefik.http.routers.agentzero.entrypoints=websecure"
-      - "traefik.http.routers.agentzero.tls.certresolver=letsencrypt"
-      - "traefik.http.services.agentzero.loadbalancer.server.port=80"
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'
-          memory: 2048M
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -397,7 +356,6 @@ services:
       MODEL_REGISTRY_URL: http://model_registry:18792
       BROWSERLESS_URL: http://headless_browser:3000
       OPENCLAW_URL: http://openclaw:18789
-      AGENT_ZERO_URL: http://agent-zero:80
       DASHBOARD_ENABLED: "true"
       AAA_MCP_TRANSPORT: http
       ARIFOS_GOVERNANCE_SECRET_FILE: ${ARIFOS_GOVERNANCE_SECRET_FILE:-}

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fahmi Amni — PETRONAS Carigali | Petrophysicist</title>
+    <style>
+        :root {
+            --petro-dark: #0a1628;
+            --petro-mid: #132744;
+            --petro-accent: #f4a261;
+            --petro-teal: #2a9d8f;
+            --petro-sand: #e9c46a;
+            --petro-clay: #e76f51;
+            --text-light: #edf2f4;
+            --text-muted: #8d99ae;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--petro-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Well Log Animation Background */
+        .well-log-bg {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 180px;
+            height: 100vh;
+            background: var(--petro-mid);
+            border-left: 2px solid var(--petro-teal);
+            opacity: 0.15;
+            z-index: 0;
+        }
+
+        .track {
+            position: absolute;
+            right: 20px;
+            width: 30px;
+            height: 100%;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent 0px,
+                transparent 8px,
+                rgba(42,157,143,0.3) 8px,
+                rgba(42,157,143,0.3) 10px
+            );
+        }
+        .track:nth-child(2) { right: 60px; }
+        .track:nth-child(3) { right: 100px; }
+        .track:nth-child(4) { right: 140px; }
+
+        /* Header */
+        header {
+            position: relative;
+            z-index: 1;
+            padding: 80px 40px 60px;
+            text-align: center;
+            background: linear-gradient(180deg, var(--petro-mid) 0%, var(--petro-dark) 100%);
+            border-bottom: 1px solid rgba(42,157,143,0.3);
+        }
+
+        .depth-marker {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: var(--petro-teal);
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+        }
+
+        .profile-ring {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 3px solid var(--petro-teal);
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle, var(--petro-mid) 0%, var(--petro-dark) 100%);
+            box-shadow: 0 0 40px rgba(42,157,143,0.2);
+        }
+
+        .initials {
+            font-size: 42px;
+            font-weight: 700;
+            color: var(--petro-accent);
+            letter-spacing: 2px;
+        }
+
+        h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--text-light), var(--petro-sand));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .title {
+            font-size: 1.1rem;
+            color: var(--petro-teal);
+            font-weight: 500;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .company {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+            padding: 8px 18px;
+            background: rgba(42,157,143,0.15);
+            border: 1px solid rgba(42,157,143,0.4);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--petro-teal);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--petro-teal);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        /* Main Content */
+        main {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 30px;
+        }
+
+        /* Strata Section */
+        .strata-section {
+            margin-bottom: 50px;
+        }
+
+        .section-label {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: var(--petro-teal);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            padding-left: 10px;
+            border-left: 2px solid var(--petro-accent);
+        }
+
+        /* Strata Visual */
+        .strata-visual {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .strata-layer {
+            padding: 14px 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .strata-layer:nth-child(1) { background: #264653; }
+        .strata-layer:nth-child(2) { background: #2a6f62; }
+        .strata-layer:nth-child(3) { background: #2a9d8f; }
+        .strata-layer:nth-child(4) { background: #e9c46a; color: #0a1628; }
+        .strata-layer:nth-child(5) { background: #f4a261; color: #0a1628; }
+        .strata-layer:nth-child(6) { background: #e76f51; }
+
+        .depth-range {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--petro-mid);
+            border: 1px solid rgba(42,157,143,0.2);
+            border-radius: 12px;
+            padding: 28px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(42,157,143,0.15);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+
+        .card h3 {
+            font-size: 1.05rem;
+            margin-bottom: 10px;
+            color: var(--petro-sand);
+        }
+
+        .card p {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* Publications */
+        .pub-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .pub-item {
+            background: var(--petro-mid);
+            border: 1px solid rgba(42,157,143,0.2);
+            border-radius: 10px;
+            padding: 22px;
+        }
+
+        .pub-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .pub-meta {
+            font-size: 0.8rem;
+            color: var(--petro-teal);
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Footer */
+        footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid rgba(42,157,143,0.2);
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+
+        footer a {
+            color: var(--petro-teal);
+            text-decoration: none;
+        }
+
+        /* Log Curve SVG */
+        .log-curve {
+            width: 100%;
+            height: 120px;
+            margin: 30px 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            header { padding: 60px 20px 40px; }
+            main { padding: 40px 20px; }
+            h1 { font-size: 1.8rem; }
+            .well-log-bg { width: 80px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="well-log-bg">
+        <div class="track"></div>
+        <div class="track"></div>
+        <div class="track"></div>
+        <div class="track"></div>
+    </div>
+
+    <header>
+        <div class="depth-marker">DEPTH: 0 m — KUALA LUMPUR, MALAYSIA</div>
+        <div class="profile-ring">
+            <span class="initials">FA</span>
+        </div>
+        <h1>Fahmi Amni</h1>
+        <div class="title">Petroleum Engineer — Petrophysics</div>
+        <div class="company">PETRONAS Carigali Sdn. Bhd.</div>
+        <div style="margin-top:8px;font-size:0.8rem;color:var(--text-muted);font-family:'Courier New',monospace;">Fahmi Amni bin Mustafaal Bakeri</div>
+        <div class="status-badge">
+            <div class="status-dot"></div>
+            Verified Human · Real Professional
+        </div>
+    </header>
+
+    <main>
+        <!-- Log Curve -->
+        <svg class="log-curve" viewBox="0 0 800 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="logGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#f4a261" stop-opacity="0.8"/>
+                    <stop offset="50%" stop-color="#2a9d8f" stop-opacity="0.8"/>
+                    <stop offset="100%" stop-color="#264653" stop-opacity="0.8"/>
+                </linearGradient>
+            </defs>
+            <!-- Gamma Ray Simulated Curve -->
+            <path d="M0,110 Q50,105 80,95 T150,70 T220,55 T300,40 T380,25 T450,35 T520,50 T600,30 T680,45 T750,55 T800,60 L800,120 L0,120 Z" fill="url(#logGrad)" opacity="0.4"/>
+            <path d="M0,110 Q50,105 80,95 T150,70 T220,55 T300,40 T380,25 T450,35 T520,50 T600,30 T680,45 T750,55 T800,60" fill="none" stroke="#f4a261" stroke-width="2"/>
+            <!-- Scale labels -->
+            <text x="10" y="20" font-size="10" fill="#8d99ae" font-family="Courier New">GR API</text>
+            <text x="10" y="35" font-size="9" fill="#f4a261">0</text>
+            <text x="10" y="100" font-size="9" fill="#2a9d8f">150</text>
+        </svg>
+
+        <section class="strata-section">
+            <div class="section-label">Geological Strata · Educational Journey</div>
+            <div class="strata-visual">
+                <div class="strata-layer">
+                    <span>🎓 Universiti Teknologi PETRONAS (UTP)</span>
+                    <span class="depth-range">BACHELOR</span>
+                </div>
+                <div class="strata-layer">
+                    <span>🛢️ PETRONAS Carigali</span>
+                    <span class="depth-range">2018–PRESENT</span>
+                </div>
+                <div class="strata-layer">
+                    <span>Well Logging & Petrophysics</span>
+                    <span class="depth-range">CORE SKILL</span>
+                </div>
+                <div class="strata-layer">
+                    <span>Sand Control & Wellbore Stability</span>
+                    <span class="depth-range">SPECIALTY</span>
+                </div>
+                <div class="strata-layer">
+                    <span>Through-Tubing Sand Screen</span>
+                    <span class="depth-range">PUBLISHED</span>
+                </div>
+                <div class="strata-layer">
+                    <span>First Successful Downhole Sand Detection — Malaysia 2019</span>
+                    <span class="depth-range">MILESTONE</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="strata-section">
+            <div class="section-label">Professional Cards</div>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-icon">🛢️</div>
+                    <h3>Petrophysics Specialist</h3>
+                    <p>Well log interpretation, formation evaluation, and reservoir characterization for PETRONAS operations across Malaysian basins.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">⚙️</div>
+                    <h3>Sand Production Control</h3>
+                    <p>Deep expertise in sand control mechanisms including Through-Tubing Sand Screen (TTSS) remedial solutions and best practices.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📊</div>
+                    <h3>Wellbore Stability</h3>
+                    <p>Integrated wellbore stability analysis and sand production prediction for multi-field gas development projects.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🤖</div>
+                    <h3>AI-Assisted Subsurface Operations</h3>
+                    <p>ML workflow for optimising pressure test accuracy — 80–87% model accuracy, ~17% field improvement. Presented at SPE Digital Data Analytics Workshop, Bangkok Nov 2024.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="strata-section">
+            <div class="section-label">Publications & Research</div>
+            <div class="pub-list">
+                <div class="pub-item">
+                    <div class="pub-title">Holistic Performance Review of Through-Tubing Sand Screen as Remedial Sand Control: Best Practices and Lesson Learnt</div>
+                    <div class="pub-meta">Co-author · Petrophysics Division, PETRONAS Carigali</div>
+                </div>
+                <div class="pub-item">
+                    <div class="pub-title">An Integrated Wellbore Stability and Sand Production Prediction Study for a Multi-Field Gas Development</div>
+                    <div class="pub-meta">ResearchGate · Petronas Research</div>
+                </div>
+                <div class="pub-item">
+                    <div class="pub-title">Advances and Challenges of Sand Production and Control in Oilfields</div>
+                    <div class="pub-meta">ScienceDirect · 2025 · PETRONAS Carigali</div>
+                </div>
+                <div class="pub-item">
+                    <div class="pub-title">First Successful Downhole Sand Detection in Malaysia — May 2019</div>
+                    <div class="pub-meta">SPE / PETRONAS Research · Milestone Achievement</div>
+                </div>
+                <div class="pub-item">
+                    <div class="pub-title">Optimising Pressure Test with Artificial Intelligence</div>
+                    <div class="pub-meta">SPE Digital Data Analytics Workshop · Bangkok Nov 2024</div>
+                </div>
+                <div class="pub-item">
+                    <div class="pub-title">Decoding the Invisible – Integrated Cased Hole Interpretation to Predict Water Breakthrough</div>
+                    <div class="pub-meta">ADIPEC 2025 · DOI: 10.2118/230025-MS</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="strata-section">
+            <div class="section-label">Verification Record</div>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-icon">✅</div>
+                    <h3>LinkedIn Verified</h3>
+                    <p>linkedin.com/in/fahmi-amni-11964222<br>PETRONAS Carigali Sdn. Bhd.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📄</div>
+                    <h3>SPE Author</h3>
+                    <p>Registered author at SPE. Presented at SPE Digital Data Analytics Workshop, Bangkok Nov 2024. Technical papers at IPTC, ADIPEC.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🔬</div>
+                    <h3>ResearchGate Profile</h3>
+                    <p>Multiple peer-reviewed publications in wellbore stability and sand control. Cited in international journals.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>This page exists as proof of a real human professional.</p>
+        <p>Fahmi Amni is a <strong>Petroleum Engineer — Petrophysics</strong> at <strong>PETRONAS Carigali</strong>, Malaysia.</p>
+        <p style="margin-top: 12px; opacity: 0.6;">
+            Built from public data · <a href="https://arif-fazil.com">arif-fazil.com</a> · 2026
+        </p>
+    </footer>
+
+</body>
+</html>
