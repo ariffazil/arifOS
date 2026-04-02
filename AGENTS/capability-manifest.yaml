@@ -420,3 +420,75 @@ self_query_interface:
 
 motto: "Ditempa Bukan Diberi — Forged, Not Given"
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# HUMAN-READABLE DECISION CHECKLIST (F1-F5 Simplified)
+# ═══════════════════════════════════════════════════════════════════════════════
+# This 5-point checklist is the plain-language translation of F1-F13.
+# Used by humans and agents for quick decision validation.
+
+human_checklist:
+  version: "2026.04.02"
+  description: "5-question checklist before any significant action"
+  
+  questions:
+    - id: 1
+      question: "Siapa affect? / Who is affected?"
+      floor: "F5 (PEACE² - Non-destruction)"
+      if_fail: "STOP - don't proceed"
+      
+    - id: 2
+      question: "Boleh undo tak? / Can this be undone?"
+      floor: "F1 (AMANAH - Reversibility)"
+      if_fail: "High risk - get human approval"
+      
+    - id: 3
+      question: "Jadi elok atau rosak? / Better or worse?"
+      floor: "F4 (CLARITY - Order)"
+      if_fail: "STOP - re-evaluate"
+      
+    - id: 4
+      question: "Fakta atau assumption? / Fact or assumption?"
+      floor: "F2 (TRUTH - Evidence)"
+      if_fail: "Prove it first"
+      
+    - id: 5
+      question: "Still aligned dengan tujuan? / Still on mission?"
+      floor: "F3 (TRI-WITNESS - Consensus)"
+      if_fail: "Correct course"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONTINUITY LOGIC - How the system remembers
+# ═══════════════════════════════════════════════════════════════════════════════
+
+continuity:
+  description: "How decisions persist across sessions"
+  
+  layers:
+    - name: "555_MEM"
+      function: "Vector memory - stores past decisions"
+      query: "Similar past decisions for context"
+      
+    - name: "999_SEAL"
+      function: "Immutable audit log"
+      stores: "What, why, result of every decision"
+      
+    - name: "666_HEART"
+      function: "Safety meta-review"
+      triggers: "Periodic check if checklist still relevant"
+      
+    - name: "F13_ADAPTABILITY"
+      function: "Rule evolution"
+      when: "If purpose/mission drifts significantly"
+
+  flow:
+    - step: "Now"
+      action: "Answer 5 questions, make decision"
+    - step: "+1hr"
+      action: "Log to 999_SEAL"
+    - step: "Tomorrow"
+      action: "Query 555_MEM for similar decisions before answering Q1-5"
+    - step: "Weekly"
+      action: "666_HEART meta-review - are we still aligned?"
+    - step: "Drift detected"
+      action: "F13_ADAPTABILITY - update rules, don't just continue"
