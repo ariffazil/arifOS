@@ -1,0 +1,100 @@
+ID,Family,Material,Matrix_Density_gcc,Matrix_NPHI_vv,Typical_GR_API,Typical_Rt_ohm_m,Notes
+SED_CLS_001,Sedimentary Clastic,Clean Sandstone (Quartz),2.65,0.02,10,500,Best reservoir; Archie applies
+SED_CLS_002,Sedimentary Clastic,Siliceous Sandstone,2.63,0.02,15,300,Minor feldspar content
+SED_CLS_003,Sedimentary Clastic,Arkose (K-Feldspar rich),2.62,0.03,40,150,Feldspathic sandstone
+SED_CLS_004,Sedimentary Clastic,Sublitharenite,2.64,0.02,25,250,Lithic fragments present
+SED_CLS_005,Sedimentary Clastic,Clay-rich Sandstone,2.55,0.08,60,30,High bound water
+SED_CLS_006,Sedimentary Clastic,Siltstone,2.70,0.10,80,20,Fine-grained clastic
+SED_CLS_007,Sedimentary Clastic,Mudstone/Shale,2.45,0.15,120,10,Organic-rich possible
+SED_CLS_008,Sedimentary Clastic,Sandy Shale,2.50,0.12,100,15,Transitional
+SED_CLS_009,Sedimentary Clastic,Conglomerate,2.68,0.03,30,200,Coarse clastic matrix
+SED_CLS_010,Sedimentary Clastic,Graywacke,2.60,0.06,70,50,Immature sandstone
+SED_CLS_011,Sedimentary Clastic,Claystone,2.48,0.18,130,8,Pure shale matrix
+SED_CLS_012,Sedimentary Clastic,Marl,2.55,0.20,90,25,Carbonate-clay mix
+SED_CLS_013,Sedimentary Clastic,Bentonite (Smectite),2.30,0.25,150,10,Volcanic ash alteration
+SED_CLS_014,Sedimentary Clastic,Chalk (opaline),2.71,0.30,20,1000,HIGH NPHI anomaly
+SED_CLS_015,Sedimentary Clastic,Dolomitic Sandstone,2.78,0.04,25,400,Secondary dolomite cement
+SED_CLS_016,Sedimentary Clastic,Ferrugineous Sandstone,2.90,0.03,35,150,Iron oxide cement
+SED_CLS_017,Sedimentary Clastic,Coal (lignite),1.50,0.40,20,1000,LOW density HIGH NPHI
+SED_CLS_018,Sedimentary Clastic,Carbonaceous Shale,2.35,0.20,150,15,Organic matter present
+SED_CRB_001,Sedimentary Carbonate,Clean Limestone,2.71,0.02,5,1000,Calcite matrix
+SED_CRB_002,Sedimentary Carbonate,Dolomite,2.87,0.02,5,2000,Dense crystalline
+SED_CRB_003,Sedimentary Carbonate,Anhydrite,2.98,0.01,5,10000,Evaporite cap
+SED_CRB_004,Sedimentary Carbonate,Gypsum,2.32,0.04,5,10000,Hydrated evaporite
+SED_CRB_005,Sedimentary Carbonate,Limestone-Dolomite Mix,2.75,0.03,8,500,Transitional
+SED_CRB_006,Sedimentary Carbonate,Porous Limestone,2.65,0.05,10,200,Secondary vuggy porosity
+SED_CRB_007,Sedimentary Carbonate,Chalky Limestone,2.71,0.35,15,150,Microporosity dominant
+SED_CRB_008,Sedimentary Carbonate,Argillaceous Limestone,2.68,0.08,30,100,Clay contamination
+SED_CRB_009,Sedimentary Carbonate,Stylolitic Limestone,2.72,0.03,20,300,Pressure solution fabric
+SED_CHM_001,Sedimentary Chemical/Organic,Rock Salt (Halite),2.17,0.01,5,100000,LOW density VERY HIGH resistivity
+SED_CHM_002,Sedimentary Chemical/Organic,Potash Salt (Sylvite),1.99,0.01,10,50000,Evaporite K-mineral
+SED_CHM_003,Sedimentary Chemical/Organic,Anhydrite (nodular),2.98,0.01,5,50000,Pure sulfate
+SED_CHM_004,Sedimentary Chemical/Organic,Gypsum (massive),2.32,0.04,5,50000,Ca-sulfate dihydrate
+SED_CHM_005,Sedimentary Chemical/Organic,Chert (cryptocrystalline silica),2.60,0.01,8,20000,Hard dense silica
+SED_CHM_006,Sedimentary Chemical/Organic,Porcellanite,2.50,0.05,20,500,Diagenetic silica
+SED_CHM_007,Sedimentary Chemical/Organic,Trona (Na3HCO3CO3),2.10,0.02,5,30000,Soda ash evaporite
+SED_CHM_008,Sedimentary Chemical/Organic,Bitumen-impregnated,2.30,0.15,30,500,Heavy oil signature
+SED_CHM_009,Sedimentary Chemical/Organic,Phosphate (Collophane),2.80,0.05,80,200,Marine phosphorite
+IGN_FEL_001,Igneous Felsic,Granite,2.63,0.02,80,5000,Radiogenic heat
+IGN_FEL_002,Igneous Felsic,Granodiorite,2.68,0.02,60,3000,Plagioclase-rich
+IGN_FEL_003,Igneous Felsic,Tonalite,2.72,0.02,50,2500,Quartz-diorite
+IGN_FEL_004,Igneous Felsic,Rhyolite,2.55,0.03,70,2000,Extrusive felsic
+IGN_FEL_005,Igneous Felsic,Dacite,2.65,0.03,60,1500,Intermediate extrusive
+IGN_FEL_006,Igneous Felsic,Pegmatite (granitic),2.60,0.02,100,3000,Coarse crystal
+IGN_FEL_007,Igneous Felsic,Aplite,2.64,0.02,40,4000,Fine-grained felsic
+IGN_FEL_008,Igneous Felsic,Quartz Porphyry,2.62,0.02,55,2500,Phenocryst-bearing
+IGN_FEL_009,Igneous Felsic,Tuff (rhyolitic),2.40,0.05,90,500,Welded ash flow
+IGN_MAF_001,Igneous Intermediate/Mafic,Basalt,2.90,0.03,30,10000,Fresh mafic extrusive
+IGN_MAF_002,Igneous Intermediate/Mafic,Andesite,2.75,0.03,40,5000,Intermediate extrusive
+IGN_MAF_003,Igneous Intermediate/Mafic,Diorite,2.82,0.02,35,8000,Coarse mafic intrusive
+IGN_MAF_004,Igneous Intermediate/Mafic,Gabbro,3.00,0.02,25,10000,Coarse mafic intrusive
+IGN_MAF_005,Igneous Intermediate/Mafic,Diabase,2.95,0.02,30,15000,Dolerite dyke rock
+IGN_MAF_006,Igneous Intermediate/Mafic,Tephrite,2.85,0.04,50,2000,Mafic volcanic
+IGN_MAF_007,Igneous Intermediate/Mafic,Trachybasalt,2.80,0.04,45,3000,Alkali basalt
+IGN_MAF_008,Igneous Intermediate/Mafic,Spessartite,2.90,0.03,35,5000,Lamprophyre
+IGN_MAF_009,Igneous Intermediate/Mafic,Peridotite (weathered),2.85,0.08,40,500,Serpentinized
+IGN_ULT_001,Igneous Ultramafic/Altered,Peridotite (fresh),3.25,0.02,20,20000,Upper mantle slice
+IGN_ULT_002,Igneous Ultramafic/Altered,Serpentinite,2.60,0.10,30,100,Alteration product
+IGN_ULT_003,Igneous Ultramafic/Altered,Pyroxenite,3.20,0.02,15,10000,Orthopyroxene cumulate
+IGN_ULT_004,Igneous Ultramafic/Altered,Dunite,3.30,0.02,10,20000,Olivine cumulate
+IGN_ULT_005,Igneous Ultramafic/Altered,Troctolite,2.95,0.02,20,5000,Olivine-plagioclase
+IGN_ULT_006,Igneous Ultramafic/Altered,Wehrlite,3.10,0.03,25,3000,Olivine-clinopyroxene
+IGN_ULT_007,Igneous Ultramafic/Altered,Harzburgite,3.20,0.02,18,10000,Orthopyroxene-rich
+IGN_ULT_008,Igneous Ultramafic/Altered,Lherzolite,3.15,0.03,22,5000,Mantle xenolith
+IGN_ULT_009,Igneous Ultramafic/Altered,Kimberlite,2.80,0.10,100,50,Diamond-bearing pipe
+MET_FOL_001,Metamorphic Foliated,Slate,2.75,0.03,40,500,Low-grade cleavage
+MET_FOL_002,Metamorphic Foliated,Phyllite,2.80,0.04,50,300,Very low-grade
+MET_FOL_003,Metamorphic Foliated,Schist (biotite),2.85,0.05,70,200,Biotite foliation
+MET_FOL_004,Metamorphic Foliated,Schist (muscovite),2.80,0.04,60,250,Muscovite-rich
+MET_FOL_005,Metamorphic Foliated,Gneiss (biotite),2.90,0.03,80,500,Bandged felsic-mafic
+MET_FOL_006,Metamorphic Foliated,Gneiss (migmatite),2.85,0.04,90,300,Partial melt fabric
+MET_FOL_007,Metamorphic Foliated,Schist (chlorite),2.75,0.06,60,150,Low-grade mafic
+MET_FOL_008,Metamorphic Foliated,Metasediment,2.75,0.05,80,200,Paragneiss
+MET_FOL_009,Metamorphic Foliated,Mylonite,2.75,0.04,50,100,Fault rock
+MET_NFL_001,Metamorphic Non-Foliated,Marble,2.72,0.02,10,1000,Metamorphic carbonate
+MET_NFL_002,Metamorphic Non-Foliated,Quartzite,2.65,0.01,15,5000,Recrystallized silica
+MET_NFL_003,Metamorphic Non-Foliated,Hornfels,2.85,0.03,50,1000,Contact metamorphic
+MET_NFL_004,Metamorphic Non-Foliated,Skarn,2.90,0.05,60,200,Calc-silicate metasomatite
+MET_NFL_005,Metamorphic Non-Foliated,Eclogite,3.40,0.02,15,5000,High-pressure mafic
+MET_NFL_006,Metamorphic Non-Foliated,Granulite,2.85,0.02,40,2000,Upper amphibolite grade
+MET_NFL_007,Metamorphic Non-Foliated,Blueschist,2.90,0.04,30,500,High-P low-T
+MET_NFL_008,Metamorphic Non-Foliated,Greenschist,2.80,0.05,50,200,Low-grade mafic
+MET_NFL_009,Metamorphic Non-Foliated,Amphibolite,3.00,0.03,35,1000,Mafic metamorphite
+UNC_001,Unconsolidated/Soil,Sand (dry),1.90,0.02,15,100,Unsaturated zone
+UNC_002,Unconsolidated/Soil,Sand (saturated),2.00,0.30,15,50,Water-bearing
+UNC_003,Unconsolidated/Soil,Gravel (clean),2.00,0.02,20,200,Coarse channel
+UNC_004,Unconsolidated/Soil,Gravel (clayey),2.20,0.10,50,30,Clay matrix
+UNC_005,Unconsolidated/Soil,Silt (saturated),2.10,0.25,60,20,Fine-grained aquifer
+UNC_006,Unconsolidated/Soil,Clay (saturated),1.90,0.40,80,10,Low permeability
+UNC_007,Unconsolidated/Soil,Topsoil (organic),1.50,0.35,100,30,Root zone
+UNC_008,Unconsolidated/Soil,Laterite,2.50,0.08,70,200,Fe-oxide duricrust
+UNC_009,Unconsolidated/Soil,Fill (granular),2.10,0.03,40,100,Anthropogenic
+ENG_001,Engineered Materials,Concrete (Portland),2.30,0.04,5,10000,Cement matrix
+ENG_002,Engineered Materials,Concrete (dense),2.50,0.03,8,20000,Heavy aggregate
+ENG_003,Engineered Materials,Brick (clay),2.00,0.03,20,5000,Fired clay
+ENG_004,Engineered Materials,Mortar,2.10,0.05,15,3000,Hydraulic lime
+ENG_005,Engineered Materials,Steel,7.80,0.01,0,200000,FERRIC signal
+ENG_006,Engineered Materials,Cast Iron,7.20,0.01,0,100000,Carbon steel
+ENG_007,Engineered Materials,Asphalt,2.30,0.05,15,50000,Bituminous mix
+ENG_008,Engineered Materials,Fiberglass,2.20,0.02,5,100000,Composite
+ENG_009,Engineered Materials,ABS Plastic,1.10,0.01,0,100000,LOW density artifact

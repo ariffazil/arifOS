@@ -3,7 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEOX — Earth Physics Intelligence · Built by Nusantara</title>
+    <title>GEOX — Earth Physics Intelligence · arifOS</title>
+    <meta name="description" content="GEOX: governed geoscience coprocessor for petrophysical analysis, borehole imaging, and structural interpretation. Built by Arif Fazil, Kuala Lumpur. Open source. Ditempa Bukan Diberi.">
+    <meta name="keywords" content="geox, petrophysics, well log interpretation, borehole image, DAK, dipmeter, subsurface, geoscience, arifOS, ASEAN, Malaysia, open source">
+    <meta name="author" content="Arif Fazil">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://aaa.arif-fazil.com/geox/">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="GEOX — Earth Physics Intelligence">
+    <meta property="og:description" content="Governed geoscience coprocessor. Real data, physical law, constitutional verification. Built by Nusantara.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://aaa.arif-fazil.com/geox/">
+    <meta property="og:site_name" content="arifOS AAA">
+
     <style>
         :root {
             --earth-deep: #0c0a07;
@@ -15,17 +28,12 @@
             --earth-gold: #d4a843;
             --earth-teal: #4a9e8e;
             --earth-clay: #b5542a;
-            --earth-sage: #8aab86;
-            --earth-cream: #f0e6d3;
-            --earth-muted: #7a6a52;
-            --text: #e8dcc8;
-            --text-dim: #9a8b74;
+            --text: #e0d4c0;
+            --muted: #7a6a52;
+            --cream: #f0e6d3;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        html { scroll-behavior: smooth; }
-
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
             background: var(--earth-dark);
@@ -33,918 +41,289 @@
             line-height: 1.6;
         }
 
-        /* ===== STRATA HERO ===== */
+        /* HEADER */
+        header {
+            background: linear-gradient(180deg, var(--earth-mid) 0%, var(--earth-dark) 100%);
+            border-bottom: 1px solid var(--earth-border);
+            padding: 16px clamp(24px, 6vw, 80px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .logo { font-family: 'Courier New', monospace; font-size: 1.6rem; font-weight: 700; letter-spacing: 4px; color: var(--earth-gold); }
+        nav { display: flex; gap: 24px; flex-wrap: wrap; }
+        nav a { color: var(--muted); text-decoration: none; font-size: 0.85rem; transition: color 0.15s; }
+        nav a:hover { color: var(--earth-ochre); }
+        nav a strong { color: var(--earth-ochre); }
+
+        /* HERO */
         .hero {
-            min-height: 100vh;
-            position: relative;
+            min-height: 85vh;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
-            overflow: hidden;
-            background: var(--earth-deep);
-        }
-
-        .hero-strata {
-            position: absolute;
-            inset: 0;
-            overflow: hidden;
-        }
-
-        .strata-layer {
-            position: absolute;
-            left: 0; right: 0;
-            height: 14.28%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .strata-layer:nth-child(1) { top: 0; background: #1a1208; }
-        .strata-layer:nth-child(2) { top: 14.28%; background: #211a0d; }
-        .strata-layer:nth-child(3) { top: 28.56%; background: #2a1f10; }
-        .strata-layer:nth-child(4) { top: 42.84%; background: #352913; }
-        .strata-layer:nth-child(5) { top: 57.12%; background: #3d2d15; }
-        .strata-layer:nth-child(6) { top: 71.40%; background: #453118; }
-        .strata-layer:nth-child(7) { top: 85.68%; background: #4e3619; }
-
-        .strata-text {
-            position: absolute;
-            left: 5%;
-            font-family: 'Courier New', monospace;
-            font-size: clamp(0.6rem, 1.2vw, 0.85rem);
-            letter-spacing: 3px;
-            color: rgba(255,255,255,0.08);
-            text-transform: uppercase;
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
-        }
-
-        .strata-divider {
-            position: absolute;
-            left: 0; right: 0;
-            height: 1px;
-            background: rgba(196,121,26,0.12);
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 2;
-            padding: 60px clamp(30px, 8vw, 120px);
-            background: linear-gradient(0deg, var(--earth-deep) 0%, rgba(12,10,7,0.7) 60%, transparent 100%);
-        }
-
-        .hero-eyebrow {
-            font-family: 'Courier New', monospace;
-            font-size: 0.72rem;
-            letter-spacing: 4px;
-            color: var(--earth-ochre);
-            margin-bottom: 20px;
-            text-transform: uppercase;
-        }
-
-        .hero-title {
-            font-size: clamp(2.5rem, 7vw, 5.5rem);
-            font-weight: 800;
-            line-height: 1.05;
-            letter-spacing: -2px;
-            margin-bottom: 24px;
-            color: var(--earth-cream);
-        }
-
-        .hero-title em {
-            font-style: normal;
-            color: var(--earth-gold);
-        }
-
-        .hero-desc {
-            max-width: 560px;
-            font-size: 1.05rem;
-            color: var(--text-dim);
-            margin-bottom: 40px;
-            line-height: 1.8;
-        }
-
-        .hero-actions {
-            display: flex;
-            gap: 14px;
-            flex-wrap: wrap;
-            margin-bottom: 60px;
-        }
-
-        .btn {
-            padding: 12px 28px;
-            border-radius: 6px;
-            font-size: 0.88rem;
-            font-weight: 600;
-            cursor: pointer;
-            border: 1px solid var(--earth-border);
-            background: var(--earth-panel);
-            color: var(--text);
-            text-decoration: none;
-            transition: all 0.2s;
-            display: inline-block;
-        }
-
-        .btn:hover {
-            border-color: var(--earth-ochre);
-            background: rgba(196,121,26,0.1);
-        }
-
-        .btn-primary {
-            background: var(--earth-ochre);
-            color: var(--earth-deep);
-            border-color: var(--earth-ochre);
-        }
-
-        .btn-primary:hover {
-            background: #d4881f;
-        }
-
-        .hero-stats {
-            display: flex;
-            gap: 50px;
-            flex-wrap: wrap;
-        }
-
-        .stat {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .stat-n {
-            font-family: 'Courier New', monospace;
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--earth-gold);
-            line-height: 1;
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            margin-top: 4px;
-            letter-spacing: 1px;
-        }
-
-        /* ===== QUOTE MARQUEE ===== */
-        .quote-bar {
-            background: var(--earth-mid);
-            border-top: 1px solid var(--earth-border);
-            border-bottom: 1px solid var(--earth-border);
-            padding: 18px 0;
-            overflow: hidden;
-        }
-
-        .quote-track {
-            display: flex;
-            animation: scrollq 40s linear infinite;
-            white-space: nowrap;
-        }
-
-        .quote-item {
-            font-family: 'Courier New', monospace;
-            font-size: 0.75rem;
-            letter-spacing: 2px;
-            color: var(--text-dim);
-            padding: 0 40px;
-            flex-shrink: 0;
-        }
-
-        .quote-item span { color: var(--earth-ochre); margin-right: 8px; }
-
-        @keyframes scrollq {
-            from { transform: translateX(0); }
-            to { transform: translateX(-50%); }
-        }
-
-        /* ===== MAIN CONTENT ===== */
-        .section { padding: 80px clamp(24px, 6vw, 100px); }
-        .section-alt { background: var(--earth-mid); }
-
-        .label {
-            font-family: 'Courier New', monospace;
-            font-size: 0.68rem;
-            letter-spacing: 4px;
-            color: var(--earth-ochre);
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        .section-title {
-            font-size: clamp(1.6rem, 3.5vw, 2.4rem);
-            font-weight: 700;
-            color: var(--earth-cream);
-            margin-bottom: 16px;
-            line-height: 1.2;
-        }
-
-        .section-desc {
-            max-width: 620px;
-            font-size: 0.95rem;
-            color: var(--text-dim);
-            line-height: 1.8;
-            margin-bottom: 50px;
-        }
-
-        /* ===== GEOSCIENCE STACK ===== */
-        .stack-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 16px;
-        }
-
-        .stack-card {
-            background: var(--earth-panel);
-            border: 1px solid var(--earth-border);
-            border-radius: 10px;
-            padding: 28px;
-            transition: transform 0.2s, border-color 0.2s;
+            padding: 60px clamp(24px, 6vw, 80px) 50px;
             position: relative;
             overflow: hidden;
+            background:
+                radial-gradient(ellipse at 80% 50%, rgba(196,121,26,0.04) 0%, transparent 60%),
+                linear-gradient(180deg, var(--earth-deep) 0%, var(--earth-dark) 100%);
         }
-
-        .stack-card::before {
+        .hero::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, var(--earth-ochre), transparent);
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                repeating-linear-gradient(90deg, transparent, transparent 120px, rgba(69,56,36,0.08) 120px, rgba(69,56,36,0.08) 121px),
+                repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(69,56,36,0.05) 60px, rgba(69,56,36,0.05) 61px);
+            pointer-events: none;
         }
+        .hero > * { position: relative; z-index: 1; }
+        .eyebrow { font-family: 'Courier New', monospace; font-size: 0.7rem; letter-spacing: 4px; color: var(--earth-ochre); margin-bottom: 20px; text-transform: uppercase; }
+        h1 { font-size: clamp(2.8rem, 7vw, 5rem); font-weight: 800; letter-spacing: -2px; line-height: 1.05; color: var(--cream); margin-bottom: 20px; }
+        h1 em { font-style: normal; color: var(--earth-gold); }
+        .tagline { font-size: 1.1rem; color: var(--muted); max-width: 520px; margin-bottom: 40px; line-height: 1.7; }
+        .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 50px; }
+        .btn { padding: 11px 24px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; cursor: pointer; border: 1px solid var(--earth-border); background: var(--earth-panel); color: var(--text); text-decoration: none; transition: all 0.2s; display: inline-block; }
+        .btn:hover { border-color: var(--earth-ochre); background: rgba(196,121,26,0.08); }
+        .btn-primary { background: var(--earth-ochre); color: var(--earth-deep); border-color: var(--earth-ochre); }
+        .btn-primary:hover { background: #d4881f; }
+        .stats { display: flex; gap: 40px; flex-wrap: wrap; }
+        .stat-value { font-family: 'Courier New', monospace; font-size: 1.6rem; font-weight: 700; color: var(--earth-gold); }
+        .stat-label { font-size: 0.72rem; color: var(--muted); letter-spacing: 1px; }
 
-        .stack-card:hover {
-            transform: translateY(-3px);
-            border-color: rgba(196,121,26,0.4);
-        }
+        /* MARQUEE */
+        .marquee { background: var(--earth-mid); border-top: 1px solid var(--earth-border); border-bottom: 1px solid var(--earth-border); padding: 14px 0; overflow: hidden; }
+        .marquee-track { display: flex; animation: scroll 40s linear infinite; white-space: nowrap; }
+        .marquee-item { font-family: 'Courier New', monospace; font-size: 0.7rem; letter-spacing: 2px; color: var(--muted); padding: 0 40px; flex-shrink: 0; }
+        .marquee-item span { color: var(--earth-ochre); margin-right: 8px; }
+        @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-        .stack-icon {
-            font-size: 2rem;
-            margin-bottom: 14px;
-        }
+        /* SECTIONS */
+        .section { padding: 80px clamp(24px, 6vw, 80px); }
+        .section-alt { background: var(--earth-mid); }
+        .section-label { font-family: 'Courier New', monospace; font-size: 0.68rem; letter-spacing: 4px; color: var(--earth-ochre); margin-bottom: 10px; text-transform: uppercase; }
+        h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 700; color: var(--cream); margin-bottom: 14px; }
+        h2 + p { color: var(--muted); max-width: 580px; margin-bottom: 50px; line-height: 1.8; }
 
-        .stack-name {
-            font-family: 'Courier New', monospace;
-            font-size: 0.75rem;
-            letter-spacing: 2px;
-            color: var(--earth-gold);
-            margin-bottom: 8px;
-        }
+        /* GRID */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+        .card { background: var(--earth-panel); border: 1px solid var(--earth-border); border-radius: 10px; padding: 28px; transition: transform 0.2s, border-color 0.2s; position: relative; overflow: hidden; }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--earth-ochre), transparent); }
+        .card:hover { transform: translateY(-3px); border-color: rgba(196,121,26,0.4); }
+        .card-icon { font-size: 2.2rem; margin-bottom: 14px; }
+        .card-name { font-family: 'Courier New', monospace; font-size: 0.68rem; letter-spacing: 2px; color: var(--earth-gold); margin-bottom: 8px; }
+        .card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 10px; color: var(--cream); }
+        .card p { font-size: 0.83rem; color: var(--muted); line-height: 1.65; }
+        .card-tag { display: inline-block; font-family: 'Courier New', monospace; font-size: 8px; letter-spacing: 1px; padding: 2px 8px; border-radius: 3px; margin-top: 12px; background: rgba(196,121,26,0.08); color: var(--earth-ochre); }
 
-        .stack-card h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--earth-cream);
-        }
+        /* VIEWER PREVIEW */
+        .viewer-frame { background: var(--earth-panel); border: 1px solid var(--earth-border); border-radius: 12px; overflow: hidden; }
+        .viewer-bar { background: rgba(196,121,26,0.06); border-bottom: 1px solid var(--earth-border); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .viewer-bar span { font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 2px; color: var(--earth-ochre); }
+        iframe { width: 100%; height: 480px; border: none; display: block; }
 
-        .stack-card p {
-            font-size: 0.82rem;
-            color: var(--text-dim);
-            line-height: 1.6;
-        }
+        /* VALUE */
+        .value-box { background: linear-gradient(135deg, rgba(196,121,26,0.04), rgba(181,84,42,0.04)); border: 1px solid rgba(196,121,26,0.2); border-radius: 16px; padding: 50px; text-align: center; margin: 0 auto; max-width: 760px; }
+        .price { font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 900; color: var(--earth-ochre); letter-spacing: -2px; margin: 14px 0; }
+        .value-box > p { color: var(--muted); margin-bottom: 30px; font-size: 0.95rem; }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; text-align: left; margin-bottom: 30px; }
+        .feat { font-size: 0.83rem; color: var(--muted); display: flex; gap: 8px; }
+        .feat strong { color: var(--cream); }
 
-        /* ===== DATA STORY ===== */
-        .data-story {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
-            align-items: center;
-        }
-
-        @media (max-width: 768px) {
-            .data-story { grid-template-columns: 1fr; }
-        }
-
-        .data-visual {
-            background: var(--earth-panel);
-            border: 1px solid var(--earth-border);
-            border-radius: 12px;
-            padding: 30px;
-            position: relative;
-        }
-
-        .data-visual h4 {
-            font-family: 'Courier New', monospace;
-            font-size: 0.7rem;
-            letter-spacing: 3px;
-            color: var(--earth-ochre);
-            margin-bottom: 20px;
-        }
-
-        .well-tape {
-            display: flex;
-            gap: 4px;
-        }
-
-        .well-track-label {
-            font-family: 'Courier New', monospace;
-            font-size: 8px;
-            color: var(--earth-muted);
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
-            padding: 4px 2px;
-        }
-
-        .well-bar {
-            flex: 1;
-            background: var(--earth-deep);
-            border-radius: 4px;
-            overflow: hidden;
-            position: relative;
-            height: 280px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .well-zone {
-            flex: 1;
-            position: relative;
-            border-bottom: 1px solid rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            padding: 0 8px;
-        }
-
-        .well-zone-label {
-            font-family: 'Courier New', monospace;
-            font-size: 7px;
-            color: rgba(255,255,255,0.4);
-            letter-spacing: 1px;
-        }
-
-        .well-curve-visual {
-            display: flex;
-            gap: 3px;
-            align-items: flex-end;
-            height: 100%;
-            padding: 8px 0;
-        }
-
-        .curve-bar {
-            flex: 1;
-            background: linear-gradient(to top, var(--earth-ochre), transparent);
-            border-radius: 2px 2px 0 0;
-            min-width: 3px;
-        }
-
-        .well-interpretations {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-top: 16px;
-        }
-
-        .interp-chip {
-            background: var(--earth-deep);
-            border: 1px solid var(--earth-border);
-            border-radius: 4px;
-            padding: 8px 12px;
-            font-size: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .interp-chip .dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .data-text { }
-
-        .data-text p {
-            font-size: 0.9rem;
-            color: var(--text-dim);
-            line-height: 1.8;
-            margin-bottom: 16px;
-        }
-
-        .quote-block {
-            background: var(--earth-panel);
-            border-left: 3px solid var(--earth-ochre);
-            padding: 20px 24px;
-            margin: 24px 0;
-            border-radius: 0 8px 8px 0;
-        }
-
-        .quote-block p {
-            font-size: 0.95rem;
-            font-style: italic;
-            color: var(--earth-cream);
-            line-height: 1.7;
-            margin: 0;
-        }
-
-        .quote-block cite {
-            display: block;
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            margin-top: 10px;
-            font-style: normal;
-            font-family: 'Courier New', monospace;
-        }
-
-        /* ===== VIEWER PREVIEW ===== */
-        .viewer-frame {
-            background: var(--earth-panel);
-            border: 1px solid var(--earth-border);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .viewer-bar {
-            background: rgba(196,121,26,0.08);
-            border-bottom: 1px solid var(--earth-border);
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .viewer-bar-left {
-            font-family: 'Courier New', monospace;
-            font-size: 10px;
-            letter-spacing: 2px;
-            color: var(--earth-ochre);
-        }
-
-        .viewer-iframe {
-            width: 100%;
-            height: 520px;
-            border: none;
-            display: block;
-        }
-
-        /* ===== PRICE / VALUE ===== */
-        .value-section {
-            background: linear-gradient(135deg, rgba(196,121,26,0.04), rgba(181,84,42,0.04));
-            border: 1px solid rgba(196,121,26,0.2);
-            border-radius: 16px;
-            padding: 60px;
-            text-align: center;
-            margin: 0 auto;
-            max-width: 800px;
-        }
-
-        .value-price {
-            font-size: clamp(2.5rem, 6vw, 4.5rem);
-            font-weight: 900;
-            color: var(--earth-ochre);
-            letter-spacing: -2px;
-            margin: 16px 0;
-        }
-
-        .value-sub {
-            font-size: 0.95rem;
-            color: var(--text-dim);
-            margin-bottom: 30px;
-        }
-
-        .value-features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            text-align: left;
-            margin-bottom: 40px;
-        }
-
-        .value-feat {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            font-size: 0.85rem;
-            color: var(--text-dim);
-        }
-
-        .value-feat strong {
-            color: var(--earth-cream);
-        }
-
-        /* ===== FOOTER ===== */
-        footer {
-            background: var(--earth-deep);
-            border-top: 1px solid var(--earth-border);
-            padding: 50px clamp(24px, 6vw, 100px);
-        }
-
-        .footer-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-
-        .footer-brand {
-            max-width: 300px;
-        }
-
-        .footer-logo {
-            font-family: 'Courier New', monospace;
-            font-size: 1.4rem;
-            font-weight: 700;
-            letter-spacing: 3px;
-            color: var(--earth-gold);
-            margin-bottom: 12px;
-        }
-
-        .footer-brand p {
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            line-height: 1.7;
-        }
-
-        .footer-links {
-            display: flex;
-            gap: 50px;
-            flex-wrap: wrap;
-        }
-
-        .footer-col h4 {
-            font-family: 'Courier New', monospace;
-            font-size: 0.65rem;
-            letter-spacing: 3px;
-            color: var(--earth-ochre);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-        }
-
-        .footer-col a {
-            display: block;
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            text-decoration: none;
-            margin-bottom: 8px;
-            transition: color 0.15s;
-        }
-
-        .footer-col a:hover { color: var(--earth-cream); }
-
-        .footer-bottom {
-            border-top: 1px solid var(--earth-border);
-            padding-top: 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-family: 'Courier New', monospace;
-            font-size: 0.68rem;
-            color: var(--text-dim);
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
+        /* FOOTER */
+        footer { background: var(--earth-deep); border-top: 1px solid var(--earth-border); padding: 40px clamp(24px, 6vw, 80px); }
+        .footer-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 30px; margin-bottom: 30px; }
+        .footer-brand p { font-size: 0.8rem; color: var(--muted); max-width: 280px; line-height: 1.7; margin-top: 10px; }
+        .footer-links { display: flex; gap: 40px; flex-wrap: wrap; }
+        .footer-col h4 { font-family: 'Courier New', monospace; font-size: 0.65rem; letter-spacing: 3px; color: var(--earth-ochre); margin-bottom: 10px; text-transform: uppercase; }
+        .footer-col a { display: block; font-size: 0.8rem; color: var(--muted); text-decoration: none; margin-bottom: 7px; transition: color 0.15s; }
+        .footer-col a:hover { color: var(--cream); }
+        .footer-bottom { border-top: 1px solid var(--earth-border); padding-top: 20px; display: flex; justify-content: space-between; font-family: 'Courier New', monospace; font-size: 0.65rem; color: var(--muted); flex-wrap: wrap; gap: 10px; }
         footer a { color: var(--earth-teal); text-decoration: none; }
-
-        /* ===== SCROLLBAR ===== */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--earth-dark); }
-        ::-webkit-scrollbar-thumb { background: var(--earth-border); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--earth-ochre); }
+        ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: var(--earth-dark); } ::-webkit-scrollbar-thumb { background: var(--earth-border); border-radius: 3px; }
     </style>
 </head>
 <body>
 
-<!-- ===== HERO ===== -->
-<section class="hero">
-    <div class="hero-strata">
-        <div class="strata-layer">
-            <span class="strata-text">HOLOCENE · PLEISTOCENE · RECENT DEPOSITS</span>
-            <div class="strata-divider" style="bottom:0"></div>
-        </div>
-        <div class="strata-layer">
-            <span class="strata-text">MIOCENE · OLIGOCENE · DEEP MARINE SHELF</span>
-            <div class="strata-divider" style="bottom:0"></div>
-        </div>
-        <div class="strata-layer">
-            <span class="strata-text">EOCENE · PALEOCENE · DELTAIC SANDSTONE</span>
-            <div class="strata-divider" style="bottom:0"></div>
-        </div>
-        <div class="strata-layer">
-            <span class="strata-text">CRETACEOUS · UPPER · KARSTIC LIMESTONE</span>
-            <div class="strata-divider" style="bottom:0"></div>
-        </div>
-        <div class="strata-layer">
-            <span class="strata-text">JURASSIC · BASEMENT · CRYSTALLINE</span>
-            <div class="strata-divider" style="bottom:0"></div>
-        </div>
-        <div class="strata-layer">
-            <span class="strata-text">PALEOZOIC · GRANITIC BASEMENT</span>
-            <div class="strata-divider" style="bottom:0"></div>
-        </div>
-        <div class="strata-layer">
-            <span class="strata-text">ARCHAEAN · BASEMENT COMPLEX</span>
-        </div>
-    </div>
+<header>
+    <div class="logo">GEOX</div>
+    <nav>
+        <a href="#viewer"><strong>Well Viewer</strong></a>
+        <a href="#interpret">Upload & Interpret</a>
+        <a href="#modules">Modules</a>
+        <a href="#value">RM 30 Juta</a>
+        <a href="https://github.com/ariffazil/GEOX">GitHub</a>
+        <a href="https://aaa.arif-fazil.com">← arifOS AAA</a>
+    </nav>
+</header>
 
-    <div class="hero-content">
-        <div class="hero-eyebrow">arifOS Intelligence Kernel · Earth Witness</div>
-        <h1 class="hero-title">
-            GEOX<br>
-            <em>Earth Physics</em><br>
-            Intelligence
-        </h1>
-        <p class="hero-desc">
-            A governed geoscience coprocessor that verifies every subsurface interpretation against physical law before a verdict is sealed.
-            Built from the ground up — not assembled from western software modules.
-        </p>
-        <div class="hero-actions">
-            <a href="geox_well_viewer.html" class="btn btn-primary">
-                Open Well Viewer
-            </a>
-            <a href="interpret.html" class="btn">
-                Upload & Interpret LAS
-            </a>
-            <a href="https://github.com/ariffazil/GEOX" class="btn">
-                GitHub
-            </a>
-        </div>
-        <div class="hero-stats">
-            <div class="stat">
-                <div class="stat-n">23</div>
-                <div class="stat-label">Geoscience Tools</div>
-            </div>
-            <div class="stat">
-                <div class="stat-n">13</div>
-                <div class="stat-label">Constitutional Floors</div>
-            </div>
-            <div class="stat">
-                <div class="stat-n">0</div>
-                <div class="stat-label">Phantom Geology Claims</div>
-            </div>
-            <div class="stat">
-                <div class="stat-n">1</div>
-                <div class="stat-label">Human Veto Required</div>
-            </div>
-        </div>
+<div class="hero">
+    <div class="eyebrow">arifOS Intelligence Kernel · Earth Witness</div>
+    <h1>GEOX<br><em>Earth Physics</em><br>Intelligence</h1>
+    <p class="tagline">
+        A governed geoscience coprocessor that verifies every subsurface interpretation against physical law before a verdict is sealed. Built from the ground up — not assembled from western software modules.
+    </p>
+    <div class="actions">
+        <a href="geox_well_viewer.html" class="btn btn-primary">Open Well Viewer</a>
+        <a href="interpret.html" class="btn">Upload & Interpret LAS</a>
+        <a href="q15_dak_petro.las" class="btn">Download Sample LAS (1.7 MB)</a>
     </div>
-</section>
-
-<!-- ===== QUOTE MARQUEE ===== -->
-<div class="quote-bar">
-    <div class="quote-track">
-        <div class="quote-item"><span>—</span>Truth before Speed</div>
-        <div class="quote-item"><span>—</span>Reversibility over Resolution</div>
-        <div class="quote-item"><span>—</span>Evidence, not Assertion</div>
-        <div class="quote-item"><span>—</span>Forged Not Given</div>
-        <div class="quote-item"><span>—</span>Data Abundance, Not Scarcity</div>
-        <div class="quote-item"><span>—</span>Anomalous Contrast is Real</div>
-        <div class="quote-item"><span>—</span>Bond 2007: 79% Expert Failure</div>
-        <div class="quote-item"><span>—</span>Scale must be Known</div>
-        <div class="quote-item"><span>—</span>Ω₀ ∈ [0.03, 0.08]</div>
-        <div class="quote-item"><span>—</span>Truth before Speed</div>
-        <div class="quote-item"><span>—</span>Reversibility over Resolution</div>
-        <div class="quote-item"><span>—</span>Evidence, not Assertion</div>
-        <div class="quote-item"><span>—</span>Forged Not Given</div>
-        <div class="quote-item"><span>—</span>Data Abundance, Not Scarcity</div>
-        <div class="quote-item"><span>—</span>Anomalous Contrast is Real</div>
-        <div class="quote-item"><span>—</span>Bond 2007: 79% Expert Failure</div>
-        <div class="quote-item"><span>—</span>Scale must be Known</div>
-        <div class="quote-item"><span>—</span>Ω₀ ∈ [0.03, 0.08]</div>
+    <div class="stats">
+        <div><div class="stat-value">23</div><div class="stat-label">Curves · raw + derived</div></div>
+        <div><div class="stat-value">6</div><div class="stat-label">Modules</div></div>
+        <div><div class="stat-value">13</div><div class="stat-label">Constitutional Floors</div></div>
+        <div><div class="stat-value">1</div><div class="stat-label">Human Veto Required</div></div>
     </div>
 </div>
 
-<!-- ===== WHAT GEOX DOES ===== -->
-<section class="section">
-    <div class="label">What GEOX Does</div>
-    <h2 class="section-title">Geoscience intelligence with constitutional governance</h2>
-    <p class="section-desc">
-        GEOX is the Earth Witness organ in the arifOS federation. It stress-tests every subsurface interpretation against physical law before that interpretation is allowed to drive a decision.
-    </p>
-
-    <div class="stack-grid">
-        <div class="stack-card">
-            <div class="stack-icon">🛢️</div>
-            <div class="stack-name">MODULE 01</div>
-            <h3>Petrophysical Analysis</h3>
-            <p>Full decomposition: Vshale, VSand, Vquartz, VCACO3, VBW, VHC. Archie saturation, neutron-density crossover for gas. All volumes computed from real measured curves — GR, AC, DEN, NEU, RDEP.</p>
-        </div>
-
-        <div class="stack-card">
-            <div class="stack-icon">📡</div>
-            <div class="stack-name">MODULE 02</div>
-            <h3>Borehole Image (DAK)</h3>
-            <p>Structural dip from azimuthal data. Fracture identification from micro-resistivity contrast. bedding and fault interpretation. OBMI-style processing with full provenance chain.</p>
-        </div>
-
-        <div class="stack-card">
-            <div class="stack-icon">🏗️</div>
-            <div class="stack-name">MODULE 03</div>
-            <h3>Structural Seismic</h3>
-            <p>Multi-model candidate generation. Never collapse to a single inverse solution. Ranked structural hypotheses with Bond et al. (2007) bias audit. ToAC filter on every display.</p>
-        </div>
-
-        <div class="stack-card">
-            <div class="stack-icon">⚖️</div>
-            <div class="stack-name">MODULE 04</div>
-            <h3>Constitutional Sealing</h3>
-            <p>F1–F13 floor verification on every output. 888_HOLD triggers when data quality is insufficient. F9 Anti-Hantu blocks phantom geology. F13 Sovereign keeps humans in command.</p>
-        </div>
-
-        <div class="stack-card">
-            <div class="stack-icon">🤖</div>
-            <div class="stack-name">MODULE 05</div>
-            <h3>MCP Server Interface</h3>
-            <p>FastMCP transport, HTTP port 8000. Tools exposed under geox.* namespace. Deterministic state output. Designed for integration — not a black box.</p>
-        </div>
-
-        <div class="stack-card">
-            <div class="stack-icon">🔬</div>
-            <div class="stack-name">MODULE 06</div>
-            <h3>Forward + Inverse Modelling</h3>
-            <p>Forward: given Earth model, predict observed data. Inverse: given observed data, find best Earth model. Both driven by physics, not aesthetics. Earth is always underdetermined.</p>
-        </div>
+<div class="marquee">
+    <div class="marquee-track">
+        <div class="marquee-item"><span>—</span>Truth before Speed</div>
+        <div class="marquee-item"><span>—</span>Reversibility over Resolution</div>
+        <div class="marquee-item"><span>—</span>Evidence, not Assertion</div>
+        <div class="marquee-item"><span>—</span>Forged Not Given</div>
+        <div class="marquee-item"><span>—</span>Data Abundance, Not Scarcity</div>
+        <div class="marquee-item"><span>—</span>Anomalous Contrast is Real</div>
+        <div class="marquee-item"><span>—</span>Bond 2007: 79% Expert Failure</div>
+        <div class="marquee-item"><span>—</span>Scale must be Known</div>
+        <div class="marquee-item"><span>—</span>Ω₀ ∈ [0.03, 0.08]</div>
+        <div class="marquee-item"><span>—</span>Truth before Speed</div>
+        <div class="marquee-item"><span>—</span>Reversibility over Resolution</div>
+        <div class="marquee-item"><span>—</span>Evidence, not Assertion</div>
+        <div class="marquee-item"><span>—</span>Forged Not Given</div>
+        <div class="marquee-item"><span>—</span>Data Abundance, Not Scarcity</div>
+        <div class="marquee-item"><span>—</span>Anomalous Contrast is Real</div>
+        <div class="marquee-item"><span>—</span>Bond 2007: 79% Expert Failure</div>
+        <div class="marquee-item"><span>—</span>Scale must be Known</div>
+        <div class="marquee-item"><span>—</span>Ω₀ ∈ [0.03, 0.08]</div>
     </div>
-</section>
+</div>
 
-<!-- ===== DATA STORY ===== -->
-<section class="section section-alt">
-    <div class="label">Why GEOX is Different</div>
-    <h2 class="section-title">The data is abundant.<br>Why pretend otherwise?</h2>
-
-    <div class="data-story">
-        <div class="data-visual">
-            <h4>WELL 15/9-19 — Q15 FIELD, DANISH NORTH SEA</h4>
-            <div class="well-tape">
-                <div class="well-track-label">GR</div>
-                <div class="well-bar">
-                    <div class="well-zone" style="background:#1a1208"><span class="well-zone-label">ZONE A · 3615–3800m · WET</span></div>
-                    <div class="well-zone" style="background:#211a0d"><span class="well-zone-label">ZONE B · 3800–4000m · CLEAN SAND</span></div>
-                    <div class="well-zone" style="background:#2a1f10"><span class="well-zone-label">ZONE C · 4000–4200m · TIGHT</span></div>
-                    <div class="well-zone" style="background:#352913; border-bottom:2px solid #c4791a"><span class="well-zone-label" style="color:#c4791a">ZONE D ★ · 4200–4400m · PAY</span></div>
-                    <div class="well-zone" style="background:#3d2d15"><span class="well-zone-label">ZONE E · 4400–4500m · WET SHALE</span></div>
-                    <div class="well-zone" style="background:#453118"><span class="well-zone-label">ZONE F · 4500–4637m · BASEMENT</span></div>
-                </div>
-            </div>
-            <div class="well-interpretations">
-                <div class="interp-chip"><span class="dot" style="background:#c4791a"></span>Vshale 0–100%</div>
-                <div class="interp-chip"><span class="dot" style="background:#4a9e8e"></span>Phi DN 0–32%</div>
-                <div class="interp-chip"><span class="dot" style="background:#b5542a"></span>SW Archie 5–100%</div>
-                <div class="interp-chip"><span class="dot" style="background:#8aab86"></span>VHC 0–34%</div>
-            </div>
-        </div>
-
-        <div class="data-text">
-            <p>
-                Most software starts from the answer and works backward. GEOX starts from the measurement and follows physics forward.
-            </p>
-
-            <p>
-                A gamma ray log measures natural radioactivity. That measurement is abundant — you can find it in every wireline run since the 1950s. From that single curve, GEOX derives Vshale through the Larionov method. From density and neutron, it computes porosity. From resistivity and porosity, it estimates water saturation.
-            </p>
-
-            <p>
-                No magic. No AI black box. Just physics and mathematics applied consistently across the data.
-            </p>
-
-            <div class="quote-block">
-                <p>"NTG and SW are model outputs. The data is not NTG. The data is GR, AC, DEN, NE. NTG and SW are interpretations of those data."</p>
-                <cite>GEOX F2 — Truth Floor, arifOS v2026</cite>
-            </div>
-
-            <p>
-                GEOX makes this explicit. Every volume is labeled as derived, not measured. Every claim carries its uncertainty band. When the data is insufficient — when borehole spacing exceeds 10km, or correlation confidence drops below 0.6 — GEOX does not guess. It holds.
-            </p>
-        </div>
-    </div>
-</section>
-
-<!-- ===== LIVE VIEWER ===== -->
-<section class="section">
-    <div class="label">Live Implementation</div>
-    <h2 class="section-title">Well Log + DAK Viewer</h2>
-    <p class="section-desc">
-        Real open source data. Danish North Sea well 15/9-19. Full petrophysical decomposition + structural dip + fracture index from DAK-derived data.
-    </p>
-
+<section class="section" id="viewer">
+    <div class="section-label">Live Implementation</div>
+    <h2>Well Log + DAK Viewer</h2>
+    <p>Real open source data. Well 15/9-19, Q15 Field, Danish North Sea. 23 curves including petrophysical decomposition and DAK-derived structural dip.</p>
     <div class="viewer-frame">
         <div class="viewer-bar">
-            <div class="viewer-bar-left">GEOX WELL VIEWER · 15/9-19 Q15 · 23 CURVES · REAL DATA</div>
+            <span>GEOX WELL VIEWER · 15/9-19 Q15 · 23 CURVES · REAL DATA · 3615–4637 m</span>
             <div>
-                <a href="geox_well_viewer.html" class="btn" style="padding:6px 14px;font-size:0.78rem">Full Screen ↗</a>
+                <a href="geox_well_viewer.html" class="btn" style="padding:5px 12px;font-size:0.75rem">Full Screen ↗</a>
             </div>
         </div>
-        <iframe class="viewer-iframe" src="geox_well_viewer.html" title="GEOX Well Log Viewer" loading="lazy"></iframe>
+        <iframe src="geox_well_viewer.html" title="GEOX Well Log Viewer" loading="lazy"></iframe>
     </div>
 </section>
 
-<!-- ===== VALUE ===== -->
-<section class="section section-alt">
-    <div class="value-section">
-        <div class="label">For IOC and NOC Decision Support</div>
-        <div class="value-price">RM 30 Juta</div>
-        <p class="value-sub">
-            One-time deployment. Full source included. No per-well fees. No per-user licenses. No vendor lock-in.
-        </p>
-        <div class="value-features">
-            <div class="value-feat">
-                <strong>✓</strong> Full petrophysical interpretation engine (all volume curves)
-            </div>
-            <div class="value-feat">
-                <strong>✓</strong> DAK + structural dip + fracture analysis
-            </div>
-            <div class="value-feat">
-                <strong>✓</strong> 13-floor constitutional governance on every output
-            </div>
-            <div class="value-feat">
-                <strong>✓</strong> MCP server (port 8000) for AI system integration
-            </div>
-            <div class="value-feat">
-                <strong>✓</strong> Well log viewer with all 23 curves rendered
-            </div>
-            <div class="value-feat">
-                <strong>✓</strong> Forward/inverse modelling framework
-            </div>
-            <div class="value-feat">
-                <strong>✓</strong> Open source — audit, modify, deploy
-            </div>
-            <div class="value-feat">
-                <strong>✓</strong> Not western software. Not subscription. Not cloud-locked.
-            </div>
+<section class="section section-alt" id="modules">
+    <div class="section-label">What GEOX Does</div>
+    <h2>Six modules. One coprocessor.</h2>
+    <p>Each module enforces constitutional floors. No organ can override another. GEOX says physically impossible → reasoning must revise.</p>
+
+    <div class="grid">
+        <div class="card">
+            <div class="card-icon">🛢️</div>
+            <div class="card-name">MODULE 01</div>
+            <h3>Petrophysical Analysis</h3>
+            <p>VSHALE, VSAND, VQUARTZ, VCACO3, VBW, VHC. Archie saturation, neutron-density crossover for gas. All volumes computed from GR, AC, DEN, NEU, RDEP — not guessed.</p>
+            <span class="card-tag">19 CURVES · STANDARD WIRELINE</span>
+        </div>
+        <div class="card">
+            <div class="card-icon">📡</div>
+            <div class="card-name">MODULE 02</div>
+            <h3>Borehole Image (DAK)</h3>
+            <p>Structural dip from azimuthal sensors. Fracture identification from micro-resistivity contrast. Bedding and fault interpretation. OBMI-style processing with full provenance.</p>
+            <span class="card-tag">DIP_ANG · DIP_AZI · FRA_IDX</span>
+        </div>
+        <div class="card">
+            <div class="card-icon">🏗️</div>
+            <div class="card-name">MODULE 03</div>
+            <h3>Structural Seismic</h3>
+            <p>Multi-model candidate generation. Never collapse to a single inverse solution. Ranked structural hypotheses with Bond et al. (2007) bias audit. ToAC filter on every display.</p>
+            <span class="card-tag">ToAC ACTIVE · F9 ENFORCED</span>
+        </div>
+        <div class="card">
+            <div class="card-icon">⚖️</div>
+            <div class="card-name">MODULE 04</div>
+            <h3>Constitutional Sealing</h3>
+            <p>F1–F13 floor verification on every output. 888_HOLD when data is insufficient. F9 Anti-Hantu blocks phantom geology. F13 Sovereign keeps humans in command.</p>
+            <span class="card-tag">13 FLOORS · 888_HOLD TRIGGERS</span>
+        </div>
+        <div class="card">
+            <div class="card-icon">🤖</div>
+            <div class="card-name">MODULE 05</div>
+            <h3>MCP Server Interface</h3>
+            <p>FastMCP HTTP on port 8000. Tools under geox.* namespace. Deterministic output. Designed for AI integration — not a black box, not a subscription service.</p>
+            <span class="card-tag">PORT 8000 · MCP v2025-03-26</span>
+        </div>
+        <div class="card">
+            <div class="card-icon">🔬</div>
+            <div class="card-name">MODULE 06</div>
+            <h3>Forward + Inverse Modelling</h3>
+            <p>Forward: given Earth model, predict observed data. Inverse: given observed data, find best Earth model. Both driven by physics. Earth is always underdetermined.</p>
+            <span class="card-tag">PHYSICS-FIRST · NOT AESTHETICS</span>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="interpret">
+    <div class="section-label">For AI Systems</div>
+    <h2>Upload any LAS. Auto-interpret.</h2>
+    <p>Drop a standard wireline LAS file. GEOX interprets and returns zone summaries, derived curves, and a constitutional verdict — all labeled at the correct epistemic level.</p>
+    <div style="margin-top:30px">
+        <a href="interpret.html" class="btn btn-primary">Open Upload Interface →</a>
+        <a href="q15_dak_petro.las" class="btn">Sample LAS (1.7 MB)</a>
+        <a href="llms.txt" class="btn">LLMs.txt (Machine Readable)</a>
+    </div>
+</section>
+
+<section class="section section-alt" id="value">
+    <div class="value-box">
+        <div class="section-label">For IOC and NOC Decision Support</div>
+        <div class="price">RM 30 Juta</div>
+        <p>One-time deployment. Full source included. No per-well fees. No per-user licenses. No vendor lock-in. Deploy on local hardware. Data stays local.</p>
+        <div class="features">
+            <div class="feat"><strong>✓</strong> Full petrophysics engine (19 curves)</div>
+            <div class="feat"><strong>✓</strong> DAK structural + fracture analysis</div>
+            <div class="feat"><strong>✓</strong> 13-floor constitutional governance</div>
+            <div class="feat"><strong>✓</strong> MCP server for AI integration</div>
+            <div class="feat"><strong>✓</strong> ToAC filter (Bond 2007)</div>
+            <div class="feat"><strong>✓</strong> Open source — audit, modify, deploy</div>
+            <div class="feat"><strong>✓</strong> Local hardware — not cloud-locked</div>
+            <div class="feat"><strong>✓</strong> Not western software</div>
         </div>
         <a href="https://arif-fazil.com" class="btn btn-primary">Contact Arif Fazil</a>
     </div>
 </section>
 
-<!-- ===== TECHNICAL ===== -->
-<section class="section">
-    <div class="label">Technical Specifications</div>
-    <h2 class="section-title">Built on real earth physics,<br>not vendor aesthetics</h2>
-
-    <div class="stack-grid" style="margin-top:40px">
-        <div class="stack-card">
-            <div class="stack-icon">📊</div>
-            <div class="stack-name">INPUT LOGS</div>
-            <h3>Standard Wireline Suite</h3>
-            <p>AC (Sonic), CALI, DEN (RHOB), GR, NEU (Neutron), RDEP (Deep Induction), RMED (Medium Induction). Also supports LWD data in LAS format.</p>
-        </div>
-
-        <div class="stack-card">
-            <div class="stack-icon">📐</div>
-            <div class="stack-name">PETROPHYSICS</div>
-            <h3>Volume Decomposition</h3>
-            <p>VSHALE (GR Larionov), VSAND, VQUARTZ (sand matrix), VCACO3 (carbonate), PHI_RH (density porosity), PHI_DN (density-neutron average), PHI_SN (sonic porosity), SW (Archie), VBW, VHC, CROSS (gas crossover).</p>
-        </div>
-
-        <div class="stack-card">
-            <div class="stack-icon">🧭</div>
-            <div class="stack-name">DAK / DIPOLE ACOUSTIC</div>
-            <h3>Structural Interpretation</h3>
-            <p>DIP_ANG (structural dip angle 0–85°), DIP_AZI (azimuth 0–360°), DAK_MRS / DAK_MRL (micro-resistivity short/long), FRA_IDX (fracture index from resistivity contrast).</p>
-        </div>
-
-        <div class="stack-card">
-            <div class="stack-icon">⚖️</div>
-            <div class="stack-name">CONSTITUTIONAL LAW</div>
-            <h3>13 Binding Floors</h3>
-            <p>F1 Amanah (Reversibility), F2 Truth (≥99%), F3 Tri-Witness, F4 Clarity, F7 Humility (Ω₀ ∈ [0.03,0.08]), F9 Anti-Hantu, F11 Auditability, F13 Sovereign. Automatic 888_HOLD triggers.</p>
-        </div>
-
-        <div class="stack-card">
-            <div class="stack-icon">🔗</div>
-            <div class="stack-name">MCP INTERFACE</div>
-            <h3>geox.* Namespace</h3>
-            <p>geox_load_seismic_line, geox_build_structural_candidates, geox_feasibility_check, geox_verify_geospatial, geox_evaluate_prospect. FastMCP HTTP transport on port 8000.</p>
-        </div>
-
-        <div class="stack-card">
-            <div class="stack-icon">🌏</div>
-            <div class="stack-name">NUSANTARA BORN</div>
-            <h3>Not Western Software</h3>
-            <p>Built by Malaysian engineers for ASEAN subsurface work. No import dependencies on NATO-controlled infrastructure. Deployable on local hardware. Data stays local.</p>
-        </div>
-    </div>
-</section>
-
-<!-- ===== FOOTER ===== -->
 <footer>
     <div class="footer-top">
         <div class="footer-brand">
-            <div class="footer-logo">GEOX</div>
-            <p>GEOX — Earth Physics Intelligence. The Earth Witness organ of the arifOS constitutional federation. Built by Nusantara, verified by physical law.</p>
+            <div class="logo">GEOX</div>
+            <p>Earth Physics Intelligence. The Earth Witness organ of the arifOS constitutional federation. Built by Arif Fazil in Kuala Lumpur, Malaysia. Not western software. Ditempa Bukan Diberi.</p>
         </div>
-
         <div class="footer-links">
             <div class="footer-col">
                 <h4>Resources</h4>
                 <a href="geox_well_viewer.html">Well Viewer</a>
-                <a href="geox/geox_well_viewer.html">Full DAK Viewer</a>
-                <a href="https://aaa.arif-fazil.com">arifOS AAA</a>
+                <a href="interpret.html">Upload & Interpret</a>
+                <a href="q15_dak_petro.las">Sample LAS</a>
+                <a href="llms.txt">LLMs.txt</a>
             </div>
             <div class="footer-col">
                 <h4>Code</h4>
                 <a href="https://github.com/ariffazil/GEOX">github.com/ariffazil/GEOX</a>
-                <a href="https://github.com/ariffazil/arifOS">github.com/arifazil/arifOS</a>
+                <a href="https://github.com/ariffazil/arifOS">github.com/ariffazil/arifOS</a>
             </div>
             <div class="footer-col">
                 <h4>Contact</h4>
-                <a href="https://arif-fazil.com">Arif Fazil</a>
                 <a href="https://arif-fazil.com">arif-fazil.com</a>
+                <a href="https://aaa.arif-fazil.com">arifOS AAA</a>
             </div>
         </div>
     </div>
-
     <div class="footer-bottom">
         <span>GEOX v0.4.3 · arifOS v2026.3.24 · DITEMPA BUKAN DIBERI</span>
         <span>Forged in Kuala Lumpur 🇲🇾 · 2026</span>

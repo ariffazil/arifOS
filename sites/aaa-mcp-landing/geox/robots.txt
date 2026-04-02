@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /geox/
+Disallow: /geox/*.las
+
+# GEOX — arifOS Earth Physics Intelligence
+# DITEMPA BUKAN DIBERI
+# Anthropocentric: all intelligence is subordinate to human oversight
