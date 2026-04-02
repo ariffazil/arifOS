@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEOX LAS Interpreter — Upload & Interpret</title>
+    <style>
+        :root {
+            --earth-deep: #0c0a07;
+            --earth-dark: #16120d;
+            --earth-mid: #231c14;
+            --earth-panel: #2e2419;
+            --earth-border: #453824;
+            --earth-ochre: #c4791a;
+            --earth-gold: #d4a843;
+            --earth-teal: #4a9e8e;
+            --earth-clay: #b5542a;
+            --text: #e0d4c0;
+            --muted: #7a6a52;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--earth-dark);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 40px clamp(20px, 6vw, 80px);
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--earth-gold);
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            font-family: 'Courier New', monospace;
+            font-size: 0.72rem;
+            letter-spacing: 3px;
+            color: var(--earth-ochre);
+            margin-bottom: 40px;
+            text-transform: uppercase;
+        }
+        .card {
+            background: var(--earth-panel);
+            border: 1px solid var(--earth-border);
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 24px;
+        }
+        .card h2 {
+            font-size: 0.8rem;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            color: var(--earth-ochre);
+            margin-bottom: 16px;
+        }
+        .drop-zone {
+            border: 2px dashed var(--earth-border);
+            border-radius: 8px;
+            padding: 50px 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .drop-zone:hover, .drop-zone.drag-over {
+            border-color: var(--earth-ochre);
+            background: rgba(196,121,26,0.05);
+        }
+        .drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .drop-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .drop-text { font-size: 0.95rem; color: var(--muted); }
+        .drop-text strong { color: var(--earth-ochre); }
+        .file-name {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--earth-teal);
+            margin-top: 12px;
+        }
+        .btn {
+            padding: 12px 28px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--earth-border);
+            background: var(--earth-panel);
+            color: var(--text);
+            transition: all 0.2s;
+            display: inline-block;
+            text-decoration: none;
+        }
+        .btn:hover { border-color: var(--earth-ochre); background: rgba(196,121,26,0.1); }
+        .btn-primary {
+            background: var(--earth-ochre);
+            color: var(--earth-dark);
+            border-color: var(--earth-ochre);
+        }
+        .btn-primary:hover { background: #d4881f; }
+        .btn-row { margin-top: 20px; display: flex; gap: 12px; align-items: center; }
+        .loader {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            margin-top: 20px;
+            color: var(--earth-ochre);
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+        }
+        .spinner {
+            width: 20px; height: 20px;
+            border: 2px solid var(--earth-border);
+            border-top-color: var(--earth-ochre);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .error {
+            background: rgba(181,84,42,0.1);
+            border: 1px solid rgba(181,84,42,0.3);
+            border-radius: 6px;
+            padding: 14px 18px;
+            font-size: 0.85rem;
+            color: var(--earth-clay);
+            margin-top: 16px;
+            display: none;
+        }
+        .result { display: none; }
+        .result h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--earth-gold);
+            margin: 20px 0 12px;
+        }
+        .well-badge {
+            display: inline-block;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: rgba(196,121,26,0.15);
+            border: 1px solid var(--earth-ochre);
+            color: var(--earth-ochre);
+            padding: 6px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .meta-item {
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            padding: 10px 14px;
+        }
+        .meta-label {
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        .meta-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--earth-gold);
+        }
+        .zone-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        .zone-table th {
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            color: var(--earth-ochre);
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--earth-border);
+        }
+        .zone-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .zone-dot {
+            display: inline-block;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .zone-wet { color: var(--earth-clay); }
+        .zone-pay { color: var(--earth-teal); font-weight: 600; }
+        .constants-note {
+            background: rgba(196,121,26,0.06);
+            border: 1px solid rgba(196,121,26,0.15);
+            border-radius: 5px;
+            padding: 10px 14px;
+            font-size: 0.78rem;
+            color: var(--muted);
+            line-height: 1.6;
+            margin-top: 16px;
+        }
+        .epi-badge {
+            display: inline-block;
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 3px;
+            background: rgba(74,158,142,0.1);
+            border: 1px solid rgba(74,158,142,0.3);
+            color: var(--earth-teal);
+            margin-left: 8px;
+        }
+        .curve-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .curve-chip {
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 3px;
+            background: rgba(196,121,26,0.08);
+            border: 1px solid rgba(196,121,26,0.2);
+            color: var(--earth-ochre);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>GEOX LAS Interpreter</h1>
+    <div class="subtitle">Upload any LAS · Auto-interpret · Download Enhanced LAS · DITEMPA BUKAN DIBERI</div>
+
+    <div class="card">
+        <h2>STEP 1 — Upload LAS File</h2>
+        <div class="drop-zone" id="dropZone">
+            <input type="file" id="lasFile" accept=".las,.LAS" />
+            <div class="drop-icon">📡</div>
+            <div class="drop-text">
+                Drop LAS file here or <strong>click to browse</strong>
+            </div>
+            <div class="file-name" id="fileName"></div>
+        </div>
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <span id="loaderText">Interpreting...</span>
+        </div>
+        <div class="error" id="errorMsg"></div>
+    </div>
+
+    <div class="card result" id="resultCard">
+        <h2>INTERPRETATION REPORT</h2>
+        <div class="well-badge" id="wellBadge"></div>
+
+        <div class="meta-grid">
+            <div class="meta-item">
+                <div class="meta-label">FIELD</div>
+                <div class="meta-value" id="metaField">—</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">MD RANGE</div>
+                <div class="meta-value" id="metaMD">—</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">POINTS</div>
+                <div class="meta-value" id="metaPoints">—</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">VALID</div>
+                <div class="meta-value" id="metaValid">—</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">CONFIDENCE τ</div>
+                <div class="meta-value" id="metaConf">—</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">DERIVED CURVES</div>
+                <div class="meta-value" id="metaCurves">—</div>
+            </div>
+        </div>
+
+        <div id="curvesSection">
+            <h3>Curves Used</h3>
+            <div class="curve-list" id="curveList"></div>
+        </div>
+
+        <h3>Zone Interpretation</h3>
+        <table class="zone-table">
+            <thead>
+                <tr>
+                    <th>Zone</th>
+                    <th>MD (m)</th>
+                    <th>Porosity</th>
+                    <th>Vshale</th>
+                    <th>Sw</th>
+                    <th>Pay</th>
+                    <th>Gas</th>
+                    <th>Flag</th>
+                </tr>
+            </thead>
+            <tbody id="zoneTableBody"></tbody>
+        </table>
+
+        <div class="constants-note" id="constantsNote">
+            <strong>Constitutional note:</strong> All output is <span class="epi-badge">DER</span> (Derived) level.
+            NTG and Sw are model outputs — not measured values. Porosity assumes sandstone matrix (2.65 g/cc).
+            Rw = 0.02 ohm·m (North Sea default — override with local calibration).
+            Results require human review before use in drilling decisions.
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-primary" id="downloadBtn" onclick="downloadLAS()">
+                Download Enhanced LAS
+            </button>
+            <a href="geox_well_viewer.html" class="btn">Open Viewer</a>
+            <a href="index.html" class="btn">← GEOX Hub</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>WELL LOG CONSTANTS USED</h2>
+        <div class="meta-grid">
+            <div class="meta-item"><div class="meta-label">Matrix Density (Sand)</div><div class="meta-value">2.65 g/cc</div></div>
+            <div class="meta-item"><div class="meta-label">Fluid Density</div><div class="meta-value">1.00 g/cc</div></div>
+            <div class="meta-item"><div class="meta-label">Rw (Default)</div><div class="meta-value">0.02 Ω·m</div></div>
+            <div class="meta-item"><div class="meta-label">Archie A/M/N</div><div class="meta-value">1.0 / 2.0 / 2.0</div></div>
+            <div class="meta-item"><div class="meta-label">Vshale Cutoff</div><div class="meta-value">0.40</div></div>
+            <div class="meta-item"><div class="meta-label">Phi Cutoff</div><div class="meta-value">0.10</div></div>
+            <div class="meta-item"><div class="meta-label">Sw Cutoff</div><div class="meta-value">0.60</div></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('lasFile');
+const fileNameEl = document.getElementById('fileName');
+const loader = document.getElementById('loader');
+const loaderText = document.getElementById('loaderText');
+const errorEl = document.getElementById('errorMsg');
+const resultCard = document.getElementById('resultCard');
+
+let selectedFile = null;
+let interpretationResult = null;
+let enhancedLASData = null;
+
+const ZONE_COLORS = ['#c4791a','#4a9e8e','#b5542a','#8aab86','#a78bfa','#64748b'];
+
+// Drag over
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        handleFile(fileInput.files[0]);
+    }
+});
+
+fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) handleFile(fileInput.files[0]);
+});
+
+function handleFile(file) {
+    if (!file.name.toLowerCase().endsWith('.las')) {
+        showError('Please select a .las file');
+        return;
+    }
+    selectedFile = file;
+    fileNameEl.textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+    errorEl.style.display = 'none';
+    resultCard.style.display = 'none';
+    interpret(file);
+}
+
+function showError(msg) {
+    errorEl.textContent = msg;
+    errorEl.style.display = 'block';
+}
+
+function showLoader(msg) {
+    loaderText.textContent = msg || 'Interpreting...';
+    loader.style.display = 'flex';
+}
+
+function hideLoader() {
+    loader.style.display = 'none';
+}
+
+async function interpret(file) {
+    showLoader('Uploading and interpreting...');
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const resp = await fetch('http://localhost:8765/interpret', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!resp.ok) {
+            const text = await resp.text();
+            throw new Error(text);
+        }
+
+        const data = await resp.json();
+        if (!data.ok) throw new Error(JSON.stringify(data));
+
+        interpretationResult = data.report;
+        showResult(data);
+    } catch(e) {
+        hideLoader();
+        // If server not available, show helpful message
+        if (e.message.includes('fetch') || e.message.includes('NetworkError')) {
+            showError(
+                'GEOX Interpreter server is not running on localhost:8765.\n\n' +
+                'To enable auto-interpretation:\n' +
+                '1. Start interpreter: `python lasi_interpreter.py --port 8765`\n' +
+                '2. Or use the pre-loaded viewer with q15_dak_petro.las data.\n\n' +
+                'Viewer is available at: geox_well_viewer.html'
+            );
+        } else {
+            showError('Interpretation failed: ' + e.message);
+        }
+    }
+}
+
+function showResult(data) {
+    hideLoader();
+    const r = data.report;
+
+    document.getElementById('wellBadge').textContent = r.well_name || 'Unknown Well';
+    document.getElementById('metaField').textContent = r.field_name || '—';
+    document.getElementById('metaMD').textContent = r.md_min.toFixed(0) + ' – ' + r.md_max.toFixed(0) + ' m';
+    document.getElementById('metaPoints').textContent = r.n_points.toLocaleString();
+    document.getElementById('metaValid').textContent = r.n_valid.toLocaleString() + ' (' + ((r.n_valid / r.n_points) * 100).toFixed(1) + '%)';
+    document.getElementById('metaConf').textContent = (r.confidence * 100).toFixed(0) + '%';
+    document.getElementById('metaCurves').textContent = data.derived_curve_count;
+
+    // Curves used
+    const cu = r.curves_used || {};
+    const curveNames = Object.entries(cu)
+        .filter(([k, v]) => v)
+        .map(([k, v]) => '<span class="curve-chip">' + v + '</span>')
+        .join('');
+    document.getElementById('curveList').innerHTML = curveNames || 'No curves mapped';
+
+    // Zones
+    const tbody = document.getElementById('zoneTableBody');
+    tbody.innerHTML = '';
+    (r.zones || []).forEach((z, i) => {
+        const tr = document.createElement('tr');
+        const isPay = z.pay_samples > 0;
+        const isWet = z.wet;
+        tr.innerHTML = `
+            <td><span class="zone-dot" style="background:${ZONE_COLORS[i % ZONE_COLORS.length]}"></span><strong>${z.name}</strong></td>
+            <td>${z.md_min.toFixed(0)}–${z.md_max.toFixed(0)}</td>
+            <td>${(z.phi_mean * 100).toFixed(1)}%</td>
+            <td>${(z.vsh_mean * 100).toFixed(1)}%</td>
+            <td>${(z.sw_mean * 100).toFixed(1)}%</td>
+            <td class="${isPay ? 'zone-pay' : ''}">${z.pay_samples > 0 ? z.pay_samples + ' pts' : '—'}</td>
+            <td>${z.gas_samples > 0 ? z.gas_samples + ' pts' : '—'}</td>
+            <td class="${isPay ? 'zone-pay' : isWet ? 'zone-wet' : ''}">${isPay ? 'PAY' : isWet ? 'WET' : '—'}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    resultCard.style.display = 'block';
+}
+
+function downloadLAS() {
+    showError('Enhanced LAS download requires server-side generation.\nStart interpreter and re-upload to generate enhanced LAS.');
+}
+
+// Auto-load demo if viewing on localhost
+if (window.location.hostname === 'localhost') {
+    // Don't auto-load
+}
+</script>
+</body>
+</html>
