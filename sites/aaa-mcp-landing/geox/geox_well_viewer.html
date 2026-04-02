@@ -340,7 +340,7 @@
 
 <div class="topbar">
     <div class="topbar-left">
-        <span class="geox-tag">GEOX</span>
+        <span class="geox-tag">GEOX</span> <span id="dataStatus" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:1px;padding:2px 7px;border-radius:3px;background:rgba(196,121,26,0.08);color:#f59e0b;border:1px solid rgba(196,121,26,0.3)">FALLBACK</span>47Courier New,monospace;font-size:9px;letter-spacing:1px;padding:3px 8px;border-radius:3px;background:rgba(196,121,26,0.08);color:#f59e0b;border:1px solid rgba(196,121,26,0.3)">FALLBACK</span>
         <span class="well-id">15/9-19 <small>Q15 · Danish North Sea · Real Open Source Data</small></span>
         <div class="topbar-meta">
             <span><strong>MD:</strong> 3615–4637 m</span>
@@ -545,17 +545,17 @@
                     <div class="mineral-row">
                         <div class="mineral-swatch" style="background:#4a9e8e"></div>
                         <div class="mineral-name">Vquartz (sand matrix)</div>
-                        <div class="mineral-val">~0.20</div>
+                        <div class="mineral-val" id="min-vquartz">~0.20</div>
                     </div>
                     <div class="mineral-row">
                         <div class="mineral-swatch" style="background:#d4a843"></div>
                         <div class="mineral-name">Vshale (clay)</div>
-                        <div class="mineral-val">~0.67</div>
+                        <div class="mineral-val" id="min-vclay">~0.67</div>
                     </div>
                     <div class="mineral-row">
                         <div class="mineral-swatch" style="background:#b5542a"></div>
                         <div class="mineral-name">VCACO3 (carbonate)</div>
-                        <div class="mineral-val">~0.13</div>
+                        <div class="mineral-val" id="min-vcaco3">~0.13</div>
                     </div>
                     <div class="mineral-row">
                         <div class="mineral-swatch" style="background:#8aab86"></div>
@@ -648,17 +648,98 @@ function zoneAt(d) {
 // ===== FETCH AND PARSE LAS =====
 async function load() {
     try {
-        const r = await fetch('q15_dak_petro.las');
+        const r = await fetch('geox_data.json');
         if (!r.ok) throw new Error('not found');
-        const text = await r.text();
-        parseLAS(text);
-        console.log('LAS loaded, points:', DEPTH.length);
-    } catch {
-        // fallback: generate from known well stats
+        const j = await r.json();
+        if (j.meta && j.data && j.data.DEPT && j.data.DEPT.length > 100) {
+            const d = j.data;
+            var curveNames = ['DEPT','AC','CALI','DEN','GR','NEU','RDEP','RMED','PHI_DN','PHI_RH','VSHALE','VSAND','SW','VBW','VHC','CROSS','NET','PAY','DIP_ANG','DIP_AZI','DAK_MRS','DAK_MRL','FRA_IDX'];
+            for (var ki = 0; ki < curveNames.length; ki++) {
+                var kn = curveNames[ki];
+                if (window[kn]) window[kn].length = 0;
+            }
+            // Load arrays
+            for (var kn in d) {
+                if (Array.isArray(d[kn])) {
+                    window[kn] = d[kn].slice();
+                }
+            }
+            // Zones
+            if (j.meta.zones && j.meta.zones.length) {
+                window.ZONES.length = 0;
+                for (var zi = 0; zi < j.meta.zones.length; zi++) {
+                    var zj = j.meta.zones[zi];
+                    window.ZONES.push({min: zj.md_min || 0, max: zj.md_max || 0, color: (zj.wet ? '#b5542a' : '#8aab86'), name: zj.name || '', wet: !!zj.wet});
+                }
+            }
+            window.DATA_STATUS = 'REAL_JSON';
+            // Compute real mineral fractions from VSHALE and PHI_DN
+            var vs = window.VSHALE || [];
+            var phi = window.PHI_DN || [];
+            window.VQUARTZ = [];
+            window.VCLAY = [];
+            window.VCACO3 = [];
+            for (var vi = 0; vi < vs.length; vi++) {
+                var vsh = vs[vi];
+                var ph = phi[vi];
+                if (vsh == null || ph == null) {
+                    window.VQUARTZ.push(null);
+                    window.VCLAY.push(null);
+                    window.VCACO3.push(null);
+                } else {
+                    window.VQUARTZ.push(Math.max(0, (1 - vsh) * ph));
+                    window.VCLAY.push(vsh);
+                    window.VCACO3.push(Math.max(0, 1 - (1 - vsh) - vsh * 0.4));
+                }
+            }
+            // Update sidebar with Zone D real values
+            var zD = j.meta.zones && j.meta.zones.find(function(z) { return z.name && z.name.indexOf('Zone D') === 0; });
+            if (zD) {
+                var phiPct = Math.round((zD.phi_mean || 0) * 100);
+                var swPct = Math.round((zD.sw_mean || 0) * 100);
+                console.log('Zone D: phi=' + phiPct + '% sw=' + swPct + '% pay=' + (zD.pay_samples || 0));
+            }
+            // Update sidebar mineral bar from real Zone D data
+            var zDreal = j.meta.zones && j.meta.zones.find(function(z) { return z.name && z.name.indexOf('Zone D') === 0; });
+            if (zDreal && window.VSHALE && window.PHI_DN) {
+                // Find mean VSHALE and PHI in Zone D depth range
+                var zMin = zDreal.md_min, zMax = zDreal.md_max;
+                var vsVals = [], phiVals = [];
+                for (var di = 0; di < window.DEPTH.length; di++) {
+                    var d = window.DEPTH[di];
+                    if (d >= zMin && d < zMax) {
+                        if (window.VSHALE[di] != null) vsVals.push(window.VSHALE[di]);
+                        if (window.PHI_DN[di] != null) phiVals.push(window.PHI_DN[di]);
+                    }
+                }
+                if (vsVals.length > 0) {
+                    var avgVsh = vsVals.reduce(function(a,b){return a+b;},0)/vsVals.length;
+                    var avgPhi = phiVals.length ? phiVals.reduce(function(a,b){return a+b;},0)/phiVals.length : 0;
+                    var avgVq = Math.max(0,(1-avgVsh)*avgPhi);
+                    var avgVc = Math.max(0,1-(1-avgVsh)-avgVsh*0.4);
+                    var elVq = document.getElementById('min-vquartz');
+                    var elVc = document.getElementById('min-vcaco3');
+                    var elVs = document.getElementById('min-vclay');
+                    if (elVq) elVq.textContent = avgVq.toFixed(2);
+                    if (elVc) elVc.textContent = avgVc.toFixed(2);
+                    if (elVs) elVs.textContent = avgVsh.toFixed(2);
+                }
+            }
+            console.log('REAL_JSON loaded:', window.DEPTH && window.DEPTH.length, 'pts', j.meta.well || 'unknown well');
+        } else {
+            throw new Error('insufficient data');
+        }
+    } catch (e) {
+        console.warn('JSON fetch failed:', e.message, '- using embedded stats');
         generateFromStats();
-        console.log('Using embedded data, points:', DEPTH.length);
+        window.DATA_STATUS = 'FALLBACK';
     }
     drawAll();
+    var s = document.getElementById('dataStatus');
+    if (s) {
+        s.textContent = window.DATA_STATUS || 'FALLBACK';
+        s.style.color = (window.DATA_STATUS === 'REAL_JSON') ? '#4a9e8e' : '#f59e0b';
+    }
 }
 
 function parseLAS(text) {
