@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RATLAS — Earth Material Atlas · GEOX</title>
+    <meta name="description" content="RATLAS: 99-material reference atlas for geoscience interpretation. Forward model physics for GR, density, neutron, resistivity. Symbol library for arifOS reasoning.">
+    <meta name="keywords" content="RATLAS, earth material, petrophysics, forward model, geoscience, geox, arifOS, rock physics, Archie, density, neutron, gamma ray">
+    <meta name="author" content="Arif Fazil">
+    <link rel="canonical" href="https://aaa.arif-fazil.com/geox/geox_ratlas.html">
+
+    <style>
+        :root {
+            --earth-deep: #0c0a07;
+            --earth-dark: #16120d;
+            --earth-mid: #231c14;
+            --earth-panel: #2e2419;
+            --earth-border: #453824;
+            --earth-ochre: #c4791a;
+            --earth-gold: #d4a843;
+            --earth-teal: #4a9e8e;
+            --earth-clay: #b5542a;
+            --text: #e0d4c0;
+            --muted: #7a6a52;
+            --cream: #f0e6d3;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--earth-dark);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* HEADER */
+        header {
+            background: var(--earth-mid);
+            border-bottom: 1px solid var(--earth-border);
+            padding: 14px clamp(20px, 5vw, 60px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+        .logo { font-family: 'Courier New', monospace; font-size: 1.4rem; font-weight: 700; letter-spacing: 4px; color: var(--earth-gold); }
+        .logo small { font-size: 0.65rem; letter-spacing: 2px; color: var(--earth-ochre); display: block; margin-top: 2px; }
+        nav { display: flex; gap: 20px; flex-wrap: wrap; }
+        nav a { color: var(--muted); text-decoration: none; font-size: 0.82rem; transition: color 0.15s; }
+        nav a:hover { color: var(--earth-ochre); }
+        nav a strong { color: var(--earth-ochre); }
+
+        /* HERO */
+        .hero {
+            padding: 50px clamp(20px, 5vw, 60px);
+            background: linear-gradient(135deg, var(--earth-deep) 0%, var(--earth-mid) 100%);
+            border-bottom: 1px solid var(--earth-border);
+        }
+        .hero h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; color: var(--cream); margin-bottom: 8px; letter-spacing: -1px; }
+        .hero h1 em { font-style: normal; color: var(--earth-gold); }
+        .hero-desc { color: var(--muted); max-width: 600px; font-size: 0.95rem; line-height: 1.7; margin-bottom: 24px; }
+        .hero-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 30px; }
+        .badge {
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-weight: 700;
+        }
+        .badge-ochre { background: rgba(196,121,26,0.15); color: var(--earth-ochre); border: 1px solid rgba(196,121,26,0.3); }
+        .badge-teal { background: rgba(74,158,142,0.12); color: var(--earth-teal); border: 1px solid rgba(74,158,142,0.3); }
+        .badge-gold { background: rgba(212,168,67,0.12); color: var(--earth-gold); border: 1px solid rgba(212,168,67,0.3); }
+        .badge-clay { background: rgba(181,84,42,0.12); color: var(--earth-clay); border: 1px solid rgba(181,84,42,0.3); }
+
+        /* MAIN */
+        .main { padding: 40px clamp(20px, 5vw, 60px); }
+        .section-label { font-family: 'Courier New', monospace; font-size: 0.65rem; letter-spacing: 4px; color: var(--earth-ochre); margin-bottom: 8px; text-transform: uppercase; }
+        h2 { font-size: 1.5rem; font-weight: 700; color: var(--cream); margin-bottom: 30px; }
+
+        /* FORWARD MODEL */
+        .eq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+        .eq-card {
+            background: var(--earth-panel);
+            border: 1px solid var(--earth-border);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .eq-name { font-family: 'Courier New', monospace; font-size: 0.7rem; letter-spacing: 2px; color: var(--earth-ochre); margin-bottom: 8px; }
+        .eq-formula {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--earth-gold);
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+            padding: 10px 14px;
+            margin: 10px 0;
+            letter-spacing: 0.5px;
+        }
+        .eq-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+        .eq-param { font-family: 'Courier New', monospace; font-size: 0.7rem; color: var(--earth-teal); margin-top: 8px; }
+
+        /* MATERIAL FAMILIES */
+        .families { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 30px; }
+        .family-chip {
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            border: 1px solid var(--earth-border);
+            background: var(--earth-panel);
+            color: var(--muted);
+            transition: all 0.15s;
+        }
+        .family-chip:hover, .family-chip.active {
+            border-color: var(--earth-ochre);
+            color: var(--earth-ochre);
+            background: rgba(196,121,26,0.08);
+        }
+        .family-chip .count {
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            opacity: 0.6;
+            margin-left: 4px;
+        }
+
+        /* MATERIAL TABLE */
+        .mat-table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--earth-border); }
+        .mat-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; min-width: 900px; }
+        .mat-table th {
+            font-family: 'Courier New', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 1px;
+            color: var(--earth-ochre);
+            padding: 10px 12px;
+            text-align: left;
+            background: var(--earth-panel);
+            border-bottom: 1px solid var(--earth-border);
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+        }
+        .mat-table td {
+            padding: 9px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            vertical-align: middle;
+        }
+        .mat-table tr:hover td { background: rgba(196,121,26,0.04); }
+        .mat-table tr { transition: background 0.1s; }
+        .mat-table tr.hidden { display: none; }
+
+        .sym-chip {
+            font-family: 'Courier New', monospace;
+            font-size: 0.68rem;
+            padding: 2px 7px;
+            border-radius: 3px;
+            background: rgba(196,121,26,0.08);
+            color: var(--earth-ochre);
+            border: 1px solid rgba(196,121,26,0.2);
+            white-space: nowrap;
+        }
+        .family-tag {
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 2px;
+            white-space: nowrap;
+        }
+        .family-tag.sed-cls { background: rgba(196,121,26,0.15); color: #c4791a; }
+        .family-tag.sed-crb { background: rgba(181,84,42,0.15); color: #b5542a; }
+        .family-tag.sed-chm { background: rgba(139,90,43,0.15); color: #8b5a2b; }
+        .family-tag.ign-fel { background: rgba(180,80,80,0.12); color: #b45050; }
+        .family-tag.ign-maf { background: rgba(80,100,60,0.12); color: #50643c; }
+        .family-tag.ign-ult { background: rgba(60,80,60,0.12); color: #3c503c; }
+        .family-tag.met-fol { background: rgba(90,80,130,0.12); color: #5a5082; }
+        .family-tag.met-nfl { background: rgba(100,100,140,0.12); color: #64648c; }
+        .family-tag.unc { background: rgba(80,130,80,0.12); color: #508250; }
+        .family-tag.eng { background: rgba(200,180,120,0.12); color: #c8b478; }
+
+        .num { font-family: 'Courier New', monospace; font-size: 0.75rem; color: var(--earth-teal); }
+        .rho { font-family: 'Courier New', monospace; font-size: 0.78rem; color: var(--earth-gold); }
+        .phi { font-family: 'Courier New', monospace; font-size: 0.78rem; color: var(--earth-teal); }
+        .gr { font-family: 'Courier New', monospace; font-size: 0.78rem; color: #8aab86; }
+        .rt { font-family: 'Courier New', monospace; font-size: 0.78rem; color: #a78bfa; }
+
+        /* LOG SCHEMATIC */
+        .schematic {
+            background: var(--earth-panel);
+            border: 1px solid var(--earth-border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 40px;
+            overflow-x: auto;
+        }
+        .schematic h3 { font-size: 0.75rem; font-family: 'Courier New', monospace; letter-spacing: 2px; color: var(--earth-ochre); margin-bottom: 16px; }
+        .schem-tracks {
+            display: flex;
+            gap: 2px;
+            min-width: 700px;
+        }
+        .schem-col {
+            flex: 1;
+            text-align: center;
+        }
+        .schem-col-label {
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            color: var(--earth-ochre);
+            padding: 4px;
+            background: rgba(196,121,26,0.06);
+            border-radius: 3px 3px 0 0;
+        }
+        .schem-cell {
+            height: 28px;
+            border: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            color: rgba(255,255,255,0.4);
+        }
+
+        /* SYMBOLIC LAYER */
+        .sym-table { width: 100%; font-size: 0.78rem; border-collapse: collapse; }
+        .sym-table th {
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            color: var(--earth-ochre);
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--earth-border);
+        }
+        .sym-table td { padding: 7px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .sym-code { font-family: 'Courier New', monospace; font-size: 0.78rem; color: var(--earth-ochre); }
+        .sym-desc { color: var(--muted); font-size: 0.75rem; }
+        .sym-family { font-family: 'Courier New', monospace; font-size: 0.65rem; color: var(--earth-teal); }
+
+        /* LINKS */
+        .link-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+        .link-card { background: var(--earth-panel); border: 1px solid var(--earth-border); border-radius: 8px; padding: 16px; }
+        .link-card a { color: var(--earth-ochre); text-decoration: none; font-size: 0.85rem; font-weight: 600; }
+        .link-card a:hover { text-decoration: underline; }
+        .link-card p { font-size: 0.75rem; color: var(--muted); margin-top: 6px; }
+
+        /* FOOTER */
+        footer { background: var(--earth-mid); border-top: 1px solid var(--earth-border); padding: 30px clamp(20px, 5vw, 60px); }
+        footer a { color: var(--earth-teal); text-decoration: none; }
+        footer p { font-family: 'Courier New', monospace; font-size: 0.65rem; color: var(--muted); }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--earth-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--earth-border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--earth-ochre); }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">RATLAS<small>R · Earth Material Atlas</small></div>
+    <nav>
+        <a href="index.html"><strong>← GEOX Hub</strong></a>
+        <a href="geox_well_viewer.html">Well Viewer</a>
+        <a href="interpret.html">Upload & Interpret</a>
+        <a href="https://github.com/ariffazil/GEOX">GitHub</a>
+    </nav>
+</header>
+
+<div class="hero">
+    <h1>RATLAS — Earth Material <em>Reference Atlas</em></h1>
+    <p class="hero-desc">99 material reference records for geoscience interpretation. Forward model physics for GR, bulk density, neutron porosity, and resistivity. Symbol library for arifOS reasoning. Built from open geological data — not vendor aesthetics.</p>
+    <div class="hero-badges">
+        <span class="badge badge-ochre">99 MATERIALS</span>
+        <span class="badge badge-teal">11 FAMILIES</span>
+        <span class="badge badge-gold">FORWARD MODEL PHYSICS</span>
+        <span class="badge badge-clay">ARCHIE + HERRON</span>
+        <span class="badge badge-ochre">F2 TRUTH</span>
+        <span class="badge badge-teal">888_HOLD READY</span>
+    </div>
+</div>
+
+<div class="main">
+
+    <!-- FORWARD MODEL -->
+    <div class="section-label">Forward Model Physics</div>
+    <h2>Equations that drive every interpretation</h2>
+
+    <div class="eq-grid">
+        <div class="eq-card">
+            <div class="eq-name">BULK DENSITY (RHOB)</div>
+            <div class="eq-formula">ρb = Φ · ρf + (1 − Φ) · ρma</div>
+            <div class="eq-desc">Linear mixture: porosity × fluid density + matrix fraction × matrix density. All three terms must be known. ρb is measured. Φ and ρf are assumed.</div>
+            <div class="eq-param">ρb measured · ρf ≈ 1.00 g/cc (water) · ρma = matrix density (2.65 sandstone, 2.71 limestone)</div>
+        </div>
+        <div class="eq-card">
+            <div class="eq-name">NEUTRON POROSITY (NPHI) — HI MIX</div>
+            <div class="eq-formula">NPHI = Φ · HIf + (1 − Φ) · HImatrix</div>
+            <div class="eq-desc">Hydrogen Index mixture. Gas has low HI (≈0.3). Water = 1.0. Limestone matrix shows apparent porosity increase. Watch for NPHI–DEN crossover in gas zones.</div>
+            <div class="eq-param">HIf(water)=1.0 · HIf(gas)≈0.3 · HImatrix( limestone)=0 · HIquartz≈0.02</div>
+        </div>
+        <div class="eq-card">
+            <div class="eq-name">ARCHIE SATURATION (SW)</div>
+            <div class="eq-formula">Sw = [a · Rw / (Rt · Φm)]1/n</div>
+            <div class="eq-desc">Water saturation from resistivity. Requires Rw (formation water resistivity), Rt (true resistivity), Φ (porosity), and Archie parameters a, m, n. Rw is the most uncertain — calibrate with local data.</div>
+            <div class="eq-param">a=1.0, m=2.0, n=2.0 (default) · Rw North Sea ≈ 0.02 Ω·m · Rw Gulf ≈ 0.015 Ω·m</div>
+        </div>
+        <div class="eq-card">
+            <div class="eq-name">VSHALE (GR LARIONOV)</div>
+            <div class="eq-formula">Vsh = (GRlog − GRclean) / (GRshale − GRclean)</div>
+            <div class="eq-desc">Linear GR shale indicator. Larionov (older logs) and Clavier (newer) methods more accurate for old logs. Use 5th percentile for GRclean, 95th for GRshale from local calibration.</div>
+            <div class="eq-param">GRclean = 5th percentile of GR distribution · GRshale = 95th percentile</div>
+        </div>
+        <div class="eq-card">
+            <div class="eq-name">DENSITY POROSITY (PHI_RHOB)</div>
+            <div class="eq-formula">ΦRHOB = (ρma − ρb) / (ρma − ρf)</div>
+            <div class="eq-desc">Rearranged from bulk density equation. ρma is matrix density — choose sandstone (2.65), limestone (2.71), or dolomite (2.87) based on regional geology. Wrong matrix = wrong porosity.</div>
+            <div class="eq-param">Sandstone ρma=2.65 g/cc · Limestone ρma=2.71 g/cc · Dolomite ρma=2.87 g/cc</div>
+        </div>
+        <div class="eq-card">
+            <div class="eq-name">HERRON PARAMETERS</div>
+            <div class="eq-formula">RHOBma = Σ fi · ρi · RHOBhi / Σ fi</div>
+            <div class="eq-desc">Herron (1987) mineral mixture model. Use for complex lithology where single-matrix assumption fails. Requires mineral volume fractions fi and individual mineral densities.</div>
+            <div class="eq-param">fi = mineral volume fractions · ρi = individual mineral densities · RHOBhi = mineral grain densities</div>
+        </div>
+    </div>
+
+    <!-- LOG SCHEMATIC -->
+    <div class="schematic">
+        <h3>CONCEPTUAL WELL LOG RESPONSES BY FAMILY (RATLAS schematic — not to scale)</h3>
+        <div class="schem-tracks">
+            <div class="schem-col">
+                <div class="schem-col-label">FAMILY</div>
+                <div class="schem-cell" style="background:rgba(196,121,26,0.15)">Sandstone</div>
+                <div class="schem-cell" style="background:rgba(181,84,42,0.12)">Limestone</div>
+                <div class="schem-cell" style="background:rgba(139,90,43,0.12)">Shale</div>
+                <div class="schem-cell" style="background:rgba(180,80,80,0.1)">Granite</div>
+                <div class="schem-cell" style="background:rgba(80,100,60,0.1)">Basalt</div>
+                <div class="schem-cell" style="background:rgba(90,80,130,0.1)">Gneiss</div>
+                <div class="schem-cell" style="background:rgba(80,130,80,0.1)">Soil</div>
+                <div class="schem-cell" style="background:rgba(200,180,120,0.1)">Steel</div>
+            </div>
+            <div class="schem-col">
+                <div class="schem-col-label">GR (API)</div>
+                <div class="schem-cell" style="background:rgba(138,171,134,0.2)">15</div>
+                <div class="schem-cell" style="background:rgba(181,84,42,0.12)">5</div>
+                <div class="schem-cell" style="background:rgba(139,90,43,0.15)">120</div>
+                <div class="schem-cell" style="background:rgba(180,80,80,0.1)">80</div>
+                <div class="schem-cell" style="background:rgba(80,100,60,0.1)">30</div>
+                <div class="schem-cell" style="background:rgba(90,80,130,0.1)">80</div>
+                <div class="schem-cell" style="background:rgba(80,130,80,0.1)">60</div>
+                <div class="schem-cell" style="background:rgba(200,180,120,0.1)">0</div>
+            </div>
+            <div class="schem-col">
+                <div class="schem-col-label">ρb (g/cc)</div>
+                <div class="schem-cell" style="background:rgba(138,171,134,0.2)">2.35</div>
+                <div class="schem-cell" style="background:rgba(181,84,42,0.12)">2.71</div>
+                <div class="schem-cell" style="background:rgba(139,90,43,0.15)">2.45</div>
+                <div class="schem-cell" style="background:rgba(180,80,80,0.1)">2.63</div>
+                <div class="schem-cell" style="background:rgba(80,100,60,0.1)">2.90</div>
+                <div class="schem-cell" style="background:rgba(90,80,130,0.1)">2.90</div>
+                <div class="schem-cell" style="background:rgba(80,130,80,0.1)">1.90</div>
+                <div class="schem-cell" style="background:rgba(200,180,120,0.1)">7.80</div>
+            </div>
+            <div class="schem-col">
+                <div class="schem-col-label">NPHI (v/v)</div>
+                <div class="schem-cell" style="background:rgba(138,171,134,0.2)">0.02</div>
+                <div class="schem-cell" style="background:rgba(181,84,42,0.12)">0.02</div>
+                <div class="schem-cell" style="background:rgba(139,90,43,0.15)">0.15</div>
+                <div class="schem-cell" style="background:rgba(180,80,80,0.1)">0.02</div>
+                <div class="schem-cell" style="background:rgba(80,100,60,0.1)">0.03</div>
+                <div class="schem-cell" style="background:rgba(90,80,130,0.1)">0.03</div>
+                <div class="schem-cell" style="background:rgba(80,130,80,0.1)">0.30</div>
+                <div class="schem-cell" style="background:rgba(200,180,120,0.1)">0.01</div>
+            </div>
+            <div class="schem-col">
+                <div class="schem-col-label">Rt (Ω·m)</div>
+                <div class="schem-cell" style="background:rgba(138,171,134,0.2)">500</div>
+                <div class="schem-cell" style="background:rgba(181,84,42,0.12)">1000</div>
+                <div class="schem-cell" style="background:rgba(139,90,43,0.15)">10</div>
+                <div class="schem-cell" style="background:rgba(180,80,80,0.1)">5000</div>
+                <div class="schem-cell" style="background:rgba(80,100,60,0.1)">10000</div>
+                <div class="schem-cell" style="background:rgba(90,80,130,0.1)">500</div>
+                <div class="schem-cell" style="background:rgba(80,130,80,0.1)">50</div>
+                <div class="schem-cell" style="background:rgba(200,180,120,0.1)">200000</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MATERIAL FAMILIES FILTER -->
+    <div class="section-label">99 Materials · 11 Families</div>
+    <h2>Earth Material Reference Table</h2>
+
+    <div class="families" id="familyChips">
+        <button class="family-chip active" data-family="ALL">ALL<span class="count">99</span></button>
+    </div>
+
+    <div class="mat-table-wrap">
+        <table class="mat-table" id="matTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Symbol</th>
+                    <th>Material</th>
+                    <th>Family</th>
+                    <th>ρma (g/cc)</th>
+                    <th>NPHI (v/v)</th>
+                    <th>GR (API)</th>
+                    <th>Rt (Ω·m)</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody id="matTableBody">
+                <!-- Populated by JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- SYMBOLIC LAYER -->
+    <div class="section-label" style="margin-top:50px">Symbolic Layer</div>
+    <h2>arifOS Reasoning Symbol Library</h2>
+
+    <table class="sym-table">
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Description</th>
+                <th>Typical Family</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td class="sym-code">SAND_QZ_CLEAN</td><td class="sym-desc">Clean quartz sandstone, Archie applies</td><td class="sym-family">SED_CLS</td></tr>
+            <tr><td class="sym-code">SAND_ARK</td><td class="sym-desc">Arkose — feldspar-rich sandstone</td><td class="sym-family">SED_CLS</td></tr>
+            <tr><td class="sym-code">SHALE_ILL</td><td class="sym-desc">Illite-dominated shale</td><td class="sym-family">SED_CLS</td></tr>
+            <tr><td class="sym-code">LIME_DOL</td><td class="sym-desc">Limestone-dolomite mixed carbonate</td><td class="sym-family">SED_CRB</td></tr>
+            <tr><td class="sym-code">ANHYD</td><td class="sym-desc">Anhydrite — evaporite cap</td><td class="sym-family">SED_CRB</td></tr>
+            <tr><td class="sym-code">ROCK_SALT</td><td class="sym-desc">Halite — salt canopy</td><td class="sym-family">SED_CHM</td></tr>
+            <tr><td class="sym-code">GRANITE_K</td><td class="sym-desc">Potassium feldspar granite</td><td class="sym-family">IGN_FEL</td></tr>
+            <tr><td class="sym-code">BASALT_FRESH</td><td class="sym-desc">Fresh basalt — mafic igneous</td><td class="sym-family">IGN_MAF</td></tr>
+            <tr><td class="sym-code">PERIDOT_SERP</td><td class="sym-desc">Serpentinized peridotite mantle</td><td class="sym-family">IGN_ULT</td></tr>
+            <tr><td class="sym-code">GNEISS_BT</td><td class="sym-desc">Biotite gneiss — foliated metamorphic</td><td class="sym-family">MET_FOL</td></tr>
+            <tr><td class="sym-code">MARBLE</td><td class="sym-desc">Metamorphic marble — recrystallized carbonate</td><td class="sym-family">MET_NFL</td></tr>
+            <tr><td class="sym-code">SOIL_LATER</td><td class="sym-desc">Laterite — Fe-oxide duricrust</td><td class="sym-family">UNC</td></tr>
+            <tr><td class="sym-code">CONCRETE_RF</td><td class="sym-desc">Portland cement concrete — man-made</td><td class="sym-family">ENG</td></tr>
+            <tr><td class="sym-code">STEEL_Fe</td><td class="sym-desc">Steel casing — FERRIC signal</td><td class="sym-family">ENG</td></tr>
+        </tbody>
+    </table>
+
+    <!-- LINKS -->
+    <div class="section-label" style="margin-top:50px">Navigation</div>
+    <h2>Related GEOX Resources</h2>
+    <div class="link-grid">
+        <div class="link-card">
+            <a href="index.html">← GEOX Hub</a>
+            <p>Main landing page for GEOX Earth Physics Intelligence</p>
+        </div>
+        <div class="link-card">
+            <a href="geox_well_viewer.html">Well Log Viewer</a>
+            <p>11-track viewer with DAK, mineral logic, constitutional panel</p>
+        </div>
+        <div class="link-card">
+            <a href="interpret.html">Upload & Interpret</a>
+            <p>Drop any LAS → auto-interpret with zone report</p>
+        </div>
+        <div class="link-card">
+            <a href="q15_dak_petro.las">Sample LAS (1.7 MB)</a>
+            <p>23 curves, real Danish North Sea well 15/9-19</p>
+        </div>
+        <div class="link-card">
+            <a href="https://github.com/ariffazil/GEOX">GitHub</a>
+            <p>Full source, open to audit</p>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    <p>
+        RATLAS v0.4.3 · GEOX Earth Physics Intelligence ·
+        <a href="https://aaa.arif-fazil.com/geox/">aaa.arif-fazil.com/geox/</a> ·
+        Built by Arif Fazil · Kuala Lumpur 🇲🇾
+    </p>
+    <p style="margin-top:6px">
+        Forward models: Archie (1942), Herron (1987), Winsauer (1954).
+        Data from open geological literature. Matrix assumptions require local calibration.
+        F2 Truth: all ρma values are model inputs, not measurements.
+    </p>
+</footer>
+
+<script>
+const FAMILIES = {
+    'ALL': { label: 'ALL', css: '' },
+    'Sedimentary Clastic': { label: 'Sedimentary Clastic', css: 'sed-cls', prefix: 'SED_CLS' },
+    'Sedimentary Carbonate': { label: 'Sedimentary Carbonate', css: 'sed-crb', prefix: 'SED_CRB' },
+    'Sedimentary Chemical/Organic': { label: 'Sedimentary Chemical', css: 'sed-chm', prefix: 'SED_CHM' },
+    'Igneous Felsic': { label: 'Igneous Felsic', css: 'ign-fel', prefix: 'IGN_FEL' },
+    'Igneous Intermediate/Mafic': { label: 'Igneous Mafic', css: 'ign-maf', prefix: 'IGN_MAF' },
+    'Igneous Ultramafic/Altered': { label: 'Igneous Ultramafic', css: 'ign-ult', prefix: 'IGN_ULT' },
+    'Metamorphic Foliated': { label: 'Metamorphic Foliated', css: 'met-fol', prefix: 'MET_FOL' },
+    'Metamorphic Non-Foliated': { label: 'Metamorphic Non-Foliated', css: 'met-nfl', prefix: 'MET_NFL' },
+    'Unconsolidated/Soil': { label: 'Unconsolidated/Soil', css: 'unc', prefix: 'UNC' },
+    'Engineered Materials': { label: 'Engineered', css: 'eng', prefix: 'ENG' },
+};
+
+const MATERIALS = [
+    {id:'SED_CLS_001',sym:'SAND_QZ_CLEAN',mat:'Clean Sandstone (Quartz)',family:'Sedimentary Clastic',rho:2.65,nphi:0.02,gr:10,rt:500,notes:'Best reservoir; Archie applies'},
+    {id:'SED_CLS_002',sym:'SAND_SIL',mat:'Siliceous Sandstone',family:'Sedimentary Clastic',rho:2.63,nphi:0.02,gr:15,rt:300,notes:'Minor feldspar content'},
+    {id:'SED_CLS_003',sym:'SAND_ARK',mat:'Arkose (K-Feldspar rich)',family:'Sedimentary Clastic',rho:2.62,nphi:0.03,gr:40,rt:150,notes:'Feldspathic sandstone'},
+    {id:'SED_CLS_004',sym:'SAND_SUBL',mat:'Sublitharenite',family:'Sedimentary Clastic',rho:2.64,nphi:0.02,gr:25,rt:250,notes:'Lithic fragments present'},
+    {id:'SED_CLS_005',sym:'SAND_CLY_R',mat:'Clay-rich Sandstone',family:'Sedimentary Clastic',rho:2.55,nphi:0.08,gr:60,rt:30,notes:'High bound water'},
+    {id:'SED_CLS_006',sym:'SILT',mat:'Siltstone',family:'Sedimentary Clastic',rho:2.70,nphi:0.10,gr:80,rt:20,notes:'Fine-grained clastic'},
+    {id:'SED_CLS_007',sym:'SHALE_MUD',mat:'Mudstone/Shale',family:'Sedimentary Clastic',rho:2.45,nphi:0.15,gr:120,rt:10,notes:'Organic-rich possible'},
+    {id:'SED_CLS_008',sym:'SHALE_SDY',mat:'Sandy Shale',family:'Sedimentary Clastic',rho:2.50,nphi:0.12,gr:100,rt:15,notes:'Transitional'},
+    {id:'SED_CLS_009',sym:'CONGLOM',mat:'Conglomerate',family:'Sedimentary Clastic',rho:2.68,nphi:0.03,gr:30,rt:200,notes:'Coarse clastic matrix'},
+    {id:'SED_CLS_010',sym:'GRAYWcke',mat:'Graywacke',family:'Sedimentary Clastic',rho:2.60,nphi:0.06,gr:70,rt:50,notes:'Immature sandstone'},
+    {id:'SED_CLS_011',sym:'CLAYST',mat:'Claystone',family:'Sedimentary Clastic',rho:2.48,nphi:0.18,gr:130,rt:8,notes:'Pure shale matrix'},
+    {id:'SED_CLS_012',sym:'MARL',mat:'Marl',family:'Sedimentary Clastic',rho:2.55,nphi:0.20,gr:90,rt:25,notes:'Carbonate-clay mix'},
+    {id:'SED_CLS_013',sym:'BENTON',mat:'Bentonite (Smectite)',family:'Sedimentary Clastic',rho:2.30,nphi:0.25,gr:150,rt:10,notes:'Volcanic ash alteration'},
+    {id:'SED_CLS_014',sym:'CHALK_OP',mat:'Chalk (opaline)',family:'Sedimentary Clastic',rho:2.71,nphi:0.30,gr:20,rt:1000,notes:'HIGH NPHI anomaly'},
+    {id:'SED_CLS_015',sym:'SAND_DOL_C',mat:'Dolomitic Sandstone',family:'Sedimentary Clastic',rho:2.78,nphi:0.04,gr:25,rt:400,notes:'Secondary dolomite cement'},
+    {id:'SED_CLS_016',sym:'SAND_FE',mat:'Ferruginous Sandstone',family:'Sedimentary Clastic',rho:2.90,nphi:0.03,gr:35,rt:150,notes:'Iron oxide cement'},
+    {id:'SED_CLS_017',sym:'COAL_LIG',mat:'Coal (lignite)',family:'Sedimentary Clastic',rho:1.50,nphi:0.40,gr:20,rt:1000,notes:'LOW density HIGH NPHI'},
+    {id:'SED_CLS_018',sym:'SHALE_CB',mat:'Carbonaceous Shale',family:'Sedimentary Clastic',rho:2.35,nphi:0.20,gr:150,rt:15,notes:'Organic matter present'},
+    {id:'SED_CRB_001',sym:'LIME_CLEAN',mat:'Clean Limestone',family:'Sedimentary Carbonate',rho:2.71,nphi:0.02,gr:5,rt:1000,notes:'Calcite matrix'},
+    {id:'SED_CRB_002',sym:'DOLOMITE',mat:'Dolomite',family:'Sedimentary Carbonate',rho:2.87,nphi:0.02,gr:5,rt:2000,notes:'Dense crystalline'},
+    {id:'SED_CRB_003',sym:'ANHYD',mat:'Anhydrite',family:'Sedimentary Carbonate',rho:2.98,nphi:0.01,gr:5,rt:10000,notes:'Evaporite cap'},
+    {id:'SED_CRB_004',sym:'GYPSUM',mat:'Gypsum',family:'Sedimentary Carbonate',rho:2.32,nphi:0.04,gr:5,rt:10000,notes:'Hydrated evaporite'},
+    {id:'SED_CRB_005',sym:'LIME_DOL',mat:'Limestone-Dolomite Mix',family:'Sedimentary Carbonate',rho:2.75,nphi:0.03,gr:8,rt:500,notes:'Transitional'},
+    {id:'SED_CRB_006',sym:'LIME_POR',mat:'Porous Limestone',family:'Sedimentary Carbonate',rho:2.65,nphi:0.05,gr:10,rt:200,notes:'Secondary vuggy porosity'},
+    {id:'SED_CRB_007',sym:'CHALK',mat:'Chalky Limestone',family:'Sedimentary Carbonate',rho:2.71,nphi:0.35,gr:15,rt:150,notes:'Microporosity dominant'},
+    {id:'SED_CRB_008',sym:'LIME_ARG',mat:'Argillaceous Limestone',family:'Sedimentary Carbonate',rho:2.68,nphi:0.08,gr:30,rt:100,notes:'Clay contamination'},
+    {id:'SED_CRB_009',sym:'LIME_STY',mat:'Stylolitic Limestone',family:'Sedimentary Carbonate',rho:2.72,nphi:0.03,gr:20,rt:300,notes:'Pressure solution fabric'},
+    {id:'SED_CHM_001',sym:'ROCK_SALT',mat:'Rock Salt (Halite)',family:'Sedimentary Chemical/Organic',rho:2.17,nphi:0.01,gr:5,rt:100000,notes:'LOW density VERY HIGH resistivity'},
+    {id:'SED_CHM_002',sym:'POTASH',mat:'Potash Salt (Sylvite)',family:'Sedimentary Chemical/Organic',rho:1.99,nphi:0.01,gr:10,rt:50000,notes:'Evaporite K-mineral'},
+    {id:'SED_CHM_003',sym:'ANHYD_NOD',mat:'Anhydrite (nodular)',family:'Sedimentary Chemical/Organic',rho:2.98,nphi:0.01,gr:5,rt:50000,notes:'Pure sulfate'},
+    {id:'SED_CHM_004',sym:'GYPS_MASS',mat:'Gypsum (massive)',family:'Sedimentary Chemical/Organic',rho:2.32,nphi:0.04,gr:5,rt:50000,notes:'Ca-sulfate dihydrate'},
+    {id:'SED_CHM_005',sym:'CHERT',mat:'Chert (cryptocrystalline silica)',family:'Sedimentary Chemical/Organic',rho:2.60,nphi:0.01,gr:8,rt:20000,notes:'Hard dense silica'},
+    {id:'SED_CHM_006',sym:'PORCEL',mat:'Porcellanite',family:'Sedimentary Chemical/Organic',rho:2.50,nphi:0.05,gr:20,rt:500,notes:'Diagenetic silica'},
+    {id:'SED_CHM_007',sym:'TRONA',mat:'Trona (Na3HCO3CO3)',family:'Sedimentary Chemical/Organic',rho:2.10,nphi:0.02,gr:5,rt:30000,notes:'Soda ash evaporite'},
+    {id:'SED_CHM_008',sym:'BITUMEN',mat:'Bitumen-impregnated',family:'Sedimentary Chemical/Organic',rho:2.30,nphi:0.15,gr:30,rt:500,notes:'Heavy oil signature'},
+    {id:'SED_CHM_009',sym:'PHOSPH',mat:'Phosphate (Collophane)',family:'Sedimentary Chemical/Organic',rho:2.80,nphi:0.05,gr:80,rt:200,notes:'Marine phosphorite'},
+    {id:'IGN_FEL_001',sym:'GRANITE_K',mat:'Granite',family:'Igneous Felsic',rho:2.63,nphi:0.02,gr:80,rt:5000,notes:'Radiogenic heat'},
+    {id:'IGN_FEL_002',sym:'GRANODI',mat:'Granodiorite',family:'Igneous Felsic',rho:2.68,nphi:0.02,gr:60,rt:3000,notes:'Plagioclase-rich'},
+    {id:'IGN_FEL_003',sym:'TONAL',mat:'Tonalite',family:'Igneous Felsic',rho:2.72,nphi:0.02,gr:50,rt:2500,notes:'Quartz-diorite'},
+    {id:'IGN_FEL_004',sym:'RHYT',mat:'Rhyolite',family:'Igneous Felsic',rho:2.55,nphi:0.03,gr:70,rt:2000,notes:'Extrusive felsic'},
+    {id:'IGN_FEL_005',sym:'DACITE',mat:'Dacite',family:'Igneous Felsic',rho:2.65,nphi:0.03,gr:60,rt:1500,notes:'Intermediate extrusive'},
+    {id:'IGN_FEL_006',sym:'PEGMAT',mat:'Pegmatite (granitic)',family:'Igneous Felsic',rho:2.60,nphi:0.02,gr:100,rt:3000,notes:'Coarse crystal'},
+    {id:'IGN_FEL_007',sym:'APLITE',mat:'Aplite',family:'Igneous Felsic',rho:2.64,nphi:0.02,gr:40,rt:4000,notes:'Fine-grained felsic'},
+    {id:'IGN_FEL_008',sym:'QZ_PORPH',mat:'Quartz Porphyry',family:'Igneous Felsic',rho:2.62,nphi:0.02,gr:55,rt:2500,notes:'Phenocryst-bearing'},
+    {id:'IGN_FEL_009',sym:'TUFF_RHY',mat:'Tuff (rhyolitic)',family:'Igneous Felsic',rho:2.40,nphi:0.05,gr:90,rt:500,notes:'Welded ash flow'},
+    {id:'IGN_MAF_001',sym:'BASALT_FRESH',mat:'Basalt',family:'Igneous Intermediate/Mafic',rho:2.90,nphi:0.03,gr:30,rt:10000,notes:'Fresh mafic extrusive'},
+    {id:'IGN_MAF_002',sym:'ANDESITE',mat:'Andesite',family:'Igneous Intermediate/Mafic',rho:2.75,nphi:0.03,gr:40,rt:5000,notes:'Intermediate extrusive'},
+    {id:'IGN_MAF_003',sym:'DIORITE',mat:'Diorite',family:'Igneous Intermediate/Mafic',rho:2.82,nphi:0.02,gr:35,rt:8000,notes:'Coarse mafic intrusive'},
+    {id:'IGN_MAF_004',sym:'GABBRO',mat:'Gabbro',family:'Igneous Intermediate/Mafic',rho:3.00,nphi:0.02,gr:25,rt:10000,notes:'Coarse mafic intrusive'},
+    {id:'IGN_MAF_005',sym:'DIABASE',mat:'Diabase',family:'Igneous Intermediate/Mafic',rho:2.95,nphi:0.02,gr:30,rt:15000,notes:'Dolerite dyke rock'},
+    {id:'IGN_MAF_006',sym:'TEPHRI',mat:'Tephrite',family:'Igneous Intermediate/Mafic',rho:2.85,nphi:0.04,gr:50,rt:2000,notes:'Mafic volcanic'},
+    {id:'IGN_MAF_007',sym:'TRACHYBAS',mat:'Trachybasalt',family:'Igneous Intermediate/Mafic',rho:2.80,nphi:0.04,gr:45,rt:3000,notes:'Alkali basalt'},
+    {id:'IGN_MAF_008',sym:'SPESSART',mat:'Spessartite',family:'Igneous Intermediate/Mafic',rho:2.90,nphi:0.03,gr:35,rt:5000,notes:'Lamprophyre'},
+    {id:'IGN_MAF_009',sym:'PERIDOT_WEATH',mat:'Peridotite (weathered)',family:'Igneous Intermediate/Mafic',rho:2.85,nphi:0.08,gr:40,rt:500,notes:'Serpentinized'},
+    {id:'IGN_ULT_001',sym:'PERIDOT_FRESH',mat:'Peridotite (fresh)',family:'Igneous Ultramafic/Altered',rho:3.25,nphi:0.02,gr:20,rt:20000,notes:'Upper mantle slice'},
+    {id:'IGN_ULT_002',sym:'PERIDOT_SERP',mat:'Serpentinite',family:'Igneous Ultramafic/Altered',rho:2.60,nphi:0.10,gr:30,rt:100,notes:'Alteration product'},
+    {id:'IGN_ULT_003',sym:'PYROXEN',mat:'Pyroxenite',family:'Igneous Ultramafic/Altered',rho:3.20,nphi:0.02,gr:15,rt:10000,notes:'Orthopyroxene cumulate'},
+    {id:'IGN_ULT_004',sym:'DUNITE',mat:'Dunite',family:'Igneous Ultramafic/Altered',rho:3.30,nphi:0.02,gr:10,rt:20000,notes:'Olivine cumulate'},
+    {id:'IGN_ULT_005',sym:'TROCTOL',mat:'Troctolite',family:'Igneous Ultramafic/Altered',rho:2.95,nphi:0.02,gr:20,rt:5000,notes:'Olivine-plagioclase'},
+    {id:'IGN_ULT_006',sym:'WEHRL',mat:'Wehrlite',family:'Igneous Ultramafic/Altered',rho:3.10,nphi:0.03,gr:25,rt:3000,notes:'Olivine-clinopyroxene'},
+    {id:'IGN_ULT_007',sym:'HARZBURG',mat:'Harzburgite',family:'Igneous Ultramafic/Altered',rho:3.20,nphi:0.02,gr:18,rt:10000,notes:'Orthopyroxene-rich'},
+    {id:'IGN_ULT_008',sym:'LHERZOL',mat:'Lherzolite',family:'Igneous Ultramafic/Altered',rho:3.15,nphi:0.03,gr:22,rt:5000,notes:'Mantle xenolith'},
+    {id:'IGN_ULT_009',sym:'KIMBERL',mat:'Kimberlite',family:'Igneous Ultramafic/Altered',rho:2.80,nphi:0.10,gr:100,rt:50,notes:'Diamond-bearing pipe'},
+    {id:'MET_FOL_001',sym:'SLATE',mat:'Slate',family:'Metamorphic Foliated',rho:2.75,nphi:0.03,gr:40,rt:500,notes:'Low-grade cleavage'},
+    {id:'MET_FOL_002',sym:'PHYLL',mat:'Phyllite',family:'Metamorphic Foliated',rho:2.80,nphi:0.04,gr:50,rt:300,notes:'Very low-grade'},
+    {id:'MET_FOL_003',sym:'SCHIST_BT',mat:'Schist (biotite)',family:'Metamorphic Foliated',rho:2.85,nphi:0.05,gr:70,rt:200,notes:'Biotite foliation'},
+    {id:'MET_FOL_004',sym:'SCHIST_MS',mat:'Schist (muscovite)',family:'Metamorphic Foliated',rho:2.80,nphi:0.04,gr:60,rt:250,notes:'Muscovite-rich'},
+    {id:'MET_FOL_005',sym:'GNEISS_BT',mat:'Gneiss (biotite)',family:'Metamorphic Foliated',rho:2.90,nphi:0.03,gr:80,rt:500,notes:'Banded felsic-mafic'},
+    {id:'MET_FOL_006',sym:'GNEISS_MIG',mat:'Gneiss (migmatite)',family:'Metamorphic Foliated',rho:2.85,nphi:0.04,gr:90,rt:300,notes:'Partial melt fabric'},
+    {id:'MET_FOL_007',sym:'SCHIST_CHL',mat:'Schist (chlorite)',family:'Metamorphic Foliated',rho:2.75,nphi:0.06,gr:60,rt:150,notes:'Low-grade mafic'},
+    {id:'MET_FOL_008',sym:'METSED',mat:'Metasediment',family:'Metamorphic Foliated',rho:2.75,nphi:0.05,gr:80,rt:200,notes:'Paragneiss'},
+    {id:'MET_FOL_009',sym:'MYLON',mat:'Mylonite',family:'Metamorphic Foliated',rho:2.75,nphi:0.04,gr:50,rt:100,notes:'Fault rock'},
+    {id:'MET_NFL_001',sym:'MARBLE',mat:'Marble',family:'Metamorphic Non-Foliated',rho:2.72,nphi:0.02,gr:10,rt:1000,notes:'Recrystallized carbonate'},
+    {id:'MET_NFL_002',sym:'QUARTZITE',mat:'Quartzite',family:'Metamorphic Non-Foliated',rho:2.65,nphi:0.01,gr:15,rt:5000,notes:'Recrystallized silica'},
+    {id:'MET_NFL_003',sym:'HORNFELS',mat:'Hornfels',family:'Metamorphic Non-Foliated',rho:2.85,nphi:0.03,gr:50,rt:1000,notes:'Contact metamorphic'},
+    {id:'MET_NFL_004',sym:'SKARN',mat:'Skarn',family:'Metamorphic Non-Foliated',rho:2.90,nphi:0.05,gr:60,rt:200,notes:'Calc-silicate metasomatite'},
+    {id:'MET_NFL_005',sym:'ECLOGITE',mat:'Eclogite',family:'Metamorphic Non-Foliated',rho:3.40,nphi:0.02,gr:15,rt:5000,notes:'High-pressure mafic'},
+    {id:'MET_NFL_006',sym:'GRANULITE',mat:'Granulite',family:'Metamorphic Non-Foliated',rho:2.85,nphi:0.02,gr:40,rt:2000,notes:'Upper amphibolite grade'},
+    {id:'MET_NFL_007',sym:'BLUESCHIST',mat:'Blueschist',family:'Metamorphic Non-Foliated',rho:2.90,nphi:0.04,gr:30,rt:500,notes:'High-P low-T'},
+    {id:'MET_NFL_008',sym:'GREENSCHIST',mat:'Greenschist',family:'Metamorphic Non-Foliated',rho:2.80,nphi:0.05,gr:50,rt:200,notes:'Low-grade mafic'},
+    {id:'MET_NFL_009',sym:'AMPHIBOL',mat:'Amphibolite',family:'Metamorphic Non-Foliated',rho:3.00,nphi:0.03,gr:35,rt:1000,notes:'Mafic metamorphite'},
+    {id:'UNC_001',sym:'SAND_DRY',mat:'Sand (dry)',family:'Unconsolidated/Soil',rho:1.90,nphi:0.02,gr:15,rt:100,notes:'Unsaturated zone'},
+    {id:'UNC_002',sym:'SAND_SAT',mat:'Sand (saturated)',family:'Unconsolidated/Soil',rho:2.00,nphi:0.30,gr:15,rt:50,notes:'Water-bearing'},
+    {id:'UNC_003',sym:'GRAVEL_CL',mat:'Gravel (clean)',family:'Unconsolidated/Soil',rho:2.00,nphi:0.02,gr:20,rt:200,notes:'Coarse channel'},
+    {id:'UNC_004',sym:'GRAVEL_CLY',mat:'Gravel (clayey)',family:'Unconsolidated/Soil',rho:2.20,nphi:0.10,gr:50,rt:30,notes:'Clay matrix'},
+    {id:'UNC_005',sym:'SILT_SAT',mat:'Silt (saturated)',family:'Unconsolidated/Soil',rho:2.10,nphi:0.25,gr:60,rt:20,notes:'Fine-grained aquifer'},
+    {id:'UNC_006',sym:'CLAY_SAT',mat:'Clay (saturated)',family:'Unconsolidated/Soil',rho:1.90,nphi:0.40,gr:80,rt:10,notes:'Low permeability'},
+    {id:'UNC_007',sym:'TOPOIL',mat:'Topsoil (organic)',family:'Unconsolidated/Soil',rho:1.50,nphi:0.35,gr:100,rt:30,notes:'Root zone'},
+    {id:'UNC_008',sym:'SOIL_LATER',mat:'Laterite',family:'Unconsolidated/Soil',rho:2.50,nphi:0.08,gr:70,rt:200,notes:'Fe-oxide duricrust'},
+    {id:'UNC_009',sym:'FILL_GRAN',mat:'Fill (granular)',family:'Unconsolidated/Soil',rho:2.10,nphi:0.03,gr:40,rt:100,notes:'Anthropogenic'},
+    {id:'ENG_001',sym:'CONCRETE_RF',mat:'Concrete (Portland)',family:'Engineered Materials',rho:2.30,nphi:0.04,gr:5,rt:10000,notes:'Cement matrix'},
+    {id:'ENG_002',sym:'CONCRETE_DNS',mat:'Concrete (dense)',family:'Engineered Materials',rho:2.50,nphi:0.03,gr:8,rt:20000,notes:'Heavy aggregate'},
+    {id:'ENG_003',sym:'BRICK',mat:'Brick (clay)',family:'Engineered Materials',rho:2.00,nphi:0.03,gr:20,rt:5000,notes:'Fired clay'},
+    {id:'ENG_004',sym:'MORTAR',mat:'Mortar',family:'Engineered Materials',rho:2.10,nphi:0.05,gr:15,rt:3000,notes:'Hydraulic lime'},
+    {id:'ENG_005',sym:'STEEL_Fe',mat:'Steel',family:'Engineered Materials',rho:7.80,nphi:0.01,gr:0,rt:200000,notes:'FERRIC signal'},
+    {id:'ENG_006',sym:'CAST_IRON',mat:'Cast Iron',family:'Engineered Materials',rho:7.20,nphi:0.01,gr:0,rt:100000,notes:'Carbon steel'},
+    {id:'ENG_007',sym:'ASPHALT',mat:'Asphalt',family:'Engineered Materials',rho:2.30,nphi:0.05,gr:15,rt:50000,notes:'Bituminous mix'},
+    {id:'ENG_008',sym:'FIBERGLASS',mat:'Fiberglass',family:'Engineered Materials',rho:2.20,nphi:0.02,gr:5,rt:100000,notes:'Composite'},
+    {id:'ENG_009',sym:'ABS_PLAS',mat:'ABS Plastic',family:'Engineered Materials',rho:1.10,nphi:0.01,gr:0,rt:100000,notes:'LOW density artifact'},
+];
+
+const FAMILY_CSS = {
+    'Sedimentary Clastic': 'sed-cls',
+    'Sedimentary Carbonate': 'sed-crb',
+    'Sedimentary Chemical/Organic': 'sed-chm',
+    'Igneous Felsic': 'ign-fel',
+    'Igneous Intermediate/Mafic': 'ign-maf',
+    'Igneous Ultramafic/Altered': 'ign-ult',
+    'Metamorphic Foliated': 'met-fol',
+    'Metamorphic Non-Foliated': 'met-nfl',
+    'Unconsolidated/Soil': 'unc',
+    'Engineered Materials': 'eng',
+};
+
+// Build family chips
+const chipContainer = document.getElementById('familyChips');
+Object.entries(FAMILIES).forEach(([key, val]) => {
+    if (key === 'ALL') return;
+    const btn = document.createElement('button');
+    btn.className = 'family-chip';
+    btn.dataset.family = key;
+    btn.innerHTML = val.label.split(' ')[0] + ' <span class="count">' + MATERIALS.filter(m => m.family === key).length + '</span>';
+    btn.onclick = () => filterFamily(key);
+    chipContainer.appendChild(btn);
+});
+
+// Build table
+function buildTable(filter = 'ALL') {
+    const tbody = document.getElementById('matTableBody');
+    tbody.innerHTML = '';
+    MATERIALS.filter(m => filter === 'ALL' || m.family === filter).forEach(m => {
+        const css = FAMILY_CSS[m.family] || '';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="num">${m.id}</td>
+            <td><span class="sym-chip">${m.sym}</span></td>
+            <td>${m.mat}</td>
+            <td><span class="family-tag ${css}">${m.family.split(' ').slice(0,2).join(' ')}</span></td>
+            <td class="rho">${m.rho.toFixed(2)}</td>
+            <td class="phi">${(m.nphi * 100).toFixed(0)}%</td>
+            <td class="gr">${m.gr}</td>
+            <td class="rt">${m.rt >= 1000 ? (m.rt/1000).toFixed(0)+'k' : m.rt}</td>
+            <td style="font-size:0.73rem;color:var(--muted)">${m.notes}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+let activeFamily = 'ALL';
+function filterFamily(fam) {
+    activeFamily = fam;
+    document.querySelectorAll('.family-chip').forEach(b => b.classList.toggle('active', b.dataset.family === fam));
+    buildTable(fam);
+}
+
+buildTable();
+</script>
+
+</body>
+</html>

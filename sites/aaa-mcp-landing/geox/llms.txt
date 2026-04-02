@@ -7,6 +7,13 @@
 
 ## Pages
 
+### RATLAS — Earth Material Atlas (geox_ratlas.html)
+99-material reference atlas. Forward model physics equations (Archie, Herron, density mixture, NPHI mix).
+Symbol library for arifOS reasoning engine (SAND_QZ_CLEAN, SHALE_ILL, GRANITE_K, etc.).
+Interactive table with family filter. Family chips: 11 geological families.
+Families: Sedimentary Clastic (18), Carbonate (9), Chemical/Organic (9), Igneous Felsic (9), Igneous Mafic (9), Ultramafic (9), Metamorphic Foliated (9), Metamorphic Non-Foliated (9), Unconsolidated/Soil (9), Engineered Materials (9).
+Key equations: ρb = Φ·ρf + (1−Φ)·ρma · Sw = [a·Rw/(Rt·Φm)]^1/n · Vsh = (GRlog − GRclean)/(GRshale − GRclean)
+
 ### GEOX Hub (index.html)
 Primary landing page. 
 - Introduction to GEOX as the Earth Witness organ in arifOS federation
