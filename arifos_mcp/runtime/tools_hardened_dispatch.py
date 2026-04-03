@@ -41,7 +41,10 @@ def _apply_policy(
     """Apply high-level governance policy to the tool envelope."""
     # Ensure envelope has required fields for bridge
     if "ok" not in envelope_dict:
-        envelope_dict["ok"] = envelope_dict.get("status") == "OK"
+        status = envelope_dict.get("status")
+        if hasattr(status, "value"):
+            status = status.value
+        envelope_dict["ok"] = str(status).lower() == "ok"
     if "verdict" not in envelope_dict:
         envelope_dict["verdict"] = "SEAL" if envelope_dict["ok"] else "VOID"
     return envelope_dict

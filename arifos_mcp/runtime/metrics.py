@@ -10,7 +10,8 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 from typing import Any, Literal
-from prometheus_client import Counter, Gauge, Histogram
+
+from prometheus_client import REGISTRY, Counter, Gauge, Histogram
 from arifos_mcp.runtime.models import (
     CanonicalMetrics, 
     TelemetryVitals, 
@@ -23,6 +24,48 @@ try:
     OTEL_AVAILABLE = True
 except ImportError:
     OTEL_AVAILABLE = False
+
+
+def _registered_metric(name: str):
+    """Return an existing collector when mixed package aliases import twice."""
+    collector = REGISTRY._names_to_collectors.get(name)
+    if collector is not None:
+        return collector
+
+    for suffix in ("_total", "_created", "_bucket", "_sum", "_count"):
+        collector = REGISTRY._names_to_collectors.get(f"{name}{suffix}")
+        if collector is not None:
+            return collector
+    return None
+
+
+def _gauge(name: str, documentation: str, labelnames: list[str] | tuple[str, ...] = ()):
+    collector = _registered_metric(name)
+    if collector is not None:
+        return collector
+    return Gauge(name, documentation, labelnames)
+
+
+def _counter(name: str, documentation: str, labelnames: list[str] | tuple[str, ...] = ()):
+    collector = _registered_metric(name)
+    if collector is not None:
+        return collector
+    return Counter(name, documentation, labelnames)
+
+
+def _histogram(
+    name: str,
+    documentation: str,
+    labelnames: list[str] | tuple[str, ...] = (),
+    buckets: list[float] | tuple[float, ...] | None = None,
+):
+    collector = _registered_metric(name)
+    if collector is not None:
+        return collector
+    kwargs: dict[str, Any] = {"labelnames": labelnames}
+    if buckets is not None:
+        kwargs["buckets"] = buckets
+    return Histogram(name, documentation, **kwargs)
 
 # ... (Existing Prometheus metrics) ...
 
@@ -71,35 +114,35 @@ class HelixTracer:
 helix_tracer = HelixTracer()
 
 # G (Genius Score) - Fundamental governed intelligence (3E) metric [0, 1]
-GENIUS_SCORE = Gauge(
+GENIUS_SCORE = _gauge(
     "arifos_genius_score",
     "Governed Intelligence (3E) Score (G) — Target ≥ 0.80",
     ["session_id", "tool", "provenance"],
 )
 
 # ΔS (Entropy Delta) - Information clarity metric (lower is better, ideally ≤ 0)
-ENTROPY_DELTA = Gauge(
+ENTROPY_DELTA = _gauge(
     "arifos_entropy_delta",
     "Information Entropy Delta (ΔS) — Lower reduces noise",
     ["session_id", "tool", "provenance"],
 )
 
 # Ω₀ (Humility / Uncertainty) - Stability band metric [0.03, 0.05]
-HUMILITY_BAND = Gauge(
+HUMILITY_BAND = _gauge(
     "arifos_humility_band",
     "Humility / Uncertainty (Ω₀) — Target band [0.03, 0.05]",
     ["session_id", "tool", "provenance"],
 )
 
 # P² (Peace Squared) - Stakeholder safety metric [0, 1]
-PEACE_SQUARED = Gauge(
+PEACE_SQUARED = _gauge(
     "arifos_peace_squared",
     "Stakeholder Stability (P²) — Target ≥ 1.0",
     ["session_id", "tool", "provenance"],
 )
 
 # κᵣ (Empathy Quotient) - Stakeholder care metric
-EMPATHY_QUOTIENT = Gauge(
+EMPATHY_QUOTIENT = _gauge(
     "arifos_empathy_quotient",
     "Empathy Quotient (κᵣ) — Stakeholder care level",
     ["session_id", "tool", "provenance"],
@@ -110,21 +153,21 @@ EMPATHY_QUOTIENT = Gauge(
 # ---------------------------------------------------------------------------
 
 # Metabolic Loop Latency
-METABOLIC_LOOP_DURATION = Histogram(
+METABOLIC_LOOP_DURATION = _histogram(
     "arifos_metabolic_loop_seconds",
     "Latency of the 000-999 metabolic loop",
     buckets=(0.1, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0),
 )
 
 # Verdict Counters
-VERDICT_TOTAL = Counter(
+VERDICT_TOTAL = _counter(
     "arifos_verdicts_total",
     "Total constitutional verdicts issued",
     ["verdict"],  # SEAL, VOID, HOLD_888, PARTIAL
 )
 
 # Request Counter
-REQUESTS_TOTAL = Counter(
+REQUESTS_TOTAL = _counter(
     "arifos_requests_total",
     "Total incoming requests processed by the runtime",
     ["method", "status"],
@@ -205,7 +248,7 @@ def record_verdict(verdict: str) -> None:
 # ---------------------------------------------------------------------------
 
 # W3 Tri-Witness score histogram (F3 Mirror Floor)
-W3_SCORE = Histogram(
+W3_SCORE = _histogram(
     "arifos_w3_score",
     "Tri-Witness W3 score distribution — SEAL threshold ≥ 0.95",
     ["tool"],
@@ -213,19 +256,19 @@ W3_SCORE = Histogram(
 )
 
 # 888_HOLD queue depth (F13 Sovereign Gate backlog)
-HOLD_QUEUE_DEPTH = Gauge(
+HOLD_QUEUE_DEPTH = _gauge(
     "arifos_hold_queue_depth",
     "Number of 888_HOLD events pending sovereign ratification",
 )
 
 # Vault record count (VAULT999 growth)
-VAULT_RECORDS_TOTAL = Gauge(
+VAULT_RECORDS_TOTAL = _gauge(
     "arifos_vault_records_total",
     "Total records in VAULT999 Merkle chain",
 )
 
 # Floor violations by floor code (constitutional health)
-FLOOR_VIOLATIONS = Counter(
+FLOOR_VIOLATIONS = _counter(
     "arifos_floor_violations_total",
     "Constitutional floor violations — breach by floor and tool",
     ["floor", "tool"],
@@ -233,40 +276,40 @@ FLOOR_VIOLATIONS = Counter(
 
 # SABAR events — non-terminal cooling/retry states
 # SABAR ≠ HOLD (no human needed) ≠ VOID (not permanent)
-SABAR_EVENTS = Counter(
+SABAR_EVENTS = _counter(
     "arifos_sabar_events_total",
     "SABAR cooling states — temporary thermodynamic instability by tool and cause",
     ["tool", "cause"],
 )
 
 # Active Sessions (H1.1: Production Observability)
-ACTIVE_SESSIONS = Gauge(
+ACTIVE_SESSIONS = _gauge(
     "arifos_sessions_active",
     "Number of currently active constitutional sessions",
 )
 
 # Vault Entry Count (SHA-256 Merkle Ledger)
-VAULT_ENTRIES_COUNT = Gauge(
+VAULT_ENTRIES_COUNT = _gauge(
     "arifos_vault_entries_total",
     "Total count of sealed entries in VAULT999",
 )
 
 # Machine fault codes (VOID Memanjang elimination — mechanical faults only)
-MACHINE_FAULTS = Counter(
+MACHINE_FAULTS = _counter(
     "arifos_machine_faults_total",
     "Machine-layer faults (NEVER maps to VOID) — by fault_code and tool",
     ["fault_code", "tool"],
 )
 
 # VOID events (constitutional only — should be rare)
-VOID_EVENTS = Counter(
+VOID_EVENTS = _counter(
     "arifos_void_events_total",
     "VOID verdicts issued — constitutional violations only (F2/F11/F12/F13)",
     ["void_reason", "tool"],
 )
 
 # Merkle chain integrity check results
-MERKLE_INTEGRITY = Counter(
+MERKLE_INTEGRITY = _counter(
     "arifos_merkle_integrity_checks_total",
     "VAULT999 Merkle chain integrity check outcomes",
     ["status"],  # VALID | TAMPERED

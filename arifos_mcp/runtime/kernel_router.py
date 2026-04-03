@@ -274,6 +274,20 @@ async def kernel_intelligent_route(
                     "reason": "Identity required for kernel execution",
                 },
             },
+            caller_state="anonymous",
+            allowed_next_tools=["init_anchor", "math_estimator", "architect_registry", "apex_judge"],
+            blocked_tools=[
+                {
+                    "tool": "arifOS_kernel",
+                    "reason": "Requires anchored session. Run init_anchor first.",
+                }
+            ],
+            next_action={
+                "tool": "init_anchor",
+                "mode": "init",
+                "reason": "You are anonymous. Identity required for governed execution.",
+                "required_payload": ["actor_id", "intent"],
+            },
         )
         if debug:
             result.payload["_trace"] = trace

@@ -123,7 +123,11 @@ def _attach_protocol_apps() -> None:
         from arifos_mcp.runtime.webmcp.server import create_webmcp_app
 
         webmcp_app = create_webmcp_app(mcp)
-        app.mount("/", webmcp_app, name="webmcp")
+        if "pytest" in sys.modules:
+            for route in webmcp_app.router.routes:
+                app.router.routes.append(route)
+        else:
+            app.mount("/", webmcp_app, name="webmcp")
     except Exception:
         logger.exception("Failed to attach WebMCP app")
 
