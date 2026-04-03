@@ -39,7 +39,7 @@ class PromptSpec:
 MegaToolName = Literal[
     "init_anchor",
     "arifOS_kernel",
-    "apex_judge",
+    "apex_soul",
     "vault_ledger",
     "agi_mind",
     "asi_heart",
@@ -48,13 +48,12 @@ MegaToolName = Literal[
     "math_estimator",
     "code_engine",
     "architect_registry",
-    "compat_probe",
 ]
 
 MEGA_TOOLS: tuple[str, ...] = (
     "init_anchor",
     "arifOS_kernel",
-    "apex_judge",
+    "apex_soul",
     "vault_ledger",
     "agi_mind",
     "asi_heart",
@@ -63,7 +62,6 @@ MEGA_TOOLS: tuple[str, ...] = (
     "math_estimator",
     "code_engine",
     "architect_registry",
-    "compat_probe",
 )
 
 

@@ -869,6 +869,70 @@ def _resolve_caller_state(
     return _resolve(session_id, authority)
 
 
+def _make_registration_shim(handler: Callable[..., Any]) -> Callable[..., Any]:
+    """Adapt variadic tool handlers to a FastMCP-compatible signature."""
+
+    async def _shim(
+        mode: str | None = None,
+        payload: dict[str, Any] | None = None,
+        auth_context: dict[str, Any] | None = None,
+        caller_context: dict[str, Any] | None = None,
+        risk_tier: str = "medium",
+        dry_run: bool = True,
+        allow_execution: bool = False,
+        debug: bool = False,
+        request_id: str | None = None,
+        timestamp: str | None = None,
+        session_id: str | None = None,
+        actor_id: str | None = None,
+        intent: Any = None,
+        declared_name: str | None = None,
+        reason: str | None = None,
+        human_approval: bool = False,
+        query: str | None = None,
+        context: str | None = None,
+        content: str | None = None,
+        input: str | None = None,
+        candidate: str | None = None,
+        hold_id: str | None = None,
+        message: str | None = None,
+        raw_input: str | None = None,
+        constitutional_context: str | None = None,
+        ctx: Context | None = None,
+    ) -> Any:
+        kwargs: dict[str, Any] = {
+            "mode": mode,
+            "payload": payload,
+            "auth_context": auth_context,
+            "caller_context": caller_context,
+            "risk_tier": risk_tier,
+            "dry_run": dry_run,
+            "allow_execution": allow_execution,
+            "debug": debug,
+            "request_id": request_id,
+            "timestamp": timestamp,
+            "session_id": session_id,
+            "actor_id": actor_id,
+            "intent": intent,
+            "declared_name": declared_name,
+            "reason": reason,
+            "human_approval": human_approval,
+            "query": query,
+            "context": context,
+            "content": content,
+            "input": input,
+            "candidate": candidate,
+            "hold_id": hold_id,
+            "message": message,
+            "raw_input": raw_input,
+            "constitutional_context": constitutional_context,
+            "ctx": ctx,
+        }
+        return await handler(**{key: value for key, value in kwargs.items() if value is not None})
+
+    return _shim
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # TOOL REGISTRATION
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -882,23 +946,44 @@ def register_tools(mcp: FastMCP, profile: str = "full") -> None:
 
     specs = {spec.name: spec for spec in _public_tool_specs_fn()}
     tool_param_sets: dict[str, set[str]] = {}
+    hidden_public_conflicts = {"apex_judge", "compat_probe"}
+    shimmed_tools = {
+        "init_anchor",
+        "arifOS_kernel",
+        "apex_soul",
+        "vault_ledger",
+        "agi_mind",
+        "asi_heart",
+        "engineering_memory",
+        "physics_reality",
+        "math_estimator",
+        "code_engine",
+        "architect_registry",
+        "agi_reason",
+    }
 
-    # P1: Register all 11 mega-tools + legacy compat aliases on FastMCP surface
-    # Skip handlers with **kwargs — FastMCP FunctionTool does not support them
+    # Register canonical public tools plus selected legacy aliases on FastMCP surface.
+    # Variadic mega-tool wrappers need concrete shims because FunctionTool rejects *args/**kwargs.
     all_public_tools = {**FINAL_TOOL_IMPLEMENTATIONS, **LEGACY_COMPAT_MAP}
     for name, handler in all_public_tools.items():
+        if name in hidden_public_conflicts:
+            continue
         if handler is None:
             continue
-        sig = inspect.signature(handler)
+        exposed_handler = _make_registration_shim(handler) if name in shimmed_tools else handler
+        sig = inspect.signature(exposed_handler)
         if any(p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()):
             continue  # skip **kwargs handlers
         spec = specs.get(name)
         ft = FunctionTool.from_function(
-            handler,
+            exposed_handler,
             name=name,
             description=spec.description if spec else name,
         )
-        ft.parameters["additionalProperties"] = True
+        if spec is not None:
+            ft.parameters = dict(spec.input_schema)
+        else:
+            ft.parameters["additionalProperties"] = True
         tool_param_sets[name] = set(sig.parameters.keys())
         mcp.add_tool(ft)
 

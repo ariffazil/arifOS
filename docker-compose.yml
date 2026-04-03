@@ -764,3 +764,6 @@ volumes:
 # Permanent fix via systemd: /opt/arifos/bin/fix-traefik-network.sh
 # Service: arifos-network-fix.service (enabled)
 # ───────────────────────────────────────────────────────────────────────
+  arifos_arifos_trinity:
+    name: arifos_arifos_trinity
+    driver: bridge

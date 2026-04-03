@@ -4,6 +4,8 @@
 
 set -e
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -53,7 +55,7 @@ determine_strategy() {
         reason="${reason}Core kernel code changed"
     fi
     
-    if check_changed "arifosmcp/"; then
+    if check_changed "arifos_mcp/" || check_changed "arifosmcp/"; then
         fast_rebuild=true
         reason="${reason}, MCP interface changed"
     fi
@@ -139,14 +141,15 @@ execute_strategy() {
 }
 
 # Main
-cd /root/arifosmcp
+cd "$ROOT_DIR"
 
 if [ "$1" == "--auto" ]; then
     determine_strategy
     strategy=$?
     execute_strategy $strategy
 elif [ "$1" == "--check" ]; then
-    determine_strategy
+    determine_strategy || true
+    exit 0
 else
     determine_strategy
     strategy=$?

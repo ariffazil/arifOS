@@ -46,6 +46,10 @@ async def init_anchor(
     deployment_id: str | None = None,
     session_class: str = "execute",
 ) -> RuntimeEnvelope:
+    allowed_modes = {"init", "revoke", "refresh", "state", "status"}
+    if mode is not None and mode not in allowed_modes:
+        raise ValueError(f"Invalid mode for init_anchor: {mode}")
+
     payload = dict(payload or {})
     if session_class:
         payload.setdefault("session_class", session_class)

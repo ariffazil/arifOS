@@ -146,6 +146,9 @@ LEGACY_TOOLS: set[str] = {
     "metabolic_loop_router",
     "apex_score_app",
     "stage_pipeline_app",
+    "init_anchor_state",
+    "revoke_anchor_state",
+    "get_caller_status",
 }
 
 
@@ -233,6 +236,9 @@ def iter_invalid_modes() -> list[str]:
     return sorted(bad)
 
 CAPABILITY_MAP.update({
+    "init_anchor_state": CapabilityTarget("init_anchor", "state", "legacy alias"),
+    "revoke_anchor_state": CapabilityTarget("init_anchor", "revoke", "legacy alias"),
+    "get_caller_status": CapabilityTarget("init_anchor", "status", "legacy alias"),
     "arifos_list_resources": CapabilityTarget("engineering_memory", "query", "fallback"),
     "arifos_read_resource": CapabilityTarget("engineering_memory", "query", "fallback"),
     "list_resources": CapabilityTarget("engineering_memory", "query", "fallback"),

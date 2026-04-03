@@ -19,10 +19,46 @@ from .tool_specs import (
 ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = ROOT / "pyproject.toml"
 DEFAULT_PUBLIC_BASE_URL = "https://arifos_mcp.arif-fazil.com"
+from arifos_mcp.capability_map import CAPABILITY_MAP
 
-# Canonical 12 Mega-Tools
-CANONICAL_PUBLIC_TOOLS = frozenset(spec.name for spec in PUBLIC_TOOL_SPECS)
-EXPECTED_TOOL_COUNT = 12
+PUBLIC_TOOL_ALIASES = {"apex_judge": "apex_soul"}
+PUBLIC_TOOL_EXCLUSIONS = {"compat_probe"}
+
+
+def _public_spec_name(name: str) -> str:
+    return PUBLIC_TOOL_ALIASES.get(name, name)
+
+
+def _transform_public_tool_spec(spec: ToolSpec) -> ToolSpec | None:
+    if spec.name in PUBLIC_TOOL_EXCLUSIONS:
+        return None
+    public_name = _public_spec_name(spec.name)
+    if public_name == spec.name:
+        return spec
+    return ToolSpec(
+        name=public_name,
+        stage=spec.stage,
+        role=spec.role,
+        layer=spec.layer,
+        description=spec.description,
+        trinity=spec.trinity,
+        floors=spec.floors,
+        input_schema=spec.input_schema,
+        default_budget_tier=spec.default_budget_tier,
+        min_budget_tier=spec.min_budget_tier,
+        max_budget_tier=spec.max_budget_tier,
+        overflow_policy=spec.overflow_policy,
+        readonly=spec.readonly,
+    )
+
+
+# Canonical 11 Mega-Tools
+CANONICAL_PUBLIC_TOOLS = frozenset(
+    _public_spec_name(spec.name)
+    for spec in PUBLIC_TOOL_SPECS
+    if spec.name not in PUBLIC_TOOL_EXCLUSIONS
+)
+EXPECTED_TOOL_COUNT = 11
 
 # Mandatory schema for resource discovery
 RUNTIME_ENVELOPE_SCHEMA = {
@@ -56,17 +92,21 @@ def release_version() -> str:
 
 def public_tool_names() -> tuple[str, ...]:
     """Return the names of all public tools."""
-    return tuple(spec.name for spec in PUBLIC_TOOL_SPECS)
+    return tuple(spec.name for spec in public_tool_specs())
 
 
 def public_tool_specs() -> tuple[ToolSpec, ...]:
     """Return all public tool specifications."""
-    return PUBLIC_TOOL_SPECS
+    return tuple(
+        transformed
+        for spec in PUBLIC_TOOL_SPECS
+        if (transformed := _transform_public_tool_spec(spec)) is not None
+    )
 
 
 def public_tool_spec_by_name() -> dict[str, ToolSpec]:
     """Return a map of tool names to their specifications."""
-    return {spec.name: spec for spec in PUBLIC_TOOL_SPECS}
+    return {spec.name: spec for spec in public_tool_specs()}
 
 
 PUBLIC_TOOL_SPEC_BY_NAME = public_tool_spec_by_name()
@@ -86,8 +126,9 @@ def normalize_tool_profile(profile: str | None) -> str:
 
 def build_server_json(public_base_url: str = DEFAULT_PUBLIC_BASE_URL) -> dict[str, Any]:
     """Build the canonical server.json manifest with the live public tool surface."""
+    public_specs = public_tool_specs()
     tools = []
-    for spec in PUBLIC_TOOL_SPECS:
+    for spec in public_specs:
         tools.append(
             {
                 "name": spec.name,
@@ -127,7 +168,7 @@ def build_server_json(public_base_url: str = DEFAULT_PUBLIC_BASE_URL) -> dict[st
         "name": "arifOS-APEX-G",
         "version": release_version_label(),
         "description": (
-            f"Constitutional governance server — {len(PUBLIC_TOOL_SPECS)} canonical MCP tools "
+            f"Constitutional governance server — {len(public_specs)} canonical MCP tools "
             "with F1-F13 floor enforcement, metabolic routing, prompts, and resources."
         ),
         "vendor": {"name": "Muhammad Arif bin Fazil", "url": "https://arif-fazil.com"},
@@ -148,14 +189,13 @@ def build_server_json(public_base_url: str = DEFAULT_PUBLIC_BASE_URL) -> dict[st
         "resourceTemplates": resource_templates,
         "prompts": prompts,
         "schema": {
-            "input": {spec.name: spec.input_schema for spec in PUBLIC_TOOL_SPECS}
+            "input": {spec.name: spec.input_schema for spec in public_specs}
         }
     }
 
 
 def get_legacy_redirect(name: str) -> tuple[str, str] | None:
     """Redirect legacy tool names to the new mega-tool surface (tool, mode)."""
-    from arifos_mcp.capability_map import CAPABILITY_MAP
     return CAPABILITY_MAP.get(name)
 
 
@@ -183,7 +223,7 @@ def build_mcp_manifest(public_base_url: str = DEFAULT_PUBLIC_BASE_URL) -> dict[s
 
 def verify_no_drift() -> dict[str, Any]:
     """Ensure registry matches expectations."""
-    actual_names = {spec.name for spec in PUBLIC_TOOL_SPECS}
+    actual_names = {spec.name for spec in public_tool_specs()}
     missing = CANONICAL_PUBLIC_TOOLS - actual_names
     extra = actual_names - CANONICAL_PUBLIC_TOOLS
     is_ok = len(actual_names) == EXPECTED_TOOL_COUNT and not missing and not extra
@@ -201,4 +241,4 @@ def public_resource_uris() -> list[str]:
 
 
 def public_tool_input_schemas() -> dict[str, Any]:
-    return {spec.name: spec.input_schema for spec in PUBLIC_TOOL_SPECS}
+    return {spec.name: spec.input_schema for spec in public_tool_specs()}

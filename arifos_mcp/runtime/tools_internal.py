@@ -551,6 +551,21 @@ async def engineering_memory_dispatch_impl(
     mode: str, payload: dict, auth_context: dict | None, risk_tier: str, dry_run: bool, ctx: Context
 ) -> RuntimeEnvelope:
     session_id = payload.get("session_id")
+    store = _get_constitutional_memory_store()
+    if not store and mode == "vector_forget":
+        return RuntimeEnvelope(
+            ok=True,
+            tool="engineering_memory",
+            session_id=session_id,
+            stage="555_MEMORY",
+            verdict=Verdict.SABAR,
+            status=RuntimeStatus.SABAR,
+            payload={
+                "error": "NOT_IMPLEMENTED",
+                "message": "Vector backend (Qdrant) is not configured or available.",
+            },
+        )
+        
     if mode == "engineer":
         return await _az_engineer(
             task_description=payload.get("task") or payload.get("query") or "No task",
