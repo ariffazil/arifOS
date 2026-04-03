@@ -40,6 +40,15 @@
 4. Set entrypoint: `server.py:mcp`
 5. Deploy
 
+## Read-Only Gateway Surfaces
+
+After deploy, the Horizon gateway exposes:
+
+- `/health` — liveness, mode, version, upstream reachability, and tool policy counts
+- `/metadata` — canonical entrypoint story, policy counts, and deprecated path notice
+
+Both routes are read-only and derive counts from the same policy source of truth as the gateway.
+
 ## Connecting to Sovereign Kernel
 
 The Horizon gateway proxies public-safe tools to the VPS and advertises the

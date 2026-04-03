@@ -48,11 +48,14 @@ docker compose -f docker-compose.trinity.yml up -d
 ### 2.2 Horizon Cloud Deployment
 For public-facing access via Prefect Horizon:
 
--   **Repository:** `https://github.com/ariffazil/arifosmcp`
+-   **Repository:** `https://github.com/ariffazil/arifOS`
 -   **Entrypoint:** `server.py:mcp`
 -   **Env Vars:**
     -   `ARIFOS_VPS_URL`: `https://arifosmcp.arif-fazil.com`
     -   `ARIFOS_GOVERNANCE_SECRET`: `[REDACTED]`
+-   **Operational Routes:**
+    -   `GET /health` — gateway liveness and policy counts
+    -   `GET /metadata` — canonical public contract and deprecation signals
 
 ---
 

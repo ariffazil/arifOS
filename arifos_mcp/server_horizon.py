@@ -16,10 +16,13 @@ import logging
 from fastmcp import FastMCP
 
 from config.environments import TOOL_ACCESS_POLICY, ToolAccessClass
+from arifos_mcp.runtime.fastmcp_version import JSONResponse, Request, custom_route
 
 # Configuration
 VPS_URL = os.getenv("ARIFOS_VPS_URL", "https://arifosmcp.arif-fazil.com")
 ARIFOS_GOVERNANCE_SECRET = os.getenv("ARIFOS_GOVERNANCE_SECRET", "")
+ARIFOS_VERSION = os.getenv("ARIFOS_VERSION", "2026.03.25")
+MCP_PROTOCOL_VERSION = "2025-11-25"
 
 mcp = FastMCP("arifOS Horizon Gateway")
 logging.basicConfig(level=logging.INFO)
@@ -55,6 +58,45 @@ AUTHENTICATED_TOOLS = sorted(
 SOVEREIGN_ONLY_TOOLS = sorted(
     name for name, access in TOOL_ACCESS_POLICY.items() if access == ToolAccessClass.SOVEREIGN_ONLY.value
 )
+
+
+def _policy_counts() -> dict[str, int]:
+    return {
+        "public": len(PUBLIC_PROXY_SPECS),
+        "authenticated": len(AUTHENTICATED_TOOLS),
+        "sovereign_only": len(SOVEREIGN_ONLY_TOOLS),
+    }
+
+
+async def _upstream_status() -> str:
+    try:
+        async with httpx.AsyncClient(timeout=2.5) as client:
+            response = await client.get(f"{VPS_URL}/health", headers={"Accept": "application/json"})
+        if response.status_code == 200:
+            return "reachable"
+        return "partial"
+    except Exception:
+        return "unreachable"
+
+
+async def _build_gateway_metadata() -> dict:
+    upstream_vps = await _upstream_status()
+    status = "ok" if upstream_vps == "reachable" else "degraded"
+    return {
+        "status": status,
+        "mode": "horizon_gateway",
+        "entrypoint": "server.py:mcp",
+        "version": ARIFOS_VERSION,
+        "protocol_version": MCP_PROTOCOL_VERSION,
+        "tool_policy": _policy_counts(),
+        "auth_status": "public_only",
+        "upstream_vps": upstream_vps,
+        "deprecated_paths": ["horizon/server.py"],
+        "canonical_story": {
+            "public_ingress": "Horizon gateway",
+            "sovereign_execution": VPS_URL,
+        },
+    }
 
 
 async def _proxy_to_vps(tool_name: str, arguments: dict) -> dict:
@@ -129,6 +171,20 @@ async def gateway_registry() -> dict:
         "canonical_entrypoint": "server.py:mcp",
         "sovereign_endpoint": VPS_URL,
     }
+
+
+@custom_route(mcp, "/health", methods=["GET"], include_in_schema=False)
+async def horizon_health(_request: Request):
+    """Operational liveness endpoint for Horizon mode."""
+    return JSONResponse(await _build_gateway_metadata())
+
+
+@custom_route(mcp, "/metadata", methods=["GET"], include_in_schema=False)
+async def horizon_metadata(_request: Request):
+    """Human and machine readable gateway metadata."""
+    metadata = await _build_gateway_metadata()
+    metadata["gateway_registry_tool"] = "gateway_registry"
+    return JSONResponse(metadata)
 
 
 # --- 13 SACRED RESOURCES (Full Parity) ---
