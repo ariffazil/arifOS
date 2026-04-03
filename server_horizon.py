@@ -256,17 +256,121 @@ async def _proxy_to_vps(tool_name: str, arguments: dict) -> dict:
 
 
 # Register public tools as thin proxies
-for tool_name in PUBLIC_TOOLS:
-    
-    def make_proxy(name: str):
-        async def proxy_tool(**arguments) -> dict:
-            """Proxy call to sovereign VPS."""
-            return await _proxy_to_vps(name, arguments)
-        proxy_tool.__name__ = name
-        return proxy_tool
-    
+# NOTE: We register tools without **kwargs - use explicit 'arguments: dict' param
+
+async def _proxy_init_anchor(arguments: dict | None = None) -> dict:
+    """000_INIT: Initialize constitutional session anchor."""
+    return await _proxy_to_vps("init_anchor", arguments or {})
+
+async def _proxy_arifOS_kernel(arguments: dict | None = None) -> dict:
+    """444_ROUTER: Primary metabolic conductor."""
+    return await _proxy_to_vps("arifOS_kernel", arguments or {})
+
+async def _proxy_apex_judge(arguments: dict | None = None) -> dict:
+    """888_JUDGE: Constitutional verdict engine."""
+    return await _proxy_to_vps("apex_judge", arguments or {})
+
+async def _proxy_agi_mind(arguments: dict | None = None) -> dict:
+    """333_MIND: Reasoning and synthesis engine."""
+    return await _proxy_to_vps("agi_mind", arguments or {})
+
+async def _proxy_asi_heart(arguments: dict | None = None) -> dict:
+    """666_HEART: Safety and empathy critique."""
+    return await _proxy_to_vps("asi_heart", arguments or {})
+
+async def _proxy_physics_reality(arguments: dict | None = None) -> dict:
+    """111_SENSE: Reality grounding and temporal intelligence."""
+    return await _proxy_to_vps("physics_reality", arguments or {})
+
+async def _proxy_math_estimator(arguments: dict | None = None) -> dict:
+    """777_OPS: Thermodynamic vitals and cost estimation."""
+    return await _proxy_to_vps("math_estimator", arguments or {})
+
+async def _proxy_architect_registry(arguments: dict | None = None) -> dict:
+    """000_INIT: Tool and resource discovery."""
+    return await _proxy_to_vps("architect_registry", arguments or {})
+
+async def _proxy_compat_probe(arguments: dict | None = None) -> dict:
+    """M-5_COMPAT: Interoperability and enum audit."""
+    return await _proxy_to_vps("compat_probe", arguments or {})
+
+async def _proxy_agi_reason(arguments: dict | None = None) -> dict:
+    """333_MIND: First-principles reasoning."""
+    return await _proxy_to_vps("agi_reason", arguments or {})
+
+async def _proxy_agi_reflect(arguments: dict | None = None) -> dict:
+    """333_MIND: Reflective synthesis and critique."""
+    return await _proxy_to_vps("agi_reflect", arguments or {})
+
+async def _proxy_asi_critique(arguments: dict | None = None) -> dict:
+    """666_HEART: Harm and alignment critique."""
+    return await _proxy_to_vps("asi_critique", arguments or {})
+
+async def _proxy_asi_simulate(arguments: dict | None = None) -> dict:
+    """666_HEART: Consequence and scenario simulation."""
+    return await _proxy_to_vps("asi_simulate", arguments or {})
+
+async def _proxy_reality_compass(arguments: dict | None = None) -> dict:
+    """111_SENSE: Directional grounding."""
+    return await _proxy_to_vps("reality_compass", arguments or {})
+
+async def _proxy_reality_atlas(arguments: dict | None = None) -> dict:
+    """111_SENSE: Contextual reality mapping."""
+    return await _proxy_to_vps("reality_atlas", arguments or {})
+
+async def _proxy_search_reality(arguments: dict | None = None) -> dict:
+    """111_SENSE: Evidence-grounded search."""
+    return await _proxy_to_vps("search_reality", arguments or {})
+
+async def _proxy_ingest_evidence(arguments: dict | None = None) -> dict:
+    """111_SENSE: Evidence ingestion."""
+    return await _proxy_to_vps("ingest_evidence", arguments or {})
+
+async def _proxy_check_vital(arguments: dict | None = None) -> dict:
+    """777_OPS: Runtime health signal."""
+    return await _proxy_to_vps("check_vital", arguments or {})
+
+async def _proxy_audit_rules(arguments: dict | None = None) -> dict:
+    """888_JUDGE: Rule and policy audit."""
+    return await _proxy_to_vps("audit_rules", arguments or {})
+
+async def _proxy_search_tool(arguments: dict | None = None) -> dict:
+    """Search for indexed documents."""
+    return await _proxy_to_vps("search_tool", arguments or {})
+
+async def _proxy_fetch_tool(arguments: dict | None = None) -> dict:
+    """Fetch indexed document content by ID."""
+    return await _proxy_to_vps("fetch_tool", arguments or {})
+
+
+# Register all proxies
+PUBLIC_TOOL_PROXIES = {
+    "init_anchor": _proxy_init_anchor,
+    "arifOS_kernel": _proxy_arifOS_kernel,
+    "apex_judge": _proxy_apex_judge,
+    "agi_mind": _proxy_agi_mind,
+    "asi_heart": _proxy_asi_heart,
+    "physics_reality": _proxy_physics_reality,
+    "math_estimator": _proxy_math_estimator,
+    "architect_registry": _proxy_architect_registry,
+    "compat_probe": _proxy_compat_probe,
+    "agi_reason": _proxy_agi_reason,
+    "agi_reflect": _proxy_agi_reflect,
+    "asi_critique": _proxy_asi_critique,
+    "asi_simulate": _proxy_asi_simulate,
+    "reality_compass": _proxy_reality_compass,
+    "reality_atlas": _proxy_reality_atlas,
+    "search_reality": _proxy_search_reality,
+    "ingest_evidence": _proxy_ingest_evidence,
+    "check_vital": _proxy_check_vital,
+    "audit_rules": _proxy_audit_rules,
+    "search_tool": _proxy_search_tool,
+    "fetch_tool": _proxy_fetch_tool,
+}
+
+for tool_name, proxy_fn in PUBLIC_TOOL_PROXIES.items():
     mcp.add_tool(
-        make_proxy(tool_name),
+        proxy_fn,
         name=tool_name,
         description=PUBLIC_TOOLS[tool_name],
     )
