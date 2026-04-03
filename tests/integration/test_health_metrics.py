@@ -1,7 +1,7 @@
 import pytest
-from starlette.testclient import TestClient
 
 from arifosmcp.runtime.server import app as server_app
+from tests.conftest import SyncASGIClient
 
 
 @pytest.fixture(autouse=True)
@@ -12,7 +12,7 @@ async def setup_monitoring():
 
 def test_rest_health_endpoint():
     """Verify that /health endpoint returns expected status and floors info."""
-    client = TestClient(server_app)
+    client = SyncASGIClient(server_app)
     response = client.get("/health")
     assert response.status_code == 200
     data = response.json()
@@ -26,7 +26,7 @@ def test_rest_health_endpoint():
 
 def test_version_endpoint():
     """Verify that /version endpoint returns build info."""
-    client = TestClient(server_app)
+    client = SyncASGIClient(server_app)
     response = client.get("/version")
     assert response.status_code == 200
     data = response.json()
@@ -35,7 +35,7 @@ def test_version_endpoint():
 
 def test_tools_endpoint():
     """Verify that /tools endpoint lists available tools."""
-    client = TestClient(server_app)
+    client = SyncASGIClient(server_app)
     response = client.get("/tools")
     # Might require auth if configured, but should usually be open in tests.
     if response.status_code == 200:
@@ -47,7 +47,7 @@ def test_tools_endpoint():
 
 def test_governance_status_endpoint():
     """Verify that /api/governance-status returns telemetry."""
-    client = TestClient(server_app)
+    client = SyncASGIClient(server_app)
     response = client.get("/api/governance-status")
     assert response.status_code == 200
     data = response.json()
@@ -58,7 +58,7 @@ def test_governance_status_endpoint():
 
 def test_status_endpoint_html():
     """Verify that /status renders a no-JS HTML truth page."""
-    client = TestClient(server_app)
+    client = SyncASGIClient(server_app)
     response = client.get("/status", headers={"Accept": "text/html"})
     assert response.status_code == 200
     assert "text/html" in response.headers.get("content-type", "")
@@ -68,7 +68,7 @@ def test_status_endpoint_html():
 
 def test_status_endpoint_json_format():
     """Verify that /status can emit the same telemetry payload as JSON."""
-    client = TestClient(server_app)
+    client = SyncASGIClient(server_app)
     response = client.get("/status?format=json")
     assert response.status_code == 200
     assert response.headers.get("cache-control") == "no-store"
@@ -80,7 +80,7 @@ def test_status_endpoint_json_format():
 
 def test_metrics_endpoint_available():
     """Verify that the Prometheus /metrics endpoint is exposed."""
-    client = TestClient(server_app)
+    client = SyncASGIClient(server_app)
     response = client.get("/metrics")
     assert response.status_code == 200
     assert "text/plain" in response.headers.get("content-type", "")

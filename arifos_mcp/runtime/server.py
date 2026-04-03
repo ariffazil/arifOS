@@ -12,11 +12,13 @@ import os
 import sys
 import traceback
 from contextlib import asynccontextmanager
+from typing import Any
 
 import fastmcp
 from fastmcp import FastMCP
+from fastapi import FastAPI
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse, FileResponse
+from starlette.responses import JSONResponse, FileResponse, Response
 from starlette.middleware.cors import CORSMiddleware
 
 from arifos_mcp.runtime.fastmcp_version import IS_FASTMCP_3, IS_FASTMCP_2
@@ -26,6 +28,80 @@ from arifos_mcp.runtime.resources import register_resources
 from arifos_mcp.runtime.rest_routes import register_rest_routes
 
 logger = logging.getLogger(__name__)
+
+
+def _build_fallback_a2a_app() -> FastAPI:
+    """Expose a minimal A2A surface when optional protocol deps are missing."""
+    app = FastAPI(title="arifOS A2A Fallback")
+    tasks: dict[str, dict[str, Any]] = {}
+
+    @app.get("/health")
+    async def health() -> dict[str, Any]:
+        return {"status": "healthy", "protocol": "A2A", "mode": "fallback"}
+
+    @app.post("/task")
+    async def submit_task(payload: dict[str, Any]) -> dict[str, Any]:
+        import uuid
+
+        task_id = f"a2a-fallback-{uuid.uuid4().hex[:12]}"
+        tasks[task_id] = {
+            "id": task_id,
+            "state": "submitted",
+            "messages": payload.get("messages", []),
+            "client_agent_id": payload.get("client_agent_id"),
+        }
+        return {"task_id": task_id, "task": tasks[task_id]}
+
+    @app.get("/status/{task_id}")
+    async def task_status(task_id: str) -> JSONResponse:
+        task = tasks.get(task_id)
+        if task is None:
+            return JSONResponse({"error": "Task not found"}, status_code=404)
+        return JSONResponse({"task": task, "mode": "fallback"})
+
+    return app
+
+
+def _build_fallback_webmcp_app() -> FastAPI:
+    """Expose discovery routes when WebMCP optional deps are missing."""
+    app = FastAPI(title="arifOS WebMCP Fallback")
+
+    @app.get("/.well-known/webmcp")
+    async def manifest() -> dict[str, Any]:
+        return {
+            "schema_version": "1.0",
+            "site": {
+                "name": "arifOS Constitutional AI",
+                "url": "https://aaa.arif-fazil.com",
+                "version": mcp.version,
+            },
+            "tools": [],
+            "fallback": True,
+        }
+
+    @app.get("/webmcp/sdk.js")
+    async def sdk() -> Response:
+        return Response(
+            "window.arifOSWebMCP={init:async()=>({fallback:true}),tools:async()=>({tools:[]})};",
+            media_type="application/javascript",
+        )
+
+    @app.get("/webmcp/tools.json")
+    async def tools_manifest() -> dict[str, Any]:
+        return {"service": "arifOS WebMCP", "version": mcp.version, "tools": []}
+
+    @app.post("/webmcp/init")
+    async def init_session(payload: dict[str, Any]) -> dict[str, Any]:
+        import uuid
+
+        return {
+            "verdict": "PARTIAL",
+            "session_id": f"web-fallback-{uuid.uuid4().hex[:12]}",
+            "auth_context": {"actor_id": payload.get("actor_id", "anonymous")},
+            "fallback": True,
+        }
+
+    return app
 
 # ---------------------------------------------------------------------------
 # HARDENING: GLOBAL PANIC MIDDLEWARE
@@ -118,18 +194,16 @@ def _attach_protocol_apps() -> None:
         app.mount("/a2a", a2a_server.app, name="a2a")
     except Exception:
         logger.exception("Failed to attach A2A app")
+        app.mount("/a2a", _build_fallback_a2a_app(), name="a2a-fallback")
 
     try:
         from arifos_mcp.runtime.webmcp.server import create_webmcp_app
 
         webmcp_app = create_webmcp_app(mcp)
-        if "pytest" in sys.modules:
-            for route in webmcp_app.router.routes:
-                app.router.routes.append(route)
-        else:
-            app.mount("/", webmcp_app, name="webmcp")
+        app.mount("/", webmcp_app, name="webmcp")
     except Exception:
         logger.exception("Failed to attach WebMCP app")
+        app.mount("/", _build_fallback_webmcp_app(), name="webmcp-fallback")
 
 
 _attach_protocol_apps()

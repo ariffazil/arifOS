@@ -5,6 +5,7 @@ F11 Command Auth for browser sessions.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import time
@@ -12,9 +13,8 @@ import uuid
 from dataclasses import dataclass
 from typing import Any, Optional
 
-import redis.asyncio as redis
-
 from core.enforcement.auth_continuity import mint_auth_context
+from arifos_mcp.runtime.optional_deps import redis
 
 
 @dataclass
@@ -63,6 +63,7 @@ class WebSessionManager:
         self.redis = redis_client
         self.config = config
         self._key_prefix = "arifos:web:session:"
+        self._redis_timeout = float(getattr(config, "REDIS_TIMEOUT", 0.5))
     
     async def mint_session(
         self,
@@ -108,17 +109,26 @@ class WebSessionManager:
         )
         
         # Store in Redis with TTL (F11 continuity)
-        await self.redis.setex(
-            f"{self._key_prefix}{session_id}",
-            self.config.SESSION_TTL,
-            json.dumps(session.to_dict()),
+        await asyncio.wait_for(
+            self.redis.setex(
+                f"{self._key_prefix}{session_id}",
+                self.config.SESSION_TTL,
+                json.dumps(session.to_dict()),
+            ),
+            timeout=self._redis_timeout,
         )
         
         return session
     
     async def get_session(self, session_id: str) -> Optional[WebSession]:
         """Retrieve session by ID."""
-        data = await self.redis.get(f"{self._key_prefix}{session_id}")
+        try:
+            data = await asyncio.wait_for(
+                self.redis.get(f"{self._key_prefix}{session_id}"),
+                timeout=self._redis_timeout,
+            )
+        except Exception:
+            return None
         if not data:
             return None
         
@@ -141,10 +151,13 @@ class WebSessionManager:
         session.expires_at = time.time() + self.config.SESSION_TTL
         
         # Update Redis
-        await self.redis.setex(
-            f"{self._key_prefix}{session_id}",
-            self.config.SESSION_TTL,
-            json.dumps(session.to_dict()),
+        await asyncio.wait_for(
+            self.redis.setex(
+                f"{self._key_prefix}{session_id}",
+                self.config.SESSION_TTL,
+                json.dumps(session.to_dict()),
+            ),
+            timeout=self._redis_timeout,
         )
         
         return session
@@ -158,7 +171,13 @@ class WebSessionManager:
             reason: Audit reason
         """
         # Delete from Redis
-        await self.redis.delete(f"{self._key_prefix}{session_id}")
+        try:
+            await asyncio.wait_for(
+                self.redis.delete(f"{self._key_prefix}{session_id}"),
+                timeout=self._redis_timeout,
+            )
+        except Exception:
+            return
         
         # Log to VAULT999
         await self._log_revocation(session_id, reason)
@@ -170,11 +189,20 @@ class WebSessionManager:
     
     async def list_active_sessions(self, actor_id: Optional[str] = None) -> list[WebSession]:
         """List all active web sessions."""
-        keys = await self.redis.keys(f"{self._key_prefix}*")
+        try:
+            keys = await asyncio.wait_for(
+                self.redis.keys(f"{self._key_prefix}*"),
+                timeout=self._redis_timeout,
+            )
+        except Exception:
+            return []
         sessions = []
-        
+
         for key in keys:
-            data = await self.redis.get(key)
+            try:
+                data = await asyncio.wait_for(self.redis.get(key), timeout=self._redis_timeout)
+            except Exception:
+                continue
             if data:
                 session = WebSession.from_dict(json.loads(data))
                 if actor_id is None or session.auth_context.get("actor_id") == actor_id:

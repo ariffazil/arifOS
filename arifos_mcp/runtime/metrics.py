@@ -11,7 +11,65 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from prometheus_client import REGISTRY, Counter, Gauge, Histogram
+try:
+    from prometheus_client import (
+        CONTENT_TYPE_LATEST,
+        REGISTRY,
+        Counter,
+        Gauge,
+        Histogram,
+        generate_latest,
+    )
+    PROMETHEUS_CLIENT_AVAILABLE = True
+except ImportError:
+    PROMETHEUS_CLIENT_AVAILABLE = False
+
+    CONTENT_TYPE_LATEST = "text/plain; version=0.0.4; charset=utf-8"
+
+    class _NoopCollector:
+        """Prometheus compatibility shim when observability extras are absent."""
+
+        def __init__(self, name: str, documentation: str, labelnames: Any = ()) -> None:
+            self.name = name
+            self.documentation = documentation
+            self.labelnames = tuple(labelnames)
+
+        def labels(self, *args: Any, **kwargs: Any) -> "_NoopCollector":
+            return self
+
+        def inc(self, amount: float = 1.0) -> None:
+            return None
+
+        def set(self, value: float) -> None:
+            return None
+
+        def observe(self, value: float) -> None:
+            return None
+
+    class _NoopRegistry:
+        def __init__(self) -> None:
+            self._names_to_collectors: dict[str, _NoopCollector] = {}
+
+    REGISTRY = _NoopRegistry()
+
+    def Gauge(name: str, documentation: str, labelnames: Any = ()) -> _NoopCollector:
+        collector = _NoopCollector(name, documentation, labelnames)
+        REGISTRY._names_to_collectors[name] = collector
+        return collector
+
+    def Counter(name: str, documentation: str, labelnames: Any = ()) -> _NoopCollector:
+        collector = _NoopCollector(name, documentation, labelnames)
+        REGISTRY._names_to_collectors[name] = collector
+        return collector
+
+    def Histogram(name: str, documentation: str, **kwargs: Any) -> _NoopCollector:
+        collector = _NoopCollector(name, documentation, kwargs.get("labelnames", ()))
+        REGISTRY._names_to_collectors[name] = collector
+        return collector
+
+    def generate_latest() -> bytes:
+        return b"# prometheus_client unavailable\n"
+
 from arifos_mcp.runtime.models import (
     CanonicalMetrics, 
     TelemetryVitals, 

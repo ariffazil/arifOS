@@ -105,7 +105,7 @@ MODE_SYNONYMS: dict[str, dict[str, str]] = {
 if IS_FASTMCP_3:
     try:
         from fastmcp.server.middleware.middleware import Middleware, MiddlewareContext, CallNext, ToolResult
-        import arifos_mcp.types as mt
+        import mcp.types as mt
         
         class IngressToleranceMiddleware(Middleware):
             """

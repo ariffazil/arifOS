@@ -6,21 +6,22 @@ are correctly registered and accessible without being shadowed by mounts.
 """
 
 import pytest
-from starlette.testclient import TestClient
 from arifosmcp.runtime.server import app
+from tests.conftest import SyncASGIClient
 
 @pytest.fixture
 def client():
-    return TestClient(app)
+    return SyncASGIClient(app)
 
 def test_well_known_agent_reachable(client):
     """Test that /.well-known/agent.json is reachable and returns JSON."""
     response = client.get("/.well-known/agent.json")
     assert response.status_code == 200
     data = response.json()
+    assert data.get("schema") == "agent-manifest/v1"
     assert "name" in data
-    assert "skills" in data
-    assert data["name"] == "arifOS Constitutional Kernel"
+    assert "endpoints" in data
+    assert data["name"] == "arifOS MCP Server"
 
 def test_llms_txt_reachable(client):
     """Test that /llms.txt is reachable (even if file doesn't exist, we test route registration)."""

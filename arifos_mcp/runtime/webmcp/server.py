@@ -9,17 +9,28 @@ import asyncio
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, UTC
 from pathlib import Path
 from time import time
 from typing import Any, Optional
 
-import redis.asyncio as redis
 from fastapi import Depends, FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
-from starlette.middleware.sessions import SessionMiddleware
+
+try:
+    from starlette.middleware.sessions import SessionMiddleware
+except ImportError:
+    class SessionMiddleware:
+        """No-op session middleware when optional signing deps are absent."""
+
+        def __init__(self, app: Any, **kwargs: Any):
+            self.app = app
+
+        async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+            scope.setdefault("session", {})
+            await self.app(scope, receive, send)
 
 from .config import WebMCPConfig
 from .security import RateLimiter, WebInjectionGuard, ShieldReport
@@ -39,8 +50,13 @@ from .live_metrics import (
 )
 from arifos_mcp.runtime.build_info import get_build_info
 from arifos_mcp.runtime.public_registry import PUBLIC_TOOL_SPECS
+from arifos_mcp.runtime.optional_deps import redis
 
 logger = logging.getLogger(__name__)
+
+
+def _utcnow() -> datetime:
+    return datetime.now(UTC)
 
 
 class WebMCPGateway:
@@ -131,11 +147,13 @@ class WebMCPGateway:
             000_INIT: Initialize web session context.
             PNS·SHIELD: Scan for injection attacks (F12).
             """
+            session_scope = request.scope.setdefault("session", {})
+
             # Session initialization
-            session_id = request.session.get("arifos_sid")
+            session_id = session_scope.get("arifos_sid")
             if not session_id:
                 session_id = f"web-{asyncio.get_event_loop().time():.0f}"
-                request.session["arifos_sid"] = session_id
+                session_scope["arifos_sid"] = session_id
 
             # F12 Injection Guard
             shield_report = await self.injection_guard.scan_request(request)
@@ -273,8 +291,9 @@ class WebMCPGateway:
                     human_approval=human_approval,
                 )
 
-                request.session["arifos_sid"] = session.session_id
-                request.session["arifos_actor_id"] = actor_id
+                session_scope = request.scope.setdefault("session", {})
+                session_scope["arifos_sid"] = session.session_id
+                session_scope["arifos_actor_id"] = actor_id
 
                 return {
                     "verdict": "SEAL",
@@ -289,9 +308,10 @@ class WebMCPGateway:
                 }
             except Exception as exc:
                 logger.exception("WebMCP init failed")
-                fallback_session_id = request.session.get("arifos_sid") or f"web-fallback-{int(time())}"
-                request.session["arifos_sid"] = fallback_session_id
-                request.session["arifos_actor_id"] = actor_id
+                session_scope = request.scope.setdefault("session", {})
+                fallback_session_id = session_scope.get("arifos_sid") or f"web-fallback-{int(time())}"
+                session_scope["arifos_sid"] = fallback_session_id
+                session_scope["arifos_actor_id"] = actor_id
                 return JSONResponse(
                     status_code=200,
                     content={
@@ -353,7 +373,8 @@ class WebMCPGateway:
                 )
 
             # Get session
-            session_id = request.session.get("arifos_sid")
+            session_scope = request.scope.setdefault("session", {})
+            session_id = session_scope.get("arifos_sid")
             if not session_id:
                 return JSONResponse(
                     status_code=401,
@@ -362,7 +383,7 @@ class WebMCPGateway:
 
             session = await self.session_manager.get_session(session_id)
             if not session:
-                actor_id = request.session.get("arifos_actor_id")
+                actor_id = session_scope.get("arifos_actor_id")
                 if actor_id:
                     session = type(
                         "FallbackSession",
@@ -754,7 +775,7 @@ class WebMCPGateway:
                             "floor_violations": h.floor_violations,
                             "created_at": h.created_at.isoformat(),
                             "time_elapsed_seconds": (
-                                datetime.utcnow() - h.created_at
+                                _utcnow() - h.created_at
                             ).total_seconds(),
                             "action_payload_preview": str(h.action_payload)[:200],
                         }
@@ -819,7 +840,7 @@ class WebMCPGateway:
                     "verdict": "SEAL" if decision == "APPROVED" else "VOID",
                     "hold_id": hold_id,
                     "decision": decision,
-                    "resolved_at": datetime.utcnow().isoformat(),
+                    "resolved_at": _utcnow().isoformat(),
                 }
                 
             except Exception as e:

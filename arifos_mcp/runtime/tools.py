@@ -90,19 +90,24 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 from arifos_mcp.runtime.megaTools import (
-    init_anchor,
-    arifOS_kernel,
-    apex_judge,
-    vault_ledger,
-    agi_mind,
-    asi_heart,
-    engineering_memory,
-    physics_reality,
-    math_estimator,
-    code_engine,
-    architect_registry,
+    init_anchor as _mega_init_anchor,
+    arifOS_kernel as _mega_arifOS_kernel,
+    apex_judge as _mega_apex_judge,
+    vault_ledger as _mega_vault_ledger,
+    agi_mind as _mega_agi_mind,
+    asi_heart as _mega_asi_heart,
+    engineering_memory as _mega_engineering_memory,
+    physics_reality as _mega_physics_reality,
+    math_estimator as _mega_math_estimator,
+    code_engine as _mega_code_engine,
+    architect_registry as _mega_architect_registry,
 )
 from arifos_mcp.memory.shared_memory_mcp import shared_memory_tool
+
+init_anchor_impl = _mega_init_anchor
+revoke_anchor_state_impl = _mega_init_anchor
+get_caller_status_impl = _mega_init_anchor
+apex_soul_dispatch_impl = apex_judge_dispatch_impl
 
 try:
     # init_000 was purged in sovereign unification
@@ -127,6 +132,73 @@ def _has_valid_proof(payload: dict[str, Any], actor_id: str) -> bool:
     if isinstance(proof, dict):
         return validate_sovereign_proof(actor_id, proof)
     return False
+
+
+async def init_anchor(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
+    return await init_anchor_impl(*args, **kwargs)
+
+
+async def arifOS_kernel(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
+    payload = kwargs.get("payload")
+    mode = kwargs.get("mode")
+    if mode is not None:
+        if mode not in {"kernel", "status"}:
+            raise ValueError(f"Invalid mode for arifOS_kernel: {mode}")
+        if isinstance(payload, dict):
+            return await arifos_kernel_impl(
+                query=payload.get("query"),
+                risk_tier=kwargs.get("risk_tier", "medium"),
+                auth_context=kwargs.get("auth_context"),
+                dry_run=kwargs.get("dry_run", True),
+                allow_execution=kwargs.get("allow_execution", False),
+                session_id=payload.get("session_id"),
+                ctx=kwargs.get("ctx"),
+                intent=payload.get("intent"),
+            )
+    return await _mega_arifOS_kernel(*args, **kwargs)
+
+
+async def forge(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
+    spec = kwargs.pop("spec", None)
+    if spec is not None and "query" not in kwargs:
+        kwargs["query"] = spec
+    return await agi_mind(mode="forge", *args, **kwargs)
+
+
+async def apex_soul(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
+    return await _mega_apex_judge(*args, **kwargs)
+
+
+async def vault_ledger(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
+    return await _mega_vault_ledger(*args, **kwargs)
+
+
+async def agi_mind(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
+    return await _mega_agi_mind(*args, **kwargs)
+
+
+async def asi_heart(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
+    return await _mega_asi_heart(*args, **kwargs)
+
+
+async def engineering_memory(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
+    return await _mega_engineering_memory(*args, **kwargs)
+
+
+async def physics_reality(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
+    return await _mega_physics_reality(*args, **kwargs)
+
+
+async def math_estimator(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
+    return await _mega_math_estimator(*args, **kwargs)
+
+
+async def code_engine(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
+    return await _mega_code_engine(*args, **kwargs)
+
+
+async def architect_registry(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
+    return await _mega_architect_registry(*args, **kwargs)
 
 
 def select_governed_philosophy(
@@ -649,6 +721,7 @@ async def compat_probe(mode: str = "audit", **kwargs: Any) -> RuntimeEnvelope:
 FINAL_TOOL_IMPLEMENTATIONS: dict[str, Callable[..., Any]] = {
     "init_anchor": init_anchor,
     "arifOS_kernel": arifOS_kernel,
+    "apex_soul": apex_soul,
     "apex_judge": apex_judge,
     "vault_ledger": vault_ledger,
     "agi_mind": agi_mind,
@@ -671,6 +744,9 @@ FINAL_TOOL_IMPLEMENTATIONS: dict[str, Callable[..., Any]] = {
 LEGACY_COMPAT_MAP: dict[str, Callable[..., Any]] = {
     "metabolic_loop_router": metabolic_loop_router,
     "arifos_kernel": arifos_kernel,
+    "init_anchor_state": init_anchor,
+    "revoke_anchor_state": init_anchor,
+    "get_caller_status": init_anchor,
     "check_vital": check_vital,
     "audit_rules": audit_rules,
     "agi_reason": agi_reason,
@@ -839,6 +915,7 @@ __all__ = [
     # 11 Mega-Tools
     "init_anchor",
     "arifOS_kernel",
+    "apex_soul",
     "apex_judge",
     "vault_ledger",
     "agi_mind",
