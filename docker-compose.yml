@@ -365,6 +365,7 @@ services:
       ARIFOS_PUBLIC_TOOL_PROFILE: ${ARIFOS_PUBLIC_TOOL_PROFILE:-public}
       ARIFOS_ML_FLOORS: "1"
       ARIFOS_MCP_PATH: ${ARIFOS_MCP_PATH:-/mcp}
+      VAULT999_PATH: /usr/src/app/VAULT999  # Container path for vault (matches volume mount)
       UVICORN_WORKERS: ${UVICORN_WORKERS:-1}
       UVICORN_TIMEOUT: ${UVICORN_TIMEOUT:-120}
       PYTHONHASHSEED: 0

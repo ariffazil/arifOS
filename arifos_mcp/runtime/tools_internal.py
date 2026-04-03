@@ -1071,6 +1071,12 @@ async def physics_reality_dispatch_impl(
 
         kl_offset = timezone(timedelta(hours=8))
         now_kl = now_utc.astimezone(kl_offset)
+        
+        # Build metrics with 100% confidence for deterministic time query
+        time_metrics = CanonicalMetrics()
+        time_metrics.telemetry.confidence = 1.0  # Time is deterministic
+        time_metrics.telemetry.ds = 0.0  # No entropy increase for time query
+        
         return RuntimeEnvelope(
             ok=True,
             tool="physics_reality",
@@ -1078,6 +1084,8 @@ async def physics_reality_dispatch_impl(
             stage="111_SENSE",
             verdict=Verdict.SEAL,
             status=RuntimeStatus.SUCCESS,
+            confidence=1.0,  # Deterministic time query
+            metrics=time_metrics,
             payload={
                 "temporal": {
                     "utc_iso": now_utc.isoformat(),

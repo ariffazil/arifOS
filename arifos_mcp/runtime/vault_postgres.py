@@ -29,8 +29,11 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-# Default paths
-VAULT999_PATH = Path("/root/VAULT999")
+# Default paths — configurable via environment for container deployments
+# In Docker: /usr/src/app/VAULT999 (matches docker-compose volume mount)
+# On host: /root/VAULT999 (legacy path)
+_DEFAULT_VAULT_PATH = os.environ.get("VAULT999_PATH", "/root/VAULT999")
+VAULT999_PATH = Path(_DEFAULT_VAULT_PATH)
 VAULT_EVENTS_FILE = VAULT999_PATH / "SEALED_EVENTS.jsonl"
 VAULT_CHAIN_FILE = VAULT999_PATH / "SEAL_CHAIN.txt"
 
@@ -101,60 +104,100 @@ class PostgresVaultStore:
         dsn: str | None = None,
         vault_path: Path | None = None,
     ):
-        # Connection params - passwordless for trusted VPS
-        self.dsn = dsn
-        self._connection_params = {
-            "host": "localhost",
-            "port": 5432,
-            "user": "arifos_admin",
-            "password": "",  # Passwordless - trust auth
-            "database": "arifos_vault",
-        }
+        """
+        Initialize vault store.
+        
+        Args:
+            dsn: PostgreSQL connection string. If None, uses DATABASE_URL env var.
+            vault_path: Filesystem path for JSONL mirror. Defaults to VAULT999_PATH.
+        """
+        self.dsn = dsn or os.environ.get(
+            "DATABASE_URL",
+            "postgresql://arifos_admin:arifos_vault@localhost:5432/arifos_vault"
+        )
         self.vault_path = vault_path or VAULT999_PATH
-        self._pool: Any | None = None
-        self._lock = asyncio.Lock()
+        self._pool: asyncpg.Pool | None = None
         
-        # Ensure vault directory exists
-        self.vault_path.mkdir(parents=True, exist_ok=True)
-        
-        if not ASYNCpg_AVAILABLE:
-            logger.warning("asyncpg not available. Running in filesystem-only mode.")
-    
-    async def _get_pool(self) -> Any:
-        """Lazy connection pool initialization."""
+    async def _get_pool(self) -> asyncpg.Pool | None:
+        """Lazy initialization of connection pool."""
         if not ASYNCpg_AVAILABLE:
             return None
-            
         if self._pool is None:
             try:
-                # Use DSN if provided, otherwise use connection params
-                if self.dsn:
-                    self._pool = await asyncpg.create_pool(
-                        self.dsn,
-                        min_size=2,
-                        max_size=10,
-                    )
-                else:
-                    # Default connection for arifOS docker-compose setup
-                    self._pool = await asyncpg.create_pool(
-                        host=os.environ.get("POSTGRES_HOST", "localhost"),
-                        port=int(os.environ.get("POSTGRES_PORT", "5432")),
-                        user=os.environ.get("POSTGRES_USER", "arifos_admin"),
-                        password=os.environ.get("POSTGRES_PASSWORD", ""),
-                        database=os.environ.get("POSTGRES_DB", "arifos_vault"),
-                        min_size=2,
-                        max_size=10,
-                    )
-                logger.info("PostgreSQL vault pool initialized")
+                self._pool = await asyncpg.create_pool(
+                    self.dsn,
+                    min_size=1,
+                    max_size=10,
+                    command_timeout=60,
+                )
+                # Initialize schema if needed
+                await self._init_schema()
             except Exception as e:
-                logger.error(f"Failed to connect to PostgreSQL: {e}")
-                self._pool = None
-                
+                logger.warning(f"PostgreSQL vault unavailable: {e}")
+                return None
         return self._pool
+    
+    async def _init_schema(self):
+        """Create vault tables if they don't exist."""
+        pool = await self._get_pool()
+        if not pool:
+            return
+        
+        async with pool.acquire() as conn:
+            # Main events table
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS vault_events (
+                    id SERIAL PRIMARY KEY,
+                    event_id UUID UNIQUE NOT NULL,
+                    event_type VARCHAR(32) NOT NULL,
+                    session_id VARCHAR(128) NOT NULL,
+                    actor_id VARCHAR(128) NOT NULL,
+                    stage VARCHAR(32) NOT NULL,
+                    verdict VARCHAR(32) NOT NULL,
+                    payload JSONB NOT NULL DEFAULT '{}',
+                    risk_tier VARCHAR(16) NOT NULL DEFAULT 'medium',
+                    merkle_leaf VARCHAR(64) NOT NULL DEFAULT '',
+                    prev_hash VARCHAR(64) NOT NULL DEFAULT '',
+                    chain_hash VARCHAR(64) NOT NULL DEFAULT '',
+                    signature VARCHAR(128) NOT NULL DEFAULT '',
+                    signed_by VARCHAR(64) NOT NULL DEFAULT '',
+                    sealed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            """)
+            
+            # Merkle chain seals
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS vault_seals (
+                    id SERIAL PRIMARY KEY,
+                    tree_size INTEGER NOT NULL,
+                    merkle_root VARCHAR(64) NOT NULL,
+                    prev_root VARCHAR(64) NOT NULL DEFAULT '',
+                    first_event_id INTEGER NOT NULL,
+                    last_event_id INTEGER NOT NULL,
+                    signature VARCHAR(256) NOT NULL,
+                    signed_by VARCHAR(64) NOT NULL DEFAULT '888_AUDITOR',
+                    sealed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            """)
+            
+            # Indexes for common queries
+            await conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_vault_events_session 
+                ON vault_events(session_id)
+            """)
+            await conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_vault_events_sealed_at 
+                ON vault_events(sealed_at DESC)
+            """)
+            await conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_vault_events_chain_hash 
+                ON vault_events(chain_hash)
+            """)
     
     def _compute_merkle_leaf(self, event: VaultEvent) -> str:
         """Compute SHA-256 leaf hash for an event."""
-        content = json.dumps({
+        data = {
             "event_type": event.event_type,
             "session_id": event.session_id,
             "actor_id": event.actor_id,
@@ -163,95 +206,110 @@ class PostgresVaultStore:
             "payload": event.payload,
             "risk_tier": event.risk_tier,
             "sealed_at": event.sealed_at.isoformat(),
-        }, sort_keys=True)
-        return hashlib.sha256(content.encode()).hexdigest()
+            "event_id": event.event_id,
+        }
+        return hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()
     
-    async def _get_last_chain_hash(self, conn: Any | None = None) -> str:
-        """Get the last chain hash from PostgreSQL or filesystem."""
-        # Try PostgreSQL first
-        if ASYNCpg_AVAILABLE and conn is not None:
-            try:
-                row = await conn.fetchval(
+    async def _get_last_chain_hash(self) -> str:
+        """Get the chain hash of the most recent event."""
+        pool = await self._get_pool()
+        if pool:
+            async with pool.acquire() as conn:
+                row = await conn.fetchrow(
                     "SELECT chain_hash FROM vault_events ORDER BY id DESC LIMIT 1"
                 )
                 if row:
-                    return row
-            except Exception as e:
-                logger.warning(f"Failed to get last hash from DB: {e}")
+                    return row["chain_hash"]
         
         # Fallback to filesystem
-        try:
-            if VAULT_CHAIN_FILE.exists():
-                with open(VAULT_CHAIN_FILE) as f:
-                    chain = json.load(f)
-                    return chain.get("root", "0" * 64)
-        except Exception as e:
-            logger.warning(f"Failed to get last hash from file: {e}")
-        
-        return "0" * 64
+        if self.vault_path.exists():
+            events_file = self.vault_path / "SEALED_EVENTS.jsonl"
+            if events_file.exists():
+                lines = events_file.read_text().strip().split("\n")
+                if lines:
+                    try:
+                        last_event = json.loads(lines[-1])
+                        return last_event.get("chain_hash", "")
+                    except json.JSONDecodeError:
+                        pass
+        return ""
     
-    async def _write_to_postgres(self, event: VaultEvent) -> tuple[int, str]:
+    async def seal(self, event: VaultEvent) -> SealResult:
         """
-        Write event to PostgreSQL.
+        Seal an event to VAULT999 (PostgreSQL + filesystem).
         
-        Returns:
-            (db_id, chain_hash)
+        This is the core dual-write operation:
+        1. Compute Merkle leaf hash
+        2. Get previous chain hash
+        3. Compute new chain hash (SHA256(prev + leaf))
+        4. Write to PostgreSQL
+        5. Mirror to filesystem (JSONL append)
         """
+        # Compute hashes
+        event.merkle_leaf = self._compute_merkle_leaf(event)
+        event.prev_hash = await self._get_last_chain_hash()
+        
+        chain_data = event.prev_hash + event.merkle_leaf
+        event.chain_hash = hashlib.sha256(chain_data.encode()).hexdigest()
+        
+        # Ensure vault directory exists
+        try:
+            self.vault_path.mkdir(parents=True, exist_ok=True)
+        except PermissionError as e:
+            logger.error(f"Cannot create vault directory {self.vault_path}: {e}")
+            return SealResult(
+                success=False,
+                event_id=event.event_id,
+                chain_hash="",
+                error=f"Permission denied creating vault directory: {self.vault_path}. "
+                      f"Ensure VAULT999_PATH environment variable is set correctly "
+                      f"or the directory is writable by the current user."
+            )
+        
+        db_id = 0
+        db_error = None
+        
+        # Write to PostgreSQL (canonical)
         pool = await self._get_pool()
-        if pool is None:
-            raise RuntimeError("PostgreSQL not available")
-        
-        async with pool.acquire() as conn:
-            async with conn.transaction():
-                # Get previous hash
-                prev_hash = await self._get_last_chain_hash(conn)
-                
-                # Compute this event's hash
-                merkle_leaf = self._compute_merkle_leaf(event)
-                
-                # Compute chain hash (simple chain: hash(prev + current))
-                chain_content = prev_hash + merkle_leaf
-                chain_hash = hashlib.sha256(chain_content.encode()).hexdigest()
-                
-                # Insert event
-                row = await conn.fetchrow(
-                    """
-                    INSERT INTO vault_events (
-                        event_type, session_id, actor_id, stage, verdict, risk_tier,
-                        payload, merkle_leaf, prev_hash, chain_hash, signature, signed_by
-                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-                    RETURNING id, chain_hash
+        if pool:
+            try:
+                async with pool.acquire() as conn:
+                    row = await conn.fetchrow("""
+                        INSERT INTO vault_events (
+                            event_id, event_type, session_id, actor_id, stage, verdict,
+                            payload, risk_tier, merkle_leaf, prev_hash, chain_hash,
+                            signature, signed_by, sealed_at
+                        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+                        RETURNING id
                     """,
-                    event.event_type,
-                    uuid.UUID(event.session_id) if event.session_id else uuid.uuid4(),
-                    event.actor_id,
-                    event.stage,
-                    event.verdict,
-                    event.risk_tier,
-                    json.dumps(event.payload),
-                    merkle_leaf,
-                    prev_hash,
-                    chain_hash,
-                    event.signature,
-                    event.signed_by,
-                )
-                
-                return row["id"], row["chain_hash"]
-    
-    async def _write_to_filesystem(self, event: VaultEvent, db_id: int = 0) -> None:
-        """Mirror event to filesystem JSONL."""
+                        event.event_id, event.event_type, event.session_id,
+                        event.actor_id, event.stage, event.verdict,
+                        json.dumps(event.payload), event.risk_tier,
+                        event.merkle_leaf, event.prev_hash, event.chain_hash,
+                        event.signature, event.signed_by, event.sealed_at
+                    )
+                    db_id = row["id"]
+                    logger.debug(f"Sealed event {event.event_id} to PostgreSQL (id={db_id})")
+            except Exception as e:
+                db_error = str(e)
+                logger.warning(f"PostgreSQL vault write failed: {e}")
+        
+        # Mirror to filesystem (always attempt, even if DB fails)
         try:
-            # Append to events file
+            events_file = self.vault_path / "SEALED_EVENTS.jsonl"
+            chain_file = self.vault_path / "SEAL_CHAIN.txt"
+            
+            # Append event to JSONL
             event_dict = {
-                "db_id": db_id,
+                "id": db_id,
                 "event_id": event.event_id,
                 "event_type": event.event_type,
                 "session_id": event.session_id,
                 "actor_id": event.actor_id,
                 "stage": event.stage,
                 "verdict": event.verdict,
-                "risk_tier": event.risk_tier,
                 "payload": event.payload,
+                "risk_tier": event.risk_tier,
                 "merkle_leaf": event.merkle_leaf,
                 "prev_hash": event.prev_hash,
                 "chain_hash": event.chain_hash,
@@ -260,248 +318,113 @@ class PostgresVaultStore:
                 "sealed_at": event.sealed_at.isoformat(),
             }
             
-            with open(VAULT_EVENTS_FILE, "a") as f:
-                f.write(json.dumps(event_dict, default=str) + "\n")
+            with open(events_file, "a") as f:
+                f.write(json.dumps(event_dict, separators=(",", ":")) + "\n")
             
-            # Update chain file
-            chain = {
-                "seal": event.chain_hash[:8] if event.chain_hash else "GENESIS",
-                "depth": db_id,
-                "root": event.chain_hash or "0" * 64,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "prev_seal": event.prev_hash[:8] if event.prev_hash else "00000000",
-                "leaf": event.merkle_leaf[:16] if event.merkle_leaf else "0" * 16,
-            }
+            # Update chain file (latest hash)
+            chain_file.write_text(
+                f"{event.chain_hash}\n"
+                f"event_id: {event.event_id}\n"
+                f"sealed_at: {event.sealed_at.isoformat()}\n"
+                f"db_id: {db_id}\n"
+            )
             
-            with open(VAULT_CHAIN_FILE, "w") as f:
-                f.write(json.dumps(chain, indent=2))
-                
+            logger.debug(f"Mirrored event {event.event_id} to filesystem")
+            
         except Exception as e:
-            logger.error(f"Failed to write to filesystem: {e}")
-            raise
-    
-    async def seal(self, event: VaultEvent) -> SealResult:
-        """
-        Seal an event to VAULT999.
-        
-        Dual-write: PostgreSQL (canonical) + Filesystem (mirror)
-        If PostgreSQL fails, falls back to filesystem-only mode.
-        """
-        async with self._lock:
-            try:
-                # Try PostgreSQL first (canonical)
-                if ASYNCpg_AVAILABLE:
-                    try:
-                        db_id, chain_hash = await self._write_to_postgres(event)
-                        event.chain_hash = chain_hash
-                        
-                        # Mirror to filesystem
-                        await self._write_to_filesystem(event, db_id)
-                        
-                        return SealResult(
-                            success=True,
-                            event_id=event.event_id,
-                            chain_hash=chain_hash,
-                            db_id=db_id,
-                        )
-                    except Exception as e:
-                        logger.warning(f"PostgreSQL seal failed, falling back to filesystem: {e}")
-                
-                # Filesystem-only mode (fallback)
-                prev_hash = await self._get_last_chain_hash(None)
-                merkle_leaf = self._compute_merkle_leaf(event)
-                chain_content = prev_hash + merkle_leaf
-                chain_hash = hashlib.sha256(chain_content.encode()).hexdigest()
-                
-                event.prev_hash = prev_hash
-                event.merkle_leaf = merkle_leaf
-                event.chain_hash = chain_hash
-                
-                await self._write_to_filesystem(event, 0)
-                
-                return SealResult(
-                    success=True,
-                    event_id=event.event_id,
-                    chain_hash=chain_hash,
-                    db_id=0,  # No DB id in fallback mode
-                )
-                
-            except Exception as e:
-                logger.error(f"Seal failed completely: {e}")
+            logger.error(f"Filesystem vault write failed: {e}")
+            if db_error:
                 return SealResult(
                     success=False,
                     event_id=event.event_id,
-                    chain_hash="",
-                    error=str(e),
+                    chain_hash=event.chain_hash,
+                    error=f"Both PostgreSQL and filesystem writes failed. PG: {db_error}, FS: {e}"
                 )
+            # If DB succeeded but FS failed, we still consider it a success
+            # (PostgreSQL is canonical)
+        
+        return SealResult(
+            success=True,
+            event_id=event.event_id,
+            chain_hash=event.chain_hash,
+            db_id=db_id,
+        )
     
-    async def get_chain(self, limit: int = 100) -> list[dict[str, Any]]:
-        """Get recent vault entries from PostgreSQL."""
+    async def verify_chain(self) -> dict[str, Any]:
+        """Verify the integrity of the Merkle chain."""
         pool = await self._get_pool()
-        if pool is None:
-            # Fallback to filesystem
-            return await self._get_chain_from_filesystem(limit)
+        if not pool:
+            return {"ok": False, "error": "PostgreSQL not available"}
         
         async with pool.acquire() as conn:
             rows = await conn.fetch(
-                """
-                SELECT id, event_id, event_type, session_id, actor_id, stage, verdict,
-                       payload, merkle_leaf, prev_hash, chain_hash, sealed_at
-                FROM vault_events
-                ORDER BY id DESC
-                LIMIT $1
-                """,
-                limit,
+                "SELECT id, chain_hash, prev_hash, merkle_leaf FROM vault_events ORDER BY id"
             )
+        
+        if not rows:
+            return {"ok": True, "message": "Empty chain (no events)", "events_checked": 0}
+        
+        errors = []
+        prev_hash = ""
+        
+        for row in rows:
+            # Verify chain hash computation
+            expected_data = prev_hash + row["merkle_leaf"]
+            expected_hash = hashlib.sha256(expected_data.encode()).hexdigest()
             
-            return [
-                {
+            if row["chain_hash"] != expected_hash:
+                errors.append({
                     "id": row["id"],
-                    "event_id": str(row["event_id"]),
-                    "event_type": row["event_type"],
-                    "session_id": str(row["session_id"]),
-                    "actor_id": row["actor_id"],
-                    "stage": row["stage"],
-                    "verdict": row["verdict"],
-                    "payload": row["payload"],
-                    "merkle_leaf": row["merkle_leaf"],
-                    "prev_hash": row["prev_hash"],
-                    "chain_hash": row["chain_hash"],
-                    "sealed_at": row["sealed_at"].isoformat() if row["sealed_at"] else None,
-                }
-                for row in reversed(rows)  # Oldest first
-            ]
-    
-    async def _get_chain_from_filesystem(self, limit: int = 100) -> list[dict[str, Any]]:
-        """Fallback: Get chain from filesystem."""
-        if not VAULT_EVENTS_FILE.exists():
-            return []
-        
-        try:
-            with open(VAULT_EVENTS_FILE) as f:
-                lines = f.readlines()
+                    "error": "chain_hash_mismatch",
+                    "expected": expected_hash,
+                    "stored": row["chain_hash"],
+                })
             
-            events = []
-            for line in lines[-limit:]:
-                try:
-                    events.append(json.loads(line))
-                except json.JSONDecodeError:
-                    continue
-            
-            return events
-        except Exception as e:
-            logger.error(f"Failed to read from filesystem: {e}")
-            return []
-    
-    async def verify_chain(self) -> tuple[bool, str]:
-        """
-        Verify the integrity of the vault chain.
-        
-        Returns:
-            (is_valid, message)
-        """
-        pool = await self._get_pool()
-        if pool is None:
-            return await self._verify_chain_filesystem()
-        
-        try:
-            async with pool.acquire() as conn:
-                rows = await conn.fetch(
-                    "SELECT id, prev_hash, chain_hash FROM vault_events ORDER BY id"
-                )
-                
-                if not rows:
-                    return True, "Empty chain (valid)"
-                
-                expected_prev = "0" * 64
-                for row in rows:
-                    if row["prev_hash"] != expected_prev:
-                        return False, f"Chain broken at id={row['id']}: expected {expected_prev[:16]}..., got {row['prev_hash'][:16]}..."
-                    expected_prev = row["chain_hash"]
-                
-                return True, f"Chain verified: {len(rows)} entries intact"
-                
-        except Exception as e:
-            logger.error(f"Chain verification failed: {e}")
-            return False, f"Verification error: {e}"
-    
-    async def _verify_chain_filesystem(self) -> tuple[bool, str]:
-        """Fallback: Verify chain from filesystem."""
-        if not VAULT_EVENTS_FILE.exists():
-            return True, "Empty chain (valid)"
-        
-        try:
-            with open(VAULT_EVENTS_FILE) as f:
-                lines = f.readlines()
-            
-            expected_prev = "0" * 64
-            for i, line in enumerate(lines):
-                event = json.loads(line)
-                if event.get("prev_hash") != expected_prev:
-                    return False, f"Chain broken at line {i+1}"
-                expected_prev = event.get("chain_hash", "0" * 64)
-            
-            return True, f"Chain verified: {len(lines)} entries intact"
-            
-        except Exception as e:
-            return False, f"Verification error: {e}"
-    
-    async def get_session_events(self, session_id: str) -> list[dict[str, Any]]:
-        """Get all events for a specific session."""
-        pool = await self._get_pool()
-        if pool is None:
-            # Fallback: filter from filesystem
-            chain = await self.get_chain(10000)  # Get all
-            return [e for e in chain if e.get("session_id") == session_id]
-        
-        async with pool.acquire() as conn:
-            rows = await conn.fetch(
-                """
-                SELECT * FROM vault_events
-                WHERE session_id = $1
-                ORDER BY id
-                """,
-                uuid.UUID(session_id),
-            )
-            
-            return [
-                {
+            if row["prev_hash"] != prev_hash:
+                errors.append({
                     "id": row["id"],
-                    "event_id": str(row["event_id"]),
-                    "event_type": row["event_type"],
-                    "session_id": str(row["session_id"]),
-                    "actor_id": row["actor_id"],
-                    "verdict": row["verdict"],
-                    "payload": row["payload"],
-                    "chain_hash": row["chain_hash"],
-                    "sealed_at": row["sealed_at"].isoformat() if row["sealed_at"] else None,
-                }
-                for row in rows
-            ]
-    
-    async def close(self):
-        """Close the connection pool."""
-        if self._pool is not None:
-            await self._pool.close()
-            self._pool = None
+                    "error": "prev_hash_mismatch",
+                    "expected": prev_hash,
+                    "stored": row["prev_hash"],
+                })
+            
+            prev_hash = row["chain_hash"]
+        
+        if errors:
+            return {
+                "ok": False,
+                "error": f"Chain verification failed: {len(errors)} errors",
+                "errors": errors,
+                "events_checked": len(rows),
+            }
+        
+        return {
+            "ok": True,
+            "message": "Chain integrity verified",
+            "events_checked": len(rows),
+            "latest_hash": prev_hash,
+        }
 
 
-# Global singleton instance
-_vault_store: PostgresVaultStore | None = None
-
-
-def get_vault_store() -> PostgresVaultStore:
-    """Get singleton Postgres vault store."""
-    global _vault_store
-    if _vault_store is None:
-        _vault_store = PostgresVaultStore()
-    return _vault_store
-
-
-__all__ = [
-    "PostgresVaultStore",
-    "VaultEvent",
-    "VaultSeal",
-    "SealResult",
-    "get_vault_store",
-]
+# Convenience function for external callers
+async def seal_to_vault(
+    event_type: str,
+    session_id: str,
+    actor_id: str,
+    stage: str,
+    verdict: str,
+    payload: dict[str, Any] | None = None,
+    risk_tier: str = "medium",
+) -> SealResult:
+    """Convenience wrapper to seal an event without managing the store."""
+    store = PostgresVaultStore()
+    event = VaultEvent(
+        event_type=event_type,
+        session_id=session_id,
+        actor_id=actor_id,
+        stage=stage,
+        verdict=verdict,
+        payload=payload or {},
+        risk_tier=risk_tier,
+    )
+    return await store.seal(event)
