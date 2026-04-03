@@ -1,28 +1,24 @@
 """
-arifOS Sovereign Intelligence Kernel - Dual Sovereignty Entry Point
+Canonical public entrypoint for arifOS deployments.
 
-This file serves as the unified entry point for BOTH:
-1. VPS Sovereign Kernel (primary) - https://arifos.arif-fazil.com
-2. Horizon Public Ambassador (secondary) - https://arifos.fastmcp.app
+This is the only supported public FastMCP entrypoint for both:
+1. VPS sovereign execution
+2. Horizon gateway/proxy mode
 
-Environment is auto-detected via ARIFOS_DEPLOYMENT env var.
-
-Repository: https://github.com/ariffazil/arifOS
-Documentation: https://arifos.arif-fazil.com
+Environment-specific behavior is delegated to ``arifos_mcp.server``.
+No parallel ingress narrative should point at legacy horizon-specific files.
 """
 
 import os
 import sys
 
-# Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from arifosmcp.runtime.server import mcp
+from arifos_mcp.server import mcp
 from config.environments import (
     get_environment,
     is_sovereign,
     is_public,
-    get_server_config,
 )
 
 # Detect environment
@@ -37,7 +33,6 @@ print(f"   Constitutional Floors: {', '.join(env.constitutional_floors)}")
 if is_sovereign():
     print("🔥 SOVEREIGN KERNEL: All F1-F13 floors enforced")
 elif is_public():
-    print("☁️  PUBLIC AMBASSADOR: Limited tool surface for public access")
+    print("☁️  HORIZON GATEWAY: Public entrypoint with governed proxy policy")
 
-# Export the FastMCP instance
 __all__ = ["mcp"]

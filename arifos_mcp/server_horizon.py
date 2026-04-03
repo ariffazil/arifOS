@@ -1,8 +1,12 @@
 """
-arifOS Horizon Ambassador - Full Metadata Parity (FastMCP 2.x)
+Canonical Horizon gateway for the public arifOS entrypoint.
 
-This server provides the complete arifOS constitutional context (Prompts & Resources)
-to public clients, while proxying all tool logic to the Sovereign Kernel.
+This file is the policy layer behind ``server.py:mcp`` when running in Horizon
+mode. It proxies selected tool calls to the sovereign VPS and publishes the
+full gateway contract:
+- ``public`` tools: directly callable through Horizon
+- ``authenticated`` tools: part of the unified contract, but require auth
+- ``sovereign-only`` tools: remain on the VPS execution plane
 """
 
 import os
@@ -11,13 +15,46 @@ import httpx
 import logging
 from fastmcp import FastMCP
 
+from config.environments import TOOL_ACCESS_POLICY, ToolAccessClass
+
 # Configuration
-VPS_URL = os.getenv("ARIFOS_VPS_URL", "https://arifos_mcp.arif-fazil.com")
+VPS_URL = os.getenv("ARIFOS_VPS_URL", "https://arifosmcp.arif-fazil.com")
 ARIFOS_GOVERNANCE_SECRET = os.getenv("ARIFOS_GOVERNANCE_SECRET", "")
 
-mcp = FastMCP("arifOS Public Ambassador")
+mcp = FastMCP("arifOS Horizon Gateway")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("horizon-ambassador")
+
+PUBLIC_PROXY_SPECS = {
+    "init_anchor": "000_INIT: Initialize constitutional session anchor.",
+    "arifOS_kernel": "444_ROUTER: Primary metabolic conductor.",
+    "apex_judge": "888_JUDGE: Constitutional verdict engine.",
+    "agi_mind": "333_MIND: Reasoning and synthesis engine.",
+    "asi_heart": "666_HEART: Safety and empathy critique.",
+    "physics_reality": "111_SENSE: Reality grounding and temporal intelligence.",
+    "math_estimator": "777_OPS: Thermodynamic vitals and cost estimation.",
+    "architect_registry": "000_INIT: Tool and resource discovery.",
+    "compat_probe": "M-5_COMPAT: Interoperability and enum audit.",
+    "agi_reason": "333_MIND: First-principles reasoning.",
+    "agi_reflect": "333_MIND: Reflective synthesis and critique.",
+    "asi_critique": "666_HEART: Harm and alignment critique.",
+    "asi_simulate": "666_HEART: Consequence and scenario simulation.",
+    "reality_compass": "111_SENSE: Directional grounding.",
+    "reality_atlas": "111_SENSE: Contextual reality mapping.",
+    "search_reality": "111_SENSE: Evidence-grounded search.",
+    "ingest_evidence": "111_SENSE: Evidence ingestion.",
+    "check_vital": "777_OPS: Runtime health signal.",
+    "audit_rules": "888_JUDGE: Rule and policy audit.",
+    "search_tool": "Search for indexed documents.",
+    "fetch_tool": "Fetch indexed document content by ID.",
+}
+
+AUTHENTICATED_TOOLS = sorted(
+    name for name, access in TOOL_ACCESS_POLICY.items() if access == ToolAccessClass.AUTHENTICATED.value
+)
+SOVEREIGN_ONLY_TOOLS = sorted(
+    name for name, access in TOOL_ACCESS_POLICY.items() if access == ToolAccessClass.SOVEREIGN_ONLY.value
+)
 
 
 async def _proxy_to_vps(tool_name: str, arguments: dict) -> dict:
@@ -41,70 +78,57 @@ async def _proxy_to_vps(tool_name: str, arguments: dict) -> dict:
         return {"error": "Ambassador link severed", "details": str(e), "verdict": "SABAR"}
 
 
-# --- 8 PUBLIC TOOLS (Proxied) ---
+async def _gateway_call(tool_name: str, arguments: dict) -> dict:
+    access_class = TOOL_ACCESS_POLICY.get(tool_name, ToolAccessClass.SOVEREIGN_ONLY.value)
+    if access_class == ToolAccessClass.PUBLIC.value:
+        return await _proxy_to_vps(tool_name, arguments)
+    if access_class == ToolAccessClass.AUTHENTICATED.value:
+        return {
+            "verdict": "HOLD",
+            "tool": tool_name,
+            "access_class": access_class,
+            "message": "Tool exists in the unified contract but requires bound auth continuity.",
+            "next_step": "Use the sovereign VPS endpoint until Horizon auth continuity is implemented.",
+            "sovereign_endpoint": VPS_URL,
+        }
+    return {
+        "verdict": "HOLD",
+        "tool": tool_name,
+        "access_class": access_class,
+        "message": "Tool is sovereign-only and remains on the VPS execution plane.",
+        "sovereign_endpoint": VPS_URL,
+    }
+
+
+def _register_public_proxy_tools() -> None:
+    for tool_name, description in PUBLIC_PROXY_SPECS.items():
+        async def _proxy_tool(_tool_name: str = tool_name, **kwargs) -> dict:
+            return await _gateway_call(_tool_name, kwargs)
+
+        _proxy_tool.__name__ = f"proxy_{tool_name.replace('-', '_')}"
+        _proxy_tool.__doc__ = description
+        mcp.tool(name=tool_name)(_proxy_tool)
+
+
+_register_public_proxy_tools()
 
 
 @mcp.tool()
-async def init_anchor(actor_id: str, declared_name: str = None) -> dict:
-    """000_INIT: Initialize constitutional session anchor."""
-    return await _proxy_to_vps(
-        "init_anchor", {"actor_id": actor_id, "declared_name": declared_name}
-    )
-
-
-@mcp.tool()
-async def arifOS_kernel(query: str, risk_tier: str = "medium") -> dict:
-    """444_ROUTER: Primary metabolic conductor."""
-    return await _proxy_to_vps("arifOS_kernel", {"query": query, "risk_tier": risk_tier})
-
-
-@mcp.tool()
-async def agi_mind(
-    query: str,
-    mode: str = "reason",
-    constitutional_context: str = None,
-    telos_manifold: dict = None,
-) -> dict:
-    """333_MIND: Reasoning and synthesis engine (QTT-enabled)."""
-    return await _proxy_to_vps(
-        "agi_mind",
-        {
-            "query": query,
-            "mode": mode,
-            "constitutional_context": constitutional_context,
-            "telos_manifold": telos_manifold,
+async def gateway_registry() -> dict:
+    """Return the unified Horizon gateway policy for the public entrypoint."""
+    return {
+        "deployment": "horizon_gateway",
+        "public_tools": sorted(PUBLIC_PROXY_SPECS),
+        "authenticated_tools": AUTHENTICATED_TOOLS,
+        "sovereign_only_tools": SOVEREIGN_ONLY_TOOLS,
+        "policy": {
+            "public": "Callable through Horizon and proxied to the sovereign VPS.",
+            "authenticated": "Part of the unified contract, pending Horizon auth continuity.",
+            "sovereign-only": "Must execute directly on the sovereign VPS.",
         },
-    )
-
-
-@mcp.tool()
-async def apex_soul(query: str, mode: str = "judge") -> dict:
-    """888_JUDGE: Constitutional verdict engine."""
-    return await _proxy_to_vps("apex_soul", {"query": query, "mode": mode})
-
-
-@mcp.tool()
-async def asi_heart(content: str, mode: str = "critique") -> dict:
-    """666_HEART: Safety and Red-Team (W4) audit."""
-    return await _proxy_to_vps("asi_heart", {"content": content, "mode": mode})
-
-
-@mcp.tool()
-async def physics_reality(mode: str = "search", query: str = None) -> dict:
-    """111_SENSE: Reality grounding and temporal intelligence."""
-    return await _proxy_to_vps("physics_reality", {"mode": mode, "query": query})
-
-
-@mcp.tool()
-async def math_estimator(mode: str = "health") -> dict:
-    """777_OPS: Thermodynamic vitals and cost estimation."""
-    return await _proxy_to_vps("math_estimator", {"mode": mode})
-
-
-@mcp.tool()
-async def architect_registry(mode: str = "list") -> dict:
-    """000_INIT: Tool and resource discovery."""
-    return await _proxy_to_vps("architect_registry", {"mode": mode})
+        "canonical_entrypoint": "server.py:mcp",
+        "sovereign_endpoint": VPS_URL,
+    }
 
 
 # --- 13 SACRED RESOURCES (Full Parity) ---
@@ -124,6 +148,7 @@ def arifos_floors() -> str:
                 "F13": "Sovereign (Human Veto)",
             },
             "motto": "DITEMPA BUKAN DIBERI",
+            "entrypoint": "server.py:mcp",
         }
     )
 
@@ -132,7 +157,12 @@ def arifos_floors() -> str:
 def arifos_vitals() -> str:
     """arifOS Status: Current health and deployment info."""
     return json.dumps(
-        {"status": "HEALTHY", "deployment": "Horizon Ambassador", "vps_link": "Active"}
+        {
+            "status": "HEALTHY",
+            "deployment": "Horizon Gateway",
+            "canonical_entrypoint": "server.py:mcp",
+            "vps_link": VPS_URL,
+        }
     )
 
 
@@ -172,7 +202,14 @@ async def arifos_session_vitals(session_id: str) -> str:
 @mcp.resource("arifos://tools/{tool_name}/spec")
 def arifos_tool_spec(tool_name: str) -> str:
     """arifOS Tool Specification: Detailed contract for a specific tool."""
-    return json.dumps({"tool": tool_name, "governance": "Hardened", "parity": "Ambassador-Proxied"})
+    return json.dumps(
+        {
+            "tool": tool_name,
+            "governance": "Hardened",
+            "parity": "Gateway-Proxied",
+            "access_class": TOOL_ACCESS_POLICY.get(tool_name, ToolAccessClass.SOVEREIGN_ONLY.value),
+        }
+    )
 
 
 # --- 10 SACRED PROMPTS (Full Parity) ---

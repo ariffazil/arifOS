@@ -1,12 +1,12 @@
 """
-arifOS MCP Server - Universal Entrypoint (VPS + Horizon Compatible)
+arifOS MCP Server - Canonical deployment entrypoint
 ═══════════════════════════════════════════════════════════════════════════════
 
 Auto-detects environment and switches between:
-• VPS Mode:    Full Sovereign Kernel (FastMCP 3.x)
-• Horizon Mode: Public Ambassador Proxy (FastMCP 2.x / cloud)
+• VPS Mode:      Full sovereign execution plane
+• Horizon Mode:  Gateway/proxy policy layer over the sovereign VPS
 
-Repository: https://github.com/ariffazil/arifos_mcp
+This is the runtime behind the single public entrypoint ``server.py:mcp``.
 """
 
 import os
@@ -85,8 +85,8 @@ if IS_HORIZON:
     # ═════════════════════════════════════════════════════════════════════════
     # HORIZON MODE: FastMCP 2.x Compatible - No 3.x imports!
     # ═════════════════════════════════════════════════════════════════════════
-    logger.info("[BOOT] Horizon environment detected → Public Ambassador Mode")
-    logger.info("[BOOT] All calls proxied to VPS kernel at arifos_mcp.arif-fazil.com")
+    logger.info("[BOOT] Horizon environment detected → Gateway Mode")
+    logger.info("[BOOT] Public tools proxied to sovereign VPS; sensitive tools remain gated")
     
     # Import the Horizon-safe server (no fastmcp.dependencies!)
     from server_horizon import mcp
@@ -102,8 +102,8 @@ else:
         from arifos_mcp.runtime.server import mcp
         logger.info("[BOOT] Sovereign Kernel loaded ✓")
     except (ImportError, ModuleNotFoundError) as e:
-        logger.warning(f"[FALLBACK] arifos_mcp.runtime not available ({e}) → Horizon Ambassador Mode")
-        logger.info("[BOOT] All calls proxied to VPS kernel at arifos_mcp.arif-fazil.com")
+        logger.warning(f"[FALLBACK] arifos_mcp.runtime not available ({e}) → Horizon Gateway Mode")
+        logger.info("[BOOT] Falling back to gateway/proxy policy layer")
         from server_horizon import mcp
 
 

@@ -27,10 +27,10 @@ arifOS auto-detects its environment and switches between two primary operational
 -   **Core Tools:** `vault_ledger`, `engineering_memory`, `code_engine`.
 -   **Security:** Direct access to `VAULT999` and hardware-level isolation.
 
-### 1.2 Horizon Mode (Cloud Proxy)
--   **Trigger:** `FASTMCP_CLOUD_URL` detected or FastMCP < 3.x.
--   **Capabilities:** 8 public-safe tools.
--   **Logic:** Proxies heavy operations (Vault/Memory) to the VPS Sovereign via HTTPS.
+### 1.2 Horizon Mode (Cloud Gateway)
+-   **Trigger:** `FASTMCP_CLOUD_URL` detected or `ARIFOS_DEPLOYMENT=horizon`.
+-   **Capabilities:** Unified public entrypoint with tool policy classes.
+-   **Logic:** `public` tools are proxied through Horizon, `authenticated` tools remain gated pending auth continuity, and `sovereign-only` tools execute only on the VPS.
 -   **Entrypoint:** `server.py:mcp`.
 
 ---

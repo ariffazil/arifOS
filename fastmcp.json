@@ -1,6 +1,6 @@
 {
   "name": "arifOS Sovereign Intelligence Kernel",
-  "description": "The World's First Production-Grade Constitutional AI Governance System with Protocol Trinity (MCP + A2A + WebMCP). 11 Mega-Tools (37 modes), 13 constitutional floors (F1-F13), immutable VAULT999 ledger.",
+  "description": "Canonical public FastMCP entrypoint for arifOS. Horizon runs as a governed gateway over the sovereign VPS execution plane, with public, authenticated, and sovereign-only tool classes.",
   "entrypoint": "server.py:mcp",
   "version": "2026.03.25",
   "website": "https://arifos.arif-fazil.com",

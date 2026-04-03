@@ -1,6 +1,6 @@
 {
-  "name": "arifOS Public Ambassador",
-  "description": "arifOS Constitutional AI Governance - Public Endpoint (8 tools). For full 11-tool sovereign kernel, use VPS deployment.",
+  "name": "arifOS Horizon Gateway",
+  "description": "Deprecated metadata file retained for continuity. Canonical public deployment uses server.py:mcp with Horizon gateway policy over the sovereign VPS.",
   "entrypoint": "server.py:mcp",
   "version": "2026.03.28",
   "website": "https://arifos.arif-fazil.com",
