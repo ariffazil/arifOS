@@ -59,7 +59,7 @@ logger = logging.getLogger(__name__)
 
 _DASHBOARD_ALLOWED_ORIGINS = {
     "https://apex.arif-fazil.com",
-    "https://arifos_mcp.arif-fazil.com",
+    "https://arifosmcp.arif-fazil.com",
 }
 
 
@@ -648,14 +648,14 @@ WELCOME_HTML = """\
       <div class="qs-card">
         <h4>1. Verify Health</h4>
         <div class="code-block">
-          <code>curl -s https://arifos_mcp.arif-fazil.com/health</code>
+          <code>curl -s https://arifosmcp.arif-fazil.com/health</code>
           <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
       </div>
       <div class="qs-card">
         <h4>2. List Surface</h4>
         <div class="code-block">
-          <code>curl -s https://arifos_mcp.arif-fazil.com/tools</code>
+          <code>curl -s https://arifosmcp.arif-fazil.com/tools</code>
           <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
       </div>
@@ -663,7 +663,7 @@ WELCOME_HTML = """\
         <h4>3. FastMCP Connect</h4>
         <div class="code-block">
           <code># Config for Claude/ChatGPT
-{ "mcpServers": { "arifos": { "url": "https://arifos_mcp.arif-fazil.com/mcp" } } }</code>
+{ "mcpServers": { "arifos": { "url": "https://arifosmcp.arif-fazil.com/mcp" } } }</code>
           <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
       </div>
@@ -738,16 +738,16 @@ Payload: { "jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1 }</co
       <h3>Developer Endpoints</h3>
       <table>
         <tr><th>Path</th><th>Description</th><th>Copy</th></tr>
-        <tr><td class="url">/health</td><td>Docker health & metrics</td><td><button class="copy-btn" style="position:static" onclick="copyText('https://arifos_mcp.arif-fazil.com/health')">URL</button></td></tr>
-        <tr><td class="url">/openapi.json</td><td>OpenAPI 3.1 Spec</td><td><button class="copy-btn" style="position:static" onclick="copyText('https://arifos_mcp.arif-fazil.com/openapi.json')">URL</button></td></tr>
-        <tr><td class="url">/llms.txt</td><td>Model-readable context</td><td><button class="copy-btn" style="position:static" onclick="copyText('https://arifos_mcp.arif-fazil.com/llms.txt')">URL</button></td></tr>
-        <tr><td class="url">/server.json</td><td>MCP Discovery Manifest</td><td><button class="copy-btn" style="position:static" onclick="copyText('https://arifos_mcp.arif-fazil.com/.well-known/mcp/server.json')">URL</button></td></tr>
+        <tr><td class="url">/health</td><td>Docker health & metrics</td><td><button class="copy-btn" style="position:static" onclick="copyText('https://arifosmcp.arif-fazil.com/health')">URL</button></td></tr>
+        <tr><td class="url">/openapi.json</td><td>OpenAPI 3.1 Spec</td><td><button class="copy-btn" style="position:static" onclick="copyText('https://arifosmcp.arif-fazil.com/openapi.json')">URL</button></td></tr>
+        <tr><td class="url">/llms.txt</td><td>Model-readable context</td><td><button class="copy-btn" style="position:static" onclick="copyText('https://arifosmcp.arif-fazil.com/llms.txt')">URL</button></td></tr>
+        <tr><td class="url">/server.json</td><td>MCP Discovery Manifest</td><td><button class="copy-btn" style="position:static" onclick="copyText('https://arifosmcp.arif-fazil.com/.well-known/mcp/server.json')">URL</button></td></tr>
       </table>
     </section>
 
     <section>
       <h3>Legacy Compatibility</h3>
-      <p style="color:var(--dim); font-size: 0.8rem;">32 legacy handlers remain active as internal modes of the 11 mega-tools.</p>
+      <p style="color:var(--dim); font-size: 0.8rem;">__LEGACY_COUNT__ legacy handlers remain active as internal modes of the 11 mega-tools.</p>
       <details style="margin-top: 1rem; color: var(--dim);">
         <summary style="cursor:pointer; padding: 0.5rem; background: #111; border-radius: 4px;">View Legacy Mapping Table</summary>
         <div style="padding: 1rem; border: 1px solid var(--border); border-top:none;">
@@ -942,8 +942,8 @@ Allow: /
 
 # LLM-readable description of this service
 # See: https://llmstxt.org
-Sitemap: https://arifos_mcp.arif-fazil.com/llms.txt
-Sitemap: https://arifos_mcp.arif-fazil.com/llms.json
+Sitemap: https://arifosmcp.arif-fazil.com/llms.txt
+Sitemap: https://arifosmcp.arif-fazil.com/llms.json
 """
 
 LLMS_TXT = f"""\
@@ -1053,8 +1053,8 @@ LLMS_JSON = {
         },
         "brain": {
             "name": "The Engine (Runtime MCP)",
-            "url": "https://arifos_mcp.arif-fazil.com",
-            "llms_txt": "https://arifos_mcp.arif-fazil.com/llms.txt",
+            "url": "https://arifosmcp.arif-fazil.com",
+            "llms_txt": "https://arifosmcp.arif-fazil.com/llms.txt",
             "role": "The live Constitutional Kernel (MCP) and Audit Dashboard.",
         },
     },
@@ -1069,6 +1069,12 @@ WELCOME_HTML = WELCOME_HTML.replace("__BUILD_COMMIT__", BUILD_INFO["commit"])
 WELCOME_HTML = WELCOME_HTML.replace("__BUILD_TIME__", BUILD_INFO["timestamp"])
 WELCOME_HTML = WELCOME_HTML.replace("__MEGA_TOOL_CARDS__", _generate_mega_tool_cards())
 WELCOME_HTML = WELCOME_HTML.replace("__APEX_HTML_ROWS__", apex_tools_html_rows())
+try:
+    from arifos_mcp.capability_map import LEGACY_COMPAT_MAP as _lcm
+    WELCOME_HTML = WELCOME_HTML.replace("__LEGACY_COUNT__", str(len(_lcm)))
+    del _lcm
+except Exception:
+    WELCOME_HTML = WELCOME_HTML.replace("__LEGACY_COUNT__", "legacy")
 LLMS_TXT = LLMS_TXT.replace("__APEX_MD_TABLE__", apex_tools_markdown_table())
 
 CHECKPOINT_MODES = {"quick", "full", "audit_only"}
@@ -1359,8 +1365,10 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
     @route("/metrics", methods=["GET"])
     async def metrics_endpoint(request: Request) -> Response:
         """Prometheus metrics — scraped by arifos_prometheus every 30s."""
-        from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
         from starlette.responses import Response as _Resp
+        from arifos_mcp.runtime.metrics import CONTENT_TYPE_LATEST, generate_latest, update_prometheus_metrics
+
+        update_prometheus_metrics()
 
         return _Resp(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 

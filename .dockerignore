@@ -11,6 +11,8 @@ env/
 ENV/
 .venv
 .ENV
+.venv_geox
+geox/.venv_geox
 
 # Distribution / packaging
 build/
