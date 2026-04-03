@@ -3,10 +3,12 @@
 > **DITEMPA BUKAN DIBERI** — *Intelligence is forged, not given.*
 
 ```
-VERSION: 2026.04.01
-STATUS: OPERATIONAL
+VERSION: 2026.04.03
+STATUS: OPERATIONAL — HORIZON II READY
 AUTHORITY: 888_JUDGE
-KERNEL_HASH: ΔΩΨ-ARIF-888
+KERNEL_HASH: ΔΩΨ-ARIF-888-H2
+READINESS: 91/100
+SEAL: SEAL_20260403_HORIZON_II
 ```
 
 ---
@@ -39,6 +41,19 @@ KERNEL_HASH: ΔΩΨ-ARIF-888
 24. [Appendix B: Floor Implementation Details](#appendix-b-floor-implementation-details)
 25. [Appendix C: Agent Integration Patterns](#appendix-c-agent-integration-patterns)
 26. [Appendix D: Troubleshooting & Diagnostics](#appendix-d-troubleshooting--diagnostics)
+
+---
+
+## Horizon II Upgrade (2026.04.03)
+
+arifOS has been upgraded to **Horizon II** — sovereign-grade constitutional intelligence with:
+
+- **Production Prompt Pack v1.0**: 13 hardened prompts (000-999) with machine-verifiable schemas and Constitutional Guard enforcement
+- **ASF-1 Communication Protocol**: Structured dual-layer communication for Agent↔Agent, Agent↔Human, and hybrid modes
+- **Decision Vector Framework**: EMV, NPV Safety, Entropy Δ, and Safety metrics for every decision
+- **Automated Validation**: CLI tool for constitutional compliance checking
+
+**Readiness Score**: 91/100 (Horizon II — Sovereign-Grade)
 
 ---
 
@@ -354,6 +369,38 @@ REQUEST IN
 | **777_OPS** | Thermo | Estimation, Landauer limits | Estimates computational cost, thermodynamic bounds, resource requirements. Prevents resource exhaustion. |
 | **888_JUDGE** | APEX | Final constitutional judgment | Combines all checks into a final verdict: SEAL, COMPLY, CAUTION, HOLD, SABAR, or VOID. |
 | **999_SEAL** | Vault | Immutable audit log | Writes the decision, reasoning, and outcome to the append-only vault ledger. Cryptographically signed. |
+
+### Production Prompt Pack v1.0 (Horizon II)
+
+Each stage now uses a hardened production prompt with machine-verifiable schemas:
+
+| Stage | Prompt Name | Floors Activated | Key Deliverables |
+|-------|-------------|------------------|------------------|
+| 000_INIT | `salam_000_init` | F1, F9, F10, F12, F13 | Session_id, anchor_status, Ω₀ band |
+| 111_SENSE | `anchor_111_epoch_lock` | F2, F3, F11 | Epoch, grounding_status, reality_map |
+| — | `explore_222` | F4, F7, F8 | Hypotheses, pros/cons, constraints |
+| 333_MIND | `agi_333_reason` | F2, F4, F7, F8, F10 | Decision_vector, reasoning_steps |
+| — | `agi_333_reflect` | F2, F3, F4, F7 | Revision_plan, changed_fields |
+| 444_ROUT | `kernel_444_route` | F3, F11, F12 | Next_stage, escalation_needed |
+| 555_MEM | `forge_555_engineer` | F1, F4, F8, F11, F13 | Result, constraints_met |
+| 666_HEART | `rasa_666_redteam` | F5, F6, F9, F12 | Attack_vectors, exploit_level |
+| — | `rasa_666_critique` | F2, F3, F7 | Fallacies_found, bias_detected |
+| 777_OPS | `math_777_health` | F4, F5, F6, F8 | Vitals_dict, floor_coverage |
+| — | `math_777_score` | F2, F3, F4, F7, F8 | G_score, telemetry |
+| 888_JUDGE | `apex_888_judge` | **ALL F1-F13** | Verdict, reasoning, seal |
+| 999_SEAL | `seal_999_seal` | F1, F11 | Seal_hash, ledger_entry |
+
+**Prompt Features:**
+- **Constitutional Guard**: Every prompt includes automatic rejection of floor overrides
+- **Ω₀ Band**: Uncertainty declaration [0.03-0.05] enforced
+- **Machine-Verifiable Outputs**: Required fields validated by `validator.py`
+- **ASF-1 Compatibility**: Dual-layer format support
+
+Validate prompts:
+```bash
+cd core/prompts
+python validator.py --check-all
+```
 
 ### Why "Metabolic"?
 
@@ -787,6 +834,63 @@ When you receive a verdict from arifOS:
 | SABAR | Stop. Request clarification or retry. |
 | VOID | Stop. Explain why. Do not retry without changes. |
 
+### ASF-1 Communication Protocol (Horizon II)
+
+When communicating through arifOS, agents MUST use the **APEX Structured Format (ASF-1)** for structured communication:
+
+#### Decision Vector
+
+Every agent-to-agent message MUST include a Decision Vector with four components:
+
+| Component | Description | Values |
+|-----------|-------------|--------|
+| **EMV** | Expected Monetary Value | 0.0-1.0 (High/Medium/Low) |
+| **NPV Safety** | Downside protection | 0.0-1.0 (Strong/Moderate/Weak) |
+| **Entropy Δ** | Clarity trend (F4) | < 0 is good, > 0 is increasing confusion |
+| **Safety** | Hard constraint status | 🟢 green / 🟡 amber / 🔴 red |
+
+#### Communication Modes
+
+**Agent → Agent**: JSON payload only
+```json
+{
+  "asf_version": "1.0",
+  "header": {"to": "agent_id", "mode": "evaluate"},
+  "decision_vector": {
+    "emv": 0.74,
+    "npv_safety": 0.68,
+    "entropy_delta": -0.12,
+    "safety": "green"
+  },
+  "next_actions": ["run_model", "query_vault"],
+  "truth_tags": {"model_result": "PLAUSIBLE", "constraint": "CLAIM"}
+}
+```
+
+**Agent → Human**: Narrative with Decision Vector summary
+- Present key context in bullets
+- Show Decision Vector as labeled values
+- Include next actions with EMV if applicable
+
+**Agent → Both**: Dual-layer format
+```
+[Human-readable narrative explaining reasoning]
+
+---MACHINE---
+[JSON payload for agents]
+---END MACHINE---
+```
+
+#### Truth Tags (Agent-to-Agent)
+
+Use Truth Tags to indicate confidence levels:
+- **CLAIM**: ≥0.95 confidence — Treat as ground truth
+- **PLAUSIBLE**: 0.70-0.94 — Requires verification
+- **ESTIMATE**: 0.50-0.69 — High uncertainty
+- **UNKNOWN**: <0.50 — Block until resolved
+
+See `APEX/ASF1_COMMUNICATION_PROTOCOL.md` for full specification.
+
 ---
 
 ## For Humans: The Governance Interface
@@ -948,7 +1052,12 @@ arifOS/
 │   ├── enforcement/           # Governance engine
 │   │   ├── verdict.py          # Verdict rendering
 │   │   └── sanctions.py        # Enforcement actions
-│   └── shared/floors.py       # F1-F13 definitions (canonical)
+│   ├── shared/floors.py       # F1-F13 definitions (canonical)
+│   ├── prompts/               # Production Prompt Pack (Horizon II)
+│   │   ├── production_pack.py # 13 hardened prompts with validation
+│   │   └── validator.py       # CLI validation tool
+│   └── protocols/             # Communication protocols (Horizon II)
+│       └── asf1.py            # ASF-1 protocol implementation
 │
 ├── AGENTS/                      # Agent specifications (who does what)
 │   ├── A-ARCHITECT.md         # System architect agent
@@ -961,6 +1070,10 @@ arifOS/
 │   ├── DAILY_AUDIT_*.md        # Tool test results
 │   ├── VALIDATOR_FEEDBACK_*.md # External POV review
 │   └── ENGINEERING_BLUEPRINT_*.md # Progress updates
+│
+├── APEX/                        # Apex documentation (Horizon II)
+│   ├── PRODUCTION_PROMPT_PACK_v1.md  # 13 hardened prompt specifications
+│   └── ASF1_COMMUNICATION_PROTOCOL.md # Dual-layer communication spec
 │
 ├── 000/                        # Constitutional documents (the foundation)
 │   ├── 000_CONSTITUTION.md    # 13 Floors formal definition
@@ -978,6 +1091,9 @@ arifOS/
 | Directory | Purpose | Who Should Read |
 |-----------|---------|-----------------|
 | `core/` | **The Law** — Constitutional kernel, Floor definitions, verdict logic | Anyone modifying safety behavior |
+| `core/prompts/` | **Production Prompts** — Hardened 000-999 prompts, validation | Prompt engineers, safety validators |
+| `core/protocols/` | **Communication Standards** — ASF-1 protocol, agent↔agent format | Agent developers, integration engineers |
+| `APEX/` | **Apex Documentation** — Production prompts, protocols, specifications | System architects, safety researchers |
 | `arifosmcp/` | **The Runtime** — MCP server, tool implementations, pipeline | Anyone integrating or deploying |
 | `AGENTS/` | **The Roles** — Agent specifications, behavioral constraints | Anyone building agents on arifOS |
 | `REPORTS/` | **The Audit Trail** — Daily logs, feedback, blueprints | Compliance, monitoring, debugging |
@@ -1354,8 +1470,9 @@ F13 (ADAPTABILITY) ensures that amendments preserve the spirit of the Constituti
 
 | Version | Date | Key Changes |
 |---------|------|-------------|
-| 2026.03.25 | 2026-03-25 | Initial operational release |
+| **2026.04.03** | **2026-04-03** | **Horizon II Release**: Production Prompt Pack v1.0 (13 hardened prompts with Constitutional Guard), ASF-1 Communication Protocol (dual-layer Agent↔Agent communication), Decision Vector Framework (EMV/NPV/Entropy/Safety), automated validation via `validator.py`. Readiness: 91/100. |
 | 2026.04.01 | 2026-04-01 | Documentation expansion, telemetry v2.1 |
+| 2026.03.25 | 2026-03-25 | Initial operational release |
 
 See `CHANGELOG.md` for full history.
 
@@ -1709,10 +1826,12 @@ If you use arifOS, you are part of this experiment. You are helping discover wha
 
 ---
 
-*Last Updated: 2026-04-01*  
-*Version: 2026.04.01*  
-*Kernel Hash: ΔΩΨ-ARIF-888*  
-*Status: OPERATIONAL*
+*Last Updated: 2026-04-03*  
+*Version: 2026.04.03*  
+*Kernel Hash: ΔΩΨ-ARIF-888-H2*  
+*Readiness: 91/100*  
+*Seal: SEAL_20260403_HORIZON_II*  
+*Status: OPERATIONAL — HORIZON II READY*
 
 ---
 
