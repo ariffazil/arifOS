@@ -22,6 +22,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from fastmcp import FastMCP
+from starlette.responses import JSONResponse
 
 from config.environments import (
     TOOL_ACCESS_POLICY,
@@ -104,7 +105,7 @@ TOOL_COUNTS = _get_tool_policy_counts()
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @mcp.custom_route("/health", methods=["GET"])
-async def health_endpoint() -> dict[str, Any]:
+async def health_endpoint(request) -> JSONResponse:
     """
     Horizon gateway health check.
     
@@ -127,7 +128,7 @@ async def health_endpoint() -> dict[str, Any]:
     if upstream["status"] != "reachable":
         status = "degraded"
     
-    return {
+    return JSONResponse({
         "status": status,
         "mode": "horizon_gateway",
         "version": ARIFOS_VERSION,
@@ -138,11 +139,11 @@ async def health_endpoint() -> dict[str, Any]:
         "auth_status": "public_only",
         "upstream_vps": upstream,
         "floors": env.constitutional_floors,
-    }
+    })
 
 
 @mcp.custom_route("/metadata", methods=["GET"])
-async def metadata_endpoint() -> dict[str, Any]:
+async def metadata_endpoint(request) -> JSONResponse:
     """
     Full gateway metadata and policy disclosure.
     
@@ -170,7 +171,7 @@ async def metadata_endpoint() -> dict[str, Any]:
         if access == ToolAccessClass.SOVEREIGN_ONLY.value
     ]
     
-    return {
+    return JSONResponse({
         "gateway": {
             "name": env.name,
             "version": ARIFOS_VERSION,
@@ -208,7 +209,7 @@ async def metadata_endpoint() -> dict[str, Any]:
             "thermo_budget_multiplier": env.thermo_budget_multiplier,
         },
         "timestamp": datetime.now(timezone.utc).isoformat(),
-    }
+    })
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
