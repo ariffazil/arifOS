@@ -804,8 +804,8 @@ def register_tools(mcp: FastMCP, profile: str = "full") -> None:
     from fastmcp.tools.function_tool import FunctionTool
     from arifos_mcp.runtime.ingress_middleware import IngressToleranceMiddleware
 
-    ingress = IngressToleranceMiddleware()
     specs = {spec.name: spec for spec in _public_tool_specs_fn()}
+    tool_param_sets: dict[str, set[str]] = {}
 
     # P1: Register all 11 mega-tools + legacy compat aliases on FastMCP surface
     # Skip handlers with **kwargs — FastMCP FunctionTool does not support them
@@ -823,9 +823,11 @@ def register_tools(mcp: FastMCP, profile: str = "full") -> None:
             description=spec.description if spec else name,
         )
         ft.parameters["additionalProperties"] = True
-        ingress.register_tool_params(name, set(sig.parameters.keys()))
+        tool_param_sets[name] = set(sig.parameters.keys())
         mcp.add_tool(ft)
 
+    # C1 FIX: Instantiate middleware with pre-built param sets, pass instance
+    ingress = IngressToleranceMiddleware(tool_param_sets=tool_param_sets)
     mcp.add_middleware(ingress)
 
 
