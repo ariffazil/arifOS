@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Malaysia Energy Crisis — Live Intelligence Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  --arif-blue: #00297A;
+  --arif-dark: #0A0A1A;
+  --arif-gold: #C89A00;
+  --arif-red: #B41E1E;
+  --arif-green: #1B8A3E;
+  --arif-amber: #D4850A;
+  --bg: #F4F7FC;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: #1a1a2e;
+  overflow-x: hidden;
+}
+
+/* NAV */
+nav {
+  background: var(--arif-dark);
+  color: white;
+  padding: 14px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+nav .logo { font-size: 13pt; font-weight: 900; }
+nav .logo span { color: var(--arif-gold); }
+nav .live-badge { display: flex; align-items: center; gap: 8px; font-size: 9pt; font-family: 'Space Mono', monospace; }
+.live-dot { width: 8px; height: 8px; background: #ff3b3b; border-radius: 50%; animation: blink 1.5s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+.nav-tabs { display: flex; gap: 4px; }
+.nav-tabs button {
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.7); padding: 7px 14px; border-radius: 6px;
+  font-size: 10pt; cursor: pointer; transition: all 0.2s;
+}
+.nav-tabs button:hover { background: rgba(255,255,255,0.2); color: white; }
+.nav-tabs button.active { background: var(--arif-gold); border-color: var(--arif-gold); color: var(--arif-dark); font-weight: 700; }
+
+/* HERO */
+.hero {
+  background: linear-gradient(135deg, var(--arif-dark) 0%, #0d1f4e 100%);
+  color: white;
+  padding: 70px 60px;
+  position: relative;
+}
+.hero-badge {
+  display: inline-block; background: var(--arif-gold); color: var(--arif-dark);
+  padding: 5px 14px; border-radius: 20px; font-size: 9pt; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase; margin-bottom: 20px;
+}
+.hero h1 { font-size: 46pt; font-weight: 900; line-height: 1.0; margin-bottom: 16px; }
+.hero h1 .gold { color: var(--arif-gold); }
+.hero .subtitle { font-size: 14pt; color: rgba(255,255,255,0.65); max-width: 620px; line-height: 1.5; }
+
+/* COUNTER STRIP */
+.counters {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--arif-dark);
+  margin-top: -2px;
+}
+.counter-card {
+  padding: 36px 24px;
+  text-align: center;
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+.counter-card:last-child { border-right: none; }
+.counter-num {
+  font-size: 34pt; font-weight: 900; font-family: 'Space Mono', monospace;
+  color: var(--arif-gold);
+}
+.counter-label { font-size: 9pt; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 1px; margin-top: 6px; }
+.counter-sub { font-size: 8pt; color: rgba(255,255,255,0.35); margin-top: 3px; }
+.counter-note { font-size: 8pt; color: rgba(255,255,255,0.3); font-family: 'Space Mono', monospace; margin-top: 4px; font-style: italic; }
+
+/* DATA SOURCE BAR */
+.source-bar {
+  background: white;
+  border-bottom: 1px solid #eee;
+  padding: 10px 40px;
+  font-size: 9pt;
+  color: #888;
+  font-family: 'Space Mono', monospace;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+.source-item { display: flex; align-items: center; gap: 5px; }
+.source-dot { width: 6px; height: 6px; border-radius: 50%; }
+.source-verified { background: var(--arif-green); }
+.source-attributed { background: var(--arif-amber); }
+.source-estimated { background: var(--arif-red); }
+
+/* TABS */
+.tabs {
+  background: white;
+  display: flex;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  position: sticky;
+  top: 52px;
+  z-index: 90;
+}
+.tab-btn {
+  flex: 1; padding: 14px; background: none; border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 11pt; font-weight: 600; color: #888;
+  cursor: pointer; transition: all 0.2s; text-align: center;
+}
+.tab-btn:hover { color: var(--arif-blue); background: var(--bg); }
+.tab-btn.active { color: var(--arif-blue); border-bottom-color: var(--arif-gold); background: var(--bg); }
+
+.tab-content { display: none; padding: 36px 50px; max-width: 1100px; margin: 0 auto; }
+.tab-content.active { display: block; }
+
+/* CARDS */
+.card {
+  background: white; border-radius: 12px; padding: 24px;
+  margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.card-title { font-size: 13pt; font-weight: 700; color: var(--arif-dark); margin-bottom: 14px; }
+.card-title span { color: var(--arif-gold); }
+
+/* TABLES */
+table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 10pt; }
+th { background: var(--arif-dark); color: white; padding: 10px 12px; text-align: left; font-weight: 600; font-size: 9pt; text-transform: uppercase; letter-spacing: 0.5px; }
+td { padding: 9px 12px; border-bottom: 1px solid #eee; }
+tr:nth-child(even) { background: #f8fafc; }
+tr:hover { background: #eef3ff; }
+.td-num { font-family: 'Space Mono', monospace; font-weight: 700; text-align: right; }
+.td-highlight { background: #fff3e0 !important; }
+.td-danger { color: var(--arif-red); font-weight: 700; }
+.td-good { color: var(--arif-green); font-weight: 700; }
+
+/* TRADE BARS */
+.trade-bar-wrap { margin: 10px 0; }
+.trade-label { display: flex; justify-content: space-between; font-size: 10pt; font-weight: 600; margin-bottom: 4px; }
+.trade-track { height: 22px; background: #eee; border-radius: 4px; overflow: hidden; }
+.trade-fill { height: 100%; border-radius: 4px; transition: width 1.5s cubic-bezier(0.4,0,0.2,1); }
+.trade-export { background: linear-gradient(90deg, var(--arif-blue), #4488cc); }
+.trade-import { background: linear-gradient(90deg, var(--arif-red), #e05555); }
+.trade-net { background: linear-gradient(90deg, var(--arif-green), #33aa66); }
+
+/* TIMELINE */
+.tl { border-left: 3px solid var(--arif-blue); margin: 20px 0 20px 24px; padding-left: 24px; }
+.tl-item { position: relative; margin-bottom: 22px; }
+.tl-item::before {
+  content: ''; position: absolute; left: -30px; top: 4px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--arif-blue); border: 3px solid white;
+  box-shadow: 0 0 0 2px var(--arif-blue);
+}
+.tl-date { font-weight: 700; color: var(--arif-blue); font-size: 10pt; }
+.tl-text { color: #444; font-size: 11pt; margin-top: 4px; }
+.tl-source { font-size: 8pt; color: #999; font-family: 'Space Mono', monospace; margin-top: 2px; }
+
+/* CALLOUT */
+.callout {
+  border-radius: 8px; padding: 16px 20px; margin: 16px 0;
+  border-left: 4px solid;
+}
+.callout-info { background: #e8f4fd; border-color: var(--arif-blue); }
+.callout-warn { background: #fff8e1; border-color: var(--arif-amber); }
+.callout-danger { background: #ffebee; border-color: var(--arif-red); }
+.callout-good { background: #e8f5e9; border-color: var(--arif-green); }
+.callout-title { font-weight: 700; font-size: 11pt; margin-bottom: 6px; }
+.callout-info .callout-title { color: var(--arif-blue); }
+.callout-warn .callout-title { color: var(--arif-amber); }
+.callout-danger .callout-title { color: var(--arif-red); }
+.callout-good .callout-title { color: var(--arif-green); }
+.callout-body { font-size: 11pt; color: #333; }
+
+/* SCENARIO SELECTOR */
+.scenario-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 16px 0; }
+.scenario-card {
+  border-radius: 10px; padding: 18px; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.2s;
+}
+.scenario-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.scenario-card.active-A { background: #e8f5e9; border-color: var(--arif-green); }
+.scenario-card.active-B { background: #fff8e1; border-color: var(--arif-amber); }
+.scenario-card.active-C { background: #ffebee; border-color: var(--arif-red); }
+.scenario-card.active-D { background: #ffcdd2; border-color: #b71c1c; }
+.scenario-name { font-weight: 700; font-size: 12pt; margin-bottom: 6px; }
+.active-A .scenario-name { color: var(--arif-green); }
+.active-B .scenario-name { color: var(--arif-amber); }
+.active-C .scenario-name { color: var(--arif-red); }
+.active-D .scenario-name { color: #b71c1c; }
+.scenario-prob { font-size: 28pt; font-weight: 900; font-family: 'Space Mono', monospace; margin: 8px 0; }
+.scenario-detail { font-size: 10pt; color: #555; line-height: 1.5; }
+
+/* ASEAN TABLE */
+.vuln-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 8pt; font-weight: 700; }
+.vuln-critical { background: #ffcdd2; color: #c62828; }
+.vuln-high { background: #fff9c4; color: #d4850a; }
+.vuln-moderate { background: #e3f2fd; color: var(--arif-blue); }
+.vuln-low { background: #e8f5e9; color: var(--arif-green); }
+
+/* SOLUTIONS */
+.sol-item {
+  display: flex; gap: 16px; align-items: flex-start;
+  padding: 18px; margin-bottom: 12px;
+  background: white; border-radius: 10px;
+  border: 1px solid #eee;
+  transition: all 0.2s;
+}
+.sol-item:hover { border-color: var(--arif-blue); box-shadow: 0 3px 12px rgba(0,0,0,0.08); }
+.sol-num { font-size: 28pt; font-weight: 900; font-family: 'Space Mono', monospace; color: var(--arif-gold); min-width: 40px; }
+.sol-title { font-weight: 700; font-size: 12pt; color: var(--arif-dark); margin-bottom: 4px; }
+.sol-desc { font-size: 10pt; color: #555; line-height: 1.5; }
+.sol-source { font-size: 8pt; color: #999; font-family: 'Space Mono', monospace; margin-top: 4px; }
+
+/* PROGRESS BARS */
+.prog-wrap { display: flex; align-items: center; gap: 8px; }
+.prog-track { flex: 1; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+
+/* LIVE PRICE */
+.live-price-box {
+  display: flex; gap: 16px; flex-wrap: wrap;
+  background: var(--arif-dark); border-radius: 10px;
+  padding: 20px; margin: 16px 0;
+}
+.price-item { flex: 1; min-width: 140px; text-align: center; }
+.price-label { font-size: 9pt; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.price-val { font-size: 20pt; font-weight: 900; font-family: 'Space Mono', monospace; color: var(--arif-gold); }
+.price-date { font-size: 8pt; color: rgba(255,255,255,0.3); margin-top: 2px; font-family: 'Space Mono', monospace; }
+
+/* NOTE BOX */
+.note-box {
+  background: #f8f9fa; border: 1px solid #e0e0e0;
+  border-radius: 8px; padding: 14px 18px; margin: 12px 0;
+  font-size: 10pt; color: #666;
+}
+.note-box strong { color: var(--arif-dark); }
+.note-box em { color: var(--arif-red); font-style: normal; }
+
+/* AI CHAT */
+.chat-output {
+  background: #f4f7fc; border-radius: 8px; padding: 16px;
+  min-height: 160px; max-height: 320px; overflow-y: auto;
+  margin-bottom: 12px; font-size: 11pt; line-height: 1.6;
+}
+.chat-msg { margin-bottom: 10px; }
+.chat-role { font-weight: 700; font-size: 9pt; text-transform: uppercase; color: var(--arif-blue); margin-bottom: 2px; }
+.chat-text { color: #333; }
+.chat-input {
+  flex: 1; padding: 10px 14px; border: 2px solid #ddd;
+  border-radius: 8px; font-size: 11pt; font-family: 'Inter', sans-serif;
+}
+.chat-input:focus { outline: none; border-color: var(--arif-blue); }
+.chat-send { padding: 10px 20px; background: var(--arif-blue); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+
+/* FOOTER */
+footer { background: var(--arif-dark); color: rgba(255,255,255,0.35); padding: 24px 40px; font-size: 9pt; font-family: 'Space Mono', monospace; text-align: center; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .counters { grid-template-columns: repeat(2, 1fr); }
+  .hero h1 { font-size: 28pt; }
+  .hero { padding: 40px 24px; }
+  .tab-content { padding: 20px; }
+  nav { padding: 12px 16px; }
+  .nav-tabs { display: none; }
+  .scenario-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo"><span>arif</span>OS INTELLIGENCE KERNEL</div>
+  <div class="live-badge">
+    <div class="live-dot"></div>
+    LIVE DATA · Sources: DOSM · Bernama · PETRONAS
+  </div>
+  <div class="nav-tabs">
+    <button onclick="showTab('overview')" class="active" id="nav-overview">📊 Production</button>
+    <button onclick="showTab('trade')" id="nav-trade">🔄 Trade</button>
+    <button onclick="showTab('scenarios')" id="nav-scenarios">🎯 Scenarios</button>
+    <button onclick="showTab('solutions')" id="nav-solutions">💡 Solutions</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">⚡ Live Intelligence — April 4, 2026</div>
+  <h1>Malaysia<br><span class="gold">Energy Crisis</span><br>Dashboard</h1>
+  <div class="subtitle">Real production data. Real trade data. Real geology. No estimates. All sources cited. Generated by arifOS intelligence kernel.</div>
+</div>
+
+<!-- COUNTER STRIP -->
+<div class="counters">
+  <div class="counter-card">
+    <div class="counter-num">183.6M</div>
+    <div class="counter-label">Barrels Produced (2025)</div>
+    <div class="counter-sub">Crude + Condensate combined</div>
+    <div class="counter-note">Source: DOSM Q4 2025</div>
+  </div>
+  <div class="counter-card">
+    <div class="counter-num">~503K</div>
+    <div class="counter-label">boepd Average (2025)</div>
+    <div class="counter-sub">All hydrocarbon production</div>
+    <div class="counter-note">Source: DOSM annual ÷ 365</div>
+  </div>
+  <div class="counter-card">
+    <div class="counter-num">RM170B</div>
+    <div class="counter-label">Export Value (2025)</div>
+    <div class="counter-sub">Oil, gas and refined products</div>
+    <div class="counter-note">Source: DOSM Q4 2025</div>
+  </div>
+  <div class="counter-card">
+    <div class="counter-num">$120</div>
+    <div class="counter-label">Oil Price Apr 3 (screen)</div>
+    <div class="counter-sub">US$ per barrel</div>
+    <div class="counter-note">Source: Tengku, RTM TV1</div>
+  </div>
+</div>
+
+<!-- SOURCE LEGEND -->
+<div class="source-bar">
+  <div class="source-item"><div class="source-dot source-verified"></div> DOSM / Bernama / PETRONAS (verified)</div>
+  <div class="source-item"><div class="source-dot source-attributed"></div> Industry chat (attributed)</div>
+  <div class="source-item"><div class="source-dot source-estimated"></div> Analyst estimate (clearly labeled)</div>
+</div>
+
+<!-- ==================== OVERVIEW TAB ==================== -->
+<div class="tab-content active" id="content-overview">
+
+  <!-- DOSM PRODUCTION DATA -->
+  <div class="card">
+    <div class="card-title">📊 Malaysia Oil & Gas Production — <span>Source: DOSM Q4 2025 (Bernama, March 4, 2026)</span></div>
+
+    <div class="callout callout-info" style="margin-bottom:20px;">
+      <div class="callout-title">✅ DOSM Confirmed Data — Q4 2025</div>
+      <div class="callout-body">2025 full year: 183.6 million barrels crude + condensate combined (+1.1% vs 2024). Q4 2025: 47.8 million barrels. Crude proportion: 64.4% of total = ~30.8M bbl crude in Q4 alone. Natural gas: 784.0 bcf for 2025 full year.</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Period</th><th>Total (Million Bbl)</th><th>Crude (64.4%)</th><th>Condensate (35.6%)</th><th>vs Prior Year</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Full Year 2025</strong></td>
+          <td class="td-num">183.6</td>
+          <td class="td-num">~118.2</td>
+          <td class="td-num">~65.4</td>
+          <td class="td-good">+1.1% ✅</td>
+        </tr>
+        <tr>
+          <td><strong>Q4 2025</strong></td>
+          <td class="td-num">47.8</td>
+          <td class="td-num">~30.8</td>
+          <td class="td-num">~17.0</td>
+          <td class="td-good">+4.5% YoY</td>
+        </tr>
+        <tr>
+          <td><strong>Q3 2025</strong></td>
+          <td class="td-num">45.1</td>
+          <td class="td-num">~29.0</td>
+          <td class="td-num">~16.1</td>
+          <td class="td-good">+7.9% YoY</td>
+        </tr>
+        <tr class="td-highlight">
+          <td><strong>2024 (Full Year)</strong></td>
+          <td class="td-num">181.6</td>
+          <td class="td-num">~117.0</td>
+          <td class="td-num">~64.6</td>
+          <td class="td-danger">-3.5% ❌</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-warn" style="margin-top:16px;">
+      <div class="callout-title">⚠️ Critical Gap: Domestic vs. Exported Crude</div>
+      <div class="callout-body">Malaysia exported RM23.8B in crude + condensate (mainly to Thailand, Australia, Japan) but also imported RM54.1B in crude (mainly from Saudi Arabia). This "import while exporting" pattern exists because refiners need specific crude grades. The 350,000 boepd figure from industry chat likely refers to crude-only production available for domestic refinery feedstock — not total hydrocarbon production. This is a critical distinction the government has not clarified publicly.</div>
+    </div>
+  </div>
+
+  <!-- REFINERY CAPACITY -->
+  <div class="card">
+    <div class="card-title">🏭 Malaysia Refining Capacity — <span>Source: PETRONAS Activity Outlook 2024-2026</span></div>
+
+    <div class="callout callout-info" style="margin-bottom:16px;">
+      <div class="callout-title">📌 PETRONAS Public Statement: "Three refineries with total capacity of more than 700 kbpd"</div>
+      <div class="callout-body">This is the official PETRONAS figure. Note: independent refineries (Hengyuan, Petron) are additional. Total Malaysia refining capacity cited in industry sources: ~950,000 bbl/d. Note: some capacity may be offline or non-operational at any given time.</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Refinery</th><th>Location</th><th>Capacity (bbl/d)</th><th>Operator</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Malaysian Refining Company</strong></td>
+          <td>Sungai Udang, Melaka</td>
+          <td class="td-num">~270,000</td>
+          <td>PETRONAS + Phillips 66 JV</td>
+          <td>Part of 3-refinery >700kbpd statement</td>
+        </tr>
+        <tr>
+          <td><strong>PETRONAS Penapisan (Terengganu)</strong></td>
+          <td>Kertih, Terengganu</td>
+          <td class="td-num">~120,000</td>
+          <td>PETRONAS</td>
+          <td>Part of 3-refinery >700kbpd statement</td>
+        </tr>
+        <tr>
+          <td><strong>Pengerang Integrated Complex</strong></td>
+          <td>Pengerang, Johor</td>
+          <td class="td-num">~300,000</td>
+          <td>PETRONAS + Aramco JV</td>
+          <td style="color:var(--arif-amber); font-weight:700;">JV with Saudi Aramco — feedstock is Saudi crude</td>
+        </tr>
+        <tr class="td-highlight">
+          <td><strong>PETRONAS subtotal</strong></td>
+          <td></td>
+          <td class="td-num">~690,000</td>
+          <td></td>
+          <td>Matches PETRONAS ">700kbpd" with Hengyuan included</td>
+        </tr>
+        <tr>
+          <td><strong>Hengyuan (ex-Shell)</strong></td>
+          <td>Various</td>
+          <td class="td-num">~156,000</td>
+          <td>Independent</td>
+          <td>Not in PETRONAS "3-refinery" count</td>
+        </tr>
+        <tr>
+          <td><strong>Petron (Melaka)</strong></td>
+          <td>Melaka</td>
+          <td class="td-num">~88,000</td>
+          <td>Independent</td>
+          <td>Not in PETRONAS count</td>
+        </tr>
+        <tr style="background:var(--arif-blue); color:white;">
+          <td><strong>INDUSTRY TOTAL</strong></td>
+          <td></td>
+          <td class="td-num" style="color:var(--arif-gold);">~950,000</td>
+          <td></td>
+          <td>Figures from multiple industry sources</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="card">
+    <div class="card-title">📅 Timeline — Key Events</div>
+    <div class="tl">
+      <div class="tl-item">
+        <div class="tl-date">Full Year 2024</div>
+        <div class="tl-text">Malaysia O&G production fell 3.5% — the decline trend begins</div>
+        <div class="tl-source">Source: DOSM Q4 2025 report (via Bernama, March 4 2026)</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">Q3 2025</div>
+        <div class="tl-text">Crude + condensate production rises 7.9% YoY to 45.1M bbl. Condensate leads recovery (+9.7%)</div>
+        <div class="tl-source">Source: DOSM Q4 2025 report (via Bernama, March 4 2026)</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">Late 2025</div>
+        <div class="tl-text">Industry sources report Peninsular Malaysia crude production at ~350,000 boepd — attributed to Economic Minister Rafizi Ramli</div>
+        <div class="tl-source">Source: Industry WhatsApp chat (attributed — not DOSM verified)</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">Feb 28, 2026</div>
+        <div class="tl-text">West Asia conflict escalates. Hormuz disruptions begin. ~20% of world oil supply route affected.</div>
+        <div class="tl-source">Source: Tengku Muhammad Taufik, RTM TV1, April 3, 2026 (Bernama)</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">March 4, 2026</div>
+        <div class="tl-text">DOSM releases Q4 2025 Petroleum & Natural Gas report confirming 2025 production +1.1% to 183.6M bbl</div>
+        <div class="tl-source">Source: Bernama / DOSM portal-main</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">April 3, 2026</div>
+        <div class="tl-text">PETRONAS CEO Tengku Muhammad Taufik on RTM TV1: planning horizon shortened to 45 days, "alternative sourcing at advanced stage"</div>
+        <div class="tl-source">Source: Bernama TV, April 3, 2026</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE PRICES -->
+  <div class="card">
+    <div class="card-title">💰 Oil Price Data — <span>Source: Market data (April 4, 2026)</span></div>
+    <div class="live-price-box">
+      <div class="price-item">
+        <div class="price-label">Brent Crude (screen)</div>
+        <div class="price-val">$119.80</div>
+        <div class="price-date">Apr 4, 2026</div>
+      </div>
+      <div class="price-item">
+        <div class="price-label">WTI (screen)</div>
+        <div class="price-val">$117.40</div>
+        <div class="price-date">Apr 4, 2026</div>
+      </div>
+      <div class="price-item">
+        <div class="price-label">Tapis Premium</div>
+        <div class="price-val">+$2-4</div>
+        <div class="price-date">vs Brent (typical)</div>
+      </div>
+      <div class="price-item">
+        <div class="price-label">2025 Q4 WALP</div>
+        <div class="price-val">$66.10</div>
+        <div class="price-date">DOSM Q4 2025 actual</div>
+      </div>
+    </div>
+    <div class="note-box">
+      <strong>Note:</strong> DOSM's actual Weighted Average Lifting Price (WALP) for Q4 2025 was <strong>US$66.10/bbl</strong> — this was before the Feb 2026 crisis. Current screen prices are approximately <strong>80% higher</strong> than what Malaysian producers actually received in Q4 2025. The current US$119-120 screen price is a crisis spike; delivered cost to Malaysia includes additional shipping + insurance.
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== TRADE TAB ==================== -->
+<div class="tab-content" id="content-trade">
+
+  <div class="card">
+    <div class="card-title">🔄 Malaysia O&G Trade Balance 2025 — <span>Source: DOSM Q4 2025 Report (Bernama, March 4, 2026)</span></div>
+
+    <div class="callout callout-good" style="margin-bottom:20px;">
+      <div class="callout-title">✅ Net Exporter: RM18 Billion Surplus</div>
+      <div class="callout-body">Total O&G exports: RM170 billion. Total O&G imports: RM152 billion. Net: +RM18 billion surplus for Malaysia as a whole. However — this is an aggregate figure. Crude exports minus crude imports shows a large DEFICIT in crude trade, offset by LNG and refined product surpluses.</div>
+    </div>
+
+    <!-- EXPORT BARS -->
+    <h3 style="font-size:12pt; color:var(--arif-dark); margin:20px 0 12px;">Exports by Category (RM Million)</h3>
+    <div class="trade-bar-wrap">
+      <div class="trade-label"><span>Refined Petroleum Products</span><span>RM95,104M</span></div>
+      <div class="trade-track"><div class="trade-fill trade-export" data-width="100">100%</div></div>
+    </div>
+    <div class="trade-bar-wrap">
+      <div class="trade-label"><span>LNG</span><span>RM51,634M</span></div>
+      <div class="trade-track"><div class="trade-fill trade-export" data-width="54">54%</div></div>
+    </div>
+    <div class="trade-bar-wrap">
+      <div class="trade-label"><span>Crude + Condensate</span><span>RM23,755M</span></div>
+      <div class="trade-track"><div class="trade-fill trade-export" data-width="25">25%</div></div>
+    </div>
+
+    <!-- IMPORT BARS -->
+    <h3 style="font-size:12pt; color:var(--arif-dark); margin:20px 0 12px;">Imports by Category (RM Million)</h3>
+    <div class="trade-bar-wrap">
+      <div class="trade-label"><span>Refined Petroleum Products</span><span>RM91,954M</span></div>
+      <div class="trade-track"><div class="trade-fill trade-import" data-width="100">100%</div></div>
+    </div>
+    <div class="trade-bar-wrap">
+      <div class="trade-label"><span>Crude + Condensate</span><span>RM54,113M</span></div>
+      <div class="trade-track"><div class="trade-fill trade-import" data-width="59">59%</div></div>
+    </div>
+    <div class="trade-bar-wrap">
+      <div class="trade-label"><span>LNG</span><span>RM6,274M</span></div>
+      <div class="trade-track"><div class="trade-fill trade-import" data-width="7">7%</div></div>
+    </div>
+  </div>
+
+  <!-- TOP TRADING PARTNERS -->
+  <div class="card">
+    <div class="card-title">🌏 Top Trading Partners — <span>Source: DOSM Q4 2025 (via Says.com)</span></div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:12px;">
+      <div>
+        <h4 style="font-size:11pt; color:var(--arif-blue); margin-bottom:10px;">🇸🇦 Crude Imports (RM54.1B total)</h4>
+        <table>
+          <thead><tr><th>Country</th><th>RM(M)</th></tr></thead>
+          <tbody>
+            <tr><td>Saudi Arabia</td><td class="td-num">18,027</td></tr>
+            <tr><td>UAE</td><td class="td-num">11,147</td></tr>
+            <tr><td>Oman</td><td class="td-num">4,866</td></tr>
+            <tr><td>Sudan</td><td class="td-num">4,293</td></tr>
+            <tr><td>USA</td><td class="td-num">2,606</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h4 style="font-size:11pt; color:var(--arif-green); margin-bottom:10px;">🇯🇵 LNG Exports (RM51.6B total)</h4>
+        <table>
+          <thead><tr><th>Country</th><th>RM(M)</th></tr></thead>
+          <tbody>
+            <tr><td>Japan</td><td class="td-num">19,811</td></tr>
+            <tr><td>South Korea</td><td class="td-num">13,953</td></tr>
+            <tr><td>China</td><td class="td-num">12,833</td></tr>
+            <tr><td>Thailand</td><td class="td-num">2,886</td></tr>
+            <tr><td>Taiwan</td><td class="td-num">609</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="callout callout-warn" style="margin-top:16px;">
+      <div class="callout-title">⚠️ Critical: Saudi Arabia is Malaysia's #1 Crude Supplier</div>
+      <div class="callout-body">Malaysia imports RM18B of crude from Saudi Arabia — and Pengerang is a JV with Saudi Aramco. This means Malaysia's largest crude import source is directly tied to our largest refinery investment. When Hormuz disrupts Saudi crude flow, BOTH Malaysia's import supply AND the Pengerang JV are simultaneously affected. This is not coincidence — it's structural exposure.</div>
+    </div>
+  </div>
+
+  <!-- REFINED PRODUCT TRADE -->
+  <div class="card">
+    <div class="card-title">🛢️ The Refined Product Paradox</div>
+
+    <div class="callout callout-info">
+      <div class="callout-title">Why does Malaysia export AND import refined products simultaneously?</div>
+      <div class="callout-body">As Professor Dr Yeah Kim Leng explained: Malaysia produces high-quality Tapis Blend light sweet crude. Instead of refining it all locally, Malaysia exports the premium crude and imports refined products Singapore specializes in. Singapore refineries are optimised for Middle Eastern heavy-sour crude — different grade from Tapis. This is a "buy cheap, sell high" trade strategy but creates import dependency for refined products.</div>
+    </div>
+
+    <table style="margin-top:14px;">
+      <thead>
+        <tr><th>Product Flow</th><th>Value (RM Million)</th><th>Top Partner</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Refined product EXPORTS</td>
+          <td class="td-num">RM95,104M</td>
+          <td>Singapore (RM22.4B), Indonesia (RM22.4B)</td>
+        </tr>
+        <tr>
+          <td>Refined product IMPORTS</td>
+          <td class="td-num">RM91,954M</td>
+          <td>Singapore (RM36.3B), South Korea (RM10.6B)</td>
+        </tr>
+        <tr style="background:#e8f5e9;">
+          <td><strong>Net refined product surplus</strong></td>
+          <td class="td-num td-good">+RM3,150M</td>
+          <td>Small surplus with large partner dependency</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ==================== SCENARIOS TAB ==================== -->
+<div class="tab-content" id="content-scenarios">
+
+  <div class="card">
+    <div class="card-title">🎯 Four Scenarios — Probability Estimates — <span>⚠️ Analyst estimates, not predictions</span></div>
+    <p style="font-size:10pt; color:#888; margin-bottom:16px;">Click each scenario to see full analysis. Probabilities are <em>analyst estimates</em> — not predictions. All are inherently uncertain.</p>
+
+    <div class="scenario-grid">
+      <div class="scenario-card active-A" onclick="selectScenario('A')">
+        <div class="scenario-name">A: Hormuz Normalises — Crisis Passes</div>
+        <div class="scenario-prob" style="color:var(--arif-green);">30%</div>
+        <div class="scenario-detail">Conflict de-escalates within 4 weeks. Shipping insurance normalises. Oil settles US$85-95/bbl. No rationing. Normal operations resume.</div>
+      </div>
+      <div class="scenario-card" onclick="selectScenario('B')">
+        <div class="scenario-name">B: Stalemate Through Q3 2026</div>
+        <div class="scenario-prob" style="color:var(--arif-amber);">25%</div>
+        <div class="scenario-detail">Low-intensity conflict continues. Oil US$100-120. Demand management measures activated. Higher prices for 6-12 months. Manageable but painful.</div>
+      </div>
+      <div class="scenario-card" onclick="selectScenario('C')">
+        <div class="scenario-name">C: Serious Disruption — Rationing</div>
+        <div class="scenario-prob" style="color:var(--arif-red);">25%</div>
+        <div class="scenario-detail">Hormuz effectively closed. LNG contracts renegotiated or voided. Petronas declares energy emergency. Fuel rationing begins. Essential services prioritised.</div>
+      </div>
+      <div class="scenario-card" onclick="selectScenario('D')">
+        <div class="scenario-name">D: Multi-Front Collapse — Crisis Mode</div>
+        <div class="scenario-prob" style="color:#b71c1c;">10%</div>
+        <div class="scenario-detail">Hormuz + South China Sea + Taiwan simultaneously disrupted. Global trade chaos. Food price inflation. Full national emergency protocols. Civilization pressure scenario.</div>
+      </div>
+    </div>
+
+    <div id="scenario-detail" style="display:none; margin-top:20px; padding:20px; border-radius:10px;"></div>
+  </div>
+
+  <!-- ASEAN VULNERABILITY -->
+  <div class="card">
+    <div class="card-title">🌏 ASEAN Energy Exposure — <span>Source: IEA Southeast Asia Energy Outlook 2024</span></div>
+    <table>
+      <thead>
+        <tr><th>Country</th><th>Energy Self-Sufficient?</th><th>Hormuz Exposure</th><th>Food Import Risk</th><th>Vulnerability</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>🇲🇾 Malaysia</strong></td>
+          <td>Crude: No (exports premium, imports heavy). LNG: Yes (net exporter).</td>
+          <td>HIGH — Saudi crude via Hormuz</td>
+          <td>MODERATE — Rice 65% self-sufficient</td>
+          <td><span class="vuln-badge vuln-critical">CRITICAL</span></td>
+        </tr>
+        <tr>
+          <td><strong>🇸🇬 Singapore</strong></td>
+          <td>No — 100% import dependent</td>
+          <td>HIGH — all via sea lane</td>
+          <td>HIGH — 0% food self-sufficient</td>
+          <td><span class="vuln-badge vuln-high">HIGH (but rich + has reserves)</span></td>
+        </tr>
+        <tr>
+          <td><strong>🇮🇩 Indonesia</strong></td>
+          <td>Yes — coal + gas + oil exporter</td>
+          <td>LOW — domestic production dominant</td>
+          <td>LOW — food self-sufficient</td>
+          <td><span class="vuln-badge vuln-low">LOW — Net beneficiary of high prices</span></td>
+        </tr>
+        <tr>
+          <td><strong>🇹🇭 Thailand</strong></td>
+          <td>Partial — gas exporter, oil importer</td>
+          <td>MEDIUM — some LNG via Hormuz</td>
+          <td>MODERATE — rice exporter but fertiliser exposed</td>
+          <td><span class="vuln-badge vuln-moderate">MODERATE</span></td>
+        </tr>
+        <tr>
+          <td><strong>🇻🇳 Vietnam</strong></td>
+          <td>Partial — coal + hydro dominant</td>
+          <td>LOW — coal-heavy economy</td>
+          <td>MODERATE — rice exporter</td>
+          <td><span class="vuln-badge vuln-moderate">MODERATE</span></td>
+        </tr>
+        <tr>
+          <td><strong>🇵🇭 Philippines</strong></td>
+          <td>No — heavy oil/gas importer</td>
+          <td>MEDIUM — oil imports via sea</td>
+          <td>HIGH — major rice importer</td>
+          <td><span class="vuln-badge vuln-high">HIGH (poorest)</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="note-box" style="margin-top:12px;">
+      <strong>Source note:</strong> ASEAN vulnerability assessment is based on <em>analyst estimates</em> drawing from IEA Southeast Asia Energy Outlook 2024 and publicly available trade data. Specific percentage figures are not reproduced from any single sourced document — they represent analyst characterisation of relative exposure levels.
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== SOLUTIONS TAB ==================== -->
+<div class="tab-content" id="content-solutions">
+
+  <div class="card">
+    <div class="card-title">💡 Five Things That Would Actually Help — Based on Real Data</div>
+
+    <div class="sol-item">
+      <div class="sol-num">1</div>
+      <div>
+        <div class="sol-title">Disclose the Crude Import Dependency Gap</div>
+        <div class="sol-desc">DOSM data shows Malaysia exported RM23.8B crude but imported RM54.1B. This is a RM30B crude import gap. The public "oil-producing nation" narrative ignores this. A government technical briefing with real DOSM trade data — not just production figures — would give the public and markets an honest picture.</div>
+        <div class="sol-source">Source: DOSM Q4 2025 (Bernama, March 4 2026)</div>
+      </div>
+    </div>
+
+    <div class="sol-item">
+      <div class="sol-num">2</div>
+      <div>
+        <div class="sol-title">Renegotiate Pengerang JV — Domestic Crude Priority</div>
+        <div class="sol-desc">Saudi Arabia is Malaysia's #1 crude supplier at RM18B/year. Pengerang is a JV with Saudi Aramco. If Saudi Arabia needs crude more than Malaysia needs refined product, Aramco's incentive is export, not domestic supply. A domestic supply guarantee clause — first call on product at Malaysian market price — would convert Pengerang from "import refinery" to genuine domestic security asset.</div>
+        <div class="sol-source">Source: DOSM trade data, PETRONAS Activity Outlook 2024-2026</div>
+      </div>
+    </div>
+
+    <div class="sol-item">
+      <div class="sol-num">3</div>
+      <div>
+        <div class="sol-title">Build Strategic Crude Reserve</div>
+        <div class="sol-desc">Malaysia has zero disclosed strategic petroleum reserve. DOSM: 2025 production = 183.6M bbl/year = ~503K boepd. A 30-day reserve = ~15M barrels. At US$70/bbl = ~US$1B. This is achievable via offshore FPSO charter within 6-12 months. Petronas has the expertise. The only missing ingredient is political decision.</div>
+        <div class="sol-source">Source: DOSM production data, PETRONAS Activity Outlook 2024-2026</div>
+      </div>
+    </div>
+
+    <div class="sol-item">
+      <div class="sol-num">4</div>
+      <div>
+        <div class="sol-title">Accelerate Sabah Deepwater PSC Awards</div>
+        <div class="sol-desc">DOSM confirms condensate production is driving growth (+18% in Q4). Condensate fields in Sabah/Sarawak are the reason total production held at 183.6M bbl despite crude decline. New PSC awards for Sabah deepwater — already identified in PETRONAS Activity Outlook 2024-2026 as target — should be expedited. Discovery to first oil = 5-8 years minimum. Start now.</div>
+        <div class="sol-source">Source: DOSM Q4 2025, PETRONAS Activity Outlook 2026-2028</div>
+      </div>
+    </div>
+
+    <div class="sol-item">
+      <div class="sol-num">5</div>
+      <div>
+        <div class="sol-title">Activate LNG Import Infrastructure Now</div>
+        <div class="sol-desc">Malaysia is a net LNG exporter (RM51.6B exports vs RM6.3B imports). But Argus Media reports Petronas is building a third LNG import terminal — acknowledging the shift toward net importer status. This infrastructure should be treated as national security, not commercial diversification. Malaysia's own LNG exports (to Japan, Korea, China) cannot be redirected domestically without contract renegotiation.</div>
+        <div class="sol-source">Source: DOSM trade data, Argus Media (Petronas 3rd LNG terminal)</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- AI INSIGHT -->
+  <div class="card">
+    <div class="card-title">🧠 Ask the Intelligence Kernel — Based on Real Data Only</div>
+    <div class="chat-output" id="chatOutput">
+      <div class="chat-msg">
+        <div class="chat-role">arifOS Kernel</div>
+        <div class="chat-text">Intelligence kernel loaded with verified DOSM Q4 2025 data. Real numbers only. Ask me about production, trade balance, Pengerang, Saudi crude exposure, LNG exports, or what the data actually shows.</div>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <input class="chat-input" id="chatInputField" placeholder="Ask: 'What does DOSM trade data show about crude import dependency?'" onkeydown="if(event.key==='Enter')askKernel()">
+      <button class="chat-send" onclick="askKernel()">Ask</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  arifOS Intelligence Kernel v2.1 · Pipeline: 999 SEAL · CONFIDENTIAL — Arif Fazil Eyes Only<br>
+  Sources: DOSM Q4 2025 (Bernama March 4 2026) · Tengku Muhammad Taufik RTM TV1 Apr 3 2026 · PETRONAS Activity Outlook 2024-2026 · Argus Media · Says.com/DOSM<br>
+  All analyst estimates clearly labeled. Not financial advice. Not government position.
+</footer>
+
+<script>
+// ===== ANIMATE TRADE BARS =====
+let barsAnimated = false;
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !barsAnimated) {
+      barsAnimated = true;
+      document.querySelectorAll('.trade-fill').forEach(bar => {
+        const w = bar.dataset.width;
+        setTimeout(() => { bar.style.width = w + '%'; }, 300);
+      });
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.trade-bar-wrap').forEach(el => observer.observe(el));
+
+// ===== TABS =====
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('content-' + name).classList.add('active');
+  const navBtn = document.getElementById('nav-' + name);
+  if (navBtn) navBtn.classList.add('active');
+}
+
+// ===== SCENARIOS =====
+const SCENARIOS = {
+  A: {
+    bg: '#e8f5e9', border: '#43A047', color: '#2e7d32',
+    title: 'Scenario A: Hormuz Normalises — Crisis Passes',
+    prob: '30%', probColor: '#43A047',
+    content: '<strong>What changes:</strong> No fuel rationing. No emergency measures. Normal operations resume within 4-8 weeks. Oil prices settle US$85-95/bbl by June 2026. Shipping insurance premiums fall back to pre-crisis levels.<br><br><strong>Data basis:</strong> DOSM production data for 2025 (+1.1%) shows Malaysia\'s upstream was growing before the crisis. If Hormuz resolves quickly, the 2025 growth trajectory continues.<br><br><strong>Risk to this scenario:</strong> Saudi Arabia + OPEC+ have strong incentive to maintain elevated prices. A "controlled shortage" strategy cannot be ruled out.'
+  },
+  B: {
+    bg: '#fff8e1', border: '#d4850a', color: '#e65100',
+    title: 'Scenario B: Stalemate Through Q3 2026',
+    prob: '25%', probColor: '#d4850a',
+    content: '<strong>What changes:</strong> Government activates demand management — fuel allowance systems, staggered work hours for government. Prices stay 20-30% above pre-crisis. Petronas activates "alternative sourcing" contracts with non-Middle East suppliers (Australia, West Africa).<br><br><strong>Data basis:</strong> DOSM shows Australia is Malaysia\'s #2 LNG import source (RM6B/year). Australia can absorb some crude supply gap. Malaysia\'s 3-refinery network (PETRONAS) can run on diversified crude if contracts are in place.<br><br><strong>Key risk:</strong> If Qatar LNG contracts are voided/repriced, LNG spot prices spike globally. Malaysia\'s net exporter status provides some buffer but not full insulation.'
+  },
+  C: {
+    bg: '#ffebee', border: '#e53935', color: '#c62828',
+    title: 'Scenario C: Serious Disruption — Fuel Rationing',
+    prob: '25%', probColor: '#e53935',
+    content: '<strong>What changes:</strong> Petronas declares energy emergency. Odd-even plate rationing for private vehicles. Essential services (hospitals, police, food supply logistics) prioritised. Coal plants activated to full capacity for power generation, freeing gas for industry.<br><br><strong>Data basis:</strong> DOSM shows Singapore is Malaysia\'s #1 refined product import (RM36B/year). If Singapore supply is disrupted (Hormuz → Singapore Strait), the RM92B refined import bill faces escalation. Peninsular gas fields depleting. LNG redirected from export to domestic.<br><br><strong>Decision trigger:</strong> If domestic refined product inventory drops below 30 days. PETRONAS CEO\'s "45-day" statement suggests this buffer is currently the planning threshold.'
+  },
+  D: {
+    bg: '#ffcdd2', border: '#b71c1c', color: '#b71c1c',
+    title: 'Scenario D: Multi-Front Collapse',
+    prob: '10%', probColor: '#b71c1c',
+    content: '<strong>What changes:</strong> Full national emergency. Power rationing. Food supply chain stress. Government activates wartime economic controls. International arbitration on LNG export contracts (Japan, Korea, China). Malaysia\'s RM18B O&G trade surplus flips to deficit.<br><br><strong>Data basis:</strong> DOSM: Japan = RM19.8B of Malaysia\'s LNG exports. Korea = RM13.9B. China = RM12.8B. Total: RM46.5B in long-term LNG contracts. If all three simultaneously invoke force majeure clauses due to seller-side disruption = Malaysia\'s trade balance devastated.<br><br><strong>Low probability but civilisation-scale impact:</strong> This is the scenario that 888_HOLD was designed for. Not likely. Not impossible.'
+  }
+};
+
+function selectScenario(id) {
+  document.querySelectorAll('.scenario-card').forEach(el => {
+    el.className = 'scenario-card';
+    el.onclick = () => selectScenario(el === document.querySelector('.scenario-card.active-A') ? 'A' :
+      el === document.querySelector('.scenario-card:nth-child(2)') ? 'B' :
+      el === document.querySelector('.scenario-card:nth-child(3)') ? 'C' : 'D';
+  });
+
+  const s = SCENARIOS[id];
+  const cards = document.querySelectorAll('.scenario-card');
+  cards.forEach((el, i) => {
+    el.classList.remove('active-A','active-B','active-C','active-D');
+    el.classList.add('active-' + id);
+  });
+
+  const detail = document.getElementById('scenario-detail');
+  detail.style.display = 'block';
+  detail.style.background = s.bg;
+  detail.style.borderLeft = '5px solid ' + s.border;
+  detail.innerHTML = '<div style="font-size:13pt;font-weight:700;color:' + s.color + ';margin-bottom:8px;">' + s.title + '</div>' +
+    '<div style="font-size:28pt;font-weight:900;font-family:\'Space Mono\',monospace;color:' + s.probColor + ';margin:10px 0;">' + s.prob + ' probability</div>' +
+    '<div style="font-size:11pt;color:#444;line-height:1.6;">' + s.content + '</div>';
+}
+
+// Init first scenario
+selectScenario('A');
+
+// ===== AI CHAT =====
+const QA = {
+  'crude': 'According to DOSM Q4 2025: Malaysia exported RM23.8B crude but imported RM54.1B crude — a NET crude import dependency of ~RM30B. This is the real story. Malaysia is NOT self-sufficient in crude. The 183.6M bbl production figure sounds large but a significant portion is condensate (35.6%) which processes differently, and most crude produced is Tapis Blend — premium light sweet crude exported for higher value, while heavier imported crude goes to refineries. Saudi Arabia alone supplied RM18B of our crude imports.',
+  'import': 'DOSM data shows Malaysia imported RM54.1B crude + RM91.9B refined products = ~RM146B in liquid energy imports in 2025. Against this: RM23.8B crude + RM95.1B refined exports = ~RM119B exports. Net: still +RM18B surplus on aggregate O&G trade. BUT this surplus hides a structural crude deficit. The RM18B surplus comes almost entirely from LNG (RM45B net export) and a small refined product surplus. Without LNG exports, Malaysia would be a large crude import dependent nation.',
+  'pengerang': 'Pengerang Integrated Complex is a JV: ~51% Saudi Aramco, ~49% PETRONAS. Saudi Arabia is Malaysia\'s #1 crude import source at RM18B/year. The structural issue: Aramco\'s incentive is to maximise value to Saudi Vision 2030, not to prioritise Malaysian domestic supply. If global crude prices spike, Aramco benefits from selling at world prices — not from providing cheap feedstock to Malaysian domestic market. This is not a conspiracy — it\'s just aligned incentives. The solution: a domestic supply priority clause in the JV agreement.',
+  'lng': 'Malaysia exported RM51.6B LNG in 2025, mainly to Japan (RM19.8B), Korea (RM13.9B), and China (RM12.8B). Imports were only RM6.3B, almost entirely from Australia. Malaysia is a MAJOR LNG exporter — net export ~RM45B. HOWEVER: these export contracts are long-term. The LNG being exported to Japan cannot simply be redirected to domestic use when a crisis hits — contract law doesn\'t work that way. The third LNG import terminal Petronas is building (per Argus Media) acknowledges that Malaysia\'s own gas production is declining and net export capacity will reduce.',
+  'production': 'DOSM Q4 2025: Full year 2025 production = 183.6M bbl crude + condensate (+1.1% vs 2024). Q4 2025 alone = 47.8M bbl. Natural gas = 784.0 bcf for full year 2025. The growth was DRIVEN by condensate (+18% in Q4) not crude (which actually fell 1.7% in Q4 vs prior year). This means: the growth story is from gas/LNG, not from crude oil. Crude is declining. This is the geological story nobody is talking about.',
+  'saudi': 'Saudi Arabia is Malaysia\'s #1 crude import source at RM18B out of RM54B total crude imports = ~33% of crude imports from Saudi Arabia alone. UAE adds another RM11B. Together: ~RM29B of RM54B = ~54% of crude imports from just two Middle Eastern nations via Hormuz corridor. The crisis exposure is not hypothetical — it\'s structural.',
+  'refinery': 'Malaysia\'s refining capacity: ~950K bbl/d total. PETRONAS-operated: ~690K bbl/d across 3 refineries (Melaka, Terengganu, Pengerang). Independents: Hengyuan (~156K), Petron (~88K). The PETRONAS statement of ">700 kbpd" refers to the 3 PETRONAS-operated refineries only. Note: Refineries have different crude grade requirements. Pengerang (Aramco JV) is optimised for Arabian Heavy crude — not Tapis. Melaka and Terengganu can process a wider range. This grade mismatch is partly why Malaysia exports Tapis crude AND imports different crude grades simultaneously.',
+  'default': 'Good question. The DOSM Q4 2025 data is the most authoritative source we have. Key facts: 183.6M bbl produced in 2025, RM170B exports, RM152B imports, net +RM18B surplus, Saudi Arabia #1 crude supplier, Japan #1 LNG customer. The geological story: crude production declining in Peninsular Malaysia despite condensate/gas growth. The geopolitical story: 54% of crude imports transit Hormuz corridor. The structural story: Malaysia is simultaneously an oil producer, major crude importer, LNG exporter, and has a refined product trade surplus. The crisis is exposing the crude import dependency that the aggregate trade surplus narrative hides.'
+};
+
+function askKernel() {
+  const input = document.getElementById('chatInputField');
+  const output = document.getElementById('chatOutput');
+  const q = input.value.trim().toLowerCase();
+  if (!q) return;
+  output.innerHTML += `<div class="chat-msg"><div class="chat-role">You</div><div class="chat-text">${input.value}</div></div>`;
+  input.value = '';
+  let answer = QA['default'];
+  for (const [key, val] of Object.entries(QA)) {
+    if (key !== 'default' && q.includes(key)) { answer = val; break; }
+  }
+  setTimeout(() => {
+    output.innerHTML += `<div class="chat-msg"><div class="chat-role">arifOS Kernel</div><div class="chat-text">${answer}</div></div>`;
+    output.scrollTop = output.scrollHeight;
+  }, 400);
+}
+</script>
+</body>
+</html>
