@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Malaysia Energy Crisis — Interactive Intelligence Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  --arif-blue: #00297A;
+  --arif-red: #B41E1E;
+  --arif-gold: #C89A00;
+  --arif-dark: #0A0A1A;
+  --arif-green: #1B8A3E;
+  --arif-amber: #D4850A;
+  --arif-bg: #F4F7FC;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--arif-bg);
+  color: #1a1a2e;
+  overflow-x: hidden;
+}
+
+/* NAV */
+nav {
+  background: var(--arif-dark);
+  color: white;
+  padding: 16px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+nav .logo { font-size: 14pt; font-weight: 900; letter-spacing: 1px; }
+nav .logo span { color: var(--arif-gold); }
+nav .nav-status { font-size: 9pt; font-family: 'Space Mono', monospace; color: rgba(255,255,255,0.5); }
+.nav-links { display: flex; gap: 20px; }
+.nav-links button {
+  background: none; border: 1px solid rgba(255,255,255,0.3);
+  color: white; padding: 8px 16px; border-radius: 6px;
+  cursor: pointer; font-size: 10pt; transition: all 0.2s;
+}
+.nav-links button:hover { background: var(--arif-gold); border-color: var(--arif-gold); color: var(--arif-dark); }
+.nav-links button.active { background: var(--arif-gold); border-color: var(--arif-gold); color: var(--arif-dark); }
+
+/* HERO */
+.hero {
+  background: linear-gradient(135deg, var(--arif-dark) 0%, #0d1f4e 60%, var(--arif-blue) 100%);
+  color: white;
+  padding: 80px 60px;
+  position: relative;
+  overflow: hidden;
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(ellipse at 30% 50%, rgba(0,82,155,0.3) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 80%, rgba(200,154,0,0.1) 0%, transparent 50%);
+  animation: pulse-bg 8s ease-in-out infinite;
+}
+@keyframes pulse-bg {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+}
+.hero-badge {
+  display: inline-block;
+  background: var(--arif-gold);
+  color: var(--arif-dark);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 9pt;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 1;
+  animation: slide-in 0.6s ease-out;
+}
+@keyframes slide-in { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; } }
+.hero h1 {
+  font-size: 52pt;
+  font-weight: 900;
+  line-height: 1.0;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+  animation: slide-in 0.8s ease-out;
+}
+.hero h1 .gold { color: var(--arif-gold); }
+.hero .subtitle {
+  font-size: 16pt;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 40px;
+  max-width: 600px;
+  line-height: 1.5;
+  position: relative;
+  z-index: 1;
+  animation: slide-in 1.0s ease-out;
+}
+.hero-live {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  animation: slide-in 1.2s ease-out;
+}
+.live-dot {
+  width: 10px; height: 10px; background: #ff3b3b;
+  border-radius: 50%; animation: blink 1.5s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.live-text { font-family: 'Space Mono', monospace; font-size: 10pt; color: rgba(255,255,255,0.5); }
+
+/* COUNTER SECTION */
+.counters {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  background: var(--arif-dark);
+  margin-top: -2px;
+}
+.counter-card {
+  padding: 40px 30px;
+  text-align: center;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  position: relative;
+  transition: background 0.3s;
+  cursor: default;
+}
+.counter-card:last-child { border-right: none; }
+.counter-card:hover { background: rgba(0,82,155,0.4); }
+.counter-num {
+  font-size: 38pt;
+  font-weight: 900;
+  font-family: 'Space Mono', monospace;
+  color: var(--arif-gold);
+  transition: transform 0.3s;
+}
+.counter-card:hover .counter-num { transform: scale(1.05); }
+.counter-label { font-size: 10pt; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; }
+.counter-sub { font-size: 8pt; color: rgba(255,255,255,0.4); margin-top: 4px; }
+
+/* SECTION NAV TABS */
+.section-tabs {
+  background: white;
+  display: flex;
+  gap: 0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  position: sticky;
+  top: 60px;
+  z-index: 90;
+}
+.tab-btn {
+  flex: 1;
+  padding: 16px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 11pt;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.tab-btn:hover { color: var(--arif-blue); background: var(--arif-bg); }
+.tab-btn.active { color: var(--arif-blue); border-bottom-color: var(--arif-gold); background: var(--arif-bg); }
+
+/* TAB CONTENT */
+.tab-content { display: none; padding: 40px 60px; max-width: 1100px; margin: 0 auto; }
+.tab-content.active { display: block; animation: fade-in 0.4s ease; }
+@keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+
+/* CHARTS */
+.chart-container { background: white; border-radius: 12px; padding: 24px; margin: 16px 0; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.chart-title { font-size: 13pt; font-weight: 700; color: var(--arif-dark); margin-bottom: 16px; }
+canvas { max-width: 100%; }
+
+/* REFINERY BARS */
+.refinery-bar-wrap { margin: 14px 0; }
+.bar-label { font-size: 10pt; font-weight: 600; margin-bottom: 4px; display: flex; justify-content: space-between; }
+.bar-track { height: 28px; background: #eee; border-radius: 6px; overflow: hidden; position: relative; }
+.bar-fill { height: 100%; border-radius: 6px; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); width: 0; }
+.bar-fill.petronas { background: linear-gradient(90deg, var(--arif-blue), #0044cc); }
+.bar-fill.aramco { background: linear-gradient(90deg, var(--arif-amber), #f5a623); }
+.bar-fill.indep { background: linear-gradient(90deg, #888, #aaa); }
+
+/* SCENARIO SELECTOR */
+.scenario-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  margin: 16px 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.scenario-tabs { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+.s-sbtn {
+  padding: 10px 20px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  font-weight: 600;
+  font-size: 10pt;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.s-sbtn:hover { border-color: var(--arif-blue); color: var(--arif-blue); }
+.s-sbtn.active-A { background: #e8f5e9; border-color: var(--arif-green); color: var(--arif-green); }
+.s-sbtn.active-B { background: #fff8e1; border-color: var(--arif-amber); color: var(--arif-amber); }
+.s-sbtn.active-C { background: #fce4ec; border-color: var(--arif-red); color: var(--arif-red); }
+.s-sbtn.active-D { background: #ffcdd2; border-color: #c62828; color: #c62828; }
+.scenario-result { display: none; padding: 20px; border-radius: 8px; margin-top: 10px; }
+.scenario-result.show { display: block; animation: fade-in 0.3s; }
+.result-A { background: #e8f5e9; border-left: 4px solid var(--arif-green); }
+.result-B { background: #fff8e1; border-left: 4px solid var(--arif-amber); }
+.result-C { background: #fce4ec; border-left: 4px solid var(--arif-red); }
+.result-D { background: #ffcdd2; border-left: 4px solid #c62828; }
+.scenario-title { font-size: 14pt; font-weight: 700; margin-bottom: 8px; }
+.scenario-prob { font-size: 24pt; font-weight: 900; font-family: 'Space Mono', monospace; margin: 10px 0; }
+
+/* CASCADE ANIMATION */
+.cascade-container {
+  background: var(--arif-dark);
+  border-radius: 12px;
+  padding: 30px;
+  margin: 16px 0;
+}
+.cascade-step {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: all 0.5s ease;
+}
+.cascade-step.visible { opacity: 1; transform: translateX(0); }
+.cascade-step:last-child { border: none; }
+.cascade-icon { font-size: 20pt; min-width: 40px; text-align: center; }
+.cascade-text { color: #ddd; font-size: 12pt; }
+.cascade-val { color: var(--arif-gold); font-weight: 700; margin-left: 8px; }
+.cascade-arrow-row { text-align: center; color: var(--arif-gold); font-size: 16pt; padding: 4px 0; opacity: 0; transition: opacity 0.3s; }
+.cascade-arrow-row.visible { opacity: 1; }
+
+/* GEO MAP */
+.map-container {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 16px 0;
+  text-align: center;
+}
+.map-svg { max-width: 100%; }
+.region-label { font-size: 10pt; font-weight: 700; fill: white; }
+
+/* AI CHAT PANEL */
+.chat-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 16px 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.chat-output {
+  background: var(--arif-bg);
+  border-radius: 8px;
+  padding: 20px;
+  min-height: 200px;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  font-size: 11pt;
+  line-height: 1.7;
+}
+.chat-msg { margin-bottom: 12px; }
+.chat-msg .role { font-weight: 700; font-size: 9pt; text-transform: uppercase; color: var(--arif-blue); margin-bottom: 4px; }
+.chat-msg .text { color: #333; }
+.chat-input-wrap { display: flex; gap: 8px; }
+.chat-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 11pt;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.2s;
+}
+.chat-input:focus { outline: none; border-color: var(--arif-blue); }
+.chat-send {
+  padding: 12px 24px;
+  background: var(--arif-blue);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.chat-send:hover { background: var(--arif-dark); }
+
+/* ASEAN TABLE */
+.asean-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+.asean-table th { background: var(--arif-dark); color: white; padding: 12px; text-align: left; font-size: 10pt; }
+.asean-table td { padding: 11px 12px; border-bottom: 1px solid #eee; font-size: 10pt; }
+.asean-table tr:hover { background: var(--arif-bg); }
+.vuln-badge { padding: 3px 10px; border-radius: 12px; font-size: 9pt; font-weight: 700; }
+.vuln-critical { background: #ffcdd2; color: #c62828; }
+.vuln-high { background: #fff9c4; color: #d4850a; }
+.vuln-moderate { background: #e3f2fd; color: var(--arif-blue); }
+.vuln-low { background: #e8f5e9; color: var(--arif-green); }
+
+/* SOLUTIONS */
+.solution-item {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 12px 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: default;
+}
+.solution-item:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+.solution-num {
+  font-size: 32pt;
+  font-weight: 900;
+  font-family: 'Space Mono', monospace;
+  color: var(--arif-gold);
+  min-width: 50px;
+}
+.solution-body {}
+.solution-title { font-size: 13pt; font-weight: 700; color: var(--arif-dark); margin-bottom: 6px; }
+.solution-desc { font-size: 11pt; color: #555; line-height: 1.6; }
+
+/* TIMELINE */
+.tl { border-left: 3px solid var(--arif-blue); margin: 20px 0 20px 20px; padding-left: 24px; }
+.tl-item { position: relative; margin-bottom: 24px; }
+.tl-item::before {
+  content: ''; position: absolute; left: -31px; top: 4px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--arif-blue); border: 3px solid white;
+  box-shadow: 0 0 0 2px var(--arif-blue);
+}
+.tl-date { font-weight: 700; color: var(--arif-blue); font-size: 10pt; }
+.tl-text { color: #444; font-size: 11pt; margin-top: 4px; }
+
+/* PROGRESS BARS FOR ASEAN */
+.progress-cell { display: flex; align-items: center; gap: 8px; }
+.progress-mini { flex: 1; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+.p-fill-critical { background: var(--arif-red); }
+.p-fill-high { background: var(--arif-amber); }
+.p-fill-moderate { background: var(--arif-blue); }
+.p-fill-low { background: var(--arif-green); }
+
+/* FOOTER */
+footer {
+  background: var(--arif-dark);
+  color: rgba(255,255,255,0.4);
+  padding: 30px 60px;
+  font-size: 9pt;
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .counters { grid-template-columns: repeat(2, 1fr); }
+  .hero h1 { font-size: 32pt; }
+  .hero { padding: 40px 24px; }
+  .tab-content { padding: 20px; }
+  nav { padding: 12px 20px; }
+  .nav-links { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo"><span>arif</span>OS INTELLIGENCE</div>
+  <div class="nav-status">PIPELINE: 999 SEAL | v2.1 | 2026-04-04</div>
+  <div class="nav-links">
+    <button onclick="showTab('overview')" class="active" id="nav-overview">Overview</button>
+    <button onclick="showTab('scenarios')" id="nav-scenarios">Scenarios</button>
+    <button onclick="showTab('cascade')" id="nav-cascade">Cascade</button>
+    <button onclick="showTab('analysis')" id="nav-analysis">Analysis</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">⚡ Energy Intelligence — April 4, 2026</div>
+  <h1>Malaysia<br><span class="gold">Energy Crisis</span><br>Dashboard</h1>
+  <div class="subtitle">Structural collapse in real time. Not a price story. A geology + geopolitics story. Generated by arifOS intelligence kernel.</div>
+  <div class="hero-live">
+    <div class="live-dot"></div>
+    <div class="live-text">LIVE DATA — Sources: Bernama TV Apr 3 · Rafizi · O&G Industry Chat</div>
+  </div>
+</div>
+
+<!-- COUNTERS -->
+<div class="counters">
+  <div class="counter-card">
+    <div class="counter-num" data-target="350000" data-suffix="">350K</div>
+    <div class="counter-label">Domestic Production</div>
+    <div class="counter-sub">boepd — Total Malaysia</div>
+  </div>
+  <div class="counter-card">
+    <div class="counter-num" data-target="950000" data-suffix="">950K</div>
+    <div class="counter-label">Refinery Capacity</div>
+    <div class="counter-sub">bbl/day — But 65% import-dependent</div>
+  </div>
+  <div class="counter-card">
+    <div class="counter-num" data-target="45" data-suffix="">45</div>
+    <div class="counter-label">Planning Window</div>
+    <div class="counter-sub">days — Was 90 days before crisis</div>
+  </div>
+  <div class="counter-card">
+    <div class="counter-num" data-target="120" data-prefix="$" data-suffix="">$120</div>
+    <div class="counter-label">Oil Price (Screen)</div>
+    <div class="counter-sub">/bbl — Real cost: $140-165 delivered</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="section-tabs">
+  <button class="tab-btn active" onclick="showTab('overview')" id="tab-overview">📊 Overview</button>
+  <button class="tab-btn" onclick="showTab('scenarios')" id="tab-scenarios">🎯 Scenarios</button>
+  <button class="tab-btn" onclick="showTab('cascade')" id="tab-cascade">⚡ Cascade</button>
+  <button class="tab-btn" onclick="showTab('analysis')" id="tab-analysis">🧠 Analysis</button>
+</div>
+
+<!-- ==================== OVERVIEW TAB ==================== -->
+<div class="tab-content active" id="content-overview">
+
+  <!-- TIMELINE -->
+  <h2 style="font-size:16pt; color:var(--arif-dark); margin-bottom:20px;">Timeline of Events</h2>
+  <div class="tl">
+    <div class="tl-item">
+      <div class="tl-date">Feb 28, 2026</div>
+      <div class="tl-text">West Asia conflict escalates. Hormuz disruptions begin. ~20% of world oil supply route immediately affected.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">Mar 10, 2026</div>
+      <div class="tl-text">Alternative routes via Fujairah and Yanbu also disrupted. Insurance premiums spike globally.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">Late 2025</div>
+      <div class="tl-text">Peninsular Malaysia crude production collapses to 350,000 boepd total. First disclosed by Economic Minister Rafizi Ramli.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">April 3, 2026</div>
+      <div class="tl-text">PETRONAS CEO on RTM TV1: "45-day planning horizon." Government says supply "secured until May."</div>
+    </div>
+  </div>
+
+  <!-- REFINERY BARS -->
+  <h2 style="font-size:16pt; color:var(--arif-dark); margin:32px 0 20px;">Refinery Capacity — Who Produces What</h2>
+  <div class="refinery-bar-wrap">
+    <div class="bar-label"><span>Malaysian Refining (Melaka)</span><span style="color:var(--arif-blue); font-weight:700;">270K bbl/d</span></div>
+    <div class="bar-track"><div class="bar-fill petronas" data-width="27">27%</div></div>
+  </div>
+  <div class="refinery-bar-wrap">
+    <div class="bar-label"><span>Petronas Penapisan (Terengganu)</span><span style="color:var(--arif-blue); font-weight:700;">120K bbl/d</span></div>
+    <div class="bar-track"><div class="bar-fill petronas" data-width="12">12%</div></div>
+  </div>
+  <div class="refinery-bar-wrap">
+    <div class="bar-label"><span>⚠️ Pengerang (Aramco JV) — Saudi Crude</span><span style="color:var(--arif-amber); font-weight:700;">300K bbl/d</span></div>
+    <div class="bar-track"><div class="bar-fill aramco" data-width="30">30%</div></div>
+  </div>
+  <div class="refinery-bar-wrap">
+    <div class="bar-label"><span>Hengyuan (Independent)</span><span style="color:#666; font-weight:700;">156K bbl/d</span></div>
+    <div class="bar-track"><div class="bar-fill indep" data-width="16">16%</div></div>
+  </div>
+  <div class="refinery-bar-wrap">
+    <div class="bar-label"><span>Petron (Independent)</span><span style="color:#666; font-weight:700;">88K bbl/d</span></div>
+    <div class="bar-track"><div class="bar-fill indep" data-width="9">9%</div></div>
+  </div>
+
+  <!-- ASEAN TABLE -->
+  <h2 style="font-size:16pt; color:var(--arif-dark); margin:32px 0 20px;">ASEAN Vulnerability Map</h2>
+  <table class="asean-table">
+    <thead>
+      <tr><th>Country</th><th>Import Dependency</th><th>Hormuz Exposure</th><th>Food System Risk</th><th>Overall</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>🇲🇾 Malaysia</strong></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-critical" style="width:85%"></div></div><span>85%</span></div></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-critical" style="width:90%"></div></div><span>90%</span></div></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-high" style="width:75%"></div></div><span>75%</span></div></td>
+        <td><span class="vuln-badge vuln-critical">CRITICAL</span></td>
+      </tr>
+      <tr>
+        <td><strong>🇸🇬 Singapore</strong></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-critical" style="width:100%"></div></div><span>100%</span></div></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-critical" style="width:85%"></div></div><span>85%</span></div></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-moderate" style="width:40%"></div></div><span>40%</span></div></td>
+        <td><span class="vuln-badge vuln-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td><strong>🇹🇭 Thailand</strong></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-moderate" style="width:45%"></div></div><span>45%</span></div></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-moderate" style="width:50%"></div></div><span>50%</span></div></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-high" style="width:70%"></div></div><span>70%</span></div></td>
+        <td><span class="vuln-badge vuln-moderate">MODERATE</span></td>
+      </tr>
+      <tr>
+        <td><strong>🇵🇭 Philippines</strong></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-high" style="width:80%"></div></div><span>80%</span></div></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-moderate" style="width:55%"></div></div><span>55%</span></div></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-high" style="width:80%"></div></div><span>80%</span></div></td>
+        <td><span class="vuln-badge vuln-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td><strong>🇮🇩 Indonesia</strong></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-low" style="width:20%"></div></div><span>20%</span></div></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-low" style="width:15%"></div></div><span>15%</span></div></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-low" style="width:25%"></div></div><span>25%</span></div></td>
+        <td><span class="vuln-badge vuln-low">LOW — BENEFITS</span></td>
+      </tr>
+      <tr>
+        <td><strong>🇻🇳 Vietnam</strong></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-moderate" style="width:50%"></div></div><span>50%</span></div></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-low" style="width:30%"></div></div><span>30%</span></div></td>
+        <td><div class="progress-cell"><div class="progress-mini"><div class="progress-fill p-fill-moderate" style="width:55%"></div></div><span>55%</span></div></td>
+        <td><span class="vuln-badge vuln-moderate">MODERATE</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== SCENARIOS TAB ==================== -->
+<div class="tab-content" id="content-scenarios">
+  <h2 style="font-size:16pt; color:var(--arif-dark); margin-bottom:20px;">What Happens Next — Choose Your Scenario</h2>
+  <p style="color:#666; margin-bottom:24px; font-size:11pt;">Click a scenario to see the full impact analysis</p>
+
+  <div class="scenario-tabs">
+    <button class="s-sbtn active-A" onclick="showScenario('A')">A: Clears Up</button>
+    <button class="s-sbtn active-B" onclick="showScenario('B')">B: Stalemate</button>
+    <button class="s-sbtn active-C" onclick="showScenario('C')">C: Serious</button>
+    <button class="s-sbtn active-D" onclick="showScenario('D')">D: Collapse</button>
+  </div>
+
+  <div class="scenario-result result-A show" id="res-A">
+    <div class="scenario-title">🎯 Scenario A: Things Clear Up By May</div>
+    <div class="scenario-prob">30%</div>
+    <p>Conflict de-escalates. Shipping reopens. Insurance drops 50%. Oil falls to US$85-95/bbl. Supply secured. Life goes on.</p>
+    <div style="margin-top:12px; font-size:10pt; color:#555;">
+      <strong>What changes:</strong> No fuel rationing. No emergency measures. Normal operations resume.
+      Prices stay elevated but stable for 2-3 months then normalize.
+    </div>
+  </div>
+
+  <div class="scenario-result result-B" id="res-B">
+    <div class="scenario-title">🎯 Scenario B: Stalemate Through Q3 2026</div>
+    <div class="scenario-prob">25%</div>
+    <p>Low-intensity conflict continues. Oil US$100-120. Malaysia activates demand management. No rationing but noticeably higher prices for 6-12 months.</p>
+    <div style="margin-top:12px; font-size:10pt; color:#555;">
+      <strong>What changes:</strong> Government asks people to reduce non-essential travel.
+      Fuel prices stay 20-30% above pre-crisis. Marginally painful but manageable.
+    </div>
+  </div>
+
+  <div class="scenario-result result-C" id="res-C">
+    <div class="scenario-title">🚨 Scenario C: Serious Disruption</div>
+    <div class="scenario-prob">25%</div>
+    <p>Hormuz essentially closes. Ships refuse transit. Qatar voids LNG contracts. Malaysia declares energy emergency. Fuel rationing begins.</p>
+    <div style="margin-top:12px; font-size:10pt; color:#555;">
+      <strong>What changes:</strong> Odd-even plate system for fuel. Essential services prioritized.
+      Gas for power plants curtailed — coal backup activated. Food prices begin climbing.
+    </div>
+  </div>
+
+  <div class="scenario-result result-D" id="res-D">
+    <div class="scenario-title">💀 Scenario D: Multi-Front Collapse</div>
+    <div class="scenario-prob">10%</div>
+    <p>Hormuz + South China Sea + Taiwan simultaneously. Global trade chaos. Oil US$150-180. Food crisis. Full national energy emergency.</p>
+    <div style="margin-top:12px; font-size:10pt; color:#555;">
+      <strong>What changes:</strong> Full fuel rationing. Power rationing. Food supply chains stressed.
+      Government activates wartime economic controls. This is the civilization pressure scenario.
+    </div>
+  </div>
+
+  <!-- SCENARIO CHART -->
+  <div class="chart-container" style="margin-top:24px;">
+    <div class="chart-title">Scenario Probability Distribution</div>
+    <canvas id="scenarioChart" height="180"></canvas>
+  </div>
+</div>
+
+<!-- ==================== CASCADE TAB ==================== -->
+<div class="tab-content" id="content-cascade">
+  <h2 style="font-size:16pt; color:var(--arif-dark); margin-bottom:20px;">The Fertilizer Cascade — Why Food Prices Will Rise</h2>
+  <p style="color:#666; margin-bottom:24px; font-size:11pt;">The PETRONAS CEO mentioned >30% of global fertilizer transits Hormuz. This is what happens next.</p>
+
+  <div class="cascade-container" id="cascade-box">
+    <div class="cascade-step" data-delay="0">
+      <div class="cascade-icon">🌊</div>
+      <div class="cascade-text">Hormuz disruption — oil + gas shipping routes affected</div>
+    </div>
+    <div class="cascade-arrow-row" data-delay="500">↓</div>
+    <div class="cascade-step" data-delay="600">
+      <div class="cascade-icon">⚗️</div>
+      <div class="cascade-text">Fertilizer shortage worldwide <span class="cascade-val">prices +40-60%</span></div>
+    </div>
+    <div class="cascade-arrow-row" data-delay="1100">↓</div>
+    <div class="cascade-step" data-delay="1200">
+      <div class="cascade-icon">🌴</div>
+      <div class="cascade-text">Palm oil farmers (Malaysia #2 producer) cut fertilizer use <span class="cascade-val">→ yields drop</span></div>
+    </div>
+    <div class="cascade-arrow-row" data-delay="1700">↓</div>
+    <div class="cascade-step" data-delay="1800">
+      <div class="cascade-icon">🛢️</div>
+      <div class="cascade-text">Cooking oil prices spike <span class="cascade-val">in 6-12 months</span></div>
+    </div>
+    <div class="cascade-arrow-row" data-delay="2300">↓</div>
+    <div class="cascade-step" data-delay="2400">
+      <div class="cascade-icon">🍚</div>
+      <div class="cascade-text">Rice farmers affected — Thailand, Vietnam also exposed</div>
+    </div>
+    <div class="cascade-arrow-row" data-delay="2900">↓</div>
+    <div class="cascade-step" data-delay="3000">
+      <div class="cascade-icon">🍗</div>
+      <div class="cascade-text">Chicken, eggs, meat — feed costs rise <span class="cascade-val">→ price inflation</span></div>
+    </div>
+    <div class="cascade-arrow-row" data-delay="3500">⚠️</div>
+    <div class="cascade-step" data-delay="3600" style="background:rgba(180,30,30,0.2); border-radius:8px; padding:12px;">
+      <div class="cascade-icon">💸</div>
+      <div class="cascade-text" style="color:#ff8a80;">Cost of living crisis — hits poorest hardest</div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px; padding:16px; background:#fff3e0; border-radius:8px; border-left:4px solid var(--arif-amber);">
+    <strong style="color:var(--arif-amber);">📌 Historical parallel:</strong>
+    <span style="color:#555; font-size:11pt;"> The 2008 food price spike — driven partly by fertilizer + energy costs — caused food riots in 30+ countries. We are starting from a similar place in 2026.</span>
+  </div>
+
+  <!-- PRICE COMPARISON -->
+  <div class="chart-container" style="margin-top:24px;">
+    <div class="chart-title">How Oil Price Translates to Your Wallet</div>
+    <canvas id="priceChart" height="200"></canvas>
+  </div>
+</div>
+
+<!-- ==================== ANALYSIS TAB ==================== -->
+<div class="tab-content" id="content-analysis">
+
+  <!-- SOLUTIONS -->
+  <h2 style="font-size:16pt; color:var(--arif-dark); margin-bottom:20px;">What Actually Helps — 5 Real Solutions</h2>
+
+  <div class="solution-item">
+    <div class="solution-num">1</div>
+    <div class="solution-body">
+      <div class="solution-title">Tell People the Truth</div>
+      <div class="solution-desc">Public technical briefing with real 350,000 boepd figures, refinery utilization rates, and realistic timelines. Adults can handle the truth. False confidence is more dangerous than honest uncertainty.</div>
+    </div>
+  </div>
+
+  <div class="solution-item">
+    <div class="solution-num">2</div>
+    <div class="solution-body">
+      <div class="solution-title">Activate Rationing Protocols Now</div>
+      <div class="solution-desc">Fuel allowance for government offices, staggered business hours. Extends our buffer without panic. Better to prepare now than scramble when tanks are half empty.</div>
+    </div>
+  </div>
+
+  <div class="solution-item">
+    <div class="solution-num">3</div>
+    <div class="solution-body">
+      <div class="solution-title">Renegotiate Pengerang JV</div>
+      <div class="solution-desc">Saudi Aramco must give Malaysia first call on domestic supply at domestic prices. 300,000 bbl/d can't sit idle when domestic supply is 350,000 boepd. This is diplomatically hard but economically necessary.</div>
+    </div>
+  </div>
+
+  <div class="solution-item">
+    <div class="solution-num">4</div>
+    <div class="solution-body">
+      <div class="solution-title">Build Strategic Oil Reserve NOW</div>
+      <div class="solution-desc">Charter offshore floating storage. 30-day reserve = ~15 million barrels. Costs US$1-1.5 billion. Pays for itself the first real crisis. Malaysia has zero strategic reserve. That is unconscionable for an oil-producing nation.</div>
+    </div>
+  </div>
+
+  <div class="solution-item">
+    <div class="solution-num">5</div>
+    <div class="solution-body">
+      <div class="solution-title">Award Sabah Deepwater Blocks This Year</div>
+      <div class="solution-desc">The only place in Malaysia with real potential for new discoveries. Boring and slow — but you have to start. Discovery to first oil = 5-8 years minimum. Every year you don't drill is a year you lose.</div>
+    </div>
+  </div>
+
+  <!-- AI INSIGHT PANEL -->
+  <h2 style="font-size:16pt; color:var(--arif-dark); margin:32px 0 20px;">🧠 Ask the Intelligence Kernel</h2>
+  <div class="chat-panel">
+    <div class="chat-output" id="chatOutput">
+      <div class="chat-msg">
+        <div class="role">arifOS Kernel</div>
+        <div class="text">Intelligence kernel loaded. 12-13 years PETRONAS subsurface experience. 350,000 boepd geological context active. Ask me anything about Malaysia's energy crisis.</div>
+      </div>
+    </div>
+    <div class="chat-input-wrap">
+      <input class="chat-input" id="chatInput" placeholder="Ask: 'Why is Sabah deepwater important?' or 'What's the worst case scenario?'" onkeydown="if(event.key==='Enter')askKernel()">
+      <button class="chat-send" onclick="askKernel()">Ask</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  arifOS Intelligence Kernel v2.1 · Pipeline: 999 SEAL · CONFIDENTIAL — Arif Fazil Eyes Only<br>
+  Sources: Bernama TV Apr 3, Rafizi Ramli, O&G Industry Chat · Ditempa Bukan Diberi
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// ===== TAB SYSTEM =====
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('content-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+
+  if (name === 'scenarios') initScenarioChart();
+  if (name === 'cascade') animateCascade();
+  if (name === 'overview') animateBars();
+}
+
+// ===== SCENARIO SELECTOR =====
+function showScenario(id) {
+  document.querySelectorAll('.scenario-result').forEach(el => el.classList.remove('show'));
+  document.getElementById('res-' + id).classList.add('show');
+}
+
+// ===== REFINERY BARS ANIMATION =====
+function animateBars() {
+  document.querySelectorAll('.bar-fill').forEach(bar => {
+    const w = bar.dataset.width;
+    setTimeout(() => { bar.style.width = w + '%'; }, 300);
+  });
+}
+
+// ===== CASCADE ANIMATION =====
+let cascadeAnimated = false;
+function animateCascade() {
+  if (cascadeAnimated) return;
+  cascadeAnimated = true;
+  document.querySelectorAll('.cascade-step, .cascade-arrow-row').forEach(el => {
+    const delay = parseInt(el.dataset.delay || 0);
+    setTimeout(() => el.classList.add('visible'), delay);
+  });
+}
+
+// ===== SCENARIO CHART =====
+let scenarioChart = null;
+function initScenarioChart() {
+  if (scenarioChart) return;
+  const ctx = document.getElementById('scenarioChart').getContext('2d');
+  scenarioChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['A: Clears Up', 'B: Stalemate', 'C: Serious', 'D: Collapse'],
+      datasets: [{
+        label: 'Probability %',
+        data: [30, 25, 25, 10],
+        backgroundColor: ['#43A047', '#D4850A', '#E53935', '#B71C1C'],
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, max: 40, title: { display: true, text: 'Probability %' } }
+      }
+    }
+  });
+}
+
+// ===== PRICE CHART =====
+let priceChart = null;
+function initPriceChart() {
+  if (priceChart) return;
+  const ctx = document.getElementById('priceChart').getContext('2d');
+  priceChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Screen Price', '+ Shipping', '+ Insurance', '+ Logistics', 'REAL DELIVERED'],
+      datasets: [{
+        label: 'US$ per barrel',
+        data: [120, 155, 200, 220, 252],
+        backgroundColor: ['#90CAF9', '#FFB74D', '#FF8A65', '#EF5350', '#B71C1C'],
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: 'US$ / barrel' } }
+      }
+    }
+  });
+}
+
+// ===== AI CHAT =====
+const KNOWLEDGE = {
+  'sabah': 'Sabah deepwater is the only viable near-term source of new Malaysian crude. The Late Miocene-Pliocene turbidite plays in the陵水 (Lingshui) andolder Sabah Basin systems have demonstrated charge kitchens. Water depth 1,500-3,000m requires specialised MODU (Mobile Offshore Drilling Unit). Day rates: US$500K-1M/day. Wildcat wells cost US$100-300M each. But geological chance of success (GCOS) in undrilled blocks is estimated 15-25%. The risk is acceptable if oil is above US$80/bbl. This is the ONLY geological pathway to materially increasing 350,000 boepd in the next decade.',
+  'pengerang': 'Pengerang Refinery Complex (PRC) is a US$27bn joint venture with Saudi Aramco (49% Petronas, 51% Aramco). The Aramco incentive structure: maximise value to Saudi Vision 2030, not Malaysian domestic supply. Aramco's Motiva refineries in the US are currently optimised for Arabian Heavy crude. The logistics chain: Saudi crude loaded at Ras Tanura → transit Bab el-Mandeb or Aden → South China Sea → Pengerang. This route is currently exposed to Bab el-Mandeb risk as well as Hormuz. Pengerang is effectively an IMPORT REFINERY for Saudi crude, not a domestic supply asset.',
+  'fertilizer': 'The urea reaction: Horn of Africa conflict → Red Sea/Gulf of Aden shipping risk → detour around Africa (Cape of Good Hope) → shipping cost +47-176% → ammonia/urea plant economics break → fertiliser prices spike. Malaysia imports ~1.2Mt urea/year mainly from Qatar and Saudi Arabia. If Qatari contracts voided → immediate supply gap. Downstream: palm oil yields drop 15-25% without adequate fertiliser. Rice: Malaysia 65% self-sufficient; Thailand/Vietnam both fertiliser-exposed. The food price inflation lag is 6-18 months — the MOST DANGEROUS part of this crisis because it is not yet visible.',
+  'worst': 'Worst case: Multi-front disruption (Hormuz + Bab el-Mandeb + South China Sea simultaneously). Probability: 3-5%. If it occurs: (1) Oil above US$150-180/bbl; (2) LNG unavailable at any price; (3) MLNG force majeure declared; (4) Sabah gas redirected from LNG export to domestic; (5) Power cuts in Peninsular; (6) Food supply chain stress; (7) Social unrest. This is the scenario that 888_HOLD would trigger full constitutional governance protocols. Not likely but not impossible.',
+  'force majeure': 'Force majeure (FM) declaration: legally, a party says "circumstances beyond our control prevent performance." Qatar could declare FM if their gas fields or export infrastructure are physically damaged, OR if transit routes make delivery commercially impossible. Malaysia MLNG has prior FM history (1999 Bintulu LNG train outage). The reputational cost is high. But if Qatar declares FM, Petronas must choose between buying spot LNG at US$30-50/mmBtu (vs. contract price of US$8-12) or cutting domestic supply. There is no good option.',
+  'geology': 'The Malay Basin is a pull-apart rift basin formed during Oligocene-Miocene extension. Reservoir quality: deltaic sandstones, porosity 15-22%, permeability 100-500mD. Water breakthrough pervasive in Upper Cycle fields (Tapis, Bekok). Current decline rates: 6-12%/year on mature fields. The Kertih-Balingian structural trend has produced for 40-60 years. Remaining potential: deepwater (HPHT), basement highs, undrained attic compartments. The geological reality: 350,000 boepd is a natural depletion plateau, not a policy failure. It will continue falling without major new discoveries.',
+  'default': 'That is a good question. Based on the geological and geopolitical data available to the arifOS kernel: Malaysia is in a structurally vulnerable position. The decisions that matter most right now: (1) Build the strategic petroleum reserve; (2) Renegotiate Pengerang domestic priority; (3) Begin Sabah deepwater PSC awards. These are executable within 18 months if political will exists. The energy transition narrative must pause until supply security is re-established. Geologists don\'t negotiate with the subsurface.'
+};
+
+function askKernel() {
+  const input = document.getElementById('chatInput');
+  const output = document.getElementById('chatOutput');
+  const q = input.value.trim().toLowerCase();
+  if (!q) return;
+
+  output.innerHTML += `<div class="chat-msg"><div class="role">You</div><div class="text">${input.value}</div></div>`;
+  input.value = '';
+
+  let answer = KNOWLEDGE['default'];
+  for (const [key, val] of Object.entries(KNOWLEDGE)) {
+    if (key !== 'default' && q.includes(key)) { answer = val; break; }
+  }
+
+  setTimeout(() => {
+    output.innerHTML += `<div class="chat-msg"><div class="role">arifOS Kernel</div><div class="text">${answer}</div></div>`;
+    output.scrollTop = output.scrollHeight;
+  }, 600);
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  animateBars();
+  initPriceChart();
+});
+</script>
+</body>
+</html>
