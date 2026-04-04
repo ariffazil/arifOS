@@ -11,6 +11,13 @@ http:
       tls:
         certResolver: letsencrypt
       service: arifos-svc
+    arif-sites-subs:
+      rule: "HostRegexp(`{subdomain:[a-z]+}.arif-fazil.com`)"
+      service: arif-sites-svc
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
   middlewares:
     redirect-https:
       redirectScheme:
@@ -21,3 +28,7 @@ http:
       loadBalancer:
         servers:
           - url: "http://arifosmcp:8080"
+    arif-sites-svc:
+      loadBalancer:
+        servers:
+          - url: "http://172.20.0.4:80"
