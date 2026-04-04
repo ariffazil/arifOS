@@ -1,0 +1,32 @@
+{
+  "schema_version": "2.0",
+  "layer": "APPS",
+  "symbol": "📘",
+  "version": "2026.2.23",
+  "sealed_date": "2026-02-23",
+  "authority": "ARIF FAZIL",
+  "contact": "arifos@arif-fazil.com",
+  
+  "this_layer": {
+    "domain": "arifos.arif-fazil.com",
+    "function": "Technical Documentation & Implementation Guide",
+    "role": "Comprehensive docs for arifOS MCP server deployment",
+    "llms_txt": "https://arifos.arif-fazil.com/llms.txt",
+    "llms_json": "https://arifos.arif-fazil.com/llms.json",
+    "humans_txt": "https://arifos.arif-fazil.com/humans.txt",
+    "webmcp_phase": 2,
+    "webmcp_status": "planned"
+  },
+  
+  "canonical_index": {
+    "url": "https://arif-fazil.com/.well-known/arifos.json",
+    "note": "For full Trinity map and endpoint disambiguation, refer to HUMAN layer canonical index"
+  },
+  
+  "mcp_backend": {
+    "canonical": "https://arifosmcp.arif-fazil.com",
+    "endpoint": "https://arifosmcp.arif-fazil.com/mcp",
+    "health": "https://arifosmcp.arif-fazil.com/health",
+    "transport": "streamable-http"
+  }
+}

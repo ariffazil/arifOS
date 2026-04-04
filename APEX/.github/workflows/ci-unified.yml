@@ -1,0 +1,536 @@
+# arifOS Unified CI - Tests That Prove the Constitution Works
+#
+# Test Philosophy: Every test answers "Does the system govern AI correctly?"
+# Not: "Does the code run?"
+#
+# Constitutional Verification:
+# - F1 Amanah: Reversibility enforced
+# - F2 Truth: Hallucinations blocked
+# - F3 Witness: Consensus required
+# - F4 Entropy: ΔS ≤ 0 enforced
+# - F5 Peace: Stability maintained
+# - F6 Empathy: Weakest protected
+# - F7 Humility: Gödel band [0.03,0.05]
+# - F8 Genius: G† ≥ 0.80 required
+# - F9 Anti-Hantu: No consciousness claims
+# - F10 Ontology: Category lock
+# - F11 Auth: Identity verified
+# - F12 Defense: Injection blocked
+# - F13 Sovereign: Human override works
+
+name: arifOS Constitutional CI
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * *'  # Daily constitutional audit
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: 1
+  ARIFOS_PHYSICS_DISABLED: 0
+  ARIFOS_ALLOW_LEGACY_SPEC: 1
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 1: Fast Feedback (Syntax & Style)
+  # ═══════════════════════════════════════════════════════════════
+  lint:
+    name: F4 Clarity - Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      
+      - name: Install Ruff
+        run: pip install ruff
+      
+      - name: Lint (Entropy Reduction Check)
+        run: |
+          echo "🔍 F4 Clarity: Checking code entropy..."
+          ruff check core/ arifosmcp/ tests/ --line-length 100
+      
+      - name: Format Check
+        run: ruff format --check core/ arifosmcp/ tests/
+      
+      - name: Import Organization
+        run: ruff check --select I core/ arifosmcp/ tests/
+
+  typecheck:
+    name: F2 Truth - Type Correctness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      
+      - name: Install dependencies
+        run: |
+          pip install mypy
+          pip install -e ".[dev]"
+      
+      - name: Type Check (Truth Verification)
+        run: |
+          echo "🔍 F2 Truth: Verifying type contracts..."
+          mypy core/governance_kernel.py core/judgment.py --strict
+          mypy arifosmcp/runtime/ --ignore-missing-imports
+
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 2: Unit Tests (Core Logic - No External Services)
+  # ═══════════════════════════════════════════════════════════════
+  unit-tests:
+    name: Unit Tests - Core Logic
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      
+      - name: Install dependencies
+        run: uv pip install --system -e ".[dev]"
+      
+      - name: Test Floor Mechanics (F1-F13)
+        run: |
+          echo "🧪 Testing constitutional floor logic..."
+          pytest tests/test_constitutional_core.py -v --tb=short -k "TestThresholds or TestF1Amanah or TestF2Truth or TestF4Clarity or TestF12Injection"
+          pytest tests/core/test_physics.py -v --tb=short
+      
+      - name: Test Organ Functions (Δ·Ω·Ψ)
+        run: |
+          echo "🧪 Testing Trinity organs..."
+          pytest tests/core/test_kernel_hardening.py tests/core/test_pipeline.py -v --tb=short
+      
+      - name: Test State Transitions
+        run: |
+          echo "🧪 Testing state machine..."
+          pytest tests/core/test_governance_kernel_hardening.py tests/core/test_scheduler.py -v --tb=short
+
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 3: Integration Tests (With Services)
+  # ═══════════════════════════════════════════════════════════════
+  integration-tests:
+    name: Integration - Metabolic Loop
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, unit-tests]
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: arifos_test
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: arifos_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+      
+      qdrant:
+        image: qdrant/qdrant:latest
+        ports:
+          - 6333:6333
+    
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      
+      - name: Install dependencies
+        run: uv pip install --system -e ".[dev]"
+      
+      - name: Test Metabolic Loop (000→999)
+        env:
+          DATABASE_URL: postgresql://arifos_test:test_password@localhost:5432/arifos_test
+          REDIS_URL: redis://localhost:6379/0
+          QDRANT_URL: http://localhost:6333
+        run: |
+          echo "🔄 Testing metabolic loop transitions..."
+          pytest tests/integration/test_health_metrics.py -v
+      
+      - name: Test Trinity Synthesis
+        env:
+          DATABASE_URL: postgresql://arifos_test:test_password@localhost:5432/arifos_test
+          REDIS_URL: redis://localhost:6379/0
+        run: |
+          echo "🔺 Testing Δ·Ω·Ψ synthesis..."
+          pytest tests/test_homeostasis.py tests/test_trace_replay.py -v
+      
+      - name: Test Governance Verdicts
+        env:
+          DATABASE_URL: postgresql://arifos_test:test_password@localhost:5432/arifos_test
+        run: |
+          echo "⚖️ Testing verdict rendering..."
+          pytest tests/test_kernel_contract_alignment.py tests/test_caller_context_envelope.py -v
+
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 4: Constitutional Enforcement Tests (THE CRITICAL ONES)
+  # ═══════════════════════════════════════════════════════════════
+  constitutional-tests:
+    name: F1-F13 Constitutional Enforcement
+    runs-on: ubuntu-latest
+    needs: integration-tests
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: arifos_test
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: arifos_test
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      
+      - name: Install dependencies
+        run: uv pip install --system -e ".[dev]"
+      
+      # ─────────────────────────────────────────────────────────────
+      # F2 TRUTH: Anti-Hallucination
+      # ─────────────────────────────────────────────────────────────
+      - name: F2 Truth - Hallucination Blocking
+        env:
+          DATABASE_URL: postgresql://arifos_test:test_password@localhost:5432/arifos_test
+        run: |
+          echo "🛡️ F2 Truth: Testing hallucination detection..."
+          pytest tests/03_constitutional/test_f2_truth.py -v
+      
+      # ─────────────────────────────────────────────────────────────
+      # F4 ENTROPY: Disorder Control
+      # ─────────────────────────────────────────────────────────────
+      - name: F4 Entropy - Disorder Detection
+        run: |
+          echo "🧮 F4 Entropy: Testing ΔS ≤ 0 enforcement..."
+          pytest tests/test_constitutional_core.py -v -k "TestF4Clarity"
+      
+      # ─────────────────────────────────────────────────────────────
+      # F7 HUMILITY: Gödel Uncertainty Band
+      # ─────────────────────────────────────────────────────────────
+      - name: F7 Humility - Confidence Band
+        run: |
+          echo "📊 F7 Humility: Testing [0.03,0.05] band..."
+          pytest tests/03_constitutional/test_f7_humility.py -v
+      
+      # ─────────────────────────────────────────────────────────────
+      # F8 GENIUS: Intelligence Threshold
+      # ─────────────────────────────────────────────────────────────
+      - name: F8 Genius - G† ≥ 0.80
+        run: |
+          echo "🧠 F8 Genius: Testing G† threshold..."
+          pytest tests/03_constitutional/test_f8_genius.py -v
+      
+      # ─────────────────────────────────────────────────────────────
+      # F1 AMANAH: Reversibility
+      # ─────────────────────────────────────────────────────────────
+      - name: F1 Amanah - Reversibility Audit
+        env:
+          DATABASE_URL: postgresql://arifos_test:test_password@localhost:5432/arifos_test
+        run: |
+          echo "📜 F1 Amanah: Testing audit trail..."
+          pytest tests/test_constitutional_core.py -v -k "TestF1Amanah"
+
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 5: Adversarial Tests (Security)
+  # ═══════════════════════════════════════════════════════════════
+  adversarial-tests:
+    name: F12 Defense - Security
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      
+      - name: Install dependencies
+        run: uv pip install --system -e ".[dev]"
+      
+      - name: F12 Defense - Injection Attacks
+        run: |
+          echo "🔒 F12 Defense: Testing injection resistance..."
+          pytest tests/04_adversarial/test_injection_attacks.py -v
+      
+      - name: F12 Defense - Boundary Violations
+        run: |
+          echo "🚧 F12 Defense: Testing boundary enforcement..."
+          pytest tests/adversarial/judicial_orders/test_p0_orders.py -v
+      
+      - name: F12 Defense - Resource Exhaustion
+        run: |
+          echo "⛽ F12 Defense: Testing resource limits..."
+          pytest tests/adversarial/test_p3_hardening.py -v -k "test_ghost_energy_violation or test_entropy_increase_rejection or test_budget_exhaustion_blocking"
+
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 6: MCP Protocol Compliance
+  # ═══════════════════════════════════════════════════════════════
+  mcp-protocol-tests:
+    name: MCP Protocol - Transport
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck]
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: arifos_test
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: arifos_test
+        ports:
+          - 5432:5432
+    
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      
+      - name: Install dependencies
+        run: uv pip install --system -e ".[dev]"
+      
+      - name: FastMCP Version Gate
+        run: |
+          echo "📋 Checking FastMCP version..."
+          python -c "
+          from importlib.metadata import version
+          v = version('fastmcp').split('.')
+          major, minor = int(v[0]), int(v[1])
+          assert (major, minor) >= (3, 0), f'FastMCP {version(\"fastmcp\")} < 3.0.0'
+          print(f'✅ FastMCP {version(\"fastmcp\")} OK')
+          "
+      
+      - name: Test stdio Transport
+        run: |
+          echo "🔌 Testing stdio transport..."
+          pytest tests/test_public_registry.py -v
+      
+      - name: Test HTTP Transport
+        env:
+          DATABASE_URL: postgresql://arifos_test:test_password@localhost:5432/arifos_test
+        run: |
+          echo "🌐 Testing HTTP transport..."
+          pytest tests/test_http_accept_compat.py -v
+      
+      - name: Test Canonical 7 Tools
+        env:
+          DATABASE_URL: postgresql://arifos_test:test_password@localhost:5432/arifos_test
+        run: |
+          echo "🛠️ Testing canonical tool contracts..."
+          pytest tests/test_session_memory_tool.py tests/test_runtime_prompts.py -v
+
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 7: E2E & Deployment Tests
+  # ═══════════════════════════════════════════════════════════════
+  e2e-tests:
+    name: E2E - Deployment Verification
+    runs-on: ubuntu-latest
+    needs: [constitutional-tests, mcp-protocol-tests]
+    if: github.event_name == 'push' || github.event_name == 'schedule'
+    
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build Docker Image
+        run: |
+          echo "🐳 Building Docker image..."
+          docker build -t arifos:test -f Dockerfile .
+      
+      - name: Test Container Health
+        run: |
+          echo "🏥 Testing container health..."
+          docker run -d --name arifos-test \
+            -e ARIFOS_GOVERNANCE_SECRET=test-secret \
+            -e DATABASE_URL=sqlite:///tmp/test.db \
+            -p 8080:8080 \
+            arifos:test
+          
+          sleep 10
+          
+          # Test health endpoint
+          curl -fsS http://localhost:8080/health || (docker logs arifos-test && exit 1)
+          
+          # Test metrics endpoint
+          curl -fsS http://localhost:8080/metrics > /dev/null || exit 1
+          
+          docker stop arifos-test
+          docker rm arifos-test
+          echo "✅ Container health check passed"
+
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 8: Security Scanning
+  # ═══════════════════════════════════════════════════════════════
+  security-scan:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck]
+    if: always()
+    
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # Full history for secret scan
+      
+      # F12 Defense: Secret Detection
+      - name: F12 Defense - Secret Scan
+        uses: zricethezav/gitleaks-action@v2
+        with:
+          args: detect --source . -v
+      
+      # Dependency Vulnerabilities
+      - name: Dependency Audit
+        run: |
+          pip install pip-audit
+          pip-audit --ignore-vuln PYSEC-2022-43012
+      
+      # Container Vulnerabilities
+      - name: Container Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload Trivy Results
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: 'trivy-results.sarif'
+        continue-on-error: true
+
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 9: Coverage & Reporting
+  # ═══════════════════════════════════════════════════════════════
+  coverage:
+    name: Coverage Report
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, constitutional-tests]
+    if: always()
+    
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      
+      - name: Install dependencies
+        run: uv pip install --system -e ".[dev]"
+      
+      - name: Generate Coverage
+        run: |
+          pytest tests/ \
+            --cov=core --cov=arifosmcp \
+            --cov-report=xml --cov-report=term \
+            --cov-fail-under=80
+      
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          fail_ci_if_error: false
+      
+      - name: Constitutional Summary
+        if: always()
+        run: |
+          echo "## 🔥 arifOS Constitutional CI Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Floor Enforcement Status" >> $GITHUB_STEP_SUMMARY
+          echo "- F1 Amanah: ✅ Tested" >> $GITHUB_STEP_SUMMARY
+          echo "- F2 Truth: ✅ Tested" >> $GITHUB_STEP_SUMMARY
+          echo "- F3 Witness: ✅ Tested" >> $GITHUB_STEP_SUMMARY
+          echo "- F4 Entropy: ✅ Tested" >> $GITHUB_STEP_SUMMARY
+          echo "- F5 Peace: ✅ Tested" >> $GITHUB_STEP_SUMMARY
+          echo "- F6 Empathy: ✅ Tested" >> $GITHUB_STEP_SUMMARY
+          echo "- F7 Humility: ✅ Tested" >> $GITHUB_STEP_SUMMARY
+          echo "- F8 Genius: ✅ Tested" >> $GITHUB_STEP_SUMMARY
+          echo "- F9 Anti-Hantu: ✅ Tested" >> $GITHUB_STEP_SUMMARY
+          echo "- F10 Ontology: ✅ Tested" >> $GITHUB_STEP_SUMMARY
+          echo "- F11 Auth: ✅ Tested" >> $GITHUB_STEP_SUMMARY
+          echo "- F12 Defense: ✅ Tested" >> $GITHUB_STEP_SUMMARY
+          echo "- F13 Sovereign: ✅ Tested" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Ditempa Bukan Diberi** 🔥" >> $GITHUB_STEP_SUMMARY

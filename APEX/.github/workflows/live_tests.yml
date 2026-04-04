@@ -1,0 +1,191 @@
+name: arifOS Constitutional Live Tests
+
+on:
+  push:
+    branches: ["main", "v60*", "v65*"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+  schedule:
+    # Run daily at 00:00 UTC to catch regressions
+    - cron: '0 0 * * *'
+
+jobs:
+  test-constitutional-floors:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+      fail-fast: false
+
+    steps:
+      - name: 🔥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Install uv (Rust-based package manager)
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: 🐍 Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 📥 Install Dependencies
+        run: |
+          uv pip install --system -e ".[dev]"
+          # Install optional test dependencies
+          uv pip install --system pytest-html pytest-json-report
+
+      - name: 🧪 Run All MCP Live Tests (CI Mode)
+        id: run_tests
+        run: |
+          # Run all test blocks with JSON output
+          python test_all_tools_live.py --ci
+        env:
+          AAA_MCP_OUTPUT_MODE: debug
+          ARIFOS_PHYSICS_DISABLED: 0
+          ARIFOS_ALLOW_LEGACY_SPEC: 1
+          PYTHONUNBUFFERED: 1
+
+      - name: 📊 Generate Test Report Summary
+        if: always()
+        run: |
+          # Extract key metrics from JSON report
+          if [ -f test-results.json ]; then
+            echo "## 🔥 Constitutional Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            python -c "
+          import json
+          with open('test-results.json') as f:
+              data = json.load(f)
+              summary = data.get('summary', {})
+              print(f\"**Total Tests:** {summary.get('total_tests', 0)}\")
+              print(f\"**Passed:** ✅ {summary.get('passed', 0)}\")
+              print(f\"**Failed:** ❌ {summary.get('failed', 0)}\")
+              print(f\"**Pass Rate:** {summary.get('pass_rate', 0):.1f}%\")
+              print(f\"**Avg Genius Score:** {summary.get('avg_genius', 0):.3f}\")
+              print(f\"**Total ΔS (Entropy):** {summary.get('total_delta_s', 0):.2f}\")
+              print(f\"**Avg Latency:** {summary.get('avg_latency_ms', 0):.2f}ms\")
+              print(f\"**Total Duration:** {summary.get('total_duration_s', 0):.2f}s\")
+          " >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: ⚠️ Fail if Genius Score Below 0.80
+        if: always()
+        run: |
+          if [ -f test-results.json ]; then
+            python -c "
+          import json, sys
+          with open('test-results.json') as f:
+              data = json.load(f)
+              avg_genius = data.get('summary', {}).get('avg_genius', 0.0)
+              if avg_genius < 0.80:
+                  print(f'❌ CONSTITUTIONAL FAILURE: Avg Genius Score {avg_genius:.3f} below 0.80 threshold')
+                  sys.exit(1)
+              else:
+                  print(f'✅ Constitutional Health: {avg_genius:.3f} >= 0.80')
+          "
+          fi
+
+      - name: 📤 Upload Test Results (JSON)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: constitutional-test-results-${{ matrix.python-version }}
+          path: test-results.json
+          retention-days: 30
+
+      - name: 📤 Upload HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: constitutional-html-report-${{ matrix.python-version }}
+          path: test-reports/
+          retention-days: 30
+
+      - name: 🚨 Notify on Failure
+        if: failure()
+        run: |
+          echo "::error::Constitutional tests failed! Review test-results.json for details."
+          echo "::error::Genius Score may be below 0.80 or floor violations detected."
+
+  # Separate job for edge case tests (can run in parallel)
+  test-edge-cases:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: 🔥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: 🐍 Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: 📥 Install Dependencies
+        run: |
+          uv pip install --system -e ".[dev]"
+
+      - name: 🧪 Run Edge Case Tests Only
+        run: |
+          python test_all_tools_live.py --block edge_cases --ci
+        env:
+          AAA_MCP_OUTPUT_MODE: debug
+          ARIFOS_PHYSICS_DISABLED: 1
+          ARIFOS_ALLOW_LEGACY_SPEC: 1
+
+      - name: 📤 Upload Edge Case Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: edge-case-test-results
+          path: test-results.json
+
+  # Performance benchmarking job
+  benchmark-performance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: 🔥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: 🐍 Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: 📥 Install Dependencies
+        run: |
+          uv pip install --system -e ".[dev]"
+
+      - name: ⚡ Run Performance Benchmarks
+        run: |
+          # Run governance tests 3 times and average latency
+          for i in {1..3}; do
+            echo "Run $i/3"
+            python test_all_tools_live.py --block governance --ci
+          done
+        env:
+          AAA_MCP_OUTPUT_MODE: debug
+          ARIFOS_PHYSICS_DISABLED: 1
+          ARIFOS_ALLOW_LEGACY_SPEC: 1
+
+      - name: 📊 Analyze Performance Trends
+        run: |
+          echo "## ⚡ Performance Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "Average latency per tool: See test-results.json" >> $GITHUB_STEP_SUMMARY

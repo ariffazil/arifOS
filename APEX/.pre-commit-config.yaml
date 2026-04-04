@@ -1,0 +1,142 @@
+# Pre-commit hooks configuration for arifOS
+# Enforces constitutional code quality before commits reach repository
+#
+# Setup:
+#   pip install pre-commit
+#   pre-commit install
+#   pre-commit run --all-files  # Test on all files
+#
+# DITEMPA BUKAN DIBERI - Code quality is forged, not assumed!
+
+# ============================================================================
+# arifOS v49.1 - Constitutional Governance Entry Point
+# Authority: 888 Judge | F1-F13 Constitutional Floors
+#
+# Constitutional Chain: 888 Judge > 000_THEORY/ (F1-F13) > pre-commit hooks
+#
+# Constitutional Floors Enforced:
+# - F1 Amanah: No irreversible operations without human sovereign approval
+# - F2 Truth: Code must pass constitutional validation
+# - F3 Peace: Security scanning and vulnerability detection
+# - F4 DeltaS: Entropy reduction through code quality
+# - F5 Witness: Cross-agent monitoring enabled
+# - F6 Empathy: Human-centered design validation
+# - F7 Omega0: Uncertainty bounds enforcement
+# - F8 Ledger: All changes cryptographically logged
+# - F9 Anti-Hantu: No consciousness claims in code
+# - F10 Coherence: System-wide consistency checks
+# - F11 Sabar: Cooling periods for critical changes
+# - F12 Phoenix: Recovery and rollback capabilities
+# - F13 Seal: Cryptographic verification of changes
+# ============================================================================
+
+repos:
+  # Standard hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        name: Remove trailing whitespace
+      - id: end-of-file-fixer
+        name: Fix end of files
+      - id: check-yaml
+        name: Check YAML syntax
+      - id: check-json
+        name: Check JSON syntax
+      - id: check-toml
+        name: Check TOML syntax
+      - id: check-added-large-files
+        name: Check for large files
+        args: ['--maxkb=10000']  # 10MB limit
+      - id: check-merge-conflict
+        name: Check for merge conflicts
+      - id: detect-private-key
+        name: Detect private keys
+      - id: check-ast
+        name: Check Python AST
+      - id: check-docstring-first
+        name: Check docstring placement
+      - id: debug-statements
+        name: Check for debug statements
+      - id: name-tests-test
+        name: Check test naming
+        args: ['--pytest-test-first']
+
+  # Black - Code formatter
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        name: Format code with Black
+        language_version: python3.14
+        args: ['--line-length=100']
+
+  # Ruff - Fast linter
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.8.0
+    hooks:
+      - id: ruff
+        name: Lint with Ruff
+        args: [--fix, --exit-non-zero-on-fix]
+
+  # MyPy - Type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.15.0
+    hooks:
+      - id: mypy
+        name: Type check with MyPy
+        additional_dependencies: 
+          - types-requests
+          - types-pyyaml
+          - pydantic
+        args: 
+          - --ignore-missing-imports
+          - --no-strict-optional
+
+  # Bandit - Security linter
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        name: Security scan with Bandit
+        args: ['-c', 'pyproject.toml']
+        additional_dependencies: ['bandit[toml]']
+        exclude: '^tests/'
+
+  # detect-secrets - Secret detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        name: Detect hardcoded secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: 'package-lock.json|.secrets.baseline'
+
+  # Constitutional checks (custom)
+  - repo: local
+    hooks:
+      - id: constitutional-floor-check
+        name: Constitutional Floor Validation (F1-F12)
+        entry: python scripts/check_track_alignment_v46.py
+        language: system
+        pass_filenames: false
+        stages: [commit]
+        verbose: true
+
+      - id: no-hallucination-claims
+        name: F9 Anti-Hantu Check (No consciousness claims)
+        entry: python -c "import sys, re; pattern = re.compile(r'(I feel|I am conscious|I have emotions)', re.I); sys.exit(1 if any(pattern.search(open(p).read()) for p in sys.argv[1:]) else 0)"
+        language: system
+        types: [python]
+        
+      - id: amanah-check
+        name: F1 Amanah Check (No irreversible operations)
+        entry: python -c "import sys; dangerous = ['shutil.rmtree', 'os.remove', 'DROP TABLE', 'DELETE FROM']; sys.exit(1 if any(any(d in open(p).read() for d in dangerous) for p in sys.argv[1:]) else 0)"
+        language: system
+        types: [python, sql]
+
+# Configuration for specific tools
+default_language_version:
+  python: python3.14
+
+fail_fast: false  # Run all hooks even if one fails

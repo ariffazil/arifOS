@@ -1,0 +1,19 @@
+# Docusaurus generated output — never commit build artefacts
+build/
+.docusaurus/
+
+# Node dependencies
+node_modules/
+
+# npm / yarn lock state (keep package-lock.json if using npm)
+.npm/
+.yarn/
+
+# OS artefacts
+.DS_Store
+Thumbs.db
+
+# Environment files — never commit secrets
+.env
+.env.local
+.env.production

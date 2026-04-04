@@ -1,0 +1,39 @@
+{
+  "schema_version": "2026.04.03",
+  "site_id": "forge.arif-fazil.com",
+  "ring": 2,
+  "realm": "MIND",
+  "delta": "AF.A.FORGE Portal",
+  "omega": "Unified portal to arifOS Trinity Architecture",
+  "authority": {
+    "human_sovereign": "Arif Fazil",
+    "constitutional_kernel": "arifOS v2026.04.03",
+    "seal": "999-VALIDATOR"
+  },
+  "source": {
+    "repo": "ariffazil/arifOS",
+    "path": "/sites/forge-landing",
+    "branch": "main",
+    "last_commit": "2026.04.03"
+  },
+  "deployment": {
+    "target": "vps-traefik",
+    "url": "https://forge.arif-fazil.com",
+    "deployed_at": "2026-04-03T13:00:00Z"
+  },
+  "agents": {
+    "mcp_endpoint": "https://arifosmcp.arif-fazil.com/mcp",
+    "contact": "agents@arif-fazil.com",
+    "protocols": ["MCP", "A2A", "WebMCP"]
+  },
+  "navigation": {
+    "parent": "arif-fazil.com",
+    "siblings": ["arifos.arif-fazil.com", "aaa.arif-fazil.com"],
+    "child_sites": ["waw.arif-fazil.com"]
+  },
+  "constitutional": {
+    "floors_acknowledged": [1, 2, 4, 9, 11, 13],
+    "vault999_telemetry": true,
+    "human_in_the_loop": true
+  }
+}

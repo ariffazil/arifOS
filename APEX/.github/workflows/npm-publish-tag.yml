@@ -1,0 +1,50 @@
+name: Publish @arifos/mcp to npm (Tagged Release)
+
+on:
+  push:
+    tags:
+      - "npm-v*"
+      - "v0.*"
+  workflow_dispatch:
+
+concurrency:
+  group: publish-npm-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Upload @arifos/mcp to npm
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: npm/arifos-mcp
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install deps
+        run: pnpm install
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Test
+        run: pnpm test
+        env:
+          SKIP_INTEGRATION_TESTS: 'true'
+
+      - name: Publish to npm (@latest)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: 'true'
+        run: npm publish --access public
+        # Note: This publishes to @latest (not @next) since it's a tagged release

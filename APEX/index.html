@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>arifOS Standard | Constitutional Governance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --accent-glow: rgba(56, 189, 248, 0.4);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --card-bg: rgba(20, 20, 20, 0.6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient animated background gradients */
+        .ambient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            background: radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.08), transparent 25%),
+                        radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08), transparent 25%);
+            animation: breathe 15s ease-in-out infinite alternate;
+        }
+
+        @keyframes breathe {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 6rem;
+            animation: fadeDown 1s ease-out forwards;
+        }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pre-title {
+            font-family: 'Outfit', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            font-size: 0.85rem;
+            color: #38bdf8;
+            margin-bottom: 1rem;
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 100px;
+            background: rgba(56, 189, 248, 0.05);
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 4.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, #ffffff, #a1a1aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+            font-weight: 300;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top right, rgba(255,255,255,0.05), transparent 50%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 20px var(--accent-glow);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: #38bdf8;
+        }
+
+        .card h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            flex-grow: 1;
+        }
+
+        .card-link {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: auto;
+        }
+
+        .card:hover .card-link {
+            color: #38bdf8;
+        }
+        
+        .card-link svg {
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover .card-link svg {
+            transform: translateX(4px);
+        }
+
+        .footer {
+            margin-top: 8rem;
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .motto {
+            font-family: 'Outfit', sans-serif;
+            font-style: italic;
+            color: #fff;
+            margin-top: 1rem;
+            letter-spacing: 0.05em;
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .card:nth-child(1) { animation: fadeInUp 0.8s ease-out 0.2s forwards; opacity: 0; }
+        .card:nth-child(2) { animation: fadeInUp 0.8s ease-out 0.4s forwards; opacity: 0; }
+        .card:nth-child(3) { animation: fadeInUp 0.8s ease-out 0.6s forwards; opacity: 0; }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            h1 { font-size: 3rem; }
+            .container { padding: 2rem 1rem; }
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-bg"></div>
+    <div class="container">
+        <header>
+            <div class="pre-title">Version 1.0.0-draft</div>
+            <h1>arifOS Standard</h1>
+            <p class="subtitle">Constitutional Governance for AI.<br>Forged intelligence, not free-range intelligence.</p>
+        </header>
+
+        <div class="grid">
+            <a href="STANDARD.v1.md" class="card">
+                <div class="card-icon">🏛️</div>
+                <h2>The Specification</h2>
+                <p>Read the canonical standard. Defines the absolute boundaries that a system MUST enforce between "Agent Intent" and "World Modification".</p>
+                <div class="card-link">
+                    Read the Spec v1.0 
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </div>
+            </a>
+
+            <a href="arifos.standard.v1.json" class="card">
+                <div class="card-icon">⚙️</div>
+                <h2>Machine-Readable Format</h2>
+                <p>The programmable JSON representation encoding the 13 constitutional floors (F1-F13) into auditable, executable thresholds and states.</p>
+                <div class="card-link">
+                    View JSON Schema
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </div>
+            </a>
+
+            <a href="WHITEPAPER.md" class="card">
+                <div class="card-icon">🖋️</div>
+                <h2>The Whitepaper</h2>
+                <p>Understand the foundational philosophy differentiating a "Trust-First Sandbox" from a mathematically verified "Governance Kernel."</p>
+                <div class="card-link">
+                    Read the Whitepaper
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </div>
+            </a>
+        </div>
+
+        <footer class="footer">
+            <p>&copy; 2026 arifOS Ecosystem | Authority: 888_JUDGE</p>
+            <p class="motto">Ditempa Bukan Diberi</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "@WELL File Care",
+  "version": "42.0.0",
+  "codename": "WELL_FILE_CARE",
+  "description": "Universal governed file operations for arifOS v42 architecture. Provides F1 Amanah-compliant migrations with audit trail, checksum verification, and cross-platform support.",
+  "author": "arifOS Project",
+  "license": "AGPL-3.0",
+  "repository": "https://github.com/ariffazil/arifOS",
+  "homepage": "https://github.com/ariffazil/arifOS/tree/main/L4_MCP/arifos_well",
+  "motto": "DITEMPA BUKAN DIBERI - Forged, not given",
+
+  "platforms": {
+    "claude_mcp": {
+      "binding": "bindings/mcp_claude.py",
+      "config_file": "config/claude_desktop.json",
+      "entry_point": "python -m arifos_well.bindings.mcp_claude",
+      "status": "PRODUCTION"
+    },
+    "github_copilot": {
+      "binding": "bindings/copilot_github.py",
+      "instructions_file": ".github/copilot_instructions.md",
+      "entry_point": "python -m arifos_well.bindings.copilot_github",
+      "status": "PRODUCTION"
+    },
+    "chatgpt_codex": {
+      "binding": "bindings/chatgpt_codex.py",
+      "openai_tools": "get_openai_tools()",
+      "gpt_actions": "get_gpt_actions_schema()",
+      "status": "PRODUCTION"
+    },
+    "gemini_cli": {
+      "binding": "bindings/gemini_cli.py",
+      "gemini_tools": "get_gemini_tools()",
+      "manifest": "get_gemini_manifest()",
+      "status": "PRODUCTION"
+    },
+    "rest_api": {
+      "server": "server/app.py",
+      "entry_point": "python -m arifos_well.server.app",
+      "default_port": 8042,
+      "docs_url": "/docs",
+      "status": "PRODUCTION"
+    }
+  },
+
+  "tools": [
+    {
+      "name": "well_status",
+      "description": "Get @WELL status and configuration",
+      "category": "status",
+      "dangerous": false
+    },
+    {
+      "name": "well_list_files",
+      "description": "List files with protection status",
+      "category": "read",
+      "dangerous": false
+    },
+    {
+      "name": "well_check_health",
+      "description": "Check repository structure health",
+      "category": "read",
+      "dangerous": false
+    },
+    {
+      "name": "well_heal_structure",
+      "description": "Create missing layer directories",
+      "category": "write",
+      "dangerous": false
+    },
+    {
+      "name": "well_relocate",
+      "description": "Move file with audit trail",
+      "category": "write",
+      "dangerous": true,
+      "reversible": true
+    },
+    {
+      "name": "well_duplicate",
+      "description": "Copy file with integrity check",
+      "category": "write",
+      "dangerous": false,
+      "reversible": true
+    },
+    {
+      "name": "well_retire",
+      "description": "Archive file instead of delete",
+      "category": "write",
+      "dangerous": true,
+      "reversible": true
+    },
+    {
+      "name": "well_undo_last",
+      "description": "Undo last reversible operation",
+      "category": "write",
+      "dangerous": false
+    },
+    {
+      "name": "well_batch_relocate",
+      "description": "Batch move files (888_HOLD if >10)",
+      "category": "write",
+      "dangerous": true,
+      "reversible": true,
+      "high_stakes": true
+    },
+    {
+      "name": "well_audit_history",
+      "description": "View audit trail history",
+      "category": "read",
+      "dangerous": false
+    },
+    {
+      "name": "well_save_snapshot",
+      "description": "Save repository structure snapshot",
+      "category": "read",
+      "dangerous": false
+    }
+  ],
+
+  "protected_files": [
+    ".git",
+    ".gitignore",
+    ".gitattributes",
+    "LICENSE",
+    "LICENSE.md",
+    "README.md",
+    "pyproject.toml",
+    "setup.py",
+    "setup.cfg",
+    ".env",
+    ".env.local",
+    "CHANGELOG.md",
+    "CLAUDE.md",
+    "AGENTS.md"
+  ],
+
+  "protected_directories": [
+    ".git",
+    ".github",
+    ".vscode",
+    ".claude",
+    "node_modules",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "vault_999",
+    "cooling_ledger"
+  ],
+
+  "architecture_layers": [
+    {
+      "id": "L1_THEORY",
+      "name": "Theory",
+      "description": "Constitutional law (docs only)",
+      "content": "canon, papers, proofs, research"
+    },
+    {
+      "id": "L2_GOVERNANCE",
+      "name": "Governance",
+      "description": "Portable constitution",
+      "content": "system prompts, IDE configs, validation"
+    },
+    {
+      "id": "L3_KERNEL",
+      "name": "Kernel",
+      "description": "Intelligence kernel",
+      "content": "arifos_core, arifos_clip, arifos_eval, spec"
+    },
+    {
+      "id": "L4_MCP",
+      "name": "MCP",
+      "description": "MCP Server (The Hands)",
+      "content": "arifos_mcp, arifos_well"
+    },
+    {
+      "id": "L5_CLI",
+      "name": "CLI",
+      "description": "CLI tools",
+      "content": "arifos_cli with Click subcommands"
+    },
+    {
+      "id": "L6_SEALION",
+      "name": "SEA-LION",
+      "description": "SEA-LION chat integration",
+      "content": "chat, web_ui, API"
+    },
+    {
+      "id": "L7_DEMOS",
+      "name": "Demos",
+      "description": "Demos and body API",
+      "content": "body_api, demos, examples, notebooks"
+    }
+  ],
+
+  "governance": {
+    "floor": "F1_Amanah",
+    "requirement": "All file operations must be reversible and auditable",
+    "hold_trigger": "888_HOLD for batch operations > 10 files",
+    "audit_trail": "well_audit_trail.jsonl",
+    "backup_dir": ".well_snapshots"
+  },
+
+  "api": {
+    "base_url": "http://localhost:8042",
+    "endpoints": {
+      "health": "GET /health",
+      "status": "GET /well/status",
+      "list_files": "GET /well/list-files",
+      "check_health": "GET /well/check-health",
+      "heal_structure": "POST /well/heal-structure",
+      "relocate": "POST /well/relocate",
+      "duplicate": "POST /well/duplicate",
+      "retire": "POST /well/retire",
+      "undo": "POST /well/undo-last-care",
+      "batch_relocate": "POST /well/batch-relocate",
+      "audit_history": "GET /well/audit-history"
+    }
+  }
+}

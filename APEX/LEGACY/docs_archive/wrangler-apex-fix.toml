@@ -1,0 +1,23 @@
+# Cloudflare Pages Configuration for APEX
+# Place this file at: arif-fazil-sites/THEORY/wrangler.toml
+# This overrides the dashboard "Root directory" setting
+
+name = "apex"
+compatibility_date = "2026-02-02"
+
+[build]
+# Explicitly set the root directory for the build
+command = "npm run build"
+
+# Tell Cloudflare the build output directory
+dir = "dist"
+
+# The key fix: explicitly set the root directory
+# This overrides the stale "soul" setting in the dashboard
+root_dir = "."
+
+[[env.production.build]]
+command = "npm run build"
+
+[site]
+bucket = "./dist"

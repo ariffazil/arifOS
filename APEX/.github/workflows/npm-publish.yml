@@ -1,0 +1,75 @@
+name: Publish @arifos/mcp to npm
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/npm-publish.yml'
+      - 'npm/arifos-mcp/**'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'npm dist-tag (latest or next)'
+        required: false
+        default: 'latest'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: npm/arifos-mcp
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+          cache-dependency-path: npm/arifos-mcp/package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Read package version
+        id: pkg
+        run: |
+          echo "name=$(node -p 'require(\"./package.json\").name')" >> "$GITHUB_OUTPUT"
+          echo "version=$(node -p 'require(\"./package.json\").version')" >> "$GITHUB_OUTPUT"
+
+      - name: Check npm for existing version
+        id: exists
+        run: |
+          if npm view "${{ steps.pkg.outputs.name }}@${{ steps.pkg.outputs.version }}" version >/dev/null 2>&1; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Version already published; skipping."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Validate package tarball
+        if: steps.exists.outputs.skip == 'false'
+        run: npm pack --dry-run
+
+      - name: Publish to npm
+        if: steps.exists.outputs.skip == 'false'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --tag ${{ github.event.inputs.tag || 'latest' }} --provenance
+
+      - name: Summary
+        run: |
+          echo "package: ${{ steps.pkg.outputs.name }}"
+          echo "version: ${{ steps.pkg.outputs.version }}"
+          echo "skipped: ${{ steps.exists.outputs.skip }}"

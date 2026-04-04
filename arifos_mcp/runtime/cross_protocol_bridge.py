@@ -21,10 +21,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Coroutine
 
-import aiofiles
-import redis.asyncio as redis
-
 logger = logging.getLogger(__name__)
+from arifos_mcp.runtime.optional_deps import redis
 
 
 @dataclass(frozen=True)
@@ -71,7 +69,7 @@ class CrossProtocolHoldBridge:
         
     async def connect(self):
         """Initialize Redis connection."""
-        self._redis = await redis.from_url(
+        self._redis = redis.from_url(
             self.redis_url, 
             decode_responses=True
         )

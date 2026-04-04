@@ -1,0 +1,15 @@
+{
+  "id": "arifos-bridge",
+  "name": "arifOS Constitutional Bridge",
+  "description": "Bridge to arifOS MCP for 13-floor constitutional governance via REST API",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "mcpEndpoint": {
+        "type": "string",
+        "description": "arifOS MCP endpoint URL",
+        "default": "http://10.0.0.3:8080"
+      }
+    }
+  }
+}

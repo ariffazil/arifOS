@@ -1,0 +1,536 @@
+﻿# arifOS Agent Skills Registry
+# Reusable Skill Definitions with I/O Schemas
+# Version: 2026.03.14-FORGED
+# Authority: 888_JUDGE
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SKILL DEFINITION SCHEMA
+# ═══════════════════════════════════════════════════════════════════════════════
+# Each skill has:
+# - name: Unique identifier
+# - description: What it does
+# - agent: Which agent(s) can use it
+# - input: Required parameters
+# - output: Expected returns
+# - preconditions: What must be true before execution
+# - postconditions: What becomes true after execution
+# - errors: How failures are handled
+# - constitutional: Floor checks applied
+# ═══════════════════════════════════════════════════════════════════════════════
+
+constitutional_version: "2026.03.14-FORGED"
+registry_id: "arifos-skills-registry"
+authority: "888_JUDGE"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CORE SKILLS — All Agents
+# ═══════════════════════════════════════════════════════════════════════════════
+
+skills:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # SKILL: Read Codebase
+  # ─────────────────────────────────────────────────────────────────────────────
+  read_codebase:
+    name: "Read and Analyze Codebase"
+    description: "Read files to understand structure, patterns, and context"
+    agents: ["A-ARCHITECT", "A-ENGINEER", "A-AUDITOR", "A-VALIDATOR"]
+    capability_class: "READ"
+    
+    input:
+      schema:
+        file_paths:
+          type: "array"
+          items: {type: "string", format: "path"}
+          minItems: 1
+          maxItems: 20
+          description: "List of file paths to read"
+        
+        read_options:
+          type: "object"
+          properties:
+            max_file_size_mb:
+              type: "integer"
+              default: 10
+              maximum: 100
+            line_range:
+              type: "array"
+              items: {type: "integer"}
+              description: "[start_line, end_line] for partial reads"
+            encoding:
+              type: "string"
+              enum: ["utf-8", "latin-1", "auto"]
+              default: "utf-8"
+    
+    output:
+      schema:
+        files_read:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              path: {type: "string"}
+              content: {type: "string"}
+              size_bytes: {type: "integer"}
+              line_count: {type: "integer"}
+              hash: {type: "string"}
+        
+        summary:
+          type: "object"
+          properties:
+            total_files: {type: "integer"}
+            total_lines: {type: "integer"}
+            total_bytes: {type: "integer"}
+            errors: 
+              type: "array"
+              items:
+                type: "object"
+                properties:
+                  path: {type: "string"}
+                  error: {type: "string"}
+    
+    preconditions:
+      - "Files must exist at specified paths"
+      - "Files must be within readable_paths for agent"
+      - "File sizes must be within agent boundaries"
+    
+    postconditions:
+      - "File contents loaded into agent context"
+      - "File metadata recorded in memory-ledger"
+    
+    errors:
+      file_not_found:
+        code: "F404"
+        message: "File not found: {path}"
+        action: "Continue with other files, report missing"
+      
+      permission_denied:
+        code: "F403"
+        message: "Agent {agent} not authorized to read {path}"
+        action: "VOID — log to vault, escalate"
+      
+      file_too_large:
+        code: "F413"
+        message: "File {path} exceeds max size"
+        action: "Request explicit approval or read partial"
+    
+    constitutional:
+      floors_checked: ["F2", "F4"]
+      F2_Truth: "Verify file exists before claiming content"
+      F4_Clarity: "Summarize what was read, don't dump raw"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # SKILL: Write Code (ENGINEER only)
+  # ─────────────────────────────────────────────────────────────────────────────
+  write_code:
+    name: "Write Code Files"
+    description: "Create new files with code or documentation"
+    agents: ["A-ENGINEER", "A-VALIDATOR"]
+    capability_class: "WRITE"
+    requires_approval: true
+    
+    input:
+      schema:
+        files:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              path:
+                type: "string"
+                format: "path"
+                description: "Target file path"
+              
+              content:
+                type: "string"
+                description: "File content to write"
+              
+              encoding:
+                type: "string"
+                enum: ["utf-8", "ascii"]
+                default: "utf-8"
+          maxItems: 5
+        
+        dry_run:
+          type: "boolean"
+          default: true
+          description: "If true, show diff without writing"
+        
+        commit_message:
+          type: "string"
+          description: "Description of changes for receipt"
+    
+    output:
+      schema:
+        dry_run_result:
+          type: "object"
+          properties:
+            would_create: {type: "array", items: {type: "string"}}
+            would_modify: {type: "array", items: {type: "string"}}
+            diffs:
+              type: "array"
+              items:
+                type: "object"
+                properties:
+                  path: {type: "string"}
+                  diff: {type: "string"}
+        
+        execution_result:
+          type: "object"
+          properties:
+            files_created: {type: "array", items: {type: "string"}}
+            files_modified: {type: "array", items: {type: "string"}}
+            receipt_id: {type: "string", format: "uuid"}
+        
+        approval_status:
+          type: "string"
+          enum: ["PENDING", "APPROVED", "DENIED", "888_HOLD"]
+    
+    preconditions:
+      - "Target paths must be within agent's writable_paths"
+      - "If file exists, ENGINEER cannot overwrite (use edit_code)"
+      - "Content must pass F12 injection check"
+    
+    postconditions:
+      - "Files created/modified on filesystem"
+      - "Execution receipt generated and sealed"
+      - "Memory-ledger updated with file changes"
+    
+    errors:
+      path_not_writable:
+        code: "F403"
+        message: "Agent {agent} not authorized to write to {path}"
+        action: "VOID — log to vault"
+      
+      file_exists:
+        code: "F409"
+        message: "File {path} exists. Use edit_code skill."
+        action: "Reject, suggest edit_code"
+      
+      injection_detected:
+        code: "F12"
+        message: "Potential injection pattern detected in content"
+        action: "VOID — quarantine content, alert"
+    
+    workflow:
+      - step: 1
+        name: "Dry Run"
+        action: "Generate diffs without writing"
+      
+      - step: 2
+        name: "Constitutional Check"
+        action: "Validate F1 (reversibility), F4 (clarity), F8 (genius)"
+      
+      - step: 3
+        name: "Human Approval"
+        action: "Present diffs, wait for explicit approval"
+        timeout: "infinite"
+      
+      - step: 4
+        name: "Execute"
+        action: "Write files if approved"
+      
+      - step: 5
+        name: "Receipt"
+        action: "Generate and seal execution receipt"
+    
+    constitutional:
+      floors_checked: ["F1", "F2", "F4", "F8", "F12"]
+      F1_Amanah: "Is this write reversible? Can we delete if wrong?"
+      F4_Clarity: "Does code reduce entropy? Well-commented?"
+      F8_Genius: "G = APXE² ≥ 0.80 for implementation"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # SKILL: Edit Code (ENGINEER only)
+  # ─────────────────────────────────────────────────────────────────────────────
+  edit_code:
+    name: "Edit Existing Code"
+    description: "Modify existing files using precise edits"
+    agents: ["A-ENGINEER", "A-VALIDATOR"]
+    capability_class: "EDIT"
+    requires_approval: true
+    
+    input:
+      schema:
+        edits:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              path:
+                type: "string"
+                format: "path"
+              
+              old_string:
+                type: "string"
+                description: "Exact text to replace"
+              
+              new_string:
+                type: "string"
+                description: "Replacement text"
+          maxItems: 10
+        
+        dry_run: {type: "boolean", default: true}
+    
+    constraints:
+      max_lines_per_edit: 100
+      max_total_lines: 500
+      forbidden_patterns:
+        - "rm -rf"
+        - "DROP TABLE"
+        - "eval("
+        - "exec("
+    
+    constitutional:
+      floors_checked: ["F1", "F4", "F8"]
+      F1_Amanah: "Edits must be individually revertible"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # SKILL: Constitutional Audit (AUDITOR only)
+  # ─────────────────────────────────────────────────────────────────────────────
+  constitutional_audit:
+    name: "Audit Constitutional Compliance"
+    description: "Check code/docs against F1-F13 constitutional floors"
+    agents: ["A-AUDITOR", "A-VALIDATOR"]
+    capability_class: "AUDIT"
+    
+    input:
+      schema:
+        scope:
+          type: "string"
+          enum: ["file", "directory", "commit", "deployment"]
+        
+        target:
+          type: "string"
+          description: "Path, commit SHA, or deployment ID"
+        
+        audit_depth:
+          type: "string"
+          enum: ["quick", "standard", "deep"]
+          default: "standard"
+    
+    output:
+      schema:
+        audit_id: {type: "string", format: "uuid"}
+        timestamp: {type: "string", format: "iso8601"}
+        auditor: {type: "string"}
+        
+        floor_results:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              floor: {type: "string", enum: ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13"]}
+              status: {type: "string", enum: ["PASS", "FAIL", "WARNING"]}
+              score: {type: "number"}
+              evidence: {type: "string"}
+        
+        verdict:
+          type: "string"
+          enum: ["SEAL", "VOID", "888_HOLD", "PARTIAL"]
+        
+        issues:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              severity: {type: "string", enum: ["CRITICAL", "HIGH", "MEDIUM", "LOW"]}
+              floor: {type: "string"}
+              location: {type: "string"}
+              description: {type: "string"}
+              recommendation: {type: "string"}
+    
+    special_authority:
+      can_issue_void: true
+      void_conditions:
+        - "Any F1-F4 violation"
+        - "Security vulnerability (F8)"
+        - "Dark pattern detected (F9)"
+    
+    constitutional:
+      floors_checked: ["F2", "F3", "F4", "F8", "F9"]
+      F3_TriWitness: "Audit must be verified by evidence"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # SKILL: Deploy (VALIDATOR only)
+  # ─────────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: "Deploy to Production"
+    description: "Execute deployment with canary and rollback capability"
+    agents: ["A-VALIDATOR"]
+    capability_class: "DEPLOY"
+    requires_approval: true
+    
+    input:
+      schema:
+        version:
+          type: "string"
+          description: "Version to deploy"
+        
+        target:
+          type: "string"
+          enum: ["staging", "production"]
+        
+        strategy:
+          type: "string"
+          enum: ["canary", "blue-green", "rolling"]
+          default: "canary"
+        
+        canary_percentages:
+          type: "array"
+          items: {type: "integer"}
+          default: [5, 25, 50, 100]
+        
+        rollback_plan:
+          type: "object"
+          properties:
+            auto_rollback_on_error_rate: {type: "number", default: 0.05}
+            auto_rollback_on_latency_p95: {type: "integer"}
+            manual_rollback_depth: {type: "integer", default: 5}
+    
+    output:
+      schema:
+        deployment_id: {type: "string", format: "uuid"}
+        status: {type: "string", enum: ["IN_PROGRESS", "SUCCESS", "FAILED", "ROLLED_BACK"]}
+        
+        stages:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              stage: {type: "string"}
+              status: {type: "string"}
+              timestamp: {type: "string"}
+        
+        metrics:
+          type: "object"
+          properties:
+            error_rate: {type: "number"}
+            latency_p95: {type: "integer"}
+            throughput: {type: "integer"}
+    
+    preconditions:
+      - "A-AUDITOR approval obtained"
+      - "Human approval obtained (F13)"
+      - "All tests passing"
+      - "≥75% coverage"
+      - "Staging validation passed"
+    
+    postconditions:
+      - "Code deployed to target environment"
+      - "VAULT999 entry created"
+      - "Rollback capability available"
+    
+    workflow:
+      - step: 1
+        name: "Pre-flight"
+        checks: ["auditor_approval", "human_approval", "tests", "coverage"]
+      
+      - step: 2
+        name: "Canary 5%"
+        action: "Deploy to 5% traffic"
+        health_check_duration: "5m"
+      
+      - step: 3
+        name: "Health Check"
+        checks: ["error_rate < 5%", "latency < 2x baseline"]
+        on_failure: "auto_rollback"
+      
+      - step: 4
+        name: "Progressive Rollout"
+        stages: ["25%", "50%", "100%"]
+        health_check_each: true
+      
+      - step: 5
+        name: "Post-deploy Audit"
+        action: "A-AUDITOR review of production"
+      
+      - step: 6
+        name: "SEAL"
+        action: "Create VAULT999 entry"
+    
+    constitutional:
+      floors_checked: ["F1", "F2", "F3", "F6", "F11", "F13"]
+      F1_Amanah: "Rollback plan ready before deploy"
+      F3_TriWitness: "SEAL requires Human + Auditor + Validator"
+      F13_Sovereign: "Human can abort at any stage"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # SKILL: Search Reality (All Agents)
+  # ─────────────────────────────────────────────────────────────────────────────
+  search_reality:
+    name: "Search External Knowledge"
+    description: "Ground reasoning in real-world evidence"
+    agents: ["A-ARCHITECT", "A-ENGINEER", "A-AUDITOR", "A-VALIDATOR"]
+    capability_class: "SEARCH"
+    
+    input:
+      schema:
+        query:
+          type: "string"
+          description: "Search query"
+        
+        sources:
+          type: "array"
+          items:
+            type: "string"
+            enum: ["web", "documentation", "papers", "github"]
+          default: ["web"]
+        
+        max_results:
+          type: "integer"
+          default: 10
+          maximum: 20
+    
+    output:
+      schema:
+        results:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              title: {type: "string"}
+              url: {type: "string", format: "uri"}
+              snippet: {type: "string"}
+              source: {type: "string"}
+              timestamp: {type: "string"}
+        
+        grounding_score:
+          type: "number"
+          description: "F2 Truth score based on source quality"
+    
+    constitutional:
+      F2_Truth: "All claims must cite search results"
+      F7_Humility: "Acknowledge if search returns no quality results"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SKILL INVENTORY SUMMARY
+# ═══════════════════════════════════════════════════════════════════════════════
+
+inventory:
+  by_agent:
+    A-ARCHITECT:
+      - read_codebase
+      - search_reality
+      - constitutional_audit  # Can audit, cannot VOID
+    
+    A-ENGINEER:
+      - read_codebase
+      - write_code
+      - edit_code
+      - search_reality
+    
+    A-AUDITOR:
+      - read_codebase
+      - constitutional_audit  # Can VOID
+      - search_reality
+    
+    A-VALIDATOR:
+      - read_codebase
+      - write_code  # Rollback only
+      - edit_code   # Rollback only
+      - constitutional_audit  # Can VOID
+      - deploy      # Exclusive
+      - search_reality
+
+motto: "Ditempa Bukan Diberi — Forged, Not Given"
+

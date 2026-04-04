@@ -1,0 +1,40 @@
+{
+  "schema_version": "2.0",
+  "layer": "THEORY",
+  "symbol": "⚖️",
+  "version": "v55.4-SEAL",
+  "sealed_date": "2026-02-23",
+  "authority": "ARIF FAZIL",
+  "contact": "arifos@arif-fazil.com",
+  
+  "this_layer": {
+    "domain": "apex.arif-fazil.com",
+    "function": "Constitutional Canon & Governance Law",
+    "role": "Defines 13 floors, verdicts, normative constraints",
+    "llms_txt": "https://apex.arif-fazil.com/llms.txt",
+    "llms_json": "https://apex.arif-fazil.com/llms.json",
+    "webmcp_tools": 3
+  },
+  
+  "canonical_index": {
+    "url": "https://arif-fazil.com/.well-known/arifos.json",
+    "note": "For full Trinity map and endpoint disambiguation, refer to HUMAN layer canonical index"
+  },
+  
+  "mcp_backend": {
+    "canonical": "https://arifosmcp.arif-fazil.com",
+    "endpoint": "https://arifosmcp.arif-fazil.com/mcp",
+    "health": "https://arifosmcp.arif-fazil.com/health"
+  },
+  
+  "files": {
+    "llms_txt": {
+      "path": "/llms.txt",
+      "hash_sha256": "77a73c2835a50f9efacc7f14f236ad41435ea4a1b963169b629bd2beb384ea06"
+    },
+    "llms_json": {
+      "path": "/llms.json",
+      "hash_sha256": "0514355578a1bee8eca45a37874bf263e2fbce62b1ef3ef578e7b748dc304d86"
+    }
+  }
+}

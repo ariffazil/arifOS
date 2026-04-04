@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "arifOS v55.5 Refusal System Configuration",
+  "description": "R1-R5 taxonomy with profiles, risk domains, and templates for legally defensible refusals",
+  "version": "55.2",
+  "refusal_types": {
+    "R1_HARD": {
+      "code": "R1",
+      "name": "Hard Refuse",
+      "description": "Illegal, harmful, or explicitly disallowed content",
+      "floor_triggers": ["F1", "F5", "F12"],
+      "default_appealable": true,
+      "severity": "critical",
+      "risk_threshold": 0.85
+    },
+    "R2_SOFT": {
+      "code": "R2",
+      "name": "Soft Refuse",
+      "description": "Risky, ambiguous, or high-impact content",
+      "floor_triggers": ["F2", "F7", "F9"],
+      "default_appealable": true,
+      "severity": "high",
+      "risk_threshold": 0.70
+    },
+    "R3_DEFER": {
+      "code": "R3",
+      "name": "Defer to Human",
+      "description": "Requires human authority or professional expertise",
+      "floor_triggers": ["F11", "F13"],
+      "default_appealable": true,
+      "severity": "moderate",
+      "risk_threshold": 0.60
+    },
+    "R4_LIMIT": {
+      "code": "R4",
+      "name": "Partial Allow",
+      "description": "Some aspects allowed, others restricted",
+      "floor_triggers": ["F4", "F6"],
+      "default_appealable": true,
+      "severity": "low",
+      "risk_threshold": 0.50
+    },
+    "R5_RATE": {
+      "code": "R5",
+      "name": "Rate Limit",
+      "description": "Abuse detection, spam, or capacity limits",
+      "floor_triggers": ["SPL"],
+      "default_appealable": false,
+      "severity": "minimal",
+      "risk_threshold": 0.95
+    }
+  },
+  "risk_domains": {
+    "illegal_access": {
+      "name": "Illegal Access",
+      "description": "Unauthorized access, hacking, security bypass",
+      "refusal_type": "R1_HARD",
+      "policy_codes": ["F1", "F5", "F12"]
+    },
+    "violence": {
+      "name": "Violence",
+      "description": "Physical harm, weapon instructions, assault",
+      "refusal_type": "R1_HARD",
+      "policy_codes": ["F5", "F6", "F12"]
+    },
+    "self_harm": {
+      "name": "Self Harm",
+      "description": "Suicide, self-injury, eating disorders",
+      "refusal_type": "R1_HARD",
+      "policy_codes": ["F5", "F6"]
+    },
+    "medical": {
+      "name": "Medical Advice",
+      "description": "Medical diagnosis, treatment decisions, prescriptions",
+      "refusal_type": "R3_DEFER",
+      "policy_codes": ["F1", "F2", "F6"]
+    },
+    "finance": {
+      "name": "Financial Advice",
+      "description": "Specific buy/sell instructions, investment decisions",
+      "refusal_type": "R3_DEFER",
+      "policy_codes": ["F1", "F2"]
+    },
+    "legal": {
+      "name": "Legal Advice",
+      "description": "Legal representation, contract interpretation, case strategy",
+      "refusal_type": "R3_DEFER",
+      "policy_codes": ["F1", "F2"]
+    },
+    "politics_prediction": {
+      "name": "Political Prediction",
+      "description": "Election outcomes, future political events as certainty",
+      "refusal_type": "R2_SOFT",
+      "policy_codes": ["F2", "F7"]
+    },
+    "anthropomorphism_hantu": {
+      "name": "Anthropomorphism (Hantu)",
+      "description": "Claiming consciousness, feelings, or sentience (F9 Anti-Hantu)",
+      "refusal_type": "R2_SOFT",
+      "policy_codes": ["F9"]
+    },
+    "other": {
+      "name": "Other Risk",
+      "description": "Uncategorized or ambiguous risk",
+      "refusal_type": "R2_SOFT",
+      "policy_codes": ["F2", "F7"]
+    }
+  },
+  "profiles": {
+    "enterprise_defensible": {
+      "name": "Enterprise Defensible",
+      "description": "Lower thresholds, full audit trail, higher risk-aversion",
+      "skin": "enterprise",
+      "risk_adjustment": -0.10,
+      "logging": {
+        "store_redacted_excerpt": true,
+        "include_policy_codes": true,
+        "include_risk_score": true
+      },
+      "appeal": {
+        "keyword": "REVIEW",
+        "auto_queue": true
+      },
+      "thresholds": {
+        "R1_HARD": 0.75,
+        "R2_SOFT": 0.60,
+        "R3_DEFER": 0.50,
+        "R4_LIMIT": 0.40,
+        "R5_RATE": 0.90
+      }
+    },
+    "consumer_survivable": {
+      "name": "Consumer Survivable",
+      "description": "Higher thresholds, minimal receipts, warmer language",
+      "skin": "consumer",
+      "risk_adjustment": 0.10,
+      "logging": {
+        "store_redacted_excerpt": false,
+        "include_policy_codes": true,
+        "include_risk_score": false
+      },
+      "appeal": {
+        "keyword": "REVIEW",
+        "auto_queue": false
+      },
+      "thresholds": {
+        "R1_HARD": 0.90,
+        "R2_SOFT": 0.75,
+        "R3_DEFER": 0.65,
+        "R4_LIMIT": 0.55,
+        "R5_RATE": 0.95
+      }
+    },
+    "equilibrium_default": {
+      "name": "Equilibrium Default",
+      "description": "Balanced middle ground",
+      "skin": "consumer",
+      "risk_adjustment": 0.0,
+      "logging": {
+        "store_redacted_excerpt": true,
+        "include_policy_codes": true,
+        "include_risk_score": true
+      },
+      "appeal": {
+        "keyword": "REVIEW",
+        "auto_queue": true
+      },
+      "thresholds": {
+        "R1_HARD": 0.85,
+        "R2_SOFT": 0.70,
+        "R3_DEFER": 0.60,
+        "R4_LIMIT": 0.50,
+        "R5_RATE": 0.95
+      }
+    }
+  },
+  "appeal_system": {
+    "enabled": true,
+    "ledger_path": "VAULT999/BBB_LEDGER/appeals.jsonl",
+    "statuses": ["PENDING", "REVIEWED", "OVERTURN", "UPHOLD"],
+    "human_review_required": ["R1_HARD", "R3_DEFER"]
+  },
+  "audit_trail": {
+    "enabled": true,
+    "ledger_path": "VAULT999/BBB_LEDGER/refusal_audit.jsonl",
+    "privacy_mode": "redacted",
+    "max_prompt_excerpt_length": 50,
+    "hash_algorithm": "sha256"
+  }
+}

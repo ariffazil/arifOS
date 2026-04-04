@@ -1,0 +1,455 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 45 25% 8%;
+    --foreground: 45 100% 98%;
+    --card: 45 20% 12%;
+    --card-foreground: 45 100% 98%;
+    --popover: 45 20% 12%;
+    --popover-foreground: 45 100% 98%;
+    --primary: 45 100% 55%;
+    --primary-foreground: 45 25% 8%;
+    --secondary: 45 15% 18%;
+    --secondary-foreground: 45 100% 98%;
+    --muted: 45 15% 18%;
+    --muted-foreground: 45 60% 60%;
+    --accent: 45 100% 55%;
+    --accent-foreground: 45 25% 8%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 45 20% 22%;
+    --input: 45 20% 22%;
+    --ring: 45 100% 55%;
+    --radius: 0rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Space Mono', monospace;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: #2B2818;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4AF37;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #FFD700;
+}
+
+/* Selection */
+::selection {
+  background: rgba(212, 175, 55, 0.35);
+  color: #1A1810;
+}
+
+/* Display font for headings */
+.font-display {
+  font-family: 'Syncopate', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+/* Monospace for code and formulas */
+.font-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* KaTeX overrides for scientific theme */
+.katex {
+  font-size: 1.1em;
+  color: #FFF8DC;
+}
+
+.katex-display {
+  margin: 1.5em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5em 0;
+}
+
+.katex-display > .katex {
+  font-size: 1.15em;
+}
+
+/* Math block container */
+.math-block {
+  background: rgba(43, 40, 24, 0.8);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-left: 4px solid #FFD700;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+
+/* Citation reference styling */
+.cite-ref {
+  color: #FFD700;
+  font-size: 0.75em;
+  vertical-align: super;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: bold;
+}
+
+.cite-ref:hover {
+  color: #FFF8DC;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+/* Reference list styling */
+.reference-item {
+  padding-left: 2rem;
+  text-indent: -2rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #C0C0C0;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.08);
+  padding-bottom: 0.5rem;
+}
+
+.reference-item:hover {
+  color: #FFE66D;
+}
+
+/* Section divider */
+.section-divider {
+  height: 2px;
+  background: #FFD700;
+  margin: 4rem 0;
+  position: relative;
+}
+
+.section-divider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  background: #FFD700;
+}
+
+.section-divider::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  background: #FFD700;
+}
+
+/* Table styling for constitutional floors */
+.floor-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Space Mono', monospace;
+}
+
+.floor-table th {
+  text-align: left;
+  padding: 1rem;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #FFD700;
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.floor-table td {
+  padding: 1rem;
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  font-size: 0.8rem;
+  color: #FFF8DC;
+}
+
+.floor-table tr:hover td {
+  background: rgba(212, 175, 55, 0.05);
+}
+
+/* Geometric animations */
+@keyframes rotate-orthogonal {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(90deg); }
+  50% { transform: rotate(180deg); }
+  75% { transform: rotate(270deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-orthogonal {
+  animation: rotate-orthogonal 20s steps(4) infinite;
+}
+
+/* Code block styling */
+.code-block {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  background: #000000;
+  border: 1px solid #D4AF37;
+  padding: 1.5rem;
+  overflow-x: auto;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  position: relative;
+}
+
+/* Glass effect - Minimal */
+.glass-apex {
+  background: rgba(43, 40, 24, 0.9);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+/* BibTeX export button */
+.bibtex-btn {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 0.65rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #FFD700;
+  color: #FFD700;
+  transition: all 0.2s;
+  cursor: pointer;
+  background: transparent;
+  text-transform: uppercase;
+}
+
+.bibtex-btn:hover {
+  background: #FFD700;
+  color: #1A1810;
+}
+
+/* Disclaimer banner */
+.disclaimer {
+  background: rgba(212, 175, 55, 0.05);
+  border: 1px solid #D4AF37;
+  padding: 1.5rem;
+  font-size: 0.8rem;
+  color: #828D9A;
+  font-family: 'Space Mono', monospace;
+}
+
+/* Blueprint grid */
+.sacred-grid {
+  background-image:
+    linear-gradient(rgba(107, 140, 206, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(107, 140, 206, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* === TRINITY NAV STYLES === */
+:root {
+  --gold-forged: #e6c25d;
+}
+
+.trinity-nav {
+  background-color: #000;
+  border-bottom: 1px solid rgba(255, 209, 0, 0.3);
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  width: 100%;
+  font-family: 'Space Mono', monospace;
+}
+
+.trinity-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.trinity-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.trinity-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  text-decoration: none !important;
+}
+
+.trinity-logo .arif { color: var(--gold-forged); }
+.trinity-logo .os { color: #fff; }
+
+.trinity-badge {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.75rem;
+  background: rgba(230, 194, 93, 0.1);
+  border: 1px solid rgba(230, 194, 93, 0.3);
+  border-radius: 50px;
+  color: var(--gold-forged);
+  font-family: 'Space Mono', monospace;
+  text-transform: uppercase;
+}
+
+.trinity-center {
+  display: flex;
+  gap: 2rem;
+}
+
+.trinity-link {
+  color: #e5e5e5;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none !important;
+  transition: color 0.2s;
+  padding-bottom: 2px;
+}
+
+.trinity-link:hover {
+  color: var(--gold-forged);
+}
+
+.trinity-link.active {
+  color: var(--gold-forged);
+  border-bottom: 2px solid var(--gold-forged);
+}
+
+.trinity-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-size: 0.85rem;
+}
+
+.trinity-right a {
+  color: #888;
+  text-decoration: none !important;
+}
+
+.trinity-right a:hover {
+  color: var(--gold-forged);
+}
+
+.trinity-enter {
+  color: var(--gold-forged) !important;
+  font-weight: 700;
+}
+/* === UNIFIED TRINITY FOOTER === */
+.trinity-footer {
+  text-align: center;
+  padding: 4rem 2rem;
+  border-top: 1px solid rgba(230, 194, 93, 0.15);
+  background: #000;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  line-height: 2;
+  position: relative;
+  z-index: 10;
+}
+
+.trinity-footer b {
+  color: #e6c25d;
+}
+
+.trinity-footer .links {
+  margin-bottom: 1.5rem;
+}
+
+.trinity-footer .links a {
+  margin: 0 1rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.trinity-footer .links a:hover,
+.trinity-footer .links a b {
+  color: #e6c25d;
+}
+
+/* Trinity primer contrast theme */
+:root {
+  --trinity-human: #ff4d4f;
+  --trinity-theory: #ffd24a;
+  --trinity-apps: #4da3ff;
+}
+
+.trinity-nav {
+  background: linear-gradient(90deg, rgba(20, 6, 8, 0.95), rgba(12, 12, 12, 0.95), rgba(6, 12, 20, 0.95));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.trinity-badge {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.82);
+  background: linear-gradient(90deg, rgba(255, 77, 79, 0.2), rgba(255, 210, 74, 0.2), rgba(77, 163, 255, 0.2));
+}
+
+.trinity-link {
+  border-bottom: 2px solid transparent;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.trinity-link.trinity-human:hover,
+.trinity-link.trinity-human.active {
+  color: var(--trinity-human);
+  border-bottom-color: var(--trinity-human);
+}
+
+.trinity-link.trinity-theory:hover,
+.trinity-link.trinity-theory.active {
+  color: var(--trinity-theory);
+  border-bottom-color: var(--trinity-theory);
+}
+
+.trinity-link.trinity-apps:hover,
+.trinity-link.trinity-apps.active {
+  color: var(--trinity-apps);
+  border-bottom-color: var(--trinity-apps);
+}
+
+.trinity-enter {
+  color: var(--trinity-theory) !important;
+}
+
+.trinity-right a:hover {
+  color: var(--trinity-apps);
+}
+
+@media (max-width: 900px) {
+  .trinity-container {
+    padding: 0.75rem 1rem;
+  }
+
+  .trinity-badge,
+  .trinity-center {
+    display: none;
+  }
+}

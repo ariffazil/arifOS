@@ -1,0 +1,19 @@
+services:
+  openclaw-health-shim:
+    build: .
+    container_name: openclaw-health-shim
+    ports:
+      - "3001:3001"
+    networks:
+      - coolify
+      - ai-net
+      - trinity_network
+    restart: unless-stopped
+
+networks:
+  coolify:
+    external: true
+  ai-net:
+    external: true
+  trinity_network:
+    external: true

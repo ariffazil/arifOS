@@ -1,0 +1,345 @@
+﻿# arifOS Unified Memory Ledger
+# Canonical Agent Memory Spine - Compounding Intelligence
+# Version: 2026.03.14-FORGED
+# Authority: 888_JUDGE
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 6 BLINDSPOT #2: Unified Memory Instead of Fragmented State
+# ═══════════════════════════════════════════════════════════════════════════════
+# Single canonical memory ledger for all agent observations, tasks, tool
+# outcomes, deployment events, and human approvals. Indexed, queryable,
+# and sealed to VAULT999 for forensic integrity.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+constitutional_version: "2026.03.14-FORGED"
+ledger_id: "arifos-memory-spine"
+authority: "888_JUDGE"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MEMORY CATEGORIES - All Agent Activity Indexed Here
+# ═══════════════════════════════════════════════════════════════════════════════
+
+memory_categories:
+  # 1. AGENT OBSERVATIONS - What agents see and learn
+  observations:
+    description: "Agent observations during task execution"
+    retention: "permanent"
+    vault_seal: true
+    schema:
+      observation_id: "uuid"
+      timestamp: "iso8601"
+      agent_id: "agent://arifos/{role}"
+      session_id: "uuid"
+      task_id: "uuid"
+      category: "file|system|web|memory|error"
+      content: "string"
+      context:
+        file_path: "string"
+        line_range: ["int", "int"]
+        related_observations: ["uuid"]
+      entropy_delta: "float"  # F4 tracking
+      constitutional_check:
+        F2_truth: "float"
+        F4_clarity: "float"
+    
+    examples:
+      - type: "file_structure"
+        content: "Observed AGENTS/ folder has 3 subdirectories"
+      - type: "pattern_match"
+        content: "Found TODO pattern in 12 files"
+      - type: "error_condition"
+        content: "ImportError on thermodynamics_hardened module"
+
+  # 2. TASK HISTORY - What agents have done
+  tasks:
+    description: "Complete task execution history"
+    retention: "permanent"
+    vault_seal: true
+    schema:
+      task_id: "uuid"
+      parent_task: "uuid|null"
+      timestamp:
+        created: "iso8601"
+        started: "iso8601"
+        completed: "iso8601"
+      agent_id: "agent://arifos/{role}"
+      session_id: "uuid"
+      status: "pending|active|completed|failed|void"
+      
+      request:
+        intent: "string"
+        context: "string"
+        constraints: ["string"]
+      
+      execution:
+        steps_taken: ["step_object"]
+        tools_used: ["tool_name"]
+        files_accessed: ["path"]
+        observations_made: ["observation_uuid"]
+      
+      outcome:
+        result: "string"
+        artifacts_created: ["path"]
+        artifacts_modified: ["path"]
+        constitutional_verdict: "SEAL|VOID|888_HOLD"
+        floors_passed: ["F1", "F2", ...]
+        floors_failed: ["F3", ...]
+      
+      # F8 Genius tracking
+      genius_score:
+        akal: "float"
+        present: "float"
+        exploration: "float"
+        energy: "float"
+        G: "float"
+
+  # 3. TOOL OUTCOMES - Every tool call and result
+  tool_outcomes:
+    description: "Execution results of all tool calls"
+    retention: "permanent"
+    vault_seal: true
+    schema:
+      tool_call_id: "uuid"
+      timestamp: "iso8601"
+      agent_id: "agent://arifos/{role}"
+      session_id: "uuid"
+      task_id: "uuid"
+      
+      request:
+        tool_name: "string"
+        parameters: "object"
+        policy_check:
+          agent_authorized: "boolean"
+          tool_allowed: "boolean"
+          within_boundaries: "boolean"
+      
+      execution:
+        started_at: "iso8601"
+        completed_at: "iso8601"
+        duration_ms: "int"
+        status: "success|failure|blocked|timeout"
+      
+      result:
+        output_type: "string|file|json|error"
+        output_summary: "string"
+        output_size_bytes: "int"
+        contains_sensitive: "boolean"
+      
+      # Thermodynamic tracking (F4)
+      thermodynamics:
+        entropy_input: "float"
+        entropy_output: "float"
+        delta_s: "float"
+        energy_consumed: "float"
+        landauer_checked: "boolean"
+
+  # 4. DEPLOYMENT EVENTS - Every deployment and rollback
+  deployments:
+    description: "Deployment history with full provenance"
+    retention: "permanent"
+    vault_seal: true
+    schema:
+      deployment_id: "uuid"
+      timestamp: "iso8601"
+      agent_id: "agent://arifos/validator"  # Only VALIDATOR
+      session_id: "uuid"
+      
+      package:
+        version: "string"
+        git_commit: "sha"
+        artifacts: ["path"]
+        size_bytes: "int"
+      
+      approval_chain:
+        engineer_complete: {agent: "A-ENGINEER", timestamp: "iso8601"}
+        auditor_approved: {agent: "A-AUDITOR", timestamp: "iso8601"}
+        human_approved: {actor: "string", timestamp: "iso8601"}
+        validator_sealed: {agent: "A-VALIDATOR", timestamp: "iso8601"}
+      
+      deployment:
+        target: "staging|production"
+        strategy: "canary|blue-green|rolling"
+        duration_seconds: "int"
+        status: "success|failure|rolled_back"
+      
+      rollback:
+        rolled_back: "boolean"
+        rollback_trigger: "string"
+        rollback_timestamp: "iso8601"
+        rollback_depth: "int"
+
+  # 5. HUMAN APPROVALS - Sovereign authority log
+  human_approvals:
+    description: "All human approvals and overrides (F13)",
+    retention: "permanent"
+    vault_seal: true
+    schema:
+      approval_id: "uuid"
+      timestamp: "iso8601"
+      human_actor: "string"
+      session_id: "uuid"
+      
+      request:
+        action_type: "deploy|destroy|edit|tool_use|policy_override"
+        description: "string"
+        requested_by: "agent://arifos/{role}"
+        urgency: "normal|high|emergency"
+      
+      decision:
+        verdict: "APPROVED|DENIED|888_HOLD"
+        reasoning: "string"
+        conditions: ["string"]
+        expires_at: "iso8601"
+      
+      execution:
+        executed_at: "iso8601|null"
+        executed_by: "agent://arifos/{role}|null"
+        outcome: "success|failure|pending"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# INDEXING - Queryable Memory Spine
+# ═══════════════════════════════════════════════════════════════════════════════
+
+indices:
+  # Primary lookup indices
+  primary:
+    - name: "by_timestamp"
+      field: "timestamp"
+      type: "range"
+    - name: "by_agent"
+      field: "agent_id"
+      type: "exact"
+    - name: "by_session"
+      field: "session_id"
+      type: "exact"
+    - name: "by_task"
+      field: "task_id"
+      type: "exact"
+  
+  # Cross-cutting indices
+  secondary:
+    - name: "by_file_path"
+      field: "files_accessed"
+      type: "array_contains"
+    - name: "by_tool"
+      field: "tools_used"
+      type: "array_contains"
+    - name: "by_constitutional_floor"
+      field: "floors_passed"
+      type: "array_contains"
+    - name: "by_verdict"
+      field: "constitutional_verdict"
+      type: "exact"
+  
+  # Full-text search
+  search:
+    - name: "intent_search"
+      fields: ["request.intent", "request.context"]
+    - name: "observation_search"
+      fields: ["observations.content"]
+    - name: "outcome_search"
+      fields: ["outcome.result"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# QUERY PATTERNS - How Agents Access Memory
+# ═══════════════════════════════════════════════════════════════════════════════
+
+query_patterns:
+  # Pattern 1: What did I do to file X?
+  file_provenance:
+    description: "Full history of modifications to a file"
+    query:
+      category: "tasks"
+      filter: "files_accessed contains {path}"
+      sort: "timestamp desc"
+      include: ["agent_id", "outcome", "artifacts_created"]
+  
+  # Pattern 2: What has agent X done recently?
+  agent_activity:
+    description: "Recent activity of a specific agent"
+    query:
+      filter: "agent_id = {agent_id}"
+      time_range: "last 24h"
+      aggregate: "by task status"
+  
+  # Pattern 3: What deployments have happened?
+  deployment_history:
+    description: "All deployments with approval chain"
+    query:
+      category: "deployments"
+      filter: "status = success"
+      sort: "timestamp desc"
+      include: ["approval_chain", "package.version"]
+  
+  # Pattern 4: What errors keep happening?
+  error_patterns:
+    description: "Recurring errors across all agents"
+    query:
+      category: "observations"
+      filter: "category = error"
+      aggregate: "by content pattern"
+      time_range: "last 7d"
+  
+  # Pattern 5: What tasks are pending human approval?
+  pending_approvals:
+    description: "All actions waiting for human sovereign"
+    query:
+      category: "human_approvals"
+      filter: "decision.verdict = 888_HOLD"
+      sort: "urgency desc, timestamp asc"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# COMPACTING INTELLIGENCE - Learning from Memory
+# ═══════════════════════════════════════════════════════════════════════════════
+
+compaction:
+  description: "Derive compound intelligence from raw memory"
+  
+  insights:
+    - type: "pattern_extraction"
+      source: "observations"
+      algorithm: "frequent_pattern_mining"
+      output: "common_code_patterns"
+    
+    - type: "error_clustering"
+      source: "observations"
+      filter: "category = error"
+      algorithm: "semantic_clustering"
+      output: "error_taxonomy"
+    
+    - type: "performance_trends"
+      source: "tasks"
+      metric: "genius_score.G"
+      algorithm: "time_series_analysis"
+      output: "agent_performance_trends"
+    
+    - type: "knowledge_graph"
+      source: "all_categories"
+      algorithm: "entity_relationship_extraction"
+      output: "codebase_knowledge_graph"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VAULT999 INTEGRATION
+# ═══════════════════════════════════════════════════════════════════════════════
+
+vault_integration:
+  ledger_path: "VAULT999/memory-ledger.jsonl"
+  seal_interval: "every_100_entries"
+  merkle_chain: true
+  tamper_detection: true
+  
+  retention_policy:
+    observations: "permanent"
+    tasks: "permanent"
+    tool_outcomes: "permanent"
+    deployments: "permanent"
+    human_approvals: "permanent"
+  
+  query_interface:
+    - tool: "session_memory"
+      operation: "search"
+    - tool: "trace_replay"
+      operation: "replay"
+
+motto: "Ditempa Bukan Diberi — Forged, Not Given"
+

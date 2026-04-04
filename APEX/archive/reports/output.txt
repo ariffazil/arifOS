@@ -1,0 +1,20 @@
+=== arifOS Contrast Audit: Internal Engine ===
+
+[Stage 000] Initializing Anchor...
+Traceback (most recent call last):
+  File "C:\arifosmcp\verify_contrast.py", line 80, in <module>
+    asyncio.run(verify_contrast_internal())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\arifosmcp\verify_contrast.py", line 17, in verify_contrast_internal
+    init_res = await init_anchor(raw_input="Plan a new Dyson Sphere implementation.")
+                     ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: init_anchor() missing 1 required positional argument: 'ctx'

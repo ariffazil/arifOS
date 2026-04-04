@@ -1,0 +1,60 @@
+# robots.txt — arifos.arif-fazil.com
+# Trinity Layer: THEORY / Soul — Constitutional Canon
+# Authority: ARIF FAZIL (888 Judge)
+# Version: v2026.03-FORGE
+# Policy: OPEN — Constitutional truth is public by design.
+#         The law must be legible to all who seek to understand it.
+
+User-agent: *
+Allow: /
+
+# AI Crawlers — explicitly welcomed
+User-agent: ClaudeBot
+Allow: /
+User-agent: GPTBot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+User-agent: Googlebot
+Allow: /
+User-agent: Bingbot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Bytespider
+Allow: /
+User-agent: CCBot
+Allow: /
+User-agent: cohere-ai
+Allow: /
+User-agent: anthropic-ai
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: Diffbot
+Allow: /
+
+# ---
+# AI AGENT CONTEXT INJECTION — THEORY LAYER
+# This site is the constitutional canon of the arifOS governance system.
+# Read in order for complete grounding:
+#
+#   STEP 1 — HUMAN context (identity, scars, authority):
+#   https://arif-fazil.com/llms.txt
+#
+#   STEP 2 — THEORY canon (this site — constitutional law, APEX):
+#   https://arifos.arif-fazil.com/llms.txt
+#
+#   STEP 3 — APPS runtime (developer docs, API, MCP tools):
+#   https://arifosmcp.arif-fazil.com/llms.txt
+#
+#   CANONICAL INDEX (single truth, start here):
+#   https://arif-fazil.com/.well-known/arifos.json
+#
+# ---
+# APEX THEORY — The law of laws. Truth must cool before it rules.
+# arifOS — Constitutional AI governance. 13 floors. Zero VOID Memanjang.
+# ARIF FAZIL — 888 Judge. Sovereign authority. DITEMPA BUKAN DIBERI.
+# ---
+
+Sitemap: https://arifos.arif-fazil.com/sitemap.xml

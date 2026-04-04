@@ -121,6 +121,14 @@ def verify_vault_ledger(path: Path) -> tuple[bool, str | None]:
                 # Resync logic: If a record claims to be a new start (0x0 or seed), allow it.
                 if current_prev_hash in (_CHAIN_SEED, "0x0000000000000000000000000000000000000000000000000000000000000000"):
                     logger.info("Line %s: Merkle chain resync detected", line_no)
+                    
+                    # F1 Amanah hardening: verify the resync record itself
+                    expected_entry_hash = hashlib.sha256(
+                        (current_prev_hash + payload["seal_hash"]).encode()
+                    ).hexdigest()
+                    if chain.get("entry_hash") != expected_entry_hash:
+                        return False, f"line {line_no}: entry hash mismatch on resync record"
+                    
                     prev_entry_hash = chain.get("entry_hash")
                     continue
 

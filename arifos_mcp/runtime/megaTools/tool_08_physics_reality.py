@@ -66,6 +66,8 @@ async def physics_reality(
         
         metrics = CanonicalMetrics()
         metrics.telemetry.ds = res_dict.get("metrics", {}).get("telemetry", {}).get("ds", 0.0)
+        metrics.telemetry.confidence = res_dict.get("metrics", {}).get("telemetry", {}).get("confidence", res_dict.get("confidence", 0.0))
+        
         
         return forge_verdict(
             tool_id="physics_reality",

@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arif Fazil | Geoscientist · AI Architect · Sovereign Technologist</title>
+    <meta name="description" content="Petroleum geologist who built arifOS - the world's first sovereign, dual-surface, constitutionally-governed AI system.">
+    <meta name="author" content="Muhammad Arif bin Fazil">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Arif Fazil | Geoscientist · AI Architect">
+    <meta property="og:description" content="I drill for oil. I also built a constitution for AI.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arif-fazil.com">
+    <meta property="og:image" content="https://arif-fazil.com/assets/og-image.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111111;
+            --bg-tertiary: #1a1a1a;
+            --text-primary: #f5f5f5;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --accent: #00d4aa;
+            --accent-dim: rgba(0, 212, 170, 0.1);
+            --accent-glow: rgba(0, 212, 170, 0.3);
+            --border: #2a2a2a;
+            --danger: #ff4444;
+            --warning: #ffaa00;
+            --success: #00d4aa;
+            
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+        
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            padding: 0 24px;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+        
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+        
+        .nav-brand-symbol {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            color: var(--accent);
+            font-weight: 500;
+        }
+        
+        .nav-brand-text {
+            font-weight: 600;
+            font-size: 1.1rem;
+            letter-spacing: -0.02em;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .nav-tab {
+            padding: 8px 16px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        
+        .nav-tab:hover {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+        
+        .nav-tab.active {
+            color: var(--accent);
+            background: var(--accent-dim);
+            border-color: var(--accent);
+        }
+        
+        .nav-cta {
+            padding: 8px 16px;
+            background: var(--accent);
+            color: var(--bg-primary) !important;
+            font-weight: 600;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-cta:hover {
+            background: #00b894;
+            transform: translateY(-1px);
+        }
+        
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 24px 80px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        
+        .hero-content {
+            max-width: 800px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--accent-dim);
+            border: 1px solid var(--accent);
+            border-radius: 100px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 32px;
+        }
+        
+        .hero-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .hero-title {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-subtitle {
+            font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+        
+        .hero-cta {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg-primary);
+        }
+        
+        .btn-primary:hover {
+            background: #00b894;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 212, 170, 0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        /* Live Status Bar */
+        .status-bar {
+            margin-top: 48px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+            animation: pulse 2s infinite;
+        }
+        
+        .status-value {
+            color: var(--accent);
+            font-weight: 600;
+        }
+        
+        /* Sections */
+        .section {
+            padding: 100px 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+        
+        .section-label {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 16px;
+        }
+        
+        .section-title {
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+        
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-dim);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .card-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+        
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 20px;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .card-link:hover {
+            gap: 10px;
+        }
+        
+        /* Article Card */
+        .article-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+        
+        .article-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+        }
+        
+        .article-image {
+            height: 200px;
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--accent-dim) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+        
+        .article-content {
+            padding: 28px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .article-meta {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 12px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        
+        .article-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        
+        .article-excerpt {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            flex: 1;
+        }
+        
+        .article-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        /* Quote Section */
+        .quote-section {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 80px 24px;
+        }
+        
+        .quote-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .quote-text {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: 300;
+            font-style: italic;
+            line-height: 1.5;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+        }
+        
+        .quote-text span {
+            color: var(--accent);
+            font-weight: 500;
+        }
+        
+        .quote-author {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 60px 24px 40px;
+        }
+        
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 48px;
+        }
+        
+        .footer-brand {
+            max-width: 300px;
+        }
+        
+        .footer-logo {
+            font-family: var(--font-mono);
+            font-size: 1.25rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .footer-tagline {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .footer-heading {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+        
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .footer-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
+        }
+        
+        .footer-link:hover {
+            color: var(--accent);
+        }
+        
+        .footer-bottom {
+            padding-top: 32px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        
+        .footer-copyright {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        
+        .footer-social {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .social-link {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .social-link:hover {
+            background: var(--accent);
+            color: var(--bg-primary);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .nav-tabs {
+                display: none;
+            }
+            
+            .hero {
+                padding: 100px 20px 60px;
+            }
+            
+            .hero-cta {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 280px;
+                justify-content: center;
+            }
+            
+            .status-bar {
+                flex-direction: column;
+                gap: 16px;
+            }
+            
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .section {
+                padding: 60px 20px;
+            }
+        }
+        
+        /* Mobile Menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                <span class="nav-brand-symbol">ΔΩΨ</span>
+                <span class="nav-brand-text">Arif Fazil</span>
+            </a>
+            
+            <div class="nav-tabs">
+                <a href="/" class="nav-tab active">Home</a>
+                <a href="/writing/" class="nav-tab">Writing</a>
+                <a href="/arifos/" class="nav-tab">arifOS</a>
+                <a href="https://arifosmcp.arif-fazil.com/webmcp" class="nav-tab" target="_blank">Live System →</a>
+            </div>
+            
+            <a href="https://github.com/ariffazil" class="nav-cta" target="_blank">GitHub</a>
+            
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span>Live: 13/13 Floors Passing</span>
+            </div>
+            
+            <h1 class="hero-title">
+                I drill for oil.<br>
+                I also built a<br>
+                <span style="color: var(--accent);">constitution for AI.</span>
+            </h1>
+            
+            <p class="hero-subtitle">
+                Petroleum geologist by trade. AI architect by necessity. <br>
+                Building sovereign infrastructure that makes AI accountable.
+            </p>
+            
+            <div class="hero-cta">
+                <a href="/writing/" class="btn btn-primary">
+                    Read the Story
+                    <span>→</span>
+                </a>
+                <a href="https://arifos.arif-fazil.com" class="btn btn-secondary" target="_blank">
+                    Explore arifOS
+                </a>
+            </div>
+            
+            <!-- Live Status -->
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-dot"></span>
+                    <span>System Status:</span>
+                    <span class="status-value">HEALTHY</span>
+                </div>
+                <div class="status-item">
+                    <span>G★ = 0.85</span>
+                </div>
+                <div class="status-item">
+                    <span>ΔS = -0.30</span>
+                </div>
+                <div class="status-item">
+                    <span>Peace² = 1.05</span>
+                </div>
+                <div class="status-item">
+                    <span>13/13 Floors</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Article Section -->
+    <section class="section" id="writing">
+        <div class="section-header">
+            <div class="section-label">Featured Writing</div>
+            <h2 class="section-title">The Complete Story</h2>
+            <p class="section-subtitle">
+                From blowout preventers to constitutional floors. How a geologist accidentally built the world's first sovereign AI OS.
+            </p>
+        </div>
+        
+        <div class="cards-grid" style="max-width: 800px; margin: 0 auto;">
+            <article class="article-card">
+                <div class="article-image">⛏️</div>
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span>14 March 2026</span>
+                        <span>·</span>
+                        <span>12 min read</span>
+                    </div>
+                    <h3 class="article-title">
+                        I'm a Geologist. I Accidentally Built the World's First Sovereign AI OS. And Today It Went Live.
+                    </h3>
+                    <p class="article-excerpt">
+                        What happens when a petroleum geologist gets tired of watching AI hallucinate confidently—and builds Steel Doors instead of Paper Walls. The full story of arifOS, from the oilfield to the $15 Sovereign Veto.
+                    </p>
+                    <a href="/writing/geologist-ai-os/" class="article-link">
+                        Read the full article →
+                    </a>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- Quote Section -->
+    <section class="quote-section">
+        <div class="quote-container">
+            <blockquote class="quote-text">
+                "The AI has no hands. Every real-world action goes through something else: a tool call, a shell command, an HTTP request. That 'something else' lives on <span>my</span> cheap VPS."
+            </blockquote>
+            <div class="quote-author">
+                — On why governance happens at the infrastructure layer, not the prompt layer
+            </div>
+        </div>
+    </section>
+
+    <!-- What I Do Section -->
+    <section class="section" style="background: var(--bg-secondary);">
+        <div class="section-header">
+            <div class="section-label">Work</div>
+            <h2 class="section-title">Two Worlds, One Principle</h2>
+            <p class="section-subtitle">
+                Uncertainty is the baseline. Pretending certainty when you don't have it is unforgivable.
+            </p>
+        </div>
+        
+        <div class="cards-grid">
+            <div class="card">
+                <div class="card-icon">🛢️</div>
+                <h3 class="card-title">Petroleum Geoscience</h3>
+                <p class="card-text">
+                    13+ years at PETRONAS. Subsurface mapping, risk registers, probability of success. The kind of work where the earth always gets the last vote. Reality doesn't adjust itself to fit a slide deck.
+                </p>
+                <a href="#" class="card-link">
+                    Learn more →
+                </a>
+            </div>
+            
+            <div class="card">
+                <div class="card-icon">⚖️</div>
+                <h3 class="card-title">arifOS</h3>
+                <p class="card-text">
+                    The world's first sovereign, dual-surface, constitutionally-governed AI system. 13 Constitutional Floors. VAULT999 ledger. Steel Doors instead of Paper Walls. Self-hosted on a $15 VPS.
+                </p>
+                <a href="https://arifos.arif-fazil.com" class="card-link" target="_blank">
+                    Explore the system →
+                </a>
+            </div>
+            
+            <div class="card">
+                <div class="card-icon">📝</div>
+                <h3 class="card-title">Writing & Research</h3>
+                <p class="card-text">
+                    Exploring the intersection of governance, infrastructure, and intelligence. From blowout preventers to constitutional floors. Building in public, thinking out loud.
+                </p>
+                <a href="/writing/" class="card-link">
+                    Read the archive →
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live System Section -->
+    <section class="section">
+        <div class="section-header">
+            <div class="section-label">Live System</div>
+            <h2 class="section-title">See It In Action</h2>
+            <p class="section-subtitle">
+                arifOS is running right now. Real constitutional governance, live metrics, actual VAULT999 entries.
+            </p>
+        </div>
+        
+        <div class="cards-grid" style="max-width: 900px; margin: 0 auto;">
+            <div class="card" style="text-align: center;">
+                <div class="card-icon" style="margin: 0 auto 20px;">📊</div>
+                <h3 class="card-title">APEX Dashboard</h3>
+                <p class="card-text">
+                    Real-time constitutional metrics. Watch the 13 floors, thermodynamic vitals, and VAULT999 entries as they happen.
+                </p>
+                <a href="https://arifosmcp.arif-fazil.com/dashboard/dashboard-v2.html" class="btn btn-primary" style="margin-top: 20px;" target="_blank">
+                    Open Dashboard →
+                </a>
+            </div>
+            
+            <div class="card" style="text-align: center;">
+                <div class="card-icon" style="margin: 0 auto 20px;">🔌</div>
+                <h3 class="card-title">WebMCP Endpoint</h3>
+                <p class="card-text">
+                    Human-facing MCP interface. Initialize sessions, call tools, see governance in action via browser.
+                </p>
+                <a href="https://arifosmcp.arif-fazil.com/webmcp" class="btn btn-secondary" style="margin-top: 20px;" target="_blank">
+                    View Endpoint →
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="footer-logo">ΔΩΨ Arif Fazil</div>
+                    <p class="footer-tagline">
+                        Geoscientist. AI Architect. Sovereign Technologist.<br>
+                        Building Steel Doors in a world of Paper Walls.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="footer-heading">Navigation</h4>
+                    <div class="footer-links">
+                        <a href="/" class="footer-link">Home</a>
+                        <a href="/writing/" class="footer-link">Writing</a>
+                        <a href="/arifos/" class="footer-link">arifOS</a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="footer-heading">Systems</h4>
+                    <div class="footer-links">
+                        <a href="https://arifosmcp.arif-fazil.com/webmcp" class="footer-link" target="_blank">Live System</a>
+                        <a href="https://arifos.arif-fazil.com" class="footer-link" target="_blank">Documentation</a>
+                        <a href="https://pypi.org/project/arifosmcp" class="footer-link" target="_blank">PyPI Package</a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="footer-heading">Connect</h4>
+                    <div class="footer-links">
+                        <a href="https://github.com/ariffazil" class="footer-link" target="_blank">GitHub</a>
+                        <a href="https://medium.com/@ariffazil" class="footer-link" target="_blank">Medium</a>
+                        <a href="https://www.linkedin.com/in/arif-fazil/" class="footer-link" target="_blank">LinkedIn</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="footer-copyright">
+                    © 2026 Muhammad Arif bin Fazil. Ditempa Bukan Diberi — Forged, Not Given.
+                </p>
+                <div class="footer-social">
+                    <a href="https://github.com/ariffazil" class="social-link" target="_blank" title="GitHub">GH</a>
+                    <a href="https://medium.com/@ariffazil" class="social-link" target="_blank" title="Medium">M</a>
+                    <a href="https://www.linkedin.com/in/arif-fazil/" class="social-link" target="_blank" title="LinkedIn">in</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const navTabs = document.querySelector('.nav-tabs');
+            navTabs.style.display = navTabs.style.display === 'flex' ? 'none' : 'flex';
+        }
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -689,81 +689,27 @@ services:
       - "traefik.http.services.codeserver.loadbalancer.server.port=8080"
     restart: unless-stopped
 
-  # CIV-01: Document Intelligence Factory (Stirling PDF)
-  stirling-pdf:
-    image: frooodle/s-pdf:latest
-    container_name: civ01_stirling_pdf
-    init: true
-    environment:
-      - DOCKER_ENABLE_SECURITY=true
-    volumes:
-      - /opt/arifos/data/stirling:/tmp:rw
-    networks:
-      - arifos_trinity
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.stirling.rule=Host(`pdf.arifosmcp.arif-fazil.com`)"
-      - "traefik.http.routers.stirling.entrypoints=websecure"
-      - "traefik.http.routers.stirling.tls.certresolver=letsencrypt"
-      - "traefik.http.services.stirling.loadbalancer.server.port=8080"
-    restart: unless-stopped
-
-  # CIV-03: Citizen Service Gateway (Evolution API)
-  evolution-api:
-    image: atendai/evolution-api:v1.8.1
-    container_name: civ03_evolution_api
-    init: true
-    environment:
-      - SERVER_URL=https://whatsapp.arifosmcp.arif-fazil.com
-      - AUTHENTICATION_API_KEY=${EVOLUTION_API_KEY:-arifos-evo-key}
-      - DATABASE_ENABLED=false
-      - CACHE_REDIS_ENABLED=true
-      - CACHE_REDIS_URI=redis://redis:6379/2
-    volumes:
-      - /opt/arifos/data/evolution:/evolution/instances:rw
-    networks:
-      - arifos_trinity
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.evolution.rule=Host(`whatsapp.arifosmcp.arif-fazil.com`)"
-      - "traefik.http.routers.evolution.entrypoints=websecure"
-      - "traefik.http.routers.evolution.tls.certresolver=letsencrypt"
-      - "traefik.http.services.evolution.loadbalancer.server.port=8080"
-    depends_on:
-      - redis
-    restart: unless-stopped
-
-networks:
-  arifos_trinity:
-    driver: bridge
+# DISABLED-RATELIMIT:   # CIV-01: Document Intelligence Factory (Stirling PDF)
+# DISABLED-RATELIMIT:   stirling-pdf:
+# DISABLED-RATELIMIT:     image: frooodle/s-pdf:latest
+# DISABLED-RATELIMIT:     container_name: civ01_stirling_pdf
+# DISABLED-RATELIMIT:     init: true
+# DISABLED-RATELIMIT:     environment:
+# DISABLED-RATELIMIT:       - DOCKER_ENABLE_SECURITY=true
+# DISABLED-RATELIMIT:     volumes:
+# DISABLED-RATELIMIT:       - /opt/arifos/data/stirling:/tmp:rw
+# DISABLED-RATELIMIT:     networks:
+# DISABLED-RATELIMIT:       - arifos_trinity
+# DISABLED-RATELIMIT:     labels:
+# DISABLED-RATELIMIT:       - "traefik.enable=true"
+# DISABLED-RATELIMIT:       - "traefik.http.routers.stirling.rule=Host(`pdf.arifosmcp.arif-fazil.com`)"
+# DISABLED-RATELIMIT:       - "traefik.http.routers.stirling.entrypoints=websecure"
+# DISABLED-RATELIMIT:       - "traefik.http.routers.stirling.tls.certresolver=letsencrypt"
+# DISABLED-RATELIMIT:       - "traefik.http.services.stirling.loadbalancer.server.port=8080"
+# DISABLED-RATELIMIT:     restart: unless-stopped
+# DISABLED-RATELIMIT: 
 
 
-# --- Named Volumes ---
-volumes:
-  arifosmcp_secrets:
-    external: true
-  arifosmcp_telemetry:
-    driver: local
-  arifosmcp_vault:
-    driver: local
-  arifosmcp_memory:
-    driver: local
-  arifos_grafana_data:
-    driver: local
-  arifos_grafana_datasources:
-    driver: local
-  arifos_grafana_dashboards:
-    driver: local
 
-# ── NETWORK CONFIGURATION NOTE ─────────────────────────────────────────
-# If Traefik and arifosmcp are on different networks, external access will fail.
-# 
-# Current deployment has containers from different compose projects.
-# Manual fix applied: docker network connect arifos_arifos_trinity traefik
-# 
-# Permanent fix via systemd: /opt/arifos/bin/fix-traefik-network.sh
-# Service: arifos-network-fix.service (enabled)
-# ───────────────────────────────────────────────────────────────────────
-  arifos_arifos_trinity:
-    name: arifos_arifos_trinity
-    driver: bridge
+
+

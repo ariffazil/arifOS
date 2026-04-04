@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 🔐 CSP: Strict security for sovereign key handling -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'none';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <title>arifOS — Sovereign Ratification Vault (888_HOLD)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use a minimal noble-ed25519 bundled script or fallback to sjcl for demo, but tweetnacl is best for ed25519 in browser -->
+    <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tweetnacl-util@0.15.1/nacl-util.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Tailwind slate-900 */
+            color: #f8fafc; /* Tailwind slate-50 */
+            background-image: radial-gradient(circle at top right, #1e293b, #0f172a);
+            min-height: 100vh;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glowing-border {
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+            border-color: rgba(56, 189, 248, 0.5);
+        }
+
+        .alert-red {
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+            border-color: rgba(239, 68, 68, 0.6);
+        }
+
+        /* Custom Scrollbar for textareas */
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5); 
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: rgba(71, 85, 105, 0.8); 
+            border-radius: 4px;
+        }
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: rgba(100, 116, 139, 1); 
+        }
+    </style>
+</head>
+<body class="p-6 md:p-12 flex flex-col items-center">
+
+    <div class="w-full max-w-4xl">
+        <!-- Header -->
+        <header class="mb-10 text-center flex flex-col items-center">
+            <div class="h-16 w-16 bg-blue-500/20 rounded-full flex items-center justify-center mb-4 border border-blue-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold tracking-tight text-white mb-2">arifOS — 888_HOLD Ratification</h1>
+            <p class="text-slate-400 max-w-xl">Zero-Network Cryptographic Signer. Your private key never leaves this browser. Operates purely in memory.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Step 1: Input Challenge -->
+            <div class="glass rounded-xl p-6 transition-all duration-300" id="step1-card">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <span class="bg-blue-600 text-white text-sm rounded-full h-6 w-6 flex items-center justify-center mr-3">1</span>
+                    Challenge Envelope
+                </h2>
+                <p class="text-sm text-slate-400 mb-4">Paste the JSON `ratification_challenge` payload output by `eureka_forge`.</p>
+                <textarea id="challenge-input" class="w-full h-48 bg-slate-900/80 border border-slate-700 rounded-lg p-4 font-mono text-sm text-green-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none" placeholder='{
+  "challenge_id": "CHALLENGE_A1B2",
+  "payload_canonical_sha256": "...",
+  "canonicalization_scheme": "json-c14n/v1",
+  "nonce": "...",
+  "expiry_epoch": 1740700000,
+  "tool_name": "eureka_forge",
+  "execution_context": "unknown",
+  "required_signer": "888_signer"
+}'></textarea>
+                <button onclick="parseChallenge()" class="mt-4 w-full bg-slate-700 hover:bg-slate-600 text-white py-2 px-4 rounded-lg font-medium transition-colors border border-slate-600">Parse Envelope</button>
+            </div>
+
+            <!-- Step 2: Private Key -->
+            <div class="glass rounded-xl p-6 opacity-50 pointer-events-none transition-all duration-300" id="step2-card">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <span class="bg-blue-600 text-white text-sm rounded-full h-6 w-6 flex items-center justify-center mr-3">2</span>
+                    Sovereign Private Key
+                </h2>
+                <p class="text-sm text-slate-400 mb-4">Paste your ed25519 PKCS8 PEM. <span class="text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded text-xs ml-1">Offline Only</span></p>
+                
+                <div class="mb-4 bg-slate-900/50 p-3 rounded-lg border border-slate-700">
+                    <div class="text-xs text-slate-500 font-mono mb-1">canonical_hash_to_sign</div>
+                    <div id="hash-display" class="text-xs text-blue-300 font-mono break-all leading-tight">...</div>
+                </div>
+
+                <textarea id="private-key" 
+                          class="w-full h-32 bg-slate-900/80 border border-slate-700 rounded-lg p-4 font-mono text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none" 
+                          placeholder="-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VwBCIEIHf...
+-----END PRIVATE KEY-----"
+                          autocomplete="off" 
+                          autocorrect="off" 
+                          autocapitalize="off" 
+                          spellcheck="false"
+                          data-lpignore="true"
+                          data-form-type="other"></textarea>
+                
+                <button onclick="generateSignature()" class="mt-4 w-full bg-blue-600 hover:bg-blue-500 text-white py-2 px-4 rounded-lg font-medium transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50 flex justify-center items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                    CRYPTOGRAPHIC RATIFY
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 3: Result Token -->
+        <div id="result-container" class="mt-8 glass rounded-xl p-6 hidden alert-red border-t-4 border-t-red-500">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-lg font-bold text-white flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Base64 Ratification Token
+                </h3>
+                <span class="bg-red-500/20 text-red-400 text-xs px-2 py-1 rounded font-bold uppercase tracking-wider">F1 Amanah Bypass Granted</span>
+            </div>
+            <p class="text-sm text-slate-300 mb-4">Copy this token and provide it back to the AI session to unlock the 888_FORGE execution.</p>
+            
+            <div class="relative">
+                <textarea id="result-token" readonly class="w-full h-24 bg-black/50 border border-slate-700 rounded-lg p-4 font-mono text-sm text-amber-400 focus:outline-none resize-none break-all"></textarea>
+                <button onclick="copyToken()" class="absolute top-2 right-2 bg-slate-700 hover:bg-slate-600 p-2 rounded transition-colors text-white" title="Copy to clipboard">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let parsedChallengeString = "";
+
+        // Function to extract raw 32-byte Ed25519 seed from PKCS8 PEM in Browser
+        // This is a simplified extractor specifically matching cryptography's default output
+        function extractSeedFromPEM(pem) {
+            try {
+                // Strip header/footer and spaces
+                const b64 = pem.replace(/-----BEGIN PRIVATE KEY-----/g, '')
+                               .replace(/-----END PRIVATE KEY-----/g, '')
+                               .replace(/\s/g, '');
+                
+                const rawBuffer = nacl.util.decodeBase64(b64);
+                
+                // PKCS8 Ed25519 DER usually has the exact 32-byte seed at the end.
+                // Standard length is 48 bytes. Seed is last 32 bytes (offset 16).
+                if (rawBuffer.length >= 32) {
+                    const seed = rawBuffer.slice(rawBuffer.length - 32);
+                    return seed;
+                }
+                throw new Error("Invalid PEM structure or length.");
+            } catch (e) {
+                console.error(e);
+                return null;
+            }
+        }
+
+        function parseChallenge() {
+            const input = document.getElementById('challenge-input').value;
+            const step2Card = document.getElementById('step2-card');
+            const hashDisplay = document.getElementById('hash-display');
+            
+            try {
+                // To support both pasting the JSON block or just the string representation,
+                // we'll attempt to parse it or assume it's the raw signature string.
+                let challengeStr = "";
+                
+                if (input.trim().startsWith('{')) {
+                    const parsed = JSON.parse(input);
+                    // Standardize back to JSON string without spaces (canonical pseudo)
+                    // In a real system, we'd use a deterministic JSON stringifier
+                    challengeStr = JSON.stringify(parsed, Object.keys(parsed).sort());
+                } else {
+                    challengeStr = input.trim();
+                }
+
+                if (!challengeStr) throw new Error("Empty input");
+
+                parsedChallengeString = challengeStr;
+                hashDisplay.innerText = challengeStr;
+                
+                // Activate step 2
+                step2Card.classList.remove('opacity-50', 'pointer-events-none');
+                step2Card.classList.add('glowing-border');
+                
+            } catch (e) {
+                alert("Invalid JSON Challenge payload. Make sure you copied the entire object from the terminal.");
+            }
+        }
+
+        function generateSignature() {
+            const pemInput = document.getElementById('private-key').value;
+            const resultContainer = document.getElementById('result-container');
+            const resultToken = document.getElementById('result-token');
+            
+            if (!pemInput.includes("BEGIN PRIVATE KEY")) {
+                alert("Please paste a valid PEM formatted private key.");
+                return;
+            }
+
+            try {
+                const seed = extractSeedFromPEM(pemInput);
+                if (!seed) {
+                    alert("Could not extract Ed25519 seed from PEM. Ensure it was generated by cryptography (PKCS8).");
+                    return;
+                }
+
+                // Generate KeyPair from seed (nacl requires seed for signing)
+                const keyPair = nacl.sign.keyPair.fromSeed(seed);
+                
+                // 🔐 MEMORY SECURITY: Clear seed immediately after use
+                // Fill with zeros to prevent memory inspection
+                seed.fill(0);
+                for (let i = 0; i < seed.length; i++) {
+                    seed[i] = 0;
+                }
+                
+                // Convert challenge text to Uint8Array
+                const messageUint8 = nacl.util.decodeUTF8(parsedChallengeString);
+                
+                // Sign the message
+                // nacl.sign.detached returns exactly the 64-byte signature
+                const signature = nacl.sign.detached(messageUint8, keyPair.secretKey);
+                
+                // Convert raw byte signature to Base64
+                const tokenBase64 = nacl.util.encodeBase64(signature);
+
+                resultToken.value = tokenBase64;
+                resultContainer.classList.remove('hidden');
+                
+                // Clear the private key from the DOM immediately for security
+                document.getElementById('private-key').value = "";
+                
+            } catch (e) {
+                console.error(e);
+                alert("Cryptographic signature failed. See console for details.");
+            }
+        }
+
+        function copyToken() {
+            const tokenEl = document.getElementById('result-token');
+            tokenEl.select();
+            document.execCommand("copy");
+            
+            const btn = document.querySelector('#result-container button');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
+            
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

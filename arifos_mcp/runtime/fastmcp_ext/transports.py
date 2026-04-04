@@ -424,13 +424,14 @@ class _HealthEndpointMiddleware:
             return
 
         if path == "/metrics" and method == "GET":
-            from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
             from starlette.responses import Response
-            try:
-                from arifos_mcp.runtime.metrics import update_prometheus_metrics
-                update_prometheus_metrics()
-            except ImportError:
-                pass
+            from arifos_mcp.runtime.metrics import (
+                CONTENT_TYPE_LATEST,
+                generate_latest,
+                update_prometheus_metrics,
+            )
+
+            update_prometheus_metrics()
 
             response = Response(
                 generate_latest(),

@@ -1,0 +1,7 @@
+# Cloudflare Pages Redirects
+
+/llms.txt    /llms.txt    200
+/llms.json   /llms.json   200
+/api/v1/floors.json  /api/v1/floors.json  200
+
+/*    /index.html   200

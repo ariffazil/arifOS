@@ -1,0 +1,61 @@
+/*
+   __ _  _ __ (_)| |_   ___   ___
+  / _` || '__|| || __| / _ \ / __|
+ | (_| || |   | || |  | (_) |\__ \
+  \__,_||_|   |_| \__|  \___/ |___/
+
+  HUMANS.TXT — The people behind arifOS
+  Site: https://arifos.arif-fazil.com
+  Version: 2026.2.23
+  Last Updated: 2026-02-23
+
+SOVEREIGN ARCHITECT
+  Name:         ARIF FAZIL (Muhammad Arif bin Fazil)
+  Role:         Creator and 888 Judge of arifOS
+  Location:     Malaysia
+  Contact:      arifos@arif-fazil.com
+  GitHub:       https://github.com/ariffazil
+  Sites:        arif-fazil.com (HUMAN)
+                apex.arif-fazil.com (THEORY)
+                arifos.arif-fazil.com (APPS)
+  Motto:        "Ditempa bukan diberi" (Forged, not given)
+
+TECHNOLOGY STACK
+  Language:     Python 3.12+
+  Framework:    FastMCP (Model Context Protocol)
+  Database:     PostgreSQL (VAULT999 ledger)
+  Cache:        Redis
+  Deployment:   Docker + Coolify
+  Transport:    Streamable HTTP (MCP JSON-RPC 2.0)
+  Docs:         Docusaurus v3.7.0
+
+CORE PRINCIPLES
+  - Constitutional governance over AI outputs
+  - 13 mathematical floors (F1-F13)
+  - Human sovereignty via 888_HOLD gates
+  - Immutable audit trails (VAULT999)
+  - Truth over comfort (F2)
+  - Humility over certainty (F7)
+
+AI COLLABORATORS
+  Claude (Anthropic) — Constitutional alignment review
+  ChatGPT (OpenAI) — Documentation synthesis
+  Kimi (Moonshot AI) — Context forging
+  All AI outputs reviewed and sealed by 888_JUDGE.
+
+ACKNOWLEDGMENTS
+  - Model Context Protocol: Anthropic (https://modelcontextprotocol.io)
+  - FastMCP: jlowin/fastmcp
+  - Constitutional AI: Anthropic Research
+  - Thermodynamics: Landauer's Principle + Shannon Entropy
+
+DITEMPA BUKAN DIBERI
+  This system was not given.
+  It was forged through:
+  - 11 years of exploration geoscience (zero failures)
+  - Institutional memory loss witnessed (PETRONAS MSS)
+  - Mathematical discipline from thermodynamics
+  - Sovereign intent to govern AI without hallucination
+
+  Truth must cool before it rules.
+*/

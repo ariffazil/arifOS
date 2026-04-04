@@ -1,0 +1,22 @@
+{
+  "schema_version": "2026.04.03",
+  "site_id": "apex.arif-fazil.com",
+  "ring": 2,
+  "realm": "MIND",
+  "delta": "APEX Theory & Docs",
+  "omega": "Constitutional documents, architecture specs, and theory",
+  "authority": {
+    "human_sovereign": "Arif Fazil",
+    "constitutional_kernel": "arifOS v2026.04.03",
+    "seal": "999-VALIDATOR"
+  },
+  "source": {
+    "repo": "ariffazil/arifOS",
+    "path": "/sites/apex.arif-fazil.com",
+    "branch": "main"
+  },
+  "deployment": {
+    "target": "vps-traefik",
+    "url": "https://apex.arif-fazil.com"
+  }
+}

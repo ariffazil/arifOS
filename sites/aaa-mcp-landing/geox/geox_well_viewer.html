@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GEOX Well Viewer — 15/9-19 Q15 North Sea</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
             --bg: #0f0d0a;
@@ -349,6 +350,7 @@
         </div>
     </div>
     <div class="topbar-right">
+        <button class="btn btn-ochre" onclick="toggleMap()">Map</button>
         <button class="btn" onclick="toggleGrid()">Grid</button>
         <button class="btn" onclick="scrollToPay()">Jump Pay</button>
         <button class="btn" onclick="exportTxt()">Export</button>
@@ -616,6 +618,18 @@
         </div>
 
     </div><!-- /sidebar -->
+
+    <!-- MAP OVERLAY -->
+    <div id="mapPanel" style="display:none; position:absolute; top:50px; right:10px; width:380px; height:480px; z-index:100; border:2px solid var(--ochre); border-radius:8px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.7);">
+        <div style="background:var(--panel); padding:6px 10px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border);">
+            <span style="font-family:'Courier New',monospace;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--ochre);">MALAY BASIN · OSM</span>
+            <button onclick="toggleMap()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;">×</button>
+        </div>
+        <div id="mapContainer" style="width:100%; height:calc(100% - 34px);"></div>
+        <div style="background:var(--panel); padding:5px 10px; border-top:1px solid var(--border); font-family:'Courier New',monospace;font-size:8px;color:var(--muted);">
+            <span id="mapWellName" style="color:var(--gold);">Well 15/9-19</span> · Q15 Danish North Sea · <span id="mapCoords">56.85°N, 3.15°E</span>
+        </div>
+    </div>
 </div><!-- /main -->
 
 <script>
@@ -1327,6 +1341,80 @@ function exportTxt() {
 
 let rt;
 window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(drawAll, 200); });
+
+// ===== LEAFLET MAP =====
+let map = null;
+let mapReady = false;
+
+const MALAY_BASIN_WELLS = [
+    { name: '15/9-19 Q15', lat: 56.85, lon: 3.15, status: 'producer', country: '🇩🇰 Danish' },
+    { name: 'Bukit Sihat-1', lat: 3.72, lon: 101.38, status: 'exploration', country: '🇲🇾 Malaysia' },
+    { name: 'Kerteh-26', lat: 4.52, lon: 103.44, status: 'producer', country: '🇲🇾 Malaysia' },
+    { name: 'D18-A', lat: 1.35, lon: 108.85, status: 'exploration', country: '🇲🇾 Malaysia' },
+    { name: 'SF30-B', lat: 2.88, lon: 101.62, status: 'producer', country: '🇲🇾 Malaysia' },
+    { name: 'J4-1', lat: 5.85, lon: 114.95, status: 'exploration', country: '🇲🇾 Malaysia' },
+];
+
+function getStatusColor(s) {
+    if (s === 'producer') return '#4a9e8e';
+    if (s === 'exploration') return '#c4791a';
+    return '#8a7a60';
+}
+
+function getStatusIcon(s) {
+    if (s === 'producer') return '●';
+    if (s === 'exploration') return '◉';
+    return '○';
+}
+
+function initMap() {
+    if (map) return;
+    map = L.map('mapContainer').setView([4.5, 109.0], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 12,
+    }).addTo(map);
+
+    MALAY_BASIN_WELLS.forEach(function(w) {
+        const color = getStatusColor(w.status);
+        const icon = getStatusIcon(w.status);
+        const marker = L.circleMarker([w.lat, w.lon], {
+            radius: 8,
+            fillColor: color,
+            color: '#f0e6d3',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.85,
+        }).addTo(map);
+        const html = '<div style="font-family:\'Courier New\',monospace;font-size:11px;color:#f0e6d3;background:#1c1710;border:1px solid #3d3018;padding:8px 10px;border-radius:4px;min-width:160px;">' +
+            '<strong style="color:' + color + ';">' + icon + ' ' + w.name + '</strong><br/>' +
+            '<span style="color:#8a7a60;font-size:9px;">' + w.country + '</span><br/>' +
+            '<span style="color:#d4a843;font-size:9px;">' + w.lat.toFixed(3) + '°N, ' + w.lon.toFixed(3) + '°E</span><br/>' +
+            '<span style="color:' + color + ';font-size:8px;letter-spacing:1px;">' + w.status.toUpperCase() + '</span>' +
+            '</div>';
+        marker.bindPopup(html);
+    });
+
+    mapReady = true;
+}
+
+function toggleMap() {
+    const panel = document.getElementById('mapPanel');
+    if (!panel) return;
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        if (!mapReady) initMap();
+        else if (map) map.invalidateSize();
+        // Highlight current well if loaded
+        const w = MALAY_BASIN_WELLS[0];
+        document.getElementById('mapWellName').textContent = 'Well 15/9-19';
+        document.getElementById('mapCoords').textContent = w.lat + '°N, ' + w.lon + '°E';
+    } else {
+        panel.style.display = 'none';
+    }
+}
+</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 load();
 </script>

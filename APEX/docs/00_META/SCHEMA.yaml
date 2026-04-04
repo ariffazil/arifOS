@@ -1,0 +1,34 @@
+arifOS:
+  version: "2026.03.14-PRE-RELEASE"
+  motto: "DITEMPA BUKAN DIBERI"
+  
+  # Level 1: Sovereign Surface
+  entry: "forge(intent, risk_tier)"
+  stop: "888_HOLD"
+  
+  # Level 2: Operator Surface (Namespaces)
+  engines:
+    - KERNEL:
+        tools: [forge, init_anchor, revoke_anchor, router]
+        role: "Jurisdiction and Orchestration"
+    - AGI_Delta:
+        tools: [reason, reflect, search, compass, atlas, ingest]
+        role: "Grounding and Reasoning (Δ Clarity)"
+    - ASI_Omega:
+        tools: [critique, simulate, engineer, memory]
+        role: "Alignment and Execution (Ω Humility)"
+    - APEX_Psi:
+        tools: [judge, validate, audit, armor, hold, vital, dashboard]
+        role: "Judgment and Governance (Ψ Sovereignty)"
+    - VAULT999:
+        tools: [seal, verify]
+        role: "Immutable Memory and Lineage"
+
+  # Non-Negotiable Physics
+  floors: "F1-F13"
+  invariants:
+    delta: "dS <= 0"
+    omega: "Omega0 in [0.03, 0.05]"
+    psi: "G >= 0.80"
+
+  sovereign: "Human (Arif)"

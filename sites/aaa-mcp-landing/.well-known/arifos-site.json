@@ -1,0 +1,31 @@
+{
+  "schema_version": "2026.04.03",
+  "site_id": "aaa.arif-fazil.com",
+  "ring": 3,
+  "realm": "BODY",
+  "delta": "AAA Surface Layer",
+  "omega": "Agents, API, AI, Apps — where governed intelligence does real work",
+  "authority": {
+    "human_sovereign": "Arif Fazil",
+    "constitutional_kernel": "arifOS v2026.04.03",
+    "seal": "999-VALIDATOR"
+  },
+  "source": {
+    "repo": "ariffazil/arifOS",
+    "path": "/sites/aaa-mcp-landing",
+    "branch": "main"
+  },
+  "deployment": {
+    "target": "vps-traefik",
+    "url": "https://aaa.arif-fazil.com"
+  },
+  "agents": {
+    "mcp_endpoint": "https://arifosmcp.arif-fazil.com/mcp",
+    "contact": "agents@arif-fazil.com"
+  },
+  "navigation": {
+    "parent": "arifos.arif-fazil.com",
+    "siblings": ["forge.arif-fazil.com"],
+    "child_sites": ["aaa.arif-fazil.com/geox/"]
+  }
+}

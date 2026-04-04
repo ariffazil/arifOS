@@ -16,16 +16,16 @@ import json
 import logging
 import sys
 import uuid
-from datetime import datetime
+from datetime import datetime, UTC
 from pathlib import Path
 from typing import Any
 
-import aiofiles
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from arifos_mcp.runtime.build_info import get_build_info
 from arifos_mcp.runtime.mcp_utils import call_mcp_tool, normalize_tool_result
+from arifos_mcp.runtime.optional_deps import aiofiles
 
 from .models import (
     AgentCard,
@@ -41,6 +41,10 @@ from .models import (
 
 # Cross-protocol 888_HOLD bridge
 logger = logging.getLogger(__name__)
+
+
+def _utcnow() -> datetime:
+    return datetime.now(UTC)
 
 
 class A2ATaskManager:
@@ -120,7 +124,7 @@ class A2ATaskManager:
                 )
             
             task.state = TaskState.CANCELLED
-            task.updated_at = datetime.utcnow()
+            task.updated_at = _utcnow()
             
             return CancelTaskResponse(
                 success=True,
@@ -264,13 +268,13 @@ class A2ATaskManager:
                 ))
                 
                 task.state = TaskState.COMPLETED
-                task.completed_at = datetime.utcnow()
+                task.completed_at = _utcnow()
                 
             else:
                 task.state = TaskState.FAILED
                 task.error_message = f"Unexpected verdict: {verdict}"
             
-            task.updated_at = datetime.utcnow()
+            task.updated_at = _utcnow()
             
             # Send callback if configured
             if task.status_callback_url:
@@ -279,7 +283,7 @@ class A2ATaskManager:
         except Exception as e:
             task.state = TaskState.FAILED
             task.error_message = str(e)
-            task.updated_at = datetime.utcnow()
+            task.updated_at = _utcnow()
             print(f"[A2A] Task execution error: {e}", file=sys.stderr)
     
     async def _update_task_state(self, task_id: str, state: TaskState, message: str = None):
@@ -287,7 +291,7 @@ class A2ATaskManager:
         async with self._lock:
             if task_id in self.tasks:
                 self.tasks[task_id].state = state
-                self.tasks[task_id].updated_at = datetime.utcnow()
+                self.tasks[task_id].updated_at = _utcnow()
                 if message:
                     self.tasks[task_id].messages.append(TaskMessage(
                         role="system",
@@ -329,7 +333,7 @@ class A2ATaskManager:
         This ensures reversibility proof exists even if connection drops.
         """
         vault_entry = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": _utcnow().isoformat(),
             "action": "888_HOLD_INITIATED",
             "source_protocol": "a2a",
             "cross_protocol_handoff": {

@@ -1,0 +1,369 @@
+C:\arifosmcp\arifosmcp\intelligence\tools\envelope.py:55: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+  if asyncio.iscoroutinefunction(func):
+[ATLAS_AUDIT] Lane: CARE | Type: TEST | Risk (ρ): 0.20 | Truth (τ): 0.40 | Query: 'E2E Test Run...'
+[03/14/26 13:47:42] DEBUG    Sending INFO to client:            context.py:1373
+                             arifOS_telemetry {'ok': False,                    
+                             'tool': 'init_anchor_state',                      
+                             'session_id': 'session-f215be7b',                 
+                             'stage': '000_INIT', 'verdict':                   
+                             'SABAR', 'status': 'ERROR',                       
+                             'machine_status': 'READY',                        
+                             'intelligence_state':                             
+                             {'exploration': 'BROAD',                          
+                             'entropy': 'MANAGEABLE', 'eureka':                
+                             'NONE', 'hypotheses': [],                         
+                             'unknowns': [], 'stable_facts':                   
+                             [], 'unstable_assumptions': [],                   
+                             'conflicts': [],                                  
+                             'uncertainty_score': 0.5,                         
+                             'insight': None, 'confidence':                    
+                             0.0, 'decision_required': []},                    
+                             'metrics': {'telemetry': {'dS':                   
+                             -0.1, 'peace2': 1.0, 'G_star':                    
+                             0.8442, 'echoDebt': 0.1, 'shadow':                
+                             0.1558, 'confidence': 0.8442,                     
+                             'psi_le': '10.00 (Estimate Only)',                
+                             'verdict': 'SABAR'}, 'basis':                     
+                             {'dS': 'derived', 'peace2':                       
+                             'derived', 'kappa_r': 'derived',                  
+                             'G_star': 'derived', 'psi_le':                    
+                             'heuristic'}, 'witness': {'human':                
+                             0.95, 'ai': 0.9, 'earth': 0.9},                   
+                             'internal': {'risk': 0.0,                         
+                             'vitality': 10.0}}, 'trace':                      
+                             {'000_INIT': 'SABAR'},                            
+                             'authority': {'actor_id':                         
+                             'anonymous', 'level': 'anonymous',                
+                             'human_required': False,                          
+                             'approval_scope': [],                             
+                             'auth_state': 'verified'},                        
+                             'payload': {'violations': [],                     
+                             'error_message': None,                            
+                             'timestamp':                                      
+                             '2026-03-14T13:47:42.497723',                     
+                             'temporal_contract': None,                        
+                             'banner': 'DITEMPA, BUKAN DIBERI                  
+                             🔨', 'intent': {'query': 'E2E Test                
+                             Run', 'task_type': 'unknown',                     
+                             'domain': 'general',                              
+                             'desired_output': 'text',                         
+                             'reversibility': 'unknown'},                      
+                             'math': {'akal': 0.6, 'present':                  
+                             0.8, 'energy': 0.6, 'exploration':                
+                             0.4}, 'physics': {'delta_s': 0.0,                 
+                             'omega_0': 0.04, 'peace2': 1.0,                   
+                             'psi': 1.0, 'amanah_lock': True},                 
+                             'code': {'session_id':                            
+                             'session-f215be7b', 'stage':                      
+                             '000', 'lane': 'UNKNOWN',                         
+                             'runtime_mode': 'init', 'verdict':                
+                             'SEAL'}, 'governance':                            
+                             {'actor_id': 'anonymous',                         
+                             'authority_level': 'anonymous',                   
+                             'stakes_class': 'UNKNOWN',                        
+                             'tri_witness': {'human': 0.0,                     
+                             'ai': 0.0, 'earth': 0.0}},                        
+                             'floors': {'F1': 'pass', 'F2':                    
+                             'pass', 'F3': 'n/a', 'F4': 'pass',                
+                             'F5': 'pass', 'F6': 'pass', 'F7':                 
+                             'pass', 'F8': 'n/a', 'F9': 'n/a',                 
+                             'F10': 'pass', 'F11': 'pass',                     
+                             'F12': 'pass', 'F13': 'pass'},                    
+                             'prev_vault_hash':                                
+                             '4d343065fbe81b9f860dc62ac8c73a40e                
+                             41b8724e09e535346c41528ca6475ae',                 
+                             'governance_token':                               
+                             'e23581ddce98ccb1878917fd8b33a66e'                
+                             , 'injection_score': 0.0,                         
+                             'auth_verified': False,                           
+                             'actor_identity': None,                           
+                             'continuity_token': None,                         
+                             'query_type': 'CARE',                             
+                             'f2_threshold': 0.99,                             
+                             'init_process_status': 'ACTIVE',                  
+                             'floors_failed': [],                              
+                             'tri_witness': {'human': 1.0,                     
+                             'ai': 1.0, 'earth': 1.0}},                        
+                             'errors': [{'code':                               
+                             'CONSTITUTIONAL_VIOLATION',                       
+                             'message': 'Verdict SABAR issued                  
+                             by 000_INIT', 'stage': '000_INIT',                
+                             'recoverable': True}], 'meta':                    
+                             {'schema_version': '1.0.0',                       
+                             'timestamp':                                      
+                             '2026-03-14T05:47:42.515455+00:00'                
+                             , 'debug': False, 'dry_run':                      
+                             False, 'motto': '🔥 IGNITE —                      
+                             DITEMPA, BUKAN DIBERI 💎'},                       
+                             'auth_context': {'session_id':                    
+                             'session-f215be7b', 'actor_id':                   
+                             'anonymous', 'authority_level':                   
+                             'anonymous', 'token_fingerprint':                 
+                             'sha256:initialized', 'nonce':                    
+                             'eab2d8b9c21ff20ddb3eefcc', 'iat':                
+                             1773467262, 'exp': 1773468162,                    
+                             'approval_scope': ['*'],                          
+                             'parent_signature': '',                           
+                             'signature':                                      
+                             '075a03fab8480fea1b71fc908d377f37c                
+                             5631dd222b32831290ca69d43ae6215'},                
+                              'user_model': {'stated_goal':                    
+                             {'value': "{'query': 'E2E Test                    
+                             Run', 'task_type': 'unknown',                     
+                             'domain': 'general',                              
+                             'desired_output': 'text',                         
+                             'reversibility': 'unknown'}",                     
+                             'source': 'explicit', 'evidence':                 
+                             'payload.query'},                                 
+                             'behavioral_constraints': [],                     
+                             'output_constraints': [],                         
+                             'adaptation_mode':                                
+                             'behavioral_only',                                
+                             'inference_policy':                               
+                             {'psychological_inference':                       
+                             'disallowed',                                     
+                             'behavioral_adaptation':                          
+                             'allowed', 'null_for_unknown':                    
+                             True, 'source_priority':                          
+                             ['explicit', 'observable',                        
+                             'default_policy']}}, 'philosophy':                
+                             {'apex_mode': 'hybrid', 'role':                   
+                             'mind', 'stage': '000_INIT',                      
+                             'g_score': 0.0, 'label': 'void',                  
+                             'label_source': 'state_router',                   
+                             'semantic_backend': 'available',                  
+                             'available_categories':                           
+                             {'deterministic_33': ['wisdom',                   
+                             'power', 'paradox', 'void',                       
+                             'seal'], 'local_99': ['scar',                     
+                             'triumph', 'paradox', 'wisdom',                   
+                             'power', 'love', 'seal'],                         
+                             'bounded_labels': ['void', 'scar',                
+                             'triumph', 'paradox', 'wisdom',                   
+                             'power', 'love', 'seal']}, 'agi':                 
+                             {'quote_id': 'V1', 'quote':                       
+                             'Either mathematics is too big for                
+                             the human mind, or the human mind                 
+                             is more than a machine.',                         
+                             'author': 'Kurt Gödel',                           
+                             'category': 'void', 'source':                     
+                             'deterministic_33'}, 'asi': None,                 
+                             'apex': None}}                                    
+                    INFO     Received INFO from server: {'msg':   logging.py:44
+                             'arifOS_telemetry {\'ok\': False,                 
+                             \'tool\': \'init_anchor_state\',                  
+                             \'session_id\':                                   
+                             \'session-f215be7b\', \'stage\':                  
+                             \'000_INIT\', \'verdict\':                        
+                             \'SABAR\', \'status\': \'ERROR\',                 
+                             \'machine_status\': \'READY\',                    
+                             \'intelligence_state\':                           
+                             {\'exploration\': \'BROAD\',                      
+                             \'entropy\': \'MANAGEABLE\',                      
+                             \'eureka\': \'NONE\',                             
+                             \'hypotheses\': [], \'unknowns\':                 
+                             [], \'stable_facts\': [],                         
+                             \'unstable_assumptions\': [],                     
+                             \'conflicts\': [],                                
+                             \'uncertainty_score\': 0.5,                       
+                             \'insight\': None, \'confidence\':                
+                             0.0, \'decision_required\': []},                  
+                             \'metrics\': {\'telemetry\':                      
+                             {\'dS\': -0.1, \'peace2\': 1.0,                   
+                             \'G_star\': 0.8442, \'echoDebt\':                 
+                             0.1, \'shadow\': 0.1558,                          
+                             \'confidence\': 0.8442, \'psi_le\':               
+                             \'10.00 (Estimate Only)\',                        
+                             \'verdict\': \'SABAR\'}, \'basis\':               
+                             {\'dS\': \'derived\', \'peace2\':                 
+                             \'derived\', \'kappa_r\':                         
+                             \'derived\', \'G_star\':                          
+                             \'derived\', \'psi_le\':                          
+                             \'heuristic\'}, \'witness\':                      
+                             {\'human\': 0.95, \'ai\': 0.9,                    
+                             \'earth\': 0.9}, \'internal\':                    
+                             {\'risk\': 0.0, \'vitality\':                     
+                             10.0}}, \'trace\': {\'000_INIT\':                 
+                             \'SABAR\'}, \'authority\':                        
+                             {\'actor_id\': \'anonymous\',                     
+                             \'level\': \'anonymous\',                         
+                             \'human_required\': False,                        
+                             \'approval_scope\': [],                           
+                             \'auth_state\': \'verified\'},                    
+                             \'payload\': {\'violations\': [],                 
+                             \'error_message\': None,                          
+                             \'timestamp\':                                    
+                             \'2026-03-14T13:47:42.497723\',                   
+                             \'temporal_contract\': None,                      
+                             \'banner\': \'DITEMPA, BUKAN DIBERI               
+                             🔨\', \'intent\': {\'query\': \'E2E               
+                             Test Run\', \'task_type\':                        
+                             \'unknown\', \'domain\':                          
+                             \'general\', \'desired_output\':                  
+                             \'text\', \'reversibility\':                      
+                             \'unknown\'}, \'math\': {\'akal\':                
+                             0.6, \'present\': 0.8, \'energy\':                
+                             0.6, \'exploration\': 0.4},                       
+                             \'physics\': {\'delta_s\': 0.0,                   
+                             \'omega_0\': 0.04, \'peace2\': 1.0,               
+                             \'psi\': 1.0, \'amanah_lock\':                    
+                             True}, \'code\': {\'session_id\':                 
+                             \'session-f215be7b\', \'stage\':                  
+                             \'000\', \'lane\': \'UNKNOWN\',                   
+                             \'runtime_mode\': \'init\',                       
+                             \'verdict\': \'SEAL\'},                           
+                             \'governance\': {\'actor_id\':                    
+                             \'anonymous\', \'authority_level\':               
+                             \'anonymous\', \'stakes_class\':                  
+                             \'UNKNOWN\', \'tri_witness\':                     
+                             {\'human\': 0.0, \'ai\': 0.0,                     
+                             \'earth\': 0.0}}, \'floors\':                     
+                             {\'F1\': \'pass\', \'F2\': \'pass\',              
+                             \'F3\': \'n/a\', \'F4\': \'pass\',                
+                             \'F5\': \'pass\', \'F6\': \'pass\',               
+                             \'F7\': \'pass\', \'F8\': \'n/a\',                
+                             \'F9\': \'n/a\', \'F10\': \'pass\',               
+                             \'F11\': \'pass\', \'F12\':                       
+                             \'pass\', \'F13\': \'pass\'},                     
+                             \'prev_vault_hash\':                              
+                             \'4d343065fbe81b9f860dc62ac8c73a40e4              
+                             1b8724e09e535346c41528ca6475ae\',                 
+                             \'governance_token\':                             
+                             \'e23581ddce98ccb1878917fd8b33a66e\'              
+                             , \'injection_score\': 0.0,                       
+                             \'auth_verified\': False,                         
+                             \'actor_identity\': None,                         
+                             \'continuity_token\': None,                       
+                             \'query_type\': \'CARE\',                         
+                             \'f2_threshold\': 0.99,                           
+                             \'init_process_status\': \'ACTIVE\',              
+                             \'floors_failed\': [],                            
+                             \'tri_witness\': {\'human\': 1.0,                 
+                             \'ai\': 1.0, \'earth\': 1.0}},                    
+                             \'errors\': [{\'code\':                           
+                             \'CONSTITUTIONAL_VIOLATION\',                     
+                             \'message\': \'Verdict SABAR issued               
+                             by 000_INIT\', \'stage\':                         
+                             \'000_INIT\', \'recoverable\':                    
+                             True}], \'meta\':                                 
+                             {\'schema_version\': \'1.0.0\',                   
+                             \'timestamp\':                                    
+                             \'2026-03-14T05:47:42.515455+00:00\'              
+                             , \'debug\': False, \'dry_run\':                  
+                             False, \'motto\': \'🔥 IGNITE —                   
+                             DITEMPA, BUKAN DIBERI 💎\'},                      
+                             \'auth_context\': {\'session_id\':                
+                             \'session-f215be7b\', \'actor_id\':               
+                             \'anonymous\', \'authority_level\':               
+                             \'anonymous\',                                    
+                             \'token_fingerprint\':                            
+                             \'sha256:initialized\', \'nonce\':                
+                             \'eab2d8b9c21ff20ddb3eefcc\',                     
+                             \'iat\': 1773467262, \'exp\':                     
+                             1773468162, \'approval_scope\':                   
+                             [\'*\'], \'parent_signature\': \'\',              
+                             \'signature\':                                    
+                             \'075a03fab8480fea1b71fc908d377f37c5              
+                             631dd222b32831290ca69d43ae6215\'},                
+                             \'user_model\': {\'stated_goal\':                 
+                             {\'value\': "{\'query\': \'E2E Test               
+                             Run\', \'task_type\': \'unknown\',                
+                             \'domain\': \'general\',                          
+                             \'desired_output\': \'text\',                     
+                             \'reversibility\': \'unknown\'}",                 
+                             \'source\': \'explicit\',                         
+                             \'evidence\': \'payload.query\'},                 
+                             \'behavioral_constraints\': [],                   
+                             \'output_constraints\': [],                       
+                             \'adaptation_mode\':                              
+                             \'behavioral_only\',                              
+                             \'inference_policy\':                             
+                             {\'psychological_inference\':                     
+                             \'disallowed\',                                   
+                             \'behavioral_adaptation\':                        
+                             \'allowed\', \'null_for_unknown\':                
+                             True, \'source_priority\':                        
+                             [\'explicit\', \'observable\',                    
+                             \'default_policy\']}},                            
+                             \'philosophy\': {\'apex_mode\':                   
+                             \'hybrid\', \'role\': \'mind\',                   
+                             \'stage\': \'000_INIT\',                          
+                             \'g_score\': 0.0, \'label\':                      
+                             \'void\', \'label_source\':                       
+                             \'state_router\',                                 
+                             \'semantic_backend\': \'available\',              
+                             \'available_categories\':                         
+                             {\'deterministic_33\': [\'wisdom\',               
+                             \'power\', \'paradox\', \'void\',                 
+                             \'seal\'], \'local_99\': [\'scar\',               
+                             \'triumph\', \'paradox\',                         
+                             \'wisdom\', \'power\', \'love\',                  
+                             \'seal\'], \'bounded_labels\':                    
+                             [\'void\', \'scar\', \'triumph\',                 
+                             \'paradox\', \'wisdom\', \'power\',               
+                             \'love\', \'seal\']}, \'agi\':                    
+                             {\'quote_id\': \'V1\', \'quote\':                 
+                             \'Either mathematics is too big for               
+                             the human mind, or the human mind is              
+                             more than a machine.\', \'author\':               
+                             \'Kurt Gödel\', \'category\':                     
+                             \'void\', \'source\':                             
+                             \'deterministic_33\'}, \'asi\':                   
+                             None, \'apex\': None}}', 'extra':                 
+                             None}                                             
+🔄 Updating F3 (F3_QuadWitness): 0.75 -> 0.95
+🔄 Updating F7 (F7_Humility): None -> 0.05
+🚀 Starting arifOS E2E Full Surface Test...
+
+--- [1] PROMPTS ---
+Found 10 prompts.
+  - init_anchor
+  - agi_reason
+  - agi_reflect
+  - asi_simulate
+  - asi_critique
+  - forge
+  - apex_judge
+  - vault_seal
+  - init_anchor_state_prompt
+  - open_apex_dashboard
+
+--- [2] RESOURCES ---
+Found 15 resources.
+  - pns://shield
+  - pns://search
+  - pns://vision
+  - pns://health
+  - pns://floor
+  - pns://orchestrate
+  - pns://redteam
+  - vault://999
+  - ledger://cooling
+  - canon://invariants
+  - canon://floors
+  - canon://index
+  - schema://tools/input
+  - schema://tools/output
+  - ui://prefab/renderer.html
+
+--- [3] TOOLS ---
+Found 40 tools.
+
+Testing init_anchor...
+Traceback (most recent call last):
+  File "C:\arifosmcp\tests\06_e2e_full_surface.py", line 110, in <module>
+    asyncio.run(run_e2e_test())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\arifosmcp\tests\06_e2e_full_surface.py", line 49, in run_e2e_test
+    print(f"Result: {init_res[:100]}...")
+                     ~~~~~~~~^^^^^^
+TypeError: 'CallToolResult' object is not subscriptable

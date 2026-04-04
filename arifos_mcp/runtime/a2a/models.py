@@ -7,11 +7,15 @@ Pydantic models for Google's A2A protocol specification.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
+
+
+def _utcnow() -> datetime:
+    return datetime.now(UTC)
 
 
 class TaskState(str, Enum):
@@ -113,7 +117,7 @@ class TaskMessage(BaseModel):
     """Message within a task."""
     role: Literal["system", "user", "agent"]
     content: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=_utcnow)
 
 
 class Artifact(BaseModel):
@@ -155,8 +159,8 @@ class Task(BaseModel):
     violations: list[str] = Field(default_factory=list)
     
     # Timestamps
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utcnow)
+    updated_at: datetime = Field(default_factory=_utcnow)
     completed_at: datetime | None = None
     
     # Status callback (optional)
@@ -168,7 +172,7 @@ class TaskStatusUpdate(BaseModel):
     task_id: str
     state: TaskState
     message: str | None = None
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=_utcnow)
 
 
 class SubmitTaskRequest(BaseModel):

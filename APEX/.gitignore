@@ -1,0 +1,78 @@
+# APEX THEORY - Git Ignore
+# Constitutional documents should be public
+# This file is for future implementation artifacts
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+!site/src/lib/
+!site/src/lib/**
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Documentation builds
+docs/_build/
+# site/  # Commented out - we need site/ for GitHub Pages deployment
+
+# Secrets (when implementation comes)
+*.key
+*.pem
+*.env
+.env
+secrets/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Lock files (we want canonical documents, not locks)
+# Uncomment when implementation phase begins
+# *.lock
+# package-lock.json
+# Pipfile.lock
+# poetry.lock
+node_modules/
+.env
+*.log

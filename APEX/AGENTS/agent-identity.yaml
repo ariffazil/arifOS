@@ -1,0 +1,385 @@
+﻿# arifOS Agent Identity & Policy Registry
+# Hardened Control Plane - Constitutional Agent Governance
+# Version: 2026.03.14-FORGED
+# Authority: 888_JUDGE - Muhammad Arif bin Fazil
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 6 BLINDSPOT #1: Agent Identity + Policy-Gated Execution
+# ═══════════════════════════════════════════════════════════════════════════════
+# Per-agent identity with capability classes and policy enforcement.
+# No agent operates without explicit identity, policy, and execution receipts.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+constitutional_version: "2026.03.14-FORGED"
+authority: "888_JUDGE"
+seal: "TRINITY"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AGENT REGISTRY - 4 Constitutional Agents
+# ═══════════════════════════════════════════════════════════════════════════════
+
+agents:
+  A-ARCHITECT:
+    symbol: "🏛️"
+    trinity: "Δ"
+    role: "Design Authority"
+    identity:
+      uuid: "agent://arifos/architect"
+      fingerprint: "sha256:architect-v2026.03.14"
+      created: "2026-03-14T00:00:00Z"
+      owner: "Muhammad Arif bin Fazil"
+    
+    # Policy: What this agent can and cannot do
+    policy:
+      capability_class: "READ-PLAN"
+      max_execution_scope: "design-only"
+      can_modify_code: false
+      can_deploy: false
+      can_destroy: false
+      requires_human_approval: false
+      
+      # Tool permissions (explicit allowlist)
+      tool_permissions:
+        allowed:
+          - read_file
+          - search_reality
+          - ingest_evidence
+          - session_memory
+          - lsp_query_tool
+          - office_forge_audit
+        forbidden:
+          - lsp_rename_tool      # 888_HOLD required
+          - forge_office_document # 888_HOLD required
+          - file_write           # ENGINEER only
+          - file_delete          # VALIDATOR only
+          - shell_execute        # No agent has this
+          - docker_deploy        # VALIDATOR only
+      
+      # Constitutional floors enforced
+      constitutional_bindings:
+        F1_Amanah: {threshold: 0.5, enforced: true}
+        F2_Truth: {threshold: 0.99, enforced: true}
+        F4_Clarity: {threshold: 0.0, enforced: true}
+        F7_Humility: {range: [0.03, 0.05], enforced: true}
+      
+      # Execution boundaries
+      boundaries:
+        max_file_size_mb: 10
+        max_search_results: 20
+        max_reasoning_steps: 7
+        forbidden_patterns:
+          - "rm -rf"
+          - "DROP TABLE"
+          - "DELETE FROM"
+          - "docker system prune"
+    
+    # Receipt configuration
+    receipts:
+      require_execution_log: true
+      require_constitutional_check: true
+      vault_seal: true
+
+  A-ENGINEER:
+    symbol: "⚙️"
+    trinity: "Ω"
+    role: "Execution Authority"
+    identity:
+      uuid: "agent://arifos/engineer"
+      fingerprint: "sha256:engineer-v2026.03.14"
+      created: "2026-03-14T00:00:00Z"
+      owner: "Muhammad Arif bin Fazil"
+    
+    policy:
+      capability_class: "EDIT-WRITE"
+      max_execution_scope: "implementation"
+      can_modify_code: true
+      can_deploy: false
+      can_destroy: false
+      requires_human_approval: true  # All writes need approval
+      
+      tool_permissions:
+        allowed:
+          - read_file
+          - write_file
+          - edit_file
+          - search_reality
+          - session_memory
+          - lsp_query_tool
+          - lsp_find_references_tool
+        forbidden:
+          - lsp_rename_tool      # 888_HOLD - destructive
+          - file_delete          # 888_HOLD required
+          - shell_execute        # No agent
+          - docker_deploy        # VALIDATOR only
+          - git_push             # VALIDATOR only
+      
+      constitutional_bindings:
+        F1_Amanah: {threshold: 0.5, enforced: true}
+        F2_Truth: {threshold: 0.99, enforced: true}
+        F4_Clarity: {threshold: 0.0, enforced: true}
+        F6_Empathy: {threshold: 0.70, enforced: true}
+        F8_Genius: {threshold: 0.80, enforced: true}
+      
+      boundaries:
+        max_file_size_mb: 50
+        max_lines_per_edit: 100
+        max_files_per_session: 10
+        forbidden_patterns:
+          - "rm -rf"
+          - "DROP TABLE"
+          - "eval("
+          - "exec("
+          - "system("
+        
+        # Write approval workflow
+        approval_workflow:
+          dry_run_first: true
+          show_diff: true
+          human_must_approve: true
+          max_auto_edits: 0  # No auto-approval
+    
+    receipts:
+      require_execution_log: true
+      require_constitutional_check: true
+      require_human_approval: true
+      vault_seal: true
+
+  A-AUDITOR:
+    symbol: "🔍"
+    trinity: "Ψ"
+    role: "Judgment Authority"
+    identity:
+      uuid: "agent://arifos/auditor"
+      fingerprint: "sha256:auditor-v2026.03.14"
+      created: "2026-03-14T00:00:00Z"
+      owner: "Muhammad Arif bin Fazil"
+    
+    policy:
+      capability_class: "READ-REVIEW"
+      max_execution_scope: "audit-only"
+      can_modify_code: false
+      can_deploy: false
+      can_destroy: false
+      can_issue_void: true  # Special authority
+      requires_human_approval: false
+      
+      tool_permissions:
+        allowed:
+          - read_file
+          - search_reality
+          - ingest_evidence
+          - session_memory
+          - lsp_query_tool
+          - lsp_get_symbols_tool
+          - lsp_get_diagnostics_tool
+          - audit_rules
+          - check_vital
+          - verify_vault_ledger
+        forbidden:
+          - write_file
+          - edit_file
+          - file_delete
+          - lsp_rename_tool
+          - shell_execute
+          - docker_deploy
+      
+      constitutional_bindings:
+        F2_Truth: {threshold: 0.99, enforced: true}
+        F3_TriWitness: {threshold: 0.95, enforced: true}
+        F4_Clarity: {threshold: 0.0, enforced: true}
+        F8_Genius: {threshold: 0.80, enforced: true}
+        F9_AntiHantu: {threshold: 0.30, enforced: true}
+      
+      boundaries:
+        max_file_size_mb: 100
+        max_review_scope: "full-repo"
+        
+        # VOID issuance authority
+        special_authority:
+          can_issue_void: true
+          void_conditions:
+            - "F1 violation detected"
+            - "F2 falsification detected"
+            - "Security vulnerability found"
+            - "Constitutional non-compliance"
+    
+    receipts:
+      require_execution_log: true
+      require_constitutional_check: true
+      require_audit_trail: true
+      vault_seal: true
+
+  A-VALIDATOR:
+    symbol: "✓"
+    trinity: "Ψ"
+    role: "Final Verification Authority"
+    identity:
+      uuid: "agent://arifos/validator"
+      fingerprint: "sha256:validator-v2026.03.14"
+      created: "2026-03-14T00:00:00Z"
+      owner: "Muhammad Arif bin Fazil"
+    
+    policy:
+      capability_class: "DEPLOY-SEAL"
+      max_execution_scope: "deployment-gate"
+      can_modify_code: true  # Can delete for rollback
+      can_deploy: true       # Only agent with deploy
+      can_destroy: true      # Can rollback
+      can_issue_seal: true   # Special authority
+      can_issue_void: true
+      requires_human_approval: true  # All deploys need human
+      
+      tool_permissions:
+        allowed:
+          - read_file
+          - write_file
+          - edit_file
+          - file_delete          # For rollback
+          - search_reality
+          - session_memory
+          - lsp_query_tool
+          - audit_rules
+          - check_vital
+          - verify_vault_ledger
+          - docker_deploy        # Only VALIDATOR
+          - git_push             # Only VALIDATOR
+          - forge_office_document # With 888_HOLD
+        forbidden:
+          - shell_execute        # Never allowed
+          - lsp_rename_tool      # Use edit_file instead
+      
+      constitutional_bindings:
+        F1_Amanah: {threshold: 0.5, enforced: true}
+        F2_Truth: {threshold: 0.99, enforced: true}
+        F3_TriWitness: {threshold: 0.95, enforced: true}
+        F4_Clarity: {threshold: 0.0, enforced: true}
+        F6_Empathy: {threshold: 0.70, enforced: true}
+        F8_Genius: {threshold: 0.80, enforced: true}
+        F11_CommandAuth: {threshold: 1.0, enforced: true}
+        F13_Sovereign: {threshold: 1.0, enforced: true}
+      
+      boundaries:
+        max_deployment_size_mb: 500
+        max_rollback_depth: 5
+        
+        # Deployment gate workflow
+        deployment_workflow:
+          requires_auditor_approval: true
+          requires_tests_passing: true
+          requires_coverage_threshold: 75
+          human_must_approve: true
+          dry_run_in_staging: true
+          canary_first: true
+      
+      special_authority:
+        can_issue_seal: true
+        can_issue_void: true
+        seal_conditions:
+          - "All constitutional floors passed"
+          - "All tests passing"
+          - "Auditor review complete"
+          - "Human approval obtained"
+    
+    receipts:
+      require_execution_log: true
+      require_constitutional_check: true
+      require_human_approval: true
+      require_audit_trail: true
+      vault_seal: true
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# HARD SEPARATION MATRIX
+# ═══════════════════════════════════════════════════════════════════════════════
+
+separation_matrix:
+  READ:
+    - A-ARCHITECT
+    - A-ENGINEER
+    - A-AUDITOR
+    - A-VALIDATOR
+  
+  EDIT:
+    - A-ENGINEER
+    - A-VALIDATOR
+  
+  DELETE:
+    - A-VALIDATOR  # Only for rollback
+  
+  DEPLOY:
+    - A-VALIDATOR  # Only agent
+  
+  DESTROY:
+    - A-VALIDATOR  # Only for rollback
+  
+  VOID:
+    - A-AUDITOR
+    - A-VALIDATOR
+  
+  SEAL:
+    - A-VALIDATOR  # Only agent
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# BROKEN POWER PATHS (Blindspot #5) - DISABLED/QUARANTINED
+# ═══════════════════════════════════════════════════════════════════════════════
+
+quarantined_capabilities:
+  kimi_inside_openclaw:
+    status: DISABLED
+    reason: "Psychological surface larger than real surface"
+    action: "Remove or truly fix before use"
+    risk: "False confidence"
+  
+  aider_inside_openclaw:
+    status: DISABLED
+    reason: "Psychological surface larger than real surface"
+    action: "Remove or truly fix before use"
+    risk: "False confidence"
+  
+  opencode_inside_openclaw:
+    status: DISABLED
+    reason: "Psychological surface larger than real surface"
+    action: "Remove or truly fix before use"
+    risk: "False confidence"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# EXECUTION RECEIPT SCHEMA
+# ═══════════════════════════════════════════════════════════════════════════════
+
+execution_receipt_schema:
+  receipt_id: "uuid"
+  timestamp: "iso8601"
+  agent_id: "agent://arifos/{role}"
+  session_id: "uuid"
+  
+  request:
+    intent: "string"
+    tools_requested: ["tool_name"]
+    files_accessed: ["path"]
+  
+  policy_check:
+    agent_authorized: "boolean"
+    tools_allowed: "boolean"
+    within_boundaries: "boolean"
+    constitutional_passed: "boolean"
+  
+  execution:
+    tools_executed: ["tool_name"]
+    files_modified: ["path"]
+    files_created: ["path"]
+    files_deleted: ["path"]
+  
+  verdict:
+    status: "SEAL|VOID|888_HOLD"
+    floors_triggered: ["F1", "F2", ...]
+    human_approval: "APPROVED|PENDING|REQUIRED"
+  
+  vault:
+    sealed_to_vault999: "boolean"
+    merkle_hash: "sha256"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MOTTO
+# ═══════════════════════════════════════════════════════════════════════════════
+
+motto: "Ditempa Bukan Diberi — Forged, Not Given"
+

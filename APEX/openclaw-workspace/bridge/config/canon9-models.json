@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Canon 9 LLM roster mapping for arifOS OpenClaw runtime",
+  "version": "1.1",
+  "updated": "2026-02-15",
+  "slots": [
+    {
+      "slot": "apex_claude",
+      "provider": "venice",
+      "modelId": "claude-opus-45",
+      "role": "APEX",
+      "costTier": "high",
+      "enabled": true,
+      "description": "Claude Opus 4.5 via Venice AI"
+    },
+    {
+      "slot": "apex_kimi",
+      "provider": "venice",
+      "modelId": "kimi-k2-thinking",
+      "role": "APEX",
+      "costTier": "high",
+      "enabled": true,
+      "description": "Kimi K2 Thinking via Venice AI"
+    },
+    {
+      "slot": "apex_gemini",
+      "provider": "venice",
+      "modelId": "gemini-3-pro-preview",
+      "role": "APEX",
+      "costTier": "high",
+      "enabled": true,
+      "description": "Gemini 3 Pro via Venice AI"
+    },
+    {
+      "slot": "agi_deepseek",
+      "provider": "venice",
+      "modelId": "deepseek-v3.2",
+      "role": "AGI",
+      "costTier": "medium",
+      "enabled": true,
+      "description": "DeepSeek V3.2 via Venice AI"
+    },
+    {
+      "slot": "agi_qwen",
+      "provider": "venice",
+      "modelId": "qwen3-235b-a22b-thinking-2507",
+      "role": "AGI",
+      "costTier": "medium",
+      "enabled": true,
+      "description": "Qwen3 235B Thinking via Venice AI"
+    },
+    {
+      "slot": "agi_gpt",
+      "provider": "venice",
+      "modelId": "openai-gpt-52",
+      "role": "AGI",
+      "costTier": "high",
+      "enabled": true,
+      "description": "GPT-5.2 via Venice AI"
+    },
+    {
+      "slot": "asi_minimax",
+      "provider": "venice",
+      "modelId": "minimax-m21",
+      "role": "ASI",
+      "costTier": "medium",
+      "enabled": true,
+      "description": "MiniMax M2.1 via Venice AI"
+    },
+    {
+      "slot": "asi_llama_free",
+      "provider": "openrouter",
+      "modelId": "meta-llama/llama-3.3-70b-instruct",
+      "role": "ASI",
+      "costTier": "free",
+      "enabled": true,
+      "description": "Llama 3.3 70B via OpenRouter"
+    },
+    {
+      "slot": "asi_glm_free",
+      "provider": "venice",
+      "modelId": "zai-org-glm-4.7",
+      "role": "ASI",
+      "costTier": "free",
+      "enabled": true,
+      "description": "GLM 4.7 via Venice AI"
+    }
+  ]
+}

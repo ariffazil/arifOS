@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- arifOS minimalist logo — constitutional kernel mark -->
+  <!-- Outer ring = 13 floors boundary -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="#f0c040" stroke-width="3"/>
+  <!-- Inner ring = Trinity boundary -->
+  <circle cx="100" cy="100" r="60" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <!-- Core = the kernel -->
+  <circle cx="100" cy="100" r="22" fill="#f0c040" opacity="0.15"/>
+  <!-- Delta (Δ) — AGI Mind -->
+  <polygon points="100,50 75,90 125,90" fill="none" stroke="#f0c040" stroke-width="2"/>
+  <!-- Omega mark — ASI Heart (simplified arc) -->
+  <path d="M78 118 Q78 135 100 135 Q122 135 122 118" fill="none" stroke="#3b82f6" stroke-width="2"/>
+  <!-- Psi vertical — APEX Soul -->
+  <line x1="100" y1="90" x2="100" y2="145" stroke="#e74c3c" stroke-width="1.5"/>
+  <!-- Tagline text -->
+  <text x="100" y="175" text-anchor="middle" font-family="monospace" font-size="9"
+        fill="#f0c040" letter-spacing="2">DITEMPA BUKAN DIBERI</text>
+</svg>

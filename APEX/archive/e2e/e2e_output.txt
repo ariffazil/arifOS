@@ -1,0 +1,107 @@
+C:\arifosmcp\arifosmcp\intelligence\tools\envelope.py:55: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+  if asyncio.iscoroutinefunction(func):
+[03/14/26 13:45:50] Error validating tool 'init_anchor'                        
+                    ┌─────────── Traceback (most recent call last) ───────────┐
+                    │ C:\arifosmcp\.venv\Lib\site-packages\fastmcp\server\ser │
+                    │ ver.py:987 in call_tool                                 │
+                    │                                                         │
+                    │ C:\arifosmcp\.venv\Lib\site-packages\fastmcp\tools\tool │
+                    │ .py:354 in _run                                         │
+                    │                                                         │
+                    │ C:\arifosmcp\.venv\Lib\site-packages\fastmcp\tools\func │
+                    │ tion_tool.py:288 in run                                 │
+                    │                                                         │
+                    │ C:\arifosmcp\.venv\Lib\site-packages\pydantic\type_adap │
+                    │ ter.py:441 in validate_python                           │
+                    └─────────────────────────────────────────────────────────┘
+                    ValidationError: 2 validation errors for call[init_anchor] 
+                    raw_input                                                  
+                      Missing required argument [type=missing_argument,        
+                    input_value={'session_id': 'e2e_test_...intent': 'E2E Test 
+                    Run'}, input_type=dict]                                    
+                        For further information visit                          
+                    https://errors.pydantic.dev/2.12/v/missing_argument        
+                    intent                                                     
+                      Unexpected keyword argument                              
+                    [type=unexpected_keyword_argument, input_value='E2E Test   
+                    Run', input_type=str]                                      
+                        For further information visit                          
+                    https://errors.pydantic.dev/2.12/v/unexpected_keyword_argum
+                    ent                                                        
+🔄 Updating F3 (F3_QuadWitness): 0.75 -> 0.95
+🔄 Updating F7 (F7_Humility): None -> 0.05
+🚀 Starting arifOS E2E Full Surface Test...
+
+--- [1] PROMPTS ---
+Found 10 prompts.
+  - init_anchor
+  - agi_reason
+  - agi_reflect
+  - asi_simulate
+  - asi_critique
+  - forge
+  - apex_judge
+  - vault_seal
+  - init_anchor_state_prompt
+  - open_apex_dashboard
+
+--- [2] RESOURCES ---
+Found 15 resources.
+  - pns://shield
+  - pns://search
+  - pns://vision
+  - pns://health
+  - pns://floor
+  - pns://orchestrate
+  - pns://redteam
+  - vault://999
+  - ledger://cooling
+  - canon://invariants
+  - canon://floors
+  - canon://index
+  - schema://tools/input
+  - schema://tools/output
+  - ui://prefab/renderer.html
+
+--- [3] TOOLS ---
+Found 40 tools.
+
+Testing init_anchor...
+Traceback (most recent call last):
+  File "C:\arifosmcp\tests\06_e2e_full_surface.py", line 109, in <module>
+    asyncio.run(run_e2e_test())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\arifosmcp\tests\06_e2e_full_surface.py", line 48, in run_e2e_test
+    init_res = await client.call_tool("init_anchor", {"session_id": session_id, "intent": "E2E Test Run"})
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\arifosmcp\.venv\Lib\site-packages\fastmcp\client\mixins\tools.py", line 272, in call_tool
+    return await self._parse_call_tool_result(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        name, result, raise_on_error=raise_on_error
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\arifosmcp\.venv\Lib\site-packages\fastmcp\client\mixins\tools.py", line 166, in _parse_call_tool_result
+    return await _parse_call_tool_result(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\arifosmcp\.venv\Lib\site-packages\fastmcp\client\mixins\tools.py", line 374, in _parse_call_tool_result
+    raise ToolError(msg)
+fastmcp.exceptions.ToolError: 2 validation errors for call[init_anchor]
+raw_input
+  Missing required argument [type=missing_argument, input_value={'session_id': 'e2e_test_...intent': 'E2E Test Run'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing_argument
+intent
+  Unexpected keyword argument [type=unexpected_keyword_argument, input_value='E2E Test Run', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/unexpected_keyword_argument

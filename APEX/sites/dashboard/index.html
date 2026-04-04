@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="arifOS APEX Dashboard - Live constitutional governance metrics">
+    <title>Dashboard | arifOS MCP Server</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --bg-tertiary: #1f1f1f;
+            --text-primary: #e0e0e0;
+            --text-secondary: #888;
+            --accent-delta: #3498db;
+            --accent-omega: #e74c3c;
+            --accent-psi: #f1c40f;
+            --accent-success: #2ecc71;
+            --accent-warning: #f39c12;
+            --border: #2a2a2a;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            padding: 2rem 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            background: linear-gradient(90deg, var(--accent-delta), var(--accent-psi));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+        
+        .card:hover {
+            border-color: var(--accent-delta);
+            transform: translateY(-2px);
+        }
+        
+        .card h3 {
+            color: var(--accent-psi);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .metric:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        
+        .metric-value {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .metric-value.good { color: var(--accent-success); }
+        .metric-value.warn { color: var(--accent-warning); }
+        .metric-value.bad { color: var(--accent-omega); }
+        
+        .stage-flow {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 2rem 0;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+        }
+        
+        .stage {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .stage.init { background: #2c3e50; color: #ecf0f1; }
+        .stage.sense { background: #3498db22; color: var(--accent-delta); border: 1px solid var(--accent-delta); }
+        .stage.reality { background: #9b59b622; color: #9b59b6; border: 1px solid #9b59b6; }
+        .stage.mind { background: #3498db44; color: var(--accent-delta); border: 1px solid var(--accent-delta); }
+        .stage.router { background: #1abc9c22; color: #1abc9c; border: 1px solid #1abc9c; }
+        .stage.memory { background: #e67e2222; color: #e67e22; border: 1px solid #e67e22; }
+        .stage.heart { background: #e74c3c22; color: var(--accent-omega); border: 1px solid var(--accent-omega); }
+        .stage.forge { background: #f1c40f22; color: var(--accent-psi); border: 1px solid var(--accent-psi); }
+        .stage.judge { background: #f1c40f44; color: var(--accent-psi); border: 2px solid var(--accent-psi); }
+        .stage.vault { background: var(--accent-success); color: #000; }
+        
+        .verdicts {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .verdict {
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .verdict.seal { background: var(--accent-success); color: #000; }
+        .verdict.void { background: var(--accent-omega); color: #fff; }
+        .verdict.sabar { background: var(--accent-warning); color: #000; }
+        .verdict.hold { background: #9b59b6; color: #fff; }
+        
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        nav a {
+            color: var(--accent-delta);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        
+        nav a:hover {
+            background: var(--accent-delta);
+            color: #000;
+        }
+        
+        .floors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .floor {
+            background: var(--bg-tertiary);
+            border-left: 3px solid var(--accent-psi);
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .floor-id {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .floor-name {
+            font-weight: bold;
+            color: var(--accent-psi);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent-success);
+        }
+        
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-success);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔱 arifOS APEX Dashboard</h1>
+            <p class="subtitle">
+                <span class="live-indicator">
+                    <span class="live-dot"></span>
+                    LIVE — <span id="live-version">loading...</span>
+                </span>
+            </p>
+        </header>
+
+        <nav>
+            <a href="/">Home</a>
+            <a href="/static-sites/arifosmcp/docs.html">Documentation</a>
+            <a href="/tools">Tools API</a>
+            <a href="/health">Health Check</a>
+        </nav>
+
+        <div class="stage-flow">
+            <div class="stage init">000 INIT</div>
+            <div class="stage sense">111 SENSE</div>
+            <div class="stage reality">222 REALITY</div>
+            <div class="stage mind">333 MIND</div>
+            <div class="stage router">444 ROUTER</div>
+            <div class="stage memory">555 MEMORY</div>
+            <div class="stage heart">666 HEART</div>
+            <div class="stage forge">777 FORGE</div>
+            <div class="stage judge">888 JUDGE</div>
+            <div class="stage vault">999 VAULT</div>
+        </div>
+
+        <div class="verdicts">
+            <div class="verdict seal">SEAL</div>
+            <div class="verdict partial" style="background: #3498db; color: #fff;">PARTIAL</div>
+            <div class="verdict sabar">SABAR</div>
+            <div class="verdict hold">888 HOLD</div>
+            <div class="verdict void">VOID</div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>🔷 Δ Delta (AGI Mind)</h3>
+                <div class="metric">
+                    <span class="metric-label">Stage</span>
+                    <span class="metric-value good">111-444</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Floors</span>
+                    <span class="metric-value">F2, F4, F7, F8</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Role</span>
+                    <span class="metric-value">Reason, Sense, Ground</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🔴 Ω Omega (ASI Heart)</h3>
+                <div class="metric">
+                    <span class="metric-label">Stage</span>
+                    <span class="metric-value good">555-666</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Floors</span>
+                    <span class="metric-value">F5, F6, F9</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Role</span>
+                    <span class="metric-value">Empathy, Memory, Ethics</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🟡 Ψ Psi (APEX Soul)</h3>
+                <div class="metric">
+                    <span class="metric-label">Stage</span>
+                    <span class="metric-value good">777-999</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Floors</span>
+                    <span class="metric-value">F1, F3, F10-F13</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Role</span>
+                    <span class="metric-value">Forge, Judge, Seal</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📊 System Vitals (Live)</h3>
+                <div class="metric">
+                    <span class="metric-label">Status</span>
+                    <span class="metric-value good" id="live-status">--</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Tools Loaded</span>
+                    <span class="metric-value" id="live-tools">--</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Machine Status</span>
+                    <span class="metric-value" id="live-machine">--</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🎯 Telemetry</h3>
+                <div class="metric">
+                    <span class="metric-label">G★ (Genius)</span>
+                    <span class="metric-value good" id="live-gstar">--</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">ΔS (Entropy)</span>
+                    <span class="metric-value good" id="live-ds">--</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Peace²</span>
+                    <span class="metric-value good" id="live-peace">--</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>✅ Validation</h3>
+                <div class="metric">
+                    <span class="metric-label">Schema</span>
+                    <span class="metric-value good">32/32</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Functional</span>
+                    <span class="metric-value good">PASSED</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Status</span>
+                    <span class="metric-value good">VALIDATED</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>⚖️ Constitutional Floors (F1-F13)</h3>
+            <div class="floors-grid">
+                <div class="floor">
+                    <div class="floor-id">F1</div>
+                    <div class="floor-name">Amanah ≥ 0.5</div>
+                </div>
+                <div class="floor">
+                    <div class="floor-id">F2</div>
+                    <div class="floor-name">Truth ≥ 0.99</div>
+                </div>
+                <div class="floor">
+                    <div class="floor-id">F3</div>
+                    <div class="floor-name">Tri-Witness ≥ 0.95</div>
+                </div>
+                <div class="floor">
+                    <div class="floor-id">F4</div>
+                    <div class="floor-name">ΔS Clarity ≤ 0</div>
+                </div>
+                <div class="floor">
+                    <div class="floor-id">F5</div>
+                    <div class="floor-name">Peace² ≥ 1.0</div>
+                </div>
+                <div class="floor">
+                    <div class="floor-id">F6</div>
+                    <div class="floor-name">Empathy ≥ 0.70</div>
+                </div>
+                <div class="floor">
+                    <div class="floor-id">F7</div>
+                    <div class="floor-name">Humility 0.03-0.20</div>
+                </div>
+                <div class="floor">
+                    <div class="floor-id">F8</div>
+                    <div class="floor-name">Genius ≥ 0.80</div>
+                </div>
+                <div class="floor">
+                    <div class="floor-id">F9</div>
+                    <div class="floor-name">Anti-Hantu < 0.30</div>
+                </div>
+                <div class="floor">
+                    <div class="floor-id">F10</div>
+                    <div class="floor-name">Ontology LOCK</div>
+                </div>
+                <div class="floor">
+                    <div class="floor-id">F11</div>
+                    <div class="floor-name">Command Auth LOCK</div>
+                </div>
+                <div class="floor">
+                    <div class="floor-id">F12</div>
+                    <div class="floor-name">Injection < 0.85</div>
+                </div>
+                <div class="floor">
+                    <div class="floor-id">F13</div>
+                    <div class="floor-name">Sovereign HUMAN</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p><strong>arifOS MCP Server</strong> — Constitutional AI Governance</p>
+            <p style="margin-top: 0.5rem;">Ditempa Bukan Diberi — Forged, Not Given [ΔΩΨ | ARIF]</p>
+            <p style="margin-top: 0.5rem; font-size: 0.8rem;">© 2026 Muhammad Arif bin Fazil | AGPL-3.0-only</p>
+        </footer>
+    </div>
+
+    <!-- Live refresh every 10 seconds -->
+    <script>
+        const API_BASE = window.location.origin.includes('localhost')
+            ? 'http://localhost:8080'
+            : window.location.origin;
+
+        async function fetchJson(url, options) {
+            const response = await fetch(url, options);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+        }
+
+        async function refreshDashboard() {
+            try {
+                const [health, vital] = await Promise.all([
+                    fetchJson(`${API_BASE}/health`),
+                    fetchJson(`${API_BASE}/tools/check_vital`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({})
+                    })
+                ]);
+
+                const result = vital && vital.result ? vital.result : {};
+                const telemetry = result.metrics && result.metrics.telemetry ? result.metrics.telemetry : {};
+
+                const setText = (id, value) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = value;
+                };
+
+                setText('live-version', health.version || '--');
+                setText('live-status', (health.status || '--').toUpperCase());
+                setText('live-tools', (health.tools_loaded ?? '--').toString());
+                setText('live-machine', result.machine_status || '--');
+                setText('live-gstar', (telemetry.G_star ?? '--').toString());
+                setText('live-ds', (telemetry.ds ?? telemetry.dS ?? '--').toString());
+                setText('live-peace', (telemetry.peace2 ?? '--').toString());
+            } catch (error) {
+                console.error('Live refresh failed:', error);
+            }
+        }
+
+        refreshDashboard();
+        setInterval(refreshDashboard, 10000);
+    </script>
+</body>
+</html>

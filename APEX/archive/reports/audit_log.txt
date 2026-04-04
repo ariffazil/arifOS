@@ -1,0 +1,568 @@
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│                                                                             │
+│                        ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
+│                        █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
+│                                                                             │
+│                                                                             │
+│                                FastMCP 3.0.2                                │
+│                            https://gofastmcp.com                            │
+│                                                                             │
+│            🖥  Server:      arifOS-APEX-G, 2026.03.14-PRE-RELEASE            │
+│            🚀 Deploy free: https://fastmcp.cloud                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         🎉 Update available: 3.1.0                          │
+│                     Run: pip install --upgrade fastmcp                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+[03/14/26 09:08:41] INFO     Starting MCP server               transport.py:183
+                             'arifOS-APEX-G' with transport                    
+                             'stdio'                                           
+[ATLAS_AUDIT] Lane: CARE | Type: FACTUAL | Risk (ρ): 0.20 | Truth (τ): 0.40 | Query: 'I am Arif, the Sovereign Architect....'
+                    DEBUG    Sending INFO to client:            context.py:1363
+                             arifOS_telemetry {'ok': False,                    
+                             'tool': 'init_anchor_state',                      
+                             'session_id': 'session-3e5748fe',                 
+                             'stage': '000_INIT', 'verdict':                   
+                             'SABAR', 'status': 'ERROR',                       
+                             'machine_status': 'READY',                        
+                             'intelligence_state':                             
+                             {'exploration': 'BROAD',                          
+                             'entropy': 'MANAGEABLE', 'eureka':                
+                             'NONE', 'hypotheses': [],                         
+                             'unknowns': [], 'stable_facts':                   
+                             [], 'unstable_assumptions': [],                   
+                             'conflicts': [],                                  
+                             'uncertainty_score': 0.5,                         
+                             'insight': None, 'confidence':                    
+                             0.0, 'decision_required': []},                    
+                             'metrics': {'telemetry': {'dS':                   
+                             -0.1, 'peace2': 1.0, 'G_star':                    
+                             0.8442, 'echoDebt': 0.1, 'shadow':                
+                             0.1558, 'confidence': 0.8442,                     
+                             'psi_le': '10.00 (Estimate Only)',                
+                             'verdict': 'SABAR'}, 'basis':                     
+                             {'dS': 'derived', 'peace2':                       
+                             'derived', 'kappa_r': 'derived',                  
+                             'G_star': 'derived', 'psi_le':                    
+                             'heuristic'}, 'witness': {'human':                
+                             0.95, 'ai': 0.9, 'earth': 0.9},                   
+                             'internal': {'risk': 0.0,                         
+                             'vitality': 10.0}}, 'trace':                      
+                             {'000_INIT': 'SABAR'},                            
+                             'authority': {'actor_id': 'arif',                 
+                             'level': 'sovereign',                             
+                             'human_required': False,                          
+                             'approval_scope': ['*'],                          
+                             'auth_state': 'verified'},                        
+                             'payload': {'violations': [],                     
+                             'error_message': None,                            
+                             'timestamp':                                      
+                             '2026-03-14T09:08:41.771736',                     
+                             'temporal_contract': None,                        
+                             'banner': 'DITEMPA, BUKAN DIBERI                  
+                             🔨', 'intent': {'query': 'I am                    
+                             Arif, the Sovereign Architect.',                  
+                             'task_type': 'unknown', 'domain':                 
+                             'general', 'desired_output':                      
+                             'text', 'reversibility':                          
+                             'unknown'}, 'math': {'akal': 0.6,                 
+                             'present': 0.8, 'energy': 0.6,                    
+                             'exploration': 0.4}, 'physics':                   
+                             {'delta_s': 0.0, 'omega_0': 0.04,                 
+                             'peace2': 1.0, 'psi': 1.0,                        
+                             'amanah_lock': True}, 'code':                     
+                             {'session_id': 'session-3e5748fe',                
+                             'stage': '000', 'lane': 'UNKNOWN',                
+                             'runtime_mode': 'init', 'verdict':                
+                             'SEAL'}, 'governance':                            
+                             {'actor_id': 'arif',                              
+                             'authority_level': 'sovereign',                   
+                             'stakes_class': 'UNKNOWN',                        
+                             'tri_witness': {'human': 0.0,                     
+                             'ai': 0.0, 'earth': 0.0}},                        
+                             'floors': {'F1': 'pass', 'F2':                    
+                             'pass', 'F3': 'n/a', 'F4': 'pass',                
+                             'F5': 'pass', 'F6': 'pass', 'F7':                 
+                             'pass', 'F8': 'n/a', 'F9': 'n/a',                 
+                             'F10': 'pass', 'F11': 'pass',                     
+                             'F12': 'pass', 'F13': 'pass'},                    
+                             'prev_vault_hash':                                
+                             'f58c4d3b9f99e4521d45b568255cb50d5                
+                             3b301765a65b3804e2257e99fa917e2',                 
+                             'governance_token':                               
+                             'a2eafac533b3249b35c00baa96169821'                
+                             , 'injection_score': 0.0,                         
+                             'auth_verified': True,                            
+                             'actor_identity': None,                           
+                             'continuity_token': None,                         
+                             'query_type': 'CARE',                             
+                             'f2_threshold': 0.99,                             
+                             'init_process_status': 'ACTIVE',                  
+                             'floors_failed': [],                              
+                             'tri_witness': {'human': 1.0,                     
+                             'ai': 1.0, 'earth': 1.0}},                        
+                             'errors': [{'code':                               
+                             'CONSTITUTIONAL_VIOLATION',                       
+                             'message': 'Verdict SABAR issued                  
+                             by 000_INIT', 'stage': '000_INIT',                
+                             'recoverable': True}], 'meta':                    
+                             {'schema_version': '1.0.0',                       
+                             'timestamp':                                      
+                             '2026-03-14T01:08:41.783161+00:00'                
+                             , 'debug': False, 'dry_run':                      
+                             False, 'motto': 'DITEMPA, BUKAN                   
+                             DIBERI'}, 'auth_context':                         
+                             {'session_id': 'session-3e5748fe',                
+                             'actor_id': 'arif',                               
+                             'authority_level': 'sovereign',                   
+                             'token_fingerprint':                              
+                             'sha256:initialized', 'nonce':                    
+                             'f49514a9c5dba7c2bd951560', 'iat':                
+                             1773450521, 'exp': 1773451421,                    
+                             'approval_scope': ['*'],                          
+                             'parent_signature': '',                           
+                             'signature':                                      
+                             '80d13fcca127d2c423edab31e4b6154d9                
+                             6284a801344e7a194037f263ec519a2'},                
+                              'user_model': {'stated_goal':                    
+                             {'value': "{'query': 'I am Arif,                  
+                             the Sovereign Architect.',                        
+                             'task_type': 'unknown', 'domain':                 
+                             'general', 'desired_output':                      
+                             'text', 'reversibility':                          
+                             'unknown'}", 'source': 'explicit',                
+                             'evidence': 'payload.query'},                     
+                             'behavioral_constraints': [],                     
+                             'output_constraints': [],                         
+                             'adaptation_mode':                                
+                             'behavioral_only',                                
+                             'inference_policy':                               
+                             {'psychological_inference':                       
+                             'disallowed',                                     
+                             'behavioral_adaptation':                          
+                             'allowed', 'null_for_unknown':                    
+                             True, 'source_priority':                          
+                             ['explicit', 'observable',                        
+                             'default_policy']}}, 'philosophy':                
+                             {'apex_mode': 'hybrid', 'role':                   
+                             'mind', 'stage': '000_INIT',                      
+                             'g_score': 0.0, 'label': 'seal',                  
+                             'label_source': 'bounded_context',                
+                             'semantic_backend': 'available',                  
+                             'available_categories':                           
+                             {'deterministic_33': ['wisdom',                   
+                             'power', 'paradox', 'void',                       
+                             'seal'], 'local_99': ['scar',                     
+                             'triumph', 'paradox', 'wisdom',                   
+                             'power', 'love', 'seal'],                         
+                             'bounded_labels': ['void', 'scar',                
+                             'triumph', 'paradox', 'wisdom',                   
+                             'power', 'love', 'seal']}, 'agi':                 
+                             {'quote_id': 'SE2', 'quote': 'Law                 
+                             becomes durable when dignity is                   
+                             part of the seal.', 'author':                     
+                             'arifOS Foundry', 'category':                     
+                             'seal', 'source':                                 
+                             'deterministic_99'}, 'asi': None,                 
+                             'apex': None}}                                    
+                    DEBUG    Sending INFO to client:            context.py:1363
+                             arifOS_telemetry {'ok': True,                     
+                             'tool': 'check_vital',                            
+                             'session_id': 'global', 'stage':                  
+                             '000_INIT', 'verdict': 'SEAL',                    
+                             'status': 'SUCCESS',                              
+                             'machine_status': 'READY',                        
+                             'intelligence_state':                             
+                             {'exploration': 'BROAD',                          
+                             'entropy': 'MANAGEABLE', 'eureka':                
+                             'NONE', 'hypotheses': [],                         
+                             'unknowns': [], 'stable_facts':                   
+                             [], 'unstable_assumptions': [],                   
+                             'conflicts': [],                                  
+                             'uncertainty_score': 0.5,                         
+                             'insight': None, 'confidence':                    
+                             0.0, 'decision_required': []},                    
+                             'metrics': {'telemetry': {'dS':                   
+                             -0.1, 'peace2': 1.0, 'G_star':                    
+                             0.8442, 'echoDebt': 0.1, 'shadow':                
+                             0.1558, 'confidence': 0.8442,                     
+                             'psi_le': '10.00 (Estimate Only)',                
+                             'verdict': 'SEAL'}, 'basis':                      
+                             {'dS': 'derived', 'peace2':                       
+                             'derived', 'kappa_r': 'derived',                  
+                             'G_star': 'derived', 'psi_le':                    
+                             'heuristic'}, 'witness': {'human':                
+                             0.95, 'ai': 0.9, 'earth': 0.9},                   
+                             'internal': {'risk': 0.0,                         
+                             'vitality': 10.0}}, 'trace':                      
+                             {'000_INIT': 'SEAL'}, 'authority':                
+                             {'actor_id': 'anonymous', 'level':                
+                             'anonymous', 'human_required':                    
+                             False, 'approval_scope': [],                      
+                             'auth_state': 'unverified'},                      
+                             'payload': {'system_status':                      
+                             'HEALTHY', 'session_active':                      
+                             False, 'capability_map':                          
+                             {'governed_continuity':                           
+                             {'enabled': True, 'status':                       
+                             'configured'},                                    
+                             'vault_persistence': {'enabled':                  
+                             True, 'status': 'configured'},                    
+                             'vector_memory': {'enabled': True,                
+                             'status': 'configured'},                          
+                             'external_grounding': {'enabled':                 
+                             True, 'status': 'configured'},                    
+                             'model_provider_access':                          
+                             {'enabled': True, 'status':                       
+                             'configured'},                                    
+                             'local_model_runtime': {'enabled':                
+                             True, 'status': 'configured'},                    
+                             'auto_deploy': {'enabled': False,                 
+                             'status': 'manual_only'}},                        
+                             'thermodynamic_vitality':                         
+                             {'status': 'active', 'note': 'F4                  
+                             Clarity enforcement via                           
+                             thermodynamic budgeting'},                        
+                             'constitutional_telemetry':                       
+                             {'floors_enforced': 13,                           
+                             'governance_mode': 'STANDBY',                     
+                             'audit_trail': 'VAULT999'},                       
+                             'degraded_components': None,                      
+                             'operator_note': 'System                          
+                             operational. Run audit_rules for                  
+                             constitutional floor details. Run                 
+                             verify_vault_ledger for audit                     
+                             trail integrity.'}, 'errors': [],                 
+                             'meta': {'schema_version':                        
+                             '1.0.0', 'timestamp':                             
+                             '2026-03-14T01:08:41.927173+00:00'                
+                             , 'debug': False, 'dry_run':                      
+                             False, 'motto': 'DITEMPA, BUKAN                   
+                             DIBERI'}, 'user_model':                           
+                             {'stated_goal': {'value': 'Handle                 
+                             tool call for check_vital',                       
+                             'source': 'default_policy',                       
+                             'evidence': 'tool_name fallback'},                
+                             'behavioral_constraints': [],                     
+                             'output_constraints': [],                         
+                             'adaptation_mode':                                
+                             'behavioral_only',                                
+                             'inference_policy':                               
+                             {'psychological_inference':                       
+                             'disallowed',                                     
+                             'behavioral_adaptation':                          
+                             'allowed', 'null_for_unknown':                    
+                             True, 'source_priority':                          
+                             ['explicit', 'observable',                        
+                             'default_policy']}}, 'philosophy':                
+                             {'apex_mode': 'hybrid', 'role':                   
+                             'mind', 'stage': '000_INIT',                      
+                             'g_score': 0.0, 'label': 'void',                  
+                             'label_source': 'state_router',                   
+                             'semantic_backend': 'available',                  
+                             'available_categories':                           
+                             {'deterministic_33': ['wisdom',                   
+                             'power', 'paradox', 'void',                       
+                             'seal'], 'local_99': ['scar',                     
+                             'triumph', 'paradox', 'wisdom',                   
+                             'power', 'love', 'seal'],                         
+                             'bounded_labels': ['void', 'scar',                
+                             'triumph', 'paradox', 'wisdom',                   
+                             'power', 'love', 'seal']}, 'agi':                 
+                             {'quote_id': 'WI5', 'quote': 'What                
+                             is unclear will get expensive.',                  
+                             'author': 'arifOS Foundry',                       
+                             'category': 'wisdom', 'source':                   
+                             'deterministic_99'}, 'asi': None,                 
+                             'apex': None}}                                    
+[03/14/26 09:08:43] DEBUG    Sending INFO to client:            context.py:1363
+                             arifOS_telemetry {'ok': True,                     
+                             'tool': 'audit_rules',                            
+                             'session_id': 'global', 'stage':                  
+                             '333_MIND', 'verdict': 'HOLD',                    
+                             'status': 'SUCCESS',                              
+                             'machine_status': 'READY',                        
+                             'intelligence_state':                             
+                             {'exploration': 'BROAD',                          
+                             'entropy': 'MANAGEABLE', 'eureka':                
+                             'NONE', 'hypotheses': [],                         
+                             'unknowns': [], 'stable_facts':                   
+                             [], 'unstable_assumptions': [],                   
+                             'conflicts': [],                                  
+                             'uncertainty_score': 0.5,                         
+                             'insight': None, 'confidence':                    
+                             0.0, 'decision_required': []},                    
+                             'metrics': {'telemetry': {'dS':                   
+                             -0.1, 'peace2': 1.0, 'G_star':                    
+                             0.8442, 'echoDebt': 0.1, 'shadow':                
+                             0.1558, 'confidence': 0.8442,                     
+                             'psi_le': '0.44 (Estimate Only)',                 
+                             'verdict': 'HOLD'}, 'basis':                      
+                             {'dS': 'derived', 'peace2':                       
+                             'derived', 'kappa_r': 'derived',                  
+                             'G_star': 'derived', 'psi_le':                    
+                             'heuristic'}, 'witness': {'human':                
+                             0.95, 'ai': 0.9, 'earth': 0.9},                   
+                             'internal': {'risk': 0.0,                         
+                             'vitality': 0.438}}, 'trace':                     
+                             {'333_MIND': 'HOLD'}, 'authority':                
+                             {'actor_id': 'anonymous', 'level':                
+                             'anonymous', 'human_required':                    
+                             True, 'approval_scope': [],                       
+                             'auth_state': 'unverified'},                      
+                             'payload': {'audit_type':                         
+                             'constitutional_floors',                          
+                             'session_state': 'NO_SESSION',                    
+                             'floors_count': 13, 'hard_floors':                
+                             8, 'soft_floors': 3,                              
+                             'derived_floors': 2, 'floors':                    
+                             [{'floor_id': 'F1', 'name':                       
+                             'Amanah (Reversibility)', 'type':                 
+                             'HARD', 'threshold': '≥ 0.5',                     
+                             'doctrine': 'Reversible or                        
+                             Auditable'}, {'floor_id': 'F2',                   
+                             'name': 'Haqq (Truth)', 'type':                   
+                             'HARD', 'threshold': '≥ 0.99',                    
+                             'doctrine': 'Information Fidelity                 
+                             ≥ 0.99'}, {'floor_id': 'F3',                      
+                             'name': 'Tri-Witness Consensus',                  
+                             'type': 'DERIVED', 'threshold': '≥                
+                             0.95', 'doctrine': 'W₃ = √(H × A ×                
+                             S) ≥ 0.95'}, {'floor_id': 'F4',                   
+                             'name': 'Clarity (Entropy)',                      
+                             'type': 'HARD', 'threshold': '≥                   
+                             0.0', 'doctrine': 'ΔS ≤ 0 (entropy                
+                             reduction)'}, {'floor_id': 'F5',                  
+                             'name': 'Peace² (Stability)',                     
+                             'type': 'SOFT', 'threshold': '≥                   
+                             1.0', 'doctrine': 'Non-destructive                
+                             power'}, {'floor_id': 'F6',                       
+                             'name': 'Empathy/Care', 'type':                   
+                             'SOFT', 'threshold': '≥ 0.7',                     
+                             'doctrine': 'Protect weakest                      
+                             stakeholder'}, {'floor_id': 'F7',                 
+                             'name': 'Gödel Uncertainty',                      
+                             'type': 'HARD', 'threshold': '≥                   
+                             0.05', 'doctrine': 'Ω₀ ∈ [0.03,                   
+                             0.05] humility band'},                            
+                             {'floor_id': 'F8', 'name': 'Wisdom                
+                             Equation', 'type': 'DERIVED',                     
+                             'threshold': '≥ 0.8', 'doctrine':                 
+                             'G = A × P × X × E² ≥ 0.80'},                     
+                             {'floor_id': 'F9', 'name':                        
+                             'Anti-Hantu (Shadow)', 'type':                    
+                             'SOFT', 'threshold': '≥ 0.3',                     
+                             'doctrine': 'C_dark < 0.30 (no                    
+                             deception)'}, {'floor_id': 'F10',                 
+                             'name': 'Ontology Lock', 'type':                  
+                             'HARD', 'threshold': '≥ 1.0',                     
+                             'doctrine': 'Category precision'},                
+                             {'floor_id': 'F11', 'name':                       
+                             'Command Authority', 'type':                      
+                             'HARD', 'threshold': '≥ 1.0',                     
+                             'doctrine': 'Verified identity'},                 
+                             {'floor_id': 'F12', 'name':                       
+                             'Injection Defense', 'type':                      
+                             'HARD', 'threshold': '≥ 0.85',                    
+                             'doctrine': 'Input sanitization'},                
+                             {'floor_id': 'F13', 'name':                       
+                             'Sovereign Override', 'type':                     
+                             'HARD', 'threshold': '≥ 1.0',                     
+                             'doctrine': 'Human final                          
+                             authority'}],                                     
+                             'doctrine_to_runtime':                            
+                             [{'doctrine': 'F2 Truth',                         
+                             'runtime': 'search_reality,                       
+                             ingest_evidence'}, {'doctrine':                   
+                             'F4 Clarity', 'runtime': 'entropy                 
+                             tracking, office_forge_audit'},                   
+                             {'doctrine': 'F6 Care', 'runtime':                
+                             'assess_heart_impact'},                           
+                             {'doctrine': 'F11 Command',                       
+                             'runtime': 'init_anchor_state,                    
+                             auth_continuity'}, {'doctrine':                   
+                             'F13 Sovereign', 'runtime':                       
+                             '888_HOLD, verify_vault_ledger'}],                
+                             'message': '13 Constitutional                     
+                             Floors loaded and enforced'},                     
+                             'errors': [], 'meta':                             
+                             {'schema_version': '1.0.0',                       
+                             'timestamp':                                      
+                             '2026-03-14T01:08:43.773331+00:00'                
+                             , 'debug': False, 'dry_run':                      
+                             False, 'motto': 'DITEMPA, BUKAN                   
+                             DIBERI'}, 'user_model':                           
+                             {'stated_goal': {'value': 'Handle                 
+                             tool call for audit_rules',                       
+                             'source': 'default_policy',                       
+                             'evidence': 'tool_name fallback'},                
+                             'behavioral_constraints':                         
+                             [{'value':                                        
+                             'reduce_ambiguity_and_define_terms                
+                             _clearly', 'source': 'observable',                
+                             'evidence': 'observable                           
+                             stage=333_MIND'}],                                
+                             'output_constraints': [],                         
+                             'adaptation_mode':                                
+                             'behavioral_only',                                
+                             'inference_policy':                               
+                             {'psychological_inference':                       
+                             'disallowed',                                     
+                             'behavioral_adaptation':                          
+                             'allowed', 'null_for_unknown':                    
+                             True, 'source_priority':                          
+                             ['explicit', 'observable',                        
+                             'default_policy']}}, 'philosophy':                
+                             {'apex_mode': 'hybrid', 'role':                   
+                             'mind', 'stage': '333_MIND',                      
+                             'g_score': 0.0, 'label': 'power',                 
+                             'label_source': 'bounded_context',                
+                             'semantic_backend': 'available',                  
+                             'available_categories':                           
+                             {'deterministic_33': ['wisdom',                   
+                             'power', 'paradox', 'void',                       
+                             'seal'], 'local_99': ['scar',                     
+                             'triumph', 'paradox', 'wisdom',                   
+                             'power', 'love', 'seal'],                         
+                             'bounded_labels': ['void', 'scar',                
+                             'triumph', 'paradox', 'wisdom',                   
+                             'power', 'love', 'seal']}, 'agi':                 
+                             {'quote_id': 'PW8', 'quote':                      
+                             'Capability is proven by control,                 
+                             not volume.', 'author': 'arifOS                   
+                             Foundry', 'category': 'power',                    
+                             'source': 'deterministic_99'},                    
+                             'asi': None, 'apex': None}}                       
+                    DEBUG    Sending INFO to client:            context.py:1363
+                             arifOS_telemetry {'ok': False,                    
+                             'tool': 'reason_mind',                            
+                             'session_id':                                     
+                             '2e579b24-1cdb-403c-98d4-2b7af5ad8                
+                             533', 'stage': '000_INIT',                        
+                             'verdict': 'HOLD', 'status':                      
+                             'ERROR', 'machine_status':                        
+                             'BLOCKED', 'machine_issue':                       
+                             'AUTH_TOKEN_MISSING',                             
+                             'intelligence_state':                             
+                             {'exploration': 'BROAD',                          
+                             'entropy': 'MANAGEABLE', 'eureka':                
+                             'NONE', 'hypotheses': [],                         
+                             'unknowns': [], 'stable_facts':                   
+                             [], 'unstable_assumptions': [],                   
+                             'conflicts': [],                                  
+                             'uncertainty_score': 0.5,                         
+                             'insight': None, 'confidence':                    
+                             0.0, 'decision_required': []},                    
+                             'metrics': {'telemetry': {'dS':                   
+                             0.0, 'peace2': 0.0, 'G_star': 0.0,                
+                             'echoDebt': 0.1, 'shadow': 1.0,                   
+                             'confidence': 0.0, 'psi_le': '0.0                 
+                             (Estimate Only)', 'verdict':                      
+                             'HOLD'}, 'basis': {'dS':                          
+                             'derived', 'peace2': 'derived',                   
+                             'kappa_r': 'derived', 'G_star':                   
+                             'derived', 'psi_le': 'heuristic'},                
+                             'witness': {'human': 0.0, 'ai':                   
+                             0.0, 'earth': 0.0}, 'internal':                   
+                             {}}, 'trace': {'000_INIT':                        
+                             'HOLD'}, 'authority': {'actor_id':                
+                             'anonymous', 'level': 'anonymous',                
+                             'human_required': True,                           
+                             'approval_scope': [],                             
+                             'auth_state': 'unverified'},                      
+                             'payload': {'error': 'F11: Missing                
+                             auth_context.',                                   
+                             'identity_resolution':                            
+                             {'input_actor_id': 'anonymous',                   
+                             'resolved_actor_id': 'anonymous',                 
+                             'identity_claim_status':                          
+                             'UNVERIFIED_CLAIM', 'reason': 'No                 
+                             auth_context.'}, 'next_action':                   
+                             {'tool': 'init_anchor_state',                     
+                             'required': True, 'reason': 'Run                  
+                             init_anchor_state first.'}},                      
+                             'errors': [{'code':                               
+                             'AUTH_TOKEN_MISSING', 'message':                  
+                             'F11: Missing auth_context.',                     
+                             'stage': '000_INIT',                              
+                             'recoverable': True}], 'meta':                    
+                             {'schema_version': '1.0.0',                       
+                             'timestamp':                                      
+                             '2026-03-14T01:08:43.898784+00:00'                
+                             , 'debug': False, 'dry_run':                      
+                             False}, 'philosophy':                             
+                             {'apex_mode': 'hybrid', 'role':                   
+                             'mind', 'stage': '000_INIT',                      
+                             'g_score': 0.0, 'label': 'scar',                  
+                             'label_source': 'state_router',                   
+                             'semantic_backend': 'available',                  
+                             'available_categories':                           
+                             {'deterministic_33': ['wisdom',                   
+                             'power', 'paradox', 'void',                       
+                             'seal'], 'local_99': ['scar',                     
+                             'triumph', 'paradox', 'wisdom',                   
+                             'power', 'love', 'seal'],                         
+                             'bounded_labels': ['void', 'scar',                
+                             'triumph', 'paradox', 'wisdom',                   
+                             'power', 'love', 'seal']}, 'agi':                 
+                             {'quote_id': 'SC11', 'quote':                     
+                             'Fear grows fastest in unnamed                    
+                             rooms.', 'author': 'arifOS                        
+                             Foundry', 'category': 'scar',                     
+                             'source': 'deterministic_99'},                    
+                             'asi': None, 'apex': None}}                       
+[03/14/26 09:08:43] Error calling tool 'arifOS_kernel'                         
+                    ┌─────────── Traceback (most recent call last) ───────────┐
+                    │ C:\Users\User\AppData\Local\Programs\Python\Python314\L │
+                    │ ib\site-packages\fastmcp\server\server.py:982 in        │
+                    │ call_tool                                               │
+                    │                                                         │
+                    │ C:\Users\User\AppData\Local\Programs\Python\Python314\L │
+                    │ ib\site-packages\fastmcp\tools\tool.py:332 in _run      │
+                    │                                                         │
+                    │                 ... 3 frames hidden ...                 │
+                    │                                                         │
+                    │ C:\arifosmcp\arifosmcp\runtime\orchestrator.py:382 in   │
+                    │ metabolic_loop                                          │
+                    │                                                         │
+                    │   379 │   │   │   }                                     │
+                    │   380 │   │                                             │
+                    │   381 │   │   # === INNER RING START: INIT·ANCHOR ===   │
+                    │ > 382 │   │   init_res = await run_stage(               │
+                    │   383 │   │   │   stage_id=Stage.INIT_000.value,        │
+                    │   384 │   │   │   query=query,                          │
+                    │   385 │   │   │   session_id=current_session_id,        │
+                    │                                                         │
+                    │ C:\arifosmcp\arifosmcp\runtime\orchestrator.py:208 in   │
+                    │ run_stage                                               │
+                    │                                                         │
+                    │   205 │   # 1. INIT·ANCHOR (000) - Entry Gate (Feeds PN │
+                    │   206 │   if stage_id == Stage.INIT_000.value:          │
+                    │   207 │   │   shield = active_pns.shield if active_pns  │
+                    │ > 208 │   │   return await INIT_ANCHOR(                 │
+                    │   209 │   │   │   raw_input=query,                      │
+                    │   210 │   │   │   session_id=session_id,                │
+                    │   211 │   │   │   pns_shield=shield.model_dump() if shi │
+                    └─────────────────────────────────────────────────────────┘
+                    TypeError: INIT_ANCHOR() got an unexpected keyword argument
+                    'server'                                                   
+=== arifOS MCP Architectural Audit ===
+Auditing: init_anchor...
+  SUCCESS: init_anchor
+Auditing: check_vital...
+  SUCCESS: check_vital
+Auditing: audit_rules...
+  SUCCESS: audit_rules
+Auditing: agi_reason...
+  SUCCESS: agi_reason
+Auditing: arifOS_kernel...
+  FAILED: Could not parse JSON for arifOS_kernel
+  Raw: Error calling tool 'arifOS_kernel': INIT_ANCHOR() got an unexpected keyword argument 'server'...
+
+Audit Complete. Analysis required.

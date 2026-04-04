@@ -264,6 +264,7 @@ markers = [
     "constitutional",
     "slow",
     "integration",
+    "e3e",
 ]
 cache_dir = "C:/Users/User/AppData/Local/Temp/pytest_cache"
 filterwarnings = [

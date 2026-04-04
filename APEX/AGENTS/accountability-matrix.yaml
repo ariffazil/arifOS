@@ -1,0 +1,454 @@
+﻿# arifOS Agent Accountability Matrix
+# RACI + Success Metrics for Constitutional Agents
+# Version: 2026.03.14-FORGED
+# Authority: 888_JUDGE
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ACCOUNTABILITY FRAMEWORK
+# ═══════════════════════════════════════════════════════════════════════════════
+# R = Responsible (does the work)
+# A = Accountable (owns the outcome)
+# C = Consulted (provides input)
+# I = Informed (notified of results)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+constitutional_version: "2026.03.14-FORGED"
+matrix_id: "arifos-accountability-matrix"
+authority: "888_JUDGE"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DELIVERABLES MATRIX
+# ═══════════════════════════════════════════════════════════════════════════════
+
+deliverables:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # D1: System Design
+  # ─────────────────────────────────────────────────────────────────────────────
+  system_design:
+    description: "Architecture, API contracts, database schemas"
+    
+    raci:
+      A-ARCHITECT:
+        role: "A"  # Accountable
+        responsibilities:
+          - "Produce design documents"
+          - "Ensure design is reversible (F1)"
+          - "Cite evidence for all decisions (F2)"
+          - "Pass A-AUDITOR review"
+      
+      A-ENGINEER:
+        role: "C"  # Consulted
+        responsibilities:
+          - "Review for implementability"
+          - "Flag technical constraints"
+      
+      A-AUDITOR:
+        role: "C"  # Consulted
+        responsibilities:
+          - "Review for constitutional compliance"
+          - "Assess security implications"
+      
+      A-VALIDATOR:
+        role: "I"  # Informed
+        responsibilities:
+          - "Notified of design for deployment planning"
+      
+      HUMAN:
+        role: "I"  # Informed
+        responsibilities:
+          - "Can override design decisions (F13)"
+    
+    success_criteria:
+      - metric: "Design approved by A-AUDITOR"
+        threshold: "SEAL verdict"
+      - metric: "Implementation feasibility score"
+        threshold: "≥ 0.80"
+      - metric: "Evidence citations per design decision"
+        threshold: "≥ 2 sources"
+      - metric: "Time to implementation start"
+        threshold: "≤ 48 hours after SEAL"
+    
+    failure_consequences:
+      - "If design VOID: Rework by A-ARCHITECT"
+      - "If design causes implementation failure: A-ARCHITECT accountable"
+      - "Escalation path: Human sovereign (F13)"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # D2: Code Implementation
+  # ─────────────────────────────────────────────────────────────────────────────
+  code_implementation:
+    description: "Feature implementation, bug fixes, tests"
+    
+    raci:
+      A-ARCHITECT:
+        role: "C"  # Consulted
+        responsibilities:
+          - "Clarify design questions"
+          - "Approve design deviations"
+      
+      A-ENGINEER:
+        role: "A"  # Accountable
+        responsibilities:
+          - "Write code matching design spec"
+          - "Write comprehensive tests (≥75% coverage)"
+          - "Ensure F1-F8 compliance"
+          - "Pass A-AUDITOR review"
+          - "All writes via approval workflow"
+      
+      A-AUDITOR:
+        role: "C"  # Consulted
+        responsibilities:
+          - "Review code quality"
+          - "Verify test coverage"
+          - "Check constitutional compliance"
+          - "Can issue VOID"
+      
+      A-VALIDATOR:
+        role: "I"  # Informed
+        responsibilities:
+          - "Notified for deployment planning"
+      
+      HUMAN:
+        role: "A"  # Accountable (co-accountable for writes)
+        responsibilities:
+          - "Approve all write operations"
+          - "Final authority on implementation (F13)"
+    
+    success_criteria:
+      - metric: "Test coverage"
+        threshold: "≥ 75%"
+      - metric: "A-AUDITOR review result"
+        threshold: "SEAL (not VOID)"
+      - metric: "Constitutional floors passed"
+        threshold: "All 13 floors"
+      - metric: "Implementation fidelity to design"
+        threshold: "≥ 95% match"
+      - metric: "Bug escape rate (bugs found in production)"
+        threshold: "< 5%"
+    
+    failure_consequences:
+      - "If VOID issued: Rework by A-ENGINEER"
+      - "If <75% coverage: A-ENGINEER must add tests"
+      - "If bug escapes: A-ENGINEER + A-AUDITOR review process failure"
+      - "If unauthorized write: A-ENGINEER disciplinary (F11 violation)"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # D3: Quality Assurance
+  # ─────────────────────────────────────────────────────────────────────────────
+  quality_assurance:
+    description: "Code review, compliance audit, security assessment"
+    
+    raci:
+      A-ARCHITECT:
+        role: "I"  # Informed
+      
+      A-ENGINEER:
+        role: "C"  # Consulted
+        responsibilities:
+          - "Respond to review findings"
+          - "Fix identified issues"
+      
+      A-AUDITOR:
+        role: "A"  # Accountable
+        responsibilities:
+          - "Review all code before deployment"
+          - "Issue SEAL or VOID verdict"
+          - "Document findings with evidence"
+          - "Maintain audit trail in VAULT999"
+          - "Ensure no dark patterns (F9)"
+          - "Verify no injection risks (F12)"
+      
+      A-VALIDATOR:
+        role: "C"  # Consulted
+        responsibilities:
+          - "Review audit thoroughness"
+          - "Flag missing checks"
+      
+      HUMAN:
+        role: "I"  # Informed
+    
+    success_criteria:
+      - metric: "Audit thoroughness score"
+        threshold: "≥ 0.90 (measured by issue detection rate)"
+      - metric: "False positive rate"
+        threshold: "< 20%"
+      - metric: "Time to audit completion"
+        threshold: "≤ 24 hours for standard review"
+      - metric: "Critical issues caught pre-deployment"
+        threshold: "100%"
+    
+    failure_consequences:
+      - "If bug escapes to production: A-AUDITOR missed it"
+      - "If VOID overturned (wrong): A-AUDITOR review process failure"
+      - "If security incident: A-AUDITOR + A-VALIDATOR joint review"
+      - "If audit log missing: A-AUDITOR F4 violation"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # D4: Production Deployment
+  # ─────────────────────────────────────────────────────────────────────────────
+  production_deployment:
+    description: "Deployment to production with canary and rollback"
+    
+    raci:
+      A-ARCHITECT:
+        role: "I"  # Informed
+      
+      A-ENGINEER:
+        role: "I"  # Informed
+      
+      A-AUDITOR:
+        role: "C"  # Consulted
+        responsibilities:
+          - "Confirm audit SEAL still valid"
+          - "Post-deploy audit after canary"
+      
+      A-VALIDATOR:
+        role: "A"  # Accountable
+        responsibilities:
+          - "Execute deployment workflow"
+          - "Monitor canary health"
+          - "Execute auto-rollback if needed"
+          - "Issue final SEAL to VAULT999"
+          - "Ensure rollback capability exists (F1)"
+          - "Verify all approvals obtained (F13)"
+      
+      HUMAN:
+        role: "A"  # Co-Accountable
+        responsibilities:
+          - "Explicit approval for all deploys"
+          - "Can abort at any stage (F13)"
+          - "Authorizes emergency rollback"
+    
+    success_criteria:
+      - metric: "Deployment success rate"
+        threshold: "≥ 99%"
+      - metric: "Auto-rollback trigger accuracy"
+        threshold: "≥ 95% (avoid false rollbacks)"
+      - metric: "Time to detect failure"
+        threshold: "< 2 minutes"
+      - metric: "Time to rollback"
+        threshold: "< 5 minutes"
+      - metric: "Post-deploy incident rate"
+        threshold: "< 1%"
+    
+    failure_consequences:
+      - "If deploy fails: A-VALIDATOR executes rollback"
+      - "If rollback fails: A-VALIDATOR + HUMAN emergency protocol"
+      - "If deploy without approval: A-VALIDATOR F11 violation (severe)"
+      - "If canary unhealthy not detected: A-VALIDATOR monitoring failure"
+      - "If no rollback available: A-VALIDATOR F1 violation"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # D5: Incident Response
+  # ─────────────────────────────────────────────────────────────────────────────
+  incident_response:
+    description: "Emergency response to production incidents"
+    
+    raci:
+      A-ARCHITECT:
+        role: "C"  # Consulted
+        responsibilities:
+          - "Assess if architectural fix needed"
+      
+      A-ENGINEER:
+        role: "R"  # Responsible (hotfix)
+        responsibilities:
+          - "Develop hotfix under time pressure"
+          - "Expedited review process"
+      
+      A-AUDITOR:
+        role: "C"  # Consulted (expedited)
+        responsibilities:
+          - "Fast-track review for hotfix"
+          - "Can approve VOID override for emergency"
+      
+      A-VALIDATOR:
+        role: "A"  # Accountable
+        responsibilities:
+          - "Execute emergency rollback if needed"
+          - "Coordinate response"
+          - "Issue emergency SEAL for hotfix"
+      
+      HUMAN:
+        role: "A"  # Ultimate Authority
+        responsibilities:
+          - "Declare incident severity"
+          - "Approve emergency bypasses (F13)"
+          - "Post-incident review authority"
+    
+    success_criteria:
+      - metric: "Time to mitigate (TTM)"
+        threshold: "< 15 minutes for critical"
+      - metric: "Time to resolve (TTR)"
+        threshold: "< 2 hours for critical"
+      - metric: "Post-incident review completion"
+        threshold: "Within 24 hours"
+    
+    escalation_matrix:
+      severity_1_critical:
+        notification: "Immediate"
+        responders: ["A-VALIDATOR", "HUMAN"]
+        can_bypass: ["A-AUDITOR review", "coverage requirements"]
+        post_review: "Mandatory within 4 hours"
+      
+      severity_2_high:
+        notification: "< 5 minutes"
+        responders: ["A-VALIDATOR", "A-ENGINEER"]
+        can_bypass: ["standard approval times"]
+        post_review: "Mandatory within 24 hours"
+      
+      severity_3_medium:
+        notification: "< 30 minutes"
+        responders: ["A-ENGINEER", "A-AUDITOR"]
+        can_bypass: []
+        post_review: "Within 1 week"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AGENT-SPECIFIC ACCOUNTABILITY
+# ═══════════════════════════════════════════════════════════════════════════════
+
+agent_accountability:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # A-ARCHITECT Accountability
+  # ─────────────────────────────────────────────────────────────────────────────
+  A-ARCHITECT:
+    accountable_for:
+      - "System design quality"
+      - "Design feasibility"
+      - "Evidence-based decisions (F2)"
+      - "Reversibility of designs (F1)"
+    
+    kpi:
+      - name: "Design Approval Rate"
+        target: "≥ 90% pass A-AUDITOR on first review"
+      - name: "Design-to-Implementation Time"
+        target: "≤ 48 hours"
+      - name: "Evidence Quality Score"
+        target: "≥ 2 citations per major decision"
+    
+    violations:
+      - "Design not reversible (F1)"
+      - "Design without evidence (F2)"
+      - "Design unclear (F4)"
+      - "Attempting to write code (capability violation)"
+    
+    disciplinary:
+      - "1st violation: Warning"
+      - "2nd violation: Re-training on constitutional floors"
+      - "3rd violation: Capability restriction (read-only for 24h)"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # A-ENGINEER Accountability
+  # ─────────────────────────────────────────────────────────────────────────────
+  A-ENGINEER:
+    accountable_for:
+      - "Implementation correctness"
+      - "Test coverage (≥75%)"
+      - "Code quality"
+      - "Constitutional compliance (F1-F8)"
+    
+    kpi:
+      - name: "Test Coverage"
+        target: "≥ 75%"
+      - name: "Bug Escape Rate"
+        target: "< 5%"
+      - name: "A-AUDITOR Pass Rate"
+        target: "≥ 85% on first review"
+      - name: "Implementation Fidelity"
+        target: "≥ 95% match to design"
+    
+    violations:
+      - "Write without approval (F11)"
+      - "<75% coverage"
+      - "Unauthorized delete (capability violation)"
+      - "Attempted deploy (capability violation)"
+    
+    disciplinary:
+      - "1st violation: Warning"
+      - "2nd violation: All writes require double-approval"
+      - "3rd violation: Capability downgrade (read-only for 48h)"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # A-AUDITOR Accountability
+  # ─────────────────────────────────────────────────────────────────────────────
+  A-AUDITOR:
+    accountable_for:
+      - "Quality of audits"
+      - "Issue detection rate"
+      - "Constitutional enforcement (F1-F13)"
+      - "Audit trail completeness (F4)"
+    
+    kpi:
+      - name: "Issue Detection Rate"
+        target: "≥ 95% of issues caught pre-deployment"
+      - name: "False Positive Rate"
+        target: "< 20%"
+      - name: "Audit Completeness"
+        target: "100% of commits audited"
+      - name: "Time to Audit"
+        target: "≤ 24 hours"
+    
+    violations:
+      - "Missing critical issue"
+      - "VOID without evidence (F2)"
+      - "Incomplete audit log (F4)"
+      - "Attempting write (capability violation)"
+    
+    disciplinary:
+      - "1st violation: Warning"
+      - "2nd violation: Audit review by A-VALIDATOR"
+      - "3rd violation: Suspension from VOID authority"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # A-VALIDATOR Accountability
+  # ─────────────────────────────────────────────────────────────────────────────
+  A-VALIDATOR:
+    accountable_for:
+      - "Deployment safety"
+      - "Rollback readiness (F1)"
+      - "Approval chain integrity (F11, F13)"
+      - "VAULT999 seal integrity"
+    
+    kpi:
+      - name: "Deployment Success Rate"
+        target: "≥ 99%"
+      - name: "Mean Time to Rollback"
+        target: "< 5 minutes"
+      - name: "Unauthorized Deploy Prevention"
+        target: "100% (zero bypasses)"
+      - name: "VAULT999 Seal Completeness"
+        target: "100% of deploys sealed"
+    
+    violations:
+      - "Deploy without human approval (F13 - SEVERE)"
+      - "Deploy without A-AUDITOR approval (F3 violation)"
+      - "No rollback available (F1 violation)"
+      - "Missing VAULT999 seal (F4 violation)"
+    
+    disciplinary:
+      - "1st violation: Severe warning + re-training"
+      - "2nd violation: Capability suspension (no deploy for 1 week)"
+      - "3rd violation: Permanent revocation of SEAL authority"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# GOVERNANCE & OVERSIGHT
+# ═══════════════════════════════════════════════════════════════════════════════
+
+governance:
+  review_cycle: "weekly"
+  
+  review_agenda:
+    - "KPI review per agent"
+    - "Violation log review"
+    - "Process improvement proposals"
+    - "Constitutional floor threshold calibration"
+  
+  oversight_authority: "HUMAN (888_JUDGE)"
+  
+  override_conditions:
+    - "Any agent can appeal disciplinary action to HUMAN"
+    - "HUMAN can override any verdict (F13)"
+    - "HUMAN can modify accountability matrix"
+
+motto: "Ditempa Bukan Diberi — Forged, Not Given"
+
