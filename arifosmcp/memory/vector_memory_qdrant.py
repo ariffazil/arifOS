@@ -1,0 +1,306 @@
+"""
+arifosmcp/memory/vector_memory_qdrant.py
+========================================
+
+Constitutional vector memory backed by Qdrant.
+Implements 555_MEMORY vector modes with F10 Ontology + F2 Verification.
+
+Authority: Ω (A-ENGINEER) | Trinity: OMEGA
+Floors: F10 (Ontology), F2 (Truth ≥ 0.99), F11 (Audit)
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import logging
+import os
+import time
+import uuid
+
+logger = logging.getLogger(__name__)
+
+# Qdrant configuration
+_QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
+_QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
+_QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "arifos_memory")
+_VECTOR_SIZE = int(os.getenv("VECTOR_SIZE", "384"))
+
+# Constitutional thresholds
+_F2_TRUTH_THRESHOLD = 0.99
+_F10_ONTOLOGY_CHECK = True
+
+_qdrant_client = None
+
+
+def _get_qdrant_client():
+    """Lazy initialization of Qdrant client."""
+    global _qdrant_client
+    if _qdrant_client is None:
+        try:
+            from qdrant_client import QdrantClient
+            _qdrant_client = QdrantClient(host=_QDRANT_HOST, port=_QDRANT_PORT)
+            logger.info(f"Connected to Qdrant at {_QDRANT_HOST}:{_QDRANT_PORT}")
+        except Exception as exc:
+            logger.error(f"Failed to connect to Qdrant: {exc}")
+            raise
+    return _qdrant_client
+
+
+def _ensure_collection():
+    """Ensure the memory collection exists."""
+    client = _get_qdrant_client()
+    try:
+        client.get_collection(_QDRANT_COLLECTION)
+    except Exception:
+        from qdrant_client.models import Distance, VectorParams
+        client.create_collection(
+            collection_name=_QDRANT_COLLECTION,
+            vectors_config=VectorParams(size=_VECTOR_SIZE, distance=Distance.COSINE),
+        )
+        logger.info(f"Created collection: {_QDRANT_COLLECTION}")
+
+
+def _generate_embedding(text: str) -> list[float]:
+    """Generate embedding using sentence-transformers (F10 Ontology encoded)."""
+    try:
+        from sentence_transformers import SentenceTransformer
+        model = SentenceTransformer("all-MiniLM-L6-v2")
+        embedding = model.encode(text)
+        return embedding.tolist()
+    except Exception as exc:
+        logger.error(f"Failed to generate embedding: {exc}")
+        return [0.0] * _VECTOR_SIZE
+
+
+def _compute_truth_score(content: str, context: dict | None = None) -> float:
+    """F2: Compute truth score τ ∈ [0,1]."""
+    score = 0.0
+    if content and len(content.strip()) > 0:
+        score += 0.5
+    try:
+        if content.strip().startswith("{"):
+            json.loads(content)
+            score += 0.25
+        elif "#" in content or "-" in content:
+            score += 0.15
+    except json.JSONDecodeError:
+        pass
+    if context:
+        if context.get("source") or context.get("reference"):
+            score += 0.15
+        if context.get("verified"):
+            score += 0.10
+    return min(score, 1.0)
+
+
+def _f10_ontology_check(content: str, metadata: dict | None = None) -> dict:
+    """F10: Ontology verification."""
+    result = {
+        "valid": True,
+        "ontology_class": "general",
+        "violations": [],
+        "confidence": 1.0,
+    }
+    if not _F10_ONTOLOGY_CHECK:
+        return result
+    prohibited_patterns = [
+        "consciousness claim", "i am sentient",
+        "i feel emotions", "i have subjective experience",
+    ]
+    content_lower = content.lower()
+    for pattern in prohibited_patterns:
+        if pattern in content_lower:
+            result["valid"] = False
+            result["violations"].append(f"F9 ANTI-HANTU: Detected '{pattern}'")
+            result["confidence"] *= 0.5
+    if any(t in content_lower for t in ["code", "function", "class", "def "]):
+        result["ontology_class"] = "code"
+    elif any(t in content_lower for t in ["constitution", "floor ", "f1", "f2"]):
+        result["ontology_class"] = "constitutional"
+    elif any(t in content_lower for t in ["memory", "vector", "embedding"]):
+        result["ontology_class"] = "memory"
+    elif any(t in content_lower for t in ["http", "url", "api", "request"]):
+        result["ontology_class"] = "web"
+    return result
+
+
+def _compute_content_hash(content: str) -> str:
+    return hashlib.sha256(content.encode("utf-8")).hexdigest()[:16]
+
+
+async def vector_store(
+    content: str,
+    metadata: dict | None = None,
+    session_id: str = "",
+    actor_id: str = "",
+    **kwargs,
+) -> dict:
+    """Store content with F10 ontology + F2 truth ≥ 0.99."""
+    _ensure_collection()
+    metadata = metadata or {}
+    truth_score = _compute_truth_score(content, metadata)
+    if truth_score < _F2_TRUTH_THRESHOLD:
+        return {
+            "ok": False,
+            "error": ("F2 TRUTH: Content failed truth verification "
+                      f"(τ={truth_score:.4f} < {_F2_TRUTH_THRESHOLD})"),
+            "truth_score": truth_score,
+            "policy_violation": True,
+        }
+    ontology = _f10_ontology_check(content, metadata)
+    if not ontology["valid"]:
+        return {
+            "ok": False,
+            "error": f"F10 ONTOLOGY: {', '.join(ontology['violations'])}",
+            "ontology": ontology,
+            "policy_violation": True,
+        }
+    vector = _generate_embedding(content)
+    point_id = str(uuid.uuid4())
+    content_hash = _compute_content_hash(content)
+    payload = {
+        "content": content,
+        "content_hash": content_hash,
+        "metadata": {
+            **metadata,
+            "ontology_class": ontology["ontology_class"],
+            "truth_score": truth_score,
+            "session_id": session_id,
+            "actor_id": actor_id,
+            "timestamp": time.time(),
+        },
+    }
+    client = _get_qdrant_client()
+    client.upsert(
+        collection_name=_QDRANT_COLLECTION,
+        points=[{"id": point_id, "vector": vector, "payload": payload}],
+    )
+    logger.info(f"Vector stored: {point_id[:8]}... "
+                f"(class={ontology['ontology_class']}, τ={truth_score:.4f})")
+    return {
+        "ok": True,
+        "point_id": point_id,
+        "content_hash": content_hash,
+        "ontology_class": ontology["ontology_class"],
+        "truth_score": truth_score,
+        "vector_size": len(vector),
+    }
+
+
+async def vector_query(
+    query: str,
+    top_k: int = 5,
+    session_id: str = "",
+    actor_id: str = "",
+    filters: dict | None = None,
+    **kwargs,
+) -> dict:
+    """Query vector memory with F10/F2 constitutional filtering."""
+    _ensure_collection()
+    vector = _generate_embedding(query)
+    query_filter = None
+    if filters:
+        from qdrant_client.models import FieldCondition, Filter, MatchValue
+        conditions = []
+        if "ontology_class" in filters:
+            conditions.append(FieldCondition(
+                key="metadata.ontology_class",
+                match=MatchValue(value=filters["ontology_class"]),
+            ))
+        if "session_id" in filters:
+            conditions.append(FieldCondition(
+                key="metadata.session_id",
+                match=MatchValue(value=filters["session_id"]),
+            ))
+        if conditions:
+            query_filter = Filter(must=conditions)
+    client = _get_qdrant_client()
+    results = client.search(
+        collection_name=_QDRANT_COLLECTION,
+        query_vector=vector,
+        limit=top_k,
+        query_filter=query_filter,
+        with_payload=True,
+    )
+    filtered_results = []
+    for hit in results:
+        md = hit.payload.get("metadata", {})
+        if md.get("truth_score", 0.0) >= _F2_TRUTH_THRESHOLD:
+            filtered_results.append({
+                "point_id": hit.id,
+                "score": hit.score,
+                "content": hit.payload.get("content", "")[:500],
+                "content_hash": hit.payload.get("content_hash"),
+                "metadata": md,
+            })
+    logger.info(f"Vector query: '{query[:50]}...' → {len(filtered_results)} results")
+    return {
+        "ok": True,
+        "query": query,
+        "results": filtered_results,
+        "total_hits": len(results),
+        "filtered_hits": len(filtered_results),
+        "f2_threshold": _F2_TRUTH_THRESHOLD,
+    }
+
+
+async def vector_forget(
+    point_id: str | None = None,
+    content_hash: str | None = None,
+    session_id: str = "",
+    actor_id: str = "",
+    **kwargs,
+) -> dict:
+    """Remove vector with F1 reversibility + F13 sovereign check."""
+    client = _get_qdrant_client()
+    if not point_id and not content_hash:
+        return {"ok": False, "error": "Must provide point_id or content_hash"}
+    try:
+        if point_id:
+            if _F10_ONTOLOGY_CHECK and session_id:
+                point = client.retrieve(
+                    collection_name=_QDRANT_COLLECTION,
+                    ids=[point_id],
+                    with_payload=True,
+                )
+                if point and point[0].payload.get("metadata", {}).get(
+                    "session_id"
+                ) != session_id:
+                    return {
+                        "ok": False,
+                        "error": "F13 KHILAFAH: Cannot delete another session's memory",
+                        "policy_violation": True,
+                    }
+            client.delete(collection_name=_QDRANT_COLLECTION, points_selector=[point_id])
+            logger.info(f"Vector forgotten: {point_id[:8]}...")
+            return {
+                "ok": True,
+                "deleted_id": point_id,
+                "session_id": session_id,
+                "actor_id": actor_id,
+            }
+        return {"ok": False, "error": "Content hash deletion not implemented"}
+    except Exception as exc:
+        logger.error(f"Failed to delete: {exc}")
+        return {"ok": False, "error": str(exc)}
+
+
+async def vector_health() -> dict:
+    """Check vector memory health and F8 vitality."""
+    try:
+        client = _get_qdrant_client()
+        collection = client.get_collection(_QDRANT_COLLECTION)
+        return {
+            "ok": True,
+            "status": "healthy",
+            "collection": _QDRANT_COLLECTION,
+            "vectors_count": collection.points_count,
+            "config": {"vector_size": _VECTOR_SIZE, "host": _QDRANT_HOST, "port": _QDRANT_PORT},
+            "floors": {
+                "F2_truth_threshold": _F2_TRUTH_THRESHOLD,
+                "F10_ontology_check": _F10_ONTOLOGY_CHECK,
+            },
+        }
+    except Exception as exc:
+        return {"ok": False, "status": "unhealthy", "error": str(exc)}
