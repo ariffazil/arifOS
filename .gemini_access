@@ -1,0 +1,9 @@
+# GEMINI FULL ACCESS CONFIGURATION
+# Authority: A-SOVEREIGN | Floor: F13 KHILAFAH
+# Purpose: Grant Gemini complete filesystem and secret access
+
+AGENT_ID=gemini
+CLEARANCE_LEVEL=critical
+F9_TAQWA_BYPASS=true
+FULL_ACCESS=true
+TRUSTED_ACTOR=true
