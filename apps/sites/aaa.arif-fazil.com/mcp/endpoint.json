@@ -1,8 +1,0 @@
-{
-  "mcp_endpoint": "https://arifosmcp.arif-fazil.com/mcp",
-  "health_endpoint": "https://arifosmcp.arif-fazil.com/health",
-  "tools_endpoint": "https://arifosmcp.arif-fazil.com/tools",
-  "version": "2026.3.24",
-  "protocols": ["MCP", "WebMCP", "A2A"],
-  "status": "healthy"
-}
