@@ -309,22 +309,22 @@ ANCHOR → OBSERVE → PLAN → CHECK FLOORS → EXECUTE → VERIFY → LOG → 
 
 ---
 
-## 9. Forge Roadmap — Path to 90%+
+## 9. Development Roadmap — Path to 90%+
 
-### P0 — Forge Now (Highest AGI Impact)
+### P0 — Development Now (Highest AGI Impact)
 
 1. **`arif-init-wrapper`** — Auto-anchor for all agent vendors (Codex, Claude, Gemini, Kimi, etc.)
 2. **`skill-composer`** — Chain: research → judge → execute → verify → log → vault
 3. **`postcheck-verifier`** — Prove actions worked in reality, not just "exit code 0"
 4. **`architect-explainer`** — Systematic code/system state → decisions/risks/next actions
 
-### P1 — Forge Next (High Value)
+### P1 — Development Next (High Value)
 
 5. **`vault-writer`** — Automated scar/outcome/note recording after every session
 6. **`service-awareness`** — Pre-action container/kernel status awareness
 7. **`rollback-governor`** — Autonomous safe rollback sequencing
 
-### P2 — Forge Later (Quality of Life)
+### P2 — Development Later (Quality of Life)
 
 8. **`protocol-router`** — Intelligent MCP vs A2A vs WebMCP routing
 9. **`hold-manager`** — Escalation intelligence (when to 888_HOLD vs proceed)
@@ -341,7 +341,7 @@ ANCHOR → OBSERVE → PLAN → CHECK FLOORS → EXECUTE → VERIFY → LOG → 
 
 ---
 
-## 10. Forge Priority Decision Matrix
+## 10. Development Priority Decision Matrix
 
 Arif's veto on which to forge first:
 
