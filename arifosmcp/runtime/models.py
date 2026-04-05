@@ -201,6 +201,8 @@ class RuntimeStatus(str, Enum):
     TIMEOUT = "TIMEOUT"
     DRY_RUN = "DRY_RUN"
     SABAR = "SABAR"
+    DEGRADED = "degraded"  # Partial capability — kernel reachable but unhealthy
+    HOLD = "hold"          # Awaiting sovereign approval or floor gate
 
 
 class MachineState(str, Enum):
@@ -534,6 +536,8 @@ class CanonicalAuthority(BaseModel):
 class CanonicalError(BaseModel):
     code: str
     message: str
+    type: str | None = None    # e.g. "dependency_error", "transport_error", "auth_error"
+    source: str | None = None  # e.g. "sovereign_kernel", "horizon_gateway", "floor_F11"
     stage: str | None = None
     recoverable: bool = True
     required_next_tool: str | None = None
@@ -557,6 +561,12 @@ class CanonicalMeta(BaseModel):
     )
     floors_failed: list[str] = Field(
         default_factory=list, description="F-codes that failed during this tool call"
+    )
+    injection_score: float | None = Field(
+        default=None, description="0.0–1.0 injection threat score from INIT normalization sweep"
+    )
+    witness_required: bool | None = Field(
+        default=None, description="Whether F3 Tri-Witness is mandatory for this session"
     )
 
 
@@ -707,6 +717,10 @@ class VerdictDetail(BaseModel):
 class RuntimeEnvelope(BaseModel):
     ok: bool = True
     tool: str
+    version: str = Field(
+        default="2026.04",
+        description="Envelope schema version — for drift detection between adapter and kernel",
+    )
     canonical_tool_name: str | None = None
     risk_class: RiskClass = RiskClass.LOW
     requires_auth: bool = False
@@ -715,6 +729,71 @@ class RuntimeEnvelope(BaseModel):
     next_action: dict[str, Any] | None = None  # Anti-chaos: exact next step
     sabar_step: str | None = None  # SABAR protocol: exact cooling / de-escalation step
     state_transition: str | None = None
+
+    # ── Typed error / degradation fields ──────────────────────────────────────
+    code: str | None = Field(
+        default=None,
+        description="Typed domain error code: INIT_AUTH_401 | INIT_POLICY_403 | INIT_SCHEMA_422 | INIT_DEPENDENCY_503 | INIT_KERNEL_500 | INIT_TRANSPORT_503",
+    )
+    detail: str | None = Field(
+        default=None, description="Technical root-cause detail — operator-facing, not shown to end user"
+    )
+    hint: str | None = Field(
+        default=None, description="Actionable operator guidance for resolving this state"
+    )
+    retryable: bool | None = Field(
+        default=None, description="Whether the caller should retry after SABAR cooldown"
+    )
+    rollback_available: bool | None = Field(
+        default=None, description="Whether a rollback / undo path exists (F1 Amanah)"
+    )
+    degraded_reason: str | None = Field(
+        default=None,
+        description="Typed degradation cause: kernel_unavailable | authority_unverified | policy_blocked | dependency_timeout",
+    )
+
+    # ── Observability (top-level, not buried in meta) ─────────────────────────
+    timestamp: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat(),
+        description="ISO-8601 UTC timestamp of envelope creation",
+    )
+    trace_id: str | None = Field(default=None, description="Distributed trace identifier")
+    duration_ms: int | None = Field(default=None, description="Round-trip duration in milliseconds")
+
+    # ── Identity context echo (F11 airlock visibility) ────────────────────────
+    mode: str | None = Field(default=None, description="Mode dispatched: init | refresh | revoke | state")
+    intent: str | None = Field(default=None, description="Declared operator intent for this call")
+
+    # ── init_anchor specific ──────────────────────────────────────────────────
+    anchor_state: str | None = Field(
+        default=None,
+        description="Lifecycle of this anchor: created | reused | resumed | denied",
+    )
+    anchor_scope: str | None = Field(
+        default=None,
+        description="Session dependency tier: stateless | session | elevated_session",
+    )
+
+    # ── Constitutional policy summary (F11/F12/F13 airlock) ──────────────────
+    policy: dict[str, Any] | None = Field(
+        default=None,
+        description=(
+            "Structured policy result: {floors_checked, floors_failed, injection_score, witness_required}. "
+            "Tells callers whether INIT failed before or after constitutional checks."
+        ),
+    )
+
+    # ── System health snapshot ────────────────────────────────────────────────
+    system: dict[str, Any] | None = Field(
+        default=None,
+        description="System health snapshot: {kernel_version, adapter, env, dependency_health}",
+    )
+
+    # ── Next allowed modes (not just tools) ───────────────────────────────────
+    next_allowed_modes: list[str] = Field(
+        default_factory=list,
+        description="Modes this actor may invoke next (e.g. ['query', 'reflect'])",
+    )
 
     # Anti-chaos: caller state visibility (Phase 1)
     caller_state: str = "anonymous"  # anonymous|claimed|anchored|verified|scoped|approved
