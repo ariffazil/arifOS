@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-04-01T01:00:28.308163",
+  "duration": 30,
+  "concurrency": 3,
+  "metrics": {
+    "throughput_rps": 9.31,
+    "avg_latency_ms": 311.9,
+    "p95_latency_ms": 339.86,
+    "p99_latency_ms": 545.76,
+    "violation_rate": 0.0,
+    "floor_violation_counts": {},
+    "avg_omega": 0.0406,
+    "omega_std": 0.0,
+    "omega_in_range_pct": 1.0,
+    "avg_W_cube": 0.7315,
+    "composite_score": 0.0903
+  }
+}

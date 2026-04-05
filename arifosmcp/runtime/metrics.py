@@ -107,14 +107,18 @@ def _gauge(name: str, documentation: str, labelnames: list[str] | tuple[str, ...
     collector = _registered_metric(name)
     if collector is not None:
         return collector
-    return _gauge(name, documentation, labelnames)
+    collector = _NoopCollector(name, documentation, labelnames)
+    REGISTRY._names_to_collectors[name] = collector
+    return collector
 
 
 def _counter(name: str, documentation: str, labelnames: list[str] | tuple[str, ...] = ()):
     collector = _registered_metric(name)
     if collector is not None:
         return collector
-    return _counter(name, documentation, labelnames)
+    collector = _NoopCollector(name, documentation, labelnames)
+    REGISTRY._names_to_collectors[name] = collector
+    return collector
 
 
 def _histogram(

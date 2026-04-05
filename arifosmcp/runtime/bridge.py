@@ -23,9 +23,6 @@ from core.organs._4_vault import verify_vault_ledger
 
 from .models import ClaimStatus, Verdict
 
-# Import ollama implementation
-from .tools_internal import ollama_local_generate_impl
-
 logger = logging.getLogger(__name__)
 
 # P0: VPS Infrastructure Integration — Use Redis as primary vault backend
@@ -746,8 +743,6 @@ async def call_kernel(
             )
 
     if canonical_name == "search_reality":
-        from arifosmcp.runtime.tools import search_reality
-
         res = await search_reality(
             input=_resolve_tool_input(payload, "query", "input"),
             session_id=session_id,
@@ -757,8 +752,6 @@ async def call_kernel(
 
         return wrap_tool_output(canonical_name, res)
     if canonical_name == "ingest_evidence":
-        from arifosmcp.runtime.tools import ingest_evidence
-
         res = await ingest_evidence(
             input=_resolve_tool_input(payload, "source_url", "url", "query", "input"),
             session_id=session_id,
@@ -1269,5 +1262,10 @@ async def ollama_local_generate_call(
     max_tokens: int = 512,
 ) -> dict:
     """Call ollama local generate implementation."""
+    from .tools_internal import ollama_local_generate_impl
     result = await ollama_local_generate_impl(prompt=prompt, session_id=None)
     return result.payload if hasattr(result, "payload") else {"ok": False, "error": "Ollama call failed"}
+
+# Import tool functions at end of module to avoid circular imports
+# but still make them available for monkeypatching in tests
+from .tools import search_reality, ingest_evidence
