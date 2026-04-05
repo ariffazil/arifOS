@@ -1,3 +1,0 @@
-The constitutional kernel uses BGE-M3 embeddings for semantic search across wisdom quotes and precedents.
-OpenClaw now supports local embeddings via Ollama with bge-m3 model.
-The arifOS trinity stack includes AGI Mind, ASI Heart, and APEX Soul components.

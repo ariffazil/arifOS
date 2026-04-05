@@ -1,7 +1,0 @@
-# /etc/cron.d/verify_ledger
-# Run daily at 03:30 UTC, drop-in the env file at /etc/default/arifos-verify
-SHELL=/bin/bash
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-MAILTO=security@arifos.ai
-
-30 3 * * * arifos /opt/arifos/scripts/verify_and_alert.sh >> /var/log/arifos/verify_ledger.log 2>&1
