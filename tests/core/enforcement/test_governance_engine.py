@@ -30,15 +30,18 @@ class TestToolMappings:
         assert isinstance(TOOL_STAGE_MAP, dict)
 
     def test_tool_stage_map_stages(self):
-        """Stage mappings follow 000-999 convention."""
+        """Stage mappings follow NNN_NAME or M-N_NAME convention."""
+        import re
+        # NNN_NAME (e.g. 000_INIT) or M-N_NAME for mega-tools (e.g. M-3_EXEC)
+        valid_prefix = re.compile(r"^\d{3}$|^M-\d+$")
         for tool, stage in TOOL_STAGE_MAP.items():
             assert isinstance(tool, str)
             assert isinstance(stage, str)
-            # Stage format: NNN_NAME
             parts = stage.split("_")
-            assert len(parts) >= 2
-            assert parts[0].isdigit()
-            assert len(parts[0]) == 3
+            assert len(parts) >= 2, f"{tool!r} stage {stage!r} has no underscore"
+            assert valid_prefix.match(parts[0]), (
+                f"{tool!r} stage prefix {parts[0]!r} not in NNN or M-N format"
+            )
 
 
 class TestClamp:

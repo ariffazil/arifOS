@@ -60,7 +60,10 @@ logger = logging.getLogger(__name__)
 # RE-EXPORT MEGA-TOOLS FROM megaTools/ PACKAGE
 # ═══════════════════════════════════════════════════════════════════════════════
 
-from arifosmcp.memory.shared_memory_mcp import shared_memory_tool
+try:
+    from arifosmcp.memory.shared_memory_mcp import shared_memory_tool
+except ImportError:
+    shared_memory_tool = None  # type: ignore[assignment]
 from arifosmcp.runtime.megaTools import (
     agi_mind as _mega_agi_mind,
 )

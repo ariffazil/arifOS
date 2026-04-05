@@ -17,6 +17,27 @@ try:
 except ImportError:
     VaultLogger = None  # type: ignore
 
+class _NoopCollector:
+    """Prometheus compatibility shim when observability extras are absent."""
+
+    def __init__(self, name: str, documentation: str, labelnames: Any = ()) -> None:
+        self.name = name
+        self.documentation = documentation
+        self.labelnames = tuple(labelnames)
+
+    def labels(self, *args: Any, **kwargs: Any) -> _NoopCollector:
+        return self
+
+    def inc(self, amount: float = 1.0) -> None:
+        return None
+
+    def set(self, value: float) -> None:
+        return None
+
+    def observe(self, value: float) -> None:
+        return None
+
+
 try:
     from prometheus_client import (
         CONTENT_TYPE_LATEST,
@@ -32,41 +53,11 @@ except ImportError:
 
     CONTENT_TYPE_LATEST = "text/plain; version=0.0.4; charset=utf-8"
 
-    class _NoopCollector:
-        """Prometheus compatibility shim when observability extras are absent."""
-
-        def __init__(self, name: str, documentation: str, labelnames: Any = ()) -> None:
-            self.name = name
-            self.documentation = documentation
-            self.labelnames = tuple(labelnames)
-
-        def labels(self, *args: Any, **kwargs: Any) -> _NoopCollector:
-            return self
-
-        def inc(self, amount: float = 1.0) -> None:
-            return None
-
-        def set(self, value: float) -> None:
-            return None
-
-        def observe(self, value: float) -> None:
-            return None
-
     class _NoopRegistry:
         def __init__(self) -> None:
             self._names_to_collectors: dict[str, _NoopCollector] = {}
 
     REGISTRY = _NoopRegistry()
-
-    def _gauge(name: str, documentation: str, labelnames: Any = ()) -> _NoopCollector:
-        collector = _NoopCollector(name, documentation, labelnames)
-        REGISTRY._names_to_collectors[name] = collector
-        return collector
-
-    def _counter(name: str, documentation: str, labelnames: Any = ()) -> _NoopCollector:
-        collector = _NoopCollector(name, documentation, labelnames)
-        REGISTRY._names_to_collectors[name] = collector
-        return collector
 
     def Histogram(name: str, documentation: str, **kwargs: Any) -> _NoopCollector:
         collector = _NoopCollector(name, documentation, kwargs.get("labelnames", ()))
@@ -107,6 +98,8 @@ def _gauge(name: str, documentation: str, labelnames: list[str] | tuple[str, ...
     collector = _registered_metric(name)
     if collector is not None:
         return collector
+    if PROMETHEUS_CLIENT_AVAILABLE:
+        return Gauge(name, documentation, list(labelnames))
     collector = _NoopCollector(name, documentation, labelnames)
     REGISTRY._names_to_collectors[name] = collector
     return collector
@@ -116,6 +109,8 @@ def _counter(name: str, documentation: str, labelnames: list[str] | tuple[str, .
     collector = _registered_metric(name)
     if collector is not None:
         return collector
+    if PROMETHEUS_CLIENT_AVAILABLE:
+        return Counter(name, documentation, list(labelnames))
     collector = _NoopCollector(name, documentation, labelnames)
     REGISTRY._names_to_collectors[name] = collector
     return collector
