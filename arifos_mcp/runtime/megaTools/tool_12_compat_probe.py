@@ -44,7 +44,7 @@ async def compat_probe(
         "operator", "sovereign", "declared", "claimed", "verified", "apex", "none"
     }
     
-    enum_compat = "✅ COMPATIBLE" if raw_level.lower() in CANONICAL_IDENTITY_CLASSES else f"❌ MISMATCH ({raw_level})"
+    enum_compat = "✅ COMPATIBLE" if raw_level.lower() in canonical_identity_classes else f"❌ MISMATCH ({raw_level})"
     
     # 3. Build Result
     payload = {

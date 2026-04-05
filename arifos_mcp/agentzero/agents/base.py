@@ -355,7 +355,7 @@ class ConstitutionalAgent(ABC):
         - Accountability chain
         """
         if not self.can_spawn_subagent():
-            raise ConstitutionalViolation(
+            raise ConstitutionalViolationError(
                 f"Max subagent depth {self.max_subagent_depth} reached"
             )
         
