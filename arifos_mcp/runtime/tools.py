@@ -22,66 +22,37 @@ Split: 2026-03-28 — tools.py (2153 lines) → megaTools/ (11 × ~100 lines eac
 
 from __future__ import annotations
 
-import asyncio
 import logging
-import uuid
-from typing import Any, Callable, Dict, Union
-from fastmcp import FastMCP
-from fastmcp.dependencies import CurrentContext
-from fastmcp.server.context import Context
-from arifos_mcp.runtime.bridge import call_kernel
+from collections.abc import Callable
+from typing import Any
+
 from arifos_mcp.runtime.governance_identities import (
-    PROTECTED_SOVEREIGN_IDS,
-    is_protected_sovereign_id,
     validate_sovereign_proof,
 )
 from arifos_mcp.runtime.models import (
-    ArifOSError,
     CallerContext,
-    CanonicalError,
+    PersonaId,
     RuntimeEnvelope,
-    RuntimeStatus,
-    Stage,
     UserModel,
     UserModelField,
     UserModelSource,
-    Verdict,
-    PersonaId,
-    ClaimStatus,
-    AuthorityLevel,
 )
 from arifos_mcp.runtime.public_registry import (
     public_tool_names as _registry_tool_names,
+)
+from arifos_mcp.runtime.public_registry import (
     public_tool_spec_by_name as _registry_tool_spec_by_name,
+)
+from arifos_mcp.runtime.public_registry import (
     public_tool_specs as _registry_tool_specs,
 )
-from arifos_mcp.runtime.tool_specs import (
-    MegaToolName,
-    ToolSpec,
-)
-from arifos_mcp.runtime.reality_handlers import handler as reality_handler
-from arifos_mcp.runtime.reality_models import BundleInput
-from arifos_mcp.runtime.sessions import (
-    _normalize_session_id,
-    _resolve_session_id,
-    get_session_identity,
-    resolve_runtime_context,
-    set_active_session,
-)
 from arifos_mcp.runtime.schemas import IntentType
-from arifos_mcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
 from arifos_mcp.runtime.tools_internal import (
-    agi_mind_dispatch_impl,
     apex_judge_dispatch_impl,
-    architect_registry_dispatch_impl,
     arifos_kernel_impl,
-    asi_heart_dispatch_impl,
-    code_engine_dispatch_impl,
-    engineering_memory_dispatch_impl,
-    math_estimator_dispatch_impl,
-    physics_reality_dispatch_impl,
-    vault_ledger_dispatch_impl,
 )
+from fastmcp import FastMCP
+from fastmcp.server.context import Context
 
 logger = logging.getLogger(__name__)
 
@@ -89,20 +60,40 @@ logger = logging.getLogger(__name__)
 # RE-EXPORT MEGA-TOOLS FROM megaTools/ PACKAGE
 # ═══════════════════════════════════════════════════════════════════════════════
 
+from arifos_mcp.memory.shared_memory_mcp import shared_memory_tool
 from arifos_mcp.runtime.megaTools import (
-    init_anchor as _mega_init_anchor,
-    arifOS_kernel as _mega_arifOS_kernel,
-    apex_judge as _mega_apex_judge,
-    vault_ledger as _mega_vault_ledger,
     agi_mind as _mega_agi_mind,
-    asi_heart as _mega_asi_heart,
-    engineering_memory as _mega_engineering_memory,
-    physics_reality as _mega_physics_reality,
-    math_estimator as _mega_math_estimator,
-    code_engine as _mega_code_engine,
+)
+from arifos_mcp.runtime.megaTools import (
+    apex_judge as _mega_apex_judge,
+)
+from arifos_mcp.runtime.megaTools import (
     architect_registry as _mega_architect_registry,
 )
-from arifos_mcp.memory.shared_memory_mcp import shared_memory_tool
+from arifos_mcp.runtime.megaTools import (
+    arifOS_kernel as _mega_arifOS_kernel,
+)
+from arifos_mcp.runtime.megaTools import (
+    asi_heart as _mega_asi_heart,
+)
+from arifos_mcp.runtime.megaTools import (
+    code_engine as _mega_code_engine,
+)
+from arifos_mcp.runtime.megaTools import (
+    engineering_memory as _mega_engineering_memory,
+)
+from arifos_mcp.runtime.megaTools import (
+    init_anchor as _mega_init_anchor,
+)
+from arifos_mcp.runtime.megaTools import (
+    math_estimator as _mega_math_estimator,
+)
+from arifos_mcp.runtime.megaTools import (
+    physics_reality as _mega_physics_reality,
+)
+from arifos_mcp.runtime.megaTools import (
+    vault_ledger as _mega_vault_ledger,
+)
 
 init_anchor_impl = _mega_init_anchor
 revoke_anchor_state_impl = _mega_init_anchor
@@ -941,8 +932,9 @@ def _make_registration_shim(handler: Callable[..., Any]) -> Callable[..., Any]:
 def register_tools(mcp: FastMCP, profile: str = "full") -> None:
     del profile
     import inspect
-    from fastmcp.tools.function_tool import FunctionTool
+
     from arifos_mcp.runtime.ingress_middleware import IngressToleranceMiddleware
+    from fastmcp.tools.function_tool import FunctionTool
 
     specs = {spec.name: spec for spec in _public_tool_specs_fn()}
     tool_param_sets: dict[str, set[str]] = {}

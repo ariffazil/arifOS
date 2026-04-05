@@ -16,16 +16,15 @@ import json
 import logging
 import sys
 import uuid
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse, StreamingResponse
-
 from arifos_mcp.runtime.build_info import get_build_info
-from arifos_mcp.runtime.mcp_utils import call_mcp_tool, normalize_tool_result
+from arifos_mcp.runtime.mcp_utils import call_mcp_tool
 from arifos_mcp.runtime.optional_deps import aiofiles
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import StreamingResponse
 
 from .models import (
     AgentCard,
@@ -193,9 +192,7 @@ class A2ATaskManager:
                 
                 # Import and initialize cross-protocol bridge
                 try:
-                    from arifos_mcp.runtime.cross_protocol_bridge import (
-                        HoldEvent, get_hold_bridge
-                    )
+                    from arifos_mcp.runtime.cross_protocol_bridge import HoldEvent, get_hold_bridge
                     
                     # Create immutable hold event
                     hold_event = HoldEvent(

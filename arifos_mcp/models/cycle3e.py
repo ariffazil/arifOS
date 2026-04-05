@@ -7,12 +7,12 @@ The 3E cycle represents the cognitive metabolism of the arifOS system:
 - Eureka: Synthesis, verdict formation, insight delivery (output generation)
 """
 
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Set, Union
-from enum import Enum
-from pydantic import BaseModel, Field, field_validator
 import hashlib
-import json
+from datetime import datetime
+from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 
 class SearchEngine(str, Enum):
@@ -51,19 +51,19 @@ class SourceAttribution(BaseModel):
         ...,
         description="Type of source (web, document, database, etc.)"
     )
-    uri: Optional[str] = Field(
+    uri: str | None = Field(
         default=None,
         description="URI/URL of the source"
     )
-    title: Optional[str] = Field(
+    title: str | None = Field(
         default=None,
         description="Title or name of source"
     )
-    author: Optional[str] = Field(
+    author: str | None = Field(
         default=None,
         description="Author or creator of source"
     )
-    publication_date: Optional[datetime] = Field(
+    publication_date: datetime | None = Field(
         default=None,
         description="Date of publication"
     )
@@ -71,11 +71,11 @@ class SourceAttribution(BaseModel):
         default_factory=datetime.utcnow,
         description="When this source was accessed"
     )
-    search_engine: Optional[SearchEngine] = Field(
+    search_engine: SearchEngine | None = Field(
         default=None,
         description="Search engine used to find this source"
     )
-    fetch_method: Optional[FetchMethod] = Field(
+    fetch_method: FetchMethod | None = Field(
         default=None,
         description="Method used to fetch this source"
     )
@@ -85,11 +85,11 @@ class SourceAttribution(BaseModel):
         le=1.0,
         description="Credibility rating (0-1)"
     )
-    raw_content_hash: Optional[str] = Field(
+    raw_content_hash: str | None = Field(
         default=None,
         description="Hash of raw content for verification"
     )
-    metadata: Dict[str, Any] = Field(
+    metadata: dict[str, Any] = Field(
         default_factory=dict,
         description="Additional source metadata"
     )
@@ -111,11 +111,11 @@ class EvidenceBundle(BaseModel):
         ...,
         description="Original query that generated this bundle"
     )
-    sources: List[SourceAttribution] = Field(
+    sources: list[SourceAttribution] = Field(
         default_factory=list,
         description="Attributed sources in this bundle"
     )
-    raw_evidence: Dict[str, Any] = Field(
+    raw_evidence: dict[str, Any] = Field(
         default_factory=dict,
         description="Raw evidence data by source_id"
     )
@@ -189,7 +189,7 @@ class Contradiction(BaseModel):
         le=1.0,
         description="Severity of contradiction (0-1)"
     )
-    resolution: Optional[str] = Field(
+    resolution: str | None = Field(
         default=None,
         description="Proposed or applied resolution"
     )
@@ -203,19 +203,19 @@ class VectorNode(BaseModel):
     in the vector database with full metadata.
     """
     node_id: str = Field(..., description="Unique node identifier")
-    vector: Optional[List[float]] = Field(
+    vector: list[float] | None = Field(
         default=None,
         description="Embedding vector"
     )
     content: str = Field(..., description="Text content of node")
     content_hash: str = Field(..., description="Hash of content")
-    evidence_bundle_id: Optional[str] = Field(
+    evidence_bundle_id: str | None = Field(
         default=None,
         description="Source evidence bundle"
     )
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class VectorEdge(BaseModel):
@@ -239,7 +239,7 @@ class VectorEdge(BaseModel):
         default=False,
         description="Whether edge is bidirectional"
     )
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class ExplorationPhase(BaseModel):
@@ -251,14 +251,14 @@ class ExplorationPhase(BaseModel):
     """
     phase_id: str = Field(..., description="Unique phase identifier")
     query: str = Field(..., description="Original exploration query")
-    search_engines_used: List[SearchEngine] = Field(default_factory=list)
-    fetch_methods_used: List[FetchMethod] = Field(default_factory=list)
-    evidence_bundle: Optional[EvidenceBundle] = Field(
+    search_engines_used: list[SearchEngine] = Field(default_factory=list)
+    fetch_methods_used: list[FetchMethod] = Field(default_factory=list)
+    evidence_bundle: EvidenceBundle | None = Field(
         default=None,
         description="Resulting evidence bundle"
     )
     start_time: datetime = Field(default_factory=datetime.utcnow)
-    end_time: Optional[datetime] = Field(default=None)
+    end_time: datetime | None = Field(default=None)
     status: str = Field(default="in_progress")
     
     def complete(self, bundle: EvidenceBundle) -> "ExplorationPhase":
@@ -278,9 +278,9 @@ class EntropyPhase(BaseModel):
     """
     phase_id: str = Field(..., description="Unique phase identifier")
     input_bundle_id: str = Field(..., description="Input evidence bundle ID")
-    contradictions: List[Contradiction] = Field(default_factory=list)
-    nodes_created: List[VectorNode] = Field(default_factory=list)
-    edges_created: List[VectorEdge] = Field(default_factory=list)
+    contradictions: list[Contradiction] = Field(default_factory=list)
+    nodes_created: list[VectorNode] = Field(default_factory=list)
+    edges_created: list[VectorEdge] = Field(default_factory=list)
     metabolization_score: float = Field(
         default=0.0,
         ge=0.0,
@@ -292,7 +292,7 @@ class EntropyPhase(BaseModel):
         description="Change in uncertainty (negative = more certain)"
     )
     start_time: datetime = Field(default_factory=datetime.utcnow)
-    end_time: Optional[datetime] = Field(default=None)
+    end_time: datetime | None = Field(default=None)
     status: str = Field(default="in_progress")
     
     def add_contradiction(self, contradiction: Contradiction) -> "EntropyPhase":
@@ -336,7 +336,7 @@ class WitnessStatement(BaseModel):
         le=1.0,
         description="Witness confidence"
     )
-    evidence_refs: List[str] = Field(
+    evidence_refs: list[str] = Field(
         default_factory=list,
         description="References to supporting evidence"
     )
@@ -351,7 +351,7 @@ class EurekaPhase(BaseModel):
     """
     phase_id: str = Field(..., description="Unique phase identifier")
     entropy_phase_id: str = Field(..., description="Input entropy phase ID")
-    tri_witness: List[WitnessStatement] = Field(
+    tri_witness: list[WitnessStatement] = Field(
         default_factory=list,
         description="Tri-Witness statements"
     )
@@ -359,7 +359,7 @@ class EurekaPhase(BaseModel):
         default="",
         description="Synthesized conclusion"
     )
-    verdict: Optional[str] = Field(
+    verdict: str | None = Field(
         default=None,
         description="Final verdict"
     )
@@ -369,10 +369,10 @@ class EurekaPhase(BaseModel):
         le=1.0,
         description="Final confidence score"
     )
-    unstable_assumptions: List[str] = Field(default_factory=list)
-    knowledge_gaps: List[str] = Field(default_factory=list)
+    unstable_assumptions: list[str] = Field(default_factory=list)
+    knowledge_gaps: list[str] = Field(default_factory=list)
     start_time: datetime = Field(default_factory=datetime.utcnow)
-    end_time: Optional[datetime] = Field(default=None)
+    end_time: datetime | None = Field(default=None)
     status: str = Field(default="in_progress")
     
     def add_witness(self, witness: WitnessStatement) -> "EurekaPhase":
@@ -398,11 +398,11 @@ class Cycle3E(BaseModel):
     """
     cycle_id: str = Field(..., description="Unique cycle identifier")
     query: str = Field(..., description="Original query")
-    exploration: Optional[ExplorationPhase] = Field(default=None)
-    entropy: Optional[EntropyPhase] = Field(default=None)
-    eureka: Optional[EurekaPhase] = Field(default=None)
+    exploration: ExplorationPhase | None = Field(default=None)
+    entropy: EntropyPhase | None = Field(default=None)
+    eureka: EurekaPhase | None = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    completed_at: Optional[datetime] = Field(default=None)
+    completed_at: datetime | None = Field(default=None)
     status: str = Field(default="initialized")
     
     def start_exploration(self, exploration: ExplorationPhase) -> "Cycle3E":

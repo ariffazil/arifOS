@@ -9,15 +9,17 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-import os
 import json
+import os
+
 from fastmcp import FastMCP
 from fastmcp.tools import ToolResult
+
 from .public_registry import (
     RUNTIME_ENVELOPE_SCHEMA,
     public_resource_uris,
-    public_tool_specs,
     public_tool_input_schemas,
+    public_tool_specs,
     release_version,
 )
 
@@ -230,7 +232,7 @@ def register_resources(mcp: FastMCP) -> None:
         # Dynamically read from root AGENTS.md
         root_agents_md = os.path.join(os.path.dirname(__file__), "..", "..", "AGENTS.md")
         if os.path.exists(root_agents_md):
-            with open(root_agents_md, "r", encoding="utf-8") as f:
+            with open(root_agents_md, encoding="utf-8") as f:
                 return f.read()
         return "AGENTS.md not found in root. Please contact the 888_JUDGE."
 
@@ -565,7 +567,7 @@ def build_open_apex_dashboard_result(session_id: str = "global") -> ToolResult |
         os.path.dirname(__file__), "..", "sites", "dashboard", "index.html"
     )
     if os.path.exists(dashboard_path):
-        with open(dashboard_path, "r", encoding="utf-8") as f:
+        with open(dashboard_path, encoding="utf-8") as f:
             html = f.read()
         return ToolResult(content=[{"type": "text", "text": html}])
     return None

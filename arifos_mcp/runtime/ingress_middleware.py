@@ -20,7 +20,7 @@ from arifos_mcp.runtime.fastmcp_version import IS_FASTMCP_3
 logger = logging.getLogger(__name__)
 
 try:
-    from arifos_mcp.runtime.metrics import REQUESTS_TOTAL, METABOLIC_LOOP_DURATION, SABAR_EVENTS
+    from arifos_mcp.runtime.metrics import METABOLIC_LOOP_DURATION, REQUESTS_TOTAL
     _METRICS_AVAILABLE = True
 except Exception:
     _METRICS_AVAILABLE = False
@@ -104,8 +104,13 @@ MODE_SYNONYMS: dict[str, dict[str, str]] = {
 
 if IS_FASTMCP_3:
     try:
-        from fastmcp.server.middleware.middleware import Middleware, MiddlewareContext, CallNext, ToolResult
         import mcp.types as mt
+        from fastmcp.server.middleware.middleware import (
+            CallNext,
+            Middleware,
+            MiddlewareContext,
+            ToolResult,
+        )
         
         class IngressToleranceMiddleware(Middleware):
             """

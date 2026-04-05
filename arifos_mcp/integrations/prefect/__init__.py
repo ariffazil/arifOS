@@ -9,9 +9,9 @@ Provides bridges between arifOS and:
 ΔΩΨ | DITEMPA BUKAN DIBERI
 """
 
-from .tasks import arifos_task, constitutional_flow
-from .marvin_bridge import arifos_agent, governed_ai_task
 from .cli import create_cyclopts_app
+from .marvin_bridge import arifos_agent, governed_ai_task
+from .tasks import arifos_task, constitutional_flow
 
 __all__ = [
     "arifos_task",

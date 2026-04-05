@@ -1,17 +1,15 @@
 from __future__ import annotations
 
 import logging
-import time  # Added for start time tracking
 from typing import Any
 
-from fastmcp import FastMCP
-
 from arifos_mcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Stage, Verdict
-from .bridge import call_kernel
-from .public_registry import is_public_profile, normalize_tool_profile
+from fastmcp import FastMCP
 
 # Import console tools from runtime.tools module
 from . import tools as console_tools
+from .bridge import call_kernel
+from .public_registry import is_public_profile, normalize_tool_profile
 
 logger = logging.getLogger(__name__)
 

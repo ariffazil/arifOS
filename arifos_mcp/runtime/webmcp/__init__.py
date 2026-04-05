@@ -19,5 +19,5 @@ from __future__ import annotations
 __version__ = "2026.03.14-VALIDATED"
 __all__ = ["WebMCPGateway", "WebMCPConfig", "WebSession"]
 
-from .server import WebMCPGateway, WebMCPConfig
+from .server import WebMCPConfig, WebMCPGateway
 from .session import WebSession

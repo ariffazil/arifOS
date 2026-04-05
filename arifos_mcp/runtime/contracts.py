@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-from .public_registry import public_tool_names, CANONICAL_PUBLIC_TOOLS, EXPECTED_TOOL_COUNT
+from .public_registry import CANONICAL_PUBLIC_TOOLS, EXPECTED_TOOL_COUNT, public_tool_names
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 11-TOOL CONTRACT ENFORCEMENT
@@ -450,7 +450,7 @@ def validate_fail_closed(
     session_id: str | None,
     tool: str,
     trace: TraceContext | None = None,
-) -> "_ValidationResult":
+) -> _ValidationResult:
     valid = bool(auth_context and risk_tier and session_id)
     return _ValidationResult(valid=valid, tool=tool, session_id=session_id)
 

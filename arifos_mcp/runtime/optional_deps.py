@@ -26,7 +26,7 @@ except ImportError:
             self._kwargs = kwargs
             self._fp: Any = None
 
-        async def __aenter__(self) -> "_AsyncFileWrapper":
+        async def __aenter__(self) -> _AsyncFileWrapper:
             self._fp = await asyncio.to_thread(
                 open, self._path, self._mode, *self._args, **self._kwargs
             )
@@ -55,7 +55,7 @@ try:
 except ImportError:
 
     class InMemoryPubSub:
-        def __init__(self, client: "InMemoryAsyncRedis") -> None:
+        def __init__(self, client: InMemoryAsyncRedis) -> None:
             self._client = client
             self._patterns: set[str] = set()
             self._queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
@@ -90,15 +90,15 @@ except ImportError:
                 )
 
     class InMemoryPipeline:
-        def __init__(self, client: "InMemoryAsyncRedis") -> None:
+        def __init__(self, client: InMemoryAsyncRedis) -> None:
             self._client = client
             self._ops: list[tuple[str, tuple[Any, ...]]] = []
 
-        def incr(self, key: str) -> "InMemoryPipeline":
+        def incr(self, key: str) -> InMemoryPipeline:
             self._ops.append(("incr", (key,)))
             return self
 
-        def expire(self, key: str, ttl: int) -> "InMemoryPipeline":
+        def expire(self, key: str, ttl: int) -> InMemoryPipeline:
             self._ops.append(("expire", (key, ttl)))
             return self
 

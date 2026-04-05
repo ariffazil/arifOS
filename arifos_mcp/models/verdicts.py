@@ -7,7 +7,7 @@ state machine.
 """
 
 from enum import Enum
-from typing import Dict, List, Optional, Any
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -183,9 +183,9 @@ class FloorMetrics(BaseModel):
     floor_number: int = Field(..., ge=1, le=13)
     floor_name: FloorName = Field(...)
     state: FloorState = Field(default=FloorState.INACTIVE)
-    entry_time: Optional[str] = Field(default=None)
-    exit_time: Optional[str] = Field(default=None)
-    duration_ms: Optional[float] = Field(default=None, ge=0)
+    entry_time: str | None = Field(default=None)
+    exit_time: str | None = Field(default=None)
+    duration_ms: float | None = Field(default=None, ge=0)
     tokens_consumed: int = Field(default=0, ge=0)
     sub_operations: int = Field(default=0, ge=0)
     
@@ -206,7 +206,7 @@ class KernelMetrics(BaseModel):
     - Peace²: Stability/peace metric
     - G: Efficiency/governance coefficient
     """
-    floor_metrics: List[FloorMetrics] = Field(default_factory=list)
+    floor_metrics: list[FloorMetrics] = Field(default_factory=list)
     
     # Canonical coefficients
     kappa_r: float = Field(
@@ -303,7 +303,7 @@ class VerdictResult(BaseModel):
         default_factory=ThermodynamicBudget
     )
     explanation: str = Field(default="")
-    recommendations: List[str] = Field(default_factory=list)
+    recommendations: list[str] = Field(default_factory=list)
     
     def is_success(self) -> bool:
         """Check if verdict represents successful completion."""

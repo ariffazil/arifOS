@@ -5,7 +5,7 @@ AgentZero Agent Classes
 """
 
 from .base import ConstitutionalAgent, TrinityRole, Verdict
-from .validator import ValidatorAgent
 from .engineer import EngineerAgent
+from .validator import ValidatorAgent
 
 __all__ = ["ConstitutionalAgent", "TrinityRole", "Verdict", "ValidatorAgent", "EngineerAgent"]

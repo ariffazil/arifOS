@@ -21,14 +21,13 @@ All escalations are logged to VAULT999.
 
 from __future__ import annotations
 
-import asyncio
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 from uuid import uuid4
-
 
 logger = logging.getLogger(__name__)
 
@@ -63,24 +62,24 @@ class HoldRequest:
     risk_level: str  # low, medium, high, critical
     
     # Constitutional context
-    floor_violations: List[str] = field(default_factory=list)
-    floor_scores: List[Dict] = field(default_factory=list)
+    floor_violations: list[str] = field(default_factory=list)
+    floor_scores: list[dict] = field(default_factory=list)
     
     # Human response
     state: HoldState = field(default=HoldState.PENDING)
-    human_decision: Optional[str] = None
-    human_notes: Optional[str] = None
-    responded_by: Optional[str] = None
+    human_decision: str | None = None
+    human_notes: str | None = None
+    responded_by: str | None = None
     
     # Timing
     created_at: datetime = field(default_factory=datetime.utcnow)
-    responded_at: Optional[datetime] = None
+    responded_at: datetime | None = None
     timeout_seconds: int = 3600  # 1 hour default
     
     # Action payload (what was blocked)
-    action_payload: Dict = field(default_factory=dict)
+    action_payload: dict = field(default_factory=dict)
     
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for VAULT999."""
         return {
             "hold_id": self.hold_id,
@@ -111,7 +110,7 @@ class HoldStateManager:
     
     def __init__(
         self,
-        notification_callback: Optional[Callable] = None,
+        notification_callback: Callable | None = None,
         vault_logger=None,
         default_timeout: int = 3600
     ):
@@ -120,8 +119,8 @@ class HoldStateManager:
         self.default_timeout = default_timeout
         
         # Active holds
-        self.pending_holds: Dict[str, HoldRequest] = {}
-        self.resolved_holds: Dict[str, HoldRequest] = {}
+        self.pending_holds: dict[str, HoldRequest] = {}
+        self.resolved_holds: dict[str, HoldRequest] = {}
         
         # Statistics
         self.stats = {
@@ -144,10 +143,10 @@ class HoldStateManager:
         reason: str,
         risk_level: str,
         pathway: EscalationPathway = EscalationPathway.OFFER_HANDOVER,
-        floor_violations: Optional[List[str]] = None,
-        floor_scores: Optional[List[Dict]] = None,
-        action_payload: Optional[Dict] = None,
-        timeout_seconds: Optional[int] = None
+        floor_violations: list[str] | None = None,
+        floor_scores: list[dict] | None = None,
+        action_payload: dict | None = None,
+        timeout_seconds: int | None = None
     ) -> HoldRequest:
         """
         Create a new 888_HOLD escalation.
@@ -192,7 +191,7 @@ class HoldStateManager:
         hold_id: str,
         decision: str,  # APPROVED or DENIED
         responded_by: str,
-        notes: Optional[str] = None
+        notes: str | None = None
     ) -> HoldRequest:
         """
         Resolve a pending hold with human decision.
@@ -233,7 +232,7 @@ class HoldStateManager:
         
         return hold
     
-    async def check_hold_status(self, hold_id: str) -> Optional[HoldState]:
+    async def check_hold_status(self, hold_id: str) -> HoldState | None:
         """Check the current status of a hold."""
         if hold_id in self.pending_holds:
             hold = self.pending_holds[hold_id]
@@ -262,11 +261,11 @@ class HoldStateManager:
         
         return None
     
-    def get_pending_holds(self) -> List[HoldRequest]:
+    def get_pending_holds(self) -> list[HoldRequest]:
         """Get all pending holds awaiting human response."""
         return list(self.pending_holds.values())
     
-    def get_hold_details(self, hold_id: str) -> Optional[HoldRequest]:
+    def get_hold_details(self, hold_id: str) -> HoldRequest | None:
         """Get details of a specific hold."""
         if hold_id in self.pending_holds:
             return self.pending_holds[hold_id]
@@ -280,7 +279,7 @@ class HoldStateManager:
         agent_id: str,
         action_type: str,
         reason: str,
-        floor_violations: List[str]
+        floor_violations: list[str]
     ) -> HoldRequest:
         """
         Automatically escalate critical violations.
@@ -325,7 +324,7 @@ class HoldStateManager:
         agent_id: str,
         action_type: str,
         reason: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Refuse action but keep conversation active.
         
@@ -353,7 +352,7 @@ class HoldStateManager:
             "requires_human": False
         }
     
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get escalation statistics."""
         return {
             **self.stats,

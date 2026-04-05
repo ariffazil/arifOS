@@ -7,6 +7,6 @@ Sovereign safety mechanisms:
 - Escalation pathways
 """
 
-from .hold_state import HoldStateManager, EscalationPathway
+from .hold_state import EscalationPathway, HoldStateManager
 
 __all__ = ["HoldStateManager", "EscalationPathway"]

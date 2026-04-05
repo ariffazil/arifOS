@@ -17,17 +17,17 @@ from __future__ import annotations
 
 import logging
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from fastmcp import Context
+from arifos_mcp.agentzero.agents.base import FloorScore
+from arifos_mcp.agentzero.agents.base import Verdict as AZVerdict
 
 # AgentZero Components
 from arifos_mcp.agentzero.agents.engineer import EngineerAgent
 from arifos_mcp.agentzero.agents.validator import ValidatorAgent
-from arifos_mcp.agentzero.security.prompt_armor import PromptArmor
-from arifos_mcp.agentzero.memory.constitutional_memory import ConstitutionalMemoryStore
 from arifos_mcp.agentzero.escalation.hold_state import HoldStateManager
-from arifos_mcp.agentzero.agents.base import Verdict as AZVerdict, FloorScore
+from arifos_mcp.agentzero.memory.constitutional_memory import ConstitutionalMemoryStore
+from arifos_mcp.agentzero.security.prompt_armor import PromptArmor
 
 # arifOS runtime models
 from arifos_mcp.runtime.models import (
@@ -37,12 +37,13 @@ from arifos_mcp.runtime.models import (
     Stage,
     Verdict,
 )
+from fastmcp import Context
 
 logger = logging.getLogger(__name__)
 
 class SimpleArifOSClient:
     """Mock client for AgentZero agents to interact with arifOS governance."""
-    async def evaluate_action(self, action: Dict[str, Any], floors: List[str]) -> AZVerdict:
+    async def evaluate_action(self, action: dict[str, Any], floors: list[str]) -> AZVerdict:
         # Default to SEAL for now as the tool wrapper provides the final governance envelope
         return AZVerdict.seal(
             execution_id=action.get("execution_id", "ext-000"),
@@ -71,7 +72,7 @@ async def agentzero_validate(
     input_to_validate: str,
     validation_type: str = "code",
     session_id: str = "global",
-    auth_context: Dict[str, Any] | None = None,
+    auth_context: dict[str, Any] | None = None,
     caller_context: CallerContext | None = None,
     ctx: Context | None = None,
 ) -> RuntimeEnvelope:
@@ -133,7 +134,7 @@ async def agentzero_engineer(
     action_type: str = "execute_code",
     risk_tier: str = "medium",
     session_id: str = "global",
-    auth_context: Dict[str, Any] | None = None,
+    auth_context: dict[str, Any] | None = None,
     caller_context: CallerContext | None = None,
     ctx: Context | None = None,
 ) -> RuntimeEnvelope:
@@ -188,7 +189,7 @@ async def agentzero_engineer(
 async def agentzero_hold_check(
     hold_id: str | None = None,
     session_id: str = "global",
-    auth_context: Dict[str, Any] | None = None,
+    auth_context: dict[str, Any] | None = None,
     caller_context: CallerContext | None = None,
     ctx: Context | None = None,
 ) -> RuntimeEnvelope:
@@ -231,7 +232,7 @@ async def agentzero_memory_query(
     query: str,
     project_id: str = "default",
     session_id: str = "global",
-    auth_context: Dict[str, Any] | None = None,
+    auth_context: dict[str, Any] | None = None,
     caller_context: CallerContext | None = None,
     ctx: Context | None = None,
 ) -> RuntimeEnvelope:
@@ -278,7 +279,7 @@ async def agentzero_memory_query(
 async def agentzero_armor_scan(
     content: str,
     session_id: str = "global",
-    auth_context: Dict[str, Any] | None = None,
+    auth_context: dict[str, Any] | None = None,
     caller_context: CallerContext | None = None,
     ctx: Context | None = None,
 ) -> RuntimeEnvelope:

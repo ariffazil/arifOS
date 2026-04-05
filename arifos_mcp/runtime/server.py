@@ -8,24 +8,21 @@ FIX: Register routes BEFORE creating http_app
 from __future__ import annotations
 
 import logging
-import os
 import sys
 import traceback
-from contextlib import asynccontextmanager
 from typing import Any
 
 import fastmcp
-from fastmcp import FastMCP
-from fastapi import FastAPI
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse, FileResponse, Response
-from starlette.middleware.cors import CORSMiddleware
-
-from arifos_mcp.runtime.fastmcp_version import IS_FASTMCP_3, IS_FASTMCP_2
-from arifos_mcp.runtime.tools import register_tools, ALL_TOOL_IMPLEMENTATIONS
+from arifos_mcp.runtime.fastmcp_version import IS_FASTMCP_2, IS_FASTMCP_3
 from arifos_mcp.runtime.prompts import register_prompts
 from arifos_mcp.runtime.resources import register_resources
 from arifos_mcp.runtime.rest_routes import register_rest_routes
+from arifos_mcp.runtime.tools import ALL_TOOL_IMPLEMENTATIONS, register_tools
+from fastapi import FastAPI
+from fastmcp import FastMCP
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import JSONResponse, Response
 
 logger = logging.getLogger(__name__)
 

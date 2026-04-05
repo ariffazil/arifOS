@@ -16,10 +16,9 @@ import hashlib
 import json
 import logging
 import os
-from dataclasses import asdict, dataclass, field
+from collections.abc import Callable, Coroutine
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Callable, Coroutine
 
 logger = logging.getLogger(__name__)
 from arifos_mcp.runtime.optional_deps import redis

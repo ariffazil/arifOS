@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-from arifos_mcp.runtime.fastmcp_version import AuthorizationError, HAS_AUTHORIZATION_ERROR
+from arifos_mcp.runtime.fastmcp_version import AuthorizationError
 from fastmcp.exceptions import FastMCPError, ToolError
 from pydantic import BaseModel, ConfigDict, Field
 

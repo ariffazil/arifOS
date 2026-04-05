@@ -10,9 +10,9 @@ Modes: kernel, status
 from __future__ import annotations
 
 from typing import Any
-from fastmcp.dependencies import CurrentContext
 
 from arifos_mcp.runtime.models import RuntimeEnvelope
+from fastmcp.dependencies import CurrentContext
 
 
 async def arifOS_kernel(

@@ -25,16 +25,16 @@ from collections.abc import Callable
 from datetime import date, datetime, timezone
 from typing import Any
 
+from arifos_mcp.runtime.public_registry import (
+    build_mcp_discovery_json,
+    build_server_json,
+    public_tool_specs,
+)
+from arifos_mcp.runtime.resources import apex_tools_html_rows, apex_tools_markdown_table
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, Response
 from starlette.staticfiles import StaticFiles
 
-from arifos_mcp.runtime.public_registry import (
-    build_mcp_discovery_json, 
-    build_server_json,
-    public_tool_specs
-)
-from arifos_mcp.runtime.resources import apex_tools_html_rows, apex_tools_markdown_table
 from core.shared.floor_audit import get_ml_floor_runtime
 from core.shared.floors import (
     FLOOR_SPEC_KEYS,
@@ -46,7 +46,7 @@ from core.shared.floors import (
 from .build_info import get_build_info
 from .capability_map import build_runtime_capability_map
 from .contracts import AAA_TOOL_ALIASES, AAA_TOOL_STAGE_MAP, TRINITY_BY_TOOL
-from .fastmcp_version import IS_FASTMCP_3, HAS_CUSTOM_ROUTE, HAS_ROUTE
+from .fastmcp_version import HAS_CUSTOM_ROUTE, HAS_ROUTE
 
 BUILD_INFO = get_build_info()
 BUILD_VERSION = BUILD_INFO["version"]
@@ -508,7 +508,6 @@ def _render_status_html(payload: dict[str, Any]) -> str:
 
 def _generate_mega_tool_cards() -> str:
     """Generate the 11 mega-tool cards grouped by Trinity layer."""
-    from arifos_mcp.runtime.public_registry import public_tool_specs
 
     layers = {"GOVERNANCE": [], "INTELLIGENCE": [], "MACHINE": []}
     for spec in public_tool_specs():
@@ -1306,7 +1305,7 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
     AAA_LANDING_HTML_PATH = "/usr/src/app/static/aaa-landing/index.html"
     AAA_LANDING_HTML = ""
     try:
-        with open(AAA_LANDING_HTML_PATH, "r") as f:
+        with open(AAA_LANDING_HTML_PATH) as f:
             AAA_LANDING_HTML = f.read()
     except Exception:
         AAA_LANDING_HTML = """<!DOCTYPE html>
@@ -1365,8 +1364,12 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
     @route("/metrics", methods=["GET"])
     async def metrics_endpoint(request: Request) -> Response:
         """Prometheus metrics — scraped by arifos_prometheus every 30s."""
+        from arifos_mcp.runtime.metrics import (
+            CONTENT_TYPE_LATEST,
+            generate_latest,
+            update_prometheus_metrics,
+        )
         from starlette.responses import Response as _Resp
-        from arifos_mcp.runtime.metrics import CONTENT_TYPE_LATEST, generate_latest, update_prometheus_metrics
 
         update_prometheus_metrics()
 

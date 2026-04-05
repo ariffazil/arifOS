@@ -19,18 +19,15 @@ This tool is your truth intake valve, not a search summary engine.
 from __future__ import annotations
 
 import hashlib
-import json
-import math
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Literal, List, Dict
+from typing import Any, Literal
 
 from arifos_mcp.runtime.contracts_v2 import (
+    RiskTier,
     ToolEnvelope,
     ToolStatus,
-    RiskTier,
     TraceContext,
-    EntropyBudget,
     calculate_entropy_budget,
     validate_fail_closed,
 )
@@ -44,14 +41,14 @@ class TemporalStrip:
     """A sequential slice of multimodal data (Video/Audio/Log)."""
     index: int
     timestamp: float
-    data_vector: List[float]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    data_vector: list[float]
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 class ManifoldProjector:
     """Mathematical transformation of raw temporal strips into governed artifacts."""
     
     @staticmethod
-    def project(strips: List[TemporalStrip]) -> Dict[str, Any]:
+    def project(strips: list[TemporalStrip]) -> dict[str, Any]:
         """Projects a sequence of strips through the 11-part manifold."""
         # 11-Part Artifact Structure
         artifact = {
@@ -149,7 +146,7 @@ class EvidenceBundle:
     observed_facts: list[EvidenceFact] = field(default_factory=list)
     reported_claims: list[ReportedClaim] = field(default_factory=list)
     inferred_connections: list[InferredConnection] = field(default_factory=list)
-    manifold_artifact: Dict[str, Any] = field(default_factory=dict) # Injected Multimodal Part
+    manifold_artifact: dict[str, Any] = field(default_factory=dict) # Injected Multimodal Part
     search_timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     sources_queried: list[str] = field(default_factory=list)
     sources_responded: list[str] = field(default_factory=list)
@@ -259,7 +256,7 @@ class HardenedRealityCompass:
         self,
         query: str,
         is_temporal: bool = False,
-        strips: List[Dict[str, Any]] | None = None,
+        strips: list[dict[str, Any]] | None = None,
         jurisdiction: str = "global",
         locale: str = "en",
         freshness_required: float = 0.5,

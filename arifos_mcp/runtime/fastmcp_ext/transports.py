@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import secrets
 import time
 from dataclasses import dataclass
 from threading import Lock
@@ -424,12 +423,12 @@ class _HealthEndpointMiddleware:
             return
 
         if path == "/metrics" and method == "GET":
-            from starlette.responses import Response
             from arifos_mcp.runtime.metrics import (
                 CONTENT_TYPE_LATEST,
                 generate_latest,
                 update_prometheus_metrics,
             )
+            from starlette.responses import Response
 
             update_prometheus_metrics()
 

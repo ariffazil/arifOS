@@ -10,11 +10,11 @@ Modes: register, list, read
 from __future__ import annotations
 
 from typing import Any
-from fastmcp.dependencies import CurrentContext
 
 from arifos_mcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-from arifos_mcp.runtime.tools_internal import architect_registry_dispatch_impl
 from arifos_mcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
+from arifos_mcp.runtime.tools_internal import architect_registry_dispatch_impl
+from fastmcp.dependencies import CurrentContext
 
 
 async def architect_registry(

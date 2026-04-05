@@ -18,9 +18,9 @@ except ImportError:
     # FastMCP 2.x doesn't have dependencies module
     CurrentContext = None
 
-from arifos_mcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict, VerdictCode
-from arifos_mcp.runtime.tools_internal import agi_mind_dispatch_impl
+from arifos_mcp.runtime.models import RuntimeEnvelope, VerdictCode
 from arifos_mcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
+from arifos_mcp.runtime.tools_internal import agi_mind_dispatch_impl
 
 
 async def agi_mind(
@@ -76,8 +76,8 @@ async def agi_mind(
         res_dict = await HARDENED_DISPATCH_MAP["agi_mind"](mode=mode, payload=payload)
 
         # ─── V1.0 VERDICT FORGING ───
-        from arifos_mcp.runtime.verdict_wrapper import forge_verdict
         from arifos_mcp.runtime.models import CanonicalMetrics
+        from arifos_mcp.runtime.verdict_wrapper import forge_verdict
 
         # Extract metrics from hardened result
         metrics = CanonicalMetrics()

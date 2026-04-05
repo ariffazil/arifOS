@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import asyncio
 import time
-from datetime import datetime, timezone
 from typing import Any
 
 from arifos_mcp.runtime.metrics import (
@@ -17,14 +16,14 @@ from arifos_mcp.runtime.metrics import (
 )
 from arifos_mcp.runtime.models import (
     CallerContext,
-    RuntimeEnvelope,
-    RuntimeStatus,
-    Stage,
-    Verdict,
+    CanonicalError,
     PNSContext,
     PNSSignal,
+    RuntimeEnvelope,
+    RuntimeStatus,
     SacredStage,
-    CanonicalError,
+    Stage,
+    Verdict,
 )
 
 # ---------------------------------------------------------------------------
@@ -313,13 +312,13 @@ async def run_stage(
     All stage failures are caught and mapped to standardized responses.
     """
     from arifos_mcp.runtime.tools import (
-        init_anchor,
+        agi_asi_forge_handler,
         agi_reason,
         agi_reflect,
-        asi_simulate,
-        asi_critique,
-        agi_asi_forge_handler,
         apex_judge,
+        asi_critique,
+        asi_simulate,
+        init_anchor,
         vault_seal,
     )
     
@@ -542,6 +541,7 @@ async def metabolic_loop(
         }
 
     from arifos_mcp.runtime.sessions import _resolve_session_id as _normalize_session_id
+
     from core.governance_kernel import route_pipeline
 
     # Track if we're approaching timeout

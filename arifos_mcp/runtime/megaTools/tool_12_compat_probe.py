@@ -10,8 +10,9 @@ Modes: audit, probe, ping
 from __future__ import annotations
 
 from typing import Any
-from arifos_mcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict, AuthorityLevel
-from arifos_mcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
+
+from arifos_mcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+
 
 async def compat_probe(
     mode: str = "audit",

@@ -8,8 +8,6 @@ from __future__ import annotations
 
 import hashlib
 import os
-from typing import List
-
 
 DEFAULT_VECTOR_DIM = int(os.getenv("ARIFOS_VECTOR_DIM", "1024"))
 
@@ -21,7 +19,7 @@ def _hash_bytes(text: str, seed: int) -> bytes:
     return hasher.digest()
 
 
-def embed(text: str, *, dim: int | None = None) -> List[float]:
+def embed(text: str, *, dim: int | None = None) -> list[float]:
     """Return a deterministic embedding vector for the given text."""
     target_dim = dim or DEFAULT_VECTOR_DIM
     if target_dim <= 0:

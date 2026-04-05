@@ -15,8 +15,8 @@ Usage:
         pass
 """
 
-import sys
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 # Detect FastMCP version
 try:
@@ -48,8 +48,8 @@ def create_mcp_server(
 
 
 def tool(
-    name: Optional[str] = None,
-    description: Optional[str] = None,
+    name: str | None = None,
+    description: str | None = None,
     **kwargs
 ) -> Callable:
     """

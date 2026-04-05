@@ -3,10 +3,10 @@ arifOS Reality Bridge - MCP Tool Wiring
 Closes the Reality Gap (R) by connecting skills to real execution.
 """
 
-import subprocess
 import json
-from typing import Dict, Any, Optional
+import subprocess
 from datetime import datetime
+from typing import Any
 
 
 class RealityBridge:
@@ -16,8 +16,8 @@ class RealityBridge:
         self.checkpoints = []
         self.execution_log = []
         
-    def execute(self, tool: str, command: str, params: Dict[str, Any], 
-                checkpoint_id: Optional[str] = None) -> Dict[str, Any]:
+    def execute(self, tool: str, command: str, params: dict[str, Any], 
+                checkpoint_id: str | None = None) -> dict[str, Any]:
         """
         Execute real system command with F1-F13 governance.
         
@@ -94,7 +94,7 @@ class RealityBridge:
         
         return result
     
-    def _exec_docker(self, command: str, params: Dict) -> Dict[str, Any]:
+    def _exec_docker(self, command: str, params: dict) -> dict[str, Any]:
         """Execute Docker command."""
         cmd = ["docker"] + command.split()
         if params.get("container"):
@@ -111,7 +111,7 @@ class RealityBridge:
             return {"stdout": "", "stderr": str(e), "returncode": 1}
 
     
-    def _exec_git(self, command: str, params: Dict) -> Dict[str, Any]:
+    def _exec_git(self, command: str, params: dict) -> dict[str, Any]:
         """Execute Git command."""
         cmd = ["git"] + command.split()
         if params.get("path"):
@@ -137,7 +137,7 @@ class RealityBridge:
         except Exception as e:
             return {"stdout": "", "stderr": str(e), "returncode": 1}
     
-    def _exec_fs(self, command: str, params: Dict) -> Dict[str, Any]:
+    def _exec_fs(self, command: str, params: dict) -> dict[str, Any]:
         """Execute filesystem operations."""
         import os
         try:
@@ -151,7 +151,7 @@ class RealityBridge:
                 }
             elif command == "read":
                 path = params.get("path", "")
-                with open(path, 'r') as f:
+                with open(path) as f:
                     content = f.read()
                 return {
                     "stdout": content,
@@ -176,7 +176,7 @@ class RealityBridge:
             return {"stdout": "", "stderr": str(e), "returncode": 1}
 
     
-    def _exec_ssh(self, command: str, params: Dict) -> Dict[str, Any]:
+    def _exec_ssh(self, command: str, params: dict) -> dict[str, Any]:
         """Execute SSH command."""
         host = params.get("host", "")
         user = params.get("user", "")
@@ -191,7 +191,7 @@ class RealityBridge:
         except Exception as e:
             return {"stdout": "", "stderr": str(e), "returncode": 1}
     
-    def _exec_shell(self, command: str, params: Dict) -> Dict[str, Any]:
+    def _exec_shell(self, command: str, params: dict) -> dict[str, Any]:
         """Execute shell command with F12 protection."""
         if self._is_dangerous_shell(command):
             return {
@@ -224,7 +224,7 @@ class RealityBridge:
         ]
         return any(pattern in command.lower() for pattern in dangerous_patterns)
     
-    def _verify_truth(self, result: Dict) -> Dict[str, Any]:
+    def _verify_truth(self, result: dict) -> dict[str, Any]:
         """F2: Cross-verify execution result."""
         output = result.get("stdout", "")
         return {
@@ -234,7 +234,7 @@ class RealityBridge:
         }
 
 
-def execute(tool: str, command: str, params: Dict, checkpoint_id: str = None) -> Dict:
+def execute(tool: str, command: str, params: dict, checkpoint_id: str = None) -> dict:
     """Convenience function for direct execution."""
     bridge = RealityBridge()
     return bridge.execute(tool, command, params, checkpoint_id)

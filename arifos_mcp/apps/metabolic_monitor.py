@@ -31,7 +31,6 @@ from typing import Any
 
 from fastmcp import FastMCP
 from fastmcp.tools import ToolResult
-from prefab_ui.app import PrefabApp
 from prefab_ui.components import (
     Badge,
     Card,
@@ -45,7 +44,6 @@ from prefab_ui.components import (
     Separator,
     Text,
 )
-
 
 # ── Floor definitions: F1-F13 Constitutional Chain ────────────────────────────
 FLOORS: list[dict[str, str]] = [

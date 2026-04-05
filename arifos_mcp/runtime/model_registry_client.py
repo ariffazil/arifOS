@@ -17,10 +17,10 @@ Environment:
 
 from __future__ import annotations
 
-import os
 import logging
-from typing import Any, Optional
+import os
 from dataclasses import dataclass
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -54,8 +54,8 @@ class IdentityVerification:
     """Result of identity claim verification."""
     verified: bool
     declared: str
-    matched_key: Optional[str]
-    model: Optional[dict]
+    matched_key: str | None
+    model: dict | None
     mismatch_detected: bool
     drift_risk: str
 
@@ -94,7 +94,7 @@ class ModelRegistryClient:
             logger.warning(f"Model registry health check failed: {exc}")
             return {"status": "unavailable", "error": str(exc)}
     
-    async def get_model_profile(self, model_key: str) -> Optional[ModelProfile]:
+    async def get_model_profile(self, model_key: str) -> ModelProfile | None:
         """
         Get full model profile.
         
@@ -119,7 +119,7 @@ class ModelRegistryClient:
             logger.warning(f"Failed to get model profile for {model_key}: {exc}")
             return None
     
-    async def get_provider_soul(self, soul_key: str) -> Optional[ProviderSoul]:
+    async def get_provider_soul(self, soul_key: str) -> ProviderSoul | None:
         """
         Get provider soul (governance archetype).
         
@@ -142,7 +142,7 @@ class ModelRegistryClient:
             logger.warning(f"Failed to get provider soul for {soul_key}: {exc}")
             return None
     
-    async def verify_identity(self, claimed_identity: str, claimed_provider: Optional[str] = None) -> IdentityVerification:
+    async def verify_identity(self, claimed_identity: str, claimed_provider: str | None = None) -> IdentityVerification:
         """
         Verify a model's claimed identity against the canonical registry.
         
@@ -204,7 +204,7 @@ class ModelRegistryClient:
         self,
         actor_id: str,
         declared_model_key: str,
-        declared_role: Optional[str] = None,
+        declared_role: str | None = None,
         requested_scope: list[str] | None = None,
     ) -> dict:
         """
@@ -245,7 +245,7 @@ class ModelRegistryClient:
 
 
 # Singleton instance for reuse
-_registry_client: Optional[ModelRegistryClient] = None
+_registry_client: ModelRegistryClient | None = None
 
 
 def get_model_registry_client() -> ModelRegistryClient:
@@ -258,7 +258,7 @@ def get_model_registry_client() -> ModelRegistryClient:
 
 async def verify_model_identity(
     claimed_identity: str,
-    claimed_provider: Optional[str] = None,
+    claimed_provider: str | None = None,
 ) -> IdentityVerification:
     """
     Convenience function for F11 identity verification.

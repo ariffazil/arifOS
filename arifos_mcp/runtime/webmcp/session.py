@@ -11,10 +11,11 @@ import json
 import time
 import uuid
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
+
+from arifos_mcp.runtime.optional_deps import redis
 
 from core.enforcement.auth_continuity import mint_auth_context
-from arifos_mcp.runtime.optional_deps import redis
 
 
 @dataclass
@@ -25,8 +26,8 @@ class WebSession:
     auth_context: dict[str, Any]
     created_at: float
     expires_at: float
-    user_agent: Optional[str] = None
-    ip_address: Optional[str] = None
+    user_agent: str | None = None
+    ip_address: str | None = None
     
     @property
     def is_expired(self) -> bool:
@@ -47,7 +48,7 @@ class WebSession:
         }
     
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "WebSession":
+    def from_dict(cls, data: dict[str, Any]) -> WebSession:
         return cls(**data)
 
 
@@ -68,8 +69,8 @@ class WebSessionManager:
     async def mint_session(
         self,
         actor_id: str,
-        user_agent: Optional[str] = None,
-        ip_address: Optional[str] = None,
+        user_agent: str | None = None,
+        ip_address: str | None = None,
         human_approval: bool = False,
     ) -> WebSession:
         """
@@ -120,7 +121,7 @@ class WebSessionManager:
         
         return session
     
-    async def get_session(self, session_id: str) -> Optional[WebSession]:
+    async def get_session(self, session_id: str) -> WebSession | None:
         """Retrieve session by ID."""
         try:
             data = await asyncio.wait_for(
@@ -141,7 +142,7 @@ class WebSessionManager:
         
         return session
     
-    async def refresh_session(self, session_id: str) -> Optional[WebSession]:
+    async def refresh_session(self, session_id: str) -> WebSession | None:
         """Extend session TTL (F11 continuity)."""
         session = await self.get_session(session_id)
         if not session:
@@ -187,7 +188,7 @@ class WebSessionManager:
         # This would call vault_seal in production
         pass
     
-    async def list_active_sessions(self, actor_id: Optional[str] = None) -> list[WebSession]:
+    async def list_active_sessions(self, actor_id: str | None = None) -> list[WebSession]:
         """List all active web sessions."""
         try:
             keys = await asyncio.wait_for(

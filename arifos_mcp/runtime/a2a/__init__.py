@@ -8,6 +8,6 @@ Allows AI agents to discover and collaborate with arifOS.
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
-from .server import create_a2a_server, A2AServer
+from .server import A2AServer, create_a2a_server
 
 __all__ = ["create_a2a_server", "A2AServer"]

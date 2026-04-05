@@ -9,9 +9,9 @@ Auto-detects environment and switches between:
 This is the runtime behind the single public entrypoint ``server.py:mcp``.
 """
 
+import logging
 import os
 import sys
-import logging
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)

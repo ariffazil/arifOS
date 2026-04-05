@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Set
 
 
 @dataclass(frozen=True)
@@ -20,7 +19,7 @@ class WebMCPConfig:
     
     # CORS - F12 Injection Guard validates origins
     # Note: TrustedHostMiddleware expects just the host pattern (no scheme)
-    ALLOWED_ORIGINS: Set[str] = frozenset([
+    ALLOWED_ORIGINS: set[str] = frozenset([
         "arifos_mcp.arif-fazil.com",
         "*.arif-fazil.com",
         "arifos.arif-fazil.com",
@@ -61,7 +60,7 @@ class WebMCPConfig:
     )
     
     @classmethod
-    def from_env(cls) -> "WebMCPConfig":
+    def from_env(cls) -> WebMCPConfig:
         """Load config from environment variables."""
         return cls(
             SESSION_TTL=int(os.getenv("ARIFOS_SESSION_TTL", "3600")),

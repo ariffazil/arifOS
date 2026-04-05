@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import sys
 
-
 if __name__ == "arifos_mcp":
     sys.modules.setdefault("arifosmcp", sys.modules[__name__])
 elif __name__ == "arifosmcp":

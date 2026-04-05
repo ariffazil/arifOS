@@ -7,8 +7,14 @@ for legacy imports.
 
 from arifos_mcp.runtime.models import (
     ArifOSError,
+)
+from arifos_mcp.runtime.models import (
     ConstitutionalViolationError as ConstitutionalViolation,
+)
+from arifos_mcp.runtime.models import (
     EpistemicGapError as EpistemicGap,
+)
+from arifos_mcp.runtime.models import (
     InfrastructureFaultError as InfrastructureFault,
 )
 

@@ -8,13 +8,14 @@ Every response flows through three layers:
 - Intelligence: Evidence, reasoning, synthesis
 """
 
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
-from enum import Enum
-from pydantic import BaseModel, Field, field_validator
 import hashlib
 import json
 import uuid
+from datetime import datetime
+from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class TokenType(str, Enum):
@@ -61,16 +62,16 @@ class MachineLayer(BaseModel):
         default=ContinuityStatus.FRESH,
         description="Session continuity state"
     )
-    parent_token: Optional[str] = Field(
+    parent_token: str | None = Field(
         default=None,
         description="Reference to parent token in chain"
     )
-    merkle_leaf: Optional[str] = Field(
+    merkle_leaf: str | None = Field(
         default=None,
         description="Merkle tree leaf hash for this operation"
     )
     
-    def compute_merkle_leaf(self, payload: Dict[str, Any]) -> str:
+    def compute_merkle_leaf(self, payload: dict[str, Any]) -> str:
         """Compute Merkle leaf hash from payload."""
         data = {
             "session_id": self.session_id,
@@ -117,13 +118,13 @@ class GovernanceLayer(BaseModel):
     Ensures all operations comply with the Canon-13 Constitution.
     Tracks active floors, validates articles, enforces regime rules.
     """
-    active_floors: List[int] = Field(
+    active_floors: list[int] = Field(
         default_factory=list,
         description="Currently active floors (F1-F13)",
         ge=1,
         le=13
     )
-    constitutional_articles: List[ConstitutionalArticle] = Field(
+    constitutional_articles: list[ConstitutionalArticle] = Field(
         default_factory=lambda: [ConstitutionalArticle.A1_STEEL],
         description="Articles invoked for this operation"
     )
@@ -131,7 +132,7 @@ class GovernanceLayer(BaseModel):
         default=ValidationResult.PENDING,
         description="Constitutional validation outcome"
     )
-    violations: List[str] = Field(
+    violations: list[str] = Field(
         default_factory=list,
         description="List of constitutional violations if any"
     )
@@ -139,18 +140,18 @@ class GovernanceLayer(BaseModel):
         default=False,
         description="Whether 888 Judge override is active"
     )
-    hold_state_id: Optional[str] = Field(
+    hold_state_id: str | None = Field(
         default=None,
         description="Active 888_HOLD state identifier"
     )
-    floor_metrics: Dict[str, float] = Field(
+    floor_metrics: dict[str, float] = Field(
         default_factory=dict,
         description="Per-floor execution metrics"
     )
     
     @field_validator('active_floors')
     @classmethod
-    def validate_floors(cls, v: List[int]) -> List[int]:
+    def validate_floors(cls, v: list[int]) -> list[int]:
         """Ensure all floor numbers are within valid range."""
         for floor in v:
             if not 1 <= floor <= 13:
@@ -180,15 +181,15 @@ class IntelligenceLayer(BaseModel):
     The cognitive core of the MGI envelope. Contains all evidence,
     reasoning chains, synthesis results, and uncertainty metrics.
     """
-    evidence_bundles: List[str] = Field(
+    evidence_bundles: list[str] = Field(
         default_factory=list,
         description="References to evidence bundle IDs"
     )
-    reasoning_chain: List[str] = Field(
+    reasoning_chain: list[str] = Field(
         default_factory=list,
         description="Step-by-step reasoning trace"
     )
-    synthesis_hash: Optional[str] = Field(
+    synthesis_hash: str | None = Field(
         default=None,
         description="Hash of synthesis result"
     )
@@ -198,7 +199,7 @@ class IntelligenceLayer(BaseModel):
         le=1.0,
         description="Overall confidence in result (0-1)"
     )
-    confidence_interval: Optional[ConfidenceInterval] = Field(
+    confidence_interval: ConfidenceInterval | None = Field(
         default=None,
         description="Statistical confidence interval"
     )
@@ -208,11 +209,11 @@ class IntelligenceLayer(BaseModel):
         le=1.0,
         description="Uncertainty coefficient Ω₀ (0=certain, 1=unknown)"
     )
-    unstable_assumptions: List[str] = Field(
+    unstable_assumptions: list[str] = Field(
         default_factory=list,
         description="Assumptions that may affect validity"
     )
-    knowledge_gaps: List[str] = Field(
+    knowledge_gaps: list[str] = Field(
         default_factory=list,
         description="Identified gaps in knowledge"
     )
@@ -246,7 +247,7 @@ class MGIEnvelope(BaseModel):
         ...,
         description="Intelligence layer: evidence, reasoning, synthesis"
     )
-    envelope_hash: Optional[str] = Field(
+    envelope_hash: str | None = Field(
         default=None,
         description="Cryptographic hash of entire envelope"
     )
@@ -279,7 +280,7 @@ class MGIBaseResponse(BaseModel):
         default="success",
         description="Operation status"
     )
-    error_message: Optional[str] = Field(
+    error_message: str | None = Field(
         default=None,
         description="Error message if status is not success"
     )

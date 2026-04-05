@@ -10,11 +10,11 @@ Modes: engineer, vector_query, vector_store, vector_forget, generate, query
 from __future__ import annotations
 
 from typing import Any
-from fastmcp.dependencies import CurrentContext
 
 from arifos_mcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-from arifos_mcp.runtime.tools_internal import engineering_memory_dispatch_impl
 from arifos_mcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
+from arifos_mcp.runtime.tools_internal import engineering_memory_dispatch_impl
+from fastmcp.dependencies import CurrentContext
 
 
 async def engineering_memory(

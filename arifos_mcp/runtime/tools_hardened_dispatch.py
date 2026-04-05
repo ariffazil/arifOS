@@ -7,18 +7,16 @@ FIX: code_engine and architect_registry floor induction.
 
 from __future__ import annotations
 
-import logging
 from typing import Any
 
 from arifos_mcp.runtime.init_anchor_hardened import HardenedInitAnchor
-from arifos_mcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
 from arifos_mcp.runtime.tools_hardened_v2 import (
-    HardenedAGIReason,
     HardenedAgentZeroEngineer,
-    HardenedASICritique,
+    HardenedAGIReason,
     HardenedApexJudge,
-    HardenedVaultSeal,
+    HardenedASICritique,
     HardenedMathEstimator,
+    HardenedVaultSeal,
 )
 from arifos_mcp.runtime.truth_pipeline_hardened import HardenedRealityAtlas, HardenedRealityCompass
 from fastmcp.dependencies import CurrentContext

@@ -6,12 +6,11 @@ Wraps arifOS mega-tools as Prefect @task decorators for workflow orchestration.
 
 from __future__ import annotations
 
-import functools
 import logging
-from typing import Any, Callable
+from collections.abc import Callable
 
 try:
-    from prefect import flow, task, get_run_logger
+    from prefect import flow, get_run_logger, task
     from prefect.tasks import Task as PrefectTask
     PREFECT_AVAILABLE = True
 except ImportError:
@@ -21,12 +20,9 @@ except ImportError:
     get_run_logger = lambda: logging.getLogger(__name__)
 
 from arifos_mcp.runtime.megaTools import (
+    asi_heart,
     init_anchor,
     physics_reality,
-    engineering_memory,
-    agi_mind,
-    asi_heart,
-    apex_soul,
     vault_ledger,
 )
 from arifos_mcp.runtime.models import RuntimeEnvelope, Verdict

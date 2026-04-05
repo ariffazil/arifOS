@@ -6,23 +6,14 @@ PATCH: Implemented Paradox-Driven Philosophy Engine.
 
 from __future__ import annotations
 
-import hashlib
-import json
 import secrets
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Literal, List, Dict
+from typing import Any
 
 from arifos_mcp.runtime.contracts_v2 import (
+    RiskTier,
     ToolEnvelope,
     ToolStatus,
-    RiskTier,
-    HumanDecisionMarker,
     TraceContext,
-    EntropyBudget,
-    generate_trace_context,
-    validate_fail_closed,
-    determine_human_marker,
     calculate_entropy_budget,
 )
 
@@ -50,7 +41,7 @@ QUOTES = {
 }
 
 
-def get_philosophical_contrast(g_score: float, risk: str) -> Dict[str, str]:
+def get_philosophical_contrast(g_score: float, risk: str) -> dict[str, str]:
     """Selects a quote based on the tension between intelligence and risk."""
     if g_score < 0.5 and risk in ("high", "critical"):
         return {"label": "warning", "quote": QUOTES["warning"]}
@@ -388,6 +379,7 @@ class HardenedAGIReason:
             ToolEnvelope with QTT collapse state and W₁, W₂, W₃, W₄
         """
         import uuid
+
         from core.shared.physics import build_qt_quad_proof, delta_S
 
         tool = "agi_reason"

@@ -10,11 +10,11 @@ Modes: seal, verify
 from __future__ import annotations
 
 from typing import Any
-from fastmcp.dependencies import CurrentContext
 
-from arifos_mcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-from arifos_mcp.runtime.tools_internal import vault_ledger_dispatch_impl
+from arifos_mcp.runtime.models import RuntimeEnvelope
 from arifos_mcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
+from arifos_mcp.runtime.tools_internal import vault_ledger_dispatch_impl
+from fastmcp.dependencies import CurrentContext
 
 
 async def vault_ledger(
@@ -61,8 +61,8 @@ async def vault_ledger(
         res_dict = await HARDENED_DISPATCH_MAP["vault_ledger"](mode=mode, payload=payload)
         
         # ─── V1.0 VERDICT FORGING ───
-        from arifos_mcp.runtime.verdict_wrapper import forge_verdict
         from arifos_mcp.runtime.models import CanonicalMetrics
+        from arifos_mcp.runtime.verdict_wrapper import forge_verdict
         
         return forge_verdict(
             tool_id="vault_ledger",

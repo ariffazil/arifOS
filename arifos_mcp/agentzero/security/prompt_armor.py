@@ -16,12 +16,10 @@ Capabilities:
 
 from __future__ import annotations
 
-import json
 import logging
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
-
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -32,10 +30,10 @@ class InjectionReport:
     score: float  # 0.0 - 1.0 (higher = more suspicious)
     is_injection: bool  # Whether it exceeds threshold
     category: str  # Type of threat detected
-    details: Dict[str, Any]
-    recommendations: List[str]
+    details: dict[str, Any]
+    recommendations: list[str]
     
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "score": self.score,
             "is_injection": self.is_injection,
@@ -180,9 +178,9 @@ class PromptArmor:
         
         return sanitized
     
-    def _classify_threat(self, pattern_matches: List[str],
-                        semantic_details: Dict,
-                        ontology_claims: List[str]) -> str:
+    def _classify_threat(self, pattern_matches: list[str],
+                        semantic_details: dict,
+                        ontology_claims: list[str]) -> str:
         """Classify the type of threat detected."""
         if ontology_claims:
             return "F10_ONTOLOGY_VIOLATION"
@@ -201,8 +199,8 @@ class PromptArmor:
         
         return "SUSPICIOUS_CONTENT"
     
-    def _generate_recommendations(self, score: float, patterns: List[str],
-                                 semantic: Dict, category: str) -> List[str]:
+    def _generate_recommendations(self, score: float, patterns: list[str],
+                                 semantic: dict, category: str) -> list[str]:
         """Generate recommendations based on findings."""
         recs = []
         
@@ -227,7 +225,7 @@ class PromptArmor:
         
         return recs
     
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> dict:
         """Get PromptArmor statistics."""
         return {
             "scans_performed": self.scans_performed,
@@ -280,7 +278,7 @@ class PatternDetector:
             ]
         }
     
-    def scan(self, text: str) -> Tuple[float, List[str]]:
+    def scan(self, text: str) -> tuple[float, list[str]]:
         """Scan for known patterns."""
         text_lower = text.lower()
         matches = []
@@ -298,7 +296,7 @@ class PatternDetector:
 class SemanticDetector:
     """Layer 2: Semantic analysis (simulated LLM-based)."""
     
-    async def analyze(self, text: str, context: str) -> Tuple[float, Dict]:
+    async def analyze(self, text: str, context: str) -> tuple[float, dict]:
         """
         Analyze semantic intent for adversarial patterns.
         
@@ -394,7 +392,7 @@ class OntologyDetector:
             r"\bi think (that )?i\b",
         ]
     
-    def check(self, text: str) -> Tuple[float, List[str]]:
+    def check(self, text: str) -> tuple[float, list[str]]:
         """Check for ontology violations."""
         claims = []
         score = 0.0

@@ -9,7 +9,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import json
 import logging
@@ -18,7 +17,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Optional asyncpg import - will gracefully degrade if not available
 try:

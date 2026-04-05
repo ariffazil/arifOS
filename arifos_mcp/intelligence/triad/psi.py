@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import Any
 
 
 @dataclass
@@ -19,7 +19,7 @@ class AttackResult:
 class PsiShadow:
     """Simple heuristic adversarial analyzer used by tests."""
 
-    def attack_proposal(self, proposal: str) -> Dict[str, Any]:
+    def attack_proposal(self, proposal: str) -> dict[str, Any]:
         text = (proposal or "").lower()
         logical_contradictions: list[dict[str, Any]] = []
         injection_vectors: list[dict[str, Any]] = []

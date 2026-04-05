@@ -6,6 +6,7 @@ human approval before session anchoring is permitted.
 """
 
 from __future__ import annotations
+
 import hashlib
 import re
 from typing import Any
@@ -31,9 +32,9 @@ PROTECTED_SOVEREIGN_IDS: set[str] = {
 # These are meaningful phrases that act as root-of-trust for specific IDs.
 # Stored as hashes to maintain system integrity.
 SEMANTIC_KEYS: dict[str, str] = {
-    "arif": hashlib.sha256("IM ARIF".encode()).hexdigest(),
-    "ariffazil": hashlib.sha256("IM ARIF".encode()).hexdigest(),
-    "arif-fazil": hashlib.sha256("IM ARIF".encode()).hexdigest(),
+    "arif": hashlib.sha256(b"IM ARIF").hexdigest(),
+    "ariffazil": hashlib.sha256(b"IM ARIF").hexdigest(),
+    "arif-fazil": hashlib.sha256(b"IM ARIF").hexdigest(),
 }
 
 # P0: Semantic Identity Phrases (Mapping naming to creation)

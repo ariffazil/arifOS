@@ -1,19 +1,16 @@
 from __future__ import annotations
 
-import tomllib
-from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+import tomllib
+
 from .tool_specs import (
-    ToolSpec,
-    ResourceSpec,
-    PromptSpec,
-    PUBLIC_TOOL_SPECS,
-    PUBLIC_RESOURCE_SPECS,
     PUBLIC_PROMPT_SPECS,
-    MEGA_TOOLS,
+    PUBLIC_RESOURCE_SPECS,
+    PUBLIC_TOOL_SPECS,
+    ToolSpec,
 )
 
 ROOT = Path(__file__).resolve().parents[2]

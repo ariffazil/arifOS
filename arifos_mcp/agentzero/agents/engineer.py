@@ -27,10 +27,9 @@ from __future__ import annotations
 import hashlib
 import logging
 import subprocess
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from .base import ConstitutionalAgent, FloorScore, TrinityRole, Verdict, VerdictStatus
-
+from .base import ConstitutionalAgent, TrinityRole, Verdict
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +56,7 @@ class EngineerAgent(ConstitutionalAgent):
     
     def __init__(self, agent_id: str = "engineer.001",
                  arifos_client=None,
-                 sandbox_config: Optional[Dict] = None):
+                 sandbox_config: dict | None = None):
         super().__init__(
             agent_id=agent_id,
             role=TrinityRole.OMEGA,
@@ -82,7 +81,7 @@ class EngineerAgent(ConstitutionalAgent):
         self.blocked_operations = 0
         
         # Validator reference (for high-risk approval)
-        self.validator: Optional[Any] = None
+        self.validator: Any | None = None
     
     @property
     def agent_type(self) -> str:
@@ -92,9 +91,9 @@ class EngineerAgent(ConstitutionalAgent):
         """Set the ValidatorAgent for high-risk approvals."""
         self.validator = validator
     
-    async def _execute_impl(self, task: Dict[str, Any],
+    async def _execute_impl(self, task: dict[str, Any],
                            execution_id: str,
-                           verdict: Verdict) -> Dict[str, Any]:
+                           verdict: Verdict) -> dict[str, Any]:
         """
         Execute engineering task.
         
@@ -124,7 +123,7 @@ class EngineerAgent(ConstitutionalAgent):
         
         return await handler(task, execution_id)
     
-    async def _execute_code(self, task: Dict, execution_id: str) -> Dict[str, Any]:
+    async def _execute_code(self, task: dict, execution_id: str) -> dict[str, Any]:
         """
         Execute Python code in sandboxed environment.
         
@@ -195,7 +194,7 @@ class EngineerAgent(ConstitutionalAgent):
                 "error": str(e)
             }
     
-    async def _shell_command(self, task: Dict, execution_id: str) -> Dict[str, Any]:
+    async def _shell_command(self, task: dict, execution_id: str) -> dict[str, Any]:
         """
         Execute shell command with F11 gating.
         
@@ -268,14 +267,14 @@ class EngineerAgent(ConstitutionalAgent):
                 "error": str(e)
             }
     
-    async def _read_file(self, task: Dict, execution_id: str) -> Dict[str, Any]:
+    async def _read_file(self, task: dict, execution_id: str) -> dict[str, Any]:
         """Read file contents (audited)."""
         path = task.get("path", "")
         
         logger.info(f"[{execution_id}] Reading file: {path}")
         
         try:
-            with open(path, 'r') as f:
+            with open(path) as f:
                 content = f.read()
             
             self.file_operations += 1
@@ -298,7 +297,7 @@ class EngineerAgent(ConstitutionalAgent):
                 "error": str(e)
             }
     
-    async def _write_file(self, task: Dict, execution_id: str) -> Dict[str, Any]:
+    async def _write_file(self, task: dict, execution_id: str) -> dict[str, Any]:
         """Write file (audited with before/after hashes)."""
         path = task.get("path", "")
         content = task.get("content", "")
@@ -339,7 +338,7 @@ class EngineerAgent(ConstitutionalAgent):
                 "error": str(e)
             }
     
-    async def _create_tool(self, task: Dict, execution_id: str) -> Dict[str, Any]:
+    async def _create_tool(self, task: dict, execution_id: str) -> dict[str, Any]:
         """
         Create dynamic tool with F8/F9 validation.
         
@@ -386,7 +385,7 @@ class EngineerAgent(ConstitutionalAgent):
             "f9_verified": True
         }
     
-    async def _install_package(self, task: Dict, execution_id: str) -> Dict[str, Any]:
+    async def _install_package(self, task: dict, execution_id: str) -> dict[str, Any]:
         """Install Python package (with approval check)."""
         package = task.get("package", "")
         
@@ -486,7 +485,7 @@ class EngineerAgent(ConstitutionalAgent):
         code_lower = code.lower()
         return not any(d in code_lower for d in destructive)
     
-    async def _verify_f11_auth(self, task: Dict) -> bool:
+    async def _verify_f11_auth(self, task: dict) -> bool:
         """Verify F11 authorization for dangerous operations."""
         # In production: Call arifOS F11 verification
         # For MVP: Simplified check
@@ -509,7 +508,7 @@ class EngineerAgent(ConstitutionalAgent):
         
         return "low"
     
-    async def _run_python_sandbox(self, code: str, execution_id: str) -> Dict:
+    async def _run_python_sandbox(self, code: str, execution_id: str) -> dict:
         """Run Python code in sandboxed subprocess."""
         # MVP: Use subprocess with timeout
         # Production: Use Docker container
@@ -534,7 +533,7 @@ class EngineerAgent(ConstitutionalAgent):
         except Exception as e:
             return {"error": str(e), "stdout": "", "stderr": ""}
     
-    async def _run_shell_sandbox(self, command: str, execution_id: str) -> Dict:
+    async def _run_shell_sandbox(self, command: str, execution_id: str) -> dict:
         """Run shell command in sandboxed subprocess."""
         try:
             result = subprocess.run(
@@ -557,7 +556,7 @@ class EngineerAgent(ConstitutionalAgent):
         except Exception as e:
             return {"error": str(e), "stdout": "", "stderr": ""}
     
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get engineer statistics."""
         return {
             "code_executions": self.code_executions,

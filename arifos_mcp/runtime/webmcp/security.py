@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 from starlette.requests import Request
 
@@ -19,8 +19,8 @@ class ShieldReport:
     is_injection: bool
     score: float  # 0.0 - 1.0
     threats: list[str]
-    category: Optional[str] = None
-    recommendation: Optional[str] = None
+    category: str | None = None
+    recommendation: str | None = None
 
 
 class WebInjectionGuard:
@@ -141,7 +141,7 @@ class WebInjectionGuard:
         
         return score, threats
     
-    def _categorize_threats(self, threats: list[str]) -> Optional[str]:
+    def _categorize_threats(self, threats: list[str]) -> str | None:
         """Categorize the type of threat."""
         if not threats:
             return None
@@ -159,7 +159,7 @@ class WebInjectionGuard:
         
         return 'mixed'
     
-    def _get_recommendation(self, category: Optional[str]) -> Optional[str]:
+    def _get_recommendation(self, category: str | None) -> str | None:
         """Get recommendation based on threat category."""
         recommendations = {
             'xss': 'Input contains XSS vectors. Sanitize HTML/JS content.',

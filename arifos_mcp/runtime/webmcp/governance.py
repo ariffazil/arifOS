@@ -13,9 +13,8 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -50,7 +49,7 @@ class AgentDID(BaseModel):
     policy_level: str = Field(default="general", description="research|medical|financial|nuclear|general")
     governance_endpoints: list[str] = Field(default_factory=list)
     scar_weight: float = Field(default=0.0, ge=0.0, le=1.0, description="AI cannot suffer - F13 anchor")
-    human_sovereign: Optional[str] = Field(None, description="did:arifos:human:{id}")
+    human_sovereign: str | None = Field(None, description="did:arifos:human:{id}")
     version: str = "2026.03.14-VALIDATED"
     
     @field_validator('did')
@@ -79,7 +78,7 @@ class ActionRequest(BaseModel):
     action_description: str = Field(..., description="Human-readable description")
     
     # Tool/Execution Details
-    tool_name: Optional[str] = Field(None, description="Name of tool if applicable")
+    tool_name: str | None = Field(None, description="Name of tool if applicable")
     parameters: dict[str, Any] = Field(default_factory=dict, description="Tool parameters")
     
     # Context
@@ -88,7 +87,7 @@ class ActionRequest(BaseModel):
     
     # Stakeholder Analysis
     stakeholders: list[str] = Field(default_factory=list, description="Who is affected")
-    reversibility_proof: Optional[str] = Field(None, description="Proof action can be undone (F1)")
+    reversibility_proof: str | None = Field(None, description="Proof action can be undone (F1)")
     
     # Grounding Evidence (F2)
     evidence_urls: list[str] = Field(default_factory=list)
@@ -126,8 +125,8 @@ class GovernanceRecommendation(BaseModel):
     priority: int = Field(..., ge=1, le=5, description="1=critical, 5=minor")
     category: str = Field(..., description="security|ethics|truth|reversibility|stability")
     description: str
-    suggested_modification: Optional[str] = None
-    floor_addressed: Optional[str] = None
+    suggested_modification: str | None = None
+    floor_addressed: str | None = None
 
 
 class GovernanceEvaluation(BaseModel):
@@ -153,14 +152,14 @@ class GovernanceEvaluation(BaseModel):
     
     # Reasoning
     reasoning: str = Field(..., description="Why this verdict was reached")
-    philosophical_quote: Optional[dict] = None
+    philosophical_quote: dict | None = None
     
     # Recommendations (if VOID or PARTIAL)
     recommendations: list[GovernanceRecommendation] = Field(default_factory=list)
     
     # Escalation (if 888_HOLD)
-    hold_reason: Optional[str] = None
-    hold_url: Optional[str] = None  # URL for human ratification UI
+    hold_reason: str | None = None
+    hold_url: str | None = None  # URL for human ratification UI
     
     # Audit Trail
     audit_hash: str = Field(..., description="SHA-256 hash of this evaluation for VAULT999")

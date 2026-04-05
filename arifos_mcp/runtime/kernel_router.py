@@ -23,7 +23,7 @@ import logging
 from typing import Any, Literal
 
 from arifos_mcp.runtime.models import RuntimeEnvelope, Stage, Verdict
-from arifos_mcp.runtime.sessions import get_session_identity, _normalize_session_id
+from arifos_mcp.runtime.sessions import _normalize_session_id, get_session_identity
 
 logger = logging.getLogger(__name__)
 
@@ -95,8 +95,8 @@ async def _route_to_internal_tool(
     from arifos_mcp.runtime.tools_internal import (
         agi_mind_dispatch_impl,
         asi_heart_dispatch_impl,
-        engineering_memory_dispatch_impl,
         code_engine_dispatch_impl,
+        engineering_memory_dispatch_impl,
     )
     
     session_id = _normalize_session_id(session_id)

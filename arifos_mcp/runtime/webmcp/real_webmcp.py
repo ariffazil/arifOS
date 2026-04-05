@@ -17,23 +17,19 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable
-
-from arifos_mcp.runtime.mcp_utils import call_mcp_tool, normalize_tool_result
-from arifos_mcp.runtime.public_registry import PUBLIC_TOOL_SPECS, ToolSpec
-from arifos_mcp.runtime.webmcp.live_metrics import get_live_metrics
-from arifos_mcp.runtime.webmcp.security import RateLimiter
-from arifos_mcp.runtime.webmcp.config import WebMCPConfig as BaseWebMCPConfig
+from typing import Any
 
 import redis.asyncio as redis
-import os
-
+from arifos_mcp.runtime.mcp_utils import call_mcp_tool
+from arifos_mcp.runtime.public_registry import PUBLIC_TOOL_SPECS, ToolSpec
+from arifos_mcp.runtime.webmcp.config import WebMCPConfig as BaseWebMCPConfig
+from arifos_mcp.runtime.webmcp.live_metrics import get_live_metrics
+from arifos_mcp.runtime.webmcp.security import RateLimiter
 from fastapi import FastAPI, Request, WebSocket
 from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 
 
 @dataclass

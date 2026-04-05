@@ -25,7 +25,7 @@ ErrorCode = Literal[
 ]
 
 
-class classproperty(object):
+class classproperty:
     def __init__(self, f):
         self.f = f
 

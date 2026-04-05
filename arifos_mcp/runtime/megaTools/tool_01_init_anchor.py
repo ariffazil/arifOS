@@ -199,7 +199,7 @@ async def init_anchor(
                 effective_verdict = verdict_val or (Verdict.SEAL if ok else Verdict.VOID)
 
             # Ensure valid defaults for Pydantic validation
-            from arifos_mcp.runtime.models import CanonicalAuthority, AuthorityLevel, ClaimStatus
+            from arifos_mcp.runtime.models import AuthorityLevel, CanonicalAuthority, ClaimStatus
             _authority = res.get("authority")
             if _authority is None:
                 # Fallback authority if not provided by dispatcher

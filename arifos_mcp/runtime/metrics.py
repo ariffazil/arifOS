@@ -9,7 +9,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any
 
 # Vault logging (may not be available in all configurations)
 try:
@@ -40,7 +40,7 @@ except ImportError:
             self.documentation = documentation
             self.labelnames = tuple(labelnames)
 
-        def labels(self, *args: Any, **kwargs: Any) -> "_NoopCollector":
+        def labels(self, *args: Any, **kwargs: Any) -> _NoopCollector:
             return self
 
         def inc(self, amount: float = 1.0) -> None:
@@ -77,10 +77,10 @@ except ImportError:
         return b"# prometheus_client unavailable\n"
 
 from arifos_mcp.runtime.models import (
-    CanonicalMetrics, 
-    TelemetryVitals, 
-    TelemetryBasis, 
-    TripleWitness
+    CanonicalMetrics,
+    TelemetryBasis,
+    TelemetryVitals,
+    TripleWitness,
 )
 
 try:

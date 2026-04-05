@@ -5,9 +5,9 @@ This policy defines the Substrate Capability Class, Risk Tier, and Constitutiona
 Floors for every mode in the M-11 Mega-Tool surface.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, List
+
 
 class SubstrateClass(str, Enum):
     INSPECT = "inspect"
@@ -31,7 +31,7 @@ class ModePolicy:
     substrate: SubstrateClass
     risk: RiskTier
     organ_stage: str
-    floors: List[str] # Explicit Floor Mapping
+    floors: list[str] # Explicit Floor Mapping
     description: str
 
 # The Canonical AAA Tool Policy Matrix

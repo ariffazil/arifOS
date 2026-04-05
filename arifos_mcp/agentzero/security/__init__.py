@@ -7,6 +7,6 @@ Constitutional defense mechanisms:
 - Audit: VAULT999 logging
 """
 
-from .prompt_armor import PromptArmor, InjectionReport
+from .prompt_armor import InjectionReport, PromptArmor
 
 __all__ = ["PromptArmor", "InjectionReport"]

@@ -9,16 +9,16 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from typing import Any
 
 from arifos_mcp.runtime.models import (
-    RuntimeEnvelope, 
-    RuntimeStatus, 
-    VerdictCode, 
+    CanonicalMetrics,
+    RuntimeEnvelope,
+    RuntimeStatus,
+    VerdictCode,
     VerdictDetail,
-    CanonicalMetrics
 )
+
 
 def forge_verdict(
     tool_id: str,
@@ -86,7 +86,7 @@ def forge_verdict(
         payload={"data": payload},
         audit={
             "floors_checked": floors_checked or ["F4", "F11"],
-            "floors_failed": [f"F4" if ds > 0.1 else ""]
+            "floors_failed": ["F4" if ds > 0.1 else ""]
         },
         status=RuntimeStatus.SUCCESS if code != VerdictCode.VOID else RuntimeStatus.ERROR
     )

@@ -7,7 +7,6 @@ Provides intuitive command-line interface to all 11 mega-tools.
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 from typing import Literal
@@ -23,17 +22,14 @@ except ImportError:
     ExistingPath = None
 
 from arifos_mcp.runtime.megaTools import (
-    init_anchor,
-    physics_reality,
-    engineering_memory,
     agi_mind,
-    asi_heart,
     apex_soul,
-    vault_ledger,
     arifOS_kernel,
+    asi_heart,
+    init_anchor,
     math_estimator,
-    code_engine,
-    architect_registry,
+    physics_reality,
+    vault_ledger,
 )
 from arifos_mcp.runtime.models import Verdict
 from arifos_mcp.runtime.public_registry import public_tool_names
@@ -304,7 +300,6 @@ def create_cyclopts_app() -> App:
         session_id: str | None = None,
     ):
         """Check arifOS system health."""
-        from arifos_mcp.runtime.megaTools import math_estimator
         
         result = await math_estimator(
             mode="health",

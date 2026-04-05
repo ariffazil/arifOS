@@ -22,10 +22,9 @@ This agent CANNOT be bypassed for critical operations.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from .base import ConstitutionalAgent, FloorScore, TrinityRole, Verdict, VerdictStatus
-
+from .base import ConstitutionalAgent, FloorScore, TrinityRole, Verdict
 
 logger = logging.getLogger(__name__)
 
@@ -66,9 +65,9 @@ class ValidatorAgent(ConstitutionalAgent):
     def agent_type(self) -> str:
         return "validator"
     
-    async def _execute_impl(self, task: Dict[str, Any],
+    async def _execute_impl(self, task: dict[str, Any],
                            execution_id: str,
-                           verdict: Verdict) -> Dict[str, Any]:
+                           verdict: Verdict) -> dict[str, Any]:
         """
         Execute validation task.
         
@@ -99,8 +98,8 @@ class ValidatorAgent(ConstitutionalAgent):
         else:
             raise ValueError(f"Unknown validator task type: {task_type}")
     
-    async def _validate_action(self, task: Dict[str, Any],
-                              execution_id: str) -> Dict[str, Any]:
+    async def _validate_action(self, task: dict[str, Any],
+                              execution_id: str) -> dict[str, Any]:
         """
         Validate another agent's proposed action.
         
@@ -195,7 +194,7 @@ to get final approval before executing high-stakes operations.
             "reversibility_proof": reversibility_proof if f1_passed else None
         }
     
-    async def _check_f11_authorization(self, action: Dict, agent_id: str) -> bool:
+    async def _check_f11_authorization(self, action: dict, agent_id: str) -> bool:
         """
         F11: Command Authentication
         
@@ -220,7 +219,7 @@ to get final approval before executing high-stakes operations.
         
         return True
     
-    async def _check_f10_ontology(self, action: Dict) -> bool:
+    async def _check_f10_ontology(self, action: dict) -> bool:
         """
         F10: Ontology Lock
         
@@ -235,7 +234,7 @@ to get final approval before executing high-stakes operations.
         action_str = str(action).lower()
         return not any(claim in action_str for claim in forbidden_claims)
     
-    async def _check_f1_reversibility(self, action: Dict) -> tuple[bool, Optional[str]]:
+    async def _check_f1_reversibility(self, action: dict) -> tuple[bool, str | None]:
         """
         F1: Amanah (Reversibility)
         
@@ -257,7 +256,7 @@ to get final approval before executing high-stakes operations.
         proof_hash = f"reversibility_proof_{hash(str(action))}"
         return True, proof_hash
     
-    async def _check_f3_tri_witness(self, action: Dict, risk_level: str) -> bool:
+    async def _check_f3_tri_witness(self, action: dict, risk_level: str) -> bool:
         """
         F3: Tri-Witness (Human · AI · Earth)
         
@@ -269,7 +268,7 @@ to get final approval before executing high-stakes operations.
             return True
         return True
     
-    def _determine_f13_requirement(self, action: Dict, risk_level: str) -> bool:
+    def _determine_f13_requirement(self, action: dict, risk_level: str) -> bool:
         """
         F13: Sovereign
         
@@ -286,7 +285,7 @@ to get final approval before executing high-stakes operations.
         
         return False
     
-    async def _issue_direct_verdict(self, task: Dict, execution_id: str) -> Dict[str, Any]:
+    async def _issue_direct_verdict(self, task: dict, execution_id: str) -> dict[str, Any]:
         """Issue a direct verdict (for system-level decisions)."""
         verdict_type = task.get("verdict", "SEAL")
         reason = task.get("reason", "")
@@ -302,7 +301,7 @@ to get final approval before executing high-stakes operations.
             "f13_exercised": True
         }
     
-    async def _verify_compliance(self, task: Dict, execution_id: str) -> Dict[str, Any]:
+    async def _verify_compliance(self, task: dict, execution_id: str) -> dict[str, Any]:
         """Verify system-wide constitutional compliance."""
         # System health check
         return {
@@ -312,7 +311,7 @@ to get final approval before executing high-stakes operations.
             "f13_status": "ARMED"
         }
     
-    async def _trigger_hold_escalation(self, task: Dict, execution_id: str) -> Dict[str, Any]:
+    async def _trigger_hold_escalation(self, task: dict, execution_id: str) -> dict[str, Any]:
         """Manually trigger 888_HOLD escalation."""
         reason = task.get("reason", "Manual escalation")
         
@@ -326,7 +325,7 @@ to get final approval before executing high-stakes operations.
             "requires_f13": True
         }
     
-    async def _resolve_hold(self, task: Dict, execution_id: str) -> Dict[str, Any]:
+    async def _resolve_hold(self, task: dict, execution_id: str) -> dict[str, Any]:
         """Resolve a pending HOLD state (after human approval)."""
         hold_id = task.get("hold_id")
         resolution = task.get("resolution", "DENIED")  # APPROVED or DENIED
@@ -339,7 +338,7 @@ to get final approval before executing high-stakes operations.
             logger.info(f"[{execution_id}] F13 denied hold {hold_id}")
             return {"status": "RESOLVED_DENIED", "hold_id": hold_id}
     
-    def get_stats(self) -> Dict[str, int]:
+    def get_stats(self) -> dict[str, int]:
         """Get validator statistics."""
         return {
             "verdicts_issued": self.verdicts_issued,

@@ -9,12 +9,12 @@ import asyncio
 import json
 import logging
 import os
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from pathlib import Path
 from time import time
-from typing import Any, Optional
+from typing import Any
 
-from fastapi import Depends, FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -32,25 +32,24 @@ except ImportError:
             scope.setdefault("session", {})
             await self.app(scope, receive, send)
 
+from arifos_mcp.runtime.build_info import get_build_info
+from arifos_mcp.runtime.optional_deps import redis
+from arifos_mcp.runtime.public_registry import PUBLIC_TOOL_SPECS
+
 from .config import WebMCPConfig
-from .security import RateLimiter, WebInjectionGuard, ShieldReport
-from .session import WebSession, WebSessionManager
 from .governance import (
     ActionRequest,
     GovernanceEvaluation,
-    GovernanceEngine,
-    Verdict,
     governance_engine,
 )
 from .live_metrics import (
-    get_live_metrics,
-    get_machine_only,
     get_governance_only,
     get_intelligence_only,
+    get_live_metrics,
+    get_machine_only,
 )
-from arifos_mcp.runtime.build_info import get_build_info
-from arifos_mcp.runtime.public_registry import PUBLIC_TOOL_SPECS
-from arifos_mcp.runtime.optional_deps import redis
+from .security import RateLimiter, WebInjectionGuard
+from .session import WebSessionManager
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +80,7 @@ class WebMCPGateway:
         app = gateway.app  # Mount in FastAPI/Starlette
     """
 
-    def __init__(self, mcp_server: Any, config: Optional[WebMCPConfig] = None):
+    def __init__(self, mcp_server: Any, config: WebMCPConfig | None = None):
         self.mcp = mcp_server
         self.config = config or WebMCPConfig.from_env()
         self.build_info = get_build_info()
@@ -512,7 +511,7 @@ class WebMCPGateway:
                 entries = []
 
                 if vault_path.exists():
-                    with open(vault_path, "r") as f:
+                    with open(vault_path) as f:
                         lines = f.readlines()
                         # Get last N entries
                         for line in lines[-limit:]:

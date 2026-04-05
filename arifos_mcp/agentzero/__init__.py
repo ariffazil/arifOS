@@ -19,10 +19,10 @@ __version__ = "2026.03.13-MVP"
 __author__ = "Muhammad Arif bin Fazil [ΔΩΨ | ARIF]"
 
 from .agents.base import ConstitutionalAgent, TrinityRole, Verdict
-from .agents.validator import ValidatorAgent
 from .agents.engineer import EngineerAgent
-from .security.prompt_armor import PromptArmor
+from .agents.validator import ValidatorAgent
 from .escalation.hold_state import HoldStateManager
+from .security.prompt_armor import PromptArmor
 
 __all__ = [
     "ConstitutionalAgent",

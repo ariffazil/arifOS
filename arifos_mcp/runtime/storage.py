@@ -6,8 +6,8 @@ Note: py-key-value-aio[redis] must be installed in the image for Redis backend.
 Until the image is rebuilt, falls back gracefully to None (in-memory / file-based).
 """
 
-import os
 import logging
+import os
 from typing import Any
 
 logger = logging.getLogger(__name__)

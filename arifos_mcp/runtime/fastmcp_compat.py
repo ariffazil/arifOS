@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import functools
 import logging
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import fastmcp
 from fastmcp import FastMCP
@@ -144,7 +145,7 @@ except ImportError:
 
 try:
     from starlette.requests import Request
-    from starlette.responses import Response, JSONResponse, HTMLResponse, PlainTextResponse
+    from starlette.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
     STARLETTE_AVAILABLE = True
 except ImportError:
     STARLETTE_AVAILABLE = False

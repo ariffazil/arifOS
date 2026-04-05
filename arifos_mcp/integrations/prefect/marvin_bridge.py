@@ -20,7 +20,7 @@ except ImportError:
     Agent = None
     Task = None
 
-from arifos_mcp.runtime.megaTools import asi_heart, apex_soul
+from arifos_mcp.runtime.megaTools import apex_soul, asi_heart
 from arifos_mcp.runtime.models import Verdict
 
 logger = logging.getLogger(__name__)

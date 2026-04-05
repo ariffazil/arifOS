@@ -9,14 +9,14 @@ full gateway contract:
 - ``sovereign-only`` tools: remain on the VPS execution plane
 """
 
-import os
 import json
-import httpx
 import logging
-from fastmcp import FastMCP
+import os
 
-from config.environments import TOOL_ACCESS_POLICY, ToolAccessClass
+import httpx
 from arifos_mcp.runtime.fastmcp_version import JSONResponse, Request, custom_route
+from config.environments import TOOL_ACCESS_POLICY, ToolAccessClass
+from fastmcp import FastMCP
 
 # Configuration
 VPS_URL = os.getenv("ARIFOS_VPS_URL", "https://arifosmcp.arif-fazil.com")

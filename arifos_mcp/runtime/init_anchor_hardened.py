@@ -20,7 +20,6 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from core.enforcement.auth_continuity import mint_auth_context
 from arifos_mcp.runtime.contracts import (
     EntropyBudget,
     RiskTier,
@@ -36,6 +35,7 @@ from arifos_mcp.runtime.sessions import (
     get_session_identity,
 )
 
+from core.enforcement.auth_continuity import mint_auth_context
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CANONICAL INGRESS FIELDS
@@ -231,7 +231,7 @@ class HardenedInitAnchor:
         from arifos_mcp.runtime.bridge import _normalize_public_authority_level
         public_level = _normalize_public_authority_level(authority_level)
         
-        seed = f"{session_id}:{actor_id}:{public_level}".encode("utf-8")
+        seed = f"{session_id}:{actor_id}:{public_level}".encode()
         token_fingerprint = hashlib.sha256(seed).hexdigest()
         return mint_auth_context(
             session_id=session_id,

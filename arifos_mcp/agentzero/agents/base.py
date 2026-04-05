@@ -21,7 +21,6 @@ from enum import Enum, auto
 from typing import Any, Protocol
 from uuid import uuid4
 
-
 logger = logging.getLogger(__name__)
 
 

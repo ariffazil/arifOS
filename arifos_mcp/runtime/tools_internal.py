@@ -1,71 +1,52 @@
 from __future__ import annotations
 
-import asyncio
 import logging
-import os
-from typing import Any, Callable
-
-import httpx
-from fastmcp import FastMCP
-from fastmcp.dependencies import CurrentContext
-from fastmcp.server.context import Context
-from fastmcp.tools import Tool, ToolResult
+from typing import Any
 
 from arifos_mcp.runtime.models import (
-    ArifOSError,
-    AuthContext,
     CallerContext,
-    CanonicalAuthority,
     CanonicalError,
     CanonicalMetrics,
-    CANONICAL_STAGE_CONTRACTS,
-    ClaimStatus,
-    PersonaId,
-    RiskClass,
     RuntimeEnvelope,
     RuntimeStatus,
     Stage,
-    TelemetryVitals,
-    UserModel,
-    UserModelField,
-    UserModelSource,
     Verdict,
-    AuthorityLevel,
 )
-from arifos_mcp.runtime.schemas import IntentType, IntentSpec
 from arifos_mcp.runtime.public_registry import (
-    PUBLIC_TOOL_SPEC_BY_NAME,
     public_tool_names,
-    public_tool_specs,
 )
-from arifos_mcp.runtime.resources import build_open_apex_dashboard_result
+from arifos_mcp.runtime.schemas import IntentType
 from arifos_mcp.runtime.sessions import (
-    _resolve_session_id,
-    set_active_session,
-    bind_session_identity,
     get_session_identity,
-    resolve_runtime_context,
 )
+from arifos_mcp.tools.agentzero_tools import (
+    agentzero_armor_scan as _az_armor_scan,
+)
+from arifos_mcp.tools.agentzero_tools import (
+    agentzero_engineer as _az_engineer,
+)
+from arifos_mcp.tools.agentzero_tools import (
+    agentzero_hold_check as _az_hold_check,
+)
+from arifos_mcp.tools.agentzero_tools import (
+    agentzero_memory_query as _az_memory_query,
+)
+from arifos_mcp.tools.agentzero_tools import (
+    agentzero_validate as _az_validate,
+)
+from fastmcp.server.context import Context
+
 from core.shared.mottos import (
     MOTTO_000_INIT_HEADER,
     MOTTO_999_SEAL_HEADER,
     get_motto_for_stage,
 )
-from core.enforcement.auth_continuity import mint_auth_context
-from core.state.session_manager import session_manager
-from .bridge import call_kernel
-from .reality_handlers import handler as reality_handler
-from .reality_models import BundleInput, Policy
-from arifos_mcp.tools.agentzero_tools import (
-    agentzero_validate as _az_validate,
-    agentzero_engineer as _az_engineer,
-    agentzero_hold_check as _az_hold_check,
-    agentzero_memory_query as _az_memory_query,
-    agentzero_armor_scan as _az_armor_scan,
-)
 
 # Import internal tools from runtime.tools for code_engine and math_estimator dispatches
 from . import tools as internal_tools
+from .bridge import call_kernel
+from .reality_handlers import handler as reality_handler
+from .reality_models import BundleInput
 
 # Hybrid memory import (may not be available in all configurations)
 try:
@@ -74,11 +55,6 @@ except ImportError:
     async def get_hybrid_memory():
         raise RuntimeError("Hybrid memory not available")
 
-from arifos_mcp.runtime.governance_identities import (
-    is_protected_sovereign_id,
-    validate_sovereign_proof,
-    canonicalize_identity_claim,
-)
 
 # P0: Import from sessions.py to avoid circular imports
 from arifos_mcp.runtime.sessions import _normalize_session_id
@@ -213,8 +189,8 @@ async def _wrap_call(
         kernel_res = await call_kernel(tool_name, session_id, payload)
         
         # ─── V1.0 VERDICT MAPPING ───
+        from arifos_mcp.runtime.models import CanonicalMetrics, VerdictCode
         from arifos_mcp.runtime.verdict_wrapper import forge_verdict
-        from arifos_mcp.runtime.models import VerdictCode, CanonicalMetrics
         
         # Convert legacy Verdict to VerdictCode
         legacy_v = kernel_res.get("verdict", "SABAR")
@@ -926,7 +902,8 @@ async def engineering_memory_dispatch_impl(
         # Includes H8 tombstone audit trail for F1 Amanah compliance.
         # ═══════════════════════════════════════════════════════════════
         import json as _json
-        from datetime import datetime as _dt, timezone as _tz
+        from datetime import datetime as _dt
+        from datetime import timezone as _tz
 
         memory_ids = payload.get("memory_ids", [])
         query = payload.get("query") or payload.get("content")
