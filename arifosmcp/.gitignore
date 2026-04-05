@@ -44,7 +44,9 @@ logs/
 # Local data (don't commit to git)
 VAULT999/*.db
 VAULT999/*.json
-memory/
+memory/*.db
+memory/*.jsonl
+memory/*.bin
 telemetry/
 
 # pytest
