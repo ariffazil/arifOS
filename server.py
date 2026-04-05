@@ -82,7 +82,7 @@ if IS_HORIZON:
     # ═════════════════════════════════════════════════════════════════════════
     # HORIZON MODE: Lightweight gateway, no heavy runtime imports
     # ═════════════════════════════════════════════════════════════════════════
-    from server_horizon import mcp
+    from ops.runtime.server_horizon import mcp
     
     # Import config only for logging (it's lightweight)
     try:
@@ -116,7 +116,7 @@ else:
     except (ImportError, ModuleNotFoundError) as e:
         # Fallback: Heavy deps missing, use Horizon gateway
         print(f"⚠️  VPS deps unavailable ({e}), falling back to Horizon mode", file=sys.stderr)
-        from server_horizon import mcp
+        from ops.runtime.server_horizon import mcp
 
 
 # Export for FastMCP Cloud / Horizon / CLI

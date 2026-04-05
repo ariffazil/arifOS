@@ -32,8 +32,8 @@ os.environ["ARIFOS_DEPLOYMENT"] = "local"
 os.environ["AAA_MCP_TRANSPORT"] = "stdio"
 os.environ["ARIFOS_MINIMAL_STDIO"] = "1"
 
-# Add project to path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Add project root to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from arifosmcp.runtime.server import create_aaa_mcp_server
 from arifosmcp.runtime.fastmcp_ext.transports import run_server
