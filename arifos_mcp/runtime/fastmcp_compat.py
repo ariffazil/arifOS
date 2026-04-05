@@ -11,6 +11,7 @@ import logging
 from typing import Any, Callable
 
 import fastmcp
+from fastmcp import FastMCP
 
 logger = logging.getLogger(__name__)
 

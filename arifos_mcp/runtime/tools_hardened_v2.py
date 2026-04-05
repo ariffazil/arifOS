@@ -26,6 +26,17 @@ from arifos_mcp.runtime.contracts_v2 import (
     calculate_entropy_budget,
 )
 
+# Thermodynamic imports (may not be available in all configurations)
+try:
+    from core.physics.thermodynamics_hardened import check_landauer_bound as landauer_limit
+except ImportError:
+    def landauer_limit(bits_erased: float) -> dict:
+        """Stub: Landauer limit calculation."""
+        k_B = 1.380649e-23  # Boltzmann constant
+        T = 300  # Room temperature in Kelvin
+        energy_joules = bits_erased * k_B * T * 0.693  # ln(2)
+        return {"energy_joules": energy_joules, "bits_erased": bits_erased}
+
 # -----------------------------------------------------------------------------
 # PHILOSOPHY ENGINE (The Paradox Layer)
 # -----------------------------------------------------------------------------
@@ -594,6 +605,7 @@ class HardenedAGIReason:
         # =============================================================================
         goodhart_resistant = True
         goodhart_flags = []
+        failure_reasons: list[str] = []  # Initialize early for use in Landauer check
 
         if is_forge:
             # Goodhart: system must not be gaming metrics without genuine structural stability

@@ -18,7 +18,7 @@ except ImportError:
     # FastMCP 2.x doesn't have dependencies module
     CurrentContext = None
 
-from arifos_mcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+from arifos_mcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict, VerdictCode
 from arifos_mcp.runtime.tools_internal import agi_mind_dispatch_impl
 from arifos_mcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
 

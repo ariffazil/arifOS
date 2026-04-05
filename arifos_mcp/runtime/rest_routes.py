@@ -1659,7 +1659,15 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
 
             # Attempt to query VAULT999 for real session history
             try:
-
+                # Try SQLite vault backend if available
+                try:
+                    from .vault_sqlite import VaultSQLite
+                except ImportError:
+                    VaultSQLite = None  # type: ignore
+                
+                if VaultSQLite is None:
+                    raise ImportError("VaultSQLite not available")
+                
                 vault = VaultSQLite()
                 raw = vault.query_recent(limit=limit) if hasattr(vault, "query_recent") else []
                 for entry in raw:

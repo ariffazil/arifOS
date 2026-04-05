@@ -26,6 +26,9 @@ from core.organs._4_vault import verify_vault_ledger
 
 from .models import ClaimStatus, Verdict
 
+# Import ollama implementation
+from .tools_internal import ollama_local_generate_impl
+
 logger = logging.getLogger(__name__)
 
 # P0: VPS Infrastructure Integration — Use Redis as primary vault backend
@@ -1206,3 +1209,42 @@ async def call_kernel(
                 "issue": "RUNTIME_FAILURE",
             },
         )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STUB: Office Tools (To be implemented)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+async def audit_markdown(markdown: str) -> dict:
+    """Stub: Audit markdown document (office_forge_audit)."""
+    return {"ok": False, "error": "audit_markdown not implemented", "input_length": len(markdown)}
+
+
+async def render_office_document(
+    session_id: str,
+    markdown: str,
+    mode: str = "pdf",
+    theme: str = "default",
+    filename: str | None = None,
+) -> dict:
+    """Stub: Render markdown to office document (office_forge)."""
+    return {
+        "ok": False,
+        "error": "render_office_document not implemented",
+        "session_id": session_id,
+        "mode": mode,
+        "theme": theme,
+    }
+
+
+# Alias for ollama local generation
+async def ollama_local_generate_call(
+    prompt: str,
+    model: str = "qwen2.5:3b",
+    system: str | None = None,
+    temperature: float = 0.2,
+    max_tokens: int = 512,
+) -> dict:
+    """Call ollama local generate implementation."""
+    result = await ollama_local_generate_impl(prompt=prompt, session_id=None)
+    return result.payload if hasattr(result, "payload") else {"ok": False, "error": "Ollama call failed"}

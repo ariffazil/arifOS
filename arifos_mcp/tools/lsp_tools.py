@@ -31,6 +31,12 @@ try:
 except ImportError:
     MCP_AVAILABLE = False
 
+# LSP Bridge (may not be available in all configurations)
+try:
+    from ..lsp_bridge import get_lsp_bridge
+except ImportError:
+    get_lsp_bridge = None  # type: ignore
+
 logger = logging.getLogger(__name__)
 
 

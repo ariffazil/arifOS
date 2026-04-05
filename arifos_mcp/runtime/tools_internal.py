@@ -63,6 +63,17 @@ from arifos_mcp.tools.agentzero_tools import (
     agentzero_memory_query as _az_memory_query,
     agentzero_armor_scan as _az_armor_scan,
 )
+
+# Import internal tools from runtime.tools for code_engine and math_estimator dispatches
+from . import tools as internal_tools
+
+# Hybrid memory import (may not be available in all configurations)
+try:
+    from .memory_hybrid import get_hybrid_memory
+except ImportError:
+    async def get_hybrid_memory():
+        raise RuntimeError("Hybrid memory not available")
+
 from arifos_mcp.runtime.governance_identities import (
     is_protected_sovereign_id,
     validate_sovereign_proof,
@@ -656,7 +667,6 @@ async def engineering_memory_dispatch_impl(
 
         # HYBRID L3: LanceDB (hot) + Qdrant (cold)
         try:
-
             memory = await get_hybrid_memory()
             results = await memory.search(
                 query=query,

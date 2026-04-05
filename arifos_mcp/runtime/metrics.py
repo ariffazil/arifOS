@@ -11,6 +11,12 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
+# Vault logging (may not be available in all configurations)
+try:
+    from .vault_postgres import VaultLogger
+except ImportError:
+    VaultLogger = None  # type: ignore
+
 try:
     from prometheus_client import (
         CONTENT_TYPE_LATEST,

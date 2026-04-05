@@ -10,6 +10,9 @@ from arifos_mcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Stage, Ver
 from .bridge import call_kernel
 from .public_registry import is_public_profile, normalize_tool_profile
 
+# Import console tools from runtime.tools module
+from . import tools as console_tools
+
 logger = logging.getLogger(__name__)
 
 
