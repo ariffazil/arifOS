@@ -188,8 +188,6 @@ async def code_engine(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
     return await _mega_code_engine(*args, **kwargs)
 
 
-async def architect_registry(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
-    return await _mega_architect_registry(*args, **kwargs)
 
 
 def select_governed_philosophy(

@@ -58,12 +58,12 @@ except ImportError:
 
     REGISTRY = _NoopRegistry()
 
-    def Gauge(name: str, documentation: str, labelnames: Any = ()) -> _NoopCollector:
+    def _gauge(name: str, documentation: str, labelnames: Any = ()) -> _NoopCollector:
         collector = _NoopCollector(name, documentation, labelnames)
         REGISTRY._names_to_collectors[name] = collector
         return collector
 
-    def Counter(name: str, documentation: str, labelnames: Any = ()) -> _NoopCollector:
+    def _counter(name: str, documentation: str, labelnames: Any = ()) -> _NoopCollector:
         collector = _NoopCollector(name, documentation, labelnames)
         REGISTRY._names_to_collectors[name] = collector
         return collector
@@ -107,14 +107,14 @@ def _gauge(name: str, documentation: str, labelnames: list[str] | tuple[str, ...
     collector = _registered_metric(name)
     if collector is not None:
         return collector
-    return Gauge(name, documentation, labelnames)
+    return _gauge(name, documentation, labelnames)
 
 
 def _counter(name: str, documentation: str, labelnames: list[str] | tuple[str, ...] = ()):
     collector = _registered_metric(name)
     if collector is not None:
         return collector
-    return Counter(name, documentation, labelnames)
+    return _counter(name, documentation, labelnames)
 
 
 def _histogram(
@@ -390,7 +390,7 @@ def update_prometheus_metrics() -> None:
     try:
         from arifos_mcp.runtime.sessions import list_active_sessions_count
         ACTIVE_SESSIONS.set(list_active_sessions_count())
-    except:
+    except Exception:
         pass
 
     try:
@@ -399,7 +399,7 @@ def update_prometheus_metrics() -> None:
         # In Postgres mode, this is more accurate than JSONL if get_session_records is updated
         res = logger_inst.get_session_records("*")
         VAULT_ENTRIES_COUNT.set(float(len(res)))
-    except:
+    except Exception:
         pass
 
 

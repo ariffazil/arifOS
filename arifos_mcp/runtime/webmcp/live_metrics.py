@@ -75,7 +75,7 @@ class GovernanceMetrics:
 
     # Vitals (thermodynamics)
     G_star: float = 0.85
-    dS: float = -0.3
+    entropy_delta: float = -0.3
     peace2: float = 1.05
     omega: float = 0.04
     kappa_r: float = 0.97
@@ -161,7 +161,7 @@ class LiveMetricsCollector:
             # Load average (Unix only)
             try:
                 load_avg = list(os.getloadavg()) if hasattr(os, "getloadavg") else [0.0, 0.0, 0.0]
-            except:
+            except Exception:
                 load_avg = [0.0, 0.0, 0.0]
 
             # Memory
@@ -191,7 +191,7 @@ class LiveMetricsCollector:
                 docker_containers = len(containers)
                 docker_running = len([c for c in containers if c.status == "running"])
                 docker_images = len(client.images.list())
-            except:
+            except Exception:
                 pass
 
             return MachineMetrics(
@@ -260,13 +260,13 @@ class LiveMetricsCollector:
             try:
                 thermo = get_thermodynamic_report()
                 G_star = thermo.get("G_star", 0.85)
-                dS = thermo.get("dS", -0.3)
+                entropy_delta = thermo.get("entropy_delta", -0.3)
                 peace2 = thermo.get("peace2", 1.05)
                 omega = thermo.get("omega", 0.04)
                 kappa_r = thermo.get("kappa_r", 0.97)
                 psi_le = thermo.get("psi_le", 1.09)
-            except:
-                G_star, dS, peace2, omega, kappa_r, psi_le = 0.85, -0.3, 1.05, 0.04, 0.97, 1.09
+            except Exception:
+                G_star, entropy_delta, peace2, omega, kappa_r, psi_le = 0.85, -0.3, 1.05, 0.04, 0.97, 1.09
 
             # Get VAULT999 stats
             vault_entries = 0
@@ -280,14 +280,14 @@ class LiveMetricsCollector:
                         if lines:
                             last = json.loads(lines[-1])
                             vault_last = last.get("timestamp", "")
-            except:
+            except Exception:
                 pass
 
             # Get session count
             active_sessions = 0
             try:
                 active_sessions = len(session_manager.list_sessions())
-            except:
+            except Exception:
                 pass
 
             return GovernanceMetrics(
@@ -296,7 +296,7 @@ class LiveMetricsCollector:
                 floors_passing=floors_passing,
                 floors_failing=floors_failing,
                 G_star=G_star,
-                dS=dS,
+                entropy_delta=entropy_delta,
                 peace2=peace2,
                 omega=omega,
                 kappa_r=kappa_r,
@@ -329,7 +329,7 @@ class LiveMetricsCollector:
                             {"name": m.get("name"), "provider": "ollama"}
                             for m in data.get("models", [])[:5]
                         ]
-                except:
+                except Exception:
                     metrics.ollama_status = "unavailable"
 
             # Get runtime metrics from arifOS
@@ -338,7 +338,7 @@ class LiveMetricsCollector:
 
                 global_status = live_metrics.get_global_status()
                 metrics.tool_calls = global_status.get("total_recorded_errors", 0)  # Placeholder
-            except:
+            except Exception:
                 pass
 
             # TODO: Integrate with actual LLM provider APIs for token counts

@@ -452,7 +452,6 @@ class EngineerAgent(ConstitutionalAgent):
         """
         # Simplified - would use actual analysis
         # High coherence = well-structured, documented, clear code
-        lines = code.split('\n')
         
         # Check for documentation
         has_docs = '"""' in code or "'''" in code
@@ -464,9 +463,12 @@ class EngineerAgent(ConstitutionalAgent):
         has_structure = 'def ' in code or 'class ' in code
         
         score = 0.5  # Base
-        if has_docs: score += 0.2
-        if has_clear_names: score += 0.15
-        if has_structure: score += 0.15
+        if has_docs:
+            score += 0.2
+        if has_clear_names:
+            score += 0.15
+        if has_structure:
+            score += 0.15
         
         return min(1.0, score)
     

@@ -39,7 +39,7 @@ async def compat_probe(
     raw_level = (auth_context or {}).get("authority_level") or (identity or {}).get("authority_level") or "anonymous"
     
     # Check if raw_level is in canonical identity classes
-    CANONICAL_IDENTITY_CLASSES = {
+    canonical_identity_classes = {
         "human", "user", "agent", "system", "anonymous", 
         "operator", "sovereign", "declared", "claimed", "verified", "apex", "none"
     }

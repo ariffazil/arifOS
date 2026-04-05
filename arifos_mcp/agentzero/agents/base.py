@@ -384,6 +384,6 @@ class ConstitutionalExecutionError(Exception):
     pass
 
 
-class ConstitutionalViolation(Exception):
+class ConstitutionalViolationError(Exception):
     """Raised when constitutional constraints are violated."""
     pass

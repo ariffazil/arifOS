@@ -101,7 +101,7 @@ class ActionRequest(BaseModel):
 class GovernanceMetrics(BaseModel):
     """Thermodynamic governance metrics."""
     G_star: float = Field(..., ge=0.0, le=1.0, description="Genius score - coherence")
-    dS: float = Field(..., description="Entropy delta - clarity (negative is good)")
+    entropy_delta: float = Field(..., description="Entropy delta - clarity (negative is good)")
     peace2: float = Field(..., ge=0.0, description="Stability score")
     omega: float = Field(..., ge=0.0, le=1.0, description="Humility - uncertainty acknowledged")
     kappa_r: float = Field(..., ge=0.0, le=1.0, description="Empathy - weakest stakeholder care")
@@ -256,9 +256,9 @@ class GovernanceEngine:
         # === F4: Clarity (Entropy) ===
         # Calculate based on action complexity
         complexity = len(request.parameters) + len(request.context)
-        dS = -0.1 * complexity  # More complex = more entropy reduction needed
+        entropy_delta = -0.1 * complexity  # More complex = more entropy reduction needed
         
-        if dS <= 0:
+        if entropy_delta <= 0:
             floors_passed.append("F4")
         else:
             floors_failed.append("F4")
@@ -376,7 +376,7 @@ class GovernanceEngine:
         # Build metrics
         metrics = GovernanceMetrics(
             G_star=round(G_star, 4),
-            dS=round(dS, 4),
+            entropy_delta=round(entropy_delta, 4),
             peace2=round(peace2, 4),
             omega=round(omega, 4),
             kappa_r=0.85 if request.stakeholders else 0.5,

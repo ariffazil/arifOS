@@ -12,6 +12,7 @@ Trigger Conditions:
 - F2 verification failure (hallucination)
 - F12 injection detection (high confidence)
 - F11 unauthorized access attempt
+from typing import ClassVar
 - Irreversible operation detected
 - Missing grounding evidence
 - Jurisdictional ambiguity
@@ -438,7 +439,6 @@ async def escalate_for_irreversible_action(
 # payload details.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-from typing import ClassVar
 
 
 class GlobalAnchorHoldRegistry:

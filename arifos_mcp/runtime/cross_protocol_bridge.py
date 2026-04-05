@@ -20,8 +20,10 @@ from collections.abc import Callable, Coroutine
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 
-logger = logging.getLogger(__name__)
+# Import before logger setup
 from arifos_mcp.runtime.optional_deps import redis
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)

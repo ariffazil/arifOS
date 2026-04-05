@@ -15,9 +15,19 @@ try:
     PREFECT_AVAILABLE = True
 except ImportError:
     PREFECT_AVAILABLE = False
-    flow = lambda **kw: lambda f: f
-    task = lambda **kw: lambda f: f
-    get_run_logger = lambda: logging.getLogger(__name__)
+    
+    def flow(**kw):
+        def decorator(f):
+            return f
+        return decorator
+    
+    def task(**kw):
+        def decorator(f):
+            return f
+        return decorator
+    
+    def get_run_logger():
+        return logging.getLogger(__name__)
 
 from arifos_mcp.runtime.megaTools import (
     asi_heart,

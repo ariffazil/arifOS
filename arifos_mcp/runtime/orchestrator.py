@@ -440,7 +440,7 @@ async def run_stage(
             elif Verdict.SABAR in verdict_history:
                 candidate = Verdict.SABAR
 
-            return await apex_judge(
+            return await apex_judge(candidate=candidate,
                 candidate_output=query,
                 session_id=session_id,
                 redteam=red_res.model_dump() if red_res else None,
@@ -550,7 +550,7 @@ async def metabolic_loop(
         return elapsed > timeout_seconds * 0.8  # 80% threshold for early warning
 
     # ─── METABOLIC SYNONYM LAYER ───
-    LEGACY_SYNONYMS = {
+    _legacy_synonyms = {
         "session_memory": "agi_reflect",
         "simulate_heart": "asi_simulate",
         "assess_heart_impact": "asi_simulate",
