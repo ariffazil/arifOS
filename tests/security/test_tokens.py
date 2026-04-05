@@ -9,7 +9,7 @@ import os
 import pytest
 from unittest.mock import patch
 
-from arifosmcp.core.security.tokens import (
+from core.security.tokens import (
     TokenResult,
     ValidationResult,
     mint_governance_token,
@@ -116,7 +116,7 @@ class TestMintGovernanceToken:
 
     def test_mint_with_whitelisted_actor(self):
         """Should mint token for whitelisted actor."""
-        with patch("arifosmcp.core.security.tokens.BOOTSTRAP_ACTORS", {"testuser"}):
+        with patch("core.security.tokens.BOOTSTRAP_ACTORS", {"testuser"}):
             result = mint_governance_token(
                 actor_id="testuser",
                 session_id="sess-123",
@@ -129,7 +129,7 @@ class TestMintGovernanceToken:
 
     def test_mint_with_semantic_bypass_arif(self):
         """Actor 'arif' should bypass whitelist and get sovereign clearance."""
-        with patch("arifosmcp.core.security.tokens.BOOTSTRAP_ACTORS", set()):
+        with patch("core.security.tokens.BOOTSTRAP_ACTORS", set()):
             result = mint_governance_token(
                 actor_id="arif",
                 session_id="sess-123",
@@ -140,7 +140,7 @@ class TestMintGovernanceToken:
 
     def test_mint_with_semantic_bypass_sovereign(self):
         """Actor 'sovereign' should bypass whitelist."""
-        with patch("arifosmcp.core.security.tokens.BOOTSTRAP_ACTORS", set()):
+        with patch("core.security.tokens.BOOTSTRAP_ACTORS", set()):
             result = mint_governance_token(
                 actor_id="sovereign",
                 session_id="sess-123",
@@ -150,7 +150,7 @@ class TestMintGovernanceToken:
 
     def test_mint_rejects_non_whitelisted(self):
         """Should reject non-whitelisted actors when BOOTSTRAP_ACTORS is set."""
-        with patch("arifosmcp.core.security.tokens.BOOTSTRAP_ACTORS", {"alloweduser"}):
+        with patch("core.security.tokens.BOOTSTRAP_ACTORS", {"alloweduser"}):
             result = mint_governance_token(
                 actor_id="unauthorized",
                 session_id="sess-123",
@@ -160,8 +160,8 @@ class TestMintGovernanceToken:
 
     def test_mint_with_open_mode(self):
         """Should accept any actor when OPEN_MODE is enabled."""
-        with patch("arifosmcp.core.security.tokens.OPEN_MODE", True):
-            with patch("arifosmcp.core.security.tokens.BOOTSTRAP_ACTORS", {"otheruser"}):
+        with patch("core.security.tokens.OPEN_MODE", True):
+            with patch("core.security.tokens.BOOTSTRAP_ACTORS", {"otheruser"}):
                 result = mint_governance_token(
                     actor_id="randomuser",
                     session_id="sess-123",
@@ -241,7 +241,7 @@ class TestValidateGovernanceToken:
 
     def test_validate_with_open_mode_bypass(self):
         """Should bypass validation when OPEN_MODE is enabled."""
-        with patch("arifosmcp.core.security.tokens.OPEN_MODE", True):
+        with patch("core.security.tokens.OPEN_MODE", True):
             validation = validate_governance_token(
                 token="any.token.here",  # Invalid token
                 expected_session_id="sess-123",
@@ -306,7 +306,7 @@ class TestOpenModeConfiguration:
             with patch.dict(os.environ, {"ARIFOS_OPEN_MODE": value}):
                 # Need to reimport to pick up new env var
                 import importlib
-                from arifosmcp.core.security import tokens
+                from core.security import tokens
 
                 importlib.reload(tokens)
                 assert tokens.OPEN_MODE is True
@@ -315,7 +315,7 @@ class TestOpenModeConfiguration:
         for value in ["false", "FALSE", "0", "no", "", "off"]:
             with patch.dict(os.environ, {"ARIFOS_OPEN_MODE": value}):
                 import importlib
-                from arifosmcp.core.security import tokens
+                from core.security import tokens
 
                 importlib.reload(tokens)
                 assert tokens.OPEN_MODE is False
@@ -348,7 +348,7 @@ class TestIntegration:
     def test_arif_workflow(self):
         """Test the 'arif' semantic bypass workflow."""
         # As 'arif', I should be able to mint tokens without whitelist
-        with patch("arifosmcp.core.security.tokens.BOOTSTRAP_ACTORS", set()):
+        with patch("core.security.tokens.BOOTSTRAP_ACTORS", set()):
             mint_result = mint_governance_token(
                 actor_id="arif",
                 session_id="arif-session",
@@ -496,8 +496,8 @@ class TestNonceContinuity:
 
     def test_open_mode_allows_any_actor(self):
         """In open mode, any actor can mint tokens."""
-        with patch("arifosmcp.core.security.tokens.OPEN_MODE", True):
-            with patch("arifosmcp.core.security.tokens.BOOTSTRAP_ACTORS", {"otheruser"}):
+        with patch("core.security.tokens.OPEN_MODE", True):
+            with patch("core.security.tokens.BOOTSTRAP_ACTORS", {"otheruser"}):
                 # Random actor should succeed in open mode
                 result = mint_governance_token(
                     actor_id="randomuser",

@@ -7,7 +7,7 @@ Includes Paradox Energy Budget tests for metabolic limiting.
 
 import time
 import pytest
-from arifosmcp.core.homeostasis import (
+from core.homeostasis import (
     ComputeTier,
     SpendPolicy,
     CognitivePressure,

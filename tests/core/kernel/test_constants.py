@@ -2,7 +2,7 @@
 
 import pytest
 
-from arifosmcp.core.kernel.constants import (
+from core.kernel.constants import (
     ConstitutionalThresholds,
     PerformanceLimits,
     SessionConfig,
@@ -110,7 +110,7 @@ class TestConstantsExports:
     """Module exports verification."""
 
     def test_all_exports_present(self):
-        from arifosmcp.core.kernel import constants
+        from core.kernel import constants
 
         assert hasattr(constants, "__all__")
         assert "ConstitutionalThresholds" in constants.__all__

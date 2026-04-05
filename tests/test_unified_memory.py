@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from arifosmcp.core.organs.unified_memory import UnifiedMemory, vault
+from core.organs.unified_memory import UnifiedMemory, vault
 
 
 class _FakePoint:

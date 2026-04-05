@@ -4,7 +4,7 @@ import os
 import json
 import pytest
 from datetime import datetime, timezone, timedelta
-from arifosmcp.core.telemetry import (
+from core.telemetry import (
     ConstitutionalTelemetry,
     TelemetryStore,
     log_telemetry,
@@ -90,7 +90,7 @@ def test_get_actual_joules(monkeypatch):
 
 def test_log_telemetry_convenience(monkeypatch, temp_telemetry_store):
     # Patch global store
-    import arifosmcp.core.telemetry
+    import core.telemetry
     monkeypatch.setattr(core.telemetry, "telemetry_store", temp_telemetry_store)
     
     log_telemetry("session_conv", 0.04, 0.1, verdict="SEAL")

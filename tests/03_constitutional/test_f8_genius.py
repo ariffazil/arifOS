@@ -6,9 +6,9 @@ from __future__ import annotations
 
 import pytest
 
-from arifosmcp.core.judgment import judge_cognition
-from arifosmcp.core.shared.floors import F8_Genius
-from arifosmcp.core.shared.physics import GeniusDial, genius_score
+from core.judgment import judge_cognition
+from core.shared.floors import F8_Genius
+from core.shared.physics import GeniusDial, genius_score
 
 
 class TestF8GeniusFloor:

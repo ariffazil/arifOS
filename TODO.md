@@ -24,6 +24,7 @@
 - [x] **ASF-1 Dual-Layer Protocol:** JSON for agents, narrative for humans.
 - [x] **Machine-Verifiable Schema Enforcement:** Explicit thresholds, formal verdict mapping.
 - [x] **Red-Team Stage (666_HEART):** Adversarial critique integrated.
+- [x] **Great Unification:** Repo restructuring, documentation hierarchy, and package consolidation (2026.04.06).
 - [ ] **Mode Stability:** Audit all 42 modes in `tools_internal.py` for input schema parity with `contracts.py`.
 - [ ] **API Rotation:** Revoke legacy OpenCode keys and inject fresh secrets into the VPS runtime.
 - [ ] **Lint Fix (Ruff):** Resolve pre-existing lint failures in the root `arifosmcp/` kernel.

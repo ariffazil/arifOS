@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from arifosmcp.runtime import bridge
-from arifosmcp.core.enforcement.governance_engine import wrap_tool_output
+from core.enforcement.governance_engine import wrap_tool_output
 
 
 @pytest.mark.asyncio

@@ -6,9 +6,9 @@ from __future__ import annotations
 
 import pytest
 
-from arifosmcp.core.judgment import judge_cognition
-from arifosmcp.core.shared.floors import F7_Humility
-from arifosmcp.core.uncertainty_engine import (
+from core.judgment import judge_cognition
+from core.shared.floors import F7_Humility
+from core.uncertainty_engine import (
     HUMILITY_MAX,
     HUMILITY_MIN,
     HumilityBandViolation,

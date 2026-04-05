@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from arifosmcp.core.judgment import (
+from core.judgment import (
     CognitionResult,
     EmpathyResult,
     VerdictResult,

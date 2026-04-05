@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from arifosmcp.core.enforcement.aki_contract import AKIContract, L0KernelGatekeeper, SovereignGate
-from arifosmcp.core.governance_kernel import AuthorityLevel, GovernanceKernel, GovernanceState
+from core.enforcement.aki_contract import AKIContract, L0KernelGatekeeper, SovereignGate
+from core.governance_kernel import AuthorityLevel, GovernanceKernel, GovernanceState
 
 
 def test_aki_blocks_when_uncertainty_exceeds_threshold() -> None:

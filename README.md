@@ -163,6 +163,22 @@ If components fail, the system degrades to HOLD (await human) rather than VOID (
 
 ---
 
+## Grounding & Authority (ARIF Framework)
+
+arifOS utilizes the **ARIF** (Arif Retrieval Intelligence Framework) to govern the "Bookends of Truth"—how intelligence is grounded and how it is finalized.
+
+### 🧬 A-RIF (Grounding & Retrieval)
+A-RIF is the **Constitutional RAG** system ensuring every response is grounded in sealed canon.
+1.  **SENSE (111):** Query embedding via `nomic-embed-text`.
+2.  **REALITY (222):** Vector search across Qdrant (Global) and local indices.
+3.  **MIND (333):** Synthesis of retrieved chunks into a cited context.
+4.  **HUMILITY (F7):** Explicit uncertainty reporting (Ω₀ band [0.03, 0.05]).
+
+### ⚖️ SEAL (Authority & Integrity)
+The SEAL is the final authority of the **888_JUDGE**, transforming session data into immutable records in **VAULT999**. No irreversible action (F1 Amanah) occurs without a seal, calculated on the **W³ matrix** (Wisdom × Will × Welfare) with a threshold of **≥ 0.95**.
+
+---
+
 ## Quick Start (Zero to First Call in 60 Seconds)
 
 ### Option A: Connect via MCP (Recommended for Evaluation)
@@ -1478,15 +1494,40 @@ See `CHANGELOG.md` for full history.
 
 ---
 
-## Related Ecosystem
+## arifOS Ecosystem Map
 
-| Repository | Purpose | License |
-|------------|---------|---------|
-| [arifOS](https://github.com/ariffazil/arifOS) | Main constitutional kernel | AGPL-3.0 |
-| [APEX](https://github.com/ariffazil/APEX) | Theory & philosophy | CC0 |
-| [GEOX](https://github.com/ariffazil/GEOX) | Geological domain tools | AGPL-3.0 |
-| [waw](https://github.com/ariffazil/waw) | ARIF-MAIN agent workspace | AGPL-3.0 |
-| [makcikGPT](https://github.com/ariffazil/makcikGPT) | Malay language AI | MIT |
+| Ring | Symbol | Repository | Role | Status |
+|------|--------|------------|------|--------|
+| **Soul** | Ψ | [waw](https://github.com/ariffazil/waw) | Federation hub — human-facing surface | ✅ |
+| **Mind** | Δ | [arifOS](https://github.com/ariffazil/arifOS) | Constitutional kernel — 13 floors, governance | ✅ |
+| **Body** | Ω | [arifosmcp](https://github.com/ariffazil/arifosmcp) | MCP server — tool execution | ✅ |
+
+### 🗺️ Repository Atlas
+```
+ariffazil (github.com/ariffazil/)
+│
+├── arifOS/ (Main Orchestration Repo)
+│   ├── [SUBMODULE] arifosmcp/ (The MCP Limbs)
+│   ├── [SUBMODULE] arifOS-model-registry/ (The Weights)
+│   └── [SUBMODULE] geox/ (The Earth Plane)
+│
+└── arif-site/ (The Sovereign Web Presence)
+```
+
+## Runtime & Execution (SYSTEM)
+
+The arifOS Unified Runtime unifies the **Reality Bridge** (physical execution), **Skill Bridge** (logical orchestration), and **Execution Validator** (truth feedback).
+
+### 🧬 Reality Bridge (Physical Perception)
+Connects AI intent to actual system state.
+-   **Adapters:** Docker (`ps`, `restart`, `logs`), Git (`status`, `commit`, `push`), Filesystem.
+-   **Invariants (F12):** Every command is sanitized to prevent injection and ensure the F12 floor is never breached.
+
+### 🛠️ Skill Bridge (Logical Action)
+Orchestrates high-level tasks (Skills) mapped to Reality Bridge calls.
+1.  **Checkpoint (F1):** Reversibility state created before execution.
+2.  **Dry Run (F7):** Default simulation mode to assess impact.
+3.  **Operator (F13):** High-risk actions require explicit sovereign authorization.
 
 ---
 

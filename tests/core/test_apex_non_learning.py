@@ -15,13 +15,13 @@ import inspect
 
 import pytest
 
-from arifosmcp.core.governance.apex_invariants import (
+from core.governance.apex_invariants import (
     APEX_CONSTANTS,
     ApexConstants,
     get_invariant_table,
     validate_apex_non_learning,
 )
-from arifosmcp.core.physics.thermodynamic_enforcement import ThermodynamicProsecutor
+from core.physics.thermodynamic_enforcement import ThermodynamicProsecutor
 
 
 class TestApexNonLearningGuarantee:

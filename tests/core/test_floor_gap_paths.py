@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from arifosmcp.core.shared.floors import F3_QuadWitness, F5_Peace2, F6_Empathy, F8_Genius, F10_Ontology
+from core.shared.floors import F3_QuadWitness, F5_Peace2, F6_Empathy, F8_Genius, F10_Ontology
 
 
 def test_f3_quad_witness_passes_for_grounded_read_path() -> None:

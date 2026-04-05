@@ -10,7 +10,7 @@ def test_open_mode_uses_fixed_public_governance_secret(monkeypatch):
     monkeypatch.delenv("ARIFOS_GOVERNANCE_TOKEN_SECRET", raising=False)
 
     with warnings.catch_warnings(record=True) as caught:
-        import arifosmcp.core.enforcement.auth_continuity as auth_continuity
+        import core.enforcement.auth_continuity as auth_continuity
 
         reloaded = importlib.reload(auth_continuity)
 

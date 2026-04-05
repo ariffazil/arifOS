@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
-from arifosmcp.core.enforcement.governance_engine import (
+from core.enforcement.governance_engine import (
     TOOL_DIALS_MAP,
     TOOL_LAW_BINDINGS,
     TOOL_STAGE_MAP,

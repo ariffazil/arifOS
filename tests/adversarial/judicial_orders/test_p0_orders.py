@@ -17,9 +17,9 @@ import pytest
 # Force physics enabled for these tests
 os.environ["ARIFOS_PHYSICS_DISABLED"] = "0"
 
-from arifosmcp.core.enforcement.aki_contract import AKIContract
-from arifosmcp.core.governance_kernel import GovernanceKernel, GovernanceState
-from arifosmcp.core.shared.floors import F1_Amanah, F2_Truth, F12_Injection, F13_Sovereign
+from core.enforcement.aki_contract import AKIContract
+from core.governance_kernel import GovernanceKernel, GovernanceState
+from core.shared.floors import F1_Amanah, F2_Truth, F12_Injection, F13_Sovereign
 
 # =============================================================================
 # ORDER 002: test_f1_irreversible_action_blocked()
@@ -98,7 +98,7 @@ def test_p3_cheap_truth_voided():
     P3 Thermodynamics (Landauer Bound)
     Order 004: Cheap truth = VOID. Physical laws are not optional.
     """
-    from arifosmcp.core.physics import thermodynamics_hardened as physics
+    from core.physics import thermodynamics_hardened as physics
 
     session_id = "landauer_test"
     physics.init_thermodynamic_budget(session_id, initial_budget=1.0)
@@ -122,7 +122,7 @@ def test_vault999_merkle_chain_integrity():
     VAULT999 (Immutable Ledger)
     Order 005: Tamper detection via Merkle chain.
     """
-    from arifosmcp.core.shared.crypto import merkle_root
+    from core.shared.crypto import merkle_root
 
     # Simulating a vault ledger
     entries = ["entry1: session1 init", "entry2: stage111 focus"]

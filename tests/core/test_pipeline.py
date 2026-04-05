@@ -1,6 +1,6 @@
 import pytest
 
-from arifosmcp.core.pipeline import forge, quick
+from core.pipeline import forge, quick
 
 
 @pytest.mark.asyncio

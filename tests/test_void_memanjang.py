@@ -30,8 +30,8 @@ from arifosmcp.runtime.fault_codes import (
     classify_exception,
     classify_network_errors,
 )
-from arifosmcp.core.contracts.responses import MACHINE_FAULT_CODES, MachineEnvelope, GovernanceEnvelope
-from arifosmcp.core.intelligence.w3 import compute_w3, w3_to_verdict
+from core.contracts.responses import MACHINE_FAULT_CODES, MachineEnvelope, GovernanceEnvelope
+from core.intelligence.w3 import compute_w3, w3_to_verdict
 
 
 # ─────────────────────────────────────────────────────────────────────────────

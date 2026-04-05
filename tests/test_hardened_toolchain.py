@@ -12,7 +12,7 @@ Tests for the 11-tool hardened constitutional pipeline with:
 import asyncio
 import pytest
 
-from arifosmcp.core.enforcement.auth_continuity import verify_auth_context
+from core.enforcement.auth_continuity import verify_auth_context
 from arifosmcp.runtime.contracts_v2 import (
     ToolEnvelope, ToolStatus, RiskTier, HumanDecisionMarker,
     generate_trace_context, calculate_entropy_budget,

@@ -2,8 +2,8 @@
 from __future__ import annotations
 import pytest
 import time
-from arifosmcp.core.governance_kernel import GovernanceKernel, GovernanceState, AuthorityLevel
-from arifosmcp.core.enforcement.genius import calculate_genius, floors_to_dials
+from core.governance_kernel import GovernanceKernel, GovernanceState, AuthorityLevel
+from core.enforcement.genius import calculate_genius, floors_to_dials
 
 @pytest.fixture
 def kernel():
@@ -53,10 +53,10 @@ def test_combined_temporal_stress(kernel):
 
 def test_p_dial_integration(kernel):
     # Verify that kernel.temporal_stability affects the P dial
-    from arifosmcp.core.shared.types import FloorScores
+    from core.shared.types import FloorScores
     
     # 1. Register this kernel as 'global' so floors_to_dials sees it
-    from arifosmcp.core.governance_kernel import _governance_kernels
+    from core.governance_kernel import _governance_kernels
     _governance_kernels["global"] = kernel
     
     # Reset kernel to perfect stability

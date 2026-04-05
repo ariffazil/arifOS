@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pytest
-from arifosmcp.core.physics.thermo_budget import ThermoBudget, ThermoSnapshot
+from core.physics.thermo_budget import ThermoBudget, ThermoSnapshot
 
 @pytest.fixture
 def budget():

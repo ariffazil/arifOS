@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.core.kernel.mcp_tool_service import respond_tool, seal_tool
-from arifosmcp.core.kernel.mcp_transport_kernel import (
+from core.kernel.mcp_tool_service import respond_tool, seal_tool
+from core.kernel.mcp_transport_kernel import (
     build_align_error,
     build_forge_error,
     build_integrate_error,

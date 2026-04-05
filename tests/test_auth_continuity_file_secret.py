@@ -14,7 +14,7 @@ def test_file_secret_is_loaded_without_ephemeral_warning(monkeypatch, tmp_path):
     monkeypatch.setenv("ARIFOS_GOVERNANCE_SECRET_FILE", str(secret_file))
 
     with warnings.catch_warnings(record=True) as caught:
-        import arifosmcp.core.enforcement.auth_continuity as auth_continuity
+        import core.enforcement.auth_continuity as auth_continuity
 
         reloaded = importlib.reload(auth_continuity)
 
@@ -34,7 +34,7 @@ def test_previous_file_secret_is_accepted_for_verification(monkeypatch, tmp_path
     monkeypatch.setenv("ARIFOS_GOVERNANCE_SECRET_FILE", str(current_file))
     monkeypatch.setenv("ARIFOS_GOVERNANCE_SECRET_PREVIOUS_FILE", str(previous_file))
 
-    import arifosmcp.core.enforcement.auth_continuity as auth_continuity
+    import core.enforcement.auth_continuity as auth_continuity
 
     reloaded = importlib.reload(auth_continuity)
     unsigned_context = {

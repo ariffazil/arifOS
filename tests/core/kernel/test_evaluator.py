@@ -3,15 +3,15 @@ tests/core/kernel/test_evaluator.py — Tests for the Constitutional Evaluation 
 """
 
 import pytest
-from arifosmcp.core.kernel.evaluator import ConstitutionalEvaluator, HARD_FLOORS, SOFT_FLOORS
+from core.kernel.evaluator import ConstitutionalEvaluator, HARD_FLOORS, SOFT_FLOORS
 
 @pytest.fixture
 def evaluator():
     return ConstitutionalEvaluator()
 
 def test_evaluator_singleton():
-    from arifosmcp.core.kernel.evaluator import evaluator as e1
-    from arifosmcp.core.kernel.evaluator import evaluator as e2
+    from core.kernel.evaluator import evaluator as e1
+    from core.kernel.evaluator import evaluator as e2
     assert e1 is e2
 
 def test_build_pre_context(evaluator):

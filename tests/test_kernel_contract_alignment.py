@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from arifosmcp.core.governance import clear_governance_kernel, get_governance_kernel
+from core.governance import clear_governance_kernel, get_governance_kernel
 from arifosmcp.runtime import public_registry
 from arifosmcp.runtime.models import AuthorityLevel, RuntimeEnvelope, RuntimeStatus, Stage, Verdict
 from arifosmcp.runtime.tool_specs import PUBLIC_TOOL_SPECS
@@ -68,7 +68,7 @@ def test_public_runtime_exports_init_anchor():
 
 @pytest.mark.asyncio
 async def test_low_risk_declared_identity_auto_anchors_continuity(monkeypatch):
-    from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_budget
+    from core.physics.thermodynamics_hardened import init_thermodynamic_budget
 
     monkeypatch.delenv("ARIFOS_GOVERNANCE_OPEN_MODE", raising=False)
     session_id = "test-low-risk-auto-anchor"
@@ -162,7 +162,7 @@ async def test_high_risk_kernel_call_still_requires_explicit_auth_context():
 @pytest.mark.asyncio
 async def test_explicit_human_approval_bootstraps_kernel_without_crypto(monkeypatch):
     """human_approval is set via init_anchor, then the session is used in metabolic_loop_router."""
-    from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_budget
+    from core.physics.thermodynamics_hardened import init_thermodynamic_budget
 
     monkeypatch.delenv("ARIFOS_GOVERNANCE_OPEN_MODE", raising=False)
     session_id = "human-approval-kernel"

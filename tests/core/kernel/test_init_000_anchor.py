@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from arifosmcp.core.kernel.init_000_anchor import init_000_anchor
+from core.kernel.init_000_anchor import init_000_anchor
 from arifosmcp.runtime.models import AuthorityLevel, Verdict
 
 @pytest.mark.asyncio

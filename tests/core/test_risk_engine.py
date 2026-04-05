@@ -3,8 +3,8 @@ tests/core/test_risk_engine.py — Tests for the Risk Engine action gating
 """
 
 import pytest
-from arifosmcp.core.risk_engine import RiskEngine
-from arifosmcp.core.shared.types import ActionClass
+from core.risk_engine import RiskEngine
+from core.shared.types import ActionClass
 
 def test_classify_action_critical():
     engine = RiskEngine()

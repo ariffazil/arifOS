@@ -3,13 +3,13 @@ from typing import Any
 
 import pytest
 
-from arifosmcp.core.kernel.stage_orchestrator import (
+from core.kernel.stage_orchestrator import (
     run_metabolic_pipeline,
     run_stage_444_trinity_sync,
     run_stage_888_judge,
 )
-from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_budget
-from arifosmcp.core.shared.types import Verdict
+from core.physics.thermodynamics_hardened import init_thermodynamic_budget
+from core.shared.types import Verdict
 
 
 @pytest.mark.asyncio

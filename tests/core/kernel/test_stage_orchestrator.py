@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from arifosmcp.core.kernel.stage_orchestrator import (
+from core.kernel.stage_orchestrator import (
     _as_dict,
     _build_asi_output,
     _collect_floor_failures_from_scores,

@@ -1,3 +1,17 @@
+# Changelog
+
+All notable changes to arifOS MCP are documented in this file.
+
+## [2026.04.06-GREAT-UNIFICATION] - Repository Restructuring & Consolidation
+
+### 🏛️ REPOSITORY RESTRUCTURING & CONSOLIDATION
+**Execution of the Repo Order Architect mandate to eliminate chaos and narrative overlap.**
+
+- **The Truth Spine:** Established `README.md`, `CHANGELOG.md`, `ROADMAP.md`, and `TODO.md` as the exclusive sources of truth.
+- **Root Cleanup:** Moved 15+ stray `.md` files into `docs/` and `archive/`. Ops, deploy, and infra folders merged into `ops/`. Coprocessors (`geox`, `sites`, `autoresearch`) migrated into `apps/`.
+- **Ghost Folder Purge:** Consolidated `arifos_mcp` duplicate into the canonical `arifosmcp` package.
+- **Archive System:** Established `archive/audits/`, `archive/seals/`, `archive/legacy_guides/`, and `archive/evidence/` for robust history preservation without active navigation clutter.
+
 ## [2026.03.28-IDENTITY-BINDING] - Three-Layer Identity Binding + ZKPC Anchoring
 
 ### 🔐 THREE-LAYER IDENTITY BINDING (Init Anchor Handshake)
@@ -176,13 +190,7 @@ tests/test_model_soul.py::test_init_anchor_v2_claimed_only PASSED
 - **Substrate Controller Induction:** Refactored 	ools_hardened_dispatch.py to use a strict policy-based mapping.
 - **Automatic 888_HOLD:** High-risk substrate classes (DELETE, EXECUTE, COMMIT) now trigger an automatic Sovereign Hold at the wire level.
 - **Entropy Reduction:** Deleted root-level splatter folders; all core logic now resides exclusively in the rifosmcp/ package.
-- **F4 Clarity:** Updated all sites, domains, and documentation to follow the **SOUL-MIND-BODY** trinity.
-# Changelog
 
-All notable changes to arifOS MCP are documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [2026.04.01-CLAUDE-LEAK] - Claude Code Leak Analysis + KernelLoop Reference
 

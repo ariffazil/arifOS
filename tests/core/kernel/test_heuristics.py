@@ -3,7 +3,7 @@ tests/core/kernel/test_heuristics.py — Tests for cognitive heuristics
 """
 
 import pytest
-from arifosmcp.core.kernel.heuristics import detect_profile, estimate_uncertainty, estimate_risk, compute_system_state
+from core.kernel.heuristics import detect_profile, estimate_uncertainty, estimate_risk, compute_system_state
 
 def test_detect_profile_factual():
     assert detect_profile("What is the capital of France?") == "factual"
