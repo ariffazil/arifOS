@@ -122,7 +122,7 @@ graph TB
 | `math_estimator` | 444_ROUT | 444 | Thermodynamic health and vitals | cost, health, vitals |
 | `code_engine` | M-3_EXEC | M-3 | Sandboxed execution and observation | fs, process, net, replay |
 | `architect_registry` | M-4_ARCH | M-4 | Tool discovery and schema catalog | list, read, register |
-| `compat_probe` | M-5_COMP | M-5 | Interoperability and enum audit | audit, probe, ping |
+| `compat_probe` | M-5_COMPAT | M-5 | Interoperability and enum audit | audit, probe, ping |
 
 ---
 
