@@ -23,8 +23,8 @@
 
 mcp_server:
   # Connection to arifOS MCP server
-  endpoint: "${ARIFOS_MCP_URL:-http://arifos:8888}"
-  api_key: "${ARIFOS_MCP_API_KEY}"
+  endpoint: "${arifosmcp_URL:-http://arifos:8888}"
+  api_key: "${arifosmcp_API_KEY}"
   
   # Webhook secret for incoming validation
   webhook_secret: "${OPENCLAW_WEBHOOK_SECRET}"
@@ -82,7 +82,7 @@ webhooks:
         description: "Add metadata and context"
       - step: "judgment"
         description: "Send to arifOS for constitutional judgment"
-        endpoint: "${ARIFOS_MCP_URL}/v1/judgment"
+        endpoint: "${arifosmcp_URL}/v1/judgment"
         timeout_ms: 10000
         required_floors: ["F2", "F4", "F6", "F12"]
       - step: "deliver"
@@ -139,7 +139,7 @@ webhooks:
     
     checks:
       - name: "arifos_connection"
-        endpoint: "${ARIFOS_MCP_URL}/health"
+        endpoint: "${arifosmcp_URL}/health"
         timeout_ms: 5000
       - name: "redis_connection"
         type: "redis"
@@ -488,7 +488,7 @@ delivery_flow:
         name: "constitutional_judgment"
         description: "F2-F8: Send to arifOS for constitutional analysis"
         handler: "arifos.judgment"
-        endpoint: "${ARIFOS_MCP_URL}/v1/judgment"
+        endpoint: "${arifosmcp_URL}/v1/judgment"
         timeout_ms: 10000
         required_floors: ["F2", "F4", "F6", "F7", "F8"]
         
@@ -728,9 +728,9 @@ health:
   
   # Checks to perform
   checks:
-    - name: "arifos_mcp"
+    - name: "arifosmcp"
       type: "http"
-      endpoint: "${ARIFOS_MCP_URL}/health"
+      endpoint: "${arifosmcp_URL}/health"
       timeout_ms: 5000
       required: true
       

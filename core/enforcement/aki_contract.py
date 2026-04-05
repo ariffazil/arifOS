@@ -9,7 +9,7 @@ Civilization (L3) without explicit constitutional verification.
 import logging
 from typing import Any
 
-from arifos_mcp.core.governance_kernel import GovernanceKernel
+from arifosmcp.core.governance_kernel import GovernanceKernel
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class AKIContract:
         Returns: True if action is 'Signed as Lawful', False if VOID.
         """
         # 1. F11/F13: Authority Check
-        from arifos_mcp.core.governance_kernel import AuthorityLevel
+        from arifosmcp.core.governance_kernel import AuthorityLevel
 
         if self.kernel.authority_level == AuthorityLevel.UNSAFE_TO_AUTOMATE:
             logger.error(f"AKI VOID: Tool {tool_id} blocked. Authority level UNSAFE.")
@@ -62,7 +62,7 @@ class AKIContract:
                 return False
 
         # 5. L2-L3 Boundary Enforcement (Phoenix Protocol States)
-        from arifos_mcp.core.governance_kernel import GovernanceState
+        from arifosmcp.core.governance_kernel import GovernanceState
 
         if self.kernel.governance_state == GovernanceState.QUARANTINED:
             logger.error(f"AKI QUARANTINE: Tool {tool_id} blocked. System is in QUARANTINED state.")
@@ -191,7 +191,7 @@ class L0KernelGatekeeper:
         "333_APPS/L0_CONSTITUTION/",
         "T000_VERSIONING.md",
         "pyproject.toml",
-        "arifos_mcp/runtime/bridge.py",
+        "arifosmcp/runtime/bridge.py",
         "core/kernel/",
     ]
 

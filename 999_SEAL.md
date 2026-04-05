@@ -121,7 +121,7 @@ Seal:    [THIS DOCUMENT]
 | Priority | Action | Owner |
 |----------|--------|-------|
 | P1 | Deploy updated structure to VPS | Human |
-| P2 | Verify arifOS_mcp functionality | Human |
+| P2 | Verify arifosmcp functionality | Human |
 | P3 | Run e2e tests after Python fixes | Agent |
 
 ---

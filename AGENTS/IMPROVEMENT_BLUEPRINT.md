@@ -31,7 +31,7 @@ A-ARCHITECT (Δ) ──────► A-ENGINEER (Ω) ──────► A-A
 arifOS/
 ├── AGENTS/
 │   └── A-ENGINEER.md          ← Agent spec (THIS IS THE DEFINITION)
-├── arifos_mcp/
+├── arifosmcp/
 │   ├── agentzero/
 │   │   ├── agents/
 │   │   │   ├── base.py        ← Base agent class
@@ -59,7 +59,7 @@ arifOS/
 |----------|------|---------|-------------------|
 | `validate_floor_threshold()` | `core/shared/floors.py` | Check F1-F13 compliance | F1-F13 |
 | `execute_governance()` | `core/enforcement/governance_engine.py` | Run constitutional checks | F5, F9 |
-| `engineer_task()` | `arifos_mcp/agentzero/agents/engineer.py` | Execute engineering tasks | All floors |
+| `engineer_task()` | `arifosmcp/agentzero/agents/engineer.py` | Execute engineering tasks | All floors |
 | `apply_floor_decorator()` | `core/kernel/constitutional_decorator.py` | Wrap functions with floor checks | F1, F2 |
 
 ### 2.3 Wiring Diagram
@@ -167,13 +167,13 @@ FastMCP Server (arifosmcp)
 |------|--------|----------------|
 | **P1.1** Define agent wire protocol | Create `AGENTS/WIRE_PROTOCOL.md` | New file |
 | **P1.2** Add agent registry | Extend `core/state/agent_registry.py` | Add discoverability |
-| **P1.3** Connect memory pipeline | Wire `engineering_memory` to agent context | `arifos_mcp/agentzero/` |
+| **P1.3** Connect memory pipeline | Wire `engineering_memory` to agent context | `arifosmcp/agentzero/` |
 
 #### Phase 2: Intelligence (Week 3-4)
 
 | Task | Action | Files Affected |
 |------|--------|----------------|
-| **P2.1** Implement A-ARCHITECT tool | Create architect tool in MCP | `arifos_mcp/tools/` |
+| **P2.1** Implement A-ARCHITECT tool | Create architect tool in MCP | `arifosmcp/tools/` |
 | **P2.2** Add design validation | F3_TRI_WITNESS for architecture | `core/enforcement/` |
 | **P2.3** Auto-documentation | Generate specs from code | `AGENTS/generator.py` (new) |
 
@@ -181,9 +181,9 @@ FastMCP Server (arifosmcp)
 
 | Task | Action | Files Affected |
 |------|--------|----------------|
-| **P3.1** Self-improvement loop | Agent learns from audits | `arifos_mcp/agentzero/` |
+| **P3.1** Self-improvement loop | Agent learns from audits | `arifosmcp/agentzero/` |
 | **P3.2** Multi-agent coordination | A-ORCHESTRATOR + A-ENGINEER sync | `AGENTS/a-orchestrator/` |
-| **P3.3** Real-time feedback | A-AUDITOR → A-ENGINEER stream | `arifos_mcp/runtime/` |
+| **P3.3** Real-time feedback | A-AUDITOR → A-ENGINEER stream | `arifosmcp/runtime/` |
 
 ---
 

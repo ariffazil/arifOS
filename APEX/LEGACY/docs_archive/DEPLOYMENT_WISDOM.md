@@ -22,7 +22,7 @@ from mcp.server import Server  # Found local mcp/ (no server submodule)
 
 **Why it happened:** Python path resolution prioritizes local folders over site-packages. When we renamed `mcp/` to `mcp_server/`, we broke our own code while fixing the collision.
 
-**Lesson:** Never name local packages the same as PyPI dependencies. Use suffixes: `mcp_server`, `arifos_mcp`, etc.
+**Lesson:** Never name local packages the same as PyPI dependencies. Use suffixes: `mcp_server`, `arifosmcp`, etc.
 
 ---
 

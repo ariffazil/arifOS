@@ -127,7 +127,7 @@ POST /propose         - Amendment proposal (AI proposes, human seals via CLI)
 **Expected deliverables:**
 
 ```
-arifos_mcp/
+arifosmcp/
   __init__.py         - Package init
   server.py           - MCP protocol implementation
   tools.py            - Tool definitions for IDE

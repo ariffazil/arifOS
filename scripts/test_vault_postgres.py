@@ -38,7 +38,7 @@ async def test_vault_store():
     logger.info("=" * 60)
     
     try:
-        from arifos_mcp.runtime.vault_postgres import PostgresVaultStore, VaultEvent
+        from arifosmcp.runtime.vault_postgres import PostgresVaultStore, VaultEvent
     except ImportError as e:
         logger.error(f"❌ Failed to import vault_postgres: {e}")
         return False
@@ -107,8 +107,8 @@ async def test_hardened_vault_seal():
     logger.info("=" * 60)
     
     try:
-        from arifos_mcp.runtime.tools_hardened_v2 import HardenedVaultSeal
-        from arifos_mcp.runtime.contracts_v2 import TraceContext
+        from arifosmcp.runtime.tools_hardened_v2 import HardenedVaultSeal
+        from arifosmcp.runtime.contracts_v2 import TraceContext
     except ImportError as e:
         logger.error(f"❌ Failed to import: {e}")
         return False
@@ -169,7 +169,7 @@ async def test_blackout_mode():
     logger.info("=" * 60)
     
     try:
-        from arifos_mcp.runtime.tools_hardened_v2 import HardenedVaultSeal
+        from arifosmcp.runtime.tools_hardened_v2 import HardenedVaultSeal
     except ImportError as e:
         logger.error(f"❌ Failed to import: {e}")
         return False

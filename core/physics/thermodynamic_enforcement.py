@@ -36,11 +36,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifos_mcp.core.governance.apex_invariants import (
+from arifosmcp.core.governance.apex_invariants import (
     APEX_CONSTANTS,
     validate_apex_non_learning,
 )
-from arifos_mcp.core.physics.thermodynamics_hardened import (
+from arifosmcp.core.physics.thermodynamics_hardened import (
     LANDAUER_MIN,
     LandauerError,
 )

@@ -9,8 +9,8 @@ RUKUN AGI 5-Organ Kernel:
     memory  → The Memory (Stage 999)
 
 Usage:
-    from arifos_mcp.core.organs import init, mind, heart, soul, memory
-    from arifos_mcp.core.organs import init, sense, think, reason, empathize, align, sync, forge, judge, seal
+    from arifosmcp.core.organs import init, mind, heart, soul, memory
+    from arifosmcp.core.organs import init, sense, think, reason, empathize, align, sync, forge, judge, seal
 
 Humanized aliases:
     anchor (init), feel (empathize)
@@ -19,7 +19,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 # Canonical modules (no legacy underscore names in public surface)
-from arifos_mcp.core.shared.types import InitOutput
+from arifosmcp.core.shared.types import InitOutput
 
 from . import _1_agi as mind
 from . import _2_asi as heart

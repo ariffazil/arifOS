@@ -1,4 +1,4 @@
-﻿# ── arifOS AI-First Unified Trinity Stack ──────────────────────────
+# ── arifOS AI-First Unified Trinity Stack ──────────────────────────
 # HARDENED PRODUCTION CONFIGURATION
 # Version: 2026.03.12-SEAL-HARDENED
 # Changes:
@@ -322,7 +322,7 @@ services:
     image: arifos/arifosmcp:latest
     container_name: arifosmcp
     init: true
-    command: ["uvicorn", "arifos_mcp.runtime.server:app", "--host", "0.0.0.0", "--port", "8080"]
+    command: ["uvicorn", "arifosmcp.runtime.server:app", "--host", "0.0.0.0", "--port", "8080"]
     env_file:
       - path: .env.docker
         required: false
@@ -331,7 +331,7 @@ services:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /root/arifOS/mcp:/usr/src/app/mcp:ro
-      - /root/arifOS/arifos_mcp:/usr/src/app/arifos_mcp:ro
+      - /root/arifOS/arifosmcp:/usr/src/app/arifosmcp:ro
       # NOTE: server mounts removed — using image-built server.py
       - /root/arifOS/fastmcp.json:/usr/src/app/fastmcp.json:ro
       - /root/arifOS/mcp.json:/usr/src/app/mcp.json:ro
@@ -364,7 +364,7 @@ services:
       ARIFOS_GOVERNANCE_SECRET_PREVIOUS: ${ARIFOS_GOVERNANCE_SECRET_PREVIOUS:-}
       ARIFOS_PUBLIC_TOOL_PROFILE: ${ARIFOS_PUBLIC_TOOL_PROFILE:-public}
       ARIFOS_ML_FLOORS: "1"
-      ARIFOS_MCP_PATH: ${ARIFOS_MCP_PATH:-/mcp}
+      arifosmcp_PATH: ${arifosmcp_PATH:-/mcp}
       VAULT999_PATH: /usr/src/app/VAULT999  # Container path for vault (matches volume mount)
       UVICORN_WORKERS: ${UVICORN_WORKERS:-1}
       UVICORN_TIMEOUT: ${UVICORN_TIMEOUT:-120}

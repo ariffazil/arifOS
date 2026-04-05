@@ -240,7 +240,7 @@ docker run --rm -v arifos_data:/data -v $(pwd):/backup alpine \
 **Load Balancing:**
 ```nginx
 # Nginx upstream configuration for multiple containers
-upstream arifos_mcp {
+upstream arifosmcp {
     server 127.0.0.1:8088;
     server 127.0.0.1:8889 backup;
 }

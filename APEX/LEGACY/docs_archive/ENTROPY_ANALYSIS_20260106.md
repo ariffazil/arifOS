@@ -145,7 +145,7 @@
 
 ### Tri-Witness (Found 3+ Stubs)
 
-1. `arifos_mcp/verification/distributed.py` - DistributedWitnessSystem
+1. `arifosmcp/verification/distributed.py` - DistributedWitnessSystem
 2. `metrics.py` line ~100 - tri_witness defaults to 0.95
 3. Conversation audit mentions "Human × AI × Earth" but no implementation
 
@@ -153,8 +153,8 @@
 
 ### MCP Servers (Found 3+)
 
-1. `arifos_mcp/server.py` - AAA MCP (glass-box)
-2. `arifos_core/mcp/arifos_mcp_server.py` - Core MCP
+1. `arifosmcp/server.py` - AAA MCP (glass-box)
+2. `arifos_core/mcp/arifosmcp_server.py` - Core MCP
 3. `L4_MCP/server.py` - Black-box MCP
 
 **All 3 are "complete" MCP implementations. All 3 work. Unclear which is authoritative.**
@@ -200,8 +200,8 @@ Pick ONE implementation for each feature:
 - DEPRECATE: `response_validator.py`, `floor_validator.py` (mark as legacy, redirect to apex_prime)
 
 **MCP:**
-- KEEP: `arifos_mcp/server.py` (AAA MCP)
-- DEPRECATE: `arifos_core/mcp/arifos_mcp_server.py`, `L4_MCP/` (redirect to AAA MCP)
+- KEEP: `arifosmcp/server.py` (AAA MCP)
+- DEPRECATE: `arifos_core/mcp/arifosmcp_server.py`, `L4_MCP/` (redirect to AAA MCP)
 
 **Tri-Witness:**
 - KEEP: Stub in `metrics.py` (honest about being a stub)

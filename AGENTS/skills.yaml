@@ -1,4 +1,4 @@
-﻿# arifOS Agent Skills Registry
+# arifOS Agent Skills Registry
 # Reusable Skill Definitions with I/O Schemas
 # Version: 2026.03.27-P0-FORGED
 # Authority: 888_JUDGE
@@ -578,7 +578,7 @@ skills:
           type: "object"
           properties:
             session_id: {type: "string"}
-            arifos_mcp_status: {type: "string", enum: ["available", "unavailable"]}
+            arifosmcp_status: {type: "string", enum: ["available", "unavailable"]}
             core_modules_loaded: {type: "integer"}
             floors_status: {type: "string", enum: ["OK", "WARNING", "FAIL"]}
             constitutional_integrity: {type: "string", enum: ["PASS", "FAIL"]}

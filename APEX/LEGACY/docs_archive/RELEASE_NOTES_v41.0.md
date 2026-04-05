@@ -96,7 +96,7 @@ session_data = {
 
 | File | Purpose |
 |------|---------|
-| `scripts/arifos_mcp_entry.py` | v0-strict MCP server (1 tool only) |
+| `scripts/arifosmcp_entry.py` | v0-strict MCP server (1 tool only) |
 | `tests/test_mcp_v0_strict.py` | F2-CODE honesty tests (15/15 PASS) |
 
 ---

@@ -15,16 +15,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from arifos_mcp.runtime.contracts import (
+from arifosmcp.runtime.contracts import (
     AAA_TOOL_LAW_BINDINGS,
     AAA_TOOL_STAGE_MAP,
     LAW_13_CATALOG,
     READ_ONLY_TOOLS,
 )
-from arifos_mcp.core.shared.guards.injection_guard import scan_for_injection
-from arifos_mcp.core.shared.guards.ontology_guard import detect_literalism
-from arifos_mcp.core.shared.mottos import MOTTO_000_INIT_HEADER, MOTTO_999_SEAL_HEADER, get_motto_for_stage
-from arifos_mcp.core.shared.types import RuntimeStatus
+from arifosmcp.core.shared.guards.injection_guard import scan_for_injection
+from arifosmcp.core.shared.guards.ontology_guard import detect_literalism
+from arifosmcp.core.shared.mottos import MOTTO_000_INIT_HEADER, MOTTO_999_SEAL_HEADER, get_motto_for_stage
+from arifosmcp.core.shared.types import RuntimeStatus
 
 TOOL_LAW_BINDINGS = AAA_TOOL_LAW_BINDINGS
 TOOL_STAGE_MAP = AAA_TOOL_STAGE_MAP
@@ -106,7 +106,7 @@ def _derive_apex_dials(tool: str, payload: dict[str, Any]) -> dict[str, Any]:
     Derive A/P/X/E and governed genius G* for each tool call.
     Grounds dials in real constitutional manifold (F1-F13).
     """
-    from arifos_mcp.core.enforcement.genius import (
+    from arifosmcp.core.enforcement.genius import (
         calculate_genius,
         coerce_floor_scores,
         get_thermodynamic_budget_window,
@@ -406,7 +406,7 @@ def _law13_checks(tool: str, payload: dict[str, Any]) -> dict[str, Any]:
         
         # H1.1: Record Prometheus floor violation if required floor fails
         if law in required and not passed:
-            from arifos_mcp.runtime.metrics import FLOOR_VIOLATIONS
+            from arifosmcp.runtime.metrics import FLOOR_VIOLATIONS
             FLOOR_VIOLATIONS.labels(floor=law, tool=tool).inc()
             
     return checks
@@ -675,7 +675,7 @@ def wrap_tool_output(tool: str | None, payload: dict[str, Any]) -> dict[str, Any
     3. Production vs Debug contract
     4. Canonical ENUM enforcement
     """
-    from arifos_mcp.core.shared.verdict_contract import normalize_verdict
+    from arifosmcp.core.shared.verdict_contract import normalize_verdict
 
     canonical_name = str(tool or payload.get("tool") or payload.get("canonical_name") or "").strip()
     if not canonical_name:
@@ -951,7 +951,7 @@ def wrap_tool_output(tool: str | None, payload: dict[str, Any]) -> dict[str, Any
     # Ensure user_model is built if not present
     user_model = payload.get("user_model")
     if user_model is None:
-        from arifos_mcp.runtime.tools import _build_user_model
+        from arifosmcp.runtime.tools import _build_user_model
         user_model = _build_user_model(canonical_name, stage, payload, {})
 
     output = {

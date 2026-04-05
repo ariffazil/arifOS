@@ -56,7 +56,7 @@ Every time any of these agents start a session, run `arif-init-wrapper`:
 # Probe arifOS MCP availability
 curl -sf http://localhost:8080/health 2>/dev/null && {
   # Session anchor via MCP
-  arifos_mcp_call tool=init_anchor payload='{"actor_id":"AGENT","session_purpose":"WORK"}'
+  arifosmcp_call tool=init_anchor payload='{"actor_id":"AGENT","session_purpose":"WORK"}'
 } || {
   echo "[UNANCHORED] arifOS MCP unavailable. Operating WITHOUT constitutional grounding."
   echo "[WARNING] This is high-risk. Proceed with extreme caution."
@@ -106,7 +106,7 @@ except Exception as e:
 
 ```bash
 # Query recent scars and unresolved issues
-arifos_mcp_call tool=memory_query payload='{"query":"recent scars unresolved actions","limit":5}'
+arifosmcp_call tool=memory_query payload='{"query":"recent scars unresolved actions","limit":5}'
 ```
 
 ### Step 5 — Agent Identity Declaration

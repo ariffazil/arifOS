@@ -376,7 +376,7 @@ def deploy_railway() -> bool:
         "HOST": "0.0.0.0",
         "AAA_MCP_TRANSPORT": "http",
         "ARIFOS_CONSTITUTIONAL_MODE": "AAA",
-        "ARIFOS_MCP_PATH": "/mcp",
+        "arifosmcp_PATH": "/mcp",
         "ARIFOS_PUBLIC_TOOL_PROFILE": "public",
     }
 
@@ -451,7 +451,7 @@ def deploy_docker() -> bool:
             "-e",
             "AAA_MCP_TRANSPORT=http",
             "-e",
-            "ARIFOS_MCP_PATH=/mcp",
+            "arifosmcp_PATH=/mcp",
             "-e",
             "ARIFOS_PUBLIC_TOOL_PROFILE=public",
             "--name",
@@ -521,7 +521,7 @@ def generate_railway_template() -> None:
             "HOST": "0.0.0.0",
             "AAA_MCP_TRANSPORT": "http",
             "ARIFOS_CONSTITUTIONAL_MODE": "AAA",
-            "ARIFOS_MCP_PATH": "/mcp",
+            "arifosmcp_PATH": "/mcp",
             "ARIFOS_PUBLIC_TOOL_PROFILE": "public",
         },
     }

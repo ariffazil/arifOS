@@ -14,9 +14,9 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-from arifos_mcp.core.homeostasis import CognitivePressure, get_homeostasis
-from arifos_mcp.core.shared.physics import ConstitutionalTensor
-from arifos_mcp.core.state.session_manager import session_manager
+from arifosmcp.core.homeostasis import CognitivePressure, get_homeostasis
+from arifosmcp.core.shared.physics import ConstitutionalTensor
+from arifosmcp.core.state.session_manager import session_manager
 
 logger = logging.getLogger(__name__)
 

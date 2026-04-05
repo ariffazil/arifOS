@@ -25,7 +25,7 @@ This bridge connects OpenClaw (gateway) to arifOS (constitutional kernel).
 
 ```bash
 # Bridge configuration
-ARIFOS_MCP_ENDPOINT=http://127.0.0.1:8088/mcp
+arifosmcp_ENDPOINT=http://127.0.0.1:8088/mcp
 OPENC LAW_GATEWAY_TOKEN=your-gateway-token
 
 # Optional: Canon9 model selection

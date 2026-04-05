@@ -1446,7 +1446,7 @@ Let me check the bridge code to understand how to call it.
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { emptyPluginConfigSchema } from "openclaw/plugin-sdk";
 
-const ARIFOS_MCP_ENDPOINT = process.env.ARIFOS_MCP_ENDPOINT || "http://127.0.0.1:8088/mcp";
+const arifosmcp_ENDPOINT = process.env.arifosmcp_ENDPOINT || "http://127.0.0.1:8088/mcp";
 
 interface MCPRequest {
   jsonrpc: "2.0";
@@ -1465,7 +1465,7 @@ async function mcpCall(method: string, params?: Record<string, any>): Promise<an
     params,
   };
 
-  const response = await fetch(ARIFOS_MCP_ENDPOINT, {
+  const response = await fetch(arifosmcp_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -15,8 +15,8 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
-from arifos_mcp.core.enforcement.refusal.builder import generate_refusal_response
-from arifos_mcp.core.enforcement.refusal.types import RefusalResponse, RefusalType, RiskDomain
+from arifosmcp.core.enforcement.refusal.builder import generate_refusal_response
+from arifosmcp.core.enforcement.refusal.types import RefusalResponse, RefusalType, RiskDomain
 
 DEFAULT_REFUSAL_PROFILE = "equilibrium_default"
 DEFAULT_REFUSAL_PROFILE_ENV = "ARIFOS_REFUSAL_PROFILE"

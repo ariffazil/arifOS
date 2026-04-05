@@ -204,7 +204,7 @@ services:
     init: true
     volumes:
       - /opt/arifos/data/core:/usr/src/app/data:rw
-      - /root/arifOS/arifos_mcp:/usr/src/app/arifos_mcp:ro
+      - /root/arifOS/arifosmcp:/usr/src/app/arifosmcp:ro
       - /root/arifOS/core:/usr/src/app/core:ro
     environment:
       PYTHONPATH: /usr/src/app

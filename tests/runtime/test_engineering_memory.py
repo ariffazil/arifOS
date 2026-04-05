@@ -1,6 +1,6 @@
 import pytest
-from arifos_mcp.runtime.tools_internal import engineering_memory_dispatch_impl
-from arifos_mcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+from arifosmcp.runtime.tools_internal import engineering_memory_dispatch_impl
+from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
 
 
 @pytest.mark.asyncio
@@ -16,9 +16,9 @@ async def test_engineering_memory_query_falls_back_without_vector_backend(monkey
             payload={"query": query, "backend": "legacy"},
         )
 
-    monkeypatch.setattr("arifos_mcp.runtime.tools_internal._constitutional_memory_store", None)
-    monkeypatch.setattr("arifos_mcp.runtime.tools_internal._get_constitutional_memory_store", lambda: None)
-    monkeypatch.setattr("arifos_mcp.runtime.tools_internal._az_memory_query", fake_query)
+    monkeypatch.setattr("arifosmcp.runtime.tools_internal._constitutional_memory_store", None)
+    monkeypatch.setattr("arifosmcp.runtime.tools_internal._get_constitutional_memory_store", lambda: None)
+    monkeypatch.setattr("arifosmcp.runtime.tools_internal._az_memory_query", fake_query)
 
     result = await engineering_memory_dispatch_impl(
         "query",
@@ -35,8 +35,8 @@ async def test_engineering_memory_query_falls_back_without_vector_backend(monkey
 
 @pytest.mark.asyncio
 async def test_engineering_memory_write_degrades_to_backend_none_without_vector_backend(monkeypatch):
-    monkeypatch.setattr("arifos_mcp.runtime.tools_internal._constitutional_memory_store", None)
-    monkeypatch.setattr("arifos_mcp.runtime.tools_internal._get_constitutional_memory_store", lambda: None)
+    monkeypatch.setattr("arifosmcp.runtime.tools_internal._constitutional_memory_store", None)
+    monkeypatch.setattr("arifosmcp.runtime.tools_internal._get_constitutional_memory_store", lambda: None)
 
     result = await engineering_memory_dispatch_impl(
         "write",
@@ -54,8 +54,8 @@ async def test_engineering_memory_write_degrades_to_backend_none_without_vector_
 
 @pytest.mark.asyncio
 async def test_engineering_memory_vector_forget_no_backend_returns_not_implemented(monkeypatch):
-    monkeypatch.setattr("arifos_mcp.runtime.tools_internal._constitutional_memory_store", None)
-    monkeypatch.setattr("arifos_mcp.runtime.tools_internal._get_constitutional_memory_store", lambda: None)
+    monkeypatch.setattr("arifosmcp.runtime.tools_internal._constitutional_memory_store", None)
+    monkeypatch.setattr("arifosmcp.runtime.tools_internal._get_constitutional_memory_store", lambda: None)
 
     result = await engineering_memory_dispatch_impl(
         "vector_forget",

@@ -16,7 +16,7 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Any
 
-from arifos_mcp.core.kernel.evaluator import (
+from arifosmcp.core.kernel.evaluator import (
     HARD_FLOORS,
     MANDATORY_PRE_FLOORS,
     POST_FLOORS,

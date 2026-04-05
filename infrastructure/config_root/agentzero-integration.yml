@@ -22,8 +22,8 @@
 
 mcp_server:
   # Connection to arifOS MCP server
-  endpoint: "${ARIFOS_MCP_URL:-http://arifos:8888}"
-  api_key: "${ARIFOS_MCP_API_KEY}"
+  endpoint: "${arifosmcp_URL:-http://arifos:8888}"
+  api_key: "${arifosmcp_API_KEY}"
   
   # Reconnection settings
   reconnect:

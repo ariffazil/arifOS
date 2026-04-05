@@ -30,10 +30,10 @@
 - 14 PATCH: Hardened OpenClaw env mapping in `docker-compose.yml` by removing fallback default for `OPENROUTER_API_KEY`.
 - 15 PATCH: Removed duplicated provider env key declarations in `docker-compose.yml` to reduce config ambiguity.
 - 16 CLEANUP: Deleted sealed audit reports (security/performance/architecture/devops):
-  - `audit (PLEASE REFRACTOR AND DELETE AFTER DONE ALL)/arifos_mcp_security_audit_report.md`
-  - `audit (PLEASE REFRACTOR AND DELETE AFTER DONE ALL)/arifos_mcp_performance_report.md`
-  - `audit (PLEASE REFRACTOR AND DELETE AFTER DONE ALL)/arifos_mcp_performance_summary.txt`
-  - `audit (PLEASE REFRACTOR AND DELETE AFTER DONE ALL)/arifos_mcp_architecture_audit.md`
+  - `audit (PLEASE REFRACTOR AND DELETE AFTER DONE ALL)/arifosmcp_security_audit_report.md`
+  - `audit (PLEASE REFRACTOR AND DELETE AFTER DONE ALL)/arifosmcp_performance_report.md`
+  - `audit (PLEASE REFRACTOR AND DELETE AFTER DONE ALL)/arifosmcp_performance_summary.txt`
+  - `audit (PLEASE REFRACTOR AND DELETE AFTER DONE ALL)/arifosmcp_architecture_audit.md`
   - `audit (PLEASE REFRACTOR AND DELETE AFTER DONE ALL)/arifos_devops_audit_report.md`
 
 - SEAL-3 (Compose Hardening + Report Cleanup): COMPLETE

@@ -330,7 +330,7 @@ export AGENTZERO_URL="http://agentzero:8080"
 export OPENCLAW_URL="http://openclaw:3000"
 
 # arifOS MCP
-export ARIFOS_MCP_URL="http://arifos:8888"
+export arifosmcp_URL="http://arifos:8888"
 ```
 
 ### 4.3 Network Topology

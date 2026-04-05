@@ -55,7 +55,7 @@ determine_strategy() {
         reason="${reason}Core kernel code changed"
     fi
     
-    if check_changed "arifos_mcp/" || check_changed "arifosmcp/"; then
+    if check_changed "arifosmcp/" || check_changed "arifosmcp/"; then
         fast_rebuild=true
         reason="${reason}, MCP interface changed"
     fi

@@ -7,7 +7,7 @@ critical constitutional floors (F2, F5, F11).
 
 import logging
 
-from arifos_mcp.core.state.agent_registry import AgentStatus, agent_registry
+from arifosmcp.core.state.agent_registry import AgentStatus, agent_registry
 
 logger = logging.getLogger(__name__)
 

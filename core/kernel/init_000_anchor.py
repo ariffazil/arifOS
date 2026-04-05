@@ -1,5 +1,5 @@
-from arifos_mcp.core.organs._0_init import init as organ_init, AuthorityLevel
-from arifos_mcp.core.shared.types import InitOutput
+from arifosmcp.core.organs._0_init import init as organ_init, AuthorityLevel
+from arifosmcp.core.shared.types import InitOutput
 
 
 class AnchorEngine:

@@ -236,10 +236,10 @@ docker secret create arifos_governance_secret_v2027 governance.secret.v2
 # 3. Rolling update to new secret
 docker service update --secret-rm governance_secret \
   --secret-add source=arifos_governance_secret_v2027,target=governance_secret \
-  arifos_mcp
+  arifosmcp
 
 # 4. Verify all nodes updated
-docker service ps arifos_mcp
+docker service ps arifosmcp
 
 # 5. Remove old secret (after grace period)
 docker secret rm arifos_governance_secret_v2026

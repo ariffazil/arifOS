@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Literal
 
-from arifos_mcp.core.shared.types import (
+from arifosmcp.core.shared.types import (
     AsiOutput,
     CritiqueResult,
     CritiqueFinding,
@@ -23,7 +23,7 @@ from arifos_mcp.core.shared.types import (
     StakeholderImpact,
     Verdict,
 )
-from arifos_mcp.core.shared.verdict_contract import normalize_verdict
+from arifosmcp.core.shared.verdict_contract import normalize_verdict
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ async def asi(
     """
     Stage 666: ALIGNMENT ENGINE (APEX-G compliant)
     """
-    from arifos_mcp.core.physics.thermodynamics_hardened import consume_tool_energy
+    from arifosmcp.core.physics.thermodynamics_hardened import consume_tool_energy
 
     floors = {"F1": "pass", "F5": "pass", "F6": "pass", "F9": "pass"}
 
@@ -52,7 +52,7 @@ async def asi(
         target = scenario or kwargs.get("query") or "INIT"
 
         # H1.2 ASI Hardening: Semantic scoring for ASI floors
-        from arifos_mcp.core.shared.sbert_floors import classify_asi_floors
+        from arifosmcp.core.shared.sbert_floors import classify_asi_floors
 
         sbert_scores = classify_asi_floors(target)
 
@@ -176,7 +176,7 @@ async def asi(
         )
 
     # 3. Full Alignment (Default)
-    from arifos_mcp.core.judgment import judge_empathy
+    from arifosmcp.core.judgment import judge_empathy
 
     empathy = judge_empathy(
         query=kwargs.get("query", "INIT"),

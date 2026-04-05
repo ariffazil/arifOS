@@ -166,7 +166,7 @@ class GovernanceTransitions:
         P0: Enforce temporal contracts on kernel decisions.
         Anchors kernel to verified wall-clock and wall-latency.
         """
-        from arifos_mcp.core.shared.types import TemporalContract
+        from arifosmcp.core.shared.types import TemporalContract
 
         if not isinstance(contract, TemporalContract):
             return

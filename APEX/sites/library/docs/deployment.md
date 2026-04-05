@@ -35,7 +35,7 @@ The default public tool profile is:
 
 ```env
 ARIFOS_PUBLIC_TOOL_PROFILE=chatgpt
-ARIFOS_MCP_PATH=/mcp
+arifosmcp_PATH=/mcp
 ```
 
 Start the stack:

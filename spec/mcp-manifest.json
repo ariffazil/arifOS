@@ -8,8 +8,8 @@
     "url": "https://arif-fazil.com"
   },
   "license": "AGPL-3.0-only",
-  "homepage": "https://github.com/ariffazil/arifos_mcp",
-  "repository": "https://github.com/ariffazil/arifos_mcp",
+  "homepage": "https://github.com/ariffazil/arifosmcp",
+  "repository": "https://github.com/ariffazil/arifosmcp",
   "capabilities": {
     "constitutional_floors": 13,
     "metabolic_routing": true,
@@ -18,7 +18,7 @@
     "prompts": 8,
     "resources": 12
   },
-  "serverUrl": "https://arifos_mcp.arif-fazil.com",
+  "serverUrl": "https://arifosmcp.arif-fazil.com",
   "tools": [
     {
       "name": "init_anchor",

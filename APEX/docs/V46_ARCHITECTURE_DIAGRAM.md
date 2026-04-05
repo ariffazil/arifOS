@@ -119,7 +119,7 @@ graph TD
     *   `recovery/`: Recovery matrix
 
 8.  **🌐 `mcp/`** (MCP Protocol)
-    *   `arifos_mcp_server.py`: MCP server
+    *   `arifosmcp_server.py`: MCP server
     *   `tools/`: FAG, TEMPA tools
 
 ## 🔄 Trinity Data Flow

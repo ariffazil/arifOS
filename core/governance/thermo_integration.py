@@ -4,7 +4,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 try:
-    from arifos_mcp.core.physics.thermodynamics_hardened import (
+    from arifosmcp.core.physics.thermodynamics_hardened import (
         ThermodynamicBudget,
         ThermodynamicError,
         get_thermodynamic_budget,

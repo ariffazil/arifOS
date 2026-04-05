@@ -179,14 +179,14 @@ class GovernanceKernel(GovernanceTransitions):
     @property
     def hysteresis_penalty(self) -> float:
         try:
-            from arifos_mcp.core.telemetry import get_current_hysteresis
+            from arifosmcp.core.telemetry import get_current_hysteresis
 
             return get_current_hysteresis()
         except ImportError:
             return 0.0
 
     def _project_genius_floor_scores(self) -> Any:
-        from arifos_mcp.core.enforcement.genius import coerce_floor_scores
+        from arifosmcp.core.enforcement.genius import coerce_floor_scores
 
         return coerce_floor_scores(
             defaults={
@@ -206,7 +206,7 @@ class GovernanceKernel(GovernanceTransitions):
         )
 
     def _project_genius_budget_window(self) -> tuple[float, float]:
-        from arifos_mcp.core.enforcement.genius import get_thermodynamic_budget_window
+        from arifosmcp.core.enforcement.genius import get_thermodynamic_budget_window
 
         return get_thermodynamic_budget_window(
             self.session_id,
@@ -216,7 +216,7 @@ class GovernanceKernel(GovernanceTransitions):
 
     @property
     def genius_score(self) -> float:
-        from arifos_mcp.core.enforcement.genius import calculate_genius
+        from arifosmcp.core.enforcement.genius import calculate_genius
 
         floors = self._project_genius_floor_scores()
         budget_used, budget_max = self._project_genius_budget_window()
@@ -261,8 +261,8 @@ class GovernanceKernel(GovernanceTransitions):
         )
 
     def get_current_state(self) -> dict[str, Any]:
-        from arifos_mcp.core.enforcement.genius import calculate_genius
-        from arifos_mcp.core.shared.types import Verdict
+        from arifosmcp.core.enforcement.genius import calculate_genius
+        from arifosmcp.core.shared.types import Verdict
 
         if self.governance_state == GovernanceState.VOID:
             verdict = Verdict.VOID.value

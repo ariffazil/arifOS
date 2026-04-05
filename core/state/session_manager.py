@@ -10,8 +10,8 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from arifos_mcp.core.governance_kernel import GovernanceKernel
-from arifos_mcp.core.shared.types import ActorIdentity
+from arifosmcp.core.governance_kernel import GovernanceKernel
+from arifosmcp.core.shared.types import ActorIdentity
 
 
 @dataclass

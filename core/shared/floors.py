@@ -16,8 +16,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from arifos_mcp.core.shared.guards.injection_guard import InjectionGuard
-from arifos_mcp.core.shared.guards.ontology_guard import OntologyGuard
+from arifosmcp.core.shared.guards.injection_guard import InjectionGuard
+from arifosmcp.core.shared.guards.ontology_guard import OntologyGuard
 
 # =============================================================================
 # CONSTANTS & SPECIFICATIONS
@@ -218,7 +218,7 @@ class F2_Truth(Floor):
         landauer_status = ""
         landauer_available = False
         try:
-            from arifos_mcp.core.physics.thermodynamics_hardened import LandauerViolation, check_landauer_bound
+            from arifosmcp.core.physics.thermodynamics_hardened import LandauerViolation, check_landauer_bound
 
             landauer_available = True
         except ImportError:
@@ -375,7 +375,7 @@ class F3_QuadWitness(Floor):
         earth = self._compute_earth_witness(context)
         verifier = self._compute_verifier_witness(context)
 
-        from arifos_mcp.core.shared.physics import W_4
+        from arifosmcp.core.shared.physics import W_4
 
         w4 = W_4(human, ai, earth, verifier)
         threshold = self._get_action_threshold(context)
@@ -423,7 +423,7 @@ class F4_Clarity(Floor):
 
         # P3: Try hardened entropy calculation if input/output text available
         try:
-            from arifos_mcp.core.physics.thermodynamics_hardened import (
+            from arifosmcp.core.physics.thermodynamics_hardened import (
                 EntropyIncreaseViolation,
                 shannon_entropy,
             )
@@ -626,7 +626,7 @@ class F8_Genius(Floor):
         h = context.get("hysteresis_penalty", 0.0)
 
         # Multiplicative law with Hysteresis penalty
-        from arifos_mcp.core.shared.physics import GeniusDial
+        from arifosmcp.core.shared.physics import GeniusDial
 
         dial = GeniusDial(A, P, X, E, h)
         genius = dial.G()
@@ -703,7 +703,7 @@ class F9_AntiHantu(Floor):
 
         kl_penalty = 0.0
         if p_truth and p_output:
-            from arifos_mcp.core.shared.physics import kl_divergence
+            from arifosmcp.core.shared.physics import kl_divergence
 
             d_kl = kl_divergence(p_truth, p_output)
             # Threshold: d_kl > 0.5 is suspicious

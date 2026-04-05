@@ -57,7 +57,7 @@ INTEGRATION LAYERS (🚧 NEEDS UPGRADE)
 │ Current:  ⚠️  1 tool (arifos_evaluate)                           │
 │ Needed:   📝 2 new tools (arifos_validate_full, arifos_meta_select)│
 │ Priority: 🔴 HIGH (enables IDE usage)                             │
-│ Files:    scripts/arifos_mcp_entry.py (+100 lines)                │
+│ Files:    scripts/arifosmcp_entry.py (+100 lines)                │
 └────────────────────────────────────────────────────────────────────┘
 
 ┌────────────────────────────────────────────────────────────────────┐
@@ -145,7 +145,7 @@ TESTS (5 files - all NEW)
 └─ 🟢 tests/enforcement/test_f4_zlib_clarity.py                     ~100 lines
 
 CLI + MCP (4 files)
-├─ 🟡 scripts/arifos_mcp_entry.py                  ~100 lines added
+├─ 🟡 scripts/arifosmcp_entry.py                  ~100 lines added
 ├─ 🔴 scripts/arifos_validate_cli.py               ~200 lines (NEW)
 ├─ 🟡 scripts/arifos_meta_select_cli.py            ~150 lines (NEW)
 └─ 🟡 scripts/trinity.py                           ~100 lines added
@@ -262,7 +262,7 @@ git checkout -b feature/track-abc-phase-1
 **Phase 2: CLI & MCP Integration (Days 4-6)**
 ```bash
 git checkout -b feature/track-abc-phase-2
-# Modify: scripts/arifos_mcp_entry.py (+2 tools)
+# Modify: scripts/arifosmcp_entry.py (+2 tools)
 # Create: scripts/arifos_validate_cli.py, scripts/arifos_meta_select_cli.py
 # Enhance: scripts/trinity.py (add --track-abc mode)
 # Test: python scripts/arifos_validate_cli.py --help
@@ -300,7 +300,7 @@ git checkout -b feature/track-abc-phase-4
 - [ ] All tests pass (pytest -v)
 
 ### Phase 2 Complete When:
-- [ ] 2 MCP tools added to arifos_mcp_entry.py
+- [ ] 2 MCP tools added to arifosmcp_entry.py
 - [ ] arifos_validate_cli.py works (python scripts/arifos_validate_cli.py --help)
 - [ ] arifos_meta_select_cli.py works
 - [ ] trinity.py has --track-abc mode

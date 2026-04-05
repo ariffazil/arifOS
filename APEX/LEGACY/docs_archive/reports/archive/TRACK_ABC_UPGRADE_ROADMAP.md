@@ -123,7 +123,7 @@ L6_SEALION/tests/demo_sealion_v45_full.py      # v45 demo (no change)
 ### 3. MCP Server (IDE Integration)
 
 **Current State:**
-- File: `scripts/arifos_mcp_entry.py`
+- File: `scripts/arifosmcp_entry.py`
 - Tools: `arifos_evaluate` (uses `judge_output`)
 - No direct access to `validate_response_full()`
 
@@ -172,7 +172,7 @@ L6_SEALION/tests/demo_sealion_v45_full.py      # v45 demo (no change)
    ```
 
 **Files to Modify:**
-- `scripts/arifos_mcp_entry.py` (add 2 tools, ~50 lines)
+- `scripts/arifosmcp_entry.py` (add 2 tools, ~50 lines)
 
 **Priority:** HIGH (enables IDE integration of new features)
 
@@ -442,7 +442,7 @@ L6_SEALION/tests/demo_sealion_v45_full.py      # v45 demo (no change)
 **Tasks:**
 
 1. **MCP Server** (Day 4)
-   - ✅ Add `arifos_validate_full` tool to `scripts/arifos_mcp_entry.py`
+   - ✅ Add `arifos_validate_full` tool to `scripts/arifosmcp_entry.py`
    - ✅ Add `arifos_meta_select` tool
    - ✅ Test in Claude Desktop / VS Code
    - ✅ Update MCP documentation
@@ -455,7 +455,7 @@ L6_SEALION/tests/demo_sealion_v45_full.py      # v45 demo (no change)
    - ✅ Update CLI documentation
 
 **Deliverables:**
-- 2 new MCP tools (in `arifos_mcp_entry.py`)
+- 2 new MCP tools (in `arifosmcp_entry.py`)
 - 2 new CLI scripts
 - Enhanced trinity.py
 - Updated documentation

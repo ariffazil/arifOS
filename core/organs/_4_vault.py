@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Literal
 
-from arifos_mcp.core.shared.types import HashChain, SealRecord, VaultOutput, Verdict
+from arifosmcp.core.shared.types import HashChain, SealRecord, VaultOutput, Verdict
 
 logger = logging.getLogger(__name__)
 
@@ -194,7 +194,7 @@ async def seal(
     """
     Stage 999: VAULT SEAL (Immutable Commit - APEX-G compliant)
     """
-    from arifos_mcp.core.physics.thermodynamics_hardened import (
+    from arifosmcp.core.physics.thermodynamics_hardened import (
         cleanup_thermodynamic_budget,
         consume_tool_energy,
     )
@@ -207,8 +207,8 @@ async def seal(
     # 0. Merkle-Chain Continuity Check (F1 Amanah)
     prev_hash = get_last_vault_entry_hash(DEFAULT_VAULT_PATH)
     if expected_prev_hash and expected_prev_hash != prev_hash:
-        from arifos_mcp.runtime.exceptions import ConstitutionalViolation
-        from arifos_mcp.runtime.fault_codes import ConstitutionalFaultCode
+        from arifosmcp.runtime.exceptions import ConstitutionalViolation
+        from arifosmcp.runtime.fault_codes import ConstitutionalFaultCode
 
         logger.error(
             "F1 AMANAH VIOLATION: Merkle continuity broken. Session expected %s, Vault contains %s",
@@ -262,8 +262,8 @@ async def seal(
                 # Re-verify inside the lock for double-check concurrency safety
                 prev_hash = get_last_vault_entry_hash(DEFAULT_VAULT_PATH)
                 if expected_prev_hash and expected_prev_hash != prev_hash:
-                    from arifos_mcp.runtime.exceptions import ConstitutionalViolation
-                    from arifos_mcp.runtime.fault_codes import ConstitutionalFaultCode
+                    from arifosmcp.runtime.exceptions import ConstitutionalViolation
+                    from arifosmcp.runtime.fault_codes import ConstitutionalFaultCode
 
                     raise ConstitutionalViolation(
                         message=f"F1: Vault race condition. Expected {expected_prev_hash[:16]}...",
@@ -311,7 +311,7 @@ async def seal(
 
     # 7. EUREKA Layer 6: Register decision in the Reality Feedback Ledger
     try:
-        from arifos_mcp.core.recovery.rollback_engine import outcome_ledger
+        from arifosmcp.core.recovery.rollback_engine import outcome_ledger
 
         outcome_ledger.record_outcome(
             decision_id=ledger_id,

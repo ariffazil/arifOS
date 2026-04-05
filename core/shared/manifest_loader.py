@@ -73,7 +73,7 @@ class ManifestLoader:
 def sync_runtime_floors():
     """Update core.shared.floors.THRESHOLDS with Mind-derived values."""
     try:
-        from arifos_mcp.core.shared.floors import FLOOR_SPEC_KEYS, THRESHOLDS
+        from arifosmcp.core.shared.floors import FLOOR_SPEC_KEYS, THRESHOLDS
 
         dynamic_thresholds = ManifestLoader.load_thresholds()
 

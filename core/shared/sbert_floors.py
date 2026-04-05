@@ -16,7 +16,7 @@ from typing import Any
 
 import numpy as np
 
-from arifos_mcp.core.shared.atlas import normalize_semantic_text
+from arifosmcp.core.shared.atlas import normalize_semantic_text
 
 # Optional dependency — graceful fallback to heuristic if not installed
 try:

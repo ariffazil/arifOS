@@ -26,7 +26,7 @@ def _call(base_url: str, tool: str, arguments: dict[str, Any]) -> dict[str, Any]
 
 
 def main(argv: list[str]) -> int:
-    base_url = os.getenv("ARIFOS_MCP_BASE_URL", "http://localhost:8080")
+    base_url = os.getenv("arifosmcp_BASE_URL", "http://localhost:8080")
     actor_id = os.getenv("ARIFOS_ACTOR_ID", "smoke")
     query = "Smoke test: full tool surface"
 

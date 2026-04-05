@@ -65,7 +65,7 @@ This document provides comprehensive integration patterns for combining the Fast
 ### 1.3 Implementation Code Structure
 
 ```python
-# arifos_mcp_server.py
+# arifosmcp_server.py
 from mcp.server.fastmcp import FastMCP
 from arifos.governance import ConstitutionalGuard, FloorValidator
 from arifos.state import SessionManager, VAULT999

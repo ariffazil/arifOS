@@ -3,10 +3,10 @@ arifOS Governance Kernel (Facade)
 ================================
 
 This module is now a facade for the modular governance architecture.
-All canonical logic has been migrated to arifos_mcp.core.governance.
+All canonical logic has been migrated to arifosmcp.core.governance.
 """
 
-from arifos_mcp.core.governance import (
+from arifosmcp.core.governance import (
     AuthorityLevel,
     GovernanceState,
     GovernanceThresholds,

@@ -46,7 +46,7 @@ Both endpoints verified working.
 
 | README Lists | Actual State | Status |
 |--------------|---------------|--------|
-| arifosmcp/ submodule | arifosmcp -> arifos_mcp (symlink) | ✅ Correct |
+| arifosmcp/ submodule | arifosmcp -> arifosmcp (symlink) | ✅ Correct |
 | 000/ CONSTITUTION | Exists | ✅ Correct |
 | AGENTS.md | Exists | ✅ Correct |
 | DEPLOY.md | Exists | ✅ Correct |

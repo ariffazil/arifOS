@@ -3,15 +3,15 @@
 
 set -e
 
-ARIFOS_MCP="${ARIFOS_MCP_ENDPOINT:-http://127.0.0.1:8088/mcp}"
+arifosmcp="${arifosmcp_ENDPOINT:-http://127.0.0.1:8088/mcp}"
 
 echo "=== MCP Client Test ==="
-echo "Endpoint: $ARIFOS_MCP"
+echo "Endpoint: $arifosmcp"
 echo ""
 
 # Test 1: Initialize (with proper Accept header)
 echo "1. Testing MCP initialize..."
-RESPONSE=$(curl -fsS -X POST "$ARIFOS_MCP" \
+RESPONSE=$(curl -fsS -X POST "$arifosmcp" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{
@@ -30,7 +30,7 @@ echo ""
 
 # Test 2: List tools
 echo "2. Testing tools/list..."
-curl -fsS -X POST "$ARIFOS_MCP" \
+curl -fsS -X POST "$arifosmcp" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{
@@ -43,7 +43,7 @@ echo ""
 
 # Test 3: Call apex_judge
 echo "3. Testing tools/call apex_judge..."
-RESULT=$(curl -fsS -X POST "$ARIFOS_MCP" \
+RESULT=$(curl -fsS -X POST "$arifosmcp" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{

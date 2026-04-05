@@ -36,7 +36,7 @@ except ImportError:
     print("❌ asyncpg not installed. Run: pip install asyncpg")
     sys.exit(1)
 
-from arifos_mcp.runtime.vault_postgres import PostgresVaultStore, VaultEvent
+from arifosmcp.runtime.vault_postgres import PostgresVaultStore, VaultEvent
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)

@@ -171,7 +171,7 @@
       "id": "L4_MCP",
       "name": "MCP",
       "description": "MCP Server (The Hands)",
-      "content": "arifos_mcp, arifos_well"
+      "content": "arifosmcp, arifos_well"
     },
     {
       "id": "L5_CLI",

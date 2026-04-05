@@ -6,7 +6,7 @@ This module remains only as a backwards-compatible import bridge during
 reconciliation and should not be referenced in deployment docs or configs.
 """
 
-from arifos_mcp.server_horizon import mcp
+from arifosmcp.server_horizon import mcp
 
 DEPRECATION_NOTICE = (
     "Deprecated: use server.py:mcp as the canonical public entrypoint. "

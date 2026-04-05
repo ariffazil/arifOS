@@ -13,7 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from arifos_mcp.core.physics.thermodynamics_hardened import LANDAUER_MIN
+from arifosmcp.core.physics.thermodynamics_hardened import LANDAUER_MIN
 
 
 @dataclass(frozen=True)
@@ -101,7 +101,7 @@ def validate_apex_non_learning(obj: Any) -> dict[str, Any]:
         Validation report with "clean" status and any violations found
 
     Example:
-        >>> from arifos_mcp.core.physics.thermodynamic_enforcement import ThermodynamicProsecutor
+        >>> from arifosmcp.core.physics.thermodynamic_enforcement import ThermodynamicProsecutor
         >>> result = validate_apex_non_learning(ThermodynamicProsecutor)
         >>> assert result["clean"], f"APEX learning detected: {result['violations']}"
     """

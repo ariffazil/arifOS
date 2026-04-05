@@ -36,7 +36,7 @@
 | 27 | `amanah_risk_detectors.py` | 21.7 | 616 | 11 | `floor_detectors` |
 | 28 | `ledger_cryptography.py` | 21.5 | 602 | 23 | `governance` |
 | 29 | `memory_context.py` | 21.5 | 657 | 16 | `memory` |
-| 30 | `arifos_mcp_server.py` | 20.7 | 631 | 29 | `mcp` |
+| 30 | `arifosmcp_server.py` | 20.7 | 631 | 29 | `mcp` |
 
 ## Directory Distribution
 

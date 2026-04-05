@@ -33,8 +33,8 @@ fi
 # 3. arifOS MCP connectivity (Governance)
 # The transport advertises health and capability state on /health. This is
 # more stable than issuing an initialize request with transport-specific headers.
-MCP_URL=${ARIFOS_MCP_URL:-"http://arifosmcp:8080/mcp"}
-MCP_HEALTH_URL=${ARIFOS_MCP_HEALTH_URL:-"${MCP_URL%/mcp}/health"}
+MCP_URL=${arifosmcp_URL:-"http://arifosmcp:8080/mcp"}
+MCP_HEALTH_URL=${arifosmcp_HEALTH_URL:-"${MCP_URL%/mcp}/health"}
 echo "   Checking arifOS MCP: $MCP_HEALTH_URL"
 if curl -fsS --max-time 3 "$MCP_HEALTH_URL" | grep -q '"status":"healthy"'; then
     echo -e "   [${GREEN}OK${NC}] arifOS MCP Governance Plane reachable"

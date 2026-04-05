@@ -14,7 +14,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 try:
-    from arifos_mcp.core.shared.floors import get_floor_classes, get_floor_comparator, get_floor_threshold
+    from arifosmcp.core.shared.floors import get_floor_classes, get_floor_comparator, get_floor_threshold
 
     _FLOOR_CLASSES = get_floor_classes()
 except Exception:
@@ -62,11 +62,11 @@ class ConstitutionalEvaluator:
         self._floors_available: bool | None = None
 
     def _load_all_floors(self) -> dict[str, Any] | None:
-        """Lazy-load ALL_FLOORS from arifos_mcp.core.shared.floors."""
+        """Lazy-load ALL_FLOORS from arifosmcp.core.shared.floors."""
         if self._floors_available is False:
             return None
         try:
-            from arifos_mcp.core.shared.floors import ALL_FLOORS
+            from arifosmcp.core.shared.floors import ALL_FLOORS
 
             self._floors_available = True
             return ALL_FLOORS
