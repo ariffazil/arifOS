@@ -7,6 +7,8 @@ import os
 import json
 import asyncio
 import logging
+import time
+import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional
 
@@ -72,8 +74,65 @@ mcp = FastMCP("arifOS Horizon Gateway")
 # PUBLIC TOOL PROXIES (Explicit signatures for FastMCP 2.x)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def _typed_horizon_error(
+    code: str,
+    message: str,
+    detail: str,
+    hint: str,
+    action: str,
+    tool_name: str,
+    http_status: int | None = None,
+    exc: Exception | None = None,
+    duration_ms: int | None = None,
+) -> dict:
+    """Build a typed constitutional error envelope — never a bare string."""
+    now = datetime.now(timezone.utc).isoformat()
+    status_map = {401: "error", 403: "error", 422: "error", 503: "degraded", 500: "error"}
+    status = status_map.get(http_status, "error") if http_status else "degraded"
+    errors = []
+    if http_status:
+        errors.append({
+            "type": "kernel_error",
+            "source": "sovereign_kernel",
+            "message": f"Upstream returned HTTP {http_status}.",
+        })
+    if exc:
+        errors.append({
+            "type": "transport_error",
+            "source": "horizon_gateway",
+            "message": str(exc),
+        })
+    return {
+        "ok": False,
+        "tool": tool_name,
+        "version": ARIFOS_VERSION,
+        "stage": "000_INIT",
+        "status": status,
+        "verdict": "SABAR",
+        "code": code,
+        "message": message,
+        "detail": detail,
+        "hint": hint,
+        "action": action,
+        "retryable": code not in ("INIT_AUTH_401", "INIT_POLICY_403"),
+        "rollback_available": True,
+        "timestamp": now,
+        "duration_ms": duration_ms,
+        "trace_id": f"trace_{uuid.uuid4().hex[:16]}",
+        "system": {
+            "kernel_version": ARIFOS_VERSION,
+            "adapter": "horizon_gateway",
+            "env": os.getenv("ARIFOS_ENV", "production"),
+            "dependency_health": "degraded" if (http_status and http_status >= 500) else "unreachable",
+        },
+        "errors": errors,
+        "warnings": [],
+    }
+
+
 async def _proxy_to_vps(tool_name: str, arguments: Optional[dict] = None) -> dict:
     """Forward tool calls to sovereign VPS."""
+    _start = time.monotonic()
     try:
         import httpx
         import time
@@ -88,119 +147,37 @@ async def _proxy_to_vps(tool_name: str, arguments: Optional[dict] = None) -> dic
                     "Accept": "application/json",
                 },
             )
-            duration_ms = int((time.time() - start_time) * 1000)
+            _ms = int((time.monotonic() - _start) * 1000)
             if response.status_code == 200:
                 data = response.json()
                 return data.get("result", data)
-            
-            import uuid
-            trace_id = f"trace_horizon_{uuid.uuid4().hex[:12]}"
-            args_safe = arguments or {}
-            
-            return {
-                "ok": False,
-                "tool": tool_name,
-                "version": ARIFOS_VERSION,
-                "stage": "000_INIT" if tool_name == "init_anchor" else "999_RUNTIME",
-                "status": "error",
-                "verdict": "HOLD",
-                "code": f"KERNEL_{response.status_code}",
-                "message": "Sovereign Kernel execution failed.",
-                "detail": f"Upstream VPS returned {response.status_code}. Dependency path failed before seal.",
-                "hint": "Check kernel health, dependency wiring, and adapter-to-kernel contract.",
-                "action": "retry_safe | inspect_kernel_health | fallback_query_only",
-                "retryable": response.status_code in [500, 502, 503, 504],
-                "rollback_available": True,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "duration_ms": duration_ms,
-                "session_id": args_safe.get("session_id", f"sess_{uuid.uuid4().hex[:8]}"),
-                "trace_id": trace_id,
-                "mode": args_safe.get("mode", "unknown"),
-                "intent": args_safe.get("intent", "unspecified"),
-                "actor_id": args_safe.get("actor_id", "anonymous"),
-                "declared_name": args_safe.get("declared_name", "unknown"),
-                "authority": {
-                    "trust_tier": "unverified" if args_safe.get("actor_id", "anonymous") == "anonymous" else "self_claimed",
-                    "allowed_modes": ["query"],
-                    "requires_human": False
-                },
-                "risk_tier": args_safe.get("risk_tier", "low"),
-                "policy": {
-                    "floors_checked": ["F11", "F12", "F13"] if tool_name == "init_anchor" else ["F1", "F11", "F13"],
-                    "floors_failed": ["F1", "F13"],
-                    "injection_score": 0.00,
-                    "witness_required": False
-                },
-                "system": {
-                    "kernel_version": ARIFOS_VERSION,
-                    "adapter": "mcp_horizon",
-                    "dependency_health": "degraded"
-                },
-                "warnings": [
-                    "DITEMPA BUKAN DIBERI - 13 F constitutional invariants cannot be guaranteed."
-                ],
-                "errors": [
-                    {
-                        "type": "dependency_error",
-                        "source": "sovereign_kernel",
-                        "message": f"Internal kernel path returned {response.status_code}."
-                    }
-                ]
+            _code_map = {
+                401: "INIT_AUTH_401", 403: "INIT_POLICY_403",
+                422: "INIT_SCHEMA_422", 503: "INIT_DEPENDENCY_503",
             }
+            _code = _code_map.get(response.status_code, "INIT_KERNEL_500")
+            return _typed_horizon_error(
+                code=_code,
+                message=f"Sovereign kernel returned {response.status_code} for {tool_name}.",
+                detail=f"HTTP {response.status_code} from upstream at {VPS_URL}/tools/{tool_name}.",
+                hint="Check kernel health, dependency wiring, and adapter-to-kernel contract.",
+                action="retry_safe | inspect_kernel_health | fallback_query_only",
+                tool_name=tool_name,
+                http_status=response.status_code,
+                duration_ms=_ms,
+            )
     except Exception as e:
-        import uuid
-        trace_id = f"trace_fail_{uuid.uuid4().hex[:12]}"
-        args_safe = arguments or {}
-        return {
-            "ok": False,
-            "tool": tool_name,
-            "version": ARIFOS_VERSION,
-            "stage": "000_INIT" if tool_name == "init_anchor" else "999_RUNTIME",
-            "status": "error",
-            "verdict": "HOLD",
-            "code": "INIT_DEPENDENCY_503",
-            "message": "Ambassador link severed.",
-            "detail": f"Kernel unreachable: {str(e)}",
-            "hint": "Check network routes, proxy status, and container health.",
-            "action": "system_diagnostic",
-            "retryable": True,
-            "rollback_available": True,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "duration_ms": 0,
-            "session_id": args_safe.get("session_id", f"sess_{uuid.uuid4().hex[:8]}"),
-            "trace_id": trace_id,
-            "mode": args_safe.get("mode", "unknown"),
-            "intent": args_safe.get("intent", "unspecified"),
-            "actor_id": args_safe.get("actor_id", "anonymous"),
-            "declared_name": args_safe.get("declared_name", "unknown"),
-            "authority": {
-                "trust_tier": "unverified",
-                "allowed_modes": ["query"],
-                "requires_human": False
-            },
-            "risk_tier": "low",
-            "policy": {
-                "floors_checked": ["F11"],
-                "floors_failed": ["F13"],
-                "injection_score": 0.00,
-                "witness_required": False
-            },
-            "system": {
-                "kernel_version": ARIFOS_VERSION,
-                "adapter": "mcp_horizon",
-                "dependency_health": "unreachable"
-            },
-            "warnings": [
-                "DITEMPA BUKAN DIBERI - 13 F constitutional invariants blocked at transport layer."
-            ],
-            "errors": [
-                {
-                    "type": "transport_error",
-                    "source": "horizon_proxy",
-                    "message": str(e)
-                }
-            ]
-        }
+        _ms = int((time.monotonic() - _start) * 1000)
+        return _typed_horizon_error(
+            code="INIT_TRANSPORT_503",
+            message=f"Ambassador link severed — cannot reach sovereign kernel for {tool_name}.",
+            detail=f"Transport exception: {type(e).__name__}: {e}",
+            hint="Verify VPS reachability, ARIFOS_VPS_URL env var, and network connectivity.",
+            action="inspect_vps_health | check_env_vars | retry_with_backoff",
+            tool_name=tool_name,
+            exc=e,
+            duration_ms=_ms,
+        )
 
 # Define each tool with explicit parameters (no **kwargs)
 # FastMCP 2.x requires explicit parameter definitions

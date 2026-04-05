@@ -319,6 +319,14 @@ class ToolEnvelope:
     output_policy: OutputPolicy = OutputPolicy.REAL_DOMAIN
     verdict_scope: VerdictScope = VerdictScope.ROUTER_SEAL
     dry_run: bool = False
+    # ── Constitutional handshake fields (init_anchor specific) ───────────────
+    anchor_state: str | None = None       # created | reused | resumed | denied
+    anchor_scope: str | None = None       # stateless | session | elevated_session
+    degraded_reason: str | None = None    # kernel_unavailable | authority_unverified | ...
+    policy: dict[str, Any] | None = None  # floors_checked/failed, injection_score, witness_required
+    system: dict[str, Any] | None = None  # kernel_version, adapter, env, dependency_health
+    capabilities: list[str] = field(default_factory=list)  # what actor may do immediately
+    injection_score: float | None = None  # 0.0–1.0 from normalization sweep
 
     def seal_envelope(self) -> None:
         if self.dry_run or self.payload.get("dry_run") is True:
@@ -375,6 +383,14 @@ class ToolEnvelope:
             "verdict_scope": self.verdict_scope.value,
             "dry_run": self.dry_run,
             "warnings": self.warnings,
+            # ── Constitutional handshake fields ──────────────────────────
+            "anchor_state": self.anchor_state,
+            "anchor_scope": self.anchor_scope,
+            "degraded_reason": self.degraded_reason,
+            "policy": self.policy,
+            "system": self.system,
+            "capabilities": self.capabilities,
+            "injection_score": self.injection_score,
         }
 
     @classmethod

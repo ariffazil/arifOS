@@ -9,6 +9,9 @@ Modes: init, revoke, refresh, state, status
 
 from __future__ import annotations
 
+import time
+import uuid
+from datetime import datetime, timezone
 from typing import Any
 
 from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
@@ -100,7 +103,9 @@ async def init_anchor(
     if "init_anchor" in HARDENED_DISPATCH_MAP:
         if mode is None:
             mode = "init"
+        _t0 = time.monotonic()
         res = await HARDENED_DISPATCH_MAP["init_anchor"](mode=mode, payload=payload)
+        _duration_ms = int((time.monotonic() - _t0) * 1000)
         if isinstance(res, dict):
             ok = res.get("ok")
             if ok is None:
@@ -202,12 +207,71 @@ async def init_anchor(
             from arifosmcp.runtime.models import AuthorityLevel, CanonicalAuthority, ClaimStatus
             _authority = res.get("authority")
             if _authority is None:
-                # Fallback authority if not provided by dispatcher
                 _authority = CanonicalAuthority(
                     actor_id=res.get("actor_id") or res.get("declared_actor_id") or "anonymous",
                     level=AuthorityLevel.ANONYMOUS,
                     claim_status=ClaimStatus.ANONYMOUS
                 )
+
+            # ─── Build policy block from floor audit data ──────────────────
+            _policy_block = res.get("policy") or {
+                "floors_checked": res.get("floors_checked") or _payload.get("floors_checked", []) if isinstance(_payload, dict) else [],
+                "floors_failed": res.get("floors_failed") or _payload.get("floors_failed", []) if isinstance(_payload, dict) else [],
+                "injection_score": (
+                    res.get("injection_score")
+                    or (isinstance(_payload, dict) and _payload.get("normalization", {}) or {}).get("injection_score", 0.0)
+                ),
+                "witness_required": res.get("witness_required", False),
+            }
+
+            # ─── Build system block ────────────────────────────────────────
+            import os as _os
+            _system_block = res.get("system") or {
+                "kernel_version": _os.getenv("ARIFOS_VERSION", "2026.04"),
+                "adapter": "mcp",
+                "env": _os.getenv("ARIFOS_ENV", "production"),
+                "dependency_health": "ok" if ok else "degraded",
+            }
+
+            # ─── Determine anchor_state ────────────────────────────────────
+            _anchor_state = res.get("anchor_state")
+            if not _anchor_state:
+                if not ok:
+                    _anchor_state = "denied"
+                elif res.get("reused") or (isinstance(_payload, dict) and _payload.get("continuation")):
+                    _anchor_state = "reused"
+                elif isinstance(_payload, dict) and _payload.get("continuation", {}) and _payload.get("continuation", {}).get("type") == "resumed":
+                    _anchor_state = "resumed"
+                else:
+                    _anchor_state = "created"
+
+            # ─── Determine anchor_scope from session_class ─────────────────
+            _anchor_scope = res.get("anchor_scope")
+            if not _anchor_scope:
+                _sc = payload.get("session_class", "execute")
+                _scope_map = {
+                    "query": "stateless",
+                    "execute": "session",
+                    "elevated": "elevated_session",
+                    "sovereign": "elevated_session",
+                }
+                _anchor_scope = _scope_map.get(_sc, "session")
+
+            # ─── Typed error code for failure path ────────────────────────
+            _code = res.get("code")
+            if not _code and not ok:
+                _warnings = res.get("warnings") or []
+                _w = _warnings[0].lower() if _warnings else ""
+                if "auth" in _w or "identity" in _w:
+                    _code = "INIT_AUTH_401"
+                elif "policy" in _w or "floor" in _w or "floor" in _w:
+                    _code = "INIT_POLICY_403"
+                elif "schema" in _w or "missing" in _w:
+                    _code = "INIT_SCHEMA_422"
+                elif "dependency" in _w or "unavailable" in _w:
+                    _code = "INIT_DEPENDENCY_503"
+                else:
+                    _code = "INIT_KERNEL_500"
 
             return RuntimeEnvelope(
                 tool=res.get("tool", "init_anchor"),
@@ -221,16 +285,44 @@ async def init_anchor(
                 authority=_authority,
                 auth_context=res.get("auth_context"),
                 caller_state=res.get("caller_state") or "anonymous",
+                # ── New constitutional handshake fields ──────────────────
+                duration_ms=_duration_ms,
+                mode=mode,
+                intent=payload.get("intent"),
+                anchor_state=_anchor_state,
+                anchor_scope=_anchor_scope,
+                policy=_policy_block,
+                system=_system_block,
+                code=_code,
+                detail=res.get("detail"),
+                hint=res.get("hint"),
+                retryable=res.get("retryable", not ok),
+                rollback_available=res.get("rollback_available", True),
+                trace_id=res.get("trace_id") or f"trace_{uuid.uuid4().hex[:16]}",
+                degraded_reason=res.get("degraded_reason"),
+                next_allowed_modes=res.get("next_allowed_modes", ["query"] if ok else []),
             )
         return res
 
     if mode is None:
         mode = "init"
-    
+
     return RuntimeEnvelope(
         tool="init_anchor",
         stage="000_INIT",
         status=RuntimeStatus.ERROR,
         verdict=Verdict.VOID,
+        code="INIT_KERNEL_500",
+        detail="HARDENED_DISPATCH_MAP has no init_anchor entry — system misconfiguration.",
+        hint="Check that arifosmcp/runtime/tools_hardened_dispatch.py registers init_anchor.",
+        retryable=False,
+        rollback_available=False,
+        anchor_state="denied",
+        system={
+            "kernel_version": __import__("os").getenv("ARIFOS_VERSION", "2026.04"),
+            "adapter": "mcp",
+            "env": __import__("os").getenv("ARIFOS_ENV", "production"),
+            "dependency_health": "unavailable",
+        },
         payload={"error": "Hardened Dispatch Map missing init_anchor entry. System failure."},
     )
