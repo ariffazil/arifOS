@@ -665,7 +665,7 @@ def _check_landauer_bound(compute_ms: float, tokens_generated: int, d_s: float) 
     }
 
 
-def wrap_tool_output(tool: str, payload: dict[str, Any]) -> dict[str, Any]:
+def wrap_tool_output(tool: str | None, payload: dict[str, Any]) -> dict[str, Any]:
     """
     Attach final canonical arifOS MCP envelope to tool outputs.
 
@@ -677,11 +677,15 @@ def wrap_tool_output(tool: str, payload: dict[str, Any]) -> dict[str, Any]:
     """
     from arifos_mcp.core.shared.verdict_contract import normalize_verdict
 
+    canonical_name = str(tool or payload.get("tool") or payload.get("canonical_name") or "").strip()
+    if not canonical_name:
+        canonical_name = "unknown_tool"
+
     # 1. Functional Analysis
-    checks = _axiom_checks(payload, tool)
-    law_checks = _law13_checks(tool, payload)
-    apex_dials = _derive_apex_dials(tool, payload)
-    motto = _motto_for_tool(tool)
+    checks = _axiom_checks(payload, canonical_name)
+    law_checks = _law13_checks(canonical_name, payload)
+    apex_dials = _derive_apex_dials(canonical_name, payload)
+    motto = _motto_for_tool(canonical_name)
     failed_axioms = [k for k, v in checks.items() if not bool(v.get("pass"))]
     failed_laws = [
         k for k, v in law_checks.items() if v.get("required") and not bool(v.get("pass"))
@@ -689,7 +693,7 @@ def wrap_tool_output(tool: str, payload: dict[str, Any]) -> dict[str, Any]:
 
     # 2. Score Derivation
     tac = _derive_tac_metrics(payload, failed_laws, failed_axioms)
-    tpcp = _derive_tpcp_metrics(tool, payload, tac, failed_laws)
+    tpcp = _derive_tpcp_metrics(canonical_name, payload, tac, failed_laws)
     vitality = _derive_vitality_index(payload, law_checks, apex_dials)
     psi_score = vitality.get("psi", 0.0)
 
@@ -708,7 +712,7 @@ def wrap_tool_output(tool: str, payload: dict[str, Any]) -> dict[str, Any]:
         if k in {"F2_TRUTH", "F7_HUMILITY"}
     )
 
-    tri_witness = _calculate_tri_witness_consensus(tool, payload)
+    tri_witness = _calculate_tri_witness_consensus(canonical_name, payload)
     
     phi_p = tpcp.get("phiP", 0.0)
     paradox_resolved = phi_p >= 1.0
@@ -723,7 +727,7 @@ def wrap_tool_output(tool: str, payload: dict[str, Any]) -> dict[str, Any]:
         d_s=_safe_float(payload, "dS", -0.1),
     )
 
-    stage = str(payload.get("stage") or TOOL_STAGE_MAP.get(tool, "000_INIT"))
+    stage = str(payload.get("stage") or TOOL_STAGE_MAP.get(canonical_name, "000_INIT"))
     stage_num = _parse_stage_num(stage)
 
     # Verdict Logic: Eliminating VOID-memanjang
@@ -749,13 +753,17 @@ def wrap_tool_output(tool: str, payload: dict[str, Any]) -> dict[str, Any]:
         "SEARCH_PARTIAL_FAILURE",
     }:
         # Shattered consensus on critical tools is VOID, others are HOLD
-        if tri_witness.get("shattered_by") and tool in {"seal_vault", "apex_judge"}:
+        if tri_witness.get("shattered_by") and canonical_name in {"seal_vault", "apex_judge"}:
             verdict = "VOID"
         else:
             verdict = "HOLD"
-    elif not paradox_resolved and tool in {"critique_thought", "apex_judge"}:
+    elif not paradox_resolved and canonical_name in {"critique_thought", "apex_judge"}:
         verdict = "SABAR" if phi_p >= 0.5 else "HOLD"
-    elif not ortho_pass and tool in {"critique_thought", "apex_judge", "simulate_heart"}:
+    elif not ortho_pass and canonical_name in {
+        "critique_thought",
+        "apex_judge",
+        "simulate_heart",
+    }:
         verdict = "SABAR" if omega_ortho >= 0.50 else "HOLD"
     elif landauer_data["violation"]:
         verdict = "SABAR"  # Cooling on thermodynamic thermal run
@@ -944,11 +952,11 @@ def wrap_tool_output(tool: str, payload: dict[str, Any]) -> dict[str, Any]:
     user_model = payload.get("user_model")
     if user_model is None:
         from arifos_mcp.runtime.tools import _build_user_model
-        user_model = _build_user_model(tool, stage, payload, {})
+        user_model = _build_user_model(canonical_name, stage, payload, {})
 
     output = {
         "ok": status != "ERROR",
-        "tool": tool,
+        "tool": canonical_name,
         "session_id": str(payload.get("session_id") or "global"),
         "stage": stage,
         "verdict": verdict,

@@ -108,6 +108,8 @@ AAA_TOOL_ALIASES: dict[str, str] = {
     "judge": "apex_soul",
     "seal": "vault_ledger",
     "reason": "agi_mind",
+    "reality_check": "search_reality",
+    "open_web_page": "ingest_evidence",
 }
 
 TOOL_MODES: dict[str, frozenset[str]] = {

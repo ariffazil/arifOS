@@ -98,6 +98,21 @@ TOOL_MAP = {
 }
 
 
+def _resolve_tool_input(payload: dict[str, Any], *keys: str) -> str:
+    """Return the first non-empty string-like value from the provided payload keys."""
+    for key in keys:
+        value = payload.get(key)
+        if value is None:
+            continue
+        if isinstance(value, str):
+            candidate = value.strip()
+            if candidate:
+                return candidate
+            continue
+        return str(value)
+    return ""
+
+
 def _normalize_public_authority_level(level: str | None) -> str:
     """
     Public envelopes should expose identity-style authority labels, not session-class labels.
@@ -732,14 +747,23 @@ async def call_kernel(
 
     if canonical_name == "search_reality":
         from arifosmcp.runtime.tools import search_reality
-        res = await search_reality(query=payload.get("query", ""))
+
+        res = await search_reality(
+            input=_resolve_tool_input(payload, "query", "input"),
+            session_id=session_id,
+            actor_id=claimed_actor_id,
+        )
         from core.enforcement.governance_engine import wrap_tool_output
 
         return wrap_tool_output(canonical_name, res)
     if canonical_name == "ingest_evidence":
-        from arifosmcp.runtime.reality_handlers import RealityHandlers
-        rh = RealityHandlers()
-        res = await rh.fetch_url(url=payload.get("source_url", ""))
+        from arifosmcp.runtime.tools import ingest_evidence
+
+        res = await ingest_evidence(
+            input=_resolve_tool_input(payload, "source_url", "url", "query", "input"),
+            session_id=session_id,
+            actor_id=claimed_actor_id,
+        )
         from core.enforcement.governance_engine import wrap_tool_output
 
         return wrap_tool_output(canonical_name, res)
