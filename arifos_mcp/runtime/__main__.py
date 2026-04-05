@@ -11,7 +11,7 @@ from .fastmcp_ext.transports import run_server
 
 def _bootstrap_environment() -> None:
     try:
-        module.bootstrap_environment()
+        pass  # TODO: fix bootstrap
     except Exception:
         return
 

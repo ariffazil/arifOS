@@ -729,12 +729,15 @@ async def call_kernel(
             )
 
     if canonical_name == "search_reality":
-        res = await reality_check(query=payload.get("query", ""))
+        from arifosmcp.runtime.tools import search_reality
+        res = await search_reality(query=payload.get("query", ""))
         from core.enforcement.governance_engine import wrap_tool_output
 
         return wrap_tool_output(canonical_name, res)
     if canonical_name == "ingest_evidence":
-        res = await open_web_page(url=payload.get("source_url", ""))
+        from arifosmcp.runtime.reality_handlers import RealityHandlers
+        rh = RealityHandlers()
+        res = await rh.fetch_url(url=payload.get("source_url", ""))
         from core.enforcement.governance_engine import wrap_tool_output
 
         return wrap_tool_output(canonical_name, res)
