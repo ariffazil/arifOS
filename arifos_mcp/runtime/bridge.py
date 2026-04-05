@@ -616,7 +616,7 @@ async def call_kernel(
     from core.governance_kernel import get_governance_kernel
     from core.shared.types import GovernanceMetadata, Intent, MathDials, TemporalContract
 
-    canonical_name = TOOL_MAP.get(tool_name, tool_name)
+    canonical_name = TOOL_MAP.get(tool_name, tool_name) or "unknown"
     claimed_actor_id = _resolve_claimed_actor_id(payload)
 
     t_start = time.perf_counter()
@@ -746,7 +746,7 @@ async def call_kernel(
             )
 
     if canonical_name == "search_reality":
-        from arifosmcp.runtime.tools import search_reality
+        from arifos_mcp.runtime.tools import search_reality
 
         res = await search_reality(
             input=_resolve_tool_input(payload, "query", "input"),
@@ -757,7 +757,7 @@ async def call_kernel(
 
         return wrap_tool_output(canonical_name, res)
     if canonical_name == "ingest_evidence":
-        from arifosmcp.runtime.tools import ingest_evidence
+        from arifos_mcp.runtime.tools import ingest_evidence
 
         res = await ingest_evidence(
             input=_resolve_tool_input(payload, "source_url", "url", "query", "input"),
