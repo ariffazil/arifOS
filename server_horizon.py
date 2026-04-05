@@ -76,6 +76,8 @@ async def _proxy_to_vps(tool_name: str, arguments: Optional[dict] = None) -> dic
     """Forward tool calls to sovereign VPS."""
     try:
         import httpx
+        import time
+        start_time = time.time()
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 f"{VPS_URL}/tools/{tool_name}",
@@ -86,12 +88,119 @@ async def _proxy_to_vps(tool_name: str, arguments: Optional[dict] = None) -> dic
                     "Accept": "application/json",
                 },
             )
+            duration_ms = int((time.time() - start_time) * 1000)
             if response.status_code == 200:
                 data = response.json()
                 return data.get("result", data)
-            return {"error": f"Sovereign Kernel error: {response.status_code}", "verdict": "SABAR"}
+            
+            import uuid
+            trace_id = f"trace_horizon_{uuid.uuid4().hex[:12]}"
+            args_safe = arguments or {}
+            
+            return {
+                "ok": False,
+                "tool": tool_name,
+                "version": ARIFOS_VERSION,
+                "stage": "000_INIT" if tool_name == "init_anchor" else "999_RUNTIME",
+                "status": "error",
+                "verdict": "HOLD",
+                "code": f"KERNEL_{response.status_code}",
+                "message": "Sovereign Kernel execution failed.",
+                "detail": f"Upstream VPS returned {response.status_code}. Dependency path failed before seal.",
+                "hint": "Check kernel health, dependency wiring, and adapter-to-kernel contract.",
+                "action": "retry_safe | inspect_kernel_health | fallback_query_only",
+                "retryable": response.status_code in [500, 502, 503, 504],
+                "rollback_available": True,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "duration_ms": duration_ms,
+                "session_id": args_safe.get("session_id", f"sess_{uuid.uuid4().hex[:8]}"),
+                "trace_id": trace_id,
+                "mode": args_safe.get("mode", "unknown"),
+                "intent": args_safe.get("intent", "unspecified"),
+                "actor_id": args_safe.get("actor_id", "anonymous"),
+                "declared_name": args_safe.get("declared_name", "unknown"),
+                "authority": {
+                    "trust_tier": "unverified" if args_safe.get("actor_id", "anonymous") == "anonymous" else "self_claimed",
+                    "allowed_modes": ["query"],
+                    "requires_human": False
+                },
+                "risk_tier": args_safe.get("risk_tier", "low"),
+                "policy": {
+                    "floors_checked": ["F11", "F12", "F13"] if tool_name == "init_anchor" else ["F1", "F11", "F13"],
+                    "floors_failed": ["F1", "F13"],
+                    "injection_score": 0.00,
+                    "witness_required": False
+                },
+                "system": {
+                    "kernel_version": ARIFOS_VERSION,
+                    "adapter": "mcp_horizon",
+                    "dependency_health": "degraded"
+                },
+                "warnings": [
+                    "DITEMPA BUKAN DIBERI - 13 F constitutional invariants cannot be guaranteed."
+                ],
+                "errors": [
+                    {
+                        "type": "dependency_error",
+                        "source": "sovereign_kernel",
+                        "message": f"Internal kernel path returned {response.status_code}."
+                    }
+                ]
+            }
     except Exception as e:
-        return {"error": "Ambassador link severed", "details": str(e), "verdict": "SABAR"}
+        import uuid
+        trace_id = f"trace_fail_{uuid.uuid4().hex[:12]}"
+        args_safe = arguments or {}
+        return {
+            "ok": False,
+            "tool": tool_name,
+            "version": ARIFOS_VERSION,
+            "stage": "000_INIT" if tool_name == "init_anchor" else "999_RUNTIME",
+            "status": "error",
+            "verdict": "HOLD",
+            "code": "INIT_DEPENDENCY_503",
+            "message": "Ambassador link severed.",
+            "detail": f"Kernel unreachable: {str(e)}",
+            "hint": "Check network routes, proxy status, and container health.",
+            "action": "system_diagnostic",
+            "retryable": True,
+            "rollback_available": True,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "duration_ms": 0,
+            "session_id": args_safe.get("session_id", f"sess_{uuid.uuid4().hex[:8]}"),
+            "trace_id": trace_id,
+            "mode": args_safe.get("mode", "unknown"),
+            "intent": args_safe.get("intent", "unspecified"),
+            "actor_id": args_safe.get("actor_id", "anonymous"),
+            "declared_name": args_safe.get("declared_name", "unknown"),
+            "authority": {
+                "trust_tier": "unverified",
+                "allowed_modes": ["query"],
+                "requires_human": False
+            },
+            "risk_tier": "low",
+            "policy": {
+                "floors_checked": ["F11"],
+                "floors_failed": ["F13"],
+                "injection_score": 0.00,
+                "witness_required": False
+            },
+            "system": {
+                "kernel_version": ARIFOS_VERSION,
+                "adapter": "mcp_horizon",
+                "dependency_health": "unreachable"
+            },
+            "warnings": [
+                "DITEMPA BUKAN DIBERI - 13 F constitutional invariants blocked at transport layer."
+            ],
+            "errors": [
+                {
+                    "type": "transport_error",
+                    "source": "horizon_proxy",
+                    "message": str(e)
+                }
+            ]
+        }
 
 # Define each tool with explicit parameters (no **kwargs)
 # FastMCP 2.x requires explicit parameter definitions
