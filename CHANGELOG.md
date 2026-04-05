@@ -2,7 +2,22 @@
 
 All notable changes to arifOS MCP are documented in this file.
 
-## [2026.04.06-GREAT-UNIFICATION] - Repository Restructuring & Consolidation
+## [2026.04.05-ARCHIVE-SURGERY] - core/ → arifosmcp/ Migration Complete
+
+### 🗂️ ARCHIVE SURGERY — CANONICAL PACKAGE CONSOLIDATION
+
+**All 153 files from `core/` have been permanently migrated into `arifosmcp/`.**
+
+- **Deleted:** `core/` directory (governance_kernel, pipeline, judgment, organs, shared, physics, intelligence, enforcement, kernel, security, vault, workflow, theory, SOULS, config, contracts, observability, perception, prompts, protocols, recovery, scheduler, state) — 153 files total.
+- **Canonical home:** All logic now lives exclusively in `arifosmcp/`. No code should be written to `core/` going forward.
+- **F13 KHILAFAH:** Granted Gemini, Copilot, and Kimi full filesystem access via `SEMANTIC_BYPASS_ACTORS` for bootstrap agent operations.
+- **`.claude/` gitignored:** Session seal artifacts excluded from version control.
+- **`arif-site`:** forge-portal React/Vite/Tailwind frontend scaffold added (Trinity UI, WebMCP integration).
+- **`GEOX`:** `uv.lock` lockfile committed.
+
+> **Agent note:** If your context references `core/organs/`, `core/pipeline.py`, `core/shared/`, etc. — those paths no longer exist. Use `arifosmcp/` equivalents.
+
+## [2026.04.06-GREAT-UNIFICATION]- Repository Restructuring & Consolidation
 
 ### 🏛️ REPOSITORY RESTRUCTURING & CONSOLIDATION
 **Execution of the Repo Order Architect mandate to eliminate chaos and narrative overlap.**

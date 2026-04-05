@@ -109,19 +109,10 @@ arifosmcp/
 │   ├── sites/                 # Static sites (APEX dashboard)
 │   └── VAULT999/              # Local vault storage
 │
-├── core/                      # Constitutional kernel (pure logic)
-│   ├── shared/                # Shared utilities
-│   │   ├── floors.py          # 13 Constitutional Floors (F1-F13)
-│   │   ├── physics.py         # Thermodynamic calculations
-│   │   ├── verdict_contract.py# Verdict definitions
-│   │   ├── crypto.py          # Cryptographic utilities
-│   │   └── guards/            # Security guards (injection, ontology)
-│   ├── governance_kernel.py   # Main governance engine
-│   ├── pipeline.py            # Metabolic loop pipeline
-│   ├── judgment.py            # Verdict rendering (888_JUDGE)
-│   ├── organs/                # Trinity organs (AGI, ASI, APEX)
-│   ├── physics/               # Physics engine
-│   └── scheduler/             # Metabolic scheduler
+├── core/                      # ⚠️ ARCHIVED (2026.04.05) — migrated to arifosmcp/
+│                              # All constitutional kernel logic now lives in arifosmcp/
+│                              # See: arifosmcp/intelligence/, arifosmcp/runtime/,
+│                              #      arifosmcp/VAULT999/, arifosmcp/agents/
 │
 ├── tests/                     # Comprehensive test suite
 │   ├── 00_unit/               # Unit tests (~2 min)
