@@ -252,9 +252,9 @@ def validate_design_tri_witness(
     F3_QuadWitness validation for architectural decisions.
     
     Requires consensus from 3 parties:
-    - W1: Human (must approve)
-    - W2: AI/Auditor (constitutional check)
-    - W3: Earth/System (environmental constraints)
+    - w1: Human (must approve)
+    - w2: AI/Auditor (constitutional check)
+    - w3: Earth/System (environmental constraints)
     
     Args:
         design: Design spec to validate
@@ -265,25 +265,25 @@ def validate_design_tri_witness(
     Returns:
         F3 validation result with consensus score
     """
-    W1 = 1.0 if human_approval else 0.0
-    W2 = 1.0 if ai_verdict == "SEAL" else 0.5 if ai_verdict == "HOLD" else 0.0
-    W3 = 1.0 if system_verdict == "SEAL" else 0.5 if system_verdict == "HOLD" else 0.0
+    w1 = 1.0 if human_approval else 0.0
+    w2 = 1.0 if ai_verdict == "SEAL" else 0.5 if ai_verdict == "HOLD" else 0.0
+    w3 = 1.0 if system_verdict == "SEAL" else 0.5 if system_verdict == "HOLD" else 0.0
     
-    W4 = 0.75  # Adversarial Byzantine witness (assume worst-case)
+    w4 = 0.75  # Adversarial Byzantine witness (assume worst-case)
     
-    W_cube = (W1 * W2 * W3) ** (1/3)
-    quad_witness = (W1 + W2 + W3 + W4) / 4
+    w_cube = (w1 * w2 * w3) ** (1/3)
+    quad_witness = (w1 + w2 + w3 + w4) / 4
     
     threshold = 0.75
     consensus_achieved = quad_witness >= threshold
     
     return {
         "F3_quad_witness": {
-            "W1_human": W1,
-            "W2_ai": W2,
-            "W3_system": W3,
-            "W4_adversarial": W4,
-            "W_cube": round(W_cube, 4),
+            "W1_human": w1,
+            "W2_ai": w2,
+            "W3_system": w3,
+            "W4_adversarial": w4,
+            "w_cube": round(w_cube, 4),
             "quad_witness_avg": round(quad_witness, 4),
             "threshold": threshold,
             "consensus_achieved": consensus_achieved,
