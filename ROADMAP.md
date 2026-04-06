@@ -1,8 +1,15 @@
 # arifOS ROADMAP — THE BODY (Engineering & Scaling)
 
-**Version:** 2026.04.06-SEALED  
+**Version:** 2026.04.06-AGI-MIND  
 **Authority:** Muhammad Arif bin Fazil (999_VALIDATOR)  
 **Vision:** *Execution is the proof of Law.*
+
+---
+
+## 🚀 PHASE 1: THE CONSTITUTIONAL ENGINE (CURRENT)
+- **AGI Mind Pipeline (ACTIVE):** Scale "Speak Narrow" principle to all agent communications.
+- **Entropy Budgets (PENDING):** Formalize chaos_score() across all MCP endpoints.
+- **Provenance Ledger (PENDING):** Connect VaultLedger directly to AGI Mind Provenance.
 
 ---
 
