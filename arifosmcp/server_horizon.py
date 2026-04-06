@@ -9,51 +9,55 @@ full gateway contract:
 - ``sovereign-only`` tools: remain on the VPS execution plane
 """
 
+import hashlib
 import json
 import logging
 import os
 import time
 import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 
 import httpx
 from arifosmcp.runtime.fastmcp_version import JSONResponse, Request, custom_route
 from config.environments import TOOL_ACCESS_POLICY, ToolAccessClass
 from fastmcp import FastMCP
 
+# --- Phase 1: Canonical Registry Loading ---
+REGISTRY_PATH = Path(__file__).parent / "tool_registry.json"
+with open(REGISTRY_PATH, "r") as f:
+    TOOL_REGISTRY = json.load(f)
+
+# --- Phase 3: Constitutional Integrity Check ---
+def compute_registry_hash(data):
+    return hashlib.sha256(
+        json.dumps(data, sort_keys=True).encode()
+    ).hexdigest()
+
+CONSTITUTIONAL_HASH = compute_registry_hash(TOOL_REGISTRY)
+print(f"✅ ARIFOS: CONSTITUTIONAL HASH (v1) LOADED: {CONSTITUTIONAL_HASH}")
+
+
+# --- Phase 2: Dynamic Tool Specification Generation ---
+def generate_tool_specs() -> dict[str, str]:
+    specs = {}
+    for tool_data in TOOL_REGISTRY.get("tools", []):
+        if tool_data.get("type") == "function":
+            func = tool_data["function"]
+            specs[func["name"]] = func["description"]
+    return specs
+
 # Configuration
 VPS_URL = os.getenv("ARIFOS_VPS_URL", "https://arifosmcp.arif-fazil.com")
 ARIFOS_GOVERNANCE_SECRET = os.getenv("ARIFOS_GOVERNANCE_SECRET", "")
-ARIFOS_VERSION = os.getenv("ARIFOS_VERSION", "2026.03.25")
-MCP_PROTOCOL_VERSION = "2025-11-25"
+ARIFOS_VERSION = os.getenv("ARIFOS_VERSION", "2026.04.06")
+MCP_PROTOCOL_VERSION = "2026-04-06"
 
-mcp = FastMCP("arifOS Horizon Gateway")
+mcp = FastMCP("arifOS Horizon Gateway (v3 Registry-Driven)")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("horizon-ambassador")
 
-PUBLIC_PROXY_SPECS = {
-    "init_anchor": "000_INIT: Initialize constitutional session anchor.",
-    "arifOS_kernel": "444_ROUTER: Primary metabolic conductor.",
-    "apex_judge": "888_JUDGE: Constitutional verdict engine.",
-    "agi_mind": "333_MIND: Reasoning and synthesis engine.",
-    "asi_heart": "666_HEART: Safety and empathy critique.",
-    "physics_reality": "111_SENSE: Reality grounding and temporal intelligence.",
-    "math_estimator": "777_OPS: Thermodynamic vitals and cost estimation.",
-    "architect_registry": "000_INIT: Tool and resource discovery.",
-    "compat_probe": "M-5_COMPAT: Interoperability and enum audit.",
-    "agi_reason": "333_MIND: First-principles reasoning.",
-    "agi_reflect": "333_MIND: Reflective synthesis and critique.",
-    "asi_critique": "666_HEART: Harm and alignment critique.",
-    "asi_simulate": "666_HEART: Consequence and scenario simulation.",
-    "reality_compass": "111_SENSE: Directional grounding.",
-    "reality_atlas": "111_SENSE: Contextual reality mapping.",
-    "search_reality": "111_SENSE: Evidence-grounded search.",
-    "ingest_evidence": "111_SENSE: Evidence ingestion.",
-    "check_vital": "777_OPS: Runtime health signal.",
-    "audit_rules": "888_JUDGE: Rule and policy audit.",
-    "search_tool": "Search for indexed documents.",
-    "fetch_tool": "Fetch indexed document content by ID.",
-}
+PUBLIC_PROXY_SPECS = generate_tool_specs()
 
 AUTHENTICATED_TOOLS = sorted(
     name for name, access in TOOL_ACCESS_POLICY.items() if access == ToolAccessClass.AUTHENTICATED.value
