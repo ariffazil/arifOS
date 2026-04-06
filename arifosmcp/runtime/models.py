@@ -807,7 +807,7 @@ class RuntimeEnvelope(BaseModel):
     verdict_detail: VerdictDetail | None = Field(
         default=None, description="Structured v1.0 details."
     )
-    verdict_scope: "VerdictScope" | None = Field(
+    verdict_scope: VerdictScope | None = Field(
         default=None,
         description="F2 constitutional verdict scope tag. Routing/domain/session/dry_run/cannot_compute."
     )

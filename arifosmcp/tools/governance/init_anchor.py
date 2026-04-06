@@ -22,7 +22,7 @@ from arifosmcp.abi.v1_0 import (
     InitAnchorResponse,
     IdentityResolution,
 )
-from core.shared.types import Verdict, RuntimeStatus, RuntimeEnvelope
+from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
 
 
 # Tool singleton instance for registration

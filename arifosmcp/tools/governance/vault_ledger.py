@@ -71,6 +71,6 @@ class _VaultLedgerTool(Tool):
         return res
 
 
-from core.shared.types import RuntimeEnvelope
+from arifosmcp.runtime.models import RuntimeEnvelope
 from arifosmcp.tools.base import ToolRegistry
 ToolRegistry.register(_VaultLedgerTool())

@@ -18,7 +18,7 @@ from typing import Any
 
 from arifosmcp.tools.base import Tool
 from arifosmcp.abi.v1_0 import CodeEngineRequest, CodeEngineResponse
-from core.shared.types import Verdict, RuntimeEnvelope
+from arifosmcp.runtime.models import RuntimeEnvelope, Verdict
 
 
 _tool_instance = None

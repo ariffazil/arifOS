@@ -16,12 +16,8 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from core.shared.types import (
-    Verdict,
-    RuntimeStatus,
-    RuntimeEnvelope,
-)
 from arifosmcp.abi.v1_0 import get_request_schema, get_response_schema
+from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
 
 
 class FloorResult:
