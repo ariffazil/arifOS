@@ -4,7 +4,9 @@ import json
 from fastmcp import FastMCP
 
 def register_resources(mcp: FastMCP) -> None:
-    """Register read-only contextual data (constitution)."""
+    """Register read-only contextual data (constitution) and schema registry."""
+    # Register schema resources (context-rich tool registry)
+    register_schema_resources(mcp)
 
     @mcp.resource("arifos://governance/floors")
     def governance_floors() -> str:
@@ -75,3 +77,84 @@ Golden Path: init → route → [sense | mind | heart] → ops → judge → vau
 # Helper functions for HTML rendering (backward compat)
 def apex_tools_html_rows(): return ""
 def apex_tools_markdown_table(): return ""
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONTEXT-RICH TOOL REGISTRY RESOURCES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def register_schema_resources(mcp: FastMCP) -> None:
+    """Register schema registry resources for semantic tool discovery."""
+    from arifosmcp.schema import get_registry
+    
+    registry = get_registry()
+    
+    @mcp.resource("arifos://schema/master")
+    def schema_master() -> str:
+        """Complete arifOS master schema with stages, Trinity, and transitions."""
+        schema = registry.master_schema
+        if schema:
+            return json.dumps(schema, indent=2)
+        return json.dumps({"error": "Schema not loaded"})
+    
+    @mcp.resource("arifos://schema/tools")
+    def schema_tools() -> str:
+        """All tool context packets with full semantic metadata."""
+        packets = registry.tool_packets
+        return json.dumps(packets, indent=2)
+    
+    @mcp.resource("arifos://schema/tool/{tool_id}")
+    def schema_tool(tool_id: str) -> str:
+        """Context packet for a specific tool (e.g., arifos.mind)."""
+        packet = registry.get_tool_packet(tool_id)
+        if packet:
+            return json.dumps(packet, indent=2)
+        return json.dumps({"error": f"Tool {tool_id} not found", "available": list(registry.tool_packets.keys())})
+    
+    @mcp.resource("arifos://schema/stages")
+    def schema_stages() -> str:
+        """Governance stage definitions and transitions."""
+        master = registry.master_schema or {}
+        return json.dumps({
+            "stage_order": master.get("stage_order", []),
+            "stages": master.get("stages", {}),
+            "transitions": master.get("transitions", {})
+        }, indent=2)
+    
+    @mcp.resource("arifos://schema/trinity")
+    def schema_trinity() -> str:
+        """Trinity lane definitions (Δ Discernment, Ψ Sovereignty, Ω Stability)."""
+        master = registry.master_schema or {}
+        return json.dumps(master.get("trinity", {}), indent=2)
+    
+    @mcp.resource("arifos://schema/envelopes")
+    def schema_envelopes() -> str:
+        """Shared request/response envelope schemas."""
+        return json.dumps({
+            "request": registry.get_request_schema(),
+            "response": registry.get_response_schema(),
+            "context_packet": registry.get_context_packet_schema()
+        }, indent=2)
+    
+    @mcp.resource("arifos://schema/alias-map")
+    def schema_alias_map() -> str:
+        """Mapping from public aliases to backing tools."""
+        return json.dumps(registry.get_alias_map(), indent=2)
+    
+    @mcp.resource("arifos://schema/tool-summary")
+    def schema_tool_summary() -> str:
+        """Compact summary of all tools for quick reference."""
+        return json.dumps(registry.get_tool_summary(), indent=2)
+    
+    @mcp.resource("arifos://schema/chatgpt-guide/{tool_id}")
+    def schema_chatgpt_guide(tool_id: str) -> str:
+        """ChatGPT-specific usage guidance for a tool."""
+        guidance = registry.get_chatgpt_guidance(tool_id)
+        if guidance:
+            return json.dumps(guidance, indent=2)
+        return json.dumps({"error": f"No guidance for {tool_id}"})
+    
+    @mcp.resource("arifos://schema/routing-guide")
+    def schema_routing_guide() -> str:
+        """Complete routing guidance for stage transitions."""
+        return json.dumps(registry.get_routing_guide(), indent=2)

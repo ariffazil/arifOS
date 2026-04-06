@@ -18,6 +18,12 @@ class ToolSpec:
     max_budget_tier: str = "large"
     overflow_policy: str = "truncate"
     readonly: bool = True
+    context_packet_uri: str = ""  # Reference to arifos://schema/tool/{name}
+    
+    def get_context_packet(self) -> dict[str, Any] | None:
+        """Load the semantic context packet for this tool."""
+        from arifosmcp.schema import get_context_packet
+        return get_context_packet(self.name)
 
 
 @dataclass(frozen=True)
@@ -80,6 +86,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
                 "intent": {"type": "string"},
             },
         ),
+        context_packet_uri="arifos://schema/tool/arifos.init",
     ),
     ToolSpec(
         name="arifos.route",
@@ -95,6 +102,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
             ["kernel", "status"],
             {"query": {"type": "string"}},
         ),
+        context_packet_uri="arifos://schema/tool/arifos.route",
     ),
     ToolSpec(
         name="arifos.judge",
@@ -113,6 +121,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
                 "telemetry": {"type": "object"},
             },
         ),
+        context_packet_uri="arifos://schema/tool/arifos.judge",
     ),
     # ─── Internal Subsystems (Hidden from Public MCP Surface) ───
     ToolSpec(
@@ -125,6 +134,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="DELTA Δ",
         floors=("F2", "F3"),
         input_schema=_build_mega_schema("arifos.sense", ["search", "time"], {"query": {"type": "string"}}),
+        context_packet_uri="arifos://schema/tool/arifos.sense",
     ),
     ToolSpec(
         name="arifos.mind",
@@ -136,6 +146,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="DELTA Δ",
         floors=("F2", "F8"),
         input_schema=_build_mega_schema("arifos.mind", ["reason"], {"query": {"type": "string"}}),
+        context_packet_uri="arifos://schema/tool/arifos.mind",
     ),
     ToolSpec(
         name="arifos.heart",
@@ -147,6 +158,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="OMEGA Ω",
         floors=("F5", "F6", "F9"),
         input_schema=_build_mega_schema("arifos.heart", ["critique"], {"content": {"type": "string"}}),
+        context_packet_uri="arifos://schema/tool/arifos.heart",
     ),
     ToolSpec(
         name="arifos.ops",
@@ -158,6 +170,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="DELTA Δ",
         floors=("F4", "F5"),
         input_schema=_build_mega_schema("arifos.ops", ["cost"], {"action": {"type": "string"}}),
+        context_packet_uri="arifos://schema/tool/arifos.ops",
     ),
     ToolSpec(
         name="arifos.memory",
@@ -169,6 +182,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="OMEGA Ω",
         floors=("F10", "F11"),
         input_schema=_build_mega_schema("arifos.memory", ["query"], {"query": {"type": "string"}}),
+        context_packet_uri="arifos://schema/tool/arifos.memory",
     ),
     ToolSpec(
         name="arifos.vault",
@@ -180,6 +194,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="PSI Ψ",
         floors=("F1", "F13"),
         input_schema=_build_mega_schema("arifos.vault", ["seal"], {"verdict": {"type": "string"}}),
+        context_packet_uri="arifos://schema/tool/arifos.vault",
     ),
     # ═══════════════════════════════════════════════════════════════════════════
     # EXECUTION BRIDGE (LAYER 3 — Hardened)
@@ -214,6 +229,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
             },
             required_payload=["execution_envelope"],
         ),
+        context_packet_uri="arifos://schema/tool/arifos.forge",
     ),
 )
 
