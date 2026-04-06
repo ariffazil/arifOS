@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "registry_version": "1.1.0",
+  "registry_version": "1.2.0",
   "quotes": [
     {
       "id": "AW-01",
@@ -9,7 +9,11 @@
       "civilization": "Ancient_West",
       "era": "Classical",
       "category": "wisdom",
-      "tags": ["epistemology", "humility", "socratic"]
+      "tags": [
+        "epistemology",
+        "humility",
+        "socratic"
+      ]
     },
     {
       "id": "AW-02",
@@ -18,7 +22,11 @@
       "civilization": "Ancient_West",
       "era": "Classical",
       "category": "discipline",
-      "tags": ["rationalism", "education", "teleology"]
+      "tags": [
+        "rationalism",
+        "education",
+        "teleology"
+      ]
     },
     {
       "id": "AE-01",
@@ -27,7 +35,11 @@
       "civilization": "Ancient_East",
       "era": "Ancient",
       "category": "justice",
-      "tags": ["moral", "courage", "confucian"]
+      "tags": [
+        "moral",
+        "courage",
+        "confucian"
+      ]
     },
     {
       "id": "AE-02",
@@ -36,7 +48,11 @@
       "civilization": "Ancient_East",
       "era": "Ancient",
       "category": "wisdom",
-      "tags": ["tao", "non-force", "patience"]
+      "tags": [
+        "tao",
+        "non-force",
+        "patience"
+      ]
     },
     {
       "id": "AE-03",
@@ -45,7 +61,11 @@
       "civilization": "Ancient_East",
       "era": "Classical",
       "category": "power",
-      "tags": ["strategy", "war", "intelligence"]
+      "tags": [
+        "strategy",
+        "war",
+        "intelligence"
+      ]
     },
     {
       "id": "AW-03",
@@ -54,7 +74,11 @@
       "civilization": "Ancient_West",
       "era": "Ancient",
       "category": "paradox",
-      "tags": ["flux", "ontology", "change"]
+      "tags": [
+        "flux",
+        "ontology",
+        "change"
+      ]
     },
     {
       "id": "AW-04",
@@ -63,16 +87,24 @@
       "civilization": "Ancient_West",
       "era": "Ancient",
       "category": "truth",
-      "tags": ["being", "absolutism", "contrast-heraclitus"]
+      "tags": [
+        "being",
+        "absolutism",
+        "contrast-heraclitus"
+      ]
     },
     {
       "id": "AW-05",
-      "text": "You have power over your mind — not outside events.",
+      "text": "You have power over your mind \u2014 not outside events.",
       "author": "Marcus Aurelius",
       "civilization": "Ancient_West",
       "era": "Classical",
       "category": "discipline",
-      "tags": ["stoic", "sovereignty", "interior"]
+      "tags": [
+        "stoic",
+        "sovereignty",
+        "interior"
+      ]
     },
     {
       "id": "AW-06",
@@ -81,16 +113,24 @@
       "civilization": "Ancient_West",
       "era": "Classical",
       "category": "discipline",
-      "tags": ["stoic", "agency", "reaction"]
+      "tags": [
+        "stoic",
+        "agency",
+        "reaction"
+      ]
     },
     {
       "id": "EE-01",
       "text": "It is better to be feared than loved, if you cannot be both.",
-      "author": "Niccolò Machiavelli",
+      "author": "Niccol\u00f2 Machiavelli",
       "civilization": "European_Enlightenment",
       "era": "Enlightenment",
       "category": "power",
-      "tags": ["politics", "realism", "prince"]
+      "tags": [
+        "politics",
+        "realism",
+        "prince"
+      ]
     },
     {
       "id": "EE-02",
@@ -99,7 +139,11 @@
       "civilization": "European_Enlightenment",
       "era": "Enlightenment",
       "category": "void",
-      "tags": ["state", "chaos", "security"]
+      "tags": [
+        "state",
+        "chaos",
+        "security"
+      ]
     },
     {
       "id": "EE-03",
@@ -108,7 +152,11 @@
       "civilization": "European_Enlightenment",
       "era": "Enlightenment",
       "category": "justice",
-      "tags": ["rights", "liberty", "contrast-hobbes"]
+      "tags": [
+        "rights",
+        "liberty",
+        "contrast-hobbes"
+      ]
     },
     {
       "id": "EE-04",
@@ -117,7 +165,11 @@
       "civilization": "European_Enlightenment",
       "era": "Enlightenment",
       "category": "justice",
-      "tags": ["moral", "categorical", "imperative"]
+      "tags": [
+        "moral",
+        "categorical",
+        "imperative"
+      ]
     },
     {
       "id": "EE-05",
@@ -126,7 +178,11 @@
       "civilization": "European_Enlightenment",
       "era": "Enlightenment",
       "category": "paradox",
-      "tags": ["empiricism", "skepticism", "contrast-kant"]
+      "tags": [
+        "empiricism",
+        "skepticism",
+        "contrast-kant"
+      ]
     },
     {
       "id": "MP-01",
@@ -135,16 +191,24 @@
       "civilization": "Modern_Political",
       "era": "Modern",
       "category": "power",
-      "tags": ["will", "existential", "meaning"]
+      "tags": [
+        "will",
+        "existential",
+        "meaning"
+      ]
     },
     {
       "id": "MP-02",
       "text": "Life can only be understood backwards; but it must be lived forwards.",
-      "author": "Søren Kierkegaard",
+      "author": "S\u00f8ren Kierkegaard",
       "civilization": "Modern_Political",
       "era": "Modern",
       "category": "paradox",
-      "tags": ["existential", "time", "leap"]
+      "tags": [
+        "existential",
+        "time",
+        "leap"
+      ]
     },
     {
       "id": "MP-03",
@@ -153,7 +217,11 @@
       "civilization": "Modern_Political",
       "era": "Modern",
       "category": "power",
-      "tags": ["materialism", "action", "determinism"]
+      "tags": [
+        "materialism",
+        "action",
+        "determinism"
+      ]
     },
     {
       "id": "CG-01",
@@ -162,7 +230,11 @@
       "civilization": "Contemporary_Global",
       "era": "Contemporary",
       "category": "truth",
-      "tags": ["evil", "banality", "responsibility"]
+      "tags": [
+        "evil",
+        "banality",
+        "responsibility"
+      ]
     },
     {
       "id": "MP-04",
@@ -171,7 +243,11 @@
       "civilization": "Modern_Political",
       "era": "Industrial",
       "category": "justice",
-      "tags": ["power", "character", "restraint"]
+      "tags": [
+        "power",
+        "character",
+        "restraint"
+      ]
     },
     {
       "id": "MS-01",
@@ -180,7 +256,11 @@
       "civilization": "Modern_Scientific",
       "era": "Modern",
       "category": "wisdom",
-      "tags": ["science", "wonder", "universe"]
+      "tags": [
+        "science",
+        "wonder",
+        "universe"
+      ]
     },
     {
       "id": "MS-02",
@@ -189,16 +269,24 @@
       "civilization": "Modern_Scientific",
       "era": "Modern",
       "category": "paradox",
-      "tags": ["uncertainty", "quantum", "observation"]
+      "tags": [
+        "uncertainty",
+        "quantum",
+        "observation"
+      ]
     },
     {
       "id": "MS-03",
       "text": "Either mathematics is too big for the human mind, or the human mind is more than a machine.",
-      "author": "Kurt Gödel",
+      "author": "Kurt G\u00f6del",
       "civilization": "Modern_Scientific",
       "era": "Modern",
       "category": "truth",
-      "tags": ["logic", "incompleteness", "mind"]
+      "tags": [
+        "logic",
+        "incompleteness",
+        "mind"
+      ]
     },
     {
       "id": "MS-04",
@@ -207,7 +295,11 @@
       "civilization": "Modern_Scientific",
       "era": "Modern",
       "category": "discipline",
-      "tags": ["computation", "future", "action"]
+      "tags": [
+        "computation",
+        "future",
+        "action"
+      ]
     },
     {
       "id": "MS-05",
@@ -216,7 +308,11 @@
       "civilization": "Modern_Scientific",
       "era": "Modern",
       "category": "truth",
-      "tags": ["information", "entropy", "communication"]
+      "tags": [
+        "information",
+        "entropy",
+        "communication"
+      ]
     },
     {
       "id": "MS-06",
@@ -225,7 +321,11 @@
       "civilization": "Modern_Scientific",
       "era": "Modern",
       "category": "wisdom",
-      "tags": ["science", "questions", "skepticism"]
+      "tags": [
+        "science",
+        "questions",
+        "skepticism"
+      ]
     },
     {
       "id": "MS-07",
@@ -234,7 +334,11 @@
       "civilization": "Modern_Scientific",
       "era": "Contemporary",
       "category": "wisdom",
-      "tags": ["cosmos", "discovery", "humility"]
+      "tags": [
+        "cosmos",
+        "discovery",
+        "humility"
+      ]
     },
     {
       "id": "EE-06",
@@ -243,7 +347,11 @@
       "civilization": "European_Enlightenment",
       "era": "Enlightenment",
       "category": "paradox",
-      "tags": ["faith", "reason", "wager"]
+      "tags": [
+        "faith",
+        "reason",
+        "wager"
+      ]
     },
     {
       "id": "CG-02",
@@ -252,7 +360,11 @@
       "civilization": "Contemporary_Global",
       "era": "Contemporary",
       "category": "justice",
-      "tags": ["attention", "ethics", "presence"]
+      "tags": [
+        "attention",
+        "ethics",
+        "presence"
+      ]
     },
     {
       "id": "CG-03",
@@ -261,7 +373,11 @@
       "civilization": "Contemporary_Global",
       "era": "Contemporary",
       "category": "discipline",
-      "tags": ["truth", "power", "dissent"]
+      "tags": [
+        "truth",
+        "power",
+        "dissent"
+      ]
     },
     {
       "id": "CG-04",
@@ -270,7 +386,11 @@
       "civilization": "African_Civilizations",
       "era": "Contemporary",
       "category": "wisdom",
-      "tags": ["forgiveness", "freedom", "reconciliation"]
+      "tags": [
+        "forgiveness",
+        "freedom",
+        "reconciliation"
+      ]
     },
     {
       "id": "CG-05",
@@ -279,7 +399,11 @@
       "civilization": "Contemporary_Global",
       "era": "Contemporary",
       "category": "justice",
-      "tags": ["rights", "equality", "universal"]
+      "tags": [
+        "rights",
+        "equality",
+        "universal"
+      ]
     },
     {
       "id": "MS-08",
@@ -288,7 +412,11 @@
       "civilization": "Modern_Scientific",
       "era": "Industrial",
       "category": "discipline",
-      "tags": ["science", "courage", "discovery"]
+      "tags": [
+        "science",
+        "courage",
+        "discovery"
+      ]
     },
     {
       "id": "SE-01",
@@ -297,16 +425,25 @@
       "civilization": "Contemporary_Global",
       "era": "Contemporary",
       "category": "seal",
-      "tags": ["forged", "seal", "motto", "arifos"]
+      "tags": [
+        "forged",
+        "seal",
+        "motto",
+        "arifos"
+      ]
     },
     {
       "id": "MS-09",
       "text": "In any consistent formal system, there are statements that are true but unprovable.",
-      "author": "Kurt Gödel",
+      "author": "Kurt G\u00f6del",
       "civilization": "Modern_Scientific",
       "era": "Modern",
       "category": "void",
-      "tags": ["incompleteness", "logic", "limits"]
+      "tags": [
+        "incompleteness",
+        "logic",
+        "limits"
+      ]
     },
     {
       "id": "MS-10",
@@ -315,7 +452,11 @@
       "civilization": "Modern_Scientific",
       "era": "Modern",
       "category": "truth",
-      "tags": ["semantics", "truth", "meta"]
+      "tags": [
+        "semantics",
+        "truth",
+        "meta"
+      ]
     },
     {
       "id": "MS-11",
@@ -324,7 +465,11 @@
       "civilization": "Modern_Scientific",
       "era": "Modern",
       "category": "wisdom",
-      "tags": ["certainty", "doubt", "fanaticism"]
+      "tags": [
+        "certainty",
+        "doubt",
+        "fanaticism"
+      ]
     },
     {
       "id": "MS-12",
@@ -333,7 +478,11 @@
       "civilization": "Modern_Scientific",
       "era": "Modern",
       "category": "void",
-      "tags": ["silence", "limits", "language"]
+      "tags": [
+        "silence",
+        "limits",
+        "language"
+      ]
     },
     {
       "id": "MS-13",
@@ -342,7 +491,11 @@
       "civilization": "Modern_Scientific",
       "era": "Modern",
       "category": "truth",
-      "tags": ["language", "world", "silence"]
+      "tags": [
+        "language",
+        "world",
+        "silence"
+      ]
     },
     {
       "id": "MS-14",
@@ -351,7 +504,11 @@
       "civilization": "Modern_Scientific",
       "era": "Modern",
       "category": "paradox",
-      "tags": ["science", "falsification", "myth"]
+      "tags": [
+        "science",
+        "falsification",
+        "myth"
+      ]
     },
     {
       "id": "MS-15",
@@ -360,7 +517,11 @@
       "civilization": "Modern_Scientific",
       "era": "Contemporary",
       "category": "paradox",
-      "tags": ["paradigm", "normal", "revolution"]
+      "tags": [
+        "paradigm",
+        "normal",
+        "revolution"
+      ]
     },
     {
       "id": "MS-16",
@@ -369,7 +530,11 @@
       "civilization": "Modern_Scientific",
       "era": "Contemporary",
       "category": "discipline",
-      "tags": ["science", "progress", "degeneration"]
+      "tags": [
+        "science",
+        "progress",
+        "degeneration"
+      ]
     },
     {
       "id": "MS-17",
@@ -378,7 +543,11 @@
       "civilization": "Modern_Scientific",
       "era": "Contemporary",
       "category": "paradox",
-      "tags": ["anarchism", "method", "science"]
+      "tags": [
+        "anarchism",
+        "method",
+        "science"
+      ]
     },
     {
       "id": "MS-18",
@@ -387,7 +556,11 @@
       "civilization": "Modern_Scientific",
       "era": "Modern",
       "category": "wisdom",
-      "tags": ["ai", "learning", "child"]
+      "tags": [
+        "ai",
+        "learning",
+        "child"
+      ]
     },
     {
       "id": "MS-19",
@@ -396,7 +569,11 @@
       "civilization": "Modern_Scientific",
       "era": "Modern",
       "category": "truth",
-      "tags": ["random", "sin", "computation"]
+      "tags": [
+        "random",
+        "sin",
+        "computation"
+      ]
     },
     {
       "id": "MS-20",
@@ -405,7 +582,11 @@
       "civilization": "Modern_Scientific",
       "era": "Contemporary",
       "category": "void",
-      "tags": ["elegance", "proof", "limits"]
+      "tags": [
+        "elegance",
+        "proof",
+        "limits"
+      ]
     },
     {
       "id": "MS-21",
@@ -414,7 +595,11 @@
       "civilization": "Modern_Scientific",
       "era": "Modern",
       "category": "truth",
-      "tags": ["information", "communication", "channel"]
+      "tags": [
+        "information",
+        "communication",
+        "channel"
+      ]
     },
     {
       "id": "MS-22",
@@ -423,7 +608,11 @@
       "civilization": "Modern_Scientific",
       "era": "Modern",
       "category": "paradox",
-      "tags": ["cybernetics", "flow", "identity"]
+      "tags": [
+        "cybernetics",
+        "flow",
+        "identity"
+      ]
     },
     {
       "id": "MS-23",
@@ -432,7 +621,11 @@
       "civilization": "Modern_Scientific",
       "era": "Contemporary",
       "category": "power",
-      "tags": ["entropy", "dissipative", "structure"]
+      "tags": [
+        "entropy",
+        "dissipative",
+        "structure"
+      ]
     },
     {
       "id": "MS-24",
@@ -441,16 +634,24 @@
       "civilization": "Modern_Scientific",
       "era": "Contemporary",
       "category": "truth",
-      "tags": ["black", "swan", "evidence"]
+      "tags": [
+        "black",
+        "swan",
+        "evidence"
+      ]
     },
     {
       "id": "EE-07",
       "text": "I think, therefore I am.",
-      "author": "René Descartes",
+      "author": "Ren\u00e9 Descartes",
       "civilization": "European_Enlightenment",
       "era": "Enlightenment",
       "category": "truth",
-      "tags": ["cogito", "existence", "certainty"]
+      "tags": [
+        "cogito",
+        "existence",
+        "certainty"
+      ]
     },
     {
       "id": "EE-08",
@@ -459,7 +660,11 @@
       "civilization": "European_Enlightenment",
       "era": "Enlightenment",
       "category": "discipline",
-      "tags": ["freedom", "necessity", "ethics"]
+      "tags": [
+        "freedom",
+        "necessity",
+        "ethics"
+      ]
     },
     {
       "id": "EE-09",
@@ -468,7 +673,11 @@
       "civilization": "European_Enlightenment",
       "era": "Enlightenment",
       "category": "void",
-      "tags": ["infinity", "nothingness", "terror"]
+      "tags": [
+        "infinity",
+        "nothingness",
+        "terror"
+      ]
     },
     {
       "id": "EE-10",
@@ -477,7 +686,11 @@
       "civilization": "European_Enlightenment",
       "era": "Enlightenment",
       "category": "paradox",
-      "tags": ["will", "determinism", "freedom"]
+      "tags": [
+        "will",
+        "determinism",
+        "freedom"
+      ]
     },
     {
       "id": "MP-05",
@@ -486,7 +699,11 @@
       "civilization": "Modern_Political",
       "era": "Modern",
       "category": "wisdom",
-      "tags": ["economics", "knowledge", "design"]
+      "tags": [
+        "economics",
+        "knowledge",
+        "design"
+      ]
     },
     {
       "id": "MP-06",
@@ -495,7 +712,11 @@
       "civilization": "Ancient_West",
       "era": "Classical",
       "category": "discipline",
-      "tags": ["criticism", "action", "virtue"]
+      "tags": [
+        "criticism",
+        "action",
+        "virtue"
+      ]
     },
     {
       "id": "AE-04",
@@ -504,7 +725,11 @@
       "civilization": "Ancient_East",
       "era": "Ancient",
       "category": "wisdom",
-      "tags": ["self", "knowledge", "tao"]
+      "tags": [
+        "self",
+        "knowledge",
+        "tao"
+      ]
     },
     {
       "id": "AE-05",
@@ -513,7 +738,11 @@
       "civilization": "Ancient_East",
       "era": "Ancient",
       "category": "wisdom",
-      "tags": ["question", "fool", "learning"]
+      "tags": [
+        "question",
+        "fool",
+        "learning"
+      ]
     },
     {
       "id": "AE-06",
@@ -522,7 +751,11 @@
       "civilization": "Ancient_East",
       "era": "Classical",
       "category": "power",
-      "tags": ["chaos", "opportunity", "strategy"]
+      "tags": [
+        "chaos",
+        "opportunity",
+        "strategy"
+      ]
     },
     {
       "id": "AW-07",
@@ -531,7 +764,11 @@
       "civilization": "Ancient_West",
       "era": "Classical",
       "category": "discipline",
-      "tags": ["habit", "excellence", "virtue"]
+      "tags": [
+        "habit",
+        "excellence",
+        "virtue"
+      ]
     },
     {
       "id": "AW-08",
@@ -540,7 +777,11 @@
       "civilization": "Ancient_West",
       "era": "Classical",
       "category": "wisdom",
-      "tags": ["examination", "life", "worth"]
+      "tags": [
+        "examination",
+        "life",
+        "worth"
+      ]
     },
     {
       "id": "AW-09",
@@ -549,7 +790,11 @@
       "civilization": "Ancient_West",
       "era": "Classical",
       "category": "power",
-      "tags": ["fortune", "bold", "courage"]
+      "tags": [
+        "fortune",
+        "bold",
+        "courage"
+      ]
     },
     {
       "id": "AW-10",
@@ -558,7 +803,11 @@
       "civilization": "Ancient_West",
       "era": "Classical",
       "category": "wisdom",
-      "tags": ["books", "soul", "knowledge"]
+      "tags": [
+        "books",
+        "soul",
+        "knowledge"
+      ]
     },
     {
       "id": "EE-11",
@@ -567,7 +816,11 @@
       "civilization": "European_Enlightenment",
       "era": "Enlightenment",
       "category": "paradox",
-      "tags": ["freedom", "chains", "society"]
+      "tags": [
+        "freedom",
+        "chains",
+        "society"
+      ]
     },
     {
       "id": "EE-12",
@@ -576,7 +829,11 @@
       "civilization": "European_Enlightenment",
       "era": "Modern",
       "category": "void",
-      "tags": ["hell", "others", "gaze"]
+      "tags": [
+        "hell",
+        "others",
+        "gaze"
+      ]
     },
     {
       "id": "MP-07",
@@ -585,7 +842,11 @@
       "civilization": "Modern_Political",
       "era": "Modern",
       "category": "truth",
-      "tags": ["death", "statistics", "scale"]
+      "tags": [
+        "death",
+        "statistics",
+        "scale"
+      ]
     },
     {
       "id": "MP-08",
@@ -594,7 +855,11 @@
       "civilization": "Modern_Political",
       "era": "Modern",
       "category": "wisdom",
-      "tags": ["history", "memory", "repetition"]
+      "tags": [
+        "history",
+        "memory",
+        "repetition"
+      ]
     },
     {
       "id": "CG-06",
@@ -603,7 +868,11 @@
       "civilization": "Contemporary_Global",
       "era": "Contemporary",
       "category": "justice",
-      "tags": ["arc", "moral", "justice"]
+      "tags": [
+        "arc",
+        "moral",
+        "justice"
+      ]
     },
     {
       "id": "CG-07",
@@ -612,16 +881,24 @@
       "civilization": "Contemporary_Global",
       "era": "Contemporary",
       "category": "truth",
-      "tags": ["health", "adjustment", "society"]
+      "tags": [
+        "health",
+        "adjustment",
+        "society"
+      ]
     },
     {
       "id": "CG-08",
       "text": "We do not see things as they are, we see them as we are.",
-      "author": "Anaïs Nin",
+      "author": "Ana\u00efs Nin",
       "civilization": "Contemporary_Global",
       "era": "Contemporary",
       "category": "truth",
-      "tags": ["perception", "projection", "self"]
+      "tags": [
+        "perception",
+        "projection",
+        "self"
+      ]
     },
     {
       "id": "CG-09",
@@ -630,7 +907,11 @@
       "civilization": "Modern_Political",
       "era": "Modern",
       "category": "discipline",
-      "tags": ["courage", "fear", "priority"]
+      "tags": [
+        "courage",
+        "fear",
+        "priority"
+      ]
     },
     {
       "id": "CG-10",
@@ -639,7 +920,375 @@
       "civilization": "Modern_Scientific",
       "era": "Modern",
       "category": "paradox",
-      "tags": ["prediction", "future", "quantum"]
+      "tags": [
+        "prediction",
+        "future",
+        "quantum"
+      ]
+    },
+    {
+      "id": "IG-01",
+      "text": "Whoever fights monsters should see to it that in the process he does not become a monster.",
+      "author": "Friedrich Nietzsche",
+      "civilization": "Modern_Political",
+      "era": "Modern",
+      "category": "discipline",
+      "tags": [
+        "monster",
+        "abyss",
+        "corruption"
+      ]
+    },
+    {
+      "id": "IG-02",
+      "text": "The hardest choices require the strongest wills.",
+      "author": "Thanos",
+      "civilization": "Contemporary_Global",
+      "era": "Contemporary",
+      "category": "power",
+      "tags": [
+        "choice",
+        "will",
+        "necessary"
+      ]
+    },
+    {
+      "id": "IG-03",
+      "text": "Perfection is achieved not when there is nothing more to add, but when there is nothing left to take away.",
+      "author": "Antoine de Saint-Exup\u00e9ry",
+      "civilization": "Contemporary_Global",
+      "era": "Modern",
+      "category": "discipline",
+      "tags": [
+        "perfection",
+        "minimal",
+        "essence"
+      ]
+    },
+    {
+      "id": "IG-04",
+      "text": "Everything should be made as simple as possible, but no simpler.",
+      "author": "Albert Einstein",
+      "civilization": "Modern_Scientific",
+      "era": "Modern",
+      "category": "wisdom",
+      "tags": [
+        "simplicity",
+        "complexity",
+        "design"
+      ]
+    },
+    {
+      "id": "IG-05",
+      "text": "The map is not the territory.",
+      "author": "Alfred Korzybski",
+      "civilization": "Modern_Scientific",
+      "era": "Modern",
+      "category": "truth",
+      "tags": [
+        "representation",
+        "reality",
+        "abstraction"
+      ]
+    },
+    {
+      "id": "IG-06",
+      "text": "What gets measured gets managed.",
+      "author": "Peter Drucker",
+      "civilization": "Modern_Political",
+      "era": "Contemporary",
+      "category": "power",
+      "tags": [
+        "metrics",
+        "management",
+        "feedback"
+      ]
+    },
+    {
+      "id": "IG-07",
+      "text": "If you can't explain it simply, you don't understand it well enough.",
+      "author": "Albert Einstein",
+      "civilization": "Modern_Scientific",
+      "era": "Modern",
+      "category": "wisdom",
+      "tags": [
+        "simplicity",
+        "understanding",
+        "teaching"
+      ]
+    },
+    {
+      "id": "IG-08",
+      "text": "In God we trust. All others must bring data.",
+      "author": "W. Edwards Deming",
+      "civilization": "Modern_Scientific",
+      "era": "Contemporary",
+      "category": "truth",
+      "tags": [
+        "data",
+        "evidence",
+        "trust"
+      ]
+    },
+    {
+      "id": "IG-09",
+      "text": "Not everything that counts can be counted, and not everything that can be counted counts.",
+      "author": "William Bruce Cameron",
+      "civilization": "Contemporary_Global",
+      "era": "Contemporary",
+      "category": "paradox",
+      "tags": [
+        "metrics",
+        "value",
+        "quantification"
+      ]
+    },
+    {
+      "id": "IG-10",
+      "text": "You are not entitled to your opinion. You are entitled to your informed opinion.",
+      "author": "Harlan Ellison",
+      "civilization": "Contemporary_Global",
+      "era": "Contemporary",
+      "category": "discipline",
+      "tags": [
+        "opinion",
+        "knowledge",
+        "entitlement"
+      ]
+    },
+    {
+      "id": "IG-11",
+      "text": "It is difficult to get a man to understand something when his salary depends on his not understanding it.",
+      "author": "Upton Sinclair",
+      "civilization": "Modern_Political",
+      "era": "Industrial",
+      "category": "truth",
+      "tags": [
+        "incentive",
+        "bias",
+        "understanding"
+      ]
+    },
+    {
+      "id": "IG-12",
+      "text": "The first principle is that you must not fool yourself \u2014 and you are the easiest person to fool.",
+      "author": "Richard Feynman",
+      "civilization": "Modern_Scientific",
+      "era": "Modern",
+      "category": "discipline",
+      "tags": [
+        "fool",
+        "self",
+        "integrity"
+      ]
+    },
+    {
+      "id": "IG-13",
+      "text": "All models are wrong, but some are useful.",
+      "author": "George Box",
+      "civilization": "Modern_Scientific",
+      "era": "Contemporary",
+      "category": "truth",
+      "tags": [
+        "models",
+        "approximation",
+        "utility"
+      ]
+    },
+    {
+      "id": "IG-14",
+      "text": "When you measure what you are speaking about, and express it in numbers, you know something about it.",
+      "author": "Lord Kelvin",
+      "civilization": "Modern_Scientific",
+      "era": "Industrial",
+      "category": "truth",
+      "tags": [
+        "measurement",
+        "knowledge",
+        "numbers"
+      ]
+    },
+    {
+      "id": "IG-15",
+      "text": "The purpose of computing is insight, not numbers.",
+      "author": "Richard Hamming",
+      "civilization": "Modern_Scientific",
+      "era": "Modern",
+      "category": "wisdom",
+      "tags": [
+        "computing",
+        "insight",
+        "purpose"
+      ]
+    },
+    {
+      "id": "IG-16",
+      "text": "Complexity is the enemy of execution.",
+      "author": "Tony Robbins",
+      "civilization": "Contemporary_Global",
+      "era": "Contemporary",
+      "category": "discipline",
+      "tags": [
+        "complexity",
+        "execution",
+        "simplicity"
+      ]
+    },
+    {
+      "id": "IG-17",
+      "text": "The system is not the solution. The system is the problem.",
+      "author": "Unknown",
+      "civilization": "Contemporary_Global",
+      "era": "Contemporary",
+      "category": "paradox",
+      "tags": [
+        "system",
+        "problem",
+        "solution"
+      ]
+    },
+    {
+      "id": "IG-18",
+      "text": "Plans are worthless, but planning is everything.",
+      "author": "Dwight D. Eisenhower",
+      "civilization": "Modern_Political",
+      "era": "Modern",
+      "category": "paradox",
+      "tags": [
+        "planning",
+        "adaptation",
+        "process"
+      ]
+    },
+    {
+      "id": "IG-19",
+      "text": "No battle plan survives contact with the enemy.",
+      "author": "Helmuth von Moltke",
+      "civilization": "European_Enlightenment",
+      "era": "Industrial",
+      "category": "paradox",
+      "tags": [
+        "plan",
+        "reality",
+        "friction"
+      ]
+    },
+    {
+      "id": "IG-20",
+      "text": "The enemy of a good plan is the dream of a perfect plan.",
+      "author": "Carl von Clausewitz",
+      "civilization": "European_Enlightenment",
+      "era": "Industrial",
+      "category": "discipline",
+      "tags": [
+        "perfection",
+        "good",
+        "execution"
+      ]
+    },
+    {
+      "id": "IG-21",
+      "text": "If I had more time, I would have written a shorter letter.",
+      "author": "Blaise Pascal",
+      "civilization": "European_Enlightenment",
+      "era": "Enlightenment",
+      "category": "discipline",
+      "tags": [
+        "brevity",
+        "time",
+        "clarity"
+      ]
+    },
+    {
+      "id": "IG-22",
+      "text": "Never attribute to malice that which is adequately explained by stupidity.",
+      "author": "Robert Hanlon",
+      "civilization": "Contemporary_Global",
+      "era": "Contemporary",
+      "category": "wisdom",
+      "tags": [
+        "malice",
+        "stupidity",
+        "occam"
+      ]
+    },
+    {
+      "id": "IG-23",
+      "text": "Culture eats strategy for breakfast.",
+      "author": "Peter Drucker",
+      "civilization": "Modern_Political",
+      "era": "Contemporary",
+      "category": "power",
+      "tags": [
+        "culture",
+        "strategy",
+        "organization"
+      ]
+    },
+    {
+      "id": "IG-24",
+      "text": "Software is eating the world.",
+      "author": "Marc Andreessen",
+      "civilization": "Contemporary_Global",
+      "era": "Contemporary",
+      "category": "power",
+      "tags": [
+        "software",
+        "disruption",
+        "technology"
+      ]
+    },
+    {
+      "id": "IG-25",
+      "text": "Talk is cheap. Show me the code.",
+      "author": "Linus Torvalds",
+      "civilization": "Contemporary_Global",
+      "era": "Contemporary",
+      "category": "discipline",
+      "tags": [
+        "code",
+        "action",
+        "proof"
+      ]
+    },
+    {
+      "id": "IG-26",
+      "text": "Move fast and break things.",
+      "author": "Mark Zuckerberg",
+      "civilization": "Contemporary_Global",
+      "era": "Contemporary",
+      "category": "power",
+      "tags": [
+        "speed",
+        "disruption",
+        "risk"
+      ]
+    },
+    {
+      "id": "IG-27",
+      "text": "Done is better than perfect.",
+      "author": "Sheryl Sandberg",
+      "civilization": "Contemporary_Global",
+      "era": "Contemporary",
+      "category": "discipline",
+      "tags": [
+        "shipping",
+        "perfection",
+        "iteration"
+      ]
+    },
+    {
+      "id": "IG-28",
+      "text": "Build less, build right.",
+      "author": "Unknown",
+      "civilization": "Contemporary_Global",
+      "era": "Contemporary",
+      "category": "discipline",
+      "tags": [
+        "minimal",
+        "quality",
+        "focus"
+      ]
     }
   ]
 }
