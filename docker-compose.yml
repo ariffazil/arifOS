@@ -30,6 +30,10 @@ services:
       - "--metrics.prometheus.addRoutersLabels=true"
       - "--log.level=WARN"
       - "--accesslog=false"
+      # SSE / long-lived streaming: 300 s read + write, 305 s idle
+      - "--entrypoints.websecure.transport.respondingTimeouts.readTimeout=300s"
+      - "--entrypoints.websecure.transport.respondingTimeouts.writeTimeout=300s"
+      - "--entrypoints.websecure.transport.respondingTimeouts.idleTimeout=305s"
     environment:
       - DOCKER_API_VERSION=1.44
     ports:
@@ -375,7 +379,7 @@ services:
       arifosmcp_PATH: ${arifosmcp_PATH:-/mcp}
       VAULT999_PATH: /usr/src/app/VAULT999  # Container path for vault (matches volume mount)
       UVICORN_WORKERS: ${UVICORN_WORKERS:-1}
-      UVICORN_TIMEOUT: ${UVICORN_TIMEOUT:-120}
+      UVICORN_TIMEOUT: ${UVICORN_TIMEOUT:-300}
       PYTHONHASHSEED: 0
       PYTHONDETERMINISTICHASH: 1
     ports:
@@ -400,11 +404,19 @@ services:
       - "traefik.http.routers.arifosmcp.entrypoints=websecure"
       - "traefik.http.routers.arifosmcp.tls.certresolver=letsencrypt"
       - "traefik.http.routers.arifosmcp.service=arifosmcp@docker"
+      - "traefik.http.routers.arifosmcp.middlewares=mcp-sse-headers"
       # WebMCP router - main domain + /webmcp (Real WebMCP W3C Standard)
       - "traefik.http.routers.webmcp.rule=Host(`arifosmcp.arif-fazil.com`) && PathPrefix(`/webmcp`)"
       - "traefik.http.routers.webmcp.entrypoints=websecure"
       - "traefik.http.routers.webmcp.tls.certresolver=letsencrypt"
       - "traefik.http.routers.webmcp.service=arifosmcp@docker"
+      - "traefik.http.routers.webmcp.middlewares=mcp-sse-headers"
+      # SSE / streaming middleware — disables CF + Nginx buffering, extends response window
+      - "traefik.http.middlewares.mcp-sse-headers.headers.customResponseHeaders.X-Accel-Buffering=no"
+      - "traefik.http.middlewares.mcp-sse-headers.headers.customResponseHeaders.Cache-Control=no-cache"
+      - "traefik.http.middlewares.mcp-sse-headers.headers.customResponseHeaders.Connection=keep-alive"
+      # Traefik backend response timeout (300 s > CF 100 s proxy timeout)
+      - "traefik.http.services.arifosmcp.loadbalancer.responseforwarding.flushinterval=100ms"
       # A2A router - main domain + /a2a (Google A2A Protocol)
       - "traefik.http.routers.a2a.rule=Host(`arifosmcp.arif-fazil.com`) && PathPrefix(`/a2a`)"
       - "traefik.http.routers.a2a.entrypoints=websecure"

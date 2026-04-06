@@ -126,6 +126,60 @@ class GlobalPanicMiddleware(BaseHTTPMiddleware):
                 "action": "HALT"
             }, status_code=500)
 
+
+class SSEKeepAliveMiddleware(BaseHTTPMiddleware):
+    """Injects X-Accel-Buffering: no on all responses to disable CF/Nginx buffering.
+
+    For streaming / SSE responses (text/event-stream), wraps the body iterator
+    to emit a comment keepalive (': ping\\n\\n') every PING_INTERVAL seconds so
+    Cloudflare's 100-second proxy timeout never triggers on an idle stream.
+    """
+
+    PING_INTERVAL: float = 25.0  # < CF 100 s proxy timeout
+
+    async def dispatch(self, request, call_next):
+        import asyncio
+        from starlette.responses import StreamingResponse
+
+        response = await call_next(request)
+        response.headers["X-Accel-Buffering"] = "no"
+
+        content_type = response.headers.get("content-type", "")
+        if "text/event-stream" not in content_type:
+            return response
+
+        # Wrap SSE body with a keepalive ping generator
+        original_body = response.body_iterator
+
+        async def keepalive_body():
+            ping = b": ping\n\n"
+            queue: asyncio.Queue = asyncio.Queue()
+
+            async def feed():
+                async for chunk in original_body:
+                    await queue.put(chunk)
+                await queue.put(None)  # sentinel
+
+            feed_task = asyncio.ensure_future(feed())
+            try:
+                while True:
+                    try:
+                        chunk = await asyncio.wait_for(queue.get(), timeout=self.PING_INTERVAL)
+                        if chunk is None:
+                            break
+                        yield chunk
+                    except asyncio.TimeoutError:
+                        yield ping  # keepalive comment — CF resets its idle timer
+            finally:
+                feed_task.cancel()
+
+        return StreamingResponse(
+            keepalive_body(),
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            media_type=content_type,
+        )
+
 # ---------------------------------------------------------------------------
 # SERVER INITIALIZATION
 # ---------------------------------------------------------------------------
@@ -169,6 +223,7 @@ else:
     raise RuntimeError(f"Unsupported FastMCP version: {fastmcp.__version__}")
 
 app.add_middleware(GlobalPanicMiddleware)
+app.add_middleware(SSEKeepAliveMiddleware)
 
 # Strict CORS: Only allow Sovereign Domains
 app.add_middleware(

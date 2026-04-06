@@ -652,9 +652,10 @@ WELCOME_HTML = """\
         </div>
       </div>
       <div class="qs-card">
-        <h4>2. List Surface</h4>
+        <h4>2. Establish Session</h4>
         <div class="code-block">
-          <code>curl -s https://arifosmcp.arif-fazil.com/tools</code>
+          <code># Call init_anchor to get session_id (required for vault_ledger, engineering_memory)
+init_anchor(mode="init", actor_id="your_name")</code>
           <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
       </div>
@@ -807,7 +808,7 @@ Payload: { "jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1 }</co
     })();
   </script>
   <style>#rn{{position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(10,10,10,0.97);border-top:1px solid #1e1e1e;display:flex;align-items:stretch;justify-content:center;height:36px;font-family:"Courier New",monospace}}#rn a{{color:inherit;text-decoration:none;padding:0 13px;display:flex;align-items:center;font-size:10px;letter-spacing:1.2px;border-right:1px solid #1e1e1e;white-space:nowrap;transition:background .15s}}#rn a:last-child{{border-right:none}}#rn a:hover{{background:#1a1a1a}}#rn a.rn-active{{background:#181818;border-bottom:2px solid currentColor}}body{{padding-bottom:40px!important}}</style>
-  <nav id="rn"><a href="https://arif-fazil.com" data-h="arif-fazil.com" style="color:#c94b2e">&#9678; ARIF</a><a href="https://arifos.arif-fazil.com" data-h="arifos.arif-fazil.com" style="color:#c4791a">&#916; arifOS</a><a href="https://forge.arif-fazil.com" data-h="forge.arif-fazil.com" style="color:#888">&#936; FORGE</a><a href="https://aaa.arif-fazil.com" data-h="aaa.arif-fazil.com" style="color:#2a6fbd">&#9678; AAA</a><a href="https://arifosmcp.arif-fazil.com" data-h="arifosmcp.arif-fazil.com" style="color:#2a8a4a">&#9881; MCP</a><a href="https://waw.arif-fazil.com" data-h="waw.arif-fazil.com" style="color:#6d4ade">&#9678; waw</a></nav>
+  <nav id="rn"><a href="https://arif-fazil.com" data-h="arif-fazil.com" style="color:#c94b2e">ARIF (human)</a><a href="https://apex.arif-fazil.com" data-h="apex.arif-fazil.com" style="color:#c4791a">APEX (theory)</a><a href="https://arifos.arif-fazil.com" data-h="arifos.arif-fazil.com" style="color:#2a8a6e">arifOS (kernel)</a><a href="https://aaa.arif-fazil.com" data-h="aaa.arif-fazil.com" style="color:#2a6fbd">AAA (agents)</a><a href="https://waw.arif-fazil.com" data-h="waw.arif-fazil.com" style="color:#6d4ade">WAW (state)</a><a href="https://arifosmcp.arif-fazil.com" data-h="arifosmcp.arif-fazil.com" style="color:#2a8a4a">MCP (endpoint)</a></nav>
   <script>(function(){{var h=location.hostname,a=document.querySelectorAll("#rn a");a.forEach(function(x){{if(x.dataset.h===h)x.classList.add("rn-active")}})}})()</script>
 </body>
 </html>
