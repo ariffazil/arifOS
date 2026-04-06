@@ -10,7 +10,7 @@ The 10th Tool (arifos.forge) is the Delegated Execution Bridge:
   • Preserves separation of powers
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
-""'
+"""
 
 from __future__ import annotations
 
