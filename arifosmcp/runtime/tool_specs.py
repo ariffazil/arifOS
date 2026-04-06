@@ -37,31 +37,31 @@ class PromptSpec:
 
 
 MegaToolName = Literal[
-    "init_anchor",
-    "arifOS_kernel",
-    "apex_soul",
-    "vault_ledger",
-    "agi_mind",
-    "asi_heart",
-    "engineering_memory",
-    "physics_reality",
-    "math_estimator",
-    "code_engine",
-    "architect_registry",
+    "init_session_anchor",
+    "get_tool_registry",
+    "sense_reality",
+    "reason_synthesis",
+    "critique_safety",
+    "route_execution",
+    "load_memory_context",
+    "estimate_ops",
+    "judge_verdict",
+    "record_vault_entry",
+    "execute_vps_task",
 ]
 
 MEGA_TOOLS: tuple[str, ...] = (
-    "init_anchor",
-    "arifOS_kernel",
-    "apex_soul",
-    "vault_ledger",
-    "agi_mind",
-    "asi_heart",
-    "engineering_memory",
-    "physics_reality",
-    "math_estimator",
-    "code_engine",
-    "architect_registry",
+    "init_session_anchor",
+    "get_tool_registry",
+    "sense_reality",
+    "reason_synthesis",
+    "critique_safety",
+    "route_execution",
+    "load_memory_context",
+    "estimate_ops",
+    "judge_verdict",
+    "record_vault_entry",
+    "execute_vps_task",
 )
 
 
@@ -138,472 +138,304 @@ def _build_mega_schema(
 PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
     # ─── ⚖️ GOVERNANCE LAYER (G-1 to G-4) ───
     ToolSpec(
-        name="init_anchor",
+        name="init_session_anchor",
         stage="000_INIT",
-        role="Constitutional Airlock",
+        role="Init Anchor",
         layer="GOVERNANCE",
-        description=(
-            "Initialize your constitutional session — the entry point to arifOS. "
-            "Establishes identity, authority level, and governance context. "
-            "Use 'init' to start, 'status' to check session health, 'state' for forensic audit. "
-            "Required before using gated tools like kernel, memory, or vault."
-        ),
+        description="Start a governed session and bind the initial telemetry seed.",
         trinity="PSI Ψ",
         floors=("F11", "F12", "F13"),
         input_schema=_build_mega_schema(
-            "init_anchor",
+            "init_session_anchor",
             ["init", "revoke", "refresh", "state", "status"],
             {
                 "actor_id": {"type": "string", "minLength": 2, "maxLength": 64},
-                "model_soul": {
-                    "type": "object",
-                    "description": "Deep identity and behavioral contract (V2).",
-                    "properties": {
-                        "base_identity": {
-                            "type": "object",
-                            "properties": {
-                                "provider": {"type": "string"},
-                                "model_family": {"type": "string"},
-                                "model_variant": {"type": "string"},
-                                "runtime_class": {"type": "string"},
-                            },
-                        },
-                        "runtime_state": {
-                            "type": "object",
-                            "properties": {
-                                "tooling": {"type": "array", "items": {"type": "string"}},
-                                "web_access": {"type": "boolean"},
-                                "memory_mode": {"type": "string"},
-                            },
-                        },
-                        "capability_map": {
-                            "type": "object",
-                            "additionalProperties": {"type": "boolean"},
-                        },
-                        "boundary_map": {
-                            "type": "object",
-                            "properties": {
-                                "identity_claim_policy": {"type": "string"},
-                                "tool_claim_policy": {"type": "string"},
-                            },
-                        },
-                        "constitution": {
-                            "type": "object",
-                            "properties": {
-                                "truth_policy": {"type": "string"},
-                                "humility_policy": {"type": "string"},
-                                "anti_hantu_policy": {"type": "string"},
-                            },
-                        },
-                    },
-                },
-                "intent": {
-                    "oneOf": [
-                        {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 20000,
-                            "description": "Legacy string format (auto-normalized to structured object)",
-                        },
-                        {
-                            "type": "object",
-                            "properties": {
-                                "query": {"type": "string", "minLength": 1, "maxLength": 20000},
-                                "task_type": {
-                                    "type": "string",
-                                    "maxLength": 64,
-                                    "enum": [
-                                        "general",
-                                        "ask",
-                                        "audit",
-                                        "design",
-                                        "decide",
-                                        "analyze",
-                                        "execute",
-                                    ],
-                                    "default": "general",
-                                },
-                                "domain": {"type": "string", "maxLength": 64},
-                                "desired_output": {
-                                    "type": "string",
-                                    "maxLength": 64,
-                                    "enum": [
-                                        "text",
-                                        "json",
-                                        "table",
-                                        "code",
-                                        "report",
-                                        "decision",
-                                        "mixed",
-                                    ],
-                                },
-                                "reversibility": {
-                                    "type": "string",
-                                    "enum": ["reversible", "irreversible", "auditable"],
-                                    "default": "auditable",
-                                },
-                            },
-                            "required": ["query"],
-                            "description": "Structured intent object with query, task_type, domain, desired_output, reversibility",
-                        },
-                    ],
-                    "description": "User intent - accepts string (legacy) or structured object (preferred for governance)",
-                },
+                "intent": {"type": "string", "minLength": 1, "maxLength": 20000},
                 "declared_name": {"type": "string", "maxLength": 64},
                 "session_id": {"type": "string", "minLength": 8, "maxLength": 128},
-                "reason": {"type": "string", "maxLength": 1000},
-                "human_approval": {
-                    "type": "boolean",
-                    "default": False,
-                    "description": "Whether human has pre-approved this action (F13 Sovereign override)",
-                },
             },
         ),
         default_budget_tier="small",
     ),
     ToolSpec(
-        name="arifOS_kernel",
-        stage="444_ROUTER",
-        role="Stage Conductor",
-        layer="GOVERNANCE",
-        description=(
-            "The main conductor for complex queries — routes through constitutional stages 000-999. "
-            "Use for multi-step reasoning, orchestration, and metabolic processing. "
-            "Modes: 'kernel' (full reasoning), 'status' (system vitals)."
-        ),
-        trinity="DELTA/PSI",
-        floors=("F4", "F11"),
+        name="get_tool_registry",
+        stage="M-4_ARCH",
+        role="Architect Registry",
+        layer="MACHINE",
+        description="Discover arifOS tool graph, modes, and model capabilities.",
+        trinity="DELTA Δ",
+        floors=("F10", "F11"),
         input_schema=_build_mega_schema(
-            "arifOS_kernel",
-            ["kernel", "status"],
+            "get_tool_registry",
+            ["list", "read", "context", "model_catalog"],
             {
-                "query": {"type": "string", "minLength": 1, "maxLength": 40000},
-                "intent": {
-                    "oneOf": [
-                        {"type": "string"},
-                        {
-                            "type": "object",
-                            "properties": {"query": {"type": "string"}},
-                            "required": ["query"],
-                        },
-                    ],
-                    "description": "Structured intent for governed reasoning.",
-                },
-                "context": {"type": "string", "maxLength": 100000},
-                "max_steps": {"type": "integer", "minimum": 1, "maximum": 50, "default": 13},
-                "session_id": {"type": "string"},
-                "detail": {"type": "string", "enum": ["brief", "full"], "default": "full"},
-            },
-        ),
-    ),
-    ToolSpec(
-        name="apex_judge",
-        stage="888_JUDGE",
-        role="Constitutional Verdict",
-        layer="GOVERNANCE",
-        description=(
-            "Final constitutional authority — judges outputs, validates safety, triggers holds. "
-            "Use for: verdict decisions ('judge'), rule audit ('rules'), safety validation ('validate'), "
-            "escalation holds ('hold'), injection scanning ('armor'), governance probes ('probe')."
-        ),
-        trinity="PSI Ψ",
-        floors=("F3", "F12", "F13"),
-        input_schema=_build_mega_schema(
-            "apex_judge",
-            ["judge", "rules", "validate", "hold", "armor", "notify", "probe"],
-            {
-                "candidate": {"type": "string"},
-                "hold_id": {"type": "string"},
-                "message": {"type": "string"},
-                "session_id": {"type": "string"},
-                "target_floor": {
-                    "type": "string",
-                    "description": "Specific floor to probe (e.g. 'F12').",
-                },
-            },
-        ),
-    ),
-    ToolSpec(
-        name="vault_ledger",
-        stage="999_VAULT",
-        role="Immutable Memory",
-        layer="GOVERNANCE",
-        description=(
-            "Immutable decision ledger — cryptographically seals decisions with BLS signatures. "
-            "Use for: recording final verdicts ('seal'), verifying ledger integrity ('verify'). "
-            "Requires authenticated session. Decisions are permanently attested with juror quorum."
-        ),
-        trinity="PSI Ψ",
-        floors=("F1", "F13"),
-        input_schema=_build_mega_schema(
-            "vault_ledger",
-            ["seal", "verify"],
-            {
-                "verdict": {"type": "string"},
-                "evidence": {"type": "string"},
-                "full_scan": {"type": "boolean", "default": True},
+                "uri": {"type": "string"},
                 "session_id": {"type": "string"},
             },
         ),
     ),
-    # ─── 🧠 INTELLIGENCE LAYER (I-1 to I-3) ───
     ToolSpec(
-        name="agi_mind",
+        name="sense_reality",
+        stage="111_SENSE",
+        role="Physics Reality",
+        layer="MACHINE",
+        description="Time grounding, evidence checks, and reality state verification.",
+        trinity="DELTA Δ",
+        floors=("F2", "F3", "F10"),
+        input_schema=_build_mega_schema(
+            "sense_reality",
+            ["search", "ingest", "compass", "atlas", "time"],
+            {
+                "query": {"type": "string"},
+                "operation": {"type": "string"},
+                "session_id": {"type": "string"},
+            },
+        ),
+    ),
+    ToolSpec(
+        name="reason_synthesis",
         stage="333_MIND",
-        role="Logic & Synthesis",
+        role="AGI Mind",
         layer="INTELLIGENCE",
-        description=(
-            "Core reasoning engine — first-principles thinking and synthesis. "
-            "Use for: structured reasoning ('reason'), self-reflection ('reflect'), "
-            "orchestrated creation ('forge'). Analyzes via constitutional floors F2-F8."
-        ),
+        description="Multi-source synthesis and structured first-principles reasoning.",
         trinity="DELTA Δ",
         floors=("F2", "F4", "F7", "F8"),
         input_schema=_build_mega_schema(
-            "agi_mind",
+            "reason_synthesis",
             ["reason", "reflect", "forge"],
             {
                 "query": {"type": "string"},
-                "topic": {"type": "string"},
+                "context": {"type": "string"},
                 "session_id": {"type": "string"},
             },
             required_payload=["query"],
         ),
     ),
     ToolSpec(
-        name="asi_heart",
+        name="critique_safety",
         stage="666_HEART",
-        role="Ethics & Simulation",
+        role="ASI Heart",
         layer="INTELLIGENCE",
-        description=(
-            "Safety and ethics critique — adversarial analysis and consequence simulation. "
-            "Use for: critiquing drafts for risks ('critique'), simulating scenario outcomes ('simulate'). "
-            "Acts as red-team conscience with F5-F9 floor enforcement."
-        ),
+        description="Safety, dignity, and adversarial critique of content or proposals.",
         trinity="OMEGA Ω",
         floors=("F5", "F6", "F9"),
         input_schema=_build_mega_schema(
-            "asi_heart",
+            "critique_safety",
             ["critique", "simulate"],
             {"content": {"type": "string"}, "session_id": {"type": "string"}},
             required_payload=["content"],
         ),
     ),
     ToolSpec(
-        name="engineering_memory",
-        stage="555_MEMORY",
-        role="Technical Execution",
-        layer="INTELLIGENCE",
-        description=(
-            "Vector memory and engineering — semantic search, storage, and code generation. "
-            "Use for: searching memory ('vector_query'), storing knowledge ('vector_store'), "
-            "engineering tasks ('engineer'), local LLM generation ('generate'). "
-            "Qdrant-backed with F10/F2 verification."
+        name="route_execution",
+        stage="444_ROUTER",
+        role="arifOS Kernel",
+        layer="GOVERNANCE",
+        description="Route request to the correct metabolic lane or tool family.",
+        trinity="DELTA/PSI",
+        floors=("F4", "F11"),
+        input_schema=_build_mega_schema(
+            "route_execution",
+            ["kernel", "status"],
+            {
+                "query": {"type": "string", "minLength": 1},
+                "session_id": {"type": "string"},
+            },
         ),
+    ),
+    ToolSpec(
+        name="load_memory_context",
+        stage="555_MEMORY",
+        role="Engineering Memory",
+        layer="INTELLIGENCE",
+        description="Retrieve governed memory and engineering context from vector store.",
         trinity="OMEGA Ω",
         floors=("F10", "F11", "F2"),
         input_schema=_build_mega_schema(
-            "engineering_memory",
-            ["engineer", "vector_query", "vector_store", "vector_forget", "generate", "query"],
+            "load_memory_context",
+            ["vector_query", "vector_store", "engineer", "query"],
             {
-                "task": {"type": "string"},
                 "query": {"type": "string"},
-                "prompt": {"type": "string"},
-                "content": {"type": "string"},
                 "session_id": {"type": "string"},
             },
         ),
     ),
-    # ─── ⚙️ MACHINE LAYER (M-1 to M-4) ───
     ToolSpec(
-        name="physics_reality",
-        stage="111_SENSE",
-        role="Environmental Grounding",
-        layer="MACHINE",
-        description="Reality grounding — web search, fact verification, temporal intelligence. "
-            "Use for: web search ('search'), content ingestion ('ingest'), "
-            "navigation compass ('compass'), domain mapping ('atlas'), current time ('time'). "
-            "Grounds AI outputs in observable reality via F2/F3/F10 floors.",
-        trinity="DELTA Δ",
-        floors=("F2", "F3", "F10"),
-        input_schema=_build_mega_schema(
-            "physics_reality",
-            ["search", "ingest", "compass", "atlas", "time"],
-            {
-                "input": {"type": "string"},
-                "operation": {"type": "string"},
-                "session_id": {"type": "string"},
-                "top_k": {"type": "integer", "default": 5},
-            },
-        ),
-    ),
-    ToolSpec(
-        name="math_estimator",
+        name="estimate_ops",
         stage="444_ROUTER",
-        role="Thermodynamic Vitals",
+        role="Math Estimator",
         layer="MACHINE",
-        description=(
-            "System health metrics — thermodynamic vitals, cost estimation, entropy monitoring. "
-            "Use for: operation cost estimation ('cost'), health checks ('health'), "
-            "real-time vitals ('vitals'), entropy/drift analysis ('entropy')."
-        ),
+        description="Calculate operation costs, thermodynamics, capacity, and timing.",
         trinity="DELTA Δ",
         floors=("F4", "F5"),
         input_schema=_build_mega_schema(
-            "math_estimator",
+            "estimate_ops",
             ["cost", "health", "vitals", "entropy"],
-            {"action": {"type": "string"}, "session_id": {"type": "string"}},
+            {"action_description": {"type": "string"}, "session_id": {"type": "string"}},
         ),
     ),
     ToolSpec(
-        name="code_engine",
-        stage="M-3_EXEC",
-        role="Computational Execution",
-        layer="MACHINE",
-        description=(
-            "System-level execution — file inspection, process monitoring, network status. "
-            "Use for: filesystem inspection ('fs'), process listing ('process'), "
-            "network status ('net'), log tailing ('tail'), trace replay ('replay'). "
-            "⚠️ Sovereign VPS only — high-risk ops return 888_HOLD redirect."
+        name="judge_verdict",
+        stage="888_JUDGE",
+        role="Apex Soul",
+        layer="GOVERNANCE",
+        description="Final constitutional verdict evaluation and hold logic enforcement.",
+        trinity="PSI Ψ",
+        floors=("F3", "F12", "F13"),
+        input_schema=_build_mega_schema(
+            "judge_verdict",
+            ["judge", "rules", "validate", "hold"],
+            {
+                "candidate_action": {"type": "string"},
+                "risk_tier": {"type": "string", "enum": ["low", "medium", "high", "critical"]},
+                "telemetry": {"type": "object"},
+                "session_id": {"type": "string"},
+            },
         ),
+    ),
+    ToolSpec(
+        name="record_vault_entry",
+        stage="999_VAULT",
+        role="Vault Ledger",
+        layer="GOVERNANCE",
+        description="Append immutable verdict record to the Merkle-hashed ledger.",
+        trinity="PSI Ψ",
+        floors=("F1", "F13"),
+        input_schema=_build_mega_schema(
+            "record_vault_entry",
+            ["seal", "verify"],
+            {
+                "verdict": {"type": "string"},
+                "evidence": {"type": "string"},
+                "session_id": {"type": "string"},
+            },
+        ),
+    ),
+    ToolSpec(
+        name="execute_vps_task",
+        stage="M-3_EXEC",
+        role="Code Engine",
+        layer="MACHINE",
+        description="Redirect or dispatch execution tasks to the sovereign VPS executor.",
         trinity="ALL",
         floors=("F1",),
         input_schema=_build_mega_schema(
-            "code_engine",
+            "execute_vps_task",
             ["fs", "process", "net", "tail", "replay"],
             {
-                "path": {"type": "string", "default": "."},
-                "limit": {"type": "integer", "default": 50},
+                "command": {"type": "string"},
                 "session_id": {"type": "string"},
             },
-        ),
-    ),
-    ToolSpec(
-        name="architect_registry",
-        stage="M-4_ARCH",
-        role="System Definition",
-        layer="MACHINE",
-        description="Discovery and registry — list tools, read specs, model catalog, identity verification. "
-            "Use for: discovering available tools ('list'), reading tool contracts ('read'), "
-            "model registry lookup ('model_catalog'), identity binding ('verify_identity').",
-        trinity="DELTA Δ",
-        floors=("F10", "F11"),
-        input_schema=_build_mega_schema(
-            "architect_registry",
-            ["register", "list", "read", "context", "model_catalog", "model_profile", "provider_soul", "verify_identity"],
-            {
-                "uri": {"type": "string"},
-                "session_id": {"type": "string"},
-                "model_key": {"type": "string", "description": "Provider/family/variant path for model_profile mode"},
-                "soul_key": {"type": "string", "description": "Provider soul key for provider_soul mode"},
-                "claimed_identity": {"type": "string", "description": "Model identity claim for verify_identity mode"},
-                "claimed_provider": {"type": "string", "description": "Optional provider hint for verify_identity mode"},
-            },
-        ),
-    ),
-    ToolSpec(
-        name="compat_probe",
-        stage="M-5_COMPAT",
-        role="Interoperability Audit",
-        layer="MACHINE",
-        description="Verify session portability and enum compatibility between layers. Modes: 'audit', 'probe', 'ping'.",
-        trinity="ALL",
-        floors=("F11", "F4"),
-        input_schema=_build_mega_schema(
-            "compat_probe",
-            ["audit", "probe", "ping"],
-            {"session_id": {"type": "string"}},
         ),
     ),
 )
 
+# Subset for ChatGPT Apps
+CHATGPT_APP_TOOL_NAMES = {
+    "get_constitutional_health",
+    "render_vault_seal",
+    "list_recent_verdicts",
+}
+
 PUBLIC_RESOURCE_SPECS: tuple[ResourceSpec, ...] = (
     ResourceSpec(
-        uri="about://arifos",
-        name="arifOS Overview",
-        description="What is arifOS? Constitutional AI governance, 13 floors, and the 000-999 metabolic pipe.",
-    ),
-    ResourceSpec(
-        uri="canon://floors",
-        name="arifOS Floors",
-        description="The 13 Constitutional Floors (F1-F13) — thresholds for truth, safety, humility, and sovereignty.",
-    ),
-    ResourceSpec(
-        uri="canon://contracts",
-        name="arifOS Tool Spec",
-        description="Detailed contracts for all 11 Mega-Tools — inputs, outputs, floors enforced.",
-    ),
-    ResourceSpec(
-        uri="canon://states",
-        name="arifOS States",
-        description="Session state ladder: anonymous → claimed → anchored → verified → scoped → approved.",
+        uri="arifos://bootstrap",
+        name="arifOS Bootstrap",
+        description="Startup path, canonical sequence, and system entry guide.",
     ),
     ResourceSpec(
         uri="arifos://governance/floors",
         name="arifOS Governance",
-        description="Immutable thresholds and legal doctrine for the 13 Constitutional Floors.",
+        description="Constitutional F1-F13 thresholds, doctrine, and formal criteria.",
     ),
     ResourceSpec(
         uri="arifos://status/vitals",
         name="arifOS Vitals",
-        description="Real-time system health: thermodynamic metrics, G-score, entropy, metabolic status.",
-    ),
-    ResourceSpec(
-        uri="arifos://bootstrap/guide",
-        name="arifOS Bootstrap",
-        description="Getting started guide — startup sequence, first session, tool discovery path.",
-    ),
-    ResourceSpec(
-        uri="arifos://agents/skills",
-        name="arifOS Skills",
-        description="Consolidated guide for AI agents — constitutional behaviors, skills, best practices.",
-    ),
-    ResourceSpec(
-        uri="arifos://caller/state",
-        name="arifOS Session Vitals",
-        description="Your current session state — identity level, allowed tools, blocked operations.",
+        description="Current server health, deployment info, and version status.",
     ),
     ResourceSpec(
         uri="arifos://sessions/{session_id}/vitals",
         name="Session Vitals",
-        description="Dynamic vitals for a specific governed session.",
+        description="Session-specific telemetry snapshot and thermodynamic state.",
         is_template=True,
     ),
     ResourceSpec(
-        uri="arifos://tools/{tool_name}/spec",
-        name="Tool Specification",
-        description="Dynamic contract and schema for a specific arifOS tool.",
+        uri="arifos://agents/skills",
+        name="arifOS Skills",
+        description="Consolidated agent skills and atomic competence registry.",
+    ),
+    ResourceSpec(
+        uri="arifos://tools/{tool_name}",
+        name="Tool Contract",
+        description="Detailed contract, examples, and auth requirements for a specific tool.",
         is_template=True,
     ),
     ResourceSpec(
-        uri="arifos://floors/{floor_id}/doctrine",
-        name="Floor Doctrine",
-        description="Dynamic legal and physical doctrine for a specific floor.",
-        is_template=True,
+        uri="arifos://vault/recent",
+        name="Recent Verdicts",
+        description="Read-only summary of the most recent constitutional verdict ledger.",
+    ),
+    ResourceSpec(
+        uri="ui://arifos/vault-seal-widget.html",
+        name="Vault Seal Widget",
+        description="HTML resource for ChatGPT Apps widget rendering.",
+        mime_type="text/html",
     ),
 )
 
 PUBLIC_PROMPT_SPECS: tuple[PromptSpec, ...] = (
-    PromptSpec(name="init_anchor", description="Initialize anchor — constitutional session setup and identity binding."),
-    PromptSpec(name="arifOS_kernel", description="ArifOS kernel — metabolic conductor prompt for complex orchestration."),
     PromptSpec(
-        name="agi_mind", description="AGI mind — first-principles reasoning, synthesis, and reflection prompt."
+        name="prompt_init_anchor",
+        description="Start a governed arifOS session template.",
+        arguments=[{"name": "actor_id", "required": True}, {"name": "intent", "required": True}],
     ),
     PromptSpec(
-        name="asi_heart", description="ASI heart — ethical critique, safety simulation, adversarial analysis prompt."
-    ),
-    PromptSpec(name="apex_soul", description="Apex soul — sovereign judgment, verdict rendering, constitutional audit prompt."),
-    PromptSpec(name="vault_ledger", description="Vault ledger — immutable decision recording and cryptographic sealing prompt."),
-    PromptSpec(
-        name="physics_reality", description="Physics reality — earth-witness grounding, fact-checking, temporal awareness prompt."
+        name="prompt_sense_reality",
+        description="Gather evidence and ground in present reality template.",
+        arguments=[{"name": "query", "required": True}],
     ),
     PromptSpec(
-        name="code_engine", description="Code engine — system execution, file inspection, process monitoring prompt."
+        name="prompt_reason_synthesis",
+        description="Structured reasoning with uncertainty bands template.",
+        arguments=[{"name": "task", "required": True}],
     ),
     PromptSpec(
-        name="engineering_memory", description="Engineering memory — vector search, knowledge storage, code generation prompt."
+        name="prompt_critique_safety",
+        description="Safety, dignity, and adversarial critique template.",
+        arguments=[{"name": "proposal", "required": True}],
     ),
     PromptSpec(
-        name="math_estimator", description="Math estimator — thermodynamic vitals, cost estimation, entropy analysis prompt."
+        name="prompt_route_kernel",
+        description="Choose metabolic tool path and next lane template.",
+        arguments=[{"name": "request", "required": True}],
+    ),
+    PromptSpec(
+        name="prompt_memory_recall",
+        description="Pull governed memory for engineering tasks template.",
+        arguments=[{"name": "query", "required": True}],
+    ),
+    PromptSpec(
+        name="prompt_estimate_ops",
+        description="Compute costs, capacity, and timelines template.",
+        arguments=[{"name": "action", "required": True}],
+    ),
+    PromptSpec(
+        name="prompt_judge_verdict",
+        description="Produce final constitutional verdict block template.",
+        arguments=[
+            {"name": "task", "required": True},
+            {"name": "risk_tier", "required": True},
+            {"name": "telemetry_json", "required": False},
+        ],
+    ),
+    PromptSpec(
+        name="prompt_human_explainer",
+        description="Translate machine verdict into plain human explanation template.",
+        arguments=[{"name": "verdict", "required": True}, {"name": "reasoning", "required": True}],
+    ),
+    PromptSpec(
+        name="prompt_vault_record",
+        description="Prepare immutable vault logging narrative and JSON template.",
+        arguments=[{"name": "decision", "required": True}, {"name": "evidence", "required": True}],
     ),
 )

@@ -1074,6 +1074,8 @@ __all__ = [
     "math_estimator",
     "code_engine",
     "architect_registry",
+    # Functional-verb aliases (MCP clean schema 2026-04-06)
+    "register_tool_aliases",
     # Legacy compat
     "metabolic_loop_router",
     "arifos_kernel",

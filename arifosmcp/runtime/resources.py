@@ -555,6 +555,103 @@ Review `canon://states` for the full Session Ladder and state transition require
 
     _resource_content_functions["schema://tools/output"] = schema_tools_output
 
+    # --- VAULT/RECENT: Read-only recent verdict ledger summary ---
+
+    @mcp.resource("arifos://vault/recent")
+    def arifos_vault_recent() -> str:
+        """arifOS Vault: Read-only summary of recent VAULT999 verdict records."""
+        try:
+            import os
+            vault_path = os.environ.get("VAULT999_PATH", "/root/VAULT999")
+            audit_dir = os.path.join(vault_path, "audit")
+            if os.path.isdir(audit_dir):
+                files = sorted(
+                    (f for f in os.listdir(audit_dir) if f.endswith(".json")),
+                    reverse=True,
+                )[:10]
+                records = []
+                for fname in files:
+                    fpath = os.path.join(audit_dir, fname)
+                    try:
+                        with open(fpath, encoding="utf-8") as fh:
+                            records.append(json.load(fh))
+                    except Exception:
+                        pass
+                return json.dumps({"recent_verdicts": records, "count": len(records)}, ensure_ascii=False)
+        except Exception:
+            pass
+        return json.dumps({"recent_verdicts": [], "count": 0, "note": "Vault audit directory unavailable"})
+
+    _resource_content_functions["arifos://vault/recent"] = arifos_vault_recent
+
+    # --- CONTEXT CONTRACTS: Shared JSON schemas ---
+
+    @mcp.resource("arifos://contracts/context")
+    def arifos_context_contracts() -> str:
+        """arifOS Context Contracts: Shared JSON schemas for tools, resources, and prompts."""
+        from .context_contracts import CONTEXT_CONTRACTS
+        return json.dumps(CONTEXT_CONTRACTS, ensure_ascii=False)
+
+    _resource_content_functions["arifos://contracts/context"] = arifos_context_contracts
+
+    # --- SHORT-FORM ALIASES for proposed URI map ---
+
+    @mcp.resource("arifos://bootstrap")
+    def arifos_bootstrap_short() -> str:
+        """arifOS Bootstrap: Startup path and canonical session entry sequence."""
+        return json.dumps({
+            "sequence": [
+                "1. get_tool_registry(mode='list') — discover available tools",
+                "2. estimate_ops(mode='health') — verify system health",
+                "3. init_session_anchor(mode='init') — establish constitutional session",
+                "4. route_execution(mode='kernel') — enter full metabolic pipeline",
+            ],
+            "canonical_tool_names": {
+                "init_session_anchor": "init_anchor",
+                "get_tool_registry": "architect_registry",
+                "sense_reality": "physics_reality",
+                "reason_synthesis": "agi_mind",
+                "critique_safety": "asi_heart",
+                "route_execution": "arifOS_kernel",
+                "load_memory_context": "engineering_memory",
+                "estimate_ops": "math_estimator",
+                "judge_verdict": "apex_soul",
+                "record_vault_entry": "vault_ledger",
+                "execute_vps_task": "code_engine",
+            },
+            "note": "Functional-verb aliases map to symbolic mega-tools above.",
+        }, ensure_ascii=False)
+
+    _resource_content_functions["arifos://bootstrap"] = arifos_bootstrap_short
+
+    @mcp.resource("arifos://tools/{tool_name}")
+    def arifos_tool_by_name(tool_name: str) -> str:
+        """arifOS Tool: Contract and spec for a tool by name (functional or symbolic)."""
+        from .public_registry import get_tool_spec_by_name
+        from .context_contracts import TELEMETRY_ENVELOPE_SCHEMA
+        # Accept functional-verb aliases
+        _alias_map = {
+            "init_session_anchor": "init_anchor",
+            "get_tool_registry": "architect_registry",
+            "sense_reality": "physics_reality",
+            "reason_synthesis": "agi_mind",
+            "critique_safety": "asi_heart",
+            "route_execution": "arifOS_kernel",
+            "load_memory_context": "engineering_memory",
+            "estimate_ops": "math_estimator",
+            "judge_verdict": "apex_soul",
+            "record_vault_entry": "vault_ledger",
+            "execute_vps_task": "code_engine",
+        }
+        canonical = _alias_map.get(tool_name, tool_name)
+        spec = get_tool_spec_by_name(canonical)
+        if spec:
+            result = spec.model_dump()
+            result["functional_name"] = tool_name
+            result["canonical_name"] = canonical
+            return json.dumps(result, ensure_ascii=False)
+        return json.dumps({"error": "Tool not found", "name": tool_name, "canonical": canonical})
+
 
 def manifest_resources() -> list[str]:
     """Return list of all registered resource URIs."""

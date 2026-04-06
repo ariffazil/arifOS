@@ -173,11 +173,11 @@ CANONICAL_RESOURCE_SPECS: tuple[ResourceSpec, ...] = (
     # ═══ CHATGPT WIDGET ═══
     
     ResourceSpec(
-        uri="ui://arifos/vault-seal-widget.html",
+        uri="https://mcp.af-forge.io/widget/vault-seal",
         name="Vault Seal Widget",
         description=(
             "ChatGPT Apps SDK widget for displaying constitutional health. "
-            "HTML resource served in iframe. "
+            "Served from https://mcp.af-forge.io with CSP headers. "
             "Shows telemetry, verdict, and attestation status."
         ),
         mime_type="text/html",

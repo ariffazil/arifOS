@@ -160,14 +160,17 @@ def render_vault_seal_schema() -> dict[str, Any]:
     """
     Schema for render_vault_seal tool.
     
-    Render tool that returns widget resource URI for ChatGPT UI.
+    Render tool that returns widget URL for ChatGPT UI.
+    Widget hosted on https://mcp.af-forge.io with CSP headers.
     """
+    WIDGET_URL = "https://mcp.af-forge.io/widget/vault-seal"
+    
     return {
         "name": "render_vault_seal",
         "title": "Render Vault Seal",
         "description": (
             "Display constitutional health as interactive widget. "
-            "Returns ui://arifos/vault-seal-widget.html for iframe rendering."
+            "Served from https://mcp.af-forge.io with strict CSP."
         ),
         "inputSchema": {
             "type": "object",
@@ -183,11 +186,11 @@ def render_vault_seal_schema() -> dict[str, Any]:
         },
         "_meta": {
             "ui": {
-                "resourceUri": "ui://arifos/vault-seal-widget.html",
+                "resourceUri": WIDGET_URL,
                 "visibility": "user"
             },
             "openai": {
-                "outputTemplate": "ui://arifos/vault-seal-widget.html"
+                "outputTemplate": WIDGET_URL
             }
         }
     }
