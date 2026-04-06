@@ -713,3 +713,26 @@ services:
 
 
 
+
+# ═══════════════════════════════════════════════════════════════════════
+# NETWORKS
+# ═══════════════════════════════════════════════════════════════════════
+
+networks:
+  arifos_trinity:
+    external: true
+    name: arifos_arifos_trinity
+
+# ═══════════════════════════════════════════════════════════════════════
+# VOLUMES
+# ═══════════════════════════════════════════════════════════════════════
+
+volumes:
+  arifosmcp_secrets:
+    driver: local
+  arifosmcp_telemetry:
+    driver: local
+  arifosmcp_vault:
+    driver: local
+  arifosmcp_memory:
+    driver: local
