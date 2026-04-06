@@ -353,25 +353,25 @@
             container.innerHTML = '';
             
             const toolInfo = {
-                'arifos.init': { stage: '000_INIT', desc: 'Session establishment' },
-                'arifos.sense': { stage: '111_SENSE', desc: 'Reality grounding' },
-                'arifos.mind': { stage: '333_MIND', desc: 'Structured reasoning' },
-                'arifos.route': { stage: '444_ROUTER', desc: 'The kernel' },
-                'arifos.heart': { stage: '666_HEART', desc: 'Safety critique' },
-                'arifos.ops': { stage: '777_OPS', desc: 'Cost estimation' },
-                'arifos.judge': { stage: '888_JUDGE', desc: 'Constitutional verdict' },
-                'arifos.memory': { stage: '555_MEMORY', desc: 'Governed memory' },
-                'arifos.vault': { stage: '999_VAULT', desc: 'The seal' },
-                'arifos.forge': { stage: 'FORGE_010', desc: 'Execution bridge' }
+                'arifos.init': { stage: '000_INIT', desc: 'Session establishment', trinity: 'Ψ' },
+                'arifos.sense': { stage: '111_SENSE', desc: 'Reality grounding', trinity: 'Δ' },
+                'arifos.mind': { stage: '333_MIND', desc: 'Structured reasoning', trinity: 'Δ' },
+                'arifos.route': { stage: '444_ROUTER', desc: 'The Kernel', trinity: 'Ψ' },
+                'arifos.heart': { stage: '666_HEART', desc: 'Safety critique', trinity: 'Ω' },
+                'arifos.ops': { stage: '777_OPS', desc: 'Cost estimation', trinity: 'Ω' },
+                'arifos.judge': { stage: '888_JUDGE', desc: 'Constitutional verdict', trinity: 'Ψ' },
+                'arifos.memory': { stage: '555_MEMORY', desc: 'Governed memory', trinity: 'Ω' },
+                'arifos.vault': { stage: '999_VAULT', desc: 'The Seal', trinity: 'Ψ' },
+                'arifos.forge': { stage: 'FORGE_010', desc: 'Execution bridge', trinity: 'Δ' }
             };
             
-            tools.forEach(tool => {
-                const info = toolInfo[tool.name] || { stage: '--', desc: tool.description || '' };
+            tools.forEach(toolName => {
+                const info = toolInfo[toolName] || { stage: '--', desc: 'Tool', trinity: '' };
                 const div = document.createElement('div');
                 div.className = 'tool-item';
                 div.innerHTML = `
-                    <div class="tool-name">${tool.name}</div>
-                    <div class="tool-stage">${info.stage} | ${info.desc}</div>
+                    <div class="tool-name">${toolName}</div>
+                    <div class="tool-stage">${info.trinity} ${info.stage} | ${info.desc}</div>
                 `;
                 container.appendChild(div);
             });

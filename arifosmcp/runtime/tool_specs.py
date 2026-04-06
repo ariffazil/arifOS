@@ -73,7 +73,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="PSI Ψ",
         floors=("F11", "F12", "F13"),
         input_schema=_build_mega_schema(
-            "arifos.v2.init",
+            "arifos.init",
             ["init", "revoke", "status"],
             {
                 "actor_id": {"type": "string"},
@@ -91,7 +91,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="DELTA/PSI",
         floors=("F4", "F11"),
         input_schema=_build_mega_schema(
-            "arifos.v2.route",
+            "arifos.route",
             ["kernel", "status"],
             {"query": {"type": "string"}},
         ),
@@ -106,7 +106,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="PSI Ψ",
         floors=("F3", "F12", "F13"),
         input_schema=_build_mega_schema(
-            "arifos.v2.judge",
+            "arifos.judge",
             ["judge", "validate"],
             {
                 "candidate_action": {"type": "string"},
@@ -124,7 +124,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         description="Reality grounding, time, and evidence verification.",
         trinity="DELTA Δ",
         floors=("F2", "F3"),
-        input_schema=_build_mega_schema("arifos.v2.sense", ["search", "time"], {"query": {"type": "string"}}),
+        input_schema=_build_mega_schema("arifos.sense", ["search", "time"], {"query": {"type": "string"}}),
     ),
     ToolSpec(
         name="arifos.mind",
@@ -135,7 +135,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         description="Structured first-principles reasoning and synthesis.",
         trinity="DELTA Δ",
         floors=("F2", "F8"),
-        input_schema=_build_mega_schema("arifos.v2.mind", ["reason"], {"query": {"type": "string"}}),
+        input_schema=_build_mega_schema("arifos.mind", ["reason"], {"query": {"type": "string"}}),
     ),
     ToolSpec(
         name="arifos.heart",
@@ -146,7 +146,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         description="Safety, dignity, and adversarial critique.",
         trinity="OMEGA Ω",
         floors=("F5", "F6", "F9"),
-        input_schema=_build_mega_schema("arifos.v2.heart", ["critique"], {"content": {"type": "string"}}),
+        input_schema=_build_mega_schema("arifos.heart", ["critique"], {"content": {"type": "string"}}),
     ),
     ToolSpec(
         name="arifos.ops",
@@ -157,7 +157,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         description="Calculate operation costs and thermodynamic vitals.",
         trinity="DELTA Δ",
         floors=("F4", "F5"),
-        input_schema=_build_mega_schema("arifos.v2.ops", ["cost"], {"action": {"type": "string"}}),
+        input_schema=_build_mega_schema("arifos.ops", ["cost"], {"action": {"type": "string"}}),
     ),
     ToolSpec(
         name="arifos.memory",
@@ -168,7 +168,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         description="Governed memory retrieval (Requires Session).",
         trinity="OMEGA Ω",
         floors=("F10", "F11"),
-        input_schema=_build_mega_schema("arifos.v2.memory", ["query"], {"query": {"type": "string"}}),
+        input_schema=_build_mega_schema("arifos.memory", ["query"], {"query": {"type": "string"}}),
     ),
     ToolSpec(
         name="arifos.vault",
@@ -179,7 +179,41 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         description="Immutable verdict logging (Requires Session).",
         trinity="PSI Ψ",
         floors=("F1", "F13"),
-        input_schema=_build_mega_schema("arifos.v2.vault", ["seal"], {"verdict": {"type": "string"}}),
+        input_schema=_build_mega_schema("arifos.vault", ["seal"], {"verdict": {"type": "string"}}),
+    ),
+    # ═══════════════════════════════════════════════════════════════════════════
+    # EXECUTION BRIDGE (LAYER 3 — Hardened)
+    # ═══════════════════════════════════════════════════════════════════════════
+    ToolSpec(
+        name="arifos.forge",
+        public=True,  # Public but requires HMAC-signed envelope
+        stage="FORGE",
+        role="Execution Bridge",
+        layer="EXECUTION",
+        description="Hardened execution bridge — ONLY path for state mutation. Requires HMAC-signed envelope + SEAL verdict.",
+        trinity="DELTA Δ",
+        floors=("F1", "F11", "F13"),
+        input_schema=_build_mega_schema(
+            "arifos.forge",
+            ["execute"],
+            {
+                "execution_envelope": {
+                    "type": "object",
+                    "properties": {
+                        "query_hash": {"type": "string"},
+                        "verdict": {"type": "string", "enum": ["SEAL", "HOLD", "VOID"]},
+                        "actor_id": {"type": "string"},
+                        "timestamp": {"type": "string"},
+                        "signature": {"type": "string"},
+                    },
+                    "required": ["query_hash", "verdict", "actor_id", "timestamp", "signature"],
+                },
+                "action_type": {"type": "string", "enum": ["spawn", "write", "send", "call"]},
+                "target": {"type": "string"},
+                "constraints": {"type": "object"},
+            },
+            required=["execution_envelope"],
+        ),
     ),
 )
 
