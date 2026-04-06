@@ -18,10 +18,36 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
+import sys as _sys
+from pathlib import Path as _Path
+# Ensure repo root is on path when run from FastMCP Cloud (files live under /app/arifosmcp/)
+_repo_root = str(_Path(__file__).parent.parent)
+if _repo_root not in _sys.path:
+    _sys.path.insert(0, _repo_root)
+
 import httpx
-from arifosmcp.runtime.fastmcp_version import JSONResponse, Request, custom_route
-from config.environments import TOOL_ACCESS_POLICY, ToolAccessClass
 from fastmcp import FastMCP
+
+# Starlette types — always available (fastmcp depends on starlette)
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+
+# VPS-only compat shim — falls back gracefully on FastMCP Cloud
+try:
+    from arifosmcp.runtime.fastmcp_version import custom_route as _custom_route_helper
+    _HAS_COMPAT = True
+except ImportError:
+    _HAS_COMPAT = False
+
+# Tool access policy — VPS has full config; Cloud defaults all tools to public
+try:
+    from config.environments import TOOL_ACCESS_POLICY, ToolAccessClass
+except ImportError:
+    class ToolAccessClass:  # type: ignore[no-redef]
+        PUBLIC = "public"
+        AUTHENTICATED = "authenticated"
+        SOVEREIGN = "sovereign"
+    TOOL_ACCESS_POLICY: dict = {}
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("horizon-ambassador")
@@ -235,8 +261,8 @@ async def _gateway_call(tool_name: str, arguments: dict) -> dict:
 
 def _register_public_proxy_tools() -> None:
     for tool_name, description in PUBLIC_PROXY_SPECS.items():
-        async def _proxy_tool(_tool_name: str = tool_name, **kwargs) -> dict:
-            return await _gateway_call(_tool_name, kwargs)
+        async def _proxy_tool(payload: dict | None = None, _tool_name: str = tool_name) -> dict:
+            return await _gateway_call(_tool_name, payload or {})
 
         _proxy_tool.__name__ = f"proxy_{tool_name.replace('-', '_')}"
         _proxy_tool.__doc__ = description
@@ -264,13 +290,13 @@ async def gateway_registry() -> dict:
     }
 
 
-@custom_route(mcp, "/health", methods=["GET"], include_in_schema=False)
+@mcp.custom_route("/health", methods=["GET"])
 async def horizon_health(_request: Request):
     """Operational liveness endpoint for Horizon mode."""
     return JSONResponse(await _build_gateway_metadata())
 
 
-@custom_route(mcp, "/metadata", methods=["GET"], include_in_schema=False)
+@mcp.custom_route("/metadata", methods=["GET"])
 async def horizon_metadata(_request: Request):
     """Human and machine readable gateway metadata."""
     metadata = await _build_gateway_metadata()
