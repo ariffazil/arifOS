@@ -20,21 +20,24 @@ from arifosmcp.runtime.rest_routes import register_rest_routes
 from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS, register_tools
 from arifosmcp.runtime.public_registry import public_tool_names as _public_tool_names
 
-# ChatGPT Apps SDK tools DISABLED for lean deployment (≤13 tools)
-# To enable: uncomment below and ensure total tools ≤13
-_CHATGPT_TOOLS: dict[str, Any] = {}
+# ChatGPT Apps SDK tools ENABLED (14 total tools: 11 canonical + 3 ChatGPT)
+_CHATGPT_TOOLS: dict[str, Any] = {
+    "get_constitutional_health": None,
+    "list_recent_verdicts": None,
+    "render_vault_seal": None,
+}
 
-# Import ChatGPT tool handlers (disabled)
-# try:
-#     from arifosmcp.runtime.tools import get_constitutional_health, list_recent_verdicts
-#     from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import render_vault_seal
-#     _CHATGPT_TOOLS["get_constitutional_health"] = get_constitutional_health
-#     _CHATGPT_TOOLS["list_recent_verdicts"] = list_recent_verdicts
-#     _CHATGPT_TOOLS["render_vault_seal"] = render_vault_seal
-# except ImportError as e:
-#     logger.warning(f"Could not import ChatGPT tools: {e}")
+# Import ChatGPT tool handlers
+try:
+    from arifosmcp.runtime.tools import get_constitutional_health, list_recent_verdicts
+    from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import render_vault_seal
+    _CHATGPT_TOOLS["get_constitutional_health"] = get_constitutional_health
+    _CHATGPT_TOOLS["list_recent_verdicts"] = list_recent_verdicts
+    _CHATGPT_TOOLS["render_vault_seal"] = render_vault_seal
+except ImportError as e:
+    logger.warning(f"Could not import ChatGPT tools: {e}")
 
-# REST surface: canonical tools only (11 tools for lean deployment)
+# REST surface: canonical tools + ChatGPT Apps SDK tools (14 total)
 _CANONICAL_TOOL_IMPLEMENTATIONS = {**CANONICAL_TOOL_HANDLERS, **_CHATGPT_TOOLS}
 from fastapi import FastAPI
 from fastmcp import FastMCP
@@ -207,13 +210,12 @@ register_prompts(mcp)
 register_resources(mcp)
 register_rest_routes(mcp, _CANONICAL_TOOL_IMPLEMENTATIONS)
 
-# ChatGPT Apps SDK integration DISABLED for lean deployment (≤13 tools)
-# To enable: uncomment below and ensure total tools ≤13
-# try:
-#     from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import register_chatgpt_app_tools
-#     register_chatgpt_app_tools(mcp)
-# except Exception as e:
-#     logger.warning(f"ChatGPT Apps SDK not registered: {e}")
+# ChatGPT Apps SDK integration for widget rendering
+try:
+    from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import register_chatgpt_app_tools
+    register_chatgpt_app_tools(mcp)
+except Exception as e:
+    logger.warning(f"ChatGPT Apps SDK not registered: {e}")
 
 # THEN create the app with all routes included
 # FastMCP 2.x/3.x compatibility
