@@ -41,7 +41,7 @@ def _is_horizon_environment() -> bool:
     deployment = os.getenv("ARIFOS_DEPLOYMENT", "").lower()
     if deployment == "horizon":
         return True
-    
+
     # Secondary: Horizon-specific env vars
     if os.getenv("FASTMCP_CLOUD_URL"):
         return True
@@ -51,13 +51,13 @@ def _is_horizon_environment() -> bool:
         return True
     if os.getenv("HORIZON_DEPLOYMENT"):
         return True
-    
+
     # Tertiary: Container/cloud detection
     if os.getenv("KUBERNETES_SERVICE_HOST"):
         return True
     if os.path.exists("/.dockerenv") and not os.getenv("VPS_MODE"):
         return True
-    
+
     # Quaternary: FastMCP version check (runtime only)
     try:
         import fastmcp
@@ -67,7 +67,7 @@ def _is_horizon_environment() -> bool:
             return True
     except Exception:
         pass
-    
+
     return False
 
 
@@ -85,7 +85,7 @@ if IS_HORIZON:
     # HORIZON MODE: Lightweight gateway, no heavy runtime imports
     # ═════════════════════════════════════════════════════════════════════════
     from ops.runtime.server_horizon import mcp
-    
+
     # Import config only for logging (it's lightweight)
     try:
         from config.environments import get_environment, is_public
@@ -103,7 +103,7 @@ else:
     # ═════════════════════════════════════════════════════════════════════════
     try:
         from arifosmcp.server import mcp
-        
+
         try:
             from config.environments import get_environment, is_sovereign
             env = get_environment()
@@ -114,7 +114,7 @@ else:
                 print(f"🏛️  arifOS: {env.mode.value.upper()} mode", file=sys.stderr)
         except Exception:
             print("🔥 SOVEREIGN KERNEL: Full execution plane", file=sys.stderr)
-            
+
     except (ImportError, ModuleNotFoundError) as e:
         # Fallback: Heavy deps missing, use Horizon gateway
         print(f"⚠️  VPS deps unavailable ({e}), falling back to Horizon mode", file=sys.stderr)

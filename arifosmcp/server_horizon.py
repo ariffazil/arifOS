@@ -114,8 +114,6 @@ def _typed_horizon_error(
     duration_ms: int | None = None,
 ) -> dict:
     """Build a typed constitutional error envelope — never a bare string."""
-    from datetime import datetime, timezone
-    import uuid as _uuid
     now = datetime.now(timezone.utc).isoformat()
     status_map = {401: "error", 403: "error", 422: "error", 503: "degraded", 500: "error"}
     status = status_map.get(http_status, "error") if http_status else "degraded"
@@ -148,7 +146,7 @@ def _typed_horizon_error(
         "rollback_available": True,
         "timestamp": now,
         "duration_ms": duration_ms,
-        "trace_id": f"trace_{_uuid.uuid4().hex[:16]}",
+        "trace_id": f"trace_{uuid.uuid4().hex[:16]}",
         "system": {
             "kernel_version": ARIFOS_VERSION,
             "adapter": "horizon_gateway",

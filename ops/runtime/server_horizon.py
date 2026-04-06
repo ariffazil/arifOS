@@ -35,7 +35,7 @@ logger = logging.getLogger("horizon-gateway")
 
 def _get_tool_policy_counts() -> dict[str, int]:
     counts = {"public": 0, "authenticated": 0, "sovereign_only": 0}
-    for tool_name, access in TOOL_ACCESS_POLICY.items():
+    for _tool_name, access in TOOL_ACCESS_POLICY.items():
         if access == ToolAccessClass.PUBLIC.value:
             counts["public"] += 1
         elif access == ToolAccessClass.AUTHENTICATED.value:
@@ -135,8 +135,6 @@ async def _proxy_to_vps(tool_name: str, arguments: Optional[dict] = None) -> dic
     _start = time.monotonic()
     try:
         import httpx
-        import time
-        start_time = time.time()
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 f"{VPS_URL}/tools/{tool_name}",

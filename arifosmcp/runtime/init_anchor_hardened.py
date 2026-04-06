@@ -230,7 +230,7 @@ class HardenedInitAnchor:
         # Align with bridge._normalize_public_authority_level logic
         from arifosmcp.runtime.bridge import _normalize_public_authority_level
         public_level = _normalize_public_authority_level(authority_level)
-        
+
         seed = f"{session_id}:{actor_id}:{public_level}".encode()
         token_fingerprint = hashlib.sha256(seed).hexdigest()
         return mint_auth_context(
