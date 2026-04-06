@@ -1354,9 +1354,11 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
             resources = await mcp.list_resources()
             resource_list = []
             for r in resources:
+                # Convert AnyUrl to string
+                uri = str(r.uri) if hasattr(r, 'uri') else ""
                 resource_list.append({
-                    "uri": r.uri,
-                    "name": r.name if hasattr(r, 'name') else r.uri,
+                    "uri": uri,
+                    "name": r.name if hasattr(r, 'name') else uri,
                     "description": r.description if hasattr(r, 'description') else "",
                     "mimeType": r.mime_type if hasattr(r, 'mime_type') else "application/json",
                 })
@@ -1371,10 +1373,19 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
             prompts = await mcp.list_prompts()
             prompt_list = []
             for p in prompts:
+                # Convert PromptArgument objects to dicts
+                args = []
+                if hasattr(p, 'arguments') and p.arguments:
+                    for arg in p.arguments:
+                        args.append({
+                            "name": arg.name if hasattr(arg, 'name') else str(arg),
+                            "description": arg.description if hasattr(arg, 'description') else "",
+                            "required": arg.required if hasattr(arg, 'required') else False,
+                        })
                 prompt_list.append({
                     "name": p.name,
                     "description": p.description if hasattr(p, 'description') else "",
-                    "arguments": p.arguments if hasattr(p, 'arguments') else [],
+                    "arguments": args,
                 })
             return JSONResponse({"prompts": prompt_list, "count": len(prompt_list)})
         except Exception as e:
