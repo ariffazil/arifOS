@@ -388,7 +388,7 @@ services:
       - "traefik.http.services.arifosmcp.loadbalancer.healthcheck.interval=10s"
       - "traefik.http.services.arifosmcp.loadbalancer.healthcheck.timeout=5s"
       # Root landing page / Dashboard / Health / Tools (priority 100 = highest)
-      - "traefik.http.routers.arifosmcp-root.rule=Host(`arifosmcp.arif-fazil.com`) && (Path(`/`) || PathPrefix(`/health`) || PathPrefix(`/tools`) || PathPrefix(`/dashboard`) || PathPrefix(`/static-sites`) || PathPrefix(`/sites`) || PathPrefix(`/openapi`) || PathPrefix(`/llms`) || PathPrefix(`/version`) || PathPrefix(`/status`) || PathPrefix(`/discovery`) || PathPrefix(`/ready`) || PathPrefix(`/metrics`))"
+      - "traefik.http.routers.arifosmcp-root.rule=Host(`arifosmcp.arif-fazil.com`) && (Path(`/`) || PathPrefix(`/health`) || PathPrefix(`/tools`) || PathPrefix(`/dashboard`) || PathPrefix(`/static-sites`) || PathPrefix(`/sites`) || PathPrefix(`/openapi`) || PathPrefix(`/llms`) || PathPrefix(`/version`) || PathPrefix(`/status`) || PathPrefix(`/discovery`) || PathPrefix(`/ready`) || PathPrefix(`/metrics`) || PathPrefix(`/readme`) || PathPrefix(`/changelog`) || PathPrefix(`/roadmap`) || PathPrefix(`/todo`))"
       - "traefik.http.routers.arifosmcp-root.entrypoints=websecure"
       - "traefik.http.routers.arifosmcp-root.tls.certresolver=letsencrypt"
       - "traefik.http.routers.arifosmcp-root.priority=100"
