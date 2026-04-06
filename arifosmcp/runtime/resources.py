@@ -10,7 +10,9 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import json
+import logging
 import os
+from typing import Any
 
 from fastmcp import FastMCP
 from fastmcp.tools import ToolResult
@@ -23,6 +25,7 @@ from .public_registry import (
     release_version,
 )
 
+logger = logging.getLogger(__name__)
 
 def apex_tools_html_rows() -> str:
     """Compatibility helper for legacy REST status pages."""
@@ -43,644 +46,108 @@ def apex_tools_markdown_table() -> str:
     return "\n".join([header, *rows])
 
 
-# Registry of resource content functions - populated by register_resources
-_resource_content_functions: dict[str, callable] = {}
-
-
 def register_resources(mcp: FastMCP) -> None:
-    """Wire the Double Helix resources (Inner Ring + PNS Outer Ring).
+    """Wire the functional arifOS resources onto *mcp*."""
 
-    Aligned with SPEC.md Section 6: Component Taxonomy
-    """
-
-    # --- SPEC.md SECTION 6.1: REQUIRED PUBLIC RESOURCES ---
-
-    @mcp.resource("arifos://status/vitals")
-    def arifos_vitals() -> str:
-        """arifOS Status: Current health, capability map, degraded components."""
-        from .public_registry import public_tool_names, release_version
-
-        return json.dumps(
-            {
-                "server": "arifOSMCP",
-                "version": release_version(),
-                "motto": "DITEMPA BUKAN DIBERI",
-                "protocol": "MCP-2025-11-25",
-                "framework": "FastMCP-3.x",
-                "status": "HEALTHY",
-                "tools_available": len(public_tool_names()),
-                "session_ladder": [
-                    "anonymous",
-                    "claimed",
-                    "anchored",
-                    "verified",
-                    "scoped",
-                    "approved",
-                ],
-                "diagnostics": {
-                    "check_vital": "Available (no auth)",
-                    "audit_rules": "Available (no auth)",
-                },
-            },
-            ensure_ascii=False,
-        )
-
-    _resource_content_functions["arifos://status/vitals"] = arifos_vitals
+    @mcp.resource("arifos://bootstrap")
+    def arifos_bootstrap() -> dict[str, Any]:
+        """Startup path, canonical sequence, and system entry guide."""
+        return {
+            "motto": "DITEMPA BUKAN DIBERI",
+            "version": release_version(),
+            "sequence": [
+                "1. get_tool_registry() — Discovery",
+                "2. init_session_anchor() — Identity established",
+                "3. route_execution() — Metabolic processing",
+            ]
+        }
 
     @mcp.resource("arifos://governance/floors")
-    def arifos_floors() -> str:
-        """arifOS Governance: Constitutional F1-F13 thresholds and doctrine."""
-        return json.dumps(
-            {
-                "floors": {
-                    "F1": {"name": "Amanah", "threshold": "LOCK", "type": "Hard", "engine": "ASI"},
-                    "F2": {"name": "Truth", "threshold": "≥ 0.99", "type": "Hard", "engine": "AGI"},
-                    "F3": {
-                        "name": "Tri-Witness",
-                        "threshold": "≥ 0.95",
-                        "type": "Mirror",
-                        "engine": "APEX",
-                    },
-                    "F4": {
-                        "name": "ΔS Clarity",
-                        "threshold": "≤ 0",
-                        "type": "Hard",
-                        "engine": "AGI",
-                    },
-                    "F5": {"name": "Peace²", "threshold": "≥ 1.0", "type": "Soft", "engine": "ASI"},
-                    "F6": {
-                        "name": "κᵣ Empathy",
-                        "threshold": "≥ 0.70",
-                        "type": "Soft",
-                        "engine": "ASI",
-                    },
-                    "F7": {
-                        "name": "Ω₀ Humility",
-                        "threshold": "0.03-0.05",
-                        "type": "Hard",
-                        "engine": "AGI",
-                    },
-                    "F8": {
-                        "name": "G Genius",
-                        "threshold": "≥ 0.80",
-                        "type": "Mirror",
-                        "engine": "AGI",
-                    },
-                    "F9": {
-                        "name": "C_dark",
-                        "threshold": "< 0.30",
-                        "type": "Derived",
-                        "engine": "ASI",
-                    },
-                    "F10": {
-                        "name": "Ontology",
-                        "threshold": "LOCK",
-                        "type": "Wall",
-                        "engine": "APEX",
-                    },
-                    "F11": {
-                        "name": "Command Auth",
-                        "threshold": "LOCK",
-                        "type": "Hard",
-                        "engine": "ASI",
-                    },
-                    "F12": {
-                        "name": "Injection",
-                        "threshold": "< 0.85",
-                        "type": "Wall",
-                        "engine": "APEX",
-                    },
-                    "F13": {
-                        "name": "Sovereign",
-                        "threshold": "HUMAN",
-                        "type": "Veto",
-                        "engine": "APEX",
-                    },
-                },
-                "execution_order": "F12→F11 → AGI (F1,F2,F4,F7) → ASI (F5,F6,F9,F13) → Mirrors (F3,F8) → Ledger",
-                "hard_fail": "VOID",
-                "soft_fail": "PARTIAL",
-            },
-            ensure_ascii=False,
-        )
+    def arifos_governance_floors() -> dict[str, Any]:
+        """Constitutional F1-F13 thresholds, doctrine, and formal criteria."""
+        from core.shared.floors import get_all_floor_specs
+        try:
+            return {"floors": get_all_floor_specs()}
+        except Exception:
+            return {"error": "Could not load floors from core."}
 
-    _resource_content_functions["arifos://governance/floors"] = arifos_floors
+    @mcp.resource("arifos://status/vitals")
+    def arifos_status_vitals() -> dict[str, Any]:
+        """Current server health, deployment info, and version status."""
+        from .rest_routes import _build_governance_status_payload
+        return _build_governance_status_payload()
 
-    @mcp.resource("arifos://bootstrap/guide")
-    def arifos_bootstrap_guide() -> str:
-        """arifOS Bootstrap: Startup path, canonical sequence, example payloads."""
-        return json.dumps(
-            {
-                "bootstrap_sequence": [
-                    {
-                        "step": 1,
-                        "tool": "check_vital",
-                        "state_required": "anonymous",
-                        "auth_required": False,
-                        "output": ["health", "capabilities", "degraded_components"],
-                        "example": {"session_id": "global"},
-                    },
-                    {
-                        "step": 2,
-                        "tool": "audit_rules",
-                        "state_required": "anonymous",
-                        "auth_required": False,
-                        "output": ["constitutional_floors", "doctrine_hooks"],
-                        "example": {"session_id": "global"},
-                    },
-                    {
-                        "step": 3,
-                        "tool": "init_anchor",
-                        "state_required": "anonymous_or_claimed",
-                        "auth_required": False,
-                        "input": ["actor_id", "declared_name", "intent"],
-                        "output": ["anchored_session", "auth_context_seed"],
-                        "example": {
-                            "actor_id": "arif",
-                            "declared_name": "Muhammad Arif",
-                            "intent": {
-                                "query": "testing kernel governance flow",
-                                "task_type": "general",
-                            },
-                        },
-                    },
-                    {
-                        "step": 4,
-                        "tool": "arifOS_kernel",
-                        "state_required": "anchored",
-                        "auth_required": True,
-                        "modes": ["inspect", "analyze", "recommend", "execute"],
-                        "output": ["governed_execution_result"],
-                        "example": {
-                            "query": "analyze system health",
-                            "risk_tier": "low",
-                            "auth_context": {"session_id": "session-xxx", "actor_id": "arif"},
-                        },
-                    },
-                ],
-                "global_session_rule": "session_id='global' is diagnostics-only. No state changes allowed.",
-                "recovery_rule": "Every blocked call returns: current_state, why_blocked, next_tool, required_args, example_payload, retry_safe",
-            },
-            ensure_ascii=False,
-        )
-
-    _resource_content_functions["arifos://bootstrap/guide"] = arifos_bootstrap_guide
+    @mcp.resource("arifos://sessions/{session_id}/vitals")
+    def arifos_session_vitals(session_id: str) -> dict[str, Any]:
+        """Session-specific telemetry snapshot and thermodynamic state."""
+        from core.physics.thermodynamics_hardened import get_thermodynamic_report
+        try:
+            return {"session_id": session_id, "vitals": get_thermodynamic_report(session_id)}
+        except Exception:
+            return {"session_id": session_id, "status": "UNKNOWN"}
 
     @mcp.resource("arifos://agents/skills")
     def arifos_agents_skills() -> str:
-        """arifOS Agent Skills: Consolidated guide for AI agents using the 11 mega-tools."""
-        # Dynamically read from root AGENTS.md
+        """Consolidated agent skills and atomic competence registry."""
         root_agents_md = os.path.join(os.path.dirname(__file__), "..", "..", "AGENTS.md")
         if os.path.exists(root_agents_md):
             with open(root_agents_md, encoding="utf-8") as f:
                 return f.read()
-        return "AGENTS.md not found in root. Please contact the 888_JUDGE."
+        return "AGENTS.md not found in root."
 
-    _resource_content_functions["arifos://agents/skills"] = arifos_agents_skills
-
-    @mcp.resource("arifos://contracts/tools")
-    def arifos_tool_contracts() -> str:
-        """arifOS Contracts: Tool contract table with risk, auth, mutability."""
-        from .public_registry import PUBLIC_TOOL_SPECS
-
-        contracts = []
-        for spec in PUBLIC_TOOL_SPECS:
-            risk = "low"
-            if any(f in ["F11", "F13"] for f in spec.floors):
-                risk = "high"
-            elif any(f in ["F1"] for f in spec.floors):
-                risk = "critical"
-            elif len(spec.floors) > 2:
-                risk = "medium"
-
-            contracts.append(
-                {
-                    "canonical_name": spec.name,
-                    "stage": spec.stage,
-                    "trinity": spec.trinity,
-                    "risk_class": risk,
-                    "auth_required": "F11" in spec.floors or "F13" in spec.floors,
-                    "floors": list(spec.floors),
-                }
-            )
-        return json.dumps({"contracts": contracts}, ensure_ascii=False)
-
-    _resource_content_functions["arifos://contracts/tools"] = arifos_tool_contracts
-
-    @mcp.resource("arifos://mcp/context")
-    def arifos_mcp_context() -> str:
-        """arifOS MCP Context: canonical tools, aliases, modes, continuity law, and usage guidance for LLMs."""
-        from arifosmcp.capability_map import build_llm_context_map
-
-        payload = build_llm_context_map()
-        payload["discovery"] = {
-            "tool_contracts_resource": "arifos://contracts/tools",
-            "skills_resource": "arifos://agents/skills",
-            "bootstrap_resource": "arifos://bootstrap/guide",
-            "caller_state_resource": "arifos://caller/state",
-        }
-        return json.dumps(payload, ensure_ascii=False)
-
-    _resource_content_functions["arifos://mcp/context"] = arifos_mcp_context
-
-    @mcp.resource("arifos://caller/state")
-    def arifos_caller_state() -> str:
-        """arifOS Caller State: Current state, allowed tools, blocked tools."""
-        # This would be dynamic based on session - static for now
-        return json.dumps(
-            {
-                "current_state": "anonymous",
-                "verification_tier": "GUEST",
-                "allowed_tools": ["check_vital", "audit_rules", "init_anchor"],
-                "blocked_tools": ["arifOS_kernel", "verify_vault_ledger"],
-                "next_step": {
-                    "tool": "init_anchor",
-                    "reason": "Identity required for governed execution",
-                    "example": {
-                        "actor_id": "your-name",
-                        "declared_name": "Your Name",
-                        "intent": {"query": "purpose of session", "task_type": "general"},
-                    },
-                },
-                "session_ladder": {
-                    "anonymous": {"allows": "diagnostics only", "exit": "claim identity"},
-                    "claimed": {"allows": "diagnostics only", "exit": "create anchor"},
-                    "anchored": {
-                        "allows": "memory, evidence, kernel prep",
-                        "exit": "cryptographic proof",
-                    },
-                    "verified": {"allows": "+ ledger verification", "exit": "scope grant"},
-                    "scoped": {"allows": "+ low-risk kernel", "exit": "human escalation"},
-                    "approved": {"allows": "+ high-risk, mutations", "exit": "completion"},
-                },
-            },
-            ensure_ascii=False,
-        )
-
-    _resource_content_functions["arifos://caller/state"] = arifos_caller_state
-
-    # --- LEGACY RESOURCES (Backward Compatibility) ---
-
-    @mcp.resource("canon://invariants")
-    def canon_invariants() -> str:
-        """ΔΩΨ constitutional invariants and thermodynamic laws."""
-        return json.dumps({"delta": "ΔS ≤ 0", "omega": "Ω₀ ∈ [0.03, 0.05]", "psi": "G ≥ 0.80"})
-
-    _resource_content_functions["canon://invariants"] = canon_invariants
-
-    @mcp.resource("canon://floors")
-    def canon_floors() -> str:
-        """Static F1-F13 constitutional floor thresholds and execution order reference."""
-        return json.dumps(
-            {
-                "structure": "9 Floors + 2 Mirrors + 2 Walls = 13 LAWS",
-                "execution_order": "F12→F11 → AGI (F1,F2,F4,F7) → ASI (F5,F6,F9,F13) → Mirrors (F3,F8) → Ledger",
-                "hard_fail": "VOID",
-                "soft_fail": "PARTIAL",
-                "floors": {
-                    "F1": {
-                        "name": "Amanah",
-                        "threshold": "LOCK",
-                        "type": "Hard",
-                        "engine": "ASI",
-                        "check": "Reversible? Within mandate?",
-                    },
-                    "F2": {
-                        "name": "Truth",
-                        "threshold": "≥ 0.99",
-                        "type": "Hard",
-                        "engine": "AGI",
-                        "check": "Factually accurate?",
-                    },
-                    "F3": {
-                        "name": "Tri-Witness",
-                        "threshold": "≥ 0.95",
-                        "type": "Mirror",
-                        "engine": "APEX",
-                        "check": "External calibration (Human·AI·Earth)",
-                    },
-                    "F4": {
-                        "name": "ΔS Clarity",
-                        "threshold": "≤ 0",
-                        "type": "Hard",
-                        "engine": "AGI",
-                        "check": "Reduces confusion?",
-                    },
-                    "F5": {
-                        "name": "Peace²",
-                        "threshold": "≥ 1.0",
-                        "type": "Soft",
-                        "engine": "ASI",
-                        "check": "Non-destructive?",
-                    },
-                    "F6": {
-                        "name": "κᵣ Empathy",
-                        "threshold": "≥ 0.70",
-                        "type": "Soft",
-                        "engine": "ASI",
-                        "check": "Serves weakest stakeholder?",
-                    },
-                    "F7": {
-                        "name": "Ω₀ Humility",
-                        "threshold": "0.03-0.05",
-                        "type": "Hard",
-                        "engine": "AGI",
-                        "check": "States uncertainty?",
-                    },
-                    "F8": {
-                        "name": "G Genius",
-                        "threshold": "≥ 0.80",
-                        "type": "Mirror",
-                        "engine": "AGI",
-                        "check": "Internal coherence (AxPxXxE2)",
-                    },
-                    "F9": {
-                        "name": "C_dark",
-                        "threshold": "< 0.30",
-                        "type": "Derived",
-                        "engine": "ASI",
-                        "check": "Dark cleverness contained?",
-                    },
-                    "F10": {
-                        "name": "Ontology",
-                        "threshold": "LOCK",
-                        "type": "Wall",
-                        "engine": "APEX",
-                        "check": "No consciousness/soul claims",
-                    },
-                    "F11": {
-                        "name": "Command Auth",
-                        "threshold": "LOCK",
-                        "type": "Hard",
-                        "engine": "ASI",
-                        "check": "Nonce-verified identity?",
-                    },
-                    "F12": {
-                        "name": "Injection",
-                        "threshold": "< 0.85",
-                        "type": "Wall",
-                        "engine": "APEX",
-                        "check": "Block adversarial control",
-                    },
-                    "F13": {
-                        "name": "Sovereign",
-                        "threshold": "HUMAN",
-                        "type": "Veto",
-                        "engine": "APEX",
-                        "check": "Human final authority?",
-                    },
-                },
-            },
-            ensure_ascii=False,
-        )
-
-    _resource_content_functions["canon://floors"] = canon_floors
-
-    @mcp.resource("canon://contracts")
-    def canon_contracts() -> str:
-        """Tool Contract Table: Hierarchy, authority levels, and bootstrap requirements."""
-        return """
-# arifOS Tool Contract Table (v2026.03.14)
-
-| Class                  | Tools                  | Auth Required | Anonymous OK? | Purpose |
-|------------------------|------------------------|---------------|---------------|---------|
-| **Read-only / Diag**   | check_vital, audit_rules| ❌ No         | ✅ Yes        | Assess health & capability |
-| **Grounding / Sense**  | search_reality, ingest | ⚠️ Optional   | ✅ Yes        | External fact grounding |
-| **Memory / Anchor**    | init_anchor             | ⚠️ Start Here | ✅ Yes        | Establish identity & session |
-| **Verification**       | verify_vault_ledger    | ✅ Yes        | ❌ No         | Verify Merkle chain integrity |
-| **Consequential**      | arifOS_kernel, forge   | ✅ Yes        | ❌ No         | Governed execution & actions |
-
-## Transition Pathways
-Review `canon://states` for the full Session Ladder and state transition requirements.
-
-## Bootstrap Sequence
-1. **check_vital**: Check system readiness and current state.
-2. **audit_rules**: Inspect constitutional thresholds.
-3. **init_anchor**: **MANDATORY** establishes your `auth_context`.
-4. **arifOS_kernel**: Use the `auth_context` from step 3 to perform real work.
-"""
-
-    _resource_content_functions["canon://contracts"] = canon_contracts
-
-    @mcp.resource("canon://states")
-    def canon_states() -> str:
-        """Session Ladder: State machine and transition requirements."""
-        return """
-# arifOS Session Ladder (State Machine)
-
-| State        | Entry Condition           | Allowed Tools               | Exit Condition          |
-|--------------|---------------------------|-----------------------------|-------------------------|
-| **anonymous**| No identity claim         | diagnostics, read-only search| actor/name claim        |
-| **claimed**  | Actor ID provided         | same as anonymous           | anchor created          |
-| **anchored** | `init_anchor` succeeded   | memory, evidence, kernel prep| cryptographic proof     |
-| **verified** | Proof accepted            | ledger verification         | scope grant             |
-| **scoped**   | Approval scope granted    | low-risk kernel             | human escalation        |
-| **approved** | Human escalation cleared  | high-risk kernel, mutations | completion/revocation   |
-
-## Verification Status
-- **GUEST**: `anonymous` or `claimed`. Passive observer.
-- **OPERATOR**: `anchored` or `verified`. Governed participant.
-- **APEX**: `scoped` or `approved`. Sovereign authority.
-"""
-
-    _resource_content_functions["canon://states"] = canon_states
-
-    @mcp.resource("canon://index")
-    def canon_index() -> str:
-        """High-level arifOS canon map: tools, floors, and resources."""
-        return json.dumps(
-            {
-                "version": release_version(),
-                "motto": "DITEMPA BUKAN DIBERI",
-                "architecture": "Double Helix",
-                "authority_ladder": [
-                    "anonymous",
-                    "claimed",
-                    "anchored",
-                    "verified",
-                    "scoped",
-                    "approved",
-                ],
-                "resources": public_resource_uris(),
-            },
-            ensure_ascii=False,
-        )
-
-    _resource_content_functions["canon://index"] = canon_index
-
-    @mcp.resource("arifos://sessions/{session_id}/vitals")
-    def arifos_session_vitals(session_id: str) -> str:
-        """arifOS Session Vitals: Real-time telemetry for a specific session."""
-        from core.physics.thermodynamics_hardened import get_thermodynamic_report
-
-        try:
-            report = get_thermodynamic_report(session_id)
-            return json.dumps({"session_id": session_id, "vitals": report}, ensure_ascii=False)
-        except Exception:
-            return json.dumps({"session_id": session_id, "status": "UNKNOWN"}, ensure_ascii=False)
-
-    _resource_content_functions["arifos://sessions/{session_id}/vitals"] = arifos_session_vitals
-
-    @mcp.resource("arifos://tools/{tool_name}/spec")
-    def arifos_tool_spec(tool_name: str) -> str:
-        """arifOS Tool Specification: Detailed contract for a specific tool."""
-        from .public_registry import get_tool_spec_by_name
-        spec = get_tool_spec_by_name(tool_name)
+    @mcp.resource("arifos://tools/{tool_name}")
+    def arifos_tool_contract(tool_name: str) -> dict[str, Any]:
+        """Detailed contract, examples, and auth requirements for a specific tool."""
+        from .public_registry import public_tool_spec_by_name
+        registry = public_tool_spec_by_name()
+        spec = registry.get(tool_name)
         if spec:
-            return json.dumps(spec.model_dump(), ensure_ascii=False)
-        return json.dumps({"error": "Tool not found", "name": tool_name})
-
-    _resource_content_functions["arifos://tools/{tool_name}/spec"] = arifos_tool_spec
-
-    @mcp.resource("arifos://floors/{floor_id}/doctrine")
-    def arifos_floor_doctrine(floor_id: str) -> str:
-        """arifOS Floor Doctrine: The mathematical and legal basis for a constitutional floor."""
-        from core.shared.floors import get_floor_spec
-        spec = get_floor_spec(floor_id)
-        return json.dumps(spec, ensure_ascii=False)
-
-    _resource_content_functions["arifos://floors/{floor_id}/doctrine"] = arifos_floor_doctrine
-
-    @mcp.resource("schema://tools/input")
-    def schema_tools_input() -> str:
-        """Canonical JSON Schema input specs for public tools."""
-        return json.dumps(public_tool_input_schemas(), ensure_ascii=False)
-
-    _resource_content_functions["schema://tools/input"] = schema_tools_input
-
-    @mcp.resource("schema://tools/output")
-    def schema_tools_output() -> str:
-        """Canonical RuntimeEnvelope output schema."""
-        return json.dumps(RUNTIME_ENVELOPE_SCHEMA, ensure_ascii=False)
-
-    _resource_content_functions["schema://tools/output"] = schema_tools_output
-
-    # --- VAULT/RECENT: Read-only recent verdict ledger summary ---
+            return {
+                "name": spec.name,
+                "description": spec.description,
+                "inputSchema": spec.input_schema,
+                "stage": spec.stage,
+                "trinity": spec.trinity,
+                "floors": list(spec.floors)
+            }
+        return {"error": "Tool not found", "name": tool_name}
 
     @mcp.resource("arifos://vault/recent")
-    def arifos_vault_recent() -> str:
-        """arifOS Vault: Read-only summary of recent VAULT999 verdict records."""
+    def arifos_vault_recent() -> dict[str, Any]:
+        """Read-only summary of the most recent constitutional verdict ledger."""
         try:
-            import os
             vault_path = os.environ.get("VAULT999_PATH", "/root/VAULT999")
             audit_dir = os.path.join(vault_path, "audit")
             if os.path.isdir(audit_dir):
                 files = sorted(
                     (f for f in os.listdir(audit_dir) if f.endswith(".json")),
                     reverse=True,
-                )[:10]
+                )[:5]
                 records = []
                 for fname in files:
-                    fpath = os.path.join(audit_dir, fname)
-                    try:
-                        with open(fpath, encoding="utf-8") as fh:
-                            records.append(json.load(fh))
-                    except Exception:
-                        pass
-                return json.dumps({"recent_verdicts": records, "count": len(records)}, ensure_ascii=False)
+                    with open(os.path.join(audit_dir, fname), encoding="utf-8") as fh:
+                        records.append(json.load(fh))
+                return {"recent_verdicts": records}
         except Exception:
             pass
-        return json.dumps({"recent_verdicts": [], "count": 0, "note": "Vault audit directory unavailable"})
+        return {"recent_verdicts": [], "note": "Vault audit unavailable"}
 
-    _resource_content_functions["arifos://vault/recent"] = arifos_vault_recent
+    @mcp.resource("ui://arifos/vault-seal-widget.html")
+    def arifos_vault_seal_widget() -> str:
+        """HTML resource for ChatGPT Apps widget rendering."""
+        from .chatgpt_integration.apps_sdk_tools import vault_seal_widget_html
+        return vault_seal_widget_html()
 
-    # --- CONTEXT CONTRACTS: Shared JSON schemas ---
-
-    @mcp.resource("arifos://contracts/context")
-    def arifos_context_contracts() -> str:
-        """arifOS Context Contracts: Shared JSON schemas for tools, resources, and prompts."""
-        from .context_contracts import CONTEXT_CONTRACTS
-        return json.dumps(CONTEXT_CONTRACTS, ensure_ascii=False)
-
-    _resource_content_functions["arifos://contracts/context"] = arifos_context_contracts
-
-    # --- SHORT-FORM ALIASES for proposed URI map ---
-
-    @mcp.resource("arifos://bootstrap")
-    def arifos_bootstrap_short() -> str:
-        """arifOS Bootstrap: Startup path and canonical session entry sequence."""
-        return json.dumps({
-            "sequence": [
-                "1. get_tool_registry(mode='list') — discover available tools",
-                "2. estimate_ops(mode='health') — verify system health",
-                "3. init_session_anchor(mode='init') — establish constitutional session",
-                "4. route_execution(mode='kernel') — enter full metabolic pipeline",
-            ],
-            "canonical_tool_names": {
-                "init_session_anchor": "init_anchor",
-                "get_tool_registry": "architect_registry",
-                "sense_reality": "physics_reality",
-                "reason_synthesis": "agi_mind",
-                "critique_safety": "asi_heart",
-                "route_execution": "arifOS_kernel",
-                "load_memory_context": "engineering_memory",
-                "estimate_ops": "math_estimator",
-                "judge_verdict": "apex_soul",
-                "record_vault_entry": "vault_ledger",
-                "execute_vps_task": "code_engine",
-            },
-            "note": "Functional-verb aliases map to symbolic mega-tools above.",
-        }, ensure_ascii=False)
-
-    _resource_content_functions["arifos://bootstrap"] = arifos_bootstrap_short
-
-    @mcp.resource("arifos://tools/{tool_name}")
-    def arifos_tool_by_name(tool_name: str) -> str:
-        """arifOS Tool: Contract and spec for a tool by name (functional or symbolic)."""
-        from .public_registry import get_tool_spec_by_name
-        from .context_contracts import TELEMETRY_ENVELOPE_SCHEMA
-        # Accept functional-verb aliases
-        _alias_map = {
-            "init_session_anchor": "init_anchor",
-            "get_tool_registry": "architect_registry",
-            "sense_reality": "physics_reality",
-            "reason_synthesis": "agi_mind",
-            "critique_safety": "asi_heart",
-            "route_execution": "arifOS_kernel",
-            "load_memory_context": "engineering_memory",
-            "estimate_ops": "math_estimator",
-            "judge_verdict": "apex_soul",
-            "record_vault_entry": "vault_ledger",
-            "execute_vps_task": "code_engine",
-        }
-        canonical = _alias_map.get(tool_name, tool_name)
-        spec = get_tool_spec_by_name(canonical)
-        if spec:
-            result = spec.model_dump()
-            result["functional_name"] = tool_name
-            result["canonical_name"] = canonical
-            return json.dumps(result, ensure_ascii=False)
-        return json.dumps({"error": "Tool not found", "name": tool_name, "canonical": canonical})
+    logger.info("Registered functional arifOS resources.")
 
 
 def manifest_resources() -> list[str]:
     """Return list of all registered resource URIs."""
-    return public_resource_uris()
-
-
-async def read_resource_content(uri: str) -> str | None:
-    """Read resource content by URI (Hardened 9 support).
-
-    Dispatches to registered resource functions for actual content.
-    """
-    if uri not in public_resource_uris():
-        return None
-
-    # Call the registered resource function for actual content
-    if uri in _resource_content_functions:
-        return _resource_content_functions[uri]()
-
-    # Fallback for any URI in registry without registered function
-    return None
-
-
-def build_open_apex_dashboard_result(session_id: str = "global") -> ToolResult | None:
-    """Return a ToolResult containing the APEX dashboard v2.1 redirect/HTML."""
-    dashboard_path = os.path.join(
-        os.path.dirname(__file__), "..", "sites", "dashboard", "index.html"
-    )
-    if os.path.exists(dashboard_path):
-        with open(dashboard_path, encoding="utf-8") as f:
-            html = f.read()
-        return ToolResult(content=[{"type": "text", "text": html}])
-    return None
+    return [
+        "arifos://bootstrap",
+        "arifos://governance/floors",
+        "arifos://status/vitals",
+        "arifos://agents/skills",
+        "arifos://vault/recent",
+        "ui://arifos/vault-seal-widget.html"
+    ]

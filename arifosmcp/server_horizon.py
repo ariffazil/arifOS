@@ -676,14 +676,16 @@ def _horizon_context_contracts() -> str:
         return json.dumps({"error": "Context contracts module unavailable on this deployment"})
 
 
-@mcp.resource("ui://arifos/vault-seal-widget.html")
+@mcp.resource("https://mcp.af-forge.io/widget/vault-seal")
 def _horizon_vault_widget_resource() -> str:
     """ChatGPT Widget: HTML resource for the Vault Seal iframe widget."""
     try:
-        from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import vault_seal_widget_html
-        return vault_seal_widget_html()
+        widget_path = Path(__file__).parent.parent / "static" / "widgets" / "vault-seal-widget.html"
+        if widget_path.exists():
+            return widget_path.read_text()
+        return "<html><body><p>Vault Seal Widget — copy static/widgets/ to /var/www/arifos/widgets/</p></body></html>"
     except Exception:
-        return "<html><body><p>Vault Seal Widget — load from /ui/vault_seal_widget.html</p></body></html>"
+        return "<html><body><p>Vault Seal Widget unavailable</p></body></html>"
 
 
 @mcp.resource("arifos://tools/{tool_name}")
@@ -855,6 +857,7 @@ async def execute_vps_task(
 @mcp.tool(name="get_constitutional_health", title="Constitutional Health")
 async def get_constitutional_health(session_id: Optional[str] = None) -> dict:
     """ChatGPT subset: Read-only constitutional health view for widget rendering."""
+    WIDGET_URL = "https://mcp.af-forge.io/widget/vault-seal"
     raw = await _proxy_to_vps("math_estimator", {"query": "health", "session_id": session_id, "mode": "health"})
     return {
         "status": raw.get("status", "HEALTHY"),
@@ -862,8 +865,8 @@ async def get_constitutional_health(session_id: Optional[str] = None) -> dict:
         "tools_loaded": 11,
         "version": raw.get("version", "2026.4.6"),
         "telemetry": raw.get("metrics", {}),
-        "widget_uri": "ui://arifos/vault-seal-widget.html",
-        "_meta": {"ui": {"resourceUri": "ui://arifos/vault-seal-widget.html"}},
+        "widget_uri": WIDGET_URL,
+        "_meta": {"ui": {"resourceUri": WIDGET_URL}},
     }
 
 

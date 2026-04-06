@@ -106,9 +106,9 @@ class TestResourceSpecs:
         assert len(RESOURCE_URIS) == len(set(RESOURCE_URIS))
     
     def test_resource_uris_follow_pattern(self):
-        """Resource URIs should follow arifos:// or ui:// patterns."""
+        """Resource URIs should follow arifos://, ui://, or https:// patterns."""
         for uri in RESOURCE_URIS:
-            assert uri.startswith(("arifos://", "ui://")), f"Invalid URI: {uri}"
+            assert uri.startswith(("arifos://", "ui://", "https://")), f"Invalid URI: {uri}"
     
     def test_resource_lookup(self):
         """Should be able to lookup resources by URI."""

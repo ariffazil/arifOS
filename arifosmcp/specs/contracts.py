@@ -17,7 +17,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -72,6 +72,21 @@ class SessionAnchor(BaseModel):
     - Authority level and scope
     - Constitutional telemetry seed
     """
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "session_id": "sess_arifos_abc123",
+            "epoch": "2026-04-06",
+            "declared_actor_id": "user@example.com",
+            "verified_actor_id": "user@example.com",
+            "canonical_actor_id": "user@example.com",
+            "state": "anchored",
+            "authority_level": "operator",
+            "trinity_seed": "PSI",
+            "baseline_tau": 1.0,
+            "baseline_omega": 0.05
+        }
+    })
+    
     session_id: str = Field(..., description="Unique session identifier")
     epoch: str = Field(default="2026-04-06", description="Governance epoch")
     
@@ -92,22 +107,6 @@ class SessionAnchor(BaseModel):
     # Telemetry baseline (established at anchor time)
     baseline_tau: float = Field(default=1.0, ge=0.0, le=1.0, description="Truth baseline")
     baseline_omega: float = Field(default=0.05, ge=0.0, le=1.0, description="Humility baseline")
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "session_id": "sess_arifos_abc123",
-                "epoch": "2026-04-06",
-                "declared_actor_id": "user@example.com",
-                "verified_actor_id": "user@example.com",
-                "canonical_actor_id": "user@example.com",
-                "state": "anchored",
-                "authority_level": "operator",
-                "trinity_seed": "PSI",
-                "baseline_tau": 1.0,
-                "baseline_omega": 0.05
-            }
-        }
 
 
 class ToolAuthContext(BaseModel):
@@ -171,6 +170,22 @@ class TelemetryEnvelope(BaseModel):
     - kappa_r: Reality grounding (0-1)
     - tri_witness: Triple witness coherence (0-1)
     """
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "session_id": "sess_abc123",
+            "epoch": "2026-04-06",
+            "timestamp": "2026-04-06T10:30:00Z",
+            "tau_truth": 0.995,
+            "omega_0": 0.04,
+            "delta_s": -0.35,
+            "peace2": 1.08,
+            "kappa_r": 0.97,
+            "tri_witness": 0.95,
+            "psi_le": 1.09,
+            "verdict_hint": "SEAL"
+        }
+    })
+    
     session_id: str = Field(..., description="Source session")
     epoch: str = Field(default="2026-04-06", description="Governance epoch")
     timestamp: str = Field(..., description="ISO 8601 timestamp")
@@ -186,23 +201,6 @@ class TelemetryEnvelope(BaseModel):
     # Derived
     psi_le: float | None = Field(None, description="Life/entropy index (computed)")
     verdict_hint: VerdictCode = Field(default=VerdictCode.SABAR, description="Suggested verdict")
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "session_id": "sess_abc123",
-                "epoch": "2026-04-06",
-                "timestamp": "2026-04-06T10:30:00Z",
-                "tau_truth": 0.995,
-                "omega_0": 0.04,
-                "delta_s": -0.35,
-                "peace2": 1.08,
-                "kappa_r": 0.97,
-                "tri_witness": 0.95,
-                "psi_le": 1.09,
-                "verdict_hint": "SEAL"
-            }
-        }
 
 
 class ConstitutionalHealthView(BaseModel):
@@ -211,6 +209,22 @@ class ConstitutionalHealthView(BaseModel):
     
     Used by ChatGPT widget and dashboard UIs.
     """
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "session_id": "sess_abc123",
+            "timestamp": "2026-04-06T10:30:00Z",
+            "truth_score": 0.995,
+            "humility_level": 0.04,
+            "entropy_delta": -0.35,
+            "harmony_ratio": 1.08,
+            "reality_index": 0.97,
+            "witness_strength": 0.95,
+            "verdict": "SEAL",
+            "verdict_label": "Aligned",
+            "attestation": {"jurors": 5, "quorum": 3, "sealed": True}
+        }
+    })
+    
     session_id: str
     timestamp: str
     
@@ -228,23 +242,6 @@ class ConstitutionalHealthView(BaseModel):
     
     # BLS attestation (if available)
     attestation: dict[str, Any] | None = None
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "session_id": "sess_abc123",
-                "timestamp": "2026-04-06T10:30:00Z",
-                "truth_score": 0.995,
-                "humility_level": 0.04,
-                "entropy_delta": -0.35,
-                "harmony_ratio": 1.08,
-                "reality_index": 0.97,
-                "witness_strength": 0.95,
-                "verdict": "SEAL",
-                "verdict_label": "Aligned",
-                "attestation": {"jurors": 5, "quorum": 3, "sealed": True}
-            }
-        }
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

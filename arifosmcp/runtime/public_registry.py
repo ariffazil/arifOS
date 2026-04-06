@@ -17,7 +17,8 @@ ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = ROOT / "pyproject.toml"
 DEFAULT_PUBLIC_BASE_URL = "https://arifosmcp.arif-fazil.com"
 
-PUBLIC_TOOL_ALIASES = {"apex_judge": "apex_soul"}
+# Clean surface: All tools use functional names. No aliases in public registry.
+PUBLIC_TOOL_ALIASES = {}
 PUBLIC_TOOL_EXCLUSIONS = {"compat_probe"}
 
 
@@ -79,7 +80,7 @@ def get_pyproject_metadata() -> dict[str, Any]:
 
 def release_version_label() -> str:
     """Return the canonical version string from pyproject.toml."""
-    return str(get_pyproject_metadata().get("version", "2026.03.20-SOVEREIGN11"))
+    return str(get_pyproject_metadata().get("version", "2026.04.06-FUNCTIONAL"))
 
 
 def release_version() -> str:
@@ -166,7 +167,7 @@ def build_server_json(public_base_url: str = DEFAULT_PUBLIC_BASE_URL) -> dict[st
         "name": "arifOS-APEX-G",
         "version": release_version_label(),
         "description": (
-            f"Constitutional governance server — {len(public_specs)} canonical MCP tools "
+            f"Constitutional governance server — {len(public_specs)} functional arifOS tools "
             "with F1-F13 floor enforcement, metabolic routing, prompts, and resources."
         ),
         "vendor": {"name": "Muhammad Arif bin Fazil", "url": "https://arif-fazil.com"},
@@ -220,7 +221,7 @@ def build_mcp_discovery_json(public_base_url: str = DEFAULT_PUBLIC_BASE_URL) -> 
     manifest["continuity_contract_version"] = "0.1.0"
     manifest["llm_context"] = build_llm_context_map()
     manifest["discovery_notes"] = [
-        "Use arifos://mcp/context for full canonical tool, alias, and continuity guidance.",
+        "Use arifos://mcp/context for full functional tool and continuity guidance.",
         "Do not infer authority from prior success; read continuity envelope on every call.",
     ]
     return manifest
