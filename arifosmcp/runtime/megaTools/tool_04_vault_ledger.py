@@ -65,7 +65,8 @@ async def vault_ledger(
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
         
         return forge_verdict(
-            tool_id="vault_ledger",
+            tool_id="arifos.vault",
+            canonical_tool_name="arifos.vault",
             stage="999_VAULT",
             payload=res_dict.get("payload", res_dict),
             session_id=session_id,

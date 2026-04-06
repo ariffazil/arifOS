@@ -79,6 +79,7 @@ def forge_verdict(
     return RuntimeEnvelope(
         ok=(code in (VerdictCode.SEAL, VerdictCode.PARTIAL)),
         tool=tool_id,
+        canonical_tool_name=canonical_tool_name or tool_id,
         stage=stage,
         session_id=session_id,
         verdict=code, # For backward compat
