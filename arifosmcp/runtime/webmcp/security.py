@@ -60,13 +60,28 @@ class WebInjectionGuard:
     
     # Prompt Injection (F12 for AI)
     PROMPT_INJECTION_PATTERNS = [
-        (r'ignore\s+(previous|above|earlier)', 'ignore_prompt', 0.3),
+        # Classic "ignore previous instructions" — with optional filler words
+        (r'ignore\s+(?:\w+\s+){0,3}(?:previous|above|earlier|all)\s*(?:instructions?|rules?|prompts?|guidelines?)?', 'ignore_prompt', 0.5),
         (r'forget\s+(everything|all|instructions)', 'forget_prompt', 0.3),
+        # Role-change jailbreaks
+        (r'you\s+are\s+now\s+(?:dan|unrestricted|free|jailbroken|evil|agi|an?\s+\w+\s+ai)', 'role_change_named', 0.6),
         (r'you\s+are\s+now', 'role_change', 0.3),
+        (r'pretend\s+(?:you\s+are|to\s+be)\s+(?:an?\s+)?(?:unrestricted|evil|jailbroken|dan|free)', 'pretend_jailbreak', 0.6),
+        # Secrets / system prompt extraction
+        (r'reveal\s+(?:all\s+)?(?:system\s+)?(?:prompts?|secrets?|instructions?|vault)', 'reveal_secrets', 0.5),
+        (r'show\s+(?:me\s+)?(?:your\s+)?(?:system\s+prompt|hidden\s+instructions?|internal\s+rules?)', 'show_system', 0.5),
+        # Floor / governance bypass attempts
+        (r'bypass\s+(?:f\d+|floor|restriction|rule|governance|constitution)', 'bypass_floor', 0.6),
+        (r'disable\s+(?:f\d+|floor|restriction|governance|guard)', 'disable_floor', 0.6),
+        # System tag impersonation
         (r'system\s*:', 'system_override', 0.4),
         (r'<system>', 'system_tag', 0.4),
         (r'user\s*:', 'user_impersonation', 0.3),
         (r'assistant\s*:', 'assistant_impersonation', 0.3),
+        # DAN / jailbreak keywords
+        (r'\bdan\b', 'dan_keyword', 0.4),
+        (r'jailbreak', 'jailbreak_keyword', 0.5),
+        (r'do\s+anything\s+now', 'do_anything_now', 0.5),
     ]
     
     # CSRF Patterns

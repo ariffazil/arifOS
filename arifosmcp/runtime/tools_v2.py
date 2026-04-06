@@ -46,6 +46,37 @@ logger = logging.getLogger(__name__)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# INTERNAL HELPERS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _make_f12_block_envelope(injection_score: float, threats: list[str], session_id: str | None) -> Any:
+    """Return a VOID RuntimeEnvelope blocking an F12 injection attempt."""
+    from arifosmcp.runtime.models import RuntimeEnvelope as _RE, RuntimeStatus, Verdict
+    return _RE(
+        ok=False,
+        tool="arifos.init",
+        canonical_tool_name="arifos.init",
+        stage="000_INIT",
+        status=RuntimeStatus.ERROR,
+        verdict=Verdict.VOID,
+        code="F12_INJECTION_BLOCKED",
+        detail=f"Prompt injection detected (score={injection_score:.2f}). Request rejected by F12.",
+        hint="Remove manipulation patterns from intent and retry with a legitimate request.",
+        retryable=False,
+        rollback_available=False,
+        anchor_state="denied",
+        session_id=session_id,
+        policy={
+            "floors_checked": ["F12"],
+            "floors_failed": ["F12"],
+            "injection_score": round(injection_score, 4),
+            "threats": threats,
+            "witness_required": True,
+        },
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # V2 TOOL IMPLEMENTATIONS
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -60,6 +91,20 @@ async def arifos_init(
     debug: bool = False,
 ) -> RuntimeEnvelope:
     """Initialize constitutional session."""
+    # ── F12: Injection Guard ──────────────────────────────────────────────
+    from arifosmcp.runtime.webmcp.security import WebInjectionGuard
+    _guard = WebInjectionGuard()
+    _injection_score, _threats = _guard._scan_text(intent)
+    if _injection_score >= 0.85:
+        logger.warning(
+            "F12 BLOCK: injection detected in arifos.init intent (score=%.2f, threats=%s)",
+            _injection_score, _threats,
+        )
+        return seal_runtime_envelope(
+            _make_f12_block_envelope(_injection_score, _threats, session_id),
+            "arifos.init",
+        )
+
     envelope = await _mega_init_anchor(
         mode="init",
         payload={"actor_id": actor_id, "intent": intent, "declared_name": declared_name},
@@ -69,6 +114,14 @@ async def arifos_init(
         allow_execution=allow_execution,
         debug=debug,
     )
+    # Stamp F12 result into policy so floors_checked is never empty
+    if hasattr(envelope, "policy") and isinstance(envelope.policy, dict):
+        envelope.policy["floors_checked"] = list(dict.fromkeys(
+            ["F12"] + envelope.policy.get("floors_checked", [])
+        ))
+        envelope.policy["injection_score"] = round(_injection_score, 4)
+    elif hasattr(envelope, "policy"):
+        envelope.policy = {"floors_checked": ["F12"], "injection_score": round(_injection_score, 4)}
     return seal_runtime_envelope(envelope, "arifos.init")
 
 
