@@ -451,7 +451,7 @@ def run_server(mcp: Any, mode: str, host: str, port: int) -> None:
     uvicorn_config = _build_uvicorn_config()
 
     if normalized in ("", "stdio"):
-        mcp.run(transport="stdio", show_banner=False)
+        mcp.run(transport="stdio", show_banner=False, log_level="CRITICAL")
         return
     if normalized == "sse":
         sse_path = _normalize_path(os.getenv("ARIFOS_SSE_PATH"), "/sse")

@@ -2,6 +2,35 @@
 
 All notable changes to arifOS MCP are documented in this file.
 
+## [2026.04.06-CHATGPT-APPS] - OpenAI Apps SDK Integration
+
+### 🚀 CHATGPT APPS SDK INTEGRATION
+
+**arifOS now exposes constitutional health checks via OpenAI's Apps SDK protocol.**
+
+- **New Tools:**
+  - `vault_seal_card` — Data tool that builds constitutional seal view-model from live arifOS telemetry with BLS12-381 attestation
+  - `render_vault_seal` — Render tool with Apps SDK metadata pointing to widget resource
+  
+- **New Resources:**
+  - `ui://arifos/vault-seal-widget.html` — HTML widget for constitutional health card (Truth Score, Care Level, Humility Level, Trust Vote)
+  - `/chatgpt/widgets/vault-seal.html` — Local browser preview route
+
+- **BLS Integration:** Phase A BLS12-381 signature aggregation (3-of-5 supermajority) for seal attestation
+  - Juror pool: DELTA_MIND, OMEGA_HEART, PSI_SOUL, A_AUDITOR, A_VALIDATOR
+  - Aggregate signatures for O(1) verification
+
+- **MCP Compliance:** 
+  - FastMCP-based server with Streamable HTTP transport
+  - Proper `_meta.ui.resourceUri` and `openai/outputTemplate` metadata
+  - Decoupled data/render tool pattern per OpenAI guidelines
+
+- **Security:**
+  - Read-only Phase 1 — no write-path sealing in ChatGPT-facing surface
+  - 888_HOLD compliance — real BLS signing only in hardened Vault999 boundary
+
+> **Deployment:** Ready for AF-FORGE VPS deployment and OpenAI App Store submission.
+
 ## [2026.04.05-ARCHIVE-SURGERY] - core/ → arifosmcp/ Migration Complete
 
 ### 🗂️ ARCHIVE SURGERY — CANONICAL PACKAGE CONSOLIDATION

@@ -67,8 +67,9 @@ arifOS has been upgraded to **Horizon II.1** — data-driven constitutional inte
 - **ASF-1 Communication Protocol**: Structured dual-layer communication for Agent↔Agent, Agent↔Human, and hybrid modes
 - **Decision Vector Framework**: EMV, NPV Safety, Entropy Δ, and Safety metrics for every decision
 - **Automated Validation**: CLI tool for constitutional compliance checking
+- **OpenAI Apps SDK Integration**: ChatGPT-native constitutional health checks with BLS12-381 attestation
 
-**Readiness Score**: 94/100 (Horizon II.1 — Data-Driven Sovereign-Grade)
+**Readiness Score**: 95/100 (Horizon II.1 — Platform Integration Ready)
 
 ---
 

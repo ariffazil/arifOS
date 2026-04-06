@@ -1,6 +1,6 @@
 # arifOS TODO — THE BODY (Execution & Engineering)
 
-**Version:** 2026.04.03-SEALED  
+**Version:** 2026.04.06-SEALED  
 **Authority:** Muhammad Arif bin Fazil (999_VALIDATOR)  
 **Motto:** *Body starts where Stochastic ends.*
 
@@ -25,10 +25,15 @@
 - [x] **Machine-Verifiable Schema Enforcement:** Explicit thresholds, formal verdict mapping.
 - [x] **Red-Team Stage (666_HEART):** Adversarial critique integrated.
 - [x] **Great Unification:** Repo restructuring, documentation hierarchy, and package consolidation (2026.04.06).
+- [x] **Constitutional MCP Tools:** `get_constitutional_health`, `render_vault_seal`, `list_recent_verdicts` wired into arifosmcp.
+- [x] **ChatGPT Apps Bridge:** MCP Apps-ready widget `ui://arifos/vault-seal-widget.html` + `/chatgpt/widgets/vault-seal.html` preview.
+- [x] **AF-FORGE MCP Deployment Skeleton:** Dockerfile, compose, Nginx, `/health` + `/build` + `/ready` routes.
 - [ ] **Mode Stability:** Audit all 42 modes in `tools_internal.py` for input schema parity with `contracts.py`.
 - [ ] **API Rotation:** Revoke legacy OpenCode keys and inject fresh secrets into the VPS runtime.
 - [ ] **Lint Fix (Ruff):** Resolve pre-existing lint failures in the root `arifosmcp/` kernel.
 - [ ] **Red-Team Proven Injection Resistance:** Automated adversarial fuzz testing suite with benchmark corpus.
+- [ ] **Vault999 Record Blueprint → Code:** Implement `VaultRecord` + `SealMetadata` + BLS plumbing per Vault999 spec (no keys on ChatGPT path).
+- [ ] **Reality Index Backfill Plan:** Map legacy unsigned logs → `MIGRATED_ATTESTED` envelopes (no fake retro-seals).
 
 ---
 
@@ -44,6 +49,7 @@
 - [ ] **Docker 2.0 (Swarm Mode):** Transition the 16-container stack to a Docker Swarm/Kubernetes sidecar pattern for enterprise high-availability.
 - [ ] **psi_LE Formalization:** Document intelligence elevation metric computation formally with reproducibility proof.
 - [ ] **Floor Weight Sensitivity Analysis:** Monte Carlo test for weight perturbation, stress-case simulation.
+- [ ] **Apps SDK Second Adapter:** Add one non-OpenAI adapter (CLI or Anthropic MCP) using the same `ConstitutionalHealthView`.
 
 ---
 
@@ -58,7 +64,7 @@
 
 ---
 
-## 📋 COMPLETED (2026.04.03 SEAL)
+## 📋 COMPLETED (2026.04.06 SEAL)
 
 | Item | Status | Notes |
 |------|--------|-------|
@@ -74,19 +80,23 @@
 | 13 Hardened Prompts | ✅ | ASF-1 Protocol |
 | Machine-Verifiable Schemas | ✅ | Explicit thresholds |
 | Red-Team Stage (666_HEART) | ✅ | Adversarial critique |
+| Constitutional MCP Tools | ✅ | `get_constitutional_health` + widget |
+| AF-FORGE Docker Stack | ✅ | Dual transport, `/health` `/build` `/mcp` |
+| Apps SDK Manifest | ✅ | `config/apps-sdk/arifos-af-forge.json` |
+| MCP Tool Discovery & Widget Preview | ✅ | `tools/list`, widget HTML bridged |
 
 ---
 
-## 🔮 NEXT ACTIONS (Priority Order)
+## 🔮 NEXT ACTIONS (Priority Order – 2026-Q2)
 
-1. **Red-Team Injection Suite** — Automated fuzz testing to prove 92% injection resistance claim
-2. **psi_LE Formalization** — Document intelligence elevation metric with formal formula
-3. **Floor Weight Sensitivity** — Monte Carlo test for weight perturbation
-4. **Qdrant AAA Indexing** — Index 19 AAA canon files for cross-agent RAG
-5. **Mode Audit** — Verify 42 tool modes for schema parity
-6. **Latency Benchmark Suite** — QPS benchmarks, caching strategy
-7. **Eigent Windows Client** — Connect Eigent desktop app to VPS backend
-8. **API Key Rotation** — Fresh secrets for production
+1. **Red-Team Injection Suite** — Benchmarked injection resistance with corpus + report.
+2. **Vault999 Implementation** — Move from sketch → working sealed record path (core only).
+3. **psi_LE Formalization** — Publish metric with examples, put into MCP telemetry.
+4. **Qdrant AAA Indexing** — Wire AAA canon into cross-agent RAG.
+5. **Mode Audit (42 Modes)** — Schema parity check + fix drift.
+6. **Latency & Load Benchmarks** — Baseline AF-FORGE under realistic ChatGPT + internal load.
+7. **API Key Rotation** — Rotate external keys, document process.
+8. **Second Adapter** — Simple REST or Anthropic MCP adapter proving platform-agnostic design.
 
 ---
 
@@ -148,6 +158,6 @@
 
 ---
 
-**Last SEALed:** 2026.04.03-ARIF  
+**Last SEALed:** 2026.04.06-ARIF  
 **Status:** INSTITUTIONAL GRADE · GOVERNANCE HARDENED  
 *"Ditempa bukan diberi"* 🔥

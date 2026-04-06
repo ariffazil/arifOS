@@ -42,8 +42,6 @@ from core.shared.mottos import (
     get_motto_for_stage,
 )
 
-# Import internal tools from runtime.tools for code_engine and math_estimator dispatches
-from . import tools as internal_tools
 from .bridge import call_kernel
 from .reality_handlers import handler as reality_handler
 from .reality_models import BundleInput
@@ -60,6 +58,12 @@ except ImportError:
 from arifosmcp.runtime.sessions import _normalize_session_id
 
 logger = logging.getLogger(__name__)
+
+
+def _internal_tools():
+    from . import tools as internal_tools
+
+    return internal_tools
 
 
 def _resolve_motto(stage_value: str) -> str | None:
@@ -213,6 +217,8 @@ async def _wrap_call(
             override_code=v_code,
             message=kernel_res.get("note")
         )
+        if "trace" in kernel_res and isinstance(kernel_res["trace"], dict):
+            envelope.trace = kernel_res["trace"]
         
         envelope.meta.motto = _resolve_motto(envelope.stage)
 
@@ -1114,7 +1120,7 @@ async def math_estimator_dispatch_impl(
 ) -> RuntimeEnvelope:
     session_id = payload.get("session_id")
     if mode == "cost":
-        res = internal_tools.cost_estimator(action_description=payload.get("action", ""))
+        res = _internal_tools().cost_estimator(action_description=payload.get("action", ""))
         return RuntimeEnvelope(
             ok=True,
             tool="math_estimator",
@@ -1123,7 +1129,23 @@ async def math_estimator_dispatch_impl(
             verdict=Verdict.SEAL,
             status=RuntimeStatus.SUCCESS,
         )
-    elif mode in ("health", "vitals"):
+    elif mode == "vitals":
+        from arifosmcp.runtime.bridge import _build_vitals_report
+
+        identity = get_session_identity(session_id) if session_id else None
+        caller_state = identity.get("caller_state", "anonymous") if identity else "anonymous"
+        res = _build_vitals_report(session_id or "global")
+        return RuntimeEnvelope(
+            ok=True,
+            tool="check_vital",
+            session_id=session_id,
+            stage=Stage.INIT_000.value,
+            payload=res,
+            verdict=Verdict.SEAL,
+            status=RuntimeStatus.DRY_RUN if dry_run else RuntimeStatus.SUCCESS,
+            caller_state=caller_state,
+        )
+    elif mode == "health":
         identity = get_session_identity(session_id) if session_id else None
         caller_state = identity.get("caller_state", "anonymous") if identity else "anonymous"
         if caller_state not in ("claimed", "anchored", "verified"):
@@ -1143,7 +1165,7 @@ async def math_estimator_dispatch_impl(
                     )
                 ],
             )
-        res = internal_tools.system_health()
+        res = _internal_tools().system_health()
         return RuntimeEnvelope(
             ok=True,
             tool="math_estimator",
@@ -1152,8 +1174,6 @@ async def math_estimator_dispatch_impl(
             verdict=Verdict.SEAL,
             status=RuntimeStatus.SUCCESS,
         )
-    elif mode == "vitals":
-        return await _wrap_call("check_vital", Stage.INIT_000, session_id, {}, ctx)
     elif mode == "entropy":
         from core.physics.thermodynamics_hardened import get_thermodynamic_report
 
@@ -1172,7 +1192,7 @@ async def code_engine_dispatch_impl(
     session_id = payload.get("session_id")
     limit = payload.get("limit", 50)
     if mode == "fs":
-        res = internal_tools.fs_inspect(path=payload.get("path", "."))
+        res = _internal_tools().fs_inspect(path=payload.get("path", "."))
         return RuntimeEnvelope(
             ok=True,
             tool="code_engine",
@@ -1182,7 +1202,7 @@ async def code_engine_dispatch_impl(
             status=RuntimeStatus.SUCCESS,
         )
     elif mode == "process":
-        res = internal_tools.process_list(limit=limit)
+        res = _internal_tools().process_list(limit=limit)
         return RuntimeEnvelope(
             ok=True,
             tool="code_engine",
@@ -1192,7 +1212,7 @@ async def code_engine_dispatch_impl(
             status=RuntimeStatus.SUCCESS,
         )
     elif mode == "net":
-        res = internal_tools.net_status()
+        res = _internal_tools().net_status()
         return RuntimeEnvelope(
             ok=True,
             tool="code_engine",
@@ -1202,7 +1222,7 @@ async def code_engine_dispatch_impl(
             status=RuntimeStatus.SUCCESS,
         )
     elif mode == "tail":
-        res = internal_tools.log_tail(lines=limit)
+        res = _internal_tools().log_tail(lines=limit)
         return RuntimeEnvelope(
             ok=True,
             tool="code_engine",

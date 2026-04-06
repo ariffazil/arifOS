@@ -253,7 +253,96 @@ async def kernel_intelligent_route(
     
     # Step 2: Check session validity (F2 Truth enforcement)
     session_identity = get_session_identity(session_id)
+    actor_id = str(payload.get("actor_id") or "anonymous").strip().lower()
+    if session_id == "global" and not auth_context and actor_id == "anonymous":
+        result = RuntimeEnvelope(
+            ok=dry_run,
+            tool="arifOS_kernel",
+            session_id=session_id,
+            stage=Stage.INIT_000.value,
+            verdict=Verdict.VOID,
+            status="DRY_RUN" if dry_run else "ERROR",
+            errors=[{
+                "code": "AUTH_TOKEN_MISSING",
+                "message": "Anonymous global session must call init_anchor before kernel execution.",
+                "stage": Stage.INIT_000.value,
+            }],
+            payload={
+                "next_action": {
+                    "tool": "init_anchor",
+                    "mode": "init",
+                    "reason": "Identity required for kernel execution",
+                },
+            },
+            caller_state="anonymous",
+            allowed_next_tools=["init_anchor", "math_estimator", "architect_registry", "apex_judge"],
+            blocked_tools=[
+                {
+                    "tool": "arifOS_kernel",
+                    "reason": "Requires anchored session. Run init_anchor first.",
+                }
+            ],
+            next_action={
+                "tool": "init_anchor",
+                "mode": "init",
+                "reason": "You are anonymous. Identity required for governed execution.",
+                "required_payload": ["actor_id", "intent"],
+            },
+            trace={Stage.INIT_000.value: Verdict.VOID.value},
+        )
+        if debug:
+            result.payload["_trace"] = trace
+        return result
+
     if not session_identity and session_id != "global":
+        init_trace = {Stage.INIT_000.value: Verdict.PARTIAL.value if dry_run else Verdict.VOID.value}
+        if dry_run and actor_id != "sovereign":
+            caller_state = "claimed" if actor_id != "anonymous" else "anonymous"
+            result = RuntimeEnvelope(
+                ok=True,
+                tool="arifOS_kernel",
+                session_id=session_id,
+                stage=Stage.INIT_000.value,
+                verdict=Verdict.SABAR if actor_id != "anonymous" else Verdict.VOID,
+                status="DRY_RUN",
+                errors=[{
+                    "code": "BOOTSTRAP_REQUIRED",
+                    "message": "Dry-run allowed, but session must be anchored before governed execution.",
+                    "stage": Stage.INIT_000.value,
+                }],
+                payload={
+                    "next_action": {
+                        "tool": "init_anchor",
+                        "mode": "init",
+                        "reason": "Anchor the session before governed execution.",
+                    },
+                    "simulation_only": True,
+                },
+                caller_state=caller_state,
+                allowed_next_tools=["init_anchor", "math_estimator", "architect_registry", "apex_judge"],
+                blocked_tools=[
+                    {
+                        "tool": "arifOS_kernel",
+                        "reason": "Requires anchored session. Run init_anchor first.",
+                    }
+                ],
+                next_action={
+                    "tool": "init_anchor",
+                    "mode": "init",
+                    "reason": "Dry-run allowed, but a session anchor is still required for governed execution.",
+                    "required_payload": ["actor_id", "intent"],
+                },
+                trace=init_trace,
+            )
+            if debug:
+                result.payload["_trace"] = trace
+            return result
+
+        error_code = "SESSION_NOT_ANCHORED"
+        error_message = "Session not found. Call init_anchor first."
+        if actor_id == "anonymous" and not auth_context:
+            error_code = "AUTH_FAILURE"
+            error_message = "Anonymous session missing anchor. Call init_anchor first."
         # Session not anchored — redirect to init_anchor
         result = RuntimeEnvelope(
             ok=False,
@@ -263,8 +352,8 @@ async def kernel_intelligent_route(
             verdict=Verdict.VOID,
             status="ERROR",
             errors=[{
-                "code": "SESSION_NOT_ANCHORED",
-                "message": "Session not found. Call init_anchor first.",
+                "code": error_code,
+                "message": error_message,
                 "stage": "444_ROUTER",
             }],
             payload={
@@ -288,6 +377,7 @@ async def kernel_intelligent_route(
                 "reason": "You are anonymous. Identity required for governed execution.",
                 "required_payload": ["actor_id", "intent"],
             },
+            trace=init_trace,
         )
         if debug:
             result.payload["_trace"] = trace

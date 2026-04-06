@@ -483,7 +483,10 @@ def _build_vitals_report(session_id: str) -> dict[str, Any]:
     from arifosmcp.runtime.sessions import get_session_identity
 
     from core.shared.floors import THRESHOLDS
-    from core.state.session_manager import session_manager
+    try:
+        from core.state.session_manager import session_manager
+    except Exception:
+        session_manager = None
 
     # Gather system health
     health_status = "HEALTHY"
@@ -493,12 +496,14 @@ def _build_vitals_report(session_id: str) -> dict[str, Any]:
     session_active = False
     current_state = "anonymous"
     try:
-        session_active = session_manager.get_kernel(session_id) is not None
+        if session_manager is not None:
+            session_active = session_manager.get_kernel(session_id) is not None
         identity = get_session_identity(session_id)
         if identity:
             current_state = (
                 identity.get("caller_state") or identity.get("authority_level") or "claimed"
             )
+            session_active = True
     except Exception:
         pass
 
@@ -588,7 +593,7 @@ async def call_kernel(
     from core.governance_kernel import get_governance_kernel
     from core.shared.types import GovernanceMetadata, Intent, MathDials, TemporalContract
 
-    canonical_name = TOOL_MAP.get(tool_name, tool_name) or "unknown"
+    canonical_name = tool_name or "unknown"
     claimed_actor_id = _resolve_claimed_actor_id(payload)
 
     t_start = time.perf_counter()
@@ -718,6 +723,8 @@ async def call_kernel(
             )
 
     if canonical_name == "search_reality":
+        from .tools import search_reality
+
         res = await search_reality(
             input=_resolve_tool_input(payload, "query", "input"),
             session_id=session_id,
@@ -727,6 +734,8 @@ async def call_kernel(
 
         return wrap_tool_output(canonical_name, res)
     if canonical_name == "ingest_evidence":
+        from .tools import ingest_evidence
+
         res = await ingest_evidence(
             input=_resolve_tool_input(payload, "source_url", "url", "query", "input"),
             session_id=session_id,
@@ -1240,7 +1249,3 @@ async def ollama_local_generate_call(
     from .tools_internal import ollama_local_generate_impl
     result = await ollama_local_generate_impl(prompt=prompt, session_id=None)
     return result.payload if hasattr(result, "payload") else {"ok": False, "error": "Ollama call failed"}
-
-# Import tool functions at end of module to avoid circular imports
-# but still make them available for monkeypatching in tests
-from .tools import search_reality, ingest_evidence

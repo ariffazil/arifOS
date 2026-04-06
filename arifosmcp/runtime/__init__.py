@@ -12,8 +12,23 @@ if __name__ == "arifosmcp.runtime":
 elif __name__ == "arifosmcp.runtime":
     sys.modules.setdefault("arifosmcp.runtime", sys.modules[__name__])
 
-# Simple imports
-from . import bridge, contracts, metrics, models, orchestrator, sessions, tools, tools_internal
-from .server import create_aaa_mcp_server, mcp
+__all__ = [
+    "mcp",
+    "create_aaa_mcp_server",
+    "tools",
+    "tools_internal",
+    "bridge",
+    "models",
+    "contracts",
+    "sessions",
+    "metrics",
+    "orchestrator",
+]
 
-__all__ = ["mcp", "create_aaa_mcp_server", "tools", "tools_internal", "bridge", "models", "contracts", "sessions", "metrics", "orchestrator"]
+
+def __getattr__(name: str):
+    if name in {"mcp", "create_aaa_mcp_server"}:
+        from .server import create_aaa_mcp_server, mcp
+
+        return {"mcp": mcp, "create_aaa_mcp_server": create_aaa_mcp_server}[name]
+    raise AttributeError(name)
