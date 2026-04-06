@@ -63,11 +63,13 @@ arifOS has been upgraded to **Horizon II.1** — data-driven constitutional inte
 
 - **Data-Driven Registry**: Canonical tool definitions in `tool_registry.json` (SSCT)
 - **Constitutional Hash Verification**: SHA-256 registry integrity at boot time
+- **Clean MCP Architecture**: Separated tools, resources, and prompts with functional naming
+- **Docker Production Deployment**: Full containerization with docker-compose stack
 - **Production Prompt Pack v1.0**: 13 hardened prompts (000-999) with machine-verifiable schemas
 - **ASF-1 Communication Protocol**: Structured dual-layer communication for Agent↔Agent, Agent↔Human, and hybrid modes
 - **Decision Vector Framework**: EMV, NPV Safety, Entropy Δ, and Safety metrics for every decision
 - **Automated Validation**: CLI tool for constitutional compliance checking
-- **OpenAI Apps SDK Integration**: ChatGPT-native constitutional health checks with BLS12-381 attestation
+- **OpenAI Apps SDK Integration**: ChatGPT-native constitutional health checks with BLS12-381 attestation and CSP-compliant widget
 
 **Readiness Score**: 95/100 (Horizon II.1 — Platform Integration Ready)
 
@@ -862,6 +864,26 @@ The v3 architecture is built upon 10 canonical, constitutionally-defined mega-to
 
 The complete, machine-readable definition for these tools is located in the canonical `arifosmcp/tool_registry.json`.
 
+### Clean Architecture: Functional Naming
+
+In addition to symbolic names, arifOS supports **functional naming** for cleaner MCP integration:
+
+| Symbolic Name | Functional Name | Purpose |
+|--------------|-----------------|---------|
+| `init_anchor` | `init_session_anchor` | Initialize constitutional session |
+| `architect_registry` | `get_tool_registry` | Discover tools and resources |
+| `physics_reality` | `sense_reality` | Reality grounding and search |
+| `agi_mind` | `reason_synthesis` | Reasoning and synthesis |
+| `asi_heart` | `critique_safety` | Safety and empathy critique |
+| `arifOS_kernel` | `route_execution` | Metabolic routing |
+| `engineering_memory` | `load_memory_context` | Vector memory operations |
+| `math_estimator` | `estimate_ops` | Cost and vitals estimation |
+| `apex_soul` | `judge_verdict` | Constitutional verdict |
+| `vault_ledger` | `record_vault_entry` | Immutable decision logging |
+| `code_engine` | `execute_vps_task` | System-level execution |
+
+Both naming conventions work interchangeably. The functional names align with MCP best practices (verbs for tools).
+
 ---
 
 ## For AI Agents: The Behavioral Contract
@@ -1243,7 +1265,7 @@ When there is a conflict, `core/shared/floors.py` is authoritative (it's what ac
 - 20GB disk space
 - Ubuntu 22.04 LTS (recommended) or equivalent
 
-#### Quick Deploy
+#### Quick Deploy (Full Stack)
 
 ```bash
 # Step 1: Clone the repository
@@ -1254,12 +1276,37 @@ cd arifOS
 cp .env.example .env
 # Edit .env with your API keys and settings
 
-# Step 3: Launch the stack
+# Step 3: Launch the full stack
 docker compose up -d
 
 # Step 4: Verify deployment
 curl -s http://localhost:3000/health
 ```
+
+#### Production Deploy (AF-FORGE)
+
+For production deployment with ChatGPT Apps SDK support:
+
+```bash
+# Use the af-forge deployment configuration
+cd deployments/af-forge
+
+# Set build metadata
+export ARIFOS_BUILD_SHA=$(git rev-parse HEAD)
+export ARIFOS_BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+# Deploy
+docker compose up -d --build
+
+# Verify
+./deploy.sh verify
+```
+
+This deploys:
+- arifOS MCP server (port 3000)
+- Nginx with CSP headers for ChatGPT widget
+- Qdrant vector database
+- Redis session cache
 
 #### Services Included
 
@@ -1691,6 +1738,43 @@ ariffazil (github.com/ariffazil/)
 │   └── [SUBMODULE] geox/ (The Earth Plane)
 │
 └── arif-site/ (The Sovereign Web Presence)
+```
+
+---
+
+## ChatGPT Apps SDK Integration
+
+arifOS provides a **ChatGPT Apps SDK** integration for OpenAI's platform, enabling ChatGPT users to inspect constitutional health through an interactive widget.
+
+### Phase 1 (Current): Read-Only Health Checks
+
+**Exposed Tools:**
+- `get_constitutional_health` — Returns constitutional floor scores, verdict, and telemetry
+- `render_vault_seal` — Renders the interactive widget in ChatGPT UI
+- `list_recent_verdicts` — Read-only vault audit log (last 100 entries)
+
+**Widget URL:** `https://mcp.af-forge.io/widget/vault-seal`
+- CSP-compliant with `frame-ancestors https://chat.openai.com`
+- Displays: Truth Score, Humility Level, Entropy Delta, Harmony Ratio, Reality Index, Witness Strength
+- BLS attestation status (3-of-5 juror quorum)
+
+### Safety: 888_HOLD Compliance
+
+Phase 1 is intentionally **read-only**:
+- ❌ No vault write access from ChatGPT
+- ❌ No VPS execution paths exposed
+- ❌ No private keys in ChatGPT-facing container
+
+Phase 2 (Future): Write-path operations with explicit F11/F13 human review.
+
+### Deployment for ChatGPT
+
+```bash
+# Deploy with CSP headers
+docker compose -f deployments/af-forge/docker-compose.yml up -d
+
+# Verify widget CSP
+curl -I https://mcp.af-forge.io/widget/vault-seal | grep content-security
 ```
 
 ## Runtime & Execution (SYSTEM)
