@@ -170,8 +170,7 @@ services:
       - "traefik.http.routers.arifosmcp.rule=Host(`arifosmcp.arif-fazil.com`)"
       - "traefik.http.routers.arifosmcp.entrypoints=websecure"
       - "traefik.http.routers.arifosmcp.tls.certresolver=letsencrypt"
-      - "traefik.http.middlewares.a2a-auth.basicauth.usersfile=/secrets/traefik_htpasswd"
-      - "traefik.http.routers.arifosmcp.middlewares=a2a-auth"
+      # Public access - no auth required
     restart: unless-stopped
 
   webhook:
