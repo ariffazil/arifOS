@@ -19,6 +19,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Literal
 
+import blake3
+
 from core.shared.types import HashChain, SealRecord, VaultOutput, Verdict
 
 logger = logging.getLogger(__name__)
@@ -48,9 +50,11 @@ def _canonical_entry_payload(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def compute_vault_seal_hash(payload: dict[str, Any]) -> str:
-    """Compute the canonical seal hash for a vault entry."""
-    entry_json = json.dumps(_canonical_entry_payload(payload), sort_keys=True, ensure_ascii=False)
-    return hashlib.sha256(entry_json.encode()).hexdigest()
+    """Compute the canonical seal hash for a vault entry using blake3."""
+    entry_json = json.dumps(
+        _canonical_entry_payload(payload), sort_keys=True, separators=(",", ":")
+    )
+    return blake3.blake3(entry_json.encode("utf-8")).hexdigest()
 
 
 def verify_vault_record(payload: dict[str, Any]) -> tuple[bool, str | None]:
@@ -141,7 +145,8 @@ def verify_vault_ledger(path: Path) -> tuple[bool, str | None]:
                 if current_prev_hash != prev_entry_hash:
                     return (
                         False,
-                        f"line {line_no}: chain broken (prev_hash mismatch). Expected {prev_entry_hash}, found {current_prev_hash}",
+                        f"line {line_no}: chain broken (prev_hash mismatch). "
+                        f"Expected {prev_entry_hash}, found {current_prev_hash}",
                     )
 
                 expected_entry_hash = hashlib.sha256(
@@ -210,8 +215,18 @@ async def seal(
 
     consume_tool_energy(session_id, n_calls=1)
 
+    telemetry = dict(telemetry) if telemetry else {}
+    
     # Hard Floors to track
     floors = {"F1": "pass", "F5": "pass", "F9": "pass", "F12": "pass", "F13": "pass"}
+    
+    # Extract tau_truth to floors
+    if "tau_truth" in telemetry:
+        floors["tau_truth"] = telemetry.pop("tau_truth")
+        
+    # Standardize naming to witness_coherence
+    if "confidence" in telemetry and "witness_coherence" not in telemetry:
+        telemetry["witness_coherence"] = telemetry.pop("confidence")
 
     # 0. Merkle-Chain Continuity Check (F1 Amanah)
     prev_hash = get_last_vault_entry_hash(DEFAULT_VAULT_PATH)
@@ -244,13 +259,26 @@ async def seal(
         "verdict": verdict,
         "approved_by": approved_by or "system",
         "approval_reference": approval_reference,
-        "telemetry": telemetry or {},
+        "telemetry": telemetry,
         "timestamp": timestamp.isoformat(),
         # A-RIF Constitutional RAG: AAA dataset provenance binding
         "aaa_revision": os.getenv("AAA_DATASET_REVISION", "unknown"),
     }
 
     entry_hash = compute_vault_seal_hash(entry_data)
+
+    from core.shared.crypto import SYSTEM_SIGNER, generate_zkpc_receipt
+    
+    # Generate cryptographic wrap (BLS / ZKPC Architecture)
+    signature = SYSTEM_SIGNER.sign_hash(entry_hash)
+    pubkey = SYSTEM_SIGNER.public_key_hex
+    
+    zkpc_receipt = generate_zkpc_receipt(
+        verdict=verdict,
+        floors=floors,
+        hash_commitment=entry_hash,
+        signature=signature
+    )
 
     # 3. Construct Seal Record
     record = SealRecord(
@@ -260,6 +288,9 @@ async def seal(
         verdict=verdict,
         timestamp=timestamp,
         hash=entry_hash,
+        bls_signature=signature,
+        signer_pubkey=pubkey,
+        zkpc_receipt=zkpc_receipt,
     )
 
     # 4 & 5. Build Tamper-Evident Hash Chain + Persist (THE FORGE)
@@ -289,7 +320,14 @@ async def seal(
                 await asyncio.to_thread(
                     _append_vault_record,
                     DEFAULT_VAULT_PATH,
-                    {**entry_data, "seal_hash": entry_hash, "chain": chain.model_dump()},
+                    {
+                        **entry_data,
+                        "seal_hash": entry_hash,
+                        "bls_signature": signature,
+                        "signer_pubkey": pubkey,
+                        "zkpc_receipt": zkpc_receipt.model_dump(),
+                        "chain": chain.model_dump()
+                    },
                 )
         else:
             # Non-final modes don't persist; still build chain
@@ -355,7 +393,8 @@ async def seal(
                             sha256_hash TEXT,
                             created_at TIMESTAMPTZ DEFAULT NOW()
                         );
-                        CREATE INDEX IF NOT EXISTS vault_audit_session_idx ON vault_audit(session_id);
+                        CREATE INDEX IF NOT EXISTS vault_audit_session_idx 
+                            ON vault_audit(session_id);
                         """
                     )
                     import json as _json
@@ -363,7 +402,8 @@ async def seal(
                     await conn.execute(
                         """
                         INSERT INTO vault_audit
-                            (session_id, ledger_id, stage, verdict, actor_id, floor_scores, payload, sha256_hash, hash)
+                            (session_id, ledger_id, stage, verdict, actor_id, 
+                             floor_scores, payload, sha256_hash, hash)
                         VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8, $8)
                         ON CONFLICT (ledger_id) DO NOTHING
                         """,

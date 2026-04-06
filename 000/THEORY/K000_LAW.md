@@ -851,17 +851,24 @@ VOID > 888_HOLD > SABAR > PARTIAL > SEAL
 
 # PART VI: TELEMETRY SCHEMA
 
+## Canonical Internal Receipt (ZKPC)
+
 ```json
 {
-  "telemetry": {
-    "dS": -0.3,
-    "peace2": 1.1,
-    "kappa_r": 0.96,
+  "floors": {
+    "tau_truth": 0.995,
     "omega_0": 0.04,
+    "delta_s": -0.36,
+    "peace2": 1.11,
+    "kappa_r": 0.97
+  },
+  "telemetry": {
+    "witness_coherence": 0.95,
     "C_dark": 0.08,
     "G": 0.87,
     "E_eff": 0.82,
-    "P_truth": 0.96
+    "psi_le": 0.82,
+    "amanah_lock": true
   },
   "witness": {
     "human": 1.0,
@@ -870,6 +877,67 @@ VOID > 888_HOLD > SABAR > PARTIAL > SEAL
   },
   "TW": 0.98,
   "verdict": "SEAL"
+}
+```
+
+## Presentation Layer (Human View)
+**UI Rule**: Internal schemas (`Vault999`, receipts) STRICTLY retain technical fields to prevent canon drift. The presentation layer alone handles the translation to human labels.
+
+```json
+{
+  "view": {
+    "layer": "human",
+    "generated_at": "2026-04-06T03:42:37Z",
+    "canonical_hash": "sha256:7a3f9e2b..."
+  },
+  "raw": { /* canonical receipt above */ },
+  "human": {
+    "summary": {
+      "status": "✅ SAFE TO PROCEED",
+      "verdict": "SEAL",
+      "confidence": "High",
+      "one_liner": "All constitutional floors passed. Truth verified. Care confirmed. Reality aligned."
+    },
+    "checks": [
+      {
+        "label": "Truth Score",
+        "value": "99.5%",
+        "status": "pass",
+        "meaning": "System is highly confident this is factually correct",
+        "floor": "F2"
+      },
+      {
+        "label": "Humility Level",
+        "value": "4%",
+        "status": "optimal",
+        "meaning": "Honest about uncertainty — not overconfident, not paralyzed",
+        "floor": "F7",
+        "ui_note": "Target band: 3-20%. 4% is healthy."
+      }
+      /* ... other mapped metrics ... */
+    ],
+    "warnings": [],
+    "actions": {
+      "primary": "Proceed with confidence",
+      "secondary": "Audit log available in Vault999",
+      "escalation": "888_HOLD available if human veto needed"
+    }
+  },
+  "display_rules": {
+    "humility_band": {
+      "target_min": "3%",
+      "target_max": "20%",
+      "too_low_message": "System overconfident — verify claims manually",
+      "too_high_message": "System too uncertain — request clarification",
+      "current": "4% — in healthy range"
+    },
+    "color_coding": {
+      "pass": "green",
+      "optimal": "blue",
+      "warning": "yellow",
+      "fail": "red"
+    }
+  }
 }
 ```
 

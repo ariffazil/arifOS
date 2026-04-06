@@ -89,14 +89,16 @@ class GovernanceKernel:
     def get_current_state(self) -> dict[str, Any]:
         return {
             "session_id": self.session_id,
-            "floors": {},
+            "floors": {
+                "tau_truth": 0.96
+            },
             "telemetry": {
                 "dS": -0.02,
                 "peace2": 1.01,
                 "kappa_r": 0.97,
                 "echoDebt": 0.0,
                 "shadow": 0.05,
-                "confidence": 0.88,
+                "witness_coherence": 0.88,
                 "psi_le": 0.82,
                 "verdict": "SEAL",
             },
