@@ -45,6 +45,8 @@ def _is_horizon_environment() -> bool:
     # Secondary: Horizon-specific env vars
     if os.getenv("FASTMCP_CLOUD_URL"):
         return True
+    if os.getenv("FASTMCP_API_KEY"):
+        return True
     if os.getenv("HORIZON_ENVIRONMENT"):
         return True
     if os.getenv("HORIZON_DEPLOYMENT"):
