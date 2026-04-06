@@ -190,6 +190,85 @@
         }
         
         .loading { opacity: 0.6; }
+        
+        /* API Explorer */
+        .api-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 0.75rem;
+            margin: 2rem 0;
+        }
+        
+        .api-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+        }
+        
+        .api-link:hover {
+            border-color: var(--accent-gold);
+            background: var(--bg-secondary);
+            transform: translateX(4px);
+        }
+        
+        .api-method {
+            font-size: 0.65rem;
+            font-weight: bold;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        
+        .api-method.get {
+            background: var(--accent-seal);
+            color: #000;
+        }
+        
+        .api-method.post {
+            background: var(--accent-partial);
+            color: #000;
+        }
+        
+        .api-path {
+            font-family: 'SF Mono', monospace;
+            color: var(--accent-gold);
+            font-size: 0.9rem;
+        }
+        
+        .api-desc {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-left: auto;
+        }
+        
+        .mcp-endpoint {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+        
+        .mcp-endpoint .mcp-label {
+            color: var(--text-secondary);
+            margin-right: 1rem;
+        }
+        
+        .mcp-endpoint code {
+            background: var(--bg-tertiary);
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            color: var(--accent-partial);
+            font-family: 'SF Mono', monospace;
+        }
     </style>
 </head>
 <body>
@@ -277,6 +356,76 @@
             <div class="tool-item loading">
                 <div class="tool-name">Loading tools...</div>
             </div>
+        </div>
+
+        <h2 style="text-align: center; margin: 3rem 0 2rem; color: var(--accent-gold);">🔍 API Explorer</h2>
+        
+        <div class="api-grid" id="api-container">
+            <a href="/health" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/health</span>
+                <span class="api-desc">Health status & metrics</span>
+            </a>
+            <a href="/version" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/version</span>
+                <span class="api-desc">Server version info</span>
+            </a>
+            <a href="/tools" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/tools</span>
+                <span class="api-desc">List 10 canonical tools</span>
+            </a>
+            <a href="/openapi.json" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/openapi.json</span>
+                <span class="api-desc">OpenAPI 3.1 spec</span>
+            </a>
+            <a href="/llms.txt" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/llms.txt</span>
+                <span class="api-desc">Model-readable context</span>
+            </a>
+            <a href="/.well-known/mcp/server.json" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/.well-known/mcp/server.json</span>
+                <span class="api-desc">MCP discovery manifest</span>
+            </a>
+            <a href="/.well-known/agent.json" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/.well-known/agent.json</span>
+                <span class="api-desc">A2A agent card</span>
+            </a>
+            <a href="/.well-known/webmcp" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/.well-known/webmcp</span>
+                <span class="api-desc">WebMCP manifest</span>
+            </a>
+            <a href="/webmcp/tools.json" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/webmcp/tools.json</span>
+                <span class="api-desc">WebMCP tools list</span>
+            </a>
+            <a href="/status" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/status</span>
+                <span class="api-desc">Governance status</span>
+            </a>
+            <a href="/api/live/all" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/api/live/all</span>
+                <span class="api-desc">Live metrics (all)</span>
+            </a>
+            <a href="/robots.txt" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/robots.txt</span>
+                <span class="api-desc">Crawler directives</span>
+            </a>
+        </div>
+
+        <div class="mcp-endpoint">
+            <span class="mcp-label">MCP Protocol Endpoint (POST only):</span>
+            <code>/mcp</code>
         </div>
 
         <div class="refresh-info">
