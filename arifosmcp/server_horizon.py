@@ -259,14 +259,19 @@ async def _gateway_call(tool_name: str, arguments: dict) -> dict:
     }
 
 
+def _make_proxy_tool(name: str, desc: str):
+    """Factory that creates a proxy tool with fixed name/description."""
+    async def _proxy_tool(payload: dict | None = None) -> dict:
+        return await _gateway_call(name, payload or {})
+    _proxy_tool.__name__ = f"proxy_{name.replace('-', '_')}"
+    _proxy_tool.__doc__ = desc
+    return _proxy_tool
+
+
 def _register_public_proxy_tools() -> None:
     for tool_name, description in PUBLIC_PROXY_SPECS.items():
-        async def _proxy_tool(payload: dict | None = None, _tool_name: str = tool_name) -> dict:
-            return await _gateway_call(_tool_name, payload or {})
-
-        _proxy_tool.__name__ = f"proxy_{tool_name.replace('-', '_')}"
-        _proxy_tool.__doc__ = description
-        mcp.tool(name=tool_name)(_proxy_tool)
+        proxy_fn = _make_proxy_tool(tool_name, description)
+        mcp.tool(name=tool_name)(proxy_fn)
 
 
 _register_public_proxy_tools()
