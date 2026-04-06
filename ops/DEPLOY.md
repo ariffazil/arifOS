@@ -48,6 +48,9 @@ docker compose -f docker-compose.trinity.yml up -d
 ### 2.2 Horizon Cloud Deployment
 For public-facing access via Prefect Horizon:
 
+-   **Documentation:** `ops/HORIZON_DEPLOY.md`
+-   **Deploy Script:** `scripts/deploy-horizon.sh`
+-   **Manifest:** `prefect.yaml`
 -   **Repository:** `https://github.com/ariffazil/arifOS`
 -   **Entrypoint:** `server.py:mcp`
 -   **Env Vars:**
@@ -56,6 +59,12 @@ For public-facing access via Prefect Horizon:
 -   **Operational Routes:**
     -   `GET /health` — gateway liveness and policy counts
     -   `GET /metadata` — canonical public contract and deprecation signals
+
+Quick deploy:
+```bash
+cd /root/arifOS
+./scripts/deploy-horizon.sh
+```
 
 ---
 
