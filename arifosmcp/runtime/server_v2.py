@@ -219,13 +219,212 @@ async def v2_manifest_handler(request: Request) -> JSONResponse:
     return JSONResponse(manifest)
 
 
-# Register routes directly on the Starlette app
-from starlette.routing import Route
+# ═══════════════════════════════════════════════════════════════════════════════
+# STATIC FILE SERVING
+# ═══════════════════════════════════════════════════════════════════════════════
 
-# Add routes to the app
+from starlette.staticfiles import StaticFiles
+from starlette.routing import Mount, Route
+import os
+
+STATIC_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'static')
+
+# Static file handlers
+async def llms_txt_handler(request: Request) -> Response:
+    """Serve llms.txt for LLM/agent discovery."""
+    file_path = os.path.join(STATIC_DIR, 'llms.txt')
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            content = f.read()
+        return Response(content=content, media_type="text/plain")
+    return Response("LLMs.txt not found", status_code=404)
+
+
+async def humans_txt_handler(request: Request) -> Response:
+    """Serve humans.txt for human contact info."""
+    file_path = os.path.join(STATIC_DIR, 'humans.txt')
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            content = f.read()
+        return Response(content=content, media_type="text/plain")
+    return Response("humans.txt not found", status_code=404)
+
+
+async def robots_txt_handler(request: Request) -> Response:
+    """Serve robots.txt for crawler guidance."""
+    file_path = os.path.join(STATIC_DIR, 'robots.txt')
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            content = f.read()
+        return Response(content=content, media_type="text/plain")
+    return Response("User-agent: *\nAllow: /", media_type="text/plain")
+
+
+async def well_known_handler(request: Request, filename: str) -> Response:
+    """Serve .well-known files."""
+    file_path = os.path.join(STATIC_DIR, '.well-known', filename)
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            content = f.read()
+        # Determine content type
+        if filename.endswith('.json'):
+            media_type = "application/json"
+        elif filename.endswith('.txt'):
+            media_type = "text/plain"
+        else:
+            media_type = "application/octet-stream"
+        return Response(content=content, media_type=media_type)
+    return Response(f"{filename} not found", status_code=404)
+
+
+async def version_handler(request: Request) -> JSONResponse:
+    """Version and capability endpoint."""
+    return JSONResponse({
+        "name": "arifOS MCP",
+        "version": "2.0.0",
+        "registry_version": "1.2.0",
+        "protocol": "MCP 2025-11-05",
+        "protocols_supported": ["MCP", "WebMCP", "A2A"],
+        "tools": len(v2_tools_registered),
+        "prompts": len(v2_prompts_registered),
+        "resources": len(v2_resources_registered),
+        "floors": 13,
+        "motto": "DITEMPA, BUKAN DIBERI.",
+        "url": "https://arifosmcp.arif-fazil.com",
+        "endpoints": {
+            "mcp": "/mcp",
+            "health": "/health",
+            "tools": "/tools",
+            "llms_txt": "/llms.txt",
+            "agent_card": "/.well-known/agent.json",
+            "security": "/.well-known/security.txt"
+        }
+    })
+
+
+async def tools_handler(request: Request) -> JSONResponse:
+    """Tool catalog endpoint for discovery."""
+    return JSONResponse({
+        "count": len(v2_tools_registered),
+        "tools": v2_tools_registered,
+        "version": "2.0.0",
+        "motto": "DITEMPA, BUKAN DIBERI."
+    })
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# A2A (Agent-to-Agent) ENDPOINTS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+async def a2a_agent_card_handler(request: Request) -> JSONResponse:
+    """A2A Agent Card endpoint for agent discovery."""
+    # Try to serve from static file first
+    file_path = os.path.join(STATIC_DIR, '.well-known', 'agent.json')
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            import json
+            return JSONResponse(json.load(f))
+    
+    # Fallback to generated card
+    return JSONResponse({
+        "name": "arifOS MCP",
+        "version": "2.0.0",
+        "description": "Constitutional AI Governance System",
+        "url": "https://arifosmcp.arif-fazil.com",
+        "endpoints": {
+            "mcp": "https://arifosmcp.arif-fazil.com/mcp",
+            "health": "https://arifosmcp.arif-fazil.com/health",
+            "tools": "https://arifosmcp.arif-fazil.com/tools"
+        },
+        "protocols": {
+            "mcp": {"version": "2025-11-05", "transport": ["streamable-http", "sse"]},
+            "a2a": {"version": "1.0", "capabilities": ["task-delegation"]}
+        },
+        "motto": "DITEMPA, BUKAN DIBERI."
+    })
+
+
+async def a2a_tasks_handler(request: Request) -> JSONResponse:
+    """A2A Task delegation endpoint."""
+    import json
+    try:
+        body = await request.json()
+        task_id = body.get('id', 'unknown')
+        task_type = body.get('type', 'unknown')
+        
+        # Handle different task types
+        if task_type == 'governance':
+            return JSONResponse({
+                "id": task_id,
+                "status": "accepted",
+                "verdict": "SEAL",
+                "note": "Task delegated to arifOS governance layer"
+            })
+        elif task_type == 'execution':
+            return JSONResponse({
+                "id": task_id,
+                "status": "requires_verdict",
+                "note": "Execution requires judge verdict. Route through arifos.judge first."
+            })
+        else:
+            return JSONResponse({
+                "id": task_id,
+                "status": "accepted",
+                "note": "Task received. Use MCP protocol for execution."
+            })
+    except Exception as e:
+        return JSONResponse({
+            "status": "error",
+            "error": str(e)
+        }, status_code=400)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# WEBMCP COMPATIBILITY ENDPOINTS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+async def webmcp_options_handler(request: Request) -> Response:
+    """Handle CORS preflight for WebMCP."""
+    return Response(
+        status_code=204,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, X-MCP-Protocol, Authorization",
+            "Access-Control-Max-Age": "86400",
+        }
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# REGISTER ALL ROUTES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Main routes
 app.add_route("/", landing_page_handler, methods=["GET"])
-app.add_route("/health", health_handler, methods=["GET"])
+app.add_route("/health", health_handler, methods=["GET", "OPTIONS"])
+app.add_route("/version", version_handler, methods=["GET"])
+app.add_route("/tools", tools_handler, methods=["GET"])
+
+# Discovery files
+app.add_route("/llms.txt", llms_txt_handler, methods=["GET"])
+app.add_route("/humans.txt", humans_txt_handler, methods=["GET"])
+app.add_route("/robots.txt", robots_txt_handler, methods=["GET"])
+
+# Well-known endpoints
+app.add_route("/.well-known/mcp", manifest_handler, methods=["GET"])
 app.add_route("/.well-known/manifest.json", manifest_handler, methods=["GET"])
+app.add_route("/.well-known/agent.json", a2a_agent_card_handler, methods=["GET"])
+app.add_route("/.well-known/security.txt", lambda r: well_known_handler(r, "security.txt"), methods=["GET"])
+
+# A2A endpoints
+app.add_route("/a2a/agent", a2a_agent_card_handler, methods=["GET"])
+app.add_route("/a2a/tasks", a2a_tasks_handler, methods=["POST", "OPTIONS"])
+
+# WebMCP CORS
+app.add_route("/mcp", webmcp_options_handler, methods=["OPTIONS"])
+
+# v2 manifest
 app.add_route("/v2/manifest", v2_manifest_handler, methods=["GET"])
 
 
