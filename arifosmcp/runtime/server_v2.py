@@ -2,9 +2,9 @@
 arifosmcp/runtime/server_v2.py — arifOS MCP v2 Clean Server
 
 Complete MCP package:
-- 9 sovereign tools (3 public, 6 internal)
-- 4 structured prompts
-- 5 constitutional resources
+- 10 canonical tools (v2 architecture)
+- Structured prompts
+- Constitutional resources
 - Well-known manifest
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
@@ -18,13 +18,18 @@ import traceback
 from typing import Any
 
 import fastmcp
-from fastapi import FastAPI
 from fastmcp import FastMCP
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import JSONResponse, Response
+from starlette.responses import JSONResponse, Response, HTMLResponse
+from starlette.requests import Request
 
-from arifosmcp.runtime.fastmcp_version import IS_FASTMCP_2, IS_FASTMCP_3
+from arifosmcp.runtime.fastmcp_version import (
+    IS_FASTMCP_2, 
+    IS_FASTMCP_3,
+    custom_route,
+    create_http_app,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -86,17 +91,21 @@ class SSEKeepAliveMiddleware(BaseHTTPMiddleware):
                         yield ping
             finally:
                 feed_task.cancel()
+                try:
+                    await feed_task
+                except asyncio.CancelledError:
+                    pass
 
         return StreamingResponse(
             keepalive_body(),
             status_code=response.status_code,
             headers=dict(response.headers),
-            media_type=content_type,
+            media_type=response.media_type,
         )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# FASTMCP INSTANCE
+# MCP SERVER INSTANCE
 # ═══════════════════════════════════════════════════════════════════════════════
 
 mcp = FastMCP(
@@ -105,10 +114,10 @@ mcp = FastMCP(
     website_url="https://arifosmcp.arif-fazil.com",
     instructions="""Constitutional AI orchestration kernel.
 
-Golden path: init → route → sense → mind → heart → judge → vault
+Golden path: init → sense → mind → heart → judge → vault
 
 Public tools: arifos.v2.init, arifos.v2.route, arifos.v2.judge
-Internal tools: sense, mind, heart, ops, memory, vault
+Internal tools: sense, mind, heart, ops, memory, vault, forge
 
 Use prompts for structured workflows:
 - constitutional.analysis: Full pipeline
@@ -136,9 +145,10 @@ logger.info(f"ARIFOS MCP v2 initialized: {len(v2_tools_registered)} tools, "
             f"{len(v2_prompts_registered)} prompts, {len(v2_resources_registered)} resources")
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# CREATE HTTP APP
+# HTTP APP SETUP
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# Create HTTP app
 if IS_FASTMCP_3:
     app = mcp.http_app(stateless_http=False)
 elif IS_FASTMCP_2:
@@ -149,6 +159,7 @@ elif IS_FASTMCP_2:
 else:
     raise RuntimeError(f"Unsupported FastMCP version: {fastmcp.__version__}")
 
+# Add middleware
 app.add_middleware(GlobalPanicMiddleware)
 app.add_middleware(SSEKeepAliveMiddleware)
 app.add_middleware(
@@ -159,19 +170,30 @@ app.add_middleware(
 )
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# WELL-KNOWN MANIFEST ENDPOINT
+# CUSTOM ROUTES
 # ═══════════════════════════════════════════════════════════════════════════════
 
-@app.get("/.well-known/manifest.json")
-async def well_known_manifest() -> JSONResponse:
-    """MCP well-known manifest for discovery."""
-    from starlette.requests import Request
-    manifest = build_manifest_v2()
-    return JSONResponse(manifest)
+async def landing_page_handler(request: Request) -> Response:
+    """Dynamic landing page reflecting AF-FORGE deployment status."""
+    import os
+    
+    # Try to load dynamic landing page
+    landing_path = os.path.join(os.path.dirname(__file__), '..', '..', 'static', 'landing', 'dynamic-index.html')
+    if os.path.exists(landing_path):
+        with open(landing_path, 'r') as f:
+            content = f.read()
+        return HTMLResponse(content=content)
+    
+    # Fallback to simple status
+    return JSONResponse({
+        "service": "arifOS MCP v2",
+        "status": "operational",
+        "endpoint": "/health for status, /tools for capabilities",
+        "motto": "DITEMPA, BUKAN DIBERI."
+    })
 
 
-@app.get("/health")
-async def health() -> JSONResponse:
+async def health_handler(request: Request) -> JSONResponse:
     """Health check endpoint."""
     return JSONResponse({
         "status": "healthy",
@@ -185,11 +207,26 @@ async def health() -> JSONResponse:
     })
 
 
-@app.get("/v2/manifest")
-async def full_manifest() -> JSONResponse:
+async def manifest_handler(request: Request) -> JSONResponse:
+    """MCP well-known manifest for discovery."""
+    manifest = build_manifest_v2()
+    return JSONResponse(manifest)
+
+
+async def v2_manifest_handler(request: Request) -> JSONResponse:
     """Full MCP v2 manifest."""
     manifest = build_manifest_v2()
     return JSONResponse(manifest)
+
+
+# Register routes directly on the Starlette app
+from starlette.routing import Route
+
+# Add routes to the app
+app.add_route("/", landing_page_handler, methods=["GET"])
+app.add_route("/health", health_handler, methods=["GET"])
+app.add_route("/.well-known/manifest.json", manifest_handler, methods=["GET"])
+app.add_route("/v2/manifest", v2_manifest_handler, methods=["GET"])
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="arifOS MCP v2 - 10 Canonical Tools with Constitutional AI Governance">
+    <title>arifOS MCP v2 | AF-FORGE Deployment</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --text-primary: #e8e8f0;
+            --text-secondary: #8888a0;
+            --accent-gold: #d4af37;
+            --accent-seal: #22c55e;
+            --accent-void: #ef4444;
+            --accent-partial: #f59e0b;
+            --border: #2a2a3a;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        
+        header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        
+        .forge-mark { 
+            font-size: 4rem; 
+            margin-bottom: 1rem;
+            animation: pulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--accent-gold), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .motto {
+            font-size: 1.3rem;
+            color: var(--accent-gold);
+            font-weight: bold;
+            margin: 1rem 0;
+            letter-spacing: 0.1em;
+        }
+        
+        .live-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-secondary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-top: 1rem;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent-seal);
+            animation: blink 2s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-gold);
+        }
+        
+        .card h3 {
+            color: var(--accent-gold);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .metric:last-child { border-bottom: none; }
+        
+        .metric-value {
+            font-weight: bold;
+            color: var(--accent-seal);
+        }
+        
+        .tools-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .tool-item {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent-gold);
+        }
+        
+        .tool-name {
+            font-weight: bold;
+            color: var(--accent-gold);
+        }
+        
+        .tool-stage {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .philosophy-quote {
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-gold);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .quote-text {
+            font-size: 1.5rem;
+            font-style: italic;
+            color: var(--accent-gold);
+            margin-bottom: 1rem;
+        }
+        
+        .quote-meta {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .refresh-info {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 2rem;
+        }
+        
+        .error-state {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--accent-void);
+        }
+        
+        .loading { opacity: 0.6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="forge-mark">🜂</div>
+            <h1>arifOS MCP v2</h1>
+            <div class="motto">DITEMPA, BUKAN DIBERI.</div>
+            <div class="live-status">
+                <span class="status-dot"></span>
+                <span id="status-text">Connecting to AF-FORGE...</span>
+            </div>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h3>⚡ Deployment Status</h3>
+                <div class="metric">
+                    <span>Host</span>
+                    <span class="metric-value" id="host">arifosmcp.arif-fazil.com</span>
+                </div>
+                <div class="metric">
+                    <span>Version</span>
+                    <span class="metric-value" id="version">--</span>
+                </div>
+                <div class="metric">
+                    <span>Health</span>
+                    <span class="metric-value" id="health">--</span>
+                </div>
+                <div class="metric">
+                    <span>Protocol</span>
+                    <span class="metric-value">MCP 2025-11-05</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🏛 Constitutional Registry</h3>
+                <div class="metric">
+                    <span>Registry Version</span>
+                    <span class="metric-value">1.2.0</span>
+                </div>
+                <div class="metric">
+                    <span>Total Quotes</span>
+                    <span class="metric-value" id="quote-count">84</span>
+                </div>
+                <div class="metric">
+                    <span>Diversity Score</span>
+                    <span class="metric-value">0.87</span>
+                </div>
+                <div class="metric">
+                    <span>Active Floors</span>
+                    <span class="metric-value" id="floors">13</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🔧 Tool Registry</h3>
+                <div class="metric">
+                    <span>Canonical Tools</span>
+                    <span class="metric-value" id="tool-count">--</span>
+                </div>
+                <div class="metric">
+                    <span>Governance Layer</span>
+                    <span class="metric-value">9 Tools</span>
+                </div>
+                <div class="metric">
+                    <span>Execution Layer</span>
+                    <span class="metric-value">1 Tool (forge)</span>
+                </div>
+                <div class="metric">
+                    <span>Separation</span>
+                    <span class="metric-value">Enforced</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="philosophy-quote">
+            <div class="quote-text" id="philosophy-text">Loading...</div>
+            <div class="quote-meta" id="philosophy-meta"></div>
+        </div>
+
+        <h2 style="text-align: center; margin: 2rem 0; color: var(--accent-gold);">10 Canonical Tools</h2>
+        
+        <div class="tools-list" id="tools-container">
+            <div class="tool-item loading">
+                <div class="tool-name">Loading tools...</div>
+            </div>
+        </div>
+
+        <div class="refresh-info">
+            <p>Live data from AF-FORGE VPS | Auto-refresh every 30s</p>
+            <p id="last-updated">Last updated: --</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        
+        async function fetchStatus() {
+            try {
+                // Fetch health status
+                const healthRes = await fetch(`${API_BASE}/health`);
+                const health = await healthRes.json();
+                
+                document.getElementById('health').textContent = health.status || 'unknown';
+                document.getElementById('health').style.color = health.status === 'healthy' ? 'var(--accent-seal)' : 'var(--accent-void)';
+                document.getElementById('version').textContent = health.version || 'v2.0.0';
+                document.getElementById('floors').textContent = health.floors_active || '13';
+                document.getElementById('tool-count').textContent = health.tools_loaded || '10';
+                document.getElementById('status-text').textContent = 'AF-FORGE Connected';
+                
+                // Fetch tools list
+                const toolsRes = await fetch(`${API_BASE}/tools`);
+                const tools = await toolsRes.json();
+                
+                if (tools.tools && tools.tools.length > 0) {
+                    renderTools(tools.tools);
+                }
+                
+                // Fetch philosophy via init endpoint (dry-run)
+                try {
+                    const philRes = await fetch(`${API_BASE}/tools/arifos.init`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            actor_id: 'landing_page', 
+                            intent: 'status_check',
+                            dry_run: true 
+                        })
+                    });
+                    const phil = await philRes.json();
+                    
+                    if (phil.philosophy && phil.philosophy.entry) {
+                        document.getElementById('philosophy-text').textContent = `"${phil.philosophy.entry.text}"`;
+                        document.getElementById('philosophy-meta').textContent = 
+                            `${phil.philosophy.entry.author} | Band: ${phil.philosophy.band} | Mode: ${phil.philosophy.selection_mode}`;
+                    }
+                } catch (e) {
+                    // Fallback to static S1
+                    document.getElementById('philosophy-text').textContent = '"DITEMPA, BUKAN DIBERI."';
+                    document.getElementById('philosophy-meta').textContent = 'arifOS Principle | S1 | Forge Identity';
+                }
+                
+                document.getElementById('last-updated').textContent = 'Last updated: ' + new Date().toLocaleString();
+                
+            } catch (error) {
+                console.error('Fetch error:', error);
+                document.getElementById('status-text').textContent = 'AF-FORGE Unreachable';
+                document.querySelector('.live-status').classList.add('error-state');
+                
+                // Show fallback data
+                document.getElementById('health').textContent = 'degraded';
+                document.getElementById('health').style.color = 'var(--accent-void)';
+                document.getElementById('philosophy-text').textContent = '"DITEMPA, BUKAN DIBERI."';
+                document.getElementById('philosophy-meta').textContent = 'arifOS Principle | S1 | Forge Identity';
+            }
+        }
+        
+        function renderTools(tools) {
+            const container = document.getElementById('tools-container');
+            container.innerHTML = '';
+            
+            const toolInfo = {
+                'arifos.init': { stage: '000_INIT', desc: 'Session establishment' },
+                'arifos.sense': { stage: '111_SENSE', desc: 'Reality grounding' },
+                'arifos.mind': { stage: '333_MIND', desc: 'Structured reasoning' },
+                'arifos.route': { stage: '444_ROUTER', desc: 'The kernel' },
+                'arifos.heart': { stage: '666_HEART', desc: 'Safety critique' },
+                'arifos.ops': { stage: '777_OPS', desc: 'Cost estimation' },
+                'arifos.judge': { stage: '888_JUDGE', desc: 'Constitutional verdict' },
+                'arifos.memory': { stage: '555_MEMORY', desc: 'Governed memory' },
+                'arifos.vault': { stage: '999_VAULT', desc: 'The seal' },
+                'arifos.forge': { stage: 'FORGE_010', desc: 'Execution bridge' }
+            };
+            
+            tools.forEach(tool => {
+                const info = toolInfo[tool.name] || { stage: '--', desc: tool.description || '' };
+                const div = document.createElement('div');
+                div.className = 'tool-item';
+                div.innerHTML = `
+                    <div class="tool-name">${tool.name}</div>
+                    <div class="tool-stage">${info.stage} | ${info.desc}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        // Initial load
+        fetchStatus();
+        
+        // Auto-refresh every 30s
+        setInterval(fetchStatus, 30000);
+    </script>
+</body>
+</html>

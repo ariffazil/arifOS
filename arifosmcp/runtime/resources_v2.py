@@ -303,27 +303,27 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
     """Register all v2 resources on the MCP instance."""
     registered = []
 
-    @mcp.resource("arifos.v2.governance.floors")
+    @mcp.resource("https://arifosmcp.arif-fazil.com/resources/governance/floors")
     def governance_floors() -> dict[str, Any]:
         """Constitutional F1-F13 thresholds, doctrine, and formal criteria."""
         return FLOORS_SPEC
 
-    @mcp.resource("arifos.v2.governance.verdict_spec")
+    @mcp.resource("https://arifosmcp.arif-fazil.com/resources/governance/verdict")
     def governance_verdict_spec() -> dict[str, Any]:
         """Verdict system specification and output schema."""
         return VERDICT_SPEC
 
-    @mcp.resource("arifos.v2.system.capabilities")
+    @mcp.resource("https://arifosmcp.arif-fazil.com/resources/system/capabilities")
     def system_capabilities() -> dict[str, Any]:
         """Machine-readable capability map."""
         return SYSTEM_CAPABILITIES
 
-    @mcp.resource("arifos.v2.system.architecture")
+    @mcp.resource("https://arifosmcp.arif-fazil.com/resources/system/architecture")
     def system_architecture() -> str:
         """Human-readable architecture documentation."""
         return ARCHITECTURE_DOC
 
-    @mcp.resource("arifos.v2.compliance.mapping")
+    @mcp.resource("https://arifosmcp.arif-fazil.com/resources/compliance/mapping")
     def compliance_mapping() -> dict[str, list[str]]:
         """Floor-to-standard compliance mapping."""
         return COMPLIANCE_MAPPING
