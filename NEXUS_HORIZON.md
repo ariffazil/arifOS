@@ -54,4 +54,37 @@ This architecture creates an **Intelligence Nexus** where:
 
 This is the next horizon of arifOS. It is a system that doesn't just act, but **governs the nature of its own actions**. It is a true constitutional intelligence.
 
+---
+
+## Appendix: Clean MCP Architecture (2026.04.06)
+
+The v2.1 architecture introduces **clean separation** of MCP primitives per the Model Context Protocol specification:
+
+### Tools (Actions)
+**Functional naming** — verbs describing what they do:
+| Symbolic | Functional | Purpose |
+|----------|------------|---------|
+| `init_anchor` | `init_session_anchor` | Start governed session |
+| `arifOS_kernel` | `route_execution` | Route through metabolic pipeline |
+| `apex_soul` | `judge_verdict` | Render constitutional verdict |
+| `agi_mind` | `reason_synthesis` | Multi-source reasoning |
+| `asi_heart` | `critique_safety` | Safety and empathy critique |
+
+### Resources (Context)
+Read-only data surfaces:
+- `arifos://bootstrap` — Getting started guide
+- `arifos://governance/floors` — F1-F13 doctrine
+- `arifos://status/vitals` — Real-time health metrics
+- `https://mcp.af-forge.io/widget/vault-seal` — ChatGPT widget (CSP-compliant)
+
+### Prompts (Templates)
+Reusable workflow templates:
+- `prompt_init_anchor` — Start governed session
+- `prompt_sense_reality` — Gather evidence
+- `prompt_judge_verdict` — Render verdict
+- `prompt_human_explainer` — Translate to human language
+
+### ChatGPT Apps SDK
+Phase 1 (Current): Read-only health checks via `get_constitutional_health`, `render_vault_seal`, `list_recent_verdicts`.
+
 **DITEMPA BUKAN DIBERI.**
