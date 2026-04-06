@@ -143,6 +143,7 @@ TOOL_ACCESS_POLICY = {
     "init_anchor": ToolAccessClass.PUBLIC.value,
     "arifOS_kernel": ToolAccessClass.PUBLIC.value,
     "apex_judge": ToolAccessClass.PUBLIC.value,
+    "apex_soul": ToolAccessClass.PUBLIC.value,
     "agi_mind": ToolAccessClass.PUBLIC.value,
     "asi_heart": ToolAccessClass.PUBLIC.value,
     "physics_reality": ToolAccessClass.PUBLIC.value,
