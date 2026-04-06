@@ -37,15 +37,35 @@ async def physics_reality(
     raw_input: str | None = None,
     ctx: Any | None = None,
 ) -> RuntimeEnvelope:
+    # ═══════════════════════════════════════════════════════════════════════
+    # PATCH (2026-04-06): Validate query to prevent empty string collapse
+    # Empty query causes downstream Brave validation errors
+    # ═══════════════════════════════════════════════════════════════════════
+    effective_query = query or raw_input or (payload.get("query") if payload else None)
+    if not effective_query or str(effective_query).strip() == "":
+        from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+        return RuntimeEnvelope(
+            tool="physics_reality",
+            stage="111_SENSE",
+            status=RuntimeStatus.ERROR,
+            verdict=Verdict.VOID,
+            session_id=session_id,
+            payload={
+                "ok": False,
+                "error": "SENSE_QUERY_EMPTY",
+                "detail": "Query cannot be empty or whitespace-only",
+                "hint": "Provide a valid query string for reality grounding",
+            }
+        )
+    
     payload = dict(payload or {})
-    if raw_input:
-        payload.setdefault("query", raw_input)
+    # Ensure validated query is in payload
+    payload["query"] = effective_query
+    
     if caller_context:
         payload.setdefault("caller_context", caller_context)
     if auth_context:
         payload.setdefault("auth_context", auth_context)
-    if query:
-        payload.setdefault("query", query)
     if session_id:
         payload.setdefault("session_id", session_id)
     if actor_id:

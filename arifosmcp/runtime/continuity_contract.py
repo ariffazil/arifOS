@@ -29,19 +29,45 @@ def seal_runtime_envelope(
     *,
     input_payload: dict[str, Any] | None = None,
     mode: str | None = None,
-) -> RuntimeEnvelope:
+    output_options: dict[str, Any] | None = None,
+) -> RuntimeEnvelope | dict[str, Any]:
     """
     Attach the canonical continuity contract to a RuntimeEnvelope.
 
     The seal is idempotent for the same tool/contract version pair.
+    
+    NEW (2026-04-06): If output_options is provided, returns clean formatted output
+    following the 3-tier clarity model (operator/system/forensic views).
     """
 
     existing_handoff = getattr(envelope, "handoff", None) or {}
     if (
         getattr(envelope, "contract_version", None) == CONTINUITY_CONTRACT_VERSION
         and existing_handoff.get("produced_by") == tool_id
+        and not output_options  # Don't short-circuit if formatting requested
     ):
         return envelope
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # PATCH (2026-04-06): Fix canonical_tool_name
+    # Set both canonical_tool_name AND override tool field to prevent legacy leakage
+    # ═══════════════════════════════════════════════════════════════════════
+    envelope.canonical_tool_name = tool_id
+    envelope.tool = tool_id  # Override any legacy internal name
+    
+    # Sanitize payload to remove legacy name leakage
+    if isinstance(envelope.payload, dict):
+        envelope.payload.pop("internal_tool_name", None)
+        envelope.payload.pop("backend_tool_name", None)
+        envelope.payload["canonical_tool_name"] = tool_id
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # NEW (2026-04-06): 3-Tier Output Model
+    # If output_options specified, return clean formatted output instead of raw envelope
+    # ═══════════════════════════════════════════════════════════════════════
+    if output_options:
+        from arifosmcp.runtime.output_formatter import format_output
+        return format_output(envelope, output_options)
 
     payload = _as_dict(envelope.payload)
     input_payload = dict(input_payload or {})

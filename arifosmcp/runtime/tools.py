@@ -26,6 +26,20 @@ from arifosmcp.runtime.philosophy_registry import (
 )
 from fastmcp import FastMCP
 
+# Import v2 handlers with clean signatures and envelope sealing
+from arifosmcp.runtime.tools_v2 import (
+    arifos_init as _v2_init,
+    arifos_sense as _v2_sense,
+    arifos_mind as _v2_mind,
+    arifos_route as _v2_route,
+    arifos_heart as _v2_heart,
+    arifos_ops as _v2_ops,
+    arifos_judge as _v2_judge,
+    arifos_memory as _v2_memory,
+    arifos_vault as _v2_vault,
+    arifos_forge as _v2_forge,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -1244,17 +1258,18 @@ def log_tail(lines: int = 100) -> dict[str, Any]:
 # POPULATE TOOL HANDLERS (after all functions defined)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# V2 handlers: clean per-tool signatures + envelope sealing
 CANONICAL_TOOL_HANDLERS = {
     # 9 Governance Tools (think, validate, reason — never execute directly)
-    "arifos.init": init_v2,
-    "arifos.sense": sense_v2,
-    "arifos.mind": mind_v2,
-    "arifos.route": route_v2,
-    "arifos.heart": heart_v2,
-    "arifos.ops": ops_v2,
-    "arifos.judge": judge_v2,
-    "arifos.memory": memory_v2,
-    "arifos.vault": vault_v2,
+    "arifos.init": _v2_init,
+    "arifos.sense": _v2_sense,
+    "arifos.mind": _v2_mind,
+    "arifos.route": _v2_route,
+    "arifos.heart": _v2_heart,
+    "arifos.ops": _v2_ops,
+    "arifos.judge": _v2_judge,
+    "arifos.memory": _v2_memory,
+    "arifos.vault": _v2_vault,
     # 1 Execution Bridge (action after SEAL + HMAC attestation)
-    "arifos.forge": forge_v2,
+    "arifos.forge": _v2_forge,
 }

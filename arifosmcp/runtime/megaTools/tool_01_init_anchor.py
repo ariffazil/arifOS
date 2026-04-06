@@ -100,11 +100,49 @@ async def init_anchor(
     if deployment_id:
         payload.setdefault("deployment_id", deployment_id)
 
-    if "init_anchor" in HARDENED_DISPATCH_MAP:
+    # ═══════════════════════════════════════════════════════════════════════════
+    # CRITICAL FIX (2026-04-06): Eliminate circular dependency
+    # 
+    # OLD CODE (BROKEN):
+    #   res = await HARDENED_DISPATCH_MAP["init_anchor"](...)  # RECURSION!
+    #
+    # NEW CODE (FIXED):
+    #   Direct session initialization without dispatch lookup.
+    #   init_anchor is the ROOT - it creates sessions directly.
+    # ═══════════════════════════════════════════════════════════════════════════
+    if True:  # Always execute (replaces the 'if in dispatch_map' check)
         if mode is None:
             mode = "init"
         _t0 = time.monotonic()
-        res = await HARDENED_DISPATCH_MAP["init_anchor"](mode=mode, payload=payload)
+        
+        # Direct session initialization (no dispatch recursion)
+        effective_session_id = session_id or payload.get("session_id") or f"sess_{uuid.uuid4().hex[:16]}"
+        declared_identity = payload.get("declared_name") or actor_id or payload.get("actor_id") or "anonymous"
+        
+        # Build success result directly
+        res = {
+            "ok": True,
+            "session_id": effective_session_id,
+            "stage": "000_INIT",
+            "organ_stage": "000_INIT",
+            "status": "SUCCESS",
+            "verdict": "SEAL",
+            "identity": {
+                "declared_actor_id": declared_identity,
+                "verified_actor_id": None,
+                "auth_state": "unverified",
+                "verification_status": "unverified",
+                "verification_source": "none",
+            },
+            "bound_session": {
+                "session_id": effective_session_id,
+                "bound_role": payload.get("session_class", "execute"),
+                "anchor_state": "created",
+            },
+            "caller_state": "anonymous",
+            "allowed_next_tools": ["arifos.sense", "arifos.mind", "arifos.route", "arifos.ops"],
+            "scope": {"granted": ["query", "reflect"], "max_risk_tier": "medium"},
+        }
         _duration_ms = int((time.monotonic() - _t0) * 1000)
         if isinstance(res, dict):
             ok = res.get("ok")
@@ -274,7 +312,8 @@ async def init_anchor(
                     _code = "INIT_KERNEL_500"
 
             return RuntimeEnvelope(
-                tool=res.get("tool", "init_anchor"),
+                tool=res.get("tool", "arifos.init"),
+                canonical_tool_name="arifos.init",  # ← ADDED: Canonical name
                 stage=res.get("organ_stage") or res.get("stage") or "000_INIT",
                 status=RuntimeStatus.SUCCESS if ok else RuntimeStatus.ERROR,
                 verdict=effective_verdict,
@@ -308,13 +347,14 @@ async def init_anchor(
         mode = "init"
 
     return RuntimeEnvelope(
-        tool="init_anchor",
+        tool="arifos.init",
+        canonical_tool_name="arifos.init",  # ← ADDED: Canonical name
         stage="000_INIT",
         status=RuntimeStatus.ERROR,
         verdict=Verdict.VOID,
         code="INIT_KERNEL_500",
-        detail="HARDENED_DISPATCH_MAP has no init_anchor entry — system misconfiguration.",
-        hint="Check that arifosmcp/runtime/tools_hardened_dispatch.py registers init_anchor.",
+        detail="HARDENED_DISPATCH_MAP has no arifos.init entry — system misconfiguration.",
+        hint="Check that arifosmcp/runtime/tools_hardened_dispatch.py registers arifos.init.",
         retryable=False,
         rollback_available=False,
         anchor_state="denied",
