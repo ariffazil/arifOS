@@ -76,7 +76,12 @@ auto-deploy:
 # Use when: Config changes only
 hot-restart:
 	@echo "🔄 Hot restart (10s)..."
-	@docker compose restart arifosmcp
+	@GIT_SHA=$$(git rev-parse HEAD 2>/dev/null); \
+	  SHORT=$${GIT_SHA:0:8}; \
+	  sed -i "s/^GIT_COMMIT=.*/GIT_COMMIT=$$GIT_SHA/" .env.docker && \
+	  echo "$$SHORT" > arifosmcp/.git_commit && \
+	  echo "   Pinned GIT_COMMIT=$$SHORT"
+	@GIT_COMMIT=$$(git rev-parse HEAD 2>/dev/null) docker compose up -d --no-deps --force-recreate arifosmcp
 	@sleep 5
 	@make health
 

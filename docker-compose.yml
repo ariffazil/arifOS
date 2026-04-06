@@ -343,7 +343,13 @@ services:
       - arifosmcp_telemetry:/usr/src/app/telemetry:rw
       - arifosmcp_vault:/usr/src/app/VAULT999:rw
       - arifosmcp_memory:/usr/src/app/memory:rw
+      # Dynamic truth docs — live mount from repo root
+      - /root/arifOS/README.md:/usr/src/app/README.md:ro
+      - /root/arifOS/CHANGELOG.md:/usr/src/app/CHANGELOG.md:ro
+      - /root/arifOS/ROADMAP.md:/usr/src/app/ROADMAP.md:ro
+      - /root/arifOS/TODO.md:/usr/src/app/TODO.md:ro
     environment:
+      GIT_COMMIT: ${GIT_COMMIT:-}
       HF_TOKEN: ${HF_TOKEN}
       PYTHONUNBUFFERED: 1
       PYTHONPATH: /usr/src/app

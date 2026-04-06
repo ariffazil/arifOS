@@ -929,6 +929,12 @@ python -m arifosmcp.runtime stdio</code></pre>
 
   <footer>
     <p>Ditempa Bukan Diberi — Forged, Not Given [ΔΩΨ | ARIF]</p>
+    <p style="margin-top:.5rem">
+      <a href="/readme" style="color:#7dd3fc;text-decoration:none;margin:0 .5rem">README</a> ·
+      <a href="/changelog" style="color:#7dd3fc;text-decoration:none;margin:0 .5rem">CHANGELOG</a> ·
+      <a href="/roadmap" style="color:#7dd3fc;text-decoration:none;margin:0 .5rem">ROADMAP</a> ·
+      <a href="/todo" style="color:#7dd3fc;text-decoration:none;margin:0 .5rem">TODO</a>
+    </p>
     <p>© 2026 Muhammad Arif bin Fazil | AGPL-3.0-only</p>
   </footer>
 </body>
@@ -1344,6 +1350,96 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
     async def docs_trailing(request: Request) -> Response:
         """Documentation page (trailing slash)."""
         return HTMLResponse(DOCS_HTML, headers={"Cache-Control": "max-age=3600"})
+
+    # ── Dynamic Truth Docs ────────────────────────────────────────────────────
+    def _serve_md(title: str, filename: str) -> HTMLResponse:
+        """Render a markdown file from the app root as a styled HTML page."""
+        import pathlib
+        candidates = [
+            pathlib.Path("/usr/src/app") / filename,
+            pathlib.Path("/app") / filename,
+            pathlib.Path(__file__).parent.parent.parent / filename,
+        ]
+        content = ""
+        for path in candidates:
+            if path.exists():
+                content = path.read_text(encoding="utf-8")
+                break
+        if not content:
+            content = f"# {title}\n\n_File not found: {filename}_"
+        safe = content.replace("</script>", "<\\/script>")
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>arifOS — {title}</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root{{--bg:#0a0a0f;--surface:#12121a;--border:#1e1e2e;--text:#e2e8f0;--muted:#64748b;--accent:#f59e0b;--link:#3b82f6}}
+    *{{box-sizing:border-box;margin:0;padding:0}}
+    body{{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.7;padding:2rem 1rem}}
+    .wrap{{max-width:860px;margin:0 auto}}
+    .nav{{display:flex;gap:1rem;margin-bottom:2rem;padding-bottom:1rem;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center}}
+    .nav a{{color:var(--muted);text-decoration:none;font-size:.85rem;padding:.25rem .6rem;border-radius:4px;border:1px solid transparent}}
+    .nav a:hover,.nav a.active{{color:var(--accent);border-color:var(--border)}}
+    .nav .brand{{color:var(--accent);font-weight:700;font-size:.9rem;margin-right:auto}}
+    #content h1{{color:var(--accent);font-size:1.8rem;margin:1.5rem 0 .75rem}}
+    #content h2{{color:#c084fc;font-size:1.3rem;margin:1.5rem 0 .5rem;padding-bottom:.25rem;border-bottom:1px solid var(--border)}}
+    #content h3{{color:#7dd3fc;font-size:1.1rem;margin:1.2rem 0 .4rem}}
+    #content p{{margin:.5rem 0}}
+    #content a{{color:var(--link)}}
+    #content code{{background:var(--surface);padding:.15rem .4rem;border-radius:3px;font-size:.875em;font-family:'JetBrains Mono',monospace}}
+    #content pre{{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1rem;overflow-x:auto;margin:.75rem 0}}
+    #content pre code{{background:none;padding:0}}
+    #content ul,#content ol{{padding-left:1.5rem;margin:.5rem 0}}
+    #content li{{margin:.25rem 0}}
+    #content li input[type=checkbox]{{margin-right:.5rem}}
+    #content table{{width:100%;border-collapse:collapse;margin:.75rem 0;font-size:.9rem}}
+    #content th{{background:var(--surface);color:var(--accent);padding:.5rem .75rem;text-align:left;border:1px solid var(--border)}}
+    #content td{{padding:.4rem .75rem;border:1px solid var(--border)}}
+    #content tr:nth-child(even) td{{background:#0d0d14}}
+    #content blockquote{{border-left:3px solid var(--accent);padding:.5rem 1rem;margin:.5rem 0;color:var(--muted);background:var(--surface)}}
+    #content hr{{border:none;border-top:1px solid var(--border);margin:1.5rem 0}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="nav">
+    <span class="brand">⚙ arifOS MCP</span>
+    <a href="/">Home</a>
+    <a href="/readme" {"class='active'" if title == "README" else ""}>README</a>
+    <a href="/changelog" {"class='active'" if title == "CHANGELOG" else ""}>CHANGELOG</a>
+    <a href="/roadmap" {"class='active'" if title == "ROADMAP" else ""}>ROADMAP</a>
+    <a href="/todo" {"class='active'" if title == "TODO" else ""}>TODO</a>
+    <a href="/health" style="margin-left:auto">● HEALTH</a>
+  </nav>
+  <div id="content"></div>
+</div>
+<script>
+  const raw = {repr(safe)};
+  document.getElementById('content').innerHTML = marked.parse(raw);
+  document.querySelectorAll('input[type=checkbox]').forEach(el => el.disabled = true);
+</script>
+</body>
+</html>"""
+        return HTMLResponse(html, headers={"Cache-Control": "no-store"})
+
+    @route("/readme", methods=["GET"])
+    async def readme(request: Request) -> Response:
+        return _serve_md("README", "README.md")
+
+    @route("/changelog", methods=["GET"])
+    async def changelog(request: Request) -> Response:
+        return _serve_md("CHANGELOG", "CHANGELOG.md")
+
+    @route("/roadmap", methods=["GET"])
+    async def roadmap(request: Request) -> Response:
+        return _serve_md("ROADMAP", "ROADMAP.md")
+
+    @route("/todo", methods=["GET"])
+    async def todo(request: Request) -> Response:
+        return _serve_md("TODO", "TODO.md")
 
     @route("/health", methods=["GET"])
     async def health(request: Request) -> Response:
