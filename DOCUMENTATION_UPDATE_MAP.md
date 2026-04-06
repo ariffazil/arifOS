@@ -27,13 +27,18 @@
 - [ ] Update constitutional health check instructions
 - [ ] Add widget interaction patterns
 
-### 3. NEXUS_HORIZON.md (Root)
-**Current State:** 4.5KB - Horizon gateway docs  
-**Required Updates:**
-- [ ] Add new functional tool aliases
-- [ ] Update ChatGPT subset tools list
-- [ ] Add widget resource documentation
-- [ ] Update prompt aliases section
+### 3. docs/architecture/ARCHITECTURE.md (Replaces NEXUS_HORIZON.md)
+**Status:** ✅ CREATED (NEXUS_HORIZON.md deleted)  
+**Content:**
+- [x] System architecture diagrams (ASCII)
+- [x] Component architecture (tools/resources/prompts)
+- [x] Tool naming convention table
+- [x] Resource URI reference
+- [x] Floor enforcement matrix
+- [x] Deployment architecture
+- [x] Data models (TelemetryEnvelope, VerdictRecord)
+- [x] API endpoints reference
+- [x] Normal software terminology (no metaphysics)
 
 ### 4. ROADMAP.md (Root)
 **Current State:** 6.3KB - Already partially updated  
@@ -162,7 +167,7 @@
 |------|----------|--------|--------|
 | README.md | 🔴 Critical | High | Very High |
 | AGENTS.md | 🔴 Critical | Medium | High |
-| NEXUS_HORIZON.md | 🔴 Critical | Medium | High |
+| docs/architecture/ARCHITECTURE.md | ✅ Done | Medium | High |
 | ROADMAP.md | 🔴 Critical | Low | Medium |
 | TODO.md | 🔴 Critical | Low | Medium |
 | ops/DEPLOY.md | 🔴 Critical | Medium | High |
@@ -199,7 +204,7 @@ When updating docs, follow these standards:
 
 - [ ] README.md - Main project docs
 - [ ] AGENTS.md - Agent skills
-- [ ] NEXUS_HORIZON.md - Horizon gateway
+- [x] docs/architecture/ARCHITECTURE.md - System architecture (replaces NEXUS_HORIZON)
 - [ ] ROADMAP.md - Project roadmap
 - [ ] TODO.md - Task tracking
 - [ ] CHANGELOG.md - Version history
