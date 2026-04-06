@@ -645,6 +645,40 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  waw-landing:
+    image: nginx:alpine
+    container_name: waw_landing
+    volumes:
+      - /root/arif-sites/waw:/usr/share/nginx/html:ro
+    networks:
+      - arifos_trinity
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.waw-landing.rule=Host(`waw.arif-fazil.com`)"
+      - "traefik.http.routers.waw-landing.entrypoints=websecure"
+      - "traefik.http.routers.waw-landing.tls.certresolver=letsencrypt"
+      - "traefik.http.services.waw-landing.loadbalancer.server.port=80"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  apex-landing:
+    image: nginx:alpine
+    container_name: apex_landing
+    volumes:
+      - /root/arif-sites/apex.arif-fazil.com:/usr/share/nginx/html:ro
+    networks:
+      - arifos_trinity
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.apex-landing.rule=Host(`apex.arif-fazil.com`)"
+      - "traefik.http.routers.apex-landing.entrypoints=websecure"
+      - "traefik.http.routers.apex-landing.tls.certresolver=letsencrypt"
+      - "traefik.http.services.apex-landing.loadbalancer.server.port=80"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
   # --- Webhook Auto-Deploy ---
   webhook:
     image: almir/webhook:latest
