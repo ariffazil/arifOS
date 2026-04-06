@@ -2,32 +2,37 @@
 
 All notable changes to arifOS MCP are documented in this file.
 
-## [2026.04.06-CLEAN-ARCHITECTURE] - Clean MCP Architecture + Docker Deployment
+## [2026.04.06.2-HOUSEKEEPING] - Canonical Tool Names + Dead Code Purge
 
-### 🏗️ CLEAN MCP ARCHITECTURE
+### 🧹 HOUSEKEEPING: RESTORE CANONICAL NAMES, ARCHIVE DEAD CODE
 
-**Separated tools, resources, and prompts per MCP specification.**
+**Reverted functional-verb naming back to canonical arifOS names.**
 
-- **New Specs Package:** `arifosmcp/specs/` with clean separation:
-  - `contracts.py` — Shared JSON schemas (SessionAnchor, TelemetryEnvelope, VerdictRecord)
-  - `tool_specs.py` — 11 canonical tools with functional names
-  - `resource_specs.py` — 9 read-only resources
-  - `prompt_specs.py` — 10 workflow prompt templates
-  - `chatgpt_subset.py` — Apps SDK-safe adapter
+- **Canonical tool names restored** (11 mega-tools):
+  - `init_anchor`, `architect_registry`, `physics_reality`, `agi_mind`, `asi_heart`
+  - `arifOS_kernel`, `engineering_memory`, `math_estimator`, `apex_soul`, `vault_ledger`, `code_engine`
+- **Specs aligned:** `MegaToolName` Literal, `MEGA_TOOLS` tuple, `CANONICAL_TOOL_HANDLERS` dict all use canonical names
+- **Surface counts fixed:** Exactly 11 tools / 10 prompts / 8 resources registered (no aliases, no ChatGPT extras)
+- **PYTHONPATH fix:** `docker-compose.yml` sets `PYTHONPATH=/usr/src/app` so volume-mount code takes priority over site-packages
 
-- **Functional Naming:** Tool names are now verbs (MCP best practice)
-  - `init_anchor` → `init_session_anchor`
-  - `apex_soul` → `judge_verdict`
-  - `arifOS_kernel` → `route_execution`
-  - `agi_mind` → `reason_synthesis`
-  - Full mapping in docs/AGENTS.md
+### 🗄️ ARCHIVED (moved to `.archive/`)
 
-### 🐳 DOCKER PRODUCTION DEPLOYMENT
+**~6,000 lines of dead/superseded code removed from active runtime:**
 
-**Full containerization with docker-compose stack.**
+- `arifosmcp/specs/` — duplicate spec package added by prior agent (functional-verb names, ChatGPT subset)
+- `arifosmcp/runtime/tools_hardened_v2.py` — 1,127 lines, superseded by megaTools
+- `arifosmcp/runtime/init_anchor_hardened.py` — 771 lines, superseded
+- `arifosmcp/runtime/truth_pipeline_hardened.py` — 410 lines, superseded
+- `arifosmcp/runtime/hardened_toolchain.py` — 312 lines, superseded
+- `arifosmcp/runtime/tools_hardened_dispatch.py` — replaced with 8-line stub (`HARDENED_DISPATCH_MAP = {}`)
+- `arifosmcp/runtime/server_compat.py`, `cross_protocol_bridge.py`, `phase2_tools.py`, `dispatcher.py`
+- `arifosmcp/tools/governance/`, `intelligence/`, `reality/`, `execution/` — parallel Phase-3 implementations, never wired
+- Repo root: `build/` (compiled artifacts), `deployments/` (af-forge Docker), `ops/` (91 infra scripts)
 
-- **Dockerfile:** Multi-stage build with Python 3.11, non-root user, health checks
-- **docker-compose.yml:** Complete stack (MCP + Nginx + Qdrant + Redis)
+---
+
+## [2026.04.06.1] - Clean Architecture + ChatGPT Apps SDK
+
 - **deploy.sh:** Automated deployment script with verification
 - **Widget CSP:** Nginx configuration for ChatGPT iframe security
 

@@ -24,6 +24,7 @@ COPY requirements.txt ./
 # Install Python dependencies
 RUN pip install --no-cache-dir --user \
     fastmcp>=2.0.0 \
+    fastapi>=0.110.0 \
     httpx>=0.27.0 \
     pydantic>=2.0.0 \
     py-ecc>=7.0.0 \

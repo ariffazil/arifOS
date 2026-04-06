@@ -59,182 +59,247 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 async def init_session_anchor(
-    actor_id: str,
-    intent: str,
+    mode: str = "init",
+    payload: dict[str, Any] | None = None,
+    actor_id: str | None = None,
+    intent: str | None = None,
     declared_name: str | None = None,
     session_id: str | None = None,
-    **kwargs: Any,
+    risk_tier: str = "medium",
+    dry_run: bool = True,
+    allow_execution: bool = False,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
     """Start a governed session and bind the initial telemetry seed."""
     envelope = await _mega_init_anchor(
-        mode="init",
-        payload={"actor_id": actor_id, "intent": intent, "declared_name": declared_name},
+        mode=mode,
+        payload=payload or {"actor_id": actor_id, "intent": intent, "declared_name": declared_name},
         session_id=session_id,
-        **kwargs,
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        allow_execution=allow_execution,
+        debug=debug,
     )
     return seal_runtime_envelope(envelope, "init_session_anchor")
 
 
 async def get_tool_registry(
     mode: str = "list",
+    payload: dict[str, Any] | None = None,
     uri: str | None = None,
     session_id: str | None = None,
-    **kwargs: Any,
+    risk_tier: str = "medium",
+    dry_run: bool = True,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
     """Discover arifOS tool graph, modes, and model capabilities."""
     envelope = await _mega_architect_registry(
         mode=mode,
-        payload={"uri": uri},
+        payload=payload or {"uri": uri},
         session_id=session_id,
-        **kwargs,
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        debug=debug,
     )
     return seal_runtime_envelope(envelope, "get_tool_registry")
 
 
 async def sense_reality(
-    query: str,
-    operation: str = "search",
+    mode: str = "search",
+    payload: dict[str, Any] | None = None,
+    query: str | None = None,
     session_id: str | None = None,
-    **kwargs: Any,
+    risk_tier: str = "medium",
+    dry_run: bool = True,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
     """Time grounding, evidence checks, and reality state verification."""
     envelope = await _mega_physics_reality(
-        mode=operation,
-        payload={"query": query},
+        mode=mode,
+        payload=payload or {"query": query},
         session_id=session_id,
-        **kwargs,
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        debug=debug,
     )
     return seal_runtime_envelope(envelope, "sense_reality")
 
 
 async def reason_synthesis(
-    query: str,
-    context: str | None = None,
     mode: str = "reason",
+    payload: dict[str, Any] | None = None,
+    query: str | None = None,
+    context: str | None = None,
     session_id: str | None = None,
-    **kwargs: Any,
+    risk_tier: str = "medium",
+    dry_run: bool = True,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
     """Multi-source synthesis and structured first-principles reasoning."""
     envelope = await _mega_agi_mind(
         mode=mode,
-        payload={"query": query, "context": context},
+        payload=payload or {"query": query, "context": context},
         session_id=session_id,
-        **kwargs,
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        debug=debug,
     )
     return seal_runtime_envelope(envelope, "reason_synthesis")
 
 
 async def critique_safety(
-    content: str,
     mode: str = "critique",
+    payload: dict[str, Any] | None = None,
+    content: str | None = None,
     session_id: str | None = None,
-    **kwargs: Any,
+    risk_tier: str = "medium",
+    dry_run: bool = True,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
     """Safety, dignity, and adversarial critique of content or proposals."""
     envelope = await _mega_asi_heart(
         mode=mode,
-        payload={"content": content},
+        payload=payload or {"content": content},
         session_id=session_id,
-        **kwargs,
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        debug=debug,
     )
     return seal_runtime_envelope(envelope, "critique_safety")
 
 
 async def route_execution(
-    query: str,
+    mode: str = "kernel",
+    payload: dict[str, Any] | None = None,
+    query: str | None = None,
     session_id: str | None = None,
-    **kwargs: Any,
+    risk_tier: str = "medium",
+    dry_run: bool = True,
+    allow_execution: bool = False,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
     """Route request to the correct metabolic lane or tool family."""
     envelope = await _mega_arifOS_kernel(
-        mode="kernel",
-        payload={"query": query},
+        mode=mode,
+        payload=payload or {"query": query},
         session_id=session_id,
-        **kwargs,
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        allow_execution=allow_execution,
+        debug=debug,
     )
     return seal_runtime_envelope(envelope, "route_execution")
 
 
 async def load_memory_context(
-    query: str,
     mode: str = "vector_query",
+    payload: dict[str, Any] | None = None,
+    query: str | None = None,
     session_id: str | None = None,
-    **kwargs: Any,
+    risk_tier: str = "medium",
+    dry_run: bool = True,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
     """Retrieve governed memory and engineering context from vector store."""
     envelope = await _mega_engineering_memory(
         mode=mode,
-        payload={"query": query},
+        payload=payload or {"query": query},
         session_id=session_id,
-        **kwargs,
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        debug=debug,
     )
     return seal_runtime_envelope(envelope, "load_memory_context")
 
 
 async def estimate_ops(
-    action_description: str,
     mode: str = "cost",
+    payload: dict[str, Any] | None = None,
+    action_description: str | None = None,
     session_id: str | None = None,
-    **kwargs: Any,
+    risk_tier: str = "medium",
+    dry_run: bool = True,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
     """Calculate operation costs, thermodynamics, capacity, and timing."""
     envelope = await _mega_math_estimator(
         mode=mode,
-        payload={"action": action_description},
+        payload=payload or {"action": action_description},
         session_id=session_id,
-        **kwargs,
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        debug=debug,
     )
     return seal_runtime_envelope(envelope, "estimate_ops")
 
 
 async def judge_verdict(
-    candidate_action: str,
-    risk_tier: RiskTier = RiskTier.MEDIUM,
+    mode: str = "judge",
+    payload: dict[str, Any] | None = None,
+    candidate_action: str | None = None,
+    risk_tier: str = "medium",
     telemetry: dict[str, Any] | None = None,
     session_id: str | None = None,
-    **kwargs: Any,
+    dry_run: bool = True,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
     """Final constitutional verdict evaluation and hold logic enforcement."""
     envelope = await _mega_apex_judge(
-        mode="judge",
-        payload={
+        mode=mode,
+        payload=payload or {
             "candidate": candidate_action,
             "risk_tier": risk_tier,
             "telemetry": telemetry,
         },
         session_id=session_id,
-        **kwargs,
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        debug=debug,
     )
     return seal_runtime_envelope(envelope, "judge_verdict")
 
 
 async def record_vault_entry(
-    verdict: str,
-    evidence: str,
+    mode: str = "seal",
+    payload: dict[str, Any] | None = None,
+    verdict: str | None = None,
+    evidence: str | None = None,
     session_id: str | None = None,
-    **kwargs: Any,
+    risk_tier: str = "medium",
+    dry_run: bool = True,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
     """Append immutable verdict record to the Merkle-hashed ledger."""
     envelope = await _mega_vault_ledger(
-        mode="seal",
-        payload={"verdict": verdict, "evidence": evidence},
+        mode=mode,
+        payload=payload or {"verdict": verdict, "evidence": evidence},
         session_id=session_id,
-        **kwargs,
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        debug=debug,
     )
     return seal_runtime_envelope(envelope, "record_vault_entry")
 
 
 async def execute_vps_task(
-    command: str,
+    mode: str = "fs",
+    payload: dict[str, Any] | None = None,
+    command: str | None = None,
     session_id: str | None = None,
-    **kwargs: Any,
+    risk_tier: str = "medium",
+    dry_run: bool = True,
+    allow_execution: bool = False,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
     """Redirect or dispatch execution tasks to the sovereign VPS executor."""
     envelope = await _mega_code_engine(
-        mode="fs", # Default to fs for safety if no mode provided
-        payload={"command": command},
+        mode=mode,
+        payload=payload or {"command": command},
         session_id=session_id,
-        **kwargs,
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        allow_execution=allow_execution,
+        debug=debug,
     )
     return seal_runtime_envelope(envelope, "execute_vps_task")
 
@@ -270,6 +335,12 @@ async def get_constitutional_health(session_id: str = "global") -> Constitutiona
     )
 
 
+async def render_vault_seal_shim(seal_data: dict[str, Any]) -> dict[str, Any]:
+    """Shim for render_vault_seal."""
+    from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import render_vault_seal
+    return await render_vault_seal(seal_data)
+
+
 async def list_recent_verdicts(limit: int = 5) -> list[VerdictRecord]:
     """Read-only summary of recent constitutional verdicts."""
     try:
@@ -288,79 +359,52 @@ async def list_recent_verdicts(limit: int = 5) -> list[VerdictRecord]:
 # REGISTRATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
-from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import render_vault_seal
-
-FINAL_TOOL_IMPLEMENTATIONS = {
-    "init_session_anchor": init_session_anchor,
-    "get_tool_registry": get_tool_registry,
-    "sense_reality": sense_reality,
-    "reason_synthesis": reason_synthesis,
-    "critique_safety": critique_safety,
-    "route_execution": route_execution,
-    "load_memory_context": load_memory_context,
-    "estimate_ops": estimate_ops,
-    "judge_verdict": judge_verdict,
-    "record_vault_entry": record_vault_entry,
-    "execute_vps_task": execute_vps_task,
-    # ChatGPT subset
-    "get_constitutional_health": get_constitutional_health,
-    "render_vault_seal": render_vault_seal,
-    "list_recent_verdicts": list_recent_verdicts,
-}
-
-# Legacy names kept for internal routing and backward compat
-LEGACY_COMPAT_MAP = {
+# Map CANONICAL names (from tool_specs.py) to wrapper functions
+CANONICAL_TOOL_HANDLERS = {
     "init_anchor": init_session_anchor,
-    "arifOS_kernel": route_execution,
-    "apex_soul": judge_verdict,
-    "apex_judge": judge_verdict,
-    "vault_ledger": record_vault_entry,
+    "architect_registry": get_tool_registry,
+    "physics_reality": sense_reality,
     "agi_mind": reason_synthesis,
     "asi_heart": critique_safety,
+    "arifOS_kernel": route_execution,
     "engineering_memory": load_memory_context,
-    "physics_reality": sense_reality,
     "math_estimator": estimate_ops,
+    "apex_soul": judge_verdict,
+    "vault_ledger": record_vault_entry,
     "code_engine": execute_vps_task,
-    "architect_registry": get_tool_registry,
 }
 
-ALL_TOOL_IMPLEMENTATIONS = {**FINAL_TOOL_IMPLEMENTATIONS, **LEGACY_COMPAT_MAP}
+# Backward-compat aliases — for REST routing only, NOT registered as MCP tools
+LEGACY_ALIASES: dict[str, str] = {}
 
 
 def register_tools(mcp: FastMCP) -> None:
-    """Wire the functional arifOS tools onto *mcp*."""
-    import inspect
+    """Register exactly 11 canonical mega-tools. No aliases, no ChatGPT extras."""
     from fastmcp.tools.function_tool import FunctionTool
-    from arifosmcp.runtime.tool_specs import PUBLIC_TOOL_SPECS, CHATGPT_APP_TOOL_NAMES
+    from arifosmcp.runtime.tool_specs import PUBLIC_TOOL_SPECS
 
-    # 1. Register Functional Mega-Tools
+    registered = []
     for spec in PUBLIC_TOOL_SPECS:
-        handler = FINAL_TOOL_IMPLEMENTATIONS.get(spec.name)
+        handler = CANONICAL_TOOL_HANDLERS.get(spec.name)
         if not handler:
+            logger.warning(f"No handler for canonical tool: {spec.name}")
             continue
-            
-        ft = FunctionTool.from_function(
-            handler,
-            name=spec.name,
-            description=spec.description,
-        )
-        # Use schema from spec
+        ft = FunctionTool.from_function(handler, name=spec.name, description=spec.description)
         ft.parameters = dict(spec.input_schema)
         mcp.add_tool(ft)
-        
-    # 2. Register ChatGPT App specific tools
-    for name in CHATGPT_APP_TOOL_NAMES:
-        handler = FINAL_TOOL_IMPLEMENTATIONS.get(name)
-        if not handler:
-            continue
-        mcp.add_tool(handler)
+        registered.append(spec.name)
 
-    logger.info(f"Registered {len(mcp._mcp_server.list_tools())} tools (functional surface)")
+    logger.info(f"Registered {len(registered)} tools: {registered}")
 
+
+# Backward-compat alias — server.py and tests may import either name
+FINAL_TOOL_IMPLEMENTATIONS = CANONICAL_TOOL_HANDLERS
+ALL_TOOL_IMPLEMENTATIONS = CANONICAL_TOOL_HANDLERS
 
 __all__ = [
+    "CANONICAL_TOOL_HANDLERS",
     "FINAL_TOOL_IMPLEMENTATIONS",
-    "LEGACY_COMPAT_MAP",
     "ALL_TOOL_IMPLEMENTATIONS",
+    "LEGACY_ALIASES",
     "register_tools",
 ]

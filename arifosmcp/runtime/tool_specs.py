@@ -37,31 +37,31 @@ class PromptSpec:
 
 
 MegaToolName = Literal[
-    "init_session_anchor",
-    "get_tool_registry",
-    "sense_reality",
-    "reason_synthesis",
-    "critique_safety",
-    "route_execution",
-    "load_memory_context",
-    "estimate_ops",
-    "judge_verdict",
-    "record_vault_entry",
-    "execute_vps_task",
+    "init_anchor",
+    "architect_registry",
+    "physics_reality",
+    "agi_mind",
+    "asi_heart",
+    "arifOS_kernel",
+    "engineering_memory",
+    "math_estimator",
+    "apex_soul",
+    "vault_ledger",
+    "code_engine",
 ]
 
 MEGA_TOOLS: tuple[str, ...] = (
-    "init_session_anchor",
-    "get_tool_registry",
-    "sense_reality",
-    "reason_synthesis",
-    "critique_safety",
-    "route_execution",
-    "load_memory_context",
-    "estimate_ops",
-    "judge_verdict",
-    "record_vault_entry",
-    "execute_vps_task",
+    "init_anchor",
+    "architect_registry",
+    "physics_reality",
+    "agi_mind",
+    "asi_heart",
+    "arifOS_kernel",
+    "engineering_memory",
+    "math_estimator",
+    "apex_soul",
+    "vault_ledger",
+    "code_engine",
 )
 
 
@@ -138,7 +138,7 @@ def _build_mega_schema(
 PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
     # ─── ⚖️ GOVERNANCE LAYER (G-1 to G-4) ───
     ToolSpec(
-        name="init_session_anchor",
+        name="init_anchor",
         stage="000_INIT",
         role="Init Anchor",
         layer="GOVERNANCE",
@@ -146,7 +146,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="PSI Ψ",
         floors=("F11", "F12", "F13"),
         input_schema=_build_mega_schema(
-            "init_session_anchor",
+            "init_anchor",
             ["init", "revoke", "refresh", "state", "status"],
             {
                 "actor_id": {"type": "string", "minLength": 2, "maxLength": 64},
@@ -158,7 +158,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         default_budget_tier="small",
     ),
     ToolSpec(
-        name="get_tool_registry",
+        name="architect_registry",
         stage="M-4_ARCH",
         role="Architect Registry",
         layer="MACHINE",
@@ -166,7 +166,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="DELTA Δ",
         floors=("F10", "F11"),
         input_schema=_build_mega_schema(
-            "get_tool_registry",
+            "architect_registry",
             ["list", "read", "context", "model_catalog"],
             {
                 "uri": {"type": "string"},
@@ -175,7 +175,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
     ),
     ToolSpec(
-        name="sense_reality",
+        name="physics_reality",
         stage="111_SENSE",
         role="Physics Reality",
         layer="MACHINE",
@@ -183,7 +183,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="DELTA Δ",
         floors=("F2", "F3", "F10"),
         input_schema=_build_mega_schema(
-            "sense_reality",
+            "physics_reality",
             ["search", "ingest", "compass", "atlas", "time"],
             {
                 "query": {"type": "string"},
@@ -193,7 +193,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
     ),
     ToolSpec(
-        name="reason_synthesis",
+        name="agi_mind",
         stage="333_MIND",
         role="AGI Mind",
         layer="INTELLIGENCE",
@@ -201,7 +201,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="DELTA Δ",
         floors=("F2", "F4", "F7", "F8"),
         input_schema=_build_mega_schema(
-            "reason_synthesis",
+            "agi_mind",
             ["reason", "reflect", "forge"],
             {
                 "query": {"type": "string"},
@@ -212,7 +212,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
     ),
     ToolSpec(
-        name="critique_safety",
+        name="asi_heart",
         stage="666_HEART",
         role="ASI Heart",
         layer="INTELLIGENCE",
@@ -220,14 +220,14 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="OMEGA Ω",
         floors=("F5", "F6", "F9"),
         input_schema=_build_mega_schema(
-            "critique_safety",
+            "asi_heart",
             ["critique", "simulate"],
             {"content": {"type": "string"}, "session_id": {"type": "string"}},
             required_payload=["content"],
         ),
     ),
     ToolSpec(
-        name="route_execution",
+        name="arifOS_kernel",
         stage="444_ROUTER",
         role="arifOS Kernel",
         layer="GOVERNANCE",
@@ -235,7 +235,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="DELTA/PSI",
         floors=("F4", "F11"),
         input_schema=_build_mega_schema(
-            "route_execution",
+            "arifOS_kernel",
             ["kernel", "status"],
             {
                 "query": {"type": "string", "minLength": 1},
@@ -244,7 +244,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
     ),
     ToolSpec(
-        name="load_memory_context",
+        name="engineering_memory",
         stage="555_MEMORY",
         role="Engineering Memory",
         layer="INTELLIGENCE",
@@ -252,7 +252,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="OMEGA Ω",
         floors=("F10", "F11", "F2"),
         input_schema=_build_mega_schema(
-            "load_memory_context",
+            "engineering_memory",
             ["vector_query", "vector_store", "engineer", "query"],
             {
                 "query": {"type": "string"},
@@ -261,7 +261,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
     ),
     ToolSpec(
-        name="estimate_ops",
+        name="math_estimator",
         stage="444_ROUTER",
         role="Math Estimator",
         layer="MACHINE",
@@ -269,13 +269,13 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="DELTA Δ",
         floors=("F4", "F5"),
         input_schema=_build_mega_schema(
-            "estimate_ops",
+            "math_estimator",
             ["cost", "health", "vitals", "entropy"],
             {"action_description": {"type": "string"}, "session_id": {"type": "string"}},
         ),
     ),
     ToolSpec(
-        name="judge_verdict",
+        name="apex_soul",
         stage="888_JUDGE",
         role="Apex Soul",
         layer="GOVERNANCE",
@@ -283,7 +283,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="PSI Ψ",
         floors=("F3", "F12", "F13"),
         input_schema=_build_mega_schema(
-            "judge_verdict",
+            "apex_soul",
             ["judge", "rules", "validate", "hold"],
             {
                 "candidate_action": {"type": "string"},
@@ -294,7 +294,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
     ),
     ToolSpec(
-        name="record_vault_entry",
+        name="vault_ledger",
         stage="999_VAULT",
         role="Vault Ledger",
         layer="GOVERNANCE",
@@ -302,7 +302,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="PSI Ψ",
         floors=("F1", "F13"),
         input_schema=_build_mega_schema(
-            "record_vault_entry",
+            "vault_ledger",
             ["seal", "verify"],
             {
                 "verdict": {"type": "string"},
@@ -312,7 +312,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
     ),
     ToolSpec(
-        name="execute_vps_task",
+        name="code_engine",
         stage="M-3_EXEC",
         role="Code Engine",
         layer="MACHINE",
@@ -320,7 +320,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         trinity="ALL",
         floors=("F1",),
         input_schema=_build_mega_schema(
-            "execute_vps_task",
+            "code_engine",
             ["fs", "process", "net", "tail", "replay"],
             {
                 "command": {"type": "string"},

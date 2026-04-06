@@ -219,9 +219,30 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
         }
 
 
+async def render_vault_seal(seal_data: dict[str, Any]) -> dict[str, Any]:
+    """Render the arifOS constitutional health check widget from structured seal data."""
+    return {
+        "structuredContent": seal_data,
+        "content": [
+            {
+                "type": "text",
+                "text": "Displaying constitutional health check...",
+            }
+        ],
+        "_meta": {
+            "ui": {
+                "resourceUri": VAULT_WIDGET_URI,
+                "prefersBorder": True,
+                "prefersExpanded": seal_data.get("verdict") != "SEAL",
+            }
+        },
+    }
+
+
 __all__ = [
     "VAULT_WIDGET_URI",
     "_build_vault_seal_structured_content",
     "register_chatgpt_app_tools",
     "vault_seal_widget_html",
+    "render_vault_seal",
 ]

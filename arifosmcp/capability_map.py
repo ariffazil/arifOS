@@ -88,18 +88,18 @@ class ArchitectRegistryMode(str, Enum):
     context = "context"
 
 
-MEGA_TOOL_MODES: dict[MegaToolName, set[str]] = {
-    "init_anchor": {m.value for m in InitAnchorMode},
-    "arifOS_kernel": {m.value for m in KernelMode},
-    "apex_soul": {m.value for m in ApexSoulMode},
-    "vault_ledger": {m.value for m in VaultLedgerMode},
-    "agi_mind": {m.value for m in AgiMindMode},
-    "asi_heart": {m.value for m in AsiHeartMode},
-    "engineering_memory": {m.value for m in EngineeringMemoryMode},
-    "physics_reality": {m.value for m in PhysicsRealityMode},
-    "math_estimator": {m.value for m in MathEstimatorMode},
-    "code_engine": {m.value for m in CodeEngineMode},
-    "architect_registry": {m.value for m in ArchitectRegistryMode},
+MEGA_TOOL_MODES: dict[str, set[str]] = {
+    "init_session_anchor": {m.value for m in InitAnchorMode},
+    "route_execution": {m.value for m in KernelMode},
+    "judge_verdict": {m.value for m in ApexSoulMode},
+    "record_vault_entry": {m.value for m in VaultLedgerMode},
+    "reason_synthesis": {m.value for m in AgiMindMode},
+    "critique_safety": {m.value for m in AsiHeartMode},
+    "load_memory_context": {m.value for m in EngineeringMemoryMode},
+    "sense_reality": {m.value for m in PhysicsRealityMode},
+    "estimate_ops": {m.value for m in MathEstimatorMode},
+    "execute_vps_task": {m.value for m in CodeEngineMode},
+    "get_tool_registry": {m.value for m in ArchitectRegistryMode},
 }
 
 
@@ -154,54 +154,54 @@ LEGACY_TOOLS: set[str] = {
 # -----------------------------------------------------------------------------
 @dataclass(frozen=True)
 class CapabilityTarget:
-    mega_tool: MegaToolName
+    mega_tool: str
     mode: str
     note: str = ""
 
 
 CAPABILITY_MAP: dict[str, CapabilityTarget] = {
     # ---- Governance / Bootstrap (000_INIT) ----
-    "init_anchor": CapabilityTarget("init_anchor", "init", "Canonical init"),
-    "arifOS_kernel": CapabilityTarget("arifOS_kernel", "kernel", "Canonical router"),
-    "metabolic_loop": CapabilityTarget("arifOS_kernel", "kernel", "Legacy compatibility"),
+    "init_anchor": CapabilityTarget("init_session_anchor", "init", "Canonical init"),
+    "arifOS_kernel": CapabilityTarget("route_execution", "kernel", "Canonical router"),
+    "metabolic_loop": CapabilityTarget("route_execution", "kernel", "Legacy compatibility"),
     # ---- AGI (333/555) ----
-    "agi_reason": CapabilityTarget("agi_mind", "reason", "Reasoning"),
-    "agi_reflect": CapabilityTarget("agi_mind", "reflect", "Reflection"),
-    "forge": CapabilityTarget("agi_mind", "forge", "Forge"),
+    "agi_reason": CapabilityTarget("reason_synthesis", "reason", "Reasoning"),
+    "agi_reflect": CapabilityTarget("reason_synthesis", "reflect", "Reflection"),
+    "forge": CapabilityTarget("reason_synthesis", "forge", "Forge"),
     # ---- ASI (666) ----
-    "asi_critique": CapabilityTarget("asi_heart", "critique", "Adversarial critique"),
-    "asi_simulate": CapabilityTarget("asi_heart", "simulate", "Consequence simulation"),
+    "asi_critique": CapabilityTarget("critique_safety", "critique", "Adversarial critique"),
+    "asi_simulate": CapabilityTarget("critique_safety", "simulate", "Consequence simulation"),
     # ---- Reality / Physics (111/222) ----
-    "search_reality": CapabilityTarget("physics_reality", "search", "External search"),
-    "ingest_evidence": CapabilityTarget("physics_reality", "ingest", "URL/file -> evidence"),
-    "reality_compass": CapabilityTarget("physics_reality", "compass", "Quick grounding"),
-    "reality_atlas": CapabilityTarget("physics_reality", "atlas", "Evidence merge"),
+    "search_reality": CapabilityTarget("sense_reality", "search", "External search"),
+    "ingest_evidence": CapabilityTarget("sense_reality", "ingest", "URL/file -> evidence"),
+    "reality_compass": CapabilityTarget("sense_reality", "compass", "Quick grounding"),
+    "reality_atlas": CapabilityTarget("sense_reality", "atlas", "Evidence merge"),
     # ---- Math / telemetry (444) ----
-    "check_vital": CapabilityTarget("math_estimator", "vitals", "Thermo vitals"),
-    "system_health": CapabilityTarget("math_estimator", "health", "Host health metrics"),
-    "cost_estimator": CapabilityTarget("math_estimator", "cost", "Cost estimator"),
+    "check_vital": CapabilityTarget("estimate_ops", "vitals", "Thermo vitals"),
+    "system_health": CapabilityTarget("estimate_ops", "health", "Host health metrics"),
+    "cost_estimator": CapabilityTarget("estimate_ops", "cost", "Cost estimator"),
     # ---- Code / machine ops (M-3) ----
-    "fs_inspect": CapabilityTarget("code_engine", "fs", "Filesystem inspection"),
-    "process_list": CapabilityTarget("code_engine", "process", "Process listing"),
-    "net_status": CapabilityTarget("code_engine", "net", "Network status"),
-    "log_tail": CapabilityTarget("code_engine", "tail", "Log tail"),
-    "trace_replay": CapabilityTarget("code_engine", "replay", "Replay traces"),
+    "fs_inspect": CapabilityTarget("execute_vps_task", "fs", "Filesystem inspection"),
+    "process_list": CapabilityTarget("execute_vps_task", "process", "Process listing"),
+    "net_status": CapabilityTarget("execute_vps_task", "net", "Network status"),
+    "log_tail": CapabilityTarget("execute_vps_task", "tail", "Log tail"),
+    "trace_replay": CapabilityTarget("execute_vps_task", "replay", "Replay traces"),
     # ---- Engineering + memory (555/666) ----
-    "agentzero_engineer": CapabilityTarget("engineering_memory", "engineer", "Material execution"),
-    "agentzero_memory_query": CapabilityTarget("engineering_memory", "query", "Recall memory"),
-    "chroma_query": CapabilityTarget("engineering_memory", "query", "Vector query"),
+    "agentzero_engineer": CapabilityTarget("load_memory_context", "engineer", "Material execution"),
+    "agentzero_memory_query": CapabilityTarget("load_memory_context", "query", "Recall memory"),
+    "chroma_query": CapabilityTarget("load_memory_context", "query", "Vector query"),
     # ---- APEX / governance (888) ----
-    "apex_judge": CapabilityTarget("apex_soul", "judge", "Verdict"),
-    "audit_rules": CapabilityTarget("apex_soul", "rules", "Inspect floors"),
-    "agentzero_validate": CapabilityTarget("apex_soul", "validate", "Validator"),
-    "agentzero_hold_check": CapabilityTarget("apex_soul", "hold", "Hold status"),
-    "agentzero_armor_scan": CapabilityTarget("apex_soul", "armor", "Injection scan"),
-    "open_apex_dashboard": CapabilityTarget("apex_soul", "rules", "Dashboard"),
-    "apex_score_app": CapabilityTarget("apex_soul", "rules", "Score UI"),
-    "stage_pipeline_app": CapabilityTarget("apex_soul", "rules", "Pipeline UI"),
+    "apex_judge": CapabilityTarget("judge_verdict", "judge", "Verdict"),
+    "audit_rules": CapabilityTarget("judge_verdict", "rules", "Inspect floors"),
+    "agentzero_validate": CapabilityTarget("judge_verdict", "validate", "Validator"),
+    "agentzero_hold_check": CapabilityTarget("judge_verdict", "hold", "Hold status"),
+    "agentzero_armor_scan": CapabilityTarget("judge_verdict", "armor", "Injection scan"),
+    "open_apex_dashboard": CapabilityTarget("judge_verdict", "rules", "Dashboard"),
+    "apex_score_app": CapabilityTarget("judge_verdict", "rules", "Score UI"),
+    "stage_pipeline_app": CapabilityTarget("judge_verdict", "rules", "Pipeline UI"),
     # ---- Vault (999) ----
-    "vault_seal": CapabilityTarget("vault_ledger", "seal", "Seal ledger"),
-    "verify_vault_ledger": CapabilityTarget("vault_ledger", "verify", "Verify ledger"),
+    "vault_seal": CapabilityTarget("record_vault_entry", "seal", "Seal ledger"),
+    "verify_vault_ledger": CapabilityTarget("record_vault_entry", "verify", "Verify ledger"),
 }
 
 
@@ -233,12 +233,12 @@ def iter_invalid_modes() -> list[str]:
     return sorted(bad)
 
 CAPABILITY_MAP.update({
-    "arifos_list_resources": CapabilityTarget("engineering_memory", "query", "fallback"),
-    "arifos_read_resource": CapabilityTarget("engineering_memory", "query", "fallback"),
-    "list_resources": CapabilityTarget("engineering_memory", "query", "fallback"),
-    "metabolic_loop_router": CapabilityTarget("arifOS_kernel", "kernel", "fallback"),
-    "read_resource": CapabilityTarget("engineering_memory", "query", "fallback"),
-    "register_tools": CapabilityTarget("arifOS_kernel", "kernel", "fallback"),
+    "arifos_list_resources": CapabilityTarget("load_memory_context", "query", "fallback"),
+    "arifos_read_resource": CapabilityTarget("load_memory_context", "query", "fallback"),
+    "list_resources": CapabilityTarget("load_memory_context", "query", "fallback"),
+    "metabolic_loop_router": CapabilityTarget("route_execution", "kernel", "fallback"),
+    "read_resource": CapabilityTarget("load_memory_context", "query", "fallback"),
+    "register_tools": CapabilityTarget("route_execution", "kernel", "fallback"),
 })
 
 
@@ -292,14 +292,14 @@ def build_llm_context_map() -> dict[str, Any]:
         },
         "usage_guidance": {
             "bootstrap_path": [
-                "check_vital",
-                "audit_rules",
-                "init_anchor",
-                "arifOS_kernel",
+                "get_tool_registry",
+                "estimate_ops",
+                "init_session_anchor",
+                "route_execution",
             ],
             "global_session_rule": "global is diagnostics-only and must not authorize mutations",
-            "preferred_reasoning_path": ["init_anchor", "agi_mind", "asi_heart", "apex_judge"],
-            "preferred_grounding_path": ["init_anchor", "physics_reality", "agi_mind"],
+            "preferred_reasoning_path": ["init_session_anchor", "reason_synthesis", "critique_safety", "judge_verdict"],
+            "preferred_grounding_path": ["init_session_anchor", "sense_reality", "reason_synthesis"],
         },
     }
 

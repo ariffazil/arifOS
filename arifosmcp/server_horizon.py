@@ -77,18 +77,18 @@ MCP_PROTOCOL_VERSION = "2025-11-05"
 mcp = FastMCP("arifOS Horizon Gateway (v3 Registry-Driven)")
 
 PUBLIC_PROXY_SPECS = {
-    # 11 canonical mega-tools — matches TOOL_ACCESS_POLICY + public_tool_names()
-    "init_anchor":        "000_INIT: Constitutional session anchor — identity, state, revoke, refresh.",
-    "arifOS_kernel":      "444_ROUTER: Primary metabolic conductor — routes through the 000-999 pipe.",
-    "apex_soul":          "888_JUDGE: Final constitutional verdict — judge, validate, hold, armor, probe.",
-    "vault_ledger":       "999_VAULT: Immutable decision recording — seal and verify. (Requires auth)",
-    "agi_mind":           "333_MIND: Core reasoning and synthesis — reason, reflect, forge.",
-    "asi_heart":          "666_HEART: Safety and empathy modeling — critique, simulate.",
-    "engineering_memory": "555_MEMORY: Vector memory and governed engineering. (Requires auth)",
-    "physics_reality":    "111_SENSE: Reality grounding — search, ingest, compass, atlas, time.",
-    "math_estimator":     "777_OPS: Thermodynamic vitals — cost, health, vitals, entropy.",
-    "code_engine":        "M-3_EXEC: System-level execution. (Sovereign VPS only)",
-    "architect_registry": "M-4_ARCH: Tool and model registry — list, read, model_catalog.",
+    # 11 canonical mega-tools — aligned with contracts.py AAA_CANONICAL_TOOLS
+    "init_session_anchor": "000_INIT: Start a governed constitutional session.",
+    "get_tool_registry":   "M-4_ARCH: Discover arifOS tool graph and capabilities.",
+    "sense_reality":       "111_SENSE: Time grounding and reality verification.",
+    "reason_synthesis":    "333_MIND: Multi-source synthesis and reasoning.",
+    "critique_safety":     "666_HEART: Safety and adversarial critique.",
+    "route_execution":     "444_ROUTER: Route request to metabolic lane.",
+    "load_memory_context": "555_MEMORY: Retrieve governed vector memory.",
+    "estimate_ops":        "444_ROUTER: Calculate costs and thermodynamics.",
+    "judge_verdict":       "888_JUDGE: Final constitutional verdict.",
+    "record_vault_entry":  "999_VAULT: Append immutable verdict record.",
+    "execute_vps_task":    "M-3_EXEC: VPS execution tasks.",
 }
 
 AUTHENTICATED_TOOLS = sorted(

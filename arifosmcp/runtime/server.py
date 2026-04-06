@@ -17,14 +17,11 @@ from arifosmcp.runtime.fastmcp_version import IS_FASTMCP_2, IS_FASTMCP_3
 from arifosmcp.runtime.prompts import register_prompts
 from arifosmcp.runtime.resources import register_resources
 from arifosmcp.runtime.rest_routes import register_rest_routes
-from arifosmcp.runtime.tools import FINAL_TOOL_IMPLEMENTATIONS, register_tools
+from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS, register_tools
 from arifosmcp.runtime.public_registry import public_tool_names as _public_tool_names
 
 # Only expose the 11 canonical mega-tools on the REST surface (mirrors FastMCP surface)
-_canonical_names = set(_public_tool_names())
-_CANONICAL_TOOL_IMPLEMENTATIONS = {
-    k: v for k, v in FINAL_TOOL_IMPLEMENTATIONS.items() if k in _canonical_names
-}
+_CANONICAL_TOOL_IMPLEMENTATIONS = CANONICAL_TOOL_HANDLERS
 from fastapi import FastAPI
 from fastmcp import FastMCP
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -196,21 +193,8 @@ register_prompts(mcp)
 register_resources(mcp)
 register_rest_routes(mcp, _CANONICAL_TOOL_IMPLEMENTATIONS)
 
-# Register ChatGPT Deep Research tools (search + fetch)
-try:
-    logger.info("[ChatGPT] Attempting to register tools...")
-    from arifosmcp.runtime.chatgpt_integration import (
-        register_chatgpt_app_tools,
-        register_chatgpt_tools,
-    )
-    logger.info("[ChatGPT] Import successful")
-    register_chatgpt_tools(mcp)
-    register_chatgpt_app_tools(mcp)
-    logger.info("[ChatGPT] Deep Research tools registered (search + fetch)")
-except Exception as e:
-    import traceback
-    logger.warning(f"[ChatGPT] Could not register tools: {e}")
-    logger.warning(f"[ChatGPT] Traceback: {traceback.format_exc()}")
+# ChatGPT integrations are intentionally not registered on the public MCP surface.
+# They are available as internal helpers but do not appear in tools/list.
 
 # THEN create the app with all routes included
 # FastMCP 2.x/3.x compatibility
