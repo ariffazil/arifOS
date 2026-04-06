@@ -66,33 +66,8 @@ def _ensure_vault_exists():
 if not _USE_REDIS_VAULT:
     _ensure_vault_exists()
 
-TOOL_MAP = {
-    "init_anchor": "anchor_session",
-    "arifOS_kernel": "metabolic_loop",
-    "arifOS.kernel": "metabolic_loop",
-    "metabolic_loop_router": "metabolic_loop",
-    "agi_reason": "reason_mind",
-    "agi_reflect": "session_memory",
-    "asi_critique": "critique_thought",
-    "asi_simulate": "simulate_heart",
-    "apex_judge": "apex_judge",
-    "vault_seal": "seal_vault",
-    "verify_vault_ledger": "verify_vault_ledger",
-    "reality_check": "search_reality",
-    "search_reality": "search_reality",
-    "open_web_page": "ingest_evidence",
-    "ingest_evidence": "ingest_evidence",
-    "agentzero_engineer": "agentzero_engineer",
-    "agentzero_validate": "agentzero_validate",
-    "reality_atlas": "reality_atlas",
-    "check_vital": "sense_health",
-    "sense_health": "sense_health",
-    "audit_rules": "system_audit",
-    "office_forge_audit": "office_forge_audit",
-    "forge_office_document": "office_forge",
-    "ollama_local_generate": "ollama_local_generate",
-    "trace_replay": "trace_replay",
-}
+# Legacy TOOL_MAP removed — these mappings are no longer used.
+# Tool routing is now handled by ToolDispatcher in dispatcher.py.
 
 
 def _resolve_tool_input(payload: dict[str, Any], *keys: str) -> str:
