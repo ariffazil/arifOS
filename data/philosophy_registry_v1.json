@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "registry_version": "1.0.0",
+  "registry_version": "1.1.0",
   "quotes": [
     {
       "id": "AW-01",
@@ -298,6 +298,348 @@
       "era": "Contemporary",
       "category": "seal",
       "tags": ["forged", "seal", "motto", "arifos"]
+    },
+    {
+      "id": "MS-09",
+      "text": "In any consistent formal system, there are statements that are true but unprovable.",
+      "author": "Kurt Gödel",
+      "civilization": "Modern_Scientific",
+      "era": "Modern",
+      "category": "void",
+      "tags": ["incompleteness", "logic", "limits"]
+    },
+    {
+      "id": "MS-10",
+      "text": "The concept of truth cannot be defined within the language to which it applies.",
+      "author": "Alfred Tarski",
+      "civilization": "Modern_Scientific",
+      "era": "Modern",
+      "category": "truth",
+      "tags": ["semantics", "truth", "meta"]
+    },
+    {
+      "id": "MS-11",
+      "text": "The whole problem with the world is that fools and fanatics are always so certain of themselves.",
+      "author": "Bertrand Russell",
+      "civilization": "Modern_Scientific",
+      "era": "Modern",
+      "category": "wisdom",
+      "tags": ["certainty", "doubt", "fanaticism"]
+    },
+    {
+      "id": "MS-12",
+      "text": "Whereof one cannot speak, thereof one must be silent.",
+      "author": "Ludwig Wittgenstein",
+      "civilization": "Modern_Scientific",
+      "era": "Modern",
+      "category": "void",
+      "tags": ["silence", "limits", "language"]
+    },
+    {
+      "id": "MS-13",
+      "text": "The limits of my language mean the limits of my world.",
+      "author": "Ludwig Wittgenstein",
+      "civilization": "Modern_Scientific",
+      "era": "Modern",
+      "category": "truth",
+      "tags": ["language", "world", "silence"]
+    },
+    {
+      "id": "MS-14",
+      "text": "Science must begin with myths, and with the criticism of myths.",
+      "author": "Karl Popper",
+      "civilization": "Modern_Scientific",
+      "era": "Modern",
+      "category": "paradox",
+      "tags": ["science", "falsification", "myth"]
+    },
+    {
+      "id": "MS-15",
+      "text": "Normal science does not aim at novelties of fact or theory and, when successful, finds none.",
+      "author": "Thomas Kuhn",
+      "civilization": "Modern_Scientific",
+      "era": "Contemporary",
+      "category": "paradox",
+      "tags": ["paradigm", "normal", "revolution"]
+    },
+    {
+      "id": "MS-16",
+      "text": "Research programmes may be progressive or degenerating.",
+      "author": "Imre Lakatos",
+      "civilization": "Modern_Scientific",
+      "era": "Contemporary",
+      "category": "discipline",
+      "tags": ["science", "progress", "degeneration"]
+    },
+    {
+      "id": "MS-17",
+      "text": "The only principle that does not inhibit progress is: anything goes.",
+      "author": "Paul Feyerabend",
+      "civilization": "Modern_Scientific",
+      "era": "Contemporary",
+      "category": "paradox",
+      "tags": ["anarchism", "method", "science"]
+    },
+    {
+      "id": "MS-18",
+      "text": "Instead of trying to produce a programme to simulate the adult mind, why not rather try to produce one which simulates the child's?",
+      "author": "Alan Turing",
+      "civilization": "Modern_Scientific",
+      "era": "Modern",
+      "category": "wisdom",
+      "tags": ["ai", "learning", "child"]
+    },
+    {
+      "id": "MS-19",
+      "text": "Anyone who considers arithmetical methods of producing random digits is, of course, in a state of sin.",
+      "author": "John von Neumann",
+      "civilization": "Modern_Scientific",
+      "era": "Modern",
+      "category": "truth",
+      "tags": ["random", "sin", "computation"]
+    },
+    {
+      "id": "MS-20",
+      "text": "You cannot prove that a program is elegant.",
+      "author": "Gregory Chaitin",
+      "civilization": "Modern_Scientific",
+      "era": "Contemporary",
+      "category": "void",
+      "tags": ["elegance", "proof", "limits"]
+    },
+    {
+      "id": "MS-21",
+      "text": "The fundamental problem of communication is that of reproducing at one point either exactly or approximately a message selected at another point.",
+      "author": "Claude Shannon",
+      "civilization": "Modern_Scientific",
+      "era": "Modern",
+      "category": "truth",
+      "tags": ["information", "communication", "channel"]
+    },
+    {
+      "id": "MS-22",
+      "text": "We are but whirlpools in a river of ever-flowing water.",
+      "author": "Norbert Wiener",
+      "civilization": "Modern_Scientific",
+      "era": "Modern",
+      "category": "paradox",
+      "tags": ["cybernetics", "flow", "identity"]
+    },
+    {
+      "id": "MS-23",
+      "text": "Order out of chaos.",
+      "author": "Ilya Prigogine",
+      "civilization": "Modern_Scientific",
+      "era": "Contemporary",
+      "category": "power",
+      "tags": ["entropy", "dissipative", "structure"]
+    },
+    {
+      "id": "MS-24",
+      "text": "The absence of evidence is not evidence of absence.",
+      "author": "Nassim Nicholas Taleb",
+      "civilization": "Modern_Scientific",
+      "era": "Contemporary",
+      "category": "truth",
+      "tags": ["black", "swan", "evidence"]
+    },
+    {
+      "id": "EE-07",
+      "text": "I think, therefore I am.",
+      "author": "René Descartes",
+      "civilization": "European_Enlightenment",
+      "era": "Enlightenment",
+      "category": "truth",
+      "tags": ["cogito", "existence", "certainty"]
+    },
+    {
+      "id": "EE-08",
+      "text": "Freedom is understanding necessity.",
+      "author": "Baruch Spinoza",
+      "civilization": "European_Enlightenment",
+      "era": "Enlightenment",
+      "category": "discipline",
+      "tags": ["freedom", "necessity", "ethics"]
+    },
+    {
+      "id": "EE-09",
+      "text": "Man is equally incapable of seeing the nothingness from which he emerges and the infinity in which he is engulfed.",
+      "author": "Blaise Pascal",
+      "civilization": "European_Enlightenment",
+      "era": "Enlightenment",
+      "category": "void",
+      "tags": ["infinity", "nothingness", "terror"]
+    },
+    {
+      "id": "EE-10",
+      "text": "Man can do what he wills but he cannot will what he wills.",
+      "author": "Arthur Schopenhauer",
+      "civilization": "European_Enlightenment",
+      "era": "Enlightenment",
+      "category": "paradox",
+      "tags": ["will", "determinism", "freedom"]
+    },
+    {
+      "id": "MP-05",
+      "text": "The curious task of economics is to demonstrate to men how little they really know about what they imagine they can design.",
+      "author": "Friedrich Hayek",
+      "civilization": "Modern_Political",
+      "era": "Modern",
+      "category": "wisdom",
+      "tags": ["economics", "knowledge", "design"]
+    },
+    {
+      "id": "MP-06",
+      "text": "There is only one way to avoid criticism: do nothing, say nothing, and be nothing.",
+      "author": "Aristotle",
+      "civilization": "Ancient_West",
+      "era": "Classical",
+      "category": "discipline",
+      "tags": ["criticism", "action", "virtue"]
+    },
+    {
+      "id": "AE-04",
+      "text": "Knowing others is intelligence; knowing yourself is true wisdom.",
+      "author": "Laozi",
+      "civilization": "Ancient_East",
+      "era": "Ancient",
+      "category": "wisdom",
+      "tags": ["self", "knowledge", "tao"]
+    },
+    {
+      "id": "AE-05",
+      "text": "The man who asks a question is a fool for a minute, the man who does not ask is a fool for life.",
+      "author": "Confucius",
+      "civilization": "Ancient_East",
+      "era": "Ancient",
+      "category": "wisdom",
+      "tags": ["question", "fool", "learning"]
+    },
+    {
+      "id": "AE-06",
+      "text": "In the midst of chaos, there is also opportunity.",
+      "author": "Sun Tzu",
+      "civilization": "Ancient_East",
+      "era": "Classical",
+      "category": "power",
+      "tags": ["chaos", "opportunity", "strategy"]
+    },
+    {
+      "id": "AW-07",
+      "text": "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+      "author": "Aristotle",
+      "civilization": "Ancient_West",
+      "era": "Classical",
+      "category": "discipline",
+      "tags": ["habit", "excellence", "virtue"]
+    },
+    {
+      "id": "AW-08",
+      "text": "The unexamined life is not worth living.",
+      "author": "Socrates",
+      "civilization": "Ancient_West",
+      "era": "Classical",
+      "category": "wisdom",
+      "tags": ["examination", "life", "worth"]
+    },
+    {
+      "id": "AW-09",
+      "text": "Fortune favors the bold.",
+      "author": "Virgil",
+      "civilization": "Ancient_West",
+      "era": "Classical",
+      "category": "power",
+      "tags": ["fortune", "bold", "courage"]
+    },
+    {
+      "id": "AW-10",
+      "text": "A room without books is like a body without a soul.",
+      "author": "Cicero",
+      "civilization": "Ancient_West",
+      "era": "Classical",
+      "category": "wisdom",
+      "tags": ["books", "soul", "knowledge"]
+    },
+    {
+      "id": "EE-11",
+      "text": "Man is born free, and everywhere he is in chains.",
+      "author": "Jean-Jacques Rousseau",
+      "civilization": "European_Enlightenment",
+      "era": "Enlightenment",
+      "category": "paradox",
+      "tags": ["freedom", "chains", "society"]
+    },
+    {
+      "id": "EE-12",
+      "text": "Hell is other people.",
+      "author": "Jean-Paul Sartre",
+      "civilization": "European_Enlightenment",
+      "era": "Modern",
+      "category": "void",
+      "tags": ["hell", "others", "gaze"]
+    },
+    {
+      "id": "MP-07",
+      "text": "One death is a tragedy; one million is a statistic.",
+      "author": "Joseph Stalin",
+      "civilization": "Modern_Political",
+      "era": "Modern",
+      "category": "truth",
+      "tags": ["death", "statistics", "scale"]
+    },
+    {
+      "id": "MP-08",
+      "text": "Those who cannot remember the past are condemned to repeat it.",
+      "author": "George Santayana",
+      "civilization": "Modern_Political",
+      "era": "Modern",
+      "category": "wisdom",
+      "tags": ["history", "memory", "repetition"]
+    },
+    {
+      "id": "CG-06",
+      "text": "The arc of the moral universe is long, but it bends toward justice.",
+      "author": "Martin Luther King Jr.",
+      "civilization": "Contemporary_Global",
+      "era": "Contemporary",
+      "category": "justice",
+      "tags": ["arc", "moral", "justice"]
+    },
+    {
+      "id": "CG-07",
+      "text": "It is no measure of health to be well adjusted to a profoundly sick society.",
+      "author": "J. Krishnamurti",
+      "civilization": "Contemporary_Global",
+      "era": "Contemporary",
+      "category": "truth",
+      "tags": ["health", "adjustment", "society"]
+    },
+    {
+      "id": "CG-08",
+      "text": "We do not see things as they are, we see them as we are.",
+      "author": "Anaïs Nin",
+      "civilization": "Contemporary_Global",
+      "era": "Contemporary",
+      "category": "truth",
+      "tags": ["perception", "projection", "self"]
+    },
+    {
+      "id": "CG-09",
+      "text": "Courage is not the absence of fear, but rather the assessment that something else is more important than fear.",
+      "author": "Franklin D. Roosevelt",
+      "civilization": "Modern_Political",
+      "era": "Modern",
+      "category": "discipline",
+      "tags": ["courage", "fear", "priority"]
+    },
+    {
+      "id": "CG-10",
+      "text": "Prediction is very difficult, especially if it's about the future.",
+      "author": "Niels Bohr",
+      "civilization": "Modern_Scientific",
+      "era": "Modern",
+      "category": "paradox",
+      "tags": ["prediction", "future", "quantum"]
     }
   ]
 }
