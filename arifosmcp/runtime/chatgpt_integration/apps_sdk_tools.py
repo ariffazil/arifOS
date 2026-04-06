@@ -218,6 +218,29 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
             },
         }
 
+    @mcp.tool(
+        name="get_constitutional_health",
+        title="Get Constitutional Health",
+        description="Read-only constitutional health snapshot. Returns F1-F13 floor status, telemetry, and widget URI.",
+        annotations={"readOnlyHint": True},
+    )
+    async def _get_constitutional_health(session_id: str = "global") -> dict[str, Any]:
+        from arifosmcp.runtime.tools import get_constitutional_health as _gch
+        result = await _gch(session_id=session_id)
+        if hasattr(result, "model_dump"):
+            return result.model_dump(mode="json")
+        return result if isinstance(result, dict) else {"result": str(result)}
+
+    @mcp.tool(
+        name="list_recent_verdicts",
+        title="List Recent Verdicts",
+        description="Read-only summary of the most recent constitutional verdicts. Phase 1: no write path exposed.",
+        annotations={"readOnlyHint": True},
+    )
+    async def _list_recent_verdicts(limit: int = 5) -> list:
+        from arifosmcp.runtime.tools import list_recent_verdicts as _lrv
+        return await _lrv(limit=limit)
+
 
 async def render_vault_seal(seal_data: dict[str, Any]) -> dict[str, Any]:
     """Render the arifOS constitutional health check widget from structured seal data."""

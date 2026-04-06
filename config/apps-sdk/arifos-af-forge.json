@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0",
+  "name": "arifOS Constitutional AI",
+  "description": "Constitutional AI governance system with read-only health monitoring",
+  "endpoint": {
+    "url": "https://arifos.federation/mcp",
+    "transport": "streamable-http",
+    "protocol_version": "2025-11-25"
+  },
+  "tools": [
+    {
+      "name": "get_constitutional_health",
+      "description": "Get current constitutional health status including telemetry and floor scores",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "render_vault_seal",
+      "description": "Render the vault seal widget with constitutional verification",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "list_recent_verdicts",
+      "description": "List recent constitutional verdicts from the vault",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "ui://arifos/vault-seal-widget.html",
+      "mime_type": "text/html;profile=mcp-app",
+      "name": "Vault Seal Widget",
+      "description": "Constitutional health visualization widget for ChatGPT Apps"
+    }
+  ],
+  "capabilities": {
+    "streaming": true,
+    "widgets": true,
+    "read_only": true
+  },
+  "verification": {
+    "build_endpoint": "https://arifos.federation/build",
+    "health_endpoint": "https://arifos.federation/health",
+    "ready_endpoint": "https://arifos.federation/ready"
+  }
+}

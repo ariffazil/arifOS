@@ -224,6 +224,14 @@ def _run_minimal_stdio_server() -> None:
 
 
 def main() -> None:
+    # Accept ARIFOS_MCP_* env vars as deployment-friendly aliases
+    if not os.getenv("AAA_MCP_TRANSPORT") and os.getenv("ARIFOS_MCP_TRANSPORT"):
+        os.environ["AAA_MCP_TRANSPORT"] = os.environ["ARIFOS_MCP_TRANSPORT"]
+    if not os.getenv("HOST") and os.getenv("ARIFOS_MCP_HOST"):
+        os.environ["HOST"] = os.environ["ARIFOS_MCP_HOST"]
+    if not os.getenv("PORT") and os.getenv("ARIFOS_MCP_PORT"):
+        os.environ["PORT"] = os.environ["ARIFOS_MCP_PORT"]
+
     _bootstrap_environment()
 
     mode = (sys.argv[1] if len(sys.argv) > 1 else os.getenv("AAA_MCP_TRANSPORT", "stdio")).lower()

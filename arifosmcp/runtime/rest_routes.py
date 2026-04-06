@@ -1172,7 +1172,11 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
     async def root(request: Request) -> Response:
         accept = request.headers.get("Accept", "")
         if "text/html" in accept:
-            return HTMLResponse(WELCOME_HTML)
+            # Redirect to dashboard for browser requests
+            return Response(
+                status_code=307,
+                headers={"Location": "/dashboard/index.html"}
+            )
         return JSONResponse(
             {
                 "service": "arifOS AAA Functional MCP Server",
@@ -1181,13 +1185,15 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
                 "mcp_endpoint": "/mcp",
                 "tools_endpoint": "/tools",
                 "health_endpoint": "/health",
+                "dashboard_endpoint": "/dashboard",
+                "widget_endpoint": "/ui",
                 "tool_count": len(tool_registry),
                 "tools": list(tool_registry.keys()),
             }
         )
 
     # Load AAA landing page HTML
-    AAA_LANDING_HTML_PATH = "/usr/src/app/static/aaa-landing/index.html"
+    AAA_LANDING_HTML_PATH = "/usr/src/project/static/aaa-landing/index.html"
     AAA_LANDING_HTML = ""
     try:
         with open(AAA_LANDING_HTML_PATH) as f:
@@ -1273,6 +1279,7 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
 
     @route("/health", methods=["GET"])
     async def health(request: Request) -> Response:
+        """Liveness probe - minimal OK response."""
         return JSONResponse(
             {
                 "status": "healthy",
@@ -1281,6 +1288,40 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
                 "transport": "streamable-http",
                 "tools_loaded": len(tool_registry),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+            headers={"Access-Control-Allow-Origin": "*"},
+        )
+
+    @route("/ready", methods=["GET"])
+    async def ready(request: Request) -> Response:
+        """Readiness probe - checks if server is ready to accept traffic."""
+        # Basic readiness: check if tools are loaded
+        is_ready = len(tool_registry) > 0
+        return JSONResponse(
+            {
+                "ready": is_ready,
+                "status": "ready" if is_ready else "not_ready",
+                "service": "arifos-aaa-mcp",
+                "tools_loaded": len(tool_registry),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+            headers={"Access-Control-Allow-Origin": "*"},
+        )
+
+    @route("/build", methods=["GET"])
+    async def build_info(request: Request) -> Response:
+        """Build provenance endpoint - returns deployment metadata."""
+        tool_names = sorted(tool_registry.keys()) if tool_registry else []
+        return JSONResponse(
+            {
+                "name": BUILD_INFO.get("name", "arifOS MCP"),
+                "version": BUILD_INFO["version"],
+                "build_sha": BUILD_INFO.get("build_sha", "unknown"),
+                "build_time": BUILD_INFO.get("build_time", "unknown"),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "transport": BUILD_INFO.get("transport", "streamable-http"),
+                "tools": tool_names,
+                "tool_count": len(tool_names),
             },
             headers={"Access-Control-Allow-Origin": "*"},
         )

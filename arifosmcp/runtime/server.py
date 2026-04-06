@@ -193,13 +193,18 @@ register_prompts(mcp)
 register_resources(mcp)
 register_rest_routes(mcp, _CANONICAL_TOOL_IMPLEMENTATIONS)
 
-# ChatGPT integrations are intentionally not registered on the public MCP surface.
-# They are available as internal helpers but do not appear in tools/list.
+# ChatGPT Apps SDK integration (internal tools for widget rendering)
+try:
+    from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import register_chatgpt_app_tools
+    register_chatgpt_app_tools(mcp)
+except Exception as e:
+    logger.warning(f"ChatGPT Apps SDK not registered: {e}")
 
 # THEN create the app with all routes included
 # FastMCP 2.x/3.x compatibility
+# NOTE: stateless_http=False ensures SSE responses for ChatGPT Apps SDK compatibility
 if IS_FASTMCP_3:
-    app = mcp.http_app(stateless_http=True)
+    app = mcp.http_app(stateless_http=False)
 elif IS_FASTMCP_2:
     # 2.x uses streamable_http_app() or direct mounting
     try:
@@ -233,6 +238,14 @@ def _attach_protocol_apps() -> None:
     """
     if not hasattr(app, "mount"):
         return
+
+    # Mount static files FIRST (before fallbacks)
+    from starlette.staticfiles import StaticFiles
+    
+    # Dashboard and widgets (static files are in /usr/src/project/static/)
+    app.mount("/dashboard", StaticFiles(directory="/usr/src/project/static/dashboard", html=True), name="dashboard")
+    app.mount("/ui", StaticFiles(directory="/usr/src/project/static/widgets", html=True), name="ui")
+    app.mount("/widgets", StaticFiles(directory="/usr/src/project/static/widgets", html=True), name="widgets")
 
     try:
         from arifosmcp.runtime.a2a import create_a2a_server
