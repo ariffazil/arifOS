@@ -18,6 +18,7 @@ from arifosmcp.runtime.prompts import register_prompts
 from arifosmcp.runtime.resources import register_resources
 from arifosmcp.runtime.rest_routes import register_rest_routes
 from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS, register_tools
+from arifosmcp.runtime.tools_v2 import V2_TOOL_HANDLERS as _V2_TOOL_HANDLERS
 from arifosmcp.runtime.public_registry import public_tool_names as _public_tool_names
 
 # ChatGPT Apps SDK tools ENABLED (12 total tools: 9 canonical + 3 ChatGPT)
@@ -37,8 +38,9 @@ try:
 except ImportError as e:
     logger.warning(f"Could not import ChatGPT tools: {e}")
 
-# REST surface: canonical tools + ChatGPT Apps SDK tools (12 total)
-_CANONICAL_TOOL_IMPLEMENTATIONS = {**CANONICAL_TOOL_HANDLERS, **_CHATGPT_TOOLS}
+# REST surface: v2 tools with clean signatures + ChatGPT Apps SDK tools (13 total)
+# Using V2_TOOL_HANDLERS which have clean signatures AND seal output envelopes
+_CANONICAL_TOOL_IMPLEMENTATIONS = {**_V2_TOOL_HANDLERS, **_CHATGPT_TOOLS}
 from fastapi import FastAPI
 from fastmcp import FastMCP
 from starlette.middleware.base import BaseHTTPMiddleware

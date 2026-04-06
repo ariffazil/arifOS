@@ -22,6 +22,7 @@ def get_build_info() -> dict[str, Any]:
     """
     return {
         # Primary version - semantic versioning for server releases
+        "version": "2.0.0",  # Required by A2A/WebMCP
         "server_version": "2.0.0",
         
         # MCP protocol compatibility
