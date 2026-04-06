@@ -1328,16 +1328,13 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
 
     @route("/tools", methods=["GET"])
     async def list_tools(request: Request) -> Response:
-        """List only canonical tools - NO legacy aliases, NO sub-modes as tools."""
-        from arifosmcp.runtime.contracts import AAA_TOOL_ALIASES
-        
+        """List all registered tools from the canonical registry."""
         mcp_tools = await mcp.list_tools()
         tool_list = []
-        legacy_aliases = set(AAA_TOOL_ALIASES.keys())
         
         for tool in mcp_tools:
-            # Only include if in canonical registry AND not a legacy alias
-            if tool.name in tool_registry and tool.name not in legacy_aliases:
+            # Include all tools from the canonical registry
+            if tool.name in tool_registry:
                 tool_list.append(
                     {
                         "name": tool.name,
@@ -1349,6 +1346,39 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
         # Sort for consistent output
         tool_list.sort(key=lambda t: t["name"])
         return JSONResponse({"tools": tool_list, "count": len(tool_list)})
+
+    @route("/resources", methods=["GET"])
+    async def list_resources(request: Request) -> Response:
+        """List all registered resources."""
+        try:
+            resources = await mcp.list_resources()
+            resource_list = []
+            for r in resources:
+                resource_list.append({
+                    "uri": r.uri,
+                    "name": r.name if hasattr(r, 'name') else r.uri,
+                    "description": r.description if hasattr(r, 'description') else "",
+                    "mimeType": r.mime_type if hasattr(r, 'mime_type') else "application/json",
+                })
+            return JSONResponse({"resources": resource_list, "count": len(resource_list)})
+        except Exception as e:
+            return JSONResponse({"resources": [], "count": 0, "error": str(e)})
+
+    @route("/prompts", methods=["GET"])
+    async def list_prompts(request: Request) -> Response:
+        """List all registered prompts."""
+        try:
+            prompts = await mcp.list_prompts()
+            prompt_list = []
+            for p in prompts:
+                prompt_list.append({
+                    "name": p.name,
+                    "description": p.description if hasattr(p, 'description') else "",
+                    "arguments": p.arguments if hasattr(p, 'arguments') else [],
+                })
+            return JSONResponse({"prompts": prompt_list, "count": len(prompt_list)})
+        except Exception as e:
+            return JSONResponse({"prompts": [], "count": 0, "error": str(e)})
 
     @route("/openapi.json", methods=["GET"])
     async def openapi_json(request: Request) -> Response:
