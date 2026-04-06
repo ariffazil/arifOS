@@ -1,60 +1,70 @@
-"""Build information for arifOS AAA MCP."""
+"""Build information for arifOS MCP Server.
+
+Versioning Strategy:
+- server_version: Semantic version for the MCP server release (2.0.0)
+- protocol_version: MCP protocol compatibility (2025-03-26)
+- governance_version: Registry/constitutional layer version (registry-1.2.0)
+- build: Commit hash and build timestamp for traceability
+"""
 
 from __future__ import annotations
 
-import os
 from datetime import datetime, timezone
-from functools import lru_cache
 from typing import Any
-
-from .public_registry import release_version_label
-
-
-@lru_cache(maxsize=1)
-def _resolve_commit() -> str:
-    """Resolve git commit SHA from env var (set by deployment), else 'unknown'."""
-    # Primary: ARIFOS_BUILD_SHA (AF-FORGE deployment standard)
-    if c := os.environ.get("ARIFOS_BUILD_SHA", "").strip():
-        return c[:8]
-    # Legacy: GIT_COMMIT
-    if c := os.environ.get("GIT_COMMIT", "").strip():
-        return c[:8]
-    # Fallback: .git_commit file written by Makefile hot-restart
-    for path in ("/usr/src/app/.git_commit", "/app/.git_commit", "/app/.git_commit"):
-        try:
-            with open(path) as f:
-                return f.read().strip()[:8]
-        except OSError:
-            pass
-    return "unknown"
-
-
-def _resolve_build_time() -> str:
-    """Resolve build time from env var, else current time."""
-    return os.environ.get("ARIFOS_BUILD_TIME", datetime.now(timezone.utc).isoformat())
-
-
-def _resolve_version() -> str:
-    """Resolve version from env var, else from registry."""
-    return os.environ.get("ARIFOS_APP_VERSION", release_version_label())
-
-
-def _resolve_transport() -> str:
-    """Resolve current transport mode."""
-    return os.environ.get("ARIFOS_MCP_TRANSPORT", "streamable-http")
 
 
 def get_build_info() -> dict[str, Any]:
-    """Return version and environment metadata — live timestamp on every call."""
+    """Return comprehensive version and environment metadata.
+    
+    Returns:
+        Dict with server_version, protocol_version, governance_version,
+        build metadata, and status information.
+    """
     return {
-        "name": "arifOS MCP",
-        "version": _resolve_version(),
-        "commit": _resolve_commit(),
-        "build_sha": _resolve_commit(),
-        "build_time": _resolve_build_time(),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        # Primary version - semantic versioning for server releases
+        "server_version": "2.0.0",
+        
+        # MCP protocol compatibility
+        "protocol_version": "2025-03-26",
+        "supported_protocol_versions": ["2025-03-26", "2024-11-05"],
+        
+        # Governance layer versioning (separate from server)
+        "governance_version": "registry-1.2.0",
+        "policy_version": "arifOS.constitution.v1",
+        "floors_version": "2026.04",
+        "floors_active": 13,
+        
+        # Build traceability
+        "build": {
+            "commit": "ab774bf8",
+            "commit_short": "ab774bf8",
+            "built_at": datetime.now(timezone.utc).isoformat(),
+            "branch": "main",
+        },
+        
+        # Status
         "status": "FORGED",
         "forge_date": "2026-04-06",
         "forge_word": "FORGE",
-        "transport": _resolve_transport(),
+        
+        # Display helpers
+        "display": {
+            "short": "2.0.0",
+            "full": "arifOS MCP 2.0.0",
+            "with_build": "2.0.0+ab774bf8.20260406",
+            "with_governance": "2.0.0 • Registry 1.2.0 • Policy v1",
+        }
     }
+
+
+def get_version_string(format: str = "short") -> str:
+    """Get a formatted version string.
+    
+    Args:
+        format: One of 'short', 'full', 'with_build', 'with_governance'
+    
+    Returns:
+        Formatted version string
+    """
+    info = get_build_info()
+    return info["display"].get(format, info["display"]["short"])

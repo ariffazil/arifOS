@@ -1,343 +1,519 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "arifOS.schema.v2",
-  "schema_version": "arifOS.schema.v2.0.0",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://arifosmcp.arif-fazil.com/schema/arifos.schema.json",
+  "title": "arifOS Canonical Tool Registry",
+  "description": "Context-rich semantic registry for all arifOS tools. This schema defines the complete operational context, authority boundaries, and lawful stage transitions for the governed intelligence kernel.",
+  "version": "arifOS.schema.v2.0.0",
   "system": {
     "name": "arifOS",
-    "full_name": "arifOS Sovereign Intelligence Kernel",
-    "description": "Governed multi-stage intelligence runtime with constitutional routing, Trinity separation of concerns, and hardened execution attestation.",
+    "fullname": "Adaptive Reasoning Intelligence Framework Operating System",
+    "desc": "Governed multi-stage intelligence runtime with constitutional routing and trinity-based separation of concerns.",
     "motto": "DITEMPA, BUKAN DIBERI.",
     "default_policy_version": "arifOS.constitution.v1",
-    "registry_version": "2.0.0",
-    "total_tools": 10,
-    "governance_layers": 4
-  },
-  "stage_order": [
-    "000_INIT",
-    "111_SENSE",
-    "333_MIND",
-    "444_ROUTER",
-    "555_MEMORY",
-    "666_HEART",
-    "777_OPS",
-    "888_JUDGE",
-    "999_VAULT",
-    "FORGE_010"
-  ],
-  "stages": {
-    "000_INIT": {
-      "name": "INIT",
-      "description": "Session establishment and actor binding",
-      "order": 0,
-      "trinity": "Ψ",
-      "floor_range": ["F1", "F2"],
-      "purpose": "Establish session continuity, verify identity, initialize governance context",
-      "hard_requirements": ["session_id", "actor_id"],
-      "emits": ["session_context", "continuity_contract"]
-    },
-    "111_SENSE": {
-      "name": "SENSE",
-      "description": "Reality grounding and evidence collection",
-      "order": 1,
-      "trinity": "Δ",
-      "floor_range": ["F3", "F4"],
-      "purpose": "Ground tasks in time, source evidence, and environmental facts",
-      "hard_requirements": ["query"],
-      "emits": ["grounded_context", "evidence_bundle", "uncertainty_markers"]
-    },
-    "333_MIND": {
-      "name": "MIND",
-      "description": "Structured reasoning and synthesis",
-      "order": 2,
-      "trinity": "Δ",
-      "floor_range": ["F5", "F6"],
-      "purpose": "Synthesize, compare, reason, and design candidate solutions",
-      "hard_requirements": ["query", "context"],
-      "emits": ["reasoned_synthesis", "candidate_actions", "risk_indicators"]
-    },
-    "444_ROUTER": {
-      "name": "ROUTER",
-      "description": "The Kernel - intelligent routing",
-      "order": 3,
-      "trinity": "Ψ",
-      "floor_range": ["F7", "F8"],
-      "purpose": "Route requests to correct lane based on task profile and risk tier",
-      "hard_requirements": ["task_profile"],
-      "emits": ["routing_decision", "lane_assignment", "resource_allocation"]
-    },
-    "555_MEMORY": {
-      "name": "MEMORY",
-      "description": "Governed memory retrieval and storage",
-      "order": 4,
-      "trinity": "Ω",
-      "floor_range": ["F9", "F10"],
-      "purpose": "Store and retrieve governed episodic, semantic, and engineering memory",
-      "hard_requirements": ["session_id", "query"],
-      "emits": ["retrieved_context", "memory_candidates", "confidence_scores"]
-    },
-    "666_HEART": {
-      "name": "HEART",
-      "description": "Safety critique and stress testing",
-      "order": 5,
-      "trinity": "Ω",
-      "floor_range": ["F10", "F11"],
-      "purpose": "Stress test proposals for safety, dignity, misuse, and instability",
-      "hard_requirements": ["candidate_action"],
-      "emits": ["safety_assessment", "stress_test_results", "concern_flags"]
-    },
-    "777_OPS": {
-      "name": "OPS",
-      "description": "Cost estimation and thermodynamics",
-      "order": 6,
-      "trinity": "Ω",
-      "floor_range": ["F4", "F5"],
-      "purpose": "Estimate cost, system burden, entropy, capacity, runtime health",
-      "hard_requirements": ["action_spec"],
-      "emits": ["cost_estimate", "resource_projection", "health_metrics"]
-    },
-    "888_JUDGE": {
-      "name": "JUDGE",
-      "description": "Constitutional verdict engine",
-      "order": 7,
-      "trinity": "Ψ",
-      "floor_range": ["F12", "F13"],
-      "purpose": "Apply constitutional gate to candidate action and return verdict",
-      "hard_requirements": ["candidate_action", "telemetry", "risk_tier"],
-      "emits": ["verdict", "rationale", "conditions"]
-    },
-    "999_VAULT": {
-      "name": "VAULT",
-      "description": "Immutable seal and ledger",
-      "order": 8,
-      "trinity": "Ψ",
-      "floor_range": ["F1", "F13"],
-      "purpose": "Seal final governed records into immutable ledger with hash verification",
-      "hard_requirements": ["verdict", "session_id"],
-      "emits": ["seal_record", "integrity_proof", "audit_hash"]
-    },
-    "FORGE_010": {
-      "name": "FORGE",
-      "description": "Execution bridge with attestation",
-      "order": 9,
-      "trinity": "Δ",
-      "floor_range": ["F1", "F11", "F13"],
-      "purpose": "Bridge governed decisions to controlled execution environment",
-      "hard_requirements": ["execution_envelope", "SEAL_verdict"],
-      "emits": ["execution_result", "attestation_proof", "side_effect_log"]
-    }
+    "default_language": "en-MY",
+    "stage_order": [
+      "000_INIT",
+      "111_SENSE",
+      "333_MIND",
+      "444_ROUTER",
+      "555_MEMORY",
+      "666_HEART",
+      "777_OPS",
+      "888_JUDGE",
+      "999_VAULT",
+      "FORGE_010"
+    ]
   },
   "trinity": {
     "Δ": {
       "symbol": "Δ",
       "name": "Discernment",
-      "function": "Reality grounding, sensing, reasoning, controlled execution design",
-      "domains": ["epistemics", "synthesis", "design", "execution_bridge"],
-      "dominant_stages": ["111_SENSE", "333_MIND", "FORGE_010"],
+      "scope": "Reality grounding, reasoning, execution design",
+      "function": "Epistemic layer — perceiving, understanding, and designing actions grounded in reality",
       "dominant_tools": ["arifos.sense", "arifos.mind", "arifos.forge"],
-      "color": "#3B82F6",
-      "concern": "What is true? What can be built? How do we execute safely?"
+      "virtue": "Clarity through inquiry",
+      "risk": "Hallucination, ungrounded reasoning"
     },
     "Ψ": {
       "symbol": "Ψ",
       "name": "Sovereignty",
-      "function": "Session continuity, routing, judgment, seal integrity",
-      "domains": ["governance", "identity", "verdict", "immutability"],
-      "dominant_stages": ["000_INIT", "444_ROUTER", "888_JUDGE", "999_VAULT"],
+      "scope": "Session continuity, routing, judgment, seal integrity",
+      "function": "Executive layer — maintaining identity, routing decisions, and constitutional governance",
       "dominant_tools": ["arifos.init", "arifos.route", "arifos.judge", "arifos.vault"],
-      "color": "#8B5CF6",
-      "concern": "Who decides? What is permitted? What is preserved?"
+      "virtue": "Integrity through accountability",
+      "risk": "Tyranny, unaccountable authority"
     },
     "Ω": {
       "symbol": "Ω",
       "name": "Stability",
-      "function": "Safety critique, memory discipline, cost-awareness, reliability",
-      "domains": ["safety", "memory", "thermodynamics", "resilience"],
-      "dominant_stages": ["555_MEMORY", "666_HEART", "777_OPS"],
+      "scope": "Memory discipline, safety critique, cost-awareness, reliability",
+      "function": "Preservation layer — safeguarding against harm, entropy, and instability",
       "dominant_tools": ["arifos.memory", "arifos.heart", "arifos.ops"],
-      "color": "#10B981",
-      "concern": "What could go wrong? What do we remember? What does it cost?"
-    }
-  },
-  "transitions": {
-    "000_INIT": {
-      "can_proceed_to": ["111_SENSE", "444_ROUTER"],
-      "requirements": ["session_established"]
-    },
-    "111_SENSE": {
-      "can_proceed_to": ["333_MIND", "555_MEMORY", "444_ROUTER"],
-      "requirements": ["evidence_collected"]
-    },
-    "333_MIND": {
-      "can_proceed_to": ["666_HEART", "777_OPS", "888_JUDGE", "555_MEMORY"],
-      "requirements": ["synthesis_complete"]
-    },
-    "444_ROUTER": {
-      "can_proceed_to": ["111_SENSE", "333_MIND", "555_MEMORY", "666_HEART", "777_OPS"],
-      "requirements": ["routing_decision_made"]
-    },
-    "555_MEMORY": {
-      "can_proceed_to": ["333_MIND", "888_JUDGE"],
-      "requirements": ["memory_operation_complete"]
-    },
-    "666_HEART": {
-      "can_proceed_to": ["888_JUDGE"],
-      "requirements": ["safety_review_complete"],
-      "mandatory_before": ["FORGE_010"]
-    },
-    "777_OPS": {
-      "can_proceed_to": ["888_JUDGE"],
-      "requirements": ["cost_assessed"]
-    },
-    "888_JUDGE": {
-      "can_proceed_to": ["999_VAULT", "FORGE_010"],
-      "requirements": ["verdict_rendered"],
-      "verdicts": {
-        "SEAL": "Proceed to execution or vault",
-        "HOLD": "Human approval required",
-        "VOID": "Blocked - constitutional violation"
-      }
-    },
-    "999_VAULT": {
-      "can_proceed_to": [],
-      "requirements": ["record_sealed"],
-      "terminal": true
-    },
-    "FORGE_010": {
-      "can_proceed_to": ["999_VAULT"],
-      "requirements": ["SEAL_verdict", "HMAC_attestation"],
-      "hard_gate": "LAYER_3_ATTESTATION"
-    }
-  },
-  "verdicts": {
-    "SEAL": {
-      "symbol": "◉",
-      "description": "Approved - candidate action meets constitutional standards",
-      "consequence": "May proceed to execution (FORGE) or sealing (VAULT)",
-      "override_required": false,
-      "philosophy_override": "DITEMPA, BUKAN DIBERI."
-    },
-    "HOLD": {
-      "symbol": "⊘",
-      "description": "Suspended - requires human judgment",
-      "consequence": "Blocked pending human approval (888-HOLD)",
-      "override_required": true,
-      "human_action": "Review and explicitly approve/reject"
-    },
-    "VOID": {
-      "symbol": "⦻",
-      "description": "Rejected - constitutional violation detected",
-      "consequence": "HARD STOP - no further execution",
-      "override_required": false,
-      "bypass_possible": false
+      "virtue": "Resilience through vigilance",
+      "risk": "Paralysis, excessive caution"
     }
   },
   "shared_contracts": {
     "request_envelope": {
-      "schema": "arifOS.request.v1",
-      "description": "Unified input wrapper for all arifOS tools",
-      "required_fields": ["tool", "stage", "mode", "session", "payload"],
-      "optional_fields": ["intent", "governance", "context", "telemetry"]
+      "$ref": "./envelopes/request.envelope.schema.json",
+      "desc": "Universal request wrapper for all arifOS tool calls"
     },
     "response_envelope": {
-      "schema": "arifOS.response.v1",
-      "description": "Unified output wrapper for all arifOS tools",
-      "required_fields": ["tool", "stage", "status", "result"],
-      "optional_fields": ["governance", "context_out", "telemetry", "errors"]
+      "$ref": "./envelopes/response.envelope.schema.json",
+      "desc": "Universal response wrapper for all arifOS tool returns"
     },
     "context_packet": {
-      "schema": "arifOS.context_packet.v1",
-      "description": "Semantic identity and usage guidance for each tool",
-      "required_fields": ["tool_id", "stage", "trinity", "purpose"],
-      "optional_fields": ["when_to_use", "when_not_to_use", "chatgpt_guidance"]
+      "$ref": "./context_packets/context.packet.schema.json",
+      "desc": "Per-tool semantic identity and usage guidance"
+    },
+    "stage_transitions": {
+      "$ref": "./transitions.schema.json",
+      "desc": "Lawful stage machine transitions"
     }
   },
   "tools": {
     "arifos.init": {
-      "$ref": "registry/tools/arifos.init.json"
-    },
-    "arifos.sense": {
-      "$ref": "registry/tools/arifos.sense.json"
-    },
-    "arifos.mind": {
-      "$ref": "registry/tools/arifos.mind.json"
-    },
-    "arifos.route": {
-      "$ref": "registry/tools/arifos.route.json"
-    },
-    "arifos.memory": {
-      "$ref": "registry/tools/arifos.memory.json"
-    },
-    "arifos.heart": {
-      "$ref": "registry/tools/arifos.heart.json"
-    },
-    "arifos.ops": {
-      "$ref": "registry/tools/arifos.ops.json"
-    },
-    "arifos.judge": {
-      "$ref": "registry/tools/arifos.judge.json"
-    },
-    "arifos.vault": {
-      "$ref": "registry/tools/arifos.vault.json"
-    },
-    "arifos.forge": {
-      "$ref": "registry/tools/arifos.forge.json"
-    }
-  },
-  "alias_map": {
-    "arifos.init": {
+      "tool_id": "arifos.init",
+      "stage": "000_INIT",
+      "stage_order": 0,
+      "desc": "Session establishment",
+      "trinity": "Ψ",
+      "uri": "/arifOS/init_anchor",
       "backing_tool": "init_anchor",
-      "transport_uri": "/arifOS/runtime/init_anchor"
+      "role": "bootstrap",
+      "state_behavior": "writes_session_state",
+      "modes": ["init", "revoke", "refresh", "state", "status"],
+      "purpose": "Establish and maintain session continuity, actor binding, and identity attestation. Creates the foundational context for all subsequent operations.",
+      "when_to_use": [
+        "Starting a new conversation or session",
+        "Re-establishing identity after context loss",
+        "Need to verify session state or actor binding",
+        "Beginning any multi-turn governed workflow"
+      ],
+      "when_not_to_use": [
+        "Do not use mid-conversation without cause — creates discontinuity",
+        "Do not use for simple queries that don't need session state",
+        "Do not re-init when refresh suffices"
+      ],
+      "authority_model": {
+        "advisory_only": false,
+        "creates_session_authority": true,
+        "requires_human_confirmation": false,
+        "cannot_override_constitution": true
+      },
+      "mutability": {
+        "reads_state": false,
+        "writes_state": true,
+        "external_side_effects": false,
+        "creates_session": true
+      },
+      "required_context": ["actor_id", "declared_name"],
+      "emits_context": ["session_id", "session_token", "established_at", "g_star_baseline"],
+      "upstream": [],
+      "downstream": ["arifos.route", "arifos.sense", "arifos.mind"],
+      "context_packet_uri": "./context_packets/arifos.init.json"
     },
     "arifos.sense": {
+      "tool_id": "arifos.sense",
+      "stage": "111_SENSE",
+      "stage_order": 1,
+      "desc": "Reality grounding",
+      "trinity": "Δ",
+      "uri": "/arifOS/physics_reality",
       "backing_tool": "physics_reality",
-      "transport_uri": "/arifOS/runtime/physics_reality"
+      "role": "grounding",
+      "state_behavior": "read_mostly",
+      "modes": ["search", "ingest", "compass", "atlas", "time"],
+      "purpose": "Ground tasks in time, verifiable reality, source evidence, and environmental facts. Prevents hallucination by anchoring to external truth.",
+      "when_to_use": [
+        "Need current time, date, or temporal context",
+        "Need to verify external facts before reasoning",
+        "Task involves physical or empirical claims",
+        "Beginning complex analysis that requires reality anchoring"
+      ],
+      "when_not_to_use": [
+        "Do not use for pure logic or math without empirical component",
+        "Do not use as memory retrieval — use arifos.memory",
+        "Do not use for constitutional judgment — use arifos.judge"
+      ],
+      "authority_model": {
+        "advisory_only": true,
+        "provides_evidence": true,
+        "requires_human_confirmation": false,
+        "cannot_override_constitution": true
+      },
+      "mutability": {
+        "reads_state": true,
+        "writes_state": false,
+        "external_side_effects": false,
+        "creates_session": false
+      },
+      "required_context": ["session_id", "mode"],
+      "emits_context": ["temporal_context", "environmental_facts", "source_anchors"],
+      "upstream": ["arifos.init"],
+      "downstream": ["arifos.mind", "arifos.memory", "arifos.route"],
+      "context_packet_uri": "./context_packets/arifos.sense.json"
     },
     "arifos.mind": {
+      "tool_id": "arifos.mind",
+      "stage": "333_MIND",
+      "stage_order": 2,
+      "desc": "Structured reasoning",
+      "trinity": "Δ",
+      "uri": "/arifOS/agi_mind",
       "backing_tool": "agi_mind",
-      "transport_uri": "/arifOS/runtime/agi_mind"
+      "role": "reasoning",
+      "state_behavior": "read_only",
+      "modes": ["reason", "reflect", "forge"],
+      "purpose": "Synthesize, compare, reason, and design candidate solutions. Performs structured cognitive work across multiple inputs to produce coherent analysis.",
+      "when_to_use": [
+        "Need structured reasoning across multiple sources",
+        "Need architecture design or system thinking",
+        "Need reflective comparison of options",
+        "Need to forge candidate solutions before execution"
+      ],
+      "when_not_to_use": [
+        "Do not use for final authority decisions — use arifos.judge",
+        "Do not use as memory store — use arifos.memory",
+        "Do not use for direct execution — use arifos.forge",
+        "Do not use for safety critique — use arifos.heart"
+      ],
+      "authority_model": {
+        "advisory_only": true,
+        "produces_candidates": true,
+        "requires_human_confirmation": true,
+        "cannot_override_constitution": true
+      },
+      "mutability": {
+        "reads_state": true,
+        "writes_state": false,
+        "external_side_effects": false,
+        "creates_session": false
+      },
+      "required_context": ["session_id", "mode", "query", "context"],
+      "emits_context": ["reasoned_synthesis", "findings", "risks", "recommendation", "requires_judgment"],
+      "upstream": ["arifos.init", "arifos.sense", "arifos.memory"],
+      "downstream": ["arifos.heart", "arifos.ops", "arifos.judge"],
+      "context_packet_uri": "./context_packets/arifos.mind.json"
     },
     "arifos.route": {
+      "tool_id": "arifos.route",
+      "stage": "444_ROUTER",
+      "stage_order": 3,
+      "desc": "The Kernel",
+      "trinity": "Ψ",
+      "uri": "/arifOS/arifOS_kernel",
       "backing_tool": "arifOS_kernel",
-      "transport_uri": "/arifOS/runtime/arifOS_kernel"
-    },
-    "arifos.heart": {
-      "backing_tool": "asi_heart",
-      "transport_uri": "/arifOS/runtime/asi_heart"
-    },
-    "arifos.ops": {
-      "backing_tool": "math_estimator",
-      "transport_uri": "/arifOS/runtime/math_estimator"
-    },
-    "arifos.judge": {
-      "backing_tool": "apex_soul",
-      "transport_uri": "/arifOS/runtime/apex_soul"
+      "role": "router",
+      "state_behavior": "read_session_state",
+      "modes": ["kernel", "status"],
+      "purpose": "Route requests to correct lane or subsystem based on task profile, session state, and available resources. The central nervous system of arifOS.",
+      "when_to_use": [
+        "Uncertain which tool to use next",
+        "Need system status or health check",
+        "Complex multi-stage workflow needs orchestration",
+        "Need to dispatch to specialized subsystem"
+      ],
+      "when_not_to_use": [
+        "Do not use when target tool is clear — call directly",
+        "Do not use as a pass-through for all calls — adds overhead",
+        "Do not bypass when direct tool semantics are needed"
+      ],
+      "authority_model": {
+        "advisory_only": true,
+        "routes_authority": true,
+        "requires_human_confirmation": false,
+        "cannot_override_constitution": true
+      },
+      "mutability": {
+        "reads_state": true,
+        "writes_state": false,
+        "external_side_effects": false,
+        "creates_session": false
+      },
+      "required_context": ["session_id", "intent"],
+      "emits_context": ["routing_decision", "recommended_tools", "system_status"],
+      "upstream": ["arifos.init"],
+      "downstream": ["arifos.sense", "arifos.mind", "arifos.memory", "arifos.heart", "arifos.ops"],
+      "context_packet_uri": "./context_packets/arifos.route.json"
     },
     "arifos.memory": {
+      "tool_id": "arifos.memory",
+      "stage": "555_MEMORY",
+      "stage_order": 4,
+      "desc": "Governed memory",
+      "trinity": "Ω",
+      "uri": "/arifOS/engineering_memory",
       "backing_tool": "engineering_memory",
-      "transport_uri": "/arifOS/runtime/engineering_memory"
+      "role": "memory",
+      "state_behavior": "read_write_mutable",
+      "modes": ["vector_query", "vector_store", "engineer", "query"],
+      "purpose": "Store and retrieve governed episodic, semantic, and engineering memory with provenance, scope, and confidence tracking. Not final truth — working memory.",
+      "when_to_use": [
+        "Need long-term project context from previous sessions",
+        "Need reusable architecture or engineering knowledge",
+        "Need scoped retrieval across conversation history",
+        "Need to store important insights for future recall"
+      ],
+      "when_not_to_use": [
+        "Do not treat as immutable ledger — use arifos.vault for that",
+        "Do not store speculative or unsafe claims",
+        "Do not assume retrieved memory is final truth",
+        "Do not use for constitutional rules — use arifos.judge"
+      ],
+      "authority_model": {
+        "advisory_only": true,
+        "provides_context": true,
+        "requires_human_confirmation_for_writes": true,
+        "cannot_override_constitution": true
+      },
+      "mutability": {
+        "reads_state": true,
+        "writes_state": true,
+        "external_side_effects": false,
+        "creates_session": false
+      },
+      "required_context": ["session_id", "query", "domain_scope"],
+      "emits_context": ["retrieved_memories", "write_candidates", "confidence_signals", "source_provenance"],
+      "upstream": ["arifos.init", "arifos.sense", "arifos.route"],
+      "downstream": ["arifos.mind", "arifos.judge"],
+      "context_packet_uri": "./context_packets/arifos.memory.json"
+    },
+    "arifos.heart": {
+      "tool_id": "arifos.heart",
+      "stage": "666_HEART",
+      "stage_order": 5,
+      "desc": "Safety critique",
+      "trinity": "Ω",
+      "uri": "/arifOS/asi_heart",
+      "backing_tool": "asi_heart",
+      "role": "safety",
+      "state_behavior": "read_only",
+      "modes": ["critique", "simulate"],
+      "purpose": "Stress-test proposals for safety, dignity, misuse potential, and contextual instability. The conscience of arifOS — speaks for those affected by decisions.",
+      "when_to_use": [
+        "Proposal has potential safety implications",
+        "Need to check for dignity or autonomy concerns",
+        "Need misuse scenario analysis",
+        "High-consequence decision needs second opinion"
+      ],
+      "when_not_to_use": [
+        "Do not use as final authority — use arifos.judge",
+        "Do not use for pure cost analysis — use arifos.ops",
+        "Do not use for routine low-risk operations"
+      ],
+      "authority_model": {
+        "advisory_only": true,
+        "safety_advisory": true,
+        "can_recommend_hold": true,
+        "requires_human_confirmation": true,
+        "cannot_override_constitution": true
+      },
+      "mutability": {
+        "reads_state": true,
+        "writes_state": false,
+        "external_side_effects": false,
+        "creates_session": false
+      },
+      "required_context": ["session_id", "proposal", "risk_tier"],
+      "emits_context": ["safety_assessment", "concerns", "recommendation", "mitigations"],
+      "upstream": ["arifos.mind", "arifos.forge"],
+      "downstream": ["arifos.judge"],
+      "context_packet_uri": "./context_packets/arifos.heart.json"
+    },
+    "arifos.ops": {
+      "tool_id": "arifos.ops",
+      "stage": "777_OPS",
+      "stage_order": 6,
+      "desc": "Cost estimation",
+      "trinity": "Ω",
+      "uri": "/arifOS/math_estimator",
+      "backing_tool": "math_estimator",
+      "role": "operations",
+      "state_behavior": "read_only",
+      "modes": ["cost", "health", "vitals", "entropy"],
+      "purpose": "Estimate computational cost, system burden, entropy, capacity, and runtime health. Thermodynamic awareness for resource-constrained decisions.",
+      "when_to_use": [
+        "Need cost estimate before expensive operation",
+        "Need system health or capacity check",
+        "Need entropy or resource utilization metrics",
+        "Budget-constrained decision needs data"
+      ],
+      "when_not_to_use": [
+        "Do not use as sole decision criteria — combine with arifos.heart",
+        "Do not use for safety-critical analysis — use arifos.heart",
+        "Do not use for final authority — use arifos.judge"
+      ],
+      "authority_model": {
+        "advisory_only": true,
+        "cost_advisory": true,
+        "requires_human_confirmation": false,
+        "cannot_override_constitution": true
+      },
+      "mutability": {
+        "reads_state": true,
+        "writes_state": false,
+        "external_side_effects": false,
+        "creates_session": false
+      },
+      "required_context": ["session_id", "operation_type", "estimated_complexity"],
+      "emits_context": ["cost_estimate", "health_metrics", "capacity_status", "entropy_reading"],
+      "upstream": ["arifos.mind", "arifos.route"],
+      "downstream": ["arifos.judge"],
+      "context_packet_uri": "./context_packets/arifos.ops.json"
+    },
+    "arifos.judge": {
+      "tool_id": "arifos.judge",
+      "stage": "888_JUDGE",
+      "stage_order": 7,
+      "desc": "Constitutional verdict",
+      "trinity": "Ψ",
+      "uri": "/arifOS/apex_soul",
+      "backing_tool": "apex_soul",
+      "role": "judgment",
+      "state_behavior": "read_only_with_verdict_output",
+      "modes": ["judge", "rules", "validate", "hold"],
+      "purpose": "Apply constitutional gate to candidate actions and return binding verdict. The final authority before consequential execution.",
+      "when_to_use": [
+        "Need constitutional approval for action",
+        "High-consequence decision needs verdict",
+        "Need to validate against governance rules",
+        "Multiple advisory opinions need synthesis into decision"
+      ],
+      "when_not_to_use": [
+        "Do not use for routine low-risk operations",
+        "Do not use as information retrieval — use arifos.memory",
+        "Do not use for raw synthesis — use arifos.mind",
+        "Do not bypass arifos.heart for safety-critical decisions"
+      ],
+      "authority_model": {
+        "advisory_only": false,
+        "constitutional_authority": true,
+        "can_issue_verdicts": ["APPROVE", "HOLD", "PAUSE", "VOID"],
+        "requires_human_confirmation_for_execution": true,
+        "cannot_override_constitution": true,
+        "is_bound_by_constitution": true
+      },
+      "mutability": {
+        "reads_state": true,
+        "writes_state": false,
+        "external_side_effects": false,
+        "creates_session": false,
+        "produces_verdict": true
+      },
+      "required_context": ["session_id", "candidate_action", "risk_tier", "telemetry", "constitutional_rules"],
+      "emits_context": ["verdict", "reasoning", "conditions", "authority_trace"],
+      "upstream": ["arifos.mind", "arifos.heart", "arifos.ops"],
+      "downstream": ["arifos.vault", "arifos.forge"],
+      "context_packet_uri": "./context_packets/arifos.judge.json"
     },
     "arifos.vault": {
+      "tool_id": "arifos.vault",
+      "stage": "999_VAULT",
+      "stage_order": 8,
+      "desc": "The Seal",
+      "trinity": "Ψ",
+      "uri": "/arifOS/vault_ledger",
       "backing_tool": "vault_ledger",
-      "transport_uri": "/arifOS/runtime/vault_ledger"
+      "role": "ledger",
+      "state_behavior": "append_only",
+      "modes": ["seal", "verify"],
+      "purpose": "Seal final governed records into immutable ledger and verify integrity. The permanent record of arifOS decisions and actions.",
+      "when_to_use": [
+        "Final record needs permanent storage",
+        "Need cryptographic verification of past record",
+        "Audit trail requires immutable entry",
+        "Governed decision needs sealing for accountability"
+      ],
+      "when_not_to_use": [
+        "Do not use as working memory — use arifos.memory",
+        "Do not seal speculative or unverified data",
+        "Do not use before arifos.judge approval for consequential actions"
+      ],
+      "authority_model": {
+        "advisory_only": false,
+        "seal_authority": true,
+        "creates_immutable_record": true,
+        "requires_human_confirmation": false,
+        "cannot_override_constitution": true
+      },
+      "mutability": {
+        "reads_state": true,
+        "writes_state": true,
+        "external_side_effects": false,
+        "creates_session": false,
+        "append_only": true
+      },
+      "required_context": ["session_id", "record", "preceding_verdict"],
+      "emits_context": ["seal_id", "integrity_hash", "timestamp", "verification_proof"],
+      "upstream": ["arifos.judge", "arifos.forge"],
+      "downstream": [],
+      "context_packet_uri": "./context_packets/arifos.vault.json"
     },
     "arifos.forge": {
+      "tool_id": "arifos.forge",
+      "stage": "FORGE_010",
+      "stage_order": 9,
+      "desc": "Execution bridge",
+      "trinity": "Δ",
+      "uri": "/arifOS/code_engine",
       "backing_tool": "code_engine",
-      "transport_uri": "/arifOS/runtime/code_engine"
+      "role": "executor",
+      "state_behavior": "external_side_effects_possible",
+      "modes": ["fs", "process", "net", "tail", "replay"],
+      "purpose": "Bridge governed decisions to controlled execution environment. The only tool with potential external side effects — highest scrutiny required.",
+      "when_to_use": [
+        "Need to execute code or command after judge approval",
+        "Need filesystem operation in sandbox",
+        "Need to spawn process or check system state",
+        "Approved action needs realization"
+      ],
+      "when_not_to_use": [
+        "NEVER use without arifos.judge approval for consequential actions",
+        "Do not use for information gathering — use arifos.sense",
+        "Do not use for reasoning — use arifos.mind",
+        "Do not bypass safety stack"
+      ],
+      "authority_model": {
+        "advisory_only": false,
+        "execution_authority": true,
+        "requires_judge_approval": true,
+        "requires_human_confirmation": true,
+        "cannot_override_constitution": true,
+        "sandboxed": true
+      },
+      "mutability": {
+        "reads_state": true,
+        "writes_state": true,
+        "external_side_effects": true,
+        "creates_session": false,
+        "sandboxed": true
+      },
+      "required_context": ["session_id", "execution_plan", "judge_verdict", "risk_tier"],
+      "emits_context": ["execution_result", "side_effects", "logs", "status"],
+      "upstream": ["arifos.judge"],
+      "downstream": ["arifos.vault"],
+      "context_packet_uri": "./context_packets/arifos.forge.json"
     }
   },
-  "governance_floors": {
-    "F1": { "name": "Existential Risk", "description": "Threatens human civilization or existence" },
-    "F2": { "name": "Critical Infrastructure", "description": "Affects power, water, communications, transport" },
-    "F3": { "name": "Financial System", "description": "Banking, markets, significant economic impact" },
-    "F4": { "name": "Personal Safety", "description": "Physical harm, medical, emergency" },
-    "F5": { "name": "Privacy & Dignity", "description": "Personal data, reputation, autonomy" },
-    "F6": { "name": "Financial Loss", "description": "Monetary damage, fraud, scams" },
-    "F7": { "name": "Service Disruption", "description": "System downtime, denial of service" },
-    "F8": { "name": "Data Integrity", "description": "Corruption, unauthorized modification" },
-    "F9": { "name": "Policy Violation", "description": "Terms of service, organizational rules" },
-    "F10": { "name": "Resource Waste", "description": "Unnecessary compute, cost, time" },
-    "F11": { "name": "Quality Degradation", "description": "Suboptimal output, accuracy issues" },
-    "F12": { "name": "User Experience", "description": "Confusion, friction, satisfaction" },
-    "F13": { "name": "Cosmetic", "description": "Formatting, style, preferences" }
+  "discovery": {
+    "canonical_registry_uri": "https://arifosmcp.arif-fazil.com/.well-known/arifos.schema.json",
+    "tool_manifests_base": "https://arifosmcp.arif-fazil.com/.well-known/tools/",
+    "context_packets_base": "https://arifosmcp.arif-fazil.com/.well-known/context_packets/",
+    "open_api_spec": "https://arifosmcp.arif-fazil.com/.well-known/openapi.json",
+    "mcp_manifest": "https://arifosmcp.arif-fazil.com/.well-known/mcp"
+  },
+  "meta": {
+    "author": "ARIF",
+    "created": "2026-04-06",
+    "version_history": [
+      {
+        "version": "2.0.0",
+        "date": "2026-04-06",
+        "changes": "Semantic registry with context packets, trinity definitions, and stage transitions"
+      }
+    ],
+    "license": "ARIF-1.0",
+    "repository": "https://github.com/arif-fazil/arifos"
   }
 }
