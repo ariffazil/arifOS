@@ -77,8 +77,9 @@ async def architect_registry(
                     else None,
                 }
             return RuntimeEnvelope(
-                tool=res.get("tool", "unknown"),
-                stage=res.get("stage", "444_ROUTER"),
+                tool="arifos.registry",
+                canonical_tool_name="arifos.registry",
+                stage=res.get("stage", "M-4_ARCH"),
                 status=RuntimeStatus.SUCCESS if ok else RuntimeStatus.ERROR,
                 verdict=Verdict.SEAL if ok else Verdict.VOID,
                 allowed_next_tools=_next_tools,

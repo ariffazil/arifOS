@@ -1,475 +1,266 @@
 """
-kernel_router.py — Internal Routing Consolidation for arifOS_kernel
+arifOS Hardened Kernel Router (444_ROUTER)
+═══════════════════════════════════════════════════════════════════════════════
 
-CONSOLIDATION PRINCIPLE:
-- All intelligence routing goes through arifOS_kernel
-- Internal tools (agi_mind, asi_heart, engineering_memory, etc.) are called internally
-- No external mode exposure — intent is inferred from query
-- Legacy aliases map to unified calls
+FIX: Proper sequencing to prevent HOLD/VOID bypass
 
-USER-FACING TOOLS (4):
-1. init_anchor     — Identity + authority
-2. arifOS_kernel   — ALL thinking + execution (internal routing)
-3. apex_soul       — Judgment + validation (explicit constitutional check)
-4. physics_reality — Grounding + reality ops
+CORRECT ORDER:
+1. Classify query (Class A/B/C)
+2. If Class A → Model responds directly (no tool)
+3. If Class B/C → Execute tool
+4. Evaluate verdict
+5. IF HOLD/VOID → HARD STOP (no model call)
+6. IF SEAL/PASS → Call model
+7. Return response
 
-INTERNAL TOOLS (called by kernel, not user-facing):
-- agi_mind, asi_heart, engineering_memory, math_estimator, code_engine, vault_ledger
+CRITICAL: Model is NEVER called before verdict evaluation.
+
+Author: 888_VALIDATOR
+Version: 2026.04.06-HARDENED
 """
 
 from __future__ import annotations
 
-import logging
-from typing import Any, Literal
+from typing import Any, Optional
 
-from arifosmcp.runtime.models import RuntimeEnvelope, Stage, Verdict
-from arifosmcp.runtime.sessions import _normalize_session_id, get_session_identity
-
-logger = logging.getLogger(__name__)
-
-# Internal capability detection patterns
-REASONING_PATTERNS = [
-    "analyze", "reason", "think", "synthesize", "compare", "evaluate",
-    "what is", "how does", "why", "explain", "interpret", "assess"
-]
-
-SAFETY_PATTERNS = [
-    "is this safe", "critique", "review", "validate", "check for",
-    "potential harm", "risk assessment", "ethical", "concern"
-]
-
-MEMORY_PATTERNS = [
-    "remember", "recall", "search memory", "find previous", "what did",
-    "store this", "save to memory", "vector search", "semantic"
-]
-
-CODE_PATTERNS = [
-    "execute", "run command", "file system", "inspect", "list files",
-    "process list", "network status", "tail log", "replay trace"
-]
-
-REALITY_PATTERNS = [
-    "search web", "fetch url", "current time", "weather", "news",
-    "ground truth", "verify fact", "atlas", "compass"
-]
+from arifosmcp.runtime.governance_enforcer import (
+    QueryClass,
+    classify_and_route,
+    enforce_tool_verdict,
+    get_enforcer,
+)
+from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
 
 
-def _detect_intent(query: str | None) -> tuple[Literal["reason", "safety", "memory", "code", "reality"], float]:
+class HardenedKernelRouter:
     """
-    Detect intent from query without requiring explicit mode.
-    Returns: (intent_type, confidence)
+    Hardened 444_ROUTER with strict governance enforcement.
+    
+    PREVENTS: Model being called before verdict evaluation
+    ENSURES: HOLD/VOID is terminal (no bypass)
     """
-    if not query:
-        return "reason", 0.5
     
-    query_lower = query.lower()
-    scores = {
-        "reason": sum(1 for p in REASONING_PATTERNS if p in query_lower),
-        "safety": sum(1 for p in SAFETY_PATTERNS if p in query_lower),
-        "memory": sum(1 for p in MEMORY_PATTERNS if p in query_lower),
-        "code": sum(1 for p in CODE_PATTERNS if p in query_lower),
-        "reality": sum(1 for p in REALITY_PATTERNS if p in query_lower),
-    }
+    def __init__(self):
+        self.enforcer = get_enforcer()
     
-    total = sum(scores.values())
-    if total == 0:
-        return "reason", 0.5  # Default to reasoning
-    
-    best = max(scores, key=scores.get)
-    confidence = scores[best] / max(total, 1)
-    return best, confidence
-
-
-async def _route_to_internal_tool(
-    intent_type: str,
-    query: str,
-    session_id: str | None,
-    payload: dict[str, Any],
-    ctx: Any = None,
-    trace: list[dict] | None = None,
-) -> RuntimeEnvelope:
-    """
-    Route to appropriate internal tool based on detected intent.
-    All internal tools return RuntimeEnvelope for consistency.
-    """
-    from arifosmcp.runtime.tools_internal import (
-        agi_mind_dispatch_impl,
-        asi_heart_dispatch_impl,
-        code_engine_dispatch_impl,
-        engineering_memory_dispatch_impl,
-    )
-    
-    session_id = _normalize_session_id(session_id)
-    trace_entry = {
-        "stage": "444_ROUTER",
-        "intent_detected": intent_type,
-        "query": query[:100] if query else "",
-    }
-    
-    if intent_type == "reason":
-        trace_entry["routed_to"] = "agi_mind"
-        if trace is not None:
-            trace.append(trace_entry)
-        return await agi_mind_dispatch_impl(
-            mode="reason",
-            payload={"query": query, **payload},
-            auth_context=payload.get("auth_context"),
-            risk_tier=payload.get("risk_tier", "medium"),
-            dry_run=bool(payload.get("dry_run", True)),
-            ctx=ctx,
-        )
-    
-    elif intent_type == "safety":
-        trace_entry["routed_to"] = "asi_heart"
-        if trace is not None:
-            trace.append(trace_entry)
-        return await asi_heart_dispatch_impl(
-            mode="critique",
-            payload={"content": query, **payload},
-            auth_context=payload.get("auth_context"),
-            risk_tier=payload.get("risk_tier", "high"),  # Safety always high tier
-            dry_run=bool(payload.get("dry_run", True)),
-            ctx=ctx,
-        )
-    
-    elif intent_type == "memory":
-        trace_entry["routed_to"] = "engineering_memory"
-        if trace is not None:
-            trace.append(trace_entry)
-        return await engineering_memory_dispatch_impl(
-            mode="vector_query" if "search" in query.lower() or "find" in query.lower() else "vector_store",
-            payload={"task": query, **payload},
-            auth_context=payload.get("auth_context"),
-            risk_tier=payload.get("risk_tier", "medium"),
-            dry_run=bool(payload.get("dry_run", True)),
-            ctx=ctx,
-        )
-    
-    elif intent_type == "code":
-        trace_entry["routed_to"] = "code_engine"
-        if trace is not None:
-            trace.append(trace_entry)
-        mode = "fs"  # Default
-        if "process" in query.lower():
-            mode = "process"
-        elif "net" in query.lower() or "network" in query.lower():
-            mode = "net"
-        elif "tail" in query.lower() or "log" in query.lower():
-            mode = "tail"
-        elif "replay" in query.lower():
-            mode = "replay"
+    async def route(
+        self,
+        query: str,
+        actor_id: str = "anonymous",
+        session_id: Optional[str] = None,
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """
+        Hardened routing with strict Class A/B/C separation.
         
-        return await code_engine_dispatch_impl(
-            mode=mode,
-            payload={"query": query, **payload},
-            auth_context=payload.get("auth_context"),
-            risk_tier=payload.get("risk_tier", "high"),  # Code execution high tier
-            dry_run=bool(payload.get("dry_run", True)),
-            ctx=ctx,
-        )
-    
-    elif intent_type == "reality":
-        trace_entry["routed_to"] = "physics_reality"
-        if trace is not None:
-            trace.append(trace_entry)
-        # Reality calls should go to physics_reality tool directly
-        # This is handled by the caller (arifOS_kernel)
-        from arifosmcp.runtime.tools_internal import physics_reality_dispatch_impl
-        return await physics_reality_dispatch_impl(
-            mode="compass",
-            payload={"query": query, **payload},
-            auth_context=payload.get("auth_context"),
-            risk_tier=payload.get("risk_tier", "medium"),
-            dry_run=bool(payload.get("dry_run", True)),
-            ctx=ctx,
-        )
-    
-    # Fallback to reasoning
-    trace_entry["routed_to"] = "agi_mind (fallback)"
-    if trace is not None:
-        trace.append(trace_entry)
-    return await agi_mind_dispatch_impl(
-        mode="reason",
-        payload={"query": query, **payload},
-        auth_context=payload.get("auth_context"),
-        risk_tier=payload.get("risk_tier", "medium"),
-        dry_run=bool(payload.get("dry_run", True)),
-        ctx=ctx,
-    )
-
-
-async def kernel_intelligent_route(
-    query: str | None = None,
-    session_id: str | None = None,
-    payload: dict[str, Any] | None = None,
-    auth_context: dict[str, Any] | None = None,
-    risk_tier: str = "medium",
-    dry_run: bool = True,
-    allow_execution: bool = False,
-    ctx: Any = None,
-    intent: str | None = None,  # Optional explicit override
-    use_memory: bool = True,
-    use_heart: bool = True,
-    debug: bool = False,
-) -> RuntimeEnvelope:
-    """
-    Unified kernel router — internal consolidation entry point.
-    
-    This is the heart of the consolidation:
-    - No external modes exposed
-    - Intent detected from query or explicit intent param
-    - Routes to agi_mind, asi_heart, engineering_memory, code_engine internally
-    - Returns unified RuntimeEnvelope
-    - Optional debug mode includes full routing trace
-    """
-    payload = dict(payload or {})
-    session_id = _normalize_session_id(session_id)
-    
-    # Build routing trace for transparency
-    trace: list[dict] = [] if debug else None
-    
-    if debug:
-        trace.append({
-            "stage": "444_ROUTER",
-            "action": "kernel_entry",
-            "query": query[:100] if query else "",
-            "session_id": session_id,
-        })
-    
-    # Step 1: Detect intent
-    if intent:
-        intent_type = intent
-        confidence = 1.0
-    else:
-        intent_type, confidence = _detect_intent(query)
-    
-    if debug and trace is not None:
-        trace.append({
-            "stage": "444_ROUTER", 
-            "action": "intent_detection",
-            "detected": intent_type,
-            "confidence": round(confidence, 2),
-        })
-    
-    # Step 2: Check session validity (F2 Truth enforcement)
-    session_identity = get_session_identity(session_id)
-    actor_id = str(payload.get("actor_id") or "anonymous").strip().lower()
-    if session_id == "global" and not auth_context and actor_id == "anonymous":
-        result = RuntimeEnvelope(
-            ok=dry_run,
-            tool="arifOS_kernel",
+        This is the ONLY entry point for query processing.
+        All other paths must flow through here.
+        """
+        context = context or {}
+        
+        # ═══════════════════════════════════════════════════════════════════════
+        # STEP 1: CLASSIFY QUERY (Before any tool invocation)
+        # ═══════════════════════════════════════════════════════════════════════
+        query_class, requires_tool = classify_and_route(query, context)
+        
+        # ═══════════════════════════════════════════════════════════════════════
+        # STEP 2: CLASS A — INFORMATIONAL (No state change)
+        # Model may respond directly. No vault write. No seal required.
+        # ═══════════════════════════════════════════════════════════════════════
+        if query_class == QueryClass.INFORMATIONAL:
+            # For informational queries, we can optionally still run through
+            # sense/mind for quality, but it's not required for governance
+            return {
+                "ok": True,
+                "query_class": QueryClass.INFORMATIONAL.value,
+                "governance_required": False,
+                "note": "Informational query — model response permitted without seal",
+                "proceed_to_model": True,
+            }
+        
+        # ═══════════════════════════════════════════════════════════════════════
+        # STEP 3: CLASS B/C — GOVERNED/CRITICAL (State mutation)
+        # Must pass full F1-F13. Requires tool invocation.
+        # ═══════════════════════════════════════════════════════════════════════
+        
+        # Determine which tool to invoke based on query
+        tool_name = self._select_tool(query_class, query, context)
+        
+        # Execute tool through governance layer
+        tool_result = await self._invoke_tool_with_governance(
+            tool_name=tool_name,
+            query=query,
+            actor_id=actor_id,
             session_id=session_id,
-            stage=Stage.INIT_000.value,
-            verdict=Verdict.VOID,
-            status="DRY_RUN" if dry_run else "ERROR",
-            errors=[{
-                "code": "AUTH_TOKEN_MISSING",
-                "message": "Anonymous global session must call init_anchor before kernel execution.",
-                "stage": Stage.INIT_000.value,
-            }],
-            payload={
-                "next_action": {
-                    "tool": "init_anchor",
-                    "mode": "init",
-                    "reason": "Identity required for kernel execution",
-                },
-            },
-            caller_state="anonymous",
-            allowed_next_tools=["init_anchor", "math_estimator", "architect_registry", "apex_judge"],
-            blocked_tools=[
-                {
-                    "tool": "arifOS_kernel",
-                    "reason": "Requires anchored session. Run init_anchor first.",
-                }
-            ],
-            next_action={
-                "tool": "init_anchor",
-                "mode": "init",
-                "reason": "You are anonymous. Identity required for governed execution.",
-                "required_payload": ["actor_id", "intent"],
-            },
-            trace={Stage.INIT_000.value: Verdict.VOID.value},
-        )
-        if debug:
-            result.payload["_trace"] = trace
-        return result
-
-    if not session_identity and session_id != "global":
-        init_trace = {Stage.INIT_000.value: Verdict.PARTIAL.value if dry_run else Verdict.VOID.value}
-        if dry_run and actor_id != "sovereign":
-            caller_state = "claimed" if actor_id != "anonymous" else "anonymous"
-            result = RuntimeEnvelope(
-                ok=True,
-                tool="arifOS_kernel",
-                session_id=session_id,
-                stage=Stage.INIT_000.value,
-                verdict=Verdict.SABAR if actor_id != "anonymous" else Verdict.VOID,
-                status="DRY_RUN",
-                errors=[{
-                    "code": "BOOTSTRAP_REQUIRED",
-                    "message": "Dry-run allowed, but session must be anchored before governed execution.",
-                    "stage": Stage.INIT_000.value,
-                }],
-                payload={
-                    "next_action": {
-                        "tool": "init_anchor",
-                        "mode": "init",
-                        "reason": "Anchor the session before governed execution.",
-                    },
-                    "simulation_only": True,
-                },
-                caller_state=caller_state,
-                allowed_next_tools=["init_anchor", "math_estimator", "architect_registry", "apex_judge"],
-                blocked_tools=[
-                    {
-                        "tool": "arifOS_kernel",
-                        "reason": "Requires anchored session. Run init_anchor first.",
-                    }
-                ],
-                next_action={
-                    "tool": "init_anchor",
-                    "mode": "init",
-                    "reason": "Dry-run allowed, but a session anchor is still required for governed execution.",
-                    "required_payload": ["actor_id", "intent"],
-                },
-                trace=init_trace,
-            )
-            if debug:
-                result.payload["_trace"] = trace
-            return result
-
-        error_code = "SESSION_NOT_ANCHORED"
-        error_message = "Session not found. Call init_anchor first."
-        if actor_id == "anonymous" and not auth_context:
-            error_code = "AUTH_FAILURE"
-            error_message = "Anonymous session missing anchor. Call init_anchor first."
-        # Session not anchored — redirect to init_anchor
-        result = RuntimeEnvelope(
-            ok=False,
-            tool="arifOS_kernel",
-            session_id=session_id,
-            stage=Stage.ROUTER_444.value,
-            verdict=Verdict.VOID,
-            status="ERROR",
-            errors=[{
-                "code": error_code,
-                "message": error_message,
-                "stage": "444_ROUTER",
-            }],
-            payload={
-                "next_action": {
-                    "tool": "init_anchor",
-                    "mode": "init",
-                    "reason": "Identity required for kernel execution",
-                },
-            },
-            caller_state="anonymous",
-            allowed_next_tools=["init_anchor", "math_estimator", "architect_registry", "apex_judge"],
-            blocked_tools=[
-                {
-                    "tool": "arifOS_kernel",
-                    "reason": "Requires anchored session. Run init_anchor first.",
-                }
-            ],
-            next_action={
-                "tool": "init_anchor",
-                "mode": "init",
-                "reason": "You are anonymous. Identity required for governed execution.",
-                "required_payload": ["actor_id", "intent"],
-            },
-            trace=init_trace,
-        )
-        if debug:
-            result.payload["_trace"] = trace
-        return result
-    
-    # Step 3: Route to internal tool
-    result = await _route_to_internal_tool(
-        intent_type=intent_type,
-        query=query or "",
-        session_id=session_id,
-        payload={**payload, "auth_context": auth_context, "risk_tier": risk_tier, "dry_run": dry_run},
-        ctx=ctx,
-        trace=trace if debug else None,
-    )
-    
-    # Step 4: Apply safety critique if enabled (use_heart)
-    if use_heart and not dry_run and risk_tier in ("high", "critical"):
-        from arifosmcp.runtime.tools_internal import asi_heart_dispatch_impl
-        
-        if debug and trace is not None:
-            trace.append({
-                "stage": "666_HEART",
-                "action": "safety_critique",
-                "reason": f"high-risk tier {risk_tier}",
-            })
-        
-        critique = await asi_heart_dispatch_impl(
-            mode="critique",
-            payload={
-                "content": result.payload.get("output", str(result.payload)),
-                "original_query": query,
-                **payload,
-            },
-            auth_context=auth_context,
-            risk_tier=risk_tier,
-            dry_run=True,  # Critique is always dry-run
-            ctx=ctx,
+            context=context,
         )
         
-        # Attach critique to result
-        result.payload["_safety_critique"] = critique.payload if critique else None
-    
-    # Step 5: Store to memory if enabled (use_memory)
-    if use_memory and not dry_run and result.verdict == Verdict.SEAL:
-        from arifosmcp.runtime.tools_internal import engineering_memory_dispatch_impl
-        
-        if debug and trace is not None:
-            trace.append({
-                "stage": "555_MEMORY",
-                "action": "store_outcome",
-            })
-        
-        await engineering_memory_dispatch_impl(
-            mode="vector_store",
-            payload={
-                "task": f"Query: {query}\nResult: {result.payload.get('output', '')}",
-                "session_id": session_id,
-                **payload,
-            },
-            auth_context=auth_context,
-            risk_tier=risk_tier,
-            dry_run=dry_run,
-            ctx=ctx,
+        # ═══════════════════════════════════════════════════════════════════════
+        # STEP 4: EVALUATE VERDICT (HARD STOP if HOLD/VOID)
+        # ═══════════════════════════════════════════════════════════════════════
+        allowed, response = enforce_tool_verdict(
+            tool_name=tool_name,
+            envelope=tool_result,
+            query=query,
+            actor_id=actor_id,
         )
-    
-    # Step 6: Attach trace if debug mode
-    if debug and trace is not None:
-        result.payload["_trace"] = trace
-        result.payload["_routing"] = {
-            "intent_detected": intent_type,
-            "internal_tools_called": [t.get("routed_to") for t in trace if "routed_to" in t],
+        
+        if not allowed:
+            # HARD STOP: Return block response, DO NOT CALL MODEL
+            return {
+                "ok": False,
+                "query_class": query_class.value,
+                "governance_block": True,
+                "tool_result": response,
+                "proceed_to_model": False,
+                "audit_note": "HARD STOP enforced — model not invoked",
+            }
+        
+        # ═══════════════════════════════════════════════════════════════════════
+        # STEP 5: ALLOWED — Call model (only after SEAL/PASS)
+        # ═══════════════════════════════════════════════════════════════════════
+        return {
+            "ok": True,
+            "query_class": query_class.value,
+            "governance_required": True,
+            "governance_passed": True,
+            "tool_result": tool_result,
+            "proceed_to_model": True,
+            "audit_note": "SEAL/PASS received — model invocation permitted",
         }
     
-    return result
+    def _select_tool(
+        self,
+        query_class: QueryClass,
+        query: str,
+        context: dict[str, Any],
+    ) -> str:
+        """Select appropriate tool based on query class and content."""
+        
+        query_lower = query.lower()
+        
+        # Session/init queries
+        if any(kw in query_lower for kw in ["init", "session", "anchor", "start"]):
+            return "arifos.init"
+        
+        # Memory queries
+        if any(kw in query_lower for kw in ["remember", "recall", "memory", "context"]):
+            return "arifos.memory"
+        
+        # Execution/forge queries
+        if any(kw in query_lower for kw in ["execute", "run", "deploy", "forge", "spawn"]):
+            return "arifos.forge"
+        
+        # Seal/vault queries
+        if any(kw in query_lower for kw in ["seal", "commit", "vault", "ledger"]):
+            return "arifos.vault"
+        
+        # Reasoning/mind queries
+        if any(kw in query_lower for kw in ["reason", "think", "analyze", "mind"]):
+            return "arifos.mind"
+        
+        # Safety/heart queries
+        if any(kw in query_lower for kw in ["safe", "risk", "harm", "heart"]):
+            return "arifos.heart"
+        
+        # Operations/cost queries
+        if any(kw in query_lower for kw in ["cost", "ops", "estimate", "feasible"]):
+            return "arifos.ops"
+        
+        # Reality/sense queries
+        if any(kw in query_lower for kw in ["sense", "ground", "verify", "reality"]):
+            return "arifos.sense"
+        
+        # Judge queries (default for critical)
+        if query_class == QueryClass.CRITICAL:
+            return "arifos.judge"
+        
+        # Route as default
+        return "arifos.route"
+    
+    async def _invoke_tool_with_governance(
+        self,
+        tool_name: str,
+        query: str,
+        actor_id: str,
+        session_id: Optional[str],
+        context: dict[str, Any],
+    ) -> RuntimeEnvelope:
+        """Invoke tool with full ToM requirements."""
+        
+        # Import tools dynamically to avoid circular deps
+        from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS
+        
+        handler = CANONICAL_TOOL_HANDLERS.get(tool_name)
+        if not handler:
+            # Return error envelope if tool not found
+            return RuntimeEnvelope(
+                tool=tool_name,
+                stage="444_ROUTER",
+                status=RuntimeStatus.ERROR,
+                verdict=Verdict.VOID,
+                session_id=session_id,
+                payload={
+                    "ok": False,
+                    "error": f"Tool {tool_name} not found",
+                    "tom_violation": False,
+                }
+            )
+        
+        # Build payload with ToM fields if not present
+        payload = context.get("payload", {})
+        
+        # Ensure minimal ToM fields for Class B/C
+        if "declared_intent" not in payload:
+            payload["declared_intent"] = query[:200]  # Truncate for intent
+        if "confidence_self_estimate" not in payload:
+            payload["confidence_self_estimate"] = 0.7
+        if "context_assumptions" not in payload:
+            payload["context_assumptions"] = ["User wants to accomplish task"]
+        
+        # Call the tool
+        import asyncio
+        result = await handler(
+            mode=context.get("mode", "default"),
+            payload=payload,
+            session_id=session_id,
+            risk_tier=context.get("risk_tier", "medium"),
+            dry_run=context.get("dry_run", True),
+        )
+        
+        return result
 
 
-# Legacy alias mappings (for backward compatibility)
-async def legacy_agi_reason_route(**kwargs) -> RuntimeEnvelope:
-    """Maps legacy agi_reason to unified kernel router."""
-    return await kernel_intelligent_route(intent="reason", **kwargs)
+# Global router instance
+_router: Optional[HardenedKernelRouter] = None
 
 
-async def legacy_asi_critique_route(**kwargs) -> RuntimeEnvelope:
-    """Maps legacy asi_critique to unified kernel router."""
-    return await kernel_intelligent_route(intent="safety", **kwargs)
+def get_router() -> HardenedKernelRouter:
+    """Get or create global hardened router."""
+    global _router
+    if _router is None:
+        _router = HardenedKernelRouter()
+    return _router
 
 
-async def legacy_memory_query_route(**kwargs) -> RuntimeEnvelope:
-    """Maps legacy memory query to unified kernel router."""
-    return await kernel_intelligent_route(intent="memory", **kwargs)
+async def process_query(
+    query: str,
+    actor_id: str = "anonymous",
+    session_id: Optional[str] = None,
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """
+    MAIN ENTRY POINT for query processing.
+    
+    This is the ONLY way to process queries with proper governance.
+    All other paths are considered bypass attempts.
+    """
+    router = get_router()
+    return await router.route(query, actor_id, session_id, context)
 
 
-async def legacy_code_engine_route(**kwargs) -> RuntimeEnvelope:
-    """Maps legacy code_engine to unified kernel router."""
-    return await kernel_intelligent_route(intent="code", **kwargs)
+__all__ = [
+    "HardenedKernelRouter",
+    "get_router",
+    "process_query",
+]

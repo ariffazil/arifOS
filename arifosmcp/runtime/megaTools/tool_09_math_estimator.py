@@ -88,7 +88,8 @@ async def math_estimator(
                     else None,
                 }
             return RuntimeEnvelope(
-                tool=res.get("tool", "unknown"),
+                tool="arifos.ops",
+                canonical_tool_name="arifos.ops",
                 stage=res.get("stage", "444_ROUTER"),
                 status=RuntimeStatus.SUCCESS if ok else RuntimeStatus.ERROR,
                 verdict=Verdict.SEAL if ok else Verdict.VOID,

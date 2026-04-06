@@ -45,7 +45,8 @@ async def physics_reality(
     if not effective_query or str(effective_query).strip() == "":
         from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
         return RuntimeEnvelope(
-            tool="physics_reality",
+            tool="arifos.sense",
+            canonical_tool_name="arifos.sense",
             stage="111_SENSE",
             status=RuntimeStatus.ERROR,
             verdict=Verdict.VOID,
@@ -90,7 +91,8 @@ async def physics_reality(
         
         
         return forge_verdict(
-            tool_id="physics_reality",
+            tool_id="arifos.sense",
+            canonical_tool_name="arifos.sense",
             stage="111_SENSE",
             payload=res_dict.get("payload", res_dict),
             session_id=session_id,

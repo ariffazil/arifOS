@@ -80,8 +80,9 @@ async def asi_heart(
                     else None,
                 }
             return RuntimeEnvelope(
-                tool=res.get("tool", "unknown"),
-                stage=res.get("stage", "444_ROUTER"),
+                tool="arifos.heart",
+                canonical_tool_name="arifos.heart",
+                stage=res.get("stage", "666_HEART"),
                 status=RuntimeStatus.SUCCESS if ok else RuntimeStatus.ERROR,
                 verdict=Verdict.SEAL if ok else Verdict.VOID,
                 allowed_next_tools=_next_tools,

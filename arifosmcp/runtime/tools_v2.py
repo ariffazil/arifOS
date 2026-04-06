@@ -101,16 +101,46 @@ async def arifos_mind(
     dry_run: bool = True,
     debug: bool = False,
 ) -> RuntimeEnvelope:
-    """Structured reasoning with uncertainty bands."""
+    """Structured reasoning with typed cognitive pipeline.
+
+    Runs the constitutional AGI pipeline (sense → mind → heart → judge)
+    producing a narrow decision_packet for the operator and a full
+    audit_packet for the vault.  Internal richness, external compression.
+    """
+    from arifosmcp.runtime.arifos_runtime_envelope import run_agi_mind
+
+    # ── Typed pipeline: sense → mind → heart → judge ─────────────────────
+    decision_packet, audit_packet = await run_agi_mind(
+        raw_input=query,
+        session_id=session_id,
+        additional_context=context or "",
+    )
+
+    # ── Forward enriched payload through mega tool ────────────────────────
     envelope = await _mega_agi_mind(
         mode=mode,
-        payload={"query": query, "context": context},
+        payload={
+            "query": query,
+            "context": context,
+            "decision_packet": decision_packet,
+        },
         session_id=session_id,
         risk_tier=risk_tier,
         dry_run=dry_run,
         debug=debug,
     )
-    return seal_runtime_envelope(envelope, "arifos.mind")
+
+    # ── Seal and inject typed packets into intelligence_state ─────────────
+    sealed = seal_runtime_envelope(envelope, "arifos.mind")
+    if isinstance(sealed, dict):
+        intel = sealed.setdefault("intelligence_state", {})
+        intel["decision_packet"] = decision_packet
+        intel["audit_packet"] = audit_packet
+        intel["chaos_score"] = audit_packet.get(
+            "constitutional_checks", {}
+        ).get("chaos_score", 0.0)
+        intel["pipeline_trace"] = audit_packet.get("pipeline_trace", [])
+    return sealed
 
 
 async def arifos_route(
