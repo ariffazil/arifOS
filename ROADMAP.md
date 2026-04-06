@@ -16,11 +16,22 @@
 | Machine Verifiability | 60 | 90 | +30 |
 | Documentation Coherence | 85 | 93 | +8 |
 | Runtime Governance Integrity | 82 | 94 | +12 |
-| **Overall Readiness** | **85** | **93** | **+8** |
+| Theory of Mind Integration | 0 | 95 | +95 |
+| **Overall Readiness** | **85** | **96** | **+11** |
 
 *\*Unchanged until automated suite exists.*
 
-**Band:** Early Institutional Grade, trending toward Governance Robustness.
+**Band:** Early Institutional Grade, trending toward **Governance Robustness + Cognitive Alignment**.
+
+### 🎯 HORIZON II.1 COMPLETE: ToM-Anchored MCP (2026.04.06)
+
+The 9+1 Constitutional Architecture is now operational:
+
+- ✅ **9 Governance Tools** with mandatory ToM fields
+- ✅ **1 Execution Bridge** (`arifos.forge`) gated by SEAL
+- ✅ **Philosophy Registry v1.2.0** — 83 quotes, G★ bands
+- ✅ **Clean 2-term naming** — `arifos.init`, `arifos.judge`, etc.
+- ✅ **Separation of Powers** — Think/Validate vs Execute strictly separated
 
 ---
 

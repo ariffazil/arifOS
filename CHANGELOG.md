@@ -2,6 +2,82 @@
 
 All notable changes to arifOS MCP are documented in this file.
 
+## [2026.04.06.3-TOM-ANCHORED] - Theory of Mind + 9+1 Architecture
+
+### 🔥 MAJOR: ToM-ANCHORED MCP ARCHITECTURE
+
+**Theory of Mind (ToM) integration complete. All governance tools now require structured mental model fields.**
+
+#### The 9+1 Constitutional Architecture
+
+- **9 Governance Tools** (think, validate, reason — never execute directly):
+  - `arifos.init` — Session anchoring with ToM
+  - `arifos.sense` — Reality grounding with evidence type
+  - `arifos.mind` — Structured reasoning (min 2 alternatives required)
+  - `arifos.route` — Lane selection with intent classification
+  - `arifos.heart` — Safety & human modeling
+  - `arifos.ops` — Operational cost (irreversibility + rollback plan)
+  - `arifos.judge` — Constitutional verdict (sole SEAL authority)
+  - `arifos.memory` — Governed context recall
+  - `arifos.vault` — Immutable seal (receipt only, no execution)
+
+- **1 Execution Bridge** (action after SEAL):
+  - `arifos.forge` — Delegated execution (requires judge verdict="SEAL")
+
+#### Philosophy Registry v1.2.0
+
+- **83 civilizational quotes** across 5 G★ bands
+- **Deterministic selection**: `sha256(session_id + band + g_star) % count`
+- **Hard overrides**:
+  - INIT stage → "DITEMPA, BUKAN DIBERI."
+  - SEAL verdict → "DITEMPA, BUKAN DIBERI."
+- **Diversity score**: 0.85 (target: ≥0.80)
+- **8 categories**: void, paradox, truth, wisdom, justice, discipline, power, seal
+
+#### ToM Requirements (All Governance Tools)
+
+Every tool now requires structured fields that force LLM mental model externalization:
+
+```python
+# Example: arifos.mind
+{
+  "problem_statement": "...",
+  "alternative_hypotheses": ["Path A", "Path B", "Path C"],  # min 2
+  "second_order_effects": ["Consequence 1", "Consequence 2"],
+  "estimated_uncertainty": 0.25,
+  "confidence_in_reasoning": 0.85,
+}
+```
+
+Missing ToM fields → `tom_violation: True` with VOID verdict.
+
+#### G★ Scoring
+
+Governance strength calculated from ToM input quality:
+- Confidence estimates
+- Alternative count (intellectual honesty bonus)
+- Assumptions declared
+- Second-order effects modeled
+- Consistency checks
+- Harm probability (inverse)
+
+Formula: `G★ = confidence + adjustments` → clamped [0,1]
+
+#### Tool Modes
+
+Multi-function tools consolidated:
+- `arifos.judge` → modes: `judge`, `health`, `history`, `validate`
+- `arifos.vault` → modes: `seal`, `seal_card`, `render`, `status`
+
+#### Clean 2-Term Naming
+
+All tools use `arifos.{tool}` format:
+- `arifos.init` (was `arifos.v2.init`)
+- `arifos.judge` (was `arifos.v2.judge`)
+- etc.
+
+---
+
 ## [2026.04.06.2-HOUSEKEEPING] - Canonical Tool Names + Dead Code Purge
 
 ### 🧹 HOUSEKEEPING: RESTORE CANONICAL NAMES, ARCHIVE DEAD CODE

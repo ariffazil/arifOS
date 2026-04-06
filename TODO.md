@@ -8,8 +8,18 @@
 
 ## 🏗️ TIER 1: THE EXECUTION SURFACE (Immediate)
 
-*Goal: Solidify the 11 Mega-Tools and the 42 Modes for Institutional Grade.*
+*Goal: Solidify the 9+1 ToM-Anchored Architecture for Institutional Grade.*
 
+### ✅ COMPLETED (2026.04.06)
+
+- [x] **9+1 ToM-Anchored Architecture:** 9 governance tools + 1 execution bridge (`arifos.forge`)
+- [x] **Theory of Mind Integration:** All governance tools require structured mental model fields
+- [x] **Philosophy Registry v1.2.0:** 83 quotes, 5 G★ bands, deterministic selection
+- [x] **Clean 2-Term Naming:** `arifos.init`, `arifos.judge`, `arifos.vault`, etc.
+- [x] **G★ Scoring:** Governance strength calculated from ToM input quality
+- [x] **Hard Overrides:** INIT and SEAL always return "DITEMPA, BUKAN DIBERI."
+- [x] **Tool Modes:** `judge` (health/history) and `vault` (seal_card/render) consolidated
+- [x] **Separation of Powers:** Governance (9) and Execution (1) strictly separated
 - [x] **AAA MCP Induction:** Unified arifOS repository, collapsed `AAA/` shadow workspace.
 - [x] **Substrate Controller:** Implemented auto-risk detection and `888_HOLD` in `tools_hardened_dispatch.py`.
 - [x] **000/ Kernel Induction:** Established the 13 Constitutional Floors as the root governing substrate.
@@ -28,6 +38,10 @@
 - [x] **Constitutional MCP Tools:** `get_constitutional_health`, `render_vault_seal`, `list_recent_verdicts` wired into arifosmcp.
 - [x] **ChatGPT Apps Bridge:** MCP Apps-ready widget `ui://arifos/vault-seal-widget.html` + `/chatgpt/widgets/vault-seal.html` preview.
 - [x] **AF-FORGE MCP Deployment Skeleton:** Dockerfile, compose, Nginx, `/health` + `/build` + `/ready` routes.
+
+### ⏳ PENDING
+
+- [ ] **Docker Deploy:** Build and deploy new ToM-anchored container to VPS
 - [ ] **Mode Stability:** Audit all 42 modes in `tools_internal.py` for input schema parity with `contracts.py`.
 - [ ] **API Rotation:** Revoke legacy OpenCode keys and inject fresh secrets into the VPS runtime.
 - [ ] **Lint Fix (Ruff):** Resolve pre-existing lint failures in the root `arifosmcp/` kernel.
