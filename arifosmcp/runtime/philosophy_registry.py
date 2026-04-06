@@ -74,79 +74,78 @@ def _load_philosophy_registry() -> PhilosophyRegistry:
     
     # Try multiple paths for flexibility
     possible_paths = [
+        Path("/usr/src/project/data/philosophy_registry_v1.json"),
+        Path("/usr/src/project/archive/DATA/wisdom_quotes.json"),
         Path(__file__).parent.parent.parent / "data" / "philosophy_registry_v1.json",
-        Path("/root/arifOS/data/philosophy_registry_v1.json"),
-        Path("data/philosophy_registry_v1.json"),
         Path(__file__).parent.parent.parent / "archive" / "DATA" / "wisdom_quotes.json",
-        Path("/root/arifOS/archive/DATA/wisdom_quotes.json"),
     ]
     
     for path in possible_paths:
-        if path.exists():
-            try:
-                with open(path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                
-                # Handle both formats: direct list or {quotes: [...]}
-                if isinstance(data, list):
-                    quotes_data = data
-                elif isinstance(data, dict) and "quotes" in data:
-                    quotes_data = data["quotes"]
-                else:
-                    quotes_data = data.get("quotes", [])
-                
-                # Convert old format to new if needed
-                converted_quotes = []
-                for q in quotes_data:
-                    # Map old 'scar' category to new categories
-                    old_category = q.get("category", "wisdom")
-                    category_mapping = {
-                        "scar": "truth",
-                        "triumph": "power",
-                        "love": "justice",
-                    }
-                    new_category = category_mapping.get(old_category, old_category)
-                    
-                    # Add era if missing
-                    era = q.get("era", "Modern")
-                    if "era" not in q:
-                        # Infer from author/source
-                        era = "Modern"
-                    
-                    # Add civilization if missing
-                    civilization = q.get("civilization", "Contemporary_Global")
-                    if "civilization" not in q:
-                        civilization = "Contemporary_Global"
-                    
-                    converted = {
-                        "id": q.get("id", "UNK"),
-                        "text": q.get("text", ""),
-                        "author": q.get("author", "Unknown"),
-                        "civilization": civilization,
-                        "era": era,
-                        "category": new_category,
-                        "tags": q.get("tags", []),
-                        "source": q.get("source", "corpus_99"),
-                    }
-                    converted_quotes.append(converted)
-                
-                registry = PhilosophyRegistry(quotes=converted_quotes)
-                
-                # Validate
-                stats = registry.get_stats()
-                if stats.is_valid:
-                    logger.info(
-                        f"Loaded {len(registry.quotes)} philosophy entries from {path} "
-                        f"(diversity_score={stats.diversity_score:.2f})"
-                    )
-                else:
-                    logger.warning(f"Registry validation issues: {stats.validation_errors}")
-                
-                return registry
-                
-            except Exception as e:
-                logger.warning(f"Failed to load from {path}: {e}")
+        try:
+            if not path.exists():
                 continue
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            
+            # Handle both formats: direct list or {quotes: [...]}
+            if isinstance(data, list):
+                quotes_data = data
+            elif isinstance(data, dict) and "quotes" in data:
+                quotes_data = data["quotes"]
+            else:
+                quotes_data = data.get("quotes", [])
+            
+            # Convert old format to new if needed
+            converted_quotes = []
+            for q in quotes_data:
+                # Map old 'scar' category to new categories
+                old_category = q.get("category", "wisdom")
+                category_mapping = {
+                    "scar": "truth",
+                    "triumph": "power",
+                    "love": "justice",
+                }
+                new_category = category_mapping.get(old_category, old_category)
+                
+                # Add era if missing
+                era = q.get("era", "Modern")
+                if "era" not in q:
+                    era = "Modern"
+                
+                # Add civilization if missing
+                civilization = q.get("civilization", "Contemporary_Global")
+                if "civilization" not in q:
+                    civilization = "Contemporary_Global"
+                
+                converted = {
+                    "id": q.get("id", "UNK"),
+                    "text": q.get("text", ""),
+                    "author": q.get("author", "Unknown"),
+                    "civilization": civilization,
+                    "era": era,
+                    "category": new_category,
+                    "tags": q.get("tags", []),
+                    "source": q.get("source", "corpus_99"),
+                }
+                converted_quotes.append(converted)
+            
+            registry = PhilosophyRegistry(quotes=converted_quotes)
+            
+            # Validate
+            stats = registry.get_stats()
+            if stats.is_valid:
+                logger.info(
+                    f"Loaded {len(registry.quotes)} philosophy entries from {path} "
+                    f"(diversity_score={stats.diversity_score:.2f})"
+                )
+            else:
+                logger.warning(f"Registry validation issues: {stats.validation_errors}")
+            
+            return registry
+            
+        except Exception as e:
+            logger.warning(f"Failed to load from {path}: {e}")
+            continue
     
     # Fallback: embedded minimal registry
     logger.warning("Using embedded fallback philosophy registry")
@@ -311,9 +310,10 @@ def select_by_verdict(
 
 def inject_philosophy(
     envelope: dict[str, Any],
-    session_id: str,
+    session_id: str | None = None,
     g_star: float | None = None,
     verdict: str | None = None,
+    stage: str | None = None,
 ) -> dict[str, Any]:
     """
     Inject philosophy into RuntimeEnvelope.
@@ -323,15 +323,36 @@ def inject_philosophy(
     
     Args:
         envelope: The envelope dict to inject into
-        session_id: Normalized session ID
+        session_id: Normalized session ID (defaults to envelope.get('session_id'))
         g_star: Optional G★ from envelope.metrics.telemetry.G_star
-        verdict: Optional verdict for fallback selection
+        verdict: Optional verdict for verdict-based selection
+        stage: Optional stage (000, 111, 333, etc.) for stage-based selection
     
     Returns:
         Envelope with philosophy field added
     """
     try:
-        if g_star is not None:
+        # Get session_id from envelope if not provided
+        if session_id is None:
+            session_id = envelope.get('session_id', 'default-session')
+        
+        # Stage-based selection (maps stage to G★ band)
+        if stage is not None:
+            # Map stage to a deterministic G★ value
+            stage_to_g_star = {
+                "000": 0.5,  # init - middle
+                "111": 0.2,  # sense - lower
+                "333": 0.5,  # mind - middle
+                "444": 0.6,  # route - upper-middle
+                "555": 0.4,  # memory - middle
+                "666": 0.7,  # heart - upper
+                "777": 0.6,  # ops - upper-middle
+                "888": 0.8,  # judge - high
+                "999": 0.9,  # vault - very high
+            }
+            g = stage_to_g_star.get(stage, 0.5)
+            selection = select_by_g_star(g, session_id)
+        elif g_star is not None:
             selection = select_by_g_star(g_star, session_id)
         elif verdict is not None:
             selection = select_by_verdict(verdict, session_id)

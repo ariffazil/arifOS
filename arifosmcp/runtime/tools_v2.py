@@ -14,8 +14,15 @@ from typing import Any
 from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
 from arifosmcp.runtime.contracts import (
     RiskTier,
-    RuntimeEnvelope,
     VerdictCode,
+)
+
+# RuntimeEnvelope is a dict type for tool outputs
+RuntimeEnvelope = dict[str, Any]
+from arifosmcp.runtime.philosophy_registry import (
+    inject_philosophy,
+    select_by_verdict,
+    select_by_g_star,
 )
 from arifosmcp.runtime.megaTools import (
     agi_mind as _mega_agi_mind,
@@ -59,7 +66,8 @@ async def arifos_init(
         allow_execution=allow_execution,
         debug=debug,
     )
-    return seal_runtime_envelope(envelope, "arifos.init")
+    sealed = seal_runtime_envelope(envelope, "arifos.init")
+    return inject_philosophy(sealed, stage="000")
 
 
 async def arifos_sense(
@@ -79,7 +87,8 @@ async def arifos_sense(
         dry_run=dry_run,
         debug=debug,
     )
-    return seal_runtime_envelope(envelope, "arifos.sense")
+    sealed = seal_runtime_envelope(envelope, "arifos.sense")
+    return inject_philosophy(sealed, stage="111")
 
 
 async def arifos_mind(
@@ -100,7 +109,8 @@ async def arifos_mind(
         dry_run=dry_run,
         debug=debug,
     )
-    return seal_runtime_envelope(envelope, "arifos.mind")
+    sealed = seal_runtime_envelope(envelope, "arifos.mind")
+    return inject_philosophy(sealed, stage="333")
 
 
 async def arifos_route(
@@ -122,7 +132,8 @@ async def arifos_route(
         allow_execution=allow_execution,
         debug=debug,
     )
-    return seal_runtime_envelope(envelope, "arifos.route")
+    sealed = seal_runtime_envelope(envelope, "arifos.route")
+    return inject_philosophy(sealed, stage="444")
 
 
 async def arifos_heart(
@@ -142,7 +153,8 @@ async def arifos_heart(
         dry_run=dry_run,
         debug=debug,
     )
-    return seal_runtime_envelope(envelope, "arifos.heart")
+    sealed = seal_runtime_envelope(envelope, "arifos.heart")
+    return inject_philosophy(sealed, stage="666")
 
 
 async def arifos_ops(
@@ -162,7 +174,8 @@ async def arifos_ops(
         dry_run=dry_run,
         debug=debug,
     )
-    return seal_runtime_envelope(envelope, "arifos.ops")
+    sealed = seal_runtime_envelope(envelope, "arifos.ops")
+    return inject_philosophy(sealed, stage="777")
 
 
 async def arifos_judge(
@@ -186,7 +199,11 @@ async def arifos_judge(
         dry_run=dry_run,
         debug=debug,
     )
-    return seal_runtime_envelope(envelope, "arifos.judge")
+    sealed = seal_runtime_envelope(envelope, "arifos.judge")
+    
+    # Inject philosophy based on verdict
+    verdict = sealed.get("verdict", "PARTIAL") if isinstance(sealed, dict) else "PARTIAL"
+    return inject_philosophy(sealed, verdict=verdict)
 
 
 async def arifos_memory(
@@ -206,7 +223,8 @@ async def arifos_memory(
         dry_run=dry_run,
         debug=debug,
     )
-    return seal_runtime_envelope(envelope, "arifos.memory")
+    sealed = seal_runtime_envelope(envelope, "arifos.memory")
+    return inject_philosophy(sealed, stage="555")
 
 
 async def arifos_vault(
@@ -226,7 +244,8 @@ async def arifos_vault(
         dry_run=dry_run,
         debug=debug,
     )
-    return seal_runtime_envelope(envelope, "arifos.vault")
+    sealed = seal_runtime_envelope(envelope, "arifos.vault")
+    return inject_philosophy(sealed, stage="999")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
