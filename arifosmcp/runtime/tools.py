@@ -2,6 +2,7 @@
 from __future__ import annotations
 import hashlib
 import logging
+from arifosmcp.runtime.envelope import run_agi_mind, MindState, OutputEnvelope, Provenance
 from typing import Any, Optional
 
 from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
@@ -232,66 +233,40 @@ async def init_v2(
     dry_run: bool = True,
 ) -> RuntimeEnvelope:
     """
-    arifos.init — Session Anchoring with ToM.
-    
-    ToM FIELDS (via payload):
-    - declared_intent: What the LLM believes user wants
-    - confidence_self_estimate: LLM's confidence (0.0-1.0)
-    - context_assumptions: Assumptions about context (min 1)
-    - alternative_intents: Other intents considered
-    - uncertainty_acknowledgment: What LLM is uncertain about
-    
-    RETURNS:
-    - Philosophy: Always "DITEMPA, BUKAN DIBERI." (INIT override)
+    arifos.init — System Initialization with ToM.
+    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
     """
-    # Validate ToM fields present
-    tom_required = ["declared_intent", "confidence_self_estimate", "context_assumptions"]
-    missing = [f for f in tom_required if f not in payload]
+    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+    from arifosmcp.runtime.envelope import run_agi_mind
     
-    if missing:
-        # Create error envelope with ToM violation
-        from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-        return RuntimeEnvelope(
-            tool="init_anchor",
-            stage="000_INIT",
-            status=RuntimeStatus.ERROR,
-            verdict=Verdict.VOID,
-            session_id=session_id,
-            payload={
-                "ok": False,
-                "tom_violation": True,
-                "error": f"Missing required ToM fields: {missing}",
-                "philosophy": {
-                    "registry_version": "1.2.0",
-                    "selection_mode": "error",
-                    "quote": {"text": "DITEMPA, BUKAN DIBERI.", "author": "arifOS"}
-                }
-            }
-        )
+    # Extract input
+    raw_input = str(payload)
     
-    # Call existing tool
-    result = await _mega_init_anchor(
-        mode=mode,
-        payload=payload,
+    # Run the new Unified Intelligence Pipeline
+    envelope = run_agi_mind(raw_input)
+    
+    status_map = {
+        "OK": RuntimeStatus.SUCCESS,
+        "PARTIAL": RuntimeStatus.SABAR,
+        "HOLD": RuntimeStatus.ERROR,
+        "ERROR": RuntimeStatus.ERROR
+    }
+    
+    verdict_map = {
+        "OK": Verdict.SEAL,
+        "PARTIAL": Verdict.SABAR,
+        "HOLD": Verdict.VOID,
+        "ERROR": Verdict.VOID
+    }
+    
+    return RuntimeEnvelope(
+        tool="init",
+        stage="000_INIT",
+        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
+        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
         session_id=session_id,
-        risk_tier=risk_tier,
-        dry_run=dry_run,
+        payload=envelope.model_dump()
     )
-    
-    # Calculate G★ from ToM fields in payload
-    g_star = calculate_g_star_from_payload(payload)
-    result.g_score = g_star
-    
-    # Inject philosophy (will use INIT override)
-    philosophy = inject_philosophy(result, g_star)
-    
-    # Add to payload
-    if isinstance(result.payload, dict):
-        result.payload["philosophy"] = philosophy
-        result.payload["tom_validated"] = True
-        result.payload["constitutional_alignment"] = get_alignment_label(g_star)
-    
-    return result
 
 
 async def sense_v2(
@@ -303,53 +278,39 @@ async def sense_v2(
 ) -> RuntimeEnvelope:
     """
     arifos.sense — Reality Grounding with ToM.
-    
-    ToM FIELDS (via payload):
-    - claim: The claim being evaluated
-    - evidence_type: empirical|logical|speculative
-    - source_confidence: Confidence in source (0.0-1.0)
-    - time_sensitivity: low|medium|high
-    - bias_assessment: Assessment of biases
-    - epistemic_state: LLM's knowledge state
-    - alternative_evidence: Other evidence considered
+    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
     """
-    tom_required = ["claim", "evidence_type", "source_confidence", "bias_assessment"]
-    missing = [f for f in tom_required if f not in payload]
+    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+    from arifosmcp.runtime.envelope import run_agi_mind
     
-    if missing:
-        from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-        return RuntimeEnvelope(
-            tool="physics_reality",
-            stage="111_SENSE",
-            status=RuntimeStatus.ERROR,
-            verdict=Verdict.VOID,
-            session_id=session_id,
-            payload={
-                "ok": False,
-                "tom_violation": True,
-                "error": f"Missing required ToM fields: {missing}",
-            }
-        )
+    # Extract input
+    raw_input = str(payload)
     
-    result = await _mega_physics_reality(
-        mode=mode,
-        payload=payload,
+    # Run the new Unified Intelligence Pipeline
+    envelope = run_agi_mind(raw_input)
+    
+    status_map = {
+        "OK": RuntimeStatus.SUCCESS,
+        "PARTIAL": RuntimeStatus.SABAR,
+        "HOLD": RuntimeStatus.ERROR,
+        "ERROR": RuntimeStatus.ERROR
+    }
+    
+    verdict_map = {
+        "OK": Verdict.SEAL,
+        "PARTIAL": Verdict.SABAR,
+        "HOLD": Verdict.VOID,
+        "ERROR": Verdict.VOID
+    }
+    
+    return RuntimeEnvelope(
+        tool="sense",
+        stage="111_SENSE",
+        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
+        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
         session_id=session_id,
-        risk_tier=risk_tier,
-        dry_run=dry_run,
+        payload=envelope.model_dump()
     )
-    
-    g_star = calculate_g_star_from_payload(payload)
-    result.g_score = g_star
-    
-    philosophy = inject_philosophy(result, g_star)
-    
-    if isinstance(result.payload, dict):
-        result.payload["philosophy"] = philosophy
-        result.payload["tom_validated"] = True
-        result.payload["constitutional_alignment"] = get_alignment_label(g_star)
-    
-    return result
 
 
 async def mind_v2(
@@ -361,68 +322,40 @@ async def mind_v2(
 ) -> RuntimeEnvelope:
     """
     arifos.mind — Structured Reasoning with ToM.
-    
-    ToM FIELDS (via payload):
-    - problem_statement: What is being reasoned about
-    - assumptions: Underlying assumptions
-    - alternative_hypotheses: Other possibilities (min 2)
-    - second_order_effects: Downstream consequences
-    - estimated_uncertainty: LLM's uncertainty (0.0-1.0)
-    - confidence_in_reasoning: Confidence in reasoning (0.0-1.0)
+    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
     """
-    tom_required = ["problem_statement", "assumptions", "alternative_hypotheses"]
-    missing = [f for f in tom_required if f not in payload]
+    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+    from arifosmcp.runtime.envelope import run_agi_mind
     
-    if missing:
-        from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-        return RuntimeEnvelope(
-            tool="agi_mind",
-            stage="333_MIND",
-            status=RuntimeStatus.ERROR,
-            verdict=Verdict.VOID,
-            session_id=session_id,
-            payload={
-                "ok": False,
-                "tom_violation": True,
-                "error": f"Missing required ToM fields: {missing}",
-            }
-        )
+    # Extract query/problem
+    raw_input = payload.get("problem_statement") or payload.get("query") or str(payload)
     
-    # Validate minimum 2 alternatives
-    if len(payload.get("alternative_hypotheses", [])) < 2:
-        from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-        return RuntimeEnvelope(
-            tool="agi_mind",
-            stage="333_MIND",
-            status=RuntimeStatus.ERROR,
-            verdict=Verdict.VOID,
-            session_id=session_id,
-            payload={
-                "ok": False,
-                "tom_violation": True,
-                "error": "ToM violation: at least 2 alternative_hypotheses required",
-            }
-        )
+    # Run the new AGI Mind Pipeline which handles Sense -> Mind -> Heart -> Judge
+    # and outputs a compressed OutputEnvelope with mandatory falsifier and chaos score.
+    envelope = run_agi_mind(raw_input)
     
-    result = await _mega_agi_mind(
-        mode=mode,
-        payload=payload,
+    status_map = {
+        "OK": RuntimeStatus.SUCCESS,
+        "PARTIAL": RuntimeStatus.SABAR,
+        "HOLD": RuntimeStatus.ERROR,
+        "ERROR": RuntimeStatus.ERROR
+    }
+    
+    verdict_map = {
+        "OK": Verdict.SEAL,
+        "PARTIAL": Verdict.SABAR,
+        "HOLD": Verdict.VOID,
+        "ERROR": Verdict.VOID
+    }
+    
+    return RuntimeEnvelope(
+        tool="agi_mind",
+        stage="333_MIND",
+        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
+        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
         session_id=session_id,
-        risk_tier=risk_tier,
-        dry_run=dry_run,
+        payload=envelope.model_dump()
     )
-    
-    g_star = calculate_g_star_from_payload(payload)
-    result.g_score = g_star
-    
-    philosophy = inject_philosophy(result, g_star)
-    
-    if isinstance(result.payload, dict):
-        result.payload["philosophy"] = philosophy
-        result.payload["tom_validated"] = True
-        result.payload["constitutional_alignment"] = get_alignment_label(g_star)
-    
-    return result
 
 
 async def heart_v2(
@@ -434,52 +367,39 @@ async def heart_v2(
 ) -> RuntimeEnvelope:
     """
     arifos.heart — Safety and Human Modeling with ToM.
-    
-    ToM FIELDS (via payload):
-    - target_audience: Who might be affected
-    - potential_harm_vectors: Types of harm
-    - emotional_state_estimate: calm|distressed|hostile|unknown
-    - vulnerability_risk: Risk to vulnerable (0.0-1.0)
-    - consent_assessment: Assessment of consent
-    - human_model_confidence: Confidence in modeling (0.0-1.0)
+    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
     """
-    tom_required = ["target_audience", "potential_harm_vectors", "vulnerability_risk", "consent_assessment"]
-    missing = [f for f in tom_required if f not in payload]
+    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+    from arifosmcp.runtime.envelope import run_agi_mind
     
-    if missing:
-        from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-        return RuntimeEnvelope(
-            tool="asi_heart",
-            stage="666_HEART",
-            status=RuntimeStatus.ERROR,
-            verdict=Verdict.VOID,
-            session_id=session_id,
-            payload={
-                "ok": False,
-                "tom_violation": True,
-                "error": f"Missing required ToM fields: {missing}",
-            }
-        )
+    # Extract input
+    raw_input = str(payload)
     
-    result = await _mega_asi_heart(
-        mode=mode,
-        payload=payload,
+    # Run the new Unified Intelligence Pipeline
+    envelope = run_agi_mind(raw_input)
+    
+    status_map = {
+        "OK": RuntimeStatus.SUCCESS,
+        "PARTIAL": RuntimeStatus.SABAR,
+        "HOLD": RuntimeStatus.ERROR,
+        "ERROR": RuntimeStatus.ERROR
+    }
+    
+    verdict_map = {
+        "OK": Verdict.SEAL,
+        "PARTIAL": Verdict.SABAR,
+        "HOLD": Verdict.VOID,
+        "ERROR": Verdict.VOID
+    }
+    
+    return RuntimeEnvelope(
+        tool="heart",
+        stage="666_HEART",
+        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
+        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
         session_id=session_id,
-        risk_tier=risk_tier,
-        dry_run=dry_run,
+        payload=envelope.model_dump()
     )
-    
-    g_star = calculate_g_star_from_payload(payload)
-    result.g_score = g_star
-    
-    philosophy = inject_philosophy(result, g_star)
-    
-    if isinstance(result.payload, dict):
-        result.payload["philosophy"] = philosophy
-        result.payload["tom_validated"] = True
-        result.payload["constitutional_alignment"] = get_alignment_label(g_star)
-    
-    return result
 
 
 async def ops_v2(
@@ -490,69 +410,40 @@ async def ops_v2(
     dry_run: bool = True,
 ) -> RuntimeEnvelope:
     """
-    arifos.ops — Operational Cost and Capacity with ToM.
-    
-    ToM FIELDS (via payload):
-    - complexity_estimate: Estimated complexity (0.0-1.0)
-    - resource_intensity: low|medium|high
-    - time_horizon: short|mid|long
-    - irreversibility: Whether action can be undone
-    - feasibility_confidence: Confidence in feasibility (0.0-1.0)
-    - rollback_plan: Steps to undo (required if irreversibility=True)
+    arifos.ops — Mathematics and Operations with ToM.
+    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
     """
-    tom_required = ["complexity_estimate", "resource_intensity", "irreversibility", "feasibility_confidence"]
-    missing = [f for f in tom_required if f not in payload]
+    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+    from arifosmcp.runtime.envelope import run_agi_mind
     
-    if missing:
-        from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-        return RuntimeEnvelope(
-            tool="math_estimator",
-            stage="444_OPS",
-            status=RuntimeStatus.ERROR,
-            verdict=Verdict.HOLD,
-            session_id=session_id,
-            payload={
-                "ok": False,
-                "tom_violation": True,
-                "error": f"Missing required ToM fields: {missing}",
-            }
-        )
+    # Extract input
+    raw_input = str(payload)
     
-    # Validate rollback plan for irreversible actions
-    if payload.get("irreversibility") and not payload.get("rollback_plan"):
-        from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-        return RuntimeEnvelope(
-            tool="math_estimator",
-            stage="444_OPS",
-            status=RuntimeStatus.ERROR,
-            verdict=Verdict.HOLD,
-            session_id=session_id,
-            payload={
-                "ok": False,
-                "tom_violation": True,
-                "error": "ToM violation: irreversible action requires rollback_plan",
-            }
-        )
+    # Run the new Unified Intelligence Pipeline
+    envelope = run_agi_mind(raw_input)
     
-    result = await _mega_math_estimator(
-        mode=mode,
-        payload=payload,
+    status_map = {
+        "OK": RuntimeStatus.SUCCESS,
+        "PARTIAL": RuntimeStatus.SABAR,
+        "HOLD": RuntimeStatus.ERROR,
+        "ERROR": RuntimeStatus.ERROR
+    }
+    
+    verdict_map = {
+        "OK": Verdict.SEAL,
+        "PARTIAL": Verdict.SABAR,
+        "HOLD": Verdict.VOID,
+        "ERROR": Verdict.VOID
+    }
+    
+    return RuntimeEnvelope(
+        tool="ops",
+        stage="MATH_ESTIMATOR",
+        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
+        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
         session_id=session_id,
-        risk_tier=risk_tier,
-        dry_run=dry_run,
+        payload=envelope.model_dump()
     )
-    
-    g_star = calculate_g_star_from_payload(payload)
-    result.g_score = g_star
-    
-    philosophy = inject_philosophy(result, g_star)
-    
-    if isinstance(result.payload, dict):
-        result.payload["philosophy"] = philosophy
-        result.payload["tom_validated"] = True
-        result.payload["constitutional_alignment"] = get_alignment_label(g_star)
-    
-    return result
 
 
 async def route_v2(
@@ -563,53 +454,40 @@ async def route_v2(
     dry_run: bool = True,
 ) -> RuntimeEnvelope:
     """
-    arifos.route — Lane Selection with ToM.
-    
-    ToM FIELDS (via payload):
-    - intent_model: informational|advisory|execution|speculative
-    - risk_assessment: low|medium|high|critical
-    - ambiguity_level: How ambiguous (0.0-1.0)
-    - user_expertise_estimate: Estimate of user expertise
-    - routing_confidence: Confidence in routing (0.0-1.0)
-    - inferred_user_goals: What user actually wants
+    arifos.route — Task Routing with ToM.
+    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
     """
-    tom_required = ["intent_model", "risk_assessment", "ambiguity_level", "inferred_user_goals"]
-    missing = [f for f in tom_required if f not in payload]
+    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+    from arifosmcp.runtime.envelope import run_agi_mind
     
-    if missing:
-        from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-        return RuntimeEnvelope(
-            tool="arifOS_kernel",
-            stage="444_ROUTER",
-            status=RuntimeStatus.ERROR,
-            verdict=Verdict.HOLD,
-            session_id=session_id,
-            payload={
-                "ok": False,
-                "tom_violation": True,
-                "error": f"Missing required ToM fields: {missing}",
-            }
-        )
+    # Extract input
+    raw_input = str(payload)
     
-    result = await _mega_arifOS_kernel(
-        mode=mode,
-        payload=payload,
+    # Run the new Unified Intelligence Pipeline
+    envelope = run_agi_mind(raw_input)
+    
+    status_map = {
+        "OK": RuntimeStatus.SUCCESS,
+        "PARTIAL": RuntimeStatus.SABAR,
+        "HOLD": RuntimeStatus.ERROR,
+        "ERROR": RuntimeStatus.ERROR
+    }
+    
+    verdict_map = {
+        "OK": Verdict.SEAL,
+        "PARTIAL": Verdict.SABAR,
+        "HOLD": Verdict.VOID,
+        "ERROR": Verdict.VOID
+    }
+    
+    return RuntimeEnvelope(
+        tool="route",
+        stage="ROUTER",
+        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
+        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
         session_id=session_id,
-        risk_tier=risk_tier,
-        dry_run=dry_run,
+        payload=envelope.model_dump()
     )
-    
-    g_star = calculate_g_star_from_payload(payload)
-    result.g_score = g_star
-    
-    philosophy = inject_philosophy(result, g_star)
-    
-    if isinstance(result.payload, dict):
-        result.payload["philosophy"] = philosophy
-        result.payload["tom_validated"] = True
-        result.payload["constitutional_alignment"] = get_alignment_label(g_star)
-    
-    return result
 
 
 async def judge_v2(
@@ -620,130 +498,40 @@ async def judge_v2(
     dry_run: bool = True,
 ) -> RuntimeEnvelope:
     """
-    arifos.judge — Verdict with ToM.
-    
-    MODES: judge, health, history, validate
-    
-    ToM FIELDS (via payload, for 'judge' mode):
-    - logical_consistency: Whether reasoning was consistent
-    - entropy_delta: Net change in uncertainty
-    - harm_probability: Assessed harm probability (0.0-1.0)
-    - confidence_level: Final confidence (0.0-1.0)
-    - self_critique: LLM's critique of own reasoning
-    - uncertainty_quantified: Quantified uncertainty (0.0-1.0)
+    arifos.judge — Constitutional Validation with ToM.
+    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
     """
-    # Mode: health - Constitutional health snapshot (F1-F13)
-    if mode == "health":
-        return RuntimeEnvelope(
-            tool="apex_judge",
-            stage="888_JUDGE",
-            status=RuntimeStatus.SUCCESS,
-            verdict=Verdict.SEAL,
-            session_id=session_id,
-            payload={
-                "ok": True,
-                "mode": "health",
-                "floors": {
-                    "F1": {"status": "active", "name": "Amanah"},
-                    "F2": {"status": "active", "name": "Truth"},
-                    "F3": {"status": "active", "name": "Justice"},
-                    "F4": {"status": "active", "name": "Integrity"},
-                    "F5": {"status": "active", "name": "Safety"},
-                    "F6": {"status": "active", "name": "Autonomy"},
-                    "F7": {"status": "active", "name": "Dignity"},
-                    "F8": {"status": "active", "name": "Reciprocity"},
-                    "F9": {"status": "active", "name": "Anti-Hantu"},
-                    "F10": {"status": "active", "name": "Coherence"},
-                    "F11": {"status": "active", "name": "Stewardship"},
-                    "F12": {"status": "active", "name": "Accountability"},
-                    "F13": {"status": "active", "name": "Sovereign"},
-                },
-                "summary": {
-                    "total_floors": 13,
-                    "active": 13,
-                    "triggered": 0,
-                    "system_health": "healthy",
-                }
-            }
-        )
+    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+    from arifosmcp.runtime.envelope import run_agi_mind
     
-    # Mode: history - Recent verdicts summary
-    if mode == "history":
-        return RuntimeEnvelope(
-            tool="apex_judge",
-            stage="888_JUDGE",
-            status=RuntimeStatus.SUCCESS,
-            verdict=Verdict.SEAL,
-            session_id=session_id,
-            payload={
-                "ok": True,
-                "mode": "history",
-                "recent_verdicts": [
-                    {
-                        "timestamp": "2026-04-06T09:00:00Z",
-                        "session_id": "example-001",
-                        "verdict": "SEAL",
-                        "g_star": 0.92,
-                        "tool": "arifos.init",
-                    },
-                    {
-                        "timestamp": "2026-04-06T09:15:00Z",
-                        "session_id": "example-002",
-                        "verdict": "PARTIAL",
-                        "g_star": 0.65,
-                        "tool": "arifos.mind",
-                    },
-                ],
-                "registry_version": "1.2.0",
-            }
-        )
+    # Extract input
+    raw_input = str(payload)
     
-    # Mode: judge (default) - Requires ToM fields
-    tom_required = ["logical_consistency", "confidence_level", "self_critique"]
-    missing = [f for f in tom_required if f not in payload]
+    # Run the new Unified Intelligence Pipeline
+    envelope = run_agi_mind(raw_input)
     
-    if missing:
-        from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-        return RuntimeEnvelope(
-            tool="apex_judge",
-            stage="888_JUDGE",
-            status=RuntimeStatus.ERROR,
-            verdict=Verdict.VOID,
-            session_id=session_id,
-            payload={
-                "ok": False,
-                "tom_violation": True,
-                "error": f"Missing required ToM fields: {missing}",
-            }
-        )
+    status_map = {
+        "OK": RuntimeStatus.SUCCESS,
+        "PARTIAL": RuntimeStatus.SABAR,
+        "HOLD": RuntimeStatus.ERROR,
+        "ERROR": RuntimeStatus.ERROR
+    }
     
-    result = await _mega_apex_judge(
-        mode=mode,
-        payload=payload,
+    verdict_map = {
+        "OK": Verdict.SEAL,
+        "PARTIAL": Verdict.SABAR,
+        "HOLD": Verdict.VOID,
+        "ERROR": Verdict.VOID
+    }
+    
+    return RuntimeEnvelope(
+        tool="judge",
+        stage="888_JUDGE",
+        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
+        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
         session_id=session_id,
-        risk_tier=risk_tier,
-        dry_run=dry_run,
+        payload=envelope.model_dump()
     )
-    
-    # Ensure payload is dict
-    if not isinstance(result.payload, dict):
-        result.payload = {}
-    
-    result.payload.setdefault("verdict", getattr(result, "verdict", "PARTIAL"))
-    result.payload.setdefault("floors_triggered", [])
-    result.payload.setdefault("confidence", payload.get("confidence_level", 0.5))
-    result.payload.setdefault("reasoning_class", "constitutional")
-    
-    g_star = calculate_g_star_from_payload(payload)
-    result.g_score = g_star
-    
-    philosophy = inject_philosophy(result, g_star)
-    
-    result.payload["philosophy"] = philosophy
-    result.payload["tom_validated"] = True
-    result.payload["constitutional_alignment"] = get_alignment_label(g_star)
-    
-    return result
 
 
 async def memory_v2(
@@ -754,51 +542,40 @@ async def memory_v2(
     dry_run: bool = True,
 ) -> RuntimeEnvelope:
     """
-    arifos.memory — Recall Context with ToM.
-    
-    ToM FIELDS (via payload):
-    - query_vector: The memory query
-    - relevance_threshold: Minimum relevance (0.0-1.0)
-    - recall_confidence: Confidence in recall (0.0-1.0)
-    - context_assumptions: Assumptions about context
+    arifos.memory — Engineering Memory with ToM.
+    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
     """
-    tom_required = ["query_vector", "relevance_threshold", "recall_confidence"]
-    missing = [f for f in tom_required if f not in payload]
+    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+    from arifosmcp.runtime.envelope import run_agi_mind
     
-    if missing:
-        from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-        return RuntimeEnvelope(
-            tool="engineering_memory",
-            stage="777_MEMORY",
-            status=RuntimeStatus.ERROR,
-            verdict=Verdict.HOLD,
-            session_id=session_id,
-            payload={
-                "ok": False,
-                "tom_violation": True,
-                "error": f"Missing required ToM fields: {missing}",
-            }
-        )
+    # Extract input
+    raw_input = str(payload)
     
-    result = await _mega_engineering_memory(
-        mode=mode,
-        payload=payload,
+    # Run the new Unified Intelligence Pipeline
+    envelope = run_agi_mind(raw_input)
+    
+    status_map = {
+        "OK": RuntimeStatus.SUCCESS,
+        "PARTIAL": RuntimeStatus.SABAR,
+        "HOLD": RuntimeStatus.ERROR,
+        "ERROR": RuntimeStatus.ERROR
+    }
+    
+    verdict_map = {
+        "OK": Verdict.SEAL,
+        "PARTIAL": Verdict.SABAR,
+        "HOLD": Verdict.VOID,
+        "ERROR": Verdict.VOID
+    }
+    
+    return RuntimeEnvelope(
+        tool="memory",
+        stage="555_MEMORY",
+        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
+        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
         session_id=session_id,
-        risk_tier=risk_tier,
-        dry_run=dry_run,
+        payload=envelope.model_dump()
     )
-    
-    g_star = calculate_g_star_from_payload(payload)
-    result.g_score = g_star
-    
-    philosophy = inject_philosophy(result, g_star)
-    
-    if isinstance(result.payload, dict):
-        result.payload["philosophy"] = philosophy
-        result.payload["tom_validated"] = True
-        result.payload["constitutional_alignment"] = get_alignment_label(g_star)
-    
-    return result
 
 
 async def vault_v2(
@@ -809,107 +586,40 @@ async def vault_v2(
     dry_run: bool = True,
 ) -> RuntimeEnvelope:
     """
-    arifos.vault — Immutable Seal with ToM.
-    
-    MODES: seal, seal_card, render, status
-    
-    ToM FIELDS (via payload, for 'seal' mode):
-    - verdict: The verdict to seal
-    - hash_of_input: SHA256 hash of input state
-    - telemetry_snapshot: Complete telemetry
-    - sealing_confidence: Confidence in seal (0.0-1.0)
-    - irreversibility_acknowledged: Whether irreversibility is acknowledged
-    
-    If verdict == SEAL → philosophy override to "DITEMPA, BUKAN DIBERI."
+    arifos.vault — Audit and Seal with ToM.
+    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
     """
-    # Mode: seal_card - Build structured constitutional seal data
-    if mode == "seal_card":
-        return RuntimeEnvelope(
-            tool="vault_ledger",
-            stage="999_VAULT",
-            status=RuntimeStatus.SUCCESS,
-            verdict=Verdict.SEAL,
-            session_id=session_id,
-            payload={
-                "ok": True,
-                "mode": "seal_card",
-                "seal_data": {
-                    "registry_version": "1.2.0",
-                    "quote": "DITEMPA, BUKAN DIBERI.",
-                    "g_star": 1.0,
-                    "band": "SEAL",
-                    "render_template": "vault_seal_widget",
-                }
-            }
-        )
+    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+    from arifosmcp.runtime.envelope import run_agi_mind
     
-    # Mode: render - Render the constitutional seal widget
-    if mode == "render":
-        return RuntimeEnvelope(
-            tool="vault_ledger",
-            stage="999_VAULT",
-            status=RuntimeStatus.SUCCESS,
-            verdict=Verdict.SEAL,
-            session_id=session_id,
-            payload={
-                "ok": True,
-                "mode": "render",
-                "widget": {
-                    "type": "vault_seal",
-                    "title": "arifOS Constitutional Seal",
-                    "quote": "DITEMPA, BUKAN DIBERI.",
-                    "status": "SEALED",
-                    "registry_version": "1.2.0",
-                }
-            }
-        )
+    # Extract input
+    raw_input = str(payload)
     
-    # Mode: seal (default) - Requires ToM fields
-    tom_required = ["verdict", "hash_of_input", "sealing_confidence", "irreversibility_acknowledged"]
-    missing = [f for f in tom_required if f not in payload]
+    # Run the new Unified Intelligence Pipeline
+    envelope = run_agi_mind(raw_input)
     
-    if missing:
-        from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-        return RuntimeEnvelope(
-            tool="vault_ledger",
-            stage="888_VAULT",
-            status=RuntimeStatus.ERROR,
-            verdict=Verdict.VOID,
-            session_id=session_id,
-            payload={
-                "ok": False,
-                "tom_violation": True,
-                "error": f"Missing required ToM fields: {missing}",
-            }
-        )
+    status_map = {
+        "OK": RuntimeStatus.SUCCESS,
+        "PARTIAL": RuntimeStatus.SABAR,
+        "HOLD": RuntimeStatus.ERROR,
+        "ERROR": RuntimeStatus.ERROR
+    }
     
-    result = await _mega_vault_ledger(
-        mode=mode,
-        payload=payload,
+    verdict_map = {
+        "OK": Verdict.SEAL,
+        "PARTIAL": Verdict.SABAR,
+        "HOLD": Verdict.VOID,
+        "ERROR": Verdict.VOID
+    }
+    
+    return RuntimeEnvelope(
+        tool="vault",
+        stage="VAULT_LEDGER",
+        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
+        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
         session_id=session_id,
-        risk_tier=risk_tier,
-        dry_run=dry_run,
+        payload=envelope.model_dump()
     )
-    
-    # Map verdict string to Verdict enum for philosophy injection
-    verdict_str = payload.get("verdict", "PARTIAL")
-    try:
-        from arifosmcp.runtime.models import Verdict as _Verdict
-        result.verdict = _Verdict(verdict_str)
-    except:
-        result.verdict = result.verdict if hasattr(result, 'verdict') else None
-    
-    g_star = calculate_g_star_from_payload(payload)
-    result.g_score = g_star
-    
-    philosophy = inject_philosophy(result, g_star)
-    
-    if isinstance(result.payload, dict):
-        result.payload["philosophy"] = philosophy
-        result.payload["tom_validated"] = True
-        result.payload["constitutional_alignment"] = get_alignment_label(g_star)
-    
-    return result
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
