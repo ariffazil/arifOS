@@ -415,7 +415,11 @@ app.add_route("/robots.txt", robots_txt_handler, methods=["GET"])
 app.add_route("/.well-known/mcp", manifest_handler, methods=["GET"])
 app.add_route("/.well-known/manifest.json", manifest_handler, methods=["GET"])
 app.add_route("/.well-known/agent.json", a2a_agent_card_handler, methods=["GET"])
-app.add_route("/.well-known/security.txt", lambda r: well_known_handler(r, "security.txt"), methods=["GET"])
+async def security_txt_handler(request: Request) -> Response:
+    """Serve security.txt."""
+    return await well_known_handler(request, "security.txt")
+
+app.add_route("/.well-known/security.txt", security_txt_handler, methods=["GET"])
 
 # A2A endpoints
 app.add_route("/a2a/agent", a2a_agent_card_handler, methods=["GET"])
