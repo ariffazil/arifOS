@@ -153,8 +153,9 @@ services:
     env_file:
       - path: .env
     environment:
-      - PYTHONPATH=/usr/src/app
+      - PYTHONPATH=/usr/src/project
     volumes:
+      - /root/arifOS:/usr/src/project:ro
       - /opt/arifos/data/core:/usr/src/app/data:rw
       - /root/arifOS/arifosmcp:/usr/src/app:rw
       - arifosmcp_telemetry:/usr/src/app/telemetry:rw
