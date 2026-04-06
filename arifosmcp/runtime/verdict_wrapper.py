@@ -28,7 +28,8 @@ def forge_verdict(
     metrics: CanonicalMetrics | None = None,
     floors_checked: list[str] | None = None,
     override_code: VerdictCode | None = None,
-    message: str | None = None
+    message: str | None = None,
+    canonical_tool_name: str | None = None
 ) -> RuntimeEnvelope:
     """
     Forge a standardized verdict envelope (v1.0) from raw tool output.
