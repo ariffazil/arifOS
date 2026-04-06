@@ -143,10 +143,10 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         role="Constitutional Airlock",
         layer="GOVERNANCE",
         description=(
-            "🔥 THE IGNITION STATE OF INTELLIGENCE (Unified). "
-            "ONE tool for ALL constitutional session operations. "
-            "Modes: 'init' (establish identity), 'state' (forensic audit), "
-            "'status' (bootstrap diagnostics), 'revoke' (kill session), 'refresh' (rotate token)."
+            "Initialize your constitutional session — the entry point to arifOS. "
+            "Establishes identity, authority level, and governance context. "
+            "Use 'init' to start, 'status' to check session health, 'state' for forensic audit. "
+            "Required before using gated tools like kernel, memory, or vault."
         ),
         trinity="PSI Ψ",
         floors=("F11", "F12", "F13"),
@@ -267,8 +267,9 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         role="Stage Conductor",
         layer="GOVERNANCE",
         description=(
-            "444_ROUTER: Primary metabolic conductor. Processes complex queries through "
-            "the 000-999 pipe. Modes: 'kernel' (reasoning), 'status' (vitals)."
+            "The main conductor for complex queries — routes through constitutional stages 000-999. "
+            "Use for multi-step reasoning, orchestration, and metabolic processing. "
+            "Modes: 'kernel' (full reasoning), 'status' (system vitals)."
         ),
         trinity="DELTA/PSI",
         floors=("F4", "F11"),
@@ -301,8 +302,9 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         role="Constitutional Verdict",
         layer="GOVERNANCE",
         description=(
-            "888_JUDGE: Final authority for verdicts and defense. "
-            "Modes: 'judge', 'rules', 'validate', 'hold', 'armor', 'notify', 'probe' (test floors)."
+            "Final constitutional authority — judges outputs, validates safety, triggers holds. "
+            "Use for: verdict decisions ('judge'), rule audit ('rules'), safety validation ('validate'), "
+            "escalation holds ('hold'), injection scanning ('armor'), governance probes ('probe')."
         ),
         trinity="PSI Ψ",
         floors=("F3", "F12", "F13"),
@@ -327,7 +329,9 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         role="Immutable Memory",
         layer="GOVERNANCE",
         description=(
-            "999_VAULT: Permanent decision recording and integrity. Modes: 'seal', 'verify'."
+            "Immutable decision ledger — cryptographically seals decisions with BLS signatures. "
+            "Use for: recording final verdicts ('seal'), verifying ledger integrity ('verify'). "
+            "Requires authenticated session. Decisions are permanently attested with juror quorum."
         ),
         trinity="PSI Ψ",
         floors=("F1", "F13"),
@@ -349,7 +353,9 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         role="Logic & Synthesis",
         layer="INTELLIGENCE",
         description=(
-            "333_MIND: Core reasoning and synthesis engine. Modes: 'reason', 'reflect', 'forge'."
+            "Core reasoning engine — first-principles thinking and synthesis. "
+            "Use for: structured reasoning ('reason'), self-reflection ('reflect'), "
+            "orchestrated creation ('forge'). Analyzes via constitutional floors F2-F8."
         ),
         trinity="DELTA Δ",
         floors=("F2", "F4", "F7", "F8"),
@@ -370,7 +376,9 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         role="Ethics & Simulation",
         layer="INTELLIGENCE",
         description=(
-            "666_HEART: Safety, empathy, and consequence modeling. Modes: 'critique', 'simulate'."
+            "Safety and ethics critique — adversarial analysis and consequence simulation. "
+            "Use for: critiquing drafts for risks ('critique'), simulating scenario outcomes ('simulate'). "
+            "Acts as red-team conscience with F5-F9 floor enforcement."
         ),
         trinity="OMEGA Ω",
         floors=("F5", "F6", "F9"),
@@ -387,10 +395,10 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         role="Technical Execution",
         layer="INTELLIGENCE",
         description=(
-            "555_MEMORY: Governed autonomous engineering and vector memory. "
-            "Modes: 'engineer' (execute), 'vector_query' (search), 'vector_store' (save), "
-            "'vector_forget' (delete), 'generate' (create). "
-            "Constitutional: F10/F2 verification on all vector queries."
+            "Vector memory and engineering — semantic search, storage, and code generation. "
+            "Use for: searching memory ('vector_query'), storing knowledge ('vector_store'), "
+            "engineering tasks ('engineer'), local LLM generation ('generate'). "
+            "Qdrant-backed with F10/F2 verification."
         ),
         trinity="OMEGA Ω",
         floors=("F10", "F11", "F2"),
@@ -412,7 +420,10 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         stage="111_SENSE",
         role="Environmental Grounding",
         layer="MACHINE",
-        description="111_SENSE: Earth-Witness fact acquisition and mapping. Modes: 'search', 'ingest', 'compass', 'atlas', 'time' (temporal intelligence — current UTC+KL datetime, weekday, quarter).",
+        description="Reality grounding — web search, fact verification, temporal intelligence. "
+            "Use for: web search ('search'), content ingestion ('ingest'), "
+            "navigation compass ('compass'), domain mapping ('atlas'), current time ('time'). "
+            "Grounds AI outputs in observable reality via F2/F3/F10 floors.",
         trinity="DELTA Δ",
         floors=("F2", "F3", "F10"),
         input_schema=_build_mega_schema(
@@ -432,7 +443,9 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         role="Thermodynamic Vitals",
         layer="MACHINE",
         description=(
-            "Quantitative health and metabolic estimation. Modes: 'cost', 'health', 'vitals', 'entropy'."
+            "System health metrics — thermodynamic vitals, cost estimation, entropy monitoring. "
+            "Use for: operation cost estimation ('cost'), health checks ('health'), "
+            "real-time vitals ('vitals'), entropy/drift analysis ('entropy')."
         ),
         trinity="DELTA Δ",
         floors=("F4", "F5"),
@@ -448,7 +461,10 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         role="Computational Execution",
         layer="MACHINE",
         description=(
-            "System-level hygiene and observation. Modes: 'fs', 'process', 'net', 'tail', 'replay'."
+            "System-level execution — file inspection, process monitoring, network status. "
+            "Use for: filesystem inspection ('fs'), process listing ('process'), "
+            "network status ('net'), log tailing ('tail'), trace replay ('replay'). "
+            "⚠️ Sovereign VPS only — high-risk ops return 888_HOLD redirect."
         ),
         trinity="ALL",
         floors=("F1",),
@@ -467,7 +483,9 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         stage="M-4_ARCH",
         role="System Definition",
         layer="MACHINE",
-        description="Tool and resource discovery + Model Registry. Modes: 'register', 'list', 'read', 'context', 'model_catalog', 'model_profile', 'provider_soul', 'verify_identity'.",
+        description="Discovery and registry — list tools, read specs, model catalog, identity verification. "
+            "Use for: discovering available tools ('list'), reading tool contracts ('read'), "
+            "model registry lookup ('model_catalog'), identity binding ('verify_identity').",
         trinity="DELTA Δ",
         floors=("F10", "F11"),
         input_schema=_build_mega_schema(
@@ -502,48 +520,48 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
 PUBLIC_RESOURCE_SPECS: tuple[ResourceSpec, ...] = (
     ResourceSpec(
         uri="about://arifos",
-        name="About arifOS",
-        description="High-level overview of the arifOS Constitutional Governance system.",
+        name="arifOS Overview",
+        description="What is arifOS? Constitutional AI governance, 13 floors, and the 000-999 metabolic pipe.",
     ),
     ResourceSpec(
         uri="canon://floors",
-        name="Constitutional Floors",
-        description="Detailed specification of the 13 Constitutional Floors (F1-F13).",
+        name="arifOS Floors",
+        description="The 13 Constitutional Floors (F1-F13) — thresholds for truth, safety, humility, and sovereignty.",
     ),
     ResourceSpec(
         uri="canon://contracts",
-        name="Tool Contracts",
-        description="Functional and safety contracts for the 11 Mega-Tools.",
+        name="arifOS Tool Spec",
+        description="Detailed contracts for all 11 Mega-Tools — inputs, outputs, floors enforced.",
     ),
     ResourceSpec(
         uri="canon://states",
-        name="State Ladder",
-        description="Forensic session state progression: anonymous -> claimed -> anchored -> verified -> scoped -> approved.",
+        name="arifOS States",
+        description="Session state ladder: anonymous → claimed → anchored → verified → scoped → approved.",
     ),
     ResourceSpec(
         uri="arifos://governance/floors",
-        name="Constitutional Doctrine",
-        description="Immutable thresholds and legal doctrine for the 13 Floors.",
+        name="arifOS Governance",
+        description="Immutable thresholds and legal doctrine for the 13 Constitutional Floors.",
     ),
     ResourceSpec(
         uri="arifos://status/vitals",
-        name="System Vitals",
-        description="Real-time thermodynamic and metabolic health of the kernel.",
+        name="arifOS Vitals",
+        description="Real-time system health: thermodynamic metrics, G-score, entropy, metabolic status.",
     ),
     ResourceSpec(
         uri="arifos://bootstrap/guide",
-        name="Bootstrap Guide",
-        description="Step-by-step sequence for establishing a governed session.",
+        name="arifOS Bootstrap",
+        description="Getting started guide — startup sequence, first session, tool discovery path.",
     ),
     ResourceSpec(
         uri="arifos://agents/skills",
-        name="Agent Skills",
-        description="Canonical registry of AI agent competencies and behaviors.",
+        name="arifOS Skills",
+        description="Consolidated guide for AI agents — constitutional behaviors, skills, best practices.",
     ),
     ResourceSpec(
         uri="arifos://caller/state",
-        name="Caller State",
-        description="Current session identity, authority level, and available next actions.",
+        name="arifOS Session Vitals",
+        description="Your current session state — identity level, allowed tools, blocked operations.",
     ),
     ResourceSpec(
         uri="arifos://sessions/{session_id}/vitals",
@@ -566,20 +584,26 @@ PUBLIC_RESOURCE_SPECS: tuple[ResourceSpec, ...] = (
 )
 
 PUBLIC_PROMPT_SPECS: tuple[PromptSpec, ...] = (
-    PromptSpec(name="init_anchor", description="Prompt for establishing a constitutional session."),
-    PromptSpec(name="arifOS_kernel", description="Prompt for the primary metabolic conductor."),
+    PromptSpec(name="init_anchor", description="Initialize anchor — constitutional session setup and identity binding."),
+    PromptSpec(name="arifOS_kernel", description="ArifOS kernel — metabolic conductor prompt for complex orchestration."),
     PromptSpec(
-        name="agi_mind", description="Prompt for first-principles reasoning and reflection."
+        name="agi_mind", description="AGI mind — first-principles reasoning, synthesis, and reflection prompt."
     ),
     PromptSpec(
-        name="asi_heart", description="Prompt for ethical simulation and adversarial critique."
+        name="asi_heart", description="ASI heart — ethical critique, safety simulation, adversarial analysis prompt."
     ),
-    PromptSpec(name="apex_soul", description="Prompt for sovereign judgment and safety auditing."),
-    PromptSpec(name="vault_ledger", description="Prompt for immutable recording and verification."),
+    PromptSpec(name="apex_soul", description="Apex soul — sovereign judgment, verdict rendering, constitutional audit prompt."),
+    PromptSpec(name="vault_ledger", description="Vault ledger — immutable decision recording and cryptographic sealing prompt."),
     PromptSpec(
-        name="physics_reality", description="Prompt for grounding thoughts in the physical world."
+        name="physics_reality", description="Physics reality — earth-witness grounding, fact-checking, temporal awareness prompt."
     ),
     PromptSpec(
-        name="code_engine", description="Prompt for OS-level hygiene and computational execution."
+        name="code_engine", description="Code engine — system execution, file inspection, process monitoring prompt."
+    ),
+    PromptSpec(
+        name="engineering_memory", description="Engineering memory — vector search, knowledge storage, code generation prompt."
+    ),
+    PromptSpec(
+        name="math_estimator", description="Math estimator — thermodynamic vitals, cost estimation, entropy analysis prompt."
     ),
 )
