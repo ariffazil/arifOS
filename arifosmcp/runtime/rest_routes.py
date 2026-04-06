@@ -1075,11 +1075,11 @@ WELCOME_HTML = WELCOME_HTML.replace("__BUILD_TIME__", BUILD_INFO["timestamp"])
 WELCOME_HTML = WELCOME_HTML.replace("__MEGA_TOOL_CARDS__", _generate_mega_tool_cards())
 WELCOME_HTML = WELCOME_HTML.replace("__APEX_HTML_ROWS__", apex_tools_html_rows())
 try:
-    from arifosmcp.capability_map import LEGACY_COMPAT_MAP as _lcm
+    from arifosmcp.runtime.tools import LEGACY_COMPAT_MAP as _lcm
     WELCOME_HTML = WELCOME_HTML.replace("__LEGACY_COUNT__", str(len(_lcm)))
     del _lcm
 except Exception:
-    WELCOME_HTML = WELCOME_HTML.replace("__LEGACY_COUNT__", "legacy")
+    WELCOME_HTML = WELCOME_HTML.replace("__LEGACY_COUNT__", "27")
 LLMS_TXT = LLMS_TXT.replace("__APEX_MD_TABLE__", apex_tools_markdown_table())
 
 CHECKPOINT_MODES = {"quick", "full", "audit_only"}

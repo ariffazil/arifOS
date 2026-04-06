@@ -350,7 +350,7 @@ services:
       - /root/arifOS/ROADMAP.md:/usr/src/app/ROADMAP.md:ro
       - /root/arifOS/TODO.md:/usr/src/app/TODO.md:ro
     environment:
-      GIT_COMMIT: ${GIT_COMMIT:-}
+      GIT_COMMIT: ${GIT_COMMIT:-a41861c}
       HF_TOKEN: ${HF_TOKEN}
       PYTHONUNBUFFERED: 1
       PYTHONPATH: /usr/src/app

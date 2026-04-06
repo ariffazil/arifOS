@@ -16,7 +16,6 @@ from .tool_specs import (
 ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = ROOT / "pyproject.toml"
 DEFAULT_PUBLIC_BASE_URL = "https://arifosmcp.arif-fazil.com"
-from arifosmcp.capability_map import CAPABILITY_MAP
 
 PUBLIC_TOOL_ALIASES = {"apex_judge": "apex_soul"}
 PUBLIC_TOOL_EXCLUSIONS = {"compat_probe"}
@@ -193,6 +192,7 @@ def build_server_json(public_base_url: str = DEFAULT_PUBLIC_BASE_URL) -> dict[st
 
 def get_legacy_redirect(name: str) -> tuple[str, str] | None:
     """Redirect legacy tool names to the new mega-tool surface (tool, mode)."""
+    from arifosmcp.capability_map import CAPABILITY_MAP  # lazy — avoids circular import at module load
     return CAPABILITY_MAP.get(name)
 
 
