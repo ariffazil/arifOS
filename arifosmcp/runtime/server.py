@@ -210,12 +210,13 @@ register_prompts(mcp)
 register_resources(mcp)
 register_rest_routes(mcp, _CANONICAL_TOOL_IMPLEMENTATIONS)
 
-# ChatGPT Apps SDK integration (internal tools for widget rendering)
-try:
-    from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import register_chatgpt_app_tools
-    register_chatgpt_app_tools(mcp)
-except Exception as e:
-    logger.warning(f"ChatGPT Apps SDK not registered: {e}")
+# ChatGPT Apps SDK integration DISABLED for lean deployment (≤13 tools)
+# To enable: uncomment below and ensure total tools ≤13
+# try:
+#     from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import register_chatgpt_app_tools
+#     register_chatgpt_app_tools(mcp)
+# except Exception as e:
+#     logger.warning(f"ChatGPT Apps SDK not registered: {e}")
 
 # THEN create the app with all routes included
 # FastMCP 2.x/3.x compatibility
