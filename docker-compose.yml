@@ -335,6 +335,7 @@ services:
       # NOTE: server mounts removed — using image-built server.py
       - /root/arifOS/fastmcp.json:/usr/src/app/fastmcp.json:ro
       - /root/arifOS/mcp.json:/usr/src/app/mcp.json:ro
+      - /root/arifOS/pyproject.toml:/usr/src/app/pyproject.toml:ro
       - /root/arifOS/core:/usr/src/app/core:ro
       - /root/arifOS/mcp/000:/usr/src/app/000:ro
       - /root/arifOS/mcp/333:/usr/src/app/333:ro

@@ -955,9 +955,11 @@ def register_tools(mcp: FastMCP, profile: str = "full") -> None:
         "agi_reason",
     }
 
-    # Register canonical public tools plus selected legacy aliases on FastMCP surface.
+    # Register only the 11 canonical mega-tools on the public FastMCP surface.
+    # Legacy aliases remain internally callable but are not exposed to MCP clients.
     # Variadic mega-tool wrappers need concrete shims because FunctionTool rejects *args/**kwargs.
-    all_public_tools = {**FINAL_TOOL_IMPLEMENTATIONS, **LEGACY_COMPAT_MAP}
+    _canonical_names = set(specs.keys())  # derived from PUBLIC_TOOL_SPECS — always exactly 11
+    all_public_tools = {k: v for k, v in FINAL_TOOL_IMPLEMENTATIONS.items() if k in _canonical_names}
     for name, handler in all_public_tools.items():
         if name in hidden_public_conflicts:
             continue

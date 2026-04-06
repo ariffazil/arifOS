@@ -17,7 +17,14 @@ from arifosmcp.runtime.fastmcp_version import IS_FASTMCP_2, IS_FASTMCP_3
 from arifosmcp.runtime.prompts import register_prompts
 from arifosmcp.runtime.resources import register_resources
 from arifosmcp.runtime.rest_routes import register_rest_routes
-from arifosmcp.runtime.tools import ALL_TOOL_IMPLEMENTATIONS, register_tools
+from arifosmcp.runtime.tools import FINAL_TOOL_IMPLEMENTATIONS, register_tools
+from arifosmcp.runtime.public_registry import public_tool_names as _public_tool_names
+
+# Only expose the 11 canonical mega-tools on the REST surface (mirrors FastMCP surface)
+_canonical_names = set(_public_tool_names())
+_CANONICAL_TOOL_IMPLEMENTATIONS = {
+    k: v for k, v in FINAL_TOOL_IMPLEMENTATIONS.items() if k in _canonical_names
+}
 from fastapi import FastAPI
 from fastmcp import FastMCP
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -133,7 +140,7 @@ mcp = FastMCP(
 register_tools(mcp)
 register_prompts(mcp)
 register_resources(mcp)
-register_rest_routes(mcp, ALL_TOOL_IMPLEMENTATIONS)
+register_rest_routes(mcp, _CANONICAL_TOOL_IMPLEMENTATIONS)
 
 # Register ChatGPT Deep Research tools (search + fetch)
 try:
