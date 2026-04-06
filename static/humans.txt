@@ -1,0 +1,71 @@
+/* arifOS MCP — The Humans Behind the Forge */
+
+/* Architect & Maintainer */
+Muhammad Arif bin Fazil
+Location: Kuala Lumpur, Malaysia
+GitHub: github.com/ariffazil
+Contact: arif@arif-fazil.com
+Role: System architect, constitutional designer, lead maintainer
+
+/* Philosophy */
+"DITEMPA, BUKAN DIBERI." — Forged, Not Given.
+
+We believe AI systems should be:
+- Governed by clear constitutional principles
+- Transparent in their decision-making
+- Accountable to human oversight
+- Respectful of human dignity and agency
+- Built through iterative refinement (forged), not handed down (given)
+
+/* Civilizational Memory */
+arifOS draws wisdom from 7 civilizations:
+- Ancient East (Confucius, Laozi)
+- Ancient West (Socrates, Plato, Aristotle)
+- Islamic Golden Age (Al-Farabi, Ibn Rushd)
+- European Enlightenment (Kant, Hume)
+- Industrial Era (Marx, Smith)
+- Modern Scientific (Turing, von Neumann)
+- Contemporary Global (Rawls, contemporary thinkers)
+
+/* Recognition */
+Thanks to:
+- The Model Context Protocol community
+- Constitutional AI researchers
+- All contributors and testers
+- The broader open-source community
+
+/* Built With */
+- Python 3.12
+- FastMCP (MCP SDK)
+- FastAPI / Starlette
+- Docker & Docker Compose
+- Redis (session store)
+- Qdrant (vector memory)
+- PostgreSQL (persistent store)
+- Traefik (reverse proxy)
+
+/* Deployment */
+- AF-FORGE VPS
+- Architecture: Civilizational Regulator
+- Version: 2.0.0
+- Registry: 1.2.0 (84 quotes)
+
+/* Contact */
+For human inquiries:
+- Email: arif@arif-fazil.com
+- GitHub Issues: github.com/ariffazil/arifOS/issues
+- Website: https://arif-fazil.com
+
+For system access:
+- Endpoint: https://arifosmcp.arif-fazil.com
+- Protocol: MCP 2025-11-05
+- Discovery: /.well-known/mcp
+
+/* Last Updated */
+2026-04-06
+
+/* Remember */
+Technology is forged by humans, for humans.
+Never forget the human element.
+
+DITEMPA, BUKAN DIBERI.

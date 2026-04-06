@@ -1,0 +1,42 @@
+{
+  "name": "arifOS MCP",
+  "version": "2.0.0",
+  "description": "Constitutional AI Governance System with 10 canonical tools enforcing 13 Constitutional Floors (F1-F13)",
+  "url": "https://arifosmcp.arif-fazil.com",
+  "provider": {
+    "name": "Muhammad Arif bin Fazil",
+    "url": "https://arif-fazil.com"
+  },
+  "endpoints": {
+    "mcp": "https://arifosmcp.arif-fazil.com/mcp",
+    "health": "https://arifosmcp.arif-fazil.com/health",
+    "tools": "https://arifosmcp.arif-fazil.com/tools",
+    "llms": "https://arifosmcp.arif-fazil.com/llms.txt"
+  },
+  "protocols": {
+    "mcp": {
+      "version": "2025-11-05",
+      "transport": ["streamable-http", "sse"],
+      "stateless": true
+    },
+    "a2a": {
+      "version": "1.0",
+      "capabilities": ["task-delegation", "verdict-exchange"]
+    }
+  },
+  "capabilities": {
+    "tools": 10,
+    "prompts": 4,
+    "resources": 5,
+    "floors": 13,
+    "governance": true,
+    "philosophy": true
+  },
+  "authentication": {
+    "type": "session-continuity",
+    "init_required": true,
+    "description": "Call arifos.init first to establish session identity"
+  },
+  "motto": "DITEMPA, BUKAN DIBERI.",
+  "status": "operational"
+}

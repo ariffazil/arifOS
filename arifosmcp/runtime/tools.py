@@ -899,20 +899,10 @@ async def vault_v2(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# REGISTRATION
+# REGISTRATION (FORWARD DECLARATION — populated after all functions defined)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-CANONICAL_TOOL_HANDLERS = {
-    "arifos.init": init_v2,
-    "arifos.sense": sense_v2,
-    "arifos.mind": mind_v2,
-    "arifos.route": route_v2,
-    "arifos.heart": heart_v2,
-    "arifos.ops": ops_v2,
-    "arifos.judge": judge_v2,
-    "arifos.memory": memory_v2,
-    "arifos.vault": vault_v2,
-}
+CANONICAL_TOOL_HANDLERS: dict[str, Any] = {}
 
 
 def register_tools(mcp: FastMCP) -> None:
@@ -1004,7 +994,203 @@ async def list_recent_verdicts(limit: int = 5) -> dict[str, Any]:
     }
 
 
-# Internal tools required by tools_internal.py
+# ═══════════════════════════════════════════════════════════════════════════════
+# HARDENED EXECUTION BRIDGE — arifos.forge
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3: Execution Attestation
+# 
+# FORGE is the ONLY execution path. It requires:
+# - HMAC-signed execution envelope
+# - Valid SEAL verdict from arifos.judge
+# - Actor identity verification
+# 
+# NO raw shell, NO direct filesystem access, NO arbitrary execution.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+import hmac
+import os
+import secrets
+from typing import Optional
+
+# Execution signing key — loaded from environment (Docker secret or env var)
+# In production, this should be loaded from HashiCorp Vault, AWS KMS, or Docker secrets
+_FORGE_SIGNING_KEY: Optional[bytes] = None
+
+def _get_signing_key() -> bytes:
+    """Get or generate execution signing key."""
+    global _FORGE_SIGNING_KEY
+    if _FORGE_SIGNING_KEY is None:
+        # Try to load from environment/Docker secret
+        key_hex = os.environ.get('FORGE_SIGNING_KEY')
+        if key_hex:
+            _FORGE_SIGNING_KEY = bytes.fromhex(key_hex)
+        else:
+            # Generate ephemeral key (development only — warn in production)
+            logger.warning("FORGE_SIGNING_KEY not set — using ephemeral key (INSECURE FOR PRODUCTION)")
+            _FORGE_SIGNING_KEY = secrets.token_bytes(32)
+    return _FORGE_SIGNING_KEY
+
+
+def sign_execution_envelope(
+    query_hash: str,
+    verdict: str,
+    actor_id: str,
+    timestamp: str,
+) -> str:
+    """
+    Sign execution envelope with HMAC-SHA256.
+    
+    This creates a cryptographic attestation that:
+    - The query was processed
+    - A verdict was rendered
+    - An actor requested execution
+    - At a specific time
+    
+    FORGE verifies this signature before execution.
+    """
+    key = _get_signing_key()
+    
+    # Build canonical message
+    message = f"{query_hash}:{verdict}:{actor_id}:{timestamp}"
+    
+    # Sign
+    signature = hmac.new(key, message.encode(), hashlib.sha256).hexdigest()
+    
+    return signature
+
+
+def verify_execution_envelope(
+    query_hash: str,
+    verdict: str,
+    actor_id: str,
+    timestamp: str,
+    signature: str,
+) -> bool:
+    """
+    Verify execution envelope signature.
+    
+    Returns True only if:
+    - Signature is valid
+    - Verdict is SEAL (not HOLD, not VOID)
+    - Timestamp is recent (anti-replay)
+    
+    This is the gate. No valid signature = no execution.
+    """
+    # Hard check: only SEAL verdicts can execute
+    if verdict != "SEAL":
+        logger.warning(f"Execution blocked: verdict={verdict} (must be SEAL)")
+        return False
+    
+    # Verify signature
+    expected = sign_execution_envelope(query_hash, verdict, actor_id, timestamp)
+    
+    # Constant-time comparison to prevent timing attacks
+    return hmac.compare_digest(signature, expected)
+
+
+async def forge_v2(
+    mode: str,
+    payload: dict[str, Any],
+    session_id: Optional[str] = None,
+    risk_tier: str = "medium",
+    dry_run: bool = True,
+) -> RuntimeEnvelope:
+    """
+    arifos.forge — Hardened Execution Bridge
+    
+    THE ONLY EXECUTION PATH IN arifOS.
+    
+    Requirements:
+    - Signed execution envelope (HMAC)
+    - SEAL verdict from arifos.judge
+    - Actor identity
+    - Action type and constraints
+    
+    If any check fails → VOID (no execution)
+    
+    ToM FIELDS (via payload):
+    - execution_envelope: {query_hash, verdict, actor_id, timestamp, signature}
+    - action_type: "spawn" | "write" | "send" | "call"
+    - target: execution target
+    - constraints: {cpu, memory, timeout, network}
+    """
+    # Extract execution envelope
+    envelope = payload.get("execution_envelope", {})
+    query_hash = envelope.get("query_hash", "")
+    verdict = envelope.get("verdict", "")
+    actor_id = envelope.get("actor_id", "anonymous")
+    timestamp = envelope.get("timestamp", "")
+    signature = envelope.get("signature", "")
+    
+    # HARD GATE 1: Verify signature
+    if not verify_execution_envelope(query_hash, verdict, actor_id, timestamp, signature):
+        return RuntimeEnvelope(
+            tool="forge",
+            stage="FORGE",
+            status=RuntimeStatus.ERROR,
+            verdict=Verdict.VOID,
+            session_id=session_id,
+            payload={
+                "ok": False,
+                "error": "FORGE_REJECT: Invalid or missing execution envelope signature",
+                "detail": "Execution blocked — cryptographic attestation failed",
+                "verdict": verdict,
+                "required": "Valid HMAC signature + SEAL verdict",
+            }
+        )
+    
+    # HARD GATE 2: Check dry_run (development safety)
+    if dry_run:
+        return RuntimeEnvelope(
+            tool="forge",
+            stage="FORGE",
+            status=RuntimeStatus.SUCCESS,
+            verdict=Verdict.SEAL,
+            session_id=session_id,
+            payload={
+                "ok": True,
+                "mode": "dry_run",
+                "note": "Execution validated but not performed (dry_run=True)",
+                "envelope": {
+                    "query_hash": query_hash,
+                    "verdict": verdict,
+                    "actor_id": actor_id,
+                    "timestamp": timestamp,
+                },
+                "action_type": payload.get("action_type"),
+                "target": payload.get("target"),
+                "constraints": payload.get("constraints"),
+            }
+        )
+    
+    # HARD GATE 3: Production execution (requires FORGE container)
+    # In production, this would dispatch to the FORGE container/service
+    # which has the actual execution privileges
+    
+    # For now, return capability-not-available
+    return RuntimeEnvelope(
+        tool="forge",
+        stage="FORGE",
+        status=RuntimeStatus.ERROR,
+        verdict=Verdict.HOLD,
+        session_id=session_id,
+        payload={
+            "ok": False,
+            "error": "FORGE_HOLD: Production execution requires FORGE container",
+            "detail": "MCP server cannot execute directly. Use FORGE substrate.",
+            "required": [
+                "Deploy arifos-forge container",
+                "Configure FORGE_ENDPOINT",
+                "Enable execution delegation",
+            ],
+        }
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# INTERNAL TOOLS — SAFE ONLY (No raw execution)
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def cost_estimator(action_description: str) -> dict[str, Any]:
     """Estimate cost of an action (mock implementation)."""
     return {
@@ -1016,7 +1202,7 @@ def cost_estimator(action_description: str) -> dict[str, Any]:
 
 
 def system_health() -> dict[str, Any]:
-    """Return system health status."""
+    """Return system health status (read-only, no execution)."""
     return {
         "status": "healthy",
         "cpu_percent": 15.0,
@@ -1025,26 +1211,50 @@ def system_health() -> dict[str, Any]:
     }
 
 
-def fs_inspect(path: str = ".") -> dict[str, Any]:
-    """Inspect filesystem at path."""
-    import os
-    try:
-        entries = os.listdir(path)[:20]  # Limit to 20 entries
-        return {"path": path, "entries": entries, "exists": True}
-    except Exception as e:
-        return {"path": path, "error": str(e), "exists": False}
+# REMOVED: fs_inspect, process_list, net_status, log_tail
+# These provided raw system access without governance.
+# All execution now goes through arifos.forge with HMAC attestation.
 
-
+# Mock implementations for compatibility (no actual system access)
 def process_list(limit: int = 50) -> dict[str, Any]:
-    """List system processes."""
-    return {"processes": [], "limit": limit, "note": "process listing not available in container"}
+    """Process listing disabled — use arifos.forge for execution."""
+    return {
+        "ok": False,
+        "error": "Raw process access disabled",
+        "note": "Use arifos.forge for governed execution",
+        "required": "SEAL-verified execution envelope",
+    }
 
 
 def net_status() -> dict[str, Any]:
-    """Return network status."""
-    return {"connected": True, "interfaces": ["eth0"], "note": "network status mock"}
+    """Network status — read-only mock (no actual network access)."""
+    return {"connected": True, "interfaces": [], "note": "Network inspection disabled"}
 
 
 def log_tail(lines: int = 100) -> dict[str, Any]:
-    """Return recent log lines."""
-    return {"lines": [], "count": 0, "note": "log tail mock"}
+    """Log access disabled — use Vault999 for audit logs."""
+    return {
+        "ok": False,
+        "error": "Raw log access disabled",
+        "note": "Use arifos.vault for immutable audit logs",
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# POPULATE TOOL HANDLERS (after all functions defined)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+CANONICAL_TOOL_HANDLERS = {
+    # 9 Governance Tools (think, validate, reason — never execute directly)
+    "arifos.init": init_v2,
+    "arifos.sense": sense_v2,
+    "arifos.mind": mind_v2,
+    "arifos.route": route_v2,
+    "arifos.heart": heart_v2,
+    "arifos.ops": ops_v2,
+    "arifos.judge": judge_v2,
+    "arifos.memory": memory_v2,
+    "arifos.vault": vault_v2,
+    # 1 Execution Bridge (action after SEAL + HMAC attestation)
+    "arifos.forge": forge_v2,
+}

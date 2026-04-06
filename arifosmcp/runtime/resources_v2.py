@@ -181,169 +181,36 @@ SYSTEM_CAPABILITIES: dict[str, Any] = {
     "version": "2.0.0",
     "namespace": "arifos.v2",
     "constitutional_floors": 13,
-    "trinity_model": {
-        "delta": "SOUL — Human values, purpose, intent",
-        "omega": "MIND — The 13 Floors",
-        "psi": "BODY — Tool execution",
-        "w3": "Consensus across theory, constitution, manifesto",
-    },
     "tools": {
-        "public": [
-            {"name": "arifos.v2.init", "purpose": "Start governed session"},
-            {"name": "arifos.v2.route", "purpose": "Execution lane selection"},
-            {"name": "arifos.v2.judge", "purpose": "Constitutional verdict"},
-        ],
-        "internal": [
-            {"name": "arifos.v2.sense", "purpose": "Reality grounding"},
-            {"name": "arifos.v2.mind", "purpose": "Structured reasoning"},
-            {"name": "arifos.v2.heart", "purpose": "Safety critique"},
-            {"name": "arifos.v2.ops", "purpose": "Cost estimation"},
-            {"name": "arifos.v2.memory", "purpose": "Governed recall"},
-            {"name": "arifos.v2.vault", "purpose": "Immutable logging"},
-        ],
+        "public": ["arifos.v2.init", "arifos.v2.route", "arifos.v2.judge"],
+        "internal": ["sense", "mind", "heart", "ops", "memory", "vault"],
     },
-    "prompts": [
-        "constitutional.analysis",
-        "governance.audit",
-        "execution.planning",
-        "minimal.response",
-    ],
-    "resources": [
-        "arifos.v2.governance.floors",
-        "arifos.v2.governance.verdict_spec",
-        "arifos.v2.system.capabilities",
-        "arifos.v2.system.architecture",
-        "arifos.v2.compliance.mapping",
-    ],
     "mcp_version": "2025-11-25",
-    "transport": ["streamable-http", "stdio"],
 }
-
-ARCHITECTURE_DOC: str = """# ARIFOS MCP v2 Architecture
-
-## Constitutional Pipeline
-
-```
-                    ┌──────────────┐
-                    │ arifos.init  │
-                    └──────┬───────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │ arifos.route │
-                    └──────┬───────┘
-         ┌─────────────────┼─────────────────┐
-         ▼                 ▼                 ▼
-  ┌────────────┐   ┌────────────┐   ┌────────────┐
-  │arifos.sense│   │arifos.mind │   │arifos.heart│
-  └────────────┘   └────────────┘   └────────────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │ arifos.ops   │
-                    └──────────────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │arifos.judge  │
-                    └──────┬───────┘
-                           ▼
-                    ┌──────────────┐
-                    │arifos.vault  │
-                    └──────────────┘
-                           ▲
-                           │
-                    ┌──────────────┐
-                    │arifos.memory │
-                    └──────────────┘
-```
-
-## Golden Path
-
-```
-init → route → sense → mind → heart → judge → vault
-```
-
-## Orthogonality Principle
-
-- **mind** and **heart** never call each other
-- **judge** synthesizes both outputs
-- Structural enforcement prevents reasoning-safety collapse
-
-## Visibility Tiers
-
-| Tier | Tools | Access |
-|------|-------|--------|
-| public | init, route, judge | External SDK |
-| internal | sense, mind, heart, ops, memory, vault | Orchestrator only |
-
-## Trinity Model
-
-- **Δ (SOUL)**: Human values, purpose, intent
-- **Ω (MIND)**: The 13 Floors — constitutional law
-- **Ψ (BODY)**: Tool execution, MCP servers, APIs
-
-DITEMPA BUKAN DIBERI — Forged, Not Given
-"""
-
-COMPLIANCE_MAPPING: dict[str, list[str]] = {
-    "SOC2": ["F2", "F9", "F11", "F12"],
-    "ISO42001": ["F4", "F6", "F7", "F9", "F12", "F13"],
-    "NIST_AI_RMF": ["F1", "F2", "F4", "F9", "F10", "F12"],
-    "EU_AI_ACT": ["F2", "F5", "F6", "F9", "F10", "F11"],
-    "internal": ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13"],
-}
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # V2 RESOURCE REGISTRATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def register_v2_resources(mcp: FastMCP) -> list[str]:
-    """Register all v2 resources on the MCP instance."""
-    registered = []
-
-    @mcp.resource("https://arifosmcp.arif-fazil.com/resources/governance/floors")
+    """Register all v2 resources using arifos:// scheme."""
+    
+    @mcp.resource("arifos://governance/floors")
     def governance_floors() -> dict[str, Any]:
-        """Constitutional F1-F13 thresholds, doctrine, and formal criteria."""
         return FLOORS_SPEC
 
-    @mcp.resource("https://arifosmcp.arif-fazil.com/resources/governance/verdict")
+    @mcp.resource("arifos://governance/verdict")
     def governance_verdict_spec() -> dict[str, Any]:
-        """Verdict system specification and output schema."""
         return VERDICT_SPEC
 
-    @mcp.resource("https://arifosmcp.arif-fazil.com/resources/system/capabilities")
+    @mcp.resource("arifos://system/capabilities")
     def system_capabilities() -> dict[str, Any]:
-        """Machine-readable capability map."""
         return SYSTEM_CAPABILITIES
 
-    @mcp.resource("https://arifosmcp.arif-fazil.com/resources/system/architecture")
-    def system_architecture() -> str:
-        """Human-readable architecture documentation."""
-        return ARCHITECTURE_DOC
-
-    @mcp.resource("https://arifosmcp.arif-fazil.com/resources/compliance/mapping")
-    def compliance_mapping() -> dict[str, list[str]]:
-        """Floor-to-standard compliance mapping."""
-        return COMPLIANCE_MAPPING
-
     registered = [
-        "arifos.v2.governance.floors",
-        "arifos.v2.governance.verdict_spec",
-        "arifos.v2.system.capabilities",
-        "arifos.v2.system.architecture",
-        "arifos.v2.compliance.mapping",
+        "arifos://governance/floors",
+        "arifos://governance/verdict",
+        "arifos://system/capabilities",
     ]
-    logger.info(f"Registered {len(registered)} v2 resources: {registered}")
+    logger.info(f"Registered {len(registered)} v2 resources.")
     return registered
-
-
-__all__ = [
-    "FLOORS_SPEC",
-    "VERDICT_SPEC",
-    "SYSTEM_CAPABILITIES",
-    "ARCHITECTURE_DOC",
-    "COMPLIANCE_MAPPING",
-    "register_v2_resources",
-]

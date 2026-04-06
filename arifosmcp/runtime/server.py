@@ -48,6 +48,82 @@ from starlette.responses import JSONResponse, Response
 logger = logging.getLogger(__name__)
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# HARDENING: Kernel Security Checks (LAYER 2 — Blast Radius Isolation)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _security_check() -> dict[str, Any]:
+    """Verify runtime hardening before starting server."""
+    import os
+    
+    checks = {
+        "user": "unknown",
+        "uid": -1,
+        "is_root": True,
+        "filesystem_writable": True,
+        "shell_available": True,
+        "forge_key_set": False,
+        "hardened": False,
+        "warnings": [],
+    }
+    
+    checks["uid"] = os.getuid()
+    checks["is_root"] = checks["uid"] == 0
+    checks["user"] = os.environ.get("USER", "unknown")
+    
+    if checks["is_root"]:
+        checks["warnings"].append("Running as root (blast radius = unlimited)")
+    
+    # Check filesystem
+    try:
+        test_file = "/app/.security_test"
+        with open(test_file, "w") as f:
+            f.write("test")
+        os.remove(test_file)
+        checks["filesystem_writable"] = True
+        checks["warnings"].append("/app is writable (should be read-only)")
+    except PermissionError:
+        checks["filesystem_writable"] = False
+    except Exception:
+        pass
+    
+    # Check for shell
+    shell_paths = ["/bin/sh", "/bin/bash", "/usr/bin/sh", "/usr/bin/bash"]
+    checks["shell_available"] = any(os.path.exists(p) for p in shell_paths)
+    
+    if checks["shell_available"]:
+        checks["warnings"].append("Shell binaries present (attack surface)")
+    
+    # Check FORGE signing key
+    checks["forge_key_set"] = bool(os.environ.get("FORGE_SIGNING_KEY"))
+    
+    if not checks["forge_key_set"]:
+        checks["warnings"].append("FORGE_SIGNING_KEY not set (ephemeral key)")
+    
+    checks["hardened"] = (
+        not checks["is_root"] and
+        not checks["filesystem_writable"] and
+        not checks["shell_available"] and
+        checks["forge_key_set"]
+    )
+    
+    return checks
+
+
+_SECURITY_STATUS = _security_check()
+
+if _SECURITY_STATUS["hardened"]:
+    logger.info("✅ SECURITY: Hardened deployment verified (LAYER 2 active)")
+else:
+    logger.warning("⚠️  SECURITY: Development mode — hardening incomplete")
+    for warning in _SECURITY_STATUS["warnings"]:
+        logger.warning(f"   - {warning}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FASTMCP SERVER
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def _build_fallback_a2a_app() -> FastAPI:
     """Expose a minimal A2A surface when optional protocol deps are missing."""
     app = FastAPI(title="arifOS A2A Fallback")

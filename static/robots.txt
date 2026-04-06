@@ -1,0 +1,28 @@
+# robots.txt for arifOS MCP
+# https://arifosmcp.arif-fazil.com/robots.txt
+
+User-agent: *
+Allow: /
+Allow: /.well-known/
+Allow: /llms.txt
+Allow: /humans.txt
+
+# MCP Discovery
+Allow: /.well-known/mcp
+Allow: /.well-known/agent.json
+Allow: /.well-known/security.txt
+
+# Sitemap
+Sitemap: https://arifosmcp.arif-fazil.com/sitemap.xml
+
+# Host
+Host: https://arifosmcp.arif-fazil.com
+
+# Note to AI agents and crawlers:
+# This is an MCP (Model Context Protocol) server.
+# For integration, see /llms.txt or GET /.well-known/mcp
+# For human contact, see /humans.txt
+# For security, see /.well-known/security.txt
+
+# All civilizations welcome.
+# DITEMPA, BUKAN DIBERI.
