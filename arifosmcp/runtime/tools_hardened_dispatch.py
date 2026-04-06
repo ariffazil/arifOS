@@ -51,14 +51,47 @@ def _apply_policy(
 async def hardened_init_anchor_dispatch(
     mode: str, payload: dict[str, Any], **kwargs
 ) -> dict[str, Any]:
-    envelope = await init_anchor_tool.init(
-        mode=mode,
-        actor_id=payload.get("actor_id"),
-        intent=payload.get("intent"),
-        human_approval=payload.get("human_approval", False),
-        session_id=payload.get("session_id"),
+    if mode in ("state", "status", "refresh"):
+        if mode == "refresh":
+            envelope = await init_anchor_tool.refresh(
+                payload.get("session_id") or "global",
+            )
+        else:
+            envelope = await init_anchor_tool.state(
+                session_id=payload.get("session_id") or "global",
+            )
+    elif mode == "revoke":
+        envelope = await init_anchor_tool.revoke(
+            payload.get("session_id") or "global",
+            reason=payload.get("reason", "User request"),
+        )
+    else:
+        envelope = await init_anchor_tool.init(
+            mode=mode,
+            actor_id=payload.get("actor_id"),
+            declared_name=payload.get("declared_name"),
+            intent=payload.get("intent"),
+            human_approval=payload.get("human_approval", False),
+            session_id=payload.get("session_id"),
+            auth_context=payload.get("auth_context"),
+            risk_tier=payload.get("risk_tier", "low"),
+            session_class=payload.get("session_class", "execute"),
+            query=payload.get("query"),
+            raw_input=payload.get("raw_input"),
+            model_soul=payload.get("model_soul"),
+            deployment_id=payload.get("deployment_id"),
+        )
+    envelope_dict = _apply_policy(envelope.to_dict(), "init_anchor", mode, payload)
+    envelope_dict["auth_context"] = envelope.auth_context
+    envelope_dict["authority"] = (
+        envelope.authority.model_dump(mode="json")
+        if hasattr(envelope.authority, "model_dump")
+        else envelope.authority
     )
-    return _apply_policy(envelope.to_dict(), "init_anchor", mode, payload)
+    envelope_dict["caller_state"] = envelope.caller_state
+    envelope_dict["allowed_next_tools"] = list(envelope.allowed_next_tools)
+    envelope_dict["trace_id"] = envelope.trace.trace_id if envelope.trace else None
+    return envelope_dict
 
 
 async def hardened_physics_reality_dispatch(

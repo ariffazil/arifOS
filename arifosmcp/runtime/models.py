@@ -851,6 +851,34 @@ class RuntimeEnvelope(BaseModel):
         description="Optional governed quote layer selected by APEX-G.",
     )
     debug: dict[str, Any] | None = None
+    contract_version: str | None = Field(
+        default=None,
+        description="Cross-tool continuity contract version.",
+    )
+    operator_summary: dict[str, Any] | None = Field(
+        default=None,
+        description="Compact operator-facing truth summary.",
+    )
+    state: dict[str, Any] | None = Field(
+        default=None,
+        description="Canonical continuity state shared across tools.",
+    )
+    state_origin: dict[str, Any] | None = Field(
+        default=None,
+        description="Origin metadata for the canonical continuity state.",
+    )
+    transitions: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="Explicit state transitions since the prior tool call.",
+    )
+    handoff: dict[str, Any] | None = Field(
+        default=None,
+        description="Formal handoff contract for downstream tools.",
+    )
+    diagnostics: dict[str, Any] | None = Field(
+        default=None,
+        description="Tagged diagnostics for hard guardrails, advisory signals, and symbolic metrics.",
+    )
     model_config = ConfigDict(extra="allow")
 
     def __getitem__(self, item: str) -> Any:

@@ -125,7 +125,7 @@ TOOL_MODES: dict[str, frozenset[str]] = {
     "physics_reality": frozenset({"search", "ingest", "compass", "atlas", "time"}),
     "math_estimator": frozenset({"cost", "health", "vitals", "entropy"}),
     "code_engine": frozenset({"fs", "process", "net", "tail", "replay"}),
-    "architect_registry": frozenset({"register", "list", "read"}),
+    "architect_registry": frozenset({"register", "list", "read", "context"}),
 }
 
 AAA_TOOL_LAW_BINDINGS: dict[str, list[str]] = {

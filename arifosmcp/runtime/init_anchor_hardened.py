@@ -431,7 +431,13 @@ class HardenedInitAnchor:
             "advise": AuthorityLevel.USER,
             "sovereign": AuthorityLevel.SOVEREIGN,
         }
-        auth_state = "verified" if effective_auth_ctx.get("signature") else "claimed_only"
+        auth_state = (
+            "verified"
+            if auth_context
+            and auth_context.get("signature")
+            and auth_context.get("actor_id") == declared_name_norm
+            else "claimed_only"
+        )
         authority_obj = CanonicalAuthority(
             actor_id=declared_name_norm,
             level=class_map.get(sclass.value, AuthorityLevel.AGENT),

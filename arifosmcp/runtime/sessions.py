@@ -78,11 +78,24 @@ def clear_session_identity(session_id: str) -> None:
     """Remove stored identity for a session (e.g., on revocation)."""
     _SESSION_IDENTITY.pop(session_id, None)
     _ACTOR_SESSION_MAP.pop(session_id, None)
+    _SESSION_CONTINUITY_STATE.pop(session_id, None)
 
 
 def list_active_sessions_count() -> int:
     """Return the total number of currently anchored sessions."""
     return len(_SESSION_IDENTITY)
+
+
+def get_session_continuity_state(session_id: str | None) -> dict[str, Any] | None:
+    """Return canonical continuity state for a session if present."""
+    if not session_id:
+        return None
+    return _SESSION_CONTINUITY_STATE.get(session_id)
+
+
+def set_session_continuity_state(session_id: str, state: dict[str, Any]) -> None:
+    """Persist canonical continuity state for a session."""
+    _SESSION_CONTINUITY_STATE[session_id] = state
 
 
 # ── Session Truth Resolution ──────────────────────────────────────────────
@@ -122,7 +135,7 @@ def resolve_runtime_context(
         resolved_session_id = auth_context["session_id"]
         authority_source = "token"
     # 2. Anchored session state for this actor
-    elif get_session_identity(transport_session_id):
+    elif transport_session_id != "global" and get_session_identity(transport_session_id):
         resolved_session_id = transport_session_id
         authority_source = "session"
     # 3. Check if actor has any anchored session

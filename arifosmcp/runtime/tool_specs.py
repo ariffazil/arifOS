@@ -467,12 +467,12 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         stage="M-4_ARCH",
         role="System Definition",
         layer="MACHINE",
-        description="Tool and resource discovery + Model Registry. Modes: 'register', 'list', 'read', 'model_catalog', 'model_profile', 'provider_soul', 'verify_identity'.",
+        description="Tool and resource discovery + Model Registry. Modes: 'register', 'list', 'read', 'context', 'model_catalog', 'model_profile', 'provider_soul', 'verify_identity'.",
         trinity="DELTA Δ",
         floors=("F10", "F11"),
         input_schema=_build_mega_schema(
             "architect_registry",
-            ["register", "list", "read", "model_catalog", "model_profile", "provider_soul", "verify_identity"],
+            ["register", "list", "read", "context", "model_catalog", "model_profile", "provider_soul", "verify_identity"],
             {
                 "uri": {"type": "string"},
                 "session_id": {"type": "string"},

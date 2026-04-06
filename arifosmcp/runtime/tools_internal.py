@@ -1238,6 +1238,21 @@ async def architect_registry_dispatch_impl(
         return await arifos_read_resource_impl(
             uri=payload.get("uri", "about://arifos"), session_id=session_id
         )
+    elif mode == "context":
+        from arifosmcp.capability_map import build_llm_context_map
+
+        return RuntimeEnvelope(
+            ok=True,
+            tool="architect_registry",
+            session_id=session_id,
+            stage="M-4_ARCH",
+            verdict=Verdict.SEAL,
+            status=RuntimeStatus.SUCCESS,
+            payload={
+                "context": build_llm_context_map(),
+                "resource_uri": "arifos://mcp/context",
+            },
+        )
     # Model Registry modes (F11 Identity grounding)
     elif mode == "model_catalog":
         from arifosmcp.runtime.model_registry_client import get_model_registry_client

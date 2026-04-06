@@ -29,20 +29,49 @@ ARIFOS_VERSION = os.getenv("ARIFOS_VERSION", "2026.03.25")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("horizon-gateway")
 
+# Public tool contract must match the policy-approved aliases exposed through
+# Horizon, not legacy sovereign registry names.
+PUBLIC_PROXY_SPECS = {
+    "init_anchor": "000_INIT: Initialize constitutional session anchor.",
+    "arifOS_kernel": "444_ROUTER: Primary metabolic conductor.",
+    "apex_judge": "888_JUDGE: Constitutional verdict engine.",
+    "agi_mind": "333_MIND: Reasoning and synthesis engine.",
+    "asi_heart": "666_HEART: Safety and empathy critique.",
+    "physics_reality": "111_SENSE: Reality grounding and temporal intelligence.",
+    "math_estimator": "777_OPS: Thermodynamic vitals and cost estimation.",
+    "architect_registry": "000_INIT: Tool and resource discovery.",
+    "compat_probe": "M-5_COMPAT: Interoperability and enum audit.",
+    "agi_reason": "333_MIND: First-principles reasoning.",
+    "agi_reflect": "333_MIND: Reflective synthesis and critique.",
+    "asi_critique": "666_HEART: Harm and alignment critique.",
+    "asi_simulate": "666_HEART: Consequence and scenario simulation.",
+    "reality_compass": "111_SENSE: Directional grounding.",
+    "reality_atlas": "111_SENSE: Contextual reality mapping.",
+    "search_reality": "111_SENSE: Evidence-grounded search.",
+    "ingest_evidence": "111_SENSE: Evidence ingestion.",
+    "check_vital": "777_OPS: Runtime health signal.",
+    "audit_rules": "888_JUDGE: Rule and policy audit.",
+    "search_tool": "Search for indexed documents.",
+    "fetch_tool": "Fetch indexed document content by ID.",
+}
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # GATEWAY POLICY COUNTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def _get_tool_policy_counts() -> dict[str, int]:
-    counts = {"public": 0, "authenticated": 0, "sovereign_only": 0}
-    for _tool_name, access in TOOL_ACCESS_POLICY.items():
-        if access == ToolAccessClass.PUBLIC.value:
-            counts["public"] += 1
-        elif access == ToolAccessClass.AUTHENTICATED.value:
-            counts["authenticated"] += 1
+    authenticated = 0
+    sovereign_only = 0
+    for access in TOOL_ACCESS_POLICY.values():
+        if access == ToolAccessClass.AUTHENTICATED.value:
+            authenticated += 1
         elif access == ToolAccessClass.SOVEREIGN_ONLY.value:
-            counts["sovereign_only"] += 1
-    return counts
+            sovereign_only += 1
+    return {
+        "public": len(PUBLIC_PROXY_SPECS),
+        "authenticated": authenticated,
+        "sovereign_only": sovereign_only,
+    }
 
 TOOL_COUNTS = _get_tool_policy_counts()
 
@@ -422,12 +451,12 @@ async def search_tool(
 
 @mcp.tool()
 async def fetch_tool(
-    query: str,
+    id: str,
     session_id: Optional[str] = None,
 ) -> dict:
     """Fetch indexed document content by ID."""
     return await _proxy_to_vps("fetch_tool", {
-        "query": query,
+        "id": id,
         "session_id": session_id,
     })
 

@@ -267,6 +267,22 @@ def register_resources(mcp: FastMCP) -> None:
 
     _resource_content_functions["arifos://contracts/tools"] = arifos_tool_contracts
 
+    @mcp.resource("arifos://mcp/context")
+    def arifos_mcp_context() -> str:
+        """arifOS MCP Context: canonical tools, aliases, modes, continuity law, and usage guidance for LLMs."""
+        from arifosmcp.capability_map import build_llm_context_map
+
+        payload = build_llm_context_map()
+        payload["discovery"] = {
+            "tool_contracts_resource": "arifos://contracts/tools",
+            "skills_resource": "arifos://agents/skills",
+            "bootstrap_resource": "arifos://bootstrap/guide",
+            "caller_state_resource": "arifos://caller/state",
+        }
+        return json.dumps(payload, ensure_ascii=False)
+
+    _resource_content_functions["arifos://mcp/context"] = arifos_mcp_context
+
     @mcp.resource("arifos://caller/state")
     def arifos_caller_state() -> str:
         """arifOS Caller State: Current state, allowed tools, blocked tools."""

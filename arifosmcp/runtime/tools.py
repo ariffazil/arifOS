@@ -29,6 +29,7 @@ from typing import Any
 from arifosmcp.runtime.governance_identities import (
     validate_sovereign_proof,
 )
+from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
 from arifosmcp.runtime.models import (
     CallerContext,
     PersonaId,
@@ -128,8 +129,26 @@ def _has_valid_proof(payload: dict[str, Any], actor_id: str) -> bool:
     return False
 
 
-async def init_anchor(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
-    return await init_anchor_impl(*args, **kwargs)
+async def init_anchor(
+    mode: str | None = None,
+    payload: dict[str, Any] | None = None,
+    query: str | None = None,
+    session_id: str | None = None,
+    **kwargs: Any,
+) -> RuntimeEnvelope:
+    envelope = await init_anchor_impl(
+        mode=mode,
+        payload=payload,
+        query=query,
+        session_id=session_id,
+        **kwargs,
+    )
+    return seal_runtime_envelope(
+        envelope,
+        "init_anchor",
+        input_payload=payload or {**kwargs, "query": query, "session_id": session_id, "mode": mode},
+        mode=mode,
+    )
 
 
 async def arifOS_kernel(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
@@ -139,7 +158,7 @@ async def arifOS_kernel(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
         if mode not in {"kernel", "status"}:
             raise ValueError(f"Invalid mode for arifOS_kernel: {mode}")
         if isinstance(payload, dict):
-            return await arifos_kernel_impl(
+            envelope = await arifos_kernel_impl(
                 query=payload.get("query"),
                 risk_tier=kwargs.get("risk_tier", "medium"),
                 auth_context=kwargs.get("auth_context"),
@@ -149,7 +168,19 @@ async def arifOS_kernel(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
                 ctx=kwargs.get("ctx"),
                 intent=payload.get("intent"),
             )
-    return await _mega_arifOS_kernel(*args, **kwargs)
+            return seal_runtime_envelope(
+                envelope,
+                "arifOS_kernel",
+                input_payload=payload,
+                mode=mode,
+            )
+    envelope = await _mega_arifOS_kernel(*args, **kwargs)
+    return seal_runtime_envelope(
+        envelope,
+        "arifOS_kernel",
+        input_payload=kwargs.get("payload") or kwargs,
+        mode=kwargs.get("mode"),
+    )
 
 
 async def forge(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
@@ -160,35 +191,83 @@ async def forge(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
 
 
 async def apex_soul(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
-    return await _mega_apex_judge(*args, **kwargs)
+    envelope = await _mega_apex_judge(*args, **kwargs)
+    return seal_runtime_envelope(
+        envelope,
+        "apex_soul",
+        input_payload=kwargs.get("payload") or kwargs,
+        mode=kwargs.get("mode"),
+    )
 
 
 async def vault_ledger(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
-    return await _mega_vault_ledger(*args, **kwargs)
+    envelope = await _mega_vault_ledger(*args, **kwargs)
+    return seal_runtime_envelope(
+        envelope,
+        "vault_ledger",
+        input_payload=kwargs.get("payload") or kwargs,
+        mode=kwargs.get("mode"),
+    )
 
 
 async def agi_mind(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
-    return await _mega_agi_mind(*args, **kwargs)
+    envelope = await _mega_agi_mind(*args, **kwargs)
+    return seal_runtime_envelope(
+        envelope,
+        "agi_mind",
+        input_payload=kwargs.get("payload") or kwargs,
+        mode=kwargs.get("mode"),
+    )
 
 
 async def asi_heart(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
-    return await _mega_asi_heart(*args, **kwargs)
+    envelope = await _mega_asi_heart(*args, **kwargs)
+    return seal_runtime_envelope(
+        envelope,
+        "asi_heart",
+        input_payload=kwargs.get("payload") or kwargs,
+        mode=kwargs.get("mode"),
+    )
 
 
 async def engineering_memory(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
-    return await _mega_engineering_memory(*args, **kwargs)
+    envelope = await _mega_engineering_memory(*args, **kwargs)
+    return seal_runtime_envelope(
+        envelope,
+        "engineering_memory",
+        input_payload=kwargs.get("payload") or kwargs,
+        mode=kwargs.get("mode"),
+    )
 
 
 async def physics_reality(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
-    return await _mega_physics_reality(*args, **kwargs)
+    envelope = await _mega_physics_reality(*args, **kwargs)
+    return seal_runtime_envelope(
+        envelope,
+        "physics_reality",
+        input_payload=kwargs.get("payload") or kwargs,
+        mode=kwargs.get("mode"),
+    )
 
 
 async def math_estimator(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
-    return await _mega_math_estimator(*args, **kwargs)
+    envelope = await _mega_math_estimator(*args, **kwargs)
+    return seal_runtime_envelope(
+        envelope,
+        "math_estimator",
+        input_payload=kwargs.get("payload") or kwargs,
+        mode=kwargs.get("mode"),
+    )
 
 
 async def code_engine(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
-    return await _mega_code_engine(*args, **kwargs)
+    envelope = await _mega_code_engine(*args, **kwargs)
+    return seal_runtime_envelope(
+        envelope,
+        "code_engine",
+        input_payload=kwargs.get("payload") or kwargs,
+        mode=kwargs.get("mode"),
+    )
 
 
 
@@ -697,7 +776,13 @@ async def seal_vault_commit(**kwargs: Any) -> RuntimeEnvelope:
 async def architect_registry(mode: str = "list", **kwargs: Any) -> RuntimeEnvelope:
     from arifosmcp.runtime.megaTools import architect_registry as impl
 
-    return await impl(mode=mode, **kwargs)
+    envelope = await impl(mode=mode, **kwargs)
+    return seal_runtime_envelope(
+        envelope,
+        "architect_registry",
+        input_payload=kwargs.get("payload") or kwargs,
+        mode=mode,
+    )
 
 
 async def compat_probe(mode: str = "audit", **kwargs: Any) -> RuntimeEnvelope:

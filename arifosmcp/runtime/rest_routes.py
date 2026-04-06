@@ -806,6 +806,9 @@ Payload: { "jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1 }</co
         });
     })();
   </script>
+  <style>#rn{{position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(10,10,10,0.97);border-top:1px solid #1e1e1e;display:flex;align-items:stretch;justify-content:center;height:36px;font-family:"Courier New",monospace}}#rn a{{color:inherit;text-decoration:none;padding:0 13px;display:flex;align-items:center;font-size:10px;letter-spacing:1.2px;border-right:1px solid #1e1e1e;white-space:nowrap;transition:background .15s}}#rn a:last-child{{border-right:none}}#rn a:hover{{background:#1a1a1a}}#rn a.rn-active{{background:#181818;border-bottom:2px solid currentColor}}body{{padding-bottom:40px!important}}</style>
+  <nav id="rn"><a href="https://arif-fazil.com" data-h="arif-fazil.com" style="color:#c94b2e">&#9678; ARIF</a><a href="https://arifos.arif-fazil.com" data-h="arifos.arif-fazil.com" style="color:#c4791a">&#916; arifOS</a><a href="https://forge.arif-fazil.com" data-h="forge.arif-fazil.com" style="color:#888">&#936; FORGE</a><a href="https://aaa.arif-fazil.com" data-h="aaa.arif-fazil.com" style="color:#2a6fbd">&#9678; AAA</a><a href="https://arifosmcp.arif-fazil.com" data-h="arifosmcp.arif-fazil.com" style="color:#2a8a4a">&#9881; MCP</a><a href="https://waw.arif-fazil.com" data-h="waw.arif-fazil.com" style="color:#6d4ade">&#9678; waw</a></nav>
+  <script>(function(){{var h=location.hostname,a=document.querySelectorAll("#rn a");a.forEach(function(x){{if(x.dataset.h===h)x.classList.add("rn-active")}})}})()</script>
 </body>
 </html>
 """
@@ -1081,6 +1084,12 @@ try:
 except Exception:
     WELCOME_HTML = WELCOME_HTML.replace("__LEGACY_COUNT__", "27")
 LLMS_TXT = LLMS_TXT.replace("__APEX_MD_TABLE__", apex_tools_markdown_table())
+
+
+def _build_llms_txt() -> str:
+    from arifosmcp.capability_map import build_llm_context_markdown
+
+    return LLMS_TXT + "\n\n" + build_llm_context_markdown() + "\n"
 
 CHECKPOINT_MODES = {"quick", "full", "audit_only"}
 RISK_TIER_BY_MODE = {
@@ -1683,7 +1692,7 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
 
     @route("/discovery", methods=["GET"])
     async def discovery_alias(request: Request) -> Response:
-        payload = build_server_json(_public_base_url(request))
+        payload = build_mcp_discovery_json(_public_base_url(request))
         payload.setdefault("protocolVersion", MCP_PROTOCOL_VERSION)
         payload.setdefault("supportedProtocolVersions", MCP_SUPPORTED_PROTOCOL_VERSIONS)
         return JSONResponse(payload)
@@ -1943,7 +1952,7 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
 
     @route("/llms.txt", methods=["GET"])
     async def llms_txt(_request: Request) -> Response:
-        return Response(LLMS_TXT, media_type="text/plain")
+        return Response(_build_llms_txt(), media_type="text/plain")
 
     @route("/llms.json", methods=["GET"])
     async def llms_json(_request: Request) -> Response:

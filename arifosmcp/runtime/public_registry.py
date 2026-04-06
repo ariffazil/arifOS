@@ -122,6 +122,8 @@ def normalize_tool_profile(profile: str | None) -> str:
 
 def build_server_json(public_base_url: str = DEFAULT_PUBLIC_BASE_URL) -> dict[str, Any]:
     """Build the canonical server.json manifest with the live public tool surface."""
+    from arifosmcp.capability_map import build_llm_context_map
+
     public_specs = public_tool_specs()
     tools = []
     for spec in public_specs:
@@ -180,6 +182,7 @@ def build_server_json(public_base_url: str = DEFAULT_PUBLIC_BASE_URL) -> dict[st
             "resources": len(PUBLIC_RESOURCE_SPECS),
         },
         "serverUrl": public_base_url,
+        "llm_context": build_llm_context_map(),
         "tools": tools,
         "resources": resources,
         "resourceTemplates": resource_templates,
@@ -210,7 +213,17 @@ def build_internal_server_json(public_base_url: str = DEFAULT_PUBLIC_BASE_URL) -
 
 def build_mcp_discovery_json(public_base_url: str = DEFAULT_PUBLIC_BASE_URL) -> dict[str, Any]:
     """Build MCP discovery manifest for internal profile endpoints."""
-    return build_internal_server_json(public_base_url=public_base_url)
+    from arifosmcp.capability_map import build_llm_context_map
+
+    manifest = build_internal_server_json(public_base_url=public_base_url)
+    manifest["llm_context_resource"] = "arifos://mcp/context"
+    manifest["continuity_contract_version"] = "0.1.0"
+    manifest["llm_context"] = build_llm_context_map()
+    manifest["discovery_notes"] = [
+        "Use arifos://mcp/context for full canonical tool, alias, and continuity guidance.",
+        "Do not infer authority from prior success; read continuity envelope on every call.",
+    ]
+    return manifest
 
 
 def build_mcp_manifest(public_base_url: str = DEFAULT_PUBLIC_BASE_URL) -> dict[str, Any]:

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 # -----------------------------------------------------------------------------
 # 11 CANONICAL MEGA-TOOLS (PUBLIC SURFACE TARGET)
@@ -84,6 +85,7 @@ class ArchitectRegistryMode(str, Enum):
     register = "register"
     list = "list"
     read = "read"
+    context = "context"
 
 
 MEGA_TOOL_MODES: dict[MegaToolName, set[str]] = {
@@ -244,3 +246,102 @@ CAPABILITY_MAP.update({
     "read_resource": CapabilityTarget("engineering_memory", "query", "fallback"),
     "register_tools": CapabilityTarget("arifOS_kernel", "kernel", "fallback"),
 })
+
+
+def build_llm_context_map() -> dict[str, Any]:
+    """
+    Build a machine-readable context map for LLMs and remote MCP clients.
+
+    This keeps legacy alias coverage while exposing the canonical arifOS tool
+    surface, mode semantics, and continuity contract expectations in one place.
+    """
+    from .runtime.contracts import AAA_TOOL_LAW_BINDINGS, AAA_TOOL_STAGE_MAP, TRINITY_BY_TOOL
+
+    canonical_tools: dict[str, Any] = {}
+    for mega in MEGA_TOOLS:
+        aliases = sorted(
+            legacy for legacy, target in CAPABILITY_MAP.items() if target.mega_tool == mega
+        )
+        canonical_tools[mega] = {
+            "modes": sorted(MEGA_TOOL_MODES.get(mega, set())),
+            "stage": AAA_TOOL_STAGE_MAP.get(mega),
+            "trinity": TRINITY_BY_TOOL.get(mega),
+            "floors": AAA_TOOL_LAW_BINDINGS.get(mega, []),
+            "legacy_aliases": aliases,
+        }
+
+    return {
+        "schema": "arifos-llm-context/v1",
+        "canonical_mega_tools": list(MEGA_TOOLS),
+        "legacy_alias_count": len(CAPABILITY_MAP),
+        "canonical_tools": canonical_tools,
+        "continuity_contract": {
+            "contract_version": "0.1.0",
+            "required_sections": [
+                "operator_summary",
+                "declared_identity",
+                "verified_identity",
+                "session_binding",
+                "authorization",
+                "governance_closure",
+                "policy_checks",
+                "transitions",
+                "handoff",
+                "diagnostics",
+            ],
+            "invariants": [
+                "verified_identity may not change without explicit verification",
+                "authorization may not widen without authority_transition",
+                "session continuity is versioned and trace-linked",
+                "downstream tools must not infer authority from prior success",
+            ],
+        },
+        "usage_guidance": {
+            "bootstrap_path": [
+                "check_vital",
+                "audit_rules",
+                "init_anchor",
+                "arifOS_kernel",
+            ],
+            "global_session_rule": "global is diagnostics-only and must not authorize mutations",
+            "preferred_reasoning_path": ["init_anchor", "agi_mind", "asi_heart", "apex_judge"],
+            "preferred_grounding_path": ["init_anchor", "physics_reality", "agi_mind"],
+        },
+    }
+
+
+def build_llm_context_markdown() -> str:
+    """Render the canonical LLM context map as markdown for llms.txt surfaces."""
+    payload = build_llm_context_map()
+    lines = [
+        "## Canonical MCP Context",
+        "",
+        f"- Schema: `{payload['schema']}`",
+        f"- Continuity Contract: `{payload['continuity_contract']['contract_version']}`",
+        f"- Canonical Mega-Tools: `{', '.join(payload['canonical_mega_tools'])}`",
+        "",
+        "### Continuity Invariants",
+    ]
+    for invariant in payload["continuity_contract"]["invariants"]:
+        lines.append(f"- {invariant}")
+
+    lines.extend(["", "### Canonical Tools"])
+    for name, spec in payload["canonical_tools"].items():
+        aliases = ", ".join(spec["legacy_aliases"]) if spec["legacy_aliases"] else "none"
+        lines.append(
+            f"- `{name}` — stage `{spec['stage']}`, modes `{', '.join(spec['modes'])}`, "
+            f"floors `{', '.join(spec['floors'])}`, aliases `{aliases}`"
+        )
+
+    lines.extend(["", "### Usage Guidance"])
+    lines.append(
+        f"- Bootstrap Path: `{', '.join(payload['usage_guidance']['bootstrap_path'])}`"
+    )
+    lines.append(f"- Global Session Rule: {payload['usage_guidance']['global_session_rule']}")
+    lines.append(
+        f"- Preferred Reasoning Path: `{', '.join(payload['usage_guidance']['preferred_reasoning_path'])}`"
+    )
+    lines.append(
+        f"- Preferred Grounding Path: `{', '.join(payload['usage_guidance']['preferred_grounding_path'])}`"
+    )
+    return "\n".join(lines)
