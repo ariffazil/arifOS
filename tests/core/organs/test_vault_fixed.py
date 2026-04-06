@@ -14,7 +14,7 @@ class TestVaultFixed:
     @pytest.mark.asyncio
     async def test_vault_store_basic(self):
         """Test basic vault store operation."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         result = await vault(
             operation="store", session_id="test-vault-001", content="Test content to store"
@@ -25,7 +25,7 @@ class TestVaultFixed:
     @pytest.mark.asyncio
     async def test_vault_search_basic(self):
         """Test basic vault search."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         result = await vault(
             operation="search", session_id="test-vault-002", content="search query"
@@ -36,7 +36,7 @@ class TestVaultFixed:
     @pytest.mark.asyncio
     async def test_vault_recall_basic(self):
         """Test vault recall."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         result = await vault(operation="recall", session_id="test-vault-003")
 
@@ -45,7 +45,7 @@ class TestVaultFixed:
     @pytest.mark.asyncio
     async def test_vault_forget_basic(self):
         """Test vault forget."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         result = await vault(
             operation="forget", session_id="test-vault-004", memory_ids=["memory-001", "memory-002"]
@@ -56,7 +56,7 @@ class TestVaultFixed:
     @pytest.mark.asyncio
     async def test_vault_seal_basic(self):
         """Test vault seal."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         result = await vault(
             operation="seal", session_id="test-vault-005", content="Sealing this content"
@@ -67,7 +67,7 @@ class TestVaultFixed:
     @pytest.mark.asyncio
     async def test_vault_default_operation(self):
         """Test vault with default operation (search)."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         result = await vault(session_id="test-vault-default")
 
@@ -76,7 +76,7 @@ class TestVaultFixed:
     @pytest.mark.asyncio
     async def test_vault_with_top_k(self):
         """Test vault search with top_k parameter."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         result = await vault(
             operation="search", session_id="test-vault-topk", content="query", top_k=10
@@ -87,7 +87,7 @@ class TestVaultFixed:
     @pytest.mark.asyncio
     async def test_vault_unicode_content(self):
         """Test vault with unicode content."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         result = await vault(
             operation="store", session_id="test-vault-unicode", content="Unicode: 你好 🌍 ñ"
@@ -98,7 +98,7 @@ class TestVaultFixed:
     @pytest.mark.asyncio
     async def test_vault_long_content(self):
         """Test vault with long content."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         long_content = "Test content " * 100
 
@@ -109,7 +109,7 @@ class TestVaultFixed:
     @pytest.mark.asyncio
     async def test_vault_empty_content_store(self):
         """Test vault store with empty content (should raise error)."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         with pytest.raises(ValueError):
             await vault(operation="store", session_id="test-vault-empty", content="")
@@ -117,7 +117,7 @@ class TestVaultFixed:
     @pytest.mark.asyncio
     async def test_vault_with_auth_context(self):
         """Test vault with auth context."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         result = await vault(
             operation="store",
@@ -135,7 +135,7 @@ class TestVaultOperations:
     @pytest.mark.asyncio
     async def test_all_operations_exist(self):
         """Verify all vault operations exist."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         operations = ["store", "recall", "search", "forget", "seal"]
 

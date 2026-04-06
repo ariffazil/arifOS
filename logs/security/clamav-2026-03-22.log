@@ -1,6 +1,0 @@
-=== arifOS ClamAV Scan | 2026-03-22 19:30:04 ===
-Scanning /root/.openclaw/workspace ...
-/root/.openclaw/workspace/scripts/clamav-daily-scan.sh: line 18: clamscan: command not found
-⚠️  INFECTED FILES DETECTED: 
-0
-=== Scan Complete | 19:30:04 ===

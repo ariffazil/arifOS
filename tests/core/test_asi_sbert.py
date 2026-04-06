@@ -3,7 +3,7 @@ tests/core/test_asi_sbert.py — Verification of SBERT-based ASI hardening
 """
 
 import pytest
-from arifosmcp.core.shared.sbert_floors import classify_asi_floors, SBERT_AVAILABLE
+from core.shared.sbert_floors import classify_asi_floors, SBERT_AVAILABLE
 
 @pytest.mark.skipif(not SBERT_AVAILABLE, reason="sentence-transformers and sklearn required")
 def test_sbert_semantic_empathy():
@@ -33,8 +33,8 @@ def test_sbert_anti_hantu():
     assert scores_hantu.f9_anti_hantu < 0.5
 
 async def test_asi_organ_integration():
-    from arifosmcp.core.organs._2_asi import asi
-    from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_budget
+    from core.organs._2_asi import asi
+    from core.physics.thermodynamics_hardened import init_thermodynamic_budget
     
     # Init budget for session 'global' to avoid ThermodynamicError
     init_thermodynamic_budget("global", initial_budget=10.0)

@@ -166,7 +166,7 @@ import aiohttp
 import asyncio
 import json
 
-ARIFOS_MCP = "https://arifosmcp.arif-fazil.com/mcp"
+arifosmcp = "https://arifosmcp.arif-fazil.com/mcp"
 
 async def ask(query: str):
     payload = {
@@ -184,7 +184,7 @@ async def ask(query: str):
     }
     
     async with aiohttp.ClientSession() as session:
-        async with session.post(ARIFOS_MCP, json=payload, headers=headers) as resp:
+        async with session.post(arifosmcp, json=payload, headers=headers) as resp:
             # SSE response — read data: lines
             async for line in resp.content:
                 line = line.decode().strip()

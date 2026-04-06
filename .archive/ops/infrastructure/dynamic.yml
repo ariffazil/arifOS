@@ -1,0 +1,34 @@
+http:
+  routers:
+    arifos-http:
+      rule: "Host(`arifosmcp.arif-fazil.com`)"
+      entryPoints: ["web"]
+      middlewares: ["redirect-https"]
+      service: arifos-svc
+    arifos-https:
+      rule: "Host(`arifosmcp.arif-fazil.com`)"
+      entryPoints: ["websecure"]
+      tls:
+        certResolver: letsencrypt
+      service: arifos-svc
+    arif-sites-subs:
+      rule: "HostRegexp(`{subdomain:[a-z]+}.arif-fazil.com`)"
+      service: arif-sites-svc
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+  middlewares:
+    redirect-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+  services:
+    arifos-svc:
+      loadBalancer:
+        servers:
+          - url: "http://arifosmcp:8080"
+    arif-sites-svc:
+      loadBalancer:
+        servers:
+          - url: "http://172.20.0.4:80"

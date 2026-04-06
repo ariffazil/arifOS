@@ -1,0 +1,2 @@
+timestamp	experiment_id	change_description	throughput	violation_rate	avg_omega	omega_in_range_pct	avg_W_cube	composite_score	kept	notes
+2026-04-01T00:52:05.887767	baseline_001	baseline (no changes)	374088.81	0.0501	0.0400	0.9545	0.9694	0.9499	true	improved

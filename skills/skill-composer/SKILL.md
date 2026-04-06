@@ -128,7 +128,7 @@ Before moving from research → plan, plan → execute, execute → verify:
 
 ```bash
 # Constitutional gate between phases
-arifos_mcp_call tool=constitutional_check payload='{
+arifosmcp_call tool=constitutional_check payload='{
   "from_phase": "research",
   "to_phase": "plan",
   "evidence": [...],
@@ -187,7 +187,7 @@ postcheck-verifier step=$step actual_outcome=$(cat /tmp/chain_output.log) || {
 vault-writer session=$SESSION_ID chain=$CHAIN_TYPE outcome=$OUTCOME scars=$SCARS
 
 # Update memory with new context
-arifos_mcp_call tool=memory_archivist payload='{
+arifosmcp_call tool=memory_archivist payload='{
   "event": "chain_completed",
   "type": "'$CHAIN_TYPE'",
   "outcome": "'$OUTCOME'",

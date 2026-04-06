@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Optional
 
 ARIFOS_ROOT = Path(__file__).parent.parent
-SCOPED_DIRS = ["core/shared", "arifos_mcp/runtime", "tests", "ARCH/DOCS"]
+SCOPED_DIRS = ["core/shared", "arifosmcp/runtime", "tests", "ARCH/DOCS"]
 
 
 @dataclass

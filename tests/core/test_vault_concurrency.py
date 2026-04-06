@@ -6,9 +6,9 @@ import logging
 
 import pytest
 
-import arifosmcp.core.organs._4_vault
-from arifosmcp.core.organs._4_vault import seal, verify_vault_ledger
-from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_budget
+import core.organs._4_vault
+from core.organs._4_vault import seal, verify_vault_ledger
+from core.physics.thermodynamics_hardened import init_thermodynamic_budget
 
 logging.basicConfig(level=logging.ERROR)
 

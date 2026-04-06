@@ -487,7 +487,7 @@ class ConstitutionalFloors:
         """
         # Import vault client at call time to avoid circular imports
         try:
-            from arifos_mcp.runtime.sessions import _SESSION_IDENTITY
+            from arifosmcp.runtime.sessions import _SESSION_IDENTITY
         except ImportError:
             return 1.0
 

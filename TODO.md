@@ -1,14 +1,14 @@
 # arifOS TODO — THE BODY (Execution & Engineering)
 
-**Version:** 2026.03.27-SEALED  
-**Authority:** Muhammad Arif bin Fazil (888_JUDGE)  
+**Version:** 2026.04.06-SEALED  
+**Authority:** Muhammad Arif bin Fazil (999_VALIDATOR)  
 **Motto:** *Body starts where Stochastic ends.*
 
 ---
 
 ## 🏗️ TIER 1: THE EXECUTION SURFACE (Immediate)
 
-*Goal: Solidify the 11 Mega-Tools and the 42 Modes.*
+*Goal: Solidify the 11 Mega-Tools and the 42 Modes for Institutional Grade.*
 
 - [x] **AAA MCP Induction:** Unified arifOS repository, collapsed `AAA/` shadow workspace.
 - [x] **Substrate Controller:** Implemented auto-risk detection and `888_HOLD` in `tools_hardened_dispatch.py`.
@@ -20,9 +20,20 @@
 - [x] **MiniMax MCP:** `web_search` + `understand_image` tools in opencode.
 - [x] **Vector Memory:** Ollama `nomic-embed-text` for semantic search.
 - [x] **Weekly HF Sync:** Cron job for HuggingFace AAA dataset sync (Sunday 8AM MYT).
+- [x] **13 Hardened Prompts (000–999):** Constitutional Guard embedded in each.
+- [x] **ASF-1 Dual-Layer Protocol:** JSON for agents, narrative for humans.
+- [x] **Machine-Verifiable Schema Enforcement:** Explicit thresholds, formal verdict mapping.
+- [x] **Red-Team Stage (666_HEART):** Adversarial critique integrated.
+- [x] **Great Unification:** Repo restructuring, documentation hierarchy, and package consolidation (2026.04.06).
+- [x] **Constitutional MCP Tools:** `get_constitutional_health`, `render_vault_seal`, `list_recent_verdicts` wired into arifosmcp.
+- [x] **ChatGPT Apps Bridge:** MCP Apps-ready widget `ui://arifos/vault-seal-widget.html` + `/chatgpt/widgets/vault-seal.html` preview.
+- [x] **AF-FORGE MCP Deployment Skeleton:** Dockerfile, compose, Nginx, `/health` + `/build` + `/ready` routes.
 - [ ] **Mode Stability:** Audit all 42 modes in `tools_internal.py` for input schema parity with `contracts.py`.
 - [ ] **API Rotation:** Revoke legacy OpenCode keys and inject fresh secrets into the VPS runtime.
 - [ ] **Lint Fix (Ruff):** Resolve pre-existing lint failures in the root `arifosmcp/` kernel.
+- [ ] **Red-Team Proven Injection Resistance:** Automated adversarial fuzz testing suite with benchmark corpus.
+- [ ] **Vault999 Record Blueprint → Code:** Implement `VaultRecord` + `SealMetadata` + BLS plumbing per Vault999 spec (no keys on ChatGPT path).
+- [ ] **Reality Index Backfill Plan:** Map legacy unsigned logs → `MIGRATED_ATTESTED` envelopes (no fake retro-seals).
 
 ---
 
@@ -36,6 +47,9 @@
 - [ ] **Unified Dashboard:** Finalize the `/dashboard` UI for real-time Ω₀ (Uncertainty) and ΔS (Entropy) gauges.
 - [ ] **Qdrant AAA Indexing:** Index HuggingFace AAA canon to Qdrant for cross-agent constitutional RAG.
 - [ ] **Docker 2.0 (Swarm Mode):** Transition the 16-container stack to a Docker Swarm/Kubernetes sidecar pattern for enterprise high-availability.
+- [ ] **psi_LE Formalization:** Document intelligence elevation metric computation formally with reproducibility proof.
+- [ ] **Floor Weight Sensitivity Analysis:** Monte Carlo test for weight perturbation, stress-case simulation.
+- [ ] **Apps SDK Second Adapter:** Add one non-OpenAI adapter (CLI or Anthropic MCP) using the same `ConstitutionalHealthView`.
 
 ---
 
@@ -46,10 +60,11 @@
 - [ ] **Hardware Enclave (HSM):** Implement `F11` (Identity) grounding to a physical Nitro or SGX hardware enclave.
 - [ ] **Global MCP Connectivity:** Secure WebMCP 3.0 protocol bridge for P2P agent-to-agent collaboration without centralized brokers.
 - [ ] **Metabolic Auto-Scaling:** Automatically scale VPS resources based on the Genius Index (G) and token-thermodynamics.
+- [ ] **Latency Benchmark Suite:** QPS benchmarks, horizontal scaling notes, caching strategy, parallelization model.
 
 ---
 
-## 📋 COMPLETED (2026.03.27 SEAL)
+## 📋 COMPLETED (2026.04.06 SEAL)
 
 | Item | Status | Notes |
 |------|--------|-------|
@@ -62,15 +77,26 @@
 | Session cleanup | ✅ | 110 → 24 files |
 | Config permissions | ✅ | 600 (was 644) |
 | GitHub push | ✅ | A-RIF committed |
+| 13 Hardened Prompts | ✅ | ASF-1 Protocol |
+| Machine-Verifiable Schemas | ✅ | Explicit thresholds |
+| Red-Team Stage (666_HEART) | ✅ | Adversarial critique |
+| Constitutional MCP Tools | ✅ | `get_constitutional_health` + widget |
+| AF-FORGE Docker Stack | ✅ | Dual transport, `/health` `/build` `/mcp` |
+| Apps SDK Manifest | ✅ | `config/apps-sdk/arifos-af-forge.json` |
+| MCP Tool Discovery & Widget Preview | ✅ | `tools/list`, widget HTML bridged |
 
 ---
 
-## 🔮 NEXT ACTIONS
+## 🔮 NEXT ACTIONS (Priority Order – 2026-Q2)
 
-1. **Qdrant AAA Indexing** — Index 19 AAA canon files to Qdrant for cross-agent RAG
-2. **Eigent Windows Client** — Connect Eigent desktop app to VPS backend
-3. **Mode Audit** — Verify 42 tool modes for schema parity
-4. **API Key Rotation** — Fresh secrets for production
+1. **Red-Team Injection Suite** — Benchmarked injection resistance with corpus + report.
+2. **Vault999 Implementation** — Move from sketch → working sealed record path (core only).
+3. **psi_LE Formalization** — Publish metric with examples, put into MCP telemetry.
+4. **Qdrant AAA Indexing** — Wire AAA canon into cross-agent RAG.
+5. **Mode Audit (42 Modes)** — Schema parity check + fix drift.
+6. **Latency & Load Benchmarks** — Baseline AF-FORGE under realistic ChatGPT + internal load.
+7. **API Key Rotation** — Rotate external keys, document process.
+8. **Second Adapter** — Simple REST or Anthropic MCP adapter proving platform-agnostic design.
 
 ---
 
@@ -111,6 +137,27 @@
 
 ---
 
-**Last SEALed:** 2026.03.27-ARIF  
-**Status:** BODY HARDENED · A-RIF FORGED  
+## ⚠️ WHAT TO DROP (Reduce/Eliminate)
+
+- ❌ Repeated sovereignty rhetoric in technical sections
+- ❌ Overuse of symbolic language in README (reduce by ~15%)
+- ❌ Redundant floor explanations
+- ❌ The phrase "Sovereign" in engineering core (keep in branding only)
+
+---
+
+## ✅ WHAT TO MAINTAIN (Competitive Moat)
+
+- ✅ Hard floors F1, F2, F9, F10, F13
+- ✅ Dual-layer ASF-1 separation
+- ✅ Machine-verifiable schema enforcement
+- ✅ Immutable vault logging
+- ✅ Explicit uncertainty band (Ω0)
+- ✅ Red-team stage (666_HEART)
+- ✅ Formal verdict mapping
+
+---
+
+**Last SEALed:** 2026.04.06-ARIF  
+**Status:** INSTITUTIONAL GRADE · GOVERNANCE HARDENED  
 *"Ditempa bukan diberi"* 🔥

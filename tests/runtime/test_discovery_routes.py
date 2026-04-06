@@ -6,21 +6,22 @@ are correctly registered and accessible without being shadowed by mounts.
 """
 
 import pytest
-from starlette.testclient import TestClient
 from arifosmcp.runtime.server import app
+from tests.conftest import SyncASGIClient
 
 @pytest.fixture
 def client():
-    return TestClient(app)
+    return SyncASGIClient(app)
 
 def test_well_known_agent_reachable(client):
     """Test that /.well-known/agent.json is reachable and returns JSON."""
     response = client.get("/.well-known/agent.json")
     assert response.status_code == 200
     data = response.json()
+    assert data.get("schema") == "agent-manifest/v1"
     assert "name" in data
-    assert "skills" in data
-    assert data["name"] == "arifOS Constitutional Kernel"
+    assert "endpoints" in data
+    assert data["name"] == "arifOS MCP Server"
 
 def test_llms_txt_reachable(client):
     """Test that /llms.txt is reachable (even if file doesn't exist, we test route registration)."""
@@ -56,6 +57,17 @@ def test_discovery_alias_reachable(client):
     data = response.json()
     assert "name" in data
     assert "tools" in data
+    assert data["llm_context_resource"] == "arifos://mcp/context"
+    assert data["llm_context"]["schema"] == "arifos-llm-context/v1"
+
+
+def test_llms_txt_contains_canonical_context(client):
+    response = client.get("/llms.txt")
+    assert response.status_code == 200
+    text = response.text
+    assert "## Canonical MCP Context" in text
+    assert "Continuity Contract: `0.1.0`" in text
+    assert "`init_anchor`" in text
 
 
 def test_ready_alias_reachable(client):

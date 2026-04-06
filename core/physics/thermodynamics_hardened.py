@@ -260,7 +260,7 @@ class ThermodynamicBudget:
 
         # 1. Hardware Grounding Driver
         try:
-            from arifos_mcp.core.telemetry import get_actual_joules
+            from core.telemetry import get_actual_joules
 
             actual_joules = get_actual_joules(compute_ms)
         except ImportError:

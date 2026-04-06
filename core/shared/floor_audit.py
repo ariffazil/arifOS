@@ -28,7 +28,7 @@ except ImportError:
 
 
 try:
-    from arifos_mcp.core.shared.floors import THRESHOLDS as GLOBAL_THRESHOLDS
+    from core.shared.floors import THRESHOLDS as GLOBAL_THRESHOLDS
 except Exception:
     GLOBAL_THRESHOLDS = {}
 
@@ -37,7 +37,7 @@ except Exception:
 # ---------------------------------------------------------------------------
 
 
-from arifos_mcp.core.shared.types import Verdict
+from core.shared.types import Verdict
 
 SBERT_AVAILABLE = False
 
@@ -45,8 +45,8 @@ SBERT_AVAILABLE = False
 @lru_cache(maxsize=1)
 def _load_sbert_runtime() -> tuple[bool, Any | None]:
     try:
-        from arifos_mcp.core.shared.sbert_floors import SBERT_AVAILABLE as runtime_available
-        from arifos_mcp.core.shared.sbert_floors import classify_asi_floors as runtime_classifier
+        from core.shared.sbert_floors import SBERT_AVAILABLE as runtime_available
+        from core.shared.sbert_floors import classify_asi_floors as runtime_classifier
 
         return bool(runtime_available), runtime_classifier
     except Exception:

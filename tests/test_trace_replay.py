@@ -6,7 +6,7 @@ import json
 import pytest
 
 from arifosmcp.runtime import bridge
-from arifosmcp.core.organs._4_vault import _CHAIN_SEED, compute_vault_seal_hash
+from core.organs._4_vault import _CHAIN_SEED, compute_vault_seal_hash
 
 
 def _build_vault_entry(

@@ -1,0 +1,110 @@
+# ═══════════════════════════════════════════════════════════════════
+# arifOS IDENTITY - Authentik (Amanah)
+# SSO, OIDC, and Central Identity Provider
+# ═══════════════════════════════════════════════════════════════════
+
+services:
+  postgresql:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
+    volumes:
+      - /opt/arifos/data/authentik/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${PG_PASS:?error}
+      POSTGRES_USER: ${PG_USER:-authentik}
+      POSTGRES_DB: ${PG_DB:-authentik}
+    networks:
+      - arifos_core_network
+
+  redis:
+    image: redis:alpine
+    command: --save 60 1 --loglevel warning
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 3s
+    volumes:
+      - /opt/arifos/data/authentik/redis:/data
+    networks:
+      - arifos_core_network
+
+  server:
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server:2024.2.2}
+    restart: unless-stopped
+    command: server
+    environment:
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS:?error}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:?error}
+    volumes:
+      - /opt/arifos/data/authentik/media:/media
+      - /opt/arifos/data/authentik/custom-templates:/templates
+    networks:
+      - arifos_core_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.authentik.rule=Host(`id.arif-fazil.com`)"
+      - "traefik.http.routers.authentik.entrypoints=websecure"
+      - "traefik.http.routers.authentik.tls.certresolver=letsencrypt"
+      - "traefik.http.services.authentik.loadbalancer.server.port=9000"
+
+  worker:
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server:2024.2.2}
+    restart: unless-stopped
+    command: worker
+    environment:
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS:?error}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:?error}
+    # This is optional, and can be removed if you don't need it
+    # it allows authentik to pull newer images
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/arifos/data/authentik/media:/media
+      - /opt/arifos/data/authentik/certs:/certs
+      - /opt/arifos/data/authentik/custom-templates:/templates
+    networks:
+      - arifos_core_network
+
+# ═══════════════════════════════════════════════════════════════════════
+# VOLUMES & NETWORKS
+# ═══════════════════════════════════════════════════════════════════════
+
+volumes:
+  arifosmcp_secrets:
+    driver: local
+  arifosmcp_telemetry:
+    driver: local
+  arifosmcp_vault:
+    driver: local
+  arifosmcp_memory:
+    driver: local
+  arifos_grafana_data:
+    driver: local
+  arifos_grafana_datasources:
+    driver: local
+  arifos_grafana_dashboards:
+    driver: local
+  geox_data:
+    driver: local
+
+networks:
+  arifos_core_network:
+    name: arifos_core_network
+    external: true

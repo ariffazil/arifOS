@@ -350,7 +350,7 @@ async def governed_action(
 ### 1. Tool Mapping Strategy
 
 ```python
-# arifos_mcp_server.py
+# arifosmcp_server.py
 from fastmcp import FastMCP
 from pydantic import BaseModel
 from typing import Optional, Dict, Any

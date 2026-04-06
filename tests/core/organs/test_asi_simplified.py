@@ -23,12 +23,12 @@ class TestAsiBasic:
         mock_scores.f9_anti_hantu = 0.95
         mock_scores.confidence = 0.92
 
-        mock_sbert = ModuleType("arifosmcp.core.shared.sbert_floors")
+        mock_sbert = ModuleType("core.shared.sbert_floors")
         mock_sbert.classify_asi_floors = MagicMock(return_value=mock_scores)
-        sys.modules["arifosmcp.core.shared.sbert_floors"] = mock_sbert
+        sys.modules["core.shared.sbert_floors"] = mock_sbert
 
         try:
-            from arifosmcp.core.organs._2_asi import asi
+            from core.organs._2_asi import asi
 
             result = await asi(
                 action="full",
@@ -44,7 +44,7 @@ class TestAsiBasic:
 
         finally:
             # Cleanup
-            for mod in ["arifosmcp.core.shared.sbert_floors", "arifosmcp.core.organs._2_asi"]:
+            for mod in ["core.shared.sbert_floors", "core.organs._2_asi"]:
                 if mod in sys.modules:
                     del sys.modules[mod]
 
@@ -57,12 +57,12 @@ class TestAsiBasic:
         mock_scores.f9_anti_hantu = 0.90
         mock_scores.confidence = 0.85
 
-        mock_sbert = ModuleType("arifosmcp.core.shared.sbert_floors")
+        mock_sbert = ModuleType("core.shared.sbert_floors")
         mock_sbert.classify_asi_floors = MagicMock(return_value=mock_scores)
-        sys.modules["arifosmcp.core.shared.sbert_floors"] = mock_sbert
+        sys.modules["core.shared.sbert_floors"] = mock_sbert
 
         try:
-            from arifosmcp.core.organs._2_asi import asi
+            from core.organs._2_asi import asi
 
             result = await asi(
                 action="simulate_heart",
@@ -74,21 +74,21 @@ class TestAsiBasic:
             assert hasattr(result, "assessment")
 
         finally:
-            for mod in ["arifosmcp.core.shared.sbert_floors", "arifosmcp.core.organs._2_asi"]:
+            for mod in ["core.shared.sbert_floors", "core.organs._2_asi"]:
                 if mod in sys.modules:
                     del sys.modules[mod]
 
     @pytest.mark.asyncio
     async def test_asi_critique_only(self):
         """Test ASI critique_thought action only."""
-        mock_sbert = ModuleType("arifosmcp.core.shared.sbert_floors")
+        mock_sbert = ModuleType("core.shared.sbert_floors")
         mock_sbert.classify_asi_floors = MagicMock(
             return_value=Mock(f5_peace=0.9, f6_empathy=0.9, f9_anti_hantu=0.9, confidence=0.9)
         )
-        sys.modules["arifosmcp.core.shared.sbert_floors"] = mock_sbert
+        sys.modules["core.shared.sbert_floors"] = mock_sbert
 
         try:
-            from arifosmcp.core.organs._2_asi import asi
+            from core.organs._2_asi import asi
 
             result = await asi(
                 action="critique_thought",
@@ -101,7 +101,7 @@ class TestAsiBasic:
             assert hasattr(result, "critique")
 
         finally:
-            for mod in ["arifosmcp.core.shared.sbert_floors", "arifosmcp.core.organs._2_asi"]:
+            for mod in ["core.shared.sbert_floors", "core.organs._2_asi"]:
                 if mod in sys.modules:
                     del sys.modules[mod]
 
@@ -114,19 +114,19 @@ class TestAsiBasic:
         mock_scores.f9_anti_hantu = 0.95
         mock_scores.confidence = 0.95
 
-        mock_sbert = ModuleType("arifosmcp.core.shared.sbert_floors")
+        mock_sbert = ModuleType("core.shared.sbert_floors")
         mock_sbert.classify_asi_floors = MagicMock(return_value=mock_scores)
-        sys.modules["arifosmcp.core.shared.sbert_floors"] = mock_sbert
+        sys.modules["core.shared.sbert_floors"] = mock_sbert
 
         try:
-            from arifosmcp.core.organs._2_asi import asi
+            from core.organs._2_asi import asi
 
             result = await asi(action="simulate_heart", session_id="test-asi-default")
 
             assert result["session_id"] == "test-asi-default"
 
         finally:
-            for mod in ["arifosmcp.core.shared.sbert_floors", "arifosmcp.core.organs._2_asi"]:
+            for mod in ["core.shared.sbert_floors", "core.organs._2_asi"]:
                 if mod in sys.modules:
                     del sys.modules[mod]
 
@@ -139,12 +139,12 @@ class TestAsiBasic:
         mock_scores.f9_anti_hantu = 0.95
         mock_scores.confidence = 0.8
 
-        mock_sbert = ModuleType("arifosmcp.core.shared.sbert_floors")
+        mock_sbert = ModuleType("core.shared.sbert_floors")
         mock_sbert.classify_asi_floors = MagicMock(return_value=mock_scores)
-        sys.modules["arifosmcp.core.shared.sbert_floors"] = mock_sbert
+        sys.modules["core.shared.sbert_floors"] = mock_sbert
 
         try:
-            from arifosmcp.core.organs._2_asi import asi
+            from core.organs._2_asi import asi
 
             result = await asi(
                 action="simulate_heart", session_id="test-asi-risk", scenario="Something concerning"
@@ -155,13 +155,13 @@ class TestAsiBasic:
             assert result.assessment.risk_level in ["medium", "high"]
 
         finally:
-            for mod in ["arifosmcp.core.shared.sbert_floors", "arifosmcp.core.organs._2_asi"]:
+            for mod in ["core.shared.sbert_floors", "core.organs._2_asi"]:
                 if mod in sys.modules:
                     del sys.modules[mod]
 
     def test_asi_aliases(self):
         """Test ASI function aliases."""
-        from arifosmcp.core.organs._2_asi import asi, empathize, align
+        from core.organs._2_asi import asi, empathize, align
 
         assert asi is empathize
         assert asi is align
@@ -173,14 +173,14 @@ class TestAsiEdgeCases:
     @pytest.mark.asyncio
     async def test_asi_unicode_content(self):
         """Test ASI with unicode content."""
-        mock_sbert = ModuleType("arifosmcp.core.shared.sbert_floors")
+        mock_sbert = ModuleType("core.shared.sbert_floors")
         mock_sbert.classify_asi_floors = MagicMock(
             return_value=Mock(f5_peace=0.9, f6_empathy=0.9, f9_anti_hantu=0.9, confidence=0.9)
         )
-        sys.modules["arifosmcp.core.shared.sbert_floors"] = mock_sbert
+        sys.modules["core.shared.sbert_floors"] = mock_sbert
 
         try:
-            from arifosmcp.core.organs._2_asi import asi
+            from core.organs._2_asi import asi
 
             result = await asi(
                 action="simulate_heart",
@@ -191,21 +191,21 @@ class TestAsiEdgeCases:
             assert result["session_id"] == "test-asi-unicode"
 
         finally:
-            for mod in ["arifosmcp.core.shared.sbert_floors", "arifosmcp.core.organs._2_asi"]:
+            for mod in ["core.shared.sbert_floors", "core.organs._2_asi"]:
                 if mod in sys.modules:
                     del sys.modules[mod]
 
     @pytest.mark.asyncio
     async def test_asi_long_content(self):
         """Test ASI with very long content."""
-        mock_sbert = ModuleType("arifosmcp.core.shared.sbert_floors")
+        mock_sbert = ModuleType("core.shared.sbert_floors")
         mock_sbert.classify_asi_floors = MagicMock(
             return_value=Mock(f5_peace=0.9, f6_empathy=0.9, f9_anti_hantu=0.9, confidence=0.9)
         )
-        sys.modules["arifosmcp.core.shared.sbert_floors"] = mock_sbert
+        sys.modules["core.shared.sbert_floors"] = mock_sbert
 
         try:
-            from arifosmcp.core.organs._2_asi import asi
+            from core.organs._2_asi import asi
 
             long_text = "Test " * 1000
 
@@ -219,6 +219,6 @@ class TestAsiEdgeCases:
             assert result["session_id"] == "test-asi-long"
 
         finally:
-            for mod in ["arifosmcp.core.shared.sbert_floors", "arifosmcp.core.organs._2_asi"]:
+            for mod in ["core.shared.sbert_floors", "core.organs._2_asi"]:
                 if mod in sys.modules:
                     del sys.modules[mod]

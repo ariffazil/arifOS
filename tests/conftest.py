@@ -8,6 +8,8 @@ import sys
 import warnings
 from pathlib import Path
 
+import anyio
+import httpx
 import pytest
 
 
@@ -29,6 +31,32 @@ os.environ.setdefault("ARIFOS_ALLOW_LEGACY_SPEC", "1")
 os.environ.setdefault("ARIFOS_PHYSICS_DISABLED", "1")
 # Default to debug output in tests to preserve rich contracts for assertions.
 os.environ.setdefault("AAA_MCP_OUTPUT_MODE", "debug")
+
+
+class SyncASGIClient:
+    """Minimal sync wrapper over httpx.ASGITransport for FastMCP test routes."""
+
+    def __init__(self, app, base_url: str = "http://testserver") -> None:
+        self.app = app
+        self.base_url = base_url
+
+    def request(self, method: str, url: str, **kwargs):
+        async def runner():
+            transport = httpx.ASGITransport(app=self.app)
+            async with httpx.AsyncClient(
+                transport=transport,
+                base_url=self.base_url,
+                follow_redirects=True,
+            ) as client:
+                return await client.request(method, url, **kwargs)
+
+        return anyio.run(runner)
+
+    def get(self, url: str, **kwargs):
+        return self.request("GET", url, **kwargs)
+
+    def post(self, url: str, **kwargs):
+        return self.request("POST", url, **kwargs)
 
 
 @pytest.fixture(scope="session", autouse=True)

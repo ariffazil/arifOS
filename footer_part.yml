@@ -1,0 +1,26 @@
+# ═══════════════════════════════════════════════════════════════════════
+# VOLUMES & NETWORKS
+# ═══════════════════════════════════════════════════════════════════════
+
+volumes:
+  arifosmcp_secrets:
+    driver: local
+  arifosmcp_telemetry:
+    driver: local
+  arifosmcp_vault:
+    driver: local
+  arifosmcp_memory:
+    driver: local
+  arifos_grafana_data:
+    driver: local
+  arifos_grafana_datasources:
+    driver: local
+  arifos_grafana_dashboards:
+    driver: local
+  geox_data:
+    driver: local
+
+networks:
+  arifos_core_network:
+    name: arifos_core_network
+    external: true

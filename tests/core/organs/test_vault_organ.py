@@ -18,7 +18,7 @@ class TestVaultOrgan:
     @pytest.mark.asyncio
     async def test_vault_commit_basic(self):
         """Test basic vault commit operation."""
-        from arifosmcp.core.organs._4_vault import vault
+        from core.organs._4_vault import vault
 
         result = await vault(
             action="commit", session_id="test-vault-001", payload={"data": "test commit data"}
@@ -31,7 +31,7 @@ class TestVaultOrgan:
     @pytest.mark.asyncio
     async def test_vault_seal_operation(self):
         """Test vault seal operation."""
-        from arifosmcp.core.organs._4_vault import vault
+        from core.organs._4_vault import vault
 
         result = await vault(
             action="seal", session_id="test-vault-002", payload={"final_state": "complete"}
@@ -43,7 +43,7 @@ class TestVaultOrgan:
     @pytest.mark.asyncio
     async def test_vault_retrieve(self):
         """Test vault retrieve operation."""
-        from arifosmcp.core.organs._4_vault import vault
+        from core.organs._4_vault import vault
 
         # First commit something
         commit_result = await vault(
@@ -63,7 +63,7 @@ class TestVaultOrgan:
     @pytest.mark.asyncio
     async def test_vault_list_commits(self):
         """Test listing vault commits."""
-        from arifosmcp.core.organs._4_vault import vault
+        from core.organs._4_vault import vault
 
         # Create multiple commits
         for i in range(3):
@@ -78,7 +78,7 @@ class TestVaultOrgan:
     @pytest.mark.asyncio
     async def test_vault_with_metadata(self):
         """Test vault commit with metadata."""
-        from arifosmcp.core.organs._4_vault import vault
+        from core.organs._4_vault import vault
 
         result = await vault(
             action="commit",
@@ -93,7 +93,7 @@ class TestVaultOrgan:
     @pytest.mark.asyncio
     async def test_vault_empty_payload(self):
         """Test vault handles empty payload gracefully."""
-        from arifosmcp.core.organs._4_vault import vault
+        from core.organs._4_vault import vault
 
         result = await vault(action="commit", session_id="test-vault-006", payload={})
 
@@ -103,7 +103,7 @@ class TestVaultOrgan:
     @pytest.mark.asyncio
     async def test_vault_unicode_data(self):
         """Test vault handles unicode data."""
-        from arifosmcp.core.organs._4_vault import vault
+        from core.organs._4_vault import vault
 
         result = await vault(
             action="commit",
@@ -116,7 +116,7 @@ class TestVaultOrgan:
     @pytest.mark.asyncio
     async def test_vault_retrieve_nonexistent(self):
         """Test vault retrieve for non-existent commit."""
-        from arifosmcp.core.organs._4_vault import vault
+        from core.organs._4_vault import vault
 
         result = await vault(
             action="retrieve", session_id="test-vault-008", commit_id="nonexistent-id-12345"
@@ -127,7 +127,7 @@ class TestVaultOrgan:
     @pytest.mark.asyncio
     async def test_vault_large_payload(self):
         """Test vault handles large payloads."""
-        from arifosmcp.core.organs._4_vault import vault
+        from core.organs._4_vault import vault
 
         large_data = "x" * 10000  # 10KB of data
 
@@ -141,7 +141,7 @@ class TestVaultOrgan:
     @pytest.mark.asyncio
     async def test_vault_verify_integrity(self):
         """Test vault integrity verification."""
-        from arifosmcp.core.organs._4_vault import vault
+        from core.organs._4_vault import vault
 
         commit_result = await vault(
             action="commit", session_id="test-vault-010", payload={"sensitive": "data"}
@@ -159,7 +159,7 @@ class TestVaultOrgan:
 
     def test_vault_aliases(self):
         """Test Vault function aliases."""
-        from arifosmcp.core.organs._4_vault import vault, commit, seal, retrieve
+        from core.organs._4_vault import vault, commit, seal, retrieve
 
         assert vault is commit
         assert vault is seal
@@ -172,7 +172,7 @@ class TestVaultEdgeCases:
     @pytest.mark.asyncio
     async def test_vault_multiple_sessions_isolated(self):
         """Test vault isolation between sessions."""
-        from arifosmcp.core.organs._4_vault import vault
+        from core.organs._4_vault import vault
 
         # Commit in session 1
         await vault(action="commit", session_id="session-a", payload={"secret": "session-a-data"})
@@ -194,7 +194,7 @@ class TestVaultEdgeCases:
     @pytest.mark.asyncio
     async def test_vault_nested_data(self):
         """Test vault with deeply nested data structures."""
-        from arifosmcp.core.organs._4_vault import vault
+        from core.organs._4_vault import vault
 
         nested_data = {"level1": {"level2": {"level3": {"level4": ["deep", "data", "here"]}}}}
 
@@ -205,7 +205,7 @@ class TestVaultEdgeCases:
     @pytest.mark.asyncio
     async def test_vault_binary_data(self):
         """Test vault handles binary-like data."""
-        from arifosmcp.core.organs._4_vault import vault
+        from core.organs._4_vault import vault
 
         binary_like = b"\x00\x01\x02\x03\xff\xfe".decode("latin-1", errors="replace")
 

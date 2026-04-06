@@ -17,6 +17,13 @@ class DeploymentMode(Enum):
     TEST = "test"                   # Test environment
 
 
+class ToolAccessClass(Enum):
+    """Public exposure policy for gatewayed tools."""
+    PUBLIC = "public"
+    AUTHENTICATED = "authenticated"
+    SOVEREIGN_ONLY = "sovereign-only"
+
+
 @dataclass
 class EnvironmentConfig:
     """Environment-specific configuration."""
@@ -51,14 +58,14 @@ VPS_CONFIG = EnvironmentConfig(
 # =============================================================================
 HORIZON_CONFIG = EnvironmentConfig(
     mode=DeploymentMode.HORIZON_PUBLIC,
-    name="arifOS Public Ambassador",
+    name="arifOS Horizon Gateway",
     base_url="https://arifos.fastmcp.app",
     vault_backend="external",        # External DB service
     memory_backend="external",       # External Redis
     rate_limit_enabled=True,
     auth_required=False,             # Public access (tools decide)
     thermo_budget_multiplier=0.5,    # Conservative budget
-    constitutional_floors=[          # Core floors only
+    constitutional_floors=[          # Gateway-enforced floors
         "F1",  # Truth
         "F2",  # Evidence
         "F3",  # Uncertainty
@@ -128,41 +135,76 @@ def is_public() -> bool:
 
 
 # =============================================================================
-# Tool Visibility by Environment
+# Tool visibility and access policy
 # =============================================================================
 
-TOOL_VISIBILITY = {
-    # Core Trinity Tools - Available everywhere
-    "init_anchor": ["vps", "horizon", "local"],
-    "arifOS_kernel": ["vps", "horizon", "local"],
-    "apex_soul": ["vps", "horizon", "local"],
-    "vault_ledger": ["vps", "local"],  # Vault only on sovereign
-    "agi_mind": ["vps", "horizon", "local"],
-    "asi_heart": ["vps", "horizon", "local"],
-    "engineering_memory": ["vps", "local"],  # Memory tools sovereign-only
-    "physics_reality": ["vps", "horizon", "local"],
-    "math_estimator": ["vps", "horizon", "local"],
-    "code_engine": ["vps", "local"],  # Code execution sovereign-only
-    "architect_registry": ["vps", "horizon", "local"],
-    
-    # Intelligence Tools - VPS only (sensitive)
-    "reality_grounding": ["vps", "local"],
-    "reality_dossier": ["vps", "local"],
-    "constitutional_rag": ["vps", "local"],
-    "vector_memory": ["vps", "local"],
-    
-    # Public Tools - Available on Horizon
-    "search_web": ["vps", "horizon", "local"],
-    "fetch_url": ["vps", "horizon", "local"],
-    "get_current_time": ["vps", "horizon", "local"],
+TOOL_ACCESS_POLICY = {
+    # Public-safe tools that Horizon can expose directly through the gateway.
+    "init_anchor": ToolAccessClass.PUBLIC.value,
+    "arifOS_kernel": ToolAccessClass.PUBLIC.value,
+    "apex_judge": ToolAccessClass.PUBLIC.value,
+    "apex_soul": ToolAccessClass.PUBLIC.value,
+    "agi_mind": ToolAccessClass.PUBLIC.value,
+    "asi_heart": ToolAccessClass.PUBLIC.value,
+    "physics_reality": ToolAccessClass.PUBLIC.value,
+    "math_estimator": ToolAccessClass.PUBLIC.value,
+    "architect_registry": ToolAccessClass.PUBLIC.value,
+    "compat_probe": ToolAccessClass.PUBLIC.value,
+    "agi_reason": ToolAccessClass.PUBLIC.value,
+    "agi_reflect": ToolAccessClass.PUBLIC.value,
+    "asi_critique": ToolAccessClass.PUBLIC.value,
+    "asi_simulate": ToolAccessClass.PUBLIC.value,
+    "reality_compass": ToolAccessClass.PUBLIC.value,
+    "reality_atlas": ToolAccessClass.PUBLIC.value,
+    "search_reality": ToolAccessClass.PUBLIC.value,
+    "ingest_evidence": ToolAccessClass.PUBLIC.value,
+    "check_vital": ToolAccessClass.PUBLIC.value,
+    "audit_rules": ToolAccessClass.PUBLIC.value,
+    "search_tool": ToolAccessClass.PUBLIC.value,
+    "fetch_tool": ToolAccessClass.PUBLIC.value,
+
+    # Authenticated tools can be proxied later once Horizon auth continuity
+    # is bound to arifOS sessions end-to-end.
+    "vault_ledger": ToolAccessClass.AUTHENTICATED.value,
+    "engineering_memory": ToolAccessClass.AUTHENTICATED.value,
+    "shared_memory": ToolAccessClass.AUTHENTICATED.value,
+    "agent_logbook": ToolAccessClass.AUTHENTICATED.value,
+    "verify_vault_ledger": ToolAccessClass.AUTHENTICATED.value,
+    "init_000_get_deployment": ToolAccessClass.AUTHENTICATED.value,
+    "init_000_get_provider_soul": ToolAccessClass.AUTHENTICATED.value,
+    "init_000_get_session_anchor": ToolAccessClass.AUTHENTICATED.value,
+    "init_000_log_drift_event": ToolAccessClass.AUTHENTICATED.value,
+
+    # Sovereign-only tools must remain on the VPS execution plane.
+    "code_engine": ToolAccessClass.SOVEREIGN_ONLY.value,
+    "vault_seal": ToolAccessClass.SOVEREIGN_ONLY.value,
+    "seal_vault_commit": ToolAccessClass.SOVEREIGN_ONLY.value,
+    "forge": ToolAccessClass.SOVEREIGN_ONLY.value,
+    "metabolic_loop_router": ToolAccessClass.SOVEREIGN_ONLY.value,
+    "agi_asi_forge_handler": ToolAccessClass.SOVEREIGN_ONLY.value,
+    "reason_mind_synthesis": ToolAccessClass.SOVEREIGN_ONLY.value,
+    "agentzero_engineer": ToolAccessClass.SOVEREIGN_ONLY.value,
+    "agentzero_validate": ToolAccessClass.SOVEREIGN_ONLY.value,
+    "agentzero_armor_scan": ToolAccessClass.SOVEREIGN_ONLY.value,
+    "agentzero_hold_check": ToolAccessClass.SOVEREIGN_ONLY.value,
+    "agentzero_memory_query": ToolAccessClass.SOVEREIGN_ONLY.value,
 }
 
 
 def is_tool_available(tool_name: str) -> bool:
     """Check if a tool should be available in current environment."""
     env = get_environment().mode.value
-    allowed = TOOL_VISIBILITY.get(tool_name, ["vps", "local"])
-    return env in allowed
+    access_class = TOOL_ACCESS_POLICY.get(tool_name, ToolAccessClass.SOVEREIGN_ONLY.value)
+    if env == "horizon":
+        return access_class == ToolAccessClass.PUBLIC.value
+    if env in {"vps", "local"}:
+        return True
+    return False
+
+
+def get_tool_access_class(tool_name: str) -> str:
+    """Return the gateway access class for a tool."""
+    return TOOL_ACCESS_POLICY.get(tool_name, ToolAccessClass.SOVEREIGN_ONLY.value)
 
 
 # =============================================================================
