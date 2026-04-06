@@ -40,16 +40,16 @@ help:
 # Analyze and recommend strategy
 strategy:
 	@echo "🔍 Analyzing changes..."
-	@chmod +x scripts/rebuild-strategy.sh
-	@./scripts/rebuild-strategy.sh --check
+	@chmod +x ops/scripts/rebuild-strategy.sh
+	@./ops/scripts/rebuild-strategy.sh --check
 
 # Fast deployment - uses optimized Dockerfile with layer caching
 # Use when: Core code changes, tool additions, minor updates
 fast-deploy:
 	@echo "⚡ Fast deploying arifOS MCP (2-3 min)..."
 	@echo "   Strategy: Layer cache + code only"
-	@chmod +x scripts/fast-deploy.sh
-	@./scripts/fast-deploy.sh
+	@chmod +x ops/scripts/fast-deploy.sh
+	@./ops/scripts/fast-deploy.sh
 
 # Full reforge - rebuilds from scratch
 # Use when: Dockerfile, requirements.txt, or base image changed
@@ -69,14 +69,19 @@ reforge:
 # Autonomous deployment - decides strategy automatically
 auto-deploy:
 	@echo "🤖 Autonomous deployment..."
-	@chmod +x scripts/auto-deploy.sh
-	@./scripts/auto-deploy.sh --auto
+	@chmod +x ops/scripts/auto-deploy.sh
+	@./ops/scripts/auto-deploy.sh --auto
 
 # Hot restart - just restart container (10s)
 # Use when: Config changes only
 hot-restart:
 	@echo "🔄 Hot restart (10s)..."
-	@docker compose restart arifosmcp
+	@GIT_SHA=$$(git rev-parse HEAD 2>/dev/null); \
+	  SHORT=$${GIT_SHA:0:8}; \
+	  sed -i "s/^GIT_COMMIT=.*/GIT_COMMIT=$$GIT_SHA/" .env.docker && \
+	  echo "$$SHORT" > arifosmcp/.git_commit && \
+	  echo "   Pinned GIT_COMMIT=$$SHORT"
+	@GIT_COMMIT=$$(git rev-parse HEAD 2>/dev/null) docker compose up -d --no-deps --force-recreate arifosmcp
 	@sleep 5
 	@make health
 
@@ -119,15 +124,15 @@ logs:
 # Automated maintenance - minimizes manual intervention
 maintenance:
 	@echo "🔧 Running low-entropy maintenance..."
-	@chmod +x scripts/low-entropy-cron.sh
-	@./scripts/low-entropy-cron.sh all
+	@chmod +x ops/scripts/low-entropy-cron.sh
+	@./ops/scripts/low-entropy-cron.sh all
 
 # Setup automated cron jobs
 setup-cron:
 	@echo "⚙️  Setting up automated cron jobs..."
 	@echo "# arifOS Low-Entropy Maintenance" | sudo tee /etc/cron.d/arifos-maintenance
-	@echo "*/5 * * * * root /root/arifosmcp/scripts/low-entropy-cron.sh health >> /var/log/arifos-cron.log 2>&1" | sudo tee -a /etc/cron.d/arifos-maintenance
-	@echo "0 */6 * * * root /root/arifosmcp/scripts/low-entropy-cron.sh all >> /var/log/arifos-cron.log 2>&1" | sudo tee -a /etc/cron.d/arifos-maintenance
+	@echo "*/5 * * * * root /root/arifosmcp/ops/scripts/low-entropy-cron.sh health >> /var/log/arifos-cron.log 2>&1" | sudo tee -a /etc/cron.d/arifos-maintenance
+	@echo "0 */6 * * * root /root/arifosmcp/ops/scripts/low-entropy-cron.sh all >> /var/log/arifos-cron.log 2>&1" | sudo tee -a /etc/cron.d/arifos-maintenance
 	@echo "✅ Cron jobs installed:"
 	@echo "   • Health check: every 5 minutes"
 	@echo "   • Full maintenance: every 6 hours"
@@ -189,23 +194,23 @@ clean:
 # ============================================================================
 # ZERO-CHAOS AUTOMATED DEPLOYMENT (New - Recommended)
 # ============================================================================
-# These commands use scripts/deploy.py for safe, reversible deployments
+# These commands use ops/scripts/deploy.py for safe, reversible deployments
 
 # Deploy to staging (automated, no approval needed)
 deploy-staging:
 	@echo "🚀 Deploying to STAGING..."
-	@python scripts/deploy.py --environment staging
+	@python ops/scripts/deploy.py --environment staging
 
 # Deploy to production (requires manual confirmation)
 deploy-production:
 	@echo "🚀 Deploying to PRODUCTION..."
 	@echo "⚠️  This will affect the live system at arifosmcp.arif-fazil.com"
-	@read -p "Are you sure? [y/N] " confirm && [ "$$confirm" = "y" ] && python scripts/deploy.py --environment production || echo "Cancelled"
+	@read -p "Are you sure? [y/N] " confirm && [ "$$confirm" = "y" ] && python ops/scripts/deploy.py --environment production || echo "Cancelled"
 
 # Dry run production deploy (see what would happen)
 deploy-dry-run:
 	@echo "🔍 Dry-run production deployment..."
-	@python scripts/deploy.py --environment production --dry-run
+	@python ops/scripts/deploy.py --environment production --dry-run
 
 # Verify current deployment health
 deploy-verify:
@@ -225,7 +230,7 @@ deploy-help:
 	@echo ""
 	@echo "For STAGING (automatic):"
 	@echo "  make deploy-staging"
-	@echo "  or: python scripts/deploy.py"
+	@echo "  or: python ops/scripts/deploy.py"
 	@echo ""
 	@echo "For PRODUCTION (needs care):"
 	@echo "  Step 1: Dry run first"

@@ -57,6 +57,17 @@ def test_discovery_alias_reachable(client):
     data = response.json()
     assert "name" in data
     assert "tools" in data
+    assert data["llm_context_resource"] == "arifos://mcp/context"
+    assert data["llm_context"]["schema"] == "arifos-llm-context/v1"
+
+
+def test_llms_txt_contains_canonical_context(client):
+    response = client.get("/llms.txt")
+    assert response.status_code == 200
+    text = response.text
+    assert "## Canonical MCP Context" in text
+    assert "Continuity Contract: `0.1.0`" in text
+    assert "`init_anchor`" in text
 
 
 def test_ready_alias_reachable(client):

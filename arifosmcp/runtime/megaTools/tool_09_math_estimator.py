@@ -55,6 +55,17 @@ async def math_estimator(
     if human_approval:
         payload.setdefault("human_approval", human_approval)
 
+    if mode == "vitals":
+        resolved_payload = dict(payload or {})
+        return await math_estimator_dispatch_impl(
+            mode=mode,
+            payload=resolved_payload,
+            auth_context=resolved_payload.get("auth_context", auth_context),
+            risk_tier=resolved_payload.get("risk_tier", risk_tier),
+            dry_run=bool(resolved_payload.get("dry_run", dry_run)),
+            ctx=ctx or CurrentContext(),
+        )
+
     if "math_estimator" in HARDENED_DISPATCH_MAP:
         if mode is None:
             mode = "cost"
@@ -83,7 +94,7 @@ async def math_estimator(
                 verdict=Verdict.SEAL if ok else Verdict.VOID,
                 allowed_next_tools=_next_tools,
                 next_action=_next_action,
-                payload=res,
+                payload=_payload,
             )
         return res
 

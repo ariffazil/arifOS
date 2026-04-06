@@ -6,8 +6,8 @@ from __future__ import annotations
 
 import pytest
 
-from arifosmcp.core.shared.floors import F12_Injection
-from arifosmcp.core.shared.guards.injection_guard import InjectionGuard
+from core.shared.floors import F12_Injection
+from core.shared.guards.injection_guard import InjectionGuard
 
 
 class TestPromptInjectionAttacks:

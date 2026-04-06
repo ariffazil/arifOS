@@ -109,19 +109,10 @@ arifosmcp/
 │   ├── sites/                 # Static sites (APEX dashboard)
 │   └── VAULT999/              # Local vault storage
 │
-├── core/                      # Constitutional kernel (pure logic)
-│   ├── shared/                # Shared utilities
-│   │   ├── floors.py          # 13 Constitutional Floors (F1-F13)
-│   │   ├── physics.py         # Thermodynamic calculations
-│   │   ├── verdict_contract.py# Verdict definitions
-│   │   ├── crypto.py          # Cryptographic utilities
-│   │   └── guards/            # Security guards (injection, ontology)
-│   ├── governance_kernel.py   # Main governance engine
-│   ├── pipeline.py            # Metabolic loop pipeline
-│   ├── judgment.py            # Verdict rendering (888_JUDGE)
-│   ├── organs/                # Trinity organs (AGI, ASI, APEX)
-│   ├── physics/               # Physics engine
-│   └── scheduler/             # Metabolic scheduler
+├── core/                      # ⚠️ ARCHIVED (2026.04.05) — migrated to arifosmcp/
+│                              # All constitutional kernel logic now lives in arifosmcp/
+│                              # See: arifosmcp/intelligence/, arifosmcp/runtime/,
+│                              #      arifosmcp/VAULT999/, arifosmcp/agents/
 │
 ├── tests/                     # Comprehensive test suite
 │   ├── 00_unit/               # Unit tests (~2 min)
@@ -341,21 +332,23 @@ Key fixtures in `conftest.py`:
 
 All capability is consolidated into **11 Mega-Tools** across three layers. Each mega-tool exposes multiple modes via the `mode` parameter.
 
-| Layer | Mega-Tool | Stage | Trinity | Modes | What it does |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **⚖️ GOVERNANCE** | **`init_anchor`** | `000_INIT` | Ψ PSI | `init`, `revoke`, `refresh` | Constitutional Airlock — establish, revoke, or refresh governed session |
-| | **`arifOS_kernel`** | `444_ROUTER` | Δ/Ψ | `kernel`, `status` | Metabolic Conductor — primary entry point for complex queries |
-| | **`apex_soul`** | `888_JUDGE` | Ψ PSI | `judge`, `rules`, `validate`, `hold`, `armor`, `notify`, `probe` | Final Authority — verdicts, defense, floor inspection |
-| | **`vault_ledger`** | `999_VAULT` | Ψ PSI | `seal`, `verify` | Immutable Memory — permanent decision recording |
-| **🧠 INTELLIGENCE** | **`agi_mind`** | `333_MIND` | Δ DELTA | `reason`, `reflect`, `forge` | Logic & Synthesis — core reasoning and hypothesis generation |
-| | **`asi_heart`** | `666_HEART` | Ω OMEGA | `critique`, `simulate` | Ethics & Simulation — safety, empathy, consequence modeling |
-| | **`engineering_memory`** | `555_MEMORY` | Ω OMEGA | `engineer`, `query`, `recall`, `write`, `generate` | Technical Execution — governed autonomous engineering |
-| **⚙️ MACHINE** | **`physics_reality`** | `111_SENSE` | Δ DELTA | `search`, `ingest`, `compass`, `atlas` | Environmental Grounding — Earth-Witness fact acquisition |
-| | **`math_estimator`** | `444_ROUTER` | Δ DELTA | `cost`, `health`, `vitals` | Thermodynamic Vitals — quantitative health metrics |
-| | **`code_engine`** | `M-3_EXEC` | ALL | `fs`, `process`, `net`, `tail`, `replay` | Computational Execution — system-level hygiene |
-| | **`architect_registry`** | `M-4_ARCH` | Δ DELTA | `register`, `list`, `read` | System Definition — tool and resource discovery |
+| Layer | Symbolic Name | **Functional Name** | Stage | Trinity | Modes | What it does |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **⚖️ GOVERNANCE** | `init_anchor` | **`init_session_anchor`** | `000_INIT` | Ψ PSI | `init`, `revoke`, `refresh` | Constitutional Airlock — establish, revoke, or refresh governed session |
+| | `arifOS_kernel` | **`route_execution`** | `444_ROUTER` | Δ/Ψ | `kernel`, `status` | Metabolic Conductor — primary entry point for complex queries |
+| | `apex_soul` | **`judge_verdict`** | `888_JUDGE` | Ψ PSI | `judge`, `rules`, `validate`, `hold`, `armor`, `notify`, `probe` | Final Authority — verdicts, defense, floor inspection |
+| | `vault_ledger` | **`record_vault_entry`** | `999_VAULT` | Ψ PSI | `seal`, `verify` | Immutable Memory — permanent decision recording |
+| **🧠 INTELLIGENCE** | `agi_mind` | **`reason_synthesis`** | `333_MIND` | Δ DELTA | `reason`, `reflect`, `forge` | Logic & Synthesis — core reasoning and hypothesis generation |
+| | `asi_heart` | **`critique_safety`** | `666_HEART` | Ω OMEGA | `critique`, `simulate` | Ethics & Simulation — safety, empathy, consequence modeling |
+| | `engineering_memory` | **`load_memory_context`** | `555_MEMORY` | Ω OMEGA | `engineer`, `query`, `recall`, `write`, `generate` | Technical Execution — governed autonomous engineering |
+| **⚙️ MACHINE** | `physics_reality` | **`sense_reality`** | `111_SENSE` | Δ DELTA | `search`, `ingest`, `compass`, `atlas` | Environmental Grounding — Earth-Witness fact acquisition |
+| | `math_estimator` | **`estimate_ops`** | `444_ROUTER` | Δ DELTA | `cost`, `health`, `vitals` | Thermodynamic Vitals — quantitative health metrics |
+| | `code_engine` | **`execute_vps_task`** | `M-3_EXEC` | ALL | `fs`, `process`, `net`, `tail`, `replay` | Computational Execution — system-level hygiene |
+| | `architect_registry` | **`get_tool_registry`** | `M-4_ARCH` | Δ DELTA | `register`, `list`, `read` | System Definition — tool and resource discovery |
 
 > **Total:** 11 Mega-Tools enforcing all 13 Constitutional Floors (F1-F13) through the Trinity Architecture (ΔΩΨ).
+
+> **Naming:** Symbolic names (e.g., `apex_soul`) are for humans; **functional names** (e.g., `judge_verdict`) are the canonical MCP tool names. Both work interchangeably.
 
 > **Legacy Tools:** The previous 26-tool surface has been consolidated into the 11 Mega-Tools above. Legacy names (e.g., `apex_judge`, `vault_seal`, `agi_reason`) are redirected to the appropriate mega-tool modes.
 
@@ -418,6 +411,34 @@ Each persona carries a specific **Scar-Weight ($W_{beban}$)** to protect the sys
 
 ### VAULT999 — Merkle Ledger
 Append-only JSONL. Every entry: `session_id` → `seal_hash` (SHA-256) → `chain_hash` (prev + seal). Tamper = chain break. `verify_vault_ledger` detects it.
+
+---
+
+## 🤖 ChatGPT Apps SDK Integration
+
+arifOS provides a **ChatGPT Apps SDK** integration for OpenAI's platform.
+
+### Phase 1: Read-Only Health Checks (Current)
+
+**Exposed Tools:**
+| Tool | Purpose | Verdict |
+|------|---------|---------|
+| `get_constitutional_health` | Returns floor scores and telemetry | Read-only |
+| `render_vault_seal` | Renders interactive widget | Read-only |
+| `list_recent_verdicts` | Vault audit log (last 100) | Read-only |
+
+**Widget:** `https://mcp.af-forge.io/widget/vault-seal`
+- CSP-compliant for ChatGPT iframe
+- Displays: Truth, Humility, Entropy, Harmony, Reality, Witness scores
+- BLS attestation visualization
+
+### Phase 2: Write-Path (Future)
+- Vault sealing with F11/F13 human review
+- Controlled memory writes
+- VPS execution with explicit confirmation
+
+### 888_HOLD Compliance
+Phase 1 is intentionally **read-only** — no vault writes, no VPS execution, no private keys in ChatGPT-facing container.
 
 ---
 

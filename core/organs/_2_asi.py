@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Literal
 
-from arifosmcp.core.shared.types import (
+from core.shared.types import (
     AsiOutput,
     CritiqueResult,
     CritiqueFinding,
@@ -23,7 +23,7 @@ from arifosmcp.core.shared.types import (
     StakeholderImpact,
     Verdict,
 )
-from arifosmcp.core.shared.verdict_contract import normalize_verdict
+from core.shared.verdict_contract import normalize_verdict
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ async def asi(
     """
     Stage 666: ALIGNMENT ENGINE (APEX-G compliant)
     """
-    from arifosmcp.core.physics.thermodynamics_hardened import consume_tool_energy
+    from core.physics.thermodynamics_hardened import consume_tool_energy
 
     floors = {"F1": "pass", "F5": "pass", "F6": "pass", "F9": "pass"}
 
@@ -52,7 +52,7 @@ async def asi(
         target = scenario or kwargs.get("query") or "INIT"
 
         # H1.2 ASI Hardening: Semantic scoring for ASI floors
-        from arifosmcp.core.shared.sbert_floors import classify_asi_floors
+        from core.shared.sbert_floors import classify_asi_floors
 
         sbert_scores = classify_asi_floors(target)
 
@@ -176,7 +176,7 @@ async def asi(
         )
 
     # 3. Full Alignment (Default)
-    from arifosmcp.core.judgment import judge_empathy
+    from core.judgment import judge_empathy
 
     empathy = judge_empathy(
         query=kwargs.get("query", "INIT"),
@@ -188,16 +188,12 @@ async def asi(
 
     # 1. Assemble OmegaBundle (Heart Manifest)
     omega_bundle = OmegaBundle(
-        omega_0=0.04, # Baseline humidity
+        omega_0=0.04,  # Baseline humidity
         kappa_r=empathy.empathy_score,
         phi_stability=empathy.peace_squared,
         risk_level=empathy.impact_severity,
         floor_scores=empathy.floor_scores,
-        metadata={
-            "stakeholder_count": 2,
-            "vulnerability_score": 0.1,
-            "impact_severity": 0.1
-        }
+        metadata={"stakeholder_count": 2, "vulnerability_score": 0.1, "impact_severity": 0.1},
     )
 
     # Stage 666 CRITIQUE / 555 HEART: normalize verdict — VOID → SABAR, HOLD_888 → HOLD

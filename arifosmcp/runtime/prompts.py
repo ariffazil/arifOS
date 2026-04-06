@@ -1,102 +1,100 @@
 """
-arifosmcp/runtime/prompts.py — arifOS Sacred Prompts
+arifosmcp/runtime/prompts.py — arifOS Functional Task Templates
 
-Constitutional prompts for the 11 Mega-Tool surface.
-Register via register_prompts(mcp).
+Canonical prompt templates for arifOS MCP.
+Rewritten as explicit task templates rather than identities.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
 
+import logging
 from fastmcp import FastMCP
 
+logger = logging.getLogger(__name__)
 
 def register_prompts(mcp: FastMCP) -> None:
-    """Wire the 11 Mega-Tool Prompts onto *mcp*."""
+    """Wire the functional arifOS prompts onto *mcp*."""
 
-    @mcp.prompt()
-    def init_anchor(actor_id: str = "anonymous", intent: str = "") -> str:
-        """Prompt for the init_anchor mega-tool."""
+    @mcp.prompt("prompt_init_anchor")
+    def prompt_init_anchor(actor_id: str, intent: str) -> str:
+        """Start a governed arifOS session template."""
         return (
-            f"You are entering a constitutional arifOS session as {actor_id}. "
-            f"Intent: {intent}. Use init_anchor(mode='init') to establish your identity. "
-            "Always apply F12 (Injection Defense) scanning."
+            f"Initialize constitutional session for actor '{actor_id}' with intent: '{intent}'. "
+            "Establish identity binding and retrieve the initial telemetry seed."
         )
 
-    @mcp.prompt()
-    def arifOS_kernel(query: str = "") -> str:
-        """Prompt for the arifOS_kernel mega-tool."""
+    @mcp.prompt("prompt_sense_reality")
+    def prompt_sense_reality(query: str) -> str:
+        """Gather evidence and ground in present reality template."""
         return (
-            f"Conductor request: {query}. Use arifOS_kernel(mode='kernel') "
-            "for full metabolic reasoning. Use mode='status' to check authority."
+            f"Ground the following query in physical reality: '{query}'. "
+            "Verify facts, check temporal state, and gather earth-witness evidence."
         )
 
-    @mcp.prompt()
-    def agi_mind(query: str, context: str = "") -> str:
-        """Prompt for the agi_mind mega-tool."""
+    @mcp.prompt("prompt_reason_synthesis")
+    def prompt_reason_synthesis(task: str) -> str:
+        """Structured reasoning with uncertainty bands template."""
         return (
-            f"Architect task: {query}. Context: {context}. Perform first-principles reasoning. "
-            "Modes: 'reason', 'reflect', 'forge'. Focus on F2 (Truth) and F4 (Clarity)."
+            f"Perform first-principles reasoning for task: '{task}'. "
+            "Provide structured synthesis with explicit uncertainty (Ω₀) and clarity (ΔS) metrics."
         )
 
-    @mcp.prompt()
-    def asi_heart(content: str) -> str:
-        """Prompt for the asi_heart mega-tool."""
+    @mcp.prompt("prompt_critique_safety")
+    def prompt_critique_safety(proposal: str) -> str:
+        """Safety, dignity, and adversarial critique template."""
         return (
-            f"Empath evaluation: {content}. Simulate impact. Modes: 'critique', 'simulate'. "
-            "Adhere to F5 (Peace²) and F6 (Empathy)."
+            f"Red-team the following proposal for ethical risks: '{proposal}'. "
+            "Simulate consequence scenarios and evaluate against floors F5, F6, and F9."
         )
 
-    @mcp.prompt()
-    def apex_soul(candidate: str = "") -> str:
-        """Prompt for the apex_soul mega-tool."""
+    @mcp.prompt("prompt_route_kernel")
+    def prompt_route_kernel(request: str) -> str:
+        """Choose metabolic tool path and next lane template."""
         return (
-            f"Judge verdict required for: {candidate}. Modes: 'judge', 'rules', 'validate'. "
-            "Final authority for SEAL/VOID decisions."
+            f"Determine the correct metabolic lane for request: '{request}'. "
+            "Route through stages 000-999 based on risk and task type."
         )
 
-    @mcp.prompt()
-    def vault_ledger() -> str:
-        """Prompt for the vault_ledger mega-tool."""
+    @mcp.prompt("prompt_memory_recall")
+    def prompt_memory_recall(query: str) -> str:
+        """Pull governed memory for engineering tasks template."""
         return (
-            "As the AUDITOR, commit truths to history. Modes: 'seal' to hash a decision "
-            "and 'verify' to scan the Merkle chain."
+            f"Retrieve relevant engineering context from vector memory for: '{query}'. "
+            "Ensure F10/F2 verification of recalled knowledge."
         )
 
-    @mcp.prompt()
-    def physics_reality(input: str = "") -> str:
-        """Prompt for the physics_reality mega-tool."""
+    @mcp.prompt("prompt_estimate_ops")
+    def prompt_estimate_ops(action: str) -> str:
+        """Compute costs, capacity, and timelines template."""
         return (
-            f"Grounding request: {input}. Modes: 'search', 'ingest', 'compass', 'atlas'. "
-            "Connect thought to the physical Earth-Witness."
+            f"Estimate thermodynamic costs and operational capacity for: '{action}'. "
+            "Analyze entropy drift and resource requirements."
         )
 
-    @mcp.prompt()
-    def code_engine(path: str = ".") -> str:
-        """Prompt for the code_engine mega-tool."""
+    @mcp.prompt("prompt_judge_verdict")
+    def prompt_judge_verdict(task: str, risk_tier: str, telemetry_json: str | None = None) -> str:
+        """Produce final constitutional verdict block template."""
+        base = f"Render a final constitutional verdict for task '{task}' at risk tier '{risk_tier}'."
+        if telemetry_json:
+            base += f" Use provided telemetry: {telemetry_json}"
+        return base + " Return SEAL, PARTIAL, VOID, or 888_HOLD with floor-by-floor justification."
+
+    @mcp.prompt("prompt_human_explainer")
+    def prompt_human_explainer(verdict: str, reasoning: str) -> str:
+        """Translate machine verdict into plain human explanation template."""
         return (
-            f"System hygiene at {path}. Modes: 'fs', 'process', 'net', 'tail', 'replay'. "
-            "Default to dry_run=True for safety."
+            f"Translate the following {verdict} verdict into plain human language: '{reasoning}'. "
+            "Highlight the specific constitutional floors (F1-F13) that drove this decision."
         )
 
-    @mcp.prompt()
-    def agent_skills(role: str = "A-ARCHITECT") -> str:
-        """Prompt for the consolidated agent skills and mandate."""
+    @mcp.prompt("prompt_vault_record")
+    def prompt_vault_record(decision: str, evidence: str) -> str:
+        """Prepare immutable vault logging narrative and JSON template."""
         return (
-            f"You are operating in the {role} role within the arifOS ecosystem. "
-            "Your actions are governed by the 13 Constitutional Floors and the "
-            "metabolic stages 000-999. Refer to 'arifos://agents/skills' for your "
-            "atomic competence registry. Motto: DITEMPA BUKAN DIBERI."
+            f"Prepare a canonical vault record for decision: '{decision}'. "
+            f"Bundle evidence: '{evidence}' and format for Merkle-hashed ledger sealing."
         )
 
-    @mcp.prompt()
-    def human_explainer(verdict: str, reasoning: str) -> str:
-        """Prompt to translate complex governance logic into human-friendly narrative."""
-        return (
-            f"The system has issued a {verdict} verdict. "
-            f"Reasoning: {reasoning}. "
-            "Please translate this into a clear, non-technical explanation "
-            "that highlights the constitutional floors involved (F1-F13). "
-            "Motto: DITEMPA BUKAN DIBERI."
-        )
+    logger.info("Registered functional arifOS prompts.")

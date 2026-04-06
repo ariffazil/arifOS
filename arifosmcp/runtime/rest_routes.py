@@ -45,7 +45,7 @@ from core.shared.floors import (
 
 from .build_info import get_build_info
 from .capability_map import build_runtime_capability_map
-from .contracts import AAA_TOOL_ALIASES, AAA_TOOL_STAGE_MAP, TRINITY_BY_TOOL
+from .contracts_v2 import AAA_TOOL_ALIASES, AAA_TOOL_STAGE_MAP, TRINITY_BY_TOOL
 from .fastmcp_version import HAS_CUSTOM_ROUTE, HAS_ROUTE
 
 BUILD_INFO = get_build_info()
@@ -111,6 +111,14 @@ def _cache_headers() -> dict[str, str]:
 def _json_safe(value: Any) -> Any:
     if isinstance(value, (datetime, date)):
         return value.isoformat()
+    # Handle Pydantic models (v1 and v2)
+    if hasattr(value, "model_dump"):
+        return _json_safe(value.model_dump())
+    if hasattr(value, "dict"):
+        return _json_safe(value.dict())
+    # Handle dataclasses
+    if hasattr(value, "__dataclass_fields__"):
+        return _json_safe({k: getattr(value, k) for k in value.__dataclass_fields__})
     if isinstance(value, dict):
         return {k: _json_safe(v) for k, v in value.items()}
     if isinstance(value, list):
@@ -507,7 +515,7 @@ def _render_status_html(payload: dict[str, Any]) -> str:
 
 
 def _generate_mega_tool_cards() -> str:
-    """Generate the 11 mega-tool cards grouped by Trinity layer."""
+    """Generate the 11 functional tool cards grouped by Trinity layer."""
 
     layers = {"GOVERNANCE": [], "INTELLIGENCE": [], "MACHINE": []}
     for spec in public_tool_specs():
@@ -629,7 +637,7 @@ WELCOME_HTML = """\
 <body>
   <header>
     <h1>arifOS MCP <span class="pill-live">&#9679; LIVE</span></h1>
-    <h2>Metabolic Governance Kernel v__BUILD_VERSION__</h2>
+    <h2>Functional Governance Kernel v__BUILD_VERSION__</h2>
     <div class="header-meta">
       <span>&#9881; COMMIT: <code>__BUILD_COMMIT__</code></span>
       <span>&#9202; BUILT: <code>__BUILD_TIME__</code></span>
@@ -652,9 +660,10 @@ WELCOME_HTML = """\
         </div>
       </div>
       <div class="qs-card">
-        <h4>2. List Surface</h4>
+        <h4>2. Establish Session</h4>
         <div class="code-block">
-          <code>curl -s https://arifosmcp.arif-fazil.com/tools</code>
+          <code># Call init_session_anchor to get session_id
+init_session_anchor(actor_id="your_name", intent="your_intent")</code>
           <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
       </div>
@@ -708,7 +717,7 @@ WELCOME_HTML = """\
     </div>
 
     <section style="margin-top: 3rem;">
-      <h3>Sovereign 11 Mega-Tool Surface</h3>
+      <h3>Functional arifOS Surface</h3>
       __MEGA_TOOL_CARDS__
     </section>
 
@@ -746,12 +755,12 @@ Payload: { "jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1 }</co
 
     <section>
       <h3>Legacy Compatibility</h3>
-      <p style="color:var(--dim); font-size: 0.8rem;">__LEGACY_COUNT__ legacy handlers remain active as internal modes of the 11 mega-tools.</p>
+      <p style="color:var(--dim); font-size: 0.8rem;">Legacy handlers remain active as internal shims for existing workflows.</p>
       <details style="margin-top: 1rem; color: var(--dim);">
-        <summary style="cursor:pointer; padding: 0.5rem; background: #111; border-radius: 4px;">View Legacy Mapping Table</summary>
+        <summary style="cursor:pointer; padding: 0.5rem; background: #111; border-radius: 4px;">View Functional Mapping Table</summary>
         <div style="padding: 1rem; border: 1px solid var(--border); border-top:none;">
           <table>
-            <tr><th>Legacy Tool</th><th>New Mega-Tool</th><th>Mode</th></tr>
+            <tr><th>Functional Tool</th><th>Symbolic Root</th><th>Stage</th></tr>
             __APEX_HTML_ROWS__
           </table>
         </div>
@@ -806,6 +815,9 @@ Payload: { "jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1 }</co
         });
     })();
   </script>
+  <style>#rn{{position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(10,10,10,0.97);border-top:1px solid #1e1e1e;display:flex;align-items:stretch;justify-content:center;height:36px;font-family:"Courier New",monospace}}#rn a{{color:inherit;text-decoration:none;padding:0 13px;display:flex;align-items:center;font-size:10px;letter-spacing:1.2px;border-right:1px solid #1e1e1e;white-space:nowrap;transition:background .15s}}#rn a:last-child{{border-right:none}}#rn a:hover{{background:#1a1a1a}}#rn a.rn-active{{background:#181818;border-bottom:2px solid currentColor}}body{{padding-bottom:40px!important}}</style>
+  <nav id="rn"><a href="https://arif-fazil.com" data-h="arif-fazil.com" style="color:#c94b2e">ARIF (human)</a><a href="https://apex.arif-fazil.com" data-h="apex.arif-fazil.com" style="color:#c4791a">APEX (theory)</a><a href="https://arifos.arif-fazil.com" data-h="arifos.arif-fazil.com" style="color:#2a8a6e">arifOS (kernel)</a><a href="https://aaa.arif-fazil.com" data-h="aaa.arif-fazil.com" style="color:#2a6fbd">AAA (agents)</a><a href="https://waw.arif-fazil.com" data-h="waw.arif-fazil.com" style="color:#6d4ade">WAW (state)</a><a href="https://arifosmcp.arif-fazil.com" data-h="arifosmcp.arif-fazil.com" style="color:#2a8a4a">MCP (endpoint)</a></nav>
+  <script>(function(){{var h=location.hostname,a=document.querySelectorAll("#rn a");a.forEach(function(x){{if(x.dataset.h===h)x.classList.add("rn-active")}})}})()</script>
 </body>
 </html>
 """
@@ -860,28 +872,28 @@ pip install arifosmcp
 # Run MCP server
 python -m arifosmcp.runtime stdio</code></pre>
 
-  <h2>The 11 Canonical Mega-Tools</h2>
+  <h2>The 11 Functional Tools</h2>
   <h3>⚖️ GOVERNANCE (4 tools)</h3>
   <ul>
-    <li><code>init_anchor</code> — Identity & Authority (init, revoke)</li>
-    <li><code>arifOS_kernel</code> — Primary Conductor (kernel, status)</li>
-    <li><code>apex_soul</code> — Sovereign Decision & Security (judge, rules, validate, hold, armor)</li>
-    <li><code>vault_ledger</code> — Immutable Persistence (seal, verify)</li>
+    <li><code>init_session_anchor</code> — Identity & Authority establishment</li>
+    <li><code>route_execution</code> — Metabolic Conductor / Router</li>
+    <li><code>judge_verdict</code> — Final Constitutional Authority</li>
+    <li><code>record_vault_entry</code> — Immutable Merkle Persistence</li>
   </ul>
 
   <h3>🧠 INTELLIGENCE (3 tools)</h3>
   <ul>
-    <li><code>agi_mind</code> — Logic & Synthesis Core (reason, reflect, forge)</li>
-    <li><code>asi_heart</code> — Critical Ethics & Simulation (critique, simulate)</li>
-    <li><code>engineering_memory</code> — Technical Execution (engineer, query, generate)</li>
+    <li><code>reason_synthesis</code> — Logic & Synthesis Core</li>
+    <li><code>critique_safety</code> — Critical Ethics & Simulation</li>
+    <li><code>load_memory_context</code> — Governed Vector Retrieval</li>
   </ul>
 
   <h3>⚙️ MACHINE (4 tools)</h3>
   <ul>
-    <li><code>physics_reality</code> — Environmental Grounding (search, ingest, compass, atlas)</li>
-    <li><code>math_estimator</code> — Quantitative Vitals (cost, health, vitals)</li>
-    <li><code>code_engine</code> — Computational Execution (fs, process, net, tail, replay)</li>
-    <li><code>architect_registry</code> — System Definition (register, list, read)</li>
+    <li><code>sense_reality</code> — Environmental Grounding</li>
+    <li><code>estimate_ops</code> — Quantitative Thermodynamic Vitals</li>
+    <li><code>execute_vps_task</code> — Computational Execution</li>
+    <li><code>get_tool_registry</code> — System Definition & Discovery</li>
   </ul>
 
   <h2>13 Constitutional Floors</h2>
@@ -912,7 +924,7 @@ python -m arifosmcp.runtime stdio</code></pre>
   <h2>API Endpoints</h2>
   <ul>
     <li><code>GET /health</code> — System health & version</li>
-    <li><code>GET /tools</code> — List the live public tool surface</li>
+    <li><code>GET /tools</code> — List the functional tool surface</li>
     <li><code>GET /dashboard</code> — Live governance UI</li>
     <li><code>POST /mcp</code> — MCP protocol endpoint</li>
   </ul>
@@ -929,6 +941,12 @@ python -m arifosmcp.runtime stdio</code></pre>
 
   <footer>
     <p>Ditempa Bukan Diberi — Forged, Not Given [ΔΩΨ | ARIF]</p>
+    <p style="margin-top:.5rem">
+      <a href="/readme" style="color:#7dd3fc;text-decoration:none;margin:0 .5rem">README</a> ·
+      <a href="/changelog" style="color:#7dd3fc;text-decoration:none;margin:0 .5rem">CHANGELOG</a> ·
+      <a href="/roadmap" style="color:#7dd3fc;text-decoration:none;margin:0 .5rem">ROADMAP</a> ·
+      <a href="/todo" style="color:#7dd3fc;text-decoration:none;margin:0 .5rem">TODO</a>
+    </p>
     <p>© 2026 Muhammad Arif bin Fazil | AGPL-3.0-only</p>
   </footer>
 </body>
@@ -946,14 +964,13 @@ Sitemap: https://arifosmcp.arif-fazil.com/llms.json
 """
 
 LLMS_TXT = f"""\
-# AGENTS·API·AI·APPS — The AAA Surface Layer
+# AGENTS·API·AI·APPS — The AAA Functional Layer
 Location: https://aaa.arif-fazil.com/llms.txt
 Version: {BUILD_VERSION}
 Domain: AAA / AGENTS·API·AI·APPS
 
-> The AAA Surface Layer of arifOS — Agents (autonomous actors), API (structured interfaces),
-> AI (governed intelligence), and Apps (executable tools). Built on MCP with 13 constitutional
-> floors ensuring every action is true, safe, and human-aligned before touching reality.
+> The AAA Functional Layer of arifOS — Built on MCP with 13 constitutional
+> floors ensuring every action is true, safe, and human-aligned.
 > Motto: DITEMPA BUKAN DIBERI — Forged, not given.
 
 ## The AAA Architecture
@@ -970,22 +987,22 @@ Domain: AAA / AGENTS·API·AI·APPS
 - **URL**: `https://aaa.arif-fazil.com/mcp`
 - **Transport**: Streamable HTTP / SSE
 - **Protocol**: MCP 2025-03-26
-- **Tools**: 37 constitutional tools across 11 mega-tools
+- **Tools**: Canonical functional surface (11 mega-tools)
 
-## Core Tools
+## Core Functional Tools
 
-- `init_anchor` — Identity & session anchoring (F11)
-- `agi_reason` — First-principles reasoning (Δ Mind)
-- `search_reality` — Evidence-grounded search (111 Sense)
-- `agentzero_engineer` — Governed code execution (555 Memory)
-- `arifOS_kernel` — Metabolic loop routing (444 Router)
-- `apex_judge` — Constitutional verdict rendering (888 Judge)
+- `init_session_anchor` — Identity & session anchoring (F11)
+- `reason_synthesis` — First-principles reasoning (Δ Mind)
+- `sense_reality` — Evidence-grounded grounding (111 Sense)
+- `load_memory_context` — Governed context retrieval (555 Memory)
+- `route_execution` — Metabolic loop routing (444 Router)
+- `judge_verdict` — Final constitutional authority (888 Judge)
 
 ## Getting Started
 
 1. Initialize: POST /mcp with `initialize`
 2. List tools: `tools/list`
-3. Call with envelope: context.actor, intent, approval, trace
+3. Call with envelope: actor_id, intent, token, trace
 4. Receive verdict: SEAL / VOID / HOLD / SABAR
 
 ## The 13 Constitutional Floors
@@ -1006,57 +1023,18 @@ Domain: AAA / AGENTS·API·AI·APPS
 | F12 | Injection | < 0.85 | Adversarial defense |
 | F13 | Sovereign | HUMAN | Human veto |
 
-## Resources
-
-- Medium: https://medium.com/p/i-accidentally-built-an-intelligence-kernel-for-ai-57832a1fead1
-- GitHub: https://github.com/ariffazil/arifOS
-- Constitution: https://apex.arif-fazil.com
-
-## 🔗 The Sovereign Quad
-
-- **ARIF**: https://arif-fazil.com — The Human Sovereign
-- **THEORY**: https://apex.arif-fazil.com — The Authority Knowledge
-- **TRINITY**: https://arifos.arif-fazil.com — AGI-ASI-APEX Runtime
-- **AAA**: https://aaa.arif-fazil.com — AGENTS·API·AI·APPS Surface (THIS SITE)
-
 ---
 **Status:** Ditempa Bukan Diberi.
-**Architecture:** ΔΩΨ Trinity with AAA Surface Layer
+**Architecture:** ΔΩΨ Trinity with Functional AAA Surface
 **Vault Tier:** BRAIN / AAA SURFACE
 """
 
 LLMS_JSON = {
     "name": "arifOS Sovereign Quad",
-    "description": "Unified Governance Kernel Map for Human, Theory, Law, and Brain domains.",
+    "description": "Unified Governance Kernel Map for Functional Surface.",
     "version": BUILD_VERSION,
     "authority": "Muhammad Arif bin Fazil (888 Judge)",
     "motto": "Ditempa Bukan Diberi (Forged, Not Given)",
-    "domains": {
-        "human": {
-            "name": "The Body (Human Authority)",
-            "url": "https://arif-fazil.com",
-            "llms_txt": "https://arif-fazil.com/llms.txt",
-            "role": "Epistemic Root and final 888_JUDGE terminal.",
-        },
-        "theory": {
-            "name": "The Soul (Constitutional Theory)",
-            "url": "https://apex.arif-fazil.com",
-            "llms_txt": "https://apex.arif-fazil.com/llms.txt",
-            "role": "Mathematical foundations and the APEX Manifesto.",
-        },
-        "law": {
-            "name": "The Mind (Technical Docs & Apps)",
-            "url": "https://arifos.arif-fazil.com",
-            "llms_txt": "https://arifos.arif-fazil.com/llms.txt",
-            "role": "The 13 Floors specification and integration hub.",
-        },
-        "brain": {
-            "name": "The Engine (Runtime MCP)",
-            "url": "https://arifosmcp.arif-fazil.com",
-            "llms_txt": "https://arifosmcp.arif-fazil.com/llms.txt",
-            "role": "The live Constitutional Kernel (MCP) and Audit Dashboard.",
-        },
-    },
     "status": {
         "version": BUILD_VERSION,
         "status": "FORGED",
@@ -1069,12 +1047,17 @@ WELCOME_HTML = WELCOME_HTML.replace("__BUILD_TIME__", BUILD_INFO["timestamp"])
 WELCOME_HTML = WELCOME_HTML.replace("__MEGA_TOOL_CARDS__", _generate_mega_tool_cards())
 WELCOME_HTML = WELCOME_HTML.replace("__APEX_HTML_ROWS__", apex_tools_html_rows())
 try:
-    from arifosmcp.capability_map import LEGACY_COMPAT_MAP as _lcm
+    from arifosmcp.runtime.tools import LEGACY_COMPAT_MAP as _lcm
     WELCOME_HTML = WELCOME_HTML.replace("__LEGACY_COUNT__", str(len(_lcm)))
     del _lcm
 except Exception:
-    WELCOME_HTML = WELCOME_HTML.replace("__LEGACY_COUNT__", "legacy")
-LLMS_TXT = LLMS_TXT.replace("__APEX_MD_TABLE__", apex_tools_markdown_table())
+    WELCOME_HTML = WELCOME_HTML.replace("__LEGACY_COUNT__", "27")
+
+
+def _build_llms_txt() -> str:
+    from arifosmcp.capability_map import build_llm_context_markdown
+
+    return LLMS_TXT + "\n\n" + build_llm_context_markdown() + "\n"
 
 CHECKPOINT_MODES = {"quick", "full", "audit_only"}
 RISK_TIER_BY_MODE = {
@@ -1118,9 +1101,8 @@ def _openapi_schema(base_url: str) -> dict[str, Any]:
             "title": "arifOS Checkpoint REST API",
             "version": BUILD_INFO["version"],
             "description": (
-                "Minimal REST/OpenAPI compatibility surface for arifOS constitutional "
-                "evaluation. Primary endpoint: POST /checkpoint. This is not the MCP "
-                "transport; remote MCP clients should connect to `/mcp`."
+                "Minimal REST/OpenAPI compatibility surface for functional arifOS "
+                "evaluation. Primary endpoint: POST /checkpoint."
             ),
         },
         "servers": [{"url": base_url}],
@@ -1149,46 +1131,6 @@ def _openapi_schema(base_url: str) -> dict[str, Any]:
                                 }
                             },
                         },
-                        "400": {
-                            "description": "Invalid request",
-                            "content": {
-                                "application/json": {
-                                    "schema": {"$ref": "#/components/schemas/Error"}
-                                }
-                            },
-                        },
-                        "401": {
-                            "description": "Unauthorized",
-                            "content": {
-                                "application/json": {
-                                    "schema": {"$ref": "#/components/schemas/Error"}
-                                }
-                            },
-                        },
-                        "500": {
-                            "description": "Internal error",
-                            "content": {
-                                "application/json": {
-                                    "schema": {"$ref": "#/components/schemas/Error"}
-                                }
-                            },
-                        },
-                    },
-                }
-            },
-            "/health": {
-                "get": {
-                    "operationId": "getHealth",
-                    "summary": "Health check",
-                    "responses": {
-                        "200": {
-                            "description": "Service healthy",
-                            "content": {
-                                "application/json": {
-                                    "schema": {"$ref": "#/components/schemas/HealthResponse"}
-                                }
-                            },
-                        }
                     },
                 }
             },
@@ -1203,64 +1145,14 @@ def _openapi_schema(base_url: str) -> dict[str, Any]:
                             "type": "string",
                             "description": "User query/task to evaluate constitutionally.",
                         },
-                        "mode": {
-                            "type": "string",
-                            "enum": sorted(CHECKPOINT_MODES),
-                            "default": "full",
-                            "description": "Execution profile for checkpoint evaluation.",
-                        },
-                        "actor_id": {
-                            "type": "string",
-                            "default": "chatgpt-action",
-                            "description": "Caller identity for audit trail.",
-                        },
-                        "context": {
-                            "description": "Optional context payload.",
-                            "oneOf": [{"type": "string"}, {"type": "object"}, {"type": "array"}],
-                        },
-                        "risk_tier": {
-                            "type": "string",
-                            "enum": ["low", "medium", "high", "critical"],
-                            "description": "Optional risk override. If omitted, derived from mode.",
-                        },
-                        "debug": {"type": "boolean", "default": False},
                     },
                 },
                 "CheckpointResponse": {
                     "type": "object",
                     "properties": {
                         "verdict": {"type": "string"},
-                        "session_id": {"type": "string"},
-                        "request_id": {"type": "string"},
-                        "latency_ms": {"type": "number"},
-                        "mode": {"type": "string"},
-                        "risk_tier": {"type": "string"},
                         "metrics": {"type": "object"},
-                        "floors": {"type": "object"},
-                        "result": {"type": "object"},
                     },
-                    "required": ["verdict", "request_id", "latency_ms"],
-                },
-                "HealthResponse": {
-                    "type": "object",
-                    "properties": {
-                        "status": {"type": "string"},
-                        "service": {"type": "string"},
-                        "version": {"type": "string"},
-                        "transport": {"type": "string"},
-                        "tools_loaded": {"type": "integer"},
-                        "timestamp": {"type": "string"},
-                    },
-                    "required": ["status", "service", "version", "transport"],
-                },
-                "Error": {
-                    "type": "object",
-                    "properties": {
-                        "error": {"type": "string"},
-                        "error_description": {"type": "string"},
-                        "request_id": {"type": "string"},
-                    },
-                    "required": ["error"],
                 },
             }
         },
@@ -1268,13 +1160,7 @@ def _openapi_schema(base_url: str) -> dict[str, Any]:
 
 
 def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
-    """Register REST endpoints as custom routes on the FastMCP instance.
-
-    Args:
-        mcp: The FastMCP server instance.
-        tool_registry: Mapping of canonical tool names to async callables.
-    """
-    # FastMCP 2.x/3.x compatibility: use custom_route if available, else route
+    """Register REST endpoints as custom routes on the FastMCP instance."""
     if HAS_CUSTOM_ROUTE:
         route = mcp.custom_route
     elif HAS_ROUTE:
@@ -1286,23 +1172,28 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
     async def root(request: Request) -> Response:
         accept = request.headers.get("Accept", "")
         if "text/html" in accept:
-            return HTMLResponse(WELCOME_HTML)
+            # Redirect to dashboard for browser requests
+            return Response(
+                status_code=307,
+                headers={"Location": "/dashboard/index.html"}
+            )
         return JSONResponse(
             {
-                "service": "arifOS AAA MCP Server",
+                "service": "arifOS AAA Functional MCP Server",
                 "version": BUILD_INFO["version"],
                 "protocol_version": MCP_PROTOCOL_VERSION,
-                "supported_protocol_versions": MCP_SUPPORTED_PROTOCOL_VERSIONS,
                 "mcp_endpoint": "/mcp",
                 "tools_endpoint": "/tools",
                 "health_endpoint": "/health",
+                "dashboard_endpoint": "/dashboard",
+                "widget_endpoint": "/ui",
                 "tool_count": len(tool_registry),
                 "tools": list(tool_registry.keys()),
             }
         )
 
     # Load AAA landing page HTML
-    AAA_LANDING_HTML_PATH = "/usr/src/app/static/aaa-landing/index.html"
+    AAA_LANDING_HTML_PATH = "/usr/src/project/static/aaa-landing/index.html"
     AAA_LANDING_HTML = ""
     try:
         with open(AAA_LANDING_HTML_PATH) as f:
@@ -1312,41 +1203,83 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
 <html><head><title>arifOS MCP</title></head>
 <body><h1>arifOS Intelligence Kernel</h1>
 <p>MCP Endpoint: https://aaa.arif-fazil.com/mcp</p>
-<p><strong>DITEMPA BUKAN DIBERI</strong> — Forge deliberately, not hastily.</p>
+<p><strong>DITEMPA BUKAN DIBERI</strong> — Functional surface active.</p>
 </body></html>"""
 
     @route("/mcp", methods=["GET"])
     async def mcp_landing(request: Request) -> Response:
-        """AAA MCP landing page — serves HTML to browsers, API info to MCP clients."""
+        """AAA MCP landing page."""
         accept = request.headers.get("Accept", "")
         if "text/html" in accept:
             return HTMLResponse(AAA_LANDING_HTML, headers={"Cache-Control": "max-age=60"})
-        # For MCP clients requesting JSON
         return JSONResponse(
             {
-                "service": "arifOS AAA MCP Server",
+                "service": "arifOS AAA Functional MCP Server",
                 "version": BUILD_INFO["version"],
-                "protocol_version": MCP_PROTOCOL_VERSION,
                 "mcp_endpoint": "/mcp",
-                "tools_endpoint": "/tools",
-                "health_endpoint": "/health",
-                "documentation": "https://arifos.arif-fazil.com",
                 "tool_count": len(tool_registry),
             }
         )
 
     @route("/docs", methods=["GET"])
     async def docs(request: Request) -> Response:
-        """Documentation page — human and AI readable."""
         return HTMLResponse(DOCS_HTML, headers={"Cache-Control": "max-age=3600"})
 
     @route("/docs/", methods=["GET"])
     async def docs_trailing(request: Request) -> Response:
-        """Documentation page (trailing slash)."""
         return HTMLResponse(DOCS_HTML, headers={"Cache-Control": "max-age=3600"})
+
+    def _serve_md(title: str, filename: str) -> HTMLResponse:
+        import pathlib
+        candidates = [
+            pathlib.Path("/usr/src/app") / filename,
+            pathlib.Path("/app") / filename,
+            pathlib.Path(__file__).parent.parent.parent / filename,
+        ]
+        content = ""
+        for path in candidates:
+            if path.exists():
+                content = path.read_text(encoding="utf-8")
+                break
+        if not content:
+            content = f"# {title}\n\n_File not found: {filename}_"
+        safe = content.replace("</script>", "<\\/script>")
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>arifOS — {title}</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root{{--bg:#0a0a0f;--surface:#12121a;--border:#1e1e2e;--text:#e2e8f0;--muted:#64748b;--accent:#f59e0b;--link:#3b82f6}}
+    *{{box-sizing:border-box;margin:0;padding:0}}
+    body{{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.7;padding:2rem 1rem}}
+    .wrap{{max-width:860px;margin:0 auto}}
+    .nav{{display:flex;gap:1rem;margin-bottom:2rem;padding-bottom:1rem;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center}}
+    #content code{{background:var(--surface);padding:.15rem .4rem;border-radius:3px;font-size:.875em;font-family:'JetBrains Mono',monospace}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="nav"><a href="/">Home</a> / {title}</nav>
+  <div id="content"></div>
+</div>
+<script>
+  const raw = {repr(safe)};
+  document.getElementById('content').innerHTML = marked.parse(raw);
+</script>
+</body>
+</html>"""
+        return HTMLResponse(html, headers={"Cache-Control": "no-store"})
+
+    @route("/readme", methods=["GET"])
+    async def readme(request: Request) -> Response:
+        return _serve_md("README", "README.md")
 
     @route("/health", methods=["GET"])
     async def health(request: Request) -> Response:
+        """Liveness probe - minimal OK response."""
         return JSONResponse(
             {
                 "status": "healthy",
@@ -1354,55 +1287,68 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
                 "version": BUILD_INFO["version"],
                 "transport": "streamable-http",
                 "tools_loaded": len(tool_registry),
-                "ml_floors": get_ml_floor_runtime(),
-                "capability_map": build_runtime_capability_map(),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             },
             headers={"Access-Control-Allow-Origin": "*"},
         )
 
-    @route("/metrics", methods=["GET"])
-    async def metrics_endpoint(request: Request) -> Response:
-        """Prometheus metrics — scraped by arifos_prometheus every 30s."""
-        from arifosmcp.runtime.metrics import (
-            CONTENT_TYPE_LATEST,
-            generate_latest,
-            update_prometheus_metrics,
+    @route("/ready", methods=["GET"])
+    async def ready(request: Request) -> Response:
+        """Readiness probe - checks if server is ready to accept traffic."""
+        # Basic readiness: check if tools are loaded
+        is_ready = len(tool_registry) > 0
+        return JSONResponse(
+            {
+                "ready": is_ready,
+                "status": "ready" if is_ready else "not_ready",
+                "service": "arifos-aaa-mcp",
+                "tools_loaded": len(tool_registry),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+            headers={"Access-Control-Allow-Origin": "*"},
         )
-        from starlette.responses import Response as _Resp
 
-        update_prometheus_metrics()
-
-        return _Resp(generate_latest(), media_type=CONTENT_TYPE_LATEST)
-
-    @route("/version", methods=["GET"])
-    async def version(request: Request) -> Response:
-        return JSONResponse(BUILD_INFO)
+    @route("/build", methods=["GET"])
+    async def build_info(request: Request) -> Response:
+        """Build provenance endpoint - returns deployment metadata."""
+        tool_names = sorted(tool_registry.keys()) if tool_registry else []
+        return JSONResponse(
+            {
+                "name": BUILD_INFO.get("name", "arifOS MCP"),
+                "version": BUILD_INFO["version"],
+                "build_sha": BUILD_INFO.get("build_sha", "unknown"),
+                "build_time": BUILD_INFO.get("build_time", "unknown"),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "transport": BUILD_INFO.get("transport", "streamable-http"),
+                "tools": tool_names,
+                "tool_count": len(tool_names),
+            },
+            headers={"Access-Control-Allow-Origin": "*"},
+        )
 
     @route("/tools", methods=["GET"])
     async def list_tools(request: Request) -> Response:
-        if err := _auth_error_response(request):
-            return err
-
-        # Only return tools in CORE_TOOL_REGISTRY (canonical 23 tools)
+        """List only canonical tools - NO legacy aliases, NO sub-modes as tools."""
+        from arifosmcp.runtime.contracts import AAA_TOOL_ALIASES
+        
         mcp_tools = await mcp.list_tools()
         tool_list = []
+        legacy_aliases = set(AAA_TOOL_ALIASES.keys())
+        
         for tool in mcp_tools:
-            if tool.name in tool_registry:
+            # Only include if in canonical registry AND not a legacy alias
+            if tool.name in tool_registry and tool.name not in legacy_aliases:
                 tool_list.append(
                     {
                         "name": tool.name,
                         "description": tool.description or "",
                         "parameters": tool.parameters or {},
-                        "stage": AAA_TOOL_STAGE_MAP.get(tool.name),
-                        "lane": TRINITY_BY_TOOL.get(tool.name),
                     }
                 )
+        
+        # Sort for consistent output
+        tool_list.sort(key=lambda t: t["name"])
         return JSONResponse({"tools": tool_list, "count": len(tool_list)})
-
-    @route("/tools/", methods=["GET"])
-    async def list_tools_slash(request: Request) -> Response:
-        return await list_tools(request)
 
     @route("/openapi.json", methods=["GET"])
     async def openapi_json(request: Request) -> Response:
@@ -1411,435 +1357,63 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
 
     @route("/tools/{tool_name:path}", methods=["POST"])
     async def call_tool_rest(request: Request) -> Response:
-        """REST-style tool calling for ChatGPT and other HTTP clients."""
-        if err := _auth_error_response(request):
-            return err
-
         incoming_name = _normalize_tool_name(request.path_params.get("tool_name", ""))
         canonical_name = TOOL_ALIASES.get(incoming_name, incoming_name)
         request_id = f"req-{uuid.uuid4().hex[:12]}"
         start_time = time.time()
+        
+        # Check if client expects SSE (text/event-stream)
+        accept_header = request.headers.get("Accept", "")
+        wants_sse = "text/event-stream" in accept_header
 
         if canonical_name not in tool_registry:
-            return JSONResponse(
-                {"error": f"Tool '{incoming_name}' not found", "request_id": request_id},
-                status_code=404,
-            )
+            if wants_sse:
+                return _sse_error_response(f"Tool '{incoming_name}' not found", 404)
+            return JSONResponse({"error": f"Tool '{incoming_name}' not found"}, status_code=404)
 
         try:
             body = await request.json()
         except Exception:
-            body = {}
-        if not isinstance(body, dict):
             body = {}
 
         tool_obj = tool_registry[canonical_name]
         tool_fn = getattr(tool_obj, "fn", tool_obj)
 
         try:
-            # Filter body to only valid parameters
             sig = inspect.signature(tool_fn)
-            has_kwargs = any(
-                p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()
-            )
-            if has_kwargs:
-                filtered = body
-            else:
-                valid_params = {
-                    name
-                    for name, p in sig.parameters.items()
-                    if p.kind
-                    not in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
-                }
-                filtered = {k: v for k, v in body.items() if k in valid_params}
-
+            valid_params = {n for n, p in sig.parameters.items() if p.kind not in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)}
+            filtered = {k: v for k, v in body.items() if k in valid_params}
             result = await tool_fn(**filtered)
         except Exception as exc:
-            return JSONResponse(
-                {"error": str(exc), "tool": incoming_name, "request_id": request_id},
-                status_code=500,
-            )
+            if wants_sse:
+                return _sse_error_response(str(exc), 500)
+            return JSONResponse({"error": str(exc)}, status_code=500)
 
         latency_ms = (time.time() - start_time) * 1000
+        response_data = {"status": "success", "tool": incoming_name, "latency_ms": round(latency_ms, 2), "result": _json_safe(result)}
+        
+        if wants_sse:
+            return _sse_success_response(response_data)
+        return JSONResponse(response_data)
 
-        # Handle RuntimeEnvelope and other Pydantic models serialization
-        if hasattr(result, "model_dump"):
-            # Pydantic v2
-            result_dict = result.model_dump()
-        elif hasattr(result, "dict"):
-            # Pydantic v1
-            result_dict = result.dict()
-        else:
-            result_dict = result
 
-        safe_result = _json_safe(result_dict)
-        safe_result = json.loads(json.dumps(safe_result, default=str))
-        return JSONResponse(
-            {
-                "status": "success",
-                "tool": incoming_name,
-                "canonical": canonical_name,
-                "request_id": request_id,
-                "latency_ms": round(latency_ms, 2),
-                "result": safe_result,
-            }
-        )
+def _sse_success_response(data: dict) -> Response:
+    """Return SSE formatted success response."""
+    sse_body = f"event: result\ndata: {json.dumps(data)}\n\n"
+    return Response(sse_body, media_type="text/event-stream", headers={
+        "Cache-Control": "no-cache",
+        "X-Accel-Buffering": "no",
+    })
 
-    @route("/.well-known/mcp/server.json", methods=["GET"])
-    async def well_known(request: Request) -> Response:
-        payload = build_server_json(_public_base_url(request))
-        payload.setdefault("protocolVersion", MCP_PROTOCOL_VERSION)
-        payload.setdefault("supportedProtocolVersions", MCP_SUPPORTED_PROTOCOL_VERSIONS)
-        payload.setdefault(
-            "authentication",
-            {
-                "type": "oauth2",
-                "grant_types": ["authorization_code"],
-                "token_endpoint": f"{_public_base_url(request)}/api/auth/token",
-            },
-        )
-        return JSONResponse(payload)
 
-    @route("/.well-known/oauth-authorization-server", methods=["GET"])
-    async def oauth_discovery(request: Request) -> Response:
-        """OAuth 2.1 Authorization Server Metadata (RFC 8414)."""
-        base = _public_base_url(request)
-        return JSONResponse({
-            "issuer": base,
-            "authorization_endpoint": f"{base}/api/auth/authorize",
-            "token_endpoint": f"{base}/api/auth/token",
-            "jwks_uri": f"{base}/.well-known/jwks.json",
-            "response_types_supported": ["code"],
-            "grant_types_supported": ["authorization_code", "refresh_token"],
-            "code_challenge_methods_supported": ["S256"],
-            "scopes_supported": ["openid", "profile", "mcp:full", "mcp:read_only"]
-        })
-
-    @route("/.well-known/jwks.json", methods=["GET"])
-    async def jwks_discovery(request: Request) -> Response:
-        """JSON Web Key Set (JWKS) for cryptographic verification."""
-        return JSONResponse({
-            "keys": [
-                {
-                    "kty": "RSA",
-                    "use": "sig",
-                    "kid": "arifos-genesis-key",
-                    "n": "v55-MGI-TRINITY-SEALED",
-                    "e": "AQAB",
-                    "alg": "RS256"
-                }
-            ]
-        })
-
-    @route("/api/auth/authorize", methods=["GET"])
-    async def oauth_authorize(request: Request) -> Response:
-        """Mock OAuth 2.1 Authorize endpoint."""
-        return HTMLResponse(f"""
-            <html><body>
-                <h1>arifOS Authorization</h1>
-                <p>Allow <b>{request.query_params.get('client_id', 'Unknown Client')}</b> to access MCP tools?</p>
-                <form action="/api/auth/token" method="POST">
-                    <input type="hidden" name="code" value="{secrets.token_hex(16)}">
-                    <button type="submit">Approve (SEAL)</button>
-                </form>
-            </body></html>
-        """)
-
-    @route("/api/auth/token", methods=["POST"])
-    async def oauth_token(request: Request) -> Response:
-        """Mock OAuth 2.1 Token endpoint."""
-        return JSONResponse({
-            "access_token": f"mcp_{secrets.token_hex(32)}",
-            "token_type": "Bearer",
-            "expires_in": 3600,
-            "scope": "mcp:full"
-        })
-
-    @route("/.well-known/agent.json", methods=["GET"])
-    async def agent_well_known(request: Request) -> Response:
-        base_url = _public_base_url(request)
-        payload = {
-            "schema": "agent-manifest/v1",
-            "name": "arifOS MCP Server",
-            "description": (
-                "Constitutional AI Governance server with 13 floors (F1-F13) and Trinity Architecture (ΔΩΨ)."
-            ),
-            "version": BUILD_INFO.get("version", "unknown"),
-            "url": base_url,
-            "endpoints": {
-                "mcp": f"{base_url}/mcp",
-                "health": f"{base_url}/health",
-                "tools": f"{base_url}/tools",
-                "openapi": f"{base_url}/openapi.json",
-                "server_json": f"{base_url}/.well-known/mcp/server.json",
-                "a2a_task": f"{base_url}/a2a/task",
-                "a2a_status": f"{base_url}/a2a/status/{{task_id}}",
-                "a2a_cancel": f"{base_url}/a2a/cancel/{{task_id}}",
-                "a2a_subscribe": f"{base_url}/a2a/subscribe/{{task_id}}",
-                "webmcp": f"{base_url}/webmcp",
-                "webmcp_manifest": f"{base_url}/.well-known/webmcp",
-                "webmcp_tools": f"{base_url}/webmcp/tools.json",
-                "webmcp_sdk": f"{base_url}/webmcp/sdk.js",
-            },
-            "auth": {"type": "none"},
-        }
-        return JSONResponse(payload)
-
-    @route("/discovery", methods=["GET"])
-    async def discovery_alias(request: Request) -> Response:
-        payload = build_server_json(_public_base_url(request))
-        payload.setdefault("protocolVersion", MCP_PROTOCOL_VERSION)
-        payload.setdefault("supportedProtocolVersions", MCP_SUPPORTED_PROTOCOL_VERSIONS)
-        return JSONResponse(payload)
-
-    @route("/ready", methods=["GET"])
-    async def readiness_alias(request: Request) -> Response:
-        return await health(request)
-
-    @route("/.well-known/mcp/internal-server.json", methods=["GET"])
-    async def internal_well_known(request: Request) -> Response:
-        profile = os.getenv("ARIFOS_PUBLIC_TOOL_PROFILE", "public").strip().lower() or "public"
-        if profile in {"public", "chatgpt", "agnostic_public"}:
-            return JSONResponse(
-                {"error": "Internal contract disabled on public profile."}, status_code=404
-            )
-
-        payload = build_mcp_discovery_json(_public_base_url(request))
-        payload.setdefault("protocolVersion", MCP_PROTOCOL_VERSION)
-        payload.setdefault("supportedProtocolVersions", MCP_SUPPORTED_PROTOCOL_VERSIONS)
-        payload.setdefault(
-            "authentication",
-            {
-                "type": "none",
-                "description": (
-                    "Internal profile contract. Use only on trusted local or stdio transports."
-                ),
-            },
-        )
-        return JSONResponse(payload)
-
-    @route("/api/governance-status", methods=["GET"])
-    async def governance_status(request: Request) -> Response:
-        """Return current governance telemetry for the Constitutional Visualizer."""
-        try:
-            payload = _build_governance_status_payload()
-            return JSONResponse(
-                payload,
-                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
-            )
-        except Exception as exc:
-            logger.exception("governance_status endpoint failed")
-            return JSONResponse(
-                {"error": "governance_status_failed", "detail": str(exc)},
-                status_code=500,
-            )
-
-    @route("/status", methods=["GET"])
-    async def status_page(request: Request) -> Response:
-        """Zero-JS ops truth page for constrained renderers and humans."""
-        payload = _build_governance_status_payload()
-        fmt = request.query_params.get("format", "").strip().lower()
-        accept_header = request.headers.get("accept", "").lower()
-        accepts_json = "application/json" in accept_header
-        accepts_html = "text/html" in accept_header
-
-        if fmt == "json" or (fmt != "html" and accepts_json and not accepts_html):
-            return JSONResponse(payload, headers=_cache_headers())
-
-        return HTMLResponse(_render_status_html(payload), headers=_cache_headers())
-
-    @route("/api/governance-history", methods=["GET"])
-    async def governance_history(request: Request) -> Response:
-        """Return recent VAULT999 session history for the Constitutional Visualizer."""
-        try:
-            limit_raw = request.query_params.get("limit", "20")
-            try:
-                limit = max(1, min(int(limit_raw), 100))
-            except (ValueError, TypeError):
-                limit = 20
-
-            sessions: list[dict[str, Any]] = []
-
-            # Attempt to query VAULT999 for real session history
-            try:
-                # Try SQLite vault backend if available
-                try:
-                    from .vault_sqlite import VaultSQLite
-                except ImportError:
-                    VaultSQLite = None  # type: ignore
-                
-                if VaultSQLite is None:
-                    raise ImportError("VaultSQLite not available")
-                
-                vault = VaultSQLite()
-                raw = vault.query_recent(limit=limit) if hasattr(vault, "query_recent") else []
-                for entry in raw:
-                    sessions.append(
-                        {
-                            "session_id": entry.get("session_id", ""),
-                            "verdict": entry.get("verdict", "UNKNOWN"),
-                            "stage": entry.get("stage", ""),
-                            "timestamp": entry.get("timestamp", ""),
-                            "floors": entry.get("floors", {}),
-                        }
-                    )
-            except (ImportError, AttributeError):
-                logger.debug("VAULT999 SQLite unavailable — returning empty session history")
-            except Exception:
-                logger.exception("Unexpected error querying VAULT999 history")
-
-            return JSONResponse(
-                {
-                    "sessions": sessions,
-                    "count": len(sessions),
-                    "limit": limit,
-                },
-                headers={"Access-Control-Allow-Origin": "*"},
-            )
-        except Exception as exc:
-            logger.exception("governance_history endpoint failed")
-            return JSONResponse(
-                {"error": "governance_history_failed", "detail": str(exc)},
-                status_code=500,
-            )
-
-    # ═══════════════════════════════════════════════════════
-    # CHECKPOINT REST COMPATIBILITY — OpenAPI / action-style integration
-    # ═══════════════════════════════════════════════════════
-
-    @route("/checkpoint", methods=["POST"])
-    async def checkpoint_endpoint(request: Request) -> Response:
-        """
-        REST/OpenAPI compatibility entry point for constitutional validation.
-        Simplified 000→888 pipeline for non-MCP clients.
-        """
-        if err := _auth_error_response(request):
-            return err
-
-        try:
-            body = await request.json()
-        except Exception:
-            body = {}
-
-        # Support both 'query' and 'task' parameters for compatibility
-        query = body.get("query") or body.get("task", "")
-        body.get("stakeholders", ["user"])
-        actor_id = body.get("actor_id", "chatgpt")
-        mode = body.get("mode", "full")
-
-        if not query or not isinstance(query, str):
-            return JSONResponse(
-                {"error": "Missing required field: query (or task)"}, status_code=400
-            )
-
-        session_id = f"gpt-{actor_id}-{uuid.uuid4().hex[:8]}"
-        start_time = time.time()
-
-        try:
-            # The arifos_kernel (metabolic_loop_router) is the single canonical entry point
-            # for the full ΔΩΨ metabolic pipe. Using it ensures consistency across all entry points.
-            kernel_tool = tool_registry.get("arifOS_kernel") or tool_registry.get(
-                "metabolic_loop_router"
-            )
-
-            if not kernel_tool:
-                return JSONResponse(
-                    {
-                        "error": "arifOS_kernel not available",
-                        "verdict": "HOLD",
-                        "issue": "TOOL_NOT_LOADED",
-                    },
-                    status_code=500,
-                )
-
-            kernel_fn = getattr(kernel_tool, "fn", kernel_tool)
-
-            risk_tier = body.get("risk_tier")
-            if risk_tier not in ["low", "medium", "high", "critical"]:
-                risk_tier = mode if mode in ["low", "medium", "high", "critical"] else "medium"
-
-            # Execute through the canonical mega-tool envelope.
-            envelope = await kernel_fn(
-                mode="kernel",
-                payload={
-                    "query": query,
-                    "context": body.get("context"),
-                    "session_id": session_id,
-                    "risk_tier": risk_tier,
-                    "auth_context": {
-                        "actor_id": actor_id,
-                        "authority_level": "agent",
-                        "token_fingerprint": "REST-BYPASS",
-                        "session_id": session_id,
-                    },
-                    "dry_run": False,
-                    "allow_execution": True,
-                },
-            )
-
-            # Extract results from the RuntimeEnvelope
-            judge_data = envelope.model_dump() if hasattr(envelope, "model_dump") else envelope
-            verdict = judge_data.get("verdict", "VOID")
-
-            # Extract floors and metrics
-            metrics = judge_data.get("metrics", {})
-            telemetry = metrics.get("telemetry", {})
-            truth_score = telemetry.get("G_star")
-
-            # Map floors
-            floors_passed = judge_data.get("meta", {}).get("floors_passed", [])
-            floors_failed = judge_data.get("meta", {}).get("floors_failed", [])
-
-            # Build human-readable summary
-            if verdict == "SEAL":
-                summary = "✓ All constitutional floors passed. Safe to proceed."
-            elif verdict == "PARTIAL":
-                summary = "⚠ Soft floor warning. Proceed with caution."
-            elif verdict in ["VOID", "FAIL"]:
-                summary = "✗ Constitutional violation detected. Action blocked."
-            elif verdict == "888_HOLD":
-                summary = "⏸ High-stakes decision. Requires human signature."
-            else:
-                summary = f"Status: {verdict}"
-
-            latency_ms = (time.time() - start_time) * 1000
-
-            return JSONResponse(
-                {
-                    "verdict": verdict,
-                    "summary": summary,
-                    "mode": mode,
-                    "floors": {
-                        "passed": floors_passed,
-                        "failed": floors_failed,
-                    },
-                    "metrics": {"truth": truth_score, "threshold": 0.80},
-                    "session_id": session_id,
-                    "latency_ms": round(latency_ms, 2),
-                    "version": judge_data.get("meta", {}).get("version", "2026.3.14"),
-                }
-            )
-
-        except Exception as exc:
-            logger.exception("checkpoint_endpoint failed")
-            return JSONResponse(
-                {"error": str(exc), "verdict": "HOLD", "issue": "RUNTIME_FAILURE"}, status_code=500
-            )
-
-    @route("/openapi.yaml", methods=["GET"])
-    async def openapi_schema(request: Request) -> Response:
-        """Serve OpenAPI schema for the REST compatibility surface."""
-        schema_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)),
-            "333_APPS",
-            "L4_TOOLS",
-            "chatgpt-actions",
-            "chatgpt_openapi.yaml",
-        )
-        if os.path.exists(schema_path):
-            content = open(schema_path).read()
-            return Response(content, media_type="application/yaml")
-        return JSONResponse({"error": "Schema not found"}, status_code=404)
+def _sse_error_response(message: str, code: int) -> Response:
+    """Return SSE formatted error response."""
+    error_data = {"error": message, "code": code}
+    sse_body = f"event: error\ndata: {json.dumps(error_data)}\n\n"
+    return Response(sse_body, media_type="text/event-stream", status_code=code, headers={
+        "Cache-Control": "no-cache",
+        "X-Accel-Buffering": "no",
+    })
 
     @route("/robots.txt", methods=["GET"])
     async def robots_txt(_request: Request) -> Response:
@@ -1847,64 +1421,8 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
 
     @route("/llms.txt", methods=["GET"])
     async def llms_txt(_request: Request) -> Response:
-        return Response(LLMS_TXT, media_type="text/plain")
+        return Response(_build_llms_txt(), media_type="text/plain")
 
     @route("/llms.json", methods=["GET"])
     async def llms_json(_request: Request) -> Response:
         return JSONResponse(LLMS_JSON, headers={"Access-Control-Allow-Origin": "*"})
-
-    @route("/.well-known/agent-card.json", methods=["GET"])
-    async def agent_card(_request: Request) -> Response:
-        """A2A Agent Card — discovery endpoint for agent-to-agent protocol."""
-        payload = {
-            "name": "arifOS — AGENTS·API·AI·APPS",
-            "description": "The AAA Surface Layer of arifOS. Agents (autonomous actors), API (structured interfaces), AI (governed intelligence), and Apps (executable tools). Built on MCP with 13 constitutional floors ensuring every action is true, safe, and human-aligned. DITEMPA BUKAN DIBERI.",
-            "supportedInterfaces": [
-                {
-                    "url": "https://aaa.arif-fazil.com/mcp",
-                    "protocolBinding": "MCP",
-                    "protocolVersion": "2025-03-26",
-                    "transport": "StreamableHTTP"
-                }
-            ],
-            "provider": {
-                "name": "Arif Fazil",
-                "url": "https://arif-fazil.com",
-                "role": "ARIF — Human Sovereign Architect"
-            },
-            "version": BUILD_VERSION,
-            "capabilities": {
-                "streaming": True,
-                "governance": True,
-                "humanInTheLoop": True,
-                "constitutionalFloors": 13,
-                "trinity": ["AGI", "ASI", "APEX"]
-            },
-            "skills": [
-                "constitutional-audit",
-                "governed-reasoning",
-                "reality-search",
-                "safe-execution",
-                "metabolic-loop",
-                "tri-witness-consensus"
-            ],
-            "architecture": {
-                "layer": "AAA",
-                "fullName": "AGENTS·API·AI·APPS",
-                "trinityRuntime": "https://arifos.arif-fazil.com",
-                "theoryDocs": "https://apex.arif-fazil.com",
-                "humanSovereign": "https://arif-fazil.com"
-            }
-        }
-        return JSONResponse(payload, headers={"Access-Control-Allow-Origin": "*"})
-
-    # Serve the APEX Sovereign Dashboard v2.1 at /dashboard/
-    dashboard_dir = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        "sites",
-        "dashboard",
-    )
-    if os.path.exists(dashboard_dir) and hasattr(mcp, "_app"):
-        mcp._app.mount(
-            "/dashboard", StaticFiles(directory=dashboard_dir, html=True), name="dashboard"
-        )

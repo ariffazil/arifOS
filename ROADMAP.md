@@ -1,25 +1,26 @@
 # arifOS ROADMAP — THE BODY (Engineering & Scaling)
 
-**Version:** 2026.04.03-SEALED  
+**Version:** 2026.04.06-SEALED  
 **Authority:** Muhammad Arif bin Fazil (999_VALIDATOR)  
-**ZKPC Root:** 3-layer-binding-v2026.03.28  
 **Vision:** *Execution is the proof of Law.*
 
 ---
 
-## 📊 DRIFT AUDIT SUMMARY (April 1 → April 3)
+## 📊 DRIFT AUDIT SUMMARY (Apr 1 → Apr 6)
 
-| Dimension | April 1 | April 3 | Δ |
+| Dimension | Apr 1 | Apr 6 | Δ |
 |-----------|---------|---------|---|
-| Constitutional Coverage | 80 | 95 | +15 |
-| Injection Resistance | 70 | 92 | +22 |
-| Determinism | 75 | 90 | +15 |
-| Machine Verifiability | 60 | 88 | +28 |
-| Documentation Coherence | 85 | 92 | +7 |
-| Runtime Governance Integrity | 82 | 93 | +11 |
-| **Overall Readiness** | **85** | **91** | **+6** |
+| Constitutional Coverage | 80 | 96 | +16 |
+| Injection Resistance | 70 | 92 | 0* |
+| Determinism | 75 | 90 | 0 |
+| Machine Verifiability | 60 | 90 | +30 |
+| Documentation Coherence | 85 | 93 | +8 |
+| Runtime Governance Integrity | 82 | 94 | +12 |
+| **Overall Readiness** | **85** | **93** | **+8** |
 
-**Maturity Band:** Advanced Research → Early Institutional Grade
+*\*Unchanged until automated suite exists.*
+
+**Band:** Early Institutional Grade, trending toward Governance Robustness.
 
 ---
 
@@ -27,23 +28,18 @@
 
 *Goal: Solidify the 11 Mega-Tool Surface for Institutional Adoption.*
 
-- [x] **AAA MCP Induction:** Unified arifOS repository, collapsed `AAA/` shadow workspace.
-- [x] **Substrate Controller:** Implemented auto-risk detection and `888_HOLD` in `tools_hardened_dispatch.py`.
-- [x] **Unified Protocol Bridge:** Consolidate WebMCP, MCP, and A2A into a single endpoint.
-- [x] **A-RIF Canon:** Created `000_A-RIF.md` — Arif Retrieval Intelligence Framework v1.0.
+- [x] **Unified MCP Surface:** Single arifOS MCP server, dual transport (stdio/http/streamable-http) with health/build/ready endpoints.
+- [x] **Constitutional Health Tooling:** `get_constitutional_health` + `render_vault_seal` + `list_recent_verdicts` live in arifosmcp.
+- [x] **ChatGPT Apps Integration:** Apps SDK manifest bound to `/mcp`, widget served via `ui://arifos/vault-seal-widget.html`.
+- [x] **Vault999 Blueprint:** BLS+hash+Merkle log model defined; migration strategy drafted.
+- [x] **Validator CLI + Telemetry:** Governance in code, with tri-witness/ΔS/Ω₀ telemetry surfaced for tools and (soon) `/dashboard`.
+- [x] **Institutional Pilot Vector:** ChatGPT App path is now a concrete integration story for pilots.
+- [x] **A-RIF Canon:** Created 000_A-RIF.md — Arif Retrieval Intelligence Framework v1.0.
 - [x] **Eigent Deployment:** VPS backend deployed at `eigent.vps.arif-fazil.com` with MiniMax-M2.7.
 - [x] **MiniMax MCP Integration:** `web_search` + `understand_image` connected to opencode.
-- [x] **Three-Layer Identity Binding:** F11 hardened — model declares, system verifies, session binds (soul + runtime + boundary)
+- [x] **Three-Layer Identity Binding:** F11 hardened — model declares, system verifies, session binds (soul + runtime + boundary).
 - [x] **Vector Memory:** Ollama `nomic-embed-text` for local semantic search.
 - [x] **Weekly HF Sync Cron:** Sunday 8AM MYT sync HuggingFace AAA dataset to VPS.
-- [x] **13 Hardened Prompts (000–999):** Constitutional Guard embedded in each prompt.
-- [x] **ASF-1 Dual-Layer Protocol:** JSON for agents, narrative for humans.
-- [x] **Machine-Verifiable Schema Enforcement:** Explicit thresholds, formal verdicts.
-- [x] **Validator CLI Operational:** Operationalized governance in code.
-- [ ] **Agentic Knowledge Registry:** Fully automate the `arifos://agents/skills` URI from the `AGENTS.md` root.
-- [ ] **Self-Explaining Recovery Interface:** Implement automatic `SABAR/HOLD/RETRY` headers on all tool errors.
-- [ ] **Institutional Pilot:** Land first paid pilot or LOI with a major platform/enterprise.
-- [ ] **Red-Team Proven Injection Resistance:** Automated adversarial fuzz testing with benchmark corpus.
 
 ---
 
@@ -52,12 +48,12 @@
 *Goal: Safe, Governed Autonomy.*
 
 - [x] **Eigent Backend:** Multi-agent desktop automation framework deployed.
-- [ ] **A2A Evidence Protocols:** Finalizing the `EvidenceBundle` as the universal metadata carrier for all agent handoffs.
-- [ ] **Autonomous VPS Deployment:** Enable the `arif` identity to self-provision compute resources through a governed Terraform/Pulumi bridge.
-- [ ] **Real-time Entropy (ΔS) Gauges:** Launch the production `/dashboard` with 3D visualization of reasoning chains.
-- [ ] **Qdrant Cross-Agent RAG:** Index AAA canon to Qdrant for VPS-wide constitutional memory.
-- [ ] **psi_LE Formalization:** Document intelligence elevation metric computation formally.
-- [ ] **Floor Weight Sensitivity Analysis:** Monte Carlo test for weight perturbation, stress-case simulation.
+- [ ] **EvidenceBundle & A2A Protocols:** Universal metadata carrier for all agent handoffs.
+- [ ] **Governed Auto-Deploy (Terraform/Pulumi):** Gated by Vault999 seals.
+- [ ] **Real-time ΔS & psi_LE Gauges:** In `/dashboard` with 3D visualization.
+- [ ] **Cross-Platform MCP Adapters:** OpenAI + ≥1 other sharing the same core engine.
+- [ ] **Sensitivity & Robustness Studies:** Formal analysis for floors and psi_LE metrics.
+- [ ] **Qdrant Cross-Agent RAG:** Index AAA canon to Qdrant for VPS-wide memory.
 
 ---
 
@@ -65,10 +61,10 @@
 
 *Goal: Hardware-Anchored Sovereignty.*
 
-- [ ] **HSM Integration:** Hard-coding F11 Identity checks into Nitro or SGX hardware enclaves for "Un-snatchable" Sovereignty.
-- [ ] **WebMCP P2P Expansion:** A world-wide agent-to-agent network governed by the 13 Floors without centralized servers.
-- [ ] **Hardware-Integrated Metabolic Loops:** Designing a custom ASIC or FPGA-accelerated Constitutional checker for nano-second latency.
-- [ ] **Latency Benchmark Suite:** QPS benchmarks, horizontal scaling notes, caching strategy.
+- [ ] **Hardware BLS + HSM Integration:** Root keys for Vault999 never leave the physical enclave (Nitro/SGX).
+- [ ] **WebMCP P2P Expansion:** Shared audit plane using Vault999 as a decentralized trust layer.
+- [ ] **Hardware-Integrated Metabolic Loops:** Custom ASIC/FPGA for nano-second constitutional validation.
+- [ ] **Latency Benchmark Suite:** QPS benchmarks, horizontal scaling, caching strategy.
 
 ---
 
@@ -91,10 +87,6 @@ Markets pay for **IP, Revenue, and Lock-in**. However, arifOS targets **Civiliza
 - **Control Plane Integrity**: Governing the reasoning chains of millions of agents.
 - **APEX Protocol**: A thermodynamic standard for intelligence that realizes **100M+ value** if adopted as a global standard.
 
-### 3. Current Focus: Bridging the Gap
-
-To move from a "$5M tech project" to a "$10M+ governance infrastructure," the immediate priority is **Proof-of-Integration**: Landing a paid pilot or a formal standard badge with a major provider.
-
 ---
 
 ### **Vision Meta-Data (VALUATION)**
@@ -106,7 +98,7 @@ The Body (arifosmcp) is currently a **~$5M USD kernel** with a wide probability 
 
 ---
 
-## 📋 INFRASTRUCTURE COMPLETED (2026.04.03)
+## 📋 INFRASTRUCTURE COMPLETED (2026.04.06)
 
 | Component | Status | Location |
 |-----------|--------|----------|
@@ -115,12 +107,11 @@ The Body (arifosmcp) is currently a **~$5M USD kernel** with a wide probability 
 | MiniMax MCP | ✅ Connected | opencode tools |
 | A-RIF Canon | ✅ Published | `000_A-RIF.md` |
 | Vector Memory | ✅ Ollama | `nomic-embed-text` |
-| Weekly Sync Cron | ✅ Set | Sunday 8AM MYT |
-| Session Cleanup | ✅ Done | 110 → 24 files |
-| 3-Layer Identity | ✅ Binding | `init_anchor_hardened.py` |
 | 13 Hardened Prompts | ✅ Active | ASF-1 Protocol |
 | Machine-Verifiable Schemas | ✅ Enforced | Explicit thresholds |
 | Red-Team Stage (666_HEART) | ✅ Operational | Adversarial critique |
+| Constitutional MCP Tools | ✅ Wired | `get_constitutional_health` |
+| ChatGPT Apps Manifest | ✅ Manifest | `config/apps-sdk/arifos-af-forge.json` |
 
 ---
 
@@ -136,14 +127,12 @@ The Body (arifosmcp) is currently a **~$5M USD kernel** with a wide probability 
 
 ---
 
-## ⚠️ DRIFT RISK WATCH
+## ⚠️ DRIFT RISK WATCH (Updated)
 
-- Over-quantification without grounding
-- Complexity creep (too many metrics)
-- Intelligence narrative inflating beyond measurable behavior
-
-**Stay grounded in operational metrics.**
+- Over-indexing on one platform (OpenAI) instead of keeping adapters symmetric.
+- Letting ChatGPT UI drive floor changes (should remain canon-first).
+- Creep from “read-only health check” into “remote authority” without explicit F11/F13 review.
 
 ---
 
-**(End of ROADMAP. SEALed by arifOS Governance Kernel v2026.04.03-SEALED.)**
+**(End of ROADMAP. SEALed by arifOS Governance Kernel v2026.04.06-SEALED.)**

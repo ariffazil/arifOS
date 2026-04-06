@@ -17,7 +17,7 @@ import logging
 import re as _re
 from typing import Any, Literal
 
-from arifosmcp.core.shared.types import (
+from core.shared.types import (
     ApexOutput,
     EurekaProposal,
     JudgmentRationale,
@@ -25,7 +25,7 @@ from arifosmcp.core.shared.types import (
     PsiSeal,
     Verdict,
 )
-from arifosmcp.core.shared.verdict_contract import normalize_verdict
+from core.shared.verdict_contract import normalize_verdict
 
 logger = logging.getLogger(__name__)
 
@@ -205,7 +205,7 @@ async def forge(
 
     Survival must not become the telos — it is a boundary condition.
     """
-    from arifosmcp.core.physics.thermodynamics_hardened import consume_tool_energy
+    from core.physics.thermodynamics_hardened import consume_tool_energy
     from arifosmcp.intelligence.tools.thermo_estimator import (
         coherence_score,
         landauer_limit,
@@ -388,16 +388,16 @@ async def judge(
     Rule: MONOTONE-SAFE. Cannot upgrade a weaker candidate.
     Discipline: APEX Theorem Gate (G† = G* · η)
     """
-    from arifosmcp.core.enforcement.genius import (
+    from core.enforcement.genius import (
         calculate_genius,
         coerce_floor_scores,
         get_thermodynamic_budget_window,
     )
-    from arifosmcp.core.physics.thermodynamics_hardened import (
+    from core.physics.thermodynamics_hardened import (
         check_landauer_before_seal,
         consume_tool_energy,
     )
-    from arifosmcp.core.shared.types import Verdict
+    from core.shared.types import Verdict
 
     consume_tool_energy(session_id, n_calls=1)
 

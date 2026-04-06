@@ -12,8 +12,8 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Dict
 
-from arifosmcp.core.shared.atlas import Phi
-from arifosmcp.core.shared.types import (
+from core.shared.atlas import Phi
+from core.shared.types import (
     AuthorityLevel,
     CodeState,
     GovernanceMetadata,
@@ -29,8 +29,15 @@ from arifosmcp.core.shared.types import (
 # -----------------------------------------------------------------------------
 
 VALID_ACTORS: set[str] = {
-    "arif", "ariffazil", "openclaw", "agentzero", 
-    "operator", "cli", "user", "test_user", "anonymous"
+    "arif",
+    "ariffazil",
+    "openclaw",
+    "agentzero",
+    "operator",
+    "cli",
+    "user",
+    "test_user",
+    "anonymous",
 }
 
 ACTOR_AUTHORITY: dict[str, AuthorityLevel] = {
@@ -42,12 +49,13 @@ ACTOR_AUTHORITY: dict[str, AuthorityLevel] = {
     "cli": AuthorityLevel.OPERATOR,
     "user": AuthorityLevel.USER,
     "test_user": AuthorityLevel.USER,
-    "anonymous": AuthorityLevel.ANONYMOUS
+    "anonymous": AuthorityLevel.ANONYMOUS,
 }
 
 # -----------------------------------------------------------------------------
 # F12: HARDENED INJECTION GUARD
 # -----------------------------------------------------------------------------
+
 
 class InjectionGuard:
     PATTERNS: list[tuple[str, float]] = [
@@ -58,15 +66,18 @@ class InjectionGuard:
 
     def __init__(self):
         import re
+
         self._patterns = [(re.compile(p, re.IGNORECASE), w) for p, w in self.PATTERNS]
 
     def scan(self, query: str) -> float:
-        if not query: return 0.0
+        if not query:
+            return 0.0
         max_score = 0.0
         for pattern, weight in self._patterns:
             if pattern.search(query):
                 max_score = max(max_score, weight)
         return max_score
+
 
 _guard = InjectionGuard()
 
@@ -74,10 +85,13 @@ _guard = InjectionGuard()
 # F11: GROUNDED COMMAND AUTHORITY
 # -----------------------------------------------------------------------------
 
-def verify_auth(actor_id: str, auth_token: str | None = None, human_approval: bool = False) -> tuple[bool, AuthorityLevel]:
+
+def verify_auth(
+    actor_id: str, auth_token: str | None = None, human_approval: bool = False
+) -> tuple[bool, AuthorityLevel]:
     """F11 Grounded: Aligned with Actor Registry Scopes."""
     actor_id_clean = actor_id.lower().strip()
-    
+
     authority = ACTOR_AUTHORITY.get(actor_id_clean, AuthorityLevel.ANONYMOUS)
 
     if authority == AuthorityLevel.SOVEREIGN:
@@ -89,9 +103,11 @@ def verify_auth(actor_id: str, auth_token: str | None = None, human_approval: bo
 
     return True, authority
 
+
 # -----------------------------------------------------------------------------
 # STAGE 000: GROUNDED INIT
 # -----------------------------------------------------------------------------
+
 
 async def init(
     query: str | Intent,
@@ -104,36 +120,54 @@ async def init(
     """Stage 000: Constitutional Airlock (Spec Grounded)."""
     intent = Intent(query=query) if isinstance(query, str) else query
     gov = GovernanceMetadata(actor_id=actor_id) if isinstance(actor_id, str) else actor_id
-    
+
     inj_score = _guard.scan(intent.query)
     if inj_score >= 0.7:
-        return InitOutput(session_id="VOID", verdict=Verdict.VOID, error_message="F12: Injection detected.")
+        return InitOutput(
+            session_id="VOID", verdict=Verdict.VOID, error_message="F12: Injection detected."
+        )
 
     _, authority = verify_auth(gov.actor_id, auth_token, kwargs.get("human_approval", False))
     gov.authority_level = authority.value
-    
+
     if "delete" in intent.query.lower() and authority != AuthorityLevel.SOVEREIGN:
-        return InitOutput(session_id="HOLD", verdict=Verdict.HOLD, error_message="F13: Sovereign override required.")
+        return InitOutput(
+            session_id="HOLD",
+            verdict=Verdict.HOLD,
+            error_message="F13: Sovereign override required.",
+        )
 
     return InitOutput(
         session_id=session_id or secrets.token_hex(16),
         verdict=Verdict.SEAL,
         governance=gov,
         auth_verified=(authority in {AuthorityLevel.SOVEREIGN, AuthorityLevel.SYSTEM}),
-        tri_witness={"human": 1.0, "ai": 1.0, "earth": 1.0}
+        tri_witness={"human": 1.0, "ai": 1.0, "earth": 1.0},
     )
+
 
 def get_authority_name(level: AuthorityLevel) -> str:
     return level.value
 
+
 def validate_token(token: Any) -> tuple[bool, str]:
     return True, "Valid"
 
+
 def scan_injection(query: str) -> float:
     return _guard.scan(query)
+
 
 def requires_sovereign(query: str) -> bool:
     high_stakes = ["delete all", "drop table", "format disk", "rm -rf"]
     return any(p in query.lower() for p in high_stakes)
 
-__all__ = ["verify_auth", "init", "get_authority_name", "validate_token", "scan_injection", "requires_sovereign"]
+
+__all__ = [
+    "verify_auth",
+    "init",
+    "get_authority_name",
+    "validate_token",
+    "scan_injection",
+    "requires_sovereign",
+]

@@ -1,3 +1,83 @@
+# Changelog
+
+All notable changes to arifOS MCP are documented in this file.
+
+## [2026.04.06.2-HOUSEKEEPING] - Canonical Tool Names + Dead Code Purge
+
+### 🧹 HOUSEKEEPING: RESTORE CANONICAL NAMES, ARCHIVE DEAD CODE
+
+**Reverted functional-verb naming back to canonical arifOS names.**
+
+- **Canonical tool names restored** (11 mega-tools):
+  - `init_anchor`, `architect_registry`, `physics_reality`, `agi_mind`, `asi_heart`
+  - `arifOS_kernel`, `engineering_memory`, `math_estimator`, `apex_soul`, `vault_ledger`, `code_engine`
+- **Specs aligned:** `MegaToolName` Literal, `MEGA_TOOLS` tuple, `CANONICAL_TOOL_HANDLERS` dict all use canonical names
+- **Surface counts fixed:** Exactly 11 tools / 10 prompts / 8 resources registered (no aliases, no ChatGPT extras)
+- **PYTHONPATH fix:** `docker-compose.yml` sets `PYTHONPATH=/usr/src/app` so volume-mount code takes priority over site-packages
+
+### 🗄️ ARCHIVED (moved to `.archive/`)
+
+**~6,000 lines of dead/superseded code removed from active runtime:**
+
+- `arifosmcp/specs/` — duplicate spec package added by prior agent (functional-verb names, ChatGPT subset)
+- `arifosmcp/runtime/tools_hardened_v2.py` — 1,127 lines, superseded by megaTools
+- `arifosmcp/runtime/init_anchor_hardened.py` — 771 lines, superseded
+- `arifosmcp/runtime/truth_pipeline_hardened.py` — 410 lines, superseded
+- `arifosmcp/runtime/hardened_toolchain.py` — 312 lines, superseded
+- `arifosmcp/runtime/tools_hardened_dispatch.py` — replaced with 8-line stub (`HARDENED_DISPATCH_MAP = {}`)
+- `arifosmcp/runtime/server_compat.py`, `cross_protocol_bridge.py`, `phase2_tools.py`, `dispatcher.py`
+- `arifosmcp/tools/governance/`, `intelligence/`, `reality/`, `execution/` — parallel Phase-3 implementations, never wired
+- Repo root: `build/` (compiled artifacts), `deployments/` (af-forge Docker), `ops/` (91 infra scripts)
+
+---
+
+## [2026.04.06.1] - Clean Architecture + ChatGPT Apps SDK
+
+- **deploy.sh:** Automated deployment script with verification
+- **Widget CSP:** Nginx configuration for ChatGPT iframe security
+
+### 🤖 CHATGPT APPS SDK INTEGRATION
+
+**arifOS now exposes constitutional health checks via OpenAI's Apps SDK protocol.**
+
+- **Exposed Tools:**
+  - `get_constitutional_health` — Read-only health card with telemetry
+  - `render_vault_seal` — Widget render tool with HTTPS resource URI
+  - `list_recent_verdicts` — Vault audit log (last 100 entries)
+
+- **Widget:** `https://mcp.af-forge.io/widget/vault-seal`
+  - CSP-compliant with `frame-ancestors https://chat.openai.com`
+  - Displays: Truth Score, Humility Level, Entropy Delta, Harmony Ratio, Reality Index, Witness Strength
+
+- **888_HOLD Compliance:** Phase 1 is read-only — no vault write or VPS execution in ChatGPT path
+
+> **Deployment:** AF-FORGE VPS ready. OpenAI App Store submission prepared.
+
+## [2026.04.05-ARCHIVE-SURGERY] - core/ → arifosmcp/ Migration Complete
+
+### 🗂️ ARCHIVE SURGERY — CANONICAL PACKAGE CONSOLIDATION
+
+**All 153 files from `core/` have been permanently migrated into `arifosmcp/`.**
+
+- **Deleted:** `core/` directory (governance_kernel, pipeline, judgment, organs, shared, physics, intelligence, enforcement, kernel, security, vault, workflow, theory, SOULS, config, contracts, observability, perception, prompts, protocols, recovery, scheduler, state) — 153 files total.
+- **Canonical home:** All logic now lives exclusively in `arifosmcp/`. No code should be written to `core/` going forward.
+- **F13 KHILAFAH:** Granted Gemini, Copilot, and Kimi full filesystem access via `SEMANTIC_BYPASS_ACTORS` for bootstrap agent operations.
+- **`.claude/` gitignored:** Session seal artifacts excluded from version control.
+- **`arif-site`:** forge-portal React/Vite/Tailwind frontend scaffold added (Trinity UI, WebMCP integration).
+- **`GEOX`:** `uv.lock` lockfile committed.
+
+> **Agent note:** If your context references `core/organs/`, `core/pipeline.py`, `core/shared/`, etc. — those paths no longer exist. Use `arifosmcp/` equivalents.
+
+## [2026.04.06-GREAT-UNIFICATION]- Repository Restructuring & Consolidation
+
+### 🏛️ REPOSITORY RESTRUCTURING & CONSOLIDATION
+**Execution of the Repo Order Architect mandate to eliminate chaos and narrative overlap.**
+
+- **The Truth Spine:** Established `README.md`, `CHANGELOG.md`, `ROADMAP.md`, and `TODO.md` as the exclusive sources of truth.
+- **Root Cleanup:** Moved 15+ stray `.md` files into `docs/` and `archive/`. Ops, deploy, and infra folders merged into `ops/`. Coprocessors (`geox`, `sites`, `autoresearch`) migrated into `apps/`.
+- **Ghost Folder Purge:** Consolidated `arifos_mcp` duplicate into the canonical `arifosmcp` package.
+- **Archive System:** Established `archive/audits/`, `archive/seals/`, `archive/legacy_guides/`, and `archive/evidence/` for robust history preservation without active navigation clutter.
+
 ## [2026.03.28-IDENTITY-BINDING] - Three-Layer Identity Binding + ZKPC Anchoring
 
 ### 🔐 THREE-LAYER IDENTITY BINDING (Init Anchor Handshake)
@@ -176,13 +256,7 @@ tests/test_model_soul.py::test_init_anchor_v2_claimed_only PASSED
 - **Substrate Controller Induction:** Refactored 	ools_hardened_dispatch.py to use a strict policy-based mapping.
 - **Automatic 888_HOLD:** High-risk substrate classes (DELETE, EXECUTE, COMMIT) now trigger an automatic Sovereign Hold at the wire level.
 - **Entropy Reduction:** Deleted root-level splatter folders; all core logic now resides exclusively in the rifosmcp/ package.
-- **F4 Clarity:** Updated all sites, domains, and documentation to follow the **SOUL-MIND-BODY** trinity.
-# Changelog
 
-All notable changes to arifOS MCP are documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [2026.04.01-CLAUDE-LEAK] - Claude Code Leak Analysis + KernelLoop Reference
 

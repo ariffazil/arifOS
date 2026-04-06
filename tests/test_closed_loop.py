@@ -31,7 +31,7 @@ def test_reality_bridge():
 
 def test_execution_validator():
     """Test Execution Validator with hash verification."""
-    from arifosmcp.core.execution_validator import validate
+    from core.execution_validator import validate
     
     result = validate(
         expected={"success": True, "stdout": "hello", "verification_hash": "abc"},
@@ -49,7 +49,7 @@ def test_execution_validator():
 
 def test_execution_validator_hash_match():
     """Test hash verification when content matches."""
-    from arifosmcp.core.execution_validator import ExecutionValidator
+    from core.execution_validator import ExecutionValidator
     
     validator = ExecutionValidator("test")
     
@@ -93,7 +93,7 @@ def test_skills_registry():
 
 async def test_skill_execution():
     """Test skill execution through bridge."""
-    from arifosmcp.core.skill_bridge import execute_skill
+    from core.skill_bridge import execute_skill
     
     result = await execute_skill(
         skill_name="vps-docker",

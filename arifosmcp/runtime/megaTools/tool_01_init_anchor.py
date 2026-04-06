@@ -110,7 +110,7 @@ async def init_anchor(
             ok = res.get("ok")
             if ok is None:
                 ok = res.get("status") not in ("HOLD", "ERROR", "VOID", None)
-            
+
             _next_tools = res.get("allowed_next_tools") or res.get("next_allowed_tools")
             if not _next_tools:
                 _next_tools = [
@@ -119,9 +119,9 @@ async def init_anchor(
                     "check_vital",
                     "init_anchor",
                 ]
-            
+
             _payload = res.get("payload", res) if isinstance(res.get("payload"), dict) else res
-            
+
             # ─── V2 FLATTENING (Always return flat result for success) ───
             if ok:
                 identity = _payload.get("identity") or {}
@@ -159,7 +159,7 @@ async def init_anchor(
                     "guidance": _payload.get("guidance"),
                     "message": _payload.get("message"),
                 }
-                
+
                 # The final payload for the RuntimeEnvelope
                 _final_payload = {
                     "ok": True,

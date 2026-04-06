@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 from arifosmcp.intelligence.embeddings import embed
-from arifosmcp.core.shared.types import MemoryResultItem, VaultOutput, VectorMemoryResult, Verdict
+from core.shared.types import MemoryResultItem, VaultOutput, VectorMemoryResult, Verdict
 
 logger = logging.getLogger(__name__)
 SESSION_MEMORY_COLLECTION = os.getenv("ARIFOS_SESSION_MEMORY_COLLECTION", "arifos_session_memory")

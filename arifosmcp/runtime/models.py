@@ -9,7 +9,7 @@ from arifosmcp.runtime.fastmcp_version import AuthorizationError
 from fastmcp.exceptions import FastMCPError, ToolError
 from pydantic import BaseModel, ConfigDict, Field
 
-from core.shared.types import AuthorityLevel, Verdict
+from core.shared.types import AuthorityLevel, Verdict, VerdictScope
 
 
 class DeltaOmegaPsi(BaseModel):
@@ -807,7 +807,10 @@ class RuntimeEnvelope(BaseModel):
     verdict_detail: VerdictDetail | None = Field(
         default=None, description="Structured v1.0 details."
     )
-    status: RuntimeStatus = RuntimeStatus.SUCCESS
+    verdict_scope: VerdictScope | None = Field(
+        default=None,
+        description="F2 constitutional verdict scope tag. Routing/domain/session/dry_run/cannot_compute."
+    )
     machine_status: MachineState = MachineState.READY
     machine_issue: MachineIssueLabel | None = None
     intelligence_stage: IntelligenceStage | None = None
@@ -851,6 +854,34 @@ class RuntimeEnvelope(BaseModel):
         description="Optional governed quote layer selected by APEX-G.",
     )
     debug: dict[str, Any] | None = None
+    contract_version: str | None = Field(
+        default=None,
+        description="Cross-tool continuity contract version.",
+    )
+    operator_summary: dict[str, Any] | None = Field(
+        default=None,
+        description="Compact operator-facing truth summary.",
+    )
+    state: dict[str, Any] | None = Field(
+        default=None,
+        description="Canonical continuity state shared across tools.",
+    )
+    state_origin: dict[str, Any] | None = Field(
+        default=None,
+        description="Origin metadata for the canonical continuity state.",
+    )
+    transitions: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="Explicit state transitions since the prior tool call.",
+    )
+    handoff: dict[str, Any] | None = Field(
+        default=None,
+        description="Formal handoff contract for downstream tools.",
+    )
+    diagnostics: dict[str, Any] | None = Field(
+        default=None,
+        description="Tagged diagnostics for hard guardrails, advisory signals, and symbolic metrics.",
+    )
     model_config = ConfigDict(extra="allow")
 
     def __getitem__(self, item: str) -> Any:

@@ -16,8 +16,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Literal
 
-from arifosmcp.core.shared.atlas import Phi
-from arifosmcp.core.shared.types import (
+from core.shared.atlas import Phi
+from core.shared.types import (
     AgiMetrics,
     AgiOutput,
     DeltaBundle,
@@ -27,7 +27,7 @@ from arifosmcp.core.shared.types import (
     ReasonMindAnswer,
     ReasonMindStep,
 )
-from arifosmcp.core.shared.verdict_contract import normalize_verdict
+from core.shared.verdict_contract import normalize_verdict
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +87,7 @@ async def agi(
     gpv = Phi(query)
 
     # 2. Initialize Physics/Thermodynamics
-    from arifosmcp.core.physics.thermodynamics_hardened import (
+    from core.physics.thermodynamics_hardened import (
         consume_reason_energy,
         record_entropy_io,
         shannon_entropy,
@@ -112,7 +112,7 @@ async def agi(
     phase_usage = {}
     actual_total = 0
 
-    from arifosmcp.core.organs._0_init import scan_injection as _f12
+    from core.organs._0_init import scan_injection as _f12
 
     def _f12_scrub(text: str, phase: str) -> str:
         """F12: scan Ollama output before injecting into next phase prompt."""
@@ -246,7 +246,7 @@ async def agi(
         ds = -0.2
 
     # 7. Real Intelligence (3E) Judgment
-    from arifosmcp.core.judgment import judge_cognition
+    from core.judgment import judge_cognition
 
     cognition = judge_cognition(
         query=query,
@@ -327,7 +327,7 @@ def _compute_entropy(text: str) -> float:
     if not text:
         return 1.0
     try:
-        from arifosmcp.core.shared.physics import shannon_entropy
+        from core.shared.physics import shannon_entropy
 
         return shannon_entropy(text)
     except Exception:
@@ -337,7 +337,7 @@ def _compute_entropy(text: str) -> float:
 def _delta_s(before: str, after: str) -> float:
     """Compute delta_S between two texts."""
     try:
-        from arifosmcp.core.shared.physics import delta_S
+        from core.shared.physics import delta_S
 
         return delta_S(before, after)
     except Exception:

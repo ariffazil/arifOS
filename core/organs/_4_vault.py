@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Literal
 
-from arifosmcp.core.shared.types import HashChain, SealRecord, VaultOutput, Verdict
+from core.shared.types import HashChain, SealRecord, VaultOutput, Verdict
 
 logger = logging.getLogger(__name__)
 
@@ -102,9 +102,12 @@ def verify_vault_ledger(path: Path) -> tuple[bool, str | None]:
                     return False, f"line {line_no}: invalid json ({exc})"
 
                 # Skip seed/bootstrap/legacy records
-                if payload.get("type") in ("seed", "bootstrap") or payload.get("entry_id") == "GENESIS":
+                if (
+                    payload.get("type") in ("seed", "bootstrap")
+                    or payload.get("entry_id") == "GENESIS"
+                ):
                     continue
-                
+
                 if "chain" not in payload:
                     logger.warning("Line %s: Skipping legacy record (no chain)", line_no)
                     continue
@@ -117,23 +120,29 @@ def verify_vault_ledger(path: Path) -> tuple[bool, str | None]:
                 # Chain check
                 chain = payload.get("chain", {})
                 current_prev_hash = chain.get("prev_entry_hash")
-                
+
                 # Resync logic: If a record claims to be a new start (0x0 or seed), allow it.
-                if current_prev_hash in (_CHAIN_SEED, "0x0000000000000000000000000000000000000000000000000000000000000000"):
+                if current_prev_hash in (
+                    _CHAIN_SEED,
+                    "0x0000000000000000000000000000000000000000000000000000000000000000",
+                ):
                     logger.info("Line %s: Merkle chain resync detected", line_no)
-                    
+
                     # F1 Amanah hardening: verify the resync record itself
                     expected_entry_hash = hashlib.sha256(
                         (current_prev_hash + payload["seal_hash"]).encode()
                     ).hexdigest()
                     if chain.get("entry_hash") != expected_entry_hash:
                         return False, f"line {line_no}: entry hash mismatch on resync record"
-                    
+
                     prev_entry_hash = chain.get("entry_hash")
                     continue
 
                 if current_prev_hash != prev_entry_hash:
-                    return False, f"line {line_no}: chain broken (prev_hash mismatch). Expected {prev_entry_hash}, found {current_prev_hash}"
+                    return (
+                        False,
+                        f"line {line_no}: chain broken (prev_hash mismatch). Expected {prev_entry_hash}, found {current_prev_hash}",
+                    )
 
                 expected_entry_hash = hashlib.sha256(
                     (prev_entry_hash + payload["seal_hash"]).encode()
@@ -194,7 +203,7 @@ async def seal(
     """
     Stage 999: VAULT SEAL (Immutable Commit - APEX-G compliant)
     """
-    from arifosmcp.core.physics.thermodynamics_hardened import (
+    from core.physics.thermodynamics_hardened import (
         cleanup_thermodynamic_budget,
         consume_tool_energy,
     )
@@ -311,7 +320,7 @@ async def seal(
 
     # 7. EUREKA Layer 6: Register decision in the Reality Feedback Ledger
     try:
-        from arifosmcp.core.recovery.rollback_engine import outcome_ledger
+        from core.recovery.rollback_engine import outcome_ledger
 
         outcome_ledger.record_outcome(
             decision_id=ledger_id,
@@ -350,6 +359,7 @@ async def seal(
                         """
                     )
                     import json as _json
+
                     await conn.execute(
                         """
                         INSERT INTO vault_audit
@@ -363,7 +373,13 @@ async def seal(
                         verdict,
                         (auth_context or {}).get("actor_id", "anonymous"),
                         _json.dumps(floors),
-                        _json.dumps({"summary": summary, "approved_by": approved_by, "telemetry": telemetry or {}}),
+                        _json.dumps(
+                            {
+                                "summary": summary,
+                                "approved_by": approved_by,
+                                "telemetry": telemetry or {},
+                            }
+                        ),
                         entry_hash,
                     )
                 finally:

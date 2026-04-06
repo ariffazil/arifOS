@@ -103,7 +103,7 @@ class TestErrorRemediationAlignment:
     @pytest.mark.asyncio
     async def test_remediation_first_error_response(self):
         """P1: Verify remediation-first error responses in unified_tool_output."""
-        from arifosmcp.core.enforcement.governance_engine import wrap_tool_output
+        from core.enforcement.governance_engine import wrap_tool_output
         
         # Simulate a failing case (VOID verdict)
         payload = {

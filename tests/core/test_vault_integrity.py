@@ -3,11 +3,11 @@ from __future__ import annotations
 import hashlib
 import json
 
-from arifosmcp.core.organs._4_vault import compute_vault_seal_hash, verify_vault_ledger, verify_vault_record
+from core.organs._4_vault import compute_vault_seal_hash, verify_vault_ledger, verify_vault_record
 
 
 def _build_entry() -> dict[str, object]:
-    from arifosmcp.core.organs._4_vault import _CHAIN_SEED
+    from core.organs._4_vault import _CHAIN_SEED
 
     entry = {
         "session_id": "vault-test",

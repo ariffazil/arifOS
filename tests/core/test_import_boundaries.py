@@ -10,7 +10,7 @@ def test_aki_contract_import_does_not_eager_load_sentence_transformers() -> None
 import json
 import sys
 
-import arifosmcp.core.enforcement.aki_contract
+import core.enforcement.aki_contract
 
 payload = {
     "sentence_transformers_loaded": "sentence_transformers" in sys.modules,

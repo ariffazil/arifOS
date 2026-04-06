@@ -19,7 +19,7 @@ async def compat_probe(
     session_id: str | None = None,
     actor_id: str | None = None,
     auth_context: dict | None = None,
-    **kwargs: Any
+    
 ) -> RuntimeEnvelope:
     """
     Diagnostic tool to verify session portability and enum compatibility.

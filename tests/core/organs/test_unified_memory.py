@@ -13,7 +13,7 @@ class TestUnifiedMemory:
 
     def test_get_unified_memory(self):
         """Test getting unified memory instance."""
-        from arifosmcp.core.organs.unified_memory import get_unified_memory
+        from core.organs.unified_memory import get_unified_memory
 
         memory = get_unified_memory()
         assert memory is not None
@@ -21,7 +21,7 @@ class TestUnifiedMemory:
     @pytest.mark.asyncio
     async def test_vault_operation(self):
         """Test vault operation through unified_memory."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         result = await vault(
             operation="seal", session_id="test-vault-001", summary="Test seal operation"
@@ -32,7 +32,7 @@ class TestUnifiedMemory:
     @pytest.mark.asyncio
     async def test_vault_store_and_retrieve(self):
         """Test storing and retrieving through vault."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         # Store
         store_result = await vault(
@@ -53,7 +53,7 @@ class TestUnifiedMemory:
 
     def test_unified_memory_class(self):
         """Test UnifiedMemory class instantiation."""
-        from arifosmcp.core.organs.unified_memory import UnifiedMemory
+        from core.organs.unified_memory import UnifiedMemory
 
         memory = UnifiedMemory()
         assert memory is not None
@@ -61,7 +61,7 @@ class TestUnifiedMemory:
     @pytest.mark.asyncio
     async def test_vault_list(self):
         """Test listing vault entries."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         result = await vault(operation="list", session_id="test-vault-003")
 
@@ -70,7 +70,7 @@ class TestUnifiedMemory:
     @pytest.mark.asyncio
     async def test_vault_with_metadata(self):
         """Test vault with metadata."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         result = await vault(
             operation="seal",
@@ -88,7 +88,7 @@ class TestUnifiedMemoryEdgeCases:
     @pytest.mark.asyncio
     async def test_vault_empty_session(self):
         """Test vault with empty session."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         result = await vault(operation="seal", session_id="", summary="Empty session test")
 
@@ -97,7 +97,7 @@ class TestUnifiedMemoryEdgeCases:
     @pytest.mark.asyncio
     async def test_vault_unicode_content(self):
         """Test vault with unicode."""
-        from arifosmcp.core.organs.unified_memory import vault
+        from core.organs.unified_memory import vault
 
         result = await vault(
             operation="seal", session_id="test-unicode", summary="Unicode: 你好 🌍 ñ"

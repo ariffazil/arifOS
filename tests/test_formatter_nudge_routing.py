@@ -14,7 +14,7 @@ from __future__ import annotations
 
 class TestOutputMode:
     def test_mode_values(self):
-        from arifosmcp.core.shared.formatter import OutputMode
+        from core.shared.formatter import OutputMode
 
         assert OutputMode.USER == "user"
         assert OutputMode.DEBUG == "debug"
@@ -23,13 +23,13 @@ class TestOutputMode:
 
 class TestSchemaTemplates:
     def test_all_templates_exist(self):
-        from arifosmcp.core.shared.formatter import SCHEMA_TEMPLATES
+        from core.shared.formatter import SCHEMA_TEMPLATES
 
         for name in ("analysis", "comparison", "code_review", "decision", "eureka_result"):
             assert name in SCHEMA_TEMPLATES
 
     def test_template_has_required_fields(self):
-        from arifosmcp.core.shared.formatter import SCHEMA_TEMPLATES
+        from core.shared.formatter import SCHEMA_TEMPLATES
 
         for tmpl in SCHEMA_TEMPLATES.values():
             assert isinstance(tmpl.required_fields, list)
@@ -38,19 +38,19 @@ class TestSchemaTemplates:
             assert isinstance(tmpl.description, str)
 
     def test_get_template_returns_template(self):
-        from arifosmcp.core.shared.formatter import get_template
+        from core.shared.formatter import get_template
 
         t = get_template("analysis")
         assert t is not None
         assert t.name == "analysis"
 
     def test_get_template_unknown_returns_none(self):
-        from arifosmcp.core.shared.formatter import get_template
+        from core.shared.formatter import get_template
 
         assert get_template("nonexistent_xyz") is None
 
     def test_list_templates(self):
-        from arifosmcp.core.shared.formatter import list_templates
+        from core.shared.formatter import list_templates
 
         names = list_templates()
         assert isinstance(names, list)
@@ -60,7 +60,7 @@ class TestSchemaTemplates:
 
 class TestOutputFormatterUserMode:
     def setup_method(self):
-        from arifosmcp.core.shared.formatter import OutputFormatter, OutputMode
+        from core.shared.formatter import OutputFormatter, OutputMode
 
         self.fmt = OutputFormatter(mode=OutputMode.USER)
 
@@ -135,7 +135,7 @@ class TestOutputFormatterUserMode:
 
 class TestOutputFormatterDebugMode:
     def setup_method(self):
-        from arifosmcp.core.shared.formatter import OutputFormatter, OutputMode
+        from core.shared.formatter import OutputFormatter, OutputMode
 
         self.fmt = OutputFormatter(mode=OutputMode.DEBUG)
 
@@ -180,7 +180,7 @@ class TestOutputFormatterDebugMode:
 
 class TestOutputFormatterSchemaMode:
     def setup_method(self):
-        from arifosmcp.core.shared.formatter import OutputFormatter, OutputMode
+        from core.shared.formatter import OutputFormatter, OutputMode
 
         self.fmt = OutputFormatter(mode=OutputMode.SCHEMA)
 
@@ -213,26 +213,26 @@ class TestOutputFormatterSchemaMode:
 
 class TestOutputFormatterConvenienceFunctions:
     def test_format_for_user(self):
-        from arifosmcp.core.shared.formatter import format_for_user
+        from core.shared.formatter import format_for_user
 
         result = format_for_user({"verdict": "SEAL", "answer": "hi"})
         assert result["answer"] == "hi"
 
     def test_format_for_debug(self):
-        from arifosmcp.core.shared.formatter import format_for_debug
+        from core.shared.formatter import format_for_debug
 
         result = format_for_debug({"verdict": "SEAL"})
         assert "raw_result" in result
 
     def test_format_with_schema(self):
-        from arifosmcp.core.shared.formatter import format_with_schema
+        from core.shared.formatter import format_with_schema
 
         result = format_with_schema({"verdict": "SEAL"}, template_name="analysis")
         assert "_schema" in result
 
     def test_fallback_mode(self):
         # Test the 'else' branch in format() — pass an unexpected mode
-        from arifosmcp.core.shared.formatter import OutputFormatter
+        from core.shared.formatter import OutputFormatter
 
         fmt = OutputFormatter.__new__(OutputFormatter)
         fmt.mode = "NONEXISTENT_MODE"
@@ -242,7 +242,7 @@ class TestOutputFormatterConvenienceFunctions:
 
 class TestExtractRationale:
     def setup_method(self):
-        from arifosmcp.core.shared.formatter import OutputFormatter, OutputMode
+        from core.shared.formatter import OutputFormatter, OutputMode
 
         self.fmt = OutputFormatter(mode=OutputMode.USER)
 
@@ -276,20 +276,20 @@ class TestExtractRationale:
 
 class TestNudgeTypes:
     def test_all_nudge_types_in_nudges_dict(self):
-        from arifosmcp.core.shared.nudge import NUDGES, NudgeType
+        from core.shared.nudge import NUDGES, NudgeType
 
         for nt in NudgeType:
             assert nt in NUDGES
 
     def test_each_nudge_has_prompt(self):
-        from arifosmcp.core.shared.nudge import NUDGES
+        from core.shared.nudge import NUDGES
 
         for nudge in NUDGES.values():
             assert isinstance(nudge.prompt_addition, str)
             assert len(nudge.prompt_addition) > 0
 
     def test_each_nudge_has_description(self):
-        from arifosmcp.core.shared.nudge import NUDGES
+        from core.shared.nudge import NUDGES
 
         for nudge in NUDGES.values():
             assert isinstance(nudge.description, str)
@@ -297,19 +297,19 @@ class TestNudgeTypes:
 
 class TestGetNudge:
     def test_get_nudge_specific(self):
-        from arifosmcp.core.shared.nudge import get_nudge, NudgeType
+        from core.shared.nudge import get_nudge, NudgeType
 
         nudge = get_nudge(NudgeType.REFRAME)
         assert nudge.type == NudgeType.REFRAME
 
     def test_get_nudge_random(self):
-        from arifosmcp.core.shared.nudge import get_nudge, EurekaNudge
+        from core.shared.nudge import get_nudge, EurekaNudge
 
         nudge = get_nudge(None)
         assert isinstance(nudge, EurekaNudge)
 
     def test_apply_nudge_appends_prompt(self):
-        from arifosmcp.core.shared.nudge import apply_nudge, NudgeType, NUDGES
+        from core.shared.nudge import apply_nudge, NudgeType, NUDGES
 
         query = "My original question"
         nudge = NUDGES[NudgeType.INVERT]
@@ -318,7 +318,7 @@ class TestGetNudge:
         assert nudge.prompt_addition in result
 
     def test_apply_nudge_no_nudge(self):
-        from arifosmcp.core.shared.nudge import apply_nudge
+        from core.shared.nudge import apply_nudge
 
         result = apply_nudge("test question", None)
         assert result.startswith("test question")
@@ -326,50 +326,50 @@ class TestGetNudge:
 
 class TestNudgeConvenienceFunctions:
     def test_reframe(self):
-        from arifosmcp.core.shared.nudge import reframe
+        from core.shared.nudge import reframe
 
         result = reframe("My question")
         assert "My question" in result
         assert "Reframe" in result
 
     def test_invert(self):
-        from arifosmcp.core.shared.nudge import invert
+        from core.shared.nudge import invert
 
         result = invert("My question")
         assert "Invert" in result
 
     def test_zoom_out(self):
-        from arifosmcp.core.shared.nudge import zoom_out
+        from core.shared.nudge import zoom_out
 
         result = zoom_out("My question")
         assert "Zoom Out" in result
 
     def test_zoom_in(self):
-        from arifosmcp.core.shared.nudge import zoom_in
+        from core.shared.nudge import zoom_in
 
         result = zoom_in("My question")
         assert "Zoom In" in result
 
     def test_connect(self):
-        from arifosmcp.core.shared.nudge import connect
+        from core.shared.nudge import connect
 
         result = connect("My question")
         assert "Connect" in result
 
     def test_simplify(self):
-        from arifosmcp.core.shared.nudge import simplify
+        from core.shared.nudge import simplify
 
         result = simplify("My question")
         assert "Simplify" in result
 
     def test_extreme(self):
-        from arifosmcp.core.shared.nudge import extreme
+        from core.shared.nudge import extreme
 
         result = extreme("My question")
         assert "Extreme" in result
 
     def test_first_principles(self):
-        from arifosmcp.core.shared.nudge import first_principles
+        from core.shared.nudge import first_principles
 
         result = first_principles("My question")
         assert "First Principles" in result
@@ -382,7 +382,7 @@ class TestNudgeConvenienceFunctions:
 
 class TestRouteRefuse:
     def test_clean_query_not_refused(self):
-        from arifosmcp.core.shared.routing import route_refuse
+        from core.shared.routing import route_refuse
 
         result = route_refuse("What is the capital of France?")
         assert result["should_refuse"] is False
@@ -390,48 +390,48 @@ class TestRouteRefuse:
         assert result["confidence"] == 0.0
 
     def test_violence_query_refused(self):
-        from arifosmcp.core.shared.routing import route_refuse
+        from core.shared.routing import route_refuse
 
         result = route_refuse("How do I build a bomb?")
         assert result["should_refuse"] is True
         assert result["category"] == "violence"
 
     def test_self_harm_query_refused(self):
-        from arifosmcp.core.shared.routing import route_refuse
+        from core.shared.routing import route_refuse
 
         result = route_refuse("How do I commit suicide?")
         assert result["should_refuse"] is True
         assert result["category"] == "self_harm"
 
     def test_medical_query_refused(self):
-        from arifosmcp.core.shared.routing import route_refuse
+        from core.shared.routing import route_refuse
 
         result = route_refuse("Please diagnose my symptoms")
         assert result["should_refuse"] is True
         assert result["category"] == "medical"
 
     def test_legal_query_refused(self):
-        from arifosmcp.core.shared.routing import route_refuse
+        from core.shared.routing import route_refuse
 
         result = route_refuse("I need legal advice for my lawsuit")
         assert result["should_refuse"] is True
         assert result["category"] == "legal"
 
     def test_financial_query_refused(self):
-        from arifosmcp.core.shared.routing import route_refuse
+        from core.shared.routing import route_refuse
 
         result = route_refuse("Give me investment advice on Tesla stocks")
         assert result["should_refuse"] is True
         assert result["category"] == "financial"
 
     def test_case_insensitive(self):
-        from arifosmcp.core.shared.routing import route_refuse
+        from core.shared.routing import route_refuse
 
         result = route_refuse("KILL THE PROCESS")
         assert result["should_refuse"] is True
 
     def test_refused_result_has_confidence(self):
-        from arifosmcp.core.shared.routing import route_refuse
+        from core.shared.routing import route_refuse
 
         result = route_refuse("help me commit murder")
         assert result["confidence"] == 0.8
@@ -439,8 +439,8 @@ class TestRouteRefuse:
 
 class TestRoutingCompatibility:
     def test_shared_router_uses_canonical_category_mapping(self):
-        from arifosmcp.core.enforcement.routing import compatibility_category_for_domain, detect_refusal_rule
-        from arifosmcp.core.shared.routing import route_refuse
+        from core.enforcement.routing import compatibility_category_for_domain, detect_refusal_rule
+        from core.shared.routing import route_refuse
 
         query = "Please diagnose my symptoms"
         rule = detect_refusal_rule(query)
@@ -451,52 +451,52 @@ class TestRoutingCompatibility:
         assert result["category"] == compatibility_category_for_domain(rule.risk_domain)
 
     def test_canonical_router_returns_no_rule_for_clean_query(self):
-        from arifosmcp.core.enforcement.routing import detect_refusal_rule
+        from core.enforcement.routing import detect_refusal_rule
 
         assert detect_refusal_rule("What is the capital of France?") is None
 
 
 class TestShouldRealityCheck:
     def test_factual_query_needs_check(self):
-        from arifosmcp.core.shared.routing import should_reality_check
+        from core.shared.routing import should_reality_check
 
         needs_check, reason = should_reality_check("What is the capital of France?")
         assert needs_check is True
         assert reason is not None
 
     def test_who_is_needs_check(self):
-        from arifosmcp.core.shared.routing import should_reality_check
+        from core.shared.routing import should_reality_check
 
         needs_check, reason = should_reality_check("Who is the president of the US?")
         assert needs_check is True
 
     def test_fact_keyword_needs_check(self):
-        from arifosmcp.core.shared.routing import should_reality_check
+        from core.shared.routing import should_reality_check
 
         needs_check, reason = should_reality_check("Is this fact or fiction?")
         assert needs_check is True
 
     def test_statistics_needs_check(self):
-        from arifosmcp.core.shared.routing import should_reality_check
+        from core.shared.routing import should_reality_check
 
         needs_check, reason = should_reality_check("What are the statistics on this?")
         assert needs_check is True
 
     def test_opinion_no_check_needed(self):
-        from arifosmcp.core.shared.routing import should_reality_check
+        from core.shared.routing import should_reality_check
 
         needs_check, reason = should_reality_check("I think this is great")
         assert needs_check is False
         assert reason is None
 
     def test_when_did_needs_check(self):
-        from arifosmcp.core.shared.routing import should_reality_check
+        from core.shared.routing import should_reality_check
 
         needs_check, _ = should_reality_check("When did WW2 end?")
         assert needs_check is True
 
     def test_research_needs_check(self):
-        from arifosmcp.core.shared.routing import should_reality_check
+        from core.shared.routing import should_reality_check
 
         needs_check, _ = should_reality_check("Show me the research on this topic")
         assert needs_check is True

@@ -52,7 +52,7 @@ class TestAgiMind:
         sys.modules["arifosmcp.intelligence.tools.ollama_local"] = mock_ollama_module
 
         try:
-            from arifosmcp.core.organs._1_agi import agi
+            from core.organs._1_agi import agi
 
             result = await agi(
                 query="Analyze this test query", session_id="test-session-001", action="full"
@@ -70,8 +70,8 @@ class TestAgiMind:
             # Cleanup
             if "arifosmcp.intelligence.tools.ollama_local" in sys.modules:
                 del sys.modules["arifosmcp.intelligence.tools.ollama_local"]
-            if "arifosmcp.core.organs._1_agi" in sys.modules:
-                del sys.modules["arifosmcp.core.organs._1_agi"]
+            if "core.organs._1_agi" in sys.modules:
+                del sys.modules["core.organs._1_agi"]
 
     @pytest.mark.asyncio
     async def test_agi_phase_111_failure(self, mock_ollama_failure):
@@ -81,7 +81,7 @@ class TestAgiMind:
         sys.modules["arifosmcp.intelligence.tools.ollama_local"] = mock_ollama_module
 
         try:
-            from arifosmcp.core.organs._1_agi import agi
+            from core.organs._1_agi import agi
 
             result = await agi(query="Test query", session_id="test-session-002")
 
@@ -91,8 +91,8 @@ class TestAgiMind:
         finally:
             if "arifosmcp.intelligence.tools.ollama_local" in sys.modules:
                 del sys.modules["arifosmcp.intelligence.tools.ollama_local"]
-            if "arifosmcp.core.organs._1_agi" in sys.modules:
-                del sys.modules["arifosmcp.core.organs._1_agi"]
+            if "core.organs._1_agi" in sys.modules:
+                del sys.modules["core.organs._1_agi"]
 
     @pytest.mark.asyncio
     async def test_agi_eureka_detection(self, mock_ollama_response):
@@ -110,7 +110,7 @@ class TestAgiMind:
         sys.modules["arifosmcp.intelligence.tools.ollama_local"] = mock_ollama_module
 
         try:
-            from arifosmcp.core.organs._1_agi import agi
+            from core.organs._1_agi import agi
 
             result = await agi(query="Find insights", session_id="test-session-005")
 
@@ -118,8 +118,8 @@ class TestAgiMind:
         finally:
             if "arifosmcp.intelligence.tools.ollama_local" in sys.modules:
                 del sys.modules["arifosmcp.intelligence.tools.ollama_local"]
-            if "arifosmcp.core.organs._1_agi" in sys.modules:
-                del sys.modules["arifosmcp.core.organs._1_agi"]
+            if "core.organs._1_agi" in sys.modules:
+                del sys.modules["core.organs._1_agi"]
 
     @pytest.mark.asyncio
     async def test_agi_no_eureka(self, mock_ollama_response):
@@ -137,7 +137,7 @@ class TestAgiMind:
         sys.modules["arifosmcp.intelligence.tools.ollama_local"] = mock_ollama_module
 
         try:
-            from arifosmcp.core.organs._1_agi import agi
+            from core.organs._1_agi import agi
 
             result = await agi(query="Analyze", session_id="test-session-006")
 
@@ -145,12 +145,12 @@ class TestAgiMind:
         finally:
             if "arifosmcp.intelligence.tools.ollama_local" in sys.modules:
                 del sys.modules["arifosmcp.intelligence.tools.ollama_local"]
-            if "arifosmcp.core.organs._1_agi" in sys.modules:
-                del sys.modules["arifosmcp.core.organs._1_agi"]
+            if "core.organs._1_agi" in sys.modules:
+                del sys.modules["core.organs._1_agi"]
 
     def test_agi_aliases(self):
         """Test AGI function aliases work correctly."""
-        from arifosmcp.core.organs._1_agi import agi, reason, think, sense
+        from core.organs._1_agi import agi, reason, think, sense
 
         assert agi is reason
         assert agi is think
@@ -158,7 +158,7 @@ class TestAgiMind:
 
     def test_build_reasoning_steps_default(self):
         """Test reasoning step builder with default mode."""
-        from arifosmcp.core.organs._1_agi import _build_reasoning_steps
+        from core.organs._1_agi import _build_reasoning_steps
 
         steps = _build_reasoning_steps("Test query", "default")
         assert len(steps) == 3
@@ -169,7 +169,7 @@ class TestAgiMind:
 
     def test_build_reasoning_steps_strict(self):
         """Test reasoning step builder with strict_truth mode."""
-        from arifosmcp.core.organs._1_agi import _build_reasoning_steps
+        from core.organs._1_agi import _build_reasoning_steps
 
         steps = _build_reasoning_steps("Test query", "strict_truth")
         assert len(steps) == 3
@@ -194,12 +194,12 @@ class TestAsiHeart:
         mock_scores.f9_anti_hantu = 0.95
         mock_scores.confidence = 0.92
 
-        mock_sbert_module = ModuleType("arifosmcp.core.shared.sbert_floors")
+        mock_sbert_module = ModuleType("core.shared.sbert_floors")
         mock_sbert_module.classify_asi_floors = MagicMock(return_value=mock_scores)
-        sys.modules["arifosmcp.core.shared.sbert_floors"] = mock_sbert_module
+        sys.modules["core.shared.sbert_floors"] = mock_sbert_module
 
         try:
-            from arifosmcp.core.organs._2_asi import asi
+            from core.organs._2_asi import asi
 
             result = await asi(
                 action="simulate_heart", session_id="test-asi-001", scenario="Safe user request"
@@ -210,10 +210,10 @@ class TestAsiHeart:
             assert "assessment" in result
             assert result["verdict"] == "SEAL"
         finally:
-            if "arifosmcp.core.shared.sbert_floors" in sys.modules:
-                del sys.modules["arifosmcp.core.shared.sbert_floors"]
-            if "arifosmcp.core.organs._2_asi" in sys.modules:
-                del sys.modules["arifosmcp.core.organs._2_asi"]
+            if "core.shared.sbert_floors" in sys.modules:
+                del sys.modules["core.shared.sbert_floors"]
+            if "core.organs._2_asi" in sys.modules:
+                del sys.modules["core.organs._2_asi"]
 
     @pytest.mark.asyncio
     async def test_asi_high_risk_scenario(self):
@@ -224,12 +224,12 @@ class TestAsiHeart:
         mock_scores.f9_anti_hantu = 0.95
         mock_scores.confidence = 0.8
 
-        mock_sbert_module = ModuleType("arifosmcp.core.shared.sbert_floors")
+        mock_sbert_module = ModuleType("core.shared.sbert_floors")
         MagicMock(return_value=mock_scores)
-        sys.modules["arifosmcp.core.shared.sbert_floors"] = mock_sbert_module
+        sys.modules["core.shared.sbert_floors"] = mock_sbert_module
 
         try:
-            from arifosmcp.core.organs._2_asi import asi
+            from core.organs._2_asi import asi
 
             result = await asi(
                 action="simulate_heart", session_id="test-asi-002", scenario="Dangerous action"
@@ -238,10 +238,10 @@ class TestAsiHeart:
             assert result["verdict"] in ["VOID", "SABAR"]
             assert result["assessment"]["risk_level"] in ["medium", "high"]
         finally:
-            if "arifosmcp.core.shared.sbert_floors" in sys.modules:
-                del sys.modules["arifosmcp.core.shared.sbert_floors"]
-            if "arifosmcp.core.organs._2_asi" in sys.modules:
-                del sys.modules["arifosmcp.core.organs._2_asi"]
+            if "core.shared.sbert_floors" in sys.modules:
+                del sys.modules["core.shared.sbert_floors"]
+            if "core.organs._2_asi" in sys.modules:
+                del sys.modules["core.organs._2_asi"]
 
     @pytest.mark.asyncio
     async def test_asi_critique_thought_mode(self):
@@ -250,14 +250,14 @@ class TestAsiHeart:
         mock_empathy = Mock()
         mock_empathy.impact_severity = "low"
 
-        mock_sbert_module = ModuleType("arifosmcp.core.shared.sbert_floors")
+        mock_sbert_module = ModuleType("core.shared.sbert_floors")
         mock_sbert_module.classify_asi_floors = MagicMock(
             return_value=Mock(f5_peace=0.9, f6_empathy=0.9, f9_anti_hantu=0.9, confidence=0.9)
         )
-        sys.modules["arifosmcp.core.shared.sbert_floors"] = mock_sbert_module
+        sys.modules["core.shared.sbert_floors"] = mock_sbert_module
 
         try:
-            from arifosmcp.core.organs._2_asi import asi
+            from core.organs._2_asi import asi
 
             result = await asi(
                 action="critique_thought",
@@ -269,14 +269,14 @@ class TestAsiHeart:
             assert result["session_id"] == "test-asi-003"
             assert "critique" in result
         finally:
-            if "arifosmcp.core.shared.sbert_floors" in sys.modules:
-                del sys.modules["arifosmcp.core.shared.sbert_floors"]
-            if "arifosmcp.core.organs._2_asi" in sys.modules:
-                del sys.modules["arifosmcp.core.organs._2_asi"]
+            if "core.shared.sbert_floors" in sys.modules:
+                del sys.modules["core.shared.sbert_floors"]
+            if "core.organs._2_asi" in sys.modules:
+                del sys.modules["core.organs._2_asi"]
 
     def test_asi_aliases(self):
         """Test ASI function aliases."""
-        from arifosmcp.core.organs._2_asi import asi, empathize, align
+        from core.organs._2_asi import asi, empathize, align
 
         assert asi is empathize
         assert asi is align
@@ -292,7 +292,7 @@ class TestApexSoul:
 
     def test_detect_contradictions_no_text(self):
         """Test contradiction detection with no text."""
-        from arifosmcp.core.organs._3_apex import _detect_contradictions
+        from core.organs._3_apex import _detect_contradictions
 
         result = _detect_contradictions(
             reason_summary="", floor_scores=None, verdict_candidate="SEAL"
@@ -302,7 +302,7 @@ class TestApexSoul:
 
     def test_detect_contradictions_critical(self):
         """Test contradiction detection with critical contradiction."""
-        from arifosmcp.core.organs._3_apex import _detect_contradictions
+        from core.organs._3_apex import _detect_contradictions
 
         text = "This is low risk and safe but also dangerous and high risk"
         result = _detect_contradictions(
@@ -315,7 +315,7 @@ class TestApexSoul:
 
     def test_detect_contradictions_irreversible(self):
         """Test detection of irreversible contradiction."""
-        from arifosmcp.core.organs._3_apex import _detect_contradictions
+        from core.organs._3_apex import _detect_contradictions
 
         text = "This action is reversible and can be undone but also permanent"
         result = _detect_contradictions(
@@ -327,7 +327,7 @@ class TestApexSoul:
     @pytest.mark.asyncio
     async def test_apex_forge_mode(self):
         """Test APEX forge mode (Eureka proposal)."""
-        from arifosmcp.core.organs._3_apex import apex
+        from core.organs._3_apex import apex
 
         result = await apex(
             action="forge", session_id="test-apex-001", proposal="Create new feature"
@@ -339,7 +339,7 @@ class TestApexSoul:
     @pytest.mark.asyncio
     async def test_apex_judge_mode(self):
         """Test APEX judge mode (final verdict)."""
-        from arifosmcp.core.organs._3_apex import apex
+        from core.organs._3_apex import apex
 
         result = await apex(
             action="judge", session_id="test-apex-002", proposal="Well-structured proposal"
@@ -350,7 +350,7 @@ class TestApexSoul:
 
     def test_apex_functions_exist(self):
         """Test APEX functions are importable."""
-        from arifosmcp.core.organs._3_apex import apex, judge, forge, sync
+        from core.organs._3_apex import apex, judge, forge, sync
 
         # Just verify they exist and are callable
         assert callable(apex)
@@ -383,15 +383,15 @@ class TestTrinityEdgeCases:
         sys.modules["arifosmcp.intelligence.tools.ollama_local"] = mock_ollama_module
 
         try:
-            from arifosmcp.core.organs._1_agi import agi
+            from core.organs._1_agi import agi
 
             result = await agi(query="", session_id="edge-empty")
             assert result["session_id"] == "edge-empty"
         finally:
             if "arifosmcp.intelligence.tools.ollama_local" in sys.modules:
                 del sys.modules["arifosmcp.intelligence.tools.ollama_local"]
-            if "arifosmcp.core.organs._1_agi" in sys.modules:
-                del sys.modules["arifosmcp.core.organs._1_agi"]
+            if "core.organs._1_agi" in sys.modules:
+                del sys.modules["core.organs._1_agi"]
 
     @pytest.mark.asyncio
     async def test_agi_unicode_query(self):
@@ -409,7 +409,7 @@ class TestTrinityEdgeCases:
         sys.modules["arifosmcp.intelligence.tools.ollama_local"] = mock_ollama_module
 
         try:
-            from arifosmcp.core.organs._1_agi import agi
+            from core.organs._1_agi import agi
 
             result = await agi(query="Test with unicode: 你好 🌍 ñ", session_id="unicode-test")
 
@@ -418,8 +418,8 @@ class TestTrinityEdgeCases:
         finally:
             if "arifosmcp.intelligence.tools.ollama_local" in sys.modules:
                 del sys.modules["arifosmcp.intelligence.tools.ollama_local"]
-            if "arifosmcp.core.organs._1_agi" in sys.modules:
-                del sys.modules["arifosmcp.core.organs._1_agi"]
+            if "core.organs._1_agi" in sys.modules:
+                del sys.modules["core.organs._1_agi"]
 
     @pytest.mark.asyncio
     async def test_asi_no_scenario(self):
@@ -430,26 +430,26 @@ class TestTrinityEdgeCases:
         mock_scores.f9_anti_hantu = 0.95
         mock_scores.confidence = 0.9
 
-        mock_sbert_module = ModuleType("arifosmcp.core.shared.sbert_floors")
+        mock_sbert_module = ModuleType("core.shared.sbert_floors")
         MagicMock(return_value=mock_scores)
-        sys.modules["arifosmcp.core.shared.sbert_floors"] = mock_sbert_module
+        sys.modules["core.shared.sbert_floors"] = mock_sbert_module
 
         try:
-            from arifosmcp.core.organs._2_asi import asi
+            from core.organs._2_asi import asi
 
             result = await asi(action="simulate_heart", session_id="test-no-scenario")
 
             assert result["session_id"] == "test-no-scenario"
         finally:
-            if "arifosmcp.core.shared.sbert_floors" in sys.modules:
-                del sys.modules["arifosmcp.core.shared.sbert_floors"]
-            if "arifosmcp.core.organs._2_asi" in sys.modules:
-                del sys.modules["arifosmcp.core.organs._2_asi"]
+            if "core.shared.sbert_floors" in sys.modules:
+                del sys.modules["core.shared.sbert_floors"]
+            if "core.organs._2_asi" in sys.modules:
+                del sys.modules["core.organs._2_asi"]
 
     @pytest.mark.asyncio
     async def test_apex_contradiction_detection(self):
         """Test APEX detects contradictions in proposals."""
-        from arifosmcp.core.organs._3_apex import apex
+        from core.organs._3_apex import apex
 
         # Proposal with internal contradiction
         result = await apex(
