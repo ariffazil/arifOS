@@ -247,7 +247,7 @@ curl -s -X POST "https://arifosmcp.arif-fazil.com/mcp" \
 # Step 3: Check what tools are available
 curl -s https://arifosmcp.arif-fazil.com/health | jq '.tools'
 
-# This shows all ~40 tools with their descriptions and required parameters
+# This shows the dynamically-loaded tool set from the constitutional registry
 ```
 
 ### What a Successful `init_anchor` Means
@@ -1463,6 +1463,48 @@ curl -s -X POST "https://arifosmcp.arif-fazil.com/mcp" \
 
 ---
 
+## Constitutional Hash & Drift Detection
+
+Every deployment computes:
+
+```
+registry_hash = SHA256(tool_registry.json)
+```
+
+This hash represents the entire constitutional structure of arifOS at runtime.
+
+### Hash Verification at Boot
+
+At server startup, the registry is loaded and its hash is computed:
+
+```python
+CONSTITUTIONAL_HASH = compute_registry_hash(TOOL_REGISTRY)
+print(f"✅ ARIFOS: CONSTITUTIONAL HASH (v1) LOADED: {CONSTITUTIONAL_HASH}")
+```
+
+### Drift Detection
+
+If the registry changes:
+
+1. **888_APEX** must issue verdict **SEAL**
+2. **999_SEAL** must commit the new hash
+3. **F13 (ADAPTABILITY)** validates invariants preserved
+4. Unauthorized drift → automatic **HOLD**
+
+### Registry Location
+
+```
+arifosmcp/tool_registry.json
+```
+
+To verify the current hash:
+
+```bash
+curl -s https://arifosmcp.arif-fazil.com/health | jq '.capability_map.server_identity.constitutional_hash'
+```
+
+---
+
 ## Theory of Mind: How arifOS Models Itself
 
 arifOS has an explicit self-model. This is not emergent — it is designed.
@@ -1484,7 +1526,9 @@ arifOS has an explicit self-model. This is not emergent — it is designed.
 │  │  CAPABILITIES                   │   │
 │  │  - 13 Floors (F1-F13)           │   │
 │  │  - 000-999 pipeline             │   │
-│  │  - ~40 tools                    │   │
+│  │  - Tool set defined by canonical│   │
+│  │    registry (dynamic, hash-     │   │
+│  │    verified)                     │   │
 │  └─────────────────────────────────┘   │
 │                                         │
 │  ┌─────────────────────────────────┐   │
@@ -1567,11 +1611,60 @@ F13 (ADAPTABILITY) ensures that amendments preserve the spirit of the Constituti
 - **Auditability must increase**: New Floors cannot reduce logging
 - **Reversibility preferred**: New Floors should prefer reversible actions
 
+### Registry-Based Amendment Process (Horizon II.1)
+
+Amendments now follow a data-driven process:
+
+```
+PROPOSAL
+    │
+    ▼
+┌─────────────┐
+│  Modify     │ ──► Update tool_registry.json
+│  Registry   │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│   Validate  │ ──► Schema integrity check
+│   Schema    │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│   Compute   │ ──► Generate new registry hash
+│    Hash     │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│  888_APEX   │ ──► Issue SEAL verdict
+│   Verdict   │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│  999_SEAL   │ ──► Commit hash to vault
+│   Commit    │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│   Version   │ ──► Bump version
+│    Bump     │
+└─────────────┘
+```
+
+**Key Principle**: No runtime code modification required for tool changes.
+
+This separates **governance** (what the constitution says) from **execution** (how the runtime implements it).
+
 ### Version History
 
 | Version | Date | Key Changes |
 |---------|------|-------------|
-| **2026.04.03** | **2026-04-03** | **Horizon II Release**: Production Prompt Pack v1.0 (13 hardened prompts with Constitutional Guard), ASF-1 Communication Protocol (dual-layer Agent↔Agent communication), Decision Vector Framework (EMV/NPV/Entropy/Safety), automated validation via `validator.py`. Readiness: 91/100. |
+| **2026.04.06** | **2026-04-06** | **Horizon II.1**: Data-driven tool registry (`tool_registry.json`), dynamic server loading with hash verification, constitutional map v2, NEXUS HORIZON architecture. Registry sovereignty upgrade. Readiness: 94/100. |
+| **2026.04.03** | **2026-04-03** | **Horizon II**: Production Prompt Pack v1.0 (13 hardened prompts with Constitutional Guard), ASF-1 Communication Protocol (dual-layer Agent↔Agent communication), Decision Vector Framework (EMV/NPV/Entropy/Safety), automated validation via `validator.py`. Readiness: 91/100. |
 | 2026.04.01 | 2026-04-01 | Documentation expansion, telemetry v2.1 |
 | 2026.03.25 | 2026-03-25 | Initial operational release |
 
