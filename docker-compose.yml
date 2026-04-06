@@ -149,7 +149,7 @@ services:
     image: arifos/arifosmcp:latest
     container_name: arifosmcp
     init: true
-    command: ["uvicorn", "arifosmcp.runtime.server:app", "--host", "0.0.0.0", "--port", "8080"]
+    command: ["uvicorn", "arifosmcp.runtime.server_v2:app", "--host", "0.0.0.0", "--port", "8080"]
     env_file:
       - path: .env
     environment:
