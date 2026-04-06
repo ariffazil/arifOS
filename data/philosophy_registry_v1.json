@@ -13,7 +13,8 @@
         "epistemology",
         "humility",
         "socratic"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "AW-02",
@@ -26,7 +27,8 @@
         "rationalism",
         "education",
         "teleology"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "AE-01",
@@ -39,7 +41,8 @@
         "moral",
         "courage",
         "confucian"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "AE-02",
@@ -52,7 +55,8 @@
         "tao",
         "non-force",
         "patience"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "AE-03",
@@ -65,7 +69,8 @@
         "strategy",
         "war",
         "intelligence"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "AW-03",
@@ -78,7 +83,8 @@
         "flux",
         "ontology",
         "change"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "AW-04",
@@ -91,7 +97,8 @@
         "being",
         "absolutism",
         "contrast-heraclitus"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "AW-05",
@@ -104,7 +111,8 @@
         "stoic",
         "sovereignty",
         "interior"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "AW-06",
@@ -117,7 +125,8 @@
         "stoic",
         "agency",
         "reaction"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "EE-01",
@@ -130,7 +139,8 @@
         "politics",
         "realism",
         "prince"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "EE-02",
@@ -143,7 +153,8 @@
         "state",
         "chaos",
         "security"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "EE-03",
@@ -156,7 +167,8 @@
         "rights",
         "liberty",
         "contrast-hobbes"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "EE-04",
@@ -169,7 +181,8 @@
         "moral",
         "categorical",
         "imperative"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "EE-05",
@@ -182,7 +195,8 @@
         "empiricism",
         "skepticism",
         "contrast-kant"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "MP-01",
@@ -195,7 +209,8 @@
         "will",
         "existential",
         "meaning"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "MP-02",
@@ -208,7 +223,8 @@
         "existential",
         "time",
         "leap"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "MP-03",
@@ -221,7 +237,8 @@
         "materialism",
         "action",
         "determinism"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "CG-01",
@@ -234,7 +251,8 @@
         "evil",
         "banality",
         "responsibility"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "MP-04",
@@ -247,7 +265,8 @@
         "power",
         "character",
         "restraint"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "MS-01",
@@ -260,7 +279,8 @@
         "science",
         "wonder",
         "universe"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "MS-02",
@@ -273,7 +293,8 @@
         "uncertainty",
         "quantum",
         "observation"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "MS-03",
@@ -286,7 +307,8 @@
         "logic",
         "incompleteness",
         "mind"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "MS-04",
@@ -299,7 +321,8 @@
         "computation",
         "future",
         "action"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "MS-05",
@@ -312,7 +335,8 @@
         "information",
         "entropy",
         "communication"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "MS-06",
@@ -325,7 +349,8 @@
         "science",
         "questions",
         "skepticism"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "MS-07",
@@ -338,7 +363,8 @@
         "cosmos",
         "discovery",
         "humility"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "EE-06",
@@ -351,7 +377,8 @@
         "faith",
         "reason",
         "wager"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "CG-02",
@@ -364,7 +391,8 @@
         "attention",
         "ethics",
         "presence"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "CG-03",
@@ -377,7 +405,8 @@
         "truth",
         "power",
         "dissent"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "CG-04",
@@ -390,7 +419,8 @@
         "forgiveness",
         "freedom",
         "reconciliation"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "CG-05",
@@ -403,7 +433,8 @@
         "rights",
         "equality",
         "universal"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "MS-08",
@@ -416,7 +447,8 @@
         "science",
         "courage",
         "discovery"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "SE-01",
@@ -430,7 +462,8 @@
         "seal",
         "motto",
         "arifos"
-      ]
+      ],
+      "g_star_band": 4
     },
     {
       "id": "MS-09",
@@ -443,7 +476,8 @@
         "incompleteness",
         "logic",
         "limits"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "MS-10",
@@ -456,7 +490,8 @@
         "semantics",
         "truth",
         "meta"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "MS-11",
@@ -469,7 +504,8 @@
         "certainty",
         "doubt",
         "fanaticism"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "MS-12",
@@ -482,7 +518,8 @@
         "silence",
         "limits",
         "language"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "MS-13",
@@ -495,7 +532,8 @@
         "language",
         "world",
         "silence"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "MS-14",
@@ -508,7 +546,8 @@
         "science",
         "falsification",
         "myth"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "MS-15",
@@ -521,7 +560,8 @@
         "paradigm",
         "normal",
         "revolution"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "MS-16",
@@ -534,7 +574,8 @@
         "science",
         "progress",
         "degeneration"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "MS-17",
@@ -547,7 +588,8 @@
         "anarchism",
         "method",
         "science"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "MS-18",
@@ -560,7 +602,8 @@
         "ai",
         "learning",
         "child"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "MS-19",
@@ -573,7 +616,8 @@
         "random",
         "sin",
         "computation"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "MS-20",
@@ -586,7 +630,8 @@
         "elegance",
         "proof",
         "limits"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "MS-21",
@@ -599,7 +644,8 @@
         "information",
         "communication",
         "channel"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "MS-22",
@@ -612,7 +658,8 @@
         "cybernetics",
         "flow",
         "identity"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "MS-23",
@@ -625,7 +672,8 @@
         "entropy",
         "dissipative",
         "structure"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "MS-24",
@@ -638,7 +686,8 @@
         "black",
         "swan",
         "evidence"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "EE-07",
@@ -651,7 +700,8 @@
         "cogito",
         "existence",
         "certainty"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "EE-08",
@@ -664,7 +714,8 @@
         "freedom",
         "necessity",
         "ethics"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "EE-09",
@@ -677,7 +728,8 @@
         "infinity",
         "nothingness",
         "terror"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "EE-10",
@@ -690,7 +742,8 @@
         "will",
         "determinism",
         "freedom"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "MP-05",
@@ -703,7 +756,8 @@
         "economics",
         "knowledge",
         "design"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "MP-06",
@@ -716,7 +770,8 @@
         "criticism",
         "action",
         "virtue"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "AE-04",
@@ -729,7 +784,8 @@
         "self",
         "knowledge",
         "tao"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "AE-05",
@@ -742,7 +798,8 @@
         "question",
         "fool",
         "learning"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "AE-06",
@@ -755,7 +812,8 @@
         "chaos",
         "opportunity",
         "strategy"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "AW-07",
@@ -768,7 +826,8 @@
         "habit",
         "excellence",
         "virtue"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "AW-08",
@@ -781,7 +840,8 @@
         "examination",
         "life",
         "worth"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "AW-09",
@@ -794,7 +854,8 @@
         "fortune",
         "bold",
         "courage"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "AW-10",
@@ -807,7 +868,8 @@
         "books",
         "soul",
         "knowledge"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "EE-11",
@@ -820,7 +882,8 @@
         "freedom",
         "chains",
         "society"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "EE-12",
@@ -833,7 +896,8 @@
         "hell",
         "others",
         "gaze"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "MP-07",
@@ -846,7 +910,8 @@
         "death",
         "statistics",
         "scale"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "MP-08",
@@ -859,7 +924,8 @@
         "history",
         "memory",
         "repetition"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "CG-06",
@@ -872,7 +938,8 @@
         "arc",
         "moral",
         "justice"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "CG-07",
@@ -885,7 +952,8 @@
         "health",
         "adjustment",
         "society"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "CG-08",
@@ -898,7 +966,8 @@
         "perception",
         "projection",
         "self"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "CG-09",
@@ -911,7 +980,8 @@
         "courage",
         "fear",
         "priority"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "CG-10",
@@ -924,7 +994,8 @@
         "prediction",
         "future",
         "quantum"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "IG-01",
@@ -937,7 +1008,8 @@
         "monster",
         "abyss",
         "corruption"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "IG-02",
@@ -950,7 +1022,8 @@
         "choice",
         "will",
         "necessary"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "IG-03",
@@ -963,7 +1036,8 @@
         "perfection",
         "minimal",
         "essence"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "IG-04",
@@ -976,7 +1050,8 @@
         "simplicity",
         "complexity",
         "design"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "IG-05",
@@ -989,7 +1064,8 @@
         "representation",
         "reality",
         "abstraction"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "IG-06",
@@ -1002,7 +1078,8 @@
         "metrics",
         "management",
         "feedback"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "IG-07",
@@ -1015,7 +1092,8 @@
         "simplicity",
         "understanding",
         "teaching"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "IG-08",
@@ -1028,7 +1106,8 @@
         "data",
         "evidence",
         "trust"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "IG-09",
@@ -1041,7 +1120,8 @@
         "metrics",
         "value",
         "quantification"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "IG-10",
@@ -1054,7 +1134,8 @@
         "opinion",
         "knowledge",
         "entitlement"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "IG-11",
@@ -1067,7 +1148,8 @@
         "incentive",
         "bias",
         "understanding"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "IG-12",
@@ -1080,7 +1162,8 @@
         "fool",
         "self",
         "integrity"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "IG-13",
@@ -1093,7 +1176,8 @@
         "models",
         "approximation",
         "utility"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "IG-14",
@@ -1106,7 +1190,8 @@
         "measurement",
         "knowledge",
         "numbers"
-      ]
+      ],
+      "g_star_band": 1
     },
     {
       "id": "IG-15",
@@ -1119,7 +1204,8 @@
         "computing",
         "insight",
         "purpose"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "IG-16",
@@ -1132,7 +1218,8 @@
         "complexity",
         "execution",
         "simplicity"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "IG-17",
@@ -1145,7 +1232,8 @@
         "system",
         "problem",
         "solution"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "IG-18",
@@ -1158,7 +1246,8 @@
         "planning",
         "adaptation",
         "process"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "IG-19",
@@ -1171,7 +1260,8 @@
         "plan",
         "reality",
         "friction"
-      ]
+      ],
+      "g_star_band": 0
     },
     {
       "id": "IG-20",
@@ -1184,7 +1274,8 @@
         "perfection",
         "good",
         "execution"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "IG-21",
@@ -1197,7 +1288,8 @@
         "brevity",
         "time",
         "clarity"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "IG-22",
@@ -1210,7 +1302,8 @@
         "malice",
         "stupidity",
         "occam"
-      ]
+      ],
+      "g_star_band": 2
     },
     {
       "id": "IG-23",
@@ -1223,7 +1316,8 @@
         "culture",
         "strategy",
         "organization"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "IG-24",
@@ -1236,7 +1330,8 @@
         "software",
         "disruption",
         "technology"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "IG-25",
@@ -1249,7 +1344,8 @@
         "code",
         "action",
         "proof"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "IG-26",
@@ -1262,7 +1358,8 @@
         "speed",
         "disruption",
         "risk"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "IG-27",
@@ -1275,7 +1372,8 @@
         "shipping",
         "perfection",
         "iteration"
-      ]
+      ],
+      "g_star_band": 3
     },
     {
       "id": "IG-28",
@@ -1288,7 +1386,46 @@
         "minimal",
         "quality",
         "focus"
-      ]
+      ],
+      "g_star_band": 3
     }
-  ]
+  ],
+  "stats": {
+    "total_quotes": 99,
+    "civilization_diversity": {
+      "Ancient_West": 11,
+      "Ancient_East": 6,
+      "European_Enlightenment": 15,
+      "Modern_Political": 13,
+      "Contemporary_Global": 20,
+      "Modern_Scientific": 33,
+      "African_Civilizations": 1
+    },
+    "era_distribution": {
+      "Classical": 11,
+      "Ancient": 6,
+      "Enlightenment": 12,
+      "Modern": 33,
+      "Contemporary": 31,
+      "Industrial": 6
+    },
+    "category_distribution": {
+      "wisdom": 18,
+      "discipline": 21,
+      "justice": 7,
+      "power": 12,
+      "paradox": 16,
+      "truth": 18,
+      "void": 6,
+      "seal": 1
+    },
+    "g_star_band_distribution": {
+      "2": 25,
+      "3": 33,
+      "0": 22,
+      "1": 18,
+      "4": 1
+    },
+    "last_updated": "2026-04-06T09:16:00Z"
+  }
 }

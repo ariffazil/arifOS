@@ -1328,13 +1328,18 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
 
     @route("/tools", methods=["GET"])
     async def list_tools(request: Request) -> Response:
-        """List all registered tools from the canonical registry."""
+        """List only PUBLIC canonical tools - Internal tools are hidden from discovery."""
+        from arifosmcp.runtime.tool_specs import PUBLIC_TOOL_SPECS
+        
+        # Create map of name to spec for public lookup
+        public_map = {s.name: s.public for s in PUBLIC_TOOL_SPECS}
+        
         mcp_tools = await mcp.list_tools()
         tool_list = []
         
         for tool in mcp_tools:
-            # Include all tools from the canonical registry
-            if tool.name in tool_registry:
+            # Only include if in spec AND marked public
+            if public_map.get(tool.name):
                 tool_list.append(
                     {
                         "name": tool.name,

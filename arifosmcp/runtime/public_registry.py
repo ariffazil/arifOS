@@ -19,7 +19,7 @@ DEFAULT_PUBLIC_BASE_URL = "https://arifosmcp.arif-fazil.com"
 
 # Clean surface: All tools use functional names. No aliases in public registry.
 PUBLIC_TOOL_ALIASES = {}
-PUBLIC_TOOL_EXCLUSIONS = {"compat_probe"}
+PUBLIC_TOOL_EXCLUSIONS = set()
 
 
 def _public_spec_name(name: str) -> str:
@@ -49,13 +49,12 @@ def _transform_public_tool_spec(spec: ToolSpec) -> ToolSpec | None:
     )
 
 
-# Canonical 11 Mega-Tools
+# Canonical 9 Sovereign Core Tools
 CANONICAL_PUBLIC_TOOLS = frozenset(
     _public_spec_name(spec.name)
     for spec in PUBLIC_TOOL_SPECS
-    if spec.name not in PUBLIC_TOOL_EXCLUSIONS
 )
-EXPECTED_TOOL_COUNT = 11
+EXPECTED_TOOL_COUNT = 9
 
 # Mandatory schema for resource discovery
 RUNTIME_ENVELOPE_SCHEMA = {

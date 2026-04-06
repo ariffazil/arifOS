@@ -220,18 +220,17 @@ AAA_CANONICAL_TOOLS = [
 AAA_PUBLIC_TOOLS = AAA_CANONICAL_TOOLS
 
 AAA_TOOL_ALIASES = {
-    "init_anchor": "init_session_anchor",
-    "arifOS_kernel": "route_execution",
-    "apex_soul": "judge_verdict",
-    "apex_judge": "judge_verdict",
-    "vault_ledger": "record_vault_entry",
-    "agi_mind": "reason_synthesis",
-    "asi_heart": "critique_safety",
-    "engineering_memory": "load_memory_context",
-    "physics_reality": "sense_reality",
-    "math_estimator": "estimate_ops",
-    "code_engine": "execute_vps_task",
-    "architect_registry": "get_tool_registry",
+    "init_anchor": "arifos.init",
+    "arifOS_kernel": "arifos.route",
+    "apex_soul": "arifos.judge",
+    "apex_judge": "arifos.judge",
+    "vault_ledger": "arifos.vault",
+    "agi_mind": "arifos.mind",
+    "asi_heart": "arifos.heart",
+    "engineering_memory": "arifos.memory",
+    "physics_reality": "arifos.sense",
+    "math_estimator": "arifos.ops",
+    "architect_registry": "arifos.init",  # Merged into init
 }
 
 AAA_TOOL_STAGE_MAP = {

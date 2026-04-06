@@ -240,41 +240,14 @@ async def _wrap_call(
                 envelope.caller_state, envelope.blocked_tools, ac_dict
             )
 
-        # ── Philosophy Injection (APEX-G) ──
-        # Wire the 27-zone atlas philosophy to every tool output.
-        from arifosmcp.runtime.philosophy import select_governed_philosophy
-
-        g_score = 1.0
-        delta_s = 0.0
-        omega_score = 0.05  # Default F7 band center
-
-        if envelope.metrics and envelope.metrics.telemetry:
-            g_score = envelope.metrics.telemetry.G_star
-
-        # Extract entropy delta from envelope
-        if hasattr(envelope, "entropy") and envelope.entropy:
-            delta_s = getattr(envelope.entropy, "delta_s", 0.0)
-
-        failed_codes = [e.code for e in envelope.errors if str(e.code).startswith("F")]
-
-        # Force deep contrast for failures
-        if envelope.stage == "000_INIT" and envelope.verdict in (Verdict.VOID, Verdict.HOLD):
-            g_score = 0.33
-
-        envelope.philosophy = select_governed_philosophy(
-            context=str(
-                payload.get("query") or payload.get("intent") or payload.get("content") or tool_name
-            ),
-            stage=envelope.stage,
-            verdict=str(envelope.verdict.value)
-            if hasattr(envelope.verdict, "value")
-            else str(envelope.verdict),
-            g_score=g_score,
-            failed_floors=failed_codes,
-            session_id=session_id,
-            delta_s=delta_s,
-            omega_score=omega_score,
-        )
+        # ── Philosophy Injection ──
+        # Post-verdict symbolic reflection. ONLY G★ determines band.
+        # Rule 1: stage == "INIT" → S1 (Forge Principle)
+        # Rule 2: verdict == "SEAL" → S1 (Forge Principle)  
+        # Rule 3: Otherwise → band = floor(5 * G★)
+        from arifosmcp.runtime.philosophy_registry import inject_philosophy
+        
+        envelope.philosophy = inject_philosophy(envelope)
 
         # Final ABI Alignment: Sync flags from payload to authority
         if envelope.payload and "human_approval_persisted" in envelope.payload:

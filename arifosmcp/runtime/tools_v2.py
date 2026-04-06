@@ -1,10 +1,16 @@
 """
 arifosmcp/runtime/tools_v2.py — arifOS MCP v2 Sovereign Core Implementation
 
-9 canonical tools, clean implementation, MCP-standard compliant.
+10 canonical tools, clean implementation, MCP-standard compliant.
+
+The 10th Tool (arifos.forge) is the Delegated Execution Bridge:
+  • Requires judge verdict = SEAL
+  • Issues signed execution manifest
+  • Dispatches to AF-FORGE substrate
+  • Preserves separation of powers
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
-"""
+""'
 
 from __future__ import annotations
 
@@ -19,11 +25,8 @@ from arifosmcp.runtime.contracts import (
 
 # RuntimeEnvelope is a dict type for tool outputs
 RuntimeEnvelope = dict[str, Any]
-from arifosmcp.runtime.philosophy_registry import (
-    inject_philosophy,
-    select_by_verdict,
-    select_by_g_star,
-)
+# Philosophy injection removed from tools - happens centrally in _wrap_call()
+# to ensure ONLY G★ determines band, never tool identity
 from arifosmcp.runtime.megaTools import (
     agi_mind as _mega_agi_mind,
     apex_judge as _mega_apex_judge,
@@ -66,8 +69,7 @@ async def arifos_init(
         allow_execution=allow_execution,
         debug=debug,
     )
-    sealed = seal_runtime_envelope(envelope, "arifos.init")
-    return inject_philosophy(sealed, stage="000")
+    return seal_runtime_envelope(envelope, "arifos.init")
 
 
 async def arifos_sense(
@@ -87,8 +89,7 @@ async def arifos_sense(
         dry_run=dry_run,
         debug=debug,
     )
-    sealed = seal_runtime_envelope(envelope, "arifos.sense")
-    return inject_philosophy(sealed, stage="111")
+    return seal_runtime_envelope(envelope, "arifos.sense")
 
 
 async def arifos_mind(
@@ -109,8 +110,7 @@ async def arifos_mind(
         dry_run=dry_run,
         debug=debug,
     )
-    sealed = seal_runtime_envelope(envelope, "arifos.mind")
-    return inject_philosophy(sealed, stage="333")
+    return seal_runtime_envelope(envelope, "arifos.mind")
 
 
 async def arifos_route(
@@ -132,8 +132,7 @@ async def arifos_route(
         allow_execution=allow_execution,
         debug=debug,
     )
-    sealed = seal_runtime_envelope(envelope, "arifos.route")
-    return inject_philosophy(sealed, stage="444")
+    return seal_runtime_envelope(envelope, "arifos.route")
 
 
 async def arifos_heart(
@@ -153,8 +152,7 @@ async def arifos_heart(
         dry_run=dry_run,
         debug=debug,
     )
-    sealed = seal_runtime_envelope(envelope, "arifos.heart")
-    return inject_philosophy(sealed, stage="666")
+    return seal_runtime_envelope(envelope, "arifos.heart")
 
 
 async def arifos_ops(
@@ -174,8 +172,7 @@ async def arifos_ops(
         dry_run=dry_run,
         debug=debug,
     )
-    sealed = seal_runtime_envelope(envelope, "arifos.ops")
-    return inject_philosophy(sealed, stage="777")
+    return seal_runtime_envelope(envelope, "arifos.ops")
 
 
 async def arifos_judge(
@@ -199,11 +196,7 @@ async def arifos_judge(
         dry_run=dry_run,
         debug=debug,
     )
-    sealed = seal_runtime_envelope(envelope, "arifos.judge")
-    
-    # Inject philosophy based on verdict
-    verdict = sealed.get("verdict", "PARTIAL") if isinstance(sealed, dict) else "PARTIAL"
-    return inject_philosophy(sealed, verdict=verdict)
+    return seal_runtime_envelope(envelope, "arifos.judge")
 
 
 async def arifos_memory(
@@ -223,8 +216,7 @@ async def arifos_memory(
         dry_run=dry_run,
         debug=debug,
     )
-    sealed = seal_runtime_envelope(envelope, "arifos.memory")
-    return inject_philosophy(sealed, stage="555")
+    return seal_runtime_envelope(envelope, "arifos.memory")
 
 
 async def arifos_vault(
@@ -244,13 +236,15 @@ async def arifos_vault(
         dry_run=dry_run,
         debug=debug,
     )
-    sealed = seal_runtime_envelope(envelope, "arifos.vault")
-    return inject_philosophy(sealed, stage="999")
+    return seal_runtime_envelope(envelope, "arifos.vault")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # V2 TOOL HANDLER REGISTRY
 # ═══════════════════════════════════════════════════════════════════════════════
+
+# Import the 10th tool (Delegated Execution Bridge)
+from arifosmcp.runtime.tools_v2_forge import arifos_forge
 
 V2_TOOL_HANDLERS: dict[str, Any] = {
     "arifos.init": arifos_init,
@@ -262,6 +256,7 @@ V2_TOOL_HANDLERS: dict[str, Any] = {
     "arifos.judge": arifos_judge,
     "arifos.memory": arifos_memory,
     "arifos.vault": arifos_vault,
+    "arifos.forge": arifos_forge,  # The 10th Tool — Delegated Execution
 }
 
 

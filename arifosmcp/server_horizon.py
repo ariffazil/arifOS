@@ -76,19 +76,36 @@ MCP_PROTOCOL_VERSION = "2025-11-05"
 
 mcp = FastMCP("arifOS Horizon Gateway (v3 Registry-Driven)")
 
+# V2 Tool Name Mapping — Horizon exposes old names, proxies to v2 canonical names
+# This maintains backward compatibility while using the v2 architecture
+HORIZON_TO_V2_MAP = {
+    # Horizon Name → v2 Canonical Name
+    "init_anchor": "arifos.init",           # 000_INIT
+    "arifOS_kernel": "arifos.route",        # 444_ROUTER (the kernel)
+    "physics_reality": "arifos.sense",      # 111_SENSE
+    "agi_mind": "arifos.mind",              # 333_MIND
+    "asi_heart": "arifos.heart",            # 666_HEART
+    "math_estimator": "arifos.ops",         # 777_OPS
+    "apex_soul": "arifos.judge",            # 888_JUDGE
+    "engineering_memory": "arifos.memory",  # 555_MEMORY
+    "vault_ledger": "arifos.vault",         # 999_VAULT (the seal)
+    "code_engine": "arifos.forge",          # FORGE_010 (execution bridge)
+    "architect_registry": "arifos.init",    # Registry folded into init
+}
+
 PUBLIC_PROXY_SPECS = {
-    # 11 canonical mega-tools — aligned with contracts.py AAA_CANONICAL_TOOLS
-    "init_session_anchor": "000_INIT: Start a governed constitutional session.",
-    "get_tool_registry":   "M-4_ARCH: Discover arifOS tool graph and capabilities.",
-    "sense_reality":       "111_SENSE: Time grounding and reality verification.",
-    "reason_synthesis":    "333_MIND: Multi-source synthesis and reasoning.",
-    "critique_safety":     "666_HEART: Safety and adversarial critique.",
-    "route_execution":     "444_ROUTER: Route request to metabolic lane.",
-    "load_memory_context": "555_MEMORY: Retrieve governed vector memory.",
-    "estimate_ops":        "444_ROUTER: Calculate costs and thermodynamics.",
-    "judge_verdict":       "888_JUDGE: Final constitutional verdict.",
-    "record_vault_entry":  "999_VAULT: Append immutable verdict record.",
-    "execute_vps_task":    "M-3_EXEC: VPS execution tasks.",
+    # 10 canonical v2 tools — mapped from Horizon names to v2 names
+    "init_anchor":         "000_INIT: Start a governed constitutional session.",
+    "arifOS_kernel":       "444_ROUTER: Primary metabolic conductor (the kernel).",
+    "physics_reality":     "111_SENSE: Time grounding and reality verification.",
+    "agi_mind":            "333_MIND: Multi-source synthesis and reasoning.",
+    "asi_heart":           "666_HEART: Safety and adversarial critique.",
+    "math_estimator":      "777_OPS: Calculate costs and thermodynamics.",
+    "apex_soul":           "888_JUDGE: Final constitutional verdict.",
+    "engineering_memory":  "555_MEMORY: Retrieve governed vector memory.",
+    "vault_ledger":        "999_VAULT: Append immutable verdict record (the seal).",
+    "code_engine":         "FORGE_010: Delegated execution bridge to AF-FORGE.",
+    "architect_registry":  "M-4_ARCH: Discover arifOS tool graph and capabilities.",
 }
 
 AUTHENTICATED_TOOLS = sorted(
@@ -195,13 +212,22 @@ def _typed_horizon_error(
 
 
 async def _proxy_to_vps(tool_name: str, arguments: dict) -> dict:
-    """Helper to forward tool calls to the VPS Kernel."""
+    """Helper to forward tool calls to the VPS Kernel.
+    
+    Maps Horizon tool names to v2 canonical names before proxying.
+    """
     import time as _time
     _start = _time.monotonic()
+    
+    # Map Horizon name to v2 canonical name
+    v2_tool_name = HORIZON_TO_V2_MAP.get(tool_name, tool_name)
+    if v2_tool_name != tool_name:
+        logger.debug(f"Horizon mapping: {tool_name} → {v2_tool_name}")
+    
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
-                f"{VPS_URL}/tools/{tool_name}",
+                f"{VPS_URL}/tools/{v2_tool_name}",
                 json=arguments,
                 headers={
                     "X-ArifOS-Source": "Horizon",
@@ -858,12 +884,21 @@ async def execute_vps_task(
 async def get_constitutional_health(session_id: Optional[str] = None) -> dict:
     """ChatGPT subset: Read-only constitutional health view for widget rendering."""
     WIDGET_URL = "https://mcp.af-forge.io/widget/vault-seal"
+    # Use arifos.ops (math_estimator) for health check
     raw = await _proxy_to_vps("math_estimator", {"query": "health", "session_id": session_id, "mode": "health"})
+    
+    # Determine status based on upstream response
+    upstream_status = raw.get("status", "error")
+    is_healthy = upstream_status not in ("error", "VOID", "HOLD") and raw.get("ok", False)
+    
     return {
-        "status": raw.get("status", "HEALTHY"),
+        "status": "healthy" if is_healthy else "degraded",
         "floors_active": 13,
-        "tools_loaded": 11,
-        "version": raw.get("version", "2026.4.6"),
+        "tools_loaded": 10,  # 10 canonical v2 tools
+        "tools": list(HORIZON_TO_V2_MAP.keys()),
+        "version": ARIFOS_VERSION,
+        "protocol_version": MCP_PROTOCOL_VERSION,
+        "upstream_vps": await _upstream_status(),
         "telemetry": raw.get("metrics", {}),
         "widget_uri": WIDGET_URL,
         "_meta": {"ui": {"resourceUri": WIDGET_URL}},

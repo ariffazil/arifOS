@@ -20,7 +20,7 @@ from arifosmcp.runtime.rest_routes import register_rest_routes
 from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS, register_tools
 from arifosmcp.runtime.public_registry import public_tool_names as _public_tool_names
 
-# ChatGPT Apps SDK tools ENABLED (14 total tools: 11 canonical + 3 ChatGPT)
+# ChatGPT Apps SDK tools ENABLED (12 total tools: 9 canonical + 3 ChatGPT)
 _CHATGPT_TOOLS: dict[str, Any] = {
     "get_constitutional_health": None,
     "list_recent_verdicts": None,
@@ -37,7 +37,7 @@ try:
 except ImportError as e:
     logger.warning(f"Could not import ChatGPT tools: {e}")
 
-# REST surface: canonical tools + ChatGPT Apps SDK tools (14 total)
+# REST surface: canonical tools + ChatGPT Apps SDK tools (12 total)
 _CANONICAL_TOOL_IMPLEMENTATIONS = {**CANONICAL_TOOL_HANDLERS, **_CHATGPT_TOOLS}
 from fastapi import FastAPI
 from fastmcp import FastMCP

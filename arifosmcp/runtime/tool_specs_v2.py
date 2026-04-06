@@ -240,6 +240,33 @@ V2_TOOLS: tuple[ToolSpecV2, ...] = (
             },
         },
     ),
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 10. arifos.forge — Delegated Execution Bridge (was shell_forge)
+    # ─────────────────────────────────────────────────────────────────────────
+    ToolSpecV2(
+        name="arifos.forge",
+        stage="010",
+        purpose="Delegated execution to AF-FORGE substrate",
+        layer="EXECUTION",
+        description="Issue signed execution manifest to AF-FORGE substrate. Requires judge SEAL. Preserves separation of powers.",
+        trinity="Δ",
+        floors=("F1", "F2", "F7", "F13"),
+        input_schema={
+            "type": "object",
+            "required": ["action", "payload", "session_id", "judge_verdict", "judge_g_star"],
+            "properties": {
+                "action": {"type": "string", "enum": ["shell", "api_call", "contract", "compute", "container", "vm"], "description": "Execution type"},
+                "payload": {"type": "object", "description": "Action-specific parameters"},
+                "session_id": {"type": "string"},
+                "judge_verdict": {"type": "string", "enum": ["SEAL"], "description": "Must be SEAL from arifos.judge"},
+                "judge_g_star": {"type": "number", "minimum": 0.0, "maximum": 1.0, "description": "G★ score at time of verdict"},
+                "constraints": {"type": "object", "description": "Resource limits (cpu, memory, timeout)"},
+                "dry_run": {"type": "boolean", "default": True, "description": "Generate manifest without dispatch"},
+                "af_forge_endpoint": {"type": "string", "description": "Target substrate endpoint"},
+            },
+        },
+    ),
 )
 
 # ═══════════════════════════════════════════════════════════════════════════════
