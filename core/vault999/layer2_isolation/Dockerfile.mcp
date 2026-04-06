@@ -1,0 +1,47 @@
+# Layer 2: Blast Radius Isolation — MCP Container
+# 
+# Design principles:
+# - Read-only root filesystem
+# - No new privileges
+# - No exec capabilities
+# - Minimal attack surface
+# - Runs as unprivileged user
+
+FROM python:3.11-slim as builder
+
+# Build dependencies
+WORKDIR /build
+COPY requirements.mcp.txt .
+RUN pip install --user --no-cache-dir -r requirements.mcp.txt
+
+# Production image — minimal, hardened
+FROM gcr.io/distroless/python3-debian12
+
+# Copy only necessary artifacts
+COPY --from=builder /root/.local /home/nonroot/.local
+COPY --chown=nonroot:nonroot arifosmcp/ /app/arifosmcp/
+COPY --chown=nonroot:nonroot core/ /app/core/
+
+# Non-root user
+USER 65534:65534
+
+# Read-only root filesystem
+# (Mount any needed tmp dirs as volumes)
+WORKDIR /app
+
+# No shell, no package manager — just the Python runtime
+# This prevents:
+# - Exec into container for debugging (reduces attack surface)
+# - Installing tools post-compromise
+# - Privilege escalation via setuid
+
+# Health check (minimal)
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD ["/app/arifosmcp/healthcheck.py"]
+
+# Expose only necessary port
+EXPOSE 8080
+
+# Run with minimal privileges
+ENTRYPOINT ["python3", "-m", "arifosmcp.server"]
+CMD ["--port", "8080", "--readonly"]

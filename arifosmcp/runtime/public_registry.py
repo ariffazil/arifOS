@@ -54,7 +54,7 @@ CANONICAL_PUBLIC_TOOLS = frozenset(
     _public_spec_name(spec.name)
     for spec in PUBLIC_TOOL_SPECS
 )
-EXPECTED_TOOL_COUNT = 9
+EXPECTED_TOOL_COUNT = 10
 
 # Mandatory schema for resource discovery
 RUNTIME_ENVELOPE_SCHEMA = {

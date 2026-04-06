@@ -1,0 +1,111 @@
+# Layer 2: Network Segmentation Policies
+# 
+# Prevents lateral movement if one component is compromised.
+# Applied via Kubernetes NetworkPolicy or Docker Compose networks.
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mcp-isolation
+  namespace: arifos
+spec:
+  podSelector:
+    matchLabels:
+      app: mcp-server
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Only accept connections from ingress controller
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    # MCP can only talk to:
+    # - VAULT999 (output)
+    # - Redis (caching)
+    - to:
+        - podSelector:
+            matchLabels:
+              app: vault999
+      ports:
+        - protocol: TCP
+          port: 8080
+    - to:
+        - podSelector:
+            matchLabels:
+              app: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+    # No direct access to Forge, databases, or external networks
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: forge-isolation
+  namespace: arifos
+spec:
+  podSelector:
+    matchLabels:
+      app: forge
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Forge only accepts requests from MCP
+    - from:
+        - podSelector:
+            matchLabels:
+              app: mcp-server
+      ports:
+        - protocol: TCP
+          port: 8081
+  egress:
+    # Forge can only:
+    # - Write to VAULT999
+    # - Query KMS
+    - to:
+        - podSelector:
+            matchLabels:
+              app: vault999
+      ports:
+        - protocol: TCP
+          port: 8080
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kms
+      ports:
+        - protocol: TCP
+          port: 443
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vault999-isolation
+  namespace: arifos
+spec:
+  podSelector:
+    matchLabels:
+      app: vault999
+  policyTypes:
+    - Ingress
+  ingress:
+    # VAULT999 accepts from MCP and Forge only
+    - from:
+        - podSelector:
+            matchLabels:
+              app: mcp-server
+        - podSelector:
+            matchLabels:
+              app: forge
+      ports:
+        - protocol: TCP
+          port: 8080
+  # VAULT999 has NO egress — it's a sink
+  egress: []

@@ -1,0 +1,38 @@
+# Layer 2: Blast Radius Isolation — FORGE Container
+#
+# The forge is where execution happens. It must be:
+# - Ephemeral (stateless)
+# - Isolated from MCP
+# - Limited network access
+# - Able to verify execution envelopes before acting
+
+FROM python:3.11-slim as builder
+
+WORKDIR /build
+COPY requirements.forge.txt .
+RUN pip install --user --no-cache-dir -r requirements.forge.txt
+
+# Production image
+FROM gcr.io/distroless/python3-debian12
+
+# Copy forge code
+COPY --from=builder /root/.local /home/nonroot/.local
+COPY --chown=nonroot:nonroot core/vault999/layer3_attestation/ /app/attestation/
+COPY --chown=nonroot:nonroot core/forge/ /app/forge/
+
+USER 65534:65534
+WORKDIR /app
+
+# Forge-specific: Must verify signatures before execution
+# Keys are mounted from KMS, not baked into image
+VOLUME ["/secrets/kms"]
+
+# No network egress except to:
+# - VAULT999 (for output)
+# - KMS (for signing verification)
+# This is enforced by network policies, not container config
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD ["python3", "-c", "import forge.health; forge.health.check()"]
+
+ENTRYPOINT ["python3", "-m", "forge.executor"]

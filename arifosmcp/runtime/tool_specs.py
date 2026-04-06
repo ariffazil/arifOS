@@ -212,7 +212,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
                 "target": {"type": "string"},
                 "constraints": {"type": "object"},
             },
-            required=["execution_envelope"],
+            required_payload=["execution_envelope"],
         ),
     ),
 )
