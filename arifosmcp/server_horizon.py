@@ -17,6 +17,7 @@ import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
 import sys as _sys
 from pathlib import Path as _Path
@@ -67,15 +68,6 @@ CONSTITUTIONAL_HASH = compute_registry_hash(TOOL_REGISTRY)
 logger.info("✅ ARIFOS: CONSTITUTIONAL HASH (v1) LOADED: %s", CONSTITUTIONAL_HASH)
 
 
-# --- Phase 2: Dynamic Tool Specification Generation ---
-def generate_tool_specs() -> dict[str, str]:
-    specs = {}
-    for tool_data in TOOL_REGISTRY.get("tools", []):
-        if tool_data.get("type") == "function":
-            func = tool_data["function"]
-            specs[func["name"]] = func["description"]
-    return specs
-
 # Configuration
 VPS_URL = os.getenv("ARIFOS_VPS_URL", "https://arifosmcp.arif-fazil.com")
 ARIFOS_GOVERNANCE_SECRET = os.getenv("ARIFOS_GOVERNANCE_SECRET", "")
@@ -84,7 +76,20 @@ MCP_PROTOCOL_VERSION = "2025-11-05"
 
 mcp = FastMCP("arifOS Horizon Gateway (v3 Registry-Driven)")
 
-PUBLIC_PROXY_SPECS = generate_tool_specs()
+PUBLIC_PROXY_SPECS = {
+    # 11 canonical mega-tools — matches TOOL_ACCESS_POLICY + public_tool_names()
+    "init_anchor":        "000_INIT: Constitutional session anchor — identity, state, revoke, refresh.",
+    "arifOS_kernel":      "444_ROUTER: Primary metabolic conductor — routes through the 000-999 pipe.",
+    "apex_soul":          "888_JUDGE: Final constitutional verdict — judge, validate, hold, armor, probe.",
+    "vault_ledger":       "999_VAULT: Immutable decision recording — seal and verify. (Requires auth)",
+    "agi_mind":           "333_MIND: Core reasoning and synthesis — reason, reflect, forge.",
+    "asi_heart":          "666_HEART: Safety and empathy modeling — critique, simulate.",
+    "engineering_memory": "555_MEMORY: Vector memory and governed engineering. (Requires auth)",
+    "physics_reality":    "111_SENSE: Reality grounding — search, ingest, compass, atlas, time.",
+    "math_estimator":     "777_OPS: Thermodynamic vitals — cost, health, vitals, entropy.",
+    "code_engine":        "M-3_EXEC: System-level execution. (Sovereign VPS only)",
+    "architect_registry": "M-4_ARCH: Tool and model registry — list, read, model_catalog.",
+}
 
 AUTHENTICATED_TOOLS = sorted(
     name for name, access in TOOL_ACCESS_POLICY.items() if access == ToolAccessClass.AUTHENTICATED.value
@@ -259,25 +264,170 @@ async def _gateway_call(tool_name: str, arguments: dict) -> dict:
     }
 
 
-def _make_proxy_tool(name: str, desc: str):
-    """Factory that creates a proxy tool with fixed name/description."""
-    async def _proxy_tool(payload: dict | None = None) -> dict:
-        return await _gateway_call(name, payload or {})
-    _proxy_tool.__name__ = f"proxy_{name.replace('-', '_')}"
-    _proxy_tool.__doc__ = desc
-    return _proxy_tool
-
-
-def _register_public_proxy_tools() -> None:
-    for tool_name, description in PUBLIC_PROXY_SPECS.items():
-        proxy_fn = _make_proxy_tool(tool_name, description)
-        mcp.tool(name=tool_name)(proxy_fn)
-
-
-_register_public_proxy_tools()
+@mcp.tool()
+async def init_anchor(
+    actor_id: str = "anonymous",
+    mode: str = "init",
+    declared_name: Optional[str] = None,
+    intent: Optional[str] = None,
+) -> dict:
+    """000_INIT: Initialize constitutional session anchor."""
+    return await _proxy_to_vps(
+        "init_anchor",
+        {
+            "actor_id": actor_id,
+            "mode": mode,
+            "declared_name": declared_name,
+            "intent": intent,
+        },
+    )
 
 
 @mcp.tool()
+async def arifOS_kernel(
+    query: str,
+    session_id: Optional[str] = None,
+    mode: str = "kernel",
+) -> dict:
+    """444_ROUTER: Primary metabolic conductor."""
+    return await _proxy_to_vps(
+        "arifOS_kernel",
+        {
+            "query": query,
+            "session_id": session_id,
+            "mode": mode,
+        },
+    )
+
+
+@mcp.tool()
+async def apex_soul(
+    query: str,
+    session_id: Optional[str] = None,
+    mode: str = "validate",
+) -> dict:
+    """888_JUDGE: Final constitutional verdict — judge, validate, hold, armor, probe."""
+    return await _proxy_to_vps(
+        "apex_soul",
+        {"query": query, "session_id": session_id, "mode": mode},
+    )
+
+
+@mcp.tool()
+async def agi_mind(
+    query: str,
+    session_id: Optional[str] = None,
+    mode: str = "reason",
+) -> dict:
+    """333_MIND: Reasoning and synthesis engine."""
+    return await _proxy_to_vps(
+        "agi_mind",
+        {
+            "query": query,
+            "session_id": session_id,
+            "mode": mode,
+        },
+    )
+
+
+@mcp.tool()
+async def asi_heart(
+    query: str,
+    session_id: Optional[str] = None,
+    mode: str = "critique",
+) -> dict:
+    """666_HEART: Safety and empathy critique."""
+    return await _proxy_to_vps(
+        "asi_heart",
+        {
+            "query": query,
+            "session_id": session_id,
+            "mode": mode,
+        },
+    )
+
+
+@mcp.tool()
+async def physics_reality(
+    query: str,
+    session_id: Optional[str] = None,
+    mode: str = "search",
+) -> dict:
+    """111_SENSE: Reality grounding and temporal intelligence."""
+    return await _proxy_to_vps(
+        "physics_reality",
+        {
+            "query": query,
+            "session_id": session_id,
+            "mode": mode,
+        },
+    )
+
+
+@mcp.tool()
+async def math_estimator(
+    query: str = "status",
+    session_id: Optional[str] = None,
+    mode: str = "cost",
+) -> dict:
+    """777_OPS: Thermodynamic vitals and cost estimation."""
+    return await _proxy_to_vps(
+        "math_estimator",
+        {
+            "query": query,
+            "session_id": session_id,
+            "mode": mode,
+        },
+    )
+
+
+@mcp.tool()
+async def architect_registry(
+    query: str = "list",
+    session_id: Optional[str] = None,
+    mode: str = "list",
+) -> dict:
+    """000_INIT: Tool and resource discovery."""
+    return await _proxy_to_vps(
+        "architect_registry",
+        {
+            "query": query,
+            "session_id": session_id,
+            "mode": mode,
+        },
+    )
+
+
+@mcp.tool()
+async def vault_ledger(
+    action: str,
+    session_id: Optional[str] = None,
+    mode: str = "seal",
+) -> dict:
+    """999_VAULT: Immutable decision recording — seal and verify. Requires authenticated session."""
+    return await _gateway_call("vault_ledger", {"action": action, "session_id": session_id, "mode": mode})
+
+
+@mcp.tool()
+async def engineering_memory(
+    query: str,
+    session_id: Optional[str] = None,
+    mode: str = "vector_query",
+) -> dict:
+    """555_MEMORY: Governed engineering and vector memory. Requires authenticated session."""
+    return await _gateway_call("engineering_memory", {"query": query, "session_id": session_id, "mode": mode})
+
+
+@mcp.tool()
+async def code_engine(
+    query: str = "status",
+    session_id: Optional[str] = None,
+    mode: str = "process",
+) -> dict:
+    """M-3_EXEC: System-level execution. Sovereign VPS only — returns redirect to VPS endpoint."""
+    return await _gateway_call("code_engine", {"query": query, "session_id": session_id, "mode": mode})
+
+
 async def gateway_registry() -> dict:
     """Return the unified Horizon gateway policy for the public entrypoint."""
     return {
