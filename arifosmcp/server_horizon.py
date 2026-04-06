@@ -23,6 +23,9 @@ from arifosmcp.runtime.fastmcp_version import JSONResponse, Request, custom_rout
 from config.environments import TOOL_ACCESS_POLICY, ToolAccessClass
 from fastmcp import FastMCP
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("horizon-ambassador")
+
 # --- Phase 1: Canonical Registry Loading ---
 REGISTRY_PATH = Path(__file__).parent / "tool_registry.json"
 with open(REGISTRY_PATH, "r") as f:
@@ -35,7 +38,7 @@ def compute_registry_hash(data):
     ).hexdigest()
 
 CONSTITUTIONAL_HASH = compute_registry_hash(TOOL_REGISTRY)
-print(f"✅ ARIFOS: CONSTITUTIONAL HASH (v1) LOADED: {CONSTITUTIONAL_HASH}")
+logger.info("✅ ARIFOS: CONSTITUTIONAL HASH (v1) LOADED: %s", CONSTITUTIONAL_HASH)
 
 
 # --- Phase 2: Dynamic Tool Specification Generation ---
@@ -51,11 +54,9 @@ def generate_tool_specs() -> dict[str, str]:
 VPS_URL = os.getenv("ARIFOS_VPS_URL", "https://arifosmcp.arif-fazil.com")
 ARIFOS_GOVERNANCE_SECRET = os.getenv("ARIFOS_GOVERNANCE_SECRET", "")
 ARIFOS_VERSION = os.getenv("ARIFOS_VERSION", "2026.04.06")
-MCP_PROTOCOL_VERSION = "2026-04-06"
+MCP_PROTOCOL_VERSION = "2025-11-05"
 
 mcp = FastMCP("arifOS Horizon Gateway (v3 Registry-Driven)")
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("horizon-ambassador")
 
 PUBLIC_PROXY_SPECS = generate_tool_specs()
 
