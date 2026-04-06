@@ -576,12 +576,32 @@ services:
     security_opt:
       - no-new-privileges:true
 
-  # --- AAA Landing (L3 Layer) ---
+  # --- arif-fazil.com (Ring 1 — Human Sovereign) ---
+  arif-landing:
+    image: nginx:alpine
+    container_name: arif_landing
+    volumes:
+      - /root/arif-sites/arif/dist:/usr/share/nginx/html:ro
+      - /root/arifOS/infrastructure/nginx/spa.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - arifos_trinity
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.arif-landing.rule=Host(`arif-fazil.com`)"
+      - "traefik.http.routers.arif-landing.entrypoints=websecure"
+      - "traefik.http.routers.arif-landing.tls.certresolver=letsencrypt"
+      - "traefik.http.services.arif-landing.loadbalancer.server.port=80"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  # --- AAA Landing (Ring 3 — AAA Surface) ---
   aaa-landing:
     image: nginx:alpine
     container_name: arifos_aaa_landing
     volumes:
-      - ./sites/aaa-mcp-landing:/usr/share/nginx/html:ro
+      - /root/arif-sites/aaa/dist:/usr/share/nginx/html:ro
+      - /root/arifOS/infrastructure/nginx/spa.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - arifos_trinity
     labels:
@@ -591,6 +611,26 @@ services:
       - "traefik.http.routers.aaa-landing.tls.certresolver=letsencrypt"
       - "traefik.http.services.aaa-landing.loadbalancer.server.port=80"
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  # --- forge.arif-fazil.com (AF.A.FORGE Portal) ---
+  forge-landing:
+    image: nginx:alpine
+    container_name: forge_landing
+    volumes:
+      - /root/arif-sites/theory:/usr/share/nginx/html:ro
+    networks:
+      - arifos_trinity
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.forge-landing.rule=Host(`forge.arif-fazil.com`)"
+      - "traefik.http.routers.forge-landing.entrypoints=websecure"
+      - "traefik.http.routers.forge-landing.tls.certresolver=letsencrypt"
+      - "traefik.http.services.forge-landing.loadbalancer.server.port=80"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
 
   # --- Webhook Auto-Deploy ---
   webhook:
