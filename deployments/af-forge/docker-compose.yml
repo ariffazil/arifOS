@@ -37,6 +37,7 @@ services:
       ARIFOS_BUILD_SHA: ${ARIFOS_BUILD_SHA:-dev}
       ARIFOS_BUILD_TIME: ${ARIFOS_BUILD_TIME:-unknown}
       ARIFOS_APP_VERSION: ${ARIFOS_APP_VERSION:-2026.04.06}
+      GIT_COMMIT: ${ARIFOS_BUILD_SHA:-dev}
       
       # Federation endpoint (for reference)
       ARIFOS_VPS_URL: ${ARIFOS_VPS_URL:-https://arifos.federation}
@@ -58,7 +59,13 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-    
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
     networks:
       - arifos-network
 

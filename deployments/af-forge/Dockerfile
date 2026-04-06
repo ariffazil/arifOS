@@ -3,61 +3,29 @@
 # 
 # Build: docker build -t arifos-mcp:af-forge -f deployments/af-forge/Dockerfile .
 # Run:   docker run -p 3000:3000 -e ARIFOS_MCP_TRANSPORT=http arifos-mcp:af-forge
-#
-# Multi-stage build for optimized production image
 
-# ─── Stage 1: Builder ─────────────────────────────────────────────────────────
-FROM python:3.12-slim AS builder
-
-WORKDIR /build
-
-# Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    libpq-dev \
-    git \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements first for layer caching
-COPY pyproject.toml ./
-COPY requirements*.txt ./
-
-# Install Python dependencies
-RUN pip install --no-cache-dir --user \
-    fastmcp>=2.0.0 \
-    fastapi>=0.110.0 \
-    httpx>=0.27.0 \
-    pydantic>=2.0.0 \
-    py-ecc>=7.0.0 \
-    starlette>=0.37.0 \
-    uvicorn>=0.29.0 \
-    sentence-transformers \
-    torch --index-url https://download.pytorch.org/whl/cpu
-
-# ─── Stage 2: Production ──────────────────────────────────────────────────────
-FROM python:3.12-slim AS production
+FROM python:3.12-slim
 
 WORKDIR /app
 
-# Create non-root user for security
-RUN groupadd -r arifos && useradd -r -g arifos arifos
-
-# Install runtime dependencies only
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
     curl \
     ca-certificates \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Python packages from builder
-COPY --from=builder /root/.local /home/arifos/.local
-ENV PATH=/home/arifos/.local/bin:$PATH
+# Create non-root user
+RUN groupadd -r arifos && useradd -r -g arifos arifos
+
+# Copy and install Python dependencies
+COPY pyproject.toml ./
+RUN pip install --no-cache-dir -e . 2>/dev/null || pip install --no-cache-dir fastmcp fastapi uvicorn starlette pydantic httpx
 
 # Copy application code
 COPY --chown=arifos:arifos arifosmcp/ ./arifosmcp/
 COPY --chown=arifos:arifos core/ ./core/
 COPY --chown=arifos:arifos static/ ./static/
-COPY --chown=arifos:arifos pyproject.toml ./
 
 # Build metadata (passed at build time)
 ARG ARIFOS_BUILD_SHA=dev
@@ -88,5 +56,5 @@ ENV ARIFOS_MCP_TRANSPORT=http
 ENV ARIFOS_MCP_HOST=0.0.0.0
 ENV ARIFOS_MCP_PORT=3000
 
-# Run the MCP server via __main__.py (respects ARIFOS_MCP_* env vars)
-CMD ["python", "-m", "arifosmcp.runtime"]
+# Run the MCP server
+CMD ["python", "-m", "arifosmcp.runtime.server"]

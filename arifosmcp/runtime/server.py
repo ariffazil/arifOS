@@ -20,8 +20,25 @@ from arifosmcp.runtime.rest_routes import register_rest_routes
 from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS, register_tools
 from arifosmcp.runtime.public_registry import public_tool_names as _public_tool_names
 
-# Only expose the 11 canonical mega-tools on the REST surface (mirrors FastMCP surface)
-_CANONICAL_TOOL_IMPLEMENTATIONS = CANONICAL_TOOL_HANDLERS
+# Combine canonical tools with ChatGPT Apps SDK tools for REST surface
+_CHATGPT_TOOLS = {
+    "get_constitutional_health": None,  # Will be resolved from tools module
+    "list_recent_verdicts": None,
+    "render_vault_seal": None,
+}
+
+# Import ChatGPT tool handlers
+try:
+    from arifosmcp.runtime.tools import get_constitutional_health, list_recent_verdicts
+    from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import render_vault_seal
+    _CHATGPT_TOOLS["get_constitutional_health"] = get_constitutional_health
+    _CHATGPT_TOOLS["list_recent_verdicts"] = list_recent_verdicts
+    _CHATGPT_TOOLS["render_vault_seal"] = render_vault_seal
+except ImportError as e:
+    logger.warning(f"Could not import ChatGPT tools: {e}")
+
+# REST surface: canonical tools + ChatGPT Apps SDK tools
+_CANONICAL_TOOL_IMPLEMENTATIONS = {**CANONICAL_TOOL_HANDLERS, **_CHATGPT_TOOLS}
 from fastapi import FastAPI
 from fastmcp import FastMCP
 from starlette.middleware.base import BaseHTTPMiddleware
