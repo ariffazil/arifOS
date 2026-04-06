@@ -754,6 +754,34 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  # ═════════════════════════════════════════════════════════════════
+  # GEOX: Earth-Witness MCP Server
+  # ═════════════════════════════════════════════════════════════════
+  geox:
+    image: arifos/geox:latest
+    container_name: geox
+    environment:
+      - GEOX_PORT=8000
+      - GEOX_TRANSPORT=http
+      - PYTHONUNBUFFERED=1
+    command: ["python", "geox_mcp_server.py", "--transport", "http", "--port", "8000", "--host", "0.0.0.0"]
+    networks:
+      - arifos_trinity
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --max-time 3 http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.geox.rule=Host(`geox.arif-fazil.com`) || Host(`geox.arifosmcp.arif-fazil.com`)"
+      - "traefik.http.routers.geox.entrypoints=websecure"
+      - "traefik.http.routers.geox.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.geox.middlewares=a2a-auth"
+      - "traefik.http.services.geox.loadbalancer.server.port=8000"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
 
 # --- Persistent Volumes for arifosmcp ---
 
