@@ -199,9 +199,13 @@ register_rest_routes(mcp, _CANONICAL_TOOL_IMPLEMENTATIONS)
 # Register ChatGPT Deep Research tools (search + fetch)
 try:
     logger.info("[ChatGPT] Attempting to register tools...")
-    from arifosmcp.runtime.chatgpt_integration.chatgpt_tools import register_chatgpt_tools
+    from arifosmcp.runtime.chatgpt_integration import (
+        register_chatgpt_app_tools,
+        register_chatgpt_tools,
+    )
     logger.info("[ChatGPT] Import successful")
     register_chatgpt_tools(mcp)
+    register_chatgpt_app_tools(mcp)
     logger.info("[ChatGPT] Deep Research tools registered (search + fetch)")
 except Exception as e:
     import traceback
@@ -229,8 +233,8 @@ app.add_middleware(SSEKeepAliveMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["GET", "POST"],
-    allow_headers=["X-API-Key", "Content-Type"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_headers=["X-API-Key", "Content-Type", "Authorization", "X-MCP-Protocol"],
 )
 
 

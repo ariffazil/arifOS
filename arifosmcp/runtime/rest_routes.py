@@ -1754,7 +1754,35 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
 
         return HTMLResponse(_render_status_html(payload), headers=_cache_headers())
 
-    @route("/api/governance-history", methods=["GET"])
+    @route("/chatgpt/widgets/vault-seal.html", methods=["GET"])
+    async def chatgpt_vault_seal_widget(request: Request) -> Response:
+        """Browser preview for the ChatGPT Vault Seal widget."""
+        from .chatgpt_integration import vault_seal_widget_html
+
+        return HTMLResponse(vault_seal_widget_html(), headers=_cache_headers())
+
+    @route("/ui/{widget_name:path}", methods=["GET"])
+    async def ui_widget(request: Request) -> Response:
+        """Serve static widget HTML files for ChatGPT Apps SDK (iframe sandboxed)."""
+        import pathlib
+
+        widget_name = request.path_params.get("widget_name", "")
+        if not widget_name.endswith(".html") or "/" in widget_name.replace(".html", ""):
+            return Response(status_code=404)
+        widgets_dir = pathlib.Path(__file__).parent / "widgets"
+        widget_path = widgets_dir / widget_name
+        if not widget_path.exists() or not widget_path.is_file():
+            return Response(status_code=404)
+        headers = {
+            "Content-Security-Policy": (
+                "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline';"
+            ),
+            "X-Frame-Options": "ALLOWALL",
+            "Cache-Control": "public, max-age=3600",
+        }
+        return HTMLResponse(widget_path.read_text(encoding="utf-8"), headers=headers)
+
+
     async def governance_history(request: Request) -> Response:
         """Return recent VAULT999 session history for the Constitutional Visualizer."""
         try:

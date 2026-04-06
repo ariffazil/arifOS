@@ -128,7 +128,7 @@ async def _build_gateway_metadata() -> dict:
         "version": ARIFOS_VERSION,
         "protocol_version": MCP_PROTOCOL_VERSION,
         "tool_policy": _policy_counts(),
-        "auth_status": "public_only",
+        "auth_status": "session_continuity",  # init_anchor → session_id → authenticated tools
         "upstream_vps": upstream_vps,
         "deprecated_paths": ["horizon/server.py"],
         "canonical_story": {
@@ -247,14 +247,26 @@ async def _gateway_call(tool_name: str, arguments: dict) -> dict:
     if access_class == ToolAccessClass.PUBLIC.value:
         return await _proxy_to_vps(tool_name, arguments)
     if access_class == ToolAccessClass.AUTHENTICATED.value:
-        return {
-            "verdict": "HOLD",
-            "tool": tool_name,
-            "access_class": access_class,
-            "message": "Tool exists in the unified contract but requires bound auth continuity.",
-            "next_step": "Use the sovereign VPS endpoint until Horizon auth continuity is implemented.",
-            "sovereign_endpoint": VPS_URL,
-        }
+        session_id = (arguments.get("session_id") or "").strip()
+        if not session_id:
+            return _typed_horizon_error(
+                code="AUTH_REQUIRED",
+                message=(
+                    f"'{tool_name}' requires an active session. "
+                    "Call init_anchor first to establish session continuity."
+                ),
+                detail="session_id absent from arguments.",
+                hint=(
+                    "1. Call init_anchor(mode='init', actor_id='<your_id>') "
+                    "to get a session_id.\n"
+                    "2. Pass that session_id to this tool."
+                ),
+                action="CALL_INIT_ANCHOR",
+                tool_name=tool_name,
+                http_status=401,
+            )
+        # Session present — proxy to VPS; kernel enforces F1/F13 session gates
+        return await _proxy_to_vps(tool_name, arguments)
     return {
         "verdict": "HOLD",
         "tool": tool_name,
@@ -591,6 +603,17 @@ def agent_skills(role: str = "A-ARCHITECT") -> str:
 @mcp.prompt()
 def human_explainer(verdict: str, reasoning: str) -> str:
     return f"Translating {verdict} verdict. Reasoning: {reasoning}. Explain for Sovereign..."
+
+
+# Register ChatGPT Apps SDK tools (vault_seal_card + render_vault_seal + widget resource)
+try:
+    from arifosmcp.runtime.chatgpt_integration import register_chatgpt_app_tools
+
+    register_chatgpt_app_tools(mcp)
+except Exception as _e:
+    import logging as _logging
+
+    _logging.getLogger(__name__).warning("[server_horizon] ChatGPT app tools not registered: %s", _e)
 
 
 if __name__ == "__main__":
