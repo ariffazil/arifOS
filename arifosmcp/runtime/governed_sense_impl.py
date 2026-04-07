@@ -79,6 +79,67 @@ from .sensing_protocol import (
     UncertaintyBasis,
 )
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# AF-FORGE BRIDGE INTEGRATION
+# ═══════════════════════════════════════════════════════════════════════════════
+
+import os
+import requests
+
+# AF-FORGE Bridge Configuration
+AF_FORGE_ENABLED = os.getenv("AF_FORGE_ENABLED", "false").lower() == "true"
+AF_FORGE_ENDPOINT = os.getenv("AF_FORGE_ENDPOINT", "http://localhost:7071/sense")
+AF_FORGE_TIMEOUT = float(os.getenv("AF_FORGE_TIMEOUT_SECONDS", "2.0"))
+
+
+def _call_af_forge_sense(
+    raw_input,
+    session_id=None,
+):
+    """Call AF-FORGE Sense endpoint. Returns None on failure or if disabled."""
+    if not AF_FORGE_ENABLED:
+        return None
+    
+    # Extract prompt from input
+    if isinstance(raw_input, dict):
+        prompt = raw_input.get("intent", raw_input.get("query", str(raw_input)))
+    else:
+        prompt = str(raw_input)
+    
+    try:
+        payload = {
+            "version": "1",
+            "session_id": session_id or "anon",
+            "prompt": prompt,
+            "context": {
+                "source": "mcp-python",
+                "tool": "sense",
+                "epoch": "2026-04-08",
+            },
+        }
+        
+        resp = requests.post(
+            AF_FORGE_ENDPOINT,
+            json=payload,
+            timeout=AF_FORGE_TIMEOUT,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        
+        if not data.get("ok"):
+            return None
+            
+        return data
+        
+    except Exception as e:
+        print(f"[AF-FORGE] Bridge error (falling back): {e}", flush=True)
+        return None
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # KNOWLEDGE BASES — Constitutional Classification
@@ -1023,6 +1084,59 @@ def build_intelligence_state(
 # MAIN GOVERNED SENSE FUNCTION
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
+def _map_af_forge_to_python_result(af_result, raw_input):
+    """Map AF-FORGE response to Python SensePacket format."""
+    sense = af_result.get("sense", {})
+    judge = af_result.get("judge", {})
+    
+    # Extract query
+    if isinstance(raw_input, dict):
+        raw_query = raw_input.get("intent", raw_input.get("query", str(raw_input)))
+    else:
+        raw_query = str(raw_input)
+    
+    # Map uncertainty
+    uncertainty_band = sense.get("uncertainty_band", "medium")
+    uncertainty_score = {"low": 0.3, "medium": 0.5, "high": 0.7, "critical": 0.9}.get(uncertainty_band, 0.5)
+    
+    # Map recommendation to routing
+    recommendation = sense.get("recommended_next_stage", "mind")
+    is_hold = recommendation == "hold"
+    
+    # Create minimal packet structure
+    packet = {
+        "input_summary": {
+            "raw_query": raw_query,
+            "mode_used": sense.get("mode_used", "lite"),
+        },
+        "routing": {
+            "target": "HOLD" if is_hold else "MIND",
+            "reason": sense.get("escalation_reason", "af-forge-governance"),
+        },
+        "uncertainty": {
+            "band": uncertainty_band,
+            "score": uncertainty_score,
+        },
+        "source": "af-forge",
+    }
+    
+    # Create intelligence state
+    intelligence_state = {
+        "exploration": "BLOCKED" if is_hold else "FOCUSED",
+        "uncertainty_score": uncertainty_score,
+        "confidence": judge.get("confidence", {}).get("value", 0.5),
+        "truth_vector": {
+            "humility_omega0": judge.get("confidence", {}).get("value", 0.5),
+            "verdict": judge.get("verdict", "SABAR"),
+        },
+        "hold_triggered": is_hold,
+        "hold_reason": sense.get("escalation_reason") if is_hold else None,
+    }
+    
+    return packet, intelligence_state
+
+
 async def governed_sense_v2(
     raw_input: str | dict[str, Any],
     session_id: str | None = None,
@@ -1042,6 +1156,24 @@ async def governed_sense_v2(
     # ═══════════════════════════════════════════════════════════════════════════
     # STAGE 2: CLASSIFY
     # ═══════════════════════════════════════════════════════════════════════════
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # AF-FORGE BRIDGE: Try TypeScript governance first
+    # ═══════════════════════════════════════════════════════════════════════════
+    af_result = _call_af_forge_sense(raw_input, session_id)
+    if af_result is not None:
+        print(f"[AF-FORGE] Using TS governance layer", flush=True)
+        sense = af_result.get("sense", {})
+        
+        # Check for 888_HOLD
+        if sense.get("recommended_next_stage") == "hold":
+            print(f"[AF-FORGE] 888_HOLD triggered: {sense.get("escalation_reason")}", flush=True)
+        
+        # Map to Python packet format and return
+        return _map_af_forge_to_python_result(af_result, raw_input)
+    
+    # Fall through to Python 8-stage governance
+
     truth_classification = classify_truth(sense_input)
     
     # ═══════════════════════════════════════════════════════════════════════════
