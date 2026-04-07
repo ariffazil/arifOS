@@ -1,6 +1,6 @@
 # arifOS TODO — Active Work Queue
 
-**Version:** 2026.04.07
+**Version:** 2026.04.07-TIER1-SEALED
 **Authority:** Muhammad Arif bin Fazil (999_VALIDATOR)
 **SoT:** This file tracks active engineering work. ROADMAP.md owns horizon strategy.
 
@@ -12,23 +12,33 @@
 
 ### ChatGPT Apps SDK Deployment (Path D)
 - [x] `widget-csp.conf` — was MISSING, now created (`deployments/af-forge/widget-csp.conf`)
-- [ ] **DNS**: Point `mcp.af-forge.io` → VPS IP (nginx currently configured for `arifos.federation`)
-- [ ] **TLS**: Provision SSL cert for `mcp.af-forge.io` (nginx.conf has TLS block commented out — uncomment + run certbot)
-- [ ] **nginx.conf**: Update `server_name arifos.federation` → `mcp.af-forge.io` in all server blocks
+- [x] **nginx.conf**: `server_name mcp.af-forge.io` confirmed correct in all server blocks (2026.04.07)
+- [x] **DNS-ready**: nginx upstream `arifos-mcp:3000` wired; DNS A record is the only remaining VPS action
+- [ ] **DNS**: Point `mcp.af-forge.io` → VPS IP (requires VPS DNS panel — human action)
+- [ ] **TLS**: Provision SSL cert for `mcp.af-forge.io` — 888_HOLD: run certbot on VPS after DNS resolves
+  ```
+  certbot certonly --webroot --webroot-path=/var/www/certbot -d mcp.af-forge.io
+  # then uncomment HTTPS server block in deployments/af-forge/nginx.conf
+  # then: docker compose restart nginx
+  ```
 - [ ] **Verify**: `curl -I https://mcp.af-forge.io/widget/vault-seal` returns 200 with `frame-ancestors` CSP header
 - [ ] **Vault999 volume backup**: Add `restic` or `borgbackup` cron before Phase 2 write-path opens (F11/F13 gate)
 
 ### Live MCP Tools (`/tools` returning 0)
-- [ ] Investigate why `canonical_tools: 0` in `/health` — tools are registered but count is wrong
-- [ ] Restart `arifosmcp` container after any code changes
+- [x] `canonical_tools` / `total_tools` fields added to `/health` endpoint (0461252f)
+- [x] Duplicate `get_constitutional_health` registration removed from `server_horizon.py` (0461252f)
+- [ ] **Restart `arifos-mcp` container on VPS** after code push to pick up registration fix
+- [ ] **Verify**: `curl https://mcp.af-forge.io/health | jq .canonical_tools` returns 10
 
 ---
 
 ## 🟡 P1 — Platform Agnosticism (Path A + B)
 
 ### Path A — Tool `platform=` Mode (1–2 weeks)
-- [ ] Add `platform: Literal["mcp", "chatgpt_apps", "cursor", "api", "stdio"] = "mcp"` to all tool schemas in `tool_specs.py`
-- [ ] Update `output_formatter.py` to dispatch on `platform`:
+- [x] `platform: str = "unknown"` param added to all 10 tool functions in `tools.py` (ff78faef)
+- [x] `_stamp_platform()` stamps `platform_context` onto every envelope
+- [ ] Upgrade to `Literal["mcp", "chatgpt_apps", "cursor", "api", "stdio"]` type in `tool_specs.py` schemas
+- [ ] Implement `output_formatter.py` dispatch on `platform`:
   - `chatgpt_apps` → widget-renderable JSON with `render_hint` field
   - `api` → flat JSON, no MCP envelope
   - `stdio` → human-readable text
@@ -49,13 +59,15 @@
 ## 🟢 P2 — Operational Hardening
 
 ### Docker / Deployment
-- [ ] `ARIFOS_APP_VERSION` in docker-compose.yml still hardcoded `2026.04.06` → update to `2026.04.07`
+- [x] `ARIFOS_APP_VERSION` in `docker-compose.yml` updated to `2026.04.07` (2026.04.07)
+- [x] `arifosmcp/Dockerfile` lean multi-stage build created (6cb52348)
+- [ ] `deployments/af-forge/Dockerfile` — verify multi-stage build is correct for VPS
 - [ ] Add `vault999-data` volume backup strategy (restic daily snapshot)
 - [ ] Document `deploy.sh` usage — currently undocumented
-- [ ] Multi-stage Dockerfile for `deployments/af-forge/` (separate from `arifosmcp/Dockerfile`)
 
 ### arifOS Runtime
-- [ ] Fix `canonical_tools: 0` in `/health` (tools registered, count not propagating)
+- [x] `canonical_tools` + `total_tools` fields added to `/health` — structural fix deployed (0461252f)
+- [ ] **VPS restart required** to confirm `canonical_tools: 10` live
 - [ ] `build_info.py` — ensure `ARIFOS_APP_VERSION` env var is read in container context
 - [ ] Entropy budget: implement `chaos_score()` across all MCP endpoints (ROADMAP H1 pending)
 - [ ] Provenance ledger: wire `arifos.vault` directly to AGI Mind Provenance
@@ -88,7 +100,7 @@
 
 - [x] Versioned file unification (−3841 lines): `tools_v2.py` → `tools.py` etc.
 - [x] `arifos.v2.*` namespace fully purged from all active code
-- [x] `/health` endpoint upgraded with SoT fields
+- [x] `/health` endpoint upgraded with SoT fields + `canonical_tools` / `total_tools`
 - [x] `/.well-known/arifos-index.json` canonical index live
 - [x] Landing page telemetry fixed (no `--` placeholders)
 - [x] Lean `arifosmcp/Dockerfile` created
@@ -97,6 +109,13 @@
 - [x] `af-forge/GEMINI.md` + `ALIGNMENT.md` updated to canonical `arifos.*` names
 - [x] `waw/skills/.../verification-runbooks.md` updated to `arifos.init`
 - [x] `widget-csp.conf` created (deployment blocker fixed)
+- [x] `nginx.conf` `server_name mcp.af-forge.io` confirmed in all server blocks
+- [x] `docker-compose.yml` service renamed `arifos-mcp`, env vars to `ARIFOS_MCP_*`, version `2026.04.07`
+- [x] `__main__.py` env var aliases updated to `ARIFOS_MCP_*` (platform agnosticism)
+- [x] `platform=` param added to all 10 tool functions (Path A foundation)
+- [x] Duplicate `get_constitutional_health` registration fixed in `server_horizon.py`
+- [x] `_security_check()` runtime hardening audit added to `server.py`
+- [x] Merge conflict resolution: 55 upstream commits reconciled (8e1f52d7)
 
 ---
 

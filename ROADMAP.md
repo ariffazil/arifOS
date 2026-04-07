@@ -12,9 +12,9 @@
 
 arifOS is LLM-agnostic and platform-agnostic by design. The question is **how** to surface that agnosticism. Four paths, ranked by Expected Monetary Value × Net Present Value:
 
-### Path A — Tool `platform=` Mode Parameter *(Ship Now)*
-Add a `platform` argument to all 10 canonical tools.  
-Output format adapts: ChatGPT → widget JSON, API → flat JSON, stdio → human text.
+### Path A — Tool `platform=` Mode Parameter *(Foundation Shipped — Dispatch Pending)*
+`platform: str` param added to all 10 tools (ff78faef). `_stamp_platform()` stamps context on every envelope.  
+**Remaining:** Literal type in tool_specs, output_formatter dispatch, ToolExecutionContext field.
 
 | | Value |
 |---|---|
@@ -63,11 +63,13 @@ GET  /api/v1/health    → constitutional health
 ### Path D — ChatGPT Widget Phase 1 *(Fix & Ship Now)*
 Fix the missing deployment blockers and ship the existing ChatGPT Apps SDK integration.
 
-**Blockers found (2026.04.07):**
-- ❌ `widget-csp.conf` was MISSING from repo → **FIXED** (committed this session)
-- ❌ TLS certs not provisioned (nginx.conf has them commented out)
-- ❌ Domain `mcp.af-forge.io` not pointed at server (nginx config says `arifos.federation`)
-- ❌ `static/widgets/vault-seal-widget.html` exists but not wired to live tools
+**Blocker status (2026.04.07-TIER1-SEALED):**
+- ✅ `widget-csp.conf` — created and committed
+- ✅ `nginx.conf` — `server_name mcp.af-forge.io` confirmed correct in all server blocks
+- ✅ `docker-compose.yml` — service renamed `arifos-mcp`, `ARIFOS_MCP_*` env vars, v2026.04.07
+- ⏳ DNS — A record pointing `mcp.af-forge.io` → VPS IP (human action required)
+- ⏳ TLS — certbot run on VPS after DNS resolves (888_HOLD)
+- ⏳ Widget wiring — `vault-seal-widget.html` static path verified; live tool connection pending TLS
 
 | | Value |
 |---|---|

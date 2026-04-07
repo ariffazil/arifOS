@@ -35,14 +35,14 @@ from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
 class HardenedKernelRouter:
     """
     Hardened 444_ROUTER with strict governance enforcement.
-    
+
     PREVENTS: Model being called before verdict evaluation
     ENSURES: HOLD/VOID is terminal (no bypass)
     """
-    
+
     def __init__(self):
         self.enforcer = get_enforcer()
-    
+
     async def route(
         self,
         query: str,
@@ -52,17 +52,17 @@ class HardenedKernelRouter:
     ) -> dict[str, Any]:
         """
         Hardened routing with strict Class A/B/C separation.
-        
+
         This is the ONLY entry point for query processing.
         All other paths must flow through here.
         """
         context = context or {}
-        
+
         # ═══════════════════════════════════════════════════════════════════════
         # STEP 1: CLASSIFY QUERY (Before any tool invocation)
         # ═══════════════════════════════════════════════════════════════════════
         query_class, requires_tool = classify_and_route(query, context)
-        
+
         # ═══════════════════════════════════════════════════════════════════════
         # STEP 2: CLASS A — INFORMATIONAL (No state change)
         # Model may respond directly. No vault write. No seal required.
@@ -77,15 +77,15 @@ class HardenedKernelRouter:
                 "note": "Informational query — model response permitted without seal",
                 "proceed_to_model": True,
             }
-        
+
         # ═══════════════════════════════════════════════════════════════════════
         # STEP 3: CLASS B/C — GOVERNED/CRITICAL (State mutation)
         # Must pass full F1-F13. Requires tool invocation.
         # ═══════════════════════════════════════════════════════════════════════
-        
+
         # Determine which tool to invoke based on query
         tool_name = self._select_tool(query_class, query, context)
-        
+
         # Execute tool through governance layer
         tool_result = await self._invoke_tool_with_governance(
             tool_name=tool_name,
@@ -94,7 +94,7 @@ class HardenedKernelRouter:
             session_id=session_id,
             context=context,
         )
-        
+
         # ═══════════════════════════════════════════════════════════════════════
         # STEP 4: EVALUATE VERDICT (HARD STOP if HOLD/VOID)
         # ═══════════════════════════════════════════════════════════════════════
@@ -104,7 +104,7 @@ class HardenedKernelRouter:
             query=query,
             actor_id=actor_id,
         )
-        
+
         if not allowed:
             # HARD STOP: Return block response, DO NOT CALL MODEL
             return {
@@ -115,7 +115,7 @@ class HardenedKernelRouter:
                 "proceed_to_model": False,
                 "audit_note": "HARD STOP enforced — model not invoked",
             }
-        
+
         # ═══════════════════════════════════════════════════════════════════════
         # STEP 5: ALLOWED — Call model (only after SEAL/PASS)
         # ═══════════════════════════════════════════════════════════════════════
@@ -128,7 +128,7 @@ class HardenedKernelRouter:
             "proceed_to_model": True,
             "audit_note": "SEAL/PASS received — model invocation permitted",
         }
-    
+
     def _select_tool(
         self,
         query_class: QueryClass,
@@ -136,48 +136,48 @@ class HardenedKernelRouter:
         context: dict[str, Any],
     ) -> str:
         """Select appropriate tool based on query class and content."""
-        
+
         query_lower = query.lower()
-        
+
         # Session/init queries
         if any(kw in query_lower for kw in ["init", "session", "anchor", "start"]):
             return "arifos.init"
-        
+
         # Memory queries
         if any(kw in query_lower for kw in ["remember", "recall", "memory", "context"]):
             return "arifos.memory"
-        
+
         # Execution/forge queries
         if any(kw in query_lower for kw in ["execute", "run", "deploy", "forge", "spawn"]):
             return "arifos.forge"
-        
+
         # Seal/vault queries
         if any(kw in query_lower for kw in ["seal", "commit", "vault", "ledger"]):
             return "arifos.vault"
-        
+
         # Reasoning/mind queries
         if any(kw in query_lower for kw in ["reason", "think", "analyze", "mind"]):
             return "arifos.mind"
-        
+
         # Safety/heart queries
         if any(kw in query_lower for kw in ["safe", "risk", "harm", "heart"]):
             return "arifos.heart"
-        
+
         # Operations/cost queries
         if any(kw in query_lower for kw in ["cost", "ops", "estimate", "feasible"]):
             return "arifos.ops"
-        
+
         # Reality/sense queries
         if any(kw in query_lower for kw in ["sense", "ground", "verify", "reality"]):
             return "arifos.sense"
-        
+
         # Judge queries (default for critical)
         if query_class == QueryClass.CRITICAL:
             return "arifos.judge"
-        
+
         # Route as default
         return "arifos.route"
-    
+
     async def _invoke_tool_with_governance(
         self,
         tool_name: str,
@@ -187,11 +187,11 @@ class HardenedKernelRouter:
         context: dict[str, Any],
     ) -> RuntimeEnvelope:
         """Invoke tool with full ToM requirements."""
-        
+
         # Import tools dynamically to avoid circular deps
-        from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS
-        
-        handler = CANONICAL_TOOL_HANDLERS.get(tool_name)
+        from arifosmcp.runtime.tools import V2_TOOL_HANDLERS
+
+        handler = V2_TOOL_HANDLERS.get(tool_name)
         if not handler:
             # Return error envelope if tool not found
             return RuntimeEnvelope(
@@ -204,12 +204,12 @@ class HardenedKernelRouter:
                     "ok": False,
                     "error": f"Tool {tool_name} not found",
                     "tom_violation": False,
-                }
+                },
             )
-        
+
         # Build payload with ToM fields if not present
         payload = context.get("payload", {})
-        
+
         # Ensure minimal ToM fields for Class B/C
         if "declared_intent" not in payload:
             payload["declared_intent"] = query[:200]  # Truncate for intent
@@ -217,9 +217,10 @@ class HardenedKernelRouter:
             payload["confidence_self_estimate"] = 0.7
         if "context_assumptions" not in payload:
             payload["context_assumptions"] = ["User wants to accomplish task"]
-        
+
         # Call the tool
         import asyncio
+
         result = await handler(
             mode=context.get("mode", "default"),
             payload=payload,
@@ -227,7 +228,7 @@ class HardenedKernelRouter:
             risk_tier=context.get("risk_tier", "medium"),
             dry_run=context.get("dry_run", True),
         )
-        
+
         return result
 
 
@@ -251,7 +252,7 @@ async def process_query(
 ) -> dict[str, Any]:
     """
     MAIN ENTRY POINT for query processing.
-    
+
     This is the ONLY way to process queries with proper governance.
     All other paths are considered bypass attempts.
     """
