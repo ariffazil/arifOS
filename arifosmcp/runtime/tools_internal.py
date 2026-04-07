@@ -303,6 +303,36 @@ async def _wrap_call(
 # --- GOVERNANCE IMPLEMENTATIONS ---
 
 
+async def init_anchor_dispatch_impl(
+    mode: str, payload: dict, auth_context: dict | None, risk_tier: str, dry_run: bool, ctx: Context
+) -> RuntimeEnvelope:
+    """
+    Internal dispatch implementation for init_anchor (session bootstrap).
+    
+    Maps modes: init, revoke, refresh, state, status
+    Follows the same pattern as apex_judge_dispatch_impl, agi_mind_dispatch_impl, etc.
+    
+    This is the fallback path when HARDENED_DISPATCH_MAP is empty.
+    """
+    session_id = _normalize_session_id(payload.get("session_id"))
+    
+    # Ensure required fields in payload
+    payload.setdefault("risk_tier", risk_tier)
+    payload.setdefault("dry_run", dry_run)
+    if auth_context:
+        payload.setdefault("auth_context", auth_context)
+    
+    if mode in ("init", None):
+        return await _wrap_call("init_anchor", Stage.INIT_000, session_id, payload, ctx)
+    elif mode == "revoke":
+        return await _wrap_call("init_revoke", Stage.INIT_000, session_id, payload, ctx)
+    elif mode == "refresh":
+        return await _wrap_call("init_refresh", Stage.INIT_000, session_id, payload, ctx)
+    elif mode in ("state", "status"):
+        return await _wrap_call("init_state", Stage.INIT_000, session_id, payload, ctx)
+    raise ValueError(f"Invalid mode for init_anchor: {mode}")
+
+
 async def arifos_kernel_impl(
     query: str | None,
     risk_tier: str,

@@ -1,4 +1,72 @@
-"""Canonical ABI exports for the arifosmcp package."""
+"""
+arifOS ABI - Application Binary Interface
+=========================================
 
-from .v1_0 import *  # noqa: F401,F403
+Canonical schemas for all arifOS tools.
+"""
 
+from .v1_0 import (
+    ABI_SCHEMAS,
+    BaseRequest,
+    BaseResponse,
+    InitAnchorRequest,
+    InitAnchorResponse,
+    IdentityResolution,
+    ArifOSKernelRequest,
+    ArifOSKernelResponse,
+    ApexJudgeRequest,
+    ApexJudgeResponse,
+    VaultLedgerRequest,
+    VaultLedgerResponse,
+    AgiMindRequest,
+    AgiMindResponse,
+    AsiHeartRequest,
+    AsiHeartResponse,
+    EngineeringMemoryRequest,
+    EngineeringMemoryResponse,
+    PhysicsRealityRequest,
+    PhysicsRealityResponse,
+    MathEstimatorRequest,
+    MathEstimatorResponse,
+    CodeEngineRequest,
+    CodeEngineResponse,
+    ArchitectRegistryRequest,
+    ArchitectRegistryResponse,
+    get_request_schema,
+    get_response_schema,
+    validate_request,
+    validate_response,
+)
+
+__all__ = [
+    "ABI_SCHEMAS",
+    "BaseRequest",
+    "BaseResponse",
+    "InitAnchorRequest",
+    "InitAnchorResponse",
+    "IdentityResolution",
+    "ArifOSKernelRequest",
+    "ArifOSKernelResponse",
+    "ApexJudgeRequest",
+    "ApexJudgeResponse",
+    "VaultLedgerRequest",
+    "VaultLedgerResponse",
+    "AgiMindRequest",
+    "AgiMindResponse",
+    "AsiHeartRequest",
+    "AsiHeartResponse",
+    "EngineeringMemoryRequest",
+    "EngineeringMemoryResponse",
+    "PhysicsRealityRequest",
+    "PhysicsRealityResponse",
+    "MathEstimatorRequest",
+    "MathEstimatorResponse",
+    "CodeEngineRequest",
+    "CodeEngineResponse",
+    "ArchitectRegistryRequest",
+    "ArchitectRegistryResponse",
+    "get_request_schema",
+    "get_response_schema",
+    "validate_request",
+    "validate_response",
+]

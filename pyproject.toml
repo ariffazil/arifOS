@@ -155,6 +155,7 @@ dependencies = [
     "cryptography>=42.0.0",  # Encryption for vault/session storage
     "psycopg2-binary>=2.9.0",  # Postgres adapter (binary)
     "aiofiles>=23.2.1",  # Async file operations for Vault999 logging
+    "blake3>=1.0.0",  # Hashing for vault seals
 ]
 
 [project.optional-dependencies]

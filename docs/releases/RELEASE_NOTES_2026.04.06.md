@@ -150,8 +150,8 @@ curl -I https://mcp.af-forge.io/widget/vault-seal | grep content-security
 
 | Artifact | Location |
 |----------|----------|
-| **PyPI Package** | `pip install arifos` |
-| **Docker Image** | `docker pull arifos-mcp:latest` |
+| **PyPI Package** | `pip install arifosmcp` |
+| **Docker Image** | `docker pull arifosmcp:latest` |
 | **GitHub Release** | https://github.com/ariffazil/arifOS/releases |
 | **Widget** | https://mcp.af-forge.io/widget/vault-seal |
 

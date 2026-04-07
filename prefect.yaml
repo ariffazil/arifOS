@@ -1,7 +1,4 @@
-# Prefect Deployment Configuration for arifOS MCP Server
-# https://horizon.prefect.io/arifos/servers/arifOS
-
-name: arifos-mcp
+name: arifosmcp
 
 # Build configuration
 build:
@@ -22,7 +19,7 @@ push:
 
 # Deployment configuration
 deployments:
-  - name: arifos-mcp-server
+  - name: arifosmcp-server
     version: "2026.03.25"
     description: "Constitutional AI Governance MCP Server - 11 Mega-Tools with F1-F13 Floors"
     tags:

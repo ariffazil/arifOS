@@ -102,7 +102,7 @@ async def init_anchor(
 
     # ═══════════════════════════════════════════════════════════════════════════
     # CRITICAL FIX (2026-04-06): Eliminate circular dependency
-    # 
+    #
     # OLD CODE (BROKEN):
     #   res = await HARDENED_DISPATCH_MAP["init_anchor"](...)  # RECURSION!
     #
@@ -114,11 +114,15 @@ async def init_anchor(
         if mode is None:
             mode = "init"
         _t0 = time.monotonic()
-        
+
         # Direct session initialization (no dispatch recursion)
-        effective_session_id = session_id or payload.get("session_id") or f"sess_{uuid.uuid4().hex[:16]}"
-        declared_identity = payload.get("declared_name") or actor_id or payload.get("actor_id") or "anonymous"
-        
+        effective_session_id = (
+            session_id or payload.get("session_id") or f"sess_{uuid.uuid4().hex[:16]}"
+        )
+        declared_identity = (
+            payload.get("declared_name") or actor_id or payload.get("actor_id") or "anonymous"
+        )
+
         # Build success result directly
         res = {
             "ok": True,
@@ -168,10 +172,17 @@ async def init_anchor(
                     "session_id": res.get("session_id"),
                     "resolved_session_id": res.get("session_id"),
                     "transport_session_id": payload.get("session_id") or "global",
-                    "declared_actor_id": identity.get("declared_actor_id") or _payload.get("declared_name") or _payload.get("actor_id"),
+                    "declared_actor_id": identity.get("declared_actor_id")
+                    or _payload.get("declared_name")
+                    or _payload.get("actor_id"),
                     "verified_actor_id": identity.get("verified_actor_id"),
-                    "canonical_actor_id": identity.get("verified_actor_id") or identity.get("declared_actor_id") or _payload.get("actor_id") or "anonymous",
-                    "auth_state": identity.get("auth_state", _payload.get("auth_state", "unverified")),
+                    "canonical_actor_id": identity.get("verified_actor_id")
+                    or identity.get("declared_actor_id")
+                    or _payload.get("actor_id")
+                    or "anonymous",
+                    "auth_state": identity.get(
+                        "auth_state", _payload.get("auth_state", "unverified")
+                    ),
                     "base_identity": {
                         "declared": identity.get("declared_identity"),
                         "verified": identity.get("verified_identity"),
@@ -243,27 +254,35 @@ async def init_anchor(
 
             # Ensure valid defaults for Pydantic validation
             from arifosmcp.runtime.models import AuthorityLevel, CanonicalAuthority, ClaimStatus
+
             _authority = res.get("authority")
             if _authority is None:
                 _authority = CanonicalAuthority(
                     actor_id=res.get("actor_id") or res.get("declared_actor_id") or "anonymous",
                     level=AuthorityLevel.ANONYMOUS,
-                    claim_status=ClaimStatus.ANONYMOUS
+                    claim_status=ClaimStatus.ANONYMOUS,
                 )
 
             # ─── Build policy block from floor audit data ──────────────────
             _policy_block = res.get("policy") or {
-                "floors_checked": res.get("floors_checked") or _payload.get("floors_checked", []) if isinstance(_payload, dict) else [],
-                "floors_failed": res.get("floors_failed") or _payload.get("floors_failed", []) if isinstance(_payload, dict) else [],
+                "floors_checked": res.get("floors_checked") or _payload.get("floors_checked", [])
+                if isinstance(_payload, dict)
+                else [],
+                "floors_failed": res.get("floors_failed") or _payload.get("floors_failed", [])
+                if isinstance(_payload, dict)
+                else [],
                 "injection_score": (
                     res.get("injection_score")
-                    or (isinstance(_payload, dict) and _payload.get("normalization", {}) or {}).get("injection_score", 0.0)
+                    or (isinstance(_payload, dict) and _payload.get("normalization", {}) or {}).get(
+                        "injection_score", 0.0
+                    )
                 ),
                 "witness_required": res.get("witness_required", False),
             }
 
             # ─── Build system block ────────────────────────────────────────
             import os as _os
+
             _system_block = res.get("system") or {
                 "kernel_version": _os.getenv("ARIFOS_VERSION", "2026.04"),
                 "adapter": "mcp",
@@ -276,9 +295,15 @@ async def init_anchor(
             if not _anchor_state:
                 if not ok:
                     _anchor_state = "denied"
-                elif res.get("reused") or (isinstance(_payload, dict) and _payload.get("continuation")):
+                elif res.get("reused") or (
+                    isinstance(_payload, dict) and _payload.get("continuation")
+                ):
                     _anchor_state = "reused"
-                elif isinstance(_payload, dict) and _payload.get("continuation", {}) and _payload.get("continuation", {}).get("type") == "resumed":
+                elif (
+                    isinstance(_payload, dict)
+                    and _payload.get("continuation", {})
+                    and _payload.get("continuation", {}).get("type") == "resumed"
+                ):
                     _anchor_state = "resumed"
                 else:
                     _anchor_state = "created"
@@ -346,23 +371,41 @@ async def init_anchor(
     if mode is None:
         mode = "init"
 
-    return RuntimeEnvelope(
-        tool="arifos.init",
-        canonical_tool_name="arifos.init",  # ← ADDED: Canonical name
-        stage="000_INIT",
-        status=RuntimeStatus.ERROR,
-        verdict=Verdict.VOID,
-        code="INIT_KERNEL_500",
-        detail="HARDENED_DISPATCH_MAP has no arifos.init entry — system misconfiguration.",
-        hint="Check that arifosmcp/runtime/tools_hardened_dispatch.py registers arifos.init.",
-        retryable=False,
-        rollback_available=False,
-        anchor_state="denied",
-        system={
-            "kernel_version": __import__("os").getenv("ARIFOS_VERSION", "2026.04"),
-            "adapter": "mcp",
-            "env": __import__("os").getenv("ARIFOS_ENV", "production"),
-            "dependency_health": "unavailable",
-        },
-        payload={"error": "Hardened Dispatch Map missing init_anchor entry. System failure."},
+    # ─── FALLBACK: Dispatch via tools_internal (same pattern as agi_mind, physics_reality, etc.) ───
+    from arifosmcp.runtime.tools_internal import init_anchor_dispatch_impl
+
+    # FastMCP 2.x/3.x compatibility
+    try:
+        from fastmcp.dependencies import CurrentContext
+    except ImportError:
+        CurrentContext = None
+
+    resolved_payload = dict(payload or {})
+    res = await init_anchor_dispatch_impl(
+        mode=mode,
+        payload=resolved_payload,
+        auth_context=resolved_payload.get("auth_context", auth_context),
+        risk_tier=resolved_payload.get("risk_tier", risk_tier),
+        dry_run=bool(resolved_payload.get("dry_run", dry_run)),
+        ctx=ctx or (CurrentContext() if CurrentContext else None),
     )
+
+    # ─── V1.0 VERDICT FORGING (FALLBACK) ───
+    from arifosmcp.runtime.models import VerdictCode
+
+    if not hasattr(res, "verdict_detail") or not res.verdict_detail:
+        from arifosmcp.runtime.verdict_wrapper import forge_verdict
+
+        return forge_verdict(
+            tool_id="init_anchor",
+            stage=res.stage,
+            payload=res.payload,
+            session_id=session_id,
+            override_code=VerdictCode(res.verdict.value)
+            if hasattr(res.verdict, "value")
+            else VerdictCode.SABAR,
+            message=res.payload.get("note", "Fallback bootstrap active.")
+            if isinstance(res.payload, dict)
+            else "Fallback bootstrap active.",
+        )
+    return res

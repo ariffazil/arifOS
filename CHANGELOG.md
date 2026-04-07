@@ -200,7 +200,7 @@ All tools use `arifos.{tool}` format:
 
 - **The Truth Spine:** Established `README.md`, `CHANGELOG.md`, `ROADMAP.md`, and `TODO.md` as the exclusive sources of truth.
 - **Root Cleanup:** Moved 15+ stray `.md` files into `docs/` and `archive/`. Ops, deploy, and infra folders merged into `ops/`. Coprocessors (`geox`, `sites`, `autoresearch`) migrated into `apps/`.
-- **Ghost Folder Purge:** Consolidated `arifos_mcp` duplicate into the canonical `arifosmcp` package.
+- **Ghost Folder Purge:** Consolidated legacy `arifos_mcp` naming into the canonical `arifosmcp` package.
 - **Archive System:** Established `archive/audits/`, `archive/seals/`, `archive/legacy_guides/`, and `archive/evidence/` for robust history preservation without active navigation clutter.
 
 ## [2026.03.28-IDENTITY-BINDING] - Three-Layer Identity Binding + ZKPC Anchoring

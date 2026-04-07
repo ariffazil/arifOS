@@ -1,8 +1,8 @@
 # arifOS MCP Server — AF-FORGE Production Dockerfile
 # ═══════════════════════════════════════════════════════════════════════════════
 # 
-# Build: docker build -t arifos-mcp:af-forge -f deployments/af-forge/Dockerfile .
-# Run:   docker run -p 3000:3000 -e ARIFOS_MCP_TRANSPORT=http arifos-mcp:af-forge
+# Build: docker build -t arifosmcp:af-forge -f deployments/af-forge/Dockerfile .
+# Run:   docker run -p 3000:3000 -e ARIFOSMCP_TRANSPORT=http arifosmcp:af-forge
 
 FROM python:3.12-slim
 
@@ -52,9 +52,9 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 EXPOSE 3000
 
 # Default: HTTP/streamable-http for production
-ENV ARIFOS_MCP_TRANSPORT=http
-ENV ARIFOS_MCP_HOST=0.0.0.0
-ENV ARIFOS_MCP_PORT=3000
+ENV ARIFOSMCP_TRANSPORT=http
+ENV ARIFOSMCP_HOST=0.0.0.0
+ENV ARIFOSMCP_PORT=3000
 
 # Run the MCP server
-CMD ["python", "-m", "arifosmcp.runtime.server"]
+CMD ["python", "-m", "arifosmcp.runtime.__main__"]

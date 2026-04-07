@@ -37,7 +37,7 @@
 | `034dcdcc` | feat: ChatGPT Apps SDK integration — real BLS widget + /ui/ route |
 | `63b6ad02` | feat(vault999): Phase A BLS12-381 signature aggregation |
 | `e91706b5` | fix: SSE-Cloudflare timeout gap — 3-layer keepalive fix |
-| `7204d6ff` | fix: self-contained arifosmcp/abi/v1_0 stubs + mount arifos_mcp |
+| `7204d6ff` | fix: self-contained arifosmcp/abi/v1_0 stubs + mount arifosmcp |
 
 ### Key New Files on Remote (52 files, +7,906 lines)
 - `arifosmcp/specs/` — New package: tool/resource/prompt/chatgpt specs
@@ -102,5 +102,5 @@ uv build
 gh release create v2026.4.6.1 \
     --title "v2026.4.6.1 — Clean Architecture + Docker + ChatGPT SDK" \
     --notes-file RELEASE_NOTES_2026.04.06.md \
-    dist/arifos-2026.4.6.1-py3-none-any.whl
+    dist/arifosmcp-2026.4.6.1-py3-none-any.whl
 ```

@@ -93,7 +93,7 @@ Where:
 ### Implementation Details
 
 - **Computed in:** `core/floors.py::ConstitutionalFloors._compute_v_witness()`
-- **Vault source:** `arifos_mcp/runtime/sessions.py` recent entries
+- **Vault source:** `arifosmcp/runtime/sessions.py` recent entries
 - **Not a separate Floor** — V is part of W4, not an independent threshold
 - **Does not override human sovereign** — F13 operates independently of W4
 - **Does not override external evidence** — E (Earth) witness is separate from V
