@@ -828,6 +828,44 @@ app.add_route("/mcp", webmcp_options_handler, methods=["OPTIONS"])
 app.add_route("/v2/manifest", v2_manifest_handler, methods=["GET"])
 
 
+# ─── Vault-Seal Widget (ChatGPT Apps SDK) ─────────────────────────────────────
+_WIDGET_FILE = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+    "project", "static", "widgets", "vault-seal-widget.html",
+)
+_WIDGET_CSP = (
+    "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+    "font-src 'self'; img-src 'self' data:; "
+    "frame-ancestors https://chat.openai.com https://chatgpt.com; connect-src 'self';"
+)
+_WIDGET_HEADERS = {
+    "Content-Security-Policy": _WIDGET_CSP,
+    "X-Frame-Options": "ALLOW-FROM https://chat.openai.com",
+    "Access-Control-Allow-Origin": "https://chat.openai.com",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Cache-Control": "public, max-age=3600",
+}
+
+
+async def vault_seal_widget_handler(request: Request) -> Response:
+    """Vault-Seal widget for ChatGPT Apps SDK iframe embedding."""
+    if request.method == "OPTIONS":
+        return Response(status_code=204, headers=_WIDGET_HEADERS)
+    widget_path = _WIDGET_FILE
+    if not os.path.exists(widget_path):
+        # Fallback absolute path (container ro-mount)
+        widget_path = "/usr/src/project/static/widgets/vault-seal-widget.html"
+    if not os.path.exists(widget_path):
+        return Response("Widget not found", status_code=404)
+    with open(widget_path, "r", encoding="utf-8") as fh:
+        html = fh.read()
+    return HTMLResponse(html, headers=_WIDGET_HEADERS)
+
+
+app.add_route("/widget/vault-seal", vault_seal_widget_handler, methods=["GET", "OPTIONS"])
+app.add_route("/widget/", vault_seal_widget_handler, methods=["GET"])
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # SERVER CREATION
 # ═══════════════════════════════════════════════════════════════════════════════

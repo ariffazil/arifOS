@@ -12,23 +12,19 @@
 
 ### ChatGPT Apps SDK Deployment (Path D)
 - [x] `widget-csp.conf` — was MISSING, now created (`deployments/af-forge/widget-csp.conf`)
-- [x] **nginx.conf**: `server_name mcp.af-forge.io` confirmed correct in all server blocks (2026.04.07)
-- [x] **DNS-ready**: nginx upstream `arifos-mcp:3000` wired; DNS A record is the only remaining VPS action
-- [ ] **DNS**: Point `mcp.af-forge.io` → VPS IP (requires VPS DNS panel — human action)
-- [ ] **TLS**: Provision SSL cert for `mcp.af-forge.io` — 888_HOLD: run certbot on VPS after DNS resolves
-  ```
-  certbot certonly --webroot --webroot-path=/var/www/certbot -d mcp.af-forge.io
-  # then uncomment HTTPS server block in deployments/af-forge/nginx.conf
-  # then: docker compose restart nginx
-  ```
-- [ ] **Verify**: `curl -I https://mcp.af-forge.io/widget/vault-seal` returns 200 with `frame-ancestors` CSP header
+- [x] **nginx.conf**: `server_name` updated to `arifosmcp.arif-fazil.com` — consolidated, `mcp.af-forge.io` retired (2026.04.07)
+- [x] **DNS-ready**: `arifosmcp.arif-fazil.com` already live via Traefik + Cloudflare
+- [x] **DNS**: No action needed — domain consolidated to `arifosmcp.arif-fazil.com`
+- [x] **TLS**: Cert extracted from Traefik `acme.json` → `deployments/af-forge/ssl/` (expires 2026-06-03); HTTPS block uncommented
+- [x] **widget route**: `GET /widget/vault-seal` live on `arifosmcp.arif-fazil.com` with `frame-ancestors` CSP (served from Python app)
+- [x] **Verify**: `curl -I https://arifosmcp.arif-fazil.com/widget/vault-seal` returns 200 with CSP header
 - [ ] **Vault999 volume backup**: Add `restic` or `borgbackup` cron before Phase 2 write-path opens (F11/F13 gate)
 
 ### Live MCP Tools (`/tools` returning 0)
 - [x] `canonical_tools` / `total_tools` fields added to `/health` endpoint (0461252f)
 - [x] Duplicate `get_constitutional_health` registration removed from `server_horizon.py` (0461252f)
-- [ ] **Restart `arifos-mcp` container on VPS** after code push to pick up registration fix
-- [ ] **Verify**: `curl https://mcp.af-forge.io/health | jq .canonical_tools` returns 10
+- [x] **`arifosmcp` container restarted on VPS** — `canonical_tools: 10` confirmed
+- [x] **Verify**: `curl https://arifosmcp.arif-fazil.com/health | jq .canonical_tools` returns 10 ✅
 
 ---
 
@@ -109,7 +105,7 @@
 - [x] `af-forge/GEMINI.md` + `ALIGNMENT.md` updated to canonical `arifos.*` names
 - [x] `waw/skills/.../verification-runbooks.md` updated to `arifos.init`
 - [x] `widget-csp.conf` created (deployment blocker fixed)
-- [x] `nginx.conf` `server_name mcp.af-forge.io` confirmed in all server blocks
+- [x] `nginx.conf` `server_name arifosmcp.arif-fazil.com` — consolidated (mcp.af-forge.io retired)
 - [x] `docker-compose.yml` service renamed `arifos-mcp`, env vars to `ARIFOS_MCP_*`, version `2026.04.07`
 - [x] `__main__.py` env var aliases updated to `ARIFOS_MCP_*` (platform agnosticism)
 - [x] `platform=` param added to all 10 tool functions (Path A foundation)

@@ -1684,6 +1684,55 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
         return JSONResponse(payload, headers={"Access-Control-Allow-Origin": "*"})
 
     # Serve the APEX Sovereign Dashboard v2.1 at /dashboard/
+    # ── Vault-Seal Widget (ChatGPT Apps SDK) ────────────────────────────────────
+    # Served at /widget/vault-seal with frame-ancestors CSP so ChatGPT can embed.
+    # Consolidates the mcp.af-forge.io standalone stack into arifosmcp.arif-fazil.com.
+    _WIDGET_CSP = (
+        "default-src 'none'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "font-src 'self'; "
+        "img-src 'self' data:; "
+        "frame-ancestors https://chat.openai.com https://chatgpt.com; "
+        "connect-src 'self';"
+    )
+    _WIDGET_HEADERS = {
+        "Content-Security-Policy": _WIDGET_CSP,
+        "X-Frame-Options": "ALLOW-FROM https://chat.openai.com",
+        "Access-Control-Allow-Origin": "https://chat.openai.com",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Cache-Control": "public, max-age=3600",
+    }
+
+    # Resolve widget path: /usr/src/project/static/widgets/ (repo ro-mount inside container)
+    _widget_file = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+        "project",
+        "static",
+        "widgets",
+        "vault-seal-widget.html",
+    )
+    # Fallback: same repo root at /usr/src/project via project symlink
+    if not os.path.exists(_widget_file):
+        _widget_file = os.path.join("/usr/src/project", "static", "widgets", "vault-seal-widget.html")
+
+    @route("/widget/vault-seal", methods=["GET", "OPTIONS"])
+    async def vault_seal_widget(request: Request) -> Response:
+        """Vault-Seal widget for ChatGPT Apps SDK iframe embedding."""
+        if request.method == "OPTIONS":
+            return Response(status_code=204, headers=_WIDGET_HEADERS)
+        if not os.path.exists(_widget_file):
+            return Response("Widget not found", status_code=404)
+        with open(_widget_file, "r", encoding="utf-8") as fh:
+            html = fh.read()
+        return HTMLResponse(html, headers=_WIDGET_HEADERS)
+
+    @route("/widget/", methods=["GET"])
+    async def widget_index(request: Request) -> Response:
+        """Redirect /widget/ to the vault-seal widget."""
+        from starlette.responses import RedirectResponse
+        return RedirectResponse(url="/widget/vault-seal", status_code=302)
+
     dashboard_dir = os.path.join(
         os.path.dirname(os.path.dirname(__file__)),
         "sites",
