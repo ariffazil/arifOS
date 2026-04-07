@@ -27,7 +27,7 @@ import re
 from datetime import datetime, timezone
 from typing import Any
 
-from .sensing_protocol_v2 import (
+from .sensing_protocol import (
     # Enums
     AmbiguityType,
     ClaimTarget,

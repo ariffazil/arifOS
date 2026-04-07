@@ -54,10 +54,10 @@ def _stdio_constitutional_floors() -> list[dict[str, str]]:
 async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[str, Any]:
     handler_name = getattr(handler, "__name__", "")
 
-    if handler_name == "vault_seal":
+    if handler_name in ("vault_seal", "arifos_vault"):
         return {
             "ok": True,
-            "tool": "vault_seal",
+            "tool": "arifos.vault",
             "session_id": arguments.get("session_id"),
             "stage": "999_VAULT",
             "verdict": arguments.get("verdict", "SEAL"),
@@ -80,19 +80,6 @@ async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[st
     else:
         envelope = {"ok": True, "payload": result}
 
-    # Legacy stdio clients still expect audit_rules to expose constitutional
-    # floors directly on payload.floors.
-    if handler_name == "audit_rules":
-        payload = envelope.get("payload")
-        if isinstance(payload, dict) and "floors" not in payload:
-            floors = _stdio_constitutional_floors()
-            payload.update(
-                {
-                    "floors": floors,
-                    "floors_count": len(floors),
-                }
-            )
-
     return envelope
 
 
@@ -100,19 +87,26 @@ def _run_minimal_stdio_server() -> None:
     from mcp import types as mcp_types
 
     from . import tools as runtime_tools
-    from .public_registry import public_tool_spec_by_name
+    from .tool_specs import TOOLS
 
     tool_handlers: dict[str, Any] = {
-        "check_vital": runtime_tools.check_vital,
-        "audit_rules": runtime_tools.audit_rules,
-        "arifOS_kernel": runtime_tools.arifOS_kernel,
-        "init_anchor": runtime_tools.init_anchor,
-        "vault_seal": runtime_tools.vault_seal,
+        "arifos.init": runtime_tools.arifos_init,
+        "arifos.sense": runtime_tools.arifos_sense,
+        "arifos.mind": runtime_tools.arifos_mind,
+        "arifos.route": runtime_tools.arifos_route,
+        "arifos.heart": runtime_tools.arifos_heart,
+        "arifos.ops": runtime_tools.arifos_ops,
+        "arifos.judge": runtime_tools.arifos_judge,
+        "arifos.memory": runtime_tools.arifos_memory,
+        "arifos.vault": runtime_tools.arifos_vault,
+        "arifos.forge": runtime_tools.arifos_forge,
     }
-    tool_specs = public_tool_spec_by_name()
+
+    # Build spec lookup from canonical TOOLS tuple
+    _spec_by_name = {spec.name: spec for spec in TOOLS}
 
     def tool_descriptor(name: str) -> dict[str, Any]:
-        spec = tool_specs.get(name)
+        spec = _spec_by_name.get(name)
         if spec is not None:
             return {
                 "name": name,

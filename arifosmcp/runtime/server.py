@@ -131,10 +131,10 @@ Use prompts for structured workflows:
 # REGISTER V2 SURFACE
 # ═══════════════════════════════════════════════════════════════════════════════
 
-from arifosmcp.runtime.tools_v2 import register_v2_tools
-from arifosmcp.runtime.prompts_v2 import register_v2_prompts
-from arifosmcp.runtime.resources_v2 import register_v2_resources
-from arifosmcp.runtime.manifest_v2 import build_manifest_v2
+from arifosmcp.runtime.tools import register_v2_tools
+from arifosmcp.runtime.prompts import register_v2_prompts
+from arifosmcp.runtime.resources import register_v2_resources
+from arifosmcp.runtime.manifest import build_manifest_v2
 
 # Register v2 components
 v2_tools_registered = register_v2_tools(mcp)
@@ -396,6 +396,23 @@ async def webmcp_options_handler(request: Request) -> Response:
     )
 
 
+async def webmcp_manifest_handler(request: Request) -> JSONResponse:
+    """WebMCP manifest for discovery."""
+    return JSONResponse({
+        "schema_version": "1.0",
+        "name": "ARIFOS WebMCP",
+        "transport": "http-sse",
+        "endpoint": "/mcp",
+        "capabilities": ["tools", "prompts", "resources"]
+    })
+
+
+async def webmcp_tools_handler(request: Request) -> JSONResponse:
+    """WebMCP specific tools list."""
+    # Maps canonical tools to WebMCP format if needed
+    return await tools_handler(request)
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # REGISTER ALL ROUTES
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -413,13 +430,45 @@ app.add_route("/robots.txt", robots_txt_handler, methods=["GET"])
 
 # Well-known endpoints
 app.add_route("/.well-known/mcp", manifest_handler, methods=["GET"])
+app.add_route("/.well-known/mcp/server.json", manifest_handler, methods=["GET"])
 app.add_route("/.well-known/manifest.json", manifest_handler, methods=["GET"])
 app.add_route("/.well-known/agent.json", a2a_agent_card_handler, methods=["GET"])
+app.add_route("/.well-known/webmcp", webmcp_manifest_handler, methods=["GET"])
+app.add_route("/webmcp/tools.json", webmcp_tools_handler, methods=["GET"])
 async def security_txt_handler(request: Request) -> Response:
     """Serve security.txt."""
     return await well_known_handler(request, "security.txt")
 
 app.add_route("/.well-known/security.txt", security_txt_handler, methods=["GET"])
+
+# A2A endpoints
+app.add_route("/a2a/agent", a2a_agent_card_handler, methods=["GET"])
+app.add_route("/a2a/tasks", a2a_tasks_handler, methods=["POST", "OPTIONS"])
+
+# WebMCP CORS
+app.add_route("/mcp", webmcp_options_handler, methods=["OPTIONS"])
+
+# v2 manifest
+app.add_route("/v2/manifest", v2_manifest_handler, methods=["GET"])
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SERVER CREATION
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def create_v2_mcp_server() -> FastMCP:
+    """Create and return the v2 MCP server instance."""
+    return mcp
+
+
+# Compatibility alias — preserves existing imports of create_aaa_mcp_server
+# across __init__.py, __main__.py, tests, and CLI entry points.
+create_aaa_mcp_server = create_v2_mcp_server
+
+
+if __name__ == "__main__":
+    from arifosmcp.runtime.fastmcp_ext.transports import run_server
+    run_server(mcp, mode="http", host="0.0.0.0", port=8080)
 
 # A2A endpoints
 app.add_route("/a2a/agent", a2a_agent_card_handler, methods=["GET"])

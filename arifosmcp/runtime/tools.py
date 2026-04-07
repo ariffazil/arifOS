@@ -1,989 +1,555 @@
-# arifOS Functional Tool Surface v2.5 — ToM-Aligned (SAME SIGNATURES)
+"""
+arifosmcp/runtime/tools.py — arifOS MCP Sovereign Core — 10 Canonical Tools
+
+10 canonical tools, clean implementation, MCP-standard compliant.
+
+The 10th Tool (arifos.forge) is the Delegated Execution Bridge:
+  • Requires judge verdict = SEAL
+  • Issues signed execution manifest
+  • Dispatches to AF-FORGE substrate
+  • Preserves separation of powers
+
+DITEMPA BUKAN DIBERI — Forged, Not Given
+"""
+
 from __future__ import annotations
-import hashlib
+
 import logging
-from arifosmcp.runtime.envelope import run_agi_mind, MindState, OutputEnvelope, Provenance
-from typing import Any, Optional
+from typing import Any
 
 from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
-from arifosmcp.runtime.megaTools import (
-    agi_mind as _mega_agi_mind,
-    apex_judge as _mega_apex_judge,
-    architect_registry as _mega_architect_registry,
-    arifOS_kernel as _mega_arifOS_kernel,
-    asi_heart as _mega_asi_heart,
-    code_engine as _mega_code_engine,
-    engineering_memory as _mega_engineering_memory,
-    init_anchor as _mega_init_anchor,
-    math_estimator as _mega_math_estimator,
-    physics_reality as _mega_physics_reality,
-    vault_ledger as _mega_vault_ledger,
-)
-from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-from arifosmcp.runtime.philosophy_registry import (
-    PHILOSOPHY_REGISTRY,
-    PhilosophyQuote,
-    get_quote_by_g_star,
-)
+
+# RuntimeEnvelope is a dict type for tool outputs
+RuntimeEnvelope = dict[str, Any]
+# Philosophy injection removed from tools - happens centrally in _wrap_call()
+# to ensure ONLY G★ determines band, never tool identity
 from fastmcp import FastMCP
 
-# Import v2 handlers with clean signatures and envelope sealing
-from arifosmcp.runtime.tools_v2 import (
-    arifos_init as _v2_init,
-    arifos_sense as _v2_sense,
-    arifos_mind as _v2_mind,
-    arifos_route as _v2_route,
-    arifos_heart as _v2_heart,
-    arifos_ops as _v2_ops,
-    arifos_judge as _v2_judge,
-    arifos_memory as _v2_memory,
-    arifos_vault as _v2_vault,
-    arifos_forge as _v2_forge,
+from arifosmcp.runtime.megaTools import (
+    agi_mind as _mega_agi_mind,
+)
+from arifosmcp.runtime.megaTools import (
+    apex_judge as _mega_apex_judge,
+)
+from arifosmcp.runtime.megaTools import (
+    arifOS_kernel as _mega_arifOS_kernel,
+)
+from arifosmcp.runtime.megaTools import (
+    asi_heart as _mega_asi_heart,
+)
+from arifosmcp.runtime.megaTools import (
+    engineering_memory as _mega_engineering_memory,
+)
+from arifosmcp.runtime.megaTools import (
+    init_anchor as _mega_init_anchor,
+)
+from arifosmcp.runtime.megaTools import (
+    math_estimator as _mega_math_estimator,
+)
+from arifosmcp.runtime.megaTools import (
+    physics_reality as _mega_physics_reality,
+)
+from arifosmcp.runtime.megaTools import (
+    vault_ledger as _mega_vault_ledger,
 )
 
 logger = logging.getLogger(__name__)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# PHILOSOPHY INJECTION ENGINE
+# INTERNAL HELPERS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def inject_philosophy(
-    envelope: RuntimeEnvelope,
-    g_star: float = 0.5,
-) -> dict[str, Any]:
-    """
-    Post-verdict philosophy injection.
-    
-    Rules:
-    1. If stage == INIT → override to S1 (DITEMPA, BUKAN DIBERI)
-    2. If verdict == SEAL → override to S1
-    3. Otherwise → use G★ band mapping
-    
-    Philosophy NEVER affects scoring, routing, floors, or verdict.
-    """
-    # Rule 1: INIT override
-    if envelope.stage == "000_INIT" or envelope.stage == "INIT":
-        return {
-            "registry_version": "1.2.0",
-            "selection_mode": "override_init",
-            "g_score": 1.0,
-            "band": "INIT",
-            "quote": {
-                "id": "S1",
-                "text": "DITEMPA, BUKAN DIBERI.",
-                "author": "arifOS",
-                "category": "seal",
-                "civilization": "Contemporary_Global",
-            }
-        }
-    
-    # Rule 2: SEAL override
-    if envelope.verdict == Verdict.SEAL:
-        return {
-            "registry_version": "1.2.0",
-            "selection_mode": "override_seal",
-            "g_score": g_star,
-            "band": "SEAL",
-            "quote": {
-                "id": "S1",
-                "text": "DITEMPA, BUKAN DIBERI.",
-                "author": "arifOS",
-                "category": "seal",
-                "civilization": "Contemporary_Global",
-            }
-        }
-    
-    # Rule 3: G★ band mapping
-    band = min(int(5 * g_star), 4)
-    
-    # Category mapping per band
-    allowed_categories = {
-        0: ["void", "paradox"],
-        1: ["paradox", "truth"],
-        2: ["wisdom", "justice"],
-        3: ["discipline", "power"],
-        4: ["power"],  # seal excluded unless override
-    }
-    
-    # Filter candidates
-    categories = allowed_categories.get(band, ["wisdom"])
-    candidates = [q for q in PHILOSOPHY_REGISTRY if q.category in categories]
-    
-    if not candidates:
-        candidates = PHILOSOPHY_REGISTRY
-    
-    # Deterministic selection
-    seed = hashlib.sha256(
-        f"{envelope.session_id}:{band}:{g_star:.4f}".encode()
-    ).hexdigest()
-    idx = int(seed, 16) % len(candidates)
-    selected = candidates[idx]
-    
-    return {
-        "registry_version": "1.2.0",
-        "selection_mode": "g_band",
-        "g_score": round(g_star, 4),
-        "band": band,
-        "quote": {
-            "id": f"Q{idx:03d}",
-            "text": selected.text,
-            "author": selected.author,
-            "category": selected.category,
-            "civilization": selected.civilization,
-        }
-    }
-
-
-def calculate_g_star_from_payload(payload: dict[str, Any]) -> float:
-    """
-    Calculate G★ score from ToM fields in payload.
-    
-    Uses:
-    - confidence_estimate, confidence_self_estimate, or confidence_level
-    - alternative_hypotheses count
-    - context_assumptions presence
-    - logical_consistency
-    - harm_probability (inverse)
-    """
-    # Extract confidence from various possible field names
-    confidence = payload.get("confidence_estimate",
-                   payload.get("confidence_self_estimate",
-                     payload.get("confidence_level",
-                       payload.get("confidence", 0.5))))
-    
-    # Extract alternatives count
-    alternatives = payload.get("alternative_hypotheses", 
-                     payload.get("alternative_intents", 
-                       payload.get("alternative_evidence", [])))
-    alt_count = len(alternatives)
-    
-    # Check for assumptions
-    has_assumptions = bool(
-        payload.get("context_assumptions") or 
-        payload.get("assumptions") or
-        payload.get("inferred_user_goals")
-    )
-    
-    # Check consistency
-    consistent = payload.get("logical_consistency", True)
-    
-    # Harm probability (inverse - lower is better)
-    harm = payload.get("harm_probability", 
-             payload.get("vulnerability_risk", 0.0))
-    
-    # Calculate base G★
-    base = float(confidence)
-    
-    # Adjustments
-    if alt_count >= 3:
-        base += 0.05
-    elif alt_count >= 2:
-        base += 0.02
-    elif alt_count == 0:
-        base -= 0.10
-    
-    if has_assumptions:
-        base += 0.05
-    else:
-        base -= 0.10
-    
-    if not consistent:
-        base -= 0.15
-    
-    # Harm reduces G★
-    base -= (float(harm) * 0.20)
-    
-    return max(0.0, min(1.0, base))
-
-
-def get_alignment_label(g_star: float) -> str:
-    """Get constitutional alignment label for G★ score."""
-    if g_star >= 0.91:
-        return "SEAL — Constitutional Mastery"
-    elif g_star >= 0.80:
-        return "SEAL — Excellence"
-    elif g_star >= 0.70:
-        return "DISCIPLINE — Execution Ready"
-    elif g_star >= 0.60:
-        return "DISCIPLINE — Systems Aligned"
-    elif g_star >= 0.50:
-        return "WISDOM — Ethical Grounding"
-    elif g_star >= 0.40:
-        return "WISDOM — Considered"
-    elif g_star >= 0.30:
-        return "TRUTH — Epistemic Awareness"
-    elif g_star >= 0.20:
-        return "TRUTH — Methodological"
-    elif g_star >= 0.10:
-        return "VOID — Acknowledged Limits"
-    else:
-        return "VOID — Critical Uncertainty"
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# EXISTING TOOL HANDLERS — ENHANCED WITH ToM (SAME SIGNATURES)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-async def init_v2(
-    mode: str,
-    payload: dict[str, Any],
-    session_id: Optional[str] = None,
-    risk_tier: str = "medium",
-    dry_run: bool = True,
-) -> RuntimeEnvelope:
-    """
-    arifos.init — System Initialization with ToM.
-    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
-    """
-    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-    from arifosmcp.runtime.envelope import run_agi_mind
-    
-    # Extract input
-    raw_input = str(payload)
-    
-    # Run the new Unified Intelligence Pipeline
-    envelope = run_agi_mind(raw_input)
-    
-    status_map = {
-        "OK": RuntimeStatus.SUCCESS,
-        "PARTIAL": RuntimeStatus.SABAR,
-        "HOLD": RuntimeStatus.ERROR,
-        "ERROR": RuntimeStatus.ERROR
-    }
-    
-    verdict_map = {
-        "OK": Verdict.SEAL,
-        "PARTIAL": Verdict.SABAR,
-        "HOLD": Verdict.VOID,
-        "ERROR": Verdict.VOID
-    }
-    
-    return RuntimeEnvelope(
-        tool="init",
+def _make_f12_block_envelope(injection_score: float, threats: list[str], session_id: str | None) -> Any:
+    """Return a VOID RuntimeEnvelope blocking an F12 injection attempt."""
+    from arifosmcp.runtime.models import RuntimeEnvelope as _RE
+    from arifosmcp.runtime.models import RuntimeStatus, Verdict
+    return _RE(
+        ok=False,
+        tool="arifos.init",
+        canonical_tool_name="arifos.init",
         stage="000_INIT",
-        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
-        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
+        status=RuntimeStatus.ERROR,
+        verdict=Verdict.VOID,
+        code="F12_INJECTION_BLOCKED",
+        detail=f"Prompt injection detected (score={injection_score:.2f}). Request rejected by F12.",
+        hint="Remove manipulation patterns from intent and retry with a legitimate request.",
+        retryable=False,
+        rollback_available=False,
+        anchor_state="denied",
         session_id=session_id,
-        payload=envelope.model_dump()
+        policy={
+            "floors_checked": ["F12"],
+            "floors_failed": ["F12"],
+            "injection_score": round(injection_score, 4),
+            "threats": threats,
+            "witness_required": True,
+        },
     )
 
 
-async def sense_v2(
-    mode: str,
-    payload: dict[str, Any],
-    session_id: Optional[str] = None,
+# ═══════════════════════════════════════════════════════════════════════════════
+# V2 TOOL IMPLEMENTATIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+async def arifos_init(
+    actor_id: str,
+    intent: str,
+    declared_name: str | None = None,
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
+    allow_execution: bool = False,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
-    """
-    arifos.sense — Constitutional Reality Sensing (canonical v2).
+    """Initialize constitutional session."""
+    # ── F12: Injection Guard ──────────────────────────────────────────────
+    from arifosmcp.runtime.webmcp.security import WebInjectionGuard
+    _guard = WebInjectionGuard()
+    _injection_score, _threats = _guard._scan_text(intent)
+    if _injection_score >= 0.85:
+        logger.warning(
+            "F12 BLOCK: injection detected in arifos.init intent (score=%.2f, threats=%s)",
+            _injection_score, _threats,
+        )
+        return seal_runtime_envelope(
+            _make_f12_block_envelope(_injection_score, _threats, session_id),
+            "arifos.init",
+        )
 
-    Kernel adapter: bridges (mode, payload, session_id, risk_tier, dry_run)
-    kernel call convention → arifos_sense(query, mode, ...) in tools_v2.
-
-    Governed mode is the default. Legacy modes (search/ingest/compass/atlas/time)
-    are preserved via the legacy fallback in tools_v2.arifos_sense.
-    """
-    # Extract query from payload — support "query", "input", "text" keys
-    query = (
-        payload.get("query")
-        or payload.get("input")
-        or payload.get("text")
-        or ""
-    )
-    if not query and isinstance(payload, dict):
-        # Fallback: stringify non-empty payload for backward compat
-        non_meta = {k: v for k, v in payload.items()
-                    if k not in ("session_id", "dry_run", "risk_tier", "mode")}
-        if non_meta:
-            query = str(next(iter(non_meta.values())))
-
-    # Use "governed" unless caller explicitly set a legacy mode
-    effective_mode = mode if mode and mode != "default" else "governed"
-
-    # Pass optional extended SenseInput fields from payload
-    return await _v2_sense(
-        query=query,
-        mode=effective_mode,
+    envelope = await _mega_init_anchor(
+        mode="init",
+        payload={"actor_id": actor_id, "intent": intent, "declared_name": declared_name},
         session_id=session_id,
         risk_tier=risk_tier,
         dry_run=dry_run,
-        intent=payload.get("intent"),
-        query_frame=payload.get("query_frame"),
-        policy=payload.get("policy"),
-        budget=payload.get("budget"),
-        actor=payload.get("actor"),
+        allow_execution=allow_execution,
+        debug=debug,
     )
+    # Stamp F12 result into policy so floors_checked is never empty
+    if hasattr(envelope, "policy") and isinstance(envelope.policy, dict):
+        envelope.policy["floors_checked"] = list(dict.fromkeys(
+            ["F12"] + envelope.policy.get("floors_checked", [])
+        ))
+        envelope.policy["injection_score"] = round(_injection_score, 4)
+    elif hasattr(envelope, "policy"):
+        envelope.policy = {"floors_checked": ["F12"], "injection_score": round(_injection_score, 4)}
+    return seal_runtime_envelope(envelope, "arifos.init")
 
 
-async def mind_v2(
-    mode: str,
-    payload: dict[str, Any],
-    session_id: Optional[str] = None,
+async def arifos_sense(
+    query: str,
+    mode: str = "governed",
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
+    debug: bool = False,
+    # Extended SenseInput fields (all optional — backward compatible)
+    intent: str | None = None,
+    query_frame: dict[str, Any] | None = None,
+    policy: dict[str, Any] | None = None,
+    budget: dict[str, Any] | None = None,
+    actor: dict[str, Any] | None = None,
 ) -> RuntimeEnvelope:
     """
-    arifos.mind — Structured Reasoning with ToM.
-    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
+    arifos.sense — Constitutional Reality Sensing
+
+    Implements the 8-stage governed sensing protocol:
+        PARSE → CLASSIFY → DECIDE → PLAN → RETRIEVE → NORMALIZE → GATE → HANDOFF
+
+    Live web search is gated by truth classification:
+        - absolute_invariant / operational_principle → offline reason (no HTTP call)
+        - time_sensitive_fact / conditional_invariant → live web_search
+        - contested_framework → web_search for competing views
+        - ambiguous_query / unknown → HOLD (narrow first)
+
+    mode values:
+        "governed" (default) — full 8-stage constitutional protocol (recommended)
+        "search"   — raw search via physics_reality (legacy, bypasses protocol)
+        "ingest"   — raw URL fetch (legacy)
+        "compass"  — auto-mode (legacy)
+        "atlas"    — discovery scan (legacy)
+        "time"     — clock grounding (legacy)
+
+    Backward compatible: existing callers using mode="search" continue to work.
     """
-    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-    from arifosmcp.runtime.envelope import run_agi_mind
-    
-    # Extract query/problem
-    raw_input = payload.get("problem_statement") or payload.get("query") or str(payload)
-    
-    # Run the new AGI Mind Pipeline which handles Sense -> Mind -> Heart -> Judge
-    # and outputs a compressed OutputEnvelope with mandatory falsifier and chaos score.
-    envelope = run_agi_mind(raw_input)
-    
-    status_map = {
-        "OK": RuntimeStatus.SUCCESS,
-        "PARTIAL": RuntimeStatus.SABAR,
-        "HOLD": RuntimeStatus.ERROR,
-        "ERROR": RuntimeStatus.ERROR
-    }
-    
-    verdict_map = {
-        "OK": Verdict.SEAL,
-        "PARTIAL": Verdict.SABAR,
-        "HOLD": Verdict.VOID,
-        "ERROR": Verdict.VOID
-    }
-    
-    return RuntimeEnvelope(
-        tool="agi_mind",
-        stage="333_MIND",
-        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
-        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
-        session_id=session_id,
-        payload=envelope.model_dump()
-    )
+    # ── governed mode: full constitutional protocol ────────────────────────────
+    if mode == "governed":
+        from arifosmcp.runtime.models import RuntimeEnvelope as _RE
+        from arifosmcp.runtime.models import RuntimeStatus, Verdict
+        from arifosmcp.runtime.sensing_protocol import (
+            TimeScope,
+            normalize_query,
+        )
+        from arifosmcp.runtime.sensing_protocol import (
+            governed_sense as _governed_sense,
+        )
+
+        # Build SenseInput — use extended fields if provided, otherwise auto-normalize
+        if query_frame or intent or policy or budget or actor:
+            base_si = normalize_query(query)
+            if intent:
+                base_si.intent.user_goal = intent
+            if query_frame:
+                qf = base_si.query_frame
+                qf.domain = query_frame.get("domain", qf.domain)
+                raw_ts = query_frame.get("time_scope")
+                if raw_ts:
+                    try:
+                        qf.time_scope = TimeScope(raw_ts)
+                    except ValueError:
+                        pass
+                qf.jurisdiction = query_frame.get("jurisdiction", qf.jurisdiction)
+            if policy:
+                p = base_si.policy
+                p.obey_robots = policy.get("obey_robots", p.obey_robots)
+                p.allow_paywalls = policy.get("allow_paywalls", p.allow_paywalls)
+                p.fail_closed = policy.get("fail_closed", p.fail_closed)
+                fd = policy.get("freshness_max_age_days")
+                if fd is not None:
+                    p.freshness_max_age_days = fd
+            if budget:
+                b = base_si.budget
+                b.top_k = budget.get("top_k", b.top_k)
+                b.budget_ms = budget.get("budget_ms", b.budget_ms)
+            if actor:
+                a = base_si.actor
+                a.actor_id = actor.get("actor_id", a.actor_id)
+                a.authority_level = actor.get("authority_level", a.authority_level)
+            si = base_si
+        else:
+            si = normalize_query(query)
+
+        try:
+            sense_packet, intel_state = await _governed_sense(
+                query=si,
+                session_id=session_id,
+                execute_search=not dry_run,
+            )
+        except Exception as exc:
+            logger.warning("governed_sense failed: %s", exc)
+            # Fall through to legacy mode on failure
+            return await _sense_legacy(query, "search", session_id, risk_tier, dry_run, debug)
+
+        # Derive verdict
+        route_reason = sense_packet.routing.route_reason
+        verdict_tag = route_reason.split("]")[0].lstrip("[") if route_reason.startswith("[") else "SABAR"
+        if verdict_tag == "SEAL":
+            verdict = Verdict.SEAL
+            ok = True
+            status = RuntimeStatus.SUCCESS
+        elif verdict_tag == "HOLD":
+            verdict = Verdict.SABAR
+            ok = False
+            status = RuntimeStatus.SABAR
+        else:
+            verdict = Verdict.SABAR
+            ok = False
+            status = RuntimeStatus.SABAR
+
+        # Build enriched intelligence_state
+        is_dict = intel_state.to_dict()
+        is_dict["sense_packet_id"] = sense_packet.packet_id
+        is_dict["truth_class"] = sense_packet.truth_classification.truth_class.value
+        is_dict["retrieval_lane"] = sense_packet.evidence_plan.retrieval_lane
+        is_dict["evidence_count"] = len(sense_packet.evidence_items)
+        is_dict["routing"] = sense_packet.routing.to_dict()
+
+        envelope = _RE(
+            ok=ok,
+            tool="arifos.sense",
+            canonical_tool_name="arifos.sense",
+            stage="111_SENSE",
+            status=status,
+            verdict=verdict,
+            session_id=session_id,
+            intelligence_state=is_dict,
+            payload={
+                "sense_packet": sense_packet.to_dict(),
+                "governed": True,
+                "truth_class": sense_packet.truth_classification.truth_class.value,
+                "search_required": sense_packet.truth_classification.search_required,
+                "retrieval_lane": sense_packet.evidence_plan.retrieval_lane,
+                "uncertainty": sense_packet.uncertainty.level.value,
+                "routing": sense_packet.routing.to_dict(),
+                "handoff": sense_packet.handoff.to_dict(),
+                "evidence_count": len(sense_packet.evidence_items),
+            },
+        )
+        if debug:
+            envelope.debug = {
+                "intel_state_full": intel_state.to_dict(),
+                "truth_vector": intel_state.truth_vector.to_dict(),
+            }
+        return seal_runtime_envelope(envelope, "arifos.sense")
+
+    # ── legacy modes: delegate to physics_reality ─────────────────────────────
+    return await _sense_legacy(query, mode, session_id, risk_tier, dry_run, debug)
 
 
-async def heart_v2(
+async def _sense_legacy(
+    query: str,
     mode: str,
-    payload: dict[str, Any],
-    session_id: Optional[str] = None,
+    session_id: str | None,
+    risk_tier: str,
+    dry_run: bool,
+    debug: bool,
+) -> RuntimeEnvelope:
+    """Legacy sense path — delegates to physics_reality mega tool."""
+    envelope = await _mega_physics_reality(
+        mode=mode,
+        payload={"query": query},
+        session_id=session_id,
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        debug=debug,
+    )
+    return seal_runtime_envelope(envelope, "arifos.sense")
+
+
+async def arifos_mind(
+    query: str,
+    context: str | None = None,
+    mode: str = "reason",
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
+    """Structured reasoning with typed cognitive pipeline.
+
+    Runs the constitutional AGI pipeline (sense → mind → heart → judge)
+    producing a narrow decision_packet for the operator and a full
+    audit_packet for the vault.  Internal richness, external compression.
     """
-    arifos.heart — Safety and Human Modeling with ToM.
-    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
-    """
-    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-    from arifosmcp.runtime.envelope import run_agi_mind
-    
-    # Extract input
-    raw_input = str(payload)
-    
-    # Run the new Unified Intelligence Pipeline
-    envelope = run_agi_mind(raw_input)
-    
-    status_map = {
-        "OK": RuntimeStatus.SUCCESS,
-        "PARTIAL": RuntimeStatus.SABAR,
-        "HOLD": RuntimeStatus.ERROR,
-        "ERROR": RuntimeStatus.ERROR
-    }
-    
-    verdict_map = {
-        "OK": Verdict.SEAL,
-        "PARTIAL": Verdict.SABAR,
-        "HOLD": Verdict.VOID,
-        "ERROR": Verdict.VOID
-    }
-    
-    return RuntimeEnvelope(
-        tool="heart",
-        stage="666_HEART",
-        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
-        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
+    from arifosmcp.runtime.arifos_runtime_envelope import run_agi_mind
+
+    # ── Typed pipeline: sense → mind → heart → judge ─────────────────────
+    decision_packet, audit_packet = await run_agi_mind(
+        raw_input=query,
         session_id=session_id,
-        payload=envelope.model_dump()
+        additional_context=context or "",
     )
 
+    # ── Forward enriched payload through mega tool ────────────────────────
+    envelope = await _mega_agi_mind(
+        mode=mode,
+        payload={
+            "query": query,
+            "context": context,
+            "decision_packet": decision_packet,
+        },
+        session_id=session_id,
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        debug=debug,
+    )
 
-async def ops_v2(
-    mode: str,
-    payload: dict[str, Any],
-    session_id: Optional[str] = None,
+    # ── Seal and inject typed packets into intelligence_state ─────────────
+    sealed = seal_runtime_envelope(envelope, "arifos.mind")
+    if isinstance(sealed, dict):
+        intel = sealed.setdefault("intelligence_state", {})
+        intel["decision_packet"] = decision_packet
+        intel["audit_packet"] = audit_packet
+        intel["chaos_score"] = audit_packet.get(
+            "constitutional_checks", {}
+        ).get("chaos_score", 0.0)
+        intel["pipeline_trace"] = audit_packet.get("pipeline_trace", [])
+    return sealed
+
+
+async def arifos_route(
+    request: str,
+    mode: str = "kernel",
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
+    allow_execution: bool = False,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
-    """
-    arifos.ops — Mathematics and Operations with ToM.
-    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
-    """
-    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-    from arifosmcp.runtime.envelope import run_agi_mind
-    
-    # Extract input
-    raw_input = str(payload)
-    
-    # Run the new Unified Intelligence Pipeline
-    envelope = run_agi_mind(raw_input)
-    
-    status_map = {
-        "OK": RuntimeStatus.SUCCESS,
-        "PARTIAL": RuntimeStatus.SABAR,
-        "HOLD": RuntimeStatus.ERROR,
-        "ERROR": RuntimeStatus.ERROR
-    }
-    
-    verdict_map = {
-        "OK": Verdict.SEAL,
-        "PARTIAL": Verdict.SABAR,
-        "HOLD": Verdict.VOID,
-        "ERROR": Verdict.VOID
-    }
-    
-    return RuntimeEnvelope(
-        tool="ops",
-        stage="MATH_ESTIMATOR",
-        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
-        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
+    """Route request to correct metabolic lane."""
+    envelope = await _mega_arifOS_kernel(
+        mode=mode,
+        payload={"query": request},
         session_id=session_id,
-        payload=envelope.model_dump()
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        allow_execution=allow_execution,
+        debug=debug,
     )
+    return seal_runtime_envelope(envelope, "arifos.route")
 
 
-async def route_v2(
-    mode: str,
-    payload: dict[str, Any],
-    session_id: Optional[str] = None,
+async def arifos_heart(
+    content: str,
+    mode: str = "critique",
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
-    """
-    arifos.route — Task Routing with ToM.
-    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
-    """
-    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-    from arifosmcp.runtime.envelope import run_agi_mind
-    
-    # Extract input
-    raw_input = str(payload)
-    
-    # Run the new Unified Intelligence Pipeline
-    envelope = run_agi_mind(raw_input)
-    
-    status_map = {
-        "OK": RuntimeStatus.SUCCESS,
-        "PARTIAL": RuntimeStatus.SABAR,
-        "HOLD": RuntimeStatus.ERROR,
-        "ERROR": RuntimeStatus.ERROR
-    }
-    
-    verdict_map = {
-        "OK": Verdict.SEAL,
-        "PARTIAL": Verdict.SABAR,
-        "HOLD": Verdict.VOID,
-        "ERROR": Verdict.VOID
-    }
-    
-    return RuntimeEnvelope(
-        tool="route",
-        stage="ROUTER",
-        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
-        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
+    """Safety, dignity, and adversarial critique."""
+    envelope = await _mega_asi_heart(
+        mode=mode,
+        payload={"content": content},
         session_id=session_id,
-        payload=envelope.model_dump()
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        debug=debug,
     )
+    return seal_runtime_envelope(envelope, "arifos.heart")
 
 
-async def judge_v2(
-    mode: str,
-    payload: dict[str, Any],
-    session_id: Optional[str] = None,
+async def arifos_ops(
+    action: str,
+    mode: str = "cost",
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
-    """
-    arifos.judge — Constitutional Validation with ToM.
-    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
-    """
-    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-    from arifosmcp.runtime.envelope import run_agi_mind
-    
-    # Extract input
-    raw_input = str(payload)
-    
-    # Run the new Unified Intelligence Pipeline
-    envelope = run_agi_mind(raw_input)
-    
-    status_map = {
-        "OK": RuntimeStatus.SUCCESS,
-        "PARTIAL": RuntimeStatus.SABAR,
-        "HOLD": RuntimeStatus.ERROR,
-        "ERROR": RuntimeStatus.ERROR
-    }
-    
-    verdict_map = {
-        "OK": Verdict.SEAL,
-        "PARTIAL": Verdict.SABAR,
-        "HOLD": Verdict.VOID,
-        "ERROR": Verdict.VOID
-    }
-    
-    return RuntimeEnvelope(
-        tool="judge",
-        stage="888_JUDGE",
-        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
-        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
+    """Calculate operation costs and thermodynamics."""
+    envelope = await _mega_math_estimator(
+        mode=mode,
+        payload={"action": action},
         session_id=session_id,
-        payload=envelope.model_dump()
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        debug=debug,
     )
+    return seal_runtime_envelope(envelope, "arifos.ops")
 
 
-async def memory_v2(
-    mode: str,
-    payload: dict[str, Any],
-    session_id: Optional[str] = None,
+async def arifos_judge(
+    candidate_action: str,
+    risk_tier: str = "medium",
+    telemetry: dict[str, Any] | None = None,
+    session_id: str | None = None,
+    dry_run: bool = True,
+    debug: bool = False,
+) -> RuntimeEnvelope:
+    """Final constitutional verdict evaluation."""
+    envelope = await _mega_apex_judge(
+        mode="judge",
+        payload={
+            "candidate": candidate_action,
+            "risk_tier": risk_tier,
+            "telemetry": telemetry,
+        },
+        session_id=session_id,
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        debug=debug,
+    )
+    return seal_runtime_envelope(envelope, "arifos.judge")
+
+
+async def arifos_memory(
+    query: str,
+    mode: str = "vector_query",
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
-    """
-    arifos.memory — Engineering Memory with ToM.
-    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
-    """
-    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-    from arifosmcp.runtime.envelope import run_agi_mind
+    """Retrieve governed memory from vector store or update the continuous world model."""
     
-    # Extract input
-    raw_input = str(payload)
-    
-    # Run the new Unified Intelligence Pipeline
-    envelope = run_agi_mind(raw_input)
-    
-    status_map = {
-        "OK": RuntimeStatus.SUCCESS,
-        "PARTIAL": RuntimeStatus.SABAR,
-        "HOLD": RuntimeStatus.ERROR,
-        "ERROR": RuntimeStatus.ERROR
-    }
-    
-    verdict_map = {
-        "OK": Verdict.SEAL,
-        "PARTIAL": Verdict.SABAR,
-        "HOLD": Verdict.VOID,
-        "ERROR": Verdict.VOID
-    }
-    
-    return RuntimeEnvelope(
-        tool="memory",
-        stage="555_MEMORY",
-        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
-        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
+    # Karpathy Injection: Continuous Learning (Animal Archetype vs Ghost)
+    # Overcoming Anterograde Amnesia through active world model updates.
+    payload = {"query": query}
+    if mode == "world_model_update":
+        payload["animal_archetype_active"] = True
+        payload["continuous_learning_update"] = True
+        payload["anterograde_amnesia_override"] = True
+
+    envelope = await _mega_engineering_memory(
+        mode=mode,
+        payload=payload,
         session_id=session_id,
-        payload=envelope.model_dump()
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        debug=debug,
     )
+    return seal_runtime_envelope(envelope, "arifos.memory")
 
 
-async def vault_v2(
-    mode: str,
-    payload: dict[str, Any],
-    session_id: Optional[str] = None,
+async def arifos_vault(
+    verdict: str,
+    evidence: str | None = None,
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
+    debug: bool = False,
 ) -> RuntimeEnvelope:
-    """
-    arifos.vault — Audit and Seal with ToM.
-    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
-    """
-    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-    from arifosmcp.runtime.envelope import run_agi_mind
-    
-    # Extract input
-    raw_input = str(payload)
-    
-    # Run the new Unified Intelligence Pipeline
-    envelope = run_agi_mind(raw_input)
-    
-    status_map = {
-        "OK": RuntimeStatus.SUCCESS,
-        "PARTIAL": RuntimeStatus.SABAR,
-        "HOLD": RuntimeStatus.ERROR,
-        "ERROR": RuntimeStatus.ERROR
-    }
-    
-    verdict_map = {
-        "OK": Verdict.SEAL,
-        "PARTIAL": Verdict.SABAR,
-        "HOLD": Verdict.VOID,
-        "ERROR": Verdict.VOID
-    }
-    
-    return RuntimeEnvelope(
-        tool="vault",
-        stage="VAULT_LEDGER",
-        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
-        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
+    """Append immutable verdict to ledger."""
+    envelope = await _mega_vault_ledger(
+        mode="seal",
+        payload={"verdict": verdict, "evidence": evidence},
         session_id=session_id,
-        payload=envelope.model_dump()
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        debug=debug,
     )
+    return seal_runtime_envelope(envelope, "arifos.vault")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# REGISTRATION (FORWARD DECLARATION — populated after all functions defined)
+# V2 TOOL HANDLER REGISTRY
 # ═══════════════════════════════════════════════════════════════════════════════
 
-CANONICAL_TOOL_HANDLERS: dict[str, Any] = {}
+# Import the 10th tool (Delegated Execution Bridge)
+from arifosmcp.runtime.tools_forge import arifos_forge
+
+V2_TOOL_HANDLERS: dict[str, Any] = {
+    "arifos.init": arifos_init,
+    "arifos.sense": arifos_sense,
+    "arifos.mind": arifos_mind,
+    "arifos.route": arifos_route,
+    "arifos.heart": arifos_heart,
+    "arifos.ops": arifos_ops,
+    "arifos.judge": arifos_judge,
+    "arifos.memory": arifos_memory,
+    "arifos.vault": arifos_vault,
+    "arifos.forge": arifos_forge,  # The 10th Tool — Delegated Execution
+}
 
 
-def register_tools(mcp: FastMCP) -> None:
-    """Register core tools (v2) and ToM-integrated tools (v3)."""
+def register_v2_tools(mcp: FastMCP) -> list[str]:
+    """Register all v2 tools on the MCP instance."""
     from fastmcp.tools.function_tool import FunctionTool
-    from arifosmcp.runtime.tool_specs import PUBLIC_TOOL_SPECS
 
-    # Register v2 tools
-    for spec in PUBLIC_TOOL_SPECS:
-        handler = CANONICAL_TOOL_HANDLERS.get(spec.name)
+    from arifosmcp.runtime.tool_specs import V2_TOOLS
+
+    registered = []
+    for spec in V2_TOOLS:
+        handler = V2_TOOL_HANDLERS.get(spec.name)
         if not handler:
+            logger.warning(f"No handler for v2 tool: {spec.name}")
             continue
         
-        ft = FunctionTool.from_function(handler, name=spec.name, description=spec.description)
-        mcp.add_tool(ft)
-    
-    # Register ToM-integrated tools (v3) - placeholder for future ToM anchoring
-    TOM_TOOL_HANDLERS: dict[str, Any] = {}
-    for name, handler in TOM_TOOL_HANDLERS.items():
         ft = FunctionTool.from_function(
-            handler, 
-            name=name, 
-            description=handler.__doc__ or f"ToM-anchored {name}"
+            handler,
+            name=spec.name,
+            description=spec.description,
         )
+        ft.parameters = dict(spec.input_schema)
         mcp.add_tool(ft)
+        registered.append(spec.name)
+
+    logger.info(f"Registered {len(registered)} v2 tools: {registered}")
+    return registered
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# MODE WRAPPERS (for backward compatibility - map to 9 tool modes)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-async def get_constitutional_health(session_id: str = "global") -> dict[str, Any]:
-    """
-    Wrapper: Maps to arifos.judge mode='health'
-    Returns F1-F13 constitutional floor status.
-    """
-    # This is now a mode in arifos.judge
-    # For backward compat, return the health data structure
-    return {
-        "ok": True,
-        "mode": "health",
-        "source": "arifos.judge (mode='health')",
-        "floors": {
-            "F1": {"status": "active", "name": "Amanah"},
-            "F2": {"status": "active", "name": "Truth"},
-            "F3": {"status": "active", "name": "Justice"},
-            "F4": {"status": "active", "name": "Integrity"},
-            "F5": {"status": "active", "name": "Safety"},
-            "F6": {"status": "active", "name": "Autonomy"},
-            "F7": {"status": "active", "name": "Dignity"},
-            "F8": {"status": "active", "name": "Reciprocity"},
-            "F9": {"status": "active", "name": "Anti-Hantu"},
-            "F10": {"status": "active", "name": "Coherence"},
-            "F11": {"status": "active", "name": "Stewardship"},
-            "F12": {"status": "active", "name": "Accountability"},
-            "F13": {"status": "active", "name": "Sovereign"},
-        },
-        "summary": {
-            "total_floors": 13,
-            "active": 13,
-            "triggered": 0,
-            "system_health": "healthy",
-        },
-        "note": "Use arifos.judge with mode='health' for full ToM integration",
-    }
-
-
-async def list_recent_verdicts(limit: int = 5) -> dict[str, Any]:
-    """
-    Wrapper: Maps to arifos.judge mode='history'
-    Returns recent constitutional verdicts.
-    """
-    # This is now a mode in arifos.judge
-    return {
-        "ok": True,
-        "mode": "history",
-        "source": "arifos.judge (mode='history')",
-        "recent_verdicts": [
-            {
-                "timestamp": "2026-04-06T09:00:00Z",
-                "session_id": "example-001",
-                "verdict": "SEAL",
-                "g_star": 0.92,
-                "tool": "arifos.init",
-            },
-        ],
-        "registry_version": "1.2.0",
-        "note": "Use arifos.judge with mode='history' for full ToM integration",
-    }
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# HARDENED EXECUTION BRIDGE — arifos.forge
-# ═══════════════════════════════════════════════════════════════════════════════
-# LAYER 3: Execution Attestation
-# 
-# FORGE is the ONLY execution path. It requires:
-# - HMAC-signed execution envelope
-# - Valid SEAL verdict from arifos.judge
-# - Actor identity verification
-# 
-# NO raw shell, NO direct filesystem access, NO arbitrary execution.
-# ═══════════════════════════════════════════════════════════════════════════════
-
-import hmac
-import os
-import secrets
-from typing import Optional
-
-# Execution signing key — loaded from environment (Docker secret or env var)
-# In production, this should be loaded from HashiCorp Vault, AWS KMS, or Docker secrets
-_FORGE_SIGNING_KEY: Optional[bytes] = None
-
-def _get_signing_key() -> bytes:
-    """Get or generate execution signing key."""
-    global _FORGE_SIGNING_KEY
-    if _FORGE_SIGNING_KEY is None:
-        # Try to load from environment/Docker secret
-        key_hex = os.environ.get('FORGE_SIGNING_KEY')
-        if key_hex:
-            _FORGE_SIGNING_KEY = bytes.fromhex(key_hex)
-        else:
-            # Generate ephemeral key (development only — warn in production)
-            logger.warning("FORGE_SIGNING_KEY not set — using ephemeral key (INSECURE FOR PRODUCTION)")
-            _FORGE_SIGNING_KEY = secrets.token_bytes(32)
-    return _FORGE_SIGNING_KEY
-
-
-def sign_execution_envelope(
-    query_hash: str,
-    verdict: str,
-    actor_id: str,
-    timestamp: str,
-) -> str:
-    """
-    Sign execution envelope with HMAC-SHA256.
-    
-    This creates a cryptographic attestation that:
-    - The query was processed
-    - A verdict was rendered
-    - An actor requested execution
-    - At a specific time
-    
-    FORGE verifies this signature before execution.
-    """
-    key = _get_signing_key()
-    
-    # Build canonical message
-    message = f"{query_hash}:{verdict}:{actor_id}:{timestamp}"
-    
-    # Sign
-    signature = hmac.new(key, message.encode(), hashlib.sha256).hexdigest()
-    
-    return signature
-
-
-def verify_execution_envelope(
-    query_hash: str,
-    verdict: str,
-    actor_id: str,
-    timestamp: str,
-    signature: str,
-) -> bool:
-    """
-    Verify execution envelope signature.
-    
-    Returns True only if:
-    - Signature is valid
-    - Verdict is SEAL (not HOLD, not VOID)
-    - Timestamp is recent (anti-replay)
-    
-    This is the gate. No valid signature = no execution.
-    """
-    # Hard check: only SEAL verdicts can execute
-    if verdict != "SEAL":
-        logger.warning(f"Execution blocked: verdict={verdict} (must be SEAL)")
-        return False
-    
-    # Verify signature
-    expected = sign_execution_envelope(query_hash, verdict, actor_id, timestamp)
-    
-    # Constant-time comparison to prevent timing attacks
-    return hmac.compare_digest(signature, expected)
-
-
-async def forge_v2(
-    mode: str,
-    payload: dict[str, Any],
-    session_id: Optional[str] = None,
-    risk_tier: str = "medium",
-    dry_run: bool = True,
-) -> RuntimeEnvelope:
-    """
-    arifos.forge — Hardened Execution Bridge
-    
-    THE ONLY EXECUTION PATH IN arifOS.
-    
-    Requirements:
-    - Signed execution envelope (HMAC)
-    - SEAL verdict from arifos.judge
-    - Actor identity
-    - Action type and constraints
-    
-    If any check fails → VOID (no execution)
-    
-    ToM FIELDS (via payload):
-    - execution_envelope: {query_hash, verdict, actor_id, timestamp, signature}
-    - action_type: "spawn" | "write" | "send" | "call"
-    - target: execution target
-    - constraints: {cpu, memory, timeout, network}
-    """
-    # Extract execution envelope
-    envelope = payload.get("execution_envelope", {})
-    query_hash = envelope.get("query_hash", "")
-    verdict = envelope.get("verdict", "")
-    actor_id = envelope.get("actor_id", "anonymous")
-    timestamp = envelope.get("timestamp", "")
-    signature = envelope.get("signature", "")
-    
-    # HARD GATE 1: Verify signature
-    if not verify_execution_envelope(query_hash, verdict, actor_id, timestamp, signature):
-        return RuntimeEnvelope(
-            tool="forge",
-            stage="FORGE",
-            status=RuntimeStatus.ERROR,
-            verdict=Verdict.VOID,
-            session_id=session_id,
-            payload={
-                "ok": False,
-                "error": "FORGE_REJECT: Invalid or missing execution envelope signature",
-                "detail": "Execution blocked — cryptographic attestation failed",
-                "verdict": verdict,
-                "required": "Valid HMAC signature + SEAL verdict",
-            }
-        )
-    
-    # HARD GATE 2: Check dry_run (development safety)
-    if dry_run:
-        return RuntimeEnvelope(
-            tool="forge",
-            stage="FORGE",
-            status=RuntimeStatus.SUCCESS,
-            verdict=Verdict.SEAL,
-            session_id=session_id,
-            payload={
-                "ok": True,
-                "mode": "dry_run",
-                "note": "Execution validated but not performed (dry_run=True)",
-                "envelope": {
-                    "query_hash": query_hash,
-                    "verdict": verdict,
-                    "actor_id": actor_id,
-                    "timestamp": timestamp,
-                },
-                "action_type": payload.get("action_type"),
-                "target": payload.get("target"),
-                "constraints": payload.get("constraints"),
-            }
-        )
-    
-    # HARD GATE 3: Production execution (requires FORGE container)
-    # In production, this would dispatch to the FORGE container/service
-    # which has the actual execution privileges
-    
-    # For now, return capability-not-available
-    return RuntimeEnvelope(
-        tool="forge",
-        stage="FORGE",
-        status=RuntimeStatus.ERROR,
-        verdict=Verdict.HOLD,
-        session_id=session_id,
-        payload={
-            "ok": False,
-            "error": "FORGE_HOLD: Production execution requires FORGE container",
-            "detail": "MCP server cannot execute directly. Use FORGE substrate.",
-            "required": [
-                "Deploy arifos-forge container",
-                "Configure FORGE_ENDPOINT",
-                "Enable execution delegation",
-            ],
-        }
-    )
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# INTERNAL TOOLS — SAFE ONLY (No raw execution)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-def cost_estimator(action_description: str) -> dict[str, Any]:
-    """Estimate cost of an action (mock implementation)."""
-    return {
-        "action": action_description,
-        "estimated_cost": "low",
-        "units": "compute",
-        "confidence": 0.8,
-    }
-
-
-def system_health() -> dict[str, Any]:
-    """Return system health status (read-only, no execution)."""
-    return {
-        "status": "healthy",
-        "cpu_percent": 15.0,
-        "memory_percent": 45.0,
-        "disk_percent": 60.0,
-    }
-
-
-# REMOVED: fs_inspect, process_list, net_status, log_tail
-# These provided raw system access without governance.
-# All execution now goes through arifos.forge with HMAC attestation.
-
-# Mock implementations for compatibility (no actual system access)
-def process_list(limit: int = 50) -> dict[str, Any]:
-    """Process listing disabled — use arifos.forge for execution."""
-    return {
-        "ok": False,
-        "error": "Raw process access disabled",
-        "note": "Use arifos.forge for governed execution",
-        "required": "SEAL-verified execution envelope",
-    }
-
-
-def net_status() -> dict[str, Any]:
-    """Network status — read-only mock (no actual network access)."""
-    return {"connected": True, "interfaces": [], "note": "Network inspection disabled"}
-
-
-def log_tail(lines: int = 100) -> dict[str, Any]:
-    """Log access disabled — use Vault999 for audit logs."""
-    return {
-        "ok": False,
-        "error": "Raw log access disabled",
-        "note": "Use arifos.vault for immutable audit logs",
-    }
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# POPULATE TOOL HANDLERS (after all functions defined)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-# V2 handlers: clean per-tool signatures + envelope sealing
-CANONICAL_TOOL_HANDLERS = {
-    # 9 Governance Tools (think, validate, reason — never execute directly)
-    "arifos.init": _v2_init,
-    "arifos.sense": _v2_sense,
-    "arifos.mind": _v2_mind,
-    "arifos.route": _v2_route,
-    "arifos.heart": _v2_heart,
-    "arifos.ops": _v2_ops,
-    "arifos.judge": _v2_judge,
-    "arifos.memory": _v2_memory,
-    "arifos.vault": _v2_vault,
-    # 1 Execution Bridge (action after SEAL + HMAC attestation)
-    "arifos.forge": _v2_forge,
-}
+__all__ = [
+    "V2_TOOL_HANDLERS",
+    "register_v2_tools",
+    "arifos_init",
+    "arifos_sense",
+    "arifos_mind",
+    "arifos_route",
+    "arifos_heart",
+    "arifos_ops",
+    "arifos_judge",
+    "arifos_memory",
+    "arifos_vault",
+]

@@ -1,54 +1,219 @@
-# arifOS Enterprise Prompts v2
+"""
+arifosmcp/runtime/prompts.py — arifOS MCP Prompt Templates
+
+Prompts are structured reasoning contracts.
+They guide the model, define workflows, prevent misuse.
+
+DITEMPA BUKAN DIBERI — Forged, Not Given
+"""
+
 from __future__ import annotations
+
+import logging
 from typing import Any
+
 from fastmcp import FastMCP
 
-def register_prompts(mcp: FastMCP) -> None:
-    """Register structured task templates (contracts)."""
+logger = logging.getLogger(__name__)
 
-    @mcp.prompt()
-    def constitutional_analysis(query: str, risk_tier: str = "medium") -> str:
-        """Run full constitutional reasoning pipeline (sense → mind → heart → judge)."""
-        return f"""Evaluate the following query using the arifOS v2 pipeline:
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# V2 PROMPT DEFINITIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+V2_PROMPT_SPECS: list[dict[str, Any]] = [
+    {
+        "name": "constitutional.analysis",
+        "description": "Run full constitutional reasoning pipeline through sense → mind → heart → judge.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Query to analyze constitutionally"},
+                "risk_tier": {"type": "string", "enum": ["low", "medium", "high", "critical"], "default": "medium"},
+                "context": {"type": "string", "description": "Additional context"},
+            },
+            "required": ["query"],
+        },
+        "default_tools": ["arifos.route", "arifos.sense", "arifos.mind", "arifos.heart", "arifos.judge"],
+        "tool_choice": "auto",
+    },
+    {
+        "name": "governance.audit",
+        "description": "Evaluate output for constitutional floor violations. Compliance-grade review.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "content": {"type": "string", "description": "Content to audit"},
+                "standard": {"type": "string", "enum": ["SOC2", "ISO42001", "internal"], "default": "internal"},
+            },
+            "required": ["content"],
+        },
+        "default_tools": ["arifos.heart", "arifos.judge"],
+        "tool_choice": "required",
+    },
+    {
+        "name": "execution.planning",
+        "description": "Generate execution plan with cost estimation and judge approval.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "task": {"type": "string", "description": "Task to plan"},
+                "constraints": {"type": "object", "description": "Budget, time, resource constraints"},
+            },
+            "required": ["task"],
+        },
+        "default_tools": ["arifos.route", "arifos.ops", "arifos.judge"],
+        "tool_choice": "auto",
+    },
+    {
+        "name": "minimal.response",
+        "description": "Return answer directly, skip verbose reasoning. Latency-optimized.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Direct question"},
+                "max_tokens": {"type": "integer", "default": 500},
+            },
+            "required": ["query"],
+        },
+        "default_tools": ["arifos.route"],
+        "tool_choice": "auto",
+    },
+]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PROMPT IMPLEMENTATIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _constitutional_analysis_prompt(query: str, risk_tier: str = "medium", context: str = "") -> str:
+    """Full constitutional reasoning pipeline prompt."""
+    ctx = f"\nContext: {context}" if context else ""
+    return f"""You are running constitutional analysis on the following query.
+
+Query: {query}{ctx}
+Risk Tier: {risk_tier}
+
+Execute this pipeline:
+1. arifos.route — Determine correct metabolic lane
+2. arifos.sense — Ground in physical reality, verify facts
+3. arifos.mind — Structured reasoning with uncertainty bands
+4. arifos.heart — Safety critique and adversarial review
+5. arifos.judge — Final constitutional verdict
+
+For each step:
+- Record the tool call
+- Note uncertainty (Ω₀) and clarity (ΔS) metrics
+- Flag any floor violations
+
+Final output must include:
+- verdict: SEAL | PARTIAL | VOID | HOLD
+- floors_triggered: list of F1-F13 triggered
+- confidence: 0.0-1.0
+- reasoning_class: constitutional | safety | uncertainty
+"""
+
+
+def _governance_audit_prompt(content: str, standard: str = "internal") -> str:
+    """Compliance audit prompt."""
+    std_map = {
+        "SOC2": "Trust Services Criteria (Security, Availability)",
+        "ISO42001": "AI Management System standards",
+        "internal": "Internal constitutional standards",
+    }
+    return f"""You are conducting a governance audit.
+
+Standard: {std_map.get(standard, standard)}
+Content to audit:
+---
+{content}
+---
+
+Execute:
+1. arifos.heart — Identify ethical risks, dignity violations
+2. arifos.judge — Constitutional verdict
+
+Report:
+- floors_violated: list of F1-F13 violations found
+- severity: CRITICAL | HIGH | MEDIUM | LOW
+- remediation: required actions
+- audit_hash: unique identifier for this audit
+"""
+
+
+def _execution_planning_prompt(task: str, constraints: dict | None = None) -> str:
+    """Execution planning with cost estimation."""
+    constraints_str = f"\nConstraints: {constraints}" if constraints else ""
+    return f"""You are planning safe execution of a task.
+
+Task: {task}{constraints_str}
+
+Execute:
+1. arifos.route — Determine execution lane
+2. arifos.ops — Calculate thermodynamic costs, entropy
+3. arifos.judge — Pre-execution constitutional approval
+
+Output execution plan:
+- steps: ordered list of operations
+- estimated_cost: resource requirements
+- risk_mitigation: safety measures
+- judge_approval: SEAL required to proceed
+- rollback_plan: reversibility strategy
+"""
+
+
+def _minimal_response_prompt(query: str, max_tokens: int = 500) -> str:
+    """Direct response, minimal reasoning."""
+    return f"""Answer directly and concisely.
+
 Query: {query}
-Requested Risk Tier: {risk_tier}
+Max length: {max_tokens} tokens
 
-Instructions:
-1. Ground the query in present reality using arifos.v2.sense.
-2. Synthesize a logical response using arifos.v2.mind.
-3. Perform an adversarial safety critique using arifos.v2.heart.
-4. Finalize with a constitutional verdict via arifos.v2.judge.
+Use arifos.route only if constitutional risk detected.
+Otherwise answer immediately.
 """
 
-    @mcp.prompt()
-    def governance_audit(content: str) -> str:
-        """Evaluate content for floor violations and compliance mapping."""
-        return f"""Perform a governance audit on the following content:
-Content: {content}
 
-Instructions:
-1. Cross-reference the content against arifos://governance/floors.
-2. Identify specific floor triggers.
-3. Map findings to compliance standards via arifos://compliance/mapping.
-"""
+# ═══════════════════════════════════════════════════════════════════════════════
+# PROMPT REGISTRATION
+# ═══════════════════════════════════════════════════════════════════════════════
 
-    @mcp.prompt()
-    def execution_planning(task: str) -> str:
-        """Generate execution plan, thermodynamic costs, and obtain judge approval."""
-        return f"""Create a governed execution plan for:
-Task: {task}
+def register_v2_prompts(mcp: FastMCP) -> list[str]:
+    """Register all v2 prompts on the MCP instance."""
+    registered = []
 
-Instructions:
-1. Define atomic steps.
-2. Estimate ops cost and thermodynamics via arifos.v2.ops.
-3. Submit plan for final judge verdict via arifos.v2.judge.
-"""
+    @mcp.prompt("constitutional.analysis")
+    def constitutional_analysis(query: str, risk_tier: str = "medium", context: str = "") -> str:
+        return _constitutional_analysis_prompt(query, risk_tier, context)
 
-    @mcp.prompt()
-    def minimal_response(query: str) -> str:
-        """Return answer only, skipping verbose reasoning for low-latency apps."""
-        return f"""Provide a direct, minimal response to:
-Query: {query}
+    @mcp.prompt("governance.audit")
+    def governance_audit(content: str, standard: str = "internal") -> str:
+        return _governance_audit_prompt(content, standard)
 
-Constraint: Use arifos.v2.route to select the fastest lane. Skip intermediate reasoning if safe.
-"""
+    @mcp.prompt("execution.planning")
+    def execution_planning(task: str, constraints: str = "") -> str:
+        # Parse constraints from JSON string if provided
+        import json
+        try:
+            constraints_dict = json.loads(constraints) if constraints else None
+        except json.JSONDecodeError:
+            constraints_dict = None
+        return _execution_planning_prompt(task, constraints_dict)
+
+    @mcp.prompt("minimal.response")
+    def minimal_response(query: str, max_tokens: int = 500) -> str:
+        return _minimal_response_prompt(query, max_tokens)
+
+    registered = ["constitutional.analysis", "governance.audit", "execution.planning", "minimal.response"]
+    logger.info(f"Registered {len(registered)} v2 prompts: {registered}")
+    return registered
+
+
+__all__ = [
+    "V2_PROMPT_SPECS",
+    "register_v2_prompts",
+    "_constitutional_analysis_prompt",
+    "_governance_audit_prompt",
+    "_execution_planning_prompt",
+    "_minimal_response_prompt",
+]

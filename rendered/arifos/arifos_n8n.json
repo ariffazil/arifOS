@@ -1,0 +1,15 @@
+{
+  "_meta": {
+    "generated_by": "vault-render",
+    "authority": "888_JUDGE",
+    "app": "arifos_n8n",
+    "missing_secrets": []
+  },
+  "config": {
+    "n8n": {
+      "security": {
+        "encryptionKey": "7a289dd5b7eb63881e3c2c206cf5ab4bc7a992f90b1cfc0095a678e16fb6d4f8"
+      }
+    }
+  }
+}

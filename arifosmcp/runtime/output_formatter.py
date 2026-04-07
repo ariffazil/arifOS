@@ -19,7 +19,7 @@ from __future__ import annotations
 from typing import Any
 
 from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-from arifosmcp.runtime.schemas_v2_clean import (
+from arifosmcp.runtime.schemas import (
     CleanOutput,
     ExecutionResult,
     GovernanceVerdict,
@@ -284,7 +284,7 @@ def format_output_legacy(
     Format output in legacy format for backward compatibility.
     Use this only during migration period.
     """
-    from arifosmcp.runtime.schemas_v2_clean import migrate_to_legacy_output
+    from arifosmcp.runtime.schemas import migrate_to_legacy_output
     clean = format_output(envelope, options)
     return migrate_to_legacy_output(CleanOutput(**clean))
 
