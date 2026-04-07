@@ -20,7 +20,20 @@ import traceback
 from typing import Any
 
 import fastmcp
-from arifosmcp.runtime.fastmcp_version import IS_FASTMCP_2, IS_FASTMCP_3
+from fastapi import FastAPI
+from fastmcp import FastMCP
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import JSONResponse, Response, HTMLResponse
+from starlette.requests import Request
+
+from arifosmcp.runtime.fastmcp_version import (
+    IS_FASTMCP_2,
+    IS_FASTMCP_3,
+    custom_route,
+    create_http_app,
+)
+
 from arifosmcp.runtime.prompts import register_prompts
 from arifosmcp.runtime.resources import register_resources
 from arifosmcp.runtime.rest_routes import register_rest_routes
@@ -33,8 +46,6 @@ _CHATGPT_TOOLS: dict[str, Any] = {
     "list_recent_verdicts": None,
     "render_vault_seal": None,
 }
-
-logger = logging.getLogger(__name__)
 
 # Import ChatGPT tool handlers
 try:
@@ -51,21 +62,8 @@ except ImportError as e:
 # REST surface: canonical tools + ChatGPT Apps SDK tools (12 total)
 _CANONICAL_TOOL_IMPLEMENTATIONS = {**CANONICAL_TOOL_HANDLERS, **_CHATGPT_TOOLS}
 
-from fastapi import FastAPI
-from fastmcp import FastMCP
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import JSONResponse, Response, HTMLResponse
-from starlette.requests import Request
-
-from arifosmcp.runtime.fastmcp_version import (
-    IS_FASTMCP_2,
-    IS_FASTMCP_3,
-    custom_route,
-    create_http_app,
-)
-
 logger = logging.getLogger(__name__)
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # GLOBAL PANIC MIDDLEWARE
