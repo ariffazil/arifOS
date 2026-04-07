@@ -652,11 +652,11 @@
                     `${latency}ms`;
                 
                 // Update ENERGY dimension (Thermodynamics)
-                // Extract from telemetry if available
-                const telemetry = status.telemetry || {};
-                const entropyDelta = telemetry.dS ?? telemetry.entropy_delta ?? -0.35;
-                const psi = telemetry.psi_le ?? 0.82;
-                const peace2 = telemetry.peace2 ?? 1.04;
+                // Extract from thermodynamic field in health response
+                const thermo = health.thermodynamic || {};
+                const entropyDelta = thermo.entropy_delta ?? -0.35;
+                const psi = thermo.vitality_index ?? 0.82;
+                const peace2 = thermo.peace_squared ?? 1.04;
                 
                 thermoState.entropyDelta = entropyDelta;
                 thermoState.psi = psi;
@@ -671,7 +671,7 @@
                 document.getElementById('energy-floors').textContent = 
                     health.floors_active || 13;
                 document.getElementById('energy-stage').textContent = 
-                    status.metabolic_stage || '444_ROUT';
+                    thermo.metabolic_stage || '444_ROUT';
                 
                 // Entropy bar (visualize ΔS ≤ 0 requirement)
                 // Map -1.0 to 0.0 range to 0-100% bar

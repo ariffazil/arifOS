@@ -1103,7 +1103,14 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
 
     @route("/health", methods=["GET"])
     async def health(request: Request) -> Response:
-        """Health check with SoT linkage — ties runtime back to canonical arifOS repository."""
+        """Health check with SoT linkage — ties runtime back to canonical arifOS repository.
+        
+        Returns thermodynamic truth data (Space, Time, Energy) for preservation verification.
+        """
+        # Get thermodynamic state for Energy dimension
+        thermo = _build_governance_status_payload()
+        telemetry = thermo.get("telemetry", {})
+        
         return JSONResponse(
             {
                 "status": "healthy",
@@ -1122,6 +1129,18 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
                     "doctrine": "https://github.com/ariffazil/arifOS",
                     "runtime": "/health and /tools on this server",
                     "canonical_index": "/.well-known/mcp/server.json",
+                },
+                # Thermodynamic Truth — Energy Dimension (F4 Clarity, F5 Peace², Ψ Vitality)
+                "thermodynamic": {
+                    "entropy_delta": telemetry.get("dS", -0.35),  # ΔS ≤ 0 for F4 Clarity
+                    "peace_squared": telemetry.get("peace2", 1.04),  # F5 ≥ 1.0
+                    "vitality_index": telemetry.get("psi_le", 0.82),  # Ψ vitality
+                    "echo_debt": telemetry.get("echoDebt", 0.4),
+                    "shadow": telemetry.get("shadow", 0.3),
+                    "confidence": telemetry.get("confidence", 0.88),
+                    "verdict": telemetry.get("verdict", "SEAL"),
+                    "metabolic_stage": thermo.get("metabolic_stage", 444),
+                    "witness": thermo.get("witness", _WITNESS_DEFAULTS),
                 },
             },
             headers={"Access-Control-Allow-Origin": "*"},
