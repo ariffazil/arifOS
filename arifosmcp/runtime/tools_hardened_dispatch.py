@@ -9,9 +9,9 @@ from __future__ import annotations
 
 from typing import Any, Callable, Awaitable
 
-# Import the canonical tool wrappers from tools.py
-# These provide ToM validation and envelope sealing
-try:
+
+def _build_dispatch_map() -> dict[str, Callable[..., Awaitable[Any]]]:
+    """Build the dispatch map. Called lazily so megaTools is fully initialized."""
     from arifosmcp.runtime.tools import (
         init_v2,
         sense_v2,
@@ -24,16 +24,13 @@ try:
         vault_v2,
         forge_v2,
     )
-    
-    # HARDENED_DISPATCH_MAP: Canonical tool name → Handler function
-    # This map is used by the governance enforcer to route tool calls
-    HARDENED_DISPATCH_MAP: dict[str, Callable[..., Awaitable[Any]]] = {
+    return {
         # Public tools (4)
         "arifos.init": init_v2,
         "arifos.route": route_v2,
         "arifos.judge": judge_v2,
         "arifos.forge": forge_v2,
-        
+
         # Internal tools (6)
         "arifos.sense": sense_v2,
         "arifos.mind": mind_v2,
@@ -41,7 +38,7 @@ try:
         "arifos.heart": heart_v2,
         "arifos.ops": ops_v2,
         "arifos.vault": vault_v2,
-        
+
         # Legacy aliases for backward compatibility
         "init_anchor": init_v2,
         "physics_reality": sense_v2,
@@ -54,11 +51,47 @@ try:
         "vault_ledger": vault_v2,
         "code_engine": forge_v2,
     }
-    
-except ImportError as e:
-    # Fallback: empty map if tools module not available
-    HARDENED_DISPATCH_MAP: dict[str, Callable[..., Awaitable[Any]]] = {}
-    print(f"Warning: Could not load tool handlers: {e}")
+
+
+class _LazyDispatchMap(dict):  # type: ignore[type-arg]
+    """Dict that populates itself on first access, avoiding circular-import issues."""
+
+    _loaded: bool = False
+
+    def _ensure_loaded(self) -> None:
+        if not self._loaded:
+            try:
+                self.update(_build_dispatch_map())
+            except ImportError as e:
+                print(f"Warning: Could not load tool handlers: {e}")
+            self._loaded = True
+
+    def __getitem__(self, key: str) -> Any:
+        self._ensure_loaded()
+        return super().__getitem__(key)
+
+    def __contains__(self, key: object) -> bool:
+        self._ensure_loaded()
+        return super().__contains__(key)
+
+    def get(self, key: str, default: Any = None) -> Any:  # type: ignore[override]
+        self._ensure_loaded()
+        return super().get(key, default)
+
+    def items(self) -> Any:
+        self._ensure_loaded()
+        return super().items()
+
+    def keys(self) -> Any:
+        self._ensure_loaded()
+        return super().keys()
+
+    def values(self) -> Any:
+        self._ensure_loaded()
+        return super().values()
+
+
+HARDENED_DISPATCH_MAP: dict[str, Callable[..., Awaitable[Any]]] = _LazyDispatchMap()
 
 
 def get_tool_handler(tool_name: str) -> Callable[..., Awaitable[Any]] | None:

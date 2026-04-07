@@ -12,7 +12,6 @@ from __future__ import annotations
 from typing import Any
 
 from arifosmcp.runtime.models import RuntimeEnvelope
-from fastmcp.dependencies import CurrentContext
 
 
 async def arifOS_kernel(
@@ -37,8 +36,6 @@ async def arifOS_kernel(
     use_heart: bool = True,
     **kwargs: Any,
 ) -> RuntimeEnvelope:
-    from arifosmcp.runtime.kernel_router import kernel_intelligent_route
-
     payload = dict(payload or {})
     payload.update(kwargs)
     if raw_input:
@@ -56,17 +53,57 @@ async def arifOS_kernel(
 
     effective_query = payload.get("query") or query or raw_input or ""
 
-    return await kernel_intelligent_route(
+    from arifosmcp.runtime.kernel_router import process_query
+    from arifosmcp.runtime.models import (
+        RuntimeEnvelope as _Envelope,
+        Stage,
+    )
+    from core.shared.types import Verdict
+
+    actor = str(payload.get("actor_id") or actor_id or "anonymous").strip().lower()
+    context: dict[str, Any] = {
+        "payload": payload,
+        "risk_tier": risk_tier,
+        "dry_run": dry_run,
+        "allow_execution": allow_execution,
+        "intent": intent,
+        "use_memory": use_memory,
+        "use_heart": use_heart,
+        "debug": debug,
+        "auth_context": auth_context or {},
+    }
+
+    routing_result = await process_query(
         query=effective_query,
+        actor_id=actor,
         session_id=session_id,
-        payload=payload,
-        auth_context=auth_context,
-        risk_tier=risk_tier,
-        dry_run=dry_run,
-        allow_execution=allow_execution,
-        ctx=ctx or CurrentContext(),
-        intent=intent,
-        use_memory=use_memory,
-        use_heart=use_heart,
-        debug=debug,
+        context=context,
+    )
+
+    # If the router already produced a RuntimeEnvelope (governed path), return it.
+    tool_result = routing_result.get("tool_result")
+    if isinstance(tool_result, _Envelope):
+        return tool_result
+
+    # Governance-blocked — wrap as RuntimeEnvelope VOID.
+    if not routing_result.get("ok", True) or routing_result.get("governance_block"):
+        return _Envelope(
+            ok=False,
+            tool="arifos.route",
+            canonical_tool_name="arifos.route",
+            stage=Stage.ROUTER_444.value,
+            verdict=Verdict.VOID,
+            session_id=session_id,
+            detail=routing_result.get("audit_note", "Governance block"),
+        )
+
+    # Informational / governance-passed — return SEAL envelope.
+    return _Envelope(
+        ok=True,
+        tool="arifos.route",
+        canonical_tool_name="arifos.route",
+        stage=Stage.ROUTER_444.value,
+        verdict=Verdict.SEAL,
+        session_id=session_id,
+        detail=routing_result.get("note") or routing_result.get("audit_note"),
     )
