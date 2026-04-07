@@ -35,8 +35,19 @@
         
         .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
         
-        header { text-align: center; padding: 4rem 0; margin-bottom: 2rem; }
+        header { text-align: center; padding: 4rem 0; margin-bottom: 2rem; border-bottom: 1px solid var(--border); }
         
+        .sot-banner {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid var(--accent-psi);
+            color: var(--accent-psi);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
         .logo { font-size: 3.5rem; margin-bottom: 1rem; }
         
         h1 {
@@ -140,7 +151,7 @@
         .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
         .status-item { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; text-align: center; }
         .status-item h4 { color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 0.5rem; }
-        .status-item .value { font-size: 1.5rem; font-weight: bold; color: var(--accent-success); }
+        .status-item .value { font-size: 1.2rem; font-weight: bold; color: var(--accent-success); word-break: break-all; }
 
         footer { text-align: center; padding: 4rem 2rem; border-top: 1px solid var(--border); color: var(--text-secondary); }
         
@@ -152,6 +163,12 @@
 </head>
 <body>
     <div class="container">
+        <!-- SOT BANNER -->
+        <div class="sot-banner">
+            <strong>Source of Truth for arifOS:</strong> <a href="https://github.com/ariffazil/arifOS" style="color: inherit; font-weight: bold;">ariffazil/arifOS repository</a>.
+            Runtime truth (this page): current deployed server status.
+        </div>
+
         <!-- HERO -->
         <header>
             <div class="logo">🔱</div>
@@ -165,34 +182,20 @@
             <div class="cta-buttons">
                 <a href="#quickstart" class="btn btn-primary">🔌 Connect Your Client</a>
                 <a href="/openapi.json" class="btn btn-secondary">🔍 View OpenAPI Spec</a>
-                <a href="/health" class="btn btn-secondary">📡 Check Health</a>
+                <a href="/.well-known/arifos-index.json" class="btn btn-secondary">📜 Canonical Index</a>
             </div>
 
             <div class="trinity-symbols">Δ Ω Ψ</div>
         </header>
 
         <!-- TRUST STRIP -->
-        <div style="text-align: center; padding: 1.2rem; background: var(--bg-secondary); border-radius: 50px; border: 1px solid var(--border); margin-bottom: 2rem; font-size: 0.95rem; color: var(--text-secondary);">
+        <div style="text-align: center; padding: 1.2rem; background: var(--bg-secondary); border-radius: 50px; border: 1px solid var(--border); margin-bottom: 4rem; font-size: 0.95rem; color: var(--text-secondary);">
             <span style="margin-right: 1.5rem; font-weight: bold; color: var(--accent-psi); letter-spacing: 0.1em;">WORKS WITH</span>
             <span style="margin: 0 1rem;">Claude Desktop</span> • 
             <span style="margin: 0 1rem;">Cursor</span> • 
             <span style="margin: 0 1rem;">OpenAI Clients</span> • 
             <span style="margin: 0 1rem;">WebMCP</span> • 
             <span style="margin: 0 1rem;">HTTP/stdio</span>
-        </div>
-
-        <!-- SOURCE OF TRUTH BANNER -->
-        <div style="text-align: center; padding: 1rem 1.5rem; background: linear-gradient(90deg, rgba(88,166,255,0.1) 0%, rgba(255,215,0,0.1) 100%); border-radius: 12px; border: 1px solid var(--accent-delta); margin-bottom: 3rem; font-size: 0.9rem;">
-            <div style="margin-bottom: 0.5rem;">
-                <strong style="color: var(--accent-delta);">📚 Source of Truth for arifOS:</strong>
-                <a href="https://github.com/ariffazil/arifOS" target="_blank" style="color: var(--text-primary); text-decoration: underline;">arifOS repository</a>
-            </div>
-            <div style="color: var(--text-secondary); font-size: 0.85rem;">
-                <strong>Runtime truth (this page):</strong> Current deployed server status • 
-                <a href="/health" style="color: var(--accent-delta);">/health</a> • 
-                <a href="/tools" style="color: var(--accent-delta);">/tools</a> • 
-                <a href="/.well-known/mcp/server.json" style="color: var(--accent-delta);">Canonical Index</a>
-            </div>
         </div>
 
         <!-- WHY -->
@@ -267,7 +270,7 @@
             
             <div class="cta-buttons" style="justify-content: flex-start;">
                 <a href="https://pypi.org/project/arifosmcp/" class="btn btn-primary" target="_blank">📦 Install via PyPI</a>
-                <a href="https://github.com/ariffazil/arifOS" class="btn btn-secondary" target="_blank">📚 Source Code</a>
+                <a href="https://github.com/ariffazil/arifOS" class="btn btn-secondary" target="_blank">📚 Source of Truth Repo</a>
             </div>
         </div>
 
@@ -344,10 +347,10 @@
                 <div class="tool-card" style="border-top: 3px solid var(--accent-psi);">
                     <h4>Protocols (WebMCP/A2A)</h4>
                     <ul style="list-style: none; font-size: 0.9rem;">
-                        <li style="margin-bottom: 0.8rem;"><code><a href="/.well-known/arifos-index.json" style="color: var(--accent-delta); text-decoration: none;">GET /arifos-index.json</a></code> — Canonical Index</li>
                         <li style="margin-bottom: 0.8rem;"><code><a href="/.well-known/mcp/server.json" style="color: var(--accent-delta); text-decoration: none;">GET /server.json</a></code> — MCP Discovery</li>
                         <li style="margin-bottom: 0.8rem;"><code><a href="/.well-known/webmcp" style="color: var(--accent-delta); text-decoration: none;">GET /webmcp</a></code> — WebMCP Manifest</li>
                         <li style="margin-bottom: 0.8rem;"><code><a href="/.well-known/agent.json" style="color: var(--accent-delta); text-decoration: none;">GET /agent.json</a></code> — A2A Agent Card</li>
+                        <li style="margin-bottom: 0.8rem;"><code><a href="/.well-known/arifos-index.json" style="color: var(--accent-delta); text-decoration: none;">GET /arifos-index.json</a></code> — Canonical Index</li>
                     </ul>
                 </div>
             </div>
@@ -359,23 +362,23 @@
             <div class="status-grid" id="telemetry-grid" style="display: none; margin-top: 1.5rem;">
                 <div class="status-item">
                     <h4>Kernel Version</h4>
-                    <div class="value" id="live-version">—</div>
+                    <div class="value" id="live-version">--</div>
                 </div>
                 <div class="status-item">
                     <h4>Active Tools</h4>
-                    <div class="value" id="live-tools">—</div>
+                    <div class="value" id="live-tools">--</div>
                 </div>
                 <div class="status-item">
                     <h4>Build Commit</h4>
-                    <div class="value" id="live-commit">—</div>
+                    <div class="value" id="live-commit">--</div>
                 </div>
                 <div class="status-item">
                     <h4>Response Latency</h4>
-                    <div class="value" id="live-latency">—</div>
+                    <div class="value" id="live-latency">--</div>
                 </div>
             </div>
             <p style="margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.8rem; text-align: center;" id="live-updated">
-                <span id="telemetry-status">Loading runtime telemetry...</span> <span id="refresh-time"></span>
+                Real-time proof of constitutional enforcement. <span id="refresh-time"></span>
             </p>
         </div>
 
@@ -397,25 +400,20 @@
         }
 
         async function refreshStatus() {
-            const statusEl = document.getElementById('telemetry-status');
-            const gridEl = document.getElementById('telemetry-grid');
             try {
                 const start = performance.now();
                 const h = await fetchJson(`${API_BASE}/health`);
                 const lat = Math.round(performance.now() - start);
 
-                gridEl.style.display = 'grid';
-                document.getElementById('live-version').textContent = h.version || '2.0.0';
+                const grid = document.getElementById('telemetry-grid');
+                if (grid) grid.style.display = 'grid';
+                
+                document.getElementById('live-version').textContent = h.version || h.release_tag || '2.0.0';
                 document.getElementById('live-tools').textContent = h.tools_loaded || '10';
                 document.getElementById('live-commit').textContent = h.source_commit || '--';
                 document.getElementById('live-latency').textContent = `${lat}ms`;
-                statusEl.textContent = 'Real-time proof of constitutional enforcement.';
                 document.getElementById('refresh-time').textContent = `Verified at ${new Date().toLocaleTimeString()}`;
-            } catch (e) { 
-                console.warn('Telemetry offline');
-                gridEl.style.display = 'none';
-                statusEl.innerHTML = 'Runtime telemetry unavailable. Check <a href="/health" style="color: var(--accent-delta);">/health</a> endpoint directly.';
-            }
+            } catch (e) { console.warn('Telemetry offline'); }
         }
 
         refreshStatus();
@@ -429,7 +427,8 @@
         "architecture": {
             "type": "Trinity + LLM OS",
             "features": ["Autonomy Slider", "Process-Based Supervision", "Continuous World Model"],
-            "transport": "streamable-http"
+            "transport": "streamable-http",
+            "source_of_truth": "https://github.com/ariffazil/arifOS"
         },
         "tools": { "total": 10, "canonical": ["init", "sense", "mind", "heart", "route", "memory", "ops", "judge", "vault", "forge"] }
     }
