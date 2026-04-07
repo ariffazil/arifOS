@@ -1036,6 +1036,9 @@ class RealityHandlerSearchProvider:
         top_k: int = 5,
         freshness_days: int | None = None,  # noqa: ARG002 — future use
     ) -> list[dict[str, Any]]:
+        if not query or not query.strip():
+            logger.warning("RealityHandlerSearchProvider: empty query suppressed")
+            return []
         try:
             result = await self._get_handler().search_brave(query, top_k=top_k)
             if result.results:

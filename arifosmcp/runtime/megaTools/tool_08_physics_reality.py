@@ -16,7 +16,7 @@ GOVERNED MODE — Constitutional Sensing Protocol:
         6. NORMALIZE→ Convert to structured claims
         7. GATE     → Confidence/ambiguity checks
         8. HANDOFF  → Pass clean packet downstream
-    
+
     Invariants:
         - Do not search if first principles suffice
         - Do not trust retrieval without source ranking
@@ -62,6 +62,7 @@ async def physics_reality(
     effective_query = query or raw_input or (payload.get("query") if payload else None)
     if not effective_query or str(effective_query).strip() == "":
         from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+
         return RuntimeEnvelope(
             tool="arifos.sense",
             canonical_tool_name="arifos.sense",
@@ -74,13 +75,13 @@ async def physics_reality(
                 "error": "SENSE_QUERY_EMPTY",
                 "detail": "Query cannot be empty or whitespace-only",
                 "hint": "Provide a valid query string for reality grounding",
-            }
+            },
         )
-    
+
     payload = dict(payload or {})
-    # Ensure validated query is in payload
-    payload["query"] = effective_query
-    
+    # Ensure validated query is in payload (physics_reality uses "input" field per convention)
+    payload["input"] = effective_query
+
     if caller_context:
         payload.setdefault("caller_context", caller_context)
     if auth_context:
@@ -98,16 +99,19 @@ async def physics_reality(
         if mode is None:
             mode = "search"
         res_dict = await HARDENED_DISPATCH_MAP["physics_reality"](mode=mode, payload=payload)
-        
+
         # ─── V1.0 VERDICT FORGING ───
         from arifosmcp.runtime.models import CanonicalMetrics
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
-        
+
         metrics = CanonicalMetrics()
         metrics.telemetry.ds = res_dict.get("metrics", {}).get("telemetry", {}).get("ds", 0.0)
-        metrics.telemetry.confidence = res_dict.get("metrics", {}).get("telemetry", {}).get("confidence", res_dict.get("confidence", 0.0))
-        
-        
+        metrics.telemetry.confidence = (
+            res_dict.get("metrics", {})
+            .get("telemetry", {})
+            .get("confidence", res_dict.get("confidence", 0.0))
+        )
+
         return forge_verdict(
             tool_id="arifos.sense",
             canonical_tool_name="arifos.sense",
@@ -116,7 +120,7 @@ async def physics_reality(
             session_id=session_id,
             metrics=metrics,
             floors_checked=["F2", "F3", "F10"],
-            message=res_dict.get("note")
+            message=res_dict.get("note"),
         )
 
     resolved_payload = dict(payload or {})

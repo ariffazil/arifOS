@@ -247,10 +247,7 @@ def mind_stage(
     additional_context: str = "",
 ) -> list[Hypothesis]:
     """
-    Stage 2: Grounded facts → at least 2 hypotheses with falsifiers.
-
-    F2 mandate: every hypothesis includes a falsifier and disconfirming test.
-    Machine must hold ≥2 hypotheses — epistemic humility is structural.
+    Stage 2: Grounded facts → structured hypotheses with falsifiers.
     """
     objective = sense_packet.get("objective", "")
     facts = sense_packet.get("facts", [])
@@ -260,36 +257,31 @@ def mind_stage(
 
     return [
         Hypothesis(
-            id="H1",
-            claim=f"Primary model: {short_obj}{context_note}",
-            confidence=0.60,
-            evidence_for=facts[:2] if facts else ["Stated in input"],
+            id="H1-CAUSAL",
+            claim=f"Primary Causal Model: {short_obj}{context_note}. This model assumes that the stated objective is the core requirement and uses grounding facts to synthesize a direct solution path.",
+            confidence=0.65,
+            evidence_for=facts[:3] if facts else ["Constitutional alignment with input directive"],
             evidence_against=[],
             falsifier=(
-                f"What direct observation would demonstrate that "
-                f"'{short_obj[:60]}' is false or inapplicable?"
+                f"Obtaining data that shows the core assumption of '{short_obj[:40]}' is structurally flawed or contains a category error."
             ),
             disconfirming_test=(
-                "Collect one piece of contradicting evidence and test "
-                "whether H1 remains consistent."
+                "Synthesize a scenario where the grounding facts are unchanged but the desired outcome is inverted."
             ),
         ),
         Hypothesis(
-            id="H2",
+            id="H2-EPISTEMIC",
             claim=(
-                f"Alternative model: A competing causal structure explains "
-                f"'{short_obj[:60]}' with different assumptions."
+                f"Epistemic Alternative: The objective '{short_obj[:60]}' may be a symptom of a deeper architectural misalignment or missing prerequisite context."
             ),
-            confidence=0.40,
+            confidence=0.35,
             evidence_for=[],
             evidence_against=facts[:1] if facts else [],
             falsifier=(
-                "What additional data would rule out the alternative causal "
-                "model and confirm H1 uniquely?"
+                "Proof that the current grounding is complete and no latent variables exist in the target domain."
             ),
             disconfirming_test=(
-                "Run the alternative hypothesis against known stable facts "
-                "to check for internal contradictions."
+                "Attempt to solve the objective using only out-of-band information to check for reliance on potentially stale grounding."
             ),
         ),
     ]

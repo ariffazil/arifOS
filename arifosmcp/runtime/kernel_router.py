@@ -189,9 +189,9 @@ class HardenedKernelRouter:
         """Invoke tool with full ToM requirements."""
 
         # Import tools dynamically to avoid circular deps
-        from arifosmcp.runtime.tools import V2_TOOL_HANDLERS
+        from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS
 
-        handler = V2_TOOL_HANDLERS.get(tool_name)
+        handler = CANONICAL_TOOL_HANDLERS.get(tool_name)
         if not handler:
             # Return error envelope if tool not found
             return RuntimeEnvelope(
@@ -208,9 +208,10 @@ class HardenedKernelRouter:
             )
 
         # Build payload with ToM fields if not present
-        payload = context.get("payload", {})
+        payload = dict(context.get("payload", {}) or {})
 
         # Ensure minimal ToM fields for Class B/C
+        payload.setdefault("query", query)
         if "declared_intent" not in payload:
             payload["declared_intent"] = query[:200]  # Truncate for intent
         if "confidence_self_estimate" not in payload:
@@ -218,18 +219,49 @@ class HardenedKernelRouter:
         if "context_assumptions" not in payload:
             payload["context_assumptions"] = ["User wants to accomplish task"]
 
-        # Call the tool
-        import asyncio
+        common_args: dict[str, Any] = {
+            "session_id": session_id,
+            "risk_tier": context.get("risk_tier", "medium"),
+            "dry_run": context.get("dry_run", True),
+            "platform": context.get("platform", "router"),
+        }
+        if context.get("mode") is not None:
+            common_args["mode"] = context.get("mode")
 
-        result = await handler(
-            mode=context.get("mode", "default"),
-            payload=payload,
+        if tool_name == "arifos.init":
+            return await handler(
+                actor_id=actor_id,
+                intent=str(payload.get("declared_intent") or query),
+                declared_name=payload.get("declared_name"),
+                allow_execution=context.get("allow_execution", False),
+                **common_args,
+            )
+        if tool_name in ("arifos.sense", "arifos.mind", "arifos.memory"):
+            extra_args = {}
+            if tool_name == "arifos.mind":
+                extra_args["context"] = payload.get("context")
+            return await handler(query=str(payload.get("query") or query), **extra_args, **common_args)
+        if tool_name == "arifos.route":
+            return await handler(request=str(payload.get("query") or query), **common_args)
+        if tool_name == "arifos.heart":
+            return await handler(content=str(payload.get("content") or payload.get("query") or query), **common_args)
+        if tool_name == "arifos.ops":
+            return await handler(action=str(payload.get("action") or payload.get("query") or query), **common_args)
+        if tool_name == "arifos.judge":
+            return await handler(candidate_action=str(payload.get("query") or query), **common_args)
+
+        return RuntimeEnvelope(
+            tool=tool_name,
+            stage="444_ROUTER",
+            status=RuntimeStatus.ERROR,
+            verdict=Verdict.VOID,
             session_id=session_id,
-            risk_tier=context.get("risk_tier", "medium"),
-            dry_run=context.get("dry_run", True),
+            payload={
+                "ok": False,
+                "error": f"Router does not support governed invocation for {tool_name}",
+                "tom_violation": False,
+            },
         )
-
-        return result
 
 
 # Global router instance

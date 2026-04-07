@@ -167,26 +167,22 @@ async def arifos_sense(
 ) -> RuntimeEnvelope:
     """
     arifos.sense — Constitutional Reality Sensing
-
-    Implements the 8-stage governed sensing protocol:
-        PARSE → CLASSIFY → DECIDE → PLAN → RETRIEVE → NORMALIZE → GATE → HANDOFF
-
-    Live web search is gated by truth classification:
-        - absolute_invariant / operational_principle → offline reason (no HTTP call)
-        - time_sensitive_fact / conditional_invariant → live web_search
-        - contested_framework → web_search for competing views
-        - ambiguous_query / unknown → HOLD (narrow first)
-
-    mode values:
-        "governed" (default) — full 8-stage constitutional protocol (recommended)
-        "search"   — raw search via physics_reality (legacy, bypasses protocol)
-        "ingest"   — raw URL fetch (legacy)
-        "compass"  — auto-mode (legacy)
-        "atlas"    — discovery scan (legacy)
-        "time"     — clock grounding (legacy)
-
-    Backward compatible: existing callers using mode="search" continue to work.
     """
+    # ── EMPTY QUERY GUARD ──────────────────────────────────────────────────
+    if not query or not query.strip():
+        from arifosmcp.runtime.models import RuntimeEnvelope as _RE
+        from arifosmcp.runtime.models import RuntimeStatus, Verdict
+        return seal_runtime_envelope(_RE(
+            ok=False,
+            tool="arifos.sense",
+            canonical_tool_name="arifos.sense",
+            stage="111_SENSE",
+            status=RuntimeStatus.ERROR,
+            verdict=Verdict.VOID,
+            detail="Query cannot be empty for reality grounding.",
+            session_id=session_id,
+        ), "arifos.sense")
+
     # ── governed mode: full constitutional protocol ────────────────────────────
     if mode == "governed":
         from arifosmcp.runtime.models import RuntimeEnvelope as _RE
@@ -365,17 +361,33 @@ async def arifos_mind(
 
     # ── Seal and inject typed packets into intelligence_state ─────────────
     sealed = seal_runtime_envelope(envelope, "arifos.mind")
-    if isinstance(sealed, dict):
-        intel = sealed.setdefault("intelligence_state", {})
+    
+    # ── Visibility Injection: Surface reasoning to top-level ────────────────
+    if hasattr(sealed, "__dict__"):
+        # Enrich detail with the reasoning summary
+        reasoning_summary = decision_packet.get("summary", "")
+        if reasoning_summary:
+            sealed.detail = f"{sealed.detail}\n\nREASONING: {reasoning_summary}"
+        
+        # Inject structured trace
+        intel = sealed.intelligence_state or {}
         intel["decision_packet"] = decision_packet
-        intel["audit_packet"] = audit_packet
+        # Do not include full audit packet to avoid token bloat unless debug is on
+        if debug:
+            intel["audit_packet"] = audit_packet
+        
+        intel["reasoning_trace"] = {
+            "causal_hypotheses": [h.get("claim") for h in audit_packet.get("full_hypothesis_set", [])],
+            "grounding_facts": decision_packet.get("facts", []),
+            "uncertainties": decision_packet.get("uncertainties", []),
+            "prescribed_next_step": decision_packet.get("next_step", "")
+        }
         intel["chaos_score"] = audit_packet.get(
             "constitutional_checks", {}
         ).get("chaos_score", 0.0)
-        intel["pipeline_trace"] = audit_packet.get("pipeline_trace", [])
-        sealed["platform_context"] = platform
-    elif hasattr(sealed, "platform_context"):
+        sealed.intelligence_state = intel
         sealed.platform_context = platform
+    
     return sealed
 
 
@@ -412,17 +424,51 @@ async def arifos_heart(
     debug: bool = False,
     platform: str = "unknown",
 ) -> RuntimeEnvelope:
-    """Safety, dignity, and adversarial critique."""
+    # ── ASI Heart: Safety, dignity, and adversarial critique ──────────────
+    from arifosmcp.runtime.arifos_runtime_envelope import heart_stage, mind_stage, sense_stage
+
+    sensed = sense_stage(content)
+    hypotheses = mind_stage(sensed)
+    risk_trace = heart_stage(hypotheses)
+    critique_packet = {
+        "summary": risk_trace[0] if risk_trace else "No critique generated.",
+        "risk_trace": risk_trace[:3],
+        "hypotheses": [h.claim for h in hypotheses[:3]],
+        "next_step": "Address the highest-risk consequence before execution.",
+    }
+
     envelope = await _mega_asi_heart(
         mode=mode,
-        payload={"content": content},
+        payload={"content": content, "critique_packet": critique_packet},
         session_id=session_id,
         risk_tier=risk_tier,
         dry_run=dry_run,
         debug=debug,
     )
-    _stamp_platform(envelope, platform)
-    return seal_runtime_envelope(envelope, "arifos.heart")
+
+    sealed = seal_runtime_envelope(envelope, "arifos.heart")
+
+    # ── Visibility Injection: Surface safety reasoning ─────────────────────
+    if hasattr(sealed, "__dict__"):
+        payload = getattr(sealed, "payload", {})
+        if isinstance(payload, dict):
+            payload["critique_packet"] = critique_packet
+            risks = critique_packet["risk_trace"]
+            if risks:
+                base_detail = sealed.detail or critique_packet["summary"]
+                sealed.detail = f"{base_detail}\n\nRISK ASSESSMENT: {'; ' .join(risks[:3])}"
+
+            intel = sealed.intelligence_state or {}
+            intel["safety_trace"] = {
+                "detected_risks": risks,
+                "constitutional_alignment": payload.get("alignment_score", 1.0),
+                "ethical_critique": payload.get("critique", critique_packet["summary"]),
+                "hypotheses": critique_packet["hypotheses"],
+            }
+            sealed.intelligence_state = intel
+            sealed.platform_context = platform
+
+    return sealed
 
 
 async def arifos_ops(
@@ -533,7 +579,7 @@ async def arifos_vault(
 # Import the 10th tool (Delegated Execution Bridge)
 from arifosmcp.runtime.tools_forge import arifos_forge
 
-V2_TOOL_HANDLERS: dict[str, Any] = {
+CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     "arifos.init": arifos_init,
     "arifos.sense": arifos_sense,
     "arifos.mind": arifos_mind,
@@ -547,6 +593,19 @@ V2_TOOL_HANDLERS: dict[str, Any] = {
 }
 
 
+# Backward-compatible aliases for older runtime imports.
+init_v2 = arifos_init
+sense_v2 = arifos_sense
+mind_v2 = arifos_mind
+route_v2 = arifos_route
+memory_v2 = arifos_memory
+heart_v2 = arifos_heart
+ops_v2 = arifos_ops
+judge_v2 = arifos_judge
+vault_v2 = arifos_vault
+forge_v2 = arifos_forge
+V2_TOOL_HANDLERS = CANONICAL_TOOL_HANDLERS
+
 def register_v2_tools(mcp: FastMCP) -> list[str]:
     """Register all v2 tools on the MCP instance."""
     from fastmcp.tools.function_tool import FunctionTool
@@ -555,7 +614,7 @@ def register_v2_tools(mcp: FastMCP) -> list[str]:
 
     registered = []
     for spec in V2_TOOLS:
-        handler = V2_TOOL_HANDLERS.get(spec.name)
+        handler = CANONICAL_TOOL_HANDLERS.get(spec.name)
         if not handler:
             logger.warning(f"No handler for v2 tool: {spec.name}")
             continue
@@ -574,6 +633,7 @@ def register_v2_tools(mcp: FastMCP) -> list[str]:
 
 
 __all__ = [
+    "CANONICAL_TOOL_HANDLERS",
     "V2_TOOL_HANDLERS",
     "register_v2_tools",
     "arifos_init",
@@ -585,4 +645,14 @@ __all__ = [
     "arifos_judge",
     "arifos_memory",
     "arifos_vault",
+    "init_v2",
+    "sense_v2",
+    "mind_v2",
+    "route_v2",
+    "memory_v2",
+    "heart_v2",
+    "ops_v2",
+    "judge_v2",
+    "vault_v2",
+    "forge_v2",
 ]

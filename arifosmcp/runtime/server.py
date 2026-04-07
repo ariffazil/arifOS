@@ -317,7 +317,7 @@ Use prompts for structured workflows:
 # REGISTER V2 SURFACE
 # ═══════════════════════════════════════════════════════════════════════════════
 
-from arifosmcp.runtime.tools import register_v2_tools, V2_TOOL_HANDLERS
+from arifosmcp.runtime.tools import register_v2_tools, CANONICAL_TOOL_HANDLERS
 from arifosmcp.runtime.prompts import register_v2_prompts
 from arifosmcp.runtime.resources import register_v2_resources
 from arifosmcp.runtime.manifest import build_manifest_v2
@@ -378,7 +378,7 @@ async def rest_tool_handler(request: Request) -> JSONResponse:
     v2_name = HORIZON_TO_V2_MAP.get(tool_name, tool_name)
 
     # Get handler
-    handler = V2_TOOL_HANDLERS.get(v2_name)
+    handler = CANONICAL_TOOL_HANDLERS.get(v2_name)
     if not handler:
         return JSONResponse(
             {
@@ -399,6 +399,22 @@ async def rest_tool_handler(request: Request) -> JSONResponse:
     risk_tier = body.pop("risk_tier", "medium")
     dry_run = body.pop("dry_run", True)
     debug = body.pop("debug", False)
+
+    # Parameter normalization: map common aliases to expected names
+    # arifos.sense expects "query", arifos.ops expects "action"
+    # But callers may send "query" for any tool
+    if v2_name == "arifos.sense" and "query" not in body:
+        body.setdefault("query", body.pop("input", None))
+    elif v2_name == "arifos.ops":
+        # For ops, accept "query" as alias for "action"
+        if "action" not in body:
+            body["action"] = body.pop("query", "") or ""
+    elif v2_name in ("arifos.mind", "arifos.heart") and "content" not in body:
+        # mind and heart expect "content"
+        body.setdefault("content", body.pop("query", ""))
+    elif v2_name == "arifos.judge" and "candidate" not in body:
+        # judge expects "candidate"
+        body.setdefault("candidate", body.pop("query", ""))
 
     try:
         # Call handler
