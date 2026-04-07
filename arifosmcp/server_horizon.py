@@ -21,6 +21,7 @@ from typing import Optional
 
 import sys as _sys
 from pathlib import Path as _Path
+
 # Ensure repo root is on path when run from FastMCP Cloud (files live under /app/arifosmcp/)
 _repo_root = str(_Path(__file__).parent.parent)
 if _repo_root not in _sys.path:
@@ -36,6 +37,7 @@ from starlette.responses import JSONResponse
 # VPS-only compat shim — falls back gracefully on FastMCP Cloud
 try:
     from arifosmcp.runtime.fastmcp_version import custom_route as _custom_route_helper
+
     _HAS_COMPAT = True
 except ImportError:
     _HAS_COMPAT = False
@@ -44,10 +46,12 @@ except ImportError:
 try:
     from config.environments import TOOL_ACCESS_POLICY, ToolAccessClass
 except ImportError:
+
     class ToolAccessClass:  # type: ignore[no-redef]
         PUBLIC = "public"
         AUTHENTICATED = "authenticated"
         SOVEREIGN = "sovereign"
+
     TOOL_ACCESS_POLICY: dict = {}
 
 logging.basicConfig(level=logging.INFO)
@@ -58,11 +62,11 @@ REGISTRY_PATH = Path(__file__).parent / "tool_registry.json"
 with open(REGISTRY_PATH, "r") as f:
     TOOL_REGISTRY = json.load(f)
 
+
 # --- Phase 3: Constitutional Integrity Check ---
 def compute_registry_hash(data):
-    return hashlib.sha256(
-        json.dumps(data, sort_keys=True).encode()
-    ).hexdigest()
+    return hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()
+
 
 CONSTITUTIONAL_HASH = compute_registry_hash(TOOL_REGISTRY)
 logger.info("✅ ARIFOS: CONSTITUTIONAL HASH (v1) LOADED: %s", CONSTITUTIONAL_HASH)
@@ -80,39 +84,43 @@ mcp = FastMCP("arifOS Horizon Gateway (v3 Registry-Driven)")
 # This maintains backward compatibility while using the v2 architecture
 HORIZON_TO_V2_MAP = {
     # Horizon Name → v2 Canonical Name
-    "init_anchor": "arifos.init",           # 000_INIT
-    "arifOS_kernel": "arifos.route",        # 444_ROUTER (the kernel)
-    "physics_reality": "arifos.sense",      # 111_SENSE
-    "agi_mind": "arifos.mind",              # 333_MIND
-    "asi_heart": "arifos.heart",            # 666_HEART
-    "math_estimator": "arifos.ops",         # 777_OPS
-    "apex_soul": "arifos.judge",            # 888_JUDGE
+    "init_anchor": "arifos.init",  # 000_INIT
+    "arifOS_kernel": "arifos.route",  # 444_ROUTER (the kernel)
+    "physics_reality": "arifos.sense",  # 111_SENSE
+    "agi_mind": "arifos.mind",  # 333_MIND
+    "asi_heart": "arifos.heart",  # 666_HEART
+    "math_estimator": "arifos.ops",  # 777_OPS
+    "apex_soul": "arifos.judge",  # 888_JUDGE
     "engineering_memory": "arifos.memory",  # 555_MEMORY
-    "vault_ledger": "arifos.vault",         # 999_VAULT (the seal)
-    "code_engine": "arifos.forge",          # FORGE_010 (execution bridge)
-    "architect_registry": "arifos.init",    # Registry folded into init
+    "vault_ledger": "arifos.vault",  # 999_VAULT (the seal)
+    "code_engine": "arifos.forge",  # FORGE_010 (execution bridge)
+    "architect_registry": "arifos.init",  # Registry folded into init
 }
 
 PUBLIC_PROXY_SPECS = {
     # 10 canonical v2 tools — mapped from Horizon names to v2 names
-    "init_anchor":         "000_INIT: Start a governed constitutional session.",
-    "arifOS_kernel":       "444_ROUTER: Primary metabolic conductor (the kernel).",
-    "physics_reality":     "111_SENSE: Time grounding and reality verification.",
-    "agi_mind":            "333_MIND: Multi-source synthesis and reasoning.",
-    "asi_heart":           "666_HEART: Safety and adversarial critique.",
-    "math_estimator":      "777_OPS: Calculate costs and thermodynamics.",
-    "apex_soul":           "888_JUDGE: Final constitutional verdict.",
-    "engineering_memory":  "555_MEMORY: Retrieve governed vector memory.",
-    "vault_ledger":        "999_VAULT: Append immutable verdict record (the seal).",
-    "code_engine":         "FORGE_010: Delegated execution bridge to AF-FORGE.",
-    "architect_registry":  "M-4_ARCH: Discover arifOS tool graph and capabilities.",
+    "init_anchor": "000_INIT: Start a governed constitutional session.",
+    "arifOS_kernel": "444_ROUTER: Primary metabolic conductor (the kernel).",
+    "physics_reality": "111_SENSE: Time grounding and reality verification.",
+    "agi_mind": "333_MIND: Multi-source synthesis and reasoning.",
+    "asi_heart": "666_HEART: Safety and adversarial critique.",
+    "math_estimator": "777_OPS: Calculate costs and thermodynamics.",
+    "apex_soul": "888_JUDGE: Final constitutional verdict.",
+    "engineering_memory": "555_MEMORY: Retrieve governed vector memory.",
+    "vault_ledger": "999_VAULT: Append immutable verdict record (the seal).",
+    "code_engine": "FORGE_010: Delegated execution bridge to AF-FORGE.",
+    "architect_registry": "M-4_ARCH: Discover arifOS tool graph and capabilities.",
 }
 
 AUTHENTICATED_TOOLS = sorted(
-    name for name, access in TOOL_ACCESS_POLICY.items() if access == ToolAccessClass.AUTHENTICATED.value
+    name
+    for name, access in TOOL_ACCESS_POLICY.items()
+    if access == ToolAccessClass.AUTHENTICATED.value
 )
 SOVEREIGN_ONLY_TOOLS = sorted(
-    name for name, access in TOOL_ACCESS_POLICY.items() if access == ToolAccessClass.SOVEREIGN_ONLY.value
+    name
+    for name, access in TOOL_ACCESS_POLICY.items()
+    if access == ToolAccessClass.SOVEREIGN_ONLY.value
 )
 
 
@@ -172,17 +180,21 @@ def _typed_horizon_error(
     status = status_map.get(http_status, "error") if http_status else "degraded"
     errors = []
     if http_status:
-        errors.append({
-            "type": "kernel_error",
-            "source": "sovereign_kernel",
-            "message": f"Upstream returned HTTP {http_status}.",
-        })
+        errors.append(
+            {
+                "type": "kernel_error",
+                "source": "sovereign_kernel",
+                "message": f"Upstream returned HTTP {http_status}.",
+            }
+        )
     if exc:
-        errors.append({
-            "type": "transport_error",
-            "source": "horizon_gateway",
-            "message": str(exc),
-        })
+        errors.append(
+            {
+                "type": "transport_error",
+                "source": "horizon_gateway",
+                "message": str(exc),
+            }
+        )
     return {
         "ok": False,
         "tool": tool_name,
@@ -204,7 +216,9 @@ def _typed_horizon_error(
             "kernel_version": ARIFOS_VERSION,
             "adapter": "horizon_gateway",
             "env": os.getenv("ARIFOS_ENV", "production"),
-            "dependency_health": "degraded" if (http_status and http_status >= 500) else "unreachable",
+            "dependency_health": "degraded"
+            if (http_status and http_status >= 500)
+            else "unreachable",
         },
         "errors": errors,
         "warnings": [],
@@ -213,17 +227,18 @@ def _typed_horizon_error(
 
 async def _proxy_to_vps(tool_name: str, arguments: dict) -> dict:
     """Helper to forward tool calls to the VPS Kernel.
-    
+
     Maps Horizon tool names to v2 canonical names before proxying.
     """
     import time as _time
+
     _start = _time.monotonic()
-    
+
     # Map Horizon name to v2 canonical name
     v2_tool_name = HORIZON_TO_V2_MAP.get(tool_name, tool_name)
     if v2_tool_name != tool_name:
         logger.debug(f"Horizon mapping: {tool_name} → {v2_tool_name}")
-    
+
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
@@ -240,8 +255,10 @@ async def _proxy_to_vps(tool_name: str, arguments: dict) -> dict:
                 data = response.json()
                 return data.get("result", data)
             _code_map = {
-                401: "INIT_AUTH_401", 403: "INIT_POLICY_403",
-                422: "INIT_SCHEMA_422", 503: "INIT_DEPENDENCY_503",
+                401: "INIT_AUTH_401",
+                403: "INIT_POLICY_403",
+                422: "INIT_SCHEMA_422",
+                503: "INIT_DEPENDENCY_503",
             }
             _code = _code_map.get(response.status_code, "INIT_KERNEL_500")
             return _typed_horizon_error(
@@ -443,7 +460,9 @@ async def vault_ledger(
     mode: str = "seal",
 ) -> dict:
     """999_VAULT: Immutable decision recording — seal and verify. Requires authenticated session."""
-    return await _gateway_call("vault_ledger", {"action": action, "session_id": session_id, "mode": mode})
+    return await _gateway_call(
+        "vault_ledger", {"action": action, "session_id": session_id, "mode": mode}
+    )
 
 
 @mcp.tool()
@@ -453,7 +472,9 @@ async def engineering_memory(
     mode: str = "vector_query",
 ) -> dict:
     """555_MEMORY: Governed engineering and vector memory. Requires authenticated session."""
-    return await _gateway_call("engineering_memory", {"query": query, "session_id": session_id, "mode": mode})
+    return await _gateway_call(
+        "engineering_memory", {"query": query, "session_id": session_id, "mode": mode}
+    )
 
 
 @mcp.tool()
@@ -463,7 +484,9 @@ async def code_engine(
     mode: str = "process",
 ) -> dict:
     """M-3_EXEC: System-level execution. Sovereign VPS only — returns redirect to VPS endpoint."""
-    return await _gateway_call("code_engine", {"query": query, "session_id": session_id, "mode": mode})
+    return await _gateway_call(
+        "code_engine", {"query": query, "session_id": session_id, "mode": mode}
+    )
 
 
 async def gateway_registry() -> dict:
@@ -639,7 +662,9 @@ try:
 except Exception as _e:
     import logging as _logging
 
-    _logging.getLogger(__name__).warning("[server_horizon] ChatGPT app tools not registered: %s", _e)
+    _logging.getLogger(__name__).warning(
+        "[server_horizon] ChatGPT app tools not registered: %s", _e
+    )
 
 
 # ===========================================================================
@@ -657,6 +682,7 @@ def _horizon_vault_recent() -> str:
     """arifOS Vault: Read-only summary of the 10 most recent VAULT999 verdict records."""
     try:
         import os
+
         vault_path = os.environ.get("VAULT999_PATH", "/root/VAULT999")
         audit_dir = os.path.join(vault_path, "audit")
         if os.path.isdir(audit_dir):
@@ -675,21 +701,29 @@ def _horizon_vault_recent() -> str:
             return json.dumps({"recent_verdicts": records, "count": len(records)})
     except Exception:
         pass
-    return json.dumps({"recent_verdicts": [], "count": 0, "note": "Proxying to VPS — vault unavailable on Horizon"})
+    return json.dumps(
+        {
+            "recent_verdicts": [],
+            "count": 0,
+            "note": "Proxying to VPS — vault unavailable on Horizon",
+        }
+    )
 
 
 @mcp.resource("arifos://bootstrap")
 def _horizon_bootstrap() -> str:
     """arifOS Bootstrap: Startup path and canonical session entry sequence."""
-    return json.dumps({
-        "sequence": [
-            "1. get_tool_registry(mode='list') — discover available tools",
-            "2. estimate_ops(mode='health') — verify system health",
-            "3. init_session_anchor(mode='init') — establish constitutional session",
-            "4. route_execution(mode='kernel') — enter full metabolic pipeline",
-        ],
-        "note": "Functional-verb aliases map to symbolic mega-tools.",
-    })
+    return json.dumps(
+        {
+            "sequence": [
+                "1. get_tool_registry(mode='list') — discover available tools",
+                "2. estimate_ops(mode='health') — verify system health",
+                "3. init_session_anchor(mode='init') — establish constitutional session",
+                "4. route_execution(mode='kernel') — enter full metabolic pipeline",
+            ],
+            "note": "Functional-verb aliases map to symbolic mega-tools.",
+        }
+    )
 
 
 @mcp.resource("arifos://contracts/context")
@@ -697,6 +731,7 @@ def _horizon_context_contracts() -> str:
     """arifOS Context Contracts: 6 shared JSON schemas (TelemetryEnvelope, VerdictRecord, etc.)."""
     try:
         from arifosmcp.runtime.context_contracts import CONTEXT_CONTRACTS
+
         return json.dumps(CONTEXT_CONTRACTS)
     except ImportError:
         return json.dumps({"error": "Context contracts module unavailable on this deployment"})
@@ -731,12 +766,14 @@ def _horizon_tool_by_name(tool_name: str) -> str:
         "execute_vps_task": "code_engine",
     }
     canonical = _alias_map.get(tool_name, tool_name)
-    return json.dumps({
-        "functional_name": tool_name,
-        "canonical_name": canonical,
-        "note": "Use the canonical name when calling the tool.",
-        "vps_endpoint": f"{VPS_URL}/tools/{canonical}",
-    })
+    return json.dumps(
+        {
+            "functional_name": tool_name,
+            "canonical_name": canonical,
+            "note": "Use the canonical name when calling the tool.",
+            "vps_endpoint": f"{VPS_URL}/tools/{canonical}",
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -831,7 +868,9 @@ async def load_memory_context(
     mode: str = "vector_query",
 ) -> dict:
     """555_MEMORY: Governed engineering memory and vector recall. Alias for engineering_memory."""
-    return await _gateway_call("engineering_memory", {"query": query, "session_id": session_id, "mode": mode})
+    return await _gateway_call(
+        "engineering_memory", {"query": query, "session_id": session_id, "mode": mode}
+    )
 
 
 @mcp.tool(name="estimate_ops", title="Math Estimator")
@@ -867,7 +906,9 @@ async def record_vault_entry(
     mode: str = "seal",
 ) -> dict:
     """999_VAULT: Append immutable verdict to VAULT999. Requires authenticated session. Alias for vault_ledger."""
-    return await _gateway_call("vault_ledger", {"action": action, "session_id": session_id, "mode": mode})
+    return await _gateway_call(
+        "vault_ledger", {"action": action, "session_id": session_id, "mode": mode}
+    )
 
 
 @mcp.tool(name="execute_vps_task", title="Code Engine")
@@ -877,32 +918,9 @@ async def execute_vps_task(
     mode: str = "process",
 ) -> dict:
     """M-3_EXEC: Dispatch to VPS executor. Alias for code_engine."""
-    return await _gateway_call("code_engine", {"query": query, "session_id": session_id, "mode": mode})
-
-
-@mcp.tool(name="get_constitutional_health", title="Constitutional Health")
-async def get_constitutional_health(session_id: Optional[str] = None) -> dict:
-    """ChatGPT subset: Read-only constitutional health view for widget rendering."""
-    WIDGET_URL = "https://mcp.af-forge.io/widget/vault-seal"
-    # Use arifos.ops (math_estimator) for health check
-    raw = await _proxy_to_vps("math_estimator", {"query": "health", "session_id": session_id, "mode": "health"})
-    
-    # Determine status based on upstream response
-    upstream_status = raw.get("status", "error")
-    is_healthy = upstream_status not in ("error", "VOID", "HOLD") and raw.get("ok", False)
-    
-    return {
-        "status": "healthy" if is_healthy else "degraded",
-        "floors_active": 13,
-        "tools_loaded": 10,  # 10 canonical v2 tools
-        "tools": list(HORIZON_TO_V2_MAP.keys()),
-        "version": ARIFOS_VERSION,
-        "protocol_version": MCP_PROTOCOL_VERSION,
-        "upstream_vps": await _upstream_status(),
-        "telemetry": raw.get("metrics", {}),
-        "widget_uri": WIDGET_URL,
-        "_meta": {"ui": {"resourceUri": WIDGET_URL}},
-    }
+    return await _gateway_call(
+        "code_engine", {"query": query, "session_id": session_id, "mode": mode}
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -983,7 +1001,9 @@ def prompt_estimate_ops(query: str = "") -> str:
 
 
 @mcp.prompt(name="prompt_judge_verdict")
-def prompt_judge_verdict(task: str = "", risk_tier: str = "medium", telemetry_json: str = "") -> str:
+def prompt_judge_verdict(
+    task: str = "", risk_tier: str = "medium", telemetry_json: str = ""
+) -> str:
     """Generate a constitutional verdict using F1-F13 and telemetry evidence."""
     base = (
         f"Constitutional verdict required for: {task}. Risk tier: {risk_tier}. "
