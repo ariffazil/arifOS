@@ -111,8 +111,29 @@ async def arifos_init(
     allow_execution: bool = False,
     debug: bool = False,
     platform: str = "unknown",
+    mode: str = "init",
+    # Kernel syscall parameters (for mode="describe_kernel", etc.)
+    query: str | None = None,
+    current_tool: str | None = None,
+    requested_tool: str | None = None,
+    context: dict | None = None,
+    actual_output: dict | None = None,
+    call_graph: list | None = None,
+    observed_effects: list | None = None,
 ) -> RuntimeEnvelope:
-    """Initialize constitutional session."""
+    """
+    Initialize constitutional session OR perform kernel syscall.
+    
+    Standard modes:
+    - "init": Bootstrap constitutional session (default)
+    
+    Kernel syscall modes (internal governance substrate):
+    - "describe_kernel": Return contract registry or specific tool contract
+    - "validate_transition": Check if metabolic transition is lawful
+    - "audit_contracts": Full drift audit on tool execution
+    - "emit_proof_stub": Get execution trace proof for session
+    - "get_pipeline": Return metabolic DAG
+    """
     # ── F12: Injection Guard ──────────────────────────────────────────────
     from arifosmcp.runtime.webmcp.security import WebInjectionGuard
     _guard = WebInjectionGuard()
@@ -127,6 +148,92 @@ async def arifos_init(
             "arifos.init",
         )
 
+    # ═══════════════════════════════════════════════════════════════════════
+    # KERNEL SYSCALL BRANCH
+    # ═══════════════════════════════════════════════════════════════════════
+    if mode in ("describe_kernel", "validate_transition", "audit_contracts", "emit_proof_stub", "get_pipeline"):
+        from arifosmcp.runtime.kernel_runtime import get_kernel_runtime
+        kernel = get_kernel_runtime()
+        
+        result = {}
+        syscall_verdict = "SEAL"
+        syscall_reason = "KERNEL_SYSCALL_OK"
+        
+        try:
+            if mode == "describe_kernel":
+                result = kernel.syscall_describe_kernel(query)
+                
+            elif mode == "validate_transition":
+                if not current_tool or not requested_tool:
+                    result = {"error": "current_tool and requested_tool required"}
+                    syscall_verdict = "VOID"
+                    syscall_reason = "MISSING_PARAMETERS"
+                else:
+                    result = kernel.syscall_validate_transition(
+                        current_tool, requested_tool, context or {}
+                    )
+                    if not result.get("allowed"):
+                        syscall_verdict = "HOLD"
+                        syscall_reason = result.get("violation_type", "TRANSITION_BLOCKED")
+                        
+            elif mode == "audit_contracts":
+                if not query or not actual_output:
+                    result = {"error": "query (tool_name) and actual_output required"}
+                    syscall_verdict = "VOID"
+                    syscall_reason = "MISSING_PARAMETERS"
+                else:
+                    result = kernel.syscall_audit_contracts(
+                        tool_name=query,
+                        actual_output=actual_output,
+                        call_graph=call_graph or [],
+                        observed_effects=observed_effects or []
+                    )
+                    if result.get("drift_detected"):
+                        severity = result.get("severity", "minor")
+                        if severity in ("major", "critical"):
+                            syscall_verdict = "HOLD"
+                        syscall_reason = f"DRIFT_DETECTED:{severity}"
+                        
+            elif mode == "emit_proof_stub":
+                target_session = query or session_id or "anon"
+                result = kernel.syscall_emit_proof_stub(target_session)
+                
+            elif mode == "get_pipeline":
+                result = kernel.syscall_get_pipeline(query)  # query = from_tool
+                
+        except Exception as e:
+            result = {"error": str(e), "syscall": mode}
+            syscall_verdict = "VOID"
+            syscall_reason = "KERNEL_EXCEPTION"
+        
+        # Build kernel syscall envelope
+        from arifosmcp.runtime.models import RuntimeStatus
+        from arifosmcp.runtime.arifos_runtime_envelope import RuntimeEnvelope
+        
+        envelope = RuntimeEnvelope(
+            ok=syscall_verdict == "SEAL",
+            tool="arifos.init",
+            canonical_tool_name="arifos.init",
+            stage="000_INIT",
+            status=RuntimeStatus.READY if syscall_verdict == "SEAL" else RuntimeStatus.BLOCKED,
+            verdict=syscall_verdict,
+            session_id=session_id or "kernel_syscall",
+            payload={
+                "mode": mode,
+                "syscall_result": result,
+                "kernel_version": "0.2.0"
+            },
+            policy={
+                "floors_checked": ["F11", "F12"],
+                "syscall": mode,
+                "reason": syscall_reason
+            }
+        )
+        return seal_runtime_envelope(envelope, "arifos.init")
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # STANDARD INIT BRANCH
+    # ═══════════════════════════════════════════════════════════════════════
     envelope = await _mega_init_anchor(
         mode="init",
         payload={"actor_id": actor_id, "intent": intent, "declared_name": declared_name},
