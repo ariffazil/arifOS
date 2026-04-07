@@ -33,34 +33,10 @@ from arifosmcp.runtime.fastmcp_version import (
     custom_route,
     create_http_app,
 )
-
-from arifosmcp.runtime.prompts import register_prompts
-from arifosmcp.runtime.resources import register_resources
+from arifosmcp.runtime.prompts import register_v2_prompts
+from arifosmcp.runtime.resources import register_v2_resources
 from arifosmcp.runtime.rest_routes import register_rest_routes
-from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS, register_tools
 from arifosmcp.runtime.public_registry import public_tool_names as _public_tool_names
-
-# ChatGPT Apps SDK tools ENABLED (12 total tools: 9 canonical + 3 ChatGPT)
-_CHATGPT_TOOLS: dict[str, Any] = {
-    "get_constitutional_health": None,
-    "list_recent_verdicts": None,
-    "render_vault_seal": None,
-}
-
-# Import ChatGPT tool handlers
-try:
-    from arifosmcp.runtime.tools import get_constitutional_health, list_recent_verdicts
-    from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import render_vault_seal
-
-    _CHATGPT_TOOLS["get_constitutional_health"] = get_constitutional_health
-    _CHATGPT_TOOLS["list_recent_verdicts"] = list_recent_verdicts
-    _CHATGPT_TOOLS["render_vault_seal"] = render_vault_seal
-except ImportError as e:
-    # Use standard print if logger isn't ready or just in case
-    print(f"⚠️  Could not import ChatGPT tools: {e}")
-
-# REST surface: canonical tools + ChatGPT Apps SDK tools (12 total)
-_CANONICAL_TOOL_IMPLEMENTATIONS = {**CANONICAL_TOOL_HANDLERS, **_CHATGPT_TOOLS}
 
 logger = logging.getLogger(__name__)
 
@@ -341,7 +317,7 @@ Use prompts for structured workflows:
 # REGISTER V2 SURFACE
 # ═══════════════════════════════════════════════════════════════════════════════
 
-from arifosmcp.runtime.tools import register_v2_tools
+from arifosmcp.runtime.tools import register_v2_tools, V2_TOOL_HANDLERS
 from arifosmcp.runtime.prompts import register_v2_prompts
 from arifosmcp.runtime.resources import register_v2_resources
 from arifosmcp.runtime.manifest import build_manifest_v2
@@ -356,6 +332,106 @@ logger.info(
     f"ARIFOS MCP v2 initialized: {len(v2_tools_registered)} tools, "
     f"{len(v2_prompts_registered)} prompts, {len(v2_resources_registered)} resources"
 )
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# REST TOOL EXECUTION ENDPOINT (Horizon Gateway Compatibility)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Horizon → v2 tool name mapping (for REST proxy compatibility)
+HORIZON_TO_V2_MAP: dict[str, str] = {
+    "init_anchor": "arifos.init",
+    "arifOS_kernel": "arifos.route",
+    "physics_reality": "arifos.sense",
+    "agi_mind": "arifos.mind",
+    "asi_heart": "arifos.heart",
+    "math_estimator": "arifos.ops",
+    "apex_soul": "arifos.judge",
+    "engineering_memory": "arifos.memory",
+    "vault_ledger": "arifos.vault",
+    "code_engine": "arifos.forge",
+    "architect_registry": "arifos.init",
+    # v2 names also accepted directly
+    "arifos.init": "arifos.init",
+    "arifos.route": "arifos.route",
+    "arifos.sense": "arifos.sense",
+    "arifos.mind": "arifos.mind",
+    "arifos.heart": "arifos.heart",
+    "arifos.ops": "arifos.ops",
+    "arifos.judge": "arifos.judge",
+    "arifos.memory": "arifos.memory",
+    "arifos.vault": "arifos.vault",
+    "arifos.forge": "arifos.forge",
+}
+
+
+async def rest_tool_handler(request: Request) -> JSONResponse:
+    """REST endpoint for tool execution - enables Horizon gateway proxy.
+
+    POST /tools/{tool_name}
+    Body: JSON arguments for the tool
+    """
+    import json
+
+    tool_name = request.path_params.get("tool_name") or ""
+
+    # Map Horizon name to v2 name
+    v2_name = HORIZON_TO_V2_MAP.get(tool_name, tool_name)
+
+    # Get handler
+    handler = V2_TOOL_HANDLERS.get(v2_name)
+    if not handler:
+        return JSONResponse(
+            {
+                "error": f"Tool not found: {tool_name}",
+                "available_tools": list(HORIZON_TO_V2_MAP.keys()),
+            },
+            status_code=404,
+        )
+
+    # Parse body
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    # Extract common params
+    session_id = body.pop("session_id", None)
+    risk_tier = body.pop("risk_tier", "medium")
+    dry_run = body.pop("dry_run", True)
+    debug = body.pop("debug", False)
+
+    try:
+        # Call handler
+        result = await handler(
+            session_id=session_id,
+            risk_tier=risk_tier,
+            dry_run=dry_run,
+            debug=debug,
+            **body,
+        )
+
+        # Convert RuntimeEnvelope to dict if needed
+        if hasattr(result, "model_dump"):
+            response_data = result.model_dump()
+        elif hasattr(result, "__dict__"):
+            response_data = dict(result.__dict__)
+        else:
+            response_data = result
+
+        return JSONResponse(response_data)
+
+    except Exception as e:
+        logger.error(f"Tool execution error: {e}", exc_info=True)
+        return JSONResponse(
+            {
+                "error": str(e),
+                "tool": tool_name,
+                "v2_tool": v2_name,
+                "message": "Tool execution failed",
+            },
+            status_code=500,
+        )
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # HTTP APP SETUP
@@ -425,7 +501,7 @@ async def health_handler(request: Request) -> JSONResponse:
             "namespace": "arifos",
             "transport": "streamable-http",
             "canonical_tools": len(v2_tools_registered),
-            "total_tools": len(v2_tools_registered) + len(_CHATGPT_TOOLS),
+            "total_tools": len(v2_tools_registered),
             "prompts_loaded": len(v2_prompts_registered),
             "resources_loaded": len(v2_resources_registered),
             "protocol_version": build["protocol_version"],
@@ -671,6 +747,7 @@ app.add_route("/", landing_page_handler, methods=["GET"])
 app.add_route("/health", health_handler, methods=["GET", "OPTIONS"])
 app.add_route("/version", version_handler, methods=["GET"])
 app.add_route("/tools", tools_handler, methods=["GET"])
+app.add_route("/tools/{tool_name}", rest_tool_handler, methods=["POST"])
 
 # Discovery files
 app.add_route("/llms.txt", llms_txt_handler, methods=["GET"])
