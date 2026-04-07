@@ -92,6 +92,15 @@ def _make_f12_block_envelope(injection_score: float, threats: list[str], session
 # V2 TOOL IMPLEMENTATIONS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def _stamp_platform(envelope: Any, platform: str) -> None:
+    """Stamp platform_context onto envelope in-place (F1-safe: no-op if field absent)."""
+    if hasattr(envelope, "platform_context"):
+        envelope.platform_context = platform
+    if hasattr(envelope, "policy") and isinstance(envelope.policy, dict):
+        envelope.policy["platform_context"] = platform
+    elif hasattr(envelope, "policy") and envelope.policy is None:
+        envelope.policy = {"platform_context": platform}
+
 async def arifos_init(
     actor_id: str,
     intent: str,
@@ -101,6 +110,7 @@ async def arifos_init(
     dry_run: bool = True,
     allow_execution: bool = False,
     debug: bool = False,
+    platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Initialize constitutional session."""
     # ── F12: Injection Guard ──────────────────────────────────────────────
@@ -132,8 +142,11 @@ async def arifos_init(
             ["F12"] + envelope.policy.get("floors_checked", [])
         ))
         envelope.policy["injection_score"] = round(_injection_score, 4)
+        envelope.policy["platform_context"] = platform
     elif hasattr(envelope, "policy"):
-        envelope.policy = {"floors_checked": ["F12"], "injection_score": round(_injection_score, 4)}
+        envelope.policy = {"floors_checked": ["F12"], "injection_score": round(_injection_score, 4), "platform_context": platform}
+    if hasattr(envelope, "platform_context"):
+        envelope.platform_context = platform
     return seal_runtime_envelope(envelope, "arifos.init")
 
 
@@ -150,6 +163,7 @@ async def arifos_sense(
     policy: dict[str, Any] | None = None,
     budget: dict[str, Any] | None = None,
     actor: dict[str, Any] | None = None,
+    platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """
     arifos.sense — Constitutional Reality Sensing
@@ -281,10 +295,11 @@ async def arifos_sense(
                 "intel_state_full": intel_state.to_dict(),
                 "truth_vector": intel_state.truth_vector.to_dict(),
             }
+        _stamp_platform(envelope, platform)
         return seal_runtime_envelope(envelope, "arifos.sense")
 
     # ── legacy modes: delegate to physics_reality ─────────────────────────────
-    return await _sense_legacy(query, mode, session_id, risk_tier, dry_run, debug)
+    return await _sense_legacy(query, mode, session_id, risk_tier, dry_run, debug, platform)
 
 
 async def _sense_legacy(
@@ -294,6 +309,7 @@ async def _sense_legacy(
     risk_tier: str,
     dry_run: bool,
     debug: bool,
+    platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Legacy sense path — delegates to physics_reality mega tool."""
     envelope = await _mega_physics_reality(
@@ -304,6 +320,7 @@ async def _sense_legacy(
         dry_run=dry_run,
         debug=debug,
     )
+    _stamp_platform(envelope, platform)
     return seal_runtime_envelope(envelope, "arifos.sense")
 
 
@@ -315,6 +332,7 @@ async def arifos_mind(
     risk_tier: str = "medium",
     dry_run: bool = True,
     debug: bool = False,
+    platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Structured reasoning with typed cognitive pipeline.
 
@@ -355,6 +373,9 @@ async def arifos_mind(
             "constitutional_checks", {}
         ).get("chaos_score", 0.0)
         intel["pipeline_trace"] = audit_packet.get("pipeline_trace", [])
+        sealed["platform_context"] = platform
+    elif hasattr(sealed, "platform_context"):
+        sealed.platform_context = platform
     return sealed
 
 
@@ -366,6 +387,7 @@ async def arifos_route(
     dry_run: bool = True,
     allow_execution: bool = False,
     debug: bool = False,
+    platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Route request to correct metabolic lane."""
     envelope = await _mega_arifOS_kernel(
@@ -377,6 +399,7 @@ async def arifos_route(
         allow_execution=allow_execution,
         debug=debug,
     )
+    _stamp_platform(envelope, platform)
     return seal_runtime_envelope(envelope, "arifos.route")
 
 
@@ -387,6 +410,7 @@ async def arifos_heart(
     risk_tier: str = "medium",
     dry_run: bool = True,
     debug: bool = False,
+    platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Safety, dignity, and adversarial critique."""
     envelope = await _mega_asi_heart(
@@ -397,6 +421,7 @@ async def arifos_heart(
         dry_run=dry_run,
         debug=debug,
     )
+    _stamp_platform(envelope, platform)
     return seal_runtime_envelope(envelope, "arifos.heart")
 
 
@@ -407,6 +432,7 @@ async def arifos_ops(
     risk_tier: str = "medium",
     dry_run: bool = True,
     debug: bool = False,
+    platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Calculate operation costs and thermodynamics."""
     envelope = await _mega_math_estimator(
@@ -417,6 +443,7 @@ async def arifos_ops(
         dry_run=dry_run,
         debug=debug,
     )
+    _stamp_platform(envelope, platform)
     return seal_runtime_envelope(envelope, "arifos.ops")
 
 
@@ -427,6 +454,7 @@ async def arifos_judge(
     session_id: str | None = None,
     dry_run: bool = True,
     debug: bool = False,
+    platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Final constitutional verdict evaluation."""
     envelope = await _mega_apex_judge(
@@ -441,6 +469,7 @@ async def arifos_judge(
         dry_run=dry_run,
         debug=debug,
     )
+    _stamp_platform(envelope, platform)
     return seal_runtime_envelope(envelope, "arifos.judge")
 
 
@@ -451,6 +480,7 @@ async def arifos_memory(
     risk_tier: str = "medium",
     dry_run: bool = True,
     debug: bool = False,
+    platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Retrieve governed memory from vector store or update the continuous world model."""
     
@@ -470,6 +500,7 @@ async def arifos_memory(
         dry_run=dry_run,
         debug=debug,
     )
+    _stamp_platform(envelope, platform)
     return seal_runtime_envelope(envelope, "arifos.memory")
 
 
@@ -480,6 +511,7 @@ async def arifos_vault(
     risk_tier: str = "medium",
     dry_run: bool = True,
     debug: bool = False,
+    platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Append immutable verdict to ledger."""
     envelope = await _mega_vault_ledger(
@@ -490,6 +522,7 @@ async def arifos_vault(
         dry_run=dry_run,
         debug=debug,
     )
+    _stamp_platform(envelope, platform)
     return seal_runtime_envelope(envelope, "arifos.vault")
 
 

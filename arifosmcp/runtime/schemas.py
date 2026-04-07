@@ -18,6 +18,17 @@ from pydantic import BaseModel, Field
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# PLATFORM CONTEXT — which caller surface invoked this tool
+# ═══════════════════════════════════════════════════════════════════════════════
+
+PlatformType = Literal["chatgpt", "perplexity", "mcp-cli", "playground", "api", "unknown"]
+"""
+Valid caller-platform values. Default is "unknown" (backward compat, F1 safe).
+Pass via request body `platform` field or HTTP header `X-Arifos-Platform`.
+"""
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # ABI SCHEMAS — Tool I/O Contracts
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -71,6 +82,7 @@ class MegaToolInput(BaseModel):
     dry_run: bool = Field(default=True, description="Validate only without execution")
     allow_execution: bool = Field(default=False, description="Permit execution if floors pass")
     abi_version: str = Field(default="1.0", description="ABI version requested by client")
+    platform: PlatformType = Field(default="unknown", description="Caller platform surface (chatgpt|perplexity|mcp-cli|playground|api|unknown)")
 
 
 class CanonicalErrorDetail(BaseModel):
@@ -239,6 +251,8 @@ __all__ = [
     # ABI schemas
     "IntentSpec", "IntentType", "InitAnchorInput", "IdentityResolution",
     "InitAnchorOutput", "MegaToolInput", "CanonicalErrorDetail", "ErrorResponse",
+    # Platform context
+    "PlatformType",
     # Clean schemas
     "CleanInput", "QueryOptions", "CleanOutput", "ExecutionResult",
     "GovernanceVerdict", "OperatorAction", "ContextSummary", "CleanError",

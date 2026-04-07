@@ -19,7 +19,7 @@ services:
       args:
         ARIFOS_BUILD_SHA: ${ARIFOS_BUILD_SHA:-dev}
         ARIFOS_BUILD_TIME: ${ARIFOS_BUILD_TIME:-unknown}
-        ARIFOS_APP_VERSION: ${ARIFOS_APP_VERSION:-2026.04.06}
+        ARIFOS_APP_VERSION: ${ARIFOS_APP_VERSION:-2026.04.07}
     image: arifos-mcp:af-forge
     container_name: arifos-mcp
     restart: unless-stopped
@@ -36,7 +36,7 @@ services:
       # Build info
       ARIFOS_BUILD_SHA: ${ARIFOS_BUILD_SHA:-dev}
       ARIFOS_BUILD_TIME: ${ARIFOS_BUILD_TIME:-unknown}
-      ARIFOS_APP_VERSION: ${ARIFOS_APP_VERSION:-2026.04.06}
+      ARIFOS_APP_VERSION: ${ARIFOS_APP_VERSION:-2026.04.07}
       GIT_COMMIT: ${ARIFOS_BUILD_SHA:-dev}
       
       # Federation endpoint (for reference)
@@ -84,6 +84,7 @@ services:
       - ./widget-csp.conf:/etc/nginx/conf.d/widget-csp.conf:ro
       - ../../static/widgets:/var/www/arifos/widgets:ro
       - ./ssl:/etc/nginx/ssl:ro
+      - certbot-webroot:/var/www/certbot:ro
     
     depends_on:
       - arifos-mcp
@@ -96,6 +97,8 @@ volumes:
   vault999-data:
     driver: local
   telemetry-data:
+    driver: local
+  certbot-webroot:
     driver: local
 
 # ─── Networks ─────────────────────────────────────────────────────────────────

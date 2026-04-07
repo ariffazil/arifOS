@@ -124,6 +124,7 @@ async def arifos_forge(
     ttl_seconds: int = 300,
     dry_run: bool = True,
     af_forge_endpoint: str | None = None,
+    platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """
     Delegated Execution Bridge — The 10th Tool.
@@ -212,12 +213,15 @@ async def arifos_forge(
     # DRY RUN: Generate manifest only
     # ─────────────────────────────────────────────────────────────────────────
     if dry_run:
-        return _forge_success(
+        result = _forge_success(
             session_id=session_id,
             manifest=manifest,
             status="MANIFEST_GENERATED",
             note="F7 Humility: Dry run. Manifest valid but not dispatched.",
         )
+        if isinstance(result, dict):
+            result["platform_context"] = platform
+        return result
     
     # ─────────────────────────────────────────────────────────────────────────
     # DISPATCH TO AF-FORGE SUBSTRATE
@@ -230,13 +234,16 @@ async def arifos_forge(
         endpoint=af_forge_endpoint or "https://forge.af-forge.io/v1/execute",
     )
     
-    return _forge_success(
+    result = _forge_success(
         session_id=session_id,
         manifest=manifest,
         status="DISPATCHED",
         receipt_hash=receipt_hash,
         note="Execution delegated to AF-FORGE substrate. Receipt logged to vault.",
     )
+    if isinstance(result, dict):
+        result["platform_context"] = platform
+    return result
 
 
 def _forge_error(

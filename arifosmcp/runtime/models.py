@@ -759,6 +759,10 @@ class RuntimeEnvelope(BaseModel):
     )
     trace_id: str | None = Field(default=None, description="Distributed trace identifier")
     duration_ms: int | None = Field(default=None, description="Round-trip duration in milliseconds")
+    platform_context: str | None = Field(
+        default=None,
+        description="Caller platform surface: chatgpt|perplexity|mcp-cli|playground|api|unknown. F1-safe: defaults to None (unknown).",
+    )
 
     # ── Identity context echo (F11 airlock visibility) ────────────────────────
     mode: str | None = Field(default=None, description="Mode dispatched: init | refresh | revoke | state")

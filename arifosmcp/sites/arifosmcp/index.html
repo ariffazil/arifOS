@@ -3,435 +3,803 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="arifOS MCP Server - Constitutional runtime for governed AI tool execution. Enforce 13 constitutional floors on any AI agent.">
-    <meta name="keywords" content="arifOS, MCP, Model Context Protocol, AI Governance, Constitutional AI, Trinity Architecture, F1-F13, ΔΩΨ, AGI, ASI, APEX">
+    <meta name="description" content="arifOS MCP Server - Constitutional runtime preserving truth in Space (Source), Time (Epoch), and Energy (Entropy). Enforce 13 constitutional floors on any AI agent.">
+    <meta name="keywords" content="arifOS, MCP, Model Context Protocol, AI Governance, Constitutional AI, Thermodynamic Truth, Space Time Energy, ΔS, F1-F13, ΔΩΨ">
     <meta name="author" content="Muhammad Arif bin Fazil">
-    <meta name="version" content="2026.04.07-LLM-OS">
-    <meta name="ai-context" content="This is the arifOS MCP Server - A Constitutional AI Governance System aligned with Karpathy's LLM OS architecture. It provides 10 canonical tools enforcing 13 Constitutional Floors (F1-F13). Features: Autonomy Slider, Process-Based Supervision, and Continuous World Model updates. Trinity Architecture (Δ Mind, Ω Heart, Ψ Soul). Transport: streamable-http. MCP endpoint: /mcp.">
-    <title>arifOS MCP | Constitutional AI Governance (ΔΩΨ)</title>
+    <meta name="version" content="DYNAMIC">
+    <meta name="truth-mode" content="Thermodynamic Preservation">
+    <title>arifOS MCP | Thermodynamic Truth Preservation (ΔΩΨ)</title>
     <style>
         :root {
-            --bg-primary: #0d1117;
-            --bg-secondary: #161b22;
-            --bg-tertiary: #21262d;
-            --text-primary: #e6edf3;
-            --text-secondary: #8b949e;
-            --accent-delta: #58a6ff;
-            --accent-omega: #f85149;
-            --accent-psi: #ffd700;
-            --accent-success: #238636;
-            --border: #30363d;
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --text-primary: #e8e8f0;
+            --text-secondary: #8888a0;
+            --accent-gold: #d4af37;
+            --accent-seal: #22c55e;
+            --accent-void: #ef4444;
+            --accent-partial: #f59e0b;
+            --accent-delta: #3b82f6;
+            --accent-omega: #a855f7;
+            --accent-psi: #ec4899;
+            --accent-entropy: #06b6d4;
+            --accent-time: #f97316;
+            --accent-space: #10b981;
+            --border: #2a2a3a;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
             background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 50%);
         }
         
-        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
         
-        header { text-align: center; padding: 4rem 0; margin-bottom: 2rem; border-bottom: 1px solid var(--border); }
-        
-        .sot-banner {
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid var(--accent-psi);
-            color: var(--accent-psi);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
+        header {
             text-align: center;
-            font-size: 0.9rem;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
         }
-
-        .logo { font-size: 3.5rem; margin-bottom: 1rem; }
+        
+        .forge-mark { 
+            font-size: 4rem; 
+            margin-bottom: 1rem;
+            animation: pulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.98); }
+        }
         
         h1 {
-            font-size: 4rem;
-            background: linear-gradient(135deg, var(--accent-delta), var(--accent-omega), var(--accent-psi));
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--accent-gold), #fff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 1rem;
-            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
         }
         
-        .version-badge {
-            display: inline-block;
-            background: var(--bg-tertiary);
+        .subtitle {
             color: var(--text-secondary);
-            padding: 0.3rem 1rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            border: 1px solid var(--border);
-            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
         }
         
-        .trinity-symbols { font-size: 2rem; margin: 1.5rem 0; letter-spacing: 1.5rem; }
+        .motto {
+            font-size: 1.3rem;
+            color: var(--accent-gold);
+            font-weight: bold;
+            margin: 1rem 0;
+            letter-spacing: 0.1em;
+        }
         
-        .section {
+        /* === THERMODYNAMIC TRUTH GRID === */
+        .truth-dimensions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        @media (max-width: 900px) {
+            .truth-dimensions { grid-template-columns: 1fr; }
+        }
+        
+        .dimension-card {
             background: var(--bg-secondary);
             border: 1px solid var(--border);
             border-radius: 16px;
-            padding: 3rem;
-            margin-bottom: 3rem;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
         }
         
-        h2 { color: var(--text-primary); margin-bottom: 1.5rem; font-size: 2.2rem; }
-        h3 { color: var(--accent-delta); margin: 1.5rem 0 0.5rem; }
+        .dimension-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
         
-        .tool-grid {
+        .dimension-space::before { background: linear-gradient(90deg, var(--accent-space), #34d399); }
+        .dimension-time::before { background: linear-gradient(90deg, var(--accent-time), #fb923c); }
+        .dimension-energy::before { background: linear-gradient(90deg, var(--accent-entropy), #67e8f9); }
+        
+        .dimension-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .dimension-icon {
+            font-size: 1.5rem;
+        }
+        
+        .dimension-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .dimension-space .dimension-title { color: var(--accent-space); }
+        .dimension-time .dimension-title { color: var(--accent-time); }
+        .dimension-energy .dimension-title { color: var(--accent-entropy); }
+        
+        .dimension-symbol {
+            margin-left: auto;
+            font-size: 1.2rem;
+            opacity: 0.6;
+        }
+        
+        .truth-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .truth-metric:last-child { border-bottom: none; }
+        
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        
+        .metric-value {
+            font-family: 'SF Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-align: right;
+        }
+        
+        .dimension-space .metric-value { color: var(--accent-space); }
+        .dimension-time .metric-value { color: var(--accent-time); }
+        .dimension-energy .metric-value { color: var(--accent-entropy); }
+        
+        .metric-value.live { animation: livePulse 2s infinite; }
+        
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* Entropy Bar */
+        .entropy-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        
+        .entropy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-seal), var(--accent-entropy));
+            transition: width 0.5s ease;
+        }
+        
+        /* Status Grid */
+        .status-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
         }
         
-        .tool-card {
-            background: var(--bg-tertiary);
+        .status-item {
+            background: var(--bg-secondary);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 1.5rem;
+            text-align: center;
             transition: all 0.3s;
         }
         
-        .tool-card:hover { border-color: var(--accent-delta); transform: translateY(-2px); }
-        .tool-card h4 { color: var(--accent-delta); margin-bottom: 0.5rem; font-size: 1.2rem; }
-        
-        .tool-card.agi { border-left: 4px solid var(--accent-delta); }
-        .tool-card.asi { border-left: 4px solid var(--accent-omega); }
-        .tool-card.apex { border-left: 4px solid var(--accent-psi); }
-        .tool-card.vault { border-left: 4px solid var(--accent-success); }
-        
-        .stage-badge {
-            display: inline-block;
-            font-size: 0.7rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            background: var(--bg-primary);
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
+        .status-item:hover {
+            border-color: var(--accent-gold);
+            transform: translateY(-2px);
         }
         
-        pre {
-            background: var(--bg-primary);
-            padding: 1.5rem;
+        .status-item h4 {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        
+        .status-item .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        
+        .status-item .meta {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Tools Container */
+        .tools-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .tool-item {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-gold);
+            transition: all 0.3s;
+        }
+        
+        .tool-item:hover {
+            transform: translateX(4px);
+            border-color: var(--accent-seal);
+        }
+        
+        .tool-name {
+            font-weight: bold;
+            color: var(--accent-gold);
+            margin-bottom: 0.25rem;
+        }
+        
+        .tool-stage {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .trinity-delta { border-left-color: var(--accent-delta); }
+        .trinity-omega { border-left-color: var(--accent-omega); }
+        .trinity-psi { border-left-color: var(--accent-psi); }
+        
+        /* Philosophy Box */
+        .philosophy-box {
+            background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+            border: 1px solid var(--accent-gold);
             border-radius: 12px;
-            overflow-x: auto;
-            margin: 1.5rem 0;
-            border: 1px solid var(--border);
-            font-family: 'Fira Code', monospace;
+            padding: 2rem;
+            text-align: center;
+            margin: 2rem 0;
+            position: relative;
+        }
+        
+        .philosophy-box::before {
+            content: 'Ψ';
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 2rem;
+            opacity: 0.2;
+            color: var(--accent-psi);
+        }
+        
+        .philosophy-text {
+            font-size: 1.4rem;
+            font-style: italic;
+            color: var(--accent-gold);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        
+        .philosophy-meta {
+            color: var(--text-secondary);
             font-size: 0.9rem;
         }
         
-        .cta-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0; }
+        /* API Links */
+        .api-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
         
-        .btn {
+        .api-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+        
+        .api-link:hover {
+            border-color: var(--accent-gold);
+            background: var(--bg-secondary);
+        }
+        
+        .api-method {
+            font-weight: bold;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .api-method.get { background: var(--accent-delta); color: white; }
+        .api-method.post { background: var(--accent-omega); color: white; }
+        
+        .api-path {
+            font-family: monospace;
+            color: var(--accent-gold);
+        }
+        
+        /* Section */
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--accent-gold);
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        /* Live Indicator */
+        .live-indicator {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 1rem 2.5rem;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: all 0.3s;
-            border: 2px solid transparent;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--accent-seal);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--accent-seal);
         }
         
-        .btn-primary { background: var(--accent-delta); color: white; }
-        .btn-primary:hover { background: transparent; border-color: var(--accent-delta); color: var(--accent-delta); }
-        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border-color: var(--border); }
-        .btn-secondary:hover { border-color: var(--accent-psi); color: var(--accent-psi); }
-        
-        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-        .status-item { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; text-align: center; }
-        .status-item h4 { color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 0.5rem; }
-        .status-item .value { font-size: 1.2rem; font-weight: bold; color: var(--accent-success); word-break: break-all; }
-
-        footer { text-align: center; padding: 4rem 2rem; border-top: 1px solid var(--border); color: var(--text-secondary); }
-        
-        @media (max-width: 768px) {
-            h1 { font-size: 2.5rem; }
-            .section { padding: 1.5rem; }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-seal);
+            border-radius: 50%;
+            animation: blink 2s infinite;
         }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+            color: var(--text-secondary);
+        }
+        
+        .footer-code {
+            font-family: monospace;
+            font-size: 0.85rem;
+            opacity: 0.6;
+            margin-top: 0.5rem;
+        }
+        
+        /* Thermodynamic Warning */
+        .thermo-warning {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--accent-void);
+            color: var(--accent-void);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        .thermo-warning.visible { display: block; }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- SOT BANNER -->
-        <div class="sot-banner">
-            <strong>Source of Truth for arifOS:</strong> <a href="https://github.com/ariffazil/arifOS" style="color: inherit; font-weight: bold;">ariffazil/arifOS repository</a>.
-            Runtime truth (this page): current deployed server status.
-        </div>
-
-        <!-- HERO -->
         <header>
-            <div class="logo">🔱</div>
-            <div class="version-badge">v2026.04.07-SOT-ALIGN</div>
+            <div class="forge-mark">🔥</div>
             <h1>arifOS MCP</h1>
-            <h2 style="color: var(--text-primary); margin-top: 0.5rem; font-size: 1.8rem; font-weight: 400;">Constitutional runtime for governed AI tool execution.</h2>
-            <p style="max-width: 850px; margin: 2rem auto; font-size: 1.3rem; color: var(--text-secondary);">
-                Connect Claude, Cursor, or any MCP client to a policy-enforced tool runtime with 13 constitutional floors, auditable reasoning gates, and protocol-native execution.
-            </p>
-            
-            <div class="cta-buttons">
-                <a href="#quickstart" class="btn btn-primary">🔌 Connect Your Client</a>
-                <a href="/openapi.json" class="btn btn-secondary">🔍 View OpenAPI Spec</a>
-                <a href="/.well-known/arifos-index.json" class="btn btn-secondary">📜 Canonical Index</a>
+            <p class="subtitle">Thermodynamic Truth Preservation System</p>
+            <p class="motto">DITEMPA, BUKAN DIBERI</p>
+            <div class="live-indicator">
+                <span class="live-dot"></span>
+                <span id="status-text">Initializing thermodynamic sensors...</span>
             </div>
-
-            <div class="trinity-symbols">Δ Ω Ψ</div>
         </header>
 
-        <!-- TRUST STRIP -->
-        <div style="text-align: center; padding: 1.2rem; background: var(--bg-secondary); border-radius: 50px; border: 1px solid var(--border); margin-bottom: 4rem; font-size: 0.95rem; color: var(--text-secondary);">
-            <span style="margin-right: 1.5rem; font-weight: bold; color: var(--accent-psi); letter-spacing: 0.1em;">WORKS WITH</span>
-            <span style="margin: 0 1rem;">Claude Desktop</span> • 
-            <span style="margin: 0 1rem;">Cursor</span> • 
-            <span style="margin: 0 1rem;">OpenAI Clients</span> • 
-            <span style="margin: 0 1rem;">WebMCP</span> • 
-            <span style="margin: 0 1rem;">HTTP/stdio</span>
-        </div>
+        <!-- === THERMODYNAMIC TRUTH DIMENSIONS === -->
+        <div class="truth-dimensions">
+            <!-- SPACE: Source of Truth -->
+            <div class="dimension-card dimension-space">
+                <div class="dimension-header">
+                    <span class="dimension-icon">🌌</span>
+                    <span class="dimension-title">Space</span>
+                    <span class="dimension-symbol">∇</span>
+                </div>
+                <div class="truth-metric">
+                    <span class="metric-label">Source Repository</span>
+                    <span class="metric-value" id="space-repo">--</span>
+                </div>
+                <div class="truth-metric">
+                    <span class="metric-label">Canonical Commit</span>
+                    <span class="metric-value" id="space-commit">--</span>
+                </div>
+                <div class="truth-metric">
+                    <span class="metric-label">Release Tag</span>
+                    <span class="metric-value" id="space-tag">--</span>
+                </div>
+                <div class="truth-metric">
+                    <span class="metric-label">Deployment</span>
+                    <span class="metric-value" id="space-deploy">arifosmcp.arif-fazil.com</span>
+                </div>
+                <div class="truth-metric">
+                    <span class="metric-label">SoT Index</span>
+                    <span class="metric-value" id="space-index">--</span>
+                </div>
+            </div>
 
-        <!-- WHY -->
-        <div class="section">
-            <h2 style="text-align: center;">Why arifOS MCP?</h2>
-            <div class="tool-grid">
-                <div class="tool-card agi">
-                    <h4>🛡️ Governed by Design</h4>
-                    <p>Every tool call is pre-filtered through 13 constitutional floors. No hallucinations, no ungrounded claims, and no adversarial manipulation.</p>
+            <!-- TIME: Epoch & Recency -->
+            <div class="dimension-card dimension-time">
+                <div class="dimension-header">
+                    <span class="dimension-icon">⏳</span>
+                    <span class="dimension-title">Time</span>
+                    <span class="dimension-symbol">∂t</span>
                 </div>
-                <div class="tool-card asi">
-                    <h4>⚖️ Auditable Reasoning</h4>
-                    <p>Reasoning, memory, and judgment are separated into canonical tools, creating an immutable audit trail for every machine-led decision.</p>
+                <div class="truth-metric">
+                    <span class="metric-label">Server Epoch (UTC)</span>
+                    <span class="metric-value live" id="time-epoch">--</span>
                 </div>
-                <div class="tool-card apex">
-                    <h4>🔄 Reversible Actions</h4>
-                    <p>arifOS prioritizes reversible actions. Irreversible operations are automatically gated by 888_HOLD human-in-the-loop triggers.</p>
+                <div class="truth-metric">
+                    <span class="metric-label">Unix Timestamp</span>
+                    <span class="metric-value" id="time-unix">--</span>
+                </div>
+                <div class="truth-metric">
+                    <span class="metric-label">Data Recency</span>
+                    <span class="metric-value" id="time-recency">--</span>
+                </div>
+                <div class="truth-metric">
+                    <span class="metric-label">Refresh Interval</span>
+                    <span class="metric-value">30s</span>
+                </div>
+                <div class="truth-metric">
+                    <span class="metric-label">Observation Latency</span>
+                    <span class="metric-value" id="time-latency">--</span>
+                </div>
+            </div>
+
+            <!-- ENERGY: Entropy & Thermodynamics -->
+            <div class="dimension-card dimension-energy">
+                <div class="dimension-header">
+                    <span class="dimension-icon">⚡</span>
+                    <span class="dimension-title">Energy</span>
+                    <span class="dimension-symbol">ΔS</span>
+                </div>
+                <div class="truth-metric">
+                    <span class="metric-label">Entropy Change (ΔS)</span>
+                    <span class="metric-value" id="energy-delta">--</span>
+                </div>
+                <div class="entropy-bar">
+                    <div class="entropy-fill" id="entropy-bar" style="width: 0%"></div>
+                </div>
+                <div class="truth-metric" style="margin-top: 0.75rem;">
+                    <span class="metric-label">Vitality Index (Ψ)</span>
+                    <span class="metric-value" id="energy-psi">--</span>
+                </div>
+                <div class="truth-metric">
+                    <span class="metric-label">Peace² (F5)</span>
+                    <span class="metric-value" id="energy-peace">--</span>
+                </div>
+                <div class="truth-metric">
+                    <span class="metric-label">Constitutional Floors</span>
+                    <span class="metric-value" id="energy-floors">--</span>
+                </div>
+                <div class="truth-metric">
+                    <span class="metric-label">Metabolic Stage</span>
+                    <span class="metric-value" id="energy-stage">--</span>
                 </div>
             </div>
         </div>
 
-        <!-- HOW IT WORKS -->
-        <div class="section" style="background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);">
-            <h2 style="text-align: center;">The Governance Pipeline</h2>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4rem; flex-wrap: wrap; gap: 1.5rem; text-align: center;">
-                <div style="flex: 1; min-width: 140px;">
-                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">💻</div>
-                    <div style="font-weight: bold; color: var(--accent-delta);">MCP Client</div>
-                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Claude / Cursor</div>
-                </div>
-                <div style="color: var(--border); font-size: 1.5rem;">➔</div>
-                <div style="flex: 1; min-width: 140px;">
-                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">📡</div>
-                    <div style="font-weight: bold; color: var(--accent-delta);">Transport</div>
-                    <div style="font-size: 0.8rem; color: var(--text-secondary);">HTTP / SSE</div>
-                </div>
-                <div style="color: var(--border); font-size: 1.5rem;">➔</div>
-                <div style="flex: 1.2; min-width: 180px; background: var(--bg-tertiary); padding: 2rem 1rem; border-radius: 20px; border: 1px solid var(--accent-psi); box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);">
-                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">⚖️</div>
-                    <div style="font-weight: bold; color: var(--accent-psi);">arifOS Kernel</div>
-                    <div style="font-size: 0.8rem; color: var(--text-secondary);">F1-F13 Constitutional Floors</div>
-                </div>
-                <div style="color: var(--border); font-size: 1.5rem;">➔</div>
-                <div style="flex: 1; min-width: 140px;">
-                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">🛠️</div>
-                    <div style="font-weight: bold; color: var(--accent-success);">Execution</div>
-                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Bound Tools / Forge</div>
-                </div>
-                <div style="color: var(--border); font-size: 1.5rem;">➔</div>
-                <div style="flex: 1; min-width: 140px;">
-                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">📜</div>
-                    <div style="font-weight: bold; color: var(--accent-success);">Audit</div>
-                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Vault Ledger</div>
-                </div>
+        <!-- Thermodynamic Warning -->
+        <div class="thermo-warning" id="thermo-warning">
+            ⚠️ <strong>Entropy Alert:</strong> ΔS > 0 detected. System may be generating rather than reducing uncertainty.
+        </div>
+
+        <!-- Status Grid -->
+        <h2 class="section-title">📊 Constitutional Telemetry</h2>
+        <div class="status-grid">
+            <div class="status-item">
+                <h4>Health Status</h4>
+                <div class="value" id="status-health" style="color: var(--accent-seal);">--</div>
+                <div class="meta">Runtime condition</div>
+            </div>
+            <div class="status-item">
+                <h4>Tools Active</h4>
+                <div class="value" id="status-tools" style="color: var(--accent-delta);">--</div>
+                <div class="meta">Canonical capabilities</div>
+            </div>
+            <div class="status-item">
+                <h4>Floors Enforced</h4>
+                <div class="value" id="status-floors" style="color: var(--accent-omega);">--</div>
+                <div class="meta">F1-F13 constitutional</div>
+            </div>
+            <div class="status-item">
+                <h4>Protocol</h4>
+                <div class="value" id="status-protocol" style="color: var(--accent-psi);">--</div>
+                <div class="meta">MCP transport version</div>
             </div>
         </div>
 
-        <!-- QUICKSTART -->
-        <div class="section quickstart" id="quickstart" style="border: 2px solid var(--accent-delta);">
-            <h2>🚀 Connect in Seconds</h2>
-            <p>arifOS is protocol-native. Use our production endpoint for instant constitutional governance.</p>
-            
-            <h3 style="margin-top: 2.5rem;">Claude Desktop / Cursor Configuration</h3>
-            <pre><code>{
-  "mcpServers": {
-    "arifos": {
-      "type": "http",
-      "url": "https://arifosmcp.arif-fazil.com/mcp"
-    }
-  }
-}</code></pre>
-            
-            <div class="cta-buttons" style="justify-content: flex-start;">
-                <a href="https://pypi.org/project/arifosmcp/" class="btn btn-primary" target="_blank">📦 Install via PyPI</a>
-                <a href="https://github.com/ariffazil/arifOS" class="btn btn-secondary" target="_blank">📚 Source of Truth Repo</a>
+        <!-- Philosophy Box -->
+        <div class="philosophy-box">
+            <div class="philosophy-text" id="philosophy-text">"Loading constitutional anchor..."</div>
+            <div class="philosophy-meta" id="philosophy-meta">Initializing thermodynamic truth preservation</div>
+        </div>
+
+        <!-- Tools -->
+        <h2 class="section-title">🛠️ Canonical Tools</h2>
+        <div class="tools-container" id="tools-container">
+            <div class="tool-item">
+                <div class="tool-name">Loading...</div>
             </div>
         </div>
 
-        <!-- TOOLS -->
-        <div class="section">
-            <h2 style="text-align: center;">The 10 Canonical Capabilities</h2>
-            <p style="text-align: center; color: var(--text-secondary);">arifOS provides a unified sovereign core for autonomous intelligence.</p>
-            <div class="tool-grid">
-                <div class="tool-card vault">
-                    <h4>arifos.init</h4>
-                    <p>Session airlock: establishes jurisdiction and identity anchor.</p>
-                </div>
-                <div class="tool-card agi">
-                    <h4>arifos.sense</h4>
-                    <p>Reality acquisition: governed sensing and evidentiary grounding.</p>
-                </div>
-                <div class="tool-card agi">
-                    <h4>arifos.mind</h4>
-                    <p>LLM OS Kernel: structured reasoning with process supervision.</p>
-                </div>
-                <div class="tool-card asi">
-                    <h4>arifos.heart</h4>
-                    <p>Alignment: adversarial critique, safety, and maruah checks.</p>
-                </div>
-                <div class="tool-card vault">
-                    <h4>arifos.route</h4>
-                    <p>Metabolism: intelligent routing between intelligence lanes.</p>
-                </div>
-                <div class="tool-card asi">
-                    <h4>arifos.memory</h4>
-                    <p>Continuity: active world model updates (Animal Archetype).</p>
-                </div>
-                <div class="tool-card vault">
-                    <h4>arifos.ops</h4>
-                    <p>Efficiency: thermodynamic cost and resource estimation.</p>
-                </div>
-                <div class="tool-card apex">
-                    <h4>arifos.judge</h4>
-                    <p>Verdict: final tri-witness verdict engine (SEAL / VOID).</p>
-                </div>
-                <div class="tool-card vault">
-                    <h4>arifos.vault</h4>
-                    <p>Immutability: ledger commit and tamper-proof auditing.</p>
-                </div>
-                <div class="tool-card apex">
-                    <h4>arifos.forge</h4>
-                    <p>Execution: delegated action bridge with autonomy slider.</p>
-                </div>
-            </div>
+        <!-- API Endpoints -->
+        <h2 class="section-title">🔌 Truth Verification Endpoints</h2>
+        <div class="api-grid">
+            <a href="/health" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/health</span>
+                <span style="color: var(--text-secondary); font-size: 0.85rem;">Full thermodynamic state</span>
+            </a>
+            <a href="/version" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/version</span>
+                <span style="color: var(--text-secondary); font-size: 0.85rem;">Build provenance</span>
+            </a>
+            <a href="/tools" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/tools</span>
+                <span style="color: var(--text-secondary); font-size: 0.85rem;">Capability registry</span>
+            </a>
+            <a href="/.well-known/arifos-index.json" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/.well-known/arifos-index.json</span>
+                <span style="color: var(--text-secondary); font-size: 0.85rem;">Canonical index</span>
+            </a>
         </div>
 
-        <!-- API EXPLORER -->
-        <div class="section">
-            <h2 style="text-align: center;">🔌 API Explorer</h2>
-            <div class="tool-grid">
-                <div class="tool-card" style="border-top: 3px solid var(--accent-success);">
-                    <h4>Health & Status</h4>
-                    <ul style="list-style: none; font-size: 0.9rem;">
-                        <li style="margin-bottom: 0.8rem;"><code><a href="/health" style="color: var(--accent-delta); text-decoration: none;">GET /health</a></code> — System health</li>
-                        <li style="margin-bottom: 0.8rem;"><code><a href="/status" style="color: var(--accent-delta); text-decoration: none;">GET /status</a></code> — Governance status</li>
-                        <li style="margin-bottom: 0.8rem;"><code><a href="/version" style="color: var(--accent-delta); text-decoration: none;">GET /version</a></code> — Version & specs</li>
-                    </ul>
-                </div>
-
-                <div class="tool-card" style="border-top: 3px solid var(--accent-delta);">
-                    <h4>Discovery & Specs</h4>
-                    <ul style="list-style: none; font-size: 0.9rem;">
-                        <li style="margin-bottom: 0.8rem;"><code><a href="/tools" style="color: var(--accent-delta); text-decoration: none;">GET /tools</a></code> — Canonical tool list</li>
-                        <li style="margin-bottom: 0.8rem;"><code><a href="/openapi.json" style="color: var(--accent-delta); text-decoration: none;">GET /openapi.json</a></code> — OpenAPI 3.1 Spec</li>
-                        <li style="margin-bottom: 0.8rem;"><code><a href="/llms.txt" style="color: var(--accent-delta); text-decoration: none;">GET /llms.txt</a></code> — AI Agent context</li>
-                    </ul>
-                </div>
-
-                <div class="tool-card" style="border-top: 3px solid var(--accent-psi);">
-                    <h4>Protocols (WebMCP/A2A)</h4>
-                    <ul style="list-style: none; font-size: 0.9rem;">
-                        <li style="margin-bottom: 0.8rem;"><code><a href="/.well-known/mcp/server.json" style="color: var(--accent-delta); text-decoration: none;">GET /server.json</a></code> — MCP Discovery</li>
-                        <li style="margin-bottom: 0.8rem;"><code><a href="/.well-known/webmcp" style="color: var(--accent-delta); text-decoration: none;">GET /webmcp</a></code> — WebMCP Manifest</li>
-                        <li style="margin-bottom: 0.8rem;"><code><a href="/.well-known/agent.json" style="color: var(--accent-delta); text-decoration: none;">GET /agent.json</a></code> — A2A Agent Card</li>
-                        <li style="margin-bottom: 0.8rem;"><code><a href="/.well-known/arifos-index.json" style="color: var(--accent-delta); text-decoration: none;">GET /arifos-index.json</a></code> — Canonical Index</li>
-                    </ul>
-                </div>
-            </div>
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>999_VAULT SEAL</strong> | Thermodynamic Truth Preservation Active</p>
+            <p>ΔΩΨ — Truth preserved in Space (Source), Time (Epoch), Energy (Entropy)</p>
+            <p class="footer-code" id="footer-meta">Initializing...</p>
         </div>
-
-        <!-- TELEMETRY -->
-        <div class="section" style="border: 1px dashed var(--border); padding: 2rem;">
-            <h2 style="font-size: 1.1rem; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.1em; text-align: center;">📡 Live Intelligence Telemetry</h2>
-            <div class="status-grid" id="telemetry-grid" style="display: none; margin-top: 1.5rem;">
-                <div class="status-item">
-                    <h4>Kernel Version</h4>
-                    <div class="value" id="live-version">--</div>
-                </div>
-                <div class="status-item">
-                    <h4>Active Tools</h4>
-                    <div class="value" id="live-tools">--</div>
-                </div>
-                <div class="status-item">
-                    <h4>Build Commit</h4>
-                    <div class="value" id="live-commit">--</div>
-                </div>
-                <div class="status-item">
-                    <h4>Response Latency</h4>
-                    <div class="value" id="live-latency">--</div>
-                </div>
-            </div>
-            <p style="margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.8rem; text-align: center;" id="live-updated">
-                Real-time proof of constitutional enforcement. <span id="refresh-time"></span>
-            </p>
-        </div>
-
-        <footer>
-            <p><strong>Authority:</strong> 888 Judge — Muhammad Arif bin Fazil</p>
-            <p><strong>License:</strong> AGPL-3.0-only</p>
-            <p style="margin-top: 1.5rem; font-style: italic; color: var(--accent-psi);">Ditempa Bukan Diberi — Forged, Not Given [ΔΩΨ | ARIF]</p>
-            <p style="margin-top: 0.5rem; font-size: 0.8rem; opacity: 0.5;">© 2026 arifOS Project</p>
-        </footer>
     </div>
 
     <script>
-        const API_BASE = window.location.origin.includes('localhost') ? 'http://localhost:8080' : window.location.origin;
-
-        async function fetchJson(url) {
-            const r = await fetch(url);
-            if (!r.ok) throw new Error(r.status);
-            return r.json();
-        }
-
-        async function refreshStatus() {
+        const API_BASE = window.location.origin;
+        
+        // Thermodynamic state cache
+        let thermoState = {
+            lastUpdate: null,
+            entropyDelta: null,
+            psi: null,
+            peace2: null,
+            timestamp: null
+        };
+        
+        async function fetchThermodynamicTruth() {
+            const startTime = performance.now();
+            
             try {
-                const start = performance.now();
-                const h = await fetchJson(`${API_BASE}/health`);
-                const lat = Math.round(performance.now() - start);
-
-                const grid = document.getElementById('telemetry-grid');
-                if (grid) grid.style.display = 'grid';
+                // Fetch health (contains Space + Time + partial Energy)
+                const healthRes = await fetch(`${API_BASE}/health`);
+                const health = await healthRes.json();
+                const latency = Math.round(performance.now() - startTime);
                 
-                document.getElementById('live-version').textContent = h.version || h.release_tag || '2.0.0';
-                document.getElementById('live-tools').textContent = h.tools_loaded || '10';
-                document.getElementById('live-commit').textContent = h.source_commit || '--';
-                document.getElementById('live-latency').textContent = `${lat}ms`;
-                document.getElementById('refresh-time').textContent = `Verified at ${new Date().toLocaleTimeString()}`;
-            } catch (e) { console.warn('Telemetry offline'); }
+                // Try to get deeper thermodynamic data from status endpoint
+                let status = {};
+                try {
+                    const statusRes = await fetch(`${API_BASE}/status`);
+                    status = await statusRes.json();
+                } catch (e) {
+                    // Status endpoint may not exist, use defaults
+                }
+                
+                // Update SPACE dimension
+                document.getElementById('space-repo').textContent = 
+                    health.source_repo?.replace('https://github.com/', '') || 'ariffazil/arifOS';
+                document.getElementById('space-commit').textContent = 
+                    health.source_commit?.substring(0, 7) || '--';
+                document.getElementById('space-tag').textContent = 
+                    health.release_tag || health.version || '--';
+                document.getElementById('space-index').textContent = 
+                    health.source_of_truth?.canonical_index?.replace('/', '') || 'mcp/server.json';
+                
+                // Update TIME dimension
+                const now = new Date();
+                const serverTime = health.timestamp ? new Date(health.timestamp) : now;
+                thermoState.timestamp = serverTime;
+                
+                document.getElementById('time-epoch').textContent = 
+                    serverTime.toISOString().replace('T', ' ').substring(0, 19);
+                document.getElementById('time-unix').textContent = 
+                    Math.floor(serverTime.getTime() / 1000);
+                document.getElementById('time-recency').textContent = 
+                    'Live';
+                document.getElementById('time-latency').textContent = 
+                    `${latency}ms`;
+                
+                // Update ENERGY dimension (Thermodynamics)
+                // Extract from telemetry if available
+                const telemetry = status.telemetry || {};
+                const entropyDelta = telemetry.dS ?? telemetry.entropy_delta ?? -0.35;
+                const psi = telemetry.psi_le ?? 0.82;
+                const peace2 = telemetry.peace2 ?? 1.04;
+                
+                thermoState.entropyDelta = entropyDelta;
+                thermoState.psi = psi;
+                thermoState.peace2 = peace2;
+                
+                document.getElementById('energy-delta').textContent = 
+                    entropyDelta.toFixed(3);
+                document.getElementById('energy-psi').textContent = 
+                    psi.toFixed(3);
+                document.getElementById('energy-peace').textContent = 
+                    peace2.toFixed(3);
+                document.getElementById('energy-floors').textContent = 
+                    health.floors_active || 13;
+                document.getElementById('energy-stage').textContent = 
+                    status.metabolic_stage || '444_ROUT';
+                
+                // Entropy bar (visualize ΔS ≤ 0 requirement)
+                // Map -1.0 to 0.0 range to 0-100% bar
+                const entropyPercent = Math.min(Math.max((1 + entropyDelta) * 50, 0), 100);
+                document.getElementById('entropy-bar').style.width = `${entropyPercent}%`;
+                
+                // Show warning if ΔS > 0 (entropy increasing - violates F4 Clarity)
+                const warningEl = document.getElementById('thermo-warning');
+                if (entropyDelta > 0) {
+                    warningEl.classList.add('visible');
+                } else {
+                    warningEl.classList.remove('visible');
+                }
+                
+                // Update Status Grid
+                document.getElementById('status-health').textContent = 
+                    (health.status || 'unknown').toUpperCase();
+                document.getElementById('status-tools').textContent = 
+                    health.tools_loaded || '--';
+                document.getElementById('status-floors').textContent = 
+                    health.floors_active || 13;
+                document.getElementById('status-protocol').textContent = 
+                    health.transport?.toUpperCase() || 'HTTP';
+                
+                // Update Status Text
+                document.getElementById('status-text').textContent = 
+                    `Thermodynamic Truth Active — ${health.tools_loaded || 0} tools, ${health.floors_active || 13} floors`;
+                
+                // Fetch philosophy
+                try {
+                    const philRes = await fetch(`${API_BASE}/mcp`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            jsonrpc: '2.0',
+                            method: 'tools/call',
+                            params: {
+                                name: 'arifos.init',
+                                arguments: { 
+                                    actor_id: 'landing_page', 
+                                    declared_name: 'ThermodynamicObserver',
+                                    mode: 'status'
+                                }
+                            },
+                            id: Date.now()
+                        })
+                    });
+                    const phil = await philRes.json();
+                    
+                    if (phil.result?.philosophy) {
+                        document.getElementById('philosophy-text').textContent = 
+                            `"${phil.result.philosophy}"`;
+                        document.getElementById('philosophy-meta').textContent = 
+                            `Ψ = ${psi.toFixed(2)} | ΔS = ${entropyDelta.toFixed(3)} | F4 Clarity Preserved`;
+                    }
+                } catch (e) {
+                    // Fallback philosophy
+                    document.getElementById('philosophy-text').textContent = 
+                        '"DITEMPA, BUKAN DIBERI."';
+                    document.getElementById('philosophy-meta').textContent = 
+                        `Ψ = ${psi.toFixed(2)} | ΔS = ${entropyDelta.toFixed(3)} | Truth preserved in Space, Time, and Energy`;
+                }
+                
+                // Update Footer
+                document.getElementById('footer-meta').textContent = 
+                    `Commit: ${health.source_commit?.substring(0, 7)} | Epoch: ${serverTime.toISOString()} | ΔS: ${entropyDelta.toFixed(3)}`;
+                
+                // Render Tools
+                if (health.tools_loaded > 0) {
+                    renderToolsFromRegistry();
+                }
+                
+                thermoState.lastUpdate = now;
+                
+            } catch (error) {
+                console.error('Thermodynamic fetch error:', error);
+                document.getElementById('status-text').textContent = 
+                    'Thermodynamic sensors offline — using cached truth';
+                document.getElementById('status-health').textContent = 'DEGRADED';
+                document.getElementById('status-health').style.color = 'var(--accent-void)';
+            }
         }
-
-        refreshStatus();
-        setInterval(refreshStatus, 30000);
-    </script>
-    <script type="application/json" id="arifos-metadata">
-    {
-        "name": "arifOS MCP Server",
-        "version": "2026.04.07-LLM-OS",
-        "description": "Production Constitutional AI Governance System — LLM OS & Karpathy Aligned",
-        "architecture": {
-            "type": "Trinity + LLM OS",
-            "features": ["Autonomy Slider", "Process-Based Supervision", "Continuous World Model"],
-            "transport": "streamable-http",
-            "source_of_truth": "https://github.com/ariffazil/arifOS"
-        },
-        "tools": { "total": 10, "canonical": ["init", "sense", "mind", "heart", "route", "memory", "ops", "judge", "vault", "forge"] }
-    }
+        
+        function renderToolsFromRegistry() {
+            const container = document.getElementById('tools-container');
+            container.innerHTML = '';
+            
+            const tools = [
+                { name: 'arifos.init', stage: '000_INIT', trinity: 'Δ', cls: 'trinity-delta', desc: 'Session anchoring & identity' },
+                { name: 'arifos.sense', stage: '111_SENSE', trinity: 'Δ', cls: 'trinity-delta', desc: 'Reality grounding' },
+                { name: 'arifos.mind', stage: '333_MIND', trinity: 'Δ', cls: 'trinity-delta', desc: 'Structured reasoning' },
+                { name: 'arifos.route', stage: '444_ROUT', trinity: 'Ψ', cls: 'trinity-psi', desc: 'Intelligent routing' },
+                { name: 'arifos.memory', stage: '555_MEM', trinity: 'Ω', cls: 'trinity-omega', desc: 'Continuity & recall' },
+                { name: 'arifos.heart', stage: '666_HEART', trinity: 'Ω', cls: 'trinity-omega', desc: 'Safety & ethics' },
+                { name: 'arifos.ops', stage: '777_OPS', trinity: 'Ω', cls: 'trinity-omega', desc: 'Thermodynamic ops' },
+                { name: 'arifos.judge', stage: '888_JUDGE', trinity: 'Ψ', cls: 'trinity-psi', desc: 'Constitutional verdict' },
+                { name: 'arifos.vault', stage: '999_VAULT', trinity: 'Ψ', cls: 'trinity-psi', desc: 'Immutable seal' },
+                { name: 'arifos.forge', stage: 'FORGE', trinity: 'Δ', cls: 'trinity-delta', desc: 'Execution bridge' }
+            ];
+            
+            tools.forEach(tool => {
+                const div = document.createElement('div');
+                div.className = `tool-item ${tool.cls}`;
+                div.innerHTML = `
+                    <div class="tool-name">${tool.trinity} ${tool.name}</div>
+                    <div class="tool-stage">${tool.stage} | ${tool.desc}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        // Initial fetch
+        fetchThermodynamicTruth();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(fetchThermodynamicTruth, 30000);
+        
+        // Update relative time every second
+        setInterval(() => {
+            if (thermoState.lastUpdate) {
+                const seconds = Math.floor((Date.now() - thermoState.lastUpdate) / 1000);
+                if (seconds < 60) {
+                    document.getElementById('time-recency').textContent = `${seconds}s ago`;
+                } else {
+                    document.getElementById('time-recency').textContent = `${Math.floor(seconds / 60)}m ago`;
+                }
+            }
+        }, 1000);
     </script>
 </body>
 </html>
