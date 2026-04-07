@@ -45,31 +45,31 @@ def build_manifest_v2(public_base_url: str = "https://arifosmcp.arif-fazil.com")
     # Build resource entries
     resources = [
         {
-            "uri": "arifos.v2.governance.floors",
+            "uri": "arifos.governance.floors",
             "name": "Governance Floors",
             "description": "Constitutional F1-F13 thresholds and doctrine",
             "mimeType": "application/json",
         },
         {
-            "uri": "arifos.v2.governance.verdict_spec",
+            "uri": "arifos.governance.verdict_spec",
             "name": "Verdict Specification",
             "description": "Verdict system and output schema",
             "mimeType": "application/json",
         },
         {
-            "uri": "arifos.v2.system.capabilities",
+            "uri": "arifos.system.capabilities",
             "name": "System Capabilities",
             "description": "Machine-readable capability map",
             "mimeType": "application/json",
         },
         {
-            "uri": "arifos.v2.system.architecture",
+            "uri": "arifos.system.architecture",
             "name": "System Architecture",
             "description": "Architecture documentation and pipeline",
             "mimeType": "text/markdown",
         },
         {
-            "uri": "arifos.v2.compliance.mapping",
+            "uri": "arifos.compliance.mapping",
             "name": "Compliance Mapping",
             "description": "Floor-to-standard compliance mapping",
             "mimeType": "application/json",
@@ -81,7 +81,7 @@ def build_manifest_v2(public_base_url: str = "https://arifosmcp.arif-fazil.com")
         "name": "ARIFOS MCP",
         "version": "2.0.0",
         "description": "Constitutional AI orchestration kernel — Sovereign 9-tool core with governance layer",
-        "namespace": "arifos.v2",
+        "namespace": "arifos",
         "website_url": "https://arifosmcp.arif-fazil.com",
         "repository": "https://github.com/ariffazil/arifOS",
         "license": "AGPL-3.0-only",
@@ -137,7 +137,7 @@ def build_well_known_manifest(public_base_url: str = "https://arifosmcp.arif-faz
         "name": "ARIFOS MCP",
         "version": "2.0.0",
         "description": "Constitutional AI orchestration kernel",
-        "namespace": "arifos.v2",
+        "namespace": "arifos",
         "capabilities": ["tools", "prompts", "resources"],
         "contact": {
             "security": "security@arif-fazil.com",

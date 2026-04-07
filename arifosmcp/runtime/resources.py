@@ -179,7 +179,7 @@ VERDICT_SPEC: dict[str, Any] = {
 SYSTEM_CAPABILITIES: dict[str, Any] = {
     "name": "ARIFOS MCP",
     "version": "2.0.0",
-    "namespace": "arifos.v2",
+    "namespace": "arifos",
     "constitutional_floors": 13,
     "tools": {
         "public": ["arifos.init", "arifos.route", "arifos.judge", "arifos.forge"],

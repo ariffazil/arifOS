@@ -1,11 +1,11 @@
 """
-arifosmcp/runtime/server_v2.py — arifOS MCP v2 Clean Server
+arifosmcp/runtime/server.py — arifOS MCP Server
 
 Complete MCP package:
-- 10 canonical tools (v2 architecture)
+- 10 canonical tools (arifos.init through arifos.forge)
 - Structured prompts
 - Constitutional resources
-- Well-known manifest
+- Well-known manifest + canonical index
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -116,7 +116,7 @@ mcp = FastMCP(
 
 Golden path: init → sense → mind → heart → judge → vault
 
-Public tools: arifos.v2.init, arifos.v2.route, arifos.v2.judge
+Public tools: arifos.init, arifos.route, arifos.judge
 Internal tools: sense, mind, heart, ops, memory, vault, forge
 
 Use prompts for structured workflows:
