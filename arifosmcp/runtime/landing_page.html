@@ -517,6 +517,18 @@
         
         async function fetchStatus() {
             try {
+                // Fetch version info (includes commit hash)
+                try {
+                    const versionRes = await fetch(`${API_BASE}/version`);
+                    const version = await versionRes.json();
+                    if (version.commit) {
+                        document.getElementById('commit-hash').textContent = version.commit;
+                        document.getElementById('footer-commit').textContent = version.commit;
+                    }
+                } catch (e) {
+                    console.log('Version endpoint not available');
+                }
+                
                 // Fetch health status
                 const healthRes = await fetch(`${API_BASE}/health`);
                 const health = await healthRes.json();
