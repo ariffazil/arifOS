@@ -132,11 +132,13 @@ services:
     env_file:
       - path: .env
     environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - REDIS_URL=redis://redis:6379
       - OLLAMA_URL=http://ollama:11434
       - BROWSERLESS_URL=http://headless_browser:3000
     volumes:
       - /opt/arifos/data/openclaw:/root/.openclaw
+      - /root/arifOS/skills/vps-monitor:/app/extensions/vps-monitor
       - /root/arifOS:/mnt/arifos:rw
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:

@@ -521,6 +521,7 @@ async def arifos_judge(
 
 async def arifos_memory(
     query: str,
+    content: str | None = None,
     mode: str = "vector_query",
     session_id: str | None = None,
     risk_tier: str = "medium",
@@ -533,6 +534,8 @@ async def arifos_memory(
     # Karpathy Injection: Continuous Learning (Animal Archetype vs Ghost)
     # Overcoming Anterograde Amnesia through active world model updates.
     payload = {"query": query}
+    if content:
+        payload["content"] = content
     if mode == "world_model_update":
         payload["animal_archetype_active"] = True
         payload["continuous_learning_update"] = True
@@ -548,6 +551,75 @@ async def arifos_memory(
     )
     _stamp_platform(envelope, platform)
     return seal_runtime_envelope(envelope, "arifos.memory")
+
+
+async def arifos_vps_monitor(
+    action: str = "get_telemetry",
+    session_id: str | None = None,
+    risk_tier: str = "low",
+    dry_run: bool = True,
+    debug: bool = False,
+    platform: str = "unknown",
+) -> RuntimeEnvelope:
+    """Secure VPS telemetry (CPU, Memory, ZRAM, Disk). F12-hardened."""
+    import subprocess
+    import os
+    from arifosmcp.runtime.models import RuntimeEnvelope as RE, RuntimeStatus, Verdict
+
+    # F12: Hardcoded read-only telemetry logic
+    try:
+        if action == "get_telemetry":
+            with open("/proc/loadavg", "r") as f:
+                load = f.read().strip()
+            with open("/proc/meminfo", "r") as f:
+                # Get first few lines of meminfo for high clarity
+                mem = "\n".join([f.readline().strip() for _ in range(3)])
+            output = f"Load: {load}\n{mem}"
+        elif action == "get_zram_status":
+            # zramctl might be missing, try to find zram in /sys
+            if os.path.exists("/sys/block/zram0"):
+                with open("/sys/block/zram0/disksize", "r") as f:
+                    size = int(f.read().strip()) / (1024**2)
+                
+                # mm_stat: [orig_data_size, compr_data_size, mem_used_total, ...]
+                with open("/sys/block/zram0/mm_stat", "r") as f:
+                    stats = f.read().split()
+                    orig = int(stats[0]) / (1024**2)
+                    compr = int(stats[1]) / (1024**2)
+                    mem_used = int(stats[2]) / (1024**2)
+                output = f"zram0 Capacity: {size:.2f}MB\nData: {orig:.2f}MB -> Compressed: {compr:.2f}MB\nMemory Used: {mem_used:.2f}MB"
+            else:
+                output = "zram0 not found in /sys/block/"
+        elif action == "get_disk_usage":
+            # df is a core binary, but if it fails we report error
+            process = subprocess.Popen("df -h /", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            stdout, _ = process.communicate(timeout=2)
+            output = stdout.strip()
+        else:
+            return seal_runtime_envelope(RE(
+                ok=False, tool="arifos.vps_monitor", canonical_tool_name="arifos.vps_monitor",
+                stage="111_SENSE", verdict=Verdict.VOID, status=RuntimeStatus.ERROR,
+                detail=f"F12_BLOCKED: Action '{action}' not permitted."
+            ), "arifos.vps_monitor")
+
+        if dry_run:
+            return seal_runtime_envelope(RE(
+                ok=True, tool="arifos.vps_monitor", canonical_tool_name="arifos.vps_monitor",
+                stage="111_SENSE", verdict=Verdict.SEAL, status=RuntimeStatus.SUCCESS,
+                payload={"mode": "dry_run", "action": action}
+            ), "arifos.vps_monitor")
+
+        return seal_runtime_envelope(RE(
+            ok=True, tool="arifos.vps_monitor", canonical_tool_name="arifos.vps_monitor",
+            stage="111_SENSE", verdict=Verdict.SEAL, status=RuntimeStatus.SUCCESS,
+            payload={"output": output, "success": True}
+        ), "arifos.vps_monitor")
+    except Exception as e:
+        return seal_runtime_envelope(RE(
+            ok=False, tool="arifos.vps_monitor", canonical_tool_name="arifos.vps_monitor",
+            stage="111_SENSE", verdict=Verdict.VOID, status=RuntimeStatus.ERROR,
+            detail=str(e)
+        ), "arifos.vps_monitor")
 
 
 async def arifos_vault(
@@ -590,6 +662,7 @@ CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     "arifos.memory": arifos_memory,
     "arifos.vault": arifos_vault,
     "arifos.forge": arifos_forge,  # The 10th Tool — Delegated Execution
+    "arifos.vps_monitor": arifos_vps_monitor,
 }
 
 

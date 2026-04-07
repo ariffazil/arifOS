@@ -286,6 +286,33 @@ TOOLS: tuple[ToolSpec, ...] = (
             },
         },
     ),
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 11. arifos.vps_monitor — Secure Telemetry (New)
+    # ─────────────────────────────────────────────────────────────────────────
+    ToolSpec(
+        name="arifos.vps_monitor",
+        stage="111",
+        purpose="Secure VPS telemetry",
+        layer="MACHINE",
+        description="Retrieve CPU, Memory, ZRAM, and Disk utilization. F12-hardened read-only access.",
+        trinity="Δ",
+        floors=("F4", "F12"),
+        input_schema={
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string",
+                    "enum": ["get_telemetry", "get_zram_status", "get_disk_usage"],
+                    "default": "get_telemetry",
+                    "description": "Telemetry action to perform"
+                },
+                "session_id": {"type": "string"},
+                "dry_run": {"type": "boolean", "default": True},
+            },
+        },
+        default_tier="low",
+    ),
 )
 
 # ═══════════════════════════════════════════════════════════════════════════════

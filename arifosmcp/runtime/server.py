@@ -349,6 +349,7 @@ HORIZON_TO_V2_MAP: dict[str, str] = {
     "engineering_memory": "arifos.memory",
     "vault_ledger": "arifos.vault",
     "code_engine": "arifos.forge",
+    "vps_monitor": "arifos.vps_monitor",
     "architect_registry": "arifos.init",
     # v2 names also accepted directly
     "arifos.init": "arifos.init",
@@ -361,6 +362,7 @@ HORIZON_TO_V2_MAP: dict[str, str] = {
     "arifos.memory": "arifos.memory",
     "arifos.vault": "arifos.vault",
     "arifos.forge": "arifos.forge",
+    "arifos.vps_monitor": "arifos.vps_monitor",
 }
 
 
@@ -411,10 +413,24 @@ async def rest_tool_handler(request: Request) -> JSONResponse:
             body["action"] = body.pop("query", "") or ""
     elif v2_name in ("arifos.mind", "arifos.heart") and "content" not in body:
         # mind and heart expect "content"
-        body.setdefault("content", body.pop("query", ""))
+        if "query" in body:
+            body.setdefault("content", body.pop("query", ""))
+        elif "input" in body:
+            body.setdefault("content", body.pop("input", ""))
     elif v2_name == "arifos.judge" and "candidate" not in body:
         # judge expects "candidate"
         body.setdefault("candidate", body.pop("query", ""))
+    elif v2_name == "arifos.route":
+        # arifos.route expects "request" but callers may send "intent", "query", "input"
+        if "request" not in body:
+            for key in ["intent", "query", "input", "content", "text"]:
+                if key in body:
+                    body["request"] = body.pop(key)
+                    break
+    elif v2_name == "arifos.mind" and "query" not in body:
+        # arifos.mind expects "query" but callers may send "content"
+        if "content" in body:
+            body["query"] = body.pop("content")
 
     try:
         # Call handler

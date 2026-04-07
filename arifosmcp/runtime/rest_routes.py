@@ -55,6 +55,97 @@ MCP_SUPPORTED_PROTOCOL_VERSIONS = BUILD_INFO["supported_protocol_versions"]
 
 TOOL_ALIASES: dict[str, str] = dict(AAA_TOOL_ALIASES)
 
+# Parameter name normalization for REST/Horizon compatibility
+# Maps common parameter names to canonical parameter names per tool
+PARAMETER_ALIASES: dict[str, dict[str, str]] = {
+    "arifos.init": {"intent": "intent", "goal": "intent", "task": "intent"},
+    "arifos.sense": {
+        "query": "input",
+        "content": "input", 
+        "text": "input",
+        "input": "input",
+        "mode": "mode",
+        "scan": "mode",
+    },
+    "arifos.mind": {
+        "query": "query",
+        "content": "query",
+        "input": "query",
+        "text": "query",
+        "context": "context",
+    },
+    "arifos.route": {
+        "intent": "request",
+        "query": "request",
+        "input": "request",
+        "content": "request",
+        "text": "request",
+        "candidates": "candidates",
+        "tools": "candidates",
+    },
+    "arifos.heart": {
+        "query": "input",
+        "content": "input",
+        "input": "input",
+        "text": "input",
+    },
+    "arifos.ops": {
+        "query": "input",
+        "content": "input",
+        "input": "input",
+        "text": "input",
+        "action": "action",
+        "command": "action",
+    },
+    "arifos.judge": {
+        "query": "input",
+        "content": "input",
+        "input": "input",
+        "text": "input",
+        "evidence": "evidence",
+    },
+    "arifos.memory": {
+        "query": "query",
+        "content": "query",
+        "input": "query",
+        "action": "action",
+        "operation": "action",
+    },
+    "arifos.vault": {
+        "query": "query",
+        "content": "query",
+        "input": "query",
+        "action": "action",
+        "operation": "action",
+    },
+    "arifos.forge": {
+        "intent": "intent",
+        "query": "intent",
+        "input": "intent",
+        "content": "intent",
+        "task": "intent",
+    },
+}
+
+
+def _normalize_parameters(tool_name: str, body: dict[str, Any]) -> dict[str, Any]:
+    """Normalize parameter names for tool compatibility.
+    
+    Handles Horizon/ChatGPT-style parameter names (intent, content, etc.)
+    and maps them to canonical parameter names expected by tool functions.
+    """
+    canonical_name = TOOL_ALIASES.get(tool_name, tool_name)
+    aliases = PARAMETER_ALIASES.get(canonical_name, {})
+    
+    normalized: dict[str, Any] = {}
+    for key, value in body.items():
+        # Map alias to canonical param name if defined
+        canonical_param = aliases.get(key, key)
+        normalized[canonical_param] = value
+    
+    return normalized
+
+
 logger = logging.getLogger(__name__)
 
 _DASHBOARD_ALLOWED_ORIGINS = {
@@ -1222,13 +1313,16 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
         tool_fn = getattr(tool_obj, "fn", tool_obj)
 
         try:
-            # Filter body to only valid parameters
+            # Normalize parameter names for Horizon/ChatGPT compatibility
+            normalized = _normalize_parameters(canonical_name, body)
+            
+            # Filter to only valid parameters
             sig = inspect.signature(tool_fn)
             has_kwargs = any(
                 p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()
             )
             if has_kwargs:
-                filtered = body
+                filtered = normalized
             else:
                 valid_params = {
                     name
@@ -1236,7 +1330,7 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
                     if p.kind
                     not in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
                 }
-                filtered = {k: v for k, v in body.items() if k in valid_params}
+                filtered = {k: v for k, v in normalized.items() if k in valid_params}
 
             result = await tool_fn(**filtered)
         except Exception as exc:
