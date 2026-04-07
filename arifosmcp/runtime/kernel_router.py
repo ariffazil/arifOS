@@ -23,6 +23,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
+from arifosmcp.runtime.belief_registry import update_belief
 from arifosmcp.runtime.governance_enforcer import (
     QueryClass,
     classify_and_route,
@@ -240,6 +241,30 @@ class HardenedKernelRouter:
             extra_args = {}
             if tool_name == "arifos.mind":
                 extra_args["context"] = payload.get("context")
+                # ── ToM: inject belief state into mind invocation ──────────
+                # Load cross-session actor belief and pass as second-order context.
+                # This is the sense → BeliefRegistry → mind wiring point.
+                if actor_id and actor_id != "anonymous":
+                    belief = update_belief(
+                        actor_id=actor_id,
+                        declared_intent=str(payload.get("declared_intent") or query)[:200],
+                        echo_debt=float(context.get("echo_debt", 0.0)),
+                        shadow=float(context.get("shadow", 0.0)),
+                        injection_score=float(context.get("injection_score", 0.0)),
+                        query=query,
+                    )
+                    # Merge belief state into mind's context for second-order routing
+                    ctx = extra_args.get("context") or {}
+                    if not isinstance(ctx, dict):
+                        ctx = {}
+                    ctx["belief_state"] = belief.to_dict()
+                    extra_args["context"] = ctx
+                    if belief.false_belief_flags:
+                        logger.info(
+                            "ToM: actor=%s flags=%s confidence=%.2f",
+                            actor_id, belief.false_belief_flags, belief.confidence,
+                        )
+                # ── end ToM wiring ──────────────────────────────────────────
             return await handler(query=str(payload.get("query") or query), **extra_args, **common_args)
         if tool_name == "arifos.route":
             return await handler(request=str(payload.get("query") or query), **common_args)

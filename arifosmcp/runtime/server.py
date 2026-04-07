@@ -814,8 +814,28 @@ async def security_txt_handler(request: Request) -> Response:
     return await well_known_handler(request, "security.txt")
 
 
+async def belief_state_handler(request: Request) -> Response:
+    """
+    GET /api/belief/{actor_id} — introspect current belief state for an actor.
+    F11-read: public read for transparency (no secrets exposed — only inferred signals).
+    """
+    actor_id = request.path_params.get("actor_id", "").strip()
+    if not actor_id:
+        return JSONResponse({"error": "actor_id required"}, status_code=400)
+    try:
+        from arifosmcp.runtime.belief_registry import get_registry
+        state = get_registry().load(actor_id)
+        return JSONResponse(state.to_dict(), headers={"Access-Control-Allow-Origin": "*"})
+    except Exception as exc:
+        logger.exception("belief_state_handler failed")
+        return JSONResponse({"error": str(exc)}, status_code=500)
+
+
 app.add_route("/.well-known/security.txt", security_txt_handler, methods=["GET"])
 app.add_route("/.well-known/arifos-index.json", canonical_index_handler, methods=["GET"])
+
+# ToM: belief state introspection (F11-read)
+app.add_route("/api/belief/{actor_id}", belief_state_handler, methods=["GET"])
 
 # A2A endpoints
 app.add_route("/a2a/agent", a2a_agent_card_handler, methods=["GET"])
