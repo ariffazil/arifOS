@@ -1,7 +1,7 @@
 {
   "name": "arifOS",
-  "version": "2026.03.25",
-  "description": "arifOS Constitutional AI Governance System - STDIO Mode",
+  "version": "2026.04.07",
+  "description": "arifOS Constitutional AI Governance System - STDIO Mode. 10 canonical tools, 13 floors (F1-F13), SoT: ariffazil/arifOS",
   "entrypoint": {
     "type": "stdio",
     "command": "python",

@@ -10,6 +10,25 @@
 
 ---
 
+## Repository Structure (SoT Map)
+
+| Location | Purpose | SoT Level |
+|----------|---------|-----------|
+| **Root** (`README.md`, `AGENTS.md`, `pyproject.toml`) | Primary SoT — law, narrative, manifest | **PRIMARY** |
+| **`core/`** | Governance kernel, floors F1-F13, judgment engine | **PRIMARY** |
+| **`000/`** | Constitutional law, K000 theory | **PRIMARY** |
+| **`config/`** | Canonical schemas, `/health` SoT fields | **PRIMARY** |
+| **`arifosmcp/`** | Runtime shell — MCP server, HTTP transport | **RUNTIME** |
+| **`docs/deployment/`** | Deployment artifacts, scripts, configs | **OPERATIONAL** |
+| **`docs/reports/`** | Audit reports, test results, analysis | **OPERATIONAL** |
+| **`docs/runbooks/`** | Runbooks, process docs, living docs | **OPERATIONAL** |
+| **`docs/releases/`** | Release notes, version announcements | **OPERATIONAL** |
+| **`.claude/`, `.cursor/`, `.gemini/`** | IDE/agent integration scaffolds | **INTEGRATION** |
+
+Full structure: [`docs/REPO_STRUCTURE.md`](docs/REPO_STRUCTURE.md)
+
+---
+
 # FULL AGENT LOOP (MANDATORY)
 
 > **NON-NEGOTIABLE** — This is how ALL agents operate, forever.

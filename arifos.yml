@@ -3,7 +3,7 @@ agent:
   name: antigravity
   runtime: acp
   type: recovery
-arifos_version: 2026.03.24
+arifos_version: 2026.04.07
 constitutional:
   dry_run: false
   floors:
@@ -30,10 +30,4 @@ governance:
   w3: 1.0
 vault:
   lineage: true
-  sealed: false
-worktree:
-  branch: feature/constitutional-recovery-seal
-  created_at: '2026-03-24T07:54:28Z'
-  id: arifos-recovery-seal
-  parent: origin/main
-  path: C:/ariffazil/arifOS
+  sealed: true

@@ -2,7 +2,41 @@
 
 All notable changes to arifOS MCP are documented in this file.
 
-## [2026.04.06.4-AGI-MIND] - Internal Richness / External Compression
+## [2026.04.07-SOT-SEALED] - Versioned File Unification + Single Source of Truth
+
+### 🔥 MAJOR: Versioned File Chaos Eliminated (−3841 lines)
+
+- **Canonical modules**: 13 versioned files (`tools_v2.py`, `prompts_v2.py`, `resources_v2.py`, `manifest_v2.py`, `tool_specs_v2.py`, `schemas_v2_clean.py`, `sensing_protocol_v2.py`, `tools_v2_forge.py`, `contracts_v2.py`, etc.) consolidated into single canonical modules.
+- **ToolSpecV2 → ToolSpec**, **V2_TOOLS → TOOLS** — backward-compat aliases preserved.
+- **`__main__.py` stdio path** updated to expose canonical `arifos.*` tools (was exposing old `init_anchor`, `check_vital`, etc.).
+- All archived v1/v2 files preserved in `.archive/v1_legacy/`.
+
+### 🏛️ MAJOR: Single Source of Truth Enforced
+
+- **`/health` endpoint** now includes: `source_repo`, `source_commit`, `release_tag`, `transport`, `protocol_version`, `governance_version`, `floors_active`, `warnings[]`. Namespace `arifos.v2` → `arifos`.
+- **`/.well-known/arifos-index.json`** — new canonical index endpoint linking runtime to arifOS SoT repo with `source_of_truth`, `runtime_truth`, all canonical links.
+- **Landing page JS telemetry** fixed — removed `/status` call that didn't exist; `Build Commit` panel replaces stale `Verdict Status`; grid hidden until live fetch succeeds (no `--` placeholders).
+- **`arifosmcp/Dockerfile`** — new lean multi-stage build targeting ~500MB (vs 6.1GB), using `requirements.txt` only (excludes heavy ML deps from old architecture).
+
+### 🧹 CLEANUP: Last `arifos.v2` Namespace Leaks Purged
+
+- `manifest.py`: resource URIs `arifos.v2.*` → `arifos.*`, namespace corrected.
+- `server.py`: module docstring, llms.txt public tool list corrected.
+- `resources.py`: `SYSTEM_CAPABILITIES` namespace corrected.
+- Zero `arifos.v2` strings remain in any active runtime Python file.
+
+### 📦 METADATA
+
+- `pyproject.toml` (root + arifosmcp): description updated — "11 Mega-Tools" → "10 canonical tools", version date 2026.04.07, SoT one-liner added.
+- `build_info.py`: live git SHA via subprocess; release_tag bumped to `v2026.04.07`.
+
+### SoT Rule (enforced from this release)
+
+> **Doctrine conflict → arifOS repo wins. Runtime surface conflict → live `/health` + `/tools` wins.**
+
+---
+
+
 
 ### 🔥 MAJOR: AGI MIND PIPELINE IMPLEMENTED
 
