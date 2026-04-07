@@ -1,4 +1,14 @@
-# arifosmcp — Constitutional MCP Server Implementation
+# arifosmcp — MCP Runtime / Packaging Shell
+
+> **⚠️ ACTIVE DEVELOPMENT IS IN [arifOS](https://github.com/ariffazil/arifOS).**
+>
+> **This repository is a packaging / runtime shell only.**
+>
+> **Source‑of‑truth for doctrine and kernel:** [arifOS repository](https://github.com/ariffazil/arifOS)
+>
+> **Runtime truth (what's running now):** Live `/health` and `/tools` on the deployed server
+
+---
 
 > **DITEMPA BUKAN DIBERI** — *Forged, Not Given* [ΔΩΨ | ARIF]
 >
@@ -40,16 +50,25 @@
 
 **What is arifosmcp?**
 
-arifosmcp is the **implementation** of the arifOS constitutional intelligence kernel — the actual code that enforces the 13 Floors, runs the 000-999 pipeline, and delivers the 11 mega-tools.
+arifosmcp is the **runtime implementation and packaging shell** for the arifOS constitutional intelligence kernel — the deployable code that enforces the 13 Floors at runtime, runs the 000-999 pipeline, and delivers the 11 mega-tools.
+
+**Source of Truth Hierarchy:**
+
+| Source | Repository | Purpose |
+|--------|------------|---------|
+| **Canonical Doctrine** | [arifOS](https://github.com/ariffazil/arifOS) | Floors F1-F13, Constitution, Architecture |
+| **Runtime Shell** | arifosmcp (this) | Packaging, deployment, live MCP server |
+| **Runtime Truth** | Live endpoints | `/health`, `/tools` on deployed server |
 
 **The Parent vs. This Document:**
 
 | arifOS README | arifosmcp README (this) |
 |---------------|-------------------------|
-| **WHY** — Vision, philosophy, strategic architecture | **HOW** — Implementation, code, deployment mechanics |
+| **WHY** — Vision, philosophy, strategic architecture, doctrine | **HOW** — Implementation, code, deployment mechanics |
 | What it means | How it works |
-| Strategic context | Technical specification |
+| Strategic context / Doctrine source | Technical specification / Runtime packaging |
 | Human readable | Human + AI readable |
+| **Source of Truth** | **Runtime Shell** |
 
 **Core Function:**
 

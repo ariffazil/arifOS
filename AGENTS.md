@@ -1,3 +1,15 @@
+# SOURCE OF TRUTH DECLARATION (NON-NEGOTIABLE)
+
+> **CANONICAL SOURCE OF TRUTH FOR arifOS: THIS REPOSITORY (`ariffazil/arifOS`)**
+>
+> **RUNTIME SURFACE TRUTH: Live `/health` and `/tools` endpoints on deployed server(s)**
+>
+> - Doctrine, Floors (F1–F13), AGENTS.md, pyproject.toml, canonical tools, architecture, and canonical index spec live ONLY here.
+> - Runtime truth (what tools are available right now) is determined by the live `/tools` and `/health` endpoints on the deployed MCP server.
+> - If documentation disagrees with runtime: doctrine conflict → arifOS repo wins; runtime surface conflict → live `/health` + `/tools` wins.
+
+---
+
 # FULL AGENT LOOP (MANDATORY)
 
 > **NON-NEGOTIABLE** — This is how ALL agents operate, forever.

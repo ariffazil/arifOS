@@ -1103,6 +1103,7 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
 
     @route("/health", methods=["GET"])
     async def health(request: Request) -> Response:
+        """Health check with SoT linkage — ties runtime back to canonical arifOS repository."""
         return JSONResponse(
             {
                 "status": "healthy",
@@ -1113,6 +1114,15 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
                 "ml_floors": get_ml_floor_runtime(),
                 "capability_map": build_runtime_capability_map(),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
+                # SoT linkage — enables drift detection between repo / docs / runtime
+                "source_repo": BUILD_INFO.get("source_repo", "https://github.com/ariffazil/arifOS"),
+                "source_commit": BUILD_INFO["build"]["commit"],
+                "release_tag": BUILD_INFO.get("release_tag", BUILD_INFO["version"]),
+                "source_of_truth": {
+                    "doctrine": "https://github.com/ariffazil/arifOS",
+                    "runtime": "/health and /tools on this server",
+                    "canonical_index": "/.well-known/mcp/server.json",
+                },
             },
             headers={"Access-Control-Allow-Origin": "*"},
         )
