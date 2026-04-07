@@ -543,6 +543,7 @@ def _load_welcome_html() -> str:
     
     # Try multiple paths for different deployment contexts
     possible_paths = [
+        "/usr/src/app/runtime/landing_page.html",
         "/usr/src/app/arifosmcp/runtime/landing_page.html",
         "/root/ariffazil/arifOS/arifosmcp/runtime/landing_page.html",
         os.path.join(os.path.dirname(__file__), "landing_page.html"),
