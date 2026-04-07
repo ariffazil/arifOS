@@ -20,7 +20,7 @@ def _git_sha_short() -> str:
             cwd="/root/arifOS",
         ).decode().strip()
     except Exception:
-        return "e6ac7a3"  # last known commit
+        return "909c4ca"  # v2026.04.07 release SHA
 
 
 def get_build_info() -> dict[str, Any]:
