@@ -17,9 +17,6 @@ import time
 from datetime import datetime, timezone
 from typing import Any
 
-from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
-from arifosmcp.runtime.contracts import RiskTier, VerdictCode
-
 # RuntimeEnvelope is a dict type for tool outputs
 RuntimeEnvelope = dict[str, Any]
 
@@ -54,10 +51,12 @@ class ExecutionManifest:
         payload: dict[str, Any],
         constraints: dict[str, Any] | None = None,
         ttl_seconds: int = 300,
+        autonomy_level: float = 0.0,
     ):
         self.session_id = session_id
         self.judge_verdict = judge_verdict
         self.judge_g_star = judge_g_star
+        self.autonomy_level = autonomy_level
         self.action = action
         self.payload = payload
         self.constraints = constraints or {
@@ -90,7 +89,7 @@ class ExecutionManifest:
     def sign(self, session_key: str) -> str:
         """Sign manifest with session key (HMAC-SHA256)."""
         self.signature = hashlib.sha256(
-            f"{self.manifest_id}:{session_key}".encode('utf-8')
+            f"{self.manifest_id}:{session_key}".encode()
         ).hexdigest()
         return self.signature
     
@@ -323,6 +322,10 @@ def _simulate_af_forge_dispatch(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 __all__ = [
+    "arifos_forge",
+    "ExecutionManifest",
+]
+__ = [
     "arifos_forge",
     "ExecutionManifest",
 ]

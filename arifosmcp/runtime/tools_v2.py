@@ -18,29 +18,40 @@ import logging
 from typing import Any
 
 from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
-from arifosmcp.runtime.contracts import (
-    RiskTier,
-    VerdictCode,
-)
 
 # RuntimeEnvelope is a dict type for tool outputs
 RuntimeEnvelope = dict[str, Any]
 # Philosophy injection removed from tools - happens centrally in _wrap_call()
 # to ensure ONLY G★ determines band, never tool identity
+from fastmcp import FastMCP
+
 from arifosmcp.runtime.megaTools import (
     agi_mind as _mega_agi_mind,
+)
+from arifosmcp.runtime.megaTools import (
     apex_judge as _mega_apex_judge,
-    architect_registry as _mega_architect_registry,
+)
+from arifosmcp.runtime.megaTools import (
     arifOS_kernel as _mega_arifOS_kernel,
+)
+from arifosmcp.runtime.megaTools import (
     asi_heart as _mega_asi_heart,
-    code_engine as _mega_code_engine,
+)
+from arifosmcp.runtime.megaTools import (
     engineering_memory as _mega_engineering_memory,
+)
+from arifosmcp.runtime.megaTools import (
     init_anchor as _mega_init_anchor,
+)
+from arifosmcp.runtime.megaTools import (
     math_estimator as _mega_math_estimator,
+)
+from arifosmcp.runtime.megaTools import (
     physics_reality as _mega_physics_reality,
+)
+from arifosmcp.runtime.megaTools import (
     vault_ledger as _mega_vault_ledger,
 )
-from fastmcp import FastMCP
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +62,8 @@ logger = logging.getLogger(__name__)
 
 def _make_f12_block_envelope(injection_score: float, threats: list[str], session_id: str | None) -> Any:
     """Return a VOID RuntimeEnvelope blocking an F12 injection attempt."""
-    from arifosmcp.runtime.models import RuntimeEnvelope as _RE, RuntimeStatus, Verdict
+    from arifosmcp.runtime.models import RuntimeEnvelope as _RE
+    from arifosmcp.runtime.models import RuntimeStatus, Verdict
     return _RE(
         ok=False,
         tool="arifos.init",
@@ -163,15 +175,15 @@ async def arifos_sense(
     """
     # ── governed mode: full constitutional protocol ────────────────────────────
     if mode == "governed":
+        from arifosmcp.runtime.models import RuntimeEnvelope as _RE
+        from arifosmcp.runtime.models import RuntimeStatus, Verdict
+        from arifosmcp.runtime.sensing_protocol_v2 import (
+            TimeScope,
+            normalize_query,
+        )
         from arifosmcp.runtime.sensing_protocol_v2 import (
             governed_sense as _governed_sense,
-            normalize_query,
-            SenseInput, InputSpec, InputType, SensingMode,
-            IntentSpec, TaskType, DecisionProximity,
-            QueryFrame, TimeScope,
-            PolicySpec, BudgetSpec, ActorSpec,
         )
-        from arifosmcp.runtime.models import RuntimeEnvelope as _RE, RuntimeStatus, Verdict
 
         # Build SenseInput — use extended fields if provided, otherwise auto-normalize
         if query_frame or intent or policy or budget or actor:
@@ -440,10 +452,19 @@ async def arifos_memory(
     dry_run: bool = True,
     debug: bool = False,
 ) -> RuntimeEnvelope:
-    """Retrieve governed memory from vector store."""
+    """Retrieve governed memory from vector store or update the continuous world model."""
+    
+    # Karpathy Injection: Continuous Learning (Animal Archetype vs Ghost)
+    # Overcoming Anterograde Amnesia through active world model updates.
+    payload = {"query": query}
+    if mode == "world_model_update":
+        payload["animal_archetype_active"] = True
+        payload["continuous_learning_update"] = True
+        payload["anterograde_amnesia_override"] = True
+
     envelope = await _mega_engineering_memory(
         mode=mode,
-        payload={"query": query},
+        payload=payload,
         session_id=session_id,
         risk_tier=risk_tier,
         dry_run=dry_run,
@@ -496,6 +517,7 @@ V2_TOOL_HANDLERS: dict[str, Any] = {
 def register_v2_tools(mcp: FastMCP) -> list[str]:
     """Register all v2 tools on the MCP instance."""
     from fastmcp.tools.function_tool import FunctionTool
+
     from arifosmcp.runtime.tool_specs_v2 import V2_TOOLS
 
     registered = []
