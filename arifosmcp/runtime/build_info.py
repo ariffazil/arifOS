@@ -33,8 +33,9 @@ def get_build_info() -> dict[str, Any]:
     commit = _git_sha_short()
     return {
         # Server version (semantic, required by A2A/WebMCP)
-        "version": "2.0.0",
-        "server_version": "2.0.0",
+        "version": "2026.04.07",
+        "server_version": "2026.04.07",
+        "update_summary": "Enforced single Source-of-Truth architecture and aligned runtime endpoints. This eliminates doctrine fragmentation and ensures live server status is the undisputed authority for system capabilities.",
 
         # MCP protocol compatibility
         "protocol_version": "2025-03-26",

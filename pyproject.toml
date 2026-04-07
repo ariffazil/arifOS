@@ -1,6 +1,6 @@
 [project]
 name = "arifos"
-version = "2026.4.6.1"
+version = "2026.4.7"
 # T000 Versioning: YYYY.MM.DD — see T000_VERSIONING.md and CHANGELOG.md for full history
 # 2026.03.24 — AAA MCP Induction (v2026.03.24-UNIFIED)
 #   Repo unification: collapsed AAA/ shadow mirror into root arifOS/ repo
