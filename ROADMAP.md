@@ -1,8 +1,93 @@
 # arifOS ROADMAP — THE BODY (Engineering & Scaling)
 
-**Version:** 2026.04.06-AGI-MIND  
-**Authority:** Muhammad Arif bin Fazil (999_VALIDATOR)  
+**Version:** 2026.04.07-SOT-SEALED
+**Authority:** Muhammad Arif bin Fazil (999_VALIDATOR)
 **Vision:** *Execution is the proof of Law.*
+
+> **SoT Rule:** Doctrine conflict → this repo wins. Runtime surface conflict → live `/health` + `/tools` wins.
+
+---
+
+## 🔭 PLATFORM AGNOSTICISM STRATEGY — EMV/NPV ANALYSIS
+
+arifOS is LLM-agnostic and platform-agnostic by design. The question is **how** to surface that agnosticism. Four paths, ranked by Expected Monetary Value × Net Present Value:
+
+### Path A — Tool `platform=` Mode Parameter *(Ship Now)*
+Add a `platform` argument to all 10 canonical tools.  
+Output format adapts: ChatGPT → widget JSON, API → flat JSON, stdio → human text.
+
+| | Value |
+|---|---|
+| **Effort** | 1–2 weeks (tools.py + schemas.py) |
+| **EMV** | $20–50k (faster partner integrations) |
+| **NPV @ 12mo** | ~$35k |
+| **Risk** | Low — additive change, no breaking surface |
+
+### Path B — MCP Profile Gateway *(H2 2026)*
+Single `/mcp` endpoint with client-profile detection via header (`X-Arifos-Platform`).  
+Each profile gates tool subset + output format + rate policy.
+
+| Profile | Tools exposed | Use case |
+|---|---|---|
+| `chatgpt_apps` | `arifos.init`, `arifos.judge`, `arifos.vault` (read-only) | ChatGPT widget |
+| `cursor` | Full 10-tool surface | Developer IDE |
+| `enterprise` | Full surface + signed responses | B2B API |
+| `stdio` | Full surface, text output | CLI/agent scripts |
+
+| | Value |
+|---|---|
+| **Effort** | 4–6 weeks (new middleware layer) |
+| **EMV** | $100–300k |
+| **NPV @ 18mo** | ~$180k |
+| **Risk** | Medium — profile management infra needed |
+
+### Path C — REST Constitutional API *(2027)*
+Expose arifOS judgment as standard REST endpoints ANY LLM can call via HTTP.  
+MCP becomes one transport, not the only one.  
+OpenAI custom actions, Anthropic tool use, and raw HTTP all point to the same API.
+
+```
+POST /api/v1/judge     → F1-F13 verdict (replaces arifos.judge)
+POST /api/v1/init      → session bootstrap
+POST /api/v1/sense     → evidence gather
+GET  /api/v1/health    → constitutional health
+```
+
+| | Value |
+|---|---|
+| **Effort** | 8–12 weeks + auth layer |
+| **EMV** | $500k–$1M |
+| **NPV @ 24mo** | ~$600k |
+| **Risk** | High — larger attack surface, requires API key auth, versioning |
+
+### Path D — ChatGPT Widget Phase 1 *(Fix & Ship Now)*
+Fix the missing deployment blockers and ship the existing ChatGPT Apps SDK integration.
+
+**Blockers found (2026.04.07):**
+- ❌ `widget-csp.conf` was MISSING from repo → **FIXED** (committed this session)
+- ❌ TLS certs not provisioned (nginx.conf has them commented out)
+- ❌ Domain `mcp.af-forge.io` not pointed at server (nginx config says `arifos.federation`)
+- ❌ `static/widgets/vault-seal-widget.html` exists but not wired to live tools
+
+| | Value |
+|---|---|
+| **Effort** | 1–2 weeks (DNS + TLS + domain fix) |
+| **EMV** | $30–80k (ChatGPT marketplace reach) |
+| **NPV @ 6mo** | ~$40k |
+| **Risk** | Low–Medium (platform dependency on OpenAI Apps SDK) |
+
+### **Recommended Execution Order (Highest EMV/NPV)**
+
+```
+NOW (0–2 weeks):    D + A  →  Fix ChatGPT deployment + add platform= mode
+MID (1–4 months):   B      →  MCP Profile Gateway (clean architecture)
+LONG (4–12 months): C      →  REST Constitutional API (true platform agnosticism)
+```
+
+**Total NPV trajectory:** $35k (A) + $40k (D) + $180k (B) + $600k (C) = **~$855k addressable over 24 months**  
+*Conservative estimates. Enterprise licensing (CaaS) would 3–5× the long-term figure.*
+
+---
 
 ---
 
