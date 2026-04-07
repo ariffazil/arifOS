@@ -1030,7 +1030,7 @@ async def call_kernel(
         elif canonical_name == "ollama_local_generate":
             result = await ollama_local_generate_call(
                 prompt=payload.get("prompt") or query_input,
-                model=payload.get("model", "qwen2.5:3b"),
+                model=payload.get("model", "llama3:8b"),
                 system=payload.get("system"),
                 temperature=payload.get("temperature", 0.2),
                 max_tokens=payload.get("max_tokens", 512),
@@ -1240,7 +1240,7 @@ async def render_office_document(
 # Alias for ollama local generation
 async def ollama_local_generate_call(
     prompt: str,
-    model: str = "qwen2.5:3b",
+    model: str = "llama3:8b",
     system: str | None = None,
     temperature: float = 0.2,
     max_tokens: int = 512,

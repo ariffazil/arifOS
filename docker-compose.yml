@@ -75,7 +75,9 @@ services:
     volumes:
       - /opt/arifos/data/qdrant:/qdrant/storage
     networks:
-      - arifos_core_network
+      arifos_core_network:
+        aliases:
+          - qdrant_memory       # backward compat alias for older configs/scripts
     healthcheck:
       test: ["CMD-SHELL", "bash -lc 'exec 3<>/dev/tcp/127.0.0.1/6333 && printf \"GET /healthz HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && grep -q \"200 OK\" <&3'"]
       interval: 15s
@@ -113,10 +115,13 @@ services:
     init: true
     environment:
       - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_HOST=0.0.0.0:11434
     volumes:
       - /opt/arifos/data/ollama:/root/.ollama
     networks:
-      - arifos_core_network
+      arifos_core_network:
+        aliases:
+          - ollama_engine       # backward compat alias for older configs/scripts
     restart: unless-stopped
 
   openclaw:
@@ -154,6 +159,13 @@ services:
       - path: .env
     environment:
       - PYTHONPATH=/usr/src/project
+      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - QDRANT_URL=http://qdrant:6333
+      - QDRANT_COLLECTION=arifos_memory
+      - EMBEDDING_MODEL=bge-m3
+      - EMBEDDING_DIMENSION=1024
+      - LANCEDB_PATH=/usr/src/app/data/vector_cache.lance
     volumes:
       - /root/arifOS:/usr/src/project:ro
       - /opt/arifos/data/core:/usr/src/app/data:rw
