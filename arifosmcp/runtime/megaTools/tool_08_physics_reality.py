@@ -4,7 +4,25 @@ arifosmcp/runtime/megaTools/08_physics_reality.py
 111_SENSE: Earth-Witness fact acquisition and mapping
 Stage: 111_SENSE | Trinity: DELTA Δ | Floors: F2, F3, F10
 
-Modes: search, ingest, compass, atlas, time
+Modes: search, ingest, compass, atlas, time, governed
+
+GOVERNED MODE — Constitutional Sensing Protocol:
+    Implements 8-stage governed sensing:
+        1. PARSE    → Extract entities, intent, time-dependence
+        2. CLASSIFY → Route to truth-class lane (A-E)
+        3. DECIDE   → Whether search is needed
+        4. PLAN     → Build evidence hierarchy
+        5. SENSE    → Execute constrained retrieval
+        6. NORMALIZE→ Convert to structured claims
+        7. GATE     → Confidence/ambiguity checks
+        8. HANDOFF  → Pass clean packet downstream
+    
+    Invariants:
+        - Do not search if first principles suffice
+        - Do not trust retrieval without source ranking
+        - Do not collapse conflicting frames into one answer
+        - Do not hide uncertainty
+        - Do not pass raw noise downstream
 """
 
 from __future__ import annotations

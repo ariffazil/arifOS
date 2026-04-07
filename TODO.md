@@ -43,6 +43,9 @@
 - [x] **Machine-Verifiable Schema Enforcement:** Explicit thresholds, formal verdict mapping.
 - [x] **Red-Team Stage (666_HEART):** Adversarial critique integrated.
 - [x] **Great Unification:** Repo restructuring, documentation hierarchy, and package consolidation (2026.04.06).
+- [x] **Governed Sensing Protocol:** 8-stage constitutional sensing (Parse→Classify→Decide→Plan→Sense→Normalize→Gate→Handoff) with IntelligenceState.
+- [x] **Truth Classification:** 7-class truth taxonomy (absolute_invariant → unknown) with evidence hierarchy.
+- [x] **Unified Quote Corpus:** 50 core constitutional quotes (5 per tool) with full schema mapping.
 - [x] **Constitutional MCP Tools:** `get_constitutional_health`, `render_vault_seal`, `list_recent_verdicts` wired into arifosmcp.
 - [x] **ChatGPT Apps Bridge:** MCP Apps-ready widget `ui://arifos/vault-seal-widget.html` + `/chatgpt/widgets/vault-seal.html` preview.
 - [x] **AF-FORGE MCP Deployment Skeleton:** Dockerfile, compose, Nginx, `/health` + `/build` + `/ready` routes.
@@ -106,6 +109,9 @@
 | AF-FORGE Docker Stack | ✅ | Dual transport, `/health` `/build` `/mcp` |
 | Apps SDK Manifest | ✅ | `config/apps-sdk/arifos-af-forge.json` |
 | MCP Tool Discovery & Widget Preview | ✅ | `tools/list`, widget HTML bridged |
+| Governed Sensing Protocol v2.0 | ✅ | 8-stage sensing with IntelligenceState |
+| Truth Classification System | ✅ | 7 truth classes, 7 evidence ranks |
+| Unified Constitutional Quotes | ✅ | 50 quotes, 10 tools, full schema v2.1.0 |
 
 ---
 
@@ -180,6 +186,6 @@
 
 ---
 
-**Last SEALed:** 2026.04.06-ARIF  
-**Status:** INSTITUTIONAL GRADE · GOVERNANCE HARDENED  
+**Last SEALed:** 2026.04.07-UNIFIED  
+**Status:** INSTITUTIONAL GRADE · GOVERNANCE HARDENED · QUOTES CORPUS CANONICAL  
 *"Ditempa bukan diberi"* 🔥

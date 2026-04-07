@@ -1025,8 +1025,12 @@ async def physics_reality_dispatch_impl(
             payload={"bundle": bundle.model_dump(), "results_count": len(bundle.results)},
         )
     elif mode == "compass":
+        # Auto-detect: if it looks like a URL, treat as URL, otherwise as query
+        is_url = input_val.startswith(("http://", "https://"))
+        bundle_type = "url" if is_url else "query"
+        bundle_mode = "fetch" if is_url else "auto"
         bundle = await reality_handler.handle_compass(
-            BundleInput(type="auto", value=input_val), {"session_id": session_id}
+            BundleInput(type=bundle_type, value=input_val, mode=bundle_mode), {"session_id": session_id}
         )
         return RuntimeEnvelope(
             ok=bundle.status.verdict == "SEAL",
@@ -1085,6 +1089,89 @@ async def physics_reality_dispatch_impl(
                 "forge_date": "2026-03-22",
             },
         )
+    elif mode == "governed":
+        # ═══════════════════════════════════════════════════════════════════════
+        # GOVERNED SENSING PROTOCOL v2.0 — CANONICAL CONSTITUTIONAL INTAKE
+        # Implements 8-stage sensing: Parse→Classify→Decide→Plan→Sense→Normalize→Gate→Handoff
+        # Aligns to whole-state intelligence across init→sense→mind→heart→judge→vault
+        # ═══════════════════════════════════════════════════════════════════════
+        from .governed_sense_impl import governed_sense_v2
+        
+        # Get query (support both "input" and "query" fields)
+        query_val = input_val or payload.get("query", "")
+        
+        # Build structured input from legacy payload (backward compatibility)
+        raw_input = payload.get("structured_input", query_val)
+        
+        # Execute canonical governed sensing
+        sense_packet, intelligence_state = await governed_sense_v2(
+            raw_input=raw_input,
+            session_id=session_id,
+            execute_search=not dry_run,  # Respect dry_run flag
+        )
+        
+        # ═══════════════════════════════════════════════════════════════════════
+        # VERDICT GATING — Constitutional rules, not just retrieval success
+        # ═══════════════════════════════════════════════════════════════════════
+        tc = sense_packet.truth_classification
+        amb = sense_packet.ambiguity
+        unc = sense_packet.uncertainty
+        conflict = sense_packet.conflict
+        routing = sense_packet.routing
+        
+        # SEAL: Classified, grounded enough for lane, uncertainty bounded, handoff valid
+        if (tc.truth_class.value not in ("ambiguous_query", "unknown") and
+            not (amb.detected and amb.needs_human_narrowing) and
+            not (conflict.detected and conflict.resolution_status.value == "unresolved" and
+                 sense_packet.routing.requires_human_decision) and
+            unc.level.value != "extreme"):
+            verdict = Verdict.SEAL
+            status = RuntimeStatus.SUCCESS if not dry_run else RuntimeStatus.DRY_RUN
+        
+        # HOLD: Ambiguity/conflict too high for safe progression
+        elif (amb.detected and amb.needs_human_narrowing) or \
+             (conflict.detected and routing.next_stage.value == "hold"):
+            verdict = Verdict.HOLD
+            status = RuntimeStatus.SABAR
+        
+        # VOID: Invalid / prohibited / broken provenance
+        elif tc.truth_class.value == "unknown" and not query_val:
+            verdict = Verdict.VOID
+            status = RuntimeStatus.ERROR
+        
+        # SABAR: Sensing initiated but incomplete
+        else:
+            verdict = Verdict.SABAR
+            status = RuntimeStatus.SABAR
+        
+        # ═══════════════════════════════════════════════════════════════════════
+        # BUILD RUNTIME ENVELOPE — Full state-aligned output
+        # ═══════════════════════════════════════════════════════════════════════
+        envelope = RuntimeEnvelope(
+            ok=verdict in (Verdict.SEAL, Verdict.SABAR),
+            tool="physics_reality",
+            session_id=session_id,
+            stage="111_SENSE",
+            verdict=verdict,
+            status=status,
+            payload={
+                "sense_packet": sense_packet.to_dict(),
+                "intelligence_state": intelligence_state.to_dict(),
+                "governed": True,
+                "version": "2.0.0-canonical",
+            },
+        )
+        
+        # Attach intelligence state metadata for downstream consumption
+        envelope.meta = type('Meta', (), {
+            'truth_class': tc.truth_class.value,
+            'search_required': tc.search_required,
+            'routing_target': routing.next_stage.value,
+            'uncertainty_level': unc.level.value,
+            'confidence': intelligence_state.confidence,
+        })()
+        
+        return envelope
     raise ValueError(f"Invalid mode for physics_reality: {mode}")
 
 

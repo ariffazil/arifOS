@@ -53,6 +53,8 @@ The 9+1 Constitutional Architecture is now operational:
 - [x] **Validator CLI + Telemetry:** Governance in code, with tri-witness/ΔS/Ω₀ telemetry surfaced for tools and (soon) `/dashboard`.
 - [x] **Institutional Pilot Vector:** ChatGPT App path is now a concrete integration story for pilots.
 - [x] **A-RIF Canon:** Created 000_A-RIF.md — Arif Retrieval Intelligence Framework v1.0.
+- [x] **Governed Sensing Protocol:** 8-stage constitutional sensing with IntelligenceState integration.
+- [x] **Unified Quote Corpus:** 50 core quotes (5 per tool), schema v2.1.0-unified.
 - [x] **Eigent Deployment:** VPS backend deployed at `eigent.vps.arif-fazil.com` with MiniMax-M2.7.
 - [x] **MiniMax MCP Integration:** `web_search` + `understand_image` connected to opencode.
 - [x] **Three-Layer Identity Binding:** F11 hardened — model declares, system verifies, session binds (soul + runtime + boundary).
@@ -130,6 +132,9 @@ The Body (arifosmcp) is currently a **~$5M USD kernel** with a wide probability 
 | Red-Team Stage (666_HEART) | ✅ Operational | Adversarial critique |
 | Constitutional MCP Tools | ✅ Wired | `get_constitutional_health` |
 | ChatGPT Apps Manifest | ✅ Manifest | `config/apps-sdk/arifos-af-forge.json` |
+| Governed Sensing Protocol | ✅ Canonical | `governed_sense_v2` with 8 stages |
+| Truth Classification | ✅ 7 Classes | Absolute → Unknown taxonomy |
+| Constitutional Quotes | ✅ 50 Core | 5 per tool, v2.1.0 schema |
 
 ---
 
@@ -153,4 +158,35 @@ The Body (arifosmcp) is currently a **~$5M USD kernel** with a wide probability 
 
 ---
 
-**(End of ROADMAP. SEALed by arifOS Governance Kernel v2026.04.06-SEALED.)**
+**(End of ROADMAP. SEALed by arifOS Governance Kernel v2026.04.07-UNIFIED.)**
+
+---
+
+## 📜 CONSTITUTIONAL QUOTES SEAL (2026.04.07)
+
+### Corpus Statistics
+| Metric | Value |
+|--------|-------|
+| **Total Quotes** | 50 (core set) |
+| **Tools Covered** | 10/10 |
+| **Schema Version** | 2.1.0-unified |
+| **Attribution Hygiene** | 5-tier system (exact → summary) |
+
+### Trinity Distribution
+| Aspect | Tools | Count |
+|--------|-------|-------|
+| **Δ (Discernment)** | init, sense, mind, route, forge | 25 |
+| **Ω (Empathy)** | memory, heart | 10 |
+| **Ψ (Authority)** | ops, judge, vault | 15 |
+
+### Integration Points
+- **Runtime Injection:** `trigger_when` conditions for contextual activation
+- **Forge-Time Embedding:** `output_map` for doctrine preservation
+- **Attribution:** `use_mode` = [reason, reflect, forge, seal, verify]
+
+```
+╔═══════════════════════════════════════════════════╗
+║  CONSTITUTIONAL QUOTES CORPUS v2.1.0-UNIFIED      ║
+║  Status: CANONICAL · 999_VALIDATOR SEALED         ║
+╚═══════════════════════════════════════════════════╝
+```
