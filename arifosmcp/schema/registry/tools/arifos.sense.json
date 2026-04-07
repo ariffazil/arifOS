@@ -1,117 +1,347 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "arifOS.context_packet.sense",
-  "context_packet_version": "1.0.0",
+  "context_packet_version": "2.0.0",
   "tool_id": "arifos.sense",
   "stage": "111_SENSE",
   "stage_order": 1,
-  "desc": "Reality grounding",
+  "desc": "Constitutional reality intake layer",
   "trinity": "Δ",
   "trinity_name": "Discernment",
   "uri": "/arifOS/runtime/physics_reality",
   "backing_tool": "physics_reality",
   "role": "grounding",
-  "role_description": "Evidence collection and reality verification",
-  "modes": ["search", "ingest", "compass", "atlas", "time"],
-  "default_mode": "compass",
-  "purpose": "Ground tasks in verifiable reality: time, source evidence, environmental facts, and current context. Prevents hallucination by anchoring reasoning to observable truth.",
+  "role_description": "Constitutional intake organ that determines whether reality must be retrieved, how evidence is ranked, how time is bound, how ambiguity is carried, and how normalized observations enter the state of intelligence",
+  "modes": ["search", "ingest", "compass", "atlas", "time", "governed"],
+  "default_mode": "governed",
+  "purpose": "Ground tasks in verifiable reality through constitutional sensing protocol. Not bare web search. Implements 8-stage governance: PARSE→CLASSIFY→DECIDE→PLAN→SENSE→NORMALIZE→GATE→HANDOFF. Outputs sense_packet aligned to whole-state intelligence across init→sense→mind→heart→judge→vault.",
   "when_to_use": [
-    "Need to verify current state of external systems",
-    "Gathering evidence before making decisions",
-    "Checking time-sensitive information",
-    "Mapping available resources or capabilities",
-    "Orienting within a problem space",
-    "Need source citations for claims"
+    "Need constitutional evidence grounding before reasoning",
+    "Classifying query type before deciding to search",
+    "Time-sensitive information requiring staleness assessment",
+    "Detecting ambiguity or conflict before synthesis",
+    "Routing to appropriate downstream organ (mind/heart/judge)",
+    "Updating intelligence state with bounded observations"
   ],
   "when_not_to_use": [
-    "Do not use for synthesis - that's arifos.mind",
-    "Do not use for safety evaluation - that's arifos.heart",
-    "Do not use for final decisions - that's arifos.judge",
-    "Do not use to retrieve historical memory - that's arifos.memory"
+    "Do not use for synthesis — that's arifos.mind",
+    "Do not use for safety evaluation — that's arifos.heart",
+    "Do not use for final decisions — that's arifos.judge",
+    "Do not use for memory storage — that's arifos.memory",
+    "Do not use bare search mode when governed mode suffices"
   ],
   "not_job": [
     "Not a reasoning or synthesis engine",
     "Not a safety evaluator",
     "Not a decision maker",
-    "Not a memory store"
+    "Not a memory store",
+    "Not a search engine wrapper"
   ],
   "inputs": {
     "mode": {
       "type": "string",
-      "enum": ["search", "ingest", "compass", "atlas", "time"],
-      "description": "Sensing mode: search (find), ingest (load), compass (orient), atlas (map), time (temporal)"
+      "enum": ["search", "ingest", "compass", "atlas", "time", "governed"],
+      "description": "Sensing mode: search (raw acquisition), ingest (URL fetch), compass (auto-route), atlas (resource map), time (temporal), governed (constitutional protocol — classifies before searching, ranks evidence, contains ambiguity, preserves uncertainty)"
     },
     "required_payload": {
-      "query": "string - What reality to sense",
-      "evidence_type": "string - Type of evidence needed"
+      "query": "string - What reality to sense (or structured_input for full contract)"
     },
     "optional_payload": {
-      "sources": "string[] - Preferred evidence sources",
-      "freshness_requirement": "string - How recent data must be",
-      "confidence_threshold": "number - Minimum evidence quality"
+      "structured_input": "object - Full SenseInput contract with intent, query_frame, policy, budget, actor",
+      "session_context": "object - Previous session context for grounding",
+      "risk_context": "string - Risk override (low|medium|high|critical)"
     }
   },
   "outputs": {
-    "primary": "grounded_context",
+    "primary": "sense_packet + intelligence_state",
     "shape": {
-      "evidence_bundle": "object[] - Collected evidence with provenance",
-      "grounded_facts": "string[] - Verified statements",
-      "uncertainty_markers": "object[] - Known gaps or ambiguities",
-      "timestamp": "timestamp - When sensing occurred",
-      "sources": "string[] - Evidence sources"
+      "sense_packet": {
+        "packet_id": "string",
+        "stage": "111_SENSE",
+        "input_summary": {
+          "raw_query": "string | null",
+          "normalized_query": "string | null",
+          "mode_used": "string",
+          "domain": "string | null"
+        },
+        "truth_classification": {
+          "truth_class": "absolute_invariant | conditional_invariant | operational_principle | time_sensitive_fact | contested_framework | ambiguous_query | unknown",
+          "search_required": "boolean",
+          "search_reason": "string | null",
+          "framework_dependency": "boolean",
+          "framework_note": "string | null",
+          "temporal_dependency": "boolean",
+          "temporal_note": "string | null",
+          "classification_confidence": "number"
+        },
+        "temporal_grounding": {
+          "query_time_class": "timeless | historical | dated | live | forecast",
+          "detected_dates": "string[]",
+          "effective_reference_time": "string (ISO 8601)",
+          "freshness_required": "boolean",
+          "staleness_risk": "none | low | moderate | high",
+          "temporal_notes": "string[]"
+        },
+        "ambiguity": {
+          "detected": "boolean",
+          "ambiguity_type": "entity | timeframe | jurisdiction | definition | metric | referent | intent",
+          "candidate_interpretations": "string[]",
+          "chosen_interpretation": "string | null",
+          "assumption_disclosed": "boolean",
+          "needs_human_narrowing": "boolean"
+        },
+        "conflict": {
+          "detected": "boolean",
+          "conflict_type": "source_disagreement | temporal_mismatch | definitional_mismatch | jurisdiction_mismatch | measurement_mismatch | version_mismatch",
+          "conflict_summary": "string | null",
+          "resolution_status": "resolved | unresolved | partially_resolved",
+          "resolution_method": "string | null"
+        },
+        "uncertainty": {
+          "level": "low | moderate | high | extreme",
+          "sigma": "number",
+          "omega0_cap": "number",
+          "basis": {
+            "evidence_quality": "number",
+            "source_agreement": "number",
+            "temporal_alignment": "number",
+            "frame_clarity": "number",
+            "model_fit": "number"
+          },
+          "narrative_note": "string | null"
+        },
+        "evidence_plan": {
+          "retrieval_lane": "offline_reason | web_search | url_ingest | mixed | hold",
+          "preferred_sources": "string[]",
+          "banned_sources": "string[]",
+          "min_rank_required": "integer (1-7)",
+          "freshness_requirement": {
+            "required": "boolean",
+            "max_age_days": "integer | null",
+            "reference_time": "string | null"
+          },
+          "corroboration": {
+            "min_distinct_sources": "integer",
+            "require_primary_if_available": "boolean"
+          },
+          "conflict_policy": {
+            "mode": "prefer_higher_rank | prefer_newer_if_same_rank | hold_on_conflict | summarize_disagreement"
+          }
+        },
+        "entities": [
+          {
+            "name": "string",
+            "type": "person | company | place | concept | law | product | document | unknown",
+            "canonical_id": "string | null",
+            "aliases": "string[]"
+          }
+        ],
+        "target_claims": [
+          {
+            "text": "string",
+            "polarity": "affirm | deny | question | compare | estimate",
+            "claim_type": "definition | status | event | relationship | measurement | rule | prediction | unknown"
+          }
+        ],
+        "evidence_items": [
+          {
+            "id": "string",
+            "source_name": "string",
+            "source_type": "string",
+            "source_rank": "integer (1-7)",
+            "url": "string | null",
+            "title": "string | null",
+            "issuer": "string | null",
+            "author": "string | null",
+            "published_at": "string | null",
+            "observed_at": "string",
+            "jurisdiction": "string | null",
+            "version": "string | null",
+            "extracted_claims": [
+              {
+                "claim_text": "string",
+                "claim_type": "string",
+                "supports_target": "boolean | null",
+                "confidence": "number"
+              }
+            ],
+            "snippets": "string[]",
+            "provenance_hash": "string | null",
+            "quality_flags": "string[]"
+          }
+        ],
+        "normalized_findings": {
+          "grounded_facts": "string[]",
+          "unresolved_questions": "string[]",
+          "assumptions_made": "string[]",
+          "rejected_claims": "string[]",
+          "contested_points": "string[]"
+        },
+        "routing": {
+          "next_stage": "arifos.mind | arifos.heart | arifos.judge | hold",
+          "route_reason": "string",
+          "requires_human_decision": "boolean",
+          "requires_live_verification": "boolean"
+        },
+        "handoff": {
+          "packet_type": "sense_packet@v2",
+          "consumable_by": "string[]",
+          "state_update": {
+            "stable_facts_delta": "string[]",
+            "unknowns_delta": "string[]",
+            "conflicts_delta": "string[]",
+            "confidence_delta": "number",
+            "uncertainty_delta": "number"
+          }
+        }
+      },
+      "intelligence_state": {
+        "exploration": "NARROW | BROAD | FOCUSED",
+        "entropy": "LOW | MANAGEABLE | HIGH",
+        "eureka": "NONE | EMERGING | STRONG",
+        "confidence": "number (0-1)",
+        "uncertainty_score": "number (0-1)",
+        "stable_facts": "string[]",
+        "unstable_assumptions": "string[]",
+        "unknowns": "string[]",
+        "conflicts": "string[]",
+        "decision_required": "string[]",
+        "truth_vector": {
+          "grounding_g": "number",
+          "truth_tau": "number",
+          "uncertainty_sigma": "number",
+          "coherence_c": "number",
+          "entropy_delta_s": "number",
+          "humility_omega0": "number"
+        }
+      }
     }
   },
   "state_behavior": {
     "reads_state": true,
-    "writes_state": false,
-    "external_side_effects": false,
-    "query_external_systems": true
+    "writes_state": true,
+    "external_side_effects": true,
+    "query_external_systems": true,
+    "state_update_type": "delta"
   },
   "authority_model": {
     "advisory_only": true,
     "provides_evidence": true,
     "requires_human_confirmation": false,
-    "evidence_quality": "observable but not absolute truth"
+    "evidence_quality": "observable but bounded by uncertainty",
+    "can_hold": true,
+    "can_void": true
   },
   "context_contract": {
     "consumes": [
       "session context",
       "query specification",
-      "evidence requirements"
+      "evidence requirements",
+      "risk context",
+      "policy constraints"
     ],
     "emits": [
-      "grounded facts",
-      "evidence bundle",
-      "uncertainty markers",
-      "source provenance"
+      "sense_packet (structured observations)",
+      "intelligence_state (cognitive posture)",
+      "truth_classification (lane assignment)",
+      "uncertainty_band (epistemic bounds)",
+      "routing_decision (next_stage)",
+      "state_update (delta)"
     ]
   },
   "routing_hints": {
     "upstream": ["arifos.init", "arifos.route"],
-    "downstream": ["arifos.mind", "arifos.memory"],
-    "typical_flow": ["111_SENSE → 333_MIND (reason on evidence)", "111_SENSE → 555_MEMORY (store evidence)"]
+    "downstream": ["arifos.mind", "arifos.heart", "arifos.judge", "arifos.memory"],
+    "typical_flow": [
+      "000_INIT → 111_SENSE → 333_MIND",
+      "000_INIT → 111_SENSE → 666_HEART (decision-critical)",
+      "000_INIT → 111_SENSE → 888_JUDGE (if hold unresolved)",
+      "111_SENSE → 555_MEMORY (store evidence)"
+    ]
   },
   "governance_requirements": {
     "risk_tier": "low",
     "dry_run_allowed": true,
-    "read_only": true
+    "read_only": false,
+    "can_hold": true,
+    "can_void": true
+  },
+  "governed_mode_v2": {
+    "version": "2.0.0-canonical",
+    "description": "Constitutional sensing protocol — search is a tool, sensing is a governed act. Implements 8-stage pipeline aligned to whole-state intelligence.",
+    "invariants": [
+      "Classify before searching: Never search by reflex",
+      "Evidence has hierarchy: Rank 1 (direct measurement) to 7 (social/unverified)",
+      "Temporal gate: Only search for live data when freshness matters",
+      "Ambiguity containment: Surface or resolve, never hide",
+      "Conflict is signal: Detect frame mismatches, don't average blindly",
+      "Uncertainty preservation: Confidence capped by humility (Ω₀)",
+      "Normalized handoff: Downstream receives structured packet, not link soup"
+    ],
+    "truth_classes": {
+      "absolute_invariant": "Lane A — Logic, math, physics. Offline reasoning only. No search.",
+      "conditional_invariant": "Lane B — Frame-dependent (jurisdiction, version, axioms). Context required.",
+      "operational_principle": "Lane C — Strategy, governance. Principles + selective evidence.",
+      "time_sensitive_fact": "Lane D — Current events, live data. Search with freshness constraints.",
+      "contested_framework": "Lane F — Axiom-dependent, ideological. Requires explicit framing.",
+      "ambiguous_query": "Lane G — Frame unresolved. HOLD until narrowed.",
+      "unknown": "Lane H — Insufficient basis. HOLD for clarification."
+    },
+    "evidence_hierarchy": [
+      {"rank": 1, "type": "Direct measurement / primary data", "use": "Strongest grounding"},
+      {"rank": 2, "type": "Primary source", "use": "Original documents, raw data"},
+      {"rank": 3, "type": "Official issuer", "use": "Current authority on subject"},
+      {"rank": 4, "type": "Technical documentation", "use": "Specs, standards, methods"},
+      {"rank": 5, "type": "Reputable secondary", "use": "Vetted summaries, analysis"},
+      {"rank": 6, "type": "Aggregator or index", "use": "Search engines, databases"},
+      {"rank": 7, "type": "Social or unverified", "use": "Weak signal only"}
+    ],
+    "stages": [
+      "PARSE — Extract entities, intent, time-dependence, risk",
+      "CLASSIFY — Route to truth-class lane (7 classes)",
+      "DECIDE — Whether search is needed",
+      "PLAN — Build evidence hierarchy (7 ranks)",
+      "SENSE — Execute constrained retrieval",
+      "NORMALIZE — Convert to structured claims",
+      "GATE — Assess uncertainty, ambiguity, conflict",
+      "HANDOFF — Route to next stage with state delta"
+    ],
+    "verdict_gating": {
+      "SEAL": "Classified, grounded enough for lane, uncertainty bounded, handoff valid",
+      "SABAR": "Sensing initiated but incomplete — more evidence or narrowing needed",
+      "HOLD": "Ambiguity/conflict too high for safe progression in decision-critical context",
+      "VOID": "Invalid query, prohibited source, broken provenance, unsafe path"
+    },
+    "truth_vector": {
+      "grounding_g": "Grounding score (evidence supports claim)",
+      "truth_tau": "Truth integrity (internal consistency)",
+      "uncertainty_sigma": "Residual uncertainty (0=none, 1=complete)",
+      "coherence_c": "Coherence across sources",
+      "entropy_delta_s": "Local entropic effect (ΔS ≤ 0 principle)",
+      "humility_omega0": "Humility/confidence cap (Ω₀ band)"
+    }
   },
   "chatgpt_guidance": {
-    "plain_english": "Use this to gather facts and evidence before thinking or deciding. It checks reality so you don't hallucinate.",
-    "key_phrases": ["what is the current state", "search for", "find evidence", "check time", "map resources"],
+    "plain_english": "Use this for constitutional reality grounding. It classifies your query, decides if search is needed, ranks evidence, detects ambiguity, and routes to the right downstream organ. Not just search.",
+    "key_phrases": ["ground this in reality", "classify this query", "what's the truth class", "check evidence hierarchy", "is this ambiguous"],
     "ask_before_use_if": [
-      "you're about to reason without checking facts",
-      "the task involves external systems you haven't verified"
+      "you're about to search without classifying first",
+      "the query has unclear referents or timeframe",
+      "the decision is consequential and uncertainty is high"
     ],
     "do_not_assume": [
       "sensed data is complete",
       "sensed data is perfectly accurate",
-      "sensing is free - it has cost and latency"
+      "more sources equals more truth",
+      "you can skip to synthesis without governance"
     ],
     "ideal_prompt_shape": {
-      "mode": "compass",
-      "query": "What are the current security advisories for Python 3.12?",
-      "evidence_type": "security_bulletin"
+      "mode": "governed",
+      "query": "Who is the current CEO of OpenAI?",
+      "structured_input": {
+        "intent": {"decision_proximity": "informational"},
+        "policy": {"offline_first": false}
+      }
     }
   }
 }

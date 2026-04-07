@@ -389,9 +389,9 @@ async def asi_heart(
 async def physics_reality(
     query: str,
     session_id: Optional[str] = None,
-    mode: str = "search",
+    mode: str = "governed",
 ) -> dict:
-    """111_SENSE: Reality grounding and temporal intelligence."""
+    """111_SENSE: Constitutional reality sensing — 8-stage protocol, truth classification, gated live search."""
     return await _proxy_to_vps(
         "physics_reality",
         {
@@ -776,9 +776,9 @@ async def get_tool_registry(
 async def sense_reality(
     query: str,
     session_id: Optional[str] = None,
-    mode: str = "search",
+    mode: str = "governed",
 ) -> dict:
-    """111_SENSE: Reality grounding — time, evidence, maps. Alias for physics_reality."""
+    """111_SENSE: Constitutional reality sensing — classifies truth, gates live search, routes to mind/heart/hold."""
     return await _proxy_to_vps(
         "physics_reality",
         {"query": query, "session_id": session_id, "mode": mode},

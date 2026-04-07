@@ -64,23 +64,47 @@ V2_TOOLS: tuple[ToolSpecV2, ...] = (
     ),
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 2. arifos.sense — Reality Grounding (was 111_SENSE, physics_reality)
+    # 2. arifos.sense — Constitutional Reality Sensing (was 111_SENSE, physics_reality)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpecV2(
         name="arifos.sense",
         stage="111",
-        purpose="Reality grounding, time, evidence",
+        purpose="Constitutional reality sensing — 8-stage governed protocol",
         layer="MACHINE",
-        description="Ground query in physical reality. Verify facts, check temporal state, gather evidence.",
+        description=(
+            "Ground query in physical reality via the 8-stage constitutional sensing protocol: "
+            "PARSE → CLASSIFY → DECIDE → PLAN → RETRIEVE → NORMALIZE → GATE → HANDOFF. "
+            "Live web search is gated by truth classification — invariants use offline reasoning; "
+            "time-sensitive facts trigger live retrieval; ambiguous queries HOLD for narrowing."
+        ),
         trinity="Δ",
-        floors=("F2", "F3", "F10"),
+        floors=("F2", "F3", "F4", "F10"),
         input_schema={
             "type": "object",
             "required": ["query"],
             "properties": {
-                "query": {"type": "string", "description": "Query to ground in reality"},
-                "mode": {"type": "string", "enum": ["search", "ingest", "compass", "atlas", "time"], "default": "search"},
+                "query": {"type": "string", "description": "Query to classify and ground in reality"},
+                "mode": {
+                    "type": "string",
+                    "enum": ["governed", "search", "ingest", "compass", "atlas", "time"],
+                    "default": "governed",
+                    "description": (
+                        "'governed' = full 8-stage constitutional protocol (recommended). "
+                        "Legacy modes: 'search' (raw), 'ingest' (URL fetch), 'compass' (auto-detect), "
+                        "'atlas' (discovery), 'time' (clock grounding)."
+                    ),
+                },
                 "session_id": {"type": "string"},
+                "intent": {"type": "string", "description": "Optional user intent hint"},
+                "query_frame": {
+                    "type": "object",
+                    "description": "Optional: {domain, time_scope, jurisdiction}",
+                },
+                "dry_run": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "False = execute live retrieval; True = plan only (no HTTP calls)",
+                },
             },
         },
     ),

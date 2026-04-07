@@ -277,39 +277,43 @@ async def sense_v2(
     dry_run: bool = True,
 ) -> RuntimeEnvelope:
     """
-    arifos.sense — Reality Grounding with ToM.
-    Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
+    arifos.sense — Constitutional Reality Sensing (canonical v2).
+
+    Kernel adapter: bridges (mode, payload, session_id, risk_tier, dry_run)
+    kernel call convention → arifos_sense(query, mode, ...) in tools_v2.
+
+    Governed mode is the default. Legacy modes (search/ingest/compass/atlas/time)
+    are preserved via the legacy fallback in tools_v2.arifos_sense.
     """
-    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-    from arifosmcp.runtime.envelope import run_agi_mind
-    
-    # Extract input
-    raw_input = str(payload)
-    
-    # Run the new Unified Intelligence Pipeline
-    envelope = run_agi_mind(raw_input)
-    
-    status_map = {
-        "OK": RuntimeStatus.SUCCESS,
-        "PARTIAL": RuntimeStatus.SABAR,
-        "HOLD": RuntimeStatus.ERROR,
-        "ERROR": RuntimeStatus.ERROR
-    }
-    
-    verdict_map = {
-        "OK": Verdict.SEAL,
-        "PARTIAL": Verdict.SABAR,
-        "HOLD": Verdict.VOID,
-        "ERROR": Verdict.VOID
-    }
-    
-    return RuntimeEnvelope(
-        tool="sense",
-        stage="111_SENSE",
-        status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
-        verdict=verdict_map.get(envelope.status, Verdict.SEAL),
+    # Extract query from payload — support "query", "input", "text" keys
+    query = (
+        payload.get("query")
+        or payload.get("input")
+        or payload.get("text")
+        or ""
+    )
+    if not query and isinstance(payload, dict):
+        # Fallback: stringify non-empty payload for backward compat
+        non_meta = {k: v for k, v in payload.items()
+                    if k not in ("session_id", "dry_run", "risk_tier", "mode")}
+        if non_meta:
+            query = str(next(iter(non_meta.values())))
+
+    # Use "governed" unless caller explicitly set a legacy mode
+    effective_mode = mode if mode and mode != "default" else "governed"
+
+    # Pass optional extended SenseInput fields from payload
+    return await _v2_sense(
+        query=query,
+        mode=effective_mode,
         session_id=session_id,
-        payload=envelope.model_dump()
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        intent=payload.get("intent"),
+        query_frame=payload.get("query_frame"),
+        policy=payload.get("policy"),
+        budget=payload.get("budget"),
+        actor=payload.get("actor"),
     )
 
 

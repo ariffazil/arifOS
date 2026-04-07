@@ -133,7 +133,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         description="Reality grounding, time, and evidence verification.",
         trinity="DELTA Δ",
         floors=("F2", "F3"),
-        input_schema=_build_mega_schema("arifos.sense", ["search", "time"], {"query": {"type": "string"}}),
+        input_schema=_build_mega_schema("arifos.sense", ["governed", "search", "ingest", "compass", "atlas", "time"], {"query": {"type": "string"}}),
         context_packet_uri="arifos://schema/tool/arifos.sense",
     ),
     ToolSpec(

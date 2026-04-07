@@ -829,6 +829,15 @@ class RuntimeEnvelope(BaseModel):
             "insight": None,
             "confidence": 0.0,
             "decision_required": [],
+            # Truth vector (F2, F7) — canonical physics-aligned epistemic metrics
+            "truth_vector": {
+                "grounding_g": 0.0,       # Evidence support score
+                "truth_tau": 0.0,         # Internal consistency / truth integrity
+                "uncertainty_sigma": 1.0, # Residual uncertainty
+                "coherence_c": 0.0,       # Cross-source coherence
+                "entropy_delta_s": 0.0,   # Local entropic effect
+                "humility_omega0": 0.5,   # Confidence cap (Ω₀ band)
+            },
         }
     )
     metrics: CanonicalMetrics = Field(default_factory=lambda: CanonicalMetrics())
