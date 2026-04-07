@@ -135,6 +135,7 @@ from arifosmcp.runtime.tools import register_v2_tools
 from arifosmcp.runtime.prompts import register_v2_prompts
 from arifosmcp.runtime.resources import register_v2_resources
 from arifosmcp.runtime.manifest import build_manifest_v2
+from arifosmcp.runtime.build_info import get_build_info
 
 # Register v2 components
 v2_tools_registered = register_v2_tools(mcp)
@@ -194,16 +195,27 @@ async def landing_page_handler(request: Request) -> Response:
 
 
 async def health_handler(request: Request) -> JSONResponse:
-    """Health check endpoint."""
+    """Health check endpoint — runtime truth for what is running right now."""
+    import datetime
+    build = get_build_info()
     return JSONResponse({
         "status": "healthy",
-        "service": "arifos-mcp-v2",
-        "version": "2.0.0",
-        "namespace": "arifos.v2",
+        "service": "arifos-mcp",
+        "version": build["server_version"],
+        "release_tag": build["release_tag"],
+        "namespace": "arifos",
+        "transport": "streamable-http",
         "tools_loaded": len(v2_tools_registered),
         "prompts_loaded": len(v2_prompts_registered),
         "resources_loaded": len(v2_resources_registered),
-        "timestamp": __import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat(),
+        "protocol_version": build["protocol_version"],
+        "governance_version": build["governance_version"],
+        "floors_active": build["floors_active"],
+        # Source-of-Truth linkage: ties this runtime back to canonical doctrine
+        "source_repo": build["source_repo"],
+        "source_commit": build["build"]["commit_short"],
+        "warnings": [],
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     })
 
 
@@ -435,11 +447,40 @@ app.add_route("/.well-known/manifest.json", manifest_handler, methods=["GET"])
 app.add_route("/.well-known/agent.json", a2a_agent_card_handler, methods=["GET"])
 app.add_route("/.well-known/webmcp", webmcp_manifest_handler, methods=["GET"])
 app.add_route("/webmcp/tools.json", webmcp_tools_handler, methods=["GET"])
+
+async def canonical_index_handler(request: Request) -> JSONResponse:
+    """Canonical index — ties this runtime back to the arifOS SoT repo."""
+    build = get_build_info()
+    return JSONResponse({
+        "name": "arifOS MCP Runtime",
+        "source_of_truth": {
+            "repo": build["source_repo"],
+            "declaration": "Canonical doctrine, Floors F1-F13, and architecture live in the arifOS repository.",
+        },
+        "runtime_truth": {
+            "health": "https://arifosmcp.arif-fazil.com/health",
+            "tools": "https://arifosmcp.arif-fazil.com/tools",
+            "note": "Live /health and /tools are the canonical surface for what is running right now.",
+        },
+        "version": build["server_version"],
+        "release_tag": build["release_tag"],
+        "source_commit": build["build"]["commit_short"],
+        "namespace": "arifos",
+        "tools_loaded": len(v2_tools_registered),
+        "links": {
+            "source_repo": build["source_repo"],
+            "docs": "https://arifos.arif-fazil.com/mcp-server",
+            "pypi": "https://pypi.org/project/arifosmcp/",
+            "canonical_index": "https://arifosmcp.arif-fazil.com/.well-known/arifos-index.json",
+        },
+    })
+
 async def security_txt_handler(request: Request) -> Response:
     """Serve security.txt."""
     return await well_known_handler(request, "security.txt")
 
 app.add_route("/.well-known/security.txt", security_txt_handler, methods=["GET"])
+app.add_route("/.well-known/arifos-index.json", canonical_index_handler, methods=["GET"])
 
 # A2A endpoints
 app.add_route("/a2a/agent", a2a_agent_card_handler, methods=["GET"])

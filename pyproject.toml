@@ -53,7 +53,7 @@ version = "2026.4.6.1"
 # 2026.1.26 — Live constitutional metrics; 13/13 floors passing
 # 2026.1.24 — Unified core: arifosmcp.transport pure transport, all logic in core/
 # 2026.1.18 — Constitutional Forge: 13 floors F1-F13, Trinity ΔΩΨ, VAULT999, 9-tool MCP
-description = "arifOS v2026.04.06-CLEAN — Constitutional AI Governance System with clean MCP architecture (tools/resources/prompts), Docker deployment, and ChatGPT Apps SDK integration. 11 Mega-Tools, 13 floors (F1-F13), BLS12-381 attestation. https://arifos.arif-fazil.com/"
+description = "arifOS v2026.04.07 — Constitutional AI Governance System. 10 canonical tools (arifos.init through arifos.forge), 13 constitutional floors (F1-F13), streamable-http MCP transport. CANONICAL SOURCE OF TRUTH: arifOS repository. Runtime truth: /health and /tools on deployed server. https://arifos.arif-fazil.com/"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "AGPL-3.0-only"
