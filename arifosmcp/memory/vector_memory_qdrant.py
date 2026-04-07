@@ -5,6 +5,9 @@ arifosmcp/memory/vector_memory_qdrant.py
 Constitutional vector memory backed by Qdrant.
 Implements 555_MEMORY vector modes with F10 Ontology + F2 Verification.
 
+Embedding backend: Ollama bge-m3 (1024-dim, cosine) — matches all Qdrant collections.
+Legacy sentence-transformers (all-MiniLM-L6-v2, 384-dim) removed: dimension mismatch fix.
+
 Authority: Ω (A-ENGINEER) | Trinity: OMEGA
 Floors: F10 (Ontology), F2 (Truth ≥ 0.99), F11 (Audit)
 """
@@ -20,11 +23,21 @@ import uuid
 
 logger = logging.getLogger(__name__)
 
-# Qdrant configuration
-_QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
-_QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
+# Qdrant configuration — prefer QDRANT_URL (set in docker-compose), fallback to host/port
+_QDRANT_URL = os.getenv(
+    "QDRANT_URL",
+    "http://{}:{}".format(
+        os.getenv("QDRANT_HOST", "qdrant_memory"),
+        os.getenv("QDRANT_PORT", "6333"),
+    ),
+)
 _QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "arifos_memory")
-_VECTOR_SIZE = int(os.getenv("VECTOR_SIZE", "384"))
+# bge-m3 produces 1024-dim vectors — all Qdrant collections are created at 1024
+_VECTOR_SIZE = int(os.getenv("VECTOR_SIZE", "1024"))
+
+# Ollama embedding endpoint
+_OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama_engine:11434")
+_EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3:latest")
 
 # Constitutional thresholds
 _F2_TRUTH_THRESHOLD = 0.99
@@ -39,8 +52,8 @@ def _get_qdrant_client():
     if _qdrant_client is None:
         try:
             from qdrant_client import QdrantClient
-            _qdrant_client = QdrantClient(host=_QDRANT_HOST, port=_QDRANT_PORT)
-            logger.info(f"Connected to Qdrant at {_QDRANT_HOST}:{_QDRANT_PORT}")
+            _qdrant_client = QdrantClient(url=_QDRANT_URL)
+            logger.info(f"Connected to Qdrant at {_QDRANT_URL}")
         except Exception as exc:
             logger.error(f"Failed to connect to Qdrant: {exc}")
             raise
@@ -62,15 +75,22 @@ def _ensure_collection():
 
 
 def _generate_embedding(text: str) -> list[float]:
-    """Generate embedding using sentence-transformers (F10 Ontology encoded)."""
+    """Generate 1024-dim embedding via Ollama bge-m3 (F10 Ontology encoded)."""
     try:
-        from sentence_transformers import SentenceTransformer
-        model = SentenceTransformer("all-MiniLM-L6-v2")
-        embedding = model.encode(text)
-        return embedding.tolist()
+        import httpx
+        response = httpx.post(
+            f"{_OLLAMA_URL}/api/embeddings",
+            json={"model": _EMBEDDING_MODEL, "prompt": text},
+            timeout=30.0,
+        )
+        response.raise_for_status()
+        embedding = response.json().get("embedding", [])
+        if embedding:
+            return embedding
+        logger.warning("Ollama returned empty embedding")
     except Exception as exc:
-        logger.error(f"Failed to generate embedding: {exc}")
-        return [0.0] * _VECTOR_SIZE
+        logger.error(f"Failed to generate embedding via Ollama bge-m3: {exc}")
+    return [0.0] * _VECTOR_SIZE
 
 
 def _compute_truth_score(content: str, context: dict | None = None) -> float:
@@ -296,7 +316,12 @@ async def vector_health() -> dict:
             "status": "healthy",
             "collection": _QDRANT_COLLECTION,
             "vectors_count": collection.points_count,
-            "config": {"vector_size": _VECTOR_SIZE, "host": _QDRANT_HOST, "port": _QDRANT_PORT},
+            "config": {
+                "vector_size": _VECTOR_SIZE,
+                "qdrant_url": _QDRANT_URL,
+                "embedding_model": _EMBEDDING_MODEL,
+                "ollama_url": _OLLAMA_URL,
+            },
             "floors": {
                 "F2_truth_threshold": _F2_TRUTH_THRESHOLD,
                 "F10_ontology_check": _F10_ONTOLOGY_CHECK,
