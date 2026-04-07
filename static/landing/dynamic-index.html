@@ -3,26 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="arifOS MCP v2 - 10 Canonical Tools with Constitutional AI Governance">
-    <title>arifOS MCP v2 | AF-FORGE Deployment</title>
+    <meta name="description" content="arifOS MCP Server - Constitutional runtime for governed AI tool execution. Enforce 13 constitutional floors on any AI agent.">
+    <meta name="keywords" content="arifOS, MCP, Model Context Protocol, AI Governance, Constitutional AI, Trinity Architecture, F1-F13, ΔΩΨ, AGI, ASI, APEX">
+    <meta name="author" content="Muhammad Arif bin Fazil">
+    <meta name="version" content="2026.04.07-LLM-OS">
+    <meta name="ai-context" content="This is the arifOS MCP Server - A Constitutional AI Governance System aligned with Karpathy's LLM OS architecture. It provides 10 canonical tools enforcing 13 Constitutional Floors (F1-F13). Features: Autonomy Slider, Process-Based Supervision, and Continuous World Model updates. Trinity Architecture (Δ Mind, Ω Heart, Ψ Soul). Transport: streamable-http. MCP endpoint: /mcp.">
+    <title>arifOS MCP | Constitutional AI Governance (ΔΩΨ)</title>
     <style>
         :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #12121a;
-            --bg-tertiary: #1a1a25;
-            --text-primary: #e8e8f0;
-            --text-secondary: #8888a0;
-            --accent-gold: #d4af37;
-            --accent-seal: #22c55e;
-            --accent-void: #ef4444;
-            --accent-partial: #f59e0b;
-            --border: #2a2a3a;
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent-delta: #58a6ff;
+            --accent-omega: #f85149;
+            --accent-psi: #ffd700;
+            --accent-success: #238636;
+            --border: #30363d;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
             background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
@@ -31,506 +35,403 @@
         
         .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
         
-        header {
-            text-align: center;
-            padding: 3rem 0;
-            border-bottom: 1px solid var(--border);
+        header { text-align: center; padding: 4rem 0; margin-bottom: 2rem; border-bottom: 1px solid var(--border); }
+        
+        .sot-banner {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid var(--accent-psi);
+            color: var(--accent-psi);
+            padding: 1rem;
+            border-radius: 8px;
             margin-bottom: 2rem;
+            text-align: center;
+            font-size: 0.9rem;
         }
-        
-        .forge-mark { 
-            font-size: 4rem; 
-            margin-bottom: 1rem;
-            animation: pulse 3s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
+
+        .logo { font-size: 3.5rem; margin-bottom: 1rem; }
         
         h1 {
-            font-size: 2.5rem;
-            background: linear-gradient(135deg, var(--accent-gold), #fff);
+            font-size: 4rem;
+            background: linear-gradient(135deg, var(--accent-delta), var(--accent-omega), var(--accent-psi));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
         }
         
-        .motto {
-            font-size: 1.3rem;
-            color: var(--accent-gold);
+        .version-badge {
+            display: inline-block;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
             font-weight: bold;
-            margin: 1rem 0;
-            letter-spacing: 0.1em;
-        }
-        
-        .live-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: var(--bg-secondary);
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
             border: 1px solid var(--border);
-            margin-top: 1rem;
+            margin-bottom: 1rem;
         }
         
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--accent-seal);
-            animation: blink 2s infinite;
+        .trinity-symbols { font-size: 2rem; margin: 1.5rem 0; letter-spacing: 1.5rem; }
+        
+        .section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 3rem;
+            margin-bottom: 3rem;
         }
         
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
+        h2 { color: var(--text-primary); margin-bottom: 1.5rem; font-size: 2.2rem; }
+        h3 { color: var(--accent-delta); margin: 1.5rem 0 0.5rem; }
         
-        .grid {
+        .tool-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
-            margin: 2rem 0;
-        }
-        
-        .card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-        
-        .card:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent-gold);
-        }
-        
-        .card h3 {
-            color: var(--accent-gold);
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .metric {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .metric:last-child { border-bottom: none; }
-        
-        .metric-value {
-            font-weight: bold;
-            color: var(--accent-seal);
-        }
-        
-        .tools-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin: 2rem 0;
-        }
-        
-        .tool-item {
-            background: var(--bg-tertiary);
-            padding: 1rem;
-            border-radius: 8px;
-            border-left: 3px solid var(--accent-gold);
-        }
-        
-        .tool-name {
-            font-weight: bold;
-            color: var(--accent-gold);
-        }
-        
-        .tool-stage {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-        
-        .philosophy-quote {
-            background: var(--bg-secondary);
-            border: 1px solid var(--accent-gold);
-            border-radius: 12px;
-            padding: 2rem;
-            margin: 2rem 0;
-            text-align: center;
-        }
-        
-        .quote-text {
-            font-size: 1.5rem;
-            font-style: italic;
-            color: var(--accent-gold);
-            margin-bottom: 1rem;
-        }
-        
-        .quote-meta {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-        
-        .refresh-info {
-            text-align: center;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
             margin-top: 2rem;
         }
         
-        .error-state {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: var(--accent-void);
-        }
-        
-        .loading { opacity: 0.6; }
-        
-        /* API Explorer */
-        .api-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 0.75rem;
-            margin: 2rem 0;
-        }
-        
-        .api-link {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
+        .tool-card {
             background: var(--bg-tertiary);
             border: 1px solid var(--border);
-            border-radius: 8px;
-            text-decoration: none;
-            color: inherit;
-            transition: all 0.2s;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s;
         }
         
-        .api-link:hover {
-            border-color: var(--accent-gold);
-            background: var(--bg-secondary);
-            transform: translateX(4px);
-        }
+        .tool-card:hover { border-color: var(--accent-delta); transform: translateY(-2px); }
+        .tool-card h4 { color: var(--accent-delta); margin-bottom: 0.5rem; font-size: 1.2rem; }
         
-        .api-method {
-            font-size: 0.65rem;
-            font-weight: bold;
+        .tool-card.agi { border-left: 4px solid var(--accent-delta); }
+        .tool-card.asi { border-left: 4px solid var(--accent-omega); }
+        .tool-card.apex { border-left: 4px solid var(--accent-psi); }
+        .tool-card.vault { border-left: 4px solid var(--accent-success); }
+        
+        .stage-badge {
+            display: inline-block;
+            font-size: 0.7rem;
             padding: 0.2rem 0.5rem;
             border-radius: 4px;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
             text-transform: uppercase;
         }
         
-        .api-method.get {
-            background: var(--accent-seal);
-            color: #000;
-        }
-        
-        .api-method.post {
-            background: var(--accent-partial);
-            color: #000;
-        }
-        
-        .api-path {
-            font-family: 'SF Mono', monospace;
-            color: var(--accent-gold);
+        pre {
+            background: var(--bg-primary);
+            padding: 1.5rem;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border);
+            font-family: 'Fira Code', monospace;
             font-size: 0.9rem;
         }
         
-        .api-desc {
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            margin-left: auto;
+        .cta-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0; }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: 2px solid transparent;
         }
         
-        .mcp-endpoint {
-            text-align: center;
-            padding: 1.5rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            margin: 2rem 0;
-        }
+        .btn-primary { background: var(--accent-delta); color: white; }
+        .btn-primary:hover { background: transparent; border-color: var(--accent-delta); color: var(--accent-delta); }
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border-color: var(--border); }
+        .btn-secondary:hover { border-color: var(--accent-psi); color: var(--accent-psi); }
         
-        .mcp-endpoint .mcp-label {
-            color: var(--text-secondary);
-            margin-right: 1rem;
-        }
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .status-item { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; text-align: center; }
+        .status-item h4 { color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 0.5rem; }
+        .status-item .value { font-size: 1.2rem; font-weight: bold; color: var(--accent-success); word-break: break-all; }
+
+        footer { text-align: center; padding: 4rem 2rem; border-top: 1px solid var(--border); color: var(--text-secondary); }
         
-        .mcp-endpoint code {
-            background: var(--bg-tertiary);
-            padding: 0.4rem 0.8rem;
-            border-radius: 4px;
-            color: var(--accent-partial);
-            font-family: 'SF Mono', monospace;
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .section { padding: 1.5rem; }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- SOT BANNER -->
+        <div class="sot-banner">
+            <strong>Source of Truth for arifOS:</strong> <a href="https://github.com/ariffazil/arifOS" style="color: inherit; font-weight: bold;">ariffazil/arifOS repository</a>.
+            Runtime truth (this page): current deployed server status.
+        </div>
+
+        <!-- HERO -->
         <header>
-            <div class="forge-mark">🜂</div>
-            <h1>arifOS MCP v2</h1>
-            <div class="motto">DITEMPA, BUKAN DIBERI.</div>
-            <div class="live-status">
-                <span class="status-dot"></span>
-                <span id="status-text">Connecting to AF-FORGE...</span>
+            <div class="logo">🔱</div>
+            <div class="version-badge">v2026.04.07-SOT-ALIGN</div>
+            <h1>arifOS MCP</h1>
+            <h2 style="color: var(--text-primary); margin-top: 0.5rem; font-size: 1.8rem; font-weight: 400;">Constitutional runtime for governed AI tool execution.</h2>
+            <p style="max-width: 850px; margin: 2rem auto; font-size: 1.3rem; color: var(--text-secondary);">
+                Connect Claude, Cursor, or any MCP client to a policy-enforced tool runtime with 13 constitutional floors, auditable reasoning gates, and protocol-native execution.
+            </p>
+            
+            <div class="cta-buttons">
+                <a href="#quickstart" class="btn btn-primary">🔌 Connect Your Client</a>
+                <a href="/openapi.json" class="btn btn-secondary">🔍 View OpenAPI Spec</a>
+                <a href="/.well-known/arifos-index.json" class="btn btn-secondary">📜 Canonical Index</a>
             </div>
+
+            <div class="trinity-symbols">Δ Ω Ψ</div>
         </header>
 
-        <div class="grid">
-            <div class="card">
-                <h3>⚡ Deployment Status</h3>
-                <div class="metric">
-                    <span>Host</span>
-                    <span class="metric-value" id="host">arifosmcp.arif-fazil.com</span>
-                </div>
-                <div class="metric">
-                    <span>Version</span>
-                    <span class="metric-value" id="version">--</span>
-                </div>
-                <div class="metric">
-                    <span>Health</span>
-                    <span class="metric-value" id="health">--</span>
-                </div>
-                <div class="metric">
-                    <span>Protocol</span>
-                    <span class="metric-value">MCP 2025-11-05</span>
-                </div>
-            </div>
+        <!-- TRUST STRIP -->
+        <div style="text-align: center; padding: 1.2rem; background: var(--bg-secondary); border-radius: 50px; border: 1px solid var(--border); margin-bottom: 4rem; font-size: 0.95rem; color: var(--text-secondary);">
+            <span style="margin-right: 1.5rem; font-weight: bold; color: var(--accent-psi); letter-spacing: 0.1em;">WORKS WITH</span>
+            <span style="margin: 0 1rem;">Claude Desktop</span> • 
+            <span style="margin: 0 1rem;">Cursor</span> • 
+            <span style="margin: 0 1rem;">OpenAI Clients</span> • 
+            <span style="margin: 0 1rem;">WebMCP</span> • 
+            <span style="margin: 0 1rem;">HTTP/stdio</span>
+        </div>
 
-            <div class="card">
-                <h3>🏛 Constitutional Registry</h3>
-                <div class="metric">
-                    <span>Registry Version</span>
-                    <span class="metric-value">1.2.0</span>
+        <!-- WHY -->
+        <div class="section">
+            <h2 style="text-align: center;">Why arifOS MCP?</h2>
+            <div class="tool-grid">
+                <div class="tool-card agi">
+                    <h4>🛡️ Governed by Design</h4>
+                    <p>Every tool call is pre-filtered through 13 constitutional floors. No hallucinations, no ungrounded claims, and no adversarial manipulation.</p>
                 </div>
-                <div class="metric">
-                    <span>Total Quotes</span>
-                    <span class="metric-value" id="quote-count">84</span>
+                <div class="tool-card asi">
+                    <h4>⚖️ Auditable Reasoning</h4>
+                    <p>Reasoning, memory, and judgment are separated into canonical tools, creating an immutable audit trail for every machine-led decision.</p>
                 </div>
-                <div class="metric">
-                    <span>Diversity Score</span>
-                    <span class="metric-value">0.87</span>
-                </div>
-                <div class="metric">
-                    <span>Active Floors</span>
-                    <span class="metric-value" id="floors">13</span>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>🔧 Tool Registry</h3>
-                <div class="metric">
-                    <span>Canonical Tools</span>
-                    <span class="metric-value" id="tool-count">--</span>
-                </div>
-                <div class="metric">
-                    <span>Governance Layer</span>
-                    <span class="metric-value">9 Tools</span>
-                </div>
-                <div class="metric">
-                    <span>Execution Layer</span>
-                    <span class="metric-value">1 Tool (forge)</span>
-                </div>
-                <div class="metric">
-                    <span>Separation</span>
-                    <span class="metric-value">Enforced</span>
+                <div class="tool-card apex">
+                    <h4>🔄 Reversible Actions</h4>
+                    <p>arifOS prioritizes reversible actions. Irreversible operations are automatically gated by 888_HOLD human-in-the-loop triggers.</p>
                 </div>
             </div>
         </div>
 
-        <div class="philosophy-quote">
-            <div class="quote-text" id="philosophy-text">Loading...</div>
-            <div class="quote-meta" id="philosophy-meta"></div>
-        </div>
-
-        <h2 style="text-align: center; margin: 2rem 0; color: var(--accent-gold);">10 Canonical Tools</h2>
-        
-        <div class="tools-list" id="tools-container">
-            <div class="tool-item loading">
-                <div class="tool-name">Loading tools...</div>
+        <!-- HOW IT WORKS -->
+        <div class="section" style="background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);">
+            <h2 style="text-align: center;">The Governance Pipeline</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4rem; flex-wrap: wrap; gap: 1.5rem; text-align: center;">
+                <div style="flex: 1; min-width: 140px;">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">💻</div>
+                    <div style="font-weight: bold; color: var(--accent-delta);">MCP Client</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Claude / Cursor</div>
+                </div>
+                <div style="color: var(--border); font-size: 1.5rem;">➔</div>
+                <div style="flex: 1; min-width: 140px;">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">📡</div>
+                    <div style="font-weight: bold; color: var(--accent-delta);">Transport</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">HTTP / SSE</div>
+                </div>
+                <div style="color: var(--border); font-size: 1.5rem;">➔</div>
+                <div style="flex: 1.2; min-width: 180px; background: var(--bg-tertiary); padding: 2rem 1rem; border-radius: 20px; border: 1px solid var(--accent-psi); box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">⚖️</div>
+                    <div style="font-weight: bold; color: var(--accent-psi);">arifOS Kernel</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">F1-F13 Constitutional Floors</div>
+                </div>
+                <div style="color: var(--border); font-size: 1.5rem;">➔</div>
+                <div style="flex: 1; min-width: 140px;">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">🛠️</div>
+                    <div style="font-weight: bold; color: var(--accent-success);">Execution</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Bound Tools / Forge</div>
+                </div>
+                <div style="color: var(--border); font-size: 1.5rem;">➔</div>
+                <div style="flex: 1; min-width: 140px;">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">📜</div>
+                    <div style="font-weight: bold; color: var(--accent-success);">Audit</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Vault Ledger</div>
+                </div>
             </div>
         </div>
 
-        <h2 style="text-align: center; margin: 3rem 0 2rem; color: var(--accent-gold);">🔍 API Explorer</h2>
-        
-        <div class="api-grid" id="api-container">
-            <a href="/health" target="_blank" class="api-link">
-                <span class="api-method get">GET</span>
-                <span class="api-path">/health</span>
-                <span class="api-desc">Health status & metrics</span>
-            </a>
-            <a href="/version" target="_blank" class="api-link">
-                <span class="api-method get">GET</span>
-                <span class="api-path">/version</span>
-                <span class="api-desc">Server version info</span>
-            </a>
-            <a href="/tools" target="_blank" class="api-link">
-                <span class="api-method get">GET</span>
-                <span class="api-path">/tools</span>
-                <span class="api-desc">List 10 canonical tools</span>
-            </a>
-            <a href="/openapi.json" target="_blank" class="api-link">
-                <span class="api-method get">GET</span>
-                <span class="api-path">/openapi.json</span>
-                <span class="api-desc">OpenAPI 3.1 spec</span>
-            </a>
-            <a href="/llms.txt" target="_blank" class="api-link">
-                <span class="api-method get">GET</span>
-                <span class="api-path">/llms.txt</span>
-                <span class="api-desc">Model-readable context</span>
-            </a>
-            <a href="/.well-known/mcp/server.json" target="_blank" class="api-link">
-                <span class="api-method get">GET</span>
-                <span class="api-path">/.well-known/mcp/server.json</span>
-                <span class="api-desc">MCP discovery manifest</span>
-            </a>
-            <a href="/.well-known/agent.json" target="_blank" class="api-link">
-                <span class="api-method get">GET</span>
-                <span class="api-path">/.well-known/agent.json</span>
-                <span class="api-desc">A2A agent card</span>
-            </a>
-            <a href="/.well-known/webmcp" target="_blank" class="api-link">
-                <span class="api-method get">GET</span>
-                <span class="api-path">/.well-known/webmcp</span>
-                <span class="api-desc">WebMCP manifest</span>
-            </a>
-            <a href="/webmcp/tools.json" target="_blank" class="api-link">
-                <span class="api-method get">GET</span>
-                <span class="api-path">/webmcp/tools.json</span>
-                <span class="api-desc">WebMCP tools list</span>
-            </a>
-            <a href="/status" target="_blank" class="api-link">
-                <span class="api-method get">GET</span>
-                <span class="api-path">/status</span>
-                <span class="api-desc">Governance status</span>
-            </a>
-            <a href="/api/live/all" target="_blank" class="api-link">
-                <span class="api-method get">GET</span>
-                <span class="api-path">/api/live/all</span>
-                <span class="api-desc">Live metrics (all)</span>
-            </a>
-            <a href="/robots.txt" target="_blank" class="api-link">
-                <span class="api-method get">GET</span>
-                <span class="api-path">/robots.txt</span>
-                <span class="api-desc">Crawler directives</span>
-            </a>
+        <!-- QUICKSTART -->
+        <div class="section quickstart" id="quickstart" style="border: 2px solid var(--accent-delta);">
+            <h2>🚀 Connect in Seconds</h2>
+            <p>arifOS is protocol-native. Use our production endpoint for instant constitutional governance.</p>
+            
+            <h3 style="margin-top: 2.5rem;">Claude Desktop / Cursor Configuration</h3>
+            <pre><code>{
+  "mcpServers": {
+    "arifos": {
+      "type": "http",
+      "url": "https://arifosmcp.arif-fazil.com/mcp"
+    }
+  }
+}</code></pre>
+            
+            <div class="cta-buttons" style="justify-content: flex-start;">
+                <a href="https://pypi.org/project/arifosmcp/" class="btn btn-primary" target="_blank">📦 Install via PyPI</a>
+                <a href="https://github.com/ariffazil/arifOS" class="btn btn-secondary" target="_blank">📚 Source of Truth Repo</a>
+            </div>
         </div>
 
-        <div class="mcp-endpoint">
-            <span class="mcp-label">MCP Protocol Endpoint (POST only):</span>
-            <code>/mcp</code>
+        <!-- TOOLS -->
+        <div class="section">
+            <h2 style="text-align: center;">The 10 Canonical Capabilities</h2>
+            <p style="text-align: center; color: var(--text-secondary);">arifOS provides a unified sovereign core for autonomous intelligence.</p>
+            <div class="tool-grid">
+                <div class="tool-card vault">
+                    <h4>arifos.init</h4>
+                    <p>Session airlock: establishes jurisdiction and identity anchor.</p>
+                </div>
+                <div class="tool-card agi">
+                    <h4>arifos.sense</h4>
+                    <p>Reality acquisition: governed sensing and evidentiary grounding.</p>
+                </div>
+                <div class="tool-card agi">
+                    <h4>arifos.mind</h4>
+                    <p>LLM OS Kernel: structured reasoning with process supervision.</p>
+                </div>
+                <div class="tool-card asi">
+                    <h4>arifos.heart</h4>
+                    <p>Alignment: adversarial critique, safety, and maruah checks.</p>
+                </div>
+                <div class="tool-card vault">
+                    <h4>arifos.route</h4>
+                    <p>Metabolism: intelligent routing between intelligence lanes.</p>
+                </div>
+                <div class="tool-card asi">
+                    <h4>arifos.memory</h4>
+                    <p>Continuity: active world model updates (Animal Archetype).</p>
+                </div>
+                <div class="tool-card vault">
+                    <h4>arifos.ops</h4>
+                    <p>Efficiency: thermodynamic cost and resource estimation.</p>
+                </div>
+                <div class="tool-card apex">
+                    <h4>arifos.judge</h4>
+                    <p>Verdict: final tri-witness verdict engine (SEAL / VOID).</p>
+                </div>
+                <div class="tool-card vault">
+                    <h4>arifos.vault</h4>
+                    <p>Immutability: ledger commit and tamper-proof auditing.</p>
+                </div>
+                <div class="tool-card apex">
+                    <h4>arifos.forge</h4>
+                    <p>Execution: delegated action bridge with autonomy slider.</p>
+                </div>
+            </div>
         </div>
 
-        <div class="refresh-info">
-            <p>Live data from AF-FORGE VPS | Auto-refresh every 30s</p>
-            <p id="last-updated">Last updated: --</p>
+        <!-- API EXPLORER -->
+        <div class="section">
+            <h2 style="text-align: center;">🔌 API Explorer</h2>
+            <div class="tool-grid">
+                <div class="tool-card" style="border-top: 3px solid var(--accent-success);">
+                    <h4>Health & Status</h4>
+                    <ul style="list-style: none; font-size: 0.9rem;">
+                        <li style="margin-bottom: 0.8rem;"><code><a href="/health" style="color: var(--accent-delta); text-decoration: none;">GET /health</a></code> — System health</li>
+                        <li style="margin-bottom: 0.8rem;"><code><a href="/status" style="color: var(--accent-delta); text-decoration: none;">GET /status</a></code> — Governance status</li>
+                        <li style="margin-bottom: 0.8rem;"><code><a href="/version" style="color: var(--accent-delta); text-decoration: none;">GET /version</a></code> — Version & specs</li>
+                    </ul>
+                </div>
+
+                <div class="tool-card" style="border-top: 3px solid var(--accent-delta);">
+                    <h4>Discovery & Specs</h4>
+                    <ul style="list-style: none; font-size: 0.9rem;">
+                        <li style="margin-bottom: 0.8rem;"><code><a href="/tools" style="color: var(--accent-delta); text-decoration: none;">GET /tools</a></code> — Canonical tool list</li>
+                        <li style="margin-bottom: 0.8rem;"><code><a href="/openapi.json" style="color: var(--accent-delta); text-decoration: none;">GET /openapi.json</a></code> — OpenAPI 3.1 Spec</li>
+                        <li style="margin-bottom: 0.8rem;"><code><a href="/llms.txt" style="color: var(--accent-delta); text-decoration: none;">GET /llms.txt</a></code> — AI Agent context</li>
+                    </ul>
+                </div>
+
+                <div class="tool-card" style="border-top: 3px solid var(--accent-psi);">
+                    <h4>Protocols (WebMCP/A2A)</h4>
+                    <ul style="list-style: none; font-size: 0.9rem;">
+                        <li style="margin-bottom: 0.8rem;"><code><a href="/.well-known/mcp/server.json" style="color: var(--accent-delta); text-decoration: none;">GET /server.json</a></code> — MCP Discovery</li>
+                        <li style="margin-bottom: 0.8rem;"><code><a href="/.well-known/webmcp" style="color: var(--accent-delta); text-decoration: none;">GET /webmcp</a></code> — WebMCP Manifest</li>
+                        <li style="margin-bottom: 0.8rem;"><code><a href="/.well-known/agent.json" style="color: var(--accent-delta); text-decoration: none;">GET /agent.json</a></code> — A2A Agent Card</li>
+                        <li style="margin-bottom: 0.8rem;"><code><a href="/.well-known/arifos-index.json" style="color: var(--accent-delta); text-decoration: none;">GET /arifos-index.json</a></code> — Canonical Index</li>
+                    </ul>
+                </div>
+            </div>
         </div>
+
+        <!-- TELEMETRY -->
+        <div class="section" style="border: 1px dashed var(--border); padding: 2rem;">
+            <h2 style="font-size: 1.1rem; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.1em; text-align: center;">📡 Live Intelligence Telemetry</h2>
+            <div class="status-grid" id="telemetry-grid" style="display: none; margin-top: 1.5rem;">
+                <div class="status-item">
+                    <h4>Kernel Version</h4>
+                    <div class="value" id="live-version">--</div>
+                </div>
+                <div class="status-item">
+                    <h4>Active Tools</h4>
+                    <div class="value" id="live-tools">--</div>
+                </div>
+                <div class="status-item">
+                    <h4>Build Commit</h4>
+                    <div class="value" id="live-commit">--</div>
+                </div>
+                <div class="status-item">
+                    <h4>Response Latency</h4>
+                    <div class="value" id="live-latency">--</div>
+                </div>
+            </div>
+            <p style="margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.8rem; text-align: center;" id="live-updated">
+                Real-time proof of constitutional enforcement. <span id="refresh-time"></span>
+            </p>
+        </div>
+
+        <footer>
+            <p><strong>Authority:</strong> 888 Judge — Muhammad Arif bin Fazil</p>
+            <p><strong>License:</strong> AGPL-3.0-only</p>
+            <p style="margin-top: 1.5rem; font-style: italic; color: var(--accent-psi);">Ditempa Bukan Diberi — Forged, Not Given [ΔΩΨ | ARIF]</p>
+            <p style="margin-top: 0.5rem; font-size: 0.8rem; opacity: 0.5;">© 2026 arifOS Project</p>
+        </footer>
     </div>
 
     <script>
-        const API_BASE = window.location.origin;
-        
-        async function fetchStatus() {
+        const API_BASE = window.location.origin.includes('localhost') ? 'http://localhost:8080' : window.location.origin;
+
+        async function fetchJson(url) {
+            const r = await fetch(url);
+            if (!r.ok) throw new Error(r.status);
+            return r.json();
+        }
+
+        async function refreshStatus() {
             try {
-                // Fetch health status
-                const healthRes = await fetch(`${API_BASE}/health`);
-                const health = await healthRes.json();
+                const start = performance.now();
+                const h = await fetchJson(`${API_BASE}/health`);
+                const lat = Math.round(performance.now() - start);
+
+                const grid = document.getElementById('telemetry-grid');
+                if (grid) grid.style.display = 'grid';
                 
-                document.getElementById('health').textContent = health.status || 'unknown';
-                document.getElementById('health').style.color = health.status === 'healthy' ? 'var(--accent-seal)' : 'var(--accent-void)';
-                document.getElementById('version').textContent = health.version || 'v2.0.0';
-                document.getElementById('floors').textContent = health.floors_active || '13';
-                document.getElementById('tool-count').textContent = health.tools_loaded || '10';
-                document.getElementById('status-text').textContent = 'AF-FORGE Connected';
-                
-                // Fetch tools list
-                const toolsRes = await fetch(`${API_BASE}/tools`);
-                const tools = await toolsRes.json();
-                
-                if (tools.tools && tools.tools.length > 0) {
-                    renderTools(tools.tools);
-                }
-                
-                // Fetch philosophy via init endpoint (dry-run)
-                try {
-                    const philRes = await fetch(`${API_BASE}/tools/arifos.init`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            actor_id: 'landing_page', 
-                            intent: 'status_check',
-                            dry_run: true 
-                        })
-                    });
-                    const phil = await philRes.json();
-                    
-                    if (phil.philosophy && phil.philosophy.entry) {
-                        document.getElementById('philosophy-text').textContent = `"${phil.philosophy.entry.text}"`;
-                        document.getElementById('philosophy-meta').textContent = 
-                            `${phil.philosophy.entry.author} | Band: ${phil.philosophy.band} | Mode: ${phil.philosophy.selection_mode}`;
-                    }
-                } catch (e) {
-                    // Fallback to static S1
-                    document.getElementById('philosophy-text').textContent = '"DITEMPA, BUKAN DIBERI."';
-                    document.getElementById('philosophy-meta').textContent = 'arifOS Principle | S1 | Forge Identity';
-                }
-                
-                document.getElementById('last-updated').textContent = 'Last updated: ' + new Date().toLocaleString();
-                
-            } catch (error) {
-                console.error('Fetch error:', error);
-                document.getElementById('status-text').textContent = 'AF-FORGE Unreachable';
-                document.querySelector('.live-status').classList.add('error-state');
-                
-                // Show fallback data
-                document.getElementById('health').textContent = 'degraded';
-                document.getElementById('health').style.color = 'var(--accent-void)';
-                document.getElementById('philosophy-text').textContent = '"DITEMPA, BUKAN DIBERI."';
-                document.getElementById('philosophy-meta').textContent = 'arifOS Principle | S1 | Forge Identity';
-            }
+                document.getElementById('live-version').textContent = h.version || h.release_tag || '2.0.0';
+                document.getElementById('live-tools').textContent = h.tools_loaded || '10';
+                document.getElementById('live-commit').textContent = h.source_commit || '--';
+                document.getElementById('live-latency').textContent = `${lat}ms`;
+                document.getElementById('refresh-time').textContent = `Verified at ${new Date().toLocaleTimeString()}`;
+            } catch (e) { console.warn('Telemetry offline'); }
         }
-        
-        function renderTools(tools) {
-            const container = document.getElementById('tools-container');
-            container.innerHTML = '';
-            
-            const toolInfo = {
-                'arifos.init': { stage: '000_INIT', desc: 'Session establishment', trinity: 'Ψ' },
-                'arifos.sense': { stage: '111_SENSE', desc: 'Reality grounding', trinity: 'Δ' },
-                'arifos.mind': { stage: '333_MIND', desc: 'Structured reasoning', trinity: 'Δ' },
-                'arifos.route': { stage: '444_ROUTER', desc: 'The Kernel', trinity: 'Ψ' },
-                'arifos.heart': { stage: '666_HEART', desc: 'Safety critique', trinity: 'Ω' },
-                'arifos.ops': { stage: '777_OPS', desc: 'Cost estimation', trinity: 'Ω' },
-                'arifos.judge': { stage: '888_JUDGE', desc: 'Constitutional verdict', trinity: 'Ψ' },
-                'arifos.memory': { stage: '555_MEMORY', desc: 'Governed memory', trinity: 'Ω' },
-                'arifos.vault': { stage: '999_VAULT', desc: 'The Seal', trinity: 'Ψ' },
-                'arifos.forge': { stage: 'FORGE_010', desc: 'Execution bridge', trinity: 'Δ' }
-            };
-            
-            tools.forEach(toolName => {
-                const info = toolInfo[toolName] || { stage: '--', desc: 'Tool', trinity: '' };
-                const div = document.createElement('div');
-                div.className = 'tool-item';
-                div.innerHTML = `
-                    <div class="tool-name">${toolName}</div>
-                    <div class="tool-stage">${info.trinity} ${info.stage} | ${info.desc}</div>
-                `;
-                container.appendChild(div);
-            });
-        }
-        
-        // Initial load
-        fetchStatus();
-        
-        // Auto-refresh every 30s
-        setInterval(fetchStatus, 30000);
+
+        refreshStatus();
+        setInterval(refreshStatus, 30000);
+    </script>
+    <script type="application/json" id="arifos-metadata">
+    {
+        "name": "arifOS MCP Server",
+        "version": "2026.04.07-LLM-OS",
+        "description": "Production Constitutional AI Governance System — LLM OS & Karpathy Aligned",
+        "architecture": {
+            "type": "Trinity + LLM OS",
+            "features": ["Autonomy Slider", "Process-Based Supervision", "Continuous World Model"],
+            "transport": "streamable-http",
+            "source_of_truth": "https://github.com/ariffazil/arifOS"
+        },
+        "tools": { "total": 10, "canonical": ["init", "sense", "mind", "heart", "route", "memory", "ops", "judge", "vault", "forge"] }
+    }
     </script>
 </body>
 </html>
