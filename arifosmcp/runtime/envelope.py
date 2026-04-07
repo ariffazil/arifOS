@@ -37,9 +37,9 @@ class MindState(BaseModel):
 class OutputEnvelope(BaseModel):
     status: Literal["OK", "PARTIAL", "HOLD", "ERROR"]
     summary: str
-    key_facts: List[str] = Field(max_items=3)
-    key_uncertainties: List[str] = Field(max_items=3)
-    options: List[str] = Field(max_items=3)
+    key_facts: List[str] = Field(max_length=3)
+    key_uncertainties: List[str] = Field(max_length=3)
+    options: List[str] = Field(max_length=3)
     next_step: str
     human_decision_required: bool
     provenance: Provenance

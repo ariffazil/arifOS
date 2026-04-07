@@ -61,23 +61,35 @@ def _get_qdrant_client():
 
 
 def _ensure_collection():
-    """Ensure the memory collection exists."""
+    """Ensure the memory collection exists and has the correct vector schema."""
     client = _get_qdrant_client()
     try:
-        client.get_collection(_QDRANT_COLLECTION)
+        info = client.get_collection(_QDRANT_COLLECTION)
+        existing_size = info.config.params.vectors.size
+        if existing_size != _VECTOR_SIZE:
+            raise RuntimeError(
+                f"F10 SCHEMA: Collection '{_QDRANT_COLLECTION}' has dim={existing_size} "
+                f"but VECTOR_SIZE={_VECTOR_SIZE}. Manual migration required."
+            )
+    except RuntimeError:
+        raise
     except Exception:
         from qdrant_client.models import Distance, VectorParams
         client.create_collection(
             collection_name=_QDRANT_COLLECTION,
             vectors_config=VectorParams(size=_VECTOR_SIZE, distance=Distance.COSINE),
         )
-        logger.info(f"Created collection: {_QDRANT_COLLECTION}")
+        logger.info(f"Created collection: {_QDRANT_COLLECTION} (dim={_VECTOR_SIZE})")
 
 
 def _generate_embedding(text: str) -> list[float]:
-    """Generate 1024-dim embedding via Ollama bge-m3 (F10 Ontology encoded)."""
+    """Generate 1024-dim embedding via Ollama bge-m3 (F10 Ontology encoded).
+
+    Raises RuntimeError on failure — callers must handle; zero-vector fallback
+    is intentionally removed to prevent silent pollution of Qdrant retrieval.
+    """
+    import httpx
     try:
-        import httpx
         response = httpx.post(
             f"{_OLLAMA_URL}/api/embeddings",
             json={"model": _EMBEDDING_MODEL, "prompt": text},
@@ -87,10 +99,10 @@ def _generate_embedding(text: str) -> list[float]:
         embedding = response.json().get("embedding", [])
         if embedding:
             return embedding
-        logger.warning("Ollama returned empty embedding")
+        raise ValueError("Ollama returned empty embedding")
     except Exception as exc:
         logger.error(f"Failed to generate embedding via Ollama bge-m3: {exc}")
-    return [0.0] * _VECTOR_SIZE
+        raise RuntimeError(f"Embedding unavailable: {exc}") from exc
 
 
 def _compute_truth_score(content: str, context: dict | None = None) -> float:
@@ -176,7 +188,10 @@ async def vector_store(
             "ontology": ontology,
             "policy_violation": True,
         }
-    vector = _generate_embedding(content)
+    try:
+        vector = _generate_embedding(content)
+    except RuntimeError as exc:
+        return {"ok": False, "error": f"F10 EMBEDDING: {exc}", "embedding_unavailable": True}
     point_id = str(uuid.uuid4())
     content_hash = _compute_content_hash(content)
     payload = {
@@ -218,7 +233,10 @@ async def vector_query(
 ) -> dict:
     """Query vector memory with F10/F2 constitutional filtering."""
     _ensure_collection()
-    vector = _generate_embedding(query)
+    try:
+        vector = _generate_embedding(query)
+    except RuntimeError as exc:
+        return {"ok": False, "error": f"F10 EMBEDDING: {exc}", "embedding_unavailable": True}
     query_filter = None
     if filters:
         from qdrant_client.models import FieldCondition, Filter, MatchValue
@@ -236,15 +254,15 @@ async def vector_query(
         if conditions:
             query_filter = Filter(must=conditions)
     client = _get_qdrant_client()
-    results = client.search(
+    hits = client.query_points(
         collection_name=_QDRANT_COLLECTION,
-        query_vector=vector,
+        query=vector,
         limit=top_k,
         query_filter=query_filter,
         with_payload=True,
-    )
+    ).points
     filtered_results = []
-    for hit in results:
+    for hit in hits:
         md = hit.payload.get("metadata", {})
         if md.get("truth_score", 0.0) >= _F2_TRUTH_THRESHOLD:
             filtered_results.append({
@@ -259,7 +277,7 @@ async def vector_query(
         "ok": True,
         "query": query,
         "results": filtered_results,
-        "total_hits": len(results),
+        "total_hits": len(hits),
         "filtered_hits": len(filtered_results),
         "f2_threshold": _F2_TRUTH_THRESHOLD,
     }

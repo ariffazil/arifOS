@@ -159,6 +159,8 @@ services:
       - path: .env
     environment:
       - PYTHONPATH=/usr/src/project
+      - VPS_MODE=1
+      - ARIFOS_DEPLOYMENT=vps
       - OLLAMA_URL=http://ollama:11434
       - OLLAMA_BASE_URL=http://ollama:11434
       - QDRANT_URL=http://qdrant:6333

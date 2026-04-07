@@ -441,6 +441,11 @@ def create_v2_mcp_server() -> FastMCP:
     return mcp
 
 
+# Compatibility alias — preserves existing imports of create_aaa_mcp_server
+# across __init__.py, __main__.py, tests, and CLI entry points.
+create_aaa_mcp_server = create_v2_mcp_server
+
+
 if __name__ == "__main__":
     from arifosmcp.runtime.fastmcp_ext.transports import run_server
     run_server(mcp, mode="http", host="0.0.0.0", port=8080)
