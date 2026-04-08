@@ -2,6 +2,55 @@
 
 All notable changes to arifOS MCP are documented in this file.
 
+## [2026.04.09-KERNEL-SEALED] - UNIFIED KERNEL rCore Architecture
+
+### 🔥 MAJOR: KERNEL Unified — Fragmentation Eliminated
+
+**New: `kernel_core.py` — Unified KERNEL rCore**
+- INPUT → ORCHESTRATE → OUTPUT three-stage pipeline
+- Single entry point: `kernel_execute()`
+- Consolidates: `arifOS_kernel` + `kernel_router` + `continuity_contract`
+
+**Before (Fragmented)**:
+```
+arifOS_kernel ──► kernel_router ──► continuity_contract
+     │                 │
+     └─► sessions.py ─┘
+```
+
+**After (Unified)**:
+```
+kernel_core.execute()
+     │
+     ├── INPUT ──── Normalize + Assemble
+     ├── ORCHESTRATE ── Classify + Route + Govern
+     └── OUTPUT ──── Seal + Continuity
+```
+
+**Updated: `arifOS_kernel`**
+- Now delegates to `kernel_core.execute()` internally
+- Maintains backward compatibility
+
+**New: `arifos.kernel` — First-class MCP Tool**
+- Exposed on MCP surface at 444_KERNEL
+- Canonical KERNEL tool for arifOS
+- INPUT → ORCHESTRATE → OUTPUT pipeline
+
+**Deprecated: `arifos.route`**
+- Now alias for `arifos.kernel`
+- Marked deprecated in favor of `arifos.kernel`
+
+**Updated: `tool_registry.json`**
+- Added `arifos_kernel` entry
+
+**Files Changed**:
+- `arifosmcp/runtime/kernel_core.py` (NEW)
+- `arifosmcp/runtime/megaTools/tool_02_arifOS_kernel.py`
+- `arifosmcp/server_horizon.py`
+- `arifosmcp/tool_registry.json`
+
+---
+
 ## [2026.04.07-SOT-SEALED] - Versioned File Unification + Single Source of Truth
 
 ### 🔥 MAJOR: Versioned File Chaos Eliminated (−3841 lines)

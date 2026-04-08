@@ -27,7 +27,7 @@ The material interface of arifOS is the **11-Tool Canonical Surface**. These too
 | **1** | `arifos_init` | 000 | Ψ | GOVERNANCE |
 | **2** | `arifos_sense` | 111 | Δ | MACHINE |
 | **3** | `arifos_mind` | 333 | Δ | INTELLIGENCE |
-| **4** | `arifos_route` | 444 | Δ/Ψ | GOVERNANCE |
+| **4** | `arifos_kernel` | 444_KERNEL | Δ/Ψ | GOVERNANCE |
 | **5** | `arifos_memory` | 555 | Ω | INTELLIGENCE |
 | **6** | `arifos_heart` | 666 | Ω | INTELLIGENCE |
 | **7** | `arifos_ops` | 777 | Δ | MACHINE |
@@ -35,6 +35,9 @@ The material interface of arifOS is the **11-Tool Canonical Surface**. These too
 | **9** | `arifos_vault` | 999 | Ψ | GOVERNANCE |
 | **10** | `arifos_forge` | 010 | Δ | EXECUTION |
 | **11** | `arifos_vps_monitor` | 111 | Δ | MACHINE |
+
+> [!NOTE]
+> `arifos.route` is deprecated — use `arifos.kernel` (444_KERNEL) instead.
 
 ---
 
